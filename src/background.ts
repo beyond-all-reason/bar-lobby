@@ -29,8 +29,8 @@ async function createWindow() {
     const bounds = store.get("winBounds");
 
     const mainWindow = new BrowserWindow({
-        //fullscreen: !isDevelopment,
-        //frame: false,
+        fullscreen: !isDevelopment,
+        frame: false,
         ...bounds,
         show: false,
         webPreferences: {
@@ -41,7 +41,7 @@ async function createWindow() {
     });
 
     mainWindow.once("ready-to-show", () => {
-        mainWindow.removeMenu();
+        //mainWindow.removeMenu();
         mainWindow.maximize();
         mainWindow.show();
     });
@@ -57,7 +57,7 @@ async function createWindow() {
 
     if (process.env.WEBPACK_DEV_SERVER_URL) {
         await mainWindow.loadURL(process.env.WEBPACK_DEV_SERVER_URL as string);
-        //if (!process.env.IS_TEST) win.webContents.openDevTools();
+        if (!process.env.IS_TEST) mainWindow.webContents.openDevTools();
     } else {
         createProtocol("app");
         mainWindow.loadURL("app://./index.html");

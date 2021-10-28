@@ -1,0 +1,24 @@
+html {
+    height: 100%;
+    background: #000;
+    overflow: hidden;
+}
+body {
+    height: 100%;
+}
+#app {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    font-family: Rajdhani, Times, sans-serif;
+    text-transform: uppercase;
+    color: #fff;
+    text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.6);
+    cursor: url("~@/assets/images/cursornormal_0.png"), auto;
+    user-select: none;
+}
+p {
+    user-select: text;
+}
