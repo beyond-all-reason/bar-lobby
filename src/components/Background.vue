@@ -17,25 +17,9 @@ export default defineComponent({
     top: 0;
     left: 0;
     z-index: -1;
-    transform: scale(1.2);
+    transform: scale(1.2) translateX(-15px);
     background-image: url("~@/assets/images/bg1.jpg");
     background-size: cover;
-    
-    // the below causes extreme rendering lag
-    // animation: xAxisSway 5s infinite, yAxisSway 7s infinite, filter 9s infinite;
-    // animation-direction: alternate;
-    // animation-timing-function: ease-in-out;
-}
-@keyframes xAxisSway {
-    from { background-position-x: 20px }
-    to { background-position-x: 40px }
-}
-@keyframes yAxisSway {
-    from { background-position-y: 20px }
-    to { background-position-y: 30px }
-}
-@keyframes filter {
-    from { filter: blur(6px) saturate(60%) brightness(40%); }
-    to { filter: blur(6px) saturate(85%) brightness(55%); }
+    filter: blur(6px) saturate(60%) brightness(40%);
 }
 </style>

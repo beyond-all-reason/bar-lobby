@@ -4,9 +4,9 @@
     <div class="main">
         <Login />
     </div>
-    <div class="test">
+    <!-- <div class="test">
         <div class="hover" v-for="(n, i) in 20" :key="i">Hello world</div>
-    </div>
+    </div> -->
 </template>
 
 <script lang="ts">
