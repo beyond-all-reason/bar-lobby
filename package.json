@@ -14,8 +14,6 @@
   "main": "background.js",
   "dependencies": {
     "@iconify/json": "^1.1.420",
-    "@iconify/json-tools": "^1.0.10",
-    "@material-icons/svg": "^1.0.19",
     "@sinclair/typebox": "^0.20.5",
     "@types/electron-devtools-installer": "^2.2.0",
     "@typescript-eslint/eslint-plugin": "^4.18.0",

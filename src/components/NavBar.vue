@@ -1,5 +1,5 @@
 <template>
-    <Panel style="border-left: none; border-top: none; border-right: none;">
+    <Panel :style="'border-left: none; border-top: none; border-right: none;'">
         <div class="nav">
             <div class="left">
                 <button class="item logo">
@@ -14,8 +14,11 @@
                 <button class="item">
                     Jazcash
                 </button>
-                <button class="item">
+                <button class="item icon">
                     <Icon icon="cog" :size="40" />
+                </button>
+                <button class="item icon">
+                    <Icon icon="close-thick" :size="40" />
                 </button>
             </div>
         </div>
@@ -76,11 +79,15 @@ export default defineComponent({
         color: #fff;
         text-shadow: 0 0 7px #fff;
     }
+    &.icon {
+        padding: 10px 15px;
+    }
 }
 .logo {
     display: flex;
     justify-content: center;
     align-items: center;
+    flex-shrink: 0;
     img {
         height: 40px;
         opacity: 0.9;

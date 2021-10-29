@@ -4,6 +4,9 @@
     <div class="main">
         <Login />
     </div>
+    <div class="test">
+        <div class="hover" v-for="(n, i) in 20" :key="i">Hello world</div>
+    </div>
 </template>
 
 <script lang="ts">
@@ -13,11 +16,13 @@ import Background from "@/components/Background.vue";
 import Login from "@/components/Login.vue";
 
 export default defineComponent({
-    name: "App",
     components: {
         Background,
         NavBar,
         Login
+    },
+    setup() {
+        return {};
     }
 });
 </script>
@@ -26,5 +31,11 @@ export default defineComponent({
 .main {
     height: 100%;
     padding: 10px;
+}
+.hover {
+    background: red;
+    &:hover {
+        background: blue;
+    }
 }
 </style>
