@@ -30,6 +30,6 @@ Project setup - `npm install`
 
 Compile and hot-reload for development - `npm run electron:serve`
 
-Compiles and minifies for production - `npm run electron:build`
+Compile and minify for production - `npm run electron:build`
 
 Lint and fix files - `npm run lint`
