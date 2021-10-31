@@ -2,8 +2,11 @@
     <Background />
     <NavBar />
     <div class="main">
-        <router-link to="/">Home</router-link>
+        <!-- <router-link to="/">Home</router-link>
         <router-link to="/test">Page</router-link>
+        <router-view></router-view> -->
+        <router-link to="/">Index</router-link>
+        <router-link to="/about">About</router-link>
         <router-view></router-view>
         <Login />
     </div>

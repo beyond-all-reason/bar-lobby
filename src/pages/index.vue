@@ -1,5 +1,5 @@
 <template>
-    Hello world
+    Index
 </template>
 
 <script lang="ts">

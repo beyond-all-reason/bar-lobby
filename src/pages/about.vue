@@ -1,5 +1,5 @@
 <template>
-    Bob
+    About
 </template>
 
 <script lang="ts">
