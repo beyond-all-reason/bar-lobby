@@ -17,7 +17,10 @@ Contributing to BAR Lobby should be a stress-free and ideally _fun_ experience. 
 ### Primary tech stack
 - Electron
 - TypeScript
+- SCSS
 - Vue
+  - Vuex
+  - @vueuse/sound (Howler)
 
 ### Recommended Environment
 It is highly recommended to use VSCode for development, as it provides full, built-in TypeScript support, as well as useful extensions such as ESLint and Vetur.
