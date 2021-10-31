@@ -19,7 +19,7 @@ Contributing to BAR Lobby should be a stress-free and ideally _fun_ experience. 
 - [TypeScript](https://www.typescriptlang.org/)
 - [SCSS](https://sass-lang.com/)
 - [Vue 3](https://v3.vuejs.org/) with Composition API
-  - [Vue CLI Plugin Electron Builder][https://nklayman.github.io/vue-cli-plugin-electron-builder/]
+  - [Vue CLI Plugin Electron Builder](https://nklayman.github.io/vue-cli-plugin-electron-builder/)
   - [Vue Router](https://next.router.vuejs.org/guide/)
   - [Vuex](https://vuex.vuejs.org/)
   - [@vueuse/sound (Howler)](https://github.com/vueuse/sound)
