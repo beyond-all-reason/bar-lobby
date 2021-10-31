@@ -19,6 +19,7 @@ Contributing to BAR Lobby should be a stress-free and ideally _fun_ experience. 
 - TypeScript
 - SCSS
 - Vue
+  - Vue Router
   - Vuex
   - @vueuse/sound (Howler)
 
