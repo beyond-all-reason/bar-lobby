@@ -2,7 +2,7 @@
 
 BAR Lobby is a new WIP lobby for the RTS game [Beyond All Reason](https://github.com/beyond-all-reason/Beyond-All-Reason). It hopes to boldly go where other Spring clients haven't gone before, providing a more streamlined experience with good visuals and UX being high priority. The ultimate goal of BAR Lobby is to replace all other lobbies when it comes to playing BAR. If a significant amount of people don't wish to use it because of reasons such as functionality or speed, then this project is going very wrong.
 
-## Functionality and goals
+## Functionality and Goals
 
 - Provide functionality for everything related to BAR. Campaigns, Missions, Multiplayer, Replays etc
 - Simple and intutive development, lots of documenation for contributing
@@ -14,7 +14,7 @@ BAR Lobby is a new WIP lobby for the RTS game [Beyond All Reason](https://github
 ## Development
 Contributing to BAR Lobby should be a stress-free and ideally _fun_ experience. The tech stack has been chosen with this in mind.
 
-### Primary tech stack
+### Primary Tech Stack
 - Electron
 - TypeScript
 - SCSS
