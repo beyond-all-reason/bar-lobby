@@ -15,12 +15,14 @@ BAR Lobby is a new WIP lobby for the RTS game [Beyond All Reason](https://github
 Contributing to BAR Lobby should be a stress-free and ideally _fun_ experience. The tech stack has been chosen with this in mind.
 
 ### Primary Tech Stack
+- [Tachyon Client](https://github.com/Jazcash/tachyon-client)
 - [Electron](https://www.electronjs.org/)
 - [TypeScript](https://www.typescriptlang.org/)
 - [SCSS](https://sass-lang.com/)
 - [Vue 3](https://v3.vuejs.org/) with Composition API
   - [Vue CLI Plugin Electron Builder](https://nklayman.github.io/vue-cli-plugin-electron-builder/)
   - [Vue Router](https://next.router.vuejs.org/guide/)
+  - [Vue Auto Routing](https://github.com/ktsn/vue-cli-plugin-auto-routing)
   - [Vuex](https://vuex.vuejs.org/)
   - [@vueuse/sound (Howler)](https://github.com/vueuse/sound)
 
