@@ -1,23 +1,34 @@
 <template>
     <div class="panel" :style="style">
         <div class="background"></div>
-        <slot/>
+        <div v-if="title" class="title">{{ title }}</div>
+        <div class="content">
+            <slot />
+        </div>
     </div>
 </template>
 
 <script lang="ts">
-import { defineComponent } from "vue";
+import { defineComponent, ref } from "vue";
 
 export default defineComponent({
     props: {
         style: {
             type: String,
-            default: "padding: 10px",
+            default: "padding: 15px",
+        },
+        title: {
+            type: String,
+            default: "",
         },
     },
     setup(props) {
+        const style = ref(props.style);
+        const title = ref(props.title);
+
         return {
-            padding: props.style,
+            style,
+            title
         };
     }
 });
@@ -26,7 +37,7 @@ export default defineComponent({
 <style scoped lang="scss">
 .panel {
     position: relative;
-    border: 1px solid rgba(255, 255, 255, 0.07);
+    border: 1px solid rgba(255, 255, 255, 0.08);
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
 }
 .background {
@@ -48,6 +59,17 @@ export default defineComponent({
         background: url("~@/assets/images/px_by_Gre3g.png");
         filter: brightness(70%);
         opacity: 0.25;
+    }
+}
+.title {
+    position: absolute;
+    top: 0;
+    left: 0;
+    padding: 2px 5px;
+    background: rgba(0, 0, 0, 0.4);
+    color: rgba(255, 255, 255, 0.7);
+    + .content {
+        padding-top: 20px;
     }
 }
 </style>

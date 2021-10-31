@@ -6,6 +6,9 @@
 import { defineComponent } from "vue";
 
 export default defineComponent({
+    setup() {
+        return {};
+    }
 });
 </script>
 
@@ -20,6 +23,6 @@ export default defineComponent({
     transform: scale(1.2) translateX(-15px);
     background-image: url("~@/assets/images/bg1.jpg");
     background-size: cover;
-    filter: blur(6px) saturate(60%) brightness(40%);
+    filter: blur(6px) saturate(60%) brightness(30%);
 }
 </style>

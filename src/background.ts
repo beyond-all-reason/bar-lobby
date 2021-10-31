@@ -29,6 +29,8 @@ async function createWindow() {
     const bounds = store.get("winBounds");
 
     const mainWindow = new BrowserWindow({
+        title: "BAR Lobby",
+        icon: "icon.png",
         fullscreen: !isDevelopment,
         frame: false,
         ...bounds,

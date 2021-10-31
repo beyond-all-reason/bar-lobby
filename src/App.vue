@@ -2,11 +2,11 @@
     <Background />
     <NavBar />
     <div class="main">
+        <router-link to="/">Home</router-link>
+        <router-link to="/test">Page</router-link>
+        <router-view></router-view>
         <Login />
     </div>
-    <!-- <div class="test">
-        <div class="hover" v-for="(n, i) in 20" :key="i">Hello world</div>
-    </div> -->
 </template>
 
 <script lang="ts">

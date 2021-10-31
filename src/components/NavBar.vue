@@ -2,24 +2,27 @@
     <Panel :style="'border-left: none; border-top: none; border-right: none;'">
         <div class="nav">
             <div class="left">
-                <button class="item logo">
+                <Button class="item logo" depress>
                     <img src="@/assets/images/logo.svg">
-                </button>
-                <button class="item">Campaign</button>
-                <button class="item">Missions</button>
-                <button class="item">Versus</button>
-                <button class="item">Replays</button>
+                </Button>
+                <Button class="item" depress>Campaign</Button>
+                <Button class="item" depress>Missions</Button>
+                <Button class="item" depress>Versus</Button>
+                <Button class="item" depress>Replays</Button>
             </div>
             <div class="right">
-                <button class="item">
+                <Button class="item" depress>
                     Jazcash
-                </button>
-                <button class="item icon">
+                </Button>
+                <Button class="item icon" depress>
                     <Icon icon="cog" :size="40" />
-                </button>
-                <button class="item icon">
+                </Button>
+                <Button class="item icon" depress>
+                    <Icon icon="wrench" :size="35" />
+                </Button>
+                <Button class="item icon" depress>
                     <Icon icon="close-thick" :size="40" />
-                </button>
+                </Button>
             </div>
         </div>
     </Panel>
@@ -74,8 +77,25 @@ export default defineComponent({
     .right & {
         box-shadow: -1px 0 0 rgba(255, 255, 255, 0.1);
     }
-    &:hover {
+    &:hover:not(.selected) {
         background: radial-gradient(rgba(0, 0, 0, 0), rgba(255, 255, 255, 0.12));
+        color: #fff;
+        text-shadow: 0 0 7px #fff;
+        .left & {
+            box-shadow: 1px 0 0 rgba(255, 255, 255, 0.3), -1px 0 0 rgba(255, 255, 255, 0.2), 7px -3px 10px rgba(0, 0, 0, 0.5), -7px -3px 10px rgba(0, 0, 0, 0.5);
+        }
+        .right & {
+            box-shadow: 1px 0 0 rgba(255, 255, 255, 0.2), -1px 0 0 rgba(255, 255, 255, 0.3), 7px -3px 10px rgba(0, 0, 0, 0.5), -7px -3px 10px rgba(0, 0, 0, 0.5);
+        }
+    }
+    &:active:not(.selected) {
+        background: linear-gradient(rgba(0, 0, 0, 0.4), rgba(202, 202, 202, 0.1));
+        box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.7) !important;
+        color: rgba(255, 255, 255, 0.4);
+        text-shadow: none;
+    }
+    &.selected {
+        background: linear-gradient(rgba(255, 255, 255, 0), rgba(0, 0, 0, 0.4));
         color: #fff;
         text-shadow: 0 0 7px #fff;
     }
