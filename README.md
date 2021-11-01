@@ -35,8 +35,8 @@ It is highly recommended to use [VSCode](https://code.visualstudio.com/) for dev
 ### NPM Scripts
 Project setup - `npm install`
 
-Compile and hot-reload for development - `npm run electron:serve`
+Compile and hot-reload for development - `npm run dev`
 
-Compile and minify for production - `npm run electron:build`
+Compile and minify for production - `npm run build`
 
 Lint and fix files - `npm run lint`
