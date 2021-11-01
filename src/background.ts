@@ -26,19 +26,17 @@ async function createWindow() {
             contextIsolation: !process.env.ELECTRON_NODE_INTEGRATION
         }
     });
-
-    let bounds: Electron.Rectangle = { x: 0, y: 0, width: 800, height: 600 };
-
+    
     mainWindow.once("ready-to-show", () => {
         const chosenDisplay = 1;
-        bounds = screen.getAllDisplays()[chosenDisplay].bounds;
-        mainWindow.setPosition(bounds.x, bounds.y);
+        const { x, y } = screen.getAllDisplays()[chosenDisplay].bounds;
+        mainWindow.setPosition(x, y);
 
         if (!fullscreenMode) {
             mainWindow.maximize();
         }
 
-        mainWindow.removeMenu();
+        mainWindow.setMenuBarVisibility(false);
         
         mainWindow.show();
     });

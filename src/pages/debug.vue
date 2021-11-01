@@ -1,8 +1,6 @@
 <template>
-    <Background />
-    <NavBar />
-    <div class="main">
-        <router-view/>
+    <div>
+        <div class="hover" v-for="(n, i) in 20" :key="i">Hello world</div>
     </div>
 </template>
 
@@ -16,11 +14,7 @@ export default defineComponent({
 });
 </script>
 
-<style lang="scss" scoped>
-.main {
-    height: 100%;
-    padding: 10px;
-}
+<style scoped lang="scss">
 .hover {
     background: red;
     &:hover {

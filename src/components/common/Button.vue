@@ -1,9 +1,9 @@
 <template>
-    <button :class="`${depress ? 'depress' : ''} ${isSelected ? 'selected' : ''}`" @mouseover="() => !isSelected && play()">
+    <router-link :class="`${depress ? 'depress' : ''} ${isSelected ? 'selected' : ''}`" @mouseover="() => !isSelected && play()" :to="to">
         <div class="content">
             <slot/>
         </div>
-    </button>
+    </router-link>
 </template>
 
 <script lang="ts">
@@ -20,13 +20,18 @@ export default defineComponent({
         depress: {
             type: Boolean,
             default: false
+        },
+        to: {
+            type: String,
+            default: ""
         }
     },
     setup(props) {
         const isSelected = ref(props.selected);
+        const to = ref(props.to);
         const { play } = useSound(buttonSfx, { volume: 0.2 });
 
-        return { isSelected, play };
+        return { isSelected, play, to };
     }
 });
 </script>
@@ -39,7 +44,7 @@ export default defineComponent({
     transform: translateY(0);
     transition: transform 0.1s;
 }
-button {
+a {
     &.depress:hover:not(.selected) .content {
         transform: translateY(-1px);
     }

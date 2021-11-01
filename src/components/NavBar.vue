@@ -17,12 +17,13 @@
                 <Button class="item icon" depress>
                     <Icon icon="cog" :size="40" />
                 </Button>
-                <Button class="item icon" depress>
+                <Button to="debug" class="item icon" depress>
                     <Icon icon="wrench" :size="35" />
                 </Button>
                 <Button class="item icon" depress>
                     <Icon icon="close-thick" :size="40" />
                 </Button>
+                
             </div>
         </div>
     </Panel>
@@ -36,25 +37,6 @@ export default defineComponent({
 </script>
 
 <style scoped lang="scss">
-.background {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.4);
-    z-index: -1;
-    backdrop-filter: blur(7px);
-    &:after {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        content: "";
-        background: url("~@/assets/images/px_by_Gre3g.png");
-        filter: brightness(70%);
-        opacity: 0.25;
-    }
-}
 .nav {
     display: flex;
     justify-content: space-between;
