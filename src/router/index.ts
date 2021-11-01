@@ -1,4 +1,4 @@
-import { createRouter, createWebHistory } from "vue-router";
+import { createRouter, createWebHashHistory } from "vue-router";
 import routes from "vue-auto-routing";
 import { createRouterLayout } from "vue-router-layout";
 
@@ -7,10 +7,10 @@ const RouterLayout = createRouterLayout(layout => {
 });
 
 const router = createRouter({
-    history: createWebHistory(process.env.BASE_URL),
+    history: createWebHashHistory(process.env.BASE_URL),
     routes: [
         {
-            path: "/",
+            path: "/splash",
             component: RouterLayout,
             children: routes
         }

@@ -9,7 +9,7 @@
 <script lang="ts">
 import { defineComponent, ref } from "vue";
 import { useSound } from "@vueuse/sound";
-import buttonSfx from "@/assets/sounds/ui/button-hover.mp3";
+import buttonSfx from "@/assets/audio/ui/button-hover.mp3";
 
 export default defineComponent({
     props: {
