@@ -1,5 +1,5 @@
 <template>
-    <video src="@/assets/video/"></video>
+    Login
 </template>
 
 <script lang="ts">

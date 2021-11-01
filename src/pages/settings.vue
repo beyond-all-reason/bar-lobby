@@ -1,5 +1,5 @@
 <template>
-    About
+    Settings
 </template>
 
 <script lang="ts">

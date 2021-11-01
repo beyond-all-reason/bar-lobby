@@ -1,12 +1,11 @@
 <template>
-    <video src="@/assets/video/"></video>
+    Home
 </template>
 
 <script lang="ts">
 import { defineComponent } from "vue";
 
 export default defineComponent({
-    layout: "empty",
     setup() {
         return {};
     }

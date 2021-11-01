@@ -2,13 +2,13 @@ import { createApp } from "vue";
 
 import "@/styles/styles.scss";
 import Router from "@/router";
-import App from "@/App.vue";
 import store from "@/store";
+import Index from "@/pages/index.vue";
 import Icon from "@/components/common/Icon.vue";
 import Panel from "@/components/common/Panel.vue";
 import Button from "@/components/common/Button.vue";
 
-const app = createApp(App);
+const app = createApp(Index);
 
 app.use(Router);
 app.use(store);
