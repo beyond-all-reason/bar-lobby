@@ -15,7 +15,7 @@
     "dev": "vue-cli-service electron:serve",
     "postinstall": "electron-builder install-app-deps",
     "postuninstall": "electron-builder install-app-deps",
-    "preview-wepack-config": "vue inspect > output.js"
+    "dump-webpack-config": "vue inspect > output.js"
   },
   "main": "background.js",
   "dependencies": {

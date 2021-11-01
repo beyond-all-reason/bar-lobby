@@ -1,11 +1,19 @@
 module.exports = {
     lintOnSave: process.env.NODE_ENV !== "production",
     configureWebpack: {
-        devtool: process.env.NODE_ENV !== "production" ? "source-map" : false
+        // inline required to use source maps from preload.ts imports
+        devtool: process.env.NODE_ENV !== "production" ? "inline-source-map" : false
     },
     pluginOptions: {
         electronBuilder: {
+            mainProcessFile: "src/main.ts",
+            rendererProcessFile: "src/render.ts",
+            preload: "src/preload.ts",
             builderOptions: {
+                productName: "BAR Lobby",
+                directories: {
+                    buildResources: "build"
+                }
             }
         },
         autoRouting: {

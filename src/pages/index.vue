@@ -1,7 +1,7 @@
 <template>
     <div :class="`container ${isLoaded ? 'fade-in' : ''}`" @click="skipVideo">
         <video @loadstart="play" @ended="skipVideo">
-            <source src="local-video://intro.mp4" type="video/mp4">
+            <source src="intro.mp4" type="video/mp4">
         </video>
     </div>
 </template>
