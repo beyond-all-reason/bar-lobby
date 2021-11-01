@@ -1,8 +1,7 @@
 <template>
-    <!-- <div :class="`container ${isLoaded ? 'fade-in' : ''}`" @click="skipVideo"> -->
-    <!-- <video src="@/assets/videos/intro.mp4" autoplay @play="onLoad" @ended="skipVideo"></video> -->
-    <router-link to="/login">sd</router-link>
-    <!-- </div> -->
+    <div :class="`container ${isLoaded ? 'fade-in' : ''}`" @click="skipVideo"> -->
+        <video src="@/assets/videos/intro.mp4" autoplay @play="onLoad" @ended="skipVideo"></video>
+    </div>
 </template>
 
 <script lang="ts">
@@ -20,7 +19,7 @@ export default defineComponent({
         }
 
         function skipVideo({ target: video }: { target: HTMLVideoElement}) {
-            //video.pause();
+            video.pause();
             router.replace("login");
         }
 

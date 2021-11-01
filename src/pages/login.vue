@@ -1,12 +1,3 @@
-<route>
-{
-  "name": "login",
-  "meta": {
-    "requiresAuth": true
-  }
-}
-</route>
-
 <template>
     Login
 </template>
