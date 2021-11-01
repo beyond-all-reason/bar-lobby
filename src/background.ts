@@ -1,3 +1,4 @@
+import * as path from "path";
 import { app, protocol, BrowserWindow, shell } from "electron";
 import { createProtocol } from "vue-cli-plugin-electron-builder/lib";
 import installExtension, { VUEJS3_DEVTOOLS } from "electron-devtools-installer";
@@ -78,6 +79,8 @@ app.on("activate", () => {
 });
 
 app.on("ready", async () => {
+    registerLocalVideoProtocol();
+
     if (isDevelopment && !process.env.IS_TEST) {
         try {
             await installExtension(VUEJS3_DEVTOOLS);
@@ -100,4 +103,21 @@ if (isDevelopment) {
             app.quit();
         });
     }
+}
+
+// https://github.com/nklayman/vue-cli-plugin-electron-builder/issues/872#issuecomment-656292808
+function registerLocalVideoProtocol () {
+    protocol.registerFileProtocol("local-video", (request, callback) => {
+        const url = request.url.replace(/^local-video:\/\//, "");
+        // Decode URL to prevent errors when loading filenames with UTF-8 chars or chars like "#"
+        const decodedUrl = decodeURI(url); // Needed in case URL contains spaces
+        try {
+            return callback(path.join(__static, decodedUrl));
+        } catch (error) {
+            console.error(
+                "ERROR: registerLocalVideoProtocol: Could not get file path:",
+                error
+            );
+        }
+    });
 }

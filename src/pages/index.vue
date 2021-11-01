@@ -1,6 +1,8 @@
 <template>
     <div :class="`container ${isLoaded ? 'fade-in' : ''}`" @click="skipVideo">
-        <video src="@/assets/videos/intro.mp4" @loadstart="play" @ended="skipVideo"></video>
+        <video @loadstart="play" @ended="skipVideo">
+            <source src="local-video://intro.mp4" type="video/mp4">
+        </video>
     </div>
 </template>
 
@@ -13,8 +15,9 @@ export default defineComponent({
     setup() {
         const isLoaded = ref(false);
         const router = useRouter();
-
+        
         async function play({ target: video }: { target: HTMLVideoElement}) {
+            video.volume = 0.2;
             video.play();
             isLoaded.value = true;
         }
