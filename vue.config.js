@@ -17,10 +17,9 @@ module.exports = {
             }
         },
         autoRouting: {
-            pages: "views",
+            pages: "src/views",
             chunkNamePrefix: "view-",
-            importPrefix: "@/views/",
-            outFile: "src/test.ts"
+            importPrefix: "@/views/"
         }
     }
 };
