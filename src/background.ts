@@ -43,7 +43,6 @@ async function createWindow() {
     });
 
     mainWindow.once("ready-to-show", () => {
-        //mainWindow.removeMenu();
         mainWindow.maximize();
         mainWindow.show();
     });
@@ -58,7 +57,7 @@ async function createWindow() {
     });
 
     if (process.env.WEBPACK_DEV_SERVER_URL) {
-        await mainWindow.loadURL(process.env.WEBPACK_DEV_SERVER_URL as string);
+        await mainWindow.loadURL(process.env.WEBPACK_DEV_SERVER_URL);
         if (!process.env.IS_TEST) mainWindow.webContents.openDevTools();
     } else {
         createProtocol("app");

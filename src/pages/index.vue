@@ -1,6 +1,6 @@
 <template>
     <div :class="`container ${isLoaded ? 'fade-in' : ''}`" @click="skipVideo"> -->
-        <video src="@/assets/videos/intro.mp4" autoplay @play="onLoad" @ended="skipVideo"></video>
+        <video src="@/assets/videos/intro.mp4" @play="onLoad" @ended="skipVideo"></video>
     </div>
 </template>
 
@@ -14,7 +14,7 @@ export default defineComponent({
         const isLoaded = ref(false);
         const router = useRouter();
 
-        function onLoad() {
+        function onLoad({ target: video }: { target: HTMLVideoElement}) {
             isLoaded.value = true;
         }
 
