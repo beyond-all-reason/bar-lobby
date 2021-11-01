@@ -2,7 +2,7 @@
     <Panel :style="'border-left: none; border-top: none; border-right: none;'">
         <div class="nav">
             <div class="left">
-                <Button class="item logo" depress>
+                <Button class="item logo" depress to="/home" >
                     <img src="@/assets/images/logo.svg">
                 </Button>
                 <Button class="item" depress>Campaign</Button>
@@ -17,7 +17,7 @@
                 <Button class="item icon" depress>
                     <Icon icon="cog" :size="40" />
                 </Button>
-                <Button to="debug" class="item icon" depress>
+                <Button class="item icon" depress to="/debug" >
                     <Icon icon="wrench" :size="35" />
                 </Button>
                 <Button class="item icon" depress>
