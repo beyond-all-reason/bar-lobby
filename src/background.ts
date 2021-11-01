@@ -1,40 +1,24 @@
 import * as path from "path";
-import { app, protocol, BrowserWindow, shell } from "electron";
+import { app, protocol, BrowserWindow, shell, screen } from "electron";
 import { createProtocol } from "vue-cli-plugin-electron-builder/lib";
 import installExtension, { VUEJS3_DEVTOOLS } from "electron-devtools-installer";
-import Store from "electron-store";
-import { Static, Type } from "@sinclair/typebox";
 
-const isDevelopment = process.env.NODE_ENV !== "production";
-
-const configSchema = Type.Object({
-    winBounds: Type.Object({
-        x: Type.Number(),
-        y: Type.Number(),
-        width: Type.Number(),
-        height: Type.Number()
-    })
-});
-
-type ConfigSchema = Static<typeof configSchema>;
-
-const store = new Store<ConfigSchema>({
-    schema: Type.Strict(configSchema).properties
-});
+const isDev = process.env.NODE_ENV !== "production";
 
 protocol.registerSchemesAsPrivileged([
     { scheme: "app", privileges: { secure: true, standard: true } }
 ]);
 
-async function createWindow() {
-    const bounds = store.get("winBounds");
+const fullscreenMode = false;
 
+async function createWindow() {
     const mainWindow = new BrowserWindow({
         title: "BAR Lobby",
-        fullscreen: !isDevelopment,
-        frame: false,
-        ...bounds,
+        fullscreen: fullscreenMode,
+        frame: !fullscreenMode,
+        resizable: !fullscreenMode,
         show: false,
+        icon: path.join(__static, "icon.png"),
         webPreferences: {
             // Use pluginOptions.nodeIntegration, leave this alone
             // See nklayman.github.io/vue-cli-plugin-electron-builder/guide/security.html#node-integration for more info
@@ -43,13 +27,20 @@ async function createWindow() {
         }
     });
 
-    mainWindow.once("ready-to-show", () => {
-        mainWindow.maximize();
-        mainWindow.show();
-    });
+    let bounds: Electron.Rectangle = { x: 0, y: 0, width: 800, height: 600 };
 
-    mainWindow.on("close", () => {
-        store.set("winBounds", mainWindow.getBounds());
+    mainWindow.once("ready-to-show", () => {
+        const chosenDisplay = 1;
+        bounds = screen.getAllDisplays()[chosenDisplay].bounds;
+        mainWindow.setPosition(bounds.x, bounds.y);
+
+        if (!fullscreenMode) {
+            mainWindow.maximize();
+        }
+
+        mainWindow.removeMenu();
+        
+        mainWindow.show();
     });
 
     mainWindow.webContents.setWindowOpenHandler(({ url }) => {
@@ -81,7 +72,7 @@ app.on("activate", () => {
 app.on("ready", async () => {
     registerLocalVideoProtocol();
 
-    if (isDevelopment && !process.env.IS_TEST) {
+    if (isDev && !process.env.IS_TEST) {
         try {
             await installExtension(VUEJS3_DEVTOOLS);
         } catch (e: any) {
@@ -91,7 +82,7 @@ app.on("ready", async () => {
     createWindow();
 });
 
-if (isDevelopment) {
+if (isDev) {
     if (process.platform === "win32") {
         process.on("message", (data) => {
             if (data === "graceful-exit") {
