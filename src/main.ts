@@ -1,5 +1,5 @@
 import { createApp } from "vue";
-import { createRouter, createWebHashHistory } from "vue-router";
+import { createRouter, createWebHashHistory, createWebHistory } from "vue-router";
 import routes from "vue-auto-routing";
 import { createRouterLayout } from "vue-router-layout";
 
@@ -15,7 +15,7 @@ function setupVue() {
     });
     
     const router = createRouter({
-        history: createWebHashHistory(process.env.BASE_URL),
+        history: process.env.IS_ELECTRON ? createWebHashHistory() : createWebHistory(process.env.BASE_URL),
         routes: [
             {
                 path: "/",

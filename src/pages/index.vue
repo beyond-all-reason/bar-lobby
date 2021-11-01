@@ -1,5 +1,5 @@
 <template>
-    <div :class="`container ${isLoaded ? 'fade-in' : ''}`" @click="skipVideo"> -->
+    <div :class="`container ${isLoaded ? 'fade-in' : ''}`" @click="skipVideo">
         <video src="@/assets/videos/intro.mp4" @loadstart="play" @ended="skipVideo"></video>
     </div>
 </template>
