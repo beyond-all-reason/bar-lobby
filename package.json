@@ -1,7 +1,14 @@
 {
   "name": "bar-lobby",
-  "version": "0.1.0",
   "private": true,
+  "description": "Lobby client for the RTS game Beyond All Reason",
+  "version": "0.1.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Jazcash/bar-lobby.git"
+  },
+  "author": "Jazcash",
+  "license": "gpl-3.0",
   "scripts": {
     "build": "vue-cli-service electron:build",
     "lint": "vue-cli-service lint",

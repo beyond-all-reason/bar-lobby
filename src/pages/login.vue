@@ -1,5 +1,6 @@
 <template>
     Login
+    <router-link to="/home">Home</router-link>
 </template>
 
 <script lang="ts">
