@@ -1,6 +1,6 @@
 <template>
     <div :class="`container ${isLoaded ? 'fade-in' : ''}`" @click="skipVideo"> -->
-        <video src="@/assets/videos/intro.mp4" @play="onLoad" @ended="skipVideo"></video>
+        <video src="@/assets/videos/intro.mp4" @loadstart="play" @ended="skipVideo"></video>
     </div>
 </template>
 
@@ -14,7 +14,8 @@ export default defineComponent({
         const isLoaded = ref(false);
         const router = useRouter();
 
-        function onLoad({ target: video }: { target: HTMLVideoElement}) {
+        async function play({ target: video }: { target: HTMLVideoElement}) {
+            video.play();
             isLoaded.value = true;
         }
 
@@ -23,7 +24,7 @@ export default defineComponent({
             router.replace("login");
         }
 
-        return { skipVideo, onLoad, isLoaded };
+        return { skipVideo, play, isLoaded };
     }
 });
 </script>
@@ -34,7 +35,7 @@ export default defineComponent({
     align-items: center;
     justify-content: center;
     opacity: 0;
-    transition: opacity 3s;
+    transition: opacity 4s;
     height: 100%;
     &.fade-in {
         opacity: 1;
