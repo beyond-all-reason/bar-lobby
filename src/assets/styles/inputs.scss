@@ -1,3 +1,9 @@
 button * {
     pointer-events: none;
 }
+
+.btn {
+    background: red;
+    align-self: flex-start;
+    padding: 5px 7px;
+}

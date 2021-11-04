@@ -2,11 +2,16 @@ import * as path from "path";
 import { app, protocol, BrowserWindow, shell, screen } from "electron";
 import { createProtocol } from "vue-cli-plugin-electron-builder/lib";
 import installExtension, { VUEJS3_DEVTOOLS } from "electron-devtools-installer";
-import Store from "electron-store";
-
-const store = new Store();
 
 const isDev = process.env.NODE_ENV !== "production";
+
+export interface PreloadConfig {
+    settingsFilePath: string;
+}
+
+export const preloadConfig: PreloadConfig = {
+    settingsFilePath: path.join(app.getPath("userData"), "settings.json")
+};
 
 protocol.registerSchemesAsPrivileged([{
     scheme: "app",
@@ -30,7 +35,8 @@ async function createWindow() {
         webPreferences: {
             nodeIntegration: false,
             contextIsolation: true,
-            preload: path.join(__dirname, "preload.js")
+            preload: path.join(__dirname, "preload.js"),
+            additionalArguments: [JSON.stringify(preloadConfig)]
         }
     });
     
@@ -75,8 +81,6 @@ app.on("activate", () => {
 });
 
 app.on("ready", async () => {
-    //registerLocalVideoProtocol();
-
     if (isDev && !process.env.IS_TEST) {
         try {
             await installExtension(VUEJS3_DEVTOOLS);

@@ -1,5 +1,6 @@
 <template>
     <div class="login-form">
+        <button class="btn">Register</button>
         <div class="input">
             <label>Email</label>
             <input type="text">
