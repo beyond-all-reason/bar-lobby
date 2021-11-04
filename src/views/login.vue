@@ -1,18 +1,38 @@
 <template>
-    Login
-    <router-link to="/home">Home</router-link>
+    <div class="fullscreen">
+        <Background :src="require('@/assets/images/login.jpg')"/>
+        <div class="login">
+            <img class="logo" src="@/assets/images/logo.svg">
+            <LoginForm />
+        </div>
+    </div>
 </template>
 
 <script lang="ts">
-import { defineComponent } from "vue";
+import { defineComponent, ref } from "vue";
 
 export default defineComponent({
-    layout: "empty",
+    layout: {
+        name: "empty",
+        props: {
+            transition: "fade"
+        }
+    },
     setup() {
-        return {};
+        const show = ref(true);
+        return {show};
     }
 });
 </script>
 
 <style scoped lang="scss">
+.login {
+    display: flex;
+    flex-direction: column;
+    gap: 100px;
+    justify-content: center;
+    max-width: 500px;
+    align-items: center;
+    height: 100%;
+}
 </style>

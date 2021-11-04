@@ -1,15 +1,12 @@
 <template>
-    <div class="login">
-        <img class="logo" src="@/assets/images/logo.svg">
-        <div class="form">
-            <div class="input">
-                <label>Email</label>
-                <input type="text">
-            </div>
-            <div class="input">
-                <label>Password</label>
-                <input type="password">
-            </div>
+    <div class="login-form">
+        <div class="input">
+            <label>Email</label>
+            <input type="text">
+        </div>
+        <div class="input">
+            <label>Password</label>
+            <input type="password">
         </div>
     </div>
 </template>
@@ -25,19 +22,7 @@ export default defineComponent({
 </script>
 
 <style scoped lang="scss">
-.login {
-    width: 100%;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 100px;
-}
-.logo {
-    max-width: 500px;
-    margin-top: 15%;
-}
-.form {
+.login-form {
     display: flex;
     flex-direction: column;
     gap: 20px;

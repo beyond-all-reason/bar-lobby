@@ -4,14 +4,14 @@ $weightNames: "Thin", "ExtraLight", "Light", "Regular", "Medium", "SemiBold", "B
     @font-face {
         font-family: "Poppins";
         font-weight: $i * 100;
-        src: url("../assets/fonts/Poppins/Poppins-#{$weightName}.ttf") format("truetype");
+        src: url("~@/assets/fonts/Poppins/Poppins-#{$weightName}.ttf") format("truetype");
     }
     @if $weightName != Regular {
         @font-face {
             font-family: "Poppins";
             font-weight: $i * 100;
             font-style: italic;
-            src: url("../assets/fonts/Poppins/Poppins-#{$weightName}Italic.ttf") format("truetype");
+            src: url("~@/assets/fonts/Poppins/Poppins-#{$weightName}Italic.ttf") format("truetype");
         }
     }
 }
@@ -22,6 +22,6 @@ $weightNames: "Light", "Regular", "Medium", "SemiBold", "Bold";
     @font-face {
         font-family: "Rajdhani";
         font-weight: ($i + 2) * 100;
-        src: url("../assets/fonts/Rajdhani/Rajdhani-#{$weightName}.ttf") format("truetype");
+        src: url("~@/assets/fonts/Rajdhani/Rajdhani-#{$weightName}.ttf") format("truetype");
     }
 }

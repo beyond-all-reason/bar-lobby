@@ -3,7 +3,7 @@ import { createRouter, createWebHashHistory, createWebHistory } from "vue-router
 import routes from "vue-auto-routing";
 import { createRouterLayout } from "vue-router-layout";
 
-import "@/styles/styles.scss";
+import "@/assets/styles/styles.scss";
 import store from "@/store";
 import App from "@/App.vue";
 
