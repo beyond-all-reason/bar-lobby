@@ -7,5 +7,7 @@ import { contextBridge } from "electron";
 
     const settings = await settingsAPIFactory({ settingsFilePath });
 
-    contextBridge.exposeInMainWorld("settings", settings);
+    contextBridge.exposeInMainWorld("api", {
+        settings
+    });
 })();
