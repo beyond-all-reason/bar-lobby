@@ -1,7 +1,8 @@
 import * as path from "path";
-import { app, protocol, BrowserWindow, shell, screen } from "electron";
+import { app, protocol, BrowserWindow, shell, screen, ipcMain } from "electron";
 import { createProtocol } from "vue-cli-plugin-electron-builder/lib";
 import installExtension, { VUEJS3_DEVTOOLS } from "electron-devtools-installer";
+import { HardwareInfo } from "@/model/hardware-info";
 
 const isDev = process.env.NODE_ENV !== "production";
 
@@ -104,3 +105,15 @@ if (isDev) {
         });
     }
 }
+
+const getHardwareInfo: () => Promise<HardwareInfo> = async function () {
+    return {
+        screenIds: screen.getAllDisplays().map(screen => screen.id)
+    };
+};
+
+ipcMain.handle("get-hardware-info", getHardwareInfo);
+
+const changeDisplay: (displayId: number) => Promise<void> = async function (displayId) {
+    
+};

@@ -1,8 +1,9 @@
-import { settingsStore } from "@/store/settings";
+import { defaultSettings } from "@/model/settings";
 import { createStore } from "vuex";
 
-export default createStore({
+export const settingsStore = createStore({
     state: {
+        ...defaultSettings
     },
     getters: {
     },
@@ -11,6 +12,5 @@ export default createStore({
     actions: {
     },
     modules: {
-        settings: settingsStore
     }
 });

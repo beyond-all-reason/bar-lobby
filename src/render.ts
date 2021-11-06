@@ -30,5 +30,7 @@ function setupVue() {
     app.use(router);
     app.use(store);
 
+    app.config.globalProperties.window = window;
+
     app.mount("#app");
 }
