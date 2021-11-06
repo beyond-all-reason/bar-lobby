@@ -5,7 +5,7 @@ import installExtension, { VUEJS3_DEVTOOLS } from "electron-devtools-installer";
 
 export class Application {
     protected app: App;
-    protected mainWindow?: MainWindow;
+    protected mainWindow!: MainWindow;
 
     constructor(app: App) {
         this.app = app;
@@ -46,10 +46,9 @@ export class Application {
         };
         
         ipcMain.handle("get-hardware-info", getHardwareInfo);
-        
-        const changeDisplay: (displayId: number) => Promise<void> = async function (displayId) {
-            console.log(displayId);
-        };
+        ipcMain.handle("set-display", (event, displayId: number) => {
+            this.mainWindow.setDisplay(displayId);
+        });
     }
 
     protected async onReady() {

@@ -35,4 +35,7 @@ export default defineComponent({
 </script>
 
 <style scoped lang="scss">
+svg {
+    vertical-align: top;
+}
 </style>

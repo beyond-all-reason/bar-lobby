@@ -6,6 +6,7 @@ import { createRouterLayout } from "vue-router-layout";
 import "@/assets/styles/styles.scss";
 import store from "@/store";
 import App from "@/App.vue";
+import { HardwareInfo } from "@/model/hardware-info";
 
 setupVue();
 
@@ -13,7 +14,7 @@ function setupVue() {
     const RouterLayout = createRouterLayout(layout => {
         return import("@/layouts/" + layout + ".vue");
     });
-    
+
     const router = createRouter({
         history: process.env.IS_ELECTRON ? createWebHashHistory() : createWebHistory(process.env.BASE_URL),
         routes: [
@@ -31,6 +32,14 @@ function setupVue() {
     app.use(store);
 
     app.config.globalProperties.window = window;
+    (window as any).router = router;
 
     app.mount("#app");
+}
+
+declare global {
+    interface Window {
+        getHardwareInfo: () => Promise<HardwareInfo>;
+        setDisplay: (displayId: number) => void;
+    }
 }

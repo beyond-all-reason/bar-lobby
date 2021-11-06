@@ -1,7 +1,6 @@
 import { settingsAPIFactory } from "@/api/settings";
 import { contextBridge, ipcRenderer } from "electron";
 import { PreloadConfig } from "@/model/preload-config";
-import { HardwareInfo } from "@/model/hardware-info";
 
 (async () => {
     const { settingsFilePath }: PreloadConfig = JSON.parse(process.argv[process.argv.length - 1]);
@@ -12,11 +11,6 @@ import { HardwareInfo } from "@/model/hardware-info";
         settings
     });
 
-    contextBridge.exposeInMainWorld("getHardwareInfo", async () => ipcRenderer.invoke("get-hardware-info"));
+    contextBridge.exposeInMainWorld("getHardwareInfo", async (...args: any[]) => ipcRenderer.invoke("get-hardware-info", ...args));
+    contextBridge.exposeInMainWorld("setDisplay", (...args: any[]) => ipcRenderer.invoke("set-display", ...args));
 })();
-
-declare global {
-    interface Window {
-        getHardwareInfo: () => Promise<HardwareInfo>;
-    }
-}

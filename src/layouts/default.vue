@@ -1,8 +1,10 @@
 <template>
-    <Background />
-    <NavBar />
-    <div class="main">
-        <router-view/>
+    <div>
+        <Background :src="require('@/assets/images/bg1.jpg')" />
+        <NavBar />
+        <div class="main">
+            <router-view/>
+        </div>
     </div>
 </template>
 

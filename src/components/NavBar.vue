@@ -17,7 +17,7 @@
                 <Button class="item icon" depress>
                     <Icon icon="cog" :size="40" />
                 </Button>
-                <Button class="item icon" depress to="/debug" >
+                <Button class="item icon" depress >
                     <Icon icon="wrench" :size="35" />
                 </Button>
                 <Button class="item icon" depress>

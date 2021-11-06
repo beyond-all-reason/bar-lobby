@@ -10,7 +10,7 @@ export interface MainWindowConfig {
 }
 
 export const defaultMainWindowConfig: Partial<MainWindowConfig> = {
-    fullscreen: true
+    fullscreen: false
 };
 
 export class MainWindow {
@@ -28,9 +28,12 @@ export class MainWindow {
             title: "BAR Lobby",
             fullscreen: this.config.fullscreen,
             frame: !this.config.fullscreen,
-            resizable: !this.config.fullscreen,
+            resizable: true,
             show: false,
             icon: path.join(__static, "icon.png"),
+            minWidth: 1300,
+            minHeight: 800,
+            darkTheme: true,
             webPreferences: {
                 nodeIntegration: false,
                 contextIsolation: true,
@@ -59,6 +62,12 @@ export class MainWindow {
         }
     }
 
+    public setDisplay(index: number) {
+        const { x, y, width, height } = screen.getAllDisplays()[index].bounds;
+        this.window.setPosition(x, y);
+        this.window.setSize(width, height);
+    }
+
     protected onReadyToShow() {
         const chosenDisplay = 1;
         const { x, y } = screen.getAllDisplays()[chosenDisplay].bounds;
@@ -67,6 +76,8 @@ export class MainWindow {
         if (!this.config.fullscreen) {
             this.window.maximize();
         }
+
+        //this.window.setResizable(false);
 
         this.window.setMenuBarVisibility(false);
         
