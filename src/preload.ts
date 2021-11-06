@@ -1,7 +1,7 @@
 import { settingsAPIFactory } from "@/api/settings";
-import { PreloadConfig } from "@/main";
-import { HardwareInfo } from "@/model/hardware-info";
 import { contextBridge, ipcRenderer } from "electron";
+import { PreloadConfig } from "@/model/preload-config";
+import { HardwareInfo } from "@/model/hardware-info";
 
 (async () => {
     const { settingsFilePath }: PreloadConfig = JSON.parse(process.argv[process.argv.length - 1]);
