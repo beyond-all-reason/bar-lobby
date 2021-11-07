@@ -1,3 +1,18 @@
+* {
+    &::-webkit-scrollbar {
+        width: 10px;
+    }
+    &::-webkit-scrollbar-track-piece {
+        border-left: 1px solid #2a2a2a;
+    }
+    &::-webkit-scrollbar-track {
+        background: #0b0b0b;
+    }
+    &::-webkit-scrollbar-thumb {
+        background: #1c1c1c;
+        border-left: 1px solid #2a2a2a;
+    }
+}
 html {
     height: 100%;
     background: #000;

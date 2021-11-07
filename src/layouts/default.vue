@@ -43,7 +43,7 @@ export default defineComponent({
     height: 0;
 }
 .content {
+    height: 100%;
     max-height: 100%;
-    overflow-y: scroll;
 }
 </style>

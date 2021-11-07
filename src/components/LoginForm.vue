@@ -40,7 +40,7 @@ input[type=text], input[type=password] {
     font-size: 24px;
     width: 400px;
     padding: 10px 10px;
-    background: rgba(0, 0, 0, 0.5);
+    background: rgba(0, 0, 0, 0.65);
     border: 1px solid rgba(255, 255, 255, 0.1);
 }
 </style>

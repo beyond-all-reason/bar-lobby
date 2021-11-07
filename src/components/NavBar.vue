@@ -23,7 +23,6 @@
                 <Button class="item icon" depress>
                     <Icon icon="close-thick" :size="40" />
                 </Button>
-                
             </div>
         </div>
     </Panel>
@@ -63,6 +62,7 @@ export default defineComponent({
         background: radial-gradient(rgba(0, 0, 0, 0), rgba(255, 255, 255, 0.12));
         color: #fff;
         text-shadow: 0 0 7px #fff;
+        z-index: 1;
         .left & {
             box-shadow: 1px 0 0 rgba(255, 255, 255, 0.3), -1px 0 0 rgba(255, 255, 255, 0.2), 7px -3px 10px rgba(0, 0, 0, 0.5), -7px -3px 10px rgba(0, 0, 0, 0.5);
         }

@@ -1,3 +1,4 @@
+import * as fs from "fs";
 import { defaultMainWindowConfig, MainWindow } from "@/main-window";
 import { HardwareInfo } from "@/model/hardware-info";
 import { app, App, ipcMain, protocol, screen } from "electron";

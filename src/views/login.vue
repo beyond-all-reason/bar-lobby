@@ -2,7 +2,7 @@
     <div class="fullscreen">
         <Background :src="require('@/assets/images/login.jpg')"/>
         <div class="login">
-            <img class="logo" src="@/assets/images/logo.svg">
+            <img class="logo" src="@/assets/images/BARLogoFull.png">
             <LoginForm />
         </div>
     </div>
@@ -29,10 +29,10 @@ export default defineComponent({
 .login {
     display: flex;
     flex-direction: column;
-    gap: 100px;
+    gap: 80px;
     justify-content: center;
     max-width: 500px;
     align-items: center;
-    height: 100%;
+    margin-bottom: 100px;
 }
 </style>

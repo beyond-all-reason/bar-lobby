@@ -1,5 +1,5 @@
 module.exports = {
-    lintOnSave: process.env.NODE_ENV !== "production",
+    lintOnSave: true,
     css: {
         loaderOptions: {
             scss: {
@@ -12,8 +12,7 @@ module.exports = {
         }
     },
     configureWebpack: {
-        // inline required to use source maps from preload.ts imports
-        devtool: process.env.NODE_ENV !== "production" ? "source-map" : false,
+        devtool: process.env.NODE_ENV !== "production" ? "source-map" : false
     },
     pluginOptions: {
         electronBuilder: {
@@ -26,14 +25,26 @@ module.exports = {
                 directories: {
                     buildResources: "build"
                 }
-            }
+            },
+            // chainWebpackRendererProcess: (config) => {
+            //     config.module
+            //         .rule("base64-images")
+            //         .test(/\.(png|jpe?g|gif|webp)(\?.*)?$/)
+            //         .use("url-loader")
+            //         .loader("url-loader")
+            //         .options({
+            //             limit: 99999999
+            //         })
+            //         .end();
+            // }
         },
         autoRouting: {
             pages: "src/views",
             chunkNamePrefix: "view-",
             importPrefix: "@/views/",
-            outFile: "working-files/routes.js",
-            nested: false
+            nested: false,
+            dynamicImport: false,
+            outFile: "src/routes.ts",
         }
     }
 };

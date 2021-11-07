@@ -2,12 +2,6 @@ button, button * {
     cursor: url("~@/assets/images/cursor_hover.png"), default;
 }
 
-.btn {
-    background: red;
-    align-self: flex-start;
-    padding: 5px 7px;
-}
-
 .control {
     position: relative;
     display: flex;
@@ -26,12 +20,12 @@ label{
 }
 input, select, input[type=checkbox] + label, textarea, button, progress, meter {
     padding: 5px 10px;
-    border-radius: 2px;
+    border-radius: 3px;
     width: 100%;
-    background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.9));
+    background: linear-gradient(rgba(0, 0, 0, 0.75), rgba(0, 0, 0, 0.9));
     backdrop-filter: blur(5px) brightness(130%) saturate(300%);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-top: 1px solid rgba(255, 255, 255, 0.25);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-top: 1px solid rgba(255, 255, 255, 0.13);
     box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.6);
     min-height: 35px;
 }
@@ -49,4 +43,11 @@ input[type=file] {
 }
 option, optgroup {
     background: #111;
+}
+input[type=date]::-webkit-calendar-picker-indicator,
+input[type=week]::-webkit-calendar-picker-indicator,
+input[type=month]::-webkit-calendar-picker-indicator,
+input[type=time]::-webkit-calendar-picker-indicator,
+input[type=datetime-local]::-webkit-calendar-picker-indicator {
+    filter: invert(0.8);
 }

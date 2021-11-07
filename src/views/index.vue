@@ -1,42 +1,50 @@
 <template>
-    <div class="fullscreen">
-        <video @loadstart="play" @ended="skipIntro" @click="skipIntro">
-            <source src="intro.mp4" type="video/mp4">
-        </video>
+    <div class="load">
+        <!-- <img v-for="imgSrc in imgSrcs" :key="imgSrc" :src="imgSrc"> -->
     </div>
 </template>
 
 <script lang="ts">
-import { defineComponent } from "vue";
+import { defineComponent, ref } from "vue";
 import { useRouter } from "vue-router";
 
 export default defineComponent({
-    layout: {
-        name: "empty",
-        props: {
-            transition: "intro-fade"
-        }
-    },
+    layout: "empty",
     setup() {
-        const router = useRouter();
+        const imgSrcs = ref([] as Array<string>);
         
-        async function play({ target: video }: { target: HTMLVideoElement}) {
-            video.volume = 0.2;
-            video.play();
+        // const imageFiles = require.context("@/assets/images/", true).keys();
+        // for (const imageFile of imageFiles) {
+        //     const fileName = imageFile.slice(2);
+        //     const buildImagePath = require(`@/assets/images/${fileName}`);
+        //     imgSrcs.value.push(buildImagePath);
+        // }
+
+        const fontFiles = require.context("@/assets/fonts/", true).keys();
+        for (const fontFile of fontFiles) {
+            const parts = fontFile.split("/");
+            const family = parts[1];
+            const fileName = parts[2];
+            const [weight, style] = fileName.split(".")[0].split("-");
+            
+            const buildFontPath = require(`@/assets/fonts/${family}/${fileName}`);
+            const font = new FontFace(family, `url(${buildFontPath})`, { weight, style });
+            font.load().then(() => {
+                document.fonts.add(font);
+            });
         }
 
-        function skipIntro() {
-            if (router.currentRoute.value.path !== "/") {
-                return;
-            }
+        const router = useRouter();
+        router.replace("/intro");
 
-            router.replace("/login");
-        }
-
-        return { skipIntro, play };
+        return { imgSrcs };
     }
 });
 </script>
 
 <style scoped lang="scss">
+.load {
+    position: absolute;
+    //opacity: 0;
+}
 </style>

@@ -3,7 +3,7 @@ module.exports = {
     env: {
         node: true
     },
-    ignorePatterns: ["dist_electron", "node_modules", "output.js"],
+    ignorePatterns: ["dist_electron", "node_modules", "output.js", "src/routes.ts"],
     extends: [
         "plugin:vue/vue3-essential",
         "eslint:recommended",

@@ -1,9 +1,9 @@
 import { createApp } from "vue";
 import { createRouter, createWebHashHistory, createWebHistory } from "vue-router";
-import routes from "vue-auto-routing";
 import { createRouterLayout } from "vue-router-layout";
 
 import "@/assets/styles/styles.scss";
+import routes from "@/routes";
 import store from "@/store";
 import App from "@/App.vue";
 import { HardwareInfo } from "@/model/hardware-info";

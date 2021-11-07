@@ -6,11 +6,14 @@
             </button>
         </div>
 
-        <select v-model="currentRoute">
-            <option v-for="route in routes" :key="route.path" :value="route.path">
-                {{ route.path }}
-            </option>
-        </select>
+        <div class="control">
+            <label>Route Selector</label>
+            <select v-model="currentRoute">
+                <option v-for="route in routes" :key="route.path" :value="route.path">
+                    {{ route.path }}
+                </option>
+            </select>
+        </div>
 
         <select v-model="selectedScreen">
             <option v-for="(screenId, index) in screenIds" :key="screenId" :value="index">
@@ -33,7 +36,7 @@ export default defineComponent({
 
         const route = useRoute();
         const router = useRouter();
-        const routes = readonly(router.getRoutes().filter(route => route.name));
+        const routes = readonly(router.getRoutes().filter(route => route.name).sort((a, b) => a.path.localeCompare(b.path)));
         const currentRoute = ref(route.path);
 
         const screenIds = ref([0]);
@@ -75,20 +78,26 @@ export default defineComponent({
     box-shadow: 5px 0 5px rgba(0, 0, 0, 0.5);
     transform: translateX(-100%);
     transition: transform 0.1s;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
     &.active {
         transform: translateX(0);
     }
 }
 .toggle {
     position: absolute;
-    right: 0;
+    top: 0;
+    right: 1px;
     transform: translateX(100%);
     background: #111;
     border-right: 1px solid #222;
     border-bottom: 1px solid #222;
+    border-left: 1px solid #111;
     box-shadow: 5px 2px 5px rgba(0, 0, 0, 0.5);
-    width: 60px;
-    height: 60px;
+    width: 62px;
+    height: 62px;
     display: flex;
     justify-content: center;
     align-items: center;
