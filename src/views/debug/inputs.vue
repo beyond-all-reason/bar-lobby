@@ -135,46 +135,4 @@ export default defineComponent({
     grid-template-columns: 300px 300px;
     gap: 10px;
 }
-.control {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    justify-content: flex-start;
-}
-label{
-    top: 0;
-    left: 0;
-    width: 100%;
-    font-size: 12px;
-    padding-left: 5px;
-    color: #ddd;
-    z-index: 1;
-}
-input, select, input[type=checkbox] + label, textarea, button, progress, meter {
-    padding: 5px 10px;
-    border-radius: 2px;
-    width: 100%;
-    background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.9));
-    backdrop-filter: blur(5px) brightness(130%) saturate(300%);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-top: 1px solid rgba(255, 255, 255, 0.25);
-    box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.6);
-    min-height: 35px;
-}
-input[type=checkbox] + label {
-    z-index: 0;
-}
-button, input[type=button], input[type=submit] {
-    width: unset;
-}
-input[type=checkbox] {
-    display: none;
-}
-input[type=file] {
-    font-size: 13px;
-}
-option, optgroup {
-    background: #111;
-}
 </style>
