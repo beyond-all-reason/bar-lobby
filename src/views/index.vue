@@ -1,6 +1,6 @@
 <template>
     <div class="load">
-        <!-- <img v-for="imgSrc in imgSrcs" :key="imgSrc" :src="imgSrc"> -->
+        <img v-for="imgSrc in imgSrcs" :key="imgSrc" :src="imgSrc">
     </div>
 </template>
 
@@ -13,12 +13,12 @@ export default defineComponent({
     setup() {
         const imgSrcs = ref([] as Array<string>);
         
-        // const imageFiles = require.context("@/assets/images/", true).keys();
-        // for (const imageFile of imageFiles) {
-        //     const fileName = imageFile.slice(2);
-        //     const buildImagePath = require(`@/assets/images/${fileName}`);
-        //     imgSrcs.value.push(buildImagePath);
-        // }
+        const imageFiles = require.context("@/assets/images/", true).keys();
+        for (const imageFile of imageFiles) {
+            const fileName = imageFile.slice(2);
+            const buildImagePath = require(`@/assets/images/${fileName}`);
+            imgSrcs.value.push(buildImagePath);
+        }
 
         const fontFiles = require.context("@/assets/fonts/", true).keys();
         for (const fontFile of fontFiles) {
@@ -45,6 +45,6 @@ export default defineComponent({
 <style scoped lang="scss">
 .load {
     position: absolute;
-    //opacity: 0;
+    opacity: 0;
 }
 </style>
