@@ -2,11 +2,11 @@
     <div class="controls">
         <div class="control">
             <label for="type-text">Text (text)</label>
-            <input type="text" name="type-text" id="type-text">
+            <input type="text" name="type-text" id="type-text" placeholder="placeholder">
         </div>
         <div class="control">
             <label for="type-search">Search (search)</label>
-            <input type="search" name="type-search" id="type-search">
+            <input type="search" name="type-search" id="type-search" value="This is some text">
         </div>
         <div class="control">
             <label for="type-tel">Telephone (tel)</label>
@@ -57,20 +57,62 @@
             <input type="color" name="type-color" id="type-color">
         </div>
         <div class="control">
+            <input type="button" value="Button" name="button">
+        </div>
+        <div class="control">
+            <button>I am a button</button>
+        </div>
+        <div class="control">
             <label for="submit-1">Submit</label>
             <input type="submit" value="Submit" name="submit-1">
         </div>
         <div class="control">
-            <label for="button">Button</label>
-            <input type="button" value="Button" name="button">
-        </div>
-        <div class="control">
             <label for="select">Select</label>
             <select name="select">
-                <option>Option 1</option>
-                <option>Option 2</option>
-                <option>Option 3</option>
+                <optgroup label="Theropods">
+                    <option>Tyrannosaurus</option>
+                    <option>Velociraptor</option>
+                    <option>Deinonychus</option>
+                </optgroup>
+                <optgroup label="Sauropods">
+                    <option>Diplodocus</option>
+                    <option>Saltasaurus</option>
+                    <option>Apatosaurus</option>
+                </optgroup>
             </select>
+        </div>
+        <div class="control">
+            <label for="check2">Checkbox</label>
+            <input type="checkbox">
+            <label for="check" name="check2"></label>
+        </div>
+        <div class="control">
+            <label for="textarea">Textarea</label>
+            <textarea name="textarea" cols="30" rows="10">I am a text area</textarea>
+        </div>
+        <div class="control">
+            <label for="ice-cream-flavors">Datalist</label>
+            <datalist id="ice-cream-flavors">
+                <option value="Chocolate"></option>
+                <option value="Coconut"></option>
+                <option value="Mint"></option>
+                <option value="Strawberry"></option>
+                <option value="Vanilla"></option>
+            </datalist>
+        </div>
+        <div class="control">
+            <label for="file">File progress:</label>
+            <progress id="file" max="100" value="70"> 70% </progress>
+        </div>
+        <div class="control">
+            <label for="fuel">Fuel level:</label>
+            <meter id="fuel" min="0" max="100" low="33" high="66" optimum="80" value="50">
+                at 50/100
+            </meter>
+        </div>
+        <div class="control">
+            <label for="myFile">File upload</label>
+            <input type="file" id="myFile" name="filename">
         </div>
     </div>
 </template>
@@ -88,31 +130,51 @@ export default defineComponent({
 
 <style scoped lang="scss">
 .controls {
-    display: flex;
-    flex-direction: column;
-    gap: 7px;
-    max-width: 300px;
-    color: #fff;
+    position: relative;
+    display: grid;
+    grid-template-columns: 300px 300px;
+    gap: 10px;
 }
 .control {
     position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
 }
-label {
-    position: absolute;
+label{
     top: 0;
     left: 0;
+    width: 100%;
     font-size: 12px;
     padding-left: 5px;
-    background: red;
-    &:after {
-        @extend .pseudo-fill;
-    }
+    color: #ddd;
+    z-index: 1;
 }
-input, select {
-    margin-top: 7px;
-    padding: 7px 5px 3px 5px;
-    border: 2px solid rgba(255, 255, 255, 0.5);
-    border-top: none;
+input, select, input[type=checkbox] + label, textarea, button, progress, meter {
+    padding: 5px 10px;
+    border-radius: 2px;
     width: 100%;
+    background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.9));
+    backdrop-filter: blur(5px) brightness(130%) saturate(300%);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-top: 1px solid rgba(255, 255, 255, 0.25);
+    box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.6);
+    min-height: 35px;
+}
+input[type=checkbox] + label {
+    z-index: 0;
+}
+button, input[type=button], input[type=submit] {
+    width: unset;
+}
+input[type=checkbox] {
+    display: none;
+}
+input[type=file] {
+    font-size: 13px;
+}
+option, optgroup {
+    background: #111;
 }
 </style>

@@ -26,7 +26,11 @@ export default defineComponent({
         }
 
         function skipIntro() {
-            router.replace("login");
+            if (router.currentRoute.value.path !== "/") {
+                return;
+            }
+
+            router.replace("/login");
         }
 
         return { skipIntro, play };

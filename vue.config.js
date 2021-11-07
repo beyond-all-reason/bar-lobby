@@ -1,8 +1,19 @@
 module.exports = {
     lintOnSave: process.env.NODE_ENV !== "production",
+    css: {
+        loaderOptions: {
+            scss: {
+                prependData: `
+                    @import "@/assets/styles/_variables.scss";
+                    @import "@/assets/styles/_mixins.scss";
+                    @import "@/assets/styles/_utils.scss";
+                `,
+            }
+        }
+    },
     configureWebpack: {
         // inline required to use source maps from preload.ts imports
-        devtool: process.env.NODE_ENV !== "production" ? "source-map" : false
+        devtool: process.env.NODE_ENV !== "production" ? "source-map" : false,
     },
     pluginOptions: {
         electronBuilder: {
