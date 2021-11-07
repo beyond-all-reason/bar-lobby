@@ -1,9 +1,15 @@
 <template>
-    <div>
-        <Background :src="require('@/assets/images/bg1.jpg')" />
+    <Background :src="require('@/assets/images/bg1.jpg')" />
+    <div class="container">
         <NavBar />
         <div class="main">
-            <router-view/>
+            <router-view v-slot="{ Component }">
+                <transition :name="transition" :appear="Boolean(transition)">
+                    <div class="content">
+                        <component :is="Component" />
+                    </div>
+                </transition>
+            </router-view>
         </div>
     </div>
 </template>
@@ -12,6 +18,12 @@
 import { defineComponent } from "vue";
 
 export default defineComponent({
+    props: {
+        transition: {
+            type: String,
+            default: ""
+        }
+    },
     setup() {
         return {};
     }
@@ -19,14 +31,19 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-.main {
+.container {
+    display: flex;
+    flex-direction: column;
     height: 100%;
-    padding: 10px;
+    max-height: 100%;
 }
-.hover {
-    background: red;
-    &:hover {
-        background: blue;
-    }
+.main {
+    padding: 10px;
+    flex-grow: 1;
+    height: 0;
+}
+.content {
+    max-height: 100%;
+    overflow-y: scroll;
 }
 </style>

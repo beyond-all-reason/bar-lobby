@@ -1,5 +1,5 @@
 <template>
-    <div class="controls">
+    <Panel class="controls">
         <div class="control">
             <label for="type-text">Text (text)</label>
             <input type="text" name="type-text" id="type-text" placeholder="placeholder">
@@ -114,7 +114,7 @@
             <label for="myFile">File upload</label>
             <input type="file" id="myFile" name="filename">
         </div>
-    </div>
+    </Panel>
 </template>
 
 <script lang="ts">
