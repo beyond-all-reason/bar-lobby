@@ -26,17 +26,6 @@ module.exports = {
                     buildResources: "build"
                 }
             },
-            // chainWebpackRendererProcess: (config) => {
-            //     config.module
-            //         .rule("base64-images")
-            //         .test(/\.(png|jpe?g|gif|webp)(\?.*)?$/)
-            //         .use("url-loader")
-            //         .loader("url-loader")
-            //         .options({
-            //             limit: 99999999
-            //         })
-            //         .end();
-            // }
         },
         autoRouting: {
             pages: "src/views",

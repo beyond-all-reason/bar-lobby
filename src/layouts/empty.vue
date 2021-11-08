@@ -1,11 +1,7 @@
 <template>
-    <router-view v-slot="{ Component }">
-        <transition :name="transition" :appear="Boolean(transition)">
-            <div>
-                <component :is="Component" />
-            </div>
-        </transition>
-    </router-view>
+    <transition :name="transition" :appear="Boolean(transition)">
+        <router-view/>
+    </transition>
 </template>
 
 <script lang="ts">

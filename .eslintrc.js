@@ -24,6 +24,7 @@ module.exports = {
         "@typescript-eslint/explicit-module-boundary-types": "off",
 
         "vue/no-dupe-keys": "off",
-        "vue/html-indent": ["error", 4]
+        "vue/html-indent": ["error", 4],
+        "vue/no-multiple-template-root": ["error"]
     }
 };
