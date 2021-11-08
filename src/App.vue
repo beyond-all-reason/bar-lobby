@@ -1,6 +1,8 @@
 <template>
-    <DebugSidebar/>
-    <router-view/>
+    <div>
+        <DebugSidebar/>
+        <router-view/>
+    </div>
 </template>
 
 <script lang="ts">

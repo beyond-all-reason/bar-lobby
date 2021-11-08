@@ -1,7 +1,9 @@
 <template>
-    <transition :name="transition" :appear="Boolean(transition)">
-        <router-view/>
-    </transition>
+    <router-view v-slot="{ Component }">
+        <transition :name="transition" :appear="Boolean(transition)">
+            <component :is="Component" />
+        </transition>
+    </router-view>
 </template>
 
 <script lang="ts">

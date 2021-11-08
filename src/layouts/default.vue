@@ -1,15 +1,17 @@
 <template>
-    <Background :src="require('@/assets/images/bg1.jpg')" />
-    <div class="container">
-        <NavBar />
-        <div class="main">
-            <router-view v-slot="{ Component }">
-                <transition :name="transition" :appear="Boolean(transition)">
-                    <div class="content">
-                        <component :is="Component" />
-                    </div>
-                </transition>
-            </router-view>
+    <div>
+        <Background :src="require('@/assets/images/bg1.jpg')" />
+        <div class="container">
+            <NavBar />
+            <div class="main">
+                <router-view v-slot="{ Component }">
+                    <transition :name="transition" :appear="Boolean(transition)">
+                        <div class="content">
+                            <component :is="Component" />
+                        </div>
+                    </transition>
+                </router-view>
+            </div>
         </div>
     </div>
 </template>

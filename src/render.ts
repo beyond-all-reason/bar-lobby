@@ -1,10 +1,10 @@
 import { createApp } from "vue";
 import { createRouter, createWebHashHistory, createWebHistory } from "vue-router";
 import { createRouterLayout } from "vue-router-layout";
+import { createPinia } from "pinia";
 
 import "@/assets/styles/styles.scss";
 import routes from "@/routes";
-import store from "@/store";
 import App from "@/App.vue";
 import { HardwareInfo } from "@/model/hardware-info";
 
@@ -29,7 +29,7 @@ function setupVue() {
     const app = createApp(App);
 
     app.use(router);
-    app.use(store);
+    app.use(createPinia());
 
     app.config.globalProperties.window = window;
     (window as any).router = router;
