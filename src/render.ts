@@ -1,5 +1,5 @@
 import { createApp } from "vue";
-import { createRouter, createWebHashHistory, createWebHistory } from "vue-router";
+import { createRouter, createWebHashHistory, createWebHistory, Router } from "vue-router";
 import { createRouterLayout } from "vue-router-layout";
 import { createPinia } from "pinia";
 
@@ -32,13 +32,14 @@ function setupVue() {
     app.use(createPinia());
 
     app.config.globalProperties.window = window;
-    (window as any).router = router;
+    window.router = router;
 
     app.mount("#app");
 }
 
 declare global {
     interface Window {
+        router: Router;
         getHardwareInfo: () => Promise<HardwareInfo>;
         setDisplay: (displayId: number) => void;
     }

@@ -2,7 +2,7 @@
     <div class="debug-sidebar" :class="{ active }">
         <div class="fullsize">
             <button class="toggle" @click="active = !active">
-                <Icon icon="wrench" :size="40" />
+                <Icon icon="tools" :size="20" />
             </button>
         </div>
 
@@ -88,7 +88,7 @@ export default defineComponent({
 }
 .toggle {
     position: absolute;
-    top: 0;
+    bottom: 0;
     right: 1px;
     transform: translateX(100%);
     background: #111;
@@ -96,10 +96,11 @@ export default defineComponent({
     border-bottom: 1px solid #222;
     border-left: 1px solid #111;
     box-shadow: 5px 2px 5px rgba(0, 0, 0, 0.5);
-    width: 62px;
-    height: 62px;
     display: flex;
     justify-content: center;
     align-items: center;
+    &:hover {
+        background: #222;
+    }
 }
 </style>

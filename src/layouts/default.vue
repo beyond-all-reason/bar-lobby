@@ -1,17 +1,15 @@
 <template>
-    <div>
+    <div class="fullscreen">
         <Background :src="require('@/assets/images/bg1.jpg')" />
         <div class="container">
             <NavBar />
-            <div class="main">
-                <router-view v-slot="{ Component }">
-                    <transition :name="transition" :appear="Boolean(transition)">
-                        <div class="content">
-                            <component :is="Component" />
-                        </div>
-                    </transition>
-                </router-view>
-            </div>
+            <router-view v-slot="{ Component }">
+                <transition :name="transition" :appear="Boolean(transition)">
+                    <div class="content">
+                        <component :is="Component" />
+                    </div>
+                </transition>
+            </router-view>
         </div>
     </div>
 </template>
@@ -36,6 +34,7 @@ export default defineComponent({
 .container {
     display: flex;
     flex-direction: column;
+    width: 100%;
     height: 100%;
     max-height: 100%;
 }
@@ -45,7 +44,7 @@ export default defineComponent({
     height: 0;
 }
 .content {
-    height: 100%;
-    max-height: 100%;
+    padding: 10px;
+    overflow-y: hidden;
 }
 </style>

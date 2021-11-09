@@ -1,35 +1,15 @@
 <template>
     <div class="panel">
-        <!-- <div class="background"></div> -->
-        <div v-if="title" class="title">{{ title }}</div>
-        <div class="content" :style="style">
-            <slot />
-        </div>
+        <slot />
     </div>
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from "vue";
+import {  defineComponent } from "vue";
 
 export default defineComponent({
-    props: {
-        style: {
-            type: String,
-            default: "padding: 15px",
-        },
-        title: {
-            type: String,
-            default: "",
-        },
-    },
-    setup(props) {
-        const style = ref(props.style);
-        const title = ref(props.title);
-
-        return {
-            style,
-            title
-        };
+    setup() {
+        return { };
     }
 });
 </script>
@@ -43,34 +23,9 @@ export default defineComponent({
     overflow-y: auto;
     display: flex;
     flex-direction: column;
-}
-.background {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    top: 0;
-    left: 0;
-    background-color: rgba(0, 0, 0, 0.4);
-    z-index: -1;
-    backdrop-filter: blur(7px);
-    &:after {
-        @extend %pseudo-fill;
-        background: url("~@/assets/images/px_by_Gre3g.png");
-        filter: brightness(70%);
-        opacity: 0.25;
-    }
-}
-.title {
-    position: absolute;
-    top: 0;
-    left: 0;
-    padding: 2px 5px;
-    background: rgba(0, 0, 0, 0.4);
-    color: rgba(255, 255, 255, 0.7);
-}
-.content {
     background-color: rgba(0, 0, 0, 0.4);
     backdrop-filter: blur(7px);
+    padding: 10px;
     &:before {
         @extend %pseudo-fill;
         background: url("~@/assets/images/px_by_Gre3g.png");
