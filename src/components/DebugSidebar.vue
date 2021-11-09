@@ -14,12 +14,6 @@
                 </option>
             </select>
         </div>
-
-        <select v-model="selectedScreen">
-            <option v-for="(screenId, index) in screenIds" :key="screenId" :value="index">
-                Screen {{ index + 1 }}
-            </option>
-        </select>
     </div>
 </template>
 
@@ -28,7 +22,6 @@ import { defineComponent, readonly, ref, watch, effectScope } from "vue";
 import { useRoute, useRouter } from "vue-router";
 
 export default defineComponent({
-
     setup() {
         const scope = effectScope();
 
@@ -39,18 +32,7 @@ export default defineComponent({
         const routes = readonly(router.getRoutes().filter(route => route.name).sort((a, b) => a.path.localeCompare(b.path)));
         const currentRoute = ref(route.path);
 
-        const screenIds = ref([0]);
-        const selectedScreen = ref(0);
-
-        window.getHardwareInfo().then((hardwareInfo) => {
-            screenIds.value = hardwareInfo.screenIds;
-        });
-
         scope.run(() => {
-            watch(selectedScreen, (selectedScreen) => {
-                window.setDisplay(selectedScreen);
-            });
-
             watch(currentRoute, async () => {
                 await router.replace(currentRoute.value);
             });
@@ -60,7 +42,7 @@ export default defineComponent({
             });
         });
 
-        return { screenIds, selectedScreen, routes, currentRoute, active };
+        return { routes, currentRoute, active };
     }
 });
 </script>

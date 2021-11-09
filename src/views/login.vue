@@ -1,5 +1,5 @@
 <template>
-    <div class="fullscreen">
+    <div class="fullsize">
         <Background :src="require('@/assets/images/login.jpg')"/>
         <div class="login">
             <img class="logo" src="@/assets/images/BARLogoFull.png">

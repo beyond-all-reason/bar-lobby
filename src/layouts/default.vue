@@ -1,5 +1,5 @@
 <template>
-    <div class="fullscreen">
+    <div class="fullsize">
         <Background :src="require('@/assets/images/bg1.jpg')" />
         <div class="container">
             <NavBar />

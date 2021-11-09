@@ -27,7 +27,7 @@ export default defineComponent({
     backdrop-filter: blur(7px);
     padding: 10px;
     &:before {
-        @extend %pseudo-fill;
+        @extend .fullsize;
         background: url("~@/assets/images/px_by_Gre3g.png");
         filter: brightness(70%);
         opacity: 0.25;

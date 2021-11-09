@@ -1,36 +1,32 @@
 <template>
     <div class="nav">
-        <Panel class="logo-panel">
-            <Button class="primary-item logo" depress to="/home" >
-                <img src="@/assets/images/logo.svg">
-            </Button>
-        </Panel>
+        <Button class="primary-item logo" :class="{ selected: route.path === '/home' }" depress to="/home" >
+            <img src="@/assets/images/logo.svg">
+        </Button>
         <div class="nav-items">
-            <Panel class="primary-nav">
-                <div class="row">
-                    <div class="left">
-                        <Button class="primary-item" v-for="(route, id) in routes" :key="id" @mouseover="selectedPrimaryRoute = id">
-                            {{ id }}
-                        </Button>
-                    </div>
-                    <div class="right">
-                        <Button class="primary-item" to="/profile">
-                            Jazcash
-                        </Button>
-                        <Button class="primary-item icon" to="/settings">
-                            <Icon icon="cog" :size="40" />
-                        </Button>
-                        <Button class="primary-item icon">
-                            <Icon icon="close-thick" :size="40" />
-                        </Button>
-                    </div>
+            <div class="primary-nav">
+                <div class="left">
+                    <Button class="primary-item" v-for="(route, id) in routes" :key="id" @mouseenter="selectPrimaryRoute(id)" @mouseleave="cancelPrimaryRouteSelection">
+                        {{ id }}
+                    </Button>
                 </div>
-            </Panel>
-            <Panel class="secondary-nav">
+                <div class="right">
+                    <Button class="primary-item" to="/profile">
+                        Jazcash
+                    </Button>
+                    <Button class="primary-item icon" to="/settings">
+                        <Icon icon="cog" :size="40" />
+                    </Button>
+                    <Button class="primary-item icon">
+                        <Icon icon="close-thick" :size="40" />
+                    </Button>
+                </div>
+            </div>
+            <div class="secondary-nav">
                 <Button class="secondary-item" v-for="secondaryRoute in secondaryRoutes" :key="secondaryRoute.name" :to="secondaryRoute.path">
                     {{ secondaryRoute.name }}
                 </Button>
-            </Panel>
+            </div>
         </div>
     </div>
 </template>
@@ -56,25 +52,33 @@ export default defineComponent({
         const selectedPrimaryRoute = ref("");
         const secondaryRoutes = computed(() => routes.value[selectedPrimaryRoute.value] || []);
 
-        return { routes, selectedPrimaryRoute, secondaryRoutes };
+        // debounce primary link hovers so selecting secondary nav items isn't frustrating
+        let selectPrimaryRouteTimeoutId = 0;
+        const selectPrimaryRoute = (routeId: string) => {
+            selectPrimaryRouteTimeoutId = window.setTimeout(() => {
+                selectedPrimaryRoute.value = routeId;
+            }, 60);
+        };
+        const cancelPrimaryRouteSelection = () => {
+            window.clearTimeout(selectPrimaryRouteTimeoutId);
+        };
+
+        return { route, routes, selectedPrimaryRoute, secondaryRoutes, selectPrimaryRoute, cancelPrimaryRouteSelection };
     }
 });
 </script>
 
 <style scoped lang="scss">
 .nav {
+    position: relative;
     display: flex;
     box-shadow: 0 3px 5px rgba(0, 0, 0, 0.5), 0 1px 0 rgba(255, 255, 255, 0.2);
-}
-.logo-panel {
-    padding: 0;
-    display: flex;
-    border: none;
-    border-right: 1px solid hsl(0, 0%, 17%);
-    box-shadow: none;
-    &:hover {
-        z-index: 2;
-        box-shadow: 5px -2px 5px rgba(0, 0, 0, 0.5);
+    &:before {
+        @extend .fullsize;
+        content: "";
+        background: url("~@/assets/images/px_by_Gre3g.png");
+        z-index: -1;
+        opacity: 0.16;
     }
 }
 .logo {
@@ -101,13 +105,12 @@ export default defineComponent({
     display: flex;
     flex-grow: 1;
     flex-direction: column;
+    border-left: 1px solid rgba(255, 255, 255, 0.1);
 }
 .primary-nav {
     padding: 0;
     border: none;
     border-bottom: 1px solid #272727;
-}
-.row {
     display: flex;
     justify-content: space-between;
 }
@@ -129,7 +132,7 @@ export default defineComponent({
     .right & {
         box-shadow: -1px 0 0 rgba(255, 255, 255, 0.1);
     }
-    &:hover:not(.selected) {
+    &:hover, &.selected {
         background: radial-gradient(rgba(0, 0, 0, 0), rgba(255, 255, 255, 0.12));
         color: #fff;
         text-shadow: 0 0 7px #fff;
@@ -142,11 +145,6 @@ export default defineComponent({
             7px -3px 10px rgba(0, 0, 0, 0.5),
             -7px -3px 10px rgba(0, 0, 0, 0.5);
     }
-    &.selected {
-        background: linear-gradient(rgba(255, 255, 255, 0), rgba(0, 0, 0, 0.4));
-        color: #fff;
-        text-shadow: 0 0 7px #fff;
-    }
     &.icon {
         padding: 10px 15px;
     }
@@ -155,7 +153,7 @@ export default defineComponent({
     padding: 0;
     border: none;
     font-weight: 600;
-    background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.9));
+    background: linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.5));
     display: flex;
     flex-direction: row;
     box-shadow: none;
@@ -174,7 +172,7 @@ export default defineComponent({
     &:not(:last-child) {
         position: relative;
         &:after {
-            @extend %pseudo-fill;
+            @extend .fullsize;
             background: rgba(255, 255, 255, 0.1);
             width: 1px;
             height: 70%;

@@ -1,5 +1,5 @@
 <template>
-    <div class="fullscreen">
+    <div class="fullsize">
         <video @loadstart="play" @ended="skipIntro" @click="skipIntro">
             <source src="intro.mp4" type="video/mp4">
         </video>
