@@ -4,6 +4,10 @@ import intro from '@/views/intro.vue'
 import login from '@/views/login.vue'
 import profile from '@/views/profile.vue'
 import settings from '@/views/settings.vue'
+import campaign_index from '@/views/campaign/index.vue'
+import missions_index from '@/views/missions/index.vue'
+import replays_index from '@/views/replays/index.vue'
+import versus_index from '@/views/versus/index.vue'
 import campaign_continue from '@/views/campaign/continue.vue'
 import campaign_load from '@/views/campaign/load.vue'
 import campaign_new from '@/views/campaign/new.vue'
@@ -50,6 +54,26 @@ export default [
     name: 'settings',
     path: '/settings',
     component: settings,
+  },
+  {
+    name: 'campaign',
+    path: '/campaign',
+    component: campaign_index,
+  },
+  {
+    name: 'missions',
+    path: '/missions',
+    component: missions_index,
+  },
+  {
+    name: 'replays',
+    path: '/replays',
+    component: replays_index,
+  },
+  {
+    name: 'versus',
+    path: '/versus',
+    component: versus_index,
   },
   {
     name: 'Continue',

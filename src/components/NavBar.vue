@@ -1,31 +1,31 @@
 <template>
     <div class="nav">
-        <Button class="primary-item logo" :class="{ selected: route.path === '/home' }" depress to="/home" >
+        <router-link class="primary-item logo" :class="{ selected: route.path === '/home' }" depress to="/home" >
             <img src="@/assets/images/logo.svg">
-        </Button>
+        </router-link>
         <div class="nav-items">
             <div class="primary-nav">
                 <div class="left">
-                    <Button class="primary-item" v-for="(route, id) in routes" :key="id" @mouseenter="selectPrimaryRoute(id)" @mouseleave="cancelPrimaryRouteSelection">
+                    <router-link class="primary-item" v-for="(route, id) in routes" :key="id" @mouseenter="selectPrimaryRoute(id)" @mouseleave="cancelPrimaryRouteSelection" :to="`/${id}`">
                         {{ id }}
-                    </Button>
+                    </router-link>
                 </div>
                 <div class="right">
-                    <Button class="primary-item" to="/profile">
+                    <router-link class="primary-item" to="/profile">
                         Jazcash
-                    </Button>
-                    <Button class="primary-item icon" to="/settings">
+                    </router-link>
+                    <router-link class="primary-item icon" to="/settings">
                         <Icon icon="cog" :size="40" />
-                    </Button>
-                    <Button class="primary-item icon">
+                    </router-link>
+                    <router-link class="primary-item icon" to="/">
                         <Icon icon="close-thick" :size="40" />
-                    </Button>
+                    </router-link>
                 </div>
             </div>
             <div class="secondary-nav">
-                <Button class="secondary-item" v-for="secondaryRoute in secondaryRoutes" :key="secondaryRoute.name" :to="secondaryRoute.path">
+                <router-link class="secondary-item" v-for="secondaryRoute in secondaryRoutes" :key="secondaryRoute.name" :to="secondaryRoute.path">
                     {{ secondaryRoute.name }}
-                </Button>
+                </router-link>
             </div>
         </div>
     </div>

@@ -1,5 +1,5 @@
 <template>
-    <router-link :class="`${depress ? 'depress' : ''} ${isSelected ? 'selected' : ''}`" @mouseover="() => !isSelected && play()" :to="to">
+    <router-link :class="`btn ${depress ? 'depress' : ''} ${isSelected ? 'selected' : ''}`" @mouseover="() => !isSelected && play()" :to="to">
         <div class="content">
             <slot/>
         </div>
