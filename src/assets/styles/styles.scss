@@ -1,4 +1,6 @@
-@import "reset";
-@import "document";
-@import "inputs";
-@import "transitions";
+@use "reset";
+@use "document";
+@use "inputs";
+@use "transitions";
+
+@use "themes/carbon";

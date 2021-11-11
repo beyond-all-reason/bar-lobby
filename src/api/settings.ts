@@ -1,40 +1,66 @@
-import { defaultSettings, SettingsType } from "@/model/settings";
-import * as fs from "fs";
+// import { defaultSettings, settingsSchema, SettingsType } from "@/model/settings";
+// import * as fs from "fs";
+// import Ajv from "ajv";
 
-export interface SettingsAPIConfig extends Record<string, unknown> {
-    settingsFilePath: string;
-}
+// export interface SettingsAPI {
+//     get(): Promise<SettingsType | void>;
+//     set(settings: SettingsType): Promise<boolean>;
+// }
 
-export interface SettingsAPI {
-    get<K extends keyof SettingsType>(key: K): SettingsType[K]
-    set<K extends keyof SettingsType, V extends SettingsType[K]>(key: K, value: V): void;
-}
+// const ajv = new Ajv();
+// const settingsValidator = ajv.compile(settingsSchema);
 
-export const settingsAPIFactory: (config: SettingsAPIConfig) => Promise<SettingsAPI> = async function(config) {
-    let settings = defaultSettings;
+// const settingsPath = path.join(app.getPath("userData"), "settings.json")
 
-    // TODO: use read/write stream
-    if (fs.existsSync(config.settingsFilePath)) {
-        settings = JSON.parse(await fs.promises.readFile(config.settingsFilePath, "utf8"));
-    } else {
-        await fs.promises.writeFile(config.settingsFilePath, JSON.stringify(settings));
-    }
+// export const settingsAPIFactory: () => Promise<SettingsAPI> = async function() {
+//     let settings: SettingsType = defaultSettings;
 
-    return {
-        get(key) {
-            return settings[key];
-        },
-        set(key, value) {
-            fs.promises.writeFile(config.settingsFilePath, JSON.stringify(settings));
-            settings[key] = value;
-        }
-    };
-};
+//     // TODO: use read/write stream
 
-declare global {
-    interface Window {
-        api: {
-            settings: SettingsAPI;
-        }
-    }
-}
+//     if (!fs.existsSync(config.settingsFilePath)) {
+//         await fs.promises.writeFile(config.settingsFilePath, JSON.stringify(settings));
+//     }
+
+//     return {
+//         async get() {
+//             try {
+//                 const loadedSettings = JSON.parse(await fs.promises.readFile(config.settingsFilePath, "utf8"));
+
+//                 if (validateSettings(loadedSettings)) {
+//                     settings = loadedSettings;
+//                     return settings;
+//                 } else {
+//                     throw new Error(`Invalid Settings: ${settingsValidator.errors}`);
+//                 }
+//             } catch (err) {
+//                 console.error(err);
+//             }
+//         },
+//         async set(newSettings) {
+//             try {
+//                 if (validateSettings(newSettings)) {
+//                     settings = newSettings;
+//                     await fs.promises.writeFile(config.settingsFilePath, JSON.stringify(settings));
+//                     return true;
+//                 } else {
+//                     throw new Error(`Invalid Settings: ${settingsValidator.errors}`);
+//                 }
+//             } catch (err) {
+//                 console.error(err);
+//                 return false;
+//             }
+//         }
+//     };
+// };
+
+// function validateSettings(settings: any) : settings is SettingsType {
+//     return settingsValidator(settings);
+// }
+
+// declare global {
+//     interface Window {
+//         api: {
+//             settings: SettingsAPI;
+//         }
+//     }
+// }

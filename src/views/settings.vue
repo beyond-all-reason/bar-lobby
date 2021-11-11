@@ -13,22 +13,31 @@
 <script lang="ts">
 import { defineComponent, effectScope, ref, watch } from "vue";
 
-export default defineComponent({
-    setup() {
-        const scope = effectScope();
 
-        const screenIds = ref([0]);
+export default defineComponent({
+    async setup() {
+        // const scope = effectScope();
+
+        console.log(this);
+
+        const screenIds = ref([]);
         const selectedScreen = ref(0);
 
-        window.getHardwareInfo().then((hardwareInfo) => {
-            screenIds.value = hardwareInfo.screenIds;
-        });
+        const hardwareInfo = await window.ipcRenderer.invoke("get-hardware-info");
+        screenIds.value = hardwareInfo.screenIds;
 
-        scope.run(() => {
-            watch(selectedScreen, (selectedScreen) => {
-                window.setDisplay(selectedScreen);
-            });
-        });
+        //const window = BrowserWindow.getFocusedWindow();
+        //console.log(test);
+
+        // window.getHardwareInfo().then((hardwareInfo) => {
+        //     screenIds.value = hardwareInfo.screenIds;
+        // });
+
+        // scope.run(() => {
+        //     watch(selectedScreen, (selectedScreen) => {
+        //         window.setDisplay(selectedScreen);
+        //     });
+        // });
 
         return { screenIds, selectedScreen };
     }

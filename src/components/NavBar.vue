@@ -1,69 +1,37 @@
 <template>
     <div class="nav">
-        <router-link class="primary-item logo" :class="{ selected: route.path === '/home' }" depress to="/home" >
-            <img src="@/assets/images/logo.svg">
-        </router-link>
-        <div class="nav-items">
-            <div class="primary-nav">
-                <div class="left">
-                    <router-link class="primary-item" v-for="(route, id) in routes" :key="id" @mouseenter="selectPrimaryRoute(id)" @mouseleave="cancelPrimaryRouteSelection" :to="`/${id}`">
-                        {{ id }}
-                    </router-link>
-                </div>
-                <div class="right">
-                    <router-link class="primary-item" to="/profile">
-                        Jazcash
-                    </router-link>
-                    <router-link class="primary-item icon" to="/settings">
-                        <Icon icon="cog" :size="40" />
-                    </router-link>
-                    <router-link class="primary-item icon" to="/">
-                        <Icon icon="close-thick" :size="40" />
-                    </router-link>
-                </div>
-            </div>
-            <div class="secondary-nav">
-                <router-link class="secondary-item" v-for="secondaryRoute in secondaryRoutes" :key="secondaryRoute.name" :to="secondaryRoute.path">
-                    {{ secondaryRoute.name }}
-                </router-link>
-            </div>
+        <div class="left">
+            <router-link class="primary-item logo" :class="{ selected: route.path === '/home' }" depress to="/home" >
+                <img src="@/assets/images/logo.svg">
+            </router-link>
+            <router-link class="primary-item" :class="{ selected: route.path.split('/')[1] === 'campaign' }" to="/campaign">Campaign</router-link>
+            <router-link class="primary-item" :class="{ selected: route.path.split('/')[1] === 'missions' }" to="/missions">Missions</router-link>
+            <router-link class="primary-item" :class="{ selected: route.path.split('/')[1] === 'versus' }" to="/versus">Versus</router-link>
+            <router-link class="primary-item" :class="{ selected: route.path.split('/')[1] === 'replays' }" to="/replays">Replays</router-link>
+        </div>
+        <div class="right">
+            <router-link class="primary-item" to="/profile">
+                Jazcash
+            </router-link>
+            <router-link class="primary-item icon" to="/settings">
+                <Icon icon="cog" :size="40" />
+            </router-link>
+            <router-link class="primary-item icon" to="/">
+                <Icon icon="close-thick" :size="40" />
+            </router-link>
         </div>
     </div>
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, ref } from "vue";
-import { RouteLocation, useRoute, useRouter } from "vue-router";
+import { defineComponent } from "vue";
+import { useRoute } from "vue-router";
 
 export default defineComponent({
     setup() {
-        const router = useRouter();
         const route = useRoute();
 
-        const primaryRoutes = ["campaign", "missions", "replays", "versus"];
-
-        const allRoutes = ref(router.getRoutes());
-        const routes = computed(() => Object.assign({}, ...primaryRoutes.map(primaryRoute => {
-            return {
-                [primaryRoute]: allRoutes.value.filter(route => route.path.split("/")[1] === primaryRoute)
-            };
-        })) as { [key: string]: RouteLocation[] });
-
-        const selectedPrimaryRoute = ref("");
-        const secondaryRoutes = computed(() => routes.value[selectedPrimaryRoute.value] || []);
-
-        // debounce primary link hovers so selecting secondary nav items isn't frustrating
-        let selectPrimaryRouteTimeoutId = 0;
-        const selectPrimaryRoute = (routeId: string) => {
-            selectPrimaryRouteTimeoutId = window.setTimeout(() => {
-                selectedPrimaryRoute.value = routeId;
-            }, 60);
-        };
-        const cancelPrimaryRouteSelection = () => {
-            window.clearTimeout(selectPrimaryRouteTimeoutId);
-        };
-
-        return { route, routes, selectedPrimaryRoute, secondaryRoutes, selectPrimaryRoute, cancelPrimaryRouteSelection };
+        return { route };
     }
 });
 </script>
@@ -72,7 +40,9 @@ export default defineComponent({
 .nav {
     position: relative;
     display: flex;
-    box-shadow: 0 3px 5px rgba(0, 0, 0, 0.5), 0 1px 0 rgba(255, 255, 255, 0.2);
+    justify-content: space-between;
+    box-shadow: 0 3px 5px rgba(0, 0, 0, 0.5);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
     &:before {
         @extend .fullsize;
         content: "";
@@ -91,28 +61,9 @@ export default defineComponent({
         height: 40px;
         opacity: 0.9;
     }
-    &:hover img {
+    &:hover img, &.selected img {
         opacity: 1;
     }
-    &:active:not(.selected) {
-        background: linear-gradient(rgba(0, 0, 0, 0.4), rgba(202, 202, 202, 0.1));
-        box-shadow: inset 0 0 25px rgba(0, 0, 0, 0.7) !important;
-        color: rgba(255, 255, 255, 0.4);
-        text-shadow: none;
-    }
-}
-.nav-items {
-    display: flex;
-    flex-grow: 1;
-    flex-direction: column;
-    border-left: 1px solid rgba(255, 255, 255, 0.1);
-}
-.primary-nav {
-    padding: 0;
-    border: none;
-    border-bottom: 1px solid #272727;
-    display: flex;
-    justify-content: space-between;
 }
 .left, .right {
     display: flex;
@@ -123,16 +74,17 @@ export default defineComponent({
     font-size: 25px;
     font-weight: 600;
     background: radial-gradient(rgba(0, 0, 0, 0), rgba(255, 255, 255, 0.05));
-    color: rgba(255, 255, 255, 0.9);
+    color: rgba(255, 255, 255, 0.8);
     display: flex;
     align-items: center;
+    transition: all .05s;
     .left & {
         box-shadow: 1px 0 0 rgba(255, 255, 255, 0.1);
     }
     .right & {
         box-shadow: -1px 0 0 rgba(255, 255, 255, 0.1);
     }
-    &:hover, &.selected {
+    &:hover {
         background: radial-gradient(rgba(0, 0, 0, 0), rgba(255, 255, 255, 0.12));
         color: #fff;
         text-shadow: 0 0 7px #fff;
@@ -143,44 +95,20 @@ export default defineComponent({
             -1px 0 0 rgba(255, 255, 255, 0.2),
             0 1px 0 rgba(255, 255, 255, 0.4),
             7px -3px 10px rgba(0, 0, 0, 0.5),
-            -7px -3px 10px rgba(0, 0, 0, 0.5);
+            -7px -3px 10px rgba(0, 0, 0, 0.5) !important;
+    }
+    &.selected {
+        color: #fff;
+        text-shadow: 0 0 7px #fff;
+        .left & {
+            box-shadow: 1px 0 0 rgba(255, 255, 255, 0.1), 0 1px 0 rgba(255, 255, 255, 0.2);
+        }
+        .right & {
+            box-shadow: -1px 0 0 rgba(255, 255, 255, 0.1), 0 1px 0 rgba(255, 255, 255, 0.2);
+        }
     }
     &.icon {
         padding: 10px 15px;
-    }
-}
-.secondary-nav {
-    padding: 0;
-    border: none;
-    font-weight: 600;
-    background: linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.5));
-    display: flex;
-    flex-direction: row;
-    box-shadow: none;
-    height: 30px;
-    box-shadow: inset 0 4px 6px rgba(0, 0, 0, 0.7);
-}
-.secondary-item {
-    display: flex;
-    align-items: center;
-    padding: 0 30px;
-    height: 100%;
-    color: rgba(255, 255, 255, 0.6);
-    &:hover {
-        color: #fff;
-    }
-    &:not(:last-child) {
-        position: relative;
-        &:after {
-            @extend .fullsize;
-            background: rgba(255, 255, 255, 0.1);
-            width: 1px;
-            height: 70%;
-            top: 50%;
-            transform: translateY(-50%);
-            left: unset;
-            right: 0px;
-        }
     }
 }
 </style>

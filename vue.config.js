@@ -4,14 +4,14 @@ module.exports = {
         loaderOptions: {
             scss: {
                 prependData: `
-                    @import "@/assets/styles/_mixins.scss";
-                    @import "@/assets/styles/_utils.scss";
+                    @use "@/assets/styles/_mixins.scss";
+                    @use "@/assets/styles/_utils.scss";
                 `,
             }
         }
     },
     configureWebpack: {
-        devtool: process.env.NODE_ENV !== "production" ? "eval" : false,
+        devtool: process.env.NODE_ENV !== "production" ? "eval-source-map" : false,
         module: {
             rules: [
                 {
@@ -25,7 +25,7 @@ module.exports = {
     pluginOptions: {
         electronBuilder: {
             mainProcessFile: "src/main.ts",
-            mainProcessWatch: ["src/main", "src/main-window"],
+            mainProcessWatch: ["src/main.ts", "src/main-window.ts"],
             rendererProcessFile: "src/render.ts",
             preload: "src/preload.ts",
             builderOptions: {

@@ -6,7 +6,7 @@ import { createPinia } from "pinia";
 import "@/assets/styles/styles.scss";
 import routes from "@/routes";
 import App from "@/App.vue";
-import { HardwareInfo } from "@/model/hardware-info";
+import { IpcRenderer } from "electron";
 
 setupVue();
 
@@ -40,7 +40,6 @@ function setupVue() {
 declare global {
     interface Window {
         router: Router;
-        getHardwareInfo: () => Promise<HardwareInfo>;
-        setDisplay: (displayId: number) => void;
+        ipcRenderer: IpcRenderer;
     }
 }
