@@ -1,26 +1,16 @@
 <template>
     <Panel>
         <div class="controls">
-            <div class="control">
-                <label for="type-text">Text (text)</label>
-                <input type="text" name="type-text" id="type-text" placeholder="placeholder">
-            </div>
+            <Textbox label="bob" placeholder="test" v-model="test" />
             <div class="control">
                 <label for="type-search">Search (search)</label>
                 <input type="search" name="type-search" id="type-search" value="This is some text">
             </div>
             <div class="control">
-                <label for="type-tel">Telephone (tel)</label>
-                <input type="tel" name="type-tel" id="type-tel">
-            </div>
-            <div class="control">
                 <label for="type-url">URL (url)</label>
                 <input type="url" name="type-url" id="type-url">
             </div>
-            <div class="control">
-                <label for="type-email">E-mail (email)</label>
-                <input type="email" name="type-email" id="type-email">
-            </div>
+            <Textbox type="email" label="email" />
             <div class="control">
                 <label for="type-datetime">Date and Time (datetime)</label>
                 <input type="datetime" name="type-datetime" id="type-datetime">
@@ -82,6 +72,7 @@
                     </optgroup>
                 </select>
             </div>
+            <!-- <Select v-model="color" /> -->
             <div class="control">
                 <label for="check2">Checkbox</label>
                 <input type="checkbox">
@@ -121,12 +112,14 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from "vue";
+import { defineComponent, ref } from "vue";
 
 export default defineComponent({
     layout: "default",
     setup() {
-        return {};
+        const test = (window as any).test = ref("fish");
+        const color = (window as any).color = ref("red");
+        return { test, color };
     }
 });
 </script>

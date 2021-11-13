@@ -14,8 +14,9 @@ export const defaultMainWindowConfig: Partial<MainWindowConfig> = {
 };
 
 export class MainWindow {
+    public window: BrowserWindow;
+    
     protected config: MainWindowConfig;
-    protected window: BrowserWindow;
 
     constructor(config: MainWindowConfig) {
         this.config = config;
@@ -63,10 +64,13 @@ export class MainWindow {
         }
     }
 
-    public setDisplay(index: number) {
-        const { x, y, width, height } = screen.getAllDisplays()[index].bounds;
-        this.window.setPosition(x, y);
-        this.window.setSize(width, height);
+    public setDisplay(id: number) {
+        const display = screen.getAllDisplays().find(display => display.id === id);
+        if (display) {
+            const { x, y, width, height } = display.bounds;
+            this.window.setPosition(x, y);
+            this.window.setSize(width, height);
+        }
     }
 
     protected onReadyToShow() {

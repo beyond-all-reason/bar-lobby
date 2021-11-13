@@ -45,10 +45,9 @@ export default defineComponent({
     border-bottom: 1px solid rgba(255, 255, 255, 0.15);
     &:before {
         @extend .fullsize;
+        @extend .panel-background;
         content: "";
-        background: url("~@/assets/images/px_by_Gre3g.png");
         z-index: -1;
-        opacity: 0.16;
     }
 }
 .logo {

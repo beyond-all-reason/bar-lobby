@@ -39,16 +39,7 @@ export class Application {
         this.app.on("activate", () => this.onActivate());
         this.app.on("window-all-closed", () => this.onWindowAllClosed());
 
-        const getHardwareInfo: () => Promise<HardwareInfo> = async function () {
-            return {
-                screenIds: screen.getAllDisplays().map(screen => screen.id)
-            };
-        };
-        
-        ipcMain.handle("get-hardware-info", getHardwareInfo);
-        ipcMain.handle("set-display", (event, displayId: number) => {
-            this.mainWindow.setDisplay(displayId);
-        });
+        this.setupHandlers();
     }
 
     protected async onReady() {
@@ -75,6 +66,19 @@ export class Application {
         if (process.platform !== "darwin") {
             this.app.quit();
         }
+    }
+
+    protected setupHandlers() {
+        ipcMain.handle("get-hardware-info", async () => {
+            return {
+                screenIds: screen.getAllDisplays().map(screen => screen.id),
+                currentScreenId: screen.getDisplayNearestPoint(this.mainWindow.window.getBounds()).id
+            };
+        });
+
+        ipcMain.handle("set-display", (event, displayId: number) => {
+            this.mainWindow.setDisplay(displayId);
+        });
     }
 }
 

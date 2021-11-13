@@ -19,9 +19,8 @@ html {
     overflow: hidden;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    font-family: Rajdhani, Times, sans-serif;
-    font-size: 18px;
-    text-transform: uppercase;
+    font-family: Poppins, Times, sans-serif;
+    font-size: 16px;
     color: #fff;
     text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.6);
     cursor: url("~@/assets/images/cursor_default.png"), default;
@@ -37,4 +36,7 @@ body {
 }
 p {
     user-select: text;
+}
+.panel-background {
+    background: red;
 }
