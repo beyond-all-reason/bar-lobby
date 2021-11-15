@@ -45,7 +45,6 @@ export default defineComponent({
     border-bottom: 1px solid rgba(255, 255, 255, 0.15);
     &:before {
         @extend .fullsize;
-        @extend .panel-background;
         content: "";
         z-index: -1;
     }

@@ -1,6 +1,6 @@
 <template>
     <div class="fullsize">
-        <Background :src="require('@/assets/images/login.jpg')"/>
+        <div class="fullsize background"></div>
         <div class="login">
             <img class="logo" src="@/assets/images/BARLogoFull.png">
             <LoginForm />

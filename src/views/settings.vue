@@ -34,27 +34,6 @@ export default defineComponent({
             displays.value = Array(info.numOfDisplays).fill(0).map((x, i) => i);
         });
 
-        //const hardwareInfo = await window.ipcRenderer.invoke("get-hardware-info");
-        //screenIds.value = hardwareInfo.screenIds;
-
-        // window.getHardwareInfo().then((hardwareInfo) => {
-        //     screenIds.value = hardwareInfo.screenIds;
-        // });
-
-        // scope.run(() => {
-        //     watch(selectedScreen, (selectedScreen) => {
-        //         window.setDisplay(selectedScreen);
-        //     });
-        // });
-
-        // window.ipcRenderer.invoke("get-hardware-info").then((hardwareInfo) => {
-        //     displays.value = hardwareInfo.screenIds;
-        // });
-
-        // watch(selectedScreen, (selectedScreen) => {
-        //     window.ipcRenderer.invoke("set-display", selectedScreen);
-        // });
-
         return { displays, displayIndex, themes, theme };
     }
 });
