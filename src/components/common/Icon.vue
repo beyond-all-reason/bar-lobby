@@ -3,7 +3,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from "vue";
+import { defineComponent, ref, toRefs } from "vue";
 
 const { icons } = require("@iconify/json/json/mdi.json");
 
@@ -19,8 +19,8 @@ export default defineComponent({
         }
     },
     setup(props) {
-        const svg = icons[props.icon];
-        const size = ref(props.size);
+        const { icon, size } = toRefs(props);
+        const svg = icons[icon.value];
 
         if (svg === undefined) {
             throw new Error(`Icon ${props.icon} not found`);

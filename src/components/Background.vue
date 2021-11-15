@@ -3,7 +3,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from "vue";
+import { defineComponent, toRefs } from "vue";
 
 export default defineComponent({
     props: {
@@ -13,7 +13,7 @@ export default defineComponent({
         }
     },
     setup(props) {
-        const src = ref(props.src);
+        const { src } = toRefs(props);
 
         return { src };
     }

@@ -1,16 +1,14 @@
 import { createApp } from "vue";
-import { createRouter, createWebHashHistory, createWebHistory, Router } from "vue-router";
+import { createRouter, createWebHashHistory, createWebHistory } from "vue-router";
 import { createRouterLayout } from "vue-router-layout";
-import { createPinia } from "pinia";
 
 import "@/assets/styles/styles.scss";
 import routes from "@/routes";
 import App from "@/App.vue";
-import { IpcRenderer } from "electron";
 
 setupVue();
 
-function setupVue() {
+async function setupVue() {
     const RouterLayout = createRouterLayout(layout => {
         return import("@/layouts/" + layout + ".vue");
     });
@@ -29,17 +27,11 @@ function setupVue() {
     const app = createApp(App);
 
     app.use(router);
-    app.use(createPinia());
 
-    app.config.globalProperties.window = window;
-    window.router = router;
+    //app.use(createPinia());
+
+    // app.config.globalProperties.window = window;
+    // window.router = router;
 
     app.mount("#app");
-}
-
-declare global {
-    interface Window {
-        router: Router;
-        ipcRenderer: IpcRenderer;
-    }
 }

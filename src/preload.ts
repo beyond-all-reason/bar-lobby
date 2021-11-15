@@ -1,21 +1,25 @@
-//import { settingsAPIFactory } from "@/api/settings";
-import { contextBridge, IpcRenderer, ipcRenderer } from "electron";
-import { PreloadConfig } from "@/model/preload-config";
-import { Router } from "vue-router";
+import { SettingsRenderAPI } from "@/model/settings";
+import { contextBridge, ipcRenderer } from "electron";
 
-(async () => {
-    // const { settingsFilePath }: PreloadConfig = JSON.parse(process.argv[process.argv.length - 1]);
+contextBridge.exposeInMainWorld("ipcRenderer", ipcRenderer);
 
-    // const settings = await settingsAPIFactory({ settingsFilePath });
+const settingsRenderAPI: SettingsRenderAPI = {
+    getSettings: () => ipcRenderer.invoke("getSettings"),
+    //getSetting: (key) => ipcRenderer.invoke("getSetting", key),
+    setSetting: (key, value) => {
+        console.log(key, value);
+        return ipcRenderer.invoke("setSetting", key, value);
+    },
+};
 
-    // contextBridge.exposeInMainWorld("api", {
-    //     settings
-    // });
+const api = {
+    settings: settingsRenderAPI
+};
 
-    // contextBridge.exposeInMainWorld("getHardwareInfo", async (...args: any[]) => ipcRenderer.invoke("get-hardware-info", ...args));
-    // contextBridge.exposeInMainWorld("setDisplay", (...args: any[]) => ipcRenderer.invoke("set-display", ...args));
+contextBridge.exposeInMainWorld("api", api);
 
-    window.addEventListener("DOMContentLoaded", () => {
-        contextBridge.exposeInMainWorld("ipcRenderer", ipcRenderer);
-    });
-})();
+declare global {
+    interface Window {
+        api: typeof api;
+    }
+}

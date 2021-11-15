@@ -25,7 +25,7 @@ module.exports = {
     pluginOptions: {
         electronBuilder: {
             mainProcessFile: "src/main.ts",
-            mainProcessWatch: ["src/main.ts", "src/main-window.ts"],
+            mainProcessWatch: ["src/main.ts", "src/main-window.ts", "src/api/**/*"],
             rendererProcessFile: "src/render.ts",
             preload: "src/preload.ts",
             builderOptions: {

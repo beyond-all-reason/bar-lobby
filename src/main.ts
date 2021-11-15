@@ -1,11 +1,12 @@
+import { Settings } from "@/api/settings";
 import { defaultMainWindowConfig, MainWindow } from "@/main-window";
-import { HardwareInfo } from "@/model/hardware-info";
 import { app, App, ipcMain, protocol, screen } from "electron";
 import installExtension, { VUEJS3_DEVTOOLS } from "electron-devtools-installer";
 
 export class Application {
     protected app: App;
     protected mainWindow!: MainWindow;
+    protected settingsAPI: Settings = new Settings();
 
     constructor(app: App) {
         this.app = app;
@@ -69,7 +70,7 @@ export class Application {
     }
 
     protected setupHandlers() {
-        ipcMain.handle("get-hardware-info", async () => {
+        ipcMain.handle("get-hardware-info", async (event) => {
             return {
                 screenIds: screen.getAllDisplays().map(screen => screen.id),
                 currentScreenId: screen.getDisplayNearestPoint(this.mainWindow.window.getBounds()).id

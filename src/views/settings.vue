@@ -12,22 +12,23 @@
         <div class="control">
             <label for="theme">Theme</label>
             <select id="theme" v-model="theme">
-                <option value="none">None</option>
-                <option value="carbon">carbon</option>
+                <option v-for="(themeKey, themeVal) in themes" :key="themeKey" :value="themeKey">{{ themeVal }}</option>
             </select>
         </div>
     </div>
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, watch } from "vue";
-
+import { defineComponent, ref } from "vue";
+import { Theme } from "@/model/settings";
+import { settings } from "@/store/settings";
 
 export default defineComponent({
     setup() {
         const screenIds = ref([0]);
         const selectedScreen = ref(0);
-        const theme = ref(["none"]);
+        const themes = Theme;
+        const theme = settings.theme;
 
         //const hardwareInfo = await window.ipcRenderer.invoke("get-hardware-info");
         //screenIds.value = hardwareInfo.screenIds;
@@ -42,16 +43,16 @@ export default defineComponent({
         //     });
         // });
 
-        window.ipcRenderer.invoke("get-hardware-info").then((hardwareInfo) => {
-            screenIds.value = hardwareInfo.screenIds;
-            selectedScreen.value = hardwareInfo.currentScreenId;
-        });
+        // window.ipcRenderer.invoke("get-hardware-info").then((hardwareInfo) => {
+        //     screenIds.value = hardwareInfo.screenIds;
+        //     selectedScreen.value = hardwareInfo.currentScreenId;
+        // });
 
-        watch(selectedScreen, (selectedScreen) => {
-            window.ipcRenderer.invoke("set-display", selectedScreen);
-        });
+        // watch(selectedScreen, (selectedScreen) => {
+        //     window.ipcRenderer.invoke("set-display", selectedScreen);
+        // });
 
-        return { screenIds, selectedScreen, theme };
+        return { screenIds, selectedScreen, themes, theme };
     }
 });
 </script>
