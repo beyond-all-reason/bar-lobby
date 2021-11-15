@@ -1,7 +1,9 @@
 import { Settings } from "@/api/settings";
-import { defaultMainWindowConfig, MainWindow } from "@/main-window";
+import { MainWindow } from "@/main-window";
+import { API, IpcHandlers } from "@/model/api";
 import { app, App, ipcMain, protocol, screen } from "electron";
 import installExtension, { VUEJS3_DEVTOOLS } from "electron-devtools-installer";
+import { IpcMainInvokeEvent } from "electron/main";
 
 export class Application {
     protected app: App;
@@ -53,14 +55,24 @@ export class Application {
         }
 
         if (!this.mainWindow) {
-            this.mainWindow = new MainWindow(defaultMainWindowConfig);
+            this.setupMainWindow();
         }
     }
 
     protected async onActivate() {
         if (!this.mainWindow) {
-            this.mainWindow = new MainWindow(defaultMainWindowConfig);
+            this.setupMainWindow();
         }
+    }
+
+    protected setupMainWindow() {
+        this.mainWindow = new MainWindow({
+            displayIndex: this.settingsAPI.getSettings().displayIndex
+        });
+
+        this.settingsAPI.onSettingChanged("displayIndex").add((displayIndex) => {
+            this.mainWindow.setDisplay(displayIndex);
+        });
     }
 
     protected async onWindowAllClosed() {
@@ -70,16 +82,18 @@ export class Application {
     }
 
     protected setupHandlers() {
-        ipcMain.handle("get-hardware-info", async (event) => {
+        this.addHandler("getHardwareInfo", async (event, test) => {
+            const allDisplays = screen.getAllDisplays();
+
             return {
-                screenIds: screen.getAllDisplays().map(screen => screen.id),
-                currentScreenId: screen.getDisplayNearestPoint(this.mainWindow.window.getBounds()).id
+                numOfDisplays: allDisplays.length,
+                currentDisplayIndex: allDisplays.indexOf(screen.getDisplayNearestPoint(this.mainWindow.window.getBounds()))
             };
         });
+    }
 
-        ipcMain.handle("set-display", (event, displayId: number) => {
-            this.mainWindow.setDisplay(displayId);
-        });
+    protected addHandler<K extends keyof IpcHandlers, L extends API[K] = API[K]>(key: K, handler: (event: IpcMainInvokeEvent, args: Parameters<L>) => ReturnType<L>) {
+        ipcMain.handle(key, handler);
     }
 }
 

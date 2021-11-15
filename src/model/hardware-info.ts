@@ -1,3 +1,3 @@
 export interface HardwareInfo {
-    screenIds: number[];
+    numOfDisplays: number;
 }

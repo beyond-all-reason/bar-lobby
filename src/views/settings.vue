@@ -1,10 +1,10 @@
 <template>
     <div class="settings">
         <div class="control">
-            <label for="screen">Screen</label>
-            <select id="screen" v-model="selectedScreen">
-                <option v-for="(screenId, index) in screenIds" :key="screenId" :value="screenId">
-                    Screen {{ index + 1 }}
+            <label for="display">Display</label>
+            <select id="display" v-model="displayIndex">
+                <option v-for="(displayId, index) in displays" :key="displayId" :value="displayId">
+                    Display {{ index + 1 }}
                 </option>
             </select>
         </div>
@@ -25,10 +25,14 @@ import { settings } from "@/store/settings";
 
 export default defineComponent({
     setup() {
-        const screenIds = ref([0]);
-        const selectedScreen = ref(0);
+        const displays = ref([0]);
+        const displayIndex = settings.displayIndex;
         const themes = Theme;
         const theme = settings.theme;
+
+        window.api.getHardwareInfo().then(info => {
+            displays.value = Array(info.numOfDisplays).fill(0).map((x, i) => i);
+        });
 
         //const hardwareInfo = await window.ipcRenderer.invoke("get-hardware-info");
         //screenIds.value = hardwareInfo.screenIds;
@@ -44,15 +48,14 @@ export default defineComponent({
         // });
 
         // window.ipcRenderer.invoke("get-hardware-info").then((hardwareInfo) => {
-        //     screenIds.value = hardwareInfo.screenIds;
-        //     selectedScreen.value = hardwareInfo.currentScreenId;
+        //     displays.value = hardwareInfo.screenIds;
         // });
 
         // watch(selectedScreen, (selectedScreen) => {
         //     window.ipcRenderer.invoke("set-display", selectedScreen);
         // });
 
-        return { screenIds, selectedScreen, themes, theme };
+        return { displays, displayIndex, themes, theme };
     }
 });
 </script>

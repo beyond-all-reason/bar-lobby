@@ -16,7 +16,6 @@ export type SettingsType = Static<typeof settingsSchema>;
 
 export interface SettingsAPI {
     getSettings() : SettingsType;
-    //getSetting<K extends keyof SettingsType>(settingKey: K) : SettingsType[K];
     setSetting<K extends keyof SettingsType>(settingKey: K, value: SettingsType[K]) : void;
 }
 

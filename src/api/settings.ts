@@ -28,7 +28,6 @@ export class Settings implements SettingsAPI {
     public apiHandlers() {
         const handlers: SettingsMainAPI = {
             getSettings: async (event) => this.getSettings(),
-            //getSetting: async (event, key) => this.getSetting(key),
             setSetting: async (event, key, value) => this.setSetting(key, value),
         };
 
@@ -41,19 +40,11 @@ export class Settings implements SettingsAPI {
         return this.settings;
     }
 
-    // public getSetting<K extends keyof SettingsType>(key: K) : SettingsType[K] {
-    //     if (key in this.settings) {
-    //         return this.settings[key];
-    //     } else {
-    //         throw new Error(`Setting ${key} is not defined`);
-    //     }
-    // }
-
     public setSetting<K extends keyof SettingsType>(key: K, value: SettingsType[K]) : void {
         if (key in this.settings) {
             this.settings[key] = value;
             this.settingSignals.get(key)?.dispatch(value);
-            //console.log(`Writing setting to file: ${key}: ${value}`);
+            console.log(`Writing setting to file: ${key}: ${value}`);
             fs.writeFileSync(this.settingsPath, JSON.stringify(this.settings, null, 4));
         } else {
             throw new Error(`Setting ${key} is not defined`);

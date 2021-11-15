@@ -1,16 +1,17 @@
 import * as path from "path";
-import { app, BrowserWindow, screen, shell } from "electron";
-import { PreloadConfig } from "@/model/preload-config";
+import { BrowserWindow, screen, shell } from "electron";
 import { createProtocol } from "vue-cli-plugin-electron-builder/lib";
 
 declare const __static: string;
 
 export interface MainWindowConfig {
-    fullscreen?: boolean;
+    fullscreen: boolean;
+    displayIndex: number;
 }
 
-export const defaultMainWindowConfig: Partial<MainWindowConfig> = {
-    fullscreen: false
+export const defaultMainWindowConfig: MainWindowConfig = {
+    fullscreen: false,
+    displayIndex: 0
 };
 
 export class MainWindow {
@@ -18,12 +19,8 @@ export class MainWindow {
     
     protected config: MainWindowConfig;
 
-    constructor(config: MainWindowConfig) {
-        this.config = config;
-
-        const defaultPreloadConfig: Partial<PreloadConfig> = {
-            settingsFilePath: path.join(app.getPath("userData"), "settings.json")
-        };
+    constructor(config?: Partial<MainWindowConfig>) {
+        this.config = Object.assign({}, defaultMainWindowConfig, config);
 
         this.window = new BrowserWindow({
             title: "BAR Lobby",
@@ -39,8 +36,7 @@ export class MainWindow {
             webPreferences: {
                 nodeIntegration: false,
                 contextIsolation: true,
-                preload: path.join(__dirname, "preload.js"),
-                additionalArguments: [JSON.stringify(defaultPreloadConfig)]
+                preload: path.join(__dirname, "preload.js")
             }
         });
 
@@ -64,8 +60,8 @@ export class MainWindow {
         }
     }
 
-    public setDisplay(id: number) {
-        const display = screen.getAllDisplays().find(display => display.id === id);
+    public setDisplay(index: number) {
+        const display = screen.getAllDisplays()[index];
         if (display) {
             const { x, y, width, height } = display.bounds;
             this.window.setPosition(x, y);
@@ -74,9 +70,7 @@ export class MainWindow {
     }
 
     protected onReadyToShow() {
-        const chosenDisplay = 1;
-        const { x, y } = screen.getAllDisplays()[chosenDisplay].bounds;
-        this.window.setPosition(x, y);
+        this.setDisplay(this.config.displayIndex);
 
         if (!this.config.fullscreen) {
             this.window.maximize();
