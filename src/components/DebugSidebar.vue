@@ -51,14 +51,13 @@ export default defineComponent({
 .debug-sidebar {
     position: absolute;
     top: 0;
-    left: 0;
+    right: 0;
     width: 300px;
     height: 100%;
     z-index: 10;
     background: #111;
-    border-right: 1px solid #222;
-    box-shadow: 5px 0 5px rgba(0, 0, 0, 0.5);
-    transform: translateX(-100%);
+    border-left: 1px solid #222;
+    transform: translateX(100%);
     transition: transform 0.1s;
     padding: 10px;
     display: flex;
@@ -66,18 +65,19 @@ export default defineComponent({
     gap: 10px;
     &.active {
         transform: translateX(0);
+        box-shadow: -5px 0 5px rgba(0, 0, 0, 0.5);
     }
 }
 .toggle {
     position: absolute;
     bottom: 0;
-    right: 1px;
-    transform: translateX(100%);
+    left: 0;
+    transform: translateX(-100%);
     background: #111;
-    border-right: 1px solid #222;
-    border-bottom: 1px solid #222;
-    border-left: 1px solid #111;
-    box-shadow: 5px 2px 5px rgba(0, 0, 0, 0.5);
+    border: 1px solid #222;
+    border-right: none;
+    border-bottom: none;
+    box-shadow: -5px 2px 5px rgba(0, 0, 0, 0.5);
     display: flex;
     justify-content: center;
     align-items: center;

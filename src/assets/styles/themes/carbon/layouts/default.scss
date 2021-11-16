@@ -1,0 +1,7 @@
+.layout--default {
+    &:before {
+        background-image: url("~@/assets/images/bg1.jpg");
+        transform: scale(1.2) translateX(-15px);
+        filter: blur(6px) saturate(60%) brightness(30%);
+    }
+}

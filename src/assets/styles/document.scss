@@ -15,6 +15,7 @@ body {
     flex-direction: column;
 }
 .theme {
+    color: #fff;
     * {
         &::-webkit-scrollbar {
             width: 10px;
@@ -30,9 +31,6 @@ body {
             border-left: 1px solid #2a2a2a;
         }
     }
-}
-.view {
-    padding: 10px;
 }
 p {
     user-select: text;

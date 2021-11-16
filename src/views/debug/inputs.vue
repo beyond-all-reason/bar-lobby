@@ -73,11 +73,7 @@
                 </select>
             </div>
             <!-- <Select v-model="color" /> -->
-            <div class="control">
-                <label for="check2">Checkbox</label>
-                <input type="checkbox">
-                <label for="check" name="check2"></label>
-            </div>
+            <Checkbox />
             <div class="control">
                 <label for="textarea">Textarea</label>
                 <textarea name="textarea" rows="4">I am a text area</textarea>
@@ -113,6 +109,7 @@
 
 <script lang="ts">
 import { defineComponent, ref } from "vue";
+import Checkbox from "@/components/inputs/Checkbox.vue";
 
 export default defineComponent({
     layout: "default",
@@ -120,7 +117,8 @@ export default defineComponent({
         const test = (window as any).test = ref("fish");
         const color = (window as any).color = ref("red");
         return { test, color };
-    }
+    },
+    components: { Checkbox }
 });
 </script>
 

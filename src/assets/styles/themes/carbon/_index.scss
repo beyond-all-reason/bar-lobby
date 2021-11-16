@@ -3,16 +3,15 @@
     font-size: 18px;
     text-transform: uppercase;
     text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.6);
-    color: #fff;
     cursor: url("~@/assets/images/cursor_default.png"), default;
-
-    .view {
-        padding: 20px;
-        background: green;
-    }
 
     @import "inputs";
     @import "transitions";
-    
+
     @import "components/navbar";
+    @import "components/panel";
+    
+    @import "layouts/default";
+
+    @import "views/login";
 }

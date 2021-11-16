@@ -24,7 +24,6 @@ export class MainWindow {
 
         this.window = new BrowserWindow({
             title: "BAR Lobby",
-            titleBarStyle: process.env.NODE_ENV === "production" ? "hidden" : "default",
             fullscreen: this.config.fullscreen,
             frame: !this.config.fullscreen,
             resizable: true,
@@ -78,9 +77,7 @@ export class MainWindow {
 
         //this.window.setResizable(false);
 
-        if (process.env.NODE_ENV === "production") {
-            this.window.setMenuBarVisibility(false);
-        }
+        this.window.setMenuBarVisibility(false);
         
         this.window.show();
     }

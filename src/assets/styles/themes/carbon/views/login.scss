@@ -1,0 +1,29 @@
+@use "~@/assets/styles/utils";
+
+.view--login {
+    &:before {
+        @extend .fullsize;
+        background-image: url("~@/assets/images/login.jpg");
+        background-size: cover;
+        background-position: center;
+        z-index: -1;
+    }
+    .login {
+        max-width: 500px;
+    }
+    .logo{
+        filter: drop-shadow(3px 3px 5px rgba(0, 0, 0, 0.8));
+    }
+    .login-form {
+        width: 450px;
+    }
+    .email, .password {
+        label {
+            font-size: 20px;
+        }
+        input {
+            font-size: 20px;
+            padding: 10px;
+        }
+    }
+}

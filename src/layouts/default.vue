@@ -1,13 +1,10 @@
 <template>
-    <div class="fullsize layout layout--default">
-        <div class="fullsize background"></div>
-        <div class="container">
-            <NavBar />
+    <div :class="`fullsize layout--default`">
+        <NavBar />
+        <div :class="`view view--${route.name?.toString()}`">
             <router-view v-slot="{ Component }">
                 <transition :name="transition" :appear="Boolean(transition)">
-                    <div :class="`view view--${routeName}`">
-                        <component :is="Component" />
-                    </div>
+                    <component :is="Component" />
                 </transition>
             </router-view>
         </div>
@@ -22,39 +19,28 @@ export default defineComponent({
     props: {
         transition: {
             type: String,
-            default: ""
+            default: "fade"
         }
     },
     setup() {
         const route = useRoute();
-        const routeName = route.name?.toString();
 
-        return { routeName };
+        return { route };
     }
 });
 </script>
 
 <style lang="scss" scoped>
-.background {
-    z-index: -1;
-    transform: scale(1.2) translateX(-15px);
-    background-size: cover;
-    filter: blur(6px) saturate(60%) brightness(30%);
-    background: #111;
-}
-.container {
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    height: 100%;
-    max-height: 100%;
-}
-.main {
-    padding: 10px;
-    flex-grow: 1;
-    height: 0;
+.layout--default {
+    &:before {
+        @extend .fullsize;
+        z-index: -1;
+        background-size: cover;
+        background-position: center;
+    }
 }
 .view {
     overflow-y: hidden;
+    padding: 20px;
 }
 </style>

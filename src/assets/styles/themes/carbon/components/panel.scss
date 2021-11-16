@@ -1,0 +1,19 @@
+.panel {
+    background: linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.6));
+    backdrop-filter: blur(10px) brightness(1) saturate(2);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-top: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow:
+        inset 0 0 50px rgba(255, 255, 255, 0.15),
+        inset 0 3px 8px rgba(255, 255, 255, 0.1),
+        3px 3px 10px rgba(0, 0, 0, 0.8);
+    padding: 30px;
+    &:after {
+        @extend .fullsize;
+        background-image: url("~@/assets/images/squares.png");
+        background-size: auto;
+        opacity: 0.3;
+        mix-blend-mode: overlay;
+        z-index: -1;
+    }
+}
