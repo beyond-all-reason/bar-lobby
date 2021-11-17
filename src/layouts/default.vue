@@ -3,10 +3,13 @@
         <NavBar />
         <div :class="`view view--${route.name?.toString()}`">
             <router-view v-slot="{ Component }">
-                <transition :name="transition" :appear="Boolean(transition)">
+                <transition :name="transition" mode="out-in">
                     <component :is="Component" />
                 </transition>
             </router-view>
+        </div>
+        <div id="modal-container" class="modal-container">
+            
         </div>
     </div>
 </template>
@@ -19,7 +22,7 @@ export default defineComponent({
     props: {
         transition: {
             type: String,
-            default: "fade"
+            default: "slide"
         }
     },
     setup() {
@@ -42,5 +45,10 @@ export default defineComponent({
 .view {
     overflow-y: hidden;
     padding: 20px;
+}
+.modal-container {
+    @extend .fullsize;
+    z-index: 10;
+    pointer-events: none;
 }
 </style>

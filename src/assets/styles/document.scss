@@ -32,6 +32,6 @@ body {
         }
     }
 }
-p {
-    user-select: text;
+.layout--default .view > * {
+    //position: absolute;
 }

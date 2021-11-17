@@ -3,7 +3,7 @@
 .view--login {
     &:before {
         @extend .fullsize;
-        background-image: url("~@/assets/images/login.jpg");
+        background-image: url("~@/assets/images/bg4.png");
         background-size: cover;
         background-position: center;
         z-index: -1;
