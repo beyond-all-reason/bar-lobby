@@ -1,6 +1,10 @@
+@use "utils";
+
+:root {
+    --background: #000;
+}
 html {
     height: 100%;
-    background: #000;
     overflow: hidden;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -21,17 +25,14 @@ body {
             width: 10px;
         }
         &::-webkit-scrollbar-track-piece {
-            border-left: 1px solid #2a2a2a;
+            border-left: 1px solid rgba(255, 255, 255, 0.1);
         }
         &::-webkit-scrollbar-track {
-            background: #0b0b0b;
+            background: rgba(0, 0, 0, 0.2);
         }
         &::-webkit-scrollbar-thumb {
-            background: #1c1c1c;
-            border-left: 1px solid #2a2a2a;
+            background: rgba(255, 255, 255, 0.1);
+            border-left: 1px solid rgba(255, 255, 255, 0.1);
         }
     }
-}
-.layout--default .view > * {
-    //position: absolute;
 }

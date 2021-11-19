@@ -1,13 +1,21 @@
 <template>
     <div class="panel">
-        <slot />
+        <div class="content" :style="`--gap: ${gap}`">
+            <slot />
+        </div>
     </div>
 </template>
 
 <script lang="ts">
-import {  defineComponent } from "vue";
+import { defineComponent } from "vue";
 
 export default defineComponent({
+    props: {
+        gap: {
+            type: String,
+            default: "10px"
+        }
+    },
     setup() {
         return { };
     }
@@ -21,5 +29,11 @@ export default defineComponent({
     overflow-y: auto;
     display: flex;
     flex-direction: column;
+}
+.content {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap);
 }
 </style>

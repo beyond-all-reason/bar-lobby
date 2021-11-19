@@ -3,7 +3,8 @@ import { IpcMainInvokeEvent } from "electron/common";
 
 export enum Theme {
     None = "none",
-    Carbon = "carbon"
+    Carbon = "carbon",
+    Flow = "flow"
 }
 
 export const settingsSchema = Type.Strict(Type.Object({

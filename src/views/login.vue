@@ -1,16 +1,20 @@
 <template>
     <div class="fullsize">
         <div class="login">
-            <img class="logo" src="@/assets/images/BARLogoFull.png">
-            <Panel class="login-form">
-                <Textbox class="email" label="Email" v-model="email" />
-                <Textbox class="password" type="password" label="Password" v-model="password" />
-                <div class="row">
-                    <Button>Login</Button>
-                    <Button>Register</Button>
-                    <Checkbox type="checkbox" label="Remember Me" v-model="remember" />
-                </div>
-            </Panel>
+            <transition name="login" appear>
+                <img ref="logo" class="logo hidden" src="@/assets/images/BARLogoFull.png">
+            </transition>
+            <transition name="login" appear>
+                <Panel ref="login-form" class="login-form hidden">
+                    <Textbox class="email" label="Email" v-model="email" />
+                    <Textbox class="password" type="password" label="Password" v-model="password" />
+                    <div class="row">
+                        <Button>Login</Button>
+                        <Button>Register</Button>
+                        <Checkbox type="checkbox" label="Remember Me" v-model="remember" />
+                    </div>
+                </Panel>
+            </transition>
         </div>
     </div>
 </template>
@@ -22,7 +26,7 @@ export default defineComponent({
     layout: {
         name: "empty",
         props: {
-            transition: "fade"
+            transition: "fade",
         }
     },
     setup() {
@@ -49,17 +53,7 @@ export default defineComponent({
     margin-bottom: 100px;
     gap: 80px;
 }
-.login-form {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    width: 400px;
-} 
 .email, .password {
     width: 100%;
-}
-.row {
-    display: flex;
-    gap: 10px;
 }
 </style>

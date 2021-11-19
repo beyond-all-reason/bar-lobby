@@ -1,5 +1,5 @@
 <template>
-    <div class="fullsize">
+    <div class="intro fullsize">
         <video @loadstart="play" @ended="skipIntro" @click="skipIntro">
             <source src="intro.mp4" type="video/mp4">
         </video>
@@ -12,10 +12,7 @@ import { useRouter } from "vue-router";
 
 export default defineComponent({
     layout: {
-        name: "empty",
-        props: {
-            transition: "intro-fade"
-        }
+        name: "empty"
     },
     setup() {
         const router = useRouter();
@@ -39,6 +36,9 @@ export default defineComponent({
 </script>
 
 <style scoped lang="scss">
+.intro {
+    background: #000;
+}
 video {
     width: 100%;
     height: 100%;

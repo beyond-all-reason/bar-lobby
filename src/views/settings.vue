@@ -1,5 +1,5 @@
 <template>
-    <div class="settings">
+    <Panel class="settings">
         <div class="control">
             <label for="display">Display</label>
             <select id="display" v-model="displayIndex">
@@ -15,7 +15,7 @@
                 <option v-for="(themeKey, themeVal) in themes" :key="themeKey" :value="themeKey">{{ themeVal }}</option>
             </select>
         </div>
-    </div>
+    </Panel>
 </template>
 
 <script lang="ts">

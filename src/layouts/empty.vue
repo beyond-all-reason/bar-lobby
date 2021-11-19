@@ -1,5 +1,5 @@
 <template>
-    <div :class="`fullsize layout--empty view--${route.name?.toString()}`">
+    <div :class="`fullsize layout layout--empty view--${route.name?.toString()}`">
         <router-view v-slot="{ Component }">
             <transition :name="transition" :appear="Boolean(transition)">
                 <component :is="Component" />
@@ -14,10 +14,7 @@ import { useRoute } from "vue-router";
 
 export default defineComponent({
     props: {
-        transition: {
-            type: String,
-            default: ""
-        }
+        transition: String
     },
     setup() {
         const route = useRoute();

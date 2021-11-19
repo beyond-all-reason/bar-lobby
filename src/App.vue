@@ -13,7 +13,11 @@ import { useRouter } from "vue-router";
 export default defineComponent({
     setup() {
         const theme = settings.theme;
-        
+
+        window.api.getRandomBackground().then(bgUrl => {
+            document.documentElement.style.setProperty("--background", `url(${bgUrl})`);
+        });
+
         const router = useRouter();
         router.replace("/");
 

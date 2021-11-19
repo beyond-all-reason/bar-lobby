@@ -41,8 +41,6 @@ export default defineComponent({
     position: relative;
     display: flex;
     justify-content: space-between;
-    box-shadow: 0 3px 5px rgba(0, 0, 0, 0.5);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
     &:before {
         @extend .fullsize;
         content: "";
@@ -69,42 +67,8 @@ export default defineComponent({
 }
 .primary-item {
     padding: 10px 25px;
-    font-size: 25px;
-    font-weight: 600;
-    background: radial-gradient(rgba(0, 0, 0, 0), rgba(255, 255, 255, 0.05));
-    color: rgba(255, 255, 255, 0.8);
     display: flex;
     align-items: center;
-    transition: all .05s;
-    .left & {
-        box-shadow: 1px 0 0 rgba(255, 255, 255, 0.1);
-    }
-    .right & {
-        box-shadow: -1px 0 0 rgba(255, 255, 255, 0.1);
-    }
-    &:hover {
-        background: radial-gradient(rgba(0, 0, 0, 0), rgba(255, 255, 255, 0.12));
-        color: #fff;
-        text-shadow: 0 0 7px #fff;
-        z-index: 1;
-        border-radius: 1px;
-        box-shadow: 
-            1px 0 0 rgba(255, 255, 255, 0.2),
-            -1px 0 0 rgba(255, 255, 255, 0.2),
-            0 1px 0 rgba(255, 255, 255, 0.4),
-            7px -3px 10px rgba(0, 0, 0, 0.5),
-            -7px -3px 10px rgba(0, 0, 0, 0.5) !important;
-    }
-    &.selected {
-        color: #fff;
-        text-shadow: 0 0 7px #fff;
-        .left & {
-            box-shadow: 1px 0 0 rgba(255, 255, 255, 0.1), 0 1px 0 rgba(255, 255, 255, 0.2);
-        }
-        .right & {
-            box-shadow: -1px 0 0 rgba(255, 255, 255, 0.1), 0 1px 0 rgba(255, 255, 255, 0.2);
-        }
-    }
     &.icon {
         padding: 10px 15px;
     }

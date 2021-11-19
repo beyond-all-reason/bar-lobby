@@ -1,9 +1,12 @@
-import { Settings } from "@/api/settings";
-import { MainWindow } from "@/main-window";
-import { API, IpcHandlers } from "@/model/api";
+import * as fs from "fs";
+import * as path from "path";
 import { app, App, ipcMain, protocol, screen } from "electron";
 import installExtension, { VUEJS3_DEVTOOLS } from "electron-devtools-installer";
 import { IpcMainInvokeEvent } from "electron/main";
+
+import { Settings } from "@/api/settings";
+import { MainWindow } from "@/main-window";
+import { API, IpcHandlers } from "@/model/api";
 
 export class Application {
     protected app: App;
@@ -82,13 +85,19 @@ export class Application {
     }
 
     protected setupHandlers() {
-        this.addHandler("getHardwareInfo", async (event, test) => {
+        this.addHandler("getHardwareInfo", async (event) => {
             const allDisplays = screen.getAllDisplays();
 
             return {
                 numOfDisplays: allDisplays.length,
                 currentDisplayIndex: allDisplays.indexOf(screen.getDisplayNearestPoint(this.mainWindow.window.getBounds()))
             };
+        });
+
+        this.addHandler("getRandomBackground", async (event) => {
+            const backgrounds = await fs.promises.readdir(path.join(__static, "backgrounds"));
+            const background = backgrounds[Math.floor(Math.random() * backgrounds.length)];
+            return `backgrounds/${background}`;
         });
     }
 

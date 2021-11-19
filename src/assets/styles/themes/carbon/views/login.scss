@@ -1,13 +1,6 @@
 @use "~@/assets/styles/utils";
 
 .view--login {
-    &:before {
-        @extend .fullsize;
-        background-image: url("~@/assets/images/bg4.png");
-        background-size: cover;
-        background-position: center;
-        z-index: -1;
-    }
     .login {
         max-width: 500px;
     }
@@ -16,6 +9,11 @@
     }
     .login-form {
         width: 450px;
+        > .content {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
     }
     .email, .password {
         label {
@@ -25,5 +23,9 @@
             font-size: 20px;
             padding: 10px;
         }
+    }
+    .row {
+        display: flex;
+        gap: 10px;
     }
 }

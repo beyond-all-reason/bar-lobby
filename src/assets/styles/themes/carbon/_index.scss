@@ -1,17 +1,25 @@
 .theme--carbon {
-    font-family: Rajdhani, Times, sans-serif;
+    font-family: Rajdhani, sans-serif;
     font-size: 18px;
     text-transform: uppercase;
     text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.6);
     cursor: url("~@/assets/images/cursor_default.png"), default;
 
+    .layout {
+        &:before {
+            @extend .fullsize;
+            background: var(--background);
+            background-size: cover;
+            background-position: center;
+            z-index: -1;
+        }
+    }
+
     @import "inputs";
     @import "transitions";
 
+    @import "views/login";
+
     @import "components/navbar";
     @import "components/panel";
-    
-    @import "layouts/default";
-
-    @import "views/login";
 }

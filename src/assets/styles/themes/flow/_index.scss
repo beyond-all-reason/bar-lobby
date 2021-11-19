@@ -1,0 +1,11 @@
+@use "../carbon";
+
+.theme--flow {
+    @extend .theme--carbon;
+
+    font-family: Poppins, sans-serif;
+    font-weight: 300;
+    text-transform: capitalize;
+
+    @import "components/panel";
+}

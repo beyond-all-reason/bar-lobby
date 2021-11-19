@@ -1,5 +1,5 @@
 <template>
-    <div :class="`fullsize layout--default`">
+    <div :class="`fullsize layout layout--default`">
         <NavBar />
         <div :class="`view view--${route.name?.toString()}`">
             <router-view v-slot="{ Component }">
@@ -34,14 +34,6 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-.layout--default {
-    &:before {
-        @extend .fullsize;
-        z-index: -1;
-        background-size: cover;
-        background-position: center;
-    }
-}
 .view {
     overflow-y: hidden;
     padding: 20px;

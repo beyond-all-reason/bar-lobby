@@ -9,6 +9,7 @@ const api: API = {
         },
     },
     getHardwareInfo: () => ipcRenderer.invoke("getHardwareInfo"),
+    getRandomBackground: () => ipcRenderer.invoke("getRandomBackground"),
 };
 
 contextBridge.exposeInMainWorld("api", api);

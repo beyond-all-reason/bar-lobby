@@ -7,12 +7,13 @@
     opacity: 0;
 }
 
-.intro-fade-enter,
-.intro-fade-enter-active {
-    transition: opacity 2s ease-in;
+.login-enter,
+.login-enter-active {
+    transition: opacity 1s ease-in-out, transform 1s ease-in-out;
 }
-.intro-fade-enter-from {
+.login-enter-from {
     opacity: 0;
+    transform: translateY(-20px);
 }
 
 .slide-enter-active,

@@ -3,6 +3,7 @@ import { SettingsRenderAPI } from "@/model/settings";
 
 export interface IpcHandlers {
     getHardwareInfo: () => Promise<HardwareInfo>;
+    getRandomBackground: () => Promise<string>;
 }
 
 export interface API extends IpcHandlers {
