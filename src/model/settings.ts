@@ -15,11 +15,11 @@ export const settingsSchema = Type.Strict(Type.Object({
 
 export type SettingsType = Static<typeof settingsSchema>;
 
-export interface SettingsAPI {
+export interface ISettingsAPI {
     getSettings() : SettingsType;
     setSetting<K extends keyof SettingsType>(settingKey: K, value: SettingsType[K]) : void;
 }
 
-export type SettingsMainAPI = { [K in keyof SettingsAPI]: (event: IpcMainInvokeEvent, ...args: Parameters<SettingsAPI[K]>) => Promise<ReturnType<SettingsAPI[K]>> }
+export type SettingsMainAPI = { [K in keyof ISettingsAPI]: (event: IpcMainInvokeEvent, ...args: Parameters<ISettingsAPI[K]>) => Promise<ReturnType<ISettingsAPI[K]>> }
 
-export type SettingsRenderAPI = { [K in keyof SettingsAPI]: (...args: Parameters<SettingsAPI[K]>) => Promise<ReturnType<SettingsAPI[K]>> };
+export type SettingsRenderAPI = { [K in keyof ISettingsAPI]: (...args: Parameters<ISettingsAPI[K]>) => Promise<ReturnType<ISettingsAPI[K]>> };

@@ -1,11 +1,11 @@
 import * as path from "path";
 import { app, ipcMain } from "electron";
-import { SettingsAPI, SettingsMainAPI, settingsSchema, SettingsType } from "@/model/settings";
+import { ISettingsAPI, SettingsMainAPI, settingsSchema, SettingsType } from "@/model/settings";
 import * as fs from "fs";
 import Ajv from "ajv";
 import { Signal } from "jaz-ts-utils";
 
-export class Settings implements SettingsAPI {
+export class SettingsAPI implements ISettingsAPI {
     protected ajv = new Ajv({ coerceTypes: true, useDefaults: true });
     protected validator = this.ajv.compile(settingsSchema);
     protected settingsPath = path.join(app.getPath("userData"), "settings.json");

@@ -4,14 +4,14 @@ import { app, App, ipcMain, protocol, screen } from "electron";
 import installExtension, { VUEJS3_DEVTOOLS } from "electron-devtools-installer";
 import { IpcMainInvokeEvent } from "electron/main";
 
-import { Settings } from "@/api/settings";
+import { SettingsAPI } from "@/api/settings";
 import { MainWindow } from "@/main-window";
 import { API, IpcHandlers } from "@/model/api";
 
 export class Application {
     protected app: App;
     protected mainWindow!: MainWindow;
-    protected settingsAPI: Settings = new Settings();
+    protected settingsAPI: SettingsAPI = new SettingsAPI();
 
     constructor(app: App) {
         this.app = app;
