@@ -1,5 +1,5 @@
 import * as path from "path";
-import { BrowserWindow, screen, shell } from "electron";
+import { BrowserWindow, ipcMain, screen, shell } from "electron";
 import { createProtocol } from "vue-cli-plugin-electron-builder/lib";
 
 declare const __static: string;
@@ -33,9 +33,11 @@ export class MainWindow {
             minHeight: 800,
             darkTheme: true,
             webPreferences: {
-                nodeIntegration: false,
-                contextIsolation: true,
-                preload: path.join(__dirname, "preload.js")
+                nodeIntegration: true,
+                contextIsolation: false,
+                enableRemoteModule: true,
+                nodeIntegrationInSubFrames: true,
+                nodeIntegrationInWorker: true
             }
         });
 
@@ -45,6 +47,8 @@ export class MainWindow {
             shell.openExternal(url);
             return { action: "deny" };
         });
+
+        ipcMain.handle("setDisplay", async (event, displayIndex) => this.setDisplay(displayIndex));
 
         this.init();
     }
@@ -59,8 +63,8 @@ export class MainWindow {
         }
     }
 
-    public setDisplay(index: number) {
-        const display = screen.getAllDisplays()[index];
+    public setDisplay(displayIndex: number) {
+        const display = screen.getAllDisplays()[displayIndex];
         if (display) {
             const { x, y, width, height } = display.bounds;
             this.window.setPosition(x, y);

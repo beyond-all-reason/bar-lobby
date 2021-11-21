@@ -27,13 +27,15 @@ module.exports = {
             mainProcessFile: "src/main.ts",
             mainProcessWatch: ["src/main.ts", "src/main-window.ts", "src/api/**/*"],
             rendererProcessFile: "src/render.ts",
-            preload: "src/preload.ts",
             builderOptions: {
                 productName: "BAR Lobby",
                 directories: {
                     buildResources: "build"
                 }
             },
+            chainWebpackRendererProcess: config => {
+                config.target("electron-renderer");
+            }
         },
         autoRouting: {
             pages: "src/views",

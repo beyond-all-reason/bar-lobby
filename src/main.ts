@@ -1,17 +1,15 @@
-import * as fs from "fs";
 import * as path from "path";
+import * as fs from "fs";
 import { app, App, ipcMain, protocol, screen } from "electron";
 import installExtension, { VUEJS3_DEVTOOLS } from "electron-devtools-installer";
-import { IpcMainInvokeEvent } from "electron/main";
 
-import { SettingsAPI } from "@/api/settings";
 import { MainWindow } from "@/main-window";
-import { API, IpcHandlers } from "@/model/api";
+import { SettingsType } from "@/model/settings";
 
 export class Application {
     protected app: App;
     protected mainWindow!: MainWindow;
-    protected settingsAPI: SettingsAPI = new SettingsAPI();
+    protected settings!: SettingsType;
 
     constructor(app: App) {
         this.app = app;
@@ -68,13 +66,12 @@ export class Application {
         }
     }
 
-    protected setupMainWindow() {
-        this.mainWindow = new MainWindow({
-            displayIndex: this.settingsAPI.getSettings().displayIndex
-        });
+    protected async setupMainWindow() {
+        const settingsStr = await fs.promises.readFile(path.join(this.app.getPath("userData"), "settings.json"), "utf8");
+        this.settings = JSON.parse(settingsStr);
 
-        this.settingsAPI.onSettingChanged("displayIndex").add((displayIndex) => {
-            this.mainWindow.setDisplay(displayIndex);
+        this.mainWindow = new MainWindow({
+            displayIndex: this.settings.displayIndex
         });
     }
 
@@ -85,7 +82,9 @@ export class Application {
     }
 
     protected setupHandlers() {
-        this.addHandler("getHardwareInfo", async (event) => {
+        ipcMain.handle("getSettingsPath", (event) => path.join(this.app.getPath("userData"), "settings.json"));
+
+        ipcMain.handle("getHardwareInfo", async (event) => {
             const allDisplays = screen.getAllDisplays();
 
             return {
@@ -94,15 +93,11 @@ export class Application {
             };
         });
 
-        this.addHandler("getRandomBackground", async (event) => {
-            const backgrounds = await fs.promises.readdir(path.join(__static, "backgrounds"));
-            const background = backgrounds[Math.floor(Math.random() * backgrounds.length)];
-            return `backgrounds/${background}`;
-        });
-    }
-
-    protected addHandler<K extends keyof IpcHandlers, L extends API[K] = API[K]>(key: K, handler: (event: IpcMainInvokeEvent, args: Parameters<L>) => ReturnType<L>) {
-        ipcMain.handle(key, handler);
+        // this.addHandler("getRandomBackground", async (event) => {
+        //     const backgrounds = await fs.promises.readdir(path.join(__static, "backgrounds"));
+        //     const background = backgrounds[Math.floor(Math.random() * backgrounds.length)];
+        //     return `backgrounds/${background}`;
+        // });
     }
 }
 

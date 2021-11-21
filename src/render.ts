@@ -1,12 +1,21 @@
-import { createApp } from "vue";
+import { createApp, ToRefs } from "vue";
 import { createRouter, createWebHashHistory, createWebHistory } from "vue-router";
 import { createRouterLayout } from "vue-router-layout";
 
 import "@/assets/styles/styles.scss";
 import routes from "@/routes";
 import App from "@/App.vue";
+import { SettingsAPI } from "@/store/settings";
+import { ipcRenderer } from "electron";
+import { SettingsType } from "@/model/settings";
 
-setupVue();
+(async () => {
+    const settingsPath = await ipcRenderer.invoke("getSettingsPath");
+    const settingsAPI = new SettingsAPI({ settingsPath });
+    window.settings = settingsAPI.settings;
+
+    await setupVue();
+})();
 
 async function setupVue() {
     const RouterLayout = createRouterLayout(layout => {
@@ -28,10 +37,13 @@ async function setupVue() {
 
     app.use(router);
 
-    //app.use(createPinia());
-
-    // app.config.globalProperties.window = window;
-    // window.router = router;
+    app.config.globalProperties.window = window;
 
     app.mount("#app");
+}
+
+declare global {
+    interface Window {
+        settings: ToRefs<SettingsType>;
+    }
 }

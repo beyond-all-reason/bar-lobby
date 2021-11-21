@@ -1,47 +1,60 @@
 import { settingsSchema, SettingsType } from "@/model/settings";
 import Ajv from "ajv";
-import { reactive, toRefs, watch } from "vue";
+import { reactive, ToRefs, toRefs, watch } from "vue";
+import * as fs from "fs";
 
-const ajv = new Ajv({ coerceTypes: true, useDefaults: true });
-const settingsValidator = ajv.compile(settingsSchema);
-const initialSettings = reactive({} as SettingsType);
-settingsValidator(initialSettings);
+export interface SettingsAPIConfig {
+    settingsPath: string;
+}
+export class SettingsAPI {
+    public settings: ToRefs<SettingsType>;
 
-export const settings = toRefs(initialSettings);
+    protected config: SettingsAPIConfig;
+    protected ajv = new Ajv({ coerceTypes: true, useDefaults: true });
+    protected validator = this.ajv.compile(settingsSchema);
 
-window.api.settings.getSettings().then((loadedSettings) => {
-    for (const [key, value] of Object.entries(loadedSettings)) {
-        if (hasSetting(key)) {
-            settings[key].value = value;
+    constructor(config: SettingsAPIConfig) {
+        this.config = config;
+
+        this.settings = this.readSettingsSync(this.config.settingsPath);
+
+        for (const setting of Object.values(this.settings)) {
+            watch(setting, () => {
+                this.writeSettings(this.config.settingsPath, this.settings);
+            });
         }
     }
 
-    for (const [key, setting] of Object.entries(settings)) {
-        watch(setting, () => {
-            //console.log(`Setting ${key} changed to ${setting.value}`);
-            window.api.settings.setSetting(key as keyof SettingsType, setting.value);
-        });
+    protected validateSettings(settings: any) : settings is SettingsType {
+        const isValid = this.validator(settings);
+        return isValid;
     }
-});
 
-function hasSetting(key: string): key is keyof SettingsType {
-    return key in settings;
+    protected readSettingsSync(path: string) : ToRefs<SettingsType> {
+        let settings = {} as SettingsType;
+
+        if (!fs.existsSync(path)) {
+            this.validateSettings(settings);
+            fs.writeFileSync(path, JSON.stringify(settings, null, 4));
+        } else {
+            settings = JSON.parse(fs.readFileSync(path, "utf8"));
+            this.validateSettings(settings);
+        }
+
+        return toRefs(reactive(settings));
+    }
+
+    protected async writeSettings(path: string, settings: ToRefs<SettingsType>) {
+        const obj: any = {};
+        for (const key in settings) {
+            obj[key] = settings[key as keyof SettingsType].value;
+        }
+
+        console.log(`writing settings to ${path}`);
+        return fs.promises.writeFile(path, JSON.stringify(obj, null, 4));
+    }
+
+    protected hasSetting(key: string): key is keyof SettingsType {
+        return key in settingsSchema;
+    }
 }
-
-
-// export class SettingsStore {
-//     protected ajv = new Ajv({ coerceTypes: true, useDefaults: true });
-//     protected validator = this.ajv.compile(settingsSchema);
-//     protected settings: ToRefs<SettingsType>;
-
-//     constructor(settings: SettingsType = defaultSettings) {
-//         this.validator(settings);
-//         this.settings = toRefs(settings);
-
-//         for (const [k, v] of Object.entries(this.settings)) {
-//             watch(v, setting => {
-//                 window.api.settings.setSetting(k as keyof SettingsType, setting.value);
-//             });
-//         }
-//     }
-// }

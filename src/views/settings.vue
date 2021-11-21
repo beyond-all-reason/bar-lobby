@@ -19,19 +19,23 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from "vue";
+import { defineComponent, ref, watch } from "vue";
 import { Theme } from "@/model/settings";
-import { settings } from "@/store/settings";
+import { ipcRenderer } from "electron";
 
 export default defineComponent({
     setup() {
         const displays = ref([0]);
-        const displayIndex = settings.displayIndex;
+        const displayIndex = window.settings.displayIndex;
         const themes = Theme;
-        const theme = settings.theme;
+        const theme = window.settings.theme;
 
-        window.api.getHardwareInfo().then(info => {
+        ipcRenderer.invoke("getHardwareInfo").then(info => {
             displays.value = Array(info.numOfDisplays).fill(0).map((x, i) => i);
+        });
+
+        watch(displayIndex, () => {
+            ipcRenderer.invoke("setDisplay", displayIndex.value);
         });
 
         return { displays, displayIndex, themes, theme };
