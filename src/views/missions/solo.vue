@@ -3,9 +3,9 @@
 </route>
 
 <template>
-    <div>
+    <Panel>
         Solo Missions
-    </div>
+    </Panel>
 </template>
 
 <script lang="ts">

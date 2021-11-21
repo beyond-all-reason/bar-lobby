@@ -1,7 +1,7 @@
 <template>
-    <div>
-        Index
-    </div>
+    <Panel>
+        Campaign
+    </Panel>
 </template>
 
 <script lang="ts">

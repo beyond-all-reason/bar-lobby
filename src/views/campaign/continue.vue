@@ -3,9 +3,9 @@
 </route>
 
 <template>
-    <div>
+    <Panel>
         Continue Campaign
-    </div>
+    </Panel>
 </template>
 
 <script lang="ts">

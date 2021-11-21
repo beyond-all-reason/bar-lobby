@@ -1,7 +1,7 @@
 <template>
-    <div>
-        Index
-    </div>
+    <Panel>
+        Replays
+    </Panel>
 </template>
 
 <script lang="ts">

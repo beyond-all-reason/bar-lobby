@@ -1,7 +1,7 @@
 <template>
-    <div>
-        Index
-    </div>
+    <Panel>
+        Versus
+    </Panel>
 </template>
 
 <script lang="ts">

@@ -10,6 +10,7 @@ export const settingsSchema = Type.Strict(Type.Object({
     displayIndex: Type.Number({ default: 0 }),
     devMode: Type.Boolean({ default: false }),
     theme: Type.Enum(Theme, { default: Theme.Carbon }),
+    skipIntro: Type.Boolean({ default: false })
 }));
 
 export type SettingsType = Static<typeof settingsSchema>;

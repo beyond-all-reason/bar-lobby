@@ -17,7 +17,7 @@ label:not(input[type=checkbox] + label){
     padding-left: 5px;
     z-index: 1;
 }
-input, select, input[type=checkbox] + label, textarea, button, progress, meter, .btn, .input {
+input, select, input[type=checkbox] + label, textarea, button, progress, meter, .btn, .input, .vue-select {
     padding: 5px 10px;
     border-radius: 0px;
     width: 100%;
@@ -46,4 +46,35 @@ input[type=month]::-webkit-calendar-picker-indicator,
 input[type=time]::-webkit-calendar-picker-indicator,
 input[type=datetime-local]::-webkit-calendar-picker-indicator {
     filter: invert(0.8);
+}
+
+.vue-select {
+    input, .vue-input {
+        font-size: inherit;
+        box-shadow: none;
+        min-height: inherit;
+        padding: 0;
+        &::placeholder {
+            color: #fff;
+        }
+    }
+    .vue-dropdown {
+        width: calc(100% + 2px);
+        //box-sizing: border-box;
+        z-index: 2;
+        background-color: rgba(0, 0, 0, 0.8);
+        backdrop-filter: blur(2px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        &-item {
+            padding: 5px 10px;
+            &.selected {
+                background-color: unset;
+            }
+            &.highlighted {
+                background-color: rgba(255, 255, 255, 0.9);
+                color: #000;
+                text-shadow: none;
+            }
+        }
+    }
 }

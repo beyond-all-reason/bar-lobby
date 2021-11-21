@@ -1,69 +1,60 @@
-// // import { ipcMain } from "electron";
-// import * as fs from "fs";
-// import * as path from "path";
-// import Ajv from "ajv";
-// import { Signal } from "jaz-ts-utils";
+import { settingsSchema, SettingsType } from "@/model/settings";
+import Ajv from "ajv";
+import { reactive, ToRefs, toRefs, watch } from "vue";
+import * as fs from "fs";
 
-// import { settingsSchema, SettingsType } from "@/model/settings";
-// import { app } from "electron";
+export interface SettingsAPIConfig {
+    settingsPath: string;
+}
+export class SettingsAPI {
+    public settings: ToRefs<SettingsType>;
 
+    protected config: SettingsAPIConfig;
+    protected ajv = new Ajv({ coerceTypes: true, useDefaults: true });
+    protected validator = this.ajv.compile(settingsSchema);
 
-// export class SettingsAPI {
-//     protected ajv = new Ajv({ coerceTypes: true, useDefaults: true });
-//     protected validator = this.ajv.compile(settingsSchema);
-//     protected settingsPath = path.join(app.getPath("userData"), "settings.json");
-//     protected settings: SettingsType;
-//     protected settingSignals: Map<keyof SettingsType, Signal<any>> = new Map();
+    constructor(config: SettingsAPIConfig) {
+        this.config = config;
 
-//     constructor() {
-//         if (!fs.existsSync(this.settingsPath)) {
-//             this.settings = {} as SettingsType;
-//             this.validateSettings(this.settings);
-//             fs.writeFileSync(this.settingsPath, JSON.stringify(this.settings, null, 4));
-//         } else {
-//             this.settings = JSON.parse(fs.readFileSync(this.settingsPath, "utf8"));
-//             this.validateSettings(this.settings);
-//         }
+        this.settings = this.readSettingsSync(this.config.settingsPath);
 
-//         this.apiHandlers();
-//     }
+        for (const setting of Object.values(this.settings)) {
+            watch(setting, () => {
+                this.writeSettings(this.config.settingsPath, this.settings);
+            });
+        }
+    }
 
-//     public apiHandlers() {
-//         // const handlers: SettingsMainAPI = {
-//         //     getSettings: async (event) => this.getSettings(),
-//         //     setSetting: async (event, key, value) => this.setSetting(key, value),
-//         // };
+    protected validateSettings(settings: any) : settings is SettingsType {
+        const isValid = this.validator(settings);
+        return isValid;
+    }
 
-//         // Object.entries(handlers).forEach(([key, listener]) => {
-//         //     ipcMain.handle(key, listener);
-//         // });
-//     }
+    protected readSettingsSync(path: string) : ToRefs<SettingsType> {
+        let settings = {} as SettingsType;
 
-//     public getSettings() : SettingsType {
-//         return this.settings;
-//     }
+        if (!fs.existsSync(path)) {
+            this.validateSettings(settings);
+            fs.writeFileSync(path, JSON.stringify(settings, null, 4));
+        } else {
+            settings = JSON.parse(fs.readFileSync(path, "utf8"));
+            this.validateSettings(settings);
+        }
 
-//     public setSetting<K extends keyof SettingsType>(key: K, value: SettingsType[K]) : void {
-//         if (key in this.settings) {
-//             this.settings[key] = value;
-//             this.settingSignals.get(key)?.dispatch(value);
-//             console.log(`Writing setting to file: ${key}: ${value}`);
-//             fs.writeFileSync(this.settingsPath, JSON.stringify(this.settings, null, 4));
-//         } else {
-//             throw new Error(`Setting ${key} is not defined`);
-//         }
-//     }
+        return toRefs(reactive(settings));
+    }
 
-//     public onSettingChanged<K extends keyof SettingsType, V extends SettingsType[K]>(key: K) : Signal<V> {
-//         if (!this.settingSignals.has(key)) {
-//             this.settingSignals.set(key, new Signal<V>());
-//         }
+    protected async writeSettings(path: string, settings: ToRefs<SettingsType>) {
+        const obj: any = {};
+        for (const key in settings) {
+            obj[key] = settings[key as keyof SettingsType].value;
+        }
 
-//         return this.settingSignals.get(key) as Signal<V>;
-//     }
+        console.log(`writing settings to ${path}`);
+        return fs.promises.writeFile(path, JSON.stringify(obj, null, 4));
+    }
 
-//     protected validateSettings(settings: any) : settings is SettingsType {
-//         const isValid = this.validator(settings);
-//         return isValid;
-//     }
-// }
+    protected hasSetting(key: string): key is keyof SettingsType {
+        return key in settingsSchema;
+    }
+}

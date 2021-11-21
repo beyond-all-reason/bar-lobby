@@ -3,9 +3,9 @@
 </route>
 
 <template>
-    <div>
+    <Panel>
         Co-op Missions
-    </div>
+    </Panel>
 </template>
 
 <script lang="ts">

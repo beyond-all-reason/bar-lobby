@@ -29,11 +29,13 @@ export default defineComponent({
     overflow-y: auto;
     display: flex;
     flex-direction: column;
+    flex-grow: 1;
 }
 .content {
     position: relative;
     display: flex;
     flex-direction: column;
     gap: var(--gap);
+    flex-grow: 1;
 }
 </style>

@@ -3,9 +3,9 @@
 </route>
 
 <template>
-    <div>
+    <Panel>
         Load Save
-    </div>
+    </Panel>
 </template>
 
 <script lang="ts">

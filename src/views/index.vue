@@ -35,7 +35,12 @@ export default defineComponent({
         }
 
         const router = useRouter();
-        router.replace("/intro");
+
+        if (window.settings.skipIntro.value) {
+            router.replace("/login");
+        } else {
+            router.replace("/intro");
+        }
 
         return { imgSrcs };
     }

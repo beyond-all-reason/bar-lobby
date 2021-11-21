@@ -3,9 +3,9 @@
 </route>
 
 <template>
-    <div>
+    <Panel>
         Casual
-    </div>
+    </Panel>
 </template>
 
 <script lang="ts">

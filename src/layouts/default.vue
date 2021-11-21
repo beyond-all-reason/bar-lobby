@@ -37,6 +37,9 @@ export default defineComponent({
 .view {
     overflow-y: hidden;
     padding: 20px;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
 }
 .modal-container {
     @extend .fullsize;

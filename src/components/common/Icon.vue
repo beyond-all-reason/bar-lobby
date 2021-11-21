@@ -3,7 +3,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, toRefs } from "vue";
+import { defineComponent, toRefs } from "vue";
 
 const { icons } = require("@iconify/json/json/mdi.json");
 

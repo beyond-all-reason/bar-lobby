@@ -1,7 +1,7 @@
 <template>
-    <div>
+    <Panel>
         Profile
-    </div>
+    </Panel>
 </template>
 
 <script lang="ts">

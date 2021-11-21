@@ -3,9 +3,9 @@
 </route>
 
 <template>
-    <div>
+    <Panel>
         Replay Mission
-    </div>
+    </Panel>
 </template>
 
 <script lang="ts">

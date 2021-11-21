@@ -3,9 +3,9 @@
 </route>
 
 <template>
-    <div>
+    <Panel>
         Public Replays
-    </div>
+    </Panel>
 </template>
 
 <script lang="ts">

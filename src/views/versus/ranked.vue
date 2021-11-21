@@ -3,9 +3,9 @@
 </route>
 
 <template>
-    <div>
+    <Panel>
         Ranked
-    </div>
+    </Panel>
 </template>
 
 <script lang="ts">

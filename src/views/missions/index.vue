@@ -1,7 +1,7 @@
 <template>
-    <div>
-        Index
-    </div>
+    <Panel>
+        Missions
+    </Panel>
 </template>
 
 <script lang="ts">

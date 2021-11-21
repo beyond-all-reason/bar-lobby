@@ -3,9 +3,9 @@
 </route>
 
 <template>
-    <div>
+    <Panel>
         Missions Leaderboard
-    </div>
+    </Panel>
 </template>
 
 <script lang="ts">
