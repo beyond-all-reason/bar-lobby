@@ -1,8 +1,10 @@
 .nav {
     backdrop-filter: blur(5px);
     background: linear-gradient(rgba(0, 0, 0, 0.75), rgba(0, 0, 0, 0.9));
-    box-shadow: 0 3px 5px rgba(0, 0, 0, 0.5);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow:
+        0 1px 0 rgba(0, 0, 0, 0.4),
+        0 3px 5px rgba(0, 0, 0, 0.5);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
     &:before {
         opacity: 0.2;
         background-image: url("~@/assets/images/squares.png");
@@ -12,12 +14,20 @@
         font-weight: 600;
         background: radial-gradient(rgba(0, 0, 0, 0), rgba(255, 255, 255, 0.05));
         color: rgba(255, 255, 255, 0.8);
-        transition: all .05s;
-        @at-root .nav .left .primary-item {
-            box-shadow: 1px 0 0 rgba(255, 255, 255, 0.1);
+        box-shadow:
+            1px 0 0 rgba(255, 255, 255, 0.05),
+            -1px 0 0 rgba(255, 255, 255, 0.05);
+        border: none;
+        min-height: initial;
+        &:last-child {
+            box-shadow:
+                1px 0 0 rgba(255, 255, 255, 0.1),
+                -1px 0 0 rgba(255, 255, 255, 0.05);
         }
-        @at-root .nav .right .primary-item {
-            box-shadow: -1px 0 0 rgba(255, 255, 255, 0.1);
+        &:first-child {
+            box-shadow:
+                1px 0 0 rgba(255, 255, 255, 0.05),
+                -1px 0 0 rgba(255, 255, 255, 0.1);
         }
         &:hover {
             background: radial-gradient(rgba(0, 0, 0, 0), rgba(255, 255, 255, 0.12));
@@ -27,19 +37,18 @@
             box-shadow:
                 1px 0 0 rgba(255, 255, 255, 0.2),
                 -1px 0 0 rgba(255, 255, 255, 0.2),
-                0 1px 0 rgba(255, 255, 255, 0.4),
+                0 1px 0 rgba(255, 255, 255, 0.2),
                 7px -3px 10px rgba(0, 0, 0, 0.5),
                 -7px -3px 10px rgba(0, 0, 0, 0.5);
         }
-        &.selected {
+        &.active {
             color: #fff;
             text-shadow: 0 0 7px #fff;
-            .left & {
-                box-shadow: 1px 0 0 rgba(255, 255, 255, 0.1), 0 1px 0 rgba(255, 255, 255, 0.2);
-            }
-            .right & {
-                box-shadow: -1px 0 0 rgba(255, 255, 255, 0.1), 0 1px 0 rgba(255, 255, 255, 0.2);
-            }
+            background: radial-gradient(rgba(0, 0, 0, 0) 20%, rgba(255, 255, 255, 0.2) 90%);
+            box-shadow:
+                1px 0 0 rgba(255, 255, 255, 0.2),
+                -1px 0 0 rgba(255, 255, 255, 0.2),
+                0 1px 0 rgba(255, 255, 255, 0.3);
         }
     }
 }

@@ -1,24 +1,24 @@
 <template>
     <div class="nav">
         <div class="left">
-            <router-link class="primary-item logo" :class="{ selected: route.path === '/home' }" depress to="/home" >
+            <Button class="primary-item logo" active-class="active" depress to="/home">
                 <img src="@/assets/images/logo.svg">
-            </router-link>
-            <router-link class="primary-item" :class="{ selected: route.path.split('/')[1] === 'campaign' }" to="/campaign">Campaign</router-link>
-            <router-link class="primary-item" :class="{ selected: route.path.split('/')[1] === 'missions' }" to="/missions">Missions</router-link>
-            <router-link class="primary-item" :class="{ selected: route.path.split('/')[1] === 'versus' }" to="/versus">Versus</router-link>
-            <router-link class="primary-item" :class="{ selected: route.path.split('/')[1] === 'replays' }" to="/replays">Replays</router-link>
+            </Button>
+            <Button class="primary-item" active-class="active" to="/campaign">Campaign</Button>
+            <Button class="primary-item" active-class="active" to="/missions">Missions</Button>
+            <Button class="primary-item" active-class="active" to="/versus">Versus</Button>
+            <Button class="primary-item" active-class="active" to="/replays">Replays</Button>
         </div>
         <div class="right">
-            <router-link class="primary-item" to="/profile">
+            <Button class="primary-item" active-class="active" to="/profile">
                 Jazcash
-            </router-link>
-            <router-link class="primary-item icon" to="/settings">
+            </Button>
+            <Button class="primary-item icon" active-class="active" to="/settings">
                 <Icon icon="cog" :size="40" />
-            </router-link>
-            <router-link class="primary-item icon" to="/">
+            </Button>
+            <Button class="primary-item icon" to="/">
                 <Icon icon="close-thick" :size="40" />
-            </router-link>
+            </Button>
         </div>
     </div>
 </template>
@@ -57,7 +57,7 @@ export default defineComponent({
         height: 40px;
         opacity: 0.9;
     }
-    &:hover img, &.selected img {
+    &:hover img, &.active img {
         opacity: 1;
     }
 }

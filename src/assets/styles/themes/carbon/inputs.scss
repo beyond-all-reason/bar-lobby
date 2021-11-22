@@ -59,10 +59,8 @@ input[type=datetime-local]::-webkit-calendar-picker-indicator {
         }
     }
     .vue-dropdown {
-        width: calc(100% + 2px);
-        //box-sizing: border-box;
         z-index: 2;
-        background-color: rgba(0, 0, 0, 0.8);
+        background-color: rgba(20, 20, 20, 0.9);
         backdrop-filter: blur(2px);
         border: 1px solid rgba(255, 255, 255, 0.2);
         &-item {
@@ -71,6 +69,9 @@ input[type=datetime-local]::-webkit-calendar-picker-indicator {
                 background-color: unset;
             }
             &.highlighted {
+                background-color: unset;
+            }
+            &:hover {
                 background-color: rgba(255, 255, 255, 0.9);
                 color: #000;
                 text-shadow: none;

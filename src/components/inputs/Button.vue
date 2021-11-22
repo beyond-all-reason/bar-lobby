@@ -1,37 +1,23 @@
 <template>
-    <router-link :class="`btn ${depress ? 'depress' : ''} ${isSelected ? 'selected' : ''}`" @mouseover="() => !isSelected && play()" :to="to">
+    <router-link class="btn" @mouseover="play" to="">
         <div class="content">
-            <slot/>
+            <slot />
         </div>
     </router-link>
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from "vue";
+import { defineComponent } from "vue";
 import { useSound } from "@vueuse/sound";
 import buttonSfx from "@/assets/audio/ui/button-hover.mp3";
 
 export default defineComponent({
     props: {
-        selected: {
-            type: Boolean,
-            default: false
-        },
-        depress: {
-            type: Boolean,
-            default: false
-        },
-        to: {
-            type: String,
-            default: ""
-        }
     },
     setup(props) {
-        const isSelected = ref(props.selected);
-        const to = ref(props.to);
         const { play } = useSound(buttonSfx, { volume: 0.2 });
 
-        return { isSelected, play, to };
+        return { play };
     }
 });
 </script>
@@ -39,17 +25,8 @@ export default defineComponent({
 <style scoped lang="scss">
 .content {
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-    transform: translateY(0);
-    transition: transform 0.1s;
-}
-a {
-    &.depress:hover:not(.selected) .content {
-        transform: translateY(-1px);
-    }
-    &.depress:active:not(.selected) .content {
-        transform: translateY(2px);
-    }
 }
 </style>

@@ -1,8 +1,13 @@
 <template>
-    <Panel class="settings">
-        <Select v-model="displayIndex" :options="displays" label="Display" :label-by="option => `Display ${option + 1}`" />
-        <Select v-model="theme" :options="themes" label="Theme" />
-        <Checkbox v-model="skipIntro" label="Skip Intro" />
+    <Panel>
+        <div class="settings">
+            <div class="col">
+                <Select v-model="displayIndex" :options="displays" label="Display" :label-by="option => `Display ${option + 1}`" />
+                <Select v-model="theme" :options="themes" label="Theme" />
+                <Checkbox v-model="skipIntro" label="Skip Intro" />
+                <Checkbox v-model="skipIntro" label="Skip Intro" />
+            </div>
+        </div>
     </Panel>
 </template>
 
@@ -32,8 +37,13 @@ export default defineComponent({
 
 <style scoped lang="scss">
 .settings {
+
+}
+.col {
+    width: 400px;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    flex-grow: 1;
+    gap: 15px;
 }
 </style>
