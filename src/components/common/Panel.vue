@@ -1,9 +1,9 @@
 <template>
-    <div class="panel">
+    <component class="panel" :is="is">
         <div class="content" :style="`--gap: ${gap}`">
             <slot />
         </div>
-    </div>
+    </component>
 </template>
 
 <script lang="ts">
@@ -11,13 +11,17 @@ import { defineComponent } from "vue";
 
 export default defineComponent({
     props: {
+        is: {
+            type: String,
+            default: "div"
+        },
         gap: {
             type: String,
             default: "10px"
         }
     },
-    setup() {
-        return { };
+    setup(props) {
+        return { is: props.is };
     }
 });
 </script>

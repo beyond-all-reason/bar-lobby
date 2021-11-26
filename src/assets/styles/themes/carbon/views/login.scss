@@ -1,16 +1,12 @@
 @use "~@/assets/styles/utils";
 
 .view--login {
-    .login {
-        max-width: 500px;
-    }
     .logo{
         will-change: transform, opacity;
         filter: drop-shadow(3px 3px 5px rgba(0, 0, 0, 0.8));
     }
     .login-form {
         will-change: transform, opacity;
-        width: 450px;
         > .content {
             display: flex;
             flex-direction: column;

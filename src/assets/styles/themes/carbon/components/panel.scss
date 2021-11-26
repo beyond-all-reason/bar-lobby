@@ -1,4 +1,4 @@
-.panel {
+.panel:not(.panel .panel) {
     background: linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.6));
     backdrop-filter: blur(10px) brightness(1) saturate(2);
     border: 1px solid rgba(255, 255, 255, 0.2);

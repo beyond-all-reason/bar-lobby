@@ -1,7 +1,8 @@
 <template>
     <Panel>
         <div class="controls">
-            <Textbox label="bob" placeholder="test" v-model="test" />
+            <Checkbox v-model="disabled" label="Controls disabled" />
+            <Textbox label="bob" placeholder="test" v-model="test" :disabled="disabled" />
             <div class="control">
                 <label for="type-search">Search (search)</label>
                 <input type="search" name="type-search" id="type-search" value="This is some text">
@@ -10,7 +11,7 @@
                 <label for="type-url">URL (url)</label>
                 <input type="url" name="type-url" id="type-url">
             </div>
-            <Textbox type="email" label="email" />
+            <Textbox type="email" label="email" :disabled="disabled" />
             <div class="control">
                 <label for="type-datetime">Date and Time (datetime)</label>
                 <input type="datetime" name="type-datetime" id="type-datetime">
@@ -51,7 +52,7 @@
                 <input type="button" value="Button" name="button">
             </div>
             <div class="control">
-                <button>I am a button</button>
+                <button :disabled="disabled">I am a button</button>
             </div>
             <div class="control">
                 <label for="submit-1">Submit</label>
@@ -73,7 +74,6 @@
                 </select>
             </div>
             <!-- <Select v-model="color" /> -->
-            <Checkbox />
             <div class="control">
                 <label for="textarea">Textarea</label>
                 <textarea name="textarea" rows="4">I am a text area</textarea>
@@ -116,7 +116,9 @@ export default defineComponent({
     setup() {
         const test = (window as any).test = ref("fish");
         const color = (window as any).color = ref("red");
-        return { test, color };
+        const disabled = ref(false);
+        
+        return { test, color, disabled };
     },
     components: { Checkbox }
 });

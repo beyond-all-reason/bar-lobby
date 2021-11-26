@@ -10,25 +10,23 @@ import App from "@/App.vue";
 import { SettingsAPI } from "@/api/settings";
 import { ipcRenderer } from "electron";
 import { SettingsType } from "@/model/settings";
-import { TachyonAPI } from "@/api/tachyon";
+import { TachyonClient } from "tachyon-client";
 
 declare global {
     interface Window {
         settings: ToRefs<SettingsType>;
-        client: TachyonAPI;
+        client: TachyonClient;
     }
 }
 
 (async () => {
     const settingsPath = await ipcRenderer.invoke("getSettingsPath");
-    const settingsAPI = new SettingsAPI({ settingsPath });
-    window.settings = settingsAPI.settings;
+    window.settings = new SettingsAPI({ settingsPath }).settings;
 
-    const tachyonAPI = new TachyonAPI({
+    window.client = new TachyonClient({
         host: "localhost",
         port: 8201,
     });
-    window.client = tachyonAPI;
 
     await setupVue();
 })();

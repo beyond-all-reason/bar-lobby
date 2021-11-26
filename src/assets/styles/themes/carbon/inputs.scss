@@ -30,6 +30,10 @@ input, select, input[type=checkbox] + label, textarea, button, progress, meter, 
     &:hover {
         background-color: rgba(255, 255, 255, 0.2);
     }
+    &:disabled {
+        background: rgba(255, 255, 255, 0.05);
+        color: rgba(255, 255, 255, 0.2);
+    }
 }
 button, input[type=button], input[type=submit], input[type=checkbox] + label, .btn {
     width: unset;
@@ -47,6 +51,15 @@ input[type=time]::-webkit-calendar-picker-indicator,
 input[type=datetime-local]::-webkit-calendar-picker-indicator {
     filter: invert(0.8);
 }
+
+// input[type=text], input[type=email], input[type=password] {
+//     &:invalid {
+//         border-left: 1px solid rgba(255, 0, 0, 0.4);
+//     }
+//     &:valid {
+//         border-left: 1px solid rgba(123, 255, 0, 0.3);
+//     }
+// }
 
 .vue-select {
     input, .vue-input {
