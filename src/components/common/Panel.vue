@@ -35,8 +35,6 @@ export default defineComponent({
             tabs = slots;
         }
 
-        console.log(tabs);
-
         return { is, gap, tabs, activeTab };
     }
 });

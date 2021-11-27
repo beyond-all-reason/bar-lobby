@@ -1,11 +1,11 @@
 <template>
-    <form ref="form" class="login-form hidden">
+    <form ref="form" class="login-form hidden" @submit.prevent="register">
         <Textbox type="email" label="Email" v-model="email" required />
         <Textbox label="Username" v-model="username" required />
         <Textbox type="password" label="Password" v-model="password" required />
         <Textbox type="password" label="Confirm Password" v-model="confirmPassword" required />
         <div class="row">
-            <Button @click="register">Register</Button>
+            <Button type="submit">Register</Button>
         </div>
     </form>
 </template>

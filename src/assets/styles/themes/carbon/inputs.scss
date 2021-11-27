@@ -1,22 +1,41 @@
 button, button * {
     cursor: url("~@/assets/images/cursor_hover.png"), pointer;
 }
-
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
 .control {
     position: relative;
     display: flex;
     flex-direction: row;
+    max-width: 100%;
+    //overflow: auto;
+    // &.validate {
+    //     input, select, label, textarea, .input, .vue-select {
+    //         &:invalid {
+    //             border-bottom: 1px solid rgba(255, 0, 0, 0.4);
+    //         }
+    //         &:valid {
+    //             border-bottom: 1px solid rgba(123, 255, 0, 0.3);
+    //         }
+    //     }
+    // }
 }
 input, select, label, textarea, button, progress, meter, .btn, .input, .vue-select {
     padding: 5px 10px;
     border-radius: 0px;
-    width: 100%;
-    max-width: 100%;
     background-color: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     border-top: 1px solid rgba(255, 255, 255, 0.13);
     box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.1);
     min-height: 35px;
+    display: flex;
+    align-items: center;
+    &:not(label) {
+        min-width: 0;
+    }
     &:hover, &:focus {
         background-color: rgba(255, 255, 255, 0.2);
     }
@@ -26,12 +45,16 @@ input, select, label, textarea, button, progress, meter, .btn, .input, .vue-sele
     }
 }
 label {
-    width: inherit;
-    border-right: none;
+    display: flex;
+    justify-content: center;
+    align-items: center;
     white-space: nowrap;
-    &:hover {
+    &:not(input[type=checkbox] + label):hover {
         background-color: rgba(255, 255, 255, 0.1);
     }
+}
+label:not(input[type=checkbox] + label) {
+    border-right: none;
 }
 button, input[type=button], input[type=submit], input[type=checkbox] + label, .btn {
     width: unset;
@@ -50,14 +73,11 @@ input[type=datetime-local]::-webkit-calendar-picker-indicator {
     filter: invert(0.8);
 }
 
-// input[type=text], input[type=email], input[type=password] {
-//     &:invalid {
-//         border-left: 1px solid rgba(255, 0, 0, 0.4);
-//     }
-//     &:valid {
-//         border-left: 1px solid rgba(123, 255, 0, 0.3);
-//     }
-// }
+input[type=text],
+input[type=email],
+input[type=password] {
+    flex-grow: 1;
+}
 
 .vue-select {
     input, .vue-input {

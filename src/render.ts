@@ -1,17 +1,16 @@
+import "@/assets/styles/styles.scss";
+import "vue-next-select/dist/index.css";
 import { createApp, ToRefs } from "vue";
 import { createRouter, createWebHashHistory, createWebHistory } from "vue-router";
 import { createRouterLayout } from "vue-router-layout";
 import VueNextSelect from "vue-next-select";
-import { Tabs, Tab } from "vue3-tabs-component";
-
-import "@/assets/styles/styles.scss";
-import "vue-next-select/dist/index.css";
 import routes from "@/routes";
 import App from "@/App.vue";
 import { SettingsAPI } from "@/api/settings";
 import { ipcRenderer } from "electron";
 import { SettingsType } from "@/model/settings";
 import { TachyonClient } from "tachyon-client";
+import { Field, Form } from "vee-validate";
 
 declare global {
     interface Window {
@@ -27,7 +26,10 @@ declare global {
     window.client = new TachyonClient({
         host: "localhost",
         port: 8201,
+        verbose: process.env.NODE_ENV !== "production"
     });
+
+    await window.client.connect();
 
     await setupVue();
 })();
@@ -52,7 +54,7 @@ async function setupVue() {
     app.config.globalProperties.window = window;
     app.use(router);
     app.component("vue-select", VueNextSelect);
-    app.component("tabs", Tabs);
-    app.component("tab", Tab);
+    app.component("Form", Form);
+    app.component("Field", Field);
     app.mount("#app");
 }

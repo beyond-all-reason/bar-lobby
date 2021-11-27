@@ -4,22 +4,26 @@
             <transition name="login" appear>
                 <img ref="logo" class="logo hidden" src="@/assets/images/BARLogoFull.png">
             </transition>
-            <transition name="login" appear>
-                <Panel>
-                    <Tab title="Login">
-                        <LoginForm />
-                    </Tab>
-                    <Tab title="Register">
-                        <RegisterForm />
-                    </Tab>
-                </Panel>
-            </transition>
+            <suspense>
+                <transition name="login" appear>
+                    <Loader v-if="loading" />
+                    <Panel v-else>
+                        <Tab title="Login">
+                            <LoginForm />
+                        </Tab>
+                        <Tab title="Register">
+                            <RegisterForm />
+                        </Tab>
+                    </Panel>
+                </transition>
+            </suspense>
         </div>
     </div>
 </template>
 
 <script lang="ts">
-import { defineComponent } from "vue";
+import { ipcRenderer } from "electron";
+import { defineComponent, ref } from "vue";
 
 export default defineComponent({
     layout: {
@@ -29,7 +33,16 @@ export default defineComponent({
         }
     },
     setup() {
-        return {};
+        const loading = ref(true);
+
+        ipcRenderer.invoke("getVersion").then((version => console.log(version)));
+
+        const token = localStorage.getItem("token");
+        if (token) {
+            window.client.login({ token, lobby_name: "BAR Lobby", lobby_version: "" });
+        }
+
+        return { loading };
     }
 });
 </script>

@@ -1,9 +1,9 @@
 <template>
-    <form ref="form" class="login-form hidden">
-        <Textbox type="email" label="Email" v-model="email" required />
+    <form ref="form" class="login-form hidden" @submit.prevent="login">
+        <Textbox type="email" label="Email" v-model="email" required validate />
         <Textbox type="password" label="Password" v-model="password" required />
         <div class="row">
-            <Button @click="login">Login</Button>
+            <Button type="submit">Login</Button>
             <Checkbox type="checkbox" label="Remember Me" v-model="remember" />
         </div>
     </form>
@@ -19,8 +19,12 @@ export default defineComponent({
         const remember = ref(false);
 
         const login = () => {
-            console.log(email.value, password.value);
+            console.log(email.value, password.value, remember.value);
         };
+
+        // if (!token) {
+        //     window.client.getToken({ email: "test@test2.com", password: "test" });
+        // }
 
         return { email, password, remember, login };
     }

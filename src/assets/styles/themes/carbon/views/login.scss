@@ -6,9 +6,6 @@
         filter: drop-shadow(3px 3px 5px rgba(0, 0, 0, 0.8));
     }
     .login-form {
-        display: flex;
-        flex-direction: column;
-        gap: 15px;
         width: 350px;
         > .content {
             display: flex;

@@ -14,6 +14,7 @@ import campaign_new from '@/views/campaign/new.vue'
 import campaign_replay_mission from '@/views/campaign/replay-mission.vue'
 import debug_inputs from '@/views/debug/inputs.vue'
 import debug_perf from '@/views/debug/perf.vue'
+import debug_vee from '@/views/debug/vee.vue'
 import missions_co_op from '@/views/missions/co-op.vue'
 import missions_leaderboard from '@/views/missions/leaderboard.vue'
 import missions_solo from '@/views/missions/solo.vue'
@@ -104,6 +105,11 @@ export default [
     name: 'debug-perf',
     path: '/debug/perf',
     component: debug_perf,
+  },
+  {
+    name: 'debug-vee',
+    path: '/debug/vee',
+    component: debug_vee,
   },
   {
     name: 'Co-op',

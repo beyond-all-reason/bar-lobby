@@ -82,6 +82,8 @@ export class Application {
     }
 
     protected setupHandlers() {
+        ipcMain.handle("getVersion", (event) => this.app.getVersion());
+
         ipcMain.handle("getSettingsPath", (event) => path.join(this.app.getPath("userData"), "settings.json"));
 
         ipcMain.handle("getHardwareInfo", async (event) => {
@@ -92,12 +94,6 @@ export class Application {
                 currentDisplayIndex: allDisplays.indexOf(screen.getDisplayNearestPoint(this.mainWindow.window.getBounds()))
             };
         });
-
-        // this.addHandler("getRandomBackground", async (event) => {
-        //     const backgrounds = await fs.promises.readdir(path.join(__static, "backgrounds"));
-        //     const background = backgrounds[Math.floor(Math.random() * backgrounds.length)];
-        //     return `backgrounds/${background}`;
-        // });
     }
 }
 
