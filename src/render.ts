@@ -2,6 +2,7 @@ import { createApp, ToRefs } from "vue";
 import { createRouter, createWebHashHistory, createWebHistory } from "vue-router";
 import { createRouterLayout } from "vue-router-layout";
 import VueNextSelect from "vue-next-select";
+import { Tabs, Tab } from "vue3-tabs-component";
 
 import "@/assets/styles/styles.scss";
 import "vue-next-select/dist/index.css";
@@ -48,12 +49,10 @@ async function setupVue() {
     });
 
     const app = createApp(App);
-
-    app.use(router);
-
-    app.component("vue-select", VueNextSelect);
-
     app.config.globalProperties.window = window;
-
+    app.use(router);
+    app.component("vue-select", VueNextSelect);
+    app.component("tabs", Tabs);
+    app.component("tab", Tab);
     app.mount("#app");
 }

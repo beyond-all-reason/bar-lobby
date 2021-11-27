@@ -1,12 +1,13 @@
 <template>
-    <div class="control">
+    <div class="control textbox">
         <label :for="uuid" v-if="label">{{ label }}</label>
         <input ref="input" :id="uuid" :type="type" v-bind="$attrs" v-model="text" @input="onInput">
+        <label :for="uuid" v-if="icon"><Icon :for="uuid" :icon="icon" /></label>
     </div>
 </template>
 
 <script lang="ts">
-import { defineComponent, Ref, ref } from "vue";
+import { defineComponent, Ref, ref, toRefs } from "vue";
 import { v4 as uuidv4 } from "uuid";
 
 export default defineComponent({
@@ -17,12 +18,11 @@ export default defineComponent({
         },
         label: String,
         modelValue: String,
+        icon: String
     },
     setup(props, context) {
         const uuid = ref(uuidv4());
-        const label = ref(props.label);
-        const type = ref(props.type);
-        const text = ref(props.modelValue);
+        const { label, type, modelValue: text, icon } = toRefs(props);
         const input = ref() as Ref<HTMLInputElement>;
         
         const onInput = () => {
@@ -30,7 +30,7 @@ export default defineComponent({
             context.emit("validate", input.value.checkValidity());
         };
 
-        return { uuid, type, label, text, input, onInput };
+        return { uuid, type, label, text, icon, input, onInput };
     }
 });
 </script>

@@ -1,5 +1,5 @@
 <template>
-    <div class="control">
+    <div class="control select">
         <label for="textbox" v-if="label">{{ label }}</label>
         <vue-select :hide-selected="true" v-bind="$attrs"> </vue-select>
     </div>

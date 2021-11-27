@@ -52,6 +52,7 @@
     "vue-cli-plugin-import-components": "^1.2.1",
     "vue-next-select": "^2.10.2",
     "vue-router": "^4.0.12",
-    "vue-router-layout": "^0.4.0"
+    "vue-router-layout": "^0.4.0",
+    "vue3-tabs-component": "^1.0.3"
   }
 }

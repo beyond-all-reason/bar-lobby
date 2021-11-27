@@ -1,5 +1,5 @@
 <template>
-    <div class="control">
+    <div class="control checkbox">
         <input :id="uuid" type="checkbox" v-model="checked" @change="$emit('update:modelValue', checked)">
         <label :for="uuid" :class="{ checked }">
             <div class="icon">

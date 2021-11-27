@@ -41,7 +41,7 @@ export default defineComponent({
         } else {
             router.replace("/intro");
         }
-
+        
         return { imgSrcs };
     }
 });

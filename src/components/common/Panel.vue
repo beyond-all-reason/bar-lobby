@@ -1,13 +1,18 @@
 <template>
-    <component class="panel" :is="is">
+    <component class="panel" :class="{ tabbed: Boolean(tabs.length) }" :is="is">
         <div class="content" :style="`--gap: ${gap}`">
-            <slot />
+            <div class="tabs" v-if="tabs.length">
+                <Button v-for="(tab, i) in tabs" :key="i" :class="{ active: i === activeTab }" @click="activeTab = i">{{ tab.props?.title }}</Button>
+            </div>
+            <slot v-if="tabs.length === 0" />
+            <component v-else v-for="(tab, i) in tabs" :key="i" :is="tab" v-show="i === activeTab" />
         </div>
     </component>
+
 </template>
 
 <script lang="ts">
-import { defineComponent } from "vue";
+import { defineComponent, reactive, ref, toRefs, VNode } from "vue";
 
 export default defineComponent({
     props: {
@@ -20,8 +25,19 @@ export default defineComponent({
             default: "10px"
         }
     },
-    setup(props) {
-        return { is: props.is };
+    setup(props, context) {
+        const { is, gap } = toRefs(props);
+        let tabs = reactive([] as VNode[]);
+        const activeTab = ref(0);
+
+        const slots = context.slots?.default?.();
+        if (slots && slots.every(slot => (slot.type as any).name === "Tab")) {
+            tabs = slots;
+        }
+
+        console.log(tabs);
+
+        return { is, gap, tabs, activeTab };
     }
 });
 </script>
@@ -30,7 +46,7 @@ export default defineComponent({
 .panel {
     position: relative;
     max-height: 100%;
-    overflow-y: auto;
+    //overflow-y: auto;
     display: flex;
     flex-direction: column;
     flex-grow: 1;
@@ -41,5 +57,6 @@ export default defineComponent({
     flex-direction: column;
     gap: var(--gap);
     flex-grow: 1;
+    overflow-y: auto;
 }
 </style>

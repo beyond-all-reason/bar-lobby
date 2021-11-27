@@ -1,4 +1,4 @@
-.panel:not(.panel .panel) {
+.panel {
     background: linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.6));
     backdrop-filter: blur(10px) brightness(1) saturate(2);
     border: 1px solid rgba(255, 255, 255, 0.2);
@@ -23,5 +23,25 @@
             mix-blend-mode: overlay;
             z-index: -1;
         }
+    }
+    &.tabbed > .content {
+        padding-top: 60px;
+    }
+    .tabs {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        background-color: rgba(255, 255, 255, 0.03);
+        .btn {
+            background: transparent;
+            border: none;
+            box-shadow: none;
+            &:hover, &.active {
+                background: rgba(255, 255, 255, 0.05);
+                box-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
+            }
+        }
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     }
 }
