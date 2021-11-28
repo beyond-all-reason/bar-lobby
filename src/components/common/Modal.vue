@@ -1,7 +1,11 @@
 <template>
-    <div>
-        Use teleport
-    </div>
+    <teleport to="#view">
+        <div class="modal-container">
+            <Panel id="modal" class="modal">
+                <slot/>
+            </Panel>
+        </div>
+    </teleport>
 </template>
 
 <script lang="ts">

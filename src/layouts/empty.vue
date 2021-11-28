@@ -1,10 +1,12 @@
 <template>
-    <div :class="`fullsize layout layout--empty view--${route.name?.toString()}`">
-        <router-view v-slot="{ Component }">
-            <transition :name="transition" :appear="Boolean(transition)">
-                <component :is="Component" />
-            </transition>
-        </router-view>
+    <div class="fullsize layout layout--empty">
+        <div id="view" :class="`view view--${route.name?.toString()}`">
+            <router-view v-slot="{ Component }">
+                <transition :name="transition" :appear="Boolean(transition)">
+                    <component :is="Component" />
+                </transition>
+            </router-view>
+        </div>
     </div>
 </template>
 

@@ -23,13 +23,13 @@ declare global {
     const settingsPath = await ipcRenderer.invoke("getSettingsPath");
     window.settings = new SettingsAPI({ settingsPath }).settings;
 
-    window.client = new TachyonClient({
-        host: "localhost",
-        port: 8201,
-        verbose: process.env.NODE_ENV !== "production"
-    });
+    // window.client = new TachyonClient({
+    //     host: "localhost",
+    //     port: 8201,
+    //     verbose: process.env.NODE_ENV !== "production"
+    // });
 
-    await window.client.connect();
+    // await window.client.connect();
 
     await setupVue();
 })();
@@ -58,3 +58,10 @@ async function setupVue() {
     app.component("Field", Field);
     app.mount("#app");
 }
+
+window.addEventListener("message", (e) => {
+    if (e.data && typeof e.data === "string" && e.data.match(/webpackHotUpdate/)) {
+        console.log("hot reload happened");
+        console.clear();
+    }
+});

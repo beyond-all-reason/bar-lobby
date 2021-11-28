@@ -1,10 +1,10 @@
 <template>
-    <form ref="form" class="login-form hidden" @submit.prevent="login">
+    <form ref="form" class="login-form" @submit.prevent="login">
         <Textbox type="email" label="Email" v-model="email" required validate />
         <Textbox type="password" label="Password" v-model="password" required />
-        <div class="row">
-            <Button type="submit">Login</Button>
+        <div class="flex-row gap-md">
             <Checkbox type="checkbox" label="Remember Me" v-model="remember" />
+            <Button type="submit">Login</Button>
         </div>
     </form>
 </template>

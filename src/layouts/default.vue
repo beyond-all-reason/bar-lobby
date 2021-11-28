@@ -8,9 +8,6 @@
                 </transition>
             </router-view>
         </div>
-        <div id="modal-container" class="modal-container">
-            
-        </div>
     </div>
 </template>
 
@@ -40,10 +37,5 @@ export default defineComponent({
     display: flex;
     flex-direction: column;
     flex-grow: 1;
-}
-.modal-container {
-    @extend .fullsize;
-    z-index: 10;
-    pointer-events: none;
 }
 </style>

@@ -1,29 +1,30 @@
 <template>
     <div class="fullsize">
-        <div class="login">
+        <Loader v-if="loading" />
+        <div v-else class="login">
             <transition name="login" appear>
                 <img ref="logo" class="logo hidden" src="@/assets/images/BARLogoFull.png">
             </transition>
-            <suspense>
-                <transition name="login" appear>
-                    <Loader v-if="loading" />
-                    <Panel v-else>
-                        <Tab title="Login">
-                            <LoginForm />
-                        </Tab>
-                        <Tab title="Register">
-                            <RegisterForm />
-                        </Tab>
-                    </Panel>
-                </transition>
-            </suspense>
+            <transition name="login" appear>
+                <Panel>
+                    <Tab title="Login">
+                        <LoginForm />
+                    </Tab>
+                    <Tab title="Register">
+                        <RegisterForm />
+                    </Tab>
+                    <Tab title="Reset Password">
+                        <ResetPasswordForm />
+                    </Tab>
+                </Panel>
+            </transition>
         </div>
     </div>
 </template>
 
 <script lang="ts">
-import { ipcRenderer } from "electron";
 import { defineComponent, ref } from "vue";
+import { useRouter } from "vue-router";
 
 export default defineComponent({
     layout: {
@@ -33,13 +34,23 @@ export default defineComponent({
         }
     },
     setup() {
+        const router = useRouter();
         const loading = ref(true);
 
-        ipcRenderer.invoke("getVersion").then((version => console.log(version)));
+        //ipcRenderer.invoke("getVersion").then((version => console.log(version)));
 
         const token = localStorage.getItem("token");
         if (token) {
-            window.client.login({ token, lobby_name: "BAR Lobby", lobby_version: "" });
+            window.client.login({ token, lobby_name: "BAR Lobby", lobby_version: "" }).then(data => {
+                console.log(data);
+                if (data.result === "success") {
+                    router.push("/home");
+                } else {
+                    loading.value = false;
+                }
+            });
+        } else {
+            loading.value = false;
         }
 
         return { loading };
@@ -49,7 +60,7 @@ export default defineComponent({
 
 <style scoped lang="scss">
 .fullsize {
-    justify-content: center;
+    //justify-content: center;
     align-items: center;
 }
 .login {
@@ -59,5 +70,6 @@ export default defineComponent({
     align-items: center;
     max-width: 500px;
     gap: 80px;
+    margin-top: 10%;
 }
 </style>

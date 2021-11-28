@@ -1,7 +1,7 @@
 <template>
-    <div class="control textbox" :class="{ validate }">
+    <div class="control textbox">
         <label :for="uuid" v-if="label">{{ label }}</label>
-        <Field ref="input" :id="uuid" :name="name" :type="type" v-bind="$attrs" v-model="text" @input="onInput" />
+        <input ref="input" :id="uuid" :name="name" :type="type" v-bind="$attrs" v-model="text" @input="onInput" @invalid="onInput">
         <label :for="uuid" v-if="icon"><Icon :for="uuid" :icon="icon" /></label>
     </div>
 </template>
@@ -23,20 +23,29 @@ export default defineComponent({
         label: String,
         modelValue: String,
         icon: String,
-        validate: Boolean
+        validation: Function
     },
     setup(props, context) {
         const uuid = ref(uuidv4());
-        const { label, type, icon, validate } = toRefs(props);
+        const { label, type, icon, validation } = toRefs(props);
         const text = ref(props.modelValue);
         const input = ref() as Ref<HTMLInputElement>;
         const name = props.name ? ref(props.name) : uuid;
         
-        const onInput = () => {
+        const onInput = (event: InputEvent) => {
             context.emit("update:modelValue", text.value);
+
+            if (validation.value && event.target instanceof HTMLInputElement) {
+                const validate = validation.value(event.target.value);
+                if (validate) {
+                    event.target.setCustomValidity(validate);
+                } else {
+                    event.target.setCustomValidity("");
+                }
+            }
         };
 
-        return { uuid, name, type, label, text, icon, validate, input, onInput };
+        return { uuid, name, type, label, text, icon, input, onInput };
     }
 });
 </script>
