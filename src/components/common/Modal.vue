@@ -1,11 +1,11 @@
 <template>
-    <teleport v-if="!test" to="#view">
+    <teleport v-if="!test" to=".theme">
         <div class="modal-container" v-bind="$attrs">
             <Panel id="modal" class="modal" :title="title">
                 <template #header>
                     <div v-if="title" class="header">
                         <div class="title">{{ title }}</div>
-                        <div class="close" @click="test = true"><Icon icon="close-thick" /></div>
+                        <div class="close" @click="$emit('close')"><Icon icon="close-thick" /></div>
                     </div>
                 </template>
                 <slot/>

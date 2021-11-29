@@ -13,9 +13,7 @@
             <Textbox label="Verification Code" v-model="verificationCode" required />
             <Button type="submit">Verify</Button>
         </form>
-        <Dialog v-if="registerError" type="error">
-            <p>{{ registerError }}</p>
-        </Dialog>
+        <Dialog type="error" v-model="registerError"/>
     </div>
 </template>
 
@@ -46,7 +44,12 @@ export default defineComponent({
             if (registerResult === "success") {
                 const { result: tokenResult, reason: tokenReason, token } = await window.client.getToken({ email: email.value, password: password.value });
                 if (tokenResult === "success" && token) {
-                    const { result: loginResult, reason: loginReason, agreement, user } = await window.client.login({ token, lobby_name: "bar-lobby", lobby_version: window.info.version });
+                    const { result: loginResult, reason: loginReason, agreement, user } = await window.client.login({ 
+                        token,
+                        lobby_name: window.info.lobby.name,
+                        lobby_version: window.info.lobby.version,
+                        lobby_hash: window.info.lobby.hash
+                    });
                     if (loginResult === "unverified" && agreement) {
                         verificationMessage.value = agreement;
                         requestVerification.value = true;

@@ -41,7 +41,12 @@ export default defineComponent({
 
         const token = localStorage.getItem("token");
         if (token) {
-            window.client.login({ token, lobby_name: "BAR Lobby", lobby_version: "" }).then(data => {
+            window.client.login({ 
+                token,
+                lobby_name: window.info.lobby.name,
+                lobby_version: window.info.lobby.version,
+                lobby_hash: window.info.lobby.hash
+            }).then(data => {
                 console.log(data);
                 if (data.result === "success") {
                     router.push("/home");

@@ -27,7 +27,7 @@ declare global {
     window.settings = new SettingsAPI({ settingsPath }).settings;
 
     window.client = new TachyonClient({
-        host: "localhost",
+        host: "server2.beyondallreason.info",
         port: 8201,
         verbose: process.env.NODE_ENV !== "production"
     });

@@ -21,11 +21,7 @@ export default defineComponent({
         const login = () => {
             console.log(email.value, password.value, remember.value);
         };
-
-        // if (!token) {
-        //     window.client.getToken({ email: "test@test2.com", password: "test" });
-        // }
-
+        
         return { email, password, remember, login };
     }
 });

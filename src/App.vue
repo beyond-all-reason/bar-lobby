@@ -1,36 +1,32 @@
 <template>
     <div :class="`fullsize theme theme--${theme}`">
+        <Dialog type="error" title="Server Error" v-model="serverError" />
         <DebugSidebar/>
         <router-view/>
     </div>
 </template>
 
 <script lang="ts">
-import * as fs from "fs";
-import * as path from "path";
-import { defineComponent } from "vue";
+import { defineComponent, ref } from "vue";
 import { useRouter } from "vue-router";
-
-declare const __static: string;
 
 export default defineComponent({
     setup() {
         const theme = window.settings.theme;
+        const serverError = ref("");
 
-        getRandomBackground().then(bgUrl => {
-            document.documentElement.style.setProperty("--background", `url(${bgUrl})`);
+        window.client.socket.on("error", (err) => {
+            serverError.value = err?.message ?? "Server error";
+        });
+
+        window.client.socket.on("close", (err) => {
+            serverError.value = "Connection to server lost";
         });
 
         const router = useRouter();
         router.replace("/");
 
-        return { theme };
+        return { theme, serverError };
     }
 });
-
-async function getRandomBackground() {
-    const backgrounds = await fs.promises.readdir(path.join(__static, "backgrounds"));
-    const background = backgrounds[Math.floor(Math.random() * backgrounds.length)];
-    return `backgrounds/${background}`;
-}
 </script>

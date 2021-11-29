@@ -84,7 +84,11 @@ export class Application {
     protected setupHandlers() {
         ipcMain.handle("getInfo", async (event) => {
             return {
-                version: this.app.getVersion()
+                lobby: {
+                    name: this.app.getName(),
+                    version: this.app.getVersion(),
+                    hash: "123"
+                }
             };
         });
 

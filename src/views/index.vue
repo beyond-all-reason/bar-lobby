@@ -7,6 +7,9 @@
 <script lang="ts">
 import { defineComponent, ref } from "vue";
 import { useRouter } from "vue-router";
+import * as fs from "fs";
+import * as path from "path";
+import * as glob from "glob";
 
 export default defineComponent({
     layout: "empty",
@@ -19,6 +22,10 @@ export default defineComponent({
             const buildImagePath = require(`@/assets/images/${fileName}`);
             imgSrcs.value.push(buildImagePath);
         }
+
+        const staticImages = glob.sync(path.join(__static, "**/*.{jpg,png,gif,svg}"));
+        const staticDir = path.normalize(__static);
+        imgSrcs.value.push(...staticImages.map(staticImage => path.normalize(staticImage).split(staticDir)[1]));
 
         const fontFiles = require.context("@/assets/fonts/", true).keys();
         for (const fontFile of fontFiles) {
@@ -36,15 +43,26 @@ export default defineComponent({
 
         const router = useRouter();
 
-        if (window.settings.skipIntro.value) {
-            router.replace("/login");
-        } else {
-            router.replace("/intro");
-        }
+        getRandomBackground().then((bgUrl) => {
+            document.documentElement.style.setProperty("--background", `url(${bgUrl})`);
+            if (window.settings.skipIntro.value) {
+                router.replace("/login");
+            } else {
+                router.replace("/intro");
+            }
+        });
         
         return { imgSrcs };
     }
 });
+
+declare const __static: string;
+
+async function getRandomBackground() {
+    const backgrounds = await fs.promises.readdir(path.join(__static, "backgrounds"));
+    const background = backgrounds[Math.floor(Math.random() * backgrounds.length)];
+    return `backgrounds/${background}`;
+}
 </script>
 
 <style scoped lang="scss">

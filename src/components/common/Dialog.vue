@@ -1,26 +1,27 @@
 <template>
-    <Modal :class="`dialog dialog--${type}`" :title="title">
+    <Modal :class="`dialog dialog--${type}`" :title="title" v-if="message" @close="message = ''">
         <slot/>
-        <!-- <Button>Ok</Button> -->
+        <p>{{ modelValue }}</p>
     </Modal>
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, toRefs } from "vue";
+import { computed, defineComponent, ref, toRefs } from "vue";
 
 export default defineComponent({
     props: {
-        title: {
-            type: String,
-            default: "",
-        },
         type: {
             type: String,
             default: "info",
             validator: (value: string) => ["info", "warning", "error", "choice"].includes(value)
-        }
+        },
+        title: {
+            type: String,
+            default: "",
+        },
+        modelValue: String
     },
-    setup(props) {
+    setup(props, { emit }) {
         const { type } = toRefs(props);
         const title = ref(props.title);
 
@@ -28,10 +29,12 @@ export default defineComponent({
             title.value = type.value.toUpperCase();
         }
 
-        return { title, type };
+        const message = computed({
+            get: () => props.modelValue,
+            set: (value) => emit("update:modelValue", value)
+        });
+
+        return { type, title, message };
     }
 });
 </script>
-
-<style scoped lang="scss">
-</style>

@@ -29,13 +29,3 @@ export default defineComponent({
     }
 });
 </script>
-
-<style lang="scss" scoped>
-.view {
-    overflow-y: hidden;
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-    flex-grow: 1;
-}
-</style>
