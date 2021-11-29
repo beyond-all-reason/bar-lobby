@@ -1,9 +1,10 @@
 <template>
     <component class="panel" :class="{ tabbed: Boolean(tabs.length) }" :is="is">
+        <slot name="header" />
+        <div class="tabs" v-if="tabs.length">
+            <Button v-for="(tab, i) in tabs" :key="i" :class="{ active: i === activeTab }" @click="activeTab = i">{{ tab.props?.title }}</Button>
+        </div>
         <div class="content" :style="`--gap: ${gap}`">
-            <div class="tabs" v-if="tabs.length">
-                <Button v-for="(tab, i) in tabs" :key="i" :class="{ active: i === activeTab }" @click="activeTab = i">{{ tab.props?.title }}</Button>
-            </div>
             <slot v-if="tabs.length === 0" />
             <component v-else v-for="(tab, i) in tabs" :key="i" :is="tab" v-show="i === activeTab" />
         </div>
@@ -23,10 +24,15 @@ export default defineComponent({
         gap: {
             type: String,
             default: "10px"
+        },
+        title: {
+            type: String,
+            default: ""
         }
     },
     setup(props, context) {
-        const { is, gap } = toRefs(props);
+        const { is, gap, title } = toRefs(props);
+
         let tabs = reactive([] as VNode[]);
         const activeTab = ref(0);
 
@@ -35,26 +41,8 @@ export default defineComponent({
             tabs = slots;
         }
 
-        return { is, gap, tabs, activeTab };
+        return { title, is, gap, tabs, activeTab };
     }
 });
 </script>
 
-<style scoped lang="scss">
-.panel {
-    position: relative;
-    max-height: 100%;
-    //overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-    flex-grow: 1;
-}
-.content {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    gap: var(--gap);
-    flex-grow: 1;
-    overflow-y: auto;
-}
-</style>

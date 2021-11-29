@@ -82,7 +82,11 @@ export class Application {
     }
 
     protected setupHandlers() {
-        ipcMain.handle("getVersion", (event) => this.app.getVersion());
+        ipcMain.handle("getInfo", async (event) => {
+            return {
+                version: this.app.getVersion()
+            };
+        });
 
         ipcMain.handle("getSettingsPath", (event) => path.join(this.app.getPath("userData"), "settings.json"));
 

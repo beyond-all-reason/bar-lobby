@@ -5,20 +5,17 @@
         will-change: transform, opacity;
         filter: drop-shadow(3px 3px 5px rgba(0, 0, 0, 0.8));
     }
+    .panel {
+        width: 400px;
+    }
     .login-form {
-        width: 350px;
-        > .content {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
         button {
-            background-color: rgba(214, 36, 36, 0.6);
+            background-color: rgba(14, 109, 199, 0.6);
             border-color: rgba(255, 255, 255, 0.15);
             box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.1), inset 0 -17px 0 rgba(0, 0, 0, 0.05);
             transition: transform;
             &:hover {
-                background-color: rgba(255, 50, 50, 0.7);
+                background-color: rgba(14, 109, 199, 0.8);
                 box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.1), inset 0 -17px 0 rgba(0, 0, 0, 0.05);
             }
         }

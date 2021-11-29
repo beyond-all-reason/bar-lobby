@@ -1,4 +1,10 @@
 .panel {
+    position: relative;
+    max-height: 100%;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    overflow-y: auto;
     background: linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.6));
     backdrop-filter: blur(10px) brightness(1) saturate(2);
     border: 1px solid rgba(255, 255, 255, 0.2);
@@ -13,27 +19,20 @@
         inset 0 3px 8px rgba(255, 255, 255, 0.1),
         3px 3px 10px rgba(0, 0, 0, 0.8);
     > .content {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        gap: var(--gap);
+        flex-grow: 1;
         padding: 30px;
         background: rgba(0, 0, 0, 0.2);
-        &:after {
-            @extend .fullsize;
-            background-image: url("~@/assets/images/squares.png");
-            background-size: auto;
-            opacity: 0.3;
-            mix-blend-mode: overlay;
-            z-index: -1;
-        }
     }
-    &.tabbed > .content {
-        padding-top: 60px;
-    }
-    .tabs {
-        position: absolute;
-        top: 0;
-        left: 0;
+    .tabs, .header {
+        position: relative;
         width: 100%;
-        background-color: rgba(255, 255, 255, 0.03);
         display: flex;
+        background-color: rgba(59, 59, 59, 0.2);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         .btn {
             background: transparent;
             border: none;
@@ -43,6 +42,29 @@
                 box-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
             }
         }
-        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     }
+    .header {
+        justify-content: space-between;
+        width: 100%;
+        .title {
+            padding: 5px 10px;
+            flex-grow: 1;
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .close {
+            padding: 5px 10px;
+            background: rgba(219, 20, 20, 0.3);
+            &:hover {
+                background: rgba(219, 20, 20, 0.6);
+            }
+        }
+    }
+}
+.panel > .content:after, .tabs:after {
+    @extend .fullsize;
+    background-image: url("~@/assets/images/squares.png");
+    background-size: auto;
+    opacity: 0.3;
+    mix-blend-mode: overlay;
+    z-index: -1;
 }

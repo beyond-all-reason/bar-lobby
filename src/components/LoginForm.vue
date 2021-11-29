@@ -16,7 +16,7 @@ export default defineComponent({
     setup() {
         const email = ref("");
         const password = ref("");
-        const remember = ref(false);
+        const remember = ref(true);
 
         const login = () => {
             console.log(email.value, password.value, remember.value);
@@ -31,5 +31,3 @@ export default defineComponent({
 });
 </script>
 
-<style scoped lang="scss">
-</style>

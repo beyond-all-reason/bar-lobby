@@ -1,6 +1,7 @@
 <template>
     <div>
-        <form v-if="!requestVerification" class="login-form" @submit.prevent="register">
+        <Loader v-if="loading" />
+        <form v-else-if="!requestVerification" class="login-form" @submit.prevent="register">
             <Textbox type="email" label="Email" v-model="email" required />
             <Textbox label="Username" v-model="username" required />
             <Textbox type="password" label="Password" v-model="password" required />
@@ -12,6 +13,9 @@
             <Textbox label="Verification Code" v-model="verificationCode" required />
             <Button type="submit">Verify</Button>
         </form>
+        <Dialog v-if="registerError" type="error">
+            <p>{{ registerError }}</p>
+        </Dialog>
     </div>
 </template>
 
@@ -20,6 +24,7 @@ import { defineComponent, ref } from "vue";
 
 export default defineComponent({
     setup() {
+        const loading = ref(false);
         const email = ref("");
         const username = ref("");
         const confirmPassword = ref("");
@@ -27,6 +32,7 @@ export default defineComponent({
         const requestVerification = ref(false);
         const verificationMessage = ref("");
         const verificationCode = ref("");
+        const registerError = ref("");
 
         const validatePassword = () => {
             if (password.value && confirmPassword.value && password.value !== confirmPassword.value) {
@@ -34,19 +40,39 @@ export default defineComponent({
             }
         };
 
-        const register = () => {
+        const register = async () => {
             console.log(email.value, password.value);
-            requestVerification.value = true;
+            const { result: registerResult, reason: registerReason } = await window.client.register({ email: email.value, username: username.value, password: password.value });
+            if (registerResult === "success") {
+                const { result: tokenResult, reason: tokenReason, token } = await window.client.getToken({ email: email.value, password: password.value });
+                if (tokenResult === "success" && token) {
+                    const { result: loginResult, reason: loginReason, agreement, user } = await window.client.login({ token, lobby_name: "bar-lobby", lobby_version: window.info.version });
+                    if (loginResult === "unverified" && agreement) {
+                        verificationMessage.value = agreement;
+                        requestVerification.value = true;
+                    }
+                } else {
+                    if (tokenReason) {
+                        registerError.value = tokenReason;
+                    }
+                }
+            } else {
+                if (registerReason) {
+                    registerError.value = registerReason;
+                }
+            }
         };
 
         const verify = () => {
             console.log(verificationCode.value);
         };
 
-        return { email, username, password, confirmPassword, requestVerification, verificationMessage, verificationCode, register, validatePassword, verify };
+        return { 
+            loading, email, username, password, confirmPassword,
+            requestVerification, verificationMessage, verificationCode,
+            registerError,
+            register, validatePassword, verify
+        };
     }
 });
 </script>
-
-<style scoped lang="scss">
-</style>

@@ -1,0 +1,8 @@
+.dialog {
+    &--error .title {
+        background: rgba(255, 31, 31, 0.1);
+    }
+    &--warning .title {
+        background: rgba(255, 230, 0, 0.1);
+    }
+}

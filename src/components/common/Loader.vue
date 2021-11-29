@@ -19,6 +19,11 @@ export default defineComponent({
 .loader {
     background: radial-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0) 50%);
     padding: 50px;
+	width: 100%;
+	height: 100%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
 }
 
 /*!
@@ -43,8 +48,6 @@ export default defineComponent({
 	display: block;
 	font-size: 0;
 	color: #fff;
-	width: 32px;
-	height: 32px;
 	>div {
 		position: relative;
 		box-sizing: border-box;
