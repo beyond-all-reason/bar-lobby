@@ -12,7 +12,7 @@ import { useRouter } from "vue-router";
 
 export default defineComponent({
     setup() {
-        const theme = window.settings.theme;
+        const theme = window.api.settings.settings.theme;
 
         // const boot = async () => {
         //     serverError.value = "";

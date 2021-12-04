@@ -6,6 +6,8 @@
 </template>
 
 <script lang="ts">
+// https://iendeavor.github.io/vue-next-select/
+
 import { defineComponent, ref, toRef } from "vue";
 import { v4 as uuidv4 } from "uuid";
 

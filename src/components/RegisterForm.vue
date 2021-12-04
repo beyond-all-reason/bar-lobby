@@ -33,9 +33,10 @@ export default defineComponent({
         const register = async () => {
             loading.value = true;
 
-            const registerResponse = await window.client.register({ email: email.value, username: username.value, password: password.value });
+            const registerResponse = await window.api.client.register({ email: email.value, username: username.value, password: password.value });
+            
             if (registerResponse.result === "success") {
-                window.settings.email.value = email.value;
+                window.api.settings.settings.email.value = email.value;
                 context.emit("register-success");
             } else {
                 if (registerResponse.reason) {

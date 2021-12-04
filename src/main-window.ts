@@ -42,6 +42,7 @@ export class MainWindow {
         });
 
         this.window.once("ready-to-show", () => this.onReadyToShow());
+        this.window.on("restore", () => this.onRestore());
         
         this.window.webContents.setWindowOpenHandler(({ url }) => {
             shell.openExternal(url);
@@ -69,6 +70,7 @@ export class MainWindow {
             const { x, y, width, height } = display.bounds;
             this.window.setPosition(x, y);
             this.window.setSize(width, height);
+            this.config.displayIndex = displayIndex;
         }
     }
 
@@ -84,5 +86,10 @@ export class MainWindow {
         this.window.setMenuBarVisibility(false);
         
         this.window.show();
+    }
+
+    protected onRestore() {
+        console.log("restore");
+        this.setDisplay(this.config.displayIndex);
     }
 }

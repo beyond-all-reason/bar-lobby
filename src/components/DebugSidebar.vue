@@ -1,18 +1,13 @@
 <template>
     <div class="debug-sidebar" :class="{ active }">
-        <div class="fullsize">
-            <button class="toggle" @click="active = !active">
-                <Icon icon="tools" :size="20" />
-            </button>
-        </div>
+        <button class="toggle" @click="active = !active">
+            <Icon icon="tools" :size="20" />
+        </button>
 
-        <div class="control">
-            <label>Route Selector</label>
-            <select v-model="currentRoute">
-                <option v-for="route in routes" :key="route.path" :value="route.path">
-                    {{ route.path }}
-                </option>
-            </select>
+        <Select label="Route" v-model="currentRoute" :options="routes" :label-by="route => route.path" :value-by="route => route.path" :searchable="true" :clear-on-select="true" />
+
+        <div class="flex-row">
+            <Button @click="openSettings">Open Settings File</Button>
         </div>
     </div>
 </template>
@@ -32,6 +27,10 @@ export default defineComponent({
         const routes = readonly(router.getRoutes().filter(route => route.name).sort((a, b) => a.path.localeCompare(b.path)));
         const currentRoute = ref(route.path);
 
+        const openSettings = () => {
+            window.api.settings.openSettingsInEditor();
+        };
+
         scope.run(() => {
             watch(currentRoute, async () => {
                 await router.replace(currentRoute.value);
@@ -42,7 +41,7 @@ export default defineComponent({
             });
         });
 
-        return { routes, currentRoute, active };
+        return { routes, currentRoute, active, openSettings };
     }
 });
 </script>

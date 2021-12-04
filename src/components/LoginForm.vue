@@ -20,33 +20,45 @@
 <script lang="ts">
 import { linkify } from "@/utils/linkify";
 import { defineComponent, ref } from "vue";
+import { useRouter } from "vue-router";
 
 export default defineComponent({
-    setup() {
+    props: {
+        email: {
+            type: String,
+            default: "",
+        },
+        password: {
+            type: String,
+            default: "",
+        }
+    },
+    setup(props) {
+        const router = useRouter();
         const loading = ref(false);
-        const email = ref("");
-        const password = ref("");
+        const email = ref(props.email);
+        const password = ref(props.password);
         const remember = ref(true);
         const requestVerification = ref(false);
         const verificationMessage = ref("");
         const verificationCode = ref("");
         const errorMessage = ref("");
     
-        const storedEmail = window.settings.email?.value;
+        const storedEmail = window.api.settings.settings.email?.value;
         if (storedEmail) {
             email.value = storedEmail;
         }
 
-        let token = window.settings.token?.value ?? "";
-
         const login = async () => {
-            const tokenResponse = await window.client.getToken({ email: email.value, password: password.value });
+            loading.value = true;
+            
+            const tokenResponse = await window.api.client.getToken({ email: email.value, password: password.value });
 
             if (tokenResponse.result === "success" && tokenResponse.token) {
-                token = tokenResponse.token;
+                window.api.settings.settings.token.value = tokenResponse.token;
 
-                const loginResponse = await window.client.login({ 
-                    token,
+                const loginResponse = await window.api.client.login({ 
+                    token: window.api.settings.settings.token.value,
                     lobby_name: window.info.lobby.name,
                     lobby_version: window.info.lobby.version,
                     lobby_hash: window.info.lobby.hash
@@ -55,6 +67,14 @@ export default defineComponent({
                 if (loginResponse.result === "unverified" && loginResponse.agreement) {
                     verificationMessage.value = linkify(loginResponse.agreement);
                     requestVerification.value = true;
+                    loading.value = false;
+                } else if (loginResponse.result === "success") {
+                    router.push("/home");
+                } else {
+                    if (loginResponse.reason) {
+                        errorMessage.value = loginResponse.reason;
+                    }
+                    loading.value = false;
                 }
             } else {
                 if (tokenResponse.reason) {
@@ -64,11 +84,22 @@ export default defineComponent({
         };
 
         const verify = async () => {
-            await window.client.verify({ token, code: verificationCode.value });
+            loading.value = true;
+
+            const verifyResult = await window.api.client.verify({ token: window.api.settings.settings.token.value, code: verificationCode.value });
+
+            if (verifyResult.result === "success") {
+                // TODO: store user info
+                router.push("/home");
+            } else if (verifyResult.reason) {
+                window.api.alerts.alert(verifyResult.reason, "error", false, "Verification Failed");
+            }
+
+            loading.value = false;
         };
         
         return {
-            loading, email, password, token, remember, requestVerification, verificationMessage, verificationCode, errorMessage,
+            loading, email, password, remember, requestVerification, verificationMessage, verificationCode, errorMessage,
             login, verify
         };
     }

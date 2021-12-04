@@ -45,7 +45,7 @@ export default defineComponent({
 
         getRandomBackground().then((bgUrl) => {
             document.documentElement.style.setProperty("--background", `url(${bgUrl})`);
-            if (window.settings.skipIntro.value) {
+            if (window.api.settings.settings.skipIntro.value) {
                 router.replace("/login");
             } else {
                 router.replace("/intro");

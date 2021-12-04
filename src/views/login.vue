@@ -38,25 +38,30 @@ export default defineComponent({
         const loading = ref(true);
         const activeTab = ref(0);
 
-        //ipcRenderer.invoke("getVersion").then((version => console.log(version)));
-
-        const token = window.settings.token?.value;
-        if (token) {
-            window.client.login({
-                token,
-                lobby_name: window.info.lobby.name,
-                lobby_version: window.info.lobby.version,
-                lobby_hash: window.info.lobby.hash
-            }).then(data => {
-                if (data.result === "success") {
-                    router.push("/home");
-                } else {
-                    loading.value = false;
-                }
-            });
-        } else {
-            loading.value = false;
-        }
+        window.api.client.connect().then(() => {
+            if (window.api.settings.settings.token.value) {
+                window.api.client.login({
+                    token: window.api.settings.settings.token.value,
+                    lobby_name: window.info.lobby.name,
+                    lobby_version: window.info.lobby.version,
+                    lobby_hash: window.info.lobby.hash
+                }).then(data => {
+                    if (data.result === "success") {
+                        router.push("/home");
+                    } else {
+                        loading.value = false;
+                    }
+                });
+            } else {
+                loading.value = false;
+            }
+        }).catch((error) => {
+            if (error) {
+                window.api.alerts.alert(error, "error", true);
+            } else {
+                window.api.alerts.alert("Could not connect to server", "error", true);
+            }
+        });
 
         return { loading, activeTab };
     }

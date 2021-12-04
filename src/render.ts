@@ -1,6 +1,6 @@
 import "@/assets/styles/styles.scss";
 import "vue-next-select/dist/index.css";
-import { createApp, ToRefs } from "vue";
+import { createApp } from "vue";
 import { createRouter, createWebHashHistory, createWebHistory } from "vue-router";
 import { createRouterLayout } from "vue-router-layout";
 import VueNextSelect from "vue-next-select";
@@ -8,34 +8,37 @@ import routes from "@/routes";
 import App from "@/App.vue";
 import { SettingsAPI } from "@/api/settings";
 import { ipcRenderer } from "electron";
-import { SettingsType } from "@/model/settings";
 import { TachyonClient } from "tachyon-client";
 import { Field, Form } from "vee-validate";
 import { AlertsAPI } from "@/api/alerts";
+import { Info } from "@/model/info";
 
 declare global {
     interface Window {
-        info: any;
-        settings: ToRefs<SettingsType>;
-        client: TachyonClient;
-        alerts: AlertsAPI;
+        info: Info;
+        api: {
+            settings: SettingsAPI;
+            client: TachyonClient;
+            alerts: AlertsAPI;
+        }
     }
 }
 
 (async () => {
     window.info = await ipcRenderer.invoke("getInfo");
 
-    const settingsPath = await ipcRenderer.invoke("getSettingsPath");
-    window.settings = new SettingsAPI({ settingsPath }).settings;
+    const settingsPath = window.info.settingsPath;
 
-    window.alerts = new AlertsAPI();
-    // window.client = new TachyonClient({
-    //     host: "localhost",
-    //     port: 8201,
-    //     verbose: process.env.NODE_ENV !== "production"
-    // });
-
-    // await window.client.connect();
+    window.api = {
+        settings: new SettingsAPI({ settingsPath }),
+        client: new TachyonClient({
+            //host: "localhost",
+            host: "server2.beyondallreason.info",
+            port: 8201,
+            verbose: process.env.NODE_ENV !== "production"
+        }),
+        alerts: new AlertsAPI()
+    };
 
     await setupVue();
 })();

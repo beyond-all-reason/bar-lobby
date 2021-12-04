@@ -59,6 +59,7 @@
                 <label for="submit-1">Submit</label>
                 <input type="submit" value="Submit" name="submit-1">
             </div>
+            <Select v-model="color" :options="['blue', 'red', 'green']" />
             <div class="control">
                 <label for="select">Select</label>
                 <select name="select">
@@ -74,7 +75,6 @@
                     </optgroup>
                 </select>
             </div>
-            <!-- <Select v-model="color" /> -->
             <div class="control">
                 <label for="textarea">Textarea</label>
                 <textarea name="textarea" rows="4">I am a text area</textarea>
@@ -115,8 +115,8 @@ import Checkbox from "@/components/inputs/Checkbox.vue";
 export default defineComponent({
     layout: "default",
     setup() {
-        const test = (window as any).test = ref("fish");
-        const color = (window as any).color = ref("red");
+        const test = ref("fish");
+        const color = ref("red");
         const disabled = ref(false);
         
         return { test, color, disabled };

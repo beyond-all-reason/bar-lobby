@@ -2,6 +2,7 @@ import { settingsSchema, SettingsType } from "@/model/settings";
 import Ajv from "ajv";
 import { reactive, ToRefs, toRefs, watch } from "vue";
 import * as fs from "fs";
+import { shell } from "electron";
 
 export interface SettingsAPIConfig {
     settingsPath: string;
@@ -23,6 +24,10 @@ export class SettingsAPI {
                 this.writeSettings(this.config.settingsPath, this.settings);
             });
         }
+    }
+
+    public openSettingsInEditor() {
+        shell.openExternal(this.config.settingsPath);
     }
 
     protected validateSettings(settings: any) : settings is SettingsType {

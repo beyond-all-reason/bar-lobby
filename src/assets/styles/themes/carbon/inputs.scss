@@ -11,7 +11,9 @@ form {
     display: flex;
     flex-direction: row;
     max-width: 100%;
-    overflow-x: auto;
+    &:not(.select) {
+        overflow-x: auto;
+    }
     //&.validate {
         // input, select, input[type=checkbox] + label, textarea, .input, .vue-select {
         //     &:invalid {
@@ -92,6 +94,7 @@ input[type=password] {
         box-shadow: none;
         min-height: inherit;
         padding: 0;
+        background-color: unset !important;
         &::placeholder {
             color: #fff;
         }
@@ -103,13 +106,7 @@ input[type=password] {
         border: 1px solid rgba(255, 255, 255, 0.2);
         &-item {
             padding: 5px 10px;
-            &.selected {
-                background-color: unset;
-            }
-            &.highlighted {
-                background-color: unset;
-            }
-            &:hover {
+            &:hover, &.highlighted {
                 background-color: rgba(255, 255, 255, 0.9);
                 color: #000;
                 text-shadow: none;

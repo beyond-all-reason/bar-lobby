@@ -5,7 +5,6 @@
                 <Select v-model="displayIndex" :options="displays" label="Display" :label-by="option => `Display ${option + 1}`" />
                 <Select v-model="theme" :options="themes" label="Theme" />
                 <Checkbox v-model="skipIntro" label="Skip Intro" />
-                <Checkbox v-model="skipIntro" label="Skip Intro" />
             </div>
         </div>
     </Panel>
@@ -18,16 +17,13 @@ import { ipcRenderer } from "electron";
 
 export default defineComponent({
     setup() {
-        const { displayIndex, theme, skipIntro } = window.settings;
-        const displays = ref([0]);
+        const { displayIndex, theme, skipIntro } = window.api.settings.settings;
+        const displays = ref(Array(window.info.hardware.numOfDisplays).fill(0).map((x, i) => i));
         const themes = Object.values(Theme);
 
-        ipcRenderer.invoke("getHardwareInfo").then(info => {
-            displays.value = Array(info.numOfDisplays).fill(0).map((x, i) => i);
-        });
-
-        watch(displayIndex, () => {
+        watch(displayIndex, async () => {
             ipcRenderer.invoke("setDisplay", displayIndex.value);
+            window.info.hardware.currentDisplayIndex = displayIndex.value;
         });
 
         return { displays, displayIndex, themes, theme, skipIntro };

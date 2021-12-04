@@ -1,23 +1,27 @@
 <template>
-    <Modal :class="`alert alert--${alertType}`" :title="alertTitle" v-if="alertMessage" @close="close">
+    <Modal :class="`alert alert--${type}`" :title="title" v-if="message" @close="close">
         <slot/>
-        <p>{{ alertMessage }}</p>
+        <p>{{ message }}</p>
     </Modal>
 </template>
 
 <script lang="ts">
 import { defineComponent } from "vue";
+import { useRouter } from "vue-router";
 
 export default defineComponent({
     setup() {
-        const alertTitle = window.alerts.alertTitle;
-        const alertMessage = window.alerts.alertMessage;
-        const alertType = window.alerts.alertType;
-        const isFatal = window.alerts.alertIsFatal;
+        const { title, message, type, isFatal } = window.api.alerts.getAlert();
+        const router = useRouter();
 
-        const close = () => window.alerts.clearAlert();
+        const close = async () => {
+            if (isFatal) {
+                await router.replace("/");
+                window.api.alerts.clearAlert();
+            }
+        };
 
-        return { alertTitle, alertMessage, alertType, isFatal, close };
+        return { title, message, type, isFatal, close };
     }
 });
 </script>
