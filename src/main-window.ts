@@ -35,14 +35,13 @@ export class MainWindow {
             webPreferences: {
                 nodeIntegration: true,
                 contextIsolation: false,
-                enableRemoteModule: true,
                 nodeIntegrationInSubFrames: true,
                 nodeIntegrationInWorker: true
             }
         });
 
         this.window.once("ready-to-show", () => this.onReadyToShow());
-        this.window.on("restore", () => this.onRestore());
+        this.window.on("maximize", () => this.setDisplay(this.config.displayIndex));
         
         this.window.webContents.setWindowOpenHandler(({ url }) => {
             shell.openExternal(url);
@@ -86,10 +85,5 @@ export class MainWindow {
         this.window.setMenuBarVisibility(false);
         
         this.window.show();
-    }
-
-    protected onRestore() {
-        console.log("restore");
-        this.setDisplay(this.config.displayIndex);
     }
 }

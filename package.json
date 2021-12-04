@@ -33,7 +33,7 @@
     "@vue/eslint-config-typescript": "^7.0.0",
     "@vueuse/sound": "^1.1.7",
     "ajv": "^8.7.1",
-    "electron": "^13.0.0",
+    "electron": "^16.0.4",
     "electron-devtools-installer": "^3.1.0",
     "eslint": "^6.7.2",
     "eslint-plugin-unused-imports": "^2.0.0",
