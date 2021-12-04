@@ -83,12 +83,8 @@ export class Application {
 
     protected setupHandlers() {
         ipcMain.handle("getInfo", async (event) => {
-            // console.log(this.mainWindow.window.getBounds());
-            // console.log(screen.getDisplayNearestPoint(this.mainWindow.window.getBounds()));
             const displayIds = screen.getAllDisplays().map(display => display.id);
             const currentDisplayId = screen.getDisplayNearestPoint(this.mainWindow.window.getBounds()).id;
-
-            console.log(currentDisplayId);
 
             return {
                 lobby: {

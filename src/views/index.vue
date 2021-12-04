@@ -61,7 +61,7 @@ declare const __static: string;
 async function getRandomBackground() {
     const backgrounds = await fs.promises.readdir(path.join(__static, "backgrounds"));
     const background = backgrounds[Math.floor(Math.random() * backgrounds.length)];
-    return `backgrounds/${background}`;
+    return `/backgrounds/${background}`;
 }
 </script>
 

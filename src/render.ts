@@ -9,7 +9,6 @@ import App from "@/App.vue";
 import { SettingsAPI } from "@/api/settings";
 import { ipcRenderer } from "electron";
 import { TachyonClient } from "tachyon-client";
-import { Field, Form } from "vee-validate";
 import { AlertsAPI } from "@/api/alerts";
 import { Info } from "@/model/info";
 
@@ -63,7 +62,5 @@ async function setupVue() {
     app.config.globalProperties.window = window;
     app.use(router);
     app.component("vue-select", VueNextSelect);
-    app.component("Form", Form);
-    app.component("Field", Field);
     app.mount("#app");
 }
