@@ -7,6 +7,8 @@ export enum Theme {
 }
 
 export const settingsSchema = Type.Strict(Type.Object({
+    email: Type.String({ default: "" }),
+    token: Type.String({ default: "" }),
     displayIndex: Type.Number({ default: 0 }),
     devMode: Type.Boolean({ default: false }),
     theme: Type.Enum(Theme, { default: Theme.Carbon }),

@@ -11,12 +11,14 @@ import { ipcRenderer } from "electron";
 import { SettingsType } from "@/model/settings";
 import { TachyonClient } from "tachyon-client";
 import { Field, Form } from "vee-validate";
+import { AlertsAPI } from "@/api/alerts";
 
 declare global {
     interface Window {
         info: any;
         settings: ToRefs<SettingsType>;
         client: TachyonClient;
+        alerts: AlertsAPI;
     }
 }
 
@@ -26,13 +28,14 @@ declare global {
     const settingsPath = await ipcRenderer.invoke("getSettingsPath");
     window.settings = new SettingsAPI({ settingsPath }).settings;
 
-    window.client = new TachyonClient({
-        host: "server2.beyondallreason.info",
-        port: 8201,
-        verbose: process.env.NODE_ENV !== "production"
-    });
+    window.alerts = new AlertsAPI();
+    // window.client = new TachyonClient({
+    //     host: "localhost",
+    //     port: 8201,
+    //     verbose: process.env.NODE_ENV !== "production"
+    // });
 
-    await window.client.connect();
+    // await window.client.connect();
 
     await setupVue();
 })();

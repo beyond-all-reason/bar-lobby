@@ -2,6 +2,9 @@
 
 :root {
     --background: #000;
+    --error: #ff0000;
+    --warning: #ffd700;
+    --success: #00ff00;
 }
 html {
     height: 100%;
@@ -35,14 +38,4 @@ body {
             border-left: 1px solid rgba(255, 255, 255, 0.1);
         }
     }
-}
-p {
-    text-transform: initial;
-    user-select: text;
-}
-i, em {
-    font-style: italic;
-}
-b, strong {
-    font-weight: 600;
 }

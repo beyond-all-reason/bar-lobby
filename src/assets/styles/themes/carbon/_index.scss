@@ -3,6 +3,9 @@
     font-size: 18px;
     text-transform: uppercase;
     text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.6);
+    --error: #ff3445;
+    --warning: #ffe134;
+    --success: #b8ff34;
 
     * {
         cursor: url("~@/assets/images/cursor_default.png"), default !important;
@@ -35,5 +38,5 @@
     @import "components/navbar";
     @import "components/panel";
     @import "components/modal";
-    @import "components/dialog";
+    @import "components/alert";
 }

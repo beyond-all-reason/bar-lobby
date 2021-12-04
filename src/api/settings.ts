@@ -47,7 +47,10 @@ export class SettingsAPI {
     protected async writeSettings(path: string, settings: ToRefs<SettingsType>) {
         const obj: any = {};
         for (const key in settings) {
-            obj[key] = settings[key as keyof SettingsType].value;
+            const setting = settings[key as keyof SettingsType];
+            if (setting) {
+                obj[key] = setting.value;
+            }
         }
 
         console.log(`writing settings to ${path}`);

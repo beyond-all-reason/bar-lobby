@@ -1,0 +1,22 @@
+p {
+    font-size: 16px;
+    text-transform: initial;
+    user-select: text;
+}
+i, em {
+    font-style: italic;
+}
+b, strong {
+    font-weight: 600;
+}
+a {
+    color: #5bc8ff;
+    &:hover {
+        color: #a9e2ff;
+    }
+}
+.color {
+    &--error { color: var(--error); }
+    &--warning { color: var(--warning); }
+    &--success { color: var(--success); }
+}

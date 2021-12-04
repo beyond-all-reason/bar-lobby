@@ -1,4 +1,10 @@
-.dialog {
+.alert {
+    .panel {
+        min-width: 300px;
+    }
+    .content {
+        text-align: center;
+    }
     &--error .title {
         background: rgba(255, 31, 31, 0.1);
     }

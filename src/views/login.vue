@@ -6,12 +6,12 @@
                 <img ref="logo" class="logo hidden" src="@/assets/images/BARLogoFull.png">
             </transition>
             <transition name="login" appear>
-                <Panel>
+                <Panel v-model:activeTab="activeTab">
                     <Tab title="Login">
                         <LoginForm />
                     </Tab>
                     <Tab title="Register">
-                        <RegisterForm />
+                        <RegisterForm @register-success="activeTab = 0" />
                     </Tab>
                     <Tab title="Reset Password">
                         <ResetPasswordForm />
@@ -36,18 +36,18 @@ export default defineComponent({
     setup() {
         const router = useRouter();
         const loading = ref(true);
+        const activeTab = ref(0);
 
         //ipcRenderer.invoke("getVersion").then((version => console.log(version)));
 
-        const token = localStorage.getItem("token");
+        const token = window.settings.token?.value;
         if (token) {
-            window.client.login({ 
+            window.client.login({
                 token,
                 lobby_name: window.info.lobby.name,
                 lobby_version: window.info.lobby.version,
                 lobby_hash: window.info.lobby.hash
             }).then(data => {
-                console.log(data);
                 if (data.result === "success") {
                     router.push("/home");
                 } else {
@@ -58,14 +58,13 @@ export default defineComponent({
             loading.value = false;
         }
 
-        return { loading };
+        return { loading, activeTab };
     }
 });
 </script>
 
 <style scoped lang="scss">
 .fullsize {
-    //justify-content: center;
     align-items: center;
 }
 .login {
