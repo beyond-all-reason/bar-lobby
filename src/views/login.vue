@@ -77,8 +77,8 @@ export default defineComponent({
     flex-direction: column;
     justify-content: center;
     align-items: center;
+    margin-top: calc((100vh - 700px) / 2);
     max-width: 500px;
     gap: 80px;
-    margin-top: 10%;
 }
 </style>

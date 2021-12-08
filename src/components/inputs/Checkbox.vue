@@ -1,8 +1,8 @@
 <template>
     <div class="control checkbox">
         <input :id="uuid" type="checkbox" v-model="checked" @change="$emit('update:modelValue', checked)">
-        <label :for="uuid" :class="{ checked, label }">
-            <div class="icon" :class="{ label }">
+        <label :for="uuid" :class="{ checked, hasLabel: Boolean(label) }">
+            <div class="icon" :class="{ hasLabel: Boolean(label) }">
                 <Icon class="check" icon="check-bold" />
             </div>
             <div v-if="label" class="label">{{ label }}</div>
@@ -20,7 +20,10 @@ export default defineComponent({
             type: String,
             default: "text"
         },
-        label: String,
+        label: {
+            type: String,
+            default: ""
+        },
         modelValue: Boolean,
     },
     setup(props, context) {
@@ -32,46 +35,3 @@ export default defineComponent({
     }
 });
 </script>
-
-<style scoped lang="scss">
-.checkmark {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100%;
-    padding: 0;
-}
-
-input[type=checkbox] {
-    display: none;
-}
-label {
-    display: flex;
-    position: relative;
-    gap: 15px;
-    &.hasLabel {
-        padding-left: 5px !important;
-    }
-    &:not(.hasLabel) {
-        padding-left: 5px;
-        padding-right: 5px;
-    }
-}
-.icon {
-    &.hasLabel:after {
-        position: absolute;
-        content: "";
-        top: 0;
-        margin-left: 4px;
-        width: 1px;
-        height: 100%;
-        background: rgba(255, 255, 255, 0.1);
-    }
-}
-.check {
-    visibility: hidden;
-}
-.checked .check {
-    visibility: visible;
-}
-</style>

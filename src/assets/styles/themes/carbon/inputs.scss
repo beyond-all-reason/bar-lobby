@@ -140,3 +140,46 @@ input[type=password] {
         }
     }
 }
+
+.control.checkbox {
+    .checkmark {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100%;
+        padding: 0;
+    }
+    
+    input[type=checkbox] {
+        display: none;
+    }
+    label {
+        display: flex;
+        position: relative;
+        gap: 15px;
+        &.hasLabel {
+            padding-left: 5px !important;
+        }
+        &:not(.hasLabel) {
+            padding-left: 5px;
+            padding-right: 5px;
+        }
+    }
+    .icon {
+        &.hasLabel:after {
+            position: absolute;
+            content: "";
+            top: 0;
+            margin-left: 4px;
+            width: 1px;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.1);
+        }
+    }
+    .check {
+        visibility: hidden;
+    }
+    .checked .check {
+        visibility: visible;
+    }
+}

@@ -3,6 +3,7 @@
         <div class="controls">
             <Textbox label="Text" placeholder="text" :disabled="disabled" />
             <Checkbox v-model="disabled" label="Controls disabled" />
+            <Checkbox v-model="disabled" />
             <Textbox label="bob" placeholder="test" v-model="test" :disabled="disabled" />
             <div class="control">
                 <label for="type-search">Search (search)</label>
