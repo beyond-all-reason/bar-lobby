@@ -1,11 +1,11 @@
 <template>
     <div class="control checkbox">
         <input :id="uuid" type="checkbox" v-model="checked" @change="$emit('update:modelValue', checked)">
-        <label :for="uuid" :class="{ checked }">
-            <div class="icon">
+        <label :for="uuid" :class="{ checked, label }">
+            <div class="icon" :class="{ label }">
                 <Icon class="check" icon="check-bold" />
             </div>
-            <div class="label">{{ label }}</div>
+            <div v-if="label" class="label">{{ label }}</div>
         </label>
     </div>
 </template>
@@ -20,10 +20,7 @@ export default defineComponent({
             type: String,
             default: "text"
         },
-        label: {
-            type: String,
-            default: "Label"
-        },
+        label: String,
         modelValue: Boolean,
     },
     setup(props, context) {
@@ -52,10 +49,16 @@ label {
     display: flex;
     position: relative;
     gap: 15px;
-    padding-left: 5px !important;
+    &.hasLabel {
+        padding-left: 5px !important;
+    }
+    &:not(.hasLabel) {
+        padding-left: 5px;
+        padding-right: 5px;
+    }
 }
 .icon {
-    &:after {
+    &.hasLabel:after {
         position: absolute;
         content: "";
         top: 0;

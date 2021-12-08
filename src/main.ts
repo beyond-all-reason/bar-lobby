@@ -83,6 +83,11 @@ export class Application {
 
     protected setupHandlers() {
         ipcMain.handle("getInfo", async (event) => {
+            const userDataPath = path.join(this.app.getPath("userData"), "store");
+            if (!fs.existsSync(userDataPath)) {
+                fs.mkdirSync(userDataPath);
+            }
+
             const displayIds = screen.getAllDisplays().map(display => display.id);
             const currentDisplayId = screen.getDisplayNearestPoint(this.mainWindow.window.getBounds()).id;
 
@@ -92,7 +97,7 @@ export class Application {
                     version: this.app.getVersion(),
                     hash: "123"
                 },
-                settingsPath: path.join(this.app.getPath("userData"), "settings.json"),
+                userDataPath: userDataPath,
                 hardware: {
                     numOfDisplays: displayIds.length,
                     currentDisplayIndex: displayIds.indexOf(currentDisplayId)

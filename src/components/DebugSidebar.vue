@@ -28,7 +28,7 @@ export default defineComponent({
         const currentRoute = ref(route.path);
 
         const openSettings = () => {
-            window.api.settings.openSettingsInEditor();
+            window.api.settings.openFileInEditor();
         };
 
         scope.run(() => {

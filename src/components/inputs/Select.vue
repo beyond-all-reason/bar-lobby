@@ -8,7 +8,7 @@
 <script lang="ts">
 // https://iendeavor.github.io/vue-next-select/
 
-import { defineComponent, ref, toRef } from "vue";
+import { defineComponent, ref } from "vue";
 import { v4 as uuidv4 } from "uuid";
 
 export default defineComponent({
@@ -17,7 +17,7 @@ export default defineComponent({
     },
     setup(props) {
         const uuid = ref(uuidv4());
-        const label = toRef(props, "label");
+        const label = ref(props.label);
 
         return { uuid, label };
     }

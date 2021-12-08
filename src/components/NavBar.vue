@@ -13,7 +13,7 @@
             <Button class="primary-item" active-class="active" to="/profile">
                 Jazcash
             </Button>
-            <Button class="primary-item icon" active-class="active" to="/settings">
+            <Button class="primary-item icon" :class="{ active: settingsOpen }" @click="settingsOpen = !settingsOpen">
                 <Icon icon="cog" :size="40" />
             </Button>
             <Button class="primary-item icon" to="/">
@@ -30,8 +30,9 @@ import { useRoute } from "vue-router";
 export default defineComponent({
     setup() {
         const route = useRoute();
+        const { settingsOpen } = window.api.session;
 
-        return { route };
+        return { route, settingsOpen };
     }
 });
 </script>

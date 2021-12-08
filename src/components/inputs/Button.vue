@@ -1,10 +1,10 @@
 <template>
-    <router-link v-if="to" class="btn" @mouseover="play" :to="to">
+    <router-link v-if="to" class="btn" @mouseenter="play" :to="to">
         <div class="content">
             <slot />
         </div>
     </router-link>
-    <button v-else class="btn" @mouseover="play">
+    <button v-else class="btn" @mouseenter="play">
         <div class="content">
             <slot />
         </div>

@@ -30,6 +30,7 @@ module.exports = {
         "vue/no-dupe-keys": "off",
         "vue/html-indent": ["error", 4],
         "vue/no-multiple-template-root": ["error"],
+        "vue/no-v-model-argument": "off",
 
         "unused-imports/no-unused-imports": "error",
     }

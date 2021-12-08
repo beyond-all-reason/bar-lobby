@@ -1,10 +1,10 @@
 <template>
-    <teleport v-if="!test" to=".theme">
+    <teleport v-if="!disabled" to=".theme">
         <div class="modal-container" v-bind="$attrs">
             <Panel id="modal" class="modal" :title="title">
                 <template #header>
-                    <div v-if="title" class="header">
-                        <div class="title">{{ title }}</div>
+                    <div class="header">
+                        <div class="title" v-if="title">{{ title }}</div>
                         <div class="close" @click="$emit('close')"><Icon icon="close-thick" /></div>
                     </div>
                 </template>
@@ -29,10 +29,10 @@ export default defineComponent({
         },
     },
     setup(props) {
-        const test = ref(props.disabled);
+        const disabled = ref(props.disabled);
         const { title } = toRefs(props);
 
-        return { test, title };
+        return { disabled, title };
     }
 });
 </script>

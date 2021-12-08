@@ -6,7 +6,9 @@
         </div>
         <div class="content" :style="`--gap: ${gap}`">
             <slot v-if="tabs.length === 0" />
-            <component v-else v-for="(tab, i) in tabs" :key="i" :is="tab" v-show="i === activeTab" />
+            <template v-else>
+                <component v-for="(tab, i) in tabs" :key="i" :is="tab" v-show="i === activeTab" />
+            </template>
         </div>
     </component>
 

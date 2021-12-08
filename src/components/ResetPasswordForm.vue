@@ -1,5 +1,5 @@
 <template>
-    <form ref="form" class="login-form" @submit.prevent="requestPasswordReset">
+    <form ref="form" @submit.prevent="requestPasswordReset" class="flex-col gap-md">
         NOT IMPLEMENTED
         <p>Provide your account's email address <b>or</b> username to request a password reset</p>
         <Textbox type="email" label="Email" v-model="email" :required="!Boolean(username)" />

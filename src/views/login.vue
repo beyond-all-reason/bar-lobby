@@ -39,9 +39,9 @@ export default defineComponent({
         const activeTab = ref(0);
 
         window.api.client.connect().then(() => {
-            if (window.api.settings.settings.token.value) {
+            if (window.api.accounts.model.token.value) {
                 window.api.client.login({
-                    token: window.api.settings.settings.token.value,
+                    token: window.api.accounts.model.token.value,
                     lobby_name: window.info.lobby.name,
                     lobby_version: window.info.lobby.version,
                     lobby_hash: window.info.lobby.hash

@@ -5,7 +5,7 @@
     flex-direction: column;
     flex-grow: 1;
     overflow-y: auto;
-    background: linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.6));
+    background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.6));
     backdrop-filter: blur(10px) brightness(1) saturate(2);
     border: 1px solid rgba(255, 255, 255, 0.2);
     border-top: 1px solid rgba(255, 255, 255, 0.3);
@@ -52,6 +52,7 @@
             border-right: 1px solid rgba(255, 255, 255, 0.1);
         }
         .close {
+            margin-left: auto;
             padding: 5px 10px;
             background: rgba(219, 20, 20, 0.3);
             &:hover {

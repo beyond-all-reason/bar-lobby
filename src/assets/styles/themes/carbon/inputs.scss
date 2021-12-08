@@ -1,17 +1,15 @@
 button, button * {
     cursor: url("~@/assets/images/cursor_hover.png"), pointer;
 }
-form {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-}
 .control {
     position: relative;
     display: flex;
     flex-direction: row;
     max-width: 100%;
-    &:not(.select) {
+    &:not(.checkbox) {
+        box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.1);
+    }
+    &:not(.select):not(.range) {
         overflow-x: auto;
     }
     //&.validate {
@@ -25,22 +23,19 @@ form {
         // }
     //}
 }
-input, select, label, textarea, button, progress, meter, .btn, .input, .vue-select {
+input, select, label, textarea, button, progress, meter, .btn, .input, .vue-select, .vue-slider {
     padding: 5px 10px;
     border-radius: 0px;
     background-color: rgba(255, 255, 255, 0.1);
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-top: 1px solid rgba(255, 255, 255, 0.13);
-    box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.1);
     min-height: 35px;
     display: flex;
     align-items: center;
+    min-width: 0;
+    flex-grow: 1;
     &::placeholder {
         color : rgba(255, 255, 255, 0.5);
-    }
-    &:not(label) {
-        min-width: 0;
-        flex-grow: 1;
     }
     &:hover, &:not(button):focus {
         background-color: rgba(255, 255, 255, 0.2);
@@ -50,16 +45,18 @@ input, select, label, textarea, button, progress, meter, .btn, .input, .vue-sele
         color: rgba(255, 255, 255, 0.2);
     }
 }
-label {
+.control label {
     display: flex;
     justify-content: center;
     align-items: center;
     white-space: nowrap;
+    min-width: unset;
+    flex-grow: unset;
     &:not(input[type=checkbox] + label):hover {
         background-color: rgba(255, 255, 255, 0.1);
     }
 }
-label:not(input[type=checkbox] + label) {
+.control label:not(input[type=checkbox] + label) {
     border-right: none;
 }
 button, input[type=button], input[type=submit], .btn {
@@ -88,29 +85,58 @@ input[type=password] {
     width: 0;
 }
 
-.vue-select {
-    input, .vue-input {
-        font-size: inherit;
-        box-shadow: none;
-        min-height: inherit;
-        padding: 0;
-        background-color: unset !important;
-        &::placeholder {
-            color: #fff;
+.select
+    .vue-select {
+        position: unset;
+        input, .vue-input {
+            font-size: inherit;
+            box-shadow: none;
+            min-height: inherit;
+            padding: 0;
+            background-color: unset !important;
+            &::placeholder {
+                color: #fff;
+            }
+        }
+        .vue-dropdown {
+            z-index: 2;
+            background-color: rgba(20, 20, 20, 0.9);
+            backdrop-filter: blur(2px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            &-item {
+                padding: 5px 10px;
+                &:hover, &.highlighted {
+                    background-color: rgba(255, 255, 255, 0.9);
+                    color: #000;
+                    text-shadow: none;
+                }
+            }
         }
     }
-    .vue-dropdown {
-        z-index: 2;
-        background-color: rgba(20, 20, 20, 0.9);
-        backdrop-filter: blur(2px);
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        &-item {
-            padding: 5px 10px;
-            &:hover, &.highlighted {
-                background-color: rgba(255, 255, 255, 0.9);
-                color: #000;
-                text-shadow: none;
-            }
+
+.range {
+    align-items: unset;
+    .vue-slider {
+        display: flex;
+        flex-grow: 1;
+        padding: 0 15px !important;
+        height: unset !important;
+        &-rail {
+            height: 4px;
+            background-color: #111;
+        }
+        &-process {
+            background-color: #ddd;
+        }
+        &-dot-handle-focus {
+            box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+        }
+    }
+    input {
+        flex-grow: 0;
+        border-left: none;
+        &:hover {
+            box-shadow: -1px 0 0 rgba(255, 255, 255, 0.1);
         }
     }
 }

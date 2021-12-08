@@ -3,7 +3,6 @@ import home from '@/views/home.vue'
 import intro from '@/views/intro.vue'
 import login from '@/views/login.vue'
 import profile from '@/views/profile.vue'
-import settings from '@/views/settings.vue'
 import campaign_index from '@/views/campaign/index.vue'
 import missions_index from '@/views/missions/index.vue'
 import replays_index from '@/views/replays/index.vue'
@@ -14,6 +13,7 @@ import campaign_new from '@/views/campaign/new.vue'
 import campaign_replay_mission from '@/views/campaign/replay-mission.vue'
 import debug_inputs from '@/views/debug/inputs.vue'
 import debug_perf from '@/views/debug/perf.vue'
+import debug_playground from '@/views/debug/playground.vue'
 import missions_co_op from '@/views/missions/co-op.vue'
 import missions_leaderboard from '@/views/missions/leaderboard.vue'
 import missions_solo from '@/views/missions/solo.vue'
@@ -49,11 +49,6 @@ export default [
     name: 'profile',
     path: '/profile',
     component: profile,
-  },
-  {
-    name: 'settings',
-    path: '/settings',
-    component: settings,
   },
   {
     name: 'campaign',
@@ -104,6 +99,11 @@ export default [
     name: 'debug-perf',
     path: '/debug/perf',
     component: debug_perf,
+  },
+  {
+    name: 'debug-playground',
+    path: '/debug/playground',
+    component: debug_playground,
   },
   {
     name: 'Co-op',

@@ -1,7 +1,7 @@
 <template>
     <div>
         <Loader v-if="loading" />
-        <form v-else class="login-form" @submit.prevent="register">
+        <form v-else @submit.prevent="register" class="flex-col gap-md">
             <Textbox type="email" label="Email" v-model="email" required />
             <Textbox label="Username" v-model="username" required />
             <Textbox type="password" label="Password" v-model="password" required />
@@ -36,7 +36,8 @@ export default defineComponent({
             const registerResponse = await window.api.client.register({ email: email.value, username: username.value, password: password.value });
             
             if (registerResponse.result === "success") {
-                window.api.settings.settings.email.value = email.value;
+                window.api.accounts.model.email.value = email.value;
+                window.api.accounts.model.password.value = password.value;
                 context.emit("register-success");
             } else {
                 if (registerResponse.reason) {

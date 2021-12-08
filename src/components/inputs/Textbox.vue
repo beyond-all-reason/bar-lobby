@@ -12,10 +12,7 @@ import { v4 as uuidv4 } from "uuid";
 
 export default defineComponent({
     props: {
-        name: {
-            type: String,
-            default: "",
-        },
+        name: String,
         type: {
             type: String,
             default: "text"

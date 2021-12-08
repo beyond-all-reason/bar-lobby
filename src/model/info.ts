@@ -4,7 +4,7 @@ export interface Info {
         version: string;
         hash: string;
     };
-    settingsPath: string;
+    userDataPath: string;
     hardware: {
         numOfDisplays: number;
         currentDisplayIndex: number;
