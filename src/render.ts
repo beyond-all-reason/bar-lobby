@@ -17,7 +17,6 @@ import { settingsSchema, SettingsType } from "@/model/settings";
 import { accountSchema, AccountType } from "@/model/account";
 import { sessionSchema, SessionType } from "@/model/session";
 import Ajv from "ajv";
-
 declare global {
     interface Window {
         info: Info;

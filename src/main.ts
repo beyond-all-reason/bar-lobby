@@ -2,9 +2,11 @@ import * as path from "path";
 import * as fs from "fs";
 import { app, App, ipcMain, protocol, screen } from "electron";
 import installExtension, { VUEJS3_DEVTOOLS } from "electron-devtools-installer";
+import unhandled from "electron-unhandled";
 
 import { MainWindow } from "@/main-window";
-import { SettingsType } from "@/model/settings";
+import { settingsSchema, SettingsType } from "@/model/settings";
+import Ajv from "ajv";
 
 export class Application {
     protected app: App;
@@ -67,8 +69,26 @@ export class Application {
     }
 
     protected async setupMainWindow() {
-        const settingsStr = await fs.promises.readFile(path.join(this.app.getPath("userData"), "settings.json"), "utf8");
-        this.settings = JSON.parse(settingsStr);
+        const userDataPath = path.join(this.app.getPath("userData"), "store");
+        const settingsPath = path.join(userDataPath, "settings.json");
+
+        let model = {} as SettingsType;
+
+        if (fs.existsSync(settingsPath)) {
+            const fileStr = await fs.promises.readFile(settingsPath, "utf8");
+            model = JSON.parse(fileStr);
+        }
+
+        const ajv = new Ajv({ coerceTypes: true, useDefaults: true });
+        const validator = ajv.compile(settingsSchema);
+        validator(model);
+
+        if (!fs.existsSync(settingsPath)) {
+            await fs.promises.mkdir(userDataPath);
+            await fs.promises.writeFile(settingsPath, JSON.stringify(model, null, 4));
+        }
+
+        this.settings = model;
 
         this.mainWindow = new MainWindow({
             displayIndex: this.settings.displayIndex
@@ -106,5 +126,7 @@ export class Application {
         });
     }
 }
+
+unhandled();
 
 new Application(app);
