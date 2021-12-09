@@ -2,11 +2,11 @@
     <div>
         <Loader v-if="loading" />
         <form v-else @submit.prevent="register" class="flex-col gap-md">
+            <p v-if="error" class="color--error">{{ error }}</p>
             <Textbox type="email" label="Email" v-model="email" required />
             <Textbox label="Username" v-model="username" required />
             <Textbox type="password" label="Password" v-model="password" required />
             <Textbox type="password" label="Confirm Password" v-model="confirmPassword" :validation="validatePassword" required />
-            <p v-if="registerError" class="color--error">{{ registerError }}</p>
             <Button type="submit">Register</Button>
         </form>
     </div>
@@ -22,7 +22,7 @@ export default defineComponent({
         const username = ref("");
         const confirmPassword = ref("");
         const password = ref("");
-        const registerError = ref("");
+        const error = ref("");
 
         const validatePassword = () => {
             if (password.value && confirmPassword.value && password.value !== confirmPassword.value) {
@@ -41,7 +41,7 @@ export default defineComponent({
                 context.emit("register-success");
             } else {
                 if (registerResponse.reason) {
-                    registerError.value = registerResponse.reason;
+                    error.value = registerResponse.reason;
                 }
             }
 
@@ -49,8 +49,7 @@ export default defineComponent({
         };
 
         return {
-            loading, email, username, password, confirmPassword,
-            registerError,
+            loading, email, username, password, confirmPassword, error,
             register, validatePassword
         };
     }

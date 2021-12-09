@@ -1,7 +1,9 @@
 <template>
     <form class="control range" @submit.prevent="">
         <label :for="uuid" v-if="label">{{ label }}</label>
-        <vue-slider ref="slider" v-model="value" tooltip="none" :duration="0" v-bind="$attrs" @change="$emit('update:modelValue', value)" @error="error"></vue-slider>
+        <div class="input">
+            <vue-slider ref="slider" v-model="value" tooltip="none" :duration="0" :drag-on-click="true" v-bind="$attrs" @change="$emit('update:modelValue', value)" @error="error"></vue-slider>
+        </div>
         <input ref="textbox" :id="uuid" v-model="value" :style="`width: ${max.toString().length + 1.85}ch`" :disabled="disableCustomInput">
     </form>
 </template>

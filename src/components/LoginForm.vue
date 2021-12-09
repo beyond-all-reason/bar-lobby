@@ -2,6 +2,7 @@
     <div>
         <Loader v-if="loading" />
         <form v-else-if="!requestVerification" ref="form" @submit.prevent="login" class="flex-col gap-md">
+            <p v-if="loginError" class="color--error">{{ loginError }}</p>
             <Textbox type="email" label="Email" v-model="email" required validate />
             <Textbox type="password" label="Password" v-model="password" required />
             <div class="flex-row gap-md">
@@ -10,6 +11,7 @@
             </div>
         </form>
         <form v-else @submit.prevent="verify" class="flex-col gap-md">
+            <p v-if="verificationError" class="color--error">{{ verificationError }}</p>
             <p v-html="verificationMessage"></p>
             <Textbox label="Verification Code" v-model="verificationCode" required />
             <Button type="submit">Verify</Button>
@@ -32,7 +34,8 @@ export default defineComponent({
         const requestVerification = ref(false);
         const verificationMessage = ref("");
         const verificationCode = ref("");
-        const errorMessage = ref("");
+        const loginError = ref("");
+        const verificationError = ref("");
 
         if (remember.value && window.api.accounts.model.email.value) {
             email.value = window.api.accounts.model.email.value;
@@ -71,21 +74,21 @@ export default defineComponent({
                 if (loginResponse.result === "unverified" && loginResponse.agreement) {
                     verificationMessage.value = linkify(loginResponse.agreement);
                     requestVerification.value = true;
-                    loading.value = false;
                 } else if (loginResponse.result === "success") {
                     loading.value = true;
                     router.push("/home");
                 } else {
                     if (loginResponse.reason) {
-                        errorMessage.value = loginResponse.reason;
+                        loginError.value = loginResponse.reason;
                     }
-                    loading.value = false;
                 }
             } else {
                 if (tokenResponse.reason) {
-                    errorMessage.value = tokenResponse.reason;
+                    loginError.value = tokenResponse.reason;
                 }
             }
+
+            loading.value = false;
         };
 
         const verify = async () => {
@@ -97,14 +100,14 @@ export default defineComponent({
                 // TODO: store user info
                 router.push("/home");
             } else if (verifyResult.reason) {
-                window.api.alerts.alert(verifyResult.reason, "error", false, "Verification Failed");
+                verificationError.value = verifyResult.reason;
             }
 
             loading.value = false;
         };
         
         return {
-            loading, email, password, remember, requestVerification, verificationMessage, verificationCode, errorMessage,
+            loading, email, password, remember, requestVerification, verificationMessage, verificationCode, loginError, verificationError,
             login, verify
         };
     }
