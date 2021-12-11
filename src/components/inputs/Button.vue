@@ -13,18 +13,16 @@
 
 <script lang="ts">
 import { defineComponent, toRefs } from "vue";
-import { useSound } from "@vueuse/sound";
-import buttonSfx from "@/assets/audio/ui/button-hover.mp3";
 
 export default defineComponent({
     props: {
         to: String
     },
     setup(props) {
-        const { play } = useSound(buttonSfx, { volume: 0.2 });
         const to = toRefs(props).to;
+        const play = window.api.audio.getSfxPlay("button-hover");
 
-        return { play, to };
+        return { to, play };
     }
 });
 </script>

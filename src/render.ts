@@ -17,6 +17,7 @@ import { settingsSchema, SettingsType } from "@/model/settings";
 import { accountSchema, AccountType } from "@/model/account";
 import { sessionSchema, SessionType } from "@/model/session";
 import Ajv from "ajv";
+import { AudioAPI } from "@/api/audio";
 declare global {
     interface Window {
         info: Info;
@@ -24,6 +25,7 @@ declare global {
             session: ToRefs<SessionType>;
             settings: StoreAPI<SettingsType>;
             client: TachyonClient;
+            audio: AudioAPI;
             alerts: AlertsAPI;
             accounts: StoreAPI<AccountType>;
         }
@@ -47,9 +49,12 @@ declare global {
             port: 8201,
             verbose: process.env.NODE_ENV !== "production"
         }),
+        audio: new AudioAPI(),
         alerts: new AlertsAPI(),
         accounts: await new StoreAPI<AccountType>("accounts.json", accountSchema).init()
     };
+
+    window.api.audio.init();
 
     await setupVue();
 })();
