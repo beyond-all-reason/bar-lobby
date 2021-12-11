@@ -2,6 +2,9 @@ import { Howl } from "howler";
 import * as path from "path";
 import { watch } from "vue";
 
+/**
+ * TODO: when playing a music sound, stop any music sounds currently playing
+ */
 export class AudioAPI {
     public sfxSounds: Map<string, Howl> = new Map();
     public musicSounds: Map<string, Howl> = new Map();
