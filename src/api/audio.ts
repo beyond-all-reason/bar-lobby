@@ -22,6 +22,13 @@ export class AudioAPI {
                     src: builtPath,
                     volume: window.api.settings.model.musicVolume.value / 100
                 });
+                sound.on("play", () => {
+                    this.musicSounds.forEach(howl => {
+                        if (howl !== sound) {
+                            howl.stop();
+                        }
+                    });
+                });
                 this.musicSounds.set(parsedPath.name, sound);
             } else {
                 const sound = new Howl({

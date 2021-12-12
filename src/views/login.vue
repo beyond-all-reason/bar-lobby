@@ -51,30 +51,34 @@ export default defineComponent({
 
         playRandomMusic();
 
-        window.api.client.connect().then(() => {
-            if (window.api.accounts.model.token.value) {
-                window.api.client.login({
-                    token: window.api.accounts.model.token.value,
-                    lobby_name: window.info.lobby.name,
-                    lobby_version: window.info.lobby.version,
-                    lobby_hash: window.info.lobby.hash
-                }).then(data => {
-                    if (data.result === "success") {
-                        router.push("/home");
-                    } else {
-                        loading.value = false;
-                    }
-                });
-            } else {
-                loading.value = false;
-            }
-        }).catch((error) => {
-            if (error) {
-                window.api.alerts.alert(error, "error", true);
-            } else {
-                window.api.alerts.alert("Could not connect to server", "error", true);
-            }
-        });
+        if (window.api.client.isLoggedIn()) {
+            router.push("/home");
+        } else {
+            window.api.client.connect().then(() => {
+                if (window.api.accounts.model.token.value) {
+                    window.api.client.login({
+                        token: window.api.accounts.model.token.value,
+                        lobby_name: window.info.lobby.name,
+                        lobby_version: window.info.lobby.version,
+                        lobby_hash: window.info.lobby.hash
+                    }).then(data => {
+                        if (data.result === "success") {
+                            router.push("/home");
+                        } else {
+                            loading.value = false;
+                        }
+                    });
+                } else {
+                    loading.value = false;
+                }
+            }).catch((error) => {
+                if (error) {
+                    window.api.alerts.alert(error, "error", true);
+                } else {
+                    window.api.alerts.alert("Could not connect to server", "error", true);
+                }
+            });
+        }
 
         return { loading, activeTab };
     }

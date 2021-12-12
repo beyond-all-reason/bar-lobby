@@ -18,6 +18,7 @@ import { accountSchema, AccountType } from "@/model/account";
 import { sessionSchema, SessionType } from "@/model/session";
 import Ajv from "ajv";
 import { AudioAPI } from "@/api/audio";
+import { GameAPI } from "@/api/game";
 declare global {
     interface Window {
         info: Info;
@@ -28,6 +29,7 @@ declare global {
             audio: AudioAPI;
             alerts: AlertsAPI;
             accounts: StoreAPI<AccountType>;
+            game: GameAPI;
         }
     }
 }
@@ -51,7 +53,8 @@ declare global {
         }),
         audio: new AudioAPI(),
         alerts: new AlertsAPI(),
-        accounts: await new StoreAPI<AccountType>("accounts.json", accountSchema).init()
+        accounts: await new StoreAPI<AccountType>("accounts.json", accountSchema).init(),
+        game: new GameAPI()
     };
 
     window.api.audio.init();

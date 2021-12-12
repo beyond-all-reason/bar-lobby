@@ -1,7 +1,6 @@
 <template>
     <div :class="`fullsize theme theme--${theme}`">
         <Alert />
-        <Settings />
         <DebugSidebar/>
         <router-view/>
     </div>

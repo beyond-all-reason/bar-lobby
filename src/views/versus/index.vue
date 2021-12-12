@@ -1,6 +1,12 @@
 <template>
     <Panel>
-        Versus
+        <h1>Versus</h1>
+        <ul>
+            <li>Casual Matchmaking</li>
+            <li>Ranked Matchmaking</li>
+            <li>Custom Servers</li>
+            <li>Leaderboards</li>
+        </ul>
     </Panel>
 </template>
 
