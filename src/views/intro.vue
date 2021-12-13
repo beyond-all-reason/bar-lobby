@@ -7,6 +7,7 @@
 </template>
 
 <script lang="ts">
+import { playRandomMusic } from "@/utils/play-random-music";
 import { defineComponent } from "vue";
 import { useRouter } from "vue-router";
 
@@ -27,6 +28,8 @@ export default defineComponent({
                 return;
             }
 
+            playRandomMusic();
+            
             router.replace("/login");
         }
 

@@ -63,6 +63,7 @@ button, input[type=button], input[type=submit], .btn {
     width: unset;
     justify-content: center;
     flex-grow: 1;
+    text-transform: uppercase;
 }
 input[type=file] {
     font-size: 13px;

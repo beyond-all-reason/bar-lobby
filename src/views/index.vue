@@ -8,6 +8,7 @@
 import { defineComponent, ref } from "vue";
 import { useRouter } from "vue-router";
 import * as path from "path";
+import { playRandomMusic } from "@/utils/play-random-music";
 
 export default defineComponent({
     layout: "empty",
@@ -45,6 +46,7 @@ export default defineComponent({
         document.documentElement.style.setProperty("--background", `url(${outputImage})`);
 
         if (window.api.settings.model.skipIntro.value) {
+            playRandomMusic();
             router.replace("/login");
         } else {
             router.replace("/intro");

@@ -1,1 +1,0 @@
-<route>{ "redirect": "/replays/local", "meta": { "title": "Replays", "order": 2 } }</route>

@@ -1,9 +1,12 @@
-<route>{ "meta": { "title": "Custom", "order": 2 } }</route>
+<route>{ "meta": { "title": "Custom", "order": 2, "offline": true } }</route>
 
 <template>
     <Panel>
         <h1>{{ route.meta.title }}</h1>
-        <p>This is a description</p>
+        <markdown source="
+- Uses same Battle component as multiplayer custom battles but hides chat and spectators
+" />
+        <Battle />
     </Panel>
 </template>
 

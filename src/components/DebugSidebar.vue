@@ -13,7 +13,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, readonly, ref, effectScope } from "vue";
+import { defineComponent, readonly, ref, effectScope, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 
 export default defineComponent({
@@ -31,15 +31,15 @@ export default defineComponent({
             window.api.settings.openFileInEditor();
         };
 
-        // scope.run(() => {
-        //     watch(currentRoute, async () => {
-        //         await router.replace(currentRoute.value);
-        //     });
+        scope.run(() => {
+            watch(currentRoute, async () => {
+                await router.replace(currentRoute.value);
+            });
 
-        //     watch(router.currentRoute, () => {
-        //         currentRoute.value = route.path;
-        //     });
-        // });
+            watch(router.currentRoute, () => {
+                currentRoute.value = route.path;
+            });
+        });
 
         return { routes, currentRoute, active, openSettings };
     }

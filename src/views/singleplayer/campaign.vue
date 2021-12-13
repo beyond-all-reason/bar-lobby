@@ -1,9 +1,14 @@
-<route>{ "meta": { "title": "Campaign", "order": 0 } }</route>
+<route>{ "meta": { "title": "Campaign", "order": 0, "offline": true } }</route>
 
 <template>
     <Panel>
         <h1>{{ route.meta.title }}</h1>
-        <p>This is a description</p>
+        <markdown source="
+- New campaign
+- Continue campaign
+- Load save
+- Mission select
+" />
     </Panel>
 </template>
 

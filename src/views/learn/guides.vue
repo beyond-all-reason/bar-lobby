@@ -1,9 +1,11 @@
-<route>{ "meta": { "title": "Guides", "order": 2 } }</route>
+<route>{ "meta": { "title": "Guides", "order": 0 } }</route>
 
 <template>
     <Panel>
         <h1>{{ route.meta.title }}</h1>
-        <p>This is a description</p>
+        <markdown source="
+- Same as online guides
+" />
     </Panel>
 </template>
 

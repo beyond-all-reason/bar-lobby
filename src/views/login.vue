@@ -23,7 +23,6 @@
 </template>
 
 <script lang="ts">
-import { randomFromArray } from "jaz-ts-utils";
 import { defineComponent, ref } from "vue";
 import { useRouter } from "vue-router";
 
@@ -38,18 +37,6 @@ export default defineComponent({
         const router = useRouter();
         const loading = ref(true);
         const activeTab = ref(0);
-
-        const allMusic = Array.from(window.api.audio.musicSounds.values());
-        const playRandomMusic = () => {
-            const music = randomFromArray(allMusic);
-            music.on("end", () => {
-                playRandomMusic();
-                music.unload();
-            });
-            music.play();
-        };
-
-        playRandomMusic();
 
         if (window.api.client.isLoggedIn()) {
             router.push("/home");

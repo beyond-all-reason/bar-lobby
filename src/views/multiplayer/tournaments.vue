@@ -3,7 +3,12 @@
 <template>
     <Panel>
         <h1>{{ route.meta.title }}</h1>
-        <p>This is a description</p>
+        <markdown source="
+- Automated tournaments list (like in rocket league)
+- Official tournaments list
+- Unofficial tournaments list
+- Host unofficial tournament button + modal (ability to even automate prize pools would be awesome)
+" />
     </Panel>
 </template>
 

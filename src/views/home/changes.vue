@@ -1,9 +1,13 @@
-<route>{ "meta": { "title": "Missions", "order": 1 } }</route>
+<route>{ "meta": { "title": "Changes", "order": 1 } }</route>
 
 <template>
     <Panel>
         <h1>{{ route.meta.title }}</h1>
-        <p>This is a description</p>
+        <markdown source="
+- Should manual updates (blog-like posts) be in news section or here?
+- Balance changes
+- Github changes from all BAR repos?
+" />
     </Panel>
 </template>
 

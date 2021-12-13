@@ -1,7 +1,6 @@
 .theme--carbon {
     font-family: Rajdhani, sans-serif;
     font-size: 18px;
-    text-transform: uppercase;
     text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.6);
     --error: #ff5151;
     --warning: #ffe134;
@@ -39,4 +38,5 @@
     @import "components/panel";
     @import "components/modal";
     @import "components/alert";
+    @import "components/battle";
 }

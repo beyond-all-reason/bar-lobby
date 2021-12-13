@@ -1,9 +1,14 @@
-<route>{ "meta": { "title": "Updates", "order": 1 } }</route>
+<route>{ "meta": { "title": "Store", "order": 4 } }</route>
 
 <template>
     <Panel>
         <h1>{{ route.meta.title }}</h1>
-        <p>This is a description</p>
+        <markdown source="
+- Unit skins
+- HUD themes
+- Custom Emojis 🙃
+- Particle/projectile effects?
+" />
     </Panel>
 </template>
 

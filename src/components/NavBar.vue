@@ -15,13 +15,13 @@
                     <Button class="primary-item icon" :class="{ active: settingsOpen }" @click="settingsOpen = !settingsOpen">
                         <Icon icon="cog" :size="40" />
                     </Button>
-                    <Button class="primary-item icon" to="/login">
+                    <Button class="primary-item icon">
                         <Icon icon="close-thick" :size="40" />
                     </Button>
                 </div>
             </div>
             <div class="secondary-nav">
-                <Button v-for="view in secondaryRoutes" :key="view.path" :to="view.path" class="secondary-item">{{ view.meta.title }}</Button>
+                <Button v-for="view in secondaryRoutes" :key="view.path" :to="view.path" class="secondary-item">{{ view.meta.title ?? view.name }}</Button>
             </div>
         </div>
     </div>
@@ -40,12 +40,12 @@ export default defineComponent({
         const allRoutes = router.getRoutes();
 
         const primaryRoutes = allRoutes
-            .filter(r => ["/singleplayer", "/multiplayer", "/replays", "/library", "/learn"].includes(r.path))
+            .filter(r => ["/singleplayer", "/multiplayer", "/library", "/learn", "/store"].includes(r.path))
             .sort((a, b) => (a.meta.order ?? 99) - (b.meta.order ?? 99));
 
         const secondaryRoutes = computed(() => {
             return allRoutes
-                .filter(r => r.path.startsWith(`/${route.path.split("/")[1]}/`))
+                .filter(r => r.meta.order !== undefined && r.path.startsWith(`/${route.path.split("/")[1]}/`))
                 .sort((a, b) => (a.meta.order ?? 99) - (b.meta.order ?? 99));
         });
 

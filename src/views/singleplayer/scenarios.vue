@@ -1,9 +1,12 @@
-<route>{ "meta": { "title": "Local", "order": 0 } }</route>
+<route>{ "meta": { "title": "Scenarios", "order": 1, "offline": true } }</route>
 
 <template>
     <Panel>
         <h1>{{ route.meta.title }}</h1>
-        <p>This is a description</p>
+        <markdown source="
+- Scenarios list - pull from online scenarios database?
+- Scenario preview panel - shows mission objective, top 10 leaderboard
+" />
     </Panel>
 </template>
 

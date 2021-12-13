@@ -20,3 +20,32 @@ a {
     &--warning { color: var(--warning); }
     &--success { color: var(--success); }
 }
+ul, ol {
+    display: flex;
+    flex-direction: column;
+    list-style: disc;
+    padding-left: 1em;
+    margin: 10px 20px;
+}
+li {
+    display: list-item;
+    text-transform: initial;
+}
+h1 {
+    font-size: 48px;
+}
+h2 {
+    font-size: 42px;
+}
+h3 {
+    font-size: 36px;
+}
+h4 {
+    font-size: 30px;
+}
+h5 {
+    font-size: 24px;
+}
+h6 {
+    font-size: 18px;
+}

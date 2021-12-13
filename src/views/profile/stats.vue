@@ -3,7 +3,9 @@
 <template>
     <Panel>
         <h1>{{ route.meta.title }}</h1>
-        <p>This is a description</p>
+        <markdown source="
+- Full stats view
+" />
     </Panel>
 </template>
 

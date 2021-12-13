@@ -1,9 +1,21 @@
-<route>{ "meta": { "title": "Tutorials", "order": 3 } }</route>
+<route>{ "meta": { "title": "Tutorials", "order": 3, "offline": true } }</route>
 
 <template>
     <Panel>
         <h1>{{ route.meta.title }}</h1>
-        <p>This is a description</p>
+        <markdown source="
+- Custom type scenarios that slowly introduce the game in segmented chunks
+
+Tutorials might include:
+
+- Camera controls (Only show minimap)
+- Commander + Commands (Now show build menu)
+- Basic economy + Basic defense (Now show resource bars)
+- Constructors + Factories + Buildpower
+- Win condition
+- Advanced economy
+- Advanced units
+" />
     </Panel>
 </template>
 

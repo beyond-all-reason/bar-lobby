@@ -6,6 +6,7 @@ import { createRouter, createWebHashHistory } from "vue-router";
 import { createRouterLayout } from "vue-router-layout";
 import VueNextSelect from "vue-next-select";
 import VueSlider from "vue-slider-component";
+import Markdown from "vue3-markdown-it";
 import routes from "@/routes";
 import App from "@/App.vue";
 import { StoreAPI } from "@/api/store";
@@ -93,5 +94,6 @@ async function setupVue() {
     app.use(router);
     app.component("vue-select", VueNextSelect);
     app.component("vue-slider", VueSlider);
+    app.component("markdown", Markdown);
     app.mount("#app");
 }

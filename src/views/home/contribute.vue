@@ -1,9 +1,13 @@
-<route>{ "meta": { "title": "Online", "order": 1 } }</route>
+<route>{ "meta": { "title": "Contribute", "order": 2 } }</route>
 
 <template>
     <Panel>
         <h1>{{ route.meta.title }}</h1>
-        <p>This is a description</p>
+        <markdown source="
+- List of contributors
+- Details on contributing
+- Donate section
+" />
     </Panel>
 </template>
 
