@@ -15,7 +15,7 @@
                     <Button class="primary-item icon" :class="{ active: settingsOpen }" @click="settingsOpen = !settingsOpen">
                         <Icon icon="cog" :size="40" />
                     </Button>
-                    <Button class="primary-item icon">
+                    <Button class="primary-item icon close">
                         <Icon icon="close-thick" :size="40" />
                     </Button>
                 </div>

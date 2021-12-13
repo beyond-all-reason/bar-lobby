@@ -13,6 +13,7 @@ import debug_perf from '@/views/debug/perf.vue'
 import debug_playground from '@/views/debug/playground.vue'
 import home_changes from '@/views/home/changes.vue'
 import home_contribute from '@/views/home/contribute.vue'
+import home_home from '@/views/home/home.vue'
 import home_news from '@/views/home/news.vue'
 import learn_commands from '@/views/learn/commands.vue'
 import learn_guides from '@/views/learn/guides.vue'
@@ -56,7 +57,9 @@ export default [
     component: home_index,
     meta: {
       title: 'Home',
+      order: 0,
     },
+    redirect: '/home/home',
   },
   {
     name: 'learn',
@@ -76,7 +79,7 @@ export default [
       title: 'Library',
       order: 2,
     },
-    redirect: '/library/units',
+    redirect: '/library/replays',
   },
   {
     name: 'multiplayer',
@@ -138,7 +141,7 @@ export default [
     component: home_changes,
     meta: {
       title: 'Changes',
-      order: 1,
+      order: 2,
     },
   },
   {
@@ -147,7 +150,16 @@ export default [
     component: home_contribute,
     meta: {
       title: 'Contribute',
-      order: 2,
+      order: 3,
+    },
+  },
+  {
+    name: 'home-home',
+    path: '/home/home',
+    component: home_home,
+    meta: {
+      title: 'Home',
+      order: 0,
     },
   },
   {
@@ -156,7 +168,7 @@ export default [
     component: home_news,
     meta: {
       title: 'News',
-      order: 0,
+      order: 1,
     },
   },
   {
@@ -211,7 +223,7 @@ export default [
     component: library_units,
     meta: {
       title: 'Units',
-      order: 0,
+      order: 1,
     },
   },
   {

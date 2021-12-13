@@ -1,4 +1,4 @@
-<route>{ "meta": { "title": "Changes", "order": 1 } }</route>
+<route>{ "meta": { "title": "Changes", "order": 2 } }</route>
 
 <template>
     <Panel>

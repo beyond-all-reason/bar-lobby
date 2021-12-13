@@ -1,1 +1,1 @@
-<route>{ "redirect": "/library/units", "meta": { "title": "Library", "order": 2 } }</route>
+<route>{ "redirect": "/library/replays", "meta": { "title": "Library", "order": 2 } }</route>
