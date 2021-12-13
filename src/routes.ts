@@ -9,7 +9,6 @@ import profile_index from '@/views/profile/index.vue'
 import singleplayer_index from '@/views/singleplayer/index.vue'
 import store_index from '@/views/store/index.vue'
 import debug_inputs from '@/views/debug/inputs.vue'
-import debug_perf from '@/views/debug/perf.vue'
 import debug_playground from '@/views/debug/playground.vue'
 import home_changes from '@/views/home/changes.vue'
 import home_contribute from '@/views/home/contribute.vue'
@@ -124,16 +123,19 @@ export default [
     name: 'debug-inputs',
     path: '/debug/inputs',
     component: debug_inputs,
-  },
-  {
-    name: 'debug-perf',
-    path: '/debug/perf',
-    component: debug_perf,
+    meta: {
+      title: 'Inputs',
+      order: 0,
+    },
   },
   {
     name: 'debug-playground',
     path: '/debug/playground',
     component: debug_playground,
+    meta: {
+      title: 'Playground',
+      order: 1,
+    },
   },
   {
     name: 'home-changes',

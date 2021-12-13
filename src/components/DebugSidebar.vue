@@ -9,6 +9,9 @@
         <div class="flex-row">
             <Button @click="openSettings">Open Settings File</Button>
         </div>
+        <div class="flex-row">
+            <Button to="/debug/inputs">Debug Land</Button>
+        </div>
     </div>
 </template>
 

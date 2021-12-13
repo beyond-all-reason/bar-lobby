@@ -1,3 +1,5 @@
+<route>{ "meta": { "title": "Inputs", "order": 0 } }</route>
+
 <template>
     <Panel>
         <div class="controls">
@@ -101,7 +103,7 @@
                 </meter>
             </div>
             <div class="control">
-                <label for="myFile">File upload</label>
+                <label for="myFile">File select</label>
                 <input type="file" id="myFile" name="filename">
             </div>
         </div>

@@ -1,3 +1,5 @@
+<route>{ "meta": { "title": "Playground", "order": 1 } }</route>
+
 <template>
     <Panel>
         <Range label="cool" :min="5" v-model="thing" />
