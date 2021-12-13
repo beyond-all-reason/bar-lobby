@@ -1,27 +1,27 @@
 <template>
     <div class="nav">
-        <Button class="primary-item logo" depress to="/home" :class="{ active: route.path.includes('/home') }">
+        <Button class="primary-item logo" depress to="/home">
             <img src="@/assets/images/logo.svg">
         </Button>
         <div class="flex-col flex-grow">
             <div class="flex-row flex-space-between gap-1">
                 <div class="left">
-                    <Button v-for="view in primaryRoutes" :key="view.path" :to="view.path" class="primary-item" :class="{ active: route.path.includes(view.path) }">{{ view.meta.title }}</Button>
+                    <Button v-for="view in primaryRoutes" :key="view.path" :to="view.path" class="primary-item">{{ view.meta.title }}</Button>
                 </div>
                 <div class="right">
-                    <Button class="primary-item" to="/profile" :class="{ active: route.path.includes('/profile') }">
+                    <Button class="primary-item" to="/profile">
                         Jazcash
                     </Button>
                     <Button class="primary-item icon" :class="{ active: settingsOpen }" @click="settingsOpen = !settingsOpen">
                         <Icon icon="cog" :size="40" />
                     </Button>
-                    <Button class="primary-item icon" to="/">
+                    <Button class="primary-item icon" to="/login">
                         <Icon icon="close-thick" :size="40" />
                     </Button>
                 </div>
             </div>
             <div class="secondary-nav">
-                <Button v-for="view in secondaryRoutes" :key="view.path" :to="view.path" class="secondary-item" :class="{ active: route.path.includes(view.path) }">{{ view.meta.title }}</Button>
+                <Button v-for="view in secondaryRoutes" :key="view.path" :to="view.path" class="secondary-item">{{ view.meta.title }}</Button>
             </div>
         </div>
     </div>

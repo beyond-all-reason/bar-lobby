@@ -1,5 +1,5 @@
 <template>
-    <router-link v-if="to" class="btn" @mouseenter="play" :to="to">
+    <router-link v-if="to" @mouseenter="play" :to="to" class="btn" :class="{ active: isActive }">
         <div class="content">
             <slot />
         </div>
@@ -12,17 +12,25 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, toRefs } from "vue";
+import { computed, defineComponent, toRefs } from "vue";
+import { useRoute } from "vue-router";
 
 export default defineComponent({
     props: {
         to: String
     },
     setup(props) {
+        const route = useRoute();
         const to = toRefs(props).to;
-        const play = window.api.audio.getSfxPlay("button-hover");
+        const isActive = computed(() => props.to && route.path.includes(props.to));
+        const clickSound = window.api.audio.sfxSounds.get("button-hover")!;
+        const play = () => {
+            if (!props.to || (props.to && !isActive.value)) {
+                clickSound.play();
+            }
+        };
 
-        return { to, play };
+        return { route, to, play, isActive };
     }
 });
 </script>
