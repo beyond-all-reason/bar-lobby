@@ -1,0 +1,1 @@
+<route>{ "redirect": "/singleplayer/campaign", "meta": { "title": "Singleplayer", "order": 0 } }</route>

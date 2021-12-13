@@ -1,0 +1,1 @@
+<route>{ "redirect": "/profile/overview", "meta": { "title": "Profile" } }</route>

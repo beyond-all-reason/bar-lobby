@@ -13,7 +13,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, readonly, ref, watch, effectScope } from "vue";
+import { defineComponent, readonly, ref, effectScope } from "vue";
 import { useRoute, useRouter } from "vue-router";
 
 export default defineComponent({
@@ -24,22 +24,22 @@ export default defineComponent({
 
         const route = useRoute();
         const router = useRouter();
-        const routes = readonly(router.getRoutes().filter(route => route.name).sort((a, b) => a.path.localeCompare(b.path)));
+        const routes = readonly(router.getRoutes().sort((a, b) => a.path.localeCompare(b.path)));
         const currentRoute = ref(route.path);
 
         const openSettings = () => {
             window.api.settings.openFileInEditor();
         };
 
-        scope.run(() => {
-            watch(currentRoute, async () => {
-                await router.replace(currentRoute.value);
-            });
+        // scope.run(() => {
+        //     watch(currentRoute, async () => {
+        //         await router.replace(currentRoute.value);
+        //     });
 
-            watch(router.currentRoute, () => {
-                currentRoute.value = route.path;
-            });
-        });
+        //     watch(router.currentRoute, () => {
+        //         currentRoute.value = route.path;
+        //     });
+        // });
 
         return { routes, currentRoute, active, openSettings };
     }

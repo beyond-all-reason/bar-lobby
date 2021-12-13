@@ -7,3 +7,9 @@
 .gap-lg {
     gap: 15px;
 }
+
+@for $i from 1 through 10 {
+    .gap-#{$i} {
+        gap: #{$i}px;
+    }
+}

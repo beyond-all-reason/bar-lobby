@@ -1,16 +1,1 @@
-<template>
-    <Panel>
-        Replays
-    </Panel>
-</template>
-
-<script lang="ts">
-import { defineComponent } from "vue";
-
-export default defineComponent({
-    setup() {
-        return {};
-    }
-});
-</script>
-
+<route>{ "redirect": "/replays/local", "meta": { "title": "Replays", "order": 2 } }</route>

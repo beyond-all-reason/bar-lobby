@@ -2,7 +2,7 @@ import "@/assets/styles/styles.scss";
 import "vue-next-select/dist/index.css";
 import "vue-slider-component/theme/default.css";
 import { createApp, reactive, ToRefs, toRefs } from "vue";
-import { createRouter, createWebHashHistory, createWebHistory } from "vue-router";
+import { createRouter, createWebHashHistory } from "vue-router";
 import { createRouterLayout } from "vue-router-layout";
 import VueNextSelect from "vue-next-select";
 import VueSlider from "vue-slider-component";
@@ -19,6 +19,7 @@ import { sessionSchema, SessionType } from "@/model/session";
 import Ajv from "ajv";
 import { AudioAPI } from "@/api/audio";
 import { GameAPI } from "@/api/game";
+
 declare global {
     interface Window {
         info: Info;
@@ -31,6 +32,12 @@ declare global {
             accounts: StoreAPI<AccountType>;
             game: GameAPI;
         }
+    }
+}
+
+declare module "vue-router" {
+    interface RouteMeta {
+        order?: number;
     }
 }
 
@@ -68,7 +75,7 @@ async function setupVue() {
     });
 
     const router = createRouter({
-        history: process.env.IS_ELECTRON ? createWebHashHistory() : createWebHistory(process.env.BASE_URL),
+        history: createWebHashHistory(),
         routes: [
             {
                 path: "/",
@@ -80,6 +87,9 @@ async function setupVue() {
 
     const app = createApp(App);
     app.config.globalProperties.window = window;
+    if (process.env.NODE_ENV !== "production") {
+        (window as any).router = router;
+    }
     app.use(router);
     app.component("vue-select", VueNextSelect);
     app.component("vue-slider", VueSlider);

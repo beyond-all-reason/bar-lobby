@@ -1,10 +1,8 @@
-<route>
-    { "name": "Public Replays" }
-</route>
+<route>{ "meta": { "title": "Home" } }</route>
 
 <template>
     <Panel>
-        Public Replays
+        Home
     </Panel>
 </template>
 
