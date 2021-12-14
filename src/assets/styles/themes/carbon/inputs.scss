@@ -95,6 +95,7 @@ input[type=password] {
             min-height: inherit;
             padding: 0;
             background-color: unset !important;
+            border: none !important;
             &::placeholder {
                 color: #fff;
             }
