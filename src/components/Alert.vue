@@ -1,5 +1,5 @@
 <template>
-    <Modal :class="`alert alert--${type}`" :title="title" v-if="message" @close="close">
+    <Modal :class="`alert alert--${type}`" :name="title" v-if="message" @close="close">
         <slot/>
         <p>{{ message }}</p>
     </Modal>

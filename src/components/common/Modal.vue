@@ -1,11 +1,11 @@
 <template>
-    <teleport v-if="!disabled" to=".theme">
+    <teleport v-if="isOpen" to=".theme">
         <div class="modal-container" v-bind="$attrs">
             <Panel id="modal" class="modal" :title="title">
                 <template #header>
                     <div class="header">
-                        <div class="title" v-if="title">{{ title }}</div>
-                        <div class="close" @click="$emit('close')"><Icon icon="close-thick" /></div>
+                        <div class="title">{{ title }}</div>
+                        <div class="close" @click="close"><Icon icon="close-thick" /></div>
                     </div>
                 </template>
                 <slot/>
@@ -15,24 +15,28 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, toRefs } from "vue";
+import { defineComponent, ref } from "vue";
 
 export default defineComponent({
     props: {
-        disabled: {
-            type: Boolean,
-            default: false
+        name: {
+            type: String,
+            required: true
         },
         title: {
             type: String,
             default: "",
         },
     },
-    setup(props) {
-        const disabled = ref(props.disabled);
-        const { title } = toRefs(props);
+    setup(props, context) {
+        const isOpen = window.api.modals.register(props.name);
+        const title = ref(props.title || props.name);
 
-        return { disabled, title };
+        const close = () => {
+            window.api.modals.close(props.name);
+        };
+
+        return { isOpen, title, close };
     }
 });
 </script>

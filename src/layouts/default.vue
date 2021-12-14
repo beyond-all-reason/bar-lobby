@@ -1,6 +1,7 @@
 <template>
     <div :class="`fullsize layout layout--default`">
         <Settings />
+        <Exit />
         <NavBar />
         <div :class="`view view--${route.name?.toString()}`">
             <router-view v-slot="{ Component }">

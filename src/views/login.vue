@@ -43,6 +43,7 @@ export default defineComponent({
         } else {
             window.api.client.connect().then(() => {
                 if (window.api.accounts.model.token.value) {
+                    loading.value = true;
                     window.api.client.login({
                         token: window.api.accounts.model.token.value,
                         lobby_name: window.info.lobby.name,

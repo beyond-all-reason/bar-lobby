@@ -12,10 +12,10 @@
                     <Button class="primary-item" to="/profile">
                         Jazcash
                     </Button>
-                    <Button class="primary-item icon" :class="{ active: settingsOpen }" @click="settingsOpen = !settingsOpen">
+                    <Button class="primary-item icon" @click="settingsModal">
                         <Icon icon="cog" :size="40" />
                     </Button>
-                    <Button class="primary-item icon close">
+                    <Button class="primary-item icon close" @click="exitModal">
                         <Icon icon="close-thick" :size="40" />
                     </Button>
                 </div>
@@ -33,8 +33,6 @@ import { useRoute, useRouter } from "vue-router";
 
 export default defineComponent({
     setup() {
-        const { settingsOpen } = window.api.session; // TODO: needed?
-
         const router = useRouter();
         const route = useRoute();
         const allRoutes = router.getRoutes();
@@ -49,7 +47,15 @@ export default defineComponent({
                 .sort((a, b) => (a.meta.order ?? 99) - (b.meta.order ?? 99));
         });
 
-        return { route, settingsOpen, primaryRoutes, secondaryRoutes };
+        const settingsModal = () => {
+            window.api.modals.open("settings");
+        }; 
+
+        const exitModal = () => {
+            window.api.modals.open("exit");
+        };
+
+        return { route, primaryRoutes, secondaryRoutes, settingsModal, exitModal };
     }
 });
 </script>

@@ -20,6 +20,7 @@ import { sessionSchema, SessionType } from "@/model/session";
 import Ajv from "ajv";
 import { AudioAPI } from "@/api/audio";
 import { GameAPI } from "@/api/game";
+import { ModalsAPI } from "@/api/modals";
 
 declare global {
     interface Window {
@@ -29,7 +30,9 @@ declare global {
             settings: StoreAPI<SettingsType>;
             client: TachyonClient;
             audio: AudioAPI;
+            /** @deprecated - replace with modals */
             alerts: AlertsAPI;
+            modals: ModalsAPI;
             accounts: StoreAPI<AccountType>;
             game: GameAPI;
         }
@@ -61,6 +64,7 @@ declare module "vue-router" {
         }),
         audio: new AudioAPI(),
         alerts: new AlertsAPI(),
+        modals: new ModalsAPI(),
         accounts: await new StoreAPI<AccountType>("accounts.json", accountSchema).init(),
         game: new GameAPI()
     };
