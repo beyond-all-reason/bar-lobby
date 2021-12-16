@@ -10,7 +10,6 @@ BAR Lobby is a new WIP lobby for the RTS game [Beyond All Reason](https://www.be
 - Smooth, seemless, fully integrated downloads. Content should be preloaded when sensible
 - Communicate entirely via Teiserver's new protocol, [Tachyon](https://github.com/beyond-all-reason/teiserver/tree/master/documents/tachyon). No support for the legacy SpringLobbyProtocol
 - TLS only, no unencypted comms
-- Minimum supported resolution of 1440x900
 
 ## Development
 Contributing to BAR Lobby should be a stress-free and ideally _fun_ experience. The tech stack has been chosen with this in mind.
