@@ -6,7 +6,7 @@
         <div :class="`view view--${route.name?.toString()}`">
             <Panel>
                 <router-view v-slot="{ Component }">
-                    <transition :name="transition" mode="out-in">
+                    <transition :name="transitionName" mode="out-in">
                         <component :is="Component" />
                     </transition>
                 </router-view>
@@ -16,20 +16,23 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from "vue";
+import { defineComponent, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 
 export default defineComponent({
     props: {
-        transition: {
-            type: String,
-            default: "slide"
-        }
+        transition: String
     },
-    setup() {
+    setup(props) {
         const route = useRoute();
+        const transitionName = ref("");
 
-        return { route };
+        watch(route, () => {
+            transitionName.value = route.redirectedFrom?.meta?.transition ?? "secondary";
+            console.log(transitionName.value);
+        });
+
+        return { route, transitionName };
     }
 });
 </script>

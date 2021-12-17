@@ -33,6 +33,7 @@ import singleplayer_campaign from '@/views/singleplayer/campaign.vue'
 import singleplayer_custom from '@/views/singleplayer/custom.vue'
 import singleplayer_scenarios from '@/views/singleplayer/scenarios.vue'
 import singleplayer_tutorials from '@/views/singleplayer/tutorials.vue'
+import store_store from '@/views/store/store.vue'
 
 export default [
   {
@@ -57,6 +58,7 @@ export default [
     meta: {
       title: 'Home',
       order: 0,
+      transition: 'primary',
     },
     redirect: '/home/home',
   },
@@ -67,6 +69,7 @@ export default [
     meta: {
       title: 'Learn',
       order: 4,
+      transition: 'primary',
     },
     redirect: '/learn/guides',
   },
@@ -77,6 +80,7 @@ export default [
     meta: {
       title: 'Library',
       order: 2,
+      transition: 'primary',
     },
     redirect: '/library/replays',
   },
@@ -87,6 +91,7 @@ export default [
     meta: {
       title: 'Multiplayer',
       order: 1,
+      transition: 'primary',
     },
     redirect: '/multiplayer/ranked',
   },
@@ -96,6 +101,7 @@ export default [
     component: profile_index,
     meta: {
       title: 'Profile',
+      transition: 'primary',
     },
     redirect: '/profile/overview',
   },
@@ -107,6 +113,7 @@ export default [
       title: 'Singleplayer',
       order: 0,
       offline: true,
+      transition: 'primary',
     },
     redirect: '/singleplayer/campaign',
   },
@@ -117,7 +124,9 @@ export default [
     meta: {
       title: 'Store',
       order: 4,
+      transition: 'primary',
     },
+    redirect: '/store/store',
   },
   {
     name: 'debug-inputs',
@@ -346,6 +355,15 @@ export default [
       title: 'Tutorials',
       order: 3,
       offline: true,
+    },
+  },
+  {
+    name: 'store-store',
+    path: '/store/store',
+    component: store_store,
+    meta: {
+      title: 'Store',
+      order: 0,
     },
   },
 ]

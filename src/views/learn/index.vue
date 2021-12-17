@@ -1,1 +1,1 @@
-<route>{ "redirect": "/learn/guides", "meta": { "title": "Learn", "order": 4 } }</route>
+<route>{ "redirect": "/learn/guides", "meta": { "title": "Learn", "order": 4, "transition": "primary" } }</route>
