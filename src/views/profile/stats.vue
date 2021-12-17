@@ -1,12 +1,12 @@
 <route>{ "meta": { "title": "Stats", "order": 2 } }</route>
 
 <template>
-    <Panel>
+    <div>
         <h1>{{ route.meta.title }}</h1>
         <markdown source="
 - Full stats view
 " />
-    </Panel>
+    </div>
 </template>
 
 <script lang="ts">

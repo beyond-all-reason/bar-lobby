@@ -1,7 +1,7 @@
 <route>{ "meta": { "title": "Home", "order": 0 } }</route>
 
 <template>
-    <Panel>
+    <div>
         <h1>Home</h1>
         <markdown source="
 - Small panes that preview content that can be displayed in more detail when clicking through to their full pages
@@ -12,7 +12,7 @@
 - Social links
 - Promo space (recent video, cosmetic content or something?)
 " />
-    </Panel>
+    </div>
 </template>
 
 <script lang="ts">

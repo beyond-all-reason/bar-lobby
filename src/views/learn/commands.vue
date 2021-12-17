@@ -1,12 +1,12 @@
 <route>{ "meta": { "title": "Commands", "order": 1 } }</route>
 
 <template>
-    <Panel>
+    <div>
         <h1>{{ route.meta.title }}</h1>
         <markdown source="
 - Same as online commands page
 " />
-    </Panel>
+    </div>
 </template>
 
 <script lang="ts">

@@ -1,7 +1,7 @@
 <route>{ "meta": { "title": "Units", "order": 1 } }</route>
 
 <template>
-    <Panel>
+    <div>
         <h1>{{ route.meta.title }}</h1>
         <markdown source="
 - Similar to online unit browser, but automated
@@ -10,7 +10,7 @@
 - Filterable
 - Paginated
 " />
-    </Panel>
+    </div>
 </template>
 
 <script lang="ts">

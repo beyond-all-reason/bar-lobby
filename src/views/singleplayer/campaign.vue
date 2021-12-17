@@ -1,7 +1,7 @@
 <route>{ "meta": { "title": "Campaign", "order": 0, "offline": true } }</route>
 
 <template>
-    <Panel>
+    <div>
         <h1>{{ route.meta.title }}</h1>
         <markdown source="
 - New campaign
@@ -9,7 +9,7 @@
 - Load save
 - Mission select
 " />
-    </Panel>
+    </div>
 </template>
 
 <script lang="ts">

@@ -27,6 +27,15 @@
             background-position: center;
             z-index: -1;
         }
+        // &:after {
+        //     @extend .fullsize;
+        //     background: var(--background);
+        //     background-size: cover;
+        //     background-position: center;
+        //     z-index: -1;
+        //     filter: blur(10px);
+        //     -webkit-mask-box-image: -webkit-linear-gradient(transparent 10%, black 50%, transparent 90%);
+        // }
     }
 
     @import "inputs";
@@ -34,6 +43,7 @@
 
     @import "views/login";
 
+    @import "components/progress";
     @import "components/navbar";
     @import "components/panel";
     @import "components/modal";

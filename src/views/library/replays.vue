@@ -1,7 +1,7 @@
 <route>{ "meta": { "title": "Replays", "order": 0 } }</route>
 
 <template>
-    <Panel>
+    <div>
         <h1>{{ route.meta.title }}</h1>
         <markdown source="
 - Local replays
@@ -12,7 +12,7 @@
 - Filterable
 - Paginated
 " />
-    </Panel>
+    </div>
 </template>
 
 <script lang="ts">

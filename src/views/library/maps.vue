@@ -1,7 +1,7 @@
 <route>{ "meta": { "title": "Maps", "order": 1 } }</route>
 
 <template>
-    <Panel>
+    <div>
         <h1>{{ route.meta.title }}</h1>
         <markdown source="
 - Similar to online map browser
@@ -13,7 +13,7 @@
 - Filterable
 - Paginated
 " />
-    </Panel>
+    </div>
 </template>
 
 <script lang="ts">

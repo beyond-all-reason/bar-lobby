@@ -1,6 +1,6 @@
 .fade-enter-active,
 .fade-leave-active {
-    transition: opacity 0.4s ease-in-out;
+    transition: 0.4s ease-in-out;
 }
 .fade-enter-from,
 .fade-leave-to {
@@ -9,7 +9,7 @@
 
 .login-enter,
 .login-enter-active {
-    transition: opacity 1s ease-in-out, transform 1s ease-in-out;
+    transition: 1s ease-in-out;
 }
 .login-enter-from {
     opacity: 0;
@@ -18,7 +18,7 @@
 
 .slide-enter-active,
 .slide-leave-active {
-    transition: opacity 0.1s ease-in-out, transform 0.1s ease-in-out;
+    transition: 0.1s ease-in-out;
 }
 .slide-enter-from,
 .slide-leave-to {

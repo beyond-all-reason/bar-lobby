@@ -4,11 +4,13 @@
         <Exit />
         <NavBar />
         <div :class="`view view--${route.name?.toString()}`">
-            <router-view v-slot="{ Component }">
-                <transition :name="transition" mode="out-in">
-                    <component :is="Component" />
-                </transition>
-            </router-view>
+            <Panel>
+                <router-view v-slot="{ Component }">
+                    <transition :name="transition" mode="out-in">
+                        <component :is="Component" />
+                    </transition>
+                </router-view>
+            </Panel>
         </div>
     </div>
 </template>

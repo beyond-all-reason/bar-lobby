@@ -1,7 +1,7 @@
 <route>{ "meta": { "title": "Tutorials", "order": 3, "offline": true } }</route>
 
 <template>
-    <Panel>
+    <div>
         <h1>{{ route.meta.title }}</h1>
         <markdown source="
 - Custom type scenarios that slowly introduce the game in segmented chunks
@@ -16,7 +16,7 @@ Tutorials might include:
 - Advanced economy
 - Advanced units
 " />
-    </Panel>
+    </div>
 </template>
 
 <script lang="ts">

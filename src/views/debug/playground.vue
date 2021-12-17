@@ -1,9 +1,9 @@
 <route>{ "meta": { "title": "Playground", "order": 1 } }</route>
 
 <template>
-    <Panel>
+    <div>
         <Range label="cool" :min="5" v-model="thing" />
-    </Panel>
+    </div>
 </template>
 
 <script lang="ts">

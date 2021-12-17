@@ -1,7 +1,7 @@
 <route>{ "meta": { "title": "Store", "order": 4 } }</route>
 
 <template>
-    <Panel>
+    <div>
         <h1>{{ route.meta.title }}</h1>
         <markdown source="
 - Unit skins
@@ -9,7 +9,7 @@
 - Custom Emojis 🙃
 - Particle/projectile effects?
 " />
-    </Panel>
+    </div>
 </template>
 
 <script lang="ts">

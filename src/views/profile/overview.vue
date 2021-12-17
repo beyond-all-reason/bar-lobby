@@ -1,7 +1,7 @@
 <route>{ "meta": { "title": "Overview", "order": 0 } }</route>
 
 <template>
-    <Panel>
+    <div>
         <h1>{{ route.meta.title }}</h1>
         <markdown source="
 - Player name
@@ -12,7 +12,7 @@
 - Recent achievements unlocked
 - Recent activity/matches
 " />
-    </Panel>
+    </div>
 </template>
 
 <script lang="ts">

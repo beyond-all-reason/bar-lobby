@@ -1,7 +1,7 @@
 <route>{ "meta": { "title": "News", "order": 1 } }</route>
 
 <template>
-    <Panel>
+    <div>
         <h1>{{ route.meta.title }}</h1>
         <markdown source="
 - List of news posts (tiled previews)
@@ -10,7 +10,7 @@
 - Filterable
 - Paginated
 " />
-    </Panel>
+    </div>
 </template>
 
 <script lang="ts">

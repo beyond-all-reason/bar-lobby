@@ -1,10 +1,10 @@
 <route>{ "meta": { "title": "Battle" } }</route>
 
 <template>
-    <Panel>
+    <div>
         <h1>{{ route.meta.title }}</h1>
         <Battle />
-    </Panel>
+    </div>
 </template>
 
 <script lang="ts">

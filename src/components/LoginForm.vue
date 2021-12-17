@@ -23,7 +23,6 @@
 import { linkify } from "@/utils/linkify";
 import { defineComponent, ref, watch } from "vue";
 import { useRouter } from "vue-router";
-import * as crypto from "crypto";
 
 export default defineComponent({
     setup(props) {
@@ -52,8 +51,7 @@ export default defineComponent({
         const login = async () => {
             loading.value = true;
             
-            const encryptedPass = crypto.createHash("md5").update(password.value).digest("base64"); // TODO: TLS should mean we can just send plaintext pass but tachyon bug
-            const tokenResponse = await window.api.client.getToken({ email: email.value, password: encryptedPass });
+            const tokenResponse = await window.api.client.getToken({ email: email.value, password: password.value });
 
             if (tokenResponse.result === "success" && tokenResponse.token) {
                 if (remember.value) {

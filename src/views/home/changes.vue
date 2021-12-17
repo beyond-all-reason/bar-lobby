@@ -1,14 +1,14 @@
 <route>{ "meta": { "title": "Changes", "order": 2 } }</route>
 
 <template>
-    <Panel>
+    <div>
         <h1>{{ route.meta.title }}</h1>
         <markdown source="
 - Should manual updates (blog-like posts) be in news section or here?
 - Balance changes
 - Github changes from all BAR repos?
 " />
-    </Panel>
+    </div>
 </template>
 
 <script lang="ts">

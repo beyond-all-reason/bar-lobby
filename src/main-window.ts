@@ -40,7 +40,6 @@ export class MainWindow {
             }
         });
 
-        this.window.once("ready-to-show", () => this.onReadyToShow());
         this.window.on("maximize", () => this.setDisplay(this.config.displayIndex));
         
         this.window.webContents.setWindowOpenHandler(({ url }) => {
@@ -63,17 +62,7 @@ export class MainWindow {
         }
     }
 
-    public setDisplay(displayIndex: number) {
-        const display = screen.getAllDisplays()[displayIndex];
-        if (display) {
-            const { x, y, width, height } = display.bounds;
-            this.window.setPosition(x, y);
-            this.window.setSize(width, height);
-            this.config.displayIndex = displayIndex;
-        }
-    }
-
-    protected onReadyToShow() {
+    public show() {
         this.setDisplay(this.config.displayIndex);
 
         if (!this.config.fullscreen) {
@@ -85,5 +74,15 @@ export class MainWindow {
         this.window.setMenuBarVisibility(false);
         
         this.window.show();
+    }
+
+    public setDisplay(displayIndex: number) {
+        const display = screen.getAllDisplays()[displayIndex];
+        if (display) {
+            const { x, y, width, height } = display.bounds;
+            this.window.setPosition(x, y);
+            this.window.setSize(width, height);
+            this.config.displayIndex = displayIndex;
+        }
     }
 }

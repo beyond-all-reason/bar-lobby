@@ -1,7 +1,7 @@
 <route>{ "meta": { "title": "Ranked", "order": 0 } }</route>
 
 <template>
-    <Panel>
+    <div>
         <h1>{{ route.meta.title }}</h1>
         <markdown source="
 - Matchmaking queue toggles for 1v1, 2v2, 3v3, 4v4, 5v5, 6v6, 7v7, 8v8, Small FFA (3 - 5), Medium FFA (6 - 10), Large FFA (11 - 16), TeamFFA
@@ -18,7 +18,7 @@ Ranked differences:
 - Player being AFK for more than x minutes counts as abandon
 - Players who abandon are punished in some way, lower reputation, banned from matchmaking for x time or something
 " />
-    </Panel>
+    </div>
 </template>
 
 <script lang="ts">

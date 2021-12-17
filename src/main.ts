@@ -102,6 +102,10 @@ export class Application {
     }
 
     protected setupHandlers() {
+        ipcMain.handle("ready", () => {
+            this.mainWindow.show();
+        });
+
         ipcMain.handle("getInfo", async (event) => {
             const userDataPath = path.join(this.app.getPath("userData"), "store");
             if (!fs.existsSync(userDataPath)) {

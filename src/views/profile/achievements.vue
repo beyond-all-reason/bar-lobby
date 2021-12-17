@@ -1,12 +1,12 @@
 <route>{ "meta": { "title": "Achievements", "order": 1 } }</route>
 
 <template>
-    <Panel>
+    <div>
         <h1>{{ route.meta.title }}</h1>
         <markdown source="
 - Full achievements view
 " />
-    </Panel>
+    </div>
 </template>
 
 <script lang="ts">

@@ -1,7 +1,7 @@
 <route>{ "meta": { "title": "Custom", "order": 2 } }</route>
 
 <template>
-    <Panel>
+    <div>
         <h1>{{ route.meta.title }}</h1>
         <markdown source="
 - Classic server browser, maybe grid or list view options
@@ -11,7 +11,7 @@
 - Uses TS but hidden, same as casual matchmaking
 " />
         <Battle/>
-    </Panel>
+    </div>
 </template>
 
 <script lang="ts">

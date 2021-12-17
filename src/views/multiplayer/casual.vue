@@ -1,7 +1,7 @@
 <route>{ "meta": { "title": "Casual", "order": 1 } }</route>
 
 <template>
-    <Panel>
+    <div>
         <h1>{{ route.meta.title }}</h1>
         <markdown source="
 - Matchmaking queue toggles for 1v1, 2v2, 3v3, 4v4, 5v5, 6v6, 7v7, 8v8, Small FFA (3 - 5), Medium FFA (6 - 10), Large FFA (11 - 16), TeamFFA
@@ -10,7 +10,7 @@
 - Should use TS and be hidden from everybody, even from yourself
 - Lower minimum balance deviation criteria (25%?), for faster queue times and because it's less important in casual
 " />
-    </Panel>
+    </div>
 </template>
 
 <script lang="ts">

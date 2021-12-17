@@ -1,7 +1,7 @@
 <route>{ "meta": { "title": "Inputs", "order": 0 } }</route>
 
 <template>
-    <Panel>
+    <div>
         <div class="controls">
             <Textbox label="Text" placeholder="text" :disabled="disabled" />
             <Checkbox v-model="disabled" label="Controls disabled" />
@@ -114,7 +114,7 @@
         <h5>Heading 5</h5>
         <h6>Heading 6</h6>
         <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Saepe laborum neque assumenda dicta, accusamus voluptatum libero alias porro. Mollitia, reprehenderit eveniet. Doloribus nesciunt fugit error quisquam recusandae nihil impedit cupiditate! Lorem ipsum dolor sit amet, consectetur adipisicing elit. Saepe laborum neque assumenda dicta, accusamus voluptatum libero alias porro. Mollitia, reprehenderit eveniet. Doloribus nesciunt fugit error quisquam recusandae nihil impedit cupiditate! Lorem ipsum dolor sit amet, consectetur adipisicing elit. Saepe laborum neque assumenda dicta, accusamus voluptatum libero alias porro. Mollitia, reprehenderit eveniet. Doloribus nesciunt fugit error quisquam recusandae nihil impedit cupiditate! Lorem ipsum dolor sit amet, consectetur adipisicing elit. Saepe laborum neque assumenda dicta, accusamus voluptatum libero alias porro. Mollitia, reprehenderit eveniet. Doloribus nesciunt fugit error quisquam recusandae nihil impedit cupiditate! Lorem ipsum dolor sit amet, consectetur adipisicing elit. Saepe laborum neque assumenda dicta, accusamus voluptatum libero alias porro. Mollitia, reprehenderit eveniet. Doloribus nesciunt fugit error quisquam recusandae nihil impedit cupiditate! Lorem ipsum dolor sit amet, consectetur adipisicing elit. Saepe laborum neque assumenda dicta, accusamus voluptatum libero alias porro. Mollitia, reprehenderit eveniet. Doloribus nesciunt fugit error quisquam recusandae nihil impedit cupiditate! Lorem ipsum dolor sit amet, consectetur adipisicing elit. Saepe laborum neque assumenda dicta, accusamus voluptatum libero alias porro. Mollitia, reprehenderit eveniet. Doloribus nesciunt fugit error quisquam recusandae nihil impedit cupiditate! Lorem ipsum dolor sit amet, consectetur adipisicing elit. Saepe laborum neque assumenda dicta, accusamus voluptatum libero alias porro. Mollitia, reprehenderit eveniet. Doloribus nesciunt fugit error quisquam recusandae nihil impedit cupiditate! Lorem ipsum dolor sit amet, consectetur adipisicing elit. Saepe laborum neque assumenda dicta, accusamus voluptatum libero alias porro. Mollitia, reprehenderit eveniet. Doloribus nesciunt fugit error quisquam recusandae nihil impedit cupiditate! Lorem ipsum dolor sit amet, consectetur adipisicing elit. Saepe laborum neque assumenda dicta, accusamus voluptatum libero alias porro. Mollitia, reprehenderit eveniet. Doloribus nesciunt fugit error quisquam recusandae nihil impedit cupiditate! Lorem ipsum dolor sit amet, consectetur adipisicing elit. Saepe laborum neque assumenda dicta, accusamus voluptatum libero alias porro. Mollitia, reprehenderit eveniet. Doloribus nesciunt fugit error quisquam recusandae nihil impedit cupiditate! Lorem ipsum dolor sit amet, consectetur adipisicing elit. Saepe laborum neque assumenda dicta, accusamus voluptatum libero alias porro. Mollitia, reprehenderit eveniet. Doloribus nesciunt fugit error quisquam recusandae nihil impedit cupiditate!</p>
-    </Panel>
+    </div>
 </template>
 
 <script lang="ts">
