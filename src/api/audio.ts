@@ -34,6 +34,7 @@ export class AudioAPI {
         }
 
         watch(window.api.settings.model.sfxVolume, () => {
+            console.log(this.sounds.size);
             this.sounds.forEach(sound => {
                 if (!sound.isMusic) {
                     sound.volume(window.api.settings.model.sfxVolume.value / 100);
@@ -76,7 +77,7 @@ export class AudioAPI {
             throw new Error(`Sound file with key ${soundKey} was not found`);
         }
 
-        const isMusic = path.includes("/music");
+        const isMusic = path[1].includes("music");
 
         if (isMusic) {
             const sound = new Sound(soundKey, true, {
