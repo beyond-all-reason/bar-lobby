@@ -23,13 +23,12 @@ export default defineComponent({
     props: {
         transition: String
     },
-    setup(props) {
+    setup() {
         const route = useRoute();
         const transitionName = ref("");
 
         watch(route, () => {
             transitionName.value = route.redirectedFrom?.meta?.transition ?? "secondary";
-            console.log(transitionName.value);
         });
 
         return { route, transitionName };

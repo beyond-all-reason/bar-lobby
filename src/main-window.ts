@@ -40,6 +40,7 @@ export class MainWindow {
             }
         });
 
+        this.window.once("ready-to-show", () => this.show());
         this.window.on("maximize", () => this.setDisplay(this.config.displayIndex));
         
         this.window.webContents.setWindowOpenHandler(({ url }) => {

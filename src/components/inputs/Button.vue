@@ -23,10 +23,10 @@ export default defineComponent({
         const route = useRoute();
         const to = toRefs(props).to;
         const isActive = computed(() => props.to && route.path.includes(props.to));
-        const clickSound = window.api.audio.sfxSounds.get("button-hover")!;
+        const sound = window.api.audio.getSound("button-hover");
         const play = () => {
             if (!props.to || (props.to && !isActive.value)) {
-                clickSound.play();
+                sound.play();
             }
         };
 

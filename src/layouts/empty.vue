@@ -2,7 +2,7 @@
     <div class="fullsize layout layout--empty">
         <div id="view" :class="`view view--${route.name?.toString()}`">
             <router-view v-slot="{ Component }">
-                <transition :name="transition" :appear="Boolean(transition)">
+                <transition :name="transition" :appear="appear ?? Boolean(transition)">
                     <component :is="Component" />
                 </transition>
             </router-view>
@@ -16,7 +16,8 @@ import { useRoute } from "vue-router";
 
 export default defineComponent({
     props: {
-        transition: String
+        transition: String,
+        appear: Boolean
     },
     setup() {
         const route = useRoute();

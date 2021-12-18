@@ -1,17 +1,20 @@
-import { Howl } from "howler";
 import { randomFromArray } from "jaz-ts-utils";
 
-let allMusic: Howl[] = [];
+const musicKeys: string[] = [];
 
 export const playRandomMusic = () => {
-    if (allMusic.length === 0) {
-        allMusic = Array.from(window.api.audio.musicSounds.values());
+    if (!musicKeys.length) {
+        for (const [key, val] of window.api.audio.soundsToLoad.entries()) {
+            if (val[1].includes("music")) {
+                musicKeys.push(key);
+            }
+        }
     }
 
-    const music = randomFromArray(allMusic);
-    music.on("end", () => {
+    const soundKey = randomFromArray(musicKeys);
+    const sound = window.api.audio.getSound(soundKey);
+    sound.on("end", () => {
         playRandomMusic();
-        music.unload();
     });
-    music.play();
+    sound.play();
 };

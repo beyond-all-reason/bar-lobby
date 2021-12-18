@@ -1,6 +1,7 @@
 import index from '@/views/index.vue'
 import intro from '@/views/intro.vue'
 import login from '@/views/login.vue'
+import preloader from '@/views/preloader.vue'
 import home_index from '@/views/home/index.vue'
 import learn_index from '@/views/learn/index.vue'
 import library_index from '@/views/library/index.vue'
@@ -40,6 +41,7 @@ export default [
     name: 'index',
     path: '/',
     component: index,
+    redirect: '/preloader',
   },
   {
     name: 'intro',
@@ -50,6 +52,11 @@ export default [
     name: 'login',
     path: '/login',
     component: login,
+  },
+  {
+    name: 'preloader',
+    path: '/preloader',
+    component: preloader,
   },
   {
     name: 'home',
