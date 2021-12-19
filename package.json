@@ -10,7 +10,7 @@
   "author": "Jazcash",
   "license": "gpl-3.0",
   "scripts": {
-    "build": "vue-cli-service electron:build",
+    "build": "NODE_ENV=production vue-cli-service electron:build",
     "lint": "vue-cli-service lint",
     "dev": "vue-cli-service electron:serve",
     "postinstall": "electron-builder install-app-deps",
