@@ -31,7 +31,8 @@ module.exports = {
                 productName: "BAR Lobby",
                 directories: {
                     buildResources: "build"
-                }
+                },
+                publish: ["github"]
             },
             chainWebpackRendererProcess: config => {
                 config.target("electron-renderer");

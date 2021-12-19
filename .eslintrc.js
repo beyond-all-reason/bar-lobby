@@ -21,7 +21,7 @@ module.exports = {
         "indent": ["error", 4],
         "quotes": ["error", "double"],
         "semi": ["error", "always"],
-        "space-before-function-paren": ["error", "never"],
+        "space-before-function-paren": ["error", { "anonymous": "never", "named": "never", "asyncArrow": "always" }],
         "space-before-blocks": ["error", "always"],
         "keyword-spacing": ["error"],
 

@@ -10,9 +10,10 @@
   "author": "Jazcash",
   "license": "gpl-3.0",
   "scripts": {
-    "build": "NODE_ENV=production vue-cli-service electron:build",
-    "lint": "vue-cli-service lint",
     "dev": "vue-cli-service electron:serve",
+    "build": "NODE_ENV=production vue-cli-service electron:build",
+    "build-publish": "NODE_ENV=production vue-cli-service electron:build -- -p always",
+    "lint": "vue-cli-service lint",
     "postinstall": "electron-builder install-app-deps",
     "postuninstall": "electron-builder install-app-deps",
     "dump-webpack-config": "vue inspect > output.js"
@@ -38,6 +39,7 @@
     "electron": "^16.0.4",
     "electron-devtools-installer": "^3.1.0",
     "electron-unhandled": "^3.0.2",
+    "electron-updater": "^4.6.1",
     "eslint": "^6.7.2",
     "eslint-plugin-unused-imports": "^2.0.0",
     "eslint-plugin-vue": "^7.0.0",

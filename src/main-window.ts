@@ -1,6 +1,7 @@
 import * as path from "path";
 import { BrowserWindow, ipcMain, screen, shell } from "electron";
 import { createProtocol } from "vue-cli-plugin-electron-builder/lib";
+import { autoUpdater } from "electron-updater";
 
 declare const __static: string;
 
@@ -58,8 +59,9 @@ export class MainWindow {
             await this.window.loadURL(process.env.WEBPACK_DEV_SERVER_URL);
             if (!process.env.IS_TEST) this.window.webContents.openDevTools();
         } else {
-            createProtocol("app");
-            this.window.loadURL("app://./index.html");
+            createProtocol("bar");
+            this.window.loadURL("bar://./index.html");
+            autoUpdater.checkForUpdatesAndNotify();
         }
     }
 
