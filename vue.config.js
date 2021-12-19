@@ -27,6 +27,7 @@ module.exports = {
             mainProcessFile: "src/main.ts",
             mainProcessWatch: ["src/main.ts", "src/main-window.ts", "src/api/**/*"],
             rendererProcessFile: "src/render.ts",
+            customFileProtocol: "bar://./",
             builderOptions: {
                 productName: "BAR Lobby",
                 directories: {

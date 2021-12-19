@@ -1,6 +1,9 @@
 <template>
     <Modal name="Settings">
         <form class="grid gap-md">
+            <div class="flex-row flex-center-items">Fullscreen</div>
+            <Checkbox v-model="fullscreen" />
+
             <div class="flex-row flex-center-items">Display</div>
             <Select v-model="displayIndex" :options="displays" :label-by="option => `Display ${option + 1}`" />
 

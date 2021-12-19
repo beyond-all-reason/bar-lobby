@@ -1,5 +1,5 @@
 <template>
-    <div :class="`fullsize theme theme--${theme}`">
+    <div :class="`fullsize theme theme--${theme.toLowerCase()}`">
         <Alert />
         <DebugSidebar/>
         <router-view/>

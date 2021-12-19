@@ -1,32 +1,25 @@
 import * as path from "path";
-import { BrowserWindow, ipcMain, screen, shell } from "electron";
+import { BrowserWindow, screen, shell } from "electron";
 import { createProtocol } from "vue-cli-plugin-electron-builder/lib";
 import { autoUpdater } from "electron-updater";
+import { SettingsType } from "@/model/settings";
+import { StoreAPI } from "@/api/store";
+import { watch } from "vue";
 
 declare const __static: string;
 
-export interface MainWindowConfig {
-    fullscreen: boolean;
-    displayIndex: number;
-}
-
-export const defaultMainWindowConfig: MainWindowConfig = {
-    fullscreen: false,
-    displayIndex: 0
-};
-
 export class MainWindow {
     public window: BrowserWindow;
-    
-    protected config: MainWindowConfig;
 
-    constructor(config?: Partial<MainWindowConfig>) {
-        this.config = Object.assign({}, defaultMainWindowConfig, config);
+    protected settings: StoreAPI<SettingsType>;
+
+    constructor(settings: StoreAPI<SettingsType>) {
+        this.settings = settings;
 
         this.window = new BrowserWindow({
             title: "BAR Lobby",
-            fullscreen: this.config.fullscreen,
-            frame: !this.config.fullscreen,
+            fullscreen: this.settings.model.fullscreen.value,
+            frame: true,
             resizable: true,
             show: false,
             icon: path.join(__static, "icon.png"),
@@ -42,14 +35,15 @@ export class MainWindow {
         });
 
         this.window.once("ready-to-show", () => this.show());
-        this.window.on("maximize", () => this.setDisplay(this.config.displayIndex));
+        this.window.on("maximize", () => this.setDisplay(this.settings.model.displayIndex.value));
         
         this.window.webContents.setWindowOpenHandler(({ url }) => {
             shell.openExternal(url);
             return { action: "deny" };
         });
 
-        ipcMain.handle("setDisplay", async (event, displayIndex) => this.setDisplay(displayIndex));
+        watch(this.settings.model.displayIndex, (displayIndex) => this.setDisplay(displayIndex));
+        watch(this.settings.model.fullscreen, (fullscreen) => this.window.setFullScreen(fullscreen));
 
         this.init();
     }
@@ -61,18 +55,20 @@ export class MainWindow {
         } else {
             createProtocol("bar");
             this.window.loadURL("bar://./index.html");
-            autoUpdater.checkForUpdatesAndNotify();
+            if (process.env.AUTO_UPDATE) {
+                autoUpdater.checkForUpdatesAndNotify();
+            }
         }
     }
 
     public show() {
-        this.setDisplay(this.config.displayIndex);
+        this.setDisplay(this.settings.model.displayIndex.value);
 
-        if (!this.config.fullscreen) {
-            this.window.maximize();
+        this.window.maximize();
+
+        if (process.env.NODE_ENV === "production") {
+            this.window.setResizable(false);
         }
-
-        //this.window.setResizable(false);
 
         this.window.setMenuBarVisibility(false);
         
@@ -85,7 +81,8 @@ export class MainWindow {
             const { x, y, width, height } = display.bounds;
             this.window.setPosition(x, y);
             this.window.setSize(width, height);
-            this.config.displayIndex = displayIndex;
+            this.window.maximize();
+            this.settings.model.displayIndex.value = displayIndex;
         }
     }
 }

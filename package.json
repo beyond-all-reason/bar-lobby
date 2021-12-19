@@ -11,8 +11,8 @@
   "license": "gpl-3.0",
   "scripts": {
     "dev": "vue-cli-service electron:serve",
-    "build": "NODE_ENV=production vue-cli-service electron:build",
-    "build-publish": "NODE_ENV=production vue-cli-service electron:build -- -p always",
+    "build": "cross-env NODE_ENV=production vue-cli-service electron:build",
+    "build-publish": "cross-env NODE_ENV=production AUTO_UPDATE=true vue-cli-service electron:build -- -p always",
     "lint": "vue-cli-service lint",
     "postinstall": "electron-builder install-app-deps",
     "postuninstall": "electron-builder install-app-deps",
@@ -22,6 +22,7 @@
   "dependencies": {
     "@iconify/json": "^1.1.420",
     "@sinclair/typebox": "^0.20.5",
+    "@types/debounce": "^1.2.1",
     "@types/electron-devtools-installer": "^2.2.0",
     "@types/howler": "^2.2.4",
     "@types/marked": "^4.0.1",
@@ -36,6 +37,8 @@
     "@vue/eslint-config-typescript": "^7.0.0",
     "@vueuse/core": "^7.3.0",
     "ajv": "^8.7.1",
+    "cross-env": "^7.0.3",
+    "debounce": "^1.2.1",
     "electron": "^16.0.4",
     "electron-devtools-installer": "^3.1.0",
     "electron-unhandled": "^3.0.2",
