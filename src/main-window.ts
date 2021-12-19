@@ -20,11 +20,10 @@ export class MainWindow {
             title: "BAR Lobby",
             fullscreen: this.settings.model.fullscreen.value,
             frame: true,
-            resizable: true,
             show: false,
             icon: path.join(__static, "icon.png"),
-            minWidth: 1300,
-            minHeight: 800,
+            minWidth: 1440,
+            minHeight: 900,
             darkTheme: true,
             webPreferences: {
                 nodeIntegration: true,
@@ -35,7 +34,6 @@ export class MainWindow {
         });
 
         this.window.once("ready-to-show", () => this.show());
-        this.window.on("maximize", () => this.setDisplay(this.settings.model.displayIndex.value));
         
         this.window.webContents.setWindowOpenHandler(({ url }) => {
             shell.openExternal(url);
@@ -43,7 +41,10 @@ export class MainWindow {
         });
 
         watch(this.settings.model.displayIndex, (displayIndex) => this.setDisplay(displayIndex));
-        watch(this.settings.model.fullscreen, (fullscreen) => this.window.setFullScreen(fullscreen));
+        watch(this.settings.model.fullscreen, (fullscreen) => {
+            this.window.setFullScreen(fullscreen);
+            this.window.maximize();
+        });
 
         this.init();
     }
@@ -63,12 +64,6 @@ export class MainWindow {
 
     public show() {
         this.setDisplay(this.settings.model.displayIndex.value);
-
-        this.window.maximize();
-
-        if (process.env.NODE_ENV === "production") {
-            this.window.setResizable(false);
-        }
 
         this.window.setMenuBarVisibility(false);
         

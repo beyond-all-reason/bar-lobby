@@ -58,7 +58,7 @@ declare module "vue-router" {
 
     window.api = {
         session: toRefs(session),
-        settings: await new StoreAPI<SettingsType>("settings.json", settingsSchema).init(),
+        settings: await new StoreAPI<SettingsType>("settings", settingsSchema, true).init(),
         client: new TachyonClient({
             //host: "localhost",
             host: "server2.beyondallreason.info",
@@ -68,9 +68,15 @@ declare module "vue-router" {
         audio: new AudioAPI(),
         alerts: new AlertsAPI(),
         modals: new ModalsAPI(),
-        accounts: await new StoreAPI<AccountType>("accounts.json", accountSchema).init(),
+        accounts: await new StoreAPI<AccountType>("accounts", accountSchema).init(),
         game: new GameAPI()
     };
+
+    document.addEventListener("keydown", (event) => {
+        if (event.code === "F11") {
+            event.preventDefault();
+        }
+    });
 
     window.api.audio.init();
 

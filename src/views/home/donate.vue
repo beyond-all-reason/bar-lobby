@@ -1,12 +1,13 @@
-<route>{ "meta": { "title": "Contribute", "order": 3 } }</route>
+<route>{ "meta": { "title": "Donate", "order": 0 } }</route>
 
 <template>
     <div>
         <h1>{{ route.meta.title }}</h1>
         <markdown source="
-- List of contributors
-- Details on contributing
-- Donate section
+- BAR is a free, open-source project supported by hardworking individuals blahblah
+- How your donation gets used
+- Donate button
+- List of donators
 " />
     </div>
 </template>

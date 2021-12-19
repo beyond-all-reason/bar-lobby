@@ -46,7 +46,7 @@ export default defineComponent({
         }
 
         watch(window.api.accounts.model.email, () => email.value = window.api.accounts.model.email.value);
-        watch(window.api.accounts.model.password, () => email.value = window.api.accounts.model.password.value);
+        watch(window.api.accounts.model.password, () => password.value = window.api.accounts.model.password.value);
 
         const login = async () => {
             loading.value = true;
@@ -76,7 +76,7 @@ export default defineComponent({
                     requestVerification.value = true;
                 } else if (loginResponse.result === "success") {
                     loading.value = true;
-                    router.push("/home");
+                    await router.push("/home");
                 } else {
                     if (loginResponse.reason) {
                         loginError.value = loginResponse.reason;
@@ -98,7 +98,7 @@ export default defineComponent({
 
             if (verifyResult.result === "success") {
                 // TODO: store user info
-                router.push("/home");
+                await router.push("/home");
             } else if (verifyResult.reason) {
                 verificationError.value = verifyResult.reason;
             }

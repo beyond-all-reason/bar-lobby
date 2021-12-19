@@ -2,6 +2,7 @@ import index from '@/views/index.vue'
 import intro from '@/views/intro.vue'
 import login from '@/views/login.vue'
 import preloader from '@/views/preloader.vue'
+import development_index from '@/views/development/index.vue'
 import home_index from '@/views/home/index.vue'
 import learn_index from '@/views/learn/index.vue'
 import library_index from '@/views/library/index.vue'
@@ -11,8 +12,13 @@ import singleplayer_index from '@/views/singleplayer/index.vue'
 import store_index from '@/views/store/index.vue'
 import debug_inputs from '@/views/debug/inputs.vue'
 import debug_playground from '@/views/debug/playground.vue'
+import development_game_dev from '@/views/development/game-dev.vue'
+import development_lobby_dev from '@/views/development/lobby-dev.vue'
+import development_map_dev from '@/views/development/map-dev.vue'
+import development_server_dev from '@/views/development/server-dev.vue'
+import development_website_dev from '@/views/development/website-dev.vue'
 import home_changes from '@/views/home/changes.vue'
-import home_contribute from '@/views/home/contribute.vue'
+import home_donate from '@/views/home/donate.vue'
 import home_home from '@/views/home/home.vue'
 import home_news from '@/views/home/news.vue'
 import learn_commands from '@/views/learn/commands.vue'
@@ -57,6 +63,17 @@ export default [
     name: 'preloader',
     path: '/preloader',
     component: preloader,
+  },
+  {
+    name: 'development',
+    path: '/development',
+    component: development_index,
+    meta: {
+      title: 'Development',
+      transition: 'primary',
+      order: 5,
+    },
+    redirect: '/development/game-dev',
   },
   {
     name: 'home',
@@ -154,6 +171,51 @@ export default [
     },
   },
   {
+    name: 'development-game-dev',
+    path: '/development/game-dev',
+    component: development_game_dev,
+    meta: {
+      title: 'Game',
+      order: 0,
+    },
+  },
+  {
+    name: 'development-lobby-dev',
+    path: '/development/lobby-dev',
+    component: development_lobby_dev,
+    meta: {
+      title: 'Lobby',
+      order: 2,
+    },
+  },
+  {
+    name: 'development-map-dev',
+    path: '/development/map-dev',
+    component: development_map_dev,
+    meta: {
+      title: 'Maps',
+      order: 1,
+    },
+  },
+  {
+    name: 'development-server-dev',
+    path: '/development/server-dev',
+    component: development_server_dev,
+    meta: {
+      title: 'Server',
+      order: 3,
+    },
+  },
+  {
+    name: 'development-website-dev',
+    path: '/development/website-dev',
+    component: development_website_dev,
+    meta: {
+      title: 'Website',
+      order: 4,
+    },
+  },
+  {
     name: 'home-changes',
     path: '/home/changes',
     component: home_changes,
@@ -163,12 +225,12 @@ export default [
     },
   },
   {
-    name: 'home-contribute',
-    path: '/home/contribute',
-    component: home_contribute,
+    name: 'home-donate',
+    path: '/home/donate',
+    component: home_donate,
     meta: {
-      title: 'Contribute',
-      order: 3,
+      title: 'Donate',
+      order: 0,
     },
   },
   {

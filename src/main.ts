@@ -67,7 +67,7 @@ export class Application {
     }
 
     protected async setupMainWindow() {
-        this.settings = await new StoreAPI<SettingsType>("settings.json", settingsSchema).init();
+        this.settings = await new StoreAPI<SettingsType>("settings", settingsSchema).init();
 
         this.mainWindow = new MainWindow(this.settings);
     }

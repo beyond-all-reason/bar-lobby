@@ -25,7 +25,6 @@
 <script lang="ts">
 import { defineComponent, ref, watch } from "vue";
 import { Theme } from "@/model/settings";
-import { ipcRenderer } from "electron";
 
 export default defineComponent({
     setup() {
@@ -34,7 +33,6 @@ export default defineComponent({
         const themes = Object.values(Theme);
 
         watch(settings.displayIndex, async () => {
-            ipcRenderer.invoke("setDisplay", settings.displayIndex.value);
             window.info.hardware.currentDisplayIndex = settings.displayIndex.value;
         });
 

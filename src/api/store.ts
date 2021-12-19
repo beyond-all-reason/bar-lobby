@@ -1,4 +1,4 @@
-import Ajv from "ajv";
+import Ajv, { ValidateFunction } from "ajv";
 import { reactive, ToRefs, toRefs, watch } from "vue";
 import * as fs from "fs";
 import * as path from "path";
@@ -8,14 +8,20 @@ import { TObject } from "@sinclair/typebox";
 export class StoreAPI<T extends Record<string, unknown>> {
     public model!: ToRefs<T>;
     
+    protected name: string;
+    protected filename: string;
+    protected schema: TObject<any>;
     protected dir: string;
     protected filePath: string;
-    protected ajv = new Ajv({ coerceTypes: true, useDefaults: true });
-    protected validator = this.ajv.compile(this.schema);
+    protected ajv: Ajv;
+    protected validator: ValidateFunction;
     protected fileHandle!: fs.promises.FileHandle;
     protected writeTimeout: NodeJS.Timeout | null = null;
 
-    constructor(protected filename: string, protected schema: TObject<any>) {
+    constructor(name: string, schema: TObject<any>, protected syncWithMain = false) {
+        this.name = name;
+        this.filename = `${name}.json`;
+
         let userDataPath = "";
         if (process.type === "renderer") {
             userDataPath = window.info.userDataPath;
@@ -24,7 +30,11 @@ export class StoreAPI<T extends Record<string, unknown>> {
         }
         
         this.dir = path.join(userDataPath, "store");
-        this.filePath = path.join(this.dir, filename);
+        this.filePath = path.join(this.dir, name);
+
+        this.schema = schema;
+        this.ajv = new Ajv({ coerceTypes: true, useDefaults: true });
+        this.validator = this.ajv.compile(this.schema);
     }
 
     public async init() {
@@ -32,16 +42,19 @@ export class StoreAPI<T extends Record<string, unknown>> {
 
         await this.read();
 
+        // TODO: refactor to watch file and pull changes into model without retriggering a write
         if (process.type === "renderer") {
             for (const value of Object.values(this.model) as Array<ToRefs<T>>) {
                 watch(value, async () => {
                     await this.write();
 
-                    ipcRenderer.invoke("store-update", this.serialize());
+                    if (this.syncWithMain) {
+                        ipcRenderer.invoke(`store-update:${this.name}`, this.serialize());
+                    }
                 });
             }
         } else if (process.type === "browser") {
-            ipcMain.handle("store-update", async (event, model: Record<string, unknown>) => {
+            ipcMain.handle(`store-update:${this.name}`, async (event, model: T) => {
                 for (const [key, val] of Object.entries(model)) {
                     this.model[key].value = val;
                 }
