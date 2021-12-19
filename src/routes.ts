@@ -230,7 +230,7 @@ export default [
     component: home_donate,
     meta: {
       title: 'Donate',
-      order: 0,
+      order: 3,
     },
   },
   {

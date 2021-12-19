@@ -4,7 +4,7 @@
             <Icon icon="tools" :size="20" />
         </button>
 
-        <Select label="Route" v-model="currentRoute" :options="routes" :label-by="route => route.path" :value-by="route => route.path" :searchable="true" :clear-on-select="true" />
+        <Select label="View" v-model="currentRoute" :options="routes" :label-by="route => route.path" :value-by="route => route.path" :searchable="true" :clear-on-select="true" />
 
         <div class="flex-row">
             <Button @click="openSettings">Open Settings File</Button>
