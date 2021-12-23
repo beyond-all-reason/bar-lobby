@@ -7,6 +7,7 @@ declare module "*.vue" {
 }
 
 declare module "vue3-markdown-it";
+declare module "nodegit";
 
 declare module "*.png";
 declare module "*.mp3";

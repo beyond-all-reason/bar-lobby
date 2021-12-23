@@ -48,9 +48,19 @@ declare module "vue-router" {
     }
 }
 
+declare module "@vue/runtime-core" {
+    export interface GlobalComponents {
+        RouterLink: typeof import("vue-router")["RouterLink"];
+        RouterView: typeof import("vue-router")["RouterView"];
+        Range: typeof import("@/components/inputs/range.vue")["default"];
+    }
+}
+
+
 (async () => {
     window.info = await ipcRenderer.invoke("getInfo");
 
+    // TODO: API this
     const ajv = new Ajv({ coerceTypes: true, useDefaults: true });
     const sessionValidator = ajv.compile(sessionSchema);
     const session = reactive({}) as SessionType;

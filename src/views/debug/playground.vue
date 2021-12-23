@@ -6,16 +6,10 @@
     </div>
 </template>
 
-<script lang="ts">
-import { defineComponent, ref } from "vue";
+<script lang="ts" setup>
+import { ref } from "vue";
 
-export default defineComponent({
-    setup() {
-        const thing = ref(5);
-
-        return { thing };
-    }
-});
+const thing = ref(5);
 </script>
 
 <style scoped lang="scss">
