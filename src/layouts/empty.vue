@@ -10,20 +10,14 @@
     </div>
 </template>
 
-<script lang="ts">
-import { defineComponent } from "vue";
+<script lang="ts" setup>
 import { useRoute } from "vue-router";
 
-export default defineComponent({
-    props: {
-        transition: String,
-        appear: Boolean
-    },
-    setup() {
-        const route = useRoute();
-
-        return { route };
-    }
+const props = defineProps({
+    transition: String,
+    appear: Boolean
 });
+
+const route = useRoute();
 </script>
 

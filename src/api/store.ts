@@ -7,7 +7,7 @@ import { TObject } from "@sinclair/typebox";
 
 export class StoreAPI<T extends Record<string, unknown>> {
     public model!: ToRefs<T>;
-    
+
     protected name: string;
     protected filename: string;
     protected schema: TObject<any>;
@@ -28,7 +28,7 @@ export class StoreAPI<T extends Record<string, unknown>> {
         } else {
             userDataPath = app.getPath("userData");
         }
-        
+
         this.dir = path.join(userDataPath, "store");
         this.filePath = path.join(this.dir, name);
 
@@ -79,7 +79,7 @@ export class StoreAPI<T extends Record<string, unknown>> {
         } catch {
             this.fileHandle = await fs.promises.open(this.filePath, "w+");
         }
-        
+
         const fileBuffer = await this.fileHandle.readFile();
         const fileString = fileBuffer.toString();
         const model = (fileString ? JSON.parse(fileString) : {}) as T;

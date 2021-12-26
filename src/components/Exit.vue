@@ -7,27 +7,20 @@
     </Modal>
 </template>
 
-<script lang="ts">
-import { defineComponent } from "vue";
+<script lang="ts" setup>
 import { useRouter } from "vue-router";
 
-export default defineComponent({
-    setup() {
-        const router = useRouter();
+const router = useRouter();
 
-        const logout = async () => {
-            window.api.accounts.model.token.value = "";
-            await window.api.client.disconnect();
-            window.api.modals.close("exit");
-            router.push("/login");
-        };
+const logout = async () => {
+    window.api.accounts.model.token.value = "";
+    await window.api.client.disconnect();
+    window.api.modals.close("exit");
+    router.push("/login");
+};
 
-        const quitToDesktop = async () => {
-            window.api.modals.close("exit");
-            window.close();
-        };
-
-        return { logout, quitToDesktop };
-    }
-});
+const quitToDesktop = async () => {
+    window.api.modals.close("exit");
+    window.close();
+};
 </script>

@@ -23,8 +23,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from "vue";
-import { useRouter } from "vue-router";
+import { defineComponent } from "vue";
 
 export default defineComponent({
     layout: {
@@ -32,45 +31,47 @@ export default defineComponent({
         props: {
             transition: "fade",
         }
-    },
-    setup() {
-        const router = useRouter();
-        const loading = ref(true);
-        const activeTab = ref(0);
+    }
+});
+</script>
 
-        if (window.api.client.isLoggedIn()) {
-            router.push("/home");
-        } else {
-            window.api.client.connect().then(() => {
-                if (window.api.accounts.model.token.value) {
-                    loading.value = true;
-                    window.api.client.login({
-                        token: window.api.accounts.model.token.value,
-                        lobby_name: window.info.lobby.name,
-                        lobby_version: window.info.lobby.version,
-                        lobby_hash: window.info.lobby.hash
-                    }).then(data => {
-                        if (data.result === "success") {
-                            router.push("/home");
-                        } else {
-                            loading.value = false;
-                        }
-                    });
+<script lang="ts" setup>
+import { ref } from "vue";
+import { useRouter } from "vue-router";
+
+const router = useRouter();
+const loading = ref(true);
+const activeTab = ref(0);
+
+if (window.api.client.isLoggedIn()) {
+    router.push("/home");
+} else {
+    window.api.client.connect().then(() => {
+        if (window.api.accounts.model.token.value) {
+            loading.value = true;
+            window.api.client.login({
+                token: window.api.accounts.model.token.value,
+                lobby_name: window.info.lobby.name,
+                lobby_version: window.info.lobby.version,
+                lobby_hash: window.info.lobby.hash
+            }).then(data => {
+                if (data.result === "success") {
+                    router.push("/home");
                 } else {
                     loading.value = false;
                 }
-            }).catch((error) => {
-                if (error) {
-                    window.api.alerts.alert(error, "error", true);
-                } else {
-                    window.api.alerts.alert("Could not connect to server", "error", true);
-                }
             });
+        } else {
+            loading.value = false;
         }
-
-        return { loading, activeTab };
-    }
-});
+    }).catch((error) => {
+        if (error) {
+            window.api.alerts.alert(error, "error", true);
+        } else {
+            window.api.alerts.alert("Could not connect to server", "error", true);
+        }
+    });
+}
 </script>
 
 <style scoped lang="scss">

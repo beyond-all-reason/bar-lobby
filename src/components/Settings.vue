@@ -22,21 +22,16 @@
     </Modal>
 </template>
 
-<script lang="ts">
-import { defineComponent, ref, watch } from "vue";
+<script lang="ts" setup>
+import { ref, watch } from "vue";
 import { Theme } from "@/model/settings";
 
-export default defineComponent({
-    setup() {
-        const settings = window.api.settings.model;
-        const displays = ref(Array(window.info.hardware.numOfDisplays).fill(0).map((x, i) => i));
-        const themes = Object.values(Theme);
+const settings = window.api.settings.model;
+const displays = ref(Array(window.info.hardware.numOfDisplays).fill(0).map((x, i) => i));
+const themes = Object.values(Theme);
+const { fullscreen, displayIndex, theme, skipIntro, sfxVolume, musicVolume } = window.api.settings.model;
 
-        watch(settings.displayIndex, async () => {
-            window.info.hardware.currentDisplayIndex = settings.displayIndex.value;
-        });
-
-        return { displays, themes, ...settings };
-    }
+watch(settings.displayIndex, async () => {
+    window.info.hardware.currentDisplayIndex = settings.displayIndex.value;
 });
 </script>

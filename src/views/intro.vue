@@ -17,7 +17,7 @@ export default defineComponent({
     },
     setup() {
         const router = useRouter();
-        
+
         async function play({ target: video }: { target: HTMLVideoElement}) {
             video.volume = 0.2;
             video.play();
@@ -29,7 +29,7 @@ export default defineComponent({
             }
 
             playRandomMusic();
-            
+
             router.replace("/login");
         }
 

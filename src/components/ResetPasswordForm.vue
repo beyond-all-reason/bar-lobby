@@ -8,20 +8,14 @@
     </form>
 </template>
 
-<script lang="ts">
-import { defineComponent, ref } from "vue";
+<script lang="ts" setup>
+import { ref } from "vue";
 
-export default defineComponent({
-    setup() {
-        const email = ref("");
-        const username = ref("");
+const email = ref("");
+const username = ref("");
 
-        const requestPasswordReset = () => {
-            console.log(email.value, username.value);
-        };
-
-        return { email, username, requestPasswordReset };
-    }
-});
+const requestPasswordReset = () => {
+    console.log(email.value, username.value);
+};
 </script>
 

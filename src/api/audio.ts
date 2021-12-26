@@ -48,7 +48,7 @@ export class AudioAPI {
                 }
             });
         });
-        
+
         return this;
     }
 

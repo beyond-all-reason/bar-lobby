@@ -38,7 +38,7 @@ export class Application {
                 });
             }
         }
-        
+
         this.app.on("ready", () => this.onReady());
         this.app.on("activate", () => this.onActivate());
         this.app.on("window-all-closed", () => this.onWindowAllClosed());

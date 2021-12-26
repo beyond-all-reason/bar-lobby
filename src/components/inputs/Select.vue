@@ -5,22 +5,17 @@
     </div>
 </template>
 
-<script lang="ts">
+<script lang="ts" setup>
 // https://iendeavor.github.io/vue-next-select/
 
-import { defineComponent, ref } from "vue";
+import { ref } from "vue";
 import { v4 as uuidv4 } from "uuid";
 
-export default defineComponent({
-    props: {
-        label: String,
-    },
-    setup(props) {
-        const uuid = ref(uuidv4());
-        const label = ref(props.label);
-
-        return { uuid, label };
-    }
+const props = defineProps({
+    label: String
 });
+
+const uuid = ref(uuidv4());
+const label = ref(props.label);
 </script>
 

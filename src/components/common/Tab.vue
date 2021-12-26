@@ -8,15 +8,15 @@
 import { defineComponent } from "vue";
 
 export default defineComponent({
-    name: "Tab",
-    props: {
-        title: {
-            type: String,
-            required: true
-        }
-    },
-    setup() {
-        return {};
+    name: "Tab"
+});
+</script>
+
+<script lang="ts" setup>
+const props = defineProps({
+    title: {
+        type: String,
+        required: true
     }
 });
 </script>

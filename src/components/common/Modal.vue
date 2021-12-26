@@ -14,29 +14,24 @@
     </teleport>
 </template>
 
-<script lang="ts">
-import { defineComponent, ref } from "vue";
+<script lang="ts" setup>
+import { ref } from "vue";
 
-export default defineComponent({
-    props: {
-        name: {
-            type: String,
-            required: true
-        },
-        title: {
-            type: String,
-            default: "",
-        },
+const props = defineProps({
+    name: {
+        type: String,
+        required: true
     },
-    setup(props, context) {
-        const isOpen = window.api.modals.register(props.name);
-        const title = ref(props.title || props.name);
-
-        const close = () => {
-            window.api.modals.close(props.name);
-        };
-
-        return { isOpen, title, close };
-    }
+    title: {
+        type: String,
+        default: "",
+    },
 });
+
+const isOpen = window.api.modals.register(props.name);
+const title = ref(props.title || props.name);
+
+const close = () => {
+    window.api.modals.close(props.name);
+};
 </script>

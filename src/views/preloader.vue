@@ -1,6 +1,6 @@
 <template>
     <div class="loader">
-        <Progress :percent="loadedPercent" />
+        <Progress class="fullsize flex-center" :percent="loadedPercent" />
     </div>
 </template>
 
@@ -8,9 +8,9 @@
 import { computed, defineComponent, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 import { randomFromArray } from "jaz-ts-utils";
-import { playRandomMusic } from "@/utils/play-random-music";
 import { loadFont } from "@/utils/load-font";
 import { loadImage } from "@/utils/load-image";
+import { playRandomMusic } from "@/utils/play-random-music";
 
 export default defineComponent({
     layout: {

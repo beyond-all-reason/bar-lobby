@@ -1,6 +1,8 @@
-import git from "nodegit";
 import axios from "axios";
 import { Signal } from "jaz-ts-utils";
+import git from "isomorphic-git";
+import http from "isomorphic-git/http/node";
+import * as fs from "fs";
 
 /**
  * git managed instance of BAR
@@ -16,7 +18,8 @@ export class GameDownloaderAPI {
     protected localDirPath: string;
 
     constructor() {
-        this.repoUrl = "https://github.com/beyond-all-reason/Beyond-All-Reason.git";
+        //this.repoUrl = "https://github.com/beyond-all-reason/Beyond-All-Reason.git";
+        this.repoUrl = "https://github.com/Jazcash/sdfz-demo-parser.git";
         this.localDirPath = window.info.userDataPath + "/beyond-all-reason";
     }
 
@@ -25,19 +28,21 @@ export class GameDownloaderAPI {
     }
 
     public async fetchLatest() {
-        //
+        // todo: is checked out already?
+        await this.clone();
     }
 
     protected async clone() {
-        const totalSize = await this.getTotalRepoSize();
+        //const totalSize = await this.getTotalRepoSize();
 
-        await git.Clone(this.repoUrl, this.localDirPath, {
-            fetchOpts: {
-                callbacks: {
-                    transferProgress: (stats: any) => {
-                        this.onProgress.dispatch(stats.receivedBytes() / totalSize);
-                    }
-                }
+        await git.clone({
+            fs,
+            http,
+            dir: this.localDirPath,
+            url: this.repoUrl,
+            onProgress: (event) => {
+                console.log(event);
+                //this.onProgress.dispatch(event.loaded / event.total);
             }
         });
     }

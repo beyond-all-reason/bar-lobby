@@ -10,28 +10,23 @@
     </div>
 </template>
 
-<script lang="ts">
-import { defineComponent, ref } from "vue";
+<script lang="ts" setup>
+import { ref } from "vue";
 import { v4 as uuidv4 } from "uuid";
 
-export default defineComponent({
-    props: {
-        type: {
-            type: String,
-            default: "text"
-        },
-        label: {
-            type: String,
-            default: ""
-        },
-        modelValue: Boolean,
+const props = defineProps({
+    type: {
+        type: String,
+        default: "text"
     },
-    setup(props, context) {
-        const uuid = ref(uuidv4());
-        const label = ref(props.label);
-        const checked = ref(props.modelValue);
-
-        return { uuid, label, checked };
-    }
+    label: {
+        type: String,
+        default: ""
+    },
+    modelValue: Boolean,
 });
+
+const uuid = ref(uuidv4());
+const label = ref(props.label);
+const checked = ref(props.modelValue);
 </script>

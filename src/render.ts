@@ -21,6 +21,7 @@ import Ajv from "ajv";
 import { AudioAPI } from "@/api/audio";
 import { GameAPI } from "@/api/game";
 import { ModalsAPI } from "@/api/modals";
+import { GameDownloaderAPI } from "./api/game-downloader";
 
 declare global {
     interface Window {
@@ -35,6 +36,7 @@ declare global {
             modals: ModalsAPI;
             accounts: StoreAPI<AccountType>;
             game: GameAPI;
+            gameDownloader: GameDownloaderAPI;
         }
     }
 }
@@ -79,7 +81,8 @@ declare module "@vue/runtime-core" {
         alerts: new AlertsAPI(),
         modals: new ModalsAPI(),
         accounts: await new StoreAPI<AccountType>("accounts", accountSchema).init(),
-        game: new GameAPI()
+        game: new GameAPI(),
+        gameDownloader: new GameDownloaderAPI()
     };
 
     document.addEventListener("keydown", (event) => {

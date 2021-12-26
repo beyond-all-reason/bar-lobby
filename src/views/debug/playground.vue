@@ -2,15 +2,22 @@
 
 <template>
     <div>
-        <Range label="cool" :min="5" v-model="thing" />
+        <Button @click="clone">Clone</Button>
+        <Progress :percent="percent" />
     </div>
 </template>
 
 <script lang="ts" setup>
 import { ref } from "vue";
 
-const thing = ref(5);
-</script>
+const clone = async () => {
+    window.api.gameDownloader.fetchLatest();
+};
 
-<style scoped lang="scss">
-</style>
+const percent = ref(0);
+
+window.api.gameDownloader.onProgress.disposeAll();
+window.api.gameDownloader.onProgress.add((progress) => {
+    percent.value = progress;
+});
+</script>

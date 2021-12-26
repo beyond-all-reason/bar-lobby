@@ -15,23 +15,18 @@
     </div>
 </template>
 
-<script lang="ts">
-import { defineComponent, ref, watch } from "vue";
+<script lang="ts" setup>
+import { ref, watch } from "vue";
 import { useRoute } from "vue-router";
 
-export default defineComponent({
-    props: {
-        transition: String
-    },
-    setup() {
-        const route = useRoute();
-        const transitionName = ref("");
+const props = defineProps({
+    transition: String
+});
 
-        watch(route, () => {
-            transitionName.value = route.redirectedFrom?.meta?.transition ?? "secondary";
-        });
+const route = useRoute();
+const transitionName = ref("");
 
-        return { route, transitionName };
-    }
+watch(route, () => {
+    transitionName.value = route.redirectedFrom?.meta?.transition ?? "secondary";
 });
 </script>

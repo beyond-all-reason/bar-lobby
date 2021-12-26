@@ -5,23 +5,16 @@
     </Modal>
 </template>
 
-<script lang="ts">
-import { defineComponent } from "vue";
+<script lang="ts" setup>
 import { useRouter } from "vue-router";
 
-export default defineComponent({
-    setup() {
-        const { title, message, type, isFatal } = window.api.alerts.getAlert();
-        const router = useRouter();
+const { title, message, type, isFatal } = window.api.alerts.getAlert();
+const router = useRouter();
 
-        const close = async () => {
-            if (isFatal) {
-                await router.replace("/");
-                window.api.alerts.clearAlert();
-            }
-        };
-
-        return { title, message, type, isFatal, close };
+const close = async () => {
+    if (isFatal) {
+        await router.replace("/");
+        window.api.alerts.clearAlert();
     }
-});
+};
 </script>

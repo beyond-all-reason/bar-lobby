@@ -7,45 +7,47 @@
         <Select label="View" v-model="currentRoute" :options="routes" :label-by="route => route.path" :value-by="route => route.path" :searchable="true" :clear-on-select="true" />
 
         <div class="flex-row">
+            <Button to="/debug/inputs">Debug Land</Button>
+        </div>
+        <div class="flex-row">
             <Button @click="openSettings">Open Settings File</Button>
         </div>
         <div class="flex-row">
-            <Button to="/debug/inputs">Debug Land</Button>
+            <Button @click="openLobbyDir">Open Lobby Dir</Button>
         </div>
     </div>
 </template>
 
-<script lang="ts">
-import { defineComponent, readonly, ref, effectScope, watch } from "vue";
+<script lang="ts" setup>
+import { readonly, ref, effectScope, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
+import { shell } from "electron";
 
-export default defineComponent({
-    setup() {
-        const scope = effectScope();
+const scope = effectScope();
 
-        const active = ref(false);
+const active = ref(false);
 
-        const route = useRoute();
-        const router = useRouter();
-        const routes = readonly(router.getRoutes().sort((a, b) => a.path.localeCompare(b.path)));
-        const currentRoute = ref(route.path);
+const route = useRoute();
+const router = useRouter();
+const routes = readonly(router.getRoutes().sort((a, b) => a.path.localeCompare(b.path)));
+const currentRoute = ref(route.path);
 
-        const openSettings = () => {
-            window.api.settings.openFileInEditor();
-        };
+const openSettings = () => {
+    window.api.settings.openFileInEditor();
+};
 
-        scope.run(() => {
-            watch(currentRoute, async () => {
-                await router.replace(currentRoute.value);
-            });
+const openLobbyDir = async () => {
+    shell.openPath(window.info.userDataPath);
+};
 
-            watch(router.currentRoute, () => {
-                currentRoute.value = route.path;
-            });
-        });
+scope.run(() => {
+    watch(currentRoute, async () => {
+        await router.replace(currentRoute.value);
+    });
 
-        return { routes, currentRoute, active, openSettings };
-    }
+    watch(router.currentRoute, () => {
+        currentRoute.value = route.path;
+    });
 });
 </script>
 

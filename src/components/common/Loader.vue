@@ -5,16 +5,6 @@
     </div>
 </template>
 
-<script lang="ts">
-import { defineComponent } from "vue";
-
-export default defineComponent({
-    setup() {
-        return {};
-    }
-});
-</script>
-
 <style scoped lang="scss">
 .loader {
     background: radial-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0) 50%);

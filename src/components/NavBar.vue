@@ -27,35 +27,29 @@
     </div>
 </template>
 
-<script lang="ts">
-import { computed, defineComponent } from "vue";
+<script lang="ts" setup>
+import { computed } from "vue";
 import { useRoute, useRouter } from "vue-router";
 
-export default defineComponent({
-    setup() {
-        const router = useRouter();
-        const route = useRoute();
-        const allRoutes = router.getRoutes();
+const router = useRouter();
+const route = useRoute();
+const allRoutes = router.getRoutes();
 
-        const primaryRoutes = allRoutes
-            .filter(r => ["/singleplayer", "/multiplayer", "/library", "/learn", "/store", "/development"].includes(r.path))
-            .sort((a, b) => (a.meta.order ?? 99) - (b.meta.order ?? 99));
+const primaryRoutes = allRoutes
+    .filter(r => ["/singleplayer", "/multiplayer", "/library", "/learn", "/store", "/development"].includes(r.path))
+    .sort((a, b) => (a.meta.order ?? 99) - (b.meta.order ?? 99));
 
-        const secondaryRoutes = computed(() => {
-            return allRoutes
-                .filter(r => r.meta.order !== undefined && r.path.startsWith(`/${route.path.split("/")[1]}/`))
-                .sort((a, b) => (a.meta.order ?? 99) - (b.meta.order ?? 99));
-        });
-
-        const settingsModal = () => {
-            window.api.modals.open("settings");
-        }; 
-
-        const exitModal = () => {
-            window.api.modals.open("exit");
-        };
-
-        return { route, primaryRoutes, secondaryRoutes, settingsModal, exitModal };
-    }
+const secondaryRoutes = computed(() => {
+    return allRoutes
+        .filter(r => r.meta.order !== undefined && r.path.startsWith(`/${route.path.split("/")[1]}/`))
+        .sort((a, b) => (a.meta.order ?? 99) - (b.meta.order ?? 99));
 });
+
+const settingsModal = () => {
+    window.api.modals.open("settings");
+};
+
+const exitModal = () => {
+    window.api.modals.open("exit");
+};
 </script>

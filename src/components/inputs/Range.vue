@@ -8,47 +8,42 @@
     </form>
 </template>
 
-<script lang="ts">
+<script lang="ts" setup>
 // https://nightcatsama.github.io/vue-slider-component/#/
 
-import { defineComponent, onMounted, ref, toRefs } from "vue";
+import { onMounted, ref, toRefs } from "vue";
 import { v4 as uuidv4 } from "uuid";
 import { ERROR_TYPE } from "vue-slider-component";
 
-export default defineComponent({
-    props: {
-        label: String,
-        modelValue: {
-            type: Number,
-            default: 0
-        },
-        disableCustomInput: Boolean,
-        icon: String,
+const props = defineProps({
+    label: String,
+    modelValue: {
+        type: Number,
+        default: 0
     },
-    setup(props) {
-        const uuid = ref(uuidv4());
-        const { label, icon } = toRefs(props);
-        const value = ref(props.modelValue);
-        const slider = ref();
-        const textbox = ref();
-        const max = ref(0);
-        const disableCustomInput = ref(props.disableCustomInput);
+    disableCustomInput: Boolean,
+    icon: String,
+});
 
-        onMounted(() => {
-            if (typeof slider.value.max === "number") {
-                max.value = slider.value.max;
-            }
-        });
+const uuid = ref(uuidv4());
+const { label, icon } = toRefs(props);
+const value = ref(props.modelValue);
+const slider = ref();
+const textbox = ref();
+const max = ref(0);
+const disableCustomInput = ref(props.disableCustomInput);
 
-        const error = (type: ERROR_TYPE, msg: string) => {
-            const textboxEl = textbox.value as HTMLInputElement;
-            textboxEl.setCustomValidity(msg);
-            textboxEl.reportValidity();
-        };
-
-        return { uuid, label, value, slider, textbox, max, disableCustomInput, error };
+onMounted(() => {
+    if (typeof slider.value.max === "number") {
+        max.value = slider.value.max;
     }
 });
+
+const error = (type: ERROR_TYPE, msg: string) => {
+    const textboxEl = textbox.value as HTMLInputElement;
+    textboxEl.setCustomValidity(msg);
+    textboxEl.reportValidity();
+};
 </script>
 
 <style scoped lang="scss">

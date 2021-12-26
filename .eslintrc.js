@@ -3,6 +3,11 @@ module.exports = {
     env: {
         node: true
     },
+    globals: {
+        defineProps: "readonly",
+        defineEmits: "readonly",
+        defineExpose: "readonly"
+    },
     ignorePatterns: ["dist_electron", "node_modules", "output.js", "src/routes.ts"],
     extends: [
         "plugin:vue/vue3-essential",
@@ -41,6 +46,7 @@ module.exports = {
         "vue/html-indent": ["error", 4],
         "vue/no-multiple-template-root": ["error"],
         "vue/no-v-model-argument": "off",
+        "vue/multi-word-component-names": "off",
 
         "unused-imports/no-unused-imports": "error",
     }

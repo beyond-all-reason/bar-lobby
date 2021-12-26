@@ -117,21 +117,12 @@
     </div>
 </template>
 
-<script lang="ts">
-import { defineComponent, ref } from "vue";
-import Checkbox from "@/components/inputs/Checkbox.vue";
+<script lang="ts" setup>
+import { ref } from "vue";
 
-export default defineComponent({
-    layout: "default",
-    setup() {
-        const test = ref("fish");
-        const color = ref("red");
-        const disabled = ref(false);
-        
-        return { test, color, disabled };
-    },
-    components: { Checkbox }
-});
+const test = ref("fish");
+const color = ref("red");
+const disabled = ref(false);
 </script>
 
 <style scoped lang="scss">

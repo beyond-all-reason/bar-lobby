@@ -19,98 +19,89 @@
     </div>
 </template>
 
-<script lang="ts">
+<script lang="ts" setup>
 import { linkify } from "@/utils/linkify";
-import { defineComponent, ref, watch } from "vue";
+import { ref, watch } from "vue";
 import { useRouter } from "vue-router";
 
-export default defineComponent({
-    setup(props) {
-        const router = useRouter();
-        const loading = ref(false);
-        const email = ref("");
-        const password = ref("");
-        const remember = window.api.accounts.model.remember;
-        const requestVerification = ref(false);
-        const verificationMessage = ref("");
-        const verificationCode = ref("");
-        const loginError = ref("");
-        const verificationError = ref("");
+const router = useRouter();
+const loading = ref(false);
+const email = ref("");
+const password = ref("");
+const remember = window.api.accounts.model.remember;
+const requestVerification = ref(false);
+const verificationMessage = ref("");
+const verificationCode = ref("");
+const loginError = ref("");
+const verificationError = ref("");
 
-        if (remember.value && window.api.accounts.model.email.value) {
-            email.value = window.api.accounts.model.email.value;
+if (remember.value && window.api.accounts.model.email.value) {
+    email.value = window.api.accounts.model.email.value;
+}
+
+if (remember.value && window.api.accounts.model.password.value) {
+    password.value = window.api.accounts.model.password.value;
+}
+
+watch(window.api.accounts.model.email, () => email.value = window.api.accounts.model.email.value);
+watch(window.api.accounts.model.password, () => password.value = window.api.accounts.model.password.value);
+
+const login = async () => {
+    loading.value = true;
+
+    const tokenResponse = await window.api.client.getToken({ email: email.value, password: password.value });
+
+    if (tokenResponse.result === "success" && tokenResponse.token) {
+        if (remember.value) {
+            window.api.accounts.model.email.value = email.value;
+            window.api.accounts.model.password.value = password.value;
+            window.api.accounts.model.token.value = tokenResponse.token;
+        } else {
+            window.api.accounts.model.email.value = "";
+            window.api.accounts.model.password.value = "";
+            window.api.accounts.model.token.value = "";
         }
 
-        if (remember.value && window.api.accounts.model.password.value) {
-            password.value = window.api.accounts.model.password.value;
+        const loginResponse = await window.api.client.login({
+            token: window.api.accounts.model.token.value,
+            lobby_name: window.info.lobby.name,
+            lobby_version: window.info.lobby.version,
+            lobby_hash: window.info.lobby.hash
+        });
+
+        if (loginResponse.result === "unverified" && loginResponse.agreement) {
+            verificationMessage.value = linkify(loginResponse.agreement);
+            requestVerification.value = true;
+        } else if (loginResponse.result === "success") {
+            loading.value = true;
+            await router.push("/home");
+        } else {
+            if (loginResponse.reason) {
+                loginError.value = loginResponse.reason;
+            }
         }
-
-        watch(window.api.accounts.model.email, () => email.value = window.api.accounts.model.email.value);
-        watch(window.api.accounts.model.password, () => password.value = window.api.accounts.model.password.value);
-
-        const login = async () => {
-            loading.value = true;
-            
-            const tokenResponse = await window.api.client.getToken({ email: email.value, password: password.value });
-
-            if (tokenResponse.result === "success" && tokenResponse.token) {
-                if (remember.value) {
-                    window.api.accounts.model.email.value = email.value;
-                    window.api.accounts.model.password.value = password.value;
-                    window.api.accounts.model.token.value = tokenResponse.token;
-                } else {
-                    window.api.accounts.model.email.value = "";
-                    window.api.accounts.model.password.value = "";
-                    window.api.accounts.model.token.value = "";
-                }
-
-                const loginResponse = await window.api.client.login({
-                    token: window.api.accounts.model.token.value,
-                    lobby_name: window.info.lobby.name,
-                    lobby_version: window.info.lobby.version,
-                    lobby_hash: window.info.lobby.hash
-                });
-
-                if (loginResponse.result === "unverified" && loginResponse.agreement) {
-                    verificationMessage.value = linkify(loginResponse.agreement);
-                    requestVerification.value = true;
-                } else if (loginResponse.result === "success") {
-                    loading.value = true;
-                    await router.push("/home");
-                } else {
-                    if (loginResponse.reason) {
-                        loginError.value = loginResponse.reason;
-                    }
-                }
-            } else {
-                if (tokenResponse.reason) {
-                    loginError.value = tokenResponse.reason;
-                }
-            }
-
-            loading.value = false;
-        };
-
-        const verify = async () => {
-            loading.value = true;
-
-            const verifyResult = await window.api.client.verify({ token: window.api.accounts.model.token.value, code: verificationCode.value });
-
-            if (verifyResult.result === "success") {
-                // TODO: store user info
-                await router.push("/home");
-            } else if (verifyResult.reason) {
-                verificationError.value = verifyResult.reason;
-            }
-
-            loading.value = false;
-        };
-        
-        return {
-            loading, email, password, remember, requestVerification, verificationMessage, verificationCode, loginError, verificationError,
-            login, verify
-        };
+    } else {
+        if (tokenResponse.reason) {
+            loginError.value = tokenResponse.reason;
+        }
     }
-});
+
+    loading.value = false;
+};
+
+const verify = async () => {
+    loading.value = true;
+
+    const verifyResult = await window.api.client.verify({ token: window.api.accounts.model.token.value, code: verificationCode.value });
+
+    if (verifyResult.result === "success") {
+        // TODO: store user info
+        await router.push("/home");
+    } else if (verifyResult.reason) {
+        verificationError.value = verifyResult.reason;
+    }
+
+    loading.value = false;
+};
 </script>
 

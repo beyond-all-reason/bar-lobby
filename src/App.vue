@@ -6,18 +6,11 @@
     </div>
 </template>
 
-<script lang="ts">
-import { defineComponent } from "vue";
+<script lang="ts" setup>
 import { useRouter } from "vue-router";
 
-export default defineComponent({
-    setup() {
-        const theme = window.api.settings.model.theme;
+const theme = window.api.settings.model.theme;
 
-        const router = useRouter();
-        router.replace("/");
-
-        return { theme };
-    }
-});
+const router = useRouter();
+router.replace("/");
 </script>

@@ -1,5 +1,5 @@
 <template>
-    <div ref="progressEl" class="progress fullsize flex-center">
+    <div ref="progressEl" class="progress">
         <div class="bar">
             <div class="current">
             </div>
@@ -7,26 +7,21 @@
     </div>
 </template>
 
-<script lang="ts">
-import { defineComponent, ref, watch } from "vue";
+<script lang="ts" setup>
+import { ref, watch } from "vue";
 import { useCssVar } from "@vueuse/core";
 
-export default defineComponent({
-    props: {
-        percent: {
-            type: Number,
-            default: 0
-        }
-    },
-    setup(props) {
-        const progressEl = ref(null);
-        const percent = useCssVar("--progress", progressEl);
-
-        watch(props, () => {
-            percent.value = `${props.percent * 100}%`;
-        });
-
-        return { progressEl };
+const props = defineProps({
+    percent: {
+        type: Number,
+        default: 0
     }
+});
+
+const progressEl = ref(null);
+const percent = useCssVar("--progress", progressEl);
+
+watch(props, () => {
+    percent.value = `${props.percent * 100}%`;
 });
 </script>

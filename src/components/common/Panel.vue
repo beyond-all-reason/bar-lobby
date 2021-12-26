@@ -14,41 +14,39 @@
 
 </template>
 
-<script lang="ts">
-import { defineComponent, reactive, toRefs, VNode } from "vue";
+<script lang="ts" setup>
+import { reactive, toRefs, useSlots, VNode } from "vue";
 
-export default defineComponent({
-    props: {
-        is: {
-            type: String,
-            default: "div"
-        },
-        gap: {
-            type: String,
-            default: "10px"
-        },
-        title: {
-            type: String,
-            default: ""
-        },
-        activeTab: {
-            type: Number,
-            default: 0
-        }
+const props = defineProps({
+    is: {
+        type: String,
+        default: "div"
     },
-    emits: ["update:activeTab"],
-    setup(props, context) {
-        const { is, gap, title } = toRefs(props);
-
-        let tabs = reactive([] as VNode[]);
-
-        const slots = context.slots?.default?.();
-        if (slots && slots.every(slot => (slot.type as any).name === "Tab")) {
-            tabs = slots;
-        }
-
-        return { title, is, gap, tabs };
+    gap: {
+        type: String,
+        default: "10px"
+    },
+    title: {
+        type: String,
+        default: ""
+    },
+    activeTab: {
+        type: Number,
+        default: 0
     }
 });
+
+const emit = defineEmits(["update:activeTab"]);
+
+const { is, gap, title } = toRefs(props);
+
+let tabs = reactive([] as VNode[]);
+
+const allSlots = useSlots();
+
+const slots = allSlots?.default?.();
+if (slots && slots.every(slot => (slot.type as any).name === "Tab")) {
+    tabs = slots;
+}
 </script>
 

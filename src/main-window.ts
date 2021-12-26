@@ -34,7 +34,7 @@ export class MainWindow {
         });
 
         this.window.once("ready-to-show", () => this.show());
-        
+
         this.window.webContents.setWindowOpenHandler(({ url }) => {
             shell.openExternal(url);
             return { action: "deny" };
@@ -66,7 +66,7 @@ export class MainWindow {
         this.setDisplay(this.settings.model.displayIndex.value);
 
         this.window.setMenuBarVisibility(false);
-        
+
         this.window.show();
     }
 

@@ -12,46 +12,39 @@
     </div>
 </template>
 
-<script lang="ts">
-import { defineComponent, ref } from "vue";
+<script lang="ts" setup>
+import { ref } from "vue";
 
-export default defineComponent({
-    setup(props, context) {
-        const loading = ref(false);
-        const email = ref("");
-        const username = ref("");
-        const confirmPassword = ref("");
-        const password = ref("");
-        const error = ref("");
+const emit = defineEmits(["register-success"]);
 
-        const validatePassword = () => {
-            if (password.value && confirmPassword.value && password.value !== confirmPassword.value) {
-                return "Passwords do not match";
-            }
-        };
+const loading = ref(false);
+const email = ref("");
+const username = ref("");
+const confirmPassword = ref("");
+const password = ref("");
+const error = ref("");
 
-        const register = async () => {
-            loading.value = true;
-
-            const registerResponse = await window.api.client.register({ email: email.value, username: username.value, password: password.value });
-            
-            if (registerResponse.result === "success") {
-                window.api.accounts.model.email.value = email.value;
-                window.api.accounts.model.password.value = password.value;
-                context.emit("register-success");
-            } else {
-                if (registerResponse.reason) {
-                    error.value = registerResponse.reason;
-                }
-            }
-
-            loading.value = false;
-        };
-
-        return {
-            loading, email, username, password, confirmPassword, error,
-            register, validatePassword
-        };
+const validatePassword = () => {
+    if (password.value && confirmPassword.value && password.value !== confirmPassword.value) {
+        return "Passwords do not match";
     }
-});
+};
+
+const register = async () => {
+    loading.value = true;
+
+    const registerResponse = await window.api.client.register({ email: email.value, username: username.value, password: password.value });
+
+    if (registerResponse.result === "success") {
+        window.api.accounts.model.email.value = email.value;
+        window.api.accounts.model.password.value = password.value;
+        emit("register-success");
+    } else {
+        if (registerResponse.reason) {
+            error.value = registerResponse.reason;
+        }
+    }
+
+    loading.value = false;
+};
 </script>
