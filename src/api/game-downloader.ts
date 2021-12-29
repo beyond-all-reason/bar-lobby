@@ -53,4 +53,11 @@ export class GameDownloaderAPI {
 
         return totalSize;
     }
+
+    protected async getHead() : Promise<string | void> {
+        return await git.currentBranch({
+            fs,
+            dir: this.localDirPath
+        });
+    }
 }

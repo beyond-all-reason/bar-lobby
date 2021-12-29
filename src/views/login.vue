@@ -1,5 +1,5 @@
 <template>
-    <div class="fullsize">
+    <div class="fullsize flex-col flex-center-items">
         <Loader v-if="loading" />
         <div v-else class="login">
             <transition name="login" appear>
@@ -36,6 +36,13 @@ export default defineComponent({
 </script>
 
 <script lang="ts" setup>
+/**
+ * TODO
+ * refactor this to be an async component inside <suspense> where the fallback slot is a loader anim
+ * maybe don't attempt to connect to server until player actually logs in?
+ * need to support offline mode, maybe as tab button?
+ */
+
 import { ref } from "vue";
 import { useRouter } from "vue-router";
 
@@ -73,18 +80,3 @@ if (window.api.client.isLoggedIn()) {
     });
 }
 </script>
-
-<style scoped lang="scss">
-.fullsize {
-    align-items: center;
-}
-.login {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    margin-top: calc((100vh - 700px) / 2);
-    max-width: 500px;
-    gap: 80px;
-}
-</style>
