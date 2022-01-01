@@ -18,6 +18,7 @@
                 display: flex;
                 flex-direction: column;
                 flex-grow: 1;
+                gap: 10px;
             }
         }
         &:before {
@@ -28,15 +29,6 @@
             z-index: -1;
             transition: 1s ease-in-out;
         }
-        // &:after {
-        //     @extend .fullsize;
-        //     background: var(--background);
-        //     background-size: cover;
-        //     background-position: center;
-        //     z-index: -1;
-        //     filter: blur(10px);
-        //     -webkit-mask-box-image: -webkit-linear-gradient(transparent 10%, black 50%, transparent 90%);
-        // }
     }
 
     @import "inputs";
@@ -46,6 +38,7 @@
 
     @import "components/progress";
     @import "components/navbar";
+    @import "components/breadcrumbs";
     @import "components/panel";
     @import "components/modal";
     @import "components/alert";

@@ -8,7 +8,7 @@ module.exports = {
         defineEmits: "readonly",
         defineExpose: "readonly"
     },
-    ignorePatterns: ["dist_electron", "node_modules", "output.js", "src/routes.ts"],
+    ignorePatterns: ["dist_electron", "node_modules", "output.js", "src/routes.ts", "working-files"],
     extends: [
         "plugin:vue/vue3-essential",
         "eslint:recommended",

@@ -24,7 +24,7 @@
         flex-direction: column;
         gap: var(--gap);
         flex-grow: 1;
-        padding: 30px;
+        padding: var(--padding);
         background: rgba(0, 0, 0, 0.2);
     }
     .tabs, .header {

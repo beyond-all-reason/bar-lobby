@@ -4,7 +4,7 @@
         <Exit />
         <NavBar />
         <div :class="`view view--${route.name?.toString()}`">
-            <Panel>
+            <Panel padding="15px 30px 30px 30px">
                 <router-view v-slot="{ Component }">
                     <transition :name="transitionName" mode="out-in">
                         <component :is="Component" />

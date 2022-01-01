@@ -4,7 +4,7 @@
         <div class="tabs" v-if="tabs.length">
             <Button v-for="(tab, i) in tabs" :key="i" :class="{ active: i === activeTab }" @click="$emit('update:activeTab', i)">{{ tab.props?.title }}</Button>
         </div>
-        <div class="content" :style="`--gap: ${gap}`">
+        <div class="content" :style="`--gap: ${gap}; --padding: ${padding}`">
             <slot v-if="tabs.length === 0" />
             <template v-else>
                 <component v-for="(tab, i) in tabs" :key="i" :is="tab" v-show="i === activeTab" />
@@ -25,6 +25,10 @@ const props = defineProps({
     gap: {
         type: String,
         default: "10px"
+    },
+    padding: {
+        type: String,
+        default: "30px"
     },
     title: {
         type: String,
