@@ -24,4 +24,8 @@
     &-center-items{ align-items: center; }
     &-space-around{ justify-content: space-around; }
     &-space-between{ justify-content: space-between; }
+    &-justify-start { justify-content: flex-start; }
+    &-justify-end { justify-content: flex-end; }
+    &-align-start { align-items: flex-start; }
+    &-align-end { align-items: flex-end; }
 }

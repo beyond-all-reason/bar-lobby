@@ -13,7 +13,10 @@ import { useRouter } from "vue-router";
 
 export default defineComponent({
     layout: {
-        name: "empty"
+        name: "default",
+        props: {
+            empty: true
+        }
     },
     setup() {
         const router = useRouter();

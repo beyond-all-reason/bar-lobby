@@ -1,5 +1,5 @@
 <template>
-    <component class="panel" :class="{ tabbed: Boolean(tabs.length) }" :is="is">
+    <component :class="{ panel: Boolean(!empty), tabbed: Boolean(tabs.length) }" :is="is">
         <slot name="header" />
         <div class="tabs" v-if="tabs.length">
             <Button v-for="(tab, i) in tabs" :key="i" :class="{ active: i === activeTab }" @click="$emit('update:activeTab', i)">{{ tab.props?.title }}</Button>
@@ -37,7 +37,8 @@ const props = defineProps({
     activeTab: {
         type: Number,
         default: 0
-    }
+    },
+    empty: Boolean
 });
 
 const emit = defineEmits(["update:activeTab"]);

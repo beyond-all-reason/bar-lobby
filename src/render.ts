@@ -21,7 +21,10 @@ import Ajv from "ajv";
 import { AudioAPI } from "@/api/audio";
 import { GameAPI } from "@/api/game";
 import { ModalsAPI } from "@/api/modals";
-import { GameDownloaderAPI } from "./api/game-downloader";
+import * as fs from "fs";
+import { GitDownloaderAPI } from "@/api/git-downloader";
+import { PRDownloaderAPI } from "@/api/pr-downloader";
+import { HTTPDownloaderAPI } from "@/api/http-downloader";
 
 declare global {
     interface Window {
@@ -36,7 +39,9 @@ declare global {
             modals: ModalsAPI;
             accounts: StoreAPI<AccountType>;
             game: GameAPI;
-            gameDownloader: GameDownloaderAPI;
+            gitDownloader: GitDownloaderAPI;
+            prDownloader: PRDownloaderAPI;
+            httpDownloader: HTTPDownloaderAPI;
         }
     }
 }
@@ -62,6 +67,8 @@ declare module "@vue/runtime-core" {
 (async () => {
     window.info = await ipcRenderer.invoke("getInfo");
 
+    await fs.promises.mkdir(window.info.contentPath, { recursive: true });
+
     // TODO: API this
     const ajv = new Ajv({ coerceTypes: true, useDefaults: true });
     const sessionValidator = ajv.compile(sessionSchema);
@@ -82,7 +89,9 @@ declare module "@vue/runtime-core" {
         modals: new ModalsAPI(),
         accounts: await new StoreAPI<AccountType>("accounts", accountSchema).init(),
         game: new GameAPI(),
-        gameDownloader: new GameDownloaderAPI()
+        gitDownloader: new GitDownloaderAPI(window.info.contentPath),
+        prDownloader: new PRDownloaderAPI(window.info.contentPath),
+        httpDownloader: new HTTPDownloaderAPI(window.info.contentPath)
     };
 
     document.addEventListener("keydown", (event) => {
@@ -92,6 +101,10 @@ declare module "@vue/runtime-core" {
     });
 
     window.api.audio.init();
+
+    (window as any).test = () => {
+        ipcRenderer.invoke("test");
+    };
 
     await setupVue();
 })();

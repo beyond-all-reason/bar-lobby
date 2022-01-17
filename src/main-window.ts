@@ -29,7 +29,7 @@ export class MainWindow {
                 nodeIntegration: true,
                 contextIsolation: false,
                 nodeIntegrationInSubFrames: true,
-                nodeIntegrationInWorker: true
+                nodeIntegrationInWorker: true,
             }
         });
 
@@ -38,6 +38,14 @@ export class MainWindow {
         this.window.webContents.setWindowOpenHandler(({ url }) => {
             shell.openExternal(url);
             return { action: "deny" };
+        });
+
+        this.window.webContents.session.webRequest.onBeforeSendHeaders((details, callback) => {
+            callback({ requestHeaders: { Origin: "*", ...details.requestHeaders } });
+        });
+
+        this.window.webContents.session.webRequest.onHeadersReceived((details, callback) => {
+            callback({ responseHeaders: { "Access-Control-Allow-Origin": ["*"], ...details.responseHeaders, } });
         });
 
         watch(this.settings.model.displayIndex, (displayIndex) => this.setDisplay(displayIndex));

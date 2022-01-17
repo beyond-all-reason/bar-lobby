@@ -27,9 +27,10 @@ import { defineComponent } from "vue";
 
 export default defineComponent({
     layout: {
-        name: "empty",
+        name: "default",
         props: {
             transition: "fade",
+            empty: true
         }
     }
 });
@@ -43,40 +44,33 @@ export default defineComponent({
  * need to support offline mode, maybe as tab button?
  */
 
-import { ref } from "vue";
+import { ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
 
 const router = useRouter();
 const loading = ref(true);
 const activeTab = ref(0);
 
-if (window.api.client.isLoggedIn()) {
-    router.push("/home");
-} else {
-    window.api.client.connect().then(() => {
-        if (window.api.accounts.model.token.value) {
-            loading.value = true;
-            window.api.client.login({
-                token: window.api.accounts.model.token.value,
-                lobby_name: window.info.lobby.name,
-                lobby_version: window.info.lobby.version,
-                lobby_hash: window.info.lobby.hash
-            }).then(data => {
-                if (data.result === "success") {
-                    router.push("/home");
-                } else {
-                    loading.value = false;
-                }
-            });
-        } else {
-            loading.value = false;
+onMounted(async () => {
+    if (window.api.client.isLoggedIn()) {
+        await router.replace("/home");
+    } else {
+        try {
+            await window.api.client.connect();
+
+            if (window.api.accounts.model.token.value) {
+                const loginData = await window.api.client.login({
+                    token: window.api.accounts.model.token.value,
+                    lobby_name: window.info.lobby.name,
+                    lobby_version: window.info.lobby.version,
+                    lobby_hash: window.info.lobby.hash
+                });
+            }
+        } catch (error) {
+            console.error(error);
         }
-    }).catch((error) => {
-        if (error) {
-            window.api.alerts.alert(error, "error", true);
-        } else {
-            window.api.alerts.alert("Could not connect to server", "error", true);
-        }
-    });
-}
+
+        await router.replace("/home");
+    }
+});
 </script>

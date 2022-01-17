@@ -1,3 +1,6 @@
+const WorkerPlugin = require("worker-plugin");
+const { IgnorePlugin } = require("webpack");
+
 module.exports = {
     lintOnSave: true,
     css: {
@@ -20,6 +23,13 @@ module.exports = {
                     type: "javascript/auto"
                 }
             ]
+        },
+        plugins: [
+            new WorkerPlugin(),
+            new IgnorePlugin(/build\/Debug\/nodegit.node$/i)
+        ],
+        externals: {
+            nodegit: "commonjs nodegit"
         }
     },
     pluginOptions: {
@@ -33,7 +43,14 @@ module.exports = {
                 directories: {
                     buildResources: "build"
                 },
-                publish: ["github"]
+                publish: ["github"],
+                extraResources: [
+                    {
+                        "from": "pr-downloader",
+                        "to": ".",
+                        "filter": "**/*"
+                    }
+                ]
             },
             chainWebpackRendererProcess: config => {
                 config.target("electron-renderer");

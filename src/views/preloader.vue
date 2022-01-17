@@ -1,6 +1,6 @@
 <template>
-    <div class="loader">
-        <Progress class="fullsize flex-center" :percent="loadedPercent" />
+    <div class="loader fullsize flex-center">
+        <Progress :percent="loadedPercent" style="width: 70%" />
     </div>
 </template>
 
@@ -14,10 +14,11 @@ import { playRandomMusic } from "@/utils/play-random-music";
 
 export default defineComponent({
     layout: {
-        name: "empty",
+        name: "default",
         props: {
             transition: "fade",
-            appear: false
+            appear: false,
+            empty: true
         }
     },
     setup() {

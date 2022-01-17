@@ -11,8 +11,8 @@
   "license": "gpl-3.0",
   "scripts": {
     "dev": "vue-cli-service electron:serve",
-    "build": "cross-env NODE_ENV=production vue-cli-service electron:build",
-    "build-publish": "cross-env NODE_ENV=production AUTO_UPDATE=true vue-cli-service electron:build -- -p always",
+    "build": "cross-env NODE_ENV=production vue-cli-service electron:build -- --linux deb --win nsis",
+    "build-publish": "cross-env NODE_ENV=production AUTO_UPDATE=true vue-cli-service electron:build -- -p always --linux deb --win nsis",
     "lint": "vue-cli-service lint",
     "postinstall": "electron-builder install-app-deps",
     "postuninstall": "electron-builder install-app-deps",
@@ -21,6 +21,7 @@
   "main": "background.js",
   "dependencies": {
     "@iconify/json": "^1.1.420",
+    "@jazcash/isomorphic-git": "^1.9.0",
     "@sinclair/typebox": "^0.20.5",
     "@types/debounce": "^1.2.1",
     "@types/electron-devtools-installer": "^2.2.0",
@@ -49,14 +50,15 @@
     "eslint-plugin-vue": "^8.2.0",
     "glob": "^7.2.0",
     "howler": "^2.2.3",
-    "isomorphic-git": "^1.10.3",
     "jaz-ts-utils": "^1.5.0",
     "lint-staged": "^9.5.0",
     "marked": "^4.0.7",
+    "nodegit": "^0.26.4",
+    "octokit": "^1.7.1",
     "sass": "^1.26.5",
     "sass-loader": "^8.0.2",
     "start-script-converter": "0.0.1",
-    "tachyon-client": "^1.10.0",
+    "tachyon-client": "^1.11.1",
     "typescript": "^4.4.4",
     "uuid": "^8.3.2",
     "vue": "^3.2.23",
@@ -68,6 +70,7 @@
     "vue-router": "^4.0.12",
     "vue-router-layout": "^0.4.0",
     "vue-slider-component": "^4.0.0-beta.4",
-    "vue3-markdown-it": "^1.0.9"
+    "vue3-markdown-it": "^1.0.9",
+    "worker-plugin": "^5.0.1"
   }
 }
