@@ -21,7 +21,6 @@
   "main": "background.js",
   "dependencies": {
     "@iconify/json": "^1.1.420",
-    "@jazcash/isomorphic-git": "^1.9.0",
     "@sinclair/typebox": "^0.20.5",
     "@types/debounce": "^1.2.1",
     "@types/electron-devtools-installer": "^2.2.0",
@@ -52,7 +51,6 @@
     "howler": "^2.2.3",
     "jaz-ts-utils": "^1.5.0",
     "lint-staged": "^9.5.0",
-    "nodegit": "^0.26.4",
     "octokit": "^1.7.1",
     "marked": "^4.0.10",
     "sass": "^1.26.5",
