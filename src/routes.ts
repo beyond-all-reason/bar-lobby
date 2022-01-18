@@ -48,7 +48,6 @@ export default [
     name: 'index',
     path: '/',
     component: index,
-    redirect: '/preloader',
   },
   {
     name: 'intro',

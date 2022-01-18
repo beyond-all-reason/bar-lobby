@@ -6,7 +6,7 @@
         <div :class="`view view--${route.name?.toString()}`">
             <Panel padding="15px 30px 30px 30px" :empty="empty">
                 <router-view v-slot="{ Component }">
-                    <transition :name="transitionName" mode="out-in" :appear="appear ?? Boolean(transition)">
+                    <transition :name="transitionName" :mode="mode" :appear="appear ?? Boolean(transition)">
                         <component :is="Component" />
                     </transition>
                 </router-view>
@@ -21,19 +21,23 @@
  * not a huge deal but seems cleaner to just have one layout
  */
 
-import { ref, watch } from "vue";
+import { PropType, ref, watch, BaseTransitionProps } from "vue";
 import { useRoute } from "vue-router";
 
 const props = defineProps({
     transition: String,
     appear: Boolean,
-    empty: Boolean
+    empty: Boolean,
+    mode: {
+        type: String as PropType<BaseTransitionProps["mode"]>,
+        default: "out-in"
+    }
 });
 
 const route = useRoute();
 const transitionName = ref("");
 
 watch(route, () => {
-    transitionName.value = route.redirectedFrom?.meta?.transition ?? "secondary";
+    transitionName.value = props.transition ?? route.redirectedFrom?.meta?.transition ?? "secondary";
 });
 </script>

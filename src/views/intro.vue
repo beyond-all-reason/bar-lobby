@@ -7,9 +7,7 @@
 </template>
 
 <script lang="ts">
-import { playRandomMusic } from "@/utils/play-random-music";
 import { defineComponent } from "vue";
-import { useRouter } from "vue-router";
 
 export default defineComponent({
     layout: {
@@ -17,28 +15,31 @@ export default defineComponent({
         props: {
             empty: true
         }
-    },
-    setup() {
-        const router = useRouter();
-
-        async function play({ target: video }: { target: HTMLVideoElement}) {
-            video.volume = 0.2;
-            video.play();
-        }
-
-        function skipIntro() {
-            if (router.currentRoute.value.path !== "/intro") {
-                return;
-            }
-
-            playRandomMusic();
-
-            router.replace("/login");
-        }
-
-        return { skipIntro, play };
     }
 });
+</script>
+
+<script lang="ts" setup>
+import { playRandomMusic } from "@/utils/play-random-music";
+import { useRouter } from "vue-router";
+
+const router = useRouter();
+
+const play = (event: Event) => {
+    const video = event.target as HTMLVideoElement;
+    video.volume = 0.2;
+    video.play();
+};
+
+const skipIntro = () => {
+    if (router.currentRoute.value.path !== "/intro") {
+        return;
+    }
+
+    playRandomMusic();
+
+    router.replace("/preloader");
+};
 </script>
 
 <style scoped lang="scss">

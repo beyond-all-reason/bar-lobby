@@ -23,7 +23,7 @@ Contributing to BAR Lobby should be a stress-free and ideally _fun_ experience. 
 - [Tachyon Client](https://github.com/Jazcash/tachyon-client)
 
 ### Recommended Environment
-It is highly recommended to use [VSCode](https://code.visualstudio.com/) for development, as it provides full, built-in TypeScript support, as well as useful extensions such as [ESLint](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint) and [Vetur](https://marketplace.visualstudio.com/items?itemName=octref.vetur).
+It is highly recommended to use [VSCode](https://code.visualstudio.com/) for development, as it provides full, built-in TypeScript support, as well as useful extensions such as [ESLint](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint) and [Volar](https://marketplace.visualstudio.com/items?itemName=johnsoncodehk.volar).
 
 ### Requirements
 - [Node.js](https://nodejs.org/en/download/) (14.18.1 minimum but later versions probably work fine)
