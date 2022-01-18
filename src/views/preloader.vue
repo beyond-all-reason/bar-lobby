@@ -11,9 +11,8 @@ export default defineComponent({
     layout: {
         name: "default",
         props: {
-            transition: "fade",
-            appear: false,
-            empty: true
+            empty: true,
+            transitionName: "preloader"
         }
     }
 });

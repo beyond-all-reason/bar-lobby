@@ -81,7 +81,7 @@ declare module "@vue/runtime-core" {
         client: new TachyonClient({
             //host: "localhost",
             host: "server2.beyondallreason.info",
-            port: 8201,
+            port: 8202,
             verbose: process.env.NODE_ENV !== "production"
         }),
         audio: new AudioAPI(),

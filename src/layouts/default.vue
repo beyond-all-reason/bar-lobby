@@ -6,7 +6,7 @@
         <div :class="`view view--${route.name?.toString()}`">
             <Panel padding="15px 30px 30px 30px" :empty="empty">
                 <router-view v-slot="{ Component }">
-                    <transition :name="transitionName" :mode="mode" :appear="appear ?? Boolean(transition)">
+                    <transition :name="transitionName" :mode="transitionMode" :appear="transitionAppear ?? Boolean(transitionName)" :duration="transitionDuration">
                         <component :is="Component" />
                     </transition>
                 </router-view>
@@ -25,19 +25,20 @@ import { PropType, ref, watch, BaseTransitionProps } from "vue";
 import { useRoute } from "vue-router";
 
 const props = defineProps({
-    transition: String,
-    appear: Boolean,
     empty: Boolean,
-    mode: {
+    transitionName: String,
+    transitionAppear: Boolean,
+    transitionMode: {
         type: String as PropType<BaseTransitionProps["mode"]>,
         default: "out-in"
-    }
+    },
+    transitionDuration: Number
 });
 
 const route = useRoute();
 const transitionName = ref("");
 
 watch(route, () => {
-    transitionName.value = props.transition ?? route.redirectedFrom?.meta?.transition ?? "secondary";
+    transitionName.value = props.transitionName ?? route.redirectedFrom?.meta?.transition ?? "secondary";
 });
 </script>

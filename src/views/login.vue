@@ -29,8 +29,8 @@ export default defineComponent({
     layout: {
         name: "default",
         props: {
-            transition: "fade",
-            empty: true
+            empty: true,
+            transitionName: "fade",
         }
     }
 });

@@ -11,7 +11,6 @@ import profile_index from '@/views/profile/index.vue'
 import singleplayer_index from '@/views/singleplayer/index.vue'
 import store_index from '@/views/store/index.vue'
 import debug_inputs from '@/views/debug/inputs.vue'
-import debug_layout_test from '@/views/debug/layout-test.vue'
 import debug_playground from '@/views/debug/playground.vue'
 import development_game_dev from '@/views/development/game-dev.vue'
 import development_lobby_dev from '@/views/development/lobby-dev.vue'
@@ -159,14 +158,6 @@ export default [
     meta: {
       title: 'Inputs',
       order: 0,
-    },
-  },
-  {
-    name: 'debug-layout-test',
-    path: '/debug/layout-test',
-    component: debug_layout_test,
-    meta: {
-      order: 2,
     },
   },
   {
