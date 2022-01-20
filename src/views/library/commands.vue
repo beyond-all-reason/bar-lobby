@@ -1,13 +1,10 @@
-<route>{ "meta": { "title": "Store", "order": 0 } }</route>
+<route>{ "meta": { "title": "Commands", "order": 4 } }</route>
 
 <template>
     <div>
         <h1>{{ route.meta.title }}</h1>
         <markdown source="
-- Unit skins
-- HUD themes
-- Custom Emojis 🙃
-- Particle/projectile effects?
+- Same as online commands page
 " />
     </div>
 </template>

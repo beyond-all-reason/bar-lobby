@@ -1,1 +1,0 @@
-<route>{ "redirect": "/singleplayer/tutorials", "meta": { "title": "Tutorials", "order": 2 } }</route>

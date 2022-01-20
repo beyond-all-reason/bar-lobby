@@ -1,10 +1,13 @@
-<route>{ "meta": { "title": "Guides", "order": 0 } }</route>
+<route>{ "meta": { "title": "Store", "order": 4 } }</route>
 
 <template>
     <div>
         <h1>{{ route.meta.title }}</h1>
         <markdown source="
-- Same as online guides
+- Unit skins
+- HUD themes
+- Custom Emojis 🙃
+- Particle/projectile effects?
 " />
     </div>
 </template>

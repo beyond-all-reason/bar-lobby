@@ -4,12 +4,10 @@ import login from '@/views/login.vue'
 import preloader from '@/views/preloader.vue'
 import development_index from '@/views/development/index.vue'
 import home_index from '@/views/home/index.vue'
-import learn_index from '@/views/learn/index.vue'
 import library_index from '@/views/library/index.vue'
 import multiplayer_index from '@/views/multiplayer/index.vue'
 import profile_index from '@/views/profile/index.vue'
 import singleplayer_index from '@/views/singleplayer/index.vue'
-import store_index from '@/views/store/index.vue'
 import debug_inputs from '@/views/debug/inputs.vue'
 import debug_playground from '@/views/debug/playground.vue'
 import development_game_dev from '@/views/development/game-dev.vue'
@@ -21,11 +19,12 @@ import home_changes from '@/views/home/changes.vue'
 import home_donate from '@/views/home/donate.vue'
 import home_home from '@/views/home/home.vue'
 import home_news from '@/views/home/news.vue'
-import learn_commands from '@/views/learn/commands.vue'
-import learn_guides from '@/views/learn/guides.vue'
-import learn_tutorials from '@/views/learn/tutorials.vue'
+import home_store from '@/views/home/store.vue'
+import library_commands from '@/views/library/commands.vue'
+import library_guides from '@/views/library/guides.vue'
 import library_maps from '@/views/library/maps.vue'
 import library_replays from '@/views/library/replays.vue'
+import library_tutorials from '@/views/library/tutorials.vue'
 import library_units from '@/views/library/units.vue'
 import multiplayer_battle from '@/views/multiplayer/battle.vue'
 import multiplayer_casual from '@/views/multiplayer/casual.vue'
@@ -40,7 +39,6 @@ import singleplayer_campaign from '@/views/singleplayer/campaign.vue'
 import singleplayer_custom from '@/views/singleplayer/custom.vue'
 import singleplayer_scenarios from '@/views/singleplayer/scenarios.vue'
 import singleplayer_tutorials from '@/views/singleplayer/tutorials.vue'
-import store_store from '@/views/store/store.vue'
 
 export default [
   {
@@ -86,17 +84,6 @@ export default [
     redirect: '/home/home',
   },
   {
-    name: 'learn',
-    path: '/learn',
-    component: learn_index,
-    meta: {
-      title: 'Learn',
-      order: 4,
-      transition: 'primary',
-    },
-    redirect: '/learn/guides',
-  },
-  {
     name: 'library',
     path: '/library',
     component: library_index,
@@ -139,17 +126,6 @@ export default [
       transition: 'primary',
     },
     redirect: '/singleplayer/campaign',
-  },
-  {
-    name: 'store',
-    path: '/store',
-    component: store_index,
-    meta: {
-      title: 'Store',
-      order: 4,
-      transition: 'primary',
-    },
-    redirect: '/store/store',
   },
   {
     name: 'debug-inputs',
@@ -251,32 +227,31 @@ export default [
     },
   },
   {
-    name: 'learn-commands',
-    path: '/learn/commands',
-    component: learn_commands,
+    name: 'home-store',
+    path: '/home/store',
+    component: home_store,
+    meta: {
+      title: 'Store',
+      order: 4,
+    },
+  },
+  {
+    name: 'library-commands',
+    path: '/library/commands',
+    component: library_commands,
     meta: {
       title: 'Commands',
-      order: 1,
+      order: 4,
     },
   },
   {
-    name: 'learn-guides',
-    path: '/learn/guides',
-    component: learn_guides,
+    name: 'library-guides',
+    path: '/library/guides',
+    component: library_guides,
     meta: {
       title: 'Guides',
-      order: 0,
+      order: 3,
     },
-  },
-  {
-    name: 'learn-tutorials',
-    path: '/learn/tutorials',
-    component: learn_tutorials,
-    meta: {
-      title: 'Tutorials',
-      order: 2,
-    },
-    redirect: '/singleplayer/tutorials',
   },
   {
     name: 'library-maps',
@@ -295,6 +270,16 @@ export default [
       title: 'Replays',
       order: 0,
     },
+  },
+  {
+    name: 'library-tutorials',
+    path: '/library/tutorials',
+    component: library_tutorials,
+    meta: {
+      title: 'Tutorials',
+      order: 5,
+    },
+    redirect: '/singleplayer/tutorials',
   },
   {
     name: 'library-units',
@@ -423,15 +408,6 @@ export default [
       title: 'Tutorials',
       order: 3,
       offline: true,
-    },
-  },
-  {
-    name: 'store-store',
-    path: '/store/store',
-    component: store_store,
-    meta: {
-      title: 'Store',
-      order: 0,
     },
   },
 ]

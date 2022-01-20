@@ -1,1 +1,0 @@
-<route>{ "redirect": "/store/store", "meta": { "title": "Store", "order": 4, "transition": "primary" } }</route>

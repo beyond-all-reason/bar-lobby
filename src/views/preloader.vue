@@ -53,7 +53,27 @@ onMounted(async () => {
         loadedFiles.value++;
     }
 
-    router.replace("/login");
+    try {
+        await window.api.client.connect();
+
+        if (window.api.accounts.model.token.value && window.api.accounts.model.remember.value) {
+            const loginData = await window.api.client.login({
+                token: window.api.accounts.model.token.value,
+                lobby_name: window.info.lobby.name,
+                lobby_version: window.info.lobby.version,
+                lobby_hash: window.info.lobby.hash
+            });
+
+            if (loginData.result === "success") {
+                await router.replace("/home");
+                return;
+            }
+        }
+    } catch (error) {
+        console.error(error);
+    }
+
+    await router.replace("/login");
 });
 </script>
 
