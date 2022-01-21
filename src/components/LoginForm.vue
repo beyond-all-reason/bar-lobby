@@ -21,6 +21,7 @@
 
 <script lang="ts" setup>
 import { linkify } from "@/utils/linkify";
+import { loginRequest } from "@/utils/login-request";
 import { ref, watch } from "vue";
 import { useRouter } from "vue-router";
 
@@ -62,19 +63,19 @@ const login = async () => {
             window.api.accounts.model.token.value = "";
         }
 
-        const loginResponse = await window.api.client.login({
+        const loginResponse = await loginRequest({
             token: window.api.accounts.model.token.value,
             lobby_name: window.info.lobby.name,
             lobby_version: window.info.lobby.version,
             lobby_hash: window.info.lobby.hash
         });
 
-        if (loginResponse.result === "unverified" && loginResponse.agreement) {
+        if (loginResponse.result === "success") {
+            await router.push("/home");
+            return;
+        } else if (loginResponse.result === "unverified" && loginResponse.agreement) {
             verificationMessage.value = linkify(loginResponse.agreement);
             requestVerification.value = true;
-        } else if (loginResponse.result === "success") {
-            loading.value = true;
-            await router.push("/home");
         } else {
             if (loginResponse.reason) {
                 loginError.value = loginResponse.reason;

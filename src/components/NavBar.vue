@@ -9,8 +9,8 @@
                     <Button v-for="view in primaryRoutes" :key="view.path" :to="view.path" class="primary-item">{{ view.meta.title }}</Button>
                 </div>
                 <div class="right">
-                    <Button class="primary-item" to="/profile">
-                        Jazcash
+                    <Button v-if="username" class="primary-item" to="/profile">
+                        {{ username }}
                     </Button>
                     <Button class="primary-item icon" @click="settingsModal">
                         <Icon icon="cog" :size="40" />
@@ -52,4 +52,6 @@ const settingsModal = () => {
 const exitModal = () => {
     window.api.modals.open("exit");
 };
+
+const username = window.api.session.account?.value?.name;
 </script>

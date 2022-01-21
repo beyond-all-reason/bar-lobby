@@ -24,6 +24,7 @@ import { useRouter } from "vue-router";
 import { randomFromArray } from "jaz-ts-utils";
 import { loadFont } from "@/utils/load-font";
 import { loadImage } from "@/utils/load-image";
+import { loginRequest } from "@/utils/login-request";
 
 const router = useRouter();
 const totalFiles = ref(0);
@@ -57,14 +58,14 @@ onMounted(async () => {
         await window.api.client.connect();
 
         if (window.api.accounts.model.token.value && window.api.accounts.model.remember.value) {
-            const loginData = await window.api.client.login({
+            const loginResponse = await loginRequest({
                 token: window.api.accounts.model.token.value,
                 lobby_name: window.info.lobby.name,
                 lobby_version: window.info.lobby.version,
                 lobby_hash: window.info.lobby.hash
             });
 
-            if (loginData.result === "success") {
+            if (loginResponse.result === "success") {
                 await router.replace("/home");
                 return;
             }
