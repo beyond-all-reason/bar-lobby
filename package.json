@@ -52,7 +52,6 @@
     "howler": "^2.2.3",
     "jaz-ts-utils": "^1.5.0",
     "lint-staged": "^9.5.0",
-    "marked": "^4.0.10",
     "node-7z": "^3.0.0",
     "octokit": "^1.7.1",
     "sass": "^1.26.5",
