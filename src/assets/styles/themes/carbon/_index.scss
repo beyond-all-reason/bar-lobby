@@ -34,9 +34,9 @@
     @import "inputs";
     @import "transitions";
 
-    @import "views/loader";
     @import "views/login";
 
+    @import "components/background-overlay";
     @import "components/progress";
     @import "components/navbar";
     @import "components/breadcrumbs";

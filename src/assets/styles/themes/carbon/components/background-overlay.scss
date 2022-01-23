@@ -1,0 +1,10 @@
+.background-overlay {
+    background: rgba(0, 0, 0, 0);
+    backdrop-filter: blur(0px);
+    z-index: -1;
+    transition: all 0.4s ease-in-out;
+    &.active {
+        background: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(10px);
+    }
+}

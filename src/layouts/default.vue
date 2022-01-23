@@ -1,5 +1,6 @@
 <template>
-    <div :class="`fullsize layout layout--default`">
+    <div class="fullsize layout layout--default">
+        <div class="fullsize background-overlay" :class="{ active: blurBg }"></div>
         <Settings v-if="!empty" />
         <Exit v-if="!empty" />
         <NavBar v-if="!empty" />
@@ -32,7 +33,8 @@ const props = defineProps({
         type: String as PropType<BaseTransitionProps["mode"]>,
         default: "out-in"
     },
-    transitionDuration: Number
+    transitionDuration: Number,
+    blurBg: Boolean
 });
 
 const route = useRoute();

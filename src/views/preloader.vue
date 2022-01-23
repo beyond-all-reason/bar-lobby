@@ -12,7 +12,8 @@ export default defineComponent({
         name: "default",
         props: {
             empty: true,
-            transitionName: "preloader"
+            transitionName: "preloader",
+            blurBg: true
         }
     }
 });
@@ -24,7 +25,6 @@ import { useRouter } from "vue-router";
 import { randomFromArray } from "jaz-ts-utils";
 import { loadFont } from "@/utils/load-font";
 import { loadImage } from "@/utils/load-image";
-import { loginRequest } from "@/utils/login-request";
 
 const router = useRouter();
 const totalFiles = ref(0);
@@ -54,33 +54,6 @@ onMounted(async () => {
         loadedFiles.value++;
     }
 
-    try {
-        await window.api.client.connect();
-
-        if (window.api.accounts.model.token.value && window.api.accounts.model.remember.value) {
-            const loginResponse = await loginRequest({
-                token: window.api.accounts.model.token.value,
-                lobby_name: window.info.lobby.name,
-                lobby_version: window.info.lobby.version,
-                lobby_hash: window.info.lobby.hash
-            });
-
-            if (loginResponse.result === "success") {
-                await router.replace("/home");
-                return;
-            }
-        }
-    } catch (error) {
-        console.error(error);
-    }
-
-    await router.replace("/login");
+    await router.replace("/updater");
 });
 </script>
-
-<style scoped lang="scss">
-.load {
-    position: absolute;
-    opacity: 0;
-}
-</style>

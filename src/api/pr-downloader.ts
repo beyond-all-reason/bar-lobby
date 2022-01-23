@@ -6,14 +6,17 @@
  * - Add new cli arg to pr-downloader to skip downloading repos.springrts.com metadata for games other than the one specified
  */
 
-import { DownloadType, Message, ProgressMessage } from "../model/pr-downloader";
+import * as zlib from "zlib";
+import * as fs from "fs";
+import * as path from "path";
 import { spawn } from "child_process";
+import axios from "axios";
 import { Signal } from "jaz-ts-utils";
+import { DownloadType, Message, ProgressMessage } from "../model/pr-downloader";
 
 export class PRDownloaderAPI {
     public onProgress: Signal<ProgressMessage> = new Signal();
     public onMessage: Signal<Message> = new Signal();
-    public onAnything = new Signal();
     public onDone = new Signal();
 
     protected binaryPath: string;
@@ -21,12 +24,10 @@ export class PRDownloaderAPI {
     protected gameName = "byar:test";
 
     constructor(contentPath: string) {
-        if (process.platform === "darwin") {
-            this.binaryPath = "pr-downloader/pr-downloader-mac";
-        } else if (process.platform === "win32") {
-            this.binaryPath = "pr-downloader/pr-downloader.exe";
+        if (process.platform === "win32") {
+            this.binaryPath = "extra_resources/pr-downloader.exe";
         } else {
-            this.binaryPath = "pr-downloader/pr-downloader";
+            this.binaryPath = "extra_resources/pr-downloader";
         }
 
         this.contentPath = contentPath;
@@ -42,7 +43,7 @@ export class PRDownloaderAPI {
             let downloadType: DownloadType = DownloadType.Metadata;
 
             prDownloaderProcess.stdout.on("data", (stdout: Buffer) => {
-                this.onAnything.dispatch(stdout.toString());
+                console.log(stdout.toString());
                 const lines = stdout.toString().trim().split("\r\n").filter(Boolean);
                 const messages = lines.map(line => this.processLine(line)).filter(Boolean) as Message[];
                 for (const message of messages) {
@@ -90,6 +91,11 @@ export class PRDownloaderAPI {
         });
     }
 
+    public async isLatestVersionInstalled() {
+        const latestVersion = await this.getLatestVersionInfo();
+        return this.isVersionInstalled(latestVersion.md5);
+    }
+
     protected processLine(line: string) : Message | null {
         if (!line) {
             return null;
@@ -119,5 +125,29 @@ export class PRDownloaderAPI {
 
     protected isProgressMessage(message: Message) : message is ProgressMessage {
         return message.type === "Progress";
+    }
+
+    protected async getLatestVersionInfo() {
+        const response = await axios({
+            url: "https://repos.springrts.com/byar/versions.gz",
+            method: "GET",
+            responseType: "arraybuffer",
+            headers: {
+                "Content-Type": "application/gzip"
+            }
+        });
+
+        const versionsStr = zlib.gunzipSync(response.data).toString().trim();
+        const versionsParts = versionsStr.split("\n");
+        const latestVersion = versionsParts.pop()!.split(",");
+        const [ tag, md5, something, version ] = latestVersion;
+
+        return { tag, md5, version };
+    }
+
+    protected isVersionInstalled(md5: string) {
+        const sdpPath = path.join(this.contentPath, "packages", `${md5}.sdp`);
+
+        return fs.existsSync(sdpPath);
     }
 }

@@ -7,10 +7,8 @@
 
 <style scoped lang="scss">
 .loader {
-    background: radial-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0) 50%);
-    padding: 50px;
-	width: 100%;
-	height: 100%;
+    //background: radial-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0) 50%);
+	padding: 30px;
 	display: flex;
 	align-items: center;
 	justify-content: center;

@@ -46,7 +46,7 @@ module.exports = {
                 publish: ["github"],
                 extraResources: [
                     {
-                        "from": "pr-downloader",
+                        "from": "extra_resources",
                         "to": ".",
                         "filter": "**/*"
                     }

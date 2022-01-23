@@ -45,7 +45,11 @@ export class MainWindow {
         });
 
         this.window.webContents.session.webRequest.onHeadersReceived((details, callback) => {
-            callback({ responseHeaders: { "Access-Control-Allow-Origin": ["*"], ...details.responseHeaders, } });
+            const obj = { responseHeaders: { ...details.responseHeaders, } };
+            if (!obj.responseHeaders["Access-Control-Allow-Origin"] && !obj.responseHeaders["access-control-allow-origin"]) {
+                obj.responseHeaders["Access-Control-Allow-Origin"] = ["*"];
+            }
+            callback(obj);
         });
 
         watch(this.settings.model.displayIndex, (displayIndex) => this.setDisplay(displayIndex));
