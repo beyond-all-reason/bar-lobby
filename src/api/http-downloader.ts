@@ -4,6 +4,7 @@ import axios from "axios";
 import { Signal } from "jaz-ts-utils";
 import { Octokit } from "octokit";
 import { extract7z } from "../utils/extract7z";
+import { EngineTagFormat, isEngineTag } from "../model/formats";
 
 export class HTTPDownloaderAPI {
     public onProgress: Signal<{ currentBytes: number; totalBytes: number }> = new Signal();
@@ -15,30 +16,9 @@ export class HTTPDownloaderAPI {
         this.contentPath = contentPath;
     }
 
-    public async download(url: string, destination: string) {
-        return await axios({
-            url,
-            method: "get",
-            responseType: "blob",
-            onDownloadProgress: (progress) => {
-                this.onProgress.dispatch({
-                    currentBytes: progress.loaded,
-                    totalBytes: progress.total
-                });
-            }
-        });
-    }
-
     public async downloadLatestEngine(includePrerelease = true) {
-        // if and when the engine releases switches to not marking every release as prerelease then we should use the getLatestRelease octokit method
+        const latestEngineRelease = await this.getLatestEngineRelease();
 
-        const releasesResponse = await this.ocotokit.rest.repos.listReleases({
-            owner: "beyond-all-reason",
-            repo: "spring",
-            per_page: 1
-        });
-
-        const latestEngineRelease = releasesResponse.data[0];
         const archStr = process.platform === "win32" ? "windows" : "linux";
         const asset = latestEngineRelease.assets.find(asset => asset.name.includes(archStr) && asset.name.includes("portable"));
         if (!asset) {
@@ -67,12 +47,86 @@ export class HTTPDownloaderAPI {
         await fs.promises.mkdir(downloadPath, { recursive: true });
         await fs.promises.writeFile(downloadFile, Buffer.from(engine7z), { encoding: "binary" });
 
-        const dirName = latestEngineRelease.tag_name?.split("}")?.[1] + " bar";
+        const engineVersionString = this.engineTagNameToVersionString(latestEngineRelease.tag_name);
 
-        await extract7z(downloadFile, dirName);
+        await extract7z(downloadFile, engineVersionString);
+
+        await fs.promises.unlink(downloadFile);
     }
 
-    public async downloadEngine(engineId: string) {
+    public async downloadEngine(engineTag: EngineTagFormat) {
         // TODO
+    }
+
+    public async getLatestEngineRelease() {
+        // if and when the engine releases switches to not marking every release as prerelease then we should use the getLatestRelease octokit method
+        const releasesResponse = await this.ocotokit.rest.repos.listReleases({
+            owner: "beyond-all-reason",
+            repo: "spring",
+            per_page: 1
+        });
+
+        return releasesResponse.data[0];
+    }
+
+    public async getEngineRelease(engineTag: EngineTagFormat) {
+        try {
+            const baseTag = engineTag.slice(4);
+            const majorVersion = baseTag.split(".")[0];
+            const gitTag = `spring_bar_{BAR${majorVersion}}${baseTag}`;
+
+            const release = await this.ocotokit.rest.repos.getReleaseByTag({
+                owner: "beyond-all-reason",
+                repo: "spring",
+                tag: gitTag
+            });
+
+            return release;
+        } catch (err) {
+            console.error(err);
+            throw new Error(`Couldn't get engine release for tag: ${engineTag}`);
+        }
+    }
+
+    public async listInstalledEngineVersions() {
+        const engineVersions: EngineTagFormat[] = [];
+
+        const engineDir = path.join(this.contentPath, "engine");
+        const engineDirs = await fs.promises.readdir(engineDir);
+
+        for (const dir of engineDirs) {
+            if (isEngineTag(dir)) {
+                engineVersions.push(dir);
+            }
+        }
+
+        return engineVersions;
+    }
+
+    // arg format should match dir name, e.g. BAR-105.1.1-809-g3f69f26
+    public async isEngineVersionInstalled(engineTag: EngineTagFormat) {
+        return fs.existsSync(path.join(this.contentPath, "engine", engineTag));
+    }
+
+    public async isLatestEngineVersionInstalled() {
+        const latestEngineVersion = await this.getLatestEngineRelease();
+        const engineTag = this.engineTagNameToVersionString(latestEngineVersion.tag_name);
+
+        return this.isEngineVersionInstalled(engineTag);
+    }
+
+    // spring_bar_{BAR105}105.1.1-807-g98b14ce -> BAR-105.1.1-809-g3f69f26
+    protected engineTagNameToVersionString(tagName: string) : EngineTagFormat {
+        try {
+            const versionString = `BAR-${tagName.split("}")[1]}`;
+            if (isEngineTag(versionString)) {
+                return versionString;
+            } else {
+                throw new Error();
+            }
+        } catch (err) {
+            console.error(err);
+            throw new Error("Couldn't parse engine version string from tag name");
+        }
     }
 }

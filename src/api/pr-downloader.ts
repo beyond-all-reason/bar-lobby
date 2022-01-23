@@ -33,7 +33,7 @@ export class PRDownloaderAPI {
         this.contentPath = contentPath;
     }
 
-    public downloadGame() {
+    public updateGame() {
         return new Promise<void>((resolve, reject) => {
             const prDownloaderProcess = spawn(`${this.binaryPath}`, [
                 "--filesystem-writepath", this.contentPath,
@@ -91,9 +91,33 @@ export class PRDownloaderAPI {
         });
     }
 
-    public async isLatestVersionInstalled() {
+    public async isLatestGameVersionInstalled() {
         const latestVersion = await this.getLatestVersionInfo();
         return this.isVersionInstalled(latestVersion.md5);
+    }
+
+    public async getLatestVersionInfo() {
+        const response = await axios({
+            url: "https://repos.springrts.com/byar/versions.gz",
+            method: "GET",
+            responseType: "arraybuffer",
+            headers: {
+                "Content-Type": "application/gzip"
+            }
+        });
+
+        const versionsStr = zlib.gunzipSync(response.data).toString().trim();
+        const versionsParts = versionsStr.split("\n");
+        const latestVersion = versionsParts.pop()!.split(",");
+        const [ tag, md5, something, version ] = latestVersion;
+
+        return { tag, md5, version };
+    }
+
+    public isVersionInstalled(md5: string) {
+        const sdpPath = path.join(this.contentPath, "packages", `${md5}.sdp`);
+
+        return fs.existsSync(sdpPath);
     }
 
     protected processLine(line: string) : Message | null {
@@ -125,29 +149,5 @@ export class PRDownloaderAPI {
 
     protected isProgressMessage(message: Message) : message is ProgressMessage {
         return message.type === "Progress";
-    }
-
-    protected async getLatestVersionInfo() {
-        const response = await axios({
-            url: "https://repos.springrts.com/byar/versions.gz",
-            method: "GET",
-            responseType: "arraybuffer",
-            headers: {
-                "Content-Type": "application/gzip"
-            }
-        });
-
-        const versionsStr = zlib.gunzipSync(response.data).toString().trim();
-        const versionsParts = versionsStr.split("\n");
-        const latestVersion = versionsParts.pop()!.split(",");
-        const [ tag, md5, something, version ] = latestVersion;
-
-        return { tag, md5, version };
-    }
-
-    protected isVersionInstalled(md5: string) {
-        const sdpPath = path.join(this.contentPath, "packages", `${md5}.sdp`);
-
-        return fs.existsSync(sdpPath);
     }
 }
