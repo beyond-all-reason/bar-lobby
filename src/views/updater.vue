@@ -31,25 +31,25 @@ const router = useRouter();
 const text = ref("Fetching latest game updates");
 const percent = ref(0);
 
-window.api.prDownloader.onProgress.add(progress => {
+window.api.content.onGameProress.add(progress => {
     percent.value = progress.currentBytes / progress.totalBytes;
 });
 
-window.api.httpDownloader.onProgress.add(progress => {
+window.api.content.onEngineProgress.add(progress => {
     percent.value = progress.currentBytes / progress.totalBytes;
 });
 
 onMounted(async () => {
-    const isLatestGameVersionInstalled = await window.api.prDownloader.isLatestGameVersionInstalled();
+    const isLatestGameVersionInstalled = await window.api.content.isLatestGameVersionInstalled();
     if (!isLatestGameVersionInstalled) {
-        await window.api.prDownloader.updateGame();
+        await window.api.content.updateGame();
     }
 
     text.value = "Fetching latest engine updates";
 
-    const isLatestEngineVersionInstalled = await window.api.httpDownloader.isLatestEngineVersionInstalled();
+    const isLatestEngineVersionInstalled = await window.api.content.isLatestEngineVersionInstalled();
     if (!isLatestEngineVersionInstalled) {
-        await window.api.httpDownloader.downloadLatestEngine();
+        await window.api.content.downloadLatestEngine();
     }
 
     try {

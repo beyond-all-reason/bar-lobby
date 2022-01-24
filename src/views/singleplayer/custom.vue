@@ -2,10 +2,6 @@
 
 <template>
     <div>
-        <h1>{{ route.meta.title }}</h1>
-        <markdown source="
-- Uses same Battle component as multiplayer custom battles but hides chat and spectators
-" />
         <Battle />
     </div>
 </template>

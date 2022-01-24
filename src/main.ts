@@ -7,13 +7,11 @@ import { MainWindow } from "@/main-window";
 import { settingsSchema, SettingsType } from "@/model/settings";
 import { StoreAPI } from "@/api/store";
 import { Info } from "@/model/info";
-import { GitDownloaderAPI } from "@/api/git-downloader";
 
 export class Application {
     protected app: App;
     protected mainWindow!: MainWindow;
     protected settings!: StoreAPI<SettingsType>;
-    protected gameDownloaderApi: GitDownloaderAPI;
 
     constructor(app: App) {
         this.app = app;
@@ -46,8 +44,6 @@ export class Application {
         this.app.on("ready", () => this.onReady());
         this.app.on("activate", () => this.onActivate());
         this.app.on("window-all-closed", () => this.onWindowAllClosed());
-
-        this.gameDownloaderApi = new GitDownloaderAPI(path.join(this.app.getPath("userData"), "content"));
 
         this.setupHandlers();
     }
@@ -107,23 +103,6 @@ export class Application {
 
             return info;
         });
-
-        ipcMain.handle("test", async (event) => {
-            const testWorker = new Worker("./src/test.js", { type: "module" });
-            testWorker.onmessage = event => {
-                console.log(event.data);
-            };
-            testWorker.postMessage("yep");
-        });
-
-        // ipcMain.on("clone", async (event) => {
-        //     this.gameDownloaderApi.onProgress.disposeAll();
-        //     this.gameDownloaderApi.onProgress.add((progress) => {
-        //         event.sender.send("clone-progress", progress);
-        //     });
-
-        //     await this.gameDownloaderApi.fetchLatest();
-        // });
     }
 }
 

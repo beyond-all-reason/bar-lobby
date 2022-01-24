@@ -22,9 +22,7 @@ import { sessionSchema, SessionType } from "@/model/session";
 import { AudioAPI } from "@/api/audio";
 import { GameAPI } from "@/api/game";
 import { ModalsAPI } from "@/api/modals";
-import { GitDownloaderAPI } from "@/api/git-downloader";
-import { PRDownloaderAPI } from "@/api/pr-downloader";
-import { HTTPDownloaderAPI } from "@/api/http-downloader";
+import { ContentAPI } from "@/api/content";
 
 declare module "vue-router" {
     interface RouteMeta {
@@ -59,9 +57,7 @@ declare module "vue-router" {
         modals: new ModalsAPI(),
         accounts: await new StoreAPI<AccountType>("accounts", accountSchema).init(),
         game: new GameAPI(),
-        gitDownloader: new GitDownloaderAPI(window.info.contentPath),
-        prDownloader: new PRDownloaderAPI(window.info.contentPath),
-        httpDownloader: new HTTPDownloaderAPI(window.info.contentPath)
+        content: new ContentAPI()
     };
 
     document.addEventListener("keydown", (event) => {

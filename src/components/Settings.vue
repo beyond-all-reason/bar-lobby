@@ -5,7 +5,7 @@
             <Checkbox v-model="fullscreen" />
 
             <div class="flex-row flex-center-items">Display</div>
-            <Select v-model="displayIndex" :options="displays" :label-by="option => `Display ${option + 1}`" />
+            <Select v-model="displayIndex" :options="displays" :label-by="(option: string) => `Display ${option + 1}`" />
 
             <div class="flex-row flex-center-items">Theme</div>
             <Select v-model="theme" :options="themes" />

@@ -1,10 +1,8 @@
 import { AlertsAPI } from "@/api/alerts";
 import { AudioAPI } from "@/api/audio";
 import { GameAPI } from "@/api/game";
-import { GitDownloaderAPI } from "@/api/git-downloader";
-import { HTTPDownloaderAPI } from "@/api/http-downloader";
+import { ContentAPI } from "@/api/content";
 import { ModalsAPI } from "@/api/modals";
-import { PRDownloaderAPI } from "@/api/pr-downloader";
 import { StoreAPI } from "@/api/store";
 import { AccountType } from "@/model/account";
 import { Info } from "@/model/info";
@@ -28,9 +26,7 @@ declare global {
         alerts: AlertsAPI;
         modals: ModalsAPI;
         accounts: StoreAPI<AccountType>;
+        content: ContentAPI;
         game: GameAPI;
-        gitDownloader: GitDownloaderAPI;
-        prDownloader: PRDownloaderAPI;
-        httpDownloader: HTTPDownloaderAPI;
     }
 }
