@@ -23,6 +23,7 @@ import { AudioAPI } from "@/api/audio";
 import { GameAPI } from "@/api/game";
 import { ModalsAPI } from "@/api/modals";
 import { ContentAPI } from "@/api/content";
+import { CacheAPI } from "@/api/cache";
 
 declare module "vue-router" {
     interface RouteMeta {
@@ -36,7 +37,9 @@ declare module "vue-router" {
 (async () => {
     window.info = await ipcRenderer.invoke("getInfo");
 
-    await fs.promises.mkdir(window.info.contentPath, { recursive: true });
+    const settingsAPI = await new StoreAPI<SettingsType>("settings", settingsSchema, true).init();
+
+    await fs.promises.mkdir(settingsAPI.model.dataDir.value, { recursive: true });
 
     // TODO: API this
     const ajv = new Ajv({ coerceTypes: true, useDefaults: true });
@@ -46,7 +49,7 @@ declare module "vue-router" {
 
     window.api = {
         session: toRefs(session),
-        settings: await new StoreAPI<SettingsType>("settings", settingsSchema, true).init(),
+        settings: settingsAPI,
         client: new TachyonClient({
             host: "server2.beyondallreason.info",
             port: 8202,
@@ -57,8 +60,17 @@ declare module "vue-router" {
         modals: new ModalsAPI(),
         accounts: await new StoreAPI<AccountType>("accounts", accountSchema).init(),
         game: new GameAPI(),
-        content: new ContentAPI()
+        content: new ContentAPI(),
+        cache: await new CacheAPI().init()
     };
+
+    window.api.client.socket?.on("connect", () => {
+        window.api.session.offline.value = false;
+    });
+
+    window.api.client.socket?.on("close", () => {
+        window.api.session.offline.value = true;
+    });
 
     document.addEventListener("keydown", (event) => {
         if (event.code === "F11") {

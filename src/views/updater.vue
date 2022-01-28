@@ -3,13 +3,13 @@
         <h1>Updating</h1>
         <div>{{ text }}</div>
         <Loader v-if="!percent || percent === 1" />
-        <h3 v-else>{{ percent * 100 }}%</h3>
+        <h2 class="percent" v-else>{{ (percent * 100).toFixed(1) }}%</h2>
     </div>
 </template>
 
 <script lang="ts">
-import { loginRequest } from "@/utils/login-request";
 import { defineComponent, ref } from "vue";
+import * as dns from "dns";
 
 export default defineComponent({
     layout: {
@@ -25,6 +25,7 @@ export default defineComponent({
 
 <script lang="ts" setup>
 import { onMounted } from "vue";
+import { loginRequest } from "@/utils/login-request";
 import { useRouter } from "vue-router";
 
 const router = useRouter();
@@ -40,9 +41,17 @@ window.api.content.onEngineProgress.add(progress => {
 });
 
 onMounted(async () => {
+    const internetConnected = await isConnectedToInternet();
+    if (!internetConnected) {
+        await router.replace("/home");
+        return;
+    }
+
     const isLatestGameVersionInstalled = await window.api.content.isLatestGameVersionInstalled();
     if (!isLatestGameVersionInstalled) {
         await window.api.content.updateGame();
+    } else {
+        console.log("Latest game version already installed");
     }
 
     text.value = "Fetching latest engine updates";
@@ -50,6 +59,8 @@ onMounted(async () => {
     const isLatestEngineVersionInstalled = await window.api.content.isLatestEngineVersionInstalled();
     if (!isLatestEngineVersionInstalled) {
         await window.api.content.downloadLatestEngine();
+    } else {
+        console.log("Latest engine version already installed");
     }
 
     try {
@@ -74,4 +85,16 @@ onMounted(async () => {
 
     await router.replace("/login");
 });
+
+async function isConnectedToInternet() {
+    try {
+        const lookup = await dns.promises.lookup("google.com");
+        if (lookup.address) {
+            return true;
+        }
+    } catch (err) {
+        return false;
+    }
+    return false;
+}
 </script>

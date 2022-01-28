@@ -1,7 +1,6 @@
 import { app, App, ipcMain, protocol, screen } from "electron";
 import installExtension, { VUEJS3_DEVTOOLS } from "electron-devtools-installer";
 import unhandled from "electron-unhandled";
-import * as path from "path";
 
 import { MainWindow } from "@/main-window";
 import { settingsSchema, SettingsType } from "@/model/settings";
@@ -94,7 +93,6 @@ export class Application {
                     hash: "123"
                 },
                 userDataPath: userDataPath,
-                contentPath: path.join(userDataPath, "content"),
                 hardware: {
                     numOfDisplays: displayIds.length,
                     currentDisplayIndex: displayIds.indexOf(currentDisplayId)

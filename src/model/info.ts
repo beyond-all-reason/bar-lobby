@@ -5,7 +5,6 @@ export interface Info {
         hash: string;
     };
     userDataPath: string;
-    contentPath: string;
     hardware: {
         numOfDisplays: number;
         currentDisplayIndex: number;

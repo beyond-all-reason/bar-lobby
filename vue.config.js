@@ -29,7 +29,7 @@ module.exports = {
             new IgnorePlugin(/build\/Debug\/nodegit.node$/i)
         ],
         externals: {
-            nodegit: "commonjs nodegit"
+            "better-sqlite3": "commonjs better-sqlite3"
         }
     },
     pluginOptions: {
@@ -38,6 +38,7 @@ module.exports = {
             mainProcessWatch: ["src/main.ts", "src/main-window.ts", "src/api/**/*"],
             rendererProcessFile: "src/render.ts",
             customFileProtocol: "bar://./",
+            nodeIntegration: true,
             builderOptions: {
                 productName: "BAR Lobby",
                 directories: {
@@ -54,7 +55,8 @@ module.exports = {
             },
             chainWebpackRendererProcess: config => {
                 config.target("electron-renderer");
-            }
+            },
+            externals: [ "better-sqlite3" ]
         },
         autoRouting: {
             pages: "src/views",

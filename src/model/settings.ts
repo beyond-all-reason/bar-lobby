@@ -1,3 +1,5 @@
+import * as os from "os";
+import * as path from "path";
 import { Static, Type } from "@sinclair/typebox";
 
 export enum Theme {
@@ -5,7 +7,15 @@ export enum Theme {
     Flow = "Flow"
 }
 
+let defaultDataDir = "";
+if (process.platform === "win32") {
+    defaultDataDir = path.join(os.homedir(), "Documents", "My Games", "Spring");
+} else if (process.platform === "linux") {
+    defaultDataDir = path.join(os.homedir(), ".spring");
+}
+
 export const settingsSchema = Type.Strict(Type.Object({
+    dataDir: Type.String({ default: defaultDataDir }),
     fullscreen: Type.Boolean({ default: true }),
     displayIndex: Type.Number({ default: 0 }),
     theme: Type.Enum(Theme, { default: Theme.Carbon }),

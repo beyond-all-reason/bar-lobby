@@ -8,6 +8,7 @@
 <script lang="ts" setup>
 import { EngineTagFormat } from "@/model/formats";
 import { Script } from "start-script-converter";
+import { ref } from "vue";
 
 // const engineVersion = ref("");
 // const gameVersion = ref("");
@@ -17,15 +18,17 @@ import { Script } from "start-script-converter";
 //     gameVersion.value = (await window.api.content.getLatestVersionInfo()).version;
 // });
 
+const maps = ref([] as string[]);
+
 const start = async () => {
     const { version } = await window.api.content.getLatestVersionInfo();
 
     const script: Script = {
         game: {
-            gametype: version,
+            gametype: "Beyond All Reason test-17602-f1f76f9",
             ishost: 1,
             myplayername: "fish",
-            mapname: "Red Comet Remake 1.8"
+            mapname: "Red Comet Remake 1.7"
         },
         players: [
             {

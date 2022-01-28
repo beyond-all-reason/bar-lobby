@@ -5,6 +5,8 @@ import axios from "axios";
 import { Signal } from "jaz-ts-utils";
 import { Octokit } from "octokit";
 import { spawn } from "child_process";
+import { MapParser } from "spring-map-parser";
+import { DemoParser } from "sdfz-demo-parser";
 import { DownloadType, Message, ProgressMessage } from "../model/pr-downloader";
 import { extract7z } from "../utils/extract7z";
 import { EngineTagFormat, isEngineTag } from "../model/formats";
@@ -18,12 +20,16 @@ export class ContentAPI {
 
     protected binaryPath: string;
     protected gameName = "byar:test";
+    protected mapParser = new MapParser();
+    protected demoParser = new DemoParser();
 
     constructor() {
         if (process.platform === "win32") {
             this.binaryPath = "extra_resources/pr-downloader.exe";
-        } else {
+        } else if (process.platform === "linux") {
             this.binaryPath = "extra_resources/pr-downloader";
+        } else {
+            throw new Error("Unsupported platform");
         }
     }
 
@@ -52,7 +58,7 @@ export class ContentAPI {
 
         const engine7z = downloadResponse.data as ArrayBuffer;
 
-        const downloadPath = path.join(window.info.contentPath, "engine");
+        const downloadPath = path.join(window.api.settings.model.dataDir.value, "engine");
         const downloadFile = path.join(downloadPath, asset.name);
 
         await fs.promises.mkdir(downloadPath, { recursive: true });
@@ -102,7 +108,7 @@ export class ContentAPI {
     public async listInstalledEngineVersions() {
         const engineVersions: EngineTagFormat[] = [];
 
-        const engineDir = path.join(window.info.contentPath, "engine");
+        const engineDir = path.join(window.api.settings.model.dataDir.value, "engine");
         const engineDirs = await fs.promises.readdir(engineDir);
 
         for (const dir of engineDirs) {
@@ -116,7 +122,7 @@ export class ContentAPI {
 
     // arg format should match dir name, e.g. BAR-105.1.1-809-g3f69f26
     public async isEngineVersionInstalled(engineTag: EngineTagFormat) {
-        return fs.existsSync(path.join(window.info.contentPath, "engine", engineTag));
+        return fs.existsSync(path.join(window.api.settings.model.dataDir.value, "engine", engineTag));
     }
 
     public async isLatestEngineVersionInstalled() {
@@ -129,7 +135,7 @@ export class ContentAPI {
     public updateGame() {
         return new Promise<void>((resolve, reject) => {
             const prDownloaderProcess = spawn(`${this.binaryPath}`, [
-                "--filesystem-writepath", window.info.contentPath,
+                "--filesystem-writepath", window.api.settings.model.dataDir.value,
                 "--download-game", this.gameName
             ]);
 
@@ -137,7 +143,7 @@ export class ContentAPI {
 
             prDownloaderProcess.stdout.on("data", (stdout: Buffer) => {
                 const lines = stdout.toString().trim().split("\r\n").filter(Boolean);
-                console.log(lines);
+                console.log(lines.join("\n"));
                 const messages = lines.map(line => this.processLine(line)).filter(Boolean) as Message[];
                 for (const message of messages) {
                     if (this.isProgressMessage(message) && downloadType === DownloadType.Game) {
@@ -167,7 +173,7 @@ export class ContentAPI {
     public isRapidInitialized() : Promise<boolean> {
         return new Promise(resolve => {
             const prDownloaderProcess = spawn(`${this.binaryPath}`, [
-                "--filesystem-writepath", window.info.contentPath,
+                "--filesystem-writepath", window.api.settings.model.dataDir.value,
                 "--rapid-validate"
             ]);
 
@@ -201,15 +207,19 @@ export class ContentAPI {
         const versionsStr = zlib.gunzipSync(response.data).toString().trim();
         const versionsParts = versionsStr.split("\n");
         const latestVersion = versionsParts.pop()!.split(",");
-        const [ tag, md5, something, version ] = latestVersion;
+        const [ tag, md5, _, version ] = latestVersion;
 
         return { tag, md5, version };
     }
 
     public isVersionInstalled(md5: string) {
-        const sdpPath = path.join(window.info.contentPath, "packages", `${md5}.sdp`);
+        const sdpPath = path.join(window.api.settings.model.dataDir.value, "packages", `${md5}.sdp`);
 
         return fs.existsSync(sdpPath);
+    }
+
+    public async getInstalledMaps() {
+        //
     }
 
     // spring_bar_{BAR105}105.1.1-807-g98b14ce -> BAR-105.1.1-809-g3f69f26

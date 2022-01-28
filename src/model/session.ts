@@ -4,6 +4,7 @@ import { serverCommandSchema } from "tachyon-client/dist/model/commands/server-c
 const loginSchema = serverCommandSchema["s.auth.login"].properties.user;
 
 export const sessionSchema = Type.Strict(Type.Object({
+    offline: Type.Boolean({ default: true }),
     account: Type.Optional(loginSchema)
 }));
 
