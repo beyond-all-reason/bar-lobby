@@ -10,6 +10,7 @@ import { DemoParser } from "sdfz-demo-parser";
 import { DownloadType, Message, ProgressMessage } from "../model/pr-downloader";
 import { extract7z } from "../utils/extract7z";
 import { EngineTagFormat, isEngineTag } from "../model/formats";
+import { Ref } from "vue";
 
 export class ContentAPI {
     public onEngineProgress: Signal<{ currentBytes: number; totalBytes: number }> = new Signal();
@@ -23,7 +24,7 @@ export class ContentAPI {
     protected mapParser = new MapParser();
     protected demoParser = new DemoParser();
 
-    constructor() {
+    constructor(protected userDataDir: string, protected dataDir: Ref<string>) {
         if (process.platform === "win32") {
             this.binaryPath = "extra_resources/pr-downloader.exe";
         } else if (process.platform === "linux") {
@@ -58,7 +59,7 @@ export class ContentAPI {
 
         const engine7z = downloadResponse.data as ArrayBuffer;
 
-        const downloadPath = path.join(window.api.settings.model.dataDir.value, "engine");
+        const downloadPath = path.join(this.dataDir.value, "engine");
         const downloadFile = path.join(downloadPath, asset.name);
 
         await fs.promises.mkdir(downloadPath, { recursive: true });
@@ -108,7 +109,7 @@ export class ContentAPI {
     public async listInstalledEngineVersions() {
         const engineVersions: EngineTagFormat[] = [];
 
-        const engineDir = path.join(window.api.settings.model.dataDir.value, "engine");
+        const engineDir = path.join(this.dataDir.value, "engine");
         const engineDirs = await fs.promises.readdir(engineDir);
 
         for (const dir of engineDirs) {
@@ -122,7 +123,7 @@ export class ContentAPI {
 
     // arg format should match dir name, e.g. BAR-105.1.1-809-g3f69f26
     public async isEngineVersionInstalled(engineTag: EngineTagFormat) {
-        return fs.existsSync(path.join(window.api.settings.model.dataDir.value, "engine", engineTag));
+        return fs.existsSync(path.join(this.dataDir.value, "engine", engineTag));
     }
 
     public async isLatestEngineVersionInstalled() {
@@ -133,9 +134,9 @@ export class ContentAPI {
     }
 
     public updateGame() {
-        return new Promise<void>((resolve, reject) => {
+        return new Promise<void>(resolve => {
             const prDownloaderProcess = spawn(`${this.binaryPath}`, [
-                "--filesystem-writepath", window.api.settings.model.dataDir.value,
+                "--filesystem-writepath", this.dataDir.value,
                 "--download-game", this.gameName
             ]);
 
@@ -159,8 +160,6 @@ export class ContentAPI {
 
             prDownloaderProcess.stderr.on("data", (data: Buffer) => {
                 console.error(data.toString());
-                reject();
-                prDownloaderProcess.kill();
             });
 
             prDownloaderProcess.on("close", () => {
@@ -173,7 +172,7 @@ export class ContentAPI {
     public isRapidInitialized() : Promise<boolean> {
         return new Promise(resolve => {
             const prDownloaderProcess = spawn(`${this.binaryPath}`, [
-                "--filesystem-writepath", window.api.settings.model.dataDir.value,
+                "--filesystem-writepath", this.dataDir.value,
                 "--rapid-validate"
             ]);
 
@@ -213,7 +212,7 @@ export class ContentAPI {
     }
 
     public isVersionInstalled(md5: string) {
-        const sdpPath = path.join(window.api.settings.model.dataDir.value, "packages", `${md5}.sdp`);
+        const sdpPath = path.join(this.dataDir.value, "packages", `${md5}.sdp`);
 
         return fs.existsSync(sdpPath);
     }

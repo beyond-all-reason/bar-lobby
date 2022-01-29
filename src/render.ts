@@ -47,6 +47,9 @@ declare module "vue-router" {
     const session = reactive({}) as SessionType;
     sessionValidator(session);
 
+    const userDataDir = window.info.userDataPath;
+    const dataDir = settingsAPI.model.dataDir;
+
     window.api = {
         session: toRefs(session),
         settings: settingsAPI,
@@ -59,9 +62,9 @@ declare module "vue-router" {
         alerts: new AlertsAPI(),
         modals: new ModalsAPI(),
         accounts: await new StoreAPI<AccountType>("accounts", accountSchema).init(),
-        game: new GameAPI(),
-        content: new ContentAPI(),
-        cache: await new CacheAPI().init()
+        game: new GameAPI(userDataDir, dataDir),
+        content: new ContentAPI(userDataDir, dataDir),
+        cache: await new CacheAPI(userDataDir, dataDir).init()
     };
 
     window.api.client.socket?.on("connect", () => {

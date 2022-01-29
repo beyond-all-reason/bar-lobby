@@ -24,6 +24,10 @@
 
 import { PropType, ref, watch, BaseTransitionProps } from "vue";
 import { useRoute } from "vue-router";
+import Settings from "@/components/Settings.vue";
+import Exit from "@/components/Exit.vue";
+import NavBar from "@/components/NavBar.vue";
+import Panel from "@/components/common/Panel.vue";
 
 const props = defineProps({
     empty: Boolean,
