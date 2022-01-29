@@ -14,7 +14,6 @@
     "build": "cross-env NODE_ENV=production vue-cli-service electron:build -- --linux deb --win nsis",
     "build-publish": "cross-env NODE_ENV=production AUTO_UPDATE=true vue-cli-service electron:build -- -p always --linux deb --win nsis",
     "lint": "vue-cli-service lint",
-    "rebuild": "electron-rebuild -f -w better-sqlite3",
     "postinstall": "electron-builder install-app-deps",
     "postuninstall": "electron-builder install-app-deps",
     "dump-webpack-config": "vue inspect > output.js"

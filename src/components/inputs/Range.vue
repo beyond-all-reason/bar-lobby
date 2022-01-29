@@ -11,9 +11,9 @@
 <script lang="ts" setup>
 // https://nightcatsama.github.io/vue-slider-component/#/
 
-import { onMounted, ref, toRefs } from "vue";
+import { onMounted, Ref, ref, toRefs } from "vue";
 import { v4 as uuidv4 } from "uuid";
-import { ERROR_TYPE } from "vue-slider-component";
+import VueSlider, { ERROR_TYPE } from "vue-slider-component";
 
 const props = defineProps({
     label: String,
@@ -28,7 +28,7 @@ const props = defineProps({
 const uuid = ref(uuidv4());
 const { label, icon } = toRefs(props);
 const value = ref(props.modelValue);
-const slider = ref();
+const slider = ref() as Ref<VueSlider>;
 const textbox = ref();
 const max = ref(0);
 const disableCustomInput = ref(props.disableCustomInput);

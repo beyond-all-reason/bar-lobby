@@ -11,6 +11,8 @@ import { DownloadType, Message, ProgressMessage } from "../model/pr-downloader";
 import { extract7z } from "../utils/extract7z";
 import { EngineTagFormat, isEngineTag } from "../model/formats";
 import { Ref } from "vue";
+import { ipcRenderer } from "electron";
+import { MapData } from "@/api/cache";
 
 export class ContentAPI {
     public onEngineProgress: Signal<{ currentBytes: number; totalBytes: number }> = new Signal();
@@ -218,7 +220,25 @@ export class ContentAPI {
     }
 
     public async getInstalledMaps() {
-        //
+        const files = await fs.promises.readdir(this.getMapsPath());
+        const mapFiles = files.filter(file => file.endsWith(".sd7") || file.endsWith(".sdz"));
+        const cachedMaps: { [filename: string]: MapData } = await ipcRenderer.invoke("getCachedMaps");
+
+        const maps: { [filename: string]: MapData | null } = {};
+
+        for (const mapFile of mapFiles) {
+            maps[mapFile] = cachedMaps[mapFile] || null;
+        }
+
+        return maps;
+    }
+
+    public getMapsPath() {
+        return path.join(this.dataDir.value, "maps");
+    }
+
+    public getMapImagesPath() {
+        return path.join(this.dataDir.value, "map-images");
     }
 
     // spring_bar_{BAR105}105.1.1-807-g98b14ce -> BAR-105.1.1-809-g3f69f26

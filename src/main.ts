@@ -6,11 +6,13 @@ import { MainWindow } from "@/main-window";
 import { settingsSchema, SettingsType } from "@/model/settings";
 import { StoreAPI } from "@/api/store";
 import { Info } from "@/model/info";
+import { CacheAPI } from "@/api/cache";
 
 export class Application {
     protected app: App;
-    protected mainWindow!: MainWindow;
-    protected settings!: StoreAPI<SettingsType>;
+    protected mainWindow?: MainWindow;
+    protected settings?: StoreAPI<SettingsType>;
+    protected cache?: CacheAPI;
 
     constructor(app: App) {
         this.app = app;
@@ -43,8 +45,6 @@ export class Application {
         this.app.on("ready", () => this.onReady());
         this.app.on("activate", () => this.onActivate());
         this.app.on("window-all-closed", () => this.onWindowAllClosed());
-
-        this.setupHandlers();
     }
 
     protected async onReady() {
@@ -57,20 +57,24 @@ export class Application {
         }
 
         if (!this.mainWindow) {
-            this.setupMainWindow();
+            this.init();
         }
     }
 
     protected async onActivate() {
         if (!this.mainWindow) {
-            this.setupMainWindow();
+            this.init();
         }
     }
 
-    protected async setupMainWindow() {
+    protected async init() {
         this.settings = await new StoreAPI<SettingsType>("settings", settingsSchema).init();
 
+        this.cache = await new CacheAPI(this.app.getPath("userData"), this.settings.model.dataDir).init();
+
         this.mainWindow = new MainWindow(this.settings);
+
+        this.setupHandlers();
     }
 
     protected async onWindowAllClosed() {
@@ -80,11 +84,12 @@ export class Application {
     }
 
     protected setupHandlers() {
+        // TODO: refactor this info into session store api?
         ipcMain.handle("getInfo", async (event) => {
             const userDataPath = this.app.getPath("userData");
 
             const displayIds = screen.getAllDisplays().map(display => display.id);
-            const currentDisplayId = screen.getDisplayNearestPoint(this.mainWindow.window.getBounds()).id;
+            const currentDisplayId = screen.getDisplayNearestPoint(this.mainWindow!.window.getBounds()).id;
 
             const info: Info = {
                 lobby: {

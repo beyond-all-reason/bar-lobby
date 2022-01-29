@@ -10,7 +10,6 @@ import { SessionType } from "@/model/session";
 import { SettingsType } from "@/model/settings";
 import { TachyonClient } from "tachyon-client";
 import { ToRefs } from "vue";
-import { CacheAPI } from "@/api/cache";
 
 declare global {
     interface Window {
@@ -29,6 +28,5 @@ declare global {
         accounts: StoreAPI<AccountType>;
         content: ContentAPI;
         game: GameAPI;
-        cache: CacheAPI;
     }
 }

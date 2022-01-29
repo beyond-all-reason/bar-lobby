@@ -23,7 +23,6 @@ import { AudioAPI } from "@/api/audio";
 import { GameAPI } from "@/api/game";
 import { ModalsAPI } from "@/api/modals";
 import { ContentAPI } from "@/api/content";
-import { CacheAPI } from "@/api/cache";
 
 declare module "vue-router" {
     interface RouteMeta {
@@ -63,8 +62,7 @@ declare module "vue-router" {
         modals: new ModalsAPI(),
         accounts: await new StoreAPI<AccountType>("accounts", accountSchema).init(),
         game: new GameAPI(userDataDir, dataDir),
-        content: new ContentAPI(userDataDir, dataDir),
-        cache: await new CacheAPI(userDataDir, dataDir).init()
+        content: new ContentAPI(userDataDir, dataDir)
     };
 
     window.api.client.socket?.on("connect", () => {

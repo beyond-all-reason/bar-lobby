@@ -27,10 +27,7 @@ module.exports = {
         plugins: [
             new WorkerPlugin(),
             new IgnorePlugin(/build\/Debug\/nodegit.node$/i)
-        ],
-        externals: {
-            "better-sqlite3": "commonjs better-sqlite3"
-        }
+        ]
     },
     pluginOptions: {
         electronBuilder: {
@@ -55,8 +52,7 @@ module.exports = {
             },
             chainWebpackRendererProcess: config => {
                 config.target("electron-renderer");
-            },
-            externals: [ "better-sqlite3" ]
+            }
         },
         autoRouting: {
             pages: "src/views",
