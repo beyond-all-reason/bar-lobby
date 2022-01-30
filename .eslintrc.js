@@ -21,7 +21,7 @@ module.exports = {
         "unused-imports"
     ],
     rules: {
-        "no-console": process.env.NODE_ENV === "production" ? "warn" : "off",
+        "no-console": "off",
         "no-debugger": process.env.NODE_ENV === "production" ? "warn" : "off",
         "indent": "off",
         "quotes": "off",

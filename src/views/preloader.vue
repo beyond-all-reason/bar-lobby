@@ -38,9 +38,6 @@ const fontFiles = require.context("@/assets/fonts/", true).keys();
 totalFiles.value = imageFiles.length + fontFiles.length;
 
 onMounted(async () => {
-    // TODO: get music load progress from howler and load music files at this point
-    // might not want to load everything up front, be wary of memory usage
-
     const randomBg = randomFromArray(imageFiles.filter(src => src.includes("backgrounds")));
     const randomBgBuiltPath = await loadImage(randomBg);
     document.documentElement.style.setProperty("--background", `url(${randomBgBuiltPath})`);
