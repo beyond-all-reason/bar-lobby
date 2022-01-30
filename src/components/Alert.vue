@@ -7,6 +7,7 @@
 
 <script lang="ts" setup>
 import { useRouter } from "vue-router";
+import Modal from "./common/Modal.vue";
 
 const { title, message, type, isFatal } = window.api.alerts.getAlert();
 const router = useRouter();

@@ -3,7 +3,7 @@
 <template>
     <div>
         <h1>{{ route.meta.title }}</h1>
-        <markdown source="
+        <Markdown source="
 - Automated tournaments list (like in rocket league)
 - Official tournaments list
 - Unofficial tournaments list
@@ -14,6 +14,7 @@
 
 <script lang="ts" setup>
 import { useRoute } from "vue-router";
+import Markdown from "vue3-markdown-it";
 
 const route = useRoute();
 </script>

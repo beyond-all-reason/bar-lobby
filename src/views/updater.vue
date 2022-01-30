@@ -27,6 +27,7 @@ export default defineComponent({
 import { onMounted } from "vue";
 import { loginRequest } from "@/utils/login-request";
 import { useRouter } from "vue-router";
+import Loader from "@/components/common/Loader.vue";
 
 const router = useRouter();
 const text = ref("Fetching latest game updates");

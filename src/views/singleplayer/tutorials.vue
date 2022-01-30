@@ -3,7 +3,7 @@
 <template>
     <div>
         <h1>{{ route.meta.title }}</h1>
-        <markdown source="
+        <Markdown source="
 - Custom type scenarios that slowly introduce the game in segmented chunks
 
 Tutorials might include:
@@ -21,6 +21,7 @@ Tutorials might include:
 
 <script lang="ts" setup>
 import { useRoute } from "vue-router";
+import Markdown from "vue3-markdown-it";
 
 const route = useRoute();
 </script>

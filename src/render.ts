@@ -5,7 +5,6 @@ import { createRouter, createWebHashHistory } from "vue-router";
 import { createRouterLayout } from "vue-router-layout";
 import VueNextSelect from "vue-next-select";
 import VueSlider from "vue-slider-component";
-import Markdown from "vue3-markdown-it";
 import Ajv from "ajv";
 import { TachyonClient } from "tachyon-client";
 import "vue-next-select/dist/index.css";
@@ -23,6 +22,7 @@ import { AudioAPI } from "@/api/audio";
 import { GameAPI } from "@/api/game";
 import { ModalsAPI } from "@/api/modals";
 import { ContentAPI } from "@/api/content";
+import DefaultLayout from "@/layouts/default.vue";
 
 declare module "vue-router" {
     interface RouteMeta {
@@ -85,9 +85,7 @@ declare module "vue-router" {
 })();
 
 async function setupVue() {
-    const RouterLayout = createRouterLayout(layout => {
-        return import("@/layouts/" + layout + ".vue");
-    });
+    const RouterLayout = createRouterLayout(async () => DefaultLayout);
 
     const router = createRouter({
         history: createWebHashHistory(),
@@ -101,13 +99,14 @@ async function setupVue() {
     });
 
     const app = createApp(App);
+
+    app.use(router);
+    app.component("vue-select", VueNextSelect);
+    app.component("vue-slider", VueSlider);
+    app.mount("#app");
+
     app.config.globalProperties.window = window;
     if (process.env.NODE_ENV !== "production") {
         (window as any).router = router;
     }
-    app.use(router);
-    app.component("vue-select", VueNextSelect);
-    app.component("vue-slider", VueSlider);
-    app.component("markdown", Markdown);
-    app.mount("#app");
 }

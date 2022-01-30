@@ -8,6 +8,7 @@
 
 <script lang="ts" setup>
 import { useRoute } from "vue-router";
+import Battle from "@/views/multiplayer/battle.vue";
 
 const route = useRoute();
 </script>

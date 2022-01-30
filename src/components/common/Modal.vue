@@ -16,6 +16,8 @@
 
 <script lang="ts" setup>
 import { ref } from "vue";
+import Panel from "@/components/common/Panel.vue";
+import Icon from "@/components/common/Icon.vue";
 
 const props = defineProps({
     name: {

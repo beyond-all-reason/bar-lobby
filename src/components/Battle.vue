@@ -9,6 +9,7 @@
 import { EngineTagFormat } from "@/model/formats";
 import { Script } from "start-script-converter";
 import { ref } from "vue";
+import Button from "@/components/inputs/Button.vue";
 
 // const engineVersion = ref("");
 // const gameVersion = ref("");

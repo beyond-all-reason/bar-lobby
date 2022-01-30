@@ -3,7 +3,7 @@
 <template>
     <div>
         <h1>{{ route.meta.title }}</h1>
-        <markdown source="
+        <Markdown source="
 - How maps work
 - Common workflow
 - What makes a map good
@@ -13,6 +13,7 @@
 
 <script lang="ts" setup>
 import { useRoute } from "vue-router";
+import Markdown from "vue3-markdown-it";
 
 const route = useRoute();
 </script>

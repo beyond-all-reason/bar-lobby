@@ -30,6 +30,8 @@
 <script lang="ts" setup>
 import { computed } from "vue";
 import { useRoute, useRouter } from "vue-router";
+import Icon from "@/components/common/Icon.vue";
+import Button from "@/components/inputs/Button.vue";
 
 const router = useRouter();
 const route = useRoute();

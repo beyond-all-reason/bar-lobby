@@ -119,6 +119,9 @@
 
 <script lang="ts" setup>
 import { ref } from "vue";
+import Select from "@/components/inputs/Select.vue";
+import Textbox from "@/components/inputs/Textbox.vue";
+import Checkbox from "@/components/inputs/Checkbox.vue";
 
 const test = ref("fish");
 const color = ref("red");

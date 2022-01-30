@@ -1,6 +1,3 @@
-const WorkerPlugin = require("worker-plugin");
-const { IgnorePlugin } = require("webpack");
-
 module.exports = {
     lintOnSave: true,
     css: {
@@ -23,11 +20,7 @@ module.exports = {
                     type: "javascript/auto"
                 }
             ]
-        },
-        plugins: [
-            new WorkerPlugin(),
-            new IgnorePlugin(/build\/Debug\/nodegit.node$/i)
-        ]
+        }
     },
     pluginOptions: {
         electronBuilder: {

@@ -14,6 +14,8 @@
 
 <script lang="ts" setup>
 import { ref } from "vue";
+import Loader from "@/components/common/Loader.vue";
+import Textbox from "@/components/inputs/Textbox.vue";
 
 const emit = defineEmits(["register-success"]);
 

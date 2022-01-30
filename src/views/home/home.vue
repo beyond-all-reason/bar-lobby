@@ -3,7 +3,7 @@
 <template>
     <div>
         <h1>Home</h1>
-        <markdown source="
+        <Markdown source="
 - Small panes that preview content that can be displayed in more detail when clicking through to their full pages
 - Lates news (manual blog-like posts)
 - Latest updates (automated balance changes, simple github feed)
@@ -16,4 +16,5 @@
 </template>
 
 <script lang="ts" setup>
+import Markdown from "vue3-markdown-it";
 </script>

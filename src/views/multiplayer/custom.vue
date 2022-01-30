@@ -3,7 +3,7 @@
 <template>
     <div>
         <h1>{{ route.meta.title }}</h1>
-        <markdown source="
+        <Markdown source="
 - Classic server browser, maybe grid or list view options
 - Preview pane to show players in the battle and additional info
 - Host custom battle button (should request spawning a dedicated instance instead of being self-hosted)
@@ -16,6 +16,7 @@
 
 <script lang="ts" setup>
 import { useRoute } from "vue-router";
+import Markdown from "vue3-markdown-it";
 
 const route = useRoute();
 </script>

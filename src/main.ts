@@ -18,7 +18,7 @@ export class Application {
         this.app = app;
 
         protocol.registerSchemesAsPrivileged([{
-            scheme: "app",
+            scheme: "bar",
             privileges: {
                 secure: true,
                 standard: true,

@@ -10,6 +10,7 @@
 <script lang="ts" setup>
 import { useRouter } from "vue-router";
 import Modal from "@/components/common/Modal.vue";
+import Button from "@/components/inputs/Button.vue";
 
 const router = useRouter();
 

@@ -3,7 +3,7 @@
 <template>
     <div>
         <h1>{{ route.meta.title }}</h1>
-        <markdown source="
+        <Markdown source="
 - Matchmaking queue toggles for 1v1, 2v2, 3v3, 4v4, 5v5, 6v6, 7v7, 8v8, Small FFA (3 - 5), Medium FFA (6 - 10), Large FFA (11 - 16), TeamFFA
 - Show current rank for each playlist
 - Big shiny queue button, changes to cancel queue when queued already
@@ -23,6 +23,7 @@ Ranked differences:
 
 <script lang="ts" setup>
 import { useRoute } from "vue-router";
+import Markdown from "vue3-markdown-it";
 
 const route = useRoute();
 </script>

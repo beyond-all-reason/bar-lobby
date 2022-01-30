@@ -25,6 +25,7 @@ import { useRouter } from "vue-router";
 import { randomFromArray } from "jaz-ts-utils";
 import { loadFont } from "@/utils/load-font";
 import { loadImage } from "@/utils/load-image";
+import Progress from "@/components/common/Progress.vue";
 
 const router = useRouter();
 const totalFiles = ref(0);

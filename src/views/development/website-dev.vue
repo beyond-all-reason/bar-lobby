@@ -3,7 +3,7 @@
 <template>
     <div>
         <h1>{{ route.meta.title }}</h1>
-        <markdown source="
+        <Markdown source="
 - Main website, blog posts, guides
 - bar-rts.com, replays, battles, leaderboards, maps, player profiles
 " />
@@ -12,6 +12,7 @@
 
 <script lang="ts" setup>
 import { useRoute } from "vue-router";
+import Markdown from "vue3-markdown-it";
 
 const route = useRoute();
 </script>

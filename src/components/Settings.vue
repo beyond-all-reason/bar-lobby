@@ -25,6 +25,10 @@
 <script lang="ts" setup>
 import { ref, watch } from "vue";
 import { Theme } from "@/model/settings";
+import Modal from "./common/Modal.vue";
+import Checkbox from "@/components/inputs/Checkbox.vue";
+import Range from "@/components/inputs/Range.vue";
+import Select from "@/components/inputs/Select.vue";
 
 const settings = window.api.settings.model;
 const displays = ref(Array(window.info.hardware.numOfDisplays).fill(0).map((x, i) => i));

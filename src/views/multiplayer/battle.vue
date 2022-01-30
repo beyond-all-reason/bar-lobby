@@ -9,6 +9,7 @@
 
 <script lang="ts" setup>
 import { useRoute } from "vue-router";
+import Battle from "@/components/Battle.vue";
 
 const route = useRoute();
 </script>

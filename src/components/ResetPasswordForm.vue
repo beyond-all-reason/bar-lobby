@@ -10,6 +10,7 @@
 
 <script lang="ts" setup>
 import { ref } from "vue";
+import Textbox from "@/components/inputs/Textbox.vue";
 
 const email = ref("");
 const username = ref("");

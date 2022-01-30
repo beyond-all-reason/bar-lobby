@@ -1,6 +1,6 @@
 <template>
     <div class="debug-sidebar" :class="{ active }">
-        <button class="toggle" @click="active = !active">
+        <Button class="toggle" @click="active = !active">
             <Icon icon="tools" :size="20" />
         </button>
 
@@ -22,6 +22,9 @@
 import { readonly, ref, effectScope, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { shell } from "electron";
+import Icon from "@/components/common/Icon.vue";
+import Select from "@/components/inputs/Select.vue";
+import Button from "@/components/inputs/Button.vue";
 
 const scope = effectScope();
 

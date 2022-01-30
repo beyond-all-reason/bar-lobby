@@ -16,6 +16,7 @@
 
 <script lang="ts" setup>
 import { reactive, toRefs, useSlots, VNode } from "vue";
+import Button from "@/components/inputs/Button.vue";
 
 const props = defineProps({
     is: {
