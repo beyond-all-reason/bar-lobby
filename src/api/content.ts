@@ -12,7 +12,7 @@ import { extract7z } from "../utils/extract7z";
 import { EngineTagFormat, isEngineTag } from "../model/formats";
 import { Ref } from "vue";
 import { ipcRenderer } from "electron";
-import { MapData } from "@/api/cache";
+import { MapData } from "@/model/map";
 
 export class ContentAPI {
     public onEngineProgress: Signal<{ currentBytes: number; totalBytes: number }> = new Signal();
@@ -25,6 +25,7 @@ export class ContentAPI {
     protected gameName = "byar:test";
     protected mapParser = new MapParser();
     protected demoParser = new DemoParser();
+    protected maps: { [filename: string]: MapData } = {};
 
     constructor(protected userDataDir: string, protected dataDir: Ref<string>) {
         if (process.platform === "win32") {
@@ -34,6 +35,17 @@ export class ContentAPI {
         } else {
             throw new Error("Unsupported platform");
         }
+
+        ipcRenderer.on("map-cached", (event, map: MapData) => {
+            this.maps[map.fileNameWithExt] = map;
+        });
+    }
+
+    public async init() {
+        const cachedMaps: { [filename: string]: MapData } = await ipcRenderer.invoke("getCachedMaps");
+        Object.assign(this.maps, cachedMaps);
+
+        return this;
     }
 
     public async downloadLatestEngine(includePrerelease = true) {
@@ -219,18 +231,14 @@ export class ContentAPI {
         return fs.existsSync(sdpPath);
     }
 
-    public async getInstalledMaps() {
-        const files = await fs.promises.readdir(this.getMapsPath());
-        const mapFiles = files.filter(file => file.endsWith(".sd7") || file.endsWith(".sdz"));
-        const cachedMaps: { [filename: string]: MapData } = await ipcRenderer.invoke("getCachedMaps");
+    // TODO: replace with proper clone method
+    public getMaps() : { [filename: string]: MapData; } {
+        return JSON.parse(JSON.stringify(this.maps));
+    }
 
-        const maps: { [filename: string]: MapData | null } = {};
-
-        for (const mapFile of mapFiles) {
-            maps[mapFile] = cachedMaps[mapFile] || null;
-        }
-
-        return maps;
+    // TODO: replace with proper clone method
+    public getMap(filename: string) : MapData {
+        return JSON.parse(JSON.stringify(this.maps[filename]));
     }
 
     public getMapsPath() {

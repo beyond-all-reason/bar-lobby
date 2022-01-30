@@ -8,14 +8,14 @@
                         <div class="close" @click="close"><Icon icon="close-thick" /></div>
                     </div>
                 </template>
-                <slot/>
+                <slot></slot>
             </Panel>
         </div>
     </teleport>
 </template>
 
 <script lang="ts" setup>
-import { ref } from "vue";
+import { ref, defineProps } from "vue";
 import Panel from "@/components/common/Panel.vue";
 import Icon from "@/components/common/Icon.vue";
 

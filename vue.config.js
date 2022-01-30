@@ -34,14 +34,20 @@ module.exports = {
                 directories: {
                     buildResources: "build"
                 },
-                publish: ["github"],
                 extraResources: [
                     {
                         "from": "extra_resources",
                         "to": ".",
                         "filter": "**/*"
                     }
-                ]
+                ],
+                win: {
+                    target: ["nsis", "portable"]
+                },
+                linux: {
+                    target: ["deb", "tar.gz"]
+                },
+                publish: ["github"],
             },
             chainWebpackRendererProcess: config => {
                 config.target("electron-renderer");

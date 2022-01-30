@@ -62,7 +62,7 @@ declare module "vue-router" {
         modals: new ModalsAPI(),
         accounts: await new StoreAPI<AccountType>("accounts", accountSchema).init(),
         game: new GameAPI(userDataDir, dataDir),
-        content: new ContentAPI(userDataDir, dataDir)
+        content: await new ContentAPI(userDataDir, dataDir).init()
     };
 
     window.api.client.socket?.on("connect", () => {

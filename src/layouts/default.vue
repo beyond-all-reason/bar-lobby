@@ -22,7 +22,7 @@
  * not a huge deal but seems cleaner to just have one layout
  */
 
-import { PropType, ref, watch, BaseTransitionProps } from "vue";
+import { PropType, ref, watch, BaseTransitionProps, defineProps } from "vue";
 import { useRoute } from "vue-router";
 import Settings from "@/components/Settings.vue";
 import Exit from "@/components/Exit.vue";

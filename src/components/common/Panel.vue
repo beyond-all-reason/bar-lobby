@@ -15,7 +15,7 @@
 </template>
 
 <script lang="ts" setup>
-import { reactive, toRefs, useSlots, VNode } from "vue";
+import { reactive, toRefs, useSlots, VNode, defineProps, defineEmits } from "vue";
 import Button from "@/components/inputs/Button.vue";
 
 const props = defineProps({

@@ -7,7 +7,7 @@
 </template>
 
 <script lang="ts" setup>
-import { Ref, ref, toRefs } from "vue";
+import { Ref, ref, toRefs, defineProps, defineEmits } from "vue";
 import { v4 as uuidv4 } from "uuid";
 
 const props = defineProps({

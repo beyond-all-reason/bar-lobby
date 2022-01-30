@@ -3,11 +3,6 @@ module.exports = {
     env: {
         node: true
     },
-    globals: {
-        defineProps: "readonly",
-        defineEmits: "readonly",
-        defineExpose: "readonly"
-    },
     ignorePatterns: ["dist_electron", "node_modules", "output.js", "src/routes.ts", "working-files"],
     extends: [
         "plugin:vue/vue3-essential",
@@ -41,6 +36,7 @@ module.exports = {
         "@typescript-eslint/explicit-module-boundary-types": "off",
         "@typescript-eslint/no-unused-vars": "off",
         "@typescript-eslint/no-non-null-assertion": "off",
+        "@typescript-eslint/no-non-null-asserted-optional-chain": "off",
 
         "vue/no-dupe-keys": "off",
         "vue/html-indent": ["error", 4],

@@ -2,13 +2,10 @@ import * as path from "path";
 import * as fs from "fs";
 import sqlite3 from "sqlite3";
 import { open, Database, Statement } from "sqlite";
-import { MapParser } from "spring-map-parser";
+import { MapParser, SpringMap, StartPos } from "spring-map-parser";
 import { Ref } from "vue";
-import { mapDataToMapSchema } from "bar-db/dist/processors/map-processor";
-import { SpringMap } from "bar-db/dist/model/db/spring-map";
 import { ipcMain } from "electron";
-
-export type MapData = Omit<SpringMap.Schema, "id">;
+import { MapData } from "@/model/map";
 
 export interface MapCacheProgress {
     totalMapsToCache: number;
@@ -58,7 +55,7 @@ export class CacheAPI {
         ipcMain.handle("getCachedMaps", async (event) => this.cachedMaps);
         ipcMain.handle("getCachedMap", async (event, filename: string) => this.cachedMaps[filename]);
 
-        // this.cacheMaps();
+        this.cacheMaps();
 
         return this;
     }
@@ -86,21 +83,21 @@ export class CacheAPI {
 
     protected async cacheMap(mapFilePath: string) {
         try {
-            const mapData = await this.parser.parseMap(mapFilePath);
-            const mapSchema = mapDataToMapSchema(mapData);
-            const destPath = (name: string) => path.join(this.getMapImagesPath(), `${mapSchema.fileName}-${name}.png`);
+            const map = await this.parser.parseMap(mapFilePath);
+            const mapData = this.parseMapData(map);
+            const destPath = (name: string) => path.join(this.getMapImagesPath(), `${mapData.fileName}-${name}.png`);
 
-            await mapData.textureMap!.writeAsync(destPath("texture"));
-            await mapData.metalMap!.writeAsync(destPath("metal"));
-            await mapData.heightMap!.writeAsync(destPath("height"));
-            await mapData.typeMap!.writeAsync(destPath("type"));
+            await map.textureMap!.writeAsync(destPath("texture"));
+            await map.metalMap!.writeAsync(destPath("metal"));
+            await map.heightMap!.writeAsync(destPath("height"));
+            await map.typeMap!.writeAsync(destPath("type"));
 
             const query = await this.prepareStatement("addMap", "REPLACE INTO maps (filename, data) VALUES (?, ?)");
-            await query.get(mapSchema.fileNameWithExt!, JSON.stringify(mapSchema));
+            await query.get(mapData.fileNameWithExt!, JSON.stringify(mapData));
 
-            this.cachedMaps[mapSchema.fileNameWithExt!] = mapSchema;
+            this.cachedMaps[mapData.fileNameWithExt!] = mapData;
 
-            ipcMain.emit("map-cached", mapSchema);
+            ipcMain.emit("map-cached", mapData);
         } catch (err) {
             console.error(`There was an error caching map: ${mapFilePath}`, err);
         }
@@ -122,5 +119,27 @@ export class CacheAPI {
         this.preparedStatements[key] = await this.db.prepare(statement);
 
         return this.preparedStatements[key];
+    }
+
+    protected parseMapData(mapData: SpringMap) : MapData {
+        return {
+            fileName: mapData.fileName,
+            fileNameWithExt: mapData.fileNameWithExt,
+            scriptName: mapData.scriptName.trim(),
+            description: mapData.mapInfo?.description || mapData.smd?.description,
+            mapHardness: mapData.mapInfo?.maphardness ?? mapData.smd?.mapHardness!,
+            gravity: mapData.mapInfo?.gravity ?? mapData.smd?.gravity!,
+            tidalStrength: mapData.mapInfo?.tidalStrength ?? mapData.smd?.tidalStrength!,
+            maxMetal: mapData.mapInfo?.maxMetal ?? mapData.smd?.maxMetal!,
+            extractorRadius: mapData.mapInfo?.extractorRadius ?? mapData.smd?.extractorRadius!,
+            minWind: mapData.mapInfo?.atmosphere?.minWind ?? mapData.smd?.minWind!,
+            maxWind: mapData.mapInfo?.atmosphere?.maxWind ?? mapData.smd?.maxWind!,
+            startPositions: (mapData.mapInfo?.teams?.map(obj => obj!.startPos) ?? mapData.smd?.startPositions) as Array<StartPos>,
+            width: mapData.smf!.mapWidthUnits * 2,
+            height: mapData.smf!.mapHeightUnits * 2,
+            minDepth: mapData.minHeight,
+            maxDepth: mapData.maxHeight,
+            mapInfo: mapData.mapInfo
+        };
     }
 }

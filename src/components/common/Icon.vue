@@ -1,9 +1,9 @@
 <template>
-    <svg v-html="svg" viewBox="0 0 24 24" :width="size" :height="size" />
+    <svg v-html="svg" viewBox="0 0 24 24" :width="size" :height="size"></svg>
 </template>
 
 <script lang="ts" setup>
-import { toRefs } from "vue";
+import { toRefs, defineProps } from "vue";
 
 const { icons } = require("@iconify/json/json/mdi.json");
 
