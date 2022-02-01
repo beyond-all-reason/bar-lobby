@@ -6,16 +6,16 @@ import { MainWindow } from "@/main-window";
 import { settingsSchema, SettingsType } from "@/model/settings";
 import { StoreAPI } from "@/api/store";
 import { Info } from "@/model/info";
-import { CacheAPI } from "@/api/cache";
 
 export class Application {
     protected app: App;
     protected mainWindow?: MainWindow;
     protected settings?: StoreAPI<SettingsType>;
-    protected cache?: CacheAPI;
 
     constructor(app: App) {
         this.app = app;
+
+        //const worker = new Worker(require.resolve("./workers/node-worker.ts"));
 
         protocol.registerSchemesAsPrivileged([{
             scheme: "bar",
@@ -69,8 +69,6 @@ export class Application {
 
     protected async init() {
         this.settings = await new StoreAPI<SettingsType>("settings", settingsSchema).init();
-
-        this.cache = await new CacheAPI(this.app.getPath("userData"), this.settings.model.dataDir).init();
 
         this.mainWindow = new MainWindow(this.settings);
 

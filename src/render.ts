@@ -23,6 +23,7 @@ import { GameAPI } from "@/api/game";
 import { ModalsAPI } from "@/api/modals";
 import { ContentAPI } from "@/api/content";
 import DefaultLayout from "@/layouts/default.vue";
+import { WorkersAPI } from "@/api/workers";
 
 declare module "vue-router" {
     interface RouteMeta {
@@ -62,7 +63,10 @@ declare module "vue-router" {
         modals: new ModalsAPI(),
         accounts: await new StoreAPI<AccountType>("accounts", accountSchema).init(),
         game: new GameAPI(userDataDir, dataDir),
-        content: await new ContentAPI(userDataDir, dataDir).init()
+        content: await new ContentAPI(userDataDir, dataDir).init(),
+        workers: new WorkersAPI({
+            cacheWorker: new Worker(new URL("./workers/test.ts", import.meta.url), { type: "module" })
+        })
     };
 
     window.api.client.socket?.on("connect", () => {
@@ -80,6 +84,32 @@ declare module "vue-router" {
     });
 
     window.api.audio.init();
+
+    // window.api.workers.cacheWorker.send("init", {
+    //     userDataDir: window.info.userDataPath,
+    //     dataDir: window.api.settings.model.dataDir.value
+    // });
+
+    //const test = (window as any).test = new Worker(new URL("./workers/test.ts", import.meta.url), { type: "module" });
+    //const test = (window as any).test = new Worker(new URL("./workers/test.ts", import.meta.url), { type: "module" });
+    //const betterWorker = (window as any).betterWorker = new BetterWorkerHost("./workers/test.ts");
+    // const promiseWorker = (window as any).ptest = new PWBHost(test);
+
+    // promiseWorker.register((message) => {
+    //     console.log("1", message);
+    // });
+
+    // promiseWorker.register((message) => {
+    //     console.log("2", message);
+    // });
+
+    // (window as any).test = () => {
+    //     const worker = new Worker(new URL("./worker.ts", import.meta.url), { type: "module" });
+    //     worker.onmessage = (event) => {
+    //         console.log("from worker", event.data);
+    //     };
+    //     worker.postMessage("to worker");
+    // };
 
     await setupVue();
 })();

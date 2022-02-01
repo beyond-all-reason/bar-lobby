@@ -7,11 +7,10 @@ import { Octokit } from "octokit";
 import { spawn } from "child_process";
 import { MapParser } from "spring-map-parser";
 import { DemoParser } from "sdfz-demo-parser";
-import { DownloadType, Message, ProgressMessage } from "../model/pr-downloader";
-import { extract7z } from "../utils/extract7z";
+import { DownloadType, Message, ProgressMessage } from "@/model/pr-downloader";
+import { extract7z } from "@/utils/extract7z";
 import { EngineTagFormat, isEngineTag } from "../model/formats";
 import { Ref } from "vue";
-import { ipcRenderer } from "electron";
 import { MapData } from "@/model/map";
 
 export class ContentAPI {
@@ -19,8 +18,8 @@ export class ContentAPI {
     public onGameProress: Signal<ProgressMessage> = new Signal();
     public onDone = new Signal();
 
+    //protected mapCacheWorker: WorkerWrapper;
     protected ocotokit = new Octokit();
-
     protected binaryPath: string;
     protected gameName = "byar:test";
     protected mapParser = new MapParser();
@@ -36,14 +35,20 @@ export class ContentAPI {
             throw new Error("Unsupported platform");
         }
 
-        ipcRenderer.on("map-cached", (event, map: MapData) => {
-            this.maps[map.fileNameWithExt] = map;
-        });
+        //this.mapCacheWorker = new WorkerWrapper(new Worker(new URL("@/workers/cache.ts", import.meta.url), { type: "module" }));
+
+        // ipcRenderer.on("map-cached", (map: MapData) => {
+        //     this.maps[map.fileNameWithExt] = map;
+        // });
+        // this.mapCacheWorker.on("map-cached").add((map: MapData) => {
+        //     console.log(map);
+        //     //this.maps[map.fileNameWithExt] = map;
+        // });
     }
 
     public async init() {
-        const cachedMaps: { [filename: string]: MapData } = await ipcRenderer.invoke("getCachedMaps");
-        Object.assign(this.maps, cachedMaps);
+        // const cachedMaps: { [filename: string]: MapData } = await ipcRenderer.invoke("getCachedMaps");
+        // Object.assign(this.maps, cachedMaps);
 
         return this;
     }

@@ -1,11 +1,11 @@
 import * as path from "path";
 import * as fs from "fs";
 import sqlite3 from "sqlite3";
-import { open, Database, Statement } from "sqlite";
+import { Database, Statement } from "sqlite";
 import { MapParser, SpringMap, StartPos } from "spring-map-parser";
-import { Ref } from "vue";
-import { ipcMain } from "electron";
 import { MapData } from "@/model/map";
+
+console.log(sqlite3);
 
 export interface MapCacheProgress {
     totalMapsToCache: number;
@@ -13,49 +13,65 @@ export interface MapCacheProgress {
     currentMapCaching: string;
 }
 
-export class CacheAPI {
+export class CacheWorker {
+    protected userDataDir!: string;
+    protected dataDir!: string;
     protected verbose = false;
     protected db!: Database<sqlite3.Database, sqlite3.Statement>;
     protected cachedMaps: { [filename: string]: MapData } = {};
     protected preparedStatements: { [key: string]: Statement<sqlite3.Statement> } = {};
     protected parser: MapParser;
 
-    constructor(protected userDataDir: string, protected dataDir: Ref<string>) {
+    constructor() {
+        //super();
+
         this.parser = new MapParser({
             mipmapSize: 8,
             path7za: process.platform === "win32" ? "extra_resources/7za.exe" : "extra_resources/7za"
         });
+
+        // this.on("init").addOnce(({ userDataDir, dataDir }) => {
+        //     this.init(userDataDir, dataDir);
+        // });
     }
 
-    public async init() {
-        if (this.verbose) {
-            sqlite3.verbose();
-        }
+    public async init(userDataDir: string, dataDir: string) {
+        this.userDataDir = userDataDir;
+        this.dataDir = dataDir;
 
-        this.db = await open({
-            filename: path.join(this.userDataDir, "cache.db"),
-            driver: sqlite3.Database,
-        });
+        const map = await this.cacheMap("C:/Users/jaspe/Documents/My Games/Spring/maps/comet_catcher_remake_1.8.sd7");
+        console.log(map);
 
-        if (this.verbose) {
-            this.db.on("trace", (data: any) => {
-                console.log(data);
-            });
-        }
+        // if (this.verbose) {
+        //     sqlite3.verbose();
+        // }
 
-        await this.db.run("CREATE TABLE IF NOT EXISTS maps (filename TEXT PRIMARY KEY, data TEXT)");
+        // this.db = await open({
+        //     filename: path.join(this.userDataDir, "cache.db"),
+        //     driver: sqlite3.Database,
+        // });
 
-        const query = await this.prepareStatement("getMaps", "SELECT * FROM maps");
-        const maps = await query.all();
-        maps.forEach(map => {
-            const mapData: MapData = JSON.parse(map.data);
-            this.cachedMaps[map.filename] = mapData;
-        });
+        // if (this.verbose) {
+        //     this.db.on("trace", (data: any) => {
+        //         console.log(data);
+        //     });
+        // }
 
-        ipcMain.handle("getCachedMaps", async (event) => this.cachedMaps);
-        ipcMain.handle("getCachedMap", async (event, filename: string) => this.cachedMaps[filename]);
+        // await this.db.run("CREATE TABLE IF NOT EXISTS maps (filename TEXT PRIMARY KEY, data TEXT)");
 
-        this.cacheMaps();
+        // const query = await this.prepareStatement("getMaps", "SELECT * FROM maps");
+        // const maps = await query.all();
+        // maps.forEach(map => {
+        //     const mapData: MapData = JSON.parse(map.data);
+        //     this.cachedMaps[map.filename] = mapData;
+        // });
+
+        // console.log("cache worker initialised");
+
+        //addEventListener("getCachedMaps", (event) => this.cachedMaps);
+        //addEventListener("getCachedMap", (event, filename: string) => this.cachedMaps[filename]);
+
+        //this.cacheMaps();
 
         return this;
     }
@@ -69,11 +85,11 @@ export class CacheAPI {
 
         let mapsCached = 0;
         for (const mapFileName of mapsToCache) {
-            ipcMain.emit("map-cache-progress", {
-                totalMapsToCache: mapsToCache.length,
-                currentMapsCached: mapsCached,
-                currentMapCaching: mapFileName,
-            });
+            // this.sendMessage("cache-progress",  {
+            //     totalMapsToCache: mapsToCache.length,
+            //     currentMapsCached: mapsCached,
+            //     currentMapCaching: mapFileName,
+            // });
 
             await this.cacheMap(path.join(this.getMapsPath(), mapFileName));
 
@@ -97,18 +113,20 @@ export class CacheAPI {
 
             this.cachedMaps[mapData.fileNameWithExt!] = mapData;
 
-            ipcMain.emit("map-cached", mapData);
+            return mapData;
+
+            //this.sendMessage("map-cached", mapData);
         } catch (err) {
             console.error(`There was an error caching map: ${mapFilePath}`, err);
         }
     }
 
     protected getMapsPath() {
-        return path.join(this.dataDir.value, "maps");
+        return path.join(this.dataDir, "maps");
     }
 
     protected getMapImagesPath() {
-        return path.join(this.dataDir.value, "map-images");
+        return path.join(this.dataDir, "map-images");
     }
 
     protected async prepareStatement(key: string, statement: string) {
@@ -143,3 +161,5 @@ export class CacheAPI {
         };
     }
 }
+
+//new CacheWorker();
