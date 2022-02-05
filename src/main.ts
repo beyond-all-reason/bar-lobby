@@ -7,6 +7,7 @@ import { settingsSchema, SettingsType } from "@/model/settings";
 import { StoreAPI } from "@/api/store";
 import { Info } from "@/model/info";
 
+const isProd = process.env.NODE_ENV === "production";
 export class Application {
     protected app: App;
     protected mainWindow?: MainWindow;
@@ -46,7 +47,7 @@ export class Application {
     }
 
     protected async onReady() {
-        if (process.env.NODE_ENV !== "production" && !process.env.IS_TEST) {
+        if (!isProd && !process.env.IS_TEST) {
             try {
                 await installExtension(VUEJS3_DEVTOOLS);
             } catch (e: any) {

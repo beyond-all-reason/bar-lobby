@@ -6,11 +6,10 @@ import { ModalsAPI } from "@/api/modals";
 import { StoreAPI } from "@/api/store";
 import { AccountType } from "@/model/account";
 import { Info } from "@/model/info";
-import { SessionType } from "@/model/session";
 import { SettingsType } from "@/model/settings";
 import { TachyonClient } from "tachyon-client";
-import { ToRefs } from "vue";
 import { WorkersAPI } from "@/api/workers";
+import { SessionAPI } from "@/api/session";
 
 declare global {
     interface Window {
@@ -19,7 +18,7 @@ declare global {
     }
 
     interface API {
-        session: ToRefs<SessionType>;
+        session: SessionAPI;
         settings: StoreAPI<SettingsType>;
         client: TachyonClient;
         audio: AudioAPI;

@@ -5,6 +5,7 @@ export interface MapData {
     scriptName: string;
     fileName: string;
     fileNameWithExt: string;
+    friendlyName: string;
     description?: string;
     mapHardness: number;
     gravity: number;

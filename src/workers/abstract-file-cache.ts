@@ -37,7 +37,7 @@ export abstract class AbstractFileCache<T> {
 
         await this.loadCachedItems();
 
-        //this.cacheItems();
+        this.cacheItems();
 
         return this;
     }
@@ -69,9 +69,11 @@ export abstract class AbstractFileCache<T> {
 
                 console.log(`Caching ${mapFileName}`);
 
-                await this.cacheItem(filePath);
+                const item = await this.cacheItem(filePath);
 
-                this.saveCachedItems();
+                this.items[item.key] = item.value;
+
+                await this.saveCachedItems();
 
                 mapsCached++;
 

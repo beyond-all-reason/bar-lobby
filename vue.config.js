@@ -36,7 +36,7 @@ module.exports = {
                 },
                 extraResources: [
                     {
-                        "from": "extra_resources",
+                        "from": "resources",
                         "to": ".",
                         "filter": "**/*"
                     }

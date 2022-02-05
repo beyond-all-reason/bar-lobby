@@ -8,6 +8,8 @@ import { watch } from "vue";
 
 declare const __static: string;
 
+const isProd = process.env.NODE_ENV === "production";
+
 export class MainWindow {
     public window: BrowserWindow;
 
@@ -30,6 +32,7 @@ export class MainWindow {
                 contextIsolation: false,
                 nodeIntegrationInSubFrames: true,
                 nodeIntegrationInWorker: true,
+                webSecurity: false
             }
         });
 

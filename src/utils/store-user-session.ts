@@ -9,7 +9,7 @@ export function storeUserSession(user?: UserData) {
         return;
     }
 
-    window.api.session.account = ref({
+    window.api.session.model.account = ref({
         id: user.id,
         springid: user.springid,
         name: user.name,

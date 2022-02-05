@@ -24,32 +24,27 @@ export class ContentAPI {
     protected gameName = "byar:test";
     protected mapParser = new MapParser();
     protected demoParser = new DemoParser();
-    protected maps: { [filename: string]: MapData } = {};
+    protected maps: Readonly<Record<string, MapData>> = {};
 
     constructor(protected userDataDir: string, protected dataDir: Ref<string>) {
         if (process.platform === "win32") {
-            this.binaryPath = "extra_resources/pr-downloader.exe";
+            this.binaryPath = "resources/pr-downloader.exe";
         } else if (process.platform === "linux") {
-            this.binaryPath = "extra_resources/pr-downloader";
+            this.binaryPath = "resources/pr-downloader";
         } else {
             throw new Error("Unsupported platform");
         }
 
-        //this.mapCacheWorker = new WorkerWrapper(new Worker(new URL("@/workers/cache.ts", import.meta.url), { type: "module" }));
+        window.api.workers.mapCache.on("item-cache-loaded").add((maps: Record<string, MapData>) => {
+            this.maps = Object.freeze(maps);
+        });
 
-        // ipcRenderer.on("map-cached", (map: MapData) => {
-        //     this.maps[map.fileNameWithExt] = map;
-        // });
-        // this.mapCacheWorker.on("map-cached").add((map: MapData) => {
-        //     console.log(map);
-        //     //this.maps[map.fileNameWithExt] = map;
-        // });
+        window.api.workers.mapCache.on("item-cache-saved").add((maps: Record<string, MapData>) => {
+            this.maps = Object.freeze(maps);
+        });
     }
 
     public async init() {
-        // const cachedMaps: { [filename: string]: MapData } = await ipcRenderer.invoke("getCachedMaps");
-        // Object.assign(this.maps, cachedMaps);
-
         return this;
     }
 
@@ -236,14 +231,27 @@ export class ContentAPI {
         return fs.existsSync(sdpPath);
     }
 
-    // TODO: replace with proper clone method
     public getMaps() : { [filename: string]: MapData; } {
-        return JSON.parse(JSON.stringify(this.maps));
+        return this.maps;
     }
 
-    // TODO: replace with proper clone method
-    public getMap(filename: string) : MapData {
-        return JSON.parse(JSON.stringify(this.maps[filename]));
+    public getMapByFilename(filename: string) : MapData | undefined {
+        return this.maps[filename];
+    }
+
+    public getMapImages(filename: string) {
+        if (this.getMapByFilename(filename)) {
+            const filenameWithoutExt = path.parse(filename).name;
+
+            return {
+                texture: path.join(this.getMapImagesPath(), `${filenameWithoutExt}-texture.jpg`),
+                height: path.join(this.getMapImagesPath(), `${filenameWithoutExt}-height.jpg`),
+                metal: path.join(this.getMapImagesPath(), `${filenameWithoutExt}-metal.jpg`),
+                type: path.join(this.getMapImagesPath(), `${filenameWithoutExt}-type.jpg`),
+            };
+        }
+
+        return;
     }
 
     public getMapsPath() {

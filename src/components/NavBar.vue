@@ -55,5 +55,5 @@ const exitModal = () => {
     window.api.modals.open("exit");
 };
 
-const username = window.api.session.account?.value?.name;
+const username = window.api.session.model.account?.value?.name;
 </script>

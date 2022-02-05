@@ -1,6 +1,6 @@
 <template>
     <div>
-        {{ texture }}
+        <img :src="texturePath">
     </div>
 </template>
 
@@ -15,9 +15,7 @@ const props = defineProps({
 });
 
 const mapImagesPath = window.api.content.getMapImagesPath();
-const map = computed(() => window.api.content.getMap(props.filename));
-
-const texture = computed(() => map.value);
-
+const mapData = computed(() => window.api.content.getMapByFilename(props.filename));
+const texturePath = computed(() => window.api.content.getMapImages(props.filename)?.texture);
 //const map = window.api.content.getMapImagesPath
 </script>

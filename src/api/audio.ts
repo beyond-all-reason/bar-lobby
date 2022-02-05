@@ -20,7 +20,7 @@ export class AudioAPI {
 
     public init() {
         if (this.sounds.size) {
-            return;
+            return this;
         }
 
         const soundFiles = require.context("@/assets/audio/", true).keys();
