@@ -16,6 +16,7 @@
 import { ref, defineEmits } from "vue";
 import Loader from "@/components/common/Loader.vue";
 import Textbox from "@/components/inputs/Textbox.vue";
+import Button from "./inputs/Button.vue";
 
 const emit = defineEmits(["register-success"]);
 

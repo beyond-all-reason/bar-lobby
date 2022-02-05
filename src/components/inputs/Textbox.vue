@@ -9,6 +9,7 @@
 <script lang="ts" setup>
 import { Ref, ref, toRefs, defineProps, defineEmits } from "vue";
 import { v4 as uuidv4 } from "uuid";
+import Icon from "@/components/common/Icon.vue";
 
 const props = defineProps({
     name: String,

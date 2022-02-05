@@ -11,6 +11,7 @@
 <script lang="ts" setup>
 import { ref } from "vue";
 import Textbox from "@/components/inputs/Textbox.vue";
+import Button from "./inputs/Button.vue";
 
 const email = ref("");
 const username = ref("");

@@ -30,7 +30,7 @@ export class StoreAPI<T extends Record<string, unknown>> {
         }
 
         this.dir = path.join(userDataPath, "store");
-        this.filePath = path.join(this.dir, name);
+        this.filePath = path.join(this.dir, this.filename);
 
         this.schema = schema;
         this.ajv = new Ajv({ coerceTypes: true, useDefaults: true });

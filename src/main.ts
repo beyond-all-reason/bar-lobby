@@ -15,8 +15,6 @@ export class Application {
     constructor(app: App) {
         this.app = app;
 
-        //const worker = new Worker(require.resolve("./workers/node-worker.ts"));
-
         protocol.registerSchemesAsPrivileged([{
             scheme: "bar",
             privileges: {

@@ -27,6 +27,7 @@ import { useRouter } from "vue-router";
 import Loader from "@/components/common/Loader.vue";
 import Textbox from "@/components/inputs/Textbox.vue";
 import Checkbox from "@/components/inputs/Checkbox.vue";
+import Button from "./inputs/Button.vue";
 
 const router = useRouter();
 const loading = ref(false);

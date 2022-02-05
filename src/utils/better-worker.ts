@@ -36,7 +36,7 @@ abstract class WorkerWrapper {
 }
 
 export class BetterWorkerHost extends WorkerWrapper {
-    protected worker!: Worker;
+    protected worker: Worker;
 
     // would be nice if it were possible to pass the worker filepath and initialise it internally,
     // but doesn't seem to play nice with webpack/electron

@@ -1,13 +1,13 @@
-import { BetterWorkerHost } from "@/utils/better-worker";
+import { MapCacheWorkerHost } from "@/workers/map-cache-worker";
 
 interface WorkersAPIConfig {
-    cacheWorker: Worker;
+    mapCacheWorker: Worker;
 }
 
 export class WorkersAPI {
-    public cacheWorker: BetterWorkerHost;
+    public mapCacheWorker: MapCacheWorkerHost;
 
     constructor(workers: WorkersAPIConfig) {
-        this.cacheWorker = new BetterWorkerHost(workers.cacheWorker);
+        this.mapCacheWorker = new MapCacheWorkerHost(workers.mapCacheWorker);
     }
 }

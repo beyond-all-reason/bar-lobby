@@ -1,4 +1,5 @@
 import * as fs from "fs";
+import * as path from "path";
 import { ipcRenderer } from "electron";
 import { createApp, reactive, toRefs } from "vue";
 import { createRouter, createWebHashHistory } from "vue-router";
@@ -65,7 +66,7 @@ declare module "vue-router" {
         game: new GameAPI(userDataDir, dataDir),
         content: await new ContentAPI(userDataDir, dataDir).init(),
         workers: new WorkersAPI({
-            cacheWorker: new Worker(new URL("./workers/test.ts", import.meta.url), { type: "module" })
+            mapCacheWorker: new Worker(new URL("./workers/map-cache-worker.ts", import.meta.url), { type: "module" })
         })
     };
 
@@ -85,31 +86,10 @@ declare module "vue-router" {
 
     window.api.audio.init();
 
-    // window.api.workers.cacheWorker.send("init", {
-    //     userDataDir: window.info.userDataPath,
-    //     dataDir: window.api.settings.model.dataDir.value
-    // });
+    const cacheStoreDir = path.join(window.info.userDataPath, "store");
+    const mapCacheFile = path.join(cacheStoreDir, "map-cache.json");
 
-    //const test = (window as any).test = new Worker(new URL("./workers/test.ts", import.meta.url), { type: "module" });
-    //const test = (window as any).test = new Worker(new URL("./workers/test.ts", import.meta.url), { type: "module" });
-    //const betterWorker = (window as any).betterWorker = new BetterWorkerHost("./workers/test.ts");
-    // const promiseWorker = (window as any).ptest = new PWBHost(test);
-
-    // promiseWorker.register((message) => {
-    //     console.log("1", message);
-    // });
-
-    // promiseWorker.register((message) => {
-    //     console.log("2", message);
-    // });
-
-    // (window as any).test = () => {
-    //     const worker = new Worker(new URL("./worker.ts", import.meta.url), { type: "module" });
-    //     worker.onmessage = (event) => {
-    //         console.log("from worker", event.data);
-    //     };
-    //     worker.postMessage("to worker");
-    // };
+    await window.api.workers.mapCacheWorker.init([ mapCacheFile, window.api.settings.model.dataDir.value ]);
 
     await setupVue();
 })();

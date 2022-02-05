@@ -56,7 +56,7 @@
                 <input type="button" value="Button" name="button">
             </div>
             <div class="control">
-                <button :disabled="disabled">I am a button</button>
+                <Button :disabled="disabled">I am a button</Button>
             </div>
             <div class="control">
                 <label for="submit-1">Submit</label>
@@ -122,6 +122,7 @@ import { ref } from "vue";
 import Select from "@/components/inputs/Select.vue";
 import Textbox from "@/components/inputs/Textbox.vue";
 import Checkbox from "@/components/inputs/Checkbox.vue";
+import Button from "../../components/inputs/Button.vue";
 
 const test = ref("fish");
 const color = ref("red");
