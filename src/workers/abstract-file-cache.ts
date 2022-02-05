@@ -20,7 +20,7 @@ export abstract class AbstractFileCache<T> {
     protected itemDir: string;
     protected fileTypeFilter: string[];
 
-    protected cachedItems: { [key: string]: T } = {};
+    protected items: Record<string, T> = {};
 
     protected abstract cacheItem(itemFilePath: string): Promise<{ key: string; value: T; }>;
 
@@ -33,10 +33,11 @@ export abstract class AbstractFileCache<T> {
     public async init() {
         const { dir } = path.parse(this.cacheFilePath);
         await fs.promises.mkdir(dir, { recursive: true });
+        await fs.promises.mkdir(this.itemDir, { recursive: true });
 
         await this.loadCachedItems();
 
-        this.cacheItems();
+        //this.cacheItems();
 
         return this;
     }
@@ -45,7 +46,7 @@ export abstract class AbstractFileCache<T> {
         console.log(`Caching items in ${this.itemDir}`);
 
         const mapFileNames = await fs.promises.readdir(this.itemDir);
-        const cachedMapFileNames = Object.keys(this.cacheItems);
+        const cachedMapFileNames = Object.keys(this.items);
 
         const mapsToCache = mapFileNames.filter(fileName => {
             const fileTypeFiler = !this.fileTypeFilter.length || this.fileTypeFilter.some(ext => fileName.endsWith(ext));
@@ -88,7 +89,7 @@ export abstract class AbstractFileCache<T> {
         }
 
         if (mapsToCache.length) {
-            this.onItemsCacheFinish.dispatch(this.cachedItems);
+            this.onItemsCacheFinish.dispatch(this.items);
         }
     }
 
@@ -98,14 +99,14 @@ export abstract class AbstractFileCache<T> {
         }
 
         const cachedItemsStr = await fs.promises.readFile(this.cacheFilePath, "utf-8");
-        this.cachedItems = JSON.parse(cachedItemsStr);
+        this.items = JSON.parse(cachedItemsStr);
 
-        this.onCacheLoaded.dispatch(this.cachedItems);
+        this.onCacheLoaded.dispatch(this.items);
     }
 
     protected async saveCachedItems() {
-        await fs.promises.writeFile(this.cacheFilePath, JSON.stringify(this.cachedItems));
+        await fs.promises.writeFile(this.cacheFilePath, JSON.stringify(this.items));
 
-        this.onCacheSaved.dispatch(this.cachedItems);
+        this.onCacheSaved.dispatch(this.items);
     }
 }

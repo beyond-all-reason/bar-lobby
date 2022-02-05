@@ -52,7 +52,7 @@
     "sass": "^1.26.5",
     "sass-loader": "^8.0.2",
     "sdfz-demo-parser": "^4.7.0",
-    "spring-map-parser": "^4.3.0",
+    "spring-map-parser": "^4.3.3",
     "sqlite": "^4.0.23",
     "sqlite3": "^5.0.2",
     "start-script-converter": "0.0.1",

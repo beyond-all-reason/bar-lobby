@@ -40,7 +40,6 @@ const register = async () => {
 
     if (registerResponse.result === "success") {
         window.api.accounts.model.email.value = email.value;
-        window.api.accounts.model.password.value = password.value;
         emit("register-success");
     } else {
         if (registerResponse.reason) {

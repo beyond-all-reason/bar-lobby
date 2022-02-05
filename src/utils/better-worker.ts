@@ -44,6 +44,10 @@ export class BetterWorkerHost extends WorkerWrapper {
         super();
         this.worker = worker;
         this.worker.onmessage = (event) => this.onMessage(event);
+
+        this.worker.addEventListener("error", (err) => {
+            console.error("Worker error", err);
+        });
     }
 
     public send(channel: string, data?: any) {
@@ -52,10 +56,20 @@ export class BetterWorkerHost extends WorkerWrapper {
 }
 
 export class BetterWorker extends WorkerWrapper {
-    constructor() {
+    constructor(protected debug = false) {
         super();
 
         addEventListener("message", (event) => this.onMessage(event));
+
+        if (this.debug) {
+            process.on("warning", (err) => {
+                console.warn(err.stack);
+            });
+
+            process.on("uncaughtException", (err) => {
+                console.warn(err.stack);
+            });
+        }
     }
 
     public send(channel: string, data?: any) {

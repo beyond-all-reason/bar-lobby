@@ -23,7 +23,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, onMounted } from "vue";
+import { defineComponent } from "vue";
 
 export default defineComponent({
     layout: {
@@ -37,7 +37,7 @@ export default defineComponent({
 </script>
 
 <script lang="ts" setup>
-import { ref } from "vue";
+import { ref, onMounted } from "vue";
 import Loader from "@/components/common/Loader.vue";
 import Panel from "@/components/common/Panel.vue";
 import Tab from "@/components/common/Tab.vue";

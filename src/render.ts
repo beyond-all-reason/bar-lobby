@@ -66,7 +66,7 @@ declare module "vue-router" {
         game: new GameAPI(userDataDir, dataDir),
         content: await new ContentAPI(userDataDir, dataDir).init(),
         workers: new WorkersAPI({
-            mapCacheWorker: new Worker(new URL("./workers/map-cache-worker.ts", import.meta.url), { type: "module" })
+            mapCache: new Worker(new URL("./workers/map-cache-worker.ts", import.meta.url), { type: "module" })
         })
     };
 
@@ -89,7 +89,7 @@ declare module "vue-router" {
     const cacheStoreDir = path.join(window.info.userDataPath, "store");
     const mapCacheFile = path.join(cacheStoreDir, "map-cache.json");
 
-    await window.api.workers.mapCacheWorker.init([ mapCacheFile, window.api.settings.model.dataDir.value ]);
+    await window.api.workers.mapCache.init([ mapCacheFile, window.api.settings.model.dataDir.value ]);
 
     await setupVue();
 })();

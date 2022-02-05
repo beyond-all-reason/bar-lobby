@@ -1,13 +1,13 @@
 import { MapCacheWorkerHost } from "@/workers/map-cache-worker";
 
 interface WorkersAPIConfig {
-    mapCacheWorker: Worker;
+    mapCache: Worker;
 }
 
 export class WorkersAPI {
-    public mapCacheWorker: MapCacheWorkerHost;
+    public mapCache: MapCacheWorkerHost;
 
     constructor(workers: WorkersAPIConfig) {
-        this.mapCacheWorker = new MapCacheWorkerHost(workers.mapCacheWorker);
+        this.mapCache = new MapCacheWorkerHost(workers.mapCache);
     }
 }

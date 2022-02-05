@@ -25,7 +25,7 @@ export default defineComponent({
 
 <script lang="ts" setup>
 import { onMounted } from "vue";
-import { loginRequest } from "@/utils/login-request";
+import { storeUserSession } from "@/utils/store-user-session";
 import { useRouter } from "vue-router";
 import Loader from "@/components/common/Loader.vue";
 
@@ -68,7 +68,7 @@ onMounted(async () => {
         await window.api.client.connect();
 
         if (window.api.accounts.model.token.value && window.api.accounts.model.remember.value) {
-            const loginResponse = await loginRequest({
+            const loginResponse = await window.api.client.login({
                 token: window.api.accounts.model.token.value,
                 lobby_name: window.info.lobby.name,
                 lobby_version: window.info.lobby.version,
@@ -76,6 +76,7 @@ onMounted(async () => {
             });
 
             if (loginResponse.result === "success") {
+                storeUserSession(loginResponse.user);
                 await router.replace("/home");
                 return;
             }
