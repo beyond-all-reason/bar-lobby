@@ -8,7 +8,7 @@
 <script lang="ts" setup>
 // https://iendeavor.github.io/vue-next-select/api-reference.html
 
-import { ref, defineProps } from "vue";
+import { ref } from "vue";
 import { v4 as uuidv4 } from "uuid";
 
 const props = defineProps({

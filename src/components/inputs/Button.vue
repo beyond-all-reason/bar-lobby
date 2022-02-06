@@ -12,7 +12,7 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, toRefs, defineProps } from "vue";
+import { computed, toRefs } from "vue";
 import { useRoute } from "vue-router";
 
 const props = defineProps({

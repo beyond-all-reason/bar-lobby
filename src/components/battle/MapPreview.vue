@@ -1,11 +1,11 @@
 <template>
-    <div>
+    <div class="map-preview">
         <img :src="texturePath">
     </div>
 </template>
 
 <script lang="ts" setup>
-import { computed, defineProps } from "vue";
+import { computed } from "vue";
 
 const props = defineProps({
     filename: {

@@ -8,7 +8,7 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, watch, defineProps } from "vue";
+import { ref, watch } from "vue";
 import { useCssVar } from "@vueuse/core";
 
 const props = defineProps({

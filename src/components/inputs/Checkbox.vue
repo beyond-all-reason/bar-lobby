@@ -11,7 +11,7 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, defineProps } from "vue";
+import { ref } from "vue";
 import { v4 as uuidv4 } from "uuid";
 import Icon from "@/components/common/Icon.vue";
 

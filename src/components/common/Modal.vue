@@ -1,21 +1,23 @@
 <template>
-    <teleport v-if="isOpen" to=".theme">
-        <div class="modal-container" v-bind="$attrs">
-            <Panel id="modal" class="modal" :title="title">
-                <template #header>
-                    <div class="header">
-                        <div class="title">{{ title }}</div>
-                        <div class="close" @click="close"><Icon icon="close-thick" /></div>
-                    </div>
-                </template>
-                <slot></slot>
-            </Panel>
-        </div>
+    <teleport to=".theme">
+        <transition name="modal" appear>
+            <div v-if="isOpen" class="modal-container" v-bind="$attrs">
+                <Panel id="modal" class="modal" :title="title">
+                    <template #header>
+                        <div class="header">
+                            <div class="title">{{ title }}</div>
+                            <div class="close" @click="close"><Icon icon="close-thick" /></div>
+                        </div>
+                    </template>
+                    <slot></slot>
+                </Panel>
+            </div>
+        </transition>
     </teleport>
 </template>
 
 <script lang="ts" setup>
-import { ref, defineProps } from "vue";
+import { ref } from "vue";
 import Panel from "@/components/common/Panel.vue";
 import Icon from "@/components/common/Icon.vue";
 

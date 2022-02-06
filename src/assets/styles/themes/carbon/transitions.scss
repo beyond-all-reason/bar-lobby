@@ -45,3 +45,18 @@
     opacity: 0;
     transform: translateX(15px);
 }
+
+.modal-enter-active,
+.modal-leave-active {
+    transition: 0.2s ease-in-out;
+    .modal {
+        transition: 0.2s ease-in-out;
+    }
+}
+.modal-enter-from,
+.modal-leave-to {
+    opacity: 0;
+    .modal {
+        transform: translateY(-20px);
+    }
+}

@@ -4,7 +4,7 @@
             <Icon icon="tools" :size="20" />
         </button>
 
-        <Select label="View" v-model="currentRoute" :options="routes" :label-by="route => route.path" :value-by="route => route.path" :searchable="true" :clear-on-select="true" />
+        <Select label="View" v-model="currentRoute" :options="routes" :label-by="(route: any) => route.path" :value-by="(route: any) => route.path" :searchable="true" :clear-on-select="true" />
 
         <div class="flex-row">
             <Button to="/debug/inputs">Debug Land</Button>
@@ -53,43 +53,3 @@ scope.run(() => {
     });
 });
 </script>
-
-<style scoped lang="scss">
-.debug-sidebar {
-    position: absolute;
-    top: 0;
-    right: 0;
-    width: 300px;
-    height: 100%;
-    z-index: 10;
-    background: #111;
-    border-left: 1px solid #222;
-    transform: translateX(100%);
-    transition: transform 0.1s;
-    padding: 10px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    &.active {
-        transform: translateX(0);
-        box-shadow: -5px 0 5px rgba(0, 0, 0, 0.5);
-    }
-}
-.toggle {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    transform: translateX(-100%);
-    background: #111;
-    border: 1px solid #222;
-    border-right: none;
-    border-bottom: none;
-    box-shadow: -5px 2px 5px rgba(0, 0, 0, 0.5);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    &:hover {
-        background: #222;
-    }
-}
-</style>

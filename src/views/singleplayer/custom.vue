@@ -2,13 +2,19 @@
 
 <template>
     <div>
-        <Battle />
+        <Battle :players="players" />
     </div>
 </template>
 
 <script lang="ts" setup>
-import { useRoute } from "vue-router";
-import Battle from "@/views/multiplayer/battle.vue";
+import Battle from "@/components/battle/Battle.vue";
+import { Player } from "start-script-converter";
 
-const route = useRoute();
+const players: Player[] = [
+    {
+        id: 0,
+        name: window.api.session.model.account?.value?.name ?? "Player",
+        team: 0
+    }
+];
 </script>

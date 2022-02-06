@@ -1,18 +1,26 @@
 <template>
     <div class="battle">
-        <Button @click="start">Start</Button>
-        <MapPreview :filename="selectedMap" />
-        <Select :options="maps" v-model="selectedMap" :close-on-select="true"></Select>
+        <div class="battle__left">
+            <Playerlist :players="players" />
+        </div>
+        <div class="battle__right">
+            <MapPreview :filename="selectedMap" />
+            <Select :options="maps" v-model="selectedMap" :label-by="(map: MapData) => map.friendlyName" :value-by="(map: MapData) => map.fileNameWithExt" :close-on-select="true"></Select>
+            <Button @click="start">Start</Button>
+        </div>
     </div>
 </template>
 
 <script lang="ts" setup>
 import { EngineTagFormat } from "@/model/formats";
+import { Player } from "@/model/battle";
+import { MapData } from "@/model/map";
 import { Script } from "start-script-converter";
-import { ref } from "vue";
+import { Ref, ref } from "vue";
 import Button from "@/components/inputs/Button.vue";
 import MapPreview from "@/components/battle/MapPreview.vue";
 import Select from "../inputs/Select.vue";
+import Playerlist from "@/components/battle/Playerlist.vue";
 
 // const engineVersion = ref("");
 // const gameVersion = ref("");
@@ -22,8 +30,13 @@ import Select from "../inputs/Select.vue";
 //     gameVersion.value = (await window.api.content.getLatestVersionInfo()).version;
 // });
 
-const maps = ref(["2_mountains_battlefield.sd7", "aberdeen3v3v3.sd7"] as string[]);
-const selectedMap = ref("2_mountains_battlefield.sd7");
+const props = defineProps({
+    players: Array as () => Player[]
+});
+
+const cachedMaps = window.api.content.getMaps();
+const maps: Ref<MapData[]> = ref(Object.values(cachedMaps));
+const selectedMap = ref(maps.value[0].fileNameWithExt);
 
 const start = async () => {
     const { version } = await window.api.content.getLatestVersionInfo();

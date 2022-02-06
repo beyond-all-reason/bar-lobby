@@ -5,7 +5,7 @@
         <Exit v-if="!empty" />
         <NavBar v-if="!empty" />
         <div :class="`view view--${route.name?.toString()}`">
-            <Panel padding="15px 30px 30px 30px" :empty="empty">
+            <Panel padding="20px 20px 20px 20px" :empty="empty">
                 <router-view v-slot="{ Component }">
                     <transition :name="transitionName" :mode="transitionMode" :appear="transitionAppear ?? Boolean(transitionName)" :duration="transitionDuration">
                         <component :is="Component" />
@@ -19,10 +19,11 @@
 <script lang="ts" setup>
 /**
  * Was using multiple layouts but changing between them seems to cause components to get executed twice,
- * not a huge deal but seems cleaner to just have one layout
+ * not a huge deal but seems cleaner to just have one layout. Should try and refactor this and move it all into App.vue
+ * but need to find a clean way to pass transition info up
  */
 
-import { PropType, ref, watch, BaseTransitionProps, defineProps } from "vue";
+import { PropType, ref, watch, BaseTransitionProps } from "vue";
 import { useRoute } from "vue-router";
 import Settings from "@/components/Settings.vue";
 import Exit from "@/components/Exit.vue";

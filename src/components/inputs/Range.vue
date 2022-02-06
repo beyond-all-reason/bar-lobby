@@ -11,7 +11,7 @@
 <script lang="ts" setup>
 // https://nightcatsama.github.io/vue-slider-component/#/
 
-import { onMounted, Ref, ref, toRefs, defineProps } from "vue";
+import { onMounted, Ref, ref, toRefs } from "vue";
 import { v4 as uuidv4 } from "uuid";
 import VueSlider, { ERROR_TYPE } from "vue-slider-component";
 
