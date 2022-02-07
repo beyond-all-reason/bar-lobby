@@ -3,10 +3,13 @@
         <div class="battle__left">
             <Playerlist :players="players" />
         </div>
-        <div class="battle__right">
+        <div class="battle__right flex-col gap-md">
             <MapPreview :filename="selectedMap" />
-            <Select :options="maps" v-model="selectedMap" :label-by="(map: MapData) => map.friendlyName" :value-by="(map: MapData) => map.fileNameWithExt" :close-on-select="true"></Select>
-            <Button @click="start">Start</Button>
+            <Select :options="maps" v-model="selectedMap" :label-by="(map: MapData) => map.friendlyName" :value-by="(map: MapData) => map.fileNameWithExt" :close-on-select="true" :clear-on-select="true" :searchable="true"></Select>
+            <div class="flex-row gap-md">
+                <Button>Add AI</Button>
+                <Button @click="start">Start</Button>
+            </div>
         </div>
     </div>
 </template>

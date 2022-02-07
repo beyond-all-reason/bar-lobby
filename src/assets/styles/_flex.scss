@@ -28,4 +28,5 @@
     &-justify-end { justify-content: flex-end; }
     &-align-start { align-items: flex-start; }
     &-align-end { align-items: flex-end; }
+    &-none { flex: none !important; }
 }

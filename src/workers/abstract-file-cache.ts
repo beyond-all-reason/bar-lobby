@@ -93,6 +93,8 @@ export abstract class AbstractFileCache<T> {
         if (mapsToCache.length) {
             this.onItemsCacheFinish.dispatch(this.items);
         }
+
+        console.log(`All files cached in ${this.itemDir}`);
     }
 
     protected async loadCachedItems() {

@@ -244,10 +244,10 @@ export class ContentAPI {
             const filenameWithoutExt = path.parse(filename).name;
 
             return {
-                texture: path.join(this.getMapImagesPath(), `${filenameWithoutExt}-texture.jpg`),
-                height: path.join(this.getMapImagesPath(), `${filenameWithoutExt}-height.jpg`),
-                metal: path.join(this.getMapImagesPath(), `${filenameWithoutExt}-metal.jpg`),
-                type: path.join(this.getMapImagesPath(), `${filenameWithoutExt}-type.jpg`),
+                texture: path.join(this.getMapImagesPath(), `${filenameWithoutExt}-texture.jpg`).replaceAll("\\", "/"),
+                height: path.join(this.getMapImagesPath(), `${filenameWithoutExt}-height.jpg`).replaceAll("\\", "/"),
+                metal: path.join(this.getMapImagesPath(), `${filenameWithoutExt}-metal.jpg`).replaceAll("\\", "/"),
+                type: path.join(this.getMapImagesPath(), `${filenameWithoutExt}-type.jpg`).replaceAll("\\", "/"),
             };
         }
 
@@ -255,11 +255,11 @@ export class ContentAPI {
     }
 
     public getMapsPath() {
-        return path.join(this.dataDir.value, "maps");
+        return path.join(this.dataDir.value, "maps").replaceAll("\\", "/");
     }
 
     public getMapImagesPath() {
-        return path.join(this.dataDir.value, "map-images");
+        return path.join(this.dataDir.value, "map-images").replaceAll("\\", "/");
     }
 
     // spring_bar_{BAR105}105.1.1-807-g98b14ce -> BAR-105.1.1-809-g3f69f26

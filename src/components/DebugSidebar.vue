@@ -3,18 +3,11 @@
         <Button class="toggle" @click="active = !active">
             <Icon icon="tools" :size="20" />
         </button>
-
         <Select label="View" v-model="currentRoute" :options="routes" :label-by="(route: any) => route.path" :value-by="(route: any) => route.path" :searchable="true" :clear-on-select="true" />
-
-        <div class="flex-row">
-            <Button to="/debug/inputs">Debug Land</Button>
-        </div>
-        <div class="flex-row">
-            <Button @click="openSettings">Open Settings File</Button>
-        </div>
-        <div class="flex-row">
-            <Button @click="openLobbyDir">Open Lobby Dir</Button>
-        </div>
+        <Button class="flex-none" to="/debug/inputs">Debug Land</Button>
+        <Button class="flex-none" @click="openSettings">Open Settings File</Button>
+        <Button class="flex-none" @click="openLobbyDir">Open Lobby Dir</Button>
+        <Button class="flex-none" @click="openDataDir">Open Data Dir</Button>
     </div>
 </template>
 
@@ -39,8 +32,12 @@ const openSettings = () => {
     window.api.settings.openFileInEditor();
 };
 
-const openLobbyDir = async () => {
+const openLobbyDir = () => {
     shell.openPath(window.info.userDataPath);
+};
+
+const openDataDir = () => {
+    shell.openPath(window.api.settings.model.dataDir.value);
 };
 
 scope.run(() => {

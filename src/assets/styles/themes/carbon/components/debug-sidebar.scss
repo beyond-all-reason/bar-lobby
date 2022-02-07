@@ -12,6 +12,7 @@
     padding: 10px;
     display: flex;
     flex-direction: column;
+    justify-content: flex-start;
     gap: 10px;
     &.active {
         transform: translateX(0);
