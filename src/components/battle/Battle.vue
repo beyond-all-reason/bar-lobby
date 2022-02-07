@@ -4,10 +4,12 @@
             <Playerlist :players="players" />
         </div>
         <div class="battle__right flex-col gap-md">
-            <MapPreview :filename="selectedMap" />
-            <Select :options="maps" v-model="selectedMap" :label-by="(map: MapData) => map.friendlyName" :value-by="(map: MapData) => map.fileNameWithExt" :close-on-select="true" :clear-on-select="true" :searchable="true"></Select>
+            <MapPreview :filename="map" />
+            <Select :options="maps" v-model="map" :label-by="(map: any) => map.friendlyName" :value-by="(map: any) => map.fileNameWithExt" :close-on-select="true" :clear-on-select="true" :searchable="true"></Select>
             <div class="flex-row gap-md">
-                <Button>Add AI</Button>
+                <Button @click="addAiModal">Add AI</Button>
+                <AddAIModal />
+
                 <Button @click="start">Start</Button>
             </div>
         </div>
@@ -15,15 +17,16 @@
 </template>
 
 <script lang="ts" setup>
+import { Ref, ref } from "vue";
+import { AI, Script } from "start-script-converter";
 import { EngineTagFormat } from "@/model/formats";
 import { Player } from "@/model/battle";
-import { MapData } from "@/model/map";
-import { Script } from "start-script-converter";
-import { Ref, ref } from "vue";
+import { MapData } from "@/model/map-data";
 import Button from "@/components/inputs/Button.vue";
 import MapPreview from "@/components/battle/MapPreview.vue";
-import Select from "../inputs/Select.vue";
+import Select from "@/components/inputs/Select.vue";
 import Playerlist from "@/components/battle/Playerlist.vue";
+import AddAIModal from "@/components/battle/AddAIModal.vue";
 
 // const engineVersion = ref("");
 // const gameVersion = ref("");
@@ -34,12 +37,15 @@ import Playerlist from "@/components/battle/Playerlist.vue";
 // });
 
 const props = defineProps({
-    players: Array as () => Player[]
+    players: Array as () => Player[],
+    ais: Array as () => AI[],
 });
 
 const cachedMaps = window.api.content.getMaps();
 const maps: Ref<MapData[]> = ref(Object.values(cachedMaps));
-const selectedMap = ref(maps.value[0].fileNameWithExt);
+const map = ref(maps.value[0].fileNameWithExt);
+
+const addAiModal = () => window.api.modals.open("add-ai");
 
 const start = async () => {
     const { version } = await window.api.content.getLatestVersionInfo();

@@ -11,7 +11,7 @@ import { DownloadType, Message, ProgressMessage } from "@/model/pr-downloader";
 import { extract7z } from "@/utils/extract7z";
 import { EngineTagFormat, isEngineTag } from "../model/formats";
 import { Ref } from "vue";
-import { MapData } from "@/model/map";
+import { MapData } from "@/model/map-data";
 
 export class ContentAPI {
     public onEngineProgress: Signal<{ currentBytes: number; totalBytes: number }> = new Signal();

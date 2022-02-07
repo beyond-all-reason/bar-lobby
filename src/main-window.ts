@@ -27,12 +27,14 @@ export class MainWindow {
             minWidth: 1440,
             minHeight: 900,
             darkTheme: true,
+            paintWhenInitiallyHidden: true,
             webPreferences: {
                 nodeIntegration: true,
                 contextIsolation: false,
                 nodeIntegrationInSubFrames: true,
                 nodeIntegrationInWorker: true,
-                webSecurity: false
+                webSecurity: false,
+                backgroundThrottling: false
             }
         });
 
@@ -83,6 +85,7 @@ export class MainWindow {
         this.window.setMenuBarVisibility(false);
 
         this.window.show();
+        this.window.focus();
     }
 
     public setDisplay(displayIndex: number) {

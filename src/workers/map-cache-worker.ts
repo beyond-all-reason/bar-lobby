@@ -1,6 +1,6 @@
 import * as path from "path";
 import { MapParser, SpringMap, StartPos } from "spring-map-parser";
-import { MapData } from "@/model/map";
+import { MapData } from "@/model/map-data";
 import { AbstractFileCache } from "@/workers/abstract-file-cache";
 import { BetterWorker, BetterWorkerHost } from "@/utils/better-worker";
 
