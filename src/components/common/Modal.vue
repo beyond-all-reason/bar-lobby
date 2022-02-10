@@ -2,7 +2,7 @@
     <teleport to=".theme">
         <transition name="modal" appear>
             <div v-if="isOpen" class="modal-container" v-bind="$attrs">
-                <Panel id="modal" class="modal" :title="title">
+                <Panel id="modal" class="modal" :title="titleStr">
                     <template #header>
                         <div class="header">
                             <div class="title">{{ title }}</div>
@@ -33,7 +33,7 @@ const props = defineProps({
 });
 
 const isOpen = window.api.modals.register(props.name);
-const title = ref(props.title || props.name);
+const titleStr = ref(props.title || props.name);
 
 const close = () => {
     window.api.modals.close(props.name);

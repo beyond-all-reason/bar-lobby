@@ -1,12 +1,23 @@
-//import { AI, AllyTeam, Game, MapOptions, ModOptions, Mutator, Player,  } from "start-script-converter";
+import { AIConfig } from "@/model/ai";
 
-// export interface Player {
-//     userId: number;
-//     name: string;
-//     isSpec: boolean;
-//     playerId: number;
-//     teamId: number;
-//     allyId: number;
-// }
+export type Player = {
+    userId: number;
+    name: string;
+    playerId: number;
+    teamId: number;
+    allyId: number;
+    startPos?: { x: number, z: number };
+    handicap?: number;
+    advantage?: number;
+    incomeMultiplier?: number;
+};
 
-export * from "start-script-converter";
+export type AIPlayer = Omit<Player, "isSpectator" | "userId"> & {
+    ownerPlayerId: number;
+    aiConfig: AIConfig;
+};
+
+export type Spectator = {
+    userId: number;
+    name: string;
+};

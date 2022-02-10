@@ -4,7 +4,7 @@ import { GameAPI } from "@/api/game";
 import { ContentAPI } from "@/api/content";
 import { ModalsAPI } from "@/api/modals";
 import { StoreAPI } from "@/api/store";
-import { AccountType } from "@/model/account";
+import { Account } from "@/model/account";
 import { Info } from "@/model/info";
 import { SettingsType } from "@/model/settings";
 import { TachyonClient } from "tachyon-client";
@@ -25,7 +25,7 @@ declare global {
         /** @deprecated - replace with modals */
         alerts: AlertsAPI;
         modals: ModalsAPI;
-        accounts: StoreAPI<AccountType>;
+        accounts: StoreAPI<Account>;
         content: ContentAPI;
         game: GameAPI;
         workers: WorkersAPI;

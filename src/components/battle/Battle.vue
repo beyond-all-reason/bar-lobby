@@ -5,10 +5,10 @@
         </div>
         <div class="battle__right flex-col gap-md">
             <MapPreview :filename="map" />
-            <Select :options="maps" v-model="map" :label-by="(map: any) => map.friendlyName" :value-by="(map: any) => map.fileNameWithExt" :close-on-select="true" :clear-on-select="true" :searchable="true"></Select>
+            <Select :options="maps" v-model="map" :label-by="(map: MapData) => map.friendlyName" :value-by="(map: MapData) => map.fileNameWithExt" :close-on-select="true" :clear-on-select="true" :searchable="true"></Select>
             <div class="flex-row gap-md">
                 <Button @click="addAiModal">Add AI</Button>
-                <AddAIModal />
+                <AddAIModal @add-ai="addAi" />
 
                 <Button @click="start">Start</Button>
             </div>
@@ -27,6 +27,7 @@ import MapPreview from "@/components/battle/MapPreview.vue";
 import Select from "@/components/inputs/Select.vue";
 import Playerlist from "@/components/battle/Playerlist.vue";
 import AddAIModal from "@/components/battle/AddAIModal.vue";
+import { AIConfig } from "@/model/ai";
 
 // const engineVersion = ref("");
 // const gameVersion = ref("");
@@ -46,6 +47,10 @@ const maps: Ref<MapData[]> = ref(Object.values(cachedMaps));
 const map = ref(maps.value[0].fileNameWithExt);
 
 const addAiModal = () => window.api.modals.open("add-ai");
+
+const addAi = (ai: AIConfig) => {
+    console.log(ai);
+};
 
 const start = async () => {
     const { version } = await window.api.content.getLatestVersionInfo();

@@ -6,4 +6,4 @@ export const accountSchema = Type.Strict(Type.Object({
     remember: Type.Boolean({ default: true }),
 }));
 
-export type AccountType = Static<typeof accountSchema>;
+export type Account = Static<typeof accountSchema>;

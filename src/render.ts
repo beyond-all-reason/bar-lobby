@@ -16,7 +16,7 @@ import routes from "@/routes";
 import { StoreAPI } from "@/api/store";
 import { AlertsAPI } from "@/api/alerts";
 import { settingsSchema, SettingsType } from "@/model/settings";
-import { accountSchema, AccountType } from "@/model/account";
+import { accountSchema, Account } from "@/model/account";
 import { AudioAPI } from "@/api/audio";
 import { GameAPI } from "@/api/game";
 import { ModalsAPI } from "@/api/modals";
@@ -105,7 +105,7 @@ async function setupAPIs() {
 
     window.api.modals = new ModalsAPI();
 
-    window.api.accounts = await new StoreAPI<AccountType>("accounts", accountSchema).init();
+    window.api.accounts = await new StoreAPI<Account>("accounts", accountSchema).init();
 
     window.api.game = new GameAPI(userDataDir, dataDir);
 
