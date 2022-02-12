@@ -2,7 +2,7 @@
     <component :class="{ panel: Boolean(!empty), tabbed: Boolean(tabs.length) }" :is="is">
         <slot name="header" />
         <div class="tabs" v-if="tabs.length">
-            <Button v-for="(tab, i) in tabs" :key="i" :class="{ active: i === activeTab }" @click="$emit('update:activeTab', i)">{{ tab.props?.title }}</Button>
+            <Button v-for="(tab, i) in tabs" :key="i" :class="{ active: i === activeTab }" @click="emit('update:activeTab', i)">{{ tab.props?.title }}</Button>
         </div>
         <div class="content" :style="`--gap: ${gap}; --padding: ${padding}`">
             <slot v-if="tabs.length === 0" />
@@ -15,7 +15,7 @@
 </template>
 
 <script lang="ts" setup>
-import { reactive, toRefs, useSlots, VNode, defineEmits } from "vue";
+import { reactive, toRefs, useSlots, VNode } from "vue";
 import Button from "@/components/inputs/Button.vue";
 
 const props = defineProps({

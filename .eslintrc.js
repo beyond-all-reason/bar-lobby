@@ -6,7 +6,8 @@ module.exports = {
     globals: {
         defineProps: "readonly",
         defineEmits: "readonly",
-        defineExpose: "readonly"
+        defineExpose: "readonly",
+        withDefaults: "readonly"
     },
     ignorePatterns: ["dist_electron", "node_modules", "output.js", "src/routes.ts", "working-files"],
     extends: [

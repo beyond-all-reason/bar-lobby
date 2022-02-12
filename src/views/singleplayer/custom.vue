@@ -2,19 +2,43 @@
 
 <template>
     <div>
-        <Battle :players="players" />
+        <suspense>
+            <Battle :battle="battle" />
+        </suspense>
     </div>
 </template>
 
 <script lang="ts" setup>
+import { api } from "@/api/api";
 import Battle from "@/components/battle/Battle.vue";
-import { Player } from "start-script-converter";
+import { BattleType, Faction } from "@/model/battle";
 
-const players: Player[] = [
-    {
-        id: 0,
-        name: window.api.session.model.account?.value?.name ?? "Player",
-        team: 0
-    }
-];
+const playerName = api.session.model.account?.value?.name ?? "Player";
+
+const battle: BattleType = {
+    battleOptions: {
+        gameVersion: (await api.content.game.getLatestGameVersionInfo()).version,
+        isHost: true,
+        mapName: "Red Comet Remake 1.8",
+        myPlayerName: playerName
+    },
+    allyTeams: [
+        {
+            teams: [{
+                players: [{
+                    name: playerName
+                }]
+            }]
+        },
+        {
+            teams: [{
+                players: [{
+                    name: "AI",
+                    aiType: "barb",
+                    faction: Faction.Armada
+                }]
+            }]
+        }
+    ]
+};
 </script>

@@ -25,17 +25,18 @@
 <script lang="ts" setup>
 import { ref, watch } from "vue";
 import { Theme } from "@/model/settings";
-import Modal from "./common/Modal.vue";
+import Modal from "@/components/common/Modal.vue";
 import Checkbox from "@/components/inputs/Checkbox.vue";
 import Range from "@/components/inputs/Range.vue";
 import Select from "@/components/inputs/Select.vue";
+import { api } from "@/api/api";
 
-const settings = window.api.settings.model;
-const displays = ref(Array(window.info.hardware.numOfDisplays).fill(0).map((x, i) => i));
+const settings = api.settings.model;
+const displays = ref(Array(api.info.hardware.numOfDisplays).fill(0).map((x, i) => i));
 const themes = Object.values(Theme);
-const { fullscreen, displayIndex, theme, skipIntro, sfxVolume, musicVolume } = window.api.settings.model;
+const { fullscreen, displayIndex, theme, skipIntro, sfxVolume, musicVolume } = api.settings.model;
 
 watch(settings.displayIndex, async () => {
-    window.info.hardware.currentDisplayIndex = settings.displayIndex.value;
+    api.info.hardware.currentDisplayIndex = settings.displayIndex.value;
 });
 </script>

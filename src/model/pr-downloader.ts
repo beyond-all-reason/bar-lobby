@@ -17,3 +17,9 @@ export interface ProgressMessage extends Message {
     parsedPercent: number;
     downloadType: DownloadType;
 }
+
+export type RapidVersion = {
+    tag: string;
+    md5: string;
+    version: string;
+};

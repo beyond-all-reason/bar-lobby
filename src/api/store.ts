@@ -4,6 +4,7 @@ import * as fs from "fs";
 import * as path from "path";
 import { app, ipcMain, ipcRenderer, shell } from "electron";
 import { TObject } from "@sinclair/typebox";
+import { api } from "@/api/api";
 
 export class StoreAPI<T extends Record<string, unknown>> {
     public model!: ToRefs<T>;
@@ -24,7 +25,7 @@ export class StoreAPI<T extends Record<string, unknown>> {
 
         let userDataPath = "";
         if (process.type === "renderer") {
-            userDataPath = window.info.userDataPath;
+            userDataPath = api.info.userDataPath;
         } else {
             userDataPath = app.getPath("userData");
         }

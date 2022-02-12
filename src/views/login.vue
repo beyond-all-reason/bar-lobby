@@ -44,11 +44,12 @@ import Tab from "@/components/common/Tab.vue";
 import LoginForm from "@/components/LoginForm.vue";
 import RegisterForm from "@/components/RegisterForm.vue";
 import ResetPasswordForm from "@/components/ResetPasswordForm.vue";
+import { api } from "@/api/api";
 
 const loading = ref(false);
 const activeTab = ref(0);
 
 onMounted(async () => {
-    await window.api.client.connect();
+    await api.client.connect();
 });
 </script>

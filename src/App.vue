@@ -10,8 +10,9 @@
 import { useRouter } from "vue-router";
 import Alert from "@/components/Alert.vue";
 import DebugSidebar from "@/components/DebugSidebar.vue";
+import { api } from "@/api/api";
 
-const theme = window.api.settings.model.theme;
+const theme = api.settings.model.theme;
 
 const router = useRouter();
 router.replace("/");

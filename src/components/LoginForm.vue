@@ -27,14 +27,15 @@ import { useRouter } from "vue-router";
 import Loader from "@/components/common/Loader.vue";
 import Textbox from "@/components/inputs/Textbox.vue";
 import Checkbox from "@/components/inputs/Checkbox.vue";
-import Button from "./inputs/Button.vue";
+import Button from "@/components/inputs/Button.vue";
+import { api } from "@/api/api";
 
 const router = useRouter();
 const loading = ref(false);
 const email = ref("");
 const password = ref("");
 const token = ref("");
-const remember = window.api.accounts.model.remember;
+const remember = api.accounts.model.remember;
 const requestVerification = ref(false);
 const verificationMessage = ref("");
 const verificationCode = ref("");
@@ -42,32 +43,32 @@ const loginError = ref("");
 const verificationError = ref("");
 
 if (remember.value) {
-    if (window.api.accounts.model.email.value) {
-        email.value = window.api.accounts.model.email.value;
+    if (api.accounts.model.email.value) {
+        email.value = api.accounts.model.email.value;
     }
 }
 
-watch(window.api.accounts.model.email, () => email.value = window.api.accounts.model.email.value);
+watch(api.accounts.model.email, () => email.value = api.accounts.model.email.value);
 
 const login = async () => {
     loading.value = true;
 
-    const tokenResponse = await window.api.client.getToken({ email: email.value, password: password.value });
+    const tokenResponse = await api.client.getToken({ email: email.value, password: password.value });
 
     if (tokenResponse.result === "success" && tokenResponse.token) {
         if (remember.value) {
-            window.api.accounts.model.email.value = email.value;
-            window.api.accounts.model.token.value = tokenResponse.token;
+            api.accounts.model.email.value = email.value;
+            api.accounts.model.token.value = tokenResponse.token;
         } else {
-            window.api.accounts.model.email.value = "";
-            window.api.accounts.model.token.value = "";
+            api.accounts.model.email.value = "";
+            api.accounts.model.token.value = "";
         }
 
-        const loginResponse = await window.api.client.login({
-            token: window.api.accounts.model.token.value,
-            lobby_name: window.info.lobby.name,
-            lobby_version: window.info.lobby.version,
-            lobby_hash: window.info.lobby.hash
+        const loginResponse = await api.client.login({
+            token: api.accounts.model.token.value,
+            lobby_name: api.info.lobby.name,
+            lobby_version: api.info.lobby.version,
+            lobby_hash: api.info.lobby.hash
         });
 
         if (loginResponse.result === "success") {
@@ -94,7 +95,7 @@ const login = async () => {
 const verify = async () => {
     loading.value = true;
 
-    const verifyResult = await window.api.client.verify({ token: window.api.accounts.model.token.value, code: verificationCode.value });
+    const verifyResult = await api.client.verify({ token: api.accounts.model.token.value, code: verificationCode.value });
 
     if (verifyResult.result === "success") {
         if (verifyResult.user) {

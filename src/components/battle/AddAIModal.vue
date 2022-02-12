@@ -5,16 +5,18 @@
 </template>
 
 <script lang="ts" setup>
+import { api } from "@/api/api";
 import Modal from "@/components/common/Modal.vue";
 import Button from "@/components/inputs/Button.vue";
-import { AIConfig, aiConfigs } from "@/model/ai";
+import { ais } from "@/config/ais";
+import { AI } from "@/model/ai";
 
 const emit = defineEmits(["add-ai"]);
 
-const ais = aiConfigs;
+const availableAis = ais;
 
-const addAi = (ai: AIConfig) => {
+const addAi = (ai: AI) => {
     emit("add-ai", ai);
-    window.api.modals.close("add-ai");
+    api.modals.close("add-ai");
 };
 </script>

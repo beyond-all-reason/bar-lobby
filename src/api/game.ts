@@ -1,28 +1,28 @@
 import * as fs from "fs";
 import * as path from "path";
 import { spawn, ChildProcess } from "child_process";
-import { ScriptConverter, Script } from "start-script-converter";
 import { EngineTagFormat } from "@/model/formats";
-import { Ref } from "vue";
+import { StartScriptConverter } from "@/utils/start-script-converter";
+import { StartScript } from "@/model/start-script";
 
 export class GameAPI {
     public gameProcess?: ChildProcess;
 
-    protected scriptConverter = new ScriptConverter();
+    protected scriptConverter = new StartScriptConverter();
 
-    constructor(protected userDataDir: string, protected dataDir: Ref<string>) {
+    constructor(protected userDataDir: string, protected dataDir: string) {
     }
 
-    public async launch(engineTag: EngineTagFormat, script: Script) {
-        const enginePath = path.join(this.dataDir.value, "engine", engineTag).replaceAll("\\", "/");
-        const scriptPath = path.join(this.dataDir.value, "_script.txt");
+    public async launch(engineTag: EngineTagFormat, script: StartScript) {
+        const enginePath = path.join(this.dataDir, "engine", engineTag).replaceAll("\\", "/");
+        const scriptPath = path.join(this.dataDir, "_script.txt");
 
         const scriptStr = this.scriptConverter.generateScript(script);
 
         await fs.promises.writeFile(scriptPath, scriptStr);
 
         const args = [
-            "--write-dir", this.dataDir.value,
+            "--write-dir", this.dataDir,
             "--isolation",
             scriptPath
         ];

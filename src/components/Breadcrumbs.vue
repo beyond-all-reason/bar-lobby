@@ -6,8 +6,8 @@
             <Icon icon="arrow-left-bold" />
             <div>Back</div>
         </router-link>
-        <router-link v-for="(route, index) in route.matched" :key="index" :to="route.path">
-            {{ route.meta.title || route.meta.name || route.path }}
+        <router-link v-for="(thisRoute, index) in route.matched" :key="index" :to="thisRoute.path">
+            {{ thisRoute.meta.title || thisRoute.meta.name || thisRoute.path }}
         </router-link>
     </div>
 </template>
@@ -17,6 +17,4 @@ import { useRoute } from "vue-router";
 import Icon from "@/components/common/Icon.vue";
 
 const route = useRoute();
-
-console.log({ ...route });
 </script>
