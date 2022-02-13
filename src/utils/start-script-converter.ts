@@ -1,12 +1,21 @@
-import { BattleType } from "@/model/battle";
-import { AI, AllyTeam, Game, Player, StartScript, Team } from "@/model/start-script";
+import { BattleTypes } from "@/model/battle";
+import { StartScriptTypes } from "@/model/start-script";
 
 /**
+ * https://springrts.com/wiki/Script.txt
+ * https://github.com/spring/spring/blob/106.0/doc/StartScriptFormat.txt
+ *
  * TODO:
  * - parse and convert restrictions
  */
 export class StartScriptConverter {
-    public parseScript(scriptStr: string): StartScript {
+    public generateScriptStr(battle: BattleTypes.Battle): string {
+        const script = this.battleToStartScript(battle);
+        const scriptStr = this.generateScriptString(script);
+        return scriptStr;
+    }
+
+    public parseScript(scriptStr: string): StartScriptTypes.Game {
         let obj = this.scriptToObject(scriptStr).game;
         obj = this.coerceTypes(obj);
         obj = this.parseGroups(obj);
@@ -14,12 +23,67 @@ export class StartScriptConverter {
         return obj;
     }
 
-    public battleToScript(battle: BattleType): string {
-        return "";
+    protected battleToStartScript(battle: BattleTypes.Battle): StartScriptTypes.Game {
+        const allyteams: StartScriptTypes.AllyTeam[] = [];
+        const teams: StartScriptTypes.Team[] = [];
+        const players: StartScriptTypes.Player[] = [];
+        const ais: StartScriptTypes.AI[] = [];
+
+        let teamId = 0;
+        let aiIndex = 0;
+        let playerIndex = 0;
+        battle.allyTeams.forEach((allyTeam, allyTeamIndex) => {
+            allyteams.push({
+                id: allyTeamIndex,
+                startrecttop: allyTeam.startBox?.top,
+                startrectbottom: allyTeam.startBox?.bottom,
+                startrectleft: allyTeam.startBox?.left,
+                startrectright: allyTeam.startBox?.right,
+            });
+
+            allyTeam.teams.forEach(team => {
+                teams.push({
+                    id: teamId,
+                    allyteam: allyTeamIndex,
+                    teamleader: 0
+                });
+
+                team.players.forEach(player => {
+                    players.push({
+                        id: playerIndex,
+                        team: teamId,
+                        name: player.name,
+                    });
+                    playerIndex++;
+                });
+
+                team.ais.forEach(ai => {
+                    ais.push({
+                        id: aiIndex,
+                        shortname: ai.ai,
+                        team: teamId,
+                        name: ai.name
+                    });
+                    aiIndex++;
+                });
+
+                teamId++;
+            });
+        });
+
+        return {
+            gametype: battle.hostOptions.gameVersion,
+            mapname: battle.hostOptions.mapName,
+            ishost: 1,
+            myplayername: battle.hostOptions.myPlayerName,
+            allyteams,
+            teams,
+            players,
+            ais
+        };
     }
 
-    /** @deprecate */
-    public generateScript(script: StartScript): string {
+    protected generateScriptString(script: StartScriptTypes.Game): string {
         let scriptObj: Record<string, any> = JSON.parse(JSON.stringify(script));
         scriptObj = this.convertGroups(scriptObj);
         const scriptStr = this.stringifyScriptObj(scriptObj);
@@ -71,12 +135,12 @@ export class StartScriptConverter {
         return obj;
     }
 
-    protected parseGroups(obj: Record<string, any>): StartScript {
-        const game = {} as Game;
-        const allyteams: AllyTeam[] = [];
-        const teams: Team[] = [];
-        const players: Player[] = [];
-        const ais: AI[] = [];
+    protected parseGroups(obj: Record<string, any>): StartScriptTypes.Game {
+        const game = {} as StartScriptTypes.Game;
+        const allyteams: StartScriptTypes.AllyTeam[] = [];
+        const teams: StartScriptTypes.Team[] = [];
+        const players: StartScriptTypes.Player[] = [];
+        const ais: StartScriptTypes.AI[] = [];
 
         for (const key in obj) {
             const val = obj[key];
@@ -107,7 +171,7 @@ export class StartScriptConverter {
         }
 
         return {
-            game,
+            ...game,
             allyteams,
             teams,
             players,

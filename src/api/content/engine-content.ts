@@ -103,6 +103,11 @@ export class EngineContentAPI extends AbstractContentAPI {
         return engineVersions;
     }
 
+    public async getLatestInstalledEngineVersion() {
+        const installedEngineVersions = await this.getInstalledEngineVersions();
+        return installedEngineVersions[installedEngineVersions.length - 1];
+    }
+
     // arg format should match dir name, e.g. BAR-105.1.1-809-g3f69f26
     public async isEngineVersionInstalled(engineTag: EngineTagFormat) {
         return fs.existsSync(path.join(this.dataDir, "engine", engineTag));

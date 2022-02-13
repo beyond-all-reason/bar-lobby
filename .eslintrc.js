@@ -43,6 +43,7 @@ module.exports = {
         "@typescript-eslint/no-unused-vars": "off",
         "@typescript-eslint/no-non-null-assertion": "off",
         "@typescript-eslint/no-non-null-asserted-optional-chain": "off",
+        "@typescript-eslint/no-namespace": "off",
 
         "vue/no-dupe-keys": "off",
         "vue/html-indent": ["error", 4],

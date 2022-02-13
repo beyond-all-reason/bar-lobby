@@ -25,6 +25,10 @@ export class MapContentAPI extends AbstractContentAPI {
         return this.maps[filename];
     }
 
+    public getMapByScriptName(scriptName: string) : MapData | undefined {
+        return Object.values(this.maps).find((map) => map.scriptName === scriptName);
+    }
+
     public getMapImages(filename: string) {
         if (this.getMapByFilename(filename)) {
             const filenameWithoutExt = path.parse(filename).name;

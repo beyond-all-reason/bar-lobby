@@ -1,62 +1,67 @@
-import { ais } from "@/config/ais";
+import { EngineTagFormat } from "@/model/formats";
 
-export type BattleType = {
-    battleOptions: BattleOptions;
-    allyTeams: AllyTeam[];
-    spectators?: Spectator[];
-};
+export namespace BattleTypes {
+    export type Battle = {
+        hostOptions: HostOptions;
+        allyTeams: AllyTeam[];
+        spectators: Spectator[];
+    };
 
-export type BattleOptions = {
-    gameVersion: string;
-    mapName: string;
-    isHost: boolean;
-    myPlayerName: string;
-    startPosType?: StartPosType;
-};
+    export type HostOptions = {
+        engineVersion: EngineTagFormat;
+        gameVersion: string;
+        mapName: string;
+        isHost: boolean;
+        myPlayerName: string;
+        startPosType?: StartPosType;
+    };
 
-export type AllyTeam = {
-    teams: Team[];
-    startBox?: StartBox;
-};
+    export type AllyTeam = {
+        teams: Team[];
+        startBox?: StartBox;
+    };
 
-export type Team = {
-    players: Array<Player | AIPlayer>;
-};
+    export type Team = {
+        players: Player[];
+        ais: AIPlayer[]
+    };
 
-export type Player = {
-    name: string;
-    userId?: number;
-    startPos?: { x: number, z: number };
-    handicap?: number;
-    advantage?: number;
-    incomeMultiplier?: number;
-};
+    export type Player = {
+        name: string;
+        userId?: number;
+        startPos?: { x: number, z: number };
+        handicap?: number;
+        advantage?: number;
+        incomeMultiplier?: number;
+    };
 
-export type AIPlayer = Omit<Player, "userId"> & {
-    aiType: keyof typeof ais;
-    faction: Faction;
-};
+    export type AIPlayer = Omit<Player, "userId"> & {
+        ai: string;
+        ownerName: string;
+        faction: Faction;
+    };
 
-export type Spectator = {
-    userId: number;
-    name: string;
-};
+    export type Spectator = {
+        userId: number;
+        name: string;
+    };
 
-export type StartBox = {
-    top: number;
-    left: number;
-    bottom: number;
-    right: number;
-};
+    export type StartBox = {
+        top: number;
+        left: number;
+        bottom: number;
+        right: number;
+    };
 
-export enum StartPosType {
-    Fixed,
-    Random,
-    ChooseInGame,
-    ChooseBeforeGame
-}
+    export enum StartPosType {
+        Fixed,
+        Random,
+        ChooseInGame,
+        ChooseBeforeGame
+    }
 
-export enum Faction {
-    Armada = "Armada",
-    Cortex = "Cortex"
+    export enum Faction {
+        Armada = "Armada",
+        Cortex = "Cortex"
+    }
 }

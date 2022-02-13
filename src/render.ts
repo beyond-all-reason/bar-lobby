@@ -1,8 +1,6 @@
 import { createApp } from "vue";
 import { createRouter, createWebHashHistory } from "vue-router";
 import { createRouterLayout } from "vue-router-layout";
-import VueNextSelect from "vue-next-select";
-import VueSlider from "vue-slider-component";
 import "vue-next-select/dist/index.css";
 import "vue-slider-component/theme/default.css";
 
@@ -50,8 +48,7 @@ async function setupVue() {
     const app = createApp(App);
 
     app.use(router);
-    app.component("vue-select", VueNextSelect);
-    app.component("vue-slider", VueSlider);
+
     app.mount("#app");
 
     if (process.env.NODE_ENV !== "production") {

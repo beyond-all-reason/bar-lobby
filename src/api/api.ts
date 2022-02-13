@@ -3,7 +3,6 @@ import * as fs from "fs";
 import { TachyonClient } from "tachyon-client";
 import { AlertsAPI } from "@/api/alerts";
 import { AudioAPI } from "@/api/audio";
-import { BattleAPI } from "@/api/battle";
 import { ContentAPI } from "@/api/content";
 import { GameAPI } from "@/api/game";
 import { ModalsAPI } from "@/api/modals";
@@ -28,7 +27,6 @@ declare global {
             accounts: StoreAPI<Account>;
             content: ContentAPI;
             game: GameAPI;
-            battle: BattleAPI;
             workers: WorkersAPI;
         }
     }
@@ -69,8 +67,6 @@ export async function apiInit() {
     window.api.accounts = await new StoreAPI<Account>("accounts", accountSchema).init();
 
     window.api.game = new GameAPI(userDataDir, dataDir);
-
-    window.api.battle = new BattleAPI();
 
     window.api.workers = new WorkersAPI({
         mapCache: new Worker(new URL("../workers/map-cache-worker.ts", import.meta.url), { type: "module" })

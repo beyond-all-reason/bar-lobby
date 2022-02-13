@@ -1,24 +1,27 @@
 <template>
     <div class="battle">
         <div class="battle__left">
+            <h1>{{ battleTitle }}</h1>
             <Playerlist :allyTeams="battle.allyTeams" :spectators="battle.spectators"/>
         </div>
         <div class="battle__right flex-col gap-md">
-            <MapPreview :filename="map" />
-            <Select :options="maps" v-model="map" :label-by="(map: MapData) => map.friendlyName" :value-by="(map: MapData) => map.fileNameWithExt" :close-on-select="true" :clear-on-select="true" :searchable="true"></Select>
+            <MapPreview :filename="mapFile" />
+            <Select :options="maps" v-model="mapFile" :label-by="(map: MapData) => map.friendlyName" :value-by="(map: MapData) => map.fileNameWithExt" :close-on-select="true" :clear-on-select="true" :searchable="true"></Select>
             <div class="flex-row gap-md">
                 <Button @click="addAiModal">Add AI</Button>
                 <AddAIModal @add-ai="addAi" />
 
                 <Button @click="start">Start</Button>
             </div>
+            <div>Engine: {{ battle.hostOptions.engineVersion }}</div>
+            <div>Game: {{ battle.hostOptions.gameVersion }}</div>
         </div>
     </div>
 </template>
 
 <script lang="ts" setup>
-import { Ref, ref } from "vue";
-import { BattleType } from "@/model/battle";
+import { reactive, Ref, ref } from "vue";
+import { BattleTypes } from "@/model/battle";
 import { MapData } from "@/model/map-data";
 import Button from "@/components/inputs/Button.vue";
 import MapPreview from "@/components/battle/MapPreview.vue";
@@ -26,6 +29,7 @@ import Select from "@/components/inputs/Select.vue";
 import Playerlist from "@/components/battle/Playerlist.vue";
 import AddAIModal from "@/components/battle/AddAIModal.vue";
 import { AI } from "@/model/ai";
+import { EngineTagFormat } from "@/model/formats";
 
 // const engineVersion = ref("");
 // const gameVersion = ref("");
@@ -45,12 +49,17 @@ import { AI } from "@/model/ai";
 //     }
 // });
 const props = defineProps<{
-    battle: BattleType
+    battle: BattleTypes.Battle;
 }>();
+
+const battle = (window as any).battle = reactive(props.battle);
+
+const battleTitle = ref("Offline Custom Battle");
 
 const cachedMaps = window.api.content.maps.getMaps();
 const maps: Ref<MapData[]> = ref(Object.values(cachedMaps));
-const map = ref(maps.value[0].fileNameWithExt);
+const map = window.api.content.maps.getMapByScriptName(battle.hostOptions.mapName);
+const mapFile = ref(map!.fileNameWithExt!);
 
 const addAiModal = () => window.api.modals.open("add-ai");
 
@@ -59,7 +68,9 @@ const addAi = (ai: AI) => {
 };
 
 const start = async () => {
-    //
+    const engine: EngineTagFormat = "BAR-105.1.1-814-g9774f22";
+
+    window.api.game.launch(engine, battle);
 };
 
 // const start = async () => {

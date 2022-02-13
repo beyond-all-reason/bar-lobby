@@ -1,6 +1,7 @@
 .battle {
     display: flex;
     flex-direction: row;
+    gap: 10px;
     &__left {
         flex-grow: 1;
     }
@@ -24,5 +25,31 @@
         padding: 10px;
         object-fit: contain;
         image-rendering: pixelated;
+    }
+}
+
+.playerlist {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    .ally-team {
+        &__title {
+            font-size: 26px;
+        }
+    }
+    .team {
+        padding-left: 10px;
+    }
+    .player {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 7px;
+        line-height: 52%;
+        padding: 5px 2px;
+        //background: rgba(0, 0, 0, 0.2);
+    }
+    .ai-player {
+
     }
 }

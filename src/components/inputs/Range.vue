@@ -2,7 +2,7 @@
     <form class="control range" @submit.prevent="">
         <label :for="uuid" v-if="label">{{ label }}</label>
         <div class="input">
-            <vue-slider ref="slider" v-model="value" tooltip="none" :duration="0" :drag-on-click="true" v-bind="$attrs" @change="$emit('update:modelValue', value)" @error="error"></vue-slider>
+            <VueSlider ref="slider" v-model="value" tooltip="none" :duration="0" :drag-on-click="true" v-bind="$attrs" @change="$emit('update:modelValue', value)" @error="error"></VueSlider>
         </div>
         <input ref="textbox" :id="uuid" v-model="value" :style="`width: ${max.toString().length + 1.85}ch`" :disabled="disableCustomInput">
     </form>
@@ -15,15 +15,15 @@ import { onMounted, Ref, ref, toRefs } from "vue";
 import { v4 as uuidv4 } from "uuid";
 import VueSlider, { ERROR_TYPE } from "vue-slider-component";
 
-const props = defineProps({
-    label: String,
-    modelValue: {
-        type: Number,
-        default: 0
-    },
-    disableCustomInput: Boolean,
-    icon: String,
-});
+type VueSliderProps = InstanceType<typeof VueSlider>;
+
+interface Props extends VueSliderProps {
+    label?: string;
+    disableCustomInput?: boolean;
+    icon?: string;
+}
+
+const props = defineProps<Props>();
 
 const uuid = ref(uuidv4());
 const { label, icon } = toRefs(props);
