@@ -1,7 +1,6 @@
 import * as path from "path";
 import { AbstractContentAPI } from "@/api/content/abstract-content";
 import { MapData } from "@/model/map-data";
-import { api } from "@/api/api";
 
 export class MapContentAPI extends AbstractContentAPI {
     protected maps: Readonly<Record<string, MapData>> = {};
@@ -9,11 +8,11 @@ export class MapContentAPI extends AbstractContentAPI {
     constructor(userDataDir: string, dataDir: string) {
         super(userDataDir, dataDir);
 
-        api.workers.mapCache.on("item-cache-loaded").add((maps: Record<string, MapData>) => {
+        window.api.workers.mapCache.on("item-cache-loaded").add((maps: Record<string, MapData>) => {
             this.maps = Object.freeze(maps);
         });
 
-        api.workers.mapCache.on("item-cache-saved").add((maps: Record<string, MapData>) => {
+        window.api.workers.mapCache.on("item-cache-saved").add((maps: Record<string, MapData>) => {
             this.maps = Object.freeze(maps);
         });
     }

@@ -20,7 +20,6 @@
 import { ref } from "vue";
 import Panel from "@/components/common/Panel.vue";
 import Icon from "@/components/common/Icon.vue";
-import { api } from "@/api/api";
 
 const props = defineProps({
     name: {
@@ -33,10 +32,10 @@ const props = defineProps({
     },
 });
 
-const isOpen = api.modals.register(props.name);
+const isOpen = window.api.modals.register(props.name);
 const titleStr = ref(props.title || props.name);
 
 const close = () => {
-    api.modals.close(props.name);
+    window.api.modals.close(props.name);
 };
 </script>

@@ -26,14 +26,13 @@ import Select from "@/components/inputs/Select.vue";
 import Playerlist from "@/components/battle/Playerlist.vue";
 import AddAIModal from "@/components/battle/AddAIModal.vue";
 import { AI } from "@/model/ai";
-import { api } from "@/api/api";
 
 // const engineVersion = ref("");
 // const gameVersion = ref("");
 
 // onMounted(async () => {
-//     engineVersion.value = (await api.content.get()).version;
-//     gameVersion.value = (await api.content.getLatestVersionInfo()).version;
+//     engineVersion.value = (await window.api.content.get()).version;
+//     gameVersion.value = (await window.api.content.getLatestVersionInfo()).version;
 // });
 
 // const props = defineProps<{ battle: Battle }>({
@@ -49,11 +48,11 @@ const props = defineProps<{
     battle: BattleType
 }>();
 
-const cachedMaps = api.content.maps.getMaps();
+const cachedMaps = window.api.content.maps.getMaps();
 const maps: Ref<MapData[]> = ref(Object.values(cachedMaps));
 const map = ref(maps.value[0].fileNameWithExt);
 
-const addAiModal = () => api.modals.open("add-ai");
+const addAiModal = () => window.api.modals.open("add-ai");
 
 const addAi = (ai: AI) => {
     console.log(ai);
@@ -64,7 +63,7 @@ const start = async () => {
 };
 
 // const start = async () => {
-//     const { version } = await api.content.getLatestVersionInfo();
+//     const { version } = await window.api.content.getLatestVersionInfo();
 
 //     const script: Script = {
 //         game: {
@@ -97,6 +96,6 @@ const start = async () => {
 
 //     const engine: EngineTagFormat = "BAR-105.1.1-814-g9774f22";
 
-//     api.game.launch(engine, script);
+//     window.api.game.launch(engine, script);
 // };
 </script>

@@ -28,17 +28,16 @@ import { onMounted } from "vue";
 import { storeUserSession } from "@/utils/store-user-session";
 import { useRouter } from "vue-router";
 import Loader from "@/components/common/Loader.vue";
-import { api } from "@/api/api";
 
 const router = useRouter();
 const text = ref("Fetching latest game updates");
 const percent = ref(0);
 
-api.content.game.onDlProress.add(progress => {
+window.api.content.game.onDlProress.add(progress => {
     percent.value = progress.currentBytes / progress.totalBytes;
 });
 
-api.content.engine.onDlProgress.add(progress => {
+window.api.content.engine.onDlProgress.add(progress => {
     percent.value = progress.currentBytes / progress.totalBytes;
 });
 
@@ -49,31 +48,31 @@ onMounted(async () => {
         return;
     }
 
-    const isLatestGameVersionInstalled = await api.content.game.isLatestGameVersionInstalled();
+    const isLatestGameVersionInstalled = await window.api.content.game.isLatestGameVersionInstalled();
     if (!isLatestGameVersionInstalled) {
-        await api.content.game.updateGame();
+        await window.api.content.game.updateGame();
     } else {
         console.log("Latest game version already installed");
     }
 
     text.value = "Fetching latest engine updates";
 
-    const isLatestEngineVersionInstalled = await api.content.engine.isLatestEngineVersionInstalled();
+    const isLatestEngineVersionInstalled = await window.api.content.engine.isLatestEngineVersionInstalled();
     if (!isLatestEngineVersionInstalled) {
-        await api.content.engine.downloadLatestEngine();
+        await window.api.content.engine.downloadLatestEngine();
     } else {
         console.log("Latest engine version already installed");
     }
 
     try {
-        await api.client.connect();
+        await window.api.client.connect();
 
-        if (api.accounts.model.token.value && api.accounts.model.remember.value) {
-            const loginResponse = await api.client.login({
-                token: api.accounts.model.token.value,
-                lobby_name: api.info.lobby.name,
-                lobby_version: api.info.lobby.version,
-                lobby_hash: api.info.lobby.hash
+        if (window.api.accounts.model.token.value && window.api.accounts.model.remember.value) {
+            const loginResponse = await window.api.client.login({
+                token: window.api.accounts.model.token.value,
+                lobby_name: window.api.info.lobby.name,
+                lobby_version: window.api.info.lobby.version,
+                lobby_hash: window.api.info.lobby.hash
             });
 
             if (loginResponse.result === "success") {

@@ -17,7 +17,6 @@ import { ref } from "vue";
 import Loader from "@/components/common/Loader.vue";
 import Textbox from "@/components/inputs/Textbox.vue";
 import Button from "@/components/inputs/Button.vue";
-import { api } from "@/api/api";
 
 const emit = defineEmits(["register-success"]);
 
@@ -37,10 +36,10 @@ const validatePassword = () => {
 const register = async () => {
     loading.value = true;
 
-    const registerResponse = await api.client.register({ email: email.value, username: username.value, password: password.value });
+    const registerResponse = await window.api.client.register({ email: email.value, username: username.value, password: password.value });
 
     if (registerResponse.result === "success") {
-        api.accounts.model.email.value = email.value;
+        window.api.accounts.model.email.value = email.value;
         emit("register-success");
     } else {
         if (registerResponse.reason) {

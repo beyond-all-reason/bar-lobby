@@ -1,7 +1,7 @@
 import { DeepPartial } from "jaz-ts-utils";
 import { MapInfo } from "spring-map-parser";
 
-export interface MapData {
+export type MapData = {
     scriptName: string;
     fileName: string;
     fileNameWithExt: string;
@@ -23,4 +23,4 @@ export interface MapData {
     minDepth: number;
     maxDepth: number;
     mapInfo?: DeepPartial<MapInfo>;
-}
+};

@@ -18,7 +18,6 @@ import { shell } from "electron";
 import Icon from "@/components/common/Icon.vue";
 import Select from "@/components/inputs/Select.vue";
 import Button from "@/components/inputs/Button.vue";
-import { api } from "@/api/api";
 
 const scope = effectScope();
 
@@ -30,15 +29,15 @@ const routes = readonly(router.getRoutes().sort((a, b) => a.path.localeCompare(b
 const currentRoute = ref(route.path);
 
 const openSettings = () => {
-    api.settings.openFileInEditor();
+    window.api.settings.openFileInEditor();
 };
 
 const openLobbyDir = () => {
-    shell.openPath(api.info.userDataPath);
+    shell.openPath(window.api.info.userDataPath);
 };
 
 const openDataDir = () => {
-    shell.openPath(api.settings.model.dataDir.value);
+    shell.openPath(window.api.settings.model.dataDir.value);
 };
 
 scope.run(() => {

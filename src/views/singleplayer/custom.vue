@@ -2,22 +2,20 @@
 
 <template>
     <div>
-        <suspense>
-            <Battle :battle="battle" />
-        </suspense>
+        <Battle :battle="battle" />
     </div>
 </template>
 
 <script lang="ts" setup>
-import { api } from "@/api/api";
-import Battle from "@/components/battle/Battle.vue";
 import { BattleType, Faction } from "@/model/battle";
+import { onMounted, reactive } from "vue";
+import Battle from "@/components/battle/Battle.vue";
 
-const playerName = api.session.model.account?.value?.name ?? "Player";
+const playerName = window.api.session.model.account?.value?.name ?? "Player";
 
-const battle: BattleType = {
+const battle: BattleType = reactive({
     battleOptions: {
-        gameVersion: (await api.content.game.getLatestGameVersionInfo()).version,
+        gameVersion: "",
         isHost: true,
         mapName: "Red Comet Remake 1.8",
         myPlayerName: playerName
@@ -40,5 +38,10 @@ const battle: BattleType = {
             }]
         }
     ]
-};
+});
+
+onMounted(async () => {
+    battle.battleOptions.gameVersion = (await window.api.content.game.getLatestGameVersionInfo()).version;
+});
+
 </script>

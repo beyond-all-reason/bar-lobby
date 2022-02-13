@@ -12,7 +12,6 @@
 </template>
 
 <script lang="ts" setup>
-import { api } from "@/api/api";
 import { computed, toRefs } from "vue";
 import { useRoute } from "vue-router";
 
@@ -23,7 +22,7 @@ const props = defineProps({
 const route = useRoute();
 const to = toRefs(props).to;
 const isActive = computed(() => props.to && route.path.includes(props.to));
-const sound = api.audio.getSound("button-hover");
+const sound = window.api.audio.getSound("button-hover");
 const play = () => {
     if (!props.to || (props.to && !isActive.value)) {
         sound.play();

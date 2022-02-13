@@ -6,17 +6,16 @@
 </template>
 
 <script lang="ts" setup>
-import { api } from "@/api/api";
 import { useRouter } from "vue-router";
 import Modal from "@/components/common/Modal.vue";
 
-const { title, message, type, isFatal } = api.alerts.getAlert();
+const { title, message, type, isFatal } = window.api.alerts.getAlert();
 const router = useRouter();
 
 const close = async () => {
     if (isFatal) {
         await router.replace("/");
-        api.alerts.clearAlert();
+        window.api.alerts.clearAlert();
     }
 };
 </script>

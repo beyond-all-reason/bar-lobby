@@ -5,7 +5,6 @@
 </template>
 
 <script lang="ts" setup>
-import { api } from "@/api/api";
 import Modal from "@/components/common/Modal.vue";
 import Button from "@/components/inputs/Button.vue";
 import { ais } from "@/config/ais";
@@ -17,6 +16,6 @@ const availableAis = ais;
 
 const addAi = (ai: AI) => {
     emit("add-ai", ai);
-    api.modals.close("add-ai");
+    window.api.modals.close("add-ai");
 };
 </script>

@@ -1,4 +1,3 @@
-import { api } from "@/api/api";
 import { ServerCommandType } from "tachyon-client";
 import { ref } from "vue";
 
@@ -10,7 +9,7 @@ export function storeUserSession(user?: UserData) {
         return;
     }
 
-    api.session.model.account = ref({
+    window.api.session.model.account = ref({
         id: user.id,
         springid: user.springid,
         name: user.name,

@@ -1,4 +1,3 @@
-import { api } from "@/api/api";
 import { Howl, HowlOptions } from "howler";
 import * as path from "path";
 import { watch } from "vue";
@@ -34,18 +33,18 @@ export class AudioAPI {
             this.soundsToLoad.set(soundKey, [builtPath, relativePath]);
         }
 
-        watch(api.settings.model.sfxVolume, () => {
+        watch(window.api.settings.model.sfxVolume, () => {
             this.sounds.forEach(sound => {
                 if (!sound.isMusic) {
-                    sound.volume(api.settings.model.sfxVolume.value / 100);
+                    sound.volume(window.api.settings.model.sfxVolume.value / 100);
                 }
             });
         });
 
-        watch(api.settings.model.musicVolume, () => {
+        watch(window.api.settings.model.musicVolume, () => {
             this.sounds.forEach(sound => {
                 if (sound.isMusic) {
-                    sound.volume(api.settings.model.musicVolume.value / 100);
+                    sound.volume(window.api.settings.model.musicVolume.value / 100);
                 }
             });
         });
@@ -82,7 +81,7 @@ export class AudioAPI {
         if (isMusic) {
             const sound = new Sound(soundKey, true, {
                 src: this.soundsToLoad.get(soundKey),
-                volume: api.settings.model.musicVolume.value / 100
+                volume: window.api.settings.model.musicVolume.value / 100
             });
             sound.on("play", () => {
                 this.sounds.forEach(_sound => {
@@ -95,7 +94,7 @@ export class AudioAPI {
         } else {
             const sound = new Sound(soundKey, false, {
                 src: this.soundsToLoad.get(soundKey),
-                volume: api.settings.model.sfxVolume.value / 100
+                volume: window.api.settings.model.sfxVolume.value / 100
             });
             this.sounds.set(soundKey, sound);
         }

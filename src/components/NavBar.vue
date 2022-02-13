@@ -32,7 +32,6 @@ import { computed } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import Icon from "@/components/common/Icon.vue";
 import Button from "@/components/inputs/Button.vue";
-import { api } from "@/api/api";
 
 const router = useRouter();
 const route = useRoute();
@@ -49,12 +48,12 @@ const secondaryRoutes = computed(() => {
 });
 
 const settingsModal = () => {
-    api.modals.open("settings");
+    window.api.modals.open("settings");
 };
 
 const exitModal = () => {
-    api.modals.open("exit");
+    window.api.modals.open("exit");
 };
 
-const username = api.session.model.account?.value?.name;
+const username = window.api.session.model.account?.value?.name;
 </script>

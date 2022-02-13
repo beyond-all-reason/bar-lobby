@@ -50,7 +50,7 @@
     "eslint-plugin-unused-imports": "^2.0.0",
     "eslint-plugin-vue": "^8.2.0",
     "howler": "^2.2.3",
-    "jaz-ts-utils": "^2.1.0",
+    "jaz-ts-utils": "^2.2.0",
     "node-7z": "^3.0.0",
     "octokit": "^1.7.1",
     "promise-worker-bi": "^4.0.3",

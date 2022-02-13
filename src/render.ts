@@ -10,7 +10,7 @@ import App from "@/App.vue";
 import "@/assets/styles/styles.scss";
 import routes from "@/routes";
 import DefaultLayout from "@/layouts/default.vue";
-import { api } from "@/api/api";
+import { apiInit } from "@/api/api";
 
 declare module "vue-router" {
     interface RouteMeta {
@@ -22,7 +22,7 @@ declare module "vue-router" {
 }
 
 (async () => {
-    await api.init();
+    await apiInit();
 
     await setupVue();
 

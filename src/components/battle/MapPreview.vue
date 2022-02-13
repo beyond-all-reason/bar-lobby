@@ -5,7 +5,6 @@
 </template>
 
 <script lang="ts" setup>
-import { api } from "@/api/api";
 import { computed } from "vue";
 
 const props = defineProps({
@@ -15,8 +14,8 @@ const props = defineProps({
     }
 });
 
-const mapImagesPath = api.content.maps.getMapImagesPath();
-const mapData = computed(() => api.content.maps.getMapByFilename(props.filename));
-const texturePath = computed(() => api.content.maps.getMapImages(props.filename)?.texture);
+const mapImagesPath = window.api.content.maps.getMapImagesPath();
+const mapData = computed(() => window.api.content.maps.getMapByFilename(props.filename));
+const texturePath = computed(() => window.api.content.maps.getMapImages(props.filename)?.texture);
 console.log(texturePath.value);
 </script>
