@@ -10,6 +10,8 @@
 import { BattleTypes } from "@/model/battle";
 import { onMounted, reactive } from "vue";
 import Battle from "@/components/battle/Battle.vue";
+import { aiNames } from "@/config/ai-names";
+import { randomFromArray } from "jaz-ts-utils";
 
 const playerName = window.api.session.model.account?.value?.name ?? "Player";
 
@@ -34,7 +36,7 @@ const defaultBattleL: BattleTypes.Battle = {
             teams: [{
                 players: [],
                 ais: [{
-                    name: "Jimmy",
+                    name: randomFromArray(aiNames),
                     ownerName: playerName,
                     ai: "BARb",
                     faction: BattleTypes.Faction.Armada

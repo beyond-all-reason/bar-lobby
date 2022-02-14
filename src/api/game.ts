@@ -1,6 +1,6 @@
 import * as fs from "fs";
 import * as path from "path";
-import { ChildProcess } from "child_process";
+import { spawn, ChildProcess } from "child_process";
 import { EngineTagFormat } from "@/model/formats";
 import { StartScriptConverter } from "@/utils/start-script-converter";
 import { StartScriptTypes } from "@/model/start-script";
@@ -22,17 +22,17 @@ export class GameAPI {
 
         await fs.promises.writeFile(scriptPath, scriptStr);
 
-        // const args = [
-        //     "--write-dir", this.dataDir,
-        //     "--isolation",
-        //     scriptPath
-        // ];
+        const args = [
+            "--write-dir", this.dataDir,
+            "--isolation",
+            scriptPath
+        ];
 
-        // this.gameProcess = spawn("spring.exe", args, {
-        //     cwd: enginePath,
-        //     stdio: "ignore",
-        //     detached: true
-        // });
+        this.gameProcess = spawn("spring.exe", args, {
+            cwd: enginePath,
+            stdio: "ignore",
+            detached: true
+        });
     }
 
     protected isBattleType(obj: StartScriptTypes.Game | BattleTypes.Battle): obj is BattleTypes.Battle {

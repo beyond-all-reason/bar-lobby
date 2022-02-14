@@ -7,12 +7,9 @@
 <script lang="ts" setup>
 import Modal from "@/components/common/Modal.vue";
 import Button from "@/components/inputs/Button.vue";
-import { ais } from "@/config/ais";
 import { AI } from "@/model/ai";
 
 const emit = defineEmits(["add-ai"]);
-
-const availableAis = ais;
 
 const addAi = (ai: AI) => {
     emit("add-ai", ai);

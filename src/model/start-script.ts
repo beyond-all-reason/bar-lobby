@@ -106,8 +106,8 @@ export namespace StartScriptTypes {
         id: number;
         team: number;
         shortname: string;
+        host: number;
         name?: string;
-        host?: number;
         version?: string;
         options?: {
             [key: string]: any;

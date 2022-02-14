@@ -5,6 +5,11 @@
 <script lang="ts" setup>
 import { toRefs } from "vue";
 
+/**
+ * @todo Refactor this component to use the @iconify/vue component
+ * https://docs.iconify.design/icon-components/vue/
+ */
+
 const { icons } = require("@iconify/json/json/mdi.json");
 
 const props = defineProps({

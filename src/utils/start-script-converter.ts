@@ -32,6 +32,9 @@ export class StartScriptConverter {
         let teamId = 0;
         let aiIndex = 0;
         let playerIndex = 0;
+        const playerNameIdMap: Record<string, number> = {};
+        const aiIdOwnerNameMap: Record<number, string> = {};
+
         battle.allyTeams.forEach((allyTeam, allyTeamIndex) => {
             allyteams.push({
                 id: allyTeamIndex,
@@ -54,6 +57,7 @@ export class StartScriptConverter {
                         team: teamId,
                         name: player.name,
                     });
+                    playerNameIdMap[player.name] = playerIndex;
                     playerIndex++;
                 });
 
@@ -62,14 +66,20 @@ export class StartScriptConverter {
                         id: aiIndex,
                         shortname: ai.ai,
                         team: teamId,
-                        name: ai.name
+                        host: 0,
+                        name: ai.name,
                     });
+                    aiIdOwnerNameMap[aiIndex] = ai.ownerName;
                     aiIndex++;
                 });
 
                 teamId++;
             });
         });
+
+        for (const ai of ais) {
+            ai.host = playerNameIdMap[aiIdOwnerNameMap[ai.id]];
+        }
 
         return {
             gametype: battle.hostOptions.gameVersion,

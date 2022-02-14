@@ -17,7 +17,11 @@ import VueSlider, { ERROR_TYPE } from "vue-slider-component";
 
 type VueSliderProps = InstanceType<typeof VueSlider>;
 
-interface Props extends VueSliderProps {
+interface Props extends Omit<VueSliderProps, "modelValue"> {
+    modelValue: {
+        type: number,
+        default: 0
+    },
     label?: string;
     disableCustomInput?: boolean;
     icon?: string;

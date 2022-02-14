@@ -9,7 +9,7 @@
                 </div>
                 <div v-for="(ai, i) in team.ais" :key="i" class="player ai-player">
                     <Icon icon="robot" :size="16"></Icon>
-                    <div>{{ ai.name }} ({{ ai.ai }})</div>
+                    <div>{{ ai.name }} (AI)</div>
                 </div>
             </div>
         </div>
