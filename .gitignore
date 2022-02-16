@@ -28,3 +28,4 @@ pnpm-debug.log*
 output.js
 /routes.js
 todo.txt
+/src/test

@@ -18,7 +18,7 @@
 
 <script lang="ts" setup>
 import { BattleTypes } from "@/model/battle";
-import Icon from "../common/Icon.vue";
+import Icon from "@/components/common/Icon.vue";
 
 const props = defineProps({
     allyTeams: {

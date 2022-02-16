@@ -27,10 +27,6 @@ export class GameContentAPI extends AbstractContentAPI {
         }
     }
 
-    public async init() {
-        return this;
-    }
-
     public updateGame() {
         return new Promise<void>(resolve => {
             const prDownloaderProcess = spawn(`${this.prBinaryPath}`, [

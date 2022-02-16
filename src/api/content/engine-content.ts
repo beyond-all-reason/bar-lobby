@@ -12,10 +12,6 @@ export class EngineContentAPI extends AbstractContentAPI {
 
     protected ocotokit = new Octokit();
 
-    public async init() {
-        return this;
-    }
-
     public async downloadLatestEngine(includePrerelease = true) {
         const latestEngineRelease = await this.getLatestEngineReleaseInfo();
 
