@@ -67,7 +67,7 @@ onMounted(async () => {
     try {
         await window.api.client.connect();
 
-        if (window.api.accounts.model.token.value && window.api.accounts.model.remember.value) {
+        if (window.api.accounts.model.token.value && window.api.accounts.model.loginAutomatically.value) {
             const loginResponse = await window.api.client.login({
                 token: window.api.accounts.model.token.value,
                 lobby_name: window.api.info.lobby.name,

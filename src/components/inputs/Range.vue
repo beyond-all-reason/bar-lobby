@@ -18,16 +18,15 @@ import VueSlider, { ERROR_TYPE } from "vue-slider-component";
 type VueSliderProps = InstanceType<typeof VueSlider>;
 
 interface Props extends Omit<VueSliderProps, "modelValue"> {
-    modelValue: {
-        type: number,
-        default: 0
-    },
+    modelValue: number | string,
     label?: string;
     disableCustomInput?: boolean;
     icon?: string;
 }
 
-const props = defineProps<Props>();
+const props = withDefaults(defineProps<Props>(), {
+    modelValue: 0
+});
 
 const uuid = ref(uuidv4());
 const { label, icon } = toRefs(props);

@@ -6,8 +6,8 @@
             <Textbox type="email" label="Email" v-model="email" required validate />
             <Textbox type="password" label="Password" v-model="password" required />
             <div class="flex-row gap-md">
-                <Checkbox type="checkbox" label="Login Automatically" v-model="remember" />
-                <Button type="submit">Login</Button>
+                <Checkbox type="checkbox" label="Login Automatically" v-model="loginAutomatically" />
+                <Button class="btn--blue" type="submit">Login</Button>
             </div>
         </form>
         <form v-else @submit.prevent="verify" class="flex-col gap-md">
@@ -34,14 +34,14 @@ const loading = ref(false);
 const email = ref("");
 const password = ref("");
 const token = ref("");
-const remember = window.api.accounts.model.remember;
+const loginAutomatically = window.api.accounts.model.loginAutomatically;
 const requestVerification = ref(false);
 const verificationMessage = ref("");
 const verificationCode = ref("");
 const loginError = ref("");
 const verificationError = ref("");
 
-if (remember.value) {
+if (loginAutomatically.value) {
     if (window.api.accounts.model.email.value) {
         email.value = window.api.accounts.model.email.value;
     }
@@ -55,13 +55,8 @@ const login = async () => {
     const tokenResponse = await window.api.client.getToken({ email: email.value, password: password.value });
 
     if (tokenResponse.result === "success" && tokenResponse.token) {
-        if (remember.value) {
-            window.api.accounts.model.email.value = email.value;
-            window.api.accounts.model.token.value = tokenResponse.token;
-        } else {
-            window.api.accounts.model.email.value = "";
-            window.api.accounts.model.token.value = "";
-        }
+        window.api.accounts.model.email.value = email.value;
+        window.api.accounts.model.token.value = tokenResponse.token;
 
         const loginResponse = await window.api.client.login({
             token: window.api.accounts.model.token.value,

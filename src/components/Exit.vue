@@ -16,7 +16,11 @@ const router = useRouter();
 
 const logout = async () => {
     window.api.accounts.model.token.value = "";
-    await window.api.client.disconnect();
+    try {
+        await window.api.client.disconnect();
+    } catch (err) {
+        console.error(err);
+    }
     window.api.modals.close("exit");
     router.push("/login");
 };
