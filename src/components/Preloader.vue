@@ -1,5 +1,5 @@
 <template>
-    <div class="loader fullsize flex-center">
+    <div class="fullsize flex-center">
         <Progress :percent="loadedPercent" style="width: 70%" />
     </div>
 </template>
@@ -8,8 +8,6 @@
 import { computed, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 import { randomFromArray } from "jaz-ts-utils";
-import { loadFont } from "@/utils/load-font";
-import { loadImage } from "@/utils/load-image";
 import Progress from "@/components/common/Progress.vue";
 
 const emit = defineEmits(["loaded"]);
@@ -41,4 +39,30 @@ onMounted(async () => {
 
     emit("loaded");
 });
+
+async function loadFont(url: string) {
+    const parts = url.split("/");
+    const family = parts[1];
+    const fileName = parts[2];
+    const [weight, style] = fileName.split(".")[0].split("-");
+    const buildFontPath = require(`@/assets/fonts/${family}/${fileName}`);
+    const font = new FontFace(family, `url(${buildFontPath})`, { weight, style });
+    document.fonts.add(font);
+    return font.load();
+}
+
+function loadImage(url: string) {
+    return new Promise<string>((resolve, reject) => {
+        const fileName = url.slice(2);
+        const buildImagePath = require(`@/assets/images/${fileName}`);
+        const image = new Image();
+        image.onload = () => {
+            resolve(buildImagePath);
+        };
+        image.onerror = () => {
+            reject(`Failed to load image ${url}`);
+        };
+        image.src = buildImagePath;
+    });
+}
 </script>
