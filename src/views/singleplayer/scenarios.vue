@@ -1,4 +1,4 @@
-<route>{ "meta": { "title": "Scenarios", "order": 1, "offline": true } }</route>
+<route lang="json">{ "meta": { "title": "Scenarios", "order": 1, "offline": true } }</route>
 
 <template>
     <div>

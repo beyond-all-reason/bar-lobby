@@ -1,4 +1,4 @@
-import { createApp } from "vue";
+import { createApp, TransitionProps } from "vue";
 import { createRouter, createWebHashHistory } from "vue-router";
 import "vue-next-select/dist/index.css";
 import "vue-slider-component/theme/default.css";
@@ -12,13 +12,9 @@ declare module "vue-router" {
     interface RouteMeta {
         title?: string;
         order?: number;
-        transition?: {
-            name?: string;
-            mode?: "default" | "in-out" | "out-in" | undefined;
-            duration?: number;
-            appear?: boolean;
-        };
         offline?: boolean;
+        empty?: boolean;
+        transition?: TransitionProps;
     }
 }
 

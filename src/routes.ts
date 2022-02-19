@@ -7,9 +7,10 @@ import library_index from '@/views/library/index.vue'
 import multiplayer_index from '@/views/multiplayer/index.vue'
 import profile_index from '@/views/profile/index.vue'
 import singleplayer_index from '@/views/singleplayer/index.vue'
+import debug_fade from '@/views/debug/fade.vue'
 import debug_inputs from '@/views/debug/inputs.vue'
 import debug_playground from '@/views/debug/playground.vue'
-import debug_test from '@/views/debug/test.vue'
+import debug_slide from '@/views/debug/slide.vue'
 import development_game_dev from '@/views/development/game-dev.vue'
 import development_lobby_dev from '@/views/development/lobby-dev.vue'
 import development_map_dev from '@/views/development/map-dev.vue'
@@ -44,16 +45,28 @@ export default [
     name: 'index',
     path: '/',
     component: index,
+    meta: {
+      empty: true,
+    },
   },
   {
     name: 'login',
     path: '/login',
     component: login,
+    meta: {
+      empty: true,
+    },
   },
   {
     name: 'updater',
     path: '/updater',
     component: updater,
+    meta: {
+      empty: true,
+      transition: {
+        name: 'fade',
+      },
+    },
   },
   {
     name: 'development',
@@ -61,10 +74,10 @@ export default [
     component: development_index,
     meta: {
       title: 'Development',
-      transition: {
-        name: 'primary',
-      },
       order: 5,
+      transition: {
+        name: 'slide-below',
+      },
     },
     redirect: '/development/game-dev',
   },
@@ -134,6 +147,18 @@ export default [
     redirect: '/singleplayer/campaign',
   },
   {
+    name: 'debug-fade',
+    path: '/debug/fade',
+    component: debug_fade,
+    meta: {
+      title: 'Fade',
+      order: 2,
+      transition: {
+        name: 'fade',
+      },
+    },
+  },
+  {
     name: 'debug-inputs',
     path: '/debug/inputs',
     component: debug_inputs,
@@ -152,12 +177,15 @@ export default [
     },
   },
   {
-    name: 'debug-test',
-    path: '/debug/test',
-    component: debug_test,
+    name: 'debug-slide',
+    path: '/debug/slide',
+    component: debug_slide,
     meta: {
-      title: 'Test',
+      title: 'Slide',
       order: 2,
+      transition: {
+        name: 'slide-below',
+      },
     },
   },
   {
@@ -167,6 +195,9 @@ export default [
     meta: {
       title: 'Game',
       order: 0,
+      transition: {
+        name: 'slide-left',
+      },
     },
   },
   {
@@ -176,6 +207,9 @@ export default [
     meta: {
       title: 'Lobby',
       order: 2,
+      transition: {
+        name: 'slide-left',
+      },
     },
   },
   {
@@ -185,6 +219,9 @@ export default [
     meta: {
       title: 'Maps',
       order: 1,
+      transition: {
+        name: 'slide-left',
+      },
     },
   },
   {
@@ -194,6 +231,9 @@ export default [
     meta: {
       title: 'Server',
       order: 3,
+      transition: {
+        name: 'slide-left',
+      },
     },
   },
   {
@@ -203,6 +243,9 @@ export default [
     meta: {
       title: 'Website',
       order: 4,
+      transition: {
+        name: 'slide-left',
+      },
     },
   },
   {

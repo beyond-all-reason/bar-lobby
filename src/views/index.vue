@@ -1,9 +1,13 @@
+<route lang="json">{ "meta": { "empty": true } }</route>
+
 <template>
-    <div></div>
+    <div>Index</div>
 </template>
 
 <script lang="ts" setup>
-import { playRandomMusic } from "@/utils/play-random-music";
+import { useRouter } from "vue-router";
 
-playRandomMusic();
+const router = useRouter();
+
+router.replace("/updater");
 </script>

@@ -1,6 +1,6 @@
 <template>
     <teleport to=".theme">
-        <transition name="modal" appear>
+        <transition name="slide-above" appear>
             <div v-if="isOpen" class="modal-container" v-bind="$attrs">
                 <Panel id="modal" class="modal" :title="titleStr">
                     <template #header>

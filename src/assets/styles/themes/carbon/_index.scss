@@ -7,29 +7,26 @@
     --warning: #ffe134;
     --success: #b8ff34;
 
+    .background {
+        @extend .fullsize;
+        background: var(--background);
+        background-size: cover;
+        background-position: center;
+        z-index: -1;
+        transition: 1s ease-in-out;
+    }
+
     * {
         cursor: url("~@/assets/images/cursor_default.png"), default !important;
     }
 
-    .layout {
-        &--default {
-            .view {
-                overflow-y: hidden;
-                padding: 20px;
-                display: flex;
-                flex-direction: column;
-                flex-grow: 1;
-                gap: 10px;
-            }
-        }
-        &:before {
-            @extend .fullsize;
-            background: var(--background);
-            background-size: cover;
-            background-position: center;
-            z-index: -1;
-            transition: 1s ease-in-out;
-        }
+    .view {
+        overflow-y: hidden;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1;
+        gap: 10px;
     }
 
     @import "inputs";

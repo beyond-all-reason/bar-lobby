@@ -1,4 +1,4 @@
-<route>{ "meta": { "title": "Units", "order": 1 } }</route>
+<route lang="json">{ "meta": { "title": "Units", "order": 1 } }</route>
 
 <template>
     <div>

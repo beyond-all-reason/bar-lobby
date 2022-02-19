@@ -1,5 +1,5 @@
 <template>
-    <div class="nav">
+    <div class="nav" :class="{ hidden }">
         <Button class="primary-item logo" depress to="/home">
             <img src="@/assets/images/logo.svg">
         </Button>
@@ -36,6 +36,10 @@ import Button from "@/components/inputs/Button.vue";
 const router = useRouter();
 const route = useRoute();
 const allRoutes = router.getRoutes();
+
+const props = defineProps<{
+    hidden?: boolean;
+}>();
 
 const primaryRoutes = allRoutes
     .filter(r => ["/singleplayer", "/multiplayer", "/library", "/learn", "/store", "/development"].includes(r.path))

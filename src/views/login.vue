@@ -1,27 +1,31 @@
+<route lang="json">{ "meta": { "empty": true } }</route>
+
 <template>
-    <teleport to=".theme">
-        <div class="fullsize flex-col flex-center-items" style="z-index: 1">
-            <Loader v-if="loading" />
-            <div v-else class="login">
-                <transition name="login" appear>
-                    <img ref="logo" class="logo hidden" src="@/assets/images/BARLogoFull.png">
-                </transition>
-                <transition name="login" appear>
-                    <Panel v-model:activeTab="activeTab">
-                        <Tab title="Login">
-                            <LoginForm />
-                        </Tab>
-                        <Tab title="Register">
-                            <RegisterForm @register-success="activeTab = 0" />
-                        </Tab>
-                        <Tab title="Reset Password">
-                            <ResetPasswordForm />
-                        </Tab>
-                    </Panel>
-                </transition>
+    <div>
+        <teleport to=".theme">
+            <div class="fullsize flex-col flex-center-items" style="z-index: 1">
+                <Loader v-if="loading" />
+                <div v-else class="login">
+                    <transition name="slide-above" appear>
+                        <img ref="logo" class="logo" src="@/assets/images/BARLogoFull.png">
+                    </transition>
+                    <transition name="slide-above" appear>
+                        <Panel v-model:activeTab="activeTab" class="login__panel">
+                            <Tab title="Login">
+                                <LoginForm />
+                            </Tab>
+                            <Tab title="Register">
+                                <RegisterForm @register-success="activeTab = 0" />
+                            </Tab>
+                            <Tab title="Reset Password">
+                                <ResetPasswordForm />
+                            </Tab>
+                        </Panel>
+                    </transition>
+                </div>
             </div>
-        </div>
-    </teleport>
+        </teleport>
+    </div>
 </template>
 
 <script lang="ts" setup>
@@ -37,6 +41,7 @@ const loading = ref(false);
 const activeTab = ref(0);
 
 onMounted(async () => {
+    // TODO: fallback to offline mode if connect fails
     await window.api.client.connect();
 });
 </script>

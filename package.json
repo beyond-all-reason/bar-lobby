@@ -57,7 +57,6 @@
     "luaparse": "^0.3.1",
     "node-7z": "^3.0.0",
     "octokit": "^1.7.1",
-    "promise-worker-bi": "^4.0.3",
     "sass": "^1.26.5",
     "sass-loader": "^8.0.2",
     "sdfz-demo-parser": "^4.7.0",
@@ -74,7 +73,6 @@
     "vue-cli-plugin-electron-builder": "^3.0.0-alpha.4",
     "vue-next-select": "^2.10.2",
     "vue-router": "^4.0.12",
-    "vue-router-layout": "^0.4.0",
     "vue-slider-component": "^4.0.0-beta.4",
     "vue3-markdown-it": "^1.0.9",
     "worker-plugin": "^5.0.1"

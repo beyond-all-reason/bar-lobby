@@ -1,1 +1,12 @@
-<route>{ "redirect": "/multiplayer/ranked", "meta": { "title": "Multiplayer", "order": 1, "transition": { "name": "primary" } } }</route>
+<route lang="json">
+{
+    "redirect":"/multiplayer/ranked",
+    "meta":{
+        "title":"Multiplayer",
+        "order":1,
+        "transition":{
+            "name":"primary"
+        }
+    }
+}
+</route>

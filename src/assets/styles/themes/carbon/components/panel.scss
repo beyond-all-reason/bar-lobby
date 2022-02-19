@@ -18,6 +18,11 @@
         inset 0 0 50px rgba(255, 255, 255, 0.15),
         inset 0 3px 8px rgba(255, 255, 255, 0.1),
         3px 3px 10px rgba(0, 0, 0, 0.8);
+    transition: transform 0.3s, opacity 0.3s;
+    &.hidden {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
     > .content {
         position: relative;
         display: flex;

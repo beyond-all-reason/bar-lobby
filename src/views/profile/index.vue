@@ -1,1 +1,11 @@
-<route>{ "redirect": "/profile/overview", "meta": { "title": "Profile", "transition": { "name": "primary" } } }</route>
+<route lang="json">
+{
+    "redirect":"/profile/overview",
+    "meta":{
+        "title":"Profile",
+        "transition":{
+            "name":"primary"
+        }
+    }
+}
+</route>

@@ -1,3 +1,5 @@
+<route lang="json">{ "meta": { "empty": true, "transition": { "name": "fade" } } }</route>
+
 <template>
     <div class="fullsize flex-center">
         <h1>Updating</h1>
@@ -12,7 +14,6 @@ import { onMounted, ref } from "vue";
 import { storeUserSession } from "@/utils/store-user-session";
 import { useRouter } from "vue-router";
 import Loader from "@/components/common/Loader.vue";
-import * as dns from "dns";
 
 const router = useRouter();
 const text = ref("Fetching latest game updates");
@@ -27,12 +28,6 @@ window.api.content.engine.onDlProgress.add(progress => {
 });
 
 onMounted(async () => {
-    const internetConnected = await isConnectedToInternet();
-    if (!internetConnected) {
-        await router.replace("/home");
-        return;
-    }
-
     const isLatestGameVersionInstalled = await window.api.content.game.isLatestGameVersionInstalled();
     if (!isLatestGameVersionInstalled) {
         await window.api.content.game.updateGame();
@@ -72,16 +67,4 @@ onMounted(async () => {
 
     await router.replace("/login");
 });
-
-async function isConnectedToInternet() {
-    try {
-        const lookup = await dns.promises.lookup("google.com");
-        if (lookup.address) {
-            return true;
-        }
-    } catch (err) {
-        return false;
-    }
-    return false;
-}
 </script>
