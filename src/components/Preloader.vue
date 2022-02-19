@@ -4,21 +4,6 @@
     </div>
 </template>
 
-<script lang="ts">
-import { defineComponent } from "vue";
-
-export default defineComponent({
-    layout: {
-        name: "default",
-        props: {
-            empty: true,
-            transitionName: "preloader",
-            blurBg: true
-        }
-    }
-});
-</script>
-
 <script lang="ts" setup>
 import { computed, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
@@ -26,6 +11,8 @@ import { randomFromArray } from "jaz-ts-utils";
 import { loadFont } from "@/utils/load-font";
 import { loadImage } from "@/utils/load-image";
 import Progress from "@/components/common/Progress.vue";
+
+const emit = defineEmits(["loaded"]);
 
 const router = useRouter();
 const totalFiles = ref(0);
@@ -52,6 +39,6 @@ onMounted(async () => {
         loadedFiles.value++;
     }
 
-    await router.replace("/updater");
+    emit("loaded");
 });
 </script>

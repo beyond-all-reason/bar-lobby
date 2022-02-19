@@ -1,1 +1,1 @@
-<route>{ "redirect": "/development/game-dev", "meta": { "title": "Development", "transition": "primary", "order": 5 } }</route>
+<route>{ "redirect": "/development/game-dev", "meta": { "title": "Development", "transition": { "name": "primary" }, "order": 5 } }</route>

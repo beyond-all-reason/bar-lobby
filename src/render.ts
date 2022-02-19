@@ -1,20 +1,23 @@
 import { createApp } from "vue";
 import { createRouter, createWebHashHistory } from "vue-router";
-import { createRouterLayout } from "vue-router-layout";
 import "vue-next-select/dist/index.css";
 import "vue-slider-component/theme/default.css";
 
 import App from "@/App.vue";
 import "@/assets/styles/styles.scss";
 import routes from "@/routes";
-import DefaultLayout from "@/layouts/default.vue";
 import { apiInit } from "@/api/api";
 
 declare module "vue-router" {
     interface RouteMeta {
         title?: string;
         order?: number;
-        transition?: string;
+        transition?: {
+            name?: string;
+            mode?: "default" | "in-out" | "out-in" | undefined;
+            duration?: number;
+            appear?: boolean;
+        };
         offline?: boolean;
     }
 }
@@ -32,17 +35,9 @@ declare module "vue-router" {
 })();
 
 async function setupVue() {
-    const RouterLayout = createRouterLayout(async () => DefaultLayout);
-
     const router = createRouter({
         history: createWebHashHistory(),
-        routes: [
-            {
-                path: "/",
-                component: RouterLayout,
-                children: routes
-            }
-        ]
+        routes: routes
     });
 
     const app = createApp(App);

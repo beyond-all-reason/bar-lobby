@@ -1,7 +1,5 @@
 import index from '@/views/index.vue'
-import intro from '@/views/intro.vue'
 import login from '@/views/login.vue'
-import preloader from '@/views/preloader.vue'
 import updater from '@/views/updater.vue'
 import development_index from '@/views/development/index.vue'
 import home_index from '@/views/home/index.vue'
@@ -11,6 +9,7 @@ import profile_index from '@/views/profile/index.vue'
 import singleplayer_index from '@/views/singleplayer/index.vue'
 import debug_inputs from '@/views/debug/inputs.vue'
 import debug_playground from '@/views/debug/playground.vue'
+import debug_test from '@/views/debug/test.vue'
 import development_game_dev from '@/views/development/game-dev.vue'
 import development_lobby_dev from '@/views/development/lobby-dev.vue'
 import development_map_dev from '@/views/development/map-dev.vue'
@@ -47,19 +46,9 @@ export default [
     component: index,
   },
   {
-    name: 'intro',
-    path: '/intro',
-    component: intro,
-  },
-  {
     name: 'login',
     path: '/login',
     component: login,
-  },
-  {
-    name: 'preloader',
-    path: '/preloader',
-    component: preloader,
   },
   {
     name: 'updater',
@@ -72,7 +61,9 @@ export default [
     component: development_index,
     meta: {
       title: 'Development',
-      transition: 'primary',
+      transition: {
+        name: 'primary',
+      },
       order: 5,
     },
     redirect: '/development/game-dev',
@@ -84,7 +75,9 @@ export default [
     meta: {
       title: 'Home',
       order: 0,
-      transition: 'primary',
+      transition: {
+        name: 'primary',
+      },
     },
     redirect: '/home/home',
   },
@@ -95,7 +88,9 @@ export default [
     meta: {
       title: 'Library',
       order: 2,
-      transition: 'primary',
+      transition: {
+        name: 'primary',
+      },
     },
     redirect: '/library/replays',
   },
@@ -106,7 +101,9 @@ export default [
     meta: {
       title: 'Multiplayer',
       order: 1,
-      transition: 'primary',
+      transition: {
+        name: 'primary',
+      },
     },
     redirect: '/multiplayer/ranked',
   },
@@ -116,7 +113,9 @@ export default [
     component: profile_index,
     meta: {
       title: 'Profile',
-      transition: 'primary',
+      transition: {
+        name: 'primary',
+      },
     },
     redirect: '/profile/overview',
   },
@@ -128,7 +127,9 @@ export default [
       title: 'Singleplayer',
       order: 0,
       offline: true,
-      transition: 'primary',
+      transition: {
+        name: 'primary',
+      },
     },
     redirect: '/singleplayer/campaign',
   },
@@ -148,6 +149,15 @@ export default [
     meta: {
       title: 'Playground',
       order: 1,
+    },
+  },
+  {
+    name: 'debug-test',
+    path: '/debug/test',
+    component: debug_test,
+    meta: {
+      title: 'Test',
+      order: 2,
     },
   },
   {

@@ -7,27 +7,12 @@
     </div>
 </template>
 
-<script lang="ts">
-import { defineComponent, ref } from "vue";
-import * as dns from "dns";
-
-export default defineComponent({
-    layout: {
-        name: "default",
-        props: {
-            empty: true,
-            transitionName: "preloader",
-            blurBg: true
-        }
-    }
-});
-</script>
-
 <script lang="ts" setup>
-import { onMounted } from "vue";
+import { onMounted, ref } from "vue";
 import { storeUserSession } from "@/utils/store-user-session";
 import { useRouter } from "vue-router";
 import Loader from "@/components/common/Loader.vue";
+import * as dns from "dns";
 
 const router = useRouter();
 const text = ref("Fetching latest game updates");

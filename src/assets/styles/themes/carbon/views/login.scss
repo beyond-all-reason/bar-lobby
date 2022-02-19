@@ -1,20 +1,18 @@
 @use "~@/assets/styles/utils";
 
-.view--login {
-    .login {
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        margin-top: calc((100vh - 700px) / 2);
-        width: 500px;
-        gap: 80px;
+.login {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    margin-top: calc((100vh - 700px) / 2);
+    width: 500px;
+    gap: 80px;
+    & > .panel {
+        width: 100%;
     }
     .logo{
         will-change: transform, opacity;
         filter: drop-shadow(3px 3px 5px rgba(0, 0, 0, 0.8));
-    }
-    .panel {
-        width: 450px;
     }
 }

@@ -1,1 +1,1 @@
-<route>{ "redirect": "/home/home", "meta": { "title": "Home", "order": 0, "transition": "primary" } }</route>
+<route>{ "redirect": "/home/home", "meta": { "title": "Home", "order": 0, "transition": { "name": "primary" } } }</route>

@@ -1,40 +1,28 @@
 <template>
-    <div class="fullsize flex-col flex-center-items">
-        <Loader v-if="loading" />
-        <div v-else class="login">
-            <transition name="login" appear>
-                <img ref="logo" class="logo hidden" src="@/assets/images/BARLogoFull.png">
-            </transition>
-            <transition name="login" appear>
-                <Panel v-model:activeTab="activeTab">
-                    <Tab title="Login">
-                        <LoginForm />
-                    </Tab>
-                    <Tab title="Register">
-                        <RegisterForm @register-success="activeTab = 0" />
-                    </Tab>
-                    <Tab title="Reset Password">
-                        <ResetPasswordForm />
-                    </Tab>
-                </Panel>
-            </transition>
+    <teleport to=".theme">
+        <div class="fullsize flex-col flex-center-items" style="z-index: 1">
+            <Loader v-if="loading" />
+            <div v-else class="login">
+                <transition name="login" appear>
+                    <img ref="logo" class="logo hidden" src="@/assets/images/BARLogoFull.png">
+                </transition>
+                <transition name="login" appear>
+                    <Panel v-model:activeTab="activeTab">
+                        <Tab title="Login">
+                            <LoginForm />
+                        </Tab>
+                        <Tab title="Register">
+                            <RegisterForm @register-success="activeTab = 0" />
+                        </Tab>
+                        <Tab title="Reset Password">
+                            <ResetPasswordForm />
+                        </Tab>
+                    </Panel>
+                </transition>
+            </div>
         </div>
-    </div>
+    </teleport>
 </template>
-
-<script lang="ts">
-import { defineComponent } from "vue";
-
-export default defineComponent({
-    layout: {
-        name: "default",
-        props: {
-            empty: true,
-            transitionName: "fade",
-        }
-    }
-});
-</script>
 
 <script lang="ts" setup>
 import { ref, onMounted } from "vue";

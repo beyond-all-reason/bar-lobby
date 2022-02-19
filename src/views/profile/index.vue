@@ -1,1 +1,1 @@
-<route>{ "redirect": "/profile/overview", "meta": { "title": "Profile", "transition": "primary" } }</route>
+<route>{ "redirect": "/profile/overview", "meta": { "title": "Profile", "transition": { "name": "primary" } } }</route>
