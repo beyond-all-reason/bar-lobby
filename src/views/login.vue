@@ -31,9 +31,9 @@ import { ref, onMounted } from "vue";
 import Loader from "@/components/common/Loader.vue";
 import Panel from "@/components/common/Panel.vue";
 import Tab from "@/components/common/Tab.vue";
-import LoginForm from "@/components/LoginForm.vue";
-import RegisterForm from "@/components/RegisterForm.vue";
-import ResetPasswordForm from "@/components/ResetPasswordForm.vue";
+import LoginForm from "@/components/login/LoginForm.vue";
+import RegisterForm from "@/components/login/RegisterForm.vue";
+import ResetPasswordForm from "@/components/login/ResetPasswordForm.vue";
 
 const loading = ref(false);
 const activeTab = ref(0);

@@ -1,7 +1,6 @@
 import * as path from "path";
 import * as fs from "fs";
 import { TachyonClient } from "tachyon-client";
-import { AlertsAPI } from "@/api/alerts";
 import { AudioAPI } from "@/api/audio";
 import { ContentAPI } from "@/api/content";
 import { GameAPI } from "@/api/game";
@@ -22,7 +21,6 @@ declare global {
             settings: StoreAPI<SettingsType>;
             client: TachyonClient;
             audio: AudioAPI;
-            alerts: AlertsAPI;
             modals: ModalsAPI;
             account: StoreAPI<Account>;
             content: ContentAPI;
@@ -55,8 +53,6 @@ export async function apiInit() {
     window.api.client.socket?.on("close", () => window.api.session.model.offline = true);
 
     window.api.audio = new AudioAPI().init();
-
-    window.api.alerts = new AlertsAPI();
 
     window.api.modals = new ModalsAPI();
 

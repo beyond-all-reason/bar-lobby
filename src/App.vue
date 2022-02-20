@@ -5,9 +5,6 @@
         <IntroVideo v-if="state === 'intro'" @end="state = 'preloader'" />
         <Preloader v-else-if="state === 'preloader'" @loaded="state = 'default'" />
         <template v-else>
-            <Alert />
-            <Settings />
-            <Exit />
             <NavBar :class="{ hidden: empty }" />
             <div :class="`view view--${route.name?.toString()}`">
                 <Panel padding="20px 20px 20px 20px" :class="{ hidden: empty }">
@@ -25,16 +22,13 @@
 <script lang="ts" setup>
 import { Ref, ref, TransitionProps } from "vue";
 import { useRouter, useRoute } from "vue-router";
-import Alert from "@/components/Alert.vue";
-import DebugSidebar from "@/components/DebugSidebar.vue";
-import Settings from "@/components/Settings.vue";
-import Exit from "@/components/Exit.vue";
-import NavBar from "@/components/NavBar.vue";
+import DebugSidebar from "@/components/misc/DebugSidebar.vue";
+import NavBar from "@/components/nav/NavBar.vue";
 import Panel from "@/components/common/Panel.vue";
-import Preloader from "@/components/Preloader.vue";
-import Background from "@/components/Background.vue";
+import Preloader from "@/components/misc/Preloader.vue";
+import Background from "@/components/misc/Background.vue";
 import { playRandomMusic } from "@/utils/play-random-music";
-import IntroVideo from "@/components/IntroVideo.vue";
+import IntroVideo from "@/components/misc/IntroVideo.vue";
 
 const isProduction = process.env.NODE_ENV === "production";
 
