@@ -40,7 +40,7 @@ const isProduction = process.env.NODE_ENV === "production";
 
 const router = useRouter();
 const route = useRoute();
-const state: Ref<"intro" | "preloader" | "default"> = ref(window.api.settings.model.skipIntro.value || !isProduction ? "preloader" : "intro");
+const state: Ref<"intro" | "preloader" | "default"> = ref(window.api.settings.model.skipIntro.value ? "preloader" : "intro");
 const theme = window.api.settings.model.theme;
 const empty = ref(false);
 const blurBg = ref(true);
