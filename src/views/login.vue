@@ -1,15 +1,13 @@
-<route lang="json">{ "meta": { "empty": true } }</route>
+<route lang="json">{ "meta": { "empty": true, "blurBg": true } }</route>
 
 <template>
     <div>
         <teleport to=".theme">
-            <div class="fullsize flex-col flex-center-items" style="z-index: 1">
+            <div class="fullsize flex-col flex-center-items">
                 <Loader v-if="loading" />
-                <div v-else class="login">
-                    <transition name="slide-above" appear>
-                        <img ref="logo" class="logo" src="@/assets/images/BARLogoFull.png">
-                    </transition>
-                    <transition name="slide-above" appear>
+                <transition v-else name="login" appear>
+                    <div class="login">
+                        <img ref="logo" class="login__logo" src="@/assets/images/BARLogoFull.png">
                         <Panel v-model:activeTab="activeTab" class="login__panel">
                             <Tab title="Login">
                                 <LoginForm />
@@ -21,8 +19,8 @@
                                 <ResetPasswordForm />
                             </Tab>
                         </Panel>
-                    </transition>
-                </div>
+                    </div>
+                </transition>
             </div>
         </teleport>
     </div>

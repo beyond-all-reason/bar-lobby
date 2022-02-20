@@ -1,9 +1,9 @@
 import { SessionType, sessionSchema } from "@/model/session";
 import Ajv from "ajv";
-import { reactive, ToRefs, toRefs } from "vue";
+import { reactive } from "vue";
 
 export class SessionAPI {
-    public model: ToRefs<SessionType>;
+    public model: SessionType;
 
     constructor() {
         const ajv = new Ajv({ coerceTypes: true, useDefaults: true });
@@ -11,6 +11,6 @@ export class SessionAPI {
         const model = reactive({}) as SessionType;
         sessionValidator(model);
 
-        this.model = toRefs(model);
+        this.model = reactive(model);
     }
 }

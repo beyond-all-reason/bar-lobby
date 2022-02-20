@@ -2,7 +2,6 @@ import { createApp, TransitionProps } from "vue";
 import { createRouter, createWebHashHistory } from "vue-router";
 import "vue-next-select/dist/index.css";
 import "vue-slider-component/theme/default.css";
-
 import App from "@/App.vue";
 import "@/assets/styles/styles.scss";
 import routes from "@/routes";
@@ -14,6 +13,7 @@ declare module "vue-router" {
         order?: number;
         offline?: boolean;
         empty?: boolean;
+        blurBg?: boolean;
         transition?: TransitionProps;
     }
 }

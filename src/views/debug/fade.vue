@@ -11,8 +11,15 @@
 </route>
 
 <template>
-    <div>Fade</div>
+    <div>
+        <div>Fade</div>
+        <div>{{ counter }}</div>
+        <button @click="counter++">Increase</button>
+    </div>
 </template>
 
 <script lang="ts" setup>
+import { ref } from "vue";
+
+const counter = ref(0);
 </script>

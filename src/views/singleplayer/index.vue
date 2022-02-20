@@ -6,7 +6,7 @@
         "order":0,
         "offline":true,
         "transition":{
-            "name":"primary"
+            "name":"slide-below"
         }
     }
 }

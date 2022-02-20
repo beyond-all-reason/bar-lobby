@@ -34,7 +34,7 @@ const loading = ref(false);
 const email = ref("");
 const password = ref("");
 const token = ref("");
-const loginAutomatically = window.api.accounts.model.loginAutomatically;
+const loginAutomatically = window.api.settings.model.loginAutomatically;
 const requestVerification = ref(false);
 const verificationMessage = ref("");
 const verificationCode = ref("");
@@ -42,12 +42,12 @@ const loginError = ref("");
 const verificationError = ref("");
 
 if (loginAutomatically.value) {
-    if (window.api.accounts.model.email.value) {
-        email.value = window.api.accounts.model.email.value;
+    if (window.api.account.model.email.value) {
+        email.value = window.api.account.model.email.value;
     }
 }
 
-watch(window.api.accounts.model.email, () => email.value = window.api.accounts.model.email.value);
+watch(window.api.account.model.email, () => email.value = window.api.account.model.email.value);
 
 const login = async () => {
     loading.value = true;
@@ -55,11 +55,11 @@ const login = async () => {
     const tokenResponse = await window.api.client.getToken({ email: email.value, password: password.value });
 
     if (tokenResponse.result === "success" && tokenResponse.token) {
-        window.api.accounts.model.email.value = email.value;
-        window.api.accounts.model.token.value = tokenResponse.token;
+        window.api.account.model.email.value = email.value;
+        window.api.account.model.token.value = tokenResponse.token;
 
         const loginResponse = await window.api.client.login({
-            token: window.api.accounts.model.token.value,
+            token: window.api.account.model.token.value,
             lobby_name: window.api.info.lobby.name,
             lobby_version: window.api.info.lobby.version,
             lobby_hash: window.api.info.lobby.hash
@@ -89,7 +89,7 @@ const login = async () => {
 const verify = async () => {
     loading.value = true;
 
-    const verifyResult = await window.api.client.verify({ token: window.api.accounts.model.token.value, code: verificationCode.value });
+    const verifyResult = await window.api.client.verify({ token: window.api.account.model.token.value, code: verificationCode.value });
 
     if (verifyResult.result === "success") {
         if (verifyResult.user) {

@@ -39,7 +39,7 @@ const register = async () => {
     const registerResponse = await window.api.client.register({ email: email.value, username: username.value, password: password.value });
 
     if (registerResponse.result === "success") {
-        window.api.accounts.model.email.value = email.value;
+        window.api.account.model.email.value = email.value;
         emit("register-success");
     } else {
         if (registerResponse.reason) {

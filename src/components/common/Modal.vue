@@ -1,11 +1,11 @@
 <template>
     <teleport to=".theme">
-        <transition name="slide-above" appear>
+        <transition name="modal" appear>
             <div v-if="isOpen" class="modal-container" v-bind="$attrs">
                 <Panel id="modal" class="modal" :title="titleStr">
                     <template #header>
                         <div class="header">
-                            <div class="title">{{ title }}</div>
+                            <div class="title">{{ title || name }}</div>
                             <div class="close" @click="close"><Icon icon="close-thick" /></div>
                         </div>
                     </template>
@@ -26,10 +26,7 @@ const props = defineProps({
         type: String,
         required: true
     },
-    title: {
-        type: String,
-        default: "",
-    },
+    title: String,
 });
 
 const isOpen = window.api.modals.register(props.name);

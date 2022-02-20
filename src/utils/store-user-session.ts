@@ -1,5 +1,4 @@
 import { ServerCommandType } from "tachyon-client";
-import { ref } from "vue";
 
 type UserData = NonNullable<ServerCommandType<"s.auth.verify">["user"] & ServerCommandType<"s.auth.login">["user"]>;
 
@@ -9,13 +8,13 @@ export function storeUserSession(user?: UserData) {
         return;
     }
 
-    window.api.session.model.account = ref({
+    window.api.session.model.user = {
         id: user.id,
-        springid: user.springid,
+        springId: user.springid,
         name: user.name,
         bot: user.bot,
-        clan_id: user.clan_id,
-        friends: user.friends,
-        friend_requests: user.friend_requests,
-    });
+        clanId: user.clan_id,
+        friendIds: user.friends,
+        friendRequestIds: user.friend_requests,
+    };
 }

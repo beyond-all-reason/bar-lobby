@@ -1,11 +1,15 @@
-<route lang="json">{ "meta": { "empty": true, "transition": { "name": "fade" } } }</route>
+<route lang="json">{ "meta": { "empty": true, "blurBg": true } }</route>
 
 <template>
-    <div class="fullsize flex-center">
-        <h1>Updating</h1>
-        <div>{{ text }}</div>
-        <Loader v-if="!percent || percent === 1" />
-        <h2 class="percent" v-else>{{ (percent * 100).toFixed(1) }}%</h2>
+    <div>
+        <teleport to=".theme">
+            <div class="fullsize flex-center">
+                <h1>Updating</h1>
+                <div>{{ text }}</div>
+                <Loader v-if="!percent || percent === 1" />
+                <h2 class="percent" v-else>{{ (percent * 100).toFixed(1) }}%</h2>
+            </div>
+        </teleport>
     </div>
 </template>
 
@@ -47,9 +51,9 @@ onMounted(async () => {
     try {
         await window.api.client.connect();
 
-        if (window.api.accounts.model.token.value && window.api.accounts.model.loginAutomatically.value) {
+        if (window.api.account.model.token.value && window.api.settings.model.loginAutomatically.value) {
             const loginResponse = await window.api.client.login({
-                token: window.api.accounts.model.token.value,
+                token: window.api.account.model.token.value,
                 lobby_name: window.api.info.lobby.name,
                 lobby_version: window.api.info.lobby.version,
                 lobby_hash: window.api.info.lobby.hash

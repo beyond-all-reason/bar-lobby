@@ -15,7 +15,7 @@ import Button from "@/components/inputs/Button.vue";
 const router = useRouter();
 
 const logout = async () => {
-    window.api.accounts.model.token.value = "";
+    window.api.account.model.token.value = "";
     try {
         await window.api.client.disconnect();
     } catch (err) {

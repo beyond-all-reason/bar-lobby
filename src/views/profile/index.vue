@@ -4,7 +4,7 @@
     "meta":{
         "title":"Profile",
         "transition":{
-            "name":"primary"
+            "name":"slide-below"
         }
     }
 }

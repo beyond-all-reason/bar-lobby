@@ -7,15 +7,6 @@
     --warning: #ffe134;
     --success: #b8ff34;
 
-    .background {
-        @extend .fullsize;
-        background: var(--background);
-        background-size: cover;
-        background-position: center;
-        z-index: -1;
-        transition: 1s ease-in-out;
-    }
-
     * {
         cursor: url("~@/assets/images/cursor_default.png"), default !important;
     }
@@ -30,13 +21,9 @@
     }
 
     @import "inputs";
-    @import "transitions";
-
-    @import "views/login";
-    @import "views/updater";
 
     @import "components/debug-sidebar";
-    @import "components/background-overlay";
+    @import "components/background";
     @import "components/button";
     @import "components/progress";
     @import "components/navbar";
@@ -45,4 +32,9 @@
     @import "components/modal";
     @import "components/alert";
     @import "components/battle";
+
+    @import "views/login";
+    @import "views/updater";
+
+    @import "transitions";
 }

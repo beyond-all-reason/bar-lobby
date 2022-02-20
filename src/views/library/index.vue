@@ -5,7 +5,7 @@
         "title":"Library",
         "order":2,
         "transition":{
-            "name":"primary"
+            "name":"slide-below"
         }
     }
 }

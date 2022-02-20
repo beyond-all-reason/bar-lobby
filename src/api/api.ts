@@ -24,7 +24,7 @@ declare global {
             audio: AudioAPI;
             alerts: AlertsAPI;
             modals: ModalsAPI;
-            accounts: StoreAPI<Account>;
+            account: StoreAPI<Account>;
             content: ContentAPI;
             game: GameAPI;
             workers: WorkersAPI;
@@ -51,12 +51,8 @@ export async function apiInit() {
         port: 8202,
         verbose: process.env.NODE_ENV !== "production"
     });
-    window.api.client.socket?.on("connect", () => {
-        window.api.session.model.offline.value = false;
-    });
-    window.api.client.socket?.on("close", () => {
-        window.api.session.model.offline.value = true;
-    });
+    window.api.client.socket?.on("connect", () => window.api.session.model.offline = false);
+    window.api.client.socket?.on("close", () => window.api.session.model.offline = true);
 
     window.api.audio = new AudioAPI().init();
 
@@ -64,7 +60,7 @@ export async function apiInit() {
 
     window.api.modals = new ModalsAPI();
 
-    window.api.accounts = await new StoreAPI<Account>("accounts", accountSchema).init();
+    window.api.account = await new StoreAPI<Account>("account", accountSchema).init();
 
     window.api.game = new GameAPI(userDataDir, dataDir);
 

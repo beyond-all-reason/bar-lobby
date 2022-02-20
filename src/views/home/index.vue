@@ -5,7 +5,7 @@
         "title":"Home",
         "order":0,
         "transition":{
-            "name":"primary"
+            "name":"slide-below"
         }
     }
 }

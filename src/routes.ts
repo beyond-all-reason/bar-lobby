@@ -55,6 +55,7 @@ export default [
     component: login,
     meta: {
       empty: true,
+      blurBg: true,
     },
   },
   {
@@ -63,9 +64,7 @@ export default [
     component: updater,
     meta: {
       empty: true,
-      transition: {
-        name: 'fade',
-      },
+      blurBg: true,
     },
   },
   {
@@ -89,7 +88,7 @@ export default [
       title: 'Home',
       order: 0,
       transition: {
-        name: 'primary',
+        name: 'slide-below',
       },
     },
     redirect: '/home/home',
@@ -102,7 +101,7 @@ export default [
       title: 'Library',
       order: 2,
       transition: {
-        name: 'primary',
+        name: 'slide-below',
       },
     },
     redirect: '/library/replays',
@@ -115,7 +114,7 @@ export default [
       title: 'Multiplayer',
       order: 1,
       transition: {
-        name: 'primary',
+        name: 'slide-below',
       },
     },
     redirect: '/multiplayer/ranked',
@@ -127,7 +126,7 @@ export default [
     meta: {
       title: 'Profile',
       transition: {
-        name: 'primary',
+        name: 'slide-below',
       },
     },
     redirect: '/profile/overview',
@@ -141,7 +140,7 @@ export default [
       order: 0,
       offline: true,
       transition: {
-        name: 'primary',
+        name: 'slide-below',
       },
     },
     redirect: '/singleplayer/campaign',
@@ -255,6 +254,9 @@ export default [
     meta: {
       title: 'Changes',
       order: 2,
+      transition: {
+        name: 'slide-left',
+      },
     },
   },
   {
@@ -264,6 +266,9 @@ export default [
     meta: {
       title: 'Donate',
       order: 3,
+      transition: {
+        name: 'slide-left',
+      },
     },
   },
   {
@@ -273,6 +278,9 @@ export default [
     meta: {
       title: 'Home',
       order: 0,
+      transition: {
+        name: 'slide-left',
+      },
     },
   },
   {
@@ -282,6 +290,9 @@ export default [
     meta: {
       title: 'News',
       order: 1,
+      transition: {
+        name: 'slide-left',
+      },
     },
   },
   {
@@ -291,6 +302,9 @@ export default [
     meta: {
       title: 'Store',
       order: 4,
+      transition: {
+        name: 'slide-left',
+      },
     },
   },
   {
@@ -300,6 +314,9 @@ export default [
     meta: {
       title: 'Commands',
       order: 4,
+      transition: {
+        name: 'slide-left',
+      },
     },
   },
   {
@@ -309,6 +326,9 @@ export default [
     meta: {
       title: 'Guides',
       order: 3,
+      transition: {
+        name: 'slide-left',
+      },
     },
   },
   {
@@ -318,6 +338,9 @@ export default [
     meta: {
       title: 'Maps',
       order: 1,
+      transition: {
+        name: 'slide-left',
+      },
     },
   },
   {
@@ -327,6 +350,9 @@ export default [
     meta: {
       title: 'Replays',
       order: 0,
+      transition: {
+        name: 'slide-left',
+      },
     },
   },
   {
@@ -336,6 +362,9 @@ export default [
     meta: {
       title: 'Tutorials',
       order: 5,
+      transition: {
+        name: 'slide-left',
+      },
     },
     redirect: '/singleplayer/tutorials',
   },
@@ -346,6 +375,9 @@ export default [
     meta: {
       title: 'Units',
       order: 1,
+      transition: {
+        name: 'slide-left',
+      },
     },
   },
   {
@@ -355,6 +387,9 @@ export default [
     meta: {
       title: 'Casual',
       order: 1,
+      transition: {
+        name: 'slide-left',
+      },
     },
   },
   {
@@ -364,6 +399,9 @@ export default [
     meta: {
       title: 'Custom',
       order: 2,
+      transition: {
+        name: 'slide-left',
+      },
     },
   },
   {
@@ -373,6 +411,9 @@ export default [
     meta: {
       title: 'Ranked',
       order: 0,
+      transition: {
+        name: 'slide-left',
+      },
     },
   },
   {
@@ -382,6 +423,9 @@ export default [
     meta: {
       title: 'Tournaments',
       order: 3,
+      transition: {
+        name: 'slide-left',
+      },
     },
   },
   {
@@ -391,6 +435,9 @@ export default [
     meta: {
       title: 'Achievements',
       order: 1,
+      transition: {
+        name: 'slide-left',
+      },
     },
   },
   {
@@ -400,6 +447,9 @@ export default [
     meta: {
       title: 'Matches',
       order: 3,
+      transition: {
+        name: 'slide-left',
+      },
     },
   },
   {
@@ -409,6 +459,9 @@ export default [
     meta: {
       title: 'Overview',
       order: 0,
+      transition: {
+        name: 'slide-left',
+      },
     },
   },
   {
@@ -418,6 +471,9 @@ export default [
     meta: {
       title: 'Stats',
       order: 2,
+      transition: {
+        name: 'slide-left',
+      },
     },
   },
   {
@@ -428,6 +484,9 @@ export default [
       title: 'Campaign',
       order: 0,
       offline: true,
+      transition: {
+        name: 'slide-left',
+      },
     },
   },
   {
@@ -438,6 +497,9 @@ export default [
       title: 'Custom',
       order: 2,
       offline: true,
+      transition: {
+        name: 'slide-left',
+      },
     },
   },
   {
@@ -448,6 +510,9 @@ export default [
       title: 'Scenarios',
       order: 1,
       offline: true,
+      transition: {
+        name: 'slide-left',
+      },
     },
   },
   {
@@ -458,6 +523,9 @@ export default [
       title: 'Tutorials',
       order: 3,
       offline: true,
+      transition: {
+        name: 'slide-left',
+      },
     },
   },
 ]

@@ -1,4 +1,4 @@
-<route lang="json">{ "meta": { "title": "Custom", "order": 2 } }</route>
+<route lang="json">{ "meta": { "title": "Custom", "order": 2, "transition": { "name": "slide-left" } } }</route>
 
 <template>
     <div>
@@ -10,7 +10,7 @@
 - Host battle modal that includes options such as public/passworded/friends-only/invite-only, title, map, mode etc
 - Uses TS but hidden, same as casual matchmaking
 " />
-        <Battle/>
+        <!-- <Battle /> -->
     </div>
 </template>
 

@@ -5,7 +5,7 @@
         "title":"Multiplayer",
         "order":1,
         "transition":{
-            "name":"primary"
+            "name":"slide-below"
         }
     }
 }
