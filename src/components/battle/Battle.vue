@@ -6,7 +6,7 @@
         </div>
         <div class="battle__right flex-col gap-md">
             <MapPreview :filename="mapFile" />
-            <Select :options="maps" v-model="mapFile" :label-by="(map: MapData) => map.friendlyName" :value-by="(map: MapData) => map.fileNameWithExt" :close-on-select="true" :clear-on-select="true" :searchable="true"></Select>
+            <Select :options="maps" v-model="mapFile" :label-by="(map: any) => map.friendlyName" :value-by="(map: any) => map.fileNameWithExt" :close-on-select="true" :clear-on-select="true" :searchable="true"></Select>
             <div class="flex-row gap-md">
                 <Button @click="addAi">Add AI</Button>
                 <AddAIModal @add-ai="addAi" />
@@ -48,7 +48,7 @@ const mapFile = ref(map!.fileNameWithExt!);
 const addAiModal = () => window.api.modals.open("add-ai");
 
 const addAi = () => {
-    const playerName = window.api.session.model.account?.value?.name ?? "Player";
+    const playerName = window.api.session.model.user?.name ?? "Player";
 
     battle.allyTeams[1].teams.push({
         ais: [{

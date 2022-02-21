@@ -64,5 +64,4 @@ const exitModal = () => {
 };
 
 const session = window.api.session.model;
-console.log(session);
 </script>

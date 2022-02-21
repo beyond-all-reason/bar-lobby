@@ -6,8 +6,4 @@ export class AbstractContentAPI {
         this.userDataDir = userDataDir;
         this.dataDir = dataDir;
     }
-
-    public async init() {
-        return this;
-    }
 }

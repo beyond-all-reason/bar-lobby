@@ -7,31 +7,32 @@ import { Octokit } from "octokit";
 import { spawn } from "child_process";
 import { DownloadType, Message, ProgressMessage, RapidVersion } from "@/model/pr-downloader";
 import { AbstractContentAPI } from "@/api/content/abstract-content";
+import { contentSources } from "@/config/content-sources";
+import { EngineTagFormat } from "@/model/formats";
 
 export class GameContentAPI extends AbstractContentAPI {
     public onDlProress: Signal<ProgressMessage> = new Signal();
     public onDlDone = new Signal();
 
-    protected prBinaryPath: string;
+    protected prBinaryPath?: string;
     protected ocotokit = new Octokit();
 
     constructor(userDataDir: string, dataDir: string) {
         super(userDataDir, dataDir);
+    }
 
-        if (process.platform === "win32") {
-            this.prBinaryPath = "resources/pr-downloader.exe";
-        } else if (process.platform === "linux") {
-            this.prBinaryPath = "resources/pr-downloader";
-        } else {
-            throw new Error("Unsupported platform");
-        }
+    public async init(latestEngine: EngineTagFormat) {
+        const binaryName = process.platform === "win32" ? "pr-downloader.exe" : "pr-downloader";
+        this.prBinaryPath = path.join(this.dataDir, "engine", latestEngine, binaryName);
+
+        return this;
     }
 
     public updateGame() {
         return new Promise<void>(resolve => {
             const prDownloaderProcess = spawn(`${this.prBinaryPath}`, [
                 "--filesystem-writepath", this.dataDir,
-                "--download-game", "byar:test"
+                "--download-game", `${contentSources.rapid.game}:${contentSources.rapid.tag}`
             ]);
 
             let downloadType: DownloadType = DownloadType.Metadata;
@@ -70,7 +71,7 @@ export class GameContentAPI extends AbstractContentAPI {
 
     public async getLatestGameVersionInfo() {
         const response = await axios({
-            url: "https://repos.springrts.com/byar/versions.gz",
+            url: `${contentSources.rapid.host}/${contentSources.rapid.game}/versions.gz`,
             method: "GET",
             responseType: "arraybuffer",
             headers: {

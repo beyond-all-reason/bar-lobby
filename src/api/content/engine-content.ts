@@ -6,11 +6,16 @@ import axios from "axios";
 import { Octokit } from "octokit";
 import { Signal } from "jaz-ts-utils";
 import { AbstractContentAPI } from "@/api/content/abstract-content";
+import { contentSources } from "@/config/content-sources";
 
 export class EngineContentAPI extends AbstractContentAPI {
     public onDlProgress: Signal<{ currentBytes: number; totalBytes: number }> = new Signal();
 
     protected ocotokit = new Octokit();
+
+    public async init() {
+        return this;
+    }
 
     public async downloadLatestEngine(includePrerelease = true) {
         const latestEngineRelease = await this.getLatestEngineReleaseInfo();
@@ -57,8 +62,8 @@ export class EngineContentAPI extends AbstractContentAPI {
     public async getLatestEngineReleaseInfo() {
         // if and when the engine releases switches to not marking every release as prerelease then we should use the getLatestRelease octokit method
         const releasesResponse = await this.ocotokit.rest.repos.listReleases({
-            owner: "beyond-all-reason",
-            repo: "spring",
+            owner: contentSources.engineGitHub.owner,
+            repo: contentSources.engineGitHub.repo,
             per_page: 1
         });
 
@@ -72,8 +77,8 @@ export class EngineContentAPI extends AbstractContentAPI {
             const gitTag = `spring_bar_{BAR${majorVersion}}${baseTag}`;
 
             const release = await this.ocotokit.rest.repos.getReleaseByTag({
-                owner: "beyond-all-reason",
-                repo: "spring",
+                owner: contentSources.engineGitHub.owner,
+                repo: contentSources.engineGitHub.repo,
                 tag: gitTag
             });
 
