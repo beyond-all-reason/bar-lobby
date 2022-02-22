@@ -87,12 +87,14 @@ export class MapContentAPI extends AbstractContentAPI {
                 }
             });
 
-            if (downloadResponse.status === 200) {
+            if (downloadResponse.status !== 200) {
                 throw new Error(downloadResponse.statusText);
             }
 
             const dest = path.join(this.getMapsPath(), filename);
             await fs.promises.writeFile(dest, Buffer.from(downloadResponse.data), { encoding: "binary" });
+
+            console.log(`Map downloaded successfully: ${filename}`);
         } catch (err) {
             console.error(`Failed to download map ${filename} from ${host}:`, err);
 
