@@ -1,4 +1,5 @@
 import * as path from "path";
+import * as fs from "fs";
 import { MapParser, SpringMap, StartPos } from "spring-map-parser";
 import { MapData } from "@/model/map-data";
 import { AbstractFileCache } from "@/workers/abstract-file-cache";
@@ -19,7 +20,7 @@ class MapCache extends AbstractFileCache<MapData> {
         });
     }
 
-    protected async cacheItem(itemFilePath: string) {
+    public async cacheItem(itemFilePath: string) {
         const map = await this.parser.parseMap(itemFilePath);
         const mapData = this.parseMapData(map);
         const destPath = (name: string) => path.join(this.mapImagesDir, `${mapData.fileName}-${name}.jpg`);
@@ -29,10 +30,26 @@ class MapCache extends AbstractFileCache<MapData> {
         await map.heightMap.quality(80).writeAsync(destPath("height"));
         await map.typeMap.quality(80).writeAsync(destPath("type"));
 
-        return {
-            key: mapData.fileNameWithExt,
-            value: mapData
-        };
+        this.items[mapData.fileNameWithExt] = mapData;
+
+        await this.saveCachedItems();
+    }
+
+    public async clearItemFromCache(filename: string) {
+        const map = this.items[filename];
+        if (!map) {
+            return;
+        }
+        const destPath = (name: string) => path.join(this.mapImagesDir, `${map.fileName}-${name}.jpg`);
+        const imageSuffixes = ["texture", "metal", "height", "type"];
+        for (const suffix of imageSuffixes) {
+            const imagePath = destPath(suffix);
+            if (fs.existsSync(imagePath)) {
+                await fs.promises.rm(imagePath);
+            }
+        }
+        delete this.items[filename];
+        await this.saveCachedItems();
     }
 
     protected parseMapData(mapData: SpringMap) : MapData {
@@ -69,13 +86,22 @@ export class MapCacheWorkerHost extends BetterWorkerHost {
 
         return this;
     }
+
+    public async cacheItems() {
+        this.send("cache-maps");
+    }
+
+    public async cacheItem(filename: string) {
+        this.send("cache-map", filename);
+    }
 }
 
 const worker = new BetterWorker();
+let mapCache: MapCache;
 
 // TODO: make a cleaner way of doing this that enforces sent data types
 worker.on("init").addOnce(async (data: ConstructorParameters<typeof MapCache>) => {
-    const mapCache = new MapCache(...data);
+    mapCache = new MapCache(...data);
 
     mapCache.onItemsCacheStart.add((data) => worker.send("items-cache-start", data));
     mapCache.onItemsCacheFinish.add((data) => worker.send("items-cache-finish", data));
@@ -85,4 +111,16 @@ worker.on("init").addOnce(async (data: ConstructorParameters<typeof MapCache>) =
     mapCache.onCacheSaved.add((data) => worker.send("item-cache-saved", data));
 
     await mapCache.init();
+});
+
+worker.on("cache-maps").add(async () => {
+    await mapCache.cacheItems();
+});
+
+worker.on("cache-map").add(async (filename: string) => {
+    await mapCache.cacheItem(filename);
+});
+
+worker.on("clear-map").add(async (filename: string) => {
+    await mapCache.clearItemFromCache(filename);
 });

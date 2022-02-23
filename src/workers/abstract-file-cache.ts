@@ -22,8 +22,6 @@ export abstract class AbstractFileCache<T> {
 
     protected items: Record<string, T> = {};
 
-    protected abstract cacheItem(itemFilePath: string): Promise<{ key: string; value: T; }>;
-
     constructor(cacheFilePath: string, itemDir: string, fileTypeFilter: string[] = []) {
         this.cacheFilePath = cacheFilePath;
         this.itemDir = itemDir;
@@ -37,65 +35,63 @@ export abstract class AbstractFileCache<T> {
 
         await this.loadCachedItems();
 
-        this.cacheItems();
-
         return this;
     }
 
     public async cacheItems(recacheAll = false) {
         console.log(`Caching items in ${this.itemDir}`);
 
-        const mapFileNames = await fs.promises.readdir(this.itemDir);
+        const fileNames = await fs.promises.readdir(this.itemDir);
         const cachedMapFileNames = Object.keys(this.items);
 
-        const mapsToCache = mapFileNames.filter(fileName => {
+        const filesToCache = fileNames.filter(fileName => {
             const fileTypeFiler = !this.fileTypeFilter.length || this.fileTypeFilter.some(ext => fileName.endsWith(ext));
             return (recacheAll || !cachedMapFileNames.includes(fileName)) && fileTypeFiler;
         });
 
-        if (mapsToCache.length) {
+        if (filesToCache.length) {
             this.onItemsCacheStart.dispatch();
         }
 
         let mapsCached = 0;
-        for (const mapFileName of mapsToCache) {
-            const filePath = path.join(this.itemDir, mapFileName);
+        for (const fileName of filesToCache) {
+            const filePath = path.join(this.itemDir, fileName);
             try {
                 this.onItemCacheStart.dispatch({
-                    totalItemsToCache: mapsToCache.length,
+                    totalItemsToCache: filesToCache.length,
                     currentItemsCached: mapsCached,
-                    currentItem: mapFileName,
+                    currentItem: fileName,
                 });
 
-                console.log(`Caching ${mapFileName}`);
+                console.log(`Caching ${fileName}`);
 
-                const item = await this.cacheItem(filePath);
-
-                this.items[item.key] = item.value;
-
-                await this.saveCachedItems();
+                await this.cacheItem(filePath);
 
                 mapsCached++;
 
                 this.onItemCacheFinish.dispatch({
-                    totalItemsToCache: mapsToCache.length,
+                    totalItemsToCache: filesToCache.length,
                     currentItemsCached: mapsCached,
-                    currentItem: mapFileName,
+                    currentItem: fileName,
                 });
 
-                console.log(`Cached ${mapFileName}`);
+                console.log(`Cached ${fileName}`);
             } catch (err) {
                 console.warn(`Error caching file: ${filePath}`, err);
-                mapsToCache.splice(mapsToCache.indexOf(mapFileName), 1);
+                filesToCache.splice(filesToCache.indexOf(fileName), 1);
             }
         }
 
-        if (mapsToCache.length) {
+        if (filesToCache.length) {
             this.onItemsCacheFinish.dispatch(this.items);
         }
 
         console.log(`All files cached in ${this.itemDir}`);
     }
+
+    public abstract cacheItem(itemFilePath: string): Promise<void>;
+
+    public abstract clearItemFromCache(filename: string): Promise<void>;
 
     protected async loadCachedItems() {
         if (!fs.existsSync(this.cacheFilePath)) {

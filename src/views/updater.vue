@@ -18,6 +18,7 @@ import { onMounted, ref } from "vue";
 import { storeUserSession } from "@/utils/store-user-session";
 import { useRouter } from "vue-router";
 import Loader from "@/components/common/Loader.vue";
+import { defaultMaps } from "@/config/default-maps";
 
 const router = useRouter();
 const text = ref("Fetching latest game updates");
@@ -47,6 +48,8 @@ onMounted(async () => {
     } else {
         console.log("Latest engine version already installed");
     }
+
+    window.api.content.maps.downloadMaps(defaultMaps);
 
     try {
         await window.api.client.connect();

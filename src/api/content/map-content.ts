@@ -8,44 +8,68 @@ import { contentSources } from "@/config/content-sources";
 import { Signal } from "jaz-ts-utils";
 
 export class MapContentAPI extends AbstractContentAPI {
-    public onDlProgress: Signal<{ currentBytes: number; totalBytes: number }> = new Signal();
+    public onMapDlProgress: Signal<{ currentBytes: number; totalBytes: number }> = new Signal();
+    public onMapsDlProgress: Signal<{ mapsToDownload: string[], currentMapDownloading: string, currentMapNumberDownloading: number }> = new Signal();
 
-    protected maps: Readonly<Record<string, MapData>> = {};
-    protected mapCache?: MapCacheWorkerHost;
+    // null means map is installed but isn't cached
+    protected maps: Record<string, MapData | null | undefined> = {};
+    protected mapCache: MapCacheWorkerHost;
 
     constructor(userDataDir: string, dataDir: string) {
         super(userDataDir, dataDir);
 
         this.mapCache = new MapCacheWorkerHost(new Worker(new URL("../../workers/map-cache-worker.ts", import.meta.url), { type: "module" }));
-
-        this.mapCache.on("item-cache-loaded").add((maps: Record<string, MapData>) => {
-            this.maps = Object.freeze(maps);
-        });
-
-        this.mapCache.on("item-cache-saved").add((maps: Record<string, MapData>) => {
-            this.maps = Object.freeze(maps);
-        });
     }
 
     public async init() {
+        const mapFilenames = await this.getInstalledMapFilenames();
+        for (const mapFilename of mapFilenames) {
+            this.maps[mapFilename] = null;
+        }
+
         const cacheStoreDir = path.join(this.userDataDir, "store");
         const mapCacheFile = path.join(cacheStoreDir, "map-cache.json");
 
-        await this.mapCache?.init([ mapCacheFile, this.dataDir ]);
+        this.mapCache.on("item-cache-loaded").add((maps: Record<string, MapData>) => {
+            for (const [filename, mapData] of Object.entries(maps)) {
+                if (!mapFilenames.includes(filename)) {
+                    this.maps[filename] = undefined;
+                    this.mapCache.send("clear-item", filename);
+                } else {
+                    this.maps[filename] = mapData;
+                }
+            }
+        });
+
+        this.mapCache.on("item-cache-saved").add((maps: Record<string, MapData>) => {
+            for (const [filename, mapData] of Object.entries(maps)) {
+                this.maps[filename] = mapData;
+            }
+        });
+
+        await this.mapCache.init([ mapCacheFile, this.dataDir ]);
+
+        this.mapCache.cacheItems();
 
         return this;
     }
 
-    public getMaps() : { [filename: string]: MapData; } {
+    public getMaps() {
         return this.maps;
     }
 
-    public getMapByFilename(filename: string) : MapData | undefined {
+    public getMapByFilename(filename: string) {
         return this.maps[filename];
     }
 
-    public getMapByScriptName(scriptName: string) : MapData | undefined {
-        return Object.values(this.maps).find((map) => map.scriptName === scriptName);
+    public getMapByScriptName(scriptName: string) {
+        return Object.values(this.maps).find((map) => map?.scriptName === scriptName);
+    }
+
+    public async getInstalledMapFilenames() {
+        const mapsPath = this.getMapsPath();
+        const mapFilenames = await fs.promises.readdir(mapsPath);
+        return mapFilenames;
     }
 
     public getMapImages(filename: string) {
@@ -71,8 +95,20 @@ export class MapContentAPI extends AbstractContentAPI {
         return path.join(this.dataDir, "map-images").replaceAll("\\", "/");
     }
 
+    public async downloadMaps(maps: string[]) {
+        for (const map of maps) {
+            await this.downloadMap(map);
+        }
+    }
+
     public async downloadMap(filename: string, host = contentSources.maps.http[0]) : Promise<void> {
+        if (this.maps[filename]) {
+            return;
+        }
+
         try {
+            console.log(`Downloading map: ${filename}`);
+
             const downloadResponse = await axios({
                 url: `${host}${filename}`,
                 method: "get",
@@ -80,7 +116,7 @@ export class MapContentAPI extends AbstractContentAPI {
                 headers: { "Content-Type": "application/7z" },
                 adapter: require("axios/lib/adapters/http"),
                 onDownloadProgress: (progress) => {
-                    this.onDlProgress.dispatch({
+                    this.onMapDlProgress.dispatch({
                         currentBytes: progress.loaded,
                         totalBytes: progress.total
                     });
@@ -95,6 +131,8 @@ export class MapContentAPI extends AbstractContentAPI {
             await fs.promises.writeFile(dest, Buffer.from(downloadResponse.data), { encoding: "binary" });
 
             console.log(`Map downloaded successfully: ${filename}`);
+
+            this.mapCache.cacheItem(dest);
         } catch (err) {
             console.error(`Failed to download map ${filename} from ${host}:`, err);
 
