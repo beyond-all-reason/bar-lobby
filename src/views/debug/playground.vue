@@ -3,16 +3,15 @@
 <template>
     <div>
         <div>Playground</div>
-        <button @click="swap">Swap</button>
-        <transition :name="name" mode="out-in" @after-leave="afterLeave">
-            <div v-if="toggle">A</div>
-            <div v-else>B</div>
-        </transition>
+        <Tooltip content="hello world">
+            <button @click="swap">Swap</button>
+        </Tooltip>
     </div>
 </template>
 
 <script lang="ts" setup>
 import { ref } from "vue";
+import Tooltip from "@/components/common/Tooltip.vue";
 
 const toggle = ref(true);
 const name = ref("fade");

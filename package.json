@@ -75,6 +75,7 @@
     "vue-router": "^4.0.12",
     "vue-slider-component": "^4.0.0-beta.4",
     "vue3-markdown-it": "^1.0.9",
+    "vue3-popper": "^1.4.1",
     "worker-plugin": "^5.0.1"
   }
 }
