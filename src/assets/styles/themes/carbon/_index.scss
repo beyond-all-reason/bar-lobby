@@ -11,17 +11,10 @@
         cursor: url("~@/assets/images/cursor_default.png"), default !important;
     }
 
-    .view {
-        overflow-y: hidden;
-        padding: 20px;
-        display: flex;
-        flex-direction: column;
-        flex-grow: 1;
-        gap: 10px;
-    }
-
     @import "inputs";
+    @import "text";
 
+    @import "components/view";
     @import "components/debug-sidebar";
     @import "components/background";
     @import "components/button";
@@ -31,9 +24,10 @@
     @import "components/panel";
     @import "components/modal";
     @import "components/battle";
-    @import "components/tooltip";
+    @import "components/download-info";
+    @import "components/tooltip-context-menu";
+    @import "components/login";
 
-    @import "views/login";
     @import "views/updater";
 
     @import "transitions";

@@ -11,8 +11,8 @@
         z-index: -1;
         transition: background-color, backdrop-filter 0.4s ease-in-out;
         &.active {
-            background-color: rgba(0, 0, 0, 0.2);
-            backdrop-filter: blur(5px);
+            background-color: rgba(0, 0, 0, 0.45);
+            backdrop-filter: blur(7px) saturate(90%);
         }
     }
 }

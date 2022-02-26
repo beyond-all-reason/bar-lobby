@@ -34,8 +34,8 @@ import { computed } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import Icon from "@/components/common/Icon.vue";
 import Button from "@/components/inputs/Button.vue";
-import Exit from "@/components/nav/Exit.vue";
-import Settings from "@/components/nav/Settings.vue";
+import Exit from "@/components/misc/Exit.vue";
+import Settings from "@/components/misc/Settings.vue";
 
 const router = useRouter();
 const route = useRoute();

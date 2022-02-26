@@ -1,6 +1,6 @@
 <template>
-    <Popper v-bind="$attrs" hover openDelay="0" closeDelay="0" offsetDistance="5" :interactive="false">
-        <slot />
+    <Popper v-bind="$attrs" hover openDelay="0" closeDelay="0" offsetDistance="5" :interactive="false" class="tooltip">
+        <slot></slot>
         <template #content="props">
             <slot name="content" v-bind="props" />
         </template>

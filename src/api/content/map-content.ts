@@ -6,13 +6,14 @@ import { MapData } from "@/model/map-data";
 import { MapCacheWorkerHost } from "@/workers/map-cache-worker";
 import { contentSources } from "@/config/content-sources";
 import { Signal } from "jaz-ts-utils";
+import { reactive } from "vue";
 
 export class MapContentAPI extends AbstractContentAPI {
     public onMapDlProgress: Signal<{ currentBytes: number; totalBytes: number }> = new Signal();
     public onMapsDlProgress: Signal<{ mapsToDownload: string[], currentMapDownloading: string, currentMapNumberDownloading: number }> = new Signal();
 
     // null means map is installed but isn't cached
-    protected maps: Record<string, MapData | null | undefined> = {};
+    protected readonly maps: Record<string, MapData | null | undefined> = reactive({});
     protected mapCache: MapCacheWorkerHost;
 
     constructor(userDataDir: string, dataDir: string) {

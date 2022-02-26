@@ -39,6 +39,8 @@ export abstract class AbstractFileCache<T> {
     }
 
     public async cacheItems(recacheAll = false) {
+        await this.init();
+
         console.log(`Caching items in ${this.itemDir}`);
 
         const fileNames = await fs.promises.readdir(this.itemDir);
@@ -63,8 +65,6 @@ export abstract class AbstractFileCache<T> {
                     currentItem: fileName,
                 });
 
-                console.log(`Caching ${fileName}`);
-
                 await this.cacheItem(filePath);
 
                 mapsCached++;
@@ -74,10 +74,7 @@ export abstract class AbstractFileCache<T> {
                     currentItemsCached: mapsCached,
                     currentItem: fileName,
                 });
-
-                console.log(`Cached ${fileName}`);
             } catch (err) {
-                console.warn(`Error caching file: ${filePath}`, err);
                 filesToCache.splice(filesToCache.indexOf(fileName), 1);
             }
         }

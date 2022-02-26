@@ -1,5 +1,5 @@
 <template>
-    <div class="control textbox">
+    <div class="control textbox" @mouseenter="sound">
         <label :for="uuid" v-if="label">{{ label }}</label>
         <input ref="input" :id="uuid" :name="name" :type="type" v-bind="$attrs" v-model="text" @input="onInput" @invalid="onInput">
         <label :for="uuid" v-if="icon"><Icon :for="uuid" :icon="icon" /></label>
@@ -43,5 +43,7 @@ const onInput = (event: InputEvent) => {
         }
     }
 };
+
+const sound = () => window.api.audio.getSound("button-hover").play();
 </script>
 

@@ -1,13 +1,15 @@
 <template>
     <div :class="`fullsize theme theme--${theme.toLowerCase()}`">
-        <DebugSidebar />
+        <DebugSidebar v-if="!isProduction" />
+        <!-- <DownloadInfo /> -->
         <Background :blur="blurBg" />
         <IntroVideo v-if="state === 'intro'" @end="state = 'preloader'" />
         <Preloader v-else-if="state === 'preloader'" @loaded="state = 'default'" />
         <template v-else>
             <NavBar :class="{ hidden: empty }" />
+            <!-- <BottomBar :class="{ hidden: empty }" /> -->
             <div :class="`view view--${route.name?.toString()}`">
-                <Panel padding="20px 20px 20px 20px" :class="{ hidden: empty }">
+                <Panel :class="{ hidden: empty }">
                     <router-view v-slot="{ Component }">
                         <transition mode="out-in" v-bind="currentTransition" @after-leave="afterLeave" :style="`--enter-duration: ${transitionDurationEnterMs}ms; --leave-duration: ${transitionDurationLeaveMs}ms;`">
                             <component :is="Component" />
@@ -23,12 +25,12 @@
 import { Ref, ref, TransitionProps } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import DebugSidebar from "@/components/misc/DebugSidebar.vue";
-import NavBar from "@/components/nav/NavBar.vue";
-import Panel from "@/components/common/Panel.vue";
+import NavBar from "@/components/misc/NavBar.vue";
 import Preloader from "@/components/misc/Preloader.vue";
 import Background from "@/components/misc/Background.vue";
 import { playRandomMusic } from "@/utils/play-random-music";
 import IntroVideo from "@/components/misc/IntroVideo.vue";
+import Panel from "@/components/common/Panel.vue";
 
 const isProduction = process.env.NODE_ENV === "production";
 

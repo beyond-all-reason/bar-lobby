@@ -21,18 +21,27 @@ class MapCache extends AbstractFileCache<MapData> {
     }
 
     public async cacheItem(itemFilePath: string) {
-        const map = await this.parser.parseMap(itemFilePath);
-        const mapData = this.parseMapData(map);
-        const destPath = (name: string) => path.join(this.mapImagesDir, `${mapData.fileName}-${name}.jpg`);
+        const fileName = path.parse(itemFilePath).base;
+        console.log(`Caching map: ${fileName}`);
+        try {
+            const map = await this.parser.parseMap(itemFilePath);
+            const mapData = this.parseMapData(map);
+            const destPath = (name: string) => path.join(this.mapImagesDir, `${mapData.fileName}-${name}.jpg`);
 
-        await map.textureMap!.quality(80).writeAsync(destPath("texture"));
-        await map.metalMap.quality(80).writeAsync(destPath("metal"));
-        await map.heightMap.quality(80).writeAsync(destPath("height"));
-        await map.typeMap.quality(80).writeAsync(destPath("type"));
+            await map.textureMap!.quality(80).writeAsync(destPath("texture"));
+            await map.metalMap.quality(80).writeAsync(destPath("metal"));
+            await map.heightMap.quality(80).writeAsync(destPath("height"));
+            await map.typeMap.quality(80).writeAsync(destPath("type"));
 
-        this.items[mapData.fileNameWithExt] = mapData;
+            this.items[mapData.fileNameWithExt] = mapData;
 
-        await this.saveCachedItems();
+            await this.saveCachedItems();
+
+            console.log(`Cached map: ${fileName}`);
+        } catch (err) {
+            console.warn(`Error caching map: ${fileName}`, err);
+            throw err;
+        }
     }
 
     public async clearItemFromCache(filename: string) {

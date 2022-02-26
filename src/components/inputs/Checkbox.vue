@@ -1,5 +1,5 @@
 <template>
-    <div class="control checkbox">
+    <div class="control checkbox" @mouseenter="sound">
         <input :id="uuid" type="checkbox" v-model="checked" @change="$emit('update:modelValue', checked)">
         <label :for="uuid" :class="{ checked, hasLabel: Boolean(label) }">
             <div class="icon" :class="{ hasLabel: Boolean(label) }">
@@ -30,4 +30,6 @@ const props = defineProps({
 const uuid = ref(uuidv4());
 const label = ref(props.label);
 const checked = ref(props.modelValue);
+
+const sound = () => window.api.audio.getSound("button-hover").play();
 </script>

@@ -3,14 +3,18 @@
 <template>
     <div>
         <div>Playground</div>
-        <Tooltip content="hello world">
-            <button @click="swap">Swap</button>
+        <ContextMenu :entries="[{ label: 'First item', action: test }, { label: 'Nope', action: test }]">
+            <button @click="swap">Contex Menu</button>
+        </ContextMenu>
+        <Tooltip content="tooltip!">
+            <button @click="swap">Tooltip</button>
         </Tooltip>
     </div>
 </template>
 
 <script lang="ts" setup>
 import { ref } from "vue";
+import ContextMenu from "@/components/common/ContextMenu.vue";
 import Tooltip from "@/components/common/Tooltip.vue";
 
 const toggle = ref(true);
@@ -19,7 +23,7 @@ const swap = () => {
     name.value = name.value === "fade" ? "slide" : "fade";
     toggle.value = !toggle.value;
 };
-const afterLeave = () => {
-    console.log("afterLeave");
+const test = () => {
+    console.log("test");
 };
 </script>

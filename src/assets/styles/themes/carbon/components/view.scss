@@ -1,0 +1,13 @@
+.view {
+    overflow-y: hidden;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    gap: 10px;
+    & > .panel {
+        & > .content {
+            padding: 20px;
+        }
+    }
+}

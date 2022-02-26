@@ -1,10 +1,10 @@
 <template>
-    <router-link v-if="to" @mouseenter="play" :to="to" class="btn" :class="{ active: isActive }">
+    <router-link v-if="to" @mouseenter="sound" :to="to" class="btn" :class="{ active: isActive }">
         <div class="content">
             <slot />
         </div>
     </router-link>
-    <button v-else class="btn" @mouseenter="play">
+    <button v-else class="btn" @mouseenter="sound">
         <div class="content">
             <slot />
         </div>
@@ -22,10 +22,9 @@ const props = defineProps({
 const route = useRoute();
 const to = toRefs(props).to;
 const isActive = computed(() => props.to && route.path.includes(props.to));
-const sound = window.api.audio.getSound("button-hover");
-const play = () => {
+const sound = () => {
     if (!props.to || (props.to && !isActive.value)) {
-        sound.play();
+        window.api.audio.getSound("button-hover").play();
     }
 };
 </script>

@@ -1,0 +1,32 @@
+.tooltip, .context-menu {
+    .popper {
+        overflow: hidden;
+        background-color: rgba(0, 0, 0, 0.8);
+        padding: 8px;
+        box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
+        border-radius: 3px;
+        border-color: rgba(255, 255, 255, 0.2);
+        border-style: solid;
+        border-width: 1px;
+        backdrop-filter: blur(2px);
+        font-size: 16px;
+        &:hover {
+            background-color: rgba(0, 0, 0, 0.8);
+        }
+    }
+}
+
+.context-menu {
+    .popper {
+        padding: 0;
+    }
+    &__entry {
+
+    }
+    &__label {
+        padding: 8px;
+        &:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+    }
+}

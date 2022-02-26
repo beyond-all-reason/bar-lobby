@@ -1,5 +1,5 @@
 <template>
-    <div class="control select">
+    <div class="control select" @mouseenter="sound">
         <label :for="uuid" v-if="label">{{ label }}</label>
         <VueNextSelect :name="uuid" :hide-selected="true" v-bind="$attrs"></VueNextSelect>
     </div>
@@ -22,5 +22,7 @@ const props = defineProps<Props>();
 
 const uuid = ref(uuidv4());
 const label = ref(props.label);
+
+const sound = () => window.api.audio.getSound("button-hover").play();
 </script>
 

@@ -1,5 +1,5 @@
 <template>
-    <form class="control range" @submit.prevent="">
+    <form class="control range" @submit.prevent="" @mouseenter="sound">
         <label :for="uuid" v-if="label">{{ label }}</label>
         <div class="input">
             <VueSlider ref="slider" v-model="value" tooltip="none" :duration="0" :drag-on-click="true" v-bind="$attrs" @change="$emit('update:modelValue', value)" @error="error"></VueSlider>
@@ -47,7 +47,6 @@ const error = (type: ERROR_TYPE, msg: string) => {
     textboxEl.setCustomValidity(msg);
     textboxEl.reportValidity();
 };
-</script>
 
-<style scoped lang="scss">
-</style>
+const sound = () => window.api.audio.getSound("button-hover").play();
+</script>

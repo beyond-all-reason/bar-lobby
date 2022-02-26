@@ -20,9 +20,8 @@
 </template>
 
 <script lang="ts" setup>
-import { reactive, Ref, ref } from "vue";
+import { computed, reactive, ref } from "vue";
 import { BattleTypes } from "@/model/battle";
-import { MapData } from "@/model/map-data";
 import Button from "@/components/inputs/Button.vue";
 import MapPreview from "@/components/battle/MapPreview.vue";
 import Select from "@/components/inputs/Select.vue";
@@ -40,8 +39,7 @@ const battle = (window as any).battle = reactive(props.battle);
 
 const battleTitle = ref("Offline Custom Battle");
 
-const cachedMaps = window.api.content.maps.getMaps();
-const maps: Ref<MapData[]> = ref(Object.values(cachedMaps));
+const maps = computed(() => Object.values(window.api.content.maps.getMaps()));
 const map = window.api.content.maps.getMapByScriptName(battle.hostOptions.mapName);
 const mapFile = ref(map!.fileNameWithExt!);
 
