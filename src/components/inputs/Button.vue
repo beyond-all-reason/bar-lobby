@@ -1,23 +1,22 @@
 <template>
-    <router-link v-if="to" @mouseenter="sound" :to="to" class="btn" :class="{ active: isActive }">
-        <div class="content">
-            <slot />
-        </div>
-    </router-link>
-    <button v-else class="btn" @mouseenter="sound">
-        <div class="content">
-            <slot />
-        </div>
-    </button>
+    <Tooltip :content="tooltip">
+        <component :is="to ? 'router-link' : 'button'" class="btn" @mouseenter="sound" :to="to" :class="{ active: isActive }" v-bind="$attrs">
+            <div class="content">
+                <slot />
+            </div>
+        </component>
+    </Tooltip>
 </template>
 
 <script lang="ts" setup>
 import { computed, toRefs } from "vue";
 import { useRoute } from "vue-router";
+import Tooltip from "@/components/common/Tooltip.vue";
 
-const props = defineProps({
-    to: String
-});
+const props = defineProps<{
+    to?: string;
+    tooltip?: string;
+}>();
 
 const route = useRoute();
 const to = toRefs(props).to;

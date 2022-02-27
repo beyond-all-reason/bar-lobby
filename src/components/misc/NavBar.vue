@@ -1,39 +1,42 @@
 <template>
     <div class="nav" :class="{ hidden }">
-        <Button class="primary-item logo" depress to="/home">
-            <img src="@/assets/images/logo.svg">
-        </Button>
+        <div class="nav__logo">
+            <Button depress to="/home">
+                <img src="@/assets/images/logo.svg">
+            </Button>
+        </div>
         <div class="flex-col flex-grow">
-            <div class="flex-row flex-space-between gap-xxs">
-                <div class="left">
-                    <Button v-for="view in primaryRoutes" :key="view.path" :to="view.path" class="primary-item">{{ view.meta.title }}</Button>
+            <div class="nav__primary flex-row flex-space-between gap-xxs">
+                <div class="nav__primary-left">
+                    <Button v-for="view in primaryRoutes" :key="view.path" :to="view.path">{{ view.meta.title }}</Button>
                 </div>
-                <div class="right">
-                    <Button v-if="session?.user?.name" class="primary-item" to="/profile">
-                        {{ session?.user.name }}
+                <div class="nav__primary-right">
+                    <Button class="icon" to="/profile" tooltip="Profile">
+                        <Icon icon="account" :size="40" />
                     </Button>
-                    <Button class="primary-item icon" @click="settingsModal">
-                        <Icon icon="cog" :size="40" />
-                    </Button>
-                    <Button class="primary-item icon">
+                    <Button class="icon" @click="downloadsModal" tooltip="Downloads">
                         <Icon icon="download" :size="40" />
                     </Button>
-                    <Button class="primary-item icon close" @click="exitModal">
+                    <Button class="icon" @click="settingsModal" tooltip="Settings">
+                        <Icon icon="cog" :size="40" />
+                    </Button>
+                    <Button class="icon close" @click="exitModal" tooltip="Exit">
                         <Icon icon="close-thick" :size="40" />
                     </Button>
                 </div>
             </div>
-            <div class="secondary-nav">
-                <div class="flex-row flex-left">
+            <div class="nav__secondary">
+                <div class="nav__secondary-left flex-row flex-left">
                     <Button v-for="view in secondaryRoutes" :key="view.path" :to="view.path" class="secondary-item">{{ view.meta.title ?? view.name }}</Button>
                 </div>
-                <div class="flex-row flex-right flex-center">
+                <div class="nav__secondary-right flex-row flex-right flex-center">
                     <ServerInfo />
                 </div>
             </div>
         </div>
         <Settings />
         <Exit />
+        <Downloads />
     </div>
 </template>
 
@@ -45,6 +48,7 @@ import Button from "@/components/inputs/Button.vue";
 import Exit from "@/components/misc/Exit.vue";
 import Settings from "@/components/misc/Settings.vue";
 import ServerInfo from "@/components/misc/ServerInfo.vue";
+import Downloads from "./Downloads.vue";
 
 const router = useRouter();
 const route = useRoute();
@@ -64,13 +68,7 @@ const secondaryRoutes = computed(() => {
         .sort((a, b) => (a.meta.order ?? 99) - (b.meta.order ?? 99));
 });
 
-const settingsModal = () => {
-    window.api.modals.open("settings");
-};
-
-const exitModal = () => {
-    window.api.modals.open("exit");
-};
-
-const session = window.api.session.model;
+const settingsModal = () => window.api.modals.open("settings");
+const exitModal = () => window.api.modals.open("exit");
+const downloadsModal = () => window.api.modals.open("downloads");
 </script>

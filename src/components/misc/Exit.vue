@@ -1,5 +1,5 @@
 <template>
-    <Modal name="Exit">
+    <Modal name="exit">
         <div class="flex-row gap-md">
             <Button @click="logout">Logout</Button>
             <Button @click="quitToDesktop">Quit to Desktop</Button>

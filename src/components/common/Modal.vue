@@ -4,9 +4,11 @@
             <div v-if="isOpen" class="modal-container" v-bind="$attrs">
                 <Panel id="modal" class="modal" :title="titleStr">
                     <template #header>
-                        <div class="header">
-                            <div class="title">{{ title || name }}</div>
-                            <div class="close" @click="close"><Icon icon="close-thick" /></div>
+                        <div class="panel__header">
+                            <div class="panel__title">{{ title || name }}</div>
+                            <div class="panel__close" @click="close" @mouseenter="sound">
+                                <Icon icon="close-thick" />
+                            </div>
                         </div>
                     </template>
                     <slot></slot>
@@ -35,4 +37,6 @@ const titleStr = ref(props.title || props.name);
 const close = () => {
     window.api.modals.close(props.name);
 };
+
+const sound = () => window.api.audio.getSound("button-hover").play();
 </script>

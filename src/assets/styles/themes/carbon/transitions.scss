@@ -5,14 +5,14 @@
     }
 }
 
-.fade-enter-active {
+.fade-enter-active:not(.popper) {
     transition: var(--enter-duration) ease-in-out;
 }
-.fade-leave-active {
+.fade-leave-active:not(.popper) {
     transition: var(--leave-duration) ease-in-out;
 }
-.fade-enter-from,
-.fade-leave-to {
+.fade-enter-from:not(.popper),
+.fade-leave-to:not(.popper) {
     opacity: 0;
 }
 

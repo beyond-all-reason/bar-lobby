@@ -31,7 +31,7 @@
         padding: var(--padding);
         background: rgba(0, 0, 0, 0.2);
     }
-    .tabs, .header {
+    .tabs, &__header {
         position: relative;
         width: 100%;
         display: flex;
@@ -47,21 +47,22 @@
             }
         }
     }
-    .header {
+    &__header {
         justify-content: space-between;
         width: 100%;
-        .title {
-            padding: 5px 10px;
-            flex-grow: 1;
-            border-right: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        .close {
-            margin-left: auto;
-            padding: 5px 10px;
-            background: rgba(219, 20, 20, 0.3);
-            &:hover {
-                background: rgba(219, 20, 20, 0.6);
-            }
+    }
+    &__title {
+        padding: 5px 10px;
+        flex-grow: 1;
+        border-right: 1px solid rgba(255, 255, 255, 0.1);
+        text-transform: capitalize;
+    }
+    &__close {
+        margin-left: auto;
+        padding: 5px 10px;
+        background: rgba(219, 20, 20, 0.3);
+        &:hover {
+            background: rgba(219, 20, 20, 0.6);
         }
     }
 }

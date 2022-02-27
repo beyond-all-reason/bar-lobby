@@ -1,11 +1,10 @@
 import * as path from "path";
 import * as fs from "fs";
 import * as glob from "glob-promise";
-import * as luaparse from "luaparse";
-import { LocalStatement, TableConstructorExpression } from "luaparse";
 import { AbstractContentAPI } from "@/api/content/abstract-content";
 import { AI } from "@/model/ai";
 import { EngineTagFormat } from "@/model/formats";
+import { parseLuaTable } from "@/utils/parse-lua-table";
 
 export class AiContentAPI extends AbstractContentAPI {
     protected engineAis: Record<EngineTagFormat, AI[]> = {};
@@ -44,7 +43,8 @@ export class AiContentAPI extends AbstractContentAPI {
             throw new Error("AIInfo.lua or .dll not found");
         }
 
-        const aiInfoFields = await this.parseAiInfo(aiInfoPath);
+        const aiInfoFile = await fs.promises.readFile(aiInfoPath);
+        const aiInfoFields = parseLuaTable(aiInfoFile);
         const aiInfo: Record<string, any> = {};
         for (const field of aiInfoFields) {
             aiInfo[field.key] = field.value;
@@ -63,51 +63,10 @@ export class AiContentAPI extends AbstractContentAPI {
         };
 
         if (aiOptionsPath) {
-            ai.options = await this.parseAiOptions(aiOptionsPath);
+            const aiOptionsFile = await fs.promises.readFile(aiOptionsPath);
+            ai.options = parseLuaTable(aiOptionsFile);
         }
 
         return ai;
-    }
-
-    protected async parseAiInfo(luaFilePath: string) {
-        const luaStr = await fs.promises.readFile(luaFilePath);
-        const parsedLua = luaparse.parse(luaStr.toString(), { encodingMode: "x-user-defined", comments: false });
-
-        const localStatement = parsedLua.body.find(body => body.type === "LocalStatement") as LocalStatement;
-        const infoTable = localStatement.init.find(obj => obj.type === "TableConstructorExpression") as TableConstructorExpression;
-
-        return this.luaTableToObj(infoTable);
-    }
-
-    protected async parseAiOptions(luaFilePath: string) {
-        const luaStr = await fs.promises.readFile(luaFilePath);
-        const parsedLua = luaparse.parse(luaStr.toString(), { encodingMode: "x-user-defined", comments: false });
-
-        const localStatement = parsedLua.body.find(body => body.type === "LocalStatement") as LocalStatement;
-        const infoTable = localStatement.init.find(obj => obj.type === "TableConstructorExpression") as TableConstructorExpression;
-
-        return this.luaTableToObj(infoTable);
-    }
-
-    protected luaTableToObj(table: TableConstructorExpression) : any {
-        const blocks: any[] = [];
-        const obj: Record<string, unknown> = {};
-
-        for (const field of table.fields) {
-            if (field.type === "TableKeyString") {
-                const key = field.key.name;
-                if (field.value.type === "StringLiteral" || field.value.type === "NumericLiteral" || field.value.type === "BooleanLiteral") {
-                    obj[key] = field.value.value;
-                } else if (field.value.type === "TableConstructorExpression") {
-                    obj[key] = this.luaTableToObj(field.value);
-                }
-            } else if (field.type === "TableValue") {
-                if (field.value.type === "TableConstructorExpression") {
-                    blocks.push(this.luaTableToObj(field.value));
-                }
-            }
-        }
-
-        return blocks.length > 1 ? blocks : obj;
     }
 }
