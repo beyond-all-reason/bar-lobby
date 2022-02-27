@@ -1,0 +1,18 @@
+$spacing: (
+    "xxs": 1px,
+    "xs": 2px,
+    "sm": 5px,
+    "md": 10px,
+    "lg": 15px,
+    "xl": 20px,
+    "xxl": 25px
+);
+
+@each $key, $value in $spacing {
+    .gap-#{$key} {
+        gap: $value;
+    }
+    .padding-#{$key} {
+        padding: $value;
+    }
+}

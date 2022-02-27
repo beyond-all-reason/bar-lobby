@@ -1,8 +1,15 @@
 @use "sass:color";
 
 $btnColors: (
-  "blue": rgb(14, 109, 199),
-  "red": rgb(199, 14, 14)
+    "blue": rgb(14, 109, 199),
+    "red": rgb(199, 14, 14),
+    "green": rgb(120, 189, 57),
+    "yellow": rgb(199, 199, 14),
+    "purple": rgb(199, 14, 199),
+    "orange": rgb(199, 109, 14),
+    "black": rgb(0, 0, 0),
+    "white": rgb(255, 255, 255),
+    "gray": rgb(128, 128, 128)
 );
 
 button, .btn {
@@ -17,13 +24,6 @@ button, .btn {
             }
         }
     }
-    // &--blue {
-    //     background-color: rgba(14, 109, 199, 0.6);
-    //     border-color: rgba(255, 255, 255, 0.15);
-    //     box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.1), inset 0 -17px 0 rgba(0, 0, 0, 0.05);
-    //     &:hover {
-    //         background-color: rgba(14, 109, 199, 0.8);
-    //         box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.1), inset 0 -17px 0 rgba(0, 0, 0, 0.05);
-    //     }
-    // }
+
+    font-weight: 500;
 }

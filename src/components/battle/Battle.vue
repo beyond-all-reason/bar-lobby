@@ -11,7 +11,7 @@
                 <Button @click="addAi">Add AI</Button>
                 <AddAIModal @add-ai="addAi" />
 
-                <Button @click="start">Start</Button>
+                <Button @click="start" class="btn--green">Start</Button>
             </div>
             <div>Engine: {{ battle.hostOptions.engineVersion }}</div>
             <div>Game: {{ battle.hostOptions.gameVersion }}</div>

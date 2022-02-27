@@ -1,13 +1,12 @@
 <template>
     <div :class="`fullsize theme theme--${theme.toLowerCase()}`">
         <DebugSidebar v-if="!isProduction" />
-        <!-- <DownloadInfo /> -->
+        <StatusInfo v-if="false" />
         <Background :blur="blurBg" />
         <IntroVideo v-if="state === 'intro'" @end="state = 'preloader'" />
         <Preloader v-else-if="state === 'preloader'" @loaded="state = 'default'" />
         <template v-else>
             <NavBar :class="{ hidden: empty }" />
-            <!-- <BottomBar :class="{ hidden: empty }" /> -->
             <div :class="`view view--${route.name?.toString()}`">
                 <Panel :class="{ hidden: empty }">
                     <router-view v-slot="{ Component }">
@@ -31,6 +30,7 @@ import Background from "@/components/misc/Background.vue";
 import { playRandomMusic } from "@/utils/play-random-music";
 import IntroVideo from "@/components/misc/IntroVideo.vue";
 import Panel from "@/components/common/Panel.vue";
+import StatusInfo from "./components/battle/StatusInfo.vue";
 
 const isProduction = process.env.NODE_ENV === "production";
 

@@ -4,7 +4,7 @@
             <img src="@/assets/images/logo.svg">
         </Button>
         <div class="flex-col flex-grow">
-            <div class="flex-row flex-space-between gap-1">
+            <div class="flex-row flex-space-between gap-xxs">
                 <div class="left">
                     <Button v-for="view in primaryRoutes" :key="view.path" :to="view.path" class="primary-item">{{ view.meta.title }}</Button>
                 </div>
@@ -15,13 +15,21 @@
                     <Button class="primary-item icon" @click="settingsModal">
                         <Icon icon="cog" :size="40" />
                     </Button>
+                    <Button class="primary-item icon">
+                        <Icon icon="download" :size="40" />
+                    </Button>
                     <Button class="primary-item icon close" @click="exitModal">
                         <Icon icon="close-thick" :size="40" />
                     </Button>
                 </div>
             </div>
             <div class="secondary-nav">
-                <Button v-for="view in secondaryRoutes" :key="view.path" :to="view.path" class="secondary-item">{{ view.meta.title ?? view.name }}</Button>
+                <div class="flex-row flex-left">
+                    <Button v-for="view in secondaryRoutes" :key="view.path" :to="view.path" class="secondary-item">{{ view.meta.title ?? view.name }}</Button>
+                </div>
+                <div class="flex-row flex-right flex-center">
+                    <ServerInfo />
+                </div>
             </div>
         </div>
         <Settings />
@@ -36,6 +44,7 @@ import Icon from "@/components/common/Icon.vue";
 import Button from "@/components/inputs/Button.vue";
 import Exit from "@/components/misc/Exit.vue";
 import Settings from "@/components/misc/Settings.vue";
+import ServerInfo from "@/components/misc/ServerInfo.vue";
 
 const router = useRouter();
 const route = useRoute();
