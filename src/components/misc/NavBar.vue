@@ -11,16 +11,14 @@
                     <Button v-for="view in primaryRoutes" :key="view.path" :to="view.path">{{ view.meta.title }}</Button>
                 </div>
                 <div class="nav__primary-right">
-                    <Button class="icon" to="/profile" tooltip="Profile">
+                    <Button class="icon" to="/profile">
                         <Icon icon="account" :size="40" />
                     </Button>
-                    <Button class="icon" @click="downloadsModal" tooltip="Downloads">
-                        <Icon icon="download" :size="40" />
-                    </Button>
-                    <Button class="icon" @click="settingsModal" tooltip="Settings">
+                    <DownloadsButton />
+                    <Button class="icon" @click="settingsModal">
                         <Icon icon="cog" :size="40" />
                     </Button>
-                    <Button class="icon close" @click="exitModal" tooltip="Exit">
+                    <Button class="icon close" @click="exitModal">
                         <Icon icon="close-thick" :size="40" />
                     </Button>
                 </div>
@@ -36,7 +34,6 @@
         </div>
         <Settings />
         <Exit />
-        <Downloads />
     </div>
 </template>
 
@@ -48,7 +45,7 @@ import Button from "@/components/inputs/Button.vue";
 import Exit from "@/components/misc/Exit.vue";
 import Settings from "@/components/misc/Settings.vue";
 import ServerInfo from "@/components/misc/ServerInfo.vue";
-import Downloads from "./Downloads.vue";
+import DownloadsButton from "@/components/misc/DownloadsButton.vue";
 
 const router = useRouter();
 const route = useRoute();
@@ -70,5 +67,4 @@ const secondaryRoutes = computed(() => {
 
 const settingsModal = () => window.api.modals.open("settings");
 const exitModal = () => window.api.modals.open("exit");
-const downloadsModal = () => window.api.modals.open("downloads");
 </script>

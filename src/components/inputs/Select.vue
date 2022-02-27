@@ -9,7 +9,7 @@
 // https://iendeavor.github.io/vue-next-select/api-reference.html
 
 import VueNextSelect from "vue-next-select";
-import { ref, defineProps } from "vue";
+import { ref } from "vue";
 import { v4 as uuidv4 } from "uuid";
 
 type VueNextSelectProps = InstanceType<typeof VueNextSelect>["$props"];
