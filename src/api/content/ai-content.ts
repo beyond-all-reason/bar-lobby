@@ -3,13 +3,13 @@ import * as fs from "fs";
 import * as glob from "glob-promise";
 import { AbstractContentAPI } from "@/api/content/abstract-content";
 import { AI } from "@/model/ai";
-import { EngineTagFormat } from "@/model/formats";
+import { EngineVersionFormat } from "@/model/formats";
 import { parseLuaTable } from "@/utils/parse-lua-table";
 
 export class AiContentAPI extends AbstractContentAPI {
-    protected engineAis: Record<EngineTagFormat, AI[]> = {};
+    protected engineAis: Record<EngineVersionFormat, AI[]> = {};
 
-    public async fetchAis(engine: EngineTagFormat) : Promise<AI[]> {
+    public async fetchAis(engine: EngineVersionFormat) : Promise<AI[]> {
         if (this.engineAis[engine] !== undefined) {
             return this.engineAis[engine];
         }

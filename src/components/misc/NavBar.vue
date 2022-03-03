@@ -32,6 +32,7 @@
                 </div>
             </div>
         </div>
+        <Downloads />
         <Settings />
         <Exit />
     </div>
@@ -46,6 +47,7 @@ import Exit from "@/components/misc/Exit.vue";
 import Settings from "@/components/misc/Settings.vue";
 import ServerInfo from "@/components/misc/ServerInfo.vue";
 import DownloadsButton from "@/components/misc/DownloadsButton.vue";
+import Downloads from "@/components/misc/Downloads.vue";
 
 const router = useRouter();
 const route = useRoute();

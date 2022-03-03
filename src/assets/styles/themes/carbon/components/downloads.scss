@@ -1,4 +1,7 @@
 .downloads {
+    display: grid;
+    grid-template-columns: minmax(100px, 1fr) minmax(150px, 3fr);
+    gap: 10px;
     &-button {
         position: relative;
         &:before {

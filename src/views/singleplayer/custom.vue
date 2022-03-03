@@ -11,9 +11,9 @@ import { BattleTypes } from "@/model/battle";
 import { onMounted, reactive } from "vue";
 import Battle from "@/components/battle/Battle.vue";
 import { aiNames } from "@/config/ai-names";
-import { randomFromArray } from "jaz-ts-utils";
+import { lastInArray, randomFromArray } from "jaz-ts-utils";
 
-const playerName = window.api.session.model.account?.value?.name ?? "Player";
+const playerName = window.api.session.model.user?.name ?? "Player";
 
 const defaultBattleL: BattleTypes.Battle = {
     hostOptions: {
@@ -50,7 +50,7 @@ const defaultBattleL: BattleTypes.Battle = {
 const battle: BattleTypes.Battle = reactive(defaultBattleL);
 
 onMounted(async () => {
-    battle.hostOptions.engineVersion = await window.api.content.engine.getLatestInstalledEngineVersion();
-    battle.hostOptions.gameVersion = (await window.api.content.game.getLatestGameVersionInfo()).version; // TODO
+    battle.hostOptions.engineVersion = lastInArray(window.api.content.engine.installedVersions);
+    battle.hostOptions.gameVersion = lastInArray(window.api.content.game.installedVersions).version.fullString; // TODO
 });
 </script>

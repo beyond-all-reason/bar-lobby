@@ -2,28 +2,45 @@ import * as fs from "fs";
 import * as path from "path";
 import * as zlib from "zlib";
 import axios from "axios";
-import { Signal } from "jaz-ts-utils";
 import { Octokit } from "octokit";
 import { spawn } from "child_process";
+import { removeFromArray } from "jaz-ts-utils";
 import { DownloadType, Message, ProgressMessage, RapidVersion } from "@/model/pr-downloader";
 import { AbstractContentAPI } from "@/api/content/abstract-content";
 import { contentSources } from "@/config/content-sources";
-import { EngineTagFormat } from "@/model/formats";
+import { parseGameVersionString } from "@/model/formats";
+import { reactive } from "vue";
+import { DownloadInfo } from "@/model/downloads";
 
 export class GameContentAPI extends AbstractContentAPI {
-    public onDlProress: Signal<ProgressMessage> = new Signal();
-    public onDlDone = new Signal();
+    public installedVersions: RapidVersion[] = reactive([]);
 
-    protected prBinaryPath?: string;
+    protected prBinaryPath!: string;
     protected ocotokit = new Octokit();
+    protected versionLookup: Record<string, RapidVersion> = {};
 
     constructor(userDataDir: string, dataDir: string) {
         super(userDataDir, dataDir);
     }
 
-    public async init(latestEngine: EngineTagFormat) {
-        const binaryName = process.platform === "win32" ? "pr-downloader.exe" : "pr-downloader";
-        this.prBinaryPath = path.join(this.dataDir, "engine", latestEngine, binaryName);
+    public async init(prBinaryPath: string) {
+        this.prBinaryPath = prBinaryPath;
+
+        await this.updateVersionMap();
+
+        const packagesDir = path.join(this.dataDir, "packages");
+        if (fs.existsSync(packagesDir)) {
+            const sdpFilePaths = await fs.promises.readdir(packagesDir);
+            for (const sdpFilePath of sdpFilePaths) {
+                const md5 = sdpFilePath.split(".")[0];
+                if (this.versionLookup[md5]) {
+                    this.installedVersions.push(this.versionLookup[md5]);
+                }
+            }
+            this.installedVersions.sort((a, b) => {
+                return a.version.revision - b.version.revision;
+            });
+        }
 
         return this;
     }
@@ -36,19 +53,27 @@ export class GameContentAPI extends AbstractContentAPI {
             ]);
 
             let downloadType: DownloadType = DownloadType.Metadata;
+            let download: DownloadInfo | undefined;
 
             prDownloaderProcess.stdout.on("data", (stdout: Buffer) => {
                 const lines = stdout.toString().trim().split("\r\n").filter(Boolean);
                 console.log(lines.join("\n"));
                 const messages = lines.map(line => this.processLine(line)).filter(Boolean) as Message[];
                 for (const message of messages) {
-                    if (this.isProgressMessage(message) && downloadType === DownloadType.Game) {
+                    if (this.isProgressMessage(message) && downloadType === DownloadType.Game && download) {
                         message.downloadType = downloadType;
-                        this.onDlProress.dispatch(message);
-                    } else {
-                        if (message.parts?.[1]?.includes("downloadStream")) {
-                            downloadType = DownloadType.Game;
-                        }
+                        download.currentBytes = message.currentBytes;
+                        download.totalBytes = message.totalBytes;
+                    } else if (message.parts?.[1]?.includes("downloadStream")) {
+                        downloadType = DownloadType.Game;
+                    } else if (message.parts?.[1]?.includes("download_name")) {
+                        download = reactive({
+                            type: "game",
+                            name: message.parts.slice(2).join(" "),
+                            currentBytes: 0,
+                            totalBytes: 1
+                        } as const);
+                        this.currentDownloads.push(download);
                     }
                 }
             });
@@ -58,18 +83,13 @@ export class GameContentAPI extends AbstractContentAPI {
             });
 
             prDownloaderProcess.on("close", () => {
-                this.onDlDone.dispatch();
+                removeFromArray(this.currentDownloads, download);
                 resolve();
             });
         });
     }
 
-    public async isLatestGameVersionInstalled() {
-        const latestVersion = await this.getLatestGameVersionInfo();
-        return this.isVersionInstalled(latestVersion.md5);
-    }
-
-    public async getLatestGameVersionInfo() {
+    public async updateVersionMap() {
         const response = await axios({
             url: `${contentSources.rapid.host}/${contentSources.rapid.game}/versions.gz`,
             method: "GET",
@@ -79,19 +99,12 @@ export class GameContentAPI extends AbstractContentAPI {
             }
         });
 
-        const versions = this.parseVersions(response.data);
-
-        return versions[versions.length - 1];
-    }
-
-    public async getInstalledGameVersions() {
-        // TODO
-    }
-
-    public isVersionInstalled(md5: string) {
-        const sdpPath = path.join(this.dataDir, "packages", `${md5}.sdp`);
-
-        return fs.existsSync(sdpPath);
+        const versionsStr = zlib.gunzipSync(response.data).toString().trim();
+        const versionsParts = versionsStr.split("\n");
+        versionsParts.map(versionLine => {
+            const [ tag, md5, _, version ] = versionLine.split(",");
+            this.versionLookup[md5] = { tag, md5, version: parseGameVersionString(version) };
+        });
     }
 
     protected processLine(line: string) : Message | null {
@@ -123,16 +136,5 @@ export class GameContentAPI extends AbstractContentAPI {
 
     protected isProgressMessage(message: Message) : message is ProgressMessage {
         return message.type === "Progress";
-    }
-
-    protected parseVersions(versionsGzipped: string) : RapidVersion[] {
-        const versionsStr = zlib.gunzipSync(versionsGzipped).toString().trim();
-        const versionsParts = versionsStr.split("\n");
-        const versions: RapidVersion[] = versionsParts.map(versionLine => {
-            const [ tag, md5, _, version ] = versionLine.split(",");
-            return { tag, md5, version };
-        });
-
-        return versions;
     }
 }

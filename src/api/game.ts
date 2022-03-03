@@ -1,7 +1,7 @@
 import * as fs from "fs";
 import * as path from "path";
 import { spawn, ChildProcess } from "child_process";
-import { EngineTagFormat } from "@/model/formats";
+import { EngineVersionFormat } from "@/model/formats";
 import { StartScriptConverter } from "@/utils/start-script-converter";
 import { StartScriptTypes } from "@/model/start-script";
 import { BattleTypes } from "@/model/battle";
@@ -14,7 +14,7 @@ export class GameAPI {
     constructor(protected userDataDir: string, protected dataDir: string) {
     }
 
-    public async launch(engineTag: EngineTagFormat, battle: BattleTypes.Battle) {
+    public async launch(engineTag: EngineVersionFormat, battle: BattleTypes.Battle) {
         const enginePath = path.join(this.dataDir, "engine", engineTag).replaceAll("\\", "/");
         const scriptPath = path.join(this.dataDir, "barlobby_script.txt");
 

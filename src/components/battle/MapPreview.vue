@@ -14,7 +14,7 @@ const props = defineProps({
     }
 });
 
-const mapImagesPath = window.api.content.maps.getMapImagesPath();
-const mapData = computed(() => window.api.content.maps.getMapByFilename(props.filename));
-const texturePath = computed(() => window.api.content.maps.getMapImages(props.filename)?.texture);
+const mapImagesPath = window.api.content.maps.mapImagesPath;
+const mapData = computed(() => window.api.content.maps.installedMaps[props.filename]);
+const texturePath = computed(() => window.api.content.maps.getMapImagePaths(props.filename)?.texture);
 </script>

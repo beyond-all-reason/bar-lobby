@@ -1,3 +1,5 @@
+import { GameVersion } from "@/model/formats";
+
 export enum DownloadType {
     Metadata,
     Engine,
@@ -21,5 +23,5 @@ export interface ProgressMessage extends Message {
 export type RapidVersion = {
     tag: string;
     md5: string;
-    version: string;
+    version: GameVersion;
 };

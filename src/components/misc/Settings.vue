@@ -1,6 +1,6 @@
 <template>
     <Modal name="settings">
-        <form class="grid gap-md">
+        <form class="settings">
             <div class="flex-row flex-center-items">Fullscreen</div>
             <Checkbox v-model="fullscreen" />
 

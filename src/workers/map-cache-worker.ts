@@ -103,6 +103,10 @@ export class MapCacheWorkerHost extends BetterWorkerHost {
     public async cacheItem(filename: string) {
         this.send("cache-map", filename);
     }
+
+    public async clearItem(filename: string) {
+        this.send("clear-map", filename);
+    }
 }
 
 const worker = new BetterWorker();

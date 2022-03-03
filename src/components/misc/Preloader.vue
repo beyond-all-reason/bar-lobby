@@ -1,6 +1,6 @@
 <template>
     <div class="fullsize flex-center">
-        <Progress :percent="loadedPercent" style="width: 70%" />
+        <Progress :percent="loadedPercent" :height="40" style="width: 70%" />
     </div>
 </template>
 

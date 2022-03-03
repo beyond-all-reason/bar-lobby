@@ -1,4 +1,4 @@
-import { EngineTagFormat } from "@/model/formats";
+import { EngineVersionFormat } from "@/model/formats";
 
 export namespace BattleTypes {
     export type Battle = {
@@ -8,7 +8,7 @@ export namespace BattleTypes {
     };
 
     export type HostOptions = {
-        engineVersion: EngineTagFormat;
+        engineVersion: EngineVersionFormat;
         gameVersion: string;
         mapName: string;
         isHost: boolean;

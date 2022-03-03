@@ -1,30 +1,52 @@
 import * as fs from "fs";
 import * as path from "path";
-import { EngineTagFormat, isEngineTag } from "@/model/formats";
+import { EngineVersionFormat, isEngineVersionString } from "@/model/formats";
 import { extract7z } from "@/utils/extract7z";
 import axios from "axios";
 import { Octokit } from "octokit";
-import { Signal } from "jaz-ts-utils";
 import { AbstractContentAPI } from "@/api/content/abstract-content";
 import { contentSources } from "@/config/content-sources";
+import { reactive } from "vue";
+import { DownloadInfo } from "@/model/downloads";
+import { removeFromArray } from "jaz-ts-utils";
 
 export class EngineContentAPI extends AbstractContentAPI {
-    public onDlProgress: Signal<{ currentBytes: number; totalBytes: number }> = new Signal();
+    public installedVersions: EngineVersionFormat[] = reactive([]);
 
     protected ocotokit = new Octokit();
 
     public async init() {
+        const engineDir = path.join(this.dataDir, "engine");
+        const engineDirs = await fs.promises.readdir(engineDir);
+
+        for (const dir of engineDirs) {
+            if (isEngineVersionString(dir)) {
+                this.installedVersions.push(dir);
+            }
+        }
+
+        this.sortEngineVersions();
+
         return this;
     }
 
     public async downloadLatestEngine(includePrerelease = true) {
         const latestEngineRelease = await this.getLatestEngineReleaseInfo();
 
+        const engineVersionString = this.engineTagNameToVersionString(latestEngineRelease.tag_name);
+
         const archStr = process.platform === "win32" ? "windows" : "linux";
         const asset = latestEngineRelease.assets.find(asset => asset.name.includes(archStr) && asset.name.includes("portable"));
         if (!asset) {
             throw new Error("Couldn't fetch latest engine release");
         }
+
+        const downloadInfo: DownloadInfo = reactive({
+            type: "engine",
+            name: engineVersionString,
+            currentBytes: 0,
+            totalBytes: 1
+        });
 
         const downloadResponse = await axios({
             url: asset.browser_download_url,
@@ -33,10 +55,8 @@ export class EngineContentAPI extends AbstractContentAPI {
             headers: { "Content-Type": "application/7z" },
             adapter: require("axios/lib/adapters/http"),
             onDownloadProgress: (progress) => {
-                this.onDlProgress.dispatch({
-                    currentBytes: progress.loaded,
-                    totalBytes: progress.total
-                });
+                downloadInfo.currentBytes = progress.loaded;
+                downloadInfo.totalBytes = progress.total;
             }
         });
 
@@ -48,14 +68,17 @@ export class EngineContentAPI extends AbstractContentAPI {
         await fs.promises.mkdir(downloadPath, { recursive: true });
         await fs.promises.writeFile(downloadFile, Buffer.from(engine7z), { encoding: "binary" });
 
-        const engineVersionString = this.engineTagNameToVersionString(latestEngineRelease.tag_name);
-
         await extract7z(downloadFile, engineVersionString);
 
         await fs.promises.unlink(downloadFile);
+
+        this.installedVersions.push(engineVersionString);
+        this.sortEngineVersions();
+
+        removeFromArray(this.currentDownloads, downloadInfo);
     }
 
-    public async downloadEngine(engineTag: EngineTagFormat) {
+    public async downloadEngine(engineTag: EngineVersionFormat) {
         // TODO
     }
 
@@ -70,7 +93,7 @@ export class EngineContentAPI extends AbstractContentAPI {
         return releasesResponse.data[0];
     }
 
-    public async getEngineRelease(engineTag: EngineTagFormat) {
+    public async getEngineReleaseInfo(engineTag: EngineVersionFormat) {
         try {
             const baseTag = engineTag.slice(4);
             const majorVersion = baseTag.split(".")[0];
@@ -89,31 +112,6 @@ export class EngineContentAPI extends AbstractContentAPI {
         }
     }
 
-    public async getInstalledEngineVersions() {
-        const engineVersions: EngineTagFormat[] = [];
-
-        const engineDir = path.join(this.dataDir, "engine");
-        const engineDirs = await fs.promises.readdir(engineDir);
-
-        for (const dir of engineDirs) {
-            if (isEngineTag(dir)) {
-                engineVersions.push(dir);
-            }
-        }
-
-        return engineVersions;
-    }
-
-    public async getLatestInstalledEngineVersion() {
-        const installedEngineVersions = await this.getInstalledEngineVersions();
-        return installedEngineVersions[installedEngineVersions.length - 1];
-    }
-
-    // arg format should match dir name, e.g. BAR-105.1.1-809-g3f69f26
-    public async isEngineVersionInstalled(engineTag: EngineTagFormat) {
-        return fs.existsSync(path.join(this.dataDir, "engine", engineTag));
-    }
-
     public async isLatestEngineVersionInstalled() {
         const latestEngineVersion = await this.getLatestEngineReleaseInfo();
         const engineTag = this.engineTagNameToVersionString(latestEngineVersion.tag_name);
@@ -121,11 +119,16 @@ export class EngineContentAPI extends AbstractContentAPI {
         return this.isEngineVersionInstalled(engineTag);
     }
 
+    // arg format should match dir name, e.g. BAR-105.1.1-809-g3f69f26
+    public async isEngineVersionInstalled(engineTag: EngineVersionFormat) {
+        return fs.existsSync(path.join(this.dataDir, "engine", engineTag));
+    }
+
     // spring_bar_{BAR105}105.1.1-807-g98b14ce -> BAR-105.1.1-809-g3f69f26
-    protected engineTagNameToVersionString(tagName: string) : EngineTagFormat {
+    protected engineTagNameToVersionString(tagName: string) : EngineVersionFormat {
         try {
             const versionString = `BAR-${tagName.split("}")[1]}`;
-            if (isEngineTag(versionString)) {
+            if (isEngineVersionString(versionString)) {
                 return versionString;
             } else {
                 throw new Error();
@@ -134,5 +137,23 @@ export class EngineContentAPI extends AbstractContentAPI {
             console.error(err);
             throw new Error("Couldn't parse engine version string from tag name");
         }
+    }
+
+    protected isVersionGreater(a: EngineVersionFormat, b: EngineVersionFormat) : boolean {
+        const [ aGame, aVersion, aRevision, aSha ] = a.split("-");
+        const [ bGame, bVersion, bRevision, bSha ] = b.split("-");
+
+        const [ aMajor, aMinor, aPatch ] = aVersion.split(".");
+        const [ bMajor, bMinor, bPatch ] = bVersion.split(".");
+
+        if (aMajor > bMajor || aMinor > bMinor || aPatch > bPatch || aRevision > bRevision) {
+            return true;
+        }
+
+        return false;
+    }
+
+    protected sortEngineVersions() {
+        return Array.from(this.installedVersions).sort((a, b) => this.isVersionGreater(a, b) ? 1 : -1);
     }
 }
