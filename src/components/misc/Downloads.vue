@@ -1,13 +1,15 @@
 <template>
-    <Modal name="downloads">
+    <Modal name="downloads" width="500px" height="500px">
         <div v-if="downloads.length" class="downloads">
-            <div v-for="(download, i) in downloads" :key="i" class="download">
-                <div class="download__type">{{ download.type }}</div>
-                <div class="download__name">{{ download.name }}</div>
-                <Progress :percent="download.currentBytes / download.totalBytes" themed />
+            <div v-for="(download, i) in downloads" :key="i" class="downloads__download">
+                <div class="downloads__info">
+                    <div class="downloads__name">{{ download.name }}</div>
+                    <div class="downloads__type">{{ download.type }}</div>
+                </div>
+                <Progress :percent="download.currentBytes / download.totalBytes" :text="progressText(download.currentBytes, download.totalBytes)" themed />
             </div>
         </div>
-        <div v-else>
+        <div v-else class="flex-row flex-grow flex-center">
             No downloads active
         </div>
     </Modal>
@@ -22,47 +24,13 @@ const emits = defineEmits<{
     (e: "percentChange", newPercent: number): void;
 }>();
 
-const downloads = computed(() => {
-    return [
-        ...window.api.content.engine.currentDownloads,
-        ...window.api.content.game.currentDownloads,
-        ...window.api.content.maps.currentDownloads,
-    ];
-});
+const downloads = computed(() => window.api.content.engine.currentDownloads.concat(window.api.content.game.currentDownloads, window.api.content.maps.currentDownloads));
 
-// const currentEngine = computed(() => lastInArray(window.api.content.engine.installedVersions));
-// const engineDl = window.api.content.engine.currentDownload;
+const progressText = (currentBytes: number, totalBytes: number) => {
+    const percent = currentBytes / totalBytes;
+    const currentMB = currentBytes / Math.pow(1024, 2);
+    const totalMB = totalBytes / Math.pow(1024, 2);
 
-// const currentGame = computed(() => lastInArray(window.api.content.game.installedVersions).version.fullString);
-// const gameDl = window.api.content.game.currentDownload;
-
-// TODO
-// const router = useRouter();
-// const text = ref("Fetching latest game updates");
-// const percent = ref(0);
-
-// window.api.content.game.onDlProress.add(progress => {
-//     percent.value = progress.currentBytes / progress.totalBytes;
-// });
-
-// window.api.content.engine.onDlProgress.add(progress => {
-//     percent.value = progress.currentBytes / progress.totalBytes;
-// });
-// const isLatestGameVersionInstalled = await window.api.content.game.isLatestGameVersionInstalled();
-// if (!isLatestGameVersionInstalled) {
-//     await window.api.content.game.updateGame();
-// } else {
-//     console.log("Latest game version already installed");
-// }
-
-// text.value = "Fetching latest engine updates";
-
-// const isLatestEngineVersionInstalled = await window.api.content.engine.isLatestEngineVersionInstalled();
-// if (!isLatestEngineVersionInstalled) {
-//     await window.api.content.engine.downloadLatestEngine();
-// } else {
-//     console.log("Latest engine version already installed");
-// }
-
-// window.api.content.maps.downloadMaps(defaultMaps);
+    return `${currentMB.toFixed(2)}MB/${totalMB.toFixed(2)}MB (${(percent * 100).toFixed(2)}%)`;
+};
 </script>

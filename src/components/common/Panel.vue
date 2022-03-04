@@ -1,10 +1,10 @@
 <template>
     <component class="panel" :class="{ hidden: Boolean(hidden), tabbed: Boolean(tabs.length) }" :is="is">
         <slot name="header" />
-        <div class="tabs" v-if="tabs.length">
+        <div class="panel__tabs" v-if="tabs.length">
             <Button v-for="(tab, i) in tabs" :key="i" :class="{ active: i === activeTab }" @click="emit('update:activeTab', i)">{{ tab.props?.title }}</Button>
         </div>
-        <div class="content" :style="`--gap: ${gap}; --padding: ${padding}`">
+        <div class="panel__content" :style="`--padding: ${padding}; --width: ${width}; --height: ${height}`">
             <slot v-if="tabs.length === 0" />
             <template v-else>
                 <component v-for="(tab, i) in tabs" :key="i" :is="tab" v-show="i === activeTab" />
@@ -15,36 +15,27 @@
 </template>
 
 <script lang="ts" setup>
-import { reactive, toRefs, useSlots, VNode } from "vue";
+import { reactive, useSlots, VNode } from "vue";
 import Button from "@/components/inputs/Button.vue";
 
-const props = defineProps({
-    is: {
-        type: String,
-        default: "div"
-    },
-    gap: {
-        type: String,
-        default: "10px"
-    },
-    padding: {
-        type: String,
-        default: "30px"
-    },
-    title: {
-        type: String,
-        default: ""
-    },
-    activeTab: {
-        type: Number,
-        default: 0
-    },
-    hidden: Boolean
+interface PanelProps {
+    is?: string;
+    width?: string;
+    height?: string;
+    padding?: string;
+    activeTab?: number;
+    hidden?: boolean;
+}
+
+const props = withDefaults(defineProps<PanelProps>(), {
+    is: "div",
+    width: "initial",
+    height: "initial",
+    padding: "30px",
+    activeTab: 0
 });
 
 const emit = defineEmits(["update:activeTab"]);
-
-const { is, gap, title } = toRefs(props);
 
 let tabs = reactive([] as VNode[]);
 

@@ -8,7 +8,7 @@ import { AbstractContentAPI } from "@/api/content/abstract-content";
 import { contentSources } from "@/config/content-sources";
 import { reactive } from "vue";
 import { DownloadInfo } from "@/model/downloads";
-import { removeFromArray } from "jaz-ts-utils";
+import { lastInArray, removeFromArray } from "jaz-ts-utils";
 
 export class EngineContentAPI extends AbstractContentAPI {
     public installedVersions: EngineVersionFormat[] = reactive([]);
@@ -32,6 +32,11 @@ export class EngineContentAPI extends AbstractContentAPI {
 
     public async downloadLatestEngine(includePrerelease = true) {
         const latestEngineRelease = await this.getLatestEngineReleaseInfo();
+
+        if (lastInArray(this.installedVersions) === this.engineTagNameToVersionString(latestEngineRelease.tag_name)) {
+            console.log("Latest engine already installed");
+            return;
+        }
 
         const engineVersionString = this.engineTagNameToVersionString(latestEngineRelease.tag_name);
 

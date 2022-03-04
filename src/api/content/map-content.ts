@@ -83,8 +83,8 @@ export class MapContentAPI extends AbstractContentAPI {
     }
 
     public async downloadMap(filename: string, host = contentSources.maps.http[0]) : Promise<void> {
-        if (this.installedMaps[filename]) {
-            console.warn(`Map ${filename} is already installed`);
+        if (this.installedMaps[filename] !== undefined) {
+            console.log(`Map ${filename} is already installed`);
             return;
         }
 
@@ -139,7 +139,7 @@ export class MapContentAPI extends AbstractContentAPI {
     }
 
     public async uninstallMap(filename: string) {
-        if (!this.installedMaps[filename]) {
+        if (this.installedMaps[filename] === undefined) {
             console.warn(`Map ${filename} is not installed`);
             return;
         }

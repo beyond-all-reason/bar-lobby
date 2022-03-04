@@ -31,6 +31,7 @@ import { playRandomMusic } from "@/utils/play-random-music";
 import IntroVideo from "@/components/misc/IntroVideo.vue";
 import Panel from "@/components/common/Panel.vue";
 import StatusInfo from "./components/battle/StatusInfo.vue";
+import { defaultMaps } from "@/config/default-maps";
 
 const isProduction = process.env.NODE_ENV === "production";
 
@@ -78,6 +79,10 @@ const setTransitionDuration = (transition: TransitionProps) => {
 };
 
 playRandomMusic();
+
+window.api.content.engine.downloadLatestEngine();
+window.api.content.game.updateGame();
+window.api.content.maps.downloadMaps(defaultMaps);
 
 router.replace("/");
 </script>

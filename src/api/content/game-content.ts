@@ -4,7 +4,7 @@ import * as zlib from "zlib";
 import axios from "axios";
 import { Octokit } from "octokit";
 import { spawn } from "child_process";
-import { removeFromArray } from "jaz-ts-utils";
+import { lastInArray, removeFromArray } from "jaz-ts-utils";
 import { DownloadType, Message, ProgressMessage, RapidVersion } from "@/model/pr-downloader";
 import { AbstractContentAPI } from "@/api/content/abstract-content";
 import { contentSources } from "@/config/content-sources";
@@ -45,7 +45,14 @@ export class GameContentAPI extends AbstractContentAPI {
         return this;
     }
 
-    public updateGame() {
+    public async updateGame() {
+        this.updateVersionMap();
+
+        if (this.installedVersions.includes(lastInArray(this.installedVersions))) {
+            console.log("Game is already up to date");
+            return;
+        }
+
         return new Promise<void>(resolve => {
             const prDownloaderProcess = spawn(`${this.prBinaryPath}`, [
                 "--filesystem-writepath", this.dataDir,

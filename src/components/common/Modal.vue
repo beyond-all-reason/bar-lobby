@@ -1,8 +1,8 @@
 <template>
     <teleport to=".theme">
         <transition name="modal" appear>
-            <div v-if="isOpen" class="modal-container" v-bind="$attrs">
-                <Panel id="modal" class="modal" :title="titleStr">
+            <div v-if="isOpen" class="modal-container">
+                <Panel id="modal" class="modal" :title="titleStr" v-bind="$attrs">
                     <template #header>
                         <div class="panel__header">
                             <div class="panel__title">{{ title || name }}</div>
@@ -18,17 +18,29 @@
     </teleport>
 </template>
 
+<script lang="ts">
+export default {
+    inheritAttrs: false
+};
+</script>
+
 <script lang="ts" setup>
 import { ref } from "vue";
 import Panel from "@/components/common/Panel.vue";
 import Icon from "@/components/common/Icon.vue";
 
-const props = defineProps({
-    name: {
-        type: String,
-        required: true
-    },
-    title: String,
+type PanelProps = InstanceType<typeof Panel>["$props"];
+interface ModalProps extends PanelProps {
+    name: string;
+    title?: string;
+}
+
+const props = withDefaults(defineProps<ModalProps>(), {
+    is: "div",
+    width: "initial",
+    height: "initial",
+    padding: "30px",
+    activeTab: 0
 });
 
 const isOpen = window.api.modals.register(props.name);

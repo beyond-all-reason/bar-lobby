@@ -1,8 +1,8 @@
 <template>
     <div class="progress" :class="{ themed: themed }" :style="percentStr">
-        <div class="bar" :style="`height: ${height}px`">
-            <div class="current"></div>
-            <div class="fullsize flex-center text">{{ text }}</div>
+        <div class="progress__bar" :style="`height: ${height}px`">
+            <div class="progress__current"></div>
+            <div class="fullsize progress__text">{{ text }}</div>
         </div>
     </div>
 </template>
@@ -16,7 +16,7 @@ const props = withDefaults(defineProps<{
     themed?: boolean
     height?: number
 }>(), {
-    height: 10
+    height: 15
 });
 
 const percentStr = computed(() => `--progress: ${props.percent * 100}%`);
