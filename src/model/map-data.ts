@@ -1,5 +1,5 @@
-import { DeepPartial } from "jaz-ts-utils";
-import { MapInfo } from "spring-map-parser";
+import type { DeepPartial } from "jaz-ts-utils";
+import type { MapInfo } from "spring-map-parser";
 
 export type MapData = {
     scriptName: string;

@@ -1,4 +1,5 @@
-import { createApp, TransitionProps } from "vue";
+import type { TransitionProps } from "vue";
+import { createApp } from "vue";
 import { createRouter, createWebHashHistory } from "vue-router";
 import "vue-next-select/dist/index.css";
 import "vue-slider-component/theme/default.css";

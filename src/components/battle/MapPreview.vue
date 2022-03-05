@@ -1,6 +1,7 @@
 <template>
     <div class="map-preview">
-        <img class="map-image" :src="texturePath">
+        <img v-if="texturePath" class="map-image" :src="texturePath">
+        <img v-else class="map-image">
     </div>
 </template>
 

@@ -1,5 +1,5 @@
 import * as luaparse from "luaparse";
-import { LocalStatement, TableConstructorExpression } from "luaparse";
+import type { LocalStatement, TableConstructorExpression } from "luaparse";
 
 export function parseLuaTable(luaFile: Buffer, tableVariableName?: string): any {
     const parsedLua = luaparse.parse(luaFile.toString(), { encodingMode: "x-user-defined", comments: false });

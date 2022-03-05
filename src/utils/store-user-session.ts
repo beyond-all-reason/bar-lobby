@@ -1,4 +1,4 @@
-import { ServerCommandType } from "tachyon-client";
+import type { ServerCommandType } from "tachyon-client";
 
 type UserData = NonNullable<ServerCommandType<"s.auth.verify">["user"] & ServerCommandType<"s.auth.login">["user"]>;
 

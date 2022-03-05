@@ -1,6 +1,7 @@
 import * as os from "os";
 import * as path from "path";
-import { Static, Type } from "@sinclair/typebox";
+import type { Static} from "@sinclair/typebox";
+import { Type } from "@sinclair/typebox";
 
 export enum Theme {
     Carbon = "Carbon",

@@ -1,4 +1,4 @@
-import { EngineVersionFormat } from "@/model/formats";
+import type { EngineVersionFormat } from "@/model/formats";
 
 export namespace BattleTypes {
     export type Battle = {

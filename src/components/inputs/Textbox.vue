@@ -7,7 +7,8 @@
 </template>
 
 <script lang="ts" setup>
-import { Ref, ref, toRefs } from "vue";
+import type { Ref} from "vue";
+import { ref, toRefs } from "vue";
 import { v4 as uuidv4 } from "uuid";
 import Icon from "@/components/common/Icon.vue";
 

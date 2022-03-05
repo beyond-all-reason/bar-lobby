@@ -2,8 +2,8 @@ import * as path from "path";
 import { BrowserWindow, screen, shell } from "electron";
 import { createProtocol } from "vue-cli-plugin-electron-builder/lib";
 import { autoUpdater } from "electron-updater";
-import { SettingsType } from "@/model/settings";
-import { StoreAPI } from "@/api/store";
+import type { SettingsType } from "@/model/settings";
+import type { StoreAPI } from "@/api/store";
 import { watch } from "vue";
 
 declare const __static: string;

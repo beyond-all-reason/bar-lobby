@@ -2,11 +2,11 @@ import * as path from "path";
 import * as fs from "fs";
 import axios from "axios";
 import { AbstractContentAPI } from "@/api/content/abstract-content";
-import { MapData } from "@/model/map-data";
+import type { MapData } from "@/model/map-data";
 import { MapCacheWorkerHost } from "@/workers/map-cache-worker";
 import { contentSources } from "@/config/content-sources";
 import { reactive } from "vue";
-import { DownloadInfo } from "@/model/downloads";
+import type { DownloadInfo } from "@/model/downloads";
 import { removeFromArray } from "jaz-ts-utils";
 
 export class MapContentAPI extends AbstractContentAPI {
@@ -66,6 +66,10 @@ export class MapContentAPI extends AbstractContentAPI {
     }
 
     public getMapImagePaths(filename: string) {
+        if (this.installedMaps[filename] === undefined) {
+            return null;
+        }
+
         const filenameWithoutExt = path.parse(filename).name;
 
         return {
@@ -144,15 +148,15 @@ export class MapContentAPI extends AbstractContentAPI {
             return;
         }
 
-        this.mapCache.clearItem(filename);
-        delete this.installedMaps[filename];
-
         await fs.promises.rm(path.join(this.mapsPath, filename), { force: true });
 
-        const mapImagePaths = this.getMapImagePaths(filename);
+        const mapImagePaths = this.getMapImagePaths(filename) ?? [];
         for (const mapImagePath of Object.values(mapImagePaths)) {
             await fs.promises.rm(mapImagePath, { force: true });
         }
+
+        this.mapCache.clearItem(filename);
+        delete this.installedMaps[filename];
 
         console.log(`Map ${filename} uninstalled`);
     }

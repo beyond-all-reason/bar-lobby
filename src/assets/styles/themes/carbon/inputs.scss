@@ -96,13 +96,14 @@ input[type=password] {
             padding: 0;
             background-color: unset !important;
             border: none !important;
+            margin-right: 5px;
             &::placeholder {
                 color: #fff;
             }
         }
         .vue-dropdown {
             z-index: 2;
-            background-color: rgba(20, 20, 20, 0.9);
+            background-color: rgba(20, 20, 20, 0.95);
             backdrop-filter: blur(2px);
             border: 1px solid rgba(255, 255, 255, 0.2);
             &-item {

@@ -1,10 +1,11 @@
 import * as fs from "fs";
 import * as path from "path";
-import { spawn, ChildProcess } from "child_process";
-import { EngineVersionFormat } from "@/model/formats";
+import type { ChildProcess } from "child_process";
+import { spawn } from "child_process";
+import type { EngineVersionFormat } from "@/model/formats";
 import { StartScriptConverter } from "@/utils/start-script-converter";
-import { StartScriptTypes } from "@/model/start-script";
-import { BattleTypes } from "@/model/battle";
+import type { StartScriptTypes } from "@/model/start-script";
+import type { BattleTypes } from "@/model/battle";
 
 export class GameAPI {
     public gameProcess?: ChildProcess;

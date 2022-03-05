@@ -1,4 +1,4 @@
-import { GameVersion } from "@/model/formats";
+import type { GameVersion } from "@/model/formats";
 
 export enum DownloadType {
     Metadata,

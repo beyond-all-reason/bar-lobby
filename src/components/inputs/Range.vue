@@ -11,9 +11,11 @@
 <script lang="ts" setup>
 // https://nightcatsama.github.io/vue-slider-component/#/
 
-import { onMounted, Ref, ref, toRefs } from "vue";
+import type { Ref} from "vue";
+import { onMounted, ref, toRefs } from "vue";
 import { v4 as uuidv4 } from "uuid";
-import VueSlider, { ERROR_TYPE } from "vue-slider-component";
+import type { ERROR_TYPE } from "vue-slider-component";
+import VueSlider from "vue-slider-component";
 
 type VueSliderProps = InstanceType<typeof VueSlider>;
 

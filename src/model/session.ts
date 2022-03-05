@@ -1,4 +1,5 @@
-import { Type, Static } from "@sinclair/typebox";
+import type { Static } from "@sinclair/typebox";
+import { Type } from "@sinclair/typebox";
 
 export const sessionSchema = Type.Strict(Type.Object({
     offline: Type.Boolean({ default: true }),

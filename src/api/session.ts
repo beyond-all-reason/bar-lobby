@@ -1,4 +1,5 @@
-import { SessionType, sessionSchema } from "@/model/session";
+import type { SessionType} from "@/model/session";
+import { sessionSchema } from "@/model/session";
 import Ajv from "ajv";
 import { reactive } from "vue";
 

@@ -1,9 +1,11 @@
-import Ajv, { ValidateFunction } from "ajv";
-import { reactive, ToRefs, toRefs, watch } from "vue";
+import type { ValidateFunction } from "ajv";
+import Ajv from "ajv";
+import type { ToRefs} from "vue";
+import { reactive, toRefs, watch } from "vue";
 import * as fs from "fs";
 import * as path from "path";
 import { app, ipcMain, ipcRenderer, shell } from "electron";
-import { TObject } from "@sinclair/typebox";
+import type { TObject } from "@sinclair/typebox";
 
 export class StoreAPI<T extends Record<string, unknown>> {
     public model!: ToRefs<T>;

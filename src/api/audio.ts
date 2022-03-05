@@ -1,4 +1,5 @@
-import { Howl, HowlOptions } from "howler";
+import type { HowlOptions } from "howler";
+import { Howl } from "howler";
 import * as path from "path";
 import { watch } from "vue";
 

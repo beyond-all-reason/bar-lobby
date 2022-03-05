@@ -1,4 +1,4 @@
-import { DownloadInfo } from "@/model/downloads";
+import type { DownloadInfo } from "@/model/downloads";
 import { reactive } from "vue";
 
 export class AbstractContentAPI {

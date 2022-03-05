@@ -1,5 +1,5 @@
-import { BattleTypes } from "@/model/battle";
-import { StartScriptTypes } from "@/model/start-script";
+import type { BattleTypes } from "@/model/battle";
+import type { StartScriptTypes } from "@/model/start-script";
 
 /**
  * https://springrts.com/wiki/Script.txt

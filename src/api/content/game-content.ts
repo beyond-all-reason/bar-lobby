@@ -5,12 +5,13 @@ import axios from "axios";
 import { Octokit } from "octokit";
 import { spawn } from "child_process";
 import { lastInArray, removeFromArray } from "jaz-ts-utils";
-import { DownloadType, Message, ProgressMessage, RapidVersion } from "@/model/pr-downloader";
+import type { Message, ProgressMessage, RapidVersion } from "@/model/pr-downloader";
+import { DownloadType } from "@/model/pr-downloader";
 import { AbstractContentAPI } from "@/api/content/abstract-content";
 import { contentSources } from "@/config/content-sources";
 import { parseGameVersionString } from "@/model/formats";
 import { reactive } from "vue";
-import { DownloadInfo } from "@/model/downloads";
+import type { DownloadInfo } from "@/model/downloads";
 
 export class GameContentAPI extends AbstractContentAPI {
     public installedVersions: RapidVersion[] = reactive([]);

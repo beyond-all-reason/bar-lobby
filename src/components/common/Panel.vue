@@ -15,7 +15,8 @@
 </template>
 
 <script lang="ts" setup>
-import { reactive, useSlots, VNode } from "vue";
+import type { VNode } from "vue";
+import { reactive, useSlots } from "vue";
 import Button from "@/components/inputs/Button.vue";
 
 interface PanelProps {

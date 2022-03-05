@@ -6,10 +6,12 @@ import { GameAPI } from "@/api/game";
 import { ModalsAPI } from "@/api/modals";
 import { SessionAPI } from "@/api/session";
 import { StoreAPI } from "@/api/store";
-import { Account, accountSchema } from "@/model/account";
-import { settingsSchema, SettingsType } from "@/model/settings";
+import type { Account} from "@/model/account";
+import { accountSchema } from "@/model/account";
+import type { SettingsType } from "@/model/settings";
+import { settingsSchema } from "@/model/settings";
 import { ipcRenderer } from "electron";
-import { Info } from "@/model/info";
+import type { Info } from "@/model/info";
 
 declare global {
     interface Window {

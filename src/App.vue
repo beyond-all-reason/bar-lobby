@@ -21,7 +21,8 @@
 </template>
 
 <script lang="ts" setup>
-import { Ref, ref, TransitionProps } from "vue";
+import type { Ref, TransitionProps } from "vue";
+import { ref } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import DebugSidebar from "@/components/misc/DebugSidebar.vue";
 import NavBar from "@/components/misc/NavBar.vue";

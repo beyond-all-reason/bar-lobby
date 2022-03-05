@@ -1,4 +1,5 @@
-import { ref, Ref } from "vue";
+import type { Ref } from "vue";
+import { ref } from "vue";
 
 export class ModalsAPI {
     public states: Map<string, Ref<boolean>> = new Map();

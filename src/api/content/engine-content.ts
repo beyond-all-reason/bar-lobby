@@ -1,13 +1,14 @@
 import * as fs from "fs";
 import * as path from "path";
-import { EngineVersionFormat, isEngineVersionString } from "@/model/formats";
+import type { EngineVersionFormat} from "@/model/formats";
+import { isEngineVersionString } from "@/model/formats";
 import { extract7z } from "@/utils/extract7z";
 import axios from "axios";
 import { Octokit } from "octokit";
 import { AbstractContentAPI } from "@/api/content/abstract-content";
 import { contentSources } from "@/config/content-sources";
 import { reactive } from "vue";
-import { DownloadInfo } from "@/model/downloads";
+import type { DownloadInfo } from "@/model/downloads";
 import { lastInArray, removeFromArray } from "jaz-ts-utils";
 
 export class EngineContentAPI extends AbstractContentAPI {
