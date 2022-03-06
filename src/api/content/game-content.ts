@@ -12,7 +12,8 @@ import { contentSources } from "@/config/content-sources";
 import { GameVersion, GameVersionFormat, parseGameVersionString } from "@/model/formats";
 import { reactive } from "vue";
 import type { DownloadInfo } from "@/model/downloads";
-import { SdpEntry } from "@/model/sdp";
+import { SdpFile, SdpFileMeta } from "@/model/sdp";
+import * as glob from "glob-promise";
 
 export class GameContentAPI extends AbstractContentAPI {
     public installedVersions: RapidVersion[] = reactive([]);
@@ -51,7 +52,7 @@ export class GameContentAPI extends AbstractContentAPI {
         this.updateVersionMap();
 
         if (this.installedVersions.includes(lastInArray(this.installedVersions))) {
-            console.log("Game is already up to date");
+            console.log(`Latest game version already installed: ${lastInArray(this.installedVersions).version.fullString}`);
             return;
         }
 
@@ -98,6 +99,20 @@ export class GameContentAPI extends AbstractContentAPI {
         });
     }
 
+    /** @param target Will uninstall old versions until this many versions remain */
+    // protected async purgeVersions(target: number) {
+    //     while (this.installedVersions.length > target) {
+    //         const oldestVersion = this.installedVersions[0];
+    //         const sdpEntries = await this.parseSdpFile(oldestVersion);
+    //         await fs.promises.rm
+    //         for (const sdpEntry of sdpEntries) {
+    //             await fs.promises.rm(sdpEntry.archivePath);
+    //         }
+    //         this.installedVersions.splice(0, 1);
+    //         console.log(`Uninstalled ${oldestVersion.version.toString()}`);
+    //     }
+    // }
+
     public async updateVersionMap() {
         const response = await axios({
             url: `${contentSources.rapid.host}/${contentSources.rapid.game}/versions.gz`,
@@ -116,57 +131,56 @@ export class GameContentAPI extends AbstractContentAPI {
         });
     }
 
-    public async getGameFiles(version: RapidVersion | GameVersion | GameVersionFormat, fileGlobs: string[]) : Promise<Record<string, string>> {
-        let md5: string | undefined;
-        if (typeof version === "object") {
-            if ("md5" in version) {
-                md5 = version.md5;
-            } else {
-                md5 = this.installedVersions.find(installedVersion => installedVersion.version.fullString === version.fullString)?.md5;
-            }
-        } else {
-            md5 = this.installedVersions.find(installedVersion => installedVersion.version.fullString === version)?.md5;
-        }
+    /**
+     * @param filePatterns glob pattern for which files to retrieve
+     * @example getGameFiles("Beyond All Reason test-16289-b154c3d", ["units/CorAircraft/T2/*.lua"])
+    */
+    public async getGameFiles(version: RapidVersion | GameVersion | GameVersionFormat, filePattern: string) : Promise<SdpFile[]> {
+        const sdpEntries = await this.parseSdpFile(version, filePattern);
 
-        if (!md5) {
-            throw new Error(`Version ${version} is not installed`);
-        }
-
-        const sdpFilePath = path.join(this.dataDir, "packages", `${md5}.sdp`);
-        const sdpEntries = await this.parseSdpFile(sdpFilePath, fileGlobs);
-
-        const gameFiles: Record<string, string> = {};
+        const sdpFiles: SdpFile[] = [];
 
         for (const sdpEntry of sdpEntries) {
             const poolDir = sdpEntry.md5.slice(0, 2);
-            const dataFileName = `${sdpEntry.md5.slice(2)}.gz`;
-            const dataFilePath = path.join(this.dataDir, "pool", poolDir, dataFileName);
-            const dataFile = await fs.promises.readFile(dataFilePath);
-            gameFiles[sdpEntry.fileName] = dataFile.toString();
+            const archiveFileName = `${sdpEntry.md5.slice(2)}.gz`;
+            const archiveFilePath = path.join(this.dataDir, "pool", poolDir, archiveFileName);
+            const archiveFile = await fs.promises.readFile(archiveFilePath);
+            const data = zlib.gunzipSync(archiveFile);
+
+            const sdpFile: SdpFile = { ...sdpEntry, data };
+            sdpFiles.push(sdpFile);
         }
 
-        return gameFiles;
+        return sdpFiles;
     }
 
-    protected async parseSdpFile(sdpFilePath: string, fileFilter?: string[]) : Promise<SdpEntry[]> {
+    protected async parseSdpFile(version: RapidVersion | GameVersion | GameVersionFormat, filePattern?: string) : Promise<SdpFileMeta[]> {
+        const md5 = this.getVersionMd5(version);
+        const sdpFilePath = path.join(this.dataDir, "packages", `${md5}.sdp`);
         const sdpFileZipped = await fs.promises.readFile(sdpFilePath);
         const sdpFile = zlib.gunzipSync(sdpFileZipped);
 
         const bufferStream = new BufferStream(sdpFile, true);
 
-        const fileData: SdpEntry[] = [];
+        const fileData: SdpFileMeta[] = [];
 
-        while (bufferStream.readStream.readableLength > 0 && fileFilter?.length !== fileData.length) {
+        let globPattern: InstanceType<typeof glob.Glob> | undefined;
+        if (filePattern) {
+            globPattern = new glob.Glob(filePattern);
+        }
+
+        while (bufferStream.readStream.readableLength > 0) {
             const fileNameLength = bufferStream.readInt(1);
             const fileName = bufferStream.readString(fileNameLength);
             const md5 = bufferStream.read(16).toString("hex");
             const crc32 = bufferStream.read(4).toString("hex");
             const filesizeBytes = bufferStream.readInt(4, true);
+            const archivePath = path.join(this.dataDir, "pool", md5.slice(0, 2), `${md5.slice(2)}.gz`);
 
-            if (fileFilter?.includes(fileName)) {
-                fileData.push({ fileName, md5, crc32, filesizeBytes });
-            } else if (!fileFilter) {
-                fileData.push({ fileName, md5, crc32, filesizeBytes });
+            if (globPattern && globPattern.minimatch.match(fileName)) {
+                fileData.push({ fileName, md5, crc32, filesizeBytes, archivePath });
+            } else if (!globPattern) {
+                fileData.push({ fileName, md5, crc32, filesizeBytes, archivePath });
             }
         }
 
@@ -202,5 +216,24 @@ export class GameContentAPI extends AbstractContentAPI {
 
     protected isPrDownloaderProgressMessage(message: Message) : message is ProgressMessage {
         return message.type === "Progress";
+    }
+
+    protected getVersionMd5(version: RapidVersion | GameVersion | GameVersionFormat) : string {
+        let md5: string | undefined;
+        if (typeof version === "object") {
+            if ("md5" in version) {
+                md5 = version.md5;
+            } else {
+                md5 = this.installedVersions.find(installedVersion => installedVersion.version.fullString === version.fullString)?.md5;
+            }
+        } else {
+            md5 = this.installedVersions.find(installedVersion => installedVersion.version.fullString === version)?.md5;
+        }
+
+        if (!md5) {
+            throw new Error(`Version ${version} is not installed`);
+        }
+
+        return md5;
     }
 }

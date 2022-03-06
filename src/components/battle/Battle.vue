@@ -9,12 +9,12 @@
             <Select v-model="selectedMap" label="Map" :options="maps" :label-by="(map: MapData) => map.friendlyName" :value-by="(map: MapData) => map.fileNameWithExt" close-on-select clear-on-select searchable />
             <Select v-model="selectedGame" label="Game" :options="games" close-on-select clear-on-select searchable />
             <Select v-model="selectedEngine" label="Engine" :options="engines" close-on-select clear-on-select searchable />
+            <ModOptions />
             <div class="flex-row gap-md">
                 <Button @click="addAiModal">
                     Add AI
                 </Button>
                 <AddAIModal :engine-version="selectedEngine" @add-ai="addAi" />
-
                 <Button class="btn--green" @click="start">
                     Start
                 </Button>
@@ -37,6 +37,7 @@ import type { EngineVersionFormat } from "@/model/formats";
 import type { MapData } from "@/model/map-data";
 import AddAIModal from "./AddAIModal.vue";
 import { AI } from "@/model/ai";
+import ModOptions from "@/components/battle/ModOptions.vue";
 
 const props = defineProps<{
     battle: BattleTypes.Battle;

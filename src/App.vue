@@ -86,7 +86,6 @@ const onIntroEnd = () => {
 
 const onPreloadDone = () => {
     state.value = "default";
-    var test = "fish";
 };
 
 window.api.content.engine.downloadLatestEngine();

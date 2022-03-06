@@ -35,7 +35,7 @@ export class EngineContentAPI extends AbstractContentAPI {
         const latestEngineRelease = await this.getLatestEngineReleaseInfo();
 
         if (lastInArray(this.installedVersions) === this.engineTagNameToVersionString(latestEngineRelease.tag_name)) {
-            console.log("Latest engine already installed");
+            console.log(`Latest engine version already installed: ${lastInArray(this.installedVersions)}`);
             return;
         }
 
