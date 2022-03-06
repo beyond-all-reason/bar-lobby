@@ -1,6 +1,6 @@
 <template>
     <div class="control checkbox" @mouseenter="sound">
-        <input :id="uuid" type="checkbox" v-model="checked" @change="$emit('update:modelValue', checked)">
+        <input :id="uuid" v-model="checked" type="checkbox" @change="$emit('update:modelValue', checked)">
         <label :for="uuid" :class="{ checked, hasLabel: Boolean(label) }">
             <div class="icon" :class="{ hasLabel: Boolean(label) }">
                 <Icon class="check" icon="check-bold" />
@@ -26,6 +26,10 @@ const props = defineProps({
     },
     modelValue: Boolean,
 });
+
+const emits = defineEmits<{
+    (event: "update:modelValue", checked: boolean): void
+}>();
 
 const uuid = ref(uuidv4());
 const label = ref(props.label);

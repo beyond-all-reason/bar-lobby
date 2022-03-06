@@ -1,8 +1,8 @@
 <template>
     <div class="control textbox" @mouseenter="sound">
-        <label :for="uuid" v-if="label">{{ label }}</label>
-        <input ref="input" :id="uuid" :name="name" :type="type" v-bind="$attrs" v-model="text" @input="onInput" @invalid="onInput">
-        <label :for="uuid" v-if="icon"><Icon :for="uuid" :icon="icon" /></label>
+        <label v-if="label" :for="uuid">{{ label }}</label>
+        <input :id="uuid" ref="input" v-model="text" :name="name" :type="type" v-bind="$attrs" @input="onInput" @invalid="onInput">
+        <label v-if="icon" :for="uuid"><Icon :for="uuid" :icon="icon" /></label>
     </div>
 </template>
 
@@ -12,16 +12,19 @@ import { ref, toRefs } from "vue";
 import { v4 as uuidv4 } from "uuid";
 import Icon from "@/components/common/Icon.vue";
 
-const props = defineProps({
-    name: String,
-    type: {
-        type: String,
-        default: "text"
-    },
-    label: String,
-    modelValue: String,
-    icon: String,
-    validation: Function
+const props = withDefaults(defineProps<{
+    modelValue: string;
+    name?: string;
+    type?: string;
+    label?: string;
+    icon?: string;
+    validation?: (value: string) => string;
+}>(), {
+    name: undefined,
+    type: undefined,
+    label: undefined,
+    icon: undefined,
+    validation: undefined
 });
 
 const emit = defineEmits(["update:modelValue"]);

@@ -5,13 +5,15 @@
                 <Panel id="modal" class="modal" :title="titleStr" v-bind="$attrs">
                     <template #header>
                         <div class="panel__header">
-                            <div class="panel__title">{{ title || name }}</div>
+                            <div class="panel__title">
+                                {{ title || name }}
+                            </div>
                             <div class="panel__close" @click="close" @mouseenter="sound">
                                 <Icon icon="close-thick" />
                             </div>
                         </div>
                     </template>
-                    <slot></slot>
+                    <slot />
                 </Panel>
             </div>
         </transition>
@@ -36,6 +38,7 @@ interface ModalProps extends PanelProps {
 }
 
 const props = withDefaults(defineProps<ModalProps>(), {
+    title: undefined,
     is: "div",
     width: "initial",
     height: "initial",

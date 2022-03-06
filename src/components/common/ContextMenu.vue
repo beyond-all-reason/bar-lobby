@@ -1,9 +1,11 @@
 <template>
-    <Popper v-bind="$attrs" openDelay="0" closeDelay="0" offsetDistance="0" :show="show" placement="right-start" class="context-menu" @contextmenu="show = true" v-click-away="() => show = false">
-        <slot></slot>
+    <Popper v-click-away="() => show = false" v-bind="$attrs" open-delay="0" close-delay="0" offset-distance="0" :show="show" placement="right-start" class="context-menu" @contextmenu="show = true">
+        <slot />
         <template #content>
-            <div class="context-menu__entry" v-for="entry in props.entries" :key="entry.label">
-                <div class="context-menu__label" @click="() => { entry.action(); show = false }">{{ entry.label }}</div>
+            <div v-for="entry in props.entries" :key="entry.label" class="context-menu__entry">
+                <div class="context-menu__label" @click="() => { entry.action(); show = false }">
+                    {{ entry.label }}
+                </div>
             </div>
         </template>
     </Popper>

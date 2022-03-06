@@ -1,10 +1,10 @@
 <template>
     <form class="control range" @submit.prevent="" @mouseenter="sound">
-        <label :for="uuid" v-if="label">{{ label }}</label>
+        <label v-if="label" :for="uuid">{{ label }}</label>
         <div class="input">
-            <VueSlider ref="slider" v-model="value" tooltip="none" :duration="0" :drag-on-click="true" v-bind="$attrs" @change="$emit('update:modelValue', value)" @error="error"></VueSlider>
+            <VueSlider ref="slider" v-model="value" tooltip="none" :duration="0" :drag-on-click="true" v-bind="$attrs" @change="$emit('update:modelValue', value)" @error="error" />
         </div>
-        <input ref="textbox" :id="uuid" v-model="value" :style="`width: ${max.toString().length + 1.85}ch`" :disabled="disableCustomInput">
+        <input :id="uuid" ref="textbox" v-model="value" :style="`width: ${max.toString().length + 1.85}ch`" :disabled="disableCustomInput">
     </form>
 </template>
 
@@ -27,8 +27,14 @@ interface Props extends Omit<Partial<VueSliderProps>, "modelValue"> {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-    modelValue: 0
+    modelValue: 0,
+    label: undefined,
+    icon: undefined
 });
+
+const emits = defineEmits<{
+    (event: "update:modelValue", value: number | string): void
+}>();
 
 const uuid = ref(uuidv4());
 const { label, icon } = toRefs(props);

@@ -1,20 +1,28 @@
 <template>
     <div>
         <Loader v-if="loading" />
-        <form v-else-if="!requestVerification" ref="form" @submit.prevent="login" class="flex-col gap-md">
-            <p v-if="loginError" class="color--error">{{ loginError }}</p>
-            <Textbox type="email" label="Email" v-model="email" required validate />
-            <Textbox type="password" label="Password" v-model="password" required />
+        <form v-else-if="!requestVerification" ref="form" class="flex-col gap-md" @submit.prevent="login">
+            <p v-if="loginError" class="color--error">
+                {{ loginError }}
+            </p>
+            <Textbox v-model="email" type="email" label="Email" required validate />
+            <Textbox v-model="password" type="password" label="Password" required />
             <div class="flex-row gap-md">
-                <Checkbox type="checkbox" label="Login Automatically" v-model="loginAutomatically" />
-                <Button class="btn--blue" type="submit">Login</Button>
+                <Checkbox v-model="loginAutomatically" type="checkbox" label="Login Automatically" />
+                <Button class="btn--blue" type="submit">
+                    Login
+                </Button>
             </div>
         </form>
-        <form v-else @submit.prevent="verify" class="flex-col gap-md">
-            <p v-if="verificationError" class="color--error">{{ verificationError }}</p>
-            <p v-html="verificationMessage"></p>
-            <Textbox label="Verification Code" v-model="verificationCode" required />
-            <Button type="submit">Verify</Button>
+        <form v-else class="flex-col gap-md" @submit.prevent="verify">
+            <p v-if="verificationError" class="color--error">
+                {{ verificationError }}
+            </p>
+            <p v-html="verificationMessage" />
+            <Textbox v-model="verificationCode" label="Verification Code" required />
+            <Button type="submit">
+                Verify
+            </Button>
         </form>
     </div>
 </template>

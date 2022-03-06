@@ -10,7 +10,7 @@
             <div :class="`view view--${route.name?.toString()}`">
                 <Panel :class="{ hidden: empty }">
                     <router-view v-slot="{ Component }">
-                        <transition mode="out-in" v-bind="currentTransition" @after-leave="afterLeave" :style="`--enter-duration: ${transitionDurationEnterMs}ms; --leave-duration: ${transitionDurationLeaveMs}ms;`">
+                        <transition mode="out-in" v-bind="currentTransition" :style="`--enter-duration: ${transitionDurationEnterMs}ms; --leave-duration: ${transitionDurationLeaveMs}ms;`" @after-leave="afterLeave">
                             <component :is="Component" />
                         </transition>
                     </router-view>

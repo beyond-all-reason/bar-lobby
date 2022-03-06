@@ -11,15 +11,17 @@ module.exports = {
     },
     ignorePatterns: ["dist_electron", "node_modules", "output.js", "src/routes.ts", "working-files"],
     extends: [
-        "plugin:vue/vue3-essential",
         "eslint:recommended",
+        "@vue/typescript/recommended",
+        "plugin:vue/vue3-recommended",
         "plugin:@typescript-eslint/recommended",
-        "@vue/typescript/recommended"
     ],
+    parser: "vue-eslint-parser",
     parserOptions: {
         ecmaVersion: 2020
     },
     plugins: [
+        "vue",
         "@typescript-eslint",
         "unused-imports"
     ],
@@ -52,6 +54,8 @@ module.exports = {
         "vue/no-v-model-argument": "off",
         "vue/multi-word-component-names": "off",
         "vue/no-multiple-template-root": "off",
+        "vue/max-attributes-per-line": "off",
+        "vue/first-attribute-linebreak": "off",
 
         "unused-imports/no-unused-imports": "error",
     }

@@ -1,6 +1,8 @@
 <template>
     <Modal name="add-ai" title="Add AI">
-        <Button v-for="(ai, i) in ais" @click="addAi(ai)" :key="i">{{ ai.name }}</Button>
+        <Button v-for="(ai, i) in ais" :key="i" @click="addAi(ai)">
+            {{ ai.name }}
+        </Button>
     </Modal>
 </template>
 
