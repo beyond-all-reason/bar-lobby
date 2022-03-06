@@ -7,7 +7,8 @@
 - How maps work
 - Common workflow
 - What makes a map good
-" />
+"
+        />
     </div>
 </template>
 

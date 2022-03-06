@@ -8,7 +8,8 @@
 - TypeScript
 - Electron
 - Vue
-" />
+"
+        />
     </div>
 </template>
 

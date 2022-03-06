@@ -9,7 +9,8 @@
 - Ready modal popup when match is found, shows status like 9/10 players ready
 - Should use TS and be hidden from everybody, even from yourself
 - Lower minimum balance deviation criteria (25%?), for faster queue times and because it's less important in casual
-" />
+"
+        />
     </div>
 </template>
 

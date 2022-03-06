@@ -8,7 +8,8 @@
 - Continue campaign
 - Load save
 - Mission select
-" />
+"
+        />
     </div>
 </template>
 

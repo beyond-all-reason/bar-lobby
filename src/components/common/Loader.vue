@@ -1,7 +1,7 @@
 <template>
     <div class="loader la-ball-clip-rotate-multiple">
-        <div></div>
-        <div></div>
+        <div />
+        <div />
     </div>
 </template>
 

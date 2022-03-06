@@ -9,7 +9,8 @@
 - Host custom battle button (should request spawning a dedicated instance instead of being self-hosted)
 - Host battle modal that includes options such as public/passworded/friends-only/invite-only, title, map, mode etc
 - Uses TS but hidden, same as casual matchmaking
-" />
+"
+        />
         <!-- <Battle /> -->
     </div>
 </template>

@@ -4,10 +4,14 @@
     <div>
         <div>Playground</div>
         <ContextMenu :entries="[{ label: 'First item', action: test }, { label: 'Nope', action: test }]">
-            <button @click="swap">Contex Menu</button>
+            <button @click="swap">
+                Contex Menu
+            </button>
         </ContextMenu>
         <Tooltip content="tooltip!">
-            <button @click="swap">Tooltip</button>
+            <button @click="swap">
+                Tooltip
+            </button>
         </Tooltip>
     </div>
 </template>

@@ -9,7 +9,8 @@
 - Sortable
 - Filterable
 - Paginated
-" />
+"
+        />
     </div>
 </template>
 

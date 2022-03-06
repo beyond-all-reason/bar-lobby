@@ -1,6 +1,6 @@
 <template>
     <Tooltip :content="tooltip">
-        <component :is="to ? 'router-link' : 'button'" class="btn" @mouseenter="sound" :to="to" :class="{ active: isActive }" v-bind="$attrs">
+        <component :is="to ? 'router-link' : 'button'" class="btn" :to="to" :class="{ active: isActive }" v-bind="$attrs" @mouseenter="sound">
             <div class="content">
                 <slot />
             </div>

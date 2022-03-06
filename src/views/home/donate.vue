@@ -8,7 +8,8 @@
 - How your donation gets used
 - Donate button
 - List of donators
-" />
+"
+        />
     </div>
 </template>
 

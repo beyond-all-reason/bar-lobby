@@ -1,7 +1,7 @@
 <template>
     <div class="control select" @mouseenter="sound">
-        <label :for="uuid" v-if="label">{{ label }}</label>
-        <VueNextSelect :name="uuid" :hide-selected="true" v-bind="$attrs"></VueNextSelect>
+        <label v-if="label" :for="uuid">{{ label }}</label>
+        <VueNextSelect :name="uuid" :hide-selected="true" v-bind="$attrs" />
     </div>
 </template>
 

@@ -6,7 +6,8 @@
         <Markdown source="
 - Teiserver
 - Tachyon protocol
-" />
+"
+        />
     </div>
 </template>
 

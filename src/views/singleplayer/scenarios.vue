@@ -6,7 +6,8 @@
         <Markdown source="
 - Scenarios list - pull from online scenarios database?
 - Scenario preview panel - shows mission objective, top 10 leaderboard
-" />
+"
+        />
     </div>
 </template>
 

@@ -2,18 +2,22 @@
     <div class="battle">
         <div class="battle__left">
             <h1>{{ battleTitle }}</h1>
-            <Playerlist :allyTeams="battle.allyTeams" :spectators="battle.spectators"/>
+            <Playerlist :ally-teams="battle.allyTeams" :spectators="battle.spectators" />
         </div>
         <div class="battle__right flex-col gap-md">
             <MapPreview :filename="selectedMap" />
-            <Select label="Map" :options="maps" v-model="selectedMap" :label-by="(map: MapData) => map.friendlyName" :value-by="(map: MapData) => map.fileNameWithExt" close-on-select clear-on-select searchable></Select>
-            <Select label="Game" :options="games" v-model="selectedGame" close-on-select clear-on-select searchable></Select>
-            <Select label="Engine" :options="engines" v-model="selectedEngine" close-on-select clear-on-select searchable></Select>
+            <Select v-model="selectedMap" label="Map" :options="maps" :label-by="(map: MapData) => map.friendlyName" :value-by="(map: MapData) => map.fileNameWithExt" close-on-select clear-on-select searchable />
+            <Select v-model="selectedGame" label="Game" :options="games" close-on-select clear-on-select searchable />
+            <Select v-model="selectedEngine" label="Engine" :options="engines" close-on-select clear-on-select searchable />
             <div class="flex-row gap-md">
-                <Button @click="addAiModal">Add AI</Button>
+                <Button @click="addAiModal">
+                    Add AI
+                </Button>
                 <AddAIModal :engine-version="selectedEngine" @add-ai="addAi" />
 
-                <Button @click="start" class="btn--green">Start</Button>
+                <Button class="btn--green" @click="start">
+                    Start
+                </Button>
             </div>
         </div>
     </div>

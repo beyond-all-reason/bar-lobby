@@ -15,7 +15,8 @@ Tutorials might include:
 - Win condition
 - Advanced economy
 - Advanced units
-" />
+"
+        />
     </div>
 </template>
 

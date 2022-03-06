@@ -1,8 +1,12 @@
 <template>
     <Modal name="exit">
         <div class="flex-row gap-md">
-            <Button @click="logout">Logout</Button>
-            <Button @click="quitToDesktop">Quit to Desktop</Button>
+            <Button @click="logout">
+                Logout
+            </Button>
+            <Button @click="quitToDesktop">
+                Quit to Desktop
+            </Button>
         </div>
     </Modal>
 </template>

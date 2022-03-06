@@ -11,7 +11,8 @@
 - Simple stats - games played, favourite faction, favourite mode
 - Recent achievements unlocked
 - Recent activity/matches
-" />
+"
+        />
     </div>
 </template>
 

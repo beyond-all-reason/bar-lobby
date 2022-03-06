@@ -6,7 +6,8 @@
         <Markdown source="
 - Main website, blog posts, guides
 - bar-rts.com, replays, battles, leaderboards, maps, player profiles
-" />
+"
+        />
     </div>
 </template>
 

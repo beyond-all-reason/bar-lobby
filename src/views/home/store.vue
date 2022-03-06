@@ -8,7 +8,8 @@
 - HUD themes
 - Custom Emojis 🙃
 - Particle/projectile effects?
-" />
+"
+        />
     </div>
 </template>
 

@@ -5,7 +5,8 @@
         <h1>{{ route.meta.title }}</h1>
         <Markdown source="
 - Same as online commands page
-" />
+"
+        />
     </div>
 </template>
 

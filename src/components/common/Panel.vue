@@ -1,17 +1,18 @@
 <template>
-    <component class="panel" :class="{ hidden: Boolean(hidden), tabbed: Boolean(tabs.length) }" :is="is">
+    <component :is="is" class="panel" :class="{ hidden: Boolean(hidden), tabbed: Boolean(tabs.length) }">
         <slot name="header" />
-        <div class="panel__tabs" v-if="tabs.length">
-            <Button v-for="(tab, i) in tabs" :key="i" :class="{ active: i === activeTab }" @click="emit('update:activeTab', i)">{{ tab.props?.title }}</Button>
+        <div v-if="tabs.length" class="panel__tabs">
+            <Button v-for="(tab, i) in tabs" :key="i" :class="{ active: i === activeTab }" @click="emit('update:activeTab', i)">
+                {{ tab.props?.title }}
+            </Button>
         </div>
         <div class="panel__content" :style="`--padding: ${padding}; --width: ${width}; --height: ${height}`">
             <slot v-if="tabs.length === 0" />
             <template v-else>
-                <component v-for="(tab, i) in tabs" :key="i" :is="tab" v-show="i === activeTab" />
+                <component :is="tab" v-for="(tab, i) in tabs" v-show="i === activeTab" :key="i" />
             </template>
         </div>
     </component>
-
 </template>
 
 <script lang="ts" setup>

@@ -1,5 +1,5 @@
 <template>
-    <Button class="icon downloads-button" @click="downloadsModal" :style="`--downloadPercent: ${downloadPercent * 100}%`">
+    <Button class="icon downloads-button" :style="`--downloadPercent: ${downloadPercent * 100}%`" @click="downloadsModal">
         <Icon icon="download" :size="40" />
     </Button>
 </template>

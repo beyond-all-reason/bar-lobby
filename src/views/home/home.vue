@@ -11,7 +11,8 @@
 - Some simple stats (e.g. players online, players ingame)
 - Social links
 - Promo space (recent video, cosmetic content or something?)
-" />
+"
+        />
     </div>
 </template>
 

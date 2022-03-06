@@ -8,7 +8,9 @@
         <div class="flex-col flex-grow">
             <div class="nav__primary flex-row flex-space-between gap-xxs">
                 <div class="nav__primary-left">
-                    <Button v-for="view in primaryRoutes" :key="view.path" :to="view.path">{{ view.meta.title }}</Button>
+                    <Button v-for="view in primaryRoutes" :key="view.path" :to="view.path">
+                        {{ view.meta.title }}
+                    </Button>
                 </div>
                 <div class="nav__primary-right">
                     <Button class="icon" to="/profile">
@@ -25,7 +27,9 @@
             </div>
             <div class="nav__secondary">
                 <div class="nav__secondary-left flex-row flex-left">
-                    <Button v-for="view in secondaryRoutes" :key="view.path" :to="view.path" class="secondary-item">{{ view.meta.title ?? view.name }}</Button>
+                    <Button v-for="view in secondaryRoutes" :key="view.path" :to="view.path" class="secondary-item">
+                        {{ view.meta.title ?? view.name }}
+                    </Button>
                 </div>
                 <div class="nav__secondary-right flex-row flex-right flex-center">
                     <ServerInfo />

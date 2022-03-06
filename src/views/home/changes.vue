@@ -7,7 +7,8 @@
 - Should manual updates (blog-like posts) be in news section or here?
 - Balance changes
 - Github changes from all BAR repos?
-" />
+"
+        />
     </div>
 </template>
 

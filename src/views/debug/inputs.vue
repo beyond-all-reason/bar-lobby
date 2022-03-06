@@ -4,9 +4,11 @@
     <div class="controls">
         <Textbox label="Text" placeholder="text" :disabled="disabled" />
         <Checkbox v-model="disabled" label="Controls disabled" />
-        <Textbox label="bob" placeholder="test" v-model="test" :disabled="disabled" />
+        <Textbox v-model="test" label="bob" placeholder="test" :disabled="disabled" />
         <Textbox type="email" label="email" :disabled="disabled" />
-        <Button :disabled="disabled">I am a button</Button>
+        <Button :disabled="disabled">
+            I am a button
+        </Button>
         <Select v-model="color" :options="['blue', 'red', 'green']" />
     </div>
 </template>

@@ -8,7 +8,8 @@
 - Official tournaments list
 - Unofficial tournaments list
 - Host unofficial tournament button + modal (ability to even automate prize pools would be awesome)
-" />
+"
+        />
     </div>
 </template>
 

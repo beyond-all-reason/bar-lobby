@@ -1,13 +1,17 @@
 <template>
     <div>
         <Loader v-if="loading" />
-        <form v-else @submit.prevent="register" class="flex-col gap-md">
-            <p v-if="error" class="color--error">{{ error }}</p>
-            <Textbox type="email" label="Email" v-model="email" required />
-            <Textbox label="Username" v-model="username" required />
-            <Textbox type="password" label="Password" v-model="password" required />
-            <Textbox type="password" label="Confirm Password" v-model="confirmPassword" :validation="validatePassword" required />
-            <Button type="submit">Register</Button>
+        <form v-else class="flex-col gap-md" @submit.prevent="register">
+            <p v-if="error" class="color--error">
+                {{ error }}
+            </p>
+            <Textbox v-model="email" type="email" label="Email" required />
+            <Textbox v-model="username" label="Username" required />
+            <Textbox v-model="password" type="password" label="Password" required />
+            <Textbox v-model="confirmPassword" type="password" label="Confirm Password" :validation="validatePassword" required />
+            <Button type="submit">
+                Register
+            </Button>
         </form>
     </div>
 </template>

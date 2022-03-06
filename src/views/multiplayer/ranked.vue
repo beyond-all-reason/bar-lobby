@@ -17,7 +17,8 @@ Ranked differences:
 - Team surrender only possible after x time and requires team approval (80%?)
 - Player being AFK for more than x minutes counts as abandon
 - Players who abandon are punished in some way, lower reputation, banned from matchmaking for x time or something
-" />
+"
+        />
     </div>
 </template>
 

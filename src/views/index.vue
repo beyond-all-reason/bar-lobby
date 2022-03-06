@@ -1,7 +1,7 @@
 <route lang="json">{ "meta": { "empty": true } }</route>
 
 <template>
-    <div></div>
+    <div />
 </template>
 
 <script lang="ts" setup>

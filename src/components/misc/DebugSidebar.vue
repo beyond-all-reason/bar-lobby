@@ -3,12 +3,22 @@
         <Button class="toggle" @click="active = !active">
             <Icon icon="tools" :size="20" />
         </button>
-        <Select label="View" v-model="currentRoute" :options="routes" :label-by="(route: any) => route.path" :value-by="(route: any) => route.path" :searchable="true" :clear-on-select="true" />
-        <Button class="flex-none" to="/debug/inputs">Debug Playground</Button>
-        <Button class="flex-none" @click="openSettings">Open Settings File</Button>
-        <Button class="flex-none" @click="openLobbyDir">Open Lobby Dir</Button>
-        <Button class="flex-none" @click="openDataDir">Open Data Dir</Button>
-        <Button class="flex-none" @click="openStartScript">Open Latest Start Script</Button>
+        <Select v-model="currentRoute" label="View" :options="routes" :label-by="(route: any) => route.path" :value-by="(route: any) => route.path" :searchable="true" :clear-on-select="true" />
+        <Button class="flex-none" to="/debug/inputs">
+            Debug Playground
+        </Button>
+        <Button class="flex-none" @click="openSettings">
+            Open Settings File
+        </Button>
+        <Button class="flex-none" @click="openLobbyDir">
+            Open Lobby Dir
+        </Button>
+        <Button class="flex-none" @click="openDataDir">
+            Open Data Dir
+        </Button>
+        <Button class="flex-none" @click="openStartScript">
+            Open Latest Start Script
+        </Button>
     </div>
 </template>
 

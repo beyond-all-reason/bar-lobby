@@ -1,5 +1,5 @@
 <template>
-    <svg v-html="svg" viewBox="0 0 24 24" :width="size" :height="size"></svg>
+    <svg viewBox="0 0 24 24" :width="size" :height="size" v-html="svg" />
 </template>
 
 <script lang="ts" setup>

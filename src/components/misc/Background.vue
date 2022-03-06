@@ -1,6 +1,6 @@
 <template>
     <div class="fullsize background">
-        <div class="fullsize background__overlay" :class="{ active: blur }"></div>
+        <div class="fullsize background__overlay" :class="{ active: blur }" />
     </div>
 </template>
 

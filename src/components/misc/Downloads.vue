@@ -3,8 +3,12 @@
         <div v-if="downloads.length" class="downloads">
             <div v-for="(download, i) in downloads" :key="i" class="downloads__download">
                 <div class="downloads__info">
-                    <div class="downloads__name">{{ download.name }}</div>
-                    <div class="downloads__type">{{ download.type }}</div>
+                    <div class="downloads__name">
+                        {{ download.name }}
+                    </div>
+                    <div class="downloads__type">
+                        {{ download.type }}
+                    </div>
                 </div>
                 <Progress :percent="download.currentBytes / download.totalBytes" :text="progressText(download.currentBytes, download.totalBytes)" themed />
             </div>
