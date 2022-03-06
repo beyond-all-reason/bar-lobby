@@ -3,8 +3,8 @@
         <DebugSidebar v-if="!isProduction" />
         <StatusInfo v-if="false" />
         <Background :blur="blurBg" />
-        <IntroVideo v-if="state === 'intro'" @end="state = 'preloader'" />
-        <Preloader v-else-if="state === 'preloader'" @loaded="state = 'default'" />
+        <IntroVideo v-if="state === 'intro'" @end="onIntroEnd" />
+        <Preloader v-else-if="state === 'preloader'" @loaded="onPreloadDone" />
         <template v-else>
             <NavBar :class="{ hidden: empty }" />
             <div :class="`view view--${route.name?.toString()}`">
@@ -79,7 +79,15 @@ const setTransitionDuration = (transition: TransitionProps) => {
     }
 };
 
-playRandomMusic();
+const onIntroEnd = () => {
+    playRandomMusic();
+    state.value = "preloader";
+};
+
+const onPreloadDone = () => {
+    state.value = "default";
+    var test = "fish";
+};
 
 window.api.content.engine.downloadLatestEngine();
 window.api.content.game.updateGame();

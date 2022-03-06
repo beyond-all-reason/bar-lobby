@@ -5,13 +5,18 @@ import { AbstractContentAPI } from "@/api/content/abstract-content";
 import type { AI } from "@/model/ai";
 import type { EngineVersionFormat } from "@/model/formats";
 import { parseLuaTable } from "@/utils/parse-lua-table";
+import { reactive } from "vue";
 
 export class AiContentAPI extends AbstractContentAPI {
-    protected engineAis: Record<EngineVersionFormat, AI[]> = {};
+    public installedAis: Record<EngineVersionFormat, AI[]> = reactive({});
+
+    public async init(latestEngine: EngineVersionFormat) {
+        await this.fetchAis(latestEngine);
+    }
 
     public async fetchAis(engine: EngineVersionFormat) : Promise<AI[]> {
-        if (this.engineAis[engine] !== undefined) {
-            return this.engineAis[engine];
+        if (this.installedAis[engine] !== undefined) {
+            return this.installedAis[engine];
         }
 
         const ais: AI[] = [];
@@ -27,7 +32,7 @@ export class AiContentAPI extends AbstractContentAPI {
             }
         }
 
-        this.engineAis[engine] = ais;
+        this.installedAis[engine] = ais;
 
         return ais;
     }

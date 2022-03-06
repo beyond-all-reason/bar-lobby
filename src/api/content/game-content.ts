@@ -4,21 +4,22 @@ import * as zlib from "zlib";
 import axios from "axios";
 import { Octokit } from "octokit";
 import { spawn } from "child_process";
-import { lastInArray, removeFromArray } from "jaz-ts-utils";
+import { BufferStream, lastInArray, removeFromArray } from "jaz-ts-utils";
 import type { Message, ProgressMessage, RapidVersion } from "@/model/pr-downloader";
 import { DownloadType } from "@/model/pr-downloader";
 import { AbstractContentAPI } from "@/api/content/abstract-content";
 import { contentSources } from "@/config/content-sources";
-import { parseGameVersionString } from "@/model/formats";
+import { GameVersion, GameVersionFormat, parseGameVersionString } from "@/model/formats";
 import { reactive } from "vue";
 import type { DownloadInfo } from "@/model/downloads";
+import { SdpEntry } from "@/model/sdp";
 
 export class GameContentAPI extends AbstractContentAPI {
     public installedVersions: RapidVersion[] = reactive([]);
 
     protected prBinaryPath!: string;
     protected ocotokit = new Octokit();
-    protected versionLookup: Record<string, RapidVersion> = {};
+    protected md5ToRapidVersionMap: Record<string, RapidVersion> = {};
 
     constructor(userDataDir: string, dataDir: string) {
         super(userDataDir, dataDir);
@@ -34,8 +35,8 @@ export class GameContentAPI extends AbstractContentAPI {
             const sdpFilePaths = await fs.promises.readdir(packagesDir);
             for (const sdpFilePath of sdpFilePaths) {
                 const md5 = sdpFilePath.split(".")[0];
-                if (this.versionLookup[md5]) {
-                    this.installedVersions.push(this.versionLookup[md5]);
+                if (this.md5ToRapidVersionMap[md5]) {
+                    this.installedVersions.push(this.md5ToRapidVersionMap[md5]);
                 }
             }
             this.installedVersions.sort((a, b) => {
@@ -66,9 +67,9 @@ export class GameContentAPI extends AbstractContentAPI {
             prDownloaderProcess.stdout.on("data", (stdout: Buffer) => {
                 const lines = stdout.toString().trim().split("\r\n").filter(Boolean);
                 console.log(lines.join("\n"));
-                const messages = lines.map(line => this.processLine(line)).filter(Boolean) as Message[];
+                const messages = lines.map(line => this.processPrDownloaderLine(line)).filter(Boolean) as Message[];
                 for (const message of messages) {
-                    if (this.isProgressMessage(message) && downloadType === DownloadType.Game && download) {
+                    if (this.isPrDownloaderProgressMessage(message) && downloadType === DownloadType.Game && download) {
                         message.downloadType = downloadType;
                         download.currentBytes = message.currentBytes;
                         download.totalBytes = message.totalBytes;
@@ -111,11 +112,68 @@ export class GameContentAPI extends AbstractContentAPI {
         const versionsParts = versionsStr.split("\n");
         versionsParts.map(versionLine => {
             const [ tag, md5, _, version ] = versionLine.split(",");
-            this.versionLookup[md5] = { tag, md5, version: parseGameVersionString(version) };
+            this.md5ToRapidVersionMap[md5] = { tag, md5, version: parseGameVersionString(version) };
         });
     }
 
-    protected processLine(line: string) : Message | null {
+    public async getGameFiles(version: RapidVersion | GameVersion | GameVersionFormat, fileGlobs: string[]) : Promise<Record<string, string>> {
+        let md5: string | undefined;
+        if (typeof version === "object") {
+            if ("md5" in version) {
+                md5 = version.md5;
+            } else {
+                md5 = this.installedVersions.find(installedVersion => installedVersion.version.fullString === version.fullString)?.md5;
+            }
+        } else {
+            md5 = this.installedVersions.find(installedVersion => installedVersion.version.fullString === version)?.md5;
+        }
+
+        if (!md5) {
+            throw new Error(`Version ${version} is not installed`);
+        }
+
+        const sdpFilePath = path.join(this.dataDir, "packages", `${md5}.sdp`);
+        const sdpEntries = await this.parseSdpFile(sdpFilePath, fileGlobs);
+
+        const gameFiles: Record<string, string> = {};
+
+        for (const sdpEntry of sdpEntries) {
+            const poolDir = sdpEntry.md5.slice(0, 2);
+            const dataFileName = `${sdpEntry.md5.slice(2)}.gz`;
+            const dataFilePath = path.join(this.dataDir, "pool", poolDir, dataFileName);
+            const dataFile = await fs.promises.readFile(dataFilePath);
+            gameFiles[sdpEntry.fileName] = dataFile.toString();
+        }
+
+        return gameFiles;
+    }
+
+    protected async parseSdpFile(sdpFilePath: string, fileFilter?: string[]) : Promise<SdpEntry[]> {
+        const sdpFileZipped = await fs.promises.readFile(sdpFilePath);
+        const sdpFile = zlib.gunzipSync(sdpFileZipped);
+
+        const bufferStream = new BufferStream(sdpFile, true);
+
+        const fileData: SdpEntry[] = [];
+
+        while (bufferStream.readStream.readableLength > 0 && fileFilter?.length !== fileData.length) {
+            const fileNameLength = bufferStream.readInt(1);
+            const fileName = bufferStream.readString(fileNameLength);
+            const md5 = bufferStream.read(16).toString("hex");
+            const crc32 = bufferStream.read(4).toString("hex");
+            const filesizeBytes = bufferStream.readInt(4, true);
+
+            if (fileFilter?.includes(fileName)) {
+                fileData.push({ fileName, md5, crc32, filesizeBytes });
+            } else if (!fileFilter) {
+                fileData.push({ fileName, md5, crc32, filesizeBytes });
+            }
+        }
+
+        return fileData;
+    }
+
+    protected processPrDownloaderLine(line: string) : Message | null {
         if (!line) {
             return null;
         }
@@ -142,7 +200,7 @@ export class GameContentAPI extends AbstractContentAPI {
         return { type, parts };
     }
 
-    protected isProgressMessage(message: Message) : message is ProgressMessage {
+    protected isPrDownloaderProgressMessage(message: Message) : message is ProgressMessage {
         return message.type === "Progress";
     }
 }

@@ -8,14 +8,13 @@
             <MapPreview :filename="selectedMap" />
             <Select label="Map" :options="maps" v-model="selectedMap" :label-by="(map: MapData) => map.friendlyName" :value-by="(map: MapData) => map.fileNameWithExt" close-on-select clear-on-select searchable></Select>
             <Select label="Game" :options="games" v-model="selectedGame" close-on-select clear-on-select searchable></Select>
+            <Select label="Engine" :options="engines" v-model="selectedEngine" close-on-select clear-on-select searchable></Select>
             <div class="flex-row gap-md">
-                <Button @click="addAi">Add AI</Button>
-                <!-- <AddAIModal @add-ai="addAi" /> -->
+                <Button @click="addAiModal">Add AI</Button>
+                <AddAIModal :engine-version="selectedEngine" @add-ai="addAi" />
 
                 <Button @click="start" class="btn--green">Start</Button>
             </div>
-            <div>Engine: {{ battle.hostOptions.engineVersion }}</div>
-            <div>Game: {{ battle.hostOptions.gameVersion }}</div>
         </div>
     </div>
 </template>
@@ -32,6 +31,8 @@ import { lastInArray, randomFromArray } from "jaz-ts-utils";
 import { aiNames } from "@/config/ai-names";
 import type { EngineVersionFormat } from "@/model/formats";
 import type { MapData } from "@/model/map-data";
+import AddAIModal from "./AddAIModal.vue";
+import { AI } from "@/model/ai";
 
 const props = defineProps<{
     battle: BattleTypes.Battle;
@@ -45,20 +46,22 @@ const maps = computed(() => Object.values(window.api.content.maps.installedMaps)
 const map: ComputedRef<MapData | null | undefined> = computed(() => window.api.content.maps.getMapByScriptName(battle.hostOptions.mapName));
 const selectedMap = ref(map.value?.fileNameWithExt ?? "");
 
-const games = window.api.content.game.installedVersions.map(rapidVersion => rapidVersion.version.fullString).slice(-10);
-const visibleGames = games.slice(games.length - 5);
-const selectedGame = ref(lastInArray(games));
+const games = computed(() => window.api.content.game.installedVersions.map(rapidVersion => rapidVersion.version.fullString).slice(-10));
+const selectedGame = ref(lastInArray(games.value));
 
-// const addAiModal = () => window.api.modals.open("add-ai");
+const engines = computed(() => window.api.content.engine.installedVersions);
+const selectedEngine = ref(lastInArray(engines.value));
 
-const addAi = () => {
+const addAiModal = () => window.api.modals.open("add-ai");
+
+const addAi = (ai: AI) => {
     const playerName = window.api.session.model.user?.name ?? "Player";
 
     battle.allyTeams[1].teams.push({
         ais: [{
             name: randomFromArray(aiNames),
             ownerName: playerName,
-            ai: "BARb",
+            ai: ai.interfaceShortName,
             faction: BattleTypes.Faction.Armada
         }],
         players: []
