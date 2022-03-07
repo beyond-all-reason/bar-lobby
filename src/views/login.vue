@@ -8,7 +8,7 @@
                 <transition v-else name="login" appear>
                     <div class="login">
                         <img ref="logo" class="login__logo" src="@/assets/images/BARLogoFull.png">
-                        <Panel v-model:activeTab="activeTab" class="login__panel">
+                        <Panel v-model:activeTabIndex="activeTab" class="login__panel">
                             <Tab title="Login">
                                 <LoginForm />
                             </Tab>

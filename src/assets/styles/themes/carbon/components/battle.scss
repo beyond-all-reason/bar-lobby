@@ -1,6 +1,7 @@
 .battle {
     display: flex;
     flex-direction: row;
+    height: 100%;
     gap: 10px;
     &__left {
         flex-grow: 1;

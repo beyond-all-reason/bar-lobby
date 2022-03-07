@@ -13,11 +13,8 @@ export default defineComponent({
 </script>
 
 <script lang="ts" setup>
-const props = defineProps({
-    title: {
-        type: String,
-        required: true
-    }
-});
+const props = defineProps<{
+    title: string;
+}>();
 </script>
 

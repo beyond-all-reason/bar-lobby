@@ -1,5 +1,5 @@
 <template>
-    <Panel>
+    <Panel :paginated-tabs="true">
         <Tab title="Stuff">
             Hello
         </Tab>

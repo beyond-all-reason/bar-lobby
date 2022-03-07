@@ -47,6 +47,14 @@
             }
         }
     }
+    &__tabs {
+        display: flex;
+    }
+    &.paginatedTabs {
+        .panel__tabs {
+            background: red;
+        }
+    }
     &__header {
         justify-content: space-between;
         width: 100%;

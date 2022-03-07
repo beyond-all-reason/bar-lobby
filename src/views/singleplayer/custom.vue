@@ -1,9 +1,7 @@
 <route lang="json">{ "meta": { "title": "Custom", "order": 2, "offline": true, "transition": { "name": "slide-left" } } }</route>
 
 <template>
-    <div>
-        <Battle :battle="battle" />
-    </div>
+    <Battle :battle="battle" />
 </template>
 
 <script lang="ts" setup>
