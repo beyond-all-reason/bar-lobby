@@ -9,11 +9,13 @@ import type { Message, ProgressMessage, RapidVersion } from "@/model/pr-download
 import { DownloadType } from "@/model/pr-downloader";
 import { AbstractContentAPI } from "@/api/content/abstract-content";
 import { contentSources } from "@/config/content-sources";
-import { GameVersion, GameVersionFormat, parseGameVersionString } from "@/model/formats";
+import { GameVersionFormat, parseGameVersionString } from "@/model/formats";
 import { reactive } from "vue";
 import type { DownloadInfo } from "@/model/downloads";
 import { SdpFile, SdpFileMeta } from "@/model/sdp";
 import * as glob from "glob-promise";
+import { ModOption, ModOptionBoolean, ModOptionList, ModOptionNumber, ModOptionSection } from "@/model/mod-options";
+import { parseLuaTable } from "@/utils/parse-lua-table";
 
 export class GameContentAPI extends AbstractContentAPI {
     public installedVersions: RapidVersion[] = reactive([]);
@@ -99,20 +101,6 @@ export class GameContentAPI extends AbstractContentAPI {
         });
     }
 
-    /** @param target Will uninstall old versions until this many versions remain */
-    // protected async purgeVersions(target: number) {
-    //     while (this.installedVersions.length > target) {
-    //         const oldestVersion = this.installedVersions[0];
-    //         const sdpEntries = await this.parseSdpFile(oldestVersion);
-    //         await fs.promises.rm
-    //         for (const sdpEntry of sdpEntries) {
-    //             await fs.promises.rm(sdpEntry.archivePath);
-    //         }
-    //         this.installedVersions.splice(0, 1);
-    //         console.log(`Uninstalled ${oldestVersion.version.toString()}`);
-    //     }
-    // }
-
     public async updateVersionMap() {
         const response = await axios({
             url: `${contentSources.rapid.host}/${contentSources.rapid.game}/versions.gz`,
@@ -135,7 +123,7 @@ export class GameContentAPI extends AbstractContentAPI {
      * @param filePatterns glob pattern for which files to retrieve
      * @example getGameFiles("Beyond All Reason test-16289-b154c3d", ["units/CorAircraft/T2/*.lua"])
     */
-    public async getGameFiles(version: RapidVersion | GameVersion | GameVersionFormat, filePattern: string) : Promise<SdpFile[]> {
+    public async getGameFiles(version: GameVersionFormat, filePattern: string) : Promise<SdpFile[]> {
         const sdpEntries = await this.parseSdpFile(version, filePattern);
 
         const sdpFiles: SdpFile[] = [];
@@ -154,8 +142,80 @@ export class GameContentAPI extends AbstractContentAPI {
         return sdpFiles;
     }
 
-    protected async parseSdpFile(version: RapidVersion | GameVersion | GameVersionFormat, filePattern?: string) : Promise<SdpFileMeta[]> {
-        const md5 = this.getVersionMd5(version);
+    public async getModOptions(version: GameVersionFormat) : Promise<ModOption[]> {
+        const gameFiles = await this.getGameFiles(version, "modoptions.lua");
+        const modOptionsLua = gameFiles[0].data;
+        const modOptionsArray = parseLuaTable(modOptionsLua, "options") as Array<Record<string, any>>; // TODO: type this
+
+        const sections: ModOptionSection[] = [];
+
+        for (const modOptionObj of modOptionsArray) {
+            const baseModOption: ModOption = {
+                key: modOptionObj.key,
+                name: modOptionObj.name,
+                description: modOptionObj.desc,
+                hidden: modOptionObj.hidden ?? false
+            };
+
+            if (modOptionObj.type === "section") {
+                const section: ModOptionSection = {
+                    ...baseModOption,
+                    options: []
+                };
+                sections.push(section);
+                continue;
+            }
+
+            const section = sections.find(section => section.key === modOptionObj.section);
+
+            if (!section) {
+                console.warn(`Could not find section ${modOptionObj.key} in modoptions.lua for ${version}`);
+                continue;
+            }
+
+            if (modOptionObj.type === "number") {
+                const modOption: ModOptionNumber = {
+                    ...baseModOption,
+                    default: modOptionObj.def,
+                    step: modOptionObj.step,
+                    min: modOptionObj.min,
+                    max: modOptionObj.max
+                };
+                section?.options.push(modOption);
+            } else if (modOptionObj.type === "boolean") {
+                const modOption: ModOptionBoolean = {
+                    ...baseModOption,
+                    default: modOptionObj.def
+                };
+                section?.options.push(modOption);
+            } else if (modOptionObj.type === "list") {
+                const options: ModOption[] = [];
+                for (const option of modOptionObj.items) {
+                    options.push({
+                        key: option.key,
+                        name: option.name,
+                        description: option.desc,
+                        hidden: option.hidden
+                    });
+                }
+                const modOption: ModOptionList = {
+                    ...baseModOption,
+                    default: modOptionObj.def,
+                    options
+                };
+                section?.options.push(modOption);
+            }
+        }
+
+        return sections;
+    }
+
+    protected async parseSdpFile(version: GameVersionFormat, filePattern?: string) : Promise<SdpFileMeta[]> {
+        const md5 = this.installedVersions.find(installedVersion => installedVersion.version.fullString === version)?.md5;
+        if (!md5) {
+            throw new Error(`Version ${version} is not installed`);
+        }
+
         const sdpFilePath = path.join(this.dataDir, "packages", `${md5}.sdp`);
         const sdpFileZipped = await fs.promises.readFile(sdpFilePath);
         const sdpFile = zlib.gunzipSync(sdpFileZipped);
@@ -216,24 +276,5 @@ export class GameContentAPI extends AbstractContentAPI {
 
     protected isPrDownloaderProgressMessage(message: Message) : message is ProgressMessage {
         return message.type === "Progress";
-    }
-
-    protected getVersionMd5(version: RapidVersion | GameVersion | GameVersionFormat) : string {
-        let md5: string | undefined;
-        if (typeof version === "object") {
-            if ("md5" in version) {
-                md5 = version.md5;
-            } else {
-                md5 = this.installedVersions.find(installedVersion => installedVersion.version.fullString === version.fullString)?.md5;
-            }
-        } else {
-            md5 = this.installedVersions.find(installedVersion => installedVersion.version.fullString === version)?.md5;
-        }
-
-        if (!md5) {
-            throw new Error(`Version ${version} is not installed`);
-        }
-
-        return md5;
     }
 }

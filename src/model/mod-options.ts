@@ -1,4 +1,3 @@
-export type ModOptions = ModOption[];
 
 export interface ModOption {
     key: string;
@@ -22,7 +21,7 @@ export interface ModOptionBoolean extends ModOption {
     default: boolean;
 }
 
-export interface ModOptionSelect extends ModOption {
+export interface ModOptionList extends ModOption {
     options: ModOption[];
     default: string;
 }
