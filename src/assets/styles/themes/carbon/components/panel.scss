@@ -31,6 +31,9 @@
         padding: var(--padding);
         overflow-y: auto;
     }
+    &.scrollContent .panel__content {
+        flex-basis: 0;
+    }
     &__tabs, &__header {
         position: relative;
         width: 100%;
@@ -51,8 +54,9 @@
         display: flex;
     }
     &.paginatedTabs {
-        .panel__tabs {
-            background: red;
+        .panel__single-tab {
+            width: 100%;
+            pointer-events: none;
         }
     }
     &__header {
@@ -72,6 +76,23 @@
         background: rgba(219, 20, 20, 0.3);
         &:hover {
             background: rgba(219, 20, 20, 0.6);
+        }
+    }
+    &.light {
+        background: rgba(255, 255, 255, 0.05);
+        box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-top: 1px solid rgba(255, 255, 255, 0.25);
+        border-left: 1px solid rgba(255, 255, 255, 0.2);
+        border-right: 1px solid rgba(255, 255, 255, 0.2);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        backdrop-filter: none;
+        .panel__tabs {
+            background: rgba(255, 255, 255, 0.1);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        &:after {
+            background: none;
         }
     }
 }

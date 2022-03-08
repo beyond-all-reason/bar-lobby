@@ -1,16 +1,16 @@
 <template>
-    <component :is="is" class="panel" :class="{ hidden: Boolean(hidden), tabbed: Boolean(tabs.length), paginatedTabs }">
+    <component :is="is" class="panel" :class="{ hidden, tabbed: Boolean(tabs.length), paginatedTabs, light, scrollContent }">
         <slot name="header" />
         <div v-if="tabs.length" class="panel__tabs">
             <template v-if="paginatedTabs">
-                <Button class="panel__tab-btn panel__prev-tab">
-                    Prev
+                <Button class="panel__prev-tab" @click="prevTab">
+                    <Icon icon="chevron-left" />
                 </Button>
-                <Button class="panel__tab-btn">
-                    {{ activeTab.props.title }}
+                <Button class="panel__single-tab">
+                    {{ activeTab.props?.title }}
                 </Button>
-                <Button class="panel__tab-btn panel__next-tab">
-                    Next
+                <Button class="panel__next-tab" @click="nextTab">
+                    <Icon icon="chevron-right" />
                 </Button>
             </template>
             <template v-else>
@@ -29,9 +29,10 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, ref, toRefs, VNode, watch } from "vue";
-import { reactive, useSlots } from "vue";
+import { computed, ref, toRefs, watch } from "vue";
+import { useSlots } from "vue";
 import Button from "@/components/inputs/Button.vue";
+import Icon from "@/components/common/Icon.vue";
 
 const props = withDefaults(defineProps<{
     is?: string;
@@ -41,6 +42,8 @@ const props = withDefaults(defineProps<{
     activeTabIndex?: number;
     hidden?: boolean;
     paginatedTabs?: boolean;
+    light?: boolean;
+    scrollContent?: boolean;
 }>(), {
     is: "div",
     width: "initial",
@@ -48,7 +51,9 @@ const props = withDefaults(defineProps<{
     padding: "30px",
     activeTabIndex: 0,
     hidden: false,
-    paginatedTabs: false
+    paginatedTabs: false,
+    light: false,
+    scrollContent: false
 });
 
 const activeTabIndex = toRefs(props).activeTabIndex;
@@ -66,15 +71,32 @@ const tabClicked = (tabIndex: number) => {
     emit("update:activeTab", currentTab.value);
 };
 
-let tabs = reactive([] as VNode[]);
+const tabs = computed(() => {
+    const slots = useSlots();
 
-const activeTab = computed(() => tabs[activeTabIndex.value]);
+    if (slots.default) {
+        return slots.default().filter(slot => typeof slot.type === "object" && "name" in slot.type && slot.type.name === "Tab");
+    }
 
-const allSlots = useSlots();
+    return [];
+});
 
-const slots = allSlots?.default?.();
-if (slots && slots.every(slot => (slot.type as any).name === "Tab")) {
-    tabs = slots;
-}
+const activeTab = computed(() => tabs.value[currentTab.value]);
+
+const prevTab = () => {
+    if (currentTab.value > 0) {
+        currentTab.value--;
+    } else {
+        currentTab.value = tabs.value.length - 1;
+    }
+};
+
+const nextTab = () => {
+    if (currentTab.value < tabs.value.length - 1) {
+        currentTab.value++;
+    } else {
+        currentTab.value = 0;
+    }
+};
 </script>
 
