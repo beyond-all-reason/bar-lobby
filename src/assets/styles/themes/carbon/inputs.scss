@@ -43,6 +43,9 @@ input, select, label, textarea, button, progress, meter, .btn, .input, .vue-sele
     &:disabled {
         background: rgba(255, 255, 255, 0.05);
         color: rgba(255, 255, 255, 0.2);
+        &:hover {
+            pointer-events: none;
+        }
     }
 }
 .control label {
@@ -137,7 +140,7 @@ input[type=password] {
     input {
         flex-grow: 0;
         border-left: none;
-        &:hover {
+        &:not(:disabled):hover {
             box-shadow: -1px 0 0 rgba(255, 255, 255, 0.1);
         }
     }

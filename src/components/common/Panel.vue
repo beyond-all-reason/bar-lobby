@@ -29,7 +29,7 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, ref, toRefs, watch } from "vue";
+import { computed, ref, toRefs, VNode, watch } from "vue";
 import { useSlots } from "vue";
 import Button from "@/components/inputs/Button.vue";
 import Icon from "@/components/common/Icon.vue";
@@ -75,7 +75,13 @@ const tabs = computed(() => {
     const slots = useSlots();
 
     if (slots.default) {
-        return slots.default().filter(slot => typeof slot.type === "object" && "name" in slot.type && slot.type.name === "Tab");
+        let tabsParent = slots.default() as VNode[];
+
+        if (typeof tabsParent[0].type !== "object") {
+            tabsParent = tabsParent[0].children as VNode[];
+        }
+
+        return tabsParent.filter(slot => typeof slot.type === "object" && "name" in slot.type && slot.type.name === "Tab");
     }
 
     return [];

@@ -1,7 +1,7 @@
 <template>
-    <div class="control checkbox" @mouseenter="sound">
+    <div class="control checkbox">
         <input :id="uuid" v-model="checked" type="checkbox" @change="$emit('update:modelValue', checked)">
-        <label :for="uuid" :class="{ checked, hasLabel: Boolean(label) }">
+        <label :for="uuid" :class="{ checked, hasLabel: Boolean(label) }" @mouseenter="sound">
             <div class="icon" :class="{ hasLabel: Boolean(label) }">
                 <Icon class="check" icon="check-bold" />
             </div>

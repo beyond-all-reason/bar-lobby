@@ -1,11 +1,11 @@
 <template>
-    <form class="control range" @submit.prevent="" @mouseenter="sound">
+    <div class="control range" @submit.prevent="">
         <label v-if="label" :for="uuid">{{ label }}</label>
-        <div class="input">
-            <VueSlider ref="slider" v-model="value" tooltip="none" :duration="0" :drag-on-click="true" v-bind="$attrs" @change="$emit('update:modelValue', value)" @error="error" />
+        <div class="input" @mouseenter="sound">
+            <VueSlider ref="slider" v-model="value" tooltip="none" :duration="0" :drag-on-click="true" v-bind="$attrs" @error="(error as any)" @change="emits('change', value)" />
         </div>
         <input :id="uuid" ref="textbox" v-model="value" :style="`width: ${max.toString().length + 1.85}ch`" :disabled="disableCustomInput">
-    </form>
+    </div>
 </template>
 
 <script lang="ts" setup>
@@ -20,7 +20,7 @@ import VueSlider from "vue-slider-component";
 type VueSliderProps = InstanceType<typeof VueSlider>;
 
 interface Props extends Omit<Partial<VueSliderProps>, "modelValue"> {
-    modelValue: number | string,
+    modelValue?: number
     label?: string;
     disableCustomInput?: boolean;
     icon?: string;
@@ -29,11 +29,13 @@ interface Props extends Omit<Partial<VueSliderProps>, "modelValue"> {
 const props = withDefaults(defineProps<Props>(), {
     modelValue: 0,
     label: undefined,
-    icon: undefined
+    icon: undefined,
+    disableCustomInput: true // TODO: needs some improvement before enabling custom input by default
 });
 
 const emits = defineEmits<{
-    (event: "update:modelValue", value: number | string): void
+    (event: "update:modelValue", value: number): void,
+    (event: "change", value: number): void,
 }>();
 
 const uuid = ref(uuidv4());

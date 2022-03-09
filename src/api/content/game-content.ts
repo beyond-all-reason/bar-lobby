@@ -142,7 +142,7 @@ export class GameContentAPI extends AbstractContentAPI {
         return sdpFiles;
     }
 
-    public async getModOptions(version: GameVersionFormat) : Promise<ModOption[]> {
+    public async getModOptions(version: GameVersionFormat) : Promise<ModOptionSection[]> {
         const gameFiles = await this.getGameFiles(version, "modoptions.lua");
         const modOptionsLua = gameFiles[0].data;
         const modOptionsArray = parseLuaTable(modOptionsLua, "options") as Array<Record<string, any>>; // TODO: type this
@@ -150,7 +150,7 @@ export class GameContentAPI extends AbstractContentAPI {
         const sections: ModOptionSection[] = [];
 
         for (const modOptionObj of modOptionsArray) {
-            const baseModOption: ModOption = {
+            const baseModOption: Omit<ModOption, "type"> = {
                 key: modOptionObj.key,
                 name: modOptionObj.name,
                 description: modOptionObj.desc,
@@ -160,6 +160,7 @@ export class GameContentAPI extends AbstractContentAPI {
             if (modOptionObj.type === "section") {
                 const section: ModOptionSection = {
                     ...baseModOption,
+                    type: "section",
                     options: []
                 };
                 sections.push(section);
@@ -176,6 +177,7 @@ export class GameContentAPI extends AbstractContentAPI {
             if (modOptionObj.type === "number") {
                 const modOption: ModOptionNumber = {
                     ...baseModOption,
+                    type: "number",
                     default: modOptionObj.def,
                     step: modOptionObj.step,
                     min: modOptionObj.min,
@@ -185,6 +187,7 @@ export class GameContentAPI extends AbstractContentAPI {
             } else if (modOptionObj.type === "boolean") {
                 const modOption: ModOptionBoolean = {
                     ...baseModOption,
+                    type: "boolean",
                     default: modOptionObj.def
                 };
                 section?.options.push(modOption);
@@ -192,6 +195,7 @@ export class GameContentAPI extends AbstractContentAPI {
                 const options: ModOption[] = [];
                 for (const option of modOptionObj.items) {
                     options.push({
+                        type: "list",
                         key: option.key,
                         name: option.name,
                         description: option.desc,
@@ -200,6 +204,7 @@ export class GameContentAPI extends AbstractContentAPI {
                 }
                 const modOption: ModOptionList = {
                     ...baseModOption,
+                    type: "list",
                     default: modOptionObj.def,
                     options
                 };

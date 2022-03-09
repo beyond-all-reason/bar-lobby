@@ -9,7 +9,9 @@
             <Select v-model="selectedMap" label="Map" :options="maps" :label-by="(map: MapData) => map.friendlyName" :value-by="(map: MapData) => map.fileNameWithExt" close-on-select clear-on-select searchable />
             <Select v-model="selectedGame" label="Game" :options="games" close-on-select clear-on-select searchable />
             <Select v-model="selectedEngine" label="Engine" :options="engines" close-on-select clear-on-select searchable />
-            <ModOptions />
+            <suspense>
+                <ModOptions :game-version="selectedGame" />
+            </suspense>
             <div class="flex-row gap-md">
                 <Button @click="addAiModal">
                     Add AI

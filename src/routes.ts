@@ -8,6 +8,7 @@ import profile_index from '@/views/profile/index.vue'
 import singleplayer_index from '@/views/singleplayer/index.vue'
 import debug_inputs from '@/views/debug/inputs.vue'
 import debug_playground from '@/views/debug/playground.vue'
+import debug_test from '@/views/debug/test.vue'
 import development_game_dev from '@/views/development/game-dev.vue'
 import development_lobby_dev from '@/views/development/lobby-dev.vue'
 import development_map_dev from '@/views/development/map-dev.vue'
@@ -149,6 +150,15 @@ export default [
     meta: {
       title: 'Playground',
       order: 1,
+    },
+  },
+  {
+    name: 'debug-test',
+    path: '/debug/test',
+    component: debug_test,
+    meta: {
+      title: 'Test',
+      order: 2,
     },
   },
   {
