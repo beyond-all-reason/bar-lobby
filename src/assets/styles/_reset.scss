@@ -41,3 +41,8 @@ table {
 textarea {
     white-space: revert;
 }
+
+div {
+    display: flex;
+    flex-direction: column;
+}

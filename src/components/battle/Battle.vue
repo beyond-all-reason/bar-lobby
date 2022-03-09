@@ -3,6 +3,7 @@
         <div class="battle__left">
             <h1>{{ battleTitle }}</h1>
             <Playerlist :ally-teams="battle.allyTeams" :spectators="battle.spectators" />
+            <BattleChat />
         </div>
         <div class="battle__right flex-col gap-md">
             <MapPreview :filename="selectedMap" />
@@ -40,6 +41,7 @@ import type { MapData } from "@/model/map-data";
 import AddAIModal from "./AddAIModal.vue";
 import { AI } from "@/model/ai";
 import ModOptions from "@/components/battle/ModOptions.vue";
+import BattleChat from "@/components/battle/BattleChat.vue";
 
 const props = defineProps<{
     battle: BattleTypes.Battle;

@@ -80,6 +80,7 @@
     }
     &__primary-left, &__primary-right {
         display: flex;
+        flex-direction: row;
         gap: 1px;
     }
     &__primary-left {
@@ -107,6 +108,7 @@
         }
     }
     &__secondary {
+        flex-direction: row;
         background: linear-gradient(rgba(0, 0, 0, 0.05), rgba(0, 0, 0, 0.3));
         width: 100%;
         box-shadow: inset 2px 2px 10px rgba(0, 0, 0, 0.5);

@@ -31,6 +31,7 @@ input, select, label, textarea, button, progress, meter, .btn, .input, .vue-sele
     border-top: 1px solid rgba(255, 255, 255, 0.13);
     min-height: 35px;
     display: flex;
+    flex-direction: row;
     align-items: center;
     min-width: 0;
     flex-grow: 1;
@@ -104,6 +105,9 @@ input[type=password] {
                 color: #fff;
             }
         }
+        &-header {
+            flex-direction: row;
+        }
         .vue-dropdown {
             z-index: 2;
             background-color: rgba(20, 20, 20, 0.95);
@@ -124,6 +128,7 @@ input[type=password] {
     align-items: unset;
     .vue-slider {
         display: flex;
+        flex-direction: row;
         flex-grow: 1;
         height: unset !important;
         &-rail {
