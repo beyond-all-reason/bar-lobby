@@ -8,11 +8,9 @@
         <div class="battle__right flex-col gap-md">
             <MapPreview :filename="selectedMap" />
             <Select v-model="selectedMap" label="Map" :options="maps" :label-by="(map: MapData) => map.friendlyName" :value-by="(map: MapData) => map.fileNameWithExt" close-on-select clear-on-select searchable />
-            <Select v-model="selectedGame" label="Game" :options="games" close-on-select clear-on-select searchable />
-            <Select v-model="selectedEngine" label="Engine" :options="engines" close-on-select clear-on-select searchable />
-            <suspense>
-                <ModOptions :game-version="selectedGame" />
-            </suspense>
+            <!-- <Select v-model="selectedGame" label="Game" :options="games" close-on-select clear-on-select searchable /> -->
+            <!-- <Select v-model="selectedEngine" label="Engine" :options="engines" close-on-select clear-on-select searchable /> -->
+            <ModOptions :game-version="selectedGame" />
             <div class="flex-row gap-md">
                 <Button @click="addAiModal">
                     Add AI

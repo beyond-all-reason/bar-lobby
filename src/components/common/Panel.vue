@@ -22,7 +22,9 @@
         <div class="panel__content" :style="`--padding: ${padding}; --width: ${width}; --height: ${height}`">
             <slot v-if="tabs.length === 0" />
             <template v-else>
-                <component :is="tab" v-for="(tab, i) in tabs" v-show="i === currentTab" :key="i" />
+                <template v-for="(tab, i) in tabs" :key="i">
+                    <component :is="tab" v-if="i === currentTab" />
+                </template>
             </template>
         </div>
     </component>

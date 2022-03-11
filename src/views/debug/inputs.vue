@@ -8,7 +8,9 @@
         <Button :disabled="disabled">
             I am a button
         </Button>
-        <Select v-model="color" :options="['blue', 'red', 'green']" />
+        <div class="test">
+            <Select v-model="color" :options="['blue', 'red', 'green', 'fish', 'yep']" />
+        </div>
     </div>
 </template>
 
@@ -27,9 +29,16 @@ const txt = ref("");
 
 <style scoped lang="scss">
 .controls {
-    position: relative;
+    //position: relative;
     display: grid;
     grid-template-columns: 300px 300px;
     gap: 10px;
+}
+.test {
+    height: 100px;
+    //overflow: hidden;
+    position: relative;
+    padding-top: 10px;
+    background: rgba(255, 0, 0, 0.1);
 }
 </style>

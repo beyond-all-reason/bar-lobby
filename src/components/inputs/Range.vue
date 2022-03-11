@@ -1,10 +1,10 @@
 <template>
-    <div class="control range" @submit.prevent="">
-        <label v-if="label" :for="uuid">{{ label }}</label>
+    <div class="control range" :class="{ test: trimLabel }" @submit.prevent="">
+        <label v-if="label" :for="uuid" :class="{ trim: trimLabel }">{{ label }}</label>
         <div class="input" @mouseenter="sound">
-            <VueSlider ref="slider" v-model="value" tooltip="none" :duration="0" :drag-on-click="true" v-bind="$attrs" @error="(error as any)" @change="emits('change', value)" />
+            <VueSlider ref="slider" v-model="value" tooltip="none" :duration="0" :drag-on-click="true" :contained="true" v-bind="$attrs" @error="(error as any)" @change="emits('change', value)" />
         </div>
-        <input :id="uuid" ref="textbox" v-model="value" :style="`width: ${max.toString().length + 1.85}ch`" :disabled="disableCustomInput">
+        <input :id="uuid" ref="textbox" v-model="value" :style="`width: calc(${max.toString().length}ch + 20px)`" :disabled="disableCustomInput">
     </div>
 </template>
 
@@ -24,13 +24,15 @@ interface Props extends Omit<Partial<VueSliderProps>, "modelValue"> {
     label?: string;
     disableCustomInput?: boolean;
     icon?: string;
+    trimLabel?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
     modelValue: 0,
     label: undefined,
     icon: undefined,
-    disableCustomInput: true // TODO: needs some improvement before enabling custom input by default
+    disableCustomInput: false, // TODO: needs some improvement before enabling custom input by default
+    trimLabel: false
 });
 
 const emits = defineEmits<{

@@ -12,16 +12,20 @@ button, button * {
     &:not(.select):not(.range) {
         overflow-x: auto;
     }
-    //&.validate {
-        // input, select, input[type=checkbox] + label, textarea, .input, .vue-select {
-        //     &:invalid {
-        //         border-bottom: 1px solid rgba(255, 0, 0, 0.4);
-        //     }
-        //     &:valid {
-        //         border-bottom: 1px solid rgba(123, 255, 0, 0.3);
-        //     }
-        // }
-    //}
+    &.test {
+        flex-wrap: wrap;
+        border-right: 1px solid rgba(255, 255, 255, 0.2);
+        input, .vue-select {
+            border-right: none;
+        }
+        label {
+            width: 100%;
+            border-bottom: none;
+            font-size: 16px;
+            min-height: unset;
+            justify-content: flex-start;
+        }
+    }
 }
 input, select, label, textarea, button, progress, meter, .btn, .input, .vue-select {
     padding: 5px 10px;
@@ -59,6 +63,13 @@ input, select, label, textarea, button, progress, meter, .btn, .input, .vue-sele
     &:not(input[type=checkbox] + label):hover {
         background-color: rgba(255, 255, 255, 0.1);
     }
+    // &.trim {
+    //     width: 150px;
+    //     display: block;
+    //     overflow: hidden;
+    //     white-space: nowrap;
+    //     text-overflow: ellipsis;
+    // }
 }
 .control label:not(input[type=checkbox] + label) {
     border-right: none;
@@ -90,7 +101,13 @@ input[type=password] {
     width: 0;
 }
 
-.select
+.control.select {
+    label {
+        max-width: 60%;
+        display: block;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
     .vue-select {
         position: unset;
         input, .vue-input {
@@ -109,13 +126,13 @@ input[type=password] {
             flex-direction: row;
         }
         .vue-dropdown {
-            z-index: 2;
+            z-index: 3;
             background-color: rgba(20, 20, 20, 0.95);
             backdrop-filter: blur(2px);
             border: 1px solid rgba(255, 255, 255, 0.2);
             &-item {
                 padding: 5px 10px;
-                &:hover, &.highlighted {
+                &:hover, &.highlighted, &.selected {
                     background-color: rgba(255, 255, 255, 0.9);
                     color: #000;
                     text-shadow: none;
@@ -123,6 +140,7 @@ input[type=password] {
             }
         }
     }
+}
 
 .range {
     align-items: unset;
@@ -137,6 +155,9 @@ input[type=password] {
         }
         &-process {
             background-color: #ddd;
+        }
+        &-dot {
+            z-index: 1;
         }
         &-dot-handle-focus {
             box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);

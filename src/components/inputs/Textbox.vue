@@ -13,13 +13,14 @@ import { v4 as uuidv4 } from "uuid";
 import Icon from "@/components/common/Icon.vue";
 
 const props = withDefaults(defineProps<{
-    modelValue: string;
+    modelValue?: string;
     name?: string;
     type?: string;
     label?: string;
     icon?: string;
     validation?: (value: string) => string;
 }>(), {
+    modelValue: "",
     name: undefined,
     type: undefined,
     label: undefined,
@@ -35,7 +36,7 @@ const text = ref(props.modelValue);
 const input = ref() as Ref<HTMLInputElement>;
 const name = props.name ? ref(props.name) : uuid;
 
-const onInput = (event: InputEvent) => {
+const onInput = (event: Event) => {
     emit("update:modelValue", text.value);
 
     if (validation?.value && event.target instanceof HTMLInputElement) {

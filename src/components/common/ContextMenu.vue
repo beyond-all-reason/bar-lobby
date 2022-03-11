@@ -1,5 +1,5 @@
 <template>
-    <Popper v-click-away="() => show = false" v-bind="$attrs" open-delay="0" close-delay="0" offset-distance="0" :show="show" placement="right-start" class="context-menu" @contextmenu="show = true">
+    <Popper v-click-away="() => show = false" v-bind="$attrs" open-delay="0" close-delay="0" offset-distance="0" :show="show" placement="right-start" class="context-menu" @click.right="show = true">
         <slot />
         <template #content>
             <div v-for="entry in props.entries" :key="entry.label" class="context-menu__entry">

@@ -15,20 +15,21 @@ import { ref } from "vue";
 import { v4 as uuidv4 } from "uuid";
 import Icon from "@/components/common/Icon.vue";
 
-const props = defineProps({
-    type: {
-        type: String,
-        default: "text"
-    },
-    label: {
-        type: String,
-        default: ""
-    },
-    modelValue: Boolean,
+const props = withDefaults(defineProps<{
+    modelValue?: boolean;
+    type?: string;
+    label?: string;
+    smallLabel?: boolean;
+}>(), {
+    modelValue: false,
+    type: "text",
+    label: undefined,
+    smallLabel: false
 });
 
 const emits = defineEmits<{
-    (event: "update:modelValue", checked: boolean): void
+    (event: "update:modelValue", checked: boolean): void,
+    (event: "change", value: boolean): void,
 }>();
 
 const uuid = ref(uuidv4());

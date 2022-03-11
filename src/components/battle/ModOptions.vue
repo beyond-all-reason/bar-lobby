@@ -1,9 +1,11 @@
 <template>
     <Panel :paginated-tabs="true" padding="10px" light scroll-content>
-        <Tab v-for="section in modOptionsSchema.filter(section => !section.hidden)" :key="section.key" :title="section.name" class="flex-col gap-sm">
-            <template v-for="option in section.options.filter(option => !option.hidden)" :key="option.key">
-                <Range v-if="isNumberOption(option) && option.min !== undefined" :label="option.name" :model-value="option.default" :min="option.min" :max="option.max" :interval="option.step" @change="value => setModOption(value, option)" />
-            </template>
+        <Tab v-for="section in modOptionsSchema.filter(section => !section.hidden)" :key="section.key" :title="section.name" class="flex-col gap-md">
+            <Tooltip v-for="option in section.options.filter(option => !option.hidden)" :key="option.key" :content="option.description">
+                <Range v-if="isNumberOption(option)" :label="option.name" :model-value="option.default" :min="option.min" :max="option.max" :interval="option.step" trim-label @change="value => setModOption(value, option)" />
+                <Checkbox v-if="isBooleanOption(option)" :label="option.name" :model-value="option.default" small-label @change="value => setModOption(value, option)" />
+                <Select v-if="isListOption(option)" :label="option.name" :model-value="option.default" :options="option.options" :label-by="(option: any) => option.name" :value-by="(option: any) => option.key" small-label @change="value => setModOption(value, option)" />
+            </Tooltip>
         </Tab>
     </Panel>
 </template>
@@ -12,16 +14,24 @@
 import Panel from "@/components/common/Panel.vue";
 import Tab from "@/components/common/Tab.vue";
 import { GameVersionFormat } from "@/model/formats";
-import { reactive } from "vue";
+import { onMounted, reactive } from "vue";
 import Range from "@/components/inputs/Range.vue";
-import { isNumberOption, ModOptionNumber, ModOptionBoolean, ModOptionList } from "@/model/mod-options";
+import { isNumberOption, isBooleanOption, isListOption, ModOptionNumber, ModOptionBoolean, ModOptionList, ModOptionSection } from "@/model/mod-options";
+import Checkbox from "@/components/inputs/Checkbox.vue";
+import Select from "@/components/inputs/Select.vue";
+import Tooltip from "@/components/common/Tooltip.vue";
 
 const props = defineProps<{
     gameVersion: GameVersionFormat
 }>();
 
-const modOptionsSchema = await window.api.content.game.getModOptions(props.gameVersion);
 const modOptions: Record<string, string> = reactive({});
+const modOptionsSchema: ModOptionSection[] = reactive([]);
+
+onMounted(async () => {
+    const modOptionSections = await window.api.content.game.getModOptions(props.gameVersion);
+    modOptionsSchema.push(...modOptionSections);
+});
 
 const setModOption = (value: string | number | boolean, option: ModOptionNumber | ModOptionBoolean | ModOptionList) => {
     if (value === option.default) {
