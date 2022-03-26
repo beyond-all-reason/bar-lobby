@@ -11,6 +11,9 @@
         cursor: url("~@/assets/images/cursor_default.png"), default !important;
     }
 
+    $flag-icons-path: '~flag-icons/flags';
+    @import '~flag-icons/sass/flag-icons.scss';
+
     @import "inputs";
     @import "text";
 

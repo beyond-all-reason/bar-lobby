@@ -7,7 +7,7 @@ import App from "@/App.vue";
 import "@/assets/styles/styles.scss";
 import routes from "@/routes";
 import { apiInit } from "@/api/api";
-import VueClickAway from "vue3-click-away";
+import { clickAwayDirective } from "@/utils/click-away-directive";
 
 declare module "vue-router" {
     interface RouteMeta {
@@ -42,7 +42,7 @@ async function setupVue() {
 
     app.use(router);
 
-    app.use(VueClickAway);
+    app.directive("click-away", clickAwayDirective);
 
     app.mount("#app");
 

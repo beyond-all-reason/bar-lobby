@@ -31,15 +31,35 @@ const defaultBattleL: BattleTypes.Battle = {
             }]
         },
         {
-            teams: [{
-                players: [],
-                ais: [{
-                    name: randomFromArray(aiNames),
-                    ownerName: playerName,
-                    ai: "BARb",
-                    faction: BattleTypes.Faction.Armada
-                }]
-            }]
+            teams: [
+                {
+                    players: [],
+                    ais: [{
+                        name: randomFromArray(aiNames),
+                        ownerName: playerName,
+                        ai: "BARb",
+                        faction: BattleTypes.Faction.Armada
+                    }]
+                },
+                {
+                    players: [],
+                    ais: [{
+                        name: randomFromArray(aiNames),
+                        ownerName: playerName,
+                        ai: "BARb",
+                        faction: BattleTypes.Faction.Armada
+                    }]
+                },
+                {
+                    players: [],
+                    ais: [{
+                        name: randomFromArray(aiNames),
+                        ownerName: playerName,
+                        ai: "BARb",
+                        faction: BattleTypes.Faction.Armada
+                    }]
+                }
+            ]
         }
     ],
     spectators: []

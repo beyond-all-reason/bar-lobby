@@ -1,25 +1,19 @@
 .battle {
-    display: flex;
-    flex-direction: row;
     height: 100%;
-    gap: 10px;
-    &__left {
-        flex-grow: 1;
-    }
     &__right {
-        width: 400px;
+        width: 550px;
+    }
+    &__panel {
+        background: rgba(0, 0, 0, 0.3);
+        border: 1px solid rgba(255, 255, 255, 0.07);
     }
 }
 
 .map-preview {
+    @extend .battle__panel;
     position: relative;
     display: flex;
     aspect-ratio: 1;
-    justify-content: center;
-    align-items: center;
-    background: rgba(0, 0, 0, 0.4);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    font-size: 0;
     .map-image {
         position: absolute;
         width: 100%;
@@ -29,30 +23,42 @@
         image-rendering: pixelated;
     }
 }
+.map-toolbar {
+    @extend .battle__panel;
+    width: 100%;
+    padding: 10px;
+    border-top: none;
+}
 
 .playerlist {
     display: flex;
     flex-direction: column;
     gap: 10px;
-    .ally-team {
-        &__title {
-            font-size: 26px;
-        }
+    &__ally-team {
     }
-    .team {
-        padding-left: 10px;
+    &__title {
+        font-size: 26px;
     }
-    .player {
-        display: flex;
+    &__players {
         flex-direction: row;
-        align-items: center;
-        gap: 7px;
-        line-height: 52%;
-        padding: 5px 2px;
-        //background: rgba(0, 0, 0, 0.2);
+        gap: 10px;
     }
-    .ai-player {
+}
 
+.player {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 7px;
+    line-height: 52%;
+    padding: 6px 8px;
+    border-radius: 3px;
+    @extend .battle__panel;
+    &:hover {
+        background: rgba(255, 255, 255, 0.1);
+    }
+    &__flag {
+        max-width: 17px;
     }
 }
 
@@ -60,12 +66,14 @@
     margin-top: auto;
     gap: 10px;
     &__log {
+        @extend .battle__panel;
         height: 236px;
         padding: 15px;
-        background: rgba(255, 255, 255, 0.05);
-        border: 1px solid rgba(255, 255, 255, 0.1);
     }
     &__textbox {
+        input {
+            @extend .battle__panel;
+        }
         // .control.textbox {
         //     box-shadow: none;
         // }

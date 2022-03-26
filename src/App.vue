@@ -1,5 +1,5 @@
 <template>
-    <div :class="`fullsize theme theme--${theme.toLowerCase()}`">
+    <div :class="`fullsize theme theme--${theme.toLowerCase()}`" @click.left="leftClick" @click.right="rightClick">
         <DebugSidebar v-if="!isProduction" />
         <StatusInfo v-if="false" />
         <Background :blur="blurBg" />
@@ -21,7 +21,7 @@
 </template>
 
 <script lang="ts" setup>
-import type { Ref, TransitionProps } from "vue";
+import { Ref, TransitionProps } from "vue";
 import { ref } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import DebugSidebar from "@/components/misc/DebugSidebar.vue";
@@ -93,4 +93,7 @@ window.api.content.game.updateGame();
 window.api.content.maps.downloadMaps(defaultMaps);
 
 router.replace("/");
+
+const leftClick = () => window.api.session.onLeftClick.dispatch();
+const rightClick = () => window.api.session.onRightClick.dispatch();
 </script>

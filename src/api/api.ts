@@ -50,6 +50,13 @@ export async function apiInit() {
     });
     window.api.client.socket?.on("connect", () => window.api.session.model.offline = false);
     window.api.client.socket?.on("close", () => window.api.session.model.offline = true);
+    //window.api.client.onResponse("s.system.server_event").add((data) => {
+    //    if (event.data === "server_restart") {
+    //        window.api.session.model.offline = true;
+    //        window.api.modals.show("server_restart");
+    //    }
+    //}
+    //});
 
     window.api.audio = new AudioAPI().init();
 

@@ -50,6 +50,7 @@
     "eslint": "^7.32.0",
     "eslint-plugin-unused-imports": "^2.0.0",
     "eslint-plugin-vue": "^8.2.0",
+    "flag-icons": "^6.1.1",
     "glob-promise": "^4.2.2",
     "howler": "^2.2.3",
     "jaz-ts-utils": "^3.0.0",
@@ -72,7 +73,6 @@
     "vue-next-select": "^2.10.2",
     "vue-router": "^4.0.12",
     "vue-slider-component": "^4.0.0-beta.4",
-    "vue3-click-away": "^1.2.1",
     "vue3-markdown-it": "^1.0.9",
     "vue3-popper": "^1.4.1",
     "worker-plugin": "^5.0.1"

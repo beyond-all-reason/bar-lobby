@@ -1,17 +1,28 @@
 <template>
-    <div class="battle">
-        <div class="battle__left">
-            <h1>{{ battleTitle }}</h1>
-            <Playerlist :ally-teams="battle.allyTeams" :spectators="battle.spectators" />
-            <BattleChat />
+    <div class="battle flex-row flex-grow gap-lg">
+        <div class="flex-col flex-grow gap-md">
+            <!-- <div class="flex-row flex-grow gap-md"> -->
+            <div class="flex-col flex-grow">
+                <h1>{{ battleTitle }}</h1>
+                <Playerlist :ally-teams="battle.allyTeams" :spectators="battle.spectators" />
+            </div>
+            <!-- <div class="battle__center flex-right">
+                    <ModOptions :game-version="selectedGame" />
+                </div> -->
+            <!-- </div> -->
+            <div>
+                <BattleChat />
+            </div>
         </div>
-        <div class="battle__right flex-col gap-md">
+        <div class="battle__right gap-md">
             <MapPreview :filename="selectedMap" />
             <Select v-model="selectedMap" label="Map" :options="maps" :label-by="(map: MapData) => map.friendlyName" :value-by="(map: MapData) => map.fileNameWithExt" close-on-select clear-on-select searchable />
             <!-- <Select v-model="selectedGame" label="Game" :options="games" close-on-select clear-on-select searchable /> -->
             <!-- <Select v-model="selectedEngine" label="Engine" :options="engines" close-on-select clear-on-select searchable /> -->
-            <ModOptions :game-version="selectedGame" />
-            <div class="flex-row gap-md">
+            <div>Engine Version</div>
+            <div>Game Version</div>
+            <div>Game End Condition</div>
+            <div class="flex-row flex-bottom gap-md">
                 <Button @click="addAiModal">
                     Add AI
                 </Button>
@@ -38,7 +49,6 @@ import type { EngineVersionFormat } from "@/model/formats";
 import type { MapData } from "@/model/map-data";
 import AddAIModal from "./AddAIModal.vue";
 import { AI } from "@/model/ai";
-import ModOptions from "@/components/battle/ModOptions.vue";
 import BattleChat from "@/components/battle/BattleChat.vue";
 
 const props = defineProps<{

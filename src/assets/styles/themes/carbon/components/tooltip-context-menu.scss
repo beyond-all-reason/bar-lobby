@@ -1,11 +1,11 @@
 .tooltip, .context-menu {
     .popper {
         overflow: hidden;
-        background-color: rgb(19, 19, 19);
+        background-color: #0c0c0c;
         padding: 8px;
         box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
         border-radius: 3px;
-        border-color: rgba(255, 255, 255, 0.12);
+        border-color: rgba(255, 255, 255, 0.07);
         border-style: solid;
         border-width: 1px;
         backdrop-filter: blur(2px);
@@ -17,17 +17,16 @@
 .context-menu {
     .popper {
         padding: 0;
-        &:hover {
-            background-color: rgba(0, 0, 0, 0.8);
-        }
     }
     &__entry {
 
     }
     &__label {
-        padding: 8px;
+        padding: 10px;
         &:hover {
-            background-color: rgba(255, 255, 255, 0.1);
+            background-color: #ddd;
+            color: #000;
+            text-shadow: none;
         }
     }
 }

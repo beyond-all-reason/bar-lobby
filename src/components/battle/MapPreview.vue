@@ -1,12 +1,16 @@
 <template>
-    <div class="map-preview">
-        <img v-if="texturePath" class="map-image" :src="texturePath">
-        <img v-else class="map-image">
+    <div class="flex-col">
+        <div class="map-preview">
+            <img v-if="texturePath" class="map-image" :src="texturePath">
+            <img v-else class="map-image">
+        </div>
+        <MapToolbar />
     </div>
 </template>
 
 <script lang="ts" setup>
 import { computed } from "vue";
+import MapToolbar from "@/components/battle/MapToolbar.vue";
 
 const props = defineProps({
     filename: {

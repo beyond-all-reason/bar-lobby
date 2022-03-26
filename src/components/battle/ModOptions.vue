@@ -39,5 +39,6 @@ const setModOption = (value: string | number | boolean, option: ModOptionNumber 
     } else {
         modOptions[option.key] = value.toString();
     }
+    console.log(modOptions);
 };
 </script>
