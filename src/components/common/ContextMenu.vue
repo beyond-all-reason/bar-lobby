@@ -3,7 +3,7 @@
         <slot />
         <template #content>
             <div v-for="entry in props.entries" :key="entry.label" class="context-menu__entry">
-                <div class="context-menu__label" @click="() => { entry.action(); show = false }">
+                <div class="context-menu__label" @click="() => { entry.action(...args); show = false }">
                     {{ entry.label }}
                 </div>
             </div>
@@ -18,16 +18,20 @@
 import { ref } from "vue";
 import Popper from "vue3-popper";
 
-interface ContextMenuEntry {
+export interface ContextMenuEntry {
     label: string;
-    action: () => void;
+    action: (...args: any[]) => void;
     icon?: string;
     children?: ContextMenuEntry[];
 }
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
     entries: ContextMenuEntry[];
-}>();
+    args: any[]
+}>(), {
+    entries: () => [],
+    args: () => []
+});
 
 const show = ref(false);
 </script>
