@@ -12,6 +12,7 @@ import type { SettingsType } from "@/model/settings";
 import { settingsSchema } from "@/model/settings";
 import { ipcRenderer } from "electron";
 import type { Info } from "@/model/info";
+import { BattleAPI } from "@/api/battle";
 
 declare global {
     interface Window {
@@ -25,6 +26,7 @@ declare global {
             account: StoreAPI<Account>;
             content: ContentAPI;
             game: GameAPI;
+            battle: BattleAPI;
         }
     }
 }
@@ -67,4 +69,6 @@ export async function apiInit() {
     window.api.game = new GameAPI(userDataDir, dataDir);
 
     window.api.content = await new ContentAPI(userDataDir, dataDir).init();
+
+    window.api.battle = new BattleAPI();
 }

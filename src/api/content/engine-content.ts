@@ -5,7 +5,7 @@ import { isEngineVersionString } from "@/model/formats";
 import { extract7z } from "@/utils/extract7z";
 import axios from "axios";
 import { Octokit } from "octokit";
-import { AbstractContentAPI } from "@/api/content/abstract-content";
+import { AbstractContentAPI } from "@/api/content/abstract-content-api";
 import { contentSources } from "@/config/content-sources";
 import { reactive } from "vue";
 import type { DownloadInfo } from "@/model/downloads";

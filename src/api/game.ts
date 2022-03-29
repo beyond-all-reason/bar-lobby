@@ -15,11 +15,18 @@ export class GameAPI {
     constructor(protected userDataDir: string, protected dataDir: string) {
     }
 
-    public async launch(engineTag: EngineVersionFormat, battle: BattleTypes.Battle) {
+    public async launch(engineTag: EngineVersionFormat, battle: BattleTypes.Battle) : Promise<void>;
+    public async launch(engineTag: EngineVersionFormat, startScript: string) : Promise<void>;
+    public async launch(engineTag: EngineVersionFormat, battleOrStartScript: BattleTypes.Battle | string) : Promise<void> {
         const enginePath = path.join(this.dataDir, "engine", engineTag).replaceAll("\\", "/");
         const scriptPath = path.join(this.dataDir, "barlobby_script.txt");
 
-        const scriptStr = this.scriptConverter.generateScriptStr(battle);
+        let scriptStr = "";
+        if (typeof battleOrStartScript === "object") {
+            scriptStr = this.scriptConverter.generateScriptStr(battleOrStartScript);
+        } else {
+            scriptStr = battleOrStartScript;
+        }
 
         await fs.promises.writeFile(scriptPath, scriptStr);
 

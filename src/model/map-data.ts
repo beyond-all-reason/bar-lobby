@@ -23,4 +23,8 @@ export type MapData = {
     minDepth: number;
     maxDepth: number;
     mapInfo?: DeepPartial<MapInfo>;
+    textureImagePath?: string;
+    heightImagePath?: string;
+    metalImagePath?: string;
+    typeImagePath?: string;
 };

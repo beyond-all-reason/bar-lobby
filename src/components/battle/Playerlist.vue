@@ -1,6 +1,6 @@
 <template>
     <div class="playerlist">
-        <div v-for="(allyTeam, allyTeamIndex) in allyTeams" :key="allyTeamIndex" class="playerlist__ally-team">
+        <div v-for="(allyTeam, allyTeamIndex) in battle.allyTeams" :key="allyTeamIndex" class="playerlist__ally-team">
             <div class="playerlist__title">
                 Team {{ allyTeamIndex + 1 }}
             </div>
@@ -23,7 +23,7 @@
             <div class="playerlist__title">
                 Spectators
             </div>
-            <template v-for="(spectator, i) in spectators" :key="i">
+            <template v-for="(spectator, i) in battle.spectators" :key="i">
                 <Player v-bind="spectator" />
             </template>
         </div>
@@ -35,13 +35,7 @@ import { BattleTypes } from "@/model/battle";
 import Player from "@/components/battle/Player.vue";
 import ContextMenu, { ContextMenuEntry } from "@/components/common/ContextMenu.vue";
 
-const props = withDefaults(defineProps<{
-    allyTeams?: BattleTypes.AllyTeam[];
-    spectators?: BattleTypes.Spectator[];
-}>(), {
-    allyTeams: () => [],
-    spectators: () => []
-});
+const battle = window.api.battle.currentBattle;
 
 const viewProfile = (player: BattleTypes.Player) => {
     //

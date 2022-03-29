@@ -10,10 +10,10 @@ export namespace BattleTypes {
     export type HostOptions = {
         engineVersion: EngineVersionFormat;
         gameVersion: string;
-        mapName: string;
+        mapFileName: string;
         isHost: boolean;
         myPlayerName: string;
-        startPosType?: StartPosType;
+        startPosType: StartPosType;
     };
 
     export type AllyTeam = {
@@ -47,10 +47,10 @@ export namespace BattleTypes {
     };
 
     export type StartBox = {
-        top: number;
-        left: number;
-        bottom: number;
-        right: number;
+        xPercent: number;
+        yPercent: number;
+        widthPercent: number;
+        heightPercent: number;
     };
 
     export enum StartPosType {

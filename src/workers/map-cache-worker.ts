@@ -27,12 +27,16 @@ class MapCache extends AbstractFileCache<MapData> {
         try {
             const map = await this.parser.parseMap(itemFilePath);
             const mapData = this.parseMapData(map);
-            const destPath = (name: string) => path.join(this.mapImagesDir, `${mapData.fileName}-${name}.jpg`);
 
-            await map.textureMap!.quality(80).writeAsync(destPath("texture"));
-            await map.metalMap.quality(80).writeAsync(destPath("metal"));
-            await map.heightMap.quality(80).writeAsync(destPath("height"));
-            await map.typeMap.quality(80).writeAsync(destPath("type"));
+            mapData.textureImagePath = path.join(this.mapImagesDir, `${mapData.fileName}-texture.jpg`);
+            mapData.metalImagePath = path.join(this.mapImagesDir, `${mapData.fileName}-metal.jpg`);
+            mapData.heightImagePath = path.join(this.mapImagesDir, `${mapData.fileName}-height.jpg`);
+            mapData.typeImagePath = path.join(this.mapImagesDir, `${mapData.fileName}-type.jpg`);
+
+            await map.textureMap!.quality(80).writeAsync(mapData.textureImagePath);
+            await map.metalMap.quality(80).writeAsync(mapData.metalImagePath);
+            await map.heightMap.quality(80).writeAsync(mapData.heightImagePath);
+            await map.typeMap.quality(80).writeAsync(mapData.typeImagePath);
 
             this.items[mapData.fileNameWithExt] = mapData;
 
@@ -50,11 +54,8 @@ class MapCache extends AbstractFileCache<MapData> {
         if (!map) {
             return;
         }
-        const destPath = (name: string) => path.join(this.mapImagesDir, `${map.fileName}-${name}.jpg`);
-        const imageSuffixes = ["texture", "metal", "height", "type"];
-        for (const suffix of imageSuffixes) {
-            const imagePath = destPath(suffix);
-            if (fs.existsSync(imagePath)) {
+        for (const imagePath of [map.textureImagePath, map.metalImagePath, map.heightImagePath, map.typeImagePath]) {
+            if (imagePath && fs.existsSync(imagePath)) {
                 await fs.promises.rm(imagePath);
             }
         }

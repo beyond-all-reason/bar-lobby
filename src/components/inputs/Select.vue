@@ -1,7 +1,20 @@
 <template>
-    <div ref="controlEl" class="control select" @mouseenter="sound">
+    <div ref="controlEl" class="control select" :class="{ disabled }" @mouseenter="sound">
         <label v-if="label" :for="uuid">{{ label }}</label>
-        <VueNextSelect ref="vueSelect" :name="uuid" :model-value="props.modelValue" :options="props.options" v-bind="$attrs" :hide-selected="true" :close-on-select="true" :open-direction="openDirection" :max-height="maxHeight" @focus="onFocus" @blur="onBlur" @click="onClick" />
+        <VueNextSelect
+            ref="vueSelect"
+            :name="uuid"
+            :model-value="props.modelValue"
+            :options="props.options"
+            v-bind="$attrs"
+            :hide-selected="true"
+            :close-on-select="true"
+            :open-direction="openDirection"
+            :max-height="maxHeight"
+            @focus="onFocus"
+            @blur="onBlur"
+            @click="onClick"
+        />
     </div>
 </template>
 
@@ -17,11 +30,13 @@ type VueNextSelectProps = InstanceType<typeof VueNextSelect>["$props"];
 interface Props extends VueNextSelectProps {
     label?: string;
     smallLabel?: boolean;
+    disabled?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
     label: undefined,
-    smallLabel: false
+    smallLabel: false,
+    disabled: false
 });
 
 const emits = defineEmits<{

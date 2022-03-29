@@ -1,5 +1,5 @@
 import * as path from "path";
-import { AbstractContentAPI } from "@/api/content/abstract-content";
+import { AbstractContentAPI } from "@/api/content/abstract-content-api";
 import { MapContentAPI } from "@/api/content/map-content";
 import { EngineContentAPI } from "@/api/content/engine-content";
 import { GameContentAPI } from "@/api/content/game-content";

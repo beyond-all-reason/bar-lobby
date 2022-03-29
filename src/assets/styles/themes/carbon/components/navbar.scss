@@ -40,6 +40,9 @@
         img {
             height: 50px;
         }
+        .control.button {
+            flex-grow: 1;
+        }
     }
     &__primary, &__logo {
         .btn {

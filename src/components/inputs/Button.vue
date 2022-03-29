@@ -1,10 +1,12 @@
 <template>
     <Tooltip :content="tooltip">
-        <component :is="to ? 'router-link' : 'button'" class="btn" :to="to" :class="{ active: isActive }" v-bind="$attrs" @mouseenter="sound">
-            <div class="content">
-                <slot />
-            </div>
-        </component>
+        <div class="control button">
+            <component :is="to ? 'router-link' : 'button'" class="btn" :to="to" :class="{ active: isActive }" v-bind="$attrs" @mouseenter="sound">
+                <div class="content">
+                    <slot />
+                </div>
+            </component>
+        </div>
     </Tooltip>
 </template>
 
@@ -16,6 +18,7 @@ import Tooltip from "@/components/common/Tooltip.vue";
 const props = defineProps<{
     to?: string;
     tooltip?: string;
+    disabled?: boolean;
 }>();
 
 const route = useRoute();

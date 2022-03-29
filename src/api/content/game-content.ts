@@ -7,7 +7,7 @@ import { spawn } from "child_process";
 import { BufferStream, lastInArray, removeFromArray } from "jaz-ts-utils";
 import type { Message, ProgressMessage, RapidVersion } from "@/model/pr-downloader";
 import { DownloadType } from "@/model/pr-downloader";
-import { AbstractContentAPI } from "@/api/content/abstract-content";
+import { AbstractContentAPI } from "@/api/content/abstract-content-api";
 import { contentSources } from "@/config/content-sources";
 import { GameVersionFormat, parseGameVersionString } from "@/model/formats";
 import { reactive } from "vue";

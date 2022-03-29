@@ -38,10 +38,11 @@ export class StartScriptConverter {
         battle.allyTeams.forEach((allyTeam, allyTeamIndex) => {
             allyteams.push({
                 id: allyTeamIndex,
-                startrecttop: allyTeam.startBox?.top,
-                startrectbottom: allyTeam.startBox?.bottom,
-                startrectleft: allyTeam.startBox?.left,
-                startrectright: allyTeam.startBox?.right,
+                // TODO
+                // startrecttop: allyTeam.startBox?.top,
+                // startrectbottom: allyTeam.startBox?.bottom,
+                // startrectleft: allyTeam.startBox?.left,
+                // startrectright: allyTeam.startBox?.right,
             });
 
             allyTeam.teams.forEach(team => {
@@ -81,9 +82,15 @@ export class StartScriptConverter {
             ai.host = playerNameIdMap[aiIdOwnerNameMap[ai.id]];
         }
 
+        const mapData = window.api.content.maps.getMapByFileName(battle.hostOptions.mapFileName);
+
+        if (!mapData) {
+            throw new Error(`Can't generate start script because map is not installed: ${battle.hostOptions.mapFileName}`);
+        }
+
         return {
             gametype: battle.hostOptions.gameVersion,
-            mapname: battle.hostOptions.mapName,
+            mapname: mapData.scriptName,
             ishost: 1,
             myplayername: battle.hostOptions.myPlayerName,
             allyteams,

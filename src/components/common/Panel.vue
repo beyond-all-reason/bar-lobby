@@ -14,7 +14,7 @@
                 </Button>
             </template>
             <template v-else>
-                <Button v-for="(tab, i) in tabs" :key="i" :class="{ active: i === currentTab }" class="panel__tab-btn" @click="tabClicked(i)">
+                <Button v-for="(tab, i) in tabs" :key="i" :class="{ active: i === currentTab }" class="panel__tab-btn" fullwidth @click="tabClicked(i)">
                     {{ tab.props?.title }}
                 </Button>
             </template>

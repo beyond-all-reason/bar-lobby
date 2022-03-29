@@ -1,8 +1,10 @@
 <template>
     <div class="debug-sidebar" :class="{ active }">
-        <Button class="toggle" @click="active = !active">
-            <Icon icon="tools" :size="20" />
-        </button>
+        <div class="debug-sidebar__toggle">
+            <Button @click="active = !active">
+                <Icon icon="tools" :size="20" />
+            </Button>
+        </div>
         <Select v-model="currentRoute" label="View" :options="routes" :label-by="(route: any) => route.path" :value-by="(route: any) => route.path" :searchable="true" :clear-on-select="true" />
         <Button class="flex-none" to="/debug/inputs">
             Debug Playground
@@ -24,7 +26,7 @@
 
 <script lang="ts" setup>
 import * as path from "path";
-import { readonly, ref, effectScope, watch } from "vue";
+import { ref, effectScope, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { shell } from "electron";
 import Icon from "@/components/common/Icon.vue";
@@ -37,7 +39,7 @@ const active = ref(false);
 
 const route = useRoute();
 const router = useRouter();
-const routes = readonly(router.getRoutes().sort((a, b) => a.path.localeCompare(b.path)));
+const routes = router.getRoutes().sort((a, b) => a.path.localeCompare(b.path));
 const currentRoute = ref(route.path);
 
 const openSettings = () => {

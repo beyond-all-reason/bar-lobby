@@ -1,7 +1,7 @@
 import * as path from "path";
 import * as fs from "fs";
 import * as glob from "glob-promise";
-import { AbstractContentAPI } from "@/api/content/abstract-content";
+import { AbstractContentAPI } from "@/api/content/abstract-content-api";
 import type { AI } from "@/model/ai";
 import type { EngineVersionFormat } from "@/model/formats";
 import { parseLuaTable } from "@/utils/parse-lua-table";

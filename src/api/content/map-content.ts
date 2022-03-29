@@ -1,7 +1,7 @@
 import * as path from "path";
 import * as fs from "fs";
 import axios from "axios";
-import { AbstractContentAPI } from "@/api/content/abstract-content";
+import { AbstractContentAPI } from "@/api/content/abstract-content-api";
 import type { MapData } from "@/model/map-data";
 import { MapCacheWorkerHost } from "@/workers/map-cache-worker";
 import { contentSources } from "@/config/content-sources";
@@ -54,6 +54,10 @@ export class MapContentAPI extends AbstractContentAPI {
         this.mapCache.cacheItems();
 
         return this;
+    }
+
+    public getMapByFileName(filenameIncludingExt: string) {
+        return this.installedMaps[filenameIncludingExt];
     }
 
     public getMapByScriptName(scriptName: string) {

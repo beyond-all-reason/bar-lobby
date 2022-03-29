@@ -1,0 +1,9 @@
+.map-canvas-container {
+    @extend .battle__panel;
+
+    canvas {
+        image-rendering: pixelated;
+        aspect-ratio: 1;
+        margin: 10px;
+    }
+}

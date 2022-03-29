@@ -2,14 +2,15 @@
 
 <template>
     <div class="controls">
-        <Textbox v-model="txt" label="Text" placeholder="text" :disabled="disabled" />
         <Checkbox v-model="disabled" label="Controls disabled" />
+        <Textbox v-model="txt" label="Text" placeholder="text" :disabled="disabled" />
         <Textbox v-model="test" label="bob" placeholder="test" :disabled="disabled" />
+        <Checkbox v-model="check" label="Checkbox" :disabled="disabled" />
         <Button :disabled="disabled">
             I am a button
         </Button>
         <div class="test">
-            <Select v-model="color" :options="['blue', 'red', 'green', 'fish', 'yep']" />
+            <Select v-model="color" :options="['blue', 'red', 'green', 'fish', 'yep']" :disabled="disabled" />
         </div>
     </div>
 </template>
@@ -25,6 +26,7 @@ const test = ref("fish");
 const color = ref("red");
 const disabled = ref(false);
 const txt = ref("");
+const check = ref(true);
 </script>
 
 <style scoped lang="scss">

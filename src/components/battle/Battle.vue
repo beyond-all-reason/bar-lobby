@@ -4,7 +4,7 @@
             <!-- <div class="flex-row flex-grow gap-md"> -->
             <div class="flex-col flex-grow">
                 <h1>{{ battleTitle }}</h1>
-                <Playerlist :ally-teams="battle.allyTeams" :spectators="battle.spectators" />
+                <Playerlist />
             </div>
             <!-- <div class="battle__center flex-right">
                     <ModOptions :game-version="selectedGame" />
@@ -15,19 +15,19 @@
             </div>
         </div>
         <div class="battle__right gap-md">
-            <MapPreview :filename="selectedMap" />
-            <Select v-model="selectedMap" label="Map" :options="maps" :label-by="(map: MapData) => map.friendlyName" :value-by="(map: MapData) => map.fileNameWithExt" close-on-select clear-on-select searchable />
+            <MapPreview />
+            <Select v-model="battle.hostOptions.mapFileName" label="Map" :options="installedMaps" :label-by="(map: any) => map.friendlyName" :value-by="(map: any) => map.fileNameWithExt" close-on-select clear-on-select searchable />
             <!-- <Select v-model="selectedGame" label="Game" :options="games" close-on-select clear-on-select searchable /> -->
             <!-- <Select v-model="selectedEngine" label="Engine" :options="engines" close-on-select clear-on-select searchable /> -->
             <div>Engine Version</div>
             <div>Game Version</div>
             <div>Game End Condition</div>
             <div class="flex-row flex-bottom gap-md">
-                <Button @click="addAiModal">
+                <Button fullwidth @click="addAiModal">
                     Add AI
                 </Button>
                 <AddAIModal :engine-version="selectedEngine" @add-ai="addAi" />
-                <Button class="btn--green" @click="start">
+                <Button class="btn--green" fullwidth @click="start">
                     Start
                 </Button>
             </div>
@@ -36,8 +36,7 @@
 </template>
 
 <script lang="ts" setup>
-import type { ComputedRef} from "vue";
-import { computed, reactive, ref } from "vue";
+import { computed, ref } from "vue";
 import { BattleTypes } from "@/model/battle";
 import Button from "@/components/inputs/Button.vue";
 import MapPreview from "@/components/battle/MapPreview.vue";
@@ -46,22 +45,26 @@ import Playerlist from "@/components/battle/Playerlist.vue";
 import { lastInArray, randomFromArray } from "jaz-ts-utils";
 import { aiNames } from "@/config/ai-names";
 import type { EngineVersionFormat } from "@/model/formats";
-import type { MapData } from "@/model/map-data";
 import AddAIModal from "./AddAIModal.vue";
 import { AI } from "@/model/ai";
 import BattleChat from "@/components/battle/BattleChat.vue";
 
 const props = defineProps<{
-    battle: BattleTypes.Battle;
+    offline: boolean;
 }>();
-
-const battle = (window as any).battle = reactive(props.battle);
 
 const battleTitle = ref("Offline Custom Battle");
 
-const maps = computed(() => Object.values(window.api.content.maps.installedMaps));
-const map: ComputedRef<MapData | null | undefined> = computed(() => window.api.content.maps.getMapByScriptName(battle.hostOptions.mapName));
-const selectedMap = ref(map.value?.fileNameWithExt ?? "");
+const battle = window.api.battle.currentBattle;
+
+const installedMaps = computed(() => Object.values(window.api.content.maps.installedMaps));
+
+// const startPosType = ref(BattleTypes.StartPosType.Fixed);
+// const startBoxes = ref([] as BattleTypes.StartBox[]);
+// startBoxes.value = [
+//     { xPercent: 0, yPercent: 0, widthPercent: 1, heightPercent: 0.25 },
+//     { xPercent: 0, yPercent: 0.75, widthPercent: 1, heightPercent: 0.25 },
+// ];
 
 const games = computed(() => window.api.content.game.installedVersions.map(rapidVersion => rapidVersion.version.fullString).slice(-10));
 const selectedGame = ref(lastInArray(games.value));
