@@ -48,7 +48,7 @@ export async function apiInit() {
     window.api.client = new TachyonClient({
         host: "server2.beyondallreason.info",
         port: 8202,
-        verbose: process.env.NODE_ENV !== "production" // TODO: add toggle to debug tools
+        verbose: false//process.env.NODE_ENV !== "production" // TODO: add toggle to debug tools
     });
     window.api.client.socket?.on("connect", () => window.api.session.model.offline = false);
     window.api.client.socket?.on("close", () => window.api.session.model.offline = true);

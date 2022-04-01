@@ -31,8 +31,8 @@ let mapTransform: Transform;
 
 onMounted(async () => {
     canvas = document.getElementById("map-canvas") as HTMLCanvasElement;
-    canvas.width = 600;
-    canvas.height = 600;
+    canvas.width = canvas.clientWidth;
+    canvas.height = canvas.width;
     context = canvas.getContext("2d")!;
 
     loadMap();
@@ -65,6 +65,8 @@ async function loadMap() {
     mapTransform.x = (canvas.width - mapTransform.width) / 2;
     mapTransform.y = (canvas.height - mapTransform.height) / 2;
 
+    mapTransform = roundTransform(mapTransform);
+
     context.drawImage(textureMap, mapTransform.x, mapTransform.y, mapTransform.width, mapTransform.height);
 
     drawBoxes();
@@ -77,15 +79,25 @@ function drawBoxes() {
 
     for (const allyTeam of battle.allyTeams) {
         if (allyTeam.startBox) {
-            context.fillStyle = "rgba(0, 255, 0, 0.5)";
+            if (allyTeam.teams.find(team => team.players.find(player => player.name === battle.hostOptions.myPlayerName))) {
+                context.fillStyle = "rgba(0, 255, 0, 0.3)";
+            } else {
+                context.fillStyle = "rgba(255, 0, 0, 0.3)";
+            }
 
-            const boxTransform = {
+            context.strokeStyle = "rgba(255, 255, 255, 0.5)";
+            context.lineWidth = 1;
+
+            let boxTransform = {
                 x: mapTransform.x + mapTransform.width * allyTeam.startBox.xPercent,
                 y: mapTransform.y + mapTransform.height * allyTeam.startBox.yPercent,
                 width: mapTransform.width * allyTeam.startBox.widthPercent,
                 height: mapTransform.height * allyTeam.startBox.heightPercent
             };
+            boxTransform = roundTransform(boxTransform);
+            console.log(mapTransform, boxTransform);
             context.fillRect(boxTransform.x, boxTransform.y, boxTransform.width, boxTransform.height);
+            //context.strokeRect(boxTransform.x, boxTransform.y, boxTransform.width, boxTransform.height);
         }
     }
 }
@@ -100,6 +112,15 @@ function loadImage(url: string) {
         img.onload = () => resolve(img);
         img.src = url;
     });
+}
+
+function roundTransform(transform: Transform) {
+    return {
+        x: Math.floor(transform.x),
+        y: Math.floor(transform.y),
+        width: Math.floor(transform.width),
+        height: Math.floor(transform.height)
+    };
 }
 
 // let app: PIXI.Application;

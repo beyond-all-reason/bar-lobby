@@ -6,19 +6,19 @@
             </Button>
         </div>
         <Select v-model="currentRoute" label="View" :options="routes" :label-by="(route: any) => route.path" :value-by="(route: any) => route.path" :searchable="true" :clear-on-select="true" />
-        <Button class="flex-none" to="/debug/inputs">
+        <Button to="/debug/inputs" :flex-grow="false">
             Debug Playground
         </Button>
-        <Button class="flex-none" @click="openSettings">
+        <Button :flex-grow="false" @click="openSettings">
             Open Settings File
         </Button>
-        <Button class="flex-none" @click="openLobbyDir">
+        <Button :flex-grow="false" @click="openLobbyDir">
             Open Lobby Dir
         </Button>
-        <Button class="flex-none" @click="openDataDir">
+        <Button :flex-grow="false" @click="openDataDir">
             Open Data Dir
         </Button>
-        <Button class="flex-none" @click="openStartScript">
+        <Button :flex-grow="false" @click="openStartScript">
             Open Latest Start Script
         </Button>
     </div>

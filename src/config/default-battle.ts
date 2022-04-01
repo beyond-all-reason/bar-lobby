@@ -1,4 +1,5 @@
 import { aiNames } from "@/config/ai-names";
+import { defaultBoxes } from "@/config/default-boxes";
 import { defaultMaps } from "@/config/default-maps";
 import { BattleTypes } from "@/model/battle";
 import { EngineVersionFormat, GameVersionFormat } from "@/model/formats";
@@ -21,6 +22,7 @@ export const defaultBattle = (playerName?: string, engineVersion?: EngineVersion
         },
         allyTeams: [
             {
+                startBox: defaultBoxes[mapFileName]?.[0] ?? { xPercent: 0, yPercent: 0, widthPercent: 0.25, heightPercent: 1 },
                 teams: [{
                     players: [{
                         name: playerName
@@ -29,6 +31,7 @@ export const defaultBattle = (playerName?: string, engineVersion?: EngineVersion
                 }]
             },
             {
+                startBox: defaultBoxes[mapFileName]?.[1] ?? { xPercent: 0.75, yPercent: 0, widthPercent: 0.25, heightPercent: 1 },
                 teams: [
                     {
                         players: [],

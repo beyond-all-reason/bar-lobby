@@ -1,6 +1,6 @@
 <template>
     <Tooltip :content="tooltip">
-        <div class="control button">
+        <div class="control button" :class="{ 'flex-grow': flexGrow }">
             <component :is="to ? 'router-link' : 'button'" class="btn" :to="to" :class="{ active: isActive }" v-bind="$attrs" @mouseenter="sound">
                 <div class="content">
                     <slot />
@@ -15,11 +15,17 @@ import { computed, toRefs } from "vue";
 import { useRoute } from "vue-router";
 import Tooltip from "@/components/common/Tooltip.vue";
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
     to?: string;
     tooltip?: string;
     disabled?: boolean;
-}>();
+    flexGrow?: boolean;
+}>(), {
+    to: undefined,
+    tooltip: undefined,
+    disabled: false,
+    flexGrow: true
+});
 
 const route = useRoute();
 const to = toRefs(props).to;
