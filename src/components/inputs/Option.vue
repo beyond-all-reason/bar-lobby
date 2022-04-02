@@ -1,20 +1,27 @@
 <template>
-    <div class="options__option" @click="onClick">
+    <div class="options__option" :class="{ 'options__option--selected': isSelected }" @click="onClick">
         <slot />
     </div>
 </template>
 
 <script lang="ts" setup>
-import { inject, Ref } from "vue";
-import { Primitive } from "@/model/utils";
+import { computed, inject, Ref } from "vue";
 
 const props = defineProps<{
-    value: Primitive;
+    value: unknown;
 }>();
 
-const value = inject("value") as Ref<Primitive | Primitive[]>;
+const toggleOption = inject("toggleOption") as (optionValue: unknown) => boolean;
+const selectedOption = inject("selectedOption") as Ref<unknown>;
+const isSelected = computed(() => {
+    if (Array.isArray(selectedOption.value)) {
+        return selectedOption.value.includes(props.value);
+    } else {
+        return selectedOption.value === props.value;
+    }
+});
 
 const onClick = () => {
-    value.value = props.value;
+    toggleOption(props.value);
 };
 </script>

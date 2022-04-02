@@ -1,36 +1,7 @@
+// TODO: refactor everything in this file into individual control files
+
 button, button * {
     cursor: url("~@/assets/images/cursor_hover.png"), pointer;
-}
-.control {
-    position: relative;
-    display: flex;
-    flex-direction: row;
-    max-width: 100%;
-    &:not(.checkbox) {
-        box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.1);
-    }
-    &:not(.select):not(.range):not(.button) {
-        overflow-x: auto;
-    }
-    &.test {
-        flex-wrap: wrap;
-        border-right: 1px solid rgba(255, 255, 255, 0.2);
-        input, .vue-select {
-            border-right: none;
-        }
-        label {
-            width: 100%;
-            border-bottom: none;
-            font-size: 16px;
-            min-height: unset;
-            justify-content: flex-start;
-        }
-    }
-    &.button {
-        a, button {
-            width: 100%;
-        }
-    }
 }
 input, select, label, textarea, button, progress, meter, .btn, .input, .vue-select {
     padding: 5px 10px;
@@ -61,13 +32,6 @@ input, select, label, textarea, button, progress, meter, .btn, .input, .vue-sele
     &:not(input[type=checkbox] + label):hover {
         background-color: rgba(255, 255, 255, 0.1);
     }
-    // &.trim {
-    //     width: 150px;
-    //     display: block;
-    //     overflow: hidden;
-    //     white-space: nowrap;
-    //     text-overflow: ellipsis;
-    // }
 }
 .control label:not(input[type=checkbox] + label) {
     border-right: none;
@@ -216,12 +180,12 @@ input[type=password] {
     }
 }
 
-.control[disabled=true],
-.control[disabled] {
-    input, select, label, textarea, button, progress, meter, .btn, .input, .vue-select {
-        background: rgba(255, 255, 255, 0.05);
-        border-color: rgba(255, 255, 255, 0.07);
-        color: rgba(255, 255, 255, 0.2);
-        pointer-events: none;
-    }
-}
+// .control[disabled=true],
+// .control.disabled {
+//     input, select, label, textarea, button, progress, meter, .btn, .input, .vue-select {
+//         background: rgba(255, 255, 255, 0.05);
+//         border-color: rgba(255, 255, 255, 0.07);
+//         color: rgba(255, 255, 255, 0.2);
+//         pointer-events: none;
+//     }
+// }

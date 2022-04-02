@@ -17,7 +17,8 @@
     @import "inputs";
     @import "text";
 
-    @import "inputs/options";
+    @import "controls/control";
+    @import "controls/options";
 
     @import "components/view";
     @import "components/debug-sidebar";

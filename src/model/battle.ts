@@ -23,19 +23,19 @@ export namespace BattleTypes {
 
     export type Team = {
         players: Player[];
-        ais: AIPlayer[]
+        bots: Bot[]
     };
 
     export type Player = {
         name: string;
-        userId?: number;
+        userId: number;
         startPos?: { x: number, z: number };
         handicap?: number;
         advantage?: number;
         incomeMultiplier?: number;
     };
 
-    export type AIPlayer = Omit<Player, "userId"> & {
+    export type Bot = Omit<Player, "userId"> & {
         ai: string;
         ownerName: string;
         faction: Faction;

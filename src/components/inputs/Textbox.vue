@@ -1,5 +1,5 @@
 <template>
-    <div class="control textbox" @mouseenter="sound">
+    <div class="control textbox" :class="{ disabled }" @mouseenter="sound">
         <label v-if="label" :for="uuid">{{ label }}</label>
         <input :id="uuid" ref="input" v-model="text" :name="name" :type="type" v-bind="$attrs" @input="onInput" @invalid="onInput">
         <label v-if="icon" :for="uuid"><Icon :for="uuid" :icon="icon" /></label>
@@ -19,13 +19,15 @@ const props = withDefaults(defineProps<{
     label?: string;
     icon?: string;
     validation?: (value: string) => string;
+    disabled?: boolean;
 }>(), {
     modelValue: "",
     name: undefined,
     type: undefined,
     label: undefined,
     icon: undefined,
-    validation: undefined
+    validation: undefined,
+    disabled: false
 });
 
 const emit = defineEmits(["update:modelValue"]);

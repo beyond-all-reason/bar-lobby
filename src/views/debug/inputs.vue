@@ -12,7 +12,7 @@
         <div class="test">
             <Select v-model="color" :options="['blue', 'red', 'green', 'fish', 'yep']" :disabled="disabled" />
         </div>
-        <Options v-model="option">
+        <Options v-model="option" label="Options" :disabled="disabled" full-width>
             <Option value="option1">
                 Option 1
             </Option>
@@ -27,21 +27,20 @@
 </template>
 
 <script lang="ts" setup>
-import { Ref, ref } from "vue";
+import { ref } from "vue";
 import Select from "@/components/inputs/Select.vue";
 import Textbox from "@/components/inputs/Textbox.vue";
 import Checkbox from "@/components/inputs/Checkbox.vue";
 import Button from "@/components/inputs/Button.vue";
 import Options from "@/components/inputs/Options.vue";
 import Option from "@/components/inputs/Option.vue";
-import { Primitive } from "@/model/utils";
 
 const test = ref("fish");
 const color = ref("red");
 const disabled = ref(false);
 const txt = ref("");
 const check = ref(true);
-const option: Ref<Primitive> = ref(null);
+const option = ref(["option1"]);
 </script>
 
 <style scoped lang="scss">

@@ -1,0 +1,47 @@
+.options {
+    display: inline-flex;
+    align-self: flex-start;
+    flex-direction: column;
+    border-radius: 3px;
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    &.fullWidth {
+        align-self: unset;
+        .options__option {
+            width: 100%;
+        }
+    }
+    &__label {
+        padding: 3px 7px;
+        justify-content: center;
+        align-items: center;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    &__list {
+        display: inline-flex;
+        justify-self: flex-start;
+        flex-direction: row;
+        gap: 1px;
+    }
+    &__option {
+        position: relative;
+        align-items: center;
+        justify-content: center;
+        padding: 3px 7px;
+        &:not(:last-child):after {
+            position: absolute;
+            content: "";
+            right: -1px;
+            top: 0;
+            width: 1px;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.1);
+        }
+        &--selected {
+            background: rgba(255, 255, 255, 0.8);
+            color: #000;
+            text-shadow: none;
+        }
+    }
+}

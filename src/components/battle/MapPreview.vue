@@ -2,7 +2,17 @@
     <div id="map-canvas-container" class="map-canvas-container">
         <canvas id="map-canvas" />
         <div class="map-toolbar">
-            <Select v-model="battle.hostOptions.startPosType" :options="startPosOptions" :label-by="(option: any) => option.label" :value-by="(option: any) => option.value" />
+            <Options v-model="battle.hostOptions.startPosType" required>
+                <Option :value="BattleTypes.StartPosType.Fixed">
+                    Fixed
+                </Option>
+                <Option :value="BattleTypes.StartPosType.Random">
+                    Random
+                </Option>
+                <Option :value="BattleTypes.StartPosType.ChooseInGame">
+                    Boxes
+                </Option>
+            </Options>
         </div>
     </div>
 </template>
@@ -11,8 +21,9 @@
 // import * as PIXI from "pixi.js";
 // import { MapData } from "@/model/map-data";
 import { BattleTypes } from "@/model/battle";
-import Select from "@/components/inputs/Select.vue";
 import { onMounted, watch } from "vue";
+import Options from "@/components/inputs/Options.vue";
+import Option from "@/components/inputs/Option.vue";
 
 const battle = window.api.battle.currentBattle;
 

@@ -62,15 +62,15 @@ export class StartScriptConverter {
                     playerIndex++;
                 });
 
-                team.ais.forEach(ai => {
+                team.bots.forEach(bot => {
                     ais.push({
                         id: aiIndex,
-                        shortname: ai.ai,
+                        shortname: bot.ai,
                         team: teamId,
                         host: 0,
-                        name: ai.name,
+                        name: bot.name,
                     });
-                    aiIdOwnerNameMap[aiIndex] = ai.ownerName;
+                    aiIdOwnerNameMap[aiIndex] = bot.ownerName;
                     aiIndex++;
                 });
 

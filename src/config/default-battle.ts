@@ -25,9 +25,10 @@ export const defaultBattle = (playerName?: string, engineVersion?: EngineVersion
                 startBox: defaultBoxes[mapFileName]?.[0] ?? { xPercent: 0, yPercent: 0, widthPercent: 0.25, heightPercent: 1 },
                 teams: [{
                     players: [{
-                        name: playerName
+                        name: playerName,
+                        userId: window.api.session.model.user?.id || 0
                     }],
-                    ais: []
+                    bots: []
                 }]
             },
             {
@@ -35,7 +36,7 @@ export const defaultBattle = (playerName?: string, engineVersion?: EngineVersion
                 teams: [
                     {
                         players: [],
-                        ais: [{
+                        bots: [{
                             name: randomFromArray(aiNames),
                             ownerName: playerName,
                             ai: "BARb",
@@ -44,7 +45,7 @@ export const defaultBattle = (playerName?: string, engineVersion?: EngineVersion
                     },
                     {
                         players: [],
-                        ais: [{
+                        bots: [{
                             name: randomFromArray(aiNames),
                             ownerName: playerName,
                             ai: "BARb",
@@ -53,7 +54,7 @@ export const defaultBattle = (playerName?: string, engineVersion?: EngineVersion
                     },
                     {
                         players: [],
-                        ais: [{
+                        bots: [{
                             name: randomFromArray(aiNames),
                             ownerName: playerName,
                             ai: "BARb",

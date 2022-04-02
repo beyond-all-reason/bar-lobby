@@ -1,0 +1,35 @@
+.control {
+    position: relative;
+    display: flex;
+    flex-direction: row;
+    max-width: 100%;
+    &:not(.checkbox) {
+        box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.1);
+    }
+    &:not(.select):not(.range):not(.button) {
+        overflow-x: auto;
+    }
+    &.trim-label {
+        flex-wrap: wrap;
+        border-right: 1px solid rgba(255, 255, 255, 0.2);
+        input, .vue-select {
+            border-right: none;
+        }
+        label {
+            width: 100%;
+            border-bottom: none;
+            font-size: 16px;
+            min-height: unset;
+            justify-content: flex-start;
+        }
+    }
+    &.button {
+        a, button {
+            width: 100%;
+        }
+    }
+    &.disabled {
+        opacity: 0.4;
+        pointer-events: none;
+    }
+}

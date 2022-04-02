@@ -1,5 +1,5 @@
 <template>
-    <div class="control range" :class="{ test: trimLabel, disabled }" @submit.prevent="">
+    <div class="control range" :class="{ 'trim-label': trimLabel, disabled }" @submit.prevent="">
         <label v-if="label" :for="uuid" :class="{ trim: trimLabel }">{{ label }}</label>
         <div class="input" @mouseenter="sound">
             <VueSlider ref="slider" v-model="value" tooltip="none" :duration="0" :drag-on-click="true" :contained="true" v-bind="$attrs" @error="(error as any)" @change="emits('change', value)" />
