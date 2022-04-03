@@ -1,6 +1,6 @@
 export namespace StartScriptTypes {
     export interface Game {
-        [key: string]: any;
+        [key: string]: unknown;
 
         myplayername: string;
         gametype: string;
@@ -28,14 +28,14 @@ export namespace StartScriptTypes {
         mapoptions?: MapOptions;
         restrict?: Restriction[];
         mutator?: Mutator;
-        allyteams: AllyTeam[];
+        allyTeams: AllyTeam[];
         teams: Team[];
         players: Player[];
         ais?: AI[];
     }
 
     export interface ModOptions {
-        [key: string]: any;
+        [key: string]: unknown;
         startmetal?: number;
         startenergy?: number;
         maxunits?: number;
@@ -52,7 +52,7 @@ export namespace StartScriptTypes {
     }
 
     export interface MapOptions {
-        [key: string]: any;
+        [key: string]: unknown;
     }
 
     export interface Restriction {
@@ -61,11 +61,11 @@ export namespace StartScriptTypes {
     }
 
     export interface Mutator {
-        [key: string]: any;
+        [key: string]: unknown;
     }
 
     export interface AllyTeam {
-        [key: string]: any;
+        [key: string]: unknown;
         id: number;
         numallies?: number;
         startrecttop?: number;
@@ -75,7 +75,7 @@ export namespace StartScriptTypes {
     }
 
     export interface Team {
-        [key: string]: any;
+        [key: string]: unknown;
         id: number;
         allyteam: number;
         teamleader: number;
@@ -90,7 +90,7 @@ export namespace StartScriptTypes {
     }
 
     export interface Player {
-        [key: string]: any;
+        [key: string]: unknown;
         id: number;
         name: string;
         team: number;
@@ -102,7 +102,7 @@ export namespace StartScriptTypes {
     }
 
     export interface AI {
-        [key: string]: any;
+        [key: string]: unknown;
         id: number;
         team: number;
         shortname: string;

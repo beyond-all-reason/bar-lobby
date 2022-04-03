@@ -1,10 +1,16 @@
-import { Battler } from "@/model/battle/battler";
-import { ExcludeMethods } from "jaz-ts-utils";
+import { Battler, BattlerConfig } from "@/model/battle/battler";
+import { User } from "@/model/user";
 
-export class Player extends Battler {
-    public userId!: number;
+export interface PlayerConfig extends BattlerConfig {
+    user: User;
+}
 
-    constructor(args: ExcludeMethods<typeof Player.prototype>) {
-        super(args);
+export class Player extends Battler implements PlayerConfig {
+    public user: User;
+
+    constructor(config: PlayerConfig) {
+        super(config);
+
+        this.user = config.user;
     }
 }

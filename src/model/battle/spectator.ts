@@ -1,13 +1,13 @@
-import { ExcludeMethods } from "jaz-ts-utils";
+import { User } from "@/model/user";
 
 export interface SpectatorConfig {
-    name: string;
+    user: User;
 }
 
 export class Spectator implements SpectatorConfig {
-    public name: string;
+    public user: User;
 
-    constructor(args: ExcludeMethods<typeof Spectator.prototype>) {
-        Object.assign(this, args);
+    constructor(config: SpectatorConfig) {
+        this.user = config.user;
     }
 }
