@@ -1,4 +1,6 @@
 import { Battle } from "@/model/battle/battle";
+import { Bot } from "@/model/battle/bot";
+import { Player } from "@/model/battle/player";
 import type { StartScriptTypes } from "@/model/start-script";
 
 /**
@@ -24,7 +26,6 @@ export class StartScriptConverter {
     }
 
     protected battleToStartScript(battle: Battle): StartScriptTypes.Game {
-        const allyteams: StartScriptTypes.AllyTeam[] = [];
         const teams: StartScriptTypes.Team[] = [];
         const players: StartScriptTypes.Player[] = [];
         const ais: StartScriptTypes.AI[] = [];
@@ -35,9 +36,54 @@ export class StartScriptConverter {
         const playerNameIdMap: Record<string, number> = {};
         const aiIdOwnerNameMap: Record<number, string> = {};
 
-        battle.getBattlers().forEach(battler => {
+        const allyTeams = battle.allyTeams.map((allyTeam, i) => {
+            const startScriptAllyTeam: StartScriptTypes.AllyTeam = {
+                id: i
+            };
 
+            if (allyTeam.startBox) {
+                startScriptAllyTeam.startrectleft = allyTeam.startBox.xPercent * 200;
+                startScriptAllyTeam.startrecttop = allyTeam.startBox.yPercent * 200;
+                startScriptAllyTeam.startrectright = (allyTeam.startBox.xPercent * 200) + (allyTeam.startBox.widthPercent * 200);
+                startScriptAllyTeam.startrectbottom = (allyTeam.startBox.yPercent * 200) + (allyTeam.startBox.heightPercent * 200);
+            }
+
+            allyTeam.battlers.forEach((battler, i) => {
+                const startScriptTeam: StartScriptTypes.Team = {
+                    id: teamId,
+                    allyteam: i,
+                    teamleader: 0
+                };
+
+                if (battler instanceof Player) {
+                    const startScriptPlayer: StartScriptTypes.Player = {
+                        id: playerIndex,
+                        team: teamId,
+                        name: battler.user.username
+                    }
+                } else if (battler instanceof Bot) {
+                    const startScriptBot: StartScriptTypes.AI = {
+                        host: battler.owner.
+                    }
+                }
+            });
+
+            return startScriptAllyTeam;
         });
+
+        // battle.getBattlers().forEach((battler, i) => {
+        //     const startScriptTeam: StartScriptTypes.Team = {
+        //         id: teamId,
+        //         allyteam: battler.allyTeamId
+        //     }
+
+        //     if (battler instanceof Player) {
+        //         playerIndex++;
+        //     } else {
+        //         aiIndex++;
+        //     }
+        //     teamId++;
+        // });
 
         battle.allyTeams.forEach((allyTeam, allyTeamIndex) => {
             allyteams.push({
@@ -97,7 +143,7 @@ export class StartScriptConverter {
             mapname: mapData.scriptName,
             ishost: 1,
             myplayername: battle.hostOptions.myPlayerName,
-            allyteams,
+            allyTeams,
             teams,
             players,
             ais
@@ -193,7 +239,7 @@ export class StartScriptConverter {
 
         return {
             ...game,
-            allyteams,
+            allyTeams: allyteams,
             teams,
             players,
             ais,
