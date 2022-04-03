@@ -1,4 +1,4 @@
-import type { BattleTypes } from "@/model/battle";
+import { Battle } from "@/model/battle/battle";
 import type { StartScriptTypes } from "@/model/start-script";
 
 /**
@@ -9,7 +9,7 @@ import type { StartScriptTypes } from "@/model/start-script";
  * - parse and convert restrictions
  */
 export class StartScriptConverter {
-    public generateScriptStr(battle: BattleTypes.Battle): string {
+    public generateScriptStr(battle: Battle): string {
         const script = this.battleToStartScript(battle);
         const scriptStr = this.generateScriptString(script);
         return scriptStr;
@@ -23,7 +23,7 @@ export class StartScriptConverter {
         return obj;
     }
 
-    protected battleToStartScript(battle: BattleTypes.Battle): StartScriptTypes.Game {
+    protected battleToStartScript(battle: Battle): StartScriptTypes.Game {
         const allyteams: StartScriptTypes.AllyTeam[] = [];
         const teams: StartScriptTypes.Team[] = [];
         const players: StartScriptTypes.Player[] = [];
@@ -35,6 +35,10 @@ export class StartScriptConverter {
         const playerNameIdMap: Record<string, number> = {};
         const aiIdOwnerNameMap: Record<number, string> = {};
 
+        battle.getBattlers().forEach(battler => {
+
+        });
+
         battle.allyTeams.forEach((allyTeam, allyTeamIndex) => {
             allyteams.push({
                 id: allyTeamIndex,
@@ -45,7 +49,7 @@ export class StartScriptConverter {
                 // startrectright: allyTeam.startBox?.right,
             });
 
-            allyTeam.teams.forEach(team => {
+            allyTeam.players.forEach(team => {
                 teams.push({
                     id: teamId,
                     allyteam: allyTeamIndex,

@@ -4,8 +4,7 @@ import type { ChildProcess } from "child_process";
 import { spawn } from "child_process";
 import type { EngineVersionFormat } from "@/model/formats";
 import { StartScriptConverter } from "@/utils/start-script-converter";
-import type { StartScriptTypes } from "@/model/start-script";
-import type { BattleTypes } from "@/model/battle";
+import { Battle } from "@/model/battle/battle";
 
 export class GameAPI {
     public gameProcess?: ChildProcess;
@@ -15,9 +14,9 @@ export class GameAPI {
     constructor(protected userDataDir: string, protected dataDir: string) {
     }
 
-    public async launch(engineTag: EngineVersionFormat, battle: BattleTypes.Battle) : Promise<void>;
+    public async launch(engineTag: EngineVersionFormat, battle: Battle) : Promise<void>;
     public async launch(engineTag: EngineVersionFormat, startScript: string) : Promise<void>;
-    public async launch(engineTag: EngineVersionFormat, battleOrStartScript: BattleTypes.Battle | string) : Promise<void> {
+    public async launch(engineTag: EngineVersionFormat, battleOrStartScript: Battle | string) : Promise<void> {
         const enginePath = path.join(this.dataDir, "engine", engineTag).replaceAll("\\", "/");
         const scriptPath = path.join(this.dataDir, "barlobby_script.txt");
 
@@ -41,9 +40,5 @@ export class GameAPI {
             stdio: "ignore",
             detached: true
         });
-    }
-
-    protected isBattleType(obj: StartScriptTypes.Game | BattleTypes.Battle): obj is BattleTypes.Battle {
-        return obj.hostOptions !== undefined;
     }
 }

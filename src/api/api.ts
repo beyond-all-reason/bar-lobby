@@ -12,7 +12,6 @@ import type { SettingsType } from "@/model/settings";
 import { settingsSchema } from "@/model/settings";
 import { ipcRenderer } from "electron";
 import type { Info } from "@/model/info";
-import { BattleAPI } from "@/api/battle";
 
 declare global {
     interface Window {
@@ -26,7 +25,6 @@ declare global {
             account: StoreAPI<Account>;
             content: ContentAPI;
             game: GameAPI;
-            battle: BattleAPI;
         }
     }
 }
@@ -50,8 +48,8 @@ export async function apiInit() {
         port: 8202,
         verbose: false//process.env.NODE_ENV !== "production" // TODO: add toggle to debug tools
     });
-    window.api.client.socket?.on("connect", () => window.api.session.model.offline = false);
-    window.api.client.socket?.on("close", () => window.api.session.model.offline = true);
+    window.api.client.socket?.on("connect", () => window.api.session.offlineMode.value = false);
+    window.api.client.socket?.on("close", () => window.api.session.offlineMode.value = true);
     //window.api.client.onResponse("s.system.server_event").add((data) => {
     //    if (event.data === "server_restart") {
     //        window.api.session.model.offline = true;
@@ -69,6 +67,4 @@ export async function apiInit() {
     window.api.game = new GameAPI(userDataDir, dataDir);
 
     window.api.content = await new ContentAPI(userDataDir, dataDir).init();
-
-    window.api.battle = new BattleAPI();
 }

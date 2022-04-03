@@ -1,20 +1,32 @@
-import type { SessionType} from "@/model/session";
-import { sessionSchema } from "@/model/session";
-import Ajv from "ajv";
-import { Signal } from "jaz-ts-utils";
-import { reactive } from "vue";
+import { Battle } from "@/model/battle/battle";
+import { CurrentUser } from "@/model/user";
+import { ExcludeMethods, objectKeys, Signal } from "jaz-ts-utils";
+import { ref } from "vue";
 
 export class SessionAPI {
-    public model: SessionType;
-    public onRightClick = new Signal();
-    public onLeftClick = new Signal();
+    public readonly currentBattle?: Battle;
+    public readonly currentUser?: CurrentUser;
+    public readonly offlineMode = ref(true);
+    public readonly onRightClick = new Signal();
+    public readonly onLeftClick = new Signal();
 
-    constructor() {
-        const ajv = new Ajv({ coerceTypes: true, useDefaults: true });
-        const sessionValidator = ajv.compile(sessionSchema);
-        const model = reactive({}) as SessionType;
-        sessionValidator(model);
+    public setCurrentBattle(battleConfig: ExcludeMethods<typeof Battle.prototype>) {
+        if (this.currentBattle) {
+            const currentBattle = this.currentBattle;
+            objectKeys(this.currentBattle).forEach(key => {
+                delete currentBattle[key];
+            });
+        }
+        Object.assign(this.currentBattle, battleConfig);
+    }
 
-        this.model = reactive(model);
+    public setCurrentUser(userConfig: ExcludeMethods<typeof CurrentUser.prototype>) {
+        if (this.currentUser) {
+            const currentUser = this.currentUser;
+            objectKeys(this.currentUser).forEach(key => {
+                delete currentUser[key];
+            });
+        }
+        Object.assign(this.currentUser, userConfig);
     }
 }

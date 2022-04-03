@@ -16,7 +16,7 @@
         </div>
         <div class="battle__right gap-md">
             <MapPreview />
-            <Select v-model="battle.hostOptions.mapFileName" label="Map" :options="installedMaps" :label-by="(map: any) => map.friendlyName" :value-by="(map: any) => map.fileNameWithExt" close-on-select clear-on-select searchable />
+            <Select v-model="battle.battleOptions.mapFileName" label="Map" :options="installedMaps" :label-by="(map: any) => map.friendlyName" :value-by="(map: any) => map.fileNameWithExt" close-on-select clear-on-select searchable />
             <!-- <Select v-model="selectedGame" label="Game" :options="games" close-on-select clear-on-select searchable /> -->
             <!-- <Select v-model="selectedEngine" label="Engine" :options="engines" close-on-select clear-on-select searchable /> -->
             <div>Engine Version</div>
@@ -37,7 +37,6 @@
 
 <script lang="ts" setup>
 import { computed, ref } from "vue";
-import { BattleTypes } from "@/model/battle";
 import Button from "@/components/inputs/Button.vue";
 import MapPreview from "@/components/battle/MapPreview.vue";
 import Select from "@/components/inputs/Select.vue";
@@ -48,6 +47,7 @@ import type { EngineVersionFormat } from "@/model/formats";
 import AddAIModal from "./AddAIModal.vue";
 import { AI } from "@/model/ai";
 import BattleChat from "@/components/battle/BattleChat.vue";
+import { Faction } from "@/model/battle/types";
 
 const props = defineProps<{
     offline: boolean;
@@ -55,7 +55,7 @@ const props = defineProps<{
 
 const battleTitle = ref("Offline Custom Battle");
 
-const battle = window.api.battle.currentBattle;
+const battle = window.api.session.currentBattle!;
 
 const installedMaps = computed(() => Object.values(window.api.content.maps.installedMaps));
 
@@ -75,16 +75,13 @@ const selectedEngine = ref(lastInArray(engines.value));
 const addAiModal = () => window.api.modals.open("add-ai");
 
 const addAi = (ai: AI) => {
-    const playerName = window.api.session.model.user?.name ?? "Player";
+    const playerName = window.api.session.currentUser?.username ?? "Player";
 
-    battle.allyTeams[1].teams.push({
-        ais: [{
-            name: randomFromArray(aiNames),
-            ownerName: playerName,
-            ai: ai.interfaceShortName,
-            faction: BattleTypes.Faction.Armada
-        }],
-        players: []
+    battle.allyTeams[1].addBattler({
+        name: randomFromArray(aiNames),
+        ownerName: playerName,
+        ai: ai.interfaceShortName,
+        faction: Faction.Armada
     });
 };
 
