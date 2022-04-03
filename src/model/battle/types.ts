@@ -5,7 +5,6 @@ export type BattleOptions = {
     gameVersion: string;
     mapFileName: string;
     isHost: boolean;
-    myPlayerName: string;
     startPosType: StartPosType;
 };
 

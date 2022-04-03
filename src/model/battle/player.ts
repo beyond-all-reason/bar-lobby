@@ -1,16 +1,18 @@
 import { Battler, BattlerConfig } from "@/model/battle/battler";
-import { User } from "@/model/user";
 
 export interface PlayerConfig extends BattlerConfig {
-    user: User;
+    name: string;
+    userId?: number;
 }
 
 export class Player extends Battler implements PlayerConfig {
-    public user: User;
+    public name: string;
+    public userId?: number;
 
     constructor(config: PlayerConfig) {
         super(config);
 
-        this.user = config.user;
+        this.name = config.name;
+        this.userId = config.userId;
     }
 }

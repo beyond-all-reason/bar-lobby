@@ -1,5 +1,5 @@
 export type AI = {
-    id: string; // i.e. shortName
+    shortName: string;
     name: string;
     version: string;
     description: string;

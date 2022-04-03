@@ -56,7 +56,7 @@ export class AiContentAPI extends AbstractContentAPI {
         }
 
         const ai: AI = {
-            id: aiInfo.shortName,
+            shortName: aiInfo.shortName,
             name: aiInfo.name,
             description: aiInfo.description,
             version: aiInfo.version,

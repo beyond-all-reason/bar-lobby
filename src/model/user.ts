@@ -1,5 +1,5 @@
 export interface UserConfig {
-    id: number;
+    userId: number;
     username: string;
     skill: Record<string, number>;
     icons: Record<string, string>;
@@ -10,7 +10,7 @@ export interface UserConfig {
 }
 
 export class User implements UserConfig {
-    public id: number;
+    public userId: number;
     public username: string;
     public skill: Record<string, number>;
     public icons: Record<string, string>;
@@ -20,7 +20,7 @@ export class User implements UserConfig {
     public status?: { isInGame: boolean; isAway: boolean; };
 
     constructor(config: UserConfig) {
-        this.id = config.id;
+        this.userId = config.userId;
         this.username = config.username;
         this.skill = config.skill;
         this.icons = config.icons;
