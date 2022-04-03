@@ -30,9 +30,9 @@ export class StartScriptConverter {
         const players: StartScriptTypes.Player[] = [];
         const ais: StartScriptTypes.AI[] = [];
 
-        let teamId = 0;
-        let aiIndex = 0;
-        let playerIndex = 0;
+        const teamId = 0;
+        const aiIndex = 0;
+        const playerIndex = 0;
         const playerNameIdMap: Record<string, number> = {};
         const aiIdOwnerNameMap: Record<number, string> = {};
 
@@ -54,95 +54,47 @@ export class StartScriptConverter {
                     allyteam: i,
                     teamleader: 0
                 };
+                teams.push(startScriptTeam);
 
                 if (battler instanceof Player) {
                     const startScriptPlayer: StartScriptTypes.Player = {
                         id: playerIndex,
                         team: teamId,
-                        name: battler.user.username
-                    }
+                        name: battler.userId.username
+                    };
+                    players.push(startScriptPlayer);
+                    playerNameIdMap[startScriptPlayer.name] = playerIndex;
                 } else if (battler instanceof Bot) {
-                    const startScriptBot: StartScriptTypes.AI = {
-                        host: battler.owner.
-                    }
+                    const startScriptAi: StartScriptTypes.AI = {
+                        host: 0,
+                        id: aiIndex,
+                        team: teamId,
+                        shortname: battler.ai.shortName,
+                        name: battler.name,
+                    };
+                    ais.push(startScriptAi);
+                    aiIdOwnerNameMap[aiIndex] = battler.owner.userId.username;
                 }
             });
 
             return startScriptAllyTeam;
         });
 
-        // battle.getBattlers().forEach((battler, i) => {
-        //     const startScriptTeam: StartScriptTypes.Team = {
-        //         id: teamId,
-        //         allyteam: battler.allyTeamId
-        //     }
-
-        //     if (battler instanceof Player) {
-        //         playerIndex++;
-        //     } else {
-        //         aiIndex++;
-        //     }
-        //     teamId++;
-        // });
-
-        battle.allyTeams.forEach((allyTeam, allyTeamIndex) => {
-            allyteams.push({
-                id: allyTeamIndex,
-                // TODO
-                // startrecttop: allyTeam.startBox?.top,
-                // startrectbottom: allyTeam.startBox?.bottom,
-                // startrectleft: allyTeam.startBox?.left,
-                // startrectright: allyTeam.startBox?.right,
-            });
-
-            allyTeam.players.forEach(team => {
-                teams.push({
-                    id: teamId,
-                    allyteam: allyTeamIndex,
-                    teamleader: 0
-                });
-
-                team.players.forEach(player => {
-                    players.push({
-                        id: playerIndex,
-                        team: teamId,
-                        name: player.name,
-                    });
-                    playerNameIdMap[player.name] = playerIndex;
-                    playerIndex++;
-                });
-
-                team.bots.forEach(bot => {
-                    ais.push({
-                        id: aiIndex,
-                        shortname: bot.ai,
-                        team: teamId,
-                        host: 0,
-                        name: bot.name,
-                    });
-                    aiIdOwnerNameMap[aiIndex] = bot.ownerName;
-                    aiIndex++;
-                });
-
-                teamId++;
-            });
-        });
-
         for (const ai of ais) {
             ai.host = playerNameIdMap[aiIdOwnerNameMap[ai.id]];
         }
 
-        const mapData = window.api.content.maps.getMapByFileName(battle.hostOptions.mapFileName);
+        const mapData = window.api.content.maps.getMapByFileName(battle.battleOptions.mapFileName);
 
         if (!mapData) {
-            throw new Error(`Can't generate start script because map is not installed: ${battle.hostOptions.mapFileName}`);
+            throw new Error(`Can't generate start script because map is not installed: ${battle.battleOptions.mapFileName}`);
         }
 
         return {
-            gametype: battle.hostOptions.gameVersion,
+            gametype: battle.battleOptions.gameVersion,
             mapname: mapData.scriptName,
             ishost: 1,
-            myplayername: battle.hostOptions.myPlayerName,
+            myplayername: battle.battleOptions.myPlayerName,
             allyTeams,
             teams,
             players,

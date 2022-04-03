@@ -13,6 +13,10 @@ export interface BattleConfig {
 }
 
 export class Battle implements BattleConfig {
+    static fromConfig(config: BattleConfig) {
+
+    }
+
     public battleOptions: BattleOptions;
     public allyTeams: AllyTeam[];
     public spectators: Spectator[];
@@ -30,7 +34,7 @@ export class Battle implements BattleConfig {
     }
 
     public addAllyTeam(allyTeamConfig: SetOptional<AllyTeamConfig, "battlers">) {
-
+        //
     }
 
     public getBattlers() {

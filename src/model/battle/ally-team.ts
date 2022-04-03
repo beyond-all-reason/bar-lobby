@@ -1,3 +1,4 @@
+import { Battler } from "@/model/battle/battler";
 import { Bot } from "@/model/battle/bot";
 import { Player } from "@/model/battle/player";
 import { StartBox } from "@/model/battle/types";
@@ -12,8 +13,23 @@ export class AllyTeam {
     public battlers: Array<Player | Bot>;
     public startBox?: StartBox;
 
-    constructor(config: SetOptional<AllyTeamConfig, "battlers">) {
-        this.battlers = config.battlers ?? [];
+    constructor(config: SetOptional<AllyTeamConfig, "battlers"> = {}) {
+        const battlers: Array<Player | Bot> = [];
+        config.battlers ??= [];
+        for (const battler of config.battlers) {
+            if (battler instanceof Battler) {
+                battlers.push(battler);
+            } else {
+                if ("user" in battler) {
+                    const player = new Player(battler);
+                    battlers.push(player);
+                } else {
+                    const bot = new Bot(battler);
+                    battlers.push(bot);
+                }
+            }
+        }
+        this.battlers = config.battlers;
     }
 
     public addBattler(player: Player) : Player;
@@ -31,7 +47,7 @@ export class AllyTeam {
             }
             return battler;
         } else {
-            if ("user" in battler && !this.getBattler(battler.user.id)) {
+            if ("user" in battler && !this.getBattler(battler.userId.userId)) {
                 const player = new Player(battler);
                 this.battlers.push(battler);
                 return player;
@@ -76,14 +92,14 @@ export class AllyTeam {
         if (typeof prop === "string") {
             return this.battlers.find(battler => {
                 if ("user" in battler) {
-                    return battler.user.username === prop;
+                    return battler.userId.username === prop;
                 } else if (battler instanceof Bot) {
                     return battler.name === prop;
                 }
                 return false;
             });
         } else if (typeof prop === "number") {
-            return this.battlers.find(battler => battler instanceof Player && battler.user.id === prop);
+            return this.battlers.find(battler => battler instanceof Player && battler.userId.userId === prop);
         } else {
             return this.battlers.find(battler => battler === prop);
         }
