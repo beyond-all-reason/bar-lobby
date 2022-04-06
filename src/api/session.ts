@@ -1,26 +1,41 @@
 import { Battle } from "@/model/battle/battle";
 import { CurrentUser } from "@/model/user";
-import { ExcludeMethods, objectKeys, Signal } from "jaz-ts-utils";
-import { ref } from "vue";
+import { objectKeys, Signal } from "jaz-ts-utils";
+import { reactive, ref } from "vue";
 
 export class SessionAPI {
-    public readonly currentBattle?: Battle;
-    public readonly currentUser?: CurrentUser;
+    public readonly currentUser: CurrentUser;
     public readonly offlineMode = ref(true);
     public readonly onRightClick = new Signal();
     public readonly onLeftClick = new Signal();
 
-    public setCurrentBattle(battleConfig: ExcludeMethods<typeof Battle.prototype>) {
+    // TODO: needs testing as I expect there could be problems with persistent components that expect currentBattle to always be the same reactive object
+    protected currentBattle?: Battle;
+
+    constructor() {
+        this.currentUser = reactive(new CurrentUser({
+            userId: -1,
+            username: "Player"
+        }));
+    }
+
+    public setCurrentBattle(battle: Battle) {
         if (this.currentBattle) {
             const currentBattle = this.currentBattle;
             objectKeys(this.currentBattle).forEach(key => {
                 delete currentBattle[key];
             });
+            Object.assign(this.currentBattle, battle);
+        } else {
+            this.currentBattle = reactive(battle) as Battle;
         }
-        Object.assign(this.currentBattle, battleConfig);
     }
 
-    public setCurrentUser(userConfig: ExcludeMethods<typeof CurrentUser.prototype>) {
+    public leaveCurrentbattle() {
+        this.currentBattle = undefined;
+    }
+
+    public setCurrentUser(userConfig: CurrentUser) {
         if (this.currentUser) {
             const currentUser = this.currentUser;
             objectKeys(this.currentUser).forEach(key => {

@@ -1,36 +1,41 @@
 import { defaultMaps } from "@/config/default-maps";
-import { AllyTeam } from "@/model/battle/ally-team";
 import { Battle } from "@/model/battle/battle";
-import { Bot } from "@/model/battle/bot";
-import { Player } from "@/model/battle/player";
 import { StartPosType } from "@/model/battle/types";
 import { lastInArray, randomFromArray } from "jaz-ts-utils";
 
 const defaultBattle = () => {
-    const battle = new Battle({
+    return Battle.create({
         battleOptions: {
             engineVersion: lastInArray(window.api.content.engine.installedVersions),
             gameVersion: lastInArray(window.api.content.game.installedVersions).version.fullString,
             isHost: true,
             mapFileName: randomFromArray(defaultMaps),
             startPosType: StartPosType.Fixed
-        }
+        },
+        allyTeams: [
+            {
+                battlers: [
+                    {
+                        user: window.api.session.currentUser
+                    }
+                ]
+            },
+            {
+                battlers: [
+                    {
+                        aiShortName: "BARb",
+                        name: "bob",
+                        ownerName: window.api.session.currentUser.username
+                    },
+                    {
+                        aiShortName: "BARb",
+                        name: "fred",
+                        ownerName: window.api.session.currentUser.username
+                    }
+                ]
+            }
+        ]
     });
-
-    const allyTeam1 = new AllyTeam();
-    const player = new Player({
-        allyTeam: allyTeam1,
-        name: window.api.session.currentUser?.username ?? "Player"
-    });
-
-    const allyTeam2 = new AllyTeam();
-    for (let i=0; i<3; i++) {
-        const bot = new Bot({
-            allyTeam: allyTeam2,
-            aiShortName: "BARb"
-        });
-        allyTeam2.addBattler;
-    }
 };
 
 // export const defaultBattle = () : Battle => {

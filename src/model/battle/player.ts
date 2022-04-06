@@ -1,18 +1,17 @@
+import { AllyTeam } from "@/model/battle/ally-team";
 import { Battler, BattlerConfig } from "@/model/battle/battler";
+import { User } from "@/model/user";
 
 export interface PlayerConfig extends BattlerConfig {
-    name: string;
-    userId?: number;
+    user: User;
 }
 
 export class Player extends Battler implements PlayerConfig {
-    public name: string;
-    public userId?: number;
+    public user: User;
 
-    constructor(config: PlayerConfig) {
-        super(config);
+    constructor(allyTeam: AllyTeam, config: PlayerConfig) {
+        super(allyTeam, config);
 
-        this.name = config.name;
-        this.userId = config.userId;
+        this.user = config.user;
     }
 }

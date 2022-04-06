@@ -60,7 +60,7 @@ export class StartScriptConverter {
                     const startScriptPlayer: StartScriptTypes.Player = {
                         id: playerIndex,
                         team: teamId,
-                        name: battler.userId.username
+                        name: battler.user.username
                     };
                     players.push(startScriptPlayer);
                     playerNameIdMap[startScriptPlayer.name] = playerIndex;
@@ -73,7 +73,7 @@ export class StartScriptConverter {
                         name: battler.name,
                     };
                     ais.push(startScriptAi);
-                    aiIdOwnerNameMap[aiIndex] = battler.owner.userId.username;
+                    aiIdOwnerNameMap[aiIndex] = battler.owner.user.username;
                 }
             });
 

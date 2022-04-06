@@ -1,60 +1,73 @@
-import { Battler } from "@/model/battle/battler";
-import { Bot } from "@/model/battle/bot";
-import { Player } from "@/model/battle/player";
+import { Battle } from "@/model/battle/battle";
+import { Bot, BotConfig } from "@/model/battle/bot";
+import { Player, PlayerConfig } from "@/model/battle/player";
+import { Spectator } from "@/model/battle/spectator";
 import { StartBox } from "@/model/battle/types";
-import { SetOptional } from "type-fest";
 
 export interface AllyTeamConfig {
-    battlers: Array<Player | Bot>;
+    battlers: Array<PlayerConfig | BotConfig>;
     startBox?: StartBox;
 }
 
-export class AllyTeam {
-    public battlers: Array<Player | Bot>;
+export class AllyTeam implements Omit<AllyTeamConfig, "battlers"> {
+    public static create(battle: Battle, config: AllyTeamConfig) {
+        const allyTeam = new AllyTeam(battle, config);
+
+        config.battlers.forEach(battlerConfig => {
+            if ("aiShortName" in battlerConfig) {
+                allyTeam.addBattler(battlerConfig);
+            } else {
+                allyTeam.addBattler(battlerConfig);
+            }
+        });
+
+        return allyTeam;
+    }
+
+    public battle: Battle;
+    public battlers: Array<Player | Bot> = [];
     public startBox?: StartBox;
 
-    constructor(config: SetOptional<AllyTeamConfig, "battlers"> = {}) {
-        const battlers: Array<Player | Bot> = [];
-        config.battlers ??= [];
-        for (const battler of config.battlers) {
-            if (battler instanceof Battler) {
-                battlers.push(battler);
-            } else {
-                if ("user" in battler) {
-                    const player = new Player(battler);
-                    battlers.push(player);
-                } else {
-                    const bot = new Bot(battler);
-                    battlers.push(bot);
-                }
-            }
-        }
-        this.battlers = config.battlers;
+    private constructor(battle: Battle, config: Omit<AllyTeamConfig, "battlers"> = {}) {
+        this.battle = battle;
+
+        config.startBox && (this.startBox = config.startBox);
     }
 
     public addBattler(player: Player) : Player;
-    public addBattler(playerConfig: ConstructorParameters<typeof Player>["0"]) : Player;
+    public addBattler(playerConfig: PlayerConfig) : Player;
     public addBattler(bot: Bot) : Bot;
-    public addBattler(botConfig: ConstructorParameters<typeof Bot>["0"]) : Bot;
-    public addBattler(battler: Player | Bot | ConstructorParameters<typeof Player>["0"] | ConstructorParameters<typeof Bot>["0"]) : Player | Bot | undefined {
+    public addBattler(botConfig: BotConfig) : Bot;
+    public addBattler(battler: Player | Bot | PlayerConfig | BotConfig) : Player | Bot | undefined {
         if (battler instanceof Player || battler instanceof Bot) {
-            if (battler instanceof Player && this.getBattler(battler)) {
+            if (battler instanceof Player && !this.battlers.includes(battler)) {
                 console.warn(`Tried to add player to team but player already added: ${battler}`);
-            } else if (battler instanceof Bot && this.getBattler(battler)) {
+            } else if (battler instanceof Bot && !this.battlers.includes(battler)) {
                 console.warn(`Tried to add bot to team but bot already added: ${battler}`);
             } else {
+                battler.allyTeam = this;
                 this.battlers.push(battler);
             }
             return battler;
         } else {
-            if ("user" in battler && !this.getBattler(battler.userId.userId)) {
-                const player = new Player(battler);
-                this.battlers.push(battler);
+            if ("user" in battler && battler.user?.userId && !this.getBattler(battler.user.userId)) {
+                const player = new Player(this, battler);
+                this.battlers.push(player);
                 return player;
-            } else if ("ai" in battler && !this.getBattler(battler.name)) {
-                const bot = new Bot(battler);
-                this.battlers.push(bot);
-                return bot;
+            } else if ("aiShortName" in battler && !this.getBattler(battler.name)) {
+                let owner: Player | Spectator | undefined;
+                for (const battlerOrSpectator of [ ...this.battle.getBattlers(), this.battle.spectators]) {
+                    if ("user" in battlerOrSpectator && battlerOrSpectator.user.username) {
+                        owner = battlerOrSpectator;
+                    }
+                }
+                if (owner) {
+                    const bot = new Bot(this, owner, battler);
+                    this.battlers.push(bot);
+                    return bot;
+                } else {
+                    console.warn(`Couldn't add bot because couldn't find bot owner: ${battler.ownerName}`);
+                }
             }
         }
     }
@@ -69,10 +82,6 @@ export class AllyTeam {
             battler = this.getBattler(prop);
         } else if (typeof prop === "number") {
             battler = this.getBattler(prop);
-        } else if (prop instanceof Player) {
-            battler = this.getBattler(prop);
-        } else if (prop instanceof Bot) {
-            battler = this.getBattler(prop);
         }
 
         if (battler) {
@@ -86,22 +95,29 @@ export class AllyTeam {
 
     public getBattler(name: string) : Player | Bot | undefined;
     public getBattler(userId: number) : Player | undefined;
-    public getBattler(player: Player) : Player | undefined;
-    public getBattler(bot: Bot) : Bot | undefined;
-    public getBattler(prop: string | number | Player | Bot) : Player | Bot | undefined {
+    public getBattler(prop: string | number) : Player | Bot | undefined {
         if (typeof prop === "string") {
-            return this.battlers.find(battler => {
-                if ("user" in battler) {
-                    return battler.userId.username === prop;
-                } else if (battler instanceof Bot) {
-                    return battler.name === prop;
+            for (const battler of this.battlers) {
+                if (battler instanceof Bot && battler.name === prop) {
+                    return battler;
+                } else if (battler instanceof Player && battler.user.username === prop) {
+                    return battler;
                 }
-                return false;
-            });
-        } else if (typeof prop === "number") {
-            return this.battlers.find(battler => battler instanceof Player && battler.userId.userId === prop);
+            }
         } else {
-            return this.battlers.find(battler => battler === prop);
+            return this.battlers.find(battler => battler instanceof Player && battler.user?.userId === prop);
+        }
+    }
+
+    public getPlayer(name: string) : Player | undefined;
+    public getPlayer(userId: number) : Player | undefined;
+    public getPlayer(prop: string | number) : Player | undefined {
+        for (const battler of this.battlers) {
+            if (battler instanceof Player) {
+                if (battler.user.userId === prop || battler.user.username === prop) {
+                    return battler;
+                }
+            }
         }
     }
 }
