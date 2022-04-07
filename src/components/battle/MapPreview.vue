@@ -25,7 +25,7 @@ import { onMounted, watch } from "vue";
 import Options from "@/components/inputs/Options.vue";
 import Option from "@/components/inputs/Option.vue";
 
-const battle = window.api.battle.currentBattle;
+const battle = window.api.session.;
 
 const startPosOptions: Array<{ label: string, value: any }> = [
     { label: "Fixed", value: BattleTypes.StartPosType.Fixed },

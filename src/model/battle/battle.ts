@@ -1,4 +1,6 @@
 import { AllyTeam, AllyTeamConfig } from "@/model/battle/ally-team";
+import { Bot, BotConfig } from "@/model/battle/bot";
+import { Player } from "@/model/battle/player";
 import { Spectator, SpectatorConfig } from "@/model/battle/spectator";
 import { BattleOptions, Restriction } from "@/model/battle/types";
 
@@ -22,14 +24,14 @@ export class Battle {
         battle.mapOptions = config.mapOptions ?? {};
         battle.restrictions = config.restrictions ?? [];
 
-        let botConfigs: 
+        const botsToAdd: Array<{ config: BotConfig, allyTeam: AllyTeam }> = [];
 
         config.allyTeams.forEach(allyTeamConfig => {
             const allyTeam = new AllyTeam(battle, allyTeamConfig);
 
             allyTeamConfig.battlers.forEach(battlerConfig => {
                 if ("aiShortName" in battlerConfig) {
-                    allyTeam.addBattler(battlerConfig);
+                    botsToAdd.push({ config: battlerConfig, allyTeam });
                 } else {
                     allyTeam.addBattler(battlerConfig);
                 }
@@ -38,12 +40,19 @@ export class Battle {
             battle.addAllyTeam(allyTeam);
         });
 
-        // TODO: need to add bots _after_ all Player instances are created to set owner property correctly
-
         config.spectators.forEach(spectatorConfig => {
             const spectator = Spectator.create(battle, spectatorConfig);
             battle.addSpectator(spectator);
         });
+
+        // add bots after all players and spectators have been added so we can fetch the correct User instance for the owner prop
+        for (const botToAdd of botsToAdd) {
+            const owner = [ ...battle.getPlayers(), ...battle.spectators ].find((owner) => owner.user.username === botToAdd.config.ownerName);
+            if (owner) {
+                const bot = new Bot(botToAdd.allyTeam, owner, botToAdd.config);
+                botToAdd.allyTeam.addBattler(bot);
+            }
+        }
 
         return battle;
     }
@@ -68,13 +77,21 @@ export class Battle {
             }
             return prop;
         } else {
-            const allyTeam = AllyTeam.create(this, prop);
+            const allyTeam = new AllyTeam(this, prop);
             return this.addAllyTeam(allyTeam);
         }
     }
 
     public getBattlers() {
         return this.allyTeams.flatMap(allyTeam => allyTeam.battlers);
+    }
+
+    public getPlayers() {
+        return this.getBattlers().filter((battler) : battler is Player => battler instanceof Player);
+    }
+
+    public getBots() {
+        return this.getBattlers().filter((battler) : battler is Bot => battler instanceof Player);
     }
 
     public addSpectator(spectator: Spectator) : Spectator;

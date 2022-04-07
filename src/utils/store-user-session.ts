@@ -8,13 +8,13 @@ export function storeUserSession(user?: UserData) {
         return;
     }
 
-    window.api.session.model.user = {
-        id: user.id,
-        springId: user.springid,
-        name: user.name,
-        bot: user.bot,
-        clanId: user.clan_id,
-        friendIds: user.friends,
-        friendRequestIds: user.friend_requests,
-    };
+    window.api.session.setCurrentUser({
+        userId: user.id,
+        legacyId: Number(user.springid),
+        username: user.name,
+        isBot: user.bot,
+        clanId: user.clan_id ?? undefined,
+        friendUserIds: user.friends,
+        friendRequestUserIds: user.friend_requests,
+    });
 }

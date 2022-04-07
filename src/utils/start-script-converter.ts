@@ -69,7 +69,7 @@ export class StartScriptConverter {
                         host: 0,
                         id: aiIndex,
                         team: teamId,
-                        shortname: battler.ai.shortName,
+                        shortname: battler.aiShortName,
                         name: battler.name,
                     };
                     ais.push(startScriptAi);
@@ -81,7 +81,13 @@ export class StartScriptConverter {
         });
 
         for (const ai of ais) {
-            ai.host = playerNameIdMap[aiIdOwnerNameMap[ai.id]];
+            const aiOwnerName = aiIdOwnerNameMap[ai.id];
+            if (aiOwnerName) {
+                const playerId = playerNameIdMap[aiOwnerName];
+                if (playerId !== undefined) {
+                    ai.host = playerId;
+                }
+            }
         }
 
         const mapData = window.api.content.maps.getMapByFileName(battle.battleOptions.mapFileName);
@@ -94,7 +100,7 @@ export class StartScriptConverter {
             gametype: battle.battleOptions.gameVersion,
             mapname: mapData.scriptName,
             ishost: 1,
-            myplayername: battle.battleOptions.myPlayerName,
+            myplayername: window.api.session.currentUser.username,
             allyTeams,
             teams,
             players,

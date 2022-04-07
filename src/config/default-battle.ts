@@ -3,7 +3,7 @@ import { Battle } from "@/model/battle/battle";
 import { StartPosType } from "@/model/battle/types";
 import { lastInArray, randomFromArray } from "jaz-ts-utils";
 
-const defaultBattle = () => {
+export const defaultBattle = () => {
     return Battle.create({
         battleOptions: {
             engineVersion: lastInArray(window.api.content.engine.installedVersions),

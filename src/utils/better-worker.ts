@@ -50,7 +50,7 @@ export class BetterWorkerHost extends WorkerWrapper {
         });
     }
 
-    public send(channel: string, data?: any) {
+    public override send(channel: string, data?: any) {
         this.worker.postMessage({ channel, data });
     }
 }
@@ -72,7 +72,7 @@ export class BetterWorker extends WorkerWrapper {
         }
     }
 
-    public send(channel: string, data?: any) {
+    public override send(channel: string, data?: any) {
         postMessage({ channel, data });
     }
 }

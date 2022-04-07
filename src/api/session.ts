@@ -1,41 +1,46 @@
+import { defaultBattle } from "@/config/default-battle";
 import { Battle } from "@/model/battle/battle";
-import { CurrentUser } from "@/model/user";
+import { CurrentUser, CurrentUserConfig } from "@/model/user";
 import { objectKeys, Signal } from "jaz-ts-utils";
-import { reactive, ref } from "vue";
+import { reactive, Ref, ref } from "vue";
 
 export class SessionAPI {
+    public inBattle: Ref<boolean>;
     public readonly currentUser: CurrentUser;
-    public readonly offlineMode = ref(true);
-    public readonly onRightClick = new Signal();
-    public readonly onLeftClick = new Signal();
-
-    // TODO: needs testing as I expect there could be problems with persistent components that expect currentBattle to always be the same reactive object
-    protected currentBattle?: Battle;
+    public readonly currentBattle: Battle;
+    public readonly offlineMode: Ref<boolean>;
+    public readonly onRightClick: Signal; // TODO: refactor somewhere better
+    public readonly onLeftClick: Signal; // TODO: refactor somewhere better
 
     constructor() {
         this.currentUser = reactive(new CurrentUser({
             userId: -1,
             username: "Player"
         }));
+
+        this.offlineMode = ref(true);
+        this.inBattle = ref(false);
+        this.onLeftClick = new Signal();
+        this.onRightClick = new Signal();
+        this.currentBattle = reactive(defaultBattle());
     }
 
     public setCurrentBattle(battle: Battle) {
-        if (this.currentBattle) {
-            const currentBattle = this.currentBattle;
-            objectKeys(this.currentBattle).forEach(key => {
-                delete currentBattle[key];
-            });
-            Object.assign(this.currentBattle, battle);
-        } else {
-            this.currentBattle = reactive(battle) as Battle;
-        }
+        // set properties on the battle object instead of reassigning it to keep the reactivity intact
+        const currentBattle = this.currentBattle;
+        objectKeys(this.currentBattle).forEach(key => {
+            delete currentBattle[key];
+        });
+        Object.assign(this.currentBattle, battle);
+
+        this.inBattle.value = true;
     }
 
     public leaveCurrentbattle() {
-        this.currentBattle = undefined;
+        this.inBattle.value = false;
     }
 
-    public setCurrentUser(userConfig: CurrentUser) {
+    public setCurrentUser(userConfig: CurrentUserConfig) {
         if (this.currentUser) {
             const currentUser = this.currentUser;
             objectKeys(this.currentUser).forEach(key => {
