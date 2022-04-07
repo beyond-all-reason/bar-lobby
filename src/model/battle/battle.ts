@@ -22,10 +22,23 @@ export class Battle {
         battle.mapOptions = config.mapOptions ?? {};
         battle.restrictions = config.restrictions ?? [];
 
+        let botConfigs: 
+
         config.allyTeams.forEach(allyTeamConfig => {
-            const allyTeam = AllyTeam.create(battle, allyTeamConfig);
+            const allyTeam = new AllyTeam(battle, allyTeamConfig);
+
+            allyTeamConfig.battlers.forEach(battlerConfig => {
+                if ("aiShortName" in battlerConfig) {
+                    allyTeam.addBattler(battlerConfig);
+                } else {
+                    allyTeam.addBattler(battlerConfig);
+                }
+            });
+
             battle.addAllyTeam(allyTeam);
         });
+
+        // TODO: need to add bots _after_ all Player instances are created to set owner property correctly
 
         config.spectators.forEach(spectatorConfig => {
             const spectator = Spectator.create(battle, spectatorConfig);
