@@ -10,25 +10,11 @@ export interface AllyTeamConfig {
 }
 
 export class AllyTeam implements Omit<AllyTeamConfig, "battlers"> {
-    public static create(battle: Battle, config: AllyTeamConfig) {
-        const allyTeam = new AllyTeam(battle, config);
-
-        config.battlers.forEach(battlerConfig => {
-            if ("aiShortName" in battlerConfig) {
-                allyTeam.addBattler(battlerConfig);
-            } else {
-                allyTeam.addBattler(battlerConfig);
-            }
-        });
-
-        return allyTeam;
-    }
-
     public battle: Battle;
     public battlers: Array<Player | Bot> = [];
     public startBox?: StartBox;
 
-    private constructor(battle: Battle, config: Omit<AllyTeamConfig, "battlers"> = {}) {
+    public constructor(battle: Battle, config: Omit<AllyTeamConfig, "battlers"> = {}) {
         this.battle = battle;
 
         config.startBox && (this.startBox = config.startBox);

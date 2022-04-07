@@ -90,7 +90,7 @@ export class MapContentAPI extends AbstractContentAPI {
         }
     }
 
-    public async downloadMap(filename: string, host = contentSources.maps.http[0]) : Promise<void> {
+    public async downloadMap(filename: string, host = contentSources.maps.http[0]!) : Promise<void> {
         if (this.installedMaps[filename] !== undefined) {
             console.log(`Map ${filename} is already installed`);
             return;
@@ -134,7 +134,6 @@ export class MapContentAPI extends AbstractContentAPI {
             this.mapCache.cacheItem(dest);
         } catch (err) {
             console.error(`Failed to download map ${filename} from ${host}:`, err);
-
             const nextMapHostIndex = contentSources.maps.http.indexOf(host) + 1;
             const nextMapHost = contentSources.maps.http[nextMapHostIndex];
             if (nextMapHost) {

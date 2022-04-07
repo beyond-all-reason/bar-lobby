@@ -15,8 +15,9 @@ export class AiContentAPI extends AbstractContentAPI {
     }
 
     public async fetchAis(engine: EngineVersionFormat) : Promise<AI[]> {
-        if (this.installedAis[engine] !== undefined) {
-            return this.installedAis[engine];
+        const ai = this.installedAis[engine];
+        if (ai !== undefined) {
+            return ai;
         }
 
         const ais: AI[] = [];
