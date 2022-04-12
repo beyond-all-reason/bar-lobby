@@ -48,6 +48,7 @@ module.exports = {
         "@typescript-eslint/no-non-null-assertion": "off",
         "@typescript-eslint/no-non-null-asserted-optional-chain": "off",
         "@typescript-eslint/no-namespace": "off",
+        "@typescript-eslint/ban-ts-comment": "off",
 
         "vue/no-dupe-keys": "off",
         "vue/html-indent": ["error", 4],

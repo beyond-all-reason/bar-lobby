@@ -23,10 +23,10 @@
             <div>Game Version</div>
             <div>Game End Condition</div>
             <div class="flex-row flex-bottom gap-md">
-                <Button fullwidth @click="addAiModal">
-                    Add AI
+                <Button fullwidth @click="addBotModal">
+                    Add Bot
                 </Button>
-                <AddAIModal :engine-version="selectedEngine" @add-ai="addAi" />
+                <AddAIModal :engine-version="selectedEngine" @add-bot="addBot" />
                 <Button class="btn--green" fullwidth @click="start">
                     Start
                 </Button>
@@ -45,17 +45,13 @@ import { lastInArray, randomFromArray } from "jaz-ts-utils";
 import { aiNames } from "@/config/ai-names";
 import type { EngineVersionFormat } from "@/model/formats";
 import AddAIModal from "./AddAIModal.vue";
-import { AI } from "@/model/ai";
 import BattleChat from "@/components/battle/BattleChat.vue";
 import { Faction } from "@/model/battle/types";
-
-const props = defineProps<{
-    offline: boolean;
-}>();
+import { Bot } from "@/model/battle/bot";
 
 const battleTitle = ref("Offline Custom Battle");
 
-const battle = window.api.session.currentBattle!;
+const battle = window.api.battle.currentBattle;
 
 const installedMaps = computed(() => Object.values(window.api.content.maps.installedMaps));
 
@@ -72,17 +68,17 @@ const selectedGame = ref(lastInArray(games.value));
 const engines = computed(() => window.api.content.engine.installedVersions);
 const selectedEngine = ref(lastInArray(engines.value));
 
-const addAiModal = () => window.api.modals.open("add-ai");
+const addBotModal = () => window.api.modals.open("add-bot");
 
-const addAi = (ai: AI) => {
+const addBot = (ai: Bot) => {
     const playerName = window.api.session.currentUser?.username ?? "Player";
 
-    battle.allyTeams[1].addBattler({
+    window.api.battle.addBattler({
         name: randomFromArray(aiNames),
         ownerName: playerName,
-        ai: ai.interfaceShortName,
+        aiShortName: ai.aiShortName,
         faction: Faction.Armada
-    });
+    }, 0);
 };
 
 const start = async () => {

@@ -5,17 +5,15 @@
                 Team {{ allyTeamIndex + 1 }}
             </div>
             <div class="playerlist__players">
-                <template v-for="(team, teamIndex) in allyTeam.teams" :key="teamIndex">
-                    <template v-for="(player, i) in team.players" :key="i">
-                        <ContextMenu :entries="playerActions" :args="[player]">
-                            <Player v-bind="player" />
-                        </ContextMenu>
-                    </template>
-                    <template v-for="(ai, i) in team.ais" :key="i">
-                        <ContextMenu :entries="aiActions" :args="[ai]">
-                            <Player v-bind="ai" :is-bot="true" />
-                        </ContextMenu>
-                    </template>
+                <template v-for="(player, i) in allyTeam.players" :key="i">
+                    <ContextMenu :entries="playerActions" :args="[player]">
+                        <BattlePlayer :player="player" />
+                    </ContextMenu>
+                </template>
+                <template v-for="(bot, i) in allyTeam.bots" :key="i">
+                    <ContextMenu :entries="botActions" :args="[bot]">
+                        <BattlePlayer :player="bot" />
+                    </ContextMenu>
                 </template>
             </div>
         </div>
@@ -24,44 +22,45 @@
                 Spectators
             </div>
             <template v-for="(spectator, i) in battle.spectators" :key="i">
-                <Player v-bind="spectator" />
+                <BattlePlayer :player="spectator" />
             </template>
         </div>
     </div>
 </template>
 
 <script lang="ts" setup>
-import { BattleTypes } from "@/model/battle";
-import Player from "@/components/battle/Player.vue";
+import BattlePlayer from "@/components/battle/BattlePlayer.vue";
 import ContextMenu, { ContextMenuEntry } from "@/components/common/ContextMenu.vue";
+import { Bot } from "@/model/battle/bot";
+import { Player } from "@/model/battle/player";
 
 const battle = window.api.battle.currentBattle;
 
-const viewProfile = (player: BattleTypes.Player) => {
+const viewProfile = (player: Player) => {
     //
 };
 
-const kickPlayer = (player: BattleTypes.Player) => {
+const kickPlayer = (player: Player) => {
     //
 };
 
-const messagePlayer = (player: BattleTypes.Player) => {
+const messagePlayer = (player: Player) => {
     //
 };
 
-const blockPlayer = (player: BattleTypes.Player) => {
+const blockPlayer = (player: Player) => {
     //
 };
 
-const addFriend = (player: BattleTypes.Player) => {
+const addFriend = (player: Player) => {
     //
 };
 
-const reportPlayer = (player: BattleTypes.Player) => {
+const reportPlayer = (player: Player) => {
     //
 };
 
-const kickAi = (ai: BattleTypes.AIPlayer) => {
+const kickAi = (ai: Bot) => {
     console.log(ai.name);
 };
 
@@ -74,7 +73,7 @@ const playerActions: ContextMenuEntry[] = [
     { label: "Report", action: reportPlayer },
 ];
 
-const aiActions: ContextMenuEntry[] = [
+const botActions: ContextMenuEntry[] = [
     { label: "Kick", action: kickAi },
 ];
 </script>

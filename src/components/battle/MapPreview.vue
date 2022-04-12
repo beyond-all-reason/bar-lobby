@@ -2,14 +2,14 @@
     <div id="map-canvas-container" class="map-canvas-container">
         <canvas id="map-canvas" />
         <div class="map-toolbar">
-            <Options v-model="battle.hostOptions.startPosType" required>
-                <Option :value="BattleTypes.StartPosType.Fixed">
+            <Options v-model="battle.battleOptions.startPosType" required>
+                <Option :value="StartPosType.Fixed">
                     Fixed
                 </Option>
-                <Option :value="BattleTypes.StartPosType.Random">
+                <Option :value="StartPosType.Random">
                     Random
                 </Option>
-                <Option :value="BattleTypes.StartPosType.ChooseInGame">
+                <Option :value="StartPosType.ChooseInGame">
                     Boxes
                 </Option>
             </Options>
@@ -18,19 +18,17 @@
 </template>
 
 <script lang="ts" setup>
-// import * as PIXI from "pixi.js";
-// import { MapData } from "@/model/map-data";
-import { BattleTypes } from "@/model/battle";
 import { onMounted, watch } from "vue";
 import Options from "@/components/inputs/Options.vue";
 import Option from "@/components/inputs/Option.vue";
+import { StartPosType } from "@/model/battle/types";
 
-const battle = window.api.session.;
+const battle = window.api.battle.currentBattle;
 
 const startPosOptions: Array<{ label: string, value: any }> = [
-    { label: "Fixed", value: BattleTypes.StartPosType.Fixed },
-    { label: "Random", value: BattleTypes.StartPosType.Random },
-    { label: "Boxes", value: BattleTypes.StartPosType.ChooseInGame }
+    { label: "Fixed", value: StartPosType.Fixed },
+    { label: "Random", value: StartPosType.Random },
+    { label: "Boxes", value: StartPosType.ChooseInGame }
 ];
 
 type Transform = { x: number, y: number, width: number, height: number };
@@ -48,15 +46,20 @@ onMounted(async () => {
 
     loadMap();
 
+    let mapFileName = battle.battleOptions.mapFileName;
+
     watch(battle, () => {
-        loadMap();
+        if (battle.battleOptions.mapFileName !== mapFileName) {
+            mapFileName = battle.battleOptions.mapFileName;
+            loadMap();
+        }
     });
 });
 
 async function loadMap() {
     reset();
 
-    const mapData = window.api.content.maps.getMapByFileName(battle.hostOptions.mapFileName);
+    const mapData = window.api.content.maps.getMapByFileName(battle.battleOptions.mapFileName);
     if (!mapData || !mapData.textureImagePath) {
         // TODO: missing map image
         return;
@@ -84,13 +87,13 @@ async function loadMap() {
 }
 
 function drawBoxes() {
-    if (battle.hostOptions.startPosType !== BattleTypes.StartPosType.ChooseInGame) {
+    if (battle.battleOptions.startPosType !== StartPosType.ChooseInGame) {
         return;
     }
 
     for (const allyTeam of battle.allyTeams) {
         if (allyTeam.startBox) {
-            if (allyTeam.teams.find(team => team.players.find(player => player.name === battle.hostOptions.myPlayerName))) {
+            if (allyTeam.players.find(player => player.userId === window.api.session.currentUser.userId)) {
                 context.fillStyle = "rgba(0, 255, 0, 0.3)";
             } else {
                 context.fillStyle = "rgba(255, 0, 0, 0.3)";

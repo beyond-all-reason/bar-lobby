@@ -1,7 +1,7 @@
 import { Battle } from "@/model/battle/battle";
-import { Bot } from "@/model/battle/bot";
-import { Player } from "@/model/battle/player";
 import type { StartScriptTypes } from "@/model/start-script";
+import { assign } from "@/utils/assign";
+import { isBot } from "@/model/battle/bot";
 
 /**
  * https://springrts.com/wiki/Script.txt
@@ -26,68 +26,82 @@ export class StartScriptConverter {
     }
 
     protected battleToStartScript(battle: Battle): StartScriptTypes.Game {
+        const allyTeams: StartScriptTypes.AllyTeam[] = [];
         const teams: StartScriptTypes.Team[] = [];
         const players: StartScriptTypes.Player[] = [];
-        const ais: StartScriptTypes.AI[] = [];
+        const bots: StartScriptTypes.Bot[] = [];
 
-        const teamId = 0;
-        const aiIndex = 0;
-        const playerIndex = 0;
-        const playerNameIdMap: Record<string, number> = {};
-        const aiIdOwnerNameMap: Record<number, string> = {};
+        let teamId = 0;
+        let botIndex = 0;
+        let playerIndex = 0;
+        const botIdToOwnerNameMap: Record<number, string> = {};
 
-        const allyTeams = battle.allyTeams.map((allyTeam, i) => {
-            const startScriptAllyTeam: StartScriptTypes.AllyTeam = {
-                id: i
+        battle.allyTeams.forEach((allyTeamConfig, allyTeamIndex) => {
+            const allyTeam: StartScriptTypes.AllyTeam = {
+                id: allyTeamIndex
             };
 
-            if (allyTeam.startBox) {
-                startScriptAllyTeam.startrectleft = allyTeam.startBox.xPercent * 200;
-                startScriptAllyTeam.startrecttop = allyTeam.startBox.yPercent * 200;
-                startScriptAllyTeam.startrectright = (allyTeam.startBox.xPercent * 200) + (allyTeam.startBox.widthPercent * 200);
-                startScriptAllyTeam.startrectbottom = (allyTeam.startBox.yPercent * 200) + (allyTeam.startBox.heightPercent * 200);
+            if (allyTeamConfig.startBox) {
+                assign(allyTeam, {
+                    startrectleft: allyTeamConfig.startBox.xPercent * 200,
+                    startrecttop: allyTeamConfig.startBox.yPercent * 200,
+                    startrectright: (allyTeamConfig.startBox.xPercent + allyTeamConfig.startBox.widthPercent) * 200,
+                    startrectbottom: (allyTeamConfig.startBox.yPercent + allyTeamConfig.startBox.heightPercent) * 200
+                });
             }
 
-            allyTeam.battlers.forEach((battler, i) => {
-                const startScriptTeam: StartScriptTypes.Team = {
+            allyTeams.push(allyTeam);
+
+            [ ...allyTeamConfig.players, ...allyTeamConfig.bots].forEach(battlerConfig => {
+                const team: StartScriptTypes.Team = {
                     id: teamId,
-                    allyteam: i,
+                    allyteam: allyTeamIndex,
                     teamleader: 0
                 };
-                teams.push(startScriptTeam);
 
-                if (battler instanceof Player) {
-                    const startScriptPlayer: StartScriptTypes.Player = {
+                assign(team, {
+                    advantage: battlerConfig.advantage,
+                    handicap: battlerConfig.handicap,
+                    incomemultiplier: battlerConfig.incomeMultiplier,
+                    startposx: battlerConfig.startPos?.x,
+                    startposz: battlerConfig.startPos?.z
+                });
+
+                teams.push(team);
+
+                teamId++;
+
+                if (!isBot(battlerConfig)) {
+                    const player: StartScriptTypes.Player = {
                         id: playerIndex,
-                        team: teamId,
-                        name: battler.user.username
+                        team: team.id,
+                        name: window.api.session.getUserById(battlerConfig.userId)?.username || "Player"
                     };
-                    players.push(startScriptPlayer);
-                    playerNameIdMap[startScriptPlayer.name] = playerIndex;
-                } else if (battler instanceof Bot) {
-                    const startScriptAi: StartScriptTypes.AI = {
-                        host: 0,
-                        id: aiIndex,
-                        team: teamId,
-                        shortname: battler.aiShortName,
-                        name: battler.name,
+
+                    players.push(player);
+
+                    playerIndex++;
+                } else {
+                    const bot: StartScriptTypes.Bot = {
+                        id: botIndex,
+                        team: team.id,
+                        shortname: battlerConfig.aiShortName,
+                        name: battlerConfig.name,
+                        host: -1
                     };
-                    ais.push(startScriptAi);
-                    aiIdOwnerNameMap[aiIndex] = battler.owner.user.username;
+
+                    botIdToOwnerNameMap[bot.id] = battlerConfig.ownerName;
+
+                    bots.push(bot);
+
+                    botIndex++;
                 }
             });
-
-            return startScriptAllyTeam;
         });
 
-        for (const ai of ais) {
-            const aiOwnerName = aiIdOwnerNameMap[ai.id];
-            if (aiOwnerName) {
-                const playerId = playerNameIdMap[aiOwnerName];
-                if (playerId !== undefined) {
-                    ai.host = playerId;
-                }
-            }
+        for (const bot of bots) {
+            const owner = players.find(player => player.name === botIdToOwnerNameMap[bot.id])!;
+            bot.host = owner.id;
         }
 
         const mapData = window.api.content.maps.getMapByFileName(battle.battleOptions.mapFileName);
@@ -104,7 +118,7 @@ export class StartScriptConverter {
             allyTeams,
             teams,
             players,
-            ais
+            ais: bots
         };
     }
 
@@ -165,7 +179,7 @@ export class StartScriptConverter {
         const allyteams: StartScriptTypes.AllyTeam[] = [];
         const teams: StartScriptTypes.Team[] = [];
         const players: StartScriptTypes.Player[] = [];
-        const ais: StartScriptTypes.AI[] = [];
+        const ais: StartScriptTypes.Bot[] = [];
 
         for (const key in obj) {
             const val = obj[key];
@@ -197,7 +211,7 @@ export class StartScriptConverter {
 
         return {
             ...game,
-            allyTeams: allyteams,
+            allyteams,
             teams,
             players,
             ais,

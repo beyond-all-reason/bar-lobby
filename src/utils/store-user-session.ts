@@ -16,5 +16,11 @@ export function storeUserSession(user?: UserData) {
         clanId: user.clan_id ?? undefined,
         friendUserIds: user.friends,
         friendRequestUserIds: user.friend_requests,
+        // TODO
+        icons: {},
+        skill: {},
+        ignoreUserIds: [],
+        permissions:[],
+        status: {isAway: false, isInGame: false}
     });
 }

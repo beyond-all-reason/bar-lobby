@@ -69,7 +69,7 @@ class MapCache extends AbstractFileCache<MapData> {
             fileNameWithExt: mapData.fileNameWithExt,
             scriptName: mapData.scriptName.trim(),
             friendlyName: mapData.scriptName.trim().replace(/[_-]/g, " "),
-            description: mapData.mapInfo?.description || mapData.smd?.description,
+            description: mapData.mapInfo?.description || mapData.smd?.description || "",
             mapHardness: mapData.mapInfo?.maphardness ?? mapData.smd?.mapHardness!,
             gravity: mapData.mapInfo?.gravity ?? mapData.smd?.gravity!,
             tidalStrength: mapData.mapInfo?.tidalStrength ?? mapData.smd?.tidalStrength!,

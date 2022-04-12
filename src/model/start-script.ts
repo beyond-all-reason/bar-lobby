@@ -27,15 +27,13 @@ export namespace StartScriptTypes {
         modoptions?: ModOptions;
         mapoptions?: MapOptions;
         restrict?: Restriction[];
-        mutator?: Mutator;
         allyTeams: AllyTeam[];
         teams: Team[];
         players: Player[];
-        ais?: AI[];
+        ais?: Bot[];
     }
 
     export interface ModOptions {
-        [key: string]: unknown;
         startmetal?: number;
         startenergy?: number;
         maxunits?: number;
@@ -60,12 +58,7 @@ export namespace StartScriptTypes {
         limit: number;
     }
 
-    export interface Mutator {
-        [key: string]: unknown;
-    }
-
     export interface AllyTeam {
-        [key: string]: unknown;
         id: number;
         numallies?: number;
         startrecttop?: number;
@@ -75,7 +68,6 @@ export namespace StartScriptTypes {
     }
 
     export interface Team {
-        [key: string]: unknown;
         id: number;
         allyteam: number;
         teamleader: number;
@@ -90,7 +82,6 @@ export namespace StartScriptTypes {
     }
 
     export interface Player {
-        [key: string]: unknown;
         id: number;
         name: string;
         team: number;
@@ -101,8 +92,7 @@ export namespace StartScriptTypes {
         rank?: number;
     }
 
-    export interface AI {
-        [key: string]: unknown;
+    export interface Bot {
         id: number;
         team: number;
         shortname: string;
@@ -110,7 +100,6 @@ export namespace StartScriptTypes {
         name?: string;
         version?: string;
         options?: {
-            [key: string]: any;
             difficultyLevel?: number;
         }
     }
