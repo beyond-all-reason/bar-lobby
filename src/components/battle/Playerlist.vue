@@ -1,28 +1,52 @@
 <template>
     <div class="playerlist">
-        <div v-for="(allyTeam, allyTeamIndex) in battle.allyTeams" :key="allyTeamIndex" class="playerlist__ally-team">
+        <div
+            v-for="(allyTeam, allyTeamIndex) in battle.allyTeams"
+            :key="allyTeamIndex"
+            class="playerlist__ally-team"
+            @dragenter.prevent="dragEnter($event)"
+            @dragover.prevent
+            @dragleave.prevent="dragLeave($event)"
+            @drop="onDrop($event, allyTeamIndex)"
+        >
             <div class="playerlist__title">
                 Team {{ allyTeamIndex + 1 }}
             </div>
             <div class="playerlist__players">
                 <template v-for="(player, i) in allyTeam.players" :key="i">
-                    <ContextMenu :entries="playerActions" :args="[player]">
-                        <BattlePlayer :player="player" />
-                    </ContextMenu>
+                    <div draggable @dragstart="dragStart($event, player)" @dragend="dragEnd($event, player)">
+                        <ContextMenu :entries="playerActions" :args="[player]">
+                            <BattlePlayer :player="player" />
+                        </ContextMenu>
+                    </div>
                 </template>
                 <template v-for="(bot, i) in allyTeam.bots" :key="i">
-                    <ContextMenu :entries="botActions" :args="[bot]">
-                        <BattlePlayer :player="bot" />
-                    </ContextMenu>
+                    <div draggable @dragstart="dragStart($event, bot)" @dragend="dragEnd($event, bot)">
+                        <ContextMenu :entries="botActions" :args="[bot]">
+                            <BattlePlayer :player="bot" />
+                        </ContextMenu>
+                    </div>
                 </template>
             </div>
         </div>
-        <div class="playerlist__spectators playerlist__players">
+        <div
+            class="playerlist__spectators playerlist__players"
+            @dragenter.prevent="dragEnter($event)"
+            @dragleave.prevent="dragLeave($event)"
+        >
             <div class="playerlist__title">
                 Spectators
             </div>
             <template v-for="(spectator, i) in battle.spectators" :key="i">
-                <BattlePlayer :player="spectator" />
+                <div
+                    draggable
+                    @dragstart="dragStart($event, spectator)"
+                    @dragend="dragEnd($event, spectator)"
+                    @dragover.prevent
+                    @drop="onDrop($event, -1)"
+                >
+                    <BattlePlayer :player="spectator" />
+                </div>
             </template>
         </div>
     </div>
@@ -33,8 +57,12 @@ import BattlePlayer from "@/components/battle/BattlePlayer.vue";
 import ContextMenu, { ContextMenuEntry } from "@/components/common/ContextMenu.vue";
 import { Bot } from "@/model/battle/bot";
 import { Player } from "@/model/battle/player";
+import { Spectator } from "@/model/battle/spectator";
+import { ref } from "vue";
 
 const battle = window.api.battle.currentBattle;
+
+const draggingPlayer = ref(false);
 
 const viewProfile = (player: Player) => {
     //
@@ -60,8 +88,56 @@ const reportPlayer = (player: Player) => {
     //
 };
 
-const kickAi = (ai: Bot) => {
-    console.log(ai.name);
+const kickAi = (bot: Bot) => {
+    window.api.battle.removeBattler(bot);
+};
+
+let draggedBattler: Bot | Player | Spectator | undefined;
+let draggedElement: HTMLElement | undefined;
+
+const dragEnter = (event: DragEvent) => {
+    event.preventDefault();
+    const target = event.target as HTMLElement;
+    if (target.className === "playerlist__ally-team" && draggedElement && !target.contains(draggedElement)) {
+        draggingPlayer.value = true;
+        target.classList.add("playerlist__ally-team--drag-enter");
+        const playersEl = target.querySelector(".playerlist__players");
+        if (playersEl) {
+            playersEl.appendChild(draggedElement);
+        }
+    }
+};
+
+const dragLeave = (event: DragEvent) => {
+    event.preventDefault();
+    const target = event.target as HTMLElement;
+    if (target.classList.contains("playerlist__ally-team")) {
+        draggingPlayer.value = false;
+        target.classList.remove("playerlist__ally-team--drag-enter");
+    }
+};
+
+const dragStart = (event: DragEvent, battler: Player | Bot | Spectator) => {
+    draggedBattler = battler;
+    draggedElement = event.target as HTMLElement;
+    event.dataTransfer!.dropEffect = "move";
+    event.dataTransfer!.effectAllowed = "move";
+};
+
+const dragEnd = (event: DragEvent, battler: Player | Bot | Spectator) => {
+    draggedBattler = undefined;
+    draggedElement = undefined;
+    draggingPlayer.value = false;
+};
+
+const onDrop = (event: any, allyTeamIndex: number) => {
+    const target = event.target as HTMLElement;
+    if (target.classList.contains("playerlist__ally-team")) {
+        target.classList.remove("playerlist__ally-team--drag-enter");
+        if (allyTeamIndex === -1) {
+            //window.api.battle.removeBattler(draggedBattler, target.dataset.allyTeamIndex);
+        }
+    }
 };
 
 const playerActions: ContextMenuEntry[] = [

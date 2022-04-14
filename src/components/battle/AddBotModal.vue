@@ -1,8 +1,10 @@
 <template>
-    <Modal name="add-ai" title="Add AI">
-        <Button v-for="(ai, i) in ais" :key="i" @click="addAi(ai)">
-            {{ ai.name }}
-        </Button>
+    <Modal name="add-bot" title="Add Bot">
+        <div class="gap-md">
+            <Button v-for="(ai, i) in ais" :key="i" @click="addBot(ai)">
+                {{ ai.name }}
+            </Button>
+        </div>
     </Modal>
 </template>
 
@@ -20,11 +22,11 @@ const props = defineProps<{
 const ais = computed(() => window.api.content.ai.installedAis[props.engineVersion]);
 
 const emit = defineEmits<{
-    (event: "add-ai", id: AI): void;
+    (event: "add-bot", ai: AI): void;
 }>();
 
-const addAi = (ai: AI) => {
-    emit("add-ai", ai);
-    window.api.modals.close("add-ai");
+const addBot = (ai: AI) => {
+    emit("add-bot", ai);
+    window.api.modals.close("add-bot");
 };
 </script>

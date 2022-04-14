@@ -1,0 +1,39 @@
+.playerlist {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    &__ally-team {
+        &--drag-enter {
+            background: rgba(255, 255, 255, 0.1);
+            .playerlist__player {
+                pointer-events: none;
+            }
+        }
+    }
+    &__title {
+        font-size: 26px;
+        pointer-events: none;
+    }
+    &__players {
+        flex-direction: row;
+        gap: 10px;
+        pointer-events: none;
+    }
+    &__player {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 7px;
+        line-height: 52%;
+        padding: 6px 8px;
+        border-radius: 3px;
+        @extend .battle__panel;
+        pointer-events: auto;
+        &:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        &__flag {
+            max-width: 17px;
+        }
+    }
+}

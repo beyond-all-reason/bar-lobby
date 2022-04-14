@@ -26,7 +26,7 @@
                 <Button fullwidth @click="addBotModal">
                     Add Bot
                 </Button>
-                <AddAIModal :engine-version="selectedEngine" @add-bot="addBot" />
+                <AddBotModal :engine-version="selectedEngine" @add-bot="addBot" />
                 <Button class="btn--green" fullwidth @click="start">
                     Start
                 </Button>
@@ -44,10 +44,10 @@ import Playerlist from "@/components/battle/Playerlist.vue";
 import { lastInArray, randomFromArray } from "jaz-ts-utils";
 import { aiNames } from "@/config/ai-names";
 import type { EngineVersionFormat } from "@/model/formats";
-import AddAIModal from "./AddAIModal.vue";
+import AddBotModal from "./AddBotModal.vue";
 import BattleChat from "@/components/battle/BattleChat.vue";
 import { Faction } from "@/model/battle/types";
-import { Bot } from "@/model/battle/bot";
+import { AI } from "@/model/ai";
 
 const battleTitle = ref("Offline Custom Battle");
 
@@ -70,13 +70,13 @@ const selectedEngine = ref(lastInArray(engines.value));
 
 const addBotModal = () => window.api.modals.open("add-bot");
 
-const addBot = (ai: Bot) => {
+const addBot = (ai: AI) => {
     const playerName = window.api.session.currentUser?.username ?? "Player";
 
     window.api.battle.addBattler({
         name: randomFromArray(aiNames),
         ownerName: playerName,
-        aiShortName: ai.aiShortName,
+        aiShortName: ai.shortName,
         faction: Faction.Armada
     }, 0);
 };

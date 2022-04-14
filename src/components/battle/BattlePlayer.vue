@@ -1,8 +1,8 @@
 <template>
-    <div class="player">
+    <div class="playerlist__player">
         <Icon :icon="icon" :size="16" />
-        <div v-if="countryCode" :class="`player__flag fi fi-${countryCode}`" />
-        <div class="player__name">
+        <div v-if="countryCode" :class="`playerlist__player__flag fi fi-${countryCode}`" />
+        <div class="playerlist__player__name">
             {{ name }}
         </div>
     </div>

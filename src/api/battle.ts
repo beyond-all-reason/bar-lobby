@@ -43,6 +43,48 @@ export class BattleAPI {
         this.inBattle.value = false;
     }
 
+    public getBattlersAndSpectators() {
+        const players: Array<Player | Bot> = [];
+        for (const allyTeam of this.currentBattle.allyTeams) {
+            players.push(...allyTeam.players);
+            players.push(...allyTeam.bots);
+        }
+        players.push(...this.currentBattle.spectators);
+    }
+
+    public getBattlerByName(name: string) : Player | Bot | null {
+        for (const allyTeam of this.currentBattle.allyTeams) {
+            for (const player of allyTeam.players) {
+                const user = window.api.session.getUserById(player.userId);
+                if (user?.username === name) {
+                    return player;
+                }
+            }
+            for (const bot of allyTeam.bots) {
+                if (bot.name === name) {
+                    return bot;
+                }
+            }
+        }
+        for (const spectator of this.currentBattle.spectators) {
+            const user = window.api.session.getUserById(spectator.userId);
+            if (user?.username === name) {
+                return spectator;
+            }
+        }
+        return null;
+    }
+
+    public getPlayerByUserId(userId: number) {
+        for (const allyTeam of this.currentBattle.allyTeams) {
+            for (const player of allyTeam.players) {
+                if (player.userId === userId) {
+                    return player;
+                }
+            }
+        }
+    }
+
     public addBattler(battler: Player, allyTeamId: number): void;
     public addBattler(battler: Bot, allyTeamId: number): void;
     public addBattler(battler: Player | Bot, allyTeamId: number) {
@@ -91,6 +133,8 @@ export class BattleAPI {
     }
 
     public addSpectator(spectator: Spectator) {
+        this.removeBattler(spectator);
+
         if (!this.currentBattle.spectators.includes(spectator)) {
             this.currentBattle.spectators.push(spectator);
         }

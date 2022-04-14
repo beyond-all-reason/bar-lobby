@@ -4,7 +4,7 @@ import type { SpringMap, StartPos } from "spring-map-parser";
 import { MapParser } from "spring-map-parser";
 import type { MapData } from "@/model/map-data";
 import { AbstractFileCache } from "@/workers/abstract-file-cache";
-import { BetterWorker, BetterWorkerHost } from "@/utils/better-worker";
+import { BetterWorker, BetterWorkerHost } from "jaz-ts-utils";
 
 class MapCache extends AbstractFileCache<MapData> {
     protected mapImagesDir: string;

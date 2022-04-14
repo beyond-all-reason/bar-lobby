@@ -1,7 +1,7 @@
 import { Battle } from "@/model/battle/battle";
 import type { StartScriptTypes } from "@/model/start-script";
-import { assign } from "@/utils/assign";
 import { isBot } from "@/model/battle/bot";
+import { assign } from "jaz-ts-utils";
 
 /**
  * https://springrts.com/wiki/Script.txt

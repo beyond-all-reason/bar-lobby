@@ -1,9 +1,13 @@
+import { aiNames } from "@/config/ai-names";
 import { defaultMaps } from "@/config/default-maps";
 import { createBattle } from "@/model/battle/battle";
 import { StartPosType } from "@/model/battle/types";
+import { clone } from "@/utils/clone";
 import { lastInArray, randomFromArray } from "jaz-ts-utils";
 
 export const defaultBattle = () => {
+    const randomNames = clone(aiNames);
+
     return createBattle({
         battleOptions: {
             engineVersion: lastInArray(window.api.content.engine.installedVersions),

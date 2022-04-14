@@ -46,13 +46,9 @@ onMounted(async () => {
 
     loadMap();
 
-    let mapFileName = battle.battleOptions.mapFileName;
-
+    // TODO: only update when necessary (e.g. when map changes)
     watch(battle, () => {
-        if (battle.battleOptions.mapFileName !== mapFileName) {
-            mapFileName = battle.battleOptions.mapFileName;
-            loadMap();
-        }
+        loadMap();
     });
 });
 

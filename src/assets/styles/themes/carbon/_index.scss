@@ -29,7 +29,6 @@
     @import "components/breadcrumbs";
     @import "components/panel";
     @import "components/modal";
-    @import "components/battle";
     @import "components/status-info";
     @import "components/tooltip-context-menu";
     @import "components/login";
@@ -37,6 +36,10 @@
     @import "components/downloads";
     @import "components/settings";
     @import "components/map-canvas";
+
+    @import "components/battle/battle";
+    @import "components/battle/playerlist";
+    @import "components/battle/chat";
 
     @import "transitions";
 }

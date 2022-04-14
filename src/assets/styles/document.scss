@@ -41,3 +41,6 @@ body {
         }
     }
 }
+[draggable] {
+    -webkit-user-drag: element;
+}
