@@ -73,12 +73,13 @@ const addBotModal = () => window.api.modals.open("add-bot");
 const addBot = (ai: AI) => {
     const playerName = window.api.session.currentUser?.username ?? "Player";
 
-    window.api.battle.addBattler({
+    window.api.battle.addParticipant({
+        type: "bot",
         name: randomFromArray(aiNames),
         ownerName: playerName,
         aiShortName: ai.shortName,
         faction: Faction.Armada
-    }, 0);
+    });
 };
 
 const start = async () => {
