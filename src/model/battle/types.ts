@@ -1,6 +1,7 @@
 import { EngineVersionFormat } from "@/model/formats";
 
 export type BattleOptions = {
+    offline: boolean;
     engineVersion: EngineVersionFormat;
     gameVersion: string;
     mapFileName: string;

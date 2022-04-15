@@ -1,10 +1,8 @@
 import { defaultBattle } from "@/config/default-battle";
 import { Battle } from "@/model/battle/battle";
-import { Bot, isBot } from "@/model/battle/bot";
-import { Player } from "@/model/battle/player";
-import { Spectator } from "@/model/battle/spectator";
-import { createDeepProxy } from "@/utils/create-deep-proxy";
-import { objectKeys } from "jaz-ts-utils";
+import { Bot, Player, Spectator } from "@/model/battle/participants";
+import { createDeepProxy, countRecords } from "jaz-ts-utils";
+import { SetOptional } from "type-fest";
 import { Ref, ref, reactive } from "vue";
 
 export class BattleAPI {
@@ -14,14 +12,21 @@ export class BattleAPI {
     constructor() {
         this.inBattle = ref(false);
 
-        // TODO: make this use a createDeepProxy object which acts an intermediary between the client setting battle options and the server validating them
         this.currentBattle = reactive(createDeepProxy(defaultBattle(), (breadcrumb) => {
+            const currentBattle = this.currentBattle;
+
             return {
                 get(target, prop) {
                     return target[prop as keyof typeof target];
                 },
                 set(target, prop, value) {
-                    target[prop as keyof typeof target] = value;
+                    if (currentBattle.battleOptions.offline) {
+                        target[prop as keyof typeof target] = value;
+                    } else {
+                        // TODO: if set from server data then immediately apply
+                        // TODO: if set from client then send server request for it
+                        console.warn("can't set battle property directly");
+                    }
                     return true;
                 }
             };
@@ -29,11 +34,11 @@ export class BattleAPI {
     }
 
     public setCurrentBattle(battle: Battle) {
-        // set properties on the battle object instead of reassigning it to keep the reactivity intact
-        const currentBattle = this.currentBattle;
-        objectKeys(this.currentBattle).forEach(key => {
-            delete currentBattle[key];
-        });
+        // // set properties on the battle object instead of reassigning it to keep the reactivity intact
+        // const currentBattle = this.currentBattle;
+        // objectKeys(this.currentBattle).forEach(key => {
+        //     delete currentBattle[key];
+        // });
         Object.assign(this.currentBattle, battle);
 
         this.inBattle.value = true;
@@ -43,106 +48,35 @@ export class BattleAPI {
         this.inBattle.value = false;
     }
 
-    public getBattlersAndSpectators() {
-        const players: Array<Player | Bot> = [];
-        for (const allyTeam of this.currentBattle.allyTeams) {
-            players.push(...allyTeam.players);
-            players.push(...allyTeam.bots);
-        }
-        players.push(...this.currentBattle.spectators);
+    public getContenders() : Array<Player | Bot> {
+        return this.currentBattle.participants.filter((participant): participant is Player | Bot => participant.type === "player" || participant.type === "bot");
     }
 
-    public getBattlerByName(name: string) : Player | Bot | null {
-        for (const allyTeam of this.currentBattle.allyTeams) {
-            for (const player of allyTeam.players) {
-                const user = window.api.session.getUserById(player.userId);
+    public getParticipantByName(name: string) : Player | Bot | Spectator | null {
+        for (const participant of this.currentBattle.participants) {
+            if ("userId" in participant) {
+                const user = window.api.session.getUserById(participant.userId);
                 if (user?.username === name) {
-                    return player;
+                    return participant;
                 }
-            }
-            for (const bot of allyTeam.bots) {
-                if (bot.name === name) {
-                    return bot;
+            } else {
+                if (participant.name === name) {
+                    return participant;
                 }
-            }
-        }
-        for (const spectator of this.currentBattle.spectators) {
-            const user = window.api.session.getUserById(spectator.userId);
-            if (user?.username === name) {
-                return spectator;
             }
         }
         return null;
     }
 
-    public getPlayerByUserId(userId: number) {
-        for (const allyTeam of this.currentBattle.allyTeams) {
-            for (const player of allyTeam.players) {
-                if (player.userId === userId) {
-                    return player;
-                }
-            }
-        }
-    }
-
-    public addBattler(battler: Player, allyTeamId: number): void;
-    public addBattler(battler: Bot, allyTeamId: number): void;
-    public addBattler(battler: Player | Bot, allyTeamId: number) {
-        const allyTeam = this.currentBattle.allyTeams[allyTeamId];
-        if (allyTeam) {
-            if (isBot(battler)) {
-                allyTeam.bots.push(battler);
-            } else {
-                allyTeam.players.push(battler);
-            }
-        }
-    }
-
-    public removeBattler(battler: Player): void;
-    public removeBattler(battler: Bot): void;
-    public removeBattler(battler: Player | Bot) {
-        for (const allyTeam of this.currentBattle.allyTeams) {
-            if (isBot(battler)) {
-                for (const bot of allyTeam.bots) {
-                    if (bot === battler) {
-                        allyTeam.bots.splice(allyTeam.bots.indexOf(bot), 1);
-                        return;
-                    }
-                }
-            } else {
-                for (const player of allyTeam.players) {
-                    if (player === battler) {
-                        allyTeam.players.splice(allyTeam.players.indexOf(player), 1);
-                        return;
-                    }
-                }
-            }
-        }
-    }
-
-    public swapBattlerTeam(battler: Player, allyTeamId: number): void;
-    public swapBattlerTeam(battler: Bot, allyTeamId: number): void;
-    public swapBattlerTeam(battler: Player | Bot, allyTeamId: number) {
-        if (isBot(battler)) {
-            this.removeBattler(battler);
-            this.addBattler(battler, allyTeamId);
+    public addParticipant(player: Player): void;
+    public addParticipant(bot: SetOptional<Bot, "allyTeamId">): void;
+    public addParticipant(Spectator: Spectator): void;
+    public addParticipant(participant: Player | SetOptional<Bot, "allyTeamId"> | Spectator) {
+        if (participant.type === "bot") {
+            const allyTeamSizes = countRecords(this.currentBattle.participants, "allyTeamId");
+            participant.allyTeamId ??= 0;
         } else {
-            this.removeBattler(battler);
-            this.addBattler(battler, allyTeamId);
-        }
-    }
-
-    public addSpectator(spectator: Spectator) {
-        this.removeBattler(spectator);
-
-        if (!this.currentBattle.spectators.includes(spectator)) {
-            this.currentBattle.spectators.push(spectator);
-        }
-    }
-
-    public removeSpectator(spectator: Spectator) {
-        if (this.currentBattle.spectators.includes(spectator)) {
-            this.currentBattle.spectators.splice(this.currentBattle.spectators.indexOf(spectator), 1);
+            this.currentBattle.participants.push(participant);
         }
     }
 }
