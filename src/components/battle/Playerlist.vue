@@ -1,7 +1,7 @@
 <template>
     <div class="playerlist">
         <div
-            v-for="(allyTeam, allyTeamIndex) in battle.currentBattle.allyTeams"
+            v-for="(allyTeam, allyTeamIndex) in battle.allyTeams"
             :key="allyTeamIndex"
             class="playerlist__ally-team"
             @dragenter.prevent="dragEnter($event)"
@@ -13,7 +13,7 @@
                 Team {{ allyTeamIndex + 1 }}
             </div>
             <div class="playerlist__players">
-                <template v-for="(contender, i) in battle.contenders.value" :key="i">
+                <template v-for="(contender, i) in battle.getAllyTeamParticipants(allyTeam.id)" :key="i">
                     <div draggable @dragstart="dragStart($event, contender)" @dragend="dragEnd($event, contender)">
                         <ContextMenu :entries="playerActions" :args="[contender]">
                             <Participant :participant="contender" />
@@ -58,7 +58,7 @@ import ContextMenu, { ContextMenuEntry } from "@/components/common/ContextMenu.v
 import { Bot, Player, Spectator } from "@/model/battle/participants";
 import { ref } from "vue";
 
-const battle = window.api.battle;
+const battle = window.api.session.currentBattle;
 
 const draggingPlayer = ref(false);
 
@@ -87,7 +87,7 @@ const reportPlayer = (player: Player) => {
 };
 
 const kickAi = (bot: Bot) => {
-    window.api.battle.removeParticipant(bot);
+    battle.removeParticipant(bot);
 };
 
 let draggedBattler: Bot | Player | Spectator | undefined;

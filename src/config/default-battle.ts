@@ -1,14 +1,15 @@
 import { aiNames } from "@/config/ai-names";
 import { defaultMaps } from "@/config/default-maps";
-import { createBattle } from "@/model/battle/battle";
+import { BattleConfig } from "@/model/battle/battle";
 import { StartPosType } from "@/model/battle/types";
 import { lastInArray, randomFromArray, shuffle } from "jaz-ts-utils";
+import { SetOptional } from "type-fest";
 
-export const defaultBattle = () => {
+export const defaultBattle: () => SetOptional<BattleConfig, "allyTeams" | "gameOptions" | "mapOptions" | "restrictions"> = () => {
     const randomNames = shuffle(aiNames);
-    const myUserId = window.api.session.currentUser.userId;
+    const myUserId = window.api.session?.currentUser?.userId ?? -1;
 
-    return createBattle({
+    return {
         battleOptions: {
             offline: true,
             engineVersion: lastInArray(window.api.content.engine.installedVersions),
@@ -26,5 +27,5 @@ export const defaultBattle = () => {
             { type: "bot", allyTeamId: 1, ownerUserId: myUserId, name: randomNames.shift()!, aiShortName: "BARb" },
             { type: "bot", allyTeamId: 1, ownerUserId: myUserId, name: randomNames.shift()!, aiShortName: "BARb" },
         ]
-    });
+    };
 };

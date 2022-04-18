@@ -1,11 +1,14 @@
+import { Battle, BattleConfig } from "@/model/battle/battle";
 import { CurrentUser, User } from "@/model/user";
 import { objectKeys, Signal } from "jaz-ts-utils";
 import { reactive, Ref, ref } from "vue";
 
 export class SessionAPI {
     public readonly currentUser: CurrentUser;
-    public readonly users: Map<number, User>;
     public readonly offlineMode: Ref<boolean>;
+    public readonly inBattle: Ref<boolean>;
+    public readonly users: Map<number, User>;
+    public readonly currentBattle: Battle;
     public readonly onRightClick: Signal; // TODO: refactor somewhere better
     public readonly onLeftClick: Signal; // TODO: refactor somewhere better
 
@@ -22,8 +25,32 @@ export class SessionAPI {
             friendRequestUserIds: [],
             ignoreUserIds: []
         });
+
         this.users = reactive(new Map());
+
         this.offlineMode = ref(true);
+
+        this.inBattle = ref(false);
+
+        // this.currentBattle = reactive(createDeepProxy(new Battle(defaultBattle()), (breadcrumb) => {
+        //     const currentBattle = this.currentBattle;
+
+        //     return {
+        //         set(target, prop, value) {
+        //             if (currentBattle.battleOptions.offline) {
+        //                 target[prop as keyof typeof target] = value;
+        //             } else {
+        //                 // TODO: if set from server data then immediately apply
+        //                 // TODO: if set from client then send server request for it
+        //                 console.warn("can't set battle property directly");
+        //             }
+        //             return true;
+        //         }
+        //     };
+        // }, "battle"));
+
+        this.currentBattle = new Battle({} as BattleConfig);
+
         this.onLeftClick = new Signal();
         this.onRightClick = new Signal();
     }

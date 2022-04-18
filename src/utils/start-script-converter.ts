@@ -33,11 +33,11 @@ export class StartScriptConverter {
         let teamId = 0;
         let botIndex = 0;
         let playerIndex = 0;
-        const botIdToOwnerNameMap: Record<number, string> = {};
+        const botIdToUserIdMap: Record<number, number> = {};
 
-        battle.allyTeams.forEach((allyTeamConfig, allyTeamIndex) => {
+        battle.allyTeams.forEach(allyTeamConfig => {
             const allyTeam: StartScriptTypes.AllyTeam = {
-                id: allyTeamIndex
+                id: allyTeamConfig.id
             };
 
             if (allyTeamConfig.startBox) {
@@ -52,60 +52,56 @@ export class StartScriptConverter {
             allyTeams.push(allyTeam);
         });
 
-        battle.participants.forEach((participant, participantIndex) => {
-            if (participant.type !== "spectator") {
-
-            } else {
-
-            }
-
+        battle.contenders.value.forEach(contenderConfig => {
             const team: StartScriptTypes.Team = {
                 id: teamId,
-                allyteam: allyTeamIndex,
+                allyteam: contenderConfig.allyTeamId,
                 teamleader: 0
             };
-
             assign(team, {
-                advantage: battlerConfig.advantage,
-                handicap: battlerConfig.handicap,
-                incomemultiplier: battlerConfig.incomeMultiplier,
-                startposx: battlerConfig.startPos?.x,
-                startposz: battlerConfig.startPos?.z
+                advantage: contenderConfig.advantage,
+                handicap: contenderConfig.handicap,
+                incomemultiplier: contenderConfig.incomeMultiplier,
+                startposx: contenderConfig.startPos?.x,
+                startposz: contenderConfig.startPos?.z
             });
-
             teams.push(team);
-
             teamId++;
 
-            if (!isBot(battlerConfig)) {
+            if (contenderConfig.type === "player") {
                 const player: StartScriptTypes.Player = {
                     id: playerIndex,
                     team: team.id,
-                    name: window.api.session.getUserById(battlerConfig.userId)?.username || "Player"
+                    name: window.api.session.getUserById(contenderConfig.userId)?.username || "Player"
                 };
-
                 players.push(player);
-
                 playerIndex++;
             } else {
                 const bot: StartScriptTypes.Bot = {
                     id: botIndex,
                     team: team.id,
-                    shortname: battlerConfig.aiShortName,
-                    name: battlerConfig.name,
+                    shortname: contenderConfig.aiShortName,
+                    name: contenderConfig.name,
                     host: -1
                 };
-
-                botIdToOwnerNameMap[bot.id] = battlerConfig.ownerName;
-
+                botIdToUserIdMap[bot.id] = contenderConfig.ownerUserId;
                 bots.push(bot);
-
                 botIndex++;
             }
         });
 
+        battle.spectators.value.forEach(spectatorConfig => {
+            const spectator: StartScriptTypes.Player = {
+                id: playerIndex,
+                name: window.api.session.getUserById(spectatorConfig.userId)?.username || "Player",
+                spectator: 1
+            };
+            playerIndex++;
+            players.push(spectator);
+        });
+
         for (const bot of bots) {
-            const owner = players.find(player => player.name === botIdToOwnerNameMap[bot.id])!;
+            const owner = players.find(player => player.userId === botIdToUserIdMap[bot.id])!;
             bot.host = owner.id;
         }
 

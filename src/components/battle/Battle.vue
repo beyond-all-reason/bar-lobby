@@ -51,7 +51,7 @@ import { AI } from "@/model/ai";
 
 const battleTitle = ref("Offline Custom Battle");
 
-const battle = window.api.battle.currentBattle;
+const battle = window.api.session.currentBattle;
 
 const installedMaps = computed(() => Object.values(window.api.content.maps.installedMaps));
 
@@ -71,7 +71,7 @@ const selectedEngine = ref(lastInArray(engines.value));
 const addBotModal = () => window.api.modals.open("add-bot");
 
 const addBot = (ai: AI) => {
-    window.api.battle.addBot({
+    battle.addBot({
         name: randomFromArray(aiNames), // TODO: ensure uniqueness
         aiShortName: ai.shortName,
         faction: Faction.Armada,

@@ -84,12 +84,13 @@ export namespace StartScriptTypes {
     export interface Player {
         id: number;
         name: string;
-        team: number;
+        team?: number;
         password?: string;
         spectator?: number;
         isfromdemo?: number;
         countrycode?: string;
         rank?: number;
+        userId?: number;
     }
 
     export interface Bot {

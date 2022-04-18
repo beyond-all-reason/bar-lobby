@@ -22,8 +22,9 @@ import { onMounted, watch } from "vue";
 import Options from "@/components/inputs/Options.vue";
 import Option from "@/components/inputs/Option.vue";
 import { StartPosType } from "@/model/battle/types";
+import { Player } from "@/model/battle/participants";
 
-const battle = window.api.battle.currentBattle;
+const battle = window.api.session.currentBattle;
 
 const startPosOptions: Array<{ label: string, value: any }> = [
     { label: "Fixed", value: StartPosType.Fixed },
@@ -89,7 +90,8 @@ function drawBoxes() {
 
     for (const allyTeam of battle.allyTeams) {
         if (allyTeam.startBox) {
-            if (allyTeam.players.find(player => player.userId === window.api.session.currentUser.userId)) {
+            const players = battle.getAllyTeamParticipants(allyTeam.id).filter((participant): participant is Player => participant.type === "player");
+            if (players.find(player => player.userId === window.api.session.currentUser.userId)) {
                 context.fillStyle = "rgba(0, 255, 0, 0.3)";
             } else {
                 context.fillStyle = "rgba(255, 0, 0, 0.3)";
