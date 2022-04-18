@@ -10,18 +10,16 @@
 
 <script lang="ts" setup>
 import Icon from "@/components/common/Icon.vue";
-import { Bot, isBot } from "@/model/battle/bot";
-import { Player } from "@/model/battle/player";
-import { Spectator } from "@/model/battle/spectator";
+import { Bot, Player, Spectator } from "@/model/battle/participants";
 import { computed, ref } from "vue";
 
 const props = defineProps<{
-    player: Player | Bot | Spectator
+    participant: Player | Bot | Spectator
 }>();
 
 const user = computed(() => {
-    if ("userId" in props.player) {
-        return window.api.session.getUserById(props.player.userId);
+    if ("userId" in props.participant) {
+        return window.api.session.getUserById(props.participant.userId);
     }
     return undefined;
 });
@@ -29,8 +27,8 @@ const user = computed(() => {
 const name = computed(() => {
     if (user.value) {
         return user.value?.username ?? "Player";
-    } else if (isBot(props.player)) {
-        return props.player.name;
+    } else if (props.participant.type === "bot") {
+        return props.participant.name;
     }
     return "Player";
 });
@@ -38,7 +36,7 @@ const name = computed(() => {
 const icon = ref("account");
 const countryCode = ref("");
 
-if (isBot(props.player)) {
+if (props.participant.type === "bot") {
     icon.value = "robot";
 }
 </script>

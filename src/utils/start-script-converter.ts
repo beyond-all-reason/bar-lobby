@@ -1,6 +1,5 @@
 import { Battle } from "@/model/battle/battle";
 import type { StartScriptTypes } from "@/model/start-script";
-import { isBot } from "@/model/battle/bot";
 import { assign } from "jaz-ts-utils";
 
 /**
@@ -51,52 +50,58 @@ export class StartScriptConverter {
             }
 
             allyTeams.push(allyTeam);
+        });
 
-            [ ...allyTeamConfig.players, ...allyTeamConfig.bots].forEach(battlerConfig => {
-                const team: StartScriptTypes.Team = {
-                    id: teamId,
-                    allyteam: allyTeamIndex,
-                    teamleader: 0
+        battle.participants.forEach((participant, participantIndex) => {
+            if (participant.type !== "spectator") {
+
+            } else {
+
+            }
+
+            const team: StartScriptTypes.Team = {
+                id: teamId,
+                allyteam: allyTeamIndex,
+                teamleader: 0
+            };
+
+            assign(team, {
+                advantage: battlerConfig.advantage,
+                handicap: battlerConfig.handicap,
+                incomemultiplier: battlerConfig.incomeMultiplier,
+                startposx: battlerConfig.startPos?.x,
+                startposz: battlerConfig.startPos?.z
+            });
+
+            teams.push(team);
+
+            teamId++;
+
+            if (!isBot(battlerConfig)) {
+                const player: StartScriptTypes.Player = {
+                    id: playerIndex,
+                    team: team.id,
+                    name: window.api.session.getUserById(battlerConfig.userId)?.username || "Player"
                 };
 
-                assign(team, {
-                    advantage: battlerConfig.advantage,
-                    handicap: battlerConfig.handicap,
-                    incomemultiplier: battlerConfig.incomeMultiplier,
-                    startposx: battlerConfig.startPos?.x,
-                    startposz: battlerConfig.startPos?.z
-                });
+                players.push(player);
 
-                teams.push(team);
+                playerIndex++;
+            } else {
+                const bot: StartScriptTypes.Bot = {
+                    id: botIndex,
+                    team: team.id,
+                    shortname: battlerConfig.aiShortName,
+                    name: battlerConfig.name,
+                    host: -1
+                };
 
-                teamId++;
+                botIdToOwnerNameMap[bot.id] = battlerConfig.ownerName;
 
-                if (!isBot(battlerConfig)) {
-                    const player: StartScriptTypes.Player = {
-                        id: playerIndex,
-                        team: team.id,
-                        name: window.api.session.getUserById(battlerConfig.userId)?.username || "Player"
-                    };
+                bots.push(bot);
 
-                    players.push(player);
-
-                    playerIndex++;
-                } else {
-                    const bot: StartScriptTypes.Bot = {
-                        id: botIndex,
-                        team: team.id,
-                        shortname: battlerConfig.aiShortName,
-                        name: battlerConfig.name,
-                        host: -1
-                    };
-
-                    botIdToOwnerNameMap[bot.id] = battlerConfig.ownerName;
-
-                    bots.push(bot);
-
-                    botIndex++;
-                }
-            });
+                botIndex++;
+            }
         });
 
         for (const bot of bots) {

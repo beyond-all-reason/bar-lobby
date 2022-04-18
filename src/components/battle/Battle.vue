@@ -71,14 +71,11 @@ const selectedEngine = ref(lastInArray(engines.value));
 const addBotModal = () => window.api.modals.open("add-bot");
 
 const addBot = (ai: AI) => {
-    const playerName = window.api.session.currentUser?.username ?? "Player";
-
-    window.api.battle.addParticipant({
-        type: "bot",
-        name: randomFromArray(aiNames),
-        ownerName: playerName,
+    window.api.battle.addBot({
+        name: randomFromArray(aiNames), // TODO: ensure uniqueness
         aiShortName: ai.shortName,
-        faction: Faction.Armada
+        faction: Faction.Armada,
+        ownerUserId: window.api.session.currentUser.userId
     });
 };
 

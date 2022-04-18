@@ -6,6 +6,7 @@ import { lastInArray, randomFromArray, shuffle } from "jaz-ts-utils";
 
 export const defaultBattle = () => {
     const randomNames = shuffle(aiNames);
+    const myUserId = window.api.session.currentUser.userId;
 
     return createBattle({
         battleOptions: {
@@ -21,9 +22,9 @@ export const defaultBattle = () => {
             { id: 1 },
         ],
         participants: [
-            { type: "player", allyTeamId: 0, id: 0, userId: window.api.session.currentUser.userId },
-            { type: "bot", allyTeamId: 1, id: 0, ownerId: 0, name: randomNames.shift()!, aiShortName: "BARb" },
-            { type: "bot", allyTeamId: 1, id: 1, ownerId: 0, name: randomNames.shift()!, aiShortName: "BARb" },
+            { type: "player", allyTeamId: 0, userId: myUserId },
+            { type: "bot", allyTeamId: 1, ownerUserId: myUserId, name: randomNames.shift()!, aiShortName: "BARb" },
+            { type: "bot", allyTeamId: 1, ownerUserId: myUserId, name: randomNames.shift()!, aiShortName: "BARb" },
         ]
     });
 };
