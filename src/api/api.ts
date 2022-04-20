@@ -12,6 +12,7 @@ import type { SettingsType } from "@/model/settings";
 import { settingsSchema } from "@/model/settings";
 import { ipcRenderer } from "electron";
 import type { Info } from "@/model/info";
+import { tachyonLog } from "@/utils/tachyon-log";
 
 declare global {
     interface Window {
@@ -46,7 +47,8 @@ export async function apiInit() {
     window.api.client = new TachyonClient({
         host: "server2.beyondallreason.info",
         port: 8202,
-        verbose: false//process.env.NODE_ENV !== "production" // TODO: add toggle to debug tools
+        verbose: true,//process.env.NODE_ENV !== "production" // TODO: add toggle to debug tools
+        logMethod: tachyonLog
     });
     window.api.client.socket?.on("connect", () => window.api.session.offlineMode.value = false);
     window.api.client.socket?.on("close", () => window.api.session.offlineMode.value = true);

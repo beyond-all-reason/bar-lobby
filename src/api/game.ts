@@ -1,7 +1,7 @@
 import * as fs from "fs";
 import * as path from "path";
+import { spawn} from "child_process";
 import type { ChildProcess } from "child_process";
-import { spawn } from "child_process";
 import type { EngineVersionFormat } from "@/model/formats";
 import { StartScriptConverter } from "@/utils/start-script-converter";
 import { Battle } from "@/model/battle/battle";

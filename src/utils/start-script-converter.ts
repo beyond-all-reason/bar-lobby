@@ -37,7 +37,8 @@ export class StartScriptConverter {
 
         battle.allyTeams.forEach(allyTeamConfig => {
             const allyTeam: StartScriptTypes.AllyTeam = {
-                id: allyTeamConfig.id
+                id: allyTeamConfig.id,
+                numallies: 0
             };
 
             if (allyTeamConfig.startBox) {
@@ -72,7 +73,8 @@ export class StartScriptConverter {
                 const player: StartScriptTypes.Player = {
                     id: playerIndex,
                     team: team.id,
-                    name: window.api.session.getUserById(contenderConfig.userId)?.username || "Player"
+                    name: window.api.session.getUserById(contenderConfig.userId)?.username || "Player",
+                    userId: contenderConfig.userId
                 };
                 players.push(player);
                 playerIndex++;
@@ -93,15 +95,19 @@ export class StartScriptConverter {
         battle.spectators.value.forEach(spectatorConfig => {
             const spectator: StartScriptTypes.Player = {
                 id: playerIndex,
+                spectator: 1,
                 name: window.api.session.getUserById(spectatorConfig.userId)?.username || "Player",
-                spectator: 1
+                userId: spectatorConfig.userId
             };
             playerIndex++;
             players.push(spectator);
         });
 
         for (const bot of bots) {
-            const owner = players.find(player => player.userId === botIdToUserIdMap[bot.id])!;
+            const owner = players.find(player => player.userId === botIdToUserIdMap[bot.id]);
+            if (!owner) {
+                throw new Error(`Couldn't find owner for bot, ${JSON.stringify(bot)}`);
+            }
             bot.host = owner.id;
         }
 
@@ -221,10 +227,10 @@ export class StartScriptConverter {
     }
 
     protected convertGroups(scriptObj: Record<string, any>) : Record<string, any> {
-        const groups = ["allyteams", "teams", "players", "ais"];
+        const groups = ["allyTeams", "teams", "players", "ais"];
         for (const key of groups) {
             const group = scriptObj[key];
-            const newKey = key.slice(0, key.length - 1);
+            const newKey = key.slice(0, key.length - 1).toLowerCase();
             if (group?.length) {
                 for (const entry of group) {
                     scriptObj[`${newKey}${entry.id}`] = entry;

@@ -48,7 +48,7 @@ onMounted(async () => {
     loadMap();
 
     // TODO: only update when necessary (e.g. when map changes)
-    watch(battle, () => {
+    watch([() => battle.battleOptions.mapFileName, () => battle.battleOptions.startPosType, () => battle.allyTeams], () => {
         loadMap();
     });
 });

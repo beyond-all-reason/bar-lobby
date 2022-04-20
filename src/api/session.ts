@@ -26,7 +26,9 @@ export class SessionAPI {
             ignoreUserIds: []
         });
 
-        this.users = reactive(new Map());
+        this.users = reactive(new Map<number, User>([
+            [this.currentUser.userId, this.currentUser]
+        ]));
 
         this.offlineMode = ref(true);
 
@@ -62,10 +64,15 @@ export class SessionAPI {
         });
 
         Object.assign(this.currentUser, userConfig);
+        this.setUser(this.currentUser);
     }
 
     public setUser(userConfig: User) {
-        this.users.set(userConfig.userId, userConfig);
+        if (this.users.get(userConfig.userId)) {
+            Object.assign(this.users.get(userConfig.userId), userConfig);
+        } else {
+            this.users.set(userConfig.userId, reactive(userConfig));
+        }
     }
 
     public getUserById(userId: number) {

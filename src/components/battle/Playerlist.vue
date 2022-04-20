@@ -43,7 +43,7 @@
                     @dragstart="dragStart($event, spectator)"
                     @dragend="dragEnd($event, spectator)"
                     @dragover.prevent
-                    @drop="onDrop($event, -1)"
+                    @drop="onDrop($event)"
                 >
                     <Participant :participant="spectator" />
                 </div>
@@ -90,7 +90,7 @@ const kickAi = (bot: Bot) => {
     battle.removeParticipant(bot);
 };
 
-let draggedBattler: Bot | Player | Spectator | undefined;
+let draggedParticipant: Bot | Player | Spectator | undefined;
 let draggedElement: HTMLElement | undefined;
 
 const dragEnter = (event: DragEvent) => {
@@ -115,25 +115,25 @@ const dragLeave = (event: DragEvent) => {
     }
 };
 
-const dragStart = (event: DragEvent, battler: Player | Bot | Spectator) => {
-    draggedBattler = battler;
+const dragStart = (event: DragEvent, participant: Player | Bot | Spectator) => {
+    draggedParticipant = participant;
     draggedElement = event.target as HTMLElement;
     event.dataTransfer!.dropEffect = "move";
     event.dataTransfer!.effectAllowed = "move";
 };
 
-const dragEnd = (event: DragEvent, battler: Player | Bot | Spectator) => {
-    draggedBattler = undefined;
+const dragEnd = (event: DragEvent, participant: Player | Bot | Spectator) => {
+    draggedParticipant = undefined;
     draggedElement = undefined;
     draggingPlayer.value = false;
 };
 
-const onDrop = (event: any, allyTeamIndex: number) => {
+const onDrop = (event: any, allyTeamIndex?: number) => {
     const target = event.target as HTMLElement;
-    if (target.classList.contains("playerlist__ally-team")) {
+    if (target.classList.contains("playerlist__ally-team") && draggedParticipant) {
         target.classList.remove("playerlist__ally-team--drag-enter");
-        if (allyTeamIndex === -1) {
-            //window.api.battle.removeBattler(draggedBattler, target.dataset.allyTeamIndex);
+        if (allyTeamIndex !== undefined && draggedParticipant.type !== "spectator") {
+            draggedParticipant.allyTeamId = allyTeamIndex;
         }
     }
 };
