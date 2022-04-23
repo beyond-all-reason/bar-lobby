@@ -7,7 +7,8 @@ module.exports = {
         defineProps: "readonly",
         defineEmits: "readonly",
         defineExpose: "readonly",
-        withDefaults: "readonly"
+        withDefaults: "readonly",
+        api: "readonly"
     },
     ignorePatterns: ["dist_electron", "node_modules", "output.js", "src/routes.ts", "working-files"],
     extends: [

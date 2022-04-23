@@ -1,12 +1,12 @@
 <route lang="json">{ "meta": { "title": "Custom", "order": 2, "offline": true, "transition": { "name": "slide-left" } } }</route>
 
 <template>
-    <Battle />
+    <BattleComponent />
 </template>
 
 <script lang="ts" setup>
-import Battle from "@/components/battle/Battle.vue";
 import { defaultBattle } from "@/config/default-battle";
+import BattleComponent from "../../components/battle/BattleComponent.vue";
 
-window.api.session.currentBattle.set(defaultBattle());
+window.api.battle.set(defaultBattle());
 </script>

@@ -1,6 +1,6 @@
 <template>
     <Tooltip :content="tooltip">
-        <div class="control button" :class="{ disabled, 'flex-grow': flexGrow }">
+        <div class="control button" :class="{ disabled, 'flex-grow': flexGrow, slim }">
             <component :is="to ? 'router-link' : 'button'" class="btn" :to="to" :class="{ active: isActive }" v-bind="$attrs" @mouseenter="sound">
                 <div class="content">
                     <slot />
@@ -20,11 +20,13 @@ const props = withDefaults(defineProps<{
     tooltip?: string;
     disabled?: boolean;
     flexGrow?: boolean;
+    slim?: boolean;
 }>(), {
     to: undefined,
     tooltip: undefined,
     disabled: false,
-    flexGrow: true
+    flexGrow: true,
+    slim: false
 });
 
 const route = useRoute();

@@ -11,10 +11,10 @@ export class AiContentAPI extends AbstractContentAPI {
     public installedAis: Record<EngineVersionFormat, AI[]> = reactive({});
 
     public async init(latestEngine: EngineVersionFormat) {
-        await this.fetchAis(latestEngine);
+        await this.getAis(latestEngine);
     }
 
-    public async fetchAis(engine: EngineVersionFormat) : Promise<AI[]> {
+    public async getAis(engine: EngineVersionFormat) : Promise<AI[]> {
         const ai = this.installedAis[engine];
         if (ai !== undefined) {
             return ai;

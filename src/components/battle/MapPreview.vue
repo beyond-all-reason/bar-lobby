@@ -6,9 +6,6 @@
                 <Option :value="StartPosType.Fixed">
                     Fixed
                 </Option>
-                <Option :value="StartPosType.Random">
-                    Random
-                </Option>
                 <Option :value="StartPosType.ChooseInGame">
                     Boxes
                 </Option>
@@ -24,11 +21,10 @@ import Option from "@/components/inputs/Option.vue";
 import { StartPosType } from "@/model/battle/types";
 import { Player } from "@/model/battle/participants";
 
-const battle = window.api.session.currentBattle;
+const battle = window.api.battle;
 
 const startPosOptions: Array<{ label: string, value: any }> = [
     { label: "Fixed", value: StartPosType.Fixed },
-    { label: "Random", value: StartPosType.Random },
     { label: "Boxes", value: StartPosType.ChooseInGame }
 ];
 

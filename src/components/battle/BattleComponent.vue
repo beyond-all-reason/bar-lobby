@@ -23,10 +23,6 @@
             <div>Game Version</div>
             <div>Game End Condition</div>
             <div class="flex-row flex-bottom gap-md">
-                <Button fullwidth @click="addBotModal">
-                    Add Bot
-                </Button>
-                <AddBotModal :engine-version="selectedEngine" @add-bot="addBot" />
                 <Button class="btn--green" fullwidth @click="start">
                     Start
                 </Button>
@@ -41,17 +37,13 @@ import Button from "@/components/inputs/Button.vue";
 import MapPreview from "@/components/battle/MapPreview.vue";
 import Select from "@/components/inputs/Select.vue";
 import Playerlist from "@/components/battle/Playerlist.vue";
-import { lastInArray, randomFromArray } from "jaz-ts-utils";
-import { aiNames } from "@/config/ai-names";
+import { lastInArray } from "jaz-ts-utils";
 import type { EngineVersionFormat } from "@/model/formats";
-import AddBotModal from "./AddBotModal.vue";
 import BattleChat from "@/components/battle/BattleChat.vue";
-import { Faction } from "@/model/battle/types";
-import { AI } from "@/model/ai";
 
 const battleTitle = ref("Offline Custom Battle");
 
-const battle = window.api.session.currentBattle;
+const battle = window.api.battle;
 
 const installedMaps = computed(() => Object.values(window.api.content.maps.installedMaps));
 
@@ -67,17 +59,6 @@ const selectedGame = ref(lastInArray(games.value));
 
 const engines = computed(() => window.api.content.engine.installedVersions);
 const selectedEngine = ref(lastInArray(engines.value));
-
-const addBotModal = () => window.api.modals.open("add-bot");
-
-const addBot = (ai: AI) => {
-    battle.addBot({
-        name: randomFromArray(aiNames), // TODO: ensure uniqueness
-        aiShortName: ai.shortName,
-        faction: Faction.Armada,
-        ownerUserId: window.api.session.currentUser.userId
-    });
-};
 
 const start = async () => {
     const engine: EngineVersionFormat = "BAR-105.1.1-814-g9774f22";

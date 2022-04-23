@@ -13,45 +13,51 @@ import { settingsSchema } from "@/model/settings";
 import { ipcRenderer } from "electron";
 import type { Info } from "@/model/info";
 import { tachyonLog } from "@/utils/tachyon-log";
+import { Battle } from "@/model/battle/battle";
+import { defaultBattle } from "@/config/default-battle";
+
+interface API {
+    info: Info;
+    session: SessionAPI;
+    settings: StoreAPI<SettingsType>;
+    client: TachyonClient;
+    audio: AudioAPI;
+    modals: ModalsAPI;
+    account: StoreAPI<Account>;
+    content: ContentAPI;
+    game: GameAPI;
+    battle: Battle;
+}
 
 declare global {
+    const api: API;
     interface Window {
-        api: {
-            info: Info;
-            session: SessionAPI;
-            settings: StoreAPI<SettingsType>;
-            client: TachyonClient;
-            audio: AudioAPI;
-            modals: ModalsAPI;
-            account: StoreAPI<Account>;
-            content: ContentAPI;
-            game: GameAPI;
-        }
+        api: API
     }
 }
 
 export async function apiInit() {
-    window.api = {} as any;
+    window.api = {} as any; // TODO: refactor this, any bad
 
-    window.api.info = await ipcRenderer.invoke("getInfo");
+    api.info = await ipcRenderer.invoke("getInfo");
 
-    window.api.settings = await new StoreAPI<SettingsType>("settings", settingsSchema, true).init();
+    api.settings = await new StoreAPI<SettingsType>("settings", settingsSchema, true).init();
 
-    await fs.promises.mkdir(window.api.settings.model.dataDir.value, { recursive: true });
+    await fs.promises.mkdir(api.settings.model.dataDir.value, { recursive: true });
 
-    const userDataDir = window.api.info.userDataPath;
-    const dataDir = window.api.settings.model.dataDir.value;
+    const userDataDir = api.info.userDataPath;
+    const dataDir = api.settings.model.dataDir.value;
 
-    window.api.session = new SessionAPI();
+    api.session = new SessionAPI();
 
-    window.api.client = new TachyonClient({
+    api.client = new TachyonClient({
         host: "server2.beyondallreason.info",
         port: 8202,
         verbose: true,//process.env.NODE_ENV !== "production" // TODO: add toggle to debug tools
         logMethod: tachyonLog
     });
-    window.api.client.socket?.on("connect", () => window.api.session.offlineMode.value = false);
-    window.api.client.socket?.on("close", () => window.api.session.offlineMode.value = true);
+    api.client.socket?.on("connect", () => window.api.session.offlineMode.value = false);
+    api.client.socket?.on("close", () => window.api.session.offlineMode.value = true);
     //window.api.client.onResponse("s.system.server_event").add((data) => {
     //    if (event.data === "server_restart") {
     //        window.api.session.model.offline = true;
@@ -69,4 +75,22 @@ export async function apiInit() {
     window.api.game = new GameAPI(userDataDir, dataDir);
 
     window.api.content = await new ContentAPI(userDataDir, dataDir).init();
+
+    window.api.battle = new Battle(defaultBattle());
+    // reactive(createDeepProxy(new Battle(defaultBattle()), (breadcrumb) => {
+    //     const currentBattle = this.currentBattle;
+
+    //     return {
+    //         set(target, prop, value) {
+    //             if (currentBattle.battleOptions.offline) {
+    //                 target[prop as keyof typeof target] = value;
+    //             } else {
+    //                 // TODO: if set from server data then immediately apply
+    //                 // TODO: if set from client then send server request for it
+    //                 console.warn("can't set battle property directly");
+    //             }
+    //             return true;
+    //         }
+    //     };
+    // }, "battle"));
 }

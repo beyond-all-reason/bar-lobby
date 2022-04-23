@@ -1,8 +1,8 @@
 <template>
-    <div class="playerlist__player">
+    <div class="participant">
         <Icon :icon="icon" :size="16" />
-        <div v-if="countryCode" :class="`playerlist__player__flag fi fi-${countryCode}`" />
-        <div class="playerlist__player__name">
+        <div v-if="countryCode" :class="`participant__flag fi fi-${countryCode}`" />
+        <div class="participant__name">
             {{ name }}
         </div>
     </div>
@@ -33,10 +33,6 @@ const name = computed(() => {
     return "Player";
 });
 
-const icon = ref("account");
+const icon = computed(() => props.participant.type === "bot" ? "robot" : "account");
 const countryCode = ref("");
-
-if (props.participant.type === "bot") {
-    icon.value = "robot";
-}
 </script>

@@ -22,29 +22,37 @@ export class Battle implements BattleConfig {
     public readonly mapOptions: Record<string, string | number | boolean>;
     public readonly restrictions: Restriction[];
 
-    public readonly me: ComputedRef<Player | Bot | Spectator | undefined>;
+    public readonly me: ComputedRef<Player | Spectator>;
     public readonly contenders: ComputedRef<Array<Player | Bot>>;
     public readonly spectators: ComputedRef<Array<Spectator>>;
+    public readonly battleUsers: ComputedRef<Array<Player | Spectator>>;
+
+    protected contenderProxyHandler: ProxyHandler<Player | Bot>;
 
     constructor(config: SetOptional<BattleConfig, "allyTeams" | "gameOptions" | "mapOptions" | "restrictions">) {
         this.battleOptions = reactive(config.battleOptions ?? {});
         this.allyTeams = reactive(config.allyTeams ?? []);
-        this.participants = reactive(config.participants ?? []);
+        this.participants = reactive([]);
         this.gameOptions = reactive(config.gameOptions ?? {});
         this.mapOptions = reactive(config.mapOptions ?? {});
         this.restrictions = reactive(config.restrictions ?? []);
 
-        this.me = computed(() => {
-            return this.participants.find((participant): participant is Player | Spectator => "userId" in participant && participant.userId === window.api.session.currentUser.userId);
-        });
+        for (const participant of config.participants) {
+            this.addParticipant(participant);
+        }
 
-        this.contenders = computed(() => {
-            return this.participants.filter((participant): participant is Player | Bot => participant.type === "player" || participant.type === "bot");
-        });
+        this.me = computed(() => this.participants.find((participant): participant is Player | Spectator => "userId" in participant && participant.userId === window.api.session.currentUser.userId)!);
+        this.contenders = computed(() => this.participants.filter((participant): participant is Player | Bot => participant.type === "player" || participant.type === "bot"));
+        this.spectators = computed(() => this.participants.filter((participant): participant is Spectator => participant.type === "spectator"));
+        this.battleUsers = computed(() => this.participants.filter((participant): participant is Player | Spectator => participant.type === "spectator" || participant.type === "player"));
 
-        this.spectators = computed(() => {
-            return this.participants.filter((participant): participant is Spectator => participant.type === "spectator");
-        });
+        this.contenderProxyHandler = {
+            set: (target, prop, value, receiver) =>{
+                Reflect.set(target, prop, value, receiver);
+                this.fixTeamIds();
+                return true;
+            }
+        };
     }
 
     public set(config: SetOptional<BattleConfig, "allyTeams" | "gameOptions" | "mapOptions" | "restrictions">) {
@@ -56,28 +64,18 @@ export class Battle implements BattleConfig {
         setObject(this.restrictions, config.restrictions ?? []);
     }
 
-    public addPlayer(player: Omit<Player, "type">) {
-        this.participants.push({
-            type: "player",
-            ...player,
-        });
-
-        const allyTeam = this.allyTeams.find(allyTeam => allyTeam.id === player.allyTeamId);
-        if (!allyTeam) {
-            this.allyTeams.push({
-                id: this.allyTeams.length
-            });
+    public addParticipant(participant: Player | Bot | Spectator) {
+        if (participant.type === "player") {
+            this.addContender(participant);
+        } else if (participant.type === "spectator") {
+            this.addSpectator(participant);
         }
     }
 
-    public addBot(bot: Omit<SetOptional<Bot, "allyTeamId">, "type">) {
-        this.participants.push({
-            type: "bot",
-            allyTeamId: bot.allyTeamId ?? 0,
-            ...bot,
-        });
+    public addContender(contender: Player | Bot) {
+        this.participants.push(contender);
 
-        const allyTeam = this.allyTeams.find(allyTeam => allyTeam.id === bot.allyTeamId);
+        const allyTeam = this.allyTeams.find(allyTeam => allyTeam.id === contender.allyTeamId);
         if (!allyTeam) {
             this.allyTeams.push({
                 id: this.allyTeams.length
@@ -89,6 +87,22 @@ export class Battle implements BattleConfig {
         this.participants.push({
             type: "spectator",
             ...spectator,
+        });
+    }
+
+    public playerToSpectator(player: Player) {
+        this.removeParticipant(player);
+        this.addSpectator({
+            userId: player.userId
+        });
+    }
+
+    public spectatorToPlayer(spectator: Spectator, allyTeamId?: number) {
+        this.removeParticipant(spectator);
+        this.addContender({
+            type: "player",
+            userId: spectator.userId,
+            allyTeamId: allyTeamId ?? 0
         });
     }
 
@@ -110,5 +124,12 @@ export class Battle implements BattleConfig {
             return this.contenders.value.filter(contender => contender.allyTeamId === allyTeam.id);
         }
         return [];
+    }
+
+    protected fixTeamIds() {
+        console.log("test");
+        this.allyTeams.forEach((allyTeam, i) => {
+            allyTeam.id = i;
+        });
     }
 }

@@ -1,39 +1,53 @@
 .playerlist {
     display: flex;
     flex-direction: column;
-    gap: 10px;
-    &__ally-team {
-        &--drag-enter {
-            background: rgba(255, 255, 255, 0.1);
-            .playerlist__player {
-                pointer-events: none;
+    gap: 15px;
+    &.dragging {
+        .playerlist__title,
+        .playerlist__participants {
+            pointer-events: none;
+        }
+    }
+    &__group {
+        position: relative;
+        gap: 5px;
+        &.highlight {
+            &:after {
+                @extend .fullsize;
+                width: calc(100% + 10px);
+                height: calc(100% + 10px);
+                left: -5px;
+                top: -5px;
+                background: rgba(255, 255, 255, 0.1);
             }
         }
     }
     &__title {
         font-size: 26px;
-        pointer-events: none;
     }
-    &__players {
+    &__participants {
         flex-direction: row;
         gap: 10px;
-        pointer-events: none;
+        flex-wrap: wrap;
     }
-    &__player {
-        display: flex;
-        flex-direction: row;
-        align-items: center;
-        gap: 7px;
-        line-height: 52%;
-        padding: 6px 8px;
-        border-radius: 3px;
-        @extend .battle__panel;
+}
+
+.participant {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 7px;
+    line-height: 52%;
+    padding: 6px 8px;
+    border-radius: 3px;
+    @extend .battle__panel;
+    &.dragging {
         pointer-events: auto;
-        &:hover {
-            background: rgba(255, 255, 255, 0.1);
-        }
-        &__flag {
-            max-width: 17px;
-        }
+    }
+    &:hover {
+        background: rgba(255, 255, 255, 0.1);
+    }
+    &__flag {
+        max-width: 17px;
     }
 }

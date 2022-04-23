@@ -11,7 +11,7 @@
 - Uses TS but hidden, same as casual matchmaking
 "
         />
-        <!-- <Battle /> -->
+        <!-- <BattleComponent /> -->
     </div>
 </template>
 

@@ -12,7 +12,7 @@ $btnColors: (
     "gray": rgb(128, 128, 128)
 );
 
-button, .btn {
+button, .btn, .button {
     @each $colorKey, $color in $btnColors {
         &--#{$colorKey} {
             background-color: rgba($color, 0.6);
@@ -26,4 +26,12 @@ button, .btn {
     }
 
     font-weight: 500;
+
+    &.slim .btn{
+        padding: 1px 7px;
+        min-height: unset;
+        align-self: center;
+        border-radius: 2px;
+        font-size: 16px;
+    }
 }
