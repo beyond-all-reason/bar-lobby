@@ -15,6 +15,8 @@
 // https://valgeirb.github.io/vue3-popper/guide/api.html#props
 // https://github.com/valgeirb/vue3-popper/blob/main/src/component/Popper.vue#L60
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { ref } from "vue";
 import Popper from "vue3-popper";
 

@@ -45,6 +45,7 @@ async function loadFont(url: string) {
     const family = parts[1];
     const fileName = parts[2];
     const [weight, style] = fileName.split(".")[0].split("-");
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
     const buildFontPath = require(`@/assets/fonts/${family}/${fileName}`);
     const font = new FontFace(family, `url(${buildFontPath})`, { weight, style });
     document.fonts.add(font);
@@ -54,6 +55,7 @@ async function loadFont(url: string) {
 function loadImage(url: string) {
     return new Promise<string>((resolve, reject) => {
         const fileName = url.slice(2);
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
         const buildImagePath = require(`@/assets/images/${fileName}`);
         const image = new Image();
         image.onload = () => {

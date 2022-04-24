@@ -31,12 +31,12 @@ export class EngineContentAPI extends AbstractContentAPI {
         return this;
     }
 
-    public async downloadLatestEngine(includePrerelease = true) {
+    public async downloadLatestEngine(includePrerelease = true) : Promise<EngineVersionFormat> {
         const latestEngineRelease = await this.getLatestEngineReleaseInfo();
 
         if (lastInArray(this.installedVersions) === this.engineTagNameToVersionString(latestEngineRelease.tag_name)) {
             console.log(`Latest engine version already installed: ${lastInArray(this.installedVersions)}`);
-            return;
+            return lastInArray(this.installedVersions)!;
         }
 
         const engineVersionString = this.engineTagNameToVersionString(latestEngineRelease.tag_name);
@@ -82,6 +82,8 @@ export class EngineContentAPI extends AbstractContentAPI {
         this.sortEngineVersions();
 
         removeFromArray(this.currentDownloads, downloadInfo);
+
+        return engineVersionString;
     }
 
     public async downloadEngine(engineTag: EngineVersionFormat) {

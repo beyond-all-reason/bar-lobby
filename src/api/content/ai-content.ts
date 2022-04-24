@@ -51,6 +51,7 @@ export class AiContentAPI extends AbstractContentAPI {
 
         const aiInfoFile = await fs.promises.readFile(aiInfoPath);
         const aiInfoFields = parseLuaTable(aiInfoFile);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const aiInfo: Record<string, any> = {};
         for (const field of aiInfoFields) {
             aiInfo[field.key] = field.value;

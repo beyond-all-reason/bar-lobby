@@ -28,6 +28,7 @@ export class AudioAPI {
         for (const soundFile of soundFiles) {
             const relativePath = soundFile.slice(2);
             const parsedPath = path.parse(soundFile);
+            // eslint-disable-next-line @typescript-eslint/no-var-requires
             const builtPath = require(`@/assets/audio/${relativePath}`);
             const soundKey = parsedPath.name;
 

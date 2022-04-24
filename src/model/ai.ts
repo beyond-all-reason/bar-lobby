@@ -8,5 +8,5 @@ export type AI = {
     interfaceShortName: string;
     interfaceVersion: string;
     ddlPath: string;
-    options?: Record<string, any>;
+    options?: Record<string, unknown>;
 };

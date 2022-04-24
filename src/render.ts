@@ -48,6 +48,7 @@ async function setupVue() {
 
     if (process.env.NODE_ENV !== "production") {
         app.config.globalProperties.window = window;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (window as any).router = router;
     }
 }

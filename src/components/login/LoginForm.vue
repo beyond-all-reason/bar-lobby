@@ -18,7 +18,9 @@
             <p v-if="verificationError" class="color--error">
                 {{ verificationError }}
             </p>
-            <p v-html="verificationMessage" />
+            <p>
+                {{ verificationMessage }}
+            </p>
             <Textbox v-model="verificationCode" label="Verification Code" required />
             <Button type="submit">
                 Verify

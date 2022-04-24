@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Directive, DirectiveBinding } from "vue";
 
 const UNIQUE_ID = "__vue_click_away__";

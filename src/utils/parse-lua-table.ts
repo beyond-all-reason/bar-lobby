@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import * as luaparse from "luaparse";
 import type { LocalStatement, TableConstructorExpression } from "luaparse";
 

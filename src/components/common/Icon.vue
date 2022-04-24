@@ -11,6 +11,7 @@
 
 import { computed } from "vue";
 
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const { icons } = require("@iconify/json/json/mdi.json");
 
 const props = defineProps({

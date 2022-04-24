@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Battle } from "@/model/battle/battle";
 import type { StartScriptTypes } from "@/model/start-script";
 import { assign } from "jaz-ts-utils";
@@ -56,7 +57,7 @@ export class StartScriptConverter {
         battle.contenders.value.forEach(contenderConfig => {
             const team: StartScriptTypes.Team = {
                 id: teamId,
-                allyteam: contenderConfig.teamId,
+                allyteam: battle.teams.indexOf(contenderConfig.team),
                 teamleader: 0
             };
             assign(team, {

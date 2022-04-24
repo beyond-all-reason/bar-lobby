@@ -24,7 +24,13 @@ export class ContentAPI extends AbstractContentAPI {
     public async init() {
         await this.engine.init();
 
-        const latestEngine = lastInArray(this.engine.installedVersions);
+        let latestEngine = lastInArray(this.engine.installedVersions);
+
+        if (!latestEngine) {
+            // TODO: do this in loader component
+            latestEngine = await this.engine.downloadLatestEngine();
+        }
+
         const binaryName = process.platform === "win32" ? "pr-downloader.exe" : "pr-downloader";
         const prBinaryPath = path.join(this.dataDir, "engine", latestEngine, binaryName);
 

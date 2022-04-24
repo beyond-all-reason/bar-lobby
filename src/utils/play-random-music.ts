@@ -11,7 +11,7 @@ export const playRandomMusic = () => {
         }
     }
 
-    const soundKey = randomFromArray(musicKeys);
+    const soundKey = randomFromArray(musicKeys)!;
     const sound = api.audio.getSound(soundKey);
     sound.on("end", () => {
         playRandomMusic();

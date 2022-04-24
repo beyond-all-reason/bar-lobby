@@ -53,8 +53,8 @@ export class GameContentAPI extends AbstractContentAPI {
     public async updateGame() {
         this.updateVersionMap();
 
-        if (this.installedVersions.includes(lastInArray(this.installedVersions))) {
-            console.log(`Latest game version already installed: ${lastInArray(this.installedVersions).version.fullString}`);
+        if (this.installedVersions.includes(lastInArray(this.installedVersions)!)) {
+            console.log(`Latest game version already installed: ${lastInArray(this.installedVersions)!.version.fullString}`);
             return;
         }
 
@@ -145,6 +145,7 @@ export class GameContentAPI extends AbstractContentAPI {
     public async getModOptions(version: GameVersionFormat) : Promise<ModOptionSection[]> {
         const gameFiles = await this.getGameFiles(version, "modoptions.lua");
         const modOptionsLua = gameFiles[0].data;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const modOptionsArray = parseLuaTable(modOptionsLua, "options") as Array<Record<string, any>>; // TODO: type this
 
         const sections: ModOptionSection[] = [];

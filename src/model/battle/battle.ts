@@ -5,6 +5,7 @@ import { setObject } from "@/utils/set-object";
 import { SetOptional } from "type-fest";
 import { computed, ComputedRef, reactive } from "vue";
 import { TypedProxyHandler } from "@/utils/typed-proxy-handler";
+import { lastInArray, countOccurrences, firstInArray } from "jaz-ts-utils";
 
 export interface BattleConfig {
     battleOptions: BattleOptions;
@@ -28,6 +29,7 @@ export class Battle implements BattleConfig {
     public readonly spectators: ComputedRef<Array<Spectator>>;
     public readonly battleUsers: ComputedRef<Array<Player | Spectator>>;
     public readonly smallestTeam: ComputedRef<Team | undefined>;
+    public readonly largestTeam: ComputedRef<Team | undefined>;
 
     protected battleOptionsProxyHandler: TypedProxyHandler<BattleOptions>;
     protected participantProxyHandler: TypedProxyHandler<Player | Bot | Spectator>;
@@ -44,11 +46,11 @@ export class Battle implements BattleConfig {
                 if (prop === "teamPreset") {
                     if (value === TeamPreset.Standard) { // only 2 teams
                         for (let i=2; i<this.teams.length; i++) {
-                            this.removeTeam(i);
+                            this.removeTeam(this.teams[i]);
                         }
                     } else if (value === TeamPreset.FFA) { // 1 big team for all players, but separate team for each player when converted to start script
                         for (let i=1; i<this.teams.length; i++) {
-                            this.removeTeam(i);
+                            this.removeTeam(this.teams[i]);
                         }
                     } else { // anything goes
 
@@ -81,7 +83,8 @@ export class Battle implements BattleConfig {
         this.contenders = computed(() => this.participants.filter((participant): participant is Player | Bot => participant.type === "player" || participant.type === "bot"));
         this.spectators = computed(() => this.participants.filter((participant): participant is Spectator => participant.type === "spectator"));
         this.battleUsers = computed(() => this.participants.filter((participant): participant is Player | Spectator => participant.type === "spectator" || participant.type === "player"));
-        this.smallestTeam = computed(() => this.teams.find((team): team is Team => team.id === Math.min(...this.contenders.value.map(contender => contender.teamId))));
+        this.smallestTeam = computed(() => lastInArray(countOccurrences(this.contenders.value, "team"))?.value);
+        this.largestTeam = computed(() => firstInArray(countOccurrences(this.contenders.value, "team"))?.value);
     }
 
     public set(config: SetOptional<BattleConfig, "teams" | "gameOptions" | "mapOptions" | "restrictions">) {
@@ -101,15 +104,6 @@ export class Battle implements BattleConfig {
         const participant = new Proxy(participantConfig, this.participantProxyHandler);
 
         this.participants.push(participant);
-
-        if (participant.type !== "spectator") {
-            const team = this.teams.find(allyTeam => allyTeam.id === participant.teamId);
-            if (!team) {
-                this.teams.push({
-                    id: this.teams.length
-                });
-            }
-        }
     }
 
     public playerToSpectator(player: Player) {
@@ -121,13 +115,13 @@ export class Battle implements BattleConfig {
         this.fixIds();
     }
 
-    public spectatorToPlayer(spectator: Spectator, teamId?: number) {
+    public spectatorToPlayer(spectator: Spectator, team: Team) {
         this.removeParticipant(spectator);
         this.addParticipant({
             id: this.contenders.value.length,
             type: "player",
             userId: spectator.userId,
-            teamId: teamId ?? 0
+            team
         });
     }
 
@@ -137,34 +131,20 @@ export class Battle implements BattleConfig {
     }
 
     public addTeam() {
-        this.teams.push({
-            id: this.teams.length
-        });
+        this.teams.push();
         this.fixIds();
     }
 
-    public removeTeam(teamId: number) {
-        this.teams.splice(teamId, 1);
+    public removeTeam(team: Team) {
+        this.teams.splice(this.teams.indexOf(team), 1);
         this.fixIds();
     }
 
-    public getTeamParticipants(teamId: number): Array<Player | Bot>;
-    public getTeamParticipants(team: Team): Array<Player | Bot>;
-    public getTeamParticipants(teamObjOrId: number | Team) : Array<Player | Bot> {
-        const team = typeof teamObjOrId === "number" ? this.teams.find(team => team.id === teamObjOrId) : teamObjOrId;
-        if (team) {
-            return this.contenders.value.filter(contender => contender.teamId === team.id);
-        }
-        return [];
+    public getTeamParticipants(team: Team): Array<Player | Bot> {
+        return this.contenders.value.filter(contender => contender.team === team);
     }
 
     protected fixIds() {
-        this.teams.sort((a, b) => a.id - b.id);
-
-        for (let i=0; i<this.teams.length; i++) {
-            this.teams[i].id = i;
-        }
-
         this.participants.sort((a, b) => {
             if (a.type === "spectator") {
                 return -1;

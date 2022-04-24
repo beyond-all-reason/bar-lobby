@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { ValidateFunction } from "ajv";
 import Ajv from "ajv";
 import type { ToRefs} from "vue";
@@ -99,7 +100,7 @@ export class StoreAPI<T extends Record<string, unknown>> {
         }
 
         this.writeTimeout = setTimeout(async () => {
-            const obj: any = {};
+            const obj: Record<string, unknown> = {};
             for (const key in this.model) {
                 const value = this.model[key as keyof T];
                 obj[key] = value.value;

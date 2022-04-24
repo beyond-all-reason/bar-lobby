@@ -40,7 +40,7 @@ const props = withDefaults(defineProps<Props>(), {
 });
 
 const emits = defineEmits<{
-    (event: "change", value: any): void,
+    (event: "change", value: unknown): void,
 }>();
 
 const vueSelect: Ref<InstanceType<typeof VueNextSelect> | null> = ref(null);

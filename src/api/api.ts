@@ -37,7 +37,8 @@ declare global {
 }
 
 export async function apiInit() {
-    window.api = {} as any; // TODO: refactor this, any bad
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    window.api = {} as any;
 
     api.info = await ipcRenderer.invoke("getInfo");
 
