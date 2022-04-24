@@ -9,10 +9,10 @@ import Icon from "@/components/common/Icon.vue";
 import Button from "@/components/inputs/Button.vue";
 import { computed } from "vue";
 
-const downloadsModal = () => window.api.modals.open("downloads");
+const downloadsModal = () => api.modals.open("downloads");
 
 const downloadPercent = computed(() => {
-    const downloads = window.api.content.engine.currentDownloads.concat(window.api.content.game.currentDownloads, window.api.content.maps.currentDownloads);
+    const downloads = api.content.engine.currentDownloads.concat(api.content.game.currentDownloads, api.content.maps.currentDownloads);
 
     let currentBytes = 0;
     let totalBytes = 0;

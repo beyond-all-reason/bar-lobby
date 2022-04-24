@@ -19,7 +19,7 @@ const props = defineProps<{
     engineVersion: EngineVersionFormat;
 }>();
 
-const ais = computed(() => window.api.content.ai.installedAis[props.engineVersion]);
+const ais = computed(() => api.content.ai.installedAis[props.engineVersion]);
 
 const emit = defineEmits<{
     (event: "add-bot", ai: AI): void;
@@ -27,6 +27,6 @@ const emit = defineEmits<{
 
 const addBot = (ai: AI) => {
     emit("add-bot", ai);
-    window.api.modals.close("add-bot");
+    api.modals.close("add-bot");
 };
 </script>

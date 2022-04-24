@@ -46,12 +46,12 @@ const props = withDefaults(defineProps<ModalProps>(), {
     activeTab: 0
 });
 
-const isOpen = window.api.modals.register(props.name);
+const isOpen = api.modals.register(props.name);
 const titleStr = ref(props.title || props.name);
 
 const close = () => {
-    window.api.modals.close(props.name);
+    api.modals.close(props.name);
 };
 
-const sound = () => window.api.audio.getSound("button-hover").play();
+const sound = () => api.audio.getSound("button-hover").play();
 </script>

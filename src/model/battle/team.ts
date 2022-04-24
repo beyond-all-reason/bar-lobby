@@ -1,6 +1,6 @@
 import { StartBox } from "@/model/battle/types";
 
-export interface AllyTeam {
+export interface Team {
     id: number;
     startBox?: StartBox;
 }

@@ -52,7 +52,7 @@ const maxHeight: Ref<number | undefined> = ref(undefined);
 const isOpen = ref(false);
 let timeoutInterval: number | undefined;
 
-const sound = () => window.api.audio.getSound("button-hover").play();
+const sound = () => api.audio.getSound("button-hover").play();
 
 const onFocus = () => {
     timeoutInterval = window.setTimeout(() => {

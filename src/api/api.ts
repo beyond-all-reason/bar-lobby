@@ -56,27 +56,27 @@ export async function apiInit() {
         verbose: true,//process.env.NODE_ENV !== "production" // TODO: add toggle to debug tools
         logMethod: tachyonLog
     });
-    api.client.socket?.on("connect", () => window.api.session.offlineMode.value = false);
-    api.client.socket?.on("close", () => window.api.session.offlineMode.value = true);
-    //window.api.client.onResponse("s.system.server_event").add((data) => {
+    api.client.socket?.on("connect", () => api.session.offlineMode.value = false);
+    api.client.socket?.on("close", () => api.session.offlineMode.value = true);
+    //api.client.onResponse("s.system.server_event").add((data) => {
     //    if (event.data === "server_restart") {
-    //        window.api.session.model.offline = true;
-    //        window.api.modals.show("server_restart");
+    //        api.session.model.offline = true;
+    //        api.modals.show("server_restart");
     //    }
     //}
     //});
 
-    window.api.audio = new AudioAPI().init();
+    api.audio = new AudioAPI().init();
 
-    window.api.modals = new ModalsAPI();
+    api.modals = new ModalsAPI();
 
-    window.api.account = await new StoreAPI<Account>("account", accountSchema).init();
+    api.account = await new StoreAPI<Account>("account", accountSchema).init();
 
-    window.api.game = new GameAPI(userDataDir, dataDir);
+    api.game = new GameAPI(userDataDir, dataDir);
 
-    window.api.content = await new ContentAPI(userDataDir, dataDir).init();
+    api.content = await new ContentAPI(userDataDir, dataDir).init();
 
-    window.api.battle = new Battle(defaultBattle());
+    api.battle = new Battle(defaultBattle());
     // reactive(createDeepProxy(new Battle(defaultBattle()), (breadcrumb) => {
     //     const currentBattle = this.currentBattle;
 

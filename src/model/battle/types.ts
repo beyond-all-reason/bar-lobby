@@ -7,6 +7,7 @@ export type BattleOptions = {
     mapFileName: string;
     isHost: boolean;
     startPosType: StartPosType;
+    teamPreset: TeamPreset;
 };
 
 export type StartBox = {
@@ -29,6 +30,12 @@ export enum Faction {
     Legion = "Legion",
     Raptors = "Raptors",
     Scavengers = "Scavengers"
+}
+
+export enum TeamPreset {
+    Standard,
+    FFA,
+    Custom
 }
 
 export type Restriction = {

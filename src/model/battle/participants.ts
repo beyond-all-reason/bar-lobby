@@ -3,8 +3,8 @@ import { Faction } from "@/model/battle/types";
 export type BattleUser = { userId: number };
 
 export type Contender = {
-    //id?: number; // TODO: is this even necessary?
-    allyTeamId: number;
+    id: number;
+    teamId: number;
     startPos?: { x: number, z: number };
     handicap?: number;
     advantage?: number;

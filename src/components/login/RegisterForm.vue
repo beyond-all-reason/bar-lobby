@@ -40,10 +40,10 @@ const validatePassword = () => {
 const register = async () => {
     loading.value = true;
 
-    const registerResponse = await window.api.client.register({ email: email.value, username: username.value, password: password.value });
+    const registerResponse = await api.client.register({ email: email.value, username: username.value, password: password.value });
 
     if (registerResponse.result === "success") {
-        window.api.account.model.email.value = email.value;
+        api.account.model.email.value = email.value;
         emit("register-success");
     } else {
         if (registerResponse.reason) {

@@ -34,7 +34,7 @@ const to = toRefs(props).to;
 const isActive = computed(() => props.to && route.path.includes(props.to));
 const sound = () => {
     if (!props.to || (props.to && !isActive.value)) {
-        window.api.audio.getSound("button-hover").play();
+        api.audio.getSound("button-hover").play();
     }
 };
 </script>

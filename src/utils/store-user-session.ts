@@ -8,7 +8,7 @@ export function storeUserSession(user?: UserData) {
         return;
     }
 
-    window.api.session.setCurrentUser({
+    api.session.setCurrentUser({
         userId: user.id,
         legacyId: Number(user.springid),
         username: user.name,

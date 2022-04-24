@@ -35,9 +35,9 @@ export class StartScriptConverter {
         let playerIndex = 0;
         const botIdToUserIdMap: Record<number, number> = {};
 
-        battle.allyTeams.forEach(allyTeamConfig => {
+        battle.teams.forEach((allyTeamConfig, i) => {
             const allyTeam: StartScriptTypes.AllyTeam = {
-                id: allyTeamConfig.id,
+                id: i,
                 numallies: 0
             };
 
@@ -56,7 +56,7 @@ export class StartScriptConverter {
         battle.contenders.value.forEach(contenderConfig => {
             const team: StartScriptTypes.Team = {
                 id: teamId,
-                allyteam: contenderConfig.allyTeamId,
+                allyteam: contenderConfig.teamId,
                 teamleader: 0
             };
             assign(team, {
@@ -73,7 +73,7 @@ export class StartScriptConverter {
                 const player: StartScriptTypes.Player = {
                     id: playerIndex,
                     team: team.id,
-                    name: window.api.session.getUserById(contenderConfig.userId)?.username || "Player",
+                    name: api.session.getUserById(contenderConfig.userId)?.username || "Player",
                     userId: contenderConfig.userId
                 };
                 players.push(player);
@@ -96,7 +96,7 @@ export class StartScriptConverter {
             const spectator: StartScriptTypes.Player = {
                 id: playerIndex,
                 spectator: 1,
-                name: window.api.session.getUserById(spectatorConfig.userId)?.username || "Player",
+                name: api.session.getUserById(spectatorConfig.userId)?.username || "Player",
                 userId: spectatorConfig.userId
             };
             playerIndex++;
@@ -111,7 +111,7 @@ export class StartScriptConverter {
             bot.host = owner.id;
         }
 
-        const mapData = window.api.content.maps.getMapByFileName(battle.battleOptions.mapFileName);
+        const mapData = api.content.maps.getMapByFileName(battle.battleOptions.mapFileName);
 
         if (!mapData) {
             throw new Error(`Can't generate start script because map is not installed: ${battle.battleOptions.mapFileName}`);
@@ -121,7 +121,7 @@ export class StartScriptConverter {
             gametype: battle.battleOptions.gameVersion,
             mapname: mapData.scriptName,
             ishost: 1,
-            myplayername: window.api.session.currentUser.username,
+            myplayername: api.session.currentUser.username,
             allyTeams,
             teams,
             players,

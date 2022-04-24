@@ -1,7 +1,6 @@
 .playerlist {
     display: flex;
     flex-direction: column;
-    gap: 15px;
     &.dragging {
         .playerlist__title,
         .playerlist__participants {
@@ -10,7 +9,14 @@
     }
     &__group {
         position: relative;
-        gap: 5px;
+        &:not(:last-child):after {
+            content: "";
+            display: flex;
+            background: rgba(255, 255, 255, 0.1);
+            width: 100%;
+            height: 1px;
+            margin: 10px 0;
+        }
         &.highlight {
             &:after {
                 @extend .fullsize;
@@ -29,6 +35,7 @@
         flex-direction: row;
         gap: 10px;
         flex-wrap: wrap;
+        margin-top: 5px;
     }
 }
 

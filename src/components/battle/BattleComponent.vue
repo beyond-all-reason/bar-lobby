@@ -17,12 +17,27 @@
         <div class="battle__right gap-md">
             <MapPreview />
             <Select v-model="battle.battleOptions.mapFileName" label="Map" :options="installedMaps" :label-by="(map: any) => map.friendlyName" :value-by="(map: any) => map.fileNameWithExt" close-on-select clear-on-select searchable />
+            <div class="flex-row gap-md">
+                <Options v-model="battle.battleOptions.startPosType" label="Start Pos" required full-width>
+                    <Option v-for="option in startPosOptions" :key="option.value" :value="option.value">
+                        {{ option.label }}
+                    </Option>
+                </Options>
+                <Options v-model="battle.battleOptions.teamPreset" label="Team Preset" required full-width>
+                    <Option v-for="option in teamPresetOptions" :key="option.value" :value="option.value">
+                        {{ option.label }}
+                    </Option>
+                </Options>
+            </div>
             <!-- <Select v-model="selectedGame" label="Game" :options="games" close-on-select clear-on-select searchable /> -->
             <!-- <Select v-model="selectedEngine" label="Engine" :options="engines" close-on-select clear-on-select searchable /> -->
             <div>Engine Version</div>
             <div>Game Version</div>
             <div>Game End Condition</div>
             <div class="flex-row flex-bottom gap-md">
+                <Button class="btn--red" fullwidth @click="leave">
+                    Leave
+                </Button>
                 <Button class="btn--green" fullwidth @click="start">
                     Start
                 </Button>
@@ -40,12 +55,15 @@ import Playerlist from "@/components/battle/Playerlist.vue";
 import { lastInArray } from "jaz-ts-utils";
 import type { EngineVersionFormat } from "@/model/formats";
 import BattleChat from "@/components/battle/BattleChat.vue";
+import { StartPosType, TeamPreset } from "@/model/battle/types";
+import Options from "@/components/inputs/Options.vue";
+import Option from "@/components/inputs/Option.vue";
 
 const battleTitle = ref("Offline Custom Battle");
 
-const battle = window.api.battle;
+const battle = api.battle;
 
-const installedMaps = computed(() => Object.values(window.api.content.maps.installedMaps));
+const installedMaps = computed(() => Object.values(api.content.maps.installedMaps));
 
 // const startPosType = ref(BattleTypes.StartPosType.Fixed);
 // const startBoxes = ref([] as BattleTypes.StartBox[]);
@@ -54,15 +72,30 @@ const installedMaps = computed(() => Object.values(window.api.content.maps.insta
 //     { xPercent: 0, yPercent: 0.75, widthPercent: 1, heightPercent: 0.25 },
 // ];
 
-const games = computed(() => window.api.content.game.installedVersions.map(rapidVersion => rapidVersion.version.fullString).slice(-10));
+const startPosOptions: Array<{ label: string, value: StartPosType }> = [
+    { label: "Fixed", value: StartPosType.Fixed },
+    { label: "Boxes", value: StartPosType.ChooseInGame }
+];
+
+const teamPresetOptions: Array<{ label: string, value: TeamPreset }> = [
+    { label: "Standard", value: TeamPreset.Standard },
+    { label: "FFA", value: TeamPreset.FFA },
+    { label: "Custom", value: TeamPreset.Custom },
+];
+
+const games = computed(() => api.content.game.installedVersions.map(rapidVersion => rapidVersion.version.fullString).slice(-10));
 const selectedGame = ref(lastInArray(games.value));
 
-const engines = computed(() => window.api.content.engine.installedVersions);
+const engines = computed(() => api.content.engine.installedVersions);
 const selectedEngine = ref(lastInArray(engines.value));
+
+const leave = () => {
+    // TODO
+};
 
 const start = async () => {
     const engine: EngineVersionFormat = "BAR-105.1.1-814-g9774f22";
 
-    window.api.game.launch(engine, battle);
+    api.game.launch(engine, battle);
 };
 </script>

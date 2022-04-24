@@ -26,7 +26,7 @@ export class StoreAPI<T extends Record<string, unknown>> {
 
         let userDataPath = "";
         if (process.type === "renderer") {
-            userDataPath = window.api.info.userDataPath;
+            userDataPath = api.info.userDataPath;
         } else {
             userDataPath = app.getPath("userData");
         }

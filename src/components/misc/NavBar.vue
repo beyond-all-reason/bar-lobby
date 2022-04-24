@@ -71,6 +71,6 @@ const secondaryRoutes = computed(() => {
         .sort((a, b) => (a.meta.order ?? 99) - (b.meta.order ?? 99));
 });
 
-const settingsModal = () => window.api.modals.open("settings");
-const exitModal = () => window.api.modals.open("exit");
+const settingsModal = () => api.modals.open("settings");
+const exitModal = () => api.modals.open("exit");
 </script>

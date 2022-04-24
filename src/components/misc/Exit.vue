@@ -19,18 +19,18 @@ import Button from "@/components/inputs/Button.vue";
 const router = useRouter();
 
 const logout = async () => {
-    window.api.account.model.token.value = "";
+    api.account.model.token.value = "";
     try {
-        await window.api.client.disconnect();
+        await api.client.disconnect();
     } catch (err) {
         console.error(err);
     }
-    window.api.modals.close("exit");
+    api.modals.close("exit");
     router.push("/login");
 };
 
 const quitToDesktop = async () => {
-    window.api.modals.close("exit");
+    api.modals.close("exit");
     window.close();
 };
 </script>

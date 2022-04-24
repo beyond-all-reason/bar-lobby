@@ -43,19 +43,19 @@ const routes = router.getRoutes().sort((a, b) => a.path.localeCompare(b.path));
 const currentRoute = ref(route.path);
 
 const openSettings = () => {
-    window.api.settings.openFileInEditor();
+    api.settings.openFileInEditor();
 };
 
 const openLobbyDir = () => {
-    shell.openPath(window.api.info.userDataPath);
+    shell.openPath(api.info.userDataPath);
 };
 
 const openDataDir = () => {
-    shell.openPath(window.api.settings.model.dataDir.value);
+    shell.openPath(api.settings.model.dataDir.value);
 };
 
 const openStartScript = async () => {
-    const startScriptPath = path.join(window.api.settings.model.dataDir.value, "barlobby_script.txt");
+    const startScriptPath = path.join(api.settings.model.dataDir.value, "barlobby_script.txt");
     shell.openPath(startScriptPath);
 };
 

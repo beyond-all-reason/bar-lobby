@@ -25,6 +25,10 @@ const props = withDefaults(defineProps<{
     fullWidth: false
 });
 
+const emits = defineEmits<{
+    (event: "update:modelValue", value: unknown): void
+}>();
+
 const selectedOption = ref(props.modelValue);
 
 provide("selectedOption", selectedOption);
@@ -45,5 +49,7 @@ provide("toggleOption", (optionValue: unknown) => {
             selectedOption.value = optionValue;
         }
     }
+
+    emits("update:modelValue", selectedOption.value);
 });
 </script>

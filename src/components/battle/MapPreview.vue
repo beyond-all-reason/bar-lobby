@@ -1,32 +1,15 @@
 <template>
     <div id="map-canvas-container" class="map-canvas-container">
         <canvas id="map-canvas" />
-        <div class="map-toolbar">
-            <Options v-model="battle.battleOptions.startPosType" required>
-                <Option :value="StartPosType.Fixed">
-                    Fixed
-                </Option>
-                <Option :value="StartPosType.ChooseInGame">
-                    Boxes
-                </Option>
-            </Options>
-        </div>
     </div>
 </template>
 
 <script lang="ts" setup>
 import { onMounted, watch } from "vue";
-import Options from "@/components/inputs/Options.vue";
-import Option from "@/components/inputs/Option.vue";
 import { StartPosType } from "@/model/battle/types";
 import { Player } from "@/model/battle/participants";
 
-const battle = window.api.battle;
-
-const startPosOptions: Array<{ label: string, value: any }> = [
-    { label: "Fixed", value: StartPosType.Fixed },
-    { label: "Boxes", value: StartPosType.ChooseInGame }
-];
+const battle = api.battle;
 
 type Transform = { x: number, y: number, width: number, height: number };
 
@@ -44,7 +27,7 @@ onMounted(async () => {
     loadMap();
 
     // TODO: only update when necessary (e.g. when map changes)
-    watch([() => battle.battleOptions.mapFileName, () => battle.battleOptions.startPosType, () => battle.allyTeams], () => {
+    watch([() => battle.battleOptions.mapFileName, () => battle.battleOptions.startPosType, () => battle.teams], () => {
         loadMap();
     });
 });
@@ -52,7 +35,7 @@ onMounted(async () => {
 async function loadMap() {
     reset();
 
-    const mapData = window.api.content.maps.getMapByFileName(battle.battleOptions.mapFileName);
+    const mapData = api.content.maps.getMapByFileName(battle.battleOptions.mapFileName);
     if (!mapData || !mapData.textureImagePath) {
         // TODO: missing map image
         return;
@@ -84,10 +67,10 @@ function drawBoxes() {
         return;
     }
 
-    for (const allyTeam of battle.allyTeams) {
+    for (const allyTeam of battle.teams) {
         if (allyTeam.startBox) {
-            const players = battle.getAllyTeamParticipants(allyTeam.id).filter((participant): participant is Player => participant.type === "player");
-            if (players.find(player => player.userId === window.api.session.currentUser.userId)) {
+            const players = battle.getTeamParticipants(allyTeam.id).filter((participant): participant is Player => participant.type === "player");
+            if (players.find(player => player.userId === api.session.currentUser.userId)) {
                 context.fillStyle = "rgba(0, 255, 0, 0.3)";
             } else {
                 context.fillStyle = "rgba(255, 0, 0, 0.3)";
@@ -168,7 +151,7 @@ function roundTransform(transform: Transform) {
 //     console.log("loading map");
 //     unload();
 
-//     const map = window.api.content.maps.getMapByFileName(battle.hostOptions.mapFileName);
+//     const map = api.content.maps.getMapByFileName(battle.hostOptions.mapFileName);
 
 //     if (!map || !map.textureImagePath) {
 //         // TODO show missing map image
@@ -189,7 +172,7 @@ function roundTransform(transform: Transform) {
 
 //     startBoxesGraphics.clear();
 //     if (battle.hostOptions.startPosType === BattleTypes.StartPosType.ChooseInGame) {
-//         for (const allyTeam of battle.allyTeams) {
+//         for (const allyTeam of battle.teams) {
 //             if (allyTeam.startBox) {
 //                 drawStartBox(allyTeam.startBox);
 //             }

@@ -13,14 +13,14 @@ const router = useRouter();
 
 onMounted(async () => {
     try {
-        await window.api.client.connect();
+        await api.client.connect();
 
-        if (window.api.account.model.token.value && window.api.settings.model.loginAutomatically.value) {
-            const loginResponse = await window.api.client.login({
-                token: window.api.account.model.token.value,
-                lobby_name: window.api.info.lobby.name,
-                lobby_version: window.api.info.lobby.version,
-                lobby_hash: window.api.info.lobby.hash
+        if (api.account.model.token.value && api.settings.model.loginAutomatically.value) {
+            const loginResponse = await api.client.login({
+                token: api.account.model.token.value,
+                lobby_name: api.info.lobby.name,
+                lobby_version: api.info.lobby.version,
+                lobby_hash: api.info.lobby.hash
             });
 
             if (loginResponse.result === "success") {

@@ -62,5 +62,5 @@ const error = (type: ERROR_TYPE, msg: string) => {
     textboxEl.reportValidity();
 };
 
-const sound = () => window.api.audio.getSound("button-hover").play();
+const sound = () => api.audio.getSound("button-hover").play();
 </script>

@@ -28,7 +28,7 @@ const emits = defineEmits<{
     (e: "percentChange", newPercent: number): void;
 }>();
 
-const downloads = computed(() => window.api.content.engine.currentDownloads.concat(window.api.content.game.currentDownloads, window.api.content.maps.currentDownloads));
+const downloads = computed(() => api.content.engine.currentDownloads.concat(api.content.game.currentDownloads, api.content.maps.currentDownloads));
 
 const progressText = (currentBytes: number, totalBytes: number) => {
     const percent = currentBytes / totalBytes;

@@ -38,8 +38,8 @@ const isProduction = process.env.NODE_ENV === "production";
 
 const router = useRouter();
 const route = useRoute();
-const state: Ref<"intro" | "preloader" | "default"> = ref(window.api.settings.model.skipIntro.value ? "preloader" : "intro");
-const theme = window.api.settings.model.theme;
+const state: Ref<"intro" | "preloader" | "default"> = ref(api.settings.model.skipIntro.value ? "preloader" : "intro");
+const theme = api.settings.model.theme;
 const empty = ref(false);
 const blurBg = ref(true);
 
@@ -88,12 +88,12 @@ const onPreloadDone = () => {
     state.value = "default";
 };
 
-window.api.content.engine.downloadLatestEngine();
-window.api.content.game.updateGame();
-window.api.content.maps.downloadMaps(defaultMaps);
+api.content.engine.downloadLatestEngine();
+api.content.game.updateGame();
+api.content.maps.downloadMaps(defaultMaps);
 
 router.replace("/");
 
-const leftClick = () => window.api.session.onLeftClick.dispatch();
-const rightClick = () => window.api.session.onRightClick.dispatch();
+const leftClick = () => api.session.onLeftClick.dispatch();
+const rightClick = () => api.session.onRightClick.dispatch();
 </script>

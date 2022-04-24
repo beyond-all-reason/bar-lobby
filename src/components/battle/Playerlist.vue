@@ -1,7 +1,7 @@
 <template>
     <div class="playerlist" :class="{ dragging: draggedParticipant !== null }">
         <div
-            v-for="allyTeam in battle.allyTeams"
+            v-for="allyTeam in battle.teams"
             :key="allyTeam.id"
             class="playerlist__group"
             @dragenter.prevent="dragEnter($event, allyTeam.id)"
@@ -13,21 +13,31 @@
                 <div class="playerlist__title">
                     Team {{ allyTeam.id + 1 }}
                 </div>
+                <Button v-if="battle.battleOptions.teamPreset === TeamPreset.Custom" slim :flex-grow="false" @click="removeTeam(allyTeam.id)">
+                    Remove
+                </Button>
                 <Button slim :flex-grow="false" @click="addBot(allyTeam.id)">
                     Add bot
                 </Button>
-                <Button v-if="battle.me.value.type === 'player' && battle.me.value.allyTeamId !== allyTeam.id" slim :flex-grow="false" @click="joinTeam(allyTeam.id)">
+                <Button v-if="battle.me.value.type === 'player' && battle.me.value.teamId !== allyTeam.id" slim :flex-grow="false" @click="joinTeam(allyTeam.id)">
                     Join
                 </Button>
             </div>
             <div class="playerlist__participants">
-                <template v-for="(contender, i) in battle.getAllyTeamParticipants(allyTeam.id)" :key="i">
+                <template v-for="(contender, i) in battle.getTeamParticipants(allyTeam.id)" :key="i">
                     <div draggable @dragstart="dragStart($event, contender)" @dragend="dragEnd($event, contender)">
                         <ContextMenu :entries="getActions(contender)" :args="[contender]">
                             <Participant :participant="contender" />
                         </ContextMenu>
                     </div>
                 </template>
+            </div>
+        </div>
+        <div v-if="battle.battleOptions.teamPreset === TeamPreset.Custom" class="playerlist__group">
+            <div class="flex-row">
+                <Button slim :flex-grow="false" @click="addTeam">
+                    Add Team
+                </Button>
             </div>
         </div>
         <div
@@ -63,38 +73,47 @@ import Participant from "@/components/battle/Participant.vue";
 import ContextMenu, { ContextMenuEntry } from "@/components/common/ContextMenu.vue";
 import { Bot, Player, Spectator } from "@/model/battle/participants";
 import Button from "@/components/inputs/Button.vue";
-import { Faction } from "@/model/battle/types";
+import { Faction, TeamPreset } from "@/model/battle/types";
 import { randomFromArray } from "jaz-ts-utils";
 import { aiNames } from "@/config/ai-names";
 
 const battle = api.battle;
 
-const addBot = (allyTeamId: number) => {
+const addBot = (teamId: number) => {
     let randomName = randomFromArray(aiNames);
     while (battle.contenders.value.some(contender => contender.type === "bot" && contender.name === randomName)) {
         randomName = randomFromArray(aiNames);
     }
 
-    battle.addContender({
+    battle.addParticipant({
+        id: battle.contenders.value.length,
         type: "bot",
-        allyTeamId,
+        teamId,
         name: randomName,
         aiShortName: "BARb",
         faction: Faction.Armada,
-        ownerUserId: window.api.session.currentUser.userId
+        ownerUserId: api.session.currentUser.userId
     });
 };
 
-const joinTeam = (allyTeamId?: number) => {
-    if (allyTeamId === undefined && battle.me.value.type === "player") {
+const joinTeam = (teamId?: number) => {
+    if (teamId === undefined && battle.me.value.type === "player") {
         battle.playerToSpectator(battle.me.value);
-    } else if (allyTeamId !== undefined) {
+    } else if (teamId !== undefined) {
         if (battle.me.value.type === "spectator") {
             battle.spectatorToPlayer(battle.me.value);
         } else {
-            battle.me.value.allyTeamId = allyTeamId;
+            battle.me.value.teamId = teamId;
         }
     }
+};
+
+const removeTeam = (teamId: number) => {
+    battle.removeTeam(teamId);
+};
+
+const addTeam = () => {
+    battle.addTeam();
 };
 
 const viewProfile = (player: Player) => {
@@ -130,16 +149,16 @@ let draggedEl: Element | null = null;
 let dragTeamEl: Element | null = null;
 let dragCounter = 0;
 
-const dragEnter = (event: DragEvent, allyTeamId?: number) => {
+const dragEnter = (event: DragEvent, teamId?: number) => {
     dragCounter++;
 
     const target = event.target as HTMLElement;
     const groupEl = target.closest(".playerlist__group");
 
     if (draggedParticipant && draggedEl && groupEl) {
-        const draggingContenderToOwnTeam = draggedParticipant.type !== "spectator" && draggedParticipant.allyTeamId === allyTeamId;
-        const draggingSpectatorToSpectator = draggedParticipant.type === "spectator" && allyTeamId === undefined;
-        const draggingBotToSpectator = draggedParticipant.type === "bot" && allyTeamId === undefined;
+        const draggingContenderToOwnTeam = draggedParticipant.type !== "spectator" && draggedParticipant.teamId === teamId;
+        const draggingSpectatorToSpectator = draggedParticipant.type === "spectator" && teamId === undefined;
+        const draggingBotToSpectator = draggedParticipant.type === "bot" && teamId === undefined;
         if (draggingContenderToOwnTeam || draggingSpectatorToSpectator || draggingBotToSpectator) {
             // TODO: disable drag cursor
             return;
@@ -185,16 +204,16 @@ const dragEnd = (event: DragEvent, participant: Player | Bot | Spectator) => {
     });
 };
 
-const onDrop = (event: any, allyTeamIndex?: number) => {
+const onDrop = (event: any, teamId?: number) => {
     const target = event.target as Element;
     if (target.classList.contains("playerlist__group") && draggedParticipant) {
         target.classList.remove("playerlist__group--drag-enter");
-        if (allyTeamIndex !== undefined && draggedParticipant.type !== "spectator") {
-            draggedParticipant.allyTeamId = allyTeamIndex;
+        if (teamId !== undefined && draggedParticipant.type !== "spectator") {
+            draggedParticipant.teamId = teamId;
         } else if (draggedParticipant.type === "player") {
             battle.playerToSpectator(draggedParticipant);
         } else if (draggedParticipant.type === "spectator") {
-            battle.spectatorToPlayer(draggedParticipant, allyTeamIndex);
+            battle.spectatorToPlayer(draggedParticipant, teamId);
         }
     }
 };
@@ -220,7 +239,7 @@ const getActions = (participant: Player | Bot | Spectator) => {
     if (participant.type === "bot") {
         return botActions;
     } else {
-        if (participant.userId === window.api.session.currentUser.userId) {
+        if (participant.userId === api.session.currentUser.userId) {
             return selfActions;
         } else {
             return playerActions;

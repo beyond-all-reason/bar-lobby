@@ -19,7 +19,7 @@ const props = defineProps<{
 
 const user = computed(() => {
     if ("userId" in props.participant) {
-        return window.api.session.getUserById(props.participant.userId);
+        return api.session.getUserById(props.participant.userId);
     }
     return undefined;
 });

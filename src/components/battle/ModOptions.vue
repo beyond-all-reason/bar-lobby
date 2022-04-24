@@ -29,7 +29,7 @@ const modOptions: Record<string, string> = reactive({});
 const modOptionsSchema: ModOptionSection[] = reactive([]);
 
 onMounted(async () => {
-    const modOptionSections = await window.api.content.game.getModOptions(props.gameVersion);
+    const modOptionSections = await api.content.game.getModOptions(props.gameVersion);
     modOptionsSchema.push(...modOptionSections);
 });
 
