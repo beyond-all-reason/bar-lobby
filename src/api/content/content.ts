@@ -28,6 +28,7 @@ export class ContentAPI extends AbstractContentAPI {
 
         if (!latestEngine) {
             // TODO: do this in loader component
+            console.log("downloading engine...");
             latestEngine = await this.engine.downloadLatestEngine();
         }
 

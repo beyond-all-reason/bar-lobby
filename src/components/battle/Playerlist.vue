@@ -13,7 +13,7 @@
                 <div class="playerlist__title">
                     Team {{ teamIndex + 1 }}
                 </div>
-                <Button v-if="battle.battleOptions.teamPreset === TeamPreset.Custom" slim :flex-grow="false" @click="removeTeam(team)">
+                <Button v-if="battle.battleOptions.teamPreset === TeamPreset.Custom && battle.teams.length > 2" slim :flex-grow="false" @click="removeTeam(team)">
                     Remove
                 </Button>
                 <Button slim :flex-grow="false" @click="addBot(team)">
@@ -77,6 +77,7 @@ import { Faction, TeamPreset } from "@/model/battle/types";
 import { randomFromArray } from "jaz-ts-utils";
 import { aiNames } from "@/config/ai-names";
 import { Team } from "@/model/battle/team";
+import { Ref, ref } from "vue";
 
 const battle = api.battle;
 
@@ -145,31 +146,49 @@ const kickAi = (bot: Bot) => {
     battle.removeParticipant(bot);
 };
 
-let draggedParticipant: Bot | Player | Spectator | null = null;
+let draggedParticipant: Ref<Bot | Player | Spectator | null> = ref(null);
 let draggedEl: Element | null = null;
-let dragTeamEl: Element | null = null;
 let dragCounter = 0;
 
 const dragEnter = (event: DragEvent, team?: Team) => {
+    if (!draggedParticipant.value ) {
+        return;
+    }
+
+    const draggingContenderToOwnTeam = draggedParticipant.value.type !== "spectator" && draggedParticipant.value.team === team;
+    const draggingSpectatorToSpectator = draggedParticipant.value.type === "spectator" && team === undefined;
+    const draggingBotToSpectator = draggedParticipant.value.type === "bot" && team === undefined;
+    if (draggingContenderToOwnTeam || draggingSpectatorToSpectator || draggingBotToSpectator) {
+        // TODO: disable drag cursor
+        return;
+    }
+
     dragCounter++;
 
     const target = event.target as HTMLElement;
     const groupEl = target.closest(".playerlist__group");
 
-    if (draggedParticipant && draggedEl && groupEl) {
-        const draggingContenderToOwnTeam = draggedParticipant.type !== "spectator" && draggedParticipant.team === team;
-        const draggingSpectatorToSpectator = draggedParticipant.type === "spectator" && team === undefined;
-        const draggingBotToSpectator = draggedParticipant.type === "bot" && team === undefined;
-        if (draggingContenderToOwnTeam || draggingSpectatorToSpectator || draggingBotToSpectator) {
-            // TODO: disable drag cursor
-            return;
-        }
-        dragTeamEl = groupEl;
+    if (draggedEl && groupEl) {
+        document.querySelectorAll(".playerlist__group").forEach(el => {
+            el.classList.remove("highlight");
+        });
         groupEl.classList.add("highlight");
     }
 };
 
 const dragLeave = (event: DragEvent, team?: Team) => {
+    if (!draggedParticipant.value ) {
+        return;
+    }
+
+    const draggingContenderToOwnTeam = draggedParticipant.value.type !== "spectator" && draggedParticipant.value.team === team;
+    const draggingSpectatorToSpectator = draggedParticipant.value.type === "spectator" && team === undefined;
+    const draggingBotToSpectator = draggedParticipant.value.type === "bot" && team === undefined;
+    if (draggingContenderToOwnTeam || draggingSpectatorToSpectator || draggingBotToSpectator) {
+        // TODO: disable drag cursor
+        return;
+    }
+
     dragCounter--;
 
     const target = event.target as Element;
@@ -183,7 +202,7 @@ const dragLeave = (event: DragEvent, team?: Team) => {
 const dragStart = (event: DragEvent, participant: Player | Bot | Spectator) => {
     dragCounter = 0;
 
-    draggedParticipant = participant;
+    draggedParticipant.value = participant;
     draggedEl = event.target as Element;
     const participantEl = draggedEl?.querySelector(".participant");
     if (participantEl) {
@@ -196,9 +215,8 @@ const dragEnd = (event: DragEvent, participant: Player | Bot | Spectator) => {
     if (participantEl) {
         participantEl.classList.remove("dragging");
     }
-    draggedParticipant = null;
+    draggedParticipant.value = null;
     draggedEl = null;
-    dragTeamEl = null;
 
     document.querySelectorAll(".playerlist__group").forEach(el => {
         el.classList.remove("highlight");
@@ -207,14 +225,14 @@ const dragEnd = (event: DragEvent, participant: Player | Bot | Spectator) => {
 
 const onDrop = (event: DragEvent, team?: Team) => {
     const target = event.target as Element;
-    if (target.classList.contains("playerlist__group") && draggedParticipant) {
+    if (target.classList.contains("playerlist__group") && draggedParticipant.value) {
         target.classList.remove("playerlist__group--drag-enter");
-        if (team !== undefined && draggedParticipant.type !== "spectator") {
-            draggedParticipant.team = team;
-        } else if (draggedParticipant.type === "player") {
-            battle.playerToSpectator(draggedParticipant);
-        } else if (team !== undefined && draggedParticipant.type === "spectator") {
-            battle.spectatorToPlayer(draggedParticipant, team);
+        if (team !== undefined && draggedParticipant.value.type !== "spectator") {
+            draggedParticipant.value.team = team;
+        } else if (draggedParticipant.value.type === "player") {
+            battle.playerToSpectator(draggedParticipant.value);
+        } else if (team !== undefined && draggedParticipant.value.type === "spectator") {
+            battle.spectatorToPlayer(draggedParticipant.value, team);
         }
     }
 };

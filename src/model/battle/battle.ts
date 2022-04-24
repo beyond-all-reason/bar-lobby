@@ -5,7 +5,6 @@ import { setObject } from "@/utils/set-object";
 import { SetOptional } from "type-fest";
 import { computed, ComputedRef, reactive } from "vue";
 import { TypedProxyHandler } from "@/utils/typed-proxy-handler";
-import { lastInArray, countOccurrences, firstInArray } from "jaz-ts-utils";
 
 export interface BattleConfig {
     battleOptions: BattleOptions;
@@ -28,8 +27,6 @@ export class Battle implements BattleConfig {
     public readonly contenders: ComputedRef<Array<Player | Bot>>;
     public readonly spectators: ComputedRef<Array<Spectator>>;
     public readonly battleUsers: ComputedRef<Array<Player | Spectator>>;
-    public readonly smallestTeam: ComputedRef<Team | undefined>;
-    public readonly largestTeam: ComputedRef<Team | undefined>;
 
     protected battleOptionsProxyHandler: TypedProxyHandler<BattleOptions>;
     protected participantProxyHandler: TypedProxyHandler<Player | Bot | Spectator>;
@@ -45,13 +42,9 @@ export class Battle implements BattleConfig {
             set: (target, prop, value, receiver) => {
                 if (prop === "teamPreset") {
                     if (value === TeamPreset.Standard) { // only 2 teams
-                        for (let i=2; i<this.teams.length; i++) {
-                            this.removeTeam(this.teams[i]);
-                        }
+                        this.teams.length = 2;
                     } else if (value === TeamPreset.FFA) { // 1 big team for all players, but separate team for each player when converted to start script
-                        for (let i=1; i<this.teams.length; i++) {
-                            this.removeTeam(this.teams[i]);
-                        }
+                        this.teams.length = 1;
                     } else { // anything goes
 
                     }
@@ -83,8 +76,6 @@ export class Battle implements BattleConfig {
         this.contenders = computed(() => this.participants.filter((participant): participant is Player | Bot => participant.type === "player" || participant.type === "bot"));
         this.spectators = computed(() => this.participants.filter((participant): participant is Spectator => participant.type === "spectator"));
         this.battleUsers = computed(() => this.participants.filter((participant): participant is Player | Spectator => participant.type === "spectator" || participant.type === "player"));
-        this.smallestTeam = computed(() => lastInArray(countOccurrences(this.contenders.value, "team"))?.value);
-        this.largestTeam = computed(() => firstInArray(countOccurrences(this.contenders.value, "team"))?.value);
     }
 
     public set(config: SetOptional<BattleConfig, "teams" | "gameOptions" | "mapOptions" | "restrictions">) {
@@ -131,7 +122,7 @@ export class Battle implements BattleConfig {
     }
 
     public addTeam() {
-        this.teams.push();
+        this.teams.push({});
         this.fixIds();
     }
 
@@ -156,7 +147,9 @@ export class Battle implements BattleConfig {
         });
 
         for (const contender of this.contenders.value) {
-            //if (this.getTeamParticipants(contender))
+            if (!this.teams.includes(contender.team)) {
+                contender.team = this.teams[0];
+            }
         }
     }
 }

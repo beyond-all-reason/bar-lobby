@@ -1,11 +1,8 @@
 .playerlist {
     display: flex;
     flex-direction: column;
-    &.dragging {
-        .playerlist__title,
-        .playerlist__participants {
-            pointer-events: none;
-        }
+    &.dragging .playerlist__group > * {
+        pointer-events: none;
     }
     &__group {
         position: relative;
@@ -18,10 +15,10 @@
             margin: 10px 0;
         }
         &.highlight {
-            &:after {
+            &:before {
                 @extend .fullsize;
                 width: calc(100% + 10px);
-                height: calc(100% + 10px);
+                height: calc(100%);
                 left: -5px;
                 top: -5px;
                 background: rgba(255, 255, 255, 0.1);
