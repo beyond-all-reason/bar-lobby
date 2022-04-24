@@ -7,7 +7,7 @@
 <script lang="ts" setup>
 import { onMounted, watch } from "vue";
 import { StartPosType } from "@/model/battle/types";
-import { Player } from "@/model/battle/participants";
+import { MapData } from "@/model/map-data";
 
 const battle = api.battle;
 
@@ -17,6 +17,7 @@ let canvas: HTMLCanvasElement;
 let context: CanvasRenderingContext2D;
 let textureMap: HTMLImageElement;
 let mapTransform: Transform;
+let mapData: MapData | undefined | null;
 
 onMounted(async () => {
     canvas = document.getElementById("map-canvas") as HTMLCanvasElement;
@@ -26,22 +27,23 @@ onMounted(async () => {
 
     loadMap();
 
-    // TODO: only update when necessary (e.g. when map changes)
-    watch([() => battle.battleOptions.mapFileName, () => battle.battleOptions.startPosType, () => battle.teams], () => {
+    watch([() => battle.battleOptions.mapFileName, () => battle.battleOptions.startPosType, () => battle.me], () => {
         loadMap();
-    });
+    }, { deep: true });
 });
 
 async function loadMap() {
     reset();
 
-    const mapData = api.content.maps.getMapByFileName(battle.battleOptions.mapFileName);
-    if (!mapData || !mapData.textureImagePath) {
-        // TODO: missing map image
-        return;
-    }
+    if (mapData?.fileNameWithExt !== battle.battleOptions.mapFileName) {
+        mapData = api.content.maps.getMapByFileName(battle.battleOptions.mapFileName);
+        if (!mapData || !mapData.textureImagePath) {
+            // TODO: missing map image
+            return;
+        }
 
-    textureMap = await loadImage(mapData.textureImagePath);
+        textureMap = await loadImage(mapData.textureImagePath);
+    }
 
     mapTransform = { x: 0, y: 0, width: canvas.width, height: canvas.height };
 
@@ -59,7 +61,19 @@ async function loadMap() {
 
     context.drawImage(textureMap, mapTransform.x, mapTransform.y, mapTransform.width, mapTransform.height);
 
-    drawBoxes();
+    drawStartPosType(battle.battleOptions.startPosType);
+}
+
+function drawStartPosType(startPosType: StartPosType) {
+    if (startPosType === StartPosType.Fixed) {
+        drawFixedPositions();
+    } else if (startPosType === StartPosType.ChooseInGame) {
+        drawBoxes();
+    }
+}
+
+function drawFixedPositions() {
+    //
 }
 
 function drawBoxes() {
@@ -67,26 +81,26 @@ function drawBoxes() {
         return;
     }
 
-    for (const allyTeam of battle.teams) {
-        if (allyTeam.startBox) {
-            const players = battle.getTeamParticipants(allyTeam.id).filter((participant): participant is Player => participant.type === "player");
-            if (players.find(player => player.userId === api.session.currentUser.userId)) {
-                context.fillStyle = "rgba(0, 255, 0, 0.3)";
+    for (const team of battle.teams) {
+        if (team.startBox) {
+            if (battle.me.value.type === "spectator") {
+                context.fillStyle = "rgba(255, 255, 255, 0.2)";
+            } else if (battle.me.value.team === team) {
+                context.fillStyle = "rgba(0, 255, 0, 0.2)";
             } else {
-                context.fillStyle = "rgba(255, 0, 0, 0.3)";
+                context.fillStyle = "rgba(255, 0, 0, 0.2)";
             }
 
             context.strokeStyle = "rgba(255, 255, 255, 0.5)";
             context.lineWidth = 1;
 
             let boxTransform = {
-                x: mapTransform.x + mapTransform.width * allyTeam.startBox.xPercent,
-                y: mapTransform.y + mapTransform.height * allyTeam.startBox.yPercent,
-                width: mapTransform.width * allyTeam.startBox.widthPercent,
-                height: mapTransform.height * allyTeam.startBox.heightPercent
+                x: mapTransform.x + mapTransform.width * team.startBox.xPercent,
+                y: mapTransform.y + mapTransform.height * team.startBox.yPercent,
+                width: mapTransform.width * team.startBox.widthPercent,
+                height: mapTransform.height * team.startBox.heightPercent
             };
             boxTransform = roundTransform(boxTransform);
-            console.log(mapTransform, boxTransform);
             context.fillRect(boxTransform.x, boxTransform.y, boxTransform.width, boxTransform.height);
             //context.strokeRect(boxTransform.x, boxTransform.y, boxTransform.width, boxTransform.height);
         }
@@ -113,113 +127,4 @@ function roundTransform(transform: Transform) {
         height: Math.floor(transform.height)
     };
 }
-
-// let app: PIXI.Application;
-// let mapSprite: PIXI.Sprite;
-// let startBoxesGraphics: PIXI.Graphics;
-
-// onMounted(async () => {
-//     const canvasContainerEl = document.getElementById("map-canvas-container") as HTMLElement;
-//     const canvasEl = document.getElementById("map-canvas") as HTMLCanvasElement;
-
-//     app = (window as any).app = new PIXI.Application({
-//         view: canvasEl,
-//         width: 600,
-//         height: 600
-//     });
-
-//     startBoxesGraphics = new PIXI.Graphics();
-//     app.stage.addChild(startBoxesGraphics);
-
-//     loadMap();
-
-//     // TODO: only watch necessary properties and update relevant bits
-//     watch(battle, () => {
-//         loadMap();
-//     });
-
-//     app.ticker.add(() => {
-//         console.log("tick");
-//     });
-// });
-
-// onUnmounted(() => {
-//     app.destroy();
-// });
-
-// async function loadMap() {
-//     console.log("loading map");
-//     unload();
-
-//     const map = api.content.maps.getMapByFileName(battle.hostOptions.mapFileName);
-
-//     if (!map || !map.textureImagePath) {
-//         // TODO show missing map image
-//         return;
-//     }
-
-//     await loadImages(map);
-
-//     const baseTexture = PIXI.BaseTexture.from("textureMap");
-//     const aspectRatio = baseTexture.width / baseTexture.height;
-//     baseTexture.width = app.view.width;
-//     baseTexture.height = app.view.width / aspectRatio;
-//     // TODO: test with long vertical map
-//     mapSprite = (window as any).sprite = PIXI.Sprite.from(baseTexture);
-//     app.stage.addChildAt(mapSprite, 0);
-//     mapSprite.y = (app.view.height * 0.5) - (mapSprite.height * 0.5);
-//     mapSprite.addChild(startBoxesGraphics);
-
-//     startBoxesGraphics.clear();
-//     if (battle.hostOptions.startPosType === BattleTypes.StartPosType.ChooseInGame) {
-//         for (const allyTeam of battle.teams) {
-//             if (allyTeam.startBox) {
-//                 drawStartBox(allyTeam.startBox);
-//             }
-//         }
-//     }
-// }
-
-// function unload() {
-//     if (mapSprite) {
-//         mapSprite.destroy();
-//     }
-
-//     app.loader.reset();
-//     app.loader.destroy();
-//     for (const res in app.loader.resources) {
-//         delete app.loader.resources[res];
-//     }
-
-//     PIXI.utils.clearTextureCache();
-// }
-
-// function drawStartBox(startBox: BattleTypes.StartBox) {
-//     startBoxesGraphics.beginFill(0x00ff00, 0.3);
-//     startBoxesGraphics.drawRect(
-//         startBox.xPercent * mapSprite.width,
-//         startBox.yPercent * mapSprite.height,
-//         startBox.widthPercent * mapSprite.width,
-//         startBox.heightPercent * mapSprite.height
-//     );
-// }
-
-// function loadImages(map: MapData) {
-//     return new Promise<void>(resolve => {
-//         if (map.textureImagePath) {
-//             app.loader.add("textureMap", map.textureImagePath);
-//         }
-//         if (map.heightImagePath) {
-//             app.loader.add("heightMap", map.heightImagePath);
-//         }
-//         if (map.metalImagePath) {
-//             app.loader.add("metalMap", map.metalImagePath);
-//         }
-//         if (map.typeImagePath) {
-//             app.loader.add("typeMap", map.typeImagePath);
-//         }
-
-//         app.loader.load(() => resolve());
-//     });
-// }
 </script>

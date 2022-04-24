@@ -20,7 +20,7 @@ export const defaultBattle: () => SetOptional<BattleConfig, "teams" | "gameOptio
             engineVersion: lastInArray(api.content.engine.installedVersions)!,
             gameVersion: lastInArray(api.content.game.installedVersions)!.version.fullString,
             mapFileName: randomFromArray(defaultMaps)!,
-            startPosType: StartPosType.Fixed,
+            startPosType: StartPosType.ChooseInGame,
             teamPreset: TeamPreset.Standard,
             isHost: true,
         },

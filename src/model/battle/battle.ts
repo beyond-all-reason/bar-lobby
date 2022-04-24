@@ -1,10 +1,11 @@
 import { Team } from "@/model/battle/team";
 import { Player, Bot, Spectator } from "@/model/battle/participants";
-import { BattleOptions, Restriction, TeamPreset } from "@/model/battle/types";
+import { BattleOptions, Restriction, StartBox, StartPosType, TeamPreset } from "@/model/battle/types";
 import { setObject } from "@/utils/set-object";
 import { SetOptional } from "type-fest";
 import { computed, ComputedRef, reactive } from "vue";
 import { TypedProxyHandler } from "@/utils/typed-proxy-handler";
+import { defaultBoxes } from "@/config/default-boxes";
 
 export interface BattleConfig {
     battleOptions: BattleOptions;
@@ -29,6 +30,7 @@ export class Battle implements BattleConfig {
     public readonly battleUsers: ComputedRef<Array<Player | Spectator>>;
 
     protected battleOptionsProxyHandler: TypedProxyHandler<BattleOptions>;
+    protected teamProxyHandler: TypedProxyHandler<Team>;
     protected participantProxyHandler: TypedProxyHandler<Player | Bot | Spectator>;
 
     constructor(config: SetOptional<BattleConfig, "teams" | "gameOptions" | "mapOptions" | "restrictions">) {
@@ -41,20 +43,21 @@ export class Battle implements BattleConfig {
         this.battleOptionsProxyHandler = {
             set: (target, prop, value, receiver) => {
                 if (prop === "teamPreset") {
-                    if (value === TeamPreset.Standard) { // only 2 teams
-                        this.teams.length = 2;
-                    } else if (value === TeamPreset.FFA) { // 1 big team for all players, but separate team for each player when converted to start script
-                        this.teams.length = 1;
-                    } else { // anything goes
-
-                    }
+                    this.configureTeams(value as TeamPreset);
                     this.fixIds();
+                } else if (prop === "mapFileName" && this.battleOptions.offline) {
+                    this.setBoxes(value as string);
                 }
                 return Reflect.set(target, prop, value, receiver);
             }
         };
-
         this.battleOptions = reactive(new Proxy(config.battleOptions ?? {}, this.battleOptionsProxyHandler));
+
+        this.teamProxyHandler = {
+            set: (target, prop, value, receiver) => {
+                return Reflect.set(target, prop, value, receiver);
+            }
+        };
 
         this.participantProxyHandler = {
             set: (target, prop: keyof Player & keyof Bot, value, receiver) => {
@@ -89,6 +92,8 @@ export class Battle implements BattleConfig {
         for (const participant of config.participants) {
             this.addParticipant(participant);
         }
+
+        this.setBoxes(this.battleOptions.mapFileName);
     }
 
     public addParticipant(participantConfig: Player | Bot | Spectator) {
@@ -123,7 +128,6 @@ export class Battle implements BattleConfig {
 
     public addTeam() {
         this.teams.push({});
-        this.fixIds();
     }
 
     public removeTeam(team: Team) {
@@ -150,6 +154,29 @@ export class Battle implements BattleConfig {
             if (!this.teams.includes(contender.team)) {
                 contender.team = this.teams[0];
             }
+        }
+    }
+
+    protected setBoxes(mapFileName: string) {
+        if (this.battleOptions.startPosType === StartPosType.ChooseInGame) {
+            const boxes: StartBox[] | undefined = defaultBoxes[mapFileName];
+            if (boxes) {
+                this.teams[0].startBox = boxes[0];
+                this.teams[1].startBox = boxes[1];
+            } else {
+                this.teams[0].startBox = { xPercent: 0, yPercent: 0, widthPercent: 0.25, heightPercent: 1 };
+                this.teams[1].startBox = { xPercent: 0.75, yPercent: 0, widthPercent: 0.25, heightPercent: 1 };
+            }
+        }
+    }
+
+    protected configureTeams(teamPreset: TeamPreset) {
+        if (teamPreset === TeamPreset.Standard) { // only 2 teams
+            this.teams.length = 2;
+            this.battleOptions.startPosType = StartPosType.ChooseInGame;
+        } else if (teamPreset === TeamPreset.FFA) { // 1 big team for all players, but separate team for each player when converted to start script
+            this.teams.length = 1;
+            this.battleOptions.startPosType = StartPosType.Fixed; // TODO: should be random?
         }
     }
 }
