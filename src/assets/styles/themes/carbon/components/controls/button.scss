@@ -1,0 +1,10 @@
+button, button * {
+    cursor: url("~@/assets/images/cursor_hover.png"), pointer;
+}
+
+button, input[type=button], input[type=submit], .btn {
+    width: unset;
+    justify-content: center;
+    flex-grow: 1;
+    text-transform: uppercase;
+}

@@ -14,13 +14,15 @@
     $flag-icons-path: '~flag-icons/flags';
     @import '~flag-icons/sass/flag-icons.scss';
 
-    @import "inputs";
-    @import "text";
+    @import "view";
 
-    @import "controls/control";
-    @import "controls/options";
+    @import "components/controls/control";
+    @import "components/controls/button";
+    @import "components/controls/checkbox";
+    @import "components/controls/range";
+    @import "components/controls/select";
+    @import "components/controls/options";
 
-    @import "components/view";
     @import "components/debug-sidebar";
     @import "components/background";
     @import "components/button";

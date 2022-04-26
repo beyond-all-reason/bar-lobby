@@ -33,8 +33,6 @@ onMounted(async () => {
 });
 
 async function loadMap() {
-    reset();
-
     if (mapData?.fileNameWithExt !== battle.battleOptions.mapFileName) {
         mapData = api.content.maps.getMapByFileName(battle.battleOptions.mapFileName);
         if (!mapData || !mapData.textureImagePath) {
@@ -59,6 +57,8 @@ async function loadMap() {
 
     mapTransform = roundTransform(mapTransform);
 
+    context.clearRect(0, 0, canvas.width, canvas.height);
+
     context.drawImage(textureMap, mapTransform.x, mapTransform.y, mapTransform.width, mapTransform.height);
 
     drawStartPosType(battle.battleOptions.startPosType);
@@ -73,14 +73,21 @@ function drawStartPosType(startPosType: StartPosType) {
 }
 
 function drawFixedPositions() {
-    //
+    if (mapData?.startPositions) {
+        for (const startPos of mapData.startPositions) {
+            const xPos = mapTransform.x + mapTransform.width * (startPos.x / (mapData.width * 512));
+            const yPos = mapTransform.y + mapTransform.height * (startPos.z / (mapData.height * 512));
+
+            context.fillStyle = "rgba(255, 255, 255, 0.6)";
+            context.beginPath();
+            context.arc(xPos, yPos, 5, 0, 2 * Math.PI);
+            context.fill();
+            context.closePath();
+        }
+    }
 }
 
 function drawBoxes() {
-    if (battle.battleOptions.startPosType !== StartPosType.ChooseInGame) {
-        return;
-    }
-
     for (const team of battle.teams) {
         if (team.startBox) {
             if (battle.me.value.type === "spectator") {
@@ -94,7 +101,7 @@ function drawBoxes() {
             context.strokeStyle = "rgba(255, 255, 255, 0.5)";
             context.lineWidth = 1;
 
-            let boxTransform = {
+            let boxTransform: Transform = {
                 x: mapTransform.x + mapTransform.width * team.startBox.xPercent,
                 y: mapTransform.y + mapTransform.height * team.startBox.yPercent,
                 width: mapTransform.width * team.startBox.widthPercent,
@@ -102,13 +109,8 @@ function drawBoxes() {
             };
             boxTransform = roundTransform(boxTransform);
             context.fillRect(boxTransform.x, boxTransform.y, boxTransform.width, boxTransform.height);
-            //context.strokeRect(boxTransform.x, boxTransform.y, boxTransform.width, boxTransform.height);
         }
     }
-}
-
-function reset() {
-    context.clearRect(0, 0, canvas.width, canvas.height);
 }
 
 function loadImage(url: string) {

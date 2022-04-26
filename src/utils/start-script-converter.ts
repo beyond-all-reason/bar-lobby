@@ -44,10 +44,10 @@ export class StartScriptConverter {
 
             if (allyTeamConfig.startBox) {
                 assign(allyTeam, {
-                    startrectleft: allyTeamConfig.startBox.xPercent * 200,
-                    startrecttop: allyTeamConfig.startBox.yPercent * 200,
-                    startrectright: (allyTeamConfig.startBox.xPercent + allyTeamConfig.startBox.widthPercent) * 200,
-                    startrectbottom: (allyTeamConfig.startBox.yPercent + allyTeamConfig.startBox.heightPercent) * 200
+                    startrectleft: allyTeamConfig.startBox.xPercent,
+                    startrecttop: allyTeamConfig.startBox.yPercent,
+                    startrectright: (allyTeamConfig.startBox.xPercent + allyTeamConfig.startBox.widthPercent),
+                    startrectbottom: (allyTeamConfig.startBox.yPercent + allyTeamConfig.startBox.heightPercent)
                 });
             }
 
@@ -123,6 +123,7 @@ export class StartScriptConverter {
             mapname: mapData.scriptName,
             ishost: 1,
             myplayername: api.session.currentUser.username,
+            startpostype: battle.battleOptions.startPosType,
             allyTeams,
             teams,
             players,

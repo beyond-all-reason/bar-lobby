@@ -29,11 +29,8 @@
                     </Option>
                 </Options>
             </div>
-            <!-- <Select v-model="selectedGame" label="Game" :options="games" close-on-select clear-on-select searchable /> -->
-            <!-- <Select v-model="selectedEngine" label="Engine" :options="engines" close-on-select clear-on-select searchable /> -->
-            <div>Engine Version</div>
-            <div>Game Version</div>
-            <div>Game End Condition</div>
+            <Select v-model="selectedGame" label="Game" :options="games" close-on-select clear-on-select searchable :disabled="!battle.battleOptions.offline" />
+            <Select v-model="selectedEngine" label="Engine" :options="engines" close-on-select clear-on-select searchable :disabled="!battle.battleOptions.offline" />
             <div class="flex-row flex-bottom gap-md">
                 <Button class="btn--red" fullwidth @click="leave">
                     Leave
@@ -64,13 +61,6 @@ const battleTitle = ref("Offline Custom Battle");
 const battle = api.battle;
 
 const installedMaps = computed(() => Object.values(api.content.maps.installedMaps));
-
-// const startPosType = ref(BattleTypes.StartPosType.Fixed);
-// const startBoxes = ref([] as BattleTypes.StartBox[]);
-// startBoxes.value = [
-//     { xPercent: 0, yPercent: 0, widthPercent: 1, heightPercent: 0.25 },
-//     { xPercent: 0, yPercent: 0.75, widthPercent: 1, heightPercent: 0.25 },
-// ];
 
 const startPosOptions: Array<{ label: string, value: StartPosType }> = [
     { label: "Fixed", value: StartPosType.Fixed },
