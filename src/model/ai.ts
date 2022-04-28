@@ -8,5 +8,5 @@ export type AI = {
     interfaceShortName: string;
     interfaceVersion: string;
     ddlPath: string;
-    options?: Record<string, unknown>;
+    options?: Array<{ type: "section" | "bool" | "string" | "number" | "list", key: string, name: string, desc: string }>; // TODO: standardise the model for these with modoptions
 };

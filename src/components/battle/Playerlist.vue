@@ -26,9 +26,7 @@
             <div class="playerlist__participants">
                 <template v-for="(contender, contenderIndex) in battle.getTeamParticipants(team)" :key="contenderIndex">
                     <div draggable @dragstart="dragStart($event, contender)" @dragend="dragEnd($event, contender)">
-                        <ContextMenu :entries="getActions(contender)" :args="[contender]">
-                            <Participant :participant="contender" />
-                        </ContextMenu>
+                        <Participant :participant="contender" />
                     </div>
                 </template>
             </div>
@@ -58,9 +56,7 @@
             <div class="playerlist__participants">
                 <template v-for="(spectator, i) in battle.spectators.value" :key="i">
                     <div draggable @dragstart="dragStart($event, spectator)" @dragend="dragEnd($event, spectator)">
-                        <ContextMenu :entries="getActions(spectator)" :args="[spectator]">
-                            <Participant :participant="spectator" />
-                        </ContextMenu>
+                        <Participant :participant="spectator" />
                     </div>
                 </template>
             </div>
@@ -70,7 +66,6 @@
 
 <script lang="ts" setup>
 import Participant from "@/components/battle/Participant.vue";
-import ContextMenu, { ContextMenuEntry } from "@/components/common/ContextMenu.vue";
 import { Bot, Player, Spectator } from "@/model/battle/participants";
 import Button from "@/components/inputs/Button.vue";
 import { Faction, TeamPreset } from "@/model/battle/types";
@@ -91,7 +86,7 @@ const addBot = (team: Team) => {
         id: battle.contenders.value.length,
         type: "bot",
         team,
-        name: randomName,
+        name: randomName!,
         aiShortName: "BARb",
         faction: Faction.Armada,
         ownerUserId: api.session.currentUser.userId
@@ -116,34 +111,6 @@ const removeTeam = (team: Team) => {
 
 const addTeam = () => {
     battle.addTeam();
-};
-
-const viewProfile = (player: Player) => {
-    //
-};
-
-const kickPlayer = (player: Player) => {
-    //
-};
-
-const messagePlayer = (player: Player) => {
-    //
-};
-
-const blockPlayer = (player: Player) => {
-    //
-};
-
-const addFriend = (player: Player) => {
-    //
-};
-
-const reportPlayer = (player: Player) => {
-    //
-};
-
-const kickAi = (bot: Bot) => {
-    battle.removeParticipant(bot);
 };
 
 let draggedParticipant: Ref<Bot | Player | Spectator | null> = ref(null);
@@ -233,35 +200,6 @@ const onDrop = (event: DragEvent, team?: Team) => {
             battle.playerToSpectator(draggedParticipant.value);
         } else if (team !== undefined && draggedParticipant.value.type === "spectator") {
             battle.spectatorToPlayer(draggedParticipant.value, team);
-        }
-    }
-};
-
-const playerActions: ContextMenuEntry[] = [
-    { label: "View Profile", action: viewProfile },
-    { label: "Message", action: messagePlayer },
-    { label: "Kick", action: kickPlayer },
-    { label: "Block", action: blockPlayer },
-    { label: "Add Friend", action: addFriend },
-    { label: "Report", action: reportPlayer },
-];
-
-const selfActions: ContextMenuEntry[] = [
-    { label: "View Profile", action: viewProfile },
-];
-
-const botActions: ContextMenuEntry[] = [
-    { label: "Kick", action: kickAi },
-];
-
-const getActions = (participant: Player | Bot | Spectator) => {
-    if (participant.type === "bot") {
-        return botActions;
-    } else {
-        if (participant.userId === api.session.currentUser.userId) {
-            return selfActions;
-        } else {
-            return playerActions;
         }
     }
 };

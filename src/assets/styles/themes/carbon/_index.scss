@@ -37,11 +37,12 @@
     @import "components/server-info";
     @import "components/downloads";
     @import "components/settings";
-    @import "components/map-canvas";
-
+    
+    @import "components/battle/map-preview";
     @import "components/battle/battle";
     @import "components/battle/playerlist";
     @import "components/battle/chat";
+    @import "components/battle/bot-options";
 
     @import "transitions";
 }

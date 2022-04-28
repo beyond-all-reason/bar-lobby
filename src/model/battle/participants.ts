@@ -22,6 +22,7 @@ export type Bot = Contender & {
     ownerUserId: number;
     aiShortName: string; // TODO: point directly to AI obj and object.freeze it?
     name: string;
+    aiOptions?: Record<string, unknown>;
     faction?: Faction;
 };
 

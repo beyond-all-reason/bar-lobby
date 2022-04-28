@@ -38,6 +38,10 @@ export class AiContentAPI extends AbstractContentAPI {
         return ais;
     }
 
+    public getAi(engine: EngineVersionFormat, shortName: string) {
+        return this.installedAis[engine].find(ai => ai.shortName === shortName);
+    }
+
     protected async fetchAi(aiDirPath: string) : Promise<AI> {
         const filePaths = await glob.promise(`${aiDirPath}/**/{AIInfo.lua,AIOptions.lua,*.dll}`);
 

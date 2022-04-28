@@ -61,13 +61,7 @@ export class Battle implements BattleConfig {
 
         this.participantProxyHandler = {
             set: (target, prop: keyof Player & keyof Bot, value, receiver) => {
-                Reflect.set(target, prop, value, receiver);
-                // if ((target.type === "player" || target.type === "bot") && prop === "teamId") {
-                //     this.fixTeams();
-                // } else if ((target.type === "player" || target.type === "bot") && prop === "id") {
-                //     this.fixParticipants();
-                // }
-                return true;
+                return Reflect.set(target, prop, value, receiver);
             }
         };
 

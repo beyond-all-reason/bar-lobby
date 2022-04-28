@@ -1,6 +1,20 @@
 <template>
-    <div id="map-canvas-container" class="map-canvas-container">
-        <canvas id="map-canvas" />
+    <div id="map-canvas-container" class="map-preview">
+        <canvas id="map-canvas" class="map-preview__canvas" />
+        <div class="map-preview__actions">
+            <Button>
+                <img src="@/assets/images/icons/east-vs-west.png">
+            </Button>
+            <Button>
+                <img src="@/assets/images/icons/north-vs-south.png">
+            </Button>
+            <Button>
+                <img src="@/assets/images/icons/northeast-vs-southwest.png">
+            </Button>
+            <Button>
+                <img src="@/assets/images/icons/northwest-vs-southeast.png">
+            </Button>
+        </div>
     </div>
 </template>
 
@@ -8,6 +22,7 @@
 import { onMounted, watch } from "vue";
 import { StartPosType } from "@/model/battle/types";
 import { MapData } from "@/model/map-data";
+import Button from "@/components/inputs/Button.vue";
 
 const battle = api.battle;
 
