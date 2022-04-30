@@ -1,36 +1,36 @@
 <template>
     <Modal name="settings">
-        <form class="settings">
-            <div class="flex-row flex-center-items">
+        <div class="gridform">
+            <div>
                 Fullscreen
             </div>
             <Checkbox v-model="fullscreen" />
 
-            <div class="flex-row flex-center-items">
+            <div>
                 Display
             </div>
             <Select v-model="displayIndex" :options="displays" :label-by="(option: string) => `Display ${option + 1}`" />
 
-            <div class="flex-row flex-center-items">
+            <div>
                 Theme
             </div>
             <Select v-model="theme" :options="themes" />
 
-            <div class="flex-row flex-center-items">
+            <div>
                 Skip Intro
             </div>
             <Checkbox v-model="skipIntro" />
 
-            <div class="flex-row flex-center-items">
+            <div>
                 Sfx Volume
             </div>
             <Range v-model="sfxVolume" :min="0" :max="100" :interval="1" />
 
-            <div class="flex-row flex-center-items">
+            <div>
                 Music Volume
             </div>
             <Range v-model="musicVolume" :min="0" :max="100" :interval="1" />
-        </form>
+        </div>
     </Modal>
 </template>
 

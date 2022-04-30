@@ -31,7 +31,6 @@ const props = withDefaults(defineProps<{
 
 const emits = defineEmits<{
     (event: "update:modelValue", checked: boolean): void,
-    (event: "change", value: boolean): void,
 }>();
 
 const uuid = ref(uuidv4());

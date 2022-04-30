@@ -15,6 +15,7 @@ export default defineComponent({
 <script lang="ts" setup>
 const props = defineProps<{
     title: string;
+    tooltip?: string;
 }>();
 </script>
 

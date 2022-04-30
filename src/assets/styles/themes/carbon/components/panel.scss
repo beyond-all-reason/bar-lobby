@@ -47,12 +47,16 @@
             box-shadow: none;
             &:hover, &.active {
                 background: rgba(255, 255, 255, 0.1);
-                box-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
+                box-shadow: 0 1px 0 rgba(255, 255, 255, 0.3);
             }
         }
     }
     &__tabs {
         display: flex;
+        & > * {
+            display: flex;
+            flex-grow: 1;
+        }
     }
     &.paginatedTabs {
         .panel__single-tab {
@@ -63,6 +67,8 @@
     &__header {
         justify-content: space-between;
         width: 100%;
+        box-shadow: 0px 2px 2px 0px rgba(0, 0, 0, 0.3);
+        z-index: 1;
     }
     &__title {
         padding: 5px 10px;

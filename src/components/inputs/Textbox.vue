@@ -30,7 +30,9 @@ const props = withDefaults(defineProps<{
     disabled: false
 });
 
-const emit = defineEmits(["update:modelValue"]);
+const emit = defineEmits<{
+    (event: "update:modelValue", value: string): void
+}>();
 
 const uuid = ref(uuidv4());
 const { label, type, icon, validation } = toRefs(props);

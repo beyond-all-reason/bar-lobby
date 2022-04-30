@@ -14,6 +14,7 @@
         display: flex;
         position: relative;
         gap: 15px;
+        align-self: center;
         &.hasLabel {
             padding-left: 5px !important;
         }

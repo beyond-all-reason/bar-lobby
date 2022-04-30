@@ -8,6 +8,12 @@
 }
 .modal {
     flex-grow: 0;
+    .panel.tabbed, .panel.tabbed:after {
+        background: none;
+        backdrop-filter: none;
+        border: none;
+        box-shadow: none;
+    }
 }
 .modal-enter-active,
 .modal-leave-active {

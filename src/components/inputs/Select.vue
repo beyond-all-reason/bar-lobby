@@ -1,5 +1,5 @@
 <template>
-    <div ref="controlEl" class="control select" :class="{ disabled }" @mouseenter="sound">
+    <div ref="controlEl" class="control select" :class="{ disabled, 'fullwidth': fullWidth }" @mouseenter="sound">
         <label v-if="label" :for="uuid">{{ label }}</label>
         <VueNextSelect
             ref="vueSelect"
@@ -31,17 +31,19 @@ interface Props extends VueNextSelectProps {
     label?: string;
     smallLabel?: boolean;
     disabled?: boolean;
+    fullWidth?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
     label: undefined,
     smallLabel: false,
-    disabled: false
+    disabled: false,
+    fullWidth: false
 });
 
-const emits = defineEmits<{
-    (event: "change", value: unknown): void,
-}>();
+// const emits = defineEmits<{
+//     (event: "cdhange", value: unknown): void,
+// }>();
 
 const vueSelect: Ref<InstanceType<typeof VueNextSelect> | null> = ref(null);
 const uuid = ref(uuidv4());

@@ -4,38 +4,42 @@ import { ref } from "vue";
 export class ModalsAPI {
     public states: Map<string, Ref<boolean>> = new Map();
 
-    public register(name: string) {
-        let state = this.states.get(name.toLowerCase());
+    public register(id: string) {
+        let state = this.states.get(id.toLowerCase());
         if (!state) {
             state = ref(false);
-            this.states.set(name.toLowerCase(), state);
+            this.states.set(id.toLowerCase(), state);
         }
         return state;
     }
 
-    public toggle(name: string): void {
-        const state = this.states.get(name.toLowerCase());
+    public unregister(id: string) {
+        this.states.delete(id.toLowerCase());
+    }
+
+    public toggle(id: string): void {
+        const state = this.states.get(id.toLowerCase());
         if (state) {
             state.value = !state.value;
         }
     }
 
-    public close(name: string): void {
-        const state = this.states.get(name.toLowerCase());
+    public close(id: string): void {
+        const state = this.states.get(id.toLowerCase());
         if (state) {
             state.value = false;
         }
     }
 
-    public open(name: string): void {
-        const state = this.states.get(name.toLowerCase());
+    public open(id: string): void {
+        const state = this.states.get(id.toLowerCase());
         if (state) {
             state.value = true;
         }
     }
 
-    public get(name: string): Ref<boolean> {
-        this.register(name);
-        return this.states.get(name.toLowerCase())!;
+    public get(id: string): Ref<boolean> {
+        this.register(id);
+        return this.states.get(id.toLowerCase())!;
     }
 }

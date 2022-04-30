@@ -6,8 +6,8 @@
             <div class="participant__name">
                 {{ name }}
             </div>
-            <BotOptions v-if="participant.type === 'bot'" :bot="participant" />
         </div>
+        <LuaOptionsModal v-if="participant.type === 'bot'" :id="`configure-bot-${participant.name}`" :model-value="participant.aiOptions" title="Configure Bot" :sections="aiOptionsDefinitions" @update:model-value="aiOptionsUpdated" />
     </ContextMenu>
 </template>
 
@@ -15,12 +15,14 @@
 import ContextMenu, { ContextMenuEntry } from "@/components/common/ContextMenu.vue";
 import Icon from "@/components/common/Icon.vue";
 import { Bot, Player, Spectator } from "@/model/battle/participants";
-import { computed, ref } from "vue";
-import BotOptions from "@/components/battle/BotOptions.vue";
+import { computed, onUnmounted, ref, toRef } from "vue";
+import LuaOptionsModal from "@/components/battle/LuaOptionsModal.vue";
 
 const props = defineProps<{
     participant: Player | Bot | Spectator
 }>();
+
+const participant = toRef(props, "participant");
 
 const battle = api.battle;
 
@@ -42,6 +44,13 @@ const name = computed(() => {
 
 const icon = computed(() => props.participant.type === "bot" ? "robot" : "account");
 const countryCode = ref("");
+const aiOptionsDefinitions = computed(() => {
+    if (props.participant.type === "bot") {
+        const ai = api.content.ai.getAi(battle.battleOptions.engineVersion, props.participant.aiShortName);
+        return ai?.options ?? [];
+    }
+    return [];
+});
 
 const viewProfile = (player: Player) => {
     //
@@ -72,7 +81,13 @@ const kickAi = (bot: Bot) => {
 };
 
 const configureAi = (bot: Bot) => {
-    api.modals.open("configure-bot");
+    api.modals.open(`configure-bot-${bot.name}`);
+};
+
+const aiOptionsUpdated = (options: Record<string, unknown>) => {
+    if (participant.value.type === "bot") {
+        participant.value.aiOptions = options;
+    }
 };
 
 const playerActions: ContextMenuEntry[] = [
@@ -104,4 +119,10 @@ const getActions = (participant: Player | Bot | Spectator) => {
         }
     }
 };
+
+onUnmounted(() => {
+    if (props.participant.type === "bot") {
+        api.modals.unregister(`configure-bot-${props.participant.name}`);
+    }
+});
 </script>

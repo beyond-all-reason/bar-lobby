@@ -27,7 +27,7 @@ export const defaultBattle: () => SetOptional<BattleConfig, "teams" | "gameOptio
         teams,
         participants: [
             { type: "player", id: 0, team: teams[0], userId: myUserId },
-            { type: "bot", id: 1, team: teams[1], ownerUserId: myUserId, name: randomFromArray(aiNames)!, aiShortName: "BARb" },
+            { type: "bot", id: 1, team: teams[1], ownerUserId: myUserId, name: randomFromArray(aiNames)!, aiShortName: "BARb", aiOptions: {} },
         ]
     };
 };

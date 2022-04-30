@@ -14,8 +14,8 @@ import { reactive } from "vue";
 import type { DownloadInfo } from "@/model/downloads";
 import { SdpFile, SdpFileMeta } from "@/model/sdp";
 import * as glob from "glob-promise";
-import { ModOption, ModOptionBoolean, ModOptionList, ModOptionNumber, ModOptionSection } from "@/model/mod-options";
-import { parseLuaTable } from "@/utils/parse-lua-table";
+import { LuaOptionSection } from "@/model/lua-options";
+import { parseLuaOptions } from "@/utils/parse-lua-options";
 
 export class GameContentAPI extends AbstractContentAPI {
     public installedVersions: RapidVersion[] = reactive([]);
@@ -142,78 +142,11 @@ export class GameContentAPI extends AbstractContentAPI {
         return sdpFiles;
     }
 
-    public async getModOptions(version: GameVersionFormat) : Promise<ModOptionSection[]> {
+    // TODO: make this protected, cache on game install and offer that as a public method instead so async not necessary
+    public async getModOptions(version: GameVersionFormat) : Promise<LuaOptionSection[]> {
         const gameFiles = await this.getGameFiles(version, "modoptions.lua");
         const modOptionsLua = gameFiles[0].data;
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const modOptionsArray = parseLuaTable(modOptionsLua, "options") as Array<Record<string, any>>; // TODO: type this
-
-        const sections: ModOptionSection[] = [];
-
-        for (const modOptionObj of modOptionsArray) {
-            const baseModOption: Omit<ModOption, "type"> = {
-                key: modOptionObj.key,
-                name: modOptionObj.name,
-                description: modOptionObj.desc,
-                hidden: modOptionObj.hidden ?? false
-            };
-
-            if (modOptionObj.type === "section") {
-                const section: ModOptionSection = {
-                    ...baseModOption,
-                    type: "section",
-                    options: []
-                };
-                sections.push(section);
-                continue;
-            }
-
-            const section = sections.find(section => section.key === modOptionObj.section);
-
-            if (!section) {
-                console.warn(`Could not find section ${modOptionObj.key} in modoptions.lua for ${version}`);
-                continue;
-            }
-
-            if (modOptionObj.type === "number") {
-                const modOption: ModOptionNumber = {
-                    ...baseModOption,
-                    type: "number",
-                    default: modOptionObj.def,
-                    step: modOptionObj.step,
-                    min: modOptionObj.min,
-                    max: modOptionObj.max
-                };
-                section?.options.push(modOption);
-            } else if (modOptionObj.type === "boolean") {
-                const modOption: ModOptionBoolean = {
-                    ...baseModOption,
-                    type: "boolean",
-                    default: modOptionObj.def
-                };
-                section?.options.push(modOption);
-            } else if (modOptionObj.type === "list") {
-                const options: ModOption[] = [];
-                for (const option of modOptionObj.items) {
-                    options.push({
-                        type: "list",
-                        key: option.key,
-                        name: option.name,
-                        description: option.desc,
-                        hidden: option.hidden
-                    });
-                }
-                const modOption: ModOptionList = {
-                    ...baseModOption,
-                    type: "list",
-                    default: modOptionObj.def,
-                    options
-                };
-                section?.options.push(modOption);
-            }
-        }
-
-        return sections;
+        return parseLuaOptions(modOptionsLua);
     }
 
     protected async parseSdpFile(version: GameVersionFormat, filePattern?: string) : Promise<SdpFileMeta[]> {

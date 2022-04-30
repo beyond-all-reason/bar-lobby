@@ -6,6 +6,7 @@ import type { AI } from "@/model/ai";
 import type { EngineVersionFormat } from "@/model/formats";
 import { parseLuaTable } from "@/utils/parse-lua-table";
 import { reactive } from "vue";
+import { parseLuaOptions } from "@/utils/parse-lua-options";
 
 export class AiContentAPI extends AbstractContentAPI {
     public installedAis: Record<EngineVersionFormat, AI[]> = reactive({});
@@ -71,11 +72,12 @@ export class AiContentAPI extends AbstractContentAPI {
             interfaceShortName: aiInfo.interfaceShortName,
             interfaceVersion: aiInfo.interfaceVersion,
             ddlPath: dllPath,
+            options: []
         };
 
         if (aiOptionsPath) {
             const aiOptionsFile = await fs.promises.readFile(aiOptionsPath);
-            ai.options = parseLuaTable(aiOptionsFile);
+            ai.options = parseLuaOptions(aiOptionsFile);
         }
 
         return ai;

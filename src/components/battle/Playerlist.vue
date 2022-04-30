@@ -89,7 +89,8 @@ const addBot = (team: Team) => {
         name: randomName!,
         aiShortName: "BARb",
         faction: Faction.Armada,
-        ownerUserId: api.session.currentUser.userId
+        ownerUserId: api.session.currentUser.userId,
+        aiOptions: {}
     });
 };
 

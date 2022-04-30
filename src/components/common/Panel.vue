@@ -6,7 +6,7 @@
                 <Button class="panel__prev-tab" @click="prevTab">
                     <Icon icon="chevron-left" />
                 </Button>
-                <Button class="panel__single-tab">
+                <Button class="panel__single-tab" :tooltip="activeTab.props?.tooltip">
                     {{ activeTab.props?.title }}
                 </Button>
                 <Button class="panel__next-tab" @click="nextTab">
@@ -14,7 +14,7 @@
                 </Button>
             </template>
             <template v-else>
-                <Button v-for="(tab, i) in tabs" :key="i" :class="{ active: i === currentTab }" class="panel__tab-btn" fullwidth @click="tabClicked(i)">
+                <Button v-for="(tab, i) in tabs" :key="i" :class="{ active: i === currentTab }" class="panel__tab-btn" fullwidth :tooltip="tab.props?.tooltip" @click="tabClicked(i)">
                     {{ tab.props?.title }}
                 </Button>
             </template>
@@ -83,7 +83,9 @@ const tabs = computed(() => {
             tabsParent = tabsParent[0].children as VNode[];
         }
 
-        return tabsParent.filter(slot => typeof slot.type === "object" && "name" in slot.type && slot.type.name === "Tab");
+        if (tabsParent && Array.isArray(tabsParent)) {
+            return tabsParent.filter(slot => typeof slot.type === "object" && "name" in slot.type && slot.type.name === "Tab");
+        }
     }
 
     return [];

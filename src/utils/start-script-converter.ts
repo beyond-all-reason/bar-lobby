@@ -85,7 +85,8 @@ export class StartScriptConverter {
                     team: team.id,
                     shortname: contenderConfig.aiShortName,
                     name: contenderConfig.name,
-                    host: -1
+                    host: -1,
+                    options: contenderConfig.aiOptions,
                 };
                 botIdToUserIdMap[bot.id] = contenderConfig.ownerUserId;
                 bots.push(bot);

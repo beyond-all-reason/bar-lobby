@@ -36,13 +36,11 @@
     @import "components/login";
     @import "components/server-info";
     @import "components/downloads";
-    @import "components/settings";
     
     @import "components/battle/map-preview";
     @import "components/battle/battle";
     @import "components/battle/playerlist";
     @import "components/battle/chat";
-    @import "components/battle/bot-options";
-
+    
     @import "transitions";
 }
