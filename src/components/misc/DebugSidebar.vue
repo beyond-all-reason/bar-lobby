@@ -5,20 +5,20 @@
                 <Icon icon="tools" :size="20" />
             </Button>
         </div>
-        <Select v-model="currentRoute" label="View" :options="routes" :label-by="(route: any) => route.path" :value-by="(route: any) => route.path" :searchable="true" :clear-on-select="true" />
-        <Button to="/debug/inputs" :flex-grow="false">
+        <Select v-model="currentRoute" label="View" :options="routes" :label-by="(route: any) => route.path" :value-by="(route: any) => route.path" full-width :searchable="true" :clear-on-select="true" />
+        <Button to="/debug/inputs" :flex-grow="false" full-width>
             Debug Playground
         </Button>
-        <Button :flex-grow="false" @click="openSettings">
+        <Button :flex-grow="false" full-width @click="openSettings">
             Open Settings File
         </Button>
-        <Button :flex-grow="false" @click="openLobbyDir">
+        <Button :flex-grow="false" full-width @click="openLobbyDir">
             Open Lobby Dir
         </Button>
-        <Button :flex-grow="false" @click="openDataDir">
+        <Button :flex-grow="false" full-width @click="openDataDir">
             Open Data Dir
         </Button>
-        <Button :flex-grow="false" @click="openStartScript">
+        <Button :flex-grow="false" full-width @click="openStartScript">
             Open Latest Start Script
         </Button>
     </div>

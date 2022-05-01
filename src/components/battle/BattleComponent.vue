@@ -72,7 +72,7 @@ const installedMaps = computed(() => Object.values(api.content.maps.installedMap
 
 const startPosOptions: Array<{ label: string, value: StartPosType }> = [
     { label: "Fixed", value: StartPosType.Fixed },
-    { label: "Boxes", value: StartPosType.ChooseInGame }
+    { label: "Boxes", value: StartPosType.Boxes }
 ];
 
 const teamPresetOptions: Array<{ label: string, value: TeamPreset }> = [

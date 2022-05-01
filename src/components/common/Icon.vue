@@ -1,9 +1,9 @@
 <template>
-    <svg viewBox="0 0 24 24" :width="size" :height="size" v-html="svg" />
+    <!-- eslint-disable -->
+    <svg viewBox="0 0 24 24" :width="size" :height="size" v-html="svg"></svg>
 </template>
 
 <script lang="ts" setup>
-
 /**
  * @todo Refactor this component to use the @iconify/vue component
  * https://docs.iconify.design/icon-components/vue/
@@ -21,7 +21,7 @@ const props = defineProps({
     },
     size: {
         type: Number,
-        default: 24
+        default: 23
     }
 });
 

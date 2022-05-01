@@ -1,6 +1,6 @@
 <template>
     <Tooltip :content="tooltip">
-        <div class="control button" :class="{ disabled, 'flex-grow': flexGrow, slim }">
+        <div class="control button" :class="{ disabled, 'flex-grow': flexGrow, slim, 'fullwidth': fullWidth }">
             <component :is="to ? 'router-link' : 'button'" class="btn" :to="to" :class="{ active: isActive }" v-bind="$attrs" @mouseenter="sound">
                 <div class="content">
                     <slot />

@@ -18,6 +18,13 @@
     </div>
 </template>
 
+<script lang="ts">
+// use normal <script> to declare options
+export default {
+    inheritAttrs: false
+};
+</script>
+
 <script lang="ts" setup>
 // https://iendeavor.github.io/vue-next-select/api-reference.html
 
@@ -34,12 +41,7 @@ interface Props extends VueNextSelectProps {
     fullWidth?: boolean;
 }
 
-const props = withDefaults(defineProps<Props>(), {
-    label: undefined,
-    smallLabel: false,
-    disabled: false,
-    fullWidth: false
-});
+const props = defineProps<Props>();
 
 // const emits = defineEmits<{
 //     (event: "cdhange", value: unknown): void,

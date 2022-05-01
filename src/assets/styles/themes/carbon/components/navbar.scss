@@ -81,13 +81,13 @@
             }
         }
     }
+    .control.button {
+        align-self: unset;
+    }
     &__primary-left, &__primary-right {
         display: flex;
         flex-direction: row;
         gap: 1px;
-        .control {
-            align-self: unset;
-        }
     }
     &__primary-left {
         box-shadow: 5px 0 20px rgba(0, 0, 0, 0.4);
