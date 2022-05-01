@@ -18,7 +18,7 @@ const props = withDefaults(defineProps<{
     type?: string;
     label?: string;
     icon?: string;
-    validation?: (value: string) => string;
+    validation?: (value: string) => string | undefined;
     disabled?: boolean;
 }>(), {
     modelValue: "",

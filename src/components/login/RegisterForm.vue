@@ -5,11 +5,11 @@
             <p v-if="error" class="color--error">
                 {{ error }}
             </p>
-            <Textbox v-model="email" type="email" label="Email" required />
-            <Textbox v-model="username" label="Username" required />
-            <Textbox v-model="password" type="password" label="Password" required />
-            <Textbox v-model="confirmPassword" type="password" label="Confirm Password" :validation="validatePassword" required />
-            <Button type="submit">
+            <Textbox v-model="email" type="email" label="Email" required class="fullwidth" />
+            <Textbox v-model="username" label="Username" required class="fullwidth" />
+            <Textbox v-model="password" type="password" label="Password" required class="fullwidth" />
+            <Textbox v-model="confirmPassword" type="password" label="Confirm Password" :validation="validatePassword" required class="fullwidth" />
+            <Button type="submit" full-width>
                 Register
             </Button>
         </form>
@@ -31,7 +31,7 @@ const confirmPassword = ref("");
 const password = ref("");
 const error = ref("");
 
-const validatePassword = () => {
+const validatePassword = (value: string) => {
     if (password.value && confirmPassword.value && password.value !== confirmPassword.value) {
         return "Passwords do not match";
     }

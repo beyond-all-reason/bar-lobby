@@ -31,11 +31,9 @@
         padding: var(--padding);
         overflow-y: auto;
     }
-    &.tabbed > .panel__content {
-        overflow-y: scroll;
-    }
     &.scrollContent .panel__content {
         flex-basis: 0;
+        overflow-y: scroll;
     }
     &__tabs, &__header {
         position: relative;

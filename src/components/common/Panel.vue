@@ -14,7 +14,7 @@
                 </Button>
             </template>
             <template v-else>
-                <Button v-for="(tab, i) in tabs" :key="i" :class="{ active: i === currentTab }" class="panel__tab-btn" full-width :tooltip="tab.props?.tooltip" @click="tabClicked(i)">
+                <Button v-for="(tab, i) in tabs" :key="i" :class="{ active: i === currentTab }" class="panel__tab-btn" :tooltip="tab.props?.tooltip" @click="tabClicked(i)">
                     {{ tab.props?.title }}
                 </Button>
             </template>
