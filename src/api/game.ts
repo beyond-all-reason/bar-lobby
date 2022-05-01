@@ -14,10 +14,11 @@ export class GameAPI {
     constructor(protected userDataDir: string, protected dataDir: string) {
     }
 
-    public async launch(engineTag: EngineVersionFormat, battle: Battle) : Promise<void>;
-    public async launch(engineTag: EngineVersionFormat, startScript: string) : Promise<void>;
-    public async launch(engineTag: EngineVersionFormat, battleOrStartScript: Battle | string) : Promise<void> {
-        const enginePath = path.join(this.dataDir, "engine", engineTag).replaceAll("\\", "/");
+    public async launch(battle: Battle) : Promise<void>;
+    public async launch(startScript: string, engine: EngineVersionFormat) : Promise<void>;
+    public async launch(battleOrStartScript: Battle | string, engine?: EngineVersionFormat) : Promise<void> {
+        const engineVersion = typeof battleOrStartScript === "string" ? engine! : battleOrStartScript.battleOptions.engineVersion;
+        const enginePath = path.join(this.dataDir, "engine", engineVersion).replaceAll("\\", "/");
         const scriptPath = path.join(this.dataDir, "barlobby_script.txt");
 
         let scriptStr = "";

@@ -56,7 +56,6 @@ import MapPreview from "@/components/battle/MapPreview.vue";
 import Select from "@/components/inputs/Select.vue";
 import Playerlist from "@/components/battle/Playerlist.vue";
 import { lastInArray } from "jaz-ts-utils";
-import type { EngineVersionFormat } from "@/model/formats";
 import BattleChat from "@/components/battle/BattleChat.vue";
 import { StartPosType, TeamPreset } from "@/model/battle/types";
 import Options from "@/components/inputs/Options.vue";
@@ -94,8 +93,6 @@ const leave = () => {
 };
 
 const start = async () => {
-    const engine: EngineVersionFormat = "BAR-105.1.1-814-g9774f22";
-
-    api.game.launch(engine, battle);
+    api.game.launch(battle);
 };
 </script>
