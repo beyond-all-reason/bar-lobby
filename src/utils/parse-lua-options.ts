@@ -11,7 +11,7 @@ export function parseLuaOptions(lua: Buffer) : LuaOptionSection[] {
         options: [],
         type: "section"
     };
-    const sections: LuaOptionSection[] = [miscSection];
+    const sections: LuaOptionSection[] = [];
 
     for (const luaOptionObj of luaOptionsArray) {
         const baseOption: Omit<LuaOption, "type"> = {
@@ -79,6 +79,10 @@ export function parseLuaOptions(lua: Buffer) : LuaOptionSection[] {
             };
             section.options.push(option);
         }
+    }
+
+    if (miscSection.options.length) {
+        sections.push(miscSection);
     }
 
     return sections;

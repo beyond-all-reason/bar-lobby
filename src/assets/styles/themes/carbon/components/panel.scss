@@ -31,6 +31,9 @@
         padding: var(--padding);
         overflow-y: auto;
     }
+    &.tabbed > .panel__content {
+        overflow-y: scroll;
+    }
     &.scrollContent .panel__content {
         flex-basis: 0;
     }
@@ -53,9 +56,13 @@
     }
     &__tabs {
         display: flex;
+        flex-wrap: wrap;
         & > * {
             display: flex;
             flex-grow: 1;
+        }
+        .btn {
+            padding: 0 20px;
         }
     }
     &.paginatedTabs {

@@ -5,7 +5,7 @@ import { setObject } from "@/utils/set-object";
 import { SetOptional } from "type-fest";
 import { computed, ComputedRef, reactive } from "vue";
 import { TypedProxyHandler } from "@/utils/typed-proxy-handler";
-import { defaultBoxes } from "@/config/default-boxes";
+import { defaultMapBoxes } from "@/config/default-boxes";
 
 export interface BattleConfig {
     battleOptions: BattleOptions;
@@ -152,8 +152,8 @@ export class Battle implements BattleConfig {
     }
 
     protected setBoxes(mapFileName: string) {
-        if (this.battleOptions.startPosType === StartPosType.ChooseInGame) {
-            const boxes: StartBox[] | undefined = defaultBoxes[mapFileName];
+        if (this.battleOptions.startPosType === StartPosType.Boxes) {
+            const boxes: StartBox[] | undefined = defaultMapBoxes[mapFileName];
             if (boxes) {
                 this.teams[0].startBox = boxes[0];
                 this.teams[1].startBox = boxes[1];
@@ -167,7 +167,7 @@ export class Battle implements BattleConfig {
     protected configureTeams(teamPreset: TeamPreset) {
         if (teamPreset === TeamPreset.Standard) { // only 2 teams
             this.teams.length = 2;
-            this.battleOptions.startPosType = StartPosType.ChooseInGame;
+            this.battleOptions.startPosType = StartPosType.Boxes;
         } else if (teamPreset === TeamPreset.FFA) { // 1 big team for all players, but separate team for each player when converted to start script
             this.teams.length = 1;
             this.battleOptions.startPosType = StartPosType.Fixed; // TODO: should be random?

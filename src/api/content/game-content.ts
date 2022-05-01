@@ -4,13 +4,13 @@ import * as zlib from "zlib";
 import axios from "axios";
 import { Octokit } from "octokit";
 import { spawn } from "child_process";
-import { BufferStream, lastInArray, objectKeys, removeFromArray } from "jaz-ts-utils";
+import { BufferStream, lastInArray, removeFromArray } from "jaz-ts-utils";
 import type { Message, ProgressMessage, RapidVersion } from "@/model/pr-downloader";
 import { DownloadType } from "@/model/pr-downloader";
 import { AbstractContentAPI } from "@/api/content/abstract-content-api";
 import { contentSources } from "@/config/content-sources";
-import { GameVersionFormat, isGameVersionString, parseGameVersionString } from "@/model/formats";
-import { DeepReadonly, reactive } from "vue";
+import { GameVersionFormat, parseGameVersionString } from "@/model/formats";
+import { reactive } from "vue";
 import type { DownloadInfo } from "@/model/downloads";
 import { SdpFile, SdpFileMeta } from "@/model/sdp";
 import * as glob from "glob-promise";
@@ -19,17 +19,13 @@ import { parseLuaOptions } from "@/utils/parse-lua-options";
 
 export class GameContentAPI extends AbstractContentAPI {
     public readonly installedVersions: RapidVersion[] = reactive([]);
-    public readonly gameOptions: Map<GameVersionFormat, DeepReadonly<LuaOptionSection[]>> = new Map();
 
     protected prBinaryPath!: string;
     protected ocotokit = new Octokit();
     protected md5ToRapidVersionMap: Record<string, RapidVersion> = {};
-    protected gameOptionsCachePath: string;
 
     constructor(userDataDir: string, dataDir: string) {
         super(userDataDir, dataDir);
-
-        this.gameOptionsCachePath = path.join(this.userDataDir, "store", "game-options.json");
     }
 
     public async init(prBinaryPath: string) {
@@ -48,16 +44,6 @@ export class GameContentAPI extends AbstractContentAPI {
             }
             this.installedVersions.sort((a, b) => {
                 return a.version.revision - b.version.revision;
-            });
-        }
-
-        if (fs.existsSync(packagesDir)) {
-            const gameOptionsStr = await fs.promises.readFile(this.gameOptionsCachePath, "utf8");
-            const gameOptions = JSON.parse(gameOptionsStr);
-            objectKeys(gameOptions).forEach((gameVersion) => {
-                if (isGameVersionString(gameVersion)) {
-                    this.gameOptions.set(gameVersion, gameOptions[gameVersion]);
-                }
             });
         }
 
@@ -156,18 +142,10 @@ export class GameContentAPI extends AbstractContentAPI {
         return sdpFiles;
     }
 
-    protected async cacheGameOptions(version: GameVersionFormat) {
-        if (this.gameOptions.get(version)) {
-            return;
-        }
-
+    public async getGameOptions(version: GameVersionFormat) : Promise<LuaOptionSection[]> {
         const gameFiles = await this.getGameFiles(version, "modoptions.lua");
         const gameOptionsLua = gameFiles[0].data;
-        const gameOptions = parseLuaOptions(gameOptionsLua);
-
-        this.gameOptions.set(version, gameOptions);
-
-        await fs.promises.writeFile(this.gameOptionsCachePath, JSON.stringify(Object.fromEntries(this.gameOptions)));
+        return parseLuaOptions(gameOptionsLua);
     }
 
     protected async parseSdpFile(version: GameVersionFormat, filePattern?: string) : Promise<SdpFileMeta[]> {

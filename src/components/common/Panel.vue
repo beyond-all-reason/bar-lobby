@@ -14,17 +14,15 @@
                 </Button>
             </template>
             <template v-else>
-                <Button v-for="(tab, i) in tabs" :key="i" :class="{ active: i === currentTab }" class="panel__tab-btn" fullwidth :tooltip="tab.props?.tooltip" @click="tabClicked(i)">
+                <Button v-for="(tab, i) in tabs" :key="i" :class="{ active: i === currentTab }" class="panel__tab-btn" full-width :tooltip="tab.props?.tooltip" @click="tabClicked(i)">
                     {{ tab.props?.title }}
                 </Button>
             </template>
         </div>
         <div class="panel__content" :style="`--padding: ${padding}; --width: ${width}; --height: ${height}`">
             <slot v-if="tabs.length === 0" />
-            <template v-else>
-                <template v-for="(tab, i) in tabs" :key="i">
-                    <component :is="tab" v-if="i === currentTab" />
-                </template>
+            <template v-for="(tab, i) in tabs" v-else :key="i">
+                <component :is="tab" v-if="i === currentTab" />
             </template>
         </div>
     </component>

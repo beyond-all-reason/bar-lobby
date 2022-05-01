@@ -21,12 +21,14 @@ const props = withDefaults(defineProps<{
     disabled?: boolean;
     flexGrow?: boolean;
     slim?: boolean;
+    fullWidth?: boolean;
 }>(), {
     to: undefined,
     tooltip: undefined,
     disabled: false,
     flexGrow: true,
-    slim: false
+    slim: false,
+    fullWidth: false
 });
 
 const route = useRoute();

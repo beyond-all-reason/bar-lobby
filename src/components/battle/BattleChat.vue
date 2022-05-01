@@ -4,7 +4,7 @@
             Message
         </div>
         <div class="battle-chat__textbox">
-            <Textbox />
+            <Textbox class="fullwidth" />
         </div>
     </div>
 </template>

@@ -2,7 +2,7 @@
     <teleport to=".theme">
         <transition name="modal" appear>
             <div v-if="isOpen" class="modal-container">
-                <Panel id="modal" class="modal" :title="titleStr" v-bind="$attrs">
+                <Panel id="modal" class="modal" v-bind="$attrs">
                     <template #header>
                         <div class="panel__header">
                             <div class="panel__title">

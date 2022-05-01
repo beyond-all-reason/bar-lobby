@@ -1,17 +1,17 @@
 <template>
     <div id="map-canvas-container" class="map-preview">
         <canvas id="map-canvas" class="map-preview__canvas" />
-        <div class="map-preview__actions">
-            <Button>
+        <div v-if="battle.battleOptions.startPosType === StartPosType.Boxes && battle.battleOptions.teamPreset === TeamPreset.Standard" class="map-preview__actions">
+            <Button @click="setBoxes(defaultBoxes.EastVsWest)">
                 <img src="@/assets/images/icons/east-vs-west.png">
             </Button>
-            <Button>
+            <Button @click="setBoxes(defaultBoxes.NorthVsSouth)">
                 <img src="@/assets/images/icons/north-vs-south.png">
             </Button>
-            <Button>
+            <Button @click="setBoxes(defaultBoxes.NortheastVsSouthwest)">
                 <img src="@/assets/images/icons/northeast-vs-southwest.png">
             </Button>
-            <Button>
+            <Button @click="setBoxes(defaultBoxes.NorthwestVsSouthEast)">
                 <img src="@/assets/images/icons/northwest-vs-southeast.png">
             </Button>
         </div>
@@ -20,9 +20,10 @@
 
 <script lang="ts" setup>
 import { onMounted, watch } from "vue";
-import { StartPosType } from "@/model/battle/types";
+import { StartBox, StartPosType, TeamPreset } from "@/model/battle/types";
 import { MapData } from "@/model/map-data";
 import Button from "@/components/inputs/Button.vue";
+import { defaultBoxes } from "@/config/default-boxes";
 
 const battle = api.battle;
 
@@ -46,6 +47,12 @@ onMounted(async () => {
         loadMap();
     }, { deep: true });
 });
+
+const setBoxes = (boxes: StartBox[]) => {
+    boxes.forEach((box, i) => {
+        battle.teams[i].startBox = box;
+    });
+};
 
 async function loadMap() {
     if (mapData?.fileNameWithExt !== battle.battleOptions.mapFileName) {
@@ -82,7 +89,7 @@ async function loadMap() {
 function drawStartPosType(startPosType: StartPosType) {
     if (startPosType === StartPosType.Fixed) {
         drawFixedPositions();
-    } else if (startPosType === StartPosType.ChooseInGame) {
+    } else if (startPosType === StartPosType.Boxes) {
         drawBoxes();
     }
 }

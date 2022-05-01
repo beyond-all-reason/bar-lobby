@@ -31,10 +31,10 @@
             </div>
             <div class="flex-row gap-md">
                 <Select v-model="selectedGame" label="Game" :options="games" close-on-select clear-on-select searchable :disabled="!battle.battleOptions.offline" full-width />
-                <Button :flex-grow="false">
+                <Button :flex-grow="false" @click="openGameOptions">
                     <Icon icon="cog" />
                 </Button>
-                <LuaOptionsModal id="game-options" v-model="battle.gameOptions" :title="`Game Options - ${battle.battleOptions.gameVersion}`" :sections="" />
+                <LuaOptionsModal id="game-options" v-model="battle.gameOptions" :title="`Game Options - ${battle.battleOptions.gameVersion}`" :sections="gameOptions" />
             </div>
             <Select v-model="selectedEngine" label="Engine" :options="engines" close-on-select clear-on-select searchable :disabled="!battle.battleOptions.offline" full-width />
             <div class="flex-row flex-bottom gap-md">
@@ -50,7 +50,7 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, ref } from "vue";
+import { computed, onMounted, Ref, ref, watch } from "vue";
 import Button from "@/components/inputs/Button.vue";
 import MapPreview from "@/components/battle/MapPreview.vue";
 import Select from "@/components/inputs/Select.vue";
@@ -62,6 +62,7 @@ import Options from "@/components/inputs/Options.vue";
 import Option from "@/components/inputs/Option.vue";
 import Icon from "@/components/common/Icon.vue";
 import LuaOptionsModal from "@/components/battle/LuaOptionsModal.vue";
+import { LuaOptionSection } from "@/model/lua-options";
 
 const battleTitle = ref("Offline Custom Battle");
 
@@ -83,7 +84,16 @@ const teamPresetOptions: Array<{ label: string, value: TeamPreset }> = [
 const games = computed(() => api.content.game.installedVersions.map(rapidVersion => rapidVersion.version.fullString).slice(-10));
 const selectedGame = ref(lastInArray(games.value)!);
 
-const gameOptions = computed(() => api.content.game.getModOptions(selectedGame.value));
+const gameOptions: Ref<LuaOptionSection[]> = ref([]);
+onMounted(async () => {
+    gameOptions.value = await api.content.game.getGameOptions(battle.battleOptions.gameVersion);
+});
+watch(() => battle.battleOptions.gameVersion, async () => {
+    gameOptions.value = await api.content.game.getGameOptions(battle.battleOptions.gameVersion);
+});
+const openGameOptions = () => {
+    api.modals.open("game-options");
+};
 
 const engines = computed(() => api.content.engine.installedVersions);
 const selectedEngine = ref(lastInArray(engines.value));

@@ -1,9 +1,9 @@
-import { EngineVersionFormat } from "@/model/formats";
+import { EngineVersionFormat, GameVersionFormat } from "@/model/formats";
 
 export type BattleOptions = {
     offline: boolean;
     engineVersion: EngineVersionFormat;
-    gameVersion: string;
+    gameVersion: GameVersionFormat;
     mapFileName: string;
     isHost: boolean;
     startPosType: StartPosType;
@@ -18,10 +18,9 @@ export type StartBox = {
 };
 
 export enum StartPosType {
-    Fixed,
-    Random,
-    ChooseInGame,
-    ChooseBeforeGame
+    Fixed = 0,
+    Random = 1,
+    Boxes = 2
 }
 
 export enum Faction {

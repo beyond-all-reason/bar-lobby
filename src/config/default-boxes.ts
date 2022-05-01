@@ -1,12 +1,25 @@
 import { StartBox } from "@/model/battle/types";
 
-export const defaultBoxes: Record<string, StartBox[]> = {
-    "red_comet_remake_1.8.sd7": [
-        { xPercent: 0, yPercent: 0, widthPercent: 0.25, heightPercent: 1 },
-        { xPercent: 0.75, yPercent: 0, widthPercent: 0.25, heightPercent: 1 },
+export const defaultBoxes = Object.freeze({
+    EastVsWest: [
+        { xPercent: 0, yPercent: 0, widthPercent: 0.3, heightPercent: 1 },
+        { xPercent: 0.7, yPercent: 0, widthPercent: 0.3, heightPercent: 1 },
     ],
-    "quicksilver_remake_1.24.sd7": [
+    NorthVsSouth: [
         { xPercent: 0, yPercent: 0, widthPercent: 1, heightPercent: 0.3 },
-        { xPercent: 0, yPercent: 0.75, widthPercent: 1, heightPercent: 0.3 },
+        { xPercent: 0, yPercent: 0.7, widthPercent: 1, heightPercent: 0.3 },
     ],
+    NortheastVsSouthwest: [
+        { xPercent: 0.7, yPercent: 0, widthPercent: 0.3, heightPercent: 0.3 },
+        { xPercent: 0, yPercent: 0.7, widthPercent: 0.3, heightPercent: 0.3 },
+    ],
+    NorthwestVsSouthEast: [
+        { xPercent: 0, yPercent: 0, widthPercent: 0.3, heightPercent: 0.3 },
+        { xPercent: 0.7, yPercent: 0.7, widthPercent: 0.3, heightPercent: 0.3 },
+    ],
+});
+
+export const defaultMapBoxes: Record<string, StartBox[]> = {
+    "red_comet_remake_1.8.sd7": defaultBoxes.EastVsWest,
+    "quicksilver_remake_1.24.sd7": defaultBoxes.NorthVsSouth
 };
