@@ -57,7 +57,7 @@ module.exports = {
                     target: ["AppImage"],
                     category: "Game"
                 },
-                //publish: ["github"],
+                publish: ["github"]
             },
             chainWebpackRendererProcess: config => {
                 config.target("electron-renderer");
