@@ -5,14 +5,14 @@
   "description": "Lobby client for the RTS game Beyond All Reason",
   "author": "Jazcash",
   "license": "gpl-3.0",
+  "main": "background.js",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Jazcash/bar-lobby.git"
   },
   "scripts": {
-    "build": "cross-env NODE_ENV=production npm run clean-build-dir && vue-cli-service electron:build -- --publish never",
-    "release": "cross-env NODE_ENV=production npm run clean-build-dir && vue-cli-service electron:build -- --publish always",
     "dev": "vue-cli-service electron:serve",
+    "build": "cross-env NODE_ENV=production npm run clean-build-dir && vue-cli-service electron:build -- --publish never",
     "dump-webpack-config": "vue inspect > output.js",
     "lint": "vue-cli-service lint",
     "postinstall": "electron-builder install-app-deps",

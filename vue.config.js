@@ -23,6 +23,10 @@ module.exports = {
         }
     },
     pluginOptions: {
+        /**
+         * Vue CLI Plugin Electron Builder
+         * See: https://nklayman.github.io/vue-cli-plugin-electron-builder/guide/configuration.html#configuration
+         */
         electronBuilder: {
             mainProcessFile: "src/main.ts",
             mainProcessWatch: ["src/main.ts", "src/main-window.ts"],
@@ -50,9 +54,10 @@ module.exports = {
                     allowToChangeInstallationDirectory: true
                 },
                 linux: {
-                    target: ["AppImage", "deb", "tar.gz"]
+                    target: ["AppImage"],
+                    category: "Game"
                 },
-                publish: ["github"],
+                //publish: ["github"],
             },
             chainWebpackRendererProcess: config => {
                 config.target("electron-renderer");
