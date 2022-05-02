@@ -5,7 +5,6 @@
   "description": "Lobby client for the RTS game Beyond All Reason",
   "author": "Jazcash",
   "license": "gpl-3.0",
-  "main": "background.js",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Jazcash/bar-lobby.git"
