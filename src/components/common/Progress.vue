@@ -10,7 +10,7 @@
 </template>
 
 <script lang="ts" setup>
-import { computed } from "vue";
+import { computed, watch } from "vue";
 
 const props = withDefaults(defineProps<{
     percent: number
@@ -22,5 +22,15 @@ const props = withDefaults(defineProps<{
     height: 15
 });
 
+const emit = defineEmits<{
+    (event: "loaded", percent: number): void
+}>();
+
 const percentStr = computed(() => `--progress: ${props.percent * 100}%`);
+
+watch(() => props.percent, (newValue, oldValue) => {
+    if (oldValue < 1 && newValue >= 1) {
+        emit("loaded", props.percent);
+    }
+});
 </script>

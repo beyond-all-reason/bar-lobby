@@ -9,7 +9,7 @@ import { app, ipcMain, ipcRenderer, shell } from "electron";
 import type { TObject } from "@sinclair/typebox";
 
 export class StoreAPI<T extends Record<string, unknown>> {
-    public model!: ToRefs<T>;
+    public model!: ToRefs<T>; // TODO: replace with reactive object
 
     protected name: string;
     protected filename: string;

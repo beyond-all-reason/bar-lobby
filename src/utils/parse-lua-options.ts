@@ -2,6 +2,7 @@ import { LuaOptionSection, LuaOption, LuaOptionNumber, LuaOptionBoolean, LuaOpti
 import { parseLuaTable } from "@/utils/parse-lua-table";
 
 export function parseLuaOptions(lua: Buffer) : LuaOptionSection[] {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const luaOptionsArray = parseLuaTable(lua) as Array<Record<string, any>>; // TODO: type this
 
     const miscSection: LuaOptionSection = {

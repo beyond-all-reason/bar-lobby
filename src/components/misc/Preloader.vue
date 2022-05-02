@@ -1,18 +1,23 @@
 <template>
     <div class="fullsize flex-center">
-        <Progress :percent="loadedPercent" :height="40" style="width: 70%" />
+        <Progress v-if="loadedPercent < 1" :percent="loadedPercent" :height="40" style="width: 70%" />
+        <div v-else class="flex-center">
+            <h1>Installing</h1>
+            <h4>
+                {{ (downloadPercent * 100).toFixed(0) }}%
+            </h4>
+        </div>
     </div>
 </template>
 
 <script lang="ts" setup>
-import { computed, onMounted, ref } from "vue";
-import { useRouter } from "vue-router";
+import { computed, onMounted, ref, watch } from "vue";
 import { randomFromArray } from "jaz-ts-utils";
 import Progress from "@/components/common/Progress.vue";
+import { defaultMaps } from "@/config/default-maps";
 
-const emit = defineEmits(["loaded"]);
+const emit = defineEmits(["complete"]);
 
-const router = useRouter();
 const totalFiles = ref(0);
 const loadedFiles = ref(0);
 const loadedPercent = computed(() => loadedFiles.value / totalFiles.value);
@@ -23,7 +28,7 @@ const fontFiles = require.context("@/assets/fonts/", true).keys();
 totalFiles.value = imageFiles.length + fontFiles.length;
 
 onMounted(async () => {
-    const randomBg = randomFromArray(imageFiles.filter(src => src.includes("backgrounds")));
+    const randomBg = randomFromArray(imageFiles.filter(src => src.includes("backgrounds")))!;
     const randomBgBuiltPath = await loadImage(randomBg);
     document.documentElement.style.setProperty("--background", `url(${randomBgBuiltPath})`);
 
@@ -37,7 +42,14 @@ onMounted(async () => {
         loadedFiles.value++;
     }
 
-    emit("loaded");
+    const anyEngineInstalled = api.content.engine.installedVersions.length > 0;
+    const anyGameInstalled = api.content.game.installedVersions.length > 0;
+    const defaultMapsInstalled = defaultMaps.every(map => api.content.maps.installedMaps[map]);
+
+    if ((anyEngineInstalled && anyGameInstalled && defaultMapsInstalled) || downloadPercent.value >= 1) {
+        console.log("All default content installed, skipping initial install");
+        emit("complete");
+    }
 });
 
 async function loadFont(url: string) {
@@ -67,4 +79,29 @@ function loadImage(url: string) {
         image.src = buildImagePath;
     });
 }
+
+const downloadPercent = computed(() => {
+    const downloads = api.content.engine.currentDownloads.concat(api.content.game.currentDownloads, api.content.maps.currentDownloads);
+
+    if (downloads.length === 0) {
+        return 1;
+    }
+
+    let currentBytes = 0;
+    let totalBytes = 0;
+
+    for (const download of downloads) {
+        currentBytes += download.currentBytes;
+        totalBytes += download.totalBytes;
+    }
+
+    return (currentBytes / totalBytes) || 0;
+});
+
+watch(downloadPercent, (value) => {
+    if (value >= 1 && loadedPercent.value >= 1) {
+        console.log("All downloads complete");
+        emit("complete");
+    }
+});
 </script>

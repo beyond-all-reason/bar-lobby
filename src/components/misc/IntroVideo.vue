@@ -7,7 +7,7 @@
 </template>
 
 <script lang="ts" setup>
-const emit = defineEmits(["end"]);
+const emit = defineEmits(["complete"]);
 
 const play = (event: Event) => {
     const video = event.target as HTMLVideoElement;
@@ -16,7 +16,7 @@ const play = (event: Event) => {
 };
 
 const end = () => {
-    emit("end");
+    emit("complete");
 };
 </script>
 

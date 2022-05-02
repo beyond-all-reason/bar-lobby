@@ -95,10 +95,17 @@ export abstract class AbstractFileCache<T> {
             return;
         }
 
-        const cachedItemsStr = await fs.promises.readFile(this.cacheFilePath, "utf-8");
-        this.items = JSON.parse(cachedItemsStr);
+        try {
+            const cachedItemsStr = await fs.promises.readFile(this.cacheFilePath, "utf-8");
+            this.items = JSON.parse(cachedItemsStr);
 
-        this.onCacheLoaded.dispatch(this.items);
+            this.onCacheLoaded.dispatch(this.items);
+        } catch (err) {
+            console.error(err);
+            console.warn("Cache file corrupted, clearing cache");
+
+            await fs.promises.rm(this.cacheFilePath);
+        }
     }
 
     protected async saveCachedItems() {

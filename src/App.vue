@@ -3,8 +3,9 @@
         <DebugSidebar v-if="!isProduction" />
         <StatusInfo v-if="false" />
         <Background :blur="blurBg" />
-        <IntroVideo v-if="state === 'intro'" @end="onIntroEnd" />
-        <Preloader v-else-if="state === 'preloader'" @loaded="onPreloadDone" />
+        <IntroVideo v-if="state === 'intro'" @complete="onIntroEnd" />
+        <Preloader v-else-if="state === 'preloader'" @complete="onPreloadDone" />
+        <FirstTimeSetup v-else-if="state === 'first-time-setup'" @complete="firstTimeSetupComplete" />
         <template v-else>
             <NavBar :class="{ hidden: empty }" />
             <div :class="`view view--${route.name?.toString()}`">
@@ -21,6 +22,7 @@
 </template>
 
 <script lang="ts" setup>
+import * as fs from "fs";
 import { Ref, TransitionProps } from "vue";
 import { ref } from "vue";
 import { useRouter, useRoute } from "vue-router";
@@ -33,12 +35,13 @@ import IntroVideo from "@/components/misc/IntroVideo.vue";
 import Panel from "@/components/common/Panel.vue";
 import StatusInfo from "./components/battle/StatusInfo.vue";
 import { defaultMaps } from "@/config/default-maps";
+import FirstTimeSetup from "@/components/misc/FirstTimeSetup.vue";
 
 const isProduction = process.env.NODE_ENV === "production";
 
 const router = useRouter();
 const route = useRoute();
-const state: Ref<"intro" | "preloader" | "default"> = ref(api.settings.model.skipIntro.value ? "preloader" : "intro");
+const state: Ref<"intro" | "preloader" | "first-time-setup" | "default"> = ref(api.settings.model.skipIntro.value ? "preloader" : "intro");
 const theme = api.settings.model.theme;
 const empty = ref(false);
 const blurBg = ref(true);
@@ -85,6 +88,14 @@ const onIntroEnd = () => {
 };
 
 const onPreloadDone = () => {
+    if (!fs.existsSync(api.settings.model.dataDir.value)) {
+        state.value = "first-time-setup";
+    } else {
+        state.value = "default";
+    }
+};
+
+const firstTimeSetupComplete = () => {
     state.value = "default";
 };
 

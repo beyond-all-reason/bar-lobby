@@ -35,6 +35,7 @@ import { toRef } from "vue";
 import Textbox from "@/components/inputs/Textbox.vue";
 
 const props = defineProps<{
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     modelValue: Record<string, any>;
     id: string;
     title: string;
