@@ -72,10 +72,8 @@ export class MainWindow {
             if (!process.env.IS_TEST) this.window.webContents.openDevTools();
         } else {
             createProtocol("bar");
-            this.window.loadURL("bar://./index.html");
-            if (process.env.AUTO_UPDATE) {
-                autoUpdater.checkForUpdatesAndNotify();
-            }
+            await this.window.loadURL("bar://./index.html");
+            await autoUpdater.checkForUpdatesAndNotify();
         }
     }
 

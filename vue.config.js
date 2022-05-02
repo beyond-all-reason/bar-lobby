@@ -44,8 +44,13 @@ module.exports = {
                 win: {
                     target: ["nsis", "portable"]
                 },
+                nsis: {
+                    oneClick: false,
+                    perMachine: true,
+                    allowToChangeInstallationDirectory: true
+                },
                 linux: {
-                    target: ["deb", "tar.gz"]
+                    target: ["AppImage", "deb", "tar.gz"]
                 },
                 publish: ["github"],
             },

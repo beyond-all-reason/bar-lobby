@@ -11,7 +11,7 @@
   },
   "scripts": {
     "build": "cross-env NODE_ENV=production vue-cli-service electron:build",
-    "build-publish": "cross-env NODE_ENV=production AUTO_UPDATE=true vue-cli-service electron:build -- -p always",
+    "release": "cross-env NODE_ENV=production vue-cli-service electron:build -- -p always",
     "dev": "vue-cli-service electron:serve",
     "dump-webpack-config": "vue inspect > output.js",
     "electron:build": "vue-cli-service electron:build",
