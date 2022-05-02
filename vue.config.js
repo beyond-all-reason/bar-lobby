@@ -34,7 +34,6 @@ module.exports = {
             customFileProtocol: "bar://./",
             nodeIntegration: true,
             builderOptions: {
-                extends: null,
                 productName: "BAR Lobby",
                 directories: {
                     buildResources: "build"
@@ -58,10 +57,6 @@ module.exports = {
                     target: ["AppImage"],
                     category: "Game"
                 },
-                files: [
-                    "dist_electron/**/*",
-                    "package.json"
-                ],
                 //publish: ["github"],
             },
             chainWebpackRendererProcess: config => {

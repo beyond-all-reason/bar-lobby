@@ -12,12 +12,11 @@
   "main": "index.js",
   "scripts": {
     "dev": "vue-cli-service electron:serve",
-    "build": "cross-env NODE_ENV=production npm run clean-build-dir && vue-cli-service electron:build",
+    "bundle": "cross-env NODE_ENV=production && vue-cli-service electron:build",
     "dump-webpack-config": "vue inspect > output.js",
     "lint": "vue-cli-service lint",
     "postinstall": "electron-builder install-app-deps",
-    "postuninstall": "electron-builder install-app-deps",
-    "clean-build-dir": "rimraf dist_electron"
+    "postuninstall": "electron-builder install-app-deps"
   },
   "devDependencies": {
     "@iconify/json": "^1.1.420",
