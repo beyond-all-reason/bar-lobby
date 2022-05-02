@@ -56,8 +56,7 @@ module.exports = {
                 linux: {
                     target: ["AppImage"],
                     category: "Game"
-                },
-                files: "src/*/**",
+                }
                 //publish: ["github"],
             },
             chainWebpackRendererProcess: config => {
