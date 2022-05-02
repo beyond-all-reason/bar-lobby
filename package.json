@@ -10,15 +10,16 @@
     "url": "git+https://github.com/Jazcash/bar-lobby.git"
   },
   "scripts": {
-    "build": "cross-env NODE_ENV=production vue-cli-service electron:build",
-    "release": "cross-env NODE_ENV=production vue-cli-service electron:build -- -p always",
+    "build": "cross-env NODE_ENV=production npm run clean-build-dir && vue-cli-service electron:build -- --publish never --win --linux",
+    "release": "cross-env NODE_ENV=production npm run clean-build-dir && vue-cli-service electron:build -- --publish always --win --linux",
     "dev": "vue-cli-service electron:serve",
     "dump-webpack-config": "vue inspect > output.js",
     "electron:build": "vue-cli-service electron:build",
     "electron:serve": "vue-cli-service electron:serve",
     "lint": "vue-cli-service lint",
     "postinstall": "electron-builder install-app-deps",
-    "postuninstall": "electron-builder install-app-deps"
+    "postuninstall": "electron-builder install-app-deps",
+    "clean-build-dir": "rimraf dist_electron"
   },
   "dependencies": {
     "@iconify/json": "^1.1.420",
@@ -76,5 +77,8 @@
     "vue3-markdown-it": "^1.0.9",
     "vue3-popper": "^1.4.1",
     "worker-plugin": "^5.0.1"
+  },
+  "devDependencies": {
+    "rimraf": "^3.0.2"
   }
 }
