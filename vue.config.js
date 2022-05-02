@@ -57,7 +57,11 @@ module.exports = {
                 linux: {
                     target: ["AppImage"],
                     category: "Game"
-                }
+                },
+                files: [
+                    "dist_electron/**/*",
+                    "package.json"
+                ],
                 //publish: ["github"],
             },
             chainWebpackRendererProcess: config => {
