@@ -11,7 +11,7 @@
   },
   "scripts": {
     "dev": "vue-cli-service electron:serve",
-    "build": "cross-env NODE_ENV=production npm run clean-build-dir && vue-cli-service electron:build -- --publish never",
+    "build": "cross-env NODE_ENV=production npm run clean-build-dir && vue-cli-service electron:build",
     "dump-webpack-config": "vue inspect > output.js",
     "lint": "vue-cli-service lint",
     "postinstall": "electron-builder install-app-deps",
