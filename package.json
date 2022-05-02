@@ -9,6 +9,7 @@
     "type": "git",
     "url": "git+https://github.com/Jazcash/bar-lobby.git"
   },
+  "main": "index.js",
   "scripts": {
     "dev": "vue-cli-service electron:serve",
     "build": "cross-env NODE_ENV=production npm run clean-build-dir && vue-cli-service electron:build",
