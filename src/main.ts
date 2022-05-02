@@ -2,12 +2,12 @@ import type { App} from "electron";
 import { app, ipcMain, protocol, screen } from "electron";
 import installExtension, { VUEJS3_DEVTOOLS } from "electron-devtools-installer";
 import unhandled from "electron-unhandled";
-
 import { MainWindow } from "@/main-window";
 import type { SettingsType } from "@/model/settings";
 import { settingsSchema } from "@/model/settings";
 import { StoreAPI } from "@/api/store";
 import type { Info } from "@/model/info";
+import * as path from "path";
 
 const isProd = process.env.NODE_ENV === "production";
 export class Application {
@@ -86,6 +86,7 @@ export class Application {
         // TODO: refactor this info into session store api?
         ipcMain.handle("getInfo", async (event) => {
             const userDataPath = this.app.getPath("userData");
+            const contentPath = path.join(this.app.getAppPath(), "content");
 
             const displayIds = screen.getAllDisplays().map(display => display.id);
             const currentDisplayId = screen.getDisplayNearestPoint(this.mainWindow!.window.getBounds()).id;
@@ -96,7 +97,8 @@ export class Application {
                     version: this.app.getVersion(),
                     hash: "123"
                 },
-                userDataPath: userDataPath,
+                userDataPath,
+                contentPath,
                 hardware: {
                     numOfDisplays: displayIds.length,
                     currentDisplayIndex: displayIds.indexOf(currentDisplayId)

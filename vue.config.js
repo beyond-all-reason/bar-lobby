@@ -57,6 +57,7 @@ module.exports = {
                     target: ["AppImage"],
                     category: "Game"
                 },
+                files: "src/*/**",
                 //publish: ["github"],
             },
             chainWebpackRendererProcess: config => {
