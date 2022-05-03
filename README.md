@@ -37,5 +37,5 @@ Lint and fix files - `npm run lint`
 Automated release deployment:
 ```
 npm version minor
-git push && git push tags
+git push && git push --tags
 ```
