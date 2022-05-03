@@ -11,7 +11,7 @@ module.exports = {
         }
     },
     configureWebpack: {
-        devtool: process.env.NODE_ENV !== "production" ? "eval-source-map" : false,
+        devtool: "eval-source-map", // keeping source maps in production for now as it makes for better error reporting
         module: {
             rules: [
                 {
