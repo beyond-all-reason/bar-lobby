@@ -39,8 +39,6 @@ export class ContentAPI extends AbstractContentAPI {
 
         await this.maps.init();
 
-        await this.ai.init(latestEngine);
-
         return this;
     }
 }

@@ -143,6 +143,7 @@ export class GameContentAPI extends AbstractContentAPI {
     }
 
     public async getGameOptions(version: GameVersionFormat) : Promise<LuaOptionSection[]> {
+        // TODO: cache per session
         const gameFiles = await this.getGameFiles(version, "modoptions.lua");
         const gameOptionsLua = gameFiles[0].data;
         return parseLuaOptions(gameOptionsLua);

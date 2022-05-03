@@ -7,7 +7,7 @@
                 {{ name }}
             </div>
         </div>
-        <LuaOptionsModal v-if="participant.type === 'bot'" :id="`configure-bot-${participant.name}`" :model-value="participant.aiOptions" title="Configure Bot" :sections="aiOptionsDefinitions" @update:model-value="aiOptionsUpdated" />
+        <LuaOptionsModal v-if="participant.type === 'bot'" :id="`configure-bot-${participant.name}`" :model-value="participant.aiOptions" title="Configure Bot" :sections="aiOptions" @update:model-value="aiOptionsUpdated" />
     </ContextMenu>
 </template>
 
@@ -15,8 +15,9 @@
 import ContextMenu, { ContextMenuEntry } from "@/components/common/ContextMenu.vue";
 import Icon from "@/components/common/Icon.vue";
 import { Bot, Player, Spectator } from "@/model/battle/participants";
-import { computed, onUnmounted, ref, toRef } from "vue";
+import { computed, onUnmounted, Ref, ref, toRef } from "vue";
 import LuaOptionsModal from "@/components/battle/LuaOptionsModal.vue";
+import { LuaOptionSection } from "@/model/lua-options";
 
 const props = defineProps<{
     participant: Player | Bot | Spectator
@@ -44,13 +45,7 @@ const name = computed(() => {
 
 const icon = computed(() => props.participant.type === "bot" ? "robot" : "account");
 const countryCode = ref("");
-const aiOptionsDefinitions = computed(() => {
-    if (props.participant.type === "bot") {
-        const ai = api.content.ai.getAi(battle.battleOptions.engineVersion, props.participant.aiShortName);
-        return ai?.options ?? [];
-    }
-    return [];
-});
+const aiOptions: Ref<LuaOptionSection[]> = ref([]);
 
 const viewProfile = (player: Player) => {
     //
@@ -80,7 +75,9 @@ const kickAi = (bot: Bot) => {
     battle.removeParticipant(bot);
 };
 
-const configureAi = (bot: Bot) => {
+const configureAi = async (bot: Bot) => {
+    const ai = await api.content.ai.getAi(battle.battleOptions.engineVersion, bot.aiShortName);
+    aiOptions.value = ai.options;
     api.modals.open(`configure-bot-${bot.name}`);
 };
 

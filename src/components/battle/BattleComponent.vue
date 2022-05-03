@@ -50,7 +50,7 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, onMounted, Ref, ref, watch } from "vue";
+import { computed, Ref, ref } from "vue";
 import Button from "@/components/inputs/Button.vue";
 import MapPreview from "@/components/battle/MapPreview.vue";
 import Select from "@/components/inputs/Select.vue";
@@ -85,13 +85,8 @@ const games = computed(() => api.content.game.installedVersions.map(rapidVersion
 const selectedGame = ref(lastInArray(games.value)!);
 
 const gameOptions: Ref<LuaOptionSection[]> = ref([]);
-onMounted(async () => {
+const openGameOptions = async () => {
     gameOptions.value = await api.content.game.getGameOptions(battle.battleOptions.gameVersion);
-});
-watch(() => battle.battleOptions.gameVersion, async () => {
-    gameOptions.value = await api.content.game.getGameOptions(battle.battleOptions.gameVersion);
-});
-const openGameOptions = () => {
     api.modals.open("game-options");
 };
 
