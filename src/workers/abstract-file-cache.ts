@@ -101,8 +101,8 @@ export abstract class AbstractFileCache<T> {
 
             this.onCacheLoaded.dispatch(this.items);
         } catch (err) {
-            console.error(err);
-            console.warn("Cache file corrupted, clearing cache");
+            console.warn(err);
+            console.warn(`Cache file corrupted, clearing cache: ${this.cacheFilePath}`);
 
             await fs.promises.rm(this.cacheFilePath);
         }

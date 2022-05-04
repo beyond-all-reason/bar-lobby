@@ -5,7 +5,6 @@
         <Background :blur="blurBg" />
         <IntroVideo v-if="state === 'intro'" @complete="onIntroEnd" />
         <Preloader v-else-if="state === 'preloader'" @complete="onPreloadDone" />
-        <FirstTimeSetup v-else-if="state === 'first-time-setup'" @complete="firstTimeSetupComplete" />
         <template v-else>
             <NavBar :class="{ hidden: empty }" />
             <div :class="`view view--${route.name?.toString()}`">
@@ -22,7 +21,6 @@
 </template>
 
 <script lang="ts" setup>
-import * as fs from "fs";
 import { Ref, TransitionProps } from "vue";
 import { ref } from "vue";
 import { useRouter, useRoute } from "vue-router";
@@ -34,8 +32,6 @@ import { playRandomMusic } from "@/utils/play-random-music";
 import IntroVideo from "@/components/misc/IntroVideo.vue";
 import Panel from "@/components/common/Panel.vue";
 import StatusInfo from "./components/battle/StatusInfo.vue";
-import { defaultMaps } from "@/config/default-maps";
-import FirstTimeSetup from "@/components/misc/FirstTimeSetup.vue";
 
 const isProduction = process.env.NODE_ENV === "production";
 
@@ -88,20 +84,11 @@ const onIntroEnd = () => {
 };
 
 const onPreloadDone = () => {
-    if (!fs.existsSync(api.settings.model.dataDir.value)) {
-        state.value = "first-time-setup";
-    } else {
-        state.value = "default";
-    }
-};
-
-const firstTimeSetupComplete = () => {
     state.value = "default";
-};
 
-api.content.engine.downloadLatestEngine();
-api.content.game.updateGame();
-api.content.maps.downloadMaps(defaultMaps);
+    api.content.engine.downloadLatestEngine();
+    api.content.game.updateGame();
+};
 
 router.replace("/");
 

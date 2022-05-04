@@ -1,8 +1,9 @@
 <template>
     <div class="fullsize flex-center">
         <Progress v-if="loadedPercent < 1" :percent="loadedPercent" :height="40" style="width: 70%" />
-        <div v-else class="flex-center">
-            <h1>Installing</h1>
+        <div v-else-if="downloadPercent < 1" class="flex-center">
+            <h1>First time setup</h1>
+            <h4>Installing {{ installStage }}</h4>
             <h4>
                 {{ (downloadPercent * 100).toFixed(0) }}%
             </h4>
@@ -11,8 +12,9 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, onMounted, ref, watch } from "vue";
-import { randomFromArray } from "jaz-ts-utils";
+import * as path from "path";
+import { computed, onMounted, ref } from "vue";
+import { lastInArray, randomFromArray } from "jaz-ts-utils";
 import Progress from "@/components/common/Progress.vue";
 import { defaultMaps } from "@/config/default-maps";
 
@@ -24,6 +26,8 @@ const loadedPercent = computed(() => loadedFiles.value / totalFiles.value);
 
 const imageFiles = require.context("@/assets/images/", true).keys();
 const fontFiles = require.context("@/assets/fonts/", true).keys();
+
+const installStage = ref("");
 
 totalFiles.value = imageFiles.length + fontFiles.length;
 
@@ -42,14 +46,29 @@ onMounted(async () => {
         loadedFiles.value++;
     }
 
+    await api.content.engine.init();
     const anyEngineInstalled = api.content.engine.installedVersions.length > 0;
-    const anyGameInstalled = api.content.game.installedVersions.length > 0;
-    const defaultMapsInstalled = defaultMaps.every(map => api.content.maps.installedMaps[map]);
-
-    if ((anyEngineInstalled && anyGameInstalled && defaultMapsInstalled) || downloadPercent.value >= 1) {
-        console.log("All default content installed, skipping initial install");
-        emit("complete");
+    if (!anyEngineInstalled) {
+        installStage.value = "Engine";
+        await api.content.engine.downloadLatestEngine();
     }
+
+    const latestEngine = lastInArray(api.content.engine.installedVersions)!;
+    const binaryName = process.platform === "win32" ? "pr-downloader.exe" : "pr-downloader";
+    const prBinaryPath = path.join(api.settings.model.dataDir.value, "engine", latestEngine, binaryName);
+    await api.content.game.init(prBinaryPath);
+    const anyGameInstalled = api.content.game.installedVersions.length > 0;
+    if (!anyGameInstalled) {
+        installStage.value = "Game";
+        await api.content.game.updateGame();
+    }
+
+    await api.content.maps.init();
+
+    installStage.value = "Default Maps";
+    await api.content.maps.downloadMaps(defaultMaps);
+
+    emit("complete");
 });
 
 async function loadFont(url: string) {
@@ -87,6 +106,8 @@ const downloadPercent = computed(() => {
         return 1;
     }
 
+    console.log(downloads);
+
     let currentBytes = 0;
     let totalBytes = 0;
 
@@ -96,12 +117,5 @@ const downloadPercent = computed(() => {
     }
 
     return (currentBytes / totalBytes) || 0;
-});
-
-watch(downloadPercent, (value) => {
-    if (value >= 1 && loadedPercent.value >= 1) {
-        console.log("All downloads complete");
-        emit("complete");
-    }
 });
 </script>

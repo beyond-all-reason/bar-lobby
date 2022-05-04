@@ -23,7 +23,10 @@ export class MapContentAPI extends AbstractContentAPI {
         this.mapCache = new MapCacheWorkerHost(new Worker(new URL("../../workers/map-cache-worker.ts", import.meta.url), { type: "module" }));
     }
 
+    // TODO: this should await for map cache to be loaded
     public async init() {
+        await fs.promises.mkdir(this.mapsPath, { recursive: true });
+
         const mapFilenames = await this.getInstalledMapFilenames();
         for (const mapFilename of mapFilenames) {
             this.installedMaps[mapFilename] = null;

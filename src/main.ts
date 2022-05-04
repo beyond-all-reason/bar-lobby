@@ -7,7 +7,6 @@ import type { SettingsType } from "@/model/settings";
 import { settingsSchema } from "@/model/settings";
 import { StoreAPI } from "@/api/store";
 import type { Info } from "@/model/info";
-import * as path from "path";
 
 const isProd = process.env.NODE_ENV === "production";
 export class Application {
@@ -86,7 +85,7 @@ export class Application {
         // TODO: refactor this info into session store api?
         ipcMain.handle("getInfo", async (event) => {
             const userDataPath = this.app.getPath("userData");
-            const contentPath = path.join(this.app.getAppPath(), "content");
+            const appPath = this.app.getAppPath();
 
             const displayIds = screen.getAllDisplays().map(display => display.id);
             const currentDisplayId = screen.getDisplayNearestPoint(this.mainWindow!.window.getBounds()).id;
@@ -98,7 +97,7 @@ export class Application {
                     hash: "123"
                 },
                 userDataPath,
-                contentPath,
+                appPath,
                 hardware: {
                     numOfDisplays: displayIds.length,
                     currentDisplayIndex: displayIds.indexOf(currentDisplayId)
