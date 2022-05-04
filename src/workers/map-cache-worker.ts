@@ -133,7 +133,11 @@ worker.on("cache-maps").add(async () => {
 });
 
 worker.on("cache-map").add(async (filename: string) => {
-    await mapCache.cacheItem(filename);
+    try {
+        await mapCache.cacheItem(filename);
+    } catch (err) {
+        console.warn(err);
+    }
 });
 
 worker.on("clear-map").add(async (filename: string) => {
