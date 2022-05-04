@@ -1,7 +1,7 @@
 <template>
     <div class="fullsize flex-center">
-        <Progress v-if="loadedPercent < 1" :percent="loadedPercent" :height="40" style="width: 70%" />
-        <div v-else-if="downloadPercent < 1" class="flex-center">
+        <Progress v-if="loadedPercent <= 1" :percent="loadedPercent" :height="40" style="width: 70%" />
+        <div v-else class="flex-center">
             <h1>First time setup</h1>
             <h4>Installing {{ installStage }}</h4>
             <h4>
