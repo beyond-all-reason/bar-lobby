@@ -3,24 +3,28 @@
         <DebugSidebar v-if="!isProduction" />
         <StatusInfo v-if="false" />
         <Background :blur="blurBg" />
-        <IntroVideo v-if="state === 'intro'" @complete="onIntroEnd" />
-        <Preloader v-else-if="state === 'preloader'" @complete="onPreloadDone" />
-        <template v-else>
-            <NavBar :class="{ hidden: empty }" />
-            <div :class="`view view--${route.name?.toString()}`">
-                <Panel :class="{ hidden: empty }">
-                    <router-view v-slot="{ Component }">
-                        <transition mode="out-in" v-bind="currentTransition" :style="`--enter-duration: ${transitionDurationEnterMs}ms; --leave-duration: ${transitionDurationLeaveMs}ms;`" @after-leave="afterLeave">
-                            <component :is="Component" />
-                        </transition>
-                    </router-view>
-                </Panel>
+        <transition mode="out-in" name="fade">
+            <IntroVideo v-if="state === 'intro'" @complete="onIntroEnd" />
+            <Preloader v-else-if="state === 'preloader'" @complete="onPreloadDone" />
+            <InitialSetup v-else-if="state === 'initial-setup'" @complete="onInitialSetupDone" />
+            <div v-else class="fullsize">
+                <NavBar :class="{ hidden: empty }" />
+                <div :class="`view view--${route.name?.toString()}`">
+                    <Panel :class="{ hidden: empty }">
+                        <router-view v-slot="{ Component }">
+                            <transition mode="out-in" v-bind="currentTransition" :style="`--enter-duration: ${transitionDurationEnterMs}ms; --leave-duration: ${transitionDurationLeaveMs}ms;`" @after-leave="afterLeave">
+                                <component :is="Component" />
+                            </transition>
+                        </router-view>
+                    </Panel>
+                </div>
             </div>
-        </template>
+        </transition>
     </div>
 </template>
 
 <script lang="ts" setup>
+import * as path from "path";
 import { Ref, TransitionProps } from "vue";
 import { ref } from "vue";
 import { useRouter, useRoute } from "vue-router";
@@ -32,12 +36,15 @@ import { playRandomMusic } from "@/utils/play-random-music";
 import IntroVideo from "@/components/misc/IntroVideo.vue";
 import Panel from "@/components/common/Panel.vue";
 import StatusInfo from "./components/battle/StatusInfo.vue";
+import InitialSetup from "@/components/misc/InitialSetup.vue";
+import { lastInArray } from "jaz-ts-utils";
+import { defaultMaps } from "@/config/default-maps";
 
 const isProduction = process.env.NODE_ENV === "production";
 
 const router = useRouter();
 const route = useRoute();
-const state: Ref<"intro" | "preloader" | "first-time-setup" | "default"> = ref(api.settings.model.skipIntro.value ? "preloader" : "intro");
+const state: Ref<"intro" | "preloader" | "initial-setup" | "default"> = ref(api.settings.model.skipIntro.value ? "preloader" : "intro");
 const theme = api.settings.model.theme;
 const empty = ref(false);
 const blurBg = ref(true);
@@ -79,15 +86,37 @@ const setTransitionDuration = (transition: TransitionProps) => {
 };
 
 const onIntroEnd = () => {
-    playRandomMusic();
     state.value = "preloader";
 };
 
-const onPreloadDone = () => {
-    state.value = "default";
+const onPreloadDone = async () => {
+    await api.content.engine.init();
 
-    api.content.engine.downloadLatestEngine();
-    api.content.game.updateGame();
+    if (api.content.engine.installedVersions.length === 0) {
+        state.value = "initial-setup";
+    } else {
+        await api.content.engine.init();
+
+        const latestEngine = lastInArray(api.content.engine.installedVersions)!;
+        const binaryName = process.platform === "win32" ? "pr-downloader.exe" : "pr-downloader";
+        const prBinaryPath = path.join(api.settings.model.dataDir.value, "engine", latestEngine, binaryName);
+        await api.content.game.init(prBinaryPath);
+
+        await api.content.maps.init();
+
+        api.content.engine.downloadLatestEngine();
+        api.content.game.updateGame();
+        api.content.maps.downloadMaps(defaultMaps);
+
+        state.value = "default";
+
+        playRandomMusic();
+    }
+};
+
+const onInitialSetupDone = () => {
+    state.value = "default";
+    playRandomMusic();
 };
 
 router.replace("/");

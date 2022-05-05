@@ -8,6 +8,7 @@ export enum Theme {
     Flow = "Flow"
 }
 
+// TODO: eventually content dir should be shared with the installation dir
 let defaultDataDir = "";
 if (process.platform === "win32") {
     defaultDataDir = path.join(os.homedir(), "Documents", "My Games", "Spring");
