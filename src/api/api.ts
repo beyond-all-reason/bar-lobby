@@ -1,4 +1,6 @@
 import * as fs from "fs";
+import * as path from "path";
+import * as os from "os";
 import { TachyonClient } from "tachyon-client";
 import { AudioAPI } from "@/api/audio";
 import { ContentAPI } from "@/api/content/content";
@@ -14,7 +16,7 @@ import { ipcRenderer } from "electron";
 import type { Info } from "@/model/info";
 import { tachyonLog } from "@/utils/tachyon-log";
 import { Battle } from "@/model/battle/battle";
-import { defaultBattle } from "@/config/default-battle";
+import { BattleOptions } from "@/model/battle/types";
 
 interface API {
     info: Info;
@@ -43,6 +45,14 @@ export async function apiInit() {
     api.info = await ipcRenderer.invoke("getInfo");
 
     api.settings = await new StoreAPI<SettingsType>("settings", settingsSchema, true).init();
+
+    if (!fs.existsSync(api.settings.model.dataDir.value)) {
+        if (process.platform === "win32") {
+            api.settings.model.dataDir.value = path.join(os.homedir(), "Documents", "My Games", "Beyond All Reason");
+        } else if (process.platform === "linux") {
+            api.settings.model.dataDir.value = path.join(os.homedir(), ".beyond-all-reason");
+        }
+    }
 
     await fs.promises.mkdir(api.settings.model.dataDir.value, { recursive: true });
 
@@ -77,7 +87,10 @@ export async function apiInit() {
 
     api.content = await new ContentAPI(userDataDir, dataDir).init();
 
-    api.battle = new Battle(defaultBattle());
+    api.battle = new Battle({
+        battleOptions: {} as BattleOptions,
+        participants: []
+    });
     // reactive(createDeepProxy(new Battle(defaultBattle()), (breadcrumb) => {
     //     const currentBattle = this.currentBattle;
 

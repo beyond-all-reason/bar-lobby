@@ -4,7 +4,7 @@ import * as zlib from "zlib";
 import axios from "axios";
 import { Octokit } from "octokit";
 import { spawn } from "child_process";
-import { BufferStream, lastInArray, removeFromArray } from "jaz-ts-utils";
+import { BufferStream, removeFromArray } from "jaz-ts-utils";
 import type { Message, ProgressMessage, RapidVersion } from "@/model/pr-downloader";
 import { DownloadType } from "@/model/pr-downloader";
 import { AbstractContentAPI } from "@/api/content/abstract-content-api";
@@ -53,10 +53,11 @@ export class GameContentAPI extends AbstractContentAPI {
     public async updateGame() {
         this.updateVersionMap();
 
-        if (this.installedVersions.includes(lastInArray(this.installedVersions)!)) {
-            console.log(`Latest game version already installed: ${lastInArray(this.installedVersions)!.version.fullString}`);
-            return;
-        }
+        // TODO: removing this for now as interrupted downloads can cause issues
+        // if (this.installedVersions.includes(lastInArray(this.installedVersions)!)) {
+        //     console.log(`Latest game version already installed: ${lastInArray(this.installedVersions)!.version.fullString}`);
+        //     return;
+        // }
 
         return new Promise<void>(resolve => {
             const prDownloaderProcess = spawn(`${this.prBinaryPath}`, [
@@ -143,6 +144,7 @@ export class GameContentAPI extends AbstractContentAPI {
     }
 
     public async getGameOptions(version: GameVersionFormat) : Promise<LuaOptionSection[]> {
+        // TODO: cache per session
         const gameFiles = await this.getGameFiles(version, "modoptions.lua");
         const gameOptionsLua = gameFiles[0].data;
         return parseLuaOptions(gameOptionsLua);

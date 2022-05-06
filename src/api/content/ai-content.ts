@@ -9,16 +9,12 @@ import { reactive } from "vue";
 import { parseLuaOptions } from "@/utils/parse-lua-options";
 
 export class AiContentAPI extends AbstractContentAPI {
-    public installedAis: Record<EngineVersionFormat, AI[]> = reactive({});
+    protected readonly installedAis: Record<EngineVersionFormat, AI[]> = reactive({});
 
-    public async init(latestEngine: EngineVersionFormat) {
-        await this.getAis(latestEngine);
-    }
-
-    public async getAis(engine: EngineVersionFormat) : Promise<AI[]> {
+    public async processAis(engine: EngineVersionFormat) : Promise<void> {
         const ai = this.installedAis[engine];
         if (ai !== undefined) {
-            return ai;
+            return;
         }
 
         const ais: AI[] = [];
@@ -35,12 +31,17 @@ export class AiContentAPI extends AbstractContentAPI {
         }
 
         this.installedAis[engine] = ais;
-
-        return ais;
     }
 
-    public getAi(engine: EngineVersionFormat, shortName: string) {
-        return this.installedAis[engine].find(ai => ai.shortName === shortName);
+    public async getAi(engine: EngineVersionFormat, shortName: string) : Promise<AI> {
+        const ai = this.installedAis[engine]?.find(ai => ai.shortName === shortName);
+        if (!ai) {
+            await this.processAis(engine);
+
+            return this.getAi(engine, shortName);
+        }
+
+        return ai;
     }
 
     protected async fetchAi(aiDirPath: string) : Promise<AI> {

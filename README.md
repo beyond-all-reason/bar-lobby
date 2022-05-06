@@ -30,6 +30,12 @@ Project setup - `npm install`
 
 Compile and hot-reload for development - `npm run dev`
 
-Compile and minify for production - `npm run build`
+Compile and minify for production - `npm run bundle`
 
 Lint and fix files - `npm run lint`
+
+Automated release deployment:
+```
+npm version minor
+git push && git push --tags
+```

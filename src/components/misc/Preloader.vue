@@ -1,20 +1,13 @@
 <template>
     <div class="fullsize flex-center">
-        <Progress v-if="loadedPercent < 1" :percent="loadedPercent" :height="40" style="width: 70%" />
-        <div v-else class="flex-center">
-            <h1>Installing</h1>
-            <h4>
-                {{ (downloadPercent * 100).toFixed(0) }}%
-            </h4>
-        </div>
+        <Progress :percent="loadedPercent" :height="40" style="width: 70%" />
     </div>
 </template>
 
 <script lang="ts" setup>
-import { computed, onMounted, ref, watch } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { randomFromArray } from "jaz-ts-utils";
 import Progress from "@/components/common/Progress.vue";
-import { defaultMaps } from "@/config/default-maps";
 
 const emit = defineEmits(["complete"]);
 
@@ -42,14 +35,29 @@ onMounted(async () => {
         loadedFiles.value++;
     }
 
-    const anyEngineInstalled = api.content.engine.installedVersions.length > 0;
-    const anyGameInstalled = api.content.game.installedVersions.length > 0;
-    const defaultMapsInstalled = defaultMaps.every(map => api.content.maps.installedMaps[map]);
+    // await api.content.engine.init();
+    // const anyEngineInstalled = api.content.engine.installedVersions.length > 0;
+    // if (!anyEngineInstalled) {
+    //     installStage.value = "Engine";
+    //     await api.content.engine.downloadLatestEngine();
+    // }
 
-    if ((anyEngineInstalled && anyGameInstalled && defaultMapsInstalled) || downloadPercent.value >= 1) {
-        console.log("All default content installed, skipping initial install");
-        emit("complete");
-    }
+    // const latestEngine = lastInArray(api.content.engine.installedVersions)!;
+    // const binaryName = process.platform === "win32" ? "pr-downloader.exe" : "pr-downloader";
+    // const prBinaryPath = path.join(api.settings.model.dataDir.value, "engine", latestEngine, binaryName);
+    // await api.content.game.init(prBinaryPath);
+    // const anyGameInstalled = api.content.game.installedVersions.length > 0;
+    // if (!anyGameInstalled) {
+    //     installStage.value = "Game";
+    //     await api.content.game.updateGame();
+    // }
+
+    // await api.content.maps.init();
+
+    // installStage.value = "Default Maps";
+    // await api.content.maps.downloadMaps(defaultMaps);
+
+    emit("complete");
 });
 
 async function loadFont(url: string) {
@@ -80,28 +88,23 @@ function loadImage(url: string) {
     });
 }
 
-const downloadPercent = computed(() => {
-    const downloads = api.content.engine.currentDownloads.concat(api.content.game.currentDownloads, api.content.maps.currentDownloads);
+// const downloadPercent = computed(() => {
+//     const downloads = api.content.engine.currentDownloads.concat(api.content.game.currentDownloads, api.content.maps.currentDownloads);
 
-    if (downloads.length === 0) {
-        return 1;
-    }
+//     if (downloads.length === 0) {
+//         return 1;
+//     }
 
-    let currentBytes = 0;
-    let totalBytes = 0;
+//     console.log(downloads);
 
-    for (const download of downloads) {
-        currentBytes += download.currentBytes;
-        totalBytes += download.totalBytes;
-    }
+//     let currentBytes = 0;
+//     let totalBytes = 0;
 
-    return (currentBytes / totalBytes) || 0;
-});
+//     for (const download of downloads) {
+//         currentBytes += download.currentBytes;
+//         totalBytes += download.totalBytes;
+//     }
 
-watch(downloadPercent, (value) => {
-    if (value >= 1 && loadedPercent.value >= 1) {
-        console.log("All downloads complete");
-        emit("complete");
-    }
-});
+//     return (currentBytes / totalBytes) || 0;
+// });
 </script>

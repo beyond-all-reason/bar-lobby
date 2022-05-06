@@ -18,6 +18,7 @@ export class EngineContentAPI extends AbstractContentAPI {
 
     public async init() {
         const engineDir = path.join(this.dataDir, "engine");
+        await fs.promises.mkdir(engineDir, { recursive: true });
         const engineDirs = await fs.promises.readdir(engineDir);
 
         for (const dir of engineDirs) {
