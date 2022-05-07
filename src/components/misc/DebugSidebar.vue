@@ -6,7 +6,7 @@
             </Button>
         </div>
         <Select v-model="currentRoute" label="View" :options="routes" :label-by="(route: any) => route.path" :value-by="(route: any) => route.path" full-width :searchable="true" :clear-on-select="true" />
-        <Button to="/debug/inputs" :flex-grow="false" full-width>
+        <Button to="/debug/playground" :flex-grow="false" full-width>
             Debug Playground
         </Button>
         <Button :flex-grow="false" full-width @click="openSettings">

@@ -140,7 +140,7 @@ export default [
     component: debug_inputs,
     meta: {
       title: 'Inputs',
-      order: 0,
+      order: 1,
     },
   },
   {
@@ -149,7 +149,7 @@ export default [
     component: debug_playground,
     meta: {
       title: 'Playground',
-      order: 1,
+      order: 0,
     },
   },
   {

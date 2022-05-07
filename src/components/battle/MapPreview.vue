@@ -139,7 +139,7 @@ function loadImage(url: string) {
     return new Promise<HTMLImageElement>(resolve => {
         const img = new Image();
         img.onload = () => resolve(img);
-        img.src = url;
+        img.src = `file://${url}`;
     });
 }
 

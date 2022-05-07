@@ -1,16 +1,10 @@
-<route lang="json">{ "meta": { "title": "Playground", "order": 1 } }</route>
+<route lang="json">{ "meta": { "title": "Playground", "order": 0 } }</route>
 
 <template>
     <div>
-        <div>Playground</div>
-        <Checkbox :model-value="test" @update:model-value="(value) => test = value" />
-        {{ test }}
+        <img src="file://C:\Users\jaspe\Documents\My Games\Beyond All Reason\map-images\red_comet_remake_1.8-texture.jpg">
     </div>
 </template>
 
 <script lang="ts" setup>
-import Checkbox from "@/components/inputs/Checkbox.vue";
-import { ref } from "vue";
-
-const test = ref(true);
 </script>
