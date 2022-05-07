@@ -31,33 +31,13 @@ export class GameContentAPI extends AbstractContentAPI {
     public async init(prBinaryPath: string) {
         this.prBinaryPath = prBinaryPath;
 
-        await this.updateVersionMap();
-
-        const packagesDir = path.join(this.dataDir, "packages");
-        if (fs.existsSync(packagesDir)) {
-            const sdpFilePaths = await fs.promises.readdir(packagesDir);
-            for (const sdpFilePath of sdpFilePaths) {
-                const md5 = sdpFilePath.split(".")[0];
-                if (this.md5ToRapidVersionMap[md5]) {
-                    this.installedVersions.push(this.md5ToRapidVersionMap[md5]);
-                }
-            }
-            this.installedVersions.sort((a, b) => {
-                return a.version.revision - b.version.revision;
-            });
-        }
+        await this.updateVersions();
 
         return this;
     }
 
     public async updateGame() {
-        this.updateVersionMap();
-
-        // TODO: removing this for now as interrupted downloads can cause issues
-        // if (this.installedVersions.includes(lastInArray(this.installedVersions)!)) {
-        //     console.log(`Latest game version already installed: ${lastInArray(this.installedVersions)!.version.fullString}`);
-        //     return;
-        // }
+        await this.updateVersions();
 
         return new Promise<void>(resolve => {
             const prDownloaderProcess = spawn(`${this.prBinaryPath}`, [
@@ -95,14 +75,15 @@ export class GameContentAPI extends AbstractContentAPI {
                 console.error(data.toString());
             });
 
-            prDownloaderProcess.on("close", () => {
+            prDownloaderProcess.on("close", async () => {
                 removeFromArray(this.currentDownloads, download);
+                await this.updateVersions();
                 resolve();
             });
         });
     }
 
-    public async updateVersionMap() {
+    public async updateVersions() {
         const response = await axios({
             url: `${contentSources.rapid.host}/${contentSources.rapid.game}/versions.gz`,
             method: "GET",
@@ -118,6 +99,20 @@ export class GameContentAPI extends AbstractContentAPI {
             const [ tag, md5, _, version ] = versionLine.split(",");
             this.md5ToRapidVersionMap[md5] = { tag, md5, version: parseGameVersionString(version) };
         });
+
+        const packagesDir = path.join(this.dataDir, "packages");
+        if (fs.existsSync(packagesDir)) {
+            const sdpFilePaths = await fs.promises.readdir(packagesDir);
+            for (const sdpFilePath of sdpFilePaths) {
+                const md5 = sdpFilePath.split(".")[0];
+                if (this.md5ToRapidVersionMap[md5] && !this.installedVersions.find(version => version.md5 === md5)) {
+                    this.installedVersions.push(this.md5ToRapidVersionMap[md5]);
+                }
+            }
+            this.installedVersions.sort((a, b) => {
+                return a.version.revision - b.version.revision;
+            });
+        }
     }
 
     /**
