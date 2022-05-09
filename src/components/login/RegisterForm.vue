@@ -40,7 +40,7 @@ const validatePassword = (value: string) => {
 const register = async () => {
     loading.value = true;
 
-    const registerResponse = await api.client.register({ email: email.value, username: username.value, password: password.value });
+    const registerResponse = await api.client.request("c.auth.register", { email: email.value, username: username.value, password: password.value });
 
     if (registerResponse.result === "success") {
         api.account.model.email.value = email.value;

@@ -21,7 +21,7 @@ const router = useRouter();
 const logout = async () => {
     api.account.model.token.value = "";
     try {
-        await api.client.disconnect();
+        await api.client.request("c.auth.disconnect", {});
     } catch (err) {
         console.error(err);
     }

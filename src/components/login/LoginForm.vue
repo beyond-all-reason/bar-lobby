@@ -62,13 +62,13 @@ watch(api.account.model.email, () => email.value = api.account.model.email.value
 const login = async () => {
     loading.value = true;
 
-    const tokenResponse = await api.client.getToken({ email: email.value, password: password.value });
+    const tokenResponse = await api.client.request("c.auth.get_token", { email: email.value, password: password.value });
 
     if (tokenResponse.result === "success" && tokenResponse.token) {
         api.account.model.email.value = email.value;
         api.account.model.token.value = tokenResponse.token;
 
-        const loginResponse = await api.client.login({
+        const loginResponse = await api.client.request("c.auth.login", {
             token: api.account.model.token.value,
             lobby_name: api.info.lobby.name,
             lobby_version: api.info.lobby.version,
@@ -99,7 +99,7 @@ const login = async () => {
 const verify = async () => {
     loading.value = true;
 
-    const verifyResult = await api.client.verify({ token: api.account.model.token.value, code: verificationCode.value });
+    const verifyResult = await api.client.request("c.auth.verify", { token: api.account.model.token.value, code: verificationCode.value });
 
     if (verifyResult.result === "success") {
         if (verifyResult.user) {

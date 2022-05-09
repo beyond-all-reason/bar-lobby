@@ -1,6 +1,6 @@
 import * as fs from "fs";
 import * as path from "path";
-import type { EngineVersionFormat} from "@/model/formats";
+import { EngineVersionFormat, gitEngineTagToEngineVersionString} from "@/model/formats";
 import { isEngineVersionString } from "@/model/formats";
 import { extract7z } from "@/utils/extract7z";
 import axios from "axios";
@@ -35,12 +35,12 @@ export class EngineContentAPI extends AbstractContentAPI {
     public async downloadLatestEngine(includePrerelease = true) : Promise<EngineVersionFormat> {
         const latestEngineRelease = await this.getLatestEngineReleaseInfo();
 
-        if (lastInArray(this.installedVersions) === this.engineTagNameToVersionString(latestEngineRelease.tag_name)) {
+        if (lastInArray(this.installedVersions) === gitEngineTagToEngineVersionString(latestEngineRelease.tag_name)) {
             console.log(`Latest engine version already installed: ${lastInArray(this.installedVersions)}`);
             return lastInArray(this.installedVersions)!;
         }
 
-        const engineVersionString = this.engineTagNameToVersionString(latestEngineRelease.tag_name);
+        const engineVersionString = gitEngineTagToEngineVersionString(latestEngineRelease.tag_name);
 
         const archStr = process.platform === "win32" ? "windows" : "linux";
         const asset = latestEngineRelease.assets.find(asset => asset.name.includes(archStr) && asset.name.includes("portable"));
@@ -123,7 +123,7 @@ export class EngineContentAPI extends AbstractContentAPI {
 
     public async isLatestEngineVersionInstalled() {
         const latestEngineVersion = await this.getLatestEngineReleaseInfo();
-        const engineTag = this.engineTagNameToVersionString(latestEngineVersion.tag_name);
+        const engineTag = gitEngineTagToEngineVersionString(latestEngineVersion.tag_name);
 
         return this.isEngineVersionInstalled(engineTag);
     }
@@ -131,21 +131,6 @@ export class EngineContentAPI extends AbstractContentAPI {
     // arg format should match dir name, e.g. BAR-105.1.1-809-g3f69f26
     public async isEngineVersionInstalled(engineTag: EngineVersionFormat) {
         return fs.existsSync(path.join(this.dataDir, "engine", engineTag));
-    }
-
-    // spring_bar_{BAR105}105.1.1-807-g98b14ce -> BAR-105.1.1-809-g3f69f26
-    protected engineTagNameToVersionString(tagName: string) : EngineVersionFormat {
-        try {
-            const versionString = `BAR-${tagName.split("}")[1]}`;
-            if (isEngineVersionString(versionString)) {
-                return versionString;
-            } else {
-                throw new Error();
-            }
-        } catch (err) {
-            console.error(err);
-            throw new Error("Couldn't parse engine version string from tag name");
-        }
     }
 
     protected isVersionGreater(a: EngineVersionFormat, b: EngineVersionFormat) : boolean {

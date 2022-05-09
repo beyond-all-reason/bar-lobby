@@ -1,6 +1,6 @@
-import type { ServerCommandType } from "tachyon-client";
+import type { ResponseType } from "tachyon-client";
 
-type UserData = NonNullable<ServerCommandType<"s.auth.verify">["user"] & ServerCommandType<"s.auth.login">["user"]>;
+type UserData = NonNullable<ResponseType<"s.auth.verify">["user"] & ResponseType<"s.auth.login">["user"]>;
 
 export function storeUserSession(user?: UserData) {
     if (!user) {

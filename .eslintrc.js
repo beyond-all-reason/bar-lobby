@@ -42,8 +42,6 @@ module.exports = {
         "@typescript-eslint/quotes": ["error"],
         "@typescript-eslint/semi": ["error"],
         "@typescript-eslint/indent": ["error"],
-        // "@typescript-eslint/no-explicit-any": "off",
-        // "@typescript-eslint/no-var-requires": "off",
         "@typescript-eslint/explicit-module-boundary-types": "off",
         "@typescript-eslint/no-unused-vars": "off",
         "@typescript-eslint/no-non-null-assertion": "off",
