@@ -9,13 +9,16 @@
             <InitialSetup v-else-if="state === 'initial-setup'" @complete="onInitialSetupDone" />
             <div v-else class="fullsize">
                 <NavBar :class="{ hidden: empty }" />
-                <div :class="`view view--${route.name?.toString()}`">
+                <div :class="`view view--${routeKey}`">
                     <Panel :class="{ hidden: empty }">
                         <router-view v-slot="{ Component }">
-                            <transition mode="out-in" v-bind="currentTransition" :style="`--enter-duration: ${transitionDurationEnterMs}ms; --leave-duration: ${transitionDurationLeaveMs}ms;`" @after-leave="afterLeave">
+                            <transition mode="out-in" v-bind="currentTransition" :style="`--enter-duration: ${transitionDurationEnterMs}ms; --leave-duration: ${transitionDurationLeaveMs}ms;`" @after-leave="transitionAfterLeave" @enter="transitionEnter">
                                 <component :is="Component" />
                             </transition>
                         </router-view>
+                        <div class="version-info">
+                            {{ lobbyVersion }}
+                        </div>
                     </Panel>
                 </div>
             </div>
@@ -44,6 +47,8 @@ const isProduction = process.env.NODE_ENV === "production";
 
 const router = useRouter();
 const route = useRoute();
+const routeKey = ref("");
+const lobbyVersion = `${api.info.lobby.name} v${api.info.lobby.version}`;
 const state: Ref<"intro" | "preloader" | "initial-setup" | "default"> = ref(api.settings.model.skipIntro.value ? "preloader" : "intro");
 const theme = api.settings.model.theme;
 const empty = ref(false);
@@ -64,10 +69,14 @@ router.afterEach(async (to, from) => {
     blurBg.value = route?.meta?.blurBg ?? blurBg.value;
 });
 
-const afterLeave = () => {
+const transitionAfterLeave = () => {
     currentTransition.value = nextTransition.value;
 
     setTransitionDuration(currentTransition.value);
+};
+
+const transitionEnter = () => {
+    routeKey.value = route.name?.toString() ?? "";
 };
 
 const setTransitionDuration = (transition: TransitionProps) => {
@@ -124,3 +133,15 @@ router.replace("/");
 const leftClick = () => api.session.onLeftClick.dispatch();
 const rightClick = () => api.session.onRightClick.dispatch();
 </script>
+
+<style lang="scss">
+.version-info {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    color: rgba(255, 255, 255, 0.2);
+    font-size: 14px;
+    padding: 5px 7px;
+    user-select: all;
+}
+</style>
