@@ -1,4 +1,15 @@
-import { Static } from "@sinclair/typebox";
-import { responses } from "tachyon-client";
 
-export type BattlePreviewType = Static<typeof responses["s.lobby.query"]>["lobbies"][0];
+export type BattlePreviewType = {
+    id: number;
+    title: string;
+    engineVersion: string;
+    founderId: number;
+    locked: boolean;
+    mapName: string;
+    maxPlayers: number;
+    passworded: boolean;
+    startTime: Date | null;
+    type: string;
+    userIds: number[];
+    botNames: string[];
+};

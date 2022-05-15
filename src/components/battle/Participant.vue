@@ -1,9 +1,9 @@
 <template>
     <ContextMenu :entries="getActions(participant)" :args="[participant]">
-        <div class="participant">
+        <div class="playerlist__participant">
             <Icon :icon="icon" :size="16" />
-            <div v-if="countryCode" :class="`participant__flag fi fi-${countryCode}`" />
-            <div class="participant__name">
+            <Flag :country-code="countryCode" />
+            <div>
                 {{ name }}
             </div>
         </div>
@@ -18,6 +18,7 @@ import { Bot, Player, Spectator } from "@/model/battle/participants";
 import { computed, onUnmounted, Ref, ref, toRef } from "vue";
 import LuaOptionsModal from "@/components/battle/LuaOptionsModal.vue";
 import { LuaOptionSection } from "@/model/lua-options";
+import Flag from "@/components/misc/Flag.vue";
 
 const props = defineProps<{
     participant: Player | Bot | Spectator

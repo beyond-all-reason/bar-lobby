@@ -34,6 +34,7 @@ export enum Faction {
 export enum TeamPreset {
     Standard,
     FFA,
+    TeamFFA,
     Custom
 }
 

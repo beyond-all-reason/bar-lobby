@@ -33,6 +33,9 @@
                 </div>
                 <div class="nav__secondary-right flex-row flex-right flex-center">
                     <ServerInfo />
+                    <div>
+                        {{ lobbyVersion }}
+                    </div>
                 </div>
             </div>
         </div>
@@ -73,4 +76,6 @@ const secondaryRoutes = computed(() => {
 
 const settingsModal = () => api.modals.open("settings");
 const exitModal = () => api.modals.open("exit");
+
+const lobbyVersion = `${api.info.lobby.name} v${api.info.lobby.version}`;
 </script>

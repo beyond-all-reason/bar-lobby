@@ -34,24 +34,19 @@
         flex-wrap: wrap;
         margin-top: 5px;
     }
-}
-
-.participant {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    gap: 7px;
-    line-height: 52%;
-    padding: 6px 8px;
-    border-radius: 3px;
-    @extend .battle__panel;
-    &.dragging {
-        pointer-events: auto;
-    }
-    &:hover {
-        background: rgba(255, 255, 255, 0.1);
-    }
-    &__flag {
-        max-width: 17px;
+    &__participant {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 7px;
+        padding: 3px 8px;
+        border-radius: 3px;
+        @extend .battle__panel;
+        &.dragging {
+            pointer-events: auto;
+        }
+        &:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
     }
 }

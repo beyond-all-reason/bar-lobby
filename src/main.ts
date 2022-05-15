@@ -94,7 +94,7 @@ export class Application {
                 lobby: {
                     name: this.app.getName(),
                     version: this.app.getVersion(),
-                    hash: "123"
+                    hash: "123" // TODO: generate and inject checksum of app build in CI pipeline
                 },
                 userDataPath,
                 appPath,

@@ -166,4 +166,8 @@ export class MapContentAPI extends AbstractContentAPI {
 
         console.log(`Map ${filename} uninstalled`);
     }
+
+    public scriptNameToFriendlyName(mapScriptName: string) {
+        return mapScriptName.replaceAll("_", " ");
+    }
 }

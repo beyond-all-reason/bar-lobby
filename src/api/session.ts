@@ -16,11 +16,23 @@ export class SessionAPI {
             isBot: false,
             icons: {},
             skill: {},
-            status: { isAway: false, isInGame: false },
+            clanId: null,
+            countryCode: "",
+            legacyId: null,
             permissions: [],
             friendUserIds: [],
             friendRequestUserIds: [],
-            ignoreUserIds: []
+            ignoreUserIds: [],
+            battleStatus: {
+                away: false,
+                inGame: false,
+                battleId: -1,
+                ready: false,
+                spectator: false,
+                color: "",
+                allyTeamId: 0,
+                playerId: 0,
+            }
         });
 
         this.users = reactive(new Map<number, User>([

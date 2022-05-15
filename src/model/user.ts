@@ -1,18 +1,29 @@
 
-export interface User {
+export type User = {
     userId: number;
     username: string;
-    skill: Record<string, number>;
     icons: Record<string, string>;
     isBot: boolean;
-    status: { isInGame: boolean; isAway: boolean; };
-    legacyId?: number;
-    clanId?: number;
-}
+    clanId: number | null;
+    countryCode: string;
+    legacyId: number | null;
+    battleStatus?: BattleStatus;
+};
 
-export interface CurrentUser extends User {
+export type CurrentUser = User & {
     permissions: string[];
     friendUserIds: number[];
     friendRequestUserIds: number[];
     ignoreUserIds: number[];
-}
+};
+
+export type BattleStatus = {
+    away: boolean;
+    inGame: boolean;
+    spectator: boolean;
+    ready: boolean;
+    color: string;
+    battleId: number;
+    allyTeamId: number;
+    playerId: number;
+};

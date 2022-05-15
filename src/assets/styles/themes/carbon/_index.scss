@@ -23,6 +23,14 @@
     @import "components/controls/select";
     @import "components/controls/options";
 
+    @import "components/battle/map-preview";
+    @import "components/battle/battle";
+    @import "components/battle/playerlist";
+    @import "components/battle/chat";
+    @import "components/battle/battle-list";
+
+    @import "components/misc/flag";
+
     @import "components/debug-sidebar";
     @import "components/background";
     @import "components/button";
@@ -36,12 +44,6 @@
     @import "components/login";
     @import "components/server-info";
     @import "components/downloads";
-    
-    @import "components/battle/map-preview";
-    @import "components/battle/battle";
-    @import "components/battle/playerlist";
-    @import "components/battle/chat";
-    @import "components/battle/battle-preview";
     
     @import "transitions";
 }

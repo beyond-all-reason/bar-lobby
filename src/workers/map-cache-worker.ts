@@ -28,10 +28,10 @@ class MapCache extends AbstractFileCache<MapData> {
             const map = await this.parser.parseMap(itemFilePath);
             const mapData = this.parseMapData(map);
 
-            mapData.textureImagePath = path.join(this.mapImagesDir, `${mapData.fileName}-texture.jpg`);
-            mapData.metalImagePath = path.join(this.mapImagesDir, `${mapData.fileName}-metal.jpg`);
-            mapData.heightImagePath = path.join(this.mapImagesDir, `${mapData.fileName}-height.jpg`);
-            mapData.typeImagePath = path.join(this.mapImagesDir, `${mapData.fileName}-type.jpg`);
+            mapData.textureImagePath = path.join(this.mapImagesDir, `${mapData.fileName}-texture.jpg`).replace(/\\/g, "/");
+            mapData.metalImagePath = path.join(this.mapImagesDir, `${mapData.fileName}-metal.jpg`).replace(/\\/g, "/");
+            mapData.heightImagePath = path.join(this.mapImagesDir, `${mapData.fileName}-height.jpg`).replace(/\\/g, "/");
+            mapData.typeImagePath = path.join(this.mapImagesDir, `${mapData.fileName}-type.jpg`).replace(/\\/g, "/");
 
             await map.textureMap!.quality(80).writeAsync(mapData.textureImagePath);
             await map.metalMap.quality(80).writeAsync(mapData.metalImagePath);
