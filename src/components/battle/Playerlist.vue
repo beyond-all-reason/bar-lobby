@@ -13,7 +13,7 @@
                 <div class="playerlist__title">
                     Team {{ teamIndex + 1 }}
                 </div>
-                <Button v-if="battle.battleOptions.teamPreset === TeamPreset.Custom && battle.teams.length > 2" slim :flex-grow="false" @click="removeTeam(team)">
+                <Button slim :flex-grow="false" @click="removeTeam(team)" v-if="battle.teams.length > 2">
                     Remove
                 </Button>
                 <Button slim :flex-grow="false" @click="addBot(team)">
@@ -31,7 +31,7 @@
                 </template>
             </div>
         </div>
-        <div v-if="battle.battleOptions.teamPreset === TeamPreset.Custom" class="playerlist__group">
+        <div class="playerlist__group">
             <div class="flex-row">
                 <Button slim :flex-grow="false" @click="addTeam">
                     Add Team
@@ -74,7 +74,7 @@ import { aiNames } from "@/config/ai-names";
 import { Team } from "@/model/battle/team";
 import { Ref, ref } from "vue";
 
-const battle = api.battle;
+const battle = api.session.currentBattle;
 
 const addBot = (team: Team) => {
     let randomName = randomFromArray(aiNames);
@@ -116,11 +116,18 @@ const addTeam = () => {
 
 let draggedParticipant: Ref<Bot | Player | Spectator | null> = ref(null);
 let draggedEl: Element | null = null;
-let dragCounter = 0;
 
 const dragEnter = (event: DragEvent, team?: Team) => {
     if (!draggedParticipant.value ) {
         return;
+    }
+
+    const target = event.target as HTMLElement;
+    const groupEl = target.closest(".playerlist__group");
+    if (draggedEl && groupEl) {
+        document.querySelectorAll(".playerlist__group").forEach(el => {
+            el.classList.remove("highlight");
+        });
     }
 
     const draggingContenderToOwnTeam = draggedParticipant.value.type !== "spectator" && draggedParticipant.value.team === team;
@@ -131,15 +138,7 @@ const dragEnter = (event: DragEvent, team?: Team) => {
         return;
     }
 
-    dragCounter++;
-
-    const target = event.target as HTMLElement;
-    const groupEl = target.closest(".playerlist__group");
-
-    if (draggedEl && groupEl) {
-        document.querySelectorAll(".playerlist__group").forEach(el => {
-            el.classList.remove("highlight");
-        });
+    if (groupEl) {
         groupEl.classList.add("highlight");
     }
 };
@@ -156,30 +155,19 @@ const dragLeave = (event: DragEvent, team?: Team) => {
         // TODO: disable drag cursor
         return;
     }
-
-    dragCounter--;
-
-    const target = event.target as Element;
-    const groupEl = target.closest(".playerlist__group");
-
-    if (dragCounter === 0 && groupEl) {
-        groupEl.classList.remove("highlight");
-    }
 };
 
 const dragStart = (event: DragEvent, participant: Player | Bot | Spectator) => {
-    dragCounter = 0;
-
     draggedParticipant.value = participant;
     draggedEl = event.target as Element;
-    const participantEl = draggedEl?.querySelector(".participant");
+    const participantEl = draggedEl?.querySelector(".playerlist__participant");
     if (participantEl) {
         participantEl.classList.add("dragging");
     }
 };
 
 const dragEnd = (event: DragEvent, participant: Player | Bot | Spectator) => {
-    const participantEl = draggedEl?.querySelector(".participant");
+    const participantEl = draggedEl?.querySelector(".playerlist__participant");
     if (participantEl) {
         participantEl.classList.remove("dragging");
     }

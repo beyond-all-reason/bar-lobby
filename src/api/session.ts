@@ -1,15 +1,21 @@
+import { Battle } from "@/model/battle/battle";
+import { BattleOptions } from "@/model/battle/types";
 import { CurrentUser, User } from "@/model/user";
 import { objectKeys, Signal } from "jaz-ts-utils";
 import { reactive, Ref, ref } from "vue";
 
 export class SessionAPI {
-    public readonly currentUser: CurrentUser;
     public readonly offlineMode: Ref<boolean>;
+    public readonly currentUser: CurrentUser;
     public readonly users: Map<number, User>;
+    public readonly currentBattle: Battle;
+    public readonly battles: Map<number, Battle>;
     public readonly onRightClick: Signal; // TODO: refactor somewhere better
     public readonly onLeftClick: Signal; // TODO: refactor somewhere better
 
     constructor() {
+        this.offlineMode = ref(true);
+
         this.currentUser = reactive({
             userId: -1,
             username: "Player",
@@ -39,7 +45,13 @@ export class SessionAPI {
             [this.currentUser.userId, this.currentUser]
         ]));
 
-        this.offlineMode = ref(true);
+        this.currentBattle = new Battle({
+            battleOptions: {} as BattleOptions,
+            participants: []
+        });
+
+        this.battles = reactive(new Map<number, Battle>([
+        ]));
 
         this.onLeftClick = new Signal();
         this.onRightClick = new Signal();

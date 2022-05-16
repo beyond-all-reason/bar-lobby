@@ -2,12 +2,15 @@ import { EngineVersionFormat, GameVersionFormat } from "@/model/formats";
 
 export type BattleOptions = {
     offline: boolean;
+    id: number;
     engineVersion: EngineVersionFormat;
     gameVersion: GameVersionFormat;
     mapFileName: string;
     isHost: boolean;
     startPosType: StartPosType;
-    teamPreset: TeamPreset;
+    gameOptions: Record<string, string | number | boolean>;
+    mapOptions: Record<string, string | number | boolean>;
+    restrictions: Restriction[];
 };
 
 export type StartBox = {

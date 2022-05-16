@@ -1,5 +1,5 @@
 <template>
-    <div class="options__option" :class="{ 'options__option--selected': isSelected }" @click="onClick">
+    <div class="options__option" :class="{ 'options__option--selected': isSelected }" @click="onClick" @mouseenter="sound">
         <slot />
     </div>
 </template>
@@ -23,5 +23,11 @@ const isSelected = computed(() => {
 
 const onClick = () => {
     toggleOption(props.value);
+};
+
+const sound = () => {
+    if (!isSelected.value) {
+        api.audio.getSound("button-hover").play();
+    }
 };
 </script>

@@ -18,23 +18,11 @@
                 </Button>
             </div>
             <div class="flex-row gap-md">
-                <Options v-model="battle.battleOptions.startPosType" label="Start Pos" required full-width>
-                    <Option v-for="option in startPosOptions" :key="option.value" :value="option.value">
-                        {{ option.label }}
-                    </Option>
-                </Options>
-                <Options v-model="battle.battleOptions.teamPreset" label="Team Preset" required full-width>
-                    <Option v-for="option in teamPresetOptions" :key="option.value" :value="option.value">
-                        {{ option.label }}
-                    </Option>
-                </Options>
-            </div>
-            <div class="flex-row gap-md">
                 <Select v-model="selectedGame" label="Game" :options="games" close-on-select clear-on-select searchable :disabled="!battle.battleOptions.offline" full-width />
                 <Button :flex-grow="false" @click="openGameOptions">
                     <Icon icon="cog" />
                 </Button>
-                <LuaOptionsModal id="game-options" v-model="battle.gameOptions" :title="`Game Options - ${battle.battleOptions.gameVersion}`" :sections="gameOptions" />
+                <LuaOptionsModal id="game-options" v-model="battle.battleOptions.gameOptions" :title="`Game Options - ${battle.battleOptions.gameVersion}`" :sections="gameOptions" height="700px" />
             </div>
             <Select v-model="selectedEngine" label="Engine" :options="engines" close-on-select clear-on-select searchable :disabled="!battle.battleOptions.offline" full-width />
             <div class="flex-row flex-bottom gap-md">
@@ -66,20 +54,9 @@ import { LuaOptionSection } from "@/model/lua-options";
 
 const battleTitle = ref("Offline Custom Battle");
 
-const battle = api.battle;
+const battle = api.session.currentBattle;
 
 const installedMaps = computed(() => Object.values(api.content.maps.installedMaps));
-
-const startPosOptions: Array<{ label: string, value: StartPosType }> = [
-    { label: "Fixed", value: StartPosType.Fixed },
-    { label: "Boxes", value: StartPosType.Boxes }
-];
-
-const teamPresetOptions: Array<{ label: string, value: TeamPreset }> = [
-    { label: "Standard", value: TeamPreset.Standard },
-    { label: "FFA", value: TeamPreset.FFA },
-    { label: "Custom", value: TeamPreset.Custom },
-];
 
 const games = computed(() => api.content.game.installedVersions.map(rapidVersion => rapidVersion.version.fullString).slice(-10));
 const selectedGame = ref(lastInArray(games.value)!);

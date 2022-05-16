@@ -15,8 +15,6 @@ import { settingsSchema } from "@/model/settings";
 import { ipcRenderer } from "electron";
 import type { Info } from "@/model/info";
 import { tachyonLog } from "@/utils/tachyon-log";
-import { Battle } from "@/model/battle/battle";
-import { BattleOptions } from "@/model/battle/types";
 
 interface API {
     info: Info;
@@ -28,7 +26,6 @@ interface API {
     account: StoreAPI<Account>;
     content: ContentAPI;
     game: GameAPI;
-    battle: Battle;
 }
 
 declare global {
@@ -86,11 +83,6 @@ export async function apiInit() {
     api.game = new GameAPI(userDataDir, dataDir);
 
     api.content = await new ContentAPI(userDataDir, dataDir).init();
-
-    api.battle = new Battle({
-        battleOptions: {} as BattleOptions,
-        participants: []
-    });
     // reactive(createDeepProxy(new Battle(defaultBattle()), (breadcrumb) => {
     //     const currentBattle = this.currentBattle;
 

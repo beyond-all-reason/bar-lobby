@@ -99,15 +99,15 @@ export class MapCacheWorkerHost extends BetterWorkerHost {
     }
 
     public async cacheItems() {
-        this.send("cache-maps");
+        await this.invoke("cache-maps");
     }
 
     public async cacheItem(filename: string) {
-        this.send("cache-map", filename);
+        await this.invoke("cache-map", filename);
     }
 
     public async clearItem(filename: string) {
-        this.send("clear-map", filename);
+        await this.invoke("clear-map", filename);
     }
 }
 

@@ -26,7 +26,7 @@ const props = defineProps<{
 
 const participant = toRef(props, "participant");
 
-const battle = api.battle;
+const battle = api.session.currentBattle;
 
 const user = computed(() => {
     if ("userId" in props.participant) {

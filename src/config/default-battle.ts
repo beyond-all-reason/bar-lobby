@@ -6,7 +6,7 @@ import { StartPosType, TeamPreset } from "@/model/battle/types";
 import { lastInArray, randomFromArray } from "jaz-ts-utils";
 import { SetOptional } from "type-fest";
 
-export const defaultBattle: () => SetOptional<BattleConfig, "teams" | "gameOptions" | "mapOptions" | "restrictions"> = () => {
+export const defaultBattle: () => SetOptional<BattleConfig, "teams"> = () => {
     const myUserId = api.session?.currentUser?.userId ?? -1;
 
     const teams: Team[] = [
@@ -17,12 +17,16 @@ export const defaultBattle: () => SetOptional<BattleConfig, "teams" | "gameOptio
     return {
         battleOptions: {
             offline: true,
+            id: -1,
             engineVersion: lastInArray(api.content.engine.installedVersions)!,
             gameVersion: lastInArray(api.content.game.installedVersions)!.version.fullString,
             mapFileName: randomFromArray(defaultMaps)!,
             startPosType: StartPosType.Boxes,
             teamPreset: TeamPreset.Standard,
             isHost: true,
+            gameOptions: {},
+            mapOptions: {},
+            restrictions: []
         },
         teams,
         participants: [

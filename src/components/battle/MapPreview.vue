@@ -1,19 +1,28 @@
 <template>
     <div id="map-canvas-container" class="map-preview">
         <canvas id="map-canvas" class="map-preview__canvas" />
-        <div v-if="battle.battleOptions.startPosType === StartPosType.Boxes && battle.battleOptions.teamPreset === TeamPreset.Standard" class="map-preview__actions">
-            <Button @click="setBoxes(defaultBoxes.EastVsWest)">
-                <img src="@/assets/images/icons/east-vs-west.png">
-            </Button>
-            <Button @click="setBoxes(defaultBoxes.NorthVsSouth)">
-                <img src="@/assets/images/icons/north-vs-south.png">
-            </Button>
-            <Button @click="setBoxes(defaultBoxes.NortheastVsSouthwest)">
-                <img src="@/assets/images/icons/northeast-vs-southwest.png">
-            </Button>
-            <Button @click="setBoxes(defaultBoxes.NorthwestVsSouthEast)">
-                <img src="@/assets/images/icons/northwest-vs-southeast.png">
-            </Button>
+        <div class="map-preview__actions">
+            <div class="map-preview__start-pos-type">
+                <Options v-model="battle.battleOptions.startPosType" label="Start Pos" required>
+                    <Option v-for="option in startPosOptions" :key="option.value" :value="option.value">
+                        {{ option.label }}
+                    </Option>
+                </Options>
+            </div>
+            <div v-if="battle.battleOptions.startPosType === StartPosType.Boxes" class="map-preview__box-actions">
+                <Button @click="setBoxes(defaultBoxes.EastVsWest)">
+                    <img src="@/assets/images/icons/east-vs-west.png">
+                </Button>
+                <Button @click="setBoxes(defaultBoxes.NorthVsSouth)">
+                    <img src="@/assets/images/icons/north-vs-south.png">
+                </Button>
+                <Button @click="setBoxes(defaultBoxes.NortheastVsSouthwest)">
+                    <img src="@/assets/images/icons/northeast-vs-southwest.png">
+                </Button>
+                <Button @click="setBoxes(defaultBoxes.NorthwestVsSouthEast)">
+                    <img src="@/assets/images/icons/northwest-vs-southeast.png">
+                </Button>
+            </div>
         </div>
     </div>
 </template>
@@ -24,8 +33,10 @@ import { StartBox, StartPosType, TeamPreset } from "@/model/battle/types";
 import { MapData } from "@/model/map-data";
 import Button from "@/components/inputs/Button.vue";
 import { defaultBoxes } from "@/config/default-boxes";
+import Options from "@/components/inputs/Options.vue";
+import Option from "@/components/inputs/Option.vue";
 
-const battle = api.battle;
+const battle = api.session.currentBattle;
 
 type Transform = { x: number, y: number, width: number, height: number };
 
@@ -34,6 +45,11 @@ let context: CanvasRenderingContext2D;
 let textureMap: HTMLImageElement;
 let mapTransform: Transform;
 let mapData: MapData | undefined | null;
+
+const startPosOptions: Array<{ label: string, value: StartPosType }> = [
+    { label: "Fixed", value: StartPosType.Fixed },
+    { label: "Boxes", value: StartPosType.Boxes }
+];
 
 onMounted(async () => {
     canvas = document.getElementById("map-canvas") as HTMLCanvasElement;

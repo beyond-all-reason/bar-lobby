@@ -8,5 +8,5 @@
 import { defaultBattle } from "@/config/default-battle";
 import BattleComponent from "../../components/battle/BattleComponent.vue";
 
-api.battle.set(defaultBattle());
+api.session.currentBattle.set(defaultBattle());
 </script>

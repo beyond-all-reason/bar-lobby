@@ -1,6 +1,6 @@
 import { Team } from "@/model/battle/team";
 import { Player, Bot, Spectator } from "@/model/battle/participants";
-import { BattleOptions, Restriction, StartBox, StartPosType, TeamPreset } from "@/model/battle/types";
+import { BattleOptions, StartBox, StartPosType, TeamPreset } from "@/model/battle/types";
 import { setObject } from "@/utils/set-object";
 import { SetOptional } from "type-fest";
 import { computed, ComputedRef, reactive } from "vue";
@@ -11,19 +11,15 @@ export interface BattleConfig {
     battleOptions: BattleOptions;
     teams: Team[];
     participants: Array<Player | Bot | Spectator>;
-    gameOptions: Record<string, string | number | boolean>;
-    mapOptions: Record<string, string | number | boolean>;
-    restrictions: Restriction[];
 }
 
 export class Battle implements BattleConfig {
     public readonly battleOptions: BattleOptions;
     public readonly teams: Team[];
     public readonly participants: Array<Player | Bot | Spectator>;
-    public readonly gameOptions: Record<string, string | number | boolean>;
-    public readonly mapOptions: Record<string, string | number | boolean>;
-    public readonly restrictions: Restriction[];
+    public readonly startBoxes: StartBox[];
 
+    public readonly teamPreset: ComputedRef<TeamPreset>;
     public readonly me: ComputedRef<Player | Spectator>;
     public readonly contenders: ComputedRef<Array<Player | Bot>>;
     public readonly spectators: ComputedRef<Array<Spectator>>;
@@ -33,19 +29,18 @@ export class Battle implements BattleConfig {
     protected teamProxyHandler: TypedProxyHandler<Team>;
     protected participantProxyHandler: TypedProxyHandler<Player | Bot | Spectator>;
 
-    constructor(config: SetOptional<BattleConfig, "teams" | "gameOptions" | "mapOptions" | "restrictions">) {
+    constructor(config: SetOptional<BattleConfig, "teams">) {
         this.teams = reactive(config.teams ?? []);
         this.participants = reactive([]);
-        this.gameOptions = reactive(config.gameOptions ?? {});
-        this.mapOptions = reactive(config.mapOptions ?? {});
-        this.restrictions = reactive(config.restrictions ?? []);
+        this.startBoxes = reactive([]);
 
         this.battleOptionsProxyHandler = {
             set: (target, prop, value, receiver) => {
-                if (prop === "teamPreset") {
-                    this.configureTeams(value as TeamPreset);
-                    this.fixIds();
-                } else if (prop === "mapFileName" && this.battleOptions.offline) {
+                // if (prop === "teamPreset") {
+                //     this.configureTeams(value as TeamPreset);
+                //     this.fixIds();
+                // } else if (prop === "mapFileName" && this.battleOptions.offline) {
+                if (prop === "mapFileName" && this.battleOptions.offline) {
                     this.setBoxes(value as string);
                 }
                 return Reflect.set(target, prop, value, receiver);
@@ -69,19 +64,28 @@ export class Battle implements BattleConfig {
             this.addParticipant(participant);
         }
 
+        // this should eventually be a real, required property, but needs supporting on server and autohosts
+        this.teamPreset = computed(() => {
+            if (this.teams.length === 1) {
+                
+            } else if (this.teams.length === 2) {
+                return TeamPreset.Standard;
+            } else if (this.teams.length > 2) {
+                // TODO
+            }
+            return TeamPreset.Custom;
+        });
+
         this.me = computed(() => this.participants.find((participant): participant is Player | Spectator => "userId" in participant && participant.userId === api.session.currentUser.userId)!);
         this.contenders = computed(() => this.participants.filter((participant): participant is Player | Bot => participant.type === "player" || participant.type === "bot"));
         this.spectators = computed(() => this.participants.filter((participant): participant is Spectator => participant.type === "spectator"));
         this.battleUsers = computed(() => this.participants.filter((participant): participant is Player | Spectator => participant.type === "spectator" || participant.type === "player"));
     }
 
-    public set(config: SetOptional<BattleConfig, "teams" | "gameOptions" | "mapOptions" | "restrictions">) {
+    public set(config: SetOptional<BattleConfig, "teams">) {
         setObject(this.battleOptions, config.battleOptions);
         setObject(this.participants, []);
         setObject(this.teams, config.teams ?? []);
-        setObject(this.gameOptions, config.gameOptions ?? {});
-        setObject(this.mapOptions, config.mapOptions ?? {});
-        setObject(this.restrictions, config.restrictions ?? []);
 
         for (const participant of config.participants) {
             this.addParticipant(participant);
@@ -164,13 +168,15 @@ export class Battle implements BattleConfig {
         }
     }
 
-    protected configureTeams(teamPreset: TeamPreset) {
-        if (teamPreset === TeamPreset.Standard) { // only 2 teams
-            this.teams.length = 2;
-            this.battleOptions.startPosType = StartPosType.Boxes;
-        } else if (teamPreset === TeamPreset.FFA) { // 1 big team for all players, but separate team for each player when converted to start script
-            this.teams.length = 1;
-            this.battleOptions.startPosType = StartPosType.Fixed; // TODO: should be random?
-        }
-    }
+    // protected configureTeams(teamPreset: TeamPreset) {
+    //     if (teamPreset === TeamPreset.Standard) {
+    //         this.teams.length = 2;
+    //         this.battleOptions.startPosType = StartPosType.Boxes;
+    //     } else if (teamPreset === TeamPreset.FFA) {
+    //         this.teams.length = this.participants.length;
+    //         this.battleOptions.startPosType = StartPosType.Fixed; // TODO: should be random?
+    //     } else if (teamPreset === TeamPreset.TeamFFA) {
+    //         this.battleOptions.startPosType = StartPosType.Fixed;
+    //     }
+    // }
 }
