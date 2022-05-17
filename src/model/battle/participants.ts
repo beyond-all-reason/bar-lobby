@@ -1,11 +1,10 @@
-import { Team } from "@/model/battle/team";
 import { Faction } from "@/model/battle/types";
 
 export type BattleUser = { userId: number };
 
 export type Contender = {
     id: number;
-    team: Team;
+    teamId: number;
     startPos?: { x: number, z: number };
     handicap?: number;
     advantage?: number;

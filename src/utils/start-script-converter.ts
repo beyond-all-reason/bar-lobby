@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Battle } from "@/model/battle/battle";
+import { StartPosType } from "@/model/battle/types";
 import type { StartScriptTypes } from "@/model/start-script";
 import { assign } from "jaz-ts-utils";
 
@@ -36,28 +37,33 @@ export class StartScriptConverter {
         let playerIndex = 0;
         const botIdToUserIdMap: Record<number, number> = {};
 
-        battle.teams.forEach((allyTeamConfig, i) => {
-            const allyTeam: StartScriptTypes.AllyTeam = {
-                id: i,
-                numallies: 0
-            };
+        battle.contenders.value.forEach(contenderConfig => {
+            if (!allyTeams[contenderConfig.teamId]) {
+                const allyTeam: StartScriptTypes.AllyTeam = {
+                    id: contenderConfig.teamId,
+                    numallies: 0
+                };
 
-            if (allyTeamConfig.startBox) {
-                assign(allyTeam, {
-                    startrectleft: allyTeamConfig.startBox.xPercent,
-                    startrecttop: allyTeamConfig.startBox.yPercent,
-                    startrectright: (allyTeamConfig.startBox.xPercent + allyTeamConfig.startBox.widthPercent),
-                    startrectbottom: (allyTeamConfig.startBox.yPercent + allyTeamConfig.startBox.heightPercent)
-                });
+                if (battle.battleOptions.startPosType === StartPosType.Boxes) {
+                    const box = battle.battleOptions.startBoxes[contenderConfig.teamId];
+                    if (box) {
+                        assign(allyTeam, {
+                            startrectleft: box.xPercent,
+                            startrecttop: box.yPercent,
+                            startrectright: (box.xPercent + box.widthPercent),
+                            startrectbottom: (box.yPercent + box.heightPercent)
+                        });
+                    } else {
+                        console.warn(`Contender ${contenderConfig.id} has a teamId of ${contenderConfig.teamId} but no start box was defined for that team`);
+                    }
+                }
+
+                allyTeams.push(allyTeam);
             }
 
-            allyTeams.push(allyTeam);
-        });
-
-        battle.contenders.value.forEach(contenderConfig => {
             const team: StartScriptTypes.Team = {
                 id: teamId,
-                allyteam: battle.teams.indexOf(contenderConfig.team),
+                allyteam: contenderConfig.teamId,
                 teamleader: 0
             };
             assign(team, {

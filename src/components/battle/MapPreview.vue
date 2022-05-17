@@ -65,9 +65,7 @@ onMounted(async () => {
 });
 
 const setBoxes = (boxes: StartBox[]) => {
-    boxes.forEach((box, i) => {
-        battle.teams[i].startBox = box;
-    });
+    battle.battleOptions.startBoxes = boxes;
 };
 
 async function loadMap() {
@@ -126,29 +124,27 @@ function drawFixedPositions() {
 }
 
 function drawBoxes() {
-    for (const team of battle.teams) {
-        if (team.startBox) {
-            if (battle.me.value.type === "spectator") {
-                context.fillStyle = "rgba(255, 255, 255, 0.2)";
-            } else if (battle.me.value.team === team) {
-                context.fillStyle = "rgba(0, 255, 0, 0.2)";
-            } else {
-                context.fillStyle = "rgba(255, 0, 0, 0.2)";
-            }
-
-            context.strokeStyle = "rgba(255, 255, 255, 0.5)";
-            context.lineWidth = 1;
-
-            let boxTransform: Transform = {
-                x: mapTransform.x + mapTransform.width * team.startBox.xPercent,
-                y: mapTransform.y + mapTransform.height * team.startBox.yPercent,
-                width: mapTransform.width * team.startBox.widthPercent,
-                height: mapTransform.height * team.startBox.heightPercent
-            };
-            boxTransform = roundTransform(boxTransform);
-            context.fillRect(boxTransform.x, boxTransform.y, boxTransform.width, boxTransform.height);
+    battle.battleOptions.startBoxes.forEach((box, teamId) => {
+        if (battle.me.value.type === "spectator") {
+            context.fillStyle = "rgba(255, 255, 255, 0.2)";
+        } else if (battle.me.value.teamId === teamId) {
+            context.fillStyle = "rgba(0, 255, 0, 0.2)";
+        } else {
+            context.fillStyle = "rgba(255, 0, 0, 0.2)";
         }
-    }
+
+        context.strokeStyle = "rgba(255, 255, 255, 0.5)";
+        context.lineWidth = 1;
+
+        let boxTransform: Transform = {
+            x: mapTransform.x + mapTransform.width * box.xPercent,
+            y: mapTransform.y + mapTransform.height * box.yPercent,
+            width: mapTransform.width * box.widthPercent,
+            height: mapTransform.height * box.heightPercent
+        };
+        boxTransform = roundTransform(boxTransform);
+        context.fillRect(boxTransform.x, boxTransform.y, boxTransform.width, boxTransform.height);
+    });
 }
 
 function loadImage(url: string) {

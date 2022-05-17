@@ -1,38 +1,32 @@
-import { Team } from "@/model/battle/team";
 import { Player, Bot, Spectator } from "@/model/battle/participants";
-import { BattleOptions, StartBox, StartPosType, TeamPreset } from "@/model/battle/types";
+import { BattleOptions, StartBox, StartPosType } from "@/model/battle/types";
 import { setObject } from "@/utils/set-object";
-import { SetOptional } from "type-fest";
 import { computed, ComputedRef, reactive } from "vue";
 import { TypedProxyHandler } from "@/utils/typed-proxy-handler";
 import { defaultMapBoxes } from "@/config/default-boxes";
+import { groupBy } from "jaz-ts-utils";
 
 export interface BattleConfig {
     battleOptions: BattleOptions;
-    teams: Team[];
     participants: Array<Player | Bot | Spectator>;
 }
 
 export class Battle implements BattleConfig {
     public readonly battleOptions: BattleOptions;
-    public readonly teams: Team[];
     public readonly participants: Array<Player | Bot | Spectator>;
-    public readonly startBoxes: StartBox[];
 
-    public readonly teamPreset: ComputedRef<TeamPreset>;
+    public readonly numOfTeams: ComputedRef<number>;
+    public readonly teams: ComputedRef<Map<number, Array<Player | Bot>>>;
     public readonly me: ComputedRef<Player | Spectator>;
     public readonly contenders: ComputedRef<Array<Player | Bot>>;
     public readonly spectators: ComputedRef<Array<Spectator>>;
     public readonly battleUsers: ComputedRef<Array<Player | Spectator>>;
 
     protected battleOptionsProxyHandler: TypedProxyHandler<BattleOptions>;
-    protected teamProxyHandler: TypedProxyHandler<Team>;
     protected participantProxyHandler: TypedProxyHandler<Player | Bot | Spectator>;
 
-    constructor(config: SetOptional<BattleConfig, "teams">) {
-        this.teams = reactive(config.teams ?? []);
+    constructor(config: BattleConfig) {
         this.participants = reactive([]);
-        this.startBoxes = reactive([]);
 
         this.battleOptionsProxyHandler = {
             set: (target, prop, value, receiver) => {
@@ -48,15 +42,13 @@ export class Battle implements BattleConfig {
         };
         this.battleOptions = reactive(new Proxy(config.battleOptions ?? {}, this.battleOptionsProxyHandler));
 
-        this.teamProxyHandler = {
-            set: (target, prop, value, receiver) => {
-                return Reflect.set(target, prop, value, receiver);
-            }
-        };
-
         this.participantProxyHandler = {
             set: (target, prop: keyof Player & keyof Bot, value, receiver) => {
-                return Reflect.set(target, prop, value, receiver);
+                if (this.battleOptions.offline) {
+                    Reflect.set(target, prop, value, receiver);
+                    this.fixIds();
+                }
+                return true;
             }
         };
 
@@ -64,28 +56,17 @@ export class Battle implements BattleConfig {
             this.addParticipant(participant);
         }
 
-        // this should eventually be a real, required property, but needs supporting on server and autohosts
-        this.teamPreset = computed(() => {
-            if (this.teams.length === 1) {
-                
-            } else if (this.teams.length === 2) {
-                return TeamPreset.Standard;
-            } else if (this.teams.length > 2) {
-                // TODO
-            }
-            return TeamPreset.Custom;
-        });
-
+        this.numOfTeams = computed(() => new Set(this.contenders.value.map(contentender => contentender.teamId)).size);
+        this.teams = computed(() => groupBy(this.contenders.value, player => player.teamId));
         this.me = computed(() => this.participants.find((participant): participant is Player | Spectator => "userId" in participant && participant.userId === api.session.currentUser.userId)!);
         this.contenders = computed(() => this.participants.filter((participant): participant is Player | Bot => participant.type === "player" || participant.type === "bot"));
         this.spectators = computed(() => this.participants.filter((participant): participant is Spectator => participant.type === "spectator"));
         this.battleUsers = computed(() => this.participants.filter((participant): participant is Player | Spectator => participant.type === "spectator" || participant.type === "player"));
     }
 
-    public set(config: SetOptional<BattleConfig, "teams">) {
+    public set(config: BattleConfig) {
         setObject(this.battleOptions, config.battleOptions);
         setObject(this.participants, []);
-        setObject(this.teams, config.teams ?? []);
 
         for (const participant of config.participants) {
             this.addParticipant(participant);
@@ -106,51 +87,43 @@ export class Battle implements BattleConfig {
             type: "spectator",
             userId: player.userId
         });
-        this.fixIds();
     }
 
-    public spectatorToPlayer(spectator: Spectator, team: Team) {
+    public spectatorToPlayer(spectator: Spectator, teamId: number) {
         this.removeParticipant(spectator);
         this.addParticipant({
             id: this.contenders.value.length,
             type: "player",
             userId: spectator.userId,
-            team
+            teamId
         });
     }
 
     public removeParticipant(participant: Player | Bot | Spectator) {
         this.participants.splice(this.participants.indexOf(participant), 1);
-        this.fixIds();
     }
 
-    public addTeam() {
-        this.teams.push({});
-    }
-
-    public removeTeam(team: Team) {
-        this.teams.splice(this.teams.indexOf(team), 1);
-        this.fixIds();
-    }
-
-    public getTeamParticipants(team: Team): Array<Player | Bot> {
-        return this.contenders.value.filter(contender => contender.team === team);
+    public getTeamParticipants(teamId: number): Array<Player | Bot> {
+        return this.contenders.value.filter(contender => contender.teamId === teamId);
     }
 
     protected fixIds() {
-        this.participants.sort((a, b) => {
-            if (a.type === "spectator") {
-                return -1;
-            }
-            if (b.type === "spectator") {
-                return 1;
-            }
-            return a.id - b.id;
-        });
+        if (!this.battleOptions.offline) { // can't fix ids locally for an online battle
+            return;
+        }
 
-        for (const contender of this.contenders.value) {
-            if (!this.teams.includes(contender.team)) {
-                contender.team = this.teams[0];
+        const contenders = this.contenders.value;
+
+        const contenderIds = Array.from(new Set(this.contenders.value.map(c => c.id)).values()).sort();
+        const teamIds = Array.from(new Set(this.contenders.value.map(c => c.teamId)).values()).sort();
+        for (const contender of contenders) {
+            const newContenderId = contenderIds.indexOf(contender.id);
+            if (contender.id !== newContenderId) { // only assign if id is different to avoid recursive proxy trap calls
+                contender.id = newContenderId;
+            }
+            const newTeamId = teamIds.indexOf(contender.teamId);
+            if (contender.teamId !== newTeamId) { // only assign if id is different to avoid recursive proxy trap calls
+                contender.teamId = newTeamId;
             }
         }
     }
@@ -159,11 +132,11 @@ export class Battle implements BattleConfig {
         if (this.battleOptions.startPosType === StartPosType.Boxes) {
             const boxes: StartBox[] | undefined = defaultMapBoxes[mapFileName];
             if (boxes) {
-                this.teams[0].startBox = boxes[0];
-                this.teams[1].startBox = boxes[1];
+                this.battleOptions.startBoxes[0] = boxes[0];
+                this.battleOptions.startBoxes[1] = boxes[1];
             } else {
-                this.teams[0].startBox = { xPercent: 0, yPercent: 0, widthPercent: 0.25, heightPercent: 1 };
-                this.teams[1].startBox = { xPercent: 0.75, yPercent: 0, widthPercent: 0.25, heightPercent: 1 };
+                this.battleOptions.startBoxes[0] = { xPercent: 0, yPercent: 0, widthPercent: 0.25, heightPercent: 1 };
+                this.battleOptions.startBoxes[1] = { xPercent: 0.75, yPercent: 0, widthPercent: 0.25, heightPercent: 1 };
             }
         }
     }

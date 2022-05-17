@@ -8,6 +8,7 @@ export type BattleOptions = {
     mapFileName: string;
     isHost: boolean;
     startPosType: StartPosType;
+    startBoxes: StartBox[];
     gameOptions: Record<string, string | number | boolean>;
     mapOptions: Record<string, string | number | boolean>;
     restrictions: Restriction[];
