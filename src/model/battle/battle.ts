@@ -118,11 +118,11 @@ export class Battle implements BattleConfig {
         const teamIds = Array.from(new Set(this.contenders.value.map(c => c.teamId)).values()).sort();
         for (const contender of contenders) {
             const newContenderId = contenderIds.indexOf(contender.id);
-            if (contender.id !== newContenderId) { // only assign if id is different to avoid recursive proxy trap calls
+            if (contender.id !== newContenderId && newContenderId !== -1) { // only assign if id is different to avoid recursive proxy trap calls
                 contender.id = newContenderId;
             }
             const newTeamId = teamIds.indexOf(contender.teamId);
-            if (contender.teamId !== newTeamId) { // only assign if id is different to avoid recursive proxy trap calls
+            if (contender.teamId !== newTeamId && newTeamId !== -1) { // only assign if id is different to avoid recursive proxy trap calls
                 contender.teamId = newTeamId;
             }
         }
