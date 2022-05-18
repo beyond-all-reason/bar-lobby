@@ -29,7 +29,7 @@
 
 <script lang="ts" setup>
 import { onMounted, watch } from "vue";
-import { StartBox, StartPosType, TeamPreset } from "@/model/battle/types";
+import { StartBox, StartPosType } from "@/model/battle/types";
 import { MapData } from "@/model/map-data";
 import Button from "@/components/inputs/Button.vue";
 import { defaultBoxes } from "@/config/default-boxes";
@@ -56,6 +56,7 @@ onMounted(async () => {
     canvas.width = canvas.clientWidth;
     canvas.height = canvas.width;
     context = canvas.getContext("2d")!;
+    context.imageSmoothingEnabled = false;
 
     loadMap();
 

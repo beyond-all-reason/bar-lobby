@@ -77,8 +77,14 @@ export class Battle implements BattleConfig {
 
     public addParticipant(participantConfig: Player | Bot | Spectator) {
         const participant = new Proxy(participantConfig, this.participantProxyHandler);
-
         this.participants.push(participant);
+        this.fixIds();
+    }
+
+
+    public removeParticipant(participant: Player | Bot | Spectator) {
+        this.participants.splice(this.participants.indexOf(participant), 1);
+        this.fixIds();
     }
 
     public playerToSpectator(player: Player) {
@@ -97,10 +103,6 @@ export class Battle implements BattleConfig {
             userId: spectator.userId,
             teamId
         });
-    }
-
-    public removeParticipant(participant: Player | Bot | Spectator) {
-        this.participants.splice(this.participants.indexOf(participant), 1);
     }
 
     public getTeamParticipants(teamId: number): Array<Player | Bot> {

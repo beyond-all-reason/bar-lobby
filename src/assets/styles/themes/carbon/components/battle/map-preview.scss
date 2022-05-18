@@ -2,7 +2,6 @@
     @extend .battle__panel;
     position: relative;
     &__canvas {
-        image-rendering: pixelated;
         margin: 10px;
     }
     &__actions {
