@@ -8,6 +8,7 @@ import "@/assets/styles/styles.scss";
 import routes from "@/routes";
 import { apiInit } from "@/api/api";
 import { clickAwayDirective } from "@/utils/click-away-directive";
+import { autoAnimatePlugin } from "@formkit/auto-animate/vue";
 
 declare module "vue-router" {
     interface RouteMeta {
@@ -43,6 +44,8 @@ async function setupVue() {
     app.use(router);
 
     app.directive("click-away", clickAwayDirective);
+
+    app.use(autoAnimatePlugin);
 
     app.mount("#app");
 

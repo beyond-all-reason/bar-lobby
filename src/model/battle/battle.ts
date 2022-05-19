@@ -14,7 +14,6 @@ export interface BattleConfig {
 export class Battle implements BattleConfig {
     public readonly battleOptions: BattleOptions;
     public readonly participants: Array<Player | Bot | Spectator>;
-
     public readonly numOfTeams: ComputedRef<number>;
     public readonly teams: ComputedRef<Map<number, Array<Player | Bot>>>;
     public readonly me: ComputedRef<Player | Spectator>;
@@ -30,10 +29,6 @@ export class Battle implements BattleConfig {
 
         this.battleOptionsProxyHandler = {
             set: (target, prop, value, receiver) => {
-                // if (prop === "teamPreset") {
-                //     this.configureTeams(value as TeamPreset);
-                //     this.fixIds();
-                // } else if (prop === "mapFileName" && this.battleOptions.offline) {
                 if (prop === "mapFileName" && this.battleOptions.offline) {
                     this.setBoxes(value as string);
                 }

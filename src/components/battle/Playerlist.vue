@@ -21,11 +21,9 @@
                 </Button>
             </div>
             <div class="playerlist__participants">
-                <template v-for="(contender, contenderIndex) in battle.getTeamParticipants(teamId)" :key="`contender${contenderIndex}`">
-                    <div draggable @dragstart="dragStart($event, contender)" @dragend="dragEnd($event, contender)">
-                        <Participant :participant="contender" />
-                    </div>
-                </template>
+                <div v-for="(contender, contenderIndex) in battle.getTeamParticipants(teamId)" :key="`contender${contenderIndex}`" draggable @dragstart="dragStart($event, contender)" @dragend="dragEnd($event, contender)">
+                    <Participant :participant="contender" />
+                </div>
             </div>
         </div>
         <div
@@ -63,11 +61,9 @@
                 </Button>
             </div>
             <div class="playerlist__participants">
-                <template v-for="(spectator, spectatorIndex) in battle.spectators.value" :key="`spectator${spectatorIndex}`">
-                    <div draggable @dragstart="dragStart($event, spectator)" @dragend="dragEnd($event, spectator)">
-                        <Participant :participant="spectator" />
-                    </div>
-                </template>
+                <div v-for="(spectator, spectatorIndex) in battle.spectators.value" :key="`spectator${spectatorIndex}`" draggable @dragstart="dragStart($event, spectator)" @dragend="dragEnd($event, spectator)">
+                    <Participant :participant="spectator" />
+                </div>
             </div>
         </div>
     </div>
