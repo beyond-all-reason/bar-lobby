@@ -20,3 +20,7 @@
 <script lang="ts" setup>
 import Markdown from "vue3-markdown-it";
 </script>
+
+<style lang="scss" scoped>
+
+</style>

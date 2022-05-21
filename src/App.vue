@@ -1,5 +1,5 @@
 <template>
-    <div :class="`fullsize theme theme--${theme.toLowerCase()}`" @click.left="leftClick" @click.right="rightClick">
+    <div id="wrapper" class="wrapper fullsize" @click.left="leftClick" @click.right="rightClick">
         <DebugSidebar v-if="!isProduction" />
         <StatusInfo v-if="false" />
         <Background :blur="blurBg" />
@@ -46,7 +46,6 @@ const router = useRouter();
 const route = useRoute();
 const routeKey = ref("");
 const state: Ref<"intro" | "preloader" | "initial-setup" | "default"> = ref(api.settings.model.skipIntro.value ? "preloader" : "intro");
-const theme = api.settings.model.theme;
 const empty = ref(false);
 const blurBg = ref(true);
 
@@ -129,3 +128,26 @@ router.replace("/");
 const leftClick = () => api.session.onLeftClick.dispatch();
 const rightClick = () => api.session.onRightClick.dispatch();
 </script>
+
+<style lang="scss" scoped>
+.view {
+    overflow-y: hidden;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    gap: 10px;
+    & > .panel {
+        & > .content {
+            padding: 20px;
+        }
+    }
+    h1 {
+        position: relative;
+        text-transform: uppercase;
+        font-weight: 500;
+        text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+        letter-spacing: -2px;
+    }
+}
+</style>

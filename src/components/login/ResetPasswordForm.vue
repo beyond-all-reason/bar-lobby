@@ -23,3 +23,7 @@ const requestPasswordReset = () => {
 };
 </script>
 
+<style lang="scss" scoped>
+
+</style>
+

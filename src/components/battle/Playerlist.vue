@@ -201,3 +201,43 @@ const onDrop = (event: DragEvent, teamId?: number) => {
     }
 };
 </script>
+
+<style lang="scss" scoped>
+.playerlist {
+    display: flex;
+    flex-direction: column;
+    &.dragging .playerlist__group > * {
+        pointer-events: none;
+    }
+    &__group {
+        position: relative;
+        &:not(:last-child):after {
+            content: "";
+            display: flex;
+            background: rgba(255, 255, 255, 0.1);
+            width: 100%;
+            height: 1px;
+            margin: 10px 0;
+        }
+        &.highlight {
+            &:before {
+                @extend .fullsize;
+                width: calc(100% + 10px);
+                height: calc(100%);
+                left: -5px;
+                top: -5px;
+                background: rgba(255, 255, 255, 0.1);
+            }
+        }
+    }
+    &__title {
+        font-size: 26px;
+    }
+    &__participants {
+        flex-direction: row;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-top: 5px;
+    }
+}
+</style>

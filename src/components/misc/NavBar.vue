@@ -13,14 +13,14 @@
                     </Button>
                 </div>
                 <div class="nav__primary-right">
-                    <Button class="icon" to="/profile">
+                    <Button class="icon" to="/profile" tooltip="Profile">
                         <Icon icon="account" :size="40" />
                     </Button>
-                    <DownloadsButton />
-                    <Button class="icon" @click="settingsModal">
+                    <DownloadsButton tooltip="Downloads" />
+                    <Button class="icon" tooltip="Settings" @click="settingsModal">
                         <Icon icon="cog" :size="40" />
                     </Button>
-                    <Button class="icon close" @click="exitModal">
+                    <Button class="icon close" tooltip="Exit" @click="exitModal">
                         <Icon icon="close-thick" :size="40" />
                     </Button>
                 </div>
@@ -79,3 +79,163 @@ const exitModal = () => api.modals.open("exit");
 
 const lobbyVersion = `${api.info.lobby.name} v${api.info.lobby.version}`;
 </script>
+
+<style lang="scss">
+.nav {
+    position: relative;
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    backdrop-filter: blur(5px);
+    background: linear-gradient(rgba(0, 0, 0, 0.75), rgba(0, 0, 0, 0.9));
+    box-shadow:
+        0 1px 0 rgba(0, 0, 0, 0.4),
+        0 3px 5px rgba(0, 0, 0, 0.5);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    gap: 1px;
+    transition: transform 0.3s, opacity 0.3s;
+    &.hidden {
+        opacity: 0;
+        transform: translateY(-100%);
+    }
+    &:before {
+        @extend .fullsize;
+        content: "";
+        z-index: -1;
+        opacity: 0.2;
+        background-image: url("~@/assets/images/squares.png");
+    }
+    &__logo {
+        flex-grow: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-shrink: 0;
+        height: 100%;
+        box-shadow: 1px 0 0 rgba(255, 255, 255, 0.1);
+        img {
+            height: 40px;
+            opacity: 0.9;
+        }
+        &:hover img, &.active img {
+            opacity: 1;
+        }
+        img {
+            height: 50px;
+        }
+        .control.button {
+            flex-grow: 1;
+        }
+    }
+    &__primary, &__logo {
+        .btn {
+            padding: 10px 25px;
+            display: flex;
+            align-items: center;
+            font-size: 25px;
+            font-weight: 600;
+            background: radial-gradient(rgba(0, 0, 0, 0), rgba(255, 255, 255, 0.05));
+            color: rgba(255, 255, 255, 0.8);
+            box-shadow:
+                1px 0 0 rgba(255, 255, 255, 0.05),
+                -1px 0 0 rgba(255, 255, 255, 0.05);
+            border: none;
+            flex-grow: 0;
+            height: 100%;
+            &.icon {
+                padding: 10px 15px;
+            }
+            &:hover, &.active {
+                background: radial-gradient(rgba(0, 0, 0, 0), rgba(255, 255, 255, 0.15));
+                color: #fff;
+                text-shadow: 0 0 7px #fff;
+                box-shadow:
+                    1px 0 0 rgba(255, 255, 255, 0.2),
+                    -1px 0 0 rgba(255, 255, 255, 0.2),
+                    0 1px 0 rgba(255, 255, 255, 0.2),
+                    7px -3px 10px rgba(0, 0, 0, 0.5),
+                    -7px -3px 10px rgba(0, 0, 0, 0.5) !important;
+            }
+            &.active {
+                z-index: 1;
+            }
+            &:hover {
+                z-index: 2;
+            }
+        }
+    }
+    .control.button {
+        align-self: unset;
+    }
+    &__primary-left, &__primary-right {
+        display: flex;
+        flex-direction: row;
+        gap: 1px;
+    }
+    &__primary-left {
+        box-shadow: 5px 0 20px rgba(0, 0, 0, 0.4);
+        &:first-child {
+            box-shadow:
+                1px 0 0 rgba(255, 255, 255, 0.05);
+        }
+        &:last-child {
+            box-shadow:
+                -1px 0 0 rgba(255, 255, 255, 0.05),
+                1px 0 0 rgba(255, 255, 255, 0.15);
+        }
+    }
+    &__primary-right {
+        box-shadow: -5px 0 20px rgba(0, 0, 0, 0.4);
+        &:first-child {
+            box-shadow:
+                1px 0 0 rgba(255, 255, 255, 0.05),
+                -1px 0 0 rgba(255, 255, 255, 0.15);
+        }
+        &:last-child {
+            box-shadow:
+                -1px 0 0 rgba(255, 255, 255, 0.05);
+        }
+    }
+    &__secondary {
+        flex-direction: row;
+        background: linear-gradient(rgba(0, 0, 0, 0.05), rgba(0, 0, 0, 0.3));
+        width: 100%;
+        box-shadow: inset 2px 2px 10px rgba(0, 0, 0, 0.5);
+        border-top: 1px solid rgba(255, 255, 255, 0.15);
+        display: flex;
+        height: 36px;
+        .btn {
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.5);
+            flex-grow: 0;
+            padding: 0 25px;
+            &:hover, &.active {
+                color: #fff;
+                background: rgba(255, 255, 255, 0.05);
+                box-shadow:
+                    inset 0 2px 10px rgba(0, 0, 0, 0.5),
+                    0 1px 0 rgba(255, 255, 255, 0.2);
+            }
+        }
+        &-right {
+            padding-right: 10px;
+            & > *:not(:last-child) {
+                border-right: 1px solid rgba(255, 255, 255, 0.2);
+                margin-right: 7px;
+            }
+        }
+    }
+    .close {
+        &:hover {
+            background: rgba(255, 0, 0, 0.2);
+            box-shadow:
+                1px 0 0 rgba(255, 47, 47, 0.418),
+                -1px 0 0 rgba(255, 47, 47, 0.418),
+                0 1px 0 rgba(255, 47, 47, 0.418),
+                7px -3px 10px rgba(0, 0, 0, 0.5),
+                -7px -3px 10px rgba(0, 0, 0, 0.5) !important;
+        }
+    }
+}
+</style>

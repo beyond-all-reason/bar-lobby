@@ -14,7 +14,7 @@
                 <div>Runtime</div>
             </div>
             <div class="battle-list__items">
-                <BattlePreview v-for="battle in battles" :key="battle.id" :battle="battle" :layout="layout" />
+                <BattlePreview v-for="battle in battles" :key="battle.id" :battle="battle" :layout="layout === 'tiles' ? 'tile' : 'row'" />
             </div>
         </div>
     </div>
@@ -97,9 +97,68 @@ async function updateUsers(userIds: number[]) {
             ready: client.ready,
             spectator: !client.player,
             color: client.team_colour,
-            allyTeamId: client.ally_team_number,
+            teamId: client.team_number,
             playerId: client.team_number
         };
     }
 }
 </script>
+
+<style lang="scss" scoped>
+.battle-list {
+    $border: 1px solid rgba(255, 255, 255, 0.1);
+    width: 100%;
+    &__filters {
+        & > div:hover {
+            background: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 1px 0 0 rgba(255, 255, 255, 0.2), 0 -1px 0 0 rgba(255, 255, 255, 0.2), 1px 0 0 0 rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.2);
+            &:last-child {
+                box-shadow: 0 1px 0 0 rgba(255, 255, 255, 0.2), 0 -1px 0 0 rgba(255, 255, 255, 0.2);
+            }
+        }
+    }
+    &--tiles {
+        .battle-list {
+            &__items {
+                display: grid;
+                grid-gap: 20px;
+                grid-template-columns: repeat(auto-fill, minmax(500px, 1fr));
+            }
+
+        }
+    }
+    &--rows {
+        background: rgba(0, 0, 0, 0.3);
+        &:before {
+            content: "This view is WIP";
+        }
+        .battle-list {
+            &__item {
+                display: grid;
+                grid-template-columns: 40px 28px 2fr 60px 2fr 168px 75px;
+                border-top: $border;
+                background: linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0) 100%);
+                &:last-child {
+                    border-bottom: $border;
+                }
+                &:not(.battle-list__filters):hover {
+                    background: rgba(255, 255, 255, 0.2);
+                    box-shadow: 0 1px 0 0 rgba(255, 255, 255, 0.2);
+                }
+                & > div {
+                    display: block;
+                    overflow: hidden;
+                    white-space: nowrap;
+                    text-overflow: ellipsis;
+                    padding: 5px;
+                    border-left: $border;
+                    &:last-child {
+                        border-right: $border;
+                    }
+                }
+            }
+        }
+    }
+}
+</style>

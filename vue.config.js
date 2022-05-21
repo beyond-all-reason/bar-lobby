@@ -4,7 +4,6 @@ module.exports = {
         loaderOptions: {
             scss: {
                 prependData: `
-                    @use "@/assets/styles/_mixins.scss";
                     @use "@/assets/styles/_utils.scss";
                 `,
             }

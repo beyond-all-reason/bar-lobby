@@ -78,3 +78,46 @@ scope.run(() => {
     });
 });
 </script>
+
+<style lang="scss" scoped>
+.debug-sidebar {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 300px;
+    height: 100%;
+    z-index: 10;
+    background: #111;
+    border-left: 1px solid #222;
+    transform: translateX(100%);
+    transition: transform 0.1s;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: 10px;
+    &.active {
+        transform: translateX(0);
+        box-shadow: -5px 0 5px rgba(0, 0, 0, 0.5);
+    }
+    &__toggle {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        button {
+            transform: translateX(-100%);
+            background: #111;
+            border: 1px solid #222;
+            border-right: none;
+            border-bottom: none;
+            box-shadow: -5px 2px 5px rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            &:hover {
+                background: #222;
+            }
+        }
+    }
+}
+</style>

@@ -17,3 +17,7 @@ import Tab from "@/components/common/Tab.vue";
 
 const stuff = ref(["one", "two", "three"]);
 </script>
+
+<style lang="scss" scoped>
+
+</style>

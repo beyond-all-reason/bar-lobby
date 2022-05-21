@@ -10,16 +10,16 @@
                 </Options>
             </div>
             <div v-if="battle.battleOptions.startPosType === StartPosType.Boxes" class="map-preview__box-actions">
-                <Button @click="setBoxes(defaultBoxes.EastVsWest)">
+                <Button @click="setBoxes(defaultBoxes().EastVsWest)">
                     <img src="@/assets/images/icons/east-vs-west.png">
                 </Button>
-                <Button @click="setBoxes(defaultBoxes.NorthVsSouth)">
+                <Button @click="setBoxes(defaultBoxes().NorthVsSouth)">
                     <img src="@/assets/images/icons/north-vs-south.png">
                 </Button>
-                <Button @click="setBoxes(defaultBoxes.NortheastVsSouthwest)">
+                <Button @click="setBoxes(defaultBoxes().NortheastVsSouthwest)">
                     <img src="@/assets/images/icons/northeast-vs-southwest.png">
                 </Button>
-                <Button @click="setBoxes(defaultBoxes.NorthwestVsSouthEast)">
+                <Button @click="setBoxes(defaultBoxes().NorthwestVsSouthEast)">
                     <img src="@/assets/images/icons/northwest-vs-southeast.png">
                 </Button>
             </div>
@@ -35,6 +35,7 @@ import Button from "@/components/inputs/Button.vue";
 import { defaultBoxes } from "@/config/default-boxes";
 import Options from "@/components/inputs/Options.vue";
 import Option from "@/components/inputs/Option.vue";
+import { clone } from "jaz-ts-utils";
 
 const battle = api.session.currentBattle;
 
@@ -60,13 +61,13 @@ onMounted(async () => {
 
     loadMap();
 
-    watch([() => battle.battleOptions.mapFileName, () => battle.battleOptions.startPosType, () => battle.me], () => {
+    watch([() => battle.battleOptions.mapFileName, () => battle.battleOptions.startPosType, () => battle.battleOptions.startBoxes, () => battle.me], () => {
         loadMap();
     }, { deep: true });
 });
 
 const setBoxes = (boxes: StartBox[]) => {
-    battle.battleOptions.startBoxes = boxes;
+    battle.battleOptions.startBoxes = clone(boxes);
 };
 
 async function loadMap() {
@@ -98,14 +99,14 @@ async function loadMap() {
 
     context.drawImage(textureMap, mapTransform.x, mapTransform.y, mapTransform.width, mapTransform.height);
 
-    drawStartPosType(battle.battleOptions.startPosType);
+    drawStartPosType();
 }
 
-function drawStartPosType(startPosType: StartPosType) {
-    if (startPosType === StartPosType.Fixed) {
-        drawFixedPositions();
-    } else if (startPosType === StartPosType.Boxes) {
+function drawStartPosType() {
+    if (battle.battleOptions.startPosType === StartPosType.Boxes) {
         drawBoxes();
+    } else {
+        drawFixedPositions();
     }
 }
 
@@ -165,3 +166,48 @@ function roundTransform(transform: Transform) {
     };
 }
 </script>
+
+<style lang="scss" scoped>
+.map-preview {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    position: relative;
+    &__canvas {
+        margin: 10px;
+    }
+    &__actions {
+        position: absolute;
+        width: 100%;
+        left: 0;
+        bottom: 0;
+        padding: 15px;
+        flex-direction: row;
+        justify-content: space-between;
+        opacity: 0;
+        transition: opacity 0.1s;
+    }
+    &__box-actions {
+        flex-direction: row;
+        gap: 2px;
+        :deep(.btn) {
+            min-height: unset;
+            padding: 5px;
+            &:hover {
+                img {
+                    opacity: 1;
+                }
+            }
+        }
+        img {
+            max-width: 23px;
+            image-rendering: pixelated;
+            opacity: 0.7;
+        }
+    }
+    &:hover {
+        .map-preview__actions {
+            opacity: 1;
+        }
+    }
+}
+</style>

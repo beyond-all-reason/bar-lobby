@@ -2,9 +2,9 @@
 
 :root {
     --background: #000;
-    --error: #ff0000;
-    --warning: #ffd700;
-    --success: #00ff00;
+    --error: #ff5151;
+    --warning: #ffe134;
+    --success: #b8ff34;
 }
 html {
     height: 100%;
@@ -20,27 +20,33 @@ body {
     max-height: 100%;
     display: flex;
     flex-direction: column;
+
+    font-family: Rajdhani, sans-serif;
+    font-size: 18px;
+    text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.6);
+    color: #fff;
+    cursor: url("~@/assets/images/cursor_default.png"), auto !important;
 }
-.theme {
-    * {
-        &::-webkit-scrollbar {
-            width: 10px;
-        }
-        &::-webkit-scrollbar-track-piece {
-            border-left: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        &::-webkit-scrollbar-track {
-            background: rgba(0, 0, 0, 0.2);
-        }
-        &::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.1);
-            border-left: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        &::selection {
-            background: #171717;
-        }
+
+* {
+    &::-webkit-scrollbar {
+        width: 10px;
+    }
+    &::-webkit-scrollbar-track-piece {
+        border-left: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    &::-webkit-scrollbar-track {
+        background: rgba(0, 0, 0, 0.2);
+    }
+    &::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.1);
+        border-left: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    &::selection {
+        background: #171717;
     }
 }
+
 [draggable] {
     -webkit-user-drag: element;
 }

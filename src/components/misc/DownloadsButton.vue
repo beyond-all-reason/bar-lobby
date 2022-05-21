@@ -25,3 +25,7 @@ const downloadPercent = computed(() => {
     return (currentBytes / totalBytes) || 0;
 });
 </script>
+
+<style lang="scss" scoped>
+
+</style>

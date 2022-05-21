@@ -53,3 +53,39 @@ provide("toggleOption", (optionValue: unknown) => {
     emits("update:modelValue", selectedOption.value);
 });
 </script>
+
+<style lang="scss" scoped>
+.options {
+    display: inline-flex;
+    align-self: flex-start;
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    flex-grow: 1;
+    &.fullWidth {
+        align-self: unset;
+        >>> .option {
+            width: 100%;
+        }
+    }
+    &.top-label {
+        flex-direction: column;
+        .options__label {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+    }
+    &__label {
+        padding: 3px 7px;
+        justify-content: center;
+        align-items: center;
+        border-right: 1px solid rgba(255, 255, 255, 0.1);
+        flex-grow: 1;
+    }
+    &__list {
+        display: inline-flex;
+        justify-self: flex-start;
+        flex-direction: row;
+        gap: 1px;
+    }
+}
+</style>

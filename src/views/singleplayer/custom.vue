@@ -10,3 +10,7 @@ import BattleComponent from "../../components/battle/BattleComponent.vue";
 
 api.session.currentBattle.set(defaultBattle());
 </script>
+
+<style lang="scss" scoped>
+
+</style>

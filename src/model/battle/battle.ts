@@ -4,7 +4,7 @@ import { setObject } from "@/utils/set-object";
 import { computed, ComputedRef, reactive } from "vue";
 import { TypedProxyHandler } from "@/utils/typed-proxy-handler";
 import { defaultMapBoxes } from "@/config/default-boxes";
-import { groupBy } from "jaz-ts-utils";
+import { clone, groupBy } from "jaz-ts-utils";
 
 export interface BattleConfig {
     battleOptions: BattleOptions;
@@ -127,7 +127,7 @@ export class Battle implements BattleConfig {
 
     protected setBoxes(mapFileName: string) {
         if (this.battleOptions.startPosType === StartPosType.Boxes) {
-            const boxes: StartBox[] | undefined = defaultMapBoxes[mapFileName];
+            const boxes: StartBox[] | undefined = clone(defaultMapBoxes()[mapFileName]);
             if (boxes) {
                 this.battleOptions.startBoxes[0] = boxes[0];
                 this.battleOptions.startBoxes[1] = boxes[1];

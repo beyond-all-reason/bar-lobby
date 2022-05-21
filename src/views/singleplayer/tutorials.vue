@@ -27,3 +27,7 @@ import Markdown from "vue3-markdown-it";
 
 const route = useRoute();
 </script>
+
+<style lang="scss" scoped>
+
+</style>

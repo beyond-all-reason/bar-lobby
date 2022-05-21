@@ -1,6 +1,6 @@
 <template>
     <ContextMenu :entries="getActions(participant)" :args="[participant]">
-        <div class="playerlist__participant">
+        <div class="participant">
             <Icon :icon="icon" :size="16" />
             <Flag :countryCode="countryCode" />
             <div>
@@ -124,3 +124,22 @@ onUnmounted(() => {
     }
 });
 </script>
+
+<style lang="scss" scoped>
+.participant {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 7px;
+    padding: 3px 8px;
+    border-radius: 3px;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    &.dragging {
+        pointer-events: auto;
+    }
+    &:hover {
+        background: rgba(255, 255, 255, 0.1);
+    }
+}
+</style>

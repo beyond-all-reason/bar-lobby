@@ -36,7 +36,7 @@ export class SessionAPI {
                 ready: false,
                 spectator: false,
                 color: "",
-                allyTeamId: 0,
+                teamId: 0,
                 playerId: 0,
             }
         });

@@ -26,3 +26,7 @@ const resolve = () => {
     console.log("resolve");
 };
 </script>
+
+<style lang="scss" scoped>
+
+</style>

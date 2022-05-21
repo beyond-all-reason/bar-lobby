@@ -25,3 +25,9 @@ const props = defineProps<{
     content?: string;
 }>();
 </script>
+
+<style lang="scss" scoped>
+.tooltip :deep(.popper) {
+    pointer-events: none;
+}
+</style>

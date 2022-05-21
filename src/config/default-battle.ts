@@ -17,7 +17,7 @@ export const defaultBattle: () => BattleConfig = () => {
             gameVersion: lastInArray(api.content.game.installedVersions)!.version.fullString,
             mapFileName: map,
             startPosType: StartPosType.Boxes,
-            startBoxes: defaultMapBoxes[map] ?? defaultBoxes.NorthVsSouth,
+            startBoxes: defaultMapBoxes()[map] ?? defaultBoxes().NorthVsSouth,
             teamPreset: TeamPreset.Standard,
             isHost: true,
             gameOptions: {},

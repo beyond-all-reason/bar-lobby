@@ -24,6 +24,6 @@ export type BattleStatus = {
     ready: boolean;
     color: string;
     battleId: number;
-    allyTeamId: number;
+    teamId: number;
     playerId: number;
 };

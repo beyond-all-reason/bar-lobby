@@ -43,7 +43,7 @@ const check = ref(true);
 const option = ref(["option1"]);
 </script>
 
-<style scoped lang="scss">
+<style lang="scss" scoped>
 .controls {
     //position: relative;
     display: grid;

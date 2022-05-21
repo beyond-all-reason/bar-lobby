@@ -30,3 +30,7 @@ const addBot = (ai: AI) => {
     api.modals.close("add-bot");
 };
 </script>
+
+<style lang="scss" scoped>
+
+</style>

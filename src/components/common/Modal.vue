@@ -1,16 +1,14 @@
 <template>
-    <teleport to=".theme">
+    <teleport to="#wrapper">
         <transition name="modal" appear>
             <div v-if="isOpen" class="modal-container">
                 <Panel id="modal" class="modal" v-bind="$attrs">
                     <template #header>
-                        <div class="panel__header">
-                            <div class="panel__title">
-                                {{ title || name }}
-                            </div>
-                            <div class="panel__close" @click="close" @mouseenter="sound">
-                                <Icon icon="close-thick" />
-                            </div>
+                        <div class="modal__title">
+                            {{ title || name }}
+                        </div>
+                        <div class="modal__close" @click="close" @mouseenter="sound">
+                            <Icon icon="close-thick" />
                         </div>
                     </template>
                     <slot />
@@ -55,3 +53,52 @@ const close = () => {
 
 const sound = () => api.audio.getSound("button-hover").play();
 </script>
+
+<style lang="scss" scoped>
+.modal-container {
+    @extend .fullsize;
+    z-index: 10;
+    justify-content: center;
+    align-items: center;
+    background-color: rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(5px);
+}
+.modal {
+    flex-grow: 0;
+    :deep(.panel.tabbed), :deep(.panel.tabbed:after) {
+        background: none;
+        backdrop-filter: none;
+        border: none;
+        box-shadow: none;
+    }
+    &__title {
+        padding: 5px 10px;
+        flex-grow: 1;
+        border-right: 1px solid rgba(255, 255, 255, 0.1);
+        text-transform: capitalize;
+        font-weight: 600;
+    }
+    &__close {
+        margin-left: auto;
+        padding: 5px 10px;
+        background: rgba(219, 20, 20, 0.3);
+        &:hover {
+            background: rgba(219, 20, 20, 0.6);
+        }
+    }
+}
+.modal-enter-active,
+.modal-leave-active {
+    transition: 0.2s ease-in-out;
+    .modal {
+        transition: 0.2s ease-in-out;
+    }
+}
+.modal-enter-from,
+.modal-leave-to {
+    opacity: 0;
+    .modal {
+        transform: translateY(-20px);
+    }
+}
+</style>

@@ -2,7 +2,7 @@
 
 <template>
     <div>
-        <teleport to=".theme">
+        <teleport to="#wrapper">
             <div class="fullsize flex-col flex-center-items">
                 <Loader v-if="loading" />
                 <transition v-else name="login" appear>
@@ -43,3 +43,33 @@ onMounted(async () => {
     await api.client.connect();
 });
 </script>
+
+<style lang="scss" scoped>
+.login {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    margin-top: calc((100vh - 700px) / 2);
+    width: 500px;
+    gap: 80px;
+    &__logo {
+        filter: drop-shadow(3px 3px 5px rgba(0, 0, 0, 0.8));
+        transition: 2000ms ease;
+    }
+    &__panel {
+        width: 100%;
+        transition: 1700ms ease;
+        transition-delay: 300ms;
+    }
+}
+
+.login-enter-from,
+.login-leave-to {
+    .login__logo,
+    .login__panel {
+        transform: translateY(-25px);
+        opacity: 0;
+    }
+}
+</style>

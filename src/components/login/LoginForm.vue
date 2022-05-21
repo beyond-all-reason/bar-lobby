@@ -1,7 +1,7 @@
 <template>
     <div>
         <Loader v-if="loading" />
-        <form v-else-if="!requestVerification" ref="form" class="flex-col gap-md" @submit.prevent="login">
+        <form v-else-if="!requestVerification" ref="form" class="flex-col gap-md" @submit.prevent="login" @keydown.enter="login">
             <p v-if="loginError" class="color--error">
                 {{ loginError }}
             </p>
@@ -113,4 +113,8 @@ const verify = async () => {
     loading.value = false;
 };
 </script>
+
+<style lang="scss" scoped>
+
+</style>
 

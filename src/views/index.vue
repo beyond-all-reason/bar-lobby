@@ -36,3 +36,7 @@ onMounted(async () => {
     await router.replace("/login");
 });
 </script>
+
+<style lang="scss" scoped>
+
+</style>

@@ -103,3 +103,15 @@ const start = async () => {
     api.game.launch(battle);
 };
 </script>
+
+<style lang="scss" scoped>
+.battle {
+    &__right {
+        width: 550px;
+    }
+    &__panel {
+        background: rgba(0, 0, 0, 0.3);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+}
+</style>

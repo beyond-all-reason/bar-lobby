@@ -54,3 +54,7 @@ const register = async () => {
     loading.value = false;
 };
 </script>
+
+<style lang="scss" scoped>
+
+</style>

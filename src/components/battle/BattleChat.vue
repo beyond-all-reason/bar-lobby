@@ -41,3 +41,22 @@ onUnmounted(() => {
     onMessage.destroy();
 });
 </script>
+
+<style lang="scss" scoped>
+.battle-chat {
+    margin-top: auto;
+    gap: 10px;
+    &__log {
+        background: rgba(0, 0, 0, 0.3);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        height: 236px;
+        padding: 15px;
+    }
+    &__textbox {
+        input {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+    }
+}
+</style>

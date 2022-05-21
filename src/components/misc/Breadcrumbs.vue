@@ -18,3 +18,14 @@ import Icon from "@/components/common/Icon.vue";
 
 const route = useRoute();
 </script>
+
+<style lang="scss" scoped>
+.breadcrumbs {
+    display: flex;
+    gap: 20px;
+    .back {
+        display: flex;
+        gap: 5px;
+    }
+}
+</style>

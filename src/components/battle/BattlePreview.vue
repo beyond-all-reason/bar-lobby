@@ -1,104 +1,107 @@
 <template>
-    <div v-if="layout === 'tiles'" class="battle-list__item" @click="joinBattle">
-        <div class="battle-list__background" :style="`background-image: url('${mapImageUrl}')`" />
-        <div class="battle-list__header">
-            <div class="battle-list__title">
+    <div :class="`battle-preview ${layout}`" @click="joinBattle">
+        <template v-if="layout === 'tile'">
+            <div class="background" :style="`background-image: url('${mapImageUrl}')`" />
+            <div class="header">
+                <div class="title">
+                    <div>
+                        <Flag :countryCode="founder.countryCode" />
+                    </div>
+                    <div>
+                        <Icon v-if="battle.locked || battle.passworded" icon="lock" />
+                    </div>
+                    <div>
+                        {{ battle.title }}
+                    </div>
+                </div>
                 <div>
+                    Preset (TODO)
+                </div>
+            </div>
+            <div class="header meta">
+                <div>
+                    {{ mapName }}
+                </div>
+                <div>
+                    {{ runtime }}
+                </div>
+            </div>
+            <div class="clients players">
+                <div v-for="player in players" :key="player.userId" class="client">
+                    <div v-if="player.countryCode">
+                        <Flag :countryCode="player.countryCode" />
+                    </div>
+                    <div>
+                        {{ player.username }}
+                    </div>
+                </div>
+                <div v-for="(bot, i) in battle.botNames" :key="i" class="client">
+                    <div>
+                        <Icon icon="robot" />
+                    </div>
+                    <div>
+                        {{ bot }}
+                    </div>
+                </div>
+            </div>
+            <div v-if="spectators.length" class="clients spectators">
+                <div v-for="spectator in spectators" :key="spectator.userId" class="client">
+                    <div v-if="spectator.countryCode">
+                        <Flag :countryCode="spectator.countryCode" />
+                    </div>
+                    <div>
+                        {{ spectator.username }}
+                    </div>
+                </div>
+            </div>
+        </template>
+
+        <template v-else>
+            <div>
+                <div class="flex-center fullheight">
                     <Flag :countryCode="founder.countryCode" />
                 </div>
-                <div>
+            </div>
+            <div>
+                <div class="flex-center fullheight">
                     <Icon v-if="battle.locked || battle.passworded" icon="lock" />
                 </div>
-                <div>
-                    {{ battle.title }}
+            </div>
+            <div>
+                {{ battle.title }}
+            </div>
+            <div>
+                TODO
+            </div>
+            <div>
+                {{ battle.mapName }}
+            </div>
+            <div>
+                <div class="flex-row gap-md">
+                    <div class="flex-row gap-sm">
+                        <img src="@/assets/images/icons/com.png" style="height: 23px;">
+                        <div style="width: 2ch">
+                            {{ players.length }}
+                        </div>
+                    </div>
+                    <div class="flex-row gap-sm">
+                        <Icon icon="robot" />
+                        <div style="width: 2ch">
+                            {{ battle.botNames.length }}
+                        </div>
+                    </div>
+                    <div class="flex-row gap-sm">
+                        <Icon icon="eye-outline" />
+                        <div style="width: 2ch">
+                            {{ spectators.length }}
+                        </div>
+                    </div>
                 </div>
-            </div>
-            <div>
-                Preset (TODO)
-            </div>
-        </div>
-        <div class="battle-list__header battle-list__meta">
-            <div>
-                {{ mapName }}
             </div>
             <div>
                 {{ runtime }}
             </div>
-        </div>
-        <div class="battle-list__clients battle-list__clients--players">
-            <div v-for="player in players" :key="player.userId" class="battle-list__client">
-                <div v-if="player.countryCode">
-                    <Flag :countryCode="player.countryCode" />
-                </div>
-                <div>
-                    {{ player.username }}
-                </div>
-            </div>
-            <div v-for="(bot, i) in battle.botNames" :key="i" class="battle-list__client">
-                <div>
-                    <Icon icon="robot" />
-                </div>
-                <div>
-                    {{ bot }}
-                </div>
-            </div>
-        </div>
-        <div v-if="spectators.length" class="battle-list__clients battle-list__clients--spectators">
-            <div v-for="spectator in spectators" :key="spectator.userId" class="battle-list__client">
-                <div v-if="spectator.countryCode">
-                    <Flag :countryCode="spectator.countryCode" />
-                </div>
-                <div>
-                    {{ spectator.username }}
-                </div>
-            </div>
-        </div>
-    </div>
-    <div v-else class="battle-list__item">
-        <div>
-            <div class="flex-center fullheight">
-                <Flag :countryCode="founder.countryCode" />
-            </div>
-        </div>
-        <div>
-            <div class="flex-center fullheight">
-                <Icon v-if="battle.locked || battle.passworded" icon="lock" />
-            </div>
-        </div>
-        <div>
-            {{ battle.title }}
-        </div>
-        <div>
-            TODO
-        </div>
-        <div>
-            {{ battle.mapName }}
-        </div>
-        <div>
-            <div class="flex-row gap-md">
-                <div class="flex-row gap-sm">
-                    <img src="@/assets/images/icons/com.png" style="height: 23px;">
-                    <div style="width: 2ch">
-                        {{ players.length }}
-                    </div>
-                </div>
-                <div class="flex-row gap-sm">
-                    <Icon icon="robot" />
-                    <div style="width: 2ch">
-                        {{ battle.botNames.length }}
-                    </div>
-                </div>
-                <div class="flex-row gap-sm">
-                    <Icon icon="eye-outline" />
-                    <div style="width: 2ch">
-                        {{ spectators.length }}
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div>
-            {{ runtime }}
-        </div>
+        </template>
     </div>
 </template>
 
@@ -111,7 +114,7 @@ import Icon from "@/components/common/Icon.vue";
 
 const props = defineProps<{
     battle: BattlePreviewType,
-    layout: "tiles" | "rows"
+    layout: "tile" | "row"
 }>();
 
 const users = computed(() => props.battle.userIds.map(id => api.session.getUserById(id)!));
@@ -137,3 +140,90 @@ const joinBattle = () => {
     console.log(props.battle.id);
 };
 </script>
+
+<style lang="scss" scoped>
+.battle-preview {
+    &.tile {
+            position: relative;
+            z-index: 0;
+            padding-bottom: 5px;
+            gap: 5px;
+            padding: 10px;
+            font-weight: 500;
+            &:hover {
+                .background {
+                    filter: brightness(1.3);
+                }
+            }
+            .header, .meta {
+                flex-direction: row;
+                align-items: center;
+                justify-content: space-between;
+                gap: 5px;
+            }
+            .header {
+                font-weight: 600;
+            }
+            .meta {
+                font-size: 16px;
+            }
+            .title {
+                flex-direction: row;
+                align-items: center;
+                gap: 5px;
+            }
+            .background {
+                @extend .fullsize;
+                image-rendering: pixelated;
+                z-index: -1;
+                background-position: center;
+                background-size: cover;
+                overflow: hidden;
+                &:before {
+                    @extend .fullsize;
+                    background: linear-gradient(to bottom, rgba(0,0,0,0.5) 10%,rgba(0,0,0,0.0) 100%);
+                    box-shadow:
+                        inset 0 1px 0 0 rgba(255, 255, 255, 0.15),
+                        inset 1px 0 0 0 rgba(255, 255, 255, 0.07),
+                        inset -1px 0 0 0 rgba(255, 255, 255, 0.07),
+                        inset 0 -5px 0 0 rgba(0, 0, 0, 0.3);
+                }
+            }
+           .clients {
+                flex-direction: row;
+                flex-wrap: wrap;
+                gap: 4px;
+                &--spectators {
+                    position: relative;
+                    padding-top: 5px;
+                    &:before {
+                        content: "";
+                        position: absolute;
+                        top: 0;
+                        left: 2.5%;
+                        width: 95%;
+                        height: 1px;
+                        background: rgba(255, 255, 255, 0.1);
+                    }
+                }
+            }
+            .client {
+                flex-direction: row;
+                align-items: center;
+                gap: 5px;
+                padding: 2px 8px;
+                border-radius: 3px;
+                background: rgba(0, 0, 0, 0.6);
+                border: none;
+                font-size: 14px;
+                svg {
+                    width: 14px;
+                    height: 14px;
+                }
+                .flag {
+                    font-size: 10px;
+                }
+            }
+    }
+}
+</style>

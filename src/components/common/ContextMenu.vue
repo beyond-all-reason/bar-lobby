@@ -47,3 +47,22 @@ const props = withDefaults(defineProps<{
 
 const show = ref(false);
 </script>
+
+<style lang="scss" scoped>
+.context-menu {
+    :deep(.popper) {
+        padding: 0 !important;
+    }
+    &__entry {
+
+    }
+    &__label {
+        padding: 10px;
+        &:hover {
+            background-color: #ddd;
+            color: #000;
+            text-shadow: none;
+        }
+    }
+}
+</style>

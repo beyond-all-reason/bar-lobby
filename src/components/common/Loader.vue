@@ -5,7 +5,7 @@
     </div>
 </template>
 
-<style scoped lang="scss">
+<style lang="scss" scoped>
 .loader {
     //background: radial-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0) 50%);
 	padding: 30px;
