@@ -1,21 +1,43 @@
 <template>
     <div class="battle-chat">
         <div class="battle-chat__log">
-            Message
+            <div v-for="(message, i) in messages" :key="i" class="battle-chat__message">
+                <div v-if="message.type === 'chat'" class="battle-chat__message-author">
+                    {{ message.usedId }}
+                </div>
+                <div class="battle-chat__message-text">
+                    {{ message.text }}
+                </div>
+            </div>
         </div>
         <div class="battle-chat__textbox">
-            <Textbox v-model="currentMessage" class="fullwidth" enableSubmit enableHistory @submit="sendMessage" />
+            <Textbox v-model="myMessage" class="fullwidth" enableSubmit enableHistory @submit="sendMessage" />
         </div>
     </div>
 </template>
 
 <script lang="ts" setup>
 import Textbox from "@/components/inputs/Textbox.vue";
-import { ref } from "vue";
+import { BattleChatMessage } from "@/model/battle/battle-chat";
+import { onUnmounted, reactive, ref } from "vue";
 
-const currentMessage = ref("");
+const messages: BattleChatMessage[] = reactive([]);
+const myMessage = ref("");
+
+messages[0] = { type: "system", text: "Welcome!" };
+messages[1] = { type: "chat", usedId: 1234, text: "Test" };
+messages[2] = { type: "chat", usedId: 12344, text: "Testdssdad asd asdasd ad ad adad ad asd" };
 
 const sendMessage = (message: string) => {
     console.log(message);
+    //api.client.request("c.lobby.say", {  })
 };
+
+const onMessage = api.client.onResponse("s.lobby.say").add((data) => {
+    console.log("message", data);
+});
+
+onUnmounted(() => {
+    onMessage.destroy();
+});
 </script>

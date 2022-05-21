@@ -1,4 +1,4 @@
-
+// TODO: this might as well be synonymous with full battle types
 export type BattlePreviewType = {
     id: number;
     title: string;
