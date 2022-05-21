@@ -3,7 +3,8 @@
 <template>
     <div>
         <h1>{{ route.meta.title }}</h1>
-        <Markdown source="
+        <Markdown
+            source="
 - Similar to online unit browser, but automated
 - Searchable
 - Sortable

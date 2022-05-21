@@ -9,7 +9,7 @@
             <div>
                 Display
             </div>
-            <Select v-model="displayIndex" :options="displays" :label-by="(option: string) => `Display ${option + 1}`" />
+            <Select v-model="displayIndex" :options="displays" :labelBy="(option: string) => `Display ${option + 1}`" />
 
             <div>
                 Theme

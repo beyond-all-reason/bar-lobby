@@ -2,12 +2,12 @@
     <ContextMenu :entries="getActions(participant)" :args="[participant]">
         <div class="playerlist__participant">
             <Icon :icon="icon" :size="16" />
-            <Flag :country-code="countryCode" />
+            <Flag :countryCode="countryCode" />
             <div>
                 {{ name }}
             </div>
         </div>
-        <LuaOptionsModal v-if="participant.type === 'bot'" :id="`configure-bot-${participant.name}`" :model-value="participant.aiOptions" title="Configure Bot" :sections="aiOptions" @update:model-value="aiOptionsUpdated" />
+        <LuaOptionsModal v-if="participant.type === 'bot'" :id="`configure-bot-${participant.name}`" :modelValue="participant.aiOptions" title="Configure Bot" :sections="aiOptions" @update:model-value="aiOptionsUpdated" />
     </ContextMenu>
 </template>
 

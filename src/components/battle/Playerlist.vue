@@ -13,10 +13,10 @@
                 <div class="playerlist__title">
                     Team {{ teamId + 1 }}
                 </div>
-                <Button slim :flex-grow="false" @click="addBot(teamId)">
+                <Button slim :flexGrow="false" @click="addBot(teamId)">
                     Add bot
                 </Button>
-                <Button v-if="battle.me.value.type !== 'player' || battle.me.value.teamId !== teamId" slim :flex-grow="false" @click="joinTeam(teamId)">
+                <Button v-if="battle.me.value.type !== 'player' || battle.me.value.teamId !== teamId" slim :flexGrow="false" @click="joinTeam(teamId)">
                     Join
                 </Button>
             </div>
@@ -43,10 +43,10 @@
                 <div class="playerlist__title">
                     Team {{ battle.numOfTeams.value + 1 }}
                 </div>
-                <Button slim :flex-grow="false" @click="addBot(battle.numOfTeams.value)">
+                <Button slim :flexGrow="false" @click="addBot(battle.numOfTeams.value)">
                     Add bot
                 </Button>
-                <Button slim :flex-grow="false" @click="joinTeam(battle.numOfTeams.value)">
+                <Button slim :flexGrow="false" @click="joinTeam(battle.numOfTeams.value)">
                     Join
                 </Button>
             </div>
@@ -62,7 +62,7 @@
                 <div class="playerlist__title">
                     Spectators
                 </div>
-                <Button v-if="battle.me.value.type !== 'spectator'" slim :flex-grow="false" @click="joinTeam()">
+                <Button v-if="battle.me.value.type !== 'spectator'" slim :flexGrow="false" @click="joinTeam()">
                     Join
                 </Button>
             </div>

@@ -2,7 +2,17 @@
     <div class="control range" :class="{ 'trim-label': trimLabel, disabled }" @submit.prevent="">
         <label v-if="label" :for="uuid" :class="{ trim: trimLabel }">{{ label }}</label>
         <div class="input" @mouseenter="sound">
-            <VueSlider ref="slider" v-model="value" tooltip="none" :duration="0" :drag-on-click="true" :contained="true" v-bind="$attrs" @error="(error as any)" @update:model-value="emit('update:modelValue', value)" />
+            <VueSlider
+                ref="slider"
+                v-model="value"
+                tooltip="none"
+                :duration="0"
+                :dragOnClick="true"
+                :contained="true"
+                v-bind="$attrs"
+                @error="(error as any)"
+                @update:model-value="emit('update:modelValue', value)"
+            />
         </div>
         <input :id="uuid" ref="textbox" v-model="value" :style="`width: calc(${max.toString().length}ch + 20px)`" :disabled="disableCustomInput">
     </div>

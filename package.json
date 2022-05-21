@@ -13,8 +13,8 @@
   "scripts": {
     "dev": "vue-cli-service electron:serve",
     "bundle": "cross-env NODE_ENV=production npm run clean-dist && vue-cli-service electron:build",
-    "lint": "eslint . --ext .ts",
-    "lint-fix": "eslint . --ext .ts --fix",
+    "lint": "eslint . --ext .ts,.vue",
+    "lint-fix": "eslint . --ext .ts,.vue --fix",
     "postinstall": "electron-builder install-app-deps",
     "postuninstall": "electron-builder install-app-deps",
     "clean-dist": "rimraf dist_electron",

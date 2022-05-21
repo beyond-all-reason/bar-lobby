@@ -3,7 +3,8 @@
 <template>
     <div>
         <h1>{{ route.meta.title }}</h1>
-        <Markdown source="
+        <Markdown
+            source="
 - Similar to online map browser
 - Indicator whether map is installed or not
 - Easy one click install button

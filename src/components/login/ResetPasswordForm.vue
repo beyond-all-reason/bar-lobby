@@ -4,7 +4,7 @@
         <p>Provide your account's email address <b>or</b> username to request a password reset</p>
         <Textbox v-model="email" type="email" label="Email" :required="!Boolean(username)" class="fullwidth" />
         <Textbox v-model="username" label="Username" :required="!Boolean(email)" class="fullwidth" />
-        <Button type="submit" full-width>
+        <Button type="submit" fullWidth>
             Request Password Reset
         </Button>
     </form>

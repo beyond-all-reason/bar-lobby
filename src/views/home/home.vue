@@ -3,7 +3,8 @@
 <template>
     <div>
         <h1>Home</h1>
-        <Markdown source="
+        <Markdown
+            source="
 - Small panes that preview content that can be displayed in more detail when clicking through to their full pages
 - Lates news (manual blog-like posts)
 - Latest updates (automated balance changes, simple github feed)

@@ -4,7 +4,7 @@
         <div class="battle-list__header">
             <div class="battle-list__title">
                 <div>
-                    <Flag :country-code="founder.countryCode" />
+                    <Flag :countryCode="founder.countryCode" />
                 </div>
                 <div>
                     <Icon v-if="battle.locked || battle.passworded" icon="lock" />
@@ -28,7 +28,7 @@
         <div class="battle-list__clients battle-list__clients--players">
             <div v-for="player in players" :key="player.userId" class="battle-list__client">
                 <div v-if="player.countryCode">
-                    <Flag :country-code="player.countryCode" />
+                    <Flag :countryCode="player.countryCode" />
                 </div>
                 <div>
                     {{ player.username }}
@@ -46,7 +46,7 @@
         <div v-if="spectators.length" class="battle-list__clients battle-list__clients--spectators">
             <div v-for="spectator in spectators" :key="spectator.userId" class="battle-list__client">
                 <div v-if="spectator.countryCode">
-                    <Flag :country-code="spectator.countryCode" />
+                    <Flag :countryCode="spectator.countryCode" />
                 </div>
                 <div>
                     {{ spectator.username }}
@@ -57,7 +57,7 @@
     <div v-else class="battle-list__item">
         <div>
             <div class="flex-center fullheight">
-                <Flag :country-code="founder.countryCode" />
+                <Flag :countryCode="founder.countryCode" />
             </div>
         </div>
         <div>

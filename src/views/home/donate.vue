@@ -3,7 +3,8 @@
 <template>
     <div>
         <h1>{{ route.meta.title }}</h1>
-        <Markdown source="
+        <Markdown
+            source="
 - BAR is a free, open-source project supported by hardworking individuals blahblah
 - How your donation gets used
 - Donate button

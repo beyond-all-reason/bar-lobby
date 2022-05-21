@@ -3,7 +3,8 @@
 <template>
     <div>
         <h1>{{ route.meta.title }}</h1>
-        <Markdown source="
+        <Markdown
+            source="
 - Automated tournaments list (like in rocket league)
 - Official tournaments list
 - Unofficial tournaments list

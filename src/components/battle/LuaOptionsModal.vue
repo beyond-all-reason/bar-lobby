@@ -1,6 +1,6 @@
 <template>
     <Modal :name="id" :title="title" width="700px" height="400px" padding="0">
-        <Panel scroll-content>
+        <Panel scrollContent>
             <Tab v-for="section of sections.filter(section => !section.hidden)" :key="section.key" :title="section.name" :tooltip="section.description">
                 <div class="gap-md">
                     <div class="gridform">
@@ -11,10 +11,18 @@
                                     {{ option.description }}
                                 </div>
                             </div>
-                            <Range v-if="option.type === 'number'" :model-value="optionsObj[option.key] ?? option.default" :min="option.min" :max="option.max" :interval="option.step" trim-label @update:model-value="value => setOptionValue(option, value)" />
-                            <Checkbox v-if="option.type === 'boolean'" :model-value="optionsObj[option.key] ?? option.default" @update:model-value="value => setOptionValue(option, value)" />
-                            <Textbox v-if="option.type === 'string'" :model-value="optionsObj[option.key] ?? option.default" @update:model-value="value => setOptionValue(option, value)" />
-                            <Select v-if="option.type === 'list'" :model-value="optionsObj[option.key] ?? option.default" :options="option.options" :label-by="(option: any) => option.name" :value-by="(option: any) => option.key" @update:model-value="value => setOptionValue(option, value)" />
+                            <Range
+                                v-if="option.type === 'number'"
+                                :modelValue="optionsObj[option.key] ?? option.default"
+                                :min="option.min"
+                                :max="option.max"
+                                :interval="option.step"
+                                trimLabel
+                                @update:model-value="value => setOptionValue(option, value)"
+                            />
+                            <Checkbox v-if="option.type === 'boolean'" :modelValue="optionsObj[option.key] ?? option.default" @update:model-value="value => setOptionValue(option, value)" />
+                            <Textbox v-if="option.type === 'string'" :modelValue="optionsObj[option.key] ?? option.default" @update:model-value="value => setOptionValue(option, value)" />
+                            <Select v-if="option.type === 'list'" :modelValue="optionsObj[option.key] ?? option.default" :options="option.options" :labelBy="(option: any) => option.name" :valueBy="(option: any) => option.key" @update:model-value="value => setOptionValue(option, value)" />
                         </template>
                     </div>
                 </div>

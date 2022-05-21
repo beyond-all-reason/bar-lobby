@@ -6,13 +6,13 @@
         <Textbox v-model="txt" label="Text" placeholder="text" :disabled="disabled" />
         <Textbox v-model="test" label="bob" placeholder="test" :disabled="disabled" />
         <Checkbox v-model="check" label="Checkbox" :disabled="disabled" />
-        <Button :disabled="disabled" :flex-grow="false">
+        <Button :disabled="disabled" :flexGrow="false">
             I am a button
         </Button>
         <div class="test">
             <Select v-model="color" :options="['blue', 'red', 'green', 'fish', 'yep']" :disabled="disabled" />
         </div>
-        <Options v-model="option" label="Options" :disabled="disabled" full-width>
+        <Options v-model="option" label="Options" :disabled="disabled" fullWidth>
             <Option value="option1">
                 Option 1
             </Option>

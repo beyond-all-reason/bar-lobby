@@ -3,7 +3,8 @@
 <template>
     <div>
         <h1>{{ route.meta.title }}</h1>
-        <Markdown source="
+        <Markdown
+            source="
 - Should manual updates (blog-like posts) be in news section or here?
 - Balance changes
 - Github changes from all BAR repos?

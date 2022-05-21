@@ -16,14 +16,14 @@
                     v-model="battle.battleOptions.mapFileName"
                     label="Map"
                     :options="installedMaps"
-                    :label-by="(map: any) => map.friendlyName"
-                    :value-by="(map: any) => map.fileNameWithExt"
-                    close-on-select
-                    clear-on-select
+                    :labelBy="(map: any) => map.friendlyName"
+                    :valueBy="(map: any) => map.fileNameWithExt"
+                    closeOnSelect
+                    clearOnSelect
                     searchable
-                    full-width
+                    fullWidth
                 />
-                <Button :flex-grow="false">
+                <Button :flexGrow="false">
                     <Icon icon="cog" />
                 </Button>
             </div>
@@ -32,13 +32,13 @@
                     v-model="selectedGame"
                     label="Game"
                     :options="games"
-                    close-on-select
-                    clear-on-select
+                    closeOnSelect
+                    clearOnSelect
                     searchable
                     :disabled="!battle.battleOptions.offline"
-                    full-width
+                    fullWidth
                 />
-                <Button :flex-grow="false" @click="openGameOptions">
+                <Button :flexGrow="false" @click="openGameOptions">
                     <Icon icon="cog" />
                 </Button>
                 <LuaOptionsModal id="game-options" v-model="battle.battleOptions.gameOptions" :title="`Game Options - ${battle.battleOptions.gameVersion}`" :sections="gameOptions" height="700px" />
@@ -47,11 +47,11 @@
                 v-model="selectedEngine"
                 label="Engine"
                 :options="engines"
-                close-on-select
-                clear-on-select
+                closeOnSelect
+                clearOnSelect
                 searchable
                 :disabled="!battle.battleOptions.offline"
-                full-width
+                fullWidth
             />
             <div class="flex-row flex-bottom gap-md">
                 <Button class="btn--red" fullwidth @click="leave">

@@ -3,7 +3,8 @@
 <template>
     <div>
         <h1>{{ route.meta.title }}</h1>
-        <Markdown source="
+        <Markdown
+            source="
 - Player name
 - Avatar - Steam or choose from BAR selection?
 - Profile level (fancy banner associated with level?)

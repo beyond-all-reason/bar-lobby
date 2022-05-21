@@ -3,7 +3,8 @@
 <template>
     <div>
         <h1>{{ route.meta.title }}</h1>
-        <Markdown source="
+        <Markdown
+            source="
 - Main website, blog posts, guides
 - bar-rts.com, replays, battles, leaderboards, maps, player profiles
 "

@@ -9,7 +9,7 @@
             <Textbox v-model="username" label="Username" required class="fullwidth" />
             <Textbox v-model="password" type="password" label="Password" required class="fullwidth" />
             <Textbox v-model="confirmPassword" type="password" label="Confirm Password" :validation="validatePassword" required class="fullwidth" />
-            <Button type="submit" full-width>
+            <Button type="submit" fullWidth>
                 Register
             </Button>
         </form>
