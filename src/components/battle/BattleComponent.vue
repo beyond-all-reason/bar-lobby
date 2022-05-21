@@ -12,19 +12,47 @@
         <div class="battle__right gap-md">
             <MapPreview />
             <div class="flex-row gap-md">
-                <Select v-model="battle.battleOptions.mapFileName" label="Map" :options="installedMaps" :label-by="(map: any) => map.friendlyName" :value-by="(map: any) => map.fileNameWithExt" close-on-select clear-on-select searchable full-width />
+                <Select
+                    v-model="battle.battleOptions.mapFileName"
+                    label="Map"
+                    :options="installedMaps"
+                    :label-by="(map: any) => map.friendlyName"
+                    :value-by="(map: any) => map.fileNameWithExt"
+                    close-on-select
+                    clear-on-select
+                    searchable
+                    full-width
+                />
                 <Button :flex-grow="false">
                     <Icon icon="cog" />
                 </Button>
             </div>
             <div class="flex-row gap-md">
-                <Select v-model="selectedGame" label="Game" :options="games" close-on-select clear-on-select searchable :disabled="!battle.battleOptions.offline" full-width />
+                <Select
+                    v-model="selectedGame"
+                    label="Game"
+                    :options="games"
+                    close-on-select
+                    clear-on-select
+                    searchable
+                    :disabled="!battle.battleOptions.offline"
+                    full-width
+                />
                 <Button :flex-grow="false" @click="openGameOptions">
                     <Icon icon="cog" />
                 </Button>
                 <LuaOptionsModal id="game-options" v-model="battle.battleOptions.gameOptions" :title="`Game Options - ${battle.battleOptions.gameVersion}`" :sections="gameOptions" height="700px" />
             </div>
-            <Select v-model="selectedEngine" label="Engine" :options="engines" close-on-select clear-on-select searchable :disabled="!battle.battleOptions.offline" full-width />
+            <Select
+                v-model="selectedEngine"
+                label="Engine"
+                :options="engines"
+                close-on-select
+                clear-on-select
+                searchable
+                :disabled="!battle.battleOptions.offline"
+                full-width
+            />
             <div class="flex-row flex-bottom gap-md">
                 <Button class="btn--red" fullwidth @click="leave">
                     Leave

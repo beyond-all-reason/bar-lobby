@@ -1,4 +1,4 @@
-import type { App} from "electron";
+import type { App } from "electron";
 import { app, ipcMain, protocol, screen } from "electron";
 import installExtension, { VUEJS3_DEVTOOLS } from "electron-devtools-installer";
 import unhandled from "electron-unhandled";
@@ -51,6 +51,7 @@ export class Application {
         if (!isProd && !process.env.IS_TEST) {
             try {
                 await installExtension(VUEJS3_DEVTOOLS);
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             } catch (e: any) {
                 console.error("Vue Devtools failed to install:", e.toString());
             }

@@ -1,5 +1,5 @@
 <template>
-    <div v-if="layout === 'tiles'" class="battle-list__item">
+    <div v-if="layout === 'tiles'" class="battle-list__item" @click="joinBattle">
         <div class="battle-list__background" :style="`background-image: url('${mapImageUrl}')`" />
         <div class="battle-list__header">
             <div class="battle-list__title">
@@ -132,4 +132,8 @@ const runtime = computed(() => {
     const seconds = runtimeDate.getSeconds().toString().padStart(2, "0");
     return `${hours}:${minutes}:${seconds}`;
 });
+
+const joinBattle = () => {
+    console.log(props.battle.id);
+};
 </script>
