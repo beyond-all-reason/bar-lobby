@@ -6,7 +6,7 @@ module.exports = {
         loaderOptions: {
             scss: {
                 prependData: `
-                    @use "~/assets/styles/_utils.scss";
+                    @use "@/assets/styles/_utils.scss";
                 `,
             },
         },
@@ -73,7 +73,7 @@ module.exports = {
         autoRouting: {
             pages: "src/views",
             chunkNamePrefix: "view-",
-            importPrefix: "~/views/",
+            importPrefix: "@/views/",
             nested: false,
             dynamicImport: false,
             outFile: "src/routes.ts",

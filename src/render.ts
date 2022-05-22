@@ -2,7 +2,6 @@ import "vue-next-select/dist/index.css";
 import "vue-slider-component/theme/default.css";
 import "@/assets/styles/styles.scss";
 
-import { autoAnimatePlugin } from "@formkit/auto-animate/vue";
 import type { TransitionProps } from "vue";
 import { createApp } from "vue";
 import { createRouter, createWebHashHistory } from "vue-router";
@@ -46,8 +45,6 @@ async function setupVue() {
     app.use(router);
 
     app.directive("click-away", clickAwayDirective);
-
-    app.use(autoAnimatePlugin);
 
     app.mount("#app");
 
