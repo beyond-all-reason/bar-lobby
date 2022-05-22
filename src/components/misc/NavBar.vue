@@ -14,14 +14,14 @@
                 </div>
                 <div class="nav__primary-right">
                     <Button class="icon" to="/profile" tooltip="Profile">
-                        <Icon icon="account" :size="40" />
+                        <Icon :icon="account" :height="40" />
                     </Button>
                     <DownloadsButton tooltip="Downloads" />
                     <Button class="icon" tooltip="Settings" @click="settingsModal">
-                        <Icon icon="cog" :size="40" />
+                        <Icon :icon="cog" :height="40" />
                     </Button>
                     <Button class="icon close" tooltip="Exit" @click="exitModal">
-                        <Icon icon="close-thick" :size="40" />
+                        <Icon :icon="closeThick" :height="40" />
                     </Button>
                 </div>
             </div>
@@ -46,10 +46,13 @@
 </template>
 
 <script lang="ts" setup>
+import { Icon } from "@iconify/vue";
+import account from "@iconify-icons/mdi/account";
+import closeThick from "@iconify-icons/mdi/close-thick";
+import cog from "@iconify-icons/mdi/cog";
 import { computed } from "vue";
 import { useRoute, useRouter } from "vue-router";
 
-import Icon from "@/components/common/Icon.vue";
 import Button from "@/components/inputs/Button.vue";
 import Downloads from "@/components/misc/Downloads.vue";
 import DownloadsButton from "@/components/misc/DownloadsButton.vue";

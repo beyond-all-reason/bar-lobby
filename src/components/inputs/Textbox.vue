@@ -19,11 +19,11 @@
 </template>
 
 <script lang="ts" setup>
+import { IconifyIcon } from "@iconify/types";
+import { Icon } from "@iconify/vue";
 import { v4 as uuidv4 } from "uuid";
-import type { Ref } from "vue";
+import { Ref } from "vue";
 import { ref, toRefs } from "vue";
-
-import Icon from "@/components/common/Icon.vue";
 
 const props = withDefaults(
     defineProps<{
@@ -31,7 +31,7 @@ const props = withDefaults(
         name?: string;
         type?: string;
         label?: string;
-        icon?: string;
+        icon?: IconifyIcon;
         validation?: (value: string) => string | undefined;
         disabled?: boolean;
         enableSubmit?: boolean;

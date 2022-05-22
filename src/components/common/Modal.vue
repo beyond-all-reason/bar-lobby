@@ -8,7 +8,7 @@
                             {{ title || name }}
                         </div>
                         <div class="modal__close" @click="close" @mouseenter="sound">
-                            <Icon icon="close-thick" />
+                            <Icon :icon="closeThick" />
                         </div>
                     </template>
                     <slot />
@@ -25,9 +25,10 @@ export default {
 </script>
 
 <script lang="ts" setup>
+import { Icon } from "@iconify/vue";
+import closeThick from "@iconify-icons/mdi/close-thick";
 import { ref } from "vue";
 
-import Icon from "@/components/common/Icon.vue";
 import Panel from "@/components/common/Panel.vue";
 
 type PanelProps = InstanceType<typeof Panel>["$props"];

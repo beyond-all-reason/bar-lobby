@@ -8,7 +8,7 @@
                         <Flag :countryCode="founder.countryCode" />
                     </div>
                     <div>
-                        <Icon v-if="battle.locked || battle.passworded" icon="lock" />
+                        <Icon v-if="battle.locked || battle.passworded" :icon="lock" />
                     </div>
                     <div>
                         {{ battle.title }}
@@ -35,7 +35,7 @@
                 </div>
                 <div v-for="(bot, i) in battle.botNames" :key="i" class="client">
                     <div>
-                        <Icon icon="robot" />
+                        <Icon :icon="robot" />
                     </div>
                     <div>
                         {{ bot }}
@@ -62,7 +62,7 @@
             </div>
             <div>
                 <div class="flex-center fullheight">
-                    <Icon v-if="battle.locked || battle.passworded" icon="lock" />
+                    <Icon v-if="battle.locked || battle.passworded" :icon="lock" />
                 </div>
             </div>
             <div>
@@ -81,13 +81,13 @@
                         </div>
                     </div>
                     <div class="flex-row gap-sm">
-                        <Icon icon="robot" />
+                        <Icon :icon="robot" />
                         <div style="width: 2ch">
                             {{ battle.botNames.length }}
                         </div>
                     </div>
                     <div class="flex-row gap-sm">
-                        <Icon icon="eye-outline" />
+                        <Icon :icon="eyeOutline" />
                         <div style="width: 2ch">
                             {{ spectators.length }}
                         </div>
@@ -102,10 +102,13 @@
 </template>
 
 <script lang="ts" setup>
+import { Icon } from "@iconify/vue";
+import eyeOutline from "@iconify-icons/mdi/eye-outline";
+import lock from "@iconify-icons/mdi/lock";
+import robot from "@iconify-icons/mdi/robot";
 import { useNow } from "@vueuse/core";
 import { computed } from "vue";
 
-import Icon from "@/components/common/Icon.vue";
 import Flag from "@/components/misc/Flag.vue";
 import type { BattlePreviewType } from "@/model/battle/battle-preview";
 
@@ -218,6 +221,9 @@ const joinBattle = () => {
                 font-size: 10px;
             }
         }
+    }
+    &.row {
+        background: linear-gradient(to bottom, rgba(255, 255, 255, 0.07) 0%, rgba(255 255 255 / 0.02) 100%);
     }
 }
 </style>

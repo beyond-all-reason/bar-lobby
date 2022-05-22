@@ -3,7 +3,7 @@
         <input :id="uuid" v-model="checked" type="checkbox" @change="$emit('update:modelValue', checked)" />
         <label :for="uuid" :class="{ checked, hasLabel: Boolean(label) }" @mouseenter="sound">
             <div class="icon" :class="{ hasLabel: Boolean(label) }">
-                <Icon class="check" icon="check-bold" />
+                <Icon class="check" :icon="checkBold" />
             </div>
             <div v-if="label" class="label">{{ label }}</div>
         </label>
@@ -11,10 +11,10 @@
 </template>
 
 <script lang="ts" setup>
+import { Icon } from "@iconify/vue";
+import checkBold from "@iconify-icons/mdi/check-bold";
 import { v4 as uuidv4 } from "uuid";
 import { ref } from "vue";
-
-import Icon from "@/components/common/Icon.vue";
 
 const props = withDefaults(
     defineProps<{

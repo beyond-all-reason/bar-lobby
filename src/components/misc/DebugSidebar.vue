@@ -2,7 +2,7 @@
     <div class="debug-sidebar" :class="{ active }">
         <div class="debug-sidebar__toggle">
             <Button @click="active = !active">
-                <Icon icon="tools" :size="20" />
+                <Icon :icon="tools" :height="20" />
             </Button>
         </div>
         <Select v-model="currentRoute" label="View" :options="routes" :labelBy="(route: any) => route.path" :valueBy="(route: any) => route.path" fullWidth :searchable="true" :clearOnSelect="true" />
@@ -15,12 +15,13 @@
 </template>
 
 <script lang="ts" setup>
+import { Icon } from "@iconify/vue";
+import tools from "@iconify-icons/mdi/tools";
 import { shell } from "electron";
 import * as path from "path";
 import { effectScope, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 
-import Icon from "@/components/common/Icon.vue";
 import Button from "@/components/inputs/Button.vue";
 import Select from "@/components/inputs/Select.vue";
 

@@ -1,5 +1,5 @@
 <template>
-    <div class="option" :class="{ 'option--selected': isSelected }" @click="onClick" @mouseenter="sound">
+    <div class="option" :class="{ selected: isSelected }" @click="onClick" @mouseenter="sound">
         <slot />
     </div>
 </template>
@@ -41,7 +41,7 @@ const sound = () => {
     color: rgba(255, 255, 255, 0.7);
     width: 100%;
     background: rgba(0, 0, 0, 0.15);
-    &:hover:not(.option--selected) {
+    &:hover:not(.option.selected) {
         background: rgba(255, 255, 255, 0.02);
         color: #ccc;
     }
@@ -54,9 +54,8 @@ const sound = () => {
         height: 100%;
         background: rgba(255, 255, 255, 0.1);
     }
-    &--selected {
+    &.selected {
         background: rgba(255, 255, 255, 0.35);
-        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.2);
         color: #fff;
     }
 }

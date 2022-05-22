@@ -1,7 +1,7 @@
 <template>
     <ContextMenu :entries="getActions(participant)" :args="[participant]">
         <div class="participant">
-            <Icon :icon="icon" :size="16" />
+            <Icon :icon="props.participant.type === 'bot' ? robot : account" :height="16" />
             <Flag :countryCode="countryCode" />
             <div>
                 {{ name }}
@@ -19,11 +19,13 @@
 </template>
 
 <script lang="ts" setup>
+import { Icon } from "@iconify/vue";
+import account from "@iconify-icons/mdi/account";
+import robot from "@iconify-icons/mdi/robot";
 import { computed, onUnmounted, Ref, ref, toRef } from "vue";
 
 import LuaOptionsModal from "@/components/battle/LuaOptionsModal.vue";
 import ContextMenu, { ContextMenuEntry } from "@/components/common/ContextMenu.vue";
-import Icon from "@/components/common/Icon.vue";
 import Flag from "@/components/misc/Flag.vue";
 import { Bot, Player, Spectator } from "@/model/battle/participants";
 import { LuaOptionSection } from "@/model/lua-options";
@@ -52,7 +54,6 @@ const name = computed(() => {
     return "Player";
 });
 
-const icon = computed(() => (props.participant.type === "bot" ? "robot" : "account"));
 const countryCode = ref("");
 const aiOptions: Ref<LuaOptionSection[]> = ref([]);
 

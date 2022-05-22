@@ -5,17 +5,27 @@
 <template>
     <div>
         <h1>Multiplayer Custom Battles</h1>
-        <div :class="`battle-list battle-list--${layout}`">
-            <div v-if="layout === 'rows'" class="battle-list__item battle-list__filters">
-                <div />
-                <div />
-                <div>Name</div>
-                <div>Preset</div>
-                <div>Map</div>
-                <div>Players</div>
-                <div>Runtime</div>
-            </div>
-            <div class="battle-list__items">
+
+        <div class="battle-list gap-md">
+            <Options v-model="layout" class="flex-right">
+                <Option :value="'tiles'">
+                    <Icon :icon="viewGrid" height="30" />
+                </Option>
+                <Option :value="'rows'">
+                    <Icon :icon="viewList" height="30" />
+                </Option>
+            </Options>
+
+            <div :class="`battles ${layout}`">
+                <div v-if="layout === 'rows'" class="filters row">
+                    <div />
+                    <div />
+                    <div>Name</div>
+                    <div>Preset</div>
+                    <div>Map</div>
+                    <div>Players</div>
+                    <div>Runtime</div>
+                </div>
                 <BattlePreview v-for="battle in battles" :key="battle.id" :battle="battle" :layout="layout === 'tiles' ? 'tile' : 'row'" />
             </div>
         </div>
@@ -31,9 +41,14 @@
  * Uses TS but hidden, same as casual matchmaking
  */
 
+import { Icon } from "@iconify/vue";
+import viewGrid from "@iconify-icons/mdi/view-grid";
+import viewList from "@iconify-icons/mdi/view-list";
 import { onMounted, Ref, ref } from "vue";
 
 import BattlePreview from "@/components/battle/BattlePreview.vue";
+import Option from "@/components/inputs/Option.vue";
+import Options from "@/components/inputs/Options.vue";
 import { BattlePreviewType } from "@/model/battle/battle-preview";
 
 const battles = ref([] as BattlePreviewType[]);
@@ -111,58 +126,48 @@ async function updateUsers(userIds: number[]) {
 
 <style lang="scss" scoped>
 .battle-list {
-    $border: 1px solid rgba(255, 255, 255, 0.1);
     width: 100%;
-    &__filters {
-        & > div:hover {
-            background: rgba(255, 255, 255, 0.2);
-            box-shadow: 0 1px 0 0 rgba(255, 255, 255, 0.2), 0 -1px 0 0 rgba(255, 255, 255, 0.2), 1px 0 0 0 rgba(255, 255, 255, 0.2);
-            border-color: rgba(255, 255, 255, 0.2);
-            &:last-child {
-                box-shadow: 0 1px 0 0 rgba(255, 255, 255, 0.2), 0 -1px 0 0 rgba(255, 255, 255, 0.2);
-            }
+}
+.filters {
+    & > div {
+        background: linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 0%, rgba(0 0 0 / 0.3) 100%);
+        &:hover {
+            background: linear-gradient(to bottom, rgba(255, 255, 255, 0.1) 0%, rgba(0 0 0 / 0.2) 100%);
         }
     }
-    &--tiles {
-        .battle-list {
-            &__items {
-                display: grid;
-                grid-gap: 20px;
-                grid-template-columns: repeat(auto-fill, minmax(500px, 1fr));
-            }
+}
+:deep(.row) {
+    display: grid;
+    grid-template-columns: 40px 28px 2fr 70px 2fr 170px 90px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    background: linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0) 100%);
+    &:last-child {
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    &:not(.filters):hover {
+        background: rgba(255, 255, 255, 0.2);
+        box-shadow: 0 1px 0 0 rgba(255, 255, 255, 0.2);
+    }
+    & > div {
+        display: block;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        padding: 6px 10px;
+        border-left: 1px solid rgba(255, 255, 255, 0.1);
+        &:last-child {
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
         }
     }
-    &--rows {
-        background: rgba(0, 0, 0, 0.3);
-        &:before {
-            content: "This view is WIP";
-        }
-        .battle-list {
-            &__item {
-                display: grid;
-                grid-template-columns: 40px 28px 2fr 60px 2fr 168px 75px;
-                border-top: $border;
-                background: linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0) 100%);
-                &:last-child {
-                    border-bottom: $border;
-                }
-                &:not(.battle-list__filters):hover {
-                    background: rgba(255, 255, 255, 0.2);
-                    box-shadow: 0 1px 0 0 rgba(255, 255, 255, 0.2);
-                }
-                & > div {
-                    display: block;
-                    overflow: hidden;
-                    white-space: nowrap;
-                    text-overflow: ellipsis;
-                    padding: 5px;
-                    border-left: $border;
-                    &:last-child {
-                        border-right: $border;
-                    }
-                }
-            }
-        }
+}
+.battles {
+    &.tiles {
+        display: grid;
+        grid-gap: 20px;
+        grid-template-columns: repeat(auto-fill, minmax(500px, 1fr));
+    }
+    &.rows {
+        background: rgba(0 0 0 / 0.3);
     }
 }
 </style>

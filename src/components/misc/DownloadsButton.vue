@@ -1,13 +1,14 @@
 <template>
     <Button class="icon downloads-button" :style="`--downloadPercent: ${downloadPercent * 100}%`" @click="downloadsModal">
-        <Icon icon="download" :size="40" />
+        <Icon :icon="download" :height="40" />
     </Button>
 </template>
 
 <script lang="ts" setup>
+import { Icon } from "@iconify/vue";
+import download from "@iconify-icons/mdi/download";
 import { computed } from "vue";
 
-import Icon from "@/components/common/Icon.vue";
 import Button from "@/components/inputs/Button.vue";
 
 const downloadsModal = () => api.modals.open("downloads");

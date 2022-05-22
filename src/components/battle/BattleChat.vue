@@ -1,18 +1,16 @@
 <template>
     <div class="battle-chat">
-        <div class="battle-chat__log">
-            <div v-for="(message, i) in messages" :key="i" class="battle-chat__message">
-                <div v-if="message.type === 'chat'" class="battle-chat__message-author">
+        <div class="messages">
+            <div v-for="(message, i) in messages" :key="i" class="message">
+                <div v-if="message.type === 'chat'" class="author">
                     {{ message.usedId }}
                 </div>
-                <div class="battle-chat__message-text">
+                <div class="text">
                     {{ message.text }}
                 </div>
             </div>
         </div>
-        <div class="battle-chat__textbox">
-            <Textbox v-model="myMessage" class="fullwidth" enableSubmit enableHistory @submit="sendMessage" />
-        </div>
+        <Textbox v-model="myMessage" class="textbox fullwidth" enableSubmit enableHistory @submit="sendMessage" />
     </div>
 </template>
 
@@ -28,6 +26,10 @@ const myMessage = ref("");
 messages[0] = { type: "system", text: "Welcome!" };
 messages[1] = { type: "chat", usedId: 1234, text: "Test" };
 messages[2] = { type: "chat", usedId: 12344, text: "Testdssdad asd asdasd ad ad adad ad asd" };
+messages[3] = { type: "chat", usedId: 223, text: "Testdssdad asd asdasd ad ad adad ad asd Testdssdad asd asdasd ad ad adad ad asd Testdssdad asd asdasd ad ad adad ad asd" };
+messages[4] = { type: "chat", usedId: 223, text: "Testdssdad asd asdasd ad ad adad ad asd Testdssdad asd asdasd ad ad adad ad asd Testdssdad asd asdasd ad ad adad ad asd" };
+messages[5] = { type: "chat", usedId: 223, text: "Testdssdad asd asdasd ad ad adad ad asd Testdssdad asd asdasd ad ad adad ad asd Testdssdad asd asdasd ad ad adad ad asd" };
+messages[6] = { type: "chat", usedId: 223, text: "Testdssdad asd asdasd ad ad adad ad asd Testdssdad asd asdasd ad ad adad ad asd Testdssdad asd asdasd ad ad adad ad asd" };
 
 const sendMessage = (message: string) => {
     console.log(message);
@@ -47,17 +49,33 @@ onUnmounted(() => {
 .battle-chat {
     margin-top: auto;
     gap: 10px;
-    &__log {
+}
+.messages {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    height: 236px;
+    padding: 15px;
+    overflow-y: scroll;
+    user-select: text;
+    * {
+        user-select: text;
+    }
+}
+.message {
+    flex-direction: row;
+}
+.author {
+    font-weight: 600;
+    flex-direction: row;
+    &:after {
+        content: ":";
+        margin-right: 5px;
+    }
+}
+.textbox {
+    :deep(input) {
         background: rgba(0, 0, 0, 0.3);
         border: 1px solid rgba(255, 255, 255, 0.1);
-        height: 236px;
-        padding: 15px;
-    }
-    &__textbox {
-        input {
-            background: rgba(0, 0, 0, 0.3);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
     }
 }
 </style>

@@ -24,13 +24,13 @@
                     fullWidth
                 />
                 <Button :flexGrow="false">
-                    <Icon icon="cog" />
+                    <Icon :icon="cog" />
                 </Button>
             </div>
             <div class="flex-row gap-md">
                 <Select v-model="selectedGame" label="Game" :options="games" closeOnSelect clearOnSelect searchable :disabled="!battle.battleOptions.offline" fullWidth />
                 <Button :flexGrow="false" @click="openGameOptions">
-                    <Icon icon="cog" />
+                    <Icon :icon="cog" />
                 </Button>
                 <LuaOptionsModal id="game-options" v-model="battle.battleOptions.gameOptions" :title="`Game Options - ${battle.battleOptions.gameVersion}`" :sections="gameOptions" height="700px" />
             </div>
@@ -44,6 +44,8 @@
 </template>
 
 <script lang="ts" setup>
+import { Icon } from "@iconify/vue";
+import cog from "@iconify-icons/mdi/cog";
 import { lastInArray } from "jaz-ts-utils";
 import { computed, Ref, ref } from "vue";
 
@@ -51,7 +53,6 @@ import BattleChat from "@/components/battle/BattleChat.vue";
 import LuaOptionsModal from "@/components/battle/LuaOptionsModal.vue";
 import MapPreview from "@/components/battle/MapPreview.vue";
 import Playerlist from "@/components/battle/Playerlist.vue";
-import Icon from "@/components/common/Icon.vue";
 import Button from "@/components/inputs/Button.vue";
 import Select from "@/components/inputs/Select.vue";
 import { LuaOptionSection } from "@/model/lua-options";
@@ -86,7 +87,8 @@ const start = async () => {
 <style lang="scss" scoped>
 .battle {
     &__right {
-        width: 550px;
+        min-width: 500px;
+        max-width: 500px;
     }
     &__panel {
         background: rgba(0, 0, 0, 0.3);

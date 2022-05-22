@@ -32,9 +32,6 @@ body {
     &::-webkit-scrollbar {
         width: 10px;
     }
-    &::-webkit-scrollbar-track-piece {
-        border-left: 1px solid rgba(255, 255, 255, 0.1);
-    }
     &::-webkit-scrollbar-track {
         background: rgba(0, 0, 0, 0.2);
     }
@@ -43,7 +40,7 @@ body {
         border-left: 1px solid rgba(255, 255, 255, 0.1);
     }
     &::selection {
-        background: #171717;
+        background: rgba(255 255 255 / 0.3);
     }
 }
 

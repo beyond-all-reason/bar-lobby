@@ -4,13 +4,13 @@
             <template v-if="tabs.length">
                 <template v-if="paginatedTabs">
                     <Button class="panel__prev-tab" @click="prevTab">
-                        <Icon icon="chevron-left" />
+                        <Icon :icon="chevronLeft" />
                     </Button>
                     <Button class="panel__single-tab" :tooltip="activeTab.props?.tooltip">
                         {{ activeTab.props?.title }}
                     </Button>
                     <Button class="panel__next-tab" @click="nextTab">
-                        <Icon icon="chevron-right" />
+                        <Icon :icon="chevronRight" />
                     </Button>
                 </template>
                 <template v-else>
@@ -33,10 +33,12 @@
 </template>
 
 <script lang="ts" setup>
+import { Icon } from "@iconify/vue";
+import chevronLeft from "@iconify-icons/mdi/chevron-left";
+import chevronRight from "@iconify-icons/mdi/chevron-right";
 import { computed, ref, toRefs, VNode, watch } from "vue";
 import { useSlots } from "vue";
 
-import Icon from "@/components/common/Icon.vue";
 import Button from "@/components/inputs/Button.vue";
 
 const props = withDefaults(
