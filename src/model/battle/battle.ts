@@ -33,7 +33,7 @@ export class Battle implements BattleConfig {
                     this.setBoxes(value as string);
                 }
                 return Reflect.set(target, prop, value, receiver);
-            }
+            },
         };
         this.battleOptions = reactive(new Proxy(config.battleOptions ?? {}, this.battleOptionsProxyHandler));
 
@@ -44,15 +44,15 @@ export class Battle implements BattleConfig {
                     this.fixIds();
                 }
                 return true;
-            }
+            },
         };
 
         for (const participant of config.participants) {
             this.addParticipant(participant);
         }
 
-        this.numOfTeams = computed(() => new Set(this.contenders.value.map(contentender => contentender.teamId)).size);
-        this.teams = computed(() => groupBy(this.contenders.value, player => player.teamId));
+        this.numOfTeams = computed(() => new Set(this.contenders.value.map((contentender) => contentender.teamId)).size);
+        this.teams = computed(() => groupBy(this.contenders.value, (player) => player.teamId));
         this.me = computed(() => this.participants.find((participant): participant is Player | Spectator => "userId" in participant && participant.userId === api.session.currentUser.userId)!);
         this.contenders = computed(() => this.participants.filter((participant): participant is Player | Bot => participant.type === "player" || participant.type === "bot"));
         this.spectators = computed(() => this.participants.filter((participant): participant is Spectator => participant.type === "spectator"));
@@ -76,7 +76,6 @@ export class Battle implements BattleConfig {
         this.fixIds();
     }
 
-
     public removeParticipant(participant: Player | Bot | Spectator) {
         this.participants.splice(this.participants.indexOf(participant), 1);
         this.fixIds();
@@ -86,7 +85,7 @@ export class Battle implements BattleConfig {
         this.removeParticipant(player);
         this.addParticipant({
             type: "spectator",
-            userId: player.userId
+            userId: player.userId,
         });
     }
 
@@ -96,30 +95,33 @@ export class Battle implements BattleConfig {
             id: this.contenders.value.length,
             type: "player",
             userId: spectator.userId,
-            teamId
+            teamId,
         });
     }
 
     public getTeamParticipants(teamId: number): Array<Player | Bot> {
-        return this.contenders.value.filter(contender => contender.teamId === teamId);
+        return this.contenders.value.filter((contender) => contender.teamId === teamId);
     }
 
     protected fixIds() {
-        if (!this.battleOptions.offline) { // can't fix ids locally for an online battle
+        if (!this.battleOptions.offline) {
+            // can't fix ids locally for an online battle
             return;
         }
 
         const contenders = this.contenders.value;
 
-        const contenderIds = Array.from(new Set(this.contenders.value.map(c => c.id)).values()).sort();
-        const teamIds = Array.from(new Set(this.contenders.value.map(c => c.teamId)).values()).sort();
+        const contenderIds = Array.from(new Set(this.contenders.value.map((c) => c.id)).values()).sort();
+        const teamIds = Array.from(new Set(this.contenders.value.map((c) => c.teamId)).values()).sort();
         for (const contender of contenders) {
             const newContenderId = contenderIds.indexOf(contender.id);
-            if (contender.id !== newContenderId && newContenderId !== -1) { // only assign if id is different to avoid recursive proxy trap calls
+            if (contender.id !== newContenderId && newContenderId !== -1) {
+                // only assign if id is different to avoid recursive proxy trap calls
                 contender.id = newContenderId;
             }
             const newTeamId = teamIds.indexOf(contender.teamId);
-            if (contender.teamId !== newTeamId && newTeamId !== -1) { // only assign if id is different to avoid recursive proxy trap calls
+            if (contender.teamId !== newTeamId && newTeamId !== -1) {
+                // only assign if id is different to avoid recursive proxy trap calls
                 contender.teamId = newTeamId;
             }
         }

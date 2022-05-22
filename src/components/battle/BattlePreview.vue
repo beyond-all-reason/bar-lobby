@@ -14,9 +14,7 @@
                         {{ battle.title }}
                     </div>
                 </div>
-                <div>
-                    Preset (TODO)
-                </div>
+                <div>Preset (TODO)</div>
             </div>
             <div class="header meta">
                 <div>
@@ -70,16 +68,14 @@
             <div>
                 {{ battle.title }}
             </div>
-            <div>
-                TODO
-            </div>
+            <div>TODO</div>
             <div>
                 {{ battle.mapName }}
             </div>
             <div>
                 <div class="flex-row gap-md">
                     <div class="flex-row gap-sm">
-                        <img src="@/assets/images/icons/com.png" style="height: 23px;">
+                        <img src="@/assets/images/icons/com.png" style="height: 23px" />
                         <div style="width: 2ch">
                             {{ players.length }}
                         </div>
@@ -113,17 +109,17 @@ import { useNow } from "@vueuse/core";
 import Icon from "@/components/common/Icon.vue";
 
 const props = defineProps<{
-    battle: BattlePreviewType,
-    layout: "tile" | "row"
+    battle: BattlePreviewType;
+    layout: "tile" | "row";
 }>();
 
-const users = computed(() => props.battle.userIds.map(id => api.session.getUserById(id)!));
-const players = computed(() => users.value.filter(user => !user.battleStatus?.spectator));
-const spectators = computed(() => users.value.filter(user => user?.battleStatus?.spectator));
+const users = computed(() => props.battle.userIds.map((id) => api.session.getUserById(id)!));
+const players = computed(() => users.value.filter((user) => !user.battleStatus?.spectator));
+const spectators = computed(() => users.value.filter((user) => user?.battleStatus?.spectator));
 const founder = computed(() => api.session.getUserById(props.battle.founderId)!);
 const map = computed(() => api.content.maps.getMapByScriptName(props.battle.mapName));
-const mapImageUrl = computed(() => map.value ? `file://${map.value.textureImagePath}` : require("@/assets/images/default-minimap.png"));
-const mapName = computed(() => map.value ? map.value.friendlyName : api.content.maps.scriptNameToFriendlyName(props.battle.mapName));
+const mapImageUrl = computed(() => (map.value ? `file://${map.value.textureImagePath}` : require("@/assets/images/default-minimap.png")));
+const mapName = computed(() => (map.value ? map.value.friendlyName : api.content.maps.scriptNameToFriendlyName(props.battle.mapName)));
 const runtime = computed(() => {
     if (!props.battle.startTime) {
         return null;
@@ -144,86 +140,83 @@ const joinBattle = () => {
 <style lang="scss" scoped>
 .battle-preview {
     &.tile {
-            position: relative;
-            z-index: 0;
-            padding-bottom: 5px;
-            gap: 5px;
-            padding: 10px;
-            font-weight: 500;
-            &:hover {
-                .background {
-                    filter: brightness(1.3);
-                }
-            }
-            .header, .meta {
-                flex-direction: row;
-                align-items: center;
-                justify-content: space-between;
-                gap: 5px;
-            }
-            .header {
-                font-weight: 600;
-            }
-            .meta {
-                font-size: 16px;
-            }
-            .title {
-                flex-direction: row;
-                align-items: center;
-                gap: 5px;
-            }
+        position: relative;
+        z-index: 0;
+        padding-bottom: 5px;
+        gap: 5px;
+        padding: 10px;
+        font-weight: 500;
+        &:hover {
             .background {
+                filter: brightness(1.3);
+            }
+        }
+        .header,
+        .meta {
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-between;
+            gap: 5px;
+        }
+        .header {
+            font-weight: 600;
+        }
+        .meta {
+            font-size: 16px;
+        }
+        .title {
+            flex-direction: row;
+            align-items: center;
+            gap: 5px;
+        }
+        .background {
+            @extend .fullsize;
+            image-rendering: pixelated;
+            z-index: -1;
+            background-position: center;
+            background-size: cover;
+            overflow: hidden;
+            &:before {
                 @extend .fullsize;
-                image-rendering: pixelated;
-                z-index: -1;
-                background-position: center;
-                background-size: cover;
-                overflow: hidden;
+                background: linear-gradient(to bottom, rgba(0, 0, 0, 0.5) 10%, rgba(0, 0, 0, 0) 100%);
+                box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.15), inset 1px 0 0 0 rgba(255, 255, 255, 0.07), inset -1px 0 0 0 rgba(255, 255, 255, 0.07), inset 0 -5px 0 0 rgba(0, 0, 0, 0.3);
+            }
+        }
+        .clients {
+            flex-direction: row;
+            flex-wrap: wrap;
+            gap: 4px;
+            &--spectators {
+                position: relative;
+                padding-top: 5px;
                 &:before {
-                    @extend .fullsize;
-                    background: linear-gradient(to bottom, rgba(0,0,0,0.5) 10%,rgba(0,0,0,0.0) 100%);
-                    box-shadow:
-                        inset 0 1px 0 0 rgba(255, 255, 255, 0.15),
-                        inset 1px 0 0 0 rgba(255, 255, 255, 0.07),
-                        inset -1px 0 0 0 rgba(255, 255, 255, 0.07),
-                        inset 0 -5px 0 0 rgba(0, 0, 0, 0.3);
+                    content: "";
+                    position: absolute;
+                    top: 0;
+                    left: 2.5%;
+                    width: 95%;
+                    height: 1px;
+                    background: rgba(255, 255, 255, 0.1);
                 }
             }
-           .clients {
-                flex-direction: row;
-                flex-wrap: wrap;
-                gap: 4px;
-                &--spectators {
-                    position: relative;
-                    padding-top: 5px;
-                    &:before {
-                        content: "";
-                        position: absolute;
-                        top: 0;
-                        left: 2.5%;
-                        width: 95%;
-                        height: 1px;
-                        background: rgba(255, 255, 255, 0.1);
-                    }
-                }
+        }
+        .client {
+            flex-direction: row;
+            align-items: center;
+            gap: 5px;
+            padding: 2px 8px;
+            border-radius: 3px;
+            background: rgba(0, 0, 0, 0.6);
+            border: none;
+            font-size: 14px;
+            svg {
+                width: 14px;
+                height: 14px;
             }
-            .client {
-                flex-direction: row;
-                align-items: center;
-                gap: 5px;
-                padding: 2px 8px;
-                border-radius: 3px;
-                background: rgba(0, 0, 0, 0.6);
-                border: none;
-                font-size: 14px;
-                svg {
-                    width: 14px;
-                    height: 14px;
-                }
-                .flag {
-                    font-size: 10px;
-                }
+            .flag {
+                font-size: 10px;
             }
+        }
     }
 }
 </style>

@@ -12,7 +12,13 @@
                 <div :class="`view view--${routeKey}`">
                     <Panel :class="{ hidden: empty }">
                         <router-view v-slot="{ Component }">
-                            <transition mode="out-in" v-bind="currentTransition" :style="`--enter-duration: ${transitionDurationEnterMs}ms; --leave-duration: ${transitionDurationLeaveMs}ms;`" @after-leave="transitionAfterLeave" @enter="transitionEnter">
+                            <transition
+                                mode="out-in"
+                                v-bind="currentTransition"
+                                :style="`--enter-duration: ${transitionDurationEnterMs}ms; --leave-duration: ${transitionDurationLeaveMs}ms;`"
+                                @after-leave="transitionAfterLeave"
+                                @enter="transitionEnter"
+                            >
                                 <component :is="Component" />
                             </transition>
                         </router-view>
@@ -50,7 +56,7 @@ const empty = ref(false);
 const blurBg = ref(true);
 
 const currentTransition: Ref<TransitionProps> = ref({});
-const nextTransition : Ref<TransitionProps> = ref({});
+const nextTransition: Ref<TransitionProps> = ref({});
 const transitionDurationEnterMs = ref(0);
 const transitionDurationLeaveMs = ref(0);
 
