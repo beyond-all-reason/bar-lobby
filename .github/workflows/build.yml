@@ -20,10 +20,10 @@ jobs:
                   node-version: 14
 
             - name: Lint
-              uses: npm run lint-check
+              run: npm run lint-check
 
             - name: Format
-              uses: npm run format-check
+              run: npm run format-check
 
             - name: Electron Builder Action
               uses: samuelmeuli/action-electron-builder@v1.6.0
