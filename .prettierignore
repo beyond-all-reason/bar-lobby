@@ -1,0 +1,3 @@
+dist_electron
+src/routes.ts
+node_modules
