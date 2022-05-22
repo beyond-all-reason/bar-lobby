@@ -12,7 +12,7 @@
         white-space: nowrap;
         min-width: unset;
         flex-grow: unset;
-        &:not(input[type=checkbox] + label):hover {
+        &:not(input[type="checkbox"] + label):hover {
             background-color: rgba(255, 255, 255, 0.1);
         }
     }
@@ -25,7 +25,8 @@
     &.trim-label {
         flex-wrap: wrap;
         border-right: 1px solid rgba(255, 255, 255, 0.2);
-        input, .vue-select {
+        input,
+        .vue-select {
             border-right: none;
         }
         label {
@@ -37,7 +38,8 @@
         }
     }
     &.button {
-        a, button {
+        a,
+        button {
             width: 100%;
         }
     }
@@ -48,12 +50,21 @@
             filter: brightness(50%);
         }
     }
-    &:not(.disabled) label:not(input[type=checkbox] + label) {
+    &:not(.disabled) label:not(input[type="checkbox"] + label) {
         border-right: none;
     }
 }
 
-input, select, label, textarea, button, progress, meter, .btn, .input, .vue-select {
+input,
+select,
+label,
+textarea,
+button,
+progress,
+meter,
+.btn,
+.input,
+.vue-select {
     padding: 5px 10px;
     border-radius: 0px;
     background-color: rgba(255, 255, 255, 0.1);
@@ -65,9 +76,10 @@ input, select, label, textarea, button, progress, meter, .btn, .input, .vue-sele
     min-width: 0;
     flex-grow: 1;
     &::placeholder {
-        color : rgba(255, 255, 255, 0.5);
+        color: rgba(255, 255, 255, 0.5);
     }
-    &:hover, &:not(button):not(.btn):focus {
+    &:hover,
+    &:not(button):not(.btn):focus {
         background-color: rgba(255, 255, 255, 0.2);
     }
 }

@@ -1,7 +1,7 @@
-import { LuaOptionSection, LuaOption, LuaOptionNumber, LuaOptionBoolean, LuaOptionList, LuaOptionString } from "@/model/lua-options";
+import { LuaOption, LuaOptionBoolean, LuaOptionList, LuaOptionNumber, LuaOptionSection, LuaOptionString } from "@/model/lua-options";
 import { parseLuaTable } from "@/utils/parse-lua-table";
 
-export function parseLuaOptions(lua: Buffer) : LuaOptionSection[] {
+export function parseLuaOptions(lua: Buffer): LuaOptionSection[] {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const luaOptionsArray = parseLuaTable(lua) as Array<Record<string, any>>; // TODO: type this
 
@@ -10,7 +10,7 @@ export function parseLuaOptions(lua: Buffer) : LuaOptionSection[] {
         name: "Misc Options",
         description: "Miscellaneous options",
         options: [],
-        type: "section"
+        type: "section",
     };
     const sections: LuaOptionSection[] = [];
 
@@ -19,20 +19,20 @@ export function parseLuaOptions(lua: Buffer) : LuaOptionSection[] {
             key: luaOptionObj.key,
             name: luaOptionObj.name,
             description: luaOptionObj.desc,
-            hidden: luaOptionObj.hidden ?? false
+            hidden: luaOptionObj.hidden ?? false,
         };
 
         if (luaOptionObj.type === "section") {
             const section: LuaOptionSection = {
                 ...baseOption,
                 type: "section",
-                options: []
+                options: [],
             };
             sections.push(section);
             continue;
         }
 
-        let section = sections.find(section => section.key === luaOptionObj.section);
+        let section = sections.find((section) => section.key === luaOptionObj.section);
         if (!section) {
             section = miscSection;
         }
@@ -44,14 +44,14 @@ export function parseLuaOptions(lua: Buffer) : LuaOptionSection[] {
                 default: luaOptionObj.def,
                 step: luaOptionObj.step,
                 min: luaOptionObj.min,
-                max: luaOptionObj.max
+                max: luaOptionObj.max,
             };
             section.options.push(option);
         } else if (luaOptionObj.type === "boolean" || luaOptionObj.type === "bool") {
             const option: LuaOptionBoolean = {
                 ...baseOption,
                 type: "boolean",
-                default: luaOptionObj.def
+                default: luaOptionObj.def,
             };
             section.options.push(option);
         } else if (luaOptionObj.type === "list") {
@@ -62,21 +62,21 @@ export function parseLuaOptions(lua: Buffer) : LuaOptionSection[] {
                     key: option.key,
                     name: option.name,
                     description: option.desc,
-                    hidden: option.hidden
+                    hidden: option.hidden,
                 });
             }
             const option: LuaOptionList = {
                 ...baseOption,
                 type: "list",
                 default: luaOptionObj.def,
-                options
+                options,
             };
             section.options.push(option);
         } else if (luaOptionObj.type === "string") {
             const option: LuaOptionString = {
                 ...baseOption,
                 type: "string",
-                default: luaOptionObj.def
+                default: luaOptionObj.def,
             };
             section.options.push(option);
         }

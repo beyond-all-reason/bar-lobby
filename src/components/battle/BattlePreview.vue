@@ -102,11 +102,12 @@
 </template>
 
 <script lang="ts" setup>
-import type { BattlePreviewType } from "@/model/battle/battle-preview";
-import { computed } from "vue";
-import Flag from "@/components/misc/Flag.vue";
 import { useNow } from "@vueuse/core";
+import { computed } from "vue";
+
 import Icon from "@/components/common/Icon.vue";
+import Flag from "@/components/misc/Flag.vue";
+import type { BattlePreviewType } from "@/model/battle/battle-preview";
 
 const props = defineProps<{
     battle: BattlePreviewType;

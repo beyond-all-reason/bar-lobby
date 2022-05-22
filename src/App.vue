@@ -30,21 +30,22 @@
 </template>
 
 <script lang="ts" setup>
+import { lastInArray } from "jaz-ts-utils";
 import * as path from "path";
 import { Ref, TransitionProps } from "vue";
 import { ref } from "vue";
-import { useRouter, useRoute } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
+
+import StatusInfo from "@/components/battle/StatusInfo.vue";
+import Panel from "@/components/common/Panel.vue";
+import Background from "@/components/misc/Background.vue";
 import DebugSidebar from "@/components/misc/DebugSidebar.vue";
+import InitialSetup from "@/components/misc/InitialSetup.vue";
+import IntroVideo from "@/components/misc/IntroVideo.vue";
 import NavBar from "@/components/misc/NavBar.vue";
 import Preloader from "@/components/misc/Preloader.vue";
-import Background from "@/components/misc/Background.vue";
-import { playRandomMusic } from "@/utils/play-random-music";
-import IntroVideo from "@/components/misc/IntroVideo.vue";
-import Panel from "@/components/common/Panel.vue";
-import StatusInfo from "./components/battle/StatusInfo.vue";
-import InitialSetup from "@/components/misc/InitialSetup.vue";
-import { lastInArray } from "jaz-ts-utils";
 import { defaultMaps } from "@/config/default-maps";
+import { playRandomMusic } from "@/utils/play-random-music";
 
 const isProduction = process.env.NODE_ENV === "production";
 

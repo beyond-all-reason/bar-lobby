@@ -1,14 +1,16 @@
+import "vue-next-select/dist/index.css";
+import "vue-slider-component/theme/default.css";
+import "@/assets/styles/styles.scss";
+
+import { autoAnimatePlugin } from "@formkit/auto-animate/vue";
 import type { TransitionProps } from "vue";
 import { createApp } from "vue";
 import { createRouter, createWebHashHistory } from "vue-router";
-import "vue-next-select/dist/index.css";
-import "vue-slider-component/theme/default.css";
-import App from "@/App.vue";
-import "@/assets/styles/styles.scss";
-import routes from "@/routes";
+
 import { apiInit } from "@/api/api";
+import App from "@/App.vue";
+import routes from "@/routes";
 import { clickAwayDirective } from "@/utils/click-away-directive";
-import { autoAnimatePlugin } from "@formkit/auto-animate/vue";
 
 declare module "vue-router" {
     interface RouteMeta {
@@ -36,7 +38,7 @@ declare module "vue-router" {
 async function setupVue() {
     const router = createRouter({
         history: createWebHashHistory(),
-        routes: routes
+        routes: routes,
     });
 
     const app = createApp(App);

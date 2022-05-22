@@ -1,5 +1,6 @@
-import type { DownloadInfo } from "@/model/downloads";
 import { reactive } from "vue";
+
+import type { DownloadInfo } from "@/model/downloads";
 
 export class AbstractContentAPI {
     public currentDownloads: DownloadInfo[] = reactive([]);

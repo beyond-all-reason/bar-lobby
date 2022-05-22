@@ -24,6 +24,6 @@ export const defaultBoxes = () => {
 export const defaultMapBoxes: () => Record<string, StartBox[]> = () => {
     return {
         "red_comet_remake_1.8.sd7": defaultBoxes().EastVsWest,
-        "quicksilver_remake_1.24.sd7": defaultBoxes().NorthVsSouth
+        "quicksilver_remake_1.24.sd7": defaultBoxes().NorthVsSouth,
     };
 };

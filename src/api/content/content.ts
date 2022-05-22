@@ -1,8 +1,8 @@
 import { AbstractContentAPI } from "@/api/content/abstract-content-api";
-import { MapContentAPI } from "@/api/content/map-content";
+import { AiContentAPI } from "@/api/content/ai-content";
 import { EngineContentAPI } from "@/api/content/engine-content";
 import { GameContentAPI } from "@/api/content/game-content";
-import { AiContentAPI } from "@/api/content/ai-content";
+import { MapContentAPI } from "@/api/content/map-content";
 
 export class ContentAPI extends AbstractContentAPI {
     public engine: EngineContentAPI;

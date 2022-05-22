@@ -5,7 +5,7 @@ $spacing: (
     "md": 10px,
     "lg": 15px,
     "xl": 20px,
-    "xxl": 25px
+    "xxl": 25px,
 );
 
 @each $key, $value in $spacing {

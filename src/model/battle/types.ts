@@ -24,7 +24,7 @@ export type StartBox = {
 export enum StartPosType {
     Fixed = 0,
     Random = 1,
-    Boxes = 2
+    Boxes = 2,
 }
 
 export enum Faction {
@@ -32,14 +32,14 @@ export enum Faction {
     Cortex = "Cortex",
     Legion = "Legion",
     Raptors = "Raptors",
-    Scavengers = "Scavengers"
+    Scavengers = "Scavengers",
 }
 
 export enum TeamPreset {
     Standard,
     FFA,
     TeamFFA,
-    Custom
+    Custom,
 }
 
 export type Restriction = {

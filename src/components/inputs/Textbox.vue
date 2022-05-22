@@ -13,38 +13,42 @@
             @keydown.prevent.enter="submit"
             @keydown.prevent.up="onUpArrow"
             @keydown.prevent.down="onDownArrow"
-        >
+        />
         <label v-if="icon" :for="uuid"><Icon :for="uuid" :icon="icon" /></label>
     </div>
 </template>
 
 <script lang="ts" setup>
-import type { Ref} from "vue";
-import { ref, toRefs } from "vue";
 import { v4 as uuidv4 } from "uuid";
+import type { Ref } from "vue";
+import { ref, toRefs } from "vue";
+
 import Icon from "@/components/common/Icon.vue";
 
-const props = withDefaults(defineProps<{
-    modelValue?: string;
-    name?: string;
-    type?: string;
-    label?: string;
-    icon?: string;
-    validation?: (value: string) => string | undefined;
-    disabled?: boolean;
-    enableSubmit?: boolean;
-    enableHistory?: boolean;
-}>(), {
-    modelValue: "",
-    name: undefined,
-    type: undefined,
-    label: undefined,
-    icon: undefined,
-    validation: undefined,
-    disabled: false,
-    enableSubmit: false,
-    enableHistory: false
-});
+const props = withDefaults(
+    defineProps<{
+        modelValue?: string;
+        name?: string;
+        type?: string;
+        label?: string;
+        icon?: string;
+        validation?: (value: string) => string | undefined;
+        disabled?: boolean;
+        enableSubmit?: boolean;
+        enableHistory?: boolean;
+    }>(),
+    {
+        modelValue: "",
+        name: undefined,
+        type: undefined,
+        label: undefined,
+        icon: undefined,
+        validation: undefined,
+        disabled: false,
+        enableSubmit: false,
+        enableHistory: false,
+    }
+);
 
 const emit = defineEmits<{
     (event: "update:modelValue", value: string): void;
@@ -106,7 +110,4 @@ const onDownArrow = () => {
 };
 </script>
 
-<style lang="scss" scoped>
-
-</style>
-
+<style lang="scss" scoped></style>

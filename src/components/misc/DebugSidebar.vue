@@ -5,42 +5,24 @@
                 <Icon icon="tools" :size="20" />
             </Button>
         </div>
-        <Select
-            v-model="currentRoute"
-            label="View"
-            :options="routes"
-            :labelBy="(route: any) => route.path"
-            :valueBy="(route: any) => route.path"
-            fullWidth
-            :searchable="true"
-            :clearOnSelect="true"
-        />
-        <Button to="/debug/playground" :flexGrow="false" fullWidth>
-            Debug Playground
-        </Button>
-        <Button :flexGrow="false" fullWidth @click="openSettings">
-            Open Settings File
-        </Button>
-        <Button :flexGrow="false" fullWidth @click="openLobbyDir">
-            Open Lobby Dir
-        </Button>
-        <Button :flexGrow="false" fullWidth @click="openDataDir">
-            Open Data Dir
-        </Button>
-        <Button :flexGrow="false" fullWidth @click="openStartScript">
-            Open Latest Start Script
-        </Button>
+        <Select v-model="currentRoute" label="View" :options="routes" :labelBy="(route: any) => route.path" :valueBy="(route: any) => route.path" fullWidth :searchable="true" :clearOnSelect="true" />
+        <Button to="/debug/playground" :flexGrow="false" fullWidth> Debug Playground </Button>
+        <Button :flexGrow="false" fullWidth @click="openSettings"> Open Settings File </Button>
+        <Button :flexGrow="false" fullWidth @click="openLobbyDir"> Open Lobby Dir </Button>
+        <Button :flexGrow="false" fullWidth @click="openDataDir"> Open Data Dir </Button>
+        <Button :flexGrow="false" fullWidth @click="openStartScript"> Open Latest Start Script </Button>
     </div>
 </template>
 
 <script lang="ts" setup>
-import * as path from "path";
-import { ref, effectScope, watch } from "vue";
-import { useRoute, useRouter } from "vue-router";
 import { shell } from "electron";
+import * as path from "path";
+import { effectScope, ref, watch } from "vue";
+import { useRoute, useRouter } from "vue-router";
+
 import Icon from "@/components/common/Icon.vue";
-import Select from "@/components/inputs/Select.vue";
 import Button from "@/components/inputs/Button.vue";
+import Select from "@/components/inputs/Select.vue";
 
 const scope = effectScope();
 

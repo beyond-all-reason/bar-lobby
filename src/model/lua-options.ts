@@ -1,4 +1,3 @@
-
 export interface LuaOption {
     type: "section" | "number" | "boolean" | "string" | "list";
     key: string;

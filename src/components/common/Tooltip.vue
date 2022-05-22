@@ -1,15 +1,5 @@
 <template>
-    <Popper
-        v-if="content"
-        v-bind="$attrs"
-        hover
-        openDelay="400"
-        closeDelay="0"
-        offsetDistance="5"
-        :interactive="false"
-        :content="content"
-        class="tooltip"
-    >
+    <Popper v-if="content" v-bind="$attrs" hover openDelay="400" closeDelay="0" offsetDistance="5" :interactive="false" :content="content" class="tooltip">
         <slot />
         <template #content="contentProps">
             <slot name="content" v-bind="contentProps" />

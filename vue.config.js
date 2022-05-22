@@ -1,13 +1,15 @@
+const path = require('path');
+
 module.exports = {
     lintOnSave: true,
     css: {
         loaderOptions: {
             scss: {
                 prependData: `
-                    @use "@/assets/styles/_utils.scss";
+                    @use "~/assets/styles/_utils.scss";
                 `,
-            }
-        }
+            },
+        },
     },
     configureWebpack: {
         devtool: "source-map", // keeping source maps in production for now as it makes for better error reporting
@@ -16,10 +18,10 @@ module.exports = {
                 {
                     test: /\.mjs$/,
                     include: /node_modules/,
-                    type: "javascript/auto"
-                }
-            ]
-        }
+                    type: "javascript/auto",
+                },
+            ],
+        },
     },
     pluginOptions: {
         /**
@@ -28,47 +30,53 @@ module.exports = {
          */
         electronBuilder: {
             mainProcessFile: "src/main.ts",
-            mainProcessWatch: ["src/main.ts", "src/main-window.ts"],
+            mainProcessWatch: [
+                "src/main.ts",
+                "src/main-window.ts",
+            ],
             rendererProcessFile: "src/render.ts",
             customFileProtocol: "bar://./",
             nodeIntegration: true,
             builderOptions: {
                 productName: "BAR Lobby",
                 directories: {
-                    buildResources: "build"
+                    buildResources: "build",
                 },
                 extraResources: [
                     {
-                        "from": "resources",
-                        "to": ".",
-                        "filter": "**/*"
-                    }
+                        from: "resources",
+                        to: ".",
+                        filter: "**/*",
+                    },
                 ],
                 win: {
-                    target: ["nsis", "portable"],
+                    target: [
+                        "nsis",
+                        "portable",
+                    ],
                 },
                 nsis: {
                     oneClick: false,
                     perMachine: true,
-                    allowToChangeInstallationDirectory: true
+                    allowToChangeInstallationDirectory: true,
                 },
                 linux: {
                     target: ["AppImage"],
-                    category: "Game"
+                    category: "Game",
                 },
-                publish: ["github"]
+                publish: ["github"],
             },
-            chainWebpackRendererProcess: config => {
+            chainWebpackRendererProcess: (config) => {
                 config.target("electron-renderer");
-            }
+            },
         },
         autoRouting: {
             pages: "src/views",
             chunkNamePrefix: "view-",
-            importPrefix: "@/views/",
+            importPrefix: "~/views/",
             nested: false,
             dynamicImport: false,
             outFile: "src/routes.ts",
-        }
-    }
+        },
+    },
 };

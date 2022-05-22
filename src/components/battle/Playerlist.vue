@@ -10,15 +10,9 @@
             @drop="onDrop($event, teamId)"
         >
             <div class="flex-row gap-md">
-                <div class="playerlist__title">
-                    Team {{ teamId + 1 }}
-                </div>
-                <Button slim :flexGrow="false" @click="addBot(teamId)">
-                    Add bot
-                </Button>
-                <Button v-if="battle.me.value.type !== 'player' || battle.me.value.teamId !== teamId" slim :flexGrow="false" @click="joinTeam(teamId)">
-                    Join
-                </Button>
+                <div class="playerlist__title">Team {{ teamId + 1 }}</div>
+                <Button slim :flexGrow="false" @click="addBot(teamId)"> Add bot </Button>
+                <Button v-if="battle.me.value.type !== 'player' || battle.me.value.teamId !== teamId" slim :flexGrow="false" @click="joinTeam(teamId)"> Join </Button>
             </div>
             <div class="playerlist__participants">
                 <div
@@ -40,31 +34,15 @@
             @drop="onDrop($event, battle.numOfTeams.value)"
         >
             <div class="flex-row gap-md">
-                <div class="playerlist__title">
-                    Team {{ battle.numOfTeams.value + 1 }}
-                </div>
-                <Button slim :flexGrow="false" @click="addBot(battle.numOfTeams.value)">
-                    Add bot
-                </Button>
-                <Button slim :flexGrow="false" @click="joinTeam(battle.numOfTeams.value)">
-                    Join
-                </Button>
+                <div class="playerlist__title">Team {{ battle.numOfTeams.value + 1 }}</div>
+                <Button slim :flexGrow="false" @click="addBot(battle.numOfTeams.value)"> Add bot </Button>
+                <Button slim :flexGrow="false" @click="joinTeam(battle.numOfTeams.value)"> Join </Button>
             </div>
         </div>
-        <div
-            class="playerlist__group"
-            @dragenter.prevent="dragEnter($event)"
-            @dragover.prevent
-            @dragleave.prevent="dragLeave($event)"
-            @drop="onDrop($event)"
-        >
+        <div class="playerlist__group" @dragenter.prevent="dragEnter($event)" @dragover.prevent @dragleave.prevent="dragLeave($event)" @drop="onDrop($event)">
             <div class="flex-row gap-md">
-                <div class="playerlist__title">
-                    Spectators
-                </div>
-                <Button v-if="battle.me.value.type !== 'spectator'" slim :flexGrow="false" @click="joinTeam()">
-                    Join
-                </Button>
+                <div class="playerlist__title">Spectators</div>
+                <Button v-if="battle.me.value.type !== 'spectator'" slim :flexGrow="false" @click="joinTeam()"> Join </Button>
             </div>
             <div class="playerlist__participants">
                 <div
@@ -82,19 +60,20 @@
 </template>
 
 <script lang="ts" setup>
-import Participant from "@/components/battle/Participant.vue";
-import { Bot, Player, Spectator } from "@/model/battle/participants";
-import Button from "@/components/inputs/Button.vue";
-import { Faction } from "@/model/battle/types";
 import { randomFromArray } from "jaz-ts-utils";
-import { aiNames } from "@/config/ai-names";
 import { Ref, ref } from "vue";
+
+import Participant from "@/components/battle/Participant.vue";
+import Button from "@/components/inputs/Button.vue";
+import { aiNames } from "@/config/ai-names";
+import { Bot, Player, Spectator } from "@/model/battle/participants";
+import { Faction } from "@/model/battle/types";
 
 const battle = api.session.currentBattle;
 
 const addBot = (teamId: number) => {
     let randomName = randomFromArray(aiNames);
-    while (battle.contenders.value.some(contender => contender.type === "bot" && contender.name === randomName)) {
+    while (battle.contenders.value.some((contender) => contender.type === "bot" && contender.name === randomName)) {
         randomName = randomFromArray(aiNames);
     }
 
@@ -106,7 +85,7 @@ const addBot = (teamId: number) => {
         aiShortName: "BARb",
         faction: Faction.Armada,
         ownerUserId: api.session.currentUser.userId,
-        aiOptions: {}
+        aiOptions: {},
     });
 };
 
@@ -126,14 +105,14 @@ let draggedParticipant: Ref<Bot | Player | Spectator | null> = ref(null);
 let draggedEl: Element | null = null;
 
 const dragEnter = (event: DragEvent, teamId?: number) => {
-    if (!draggedParticipant.value ) {
+    if (!draggedParticipant.value) {
         return;
     }
 
     const target = event.target as HTMLElement;
     const groupEl = target.closest(".playerlist__group");
     if (draggedEl && groupEl) {
-        document.querySelectorAll(".playerlist__group").forEach(el => {
+        document.querySelectorAll(".playerlist__group").forEach((el) => {
             el.classList.remove("highlight");
         });
     }
@@ -152,7 +131,7 @@ const dragEnter = (event: DragEvent, teamId?: number) => {
 };
 
 const dragLeave = (event: DragEvent, teamId?: number) => {
-    if (!draggedParticipant.value ) {
+    if (!draggedParticipant.value) {
         return;
     }
 
@@ -182,7 +161,7 @@ const dragEnd = (event: DragEvent, participant: Player | Bot | Spectator) => {
     draggedParticipant.value = null;
     draggedEl = null;
 
-    document.querySelectorAll(".playerlist__group").forEach(el => {
+    document.querySelectorAll(".playerlist__group").forEach((el) => {
         el.classList.remove("highlight");
     });
 };

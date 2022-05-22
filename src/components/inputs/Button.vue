@@ -1,6 +1,6 @@
 <template>
     <Tooltip :content="tooltip">
-        <div class="control button" :class="{ disabled, 'flex-grow': flexGrow, slim, 'fullwidth': fullWidth }">
+        <div class="control button" :class="{ disabled, 'flex-grow': flexGrow, slim, fullwidth: fullWidth }">
             <component :is="to ? 'router-link' : 'button'" class="btn" :to="to" :class="{ active: isActive }" v-bind="$attrs" @mouseenter="sound">
                 <div class="content">
                     <slot />
@@ -13,23 +13,27 @@
 <script lang="ts" setup>
 import { computed, toRefs } from "vue";
 import { useRoute } from "vue-router";
+
 import Tooltip from "@/components/common/Tooltip.vue";
 
-const props = withDefaults(defineProps<{
-    to?: string;
-    tooltip?: string;
-    disabled?: boolean;
-    flexGrow?: boolean;
-    slim?: boolean;
-    fullWidth?: boolean;
-}>(), {
-    to: undefined,
-    tooltip: undefined,
-    disabled: false,
-    flexGrow: true,
-    slim: false,
-    fullWidth: false
-});
+const props = withDefaults(
+    defineProps<{
+        to?: string;
+        tooltip?: string;
+        disabled?: boolean;
+        flexGrow?: boolean;
+        slim?: boolean;
+        fullWidth?: boolean;
+    }>(),
+    {
+        to: undefined,
+        tooltip: undefined,
+        disabled: false,
+        flexGrow: true,
+        slim: false,
+        fullWidth: false,
+    }
+);
 
 const route = useRoute();
 const to = toRefs(props).to;
@@ -58,10 +62,12 @@ $btnColors: (
     "orange": rgb(199, 109, 14),
     "black": rgb(0, 0, 0),
     "white": rgb(255, 255, 255),
-    "gray": rgb(128, 128, 128)
+    "gray": rgb(128, 128, 128),
 );
 
-button, .btn, .button {
+button,
+.btn,
+.button {
     @each $colorKey, $color in $btnColors {
         &--#{$colorKey} {
             background-color: rgba($color, 0.6);
@@ -76,7 +82,7 @@ button, .btn, .button {
 
     font-weight: 500;
 
-    &.slim .btn{
+    &.slim .btn {
         padding: 1px 7px;
         min-height: unset;
         align-self: center;
@@ -85,7 +91,10 @@ button, .btn, .button {
     }
 }
 
-button, input[type=button], input[type=submit], .btn {
+button,
+input[type="button"],
+input[type="submit"],
+.btn {
     width: unset;
     justify-content: center;
     flex-grow: 1;

@@ -1,17 +1,18 @@
-import * as path from "path";
 import * as fs from "fs";
 import * as glob from "glob-promise";
+import * as path from "path";
+import { reactive } from "vue";
+
 import { AbstractContentAPI } from "@/api/content/abstract-content-api";
 import type { AI } from "@/model/ai";
 import type { EngineVersionFormat } from "@/model/formats";
-import { parseLuaTable } from "@/utils/parse-lua-table";
-import { reactive } from "vue";
 import { parseLuaOptions } from "@/utils/parse-lua-options";
+import { parseLuaTable } from "@/utils/parse-lua-table";
 
 export class AiContentAPI extends AbstractContentAPI {
     protected readonly installedAis: Record<EngineVersionFormat, AI[]> = reactive({});
 
-    public async processAis(engine: EngineVersionFormat) : Promise<void> {
+    public async processAis(engine: EngineVersionFormat): Promise<void> {
         const ai = this.installedAis[engine];
         if (ai !== undefined) {
             return;
@@ -33,8 +34,8 @@ export class AiContentAPI extends AbstractContentAPI {
         this.installedAis[engine] = ais;
     }
 
-    public async getAi(engine: EngineVersionFormat, shortName: string) : Promise<AI> {
-        const ai = this.installedAis[engine]?.find(ai => ai.shortName === shortName);
+    public async getAi(engine: EngineVersionFormat, shortName: string): Promise<AI> {
+        const ai = this.installedAis[engine]?.find((ai) => ai.shortName === shortName);
         if (!ai) {
             await this.processAis(engine);
 
@@ -44,12 +45,12 @@ export class AiContentAPI extends AbstractContentAPI {
         return ai;
     }
 
-    protected async fetchAi(aiDirPath: string) : Promise<AI> {
+    protected async fetchAi(aiDirPath: string): Promise<AI> {
         const filePaths = await glob.promise(`${aiDirPath}/**/{AIInfo.lua,AIOptions.lua,*.dll}`);
 
-        const aiInfoPath = filePaths.find(filePath => filePath.endsWith("AIInfo.lua"));
-        const aiOptionsPath = filePaths.find(filePath => filePath.endsWith("AIOptions.lua"));
-        const dllPath = filePaths.find(filePath => filePath.endsWith(".dll"));
+        const aiInfoPath = filePaths.find((filePath) => filePath.endsWith("AIInfo.lua"));
+        const aiOptionsPath = filePaths.find((filePath) => filePath.endsWith("AIOptions.lua"));
+        const dllPath = filePaths.find((filePath) => filePath.endsWith(".dll"));
 
         if (aiInfoPath === undefined || dllPath === undefined) {
             throw new Error("AIInfo.lua or .dll not found");
@@ -73,7 +74,7 @@ export class AiContentAPI extends AbstractContentAPI {
             interfaceShortName: aiInfo.interfaceShortName,
             interfaceVersion: aiInfo.interfaceVersion,
             ddlPath: dllPath,
-            options: []
+            options: [],
         };
 
         if (aiOptionsPath) {

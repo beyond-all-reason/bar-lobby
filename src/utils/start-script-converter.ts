@@ -1,8 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { assign } from "jaz-ts-utils";
+
 import { Battle } from "@/model/battle/battle";
 import { StartPosType } from "@/model/battle/types";
 import type { StartScriptTypes } from "@/model/start-script";
-import { assign } from "jaz-ts-utils";
 
 /**
  * https://springrts.com/wiki/Script.txt
@@ -37,11 +38,11 @@ export class StartScriptConverter {
         let playerIndex = 0;
         const botIdToUserIdMap: Record<number, number> = {};
 
-        battle.contenders.value.forEach(contenderConfig => {
+        battle.contenders.value.forEach((contenderConfig) => {
             if (!allyTeams[contenderConfig.teamId]) {
                 const allyTeam: StartScriptTypes.AllyTeam = {
                     id: contenderConfig.teamId,
-                    numallies: 0
+                    numallies: 0,
                 };
 
                 if (battle.battleOptions.startPosType === StartPosType.Boxes) {
@@ -50,8 +51,8 @@ export class StartScriptConverter {
                         assign(allyTeam, {
                             startrectleft: box.xPercent,
                             startrecttop: box.yPercent,
-                            startrectright: (box.xPercent + box.widthPercent),
-                            startrectbottom: (box.yPercent + box.heightPercent)
+                            startrectright: box.xPercent + box.widthPercent,
+                            startrectbottom: box.yPercent + box.heightPercent,
                         });
                     } else {
                         console.warn(`Contender ${contenderConfig.id} has a teamId of ${contenderConfig.teamId} but no start box was defined for that team`);
@@ -64,14 +65,14 @@ export class StartScriptConverter {
             const team: StartScriptTypes.Team = {
                 id: teamId,
                 allyteam: contenderConfig.teamId,
-                teamleader: 0
+                teamleader: 0,
             };
             assign(team, {
                 advantage: contenderConfig.advantage,
                 handicap: contenderConfig.handicap,
                 incomemultiplier: contenderConfig.incomeMultiplier,
                 startposx: contenderConfig.startPos?.x,
-                startposz: contenderConfig.startPos?.z
+                startposz: contenderConfig.startPos?.z,
             });
             teams.push(team);
             teamId++;
@@ -81,7 +82,7 @@ export class StartScriptConverter {
                     id: playerIndex,
                     team: team.id,
                     name: api.session.getUserById(contenderConfig.userId)?.username || "Player",
-                    userId: contenderConfig.userId
+                    userId: contenderConfig.userId,
                 };
                 players.push(player);
                 playerIndex++;
@@ -100,19 +101,19 @@ export class StartScriptConverter {
             }
         });
 
-        battle.spectators.value.forEach(spectatorConfig => {
+        battle.spectators.value.forEach((spectatorConfig) => {
             const spectator: StartScriptTypes.Player = {
                 id: playerIndex,
                 spectator: 1,
                 name: api.session.getUserById(spectatorConfig.userId)?.username || "Player",
-                userId: spectatorConfig.userId
+                userId: spectatorConfig.userId,
             };
             playerIndex++;
             players.push(spectator);
         });
 
         for (const bot of bots) {
-            const owner = players.find(player => player.userId === botIdToUserIdMap[bot.id]);
+            const owner = players.find((player) => player.userId === botIdToUserIdMap[bot.id]);
             if (!owner) {
                 throw new Error(`Couldn't find owner for bot, ${JSON.stringify(bot)}`);
             }
@@ -134,7 +135,7 @@ export class StartScriptConverter {
             allyTeams,
             teams,
             players,
-            ais: bots
+            ais: bots,
         };
     }
 
@@ -146,15 +147,15 @@ export class StartScriptConverter {
         return `[game] {${scriptStr}\n}`;
     }
 
-    protected scriptToObject(scriptStr: string) : Record<string, any> {
+    protected scriptToObject(scriptStr: string): Record<string, any> {
         let scriptJson = `{${scriptStr}}`;
 
         scriptJson = scriptJson
-            .replace(/([^=\w\][])(\[(.*?)\])/gm, "$1\"$3\":")
-            .replace(/^\s*(\w*)=(.*?);/gm, "\"$1\": \"$2\",")
+            .replace(/([^=\w\][])(\[(.*?)\])/gm, '$1"$3":')
+            .replace(/^\s*(\w*)=(.*?);/gm, '"$1": "$2",')
             .replace(/\r|\n/gm, "")
-            .replace(/",\s*}/gm, "\"}")
-            .replace(/}"/gm, "},\"");
+            .replace(/",\s*}/gm, '"}')
+            .replace(/}"/gm, '},"');
 
         try {
             const obj = JSON.parse(scriptJson);
@@ -231,12 +232,17 @@ export class StartScriptConverter {
             teams,
             players,
             ais,
-            ...obj
+            ...obj,
         };
     }
 
-    protected convertGroups(scriptObj: Record<string, any>) : Record<string, any> {
-        const groups = ["allyTeams", "teams", "players", "ais"];
+    protected convertGroups(scriptObj: Record<string, any>): Record<string, any> {
+        const groups = [
+            "allyTeams",
+            "teams",
+            "players",
+            "ais",
+        ];
         for (const key of groups) {
             const group = scriptObj[key];
             const newKey = key.slice(0, key.length - 1).toLowerCase();

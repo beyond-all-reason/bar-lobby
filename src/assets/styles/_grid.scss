@@ -8,7 +8,7 @@
     grid-template-columns: auto minmax(300px, 2fr);
     row-gap: 10px;
     column-gap: 20px;
-    > :nth-child(2n+1) {
+    > :nth-child(2n + 1) {
         justify-content: center;
     }
 }

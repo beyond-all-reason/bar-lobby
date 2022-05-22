@@ -4,7 +4,7 @@ export enum DownloadType {
     Metadata,
     Engine,
     Game,
-    Map
+    Map,
 }
 
 export interface Message {

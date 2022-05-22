@@ -2,10 +2,12 @@ p {
     font-size: 16px;
     text-transform: initial;
 }
-i, em {
+i,
+em {
     font-style: italic;
 }
-b, strong {
+b,
+strong {
     font-weight: 600;
 }
 a:not(.btn) {
@@ -15,11 +17,18 @@ a:not(.btn) {
     }
 }
 .color {
-    &--error { color: var(--error); }
-    &--warning { color: var(--warning); }
-    &--success { color: var(--success); }
+    &--error {
+        color: var(--error);
+    }
+    &--warning {
+        color: var(--warning);
+    }
+    &--success {
+        color: var(--success);
+    }
 }
-ul, ol {
+ul,
+ol {
     display: flex;
     flex-direction: column;
     list-style: disc;

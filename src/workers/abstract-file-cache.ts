@@ -1,6 +1,6 @@
 import * as fs from "fs";
-import * as path from "path";
 import { Signal } from "jaz-ts-utils";
+import * as path from "path";
 
 export interface CacheProgress {
     totalItemsToCache: number;
@@ -46,8 +46,8 @@ export abstract class AbstractFileCache<T> {
         const fileNames = await fs.promises.readdir(this.itemDir);
         const cachedMapFileNames = Object.keys(this.items);
 
-        const filesToCache = fileNames.filter(fileName => {
-            const fileTypeFiler = !this.fileTypeFilter.length || this.fileTypeFilter.some(ext => fileName.endsWith(ext));
+        const filesToCache = fileNames.filter((fileName) => {
+            const fileTypeFiler = !this.fileTypeFilter.length || this.fileTypeFilter.some((ext) => fileName.endsWith(ext));
             return (recacheAll || !cachedMapFileNames.includes(fileName)) && fileTypeFiler;
         });
 

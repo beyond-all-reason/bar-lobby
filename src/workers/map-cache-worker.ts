@@ -1,23 +1,27 @@
-import * as path from "path";
 import * as fs from "fs";
+import { BetterWorker, BetterWorkerHost } from "jaz-ts-utils";
+import * as path from "path";
 import type { SpringMap, StartPos } from "spring-map-parser";
 import { MapParser } from "spring-map-parser";
+
 import type { MapData } from "@/model/map-data";
 import { AbstractFileCache } from "@/workers/abstract-file-cache";
-import { BetterWorker, BetterWorkerHost } from "jaz-ts-utils";
 
 class MapCache extends AbstractFileCache<MapData> {
     protected mapImagesDir: string;
     protected parser: MapParser;
 
     constructor(cacheFilePath: string, dataDir: string) {
-        super(cacheFilePath, path.join(dataDir, "maps"), [".sd7", ".sdz"]);
+        super(cacheFilePath, path.join(dataDir, "maps"), [
+            ".sd7",
+            ".sdz",
+        ]);
 
         this.mapImagesDir = path.join(dataDir, "map-images");
 
         this.parser = new MapParser({
             mipmapSize: 8,
-            path7za: process.platform === "win32" ? "resources/7za.exe" : "resources/7za"
+            path7za: process.platform === "win32" ? "resources/7za.exe" : "resources/7za",
         });
     }
 
@@ -54,7 +58,12 @@ class MapCache extends AbstractFileCache<MapData> {
         if (!map) {
             return;
         }
-        for (const imagePath of [map.textureImagePath, map.metalImagePath, map.heightImagePath, map.typeImagePath]) {
+        for (const imagePath of [
+            map.textureImagePath,
+            map.metalImagePath,
+            map.heightImagePath,
+            map.typeImagePath,
+        ]) {
             if (imagePath && fs.existsSync(imagePath)) {
                 await fs.promises.rm(imagePath);
             }
@@ -63,7 +72,7 @@ class MapCache extends AbstractFileCache<MapData> {
         await this.saveCachedItems();
     }
 
-    protected parseMapData(mapData: SpringMap) : MapData {
+    protected parseMapData(mapData: SpringMap): MapData {
         return {
             fileName: mapData.fileName,
             fileNameWithExt: mapData.fileNameWithExt,
@@ -77,12 +86,12 @@ class MapCache extends AbstractFileCache<MapData> {
             extractorRadius: mapData.mapInfo?.extractorRadius ?? mapData.smd?.extractorRadius!,
             minWind: mapData.mapInfo?.atmosphere?.minWind ?? mapData.smd?.minWind!,
             maxWind: mapData.mapInfo?.atmosphere?.maxWind ?? mapData.smd?.maxWind!,
-            startPositions: (mapData.mapInfo?.teams?.map(obj => obj!.startPos) ?? mapData.smd?.startPositions) as Array<StartPos>,
+            startPositions: (mapData.mapInfo?.teams?.map((obj) => obj!.startPos) ?? mapData.smd?.startPositions) as Array<StartPos>,
             width: mapData.smf!.mapWidthUnits * 2,
             height: mapData.smf!.mapHeightUnits * 2,
             minDepth: mapData.minHeight,
             maxDepth: mapData.maxHeight,
-            mapInfo: mapData.mapInfo
+            mapInfo: mapData.mapInfo,
         };
     }
 }

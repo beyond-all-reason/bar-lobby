@@ -17,14 +17,13 @@ const { icons } = require("@iconify/json/json/mdi.json");
 const props = defineProps({
     icon: {
         type: String,
-        default: "home"
+        default: "home",
     },
     size: {
         type: Number,
-        default: 23
-    }
+        default: 23,
+    },
 });
-
 
 const svg = computed(() => icons[props.icon].body);
 

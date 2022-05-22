@@ -1,15 +1,16 @@
-import * as fs from "fs";
-import * as path from "path";
-import { EngineVersionFormat, gitEngineTagToEngineVersionString} from "@/model/formats";
-import { isEngineVersionString } from "@/model/formats";
-import { extract7z } from "@/utils/extract7z";
 import axios from "axios";
+import * as fs from "fs";
+import { lastInArray, removeFromArray } from "jaz-ts-utils";
 import { Octokit } from "octokit";
+import * as path from "path";
+import { reactive } from "vue";
+
 import { AbstractContentAPI } from "@/api/content/abstract-content-api";
 import { contentSources } from "@/config/content-sources";
-import { reactive } from "vue";
 import type { DownloadInfo } from "@/model/downloads";
-import { lastInArray, removeFromArray } from "jaz-ts-utils";
+import { EngineVersionFormat, gitEngineTagToEngineVersionString } from "@/model/formats";
+import { isEngineVersionString } from "@/model/formats";
+import { extract7z } from "@/utils/extract7z";
 
 export class EngineContentAPI extends AbstractContentAPI {
     public installedVersions: EngineVersionFormat[] = reactive([]);
@@ -32,7 +33,7 @@ export class EngineContentAPI extends AbstractContentAPI {
         return this;
     }
 
-    public async downloadLatestEngine(includePrerelease = true) : Promise<EngineVersionFormat> {
+    public async downloadLatestEngine(includePrerelease = true): Promise<EngineVersionFormat> {
         const latestEngineRelease = await this.getLatestEngineReleaseInfo();
 
         if (lastInArray(this.installedVersions) === gitEngineTagToEngineVersionString(latestEngineRelease.tag_name)) {
@@ -43,7 +44,7 @@ export class EngineContentAPI extends AbstractContentAPI {
         const engineVersionString = gitEngineTagToEngineVersionString(latestEngineRelease.tag_name);
 
         const archStr = process.platform === "win32" ? "windows" : "linux";
-        const asset = latestEngineRelease.assets.find(asset => asset.name.includes(archStr) && asset.name.includes("portable"));
+        const asset = latestEngineRelease.assets.find((asset) => asset.name.includes(archStr) && asset.name.includes("portable"));
         if (!asset) {
             throw new Error("Couldn't fetch latest engine release");
         }
@@ -52,7 +53,7 @@ export class EngineContentAPI extends AbstractContentAPI {
             type: "engine",
             name: engineVersionString,
             currentBytes: 0,
-            totalBytes: 1
+            totalBytes: 1,
         });
 
         const downloadResponse = await axios({
@@ -64,7 +65,7 @@ export class EngineContentAPI extends AbstractContentAPI {
             onDownloadProgress: (progress) => {
                 downloadInfo.currentBytes = progress.loaded;
                 downloadInfo.totalBytes = progress.total;
-            }
+            },
         });
 
         const engine7z = downloadResponse.data as ArrayBuffer;
@@ -96,7 +97,7 @@ export class EngineContentAPI extends AbstractContentAPI {
         const releasesResponse = await this.ocotokit.rest.repos.listReleases({
             owner: contentSources.engineGitHub.owner,
             repo: contentSources.engineGitHub.repo,
-            per_page: 1
+            per_page: 1,
         });
 
         return releasesResponse.data[0];
@@ -111,7 +112,7 @@ export class EngineContentAPI extends AbstractContentAPI {
             const release = await this.ocotokit.rest.repos.getReleaseByTag({
                 owner: contentSources.engineGitHub.owner,
                 repo: contentSources.engineGitHub.repo,
-                tag: gitTag
+                tag: gitTag,
             });
 
             return release;
@@ -133,12 +134,30 @@ export class EngineContentAPI extends AbstractContentAPI {
         return fs.existsSync(path.join(this.dataDir, "engine", engineTag));
     }
 
-    protected isVersionGreater(a: EngineVersionFormat, b: EngineVersionFormat) : boolean {
-        const [ aGame, aVersion, aRevision, aSha ] = a.split("-");
-        const [ bGame, bVersion, bRevision, bSha ] = b.split("-");
+    protected isVersionGreater(a: EngineVersionFormat, b: EngineVersionFormat): boolean {
+        const [
+            aGame,
+            aVersion,
+            aRevision,
+            aSha,
+        ] = a.split("-");
+        const [
+            bGame,
+            bVersion,
+            bRevision,
+            bSha,
+        ] = b.split("-");
 
-        const [ aMajor, aMinor, aPatch ] = aVersion.split(".");
-        const [ bMajor, bMinor, bPatch ] = bVersion.split(".");
+        const [
+            aMajor,
+            aMinor,
+            aPatch,
+        ] = aVersion.split(".");
+        const [
+            bMajor,
+            bMinor,
+            bPatch,
+        ] = bVersion.split(".");
 
         if (aMajor > bMajor || aMinor > bMinor || aPatch > bPatch || aRevision > bRevision) {
             return true;
@@ -148,6 +167,6 @@ export class EngineContentAPI extends AbstractContentAPI {
     }
 
     protected sortEngineVersions() {
-        return Array.from(this.installedVersions).sort((a, b) => this.isVersionGreater(a, b) ? 1 : -1);
+        return Array.from(this.installedVersions).sort((a, b) => (this.isVersionGreater(a, b) ? 1 : -1));
     }
 }

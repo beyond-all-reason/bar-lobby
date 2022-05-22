@@ -1,13 +1,16 @@
-<route lang="json">{ "meta": { "empty": true } }</route>
+<route lang="json">
+{ "meta": { "empty": true } }
+</route>
 
 <template>
     <div />
 </template>
 
 <script lang="ts" setup>
-import { useRouter } from "vue-router";
-import { storeUserSession } from "@/utils/store-user-session";
 import { onMounted } from "vue";
+import { useRouter } from "vue-router";
+
+import { storeUserSession } from "@/utils/store-user-session";
 
 const router = useRouter();
 
@@ -20,7 +23,7 @@ onMounted(async () => {
                 token: api.account.model.token.value,
                 lobby_name: api.info.lobby.name,
                 lobby_version: api.info.lobby.version,
-                lobby_hash: api.info.lobby.hash
+                lobby_hash: api.info.lobby.hash,
             });
 
             if (loginResponse.result === "success") {
@@ -37,6 +40,4 @@ onMounted(async () => {
 });
 </script>
 
-<style lang="scss" scoped>
-
-</style>
+<style lang="scss" scoped></style>

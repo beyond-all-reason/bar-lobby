@@ -1,12 +1,11 @@
-<route lang="json">{ "meta": { "title": "Playground", "order": 0 } }</route>
+<route lang="json">
+{ "meta": { "title": "Playground", "order": 0 } }
+</route>
 
 <template>
     <div />
 </template>
 
-<script lang="ts" setup>
-</script>
+<script lang="ts" setup></script>
 
-<style lang="scss" scoped>
-
-</style>
+<style lang="scss" scoped></style>

@@ -12,21 +12,24 @@
 <script lang="ts" setup>
 import { provide, ref } from "vue";
 
-const props = withDefaults(defineProps<{
-    modelValue: unknown;
-    label?: string;
-    required?: boolean;
-    disabled?: boolean;
-    fullWidth?: boolean;
-}>(), {
-    label: undefined,
-    required: false,
-    disabled: false,
-    fullWidth: false
-});
+const props = withDefaults(
+    defineProps<{
+        modelValue: unknown;
+        label?: string;
+        required?: boolean;
+        disabled?: boolean;
+        fullWidth?: boolean;
+    }>(),
+    {
+        label: undefined,
+        required: false,
+        disabled: false,
+        fullWidth: false,
+    }
+);
 
 const emits = defineEmits<{
-    (event: "update:modelValue", value: unknown): void
+    (event: "update:modelValue", value: unknown): void;
 }>();
 
 const selectedOption = ref(props.modelValue);
@@ -37,7 +40,7 @@ provide("toggleOption", (optionValue: unknown) => {
     if (Array.isArray(selectedOption.value)) {
         if (selectedOption.value.includes(optionValue)) {
             if (!props.required || (props.required && selectedOption.value.length > 1)) {
-                selectedOption.value = selectedOption.value.filter(v => v !== optionValue);
+                selectedOption.value = selectedOption.value.filter((v) => v !== optionValue);
             }
         } else {
             selectedOption.value.push(optionValue);

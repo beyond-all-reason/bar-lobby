@@ -1,19 +1,17 @@
 <template>
-    <Popper
-        v-click-away="() => show = false"
-        v-bind="$attrs"
-        openDelay="0"
-        closeDelay="0"
-        offsetDistance="0"
-        :show="show"
-        placement="right-start"
-        class="context-menu"
-        @click.right="show = true"
-    >
+    <Popper v-click-away="() => (show = false)" v-bind="$attrs" openDelay="0" closeDelay="0" offsetDistance="0" :show="show" placement="right-start" class="context-menu" @click.right="show = true">
         <slot />
         <template #content>
             <div v-for="entry in props.entries" :key="entry.label" class="context-menu__entry">
-                <div class="context-menu__label" @click="() => { entry.action(...args); show = false }">
+                <div
+                    class="context-menu__label"
+                    @click="
+                        () => {
+                            entry.action(...args);
+                            show = false;
+                        }
+                    "
+                >
                     {{ entry.label }}
                 </div>
             </div>
@@ -37,13 +35,16 @@ export interface ContextMenuEntry {
     children?: ContextMenuEntry[];
 }
 
-const props = withDefaults(defineProps<{
-    entries: ContextMenuEntry[];
-    args: any[]
-}>(), {
-    entries: () => [],
-    args: () => []
-});
+const props = withDefaults(
+    defineProps<{
+        entries: ContextMenuEntry[];
+        args: any[];
+    }>(),
+    {
+        entries: () => [],
+        args: () => [],
+    }
+);
 
 const show = ref(false);
 </script>
@@ -54,7 +55,6 @@ const show = ref(false);
         padding: 0 !important;
     }
     &__entry {
-
     }
     &__label {
         padding: 10px;

@@ -1,4 +1,6 @@
-<route lang="json">{ "meta": { "empty": true, "blurBg": true } }</route>
+<route lang="json">
+{ "meta": { "empty": true, "blurBg": true } }
+</route>
 
 <template>
     <div>
@@ -7,7 +9,7 @@
                 <Loader v-if="loading" />
                 <transition v-else name="login" appear>
                     <div class="login">
-                        <img ref="logo" class="login__logo" src="@/assets/images/BARLogoFull.png">
+                        <img ref="logo" class="login__logo" src="@/assets/images/BARLogoFull.png" />
                         <Panel v-model:activeTabIndex="activeTab" class="login__panel">
                             <Tab title="Login">
                                 <LoginForm />
@@ -27,7 +29,8 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, onMounted } from "vue";
+import { onMounted, ref } from "vue";
+
 import Loader from "@/components/common/Loader.vue";
 import Panel from "@/components/common/Panel.vue";
 import Tab from "@/components/common/Tab.vue";

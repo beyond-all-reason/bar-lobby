@@ -14,23 +14,23 @@
                 @update:model-value="emit('update:modelValue', value)"
             />
         </div>
-        <input :id="uuid" ref="textbox" v-model="value" :style="`width: calc(${max.toString().length}ch + 20px)`" :disabled="disableCustomInput">
+        <input :id="uuid" ref="textbox" v-model="value" :style="`width: calc(${max.toString().length}ch + 20px)`" :disabled="disableCustomInput" />
     </div>
 </template>
 
 <script lang="ts" setup>
 // https://nightcatsama.github.io/vue-slider-component/#/
 
-import type { Ref} from "vue";
-import { onMounted, ref, toRefs } from "vue";
 import { v4 as uuidv4 } from "uuid";
+import type { Ref } from "vue";
+import { onMounted, ref, toRefs } from "vue";
 import type { ERROR_TYPE } from "vue-slider-component";
 import VueSlider from "vue-slider-component";
 
 type VueSliderProps = InstanceType<typeof VueSlider>;
 
 interface Props extends Omit<Partial<VueSliderProps>, "modelValue"> {
-    modelValue?: number
+    modelValue?: number;
     label?: string;
     disableCustomInput?: boolean;
     icon?: string;
@@ -44,11 +44,11 @@ const props = withDefaults(defineProps<Props>(), {
     icon: undefined,
     disableCustomInput: false, // TODO: needs some improvement before enabling custom input by default
     trimLabel: false,
-    disabled: false
+    disabled: false,
 });
 
 const emit = defineEmits<{
-    (event: "update:modelValue", value: number): void
+    (event: "update:modelValue", value: number): void;
 }>();
 
 const uuid = ref(uuidv4());

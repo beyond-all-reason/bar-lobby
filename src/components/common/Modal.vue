@@ -20,14 +20,15 @@
 
 <script lang="ts">
 export default {
-    inheritAttrs: false
+    inheritAttrs: false,
 };
 </script>
 
 <script lang="ts" setup>
 import { ref } from "vue";
-import Panel from "@/components/common/Panel.vue";
+
 import Icon from "@/components/common/Icon.vue";
+import Panel from "@/components/common/Panel.vue";
 
 type PanelProps = InstanceType<typeof Panel>["$props"];
 interface ModalProps extends PanelProps {
@@ -41,7 +42,7 @@ const props = withDefaults(defineProps<ModalProps>(), {
     width: "initial",
     height: "initial",
     padding: "30px",
-    activeTab: 0
+    activeTab: 0,
 });
 
 const isOpen = api.modals.register(props.name);
@@ -65,7 +66,8 @@ const sound = () => api.audio.getSound("button-hover").play();
 }
 .modal {
     flex-grow: 0;
-    :deep(.panel.tabbed), :deep(.panel.tabbed:after) {
+    :deep(.panel.tabbed),
+    :deep(.panel.tabbed:after) {
         background: none;
         backdrop-filter: none;
         border: none;

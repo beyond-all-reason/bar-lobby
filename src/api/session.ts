@@ -1,8 +1,9 @@
+import { objectKeys, Signal } from "jaz-ts-utils";
+import { reactive, Ref, ref } from "vue";
+
 import { Battle } from "@/model/battle/battle";
 import { BattleOptions } from "@/model/battle/types";
 import { CurrentUser, User } from "@/model/user";
-import { objectKeys, Signal } from "jaz-ts-utils";
-import { reactive, Ref, ref } from "vue";
 
 export class SessionAPI {
     public readonly offlineMode: Ref<boolean>;
@@ -38,20 +39,24 @@ export class SessionAPI {
                 color: "",
                 teamId: 0,
                 playerId: 0,
-            }
+            },
         });
 
-        this.users = reactive(new Map<number, User>([
-            [this.currentUser.userId, this.currentUser]
-        ]));
+        this.users = reactive(
+            new Map<number, User>([
+                [
+                    this.currentUser.userId,
+                    this.currentUser,
+                ],
+            ])
+        );
 
         this.currentBattle = new Battle({
             battleOptions: {} as BattleOptions,
-            participants: []
+            participants: [],
         });
 
-        this.battles = reactive(new Map<number, Battle>([
-        ]));
+        this.battles = reactive(new Map<number, Battle>([]));
 
         this.onLeftClick = new Signal();
         this.onRightClick = new Signal();
@@ -59,7 +64,7 @@ export class SessionAPI {
 
     public setCurrentUser(userConfig: CurrentUser) {
         const currentUser = this.currentUser;
-        objectKeys(this.currentUser).forEach(key => {
+        objectKeys(this.currentUser).forEach((key) => {
             delete currentUser[key];
         });
 

@@ -5,8 +5,9 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, onMounted, ref } from "vue";
 import { randomFromArray } from "jaz-ts-utils";
+import { computed, onMounted, ref } from "vue";
+
 import Progress from "@/components/common/Progress.vue";
 
 const emit = defineEmits(["complete"]);
@@ -21,7 +22,7 @@ const fontFiles = require.context("@/assets/fonts/", true).keys();
 totalFiles.value = imageFiles.length + fontFiles.length;
 
 onMounted(async () => {
-    const randomBg = randomFromArray(imageFiles.filter(src => src.includes("backgrounds")))!;
+    const randomBg = randomFromArray(imageFiles.filter((src) => src.includes("backgrounds")))!;
     const randomBgBuiltPath = await loadImage(randomBg);
     document.documentElement.style.setProperty("--background", `url(${randomBgBuiltPath})`);
 
@@ -64,7 +65,10 @@ async function loadFont(url: string) {
     const parts = url.split("/");
     const family = parts[1];
     const fileName = parts[2];
-    const [weight, style] = fileName.split(".")[0].split("-");
+    const [
+        weight,
+        style,
+    ] = fileName.split(".")[0].split("-");
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const buildFontPath = require(`@/assets/fonts/${family}/${fileName}`);
     const font = new FontFace(family, `url(${buildFontPath})`, { weight, style });
@@ -109,6 +113,4 @@ function loadImage(url: string) {
 // });
 </script>
 
-<style lang="scss" scoped>
-
-</style>
+<style lang="scss" scoped></style>

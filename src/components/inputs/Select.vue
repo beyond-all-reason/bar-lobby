@@ -1,5 +1,5 @@
 <template>
-    <div ref="controlEl" class="control select" :class="{ disabled, 'fullwidth': fullWidth }" @mouseenter="sound">
+    <div ref="controlEl" class="control select" :class="{ disabled, fullwidth: fullWidth }" @mouseenter="sound">
         <label v-if="label" :for="uuid">{{ label }}</label>
         <VueNextSelect
             ref="vueSelect"
@@ -21,16 +21,16 @@
 <script lang="ts">
 // use normal <script> to declare options
 export default {
-    inheritAttrs: false
+    inheritAttrs: false,
 };
 </script>
 
 <script lang="ts" setup>
 // https://iendeavor.github.io/vue-next-select/api-reference.html
 
-import VueNextSelect from "vue-next-select";
-import { Ref, ref } from "vue";
 import { v4 as uuidv4 } from "uuid";
+import { Ref, ref } from "vue";
+import VueNextSelect from "vue-next-select";
 
 type VueNextSelectProps = InstanceType<typeof VueNextSelect>["$props"];
 
@@ -100,7 +100,8 @@ const onClick = () => {
     }
     .vue-select {
         position: unset;
-        input, .vue-input {
+        input,
+        .vue-input {
             font-size: inherit;
             box-shadow: none;
             min-height: inherit;
@@ -122,7 +123,9 @@ const onClick = () => {
             border: 1px solid rgba(255, 255, 255, 0.2);
             &-item {
                 padding: 5px 10px;
-                &:hover, &.highlighted, &.selected {
+                &:hover,
+                &.highlighted,
+                &.selected {
                     background-color: rgba(255, 255, 255, 0.9);
                     color: #000;
                     text-shadow: none;
@@ -132,4 +135,3 @@ const onClick = () => {
     }
 }
 </style>
-

@@ -7,21 +7,29 @@
                 {{ name }}
             </div>
         </div>
-        <LuaOptionsModal v-if="participant.type === 'bot'" :id="`configure-bot-${participant.name}`" :modelValue="participant.aiOptions" title="Configure Bot" :sections="aiOptions" @update:model-value="aiOptionsUpdated" />
+        <LuaOptionsModal
+            v-if="participant.type === 'bot'"
+            :id="`configure-bot-${participant.name}`"
+            :modelValue="participant.aiOptions"
+            title="Configure Bot"
+            :sections="aiOptions"
+            @update:model-value="aiOptionsUpdated"
+        />
     </ContextMenu>
 </template>
 
 <script lang="ts" setup>
+import { computed, onUnmounted, Ref, ref, toRef } from "vue";
+
+import LuaOptionsModal from "@/components/battle/LuaOptionsModal.vue";
 import ContextMenu, { ContextMenuEntry } from "@/components/common/ContextMenu.vue";
 import Icon from "@/components/common/Icon.vue";
-import { Bot, Player, Spectator } from "@/model/battle/participants";
-import { computed, onUnmounted, Ref, ref, toRef } from "vue";
-import LuaOptionsModal from "@/components/battle/LuaOptionsModal.vue";
-import { LuaOptionSection } from "@/model/lua-options";
 import Flag from "@/components/misc/Flag.vue";
+import { Bot, Player, Spectator } from "@/model/battle/participants";
+import { LuaOptionSection } from "@/model/lua-options";
 
 const props = defineProps<{
-    participant: Player | Bot | Spectator
+    participant: Player | Bot | Spectator;
 }>();
 
 const participant = toRef(props, "participant");
@@ -44,7 +52,7 @@ const name = computed(() => {
     return "Player";
 });
 
-const icon = computed(() => props.participant.type === "bot" ? "robot" : "account");
+const icon = computed(() => (props.participant.type === "bot" ? "robot" : "account"));
 const countryCode = ref("");
 const aiOptions: Ref<LuaOptionSection[]> = ref([]);
 

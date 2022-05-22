@@ -9,11 +9,12 @@
 </template>
 
 <script lang="ts" setup>
+import { computed } from "vue";
+
 import Modal from "@/components/common/Modal.vue";
 import Button from "@/components/inputs/Button.vue";
 import { AI } from "@/model/ai";
 import { EngineVersionFormat } from "@/model/formats";
-import { computed } from "vue";
 
 const props = defineProps<{
     engineVersion: EngineVersionFormat;
@@ -31,6 +32,4 @@ const addBot = (ai: AI) => {
 };
 </script>
 
-<style lang="scss" scoped>
-
-</style>
+<style lang="scss" scoped></style>

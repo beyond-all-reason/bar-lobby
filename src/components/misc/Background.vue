@@ -5,9 +5,8 @@
 </template>
 
 <script lang="ts" setup>
-
 const props = defineProps<{
-    blur?: boolean
+    blur?: boolean;
 }>();
 </script>
 

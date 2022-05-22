@@ -1,6 +1,6 @@
 <template>
     <component :is="is" class="panel" :class="{ hidden, tabbed: Boolean(tabs.length), paginatedTabs, light, scrollContent }">
-        <div v-if="slots.header || tabs.length" class="panel__header" :class="{ 'panel__tabs': Boolean(tabs.length) }">
+        <div v-if="slots.header || tabs.length" class="panel__header" :class="{ panel__tabs: Boolean(tabs.length) }">
             <template v-if="tabs.length">
                 <template v-if="paginatedTabs">
                     <Button class="panel__prev-tab" @click="prevTab">
@@ -35,30 +35,34 @@
 <script lang="ts" setup>
 import { computed, ref, toRefs, VNode, watch } from "vue";
 import { useSlots } from "vue";
-import Button from "@/components/inputs/Button.vue";
-import Icon from "@/components/common/Icon.vue";
 
-const props = withDefaults(defineProps<{
-    is?: string;
-    width?: string;
-    height?: string;
-    padding?: string;
-    activeTabIndex?: number;
-    hidden?: boolean;
-    paginatedTabs?: boolean;
-    light?: boolean;
-    scrollContent?: boolean;
-}>(), {
-    is: "div",
-    width: "initial",
-    height: "initial",
-    padding: "30px",
-    activeTabIndex: 0,
-    hidden: false,
-    paginatedTabs: false,
-    light: false,
-    scrollContent: false
-});
+import Icon from "@/components/common/Icon.vue";
+import Button from "@/components/inputs/Button.vue";
+
+const props = withDefaults(
+    defineProps<{
+        is?: string;
+        width?: string;
+        height?: string;
+        padding?: string;
+        activeTabIndex?: number;
+        hidden?: boolean;
+        paginatedTabs?: boolean;
+        light?: boolean;
+        scrollContent?: boolean;
+    }>(),
+    {
+        is: "div",
+        width: "initial",
+        height: "initial",
+        padding: "30px",
+        activeTabIndex: 0,
+        hidden: false,
+        paginatedTabs: false,
+        light: false,
+        scrollContent: false,
+    }
+);
 
 const activeTabIndex = toRefs(props).activeTabIndex;
 
@@ -88,7 +92,7 @@ const tabs = computed(() => {
         }
 
         if (tabsParent && Array.isArray(tabsParent)) {
-            return tabsParent.filter(slot => typeof slot.type === "object" && "name" in slot.type && slot.type.name === "Tab");
+            return tabsParent.filter((slot) => typeof slot.type === "object" && "name" in slot.type && slot.type.name === "Tab");
         }
     }
 
@@ -126,14 +130,8 @@ const nextTab = () => {
     border: 1px solid rgba(255, 255, 255, 0.2);
     border-top: 1px solid rgba(255, 255, 255, 0.3);
     border-bottom: 1px solid rgba(124, 124, 124, 0.3);
-    box-shadow:
-        -1px 0 0 rgba(0, 0, 0, 0.3),
-        1px 0 0 rgba(0, 0, 0, 0.3),
-        0 1px 0 rgba(0, 0, 0, 0.3),
-        0 -1px 0 rgba(0, 0, 0, 0.3),
-        inset 0 0 50px rgba(255, 255, 255, 0.15),
-        inset 0 3px 8px rgba(255, 255, 255, 0.1),
-        3px 3px 10px rgba(0, 0, 0, 0.8);
+    box-shadow: -1px 0 0 rgba(0, 0, 0, 0.3), 1px 0 0 rgba(0, 0, 0, 0.3), 0 1px 0 rgba(0, 0, 0, 0.3), 0 -1px 0 rgba(0, 0, 0, 0.3), inset 0 0 50px rgba(255, 255, 255, 0.15),
+        inset 0 3px 8px rgba(255, 255, 255, 0.1), 3px 3px 10px rgba(0, 0, 0, 0.8);
     &.hidden {
         opacity: 0;
         transform: translateY(-20px);
@@ -161,7 +159,8 @@ const nextTab = () => {
     :deep(.panel__header.panel__tabs) {
         z-index: 0;
     }
-    &__tabs, &__header {
+    &__tabs,
+    &__header {
         position: relative;
         width: 100%;
         display: flex;
@@ -175,7 +174,8 @@ const nextTab = () => {
             background: transparent;
             border: none;
             box-shadow: none;
-            &:hover, &.active {
+            &:hover,
+            &.active {
                 background: rgba(255, 255, 255, 0.1);
                 box-shadow: 0 1px 0 rgba(255, 255, 255, 0.3);
             }
@@ -217,7 +217,8 @@ const nextTab = () => {
     }
 }
 
-.panel:after, .tabs:after {
+.panel:after,
+.tabs:after {
     @extend .fullsize;
     background-image: url("~@/assets/images/squares.png");
     background-size: auto;
@@ -230,4 +231,3 @@ const nextTab = () => {
     transition: transform 0.3s, opacity 0.3s;
 }
 </style>
-

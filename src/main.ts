@@ -2,11 +2,12 @@ import type { App } from "electron";
 import { app, ipcMain, protocol, screen } from "electron";
 import installExtension, { VUEJS3_DEVTOOLS } from "electron-devtools-installer";
 import unhandled from "electron-unhandled";
+
+import { StoreAPI } from "@/api/store";
 import { MainWindow } from "@/main-window";
+import type { Info } from "@/model/info";
 import type { SettingsType } from "@/model/settings";
 import { settingsSchema } from "@/model/settings";
-import { StoreAPI } from "@/api/store";
-import type { Info } from "@/model/info";
 
 const isProd = process.env.NODE_ENV === "production";
 export class Application {
@@ -17,14 +18,16 @@ export class Application {
     constructor(app: App) {
         this.app = app;
 
-        protocol.registerSchemesAsPrivileged([{
-            scheme: "bar",
-            privileges: {
-                secure: true,
-                standard: true,
-                stream: true
-            }
-        }]);
+        protocol.registerSchemesAsPrivileged([
+            {
+                scheme: "bar",
+                privileges: {
+                    secure: true,
+                    standard: true,
+                    stream: true,
+                },
+            },
+        ]);
 
         this.app.commandLine.appendSwitch("disable-features", "HardwareMediaKeyHandling,MediaSessionService");
 
@@ -51,7 +54,7 @@ export class Application {
         if (!isProd && !process.env.IS_TEST) {
             try {
                 await installExtension(VUEJS3_DEVTOOLS);
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
             } catch (e: any) {
                 console.error("Vue Devtools failed to install:", e.toString());
             }
@@ -88,21 +91,21 @@ export class Application {
             const userDataPath = this.app.getPath("userData");
             const appPath = this.app.getAppPath();
 
-            const displayIds = screen.getAllDisplays().map(display => display.id);
+            const displayIds = screen.getAllDisplays().map((display) => display.id);
             const currentDisplayId = screen.getDisplayNearestPoint(this.mainWindow!.window.getBounds()).id;
 
             const info: Info = {
                 lobby: {
                     name: this.app.getName(),
                     version: this.app.getVersion(),
-                    hash: "123" // TODO: generate and inject checksum of app build in CI pipeline
+                    hash: "123", // TODO: generate and inject checksum of app build in CI pipeline
                 },
                 userDataPath,
                 appPath,
                 hardware: {
                     numOfDisplays: displayIds.length,
-                    currentDisplayIndex: displayIds.indexOf(currentDisplayId)
-                }
+                    currentDisplayIndex: displayIds.indexOf(currentDisplayId),
+                },
             };
 
             return info;

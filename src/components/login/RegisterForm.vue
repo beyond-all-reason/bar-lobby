@@ -9,18 +9,17 @@
             <Textbox v-model="username" label="Username" required class="fullwidth" />
             <Textbox v-model="password" type="password" label="Password" required class="fullwidth" />
             <Textbox v-model="confirmPassword" type="password" label="Confirm Password" :validation="validatePassword" required class="fullwidth" />
-            <Button type="submit" fullWidth>
-                Register
-            </Button>
+            <Button type="submit" fullWidth> Register </Button>
         </form>
     </div>
 </template>
 
 <script lang="ts" setup>
 import { ref } from "vue";
+
 import Loader from "@/components/common/Loader.vue";
-import Textbox from "@/components/inputs/Textbox.vue";
 import Button from "@/components/inputs/Button.vue";
+import Textbox from "@/components/inputs/Textbox.vue";
 
 const emit = defineEmits(["register-success"]);
 
@@ -55,6 +54,4 @@ const register = async () => {
 };
 </script>
 
-<style lang="scss" scoped>
-
-</style>
+<style lang="scss" scoped></style>

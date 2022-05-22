@@ -17,7 +17,7 @@ export function storeUserSession(user?: Static<typeof myUserSchema>) {
         friendRequestUserIds: user.friend_requests,
         icons: user.icons, // TODO,
         ignoreUserIds: [],
-        permissions:[],
+        permissions: [],
         countryCode: "TODO", // TODO
     });
 }

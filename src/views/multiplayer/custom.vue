@@ -1,4 +1,6 @@
-<route lang="json">{ "meta": { "title": "Custom", "order": 2, "transition": { "name": "slide-left" } } }</route>
+<route lang="json">
+{ "meta": { "title": "Custom", "order": 2, "transition": { "name": "slide-left" } } }
+</route>
 
 <template>
     <div>
@@ -30,6 +32,7 @@
  */
 
 import { onMounted, Ref, ref } from "vue";
+
 import BattlePreview from "@/components/battle/BattlePreview.vue";
 import { BattlePreviewType } from "@/model/battle/battle-preview";
 
@@ -51,25 +54,27 @@ async function updateBattleList() {
 
     await updateUsers(userIds);
 
-    battles.value = lobbies.map(lobby => {
-        const battlePreview: BattlePreviewType = {
-            id: lobby.id,
-            title: lobby.name,
-            engineVersion: lobby.engine_version,
-            founderId: lobby.founder_id,
-            locked: lobby.locked,
-            mapName: lobby.map_name,
-            maxPlayers: lobby.max_players,
-            type: lobby.type,
-            userIds: lobby.players,
-            botNames: Object.values(lobby.bots).map(bot => bot.name),
-            passworded: Boolean(lobby.password),
-            startTime: lobby.started_at ? new Date(lobby.started_at * 1000) : null
-        };
-        return battlePreview;
-    }).sort((a, b) => {
-        return b.userIds.length - a.userIds.length;
-    });
+    battles.value = lobbies
+        .map((lobby) => {
+            const battlePreview: BattlePreviewType = {
+                id: lobby.id,
+                title: lobby.name,
+                engineVersion: lobby.engine_version,
+                founderId: lobby.founder_id,
+                locked: lobby.locked,
+                mapName: lobby.map_name,
+                maxPlayers: lobby.max_players,
+                type: lobby.type,
+                userIds: lobby.players,
+                botNames: Object.values(lobby.bots).map((bot) => bot.name),
+                passworded: Boolean(lobby.password),
+                startTime: lobby.started_at ? new Date(lobby.started_at * 1000) : null,
+            };
+            return battlePreview;
+        })
+        .sort((a, b) => {
+            return b.userIds.length - a.userIds.length;
+        });
 
     console.log(battles.value);
 }
@@ -85,7 +90,7 @@ async function updateUsers(userIds: number[]) {
             clanId: user.clan_id,
             isBot: user.bot,
             icons: {},
-            countryCode: user.country
+            countryCode: user.country,
         });
     }
 
@@ -98,7 +103,7 @@ async function updateUsers(userIds: number[]) {
             spectator: !client.player,
             color: client.team_colour,
             teamId: client.team_number,
-            playerId: client.team_number
+            playerId: client.team_number,
         };
     }
 }
@@ -125,7 +130,6 @@ async function updateUsers(userIds: number[]) {
                 grid-gap: 20px;
                 grid-template-columns: repeat(auto-fill, minmax(500px, 1fr));
             }
-
         }
     }
     &--rows {

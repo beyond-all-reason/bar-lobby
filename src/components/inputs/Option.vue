@@ -34,30 +34,30 @@ const sound = () => {
 
 <style lang="scss" scoped>
 .option {
-        position: relative;
-        align-items: center;
-        justify-content: center;
-        padding: 3px 7px;
-        color: rgba(255, 255, 255, 0.7);
-        width: 100%;
-        background: rgba(0, 0, 0, 0.15);
-        &:hover:not(.option--selected) {
-            background: rgba(255, 255, 255, 0.02);
-            color: #ccc;
-        }
-        &:not(:last-child):after {
-            position: absolute;
-            content: "";
-            right: -1px;
-            top: 0;
-            width: 1px;
-            height: 100%;
-            background: rgba(255, 255, 255, 0.1);
-        }
-        &--selected {
-            background: rgba(255, 255, 255, 0.35);
-            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.2);
-            color: #fff;
-        }
+    position: relative;
+    align-items: center;
+    justify-content: center;
+    padding: 3px 7px;
+    color: rgba(255, 255, 255, 0.7);
+    width: 100%;
+    background: rgba(0, 0, 0, 0.15);
+    &:hover:not(.option--selected) {
+        background: rgba(255, 255, 255, 0.02);
+        color: #ccc;
     }
+    &:not(:last-child):after {
+        position: absolute;
+        content: "";
+        right: -1px;
+        top: 0;
+        width: 1px;
+        height: 100%;
+        background: rgba(255, 255, 255, 0.1);
+    }
+    &--selected {
+        background: rgba(255, 255, 255, 0.35);
+        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.2);
+        color: #fff;
+    }
+}
 </style>

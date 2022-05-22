@@ -44,15 +44,16 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, Ref, ref } from "vue";
-import Button from "@/components/inputs/Button.vue";
-import MapPreview from "@/components/battle/MapPreview.vue";
-import Select from "@/components/inputs/Select.vue";
-import Playerlist from "@/components/battle/Playerlist.vue";
 import { lastInArray } from "jaz-ts-utils";
+import { computed, Ref, ref } from "vue";
+
 import BattleChat from "@/components/battle/BattleChat.vue";
-import Icon from "@/components/common/Icon.vue";
 import LuaOptionsModal from "@/components/battle/LuaOptionsModal.vue";
+import MapPreview from "@/components/battle/MapPreview.vue";
+import Playerlist from "@/components/battle/Playerlist.vue";
+import Icon from "@/components/common/Icon.vue";
+import Button from "@/components/inputs/Button.vue";
+import Select from "@/components/inputs/Select.vue";
 import { LuaOptionSection } from "@/model/lua-options";
 
 const battleTitle = ref("Offline Custom Battle");

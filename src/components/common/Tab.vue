@@ -8,7 +8,7 @@
 import { defineComponent } from "vue";
 
 export default defineComponent({
-    name: "Tab"
+    name: "Tab",
 });
 </script>
 
@@ -19,6 +19,4 @@ const props = defineProps<{
 }>();
 </script>
 
-<style lang="scss" scoped>
-
-</style>
+<style lang="scss" scoped></style>

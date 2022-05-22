@@ -1,12 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import type { TObject } from "@sinclair/typebox";
 import type { ValidateFunction } from "ajv";
 import Ajv from "ajv";
-import type { ToRefs} from "vue";
-import { reactive, toRefs, watch } from "vue";
+import { app, ipcMain, ipcRenderer, shell } from "electron";
 import * as fs from "fs";
 import * as path from "path";
-import { app, ipcMain, ipcRenderer, shell } from "electron";
-import type { TObject } from "@sinclair/typebox";
+import type { ToRefs } from "vue";
+import { reactive, toRefs, watch } from "vue";
 
 export class StoreAPI<T extends Record<string, unknown>> {
     public model!: ToRefs<T>; // TODO: replace with reactive object
@@ -58,7 +58,10 @@ export class StoreAPI<T extends Record<string, unknown>> {
             }
         } else if (process.type === "browser") {
             ipcMain.handle(`store-update:${this.name}`, async (event, model: T) => {
-                for (const [key, val] of Object.entries(model)) {
+                for (const [
+                    key,
+                    val,
+                ] of Object.entries(model)) {
                     this.model[key].value = val;
                 }
             });
@@ -71,7 +74,7 @@ export class StoreAPI<T extends Record<string, unknown>> {
         shell.openExternal(this.filePath);
     }
 
-    protected validate(store: any) : store is T {
+    protected validate(store: any): store is T {
         const isValid = this.validator(store);
         return isValid;
     }
@@ -114,7 +117,10 @@ export class StoreAPI<T extends Record<string, unknown>> {
     protected serialize() {
         const obj: Record<string, unknown> = {};
 
-        for (const [key, val] of Object.entries(this.model)) {
+        for (const [
+            key,
+            val,
+        ] of Object.entries(this.model)) {
             obj[key] = val.value;
         }
 

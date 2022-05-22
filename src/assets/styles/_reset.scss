@@ -15,15 +15,16 @@
     box-sizing: border-box;
     user-select: none;
     -webkit-user-select: none;
-	-webkit-user-drag: none;
-	-webkit-app-region: no-drag;
+    -webkit-user-drag: none;
+    -webkit-app-region: no-drag;
 }
 
 /*
     Remove list styles (bullets/numbers)
     in case you use it combine with normalize.css
 */
-ol, ul {
+ol,
+ul {
     list-style: none;
 }
 

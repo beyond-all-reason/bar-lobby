@@ -12,27 +12,33 @@
 <script lang="ts" setup>
 import { computed, watch } from "vue";
 
-const props = withDefaults(defineProps<{
-    percent: number
-    text?: string,
-    themed?: boolean
-    height?: number
-}>(), {
-    text: undefined,
-    height: 15
-});
+const props = withDefaults(
+    defineProps<{
+        percent: number;
+        text?: string;
+        themed?: boolean;
+        height?: number;
+    }>(),
+    {
+        text: undefined,
+        height: 15,
+    }
+);
 
 const emit = defineEmits<{
-    (event: "loaded", percent: number): void
+    (event: "loaded", percent: number): void;
 }>();
 
 const percentStr = computed(() => `--progress: ${props.percent * 100}%`);
 
-watch(() => props.percent, (newValue, oldValue) => {
-    if (oldValue < 1 && newValue >= 1) {
-        emit("loaded", props.percent);
+watch(
+    () => props.percent,
+    (newValue, oldValue) => {
+        if (oldValue < 1 && newValue >= 1) {
+            emit("loaded", props.percent);
+        }
     }
-});
+);
 </script>
 
 <style lang="scss" scoped>

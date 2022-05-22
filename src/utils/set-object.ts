@@ -8,11 +8,11 @@ export function setObject<T extends Record<string, unknown> | Array<unknown>>(ob
             object.push(entry);
         }
     } else {
-        objectKeys(object).forEach(key => {
+        objectKeys(object).forEach((key) => {
             delete object[key];
         });
 
-        objectKeys(newObject).forEach(key => {
+        objectKeys(newObject).forEach((key) => {
             object[key] = newObject[key];
         });
     }

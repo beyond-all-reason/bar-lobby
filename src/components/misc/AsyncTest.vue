@@ -5,9 +5,7 @@
                 <slot />
             </template>
             <template #fallback>
-                <div>
-                    Loading...
-                </div>
+                <div>Loading...</div>
             </template>
         </Suspense>
     </div>
@@ -27,6 +25,4 @@ const resolve = () => {
 };
 </script>
 
-<style lang="scss" scoped>
-
-</style>
+<style lang="scss" scoped></style>

@@ -9,8 +9,8 @@ const props = defineProps<{
 </script>
 
 <style lang="scss" scoped>
-$flag-icons-path: '~flag-icons/flags';
-@import '~flag-icons/sass/flag-icons.scss';
+$flag-icons-path: "~flag-icons/flags";
+@import "~flag-icons/sass/flag-icons.scss";
 
 .flag {
     max-width: 100%;

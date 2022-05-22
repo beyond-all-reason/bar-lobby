@@ -9,5 +9,5 @@ export interface Info {
     hardware: {
         numOfDisplays: number;
         currentDisplayIndex: number;
-    }
+    };
 }

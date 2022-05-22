@@ -2,7 +2,7 @@
     <div class="nav" :class="{ hidden }">
         <div class="nav__logo">
             <Button depress to="/home">
-                <img src="@/assets/images/logo.svg">
+                <img src="@/assets/images/logo.svg" />
             </Button>
         </div>
         <div class="flex-col flex-grow">
@@ -48,13 +48,14 @@
 <script lang="ts" setup>
 import { computed } from "vue";
 import { useRoute, useRouter } from "vue-router";
+
 import Icon from "@/components/common/Icon.vue";
 import Button from "@/components/inputs/Button.vue";
-import Exit from "@/components/misc/Exit.vue";
-import Settings from "@/components/misc/Settings.vue";
-import ServerInfo from "@/components/misc/ServerInfo.vue";
-import DownloadsButton from "@/components/misc/DownloadsButton.vue";
 import Downloads from "@/components/misc/Downloads.vue";
+import DownloadsButton from "@/components/misc/DownloadsButton.vue";
+import Exit from "@/components/misc/Exit.vue";
+import ServerInfo from "@/components/misc/ServerInfo.vue";
+import Settings from "@/components/misc/Settings.vue";
 
 const router = useRouter();
 const route = useRoute();
@@ -65,13 +66,20 @@ const props = defineProps<{
 }>();
 
 const primaryRoutes = allRoutes
-    .filter(r => ["/singleplayer", "/multiplayer", "/library", "/learn", "/store", "/development"].includes(r.path))
+    .filter((r) =>
+        [
+            "/singleplayer",
+            "/multiplayer",
+            "/library",
+            "/learn",
+            "/store",
+            "/development",
+        ].includes(r.path)
+    )
     .sort((a, b) => (a.meta.order ?? 99) - (b.meta.order ?? 99));
 
 const secondaryRoutes = computed(() => {
-    return allRoutes
-        .filter(r => r.meta.order !== undefined && r.path.startsWith(`/${route.path.split("/")[1]}/`))
-        .sort((a, b) => (a.meta.order ?? 99) - (b.meta.order ?? 99));
+    return allRoutes.filter((r) => r.meta.order !== undefined && r.path.startsWith(`/${route.path.split("/")[1]}/`)).sort((a, b) => (a.meta.order ?? 99) - (b.meta.order ?? 99));
 });
 
 const settingsModal = () => api.modals.open("settings");
@@ -88,9 +96,7 @@ const lobbyVersion = `${api.info.lobby.name} v${api.info.lobby.version}`;
     justify-content: flex-start;
     backdrop-filter: blur(5px);
     background: linear-gradient(rgba(0, 0, 0, 0.75), rgba(0, 0, 0, 0.9));
-    box-shadow:
-        0 1px 0 rgba(0, 0, 0, 0.4),
-        0 3px 5px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 1px 0 rgba(0, 0, 0, 0.4), 0 3px 5px rgba(0, 0, 0, 0.5);
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     gap: 1px;
     transition: transform 0.3s, opacity 0.3s;
@@ -117,7 +123,8 @@ const lobbyVersion = `${api.info.lobby.name} v${api.info.lobby.version}`;
             height: 40px;
             opacity: 0.9;
         }
-        &:hover img, &.active img {
+        &:hover img,
+        &.active img {
             opacity: 1;
         }
         img {
@@ -127,7 +134,8 @@ const lobbyVersion = `${api.info.lobby.name} v${api.info.lobby.version}`;
             flex-grow: 1;
         }
     }
-    &__primary, &__logo {
+    &__primary,
+    &__logo {
         .btn {
             padding: 10px 25px;
             display: flex;
@@ -136,25 +144,19 @@ const lobbyVersion = `${api.info.lobby.name} v${api.info.lobby.version}`;
             font-weight: 600;
             background: radial-gradient(rgba(0, 0, 0, 0), rgba(255, 255, 255, 0.05));
             color: rgba(255, 255, 255, 0.8);
-            box-shadow:
-                1px 0 0 rgba(255, 255, 255, 0.05),
-                -1px 0 0 rgba(255, 255, 255, 0.05);
+            box-shadow: 1px 0 0 rgba(255, 255, 255, 0.05), -1px 0 0 rgba(255, 255, 255, 0.05);
             border: none;
             flex-grow: 0;
             height: 100%;
             &.icon {
                 padding: 10px 15px;
             }
-            &:hover, &.active {
+            &:hover,
+            &.active {
                 background: radial-gradient(rgba(0, 0, 0, 0), rgba(255, 255, 255, 0.15));
                 color: #fff;
                 text-shadow: 0 0 7px #fff;
-                box-shadow:
-                    1px 0 0 rgba(255, 255, 255, 0.2),
-                    -1px 0 0 rgba(255, 255, 255, 0.2),
-                    0 1px 0 rgba(255, 255, 255, 0.2),
-                    7px -3px 10px rgba(0, 0, 0, 0.5),
-                    -7px -3px 10px rgba(0, 0, 0, 0.5) !important;
+                box-shadow: 1px 0 0 rgba(255, 255, 255, 0.2), -1px 0 0 rgba(255, 255, 255, 0.2), 0 1px 0 rgba(255, 255, 255, 0.2), 7px -3px 10px rgba(0, 0, 0, 0.5), -7px -3px 10px rgba(0, 0, 0, 0.5) !important;
             }
             &.active {
                 z-index: 1;
@@ -167,7 +169,8 @@ const lobbyVersion = `${api.info.lobby.name} v${api.info.lobby.version}`;
     .control.button {
         align-self: unset;
     }
-    &__primary-left, &__primary-right {
+    &__primary-left,
+    &__primary-right {
         display: flex;
         flex-direction: row;
         gap: 1px;
@@ -175,25 +178,19 @@ const lobbyVersion = `${api.info.lobby.name} v${api.info.lobby.version}`;
     &__primary-left {
         box-shadow: 5px 0 20px rgba(0, 0, 0, 0.4);
         &:first-child {
-            box-shadow:
-                1px 0 0 rgba(255, 255, 255, 0.05);
+            box-shadow: 1px 0 0 rgba(255, 255, 255, 0.05);
         }
         &:last-child {
-            box-shadow:
-                -1px 0 0 rgba(255, 255, 255, 0.05),
-                1px 0 0 rgba(255, 255, 255, 0.15);
+            box-shadow: -1px 0 0 rgba(255, 255, 255, 0.05), 1px 0 0 rgba(255, 255, 255, 0.15);
         }
     }
     &__primary-right {
         box-shadow: -5px 0 20px rgba(0, 0, 0, 0.4);
         &:first-child {
-            box-shadow:
-                1px 0 0 rgba(255, 255, 255, 0.05),
-                -1px 0 0 rgba(255, 255, 255, 0.15);
+            box-shadow: 1px 0 0 rgba(255, 255, 255, 0.05), -1px 0 0 rgba(255, 255, 255, 0.15);
         }
         &:last-child {
-            box-shadow:
-                -1px 0 0 rgba(255, 255, 255, 0.05);
+            box-shadow: -1px 0 0 rgba(255, 255, 255, 0.05);
         }
     }
     &__secondary {
@@ -210,12 +207,11 @@ const lobbyVersion = `${api.info.lobby.name} v${api.info.lobby.version}`;
             color: rgba(255, 255, 255, 0.5);
             flex-grow: 0;
             padding: 0 25px;
-            &:hover, &.active {
+            &:hover,
+            &.active {
                 color: #fff;
                 background: rgba(255, 255, 255, 0.05);
-                box-shadow:
-                    inset 0 2px 10px rgba(0, 0, 0, 0.5),
-                    0 1px 0 rgba(255, 255, 255, 0.2);
+                box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.5), 0 1px 0 rgba(255, 255, 255, 0.2);
             }
         }
         &-right {
@@ -229,12 +225,7 @@ const lobbyVersion = `${api.info.lobby.name} v${api.info.lobby.version}`;
     .close {
         &:hover {
             background: rgba(255, 0, 0, 0.2);
-            box-shadow:
-                1px 0 0 rgba(255, 47, 47, 0.418),
-                -1px 0 0 rgba(255, 47, 47, 0.418),
-                0 1px 0 rgba(255, 47, 47, 0.418),
-                7px -3px 10px rgba(0, 0, 0, 0.5),
-                -7px -3px 10px rgba(0, 0, 0, 0.5) !important;
+            box-shadow: 1px 0 0 rgba(255, 47, 47, 0.418), -1px 0 0 rgba(255, 47, 47, 0.418), 0 1px 0 rgba(255, 47, 47, 0.418), 7px -3px 10px rgba(0, 0, 0, 0.5), -7px -3px 10px rgba(0, 0, 0, 0.5) !important;
         }
     }
 }

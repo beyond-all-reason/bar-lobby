@@ -303,5 +303,5 @@ export const aiNames = [
     "Wasp",
     "Watcher",
     "Whirlwind",
-    "Wolverine"
+    "Wolverine",
 ];

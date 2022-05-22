@@ -17,9 +17,10 @@
 </template>
 
 <script lang="ts" setup>
+import { onUnmounted, reactive, ref } from "vue";
+
 import Textbox from "@/components/inputs/Textbox.vue";
 import { BattleChatMessage } from "@/model/battle/battle-chat";
-import { onUnmounted, reactive, ref } from "vue";
 
 const messages: BattleChatMessage[] = reactive([]);
 const myMessage = ref("");

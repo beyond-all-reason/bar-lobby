@@ -4,7 +4,6 @@
   "private": true,
   "description": "Lobby client for the RTS game Beyond All Reason",
   "author": "Jazcash",
-  "license": "gpl-3.0",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Jazcash/bar-lobby.git"
@@ -13,15 +12,16 @@
   "scripts": {
     "dev": "vue-cli-service electron:serve",
     "bundle": "cross-env NODE_ENV=production npm run clean-dist && vue-cli-service electron:build",
-    "lint": "eslint . --ext .ts,.vue",
-    "lint-fix": "eslint . --ext .ts,.vue --fix",
+    "lint-check": "eslint . --ext .ts,.vue",
+    "lint": "eslint . --ext .ts,.vue --fix",
+    "format-check": "prettier --check src/**/*.{ts,vue,scss,json}",
+    "format": "prettier --write src/**/*.{ts,vue,scss,json}",
     "postinstall": "electron-builder install-app-deps",
     "postuninstall": "electron-builder install-app-deps",
     "clean-dist": "rimraf dist_electron",
     "dump-webpack-config": "vue inspect > output.js"
   },
   "devDependencies": {
-    "@formkit/auto-animate": "^1.0.0-beta.1",
     "@iconify/json": "^1.1.420",
     "@iconify/vue": "^3.1.3",
     "@sinclair/typebox": "^0.20.5",
@@ -44,11 +44,10 @@
     "electron-unhandled": "^3.0.2",
     "electron-updater": "^4.6.1",
     "eslint-config-prettier": "^8.5.0",
-    "eslint-plugin-prettier": "^4.0.0",
     "flag-icons": "^6.1.1",
     "glob-promise": "^4.2.2",
     "howler": "^2.2.3",
-    "jaz-ts-utils": "^3.9.1",
+    "jaz-ts-utils": "^4.1.7",
     "luaparse": "^0.3.1",
     "node-7z": "^3.0.0",
     "octokit": "^1.7.1",

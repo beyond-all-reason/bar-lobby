@@ -9,9 +9,7 @@
             <Textbox v-model="password" type="password" label="Password" required class="fullwidth" />
             <div class="flex-row gap-md">
                 <Checkbox v-model="loginAutomatically" type="checkbox" label="Login Automatically" />
-                <Button class="btn--blue" type="submit">
-                    Login
-                </Button>
+                <Button class="btn--blue" type="submit"> Login </Button>
             </div>
         </form>
         <form v-else class="flex-col gap-md" @submit.prevent="verify">
@@ -22,22 +20,21 @@
                 {{ verificationMessage }}
             </p>
             <Textbox v-model="verificationCode" label="Verification Code" required />
-            <Button type="submit">
-                Verify
-            </Button>
+            <Button type="submit"> Verify </Button>
         </form>
     </div>
 </template>
 
 <script lang="ts" setup>
-import { linkify } from "@/utils/linkify";
-import { storeUserSession } from "@/utils/store-user-session";
 import { ref, watch } from "vue";
 import { useRouter } from "vue-router";
+
 import Loader from "@/components/common/Loader.vue";
-import Textbox from "@/components/inputs/Textbox.vue";
-import Checkbox from "@/components/inputs/Checkbox.vue";
 import Button from "@/components/inputs/Button.vue";
+import Checkbox from "@/components/inputs/Checkbox.vue";
+import Textbox from "@/components/inputs/Textbox.vue";
+import { linkify } from "@/utils/linkify";
+import { storeUserSession } from "@/utils/store-user-session";
 
 const router = useRouter();
 const loading = ref(false);
@@ -57,7 +54,7 @@ if (loginAutomatically.value) {
     }
 }
 
-watch(api.account.model.email, () => email.value = api.account.model.email.value);
+watch(api.account.model.email, () => (email.value = api.account.model.email.value));
 
 const login = async () => {
     loading.value = true;
@@ -72,7 +69,7 @@ const login = async () => {
             token: api.account.model.token.value,
             lobby_name: api.info.lobby.name,
             lobby_version: api.info.lobby.version,
-            lobby_hash: api.info.lobby.hash
+            lobby_hash: api.info.lobby.hash,
         });
 
         if (loginResponse.result === "success") {
@@ -114,7 +111,4 @@ const verify = async () => {
 };
 </script>
 
-<style lang="scss" scoped>
-
-</style>
-
+<style lang="scss" scoped></style>

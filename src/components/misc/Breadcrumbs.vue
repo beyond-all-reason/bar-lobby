@@ -14,6 +14,7 @@
 
 <script lang="ts" setup>
 import { useRoute } from "vue-router";
+
 import Icon from "@/components/common/Icon.vue";
 
 const route = useRoute();

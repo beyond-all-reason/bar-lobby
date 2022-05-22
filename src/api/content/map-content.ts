@@ -1,13 +1,14 @@
-import * as path from "path";
-import * as fs from "fs";
 import axios from "axios";
+import * as fs from "fs";
+import { removeFromArray } from "jaz-ts-utils";
+import * as path from "path";
+import { reactive } from "vue";
+
 import { AbstractContentAPI } from "@/api/content/abstract-content-api";
+import { contentSources } from "@/config/content-sources";
+import type { DownloadInfo } from "@/model/downloads";
 import type { MapData } from "@/model/map-data";
 import { MapCacheWorkerHost } from "@/workers/map-cache-worker";
-import { contentSources } from "@/config/content-sources";
-import { reactive } from "vue";
-import type { DownloadInfo } from "@/model/downloads";
-import { removeFromArray } from "jaz-ts-utils";
 
 export class MapContentAPI extends AbstractContentAPI {
     // null means map is installed but isn't cached
@@ -36,7 +37,10 @@ export class MapContentAPI extends AbstractContentAPI {
         const mapCacheFile = path.join(cacheStoreDir, "map-cache.json");
 
         this.mapCache.on("item-cache-loaded").add((maps: Record<string, MapData>) => {
-            for (const [filename, mapData] of Object.entries(maps)) {
+            for (const [
+                filename,
+                mapData,
+            ] of Object.entries(maps)) {
                 if (!mapFilenames.includes(filename)) {
                     this.installedMaps[filename] = undefined;
                     this.mapCache.clearItem(filename);
@@ -47,12 +51,18 @@ export class MapContentAPI extends AbstractContentAPI {
         });
 
         this.mapCache.on("item-cache-saved").add((maps: Record<string, MapData>) => {
-            for (const [filename, mapData] of Object.entries(maps)) {
+            for (const [
+                filename,
+                mapData,
+            ] of Object.entries(maps)) {
                 this.installedMaps[filename] = mapData;
             }
         });
 
-        await this.mapCache.init([ mapCacheFile, this.dataDir ]);
+        await this.mapCache.init([
+            mapCacheFile,
+            this.dataDir,
+        ]);
 
         this.mapCache.cacheItems();
 
@@ -93,7 +103,7 @@ export class MapContentAPI extends AbstractContentAPI {
         }
     }
 
-    public async downloadMap(filename: string, host = contentSources.maps.http[0]!) : Promise<void> {
+    public async downloadMap(filename: string, host = contentSources.maps.http[0]!): Promise<void> {
         if (this.installedMaps[filename] !== undefined) {
             console.log(`Map ${filename} is already installed`);
             return;
@@ -106,7 +116,7 @@ export class MapContentAPI extends AbstractContentAPI {
                 type: "map",
                 name: filename,
                 currentBytes: 0,
-                totalBytes: 1
+                totalBytes: 1,
             });
 
             this.currentDownloads.push(downloadInfo);
@@ -120,7 +130,7 @@ export class MapContentAPI extends AbstractContentAPI {
                 onDownloadProgress: (progress) => {
                     downloadInfo.currentBytes = progress.loaded;
                     downloadInfo.totalBytes = progress.total;
-                }
+                },
             });
 
             if (downloadResponse.status !== 200) {

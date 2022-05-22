@@ -13,16 +13,15 @@
                 <Progress :percent="download.currentBytes / download.totalBytes" :text="progressText(download.currentBytes, download.totalBytes)" themed />
             </div>
         </div>
-        <div v-else class="flex-row flex-grow flex-center">
-            No downloads active
-        </div>
+        <div v-else class="flex-row flex-grow flex-center">No downloads active</div>
     </Modal>
 </template>
 
 <script lang="ts" setup>
+import { computed } from "vue";
+
 import Modal from "@/components/common/Modal.vue";
 import Progress from "@/components/common/Progress.vue";
-import { computed } from "vue";
 
 const emits = defineEmits<{
     (e: "percentChange", newPercent: number): void;
@@ -49,16 +48,14 @@ const progressText = (currentBytes: number, totalBytes: number) => {
         &:before {
             @extend .fullsize;
             z-index: -1;
-            background: radial-gradient(ellipse at top, hsla(69, 100%, 50%, 0.685), transparent),
-                        radial-gradient(ellipse at bottom, #2c4e05c7, transparent);
+            background: radial-gradient(ellipse at top, hsla(69, 100%, 50%, 0.685), transparent), radial-gradient(ellipse at bottom, #2c4e05c7, transparent);
             background-repeat: no-repeat;
             background-position: 0 100%;
             background-size: 100% var(--downloadPercent);
             transform: scale(105%);
         }
         &:hover:before {
-            background: radial-gradient(ellipse at top, hsla(69, 100%, 50%, 0.884), transparent),
-                        radial-gradient(ellipse at bottom, #4b830a, transparent);
+            background: radial-gradient(ellipse at top, hsla(69, 100%, 50%, 0.884), transparent), radial-gradient(ellipse at bottom, #4b830a, transparent);
             background-size: 100% var(--downloadPercent);
             background-repeat: no-repeat;
             background-position: 0 100%;

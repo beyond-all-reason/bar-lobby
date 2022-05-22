@@ -1,10 +1,11 @@
-import { Player, Bot, Spectator } from "@/model/battle/participants";
+import { clone, groupBy } from "jaz-ts-utils";
+import { computed, ComputedRef, reactive } from "vue";
+
+import { defaultMapBoxes } from "@/config/default-boxes";
+import { Bot, Player, Spectator } from "@/model/battle/participants";
 import { BattleOptions, StartBox, StartPosType } from "@/model/battle/types";
 import { setObject } from "@/utils/set-object";
-import { computed, ComputedRef, reactive } from "vue";
 import { TypedProxyHandler } from "@/utils/typed-proxy-handler";
-import { defaultMapBoxes } from "@/config/default-boxes";
-import { clone, groupBy } from "jaz-ts-utils";
 
 export interface BattleConfig {
     battleOptions: BattleOptions;

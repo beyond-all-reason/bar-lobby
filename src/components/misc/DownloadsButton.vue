@@ -5,9 +5,10 @@
 </template>
 
 <script lang="ts" setup>
+import { computed } from "vue";
+
 import Icon from "@/components/common/Icon.vue";
 import Button from "@/components/inputs/Button.vue";
-import { computed } from "vue";
 
 const downloadsModal = () => api.modals.open("downloads");
 
@@ -22,10 +23,8 @@ const downloadPercent = computed(() => {
         totalBytes += download.totalBytes;
     }
 
-    return (currentBytes / totalBytes) || 0;
+    return currentBytes / totalBytes || 0;
 });
 </script>
 
-<style lang="scss" scoped>
-
-</style>
+<style lang="scss" scoped></style>

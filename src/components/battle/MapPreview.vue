@@ -11,16 +11,16 @@
             </div>
             <div v-if="battle.battleOptions.startPosType === StartPosType.Boxes" class="map-preview__box-actions">
                 <Button @click="setBoxes(defaultBoxes().EastVsWest)">
-                    <img src="@/assets/images/icons/east-vs-west.png">
+                    <img src="@/assets/images/icons/east-vs-west.png" />
                 </Button>
                 <Button @click="setBoxes(defaultBoxes().NorthVsSouth)">
-                    <img src="@/assets/images/icons/north-vs-south.png">
+                    <img src="@/assets/images/icons/north-vs-south.png" />
                 </Button>
                 <Button @click="setBoxes(defaultBoxes().NortheastVsSouthwest)">
-                    <img src="@/assets/images/icons/northeast-vs-southwest.png">
+                    <img src="@/assets/images/icons/northeast-vs-southwest.png" />
                 </Button>
                 <Button @click="setBoxes(defaultBoxes().NorthwestVsSouthEast)">
-                    <img src="@/assets/images/icons/northwest-vs-southeast.png">
+                    <img src="@/assets/images/icons/northwest-vs-southeast.png" />
                 </Button>
             </div>
         </div>
@@ -28,18 +28,19 @@
 </template>
 
 <script lang="ts" setup>
+import { clone } from "jaz-ts-utils";
 import { onMounted, watch } from "vue";
+
+import Button from "@/components/inputs/Button.vue";
+import Option from "@/components/inputs/Option.vue";
+import Options from "@/components/inputs/Options.vue";
+import { defaultBoxes } from "@/config/default-boxes";
 import { StartBox, StartPosType } from "@/model/battle/types";
 import { MapData } from "@/model/map-data";
-import Button from "@/components/inputs/Button.vue";
-import { defaultBoxes } from "@/config/default-boxes";
-import Options from "@/components/inputs/Options.vue";
-import Option from "@/components/inputs/Option.vue";
-import { clone } from "jaz-ts-utils";
 
 const battle = api.session.currentBattle;
 
-type Transform = { x: number, y: number, width: number, height: number };
+type Transform = { x: number; y: number; width: number; height: number };
 
 let canvas: HTMLCanvasElement;
 let context: CanvasRenderingContext2D;
@@ -47,9 +48,9 @@ let textureMap: HTMLImageElement;
 let mapTransform: Transform;
 let mapData: MapData | undefined | null;
 
-const startPosOptions: Array<{ label: string, value: StartPosType }> = [
+const startPosOptions: Array<{ label: string; value: StartPosType }> = [
     { label: "Fixed", value: StartPosType.Fixed },
-    { label: "Boxes", value: StartPosType.Boxes }
+    { label: "Boxes", value: StartPosType.Boxes },
 ];
 
 onMounted(async () => {
@@ -61,9 +62,18 @@ onMounted(async () => {
 
     loadMap();
 
-    watch([() => battle.battleOptions.mapFileName, () => battle.battleOptions.startPosType, () => battle.battleOptions.startBoxes, () => battle.me], () => {
-        loadMap();
-    }, { deep: true });
+    watch(
+        [
+            () => battle.battleOptions.mapFileName,
+            () => battle.battleOptions.startPosType,
+            () => battle.battleOptions.startBoxes,
+            () => battle.me,
+        ],
+        () => {
+            loadMap();
+        },
+        { deep: true }
+    );
 });
 
 const setBoxes = (boxes: StartBox[]) => {
@@ -142,7 +152,7 @@ function drawBoxes() {
             x: mapTransform.x + mapTransform.width * box.xPercent,
             y: mapTransform.y + mapTransform.height * box.yPercent,
             width: mapTransform.width * box.widthPercent,
-            height: mapTransform.height * box.heightPercent
+            height: mapTransform.height * box.heightPercent,
         };
         boxTransform = roundTransform(boxTransform);
         context.fillRect(boxTransform.x, boxTransform.y, boxTransform.width, boxTransform.height);
@@ -150,7 +160,7 @@ function drawBoxes() {
 }
 
 function loadImage(url: string) {
-    return new Promise<HTMLImageElement>(resolve => {
+    return new Promise<HTMLImageElement>((resolve) => {
         const img = new Image();
         img.onload = () => resolve(img);
         img.src = `file://${url}`;
@@ -162,7 +172,7 @@ function roundTransform(transform: Transform) {
         x: Math.floor(transform.x),
         y: Math.floor(transform.y),
         width: Math.floor(transform.width),
-        height: Math.floor(transform.height)
+        height: Math.floor(transform.height),
     };
 }
 </script>

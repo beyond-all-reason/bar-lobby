@@ -32,11 +32,14 @@ export class AudioAPI {
             const builtPath = require(`@/assets/audio/${relativePath}`);
             const soundKey = parsedPath.name;
 
-            this.soundsToLoad.set(soundKey, [builtPath, relativePath]);
+            this.soundsToLoad.set(soundKey, [
+                builtPath,
+                relativePath,
+            ]);
         }
 
         watch(api.settings.model.sfxVolume, () => {
-            this.sounds.forEach(sound => {
+            this.sounds.forEach((sound) => {
                 if (!sound.isMusic) {
                     sound.volume(api.settings.model.sfxVolume.value / 100);
                 }
@@ -44,7 +47,7 @@ export class AudioAPI {
         });
 
         watch(api.settings.model.musicVolume, () => {
-            this.sounds.forEach(sound => {
+            this.sounds.forEach((sound) => {
                 if (sound.isMusic) {
                     sound.volume(api.settings.model.musicVolume.value / 100);
                 }
@@ -54,17 +57,17 @@ export class AudioAPI {
         return this;
     }
 
-    public getSounds() : Sound[] {
+    public getSounds(): Sound[] {
         return Array.from(this.sounds.values());
     }
 
-    public getSound(name: string) : Sound {
+    public getSound(name: string): Sound {
         const sound = this.setupSound(name);
         return sound;
     }
 
     public getPlayingSounds() {
-        return this.getSounds().filter(sound => sound.playing());
+        return this.getSounds().filter((sound) => sound.playing());
     }
 
     protected setupSound(soundKey: string) {
@@ -83,10 +86,10 @@ export class AudioAPI {
         if (isMusic) {
             const sound = new Sound(soundKey, true, {
                 src: this.soundsToLoad.get(soundKey),
-                volume: api.settings.model.musicVolume.value / 100
+                volume: api.settings.model.musicVolume.value / 100,
             });
             sound.on("play", () => {
-                this.sounds.forEach(_sound => {
+                this.sounds.forEach((_sound) => {
                     if (sound !== _sound && _sound.isMusic) {
                         _sound.stop();
                     }
@@ -96,7 +99,7 @@ export class AudioAPI {
         } else {
             const sound = new Sound(soundKey, false, {
                 src: this.soundsToLoad.get(soundKey),
-                volume: api.settings.model.sfxVolume.value / 100
+                volume: api.settings.model.sfxVolume.value / 100,
             });
             this.sounds.set(soundKey, sound);
         }

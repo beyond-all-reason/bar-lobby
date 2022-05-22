@@ -1,4 +1,6 @@
-<route lang="json">{ "meta": { "title": "Overview", "order": 0, "transition": { "name": "slide-left" } } }</route>
+<route lang="json">
+{ "meta": { "title": "Overview", "order": 0, "transition": { "name": "slide-left" } } }
+</route>
 
 <template>
     <div>
@@ -24,6 +26,4 @@ import Markdown from "vue3-markdown-it";
 const route = useRoute();
 </script>
 
-<style lang="scss" scoped>
-
-</style>
+<style lang="scss" scoped></style>

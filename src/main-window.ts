@@ -1,10 +1,11 @@
-import * as path from "path";
 import { BrowserWindow, screen, shell } from "electron";
-import { createProtocol } from "vue-cli-plugin-electron-builder/lib";
 import { autoUpdater } from "electron-updater";
-import type { SettingsType } from "@/model/settings";
-import type { StoreAPI } from "@/api/store";
+import * as path from "path";
 import { watch } from "vue";
+import { createProtocol } from "vue-cli-plugin-electron-builder/lib";
+
+import type { StoreAPI } from "@/api/store";
+import type { SettingsType } from "@/model/settings";
 
 declare const __static: string;
 
@@ -34,8 +35,8 @@ export class MainWindow {
                 nodeIntegrationInSubFrames: true,
                 nodeIntegrationInWorker: true,
                 webSecurity: false,
-                backgroundThrottling: false
-            }
+                backgroundThrottling: false,
+            },
         });
 
         this.window.once("ready-to-show", () => this.show());
@@ -50,7 +51,7 @@ export class MainWindow {
         });
 
         this.window.webContents.session.webRequest.onHeadersReceived((details, callback) => {
-            const obj = { responseHeaders: { ...details.responseHeaders, } };
+            const obj = { responseHeaders: { ...details.responseHeaders } };
             if (!obj.responseHeaders["Access-Control-Allow-Origin"] && !obj.responseHeaders["access-control-allow-origin"]) {
                 obj.responseHeaders["Access-Control-Allow-Origin"] = ["*"];
             }

@@ -1,7 +1,7 @@
 <template>
     <div class="intro fullsize">
         <video @loadstart="play" @ended="end" @click="end">
-            <source src="@/assets/videos/intro.mp4" type="video/mp4">
+            <source src="@/assets/videos/intro.mp4" type="video/mp4" />
         </video>
     </div>
 </template>

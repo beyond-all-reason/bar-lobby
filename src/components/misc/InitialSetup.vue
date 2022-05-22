@@ -2,20 +2,19 @@
     <div class="fullsize flex-center">
         <h1>Initial Setup</h1>
         <h4>{{ text }}</h4>
-        <h2 v-if="downloadPercent < 1">
-            {{ (downloadPercent * 100).toFixed(2) }}%
-        </h2>
+        <h2 v-if="downloadPercent < 1">{{ (downloadPercent * 100).toFixed(2) }}%</h2>
     </div>
 </template>
 
 <script lang="ts" setup>
-import { computed, onMounted, ref } from "vue";
-import * as path from "path";
 import { lastInArray } from "jaz-ts-utils";
+import * as path from "path";
+import { computed, onMounted, ref } from "vue";
+
 import { defaultMaps } from "@/config/default-maps";
 
 const emit = defineEmits<{
-    (event: "complete"): void
+    (event: "complete"): void;
 }>();
 
 const text = ref("");
@@ -63,10 +62,8 @@ const downloadPercent = computed(() => {
         totalBytes += download.totalBytes;
     }
 
-    return (currentBytes / totalBytes) || 0;
+    return currentBytes / totalBytes || 0;
 });
 </script>
 
-<style lang="scss" scoped>
-
-</style>
+<style lang="scss" scoped></style>

@@ -4,16 +4,15 @@
         <p>Provide your account's email address <b>or</b> username to request a password reset</p>
         <Textbox v-model="email" type="email" label="Email" :required="!Boolean(username)" class="fullwidth" />
         <Textbox v-model="username" label="Username" :required="!Boolean(email)" class="fullwidth" />
-        <Button type="submit" fullWidth>
-            Request Password Reset
-        </Button>
+        <Button type="submit" fullWidth> Request Password Reset </Button>
     </form>
 </template>
 
 <script lang="ts" setup>
 import { ref } from "vue";
-import Textbox from "@/components/inputs/Textbox.vue";
+
 import Button from "@/components/inputs/Button.vue";
+import Textbox from "@/components/inputs/Textbox.vue";
 
 const email = ref("");
 const username = ref("");
@@ -23,7 +22,4 @@ const requestPasswordReset = () => {
 };
 </script>
 
-<style lang="scss" scoped>
-
-</style>
-
+<style lang="scss" scoped></style>
