@@ -1,15 +1,14 @@
 @use "sass:color";
 
-@use "reset";
-@use "document";
-@use "text";
+@import "reset";
 
-@use "grid";
-@use "flex";
-@use "spacing";
+@import "variables";
+@import "utils";
 
-@use "control";
-
-@use "transitions";
-
-@use "popper";
+@import "document";
+@import "flex";
+@import "spacing";
+@import "text";
+@import "transitions";
+@import "control";
+@import "popper";

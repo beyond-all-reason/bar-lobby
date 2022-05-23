@@ -64,7 +64,6 @@ provide("toggleOption", (optionValue: unknown) => {
     overflow: hidden;
     background: rgba(255, 255, 255, 0.1);
     border: 1px solid rgba(255, 255, 255, 0.1);
-    flex-grow: 1;
     &.fullWidth {
         align-self: unset;
         >>> .option {

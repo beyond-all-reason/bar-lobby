@@ -24,13 +24,13 @@
                     fullWidth
                 />
                 <Button :flexGrow="false">
-                    <Icon :icon="cog" />
+                    <Icon :icon="cog" height="23" />
                 </Button>
             </div>
             <div class="flex-row gap-md">
                 <Select v-model="selectedGame" label="Game" :options="games" closeOnSelect clearOnSelect searchable :disabled="!battle.battleOptions.offline" fullWidth />
                 <Button :flexGrow="false" @click="openGameOptions">
-                    <Icon :icon="cog" />
+                    <Icon :icon="cog" height="23" />
                 </Button>
                 <LuaOptionsModal id="game-options" v-model="battle.battleOptions.gameOptions" :title="`Game Options - ${battle.battleOptions.gameVersion}`" :sections="gameOptions" height="700px" />
             </div>

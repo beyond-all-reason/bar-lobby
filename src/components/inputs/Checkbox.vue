@@ -3,7 +3,7 @@
         <input :id="uuid" v-model="checked" type="checkbox" @change="$emit('update:modelValue', checked)" />
         <label :for="uuid" :class="{ checked, hasLabel: Boolean(label) }" @mouseenter="sound">
             <div class="icon" :class="{ hasLabel: Boolean(label) }">
-                <Icon class="check" :icon="checkBold" />
+                <Icon class="check" :icon="checkBold" height="23" />
             </div>
             <div v-if="label" class="label">{{ label }}</div>
         </label>

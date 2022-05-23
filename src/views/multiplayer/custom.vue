@@ -7,14 +7,20 @@
         <h1>Multiplayer Custom Battles</h1>
 
         <div class="battle-list gap-md">
-            <Options v-model="layout" class="flex-right">
-                <Option :value="'tiles'">
-                    <Icon :icon="viewGrid" height="30" />
-                </Option>
-                <Option :value="'rows'">
-                    <Icon :icon="viewList" height="30" />
-                </Option>
-            </Options>
+            <div class="toolbar gap-md">
+                <Checkbox v-model="hidePvE" label="Hide PvE" />
+
+                <Checkbox v-model="hideLocked" label="Hide Locked" />
+
+                <Options v-model="layout" class="flex-right" required>
+                    <Option :value="'tiles'">
+                        <Icon :icon="viewGrid" height="30" />
+                    </Option>
+                    <Option :value="'rows'">
+                        <Icon :icon="viewList" height="30" />
+                    </Option>
+                </Options>
+            </div>
 
             <div :class="`battles ${layout}`">
                 <div v-if="layout === 'rows'" class="filters row">
@@ -26,7 +32,7 @@
                     <div>Players</div>
                     <div>Runtime</div>
                 </div>
-                <BattlePreview v-for="battle in battles" :key="battle.id" :battle="battle" :layout="layout === 'tiles' ? 'tile' : 'row'" />
+                <BattlePreview v-for="battle in filteredBattles" :key="battle.id" :battle="battle" :layout="layout === 'tiles' ? 'tile' : 'row'" />
             </div>
         </div>
     </div>
@@ -44,15 +50,29 @@
 import { Icon } from "@iconify/vue";
 import viewGrid from "@iconify-icons/mdi/view-grid";
 import viewList from "@iconify-icons/mdi/view-list";
-import { onMounted, Ref, ref } from "vue";
+import { computed, onMounted, Ref, ref } from "vue";
 
 import BattlePreview from "@/components/battle/BattlePreview.vue";
+import Checkbox from "@/components/inputs/Checkbox.vue";
 import Option from "@/components/inputs/Option.vue";
 import Options from "@/components/inputs/Options.vue";
 import { BattlePreviewType } from "@/model/battle/battle-preview";
 
 const battles = ref([] as BattlePreviewType[]);
 const layout: Ref<"tiles" | "rows"> = ref("tiles");
+const hidePvE = ref(false);
+const hideLocked = ref(false);
+const filteredBattles = computed(() =>
+    battles.value.filter((battle) => {
+        if (hidePvE.value && battle.botNames.length > 0) {
+            return false;
+        }
+        if (hideLocked.value && (battle.locked || battle.passworded)) {
+            return false;
+        }
+        return true;
+    })
+);
 
 onMounted(async () => {
     updateBattleList();
@@ -127,6 +147,9 @@ async function updateUsers(userIds: number[]) {
 <style lang="scss" scoped>
 .battle-list {
     width: 100%;
+}
+.toolbar {
+    flex-direction: row;
 }
 .filters {
     & > div {

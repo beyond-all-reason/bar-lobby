@@ -8,7 +8,7 @@
                             {{ title || name }}
                         </div>
                         <div class="modal__close" @click="close" @mouseenter="sound">
-                            <Icon :icon="closeThick" />
+                            <Icon :icon="closeThick" height="23" />
                         </div>
                     </template>
                     <slot />

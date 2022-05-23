@@ -119,15 +119,16 @@ const onPreloadDone = async () => {
         api.content.game.updateGame();
         api.content.maps.downloadMaps(defaultMaps);
 
-        state.value = "default";
-
         playRandomMusic();
+
+        state.value = "default";
     }
 };
 
 const onInitialSetupDone = () => {
-    state.value = "default";
     playRandomMusic();
+
+    state.value = "default";
 };
 
 router.replace("/");
@@ -144,17 +145,8 @@ const rightClick = () => api.session.onRightClick.dispatch();
     flex-direction: column;
     flex-grow: 1;
     gap: 10px;
-    & > .panel {
-        & > .content {
-            padding: 20px;
-        }
-    }
-    h1 {
-        position: relative;
-        text-transform: uppercase;
-        font-weight: 500;
-        text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
-        letter-spacing: -2px;
+    &:deep(.panel > .content) {
+        overflow-y: scroll;
     }
 }
 </style>

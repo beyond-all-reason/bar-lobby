@@ -110,6 +110,10 @@ export class Application {
 
             return info;
         });
+
+        ipcMain.handle("highlightTaskbarIcon", (event, shouldHighlight: boolean) => {
+            this.mainWindow?.window.flashFrame(shouldHighlight);
+        });
     }
 }
 

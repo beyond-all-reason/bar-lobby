@@ -1,20 +1,20 @@
 <template>
     <component :is="is" class="panel" :class="{ hidden, tabbed: Boolean(tabs.length), paginatedTabs, light, scrollContent }">
-        <div v-if="slots.header || tabs.length" class="panel__header" :class="{ panel__tabs: Boolean(tabs.length) }">
+        <div v-if="slots.header || tabs.length" class="header" :class="{ tabs: Boolean(tabs.length) }">
             <template v-if="tabs.length">
                 <template v-if="paginatedTabs">
-                    <Button class="panel__prev-tab" @click="prevTab">
+                    <Button class="prev-tab" @click="prevTab">
                         <Icon :icon="chevronLeft" />
                     </Button>
-                    <Button class="panel__single-tab" :tooltip="activeTab.props?.tooltip">
+                    <Button class="single-tab" :tooltip="activeTab.props?.tooltip">
                         {{ activeTab.props?.title }}
                     </Button>
-                    <Button class="panel__next-tab" @click="nextTab">
+                    <Button class="next-tab" @click="nextTab">
                         <Icon :icon="chevronRight" />
                     </Button>
                 </template>
                 <template v-else>
-                    <Button v-for="(tab, i) in tabs" :key="i" :class="{ active: i === currentTab }" class="panel__tab-btn" :tooltip="tab.props?.tooltip" @click="tabClicked(i)">
+                    <Button v-for="(tab, i) in tabs" :key="i" :class="{ active: i === currentTab }" class="tab-btn" :tooltip="tab.props?.tooltip" @click="tabClicked(i)">
                         {{ tab.props?.title }}
                     </Button>
                 </template>
@@ -23,7 +23,7 @@
             <slot v-else name="header" />
         </div>
 
-        <div class="panel__content" :style="`--padding: ${padding}; --width: ${width}; --height: ${height}`">
+        <div class="content" :style="`--padding: ${padding}; --width: ${width}; --height: ${height}`">
             <slot v-if="tabs.length === 0" />
             <template v-for="(tab, i) in tabs" v-else :key="i">
                 <component :is="tab" v-if="i === currentTab" />
@@ -138,7 +138,7 @@ const nextTab = () => {
         opacity: 0;
         transform: translateY(-20px);
     }
-    &__content {
+    .content {
         position: relative;
         display: flex;
         flex-direction: column;
@@ -148,21 +148,21 @@ const nextTab = () => {
         padding: var(--padding);
         overflow-y: auto;
     }
-    &.scrollContent .panel__content {
+    &.scrollContent .content {
         flex-basis: 0;
         overflow-y: scroll;
     }
-    &__header {
+    .header {
         justify-content: space-between;
         width: 100%;
         box-shadow: 0px 2px 2px 0px rgba(0, 0, 0, 0.3);
         z-index: 1;
     }
-    :deep(.panel__header.panel__tabs) {
+    :deep(.header.tabs) {
         z-index: 0;
     }
-    &__tabs,
-    &__header {
+    .tabs,
+    .header {
         position: relative;
         width: 100%;
         display: flex;
@@ -183,7 +183,7 @@ const nextTab = () => {
             }
         }
     }
-    &__tabs {
+    .tabs {
         display: flex;
         flex-wrap: wrap;
         & > * {
@@ -195,7 +195,7 @@ const nextTab = () => {
         }
     }
     &.paginatedTabs {
-        .panel__single-tab {
+        .single-tab {
             width: 100%;
             pointer-events: none;
         }
@@ -209,7 +209,7 @@ const nextTab = () => {
         border-right: 1px solid rgba(255, 255, 255, 0.2);
         border-bottom: 1px solid rgba(255, 255, 255, 0.2);
         backdrop-filter: none;
-        .panel__tabs {
+        .tabs {
             background: rgba(255, 255, 255, 0.1);
             border-bottom: 1px solid rgba(255, 255, 255, 0.2);
         }
@@ -227,9 +227,5 @@ const nextTab = () => {
     opacity: 0.3;
     mix-blend-mode: overlay;
     z-index: -1;
-}
-
-.view > .panel {
-    transition: transform 0.3s, opacity 0.3s;
 }
 </style>

@@ -27,6 +27,7 @@ interface API {
     account: StoreAPI<Account>;
     content: ContentAPI;
     game: GameAPI;
+    utils: typeof utils;
 }
 
 declare global {
@@ -41,6 +42,8 @@ export async function apiInit() {
     window.api = {} as any;
 
     api.info = await ipcRenderer.invoke("getInfo");
+
+    api.utils = utils;
 
     api.settings = await new StoreAPI<SettingsType>("settings", settingsSchema, true).init();
 
@@ -86,20 +89,8 @@ export async function apiInit() {
     api.game = new GameAPI(userDataDir, dataDir);
 
     api.content = await new ContentAPI(userDataDir, dataDir).init();
-    // reactive(createDeepProxy(new Battle(defaultBattle()), (breadcrumb) => {
-    //     const currentBattle = this.currentBattle;
-
-    //     return {
-    //         set(target, prop, value) {
-    //             if (currentBattle.battleOptions.offline) {
-    //                 target[prop as keyof typeof target] = value;
-    //             } else {
-    //                 // TODO: if set from server data then immediately apply
-    //                 // TODO: if set from client then send server request for it
-    //                 console.warn("can't set battle property directly");
-    //             }
-    //             return true;
-    //         }
-    //     };
-    // }, "battle"));
 }
+
+const utils = {
+    highlightTaskbarIcon: (flash = true) => ipcRenderer.invoke("highlightTaskbarIcon", flash),
+} as const;
