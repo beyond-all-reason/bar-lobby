@@ -136,8 +136,27 @@ const runtime = computed(() => {
     return `${hours}:${minutes}:${seconds}`;
 });
 
-const joinBattle = () => {
-    console.log(props.battle.id);
+const joinBattle = async () => {
+    try {
+        console.log(props.battle.id);
+
+        let passwordInput: string | undefined;
+        if (props.battle.passworded) {
+            const promptData = await api.modals.prompt("battle-password");
+            passwordInput = promptData.password as string | undefined;
+        }
+
+        console.log(passwordInput);
+    } catch (err) {
+        if (err !== "cancel") {
+            throw err;
+        }
+    }
+
+    // await api.client.request("c.lobby.join", {
+    //     lobby_id: props.battle.id,
+    //     password: passwordInput,
+    // });
 };
 </script>
 

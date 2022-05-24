@@ -27,7 +27,7 @@ export default {
 <script lang="ts" setup>
 import { Icon } from "@iconify/vue";
 import closeThick from "@iconify-icons/mdi/close-thick";
-import { ref } from "vue";
+import { watch } from "vue";
 
 import Panel from "@/components/common/Panel.vue";
 
@@ -46,11 +46,22 @@ const props = withDefaults(defineProps<ModalProps>(), {
     activeTab: 0,
 });
 
+const emit = defineEmits<{
+    (event: "open"): void;
+    (event: "close"): void;
+}>();
+
 const isOpen = api.modals.register(props.name);
-const titleStr = ref(props.title || props.name);
+
+watch(isOpen, (isOpen) => {
+    if (isOpen) {
+        emit("open");
+    }
+});
 
 const close = () => {
     api.modals.close(props.name);
+    emit("close");
 };
 
 const sound = () => api.audio.getSound("button-hover").play();
@@ -62,11 +73,12 @@ const sound = () => api.audio.getSound("button-hover").play();
     z-index: 10;
     justify-content: center;
     align-items: center;
-    background-color: rgba(0, 0, 0, 0.1);
+    background-color: rgba(0, 0, 0, 0.3);
     backdrop-filter: blur(5px);
 }
 .modal {
     flex-grow: 0;
+    background: rgba(0, 0, 0, 0.5);
     :deep(.panel.tabbed),
     :deep(.panel.tabbed:after) {
         background: none;
