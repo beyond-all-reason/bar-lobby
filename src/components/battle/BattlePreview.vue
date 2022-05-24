@@ -138,25 +138,23 @@ const runtime = computed(() => {
 
 const joinBattle = async () => {
     try {
-        console.log(props.battle.id);
-
         let passwordInput: string | undefined;
         if (props.battle.passworded) {
             const promptData = await api.modals.prompt("battle-password");
             passwordInput = promptData.password as string | undefined;
         }
 
-        console.log(passwordInput);
+        await api.comms.request("c.lobby.join", {
+            lobby_id: props.battle.id,
+            password: passwordInput,
+        });
+
+        // actual joining is handled in comms api
     } catch (err) {
         if (err !== "cancel") {
             throw err;
         }
     }
-
-    // await api.client.request("c.lobby.join", {
-    //     lobby_id: props.battle.id,
-    //     password: passwordInput,
-    // });
 };
 </script>
 

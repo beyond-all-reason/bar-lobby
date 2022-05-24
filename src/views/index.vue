@@ -16,10 +16,10 @@ const router = useRouter();
 
 onMounted(async () => {
     try {
-        await api.client.connect();
+        await api.comms.connect();
 
         if (api.account.model.token.value && api.settings.model.loginAutomatically.value) {
-            const loginResponse = await api.client.request("c.auth.login", {
+            const loginResponse = await api.comms.request("c.auth.login", {
                 token: api.account.model.token.value,
                 lobby_name: api.info.lobby.name,
                 lobby_version: api.info.lobby.version,

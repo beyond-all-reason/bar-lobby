@@ -43,7 +43,7 @@ const activeTab = ref(0);
 
 onMounted(async () => {
     // TODO: fallback to offline mode if connect fails
-    await api.client.connect();
+    await api.comms.connect();
 });
 </script>
 

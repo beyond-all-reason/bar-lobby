@@ -33,10 +33,10 @@ messages[6] = { type: "chat", usedId: 223, text: "Testdssdad asd asdasd ad ad ad
 
 const sendMessage = (message: string) => {
     console.log(message);
-    //api.client.request("c.lobby.say", {  })
+    //api.comms.request("c.lobby.say", {  })
 };
 
-const onMessage = api.client.onResponse("s.lobby.say").add((data) => {
+const onMessage = api.comms.onResponse("s.lobby.say").add((data) => {
     console.log("message", data);
 });
 

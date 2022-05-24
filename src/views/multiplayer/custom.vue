@@ -88,7 +88,7 @@ onMounted(async () => {
 });
 
 async function updateBattleList() {
-    const { lobbies } = await api.client.request("c.lobby.query", { query: {} });
+    const { lobbies } = await api.comms.request("c.lobby.query", { query: {} });
 
     const userIds: number[] = [];
     for (const battle of lobbies) {
@@ -124,7 +124,7 @@ async function updateBattleList() {
 }
 
 async function updateUsers(userIds: number[]) {
-    const { clients, users } = await api.client.request("c.user.list_users_from_ids", { id_list: userIds, include_clients: true });
+    const { clients, users } = await api.comms.request("c.user.list_users_from_ids", { id_list: userIds, include_clients: true });
 
     for (const user of users) {
         api.session.setUser({
