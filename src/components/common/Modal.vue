@@ -79,6 +79,7 @@ const sound = () => api.audio.getSound("button-hover").play();
 .modal {
     flex-grow: 0;
     background: rgba(0, 0, 0, 0.5);
+    max-width: 800px;
     :deep(.panel.tabbed),
     :deep(.panel.tabbed:after) {
         background: none;

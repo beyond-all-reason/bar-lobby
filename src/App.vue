@@ -8,6 +8,7 @@
             <Preloader v-else-if="state === 'preloader'" @complete="onPreloadDone" />
             <InitialSetup v-else-if="state === 'initial-setup'" @complete="onInitialSetupDone" />
             <div v-else class="fullsize">
+                <Error />
                 <NavBar :class="{ hidden: empty }" />
                 <div :class="`view view--${routeKey}`">
                     <Panel :class="{ hidden: empty }">
@@ -40,6 +41,7 @@ import StatusInfo from "@/components/battle/StatusInfo.vue";
 import Panel from "@/components/common/Panel.vue";
 import Background from "@/components/misc/Background.vue";
 import DebugSidebar from "@/components/misc/DebugSidebar.vue";
+import Error from "@/components/misc/Error.vue";
 import InitialSetup from "@/components/misc/InitialSetup.vue";
 import IntroVideo from "@/components/misc/IntroVideo.vue";
 import NavBar from "@/components/misc/NavBar.vue";
@@ -145,8 +147,5 @@ const rightClick = () => api.session.onRightClick.dispatch();
     flex-direction: column;
     flex-grow: 1;
     gap: 10px;
-    &:deep(.panel > .content) {
-        overflow-y: scroll;
-    }
 }
 </style>
