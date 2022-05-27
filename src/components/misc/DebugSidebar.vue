@@ -1,6 +1,6 @@
 <template>
     <div class="debug-sidebar" :class="{ active }">
-        <div class="debug-sidebar__toggle">
+        <div class="toggle">
             <Button @click="active = !active">
                 <Icon :icon="tools" :height="20" />
             </Button>
@@ -83,11 +83,11 @@ scope.run(() => {
         transform: translateX(0);
         box-shadow: -5px 0 5px rgba(0, 0, 0, 0.5);
     }
-    &__toggle {
+    .toggle {
         position: absolute;
         bottom: 0;
         left: 0;
-        button {
+        :deep(button) {
             transform: translateX(-100%);
             background: #111;
             border: 1px solid #222;
