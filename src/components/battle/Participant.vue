@@ -10,10 +10,11 @@
         <LuaOptionsModal
             v-if="participant.type === 'bot'"
             :id="`configure-bot-${participant.name}`"
-            :modelValue="participant.aiOptions"
+            v-model="aiOptionsOpen"
+            v-model:luaOptions="participant.aiOptions"
             title="Configure Bot"
             :sections="aiOptions"
-            @update:model-value="aiOptionsUpdated"
+            @update:lua-options="aiOptionsUpdated"
         />
     </ContextMenu>
 </template>
@@ -22,7 +23,7 @@
 import { Icon } from "@iconify/vue";
 import account from "@iconify-icons/mdi/account";
 import robot from "@iconify-icons/mdi/robot";
-import { computed, onUnmounted, Ref, ref, toRef } from "vue";
+import { computed, Ref, ref, toRef } from "vue";
 
 import LuaOptionsModal from "@/components/battle/LuaOptionsModal.vue";
 import ContextMenu, { ContextMenuEntry } from "@/components/common/ContextMenu.vue";
@@ -56,6 +57,7 @@ const name = computed(() => {
 
 const countryCode = ref("");
 const aiOptions: Ref<LuaOptionSection[]> = ref([]);
+const aiOptionsOpen = ref(false);
 
 const viewProfile = (player: Player) => {
     //
@@ -86,9 +88,14 @@ const kickAi = (bot: Bot) => {
 };
 
 const configureAi = async (bot: Bot) => {
-    const ai = await api.content.ai.getAi(battle.battleOptions.engineVersion, bot.aiShortName);
-    aiOptions.value = ai.options;
-    api.modals.open(`configure-bot-${bot.name}`);
+    await api.content.ai.processAis(battle.battleOptions.engineVersion);
+
+    if (aiOptions.value.length === 0) {
+        const ai = api.content.ai.getAis(battle.battleOptions.engineVersion)!.find((ai) => ai.shortName === bot.aiShortName)!;
+        aiOptions.value = ai.options;
+    }
+
+    aiOptionsOpen.value = true;
 };
 
 const aiOptionsUpdated = (options: Record<string, unknown>) => {
@@ -106,9 +113,7 @@ const playerActions: ContextMenuEntry[] = [
     { label: "Report", action: reportPlayer },
 ];
 
-const selfActions: ContextMenuEntry[] = [
-    { label: "View Profile", action: viewProfile },
-];
+const selfActions: ContextMenuEntry[] = [{ label: "View Profile", action: viewProfile }];
 
 const botActions: ContextMenuEntry[] = [
     { label: "Kick", action: kickAi },
@@ -126,12 +131,6 @@ const getActions = (participant: Player | Bot | Spectator) => {
         }
     }
 };
-
-onUnmounted(() => {
-    if (props.participant.type === "bot") {
-        api.modals.unregister(`configure-bot-${props.participant.name}`);
-    }
-});
 </script>
 
 <style lang="scss" scoped>

@@ -8,7 +8,6 @@ import { AudioAPI } from "@/api/audio";
 import { CommsAPI } from "@/api/comms";
 import { ContentAPI } from "@/api/content/content";
 import { GameAPI } from "@/api/game";
-import { ModalsAPI } from "@/api/modals";
 import { SessionAPI } from "@/api/session";
 import { StoreAPI } from "@/api/store";
 import { serverConfig } from "@/config/server";
@@ -24,7 +23,6 @@ interface API {
     settings: StoreAPI<SettingsType>;
     comms: TachyonClient;
     audio: AudioAPI;
-    modals: ModalsAPI;
     account: StoreAPI<Account>;
     content: ContentAPI;
     game: GameAPI;
@@ -68,8 +66,6 @@ export async function apiInit() {
     api.comms = new CommsAPI(serverConfig);
 
     api.audio = new AudioAPI().init();
-
-    api.modals = new ModalsAPI();
 
     api.account = await new StoreAPI<Account>("account", accountSchema).init();
 

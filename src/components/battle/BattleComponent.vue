@@ -32,7 +32,14 @@
                 <Button :flexGrow="false" @click="openGameOptions">
                     <Icon :icon="cog" height="23" />
                 </Button>
-                <LuaOptionsModal id="game-options" v-model="battle.battleOptions.gameOptions" :title="`Game Options - ${battle.battleOptions.gameVersion}`" :sections="gameOptions" height="700px" />
+                <LuaOptionsModal
+                    id="game-options"
+                    v-model="gameOptionsOpen"
+                    v-model:luaOptions="battle.battleOptions.gameOptions"
+                    :title="`Game Options - ${battle.battleOptions.gameVersion}`"
+                    :sections="gameOptions"
+                    height="700px"
+                />
             </div>
             <Select v-model="selectedEngine" label="Engine" :options="engines" closeOnSelect clearOnSelect searchable :disabled="!battle.battleOptions.offline" fullWidth />
             <div class="flex-row flex-bottom gap-md">
@@ -57,19 +64,20 @@ import Button from "@/components/inputs/Button.vue";
 import Select from "@/components/inputs/Select.vue";
 import { LuaOptionSection } from "@/model/lua-options";
 
-const battleTitle = ref("Offline Custom Battle");
-
 const battle = api.session.currentBattle;
+
+const battleTitle = ref("Offline Custom Battle");
 
 const installedMaps = computed(() => Object.values(api.content.maps.installedMaps));
 
 const games = computed(() => api.content.game.installedVersions.map((rapidVersion) => rapidVersion.version.fullString).slice(-10));
 const selectedGame = ref(lastInArray(games.value)!);
 
+const gameOptionsOpen = ref(false);
 const gameOptions: Ref<LuaOptionSection[]> = ref([]);
 const openGameOptions = async () => {
     gameOptions.value = await api.content.game.getGameOptions(battle.battleOptions.gameVersion);
-    api.modals.open("game-options");
+    gameOptionsOpen.value = true;
 };
 
 const engines = computed(() => api.content.engine.installedVersions);
@@ -78,7 +86,6 @@ const selectedEngine = ref(lastInArray(engines.value));
 const leave = () => {
     // TODO
 };
-
 const start = async () => {
     api.game.launch(battle);
 };

@@ -1,5 +1,5 @@
 <template>
-    <Modal name="exit">
+    <Modal title="Exit">
         <div class="flex-row gap-md">
             <Button @click="logout"> Logout </Button>
             <Button @click="quitToDesktop"> Quit to Desktop </Button>
@@ -22,12 +22,10 @@ const logout = async () => {
     } catch (err) {
         console.error(err);
     }
-    api.modals.close("exit");
     router.push("/login");
 };
 
 const quitToDesktop = async () => {
-    api.modals.close("exit");
     window.close();
 };
 </script>

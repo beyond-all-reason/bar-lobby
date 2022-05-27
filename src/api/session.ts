@@ -1,5 +1,5 @@
 import { objectKeys, Signal } from "jaz-ts-utils";
-import { reactive, Ref, ref } from "vue";
+import { ComponentPublicInstance, reactive, Ref, ref } from "vue";
 
 import { Battle } from "@/model/battle/battle";
 import { BattleOptions } from "@/model/battle/types";
@@ -13,6 +13,7 @@ export class SessionAPI {
     public readonly battles: Map<number, Battle>;
     public readonly onRightClick: Signal; // TODO: refactor somewhere better
     public readonly onLeftClick: Signal; // TODO: refactor somewhere better
+    public error: { err?: unknown; instance?: ComponentPublicInstance | null; info?: string } = reactive({});
 
     constructor() {
         this.offlineMode = ref(true);

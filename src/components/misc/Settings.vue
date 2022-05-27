@@ -1,5 +1,5 @@
 <template>
-    <Modal name="settings">
+    <Modal title="settings">
         <div class="gridform">
             <div>Fullscreen</div>
             <Checkbox v-model="fullscreen" />

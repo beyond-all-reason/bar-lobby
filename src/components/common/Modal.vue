@@ -1,11 +1,11 @@
 <template>
     <teleport to="#wrapper">
         <transition name="modal" appear>
-            <div v-if="isOpen" class="modal-container">
+            <form v-if="open" class="modal-container" @submit.prevent="onSubmit">
                 <Panel id="modal" class="modal" v-bind="$attrs">
                     <template #header>
                         <div class="modal__title">
-                            {{ title || name }}
+                            {{ title }}
                         </div>
                         <div class="modal__close" @click="close" @mouseenter="sound">
                             <Icon :icon="closeThick" height="23" />
@@ -13,7 +13,7 @@
                     </template>
                     <slot />
                 </Panel>
-            </div>
+            </form>
         </transition>
     </teleport>
 </template>
@@ -27,17 +27,18 @@ export default {
 <script lang="ts" setup>
 import { Icon } from "@iconify/vue";
 import closeThick from "@iconify-icons/mdi/close-thick";
-import { watch } from "vue";
+import { toRef, watch } from "vue";
 
 import Panel from "@/components/common/Panel.vue";
 
 type PanelProps = InstanceType<typeof Panel>["$props"];
 interface ModalProps extends PanelProps {
-    name: string;
+    modelValue: boolean;
     title?: string;
 }
 
 const props = withDefaults(defineProps<ModalProps>(), {
+    modelValue: false,
     title: undefined,
     is: "div",
     width: "initial",
@@ -46,22 +47,37 @@ const props = withDefaults(defineProps<ModalProps>(), {
     activeTab: 0,
 });
 
-const emit = defineEmits<{
+const open = toRef(props, "modelValue");
+
+const emits = defineEmits<{
+    (event: "update:modelValue", open: boolean): void;
+    (event: "submit", data: Record<string, unknown>): void;
     (event: "open"): void;
     (event: "close"): void;
 }>();
 
-const isOpen = api.modals.register(props.name);
+const close = () => {
+    emits("update:modelValue", false);
+};
 
-watch(isOpen, (isOpen) => {
-    if (isOpen) {
-        emit("open");
+watch(open, (open) => {
+    if (open) {
+        emits("open");
+    } else {
+        emits("close");
     }
 });
 
-const close = () => {
-    api.modals.close(props.name);
-    emit("close");
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const onSubmit = (event: any) => {
+    const data: Record<string, unknown> = {};
+    const fields = Array.from(event.target.elements) as any;
+    for (const field of fields) {
+        if (field.name !== undefined && field.value !== undefined) {
+            data[field.name] = field.value;
+        }
+    }
+    emits("submit", data);
 };
 
 const sound = () => api.audio.getSound("button-hover").play();

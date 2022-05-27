@@ -85,6 +85,8 @@ export class EngineContentAPI extends AbstractContentAPI {
 
         removeFromArray(this.currentDownloads, downloadInfo);
 
+        await api.content.ai.processAis(engineVersionString);
+
         return engineVersionString;
     }
 

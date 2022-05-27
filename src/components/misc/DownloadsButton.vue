@@ -1,5 +1,5 @@
 <template>
-    <Button class="icon downloads-button" :style="`--downloadPercent: ${downloadPercent * 100}%`" @click="downloadsModal">
+    <Button class="icon downloads-button" :style="`--downloadPercent: ${downloadPercent * 100}%`">
         <Icon :icon="download" :height="40" />
     </Button>
 </template>
@@ -10,8 +10,6 @@ import download from "@iconify-icons/mdi/download";
 import { computed } from "vue";
 
 import Button from "@/components/inputs/Button.vue";
-
-const downloadsModal = () => api.modals.open("downloads");
 
 const downloadPercent = computed(() => {
     const downloads = api.content.engine.currentDownloads.concat(api.content.game.currentDownloads, api.content.maps.currentDownloads);

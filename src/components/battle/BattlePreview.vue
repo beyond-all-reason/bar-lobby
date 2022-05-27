@@ -98,6 +98,14 @@
                 {{ runtime }}
             </div>
         </template>
+
+        <Modal v-model="passwordPromptOpen" title="Battle Password" @submit="passwordEntered">
+            <div class="gap-md">
+                <p>Please enter the password for this battle</p>
+                <!-- <Textbox name="password"></Textbox> -->
+                <input type="password" name="password" />
+            </div>
+        </Modal>
     </div>
 </template>
 
@@ -107,8 +115,9 @@ import eyeOutline from "@iconify-icons/mdi/eye-outline";
 import lock from "@iconify-icons/mdi/lock";
 import robot from "@iconify-icons/mdi/robot";
 import { useNow } from "@vueuse/core";
-import { computed } from "vue";
+import { computed, Ref, ref } from "vue";
 
+import Modal from "@/components/common/Modal.vue";
 import Flag from "@/components/misc/Flag.vue";
 import type { BattlePreviewType } from "@/model/battle/battle-preview";
 
@@ -138,15 +147,14 @@ const runtime = computed(() => {
 
 const joinBattle = async () => {
     try {
-        let passwordInput: string | undefined;
+        let password: string | undefined;
         if (props.battle.passworded) {
-            const promptData = await api.modals.prompt("battle-password");
-            passwordInput = promptData.password as string | undefined;
+            password = await passwordPrompt();
         }
 
         await api.comms.request("c.lobby.join", {
             lobby_id: props.battle.id,
-            password: passwordInput,
+            password,
         });
 
         // actual joining is handled in comms api
@@ -155,6 +163,25 @@ const joinBattle = async () => {
             throw err;
         }
     }
+};
+
+const passwordPromptOpen = ref(false);
+const passwordEntered: Ref<(data: Record<string, unknown>) => void> = ref((data) => {
+    return;
+});
+const passwordPrompt = () => {
+    return new Promise<string | undefined>((resolve) => {
+        passwordPromptOpen.value = true;
+
+        passwordEntered.value = (data) => {
+            passwordPromptOpen.value = false;
+            if (data.password) {
+                resolve(data.password as string);
+            } else {
+                resolve(undefined);
+            }
+        };
+    });
 };
 </script>
 

@@ -1,5 +1,5 @@
 <template>
-    <Modal name="downloads" width="500px" height="500px">
+    <Modal title="Downloads" width="500px" height="500px">
         <div v-if="downloads.length" class="downloads">
             <div v-for="(download, i) in downloads" :key="i" class="downloads__download">
                 <div class="downloads__info">

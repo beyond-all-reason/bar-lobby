@@ -34,14 +34,6 @@
                 </div>
                 <BattlePreview v-for="battle in filteredBattles" :key="battle.id" :battle="battle" :layout="layout === 'tiles' ? 'tile' : 'row'" />
             </div>
-
-            <Prompt name="battle-password" title="Battle Password">
-                <div class="gap-md">
-                    <p>Please enter the password for this battle</p>
-                    <!-- <Textbox name="password"></Textbox> -->
-                    <input type="password" name="password" />
-                </div>
-            </Prompt>
         </div>
     </div>
 </template>
@@ -61,7 +53,6 @@ import viewList from "@iconify-icons/mdi/view-list";
 import { computed, onMounted, Ref, ref } from "vue";
 
 import BattlePreview from "@/components/battle/BattlePreview.vue";
-import Prompt from "@/components/common/Prompt.vue";
 import Checkbox from "@/components/inputs/Checkbox.vue";
 import Option from "@/components/inputs/Option.vue";
 import Options from "@/components/inputs/Options.vue";

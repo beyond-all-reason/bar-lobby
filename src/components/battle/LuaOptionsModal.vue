@@ -1,5 +1,5 @@
 <template>
-    <Modal :name="id" :title="title" width="700px" height="400px" padding="0">
+    <Modal :title="title" width="700px" height="400px" padding="0">
         <Panel scrollContent>
             <Tab v-for="section of sections.filter((section) => !section.hidden)" :key="section.key" :title="section.name" :tooltip="section.description">
                 <div class="gap-md">
@@ -52,16 +52,16 @@ import { LuaOptionBoolean, LuaOptionList, LuaOptionNumber, LuaOptionSection, Lua
 
 const props = defineProps<{
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    modelValue: Record<string, any>;
+    luaOptions: Record<string, any>;
     id: string;
     title: string;
     sections: LuaOptionSection[];
 }>();
 
-const optionsObj = toRef(props, "modelValue");
+const optionsObj = toRef(props, "luaOptions");
 
 const emits = defineEmits<{
-    (event: "update:modelValue", config: Record<string, unknown>): void;
+    (event: "update:luaOptions", config: Record<string, unknown>): void;
 }>();
 
 const setOptionValue = (option: LuaOptionNumber | LuaOptionBoolean | LuaOptionString | LuaOptionList, value: unknown) => {
@@ -70,7 +70,8 @@ const setOptionValue = (option: LuaOptionNumber | LuaOptionBoolean | LuaOptionSt
     } else {
         optionsObj.value[option.key] = value;
     }
-    emits("update:modelValue", optionsObj.value);
+    console.log(optionsObj.value);
+    emits("update:luaOptions", optionsObj.value);
 };
 </script>
 

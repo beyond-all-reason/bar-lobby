@@ -2,7 +2,7 @@ import "vue-next-select/dist/index.css";
 import "vue-slider-component/theme/default.css";
 import "@/assets/styles/styles.scss";
 
-import type { TransitionProps } from "vue";
+import type { ComponentPublicInstance, TransitionProps } from "vue";
 import { createApp } from "vue";
 import { createRouter, createWebHashHistory } from "vue-router";
 
@@ -47,6 +47,12 @@ async function setupVue() {
     app.directive("click-away", clickAwayDirective);
 
     app.mount("#app");
+
+    app.config.errorHandler = (err: unknown, instance: ComponentPublicInstance | null, info: string) => {
+        api.session.error.err = err;
+        api.session.error.instance = instance;
+        api.session.error.info = info;
+    };
 
     if (process.env.NODE_ENV !== "production") {
         app.config.globalProperties.window = window;

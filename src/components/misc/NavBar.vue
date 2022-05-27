@@ -16,11 +16,11 @@
                     <Button class="icon" to="/profile" tooltip="Profile">
                         <Icon :icon="account" :height="40" />
                     </Button>
-                    <DownloadsButton tooltip="Downloads" />
-                    <Button class="icon" tooltip="Settings" @click="settingsModal">
+                    <DownloadsButton tooltip="Downloads" @click="downloadsOpen = true" />
+                    <Button class="icon" tooltip="Settings" @click="settingsOpen = true">
                         <Icon :icon="cog" :height="40" />
                     </Button>
-                    <Button class="icon close" tooltip="Exit" @click="exitModal">
+                    <Button class="icon close" tooltip="Exit" @click="exitOpen = true">
                         <Icon :icon="closeThick" :height="40" />
                     </Button>
                 </div>
@@ -39,9 +39,9 @@
                 </div>
             </div>
         </div>
-        <Downloads />
-        <Settings />
-        <Exit />
+        <Downloads v-model="downloadsOpen" />
+        <Settings v-model="settingsOpen" />
+        <Exit v-model="exitOpen" />
     </div>
 </template>
 
@@ -50,7 +50,7 @@ import { Icon } from "@iconify/vue";
 import account from "@iconify-icons/mdi/account";
 import closeThick from "@iconify-icons/mdi/close-thick";
 import cog from "@iconify-icons/mdi/cog";
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 
 import Button from "@/components/inputs/Button.vue";
@@ -60,13 +60,13 @@ import Exit from "@/components/misc/Exit.vue";
 import ServerInfo from "@/components/misc/ServerInfo.vue";
 import Settings from "@/components/misc/Settings.vue";
 
-const router = useRouter();
-const route = useRoute();
-const allRoutes = router.getRoutes();
-
 const props = defineProps<{
     hidden?: boolean;
 }>();
+
+const router = useRouter();
+const route = useRoute();
+const allRoutes = router.getRoutes();
 
 const primaryRoutes = allRoutes
     .filter((r) =>
@@ -85,8 +85,9 @@ const secondaryRoutes = computed(() => {
     return allRoutes.filter((r) => r.meta.order !== undefined && r.path.startsWith(`/${route.path.split("/")[1]}/`)).sort((a, b) => (a.meta.order ?? 99) - (b.meta.order ?? 99));
 });
 
-const settingsModal = () => api.modals.open("settings");
-const exitModal = () => api.modals.open("exit");
+const downloadsOpen = ref(false);
+const settingsOpen = ref(false);
+const exitOpen = ref(false);
 
 const lobbyVersion = `${api.info.lobby.name} v${api.info.lobby.version}`;
 </script>

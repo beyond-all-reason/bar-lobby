@@ -1,5 +1,6 @@
 import * as fs from "fs";
 import * as glob from "glob-promise";
+import { clone } from "jaz-ts-utils";
 import * as path from "path";
 import { reactive } from "vue";
 
@@ -12,6 +13,7 @@ import { parseLuaTable } from "@/utils/parse-lua-table";
 export class AiContentAPI extends AbstractContentAPI {
     protected readonly installedAis: Record<EngineVersionFormat, AI[]> = reactive({});
 
+    // TODO: cache AIs and load on init
     public async processAis(engine: EngineVersionFormat): Promise<void> {
         const ai = this.installedAis[engine];
         if (ai !== undefined) {
@@ -34,15 +36,8 @@ export class AiContentAPI extends AbstractContentAPI {
         this.installedAis[engine] = ais;
     }
 
-    public async getAi(engine: EngineVersionFormat, shortName: string): Promise<AI> {
-        const ai = this.installedAis[engine]?.find((ai) => ai.shortName === shortName);
-        if (!ai) {
-            await this.processAis(engine);
-
-            return this.getAi(engine, shortName);
-        }
-
-        return ai;
+    public getAis(engine: EngineVersionFormat): AI[] | undefined {
+        return clone(this.installedAis[engine]);
     }
 
     protected async fetchAi(aiDirPath: string): Promise<AI> {
