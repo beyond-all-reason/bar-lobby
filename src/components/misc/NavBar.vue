@@ -69,16 +69,7 @@ const route = useRoute();
 const allRoutes = router.getRoutes();
 
 const primaryRoutes = allRoutes
-    .filter((r) =>
-        [
-            "/singleplayer",
-            "/multiplayer",
-            "/library",
-            "/learn",
-            "/store",
-            "/development",
-        ].includes(r.path)
-    )
+    .filter((r) => ["/singleplayer", "/multiplayer", "/library", "/learn", "/store", "/development"].includes(r.path))
     .sort((a, b) => (a.meta.order ?? 99) - (b.meta.order ?? 99));
 
 const secondaryRoutes = computed(() => {

@@ -58,10 +58,7 @@ export class StoreAPI<T extends Record<string, unknown>> {
             }
         } else if (process.type === "browser") {
             ipcMain.handle(`store-update:${this.name}`, async (event, model: T) => {
-                for (const [
-                    key,
-                    val,
-                ] of Object.entries(model)) {
+                for (const [key, val] of Object.entries(model)) {
                     this.model[key].value = val;
                 }
             });
@@ -117,10 +114,7 @@ export class StoreAPI<T extends Record<string, unknown>> {
     protected serialize() {
         const obj: Record<string, unknown> = {};
 
-        for (const [
-            key,
-            val,
-        ] of Object.entries(this.model)) {
+        for (const [key, val] of Object.entries(this.model)) {
             obj[key] = val.value;
         }
 

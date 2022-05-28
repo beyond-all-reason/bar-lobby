@@ -43,14 +43,7 @@ export class SessionAPI {
             },
         });
 
-        this.users = reactive(
-            new Map<number, User>([
-                [
-                    this.currentUser.userId,
-                    this.currentUser,
-                ],
-            ])
-        );
+        this.users = reactive(new Map<number, User>([[this.currentUser.userId, this.currentUser]]));
 
         this.currentBattle = new Battle({
             battleOptions: {} as BattleOptions,

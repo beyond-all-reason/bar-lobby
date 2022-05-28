@@ -12,10 +12,7 @@ class MapCache extends AbstractFileCache<MapData> {
     protected parser: MapParser;
 
     constructor(cacheFilePath: string, dataDir: string) {
-        super(cacheFilePath, path.join(dataDir, "maps"), [
-            ".sd7",
-            ".sdz",
-        ]);
+        super(cacheFilePath, path.join(dataDir, "maps"), [".sd7", ".sdz"]);
 
         this.mapImagesDir = path.join(dataDir, "map-images");
 
@@ -58,12 +55,7 @@ class MapCache extends AbstractFileCache<MapData> {
         if (!map) {
             return;
         }
-        for (const imagePath of [
-            map.textureImagePath,
-            map.metalImagePath,
-            map.heightImagePath,
-            map.typeImagePath,
-        ]) {
+        for (const imagePath of [map.textureImagePath, map.metalImagePath, map.heightImagePath, map.typeImagePath]) {
             if (imagePath && fs.existsSync(imagePath)) {
                 await fs.promises.rm(imagePath);
             }

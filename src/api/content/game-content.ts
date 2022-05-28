@@ -41,12 +41,7 @@ export class GameContentAPI extends AbstractContentAPI {
         await this.updateVersions();
 
         return new Promise<void>((resolve) => {
-            const prDownloaderProcess = spawn(`${this.prBinaryPath}`, [
-                "--filesystem-writepath",
-                this.dataDir,
-                "--download-game",
-                `${contentSources.rapid.game}:${contentSources.rapid.tag}`,
-            ]);
+            const prDownloaderProcess = spawn(`${this.prBinaryPath}`, ["--filesystem-writepath", this.dataDir, "--download-game", `${contentSources.rapid.game}:${contentSources.rapid.tag}`]);
 
             let downloadType: DownloadType = DownloadType.Metadata;
             let download: DownloadInfo | undefined;
@@ -99,12 +94,7 @@ export class GameContentAPI extends AbstractContentAPI {
         const versionsStr = zlib.gunzipSync(response.data).toString().trim();
         const versionsParts = versionsStr.split("\n");
         versionsParts.map((versionLine) => {
-            const [
-                tag,
-                md5,
-                _,
-                version,
-            ] = versionLine.split(",");
+            const [tag, md5, _, version] = versionLine.split(",");
             this.md5ToRapidVersionMap[md5] = { tag, md5, version: parseGameVersionString(version) };
         });
 

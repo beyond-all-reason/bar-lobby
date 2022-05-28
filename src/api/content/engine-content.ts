@@ -137,29 +137,11 @@ export class EngineContentAPI extends AbstractContentAPI {
     }
 
     protected isVersionGreater(a: EngineVersionFormat, b: EngineVersionFormat): boolean {
-        const [
-            aGame,
-            aVersion,
-            aRevision,
-            aSha,
-        ] = a.split("-");
-        const [
-            bGame,
-            bVersion,
-            bRevision,
-            bSha,
-        ] = b.split("-");
+        const [aGame, aVersion, aRevision, aSha] = a.split("-");
+        const [bGame, bVersion, bRevision, bSha] = b.split("-");
 
-        const [
-            aMajor,
-            aMinor,
-            aPatch,
-        ] = aVersion.split(".");
-        const [
-            bMajor,
-            bMinor,
-            bPatch,
-        ] = bVersion.split(".");
+        const [aMajor, aMinor, aPatch] = aVersion.split(".");
+        const [bMajor, bMinor, bPatch] = bVersion.split(".");
 
         if (aMajor > bMajor || aMinor > bMinor || aPatch > bPatch || aRevision > bRevision) {
             return true;

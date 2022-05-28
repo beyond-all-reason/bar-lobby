@@ -37,10 +37,7 @@ export class MapContentAPI extends AbstractContentAPI {
         const mapCacheFile = path.join(cacheStoreDir, "map-cache.json");
 
         this.mapCache.on("item-cache-loaded").add((maps: Record<string, MapData>) => {
-            for (const [
-                filename,
-                mapData,
-            ] of Object.entries(maps)) {
+            for (const [filename, mapData] of Object.entries(maps)) {
                 if (!mapFilenames.includes(filename)) {
                     this.installedMaps[filename] = undefined;
                     this.mapCache.clearItem(filename);
@@ -51,18 +48,12 @@ export class MapContentAPI extends AbstractContentAPI {
         });
 
         this.mapCache.on("item-cache-saved").add((maps: Record<string, MapData>) => {
-            for (const [
-                filename,
-                mapData,
-            ] of Object.entries(maps)) {
+            for (const [filename, mapData] of Object.entries(maps)) {
                 this.installedMaps[filename] = mapData;
             }
         });
 
-        await this.mapCache.init([
-            mapCacheFile,
-            this.dataDir,
-        ]);
+        await this.mapCache.init([mapCacheFile, this.dataDir]);
 
         this.mapCache.cacheItems();
 

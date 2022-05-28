@@ -32,10 +32,7 @@ export class AudioAPI {
             const builtPath = require(`@/assets/audio/${relativePath}`);
             const soundKey = parsedPath.name;
 
-            this.soundsToLoad.set(soundKey, [
-                builtPath,
-                relativePath,
-            ]);
+            this.soundsToLoad.set(soundKey, [builtPath, relativePath]);
         }
 
         watch(api.settings.model.sfxVolume, () => {

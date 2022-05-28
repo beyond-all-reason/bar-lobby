@@ -63,12 +63,7 @@ onMounted(async () => {
     loadMap();
 
     watch(
-        [
-            () => battle.battleOptions.mapFileName,
-            () => battle.battleOptions.startPosType,
-            () => battle.battleOptions.startBoxes,
-            () => battle.me,
-        ],
+        [() => battle.battleOptions.mapFileName, () => battle.battleOptions.startPosType, () => battle.battleOptions.startBoxes, () => battle.me],
         () => {
             loadMap();
         },

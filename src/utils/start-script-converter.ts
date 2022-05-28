@@ -237,12 +237,7 @@ export class StartScriptConverter {
     }
 
     protected convertGroups(scriptObj: Record<string, any>): Record<string, any> {
-        const groups = [
-            "allyTeams",
-            "teams",
-            "players",
-            "ais",
-        ];
+        const groups = ["allyTeams", "teams", "players", "ais"];
         for (const key of groups) {
             const group = scriptObj[key];
             const newKey = key.slice(0, key.length - 1).toLowerCase();

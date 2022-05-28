@@ -14,9 +14,6 @@ export const contentSources = {
     },
     maps: {
         googleDrive: ["https://drive.google.com/drive/folders/16eBcMpkgMTV9mlKxYmNda64X_dmCFdkk"],
-        http: [
-            "https://springfiles.springrts.com/files/maps/",
-            "https://storage.uk.cloud.ovh.net/v1/AUTH_10286efc0d334efd917d476d7183232e/BAR/maps/",
-        ],
+        http: ["https://springfiles.springrts.com/files/maps/", "https://storage.uk.cloud.ovh.net/v1/AUTH_10286efc0d334efd917d476d7183232e/BAR/maps/"],
     },
 };

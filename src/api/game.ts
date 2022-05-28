@@ -30,12 +30,7 @@ export class GameAPI {
 
         await fs.promises.writeFile(scriptPath, scriptStr);
 
-        const args = [
-            "--write-dir",
-            this.dataDir,
-            "--isolation",
-            scriptPath,
-        ];
+        const args = ["--write-dir", this.dataDir, "--isolation", scriptPath];
 
         this.gameProcess = spawn("spring.exe", args, {
             cwd: enginePath,
