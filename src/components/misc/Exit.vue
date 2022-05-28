@@ -1,5 +1,5 @@
 <template>
-    <Modal title="Exit">
+    <Modal ref="modal" title="Exit">
         <div class="flex-row gap-md">
             <Button @click="logout"> Logout </Button>
             <Button @click="quitToDesktop"> Quit to Desktop </Button>
@@ -8,12 +8,14 @@
 </template>
 
 <script lang="ts" setup>
+import { Ref, ref } from "vue";
 import { useRouter } from "vue-router";
 
 import Modal from "@/components/common/Modal.vue";
 import Button from "@/components/inputs/Button.vue";
 
 const router = useRouter();
+const modal: Ref<InstanceType<typeof Modal> | null> = ref(null);
 
 const logout = async () => {
     api.account.model.token.value = "";
@@ -23,6 +25,7 @@ const logout = async () => {
         console.error(err);
     }
     router.push("/login");
+    modal.value?.close();
 };
 
 const quitToDesktop = async () => {

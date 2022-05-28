@@ -47,14 +47,19 @@ const props = withDefaults(defineProps<ModalProps>(), {
     activeTab: 0,
 });
 
-const open = toRef(props, "modelValue");
-
 const emits = defineEmits<{
     (event: "update:modelValue", open: boolean): void;
     (event: "submit", data: Record<string, unknown>): void;
     (event: "open"): void;
     (event: "close"): void;
 }>();
+
+const open = toRef(props, "modelValue");
+
+defineExpose({
+    open: () => emits("update:modelValue", true),
+    close: () => emits("update:modelValue", false),
+});
 
 const close = () => {
     emits("update:modelValue", false);

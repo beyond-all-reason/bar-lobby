@@ -42,6 +42,7 @@ const register = async () => {
     const registerResponse = await api.comms.request("c.auth.register", { email: email.value, username: username.value, password: password.value });
 
     if (registerResponse.result === "success") {
+        error.value = "";
         api.account.model.email.value = email.value;
         emit("register-success");
     } else {

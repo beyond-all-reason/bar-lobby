@@ -16,9 +16,8 @@
             <p v-if="verificationError" class="color--error">
                 {{ verificationError }}
             </p>
-            <p>
-                {{ verificationMessage }}
-            </p>
+            <!-- eslint-disable vue/no-v-html -->
+            <p v-html="verificationMessage" />
             <Textbox v-model="verificationCode" label="Verification Code" required />
             <Button type="submit"> Verify </Button>
         </form>

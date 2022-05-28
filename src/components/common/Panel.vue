@@ -167,7 +167,7 @@ const nextTab = () => {
         width: 100%;
         display: flex;
         flex-direction: row;
-        background-color: rgba(59, 59, 59, 0.3);
+        //background-color: rgba(59, 59, 59, 0.3);
         border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         :deep(.control.button) {
             align-self: unset;
