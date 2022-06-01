@@ -1,5 +1,5 @@
 <template>
-    <div :class="`battle-preview ${layout}`" @click="joinBattle">
+    <div :class="`battle-preview ${layout}`" @click="attemptJoinBattle">
         <template v-if="layout === 'tile'">
             <div class="background" :style="`background-image: url('${mapImageUrl}')`" />
             <div class="header">
@@ -99,11 +99,11 @@
             </div>
         </template>
 
-        <Modal v-model="passwordPromptOpen" title="Battle Password" @submit="passwordEntered">
+        <Modal v-model="passwordPromptOpen" title="Battle Password" @submit="onPasswordPromptSubmit">
             <div class="gap-md">
                 <p>Please enter the password for this battle</p>
-                <!-- <Textbox name="password"></Textbox> -->
-                <input type="password" name="password" />
+                <Textbox type="password" name="password" />
+                <Button type="submit">Submit</Button>
             </div>
         </Modal>
     </div>
@@ -115,9 +115,11 @@ import eyeOutline from "@iconify-icons/mdi/eye-outline";
 import lock from "@iconify-icons/mdi/lock";
 import robot from "@iconify-icons/mdi/robot";
 import { useNow } from "@vueuse/core";
-import { computed, Ref, ref } from "vue";
+import { computed, ref } from "vue";
 
 import Modal from "@/components/common/Modal.vue";
+import Button from "@/components/inputs/Button.vue";
+import Textbox from "@/components/inputs/Textbox.vue";
 import Flag from "@/components/misc/Flag.vue";
 import type { BattlePreviewType } from "@/model/battle/battle-preview";
 
@@ -145,43 +147,23 @@ const runtime = computed(() => {
     return `${hours}:${minutes}:${seconds}`;
 });
 
-const joinBattle = async () => {
-    try {
-        let password: string | undefined;
-        if (props.battle.passworded) {
-            password = await passwordPrompt();
-        }
-
+const attemptJoinBattle = async () => {
+    if (props.battle.passworded) {
+        passwordPromptOpen.value = true;
+    } else {
         await api.comms.request("c.lobby.join", {
             lobby_id: props.battle.id,
-            password,
         });
-
-        // actual joining is handled in comms api
-    } catch (err) {
-        if (err !== "cancel") {
-            throw err;
-        }
     }
 };
 
 const passwordPromptOpen = ref(false);
-const passwordEntered: Ref<(data: Record<string, unknown>) => void> = ref((data) => {
-    return;
-});
-const passwordPrompt = () => {
-    return new Promise<string | undefined>((resolve) => {
-        passwordPromptOpen.value = true;
-
-        passwordEntered.value = (data) => {
-            passwordPromptOpen.value = false;
-            if (data.password) {
-                resolve(data.password as string);
-            } else {
-                resolve(undefined);
-            }
-        };
+const onPasswordPromptSubmit: (data: { password?: string }) => Promise<string | boolean> = async (data) => {
+    await api.comms.request("c.lobby.join", {
+        lobby_id: props.battle.id,
+        password: data.password,
     });
+    return true;
 };
 </script>
 

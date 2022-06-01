@@ -3,12 +3,12 @@
         <DebugSidebar v-if="!isProduction" />
         <StatusInfo v-if="false" />
         <Background :blur="blurBg" />
+        <Alerts />
         <transition mode="out-in" name="fade">
             <IntroVideo v-if="state === 'intro'" @complete="onIntroEnd" />
             <Preloader v-else-if="state === 'preloader'" @complete="onPreloadDone" />
             <InitialSetup v-else-if="state === 'initial-setup'" @complete="onInitialSetupDone" />
             <div v-else class="fullsize">
-                <Error />
                 <NavBar :class="{ hidden: empty }" />
                 <div :class="`view view--${routeKey}`">
                     <Panel :class="{ hidden: empty }">
@@ -37,11 +37,11 @@ import { Ref, TransitionProps } from "vue";
 import { ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 
+import Alerts from "@/components/alerts/Alerts.vue";
 import StatusInfo from "@/components/battle/StatusInfo.vue";
 import Panel from "@/components/common/Panel.vue";
 import Background from "@/components/misc/Background.vue";
 import DebugSidebar from "@/components/misc/DebugSidebar.vue";
-import Error from "@/components/misc/Error.vue";
 import InitialSetup from "@/components/misc/InitialSetup.vue";
 import IntroVideo from "@/components/misc/IntroVideo.vue";
 import NavBar from "@/components/misc/NavBar.vue";
@@ -103,13 +103,13 @@ const onIntroEnd = () => {
 };
 
 const onPreloadDone = async () => {
+    console.time("onPreloadDone");
+
     await api.content.engine.init();
 
     if (api.content.engine.installedVersions.length === 0) {
         state.value = "initial-setup";
     } else {
-        await api.content.engine.init();
-
         const latestEngine = lastInArray(api.content.engine.installedVersions)!;
         const binaryName = process.platform === "win32" ? "pr-downloader.exe" : "pr-downloader";
         const prBinaryPath = path.join(api.settings.model.dataDir.value, "engine", latestEngine, binaryName);
@@ -125,6 +125,8 @@ const onPreloadDone = async () => {
 
         state.value = "default";
     }
+
+    console.timeEnd("onPreloadDone");
 };
 
 const onInitialSetupDone = () => {
@@ -135,8 +137,8 @@ const onInitialSetupDone = () => {
 
 router.replace("/");
 
-const leftClick = () => api.session.onLeftClick.dispatch();
-const rightClick = () => api.session.onRightClick.dispatch();
+const leftClick = () => api.utils.onLeftClick.dispatch();
+const rightClick = () => api.utils.onRightClick.dispatch();
 </script>
 
 <style lang="scss" scoped>

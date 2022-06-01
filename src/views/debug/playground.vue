@@ -3,18 +3,9 @@
 </route>
 
 <template>
-    <div>
-        <Button @click="error">Error</Button>
-    </div>
+    <div></div>
 </template>
 
-<script lang="ts" setup>
-import Button from "@/components/inputs/Button.vue";
-import { FatalError } from "@/model/errors";
-
-const error = () => {
-    throw new FatalError("Error", "This is a test error");
-};
-</script>
+<script lang="ts" setup></script>
 
 <style lang="scss" scoped></style>

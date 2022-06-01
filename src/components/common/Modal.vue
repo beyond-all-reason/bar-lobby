@@ -1,11 +1,13 @@
 <template>
     <teleport to="#wrapper">
         <transition name="modal" appear>
-            <form v-if="open" class="modal-container" @submit.prevent="onSubmit">
+            <form v-if="open" ref="form" class="modal-container" v-bind="$attrs" @submit.prevent="onSubmit" @keydown.enter="onSubmit">
                 <Panel id="modal" class="modal" v-bind="$attrs">
                     <template #header>
                         <div class="modal__title">
-                            {{ title }}
+                            <slot name="title">
+                                {{ title }}
+                            </slot>
                         </div>
                         <div class="modal__close" @click="close" @mouseenter="sound">
                             <Icon :icon="closeThick" height="23" />
@@ -27,7 +29,7 @@ export default {
 <script lang="ts" setup>
 import { Icon } from "@iconify/vue";
 import closeThick from "@iconify-icons/mdi/close-thick";
-import { toRef, watch } from "vue";
+import { nextTick, Ref, ref, toRef, watch } from "vue";
 
 import Panel from "@/components/common/Panel.vue";
 
@@ -49,11 +51,12 @@ const props = withDefaults(defineProps<ModalProps>(), {
 
 const emits = defineEmits<{
     (event: "update:modelValue", open: boolean): void;
-    (event: "submit", data: Record<string, unknown>): void;
+    (event: "submit", data: Record<string, unknown>): Promise<boolean | string>;
     (event: "open"): void;
     (event: "close"): void;
 }>();
 
+const form: Ref<HTMLFormElement | null> = ref(null);
 const open = toRef(props, "modelValue");
 
 defineExpose({
@@ -67,22 +70,26 @@ const close = () => {
 
 watch(open, (open) => {
     if (open) {
+        nextTick(() => form.value?.querySelector("input")?.focus());
         emits("open");
     } else {
         emits("close");
     }
 });
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const onSubmit = (event: any) => {
+const onSubmit = async () => {
     const data: Record<string, unknown> = {};
-    const fields = Array.from(event.target.elements) as any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const fields = Array.from(form.value?.elements!) as any;
     for (const field of fields) {
         if (field.name !== undefined && field.value !== undefined) {
             data[field.name] = field.value;
         }
     }
-    emits("submit", data);
+    const valid = await emits("submit", data);
+    if (valid === true) {
+        close();
+    }
 };
 
 const sound = () => api.audio.getSound("button-hover").play();
@@ -91,7 +98,7 @@ const sound = () => api.audio.getSound("button-hover").play();
 <style lang="scss" scoped>
 .modal-container {
     @extend .fullsize;
-    z-index: 10;
+    z-index: 5;
     justify-content: center;
     align-items: center;
     background-color: rgba(0, 0, 0, 0.3);
@@ -111,14 +118,13 @@ const sound = () => api.audio.getSound("button-hover").play();
     &__title {
         padding: 5px 10px;
         flex-grow: 1;
-        border-right: 1px solid rgba(255, 255, 255, 0.1);
+        //border-right: 1px solid rgba(255, 255, 255, 0.1);
         text-transform: capitalize;
         font-weight: 600;
     }
     &__close {
         margin-left: auto;
         padding: 5px 10px;
-        background: rgba(219, 20, 20, 0.3);
         &:hover {
             background: rgba(219, 20, 20, 0.6);
         }

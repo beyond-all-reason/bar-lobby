@@ -36,3 +36,19 @@ $dirs: (
         opacity: 0;
     }
 }
+
+.list-move,
+.list-enter-active,
+.list-leave-active {
+    transition: all 0.5s;
+}
+.list-enter-from {
+    opacity: 0;
+    transform: translate(0, 30px);
+}
+.list-leave-to {
+    opacity: 0;
+    height: 0 !important;
+    margin-bottom: 0px !important;
+    border: none !important;
+}

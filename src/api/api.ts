@@ -4,12 +4,14 @@ import * as os from "os";
 import * as path from "path";
 import { TachyonClient } from "tachyon-client";
 
+import { AlertsAPI } from "@/api/alerts";
 import { AudioAPI } from "@/api/audio";
 import { CommsAPI } from "@/api/comms";
 import { ContentAPI } from "@/api/content/content";
 import { GameAPI } from "@/api/game";
 import { SessionAPI } from "@/api/session";
 import { StoreAPI } from "@/api/store";
+import { UtilsAPI } from "@/api/utils";
 import { serverConfig } from "@/config/server";
 import type { Account } from "@/model/account";
 import { accountSchema } from "@/model/account";
@@ -26,7 +28,8 @@ interface API {
     account: StoreAPI<Account>;
     content: ContentAPI;
     game: GameAPI;
-    utils: typeof utils;
+    alerts: AlertsAPI;
+    utils: UtilsAPI;
 }
 
 declare global {
@@ -40,9 +43,9 @@ export async function apiInit() {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     window.api = {} as any;
 
-    api.info = await ipcRenderer.invoke("getInfo");
+    api.utils = new UtilsAPI();
 
-    api.utils = utils;
+    api.info = await ipcRenderer.invoke("getInfo");
 
     api.settings = await new StoreAPI<SettingsType>("settings", settingsSchema, true).init();
 
@@ -72,8 +75,6 @@ export async function apiInit() {
     api.game = new GameAPI(userDataDir, dataDir);
 
     api.content = await new ContentAPI(userDataDir, dataDir).init();
-}
 
-const utils = {
-    highlightTaskbarIcon: (flash = true) => ipcRenderer.invoke("highlightTaskbarIcon", flash),
-} as const;
+    api.alerts = new AlertsAPI();
+}

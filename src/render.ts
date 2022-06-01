@@ -2,7 +2,7 @@ import "vue-next-select/dist/index.css";
 import "vue-slider-component/theme/default.css";
 import "@/assets/styles/styles.scss";
 
-import type { ComponentPublicInstance, TransitionProps } from "vue";
+import type { TransitionProps } from "vue";
 import { createApp } from "vue";
 import { createRouter, createWebHashHistory } from "vue-router";
 
@@ -27,10 +27,30 @@ declare module "vue-router" {
 
     await setupVue();
 
-    document.addEventListener("keydown", (event) => {
+    window.addEventListener("keydown", (event) => {
         if (event.code === "F11") {
             event.preventDefault();
         }
+    });
+
+    window.addEventListener("beforeunload", async (event) => {
+        console.debug("beforeunload", event);
+        event.preventDefault();
+        if (api.comms.isConnected()) {
+            await api.comms.request("c.auth.disconnect", {});
+        }
+        return event;
+    });
+
+    window.addEventListener("error", (event) => {
+        console.debug("onerror", event);
+    });
+
+    window.addEventListener("unhandledrejection", function (event) {
+        //handle error here
+        //event.promise contains the promise object
+        //event.reason contains the reason for the rejection
+        console.debug("unhandledrejection", event);
     });
 })();
 
@@ -45,14 +65,7 @@ async function setupVue() {
     app.use(router);
 
     app.directive("click-away", clickAwayDirective);
-
     app.mount("#app");
-
-    app.config.errorHandler = (err: unknown, instance: ComponentPublicInstance | null, info: string) => {
-        api.session.error.err = err;
-        api.session.error.instance = instance;
-        api.session.error.info = info;
-    };
 
     if (process.env.NODE_ENV !== "production") {
         app.config.globalProperties.window = window;

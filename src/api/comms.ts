@@ -21,7 +21,13 @@ export class CommsAPI extends TachyonClient {
         });
 
         this.onResponse("s.lobby.join").add((data) => {
-            // TODO
+            if (data.result === "failure") {
+                api.alerts.alert({
+                    type: "notification",
+                    severity: "error",
+                    content: "The password you entered was invalid.",
+                });
+            }
         });
     }
 }

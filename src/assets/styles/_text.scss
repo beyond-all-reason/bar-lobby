@@ -18,13 +18,13 @@ a:not(.btn) {
 }
 .color {
     &--error {
-        color: var(--red);
+        color: #ff5151;
     }
     &--warning {
-        color: var(--yellow);
+        color: #ffe134;
     }
     &--success {
-        color: var(--green);
+        color: #b8ff34;
     }
 }
 ul,

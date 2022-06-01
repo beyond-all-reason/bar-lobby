@@ -69,7 +69,7 @@ scope.run(() => {
     right: 0;
     width: 300px;
     height: 100%;
-    z-index: 10;
+    z-index: 15;
     background: #111;
     border-left: 1px solid #222;
     transform: translateX(100%);

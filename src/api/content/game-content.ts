@@ -48,7 +48,7 @@ export class GameContentAPI extends AbstractContentAPI {
 
             prDownloaderProcess.stdout.on("data", (stdout: Buffer) => {
                 const lines = stdout.toString().trim().split("\r\n").filter(Boolean);
-                console.log(lines.join("\n"));
+                console.debug(lines.join("\n"));
                 const messages = lines.map((line) => this.processPrDownloaderLine(line)).filter(Boolean) as Message[];
                 for (const message of messages) {
                     if (this.isPrDownloaderProgressMessage(message) && downloadType === DownloadType.Game && download) {
