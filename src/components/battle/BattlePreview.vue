@@ -158,16 +158,20 @@ const attemptJoinBattle = async () => {
 };
 
 const passwordPromptOpen = ref(false);
-const onPasswordPromptSubmit: (data: { password?: string }) => Promise<string | boolean> = async (data) => {
-    await api.comms.request("c.lobby.join", {
+const onPasswordPromptSubmit: (data: { password?: string }) => Promise<void> = async (data) => {
+    const response = await api.comms.request("c.lobby.join", {
         lobby_id: props.battle.id,
         password: data.password,
     });
-    return true;
-};
-
-const joinBattle = () => {
-    //
+    if (response.result === "failure") {
+        api.alerts.alert({
+            type: "notification",
+            severity: "error",
+            content: "The password you entered was invalid.",
+        });
+    } else {
+        passwordPromptOpen.value = false;
+    }
 };
 </script>
 

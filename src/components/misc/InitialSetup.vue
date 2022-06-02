@@ -20,6 +20,8 @@ const emit = defineEmits<{
 const text = ref("");
 
 onMounted(async () => {
+    console.debug("Initial setup");
+
     if (api.content.engine.installedVersions.length === 0) {
         text.value = "Downloading engine";
         await api.content.engine.downloadLatestEngine();

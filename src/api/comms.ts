@@ -19,15 +19,5 @@ export class CommsAPI extends TachyonClient {
                 //api.modals.show("server_restart"); // TODO: error modal
             }
         });
-
-        this.onResponse("s.lobby.join").add((data) => {
-            if (data.result === "failure") {
-                api.alerts.alert({
-                    type: "notification",
-                    severity: "error",
-                    content: "The password you entered was invalid.",
-                });
-            }
-        });
     }
 }

@@ -17,7 +17,7 @@ export class Battle implements BattleConfig {
     public readonly participants: Array<Player | Bot | Spectator>;
     public readonly numOfTeams: ComputedRef<number>;
     public readonly teams: ComputedRef<Map<number, Array<Player | Bot>>>;
-    public readonly me: ComputedRef<Player | Spectator>;
+    public readonly me: ComputedRef<Player | Spectator | undefined>;
     public readonly contenders: ComputedRef<Array<Player | Bot>>;
     public readonly spectators: ComputedRef<Array<Spectator>>;
     public readonly battleUsers: ComputedRef<Array<Player | Spectator>>;
@@ -54,7 +54,7 @@ export class Battle implements BattleConfig {
 
         this.numOfTeams = computed(() => new Set(this.contenders.value.map((contentender) => contentender.teamId)).size);
         this.teams = computed(() => groupBy(this.contenders.value, (player) => player.teamId));
-        this.me = computed(() => this.participants.find((participant): participant is Player | Spectator => "userId" in participant && participant.userId === api.session.currentUser.userId)!);
+        this.me = computed(() => this.participants.find((participant): participant is Player | Spectator => "userId" in participant && participant.userId === api.session.currentUser.userId));
         this.contenders = computed(() => this.participants.filter((participant): participant is Player | Bot => participant.type === "player" || participant.type === "bot"));
         this.spectators = computed(() => this.participants.filter((participant): participant is Spectator => participant.type === "spectator"));
         this.battleUsers = computed(() => this.participants.filter((participant): participant is Player | Spectator => participant.type === "spectator" || participant.type === "player"));

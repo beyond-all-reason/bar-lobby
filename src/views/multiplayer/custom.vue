@@ -110,8 +110,6 @@ async function updateBattleList() {
         .sort((a, b) => {
             return b.userIds.length - a.userIds.length;
         });
-
-    console.log(battles.value);
 }
 
 async function updateUsers(userIds: number[]) {

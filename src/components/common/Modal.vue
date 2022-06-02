@@ -86,10 +86,7 @@ const onSubmit = async () => {
             data[field.name] = field.value;
         }
     }
-    const valid = await emits("submit", data);
-    if (valid === true) {
-        close();
-    }
+    await emits("submit", data);
 };
 
 const sound = () => api.audio.getSound("button-hover").play();

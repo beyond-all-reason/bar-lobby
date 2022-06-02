@@ -25,6 +25,7 @@ import library_maps from '@/views/library/maps.vue'
 import library_replays from '@/views/library/replays.vue'
 import library_tutorials from '@/views/library/tutorials.vue'
 import library_units from '@/views/library/units.vue'
+import multiplayer_battle from '@/views/multiplayer/battle.vue'
 import multiplayer_casual from '@/views/multiplayer/casual.vue'
 import multiplayer_custom from '@/views/multiplayer/custom.vue'
 import multiplayer_ranked from '@/views/multiplayer/ranked.vue'
@@ -349,6 +350,17 @@ export default [
     meta: {
       title: 'Units',
       order: 1,
+      transition: {
+        name: 'slide-left',
+      },
+    },
+  },
+  {
+    name: 'multiplayer-battle',
+    path: '/multiplayer/battle',
+    component: multiplayer_battle,
+    meta: {
+      title: 'Multiplayer Custom Battle',
       transition: {
         name: 'slide-left',
       },
