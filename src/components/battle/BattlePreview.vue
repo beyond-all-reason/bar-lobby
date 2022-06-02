@@ -165,6 +165,10 @@ const onPasswordPromptSubmit: (data: { password?: string }) => Promise<string | 
     });
     return true;
 };
+
+const joinBattle = () => {
+    //
+};
 </script>
 
 <style lang="scss" scoped>

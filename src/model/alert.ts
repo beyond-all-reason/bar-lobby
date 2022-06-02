@@ -8,7 +8,9 @@
 export type Alert = {
     type: "notification" | "event";
     content: string;
+    /** pass 0 for sticky */
     timeoutMs?: number;
+    id?: string;
 };
 
 export type NotificationAlert = Alert & {

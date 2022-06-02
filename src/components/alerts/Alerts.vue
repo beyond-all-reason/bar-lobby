@@ -1,7 +1,7 @@
 <template>
     <div class="fullsize alerts">
         <TransitionGroup name="list" class="notifications" tag="div">
-            <Notification v-for="notification in notifications" :key="notification.content" :notification="notification" />
+            <Notification v-for="notification in notifications" :key="notification.id" :notification="notification" />
         </TransitionGroup>
         <div class="events">
             <Event v-for="(event, i) in events" :key="i" :event="event" />
@@ -28,6 +28,7 @@ const events = computed(() => alerts.filter((alert): alert is EventAlert => aler
     z-index: 5;
     pointer-events: none;
     align-items: center;
+    z-index: 15;
 }
 .events {
     position: fixed;
@@ -40,6 +41,6 @@ const events = computed(() => alerts.filter((alert): alert is EventAlert => aler
 }
 .notifications {
     position: fixed;
-    top: 103px;
+    top: 130px;
 }
 </style>
