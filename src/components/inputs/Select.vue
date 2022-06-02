@@ -92,6 +92,7 @@ const onClick = () => {
 
 <style lang="scss">
 .control.select {
+    align-self: center;
     label {
         max-width: 60%;
         display: block;

@@ -77,6 +77,7 @@ const sound = () => api.audio.getSound("button-hover").play();
 <style lang="scss">
 .range {
     align-items: unset;
+    align-self: center;
     .vue-slider {
         display: flex;
         flex-direction: row;

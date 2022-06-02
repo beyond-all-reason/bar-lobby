@@ -1,6 +1,6 @@
 <template>
     <ContextMenu :entries="getActions(participant)" :args="[participant]">
-        <div class="participant">
+        <div class="participant" data-type="participant">
             <Icon :icon="props.participant.type === 'bot' ? robot : account" :height="16" />
             <Flag :countryCode="countryCode" />
             <div>

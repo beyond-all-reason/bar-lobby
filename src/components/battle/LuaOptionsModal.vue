@@ -75,19 +75,4 @@ const setOptionValue = (option: LuaOptionNumber | LuaOptionBoolean | LuaOptionSt
 };
 </script>
 
-<style lang="scss" scoped>
-.bot-options {
-    gap: 15px;
-    &__option {
-        flex-direction: row;
-        align-items: center;
-    }
-    &__text {
-        width: 50%;
-    }
-    &__description {
-        font-size: 14px;
-        font-style: italic;
-    }
-}
-</style>
+<style lang="scss" scoped></style>

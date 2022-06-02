@@ -3,18 +3,19 @@
         <div
             v-for="(team, teamId) in battle.teams.value"
             :key="`team${teamId}`"
-            class="playerlist__group"
+            class="group"
+            data-type="group"
             @dragenter.prevent="dragEnter($event, teamId)"
             @dragover.prevent
             @dragleave.prevent="dragLeave($event, teamId)"
             @drop="onDrop($event, teamId)"
         >
             <div class="flex-row gap-md">
-                <div class="playerlist__title">Team {{ teamId + 1 }}</div>
+                <div class="title">Team {{ teamId + 1 }}</div>
                 <Button slim :flexGrow="false" @click="addBot(teamId)"> Add bot </Button>
                 <Button v-if="battle.me.value.type !== 'player' || battle.me.value.teamId !== teamId" slim :flexGrow="false" @click="joinTeam(teamId)"> Join </Button>
             </div>
-            <div class="playerlist__participants">
+            <div class="participants">
                 <div
                     v-for="(contender, contenderIndex) in battle.getTeamParticipants(teamId)"
                     :key="`contender${contenderIndex}`"
@@ -27,24 +28,25 @@
             </div>
         </div>
         <div
-            class="playerlist__group"
+            class="group"
+            data-type="group"
             @dragenter.prevent="dragEnter($event, battle.numOfTeams.value)"
             @dragover.prevent
             @dragleave.prevent="dragLeave($event, battle.numOfTeams.value)"
             @drop="onDrop($event, battle.numOfTeams.value)"
         >
             <div class="flex-row gap-md">
-                <div class="playerlist__title">Team {{ battle.numOfTeams.value + 1 }}</div>
+                <div class="title">Team {{ battle.numOfTeams.value + 1 }}</div>
                 <Button slim :flexGrow="false" @click="addBot(battle.numOfTeams.value)"> Add bot </Button>
                 <Button slim :flexGrow="false" @click="joinTeam(battle.numOfTeams.value)"> Join </Button>
             </div>
         </div>
-        <div class="playerlist__group" @dragenter.prevent="dragEnter($event)" @dragover.prevent @dragleave.prevent="dragLeave($event)" @drop="onDrop($event)">
+        <div class="group" @dragenter.prevent="dragEnter($event)" @dragover.prevent @dragleave.prevent="dragLeave($event)" @drop="onDrop($event)">
             <div class="flex-row gap-md">
-                <div class="playerlist__title">Spectators</div>
+                <div class="title">Spectators</div>
                 <Button v-if="battle.me.value.type !== 'spectator'" slim :flexGrow="false" @click="joinTeam()"> Join </Button>
             </div>
-            <div class="playerlist__participants">
+            <div class="participants">
                 <div
                     v-for="(spectator, spectatorIndex) in battle.spectators.value"
                     :key="`spectator${spectatorIndex}`"
@@ -110,9 +112,9 @@ const dragEnter = (event: DragEvent, teamId?: number) => {
     }
 
     const target = event.target as HTMLElement;
-    const groupEl = target.closest(".playerlist__group");
+    const groupEl = target.closest("[data-type=group]");
     if (draggedEl && groupEl) {
-        document.querySelectorAll(".playerlist__group").forEach((el) => {
+        document.querySelectorAll("[data-type=group]").forEach((el) => {
             el.classList.remove("highlight");
         });
     }
@@ -147,29 +149,28 @@ const dragLeave = (event: DragEvent, teamId?: number) => {
 const dragStart = (event: DragEvent, participant: Player | Bot | Spectator) => {
     draggedParticipant.value = participant;
     draggedEl = event.target as Element;
-    const participantEl = draggedEl?.querySelector(".playerlist__participant");
+    const participantEl = draggedEl?.querySelector("[data-type=participant]");
     if (participantEl) {
         participantEl.classList.add("dragging");
     }
 };
 
 const dragEnd = (event: DragEvent, participant: Player | Bot | Spectator) => {
-    const participantEl = draggedEl?.querySelector(".playerlist__participant");
+    const participantEl = draggedEl?.querySelector("[data-type=participant]");
     if (participantEl) {
         participantEl.classList.remove("dragging");
     }
     draggedParticipant.value = null;
     draggedEl = null;
 
-    document.querySelectorAll(".playerlist__group").forEach((el) => {
+    document.querySelectorAll("[data-type=group]").forEach((el) => {
         el.classList.remove("highlight");
     });
 };
 
 const onDrop = (event: DragEvent, teamId?: number) => {
     const target = event.target as Element;
-    if (target.classList.contains("playerlist__group") && draggedParticipant.value) {
-        target.classList.remove("playerlist__group--drag-enter");
+    if (target.getAttribute("data-type") === "group" && draggedParticipant.value) {
         if (teamId !== undefined && draggedParticipant.value.type !== "spectator") {
             draggedParticipant.value.teamId = teamId;
         } else if (draggedParticipant.value.type === "player") {
@@ -185,38 +186,38 @@ const onDrop = (event: DragEvent, teamId?: number) => {
 .playerlist {
     display: flex;
     flex-direction: column;
-    &.dragging .playerlist__group > * {
+    &.dragging .group > * {
         pointer-events: none;
     }
-    &__group {
-        position: relative;
-        &:not(:last-child):after {
-            content: "";
-            display: flex;
+}
+.group {
+    position: relative;
+    &:not(:last-child):after {
+        content: "";
+        display: flex;
+        background: rgba(255, 255, 255, 0.1);
+        width: 100%;
+        height: 1px;
+        margin: 10px 0;
+    }
+    &.highlight {
+        &:before {
+            @extend .fullsize;
+            width: calc(100% + 10px);
+            height: calc(100%);
+            left: -5px;
+            top: -5px;
             background: rgba(255, 255, 255, 0.1);
-            width: 100%;
-            height: 1px;
-            margin: 10px 0;
-        }
-        &.highlight {
-            &:before {
-                @extend .fullsize;
-                width: calc(100% + 10px);
-                height: calc(100%);
-                left: -5px;
-                top: -5px;
-                background: rgba(255, 255, 255, 0.1);
-            }
         }
     }
-    &__title {
-        font-size: 26px;
-    }
-    &__participants {
-        flex-direction: row;
-        gap: 10px;
-        flex-wrap: wrap;
-        margin-top: 5px;
-    }
+}
+.title {
+    font-size: 26px;
+}
+.participants {
+    flex-direction: row;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 5px;
 }
 </style>
