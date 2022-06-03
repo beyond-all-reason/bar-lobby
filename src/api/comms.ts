@@ -11,12 +11,27 @@ export class CommsAPI extends TachyonClient {
         });
 
         this.socket?.on("connect", () => (api.session.offlineMode.value = false));
-        this.socket?.on("close", () => (api.session.offlineMode.value = true));
+        this.socket?.on("close", () => (api.session.offlineMode.value = true)); // TODO: attempt reconnect on disconnect
 
         this.onResponse("s.system.server_event").add((data) => {
             if (data.event === "server_restart") {
                 api.session.offlineMode.value = true;
-                //api.modals.show("server_restart"); // TODO: error modal
+
+                api.alerts.alert({
+                    type: "notification",
+                    severity: "warning",
+                    content: "Server is restarting",
+                });
+            }
+        });
+
+        this.onResponse("s.system.server_event").add((data) => {
+            if (data.event === "stop") {
+                api.alerts.alert({
+                    type: "notification",
+                    severity: "warning",
+                    content: "Server is shutting down",
+                });
             }
         });
     }

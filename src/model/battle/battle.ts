@@ -48,16 +48,16 @@ export class Battle implements BattleConfig {
             },
         };
 
-        for (const participant of config.participants) {
-            this.addParticipant(participant);
-        }
-
         this.numOfTeams = computed(() => new Set(this.contenders.value.map((contentender) => contentender.teamId)).size);
         this.teams = computed(() => groupBy(this.contenders.value, (player) => player.teamId));
         this.me = computed(() => this.participants.find((participant): participant is Player | Spectator => "userId" in participant && participant.userId === api.session.currentUser.userId));
         this.contenders = computed(() => this.participants.filter((participant): participant is Player | Bot => participant.type === "player" || participant.type === "bot"));
         this.spectators = computed(() => this.participants.filter((participant): participant is Spectator => participant.type === "spectator"));
         this.battleUsers = computed(() => this.participants.filter((participant): participant is Player | Spectator => participant.type === "spectator" || participant.type === "player"));
+
+        for (const participant of config.participants) {
+            this.addParticipant(participant);
+        }
     }
 
     public set(config: BattleConfig) {

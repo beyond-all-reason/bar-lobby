@@ -7,8 +7,8 @@ export class AlertsAPI {
     public readonly alerts: Array<NotificationAlert | EventAlert> = reactive([]);
 
     public alert(alert: NotificationAlert | EventAlert) {
-        alert.timeoutMs ??= 3000;
-        alert.id = uuid();
+        alert.timeoutMs ??= Math.max(alert.content.length * 75, 3000);
+        alert.id ??= uuid();
 
         this.alerts.push(alert);
     }

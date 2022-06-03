@@ -1,5 +1,5 @@
 import { objectKeys } from "jaz-ts-utils";
-import { reactive, Ref, ref } from "vue";
+import { computed, ComputedRef, reactive, Ref, ref } from "vue";
 
 import { Battle } from "@/model/battle/battle";
 import { BattleOptions } from "@/model/battle/types";
@@ -9,7 +9,7 @@ export class SessionAPI {
     public readonly offlineMode: Ref<boolean>;
     public readonly currentUser: CurrentUser;
     public readonly users: Map<number, User>;
-    public readonly currentBattle: Battle;
+    public readonly currentBattle: ComputedRef<Battle | null>;
     public readonly battles: Map<number, Battle>;
 
     constructor() {
@@ -29,9 +29,9 @@ export class SessionAPI {
             friendRequestUserIds: [],
             ignoreUserIds: [],
             battleStatus: {
+                inBattle: false,
                 away: false,
-                inGame: false,
-                battleId: -1,
+                battleId: -1, // -1 = offline battle
                 ready: false,
                 spectator: false,
                 color: "",
@@ -42,12 +42,27 @@ export class SessionAPI {
 
         this.users = reactive(new Map<number, User>([[this.currentUser.userId, this.currentUser]]));
 
-        this.currentBattle = new Battle({
-            battleOptions: {} as BattleOptions,
-            participants: [],
-        });
-
         this.battles = reactive(new Map<number, Battle>([]));
+
+        this.battles.set(
+            -1,
+            new Battle({
+                battleOptions: {} as BattleOptions,
+                participants: [],
+            })
+        );
+
+        this.currentBattle = computed(() => {
+            if (!this.currentUser.battleStatus.inBattle) {
+                return null;
+            }
+            const battle = this.battles.get(this.currentUser.battleStatus.battleId);
+            if (battle) {
+                return battle;
+            }
+            console.warn(`Battle not found: ${this.currentUser.battleStatus.battleId}`);
+            return null;
+        });
     }
 
     public setCurrentUser(userConfig: CurrentUser) {

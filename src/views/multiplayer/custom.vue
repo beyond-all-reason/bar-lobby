@@ -50,6 +50,7 @@
 import { Icon } from "@iconify/vue";
 import viewGrid from "@iconify-icons/mdi/view-grid";
 import viewList from "@iconify-icons/mdi/view-list";
+import { arrayToMap } from "jaz-ts-utils";
 import { computed, onMounted, Ref, ref } from "vue";
 
 import BattlePreview from "@/components/battle/BattlePreview.vue";
@@ -115,7 +116,16 @@ async function updateBattleList() {
 async function updateUsers(userIds: number[]) {
     const { clients, users } = await api.comms.request("c.user.list_users_from_ids", { id_list: userIds, include_clients: true });
 
+    const clientMap = arrayToMap(clients, "userid");
+
     for (const user of users) {
+        const battleStatus = clientMap.get(user.id);
+
+        if (!battleStatus) {
+            console.warn(`Battle status could not be found for user with id ${user.id}`);
+            continue;
+        }
+
         api.session.setUser({
             userId: user.id,
             legacyId: parseInt(user.springid.toString()) || null,
@@ -124,20 +134,17 @@ async function updateUsers(userIds: number[]) {
             isBot: user.bot,
             icons: {},
             countryCode: user.country,
+            battleStatus: {
+                away: battleStatus.away,
+                inGame: battleStatus.in_game,
+                battleId: battleStatus.lobby_id,
+                ready: battleStatus.ready,
+                spectator: !battleStatus.player,
+                color: battleStatus.team_colour,
+                teamId: battleStatus.team_number,
+                playerId: battleStatus.team_number,
+            },
         });
-    }
-
-    for (const client of clients) {
-        api.session.getUserById(client.userid)!.battleStatus = {
-            away: client.away,
-            inGame: client.in_game,
-            battleId: client.lobby_id,
-            ready: client.ready,
-            spectator: !client.player,
-            color: client.team_colour,
-            teamId: client.team_number,
-            playerId: client.team_number,
-        };
     }
 }
 </script>

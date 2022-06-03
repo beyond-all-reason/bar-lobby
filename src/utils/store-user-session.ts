@@ -18,6 +18,16 @@ export function storeUserSession(user?: Static<typeof myUserSchema>) {
         icons: user.icons, // TODO,
         ignoreUserIds: [],
         permissions: [],
-        countryCode: "TODO", // TODO
+        countryCode: user.country,
+        battleStatus: {
+            away: false,
+            battleId: -1,
+            inGame: false,
+            color: "",
+            playerId: 0,
+            teamId: 0,
+            ready: false,
+            spectator: true,
+        },
     });
 }

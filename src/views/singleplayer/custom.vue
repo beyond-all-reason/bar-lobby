@@ -10,7 +10,10 @@
 import BattleComponent from "@/components/battle/BattleComponent.vue";
 import { defaultBattle } from "@/config/default-battle";
 
-api.session.currentBattle.set(defaultBattle());
+// TODO: this isn't compatible with online
+api.session.currentUser.battleStatus.inBattle = true;
+api.session.currentUser.battleStatus.battleId = -1;
+api.session.battles.set(-1, defaultBattle());
 </script>
 
 <style lang="scss" scoped></style>

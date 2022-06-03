@@ -44,13 +44,22 @@ declare module "vue-router" {
 
     window.addEventListener("error", (event) => {
         console.debug("onerror", event);
+        api.alerts.alert({
+            type: "notification",
+            severity: "error",
+            content: event.message,
+            timeoutMs: 5000,
+        });
     });
 
     window.addEventListener("unhandledrejection", function (event) {
-        //handle error here
-        //event.promise contains the promise object
-        //event.reason contains the reason for the rejection
         console.debug("unhandledrejection", event);
+        api.alerts.alert({
+            type: "notification",
+            severity: "error",
+            content: event.reason,
+            timeoutMs: 5000,
+        });
     });
 })();
 

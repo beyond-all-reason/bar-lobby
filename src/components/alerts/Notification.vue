@@ -55,6 +55,8 @@ if (props.notification.timeoutMs) {
     height: 30px;
     overflow: hidden;
     margin-bottom: 5px;
+    border-top: 1px solid rgba(255, 255, 255, 0.3);
+    background: linear-gradient(to bottom, rgb(84, 94, 110), rgb(63, 69, 99));
     &.error {
         border-top: 1px solid rgba(255, 255, 255, 0.5);
         background: linear-gradient(to bottom, rgb(204, 22, 22), rgb(155, 0, 0));
@@ -62,10 +64,6 @@ if (props.notification.timeoutMs) {
     &.warning {
         border-top: 1px solid rgba(255, 255, 255, 0.7);
         background: linear-gradient(to bottom, rgb(216, 168, 11), rgb(167, 124, 6));
-    }
-    &.info {
-        border-top: 1px solid rgba(255, 255, 255, 0.3);
-        background: linear-gradient(to bottom, rgb(84, 94, 110), rgb(63, 69, 99));
     }
 }
 .icon {

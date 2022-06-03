@@ -64,7 +64,11 @@ import Button from "@/components/inputs/Button.vue";
 import Select from "@/components/inputs/Select.vue";
 import { LuaOptionSection } from "@/model/lua-options";
 
-const battle = api.session.currentBattle;
+const battle = api.session.currentBattle.value;
+
+if (!battle) {
+    throw new Error("Unset battle");
+}
 
 const battleTitle = ref("Offline Custom Battle");
 

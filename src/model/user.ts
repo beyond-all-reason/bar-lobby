@@ -6,7 +6,7 @@ export type User = {
     clanId: number | null;
     countryCode: string;
     legacyId: number | null;
-    battleStatus?: BattleStatus;
+    battleStatus: BattleStatus;
 };
 
 export type CurrentUser = User & {
@@ -17,12 +17,12 @@ export type CurrentUser = User & {
 };
 
 export type BattleStatus = {
+    inBattle: boolean;
+    battleId: number;
     away: boolean;
-    inGame: boolean;
     spectator: boolean;
     ready: boolean;
     color: string;
-    battleId: number;
     teamId: number;
     playerId: number;
 };
