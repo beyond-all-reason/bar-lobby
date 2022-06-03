@@ -13,15 +13,16 @@
                 <div :class="`view view--${routeKey}`">
                     <Panel :class="{ hidden: empty }">
                         <router-view v-slot="{ Component }">
-                            <transition
-                                mode="out-in"
-                                v-bind="currentTransition"
-                                :style="`--enter-duration: ${transitionDurationEnterMs}ms; --leave-duration: ${transitionDurationLeaveMs}ms;`"
-                                @after-leave="transitionAfterLeave"
-                                @enter="transitionEnter"
-                            >
-                                <component :is="Component" />
-                            </transition>
+                            <template v-if="Component">
+                                <transition mode="out-in" name="slide-left">
+                                    <suspense timeout="0">
+                                        <component :is="Component" />
+                                        <template #fallback>
+                                            <Loader />
+                                        </template>
+                                    </suspense>
+                                </transition>
+                            </template>
                         </router-view>
                     </Panel>
                 </div>
@@ -39,6 +40,7 @@ import { useRoute, useRouter } from "vue-router";
 
 import Alerts from "@/components/alerts/Alerts.vue";
 import StatusInfo from "@/components/battle/StatusInfo.vue";
+import Loader from "@/components/common/Loader.vue";
 import Panel from "@/components/common/Panel.vue";
 import Background from "@/components/misc/Background.vue";
 import DebugSidebar from "@/components/misc/DebugSidebar.vue";

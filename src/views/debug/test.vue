@@ -4,21 +4,20 @@
 
 <template>
     <div>
-        <Panel>
-            <Tab v-for="(thing, i) in stuff" :key="i" :title="thing">
-                {{ thing }}
-            </Tab>
-        </Panel>
+        {{ stuff }}
     </div>
 </template>
 
 <script lang="ts" setup>
+import { delay } from "jaz-ts-utils";
 import { ref } from "vue";
 
-import Panel from "@/components/common/Panel.vue";
-import Tab from "@/components/common/Tab.vue";
 
-const stuff = ref(["one", "two", "three"]);
+const stuff = ref("blue");
+
+await delay(4000);
+
+stuff.value = "red";
 </script>
 
 <style lang="scss" scoped></style>

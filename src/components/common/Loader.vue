@@ -1,7 +1,9 @@
 <template>
-    <div class="loader la-ball-clip-rotate-multiple">
-        <div />
-        <div />
+    <div class="fullsize flex-center">
+        <div class="loader la-ball-clip-rotate-multiple">
+            <div />
+            <div />
+        </div>
     </div>
 </template>
 

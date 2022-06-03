@@ -1,15 +1,8 @@
-@at-root {
-    #wrapper {
-        --enter-duration: 400ms;
-        --leave-duration: 400ms;
-    }
-}
-
 .fade-enter-active:not(.popper) {
-    transition: var(--enter-duration) ease-in-out;
+    transition: 150ms ease-in-out;
 }
 .fade-leave-active:not(.popper) {
-    transition: var(--leave-duration) ease-in-out;
+    transition: 150ms ease-in-out;
 }
 .fade-enter-from:not(.popper),
 .fade-leave-to:not(.popper) {
@@ -25,10 +18,10 @@ $dirs: (
 
 @each $name, $transform in $dirs {
     .slide-#{$name}-enter-active {
-        transition: var(--enter-duration) ease-in-out;
+        transition: 150ms ease-in-out;
     }
     .slide-#{$name}-leave-active {
-        transition: var(--leave-duration) ease-in-out;
+        transition: 150ms ease-in-out;
     }
     .slide-#{$name}-enter-from,
     .slide-#{$name}-leave-to {
