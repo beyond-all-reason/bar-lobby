@@ -4,19 +4,20 @@
 
 <template>
     <div>
-        {{ stuff }}
+        <!-- <Select :value="thing" :options="['red', 'blue', 'yellow']" @update:modelValue="test" /> -->
+
+        {{ thing }}
     </div>
 </template>
 
 <script lang="ts" setup>
-import { delay } from "jaz-ts-utils";
 import { ref } from "vue";
 
-const stuff = ref("hello");
+const thing = ref("red");
 
-await delay(4000);
-
-stuff.value = "world";
+const test = (a: any, b: any) => {
+    console.log(thing.value);
+};
 </script>
 
 <style lang="scss" scoped></style>

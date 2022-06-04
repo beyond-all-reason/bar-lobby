@@ -136,7 +136,7 @@ async function updateUsers(userIds: number[]) {
             countryCode: user.country,
             battleStatus: {
                 away: battleStatus.away,
-                inGame: battleStatus.in_game,
+                inBattle: battleStatus.in_game,
                 battleId: battleStatus.lobby_id,
                 ready: battleStatus.ready,
                 spectator: !battleStatus.player,

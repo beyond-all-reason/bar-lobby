@@ -1,9 +1,9 @@
 <template>
-    <div id="map-canvas-container" class="map-preview">
-        <canvas id="map-canvas" class="map-preview__canvas" />
+    <div class="map-preview">
+        <canvas id="yep" ref="canvas" class="map-preview__canvas" />
         <div class="map-preview__actions">
             <div class="map-preview__start-pos-type">
-                <Options v-model="battle.battleOptions.startPosType" label="Start Pos" required>
+                <Options v-model="startPosType" label="Start Pos" required>
                     <Option v-for="option in startPosOptions" :key="option.value" :value="option.value">
                         {{ option.label }}
                     </Option>
@@ -28,25 +28,29 @@
 </template>
 
 <script lang="ts" setup>
-import { clone } from "jaz-ts-utils";
-import { onMounted, watch } from "vue";
+import { computed, onMounted, Ref, ref, watch } from "vue";
 
 import Button from "@/components/inputs/Button.vue";
 import Option from "@/components/inputs/Option.vue";
 import Options from "@/components/inputs/Options.vue";
 import { defaultBoxes } from "@/config/default-boxes";
+import { Battle } from "@/model/battle/battle";
 import { StartBox, StartPosType } from "@/model/battle/types";
-import { MapData } from "@/model/map-data";
-
-const battle = api.session.currentBattle;
 
 type Transform = { x: number; y: number; width: number; height: number };
 
-let canvas: HTMLCanvasElement;
+const props = defineProps<{
+    battle: Battle;
+}>();
+
+const startPosType = ref(props.battle.battleOptions.startPosType);
+
+const canvas: Ref<HTMLCanvasElement | null> = ref(null);
 let context: CanvasRenderingContext2D;
 let textureMap: HTMLImageElement;
 let mapTransform: Transform;
-let mapData: MapData | undefined | null;
+
+const map = computed(() => api.content.maps.getMapByFileName(props.battle.battleOptions.mapFileName));
 
 const startPosOptions: Array<{ label: string; value: StartPosType }> = [
     { label: "Fixed", value: StartPosType.Fixed },
@@ -54,16 +58,19 @@ const startPosOptions: Array<{ label: string; value: StartPosType }> = [
 ];
 
 onMounted(async () => {
-    canvas = document.getElementById("map-canvas") as HTMLCanvasElement;
-    canvas.width = canvas.clientWidth;
-    canvas.height = canvas.width;
-    context = canvas.getContext("2d")!;
+    if (!canvas.value) {
+        return;
+    }
+
+    canvas.value.width = 478;
+    canvas.value.height = 478;
+    context = canvas.value.getContext("2d")!;
     context.imageSmoothingEnabled = false;
 
     loadMap();
 
     watch(
-        [() => battle.battleOptions.mapFileName, () => battle.battleOptions.startPosType, () => battle.battleOptions.startBoxes, () => battle.me],
+        [() => props.battle.battleOptions.mapFileName, () => props.battle.battleOptions.startPosType, () => props.battle.battleOptions.startBoxes, () => props.battle.me],
         () => {
             loadMap();
         },
@@ -72,35 +79,40 @@ onMounted(async () => {
 });
 
 const setBoxes = (boxes: StartBox[]) => {
-    battle.battleOptions.startBoxes = clone(boxes);
+    //props.battle.battleOptions.startBoxes = clone(boxes);
 };
 
 async function loadMap() {
-    if (mapData?.fileNameWithExt !== battle.battleOptions.mapFileName) {
-        mapData = api.content.maps.getMapByFileName(battle.battleOptions.mapFileName);
-        if (!mapData || !mapData.textureImagePath) {
-            // TODO: missing map image
-            return;
+    if (!canvas.value) {
+        return;
+    }
+
+    mapTransform = { x: 0, y: 0, width: canvas.value.width, height: canvas.value.height };
+
+    if (!map.value || !map.value.textureImagePath) {
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        const defaultImage = require("@/assets/images/default-minimap.png");
+        textureMap = await loadImage(defaultImage, false);
+
+        mapTransform.width = textureMap.width;
+        mapTransform.height = textureMap.height;
+    } else if (map.value?.fileNameWithExt !== props.battle.battleOptions.mapFileName || !textureMap) {
+        textureMap = await loadImage(map.value.textureImagePath);
+
+        const widthToHeightRatio = textureMap.width / textureMap.height;
+        if (widthToHeightRatio > 1) {
+            mapTransform.height = mapTransform.height / widthToHeightRatio;
+        } else {
+            mapTransform.width = mapTransform.width * widthToHeightRatio;
         }
 
-        textureMap = await loadImage(mapData.textureImagePath);
+        mapTransform.x = (canvas.value.width - mapTransform.width) / 2;
+        mapTransform.y = (canvas.value.height - mapTransform.height) / 2;
+
+        mapTransform = roundTransform(mapTransform);
     }
 
-    mapTransform = { x: 0, y: 0, width: canvas.width, height: canvas.height };
-
-    const widthToHeightRatio = textureMap.width / textureMap.height;
-    if (widthToHeightRatio > 1) {
-        mapTransform.height = mapTransform.height / widthToHeightRatio;
-    } else {
-        mapTransform.width = mapTransform.width * widthToHeightRatio;
-    }
-
-    mapTransform.x = (canvas.width - mapTransform.width) / 2;
-    mapTransform.y = (canvas.height - mapTransform.height) / 2;
-
-    mapTransform = roundTransform(mapTransform);
-
-    context.clearRect(0, 0, canvas.width, canvas.height);
+    context.clearRect(0, 0, canvas.value.width, canvas.value.height);
 
     context.drawImage(textureMap, mapTransform.x, mapTransform.y, mapTransform.width, mapTransform.height);
 
@@ -108,7 +120,7 @@ async function loadMap() {
 }
 
 function drawStartPosType() {
-    if (battle.battleOptions.startPosType === StartPosType.Boxes) {
+    if (props.battle.battleOptions.startPosType === StartPosType.Boxes) {
         drawBoxes();
     } else {
         drawFixedPositions();
@@ -116,10 +128,10 @@ function drawStartPosType() {
 }
 
 function drawFixedPositions() {
-    if (mapData?.startPositions) {
-        for (const startPos of mapData.startPositions) {
-            const xPos = mapTransform.x + mapTransform.width * (startPos.x / (mapData.width * 512));
-            const yPos = mapTransform.y + mapTransform.height * (startPos.z / (mapData.height * 512));
+    if (map.value?.startPositions) {
+        for (const startPos of map.value.startPositions) {
+            const xPos = mapTransform.x + mapTransform.width * (startPos.x / (map.value.width * 512));
+            const yPos = mapTransform.y + mapTransform.height * (startPos.z / (map.value.height * 512));
 
             context.fillStyle = "rgba(255, 255, 255, 0.6)";
             context.beginPath();
@@ -131,10 +143,10 @@ function drawFixedPositions() {
 }
 
 function drawBoxes() {
-    battle.battleOptions.startBoxes.forEach((box, teamId) => {
-        if (battle.me.value.type === "spectator") {
+    props.battle.battleOptions.startBoxes.forEach((box, teamId) => {
+        if (props.battle.me.value?.type === "spectator") {
             context.fillStyle = "rgba(255, 255, 255, 0.2)";
-        } else if (battle.me.value.teamId === teamId) {
+        } else if (props.battle.me.value?.teamId === teamId) {
             context.fillStyle = "rgba(0, 255, 0, 0.2)";
         } else {
             context.fillStyle = "rgba(255, 0, 0, 0.2)";
@@ -154,11 +166,11 @@ function drawBoxes() {
     });
 }
 
-function loadImage(url: string) {
+function loadImage(url: string, isStatic = true) {
     return new Promise<HTMLImageElement>((resolve) => {
         const img = new Image();
         img.onload = () => resolve(img);
-        img.src = `file://${url}`;
+        img.src = `${isStatic ? "file://" : ""}${url}`;
     });
 }
 
@@ -177,8 +189,9 @@ function roundTransform(transform: Transform) {
     background: rgba(0, 0, 0, 0.3);
     border: 1px solid rgba(255, 255, 255, 0.1);
     position: relative;
-    &__canvas {
+    canvas {
         margin: 10px;
+        aspect-ratio: 1;
     }
     &__actions {
         position: absolute;

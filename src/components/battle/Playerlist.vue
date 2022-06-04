@@ -13,7 +13,7 @@
             <div class="flex-row gap-md">
                 <div class="title">Team {{ teamId + 1 }}</div>
                 <Button slim :flexGrow="false" @click="addBot(teamId)"> Add bot </Button>
-                <Button v-if="battle.me.value.type !== 'player' || battle.me.value.teamId !== teamId" slim :flexGrow="false" @click="joinTeam(teamId)"> Join </Button>
+                <Button v-if="battle.me.value?.type !== 'player' || battle.me.value?.teamId !== teamId" slim :flexGrow="false" @click="joinTeam(teamId)"> Join </Button>
             </div>
             <div class="participants">
                 <div
@@ -23,7 +23,7 @@
                     @dragstart="dragStart($event, contender)"
                     @dragend="dragEnd($event, contender)"
                 >
-                    <Participant :participant="contender" />
+                    <Participant :battle="battle" :participant="contender" />
                 </div>
             </div>
         </div>
@@ -44,7 +44,7 @@
         <div class="group" @dragenter.prevent="dragEnter($event)" @dragover.prevent @dragleave.prevent="dragLeave($event)" @drop="onDrop($event)">
             <div class="flex-row gap-md">
                 <div class="title">Spectators</div>
-                <Button v-if="battle.me.value.type !== 'spectator'" slim :flexGrow="false" @click="joinTeam()"> Join </Button>
+                <Button v-if="battle.me.value?.type !== 'spectator'" slim :flexGrow="false" @click="joinTeam()"> Join </Button>
             </div>
             <div class="participants">
                 <div
@@ -54,7 +54,7 @@
                     @dragstart="dragStart($event, spectator)"
                     @dragend="dragEnd($event, spectator)"
                 >
-                    <Participant :participant="spectator" />
+                    <Participant :battle="battle" :participant="spectator" />
                 </div>
             </div>
         </div>
@@ -68,39 +68,41 @@ import { Ref, ref } from "vue";
 import Participant from "@/components/battle/Participant.vue";
 import Button from "@/components/inputs/Button.vue";
 import { aiNames } from "@/config/ai-names";
+import { Battle } from "@/model/battle/battle";
 import { Bot, Player, Spectator } from "@/model/battle/participants";
-import { Faction } from "@/model/battle/types";
 
-const battle = api.session.currentBattle;
+const props = defineProps<{
+    battle: Battle;
+}>();
 
 const addBot = (teamId: number) => {
     let randomName = randomFromArray(aiNames);
-    while (battle.contenders.value.some((contender) => contender.type === "bot" && contender.name === randomName)) {
+    while (props.battle.contenders.value.some((contender) => contender.type === "bot" && contender.name === randomName)) {
         randomName = randomFromArray(aiNames);
     }
 
-    battle.addParticipant({
-        id: battle.contenders.value.length,
-        type: "bot",
-        teamId,
-        name: randomName!,
-        aiShortName: "BARb",
-        faction: Faction.Armada,
-        ownerUserId: api.session.currentUser.userId,
-        aiOptions: {},
-    });
+    // battle.addParticipant({
+    //     id: battle.contenders.value.length,
+    //     type: "bot",
+    //     teamId,
+    //     name: randomName!,
+    //     aiShortName: "BARb",
+    //     faction: Faction.Armada,
+    //     ownerUserId: api.session.currentUser.userId,
+    //     aiOptions: {},
+    // });
 };
 
 const joinTeam = (teamId?: number) => {
-    if (teamId === undefined && battle.me.value.type === "player") {
-        battle.playerToSpectator(battle.me.value);
-    } else if (teamId !== undefined) {
-        if (battle.me.value.type === "spectator") {
-            battle.spectatorToPlayer(battle.me.value, teamId);
-        } else {
-            battle.me.value.teamId = teamId;
-        }
-    }
+    // if (teamId === undefined && battle.me.value.type === "player") {
+    //     battle.playerToSpectator(battle.me.value);
+    // } else if (teamId !== undefined) {
+    //     if (battle.me.value.type === "spectator") {
+    //         battle.spectatorToPlayer(battle.me.value, teamId);
+    //     } else {
+    //         battle.me.value.teamId = teamId;
+    //     }
+    // }
 };
 
 let draggedParticipant: Ref<Bot | Player | Spectator | null> = ref(null);
@@ -172,11 +174,11 @@ const onDrop = (event: DragEvent, teamId?: number) => {
     const target = event.target as Element;
     if (target.getAttribute("data-type") === "group" && draggedParticipant.value) {
         if (teamId !== undefined && draggedParticipant.value.type !== "spectator") {
-            draggedParticipant.value.teamId = teamId;
+            //draggedParticipant.value.teamId = teamId;
         } else if (draggedParticipant.value.type === "player") {
-            battle.playerToSpectator(draggedParticipant.value);
+            //battle.playerToSpectator(draggedParticipant.value);
         } else if (teamId !== undefined && draggedParticipant.value.type === "spectator") {
-            battle.spectatorToPlayer(draggedParticipant.value, teamId);
+            //battle.spectatorToPlayer(draggedParticipant.value, teamId);
         }
     }
 };

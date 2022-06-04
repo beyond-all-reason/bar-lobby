@@ -3,6 +3,7 @@ import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
 import { TachyonClient } from "tachyon-client";
+import { createRouter, createWebHashHistory, Router } from "vue-router";
 
 import { AlertsAPI } from "@/api/alerts";
 import { AudioAPI } from "@/api/audio";
@@ -18,8 +19,10 @@ import { accountSchema } from "@/model/account";
 import type { Info } from "@/model/info";
 import type { SettingsType } from "@/model/settings";
 import { settingsSchema } from "@/model/settings";
+import routes from "@/routes";
 
 interface API {
+    router: Router;
     info: Info;
     session: SessionAPI;
     settings: StoreAPI<SettingsType>;
@@ -42,6 +45,11 @@ declare global {
 export async function apiInit() {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     window.api = {} as any;
+
+    api.router = createRouter({
+        history: createWebHashHistory(),
+        routes: routes,
+    });
 
     api.utils = new UtilsAPI();
 

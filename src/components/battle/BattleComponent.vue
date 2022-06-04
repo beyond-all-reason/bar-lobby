@@ -3,17 +3,17 @@
         <div class="flex-col flex-grow gap-md">
             <div class="flex-col flex-grow">
                 <h1>{{ battleTitle }}</h1>
-                <Playerlist />
+                <Playerlist :battle="battle" />
             </div>
-            <div>
+            <div v-if="!battle.battleOptions.offline">
                 <BattleChat />
             </div>
         </div>
-        <div class="battle__right gap-md">
-            <MapPreview />
+        <div class="gap-md">
+            <MapPreview :battle="battle" />
             <div class="flex-row gap-md">
                 <Select
-                    v-model="battle.battleOptions.mapFileName"
+                    v-model="selectedMap"
                     label="Map"
                     :options="installedMaps"
                     :labelBy="(map: any) => map.friendlyName"
@@ -22,6 +22,7 @@
                     clearOnSelect
                     searchable
                     fullWidth
+                    @update:model-value="onMapSelected"
                 />
                 <Button :flexGrow="false">
                     <Icon :icon="cog" height="23" />
@@ -35,7 +36,7 @@
                 <LuaOptionsModal
                     id="game-options"
                     v-model="gameOptionsOpen"
-                    v-model:luaOptions="battle.battleOptions.gameOptions"
+                    :luaOptions="battle.battleOptions.gameOptions"
                     :title="`Game Options - ${battle.battleOptions.gameVersion}`"
                     :sections="gameOptions"
                     height="700px"
@@ -54,7 +55,7 @@
 import { Icon } from "@iconify/vue";
 import cog from "@iconify-icons/mdi/cog";
 import { lastInArray } from "jaz-ts-utils";
-import { computed, Ref, ref } from "vue";
+import { computed, Ref, ref, watch } from "vue";
 
 import BattleChat from "@/components/battle/BattleChat.vue";
 import LuaOptionsModal from "@/components/battle/LuaOptionsModal.vue";
@@ -62,17 +63,26 @@ import MapPreview from "@/components/battle/MapPreview.vue";
 import Playerlist from "@/components/battle/Playerlist.vue";
 import Button from "@/components/inputs/Button.vue";
 import Select from "@/components/inputs/Select.vue";
+import { Battle } from "@/model/battle/battle";
 import { LuaOptionSection } from "@/model/lua-options";
 
-const battle = api.session.currentBattle.value;
-
-if (!battle) {
-    throw new Error("Unset battle");
-}
+const props = defineProps<{
+    battle: Battle;
+}>();
 
 const battleTitle = ref("Offline Custom Battle");
 
 const installedMaps = computed(() => Object.values(api.content.maps.installedMaps));
+const selectedMap = ref(props.battle.battleOptions.mapFileName);
+watch(
+    () => props.battle.battleOptions.mapFileName,
+    (mapFileName) => {
+        selectedMap.value = mapFileName;
+    }
+);
+const onMapSelected = (mapFileName: string) => {
+    console.log(mapFileName);
+};
 
 const games = computed(() => api.content.game.installedVersions.map((rapidVersion) => rapidVersion.version.fullString).slice(-10));
 const selectedGame = ref(lastInArray(games.value)!);
@@ -80,7 +90,7 @@ const selectedGame = ref(lastInArray(games.value)!);
 const gameOptionsOpen = ref(false);
 const gameOptions: Ref<LuaOptionSection[]> = ref([]);
 const openGameOptions = async () => {
-    gameOptions.value = await api.content.game.getGameOptions(battle.battleOptions.gameVersion);
+    gameOptions.value = await api.content.game.getGameOptions(props.battle.battleOptions.gameVersion);
     gameOptionsOpen.value = true;
 };
 
@@ -91,16 +101,12 @@ const leave = () => {
     // TODO
 };
 const start = async () => {
-    api.game.launch(battle);
+    api.game.launch(props.battle);
 };
 </script>
 
 <style lang="scss" scoped>
 .battle {
-    &__right {
-        min-width: 500px;
-        max-width: 500px;
-    }
     &__panel {
         background: rgba(0, 0, 0, 0.3);
         border: 1px solid rgba(255, 255, 255, 0.1);

@@ -28,16 +28,16 @@ import { computed, Ref, ref, toRef } from "vue";
 import LuaOptionsModal from "@/components/battle/LuaOptionsModal.vue";
 import ContextMenu, { ContextMenuEntry } from "@/components/common/ContextMenu.vue";
 import Flag from "@/components/misc/Flag.vue";
+import { Battle } from "@/model/battle/battle";
 import { Bot, Player, Spectator } from "@/model/battle/participants";
 import { LuaOptionSection } from "@/model/lua-options";
 
 const props = defineProps<{
+    battle: Battle;
     participant: Player | Bot | Spectator;
 }>();
 
 const participant = toRef(props, "participant");
-
-const battle = api.session.currentBattle;
 
 const user = computed(() => {
     if ("userId" in props.participant) {
@@ -84,14 +84,14 @@ const reportPlayer = (player: Player) => {
 };
 
 const kickAi = (bot: Bot) => {
-    battle.removeParticipant(bot);
+    //battle.removeParticipant(bot);
 };
 
 const configureAi = async (bot: Bot) => {
-    await api.content.ai.processAis(battle.battleOptions.engineVersion);
+    await api.content.ai.processAis(props.battle.battleOptions.engineVersion);
 
     if (aiOptions.value.length === 0) {
-        const ai = api.content.ai.getAis(battle.battleOptions.engineVersion)!.find((ai) => ai.shortName === bot.aiShortName)!;
+        const ai = api.content.ai.getAis(props.battle.battleOptions.engineVersion)!.find((ai) => ai.shortName === bot.aiShortName)!;
         aiOptions.value = ai.options;
     }
 

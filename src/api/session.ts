@@ -1,5 +1,5 @@
 import { objectKeys } from "jaz-ts-utils";
-import { computed, ComputedRef, reactive, Ref, ref } from "vue";
+import { reactive, Ref, ref } from "vue";
 
 import { Battle } from "@/model/battle/battle";
 import { BattleOptions } from "@/model/battle/types";
@@ -9,8 +9,7 @@ export class SessionAPI {
     public readonly offlineMode: Ref<boolean>;
     public readonly currentUser: CurrentUser;
     public readonly users: Map<number, User>;
-    public readonly currentBattle: ComputedRef<Battle | null>;
-    public readonly battles: Map<number, Battle>;
+    public readonly currentBattle: Battle;
 
     constructor() {
         this.offlineMode = ref(true);
@@ -42,26 +41,9 @@ export class SessionAPI {
 
         this.users = reactive(new Map<number, User>([[this.currentUser.userId, this.currentUser]]));
 
-        this.battles = reactive(new Map<number, Battle>([]));
-
-        this.battles.set(
-            -1,
-            new Battle({
-                battleOptions: {} as BattleOptions,
-                participants: [],
-            })
-        );
-
-        this.currentBattle = computed(() => {
-            if (!this.currentUser.battleStatus.inBattle) {
-                return null;
-            }
-            const battle = this.battles.get(this.currentUser.battleStatus.battleId);
-            if (battle) {
-                return battle;
-            }
-            console.warn(`Battle not found: ${this.currentUser.battleStatus.battleId}`);
-            return null;
+        this.currentBattle = new Battle({
+            battleOptions: {} as BattleOptions,
+            participants: [],
         });
     }
 
@@ -89,9 +71,5 @@ export class SessionAPI {
         }
 
         return this.users.get(userId);
-    }
-
-    public getUsersArray() {
-        return Array.from(this.users);
     }
 }

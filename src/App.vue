@@ -34,7 +34,7 @@
 <script lang="ts" setup>
 import { lastInArray } from "jaz-ts-utils";
 import * as path from "path";
-import { Ref, TransitionProps } from "vue";
+import { Ref } from "vue";
 import { ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 
@@ -60,45 +60,10 @@ const state: Ref<"intro" | "preloader" | "initial-setup" | "default"> = ref(api.
 const empty = ref(false);
 const blurBg = ref(true);
 
-const currentTransition: Ref<TransitionProps> = ref({});
-const nextTransition: Ref<TransitionProps> = ref({});
-const transitionDurationEnterMs = ref(0);
-const transitionDurationLeaveMs = ref(0);
-
 router.afterEach(async (to, from) => {
-    currentTransition.value = route.redirectedFrom?.meta.transition ?? from?.meta?.transition ?? {};
-    nextTransition.value = to?.meta?.transition ?? {};
-
-    setTransitionDuration(currentTransition.value);
-
     empty.value = route?.meta?.empty ?? false;
     blurBg.value = route?.meta?.blurBg ?? blurBg.value;
 });
-
-const transitionAfterLeave = () => {
-    currentTransition.value = nextTransition.value;
-
-    setTransitionDuration(currentTransition.value);
-};
-
-const transitionEnter = () => {
-    routeKey.value = route.name?.toString() ?? "";
-};
-
-const setTransitionDuration = (transition: TransitionProps) => {
-    if (transition.duration) {
-        if (typeof transition.duration === "number") {
-            transitionDurationEnterMs.value = transition.duration;
-            transitionDurationLeaveMs.value = transition.duration;
-        } else {
-            transitionDurationEnterMs.value = transition.duration.enter;
-            transitionDurationLeaveMs.value = transition.duration.leave;
-        }
-    } else {
-        transitionDurationEnterMs.value = 100;
-        transitionDurationLeaveMs.value = 100;
-    }
-};
 
 const onIntroEnd = () => {
     state.value = "preloader";

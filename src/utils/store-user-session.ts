@@ -22,7 +22,7 @@ export function storeUserSession(user?: Static<typeof myUserSchema>) {
         battleStatus: {
             away: false,
             battleId: -1,
-            inGame: false,
+            inBattle: false,
             color: "",
             playerId: 0,
             teamId: 0,
@@ -30,4 +30,6 @@ export function storeUserSession(user?: Static<typeof myUserSchema>) {
             spectator: true,
         },
     });
+
+    api.session.offlineMode.value = false;
 }
