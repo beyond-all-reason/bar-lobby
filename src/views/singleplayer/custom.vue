@@ -3,15 +3,13 @@
 </route>
 
 <template>
-    <BattleComponent :battle="battle" />
+    <BattleComponent v-if="battle" :battle="battle" />
 </template>
 
 <script lang="ts" setup>
 import BattleComponent from "@/components/battle/BattleComponent.vue";
-import { defaultBattle } from "@/config/default-battle";
 
-const battle = api.session.currentBattle;
-battle.set(defaultBattle());
+const battle = api.session.offlineBattle;
 </script>
 
 <style lang="scss" scoped></style>

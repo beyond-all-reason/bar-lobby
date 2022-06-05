@@ -1,15 +1,16 @@
 import { objectKeys } from "jaz-ts-utils";
 import { reactive, Ref, ref } from "vue";
 
-import { Battle } from "@/model/battle/battle";
-import { BattleOptions } from "@/model/battle/types";
+import { OfflineBattle } from "@/model/battle/offline-battle";
+import { TachyonSpadsBattle } from "@/model/battle/tachyon-spads-battle";
 import { CurrentUser, User } from "@/model/user";
 
 export class SessionAPI {
     public readonly offlineMode: Ref<boolean>;
     public readonly currentUser: CurrentUser;
     public readonly users: Map<number, User>;
-    public readonly currentBattle: Battle;
+    public offlineBattle: OfflineBattle | null;
+    public currentBattle: TachyonSpadsBattle | null;
 
     constructor() {
         this.offlineMode = ref(true);
@@ -41,10 +42,8 @@ export class SessionAPI {
 
         this.users = reactive(new Map<number, User>([[this.currentUser.userId, this.currentUser]]));
 
-        this.currentBattle = new Battle({
-            battleOptions: {} as BattleOptions,
-            participants: [],
-        });
+        this.offlineBattle = null;
+        this.currentBattle = null;
     }
 
     public setCurrentUser(userConfig: CurrentUser) {

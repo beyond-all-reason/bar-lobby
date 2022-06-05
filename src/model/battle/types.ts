@@ -1,7 +1,6 @@
 import { EngineVersionFormat, GameVersionFormat } from "@/model/formats";
 
 export type BattleOptions = {
-    offline: boolean;
     id: number;
     engineVersion: EngineVersionFormat;
     gameVersion: GameVersionFormat;

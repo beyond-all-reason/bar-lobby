@@ -68,11 +68,11 @@ import { Ref, ref } from "vue";
 import Participant from "@/components/battle/Participant.vue";
 import Button from "@/components/inputs/Button.vue";
 import { aiNames } from "@/config/ai-names";
-import { Battle } from "@/model/battle/battle";
+import { AbstractBattle } from "@/model/battle/abstract-battle";
 import { Bot, Player, Spectator } from "@/model/battle/participants";
 
 const props = defineProps<{
-    battle: Battle;
+    battle: AbstractBattle;
 }>();
 
 const addBot = (teamId: number) => {

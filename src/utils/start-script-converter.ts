@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { assign } from "jaz-ts-utils";
 
-import { Battle } from "@/model/battle/battle";
+import { AbstractBattle } from "@/model/battle/abstract-battle";
 import { StartPosType } from "@/model/battle/types";
 import type { StartScriptTypes } from "@/model/start-script";
 
@@ -13,7 +13,7 @@ import type { StartScriptTypes } from "@/model/start-script";
  * - parse and convert restrictions
  */
 export class StartScriptConverter {
-    public generateScriptStr(battle: Battle): string {
+    public generateScriptStr(battle: AbstractBattle): string {
         const script = this.battleToStartScript(battle);
         const scriptStr = this.generateScriptString(script);
         return scriptStr;
@@ -27,7 +27,7 @@ export class StartScriptConverter {
         return obj;
     }
 
-    protected battleToStartScript(battle: Battle): StartScriptTypes.Game {
+    protected battleToStartScript(battle: AbstractBattle): StartScriptTypes.Game {
         const allyTeams: StartScriptTypes.AllyTeam[] = [];
         const teams: StartScriptTypes.Team[] = [];
         const players: StartScriptTypes.Player[] = [];

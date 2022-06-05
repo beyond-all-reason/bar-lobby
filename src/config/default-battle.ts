@@ -3,16 +3,15 @@ import { lastInArray, randomFromArray } from "jaz-ts-utils";
 import { aiNames } from "@/config/ai-names";
 import { defaultBoxes, defaultMapBoxes } from "@/config/default-boxes";
 import { defaultMaps } from "@/config/default-maps";
-import { Battle } from "@/model/battle/battle";
+import { OfflineBattle } from "@/model/battle/offline-battle";
 import { StartPosType } from "@/model/battle/types";
 
-export const defaultBattle: () => Battle = () => {
+export const defaultBattle: () => OfflineBattle = () => {
     const myUserId = api.session?.currentUser?.userId ?? -1;
     const map = randomFromArray(defaultMaps)!;
 
-    return new Battle({
+    return new OfflineBattle({
         battleOptions: {
-            offline: true,
             id: -1,
             engineVersion: lastInArray(api.content.engine.installedVersions)!,
             gameVersion: lastInArray(api.content.game.installedVersions)!.version.fullString,

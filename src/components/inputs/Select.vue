@@ -19,7 +19,6 @@
 </template>
 
 <script lang="ts">
-// use normal <script> to declare options
 export default {
     inheritAttrs: false,
 };
@@ -28,13 +27,14 @@ export default {
 <script lang="ts" setup>
 // https://iendeavor.github.io/vue-next-select/api-reference.html
 
+import { SetOptional } from "type-fest";
 import { v4 as uuidv4 } from "uuid";
 import { Ref, ref } from "vue";
 import VueNextSelect from "vue-next-select";
 
 type VueNextSelectProps = InstanceType<typeof VueNextSelect>["$props"];
 
-interface Props extends VueNextSelectProps {
+interface Props extends SetOptional<VueNextSelectProps, "modelValue"> {
     label?: string;
     smallLabel?: boolean;
     disabled?: boolean;
@@ -42,10 +42,6 @@ interface Props extends VueNextSelectProps {
 }
 
 const props = defineProps<Props>();
-
-// const emits = defineEmits<{
-//     (event: "cdhange", value: unknown): void,
-// }>();
 
 const vueSelect: Ref<InstanceType<typeof VueNextSelect> | null> = ref(null);
 const uuid = ref(uuidv4());

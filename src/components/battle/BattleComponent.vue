@@ -5,7 +5,7 @@
                 <h1>{{ battleTitle }}</h1>
                 <Playerlist :battle="battle" />
             </div>
-            <div v-if="!battle.battleOptions.offline">
+            <div v-if="!isOfflineBattle">
                 <BattleChat />
             </div>
         </div>
@@ -29,7 +29,7 @@
                 </Button>
             </div>
             <div class="flex-row gap-md">
-                <Select v-model="selectedGame" label="Game" :options="games" closeOnSelect clearOnSelect searchable :disabled="!battle.battleOptions.offline" fullWidth />
+                <Select v-model="selectedGame" label="Game" :options="games" closeOnSelect clearOnSelect searchable :disabled="!isOfflineBattle" fullWidth />
                 <Button :flexGrow="false" @click="openGameOptions">
                     <Icon :icon="cog" height="23" />
                 </Button>
@@ -42,7 +42,7 @@
                     height="700px"
                 />
             </div>
-            <Select v-model="selectedEngine" label="Engine" :options="engines" closeOnSelect clearOnSelect searchable :disabled="!battle.battleOptions.offline" fullWidth />
+            <Select v-model="selectedEngine" label="Engine" :options="engines" closeOnSelect clearOnSelect searchable :disabled="!isOfflineBattle" fullWidth />
             <div class="flex-row flex-bottom gap-md">
                 <Button class="btn--red" fullwidth @click="leave"> Leave </Button>
                 <Button class="btn--green" fullwidth @click="start"> Start </Button>
@@ -63,12 +63,15 @@ import MapPreview from "@/components/battle/MapPreview.vue";
 import Playerlist from "@/components/battle/Playerlist.vue";
 import Button from "@/components/inputs/Button.vue";
 import Select from "@/components/inputs/Select.vue";
-import { Battle } from "@/model/battle/battle";
+import { AbstractBattle } from "@/model/battle/abstract-battle";
+import { OfflineBattle } from "@/model/battle/offline-battle";
 import { LuaOptionSection } from "@/model/lua-options";
 
 const props = defineProps<{
-    battle: Battle;
+    battle: AbstractBattle;
 }>();
+
+const isOfflineBattle = props.battle instanceof OfflineBattle;
 
 const battleTitle = ref("Offline Custom Battle");
 
@@ -81,7 +84,7 @@ watch(
     }
 );
 const onMapSelected = (mapFileName: string) => {
-    console.log(mapFileName);
+    props.battle.changeMap(mapFileName);
 };
 
 const games = computed(() => api.content.game.installedVersions.map((rapidVersion) => rapidVersion.version.fullString).slice(-10));

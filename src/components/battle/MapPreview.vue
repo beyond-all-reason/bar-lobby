@@ -34,13 +34,13 @@ import Button from "@/components/inputs/Button.vue";
 import Option from "@/components/inputs/Option.vue";
 import Options from "@/components/inputs/Options.vue";
 import { defaultBoxes } from "@/config/default-boxes";
-import { Battle } from "@/model/battle/battle";
+import { AbstractBattle } from "@/model/battle/abstract-battle";
 import { StartBox, StartPosType } from "@/model/battle/types";
 
 type Transform = { x: number; y: number; width: number; height: number };
 
 const props = defineProps<{
-    battle: Battle;
+    battle: AbstractBattle;
 }>();
 
 const startPosType = ref(props.battle.battleOptions.startPosType);

@@ -28,12 +28,12 @@ import { computed, Ref, ref, toRef } from "vue";
 import LuaOptionsModal from "@/components/battle/LuaOptionsModal.vue";
 import ContextMenu, { ContextMenuEntry } from "@/components/common/ContextMenu.vue";
 import Flag from "@/components/misc/Flag.vue";
-import { Battle } from "@/model/battle/battle";
+import { AbstractBattle } from "@/model/battle/abstract-battle";
 import { Bot, Player, Spectator } from "@/model/battle/participants";
 import { LuaOptionSection } from "@/model/lua-options";
 
 const props = defineProps<{
-    battle: Battle;
+    battle: AbstractBattle;
     participant: Player | Bot | Spectator;
 }>();
 

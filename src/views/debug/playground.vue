@@ -4,7 +4,13 @@
 
 <template>
     <div>
-        <!-- <Select :value="thing" :options="['red', 'blue', 'yellow']" @update:modelValue="test" /> -->
+        <Select :value="thing" :options="['red', 'blue', 'yellow']" @update:model-value="test" />
+
+        <select>
+            <option value="red">Red</option>
+            <option value="blue">Blue</option>
+            <option value="yellow">Yellow</option>
+        </select>
 
         {{ thing }}
     </div>
@@ -13,10 +19,12 @@
 <script lang="ts" setup>
 import { ref } from "vue";
 
+import Select from "@/components/inputs/Select.vue";
+
 const thing = ref("red");
 
 const test = (a: any, b: any) => {
-    console.log(thing.value);
+    console.log(a, thing.value);
 };
 </script>
 

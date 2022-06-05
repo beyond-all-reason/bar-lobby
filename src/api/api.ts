@@ -13,6 +13,7 @@ import { GameAPI } from "@/api/game";
 import { SessionAPI } from "@/api/session";
 import { StoreAPI } from "@/api/store";
 import { UtilsAPI } from "@/api/utils";
+import { defaultBattle } from "@/config/default-battle";
 import { serverConfig } from "@/config/server";
 import type { Account } from "@/model/account";
 import { accountSchema } from "@/model/account";
@@ -49,6 +50,12 @@ export async function apiInit() {
     api.router = createRouter({
         history: createWebHashHistory(),
         routes: routes,
+    });
+
+    api.router.beforeEach(async (to, from) => {
+        if (to.path === "/singleplayer/custom") {
+            api.session.offlineBattle = defaultBattle();
+        }
     });
 
     api.utils = new UtilsAPI();
