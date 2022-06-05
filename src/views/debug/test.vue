@@ -12,7 +12,6 @@
 import { delay } from "jaz-ts-utils";
 import { ref } from "vue";
 
-
 const stuff = ref("blue");
 
 await delay(4000);
