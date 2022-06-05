@@ -9,19 +9,17 @@
                 <BattleChat />
             </div>
         </div>
-        <div class="gap-md">
+        <div class="flex-col gap-md">
             <MapPreview :battle="battle" />
             <div class="flex-row gap-md">
-                <Select
-                    v-model="selectedMap"
-                    label="Map"
+                <Select2
+                    :value="currentMapName"
                     :options="installedMaps"
-                    :labelBy="(map: any) => map.friendlyName"
-                    :valueBy="(map: any) => map.fileNameWithExt"
-                    closeOnSelect
-                    clearOnSelect
-                    searchable
-                    fullWidth
+                    label="Map"
+                    optionLabel="friendlyName"
+                    optionValue="fileNameWithExt"
+                    :filter="true"
+                    :placeholder="currentMapData?.friendlyName"
                     @update:model-value="onMapSelected"
                 />
                 <Button :flexGrow="false">
@@ -63,6 +61,7 @@ import MapPreview from "@/components/battle/MapPreview.vue";
 import Playerlist from "@/components/battle/Playerlist.vue";
 import Button from "@/components/inputs/Button.vue";
 import Select from "@/components/inputs/Select.vue";
+import Select2 from "@/components/inputs/Select2.vue";
 import { AbstractBattle } from "@/model/battle/abstract-battle";
 import { OfflineBattle } from "@/model/battle/offline-battle";
 import { LuaOptionSection } from "@/model/lua-options";
@@ -76,11 +75,12 @@ const isOfflineBattle = props.battle instanceof OfflineBattle;
 const battleTitle = ref("Offline Custom Battle");
 
 const installedMaps = computed(() => Object.values(api.content.maps.installedMaps));
-const selectedMap = ref(props.battle.battleOptions.mapFileName);
+const currentMapName = ref(props.battle.battleOptions.mapFileName);
+const currentMapData = computed(() => installedMaps.value.find((map) => map?.fileNameWithExt === currentMapName.value));
 watch(
     () => props.battle.battleOptions.mapFileName,
     (mapFileName) => {
-        selectedMap.value = mapFileName;
+        currentMapName.value = mapFileName;
     }
 );
 const onMapSelected = (mapFileName: string) => {

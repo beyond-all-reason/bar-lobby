@@ -1,6 +1,6 @@
 <template>
     <div class="map-preview">
-        <canvas id="yep" ref="canvas" class="map-preview__canvas" />
+        <canvas ref="canvas" class="map-preview__canvas" />
         <div class="map-preview__actions">
             <div class="map-preview__start-pos-type">
                 <Options v-model="startPosType" label="Start Pos" required>
@@ -28,7 +28,7 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, onMounted, Ref, ref, watch } from "vue";
+import { computed, onMounted, Ref, ref, toRaw, watch } from "vue";
 
 import Button from "@/components/inputs/Button.vue";
 import Option from "@/components/inputs/Option.vue";
@@ -49,8 +49,9 @@ const canvas: Ref<HTMLCanvasElement | null> = ref(null);
 let context: CanvasRenderingContext2D;
 let textureMap: HTMLImageElement;
 let mapTransform: Transform;
+let currentMap = toRaw(props.battle.battleOptions.mapFileName);
 
-const map = computed(() => api.content.maps.getMapByFileName(props.battle.battleOptions.mapFileName));
+const mapData = computed(() => api.content.maps.getMapByFileName(props.battle.battleOptions.mapFileName));
 
 const startPosOptions: Array<{ label: string; value: StartPosType }> = [
     { label: "Fixed", value: StartPosType.Fixed },
@@ -89,15 +90,15 @@ async function loadMap() {
 
     mapTransform = { x: 0, y: 0, width: canvas.value.width, height: canvas.value.height };
 
-    if (!map.value || !map.value.textureImagePath) {
+    if (!mapData.value || !mapData.value.textureImagePath) {
         // eslint-disable-next-line @typescript-eslint/no-var-requires
         const defaultImage = require("@/assets/images/default-minimap.png");
         textureMap = await loadImage(defaultImage, false);
 
         mapTransform.width = textureMap.width;
         mapTransform.height = textureMap.height;
-    } else if (map.value?.fileNameWithExt !== props.battle.battleOptions.mapFileName || !textureMap) {
-        textureMap = await loadImage(map.value.textureImagePath);
+    } else if (props.battle.battleOptions.mapFileName !== currentMap || !textureMap) {
+        textureMap = await loadImage(mapData.value.textureImagePath);
 
         const widthToHeightRatio = textureMap.width / textureMap.height;
         if (widthToHeightRatio > 1) {
@@ -111,6 +112,8 @@ async function loadMap() {
 
         mapTransform = roundTransform(mapTransform);
     }
+
+    currentMap = props.battle.battleOptions.mapFileName;
 
     context.clearRect(0, 0, canvas.value.width, canvas.value.height);
 
@@ -128,10 +131,10 @@ function drawStartPosType() {
 }
 
 function drawFixedPositions() {
-    if (map.value?.startPositions) {
-        for (const startPos of map.value.startPositions) {
-            const xPos = mapTransform.x + mapTransform.width * (startPos.x / (map.value.width * 512));
-            const yPos = mapTransform.y + mapTransform.height * (startPos.z / (map.value.height * 512));
+    if (mapData.value?.startPositions) {
+        for (const startPos of mapData.value.startPositions) {
+            const xPos = mapTransform.x + mapTransform.width * (startPos.x / (mapData.value.width * 512));
+            const yPos = mapTransform.y + mapTransform.height * (startPos.z / (mapData.value.height * 512));
 
             context.fillStyle = "rgba(255, 255, 255, 0.6)";
             context.beginPath();
@@ -194,6 +197,7 @@ function roundTransform(transform: Transform) {
         aspect-ratio: 1;
     }
     &__actions {
+        display: flex;
         position: absolute;
         width: 100%;
         left: 0;
@@ -205,6 +209,7 @@ function roundTransform(transform: Transform) {
         transition: opacity 0.1s;
     }
     &__box-actions {
+        display: flex;
         flex-direction: row;
         gap: 2px;
         :deep(.btn) {

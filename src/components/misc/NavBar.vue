@@ -107,6 +107,7 @@ const lobbyVersion = `${api.info.lobby.name} v${api.info.lobby.version}`;
         background-image: url("~@/assets/images/squares.png");
     }
     &__logo {
+        flex-direction: column;
         flex-grow: 0;
         display: flex;
         justify-content: center;

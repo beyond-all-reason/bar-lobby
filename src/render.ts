@@ -1,7 +1,10 @@
 import "vue-next-select/dist/index.css";
 import "vue-slider-component/theme/default.css";
 import "@/assets/styles/styles.scss";
+import "primevue/resources/primevue.min.css";
 
+//import "primevue/resources/themes/saga-blue/theme.css";
+import PrimeVue from "primevue/config";
 import type { TransitionProps } from "vue";
 import { createApp } from "vue";
 
@@ -65,6 +68,8 @@ async function setupVue() {
     const app = createApp(App);
 
     app.use(api.router);
+
+    app.use(PrimeVue);
 
     app.directive("click-away", clickAwayDirective);
     app.mount("#app");

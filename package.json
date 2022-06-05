@@ -72,5 +72,8 @@
     "vue3-markdown-it": "^1.0.9",
     "vue3-popper": "^1.4.1",
     "worker-plugin": "^5.0.1"
+  },
+  "dependencies": {
+    "primevue": "^3.12.6"
   }
 }

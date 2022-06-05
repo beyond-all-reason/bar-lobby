@@ -79,8 +79,13 @@ watch(open, (open) => {
 
 const onSubmit = async () => {
     const data: Record<string, unknown> = {};
+
+    if (!form.value?.elements) {
+        return;
+    }
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const fields = Array.from(form.value?.elements!) as any;
+    const fields = Array.from(form.value.elements) as any;
     for (const field of fields) {
         if (field.name !== undefined && field.value !== undefined) {
             data[field.name] = field.value;
@@ -120,6 +125,7 @@ const sound = () => api.audio.getSound("button-hover").play();
         font-weight: 600;
     }
     &__close {
+        display: flex;
         margin-left: auto;
         padding: 5px 10px;
         &:hover {

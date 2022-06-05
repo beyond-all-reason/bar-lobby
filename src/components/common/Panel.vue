@@ -188,6 +188,7 @@ const nextTab = () => {
         flex-wrap: wrap;
         & > * {
             display: flex;
+            flex-direction: column;
             flex-grow: 1;
         }
         :deep(.btn) {

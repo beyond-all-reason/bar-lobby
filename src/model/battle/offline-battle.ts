@@ -7,6 +7,7 @@ import { StartBox, StartPosType } from "@/model/battle/types";
 export class OfflineBattle extends AbstractBattle {
     public changeMap(map: string) {
         console.log(`Offline Changing map to ${map}`);
+        this.battleOptions.mapFileName = map;
     }
 
     // protected fixIds() {

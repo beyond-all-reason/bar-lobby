@@ -110,4 +110,8 @@ const onDownArrow = () => {
 };
 </script>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+.textbox {
+    align-items: center;
+}
+</style>

@@ -71,6 +71,8 @@ const sound = () => api.audio.getSound("button-hover").play();
         }
     }
     .icon {
+        display: flex;
+        flex-direction: column;
         &.hasLabel:after {
             position: absolute;
             content: "";
