@@ -55,6 +55,8 @@ export async function apiInit() {
     api.router.beforeEach(async (to, from) => {
         if (to.path === "/singleplayer/custom") {
             api.session.offlineBattle = defaultBattle();
+        } else if (from.path === "/singleplayer/custom") {
+            api.session.offlineBattle = null;
         }
     });
 

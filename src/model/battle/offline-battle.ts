@@ -1,13 +1,17 @@
-import { clone } from "jaz-ts-utils";
-
-import { defaultMapBoxes } from "@/config/default-boxes";
 import { AbstractBattle } from "@/model/battle/abstract-battle";
-import { StartBox, StartPosType } from "@/model/battle/types";
+import { Bot, Player, Spectator } from "@/model/battle/participants";
 
 export class OfflineBattle extends AbstractBattle {
     public changeMap(map: string) {
         console.log(`Offline Changing map to ${map}`);
         this.battleOptions.mapFileName = map;
+    }
+
+    public updateParticipant(name: string, updatedProperties: Partial<Player | Bot | Spectator>) {
+        const participant = this.getParticipantByName(name);
+        if (participant) {
+            Object.assign(participant, updatedProperties);
+        }
     }
 
     // protected fixIds() {
@@ -34,18 +38,18 @@ export class OfflineBattle extends AbstractBattle {
     //     }
     // }
 
-    protected setBoxes(mapFileName: string) {
-        if (this.battleOptions.startPosType === StartPosType.Boxes) {
-            const boxes: StartBox[] | undefined = clone(defaultMapBoxes()[mapFileName]);
-            if (boxes) {
-                this.battleOptions.startBoxes[0] = boxes[0];
-                this.battleOptions.startBoxes[1] = boxes[1];
-            } else {
-                this.battleOptions.startBoxes[0] = { xPercent: 0, yPercent: 0, widthPercent: 0.25, heightPercent: 1 };
-                this.battleOptions.startBoxes[1] = { xPercent: 0.75, yPercent: 0, widthPercent: 0.25, heightPercent: 1 };
-            }
-        }
-    }
+    // protected setBoxes(mapFileName: string) {
+    //     if (this.battleOptions.startPosType === StartPosType.Boxes) {
+    //         const boxes: StartBox[] | undefined = clone(defaultMapBoxes()[mapFileName]);
+    //         if (boxes) {
+    //             this.battleOptions.startBoxes[0] = boxes[0];
+    //             this.battleOptions.startBoxes[1] = boxes[1];
+    //         } else {
+    //             this.battleOptions.startBoxes[0] = { xPercent: 0, yPercent: 0, widthPercent: 0.25, heightPercent: 1 };
+    //             this.battleOptions.startBoxes[1] = { xPercent: 0.75, yPercent: 0, widthPercent: 0.25, heightPercent: 1 };
+    //         }
+    //     }
+    // }
 
     // protected configureTeams(teamPreset: TeamPreset) {
     //     if (teamPreset === TeamPreset.Standard) {

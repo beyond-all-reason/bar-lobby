@@ -9,7 +9,7 @@
 <script lang="ts" setup>
 import BattleComponent from "@/components/battle/BattleComponent.vue";
 
-const battle = api.session.currentBattle;
+const battle = api.session.onlineBattle;
 </script>
 
 <style lang="scss" scoped></style>

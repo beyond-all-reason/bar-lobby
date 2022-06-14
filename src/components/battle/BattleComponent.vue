@@ -38,6 +38,7 @@
                     :title="`Game Options - ${battle.battleOptions.gameVersion}`"
                     :sections="gameOptions"
                     height="700px"
+                    @set-option="setGameOption"
                 />
             </div>
             <Select v-model="selectedEngine" label="Engine" :options="engines" closeOnSelect clearOnSelect searchable :disabled="!isOfflineBattle" fullWidth />
@@ -72,7 +73,7 @@ const props = defineProps<{
 
 const isOfflineBattle = props.battle instanceof OfflineBattle;
 
-const battleTitle = ref("Offline Custom Battle");
+const battleTitle = ref(isOfflineBattle ? "Offline Custom Battle" : "Online Custom Battle");
 
 const installedMaps = computed(() => Object.values(api.content.maps.installedMaps));
 const currentMapName = ref(props.battle.battleOptions.mapFileName);
@@ -95,6 +96,9 @@ const gameOptions: Ref<LuaOptionSection[]> = ref([]);
 const openGameOptions = async () => {
     gameOptions.value = await api.content.game.getGameOptions(props.battle.battleOptions.gameVersion);
     gameOptionsOpen.value = true;
+};
+const setGameOption = (key: string, value: any) => {
+    console.log(key, value);
 };
 
 const engines = computed(() => api.content.engine.installedVersions);

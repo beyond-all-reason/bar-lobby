@@ -1,5 +1,5 @@
 <template>
-    <div ref="test" class="p-inputgroup" @mouseenter="onMouseEnter">
+    <div ref="control" class="control" @mouseenter="onMouseEnter">
         <div v-if="label" class="label" @click="focus">{{ label }}</div>
         <slot />
     </div>
@@ -13,11 +13,11 @@ const props = defineProps<{
     disabled?: boolean;
 }>();
 
-const test: Ref<HTMLElement | null> = ref(null);
+const control: Ref<HTMLElement | null> = ref(null);
 
 const focus = () => {
-    if (test.value) {
-        const slotEl = test.value.querySelector(".label + *") as HTMLElement;
+    if (control.value) {
+        const slotEl = control.value.querySelector(".label + *") as HTMLElement;
         slotEl.click();
     }
 };
@@ -28,7 +28,7 @@ const onMouseEnter = () => {
 </script>
 
 <style lang="scss" scoped>
-.p-inputgroup {
+.control {
     display: flex;
     align-items: center;
     background-color: rgba(255, 255, 255, 0.1);

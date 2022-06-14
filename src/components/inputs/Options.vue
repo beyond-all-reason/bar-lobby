@@ -77,6 +77,7 @@ provide("toggleOption", (optionValue: unknown) => {
         }
     }
     &__label {
+        display: flex;
         padding: 3px 7px;
         justify-content: center;
         align-items: center;

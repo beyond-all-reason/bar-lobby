@@ -37,5 +37,22 @@ export abstract class AbstractBattle implements BattleConfig {
         return this.contenders.value.filter((contender) => contender.teamId === teamId);
     }
 
+    public getParticipantByName(name: string) {
+        return this.participants.find((participant) => {
+            const isBot = participant.type === "bot";
+            if (isBot) {
+                if (participant.name === name) {
+                    return true;
+                }
+            } else {
+                if (api.session.getUserById(participant.userId)?.username === name) {
+                    return true;
+                }
+            }
+            return false;
+        });
+    }
+
     public abstract changeMap(map: string): void;
+    public abstract updateParticipant(name: string, updatedProperties: Partial<Player | Bot | Spectator>): void;
 }

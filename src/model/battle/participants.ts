@@ -3,7 +3,7 @@ import { Faction } from "@/model/battle/types";
 export type BattleUser = { userId: number };
 
 export type Contender = {
-    id: number;
+    playerId: number;
     teamId: number;
     startPos?: { x: number; z: number };
     handicap?: number;

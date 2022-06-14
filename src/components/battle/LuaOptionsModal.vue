@@ -61,17 +61,15 @@ const props = defineProps<{
 const optionsObj = toRef(props, "luaOptions");
 
 const emits = defineEmits<{
-    (event: "update:luaOptions", config: Record<string, unknown>): void;
+    (event: "setOption", optionKey: string, optionValue: unknown): void;
 }>();
 
 const setOptionValue = (option: LuaOptionNumber | LuaOptionBoolean | LuaOptionString | LuaOptionList, value: unknown) => {
     if (value === option.default) {
-        delete optionsObj.value[option.key];
+        emits("setOption", option.key, undefined);
     } else {
-        optionsObj.value[option.key] = value;
+        emits("setOption", option.key, value);
     }
-    console.log(optionsObj.value);
-    emits("update:luaOptions", optionsObj.value);
 };
 </script>
 

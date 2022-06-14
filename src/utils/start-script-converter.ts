@@ -55,7 +55,7 @@ export class StartScriptConverter {
                             startrectbottom: box.yPercent + box.heightPercent,
                         });
                     } else {
-                        console.warn(`Contender ${contenderConfig.id} has a teamId of ${contenderConfig.teamId} but no start box was defined for that team`);
+                        console.warn(`Contender ${contenderConfig.playerId} has a teamId of ${contenderConfig.teamId} but no start box was defined for that team`);
                     }
                 }
 

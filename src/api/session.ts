@@ -10,7 +10,7 @@ export class SessionAPI {
     public readonly currentUser: CurrentUser;
     public readonly users: Map<number, User>;
     public offlineBattle: OfflineBattle | null;
-    public currentBattle: TachyonSpadsBattle | null;
+    public onlineBattle: TachyonSpadsBattle | null;
 
     constructor() {
         this.offlineMode = ref(true);
@@ -43,7 +43,7 @@ export class SessionAPI {
         this.users = reactive(new Map<number, User>([[this.currentUser.userId, this.currentUser]]));
 
         this.offlineBattle = null;
-        this.currentBattle = null;
+        this.onlineBattle = null;
     }
 
     public setCurrentUser(userConfig: CurrentUser) {

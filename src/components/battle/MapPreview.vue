@@ -189,6 +189,7 @@ function roundTransform(transform: Transform) {
 
 <style lang="scss" scoped>
 .map-preview {
+    display: flex;
     background: rgba(0, 0, 0, 0.3);
     border: 1px solid rgba(255, 255, 255, 0.1);
     position: relative;

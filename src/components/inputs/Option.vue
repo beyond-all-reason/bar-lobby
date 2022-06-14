@@ -34,6 +34,7 @@ const sound = () => {
 
 <style lang="scss" scoped>
 .option {
+    display: flex;
     position: relative;
     align-items: center;
     justify-content: center;
