@@ -1,5 +1,5 @@
 <template>
-    <Control>
+    <Control class="select">
         <Dropdown v-bind="$attrs" filterPlaceholder="Search" />
     </Control>
 </template>
@@ -11,12 +11,16 @@ import Control from "@/components/inputs/Control.vue";
 </script>
 
 <style lang="scss">
+.select {
+    width: 100%;
+}
 .p-dropdown {
     min-height: 35px;
     display: inline-flex;
     flex-direction: row;
     align-items: center;
     padding: 5px 10px;
+    width: 100%;
 }
 .p-dropdown-panel {
     background: #111;

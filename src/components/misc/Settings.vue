@@ -11,10 +11,10 @@
             <Checkbox v-model="skipIntro" />
 
             <div>Sfx Volume</div>
-            <Range v-model="sfxVolume" :min="0" :max="100" :interval="1" />
+            <Range2 v-model="sfxVolume" :min="0" :max="100" :step="1" />
 
             <div>Music Volume</div>
-            <Range v-model="musicVolume" :min="0" :max="100" :interval="1" />
+            <Range2 v-model="musicVolume" :min="0" :max="100" :step="1" />
         </div>
     </Modal>
 </template>
@@ -24,7 +24,7 @@ import { ref, watch } from "vue";
 
 import Modal from "@/components/common/Modal.vue";
 import Checkbox from "@/components/inputs/Checkbox.vue";
-import Range from "@/components/inputs/Range.vue";
+import Range2 from "@/components/inputs/Range2.vue";
 import Select from "@/components/inputs/Select.vue";
 
 const settings = api.settings.model;

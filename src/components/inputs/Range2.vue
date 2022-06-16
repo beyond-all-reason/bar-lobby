@@ -1,18 +1,14 @@
 <template>
     <Control class="range">
-        <Slider v-bind="$attrs" v-model="internalValue" @update:model-value="onUpdate" />
+        <Slider ref="slider" v-bind="$attrs" v-model="internalValue" @update:model-value="onUpdate" />
+        <InputNumber v-if="!Array.isArray(internalValue)" v-model="internalValue" :max="max" />
     </Control>
 </template>
 
-<script lang="ts">
-export default {
-    inheritAttrs: false,
-};
-</script>
-
 <script lang="ts" setup>
+import InputNumber from "primevue/inputnumber";
 import Slider from "primevue/slider";
-import { ref, watch } from "vue";
+import { computed, onMounted, Ref, ref, watch } from "vue";
 
 import Control from "@/components/inputs/Control.vue";
 
@@ -24,6 +20,16 @@ const props = defineProps<{
 const emits = defineEmits<{
     (event: "update:modelValue", value: number | number[]): void;
 }>();
+
+const slider: Ref<null | Slider["$props"]> = ref(null);
+const max = ref(100);
+const maxInputWidth = computed(() => `${max.value.toString().length}ch`);
+
+onMounted(() => {
+    if (slider.value?.max) {
+        max.value = slider.value?.max;
+    }
+});
 
 const internalValue = ref(props.modelValue ?? props.value);
 if (props.modelValue !== undefined) {
@@ -55,6 +61,8 @@ const onUpdate = (newVal: number | number[]) => {
 <style lang="scss" scoped>
 .range {
     padding: 0 15px;
+    width: 100%;
+    gap: 10px;
 }
 ::v-deep .p-slider {
     width: 100%;
@@ -83,6 +91,22 @@ const onUpdate = (newVal: number | number[]) => {
     &-sliding .p-slider-handle,
     &-handle:hover {
         background-color: #fff;
+    }
+}
+::v-deep .p-inputtext {
+    width: v-bind(maxInputWidth);
+    text-align: center;
+}
+.p-inputwrapper {
+    margin-left: 15px;
+    &:before {
+        position: absolute;
+        height: 100%;
+        width: 1px;
+        content: "";
+        top: 0;
+        margin-left: -10px;
+        background: rgba(255, 255, 255, 0.1);
     }
 }
 </style>
