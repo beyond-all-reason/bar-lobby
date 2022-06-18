@@ -4,7 +4,7 @@
 
 <template>
     <div>
-        <Range2 v-model="thing" />
+        <Range v-model="thing" />
 
         <div>{{ thing }}</div>
     </div>
@@ -13,7 +13,7 @@
 <script lang="ts" setup>
 import { ref } from "vue";
 
-import Range2 from "@/components/inputs/Range2.vue";
+import Range from "@/components/inputs/Range.vue";
 
 const thing = ref(2);
 

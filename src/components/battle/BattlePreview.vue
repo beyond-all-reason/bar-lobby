@@ -177,6 +177,8 @@ const onPasswordPromptSubmit: (data: { password?: string }) => Promise<void> = a
 
 <style lang="scss" scoped>
 .battle-preview {
+    display: flex;
+    flex-direction: column;
     &.tile {
         position: relative;
         z-index: 0;
@@ -191,6 +193,7 @@ const onPasswordPromptSubmit: (data: { password?: string }) => Promise<void> = a
         }
         .header,
         .meta {
+            display: flex;
             flex-direction: row;
             align-items: center;
             justify-content: space-between;
@@ -203,6 +206,7 @@ const onPasswordPromptSubmit: (data: { password?: string }) => Promise<void> = a
             font-size: 16px;
         }
         .title {
+            display: flex;
             flex-direction: row;
             align-items: center;
             gap: 5px;
@@ -221,6 +225,7 @@ const onPasswordPromptSubmit: (data: { password?: string }) => Promise<void> = a
             }
         }
         .clients {
+            display: flex;
             flex-direction: row;
             flex-wrap: wrap;
             gap: 4px;
@@ -239,6 +244,7 @@ const onPasswordPromptSubmit: (data: { password?: string }) => Promise<void> = a
             }
         }
         .client {
+            display: flex;
             flex-direction: row;
             align-items: center;
             gap: 5px;

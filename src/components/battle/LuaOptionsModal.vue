@@ -16,9 +16,8 @@
                                 :modelValue="optionsObj[option.key] ?? option.default"
                                 :min="option.min"
                                 :max="option.max"
-                                :interval="option.step"
-                                trimLabel
-                                @update:model-value="(value) => setOptionValue(option, value)"
+                                :step="option.step"
+                                @update:model-value="(value: any) => setOptionValue(option, value)"
                             />
                             <Checkbox v-if="option.type === 'boolean'" :modelValue="optionsObj[option.key] ?? option.default" @update:model-value="(value) => setOptionValue(option, value)" />
                             <Textbox v-if="option.type === 'string'" :modelValue="optionsObj[option.key] ?? option.default" @update:model-value="(value) => setOptionValue(option, value)" />
@@ -26,9 +25,9 @@
                                 v-if="option.type === 'list'"
                                 :modelValue="optionsObj[option.key] ?? option.default"
                                 :options="option.options"
-                                :labelBy="(option: any) => option.name"
-                                :valueBy="(option: any) => option.key"
-                                @update:model-value="(value) => setOptionValue(option, value)"
+                                optionLabel="name"
+                                optionValue="key"
+                                @update:model-value="(value: any) => setOptionValue(option, value)"
                             />
                         </template>
                     </div>

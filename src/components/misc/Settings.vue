@@ -1,43 +1,47 @@
 <template>
-    <Modal title="settings">
+    <Modal title="settings" @open="onOpen">
         <div class="gridform">
             <div>Fullscreen</div>
             <Checkbox v-model="fullscreen" />
 
             <div>Display</div>
-            <Select v-model="displayIndex" :options="displays" :labelBy="(option: string) => `Display ${option + 1}`" />
+            <Select v-model="displayIndex" :options="displayOptions" optionLabel="label" optionValue="value" />
 
             <div>Skip Intro</div>
             <Checkbox v-model="skipIntro" />
 
             <div>Sfx Volume</div>
-            <Range2 v-model="sfxVolume" :min="0" :max="100" :step="1" />
+            <Range v-model="sfxVolume" :min="0" :max="100" :step="1" />
 
             <div>Music Volume</div>
-            <Range2 v-model="musicVolume" :min="0" :max="100" :step="1" />
+            <Range v-model="musicVolume" :min="0" :max="100" :step="1" />
         </div>
     </Modal>
 </template>
 
 <script lang="ts" setup>
-import { ref, watch } from "vue";
+import { Ref, ref, watch } from "vue";
 
 import Modal from "@/components/common/Modal.vue";
 import Checkbox from "@/components/inputs/Checkbox.vue";
-import Range2 from "@/components/inputs/Range2.vue";
+import Range from "@/components/inputs/Range.vue";
 import Select from "@/components/inputs/Select.vue";
 
 const settings = api.settings.model;
-const displays = ref(
-    Array(api.info.hardware.numOfDisplays)
-        .fill(0)
-        .map((x, i) => i)
-);
+const displayOptions: Ref<Array<{ label: string; value: string }>> = ref([]);
 const { fullscreen, displayIndex, skipIntro, sfxVolume, musicVolume } = api.settings.model;
 
 watch(settings.displayIndex, async () => {
     api.info.hardware.currentDisplayIndex = settings.displayIndex.value;
 });
+
+const onOpen = () => {
+    displayOptions.value = Array(api.info.hardware.numOfDisplays)
+        .fill(0)
+        .map((x, i) => {
+            return { label: `Display ${i + 1}`, value: i.toString() };
+        });
+};
 </script>
 
 <style lang="scss" scoped></style>

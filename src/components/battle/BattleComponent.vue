@@ -12,7 +12,7 @@
         <div class="flex-col gap-md">
             <MapPreview :battle="battle" />
             <div class="flex-row gap-md">
-                <Select2
+                <Select
                     :value="currentMapName"
                     :options="installedMaps"
                     label="Map"
@@ -27,7 +27,7 @@
                 </Button>
             </div>
             <div class="flex-row gap-md">
-                <Select v-model="selectedGame" label="Game" :options="games" closeOnSelect clearOnSelect searchable :disabled="!isOfflineBattle" fullWidth />
+                <Select v-model="selectedGame" label="Game" :options="games" :filter="true" :disabled="!isOfflineBattle" />
                 <Button :flexGrow="false" @click="openGameOptions">
                     <Icon :icon="cog" height="23" />
                 </Button>
@@ -41,7 +41,7 @@
                     @set-option="setGameOption"
                 />
             </div>
-            <Select v-model="selectedEngine" label="Engine" :options="engines" closeOnSelect clearOnSelect searchable :disabled="!isOfflineBattle" fullWidth />
+            <Select v-model="selectedEngine" label="Engine" :options="engines" :filter="true" :disabled="!isOfflineBattle" />
             <div class="flex-row flex-bottom gap-md">
                 <Button class="btn--red" fullwidth @click="leave"> Leave </Button>
                 <Button class="btn--green" fullwidth @click="start"> Start </Button>
@@ -62,7 +62,6 @@ import MapPreview from "@/components/battle/MapPreview.vue";
 import Playerlist from "@/components/battle/Playerlist.vue";
 import Button from "@/components/inputs/Button.vue";
 import Select from "@/components/inputs/Select.vue";
-import Select2 from "@/components/inputs/Select2.vue";
 import { AbstractBattle } from "@/model/battle/abstract-battle";
 import { OfflineBattle } from "@/model/battle/offline-battle";
 import { LuaOptionSection } from "@/model/lua-options";

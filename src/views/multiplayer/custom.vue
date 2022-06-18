@@ -6,8 +6,8 @@
     <div>
         <h1>Multiplayer Custom Battles</h1>
 
-        <div class="battle-list gap-md">
-            <div class="toolbar gap-md">
+        <div class="battle-list">
+            <div class="toolbar">
                 <Checkbox v-model="hidePvE" label="Hide PvE" />
 
                 <Checkbox v-model="hideLocked" label="Hide Locked" />
@@ -151,10 +151,15 @@ async function updateUsers(userIds: number[]) {
 
 <style lang="scss" scoped>
 .battle-list {
+    display: flex;
+    flex-direction: column;
     width: 100%;
+    gap: 10px;
 }
 .toolbar {
+    display: flex;
     flex-direction: row;
+    gap: 10px;
 }
 .filters {
     & > div {

@@ -5,7 +5,7 @@
                 <Icon :icon="tools" :height="20" />
             </Button>
         </div>
-        <Select v-model="currentRoute" label="View" :options="routes" :labelBy="(route: any) => route.path" :valueBy="(route: any) => route.path" fullWidth :searchable="true" :clearOnSelect="true" />
+        <Select2 v-model="currentRoute" label="View" :options="routes" optionLabel="path" optionValue="path" />
         <Button to="/debug/playground" :flexGrow="false" fullWidth> Debug Playground </Button>
         <Button :flexGrow="false" fullWidth @click="openSettings"> Open Settings File </Button>
         <Button :flexGrow="false" fullWidth @click="openLobbyDir"> Open Lobby Dir </Button>
@@ -23,7 +23,7 @@ import { effectScope, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 
 import Button from "@/components/inputs/Button.vue";
-import Select from "@/components/inputs/Select.vue";
+import Select2 from "@/components/inputs/Select.vue";
 
 const scope = effectScope();
 
