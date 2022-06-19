@@ -3,7 +3,7 @@
         <div class="messages">
             <div v-for="(message, i) in messages" :key="i" class="message">
                 <div v-if="message.type === 'chat'" class="author">
-                    {{ message.usedId }}
+                    {{ message.name }}
                 </div>
                 <div class="text">
                     {{ message.text }}
@@ -23,34 +23,45 @@ import { BattleChatMessage } from "@/model/battle/battle-chat";
 const messages: BattleChatMessage[] = reactive([]);
 const myMessage = ref("");
 
-messages[0] = { type: "system", text: "Welcome!" };
-messages[1] = { type: "chat", usedId: 1234, text: "Test" };
-messages[2] = { type: "chat", usedId: 12344, text: "Testdssdad asd asdasd ad ad adad ad asd" };
-messages[3] = { type: "chat", usedId: 223, text: "Testdssdad asd asdasd ad ad adad ad asd Testdssdad asd asdasd ad ad adad ad asd Testdssdad asd asdasd ad ad adad ad asd" };
-messages[4] = { type: "chat", usedId: 223, text: "Testdssdad asd asdasd ad ad adad ad asd Testdssdad asd asdasd ad ad adad ad asd Testdssdad asd asdasd ad ad adad ad asd" };
-messages[5] = { type: "chat", usedId: 223, text: "Testdssdad asd asdasd ad ad adad ad asd Testdssdad asd asdasd ad ad adad ad asd Testdssdad asd asdasd ad ad adad ad asd" };
-messages[6] = { type: "chat", usedId: 223, text: "Testdssdad asd asdasd ad ad adad ad asd Testdssdad asd asdasd ad ad adad ad asd Testdssdad asd asdasd ad ad adad ad asd" };
+const onAnnounce = api.comms.onResponse("s.lobby.announce").add((data) => {
+    messages.push({
+        type: "system",
+        text: data.message,
+    });
+});
 
 const sendMessage = (message: string) => {
-    console.log(message);
-    //api.comms.request("c.lobby.say", {  })
+    api.comms.request("c.lobby.message", { message }); // TODO: add to tachyon request schema
 };
 
 const onMessage = api.comms.onResponse("s.lobby.say").add((data) => {
-    console.log("message", data);
+    const user = api.session.getUserById(data.sender_id);
+    if (!user) {
+        console.warn("User not in session data", data.sender_id);
+    }
+    messages.push({
+        type: "chat",
+        name: user?.username ?? "Unknown",
+        text: data.message,
+    });
 });
 
 onUnmounted(() => {
     onMessage.destroy();
+    onAnnounce.destroy();
 });
 </script>
 
 <style lang="scss" scoped>
 .battle-chat {
+    display: flex;
+    flex-direction: column;
     margin-top: auto;
     gap: 10px;
 }
 .messages {
+    display: flex;
+    flex-direction: column;
     background: rgba(0, 0, 0, 0.3);
     border: 1px solid rgba(255, 255, 255, 0.1);
     height: 236px;
@@ -62,6 +73,7 @@ onUnmounted(() => {
     }
 }
 .message {
+    display: flex;
     flex-direction: row;
 }
 .author {

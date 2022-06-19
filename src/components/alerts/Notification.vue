@@ -43,6 +43,7 @@ if (props.notification.timeoutMs) {
 
 <style lang="scss" scoped>
 .notification {
+    display: flex;
     align-self: center;
     border-radius: 3px;
     pointer-events: auto;
@@ -67,6 +68,7 @@ if (props.notification.timeoutMs) {
     }
 }
 .icon {
+    display: flex;
     padding-left: 10px;
 }
 .close {

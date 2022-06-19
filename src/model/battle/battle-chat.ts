@@ -5,6 +5,6 @@ export type BattleChatMessage =
       }
     | {
           type: "chat";
-          usedId: number;
+          name: string;
           text: string;
       };
