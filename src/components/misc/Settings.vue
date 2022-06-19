@@ -28,7 +28,7 @@ import Range from "@/components/inputs/Range.vue";
 import Select from "@/components/inputs/Select.vue";
 
 const settings = api.settings.model;
-const displayOptions: Ref<Array<{ label: string; value: string }>> = ref([]);
+const displayOptions: Ref<Array<{ label: string; value: number }>> = ref([]);
 const { fullscreen, displayIndex, skipIntro, sfxVolume, musicVolume } = api.settings.model;
 
 watch(settings.displayIndex, async () => {
@@ -39,7 +39,7 @@ const onOpen = () => {
     displayOptions.value = Array(api.info.hardware.numOfDisplays)
         .fill(0)
         .map((x, i) => {
-            return { label: `Display ${i + 1}`, value: i.toString() };
+            return { label: `Display ${i + 1}`, value: i };
         });
 };
 </script>

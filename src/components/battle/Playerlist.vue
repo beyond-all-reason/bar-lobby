@@ -70,6 +70,7 @@ import Button from "@/components/inputs/Button.vue";
 import { aiNames } from "@/config/ai-names";
 import { AbstractBattle } from "@/model/battle/abstract-battle";
 import { Bot, Player, Spectator } from "@/model/battle/participants";
+import { Faction } from "@/model/battle/types";
 
 const props = defineProps<{
     battle: AbstractBattle;
@@ -81,28 +82,26 @@ const addBot = (teamId: number) => {
         randomName = randomFromArray(aiNames);
     }
 
-    // battle.addParticipant({
-    //     id: battle.contenders.value.length,
-    //     type: "bot",
-    //     teamId,
-    //     name: randomName!,
-    //     aiShortName: "BARb",
-    //     faction: Faction.Armada,
-    //     ownerUserId: api.session.currentUser.userId,
-    //     aiOptions: {},
-    // });
+    props.battle.addParticipant({
+        playerId: props.battle.contenders.value.length,
+        type: "bot",
+        teamId,
+        name: randomName!,
+        aiShortName: "BARb",
+        faction: Faction.Armada,
+        ownerUserId: api.session.currentUser.userId,
+        aiOptions: {},
+    });
 };
 
 const joinTeam = (teamId?: number) => {
-    // if (teamId === undefined && battle.me.value.type === "player") {
-    //     battle.playerToSpectator(battle.me.value);
-    // } else if (teamId !== undefined) {
-    //     if (battle.me.value.type === "spectator") {
-    //         battle.spectatorToPlayer(battle.me.value, teamId);
-    //     } else {
-    //         battle.me.value.teamId = teamId;
-    //     }
-    // }
+    if (props.battle.me.value?.type === "spectator" && teamId !== undefined) {
+        props.battle.spectatorToPlayer(props.battle.me.value, teamId);
+    } else if (props.battle.me.value?.type === "player" && teamId === undefined) {
+        props.battle.playerToSpectator(props.battle.me.value);
+    } else if (props.battle.me.value?.type === "player" && teamId !== undefined) {
+        props.battle.changeContenderTeam(props.battle.me.value, teamId);
+    }
 };
 
 let draggedParticipant: Ref<Bot | Player | Spectator | null> = ref(null);
@@ -173,12 +172,16 @@ const dragEnd = (event: DragEvent, participant: Player | Bot | Spectator) => {
 const onDrop = (event: DragEvent, teamId?: number) => {
     const target = event.target as Element;
     if (target.getAttribute("data-type") === "group" && draggedParticipant.value) {
+        const participantName = draggedParticipant.value.type === "bot" ? draggedParticipant.value.name : api.session.getUserById(draggedParticipant.value.userId)?.username;
+        if (!participantName) {
+            return;
+        }
         if (teamId !== undefined && draggedParticipant.value.type !== "spectator") {
-            //draggedParticipant.value.teamId = teamId;
+            props.battle.changeContenderTeam(draggedParticipant.value, teamId);
         } else if (draggedParticipant.value.type === "player") {
-            //battle.playerToSpectator(draggedParticipant.value);
+            props.battle.playerToSpectator(draggedParticipant.value);
         } else if (teamId !== undefined && draggedParticipant.value.type === "spectator") {
-            //battle.spectatorToPlayer(draggedParticipant.value, teamId);
+            props.battle.spectatorToPlayer(draggedParticipant.value, teamId);
         }
     }
 };
@@ -217,6 +220,7 @@ const onDrop = (event: DragEvent, teamId?: number) => {
     font-size: 26px;
 }
 .participants {
+    display: flex;
     flex-direction: row;
     gap: 10px;
     flex-wrap: wrap;

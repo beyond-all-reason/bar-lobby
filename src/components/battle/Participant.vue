@@ -11,10 +11,10 @@
             v-if="participant.type === 'bot'"
             :id="`configure-bot-${participant.name}`"
             v-model="aiOptionsOpen"
-            v-model:luaOptions="participant.aiOptions"
+            :luaOptions="participant.aiOptions"
             title="Configure Bot"
             :sections="aiOptions"
-            @update:lua-options="aiOptionsUpdated"
+            @set-options="setBotOptions"
         />
     </ContextMenu>
 </template>
@@ -84,7 +84,7 @@ const reportPlayer = (player: Player) => {
 };
 
 const kickAi = (bot: Bot) => {
-    //battle.removeParticipant(bot);
+    props.battle.removeParticipant(bot);
 };
 
 const configureAi = async (bot: Bot) => {
@@ -98,9 +98,9 @@ const configureAi = async (bot: Bot) => {
     aiOptionsOpen.value = true;
 };
 
-const aiOptionsUpdated = (options: Record<string, unknown>) => {
-    if (participant.value.type === "bot") {
-        participant.value.aiOptions = options;
+const setBotOptions = (options: Record<string, unknown>) => {
+    if (props.participant.type === "bot") {
+        props.battle.setBotOptions(props.participant.name, options);
     }
 };
 

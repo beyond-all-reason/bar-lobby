@@ -1,7 +1,7 @@
 <template>
     <div class="control checkbox" :class="{ disabled }">
-        <input :id="uuid" v-model="checked" type="checkbox" @change="$emit('update:modelValue', checked)" />
-        <label :for="uuid" :class="{ checked, hasLabel: Boolean(label) }" @mouseenter="sound">
+        <input :id="uuid" :modelValue="modelValue" type="checkbox" @change="$emit('update:modelValue', !modelValue)" />
+        <label :for="uuid" :class="{ checked: modelValue, hasLabel: Boolean(label) }" @mouseenter="sound">
             <div class="icon" :class="{ hasLabel: Boolean(label) }">
                 <Icon class="check" :icon="checkBold" height="23" />
             </div>
@@ -39,7 +39,6 @@ const emits = defineEmits<{
 
 const uuid = ref(uuidv4());
 const label = ref(props.label);
-const checked = ref(props.modelValue);
 
 const sound = () => api.audio.getSound("button-hover").play();
 </script>

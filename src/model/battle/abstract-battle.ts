@@ -37,7 +37,7 @@ export abstract class AbstractBattle implements BattleConfig {
         return this.contenders.value.filter((contender) => contender.teamId === teamId);
     }
 
-    public getParticipantByName(name: string) {
+    public getParticipantByName(name: string): Player | Bot | Spectator | undefined {
         return this.participants.find((participant) => {
             const isBot = participant.type === "bot";
             if (isBot) {
@@ -54,5 +54,12 @@ export abstract class AbstractBattle implements BattleConfig {
     }
 
     public abstract changeMap(map: string): void;
-    public abstract updateParticipant(name: string, updatedProperties: Partial<Player | Bot | Spectator>): void;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    public abstract setGameOptions(options: Record<string, any>): void;
+    public abstract setBotOptions(botName: string, options: Record<string, any>): void;
+    public abstract addParticipant(participant: Player | Bot | Spectator): void;
+    public abstract removeParticipant(participant: Player | Bot | Spectator): void;
+    public abstract playerToSpectator(player: Player): void;
+    public abstract spectatorToPlayer(spectator: Spectator, teamId: number): void;
+    public abstract changeContenderTeam(contender: Player | Bot, teamId: number): void;
 }

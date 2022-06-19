@@ -30,6 +30,7 @@
 <script lang="ts" setup>
 import { computed, onMounted, Ref, ref, toRaw, watch } from "vue";
 
+import defaultMinimapImage from "@/assets/images/default-minimap.png";
 import Button from "@/components/inputs/Button.vue";
 import Option from "@/components/inputs/Option.vue";
 import Options from "@/components/inputs/Options.vue";
@@ -69,6 +70,7 @@ onMounted(async () => {
     context.imageSmoothingEnabled = false;
 
     loadMap();
+    (window as any).loadMap = loadMap;
 
     watch(
         [() => props.battle.battleOptions.mapFileName, () => props.battle.battleOptions.startPosType, () => props.battle.battleOptions.startBoxes, () => props.battle.me],
@@ -92,12 +94,11 @@ async function loadMap() {
 
     if (!mapData.value || !mapData.value.textureImagePath) {
         // eslint-disable-next-line @typescript-eslint/no-var-requires
-        const defaultImage = require("@/assets/images/default-minimap.png");
-        textureMap = await loadImage(defaultImage, false);
+        textureMap = await loadImage(defaultMinimapImage, false);
 
         mapTransform.width = textureMap.width;
         mapTransform.height = textureMap.height;
-    } else if (props.battle.battleOptions.mapFileName !== currentMap || !textureMap) {
+    } else {
         textureMap = await loadImage(mapData.value.textureImagePath);
 
         const widthToHeightRatio = textureMap.width / textureMap.height;

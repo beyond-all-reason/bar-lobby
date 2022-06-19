@@ -38,7 +38,7 @@
                     :title="`Game Options - ${battle.battleOptions.gameVersion}`"
                     :sections="gameOptions"
                     height="700px"
-                    @set-option="setGameOption"
+                    @set-options="setGameOptions"
                 />
             </div>
             <Select v-model="selectedEngine" label="Engine" :options="engines" :filter="true" :disabled="!isOfflineBattle" />
@@ -96,8 +96,9 @@ const openGameOptions = async () => {
     gameOptions.value = await api.content.game.getGameOptions(props.battle.battleOptions.gameVersion);
     gameOptionsOpen.value = true;
 };
-const setGameOption = (key: string, value: any) => {
-    console.log(key, value);
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const setGameOptions = (options: Record<string, any>) => {
+    props.battle.setGameOptions(options);
 };
 
 const engines = computed(() => api.content.engine.installedVersions);

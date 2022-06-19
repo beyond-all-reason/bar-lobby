@@ -79,7 +79,6 @@ meter,
         color: rgba(255, 255, 255, 0.5);
     }
     &:hover,
-    &:focus,
     &:not(button):not(.btn):focus {
         background-color: rgba(255, 255, 255, 0.2);
     }

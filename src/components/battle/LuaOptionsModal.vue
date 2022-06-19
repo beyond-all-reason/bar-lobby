@@ -1,5 +1,5 @@
 <template>
-    <Modal :title="title" width="700px" height="400px" padding="0">
+    <Modal ref="modal" :title="title" width="700px" height="400px" padding="0" @open="open">
         <Panel scrollContent>
             <Tab v-for="section of sections.filter((section) => !section.hidden)" :key="section.key" :title="section.name" :tooltip="section.description">
                 <div class="gap-md">
@@ -13,17 +13,17 @@
                             </div>
                             <Range
                                 v-if="option.type === 'number'"
-                                :modelValue="optionsObj[option.key] ?? option.default"
+                                :modelValue="options[option.key] ?? option.default"
                                 :min="option.min"
                                 :max="option.max"
                                 :step="option.step"
                                 @update:model-value="(value: any) => setOptionValue(option, value)"
                             />
-                            <Checkbox v-if="option.type === 'boolean'" :modelValue="optionsObj[option.key] ?? option.default" @update:model-value="(value) => setOptionValue(option, value)" />
-                            <Textbox v-if="option.type === 'string'" :modelValue="optionsObj[option.key] ?? option.default" @update:model-value="(value) => setOptionValue(option, value)" />
+                            <Checkbox v-if="option.type === 'boolean'" :modelValue="options[option.key] ?? option.default" @update:model-value="(value) => setOptionValue(option, value)" />
+                            <Textbox v-if="option.type === 'string'" :modelValue="options[option.key] ?? option.default" @update:model-value="(value) => setOptionValue(option, value)" />
                             <Select
                                 v-if="option.type === 'list'"
-                                :modelValue="optionsObj[option.key] ?? option.default"
+                                :modelValue="options[option.key] ?? option.default"
                                 :options="option.options"
                                 optionLabel="name"
                                 optionValue="key"
@@ -34,20 +34,30 @@
                 </div>
             </Tab>
         </Panel>
+        <div class="actions">
+            <Button class="btn--red" @click="close"> Cancel </Button>
+            <Button @click="reset"> Reset all to default </Button>
+            <Button class="btn--green" @click="save"> Save </Button>
+        </div>
     </Modal>
 </template>
 
 <script lang="ts" setup>
-import { toRef } from "vue";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
+import { clone } from "jaz-ts-utils";
+import { reactive, Ref, ref, toRaw } from "vue";
 
 import Modal from "@/components/common/Modal.vue";
 import Panel from "@/components/common/Panel.vue";
 import Tab from "@/components/common/Tab.vue";
+import Button from "@/components/inputs/Button.vue";
 import Checkbox from "@/components/inputs/Checkbox.vue";
 import Range from "@/components/inputs/Range.vue";
 import Select from "@/components/inputs/Select.vue";
 import Textbox from "@/components/inputs/Textbox.vue";
 import { LuaOptionBoolean, LuaOptionList, LuaOptionNumber, LuaOptionSection, LuaOptionString } from "@/model/lua-options";
+import { setObject } from "@/utils/set-object";
 
 const props = defineProps<{
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -57,19 +67,46 @@ const props = defineProps<{
     sections: LuaOptionSection[];
 }>();
 
-const optionsObj = toRef(props, "luaOptions");
+const modal: Ref<null | InstanceType<typeof Modal>> = ref(null);
+
+const options: Record<string, any> = reactive({});
 
 const emits = defineEmits<{
-    (event: "setOption", optionKey: string, optionValue: unknown): void;
+    (event: "setOptions", options: Record<string, any>): void;
 }>();
 
 const setOptionValue = (option: LuaOptionNumber | LuaOptionBoolean | LuaOptionString | LuaOptionList, value: unknown) => {
     if (value === option.default) {
-        emits("setOption", option.key, undefined);
+        delete options[option.key];
     } else {
-        emits("setOption", option.key, value);
+        options[option.key] = value;
     }
+};
+
+const open = () => {
+    setObject(options, toRaw(props.luaOptions));
+};
+
+const close = () => {
+    modal.value?.close();
+};
+
+const reset = () => {
+    setObject(options, {});
+};
+
+const save = () => {
+    emits("setOptions", clone(toRaw(options)));
+    modal.value?.close();
 };
 </script>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+.actions {
+    display: flex;
+    flex-direction: row;
+    padding: 10px;
+    gap: 10px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+</style>

@@ -3,40 +3,69 @@ import { Bot, Player, Spectator } from "@/model/battle/participants";
 
 export class OfflineBattle extends AbstractBattle {
     public changeMap(map: string) {
-        console.log(`Offline Changing map to ${map}`);
         this.battleOptions.mapFileName = map;
     }
 
-    public updateParticipant(name: string, updatedProperties: Partial<Player | Bot | Spectator>) {
-        const participant = this.getParticipantByName(name);
-        if (participant) {
-            Object.assign(participant, updatedProperties);
-        }
+    public setGameOptions(options: Record<string, any>) {
+        this.battleOptions.gameOptions = options;
     }
 
-    // protected fixIds() {
-    //     if (!this.battleOptions.offline) {
-    //         // can't fix ids locally for an online battle
-    //         return;
-    //     }
+    public addParticipant(participant: Player | Bot | Spectator) {
+        this.participants.push(participant);
+        this.fixIds();
+    }
 
-    //     const contenders = this.contenders.value;
+    public removeParticipant(participant: Player | Bot | Spectator) {
+        this.participants.splice(this.participants.indexOf(participant), 1);
+        this.fixIds();
+    }
 
-    //     const contenderIds = Array.from(new Set(this.contenders.value.map((c) => c.id)).values()).sort();
-    //     const teamIds = Array.from(new Set(this.contenders.value.map((c) => c.teamId)).values()).sort();
-    //     for (const contender of contenders) {
-    //         const newContenderId = contenderIds.indexOf(contender.id);
-    //         if (contender.id !== newContenderId && newContenderId !== -1) {
-    //             // only assign if id is different to avoid recursive proxy trap calls
-    //             contender.id = newContenderId;
-    //         }
-    //         const newTeamId = teamIds.indexOf(contender.teamId);
-    //         if (contender.teamId !== newTeamId && newTeamId !== -1) {
-    //             // only assign if id is different to avoid recursive proxy trap calls
-    //             contender.teamId = newTeamId;
-    //         }
-    //     }
-    // }
+    public playerToSpectator(player: Player) {
+        this.removeParticipant(player);
+        this.addParticipant({
+            type: "spectator",
+            userId: player.userId,
+        });
+    }
+
+    public spectatorToPlayer(spectator: Spectator, teamId: number) {
+        this.removeParticipant(spectator);
+        this.addParticipant({
+            playerId: this.contenders.value.length,
+            type: "player",
+            userId: spectator.userId,
+            teamId,
+        });
+    }
+
+    public changeContenderTeam(contender: Player | Bot, teamId: number) {
+        contender.teamId = teamId;
+        this.fixIds();
+    }
+
+    public setBotOptions(botName: string, options: Record<string, unknown>) {
+        const bot = this.getParticipantByName(botName) as Bot;
+        bot.aiOptions = options;
+    }
+
+    protected fixIds() {
+        const contenders = this.contenders.value;
+
+        const contenderIds = Array.from(new Set(this.contenders.value.map((c) => c.playerId)).values()).sort();
+        const teamIds = Array.from(new Set(this.contenders.value.map((c) => c.teamId)).values()).sort();
+        for (const contender of contenders) {
+            const newContenderId = contenderIds.indexOf(contender.playerId);
+            if (contender.playerId !== newContenderId && newContenderId !== -1) {
+                // only assign if id is different to avoid recursive proxy trap calls
+                contender.playerId = newContenderId;
+            }
+            const newTeamId = teamIds.indexOf(contender.teamId);
+            if (contender.teamId !== newTeamId && newTeamId !== -1) {
+                // only assign if id is different to avoid recursive proxy trap calls
+                contender.teamId = newTeamId;
+            }
+        }
+    }
 
     // protected setBoxes(mapFileName: string) {
     //     if (this.battleOptions.startPosType === StartPosType.Boxes) {
@@ -61,34 +90,5 @@ export class OfflineBattle extends AbstractBattle {
     //     } else if (teamPreset === TeamPreset.TeamFFA) {
     //         this.battleOptions.startPosType = StartPosType.Fixed;
     //     }
-    // }
-
-    // public addParticipant(participantConfig: Player | Bot | Spectator) {
-    //     const participant = new Proxy(participantConfig, this.participantProxyHandler);
-    //     this.participants.push(participant);
-    //     this.fixIds();
-    // }
-
-    // public removeParticipant(participant: Player | Bot | Spectator) {
-    //     this.participants.splice(this.participants.indexOf(participant), 1);
-    //     this.fixIds();
-    // }
-
-    // public playerToSpectator(player: Player) {
-    //     this.removeParticipant(player);
-    //     this.addParticipant({
-    //         type: "spectator",
-    //         userId: player.userId,
-    //     });
-    // }
-
-    // public spectatorToPlayer(spectator: Spectator, teamId: number) {
-    //     this.removeParticipant(spectator);
-    //     this.addParticipant({
-    //         id: this.contenders.value.length,
-    //         type: "player",
-    //         userId: spectator.userId,
-    //         teamId,
-    //     });
     // }
 }
