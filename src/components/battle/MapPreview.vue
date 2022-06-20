@@ -93,26 +93,24 @@ async function loadMap() {
     mapTransform = { x: 0, y: 0, width: canvas.value.width, height: canvas.value.height };
 
     if (!mapData.value || !mapData.value.textureImagePath) {
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
         textureMap = await loadImage(defaultMinimapImage, false);
-
-        mapTransform.width = textureMap.width;
-        mapTransform.height = textureMap.height;
     } else {
         textureMap = await loadImage(mapData.value.textureImagePath);
-
-        const widthToHeightRatio = textureMap.width / textureMap.height;
-        if (widthToHeightRatio > 1) {
-            mapTransform.height = mapTransform.height / widthToHeightRatio;
-        } else {
-            mapTransform.width = mapTransform.width * widthToHeightRatio;
-        }
-
-        mapTransform.x = (canvas.value.width - mapTransform.width) / 2;
-        mapTransform.y = (canvas.value.height - mapTransform.height) / 2;
-
-        mapTransform = roundTransform(mapTransform);
     }
+
+    const widthToHeightRatio = textureMap.width / textureMap.height;
+    if (widthToHeightRatio > 1) {
+        mapTransform.height = mapTransform.height / widthToHeightRatio;
+    } else {
+        mapTransform.width = mapTransform.width * widthToHeightRatio;
+    }
+
+    mapTransform.x = (canvas.value.width - mapTransform.width) / 2;
+    mapTransform.y = (canvas.value.height - mapTransform.height) / 2;
+
+    mapTransform = roundTransform(mapTransform);
+
+    console.log(mapTransform);
 
     currentMap = props.battle.battleOptions.mapFileName;
 

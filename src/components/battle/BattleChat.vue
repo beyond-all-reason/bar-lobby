@@ -1,6 +1,6 @@
 <template>
     <div class="battle-chat">
-        <div class="messages">
+        <div ref="messagesEl" class="messages">
             <div v-for="(message, i) in messages" :key="i" class="message">
                 <div v-if="message.type === 'chat'" class="author">
                     {{ message.name }}
@@ -15,13 +15,18 @@
 </template>
 
 <script lang="ts" setup>
-import { onUnmounted, reactive, ref } from "vue";
+import { nextTick, onUnmounted, ref } from "vue";
 
 import Textbox from "@/components/inputs/Textbox.vue";
-import { BattleChatMessage } from "@/model/battle/battle-chat";
+import { AbstractBattle } from "@/model/battle/abstract-battle";
 
-const messages: BattleChatMessage[] = reactive([]);
+const props = defineProps<{
+    battle: AbstractBattle;
+}>();
+
+const messages = api.session.battleMessages;
 const myMessage = ref("");
+const messagesEl = ref(null as HTMLElement | null);
 
 const onAnnounce = api.comms.onResponse("s.lobby.announce").add((data) => {
     messages.push({
@@ -43,6 +48,9 @@ const onMessage = api.comms.onResponse("s.lobby.say").add((data) => {
         type: "chat",
         name: user?.username ?? "Unknown",
         text: data.message,
+    });
+    nextTick(() => {
+        messagesEl.value?.scrollTo(0, messagesEl.value?.scrollHeight + 50);
     });
 });
 
@@ -67,6 +75,7 @@ onUnmounted(() => {
     height: 236px;
     padding: 15px;
     overflow-y: scroll;
+    scroll-behavior: smooth;
     user-select: text;
     * {
         user-select: text;
@@ -84,10 +93,11 @@ onUnmounted(() => {
         margin-right: 5px;
     }
 }
-.textbox {
-    :deep(input) {
-        background: rgba(0, 0, 0, 0.3);
-        border: 1px solid rgba(255, 255, 255, 0.1);
+::v-deep .textbox {
+    input,
+    input:focus {
+        background: rgba(0, 0, 0, 0.3) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
     }
 }
 </style>

@@ -10,6 +10,7 @@ import { AudioAPI } from "@/api/audio";
 import { CommsAPI } from "@/api/comms";
 import { ContentAPI } from "@/api/content/content";
 import { GameAPI } from "@/api/game";
+import { HistoryAPI } from "@/api/history";
 import { SessionAPI } from "@/api/session";
 import { StoreAPI } from "@/api/store";
 import { UtilsAPI } from "@/api/utils";
@@ -23,16 +24,17 @@ import { settingsSchema } from "@/model/settings";
 import routes from "@/routes";
 
 interface API {
-    router: Router;
-    info: Info;
-    session: SessionAPI;
-    settings: StoreAPI<SettingsType>;
-    comms: TachyonClient;
-    audio: AudioAPI;
     account: StoreAPI<Account>;
+    alerts: AlertsAPI;
+    audio: AudioAPI;
+    comms: TachyonClient;
     content: ContentAPI;
     game: GameAPI;
-    alerts: AlertsAPI;
+    history: HistoryAPI;
+    info: Info;
+    router: Router;
+    session: SessionAPI;
+    settings: StoreAPI<SettingsType>;
     utils: UtilsAPI;
 }
 
@@ -94,4 +96,6 @@ export async function apiInit() {
     api.content = await new ContentAPI(userDataDir, dataDir).init();
 
     api.alerts = new AlertsAPI();
+
+    api.history = new HistoryAPI(userDataDir);
 }

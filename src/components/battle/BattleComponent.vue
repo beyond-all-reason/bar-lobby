@@ -6,7 +6,7 @@
                 <Playerlist :battle="battle" />
             </div>
             <div v-if="!isOfflineBattle">
-                <BattleChat />
+                <BattleChat :battle="battle" />
             </div>
         </div>
         <div class="flex-col gap-md">
@@ -19,7 +19,7 @@
                     optionLabel="friendlyName"
                     optionValue="fileNameWithExt"
                     :filter="true"
-                    :placeholder="currentMapData?.friendlyName"
+                    :placeholder="currentMapName"
                     @update:model-value="onMapSelected"
                 />
                 <Button :flexGrow="false">
