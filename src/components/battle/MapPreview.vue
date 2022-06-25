@@ -110,8 +110,6 @@ async function loadMap() {
 
     mapTransform = roundTransform(mapTransform);
 
-    console.log(mapTransform);
-
     currentMap = props.battle.battleOptions.mapFileName;
 
     context.clearRect(0, 0, canvas.value.width, canvas.value.height);

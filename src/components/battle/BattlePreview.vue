@@ -4,29 +4,29 @@
             <div class="background" :style="`background-image: url('${mapImageUrl}')`" />
             <div class="header">
                 <div class="title">
-                    <div>
+                    <div class="flex-col flex-center">
                         <Flag :countryCode="founder.countryCode" />
                     </div>
-                    <div>
+                    <div class="flex-col flex-center">
                         <Icon v-if="battle.locked || battle.passworded" :icon="lock" />
                     </div>
-                    <div>
+                    <div class="flex-col flex-center">
                         {{ battle.title }}
                     </div>
                 </div>
                 <div>Preset (TODO)</div>
             </div>
             <div class="header meta">
-                <div>
+                <div class="flex-col flex-center">
                     {{ mapName }}
                 </div>
-                <div>
+                <div class="flex-col flex-center">
                     {{ runtime }}
                 </div>
             </div>
             <div class="clients players">
                 <div v-for="player in players" :key="player.userId" class="client">
-                    <div v-if="player.countryCode">
+                    <div v-if="player.countryCode && player.countryCode !== '??'">
                         <Flag :countryCode="player.countryCode" />
                     </div>
                     <div>
@@ -34,10 +34,10 @@
                     </div>
                 </div>
                 <div v-for="(bot, i) in battle.botNames" :key="i" class="client">
-                    <div>
+                    <div class="flex-col flex-center">
                         <Icon :icon="robot" />
                     </div>
-                    <div>
+                    <div class="flex-col flex-center">
                         {{ bot }}
                     </div>
                 </div>
@@ -229,7 +229,7 @@ const onPasswordPromptSubmit: (data: { password?: string }) => Promise<void> = a
             flex-direction: row;
             flex-wrap: wrap;
             gap: 4px;
-            &--spectators {
+            &.spectators {
                 position: relative;
                 padding-top: 5px;
                 &:before {

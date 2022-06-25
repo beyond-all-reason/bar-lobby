@@ -10,6 +10,11 @@
 import BattleComponent from "@/components/battle/BattleComponent.vue";
 
 const battle = api.session.onlineBattle;
+
+if (battle) {
+    // TODO: need a way to store script name
+    api.content.maps.downloadMapByScriptName(battle?.battleOptions.mapFileName);
+}
 </script>
 
 <style lang="scss" scoped></style>

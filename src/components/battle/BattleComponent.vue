@@ -75,12 +75,12 @@ const isOfflineBattle = props.battle instanceof OfflineBattle;
 const battleTitle = ref(isOfflineBattle ? "Offline Custom Battle" : "Online Custom Battle");
 
 const installedMaps = computed(() => Object.values(api.content.maps.installedMaps));
-const currentMapName = ref(props.battle.battleOptions.mapFileName);
-const currentMapData = computed(() => installedMaps.value.find((map) => map?.fileNameWithExt === currentMapName.value));
+const currentMapData = computed(() => installedMaps.value.find((map) => map?.fileNameWithExt === props.battle.battleOptions.mapFileName));
+const currentMapName = ref(currentMapData?.value?.friendlyName ?? props.battle.battleOptions.mapFileName);
 watch(
     () => props.battle.battleOptions.mapFileName,
     (mapFileName) => {
-        currentMapName.value = mapFileName;
+        currentMapName.value = currentMapData?.value?.friendlyName ?? mapFileName;
     }
 );
 const onMapSelected = (mapFileName: string) => {

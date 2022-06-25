@@ -6,7 +6,7 @@ import { reactive } from "vue";
 
 import { AbstractContentAPI } from "@/api/content/abstract-content-api";
 import { contentSources } from "@/config/content-sources";
-import type { DownloadInfo } from "@/model/downloads";
+import type { DownloadInfo, SpringFilesMapMeta } from "@/model/downloads";
 import type { MapData } from "@/model/map-data";
 import { MapCacheWorkerHost } from "@/workers/map-cache-worker";
 
@@ -90,11 +90,32 @@ export class MapContentAPI extends AbstractContentAPI {
 
     public async downloadMaps(filenames: string[], host = contentSources.maps.http[0]) {
         for (const filename of filenames) {
-            await this.downloadMap(filename, host);
+            await this.downloadMapByFilename(filename, host);
         }
     }
 
-    public async downloadMap(filename: string, host = contentSources.maps.http[0]!): Promise<void> {
+    // currently reliant on springfiles because of scriptname lookup
+    public async downloadMapByScriptName(scriptName: string) {
+        const searchUrl = `https://springfiles.springrts.com/json.php?springname=${scriptName}&category=map`;
+        const searchResponse = await axios({
+            url: searchUrl,
+            method: "get",
+            responseType: "json",
+        });
+
+        if (searchResponse.status !== 200) {
+            throw new Error(searchResponse.statusText);
+        }
+
+        const mapResult: SpringFilesMapMeta | undefined = searchResponse.data[0];
+        if (!mapResult) {
+            throw new Error(`${scriptName} not found on springfiles.springrts.com`);
+        }
+
+        return this.downloadMapByFilename(mapResult.filename);
+    }
+
+    public async downloadMapByFilename(filename: string, host = contentSources.maps.http[0]!): Promise<void> {
         if (this.installedMaps[filename] !== undefined) {
             console.log(`Map ${filename} is already installed`);
             return;
@@ -142,7 +163,7 @@ export class MapContentAPI extends AbstractContentAPI {
             const nextMapHost = contentSources.maps.http[nextMapHostIndex];
             if (nextMapHost) {
                 console.log(`Trying next map host: ${nextMapHost}`);
-                return this.downloadMap(filename, nextMapHost);
+                return this.downloadMapByFilename(filename, nextMapHost);
             } else {
                 throw new Error(`Map ${filename} could not be downloaded from any of the configured map hosts`);
             }
