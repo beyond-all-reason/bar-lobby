@@ -32,7 +32,8 @@ export class GameAPI {
 
         const args = ["--write-dir", this.dataDir, "--isolation", scriptPath];
 
-        this.gameProcess = spawn("spring.exe", args, {
+        const binaryName = process.platform === "win32" ? "spring.exe" : "./spring";
+        this.gameProcess = spawn(binaryName, args, {
             cwd: enginePath,
             stdio: "ignore",
             detached: true,
