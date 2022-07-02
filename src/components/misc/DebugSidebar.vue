@@ -39,7 +39,7 @@ const openSettings = () => {
 };
 
 function openPathWithLog(path: string) {
-    shell.openPath(path).then(error => {
+    shell.openPath(path).then((error) => {
         if (error) {
             console.error(`Failed to open ${api.info.userDataPath}: ${error}`);
         }
