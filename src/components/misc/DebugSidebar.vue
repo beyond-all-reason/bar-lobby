@@ -38,17 +38,24 @@ const openSettings = () => {
     api.settings.openFileInEditor();
 };
 
+async function openPathWithLog(path: string) {
+    const error = await shell.openPath(path);
+    if (error) {
+        console.error(`Failed to open ${api.info.userDataPath}: ${error}`);
+    }
+}
+
 const openLobbyDir = () => {
-    shell.openPath(api.info.userDataPath);
+    openPathWithLog(api.info.userDataPath);
 };
 
 const openDataDir = () => {
-    shell.openPath(api.settings.model.dataDir.value);
+    openPathWithLog(api.settings.model.dataDir.value);
 };
 
 const openStartScript = async () => {
     const startScriptPath = path.join(api.settings.model.dataDir.value, "barlobby_script.txt");
-    shell.openPath(startScriptPath);
+    openPathWithLog(startScriptPath);
 };
 
 scope.run(() => {
