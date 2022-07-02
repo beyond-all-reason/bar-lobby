@@ -38,12 +38,11 @@ const openSettings = () => {
     api.settings.openFileInEditor();
 };
 
-function openPathWithLog(path: string) {
-    shell.openPath(path).then((error) => {
-        if (error) {
-            console.error(`Failed to open ${api.info.userDataPath}: ${error}`);
-        }
-    });
+async function openPathWithLog(path: string) {
+    const error = await shell.openPath(path);
+    if (error) {
+        console.error(`Failed to open ${api.info.userDataPath}: ${error}`);
+    }
 }
 
 const openLobbyDir = () => {
