@@ -12,10 +12,11 @@ export const defaultBattle: () => OfflineBattle = () => {
 
     return new OfflineBattle({
         battleOptions: {
+            title: "Offline Custom Battle",
             id: -1,
             engineVersion: lastInArray(api.content.engine.installedVersions)!,
             gameVersion: lastInArray(api.content.game.installedVersions)!.version.fullString,
-            mapFileName: map,
+            map: map,
             startPosType: StartPosType.Boxes,
             startBoxes: defaultMapBoxes()[map] ?? defaultBoxes().NorthVsSouth,
             //teamPreset: TeamPreset.Standard,

@@ -120,15 +120,9 @@ export class StartScriptConverter {
             bot.host = owner.id;
         }
 
-        const mapData = api.content.maps.getMapByFileName(battle.battleOptions.mapFileName);
-
-        if (!mapData) {
-            throw new Error(`Can't generate start script because map is not installed: ${battle.battleOptions.mapFileName}`);
-        }
-
         return {
             gametype: battle.battleOptions.gameVersion,
-            mapname: mapData.scriptName,
+            mapname: battle.battleOptions.map,
             ishost: 1,
             myplayername: api.session.currentUser.username,
             startpostype: battle.battleOptions.startPosType,

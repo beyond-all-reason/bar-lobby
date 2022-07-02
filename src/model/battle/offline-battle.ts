@@ -3,7 +3,7 @@ import { Bot, Player, Spectator } from "@/model/battle/participants";
 
 export class OfflineBattle extends AbstractBattle {
     public changeMap(map: string) {
-        this.battleOptions.mapFileName = map;
+        this.battleOptions.map = map;
     }
 
     public setGameOptions(options: Record<string, any>) {

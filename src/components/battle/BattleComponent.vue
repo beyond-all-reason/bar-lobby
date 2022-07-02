@@ -17,7 +17,7 @@
                     :options="installedMaps"
                     label="Map"
                     optionLabel="friendlyName"
-                    optionValue="fileNameWithExt"
+                    optionValue="scriptName"
                     :filter="true"
                     :placeholder="currentMapName"
                     @update:model-value="onMapSelected"
@@ -74,17 +74,17 @@ const isOfflineBattle = props.battle instanceof OfflineBattle;
 
 const battleTitle = ref(isOfflineBattle ? "Offline Custom Battle" : "Online Custom Battle");
 
-const installedMaps = computed(() => Object.values(api.content.maps.installedMaps));
-const currentMapData = computed(() => installedMaps.value.find((map) => map?.fileNameWithExt === props.battle.battleOptions.mapFileName));
-const currentMapName = ref(currentMapData?.value?.friendlyName ?? props.battle.battleOptions.mapFileName);
+const installedMaps = computed(() => Array.from(api.content.maps.installedMaps.values()));
+const currentMapData = computed(() => installedMaps.value.find((map) => map?.scriptName === props.battle.battleOptions.map));
+const currentMapName = ref(currentMapData?.value?.friendlyName ?? props.battle.battleOptions.map);
 watch(
-    () => props.battle.battleOptions.mapFileName,
-    (mapFileName) => {
-        currentMapName.value = currentMapData?.value?.friendlyName ?? mapFileName;
+    () => props.battle.battleOptions.map,
+    (mapScriptName) => {
+        currentMapName.value = currentMapData?.value?.friendlyName ?? mapScriptName;
     }
 );
-const onMapSelected = (mapFileName: string) => {
-    props.battle.changeMap(mapFileName);
+const onMapSelected = (mapScriptName: string) => {
+    props.battle.changeMap(mapScriptName);
 };
 
 const games = computed(() => api.content.game.installedVersions.map((rapidVersion) => rapidVersion.version.fullString).slice(-10));

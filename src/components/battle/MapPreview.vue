@@ -28,7 +28,7 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, onMounted, Ref, ref, toRaw, watch } from "vue";
+import { computed, onMounted, Ref, ref, watch } from "vue";
 
 import defaultMinimapImage from "@/assets/images/default-minimap.png";
 import Button from "@/components/inputs/Button.vue";
@@ -50,9 +50,8 @@ const canvas: Ref<HTMLCanvasElement | null> = ref(null);
 let context: CanvasRenderingContext2D;
 let textureMap: HTMLImageElement;
 let mapTransform: Transform;
-let currentMap = toRaw(props.battle.battleOptions.mapFileName);
 
-const mapData = computed(() => api.content.maps.getMapByFileName(props.battle.battleOptions.mapFileName));
+const mapData = computed(() => api.content.maps.getMapByScriptName(props.battle.battleOptions.map));
 
 const startPosOptions: Array<{ label: string; value: StartPosType }> = [
     { label: "Fixed", value: StartPosType.Fixed },
@@ -70,15 +69,20 @@ onMounted(async () => {
     context.imageSmoothingEnabled = false;
 
     loadMap();
+
     (window as any).loadMap = loadMap;
 
     watch(
-        [() => props.battle.battleOptions.mapFileName, () => props.battle.battleOptions.startPosType, () => props.battle.battleOptions.startBoxes, () => props.battle.me],
+        [() => props.battle.battleOptions.map, () => props.battle.battleOptions.startPosType, () => props.battle.battleOptions.startBoxes, () => props.battle.me],
         () => {
             loadMap();
         },
         { deep: true }
     );
+
+    api.content.maps.mapCache.on("item-cache-finish").add((data) => {
+        loadMap();
+    });
 });
 
 const setBoxes = (boxes: StartBox[]) => {
@@ -109,8 +113,6 @@ async function loadMap() {
     mapTransform.y = (canvas.value.height - mapTransform.height) / 2;
 
     mapTransform = roundTransform(mapTransform);
-
-    currentMap = props.battle.battleOptions.mapFileName;
 
     context.clearRect(0, 0, canvas.value.width, canvas.value.height);
 

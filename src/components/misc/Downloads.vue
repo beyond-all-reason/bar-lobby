@@ -43,24 +43,6 @@ const progressText = (currentBytes: number, totalBytes: number) => {
     display: flex;
     flex-direction: column;
     gap: 10px;
-    &-button {
-        position: relative;
-        &:before {
-            @extend .fullsize;
-            z-index: -1;
-            background: radial-gradient(ellipse at top, hsla(69, 100%, 50%, 0.685), transparent), radial-gradient(ellipse at bottom, #2c4e05c7, transparent);
-            background-repeat: no-repeat;
-            background-position: 0 100%;
-            background-size: 100% var(--downloadPercent);
-            transform: scale(105%);
-        }
-        &:hover:before {
-            background: radial-gradient(ellipse at top, hsla(69, 100%, 50%, 0.884), transparent), radial-gradient(ellipse at bottom, #4b830a, transparent);
-            background-size: 100% var(--downloadPercent);
-            background-repeat: no-repeat;
-            background-position: 0 100%;
-        }
-    }
     &__info {
         display: flex;
         flex-direction: row;

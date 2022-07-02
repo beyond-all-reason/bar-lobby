@@ -20,7 +20,7 @@ export class MainWindow {
         this.settings = settings;
 
         this.window = new BrowserWindow({
-            title: "BAR Lobby",
+            title: "Beyond All Reason",
             fullscreen: this.settings.model.fullscreen.value,
             frame: true,
             show: false,

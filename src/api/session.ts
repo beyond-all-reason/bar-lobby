@@ -1,4 +1,6 @@
+import { Static } from "@sinclair/typebox";
 import { objectKeys } from "jaz-ts-utils";
+import { lobbySchema } from "tachyon-client";
 import { reactive, Ref, ref } from "vue";
 
 import { BattleChatMessage } from "@/model/battle/battle-chat";
@@ -13,6 +15,9 @@ export class SessionAPI {
     public offlineBattle: OfflineBattle | null;
     public onlineBattle: TachyonSpadsBattle | null;
     public battleMessages: BattleChatMessage[];
+
+    // temporary necessity until https://github.com/beyond-all-reason/teiserver/issues/34 is implemented
+    public lastBattleResponses: Map<number, Static<typeof lobbySchema>> = new Map();
 
     constructor() {
         this.offlineMode = ref(true);

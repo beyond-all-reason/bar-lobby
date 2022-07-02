@@ -13,7 +13,7 @@ const battle = api.session.onlineBattle;
 
 if (battle) {
     // TODO: need a way to store script name
-    api.content.maps.downloadMapByScriptName(battle?.battleOptions.mapFileName);
+    api.content.maps.downloadMapByScriptName(battle.battleOptions.map);
 }
 </script>
 

@@ -11,12 +11,10 @@ import type { MapData } from "@/model/map-data";
 import { MapCacheWorkerHost } from "@/workers/map-cache-worker";
 
 export class MapContentAPI extends AbstractContentAPI {
-    // null means map is installed but isn't cached
-    public readonly installedMaps: Record<string, MapData | null | undefined> = reactive({});
+    public readonly installedMaps: Map<string, MapData> = reactive(new Map());
     public readonly mapsPath: string = path.join(this.dataDir, "maps");
     public readonly mapImagesPath: string = path.join(this.dataDir, "map-images");
-
-    protected mapCache: MapCacheWorkerHost;
+    public readonly mapCache: MapCacheWorkerHost;
 
     constructor(userDataDir: string, dataDir: string) {
         super(userDataDir, dataDir);
@@ -28,28 +26,18 @@ export class MapContentAPI extends AbstractContentAPI {
     public async init() {
         await fs.promises.mkdir(this.mapsPath, { recursive: true });
 
-        const mapFilenames = await this.getInstalledMapFilenames();
-        for (const mapFilename of mapFilenames) {
-            this.installedMaps[mapFilename] = null;
-        }
-
         const cacheStoreDir = path.join(this.userDataDir, "store");
         const mapCacheFile = path.join(cacheStoreDir, "map-cache.json");
 
         this.mapCache.on("item-cache-loaded").add((maps: Record<string, MapData>) => {
             for (const [filename, mapData] of Object.entries(maps)) {
-                if (!mapFilenames.includes(filename)) {
-                    this.installedMaps[filename] = undefined;
-                    this.mapCache.clearItem(filename);
-                } else {
-                    this.installedMaps[filename] = mapData;
-                }
+                this.installedMaps.set(mapData.scriptName, mapData);
             }
         });
 
         this.mapCache.on("item-cache-saved").add((maps: Record<string, MapData>) => {
             for (const [filename, mapData] of Object.entries(maps)) {
-                this.installedMaps[filename] = mapData;
+                this.installedMaps.set(mapData.scriptName, mapData);
             }
         });
 
@@ -61,11 +49,11 @@ export class MapContentAPI extends AbstractContentAPI {
     }
 
     public getMapByFileName(filenameIncludingExt: string) {
-        return this.installedMaps[filenameIncludingExt];
+        return Array.from(this.installedMaps.values()).find((map) => map.fileNameWithExt === filenameIncludingExt);
     }
 
     public getMapByScriptName(scriptName: string) {
-        return Object.values(this.installedMaps).find((map) => map?.scriptName === scriptName);
+        return Array.from(this.installedMaps.values()).find((map) => map.scriptName === scriptName);
     }
 
     public async getInstalledMapFilenames() {
@@ -73,29 +61,33 @@ export class MapContentAPI extends AbstractContentAPI {
         return mapFilenames;
     }
 
-    public getMapImagePaths(filename: string) {
-        if (this.installedMaps[filename] === undefined) {
-            return null;
+    public getMapImagePaths(scriptName: string) {
+        const map = this.getMapByScriptName(scriptName);
+        if (!map) {
+            return;
         }
 
-        const filenameWithoutExt = path.parse(filename).name;
-
         return {
-            texture: path.join(this.mapImagesPath, `${filenameWithoutExt}-texture.jpg`).replaceAll("\\", "/"),
-            height: path.join(this.mapImagesPath, `${filenameWithoutExt}-height.jpg`).replaceAll("\\", "/"),
-            metal: path.join(this.mapImagesPath, `${filenameWithoutExt}-metal.jpg`).replaceAll("\\", "/"),
-            type: path.join(this.mapImagesPath, `${filenameWithoutExt}-type.jpg`).replaceAll("\\", "/"),
+            texture: path.join(this.mapImagesPath, `${map.fileName}-texture.jpg`).replaceAll("\\", "/"),
+            height: path.join(this.mapImagesPath, `${map.fileName}-height.jpg`).replaceAll("\\", "/"),
+            metal: path.join(this.mapImagesPath, `${map.fileName}-metal.jpg`).replaceAll("\\", "/"),
+            type: path.join(this.mapImagesPath, `${map.fileName}-type.jpg`).replaceAll("\\", "/"),
         };
     }
 
-    public async downloadMaps(filenames: string[], host = contentSources.maps.http[0]) {
-        for (const filename of filenames) {
-            await this.downloadMapByFilename(filename, host);
+    public async downloadMaps(scriptNames: string[], host = contentSources.maps.http[0]) {
+        for (const scriptName of scriptNames) {
+            await this.downloadMapByScriptName(scriptName, host);
         }
     }
 
-    // currently reliant on springfiles because of scriptname lookup
-    public async downloadMapByScriptName(scriptName: string) {
+    // currently reliant on springfiles for scriptname lookup
+    public async downloadMapByScriptName(scriptName: string, host = contentSources.maps.http[0]!) {
+        if (this.getMapByScriptName(scriptName)) {
+            console.log(`Map ${scriptName} is already installed`);
+            return;
+        }
+
         const searchUrl = `https://springfiles.springrts.com/json.php?springname=${scriptName}&category=map`;
         const searchResponse = await axios({
             url: searchUrl,
@@ -112,12 +104,17 @@ export class MapContentAPI extends AbstractContentAPI {
             throw new Error(`${scriptName} not found on springfiles.springrts.com`);
         }
 
-        return this.downloadMapByFilename(mapResult.filename);
+        return this.downloadMapByFilename(mapResult.filename, host);
     }
 
     public async downloadMapByFilename(filename: string, host = contentSources.maps.http[0]!): Promise<void> {
-        if (this.installedMaps[filename] !== undefined) {
+        if (this.getMapByFileName(filename)) {
             console.log(`Map ${filename} is already installed`);
+            return;
+        }
+
+        if ((await this.getInstalledMapFilenames()).includes(filename)) {
+            console.log(`Map ${filename} is already installed, but not cached yet`);
             return;
         }
 
@@ -170,23 +167,24 @@ export class MapContentAPI extends AbstractContentAPI {
         }
     }
 
-    public async uninstallMap(filename: string) {
-        if (this.installedMaps[filename] === undefined) {
-            console.warn(`Map ${filename} is not installed`);
+    public async uninstallMapByScriptName(scriptName: string) {
+        const map = this.getMapByScriptName(scriptName);
+        if (!map) {
+            console.warn(`Map ${scriptName} is not installed`);
             return;
         }
 
-        await fs.promises.rm(path.join(this.mapsPath, filename), { force: true });
+        await fs.promises.rm(path.join(this.mapsPath, map.fileNameWithExt), { force: true });
 
-        const mapImagePaths = this.getMapImagePaths(filename) ?? [];
+        const mapImagePaths = this.getMapImagePaths(scriptName) ?? [];
         for (const mapImagePath of Object.values(mapImagePaths)) {
             await fs.promises.rm(mapImagePath, { force: true });
         }
 
-        this.mapCache.clearItem(filename);
-        delete this.installedMaps[filename];
+        this.mapCache.clearItem(map.fileNameWithExt);
+        this.installedMaps.delete(scriptName);
 
-        console.log(`Map ${filename} uninstalled`);
+        console.log(`Map ${scriptName} uninstalled`);
     }
 
     public scriptNameToFriendlyName(mapScriptName: string) {

@@ -38,7 +38,7 @@ module.exports = {
             customFileProtocol: "bar://./",
             nodeIntegration: true,
             builderOptions: {
-                productName: "BAR Lobby",
+                productName: "Beyond All Reason",
                 directories: {
                     buildResources: "build",
                 },
