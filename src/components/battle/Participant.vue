@@ -1,14 +1,14 @@
 <template>
     <ContextMenu :entries="getActions(participant)" :args="[participant]">
         <div class="participant" data-type="participant">
-            <Icon :icon="props.participant.type === 'bot' ? robot : account" :height="16" />
+            <Icon :icon="!('userId' in participant) ? robot : account" :height="16" />
             <Flag :countryCode="countryCode" />
             <div>
                 {{ name }}
             </div>
         </div>
         <LuaOptionsModal
-            v-if="participant.type === 'bot'"
+            v-if="!('userId' in participant)"
             :id="`configure-bot-${participant.name}`"
             v-model="aiOptionsOpen"
             :luaOptions="participant.aiOptions"
@@ -29,12 +29,13 @@ import LuaOptionsModal from "@/components/battle/LuaOptionsModal.vue";
 import ContextMenu, { ContextMenuEntry } from "@/components/common/ContextMenu.vue";
 import Flag from "@/components/misc/Flag.vue";
 import { AbstractBattle } from "@/model/battle/abstract-battle";
-import { Bot, Player, Spectator } from "@/model/battle/participants";
+import { Bot } from "@/model/battle/types";
 import { LuaOptionSection } from "@/model/lua-options";
+import { User } from "@/model/user";
 
 const props = defineProps<{
     battle: AbstractBattle;
-    participant: Player | Bot | Spectator;
+    participant: User | Bot;
 }>();
 
 const participant = toRef(props, "participant");
@@ -46,40 +47,33 @@ const user = computed(() => {
     return undefined;
 });
 
-const name = computed(() => {
-    if (user.value) {
-        return user.value?.username ?? "Player";
-    } else if (props.participant.type === "bot") {
-        return props.participant.name;
-    }
-    return "Player";
-});
+const name = computed(() => ("userId" in participant.value ? participant.value.username : participant.value.name));
 
 const countryCode = ref("");
 const aiOptions: Ref<LuaOptionSection[]> = ref([]);
 const aiOptionsOpen = ref(false);
 
-const viewProfile = (player: Player) => {
+const viewProfile = (player: User) => {
     //
 };
 
-const kickPlayer = (player: Player) => {
+const kickPlayer = (player: User) => {
     //
 };
 
-const messagePlayer = (player: Player) => {
+const messagePlayer = (player: User) => {
     //
 };
 
-const blockPlayer = (player: Player) => {
+const blockPlayer = (player: User) => {
     //
 };
 
-const addFriend = (player: Player) => {
+const addFriend = (player: User) => {
     //
 };
 
-const reportPlayer = (player: Player) => {
+const reportPlayer = (player: User) => {
     //
 };
 
@@ -99,7 +93,7 @@ const configureAi = async (bot: Bot) => {
 };
 
 const setBotOptions = (options: Record<string, unknown>) => {
-    if (props.participant.type === "bot") {
+    if (!("userId" in props.participant)) {
         props.battle.setBotOptions(props.participant.name, options);
     }
 };
@@ -120,8 +114,8 @@ const botActions: ContextMenuEntry[] = [
     { label: "Configure", action: configureAi },
 ];
 
-const getActions = (participant: Player | Bot | Spectator) => {
-    if (participant.type === "bot") {
+const getActions = (participant: User | Bot) => {
+    if (!("userId" in participant)) {
         return botActions;
     } else {
         if (participant.userId === api.session.currentUser.userId) {

@@ -3,15 +3,27 @@ import { entries, objectKeys } from "jaz-ts-utils";
 import { lobbySchema } from "tachyon-client";
 
 import { AbstractBattle } from "@/model/battle/abstract-battle";
-import { Bot, Player, Spectator } from "@/model/battle/participants";
-import { BattleOptions, StartBox } from "@/model/battle/types";
+import { BattleOptions, Bot, StartBox, StartPosType } from "@/model/battle/types";
 import { EngineVersionFormat, GameVersionFormat } from "@/model/formats";
+import { User } from "@/model/user";
 
 export class TachyonSpadsBattle extends AbstractBattle {
     protected lastBattleResponse?: Static<typeof lobbySchema>;
     protected responseHandlers: { [K in keyof Static<typeof lobbySchema>]: (data: Static<typeof lobbySchema>[K]) => void } = {
         bots: (data) => {
-            // TODO
+            const bots: Bot[] = entries(data).map(([botId, botData]) => {
+                return {
+                    playerId: botData.player_number,
+                    teamId: botData.team_number,
+                    name: botData.name,
+                    ownerUserId: botData.owner_id,
+                    aiOptions: {},
+                    aiShortName: botData.ai_dll,
+                    // TODO: other props
+                };
+            });
+
+            this.bots.push(...bots);
         },
         disabled_units: (data) => {
             // TODO
@@ -56,7 +68,21 @@ export class TachyonSpadsBattle extends AbstractBattle {
             // TODO
         },
         players: (data) => {
-            // TODO
+            for (const userId of this.userIds) {
+                if (!data.includes(userId)) {
+                    this.userIds.splice(this.userIds.indexOf(userId), 1);
+                }
+            }
+            for (const userId of data) {
+                if (!this.battleUsers.value.find((user) => user.userId === userId)) {
+                    const user = api.session.getUserById(userId);
+                    if (!user) {
+                        console.error("Battle update received for unknown user", userId);
+                        continue;
+                    }
+                    this.userIds.push(userId);
+                }
+            }
         },
         start_rectangles: (data) => {
             const startBoxes: StartBox[] = [];
@@ -75,6 +101,13 @@ export class TachyonSpadsBattle extends AbstractBattle {
         },
         tags: (data) => {
             // TODO
+            if (data["game/startpostype"] === "0") {
+                this.battleOptions.startPosType = StartPosType.Fixed;
+            } else if (data["game/startpostype"] === "1") {
+                this.battleOptions.startPosType = StartPosType.Random;
+            } else {
+                this.battleOptions.startPosType = StartPosType.Boxes;
+            }
         },
         type: (data) => {
             // TODO
@@ -84,47 +117,11 @@ export class TachyonSpadsBattle extends AbstractBattle {
     constructor(serverBattleResponse: Static<typeof lobbySchema>) {
         super({
             battleOptions: {} as BattleOptions,
-            participants: [],
+            userIds: [],
+            bots: [],
         });
 
         this.handleServerResponse(serverBattleResponse);
-
-        const bots: Bot[] = entries(serverBattleResponse.bots).map(([botId, botData]) => {
-            return {
-                playerId: botData.player_number,
-                teamId: botData.team_number,
-                name: botData.name,
-                ownerUserId: botData.owner_id,
-                aiOptions: {},
-                aiShortName: botData.ai_dll,
-                type: "bot",
-                // TODO: other props
-            };
-        });
-
-        serverBattleResponse.players.forEach((userId) => {
-            const user = api.session.getUserById(userId);
-            if (!user) {
-                console.error(`User ${userId} not found in session`);
-                return;
-            }
-            if (user.battleStatus.spectator) {
-                this.participants.push({
-                    type: "spectator",
-                    userId: user.userId,
-                });
-            } else {
-                this.participants.push({
-                    type: "player",
-                    userId: user.userId,
-                    playerId: user.battleStatus.playerId,
-                    teamId: user.battleStatus.teamId,
-                    // TODO: other props
-                });
-            }
-        });
-
-        this.participants.push(...bots);
     }
 
     public handleServerResponse(battleUpdateResponse: Static<typeof lobbySchema>) {
@@ -140,6 +137,7 @@ export class TachyonSpadsBattle extends AbstractBattle {
             });
 
             partialBattleUpdateResponse = diff;
+            console.debug("Partial battle update diff", diff);
         } else {
             partialBattleUpdateResponse = battleUpdateResponse;
         }
@@ -163,7 +161,7 @@ export class TachyonSpadsBattle extends AbstractBattle {
         // TODO
     }
 
-    public updateParticipant(name: string, updatedProperties: Partial<Player | Bot | Spectator>) {
+    public updateParticipant(name: string, updatedProperties: Partial<User | Bot>) {
         // TODO
     }
 
@@ -173,23 +171,23 @@ export class TachyonSpadsBattle extends AbstractBattle {
         });
     }
 
-    public addParticipant(participant: Player | Bot | Spectator) {
+    public addParticipant(participant: User | Bot) {
         // TODO
     }
 
-    public removeParticipant(participant: Player | Bot | Spectator) {
+    public removeParticipant(participant: User | Bot) {
         // TODO
     }
 
-    public playerToSpectator(player: Player) {
+    public playerToSpectator(player: User) {
         // TODO
     }
 
-    public spectatorToPlayer(spectator: Spectator, teamId: number) {
+    public spectatorToPlayer(spectator: User, teamId: number) {
         // TODO
     }
 
-    public changeContenderTeam(contender: Player | Bot, teamId: number) {
+    public changeContenderTeam(contender: User | Bot, teamId: number) {
         // TODO
     }
 

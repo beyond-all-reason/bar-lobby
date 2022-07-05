@@ -139,10 +139,15 @@ async function updateUsers(userIds: number[]) {
                 inBattle: battleStatus.in_game,
                 battleId: battleStatus.lobby_id,
                 ready: battleStatus.ready,
-                spectator: !battleStatus.player,
+                isSpectator: !battleStatus.player,
                 color: battleStatus.team_colour,
                 teamId: battleStatus.team_number,
                 playerId: battleStatus.team_number,
+                sync: {
+                    engine: true,
+                    game: battleStatus.sync.includes("game"),
+                    map: battleStatus.sync.includes("map"),
+                },
             },
         });
     }

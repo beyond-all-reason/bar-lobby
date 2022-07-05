@@ -7,8 +7,12 @@ import { OfflineBattle } from "@/model/battle/offline-battle";
 import { StartPosType } from "@/model/battle/types";
 
 export const defaultBattle: () => OfflineBattle = () => {
-    const myUserId = api.session?.currentUser?.userId ?? -1;
+    const me = api.session.currentUser;
     const map = randomFromArray(defaultMaps)!;
+
+    me.battleStatus.playerId = 0;
+    me.battleStatus.teamId = 0;
+    me.battleStatus.isSpectator = false;
 
     return new OfflineBattle({
         battleOptions: {
@@ -19,15 +23,12 @@ export const defaultBattle: () => OfflineBattle = () => {
             map: map,
             startPosType: StartPosType.Boxes,
             startBoxes: defaultMapBoxes()[map] ?? defaultBoxes().NorthVsSouth,
-            //teamPreset: TeamPreset.Standard,
             isHost: true,
             gameOptions: {},
             mapOptions: {},
             restrictions: [],
         },
-        participants: [
-            { type: "player", playerId: 0, teamId: 0, userId: myUserId },
-            { type: "bot", playerId: 1, teamId: 1, ownerUserId: myUserId, name: randomFromArray(aiNames)!, aiShortName: "BARb", aiOptions: {} },
-        ],
+        userIds: [-1],
+        bots: [{ playerId: 1, teamId: 1, ownerUserId: -1, name: randomFromArray(aiNames)!, aiShortName: "BARb", aiOptions: {} }],
     });
 };

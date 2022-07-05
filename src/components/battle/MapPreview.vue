@@ -73,7 +73,7 @@ onMounted(async () => {
     (window as any).loadMap = loadMap;
 
     watch(
-        [() => props.battle.battleOptions.map, () => props.battle.battleOptions.startPosType, () => props.battle.battleOptions.startBoxes, () => props.battle.me],
+        [() => props.battle.battleOptions.map, () => props.battle.battleOptions.startPosType, () => props.battle.battleOptions.startBoxes, () => api.session.currentUser.battleStatus],
         () => {
             loadMap();
         },
@@ -146,9 +146,9 @@ function drawFixedPositions() {
 
 function drawBoxes() {
     props.battle.battleOptions.startBoxes.forEach((box, teamId) => {
-        if (props.battle.me.value?.type === "spectator") {
+        if (api.session.currentUser.battleStatus.isSpectator) {
             context.fillStyle = "rgba(255, 255, 255, 0.2)";
-        } else if (props.battle.me.value?.teamId === teamId) {
+        } else if (api.session.currentUser.battleStatus.teamId === teamId) {
             context.fillStyle = "rgba(0, 255, 0, 0.2)";
         } else {
             context.fillStyle = "rgba(255, 0, 0, 0.2)";

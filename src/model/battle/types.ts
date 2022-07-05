@@ -46,3 +46,21 @@ export type Restriction = {
     unitDefId: string;
     limit: number;
 };
+
+export type BattleContenderConfig = {
+    playerId: number;
+    teamId: number;
+    startPos?: { x: number; z: number };
+    handicap?: number;
+    advantage?: number;
+    incomeMultiplier?: number;
+    color?: string;
+};
+
+export type Bot = BattleContenderConfig & {
+    ownerUserId: number;
+    aiShortName: string; // TODO: point directly to AI obj and object.freeze it?
+    name: string;
+    aiOptions: Record<string, unknown>;
+    faction?: Faction;
+};

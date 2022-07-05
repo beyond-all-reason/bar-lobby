@@ -27,7 +27,12 @@ export function storeUserSession(user?: Static<typeof myUserSchema>) {
             playerId: 0,
             teamId: 0,
             ready: false,
-            spectator: true,
+            isSpectator: true,
+            sync: {
+                engine: true,
+                game: true,
+                map: true,
+            },
         },
     });
 

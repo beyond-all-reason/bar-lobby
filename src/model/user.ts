@@ -1,3 +1,5 @@
+import { BattleContenderConfig } from "@/model/battle/types";
+
 export type User = {
     userId: number;
     username: string;
@@ -16,13 +18,15 @@ export type CurrentUser = User & {
     ignoreUserIds: number[];
 };
 
-export type BattleStatus = {
+export type BattleStatus = BattleContenderConfig & {
+    away: boolean;
     inBattle: boolean;
     battleId: number;
-    away: boolean;
-    spectator: boolean;
+    isSpectator: boolean;
     ready: boolean;
-    color: string;
-    teamId: number;
-    playerId: number;
+    sync: {
+        engine: boolean;
+        game: boolean;
+        map: boolean;
+    };
 };

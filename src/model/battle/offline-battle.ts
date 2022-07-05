@@ -1,5 +1,6 @@
 import { AbstractBattle } from "@/model/battle/abstract-battle";
-import { Bot, Player, Spectator } from "@/model/battle/participants";
+import { Bot } from "@/model/battle/types";
+import { User } from "@/model/user";
 
 export class OfflineBattle extends AbstractBattle {
     public changeMap(map: string) {
@@ -10,36 +11,46 @@ export class OfflineBattle extends AbstractBattle {
         this.battleOptions.gameOptions = options;
     }
 
-    public addParticipant(participant: Player | Bot | Spectator) {
-        this.participants.push(participant);
+    public addParticipant(participant: User | Bot) {
+        if ("userId" in participant) {
+            const user = api.session.getUserById(participant.userId);
+            if (user) {
+                this.userIds.push(participant.userId);
+            } else {
+                console.error("User not found", participant.userId);
+            }
+        } else {
+            this.bots.push(participant);
+        }
         this.fixIds();
     }
 
-    public removeParticipant(participant: Player | Bot | Spectator) {
-        this.participants.splice(this.participants.indexOf(participant), 1);
+    public removeParticipant(participant: User | Bot) {
+        if ("userId" in participant) {
+            this.userIds.splice(this.userIds.indexOf(participant.userId), 1);
+        } else {
+            this.bots.splice(this.bots.indexOf(participant), 1);
+        }
         this.fixIds();
     }
 
-    public playerToSpectator(player: Player) {
-        this.removeParticipant(player);
-        this.addParticipant({
-            type: "spectator",
-            userId: player.userId,
-        });
+    public playerToSpectator(player: User) {
+        player.battleStatus.isSpectator = true;
+        this.fixIds();
     }
 
-    public spectatorToPlayer(spectator: Spectator, teamId: number) {
-        this.removeParticipant(spectator);
-        this.addParticipant({
-            playerId: this.contenders.value.length,
-            type: "player",
-            userId: spectator.userId,
-            teamId,
-        });
+    public spectatorToPlayer(spectator: User, teamId: number) {
+        spectator.battleStatus.isSpectator = false;
+        spectator.battleStatus.teamId = teamId;
+        this.fixIds();
     }
 
-    public changeContenderTeam(contender: Player | Bot, teamId: number) {
-        contender.teamId = teamId;
+    public changeContenderTeam(contender: User | Bot, teamId: number) {
+        if ("userId" in contender) {
+            contender.battleStatus.teamId = teamId;
+        } else {
+            contender.teamId = teamId;
+        }
         this.fixIds();
     }
 
@@ -51,19 +62,14 @@ export class OfflineBattle extends AbstractBattle {
     protected fixIds() {
         const contenders = this.contenders.value;
 
-        const contenderIds = Array.from(new Set(this.contenders.value.map((c) => c.playerId)).values()).sort();
-        const teamIds = Array.from(new Set(this.contenders.value.map((c) => c.teamId)).values()).sort();
+        const playerIds = Array.from(new Set(contenders.map((c) => ("userId" in c ? c.battleStatus.playerId : c.playerId))).values()).sort();
+        const teamIds = Array.from(new Set(contenders.map((c) => ("userId" in c ? c.battleStatus.teamId : c.teamId))).values()).sort();
         for (const contender of contenders) {
-            const newContenderId = contenderIds.indexOf(contender.playerId);
-            if (contender.playerId !== newContenderId && newContenderId !== -1) {
-                // only assign if id is different to avoid recursive proxy trap calls
-                contender.playerId = newContenderId;
-            }
-            const newTeamId = teamIds.indexOf(contender.teamId);
-            if (contender.teamId !== newTeamId && newTeamId !== -1) {
-                // only assign if id is different to avoid recursive proxy trap calls
-                contender.teamId = newTeamId;
-            }
+            const newPlayerId = playerIds.indexOf("userId" in contender ? contender.battleStatus.playerId : contender.playerId);
+            "userId" in contender ? (contender.battleStatus.playerId = newPlayerId) : (contender.playerId = newPlayerId);
+
+            const newTeamId = teamIds.indexOf("userId" in contender ? contender.battleStatus.teamId : contender.teamId);
+            "userId" in contender ? (contender.battleStatus.teamId = newTeamId) : (contender.teamId = newTeamId);
         }
     }
 

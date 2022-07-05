@@ -40,7 +40,12 @@ export class SessionAPI {
                 away: false,
                 battleId: -1, // -1 = offline battle
                 ready: false,
-                spectator: false,
+                isSpectator: false,
+                sync: {
+                    engine: true,
+                    game: true,
+                    map: true,
+                },
                 color: "",
                 teamId: 0,
                 playerId: 0,

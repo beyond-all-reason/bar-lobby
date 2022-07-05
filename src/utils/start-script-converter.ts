@@ -39,14 +39,16 @@ export class StartScriptConverter {
         const botIdToUserIdMap: Record<number, number> = {};
 
         battle.contenders.value.forEach((contenderConfig) => {
-            if (!allyTeams[contenderConfig.teamId]) {
+            const contenderPlayerId = "userId" in contenderConfig ? contenderConfig.battleStatus.playerId : contenderConfig.playerId;
+            const contenderTeamId = "userId" in contenderConfig ? contenderConfig.battleStatus.teamId : contenderConfig.teamId;
+            if (!allyTeams[contenderTeamId]) {
                 const allyTeam: StartScriptTypes.AllyTeam = {
-                    id: contenderConfig.teamId,
+                    id: contenderTeamId,
                     numallies: 0,
                 };
 
                 if (battle.battleOptions.startPosType === StartPosType.Boxes) {
-                    const box = battle.battleOptions.startBoxes[contenderConfig.teamId];
+                    const box = battle.battleOptions.startBoxes[contenderTeamId];
                     if (box) {
                         assign(allyTeam, {
                             startrectleft: box.xPercent,
@@ -55,7 +57,7 @@ export class StartScriptConverter {
                             startrectbottom: box.yPercent + box.heightPercent,
                         });
                     } else {
-                        console.warn(`Contender ${contenderConfig.playerId} has a teamId of ${contenderConfig.teamId} but no start box was defined for that team`);
+                        console.warn(`Contender ${contenderPlayerId} has a teamId of ${contenderTeamId} but no start box was defined for that team`);
                     }
                 }
 
@@ -63,21 +65,22 @@ export class StartScriptConverter {
             }
 
             const team: StartScriptTypes.Team = {
-                id: teamId,
-                allyteam: contenderConfig.teamId,
+                id: contenderTeamId,
+                allyteam: contenderTeamId,
                 teamleader: 0,
             };
+            const contenderOptions = "userId" in contenderConfig ? contenderConfig.battleStatus : contenderConfig;
             assign(team, {
-                advantage: contenderConfig.advantage,
-                handicap: contenderConfig.handicap,
-                incomemultiplier: contenderConfig.incomeMultiplier,
-                startposx: contenderConfig.startPos?.x,
-                startposz: contenderConfig.startPos?.z,
+                advantage: contenderOptions.advantage,
+                handicap: contenderOptions.handicap,
+                incomemultiplier: contenderOptions.incomeMultiplier,
+                startposx: contenderOptions.startPos?.x,
+                startposz: contenderOptions.startPos?.z,
             });
             teams.push(team);
             teamId++;
 
-            if (contenderConfig.type === "player") {
+            if ("userId" in contenderConfig) {
                 const player: StartScriptTypes.Player = {
                     id: playerIndex,
                     team: team.id,
