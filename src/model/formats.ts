@@ -24,24 +24,3 @@ export function gitEngineTagToEngineVersionString(gitEngineTag: string): EngineV
     const { major, minor, patch, revision, sha, branch } = gitEngineTag.match(gitEngineTagRegex)!.groups!;
     return `${major}.${minor}.${patch}-${revision}-g${sha} ${branch}`;
 }
-
-// Beyond All Reason test-16289-b154c3d
-export type GameVersion = {
-    game: string;
-    tag: string;
-    revision: number;
-    sha: string;
-    fullString: GameVersionFormat;
-};
-export type GameVersionFormat = `Beyond All Reason ${string}-${number}-${string}`;
-export const GameVersionFormatRegex = /^(?<game>Beyond All Reason) (?<tag>\w+)-(?<revision>\d+)-(?<sha>\w+)$/i;
-export function isGameVersionString(version: string): version is GameVersionFormat {
-    return GameVersionFormatRegex.test(version);
-}
-export function parseGameVersionString(gameVersionString: GameVersionFormat | string): GameVersion {
-    if (!isGameVersionString(gameVersionString)) {
-        throw new Error(`Unexpected game version string format: ${gameVersionString}`);
-    }
-    const { game, tag, revision, sha } = gameVersionString.match(GameVersionFormatRegex)!.groups!;
-    return { game, tag, revision: Number(revision), sha, fullString: gameVersionString };
-}

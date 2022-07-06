@@ -11,7 +11,6 @@ import * as zlib from "zlib";
 import { AbstractContentAPI } from "@/api/content/abstract-content-api";
 import { contentSources } from "@/config/content-sources";
 import type { DownloadInfo } from "@/model/downloads";
-import { GameVersionFormat, parseGameVersionString } from "@/model/formats";
 import { LuaOptionSection } from "@/model/lua-options";
 import type { Message, ProgressMessage, RapidVersion } from "@/model/pr-downloader";
 import { DownloadType } from "@/model/pr-downloader";
@@ -95,7 +94,7 @@ export class GameContentAPI extends AbstractContentAPI {
         const versionsParts = versionsStr.split("\n");
         versionsParts.map((versionLine) => {
             const [tag, md5, _, version] = versionLine.split(",");
-            this.md5ToRapidVersionMap[md5] = { tag, md5, version: parseGameVersionString(version) };
+            this.md5ToRapidVersionMap[md5] = { tag, md5, version };
         });
 
         const packagesDir = path.join(this.dataDir, "packages");
@@ -108,7 +107,8 @@ export class GameContentAPI extends AbstractContentAPI {
                 }
             }
             this.installedVersions.sort((a, b) => {
-                return a.version.revision - b.version.revision;
+                // TODO
+                return 0;
             });
         }
     }
@@ -117,7 +117,7 @@ export class GameContentAPI extends AbstractContentAPI {
      * @param filePatterns glob pattern for which files to retrieve
      * @example getGameFiles("Beyond All Reason test-16289-b154c3d", ["units/CorAircraft/T2/*.lua"])
      */
-    public async getGameFiles(version: GameVersionFormat, filePattern: string): Promise<SdpFile[]> {
+    public async getGameFiles(version: string, filePattern: string): Promise<SdpFile[]> {
         const sdpEntries = await this.parseSdpFile(version, filePattern);
 
         const sdpFiles: SdpFile[] = [];
@@ -136,15 +136,15 @@ export class GameContentAPI extends AbstractContentAPI {
         return sdpFiles;
     }
 
-    public async getGameOptions(version: GameVersionFormat): Promise<LuaOptionSection[]> {
+    public async getGameOptions(version: string): Promise<LuaOptionSection[]> {
         // TODO: cache per session
         const gameFiles = await this.getGameFiles(version, "modoptions.lua");
         const gameOptionsLua = gameFiles[0].data;
         return parseLuaOptions(gameOptionsLua);
     }
 
-    protected async parseSdpFile(version: GameVersionFormat, filePattern?: string): Promise<SdpFileMeta[]> {
-        const md5 = this.installedVersions.find((installedVersion) => installedVersion.version.fullString === version)?.md5;
+    protected async parseSdpFile(version: string, filePattern?: string): Promise<SdpFileMeta[]> {
+        const md5 = this.installedVersions.find((installedVersion) => installedVersion.version === version)?.md5;
         if (!md5) {
             throw new Error(`Version ${version} is not installed`);
         }

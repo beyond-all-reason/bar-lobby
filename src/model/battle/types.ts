@@ -1,10 +1,10 @@
-import { EngineVersionFormat, GameVersionFormat } from "@/model/formats";
+import { EngineVersionFormat } from "@/model/formats";
 
 export type BattleOptions = {
     id: number;
     title: string;
     engineVersion: EngineVersionFormat;
-    gameVersion: GameVersionFormat;
+    gameVersion: string;
     map: string;
     isHost: boolean;
     startPosType: StartPosType;

@@ -87,7 +87,7 @@ const onMapSelected = (mapScriptName: string) => {
     props.battle.changeMap(mapScriptName);
 };
 
-const games = computed(() => api.content.game.installedVersions.map((rapidVersion) => rapidVersion.version.fullString).slice(-10));
+const games = computed(() => api.content.game.installedVersions.map((rapidVersion) => rapidVersion.version).slice(-10));
 const selectedGame = ref(lastInArray(games.value)!);
 
 const gameOptionsOpen = ref(false);

@@ -4,7 +4,7 @@ import { lobbySchema } from "tachyon-client";
 
 import { AbstractBattle } from "@/model/battle/abstract-battle";
 import { BattleOptions, Bot, StartBox, StartPosType } from "@/model/battle/types";
-import { EngineVersionFormat, GameVersionFormat } from "@/model/formats";
+import { EngineVersionFormat } from "@/model/formats";
 import { User } from "@/model/user";
 
 export class TachyonSpadsBattle extends AbstractBattle {
@@ -38,7 +38,7 @@ export class TachyonSpadsBattle extends AbstractBattle {
             // TODO
         },
         game_name: (data) => {
-            this.battleOptions.gameVersion = data as GameVersionFormat;
+            this.battleOptions.gameVersion = data;
         },
         id: (data) => {
             this.battleOptions.id = data;

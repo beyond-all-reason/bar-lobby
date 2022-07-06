@@ -19,7 +19,7 @@ export const defaultBattle: () => OfflineBattle = () => {
             title: "Offline Custom Battle",
             id: -1,
             engineVersion: lastInArray(api.content.engine.installedVersions)!,
-            gameVersion: lastInArray(api.content.game.installedVersions)!.version.fullString,
+            gameVersion: lastInArray(api.content.game.installedVersions)!.version,
             map: map,
             startPosType: StartPosType.Boxes,
             startBoxes: defaultMapBoxes()[map] ?? defaultBoxes().NorthVsSouth,
