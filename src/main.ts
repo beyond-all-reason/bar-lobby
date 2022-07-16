@@ -6,14 +6,17 @@ import unhandled from "electron-unhandled";
 import { StoreAPI } from "@/api/store";
 import { MainWindow } from "@/main-window";
 import type { Info } from "@/model/info";
+import { ReplayData } from "@/model/replay";
 import type { SettingsType } from "@/model/settings";
 import { settingsSchema } from "@/model/settings";
+import { ReplayManager } from "@/workers/replay-manager";
 
 const isProd = process.env.NODE_ENV === "production";
 export class Application {
     protected app: App;
     protected mainWindow?: MainWindow;
     protected settings?: StoreAPI<SettingsType>;
+    protected replayManager?: ReplayManager;
 
     constructor(app: App) {
         this.app = app;
@@ -113,6 +116,14 @@ export class Application {
 
         ipcMain.handle("highlightTaskbarIcon", (event, shouldHighlight: boolean) => {
             this.mainWindow?.window.flashFrame(shouldHighlight);
+        });
+
+        ipcMain.handle("initReplayManager", async () => {
+            this.replayManager = await new ReplayManager(this.settings!).init();
+        });
+
+        ipcMain.handle("saveReplay", async (event, replayData: ReplayData) => {
+            this.replayManager?.saveReplay(replayData);
         });
     }
 }

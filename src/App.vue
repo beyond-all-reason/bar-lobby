@@ -83,6 +83,8 @@ const onPreloadDone = async () => {
 
         await api.content.maps.init();
 
+        await api.content.replays.init();
+
         // TODO: fix the slight delay these cause
         // api.content.engine.downloadLatestEngine();
         // api.content.game.updateGame();
