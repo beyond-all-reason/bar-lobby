@@ -129,8 +129,8 @@ const props = defineProps<{
 }>();
 
 const users = computed(() => props.battle.userIds.map((id) => api.session.getUserById(id)!));
-const players = computed(() => users.value.filter((user) => !user.battleStatus?.spectator));
-const spectators = computed(() => users.value.filter((user) => user?.battleStatus?.spectator));
+const players = computed(() => users.value.filter((user) => !user.battleStatus?.isSpectator));
+const spectators = computed(() => users.value.filter((user) => user?.battleStatus?.isSpectator));
 const founder = computed(() => api.session.getUserById(props.battle.founderId)!);
 const map = computed(() => api.content.maps.getMapByScriptName(props.battle.mapName));
 const mapImageUrl = computed(() => (map.value ? `file://${map.value.textureImagePath}` : require("@/assets/images/default-minimap.png")));

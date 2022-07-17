@@ -3,28 +3,28 @@ import { entries, objectKeys } from "jaz-ts-utils";
 import { lobbySchema } from "tachyon-client";
 
 import { AbstractBattle } from "@/model/battle/abstract-battle";
-import { BattleOptions, Bot, StartBox, StartPosType } from "@/model/battle/types";
+import { BattleOptions, Bot, StartBox } from "@/model/battle/types";
 import { EngineVersionFormat } from "@/model/formats";
 import { User } from "@/model/user";
 
 export class TachyonSpadsBattle extends AbstractBattle {
     protected lastBattleResponse?: Static<typeof lobbySchema>;
     protected responseHandlers: { [K in keyof Static<typeof lobbySchema>]: (data: Static<typeof lobbySchema>[K]) => void } = {
-        bots: (data) => {
-            const bots: Bot[] = entries(data).map(([botId, botData]) => {
-                return {
-                    playerId: botData.player_number,
-                    teamId: botData.team_number,
-                    name: botData.name,
-                    ownerUserId: botData.owner_id,
-                    aiOptions: {},
-                    aiShortName: botData.ai_dll,
-                    // TODO: other props
-                };
-            });
+        // bots: (data) => {
+        //     const bots: Bot[] = entries(data).map(([botId, botData]) => {
+        //         return {
+        //             playerId: botData.player_number,
+        //             teamId: botData.team_number,
+        //             name: botData.name,
+        //             ownerUserId: botData.owner_id,
+        //             aiOptions: {},
+        //             aiShortName: botData.ai_dll,
+        //             // TODO: other props
+        //         };
+        //     });
 
-            this.bots.push(...bots);
-        },
+        //     this.bots.push(...bots);
+        // },
         disabled_units: (data) => {
             // TODO
         },
@@ -64,7 +64,7 @@ export class TachyonSpadsBattle extends AbstractBattle {
         name: (data) => {
             this.battleOptions.title = data;
         },
-        password: (data) => {
+        passworded: (data) => {
             // TODO
         },
         players: (data) => {
@@ -99,16 +99,16 @@ export class TachyonSpadsBattle extends AbstractBattle {
         started_at: (data) => {
             // TODO
         },
-        tags: (data) => {
-            // TODO
-            if (data["game/startpostype"] === "0") {
-                this.battleOptions.startPosType = StartPosType.Fixed;
-            } else if (data["game/startpostype"] === "1") {
-                this.battleOptions.startPosType = StartPosType.Random;
-            } else {
-                this.battleOptions.startPosType = StartPosType.Boxes;
-            }
-        },
+        // modoptions: (data) => {
+        //     // TODO
+        //     if (data["game/startpostype"] === "0") {
+        //         this.battleOptions.startPosType = StartPosType.Fixed;
+        //     } else if (data["game/startpostype"] === "1") {
+        //         this.battleOptions.startPosType = StartPosType.Random;
+        //     } else {
+        //         this.battleOptions.startPosType = StartPosType.Boxes;
+        //     }
+        // },
         type: (data) => {
             // TODO
         },

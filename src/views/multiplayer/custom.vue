@@ -80,10 +80,10 @@ onMounted(async () => {
 });
 
 async function updateBattleList() {
-    const { lobbies } = await api.comms.request("c.lobby.query", { query: {} });
+    const { lobbies } = await api.comms.request("c.lobby.query", { query: {}, fields: ["lobby", "bots", "modoptions"] });
 
     const userIds: number[] = [];
-    for (const battle of lobbies) {
+    for (const battle of lobbies.map((data) => data.lobby)) {
         userIds.push(...battle.players);
         userIds.push(battle.founder_id);
     }
@@ -91,7 +91,7 @@ async function updateBattleList() {
     await updateUsers(userIds);
 
     battles.value = lobbies
-        .map((lobby) => {
+        .map(({ lobby, bots, modoptions }) => {
             const battlePreview: BattlePreviewType = {
                 id: lobby.id,
                 title: lobby.name,
@@ -102,8 +102,8 @@ async function updateBattleList() {
                 maxPlayers: lobby.max_players,
                 type: lobby.type,
                 userIds: lobby.players,
-                botNames: Object.values(lobby.bots).map((bot) => bot.name),
-                passworded: Boolean(lobby.password),
+                botNames: Object.values(bots!).map((bot) => bot.name),
+                passworded: Boolean(lobby.passworded),
                 startTime: lobby.started_at ? new Date(lobby.started_at * 1000) : null,
             };
             return battlePreview;
@@ -145,8 +145,8 @@ async function updateUsers(userIds: number[]) {
                 playerId: battleStatus.team_number,
                 sync: {
                     engine: true,
-                    game: battleStatus.sync.includes("game"),
-                    map: battleStatus.sync.includes("map"),
+                    game: true,
+                    map: true,
                 },
             },
         });
