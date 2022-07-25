@@ -1,5 +1,6 @@
 import { Database, DemoProcessor } from "bar-db";
 import { app } from "electron";
+import fs from "fs";
 import path from "path";
 import { Sequelize } from "sequelize";
 
@@ -27,9 +28,7 @@ export class ReplayManager {
             logSQL: false,
         });
 
-        this.replayProcessor = new DemoProcessor({
-            db: this.db,
-        });
+        this.replayProcessor = new CustomDemoProcessor(this.db, path.join(this.settings.model.dataDir.value, "demos"));
     }
 
     public async init() {
@@ -58,5 +57,28 @@ class LocalBARDatabase extends Database {
             console.log("Unable to connect to the database:", error);
             throw error;
         }
+    }
+}
+
+class CustomDemoProcessor extends DemoProcessor {
+    protected processedDemos: string[] = [];
+
+    constructor(db: LocalBARDatabase, demoDir: string) {
+        super({
+            db,
+            dir: demoDir,
+            fileExt: [".sdfz"],
+        });
+    }
+
+    public override async init() {
+        const processedDemos = await this.db.schema.demo.findAll();
+
+        const demos = await fs.promises.readdir(this.config.dir);
+        //this.processedDemos = await
+    }
+
+    public override async processFiles() {
+        //
     }
 }

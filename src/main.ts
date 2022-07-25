@@ -119,7 +119,8 @@ export class Application {
         });
 
         ipcMain.handle("initReplayManager", async () => {
-            this.replayManager = await new ReplayManager(this.settings!).init();
+            // TODO: breaks because of pg import error
+            //this.replayManager = await new ReplayManager(this.settings!).init();
         });
 
         ipcMain.handle("saveReplay", async (event, replayData: ReplayData) => {

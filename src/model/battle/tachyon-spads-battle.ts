@@ -1,30 +1,32 @@
 import { Static } from "@sinclair/typebox";
 import { entries, objectKeys } from "jaz-ts-utils";
-import { lobbySchema } from "tachyon-client";
+import { battleSchema, lobbySchema } from "tachyon-client";
 
 import { AbstractBattle } from "@/model/battle/abstract-battle";
-import { BattleOptions, Bot, StartBox } from "@/model/battle/types";
+import { BattleOptions, Bot, StartBox, StartPosType } from "@/model/battle/types";
 import { EngineVersionFormat } from "@/model/formats";
 import { User } from "@/model/user";
 
+export type BattleResponseData = Static<typeof lobbySchema> & { bots: NonNullable<Static<typeof battleSchema>["bots"]> } & { modoptions: NonNullable<Static<typeof battleSchema>["modoptions"]> };
+
 export class TachyonSpadsBattle extends AbstractBattle {
     protected lastBattleResponse?: Static<typeof lobbySchema>;
-    protected responseHandlers: { [K in keyof Static<typeof lobbySchema>]: (data: Static<typeof lobbySchema>[K]) => void } = {
-        // bots: (data) => {
-        //     const bots: Bot[] = entries(data).map(([botId, botData]) => {
-        //         return {
-        //             playerId: botData.player_number,
-        //             teamId: botData.team_number,
-        //             name: botData.name,
-        //             ownerUserId: botData.owner_id,
-        //             aiOptions: {},
-        //             aiShortName: botData.ai_dll,
-        //             // TODO: other props
-        //         };
-        //     });
+    protected responseHandlers: { [K in keyof BattleResponseData]: (data: BattleResponseData[K]) => void } = {
+        bots: (data) => {
+            const bots: Bot[] = entries(data).map(([botId, botData]) => {
+                return {
+                    playerId: botData.player_number,
+                    teamId: botData.team_number,
+                    name: botData.name,
+                    ownerUserId: botData.owner_id,
+                    aiOptions: {},
+                    aiShortName: botData.ai_dll,
+                    // TODO: other props
+                };
+            });
 
-        //     this.bots.push(...bots);
-        // },
+            this.bots.push(...bots);
+        },
         disabled_units: (data) => {
             // TODO
         },
@@ -99,22 +101,22 @@ export class TachyonSpadsBattle extends AbstractBattle {
         started_at: (data) => {
             // TODO
         },
-        // modoptions: (data) => {
-        //     // TODO
-        //     if (data["game/startpostype"] === "0") {
-        //         this.battleOptions.startPosType = StartPosType.Fixed;
-        //     } else if (data["game/startpostype"] === "1") {
-        //         this.battleOptions.startPosType = StartPosType.Random;
-        //     } else {
-        //         this.battleOptions.startPosType = StartPosType.Boxes;
-        //     }
-        // },
+        modoptions: (data) => {
+            // TODO
+            if (data["game/startpostype"] === "0") {
+                this.battleOptions.startPosType = StartPosType.Fixed;
+            } else if (data["game/startpostype"] === "1") {
+                this.battleOptions.startPosType = StartPosType.Random;
+            } else {
+                this.battleOptions.startPosType = StartPosType.Boxes;
+            }
+        },
         type: (data) => {
             // TODO
         },
     };
 
-    constructor(serverBattleResponse: Static<typeof lobbySchema>) {
+    constructor(serverBattleResponse: BattleResponseData) {
         super({
             battleOptions: {} as BattleOptions,
             userIds: [],
@@ -124,7 +126,7 @@ export class TachyonSpadsBattle extends AbstractBattle {
         this.handleServerResponse(serverBattleResponse);
     }
 
-    public handleServerResponse(battleUpdateResponse: Static<typeof lobbySchema>) {
+    public handleServerResponse(battleUpdateResponse: BattleResponseData) {
         let partialBattleUpdateResponse: Partial<Static<typeof lobbySchema>> = {};
 
         if (this.lastBattleResponse) {
@@ -145,7 +147,11 @@ export class TachyonSpadsBattle extends AbstractBattle {
         objectKeys(partialBattleUpdateResponse).forEach((key) => {
             const data = battleUpdateResponse[key];
             const responseHandler = this.responseHandlers[key] as any; // TODO: get rid of any
-            responseHandler(data);
+            if (responseHandler) {
+                responseHandler(data);
+            } else {
+                console.warn(`No response handler for ${key} property`, key);
+            }
         });
 
         this.lastBattleResponse = battleUpdateResponse;

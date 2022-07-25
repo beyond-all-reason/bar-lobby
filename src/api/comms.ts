@@ -47,7 +47,11 @@ export class CommsAPI extends TachyonClient {
             if (data.result === "approve") {
                 // TODO: might need to request fresh client info here for cases where we don't already know about them (e.g. server forcing us into a battle)
 
-                api.session.onlineBattle = new TachyonSpadsBattle(data.lobby);
+                api.session.onlineBattle = new TachyonSpadsBattle({
+                    ...data.lobby,
+                    bots: data.bots!,
+                    modoptions: data.modoptions!,
+                });
 
                 api.router.push("/multiplayer/battle");
             }
@@ -60,7 +64,11 @@ export class CommsAPI extends TachyonClient {
                 return;
             }
 
-            battle.handleServerResponse(data.lobby);
+            battle.handleServerResponse({
+                ...data.lobby,
+                bots: data.bots!,
+                modoptions: data.modoptions!,
+            });
         });
     }
 }
