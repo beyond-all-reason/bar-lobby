@@ -6,15 +6,14 @@ import { reactive } from "vue";
 
 import { AbstractContentAPI } from "@/api/content/abstract-content-api";
 import type { AI } from "@/model/ai";
-import type { EngineVersionFormat } from "@/model/formats";
 import { parseLuaOptions } from "@/utils/parse-lua-options";
 import { parseLuaTable } from "@/utils/parse-lua-table";
 
 export class AiContentAPI extends AbstractContentAPI {
-    protected readonly installedAis: Record<EngineVersionFormat, AI[]> = reactive({});
+    protected readonly installedAis: Record<string, AI[]> = reactive({});
 
     // TODO: cache AIs and load on init
-    public async processAis(engine: EngineVersionFormat): Promise<void> {
+    public async processAis(engine: string): Promise<void> {
         const ai = this.installedAis[engine];
         if (ai !== undefined) {
             return;
@@ -36,7 +35,7 @@ export class AiContentAPI extends AbstractContentAPI {
         this.installedAis[engine] = ais;
     }
 
-    public getAis(engine: EngineVersionFormat): AI[] | undefined {
+    public getAis(engine: string): AI[] | undefined {
         return clone(this.installedAis[engine]);
     }
 

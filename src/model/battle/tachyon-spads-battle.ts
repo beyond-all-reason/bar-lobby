@@ -4,40 +4,40 @@ import { battleSchema, lobbySchema } from "tachyon-client";
 
 import { AbstractBattle } from "@/model/battle/abstract-battle";
 import { BattleOptions, Bot, StartBox, StartPosType } from "@/model/battle/types";
-import { EngineVersionFormat } from "@/model/formats";
 import { User } from "@/model/user";
 
-export type BattleResponseData = Static<typeof lobbySchema> & { bots: NonNullable<Static<typeof battleSchema>["bots"]> } & { modoptions: NonNullable<Static<typeof battleSchema>["modoptions"]> };
+export type BattleResponseData = Static<typeof lobbySchema> & { bots: Static<typeof battleSchema>["bots"] } & { modoptions: Static<typeof battleSchema>["modoptions"] };
+export type BattleResponseHandlers = { [K in keyof Required<BattleResponseData>]: (data: Required<BattleResponseData[K]>) => void };
+export type PartialBattleData = Partial<BattleResponseData>;
 
 export class TachyonSpadsBattle extends AbstractBattle {
-    protected lastBattleResponse?: Static<typeof lobbySchema>;
-    protected responseHandlers: { [K in keyof BattleResponseData]: (data: BattleResponseData[K]) => void } = {
+    protected responseHandlers: BattleResponseHandlers = {
         bots: (data) => {
-            const bots: Bot[] = entries(data).map(([botId, botData]) => {
-                return {
-                    playerId: botData.player_number,
-                    teamId: botData.team_number,
-                    name: botData.name,
-                    ownerUserId: botData.owner_id,
-                    aiOptions: {},
-                    aiShortName: botData.ai_dll,
-                    // TODO: other props
-                };
-            });
-
-            this.bots.push(...bots);
+            if (data) {
+                entries(data).forEach(([botId, botData]) => {
+                    this.bots.push({
+                        playerId: botData.player_number,
+                        teamId: botData.team_number,
+                        name: botData.name,
+                        ownerUserId: botData.owner_id,
+                        aiOptions: {},
+                        aiShortName: botData.ai_dll,
+                        // TODO: other props
+                    });
+                });
+            }
         },
         disabled_units: (data) => {
             // TODO
         },
         engine_name: (data) => {
-            // TODO
+            this.battleOptions.engineVersion = data;
         },
         engine_version: (data) => {
-            this.battleOptions.engineVersion = data as EngineVersionFormat;
+            this.battleOptions.engineVersion = data;
         },
         founder_id: (data) => {
-            // TODO
+            this.battleOptions.founderId = data;
         },
         game_name: (data) => {
             this.battleOptions.gameVersion = data;
@@ -52,7 +52,7 @@ export class TachyonSpadsBattle extends AbstractBattle {
             // TODO
         },
         locked: (data) => {
-            // TODO
+            this.battleOptions.locked = data;
         },
         map_hash: (data) => {
             // TODO
@@ -61,13 +61,13 @@ export class TachyonSpadsBattle extends AbstractBattle {
             this.battleOptions.map = data;
         },
         max_players: (data) => {
-            // TODO
+            this.battleOptions.maxPlayers = data;
         },
         name: (data) => {
             this.battleOptions.title = data;
         },
         passworded: (data) => {
-            // TODO
+            this.battleOptions.passworded = data;
         },
         players: (data) => {
             for (const userId of this.userIds) {
@@ -89,26 +89,33 @@ export class TachyonSpadsBattle extends AbstractBattle {
         start_rectangles: (data) => {
             const startBoxes: StartBox[] = [];
             entries(data).forEach(([teamId, startBox]) => {
+                // TODO: first property is the area shape, currently only accounting for "rect"
                 startBoxes[teamId] = {
-                    xPercent: startBox[0] / 200,
-                    yPercent: startBox[1] / 200,
-                    widthPercent: startBox[2] / 200 - startBox[0] / 200,
-                    heightPercent: startBox[3] / 200 - startBox[1] / 200,
+                    xPercent: startBox[1] / 200,
+                    yPercent: startBox[2] / 200,
+                    widthPercent: startBox[3] / 200 - startBox[1] / 200,
+                    heightPercent: startBox[4] / 200 - startBox[2] / 200,
                 };
             });
             this.battleOptions.startBoxes = startBoxes;
         },
         started_at: (data) => {
-            // TODO
+            if (data) {
+                this.battleOptions.startTime = new Date(data * 1000);
+            } else {
+                this.battleOptions.startTime = null;
+            }
         },
         modoptions: (data) => {
-            // TODO
-            if (data["game/startpostype"] === "0") {
-                this.battleOptions.startPosType = StartPosType.Fixed;
-            } else if (data["game/startpostype"] === "1") {
-                this.battleOptions.startPosType = StartPosType.Random;
-            } else {
-                this.battleOptions.startPosType = StartPosType.Boxes;
+            if (data) {
+                // TODO
+                if (data["game/startpostype"] === "0") {
+                    this.battleOptions.startPosType = StartPosType.Fixed;
+                } else if (data["game/startpostype"] === "1") {
+                    this.battleOptions.startPosType = StartPosType.Random;
+                } else {
+                    this.battleOptions.startPosType = StartPosType.Boxes;
+                }
             }
         },
         type: (data) => {
@@ -126,25 +133,8 @@ export class TachyonSpadsBattle extends AbstractBattle {
         this.handleServerResponse(serverBattleResponse);
     }
 
-    public handleServerResponse(battleUpdateResponse: BattleResponseData) {
-        let partialBattleUpdateResponse: Partial<Static<typeof lobbySchema>> = {};
-
-        if (this.lastBattleResponse) {
-            const diff: Partial<Static<typeof lobbySchema>> = {};
-
-            entries(this.lastBattleResponse).forEach(([key, value]) => {
-                if (JSON.stringify(value) !== JSON.stringify(battleUpdateResponse[key])) {
-                    Object.assign(diff, { [key]: battleUpdateResponse[key] });
-                }
-            });
-
-            partialBattleUpdateResponse = diff;
-            console.debug("Partial battle update diff", diff);
-        } else {
-            partialBattleUpdateResponse = battleUpdateResponse;
-        }
-
-        objectKeys(partialBattleUpdateResponse).forEach((key) => {
+    public handleServerResponse(battleUpdateResponse: PartialBattleData) {
+        objectKeys(battleUpdateResponse).forEach((key) => {
             const data = battleUpdateResponse[key];
             const responseHandler = this.responseHandlers[key] as any; // TODO: get rid of any
             if (responseHandler) {
@@ -153,8 +143,14 @@ export class TachyonSpadsBattle extends AbstractBattle {
                 console.warn(`No response handler for ${key} property`, key);
             }
         });
+    }
 
-        this.lastBattleResponse = battleUpdateResponse;
+    public changeEngine(engineVersion: string) {
+        // TODO
+    }
+
+    public changeGame(gameVersion: string) {
+        // TODO
     }
 
     public changeMap(map: string) {
@@ -199,5 +195,13 @@ export class TachyonSpadsBattle extends AbstractBattle {
 
     public setBotOptions(botName: string, options: Record<string, any>) {
         // TODO
+    }
+
+    public async leave() {
+        const response = await api.comms.request("c.lobby.leave", {});
+        if (response.result === "success") {
+            api.session.onlineBattle = null;
+            api.router.replace("/multiplayer/custom");
+        }
     }
 }

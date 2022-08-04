@@ -12,6 +12,7 @@ export class SessionAPI {
     public readonly offlineMode: Ref<boolean>;
     public readonly currentUser: CurrentUser;
     public readonly users: Map<number, User>;
+    public readonly battles: Map<number, TachyonSpadsBattle>;
     public offlineBattle: OfflineBattle | null;
     public onlineBattle: TachyonSpadsBattle | null;
     public battleMessages: BattleChatMessage[];
@@ -42,9 +43,9 @@ export class SessionAPI {
                 ready: false,
                 isSpectator: false,
                 sync: {
-                    engine: true,
-                    game: true,
-                    map: true,
+                    engine: 1,
+                    game: 1,
+                    map: 1,
                 },
                 color: "",
                 teamId: 0,
@@ -53,6 +54,8 @@ export class SessionAPI {
         });
 
         this.users = reactive(new Map<number, User>([[this.currentUser.userId, this.currentUser]]));
+
+        this.battles = reactive(new Map<number, TachyonSpadsBattle>());
 
         this.offlineBattle = null;
         this.onlineBattle = null;
@@ -82,7 +85,10 @@ export class SessionAPI {
         if (userId === -1) {
             return this.currentUser;
         }
-
         return this.users.get(userId);
+    }
+
+    public getBattleById(battleId: number) {
+        return this.battles.get(battleId);
     }
 }

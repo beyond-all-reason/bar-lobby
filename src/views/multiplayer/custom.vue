@@ -32,7 +32,7 @@
                     <div>Players</div>
                     <div>Runtime</div>
                 </div>
-                <BattlePreview v-for="battle in filteredBattles" :key="battle.id" :battle="battle" :layout="layout === 'tiles' ? 'tile' : 'row'" />
+                <BattlePreview v-for="battle in filteredBattles" :key="battle.battleOptions.id" :battle="battle" :layout="layout === 'tiles' ? 'tile' : 'row'" />
             </div>
         </div>
     </div>
@@ -57,18 +57,18 @@ import BattlePreview from "@/components/battle/BattlePreview.vue";
 import Checkbox from "@/components/inputs/Checkbox.vue";
 import Option from "@/components/inputs/Option.vue";
 import Options from "@/components/inputs/Options.vue";
-import { BattlePreviewType } from "@/model/battle/battle-preview";
+import { TachyonSpadsBattle } from "@/model/battle/tachyon-spads-battle";
 
-const battles = ref([] as BattlePreviewType[]);
+const battles = api.session.battles;
 const layout: Ref<"tiles" | "rows"> = ref("tiles");
 const hidePvE = ref(false);
 const hideLocked = ref(false);
 const filteredBattles = computed(() =>
-    battles.value.filter((battle) => {
-        if (hidePvE.value && battle.botNames.length > 0) {
+    Array.from(battles.values()).filter((battle) => {
+        if (hidePvE.value && battle.bots.length > 0) {
             return false;
         }
-        if (hideLocked.value && (battle.locked || battle.passworded)) {
+        if (hideLocked.value && (battle.battleOptions.locked || battle.battleOptions.passworded)) {
             return false;
         }
         return true;
@@ -90,27 +90,23 @@ async function updateBattleList() {
 
     await updateUsers(userIds);
 
-    battles.value = lobbies
-        .map(({ lobby, bots, modoptions }) => {
-            const battlePreview: BattlePreviewType = {
-                id: lobby.id,
-                title: lobby.name,
-                engineVersion: lobby.engine_version,
-                founderId: lobby.founder_id,
-                locked: lobby.locked,
-                mapName: lobby.map_name,
-                maxPlayers: lobby.max_players,
-                type: lobby.type,
-                userIds: lobby.players,
-                botNames: Object.values(bots!).map((bot) => bot.name),
-                passworded: Boolean(lobby.passworded),
-                startTime: lobby.started_at ? new Date(lobby.started_at * 1000) : null,
-            };
-            return battlePreview;
-        })
-        .sort((a, b) => {
-            return b.userIds.length - a.userIds.length;
-        });
+    for (const lobby of lobbies) {
+        let battle = api.session.getBattleById(lobby.lobby.id);
+        if (!battle) {
+            battle = new TachyonSpadsBattle({
+                ...lobby.lobby,
+                bots: lobby.bots,
+                modoptions: lobby.modoptions,
+            });
+            api.session.battles.set(battle.battleOptions.id, battle);
+        } else {
+            battle.handleServerResponse({
+                ...lobby.lobby,
+                bots: lobby.bots,
+                modoptions: lobby.modoptions,
+            });
+        }
+    }
 }
 
 async function updateUsers(userIds: number[]) {
@@ -143,11 +139,7 @@ async function updateUsers(userIds: number[]) {
                 color: battleStatus.team_colour,
                 teamId: battleStatus.team_number,
                 playerId: battleStatus.team_number,
-                sync: {
-                    engine: true,
-                    game: true,
-                    map: true,
-                },
+                sync: battleStatus.sync,
             },
         });
     }

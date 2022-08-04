@@ -16,8 +16,13 @@ export const defaultBattle: () => OfflineBattle = () => {
 
     return new OfflineBattle({
         battleOptions: {
-            title: "Offline Custom Battle",
             id: -1,
+            title: "Offline Custom Battle",
+            founderId: me.userId,
+            locked: false,
+            maxPlayers: 1,
+            passworded: false,
+            startTime: null,
             engineVersion: lastInArray(api.content.engine.installedVersions)!,
             gameVersion: lastInArray(api.content.game.installedVersions)!.version,
             map: map,
@@ -28,7 +33,7 @@ export const defaultBattle: () => OfflineBattle = () => {
             mapOptions: {},
             restrictions: [],
         },
-        userIds: [-1],
+        userIds: [me.userId],
         bots: [{ playerId: 1, teamId: 1, ownerUserId: -1, name: randomFromArray(aiNames)!, aiShortName: "BARb", aiOptions: {} }],
     });
 };

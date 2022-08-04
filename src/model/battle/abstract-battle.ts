@@ -57,6 +57,8 @@ export abstract class AbstractBattle implements BattleConfig {
     }
 
     public abstract changeMap(map: string): void;
+    public abstract changeGame(gameVersion: string): void;
+    public abstract changeEngine(engineVersion: string): void;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     public abstract setGameOptions(options: Record<string, any>): void;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -66,4 +68,5 @@ export abstract class AbstractBattle implements BattleConfig {
     public abstract playerToSpectator(player: User): void;
     public abstract spectatorToPlayer(spectator: User, teamId: number): void;
     public abstract changeContenderTeam(contender: User | Bot, teamId: number): void;
+    public abstract leave(): void;
 }

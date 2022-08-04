@@ -27,7 +27,15 @@
                 </Button>
             </div>
             <div class="flex-row gap-md">
-                <Select v-model="selectedGame" label="Game" :options="games" :filter="true" :disabled="!isOfflineBattle" />
+                <Select
+                    :value="currentGameName"
+                    :options="installedGames"
+                    label="Game"
+                    :filter="true"
+                    :placeholder="currentGameName"
+                    :disabled="!isOfflineBattle"
+                    @update:model-value="onGameSelected"
+                />
                 <Button :flexGrow="false" @click="openGameOptions">
                     <Icon :icon="cog" height="23" />
                 </Button>
@@ -41,7 +49,15 @@
                     @set-options="setGameOptions"
                 />
             </div>
-            <Select v-model="selectedEngine" label="Engine" :options="engines" :filter="true" :disabled="!isOfflineBattle" />
+            <Select
+                :value="currentEngineName"
+                :options="installedEngines"
+                label="Engine"
+                :filter="true"
+                :placeholder="currentEngineName"
+                :disabled="!isOfflineBattle"
+                @update:model-value="onEngineSelected"
+            />
             <div class="flex-row flex-bottom gap-md">
                 <Button class="btn--red" fullwidth @click="leave"> Leave </Button>
                 <Button class="btn--green" fullwidth @click="start"> Start </Button>
@@ -53,7 +69,6 @@
 <script lang="ts" setup>
 import { Icon } from "@iconify/vue";
 import cog from "@iconify-icons/mdi/cog";
-import { lastInArray } from "jaz-ts-utils";
 import { computed, Ref, ref, watch } from "vue";
 
 import BattleChat from "@/components/battle/BattleChat.vue";
@@ -87,8 +102,17 @@ const onMapSelected = (mapScriptName: string) => {
     props.battle.changeMap(mapScriptName);
 };
 
-const games = computed(() => api.content.game.installedVersions.map((rapidVersion) => rapidVersion.version).slice(-10));
-const selectedGame = ref(lastInArray(games.value)!);
+const installedGames = computed(() => api.content.game.installedVersions.map((rapidVersion) => rapidVersion.version).slice(-10));
+const currentGameName = ref(props.battle.battleOptions.gameVersion);
+watch(
+    () => props.battle.battleOptions.gameVersion,
+    () => {
+        currentGameName.value = props.battle.battleOptions.gameVersion;
+    }
+);
+const onGameSelected = (gameVersion: string) => {
+    props.battle.changeGame(gameVersion);
+};
 
 const gameOptionsOpen = ref(false);
 const gameOptions: Ref<LuaOptionSection[]> = ref([]);
@@ -101,11 +125,23 @@ const setGameOptions = (options: Record<string, any>) => {
     props.battle.setGameOptions(options);
 };
 
-const engines = computed(() => api.content.engine.installedVersions);
-const selectedEngine = ref(lastInArray(engines.value));
+const installedEngines = computed(() => api.content.engine.installedVersions);
+const currentEngineName = ref(props.battle.battleOptions.engineVersion);
+watch(
+    () => props.battle.battleOptions.engineVersion,
+    () => {
+        currentEngineName.value = props.battle.battleOptions.engineVersion;
+    }
+);
+const onEngineSelected = (engineVersion: string) => {
+    props.battle.changeEngine(engineVersion);
+};
+if (!api.content.engine.isEngineVersionInstalled(props.battle.battleOptions.engineVersion)) {
+    api.content.engine.downloadEngine(props.battle.battleOptions.engineVersion);
+}
 
 const leave = () => {
-    // TODO
+    props.battle.leave();
 };
 const start = async () => {
     api.game.launch(props.battle);

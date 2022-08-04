@@ -24,9 +24,10 @@ export type BattleStatus = BattleContenderConfig & {
     battleId: number;
     isSpectator: boolean;
     ready: boolean;
+    /* each sync property denotes the downloaded percentage of the map */
     sync: {
-        engine: boolean;
-        game: boolean;
-        map: boolean;
+        engine: number;
+        game: number;
+        map: number;
     };
 };

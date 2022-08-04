@@ -1,14 +1,17 @@
-import { EngineVersionFormat } from "@/model/formats";
-
 export type BattleOptions = {
     id: number;
     title: string;
-    engineVersion: EngineVersionFormat;
+    engineVersion: string;
     gameVersion: string;
     map: string;
     isHost: boolean;
     startPosType: StartPosType;
     startBoxes: StartBox[];
+    passworded: boolean;
+    startTime: Date | null;
+    founderId: number;
+    locked: boolean;
+    maxPlayers: number;
     gameOptions: Record<string, string | number | boolean>;
     mapOptions: Record<string, string | number | boolean>;
     restrictions: Restriction[];

@@ -8,21 +8,16 @@
                         <Flag :countryCode="founder.countryCode" />
                     </div>
                     <div class="flex-col flex-center">
-                        <Icon v-if="battle.locked || battle.passworded" :icon="lock" />
+                        <Icon v-if="battle.battleOptions.locked || battle.battleOptions.passworded" :icon="lock" />
                     </div>
                     <div class="flex-col flex-center">
-                        {{ battle.title }}
+                        {{ battle.battleOptions.title }}
                     </div>
                 </div>
-                <div>Preset (TODO)</div>
+                <div>{{ mapName }}</div>
             </div>
             <div class="header meta">
-                <div class="flex-col flex-center">
-                    {{ mapName }}
-                </div>
-                <div class="flex-col flex-center">
-                    {{ runtime }}
-                </div>
+                {{ runtime }}
             </div>
             <div class="clients players">
                 <div v-for="player in players" :key="player.userId" class="client">
@@ -33,12 +28,12 @@
                         {{ player.username }}
                     </div>
                 </div>
-                <div v-for="(bot, i) in battle.botNames" :key="i" class="client">
+                <div v-for="(bot, i) in battle.bots" :key="i" class="client">
                     <div class="flex-col flex-center">
                         <Icon :icon="robot" />
                     </div>
                     <div class="flex-col flex-center">
-                        {{ bot }}
+                        {{ bot.name }}
                     </div>
                 </div>
             </div>
@@ -62,15 +57,15 @@
             </div>
             <div>
                 <div class="flex-center fullheight">
-                    <Icon v-if="battle.locked || battle.passworded" :icon="lock" />
+                    <Icon v-if="battle.battleOptions.locked || battle.battleOptions.passworded" :icon="lock" />
                 </div>
             </div>
             <div>
-                {{ battle.title }}
+                {{ battle.battleOptions.title }}
             </div>
             <div>TODO</div>
             <div>
-                {{ battle.mapName }}
+                {{ battle.battleOptions.map }}
             </div>
             <div>
                 <div class="flex-row gap-md">
@@ -83,7 +78,7 @@
                     <div class="flex-row gap-sm">
                         <Icon :icon="robot" />
                         <div style="width: 2ch">
-                            {{ battle.botNames.length }}
+                            {{ battle.bots.length }}
                         </div>
                     </div>
                     <div class="flex-row gap-sm">
@@ -115,44 +110,45 @@ import eyeOutline from "@iconify-icons/mdi/eye-outline";
 import lock from "@iconify-icons/mdi/lock";
 import robot from "@iconify-icons/mdi/robot";
 import { useNow } from "@vueuse/core";
+import { formatDuration } from "date-fns";
 import { computed, ref } from "vue";
 
 import Modal from "@/components/common/Modal.vue";
 import Button from "@/components/inputs/Button.vue";
 import Textbox from "@/components/inputs/Textbox.vue";
 import Flag from "@/components/misc/Flag.vue";
-import type { BattlePreviewType } from "@/model/battle/battle-preview";
+import { AbstractBattle } from "@/model/battle/abstract-battle";
 
 const props = defineProps<{
-    battle: BattlePreviewType;
+    battle: AbstractBattle;
     layout: "tile" | "row";
 }>();
 
 const users = computed(() => props.battle.userIds.map((id) => api.session.getUserById(id)!));
 const players = computed(() => users.value.filter((user) => !user.battleStatus?.isSpectator));
 const spectators = computed(() => users.value.filter((user) => user?.battleStatus?.isSpectator));
-const founder = computed(() => api.session.getUserById(props.battle.founderId)!);
-const map = computed(() => api.content.maps.getMapByScriptName(props.battle.mapName));
+const founder = computed(() => api.session.getUserById(props.battle.battleOptions.founderId)!);
+const map = computed(() => api.content.maps.getMapByScriptName(props.battle.battleOptions.map));
 const mapImageUrl = computed(() => (map.value ? `file://${map.value.textureImagePath}` : require("@/assets/images/default-minimap.png")));
-const mapName = computed(() => (map.value ? map.value.friendlyName : api.content.maps.scriptNameToFriendlyName(props.battle.mapName)));
+const mapName = computed(() => (map.value ? map.value.friendlyName : api.content.maps.scriptNameToFriendlyName(props.battle.battleOptions.map)));
 const runtime = computed(() => {
-    if (!props.battle.startTime) {
+    if (!props.battle.battleOptions.startTime) {
         return null;
     }
-    const ms = useNow({ interval: 1000 }).value.getTime() - props.battle.startTime.getTime();
+    const ms = useNow({ interval: 1000 }).value.getTime() - props.battle.battleOptions.startTime.getTime();
     const runtimeDate = new Date(ms);
-    const hours = (runtimeDate.getHours() - 1).toString().padStart(2, "0");
-    const minutes = runtimeDate.getMinutes().toString().padStart(2, "0");
-    const seconds = runtimeDate.getSeconds().toString().padStart(2, "0");
-    return `${hours}:${minutes}:${seconds}`;
+    const hours = runtimeDate.getHours() - 1;
+    const minutes = runtimeDate.getMinutes();
+    const seconds = runtimeDate.getSeconds();
+    return `Running for ${formatDuration({ hours, minutes, seconds })}`;
 });
 
 const attemptJoinBattle = async () => {
-    if (props.battle.passworded) {
+    if (props.battle.battleOptions.passworded) {
         passwordPromptOpen.value = true;
     } else {
         await api.comms.request("c.lobby.join", {
-            lobby_id: props.battle.id,
+            lobby_id: props.battle.battleOptions.id,
         });
     }
 };
@@ -160,7 +156,7 @@ const attemptJoinBattle = async () => {
 const passwordPromptOpen = ref(false);
 const onPasswordPromptSubmit: (data: { password?: string }) => Promise<void> = async (data) => {
     const response = await api.comms.request("c.lobby.join", {
-        lobby_id: props.battle.id,
+        lobby_id: props.battle.battleOptions.id,
         password: data.password,
     });
     if (response.result === "failure") {

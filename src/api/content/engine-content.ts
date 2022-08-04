@@ -8,12 +8,11 @@ import { reactive } from "vue";
 import { AbstractContentAPI } from "@/api/content/abstract-content-api";
 import { contentSources } from "@/config/content-sources";
 import type { DownloadInfo } from "@/model/downloads";
-import { EngineVersionFormat, gitEngineTagToEngineVersionString } from "@/model/formats";
-import { isEngineVersionString } from "@/model/formats";
+import { gitEngineTagToEngineVersionString, isEngineVersionString } from "@/model/formats";
 import { extract7z } from "@/utils/extract7z";
 
 export class EngineContentAPI extends AbstractContentAPI {
-    public installedVersions: EngineVersionFormat[] = reactive([]);
+    public installedVersions: string[] = reactive([]);
 
     protected ocotokit = new Octokit();
 
@@ -33,7 +32,7 @@ export class EngineContentAPI extends AbstractContentAPI {
         return this;
     }
 
-    public async downloadLatestEngine(includePrerelease = true): Promise<EngineVersionFormat> {
+    public async downloadLatestEngine(includePrerelease = true): Promise<string> {
         const latestEngineRelease = await this.getLatestEngineReleaseInfo();
 
         if (lastInArray(this.installedVersions) === gitEngineTagToEngineVersionString(latestEngineRelease.tag_name)) {
@@ -90,7 +89,7 @@ export class EngineContentAPI extends AbstractContentAPI {
         return engineVersionString;
     }
 
-    public async downloadEngine(engineTag: EngineVersionFormat) {
+    public async downloadEngine(engineTag: string) {
         // TODO
     }
 
@@ -105,7 +104,7 @@ export class EngineContentAPI extends AbstractContentAPI {
         return releasesResponse.data[0];
     }
 
-    public async getEngineReleaseInfo(engineTag: EngineVersionFormat) {
+    public async getEngineReleaseInfo(engineTag: string) {
         try {
             const baseTag = engineTag.slice(4);
             const majorVersion = baseTag.split(".")[0];
@@ -132,11 +131,11 @@ export class EngineContentAPI extends AbstractContentAPI {
     }
 
     // arg format should match dir name, e.g. BAR-105.1.1-809-g3f69f26
-    public async isEngineVersionInstalled(engineTag: EngineVersionFormat) {
+    public async isEngineVersionInstalled(engineTag: string) {
         return fs.existsSync(path.join(this.dataDir, "engine", engineTag));
     }
 
-    protected isVersionGreater(a: EngineVersionFormat, b: EngineVersionFormat): boolean {
+    protected isVersionGreater(a: string, b: string): boolean {
         const [aGame, aVersion, aRevision, aSha] = a.split("-");
         const [bGame, bVersion, bRevision, bSha] = b.split("-");
 

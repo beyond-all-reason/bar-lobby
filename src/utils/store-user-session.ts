@@ -29,9 +29,9 @@ export function storeUserSession(user?: Static<typeof myUserSchema>) {
             ready: false,
             isSpectator: true,
             sync: {
-                engine: true,
-                game: true,
-                map: true,
+                engine: 1,
+                game: 1,
+                map: 1,
             },
         },
     });
