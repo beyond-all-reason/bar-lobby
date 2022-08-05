@@ -1,5 +1,7 @@
 name: Build/release
 
+on: workflow_dispatch
+
 jobs:
     release:
         runs-on: ${{ matrix.os }}
