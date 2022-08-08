@@ -1,7 +1,7 @@
 import { Static } from "@sinclair/typebox";
 import { objectKeys } from "jaz-ts-utils";
 import { lobbySchema } from "tachyon-client";
-import { reactive, Ref, ref } from "vue";
+import { reactive, Ref, ref, shallowReactive } from "vue";
 
 import { BattleChatMessage } from "@/model/battle/battle-chat";
 import { OfflineBattle } from "@/model/battle/offline-battle";
@@ -55,7 +55,7 @@ export class SessionAPI {
 
         this.users = reactive(new Map<number, User>([[this.currentUser.userId, this.currentUser]]));
 
-        this.battles = reactive(new Map<number, TachyonSpadsBattle>());
+        this.battles = shallowReactive(new Map<number, TachyonSpadsBattle>());
 
         this.offlineBattle = null;
         this.onlineBattle = null;

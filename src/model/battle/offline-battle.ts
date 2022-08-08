@@ -19,26 +19,13 @@ export class OfflineBattle extends AbstractBattle {
         this.battleOptions.gameOptions = options;
     }
 
-    public addParticipant(participant: User | Bot) {
-        if ("userId" in participant) {
-            const user = api.session.getUserById(participant.userId);
-            if (user) {
-                this.userIds.push(participant.userId);
-            } else {
-                console.error("User not found", participant.userId);
-            }
-        } else {
-            this.bots.push(participant);
-        }
+    public addBot(bot: Bot) {
+        this.bots.push(bot);
         this.fixIds();
     }
 
-    public removeParticipant(participant: User | Bot) {
-        if ("userId" in participant) {
-            this.userIds.splice(this.userIds.indexOf(participant.userId), 1);
-        } else {
-            this.bots.splice(this.bots.indexOf(participant), 1);
-        }
+    public removeBot(bot: Bot) {
+        this.bots.splice(this.bots.indexOf(bot), 1);
         this.fixIds();
     }
 

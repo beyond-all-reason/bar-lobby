@@ -78,7 +78,7 @@ const reportPlayer = (player: User) => {
 };
 
 const kickAi = (bot: Bot) => {
-    props.battle.removeParticipant(bot);
+    props.battle.removeBot(bot);
 };
 
 const configureAi = async (bot: Bot) => {

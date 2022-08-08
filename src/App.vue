@@ -46,8 +46,8 @@ import Background from "@/components/misc/Background.vue";
 import DebugSidebar from "@/components/misc/DebugSidebar.vue";
 import InitialSetup from "@/components/misc/InitialSetup.vue";
 import IntroVideo from "@/components/misc/IntroVideo.vue";
-import NavBar from "@/components/misc/NavBar.vue";
 import Preloader from "@/components/misc/Preloader.vue";
+import NavBar from "@/components/navbar/NavBar.vue";
 import { defaultMaps } from "@/config/default-maps";
 import { playRandomMusic } from "@/utils/play-random-music";
 

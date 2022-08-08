@@ -51,7 +51,7 @@ import { Icon } from "@iconify/vue";
 import viewGrid from "@iconify-icons/mdi/view-grid";
 import viewList from "@iconify-icons/mdi/view-list";
 import { arrayToMap } from "jaz-ts-utils";
-import { computed, onMounted, Ref, ref } from "vue";
+import { computed, onMounted, onUnmounted, Ref, ref } from "vue";
 
 import BattlePreview from "@/components/battle/BattlePreview.vue";
 import Checkbox from "@/components/inputs/Checkbox.vue";
@@ -75,12 +75,20 @@ const filteredBattles = computed(() =>
     })
 );
 
+let queryIntervalId: number | undefined;
+
 onMounted(async () => {
     updateBattleList();
+
+    queryIntervalId = window.setInterval(() => updateBattleList(), 5000);
+});
+
+onUnmounted(() => {
+    window.clearInterval(queryIntervalId);
 });
 
 async function updateBattleList() {
-    const { lobbies } = await api.comms.request("c.lobby.query", { query: {}, fields: ["lobby", "bots", "modoptions"] });
+    const { lobbies } = await api.comms.request("c.lobby.query", { query: {}, fields: ["lobby", "bots", "modoptions", "member_list"] });
 
     const userIds: number[] = [];
     for (const battle of lobbies.map((data) => data.lobby)) {
@@ -93,18 +101,10 @@ async function updateBattleList() {
     for (const lobby of lobbies) {
         let battle = api.session.getBattleById(lobby.lobby.id);
         if (!battle) {
-            battle = new TachyonSpadsBattle({
-                ...lobby.lobby,
-                bots: lobby.bots,
-                modoptions: lobby.modoptions,
-            });
+            battle = new TachyonSpadsBattle(lobby);
             api.session.battles.set(battle.battleOptions.id, battle);
         } else {
-            battle.handleServerResponse({
-                ...lobby.lobby,
-                bots: lobby.bots,
-                modoptions: lobby.modoptions,
-            });
+            battle.handleServerResponse(lobby);
         }
     }
 }

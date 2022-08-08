@@ -125,6 +125,7 @@ export class CommsAPI extends TachyonClient {
         this.onResponse("s.lobby.remove_start_area").add((data) => {
             const battle = api.session.getBattleById(data.lobby_id);
             if (battle) {
+                // TODO
                 battle.handleServerResponse({
                     lobby: {
                         start_rectangles: data,

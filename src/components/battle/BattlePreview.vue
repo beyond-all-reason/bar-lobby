@@ -124,7 +124,7 @@ const props = defineProps<{
     layout: "tile" | "row";
 }>();
 
-const users = computed(() => props.battle.userIds.map((id) => api.session.getUserById(id)!));
+const users = computed(() => Array.from(props.battle.userIds.values()).map((id) => api.session.getUserById(id)!));
 const players = computed(() => users.value.filter((user) => !user.battleStatus?.isSpectator));
 const spectators = computed(() => users.value.filter((user) => user?.battleStatus?.isSpectator));
 const founder = computed(() => api.session.getUserById(props.battle.battleOptions.founderId)!);
@@ -185,6 +185,9 @@ const onPasswordPromptSubmit: (data: { password?: string }) => Promise<void> = a
         &:hover {
             .background {
                 filter: brightness(1.3);
+                &:before {
+                    border: 1px solid rgba(255, 255, 255, 0.2);
+                }
             }
         }
         .header,
@@ -214,10 +217,12 @@ const onPasswordPromptSubmit: (data: { password?: string }) => Promise<void> = a
             background-position: center;
             background-size: cover;
             overflow: hidden;
+            filter: brightness(1);
             &:before {
                 @extend .fullsize;
-                background: linear-gradient(to bottom, rgba(0, 0, 0, 0.5) 10%, rgba(0, 0, 0, 0) 100%);
-                box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.15), inset 1px 0 0 0 rgba(255, 255, 255, 0.07), inset -1px 0 0 0 rgba(255, 255, 255, 0.07), inset 0 -5px 0 0 rgba(0, 0, 0, 0.3);
+                transition: all 0.05s;
+                background: rgba(0, 0, 0, 0.3);
+                border: 1px solid rgba(255, 255, 255, 0.15);
             }
         }
         .clients {

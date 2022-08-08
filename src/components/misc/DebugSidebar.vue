@@ -11,6 +11,10 @@
         <Button :flexGrow="false" fullWidth @click="openLobbyDir"> Open Lobby Dir </Button>
         <Button :flexGrow="false" fullWidth @click="openDataDir"> Open Data Dir </Button>
         <Button :flexGrow="false" fullWidth @click="openStartScript"> Open Latest Start Script </Button>
+
+        <div class="lobby-version">
+            {{ lobbyVersion }}
+        </div>
     </div>
 </template>
 
@@ -33,6 +37,7 @@ const route = useRoute();
 const router = useRouter();
 const routes = router.getRoutes().sort((a, b) => a.path.localeCompare(b.path));
 const currentRoute = ref(route.path);
+const lobbyVersion = `${api.info.lobby.name} v${api.info.lobby.version}`;
 
 const openSettings = () => {
     api.settings.openFileInEditor();
@@ -109,5 +114,9 @@ scope.run(() => {
             }
         }
     }
+}
+.lobby-version {
+    margin-top: auto;
+    text-align: center;
 }
 </style>

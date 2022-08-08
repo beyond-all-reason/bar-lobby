@@ -32,10 +32,14 @@
                     </Button>
                 </div>
                 <div class="nav__secondary-right flex-row flex-right flex-center">
-                    <ServerInfo />
-                    <div>
-                        {{ lobbyVersion }}
-                    </div>
+                    <Button>
+                        <div>69 Players Online</div>
+                        <div class="server-status-dot">⬤</div>
+                    </Button>
+                    <Button class="user" to="/profile">
+                        <Icon :icon="account" :height="20" />
+                        <div>{{ currentUser.username }}</div>
+                    </Button>
                 </div>
             </div>
         </div>
@@ -54,11 +58,10 @@ import { computed, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 
 import Button from "@/components/inputs/Button.vue";
-import Downloads from "@/components/misc/Downloads.vue";
-import DownloadsButton from "@/components/misc/DownloadsButton.vue";
-import Exit from "@/components/misc/Exit.vue";
-import ServerInfo from "@/components/misc/ServerInfo.vue";
-import Settings from "@/components/misc/Settings.vue";
+import Downloads from "@/components/navbar/Downloads.vue";
+import DownloadsButton from "@/components/navbar/DownloadsButton.vue";
+import Exit from "@/components/navbar/Exit.vue";
+import Settings from "@/components/navbar/Settings.vue";
 
 const props = defineProps<{
     hidden?: boolean;
@@ -80,7 +83,7 @@ const downloadsOpen = ref(false);
 const settingsOpen = ref(false);
 const exitOpen = ref(false);
 
-const lobbyVersion = `${api.info.lobby.name} v${api.info.lobby.version}`;
+const currentUser = api.session.currentUser;
 </script>
 
 <style lang="scss">
@@ -209,12 +212,14 @@ const lobbyVersion = `${api.info.lobby.name} v${api.info.lobby.version}`;
                 background: rgba(255, 255, 255, 0.05);
                 box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.5), 0 1px 0 rgba(255, 255, 255, 0.2);
             }
+            .content {
+                flex-direction: row;
+                gap: 7px;
+            }
         }
         &-right {
-            padding-right: 10px;
-            & > *:not(:last-child) {
-                border-right: 1px solid rgba(255, 255, 255, 0.2);
-                margin-right: 7px;
+            .btn {
+                padding: 0 10px;
             }
         }
     }
@@ -223,6 +228,10 @@ const lobbyVersion = `${api.info.lobby.name} v${api.info.lobby.version}`;
             background: rgba(255, 0, 0, 0.2);
             box-shadow: 1px 0 0 rgba(255, 47, 47, 0.418), -1px 0 0 rgba(255, 47, 47, 0.418), 0 1px 0 rgba(255, 47, 47, 0.418), 7px -3px 10px rgba(0, 0, 0, 0.5), -7px -3px 10px rgba(0, 0, 0, 0.5) !important;
         }
+    }
+    .server-status-dot {
+        font-size: 12px;
+        color: rgb(121, 226, 0);
     }
 }
 </style>

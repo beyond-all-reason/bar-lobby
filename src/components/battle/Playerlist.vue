@@ -84,7 +84,7 @@ const addBot = (teamId: number) => {
         randomName = randomFromArray(aiNames);
     }
 
-    props.battle.addParticipant({
+    props.battle.addBot({
         playerId: props.battle.contenders.value.length,
         teamId,
         name: randomName!,
@@ -126,7 +126,6 @@ const dragEnter = (event: DragEvent, teamId?: number) => {
         (!("userId" in draggedParticipant.value) && draggedParticipant.value.teamId === teamId);
     const draggingSpectatorToSpectator = "userId" in draggedParticipant.value && draggedParticipant.value.battleStatus.isSpectator && teamId === undefined;
     const draggingBotToSpectator = !("userId" in draggedParticipant.value) && teamId === undefined;
-    console.log(draggingContenderToOwnTeam, draggingSpectatorToSpectator, draggingBotToSpectator);
     if (draggingContenderToOwnTeam || draggingSpectatorToSpectator || draggingBotToSpectator) {
         // TODO: disable drag cursor
         return;
@@ -178,10 +177,6 @@ const dragEnd = (event: DragEvent, participant: User | Bot) => {
 const onDrop = (event: DragEvent, teamId?: number) => {
     const target = event.target as Element;
     if (target.getAttribute("data-type") === "group" && draggedParticipant.value) {
-        // const participantName = !("userId" in draggedParticipant.value) ? draggedParticipant.value.name : api.session.getUserById(draggedParticipant.value.userId)?.username;
-        // if (!participantName) {
-        //     return;
-        // }
         if (teamId !== undefined && (("userId" in draggedParticipant.value && !draggedParticipant.value.battleStatus.isSpectator) || !("userId" in draggedParticipant.value))) {
             props.battle.changeContenderTeam(draggedParticipant.value, teamId);
         } else if ("userId" in draggedParticipant.value && !draggedParticipant.value.battleStatus.isSpectator) {
