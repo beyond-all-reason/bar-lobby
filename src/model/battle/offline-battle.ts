@@ -15,6 +15,7 @@ export class OfflineBattle extends AbstractBattle {
         this.battleOptions.map = map;
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     public setGameOptions(options: Record<string, any>) {
         this.battleOptions.gameOptions = options;
     }

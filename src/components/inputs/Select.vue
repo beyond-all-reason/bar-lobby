@@ -1,14 +1,8 @@
 <template>
     <Control class="select">
         <Dropdown v-bind="$attrs" filterPlaceholder="Search">
-            <!-- Pass on all named slots -->
-            <template v-for="(index, name) in $slots" #[name]>
-                <slot :name="name" />
-            </template>
-
-            <!-- Pass on all scoped slots -->
-            <template v-for="(index, name) in $slots" #[name]="data">
-                <slot :name="name" v-bind="data"></slot>
+            <template v-for="(_, slot) of $slots" #[slot]="scope">
+                <slot :name="slot" v-bind="scope" />
             </template>
         </Dropdown>
     </Control>

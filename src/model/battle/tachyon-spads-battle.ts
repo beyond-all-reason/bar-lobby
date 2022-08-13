@@ -188,6 +188,7 @@ export class TachyonSpadsBattle extends AbstractBattle {
         });
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     public setGameOptions(options: Record<string, any>) {
         console.warn("not implemented: setGameOptions");
         // TODO
@@ -239,16 +240,15 @@ export class TachyonSpadsBattle extends AbstractBattle {
         });
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     public setBotOptions(botName: string, options: Record<string, any>) {
         console.warn("not implemented: setBotOptions");
         // TODO
     }
 
     public async leave() {
-        const response = await api.comms.request("c.lobby.leave", {});
-        if (response.result === "success") {
-            api.session.onlineBattle.value = null;
-            api.router.replace("/multiplayer/custom");
-        }
+        api.comms.request("c.lobby.leave", {});
+        api.session.onlineBattle.value = null;
+        api.router.replace("/multiplayer/custom");
     }
 }
