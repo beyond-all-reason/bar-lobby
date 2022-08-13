@@ -14,10 +14,9 @@ import { computed } from "vue";
 import Modal from "@/components/common/Modal.vue";
 import Button from "@/components/inputs/Button.vue";
 import { AI } from "@/model/ai";
-import { EngineVersionFormat } from "@/model/formats";
 
 const props = defineProps<{
-    engineVersion: EngineVersionFormat;
+    engineVersion: string;
 }>();
 
 const ais = computed(() => api.content.ai.getAis(props.engineVersion));

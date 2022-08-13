@@ -1,11 +1,22 @@
 <template>
-    <div class="fullsize flex-center">
+    <div :class="{ fullsize: absolutePosition, 'flex-center': absolutePosition }">
         <div class="loader la-ball-clip-rotate-multiple">
             <div />
             <div />
         </div>
     </div>
 </template>
+
+<script lang="ts" setup>
+const props = withDefaults(
+    defineProps<{
+        absolutePosition?: boolean;
+    }>(),
+    {
+        absolutePosition: true,
+    }
+);
+</script>
 
 <style lang="scss" scoped>
 .loader {

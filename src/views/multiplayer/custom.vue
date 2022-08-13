@@ -8,13 +8,16 @@
 
         <div class="battle-list">
             <div class="toolbar">
+                <Button :flexGrow="false" @click="hostBattleOpen = true">Host Battle</Button>
+                <HostBattle v-model="hostBattleOpen" />
+
                 <Checkbox v-model="hidePvE" label="Hide PvE" />
 
                 <Checkbox v-model="hideLocked" label="Hide Locked" />
 
                 <Options v-model="layout" class="flex-right" required>
                     <Option :value="'tiles'">
-                        <Icon :icon="viewGrid" height="30" />
+                        <Icon :icon="viewGrid" height="26" />
                     </Option>
                     <Option :value="'rows'">
                         <Icon :icon="viewList" height="30" />
@@ -54,11 +57,14 @@ import { arrayToMap } from "jaz-ts-utils";
 import { computed, onMounted, onUnmounted, Ref, ref } from "vue";
 
 import BattlePreview from "@/components/battle/BattlePreview.vue";
+import HostBattle from "@/components/battle/HostBattle.vue";
+import Button from "@/components/inputs/Button.vue";
 import Checkbox from "@/components/inputs/Checkbox.vue";
 import Option from "@/components/inputs/Option.vue";
 import Options from "@/components/inputs/Options.vue";
 import { TachyonSpadsBattle } from "@/model/battle/tachyon-spads-battle";
 
+const hostBattleOpen = ref(false);
 const battles = api.session.battles;
 const layout: Ref<"tiles" | "rows"> = ref("tiles");
 const hidePvE = ref(false);
@@ -88,6 +94,10 @@ onUnmounted(() => {
 });
 
 async function updateBattleList() {
+    if (document.visibilityState === "hidden") {
+        return;
+    }
+
     const { lobbies } = await api.comms.request("c.lobby.query", { query: {}, fields: ["lobby", "bots", "modoptions", "member_list"] });
 
     const userIds: number[] = [];
@@ -147,6 +157,9 @@ async function updateUsers(userIds: number[]) {
 </script>
 
 <style lang="scss" scoped>
+:global(.view--multiplayer-custom > .panel > .content) {
+    overflow-y: scroll;
+}
 .battle-list {
     display: flex;
     flex-direction: column;

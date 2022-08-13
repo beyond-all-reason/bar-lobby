@@ -1,7 +1,7 @@
 import { Static } from "@sinclair/typebox";
 import { objectKeys } from "jaz-ts-utils";
 import { lobbySchema } from "tachyon-client";
-import { reactive, Ref, ref, shallowReactive } from "vue";
+import { reactive, Ref, ref, shallowReactive, shallowRef } from "vue";
 
 import { BattleChatMessage } from "@/model/battle/battle-chat";
 import { OfflineBattle } from "@/model/battle/offline-battle";
@@ -11,11 +11,11 @@ import { CurrentUser, User } from "@/model/user";
 export class SessionAPI {
     public readonly offlineMode: Ref<boolean>;
     public readonly currentUser: CurrentUser;
+    public readonly offlineBattle: Ref<OfflineBattle | null> = shallowRef(null);
+    public readonly onlineBattle: Ref<TachyonSpadsBattle | null> = shallowRef(null);
     public readonly users: Map<number, User>;
     public readonly battles: Map<number, TachyonSpadsBattle>;
-    public offlineBattle: OfflineBattle | null;
-    public onlineBattle: TachyonSpadsBattle | null;
-    public battleMessages: BattleChatMessage[];
+    public readonly battleMessages: BattleChatMessage[];
 
     // temporary necessity until https://github.com/beyond-all-reason/teiserver/issues/34 is implemented
     public lastBattleResponses: Map<number, Static<typeof lobbySchema>> = new Map();
@@ -57,9 +57,6 @@ export class SessionAPI {
 
         this.battles = shallowReactive(new Map<number, TachyonSpadsBattle>());
 
-        this.offlineBattle = null;
-        this.onlineBattle = null;
-
         this.battleMessages = reactive([]);
     }
 
@@ -86,6 +83,16 @@ export class SessionAPI {
             return this.currentUser;
         }
         return this.users.get(userId);
+    }
+
+    public getUserByName(username: string) {
+        for (const user of this.users.values()) {
+            if (user.username === username) {
+                return user;
+            }
+        }
+
+        return undefined;
     }
 
     public getBattleById(battleId: number) {

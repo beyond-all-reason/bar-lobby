@@ -65,14 +65,14 @@ export class CommsAPI extends TachyonClient {
                 // TODO: remove this when server fixes adding the joining client to member_list
                 battle.userIds.add(api.session.currentUser.userId);
 
-                api.session.onlineBattle = battle;
+                api.session.onlineBattle.value = battle;
 
                 api.router.push("/multiplayer/battle");
             }
         });
 
         this.onResponse("s.lobby.updated").add((data) => {
-            const battle = api.session.onlineBattle;
+            const battle = api.session.onlineBattle.value;
 
             if (!battle || data.lobby.id !== battle?.battleOptions.id) {
                 console.warn("Not updating battle because it's not the current battle");
@@ -83,7 +83,7 @@ export class CommsAPI extends TachyonClient {
         });
 
         this.onResponse("s.lobby.set_modoptions").add((data) => {
-            const battle = api.session.onlineBattle;
+            const battle = api.session.onlineBattle.value;
             if (battle) {
                 battle.handleServerResponse({
                     modoptions: data.new_options,

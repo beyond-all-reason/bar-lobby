@@ -38,7 +38,7 @@ const sound = () => {
     position: relative;
     align-items: center;
     justify-content: center;
-    padding: 3px 7px;
+    padding: 0px 7px;
     color: rgba(255, 255, 255, 0.7);
     width: 100%;
     background: rgba(0, 0, 0, 0.15);

@@ -1,10 +1,21 @@
 <template>
     <Control class="select">
-        <Dropdown v-bind="$attrs" filterPlaceholder="Search" />
+        <Dropdown v-bind="$attrs" filterPlaceholder="Search">
+            <!-- Pass on all named slots -->
+            <template v-for="(index, name) in $slots" #[name]>
+                <slot :name="name" />
+            </template>
+
+            <!-- Pass on all scoped slots -->
+            <template v-for="(index, name) in $slots" #[name]="data">
+                <slot :name="name" v-bind="data"></slot>
+            </template>
+        </Dropdown>
     </Control>
 </template>
 
 <script lang="ts" setup>
+// https://primefaces.org/primevue/dropdown
 import Dropdown from "primevue/dropdown";
 
 import Control from "@/components/inputs/Control.vue";

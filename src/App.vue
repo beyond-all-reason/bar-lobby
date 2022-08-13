@@ -1,16 +1,19 @@
 <template>
     <div id="wrapper" class="wrapper fullsize" @click.left="leftClick" @click.right="rightClick">
         <DebugSidebar v-if="!isProduction" />
-        <StatusInfo v-if="false" />
+        <StickyBattle />
         <Background :blur="blurBg" />
         <Alerts />
+        <div class="lobby-version">
+            {{ lobbyVersion }}
+        </div>
         <transition mode="out-in" name="fade">
             <IntroVideo v-if="state === 'intro'" @complete="onIntroEnd" />
             <Preloader v-else-if="state === 'preloader'" @complete="onPreloadDone" />
             <InitialSetup v-else-if="state === 'initial-setup'" @complete="onInitialSetupDone" />
             <div v-else class="fullsize">
                 <NavBar :class="{ hidden: empty }" />
-                <div :class="`view view--${routeKey}`">
+                <div :class="`view view--${route.name?.toString()}`">
                     <Panel :class="{ hidden: empty }">
                         <router-view v-slot="{ Component }">
                             <template v-if="Component">
@@ -39,7 +42,7 @@ import { ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 
 import Alerts from "@/components/alerts/Alerts.vue";
-import StatusInfo from "@/components/battle/StatusInfo.vue";
+import StickyBattle from "@/components/battle/StickyBattle.vue";
 import Loader from "@/components/common/Loader.vue";
 import Panel from "@/components/common/Panel.vue";
 import Background from "@/components/misc/Background.vue";
@@ -55,10 +58,10 @@ const isProduction = process.env.NODE_ENV === "production";
 
 const router = useRouter();
 const route = useRoute();
-const routeKey = ref("");
 const state: Ref<"intro" | "preloader" | "initial-setup" | "default"> = ref(api.settings.model.skipIntro.value ? "preloader" : "intro");
 const empty = ref(false);
 const blurBg = ref(true);
+const lobbyVersion = api.info.lobby.version;
 
 router.afterEach(async (to, from) => {
     empty.value = route?.meta?.empty ?? false;
@@ -119,5 +122,12 @@ const rightClick = () => api.utils.onRightClick.dispatch();
     flex-direction: column;
     flex-grow: 1;
     gap: 10px;
+}
+.lobby-version {
+    position: absolute;
+    left: 3px;
+    bottom: 1px;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.3);
 }
 </style>

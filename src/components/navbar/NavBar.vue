@@ -13,8 +13,8 @@
                     </Button>
                 </div>
                 <div class="nav__primary-right">
-                    <Button class="icon" to="/profile" tooltip="Profile">
-                        <Icon :icon="account" :height="40" />
+                    <Button class="icon" tooltip="Friends">
+                        <Icon :icon="accountMultiple" :height="40" />
                     </Button>
                     <DownloadsButton tooltip="Downloads" @click="downloadsOpen = true" />
                     <Button class="icon" tooltip="Settings" @click="settingsOpen = true">
@@ -52,6 +52,7 @@
 <script lang="ts" setup>
 import { Icon } from "@iconify/vue";
 import account from "@iconify-icons/mdi/account";
+import accountMultiple from "@iconify-icons/mdi/account-multiple";
 import closeThick from "@iconify-icons/mdi/close-thick";
 import cog from "@iconify-icons/mdi/cog";
 import { computed, ref } from "vue";
