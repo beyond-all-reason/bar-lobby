@@ -14,7 +14,7 @@
                     </Button>
                 </template>
                 <template v-else>
-                    <Button v-for="(tab, i) in tabs" :key="i" v-tooltip="tab.props?.tooltip" :class="{ active: i === currentTab }" class="tab-btn" @click="tabClicked(i)">
+                    <Button v-for="(tab, i) in tabs" :key="i" v-tooltip="tab.props?.tooltip" :class="{ active: i === currentTab }" @click="tabClicked(i)">
                         {{ tab.props?.title }}
                     </Button>
                 </template>
@@ -172,7 +172,7 @@ const nextTab = () => {
         :deep(.control.button) {
             align-self: unset;
         }
-        :deep(.btn) {
+        :deep(button) {
             background: transparent;
             border: none;
             box-shadow: none;
@@ -190,9 +190,6 @@ const nextTab = () => {
             display: flex;
             flex-direction: column;
             flex-grow: 1;
-        }
-        :deep(.btn) {
-            padding: 0 20px;
         }
     }
     &.paginatedTabs {

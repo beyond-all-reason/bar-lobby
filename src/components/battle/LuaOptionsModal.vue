@@ -35,9 +35,9 @@
             </Tab>
         </Panel>
         <div class="actions">
-            <Button class="red" @click="close"> Cancel </Button>
-            <Button @click="reset"> Reset all to default </Button>
-            <Button class="green" @click="save"> Save </Button>
+            <Button class="red fullwidth" @click="close"> Cancel </Button>
+            <Button class="yellow fullwidth" @click="reset"> Reset all to default </Button>
+            <Button class="green fullwidth" @click="save"> Save </Button>
         </div>
     </Modal>
 </template>

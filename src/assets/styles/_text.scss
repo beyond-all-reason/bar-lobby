@@ -10,23 +10,6 @@ b,
 strong {
     font-weight: 600;
 }
-// a:not(.btn) {
-//     opacity: 0.7;
-//     &:hover {
-//         opacity: 1;
-//     }
-// }
-.color {
-    &--error {
-        color: #ff5151;
-    }
-    &--warning {
-        color: #ffe134;
-    }
-    &--success {
-        color: #b8ff34;
-    }
-}
 ul,
 ol {
     display: flex;

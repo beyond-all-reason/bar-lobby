@@ -60,7 +60,17 @@
             />
             <div class="flex-row flex-bottom gap-md">
                 <Button class="red fullwidth" @click="leave"> Leave </Button>
-                <ToggleButton v-if="!isOfflineBattle" class="yellow fullwidth" @click="toggleReady"> Unready </ToggleButton>
+                <ToggleButton
+                    v-if="!isOfflineBattle"
+                    v-model="me.battleStatus.ready"
+                    class="fullwidth"
+                    onText="Ready"
+                    offText="Unready"
+                    :onClasses="['green']"
+                    :offClasses="['yellow']"
+                    :disabled="me.battleStatus.isSpectator"
+                    @click="toggleReady"
+                />
                 <Button class="green fullwidth" @click="start"> Start </Button>
             </div>
         </div>
@@ -89,7 +99,9 @@ const props = defineProps<{
 
 const isOfflineBattle = props.battle instanceof OfflineBattle;
 
-const battleTitle = ref(isOfflineBattle ? "Offline Custom Battle" : "Online Custom Battle");
+const battleTitle = ref(props.battle.battleOptions.title);
+
+const me = api.session.currentUser;
 
 const installedMaps = computed(() => Array.from(api.content.maps.installedMaps.values()));
 const currentMapData = computed(() => installedMaps.value.find((map) => map?.scriptName === props.battle.battleOptions.map));
@@ -149,7 +161,11 @@ const start = async () => {
     api.game.launch(props.battle);
 };
 const toggleReady = () => {
-    //
+    api.comms.request("c.lobby.update_status", {
+        client: {
+            ready: !me.battleStatus.ready,
+        },
+    });
 };
 </script>
 
