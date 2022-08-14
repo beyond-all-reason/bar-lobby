@@ -8,9 +8,11 @@ import PrimeVue from "primevue/config";
 import Tooltip from "primevue/tooltip";
 import type { TransitionProps } from "vue";
 import { createApp } from "vue";
+import { createI18n } from "vue-i18n";
 
 import { apiInit } from "@/api/api";
 import App from "@/App.vue";
+import en from "@/assets/language/en.json";
 import { clickAwayDirective } from "@/utils/click-away-directive";
 
 declare module "vue-router" {
@@ -65,12 +67,18 @@ declare module "vue-router" {
     });
 })();
 
+const i18n = createI18n({
+    locale: "en",
+    fallbackLocale: "en",
+    messages: en,
+});
+
 async function setupVue() {
     const app = createApp(App);
 
     app.use(api.router);
-
     app.use(PrimeVue);
+    app.use(i18n);
 
     app.directive("click-away", clickAwayDirective);
     app.directive("tooltip", Tooltip);
