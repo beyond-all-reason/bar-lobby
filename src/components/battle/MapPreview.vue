@@ -210,7 +210,7 @@ function roundTransform(transform: Transform) {
         display: flex;
         flex-direction: row;
         gap: 2px;
-        :deep(.btn) {
+        :deep(button) {
             min-height: unset;
             padding: 5px;
             &:hover {

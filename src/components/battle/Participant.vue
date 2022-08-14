@@ -1,14 +1,17 @@
 <template>
     <ContextMenu :entries="getActions(participant)" :args="[participant]">
         <div class="participant" data-type="participant">
-            <Icon :icon="!('userId' in participant) ? robot : account" :height="16" />
-            <Flag :countryCode="countryCode" />
+            <Icon v-if="isBot(participant)" :icon="robot" :height="16" />
+            <Flag v-if="!isBot(participant) && participant.countryCode" class="flag" :countryCode="participant.countryCode" />
             <div>
                 {{ name }}
             </div>
+            <div v-if="!isBot(participant)">
+                <div class="ready" :class="{ isReady: participant.battleStatus.ready }">⬤</div>
+            </div>
         </div>
         <LuaOptionsModal
-            v-if="!('userId' in participant)"
+            v-if="isBot(participant)"
             :id="`configure-bot-${participant.name}`"
             v-model="aiOptionsOpen"
             :luaOptions="participant.aiOptions"
@@ -21,7 +24,6 @@
 
 <script lang="ts" setup>
 import { Icon } from "@iconify/vue";
-import account from "@iconify-icons/mdi/account";
 import robot from "@iconify-icons/mdi/robot";
 import { computed, Ref, ref, toRef } from "vue";
 
@@ -39,17 +41,9 @@ const props = defineProps<{
 }>();
 
 const participant = toRef(props, "participant");
-
-const user = computed(() => {
-    if ("userId" in props.participant) {
-        return api.session.getUserById(props.participant.userId);
-    }
-    return undefined;
-});
-
+const isBot = (participant: User | Bot): participant is Bot => !("userId" in participant);
 const name = computed(() => ("userId" in participant.value ? participant.value.username : participant.value.name));
 
-const countryCode = ref("");
 const aiOptions: Ref<LuaOptionSection[]> = ref([]);
 const aiOptionsOpen = ref(false);
 
@@ -132,7 +126,7 @@ const getActions = (participant: User | Bot) => {
     display: flex;
     flex-direction: row;
     align-items: center;
-    gap: 7px;
+    gap: 5px;
     padding: 3px 8px;
     border-radius: 3px;
     background: rgba(0, 0, 0, 0.3);
@@ -142,6 +136,16 @@ const getActions = (participant: User | Bot) => {
     }
     &:hover {
         background: rgba(255, 255, 255, 0.1);
+    }
+}
+.flag {
+    width: 16px;
+}
+.ready {
+    font-size: 12px;
+    color: rgb(226, 0, 0);
+    &.isReady {
+        color: rgb(121, 226, 0);
     }
 }
 </style>

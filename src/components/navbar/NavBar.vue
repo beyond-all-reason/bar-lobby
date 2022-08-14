@@ -152,6 +152,7 @@ button {
         border: none;
         flex-grow: 0;
         height: 100%;
+        font-weight: 600 !important;
         &.icon {
             padding: 10px 15px;
         }

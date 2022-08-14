@@ -60,6 +60,12 @@ $btnColors: (
 .p-button {
     flex-grow: unset;
     justify-content: center;
+    font-weight: 500;
+    &.disabled {
+        pointer-events: none;
+        border-left-color: transparent;
+        filter: brightness(50%) saturate(0%);
+    }
 }
 
 @each $colorKey, $color in $btnColors {

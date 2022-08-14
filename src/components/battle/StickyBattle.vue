@@ -1,29 +1,35 @@
 <template>
-    <div class="sticky-battle flex-row" :class="{ hidden: !battle || route.name === 'multiplayer-battle' }" :battle="battle" @click="openBattle">
-        <div class="title flex-col flex-center">{{ title }}</div>
+    <div class="sticky-battle flex-row" :class="{ hidden: !battle || route.name === 'multiplayer-battle' }" @click="openBattle">
+        <div class="title flex-col flex-center">
+            <Icon :color="color" :icon="swordCross" height="32"></Icon>
+        </div>
         <div class="flex-col flex-center-content">
-            <div class="label">Custom Battle</div>
-            <div class="content">Unready</div>
+            <div class="label">{{ battle?.battleOptions.title }}</div>
+            <div class="content">TODO</div>
         </div>
     </div>
 </template>
 
 <script lang="ts" setup>
+import { Icon } from "@iconify/vue";
+import swordCross from "@iconify-icons/mdi/sword-cross";
 import { computed } from "vue";
 import { useRoute } from "vue-router";
 
 const route = useRoute();
+const me = api.session.currentUser;
 const battle = api.session.onlineBattle;
-const title = computed(() => {
-    let title = `😢`;
-    const teams = battle.value?.teams;
-    if (teams?.value) {
-        const teamCounts = Array.from(teams.value.values()).map((team) => team.length);
-        if (teamCounts.length) {
-            title = teamCounts.join("v");
-        }
+const playerCount = computed(() => battle.value?.contenders.value.filter((c) => "userId" in c).length);
+const botCount = computed(() => battle.value?.bots.length);
+const specCount = computed(() => battle.value?.spectators.value.length);
+const color = computed(() => {
+    if (me.battleStatus.sync.engine < 1 || me.battleStatus.sync.game < 1 || me.battleStatus.sync.map < 1) {
+        return "rgb(165, 30, 30)";
+    } else if (!me.battleStatus.ready) {
+        return "rgb(243, 213, 79)";
+    } else {
+        return "rgb(120, 189, 57)";
     }
-    return title;
 });
 
 const openBattle = () => {
