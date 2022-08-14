@@ -68,7 +68,7 @@ $btnColors: (
     "blue": rgb(14, 109, 199),
     "red": rgb(165, 30, 30),
     "green": rgb(120, 189, 57),
-    "yellow": rgb(199, 199, 14),
+    "yellow": rgb(243, 213, 79),
     "purple": rgb(199, 14, 199),
     "orange": rgb(199, 109, 14),
     "black": rgb(0, 0, 0),

@@ -3,7 +3,7 @@
         <div class="flex-col gap-md">
             <template v-if="waitingForBattleCreation">
                 <div class="txt-center">Setting up a dedicated battle host, this usually takes around 15 seconds</div>
-                <Loader></Loader>
+                <Loader :absolutePosition="false"></Loader>
             </template>
             <template v-else>
                 <Select v-model="selectedRegion" :options="regions" label="Region" optionLabel="name" optionValue="code">

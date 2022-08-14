@@ -60,6 +60,7 @@
             />
             <div class="flex-row flex-bottom gap-md">
                 <Button class="btn--red" fullwidth @click="leave"> Leave </Button>
+                <Button v-if="!isOfflineBattle" class="btn--yellow" fullwidth @click="toggleReady"> Unready </Button>
                 <Button class="btn--green" fullwidth @click="start"> Start </Button>
             </div>
         </div>
@@ -145,6 +146,9 @@ const leave = () => {
 };
 const start = async () => {
     api.game.launch(props.battle);
+};
+const toggleReady = () => {
+    //
 };
 </script>
 

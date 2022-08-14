@@ -15,6 +15,8 @@
 
                 <Checkbox v-model="hideLocked" label="Hide Locked" />
 
+                <Checkbox v-model="hideEmpty" label="Hide Empty" />
+
                 <Options v-model="layout" class="flex-right" required>
                     <Option :value="'tiles'">
                         <Icon :icon="viewGrid" height="26" />
@@ -69,12 +71,16 @@ const battles = api.session.battles;
 const layout: Ref<"tiles" | "rows"> = ref("tiles");
 const hidePvE = ref(false);
 const hideLocked = ref(false);
+const hideEmpty = ref(false);
 const filteredBattles = computed(() =>
     Array.from(battles.values()).filter((battle) => {
         if (hidePvE.value && battle.bots.length > 0) {
             return false;
         }
         if (hideLocked.value && (battle.battleOptions.locked || battle.battleOptions.passworded)) {
+            return false;
+        }
+        if (hideEmpty.value && battle.battleUsers.value.length === 0) {
             return false;
         }
         return true;

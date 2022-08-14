@@ -3,7 +3,7 @@ import { assign, entries, objectKeys } from "jaz-ts-utils";
 import { battleSchema, lobbySchema } from "tachyon-client";
 
 import { AbstractBattle } from "@/model/battle/abstract-battle";
-import { BattleOptions, Bot, StartBox, StartPosType } from "@/model/battle/types";
+import { Bot, StartBox, StartPosType } from "@/model/battle/types";
 import { User } from "@/model/user";
 
 type LobbyType = Static<typeof lobbySchema>;
@@ -153,7 +153,25 @@ export class TachyonSpadsBattle extends AbstractBattle {
 
     constructor(serverBattleResponse: BattleType) {
         super({
-            battleOptions: {} as BattleOptions,
+            battleOptions: {
+                founderId: -1,
+                engineVersion: "",
+                gameOptions: {},
+                gameVersion: "",
+                id: -1,
+                isHost: false,
+                locked: false,
+                map: "",
+                mapOptions: {},
+                maxPlayers: 16,
+                password: null,
+                passworded: false,
+                restrictions: [],
+                startBoxes: [],
+                startPosType: StartPosType.Fixed,
+                startTime: null,
+                title: "",
+            },
             userIds: [],
             bots: [],
         });

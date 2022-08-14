@@ -22,6 +22,7 @@ export const defaultBattle: () => OfflineBattle = () => {
             locked: false,
             maxPlayers: 1,
             passworded: false,
+            password: null,
             startTime: null,
             engineVersion: lastInArray(api.content.engine.installedVersions)!,
             gameVersion: lastInArray(api.content.game.installedVersions)!.version,
