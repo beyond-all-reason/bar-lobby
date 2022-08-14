@@ -12,7 +12,7 @@ import { createI18n } from "vue-i18n";
 
 import { apiInit } from "@/api/api";
 import App from "@/App.vue";
-import en from '@/assets/language/en.json';
+import en from "@/assets/language/en.json";
 import { clickAwayDirective } from "@/utils/click-away-directive";
 
 declare module "vue-router" {
@@ -68,10 +68,10 @@ declare module "vue-router" {
 })();
 
 const i18n = createI18n({
-    locale: 'en',
-    fallbackLocale: 'en',
-	messages: en,
-})
+    locale: "en",
+    fallbackLocale: "en",
+    messages: en,
+});
 
 async function setupVue() {
     const app = createApp(App);
@@ -88,5 +88,4 @@ async function setupVue() {
     if (process.env.NODE_ENV !== "production") {
         app.config.globalProperties.window = window;
     }
-
 }
