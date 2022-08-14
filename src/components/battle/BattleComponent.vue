@@ -64,10 +64,10 @@
                     v-if="!isOfflineBattle"
                     v-model="me.battleStatus.ready"
                     class="fullwidth"
-                    onText="Ready"
-                    offText="Unready"
+                    onText="Unready"
+                    offText="Ready Up"
                     :onClasses="['green']"
-                    :offClasses="['yellow']"
+                    :offClasses="['red']"
                     :disabled="me.battleStatus.isSpectator"
                     @click="toggleReady"
                 />

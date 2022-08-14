@@ -3,7 +3,6 @@ import "vue-slider-component/theme/default.css";
 import "@/assets/styles/styles.scss";
 import "primevue/resources/primevue.min.css";
 
-//import "primevue/resources/themes/saga-blue/theme.css";
 import PrimeVue from "primevue/config";
 import Tooltip from "primevue/tooltip";
 import type { TransitionProps } from "vue";
