@@ -70,8 +70,6 @@ onMounted(async () => {
 
     loadMap();
 
-    (window as any).loadMap = loadMap;
-
     watch(
         [() => props.battle.battleOptions.map, () => props.battle.battleOptions.startPosType, () => props.battle.battleOptions.startBoxes, () => api.session.currentUser.battleStatus],
         () => {

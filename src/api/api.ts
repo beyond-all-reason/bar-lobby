@@ -49,19 +49,6 @@ export async function apiInit() {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     window.api = {} as any;
 
-    api.router = createRouter({
-        history: createWebHashHistory(),
-        routes: routes,
-    });
-
-    api.router.beforeEach(async (to, from) => {
-        if (to.path === "/singleplayer/custom") {
-            api.session.offlineBattle = defaultBattle();
-        } else if (from.path === "/singleplayer/custom") {
-            api.session.offlineBattle = null;
-        }
-    });
-
     api.utils = new UtilsAPI();
 
     api.info = await ipcRenderer.invoke("getInfo");
@@ -84,6 +71,19 @@ export async function apiInit() {
     const dataDir = api.settings.model.dataDir.value;
 
     api.session = new SessionAPI();
+
+    api.router = createRouter({
+        history: createWebHashHistory(),
+        routes: routes,
+    });
+
+    api.router.beforeEach(async (to, from) => {
+        if (to.path === "/singleplayer/custom") {
+            api.session.offlineBattle.value = defaultBattle();
+        } else if (from.path === "/singleplayer/custom") {
+            api.session.offlineBattle.value = null;
+        }
+    });
 
     api.comms = new CommsAPI(serverConfig);
 

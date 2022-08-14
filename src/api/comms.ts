@@ -55,34 +55,35 @@ export class CommsAPI extends TachyonClient {
 
         this.onResponse("s.lobby.join_response").add((data) => {
             if (data.result === "approve") {
-                // TODO: might need to request fresh client info here for cases where we don't already know about them (e.g. server forcing us into a battle)
+                let battle = api.session.getBattleById(data.lobby.id);
+                if (!battle) {
+                    battle = new TachyonSpadsBattle(data);
+                }
 
-                api.session.onlineBattle = new TachyonSpadsBattle({
-                    ...data.lobby,
-                    bots: data.bots,
-                    modoptions: data.modoptions,
-                });
+                battle.handleServerResponse(data);
+
+                // TODO: remove this when server fixes adding the joining client to member_list
+                battle.userIds.add(api.session.currentUser.userId);
+
+                api.session.onlineBattle.value = battle;
 
                 api.router.push("/multiplayer/battle");
             }
         });
 
         this.onResponse("s.lobby.updated").add((data) => {
-            const battle = api.session.onlineBattle;
+            const battle = api.session.onlineBattle.value;
+
             if (!battle || data.lobby.id !== battle?.battleOptions.id) {
                 console.warn("Not updating battle because it's not the current battle");
                 return;
             }
 
-            battle.handleServerResponse({
-                ...data.lobby,
-                bots: data.bots,
-                modoptions: data.modoptions,
-            });
+            battle.handleServerResponse(data);
         });
 
         this.onResponse("s.lobby.set_modoptions").add((data) => {
-            const battle = api.session.onlineBattle;
+            const battle = api.session.onlineBattle.value;
             if (battle) {
                 battle.handleServerResponse({
                     modoptions: data.new_options,
@@ -98,7 +99,38 @@ export class CommsAPI extends TachyonClient {
             const user = api.session.getUserById(data.joiner_id);
             const battle = api.session.getBattleById(data.lobby_id);
             if (user && battle) {
+                battle.userIds.add(user.userId);
+            }
+        });
+
+        this.onResponse("s.lobby.remove_user").add((data) => {
+            const user = api.session.getUserById(data.leaver_id);
+            const battle = api.session.getBattleById(data.lobby_id);
+            if (user && battle) {
                 // TODO: add player to battle
+            }
+        });
+
+        this.onResponse("s.lobby.add_start_area").add((data) => {
+            const battle = api.session.getBattleById(data.lobby_id);
+            if (battle) {
+                battle.handleServerResponse({
+                    lobby: {
+                        start_rectangles: data,
+                    },
+                });
+            }
+        });
+
+        this.onResponse("s.lobby.remove_start_area").add((data) => {
+            const battle = api.session.getBattleById(data.lobby_id);
+            if (battle) {
+                // TODO
+                battle.handleServerResponse({
+                    lobby: {
+                        start_rectangles: data,
+                    },
+                });
             }
         });
     }

@@ -15,30 +15,18 @@ export class OfflineBattle extends AbstractBattle {
         this.battleOptions.map = map;
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     public setGameOptions(options: Record<string, any>) {
         this.battleOptions.gameOptions = options;
     }
 
-    public addParticipant(participant: User | Bot) {
-        if ("userId" in participant) {
-            const user = api.session.getUserById(participant.userId);
-            if (user) {
-                this.userIds.push(participant.userId);
-            } else {
-                console.error("User not found", participant.userId);
-            }
-        } else {
-            this.bots.push(participant);
-        }
+    public addBot(bot: Bot) {
+        this.bots.push(bot);
         this.fixIds();
     }
 
-    public removeParticipant(participant: User | Bot) {
-        if ("userId" in participant) {
-            this.userIds.splice(this.userIds.indexOf(participant.userId), 1);
-        } else {
-            this.bots.splice(this.bots.indexOf(participant), 1);
-        }
+    public removeBot(bot: Bot) {
+        this.bots.splice(this.bots.indexOf(bot), 1);
         this.fixIds();
     }
 
@@ -68,7 +56,7 @@ export class OfflineBattle extends AbstractBattle {
     }
 
     public leave() {
-        api.session.offlineBattle = null;
+        api.session.offlineBattle.value = null;
         api.session.currentUser.battleStatus.battleId = -1;
         api.router.replace("/home");
     }

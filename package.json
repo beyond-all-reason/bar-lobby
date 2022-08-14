@@ -59,7 +59,7 @@
     "sass-loader": "^13.0.0",
     "sdfz-demo-parser": "^4.7.0",
     "spring-map-parser": "^4.3.5",
-    "tachyon-client": "^3.9.10",
+    "tachyon-client": "^3.9.16",
     "tsconfig-paths": "^3.12.0",
     "type-fest": "^2.12.2",
     "typescript": "^4.6.4",

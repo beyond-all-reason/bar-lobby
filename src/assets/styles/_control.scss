@@ -78,8 +78,7 @@ meter,
     &::placeholder {
         color: rgba(255, 255, 255, 0.5);
     }
-    &:hover,
-    &:not(button):not(.btn):focus {
+    &:hover {
         background-color: rgba(255, 255, 255, 0.2);
     }
 }

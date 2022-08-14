@@ -6,7 +6,7 @@
                     <Button class="prev-tab" @click="prevTab">
                         <Icon :icon="chevronLeft" />
                     </Button>
-                    <Button class="single-tab" :tooltip="activeTab.props?.tooltip">
+                    <Button v-tooltip="activeTab.props?.tooltip" class="single-tab">
                         {{ activeTab.props?.title }}
                     </Button>
                     <Button class="next-tab" @click="nextTab">
@@ -14,7 +14,7 @@
                     </Button>
                 </template>
                 <template v-else>
-                    <Button v-for="(tab, i) in tabs" :key="i" :class="{ active: i === currentTab }" class="tab-btn" :tooltip="tab.props?.tooltip" @click="tabClicked(i)">
+                    <Button v-for="(tab, i) in tabs" :key="i" v-tooltip="tab.props?.tooltip" :class="{ active: i === currentTab }" class="tab-btn" @click="tabClicked(i)">
                         {{ tab.props?.title }}
                     </Button>
                 </template>

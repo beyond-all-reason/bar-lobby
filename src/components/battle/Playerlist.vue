@@ -12,8 +12,8 @@
         >
             <div class="flex-row gap-md">
                 <div class="title">Team {{ teamId + 1 }}</div>
-                <Button slim :flexGrow="false" @click="addBot(teamId)"> Add bot </Button>
-                <Button v-if="me.battleStatus.isSpectator || me.battleStatus.teamId !== teamId" slim :flexGrow="false" @click="joinTeam(teamId)"> Join </Button>
+                <Button class="slim" :flexGrow="false" @click="addBot(teamId)"> Add bot </Button>
+                <Button v-if="me.battleStatus.isSpectator || me.battleStatus.teamId !== teamId" class="slim" @click="joinTeam(teamId)"> Join </Button>
             </div>
             <div class="participants">
                 <div
@@ -37,14 +37,14 @@
         >
             <div class="flex-row gap-md">
                 <div class="title">Team {{ battle.teams.value.size + 1 }}</div>
-                <Button slim :flexGrow="false" @click="addBot(battle.teams.value.size)"> Add bot </Button>
-                <Button slim :flexGrow="false" @click="joinTeam(battle.teams.value.size)"> Join </Button>
+                <Button class="slim" @click="addBot(battle.teams.value.size)"> Add bot </Button>
+                <Button class="slim" @click="joinTeam(battle.teams.value.size)"> Join </Button>
             </div>
         </div>
         <div class="group" data-type="group" @dragenter.prevent="dragEnter($event)" @dragover.prevent @dragleave.prevent="dragLeave($event)" @drop="onDrop($event)">
             <div class="flex-row gap-md">
                 <div class="title">Spectators</div>
-                <Button v-if="!me.battleStatus.isSpectator" slim :flexGrow="false" @click="joinTeam()"> Join </Button>
+                <Button v-if="!me.battleStatus.isSpectator" class="slim" @click="joinTeam()"> Join </Button>
             </div>
             <div class="participants">
                 <div
@@ -84,7 +84,7 @@ const addBot = (teamId: number) => {
         randomName = randomFromArray(aiNames);
     }
 
-    props.battle.addParticipant({
+    props.battle.addBot({
         playerId: props.battle.contenders.value.length,
         teamId,
         name: randomName!,
@@ -126,7 +126,6 @@ const dragEnter = (event: DragEvent, teamId?: number) => {
         (!("userId" in draggedParticipant.value) && draggedParticipant.value.teamId === teamId);
     const draggingSpectatorToSpectator = "userId" in draggedParticipant.value && draggedParticipant.value.battleStatus.isSpectator && teamId === undefined;
     const draggingBotToSpectator = !("userId" in draggedParticipant.value) && teamId === undefined;
-    console.log(draggingContenderToOwnTeam, draggingSpectatorToSpectator, draggingBotToSpectator);
     if (draggingContenderToOwnTeam || draggingSpectatorToSpectator || draggingBotToSpectator) {
         // TODO: disable drag cursor
         return;
@@ -178,10 +177,6 @@ const dragEnd = (event: DragEvent, participant: User | Bot) => {
 const onDrop = (event: DragEvent, teamId?: number) => {
     const target = event.target as Element;
     if (target.getAttribute("data-type") === "group" && draggedParticipant.value) {
-        // const participantName = !("userId" in draggedParticipant.value) ? draggedParticipant.value.name : api.session.getUserById(draggedParticipant.value.userId)?.username;
-        // if (!participantName) {
-        //     return;
-        // }
         if (teamId !== undefined && (("userId" in draggedParticipant.value && !draggedParticipant.value.battleStatus.isSpectator) || !("userId" in draggedParticipant.value))) {
             props.battle.changeContenderTeam(draggedParticipant.value, teamId);
         } else if ("userId" in draggedParticipant.value && !draggedParticipant.value.battleStatus.isSpectator) {
@@ -231,5 +226,12 @@ const onDrop = (event: DragEvent, teamId?: number) => {
     gap: 10px;
     flex-wrap: wrap;
     margin-top: 5px;
+}
+button.slim {
+    padding: 1px 7px;
+    min-height: unset;
+    align-self: center;
+    border-radius: 2px;
+    font-size: 16px;
 }
 </style>

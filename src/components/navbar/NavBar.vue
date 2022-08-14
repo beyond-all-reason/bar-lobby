@@ -1,0 +1,238 @@
+<template>
+    <div class="nav" :class="{ hidden }">
+        <div class="logo">
+            <Button depress to="/home">
+                <img src="@/assets/images/logo.svg" />
+            </Button>
+        </div>
+        <div class="flex-col flex-grow">
+            <div class="primary flex-row flex-space-between gap-xxs">
+                <div class="primary-left">
+                    <Button v-for="view in primaryRoutes" :key="view.path" :to="view.path">
+                        {{ view.meta.title }}
+                    </Button>
+                </div>
+                <div class="primary-right">
+                    <Button v-tooltip.bottom="'Friends'" class="icon">
+                        <Icon :icon="accountMultiple" :height="40" />
+                    </Button>
+                    <DownloadsButton v-tooltip.bottom="'Downloads'" @click="downloadsOpen = true" />
+                    <Button v-tooltip.bottom="'Settings'" class="icon" @click="settingsOpen = true">
+                        <Icon :icon="cog" :height="40" />
+                    </Button>
+                    <Button v-tooltip.bottom="'Exit'" class="icon close" @click="exitOpen = true">
+                        <Icon :icon="closeThick" :height="40" />
+                    </Button>
+                </div>
+            </div>
+            <div class="secondary">
+                <div class="secondary-left flex-row flex-left">
+                    <Button v-for="view in secondaryRoutes" :key="view.path" :to="view.path">
+                        {{ view.meta.title ?? view.name }}
+                    </Button>
+                </div>
+                <div class="secondary-right flex-row flex-right">
+                    <Button>
+                        <div>69 Players Online</div>
+                        <div class="server-status-dot">⬤</div>
+                    </Button>
+                    <Button class="user" to="/profile">
+                        <Icon :icon="account" :height="20" />
+                        <div>{{ currentUser.username }}</div>
+                    </Button>
+                </div>
+            </div>
+        </div>
+        <Downloads v-model="downloadsOpen" />
+        <Settings v-model="settingsOpen" />
+        <Exit v-model="exitOpen" />
+    </div>
+</template>
+
+<script lang="ts" setup>
+import { Icon } from "@iconify/vue";
+import account from "@iconify-icons/mdi/account";
+import accountMultiple from "@iconify-icons/mdi/account-multiple";
+import closeThick from "@iconify-icons/mdi/close-thick";
+import cog from "@iconify-icons/mdi/cog";
+import { computed, ref } from "vue";
+import { useRoute, useRouter } from "vue-router";
+
+import Button from "@/components/inputs/Button.vue";
+import Downloads from "@/components/navbar/Downloads.vue";
+import DownloadsButton from "@/components/navbar/DownloadsButton.vue";
+import Exit from "@/components/navbar/Exit.vue";
+import Settings from "@/components/navbar/Settings.vue";
+
+const props = defineProps<{
+    hidden?: boolean;
+}>();
+
+const router = useRouter();
+const route = useRoute();
+const allRoutes = router.getRoutes();
+
+const primaryRoutes = allRoutes
+    .filter((r) => ["/singleplayer", "/multiplayer", "/library", "/learn", "/store", "/development"].includes(r.path))
+    .sort((a, b) => (a.meta.order ?? 99) - (b.meta.order ?? 99));
+
+const secondaryRoutes = computed(() => {
+    return allRoutes.filter((r) => r.meta.order !== undefined && r.path.startsWith(`/${route.path.split("/")[1]}/`)).sort((a, b) => (a.meta.order ?? 99) - (b.meta.order ?? 99));
+});
+
+const downloadsOpen = ref(false);
+const settingsOpen = ref(false);
+const exitOpen = ref(false);
+
+const currentUser = api.session.currentUser;
+</script>
+
+<style lang="scss">
+.nav {
+    position: relative;
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    backdrop-filter: blur(5px);
+    background: linear-gradient(rgba(0, 0, 0, 0.75), rgba(0, 0, 0, 0.9));
+    box-shadow: 0 1px 0 rgba(0, 0, 0, 0.4), 0 3px 5px rgba(0, 0, 0, 0.5);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    gap: 1px;
+    transition: transform 0.3s, opacity 0.3s;
+    &.hidden {
+        opacity: 0;
+        transform: translateY(-100%);
+    }
+    &:before {
+        @extend .fullsize;
+        content: "";
+        z-index: -1;
+        opacity: 0.2;
+        background-image: url("~@/assets/images/squares.png");
+    }
+}
+button {
+    text-transform: uppercase;
+}
+.logo {
+    flex-direction: column;
+    flex-grow: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-shrink: 0;
+    height: 100%;
+    box-shadow: 1px 0 0 rgba(255, 255, 255, 0.1);
+    img {
+        height: 40px;
+        opacity: 0.9;
+    }
+    &:hover img,
+    &.active img {
+        opacity: 1;
+    }
+    img {
+        height: 50px;
+    }
+    .control.button {
+        flex-grow: 1;
+    }
+}
+.primary,
+.logo {
+    button {
+        padding: 10px 25px;
+        display: flex;
+        align-items: center;
+        font-size: 25px;
+        font-weight: 600;
+        background: radial-gradient(rgba(0, 0, 0, 0), rgba(255, 255, 255, 0.05));
+        color: rgba(255, 255, 255, 0.8);
+        box-shadow: 1px 0 0 rgba(255, 255, 255, 0.05), -1px 0 0 rgba(255, 255, 255, 0.05);
+        border: none;
+        flex-grow: 0;
+        height: 100%;
+        &.icon {
+            padding: 10px 15px;
+        }
+        &:hover,
+        &.active {
+            background: radial-gradient(rgba(0, 0, 0, 0), rgba(255, 255, 255, 0.15));
+            color: #fff;
+            text-shadow: 0 0 7px #fff;
+            box-shadow: 1px 0 0 rgba(255, 255, 255, 0.2), -1px 0 0 rgba(255, 255, 255, 0.2), 0 1px 0 rgba(255, 255, 255, 0.2), 7px -3px 10px rgba(0, 0, 0, 0.5), -7px -3px 10px rgba(0, 0, 0, 0.5) !important;
+        }
+        &.active {
+            z-index: 1;
+        }
+        &:hover {
+            z-index: 2;
+        }
+    }
+}
+.primary-left,
+.primary-right {
+    display: flex;
+    flex-direction: row;
+    gap: 1px;
+}
+.primary-left {
+    box-shadow: 5px 0 20px rgba(0, 0, 0, 0.4);
+    &:first-child {
+        box-shadow: 1px 0 0 rgba(255, 255, 255, 0.05);
+    }
+    &:last-child {
+        box-shadow: -1px 0 0 rgba(255, 255, 255, 0.05), 1px 0 0 rgba(255, 255, 255, 0.15);
+    }
+}
+.primary-right {
+    box-shadow: -5px 0 20px rgba(0, 0, 0, 0.4);
+    &:first-child {
+        box-shadow: 1px 0 0 rgba(255, 255, 255, 0.05), -1px 0 0 rgba(255, 255, 255, 0.15);
+    }
+    &:last-child {
+        box-shadow: -1px 0 0 rgba(255, 255, 255, 0.05);
+    }
+}
+.secondary {
+    flex-direction: row;
+    background: linear-gradient(rgba(0, 0, 0, 0.05), rgba(0, 0, 0, 0.3));
+    width: 100%;
+    box-shadow: inset 2px 2px 10px rgba(0, 0, 0, 0.5);
+    border-top: 1px solid rgba(255, 255, 255, 0.15);
+    display: flex;
+    height: 36px;
+    button {
+        background: none;
+        border: none;
+        color: rgba(255, 255, 255, 0.5);
+        flex-grow: 0;
+        padding: 0 25px;
+        gap: 5px;
+        &:hover,
+        &.active {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.05);
+            box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.5), 0 1px 0 rgba(255, 255, 255, 0.2);
+        }
+    }
+    &-right {
+        button {
+            padding: 0 10px;
+        }
+    }
+}
+.close {
+    &:hover {
+        background: rgba(255, 0, 0, 0.2);
+        box-shadow: 1px 0 0 rgba(255, 47, 47, 0.418), -1px 0 0 rgba(255, 47, 47, 0.418), 0 1px 0 rgba(255, 47, 47, 0.418), 7px -3px 10px rgba(0, 0, 0, 0.5), -7px -3px 10px rgba(0, 0, 0, 0.5) !important;
+    }
+}
+.server-status-dot {
+    font-size: 12px;
+    color: rgb(121, 226, 0);
+}
+.user {
+    text-transform: unset;
+}
+</style>

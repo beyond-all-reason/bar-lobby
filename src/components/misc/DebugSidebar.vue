@@ -6,11 +6,11 @@
             </Button>
         </div>
         <Select2 v-model="currentRoute" label="View" :options="routes" optionLabel="path" optionValue="path" />
-        <Button to="/debug/playground" :flexGrow="false" fullWidth> Debug Playground </Button>
-        <Button :flexGrow="false" fullWidth @click="openSettings"> Open Settings File </Button>
-        <Button :flexGrow="false" fullWidth @click="openLobbyDir"> Open Lobby Dir </Button>
-        <Button :flexGrow="false" fullWidth @click="openDataDir"> Open Data Dir </Button>
-        <Button :flexGrow="false" fullWidth @click="openStartScript"> Open Latest Start Script </Button>
+        <Button to="/debug/playground"> Debug Playground </Button>
+        <Button @click="openSettings"> Open Settings File </Button>
+        <Button @click="openLobbyDir"> Open Lobby Dir </Button>
+        <Button @click="openDataDir"> Open Data Dir </Button>
+        <Button @click="openStartScript"> Open Latest Start Script </Button>
     </div>
 </template>
 

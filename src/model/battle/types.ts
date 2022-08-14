@@ -8,6 +8,7 @@ export type BattleOptions = {
     startPosType: StartPosType;
     startBoxes: StartBox[];
     passworded: boolean;
+    password: string | null;
     startTime: Date | null;
     founderId: number;
     locked: boolean;

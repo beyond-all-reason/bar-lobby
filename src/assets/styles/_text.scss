@@ -10,12 +10,12 @@ b,
 strong {
     font-weight: 600;
 }
-a:not(.btn) {
-    opacity: 0.7;
-    &:hover {
-        opacity: 1;
-    }
-}
+// a:not(.btn) {
+//     opacity: 0.7;
+//     &:hover {
+//         opacity: 1;
+//     }
+// }
 .color {
     &--error {
         color: #ff5151;
@@ -71,4 +71,13 @@ h6 {
 }
 .txt-xl {
     font-size: 20px;
+}
+.txt-left {
+    text-align: left;
+}
+.txt-center {
+    text-align: center;
+}
+.txt-right {
+    text-align: right;
 }
