@@ -22,7 +22,7 @@
                     :placeholder="currentMapName"
                     @update:model-value="onMapSelected"
                 />
-                <Button :flexGrow="false">
+                <Button>
                     <Icon :icon="cog" height="23" />
                 </Button>
             </div>
@@ -36,7 +36,7 @@
                     :disabled="!isOfflineBattle"
                     @update:model-value="onGameSelected"
                 />
-                <Button :flexGrow="false" @click="openGameOptions">
+                <Button @click="openGameOptions">
                     <Icon :icon="cog" height="23" />
                 </Button>
                 <LuaOptionsModal
@@ -59,9 +59,9 @@
                 @update:model-value="onEngineSelected"
             />
             <div class="flex-row flex-bottom gap-md">
-                <Button class="btn--red" fullwidth @click="leave"> Leave </Button>
-                <Button v-if="!isOfflineBattle" class="btn--yellow" fullwidth @click="toggleReady"> Unready </Button>
-                <Button class="btn--green" fullwidth @click="start"> Start </Button>
+                <Button class="red fullwidth" @click="leave"> Leave </Button>
+                <ToggleButton v-if="!isOfflineBattle" class="yellow fullwidth" @click="toggleReady"> Unready </ToggleButton>
+                <Button class="green fullwidth" @click="start"> Start </Button>
             </div>
         </div>
     </div>
@@ -78,6 +78,7 @@ import MapPreview from "@/components/battle/MapPreview.vue";
 import Playerlist from "@/components/battle/Playerlist.vue";
 import Button from "@/components/inputs/Button.vue";
 import Select from "@/components/inputs/Select.vue";
+import ToggleButton from "@/components/inputs/ToggleButton.vue";
 import { AbstractBattle } from "@/model/battle/abstract-battle";
 import { OfflineBattle } from "@/model/battle/offline-battle";
 import { LuaOptionSection } from "@/model/lua-options";

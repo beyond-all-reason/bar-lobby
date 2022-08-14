@@ -22,7 +22,7 @@
                     </template>
                 </Select>
 
-                <Button class="btnHost" :flexGrow="false" @click="hostBattle">Host Battle</Button>
+                <Button class="blue" @click="hostBattle">Host Battle</Button>
             </template>
         </div>
     </Modal>
@@ -126,8 +126,4 @@ const onClose = () => {
 };
 </script>
 
-<style lang="scss" scoped>
-.btnHost {
-    align-self: flex-end;
-}
-</style>
+<style lang="scss" scoped></style>

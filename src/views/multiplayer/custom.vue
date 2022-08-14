@@ -8,7 +8,7 @@
 
         <div class="battle-list">
             <div class="toolbar">
-                <Button :flexGrow="false" @click="hostBattleOpen = true">Host Battle</Button>
+                <Button class="blue" @click="hostBattleOpen = true">Host Battle</Button>
                 <HostBattle v-model="hostBattleOpen" />
 
                 <Checkbox v-model="hidePvE" label="Hide PvE" />
@@ -17,14 +17,14 @@
 
                 <Checkbox v-model="hideEmpty" label="Hide Empty" />
 
-                <Options v-model="layout" class="flex-right" required>
+                <!-- <Options v-model="layout" class="flex-right" required>
                     <Option :value="'tiles'">
                         <Icon :icon="viewGrid" height="26" />
                     </Option>
                     <Option :value="'rows'">
                         <Icon :icon="viewList" height="30" />
                     </Option>
-                </Options>
+                </Options> -->
             </div>
 
             <div :class="`battles ${layout}`">
@@ -52,9 +52,6 @@
  * Uses TS but hidden, same as casual matchmaking
  */
 
-import { Icon } from "@iconify/vue";
-import viewGrid from "@iconify-icons/mdi/view-grid";
-import viewList from "@iconify-icons/mdi/view-list";
 import { arrayToMap } from "jaz-ts-utils";
 import { computed, onMounted, onUnmounted, Ref, ref } from "vue";
 
@@ -62,8 +59,6 @@ import BattlePreview from "@/components/battle/BattlePreview.vue";
 import HostBattle from "@/components/battle/HostBattle.vue";
 import Button from "@/components/inputs/Button.vue";
 import Checkbox from "@/components/inputs/Checkbox.vue";
-import Option from "@/components/inputs/Option.vue";
-import Options from "@/components/inputs/Options.vue";
 import { TachyonSpadsBattle } from "@/model/battle/tachyon-spads-battle";
 
 const hostBattleOpen = ref(false);
@@ -170,7 +165,7 @@ async function updateUsers(userIds: number[]) {
     display: flex;
     flex-direction: column;
     width: 100%;
-    gap: 10px;
+    gap: 15px;
 }
 .toolbar {
     display: flex;
@@ -212,7 +207,7 @@ async function updateUsers(userIds: number[]) {
 .battles {
     &.tiles {
         display: grid;
-        grid-gap: 20px;
+        grid-gap: 15px;
         grid-template-columns: repeat(auto-fill, minmax(500px, 1fr));
     }
     &.rows {

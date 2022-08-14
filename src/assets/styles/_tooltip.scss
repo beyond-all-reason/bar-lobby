@@ -1,0 +1,11 @@
+$color: #222;
+
+.p-tooltip {
+    &-text {
+        background: $color;
+        padding: 2px 7px;
+        box-shadow: 0 2px 12px 0 rgb(0 0 0 / 10%);
+        border-radius: 3px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+}

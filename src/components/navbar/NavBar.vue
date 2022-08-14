@@ -1,37 +1,37 @@
 <template>
     <div class="nav" :class="{ hidden }">
-        <div class="nav__logo">
+        <div class="logo">
             <Button depress to="/home">
                 <img src="@/assets/images/logo.svg" />
             </Button>
         </div>
         <div class="flex-col flex-grow">
-            <div class="nav__primary flex-row flex-space-between gap-xxs">
-                <div class="nav__primary-left">
+            <div class="primary flex-row flex-space-between gap-xxs">
+                <div class="primary-left">
                     <Button v-for="view in primaryRoutes" :key="view.path" :to="view.path">
                         {{ view.meta.title }}
                     </Button>
                 </div>
-                <div class="nav__primary-right">
-                    <Button class="icon" tooltip="Friends">
+                <div class="primary-right">
+                    <Button v-tooltip.bottom="'Friends'" class="icon">
                         <Icon :icon="accountMultiple" :height="40" />
                     </Button>
-                    <DownloadsButton tooltip="Downloads" @click="downloadsOpen = true" />
-                    <Button class="icon" tooltip="Settings" @click="settingsOpen = true">
+                    <DownloadsButton v-tooltip.bottom="'Downloads'" @click="downloadsOpen = true" />
+                    <Button v-tooltip.bottom="'Settings'" class="icon" @click="settingsOpen = true">
                         <Icon :icon="cog" :height="40" />
                     </Button>
-                    <Button class="icon close" tooltip="Exit" @click="exitOpen = true">
+                    <Button v-tooltip.bottom="'Exit'" class="icon close" @click="exitOpen = true">
                         <Icon :icon="closeThick" :height="40" />
                     </Button>
                 </div>
             </div>
-            <div class="nav__secondary">
-                <div class="nav__secondary-left flex-row flex-left">
-                    <Button v-for="view in secondaryRoutes" :key="view.path" :to="view.path" class="secondary-item">
+            <div class="secondary">
+                <div class="secondary-left flex-row flex-left">
+                    <Button v-for="view in secondaryRoutes" :key="view.path" :to="view.path">
                         {{ view.meta.title ?? view.name }}
                     </Button>
                 </div>
-                <div class="nav__secondary-right flex-row flex-right flex-center">
+                <div class="secondary-right flex-row flex-right">
                     <Button>
                         <div>69 Players Online</div>
                         <div class="server-status-dot">⬤</div>
@@ -110,129 +110,129 @@ const currentUser = api.session.currentUser;
         opacity: 0.2;
         background-image: url("~@/assets/images/squares.png");
     }
-    &__logo {
-        flex-direction: column;
-        flex-grow: 0;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        flex-shrink: 0;
-        height: 100%;
-        box-shadow: 1px 0 0 rgba(255, 255, 255, 0.1);
-        img {
-            height: 40px;
-            opacity: 0.9;
-        }
-        &:hover img,
-        &.active img {
-            opacity: 1;
-        }
-        img {
-            height: 50px;
-        }
-        .control.button {
-            flex-grow: 1;
-        }
+}
+button {
+    text-transform: uppercase;
+}
+.logo {
+    flex-direction: column;
+    flex-grow: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-shrink: 0;
+    height: 100%;
+    box-shadow: 1px 0 0 rgba(255, 255, 255, 0.1);
+    img {
+        height: 40px;
+        opacity: 0.9;
     }
-    &__primary,
-    &__logo {
-        .btn {
-            padding: 10px 25px;
-            display: flex;
-            align-items: center;
-            font-size: 25px;
-            font-weight: 600;
-            background: radial-gradient(rgba(0, 0, 0, 0), rgba(255, 255, 255, 0.05));
-            color: rgba(255, 255, 255, 0.8);
-            box-shadow: 1px 0 0 rgba(255, 255, 255, 0.05), -1px 0 0 rgba(255, 255, 255, 0.05);
-            border: none;
-            flex-grow: 0;
-            height: 100%;
-            &.icon {
-                padding: 10px 15px;
-            }
-            &:hover,
-            &.active {
-                background: radial-gradient(rgba(0, 0, 0, 0), rgba(255, 255, 255, 0.15));
-                color: #fff;
-                text-shadow: 0 0 7px #fff;
-                box-shadow: 1px 0 0 rgba(255, 255, 255, 0.2), -1px 0 0 rgba(255, 255, 255, 0.2), 0 1px 0 rgba(255, 255, 255, 0.2), 7px -3px 10px rgba(0, 0, 0, 0.5), -7px -3px 10px rgba(0, 0, 0, 0.5) !important;
-            }
-            &.active {
-                z-index: 1;
-            }
-            &:hover {
-                z-index: 2;
-            }
-        }
+    &:hover img,
+    &.active img {
+        opacity: 1;
+    }
+    img {
+        height: 50px;
     }
     .control.button {
-        align-self: unset;
+        flex-grow: 1;
     }
-    &__primary-left,
-    &__primary-right {
+}
+.primary,
+.logo {
+    button {
+        padding: 10px 25px;
         display: flex;
-        flex-direction: row;
-        gap: 1px;
-    }
-    &__primary-left {
-        box-shadow: 5px 0 20px rgba(0, 0, 0, 0.4);
-        &:first-child {
-            box-shadow: 1px 0 0 rgba(255, 255, 255, 0.05);
+        align-items: center;
+        font-size: 25px;
+        font-weight: 600;
+        background: radial-gradient(rgba(0, 0, 0, 0), rgba(255, 255, 255, 0.05));
+        color: rgba(255, 255, 255, 0.8);
+        box-shadow: 1px 0 0 rgba(255, 255, 255, 0.05), -1px 0 0 rgba(255, 255, 255, 0.05);
+        border: none;
+        flex-grow: 0;
+        height: 100%;
+        &.icon {
+            padding: 10px 15px;
         }
-        &:last-child {
-            box-shadow: -1px 0 0 rgba(255, 255, 255, 0.05), 1px 0 0 rgba(255, 255, 255, 0.15);
+        &:hover,
+        &.active {
+            background: radial-gradient(rgba(0, 0, 0, 0), rgba(255, 255, 255, 0.15));
+            color: #fff;
+            text-shadow: 0 0 7px #fff;
+            box-shadow: 1px 0 0 rgba(255, 255, 255, 0.2), -1px 0 0 rgba(255, 255, 255, 0.2), 0 1px 0 rgba(255, 255, 255, 0.2), 7px -3px 10px rgba(0, 0, 0, 0.5), -7px -3px 10px rgba(0, 0, 0, 0.5) !important;
         }
-    }
-    &__primary-right {
-        box-shadow: -5px 0 20px rgba(0, 0, 0, 0.4);
-        &:first-child {
-            box-shadow: 1px 0 0 rgba(255, 255, 255, 0.05), -1px 0 0 rgba(255, 255, 255, 0.15);
+        &.active {
+            z-index: 1;
         }
-        &:last-child {
-            box-shadow: -1px 0 0 rgba(255, 255, 255, 0.05);
-        }
-    }
-    &__secondary {
-        flex-direction: row;
-        background: linear-gradient(rgba(0, 0, 0, 0.05), rgba(0, 0, 0, 0.3));
-        width: 100%;
-        box-shadow: inset 2px 2px 10px rgba(0, 0, 0, 0.5);
-        border-top: 1px solid rgba(255, 255, 255, 0.15);
-        display: flex;
-        height: 36px;
-        .btn {
-            background: none;
-            border: none;
-            color: rgba(255, 255, 255, 0.5);
-            flex-grow: 0;
-            padding: 0 25px;
-            &:hover,
-            &.active {
-                color: #fff;
-                background: rgba(255, 255, 255, 0.05);
-                box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.5), 0 1px 0 rgba(255, 255, 255, 0.2);
-            }
-            .content {
-                flex-direction: row;
-                gap: 7px;
-            }
-        }
-        &-right {
-            .btn {
-                padding: 0 10px;
-            }
-        }
-    }
-    .close {
         &:hover {
-            background: rgba(255, 0, 0, 0.2);
-            box-shadow: 1px 0 0 rgba(255, 47, 47, 0.418), -1px 0 0 rgba(255, 47, 47, 0.418), 0 1px 0 rgba(255, 47, 47, 0.418), 7px -3px 10px rgba(0, 0, 0, 0.5), -7px -3px 10px rgba(0, 0, 0, 0.5) !important;
+            z-index: 2;
         }
     }
-    .server-status-dot {
-        font-size: 12px;
-        color: rgb(121, 226, 0);
+}
+.primary-left,
+.primary-right {
+    display: flex;
+    flex-direction: row;
+    gap: 1px;
+}
+.primary-left {
+    box-shadow: 5px 0 20px rgba(0, 0, 0, 0.4);
+    &:first-child {
+        box-shadow: 1px 0 0 rgba(255, 255, 255, 0.05);
     }
+    &:last-child {
+        box-shadow: -1px 0 0 rgba(255, 255, 255, 0.05), 1px 0 0 rgba(255, 255, 255, 0.15);
+    }
+}
+.primary-right {
+    box-shadow: -5px 0 20px rgba(0, 0, 0, 0.4);
+    &:first-child {
+        box-shadow: 1px 0 0 rgba(255, 255, 255, 0.05), -1px 0 0 rgba(255, 255, 255, 0.15);
+    }
+    &:last-child {
+        box-shadow: -1px 0 0 rgba(255, 255, 255, 0.05);
+    }
+}
+.secondary {
+    flex-direction: row;
+    background: linear-gradient(rgba(0, 0, 0, 0.05), rgba(0, 0, 0, 0.3));
+    width: 100%;
+    box-shadow: inset 2px 2px 10px rgba(0, 0, 0, 0.5);
+    border-top: 1px solid rgba(255, 255, 255, 0.15);
+    display: flex;
+    height: 36px;
+    button {
+        background: none;
+        border: none;
+        color: rgba(255, 255, 255, 0.5);
+        flex-grow: 0;
+        padding: 0 25px;
+        gap: 5px;
+        &:hover,
+        &.active {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.05);
+            box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.5), 0 1px 0 rgba(255, 255, 255, 0.2);
+        }
+    }
+    &-right {
+        button {
+            padding: 0 10px;
+        }
+    }
+}
+.close {
+    &:hover {
+        background: rgba(255, 0, 0, 0.2);
+        box-shadow: 1px 0 0 rgba(255, 47, 47, 0.418), -1px 0 0 rgba(255, 47, 47, 0.418), 0 1px 0 rgba(255, 47, 47, 0.418), 7px -3px 10px rgba(0, 0, 0, 0.5), -7px -3px 10px rgba(0, 0, 0, 0.5) !important;
+    }
+}
+.server-status-dot {
+    font-size: 12px;
+    color: rgb(121, 226, 0);
+}
+.user {
+    text-transform: unset;
 }
 </style>

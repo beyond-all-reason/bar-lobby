@@ -5,6 +5,7 @@ import "primevue/resources/primevue.min.css";
 
 //import "primevue/resources/themes/saga-blue/theme.css";
 import PrimeVue from "primevue/config";
+import Tooltip from "primevue/tooltip";
 import type { TransitionProps } from "vue";
 import { createApp } from "vue";
 
@@ -72,6 +73,8 @@ async function setupVue() {
     app.use(PrimeVue);
 
     app.directive("click-away", clickAwayDirective);
+    app.directive("tooltip", Tooltip);
+
     app.mount("#app");
 
     if (process.env.NODE_ENV !== "production") {

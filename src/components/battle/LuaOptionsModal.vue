@@ -1,7 +1,7 @@
 <template>
     <Modal ref="modal" :title="title" width="700px" height="400px" padding="0" @open="open">
         <Panel scrollContent>
-            <Tab v-for="section of sections.filter((section) => !section.hidden)" :key="section.key" :title="section.name" :tooltip="section.description">
+            <Tab v-for="section of sections.filter((section) => !section.hidden)" :key="section.key" v-tooltip="section.description" :title="section.name">
                 <div class="gap-md">
                     <div class="gridform">
                         <template v-for="option in section.options.filter((option) => !option.hidden)" :key="option.key">
@@ -35,9 +35,9 @@
             </Tab>
         </Panel>
         <div class="actions">
-            <Button class="btn--red" @click="close"> Cancel </Button>
+            <Button class="red" @click="close"> Cancel </Button>
             <Button @click="reset"> Reset all to default </Button>
-            <Button class="btn--green" @click="save"> Save </Button>
+            <Button class="green" @click="save"> Save </Button>
         </div>
     </Modal>
 </template>
