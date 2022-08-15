@@ -103,6 +103,8 @@ const battleTitle = ref(props.battle.battleOptions.title);
 
 const me = api.session.currentUser;
 
+props.battle.open();
+
 const installedMaps = computed(() => Array.from(api.content.maps.installedMaps.values()));
 const currentMapData = computed(() => installedMaps.value.find((map) => map?.scriptName === props.battle.battleOptions.map));
 const currentMapName = ref(currentMapData?.value?.friendlyName ?? props.battle.battleOptions.map);

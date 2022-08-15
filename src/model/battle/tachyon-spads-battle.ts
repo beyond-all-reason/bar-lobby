@@ -126,11 +126,10 @@ export class TachyonSpadsBattle extends AbstractBattle {
                 for (const userId of newUserIds) {
                     if (!this.battleUsers.value.find((user) => user.userId === userId)) {
                         const user = api.session.getUserById(userId);
+                        this.userIds.add(userId);
                         if (!user) {
                             console.error("Battle update received for unknown user", userId);
-                            continue;
                         }
-                        this.userIds.add(userId);
                     }
                 }
             }
@@ -188,6 +187,16 @@ export class TachyonSpadsBattle extends AbstractBattle {
                 responseHandler(data);
             }
         });
+    }
+
+    public async open() {
+        this.updateSync();
+    }
+
+    public async leave() {
+        api.comms.request("c.lobby.leave", {});
+        api.session.onlineBattle.value = null;
+        api.router.replace("/multiplayer/custom");
     }
 
     public changeEngine(engineVersion: string) {
@@ -264,9 +273,38 @@ export class TachyonSpadsBattle extends AbstractBattle {
         // TODO
     }
 
-    public async leave() {
-        api.comms.request("c.lobby.leave", {});
-        api.session.onlineBattle.value = null;
-        api.router.replace("/multiplayer/custom");
+    protected updateSync() {
+        const sync = { engine: 0, game: 0, map: 0 };
+
+        if (api.content.engine.isEngineVersionInstalled(this.battleOptions.engineVersion)) {
+            sync.engine = 1;
+        } else {
+            const dl = api.content.engine.currentDownloads.find((dl) => dl.name === this.battleOptions.engineVersion);
+            if (dl) {
+                sync.engine = dl.currentBytes / dl.totalBytes;
+            }
+        }
+
+        if (api.content.game.installedVersions.some((gameVersion) => gameVersion.version === this.battleOptions.gameVersion)) {
+            sync.game = 1;
+        } else {
+            const dl = api.content.game.currentDownloads.find((dl) => dl.name === this.battleOptions.gameVersion);
+            if (dl) {
+                sync.game = dl.currentBytes / dl.totalBytes;
+            }
+        }
+
+        if (api.content.maps.isMapInstalled(this.battleOptions.map)) {
+            sync.map = 1;
+        } else {
+            const dl = api.content.maps.currentDownloads.find((dl) => dl.name === this.battleOptions.map);
+            if (dl) {
+                sync.map = dl.currentBytes / dl.totalBytes;
+            }
+        }
+
+        api.comms.request("c.lobby.update_status", {
+            client: { sync },
+        });
     }
 }

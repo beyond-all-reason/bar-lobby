@@ -2,7 +2,7 @@
     <Modal title="Host Battle" width="400px" @open="onOpen" @close="onClose">
         <div class="flex-col gap-md">
             <template v-if="waitingForBattleCreation">
-                <div class="txt-center">Setting up a dedicated battle host, this usually takes around 15 seconds</div>
+                <div class="txt-center">Setting up a dedicated battle host, this usually takes around 30 seconds</div>
                 <Loader :absolutePosition="false"></Loader>
             </template>
             <template v-else>

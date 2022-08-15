@@ -84,7 +84,7 @@ export class MapContentAPI extends AbstractContentAPI {
     // currently reliant on springfiles for scriptname lookup
     public async downloadMapByScriptName(scriptName: string, host = contentSources.maps.http[0]!) {
         if (this.getMapByScriptName(scriptName)) {
-            console.log(`Map ${scriptName} is already installed`);
+            console.debug(`Map ${scriptName} is already installed`);
             return;
         }
 
@@ -152,6 +152,7 @@ export class MapContentAPI extends AbstractContentAPI {
             console.log(`Map downloaded successfully: ${filename}`);
 
             removeFromArray(this.currentDownloads, downloadInfo);
+            this.onDownloadComplete.dispatch(downloadInfo);
 
             this.mapCache.cacheItem(dest);
         } catch (err) {
@@ -185,6 +186,15 @@ export class MapContentAPI extends AbstractContentAPI {
         this.installedMaps.delete(scriptName);
 
         console.log(`Map ${scriptName} uninstalled`);
+    }
+
+    public isMapInstalled(map: string) {
+        for (const installedMap of this.installedMaps.values()) {
+            if (installedMap.scriptName === map) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public scriptNameToFriendlyName(mapScriptName: string) {

@@ -56,6 +56,8 @@ export abstract class AbstractBattle {
         });
     }
 
+    public abstract open(): void;
+    public abstract leave(): void;
     public abstract changeMap(map: string): void;
     public abstract changeGame(gameVersion: string): void;
     public abstract changeEngine(engineVersion: string): void;
@@ -68,5 +70,4 @@ export abstract class AbstractBattle {
     public abstract playerToSpectator(player: User): void;
     public abstract spectatorToPlayer(spectator: User, teamId: number): void;
     public abstract changeContenderTeam(contender: User | Bot, teamId: number): void;
-    public abstract leave(): void;
 }

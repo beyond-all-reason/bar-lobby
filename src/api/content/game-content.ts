@@ -43,27 +43,27 @@ export class GameContentAPI extends AbstractContentAPI {
             const prDownloaderProcess = spawn(`${this.prBinaryPath}`, ["--filesystem-writepath", this.dataDir, "--download-game", `${contentSources.rapid.game}:${contentSources.rapid.tag}`]);
 
             let downloadType: DownloadType = DownloadType.Metadata;
-            let download: DownloadInfo | undefined;
+            let downloadInfo: DownloadInfo | undefined;
 
             prDownloaderProcess.stdout.on("data", (stdout: Buffer) => {
                 const lines = stdout.toString().trim().split("\r\n").filter(Boolean);
                 console.debug(lines.join("\n"));
                 const messages = lines.map((line) => this.processPrDownloaderLine(line)).filter(Boolean) as Message[];
                 for (const message of messages) {
-                    if (this.isPrDownloaderProgressMessage(message) && downloadType === DownloadType.Game && download) {
+                    if (this.isPrDownloaderProgressMessage(message) && downloadType === DownloadType.Game && downloadInfo) {
                         message.downloadType = downloadType;
-                        download.currentBytes = message.currentBytes;
-                        download.totalBytes = message.totalBytes;
+                        downloadInfo.currentBytes = message.currentBytes;
+                        downloadInfo.totalBytes = message.totalBytes;
                     } else if (message.parts?.[1]?.includes("downloadStream")) {
                         downloadType = DownloadType.Game;
                     } else if (message.parts?.[1]?.includes("download_name")) {
-                        download = reactive({
+                        downloadInfo = reactive({
                             type: "game",
                             name: message.parts.slice(2).join(" "),
                             currentBytes: 0,
                             totalBytes: 1,
                         } as const);
-                        this.currentDownloads.push(download);
+                        this.currentDownloads.push(downloadInfo);
                     }
                 }
             });
@@ -73,7 +73,8 @@ export class GameContentAPI extends AbstractContentAPI {
             });
 
             prDownloaderProcess.on("close", async () => {
-                removeFromArray(this.currentDownloads, download);
+                removeFromArray(this.currentDownloads, downloadInfo);
+                this.onDownloadComplete.dispatch(downloadInfo);
                 await this.updateVersions();
                 resolve();
             });

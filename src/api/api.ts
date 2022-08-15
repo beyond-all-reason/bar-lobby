@@ -85,13 +85,13 @@ export async function apiInit() {
         }
     });
 
-    api.comms = new CommsAPI(serverConfig);
-
     api.audio = new AudioAPI().init();
 
     api.account = await new StoreAPI<Account>("account", accountSchema).init();
 
     api.game = new GameAPI(userDataDir, dataDir);
+
+    api.comms = new CommsAPI(serverConfig);
 
     api.content = await new ContentAPI(userDataDir, dataDir).init();
 

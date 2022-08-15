@@ -1,15 +1,18 @@
 import axios from "axios";
 import * as fs from "fs";
-import { lastInArray, removeFromArray } from "jaz-ts-utils";
+import { removeFromArray } from "jaz-ts-utils";
 import { Octokit } from "octokit";
 import * as path from "path";
 import { reactive } from "vue";
 
 import { AbstractContentAPI } from "@/api/content/abstract-content-api";
 import { contentSources } from "@/config/content-sources";
-import type { DownloadInfo } from "@/model/downloads";
-import { gitEngineTagToEngineVersionString, isEngineVersionString } from "@/model/formats";
+import { DownloadInfo } from "@/model/downloads";
 import { extract7z } from "@/utils/extract7z";
+
+export const engineVersionRegex = /^(?<major>\d+)\.(?<minor>\d+)\.(?<patch>\d+)-(?<revision>\d+)-g(?<sha>[0-9a-f]+) (?<branch>.*)$/i;
+
+export const gitEngineTagRegex = /^.*?\{(?<branch>.*?)\}(?<major>\d+)\.(?<minor>\d+)\.(?<patch>\d+)-(?<revision>\d+)-g(?<sha>[0-9a-f]+)$/i;
 
 export class EngineContentAPI extends AbstractContentAPI {
     public installedVersions: string[] = reactive([]);
@@ -22,7 +25,7 @@ export class EngineContentAPI extends AbstractContentAPI {
         const engineDirs = await fs.promises.readdir(engineDir);
 
         for (const dir of engineDirs) {
-            if (isEngineVersionString(dir)) {
+            if (this.isEngineVersionString(dir)) {
                 this.installedVersions.push(dir);
             }
         }
@@ -32,28 +35,45 @@ export class EngineContentAPI extends AbstractContentAPI {
         return this;
     }
 
-    public async downloadLatestEngine(includePrerelease = true): Promise<string> {
-        const latestEngineRelease = await this.getLatestEngineReleaseInfo();
+    public async downloadLatestEngine() {
+        const latestEngineReleaseTag = await this.getLatestEngineReleaseTag();
+        const engineVersion = this.gitEngineTagToEngineVersionString(latestEngineReleaseTag);
 
-        if (lastInArray(this.installedVersions) === gitEngineTagToEngineVersionString(latestEngineRelease.tag_name)) {
-            console.log(`Latest engine version already installed: ${lastInArray(this.installedVersions)}`);
-            return lastInArray(this.installedVersions)!;
+        return this.downloadEngine(engineVersion);
+    }
+
+    public async downloadEngine(engineVersion: string) {
+        if (this.installedVersions.includes(engineVersion)) {
+            console.debug(`Engine version already installed: ${engineVersion}`);
+            return;
         }
 
-        const engineVersionString = gitEngineTagToEngineVersionString(latestEngineRelease.tag_name);
+        const releaseTag = this.engineVersionToGitEngineTag(engineVersion);
+
+        const { data } = await this.ocotokit.rest.repos.getReleaseByTag({
+            owner: contentSources.engineGitHub.owner,
+            repo: contentSources.engineGitHub.repo,
+            tag: releaseTag,
+        });
+
+        if (!data) {
+            throw new Error(`Couldn't find engine release for tag: ${engineVersion}`);
+        }
 
         const archStr = process.platform === "win32" ? "windows" : "linux";
-        const asset = latestEngineRelease.assets.find((asset) => asset.name.includes(archStr) && asset.name.includes("portable"));
+        const asset = data.assets.find((asset) => asset.name.includes(archStr) && asset.name.includes("portable"));
         if (!asset) {
-            throw new Error("Couldn't fetch latest engine release");
+            throw new Error("Failed to fetch latest engine release asset");
         }
 
         const downloadInfo: DownloadInfo = reactive({
             type: "engine",
-            name: engineVersionString,
+            name: engineVersion,
             currentBytes: 0,
             totalBytes: 1,
         });
+
+        this.currentDownloads.push(downloadInfo);
 
         const downloadResponse = await axios({
             url: asset.browser_download_url,
@@ -75,45 +95,38 @@ export class EngineContentAPI extends AbstractContentAPI {
         await fs.promises.mkdir(downloadPath, { recursive: true });
         await fs.promises.writeFile(downloadFile, Buffer.from(engine7z), { encoding: "binary" });
 
-        await extract7z(downloadFile, engineVersionString);
+        await extract7z(downloadFile, engineVersion);
 
         await fs.promises.unlink(downloadFile);
 
-        this.installedVersions.push(engineVersionString);
+        this.installedVersions.push(engineVersion);
         this.sortEngineVersions();
 
         removeFromArray(this.currentDownloads, downloadInfo);
+        this.onDownloadComplete.dispatch(downloadInfo);
 
-        await api.content.ai.processAis(engineVersionString);
+        await api.content.ai.processAis(engineVersion);
 
-        return engineVersionString;
+        return engineVersion;
     }
 
-    public async downloadEngine(engineTag: string) {
-        // TODO
-    }
-
-    public async getLatestEngineReleaseInfo() {
-        // if and when the engine releases switches to not marking every release as prerelease then we should use the getLatestRelease octokit method
+    public async getLatestEngineReleaseTag() {
+        // if the engine releases switch to not marking every release as prerelease then we should use the repos.getLatestRelease octokit method instead
         const releasesResponse = await this.ocotokit.rest.repos.listReleases({
             owner: contentSources.engineGitHub.owner,
             repo: contentSources.engineGitHub.repo,
             per_page: 1,
         });
 
-        return releasesResponse.data[0];
+        return releasesResponse.data[0].tag_name;
     }
 
     public async getEngineReleaseInfo(engineTag: string) {
         try {
-            const baseTag = engineTag.slice(4);
-            const majorVersion = baseTag.split(".")[0];
-            const gitTag = `spring_bar_{BAR${majorVersion}}${baseTag}`;
-
             const release = await this.ocotokit.rest.repos.getReleaseByTag({
                 owner: contentSources.engineGitHub.owner,
                 repo: contentSources.engineGitHub.repo,
-                tag: gitTag,
+                tag: engineTag,
             });
 
             return release;
@@ -124,15 +137,14 @@ export class EngineContentAPI extends AbstractContentAPI {
     }
 
     public async isLatestEngineVersionInstalled() {
-        const latestEngineVersion = await this.getLatestEngineReleaseInfo();
-        const engineTag = gitEngineTagToEngineVersionString(latestEngineVersion.tag_name);
+        const latestEngineTag = await this.getLatestEngineReleaseTag();
+        const engineVersion = this.gitEngineTagToEngineVersionString(latestEngineTag);
 
-        return this.isEngineVersionInstalled(engineTag);
+        return this.isEngineVersionInstalled(engineVersion);
     }
 
-    // arg format should match dir name, e.g. BAR-105.1.1-809-g3f69f26
-    public async isEngineVersionInstalled(engineTag: string) {
-        return fs.existsSync(path.join(this.dataDir, "engine", engineTag));
+    public isEngineVersionInstalled(engineTag: string) {
+        return this.installedVersions.includes(engineTag);
     }
 
     protected isVersionGreater(a: string, b: string): boolean {
@@ -151,5 +163,27 @@ export class EngineContentAPI extends AbstractContentAPI {
 
     protected sortEngineVersions() {
         return Array.from(this.installedVersions).sort((a, b) => (this.isVersionGreater(a, b) ? 1 : -1));
+    }
+
+    /**
+     * BAR-105.1.1-814-g9774f22 -> spring_bar_{BAR105}105.1.1-814-g9774f22
+     * if the git tag format ever changes then this will need updating
+     * */
+    protected engineVersionToGitEngineTag(engineVersionString: string) {
+        const { major, minor, patch, revision, sha, branch } = engineVersionString.match(engineVersionRegex)!.groups!;
+        return `spring_bar_{${branch}}${major}.${minor}.${patch}-${revision}-g${sha}`;
+    }
+
+    /**
+     * spring_bar_{BAR105}105.1.1-814-g9774f22 -> BAR-105.1.1-814-g9774f22
+     * if the git tag format ever changes then this will need updating
+     * */
+    protected gitEngineTagToEngineVersionString(gitEngineTag: string) {
+        const { major, minor, patch, revision, sha, branch } = gitEngineTag.match(gitEngineTagRegex)!.groups!;
+        return `${major}.${minor}.${patch}-${revision}-g${sha} BAR${major}`;
+    }
+
+    protected isEngineVersionString(version: string): boolean {
+        return engineVersionRegex.test(version);
     }
 }

@@ -53,7 +53,7 @@
  */
 
 import { arrayToMap } from "jaz-ts-utils";
-import { computed, onMounted, onUnmounted, Ref, ref } from "vue";
+import { computed, onUnmounted, Ref, ref } from "vue";
 
 import BattlePreview from "@/components/battle/BattlePreview.vue";
 import HostBattle from "@/components/battle/HostBattle.vue";
@@ -66,7 +66,7 @@ const battles = api.session.battles;
 const layout: Ref<"tiles" | "rows"> = ref("tiles");
 const hidePvE = ref(false);
 const hideLocked = ref(false);
-const hideEmpty = ref(false);
+const hideEmpty = ref(true);
 const filteredBattles = computed(() =>
     Array.from(battles.values()).filter((battle) => {
         if (hidePvE.value && battle.bots.length > 0) {
@@ -84,11 +84,9 @@ const filteredBattles = computed(() =>
 
 let queryIntervalId: number | undefined;
 
-onMounted(async () => {
-    updateBattleList();
+await updateBattleList();
 
-    queryIntervalId = window.setInterval(() => updateBattleList(), 5000);
-});
+queryIntervalId = window.setInterval(() => updateBattleList(), 5000);
 
 onUnmounted(() => {
     window.clearInterval(queryIntervalId);

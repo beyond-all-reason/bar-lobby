@@ -3,6 +3,16 @@ import { Bot } from "@/model/battle/types";
 import { User } from "@/model/user";
 
 export class OfflineBattle extends AbstractBattle {
+    public open() {
+        //
+    }
+
+    public leave() {
+        api.session.offlineBattle.value = null;
+        api.session.currentUser.battleStatus.battleId = -1;
+        api.router.replace("/home");
+    }
+
     public changeEngine(engineVersion: string) {
         this.battleOptions.engineVersion = engineVersion;
     }
@@ -53,12 +63,6 @@ export class OfflineBattle extends AbstractBattle {
     public setBotOptions(botName: string, options: Record<string, unknown>) {
         const bot = this.getParticipantByName(botName) as Bot;
         bot.aiOptions = options;
-    }
-
-    public leave() {
-        api.session.offlineBattle.value = null;
-        api.session.currentUser.battleStatus.battleId = -1;
-        api.router.replace("/home");
     }
 
     protected fixIds() {
