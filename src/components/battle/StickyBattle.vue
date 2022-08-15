@@ -5,13 +5,29 @@
         </div>
         <div class="flex-col flex-center-content">
             <div class="label">{{ battle?.battleOptions.title }}</div>
-            <div class="content">TODO</div>
+            <div class="flex-row gap-md">
+                <div class="flex-row flex-center gap-xs">
+                    <Icon :icon="accountIcon" height="18" />
+                    <div>{{ playerCount }}</div>
+                </div>
+                <div class="flex-row flex-center gap-sm">
+                    <Icon :icon="robotIcon" height="18" />
+                    <div>{{ botCount }}</div>
+                </div>
+                <div class="flex-row flex-center gap-xs">
+                    <Icon :icon="eyeIcon" height="18" />
+                    <div>{{ specCount }}</div>
+                </div>
+            </div>
         </div>
     </div>
 </template>
 
 <script lang="ts" setup>
 import { Icon } from "@iconify/vue";
+import accountIcon from "@iconify-icons/mdi/account";
+import eyeIcon from "@iconify-icons/mdi/eye";
+import robotIcon from "@iconify-icons/mdi/robot";
 import swordCross from "@iconify-icons/mdi/sword-cross";
 import { computed } from "vue";
 import { useRoute } from "vue-router";
@@ -48,7 +64,7 @@ const openBattle = () => {
     transition: all 0.1s ease-in-out;
     will-change: left;
     &.hidden {
-        left: -400px;
+        left: -400px !important;
     }
     &:before {
         @extend .fullsize;
