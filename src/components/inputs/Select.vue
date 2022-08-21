@@ -21,7 +21,6 @@ import Control from "@/components/inputs/Control.vue";
     align-self: center;
 }
 .p-dropdown {
-    min-height: 35px;
     display: inline-flex;
     flex-direction: row;
     align-items: center;

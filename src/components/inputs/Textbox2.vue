@@ -12,6 +12,7 @@ import Control from "@/components/inputs/Control.vue";
 
 <style lang="scss" scoped>
 .textbox {
+    width: 100%;
     align-items: unset;
 }
 .p-inputtext {

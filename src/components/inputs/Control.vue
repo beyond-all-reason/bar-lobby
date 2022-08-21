@@ -1,6 +1,6 @@
 <template>
-    <div ref="control" class="control" @mouseenter="onMouseEnter" @click="focus">
-        <div v-if="label" class="label">{{ label }}</div>
+    <div ref="control" class="control" :class="{ disabled }" @mouseenter="onMouseEnter">
+        <div v-if="label" class="label" @click="focus">{{ label }}</div>
         <slot />
     </div>
 </template>
@@ -20,7 +20,6 @@ const focus = () => {
         const slotEl = control.value.lastElementChild as HTMLElement | null;
         if (slotEl) {
             slotEl.click();
-            slotEl.focus();
         }
     }
 };
@@ -44,6 +43,10 @@ const onMouseEnter = () => {
         padding: 5px 10px;
         border-radius: 0px;
         border-right: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    &.disabled {
+        opacity: 0.5;
+        pointer-events: none;
     }
 }
 </style>
