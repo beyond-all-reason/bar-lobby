@@ -52,7 +52,6 @@
  * Uses TS but hidden, same as casual matchmaking
  */
 
-import { arrayToMap } from "jaz-ts-utils";
 import { computed, onUnmounted, Ref, ref } from "vue";
 
 import BattlePreview from "@/components/battle/BattlePreview.vue";
@@ -121,39 +120,7 @@ async function updateBattleList() {
 }
 
 async function updateUsers(userIds: number[]) {
-    const { clients, users } = await api.comms.request("c.user.list_users_from_ids", { id_list: userIds, include_clients: true });
-
-    const clientMap = arrayToMap(clients, "userid");
-
-    for (const user of users) {
-        const battleStatus = clientMap.get(user.id);
-
-        if (!battleStatus) {
-            console.warn(`Battle status could not be found for user with id ${user.id}`);
-            continue;
-        }
-
-        api.session.setUser({
-            userId: user.id,
-            legacyId: parseInt(user.springid.toString()) || null,
-            username: user.name,
-            clanId: user.clan_id,
-            isBot: user.bot,
-            icons: {},
-            countryCode: user.country,
-            battleStatus: {
-                away: battleStatus.away,
-                inBattle: battleStatus.in_game,
-                battleId: battleStatus.lobby_id,
-                ready: battleStatus.ready,
-                isSpectator: !battleStatus.player,
-                color: battleStatus.team_colour,
-                teamId: battleStatus.team_number,
-                playerId: battleStatus.team_number,
-                sync: battleStatus.sync,
-            },
-        });
-    }
+    await api.comms.request("c.user.list_users_from_ids", { id_list: userIds, include_clients: true });
 }
 </script>
 

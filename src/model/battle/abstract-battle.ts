@@ -22,6 +22,7 @@ export abstract class AbstractBattle {
     public readonly players: ComputedRef<Array<User>>;
     public readonly spectators: ComputedRef<Array<User>>;
     public readonly teams: ComputedRef<Map<number, Array<User | Bot>>>;
+    public readonly founder: ComputedRef<User>;
 
     constructor(config: BattleConfig) {
         this.battleOptions = reactive(config.battleOptions);
@@ -34,6 +35,7 @@ export abstract class AbstractBattle {
         this.spectators = computed(() => this.battleUsers.value.filter((user) => user.battleStatus.isSpectator));
         this.battleUsers = computed(() => Array.from(this.userIds.values()).map((userId) => api.session.getUserById(userId)!));
         this.teams = computed(() => groupBy(this.contenders.value, (player) => ("userId" in player ? player.battleStatus.teamId : player.teamId)));
+        this.founder = computed(() => api.session.getUserById(this.battleOptions.founderId)!);
     }
 
     public getTeamParticipants(teamId: number): Array<User | Bot> {

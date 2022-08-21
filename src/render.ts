@@ -11,7 +11,6 @@ import { createI18n } from "vue-i18n";
 
 import { apiInit } from "@/api/api";
 import App from "@/App.vue";
-import en from "@/assets/language/en.json";
 import { clickAwayDirective } from "@/utils/click-away-directive";
 
 declare module "vue-router" {
@@ -66,10 +65,20 @@ declare module "vue-router" {
     });
 })();
 
+const myLocale = Intl.DateTimeFormat().resolvedOptions().locale.split("-")[0];
+
+const localeFiles = require.context("@/assets/language", true, /\.json$/).keys();
+const messages: any = {};
+for (const key of localeFiles) {
+    const fileLocale = key.split("/")[1].split(".")[0];
+    messages[fileLocale] = require(`@/assets/language/${fileLocale}.json`);
+}
+
 const i18n = createI18n({
-    locale: "en",
+    locale: myLocale,
     fallbackLocale: "en",
-    messages: en,
+    messages,
+    legacy: false,
 });
 
 async function setupVue() {

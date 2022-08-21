@@ -1,5 +1,5 @@
 import { Static } from "@sinclair/typebox";
-import { assign } from "jaz-ts-utils";
+import { arrayToMap, assign } from "jaz-ts-utils";
 import { battleSchema, ResponseType, TachyonClient } from "tachyon-client";
 
 import { TachyonSpadsBattle } from "@/model/battle/tachyon-spads-battle";
@@ -210,6 +210,40 @@ export class CommsAPI extends TachyonClient {
                 if (botIndex !== -1) {
                     battle.bots.splice(botIndex, 1);
                 }
+            }
+        });
+
+        this.onResponse("s.user.user_and_client_list").add(({ clients, users }) => {
+            const clientMap = arrayToMap(clients, "userid");
+
+            for (const user of users) {
+                const battleStatus = clientMap.get(user.id);
+
+                if (!battleStatus) {
+                    console.warn(`Battle status could not be found for user with id ${user.id}`);
+                    continue;
+                }
+
+                api.session.setUser({
+                    userId: user.id,
+                    legacyId: parseInt(user.springid.toString()) || null,
+                    username: user.name,
+                    clanId: user.clan_id,
+                    isBot: user.bot,
+                    icons: {},
+                    countryCode: user.country,
+                    battleStatus: {
+                        away: battleStatus.away,
+                        inBattle: battleStatus.in_game,
+                        battleId: battleStatus.lobby_id,
+                        ready: battleStatus.ready,
+                        isSpectator: !battleStatus.player,
+                        color: battleStatus.team_colour,
+                        teamId: battleStatus.team_number,
+                        playerId: battleStatus.team_number,
+                        sync: battleStatus.sync,
+                    },
+                });
             }
         });
     }

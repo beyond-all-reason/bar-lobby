@@ -1,6 +1,6 @@
 <template>
-    <div ref="control" class="control" @mouseenter="onMouseEnter">
-        <div v-if="label" class="label" @click="focus">{{ label }}</div>
+    <div ref="control" class="control" @mouseenter="onMouseEnter" @click="focus">
+        <div v-if="label" class="label">{{ label }}</div>
         <slot />
     </div>
 </template>
@@ -17,8 +17,11 @@ const control: Ref<HTMLElement | null> = ref(null);
 
 const focus = () => {
     if (control.value) {
-        const slotEl = control.value.querySelector(".label + *") as HTMLElement;
-        slotEl.click();
+        const slotEl = control.value.lastElementChild as HTMLElement | null;
+        if (slotEl) {
+            slotEl.click();
+            slotEl.focus();
+        }
     }
 };
 

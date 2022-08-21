@@ -2,7 +2,14 @@
     <div class="battle flex-row flex-grow gap-lg">
         <div class="flex-col flex-grow gap-md">
             <div class="flex-col flex-grow">
-                <h1>{{ battleTitle }}</h1>
+                <h1 class="title">{{ battleTitle }}</h1>
+                <div class="subtitle flex-row gap-sm">
+                    Hosted by
+                    <div class="founder flex-row gap-sm">
+                        {{ battle.founder.value.username }}
+                        <Flag :countryCode="battle.founder.value.countryCode" style="width: 16px" />
+                    </div>
+                </div>
                 <Playerlist :battle="battle" />
             </div>
             <div v-if="!isOfflineBattle">
@@ -94,6 +101,7 @@ import Playerlist from "@/components/battle/Playerlist.vue";
 import Button from "@/components/inputs/Button.vue";
 import Select from "@/components/inputs/Select.vue";
 import ToggleButton from "@/components/inputs/ToggleButton.vue";
+import Flag from "@/components/misc/Flag.vue";
 import { AbstractBattle } from "@/model/battle/abstract-battle";
 import { OfflineBattle } from "@/model/battle/offline-battle";
 import { LuaOptionSection } from "@/model/lua-options";
@@ -117,11 +125,14 @@ watch(
     () => props.battle.battleOptions.map,
     (mapScriptName) => {
         currentMapName.value = currentMapData?.value?.friendlyName ?? mapScriptName;
+        api.content.maps.downloadMapByScriptName(props.battle.battleOptions.map);
     }
 );
 const onMapSelected = (mapScriptName: string) => {
     props.battle.changeMap(mapScriptName);
 };
+// TODO: need a way to store script name
+api.content.maps.downloadMapByScriptName(props.battle.battleOptions.map);
 
 const installedGames = computed(() => api.content.game.installedVersions.map((rapidVersion) => rapidVersion.version).slice(-10));
 const currentGameName = ref(props.battle.battleOptions.gameVersion);
@@ -181,5 +192,16 @@ const toggleReady = () => {
 .right-col {
     min-width: 500px;
     max-width: 500px;
+}
+.title {
+    line-height: 0.8;
+}
+.subtitle {
+    margin-bottom: 10px;
+    font-size: 16px;
+    margin-left: 2px;
+    opacity: 0.8;
+}
+.founder {
 }
 </style>
