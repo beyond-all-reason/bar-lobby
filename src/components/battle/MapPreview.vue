@@ -3,7 +3,7 @@
         <canvas ref="canvas" class="map-preview__canvas" />
         <div class="map-preview__actions">
             <div class="map-preview__start-pos-type">
-                <Options v-model="startPosType" label="Start Pos" required>
+                <Options :value="battle.battleOptions.startPosType" label="Start Pos" required @update:model-value="onStartPosChange">
                     <Option v-for="option in startPosOptions" :key="option.value" :value="option.value">
                         {{ option.label }}
                     </Option>
@@ -44,12 +44,12 @@ const props = defineProps<{
     battle: AbstractBattle;
 }>();
 
-const startPosType = ref(props.battle.battleOptions.startPosType);
-
 const canvas: Ref<HTMLCanvasElement | null> = ref(null);
 let context: CanvasRenderingContext2D;
 let textureMap: HTMLImageElement;
 let mapTransform: Transform;
+let loadingMap = false;
+let loadMapTimeout: number | undefined;
 
 const mapData = computed(() => api.content.maps.getMapByScriptName(props.battle.battleOptions.map));
 
@@ -87,9 +87,27 @@ const setBoxes = (boxes: StartBox[]) => {
     //props.battle.battleOptions.startBoxes = clone(boxes);
 };
 
+const onStartPosChange = (startPosType: StartPosType) => {
+    console.log(startPosType);
+    props.battle.changeStartPosType(startPosType);
+};
+
 async function loadMap() {
     if (!canvas.value) {
         return;
+    }
+
+    // hack to fix a strange bug where calling this function more than once causes the map to load the wrong dimensions
+    if (loadingMap) {
+        setTimeout(() => {
+            loadMap();
+        }, 100);
+        return;
+    } else {
+        loadingMap = true;
+        setTimeout(() => {
+            loadingMap = false;
+        }, 100);
     }
 
     mapTransform = { x: 0, y: 0, width: canvas.value.width, height: canvas.value.height };

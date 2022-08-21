@@ -7,6 +7,7 @@ import multiplayer_index from '@/views/multiplayer/index.vue'
 import profile_index from '@/views/profile/index.vue'
 import singleplayer_index from '@/views/singleplayer/index.vue'
 import debug_inputs from '@/views/debug/inputs.vue'
+import debug_newinputs from '@/views/debug/newinputs.vue'
 import debug_playground from '@/views/debug/playground.vue'
 import debug_test from '@/views/debug/test.vue'
 import development_game_dev from '@/views/development/game-dev.vue'
@@ -143,6 +144,11 @@ export default [
       title: 'Inputs',
       order: 1,
     },
+  },
+  {
+    name: 'debug-newinputs',
+    path: '/debug/newinputs',
+    component: debug_newinputs,
   },
   {
     name: 'debug-playground',

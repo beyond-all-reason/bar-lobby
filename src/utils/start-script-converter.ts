@@ -2,6 +2,8 @@
 import { assign } from "jaz-ts-utils";
 
 import { AbstractBattle } from "@/model/battle/abstract-battle";
+import { OfflineBattle } from "@/model/battle/offline-battle";
+import { TachyonSpadsBattle } from "@/model/battle/tachyon-spads-battle";
 import { StartPosType } from "@/model/battle/types";
 import type { StartScriptTypes } from "@/model/start-script";
 
@@ -14,8 +16,13 @@ import type { StartScriptTypes } from "@/model/start-script";
  */
 export class StartScriptConverter {
     public generateScriptStr(battle: AbstractBattle): string {
-        const script = this.battleToStartScript(battle);
-        const scriptStr = this.generateScriptString(script);
+        let scriptStr = "";
+        if (battle instanceof OfflineBattle) {
+            const script = this.offlineBattleToStartScript(battle);
+            scriptStr = this.generateScriptString(script);
+        } else if (battle instanceof TachyonSpadsBattle) {
+            scriptStr = this.generateOnlineScript(battle);
+        }
         return scriptStr;
     }
 
@@ -27,7 +34,7 @@ export class StartScriptConverter {
         return obj;
     }
 
-    protected battleToStartScript(battle: AbstractBattle): StartScriptTypes.Game {
+    protected offlineBattleToStartScript(battle: AbstractBattle): StartScriptTypes.Game {
         const allyTeams: StartScriptTypes.AllyTeam[] = [];
         const teams: StartScriptTypes.Team[] = [];
         const players: StartScriptTypes.Player[] = [];
@@ -270,5 +277,15 @@ export class StartScriptConverter {
         }
 
         return str;
+    }
+
+    protected generateOnlineScript(battle: TachyonSpadsBattle) {
+        return `[game] {
+    hostip = ${battle.battleOptions.ip};
+    hostport = ${battle.battleOptions.port};
+    ishost = 0;
+    mypasswd = ${battle.battleOptions.scriptPassword};
+    myplayername = ${api.session.currentUser.username};
+}`;
     }
 }

@@ -9,8 +9,11 @@ export type BattleOptions = {
     startBoxes: StartBox[];
     passworded: boolean;
     password: string | null;
+    scriptPassword: string | null;
     startTime: Date | null;
     founderId: number;
+    ip: string | null;
+    port: number | null;
     locked: boolean;
     maxPlayers: number;
     gameOptions: Record<string, string | number | boolean>;

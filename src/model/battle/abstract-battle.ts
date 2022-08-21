@@ -1,7 +1,7 @@
 import { groupBy } from "jaz-ts-utils";
 import { computed, ComputedRef, reactive } from "vue";
 
-import { BattleOptions, Bot } from "@/model/battle/types";
+import { BattleOptions, Bot, StartPosType } from "@/model/battle/types";
 import { User } from "@/model/user";
 
 export interface BattleConfig {
@@ -58,9 +58,11 @@ export abstract class AbstractBattle {
 
     public abstract open(): void;
     public abstract leave(): void;
+    public abstract start(): void;
     public abstract changeMap(map: string): void;
     public abstract changeGame(gameVersion: string): void;
     public abstract changeEngine(engineVersion: string): void;
+    public abstract changeStartPosType(startPosType: StartPosType): void;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     public abstract setGameOptions(options: Record<string, any>): void;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

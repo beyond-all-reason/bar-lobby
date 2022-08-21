@@ -1,8 +1,9 @@
-import { ResponseType, TachyonClient } from "tachyon-client";
+import { Static } from "@sinclair/typebox";
+import { assign } from "jaz-ts-utils";
+import { battleSchema, ResponseType, TachyonClient } from "tachyon-client";
 
 import { TachyonSpadsBattle } from "@/model/battle/tachyon-spads-battle";
 import { tachyonLog } from "@/utils/tachyon-log";
-
 export class CommsAPI extends TachyonClient {
     constructor(config: ConstructorParameters<typeof TachyonClient>[0]) {
         super({
@@ -53,33 +54,50 @@ export class CommsAPI extends TachyonClient {
             }
         });
 
-        this.onResponse("s.lobby.join_response").add((data) => {
-            if (data.result === "approve") {
-                let battle = api.session.getBattleById(data.lobby.id);
-                if (!battle) {
-                    battle = new TachyonSpadsBattle(data);
-                }
-
-                battle.handleServerResponse(data);
-
-                // TODO: remove this when server fixes adding the joining client to member_list
-                battle.userIds.add(api.session.currentUser.userId);
-
-                api.session.onlineBattle.value = battle;
-
-                api.router.push("/multiplayer/battle");
-            }
-        });
-
-        this.onResponse("s.lobby.updated").add((data) => {
-            const battle = api.session.onlineBattle.value;
-
-            if (!battle || data.lobby.id !== battle?.battleOptions.id) {
-                console.warn("Not updating battle because it's not the current battle");
-                return;
+        const joinBattle = (data: Static<typeof battleSchema>) => {
+            let battle = api.session.getBattleById(data.lobby.id);
+            if (!battle) {
+                battle = new TachyonSpadsBattle(data);
             }
 
             battle.handleServerResponse(data);
+
+            // TODO: remove this when server fixes adding the joining client to member_list
+            battle.userIds.add(api.session.currentUser.userId);
+
+            api.session.onlineBattle.value = battle;
+
+            api.router.push("/multiplayer/battle");
+        };
+
+        this.onResponse("s.lobby.join_response").add((data) => {
+            if (data.result === "approve") {
+                joinBattle(data);
+            }
+        });
+
+        this.onResponse("s.lobby.force_join").add((data) => {
+            joinBattle(data);
+        });
+
+        this.onResponse("s.lobby.updated").add((data) => {
+            const battle = api.session.getBattleById(data.lobby.id);
+            if (battle) {
+                battle.handleServerResponse(data);
+            } else {
+                console.warn(`Trying to update battle but battle not found: ${data}`);
+            }
+        });
+
+        this.onResponse("s.lobby.update_values").add((data) => {
+            const battle = api.session.getBattleById(data.lobby_id);
+            if (battle) {
+                battle.handleServerResponse({
+                    lobby: data.new_values,
+                });
+            } else {
+                console.warn(`Trying to update battle but battle not found: ${data}`);
+            }
         });
 
         this.onResponse("s.lobby.set_modoptions").add((data) => {
@@ -93,6 +111,13 @@ export class CommsAPI extends TachyonClient {
 
         this.onResponse("s.lobby.updated_client_battlestatus").add(({ client }) => {
             updateUser(client.userid, undefined, client);
+
+            const battle = api.session.onlineBattle.value;
+            if (battle && battle.battleOptions.founderId === client.userid) {
+                if (client.in_game) {
+                    api.game.launch(battle);
+                }
+            }
         });
 
         this.onResponse("s.lobby.add_user").add((data) => {
@@ -116,7 +141,7 @@ export class CommsAPI extends TachyonClient {
             if (battle) {
                 battle.handleServerResponse({
                     lobby: {
-                        start_rectangles: data,
+                        start_areas: data,
                     },
                 });
             }
@@ -128,9 +153,63 @@ export class CommsAPI extends TachyonClient {
                 // TODO
                 battle.handleServerResponse({
                     lobby: {
-                        start_rectangles: data,
+                        start_areas: data,
                     },
                 });
+            }
+        });
+
+        this.onResponse("s.lobby.closed").add((data) => {
+            const battle = api.session.onlineBattle.value;
+            if (data.lobby_id === battle?.battleOptions.id) {
+                api.session.battles.delete(battle.battleOptions.id);
+                api.session.onlineBattle.value = null;
+                if (api.router.currentRoute.value.path === "/multiplayer/battle") {
+                    api.router.push("/multiplayer");
+                }
+            }
+        });
+
+        this.onResponse("s.lobby.add_bot").add(({ bot }) => {
+            const battle = api.session.onlineBattle.value;
+            if (battle) {
+                battle.bots.push({
+                    name: bot.name,
+                    playerId: bot.player_number,
+                    teamId: bot.team_number,
+                    ownerUserId: bot.owner_id,
+                    aiOptions: {},
+                    aiShortName: bot.ai_dll,
+                    // TODO: other options
+                });
+            }
+        });
+
+        this.onResponse("s.lobby.update_bot").add(({ bot }) => {
+            const battle = api.session.onlineBattle.value;
+            if (battle) {
+                const existingBot = battle.bots.find((b) => b.name === bot.name);
+                if (existingBot) {
+                    assign(existingBot, {
+                        name: bot.name,
+                        playerId: bot.player_number,
+                        teamId: bot.team_number,
+                        ownerUserId: bot.owner_id,
+                        aiOptions: {},
+                        aiShortName: bot.ai_dll,
+                        // TODO: other options
+                    });
+                }
+            }
+        });
+
+        this.onResponse("s.lobby.remove_bot").add(({ name }) => {
+            const battle = api.session.onlineBattle.value;
+            if (battle) {
+                const botIndex = battle.bots.findIndex((b) => b.name === name);
+                if (botIndex !== -1) {
+                    battle.bots.splice(botIndex, 1);
+                }
             }
         });
     }

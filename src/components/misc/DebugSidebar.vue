@@ -5,11 +5,12 @@
                 <Icon :icon="tools" :height="20" />
             </Button>
         </div>
-        <Select2 v-model="currentRoute" label="View" :options="routes" optionLabel="path" optionValue="path" />
+        <Select v-model="currentRoute" label="View" :options="routes" :filter="true" optionLabel="path" optionValue="path" />
         <Button to="/debug/playground"> Debug Playground </Button>
         <Button @click="openSettings"> Open Settings File </Button>
         <Button @click="openLobbyDir"> Open Lobby Dir </Button>
         <Button @click="openDataDir"> Open Data Dir </Button>
+        <Button @click="generateStartScript"> Generate Start Script </Button>
         <Button @click="openStartScript"> Open Latest Start Script </Button>
     </div>
 </template>
@@ -18,12 +19,13 @@
 import { Icon } from "@iconify/vue";
 import tools from "@iconify-icons/mdi/tools";
 import { shell } from "electron";
+import * as fs from "fs";
 import * as path from "path";
 import { effectScope, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 
 import Button from "@/components/inputs/Button.vue";
-import Select2 from "@/components/inputs/Select.vue";
+import Select from "@/components/inputs/Select.vue";
 
 const scope = effectScope();
 
@@ -51,6 +53,21 @@ const openLobbyDir = () => {
 
 const openDataDir = () => {
     openPathWithLog(api.settings.model.dataDir.value);
+};
+
+const generateStartScript = async () => {
+    const battle = api.session.onlineBattle.value ?? api.session.offlineBattle.value;
+    if (!battle) {
+        console.warn("Tried to generate start script but not in a battle");
+        return;
+    }
+    const engineVersion = battle.battleOptions.engineVersion;
+    const enginePath = path.join(api.settings.model.dataDir.value, "engine", engineVersion).replaceAll("\\", "/");
+    const scriptPath = path.join(api.settings.model.dataDir.value, "barlobby_script.txt");
+
+    let scriptStr = api.game.battleToStartScript(battle);
+
+    await fs.promises.writeFile(scriptPath, scriptStr);
 };
 
 const openStartScript = async () => {

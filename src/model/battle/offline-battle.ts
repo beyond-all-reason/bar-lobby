@@ -1,5 +1,5 @@
 import { AbstractBattle } from "@/model/battle/abstract-battle";
-import { Bot } from "@/model/battle/types";
+import { Bot, StartPosType } from "@/model/battle/types";
 import { User } from "@/model/user";
 
 export class OfflineBattle extends AbstractBattle {
@@ -13,6 +13,10 @@ export class OfflineBattle extends AbstractBattle {
         api.router.replace("/home");
     }
 
+    public start() {
+        api.game.launch(this);
+    }
+
     public changeEngine(engineVersion: string) {
         this.battleOptions.engineVersion = engineVersion;
     }
@@ -23,6 +27,10 @@ export class OfflineBattle extends AbstractBattle {
 
     public changeMap(map: string) {
         this.battleOptions.map = map;
+    }
+
+    public changeStartPosType(startPosType: StartPosType) {
+        this.battleOptions.startPosType = startPosType;
     }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

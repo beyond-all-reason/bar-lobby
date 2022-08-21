@@ -63,7 +63,6 @@ $btnColors: (
     font-weight: 500;
     &.disabled {
         pointer-events: none;
-        border-left-color: transparent;
         filter: brightness(50%) saturate(0%);
     }
 }

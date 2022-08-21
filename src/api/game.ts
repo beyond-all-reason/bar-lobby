@@ -22,7 +22,7 @@ export class GameAPI {
 
         let scriptStr = "";
         if (typeof battleOrStartScript === "object") {
-            scriptStr = this.scriptConverter.generateScriptStr(battleOrStartScript);
+            scriptStr = this.battleToStartScript(battleOrStartScript);
         } else {
             scriptStr = battleOrStartScript;
         }
@@ -37,5 +37,9 @@ export class GameAPI {
             stdio: "ignore",
             detached: true,
         });
+    }
+
+    public battleToStartScript(battle: AbstractBattle): string {
+        return this.scriptConverter.generateScriptStr(battle);
     }
 }

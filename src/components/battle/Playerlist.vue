@@ -23,7 +23,8 @@
                     @dragstart="dragStart($event, contender)"
                     @dragend="dragEnd($event, contender)"
                 >
-                    <Participant :battle="battle" :participant="contender" />
+                    <PlayerParticipant v-if="'userId' in contender" :battle="battle" :player="contender" />
+                    <BotParticipant v-else :battle="battle" :bot="contender" />
                 </div>
             </div>
         </div>
@@ -54,7 +55,7 @@
                     @dragstart="dragStart($event, spectator)"
                     @dragend="dragEnd($event, spectator)"
                 >
-                    <Participant :battle="battle" :participant="spectator" />
+                    <PlayerParticipant :battle="battle" :player="spectator" />
                 </div>
             </div>
         </div>
@@ -65,7 +66,8 @@
 import { randomFromArray } from "jaz-ts-utils";
 import { Ref, ref } from "vue";
 
-import Participant from "@/components/battle/Participant.vue";
+import BotParticipant from "@/components/battle/BotParticipant.vue";
+import PlayerParticipant from "@/components/battle/PlayerParticipant.vue";
 import Button from "@/components/inputs/Button.vue";
 import { aiNames } from "@/config/ai-names";
 import { AbstractBattle } from "@/model/battle/abstract-battle";

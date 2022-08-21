@@ -35,7 +35,10 @@ export class TachyonSpadsBattle extends AbstractBattle {
                     // TODO
                 },
                 ip: (data) => {
-                    // TODO
+                    this.battleOptions.ip = data;
+                },
+                port: (data) => {
+                    this.battleOptions.port = data;
                 },
                 locked: (data) => {
                     this.battleOptions.locked = data;
@@ -58,14 +61,14 @@ export class TachyonSpadsBattle extends AbstractBattle {
                 players: (data) => {
                     // using member_list handler instead
                 },
-                start_rectangles: (data) => {
+                start_areas: (data) => {
                     const startBoxes: StartBox[] = [];
                     entries(data).forEach(([teamId, startBox]) => {
                         startBoxes[teamId] = {
-                            xPercent: startBox[1] / 200,
-                            yPercent: startBox[2] / 200,
-                            widthPercent: startBox[3] / 200 - startBox[1] / 200,
-                            heightPercent: startBox[4] / 200 - startBox[2] / 200,
+                            xPercent: startBox.x1 / 200,
+                            yPercent: startBox.y1 / 200,
+                            widthPercent: startBox.x2 / 200 - startBox.x1 / 200,
+                            heightPercent: startBox.y2 / 200 - startBox.y1 / 200,
                         };
                     });
                     this.battleOptions.startBoxes = startBoxes;
@@ -111,6 +114,12 @@ export class TachyonSpadsBattle extends AbstractBattle {
                         assign(existingBot, bot);
                     }
                 });
+
+                this.bots.forEach((bot, i) => {
+                    if (!(bot.name in data)) {
+                        this.bots.splice(i, 1);
+                    }
+                });
             }
         },
         member_list: (data) => {
@@ -148,6 +157,9 @@ export class TachyonSpadsBattle extends AbstractBattle {
                 }
             }
         },
+        script_password: (data) => {
+            this.battleOptions.scriptPassword = data ?? null;
+        },
     };
 
     constructor(serverBattleResponse: BattleType) {
@@ -158,12 +170,15 @@ export class TachyonSpadsBattle extends AbstractBattle {
                 gameOptions: {},
                 gameVersion: "",
                 id: -1,
+                ip: null,
+                port: null,
                 isHost: false,
                 locked: false,
                 map: "",
                 mapOptions: {},
                 maxPlayers: 16,
                 password: null,
+                scriptPassword: null,
                 passworded: false,
                 restrictions: [],
                 startBoxes: [],
@@ -199,6 +214,12 @@ export class TachyonSpadsBattle extends AbstractBattle {
         api.router.replace("/multiplayer/custom");
     }
 
+    public start() {
+        api.comms.request("c.lobby.message", {
+            message: "!cv start",
+        });
+    }
+
     public changeEngine(engineVersion: string) {
         console.warn("not implemented: changeEngine");
         // TODO
@@ -212,6 +233,12 @@ export class TachyonSpadsBattle extends AbstractBattle {
     public changeMap(map: string) {
         api.comms.request("c.lobby.message", {
             message: `!map ${map}`,
+        });
+    }
+
+    public changeStartPosType(startPosType: StartPosType) {
+        api.comms.request("c.lobby.message", {
+            message: `!startPosType ${startPosType}`,
         });
     }
 
@@ -232,14 +259,23 @@ export class TachyonSpadsBattle extends AbstractBattle {
         });
     }
 
-    public addBot(participant: User | Bot) {
-        console.warn("not implemented: addParticipant");
-        // TODO
+    public addBot(participant: Bot) {
+        api.comms.request("c.lobby.add_bot", {
+            name: participant.name,
+            ai_dll: participant.aiShortName,
+            status: {
+                player_number: participant.playerId,
+                team_number: participant.teamId,
+                side: 1,
+                team_color: "#f00",
+            },
+        });
     }
 
-    public removeBot(participant: User | Bot) {
-        console.warn("not implemented: removeParticipant");
-        // TODO
+    public removeBot(participant: Bot) {
+        api.comms.request("c.lobby.remove_bot", {
+            name: participant.name,
+        });
     }
 
     public playerToSpectator(player: User) {

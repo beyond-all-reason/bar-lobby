@@ -14,7 +14,8 @@ import { provide, ref } from "vue";
 
 const props = withDefaults(
     defineProps<{
-        modelValue: unknown;
+        modelValue?: any;
+        value?: any;
         label?: string;
         required?: boolean;
         disabled?: boolean;
@@ -29,7 +30,7 @@ const props = withDefaults(
 );
 
 const emits = defineEmits<{
-    (event: "update:modelValue", value: unknown): void;
+    (event: "update:modelValue", value: any): void;
 }>();
 
 const selectedOption = ref(props.modelValue);
@@ -40,7 +41,7 @@ provide("toggleOption", (optionValue: unknown) => {
     if (Array.isArray(selectedOption.value)) {
         if (selectedOption.value.includes(optionValue)) {
             if (!props.required || (props.required && selectedOption.value.length > 1)) {
-                selectedOption.value = selectedOption.value.filter((v) => v !== optionValue);
+                selectedOption.value = selectedOption.value.filter((v: any) => v !== optionValue);
             }
         } else {
             selectedOption.value.push(optionValue);

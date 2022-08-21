@@ -43,16 +43,6 @@
             width: 100%;
         }
     }
-    &.disabled {
-        & > *:not(label) {
-            pointer-events: none;
-            border-left-color: transparent;
-            filter: brightness(50%);
-        }
-    }
-    &:not(.disabled) label:not(input[type="checkbox"] + label) {
-        border-right: none;
-    }
 }
 
 input:not(.p-component),

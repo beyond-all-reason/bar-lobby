@@ -113,5 +113,11 @@ const onDownArrow = () => {
 <style lang="scss" scoped>
 .textbox {
     align-items: center;
+    background: rgba(0, 0, 0, 0.15);
+    &:hover,
+    &:focus {
+        background: rgba(0, 0, 0, 0.25);
+    }
+    user-select: all;
 }
 </style>

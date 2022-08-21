@@ -1,12 +1,14 @@
 <template>
     <div class="battle-chat">
         <div ref="messagesEl" class="messages">
-            <div v-for="(message, i) in messages" :key="i" class="message">
-                <div v-if="message.type === 'chat'" class="author">
-                    {{ message.name }}
-                </div>
-                <div class="text">
-                    {{ message.text }}
+            <div>
+                <div v-for="(message, i) in messages" :key="i" class="message" :class="{ system: message.type === 'system' }">
+                    <div v-if="message.type === 'chat'" class="author">
+                        {{ message.name }}
+                    </div>
+                    <div class="text">
+                        {{ message.text }}
+                    </div>
                 </div>
             </div>
         </div>
@@ -15,7 +17,7 @@
 </template>
 
 <script lang="ts" setup>
-import { nextTick, onUnmounted, ref } from "vue";
+import { onUnmounted, ref } from "vue";
 
 import Textbox from "@/components/inputs/Textbox.vue";
 import { AbstractBattle } from "@/model/battle/abstract-battle";
@@ -42,16 +44,16 @@ const sendMessage = (message: string) => {
 const onMessage = api.comms.onResponse("s.lobby.say").add((data) => {
     const user = api.session.getUserById(data.sender_id);
     if (!user) {
-        console.warn("User not in session data", data.sender_id);
+        console.error("User not in session data", data.sender_id);
     }
     messages.push({
         type: "chat",
         name: user?.username ?? "Unknown",
         text: data.message,
     });
-    nextTick(() => {
-        messagesEl.value?.scrollTo(0, messagesEl.value?.scrollHeight + 50);
-    });
+    // nextTick(() => {
+    //     messagesEl.value?.scrollTo(0, messagesEl.value?.scrollHeight + 50);
+    // });
 });
 
 onUnmounted(() => {
@@ -69,14 +71,13 @@ onUnmounted(() => {
 }
 .messages {
     display: flex;
-    flex-direction: column;
+    flex-direction: column-reverse;
     background: rgba(0, 0, 0, 0.3);
     border: 1px solid rgba(255, 255, 255, 0.1);
     height: 236px;
     padding: 15px;
     overflow-y: scroll;
     scroll-behavior: smooth;
-    user-select: text;
     * {
         user-select: text;
     }
@@ -93,11 +94,11 @@ onUnmounted(() => {
         margin-right: 5px;
     }
 }
-::v-deep .textbox {
-    input,
-    input:focus {
-        background: rgba(0, 0, 0, 0.3) !important;
-        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+.text {
+    word-break: break-word;
+    .system & {
+        color: rgb(82, 215, 255);
+        font-weight: 600;
     }
 }
 </style>

@@ -9,7 +9,7 @@
                 <BattleChat :battle="battle" />
             </div>
         </div>
-        <div class="flex-col gap-md">
+        <div class="right-col flex-col gap-md">
             <MapPreview :battle="battle" />
             <div class="flex-row gap-md">
                 <Select
@@ -58,6 +58,10 @@
                 :disabled="!isOfflineBattle"
                 @update:model-value="onEngineSelected"
             />
+            <Markdown
+                source="TODO: boss, ring, forcespec, kick, ban, preset, votes, rename battle, custom boxes, 
+            show non-default mod/map options, tweakunits, stop, rejoin, balance mode"
+            />
             <div class="flex-row flex-bottom gap-md">
                 <Button class="red fullwidth" @click="leave"> Leave </Button>
                 <ToggleButton
@@ -67,7 +71,7 @@
                     onText="Unready"
                     offText="Ready Up"
                     :onClasses="['green']"
-                    :offClasses="['red']"
+                    :offClasses="['gray']"
                     :disabled="me.battleStatus.isSpectator"
                     @click="toggleReady"
                 />
@@ -81,6 +85,7 @@
 import { Icon } from "@iconify/vue";
 import cog from "@iconify-icons/mdi/cog";
 import { computed, Ref, ref, watch } from "vue";
+import Markdown from "vue3-markdown-it";
 
 import BattleChat from "@/components/battle/BattleChat.vue";
 import LuaOptionsModal from "@/components/battle/LuaOptionsModal.vue";
@@ -140,6 +145,7 @@ const openGameOptions = async () => {
 const setGameOptions = (options: Record<string, any>) => {
     props.battle.setGameOptions(options);
 };
+api.content.game.updateGame();
 
 const installedEngines = computed(() => api.content.engine.installedVersions);
 const currentEngineName = ref(props.battle.battleOptions.engineVersion);
@@ -160,7 +166,7 @@ const leave = () => {
     props.battle.leave();
 };
 const start = async () => {
-    api.game.launch(props.battle);
+    props.battle.start();
 };
 const toggleReady = () => {
     api.comms.request("c.lobby.update_status", {
@@ -172,10 +178,8 @@ const toggleReady = () => {
 </script>
 
 <style lang="scss" scoped>
-.battle {
-    &__panel {
-        background: rgba(0, 0, 0, 0.3);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-    }
+.right-col {
+    min-width: 500px;
+    max-width: 500px;
 }
 </style>

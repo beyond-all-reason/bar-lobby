@@ -93,9 +93,11 @@ onUnmounted(() => {
 });
 
 async function updateBattleList() {
-    if (document.visibilityState === "hidden") {
-        return;
-    }
+    // this prevents polling for updates if the user isn't looking at the battle list
+    // commented out for now because the host battle functionality also depends on this to know when the battle is created
+    // if (document.visibilityState === "hidden") {
+    //     return;
+    // }
 
     const { lobbies } = await api.comms.request("c.lobby.query", { query: {}, fields: ["lobby", "bots", "modoptions", "member_list"] });
 
