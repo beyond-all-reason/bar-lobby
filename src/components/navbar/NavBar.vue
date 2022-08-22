@@ -1,7 +1,7 @@
 <template>
     <div class="nav" :class="{ hidden }">
         <div class="logo">
-            <Button depress to="/home">
+            <Button to="/home">
                 <img src="@/assets/images/logo.svg" />
             </Button>
         </div>
@@ -32,13 +32,17 @@
                     </Button>
                 </div>
                 <div class="secondary-right flex-row flex-right">
-                    <Button>
-                        <div>69 Players Online</div>
-                        <div class="server-status-dot">⬤</div>
+                    <Button class="server-status">
+                        <div class="flex-row flex-center gap-sm">
+                            <div>69 Players Online</div>
+                            <div class="server-status-dot">⬤</div>
+                        </div>
                     </Button>
                     <Button class="user" to="/profile">
-                        <Icon :icon="account" :height="20" />
-                        <div>{{ currentUser.username }}</div>
+                        <div class="flex-row flex-center gap-sm">
+                            <Icon :icon="account" :height="20" />
+                            <div>{{ currentUser.username }}</div>
+                        </div>
                     </Button>
                 </div>
             </div>
@@ -87,7 +91,7 @@ const exitOpen = ref(false);
 const currentUser = api.session.currentUser;
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
 .nav {
     position: relative;
     display: flex;
@@ -110,9 +114,6 @@ const currentUser = api.session.currentUser;
         opacity: 0.2;
         background-image: url("~@/assets/images/squares.png");
     }
-}
-button {
-    text-transform: uppercase;
 }
 .logo {
     flex-direction: column;
@@ -140,19 +141,20 @@ button {
 }
 .primary,
 .logo {
-    button {
+    .button {
         padding: 10px 25px;
         display: flex;
         align-items: center;
         font-size: 25px;
         font-weight: 600;
-        background: radial-gradient(rgba(0, 0, 0, 0), rgba(255, 255, 255, 0.05));
+        background: radial-gradient(rgba(73, 49, 49, 0), rgba(255, 255, 255, 0.05));
         color: rgba(255, 255, 255, 0.8);
         box-shadow: 1px 0 0 rgba(255, 255, 255, 0.05), -1px 0 0 rgba(255, 255, 255, 0.05);
         border: none;
         flex-grow: 0;
         height: 100%;
-        font-weight: 600 !important;
+        font-weight: 600;
+        text-transform: uppercase;
         &.icon {
             padding: 10px 15px;
         }
@@ -203,7 +205,7 @@ button {
     border-top: 1px solid rgba(255, 255, 255, 0.15);
     display: flex;
     height: 36px;
-    button {
+    .button {
         background: none;
         border: none;
         color: rgba(255, 255, 255, 0.5);
@@ -218,7 +220,7 @@ button {
         }
     }
     &-right {
-        button {
+        .button {
             padding: 0 10px;
         }
     }

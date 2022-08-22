@@ -1,50 +1,53 @@
 <template>
-    <Button v-bind="$attrs" :class="{ disabled, active }" @mouseenter="sound" @click="onClick">
-        <template v-for="(_, slot) of $slots" #[slot]="scope">
-            <slot :name="slot" v-bind="scope" />
-        </template>
-    </Button>
+    <Control class="button" :class="[{ active }, color, $attrs.class]" :style="$attrs.style" :disabled="disabled" @click="onClick">
+        <PrimeVueButton v-bind="$attrs">
+            <template v-for="(_, slot) of $slots" #[slot]="scope">
+                <slot :name="slot" v-bind="scope" />
+            </template>
+        </PrimeVueButton>
+    </Control>
 </template>
 
 <script lang="ts">
-import Button from "primevue/button";
-import { defineComponent } from "vue";
-
-export default defineComponent({
+export default {
     inheritAttrs: false,
-});
+};
 </script>
 
 <script lang="ts" setup>
+import PrimeVueButton, { ButtonProps } from "primevue/button";
 import { computed } from "vue";
 import { useRoute } from "vue-router";
 
-const props = withDefaults(
-    defineProps<{
-        to?: string;
-        disabled?: boolean;
-    }>(),
-    {
-        to: undefined,
-        disabled: false,
-    }
-);
+import Control from "@/components/inputs/Control.vue";
+
+// eslint-disable-next-line
+interface Props extends ButtonProps {
+    to?: string;
+    disabled?: boolean;
+    color?: string;
+}
+
+const props = defineProps<Props>();
 
 const route = useRoute();
 const active = computed(() => props.to && route.path === props.to);
 const onClick = () => {
-    if (props.to && !active.value && !props.disabled) {
+    if (props.to && !active.value) {
         api.router.push(props.to);
-    }
-};
-const sound = () => {
-    if (!props.to || (props.to && !active.value)) {
-        api.audio.getSound("button-hover").play();
     }
 };
 </script>
 
 <style lang="scss" scoped>
+.button {
+    padding: 0 10px;
+}
+.p-button {
+    display: flex;
+    justify-content: center;
+}
+
 $btnColors: (
     "blue": rgb(14, 109, 199),
     "red": rgb(165, 30, 30),
@@ -56,16 +59,6 @@ $btnColors: (
     "white": rgb(255, 255, 255),
     "gray": rgb(128, 128, 128),
 );
-
-.p-button {
-    flex-grow: unset;
-    justify-content: center;
-    font-weight: 500;
-    &.disabled {
-        pointer-events: none;
-        filter: brightness(50%) saturate(0%);
-    }
-}
 
 @each $colorKey, $color in $btnColors {
     .#{$colorKey} {

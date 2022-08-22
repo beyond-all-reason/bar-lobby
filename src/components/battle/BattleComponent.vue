@@ -70,7 +70,7 @@
             show non-default mod/map options, tweakunits, stop, rejoin, balance mode"
             />
             <div class="flex-row flex-bottom gap-md">
-                <Button class="red fullwidth" @click="leave"> Leave </Button>
+                <Button class="fullwidth" color="red" @click="leave"> Leave </Button>
                 <ToggleButton
                     v-if="!isOfflineBattle"
                     v-model="me.battleStatus.ready"
@@ -82,7 +82,7 @@
                     :disabled="me.battleStatus.isSpectator"
                     @click="toggleReady"
                 />
-                <Button class="green fullwidth" @click="start"> Start </Button>
+                <Button class="fullwidth" color="green" @click="start"> Start </Button>
             </div>
         </div>
     </div>

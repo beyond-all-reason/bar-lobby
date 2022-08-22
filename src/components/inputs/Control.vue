@@ -32,12 +32,13 @@ const onMouseEnter = () => {
 <style lang="scss" scoped>
 .control {
     display: flex;
+    min-height: 35px;
     align-items: center;
     background-color: rgba(255, 255, 255, 0.1);
     border: 1px solid rgba(255, 255, 255, 0.1);
     &:hover {
         background-color: rgba(255, 255, 255, 0.2);
-        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-color: rgba(255, 255, 255, 0.2);
     }
     .label {
         padding: 5px 10px;

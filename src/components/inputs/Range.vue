@@ -1,27 +1,35 @@
 <template>
     <Control class="range">
-        <Slider ref="slider" v-bind="$attrs" v-model="internalValue" @update:model-value="onUpdate" />
-        <InputNumber v-if="!Array.isArray(internalValue)" v-model="internalValue" :max="max" />
+        <Slider ref="slider" v-bind="$attrs" :modelValue="modelValue" />
+        <InputNumber v-if="!Array.isArray(modelValue)" :modelValue="modelValue" :max="max" @update:modelValue="onInput" />
     </Control>
 </template>
 
 <script lang="ts" setup>
+// https://primefaces.org/primevue/slider
+
 import InputNumber from "primevue/inputnumber";
-import Slider from "primevue/slider";
-import { computed, onMounted, Ref, ref, watch } from "vue";
+import Slider, { SliderEmits, SliderProps } from "primevue/slider";
+import { computed, onMounted, Ref, ref } from "vue";
 
 import Control from "@/components/inputs/Control.vue";
 
-const props = defineProps<{
-    modelValue?: number | number[];
-    value?: number | number[];
-}>();
+// eslint-disable-next-line
+interface Props extends SliderProps {
+    modelValue?: number | number[] | undefined;
+}
 
+// eslint-disable-next-line
+interface Emits extends SliderEmits {
+    "update:modelValue": (value: number | number[]) => void;
+}
+
+const props = defineProps<Props>();
 const emits = defineEmits<{
     (event: "update:modelValue", value: number | number[]): void;
 }>();
 
-const slider: Ref<null | Slider["$props"]> = ref(null);
+const slider: Ref<null | Props> = ref(null);
 const max = ref(100);
 const maxInputWidth = computed(() => `${max.value.toString().length + 1}ch`);
 
@@ -31,42 +39,21 @@ onMounted(() => {
     }
 });
 
-const internalValue = ref(props.modelValue ?? props.value);
-if (props.modelValue !== undefined) {
-    watch(
-        () => props.modelValue,
-        (newVal) => {
-            internalValue.value = newVal;
-        }
-    );
-} else if (props.value !== undefined) {
-    watch(
-        () => props.value,
-        (newVal) => {
-            internalValue.value = newVal;
-        }
-    );
-}
-
-const onUpdate = (newVal: number | number[]) => {
-    if (props.modelValue !== undefined) {
-        internalValue.value = newVal;
-        emits("update:modelValue", newVal);
-    } else {
-        emits("update:modelValue", newVal);
+const onInput = (input: number | number[]) => {
+    if (typeof input === "number" && !Array.isArray(input)) {
+        emits("update:modelValue", input);
     }
 };
 </script>
 
 <style lang="scss" scoped>
 .range {
-    padding: 0 15px;
     width: 100%;
-    gap: 10px;
     align-self: center;
 }
 ::v-deep .p-slider {
     width: 100%;
+    margin: 0 15px;
     &:before {
         @extend .fullsize;
         background: #111;
@@ -99,14 +86,16 @@ const onUpdate = (newVal: number | number[]) => {
     text-align: center;
 }
 .p-inputwrapper {
-    margin-left: 15px;
+    position: relative;
+    height: 100%;
+    padding: 5px;
     &:before {
         position: absolute;
         height: 100%;
         width: 1px;
+        left: 0;
         content: "";
         top: 0;
-        margin-left: -10px;
         background: rgba(255, 255, 255, 0.1);
     }
 }
