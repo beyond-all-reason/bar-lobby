@@ -139,12 +139,12 @@ const currentUser = api.session.currentUser;
         flex-grow: 1;
     }
 }
+.primary {
+    min-height: 60px;
+}
 .primary,
 .logo {
     .button {
-        padding: 10px 25px;
-        display: flex;
-        align-items: center;
         font-size: 25px;
         font-weight: 600;
         background: radial-gradient(rgba(73, 49, 49, 0), rgba(255, 255, 255, 0.05));
@@ -155,8 +155,9 @@ const currentUser = api.session.currentUser;
         height: 100%;
         font-weight: 600;
         text-transform: uppercase;
+        padding: 0 15px;
         &.icon {
-            padding: 10px 15px;
+            padding: 0 5px;
         }
         &:hover,
         &.active {
@@ -210,7 +211,7 @@ const currentUser = api.session.currentUser;
         border: none;
         color: rgba(255, 255, 255, 0.5);
         flex-grow: 0;
-        padding: 0 25px;
+        padding: 0 15px;
         gap: 5px;
         &:hover,
         &.active {
@@ -221,7 +222,7 @@ const currentUser = api.session.currentUser;
     }
     &-right {
         .button {
-            padding: 0 10px;
+            padding: 0;
         }
     }
 }

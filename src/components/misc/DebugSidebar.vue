@@ -111,16 +111,13 @@ scope.run(() => {
         position: absolute;
         bottom: 0;
         left: 0;
-        :deep(button) {
+        :deep(.button) {
             transform: translateX(-100%);
             background: #111;
             border: 1px solid #222;
             border-right: none;
             border-bottom: none;
             box-shadow: -5px 2px 5px rgba(0, 0, 0, 0.5);
-            display: flex;
-            justify-content: center;
-            align-items: center;
             &:hover {
                 background: #222;
             }

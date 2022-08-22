@@ -229,7 +229,7 @@ const onDrop = (event: DragEvent, teamId?: number) => {
     flex-wrap: wrap;
     margin-top: 5px;
 }
-button.slim {
+.slim {
     padding: 1px 7px;
     min-height: unset;
     align-self: center;

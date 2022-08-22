@@ -41,11 +41,14 @@ const onClick = () => {
 
 <style lang="scss" scoped>
 .button {
-    padding: 0 10px;
+    padding: 0;
+    align-items: unset;
 }
 .p-button {
+    width: 100%;
     display: flex;
     justify-content: center;
+    padding: 0 10px;
 }
 
 $btnColors: (
