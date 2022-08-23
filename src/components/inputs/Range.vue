@@ -55,6 +55,8 @@ const onInput = (input: number | number[]) => {
     margin: 0 15px;
     &:before {
         @extend .fullsize;
+        left: 0;
+        top: 0;
         background: #111;
         border-radius: 5px;
         overflow: hidden;

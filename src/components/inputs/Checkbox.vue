@@ -1,6 +1,8 @@
 <template>
-    <Control class="checkbox" @click="onClick">
-        <Icon v-if="value" :icon="checkBold" height="22px" />
+    <Control class="checkbox">
+        <div class="check-wrapper" @click="onClick">
+            <Icon v-if="modelValue" :icon="checkBold" height="22px" />
+        </div>
     </Control>
 </template>
 
@@ -33,10 +35,23 @@ const onClick = () => {
 
 <style lang="scss" scoped>
 .checkbox {
-    max-width: 35px;
-    min-width: 35px;
     display: flex;
     align-items: center;
     justify-content: center;
+    flex-direction: row-reverse;
+    :deep(.label) {
+        border-right: none;
+        border-left: 1px solid rgba(255, 255, 255, 0.1);
+    }
+}
+.check-wrapper {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 33px;
+    max-width: 33px;
+    max-width: 33px;
+    min-width: 33px;
 }
 </style>

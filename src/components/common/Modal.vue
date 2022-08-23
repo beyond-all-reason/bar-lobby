@@ -100,6 +100,8 @@ const sound = () => api.audio.getSound("button-hover").play();
 <style lang="scss" scoped>
 .modal-container {
     @extend .fullsize;
+    left: 0;
+    top: 0;
     z-index: 5;
     justify-content: center;
     align-items: center;

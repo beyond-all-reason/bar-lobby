@@ -2,12 +2,14 @@
     <div class="battle flex-row flex-grow gap-lg">
         <div class="flex-col flex-grow gap-md">
             <div class="flex-col flex-grow">
-                <h1 class="title">{{ battleTitle }}</h1>
-                <div class="subtitle flex-row gap-sm">
-                    Hosted by
-                    <div class="founder flex-row gap-sm">
-                        {{ battle.founder.value.username }}
-                        <Flag :countryCode="battle.founder.value.countryCode" style="width: 16px" />
+                <div class="flex-col margin-bottom-lg">
+                    <h1 class="title">{{ battleTitle }}</h1>
+                    <div v-if="!isOfflineBattle" class="subtitle flex-row gap-sm">
+                        Hosted by
+                        <div class="founder flex-row gap-sm">
+                            {{ battle.founder.value.username }}
+                            <Flag :countryCode="battle.founder.value.countryCode" style="width: 16px" />
+                        </div>
                     </div>
                 </div>
                 <Playerlist :battle="battle" />
@@ -197,7 +199,6 @@ const toggleReady = () => {
     line-height: 0.8;
 }
 .subtitle {
-    margin-bottom: 10px;
     font-size: 16px;
     margin-left: 2px;
     opacity: 0.8;

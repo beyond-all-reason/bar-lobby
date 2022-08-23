@@ -31,7 +31,7 @@ interface Props extends ButtonProps {
 const props = defineProps<Props>();
 
 const route = useRoute();
-const active = computed(() => props.to && route.path === props.to);
+const active = computed(() => props.to && route.path.includes(props.to));
 const onClick = () => {
     if (props.to && !active.value) {
         api.router.push(props.to);

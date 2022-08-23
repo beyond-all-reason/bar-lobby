@@ -1,5 +1,6 @@
 import index from '@/views/index.vue'
 import login from '@/views/login.vue'
+import debug_index from '@/views/debug/index.vue'
 import development_index from '@/views/development/index.vue'
 import home_index from '@/views/home/index.vue'
 import library_index from '@/views/library/index.vue'
@@ -56,6 +57,19 @@ export default [
       empty: true,
       blurBg: true,
     },
+  },
+  {
+    name: 'debug',
+    path: '/debug',
+    component: debug_index,
+    meta: {
+      title: 'Debug',
+      order: 0,
+      transition: {
+        name: 'slide-below',
+      },
+    },
+    redirect: '/debug/controls',
   },
   {
     name: 'development',
@@ -141,7 +155,7 @@ export default [
     component: debug_controls,
     meta: {
       title: 'Controls',
-      order: 1,
+      order: 0,
     },
   },
   {
@@ -150,7 +164,7 @@ export default [
     component: debug_playground,
     meta: {
       title: 'Playground',
-      order: 0,
+      order: 1,
     },
   },
   {

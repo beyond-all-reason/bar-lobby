@@ -9,7 +9,7 @@
                     label="Start Pos"
                     optionLabel="label"
                     optionValue="value"
-                    :unselectable="true"
+                    :unselectable="false"
                     @update:model-value="onStartPosChange"
                 />
             </div>

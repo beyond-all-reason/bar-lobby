@@ -34,8 +34,8 @@
                 <div class="secondary-right flex-row flex-right">
                     <Button class="server-status">
                         <div class="flex-row flex-center gap-sm">
-                            <div>69 Players Online</div>
                             <div class="server-status-dot">⬤</div>
+                            <div>69 Players Online</div>
                         </div>
                     </Button>
                     <Button class="user" to="/profile">
@@ -109,6 +109,8 @@ const currentUser = api.session.currentUser;
     }
     &:before {
         @extend .fullsize;
+        left: 0;
+        top: 0;
         content: "";
         z-index: -1;
         opacity: 0.2;
@@ -226,11 +228,9 @@ const currentUser = api.session.currentUser;
         }
     }
 }
-.close {
-    &:hover {
-        background: rgba(255, 0, 0, 0.2);
-        box-shadow: 1px 0 0 rgba(255, 47, 47, 0.418), -1px 0 0 rgba(255, 47, 47, 0.418), 0 1px 0 rgba(255, 47, 47, 0.418), 7px -3px 10px rgba(0, 0, 0, 0.5), -7px -3px 10px rgba(0, 0, 0, 0.5) !important;
-    }
+.button.close:hover {
+    background: rgba(255, 0, 0, 0.2);
+    box-shadow: 1px 0 0 rgba(255, 47, 47, 0.418), -1px 0 0 rgba(255, 47, 47, 0.418), 0 1px 0 rgba(255, 47, 47, 0.418), 7px -3px 10px rgba(0, 0, 0, 0.5), -7px -3px 10px rgba(0, 0, 0, 0.5) !important;
 }
 .server-status-dot {
     font-size: 12px;

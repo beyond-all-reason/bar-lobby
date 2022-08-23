@@ -6,7 +6,7 @@
             </Button>
         </div>
         <Select v-model="currentRoute" label="View" :options="routes" :filter="true" optionLabel="path" optionValue="path" />
-        <Button to="/debug/playground"> Debug Playground </Button>
+        <Button to="/debug"> Debug Sandbox </Button>
         <Button @click="openSettings"> Open Settings File </Button>
         <Button @click="openLobbyDir"> Open Lobby Dir </Button>
         <Button @click="openDataDir"> Open Data Dir </Button>

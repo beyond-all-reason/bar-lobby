@@ -31,6 +31,7 @@ import Control from "@/components/inputs/Control.vue";
         overflow: unset;
         &:not(:last-child):after {
             @extend .fullsize;
+            top: 0;
             background: rgba(255, 255, 255, 0.2);
             width: 1px;
             right: -1px;

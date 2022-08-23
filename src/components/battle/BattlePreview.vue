@@ -212,6 +212,8 @@ const onPasswordPromptSubmit: (data: { password?: string }) => Promise<void> = a
         }
         .background {
             @extend .fullsize;
+            left: 0;
+            top: 0;
             image-rendering: pixelated;
             z-index: -1;
             background-position: center;
@@ -220,6 +222,8 @@ const onPasswordPromptSubmit: (data: { password?: string }) => Promise<void> = a
             filter: brightness(1);
             &:before {
                 @extend .fullsize;
+                left: 0;
+                top: 0;
                 transition: all 0.05s;
                 background: rgba(0, 0, 0, 0.3);
                 border: 1px solid rgba(255, 255, 255, 0.15);

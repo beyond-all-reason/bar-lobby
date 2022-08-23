@@ -14,7 +14,7 @@ import { ref } from "vue";
 
 const stuff = ref("blue");
 
-await delay(4000);
+await delay(40000);
 
 stuff.value = "red";
 </script>

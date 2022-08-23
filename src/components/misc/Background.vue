@@ -13,6 +13,8 @@ const props = defineProps<{
 <style lang="scss" scoped>
 .background {
     @extend .fullsize;
+    left: 0;
+    top: 0;
     background: var(--background);
     background-size: cover;
     background-position: center;

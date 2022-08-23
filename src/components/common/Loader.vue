@@ -43,6 +43,10 @@ const props = withDefaults(
         transform: translate(-50%, -50%) rotate(360deg);
     }
 }
+.fullsize {
+    left: 0;
+    top: 0;
+}
 .la-ball-clip-rotate-multiple {
     position: relative;
     box-sizing: border-box;

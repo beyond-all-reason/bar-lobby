@@ -68,6 +68,8 @@ const openBattle = () => {
     }
     &:before {
         @extend .fullsize;
+        left: 0;
+        top: 0;
         z-index: -1;
         background: linear-gradient(90deg, rgba(0, 0, 0, 0.4) 60%, rgba(0, 0, 0, 0) 100%);
         backdrop-filter: blur(8px) brightness(300%) saturate(150%);
