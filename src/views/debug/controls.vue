@@ -16,9 +16,9 @@
             <div class="value">{{ text }}</div>
         </div>
         <div class="flex-row gap-md flex-center-items">
-            <Select :modelValue="selection" :options="selections" :placeholder="selection" @update:model-value="onUpdateSelection" />
-            <Select v-model="selection" :options="selections" :placeholder="selection" :filter="true" />
-            <Select v-model="selection" :options="selections" :placeholder="selection" :disabled="true" />
+            <Select :modelValue="selection" :options="selections" optionLabel="name" optionValue="value" :placeholder="selection" @update:model-value="onUpdateSelection" />
+            <Select v-model="selection" :options="selections" optionLabel="name" optionValue="value" :placeholder="selection" :filter="true" />
+            <Select v-model="selection" :options="selections" optionLabel="name" optionValue="value" :placeholder="selection" :disabled="true" />
             <div class="value">{{ selection }}</div>
         </div>
         <div class="flex-row gap-md flex-center-items">
@@ -34,17 +34,17 @@
             <div class="value">{{ checked }}</div>
         </div>
         <div class="flex-row gap-md flex-center-items">
-            <Options :modelValue="selection" :options="selections" @update:model-value="onUpdateSelection" />
-            <Options v-model="selection" :options="selections" />
-            <Options v-model="selection" :options="selections" unselectable="off" />
-            <Options v-model="selection" :options="selections" :disabled="true" />
+            <Options :modelValue="option" :options="options" @update:model-value="onUpdateOption" />
+            <Options v-model="option" :options="options" />
+            <Options v-model="option" :options="options" :unselectable="false" />
+            <Options v-model="option" :options="options" :disabled="true" />
         </div>
         <div class="flex-row">
             <Textbox v-model="text" />
-            <Select v-model="selection" :options="selections" :placeholder="selection" :filter="true" />
+            <Select v-model="selection" :options="selections" optionLabel="name" optionValue="value" :placeholder="selection" :filter="true" />
             <Range v-model="range" />
             <Checkbox v-model="checked" />
-            <Options v-model="selection" :options="selections" />
+            <Options v-model="option" :options="options" />
         </div>
     </div>
 </template>
@@ -64,8 +64,12 @@ const onUpdateText = (newText: string) => {
     text.value = newText;
 };
 
-const selection = ref("select");
-const selections = ref(["select", "green", "blue"]);
+const selection = ref("blue");
+const selections = ref([
+    { name: "Red", value: "red" },
+    { name: "Blue", value: "blue" },
+    { name: "Green", value: "green" },
+]);
 const onUpdateSelection = (newSelection: string) => {
     selection.value = newSelection;
 };
@@ -78,6 +82,12 @@ const onUpdateRange = (newRange: number | number[]) => {
 const checked = ref(false);
 const onUpdateChecked = () => {
     checked.value = !checked.value;
+};
+
+const option: Ref<string | null> = ref(null);
+const options = ref(["Purple", "Orange", "Black"]);
+const onUpdateOption = (newValue: string | null) => {
+    option.value = newValue;
 };
 </script>
 

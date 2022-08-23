@@ -1,7 +1,7 @@
 <template>
     <Control class="range">
         <Slider ref="slider" v-bind="$attrs" :modelValue="modelValue" @update:model-value="onSlide" />
-        <InputNumber v-if="!Array.isArray(modelValue)" :modelValue="modelValue" :step="props.step" :min="props.min" :max="props.max" @update:model-value="onInput" />
+        <InputNumber v-if="typeof modelValue === 'number'" :modelValue="modelValue" :step="props.step" :min="props.min" :max="props.max" @update:model-value="onInput" />
     </Control>
 </template>
 
@@ -15,7 +15,9 @@ import { computed, onMounted, Ref, ref } from "vue";
 import Control from "@/components/inputs/Control.vue";
 
 // eslint-disable-next-line
-interface Props extends SliderProps {}
+interface Props extends SliderProps {
+    modelValue: number | number[] | undefined;
+}
 
 const props = defineProps<Props>();
 const emits = defineEmits<{
