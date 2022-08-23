@@ -18,10 +18,10 @@
                 <Checkbox v-model="hideEmpty" label="Hide Empty" />
 
                 <!-- <Options v-model="layout" class="flex-right" required>
-                    <Option :value="'tiles'">
+                    <Option :modelValue="'tiles'">
                         <Icon :icon="viewGrid" height="26" />
                     </Option>
-                    <Option :value="'rows'">
+                    <Option :modelValue="'rows'">
                         <Icon :icon="viewList" height="30" />
                     </Option>
                 </Options> -->

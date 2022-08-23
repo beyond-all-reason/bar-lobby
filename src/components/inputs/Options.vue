@@ -1,95 +1,51 @@
 <template>
-    <div class="control options" :class="{ disabled, fullWidth }">
-        <div v-if="label" class="options__label">
-            {{ label }}
-        </div>
-        <div class="options__list">
-            <slot />
-        </div>
-    </div>
+    <Control class="options">
+        <SelectButton v-bind="$attrs" />
+    </Control>
 </template>
 
 <script lang="ts" setup>
-import { provide, ref } from "vue";
+//https://primefaces.org/primevue/selectbutton
 
-const props = withDefaults(
-    defineProps<{
-        modelValue?: any;
-        value?: any;
-        label?: string;
-        required?: boolean;
-        disabled?: boolean;
-        fullWidth?: boolean;
-    }>(),
-    {
-        label: undefined,
-        required: false,
-        disabled: false,
-        fullWidth: false,
-    }
-);
+import SelectButton from "primevue/selectbutton";
 
-const emits = defineEmits<{
-    (event: "update:modelValue", value: any): void;
-}>();
-
-const selectedOption = ref(props.modelValue);
-
-provide("selectedOption", selectedOption);
-
-provide("toggleOption", (optionValue: unknown) => {
-    if (Array.isArray(selectedOption.value)) {
-        if (selectedOption.value.includes(optionValue)) {
-            if (!props.required || (props.required && selectedOption.value.length > 1)) {
-                selectedOption.value = selectedOption.value.filter((v: any) => v !== optionValue);
-            }
-        } else {
-            selectedOption.value.push(optionValue);
-        }
-    } else {
-        if (!props.required && selectedOption.value === optionValue) {
-            selectedOption.value = null;
-        } else {
-            selectedOption.value = optionValue;
-        }
-    }
-
-    emits("update:modelValue", selectedOption.value);
-});
+import Control from "@/components/inputs/Control.vue";
 </script>
 
 <style lang="scss" scoped>
 .options {
-    display: inline-flex;
-    align-self: flex-start;
-    overflow: hidden;
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    &.fullWidth {
-        align-self: unset;
-        >>> .option {
-            width: 100%;
+    align-items: unset;
+    &:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+        border-color: rgba(255, 255, 255, 0.1);
+    }
+}
+:deep(.p-selectbutton) {
+    display: flex;
+    flex-direction: row;
+    gap: 1px;
+    .p-button {
+        height: 100%;
+        padding: 0 7px;
+        position: relative;
+        overflow: unset;
+        &:not(:last-child):after {
+            @extend .fullsize;
+            background: rgba(255, 255, 255, 0.2);
+            width: 1px;
+            right: -1px;
+        }
+        &:not(.p-highlight) {
+            background: rgba(0, 0, 0, 0.2);
+            color: rgba(255, 255, 255, 0.6);
         }
     }
-    &.top-label {
-        flex-direction: column;
-        .options__label {
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-    }
-    &__label {
-        display: flex;
-        padding: 3px 7px;
-        justify-content: center;
-        align-items: center;
-        border-right: 1px solid rgba(255, 255, 255, 0.1);
-        flex-grow: 1;
-    }
-    &__list {
-        display: inline-flex;
-        justify-self: flex-start;
-        flex-direction: row;
-        gap: 1px;
+    .p-highlight,
+    .p-button:hover {
+        background: rgba(255, 255, 255, 0.05);
+        color: #fff;
+        text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.6);
+        box-shadow: inset 1px 1px 0 rgba(0, 0, 0, 0.1), inset -1px -1px 0 rgba(0, 0, 0, 0.1);
     }
 }
 </style>

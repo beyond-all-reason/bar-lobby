@@ -20,7 +20,7 @@
             <MapPreview :battle="battle" />
             <div class="flex-row gap-md">
                 <Select
-                    :value="currentMapName"
+                    :modelValue="currentMapName"
                     :options="installedMaps"
                     label="Map"
                     optionLabel="friendlyName"
@@ -35,7 +35,7 @@
             </div>
             <div class="flex-row gap-md">
                 <Select
-                    :value="currentGameName"
+                    :modelValue="currentGameName"
                     :options="installedGames"
                     label="Game"
                     :filter="true"
@@ -57,7 +57,7 @@
                 />
             </div>
             <Select
-                :value="currentEngineName"
+                :modelValue="currentEngineName"
                 :options="installedEngines"
                 label="Engine"
                 :filter="true"

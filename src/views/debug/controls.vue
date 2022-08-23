@@ -10,9 +10,9 @@
             <Button color="red"> Red Button </Button>
         </div>
         <div class="flex-row gap-md flex-center-items">
-            <Textbox2 :modelValue="text" @update:model-value="onUpdateText" />
-            <Textbox2 v-model="text" />
-            <Textbox2 v-model="text" :disabled="true" />
+            <Textbox :modelValue="text" @update:model-value="onUpdateText" />
+            <Textbox v-model="text" />
+            <Textbox v-model="text" :disabled="true" />
             <div class="value">{{ text }}</div>
         </div>
         <div class="flex-row gap-md flex-center-items">
@@ -28,22 +28,23 @@
             <div class="value">{{ range }}</div>
         </div>
         <div class="flex-row gap-md flex-center-items">
-            <Checkbox2 :modelValue="checked" @update:model-value="onUpdateChecked" />
-            <Checkbox2 v-model="checked" />
-            <Checkbox2 v-model="checked" :disabled="true" />
+            <Checkbox :modelValue="checked" @update:model-value="onUpdateChecked" />
+            <Checkbox v-model="checked" />
+            <Checkbox v-model="checked" :disabled="true" />
             <div class="value">{{ checked }}</div>
         </div>
         <div class="flex-row gap-md flex-center-items">
-            <Options2 :modelValue="selection" :options="selections" @update:model-value="onUpdateSelection" />
-            <Options2 v-model="selection" :options="selections" />
-            <Options2 v-model="selection" :options="selections" :disabled="true" />
+            <Options :modelValue="selection" :options="selections" @update:model-value="onUpdateSelection" />
+            <Options v-model="selection" :options="selections" />
+            <Options v-model="selection" :options="selections" unselectable="off" />
+            <Options v-model="selection" :options="selections" :disabled="true" />
         </div>
         <div class="flex-row">
-            <Textbox2 v-model="text" />
+            <Textbox v-model="text" />
             <Select v-model="selection" :options="selections" :placeholder="selection" :filter="true" />
             <Range v-model="range" />
-            <Checkbox2 v-model="checked" />
-            <Options2 v-model="selection" :options="selections" />
+            <Checkbox v-model="checked" />
+            <Options v-model="selection" :options="selections" />
         </div>
     </div>
 </template>
@@ -52,11 +53,11 @@
 import { Ref, ref } from "vue";
 
 import Button from "@/components/inputs/Button.vue";
-import Checkbox2 from "@/components/inputs/Checkbox2.vue";
-import Options2 from "@/components/inputs/Options2.vue";
+import Checkbox from "@/components/inputs/Checkbox.vue";
+import Options from "@/components/inputs/Options.vue";
 import Range from "@/components/inputs/Range.vue";
 import Select from "@/components/inputs/Select.vue";
-import Textbox2 from "@/components/inputs/Textbox2.vue";
+import Textbox from "@/components/inputs/Textbox.vue";
 
 const text = ref("textbox");
 const onUpdateText = (newText: string) => {

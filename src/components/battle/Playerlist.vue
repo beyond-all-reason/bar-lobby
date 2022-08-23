@@ -230,7 +230,6 @@ const onDrop = (event: DragEvent, teamId?: number) => {
     margin-top: 5px;
 }
 .slim {
-    padding: 1px 7px;
     min-height: unset;
     align-self: center;
     border-radius: 2px;

@@ -3,11 +3,15 @@
         <canvas ref="canvas" class="map-preview__canvas" />
         <div class="map-preview__actions">
             <div class="map-preview__start-pos-type">
-                <Options :value="battle.battleOptions.startPosType" label="Start Pos" required @update:model-value="onStartPosChange">
-                    <Option v-for="option in startPosOptions" :key="option.value" :value="option.value">
-                        {{ option.label }}
-                    </Option>
-                </Options>
+                <Options
+                    :modelValue="battle.battleOptions.startPosType"
+                    :options="startPosOptions"
+                    label="Start Pos"
+                    optionLabel="label"
+                    optionValue="value"
+                    :unselectable="true"
+                    @update:model-value="onStartPosChange"
+                />
             </div>
             <div v-if="battle.battleOptions.startPosType === StartPosType.Boxes" class="map-preview__box-actions">
                 <Button @click="setBoxes(defaultBoxes().EastVsWest)">
@@ -32,7 +36,6 @@ import { computed, onMounted, Ref, ref, watch } from "vue";
 
 import defaultMinimapImage from "@/assets/images/default-minimap.png";
 import Button from "@/components/inputs/Button.vue";
-import Option from "@/components/inputs/Option.vue";
 import Options from "@/components/inputs/Options.vue";
 import { defaultBoxes } from "@/config/default-boxes";
 import { AbstractBattle } from "@/model/battle/abstract-battle";

@@ -1,7 +1,7 @@
 <template>
     <Control class="range">
-        <Slider ref="slider" v-bind="$attrs" :modelValue="modelValue" />
-        <InputNumber v-if="!Array.isArray(modelValue)" :modelValue="modelValue" :max="max" @update:modelValue="onInput" />
+        <Slider ref="slider" v-bind="$attrs" :modelValue="modelValue" @update:model-value="onSlide" />
+        <InputNumber v-if="!Array.isArray(modelValue)" :modelValue="modelValue" :step="props.step" :min="props.min" :max="props.max" @update:model-value="onInput" />
     </Control>
 </template>
 
@@ -9,20 +9,13 @@
 // https://primefaces.org/primevue/slider
 
 import InputNumber from "primevue/inputnumber";
-import Slider, { SliderEmits, SliderProps } from "primevue/slider";
+import Slider, { SliderProps } from "primevue/slider";
 import { computed, onMounted, Ref, ref } from "vue";
 
 import Control from "@/components/inputs/Control.vue";
 
 // eslint-disable-next-line
-interface Props extends SliderProps {
-    modelValue?: number | number[] | undefined;
-}
-
-// eslint-disable-next-line
-interface Emits extends SliderEmits {
-    "update:modelValue": (value: number | number[]) => void;
-}
+interface Props extends SliderProps {}
 
 const props = defineProps<Props>();
 const emits = defineEmits<{
@@ -38,6 +31,10 @@ onMounted(() => {
         max.value = slider.value?.max;
     }
 });
+
+const onSlide = (input: number | number[]) => {
+    emits("update:modelValue", input);
+};
 
 const onInput = (input: number | number[]) => {
     if (typeof input === "number" && !Array.isArray(input)) {
