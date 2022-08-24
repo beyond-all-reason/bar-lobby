@@ -42,10 +42,11 @@ const onClick = () => {
 <style lang="scss" scoped>
 .button {
     padding: 0;
-    align-items: unset;
+    align-self: unset;
 }
 .p-button {
     width: 100%;
+    height: 100%;
     display: flex;
     justify-content: center;
     padding: 0 10px;

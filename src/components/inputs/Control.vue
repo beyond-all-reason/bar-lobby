@@ -34,6 +34,8 @@ const onMouseEnter = () => {
     display: flex;
     min-height: 35px;
     align-items: center;
+    align-self: center;
+    justify-self: flex-start;
     background-color: rgba(255, 255, 255, 0.1);
     border: 1px solid rgba(255, 255, 255, 0.1);
     &:hover {

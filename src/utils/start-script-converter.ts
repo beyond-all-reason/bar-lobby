@@ -40,90 +40,81 @@ export class StartScriptConverter {
         const players: StartScriptTypes.Player[] = [];
         const bots: StartScriptTypes.Bot[] = [];
 
-        let teamId = 0;
-        let botIndex = 0;
-        let playerIndex = 0;
-        const botIdToUserIdMap: Record<number, number> = {};
+        let allyTeamId = 0;
+        let playerId = 0;
 
-        battle.contenders.value.forEach((contenderConfig) => {
-            const contenderPlayerId = "userId" in contenderConfig ? contenderConfig.battleStatus.playerId : contenderConfig.playerId;
-            const contenderTeamId = "userId" in contenderConfig ? contenderConfig.battleStatus.teamId : contenderConfig.teamId;
-            if (!allyTeams[contenderTeamId]) {
-                const allyTeam: StartScriptTypes.AllyTeam = {
-                    id: contenderTeamId,
-                    numallies: 0,
-                };
-
-                if (battle.battleOptions.startPosType === StartPosType.Boxes) {
-                    const box = battle.battleOptions.startBoxes[contenderTeamId];
-                    if (box) {
-                        assign(allyTeam, {
-                            startrectleft: box.xPercent,
-                            startrecttop: box.yPercent,
-                            startrectright: box.xPercent + box.widthPercent,
-                            startrectbottom: box.yPercent + box.heightPercent,
-                        });
-                    } else {
-                        console.warn(`Contender ${contenderPlayerId} has a teamId of ${contenderTeamId} but no start box was defined for that team`);
-                    }
-                }
-
-                allyTeams.push(allyTeam);
-            }
-
-            const team: StartScriptTypes.Team = {
-                id: contenderTeamId,
-                allyteam: contenderTeamId,
-                teamleader: 0,
+        battle.teams.value.forEach((allyTeamConfig) => {
+            const allyTeam: StartScriptTypes.AllyTeam = {
+                id: allyTeamId,
+                numallies: 0,
             };
-            const contenderOptions = "userId" in contenderConfig ? contenderConfig.battleStatus : contenderConfig;
-            assign(team, {
-                advantage: contenderOptions.advantage,
-                handicap: contenderOptions.handicap,
-                incomemultiplier: contenderOptions.incomeMultiplier,
-                startposx: contenderOptions.startPos?.x,
-                startposz: contenderOptions.startPos?.z,
-            });
-            teams.push(team);
-            teamId++;
+            allyTeams.push(allyTeam);
+            allyTeamId++;
 
-            if ("userId" in contenderConfig) {
-                const player: StartScriptTypes.Player = {
-                    id: playerIndex,
-                    team: team.id,
-                    name: api.session.getUserById(contenderConfig.userId)?.username || "Player",
-                    userId: contenderConfig.userId,
-                };
-                players.push(player);
-                playerIndex++;
-            } else {
-                const bot: StartScriptTypes.Bot = {
-                    id: botIndex,
-                    team: team.id,
-                    shortname: contenderConfig.aiShortName,
-                    name: contenderConfig.name,
-                    host: -1,
-                    options: contenderConfig.aiOptions,
-                };
-                botIdToUserIdMap[bot.id] = contenderConfig.ownerUserId;
-                bots.push(bot);
-                botIndex++;
+            if (battle.battleOptions.startPosType === StartPosType.Boxes) {
+                const box = battle.battleOptions.startBoxes[allyTeam.id];
+                if (box) {
+                    assign(allyTeam, {
+                        startrectleft: box.xPercent,
+                        startrecttop: box.yPercent,
+                        startrectright: box.xPercent + box.widthPercent,
+                        startrectbottom: box.yPercent + box.heightPercent,
+                    });
+                } else {
+                    console.warn(`Ally team ${allyTeam.id} has no defined start area for this map`);
+                }
             }
+
+            allyTeamConfig.forEach((contender) => {
+                const contenderOptions = "userId" in contender ? contender.battleStatus : contender;
+
+                const team: StartScriptTypes.Team = {
+                    id: contenderOptions.playerId,
+                    allyteam: contenderOptions.teamId,
+                    teamleader: 0,
+                    advantage: contenderOptions.advantage,
+                    handicap: contenderOptions.handicap,
+                    incomemultiplier: contenderOptions.incomeMultiplier,
+                    startposx: contenderOptions.startPos?.x,
+                    startposz: contenderOptions.startPos?.z,
+                };
+                teams.push(team);
+
+                if ("userId" in contender) {
+                    const player: StartScriptTypes.Player = {
+                        id: contenderOptions.playerId,
+                        team: team.id,
+                        name: api.session.getUserById(contender.userId)?.username || "Player",
+                        userId: contender.userId,
+                    };
+                    players.push(player);
+                    playerId++;
+                } else {
+                    const bot: StartScriptTypes.Bot = {
+                        id: contenderOptions.playerId,
+                        team: team.id,
+                        shortname: contender.aiShortName,
+                        name: contender.name,
+                        host: contender.ownerUserId,
+                        options: contender.aiOptions,
+                    };
+                    bots.push(bot);
+                }
+            });
         });
 
         battle.spectators.value.forEach((spectatorConfig) => {
             const spectator: StartScriptTypes.Player = {
-                id: playerIndex,
+                id: spectatorConfig.battleStatus.playerId,
                 spectator: 1,
                 name: api.session.getUserById(spectatorConfig.userId)?.username || "Player",
                 userId: spectatorConfig.userId,
             };
-            playerIndex++;
             players.push(spectator);
         });
 
         for (const bot of bots) {
-            const owner = players.find((player) => player.userId === botIdToUserIdMap[bot.id]);
+            const owner = players.find((player) => player.userId === bot.host);
             if (!owner) {
                 throw new Error(`Couldn't find owner for bot, ${JSON.stringify(bot)}`);
             }
@@ -165,7 +156,6 @@ export class StartScriptConverter {
             const obj = JSON.parse(scriptJson);
             return obj;
         } catch (err) {
-            console.log(scriptJson);
             console.error(err);
             throw err;
         }

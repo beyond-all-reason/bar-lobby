@@ -1,7 +1,7 @@
 <template>
     <Modal ref="modal" :title="title" width="700px" height="400px" padding="0" @open="open">
         <Panel scrollContent>
-            <Tab v-for="section of sections.filter((section) => !section.hidden)" :key="section.key" v-tooltip="section.description" :title="section.name">
+            <Tab v-for="section of sections.filter((section) => !section.hidden)" :key="section.key" :tooltip="section.description" :title="section.name">
                 <div class="gap-md">
                     <div class="gridform">
                         <template v-for="option in section.options.filter((option) => !option.hidden)" :key="option.key">

@@ -137,9 +137,6 @@ const currentUser = api.session.currentUser;
     img {
         height: 50px;
     }
-    .control.button {
-        flex-grow: 1;
-    }
 }
 .primary {
     min-height: 60px;
@@ -157,9 +154,13 @@ const currentUser = api.session.currentUser;
         height: 100%;
         font-weight: 600;
         text-transform: uppercase;
-        padding: 0 15px;
+        :deep(.p-button) {
+            padding: 0 22px;
+        }
         &.icon {
-            padding: 0 5px;
+            :deep(.p-button) {
+                padding: 0 14px;
+            }
         }
         &:hover,
         &.active {

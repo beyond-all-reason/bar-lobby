@@ -38,6 +38,6 @@ export const defaultBattle: () => OfflineBattle = () => {
             restrictions: [],
         },
         userIds: [me.userId],
-        bots: [{ playerId: 1, teamId: 1, ownerUserId: -1, name: randomFromArray(aiNames)!, aiShortName: "BARb", aiOptions: {} }],
+        bots: [{ playerId: 1, teamId: 1, ownerUserId: me.userId, name: randomFromArray(aiNames)!, aiShortName: "BARb", aiOptions: {} }],
     });
 };

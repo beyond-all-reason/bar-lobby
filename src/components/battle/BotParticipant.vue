@@ -1,6 +1,6 @@
 <template>
     <ContextMenu :entries="actions" :args="[bot]">
-        <div class="participant" data-type="participant">
+        <div class="participant" data-type="participant" @mouseenter="onMouseEnter">
             <Icon :icon="robot" :height="16" />
             <div>{{ props.bot.name }}</div>
         </div>
@@ -50,6 +50,10 @@ const actions: ContextMenuEntry[] = [
     { label: "Kick", action: kickAi },
     { label: "Configure", action: configureAi },
 ];
+
+const onMouseEnter = () => {
+    api.audio.getSound("button-hover").play();
+};
 </script>
 
 <style lang="scss" scoped>
