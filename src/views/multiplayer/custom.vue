@@ -7,16 +7,12 @@
         <h1>Multiplayer Custom Battles</h1>
 
         <div class="battle-list">
-            <div class="toolbar">
+            <div class="flex-row gap-md">
                 <Button class="blue" @click="hostBattleOpen = true">Host Battle</Button>
                 <HostBattle v-model="hostBattleOpen" />
-
                 <Checkbox v-model="hidePvE" label="Hide PvE" />
-
                 <Checkbox v-model="hideLocked" label="Hide Locked" />
-
                 <Checkbox v-model="hideEmpty" label="Hide Empty" />
-
                 <!-- <Options v-model="layout" class="flex-right" required>
                     <Option :modelValue="'tiles'">
                         <Icon :icon="viewGrid" height="26" />
@@ -27,17 +23,8 @@
                 </Options> -->
             </div>
 
-            <div :class="`battles ${layout}`">
-                <div v-if="layout === 'rows'" class="filters row">
-                    <div />
-                    <div />
-                    <div>Name</div>
-                    <div>Preset</div>
-                    <div>Map</div>
-                    <div>Players</div>
-                    <div>Runtime</div>
-                </div>
-                <BattlePreview v-for="battle in filteredBattles" :key="battle.battleOptions.id" :battle="battle" :layout="layout === 'tiles' ? 'tile' : 'row'" />
+            <div class="battles">
+                <BattlePreview v-for="battle in filteredBattles" :key="battle.battleOptions.id" :battle="battle" />
             </div>
         </div>
     </div>
@@ -45,14 +32,13 @@
 
 <script lang="ts" setup>
 /**
- * Classic server browser, maybe grid or list view options
- * Preview pane to show players in the battle and additional info
- * Host custom battle button (should request spawning a dedicated instance instead of being self-hosted)
- * Host battle modal that includes options such as public/passworded/friends-only/invite-only, title, map, mode etc
- * Uses TS but hidden, same as casual matchmaking
+ * TODO:
+ * - Filters
+ * - Host custom battle button (should request spawning a dedicated instance instead of being self-hosted)
+ * - Host battle modal that includes options such as public/passworded/friends-only/invite-only, title, map, mode etc
  */
 
-import { computed, onUnmounted, Ref, ref } from "vue";
+import { computed, onUnmounted, ref } from "vue";
 
 import BattlePreview from "@/components/battle/BattlePreview.vue";
 import HostBattle from "@/components/battle/HostBattle.vue";
@@ -61,13 +47,13 @@ import Checkbox from "@/components/inputs/Checkbox.vue";
 import { TachyonSpadsBattle } from "@/model/battle/tachyon-spads-battle";
 
 const hostBattleOpen = ref(false);
-const battles = api.session.battles;
-const layout: Ref<"tiles" | "rows"> = ref("tiles");
 const hidePvE = ref(false);
 const hideLocked = ref(false);
 const hideEmpty = ref(true);
-const filteredBattles = computed(() =>
-    Array.from(battles.values()).filter((battle) => {
+const filteredBattles = computed(() => {
+    let battles = Array.from(api.session.battles.values());
+
+    battles = battles.filter((battle) => {
         if (hidePvE.value && battle.bots.length > 0) {
             return false;
         }
@@ -78,8 +64,20 @@ const filteredBattles = computed(() =>
             return false;
         }
         return true;
-    })
-);
+    });
+
+    battles = battles.sort((a, b) => {
+        if ((a.battleOptions.locked || a.battleOptions.passworded) && !b.battleOptions.locked && !b.battleOptions.passworded) {
+            return 1;
+        } else if (!a.battleOptions.locked && !a.battleOptions.passworded && (b.battleOptions.locked || b.battleOptions.passworded)) {
+            return -1;
+        } else {
+            return b.userIds.size - a.userIds.size;
+        }
+    });
+
+    return battles;
+});
 
 let queryIntervalId: number | undefined;
 
@@ -134,11 +132,6 @@ async function updateUsers(userIds: number[]) {
     width: 100%;
     gap: 15px;
 }
-.toolbar {
-    display: flex;
-    flex-direction: row;
-    gap: 10px;
-}
 .filters {
     & > div {
         background: linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 0%, rgba(0 0 0 / 0.3) 100%);
@@ -172,13 +165,8 @@ async function updateUsers(userIds: number[]) {
     }
 }
 .battles {
-    &.tiles {
-        display: grid;
-        grid-gap: 15px;
-        grid-template-columns: repeat(auto-fill, minmax(500px, 1fr));
-    }
-    &.rows {
-        background: rgba(0 0 0 / 0.3);
-    }
+    display: grid;
+    grid-gap: 15px;
+    grid-template-columns: repeat(auto-fill, minmax(500px, 1fr));
 }
 </style>

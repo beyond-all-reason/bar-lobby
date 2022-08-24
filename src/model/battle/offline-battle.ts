@@ -3,10 +3,6 @@ import { Bot, StartPosType } from "@/model/battle/types";
 import { User } from "@/model/user";
 
 export class OfflineBattle extends AbstractBattle {
-    public open() {
-        //
-    }
-
     public leave() {
         api.session.offlineBattle.value = null;
         api.session.currentUser.battleStatus.battleId = -1;

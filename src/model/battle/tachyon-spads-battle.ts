@@ -204,7 +204,9 @@ export class TachyonSpadsBattle extends AbstractBattle {
         });
     }
 
-    public async open() {
+    public override open() {
+        super.open();
+
         this.updateSync();
     }
 

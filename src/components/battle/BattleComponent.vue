@@ -3,7 +3,7 @@
         <div class="flex-col flex-grow gap-md">
             <div class="flex-col flex-grow">
                 <div class="flex-col margin-bottom-lg">
-                    <h1 class="title">{{ battleTitle }}</h1>
+                    <h1 class="title">{{ battle.battleOptions.title }}</h1>
                     <div v-if="!isOfflineBattle" class="subtitle flex-row gap-sm">
                         Hosted by
                         <div class="founder flex-row gap-sm">
@@ -22,13 +22,13 @@
             <MapPreview :battle="battle" />
             <div class="flex-row gap-md">
                 <Select
-                    :modelValue="currentMapName"
+                    :modelValue="battle.battleOptions.map"
                     :options="installedMaps"
                     label="Map"
                     optionLabel="friendlyName"
                     optionValue="scriptName"
                     :filter="true"
-                    :placeholder="currentMapName"
+                    :placeholder="battle.battleOptions.map"
                     @update:model-value="onMapSelected"
                 />
                 <Button>
@@ -37,11 +37,11 @@
             </div>
             <div class="flex-row gap-md">
                 <Select
-                    :modelValue="currentGameName"
+                    :modelValue="battle.battleOptions.gameVersion"
                     :options="installedGames"
                     label="Game"
                     :filter="true"
-                    :placeholder="currentGameName"
+                    :placeholder="battle.battleOptions.gameVersion"
                     :disabled="!isOfflineBattle"
                     @update:model-value="onGameSelected"
                 />
@@ -59,11 +59,11 @@
                 />
             </div>
             <Select
-                :modelValue="currentEngineName"
+                :modelValue="battle.battleOptions.engineVersion"
                 :options="installedEngines"
                 label="Engine"
                 :filter="true"
-                :placeholder="currentEngineName"
+                :placeholder="battle.battleOptions.engineVersion"
                 :disabled="!isOfflineBattle"
                 @update:model-value="onEngineSelected"
             />
@@ -93,7 +93,7 @@
 <script lang="ts" setup>
 import { Icon } from "@iconify/vue";
 import cog from "@iconify-icons/mdi/cog";
-import { computed, Ref, ref, watch } from "vue";
+import { computed, Ref, ref } from "vue";
 import Markdown from "vue3-markdown-it";
 
 import BattleChat from "@/components/battle/BattleChat.vue";
@@ -113,43 +113,22 @@ const props = defineProps<{
 }>();
 
 const isOfflineBattle = props.battle instanceof OfflineBattle;
-
-const battleTitle = ref(props.battle.battleOptions.title);
-
 const me = api.session.currentUser;
+const installedEngines = computed(() => api.content.engine.installedVersions);
+const installedMaps = computed(() => Array.from(api.content.maps.installedMaps.values()));
+const installedGames = computed(() => api.content.game.installedVersions.map((rapidVersion) => rapidVersion.version).slice(-10));
+const gameOptionsOpen = ref(false);
+const gameOptions: Ref<LuaOptionSection[]> = ref([]);
 
 props.battle.open();
 
-const installedMaps = computed(() => Array.from(api.content.maps.installedMaps.values()));
-const currentMapData = computed(() => installedMaps.value.find((map) => map?.scriptName === props.battle.battleOptions.map));
-const currentMapName = ref(currentMapData?.value?.friendlyName ?? props.battle.battleOptions.map);
-watch(
-    () => props.battle.battleOptions.map,
-    (mapScriptName) => {
-        currentMapName.value = currentMapData?.value?.friendlyName ?? mapScriptName;
-        api.content.maps.downloadMapByScriptName(props.battle.battleOptions.map);
-    }
-);
-const onMapSelected = (mapScriptName: string) => {
-    props.battle.changeMap(mapScriptName);
+const onEngineSelected = (engineVersion: string) => {
+    props.battle.changeEngine(engineVersion);
 };
-// TODO: need a way to store script name
-api.content.maps.downloadMapByScriptName(props.battle.battleOptions.map);
 
-const installedGames = computed(() => api.content.game.installedVersions.map((rapidVersion) => rapidVersion.version).slice(-10));
-const currentGameName = ref(props.battle.battleOptions.gameVersion);
-watch(
-    () => props.battle.battleOptions.gameVersion,
-    () => {
-        currentGameName.value = props.battle.battleOptions.gameVersion;
-    }
-);
 const onGameSelected = (gameVersion: string) => {
     props.battle.changeGame(gameVersion);
 };
-
-const gameOptionsOpen = ref(false);
-const gameOptions: Ref<LuaOptionSection[]> = ref([]);
 const openGameOptions = async () => {
     gameOptions.value = await api.content.game.getGameOptions(props.battle.battleOptions.gameVersion);
     gameOptionsOpen.value = true;
@@ -158,35 +137,24 @@ const openGameOptions = async () => {
 const setGameOptions = (options: Record<string, any>) => {
     props.battle.setGameOptions(options);
 };
-api.content.game.updateGame();
 
-const installedEngines = computed(() => api.content.engine.installedVersions);
-const currentEngineName = ref(props.battle.battleOptions.engineVersion);
-watch(
-    () => props.battle.battleOptions.engineVersion,
-    () => {
-        currentEngineName.value = props.battle.battleOptions.engineVersion;
-    }
-);
-const onEngineSelected = (engineVersion: string) => {
-    props.battle.changeEngine(engineVersion);
+const onMapSelected = (mapScriptName: string) => {
+    props.battle.changeMap(mapScriptName);
 };
-if (!api.content.engine.isEngineVersionInstalled(props.battle.battleOptions.engineVersion)) {
-    api.content.engine.downloadEngine(props.battle.battleOptions.engineVersion);
-}
 
-const leave = () => {
-    props.battle.leave();
-};
-const start = async () => {
-    props.battle.start();
-};
 const toggleReady = () => {
     api.comms.request("c.lobby.update_status", {
         client: {
             ready: !me.battleStatus.ready,
         },
     });
+};
+
+const leave = () => {
+    props.battle.leave();
+};
+const start = async () => {
+    props.battle.start();
 };
 </script>
 
@@ -202,7 +170,5 @@ const toggleReady = () => {
     font-size: 16px;
     margin-left: 2px;
     opacity: 0.8;
-}
-.founder {
 }
 </style>

@@ -51,7 +51,6 @@ import InitialSetup from "@/components/misc/InitialSetup.vue";
 import IntroVideo from "@/components/misc/IntroVideo.vue";
 import Preloader from "@/components/misc/Preloader.vue";
 import NavBar from "@/components/navbar/NavBar.vue";
-import { defaultMaps } from "@/config/default-maps";
 import { playRandomMusic } from "@/utils/play-random-music";
 
 const isProduction = process.env.NODE_ENV === "production";
@@ -89,10 +88,10 @@ const onPreloadDone = async () => {
 
         await api.content.replays.init();
 
-        // TODO: fix the slight delay these cause
+        // TODO: fix the slight delay these cause on startup
         api.content.engine.downloadLatestEngine();
-        api.content.game.updateGame();
-        api.content.maps.downloadMaps(defaultMaps);
+        // api.content.game.updateGame();
+        // api.content.maps.downloadMaps(defaultMaps);
 
         playRandomMusic();
 

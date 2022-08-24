@@ -1,5 +1,5 @@
 import { groupBy } from "jaz-ts-utils";
-import { computed, ComputedRef, reactive } from "vue";
+import { computed, ComputedRef, reactive, watch } from "vue";
 
 import { BattleOptions, Bot, StartPosType } from "@/model/battle/types";
 import { User } from "@/model/user";
@@ -58,7 +58,38 @@ export abstract class AbstractBattle {
         });
     }
 
-    public abstract open(): void;
+    public open() {
+        watch(
+            () => this.battleOptions.engineVersion,
+            (engineVersion) => {
+                api.content.engine.downloadEngine(engineVersion);
+            },
+            {
+                immediate: true,
+            }
+        );
+
+        watch(
+            () => this.battleOptions.gameVersion,
+            (gameVersion) => {
+                api.content.game.updateGame();
+            },
+            {
+                immediate: true,
+            }
+        );
+
+        watch(
+            () => this.battleOptions.map,
+            (mapScriptName) => {
+                api.content.maps.downloadMapByScriptName(mapScriptName);
+            },
+            {
+                immediate: true,
+            }
+        );
+    }
+
     public abstract leave(): void;
     public abstract start(): void;
     public abstract changeMap(map: string): void;

@@ -1,98 +1,52 @@
 <template>
-    <div :class="`battle-preview ${layout}`" @click="attemptJoinBattle">
-        <template v-if="layout === 'tile'">
-            <div class="background" :style="`background-image: url('${mapImageUrl}')`" />
-            <div class="header">
-                <div class="title">
-                    <div class="flex-col flex-center">
-                        <Flag :countryCode="founder.countryCode" />
-                    </div>
-                    <div class="flex-col flex-center">
-                        <Icon v-if="battle.battleOptions.locked || battle.battleOptions.passworded" :icon="lock" />
-                    </div>
-                    <div class="flex-col flex-center">
-                        {{ battle.battleOptions.title }}
-                    </div>
-                </div>
-                <div>{{ mapName }}</div>
-            </div>
-            <div class="header meta">
-                {{ runtime }}
-            </div>
-            <div class="clients players">
-                <div v-for="player in players" :key="player.userId" class="client">
-                    <div v-if="player.countryCode && player.countryCode !== '??'">
-                        <Flag :countryCode="player.countryCode" />
-                    </div>
-                    <div>
-                        {{ player.username }}
-                    </div>
-                </div>
-                <div v-for="(bot, i) in battle.bots" :key="i" class="client">
-                    <div class="flex-col flex-center">
-                        <Icon :icon="robot" />
-                    </div>
-                    <div class="flex-col flex-center">
-                        {{ bot.name }}
-                    </div>
-                </div>
-            </div>
-            <div v-if="spectators.length" class="clients spectators">
-                <div v-for="spectator in spectators" :key="spectator.userId" class="client">
-                    <div v-if="spectator.countryCode">
-                        <Flag :countryCode="spectator.countryCode" />
-                    </div>
-                    <div>
-                        {{ spectator.username }}
-                    </div>
-                </div>
-            </div>
-        </template>
-
-        <template v-else>
-            <div>
-                <div class="flex-center fullheight">
+    <div class="battle-preview" @click="attemptJoinBattle">
+        <div class="background" :style="`background-image: url('${mapImageUrl}')`" />
+        <div class="header">
+            <div class="title">
+                <div class="flex-col flex-center">
                     <Flag :countryCode="founder.countryCode" />
                 </div>
-            </div>
-            <div>
-                <div class="flex-center fullheight">
-                    <Icon v-if="battle.battleOptions.locked || battle.battleOptions.passworded" :icon="lock" />
+                <div class="flex-col flex-center">
+                    <Icon v-if="battle.battleOptions.locked" :icon="lock" />
+                    <Icon v-if="battle.battleOptions.passworded" :icon="key" />
+                </div>
+                <div class="flex-col flex-center">
+                    {{ battle.battleOptions.title }}
                 </div>
             </div>
-            <div>
-                {{ battle.battleOptions.title }}
-            </div>
-            <div>TODO</div>
-            <div>
-                {{ battle.battleOptions.map }}
-            </div>
-            <div>
-                <div class="flex-row gap-md">
-                    <div class="flex-row gap-sm">
-                        <img src="@/assets/images/icons/com.png" style="height: 23px" />
-                        <div style="width: 2ch">
-                            {{ players.length }}
-                        </div>
-                    </div>
-                    <div class="flex-row gap-sm">
-                        <Icon :icon="robot" />
-                        <div style="width: 2ch">
-                            {{ battle.bots.length }}
-                        </div>
-                    </div>
-                    <div class="flex-row gap-sm">
-                        <Icon :icon="eyeOutline" />
-                        <div style="width: 2ch">
-                            {{ spectators.length }}
-                        </div>
-                    </div>
+            <div>{{ mapName }}</div>
+        </div>
+        <div class="header meta">
+            {{ runtime }}
+        </div>
+        <div class="clients players">
+            <div v-for="player in players" :key="player.userId" class="client">
+                <div v-if="player.countryCode && player.countryCode !== '??'">
+                    <Flag :countryCode="player.countryCode" />
+                </div>
+                <div>
+                    {{ player.username }}
                 </div>
             </div>
-            <div>
-                {{ runtime }}
+            <div v-for="(bot, i) in battle.bots" :key="i" class="client">
+                <div class="flex-col flex-center">
+                    <Icon :icon="robot" />
+                </div>
+                <div class="flex-col flex-center">
+                    {{ bot.name }}
+                </div>
             </div>
-        </template>
+        </div>
+        <div v-if="spectators.length" class="clients spectators">
+            <div v-for="spectator in spectators" :key="spectator.userId" class="client">
+                <div v-if="spectator.countryCode">
+                    <Flag :countryCode="spectator.countryCode" />
+                </div>
+                <div>
+                    {{ spectator.username }}
+                </div>
+            </div>
+        </div>
 
         <Modal v-model="passwordPromptOpen" title="Battle Password" @submit="onPasswordPromptSubmit">
             <div class="flex-col gap-md">
@@ -106,7 +60,7 @@
 
 <script lang="ts" setup>
 import { Icon } from "@iconify/vue";
-import eyeOutline from "@iconify-icons/mdi/eye-outline";
+import key from "@iconify-icons/mdi/key";
 import lock from "@iconify-icons/mdi/lock";
 import robot from "@iconify-icons/mdi/robot";
 import { useNow } from "@vueuse/core";
@@ -121,7 +75,6 @@ import { AbstractBattle } from "@/model/battle/abstract-battle";
 
 const props = defineProps<{
     battle: AbstractBattle;
-    layout: "tile" | "row";
 }>();
 
 const users = computed(() => Array.from(props.battle.userIds.values()).map((id) => api.session.getUserById(id)!));
@@ -175,100 +128,96 @@ const onPasswordPromptSubmit: (data: { password?: string }) => Promise<void> = a
 .battle-preview {
     display: flex;
     flex-direction: column;
-    &.tile {
-        position: relative;
-        z-index: 0;
-        padding-bottom: 5px;
-        gap: 5px;
-        padding: 10px;
-        font-weight: 500;
-        &:hover {
-            .background {
-                filter: brightness(1.3);
-                &:before {
-                    border: 1px solid rgba(255, 255, 255, 0.2);
-                }
-            }
-        }
-        .header,
-        .meta {
-            display: flex;
-            flex-direction: row;
-            align-items: center;
-            justify-content: space-between;
-            gap: 5px;
-        }
-        .header {
-            font-weight: 600;
-        }
-        .meta {
-            font-size: 16px;
-        }
-        .title {
-            display: flex;
-            flex-direction: row;
-            align-items: center;
-            gap: 5px;
-        }
+    position: relative;
+    z-index: 0;
+    padding-bottom: 5px;
+    gap: 5px;
+    padding: 10px;
+    font-weight: 500;
+    &:hover {
         .background {
-            @extend .fullsize;
-            left: 0;
-            top: 0;
-            image-rendering: pixelated;
-            z-index: -1;
-            background-position: center;
-            background-size: cover;
-            overflow: hidden;
-            filter: brightness(1);
+            filter: brightness(1.3);
             &:before {
-                @extend .fullsize;
-                left: 0;
-                top: 0;
-                transition: all 0.05s;
-                background: rgba(0, 0, 0, 0.3);
-                border: 1px solid rgba(255, 255, 255, 0.15);
-            }
-        }
-        .clients {
-            display: flex;
-            flex-direction: row;
-            flex-wrap: wrap;
-            gap: 4px;
-            &.spectators {
-                position: relative;
-                padding-top: 5px;
-                &:before {
-                    content: "";
-                    position: absolute;
-                    top: 0;
-                    left: 2.5%;
-                    width: 95%;
-                    height: 1px;
-                    background: rgba(255, 255, 255, 0.1);
-                }
-            }
-        }
-        .client {
-            display: flex;
-            flex-direction: row;
-            align-items: center;
-            gap: 5px;
-            padding: 2px 8px;
-            border-radius: 3px;
-            background: rgba(0, 0, 0, 0.6);
-            border: none;
-            font-size: 14px;
-            svg {
-                width: 14px;
-                height: 14px;
-            }
-            .flag {
-                font-size: 10px;
+                border: 1px solid rgba(255, 255, 255, 0.2);
             }
         }
     }
-    &.row {
-        background: linear-gradient(to bottom, rgba(255, 255, 255, 0.07) 0%, rgba(255 255 255 / 0.02) 100%);
+    .header,
+    .meta {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        gap: 5px;
+    }
+    .header {
+        font-weight: 600;
+    }
+    .meta {
+        font-size: 16px;
+    }
+    .title {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 5px;
+    }
+    .background {
+        @extend .fullsize;
+        left: 0;
+        top: 0;
+        image-rendering: pixelated;
+        z-index: -1;
+        background-position: center;
+        background-size: cover;
+        overflow: hidden;
+        filter: brightness(1);
+        &:before {
+            @extend .fullsize;
+            left: 0;
+            top: 0;
+            transition: all 0.05s;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+    }
+    .clients {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 4px;
+        &.spectators {
+            position: relative;
+            padding-top: 5px;
+            &:before {
+                content: "";
+                position: absolute;
+                top: 0;
+                left: 2.5%;
+                width: 95%;
+                height: 1px;
+                background: rgba(255, 255, 255, 0.1);
+            }
+        }
+    }
+    .client {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 5px;
+        padding: 2px 8px;
+        border-radius: 3px;
+        background: rgba(0, 0, 0, 0.6);
+        border: none;
+        font-size: 14px;
+        svg {
+            width: 14px;
+            height: 14px;
+        }
+        .flag {
+            font-size: 12px;
+            vertical-align: middle;
+        }
     }
 }
 </style>
