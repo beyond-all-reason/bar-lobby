@@ -41,6 +41,7 @@ import Options from "@/components/inputs/Options.vue";
 import { defaultBoxes } from "@/config/default-boxes";
 import { AbstractBattle } from "@/model/battle/abstract-battle";
 import { StartBox, StartPosType } from "@/model/battle/types";
+import { MapData } from "@/model/map-data";
 
 type Transform = { x: number; y: number; width: number; height: number };
 
@@ -82,7 +83,8 @@ onMounted(async () => {
         { deep: true }
     );
 
-    api.content.maps.mapCache.on("item-cache-finish").add((data) => {
+    api.content.maps.mapCache.on("map-cached").add((data: MapData) => {
+        console.log("map-cached!", data);
         loadMap();
     });
 });

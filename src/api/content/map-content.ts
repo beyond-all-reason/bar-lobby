@@ -29,13 +29,13 @@ export class MapContentAPI extends AbstractContentAPI {
         const cacheStoreDir = path.join(this.userDataDir, "store");
         const mapCacheFile = path.join(cacheStoreDir, "map-cache.json");
 
-        this.mapCache.on("item-cache-loaded").add((maps: Record<string, MapData>) => {
+        this.mapCache.on("cache-loaded").add((maps: Record<string, MapData>) => {
             for (const [filename, mapData] of Object.entries(maps)) {
                 this.installedMaps.set(mapData.scriptName, mapData);
             }
         });
 
-        this.mapCache.on("item-cache-saved").add((maps: Record<string, MapData>) => {
+        this.mapCache.on("cache-saved").add((maps: Record<string, MapData>) => {
             for (const [filename, mapData] of Object.entries(maps)) {
                 this.installedMaps.set(mapData.scriptName, mapData);
             }

@@ -68,12 +68,8 @@ let replayCache: ReplayCache;
 worker.on("init").addOnce(async (data: ConstructorParameters<typeof ReplayCache>) => {
     replayCache = new ReplayCache(...data);
 
-    replayCache.onItemsCacheStart.add((data) => worker.send("items-cache-start", data));
-    replayCache.onItemsCacheFinish.add((data) => worker.send("items-cache-finish", data));
-    replayCache.onItemCacheStart.add((data) => worker.send("item-cache-start", data));
-    replayCache.onItemCacheFinish.add((data) => worker.send("item-cache-finish", data));
-    replayCache.onCacheLoaded.add((data) => worker.send("item-cache-loaded", data));
-    replayCache.onCacheSaved.add((data) => worker.send("item-cache-saved", data));
+    replayCache.onCacheLoaded.add((data) => worker.send("cache-loaded", data));
+    replayCache.onCacheSaved.add((data) => worker.send("cache-saved", data));
 
     await replayCache.init();
 });

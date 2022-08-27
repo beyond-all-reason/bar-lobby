@@ -1,5 +1,5 @@
 import * as fs from "fs";
-import { BetterWorker, BetterWorkerHost } from "jaz-ts-utils";
+import { BetterWorker, BetterWorkerHost, Signal } from "jaz-ts-utils";
 import * as path from "path";
 import type { SpringMap, StartPos } from "spring-map-parser";
 import { MapParser } from "spring-map-parser";
@@ -8,6 +8,8 @@ import type { MapData } from "@/model/map-data";
 import { AbstractFileCache } from "@/workers/abstract-file-cache";
 
 class MapCache extends AbstractFileCache<MapData> {
+    public readonly onMapCached: Signal<MapData> = new Signal();
+
     protected mapImagesDir: string;
     protected parser: MapParser;
 
@@ -42,6 +44,8 @@ class MapCache extends AbstractFileCache<MapData> {
             this.items[mapData.fileNameWithExt] = mapData;
 
             await this.saveCachedItems();
+
+            this.onMapCached.dispatch(mapData);
 
             console.log(`Cached map: ${fileName}`);
         } catch (err) {
@@ -119,12 +123,9 @@ let mapCache: MapCache;
 worker.on("init").addOnce(async (data: ConstructorParameters<typeof MapCache>) => {
     mapCache = new MapCache(...data);
 
-    mapCache.onItemsCacheStart.add((data) => worker.send("items-cache-start", data));
-    mapCache.onItemsCacheFinish.add((data) => worker.send("items-cache-finish", data));
-    mapCache.onItemCacheStart.add((data) => worker.send("item-cache-start", data));
-    mapCache.onItemCacheFinish.add((data) => worker.send("item-cache-finish", data));
-    mapCache.onCacheLoaded.add((data) => worker.send("item-cache-loaded", data));
-    mapCache.onCacheSaved.add((data) => worker.send("item-cache-saved", data));
+    mapCache.onMapCached.add((data) => worker.send("map-cached", data));
+    mapCache.onCacheLoaded.add((data) => worker.send("cache-loaded", data));
+    mapCache.onCacheSaved.add((data) => worker.send("cache-saved", data));
 
     await mapCache.init();
 });

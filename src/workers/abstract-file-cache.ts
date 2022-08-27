@@ -2,19 +2,9 @@ import * as fs from "fs";
 import { Signal } from "jaz-ts-utils";
 import * as path from "path";
 
-export interface CacheProgress {
-    totalItemsToCache: number;
-    currentItemsCached: number;
-    currentItem: string;
-}
-
 export abstract class AbstractFileCache<T> {
     public onCacheLoaded: Signal<{ [key: string]: T }> = new Signal();
     public onCacheSaved: Signal<{ [key: string]: T }> = new Signal();
-    public onItemsCacheStart: Signal = new Signal();
-    public onItemsCacheFinish: Signal<{ [key: string]: T }> = new Signal();
-    public onItemCacheStart: Signal<CacheProgress> = new Signal();
-    public onItemCacheFinish: Signal<CacheProgress> = new Signal();
 
     protected cacheFilePath: string;
     protected itemDir: string;
@@ -51,36 +41,14 @@ export abstract class AbstractFileCache<T> {
             return (recacheAll || !cachedMapFileNames.includes(fileName)) && fileTypeFiler;
         });
 
-        if (filesToCache.length) {
-            this.onItemsCacheStart.dispatch();
-        }
-
-        let mapsCached = 0;
         for (const fileName of filesToCache) {
             const filePath = path.join(this.itemDir, fileName);
             try {
-                this.onItemCacheStart.dispatch({
-                    totalItemsToCache: filesToCache.length,
-                    currentItemsCached: mapsCached,
-                    currentItem: fileName,
-                });
-
                 await this.cacheItem(filePath);
-
-                mapsCached++;
-
-                this.onItemCacheFinish.dispatch({
-                    totalItemsToCache: filesToCache.length,
-                    currentItemsCached: mapsCached,
-                    currentItem: fileName,
-                });
             } catch (err) {
+                console.error(err);
                 filesToCache.splice(filesToCache.indexOf(fileName), 1);
             }
-        }
-
-        if (filesToCache.length) {
-            this.onItemsCacheFinish.dispatch(this.items);
         }
 
         console.log(`All files cached in ${this.itemDir}`);
