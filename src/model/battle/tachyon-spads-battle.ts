@@ -213,11 +213,17 @@ export class TachyonSpadsBattle extends AbstractBattle {
     public async leave() {
         api.comms.request("c.lobby.leave", {});
         api.session.onlineBattle.value = null;
-        api.router.replace("/multiplayer/custom");
+        if (api.router.currentRoute.value.path === "/multiplayer/battle") {
+            api.router.replace("/multiplayer/custom");
+        }
     }
 
     public start() {
         if (this.battleOptions.startTime) {
+            api.comms.request("c.lobby.message", {
+                message: "!joinas spec",
+            });
+
             api.game.launch(this);
         } else {
             api.comms.request("c.lobby.message", {
