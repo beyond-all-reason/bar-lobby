@@ -1,14 +1,12 @@
 <template>
     <Control class="select">
-        <Dropdown v-bind="$attrs" filterPlaceholder="Search" />
+        <Dropdown v-bind="$attrs" filterPlaceholder="Search">
+            <template v-for="(_, slot) of $slots" #[slot]="scope">
+                <slot :name="slot" v-bind="scope" />
+            </template>
+        </Dropdown>
     </Control>
 </template>
-
-<script lang="ts">
-export default {
-    inheritAttrs: false,
-};
-</script>
 
 <script lang="ts" setup>
 // https://primefaces.org/primevue/dropdown

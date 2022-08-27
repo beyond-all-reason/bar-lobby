@@ -7,6 +7,8 @@ import library_index from '@/views/library/index.vue'
 import multiplayer_index from '@/views/multiplayer/index.vue'
 import profile_index from '@/views/profile/index.vue'
 import singleplayer_index from '@/views/singleplayer/index.vue'
+import debug_a from '@/views/debug/a.vue'
+import debug_b from '@/views/debug/b.vue'
 import debug_controls from '@/views/debug/controls.vue'
 import debug_playground from '@/views/debug/playground.vue'
 import debug_test from '@/views/debug/test.vue'
@@ -148,6 +150,24 @@ export default [
       },
     },
     redirect: '/singleplayer/campaign',
+  },
+  {
+    name: 'debug-a',
+    path: '/debug/a',
+    component: debug_a,
+    meta: {
+      title: 'A',
+      order: 3,
+    },
+  },
+  {
+    name: 'debug-b',
+    path: '/debug/b',
+    component: debug_b,
+    meta: {
+      title: 'B',
+      order: 4,
+    },
   },
   {
     name: 'debug-controls',

@@ -5,7 +5,7 @@
                 <Icon :icon="tools" :height="20" />
             </Button>
         </div>
-        <Select v-model="currentRoute" label="View" :options="routes" :filter="true" optionLabel="path" optionValue="path" />
+        <Select :modelValue="currentRoute" label="View" :options="routes" :filter="true" optionLabel="path" optionValue="path" :placeholder="currentRoute" />
         <Button to="/debug"> Debug Sandbox </Button>
         <Button @click="openSettings"> Open Settings File </Button>
         <Button @click="openLobbyDir"> Open Lobby Dir </Button>

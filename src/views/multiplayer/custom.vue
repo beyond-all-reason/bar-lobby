@@ -13,14 +13,6 @@
                 <Checkbox v-model="hidePvE" label="Hide PvE" />
                 <Checkbox v-model="hideLocked" label="Hide Locked" />
                 <Checkbox v-model="hideEmpty" label="Hide Empty" />
-                <!-- <Options v-model="layout" class="flex-right" required>
-                    <Option :modelValue="'tiles'">
-                        <Icon :icon="viewGrid" height="26" />
-                    </Option>
-                    <Option :modelValue="'rows'">
-                        <Icon :icon="viewList" height="30" />
-                    </Option>
-                </Options> -->
             </div>
 
             <div class="battles">
@@ -38,6 +30,7 @@
  * - Host battle modal that includes options such as public/passworded/friends-only/invite-only, title, map, mode etc
  */
 
+import { delay } from "jaz-ts-utils";
 import { computed, onUnmounted, ref } from "vue";
 
 import BattlePreview from "@/components/battle/BattlePreview.vue";
@@ -79,17 +72,7 @@ const filteredBattles = computed(() => {
     return battles;
 });
 
-let queryIntervalId: number | undefined;
-
-await updateBattleList();
-
-queryIntervalId = window.setInterval(() => updateBattleList(), 5000);
-
-onUnmounted(() => {
-    window.clearInterval(queryIntervalId);
-});
-
-async function updateBattleList() {
+const updateBattleList = async () => {
     // this prevents polling for updates if the user isn't looking at the battle list
     // commented out for now because the host battle functionality also depends on this to know when the battle is created
     // if (document.visibilityState === "hidden") {
@@ -109,13 +92,26 @@ async function updateBattleList() {
     for (const lobby of lobbies) {
         let battle = api.session.getBattleById(lobby.lobby.id);
         if (!battle) {
-            battle = new TachyonSpadsBattle(lobby);
-            api.session.battles.set(battle.battleOptions.id, battle);
+            api.session.battles.set(lobby.lobby.id, new TachyonSpadsBattle(lobby));
         } else {
             battle.handleServerResponse(lobby);
         }
     }
-}
+
+    await delay(100); // fixes a weird bug when switching from battle page to this page
+};
+
+await updateBattleList();
+
+let queryIntervalId: number | undefined;
+
+queryIntervalId = window.setInterval(() => updateBattleList(), 5000);
+
+onUnmounted(() => {
+    if (queryIntervalId) {
+        window.clearInterval(queryIntervalId);
+    }
+});
 </script>
 
 <style lang="scss" scoped>
