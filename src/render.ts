@@ -47,7 +47,7 @@ declare module "vue-router" {
 const myLocale = Intl.DateTimeFormat().resolvedOptions().locale.split("-")[0];
 
 const localeFiles = require.context("@/assets/language", true, /\.json$/).keys();
-const messages: any = {};
+const messages: Record<string, Record<string, string>> = {};
 for (const key of localeFiles) {
     const fileLocale = key.split("/")[1].split(".")[0];
     messages[fileLocale] = require(`@/assets/language/${fileLocale}.json`);
