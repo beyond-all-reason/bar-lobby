@@ -226,26 +226,32 @@ export class TachyonSpadsBattle extends AbstractBattle {
         }
     }
 
-    public changeEngine(engineVersion: string) {
+    public setEngine(engineVersion: string) {
         console.warn("not implemented: changeEngine");
         // TODO
     }
 
-    public changeGame(gameVersion: string) {
+    public setGame(gameVersion: string) {
         console.warn("not implemented: changeGame");
         // TODO
     }
 
-    public changeMap(map: string) {
+    public setMap(map: string) {
         api.comms.request("c.lobby.message", {
             message: `!map ${map}`,
         });
     }
 
-    public changeStartPosType(startPosType: StartPosType) {
+    public setStartPosType(startPosType: StartPosType) {
         api.comms.request("c.lobby.message", {
             message: `!startPosType ${startPosType}`,
         });
+    }
+
+    public setStartBoxes(startBoxes: StartBox[]) {
+        // api.comms.request("c.lobby.message", {
+        //     message: `!cv ${startPosType}`,
+        // });
     }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -301,7 +307,7 @@ export class TachyonSpadsBattle extends AbstractBattle {
         });
     }
 
-    public changeContenderTeam(contender: User | Bot, teamId: number) {
+    public setContenderTeam(contender: User | Bot, teamId: number) {
         api.comms.request("c.lobby.update_status", {
             client: {
                 team_number: teamId,

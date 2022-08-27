@@ -1,5 +1,6 @@
+import { defaultBoxes, defaultMapBoxes } from "@/config/default-boxes";
 import { AbstractBattle } from "@/model/battle/abstract-battle";
-import { Bot, StartPosType } from "@/model/battle/types";
+import { Bot, StartBox, StartPosType } from "@/model/battle/types";
 import { User } from "@/model/user";
 
 export class OfflineBattle extends AbstractBattle {
@@ -13,20 +14,28 @@ export class OfflineBattle extends AbstractBattle {
         api.game.launch(this);
     }
 
-    public changeEngine(engineVersion: string) {
+    public setEngine(engineVersion: string) {
         this.battleOptions.engineVersion = engineVersion;
     }
 
-    public changeGame(gameVersion: string) {
+    public setGame(gameVersion: string) {
         this.battleOptions.gameVersion = gameVersion;
     }
 
-    public changeMap(map: string) {
+    public setMap(map: string) {
         this.battleOptions.map = map;
+
+        const boxes = defaultMapBoxes()[map] ?? defaultBoxes().NorthVsSouth;
+
+        this.setStartBoxes(boxes);
     }
 
-    public changeStartPosType(startPosType: StartPosType) {
+    public setStartPosType(startPosType: StartPosType) {
         this.battleOptions.startPosType = startPosType;
+    }
+
+    public setStartBoxes(startBoxes: StartBox[]) {
+        this.battleOptions.startBoxes = startBoxes;
     }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -55,7 +64,7 @@ export class OfflineBattle extends AbstractBattle {
         this.fixIds();
     }
 
-    public changeContenderTeam(contender: User | Bot, teamId: number) {
+    public setContenderTeam(contender: User | Bot, teamId: number) {
         if ("userId" in contender) {
             contender.battleStatus.teamId = teamId;
         } else {

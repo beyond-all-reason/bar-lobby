@@ -32,6 +32,7 @@
             </div>
         </transition>
     </div>
+    <Error />
 </template>
 
 <script lang="ts" setup>
@@ -47,6 +48,7 @@ import Loader from "@/components/common/Loader.vue";
 import Panel from "@/components/common/Panel.vue";
 import Background from "@/components/misc/Background.vue";
 import DebugSidebar from "@/components/misc/DebugSidebar.vue";
+import Error from "@/components/misc/Error.vue";
 import InitialSetup from "@/components/misc/InitialSetup.vue";
 import IntroVideo from "@/components/misc/IntroVideo.vue";
 import Preloader from "@/components/misc/Preloader.vue";

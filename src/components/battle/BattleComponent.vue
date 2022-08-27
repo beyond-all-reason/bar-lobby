@@ -115,11 +115,11 @@ const gameOptions: Ref<LuaOptionSection[]> = ref([]);
 props.battle.open();
 
 const onEngineSelected = (engineVersion: string) => {
-    props.battle.changeEngine(engineVersion);
+    props.battle.setEngine(engineVersion);
 };
 
 const onGameSelected = (gameVersion: string) => {
-    props.battle.changeGame(gameVersion);
+    props.battle.setGame(gameVersion);
 };
 const openGameOptions = async () => {
     gameOptions.value = await api.content.game.getGameOptions(props.battle.battleOptions.gameVersion);
@@ -131,7 +131,7 @@ const setGameOptions = (options: Record<string, any>) => {
 };
 
 const onMapSelected = (mapScriptName: string) => {
-    props.battle.changeMap(mapScriptName);
+    props.battle.setMap(mapScriptName);
 };
 
 const toggleReady = () => {

@@ -41,26 +41,6 @@ declare module "vue-router" {
         }
         return event;
     });
-
-    window.addEventListener("error", (event) => {
-        console.debug("onerror", event);
-        api.alerts.alert({
-            type: "notification",
-            severity: "error",
-            content: event.message,
-            timeoutMs: 5000,
-        });
-    });
-
-    window.addEventListener("unhandledrejection", function (event) {
-        console.debug("unhandledrejection", event);
-        api.alerts.alert({
-            type: "notification",
-            severity: "error",
-            content: event.reason,
-            timeoutMs: 5000,
-        });
-    });
 })();
 
 const myLocale = Intl.DateTimeFormat().resolvedOptions().locale.split("-")[0];

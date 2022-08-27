@@ -103,7 +103,7 @@ const joinTeam = (teamId?: number) => {
     } else if (!me.battleStatus.isSpectator && teamId === undefined) {
         props.battle.playerToSpectator(me);
     } else if (!me.battleStatus.isSpectator && teamId !== undefined) {
-        props.battle.changeContenderTeam(me, teamId);
+        props.battle.setContenderTeam(me, teamId);
     }
 };
 
@@ -180,7 +180,7 @@ const onDrop = (event: DragEvent, teamId?: number) => {
     const target = event.target as Element;
     if (target.getAttribute("data-type") === "group" && draggedParticipant.value) {
         if (teamId !== undefined && (("userId" in draggedParticipant.value && !draggedParticipant.value.battleStatus.isSpectator) || !("userId" in draggedParticipant.value))) {
-            props.battle.changeContenderTeam(draggedParticipant.value, teamId);
+            props.battle.setContenderTeam(draggedParticipant.value, teamId);
         } else if ("userId" in draggedParticipant.value && !draggedParticipant.value.battleStatus.isSpectator) {
             props.battle.playerToSpectator(draggedParticipant.value);
         } else if (teamId !== undefined && "userId" in draggedParticipant.value && draggedParticipant.value.battleStatus.isSpectator) {

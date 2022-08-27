@@ -29,3 +29,5 @@ pnpm-debug.log*
 output.js
 routes.js
 todo.txt
+/replays.db
+/test.json

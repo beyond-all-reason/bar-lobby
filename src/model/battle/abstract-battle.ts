@@ -3,7 +3,7 @@ import { formatDuration } from "date-fns";
 import { groupBy } from "jaz-ts-utils";
 import { computed, ComputedRef, reactive, watch } from "vue";
 
-import { BattleOptions, Bot, StartPosType } from "@/model/battle/types";
+import { BattleOptions, Bot, StartBox, StartPosType } from "@/model/battle/types";
 import { MapData } from "@/model/map-data";
 import { User } from "@/model/user";
 
@@ -109,10 +109,11 @@ export abstract class AbstractBattle {
 
     public abstract leave(): void;
     public abstract start(): void;
-    public abstract changeMap(map: string): void;
-    public abstract changeGame(gameVersion: string): void;
-    public abstract changeEngine(engineVersion: string): void;
-    public abstract changeStartPosType(startPosType: StartPosType): void;
+    public abstract setMap(map: string): void;
+    public abstract setGame(gameVersion: string): void;
+    public abstract setEngine(engineVersion: string): void;
+    public abstract setStartPosType(startPosType: StartPosType): void;
+    public abstract setStartBoxes(startBoxes: StartBox[]): void;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     public abstract setGameOptions(options: Record<string, any>): void;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -121,5 +122,5 @@ export abstract class AbstractBattle {
     public abstract removeBot(bot: Bot): void;
     public abstract playerToSpectator(player: User): void;
     public abstract spectatorToPlayer(spectator: User, teamId: number): void;
-    public abstract changeContenderTeam(contender: User | Bot, teamId: number): void;
+    public abstract setContenderTeam(contender: User | Bot, teamId: number): void;
 }

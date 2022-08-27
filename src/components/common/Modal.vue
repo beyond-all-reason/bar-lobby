@@ -1,7 +1,7 @@
 <template>
     <teleport to="#wrapper">
         <transition name="modal" appear>
-            <form v-if="open" ref="form" class="modal-container" v-bind="$attrs" @submit.prevent="onSubmit" @keydown.enter="onSubmit">
+            <form v-if="isOpen" ref="form" class="modal-container" @submit.prevent="onSubmit" @keydown.enter="onSubmit">
                 <Panel id="modal" class="modal" v-bind="$attrs">
                     <template #header>
                         <div class="modal__title">
@@ -57,7 +57,7 @@ const emits = defineEmits<{
 }>();
 
 const form: Ref<HTMLFormElement | null> = ref(null);
-const open = toRef(props, "modelValue");
+const isOpen = toRef(props, "modelValue");
 
 defineExpose({
     open: () => emits("update:modelValue", true),
@@ -68,7 +68,7 @@ const close = () => {
     emits("update:modelValue", false);
 };
 
-watch(open, (open) => {
+watch(isOpen, (open) => {
     if (open) {
         nextTick(() => form.value?.querySelector("input")?.focus());
         emits("open");

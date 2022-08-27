@@ -87,12 +87,11 @@ onMounted(async () => {
 });
 
 const setBoxes = (boxes: StartBox[]) => {
-    //props.battle.battleOptions.startBoxes = clone(boxes);
+    props.battle.setStartBoxes(boxes);
 };
 
 const onStartPosChange = (startPosType: StartPosType) => {
-    console.log(startPosType);
-    props.battle.changeStartPosType(startPosType);
+    props.battle.setStartPosType(startPosType);
 };
 
 async function loadMap() {
