@@ -60,7 +60,7 @@ const filteredBattles = computed(() => {
         if (hideLocked.value && (battle.battleOptions.locked || battle.battleOptions.passworded)) {
             return false;
         }
-        if (hideEmpty.value && battle.battleUsers.value.length === 0) {
+        if (hideEmpty.value && battle.users.value.length === 0) {
             return false;
         }
         return true;
@@ -104,7 +104,7 @@ async function updateBattleList() {
         userIds.push(battle.founder_id);
     }
 
-    await updateUsers(userIds);
+    await api.comms.updateUsers(userIds);
 
     for (const lobby of lobbies) {
         let battle = api.session.getBattleById(lobby.lobby.id);
@@ -115,10 +115,6 @@ async function updateBattleList() {
             battle.handleServerResponse(lobby);
         }
     }
-}
-
-async function updateUsers(userIds: number[]) {
-    await api.comms.request("c.user.list_users_from_ids", { id_list: userIds, include_clients: true });
 }
 </script>
 

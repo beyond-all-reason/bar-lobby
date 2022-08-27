@@ -12,12 +12,12 @@
                 </div>
             </div>
         </div>
-        <Textbox v-model="myMessage" class="textbox fullwidth" enableSubmit enableHistory @submit="sendMessage" />
+        <Textbox v-model="myMessage" @keyup.enter="sendMessage" />
     </div>
 </template>
 
 <script lang="ts" setup>
-import { onUnmounted, ref } from "vue";
+import { ref } from "vue";
 
 import Textbox from "@/components/inputs/Textbox.vue";
 import { AbstractBattle } from "@/model/battle/abstract-battle";
@@ -30,36 +30,17 @@ const messages = api.session.battleMessages;
 const myMessage = ref("");
 const messagesEl = ref(null as HTMLElement | null);
 
-const onAnnounce = api.comms.onResponse("s.lobby.announce").add((data) => {
-    messages.push({
-        type: "system",
-        text: data.message,
-    });
-});
-
-const sendMessage = (message: string) => {
-    api.comms.request("c.lobby.message", { message }); // TODO: add to tachyon request schema
-};
-
-const onMessage = api.comms.onResponse("s.lobby.say").add((data) => {
-    const user = api.session.getUserById(data.sender_id);
-    if (!user) {
-        console.error("User not in session data", data.sender_id);
+const sendMessage = () => {
+    if (!myMessage.value) {
+        return;
     }
-    messages.push({
-        type: "chat",
-        name: user?.username ?? "Unknown",
-        text: data.message,
-    });
-    // nextTick(() => {
-    //     messagesEl.value?.scrollTo(0, messagesEl.value?.scrollHeight + 50);
-    // });
-});
 
-onUnmounted(() => {
-    onMessage.destroy();
-    onAnnounce.destroy();
-});
+    api.comms.request("c.lobby.message", {
+        message: myMessage.value,
+    });
+
+    myMessage.value = "";
+};
 </script>
 
 <style lang="scss" scoped>

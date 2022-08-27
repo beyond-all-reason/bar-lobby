@@ -14,10 +14,10 @@
                     {{ battle.battleOptions.title }}
                 </div>
             </div>
-            <div>{{ mapName }}</div>
+            <div>{{ battle.map.value?.friendlyName ?? battle.battleOptions.map }}</div>
         </div>
         <div class="header meta">
-            {{ runtime }}
+            {{ battle.friendlyRuntime.value }}
         </div>
         <div class="clients players">
             <div v-for="player in players" :key="player.userId" class="client">
@@ -63,8 +63,6 @@ import { Icon } from "@iconify/vue";
 import key from "@iconify-icons/mdi/key";
 import lock from "@iconify-icons/mdi/lock";
 import robot from "@iconify-icons/mdi/robot";
-import { useNow } from "@vueuse/core";
-import { formatDuration } from "date-fns";
 import { computed, ref } from "vue";
 
 import Modal from "@/components/common/Modal.vue";
@@ -81,20 +79,7 @@ const users = computed(() => Array.from(props.battle.userIds.values()).map((id) 
 const players = computed(() => users.value.filter((user) => !user.battleStatus?.isSpectator));
 const spectators = computed(() => users.value.filter((user) => user?.battleStatus?.isSpectator));
 const founder = computed(() => api.session.getUserById(props.battle.battleOptions.founderId)!);
-const map = computed(() => api.content.maps.getMapByScriptName(props.battle.battleOptions.map));
-const mapImageUrl = computed(() => (map.value ? `file://${map.value.textureImagePath}` : require("@/assets/images/default-minimap.png")));
-const mapName = computed(() => (map.value ? map.value.friendlyName : api.content.maps.scriptNameToFriendlyName(props.battle.battleOptions.map)));
-const runtime = computed(() => {
-    if (!props.battle.battleOptions.startTime) {
-        return null;
-    }
-    const ms = useNow({ interval: 1000 }).value.getTime() - props.battle.battleOptions.startTime.getTime();
-    const runtimeDate = new Date(ms);
-    const hours = runtimeDate.getHours() - 1;
-    const minutes = runtimeDate.getMinutes();
-    const seconds = runtimeDate.getSeconds();
-    return `Running for ${formatDuration({ hours, minutes, seconds })}`;
-});
+const mapImageUrl = computed(() => (props.battle.map.value ? `file://${props.battle.map.value.textureImagePath}` : require("@/assets/images/default-minimap.png")));
 
 const attemptJoinBattle = async () => {
     if (props.battle.battleOptions.passworded) {
@@ -136,10 +121,7 @@ const onPasswordPromptSubmit: (data: { password?: string }) => Promise<void> = a
     font-weight: 500;
     &:hover {
         .background {
-            filter: brightness(1.3);
-            &:before {
-                border: 1px solid rgba(255, 255, 255, 0.2);
-            }
+            filter: brightness(1.1);
         }
     }
     .header,
@@ -171,14 +153,14 @@ const onPasswordPromptSubmit: (data: { password?: string }) => Promise<void> = a
         background-position: center;
         background-size: cover;
         overflow: hidden;
-        filter: brightness(1);
+        filter: brightness(0.9);
         &:before {
             @extend .fullsize;
             left: 0;
             top: 0;
             transition: all 0.05s;
-            background: rgba(0, 0, 0, 0.3);
             border: 1px solid rgba(255, 255, 255, 0.15);
+            background: linear-gradient(180deg, rgba(0, 0, 0, 0.3) 0, transparent);
         }
     }
     .clients {
@@ -210,6 +192,7 @@ const onPasswordPromptSubmit: (data: { password?: string }) => Promise<void> = a
         background: rgba(0, 0, 0, 0.6);
         border: none;
         font-size: 14px;
+        font-weight: 500;
         svg {
             width: 14px;
             height: 14px;

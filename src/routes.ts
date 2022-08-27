@@ -121,7 +121,7 @@ export default [
         name: 'slide-below',
       },
     },
-    redirect: '/multiplayer/ranked',
+    redirect: '/multiplayer/custom',
   },
   {
     name: 'profile',

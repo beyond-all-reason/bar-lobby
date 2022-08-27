@@ -3,27 +3,31 @@
 </route>
 
 <template>
-    <div>
-        <h1>{{ route.meta.title }}</h1>
-        <Markdown
-            source="
-- Player name
-- Avatar - Steam or choose from BAR selection?
-- Profile level (fancy banner associated with level?)
-- Ranks in each playlist
-- Simple stats - games played, favourite faction, favourite mode
-- Recent achievements unlocked
-- Recent activity/matches
-"
-        />
+    <div class="flex-col">
+        <div class="flex-row gap-lg">
+            <Flag :countryCode="user.countryCode" style="width: 50px" />
+            <h1>{{ user.username }}</h1>
+        </div>
+
+        {{ user.icons }}
     </div>
 </template>
 
 <script lang="ts" setup>
-import { useRoute } from "vue-router";
-import Markdown from "vue3-markdown-it";
+/**
+ * TODO:
+ * - Player name
+ * - Avatar - Steam or choose from BAR selection?
+ * - Profile level (fancy banner associated with level?)
+ * - Ranks in each playlist
+ * - Simple stats - games played, favourite faction, favourite mode
+ * - Recent achievements unlocked
+ * - Recent activity/matches
+ */
 
-const route = useRoute();
+import Flag from "@/components/misc/Flag.vue";
+
+const user = api.session.currentUser;
 </script>
 
 <style lang="scss" scoped></style>

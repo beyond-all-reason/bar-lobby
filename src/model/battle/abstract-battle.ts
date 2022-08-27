@@ -1,7 +1,10 @@
+import { useNow } from "@vueuse/core";
+import { formatDuration } from "date-fns";
 import { groupBy } from "jaz-ts-utils";
 import { computed, ComputedRef, reactive, watch } from "vue";
 
 import { BattleOptions, Bot, StartPosType } from "@/model/battle/types";
+import { MapData } from "@/model/map-data";
 import { User } from "@/model/user";
 
 export interface BattleConfig {
@@ -18,24 +21,38 @@ export abstract class AbstractBattle {
     // helpers
     public readonly participants: ComputedRef<Array<User | Bot>>;
     public readonly contenders: ComputedRef<Array<User | Bot>>;
-    public readonly battleUsers: ComputedRef<Array<User>>;
+    public readonly users: ComputedRef<Array<User>>;
     public readonly players: ComputedRef<Array<User>>;
     public readonly spectators: ComputedRef<Array<User>>;
     public readonly teams: ComputedRef<Map<number, Array<User | Bot>>>;
     public readonly founder: ComputedRef<User>;
+    public readonly friendlyRuntime: ComputedRef<string | null>;
+    public readonly map: ComputedRef<MapData | null>;
 
     constructor(config: BattleConfig) {
         this.battleOptions = reactive(config.battleOptions);
         this.bots = reactive(config.bots);
         this.userIds = reactive(new Set(config.userIds));
 
-        this.participants = computed(() => [...this.bots, ...this.battleUsers.value]);
+        this.participants = computed(() => [...this.bots, ...this.users.value]);
         this.contenders = computed(() => this.participants.value.filter((participant) => ("userId" in participant ? !participant.battleStatus.isSpectator : true)));
-        this.players = computed(() => this.battleUsers.value.filter((user) => !user.battleStatus.isSpectator));
-        this.spectators = computed(() => this.battleUsers.value.filter((user) => user.battleStatus.isSpectator));
-        this.battleUsers = computed(() => Array.from(this.userIds.values()).map((userId) => api.session.getUserById(userId)!));
+        this.players = computed(() => this.users.value.filter((user) => !user.battleStatus.isSpectator));
+        this.spectators = computed(() => this.users.value.filter((user) => user.battleStatus.isSpectator));
+        this.users = computed(() => Array.from(this.userIds.values()).map((userId) => api.session.getUserById(userId)!));
         this.teams = computed(() => groupBy(this.contenders.value, (player) => ("userId" in player ? player.battleStatus.teamId : player.teamId)));
         this.founder = computed(() => api.session.getUserById(this.battleOptions.founderId)!);
+        this.friendlyRuntime = computed(() => {
+            if (!this.battleOptions.startTime) {
+                return null;
+            }
+            const ms = useNow({ interval: 1000 }).value.getTime() - this.battleOptions.startTime.getTime();
+            const runtimeDate = new Date(ms);
+            const hours = runtimeDate.getHours() - 1;
+            const minutes = runtimeDate.getMinutes();
+            const seconds = runtimeDate.getSeconds();
+            return `Running for ${formatDuration({ hours, minutes, seconds })}`;
+        });
+        this.map = computed(() => api.content.maps.getMapByScriptName(this.battleOptions.map));
     }
 
     public getTeamParticipants(teamId: number): Array<User | Bot> {

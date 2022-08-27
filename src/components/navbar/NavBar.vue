@@ -34,8 +34,8 @@
                 <div class="secondary-right flex-row flex-right">
                     <Button class="server-status">
                         <div class="flex-row flex-center gap-sm">
-                            <div class="server-status-dot">⬤</div>
-                            <div>69 Players Online</div>
+                            <div class="server-status-dot" :class="{ offline: serverOffline }">⬤</div>
+                            <div v-if="serverStats">{{ serverStats.user_count }} Players Online</div>
                         </div>
                     </Button>
                     <Button class="user" to="/profile">
@@ -89,6 +89,8 @@ const settingsOpen = ref(false);
 const exitOpen = ref(false);
 
 const currentUser = api.session.currentUser;
+const serverStats = api.session.serverStats;
+const serverOffline = api.session.offlineMode;
 </script>
 
 <style lang="scss" scoped>
@@ -236,6 +238,9 @@ const currentUser = api.session.currentUser;
 .server-status-dot {
     font-size: 12px;
     color: rgb(121, 226, 0);
+    &.offline {
+        color: rgb(216, 46, 46);
+    }
 }
 .user {
     text-transform: unset;

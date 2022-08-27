@@ -63,7 +63,7 @@
     "spring-map-parser": "^4.3.5",
     "sqlite": "^4.1.1",
     "sqlite3": "^5.0.8",
-    "tachyon-client": "^3.10.3",
+    "tachyon-client": "^3.12.1",
     "tsconfig-paths": "^3.12.0",
     "type-fest": "^2.12.2",
     "typescript": "^4.6.4",

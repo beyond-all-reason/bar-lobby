@@ -88,7 +88,7 @@ const onPreloadDone = async () => {
 
         await api.content.replays.init();
 
-        // TODO: fix the slight delay these cause on startup
+        // TODO: fix the slight delay these cause on startup, probably best to move them into worker threads
         api.content.engine.downloadLatestEngine();
         // api.content.game.updateGame();
         // api.content.maps.downloadMaps(defaultMaps);

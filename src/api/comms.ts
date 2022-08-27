@@ -1,6 +1,7 @@
 import { Static } from "@sinclair/typebox";
 import { arrayToMap, assign } from "jaz-ts-utils";
-import { battleSchema, ResponseType, TachyonClient } from "tachyon-client";
+import { battleSchema, TachyonClient } from "tachyon-client";
+import { reactive } from "vue";
 
 import { TachyonSpadsBattle } from "@/model/battle/tachyon-spads-battle";
 import { tachyonLog } from "@/utils/tachyon-log";
@@ -14,12 +15,29 @@ export class CommsAPI extends TachyonClient {
 
         this.onConnect.add(() => {
             console.log(`Connected to ${config.host}:${config.port}`);
-            api.session.offlineMode.value = false;
+            this.request("c.system.watch", {
+                channel: "server_stats",
+            });
 
+            // TODO: make this a .onDisconnect signal
             this.socket?.on("close", () => {
+                // TODO: display alerts whenever connecting/disconnecting
                 console.log(`Disconnected from ${config.host}:${config.port}`);
                 api.session.offlineMode.value = true;
+                api.session.offlineBattle.value = null;
+                api.session.users.clear();
+                api.session.battles.clear();
+                api.session.serverStats;
+                api.router.replace("/");
             });
+        });
+
+        this.onResponse("s.system.server_stats").add(({ data }) => {
+            if (api.session.serverStats.value === null) {
+                api.session.serverStats.value = reactive(data);
+            } else {
+                assign(api.session.serverStats.value, data);
+            }
         });
 
         this.onResponse("s.system.server_event").add((data) => {
@@ -45,16 +63,21 @@ export class CommsAPI extends TachyonClient {
         });
 
         this.onResponse("s.user.user_and_client_list").add(({ clients, users }) => {
-            for (const client of clients) {
-                updateUser(client.userid, undefined, client);
+            for (const userData of users) {
+                api.session.updateUser(userData);
             }
 
-            for (const user of users) {
-                updateUser(user.id, user);
+            for (const client of clients) {
+                api.session.updateUserBattleStauts(client);
             }
         });
 
-        const joinBattle = (data: Static<typeof battleSchema>) => {
+        const joinBattle = async (data: Static<typeof battleSchema>) => {
+            if (data.member_list) {
+                const userIds = data.member_list.map((member) => member.userid);
+                await this.updateUsers(userIds);
+            }
+
             let battle = api.session.getBattleById(data.lobby.id);
             if (!battle) {
                 battle = new TachyonSpadsBattle(data);
@@ -63,9 +86,13 @@ export class CommsAPI extends TachyonClient {
             battle.handleServerResponse(data);
 
             // TODO: remove this when server fixes adding the joining client to member_list
-            battle.userIds.add(api.session.currentUser.userId);
+            if (api.session.currentUser) {
+                battle.userIds.add(api.session.currentUser.userId);
+            }
 
             api.session.onlineBattle.value = battle;
+
+            api.session.battleMessages.length = 0;
 
             api.router.push("/multiplayer/battle");
         };
@@ -110,7 +137,7 @@ export class CommsAPI extends TachyonClient {
         });
 
         this.onResponse("s.lobby.updated_client_battlestatus").add(({ client }) => {
-            updateUser(client.userid, undefined, client);
+            api.session.updateUserBattleStauts(client);
 
             const battle = api.session.onlineBattle.value;
             if (battle && battle.battleOptions.founderId === client.userid) {
@@ -121,7 +148,9 @@ export class CommsAPI extends TachyonClient {
         });
 
         this.onResponse("s.lobby.add_user").add((data) => {
-            const user = api.session.getUserById(data.joiner_id);
+            const user = api.session.updateUser(data.user);
+            api.session.updateUserBattleStauts(data.client);
+
             const battle = api.session.getBattleById(data.lobby_id);
             if (user && battle) {
                 battle.userIds.add(user.userId);
@@ -213,6 +242,25 @@ export class CommsAPI extends TachyonClient {
             }
         });
 
+        this.onResponse("s.lobby.say").add((data) => {
+            const user = api.session.getUserById(data.sender_id);
+            if (!user) {
+                console.error("User not in session data", data.sender_id);
+            }
+            api.session.battleMessages.push({
+                type: "chat",
+                name: user?.username ?? "Unknown",
+                text: data.message,
+            });
+        });
+
+        this.onResponse("s.lobby.announce").add((data) => {
+            api.session.battleMessages.push({
+                type: "system",
+                text: data.message,
+            });
+        });
+
         this.onResponse("s.user.user_and_client_list").add(({ clients, users }) => {
             const clientMap = arrayToMap(clients, "userid");
 
@@ -224,49 +272,13 @@ export class CommsAPI extends TachyonClient {
                     continue;
                 }
 
-                api.session.setUser({
-                    userId: user.id,
-                    legacyId: parseInt(user.springid.toString()) || null,
-                    username: user.name,
-                    clanId: user.clan_id,
-                    isBot: user.bot,
-                    icons: {},
-                    countryCode: user.country,
-                    battleStatus: {
-                        away: battleStatus.away,
-                        inBattle: battleStatus.in_game,
-                        battleId: battleStatus.lobby_id,
-                        ready: battleStatus.ready,
-                        isSpectator: !battleStatus.player,
-                        color: battleStatus.team_colour,
-                        teamId: battleStatus.team_number,
-                        playerId: battleStatus.team_number,
-                        sync: battleStatus.sync,
-                    },
-                });
+                api.session.updateUser(user);
+                api.session.updateUserBattleStauts(battleStatus);
             }
         });
     }
-}
 
-function updateUser(userId: number, userStatus?: ResponseType<"s.user.user_and_client_list">["users"][0], battleStatus?: ResponseType<"s.lobby.updated_client_battlestatus">["client"]) {
-    const user = api.session.getUserById(userId);
-    if (user && userStatus) {
-        user.clanId = userStatus.clan_id;
-        user.username = userStatus.name;
-        user.isBot = userStatus.bot;
-        user.countryCode = userStatus.country;
-        user.icons = userStatus.icons;
-    }
-    if (user && battleStatus) {
-        user.battleStatus.away = battleStatus.away;
-        user.battleStatus.battleId = battleStatus.lobby_id;
-        user.battleStatus.inBattle = battleStatus.in_game;
-        user.battleStatus.isSpectator = !battleStatus.player;
-        user.battleStatus.sync = battleStatus.sync;
-        user.battleStatus.teamId = battleStatus.team_number;
-        user.battleStatus.playerId = battleStatus.player_number;
-        user.battleStatus.color = battleStatus.team_colour;
-        user.battleStatus.ready = battleStatus.ready;
+    public async updateUsers(userIds: number[]) {
+        await api.comms.request("c.user.list_users_from_ids", { id_list: userIds, include_clients: true });
     }
 }

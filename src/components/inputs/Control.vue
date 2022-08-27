@@ -1,5 +1,5 @@
 <template>
-    <div ref="control" class="control" :class="{ disabled }" @mouseenter="onMouseEnter">
+    <div ref="control" class="control" :class="{ disabled }" @mouseenter="onMouseEnter" @click.self="focus">
         <div v-if="label" class="label" @click="focus">{{ label }}</div>
         <slot />
     </div>
@@ -20,6 +20,7 @@ const focus = () => {
         const slotEl = control.value.lastElementChild as HTMLElement | null;
         if (slotEl) {
             slotEl.click();
+            slotEl.focus();
         }
     }
 };

@@ -1,6 +1,6 @@
 <route lang="json">
 {
-    "redirect": "/multiplayer/ranked",
+    "redirect": "/multiplayer/custom",
     "meta": {
         "title": "Multiplayer",
         "order": 1,

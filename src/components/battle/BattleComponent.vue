@@ -2,14 +2,17 @@
     <div class="battle flex-row flex-grow gap-lg">
         <div class="flex-col flex-grow gap-md">
             <div class="flex-col flex-grow">
-                <div class="flex-col margin-bottom-lg">
+                <div class="flex-col gap-xs margin-bottom-lg">
                     <h1 class="title">{{ battle.battleOptions.title }}</h1>
-                    <div v-if="!isOfflineBattle" class="subtitle flex-row gap-sm">
-                        Hosted by
-                        <div class="founder flex-row gap-sm">
-                            {{ battle.founder.value.username }}
-                            <Flag :countryCode="battle.founder.value.countryCode" style="width: 16px" />
+                    <div v-if="!isOfflineBattle" class="subtitle flex-row gap-md">
+                        <div class="flex-row gap-sm">
+                            Hosted by
+                            <div class="founder flex-row gap-sm">
+                                <Flag :countryCode="battle.founder.value.countryCode" style="width: 16px" />
+                                {{ battle.founder.value.username }}
+                            </div>
                         </div>
+                        <div class="flex-right">{{ battle.friendlyRuntime.value }}</div>
                     </div>
                 </div>
                 <Playerlist :battle="battle" />
@@ -73,18 +76,8 @@
             />
             <div class="flex-row flex-bottom gap-md">
                 <Button class="fullwidth" color="red" @click="leave"> Leave </Button>
-                <ToggleButton
-                    v-if="!isOfflineBattle"
-                    v-model="me.battleStatus.ready"
-                    class="fullwidth"
-                    onText="Unready"
-                    offText="Ready Up"
-                    :onClasses="['green']"
-                    :offClasses="['gray']"
-                    :disabled="me.battleStatus.isSpectator"
-                    @click="toggleReady"
-                />
-                <Button class="fullwidth" color="green" @click="start"> Start </Button>
+                <Button v-if="!isOfflineBattle" class="fullwidth" :color="me.battleStatus.ready ? 'green' : 'gray'" :disabled="me.battleStatus.isSpectator" @click="toggleReady">Ready</Button>
+                <Button class="fullwidth" color="green" @click="start"> {{ battle.battleOptions.startTime === null ? "Start" : "Join" }} </Button>
             </div>
         </div>
     </div>
@@ -102,7 +95,6 @@ import MapPreview from "@/components/battle/MapPreview.vue";
 import Playerlist from "@/components/battle/Playerlist.vue";
 import Button from "@/components/inputs/Button.vue";
 import Select from "@/components/inputs/Select.vue";
-import ToggleButton from "@/components/inputs/ToggleButton.vue";
 import Flag from "@/components/misc/Flag.vue";
 import { AbstractBattle } from "@/model/battle/abstract-battle";
 import { OfflineBattle } from "@/model/battle/offline-battle";
@@ -168,7 +160,5 @@ const start = async () => {
 }
 .subtitle {
     font-size: 16px;
-    margin-left: 2px;
-    opacity: 0.8;
 }
 </style>

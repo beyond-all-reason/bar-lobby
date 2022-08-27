@@ -225,7 +225,7 @@ const onDrop = (event: DragEvent, teamId?: number) => {
 .participants {
     display: flex;
     flex-direction: row;
-    gap: 10px;
+    gap: 5px;
     flex-wrap: wrap;
     margin-top: 5px;
 }

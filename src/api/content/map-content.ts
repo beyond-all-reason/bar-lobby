@@ -53,7 +53,7 @@ export class MapContentAPI extends AbstractContentAPI {
     }
 
     public getMapByScriptName(scriptName: string) {
-        return Array.from(this.installedMaps.values()).find((map) => map.scriptName === scriptName);
+        return Array.from(this.installedMaps.values()).find((map) => map.scriptName === scriptName) ?? null;
     }
 
     public async getInstalledMapFilenames() {
@@ -195,9 +195,5 @@ export class MapContentAPI extends AbstractContentAPI {
             }
         }
         return false;
-    }
-
-    public scriptNameToFriendlyName(mapScriptName: string) {
-        return mapScriptName.replaceAll("_", " ");
     }
 }

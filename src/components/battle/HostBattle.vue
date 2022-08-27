@@ -6,7 +6,7 @@
                 <Loader :absolutePosition="false"></Loader>
             </template>
             <template v-else>
-                <Select v-model="selectedRegion" :options="regions" label="Region" optionLabel="name" optionValue="code">
+                <!-- <Select v-model="selectedRegion" :options="regions" label="Region" optionLabel="name" optionValue="code">
                     <template #value>
                         <div class="flex-row gap-md">
                             <Flag :countryCode="selectedRegion" />
@@ -20,7 +20,7 @@
                             <div>{{ slotProps.option.name }}</div>
                         </div>
                     </template>
-                </Select>
+                </Select> -->
 
                 <Button class="blue" @click="hostBattle">Host Battle</Button>
             </template>
@@ -35,8 +35,6 @@ import { computed, Ref, ref } from "vue";
 import Loader from "@/components/common/Loader.vue";
 import Modal from "@/components/common/Modal.vue";
 import Button from "@/components/inputs/Button.vue";
-import Select from "@/components/inputs/Select.vue";
-import Flag from "@/components/misc/Flag.vue";
 
 const regions = ref([
     { name: "Europe", code: "HU" },

@@ -1,5 +1,8 @@
 <template>
     <div class="sticky-battle flex-row" :class="{ hidden: !battle || route.name === 'multiplayer-battle' }" @click="openBattle">
+        <div class="leave" @click="leaveBattle">
+            <Icon :icon="closeThick" height="18" />
+        </div>
         <div class="title flex-col flex-center">
             <Icon :color="color" :icon="swordCross" height="32"></Icon>
         </div>
@@ -26,6 +29,7 @@
 <script lang="ts" setup>
 import { Icon } from "@iconify/vue";
 import accountIcon from "@iconify-icons/mdi/account";
+import closeThick from "@iconify-icons/mdi/close-thick";
 import eyeIcon from "@iconify-icons/mdi/eye";
 import robotIcon from "@iconify-icons/mdi/robot";
 import swordCross from "@iconify-icons/mdi/sword-cross";
@@ -50,6 +54,10 @@ const color = computed(() => {
 
 const openBattle = () => {
     api.router.push("/multiplayer/battle");
+};
+
+const leaveBattle = () => {
+    battle.value?.leave();
 };
 </script>
 
@@ -80,7 +88,7 @@ const openBattle = () => {
         box-shadow: 3px 2px 10px rgba(0, 0, 0, 0.3);
     }
     &:hover {
-        left: -30px;
+        left: 0;
         &:before {
             backdrop-filter: blur(8px) brightness(400%) saturate(200%);
         }
@@ -97,5 +105,22 @@ const openBattle = () => {
     font-weight: 500;
     text-transform: uppercase;
     opacity: 0.7;
+}
+.leave {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    background: linear-gradient(rgba(219, 57, 57, 0.9), rgba(153, 26, 26, 0.9));
+    border-top: 1px solid rgba(255, 255, 255, 0.3);
+    border-bottom: 1px solid rgba(255, 255, 255, 0);
+    border-right: 1px solid rgba(255, 255, 255, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 4px;
+    &:hover {
+        filter: brightness(1.2);
+    }
 }
 </style>

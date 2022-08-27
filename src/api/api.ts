@@ -2,7 +2,6 @@ import { ipcRenderer } from "electron";
 import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
-import { TachyonClient } from "tachyon-client";
 import { createRouter, createWebHashHistory, Router } from "vue-router";
 
 import { AlertsAPI } from "@/api/alerts";
@@ -27,7 +26,7 @@ interface API {
     account: StoreAPI<Account>;
     alerts: AlertsAPI;
     audio: AudioAPI;
-    comms: TachyonClient;
+    comms: CommsAPI;
     content: ContentAPI;
     game: GameAPI;
     history: HistoryAPI;

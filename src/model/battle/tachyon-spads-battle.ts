@@ -133,7 +133,7 @@ export class TachyonSpadsBattle extends AbstractBattle {
                 }
 
                 for (const userId of newUserIds) {
-                    if (!this.battleUsers.value.find((user) => user.userId === userId)) {
+                    if (!this.users.value.find((user) => user.userId === userId)) {
                         const user = api.session.getUserById(userId);
                         this.userIds.add(userId);
                         if (!user) {
@@ -217,9 +217,13 @@ export class TachyonSpadsBattle extends AbstractBattle {
     }
 
     public start() {
-        api.comms.request("c.lobby.message", {
-            message: "!cv start",
-        });
+        if (this.battleOptions.startTime) {
+            api.game.launch(this);
+        } else {
+            api.comms.request("c.lobby.message", {
+                message: "!cv start",
+            });
+        }
     }
 
     public changeEngine(engineVersion: string) {
