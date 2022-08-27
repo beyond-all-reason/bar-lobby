@@ -1,5 +1,3 @@
-import "vue-next-select/dist/index.css";
-import "vue-slider-component/theme/default.css";
 import "@/assets/styles/styles.scss";
 import "primevue/resources/primevue.min.css";
 
