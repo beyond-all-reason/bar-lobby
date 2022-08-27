@@ -47,6 +47,7 @@ const onMouseEnter = () => {
         padding: 5px 10px;
         border-radius: 0px;
         border-right: 1px solid rgba(255, 255, 255, 0.1);
+        white-space: nowrap;
     }
     &.disabled {
         opacity: 0.5;

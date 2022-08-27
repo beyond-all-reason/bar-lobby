@@ -17,30 +17,20 @@
         </div>
         <div class="clients players">
             <div v-for="player in players" :key="player.userId" class="client">
-                <div v-if="player.countryCode && player.countryCode !== '??'">
-                    <Flag :countryCode="player.countryCode" />
-                </div>
+                <Flag :countryCode="player.countryCode" />
                 <div>
                     {{ player.username }}
                 </div>
             </div>
             <div v-for="(bot, i) in battle.bots" :key="i" class="client">
-                <div class="flex-col flex-center">
-                    <Icon :icon="robot" />
-                </div>
-                <div class="flex-col flex-center">
-                    {{ bot.name }}
-                </div>
+                <Icon :icon="robot" />
+                {{ bot.name }}
             </div>
         </div>
         <div v-if="spectators.length" class="clients spectators">
             <div v-for="spectator in spectators" :key="spectator.userId" class="client">
-                <div v-if="spectator.countryCode">
-                    <Flag :countryCode="spectator.countryCode" />
-                </div>
-                <div>
-                    {{ spectator.username }}
-                </div>
+                <Flag :countryCode="spectator.countryCode" />
+                {{ spectator.username }}
             </div>
         </div>
 

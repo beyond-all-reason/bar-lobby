@@ -2,7 +2,7 @@
     <Modal v-model="isVisible" title="Fatal Error" class="error-modal">
         <div class="flex-col gap-md">
             <div>A fatal error has occurred and BAR Lobby needs to reload.</div>
-            <div v-if="error" class="error">{{ error }}</div>
+            <div v-if="error" class="error">{{ error.message }}</div>
             <div v-if="promiseError?.reason.stack" class="error">{{ promiseError.reason.stack }}</div>
             <Button @click="onReload">Reload</Button>
         </div>
@@ -16,7 +16,7 @@ import Modal from "@/components/common/Modal.vue";
 import Button from "@/components/inputs/Button.vue";
 
 const isVisible = ref(false);
-const error: Ref<ErrorEvent | PromiseRejectionEvent | null> = ref(null);
+const error: Ref<ErrorEvent | null> = ref(null);
 const promiseError: Ref<PromiseRejectionEvent | null> = ref(null);
 
 window.addEventListener("unhandledrejection", function (event) {

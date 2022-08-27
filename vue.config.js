@@ -1,4 +1,4 @@
-const path = require('path');
+const path = require("path");
 
 module.exports = {
     lintOnSave: true,
@@ -30,12 +30,9 @@ module.exports = {
          */
         electronBuilder: {
             mainProcessFile: "src/main.ts",
-            mainProcessWatch: [
-                "src/main.ts",
-                "src/main-window.ts",
-            ],
+            mainProcessWatch: ["src/main.ts", "src/main-window.ts"],
             rendererProcessFile: "src/render.ts",
-            customFileProtocol: "bar://./",
+            customFileProtocol: "bar:/",
             nodeIntegration: true,
             builderOptions: {
                 productName: "Beyond All Reason",
@@ -50,10 +47,7 @@ module.exports = {
                     },
                 ],
                 win: {
-                    target: [
-                        "nsis",
-                        "portable",
-                    ],
+                    target: ["nsis", "portable"],
                 },
                 nsis: {
                     oneClick: false,
