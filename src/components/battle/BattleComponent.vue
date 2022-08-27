@@ -2,7 +2,7 @@
     <div class="battle flex-row flex-grow gap-lg">
         <div class="flex-col flex-grow gap-md">
             <div class="flex-col flex-grow">
-                <div class="flex-col gap-xs margin-bottom-lg">
+                <div class="flex-col gap-sm margin-bottom-lg">
                     <h1 class="title">{{ battle.battleOptions.title }}</h1>
                     <div v-if="!isOfflineBattle" class="subtitle flex-row gap-md">
                         <div class="flex-row gap-sm">
