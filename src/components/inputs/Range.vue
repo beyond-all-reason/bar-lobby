@@ -50,7 +50,7 @@ const onInput = (input: number | number[]) => {
     width: 100%;
     align-self: center;
 }
-::v-deep .p-slider {
+:deep(.p-slider) {
     width: 100%;
     margin: 0 15px;
     &:before {
@@ -61,14 +61,14 @@ const onInput = (input: number | number[]) => {
         border-radius: 5px;
         overflow: hidden;
     }
-    &-horizontal {
+    &.p-slider-horizontal {
         height: 0.286rem;
     }
-    &-range {
+    .p-slider-range {
         background: #ddd;
         border-radius: 5px;
     }
-    &-handle {
+    .p-slider-handle {
         top: 50%;
         height: 15px;
         width: 15px;
@@ -77,12 +77,12 @@ const onInput = (input: number | number[]) => {
         transform: translateX(-50%) translateY(-50%);
         transition: background-color 0.2s, color 0.2s, border-color 0.2s, box-shadow 0.2s;
     }
-    &-sliding .p-slider-handle,
-    &-handle:hover {
+    .p-slider-sliding .p-slider-handle,
+    .p-slider-handle:hover {
         background-color: #fff;
     }
 }
-::v-deep .p-inputtext {
+:deep(.p-inputtext) {
     width: v-bind(maxInputWidth);
     text-align: center;
 }
