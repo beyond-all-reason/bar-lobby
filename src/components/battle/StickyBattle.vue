@@ -1,6 +1,6 @@
 <template>
     <div class="sticky-battle flex-row" :class="{ hidden: !battle || route.name === 'multiplayer-battle' }" @click="openBattle">
-        <div class="leave" @click="leaveBattle">
+        <div class="leave" @click.stop="leaveBattle">
             <Icon :icon="closeThick" height="18" />
         </div>
         <div class="title flex-col flex-center">

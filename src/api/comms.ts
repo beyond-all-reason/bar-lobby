@@ -95,6 +95,8 @@ export class CommsAPI extends TachyonClient {
             api.session.battleMessages.length = 0;
 
             api.router.push("/multiplayer/battle");
+
+            battle.open();
         };
 
         this.onResponse("s.lobby.join_response").add((data) => {

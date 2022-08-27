@@ -155,8 +155,16 @@ const onPasswordPromptSubmit: (data: { password?: string }) => Promise<void> = a
             left: 0;
             top: 0;
             transition: all 0.05s;
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            background: linear-gradient(180deg, rgba(0, 0, 0, 0.3) 0, transparent);
+            background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0));
+        }
+        &:after {
+            @extend .fullsize;
+            left: 0;
+            top: 0;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            border-left: 1px solid rgba(255, 255, 255, 0.1);
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
         }
     }
     .clients {

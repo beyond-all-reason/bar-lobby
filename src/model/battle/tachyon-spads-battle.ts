@@ -204,8 +204,10 @@ export class TachyonSpadsBattle extends AbstractBattle {
         });
     }
 
-    public override open() {
+    public override async open() {
         super.open();
+
+        await api.comms.request("c.user.list_users_from_ids", { id_list: Array.from(this.userIds.values()), include_clients: true });
 
         this.updateSync();
     }
@@ -213,7 +215,7 @@ export class TachyonSpadsBattle extends AbstractBattle {
     public async leave() {
         api.comms.request("c.lobby.leave", {});
         api.session.onlineBattle.value = null;
-        if (api.router.currentRoute.value.path === "/multiplayer/battle") {
+        if (api.router.currentRoute.value.name === "multiplayer-battle") {
             api.router.replace("/multiplayer/custom");
         }
     }

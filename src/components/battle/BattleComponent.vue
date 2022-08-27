@@ -112,8 +112,6 @@ const installedGames = computed(() => api.content.game.installedVersions.map((ra
 const gameOptionsOpen = ref(false);
 const gameOptions: Ref<LuaOptionSection[]> = ref([]);
 
-props.battle.open();
-
 const onEngineSelected = (engineVersion: string) => {
     props.battle.setEngine(engineVersion);
 };
