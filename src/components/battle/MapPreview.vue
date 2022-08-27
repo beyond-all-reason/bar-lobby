@@ -1,8 +1,8 @@
 <template>
     <div class="map-preview">
-        <canvas ref="canvas" class="map-preview__canvas" />
-        <div class="map-preview__actions">
-            <div class="map-preview__start-pos-type">
+        <canvas ref="canvas" class="canvas" />
+        <div class="overlay">
+            <div class="toolbar">
                 <Options
                     :modelValue="battle.battleOptions.startPosType"
                     :options="startPosOptions"
@@ -12,26 +12,27 @@
                     :unselectable="false"
                     @update:model-value="onStartPosChange"
                 />
-            </div>
-            <div v-if="battle.battleOptions.startPosType === StartPosType.Boxes" class="map-preview__box-actions">
-                <Button @click="setBoxes(defaultBoxes().EastVsWest)">
-                    <img src="@/assets/images/icons/east-vs-west.png" />
-                </Button>
-                <Button @click="setBoxes(defaultBoxes().NorthVsSouth)">
-                    <img src="@/assets/images/icons/north-vs-south.png" />
-                </Button>
-                <Button @click="setBoxes(defaultBoxes().NortheastVsSouthwest)">
-                    <img src="@/assets/images/icons/northeast-vs-southwest.png" />
-                </Button>
-                <Button @click="setBoxes(defaultBoxes().NorthwestVsSouthEast)">
-                    <img src="@/assets/images/icons/northwest-vs-southeast.png" />
-                </Button>
+                <div v-if="battle.battleOptions.startPosType === StartPosType.Boxes" class="box-buttons">
+                    <Button @click="setBoxes(defaultBoxes().EastVsWest)">
+                        <img src="@/assets/images/icons/east-vs-west.png" />
+                    </Button>
+                    <Button @click="setBoxes(defaultBoxes().NorthVsSouth)">
+                        <img src="@/assets/images/icons/north-vs-south.png" />
+                    </Button>
+                    <Button @click="setBoxes(defaultBoxes().NortheastVsSouthwest)">
+                        <img src="@/assets/images/icons/northeast-vs-southwest.png" />
+                    </Button>
+                    <Button @click="setBoxes(defaultBoxes().NorthwestVsSouthEast)">
+                        <img src="@/assets/images/icons/northwest-vs-southeast.png" />
+                    </Button>
+                </div>
             </div>
         </div>
     </div>
 </template>
 
 <script lang="ts" setup>
+import { entries } from "jaz-ts-utils";
 import { computed, onMounted, Ref, ref, watch } from "vue";
 
 import defaultMinimapImage from "@/assets/images/default-minimap.png";
@@ -163,26 +164,28 @@ function drawFixedPositions() {
 }
 
 function drawBoxes() {
-    props.battle.battleOptions.startBoxes.forEach((box, teamId) => {
-        if (api.session.currentUser.battleStatus.isSpectator) {
-            context.fillStyle = "rgba(255, 255, 255, 0.2)";
-        } else if (api.session.currentUser.battleStatus.teamId === teamId) {
-            context.fillStyle = "rgba(0, 255, 0, 0.2)";
-        } else {
-            context.fillStyle = "rgba(255, 0, 0, 0.2)";
+    entries(props.battle.battleOptions.startBoxes).forEach(([id, box], i) => {
+        if (box) {
+            if (api.session.currentUser.battleStatus.isSpectator) {
+                context.fillStyle = "rgba(255, 255, 255, 0.2)";
+            } else if (api.session.currentUser.battleStatus.teamId === i) {
+                context.fillStyle = "rgba(0, 255, 0, 0.2)";
+            } else {
+                context.fillStyle = "rgba(255, 0, 0, 0.2)";
+            }
+
+            context.strokeStyle = "rgba(255, 255, 255, 0.5)";
+            context.lineWidth = 1;
+
+            let boxTransform: Transform = {
+                x: mapTransform.x + mapTransform.width * box.xPercent,
+                y: mapTransform.y + mapTransform.height * box.yPercent,
+                width: mapTransform.width * box.widthPercent,
+                height: mapTransform.height * box.heightPercent,
+            };
+            boxTransform = roundTransform(boxTransform);
+            context.fillRect(boxTransform.x, boxTransform.y, boxTransform.width, boxTransform.height);
         }
-
-        context.strokeStyle = "rgba(255, 255, 255, 0.5)";
-        context.lineWidth = 1;
-
-        let boxTransform: Transform = {
-            x: mapTransform.x + mapTransform.width * box.xPercent,
-            y: mapTransform.y + mapTransform.height * box.yPercent,
-            width: mapTransform.width * box.widthPercent,
-            height: mapTransform.height * box.heightPercent,
-        };
-        boxTransform = roundTransform(boxTransform);
-        context.fillRect(boxTransform.x, boxTransform.y, boxTransform.width, boxTransform.height);
     });
 }
 
@@ -210,45 +213,62 @@ function roundTransform(transform: Transform) {
     background: rgba(0, 0, 0, 0.3);
     border: 1px solid rgba(255, 255, 255, 0.1);
     position: relative;
-    canvas {
-        margin: 10px;
-        aspect-ratio: 1;
-    }
-    &__actions {
-        display: flex;
-        position: absolute;
-        width: 100%;
-        left: 0;
+    &:before {
+        @extend .fullsize;
+        height: 52px;
         bottom: 0;
-        padding: 15px;
-        flex-direction: row;
-        justify-content: space-between;
+        left: 0;
+        width: calc(100% - 20px);
+        margin: 10px;
+        backdrop-filter: blur(2px);
+        background: rgba(0, 0, 0, 0.1);
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
         opacity: 0;
         transition: opacity 0.1s;
     }
-    &__box-actions {
-        display: flex;
-        flex-direction: row;
-        gap: 2px;
-        :deep(button) {
-            min-height: unset;
-            padding: 5px;
-            &:hover {
-                img {
-                    opacity: 1;
-                }
-            }
-        }
-        img {
-            max-width: 23px;
-            image-rendering: pixelated;
-            opacity: 0.7;
-        }
-    }
     &:hover {
-        .map-preview__actions {
+        &:before,
+        .toolbar {
             opacity: 1;
         }
+    }
+}
+.canvas {
+    margin: 10px;
+    aspect-ratio: 1;
+}
+.overlay {
+    @extend .fullsize;
+    padding: 18px;
+    left: 0;
+    top: 0;
+}
+.toolbar {
+    position: relative;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    margin-top: auto;
+    opacity: 0;
+    transition: opacity 0.1s;
+}
+.box-buttons {
+    display: flex;
+    flex-direction: row;
+    gap: 2px;
+    :deep(button) {
+        min-height: unset;
+        padding: 5px;
+        &:hover {
+            img {
+                opacity: 1;
+            }
+        }
+    }
+    img {
+        max-width: 23px;
+        image-rendering: pixelated;
+        opacity: 0.7;
     }
 }
 </style>

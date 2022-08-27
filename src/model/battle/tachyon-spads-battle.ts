@@ -249,9 +249,7 @@ export class TachyonSpadsBattle extends AbstractBattle {
     }
 
     public setStartBoxes(startBoxes: StartBox[]) {
-        // api.comms.request("c.lobby.message", {
-        //     message: `!cv ${startPosType}`,
-        // });
+        console.warn("not implemented: setStartBoxes");
     }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

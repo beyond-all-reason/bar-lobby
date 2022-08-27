@@ -104,10 +104,10 @@ export class MapContentAPI extends AbstractContentAPI {
             throw new Error(`${scriptName} not found on springfiles.springrts.com`);
         }
 
-        return this.downloadMapByFilename(mapResult.filename, host);
+        return this.downloadMapByFilename(mapResult.filename, mapResult.name, host);
     }
 
-    public async downloadMapByFilename(filename: string, host = contentSources.maps.http[0]!): Promise<void> {
+    public async downloadMapByFilename(filename: string, scriptName: string, host = contentSources.maps.http[0]!): Promise<void> {
         if (this.getMapByFileName(filename)) {
             console.log(`Map ${filename} is already installed`);
             return;
@@ -123,7 +123,7 @@ export class MapContentAPI extends AbstractContentAPI {
 
             const downloadInfo: DownloadInfo = reactive({
                 type: "map",
-                name: filename,
+                name: scriptName,
                 currentBytes: 0,
                 totalBytes: 1,
             });

@@ -2,7 +2,7 @@
     <div class="progress" :class="{ themed: themed }" :style="percentStr">
         <div class="progress__bar" :style="`height: ${height}px`">
             <div class="progress__current" />
-            <div class="fullsize progress__text">
+            <div class="progress__text">
                 {{ text }}
             </div>
         </div>
@@ -63,6 +63,9 @@ watch(
         border-top: 1px solid rgba(255, 255, 255, 0.3);
     }
     &__text {
+        @extend .fullsize;
+        top: 1px;
+        left: 0;
         display: flex;
         justify-content: center;
         align-items: center;

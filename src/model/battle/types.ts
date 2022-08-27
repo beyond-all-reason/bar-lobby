@@ -6,7 +6,7 @@ export type BattleOptions = {
     map: string;
     isHost: boolean;
     startPosType: StartPosType;
-    startBoxes: StartBox[];
+    startBoxes: Record<number, StartBox | undefined>;
     passworded: boolean;
     password: string | null;
     scriptPassword: string | null;

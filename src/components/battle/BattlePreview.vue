@@ -3,14 +3,10 @@
         <div class="background" :style="`background-image: url('${mapImageUrl}')`" />
         <div class="header">
             <div class="title">
-                <div class="flex-col flex-center">
+                <div class="flex-row flex-center gap-sm">
                     <Flag :countryCode="founder.countryCode" />
-                </div>
-                <div class="flex-col flex-center">
                     <Icon v-if="battle.battleOptions.locked" :icon="lock" />
                     <Icon v-if="battle.battleOptions.passworded" :icon="key" />
-                </div>
-                <div class="flex-col flex-center">
                     {{ battle.battleOptions.title }}
                 </div>
             </div>

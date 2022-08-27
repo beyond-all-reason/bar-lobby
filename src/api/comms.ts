@@ -168,23 +168,19 @@ export class CommsAPI extends TachyonClient {
         this.onResponse("s.lobby.add_start_area").add((data) => {
             const battle = api.session.getBattleById(data.lobby_id);
             if (battle) {
-                battle.handleServerResponse({
-                    lobby: {
-                        start_areas: data,
-                    },
-                });
+                battle.battleOptions.startBoxes[data.area_id] = {
+                    xPercent: data.structure.x1 / 200,
+                    yPercent: data.structure.y1 / 200,
+                    widthPercent: data.structure.x2 / 200 - data.structure.x1 / 200,
+                    heightPercent: data.structure.y2 / 200 - data.structure.y1 / 200,
+                };
             }
         });
 
         this.onResponse("s.lobby.remove_start_area").add((data) => {
             const battle = api.session.getBattleById(data.lobby_id);
             if (battle) {
-                // TODO
-                battle.handleServerResponse({
-                    lobby: {
-                        start_areas: data,
-                    },
-                });
+                battle.battleOptions.startBoxes[data.area_id] = undefined;
             }
         });
 
