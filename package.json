@@ -1,6 +1,6 @@
 {
   "name": "bar-lobby",
-  "version": "0.7.1",
+  "version": "0.7.2",
   "private": true,
   "description": "Lobby client for the RTS game Beyond All Reason",
   "author": "Jazcash",
