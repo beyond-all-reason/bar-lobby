@@ -26,7 +26,7 @@ It is highly recommended to use [VSCode](https://code.visualstudio.com/) for dev
 
 ### Requirements
 - [Node.js](https://nodejs.org/en/download/) (node v14 required)
-- Git LFS
+- [Git LFS](https://git-lfs.github.com/)
 
 ### Project setup:
 
