@@ -27,7 +27,13 @@ It is highly recommended to use [VSCode](https://code.visualstudio.com/) for dev
 
 ### NPM Scripts
 
-Project setup: `npm install`
+Project setup for development:
+
+```
+git lfs install
+git clone git@github.com:beyond-all-reason/bar-lobby.git
+npm install
+```
 
 Compile and hot-reload for development: `npm run dev`
 
