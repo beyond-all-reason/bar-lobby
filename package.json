@@ -6,7 +6,7 @@
   "author": "Jazcash",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Jazcash/bar-lobby.git"
+    "url": "git+https://github.com/beyond-all-reason/bar-lobby.git"
   },
   "main": "index.js",
   "scripts": {
