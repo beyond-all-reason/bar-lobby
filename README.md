@@ -26,16 +26,9 @@ It is highly recommended to use [VSCode](https://code.visualstudio.com/) for dev
 - [Node.js](https://nodejs.org/en/download/) (node v14 required)
 
 ### NPM Scripts
-Project setup - `npm install`
-
-Compile and hot-reload for development - `npm run dev`
-
-Compile and minify for production - `npm run bundle`
-
-Lint and fix files - `npm run lint`
-
-Automated release deployment:
-```
-npm version minor
-git push && git push --tags
-```
+Project setup: `npm install`
+Compile and hot-reload for development: `npm run dev`
+Compile and minify for production: `npm run build`
+Lint files: `npm run lint`
+Format files: `npm run format`
+Bump version and deploy: `npm version patch` / `npm version minor` / `npm version major`
