@@ -25,15 +25,15 @@ It is highly recommended to use [VSCode](https://code.visualstudio.com/) for dev
 ### Requirements
 - [Node.js](https://nodejs.org/en/download/) (node v14 required)
 
-### NPM Scripts
-
-Project setup for development:
+### Project setup for development:
 
 ```
 git lfs install
 git clone git@github.com:beyond-all-reason/bar-lobby.git
 npm install
 ```
+
+### NPM Scripts
 
 Compile and hot-reload for development: `npm run dev`
 
