@@ -44,7 +44,6 @@ export class EngineContentAPI extends AbstractContentAPI {
 
     public async downloadEngine(engineVersion: string) {
         if (this.installedVersions.includes(engineVersion)) {
-            console.log(`Engine version already installed: ${engineVersion}`);
             return;
         }
 

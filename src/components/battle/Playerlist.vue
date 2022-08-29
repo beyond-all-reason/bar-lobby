@@ -16,13 +16,7 @@
                 <Button v-if="me.battleStatus.isSpectator || me.battleStatus.teamId !== teamId" class="slim" @click="joinTeam(teamId)"> Join </Button>
             </div>
             <div class="participants">
-                <div
-                    v-for="(contender, contenderIndex) in battle.getTeamParticipants(teamId)"
-                    :key="`contender${contenderIndex}`"
-                    draggable
-                    @dragstart="dragStart($event, contender)"
-                    @dragend="dragEnd($event, contender)"
-                >
+                <div v-for="(contender, contenderIndex) in contenders" :key="`contender${contenderIndex}`" draggable @dragstart="dragStart($event, contender)" @dragend="dragEnd($event, contender)">
                     <PlayerParticipant v-if="'userId' in contender" :battle="battle" :player="contender" />
                     <BotParticipant v-else :battle="battle" :bot="contender" />
                 </div>

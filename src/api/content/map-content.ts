@@ -84,7 +84,6 @@ export class MapContentAPI extends AbstractContentAPI {
     // currently reliant on springfiles for scriptname lookup
     public async downloadMapByScriptName(scriptName: string, host = contentSources.maps.http[0]!) {
         if (this.getMapByScriptName(scriptName)) {
-            console.debug(`Map ${scriptName} is already installed`);
             return;
         }
 
@@ -109,7 +108,6 @@ export class MapContentAPI extends AbstractContentAPI {
 
     public async downloadMapByFilename(filename: string, scriptName: string, host = contentSources.maps.http[0]!): Promise<void> {
         if (this.getMapByFileName(filename)) {
-            console.log(`Map ${filename} is already installed`);
             return;
         }
 

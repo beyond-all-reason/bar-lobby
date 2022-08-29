@@ -77,9 +77,12 @@ const onIntroEnd = () => {
 const onPreloadDone = async () => {
     console.time("onPreloadDone");
 
+    // TODO: init all content apis here
+
     await api.content.engine.init();
 
-    if (api.content.engine.installedVersions.length === 0 || api.content.game.installedVersions.length === 0 || api.content.maps.installedMaps.size === 0) {
+    // TODO: should also check to see if game and maps are installed (need to fix bug where interrupted game dl reports as successful install)
+    if (api.content.engine.installedVersions.length === 0) {
         state.value = "initial-setup";
     } else {
         const latestEngine = lastInArray(api.content.engine.installedVersions)!;

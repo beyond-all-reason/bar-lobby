@@ -39,7 +39,11 @@ export abstract class AbstractBattle {
         this.players = computed(() => this.users.value.filter((user) => !user.battleStatus.isSpectator));
         this.spectators = computed(() => this.users.value.filter((user) => user.battleStatus.isSpectator));
         this.users = computed(() => Array.from(this.userIds.values()).map((userId) => api.session.getUserById(userId)!));
-        this.teams = computed(() => groupBy(this.contenders.value, (player) => ("userId" in player ? player.battleStatus.teamId : player.teamId)));
+        this.teams = computed(() => {
+            const teams = groupBy(this.contenders.value, (player) => ("userId" in player ? player.battleStatus.teamId : player.teamId));
+            const sortedTeams = new Map([...teams.entries()].sort());
+            return sortedTeams;
+        });
         this.founder = computed(() => api.session.getUserById(this.battleOptions.founderId)!);
         this.friendlyRuntime = computed(() => {
             if (!this.battleOptions.startTime) {
