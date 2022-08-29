@@ -26,7 +26,6 @@
 
 <script lang="ts" setup>
 import { ref, watch } from "vue";
-import { useRouter } from "vue-router";
 
 import Loader from "@/components/common/Loader.vue";
 import Button from "@/components/inputs/Button.vue";
@@ -34,11 +33,9 @@ import Checkbox from "@/components/inputs/Checkbox.vue";
 import Textbox from "@/components/inputs/Textbox.vue";
 import { linkify } from "@/utils/linkify";
 
-const router = useRouter();
 const loading = ref(false);
 const email = ref("");
 const password = ref("");
-const token = ref("");
 const loginAutomatically = api.settings.model.loginAutomatically;
 const requestVerification = ref(false);
 const verificationMessage = ref("");
@@ -71,7 +68,6 @@ const login = async () => {
         });
 
         if (loginResponse.result === "success") {
-            await router.push("/home");
             return;
         } else if (loginResponse.result === "unverified" && loginResponse.agreement) {
             verificationMessage.value = linkify(loginResponse.agreement);

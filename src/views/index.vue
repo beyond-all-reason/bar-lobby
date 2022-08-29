@@ -17,21 +17,22 @@ onMounted(async () => {
         await api.comms.connect();
 
         if (api.account.model.token.value && api.settings.model.loginAutomatically.value) {
-            const response = await api.comms.request("c.auth.login", {
+            const loginResponse = await api.comms.request("c.auth.login", {
                 token: api.account.model.token.value,
                 lobby_name: api.info.lobby.name,
                 lobby_version: api.info.lobby.version,
                 lobby_hash: api.info.lobby.hash,
             });
 
-            if (response.result !== "success") {
-                throw new Error(response.reason);
+            if (loginResponse.result === "success") {
+                return;
             }
         }
     } catch (error) {
-        console.warn(error);
-        await router.replace("/login");
+        console.error(error);
     }
+
+    router.replace("/login");
 });
 </script>
 

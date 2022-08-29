@@ -65,7 +65,11 @@ export class CommsAPI extends TachyonClient {
             }
         });
 
-        const onLogin = (userData: Static<typeof myUserSchema>) => {
+        const onLogin = (result: string, userData: Static<typeof myUserSchema> | undefined) => {
+            if (result !== "success" || !userData) {
+                return;
+            }
+
             api.session.updateCurrentUser(userData);
 
             api.session.offlineMode.value = false;
@@ -74,15 +78,11 @@ export class CommsAPI extends TachyonClient {
         };
 
         this.onResponse("s.auth.login").add((data) => {
-            if (data.result === "success" && data.user) {
-                onLogin(data.user);
-            }
+            onLogin(data.result, data.user);
         });
 
         this.onResponse("s.auth.verify").add((data) => {
-            if (data.result === "success" && data.user) {
-                onLogin(data.user);
-            }
+            onLogin(data.result, data.user);
         });
 
         this.onResponse("s.user.user_and_client_list").add(({ clients, users }) => {
