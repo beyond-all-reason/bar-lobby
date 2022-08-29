@@ -66,26 +66,6 @@ function loadImage(url: string) {
         image.src = buildImagePath;
     });
 }
-
-// const downloadPercent = computed(() => {
-//     const downloads = api.content.engine.currentDownloads.concat(api.content.game.currentDownloads, api.content.maps.currentDownloads);
-
-//     if (downloads.length === 0) {
-//         return 1;
-//     }
-
-//     console.log(downloads);
-
-//     let currentBytes = 0;
-//     let totalBytes = 0;
-
-//     for (const download of downloads) {
-//         currentBytes += download.currentBytes;
-//         totalBytes += download.totalBytes;
-//     }
-
-//     return (currentBytes / totalBytes) || 0;
-// });
 </script>
 
 <style lang="scss" scoped></style>
