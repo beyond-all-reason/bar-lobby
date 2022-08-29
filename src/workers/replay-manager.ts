@@ -28,7 +28,8 @@ export class ReplayManager {
             logSQL: false,
         });
 
-        this.replayProcessor = new CustomDemoProcessor(this.db, path.join(this.settings.model.dataDir.value, "demos"));
+        const demosDir = path.join(api.info.contentPath, "demos");
+        this.replayProcessor = new CustomDemoProcessor(this.db, demosDir);
     }
 
     public async init() {

@@ -9,7 +9,7 @@
             <Textbox v-model="password" type="password" label="Password" required class="fullwidth" />
             <div class="flex-row gap-md">
                 <Checkbox v-model="loginAutomatically" type="checkbox" label="Login Automatically" />
-                <Button class="blue" type="submit"> Login </Button>
+                <Button class="blue fullwidth" type="submit"> Login </Button>
             </div>
         </form>
         <form v-else class="flex-col gap-md" @submit.prevent="verify">

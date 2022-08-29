@@ -20,7 +20,7 @@ export class EngineContentAPI extends AbstractContentAPI {
     protected ocotokit = new Octokit();
 
     public async init() {
-        const engineDir = path.join(this.dataDir, "engine");
+        const engineDir = path.join(api.info.contentPath, "engine");
         await fs.promises.mkdir(engineDir, { recursive: true });
         const engineDirs = await fs.promises.readdir(engineDir);
 
@@ -89,7 +89,7 @@ export class EngineContentAPI extends AbstractContentAPI {
 
         const engine7z = downloadResponse.data as ArrayBuffer;
 
-        const downloadPath = path.join(this.dataDir, "engine");
+        const downloadPath = path.join(api.info.contentPath, "engine");
         const downloadFile = path.join(downloadPath, asset.name);
 
         await fs.promises.mkdir(downloadPath, { recursive: true });

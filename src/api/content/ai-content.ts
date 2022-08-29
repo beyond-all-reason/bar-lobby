@@ -20,7 +20,7 @@ export class AiContentAPI extends AbstractContentAPI {
         }
 
         const ais: AI[] = [];
-        const aisDir = path.join(this.dataDir, "engine", engine, "AI", "Skirmish");
+        const aisDir = path.join(api.info.contentPath, "engine", engine, "AI", "Skirmish");
         const aiDirs = await fs.promises.readdir(aisDir);
 
         for (const aiDir of aiDirs) {

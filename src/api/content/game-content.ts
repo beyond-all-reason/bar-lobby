@@ -24,10 +24,6 @@ export class GameContentAPI extends AbstractContentAPI {
     protected ocotokit = new Octokit();
     protected md5ToRapidVersionMap: Record<string, RapidVersion> = {};
 
-    constructor(userDataDir: string, dataDir: string) {
-        super(userDataDir, dataDir);
-    }
-
     public async init(prBinaryPath: string) {
         this.prBinaryPath = prBinaryPath;
 
@@ -40,7 +36,7 @@ export class GameContentAPI extends AbstractContentAPI {
         await this.updateVersions();
 
         return new Promise<void>((resolve) => {
-            const prDownloaderProcess = spawn(`${this.prBinaryPath}`, ["--filesystem-writepath", this.dataDir, "--download-game", `${contentSources.rapid.game}:${contentSources.rapid.tag}`]);
+            const prDownloaderProcess = spawn(`${this.prBinaryPath}`, ["--filesystem-writepath", api.info.contentPath, "--download-game", `${contentSources.rapid.game}:${contentSources.rapid.tag}`]);
 
             let downloadType: DownloadType = DownloadType.Metadata;
             let downloadInfo: DownloadInfo | undefined;
@@ -98,7 +94,7 @@ export class GameContentAPI extends AbstractContentAPI {
             this.md5ToRapidVersionMap[md5] = { tag, md5, version };
         });
 
-        const packagesDir = path.join(this.dataDir, "packages");
+        const packagesDir = path.join(api.info.contentPath, "packages");
         if (fs.existsSync(packagesDir)) {
             const sdpFilePaths = await fs.promises.readdir(packagesDir);
             for (const sdpFilePath of sdpFilePaths) {
@@ -126,7 +122,7 @@ export class GameContentAPI extends AbstractContentAPI {
         for (const sdpEntry of sdpEntries) {
             const poolDir = sdpEntry.md5.slice(0, 2);
             const archiveFileName = `${sdpEntry.md5.slice(2)}.gz`;
-            const archiveFilePath = path.join(this.dataDir, "pool", poolDir, archiveFileName);
+            const archiveFilePath = path.join(api.info.contentPath, "pool", poolDir, archiveFileName);
             const archiveFile = await fs.promises.readFile(archiveFilePath);
             const data = zlib.gunzipSync(archiveFile);
 
@@ -150,7 +146,7 @@ export class GameContentAPI extends AbstractContentAPI {
             throw new Error(`Version ${version} is not installed`);
         }
 
-        const sdpFilePath = path.join(this.dataDir, "packages", `${md5}.sdp`);
+        const sdpFilePath = path.join(api.info.contentPath, "packages", `${md5}.sdp`);
         const sdpFileZipped = await fs.promises.readFile(sdpFilePath);
         const sdpFile = zlib.gunzipSync(sdpFileZipped);
 
@@ -169,7 +165,7 @@ export class GameContentAPI extends AbstractContentAPI {
             const md5 = bufferStream.read(16).toString("hex");
             const crc32 = bufferStream.read(4).toString("hex");
             const filesizeBytes = bufferStream.readInt(4, true);
-            const archivePath = path.join(this.dataDir, "pool", md5.slice(0, 2), `${md5.slice(2)}.gz`);
+            const archivePath = path.join(api.info.contentPath, "pool", md5.slice(0, 2), `${md5.slice(2)}.gz`);
 
             if (globPattern && globPattern.minimatch.match(fileName)) {
                 fileData.push({ fileName, md5, crc32, filesizeBytes, archivePath });

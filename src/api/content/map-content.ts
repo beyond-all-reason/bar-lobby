@@ -12,12 +12,12 @@ import { MapCacheWorkerHost } from "@/workers/map-cache-worker";
 
 export class MapContentAPI extends AbstractContentAPI {
     public readonly installedMaps: Map<string, MapData> = reactive(new Map());
-    public readonly mapsPath: string = path.join(this.dataDir, "maps");
-    public readonly mapImagesPath: string = path.join(this.dataDir, "map-images");
+    public readonly mapsPath: string = path.join(api.info.contentPath, "maps");
+    public readonly mapImagesPath: string = path.join(api.info.contentPath, "map-images");
     public readonly mapCache: MapCacheWorkerHost;
 
-    constructor(userDataDir: string, dataDir: string) {
-        super(userDataDir, dataDir);
+    constructor() {
+        super();
 
         this.mapCache = new MapCacheWorkerHost(new Worker(new URL("../../workers/map-cache-worker.ts", import.meta.url), { type: "module" }));
     }
@@ -26,7 +26,7 @@ export class MapContentAPI extends AbstractContentAPI {
     public async init() {
         await fs.promises.mkdir(this.mapsPath, { recursive: true });
 
-        const cacheStoreDir = path.join(this.userDataDir, "store");
+        const cacheStoreDir = path.join(api.info.contentPath, "store");
         const mapCacheFile = path.join(cacheStoreDir, "map-cache.json");
 
         this.mapCache.on("cache-loaded").add((maps: Record<string, MapData>) => {
@@ -41,7 +41,7 @@ export class MapContentAPI extends AbstractContentAPI {
             }
         });
 
-        await this.mapCache.init([mapCacheFile, this.dataDir, api.info.appPath]);
+        await this.mapCache.init([mapCacheFile, api.info.contentPath, api.info.appPath]);
 
         this.mapCache.cacheItems();
 

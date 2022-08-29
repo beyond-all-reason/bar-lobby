@@ -1,5 +1,5 @@
 <template>
-    <Control class="button" :class="[{ active }, color, $attrs.class]" :style="$attrs.style" :disabled="disabled" @click="onClick">
+    <Control class="button" :class="[{ active }, $attrs.class]" :style="$attrs.style" :disabled="disabled" @click="onClick">
         <PrimeVueButton v-bind="$attrs">
             <template v-for="(_, slot) of $slots" #[slot]="scope">
                 <slot :name="slot" v-bind="scope" />
@@ -25,7 +25,6 @@ import Control from "@/components/inputs/Control.vue";
 interface Props extends ButtonProps {
     to?: string;
     disabled?: boolean;
-    color?: string;
 }
 
 const props = defineProps<Props>();
@@ -65,7 +64,7 @@ $btnColors: (
 );
 
 @each $colorKey, $color in $btnColors {
-    .#{$colorKey} {
+    .control.#{$colorKey} {
         background-color: rgba($color, 0.6);
         border-color: rgba(255, 255, 255, 0.15);
         box-shadow: 1px 1px 3px rgba(49, 47, 47, 0.1), inset 0 -17px 0 rgba(0, 0, 0, 0.05);

@@ -83,7 +83,7 @@ const onPreloadDone = async () => {
     } else {
         const latestEngine = lastInArray(api.content.engine.installedVersions)!;
         const binaryName = process.platform === "win32" ? "pr-downloader.exe" : "pr-downloader";
-        const prBinaryPath = path.join(api.settings.model.dataDir.value, "engine", latestEngine, binaryName);
+        const prBinaryPath = path.join(api.info.contentPath, "engine", latestEngine, binaryName);
         await api.content.game.init(prBinaryPath);
 
         await api.content.maps.init();

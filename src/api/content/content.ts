@@ -19,12 +19,12 @@ export class ContentAPI {
     public currentDownloadTotal: ComputedRef<number>;
     public currentDownloadPercent: ComputedRef<number>;
 
-    constructor(userDataDir: string, dataDir: string) {
-        this.engine = new EngineContentAPI(userDataDir, dataDir);
-        this.game = new GameContentAPI(userDataDir, dataDir);
-        this.maps = new MapContentAPI(userDataDir, dataDir);
-        this.ai = new AiContentAPI(userDataDir, dataDir);
-        this.replays = new ReplayContentAPI(userDataDir, dataDir);
+    constructor() {
+        this.engine = new EngineContentAPI();
+        this.game = new GameContentAPI();
+        this.maps = new MapContentAPI();
+        this.ai = new AiContentAPI();
+        this.replays = new ReplayContentAPI();
 
         this.downloads = computed(() => [...this.engine.currentDownloads, ...this.game.currentDownloads, ...this.maps.currentDownloads]);
         this.currentDownloadCurrent = computed(() => this.downloads.value.reduce((acc, cur) => acc + cur.currentBytes, 0));

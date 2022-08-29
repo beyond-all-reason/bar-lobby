@@ -36,28 +36,6 @@ onMounted(async () => {
         loadedFiles.value++;
     }
 
-    // await api.content.engine.init();
-    // const anyEngineInstalled = api.content.engine.installedVersions.length > 0;
-    // if (!anyEngineInstalled) {
-    //     installStage.value = "Engine";
-    //     await api.content.engine.downloadLatestEngine();
-    // }
-
-    // const latestEngine = lastInArray(api.content.engine.installedVersions)!;
-    // const binaryName = process.platform === "win32" ? "pr-downloader.exe" : "pr-downloader";
-    // const prBinaryPath = path.join(api.settings.model.dataDir.value, "engine", latestEngine, binaryName);
-    // await api.content.game.init(prBinaryPath);
-    // const anyGameInstalled = api.content.game.installedVersions.length > 0;
-    // if (!anyGameInstalled) {
-    //     installStage.value = "Game";
-    //     await api.content.game.updateGame();
-    // }
-
-    // await api.content.maps.init();
-
-    // installStage.value = "Default Maps";
-    // await api.content.maps.downloadMaps(defaultMaps);
-
     emit("complete");
 });
 

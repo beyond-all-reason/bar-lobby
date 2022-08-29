@@ -31,6 +31,7 @@ declare module "vue-router" {
     window.addEventListener("keydown", (event) => {
         if (event.code === "F11") {
             event.preventDefault();
+            api.settings.model.fullscreen.value = !api.settings.model.fullscreen.value;
         }
     });
 

@@ -11,14 +11,12 @@ export class GameAPI {
 
     protected scriptConverter = new StartScriptConverter();
 
-    constructor(protected userDataDir: string, protected dataDir: string) {}
-
     public async launch(battle: AbstractBattle): Promise<void>;
     public async launch(startScript: string, engine: string): Promise<void>;
     public async launch(battleOrStartScript: AbstractBattle | string, engine?: string): Promise<void> {
         const engineVersion = typeof battleOrStartScript === "string" ? engine! : battleOrStartScript.battleOptions.engineVersion;
-        const enginePath = path.join(this.dataDir, "engine", engineVersion).replaceAll("\\", "/");
-        const scriptPath = path.join(this.dataDir, "barlobby_script.txt");
+        const enginePath = path.join(api.info.contentPath, "engine", engineVersion).replaceAll("\\", "/");
+        const scriptPath = path.join(api.info.contentPath, "barlobby_script.txt");
 
         let scriptStr = "";
         if (typeof battleOrStartScript === "object") {
@@ -29,7 +27,7 @@ export class GameAPI {
 
         await fs.promises.writeFile(scriptPath, scriptStr);
 
-        const args = ["--write-dir", this.dataDir, "--isolation", scriptPath];
+        const args = ["--write-dir", api.info.contentPath, "--isolation", scriptPath];
 
         const binaryName = process.platform === "win32" ? "spring.exe" : "./spring";
         this.gameProcess = spawn(binaryName, args, {

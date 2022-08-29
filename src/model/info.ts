@@ -1,11 +1,11 @@
 export interface Info {
+    appPath: string;
+    contentPath: string;
     lobby: {
         name: string;
         version: string;
         hash: string;
     };
-    userDataPath: string;
-    appPath: string;
     hardware: {
         numOfDisplays: number;
         currentDisplayIndex: number;

@@ -8,8 +8,7 @@
         <Select :modelValue="currentRoute" label="View" :options="routes" :filter="true" optionLabel="path" optionValue="path" :placeholder="currentRoute" />
         <Button to="/debug"> Debug Sandbox </Button>
         <Button @click="openSettings"> Open Settings File </Button>
-        <Button @click="openLobbyDir"> Open Lobby Dir </Button>
-        <Button @click="openDataDir"> Open Data Dir </Button>
+        <Button @click="openContentDir"> Open Content Dir </Button>
         <Button @click="generateStartScript"> Generate Start Script </Button>
         <Button @click="openStartScript"> Open Latest Start Script </Button>
     </div>
@@ -40,19 +39,8 @@ const openSettings = () => {
     api.settings.openFileInEditor();
 };
 
-async function openPathWithLog(path: string) {
-    const error = await shell.openPath(path);
-    if (error) {
-        console.error(`Failed to open ${api.info.userDataPath}: ${error}`);
-    }
-}
-
-const openLobbyDir = () => {
-    openPathWithLog(api.info.userDataPath);
-};
-
-const openDataDir = () => {
-    openPathWithLog(api.settings.model.dataDir.value);
+const openContentDir = async () => {
+    await shell.openPath(api.info.contentPath);
 };
 
 const generateStartScript = async () => {
@@ -62,8 +50,8 @@ const generateStartScript = async () => {
         return;
     }
     const engineVersion = battle.battleOptions.engineVersion;
-    const enginePath = path.join(api.settings.model.dataDir.value, "engine", engineVersion).replaceAll("\\", "/");
-    const scriptPath = path.join(api.settings.model.dataDir.value, "barlobby_script.txt");
+    const enginePath = path.join(api.info.contentPath, "engine", engineVersion).replaceAll("\\", "/");
+    const scriptPath = path.join(api.info.contentPath, "barlobby_script.txt");
 
     let scriptStr = api.game.battleToStartScript(battle);
 
@@ -71,8 +59,7 @@ const generateStartScript = async () => {
 };
 
 const openStartScript = async () => {
-    const startScriptPath = path.join(api.settings.model.dataDir.value, "barlobby_script.txt");
-    openPathWithLog(startScriptPath);
+    await shell.openPath(path.join(api.info.contentPath, "barlobby_script.txt"));
 };
 
 scope.run(() => {

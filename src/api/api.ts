@@ -1,7 +1,5 @@
 import { ipcRenderer } from "electron";
 import * as fs from "fs";
-import * as os from "os";
-import * as path from "path";
 import { createRouter, createWebHashHistory, Router } from "vue-router";
 
 import { AlertsAPI } from "@/api/alerts";
@@ -9,7 +7,6 @@ import { AudioAPI } from "@/api/audio";
 import { CommsAPI } from "@/api/comms";
 import { ContentAPI } from "@/api/content/content";
 import { GameAPI } from "@/api/game";
-import { HistoryAPI } from "@/api/history";
 import { SessionAPI } from "@/api/session";
 import { StoreAPI } from "@/api/store";
 import { UtilsAPI } from "@/api/utils";
@@ -29,7 +26,6 @@ interface API {
     comms: CommsAPI;
     content: ContentAPI;
     game: GameAPI;
-    history: HistoryAPI;
     info: Info;
     router: Router;
     session: SessionAPI;
@@ -54,20 +50,9 @@ export async function apiInit() {
 
     api.settings = await new StoreAPI<SettingsType>("settings", settingsSchema, true).init();
 
-    if (!fs.existsSync(api.settings.model.dataDir.value)) {
-        if (process.platform === "win32") {
-            api.settings.model.dataDir.value = path.join(os.homedir(), "Documents", "My Games", "Beyond All Reason");
-        } else if (process.platform === "linux") {
-            api.settings.model.dataDir.value = path.join(os.homedir(), ".beyond-all-reason");
-        }
-    }
-
-    await fs.promises.mkdir(api.settings.model.dataDir.value, {
+    await fs.promises.mkdir(api.info.contentPath, {
         recursive: true,
     });
-
-    const userDataDir = api.info.userDataPath;
-    const dataDir = api.settings.model.dataDir.value;
 
     api.session = new SessionAPI();
 
@@ -88,13 +73,11 @@ export async function apiInit() {
 
     api.account = await new StoreAPI<Account>("account", accountSchema).init();
 
-    api.game = new GameAPI(userDataDir, dataDir);
+    api.game = new GameAPI();
 
     api.comms = new CommsAPI(serverConfig);
 
-    api.content = await new ContentAPI(userDataDir, dataDir).init();
+    api.content = await new ContentAPI().init();
 
     api.alerts = new AlertsAPI();
-
-    api.history = new HistoryAPI(userDataDir);
 }

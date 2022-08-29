@@ -30,7 +30,7 @@ onMounted(async () => {
 
     const engine = lastInArray(api.content.engine.installedVersions)!;
     const binaryName = process.platform === "win32" ? "pr-downloader.exe" : "pr-downloader";
-    const prBinaryPath = path.join(api.settings.model.dataDir.value, "engine", engine, binaryName);
+    const prBinaryPath = path.join(api.info.contentPath, "engine", engine, binaryName);
     await api.content.game.init(prBinaryPath);
 
     if (api.content.game.installedVersions.length === 0) {

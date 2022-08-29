@@ -75,9 +75,9 @@
             show non-default mod/map options, tweakunits, stop, rejoin, balance mode"
             />
             <div class="flex-row flex-bottom gap-md">
-                <Button class="fullwidth" color="red" @click="leave"> Leave </Button>
-                <Button v-if="!isOfflineBattle" class="fullwidth" :color="me.battleStatus.ready ? 'green' : 'gray'" :disabled="me.battleStatus.isSpectator" @click="toggleReady">Ready</Button>
-                <Button class="fullwidth" color="green" @click="start"> {{ battle.battleOptions.startTime === null ? "Start" : "Join" }} </Button>
+                <Button class="red fullwidth" @click="leave"> Leave </Button>
+                <Button v-if="!isOfflineBattle" class="fullwidth gray" :class="{ gray: !me.battleStatus.ready }" :disabled="me.battleStatus.isSpectator" @click="toggleReady">Ready</Button>
+                <Button class="green fullwidth" @click="start"> {{ battle.battleOptions.startTime === null ? "Start" : "Join" }} </Button>
             </div>
         </div>
     </div>

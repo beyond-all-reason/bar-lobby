@@ -25,14 +25,14 @@ export class StoreAPI<T extends Record<string, unknown>> {
         this.name = name;
         this.filename = `${name}.json`;
 
-        let userDataPath = "";
+        let contentPath = "";
         if (process.type === "renderer") {
-            userDataPath = api.info.userDataPath;
+            contentPath = api.info.contentPath;
         } else {
-            userDataPath = app.getPath("userData");
+            contentPath = path.join(app.getPath("userData"), "content");
         }
 
-        this.dir = path.join(userDataPath, "store");
+        this.dir = path.join(contentPath, "store");
         this.filePath = path.join(this.dir, this.filename);
 
         this.schema = schema;
