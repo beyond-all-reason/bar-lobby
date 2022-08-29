@@ -10,8 +10,6 @@
 import { onMounted } from "vue";
 import { useRouter } from "vue-router";
 
-import { storeUserSession } from "@/utils/store-user-session";
-
 const router = useRouter();
 
 onMounted(async () => {
@@ -19,24 +17,21 @@ onMounted(async () => {
         await api.comms.connect();
 
         if (api.account.model.token.value && api.settings.model.loginAutomatically.value) {
-            const loginResponse = await api.comms.request("c.auth.login", {
+            const response = await api.comms.request("c.auth.login", {
                 token: api.account.model.token.value,
                 lobby_name: api.info.lobby.name,
                 lobby_version: api.info.lobby.version,
                 lobby_hash: api.info.lobby.hash,
             });
 
-            if (loginResponse.result === "success") {
-                storeUserSession(loginResponse.user);
-                await router.replace("/home");
-                return;
+            if (response.result !== "success") {
+                throw new Error(response.reason);
             }
         }
     } catch (error) {
-        console.error(error);
+        console.warn(error);
+        await router.replace("/login");
     }
-
-    await router.replace("/login");
 });
 </script>
 

@@ -31,7 +31,11 @@ const isSynced = computed(() => {
     return syncStatus.engine === 1 && syncStatus.game === 1 && syncStatus.map === 1;
 });
 const syncStatus = computed(() => {
-    return `Engine: ${props.player.battleStatus.sync.engine * 100}%\nGame: ${props.player.battleStatus.sync.game * 100}%\nMap: ${props.player.battleStatus.sync.map * 100}%`;
+    return `Engine: ${props.player.battleStatus.sync.engine * 100}%
+        Game: ${props.player.battleStatus.sync.game * 100}%
+        Map: ${props.player.battleStatus.sync.map * 100}%
+        Ingame: ${props.player.battleStatus.inBattle}
+        `;
 });
 
 const viewProfile = (player: User) => {

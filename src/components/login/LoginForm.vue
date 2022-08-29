@@ -33,7 +33,6 @@ import Button from "@/components/inputs/Button.vue";
 import Checkbox from "@/components/inputs/Checkbox.vue";
 import Textbox from "@/components/inputs/Textbox.vue";
 import { linkify } from "@/utils/linkify";
-import { storeUserSession } from "@/utils/store-user-session";
 
 const router = useRouter();
 const loading = ref(false);
@@ -72,7 +71,6 @@ const login = async () => {
         });
 
         if (loginResponse.result === "success") {
-            storeUserSession(loginResponse.user);
             await router.push("/home");
             return;
         } else if (loginResponse.result === "unverified" && loginResponse.agreement) {
@@ -97,12 +95,7 @@ const verify = async () => {
 
     const verifyResult = await api.comms.request("c.auth.verify", { token: api.account.model.token.value, code: verificationCode.value });
 
-    if (verifyResult.result === "success") {
-        if (verifyResult.user) {
-            storeUserSession(verifyResult.user);
-        }
-        await router.push("/home");
-    } else if (verifyResult.reason) {
+    if (verifyResult.reason) {
         verificationError.value = verifyResult.reason;
     }
 

@@ -1,6 +1,6 @@
 import { Static } from "@sinclair/typebox";
 import { arrayToMap, assign } from "jaz-ts-utils";
-import { battleSchema, TachyonClient } from "tachyon-client";
+import { battleSchema, myUserSchema, TachyonClient } from "tachyon-client";
 import { reactive } from "vue";
 
 import { TachyonSpadsBattle } from "@/model/battle/tachyon-spads-battle";
@@ -28,7 +28,10 @@ export class CommsAPI extends TachyonClient {
                 api.session.users.clear();
                 api.session.battles.clear();
                 api.session.serverStats;
-                api.router.replace("/");
+
+                if (api.router.currentRoute.value.path !== "/" && api.router.currentRoute.value.path !== "/login") {
+                    api.router.replace("/login");
+                }
             });
         });
 
@@ -59,6 +62,26 @@ export class CommsAPI extends TachyonClient {
                     severity: "warning",
                     content: "Server is shutting down",
                 });
+            }
+        });
+
+        const onLogin = (userData: Static<typeof myUserSchema>) => {
+            api.session.updateCurrentUser(userData);
+
+            api.session.offlineMode.value = false;
+
+            api.router.push("/home");
+        };
+
+        this.onResponse("s.auth.login").add((data) => {
+            if (data.result === "success" && data.user) {
+                onLogin(data.user);
+            }
+        });
+
+        this.onResponse("s.auth.verify").add((data) => {
+            if (data.result === "success" && data.user) {
+                onLogin(data.user);
             }
         });
 

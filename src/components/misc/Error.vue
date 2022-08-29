@@ -42,7 +42,7 @@ const onReload = () => {
 }
 .error {
     font-size: 16px;
-    white-space: pre;
+    white-space: pre-line;
     border: 1px solid rgba(255, 255, 255, 0.2);
     padding: 10px;
     user-select: all;
