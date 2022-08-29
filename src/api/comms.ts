@@ -109,8 +109,8 @@ export class CommsAPI extends TachyonClient {
             battle.handleServerResponse(data);
 
             // TODO: remove this when server fixes adding the joining client to member_list
-            if (api.session.currentUser) {
-                battle.userIds.add(api.session.currentUser.userId);
+            if (api.session.onlineUser) {
+                battle.users.push(api.session.onlineUser);
             }
 
             api.session.onlineBattle.value = battle;
@@ -178,7 +178,7 @@ export class CommsAPI extends TachyonClient {
 
             const battle = api.session.getBattleById(data.lobby_id);
             if (user && battle) {
-                battle.userIds.add(user.userId);
+                battle.users.push(user);
             }
         });
 

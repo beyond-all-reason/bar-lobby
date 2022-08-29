@@ -125,7 +125,7 @@ export class StartScriptConverter {
             gametype: battle.battleOptions.gameVersion,
             mapname: battle.battleOptions.map,
             ishost: 1,
-            myplayername: api.session.currentUser.username,
+            myplayername: api.session.offlineUser.username,
             startpostype: battle.battleOptions.startPosType,
             allyTeams,
             teams,
@@ -275,7 +275,7 @@ export class StartScriptConverter {
     hostport = ${battle.battleOptions.port};
     ishost = 0;
     mypasswd = ${battle.battleOptions.scriptPassword};
-    myplayername = ${api.session.currentUser.username};
+    myplayername = ${api.session.onlineUser.username};
 }`;
     }
 }

@@ -66,13 +66,12 @@ import Button from "@/components/inputs/Button.vue";
 import { aiNames } from "@/config/ai-names";
 import { AbstractBattle } from "@/model/battle/abstract-battle";
 import { Bot, Faction } from "@/model/battle/types";
-import { User } from "@/model/user";
+import { CurrentUser, User } from "@/model/user";
 
 const props = defineProps<{
     battle: AbstractBattle;
+    me: CurrentUser;
 }>();
-
-const me = api.session.currentUser;
 
 const addBot = (teamId: number) => {
     let randomName = randomFromArray(aiNames);
@@ -86,18 +85,18 @@ const addBot = (teamId: number) => {
         name: randomName!,
         aiShortName: "BARb",
         faction: Faction.Armada,
-        ownerUserId: api.session.currentUser.userId,
+        ownerUserId: props.me.userId,
         aiOptions: {},
     });
 };
 
 const joinTeam = (teamId?: number) => {
-    if (me.battleStatus.isSpectator && teamId !== undefined) {
-        props.battle.spectatorToPlayer(me, teamId);
-    } else if (!me.battleStatus.isSpectator && teamId === undefined) {
-        props.battle.playerToSpectator(me);
-    } else if (!me.battleStatus.isSpectator && teamId !== undefined) {
-        props.battle.setContenderTeam(me, teamId);
+    if (props.me.battleStatus.isSpectator && teamId !== undefined) {
+        props.battle.spectatorToPlayer(props.me, teamId);
+    } else if (!props.me.battleStatus.isSpectator && teamId === undefined) {
+        props.battle.playerToSpectator(props.me);
+    } else if (!props.me.battleStatus.isSpectator && teamId !== undefined) {
+        props.battle.setContenderTeam(props.me, teamId);
     }
 };
 

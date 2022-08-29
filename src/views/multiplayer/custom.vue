@@ -53,7 +53,7 @@ const filteredBattles = computed(() => {
         if (hideLocked.value && (battle.battleOptions.locked || battle.battleOptions.passworded)) {
             return false;
         }
-        if (hideEmpty.value && battle.users.value.length === 0) {
+        if (hideEmpty.value && battle.users.length === 0) {
             return false;
         }
         return true;
@@ -65,7 +65,7 @@ const filteredBattles = computed(() => {
         } else if (!a.battleOptions.locked && !a.battleOptions.passworded && (b.battleOptions.locked || b.battleOptions.passworded)) {
             return -1;
         } else {
-            return b.userIds.size - a.userIds.size;
+            return b.users.length - a.users.length;
         }
     });
 

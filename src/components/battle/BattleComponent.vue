@@ -14,11 +14,11 @@
                     <div class="flex-right">{{ battle.friendlyRuntime.value }}</div>
                 </div>
             </div>
-            <Playerlist :battle="battle" />
+            <Playerlist :battle="battle" :me="me" />
             <BattleChat v-if="!isOfflineBattle" :battle="battle" />
         </div>
         <div class="right-col flex-col gap-md">
-            <MapPreview :battle="battle" />
+            <MapPreview :battle="battle" :me="me" />
             <div class="flex-row gap-md">
                 <Select
                     :modelValue="battle.battleOptions.map"
@@ -72,7 +72,9 @@
             />
             <div class="flex-row flex-bottom gap-md">
                 <Button class="red fullwidth" @click="leave"> Leave </Button>
-                <Button v-if="!isOfflineBattle" class="fullwidth gray" :class="{ gray: !me.battleStatus.ready }" :disabled="me.battleStatus.isSpectator" @click="toggleReady">Ready</Button>
+                <Button v-if="!isOfflineBattle" class="fullwidth" :class="{ gray: !me.battleStatus.ready, green: me.battleStatus.ready }" :disabled="me.battleStatus.isSpectator" @click="toggleReady">
+                    Ready
+                </Button>
                 <Button class="green fullwidth" :disabled="isGameRunning" @click="start">
                     {{ battle.battleOptions.startTime === null ? "Start" : "Join" }}
                 </Button>
@@ -97,13 +99,14 @@ import Flag from "@/components/misc/Flag.vue";
 import { AbstractBattle } from "@/model/battle/abstract-battle";
 import { OfflineBattle } from "@/model/battle/offline-battle";
 import { LuaOptionSection } from "@/model/lua-options";
+import { CurrentUser } from "@/model/user";
 
 const props = defineProps<{
     battle: AbstractBattle;
+    me: CurrentUser;
 }>();
 
 const isOfflineBattle = props.battle instanceof OfflineBattle;
-const me = api.session.currentUser;
 const installedEngines = computed(() => api.content.engine.installedVersions);
 const installedMaps = computed(() => Array.from(api.content.maps.installedMaps.values()));
 const installedGames = computed(() => api.content.game.installedVersions.map((rapidVersion) => rapidVersion.version).slice(-10));
@@ -134,7 +137,7 @@ const onMapSelected = (mapScriptName: string) => {
 const toggleReady = () => {
     api.comms.request("c.lobby.update_status", {
         client: {
-            ready: !me.battleStatus.ready,
+            ready: !props.me.battleStatus.ready,
         },
     });
 };

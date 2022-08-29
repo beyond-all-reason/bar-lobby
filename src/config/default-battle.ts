@@ -7,7 +7,7 @@ import { OfflineBattle } from "@/model/battle/offline-battle";
 import { StartPosType } from "@/model/battle/types";
 
 export const defaultBattle: () => OfflineBattle = () => {
-    const me = api.session.currentUser;
+    const me = api.session.offlineUser;
     const map = randomFromArray(defaultMaps)!;
 
     me.battleStatus.playerId = 0;
@@ -37,7 +37,7 @@ export const defaultBattle: () => OfflineBattle = () => {
             mapOptions: {},
             restrictions: [],
         },
-        userIds: [me.userId],
+        users: [me],
         bots: [{ playerId: 1, teamId: 1, ownerUserId: me.userId, name: randomFromArray(aiNames)!, aiShortName: "BARb", aiOptions: {} }],
     });
 };

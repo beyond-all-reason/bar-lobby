@@ -1,6 +1,6 @@
 <template>
     <ContextMenu :entries="actions" :args="[bot]">
-        <div class="participant" data-type="participant" @mouseenter="onMouseEnter">
+        <div class="participant" data-type="participant" @mouseenter.stop="onMouseEnter">
             <Icon :icon="robot" :height="16" />
             <div>{{ props.bot.name }}</div>
         </div>

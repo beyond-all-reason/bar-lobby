@@ -1,6 +1,6 @@
 <template>
     <ContextMenu :entries="actions" :args="[player]">
-        <div v-tooltip.bottom="syncStatus" class="participant" data-type="participant" @mouseenter="onMouseEnter">
+        <div v-tooltip.bottom="syncStatus" class="participant" data-type="participant" @mouseenter.stop="onMouseEnter">
             <Flag class="flag" :countryCode="player.countryCode" />
             <div>{{ player.username }}</div>
             <div v-if="!player.battleStatus.isSpectator">
@@ -73,7 +73,7 @@ const playerActions: ContextMenuEntry[] = [
 
 const selfActions: ContextMenuEntry[] = [{ label: "View Profile", action: viewProfile }];
 
-const actions = props.player.userId === api.session.currentUser.userId ? selfActions : playerActions;
+const actions = props.player.userId === api.session.onlineUser.userId || props.player.userId === -1 ? selfActions : playerActions;
 
 const onMouseEnter = () => {
     api.audio.getSound("button-hover").play();

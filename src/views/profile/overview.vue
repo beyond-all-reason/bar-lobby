@@ -27,7 +27,7 @@
 
 import Flag from "@/components/misc/Flag.vue";
 
-const user = api.session.currentUser;
+const user = api.session.onlineUser;
 </script>
 
 <style lang="scss" scoped></style>

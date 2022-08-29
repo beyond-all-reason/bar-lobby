@@ -42,11 +42,13 @@ import { defaultBoxes } from "@/config/default-boxes";
 import { AbstractBattle } from "@/model/battle/abstract-battle";
 import { StartBox, StartPosType } from "@/model/battle/types";
 import { MapData } from "@/model/map-data";
+import { CurrentUser } from "@/model/user";
 
 type Transform = { x: number; y: number; width: number; height: number };
 
 const props = defineProps<{
     battle: AbstractBattle;
+    me: CurrentUser;
 }>();
 
 const canvas: Ref<HTMLCanvasElement | null> = ref(null);
@@ -75,7 +77,7 @@ onMounted(async () => {
     loadMap();
 
     watch(
-        [() => props.battle.battleOptions.map, () => props.battle.battleOptions.startPosType, () => props.battle.battleOptions.startBoxes, () => api.session.currentUser.battleStatus],
+        [() => props.battle.battleOptions.map, () => props.battle.battleOptions.startPosType, () => props.battle.battleOptions.startBoxes, () => props.me.battleStatus],
         () => {
             loadMap();
         },
@@ -167,9 +169,9 @@ function drawFixedPositions() {
 function drawBoxes() {
     entries(props.battle.battleOptions.startBoxes).forEach(([id, box], i) => {
         if (box) {
-            if (api.session.currentUser.battleStatus.isSpectator) {
+            if (props.me.battleStatus.isSpectator) {
                 context.fillStyle = "rgba(255, 255, 255, 0.2)";
-            } else if (api.session.currentUser.battleStatus.teamId === i) {
+            } else if (props.me.battleStatus.teamId === i) {
                 context.fillStyle = "rgba(0, 255, 0, 0.2)";
             } else {
                 context.fillStyle = "rgba(255, 0, 0, 0.2)";

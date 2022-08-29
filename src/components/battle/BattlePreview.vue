@@ -4,7 +4,7 @@
         <div class="header">
             <div class="title">
                 <div class="flex-row flex-center gap-sm">
-                    <Flag :countryCode="founder.countryCode" />
+                    <Flag :countryCode="battle.founder.value.countryCode" />
                     <Icon v-if="battle.battleOptions.locked" :icon="lock" />
                     <Icon v-if="battle.battleOptions.passworded" :icon="key" />
                     {{ battle.battleOptions.title }}
@@ -16,7 +16,7 @@
             {{ battle.friendlyRuntime.value }}
         </div>
         <div class="clients players">
-            <div v-for="player in players" :key="player.userId" class="client">
+            <div v-for="player in battle.players.value" :key="player.userId" class="client">
                 <Flag :countryCode="player.countryCode" />
                 <div>
                     {{ player.username }}
@@ -27,8 +27,8 @@
                 {{ bot.name }}
             </div>
         </div>
-        <div v-if="spectators.length" class="clients spectators">
-            <div v-for="spectator in spectators" :key="spectator.userId" class="client">
+        <div v-if="battle.spectators.value.length" class="clients spectators">
+            <div v-for="spectator in battle.spectators.value" :key="spectator.userId" class="client">
                 <Flag :countryCode="spectator.countryCode" />
                 {{ spectator.username }}
             </div>
@@ -61,10 +61,6 @@ const props = defineProps<{
     battle: AbstractBattle;
 }>();
 
-const users = computed(() => Array.from(props.battle.userIds.values()).map((id) => api.session.getUserById(id)!));
-const players = computed(() => users.value.filter((user) => !user.battleStatus?.isSpectator));
-const spectators = computed(() => users.value.filter((user) => user?.battleStatus?.isSpectator));
-const founder = computed(() => api.session.getUserById(props.battle.battleOptions.founderId)!);
 const mapImageUrl = computed(() => (props.battle.map.value ? `file://${props.battle.map.value.textureImagePath}` : require("@/assets/images/default-minimap.png")));
 
 const attemptJoinBattle = async () => {

@@ -88,7 +88,7 @@ const downloadsOpen = ref(false);
 const settingsOpen = ref(false);
 const exitOpen = ref(false);
 
-const currentUser = api.session.currentUser;
+const currentUser = api.session.onlineUser;
 const serverStats = api.session.serverStats;
 const serverOffline = api.session.offlineMode;
 </script>

@@ -37,7 +37,7 @@ import { computed } from "vue";
 import { useRoute } from "vue-router";
 
 const route = useRoute();
-const me = api.session.currentUser;
+const me = api.session.onlineUser;
 const battle = api.session.onlineBattle;
 const playerCount = computed(() => battle.value?.contenders.value.filter((c) => "userId" in c).length);
 const botCount = computed(() => battle.value?.bots.length);

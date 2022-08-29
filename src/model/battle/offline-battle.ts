@@ -6,7 +6,7 @@ import { User } from "@/model/user";
 export class OfflineBattle extends AbstractBattle {
     public leave() {
         api.session.offlineBattle.value = null;
-        api.session.currentUser.battleStatus.battleId = -1;
+        api.session.onlineUser.battleStatus.battleId = -1;
         api.router.replace("/home");
     }
 

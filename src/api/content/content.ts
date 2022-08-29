@@ -33,7 +33,7 @@ export class ContentAPI {
 
         this.engine.onDownloadComplete.add((data) => {
             const battle = api.session.onlineBattle.value;
-            const me = api.session.currentUser;
+            const me = api.session.onlineUser;
 
             if (battle && battle.battleOptions.engineVersion === data.name) {
                 api.comms.request("c.lobby.update_status", {
@@ -50,7 +50,7 @@ export class ContentAPI {
 
         this.game.onDownloadComplete.add((data) => {
             const battle = api.session.onlineBattle.value;
-            const me = api.session.currentUser;
+            const me = api.session.onlineUser;
 
             if (battle && battle.battleOptions.gameVersion === data.name) {
                 api.comms.request("c.lobby.update_status", {
@@ -67,7 +67,7 @@ export class ContentAPI {
 
         this.maps.onDownloadComplete.add((data) => {
             const battle = api.session.onlineBattle.value;
-            const me = api.session.currentUser;
+            const me = api.session.onlineUser;
 
             if (battle && battle.battleOptions.map === data.name) {
                 api.comms.request("c.lobby.update_status", {

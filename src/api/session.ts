@@ -1,7 +1,7 @@
 import { Static } from "@sinclair/typebox";
-import { assign } from "jaz-ts-utils";
+import { assign, clone } from "jaz-ts-utils";
 import { lobbySchema, myUserSchema, ResponseType } from "tachyon-client";
-import { reactive, Ref, ref, shallowReactive, shallowRef } from "vue";
+import { reactive, Ref, ref, shallowReactive, shallowRef, toRaw } from "vue";
 
 import { BattleChatMessage } from "@/model/battle/battle-chat";
 import { OfflineBattle } from "@/model/battle/offline-battle";
@@ -13,7 +13,8 @@ export class SessionAPI {
     public readonly offlineBattle: Ref<OfflineBattle | null> = shallowRef(null);
     public readonly onlineBattle: Ref<TachyonSpadsBattle | null> = shallowRef(null);
     public readonly users: Map<number, User>;
-    public readonly currentUser: CurrentUser;
+    public readonly offlineUser: CurrentUser;
+    public readonly onlineUser: CurrentUser;
     public readonly battles: Map<number, TachyonSpadsBattle>;
     public readonly battleMessages: BattleChatMessage[];
     public readonly serverStats: Ref<ResponseType<"s.system.server_stats">["data"] | null> = shallowRef(null);
@@ -24,7 +25,7 @@ export class SessionAPI {
     constructor() {
         this.offlineMode = ref(true);
 
-        this.currentUser = reactive({
+        this.offlineUser = reactive({
             userId: -1,
             username: "Player",
             isBot: false,
@@ -40,7 +41,7 @@ export class SessionAPI {
             battleStatus: {
                 inBattle: false,
                 away: false,
-                battleId: -1, // -1 = offline battle
+                battleId: -1,
                 ready: false,
                 isSpectator: false,
                 sync: {
@@ -54,7 +55,9 @@ export class SessionAPI {
             },
         });
 
-        this.users = reactive(new Map<number, User>([[-1, this.currentUser]]));
+        this.onlineUser = reactive(clone(toRaw(this.offlineUser)));
+
+        this.users = reactive(new Map<number, User>([]));
 
         this.battles = shallowReactive(new Map<number, TachyonSpadsBattle>());
 
@@ -62,9 +65,11 @@ export class SessionAPI {
     }
 
     public updateCurrentUser(myUserData: Static<typeof myUserSchema>) {
+        this.users.set(myUserData.id, this.onlineUser);
+
         const user = this.updateUser(myUserData);
 
-        assign(this.currentUser, {
+        assign(this.onlineUser, {
             ...user,
             friendRequestUserIds: myUserData.friend_requests,
             ignoreUserIds: [],
@@ -72,11 +77,14 @@ export class SessionAPI {
             friendUserIds: myUserData.friends,
         });
 
-        this.users.set(myUserData.id, this.currentUser);
+        this.offlineUser.username = user.username;
+        this.offlineUser.countryCode = user.countryCode;
+        this.offlineUser.icons = user.icons;
     }
 
     public updateUser(userData: ResponseType<"s.user.user_and_client_list">["users"][0]) {
         let user = this.getUserById(userData.id);
+
         if (!user) {
             user = reactive({
                 userId: userData.id,
@@ -102,10 +110,11 @@ export class SessionAPI {
                     playerId: 0,
                 },
             });
-
-            this.users.set(user.userId, user);
         }
 
+        this.users.set(user.userId, user);
+
+        user.userId = userData.id;
         user.legacyId = parseInt(userData.springid.toString()) || null;
         user.username = userData.name;
         user.clanId = userData.clan_id;
@@ -134,7 +143,8 @@ export class SessionAPI {
     }
 
     public getUserById(userId: number) {
-        return this.users.get(userId);
+        const user = this.users.get(userId);
+        return user;
     }
 
     public getUserByName(username: string) {

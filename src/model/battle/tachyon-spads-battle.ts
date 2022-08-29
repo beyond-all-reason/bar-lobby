@@ -124,21 +124,28 @@ export class TachyonSpadsBattle extends AbstractBattle {
         },
         member_list: (data) => {
             if (data) {
-                const newUserIds = data.map((client) => client.userid);
+                const newUsers = data.map((client) => {
+                    const user = api.session.getUserById(client.userid);
+                    if (!user) {
+                        console.error(`Trying to add unknown user to battle: ${client.userid}`);
+                    }
+                    return user;
+                });
 
-                for (const userId of this.userIds) {
-                    if (!newUserIds.includes(userId)) {
-                        this.userIds.delete(userId);
+                // remove users that left
+                for (const user of this.users) {
+                    if (!newUsers.includes(user)) {
+                        this.users.splice(this.users.indexOf(user), 1);
                     }
                 }
 
-                for (const userId of newUserIds) {
-                    if (!this.users.value.find((user) => user.userId === userId)) {
-                        const user = api.session.getUserById(userId);
-                        this.userIds.add(userId);
-                        if (!user) {
-                            console.error("Battle update received for unknown user", userId);
-                        }
+                // add users that joined
+                for (const user of newUsers) {
+                    if (!user) {
+                        continue;
+                    }
+                    if (!this.users.includes(user)) {
+                        this.users.push(user);
                     }
                 }
             }
@@ -186,7 +193,7 @@ export class TachyonSpadsBattle extends AbstractBattle {
                 startTime: null,
                 title: "",
             },
-            userIds: [],
+            users: [],
             bots: [],
         });
 
@@ -207,7 +214,7 @@ export class TachyonSpadsBattle extends AbstractBattle {
     public override async open() {
         super.open();
 
-        await api.comms.request("c.user.list_users_from_ids", { id_list: Array.from(this.userIds.values()), include_clients: true });
+        await api.comms.request("c.user.list_users_from_ids", { id_list: this.users.map((user) => user.userId), include_clients: true });
 
         this.updateSync();
     }

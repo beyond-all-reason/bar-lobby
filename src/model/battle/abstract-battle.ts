@@ -1,7 +1,7 @@
 import { useNow } from "@vueuse/core";
 import { formatDuration } from "date-fns";
 import { groupBy } from "jaz-ts-utils";
-import { computed, ComputedRef, reactive, watch } from "vue";
+import { computed, ComputedRef, reactive, shallowReactive, watch } from "vue";
 
 import { BattleOptions, Bot, StartBox, StartPosType } from "@/model/battle/types";
 import { MapData } from "@/model/map-data";
@@ -10,18 +10,17 @@ import { User } from "@/model/user";
 export interface BattleConfig {
     battleOptions: BattleOptions;
     bots: Bot[];
-    userIds: number[];
+    users: User[];
 }
 
 export abstract class AbstractBattle {
     public readonly battleOptions: BattleOptions;
     public readonly bots: Bot[];
-    public readonly userIds: Set<number>;
+    public readonly users: User[];
 
     // helpers
     public readonly participants: ComputedRef<Array<User | Bot>>;
     public readonly contenders: ComputedRef<Array<User | Bot>>;
-    public readonly users: ComputedRef<Array<User>>;
     public readonly players: ComputedRef<Array<User>>;
     public readonly spectators: ComputedRef<Array<User>>;
     public readonly teams: ComputedRef<Map<number, Array<User | Bot>>>;
@@ -31,14 +30,13 @@ export abstract class AbstractBattle {
 
     constructor(config: BattleConfig) {
         this.battleOptions = reactive(config.battleOptions);
-        this.bots = reactive(config.bots);
-        this.userIds = reactive(new Set(config.userIds));
+        this.bots = shallowReactive(config.bots);
+        this.users = shallowReactive(config.users);
 
-        this.participants = computed(() => [...this.bots, ...this.users.value]);
+        this.participants = computed(() => [...this.bots, ...this.users]);
         this.contenders = computed(() => this.participants.value.filter((participant) => ("userId" in participant ? !participant.battleStatus.isSpectator : true)));
-        this.players = computed(() => this.users.value.filter((user) => !user.battleStatus.isSpectator));
-        this.spectators = computed(() => this.users.value.filter((user) => user.battleStatus.isSpectator));
-        this.users = computed(() => Array.from(this.userIds.values()).map((userId) => api.session.getUserById(userId)!));
+        this.players = computed(() => this.users.filter((user) => !user.battleStatus.isSpectator));
+        this.spectators = computed(() => this.users.filter((user) => user.battleStatus.isSpectator));
         this.teams = computed(() => {
             const teams = groupBy(this.contenders.value, (player) => ("userId" in player ? player.battleStatus.teamId : player.teamId));
             const sortedTeams = new Map([...teams.entries()].sort());
