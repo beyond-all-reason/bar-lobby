@@ -78,7 +78,7 @@ const onPreloadDone = async () => {
 
     await api.content.engine.init();
 
-    if (api.content.engine.installedVersions.length === 0) {
+    if (api.content.engine.installedVersions.length === 0 || api.content.game.installedVersions.length === 0 || api.content.maps.installedMaps.size === 0) {
         state.value = "initial-setup";
     } else {
         const latestEngine = lastInArray(api.content.engine.installedVersions)!;
@@ -91,7 +91,7 @@ const onPreloadDone = async () => {
         await api.content.replays.init();
 
         // TODO: fix the slight delay these cause on startup, probably best to move them into worker threads
-        api.content.engine.downloadLatestEngine();
+        // api.content.engine.downloadLatestEngine();
         // api.content.game.updateGame();
         // api.content.maps.downloadMaps(defaultMaps);
 
