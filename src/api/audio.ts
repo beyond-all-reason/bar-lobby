@@ -77,7 +77,7 @@ export class AudioAPI {
     public unmuteMusic(fadeTime = 1000) {
         const musicSounds = this.getSounds().filter((sound) => sound.isMusic);
         for (const sound of musicSounds) {
-            sound.fade(0, api.settings.model.sfxVolume.value / 100, fadeTime);
+            sound.fade(0, api.settings.model.musicVolume.value / 100, fadeTime);
         }
     }
 
