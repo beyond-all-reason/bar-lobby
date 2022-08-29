@@ -11,6 +11,8 @@ BAR Lobby is a new WIP lobby for the RTS game [Beyond All Reason](https://www.be
 - Communicate entirely via Teiserver's new protocol, [Tachyon](https://github.com/beyond-all-reason/teiserver/tree/master/documents/tachyon). No support for the legacy SpringLobbyProtocol
 - TLS only, no unencypted comms
 
+## Development
+
 ### Primary Tech Stack
 - [Electron](https://www.electronjs.org/)
 - [TypeScript](https://www.typescriptlang.org/)
@@ -24,10 +26,17 @@ It is highly recommended to use [VSCode](https://code.visualstudio.com/) for dev
 
 ### Requirements
 - [Node.js](https://nodejs.org/en/download/) (node v14 required)
+- [Git LFS](https://git-lfs.github.com/)
+
+### Project setup:
+
+```
+git lfs install
+git clone git@github.com:beyond-all-reason/bar-lobby.git
+npm install
+```
 
 ### NPM Scripts
-
-Project setup: `npm install`
 
 Compile and hot-reload for development: `npm run dev`
 
