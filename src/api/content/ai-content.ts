@@ -40,11 +40,11 @@ export class AiContentAPI extends AbstractContentAPI {
     }
 
     protected async fetchAi(aiDirPath: string): Promise<AI> {
-        const filePaths = await glob.promise(`${aiDirPath}/**/{AIInfo.lua,AIOptions.lua,*.dll}`);
+        const filePaths = await glob.promise(`${aiDirPath}/**/{AIInfo.lua,AIOptions.lua,*.dll,*.so}`);
 
         const aiInfoPath = filePaths.find((filePath) => filePath.endsWith("AIInfo.lua"));
         const aiOptionsPath = filePaths.find((filePath) => filePath.endsWith("AIOptions.lua"));
-        const dllPath = filePaths.find((filePath) => filePath.endsWith(".dll"));
+        const dllPath = filePaths.find((filePath) => filePath.endsWith(".dll") || filePath.endsWith(".so"));
 
         if (aiInfoPath === undefined || dllPath === undefined) {
             throw new Error("AIInfo.lua or .dll not found");
