@@ -43,11 +43,15 @@ export class GameAPI {
 
         this.gameProcess.value.addListener("spawn", () => {
             this.onGameLaunched.dispatch();
+
+            api.audio.muteMusic();
         });
 
         this.gameProcess.value.addListener("close", (exitCode) => {
             this.gameProcess.value = null;
             this.onGameClosed.dispatch(exitCode);
+
+            api.audio.unmuteMusic();
         });
     }
 

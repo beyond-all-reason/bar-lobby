@@ -67,6 +67,20 @@ export class AudioAPI {
         return this.getSounds().filter((sound) => sound.playing());
     }
 
+    public muteMusic(fadeTime = 1000) {
+        const musicSounds = this.getSounds().filter((sound) => sound.isMusic);
+        for (const sound of musicSounds) {
+            sound.fade(sound.volume(), 0, fadeTime);
+        }
+    }
+
+    public unmuteMusic(fadeTime = 1000) {
+        const musicSounds = this.getSounds().filter((sound) => sound.isMusic);
+        for (const sound of musicSounds) {
+            sound.fade(0, api.settings.model.sfxVolume.value / 100, fadeTime);
+        }
+    }
+
     protected setupSound(soundKey: string) {
         if (this.sounds.get(soundKey)) {
             return this.sounds.get(soundKey)!;
