@@ -77,7 +77,9 @@
             <div class="flex-row flex-bottom gap-md">
                 <Button class="red fullwidth" @click="leave"> Leave </Button>
                 <Button v-if="!isOfflineBattle" class="fullwidth gray" :class="{ gray: !me.battleStatus.ready }" :disabled="me.battleStatus.isSpectator" @click="toggleReady">Ready</Button>
-                <Button class="green fullwidth" @click="start"> {{ battle.battleOptions.startTime === null ? "Start" : "Join" }} </Button>
+                <Button class="green fullwidth" :disabled="isGameRunning" @click="start">
+                    {{ battle.battleOptions.startTime === null ? "Start" : "Join" }}
+                </Button>
             </div>
         </div>
     </div>
@@ -111,6 +113,7 @@ const installedMaps = computed(() => Array.from(api.content.maps.installedMaps.v
 const installedGames = computed(() => api.content.game.installedVersions.map((rapidVersion) => rapidVersion.version).slice(-10));
 const gameOptionsOpen = ref(false);
 const gameOptions: Ref<LuaOptionSection[]> = ref([]);
+const isGameRunning = api.game.isGameRunning;
 
 const onEngineSelected = (engineVersion: string) => {
     props.battle.setEngine(engineVersion);
