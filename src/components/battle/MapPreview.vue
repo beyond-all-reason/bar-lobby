@@ -54,7 +54,6 @@ let context: CanvasRenderingContext2D;
 let textureMap: HTMLImageElement;
 let mapTransform: Transform;
 let loadingMap = false;
-let loadMapTimeout: number | undefined;
 
 const mapData = computed(() => api.content.maps.getMapByScriptName(props.battle.battleOptions.map));
 
@@ -203,8 +202,8 @@ function roundTransform(transform: Transform) {
     return {
         x: Math.floor(transform.x),
         y: Math.floor(transform.y),
-        width: Math.floor(transform.width),
-        height: Math.floor(transform.height),
+        width: Math.ceil(transform.width),
+        height: Math.ceil(transform.height),
     };
 }
 </script>
@@ -222,9 +221,9 @@ function roundTransform(transform: Transform) {
         left: 0;
         width: calc(100% - 20px);
         margin: 10px;
-        backdrop-filter: blur(2px);
-        background: rgba(0, 0, 0, 0.1);
-        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        background: rgba(0, 0, 0, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        //backdrop-filter: saturate(60%);
         opacity: 0;
         transition: opacity 0.1s;
     }
