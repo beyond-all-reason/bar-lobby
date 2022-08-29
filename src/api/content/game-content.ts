@@ -4,6 +4,7 @@ import * as fs from "fs";
 import * as glob from "glob-promise";
 import { BufferStream, removeFromArray } from "jaz-ts-utils";
 import { Octokit } from "octokit";
+import os from "os";
 import * as path from "path";
 import { reactive } from "vue";
 import * as zlib from "zlib";
@@ -42,7 +43,7 @@ export class GameContentAPI extends AbstractContentAPI {
             let downloadInfo: DownloadInfo | undefined;
 
             prDownloaderProcess.stdout.on("data", (stdout: Buffer) => {
-                const lines = stdout.toString().trim().split("\r\n").filter(Boolean);
+                const lines = stdout.toString().trim().split(os.EOL).filter(Boolean);
                 console.debug(lines.join("\n"));
                 const messages = lines.map((line) => this.processPrDownloaderLine(line)).filter(Boolean) as Message[];
                 for (const message of messages) {
