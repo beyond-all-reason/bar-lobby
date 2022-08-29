@@ -1,25 +1,21 @@
 <template>
     <div class="battle flex-row flex-grow gap-lg">
         <div class="flex-col flex-grow gap-md">
-            <div class="flex-col flex-grow">
-                <div class="flex-col gap-sm margin-bottom-lg">
-                    <h1 class="title">{{ battle.battleOptions.title }}</h1>
-                    <div v-if="!isOfflineBattle" class="subtitle flex-row gap-md">
-                        <div class="flex-row gap-sm">
-                            Hosted by
-                            <div class="founder flex-row gap-sm">
-                                <Flag :countryCode="battle.founder.value.countryCode" style="width: 16px" />
-                                {{ battle.founder.value.username }}
-                            </div>
+            <div class="flex-col gap-sm">
+                <h1 class="title">{{ battle.battleOptions.title }}</h1>
+                <div v-if="!isOfflineBattle" class="subtitle flex-row gap-md">
+                    <div class="flex-row gap-sm">
+                        Hosted by
+                        <div class="founder flex-row gap-sm">
+                            <Flag :countryCode="battle.founder.value.countryCode" style="width: 16px" />
+                            {{ battle.founder.value.username }}
                         </div>
-                        <div class="flex-right">{{ battle.friendlyRuntime.value }}</div>
                     </div>
+                    <div class="flex-right">{{ battle.friendlyRuntime.value }}</div>
                 </div>
-                <Playerlist :battle="battle" />
             </div>
-            <div v-if="!isOfflineBattle">
-                <BattleChat :battle="battle" />
-            </div>
+            <Playerlist :battle="battle" />
+            <BattleChat v-if="!isOfflineBattle" :battle="battle" />
         </div>
         <div class="right-col flex-col gap-md">
             <MapPreview :battle="battle" />
@@ -152,6 +148,9 @@ const start = async () => {
 </script>
 
 <style lang="scss" scoped>
+.battle {
+    max-height: 100%;
+}
 .right-col {
     min-width: 500px;
     max-width: 500px;

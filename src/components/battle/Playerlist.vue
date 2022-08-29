@@ -1,7 +1,7 @@
 <template>
     <div class="playerlist" :class="{ dragging: draggedParticipant !== null }">
         <div
-            v-for="(team, teamId) in battle.teams.value"
+            v-for="[teamId, contenders] in battle.teams.value"
             :key="`team${teamId}`"
             class="group"
             data-type="group"
@@ -194,6 +194,7 @@ const onDrop = (event: DragEvent, teamId?: number) => {
 .playerlist {
     display: flex;
     flex-direction: column;
+    overflow-y: auto;
     &.dragging .group > * {
         pointer-events: none;
     }
