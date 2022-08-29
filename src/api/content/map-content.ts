@@ -41,7 +41,7 @@ export class MapContentAPI extends AbstractContentAPI {
             }
         });
 
-        await this.mapCache.init([mapCacheFile, this.dataDir]);
+        await this.mapCache.init([mapCacheFile, this.dataDir, api.info.appPath]);
 
         this.mapCache.cacheItems();
 
