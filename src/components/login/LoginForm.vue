@@ -8,7 +8,7 @@
             <Textbox v-model="email" type="email" label="Email" required validate class="fullwidth" />
             <Textbox v-model="password" type="password" label="Password" required class="fullwidth" />
             <div class="flex-row gap-md">
-                <Checkbox v-model="loginAutomatically" type="checkbox" label="Login Automatically" />
+                <Checkbox v-model="loginAutomatically" type="checkbox" label="Remember Me" />
                 <Button class="blue fullwidth" type="submit"> Login </Button>
             </div>
         </form>

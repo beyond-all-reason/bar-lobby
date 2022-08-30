@@ -65,6 +65,8 @@ const empty = ref(false);
 const blurBg = ref(true);
 const lobbyVersion = api.info.lobby.version;
 
+playRandomMusic();
+
 router.afterEach(async (to, from) => {
     empty.value = route?.meta?.empty ?? false;
     blurBg.value = route?.meta?.blurBg ?? blurBg.value;
@@ -98,8 +100,6 @@ const onPreloadDone = async () => {
         api.content.engine.downloadLatestEngine();
         api.content.game.updateGame();
         api.content.maps.downloadMaps(defaultMaps);
-
-        playRandomMusic();
 
         state.value = "default";
     }
