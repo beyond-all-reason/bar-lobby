@@ -1,5 +1,8 @@
 <template>
     <div id="wrapper" class="wrapper fullsize" @click.left="leftClick" @click.right="rightClick">
+        <transition mode="in-out" name="intro">
+            <IntroVideo v-if="!skipIntro && videoVisible" @complete="onIntroEnd" />
+        </transition>
         <DebugSidebar v-if="!isProduction" />
         <StickyBattle />
         <Background :blur="blurBg" />
@@ -8,8 +11,7 @@
             {{ lobbyVersion }}
         </div>
         <transition mode="out-in" name="fade">
-            <IntroVideo v-if="state === 'intro'" @complete="onIntroEnd" />
-            <Preloader v-else-if="state === 'preloader'" @complete="onPreloadDone" />
+            <Preloader v-if="state === 'preloader'" @complete="onPreloadDone" />
             <InitialSetup v-else-if="state === 'initial-setup'" @complete="onInitialSetupDone" />
             <div v-else class="fullsize">
                 <NavBar :class="{ hidden: empty }" />
@@ -60,7 +62,9 @@ const isProduction = process.env.NODE_ENV === "production";
 
 const router = useRouter();
 const route = useRoute();
-const state: Ref<"intro" | "preloader" | "initial-setup" | "default"> = ref(api.settings.model.skipIntro.value ? "preloader" : "intro");
+const skipIntro = api.settings.model.skipIntro;
+const videoVisible = ref(!api.settings.model.skipIntro.value);
+const state: Ref<"preloader" | "initial-setup" | "default"> = ref("preloader");
 const empty = ref(false);
 const blurBg = ref(true);
 const lobbyVersion = api.info.lobby.version;
@@ -73,7 +77,7 @@ router.afterEach(async (to, from) => {
 });
 
 const onIntroEnd = () => {
-    state.value = "preloader";
+    videoVisible.value = false;
 };
 
 const onPreloadDone = async () => {

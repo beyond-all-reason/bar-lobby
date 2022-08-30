@@ -1,6 +1,6 @@
 <template>
     <div class="intro fullsize">
-        <video @loadstart="play" @ended="end" @click="end">
+        <video ref="videoEl" @loadstart="play" @durationchange="onDurationChange" @click="end">
             <source :src="videoSrc" type="video/mp4" />
         </video>
     </div>
@@ -8,6 +8,9 @@
 
 <script lang="ts" setup>
 import { randomFromArray } from "jaz-ts-utils";
+import { Ref, ref } from "vue";
+
+const videoEl: Ref<HTMLVideoElement | null> = ref(null);
 
 const emit = defineEmits(["complete"]);
 
@@ -20,10 +23,20 @@ for (const path of require.context("@/assets/videos/intros/", true).keys()) {
 
 const videoSrc = randomFromArray(videoPaths)!;
 
-const play = (event: Event) => {
-    const videoEl = event.target as HTMLVideoElement;
-    videoEl.volume = 0.2;
-    videoEl.play();
+const play = () => {
+    if (videoEl.value) {
+        videoEl.value.volume = 0.2;
+        videoEl.value.play();
+    }
+};
+
+const onDurationChange = () => {
+    if (videoEl.value) {
+        const fadeOutDuration = 1000;
+        setTimeout(() => {
+            emit("complete");
+        }, videoEl.value.duration * 1000 - fadeOutDuration);
+    }
 };
 
 const end = () => {
@@ -34,6 +47,7 @@ const end = () => {
 <style lang="scss" scoped>
 .intro {
     background: #000;
+    z-index: 1000;
 }
 video {
     width: 100%;

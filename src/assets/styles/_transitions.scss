@@ -9,6 +9,17 @@
     opacity: 0;
 }
 
+.intro-enter-active {
+    transition: opacity 0.5s ease;
+}
+.intro-leave-active {
+    transition: opacity 1s ease;
+}
+.intro-enter-from,
+.intro-leave-to {
+    opacity: 0;
+}
+
 $dirs: (
     "left": translateX(-15px),
     "right": translateX(15px),
