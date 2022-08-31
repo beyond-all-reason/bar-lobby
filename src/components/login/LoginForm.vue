@@ -2,7 +2,7 @@
     <div>
         <Loader v-if="loading" />
         <form v-else-if="!requestVerification" ref="form" class="flex-col gap-md" @submit.prevent="login" @keydown.enter="login">
-            <p v-if="loginError" class="color--error">
+            <p v-if="loginError" class="error">
                 {{ loginError }}
             </p>
             <Textbox v-model="email" type="email" label="Email" required validate class="fullwidth" />
@@ -13,7 +13,7 @@
             </div>
         </form>
         <form v-else class="flex-col gap-md" @submit.prevent="verify">
-            <p v-if="verificationError" class="color--error">
+            <p v-if="verificationError" class="error">
                 {{ verificationError }}
             </p>
             <!-- eslint-disable vue/no-v-html -->
@@ -99,4 +99,8 @@ const verify = async () => {
 };
 </script>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+.error {
+    color: rgb(255, 130, 130);
+}
+</style>

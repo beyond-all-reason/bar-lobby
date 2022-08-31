@@ -47,6 +47,7 @@
                 </div>
             </div>
         </div>
+        <Friends />
         <Downloads v-model="downloadsOpen" />
         <Settings v-model="settingsOpen" />
         <Exit v-model="exitOpen" />
@@ -66,6 +67,7 @@ import Button from "@/components/inputs/Button.vue";
 import Downloads from "@/components/navbar/Downloads.vue";
 import DownloadsButton from "@/components/navbar/DownloadsButton.vue";
 import Exit from "@/components/navbar/Exit.vue";
+import Friends from "@/components/navbar/Friends.vue";
 import Settings from "@/components/navbar/Settings.vue";
 
 const props = defineProps<{
@@ -105,6 +107,7 @@ const serverOffline = api.session.offlineMode;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     gap: 1px;
     transition: transform 0.3s, opacity 0.3s;
+    z-index: 1;
     &.hidden {
         opacity: 0;
         transform: translateY(-100%);
