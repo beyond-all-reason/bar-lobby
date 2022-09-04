@@ -186,7 +186,8 @@ export class CommsAPI extends TachyonClient {
             const user = api.session.getUserById(data.leaver_id);
             const battle = api.session.getBattleById(data.lobby_id);
             if (user && battle) {
-                // TODO: add player to battle
+                const index = battle.users.findIndex((user) => user.userId === data.leaver_id);
+                battle.users.splice(index, 1);
             }
         });
 
