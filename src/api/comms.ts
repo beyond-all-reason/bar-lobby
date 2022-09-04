@@ -108,8 +108,7 @@ export class CommsAPI extends TachyonClient {
 
             battle.handleServerResponse(data);
 
-            // TODO: remove this when server fixes adding the joining client to member_list
-            if (api.session.onlineUser) {
+            if (api.session.onlineUser && !battle.users.includes(api.session.onlineUser)) {
                 battle.users.push(api.session.onlineUser);
             }
 
