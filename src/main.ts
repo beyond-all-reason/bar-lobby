@@ -38,8 +38,7 @@ export class Application {
         this.app.commandLine.appendSwitch("in-process-gpu");
         this.app.commandLine.appendSwitch("disable-direct-composition");
 
-        const client = steamworks.init(480);
-        console.log(client.localplayer.getName());
+        this.setupSteam();
 
         if (process.env.NODE_ENV !== "production") {
             if (process.platform === "win32") {
@@ -127,6 +126,15 @@ export class Application {
         ipcMain.handle("saveReplay", async (event, replayData: ReplayData) => {
             this.replayManager?.saveReplay(replayData);
         });
+    }
+
+    protected setupSteam() {
+        try {
+            const client = steamworks.init(480);
+            console.log(client.localplayer.getName());
+        } catch (err) {
+            console.error(err);
+        }
     }
 }
 
