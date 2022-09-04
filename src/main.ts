@@ -92,7 +92,8 @@ export class Application {
         // TODO: refactor this info into session store api?
         ipcMain.handle("getInfo", async (event) => {
             const appPath = this.app.getAppPath();
-            const contentPath = path.join(this.app.getPath("userData"), "content");
+            const contentPath = path.join(appPath, "content");
+            const configPath = path.join(this.app.getPath("userData"), "config");
 
             const displayIds = screen.getAllDisplays().map((display) => display.id);
             const currentDisplayId = screen.getDisplayNearestPoint(this.mainWindow!.window.getBounds()).id;
@@ -100,6 +101,7 @@ export class Application {
             const info: Info = {
                 appPath,
                 contentPath,
+                configPath,
                 lobby: {
                     name: this.app.getName(),
                     version: this.app.getVersion(),

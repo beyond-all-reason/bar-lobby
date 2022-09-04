@@ -16,8 +16,6 @@ class ReplayCache extends AbstractFileCache<ReplayData> {
 
         this.parser = new DemoParser();
 
-        console.log(cacheFilePath);
-
         this.db = new JsonDB(new Config("test", true, false, "/"));
     }
 

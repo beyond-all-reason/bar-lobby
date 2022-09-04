@@ -13,7 +13,7 @@ export class ReplayContentAPI extends AbstractContentAPI {
     }
 
     public async init() {
-        const cacheStoreDir = path.join(api.info.contentPath, "store");
+        const cacheStoreDir = path.join(api.info.configPath);
         const mapCacheFile = path.join(cacheStoreDir, "replay-cache.json");
 
         await this.replayCache.init([mapCacheFile, api.info.contentPath]);

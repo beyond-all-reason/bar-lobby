@@ -26,8 +26,7 @@ export class MapContentAPI extends AbstractContentAPI {
     public async init() {
         await fs.promises.mkdir(this.mapsPath, { recursive: true });
 
-        const cacheStoreDir = path.join(api.info.contentPath, "store");
-        const mapCacheFile = path.join(cacheStoreDir, "map-cache.json");
+        const mapCacheFile = path.join(api.info.configPath, "map-cache.json");
 
         this.mapCache.on("cache-loaded").add((maps: Record<string, MapData>) => {
             for (const [filename, mapData] of Object.entries(maps)) {
