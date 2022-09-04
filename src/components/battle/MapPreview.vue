@@ -32,8 +32,8 @@
 </template>
 
 <script lang="ts" setup>
-import { entries } from "jaz-ts-utils";
-import { computed, onMounted, Ref, ref, watch } from "vue";
+import { entries, SignalBinding } from "jaz-ts-utils";
+import { computed, onMounted, onUnmounted, Ref, ref, watch, WatchStopHandle } from "vue";
 
 import defaultMinimapImage from "@/assets/images/default-minimap.png";
 import Button from "@/components/inputs/Button.vue";
@@ -64,6 +64,10 @@ const startPosOptions: Array<{ label: string; value: StartPosType }> = [
     { label: "Boxes", value: StartPosType.Boxes },
 ];
 
+let watchStopHandle: WatchStopHandle | undefined;
+let mapCachedSignalBinding: SignalBinding | undefined;
+let loadMapTimeoutId: number | undefined;
+
 onMounted(async () => {
     if (!canvas.value) {
         return;
@@ -76,7 +80,7 @@ onMounted(async () => {
 
     loadMap();
 
-    watch(
+    watchStopHandle = watch(
         [() => props.battle.battleOptions.map, () => props.battle.battleOptions.startPosType, () => props.battle.battleOptions.startBoxes, () => props.me.battleStatus],
         () => {
             loadMap();
@@ -84,10 +88,24 @@ onMounted(async () => {
         { deep: true }
     );
 
-    api.content.maps.mapCache.on("map-cached").add((data: MapData) => {
+    mapCachedSignalBinding = api.content.maps.mapCache.on("map-cached").add((data: MapData) => {
         console.log("map-cached!", data);
         loadMap();
     });
+});
+
+onUnmounted(() => {
+    if (watchStopHandle) {
+        watchStopHandle();
+        watchStopHandle = undefined;
+    }
+    if (mapCachedSignalBinding) {
+        mapCachedSignalBinding.destroy();
+        mapCachedSignalBinding = undefined;
+    }
+    if (loadMapTimeoutId) {
+        window.clearTimeout(loadMapTimeoutId);
+    }
 });
 
 const setBoxes = (boxes: StartBox[]) => {
@@ -105,13 +123,13 @@ async function loadMap() {
 
     // hack to fix a strange bug where calling this function more than once causes the map to load the wrong dimensions
     if (loadingMap) {
-        setTimeout(() => {
+        loadMapTimeoutId = window.setTimeout(() => {
             loadMap();
         }, 100);
         return;
     } else {
         loadingMap = true;
-        setTimeout(() => {
+        loadMapTimeoutId = window.setTimeout(() => {
             loadingMap = false;
         }, 100);
     }
@@ -217,7 +235,7 @@ function roundTransform(transform: Transform) {
     border: 1px solid rgba(255, 255, 255, 0.1);
     position: relative;
     &:before {
-        @extend .fullsize;
+        @extend .fullsize !optional;
         height: 52px;
         bottom: 0;
         left: 0;
@@ -241,7 +259,7 @@ function roundTransform(transform: Transform) {
     aspect-ratio: 1;
 }
 .overlay {
-    @extend .fullsize;
+    @extend .fullsize !optional;
     padding: 18px;
     left: 0;
     top: 0;
