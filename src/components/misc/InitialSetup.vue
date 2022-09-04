@@ -43,7 +43,7 @@ onMounted(async () => {
 
     if (Object.keys(api.content.maps.installedMaps).length === 0) {
         text.value = "Downloading maps";
-        await api.content.maps.downloadMaps(defaultMaps);
+        await api.content.maps.installMaps(defaultMaps);
     }
 
     emit("complete");
