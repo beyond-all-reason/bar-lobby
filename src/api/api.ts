@@ -1,6 +1,6 @@
 import { ipcRenderer } from "electron";
 import * as fs from "fs";
-import { createRouter, createWebHashHistory, Router } from "vue-router";
+import { createMemoryHistory, createRouter, Router } from "vue-router";
 
 import { AlertsAPI } from "@/api/alerts";
 import { AudioAPI } from "@/api/audio";
@@ -57,7 +57,7 @@ export async function apiInit() {
     api.session = new SessionAPI();
 
     api.router = createRouter({
-        history: createWebHashHistory(),
+        history: createMemoryHistory(),
         routes: routes,
     });
 

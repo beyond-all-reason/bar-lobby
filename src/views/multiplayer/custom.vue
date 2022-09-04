@@ -90,7 +90,7 @@ const updateBattleList = async () => {
     await api.comms.updateUsers(userIds);
 
     for (const lobby of lobbies) {
-        let battle = api.session.getBattleById(lobby.lobby.id);
+        let battle = api.session.battles.get(lobby.lobby.id);
         if (!battle) {
             api.session.battles.set(lobby.lobby.id, new TachyonSpadsBattle(lobby));
         } else {

@@ -156,8 +156,4 @@ export class SessionAPI {
 
         return undefined;
     }
-
-    public getBattleById(battleId: number) {
-        return this.battles.get(battleId);
-    }
 }

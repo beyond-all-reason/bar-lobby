@@ -101,7 +101,7 @@ export class CommsAPI extends TachyonClient {
                 await this.updateUsers(userIds);
             }
 
-            let battle = api.session.getBattleById(data.lobby.id);
+            let battle = api.session.battles.get(data.lobby.id);
             if (!battle) {
                 battle = new TachyonSpadsBattle(data);
             }
@@ -132,7 +132,7 @@ export class CommsAPI extends TachyonClient {
         });
 
         this.onResponse("s.lobby.updated").add((data) => {
-            const battle = api.session.getBattleById(data.lobby.id);
+            const battle = api.session.battles.get(data.lobby.id);
             if (battle) {
                 battle.handleServerResponse(data);
             } else {
@@ -141,7 +141,7 @@ export class CommsAPI extends TachyonClient {
         });
 
         this.onResponse("s.lobby.update_values").add((data) => {
-            const battle = api.session.getBattleById(data.lobby_id);
+            const battle = api.session.battles.get(data.lobby_id);
             if (battle) {
                 battle.handleServerResponse({
                     lobby: data.new_values,
@@ -175,7 +175,7 @@ export class CommsAPI extends TachyonClient {
             const user = api.session.updateUser(data.user);
             api.session.updateUserBattleStauts(data.client);
 
-            const battle = api.session.getBattleById(data.lobby_id);
+            const battle = api.session.battles.get(data.lobby_id);
             if (user && battle) {
                 battle.users.push(user);
             }
@@ -183,7 +183,7 @@ export class CommsAPI extends TachyonClient {
 
         this.onResponse("s.lobby.remove_user").add((data) => {
             const user = api.session.getUserById(data.leaver_id);
-            const battle = api.session.getBattleById(data.lobby_id);
+            const battle = api.session.battles.get(data.lobby_id);
             if (user && battle) {
                 const index = battle.users.findIndex((user) => user.userId === data.leaver_id);
                 battle.users.splice(index, 1);
@@ -191,7 +191,7 @@ export class CommsAPI extends TachyonClient {
         });
 
         this.onResponse("s.lobby.add_start_area").add((data) => {
-            const battle = api.session.getBattleById(data.lobby_id);
+            const battle = api.session.battles.get(data.lobby_id);
             if (battle) {
                 battle.battleOptions.startBoxes[data.area_id] = {
                     xPercent: data.structure.x1 / 200,
@@ -203,21 +203,20 @@ export class CommsAPI extends TachyonClient {
         });
 
         this.onResponse("s.lobby.remove_start_area").add((data) => {
-            const battle = api.session.getBattleById(data.lobby_id);
+            const battle = api.session.battles.get(data.lobby_id);
             if (battle) {
                 battle.battleOptions.startBoxes[data.area_id] = undefined;
             }
         });
 
         this.onResponse("s.lobby.closed").add((data) => {
-            const battle = api.session.onlineBattle.value;
-            if (data.lobby_id === battle?.battleOptions.id) {
-                api.session.battles.delete(battle.battleOptions.id);
-                api.session.onlineBattle.value = null;
-                if (api.router.currentRoute.value.path === "/multiplayer/battle") {
-                    api.router.push("/multiplayer");
-                }
+            const battle = api.session.battles.get(data.lobby_id);
+
+            if (battle === api.session.onlineBattle.value) {
+                battle.leave();
             }
+
+            api.session.battles.delete(data.lobby_id);
         });
 
         this.onResponse("s.lobby.add_bot").add(({ bot }) => {
