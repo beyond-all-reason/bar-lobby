@@ -219,7 +219,9 @@ export class TachyonSpadsBattle extends AbstractBattle {
         this.updateSync();
     }
 
-    public async leave() {
+    public override async leave() {
+        super.leave();
+
         api.comms.request("c.lobby.leave", {});
         api.session.onlineBattle.value = null;
         if (api.router.currentRoute.value.name === "multiplayer-battle") {

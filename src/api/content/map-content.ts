@@ -127,6 +127,8 @@ export class MapContentAPI extends AbstractContentAPI {
 
             this.currentDownloads.push(downloadInfo);
 
+            this.onDownloadStart.dispatch(downloadInfo);
+
             const downloadResponse = await axios({
                 url: `${host}${filename}`,
                 method: "get",

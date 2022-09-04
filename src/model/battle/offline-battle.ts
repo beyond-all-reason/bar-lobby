@@ -4,7 +4,9 @@ import { Bot, StartBox, StartPosType } from "@/model/battle/types";
 import { User } from "@/model/user";
 
 export class OfflineBattle extends AbstractBattle {
-    public leave() {
+    public override leave() {
+        super.leave();
+
         api.session.offlineBattle.value = null;
         api.session.onlineUser.battleStatus.battleId = -1;
         api.router.replace("/home");

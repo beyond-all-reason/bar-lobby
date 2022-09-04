@@ -1,7 +1,7 @@
 import { useNow } from "@vueuse/core";
 import { formatDuration } from "date-fns";
 import { groupBy } from "jaz-ts-utils";
-import { computed, ComputedRef, reactive, shallowReactive, watch } from "vue";
+import { computed, ComputedRef, reactive, shallowReactive, watch, WatchStopHandle } from "vue";
 
 import { BattleOptions, Bot, StartBox, StartPosType } from "@/model/battle/types";
 import { MapData } from "@/model/map-data";
@@ -27,6 +27,8 @@ export abstract class AbstractBattle {
     public readonly founder: ComputedRef<User>;
     public readonly friendlyRuntime: ComputedRef<string | null>;
     public readonly map: ComputedRef<MapData | null>;
+
+    protected watchStopHandles: WatchStopHandle[] = [];
 
     constructor(config: BattleConfig) {
         this.battleOptions = reactive(config.battleOptions);
@@ -78,38 +80,43 @@ export abstract class AbstractBattle {
     }
 
     public open() {
-        watch(
-            () => this.battleOptions.engineVersion,
-            (engineVersion) => {
-                api.content.engine.downloadEngine(engineVersion);
-            },
-            {
-                immediate: true,
-            }
-        );
-
-        watch(
-            () => this.battleOptions.gameVersion,
-            (gameVersion) => {
-                api.content.game.updateGame();
-            },
-            {
-                immediate: true,
-            }
-        );
-
-        watch(
-            () => this.battleOptions.map,
-            (mapScriptName) => {
-                api.content.maps.installMapByScriptName(mapScriptName);
-            },
-            {
-                immediate: true,
-            }
-        );
+        this.watchStopHandles = [
+            watch(
+                () => this.battleOptions.engineVersion,
+                (engineVersion) => {
+                    api.content.engine.downloadEngine(engineVersion);
+                },
+                {
+                    immediate: true,
+                }
+            ),
+            watch(
+                () => this.battleOptions.gameVersion,
+                (gameVersion) => {
+                    api.content.game.updateGame();
+                },
+                {
+                    immediate: true,
+                }
+            ),
+            watch(
+                () => this.battleOptions.map,
+                (mapScriptName) => {
+                    api.content.maps.installMapByScriptName(mapScriptName);
+                },
+                {
+                    immediate: true,
+                }
+            ),
+        ];
     }
 
-    public abstract leave(): void;
+    public leave() {
+        for (const stopWatchHandle of this.watchStopHandles) {
+            stopWatchHandle();
+        }
+    }
+
     public abstract start(): void;
     public abstract setMap(map: string): void;
     public abstract setGame(gameVersion: string): void;

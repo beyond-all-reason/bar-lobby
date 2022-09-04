@@ -61,6 +61,7 @@ export class GameContentAPI extends AbstractContentAPI {
                             totalBytes: 1,
                         } as const);
                         this.currentDownloads.push(downloadInfo);
+                        this.onDownloadStart.dispatch(downloadInfo);
                     }
                 }
             });

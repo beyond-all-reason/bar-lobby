@@ -74,6 +74,8 @@ export class EngineContentAPI extends AbstractContentAPI {
 
         this.currentDownloads.push(downloadInfo);
 
+        this.onDownloadStart.dispatch(downloadInfo);
+
         const downloadResponse = await axios({
             url: asset.browser_download_url,
             method: "get",
