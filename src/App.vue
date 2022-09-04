@@ -10,6 +10,9 @@
         <div class="lobby-version">
             {{ lobbyVersion }}
         </div>
+        <div class="steam-overlay-hack">
+            {{ frameCount }}
+        </div>
         <transition mode="out-in" name="fade">
             <Preloader v-if="state === 'preloader'" @complete="onPreloadDone" />
             <InitialSetup v-else-if="state === 'initial-setup'" @complete="onInitialSetupDone" />
@@ -121,6 +124,14 @@ router.replace("/");
 
 const leftClick = () => api.utils.onLeftClick.dispatch();
 const rightClick = () => api.utils.onRightClick.dispatch();
+
+const frameCount = ref(0);
+
+const animFrame = () => {
+    frameCount.value++;
+    requestAnimationFrame(() => animFrame());
+};
+animFrame();
 </script>
 
 <style lang="scss" scoped>
@@ -138,5 +149,8 @@ const rightClick = () => api.utils.onRightClick.dispatch();
     bottom: 1px;
     font-size: 12px;
     color: rgba(255, 255, 255, 0.3);
+}
+.steam-overlay-hack {
+    opacity: 0.01;
 }
 </style>

@@ -3,6 +3,7 @@ import { app, ipcMain, protocol, screen } from "electron";
 import installExtension, { VUEJS3_DEVTOOLS } from "electron-devtools-installer";
 import unhandled from "electron-unhandled";
 import path from "path";
+import steamworks from "steamworks.js";
 
 import { StoreAPI } from "@/api/store";
 import { MainWindow } from "@/main-window";
@@ -34,6 +35,11 @@ export class Application {
         ]);
 
         this.app.commandLine.appendSwitch("disable-features", "HardwareMediaKeyHandling,MediaSessionService");
+        this.app.commandLine.appendSwitch("in-process-gpu");
+        this.app.commandLine.appendSwitch("disable-direct-composition");
+
+        const client = steamworks.init(480);
+        console.log(client.localplayer.getName());
 
         if (process.env.NODE_ENV !== "production") {
             if (process.platform === "win32") {
@@ -51,7 +57,7 @@ export class Application {
 
         this.app.on("ready", () => this.onReady());
         this.app.on("activate", () => this.onActivate());
-        this.app.on("window-all-closed", () => this.onWindowAllClosed());
+        this.app.on("window-all-closed", () => this.app.quit());
     }
 
     protected async onReady() {
@@ -81,12 +87,6 @@ export class Application {
         this.mainWindow = new MainWindow(this.settings);
 
         this.setupHandlers();
-    }
-
-    protected async onWindowAllClosed() {
-        if (process.platform !== "darwin") {
-            this.app.quit();
-        }
     }
 
     protected setupHandlers() {

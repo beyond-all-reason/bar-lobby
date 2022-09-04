@@ -34,6 +34,7 @@ module.exports = {
             rendererProcessFile: "src/render.ts",
             customFileProtocol: "bar:/",
             nodeIntegration: true,
+            externals: ["steamworks.js"],
             builderOptions: {
                 productName: "Beyond All Reason",
                 directories: {
