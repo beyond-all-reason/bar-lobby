@@ -3,7 +3,7 @@ import { assign } from "jaz-ts-utils";
 
 import { AbstractBattle } from "@/model/battle/abstract-battle";
 import { OfflineBattle } from "@/model/battle/offline-battle";
-import { TachyonSpadsBattle } from "@/model/battle/tachyon-spads-battle";
+import { SpadsBattle } from "@/model/battle/tachyon-spads-battle";
 import { StartPosType } from "@/model/battle/types";
 import type { StartScriptTypes } from "@/model/start-script";
 
@@ -20,7 +20,7 @@ export class StartScriptConverter {
         if (battle instanceof OfflineBattle) {
             const script = this.offlineBattleToStartScript(battle);
             scriptStr = this.generateScriptString(script);
-        } else if (battle instanceof TachyonSpadsBattle) {
+        } else if (battle instanceof SpadsBattle) {
             scriptStr = this.generateOnlineScript(battle);
         }
         return scriptStr;
@@ -269,7 +269,7 @@ export class StartScriptConverter {
         return str;
     }
 
-    protected generateOnlineScript(battle: TachyonSpadsBattle) {
+    protected generateOnlineScript(battle: SpadsBattle) {
         return `[game] {
     hostip = ${battle.battleOptions.ip};
     hostport = ${battle.battleOptions.port};

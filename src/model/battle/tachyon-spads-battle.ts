@@ -9,7 +9,7 @@ import { User } from "@/model/user";
 type LobbyType = Static<typeof lobbySchema>;
 type BattleType = Static<typeof battleSchema>;
 type LobbyResponseHandlers = { [K in keyof Required<LobbyType>]: (data: Required<LobbyType[K]>) => void };
-export class TachyonSpadsBattle extends AbstractBattle {
+export class SpadsBattle extends AbstractBattle {
     protected responseHandlers: { [K in keyof Required<BattleType>]: (data: Required<BattleType[K]>) => void } = {
         lobby: (data) => {
             const lobbyResponseHandlers: LobbyResponseHandlers = {

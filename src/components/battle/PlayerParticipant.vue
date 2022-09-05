@@ -103,6 +103,7 @@ const onMouseEnter = () => {
 .ready {
     font-size: 12px;
     color: rgb(226, 0, 0);
+    text-shadow: none;
     &.isReady {
         color: rgb(121, 226, 0);
     }

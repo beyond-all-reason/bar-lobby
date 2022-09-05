@@ -5,17 +5,17 @@ import { reactive, Ref, ref, shallowReactive, shallowRef, toRaw } from "vue";
 
 import { BattleChatMessage } from "@/model/battle/battle-chat";
 import { OfflineBattle } from "@/model/battle/offline-battle";
-import { TachyonSpadsBattle } from "@/model/battle/tachyon-spads-battle";
+import { SpadsBattle } from "@/model/battle/tachyon-spads-battle";
 import { CurrentUser, User } from "@/model/user";
 
 export class SessionAPI {
     public readonly offlineMode: Ref<boolean>;
     public readonly offlineBattle: Ref<OfflineBattle | null> = shallowRef(null);
-    public readonly onlineBattle: Ref<TachyonSpadsBattle | null> = shallowRef(null);
+    public readonly onlineBattle: Ref<SpadsBattle | null> = shallowRef(null);
     public readonly users: Map<number, User>;
     public readonly offlineUser: CurrentUser;
     public readonly onlineUser: CurrentUser;
-    public readonly battles: Map<number, TachyonSpadsBattle>;
+    public readonly battles: Map<number, SpadsBattle>;
     public readonly battleMessages: BattleChatMessage[];
     public readonly serverStats: Ref<ResponseType<"s.system.server_stats">["data"] | null> = shallowRef(null);
 
@@ -59,7 +59,7 @@ export class SessionAPI {
 
         this.users = reactive(new Map<number, User>([]));
 
-        this.battles = shallowReactive(new Map<number, TachyonSpadsBattle>());
+        this.battles = shallowReactive(new Map<number, SpadsBattle>());
 
         this.battleMessages = reactive([]);
     }

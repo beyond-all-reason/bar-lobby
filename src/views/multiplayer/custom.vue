@@ -37,7 +37,7 @@ import BattlePreview from "@/components/battle/BattlePreview.vue";
 import HostBattle from "@/components/battle/HostBattle.vue";
 import Button from "@/components/inputs/Button.vue";
 import Checkbox from "@/components/inputs/Checkbox.vue";
-import { TachyonSpadsBattle } from "@/model/battle/tachyon-spads-battle";
+import { SpadsBattle } from "@/model/battle/tachyon-spads-battle";
 
 const hostBattleOpen = ref(false);
 const hidePvE = ref(false);
@@ -92,7 +92,7 @@ const updateBattleList = async () => {
     for (const lobby of lobbies) {
         let battle = api.session.battles.get(lobby.lobby.id);
         if (!battle) {
-            api.session.battles.set(lobby.lobby.id, new TachyonSpadsBattle(lobby));
+            api.session.battles.set(lobby.lobby.id, new SpadsBattle(lobby));
         } else {
             battle.handleServerResponse(lobby);
         }
