@@ -32,8 +32,8 @@ export abstract class AbstractBattle {
 
     constructor(config: BattleConfig) {
         this.battleOptions = reactive(config.battleOptions);
-        this.bots = shallowReactive(config.bots);
-        this.users = shallowReactive(config.users);
+        this.bots = reactive(config.bots);
+        this.users = shallowReactive(config.users); // users already reactive
 
         this.participants = computed(() => [...this.bots, ...this.users]);
         this.contenders = computed(() => this.participants.value.filter((participant) => ("userId" in participant ? !participant.battleStatus.isSpectator : true)));
@@ -93,7 +93,7 @@ export abstract class AbstractBattle {
             watch(
                 () => this.battleOptions.gameVersion,
                 (gameVersion) => {
-                    api.content.game.updateGame();
+                    api.content.game.downloadGame(gameVersion);
                 },
                 {
                     immediate: true,

@@ -2,7 +2,6 @@ export const contentSources = {
     rapid: {
         host: "https://repos.springrts.com",
         game: "byar",
-        tag: "test",
     },
     gameGithub: {
         owner: "beyond-all-reason",

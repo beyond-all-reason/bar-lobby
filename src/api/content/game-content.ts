@@ -2,7 +2,7 @@ import axios from "axios";
 import { spawn } from "child_process";
 import * as fs from "fs";
 import * as glob from "glob-promise";
-import { BufferStream, removeFromArray } from "jaz-ts-utils";
+import { BufferStream, lastInArray, removeFromArray } from "jaz-ts-utils";
 import { Octokit } from "octokit";
 import os from "os";
 import * as path from "path";
@@ -18,26 +18,44 @@ import { DownloadType } from "@/model/pr-downloader";
 import { SdpFile, SdpFileMeta } from "@/model/sdp";
 import { parseLuaOptions } from "@/utils/parse-lua-options";
 
+/**
+ * This API utilises pr-downloader to download game files, therefore it requires at least one engine version to be installed and for api.content.engine to be initialised
+ * prd is quite a dated tool at this point, and is lacking a lot of desired functionality that
+ * would simplify this wrapper a lot
+ *
+ * https://github.com/beyond-all-reason/pr-downloader
+ * https://springrts.com/wiki/Pr-downloader
+ * https://springrts.com/wiki/Rapid
+ *
+ * @todo installedVersions is primitive and prone to bugs, as it only checks the packages folder and matches each sdp file
+ * against the version listed in versions.gz. We don't verify if an sdp installation is incomplete or corrupted, so bugs may arise
+ * when reporting a game version as installed when it's not really. Ideally needs solving within prd
+ */
 export class GameContentAPI extends AbstractContentAPI {
-    public readonly installedVersions: RapidVersion[] = reactive([]);
+    /** Latest version is last item */
+    public installedVersions: string[] = reactive([]);
 
     protected prBinaryPath!: string;
     protected ocotokit = new Octokit();
     protected md5ToRapidVersionMap: Record<string, RapidVersion> = {};
 
-    public async init(prBinaryPath: string) {
-        this.prBinaryPath = prBinaryPath;
+    public async init() {
+        const engine = lastInArray(api.content.engine.installedVersions)!;
+        const binaryName = process.platform === "win32" ? "pr-downloader.exe" : "pr-downloader";
+        this.prBinaryPath = path.join(api.info.contentPath, "engine", engine, binaryName);
 
         await this.updateVersions();
 
         return this;
     }
 
-    public async updateGame() {
-        await this.updateVersions();
-
+    /**
+     * Downloads the actual game files, will update to latest if no specific gameVersion is specified
+     * @param gameVersion e.g. "Beyond All Reason test-16289-b154c3d"
+     */
+    public async downloadGame(gameVersion = `${contentSources.rapid.game}:test`) {
         return new Promise<void>((resolve) => {
-            const prDownloaderProcess = spawn(`${this.prBinaryPath}`, ["--filesystem-writepath", api.info.contentPath, "--download-game", `${contentSources.rapid.game}:${contentSources.rapid.tag}`]);
+            const prDownloaderProcess = spawn(`${this.prBinaryPath}`, ["--filesystem-writepath", api.info.contentPath, "--download-game", gameVersion]);
 
             let downloadType: DownloadType = DownloadType.Metadata;
             let downloadInfo: DownloadInfo | undefined;
@@ -71,9 +89,14 @@ export class GameContentAPI extends AbstractContentAPI {
             });
 
             prDownloaderProcess.on("close", async () => {
-                removeFromArray(this.currentDownloads, downloadInfo);
-                this.onDownloadComplete.dispatch(downloadInfo);
-                await this.updateVersions();
+                if (downloadInfo) {
+                    if (!this.installedVersions.includes(downloadInfo.name)) {
+                        this.installedVersions.push(downloadInfo.name);
+                        this.sortVersions();
+                    }
+                    removeFromArray(this.currentDownloads, downloadInfo);
+                    this.onDownloadComplete.dispatch(downloadInfo);
+                }
                 resolve();
             });
         });
@@ -89,34 +112,40 @@ export class GameContentAPI extends AbstractContentAPI {
             },
         });
 
+        const md5ToVersionLookup: Record<string, string> = {};
+
         const versionsStr = zlib.gunzipSync(response.data).toString().trim();
         const versionsParts = versionsStr.split("\n");
         versionsParts.map((versionLine) => {
             const [tag, md5, _, version] = versionLine.split(",");
-            this.md5ToRapidVersionMap[md5] = { tag, md5, version };
+            md5ToVersionLookup[md5] = version;
         });
 
         const packagesDir = path.join(api.info.contentPath, "packages");
         if (fs.existsSync(packagesDir)) {
             const sdpFilePaths = await fs.promises.readdir(packagesDir);
-            for (const sdpFilePath of sdpFilePaths) {
-                const md5 = sdpFilePath.split(".")[0];
-                if (this.md5ToRapidVersionMap[md5] && !this.installedVersions.find((version) => version.md5 === md5)) {
-                    this.installedVersions.push(this.md5ToRapidVersionMap[md5]);
+            for (const sdpPath of sdpFilePaths) {
+                const sdpMd5 = path.parse(sdpPath).name;
+                const version = md5ToVersionLookup[sdpMd5];
+                if (!this.installedVersions.includes(version)) {
+                    this.installedVersions.push(version);
                 }
             }
-            this.installedVersions.sort((a, b) => {
-                // TODO
-                return 0;
-            });
+
+            this.sortVersions();
         }
     }
 
     /**
+     * @todo need to lookup sdp file for specified game
      * @param filePatterns glob pattern for which files to retrieve
      * @example getGameFiles("Beyond All Reason test-16289-b154c3d", ["units/CorAircraft/T2/*.lua"])
      */
     public async getGameFiles(version: string, filePattern: string): Promise<SdpFile[]> {
+        if (!this.installedVersions.includes(version)) {
+            throw new Error(`Cannot fetch files for ${version}, as it is not installed`);
+        }
+
         const sdpEntries = await this.parseSdpFile(version, filePattern);
 
         const sdpFiles: SdpFile[] = [];
@@ -142,13 +171,7 @@ export class GameContentAPI extends AbstractContentAPI {
         return parseLuaOptions(gameOptionsLua);
     }
 
-    protected async parseSdpFile(version: string, filePattern?: string): Promise<SdpFileMeta[]> {
-        const md5 = this.installedVersions.find((installedVersion) => installedVersion.version === version)?.md5;
-        if (!md5) {
-            throw new Error(`Version ${version} is not installed`);
-        }
-
-        const sdpFilePath = path.join(api.info.contentPath, "packages", `${md5}.sdp`);
+    protected async parseSdpFile(sdpFilePath: string, filePattern?: string): Promise<SdpFileMeta[]> {
         const sdpFileZipped = await fs.promises.readFile(sdpFilePath);
         const sdpFile = zlib.gunzipSync(sdpFileZipped);
 
@@ -208,5 +231,13 @@ export class GameContentAPI extends AbstractContentAPI {
 
     protected isPrDownloaderProgressMessage(message: Message): message is ProgressMessage {
         return message.type === "Progress";
+    }
+
+    protected sortVersions() {
+        this.installedVersions.sort((a, b) => {
+            const aRev = parseInt(a.split("-")[1]);
+            const bRev = parseInt(b.split("-")[1]);
+            return aRev - bRev;
+        });
     }
 }

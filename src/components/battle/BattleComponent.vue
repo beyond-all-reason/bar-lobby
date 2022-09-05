@@ -107,9 +107,9 @@ const props = defineProps<{
 }>();
 
 const isOfflineBattle = props.battle instanceof OfflineBattle;
-const installedEngines = computed(() => api.content.engine.installedVersions);
+const installedEngines = api.content.engine.installedVersions;
 const installedMaps = computed(() => Array.from(api.content.maps.installedMaps.values()));
-const installedGames = computed(() => api.content.game.installedVersions.map((rapidVersion) => rapidVersion.version).slice(-10));
+const installedGames = api.content.game.installedVersions;
 const gameOptionsOpen = ref(false);
 const gameOptions: Ref<LuaOptionSection[]> = ref([]);
 const isGameRunning = api.game.isGameRunning;

@@ -93,29 +93,4 @@ export class OfflineBattle extends AbstractBattle {
             "userId" in contender ? (contender.battleStatus.teamId = newTeamId) : (contender.teamId = newTeamId);
         }
     }
-
-    // protected setBoxes(mapFileName: string) {
-    //     if (this.battleOptions.startPosType === StartPosType.Boxes) {
-    //         const boxes: StartBox[] | undefined = clone(defaultMapBoxes()[mapFileName]);
-    //         if (boxes) {
-    //             this.battleOptions.startBoxes[0] = boxes[0];
-    //             this.battleOptions.startBoxes[1] = boxes[1];
-    //         } else {
-    //             this.battleOptions.startBoxes[0] = { xPercent: 0, yPercent: 0, widthPercent: 0.25, heightPercent: 1 };
-    //             this.battleOptions.startBoxes[1] = { xPercent: 0.75, yPercent: 0, widthPercent: 0.25, heightPercent: 1 };
-    //         }
-    //     }
-    // }
-
-    // protected configureTeams(teamPreset: TeamPreset) {
-    //     if (teamPreset === TeamPreset.Standard) {
-    //         this.teams.length = 2;
-    //         this.battleOptions.startPosType = StartPosType.Boxes;
-    //     } else if (teamPreset === TeamPreset.FFA) {
-    //         this.teams.length = this.participants.length;
-    //         this.battleOptions.startPosType = StartPosType.Fixed; // TODO: should be random?
-    //     } else if (teamPreset === TeamPreset.TeamFFA) {
-    //         this.battleOptions.startPosType = StartPosType.Fixed;
-    //     }
-    // }
 }

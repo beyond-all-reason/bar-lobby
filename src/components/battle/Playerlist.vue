@@ -25,15 +25,15 @@
         <div
             class="group"
             data-type="group"
-            @dragenter.prevent="dragEnter($event, battle.teams.value.size)"
+            @dragenter.prevent="dragEnter($event, emptyTeamId)"
             @dragover.prevent
-            @dragleave.prevent="dragLeave($event, battle.teams.value.size)"
-            @drop="onDrop($event, battle.teams.value.size)"
+            @dragleave.prevent="dragLeave($event, emptyTeamId)"
+            @drop="onDrop($event, emptyTeamId)"
         >
             <div class="flex-row gap-md">
-                <div class="title">Team {{ battle.teams.value.size + 1 }}</div>
-                <Button class="slim" @click="addBot(battle.teams.value.size)"> Add bot </Button>
-                <Button class="slim" @click="joinTeam(battle.teams.value.size)"> Join </Button>
+                <div class="title">Team {{ emptyTeamId + 1 }}</div>
+                <Button class="slim" @click="addBot(emptyTeamId)"> Add bot </Button>
+                <Button class="slim" @click="joinTeam(emptyTeamId)"> Join </Button>
             </div>
         </div>
         <div class="group" data-type="group" @dragenter.prevent="dragEnter($event)" @dragover.prevent @dragleave.prevent="dragLeave($event)" @drop="onDrop($event)">
@@ -57,6 +57,7 @@
 </template>
 
 <script lang="ts" setup>
+import { computed } from "@vue/reactivity";
 import { randomFromArray } from "jaz-ts-utils";
 import { Ref, ref } from "vue";
 
@@ -72,6 +73,16 @@ const props = defineProps<{
     battle: AbstractBattle;
     me: CurrentUser;
 }>();
+
+const emptyTeamId = computed(() => {
+    const teams = props.battle.teams.value;
+    for (let i = 0; i <= teams.size; i++) {
+        if (!teams.get(i)) {
+            return i;
+        }
+    }
+    return -1;
+});
 
 const addBot = (teamId: number) => {
     let randomName = randomFromArray(aiNames);

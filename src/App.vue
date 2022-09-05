@@ -41,8 +41,6 @@
 </template>
 
 <script lang="ts" setup>
-import { lastInArray } from "jaz-ts-utils";
-import * as path from "path";
 import { Ref } from "vue";
 import { ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
@@ -86,7 +84,7 @@ const onIntroEnd = () => {
 const onPreloadDone = async () => {
     console.time("onPreloadDone");
 
-    // TODO: init all content apis here
+    // TODO: init all content apis in api.content.init()
 
     await api.content.engine.init();
 
@@ -94,10 +92,7 @@ const onPreloadDone = async () => {
     if (api.content.engine.installedVersions.length === 0) {
         state.value = "initial-setup";
     } else {
-        const latestEngine = lastInArray(api.content.engine.installedVersions)!;
-        const binaryName = process.platform === "win32" ? "pr-downloader.exe" : "pr-downloader";
-        const prBinaryPath = path.join(api.info.contentPath, "engine", latestEngine, binaryName);
-        await api.content.game.init(prBinaryPath);
+        await api.content.game.init();
 
         await api.content.maps.init();
 
@@ -105,7 +100,7 @@ const onPreloadDone = async () => {
 
         // TODO: fix the slight delay these cause on startup, probably best to move them into worker threads
         api.content.engine.downloadLatestEngine();
-        api.content.game.updateGame();
+        api.content.game.downloadGame();
         api.content.maps.installMaps(defaultMaps);
 
         state.value = "default";

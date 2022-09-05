@@ -38,7 +38,8 @@ export class Application {
         this.app.commandLine.appendSwitch("in-process-gpu");
         this.app.commandLine.appendSwitch("disable-direct-composition");
 
-        this.setupSteam();
+        // commented out until we have a gameid for bar via steamworks
+        //this.setupSteam();
 
         if (process.env.NODE_ENV !== "production") {
             if (process.platform === "win32") {

@@ -252,10 +252,10 @@ export class CommsAPI extends TachyonClient {
             }
         });
 
-        this.onResponse("s.lobby.remove_bot").add(({ name }) => {
+        this.onResponse("s.lobby.remove_bot").add(({ bot_name }) => {
             const battle = api.session.onlineBattle.value;
             if (battle) {
-                const botIndex = battle.bots.findIndex((b) => b.name === name);
+                const botIndex = battle.bots.findIndex((b) => b.name === bot_name);
                 if (botIndex !== -1) {
                     battle.bots.splice(botIndex, 1);
                 }

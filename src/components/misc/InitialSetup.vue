@@ -7,8 +7,6 @@
 </template>
 
 <script lang="ts" setup>
-import { lastInArray } from "jaz-ts-utils";
-import * as path from "path";
 import { computed, onMounted, ref } from "vue";
 
 import { defaultMaps } from "@/config/default-maps";
@@ -28,14 +26,11 @@ onMounted(async () => {
         text.value = "Installing engine";
     }
 
-    const engine = lastInArray(api.content.engine.installedVersions)!;
-    const binaryName = process.platform === "win32" ? "pr-downloader.exe" : "pr-downloader";
-    const prBinaryPath = path.join(api.info.contentPath, "engine", engine, binaryName);
-    await api.content.game.init(prBinaryPath);
+    await api.content.game.init();
 
     if (api.content.game.installedVersions.length === 0) {
         text.value = "Downloading game";
-        await api.content.game.updateGame();
+        await api.content.game.downloadGame();
         text.value = "Installing game";
     }
 

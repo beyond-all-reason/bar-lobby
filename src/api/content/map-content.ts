@@ -11,7 +11,7 @@ import type { MapData } from "@/model/map-data";
 import { MapCacheWorkerHost } from "@/workers/map-cache-worker";
 
 export class MapContentAPI extends AbstractContentAPI {
-    public readonly installedMaps: Map<string, MapData> = reactive(new Map());
+    public readonly installedMaps: Map<string, MapData> = reactive(new Map()); // TODO: this is confusing, just store uncached maps as strings instead of MapData
     public readonly mapsPath: string = path.join(api.info.contentPath, "maps");
     public readonly mapImagesPath: string = path.join(api.info.contentPath, "map-images");
     public readonly mapCache: MapCacheWorkerHost;

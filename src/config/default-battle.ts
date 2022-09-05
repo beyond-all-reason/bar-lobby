@@ -26,7 +26,7 @@ export const defaultBattle: () => OfflineBattle = () => {
             scriptPassword: null,
             startTime: null,
             engineVersion: lastInArray(api.content.engine.installedVersions)!,
-            gameVersion: lastInArray(api.content.game.installedVersions)!.version,
+            gameVersion: lastInArray(api.content.game.installedVersions)!,
             map: map,
             startPosType: StartPosType.Boxes,
             startBoxes: defaultMapBoxes()[map] ?? defaultBoxes().NorthVsSouth,

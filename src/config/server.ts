@@ -1,4 +1,4 @@
 export const serverConfig = {
-    host: "server2.beyondallreason.info",
+    host: "server3.beyondallreason.info",
     port: 8202,
 };
