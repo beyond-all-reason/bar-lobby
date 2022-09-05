@@ -30,6 +30,7 @@ import { parseLuaOptions } from "@/utils/parse-lua-options";
  * @todo installedVersions is primitive and prone to bugs, as it only checks the packages folder and matches each sdp file
  * against the version listed in versions.gz. We don't verify if an sdp installation is incomplete or corrupted, so bugs may arise
  * when reporting a game version as installed when it's not really. Ideally needs solving within prd
+ * @todo don't allow spawning multiple prd instances at once
  */
 export class GameContentAPI extends AbstractContentAPI {
     /** Latest version is last item */
@@ -56,6 +57,8 @@ export class GameContentAPI extends AbstractContentAPI {
     public async downloadGame(gameVersion = `${contentSources.rapid.game}:test`) {
         return new Promise<void>((resolve) => {
             const prDownloaderProcess = spawn(`${this.prBinaryPath}`, ["--filesystem-writepath", api.info.contentPath, "--download-game", gameVersion]);
+
+            console.debug(prDownloaderProcess.spawnargs);
 
             let downloadType: DownloadType = DownloadType.Metadata;
             let downloadInfo: DownloadInfo | undefined;

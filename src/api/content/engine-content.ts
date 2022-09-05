@@ -30,7 +30,7 @@ export class EngineContentAPI extends AbstractContentAPI {
             }
         }
 
-        this.sortEngineVersions();
+        this.sortVersions();
 
         return this;
     }
@@ -101,7 +101,7 @@ export class EngineContentAPI extends AbstractContentAPI {
         await fs.promises.unlink(downloadFile);
 
         this.installedVersions.push(engineVersion);
-        this.sortEngineVersions();
+        this.sortVersions();
 
         removeFromArray(this.currentDownloads, downloadInfo);
         this.onDownloadComplete.dispatch(downloadInfo);
@@ -148,22 +148,12 @@ export class EngineContentAPI extends AbstractContentAPI {
         return this.installedVersions.includes(engineTag);
     }
 
-    protected isVersionGreater(a: string, b: string): boolean {
-        const [aGame, aVersion, aRevision, aSha] = a.split("-");
-        const [bGame, bVersion, bRevision, bSha] = b.split("-");
-
-        const [aMajor, aMinor, aPatch] = aVersion.split(".");
-        const [bMajor, bMinor, bPatch] = bVersion.split(".");
-
-        if (aMajor > bMajor || aMinor > bMinor || aPatch > bPatch || aRevision > bRevision) {
-            return true;
-        }
-
-        return false;
-    }
-
-    protected sortEngineVersions() {
-        return Array.from(this.installedVersions).sort((a, b) => (this.isVersionGreater(a, b) ? 1 : -1));
+    protected sortVersions() {
+        this.installedVersions.sort((a, b) => {
+            const aRev = parseInt(a.split("-")[1]);
+            const bRev = parseInt(b.split("-")[1]);
+            return aRev - bRev;
+        });
     }
 
     /**
