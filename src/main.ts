@@ -65,6 +65,7 @@ export class Application {
             try {
                 // https://chrome.google.com/webstore/detail/vuejs-devtools/nhdogjmejiglipccpnnnanhbledajbpd
                 await installExtension("nhdogjmejiglipccpnnnanhbledajbpd");
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
             } catch (e: any) {
                 console.error("Vue Devtools failed to install:", e.toString());
             }
