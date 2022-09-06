@@ -3,7 +3,6 @@ import { app, ipcMain, protocol, screen } from "electron";
 import installExtension from "electron-devtools-installer";
 import unhandled from "electron-unhandled";
 import path from "path";
-import steamworks from "steamworks.js";
 
 import { StoreAPI } from "@/api/store";
 import { MainWindow } from "@/main-window";
@@ -132,8 +131,10 @@ export class Application {
         });
     }
 
-    protected setupSteam() {
+    protected async setupSteam() {
         try {
+            const steamworks = await import("steamworks.js");
+
             const client = steamworks.init(480);
             console.log(client.localplayer.getName());
         } catch (err) {
