@@ -93,7 +93,7 @@ export class Application {
     protected setupHandlers() {
         // TODO: refactor this info into session store api?
         ipcMain.handle("getInfo", async (event) => {
-            const appPath = this.app.getAppPath();
+            const appPath = process.env.NODE_ENV === "production" ? path.parse(this.app.getPath("exe")).dir : this.app.getAppPath();
             const contentPath = path.join(appPath, "content");
             const configPath = path.join(this.app.getPath("userData"), "config");
 

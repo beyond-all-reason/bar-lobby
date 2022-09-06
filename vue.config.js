@@ -48,7 +48,8 @@ module.exports = {
                     },
                 ],
                 win: {
-                    target: ["nsis", "portable"],
+                    target: ["nsis"],
+                    requestedExecutionLevel: "requireAdministrator",
                 },
                 nsis: {
                     oneClick: false,

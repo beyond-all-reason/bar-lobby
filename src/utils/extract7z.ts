@@ -10,8 +10,7 @@ export function extract7z(archivePath: string, outputName: string) {
 
         let binaryPath = process.platform === "win32" ? "resources/7za.exe" : "resources/7za";
         if (process.env.NODE_ENV !== "development") {
-            const resourcesDir = path.dirname(api.info.appPath);
-            binaryPath = process.platform === "win32" ? path.join(resourcesDir, "7za.exe") : path.join(resourcesDir, "7za");
+            binaryPath = process.platform === "win32" ? path.join(api.info.appPath, binaryPath) : path.join(api.info.appPath, binaryPath);
         }
 
         const stream = extractFull(archivePath, outputPath, {
