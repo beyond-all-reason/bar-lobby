@@ -2,8 +2,8 @@ import type { App } from "electron";
 import { app, ipcMain, protocol, screen } from "electron";
 import installExtension from "electron-devtools-installer";
 import unhandled from "electron-unhandled";
+import envPaths from "env-paths";
 import path from "path";
-import steamworks from "steamworks.js";
 
 import { StoreAPI } from "@/api/store";
 import { MainWindow } from "@/main-window";
@@ -91,19 +91,17 @@ export class Application {
     }
 
     protected setupHandlers() {
-        // TODO: refactor this info into session store api?
         ipcMain.handle("getInfo", async (event) => {
             const appPath = process.env.NODE_ENV === "production" ? path.parse(this.app.getPath("exe")).dir : this.app.getAppPath();
-            const contentPath = path.join(appPath, "content");
-            const configPath = path.join(this.app.getPath("userData"), "config");
+            const paths = envPaths(app.getName(), { suffix: "" });
 
             const displayIds = screen.getAllDisplays().map((display) => display.id);
             const currentDisplayId = screen.getDisplayNearestPoint(this.mainWindow!.window.getBounds()).id;
 
             const info: Info = {
                 appPath,
-                contentPath,
-                configPath,
+                contentPath: paths.data,
+                configPath: paths.config,
                 lobby: {
                     name: this.app.getName(),
                     version: this.app.getVersion(),
@@ -132,8 +130,10 @@ export class Application {
         });
     }
 
-    protected setupSteam() {
+    protected async setupSteam() {
         try {
+            const steamworks = await import("steamworks.js");
+
             const client = steamworks.init(480);
             console.log(client.localplayer.getName());
         } catch (err) {

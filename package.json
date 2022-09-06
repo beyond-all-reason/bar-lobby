@@ -81,6 +81,7 @@
     "worker-plugin": "^5.0.1"
   },
   "dependencies": {
+    "env-paths": "^3.0.0",
     "steamworks.js": "0.0.21"
   }
 }
