@@ -2,7 +2,7 @@ import axios from "axios";
 import { ChildProcess, spawn } from "child_process";
 import * as fs from "fs";
 import * as glob from "glob-promise";
-import { BufferStream, lastInArray, removeFromArray } from "jaz-ts-utils";
+import { BufferStream, lastInArray } from "jaz-ts-utils";
 import { Octokit } from "octokit";
 import os from "os";
 import * as path from "path";
@@ -93,6 +93,10 @@ export class GameContentAPI extends AbstractContentAPI {
                 }
             });
 
+            this.prdProcess.on("error", (err) => {
+                console.log("error2");
+            });
+
             this.prdProcess.stderr?.on("data", (data: Buffer) => {
                 console.error(data.toString());
             });
@@ -103,9 +107,10 @@ export class GameContentAPI extends AbstractContentAPI {
                         this.installedVersions.push(downloadInfo.name);
                         this.sortVersions();
                     }
-                    removeFromArray(this.currentDownloads, downloadInfo);
                     this.onDownloadComplete.dispatch(downloadInfo);
                 }
+
+                this.currentDownloads.length = 0;
 
                 this.prdProcess = null;
 
