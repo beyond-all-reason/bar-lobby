@@ -28,6 +28,8 @@ declare module "vue-router" {
 
     await setupVue();
 
+    api.router.replace("/");
+
     window.addEventListener("keydown", (event) => {
         if (event.code === "F11") {
             event.preventDefault();

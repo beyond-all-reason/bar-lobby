@@ -8,13 +8,10 @@ export function extract7z(archivePath: string, outputName: string) {
         const archivePathObj = path.parse(archivePath);
         const outputPath = path.join(archivePathObj.dir, outputName);
 
-        let binaryPath = process.platform === "win32" ? "resources/7za.exe" : "resources/7za";
-        if (process.env.NODE_ENV !== "development") {
-            binaryPath = process.platform === "win32" ? path.join(api.info.appPath, binaryPath) : path.join(api.info.appPath, binaryPath);
-        }
+        const binaryName = process.platform === "win32" ? "7za.exe" : "7za";
 
         const stream = extractFull(archivePath, outputPath, {
-            $bin: binaryPath,
+            $bin: path.join(api.info.resourcesPath, binaryName),
         });
 
         stream.on("error", reject);

@@ -3,7 +3,7 @@ import { app, ipcMain, protocol, screen } from "electron";
 import installExtension from "electron-devtools-installer";
 import unhandled from "electron-unhandled";
 import envPaths from "env-paths";
-import path from "path";
+import * as path from "path";
 
 import { StoreAPI } from "@/api/store";
 import { MainWindow } from "@/main-window";
@@ -22,6 +22,8 @@ export class Application {
 
     constructor(app: App) {
         this.app = app;
+
+        this.app.setName("Beyond All Reason");
 
         protocol.registerSchemesAsPrivileged([
             {
@@ -92,18 +94,18 @@ export class Application {
 
     protected setupHandlers() {
         ipcMain.handle("getInfo", async (event) => {
-            const appPath = process.env.NODE_ENV === "production" ? path.parse(this.app.getPath("exe")).dir : this.app.getAppPath();
+            const resourcesPath = process.env.NODE_ENV === "production" ? process.resourcesPath : path.join(path.parse(this.app.getAppPath()).dir, "resources");
             const paths = envPaths(app.getName(), { suffix: "" });
 
             const displayIds = screen.getAllDisplays().map((display) => display.id);
             const currentDisplayId = screen.getDisplayNearestPoint(this.mainWindow!.window.getBounds()).id;
 
             const info: Info = {
-                appPath,
+                resourcesPath,
                 contentPath: paths.data,
                 configPath: paths.config,
                 lobby: {
-                    name: this.app.getName(),
+                    name: "BAR Lobby",
                     version: this.app.getVersion(),
                     hash: "123", // TODO: generate and inject checksum of app build in CI pipeline
                 },

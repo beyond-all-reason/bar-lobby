@@ -13,20 +13,16 @@ class MapCache extends AbstractFileCache<MapData> {
     protected mapImagesDir: string;
     protected parser: MapParser;
 
-    constructor(cacheFilePath: string, dataDir: string, appPath: string) {
-        super(cacheFilePath, path.join(dataDir, "maps"), [".sd7", ".sdz"]);
+    constructor(cacheFilePath: string, contentPath: string, resourcesPath: string) {
+        super(cacheFilePath, path.join(contentPath, "maps"), [".sd7", ".sdz"]);
 
-        this.mapImagesDir = path.join(dataDir, "map-images");
+        this.mapImagesDir = path.join(contentPath, "map-images");
 
-        let binaryPath = process.platform === "win32" ? "resources/7za.exe" : "resources/7za";
-        if (process.env.NODE_ENV !== "development") {
-            const resourcesDir = path.dirname(appPath);
-            binaryPath = process.platform === "win32" ? path.join(resourcesDir, "7za.exe") : path.join(resourcesDir, "7za");
-        }
+        const binaryName = process.platform === "win32" ? "7za.exe" : "7za";
 
         this.parser = new MapParser({
             mipmapSize: 8,
-            path7za: binaryPath,
+            path7za: path.join(resourcesPath, binaryName),
         });
     }
 

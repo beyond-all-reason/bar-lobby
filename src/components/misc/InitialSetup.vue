@@ -1,5 +1,5 @@
 <template>
-    <div class="fullsize flex-center">
+    <div class="initial-setup fullsize flex-center">
         <h1>Initial Setup</h1>
         <h4>{{ text }}</h4>
         <h2 v-if="downloadPercent < 1">{{ (downloadPercent * 100).toFixed(2) }}%</h2>
@@ -63,4 +63,8 @@ const downloadPercent = computed(() => {
 });
 </script>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+.initial-setup {
+    text-shadow: 0 0 6px rgba(255, 255, 255, 0.4);
+}
+</style>

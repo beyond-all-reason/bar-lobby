@@ -1,5 +1,5 @@
 export interface Info {
-    appPath: string;
+    resourcesPath: string;
     contentPath: string;
     configPath: string;
     lobby: {

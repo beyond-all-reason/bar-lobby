@@ -36,6 +36,7 @@ module.exports = {
             nodeIntegration: true,
             externals: ["steamworks.js"],
             builderOptions: {
+                appId: "beyond-all-reason",
                 productName: "Beyond All Reason",
                 directories: {
                     buildResources: "build",

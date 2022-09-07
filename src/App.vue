@@ -13,6 +13,9 @@
         <div class="steam-overlay-hack">
             {{ frameCount }}
         </div>
+        <div v-if="empty" class="startup-settings" @click="settingsOpen = true">
+            <Icon :icon="cog" height="21" />
+        </div>
         <transition mode="out-in" name="fade">
             <Preloader v-if="state === 'preloader'" @complete="onPreloadDone" />
             <InitialSetup v-else-if="state === 'initial-setup'" @complete="onInitialSetupDone" />
@@ -41,7 +44,9 @@
 </template>
 
 <script lang="ts" setup>
-import { Ref } from "vue";
+import { Icon } from "@iconify/vue";
+import cog from "@iconify-icons/mdi/cog";
+import { provide, Ref } from "vue";
 import { ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 
@@ -69,6 +74,9 @@ const state: Ref<"preloader" | "initial-setup" | "default"> = ref("preloader");
 const empty = ref(false);
 const blurBg = ref(true);
 const lobbyVersion = api.info.lobby.version;
+const settingsOpen = ref(false);
+
+provide("settingsOpen", settingsOpen);
 
 playRandomMusic();
 
@@ -115,8 +123,6 @@ const onInitialSetupDone = () => {
     state.value = "default";
 };
 
-router.replace("/");
-
 const leftClick = () => api.utils.onLeftClick.dispatch();
 const rightClick = () => api.utils.onRightClick.dispatch();
 
@@ -147,5 +153,15 @@ animFrame();
 }
 .steam-overlay-hack {
     opacity: 0.01;
+}
+.startup-settings {
+    position: fixed;
+    display: flex;
+    padding: 10px;
+    opacity: 0.8;
+    z-index: 5;
+    &:hover {
+        opacity: 1;
+    }
 }
 </style>

@@ -60,7 +60,7 @@ import account from "@iconify-icons/mdi/account";
 import accountMultiple from "@iconify-icons/mdi/account-multiple";
 import closeThick from "@iconify-icons/mdi/close-thick";
 import cog from "@iconify-icons/mdi/cog";
-import { computed, ref } from "vue";
+import { computed, inject, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 
 import Button from "@/components/inputs/Button.vue";
@@ -87,7 +87,7 @@ const secondaryRoutes = computed(() => {
 });
 
 const downloadsOpen = ref(false);
-const settingsOpen = ref(false);
+const settingsOpen = inject("settingsOpen");
 const exitOpen = ref(false);
 
 const currentUser = api.session.onlineUser;

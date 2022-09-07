@@ -3,6 +3,7 @@ import type { TObject } from "@sinclair/typebox";
 import type { ValidateFunction } from "ajv";
 import Ajv from "ajv";
 import { app, ipcMain, ipcRenderer, shell } from "electron";
+import envPaths from "env-paths";
 import * as fs from "fs";
 import * as path from "path";
 import type { ToRefs } from "vue";
@@ -28,7 +29,8 @@ export class StoreAPI<T extends Record<string, unknown>> {
         if (process.type === "renderer") {
             this.dir = api.info.configPath;
         } else {
-            this.dir = path.join(app.getPath("userData"), "config");
+            const paths = envPaths(app.getName(), { suffix: "" });
+            this.dir = paths.config;
         }
 
         this.filePath = path.join(this.dir, this.filename);
