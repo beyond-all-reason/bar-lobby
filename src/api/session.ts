@@ -5,7 +5,7 @@ import { reactive, Ref, ref, shallowReactive, shallowRef, toRaw } from "vue";
 
 import { BattleChatMessage } from "@/model/battle/battle-chat";
 import { OfflineBattle } from "@/model/battle/offline-battle";
-import { SpadsBattle } from "@/model/battle/tachyon-spads-battle";
+import { SpadsBattle } from "@/model/battle/spads-battle";
 import { CurrentUser, User } from "@/model/user";
 
 export class SessionAPI {

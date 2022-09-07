@@ -3,7 +3,7 @@ import { arrayToMap, assign } from "jaz-ts-utils";
 import { battleSchema, myUserSchema, TachyonClient } from "tachyon-client";
 import { reactive } from "vue";
 
-import { SpadsBattle } from "@/model/battle/tachyon-spads-battle";
+import { SpadsBattle } from "@/model/battle/spads-battle";
 import { tachyonLog } from "@/utils/tachyon-log";
 export class CommsAPI extends TachyonClient {
     constructor(config: ConstructorParameters<typeof TachyonClient>[0]) {

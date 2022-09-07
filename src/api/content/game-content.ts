@@ -1,5 +1,5 @@
 import axios from "axios";
-import { spawn } from "child_process";
+import { ChildProcess, spawn } from "child_process";
 import * as fs from "fs";
 import * as glob from "glob-promise";
 import { BufferStream, lastInArray, removeFromArray } from "jaz-ts-utils";
@@ -36,6 +36,7 @@ export class GameContentAPI extends AbstractContentAPI {
     /** Latest version is last item */
     public installedVersions: string[] = reactive([]);
 
+    protected prdProcess: ChildProcess | null = null;
     protected prBinaryPath!: string;
     protected ocotokit = new Octokit();
     protected md5ToRapidVersionMap: Record<string, RapidVersion> = {};
@@ -56,14 +57,19 @@ export class GameContentAPI extends AbstractContentAPI {
      */
     public async downloadGame(gameVersion = `${contentSources.rapid.game}:test`) {
         return new Promise<void>((resolve) => {
-            const prDownloaderProcess = spawn(`${this.prBinaryPath}`, ["--filesystem-writepath", api.info.contentPath, "--download-game", gameVersion]);
+            if (this.prdProcess) {
+                console.warn("Could not spawn new prd instance until existing instance has finished");
+                return;
+            }
 
-            console.debug(prDownloaderProcess.spawnargs);
+            this.prdProcess = spawn(`${this.prBinaryPath}`, ["--filesystem-writepath", api.info.contentPath, "--download-game", gameVersion]);
+
+            console.debug(this.prdProcess.spawnargs);
 
             let downloadType: DownloadType = DownloadType.Metadata;
             let downloadInfo: DownloadInfo | undefined;
 
-            prDownloaderProcess.stdout.on("data", (stdout: Buffer) => {
+            this.prdProcess.stdout?.on("data", (stdout: Buffer) => {
                 const lines = stdout.toString().trim().split(os.EOL).filter(Boolean);
                 console.debug(lines.join("\n"));
                 const messages = lines.map((line) => this.processPrDownloaderLine(line)).filter(Boolean) as Message[];
@@ -87,11 +93,11 @@ export class GameContentAPI extends AbstractContentAPI {
                 }
             });
 
-            prDownloaderProcess.stderr.on("data", (data: Buffer) => {
+            this.prdProcess.stderr?.on("data", (data: Buffer) => {
                 console.error(data.toString());
             });
 
-            prDownloaderProcess.on("exit", async () => {
+            this.prdProcess.on("exit", async () => {
                 if (downloadInfo) {
                     if (!this.installedVersions.includes(downloadInfo.name)) {
                         this.installedVersions.push(downloadInfo.name);
@@ -100,6 +106,9 @@ export class GameContentAPI extends AbstractContentAPI {
                     removeFromArray(this.currentDownloads, downloadInfo);
                     this.onDownloadComplete.dispatch(downloadInfo);
                 }
+
+                this.prdProcess = null;
+
                 resolve();
             });
         });
