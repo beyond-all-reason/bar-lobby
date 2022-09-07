@@ -40,6 +40,7 @@
             </div>
         </transition>
     </div>
+    <Settings v-model="settingsOpen" />
     <Error />
 </template>
 
@@ -61,6 +62,7 @@ import InitialSetup from "@/components/misc/InitialSetup.vue";
 import IntroVideo from "@/components/misc/IntroVideo.vue";
 import Preloader from "@/components/misc/Preloader.vue";
 import NavBar from "@/components/navbar/NavBar.vue";
+import Settings from "@/components/navbar/Settings.vue";
 import { defaultMaps } from "@/config/default-maps";
 import { playRandomMusic } from "@/utils/play-random-music";
 
@@ -118,8 +120,6 @@ const onPreloadDone = async () => {
 };
 
 const onInitialSetupDone = () => {
-    playRandomMusic();
-
     state.value = "default";
 };
 

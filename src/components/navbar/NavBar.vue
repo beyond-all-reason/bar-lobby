@@ -49,7 +49,6 @@
         </div>
         <Friends />
         <Downloads v-model="downloadsOpen" />
-        <Settings v-model="settingsOpen" />
         <Exit v-model="exitOpen" />
     </div>
 </template>
@@ -68,7 +67,6 @@ import Downloads from "@/components/navbar/Downloads.vue";
 import DownloadsButton from "@/components/navbar/DownloadsButton.vue";
 import Exit from "@/components/navbar/Exit.vue";
 import Friends from "@/components/navbar/Friends.vue";
-import Settings from "@/components/navbar/Settings.vue";
 
 const props = defineProps<{
     hidden?: boolean;
