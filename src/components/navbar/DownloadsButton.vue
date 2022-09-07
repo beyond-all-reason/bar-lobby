@@ -31,8 +31,9 @@ const downloadPercent = computed(() => {
     position: relative;
     &:before {
         @extend .fullsize;
+        width: calc(100% - 2px);
         top: 0;
-        left: 0;
+        left: 1px;
         z-index: -1;
         background: radial-gradient(ellipse at top, hsla(69, 100%, 50%, 0.685), transparent), radial-gradient(ellipse at bottom, #2c4e05c7, transparent);
         background-repeat: no-repeat;

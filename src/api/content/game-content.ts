@@ -91,7 +91,7 @@ export class GameContentAPI extends AbstractContentAPI {
                 console.error(data.toString());
             });
 
-            prDownloaderProcess.on("close", async () => {
+            prDownloaderProcess.on("exit", async () => {
                 if (downloadInfo) {
                     if (!this.installedVersions.includes(downloadInfo.name)) {
                         this.installedVersions.push(downloadInfo.name);
