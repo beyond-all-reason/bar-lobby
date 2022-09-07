@@ -12,6 +12,7 @@
   "scripts": {
     "dev": "vue-cli-service electron:serve",
     "build": "cross-env NODE_ENV=production npm run clean-dist && vue-cli-service electron:build",
+    "tidy": "npm run lint && npm run format",
     "lint-check": "eslint . --ext .ts,.vue",
     "lint": "eslint . --ext .ts,.vue --fix",
     "format-check": "prettier --check src/**/*.{ts,vue,scss,json}",
