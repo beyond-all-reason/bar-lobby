@@ -29,6 +29,7 @@
     "@iconify/json": "^1.1.420",
     "@iconify/vue": "^3.2.1",
     "@sinclair/typebox": "^0.23.5",
+    "@types/better-sqlite3": "^7.6.0",
     "@types/electron-devtools-installer": "^2.2.0",
     "@types/howler": "^2.2.4",
     "@types/luaparse": "^0.2.8",
@@ -62,7 +63,6 @@
     "rimraf": "^3.0.2",
     "sass": "^1.52.1",
     "sass-loader": "^13.0.0",
-    "sdfz-demo-parser": "^4.7.0",
     "spring-map-parser": "^4.3.5",
     "sqlite": "^4.1.1",
     "sqlite3": "^5.0.8",
@@ -82,7 +82,11 @@
     "worker-plugin": "^5.0.1"
   },
   "dependencies": {
+    "better-sqlite3": "^7.6.2",
+    "electron-rebuild": "^3.2.9",
     "env-paths": "^3.0.0",
+    "kysely": "^0.21.6",
+    "sdfz-demo-parser": "^5.0.0",
     "steamworks.js": "0.0.21"
   }
 }

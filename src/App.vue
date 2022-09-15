@@ -106,7 +106,7 @@ const onPreloadDone = async () => {
 
         await api.content.maps.init();
 
-        await api.content.replays.init();
+        // await api.content.replays.init();
 
         // TODO: fix the slight delay these cause on startup, probably best to move them into worker threads
         api.content.engine.downloadLatestEngine();

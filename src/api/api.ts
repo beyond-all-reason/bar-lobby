@@ -1,5 +1,8 @@
+import Database from "better-sqlite3";
 import { ipcRenderer } from "electron";
 import * as fs from "fs";
+import { Kysely, SqliteDialect } from "kysely";
+import * as path from "path";
 import { createMemoryHistory, createRouter, Router } from "vue-router";
 
 import { AlertsAPI } from "@/api/alerts";
@@ -14,6 +17,7 @@ import { defaultBattle } from "@/config/default-battle";
 import { serverConfig } from "@/config/server";
 import type { Account } from "@/model/account";
 import { accountSchema } from "@/model/account";
+import { CacheDatabase } from "@/model/cache-database";
 import type { Info } from "@/model/info";
 import type { SettingsType } from "@/model/settings";
 import { settingsSchema } from "@/model/settings";
@@ -23,6 +27,7 @@ interface API {
     account: StoreAPI<Account>;
     alerts: AlertsAPI;
     audio: AudioAPI;
+    cacheDb: Kysely<CacheDatabase>;
     comms: CommsAPI;
     content: ContentAPI;
     game: GameAPI;
@@ -68,6 +73,12 @@ export async function apiInit() {
         } else if (from.path === "/singleplayer/custom") {
             api.session.offlineBattle.value = null;
         }
+    });
+
+    api.cacheDb = new Kysely<CacheDatabase>({
+        dialect: new SqliteDialect({
+            database: new Database(path.join(api.info.configPath, "cache.db")),
+        }),
     });
 
     api.audio = new AudioAPI().init();

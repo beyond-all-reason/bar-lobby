@@ -44,6 +44,41 @@ export class MapContentAPI extends AbstractContentAPI {
 
         this.mapCache.cacheItems();
 
+        // api.cacheDb.schema
+        //     .createTable("map")
+        //     .ifNotExists()
+        //     .addColumn("mapId", "integer", (col) => col.primaryKey().autoIncrement())
+        //     .addColumn("fileName", "varchar", (col) => col.notNull().unique())
+        //     .addColumn("scriptName", "varchar", (col) => col.notNull())
+        //     .addColumn("friendlyName", "varchar", (col) => col.notNull())
+        //     .addColumn("mapHardness", "double precision", (col) => col.notNull())
+        //     .addColumn("gravity", "double precision", (col) => col.notNull())
+        //     .addColumn("tidalStrength", "double precision", (col) => col.notNull())
+        //     .addColumn("maxMetal", "double precision", (col) => col.notNull())
+        //     .addColumn("extractorRadius", "double precision", (col) => col.notNull())
+        //     .addColumn("minWind", "double precision", (col) => col.notNull())
+        //     .addColumn("maxWind", "double precision", (col) => col.notNull())
+        //     .addColumn("startPositions", "json", (col) => col)
+        //     .addColumn("width", "double precision", (col) => col.notNull())
+        //     .addColumn("height", "double precision", (col) => col.notNull())
+        //     .addColumn("minDepth", "double precision", (col) => col.notNull())
+        //     .addColumn("maxDepth", "double precision", (col) => col.notNull())
+        //     .addColumn("mapInfo", "json", (col) => col)
+        //     .addColumn("textureImagePath", "varchar", (col) => col.notNull())
+        //     .addColumn("heightImagePath", "varchar", (col) => col.notNull())
+        //     .addColumn("metalImagePath", "varchar", (col) => col.notNull())
+        //     .addColumn("typeImagePath", "varchar", (col) => col.notNull())
+        //     .execute();
+
+        // api.cacheDb.schema
+        //     .createTable("mapError")
+        //     .ifNotExists()
+        //     .addColumn("fileName", "varchar", (col) => col.primaryKey())
+        //     .execute();
+
+        // const stuff = await api.cacheDb.selectFrom("map").selectAll().execute();
+        // console.log(stuff);
+
         return this;
     }
 
