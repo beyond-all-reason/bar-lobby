@@ -1,5 +1,5 @@
 <route lang="json">
-{ "meta": { "empty": true, "blurBg": true, "transition": { "name": "login" } } }
+{ "meta": { "empty": true, "blurBg": true, "offline": true, "transition": { "name": "login" } } }
 </route>
 
 <template>
@@ -61,7 +61,7 @@ const playOffline = () => {
     api.router.push("/singleplayer/custom");
 };
 
-await connect();
+connect();
 </script>
 
 <style lang="scss" scoped>

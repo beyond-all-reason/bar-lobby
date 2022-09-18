@@ -58,6 +58,7 @@ export default [
     meta: {
       empty: true,
       blurBg: true,
+      offline: true,
       transition: {
         name: 'login',
       },
