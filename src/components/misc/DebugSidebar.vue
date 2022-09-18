@@ -9,6 +9,7 @@
         <Button to="/debug"> Debug Sandbox </Button>
         <Button @click="openSettings"> Open Settings File </Button>
         <Button @click="openContentDir"> Open Content Dir </Button>
+        <Button @click="openConfigDir"> Open Config Dir </Button>
         <Button @click="generateStartScript"> Generate Start Script </Button>
         <Button @click="openStartScript"> Open Latest Start Script </Button>
     </div>
@@ -41,6 +42,10 @@ const openSettings = () => {
 
 const openContentDir = async () => {
     await shell.openPath(api.info.contentPath);
+};
+
+const openConfigDir = async () => {
+    await shell.openPath(api.info.configPath);
 };
 
 const generateStartScript = async () => {

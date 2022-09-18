@@ -9,7 +9,7 @@ export type ReplayData = {
     fileName: string;
     engineVersion: string;
     gameVersion: string;
-    map: string;
+    mapScriptName: string;
     startTime: Date;
     gameDurationMs: number;
     gameEndedNormally: boolean;

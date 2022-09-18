@@ -25,6 +25,8 @@ export class ReplayContentAPI extends AbstractContentAPI {
     }
 
     public async init() {
+        await api.cacheDb.schema.dropTable("replay").ifExists().execute();
+
         await api.cacheDb.schema
             .createTable("replay")
             .ifNotExists()
@@ -33,7 +35,7 @@ export class ReplayContentAPI extends AbstractContentAPI {
             .addColumn("fileName", "varchar", (col) => col.notNull())
             .addColumn("engineVersion", "varchar", (col) => col.notNull())
             .addColumn("gameVersion", "varchar", (col) => col.notNull())
-            .addColumn("map", "varchar", (col) => col.notNull().references("map.mapId"))
+            .addColumn("mapScriptName", "varchar", (col) => col.notNull().references("map.scriptName"))
             .addColumn("startTime", "datetime", (col) => col.notNull())
             .addColumn("gameDurationMs", "integer", (col) => col.notNull())
             .addColumn("gameEndedNormally", "boolean", (col) => col.notNull())
@@ -43,12 +45,13 @@ export class ReplayContentAPI extends AbstractContentAPI {
             .addColumn("startPosType", "integer", (col) => col.notNull())
             .addColumn("winningTeamId", "integer", (col) => col.notNull())
             .addColumn("teams", "json", (col) => col.notNull())
+            .addColumn("contenders", "json", (col) => col.notNull())
             .addColumn("spectators", "json", (col) => col.notNull())
             .addColumn("script", "text", (col) => col.notNull())
             .addColumn("battleSettings", "json", (col) => col.notNull())
             .addColumn("gameSettings", "json", (col) => col.notNull())
             .addColumn("mapSettings", "json", (col) => col.notNull())
-            .addColumn("hostSettings", "json", (col) => col.notNull().defaultTo({}))
+            .addColumn("hostSettings", "json", (col) => col.notNull())
             .execute();
 
         await api.cacheDb.schema
@@ -56,6 +59,8 @@ export class ReplayContentAPI extends AbstractContentAPI {
             .ifNotExists()
             .addColumn("fileName", "varchar", (col) => col.primaryKey())
             .execute();
+
+        this.cacheReplays();
     }
 
     protected async cacheReplays() {
@@ -107,7 +112,7 @@ export class ReplayContentAPI extends AbstractContentAPI {
                 fileName: path.parse(replayFilePath).base,
                 engineVersion: replayData.header.versionString,
                 gameVersion: replayData.info.meta.engine,
-                map: replayData.info.hostSettings.mapname,
+                mapScriptName: replayData.info.hostSettings.mapname,
                 startTime: replayData.info.meta.startTime,
                 gameDurationMs: replayData.info.meta.durationMs,
                 gameEndedNormally: replayData.info.meta.winningAllyTeamIds.length > 0,
@@ -123,7 +128,7 @@ export class ReplayContentAPI extends AbstractContentAPI {
                 battleSettings: replayData.info.hostSettings,
                 gameSettings: replayData.info.gameSettings,
                 mapSettings: replayData.info.mapSettings,
-                hostSettings: replayData.info.spadsSettings,
+                hostSettings: replayData.info.spadsSettings ?? {},
             })
             .execute();
 

@@ -132,6 +132,8 @@ export class ContentAPI {
     }
 
     public async init() {
+        this.replays.init();
+
         return this;
     }
 }
