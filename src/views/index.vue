@@ -14,9 +14,9 @@ const router = useRouter();
 
 onMounted(async () => {
     try {
-        await api.comms.connect();
-
         if (api.account.model.token.value && api.settings.model.loginAutomatically.value) {
+            await api.comms.connect();
+
             const loginResponse = await api.comms.request("c.auth.login", {
                 token: api.account.model.token.value,
                 lobby_name: api.info.lobby.name,
@@ -30,6 +30,8 @@ onMounted(async () => {
         }
     } catch (error) {
         console.error(error);
+
+        api.session.offlineMode.value = true;
     }
 
     router.replace("/login");

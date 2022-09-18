@@ -23,7 +23,7 @@ export class SessionAPI {
     public lastBattleResponses: Map<number, Static<typeof lobbySchema>> = new Map();
 
     constructor() {
-        this.offlineMode = ref(true);
+        this.offlineMode = ref(false);
 
         this.offlineUser = reactive({
             userId: -1,

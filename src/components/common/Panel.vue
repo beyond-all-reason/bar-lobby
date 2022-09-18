@@ -1,5 +1,5 @@
 <template>
-    <component :is="is" class="panel" :class="{ hidden, tabbed: Boolean(tabs.length), paginatedTabs, light, scrollContent }">
+    <component :is="is" class="panel" :class="{ empty, tabbed: Boolean(tabs.length), paginatedTabs, light, scrollContent }">
         <div v-if="slots.header || tabs.length" class="header" :class="{ tabs: Boolean(tabs.length) }">
             <template v-if="tabs.length">
                 <template v-if="paginatedTabs">
@@ -25,19 +25,22 @@
 
         <div class="content" :style="`--padding: ${padding}; --width: ${width}; --height: ${height}`">
             <slot v-if="tabs.length === 0" />
-            <template v-for="(tab, i) in tabs" v-else :key="i">
+            <div v-for="(tab, i) in tabs" v-else :key="i" class="tab-content">
                 <component :is="tab" v-if="i === currentTab" />
-            </template>
+            </div>
         </div>
     </component>
 </template>
 
 <script lang="ts" setup>
+/**
+ * TODO: replace tabs with https://www.primefaces.org/primevue/tabview
+ */
+
 import { Icon } from "@iconify/vue";
 import chevronLeft from "@iconify-icons/mdi/chevron-left";
 import chevronRight from "@iconify-icons/mdi/chevron-right";
-import { computed, ref, toRefs, VNode, watch } from "vue";
-import { useSlots } from "vue";
+import { computed, ref, toRefs, useSlots, VNode, watch } from "vue";
 
 import Button from "@/components/inputs/Button.vue";
 
@@ -52,6 +55,7 @@ const props = withDefaults(
         paginatedTabs?: boolean;
         light?: boolean;
         scrollContent?: boolean;
+        empty?: boolean;
     }>(),
     {
         is: "div",
@@ -83,8 +87,12 @@ const tabClicked = (tabIndex: number) => {
 
 let slots = useSlots();
 
+const stuff = ref(0);
+
 const tabs = computed(() => {
     slots = useSlots();
+
+    stuff.value;
 
     if (slots.default) {
         let tabsParent = slots.default() as VNode[];
@@ -99,6 +107,12 @@ const tabs = computed(() => {
     }
 
     return [];
+});
+
+defineExpose({
+    updateTabs: () => {
+        stuff.value++;
+    },
 });
 
 const activeTab = computed(() => tabs.value[currentTab.value]);
@@ -134,9 +148,14 @@ const nextTab = () => {
     border-bottom: 1px solid rgba(124, 124, 124, 0.3);
     box-shadow: -1px 0 0 rgba(0, 0, 0, 0.3), 1px 0 0 rgba(0, 0, 0, 0.3), 0 1px 0 rgba(0, 0, 0, 0.3), 0 -1px 0 rgba(0, 0, 0, 0.3), inset 0 0 50px rgba(255, 255, 255, 0.15),
         inset 0 3px 8px rgba(255, 255, 255, 0.1), 3px 3px 10px rgba(0, 0, 0, 0.8);
-    &.hidden {
-        opacity: 0;
-        transform: translateY(-20px);
+    &.empty {
+        background: transparent;
+        backdrop-filter: none;
+        border-color: transparent;
+        box-shadow: none;
+        &:after {
+            background: none;
+        }
     }
     .content {
         position: relative;

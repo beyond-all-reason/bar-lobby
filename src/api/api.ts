@@ -13,7 +13,6 @@ import { GameAPI } from "@/api/game";
 import { SessionAPI } from "@/api/session";
 import { StoreAPI } from "@/api/store";
 import { UtilsAPI } from "@/api/utils";
-import { defaultBattle } from "@/config/default-battle";
 import { serverConfig } from "@/config/server";
 import type { Account } from "@/model/account";
 import { accountSchema } from "@/model/account";
@@ -66,13 +65,16 @@ export async function apiInit() {
         routes: routes,
     });
 
-    api.router.beforeEach(async (to, from) => {
-        if (to.path === "/singleplayer/custom") {
-            api.session.offlineBattle.value = defaultBattle();
-            api.session.offlineBattle.value.open();
-        } else if (from.path === "/singleplayer/custom") {
-            api.session.offlineBattle.value = null;
+    api.router.beforeResolve(async (to) => {
+        if (!to.meta?.offline && api.session.offlineMode.value) {
+            api.alerts.alert({
+                type: "notification",
+                severity: "error",
+                content: `Cannot open ${to.path} in offline mode`,
+            });
+            return false;
         }
+        return true;
     });
 
     api.cacheDb = new Kysely<CacheDatabase>({

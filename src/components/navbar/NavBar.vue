@@ -35,7 +35,8 @@
                     <Button class="server-status">
                         <div class="flex-row flex-center gap-sm">
                             <div class="server-status-dot" :class="{ offline: serverOffline }">⬤</div>
-                            <div v-if="serverStats">{{ serverStats.user_count }} Players Online</div>
+                            <div v-if="serverStats && !serverOffline">{{ serverStats.user_count }} Players Online</div>
+                            <div v-else-if="serverOffline">Offline Mode</div>
                         </div>
                     </Button>
                     <Button class="user" to="/profile">

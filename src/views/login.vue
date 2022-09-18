@@ -1,78 +1,103 @@
 <route lang="json">
-{ "meta": { "empty": true, "blurBg": true } }
+{ "meta": { "empty": true, "blurBg": true, "transition": { "name": "login" } } }
 </route>
 
 <template>
-    <div>
-        <teleport to="#wrapper">
-            <div class="fullsize flex-col flex-center-items">
-                <Loader v-if="loading" />
-                <transition v-else name="login" appear>
-                    <div class="login">
-                        <img ref="logo" class="login__logo" src="@/assets/images/BARLogoFull.png" />
-                        <Panel v-model:activeTabIndex="activeTab" class="login__panel">
-                            <Tab title="Login">
-                                <LoginForm />
-                            </Tab>
-                            <Tab title="Register">
-                                <RegisterForm @register-success="activeTab = 0" />
-                            </Tab>
-                            <Tab title="Reset Password">
-                                <ResetPasswordForm />
-                            </Tab>
-                        </Panel>
-                    </div>
-                </transition>
-            </div>
-        </teleport>
+    <div class="container">
+        <img ref="logo" class="logo" src="@/assets/images/BARLogoFull.png" />
+        <Panel v-if="isConnected" v-model:activeTabIndex="activeTab" class="login-forms">
+            <Tab title="Login">
+                <LoginForm />
+            </Tab>
+            <Tab title="Register">
+                <RegisterForm @register-success="activeTab = 0" />
+            </Tab>
+            <Tab title="Reset Password">
+                <ResetPasswordForm />
+            </Tab>
+        </Panel>
+        <div v-else class="flex-col gap-md">
+            <div class="txt-error">Could not connect to {{ serverAddress }}</div>
+            <Button class="retry" @click="onRetry">
+                <Icon :icon="replayIcon" />
+                Retry
+            </Button>
+        </div>
+        <div class="play-offline" @click="playOffline">Play Offline</div>
     </div>
 </template>
 
 <script lang="ts" setup>
-import { onMounted, ref } from "vue";
+import { Icon } from "@iconify/vue";
+import replayIcon from "@iconify-icons/mdi/replay";
+import { ref } from "vue";
 
-import Loader from "@/components/common/Loader.vue";
 import Panel from "@/components/common/Panel.vue";
 import Tab from "@/components/common/Tab.vue";
+import Button from "@/components/inputs/Button.vue";
 import LoginForm from "@/components/login/LoginForm.vue";
 import RegisterForm from "@/components/login/RegisterForm.vue";
 import ResetPasswordForm from "@/components/login/ResetPasswordForm.vue";
 
-const loading = ref(false);
 const activeTab = ref(0);
+const isConnected = api.comms.isConnected;
+const serverAddress = `${api.comms.config.host}:${api.comms.config.port}`;
 
-onMounted(async () => {
-    // TODO: fallback to offline mode if connect fails
-    await api.comms.connect();
-});
+const connect = async () => {
+    try {
+        await api.comms.connect();
+    } catch (err) {
+        console.error(err);
+    }
+};
+
+const onRetry = async () => {
+    await connect();
+};
+
+const playOffline = () => {
+    api.session.offlineMode.value = true;
+    api.comms.disconnect();
+    api.router.push("/singleplayer/custom");
+};
+
+await connect();
 </script>
 
 <style lang="scss" scoped>
-.login {
+.container {
+    position: relative;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    margin-top: calc((100vh - 700px) / 2);
+    margin-top: calc((100vh - 900px) / 2);
     width: 500px;
-    gap: 80px;
-    &__logo {
-        filter: drop-shadow(3px 3px 5px rgba(0, 0, 0, 0.8));
-        transition: 2000ms ease;
-    }
-    &__panel {
-        width: 100%;
-        transition: 1700ms ease;
-        transition-delay: 300ms;
-    }
+    margin-left: auto;
+    margin-right: auto;
 }
 
-.login-enter-from,
-.login-leave-to {
-    .login__logo,
-    .login__panel {
-        transform: translateY(-25px);
-        opacity: 0;
+.logo {
+    filter: drop-shadow(3px 3px 5px rgba(0, 0, 0, 0.8));
+    margin-bottom: 80px;
+}
+
+.login-forms {
+    width: 100%;
+}
+
+.retry {
+    align-self: center;
+}
+
+.play-offline {
+    display: flex;
+    align-self: center;
+    margin-top: 20px;
+    font-size: 16px;
+    opacity: 0.3;
+    &:hover {
+        opacity: 1;
     }
 }
 </style>

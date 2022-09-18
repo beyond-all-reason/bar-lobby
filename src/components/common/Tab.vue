@@ -1,7 +1,5 @@
 <template>
-    <div class="tab-content">
-        <slot />
-    </div>
+    <slot />
 </template>
 
 <script lang="ts">

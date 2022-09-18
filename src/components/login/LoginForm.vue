@@ -13,7 +13,7 @@
             </div>
         </form>
         <form v-else class="flex-col gap-md" @submit.prevent="verify">
-            <p v-if="verificationError" class="error">
+            <p v-if="verificationError" class="txt-error">
                 {{ verificationError }}
             </p>
             <!-- eslint-disable vue/no-v-html -->
@@ -99,8 +99,4 @@ const verify = async () => {
 };
 </script>
 
-<style lang="scss" scoped>
-.error {
-    color: rgb(255, 130, 130);
-}
-</style>
+<style lang="scss" scoped></style>

@@ -1,19 +1,24 @@
 import { Static } from "@sinclair/typebox";
 import { arrayToMap, assign } from "jaz-ts-utils";
 import { battleSchema, myUserSchema, TachyonClient } from "tachyon-client";
-import { reactive } from "vue";
+import { reactive, Ref, ref } from "vue";
 
 import { SpadsBattle } from "@/model/battle/spads-battle";
 import { tachyonLog } from "@/utils/tachyon-log";
 export class CommsAPI extends TachyonClient {
+    public readonly isConnected: Ref<boolean> = ref(false);
+
     constructor(config: ConstructorParameters<typeof TachyonClient>[0]) {
         super({
             ...config,
             verbose: true,
             logMethod: tachyonLog,
+            attemptReconnect: false,
         });
 
         this.onConnect.add(() => {
+            this.isConnected.value = true;
+
             console.log(`Connected to ${config.host}:${config.port}`);
             this.request("c.system.watch", {
                 channel: "server_stats",
@@ -21,15 +26,16 @@ export class CommsAPI extends TachyonClient {
 
             // TODO: make this a .onDisconnect signal
             this.socket?.on("close", () => {
+                this.isConnected.value = false;
+
                 // TODO: display alerts whenever connecting/disconnecting
                 console.log(`Disconnected from ${config.host}:${config.port}`);
-                api.session.offlineMode.value = true;
                 api.session.offlineBattle.value = null;
                 api.session.users.clear();
                 api.session.battles.clear();
                 api.session.serverStats;
 
-                if (api.router.currentRoute.value.path !== "/" && api.router.currentRoute.value.path !== "/login") {
+                if (api.router.currentRoute.value.path !== "/" && api.router.currentRoute.value.path !== "/login" && !api.session.offlineMode.value) {
                     api.router.replace("/login");
                 }
             });
@@ -45,8 +51,6 @@ export class CommsAPI extends TachyonClient {
 
         this.onResponse("s.system.server_event").add((data) => {
             if (data.event === "server_restart") {
-                api.session.offlineMode.value = true;
-
                 api.alerts.alert({
                     type: "notification",
                     severity: "warning",
@@ -71,8 +75,6 @@ export class CommsAPI extends TachyonClient {
             }
 
             api.session.updateCurrentUser(userData);
-
-            api.session.offlineMode.value = false;
 
             api.router.push("/home");
         };

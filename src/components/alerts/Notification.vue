@@ -51,6 +51,7 @@ if (props.notification.timeoutMs) {
     flex-direction: row;
     gap: 10px;
     align-items: center;
+    justify-content: space-between;
     font-size: 16px;
     box-shadow: 1px 1px 5px rgba(0, 0, 0, 0.5);
     height: 30px;
@@ -58,6 +59,7 @@ if (props.notification.timeoutMs) {
     margin-bottom: 5px;
     border-top: 1px solid rgba(255, 255, 255, 0.3);
     background: linear-gradient(to bottom, rgb(84, 94, 110), rgb(63, 69, 99));
+    max-width: fit-content;
     &.error {
         border-top: 1px solid rgba(255, 255, 255, 0.5);
         background: linear-gradient(to bottom, rgb(204, 22, 22), rgb(155, 0, 0));
@@ -70,6 +72,9 @@ if (props.notification.timeoutMs) {
 .icon {
     display: flex;
     padding-left: 10px;
+}
+.text {
+    white-space: nowrap;
 }
 .close {
     color: rgba(255, 255, 255, 0.7);

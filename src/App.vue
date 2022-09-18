@@ -22,7 +22,7 @@
             <div v-else class="fullsize">
                 <NavBar :class="{ hidden: empty }" />
                 <div :class="`view view--${route.name?.toString()}`">
-                    <Panel :class="{ hidden: empty }">
+                    <Panel :empty="empty">
                         <router-view v-slot="{ Component }">
                             <template v-if="Component">
                                 <transition mode="out-in" name="slide-left">
@@ -152,6 +152,8 @@ animFrame();
     color: rgba(255, 255, 255, 0.3);
 }
 .steam-overlay-hack {
+    position: fixed;
+    top: -50px;
     opacity: 0.01;
 }
 .startup-settings {

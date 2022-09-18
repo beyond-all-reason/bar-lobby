@@ -40,8 +40,9 @@ declare module "vue-router" {
     window.addEventListener("beforeunload", async (event) => {
         console.debug("beforeunload", event);
         event.preventDefault();
-        if (api.comms.isConnected()) {
-            await api.comms.request("c.auth.disconnect", {});
+        if (api.comms.isConnected.value) {
+            //await api.comms.request("c.auth.disconnect", {});
+            api.comms.disconnect();
         }
         return event;
     });

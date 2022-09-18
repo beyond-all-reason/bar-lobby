@@ -8,10 +8,20 @@
 </template>
 
 <script lang="ts" setup>
+import { onUnmounted } from "vue";
+
 import BattleComponent from "@/components/battle/BattleComponent.vue";
+import { defaultBattle } from "@/config/default-battle";
+
+api.session.offlineBattle.value = defaultBattle();
+api.session.offlineBattle.value.open();
 
 const battle = api.session.offlineBattle.value;
 const me = api.session.offlineUser;
+
+onUnmounted(() => {
+    api.session.offlineBattle.value = null;
+});
 </script>
 
 <style lang="scss" scoped></style>
