@@ -1,6 +1,7 @@
 import { useNow } from "@vueuse/core";
 import { formatDuration } from "date-fns";
 import { groupBy } from "jaz-ts-utils";
+import { Selectable } from "kysely";
 import { computed, ComputedRef, reactive, shallowReactive, watch, WatchStopHandle } from "vue";
 
 import { BattleOptions, Bot, StartBox, StartPosType } from "@/model/battle/types";
@@ -26,7 +27,7 @@ export abstract class AbstractBattle {
     public readonly teams: ComputedRef<Map<number, Array<User | Bot>>>;
     public readonly founder: ComputedRef<User>;
     public readonly friendlyRuntime: ComputedRef<string | null>;
-    public readonly map: ComputedRef<MapData | null>;
+    public readonly map: ComputedRef<Selectable<MapData> | undefined>;
 
     protected watchStopHandles: WatchStopHandle[] = [];
 
@@ -56,7 +57,7 @@ export abstract class AbstractBattle {
             const seconds = runtimeDate.getSeconds();
             return `Running for ${formatDuration({ hours, minutes, seconds })}`;
         });
-        this.map = computed(() => api.content.maps.getMapByScriptName(this.battleOptions.map));
+        this.map = computed(() => api.content.maps.installedMaps.find((map) => map.scriptName === this.battleOptions.map));
     }
 
     public getTeamParticipants(teamId: number): Array<User | Bot> {
@@ -102,7 +103,7 @@ export abstract class AbstractBattle {
             watch(
                 () => this.battleOptions.map,
                 (mapScriptName) => {
-                    api.content.maps.installMapByScriptName(mapScriptName);
+                    api.content.maps.installMap(mapScriptName);
                 },
                 {
                     immediate: true,

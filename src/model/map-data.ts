@@ -1,12 +1,13 @@
 import type { DeepPartial } from "jaz-ts-utils";
+import { Generated } from "kysely";
 import type { MapInfo } from "spring-map-parser";
 
 export type MapData = {
+    mapId: Generated<number>;
     scriptName: string;
     fileName: string;
-    fileNameWithExt: string;
     friendlyName: string;
-    description?: string;
+    description: string | null;
     mapHardness: number;
     gravity: number;
     tidalStrength: number;
@@ -22,9 +23,5 @@ export type MapData = {
     height: number;
     minDepth: number;
     maxDepth: number;
-    mapInfo?: DeepPartial<MapInfo>;
-    textureImagePath?: string;
-    heightImagePath?: string;
-    metalImagePath?: string;
-    typeImagePath?: string;
+    mapInfo: DeepPartial<MapInfo> | null;
 };

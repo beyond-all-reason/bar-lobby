@@ -15,14 +15,15 @@ export const engineVersionRegex = /^(?<major>\d+)\.(?<minor>\d+)\.(?<patch>\d+)-
 export const gitEngineTagRegex = /^.*?\{(?<branch>.*?)\}(?<major>\d+)\.(?<minor>\d+)\.(?<patch>\d+)-(?<revision>\d+)-g(?<sha>[0-9a-f]+)$/i;
 
 export class EngineContentAPI extends AbstractContentAPI {
-    public installedVersions: string[] = reactive([]);
+    public readonly installedVersions: string[] = reactive([]);
 
-    protected ocotokit = new Octokit();
+    protected readonly engineDir = path.join(api.info.contentPath, "engine");
+    protected readonly ocotokit = new Octokit();
 
-    public async init() {
-        const engineDir = path.join(api.info.contentPath, "engine");
-        await fs.promises.mkdir(engineDir, { recursive: true });
-        const engineDirs = await fs.promises.readdir(engineDir);
+    public override async init() {
+        await fs.promises.mkdir(this.engineDir, { recursive: true });
+
+        const engineDirs = await fs.promises.readdir(this.engineDir);
 
         for (const dir of engineDirs) {
             if (this.isEngineVersionString(dir)) {

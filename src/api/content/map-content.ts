@@ -1,6 +1,7 @@
 import axios from "axios";
 import * as fs from "fs";
 import { removeFromArray } from "jaz-ts-utils";
+import { Selectable } from "kysely";
 import * as path from "path";
 import { reactive } from "vue";
 
@@ -8,49 +9,28 @@ import { AbstractContentAPI } from "@/api/content/abstract-content-api";
 import { contentSources } from "@/config/content-sources";
 import type { DownloadInfo, SpringFilesMapMeta } from "@/model/downloads";
 import type { MapData } from "@/model/map-data";
-import { MapCacheWorkerHost } from "@/workers/map-cache-worker";
+import { parseMap as parseMapWorkerFunction } from "@/workers/parse-map";
+import { hookWorkerFunction } from "@/workers/worker-helpers";
 
 export class MapContentAPI extends AbstractContentAPI {
-    public readonly installedMaps: Map<string, MapData> = reactive(new Map()); // TODO: this is confusing, just store uncached maps as strings instead of MapData
-    public readonly mapsPath: string = path.join(api.info.contentPath, "maps");
-    public readonly mapImagesPath: string = path.join(api.info.contentPath, "map-images");
-    public readonly mapCache: MapCacheWorkerHost;
+    public readonly installedMaps: Selectable<MapData>[] = reactive([]);
 
-    constructor() {
-        super();
+    protected readonly mapsDir = path.join(api.info.contentPath, "maps");
+    protected readonly mapImagesDir = path.join(api.info.contentPath, "map-images");
+    protected readonly path7za = path.join(api.info.resourcesPath, process.platform === "win32" ? "7za.exe" : "7za");
+    protected readonly parseMap = hookWorkerFunction(new Worker(new URL(`../../workers/parse-map.ts`, import.meta.url), { type: "module" }), parseMapWorkerFunction);
 
-        this.mapCache = new MapCacheWorkerHost(new Worker(new URL("../../workers/map-cache-worker.ts", import.meta.url), { type: "module" }));
-    }
-
-    // TODO: this should await for map cache to be loaded
-    public async init() {
-        await fs.promises.mkdir(this.mapsPath, { recursive: true });
-
-        const mapCacheFile = path.join(api.info.configPath, "map-cache.json");
-
-        this.mapCache.on("cache-loaded").add((maps: Record<string, MapData>) => {
-            for (const [filename, mapData] of Object.entries(maps)) {
-                this.installedMaps.set(mapData.scriptName, mapData);
-            }
-        });
-
-        this.mapCache.on("cache-saved").add((maps: Record<string, MapData>) => {
-            for (const [filename, mapData] of Object.entries(maps)) {
-                this.installedMaps.set(mapData.scriptName, mapData);
-            }
-        });
-
-        await this.mapCache.init([mapCacheFile, api.info.contentPath, api.info.resourcesPath]);
-
-        this.mapCache.cacheItems();
+    public override async init() {
+        await fs.promises.mkdir(this.mapsDir, { recursive: true });
 
         await api.cacheDb.schema
             .createTable("map")
             .ifNotExists()
             .addColumn("mapId", "integer", (col) => col.primaryKey().autoIncrement())
-            .addColumn("fileName", "varchar", (col) => col.notNull().unique())
             .addColumn("scriptName", "varchar", (col) => col.notNull().unique())
+            .addColumn("fileName", "varchar", (col) => col.notNull().unique())
             .addColumn("friendlyName", "varchar", (col) => col.notNull())
+            .addColumn("description", "varchar", (col) => col)
             .addColumn("mapHardness", "double precision", (col) => col.notNull())
             .addColumn("gravity", "double precision", (col) => col.notNull())
             .addColumn("tidalStrength", "double precision", (col) => col.notNull())
@@ -64,10 +44,6 @@ export class MapContentAPI extends AbstractContentAPI {
             .addColumn("minDepth", "double precision", (col) => col.notNull())
             .addColumn("maxDepth", "double precision", (col) => col.notNull())
             .addColumn("mapInfo", "json", (col) => col)
-            .addColumn("textureImagePath", "varchar", (col) => col.notNull())
-            .addColumn("heightImagePath", "varchar", (col) => col.notNull())
-            .addColumn("metalImagePath", "varchar", (col) => col.notNull())
-            .addColumn("typeImagePath", "varchar", (col) => col.notNull())
             .execute();
 
         await api.cacheDb.schema
@@ -76,50 +52,22 @@ export class MapContentAPI extends AbstractContentAPI {
             .addColumn("fileName", "varchar", (col) => col.primaryKey())
             .execute();
 
-        // const stuff = await api.cacheDb.selectFrom("map").selectAll().execute();
-        // console.log(stuff);
+        const maps = await api.cacheDb.selectFrom("map").selectAll().execute();
+        this.installedMaps.push(...maps);
 
-        return this;
-    }
-
-    public getMapByFileName(filenameIncludingExt: string) {
-        return Array.from(this.installedMaps.values()).find((map) => map.fileNameWithExt === filenameIncludingExt);
-    }
-
-    public getMapByScriptName(scriptName: string) {
-        return Array.from(this.installedMaps.values()).find((map) => map.scriptName === scriptName) ?? null;
-    }
-
-    public async getInstalledMapFilenames() {
-        const mapFilenames = await fs.promises.readdir(this.mapsPath);
-        return mapFilenames;
-    }
-
-    public getMapImagePaths(scriptName: string) {
-        const map = this.getMapByScriptName(scriptName);
-        if (!map) {
-            return;
-        }
-
-        return {
-            texture: path.join(this.mapImagesPath, `${map.fileName}-texture.jpg`).replaceAll("\\", "/"),
-            height: path.join(this.mapImagesPath, `${map.fileName}-height.jpg`).replaceAll("\\", "/"),
-            metal: path.join(this.mapImagesPath, `${map.fileName}-metal.jpg`).replaceAll("\\", "/"),
-            type: path.join(this.mapImagesPath, `${map.fileName}-type.jpg`).replaceAll("\\", "/"),
-        };
+        return super.init();
     }
 
     public async installMaps(scriptNames: string[], host = contentSources.maps.http[0]) {
         for (const scriptName of scriptNames) {
-            await this.installMapByScriptName(scriptName, host);
+            await this.installMap(scriptName, host);
         }
     }
 
     // currently reliant on springfiles for scriptname lookup
-    public async installMapByScriptName(scriptName: string, host = contentSources.maps.http[0]!) {
-        if (this.getMapByScriptName(scriptName)) {
-            console.debug(`${scriptName} already installed`);
-            // TODO: validate if map is cached
+    public async installMap(scriptName: string, host = contentSources.maps.http[0]!) {
+        if (this.installedMaps.some((map) => map.scriptName === scriptName) || this.currentDownloads.some((download) => download.name === scriptName)) {
+            console.debug(`${scriptName} already installed or is installing`);
             return;
         }
 
@@ -144,17 +92,13 @@ export class MapContentAPI extends AbstractContentAPI {
 
     public async installMapByFilename(filename: string, scriptName: string, host = contentSources.maps.http[0]!): Promise<void> {
         // TODO: tidy up this logic to avoid downloading/caching the same maps multiple times, or incorrectly assuming maps are downloaded/cached when they're not
-        if (this.getMapByFileName(filename)) {
-            return;
-        }
-
-        if ((await this.getInstalledMapFilenames()).includes(filename)) {
-            console.log(`Map ${filename} is already installed, but not cached yet`);
+        if (this.installedMaps.some((map) => map.fileName === filename)) {
             return;
         }
 
         try {
-            console.log(`Downloading map: ${filename}`);
+            console.debug(`Downloading map: ${filename}`);
+            console.time(`Map downloaded: ${filename}`);
 
             const downloadInfo: DownloadInfo = reactive({
                 type: "map",
@@ -183,54 +127,99 @@ export class MapContentAPI extends AbstractContentAPI {
                 throw new Error(downloadResponse.statusText);
             }
 
-            const dest = path.join(this.mapsPath, filename);
+            const dest = path.join(this.mapsDir, filename);
             await fs.promises.writeFile(dest, Buffer.from(downloadResponse.data), { encoding: "binary" });
 
-            console.log(`Map downloaded successfully: ${filename}`);
+            console.timeEnd(`Map downloaded: ${filename}`);
+
+            await this.cacheMap(dest);
 
             removeFromArray(this.currentDownloads, downloadInfo);
             this.onDownloadComplete.dispatch(downloadInfo);
-
-            this.mapCache.cacheItem(dest);
         } catch (err) {
-            console.error(`Failed to download map ${filename} from ${host}:`, err);
-            const nextMapHostIndex = contentSources.maps.http.indexOf(host) + 1;
-            const nextMapHost = contentSources.maps.http[nextMapHostIndex];
-            if (nextMapHost) {
-                console.log(`Trying next map host: ${nextMapHost}`);
-                return this.installMapByFilename(filename, nextMapHost);
-            } else {
-                throw new Error(`Map ${filename} could not be downloaded from any of the configured map hosts`);
+            console.error(`Failed to install map ${filename} from ${host}${filename}:`, err);
+        }
+    }
+
+    public async cacheMaps() {
+        const mapFiles = await fs.promises.readdir(this.mapsDir);
+
+        const cachedMapFiles = await api.cacheDb.selectFrom("map").select(["fileName"]).execute();
+        const cachedMapFileNames = cachedMapFiles.map((file) => file.fileName);
+
+        const erroredMapFiles = await api.cacheDb.selectFrom("mapError").select(["fileName"]).execute();
+        const erroredMapFileNames = erroredMapFiles.map((file) => file.fileName);
+
+        for (const mapFileName of mapFiles) {
+            if (cachedMapFileNames.includes(mapFileName) || erroredMapFileNames.includes(mapFileName)) {
+                continue;
+            }
+
+            try {
+                await this.cacheMap(mapFileName);
+            } catch (err) {
+                console.error(`Error parsing replay: ${mapFileName}`, err);
+
+                api.cacheDb.insertInto("replayError").values({
+                    fileName: mapFileName,
+                });
             }
         }
     }
 
-    public async uninstallMapByScriptName(scriptName: string) {
-        const map = this.getMapByScriptName(scriptName);
+    public async cacheMap(mapFilePath: string) {
+        console.debug(`Caching: ${mapFilePath}`);
+        console.time(`Cached: ${mapFilePath}`);
+
+        const parsedMap = await this.parseMap(mapFilePath, this.mapImagesDir, this.path7za);
+
+        console.log(parsedMap);
+
+        const mapData = await api.cacheDb.insertInto("map").values(parsedMap).returningAll().executeTakeFirst();
+
+        console.timeEnd(`Cached: ${mapFilePath}`);
+
+        return mapData;
+    }
+
+    public async uncacheMap(name: { fileName: string } | { scriptName: string }) {
+        let map: Selectable<MapData> | undefined;
+        if ("fileName" in name) {
+            map = await api.cacheDb.selectFrom("map").selectAll().where("fileName", "=", name.fileName).executeTakeFirst();
+        } else {
+            map = await api.cacheDb.selectFrom("map").selectAll().where("scriptName", "=", name.scriptName).executeTakeFirst();
+        }
+
         if (!map) {
-            console.warn(`Map ${scriptName} is not installed`);
             return;
         }
 
-        await fs.promises.rm(path.join(this.mapsPath, map.fileNameWithExt), { force: true });
+        const mapImages = this.getMapImages({ map });
 
-        const mapImagePaths = this.getMapImagePaths(scriptName) ?? [];
-        for (const mapImagePath of Object.values(mapImagePaths)) {
-            await fs.promises.rm(mapImagePath, { force: true });
-        }
+        await fs.promises.rm(mapImages.textureImagePath, { force: true });
+        await fs.promises.rm(mapImages.heightImagePath, { force: true });
+        await fs.promises.rm(mapImages.metalImagePath, { force: true });
+        await fs.promises.rm(mapImages.typeImagePath, { force: true });
 
-        this.mapCache.clearItem(map.fileNameWithExt);
-        this.installedMaps.delete(scriptName);
-
-        console.log(`Map ${scriptName} uninstalled`);
+        await api.cacheDb.deleteFrom("map").where("mapId", "=", map.mapId).execute();
     }
 
-    public isMapInstalled(map: string) {
-        for (const installedMap of this.installedMaps.values()) {
-            if (installedMap.scriptName === map) {
-                return true;
-            }
+    public getMapImages(options: { map: Selectable<MapData> } | { fileName: string }) {
+        let fileName = "";
+
+        if ("map" in options) {
+            fileName = options.map.fileName;
+        } else {
+            fileName = options.fileName;
         }
-        return false;
+
+        const fileNameWithoutExt = path.parse(fileName).name;
+
+        return {
+            textureImagePath: path.join(this.mapImagesDir, `${fileNameWithoutExt}-texture.jpg`),
+            heightImagePath: path.join(this.mapImagesDir, `${fileNameWithoutExt}-height.jpg`),
+            metalImagePath: path.join(this.mapImagesDir, `${fileNameWithoutExt}-metal.jpg`),
+            typeImagePath: path.join(this.mapImagesDir, `${fileNameWithoutExt}-type.jpg`),
+        };
     }
 }

@@ -26,15 +26,11 @@ onMounted(async () => {
         text.value = "Installing engine";
     }
 
-    await api.content.game.init();
-
     if (api.content.game.installedVersions.length === 0) {
         text.value = "Downloading game";
         await api.content.game.downloadGame();
         text.value = "Installing game";
     }
-
-    await api.content.maps.init();
 
     if (Object.keys(api.content.maps.installedMaps).length === 0) {
         text.value = "Downloading maps";

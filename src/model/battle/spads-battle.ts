@@ -357,7 +357,7 @@ export class SpadsBattle extends AbstractBattle {
             }
         }
 
-        if (api.content.maps.isMapInstalled(this.battleOptions.map)) {
+        if (api.content.maps.installedMaps.some((map) => map.scriptName === this.battleOptions.map)) {
             sync.map = 1;
         } else {
             const dl = api.content.maps.currentDownloads.find((dl) => dl.name === this.battleOptions.map);

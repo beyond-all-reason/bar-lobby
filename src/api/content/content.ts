@@ -132,7 +132,11 @@ export class ContentAPI {
     }
 
     public async init() {
-        this.replays.init();
+        await this.engine.init();
+        await this.game.init();
+        await this.maps.init();
+        await this.ai.init();
+        await this.replays.init();
 
         return this;
     }

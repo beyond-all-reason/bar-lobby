@@ -86,7 +86,7 @@
 <script lang="ts" setup>
 import { Icon } from "@iconify/vue";
 import cog from "@iconify-icons/mdi/cog";
-import { computed, Ref, ref } from "vue";
+import { Ref, ref } from "vue";
 import Markdown from "vue3-markdown-it";
 
 import BattleChat from "@/components/battle/BattleChat.vue";
@@ -108,7 +108,7 @@ const props = defineProps<{
 
 const isOfflineBattle = props.battle instanceof OfflineBattle;
 const installedEngines = api.content.engine.installedVersions;
-const installedMaps = computed(() => Array.from(api.content.maps.installedMaps.values()));
+const installedMaps = api.content.maps.installedMaps;
 const installedGames = api.content.game.installedVersions;
 const gameOptionsOpen = ref(false);
 const gameOptions: Ref<LuaOptionSection[]> = ref([]);

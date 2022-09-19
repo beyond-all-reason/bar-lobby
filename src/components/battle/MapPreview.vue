@@ -41,7 +41,6 @@ import Options from "@/components/inputs/Options.vue";
 import { defaultBoxes } from "@/config/default-boxes";
 import { AbstractBattle } from "@/model/battle/abstract-battle";
 import { StartBox, StartPosType } from "@/model/battle/types";
-import { MapData } from "@/model/map-data";
 import { CurrentUser } from "@/model/user";
 
 type Transform = { x: number; y: number; width: number; height: number };
@@ -57,7 +56,17 @@ let textureMap: HTMLImageElement;
 let mapTransform: Transform;
 let loadingMap = false;
 
-const mapData = computed(() => api.content.maps.getMapByScriptName(props.battle.battleOptions.map));
+const mapData = computed(() => api.content.maps.installedMaps.find((map) => map.scriptName === props.battle.battleOptions.map));
+const mapImages = computed(() =>
+    mapData.value
+        ? api.content.maps.getMapImages({ map: mapData.value })
+        : {
+              textureImagePath: defaultMinimapImage,
+              heightImagePath: defaultMinimapImage,
+              metalImagePath: defaultMinimapImage,
+              typeImagePath: defaultMinimapImage,
+          }
+);
 
 const startPosOptions: Array<{ label: string; value: StartPosType }> = [
     { label: "Fixed", value: StartPosType.Fixed },
@@ -88,8 +97,8 @@ onMounted(async () => {
         { deep: true }
     );
 
-    mapCachedSignalBinding = api.content.maps.mapCache.on("map-cached").add((data: MapData) => {
-        console.log("map-cached!", data);
+    // TODO: this should only trigger when the download is of the currently selected map
+    mapCachedSignalBinding = api.content.maps.onDownloadComplete.add((data) => {
         loadMap();
     });
 });
@@ -136,11 +145,7 @@ async function loadMap() {
 
     mapTransform = { x: 0, y: 0, width: canvas.value.width, height: canvas.value.height };
 
-    if (!mapData.value || !mapData.value.textureImagePath) {
-        textureMap = await loadImage(defaultMinimapImage, false);
-    } else {
-        textureMap = await loadImage(mapData.value.textureImagePath);
-    }
+    const textureMap = await loadImage(mapImages.value.textureImagePath);
 
     const widthToHeightRatio = textureMap.width / textureMap.height;
     if (widthToHeightRatio > 1) {

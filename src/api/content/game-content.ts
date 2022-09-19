@@ -33,19 +33,13 @@ import { parseLuaOptions } from "@/utils/parse-lua-options";
  * @todo don't allow spawning multiple prd instances at once
  */
 export class GameContentAPI extends AbstractContentAPI {
-    /** Latest version is last item */
-    public installedVersions: string[] = reactive([]);
+    public readonly installedVersions: string[] = reactive([]);
 
     protected prdProcess: ChildProcess | null = null;
-    protected prBinaryPath!: string;
     protected ocotokit = new Octokit();
     protected md5ToRapidVersionMap: Record<string, RapidVersion> = {};
 
-    public async init() {
-        const engine = lastInArray(api.content.engine.installedVersions)!;
-        const binaryName = process.platform === "win32" ? "pr-downloader.exe" : "pr-downloader";
-        this.prBinaryPath = path.join(api.info.contentPath, "engine", engine, binaryName);
-
+    public override async init() {
         await this.updateVersions();
 
         return this;
@@ -62,7 +56,11 @@ export class GameContentAPI extends AbstractContentAPI {
                 return;
             }
 
-            this.prdProcess = spawn(`${this.prBinaryPath}`, ["--filesystem-writepath", api.info.contentPath, "--download-game", gameVersion]);
+            const latestEngine = lastInArray(api.content.engine.installedVersions)!;
+            const binaryName = process.platform === "win32" ? "pr-downloader.exe" : "pr-downloader";
+            const prBinaryPath = path.join(api.info.contentPath, "engine", latestEngine, binaryName);
+
+            this.prdProcess = spawn(`${prBinaryPath}`, ["--filesystem-writepath", api.info.contentPath, "--download-game", gameVersion]);
 
             console.debug(this.prdProcess.spawnargs);
 

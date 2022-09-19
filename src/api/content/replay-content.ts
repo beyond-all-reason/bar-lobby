@@ -2,8 +2,8 @@ import fs from "fs";
 import path from "path";
 
 import { AbstractContentAPI } from "@/api/content/abstract-content-api";
-import replayFunctions from "@/workers/parse-replay";
-import { createWorkerFunctions as createWorkerFunctions } from "@/workers/worker-helpers";
+import { parseReplay as parseReplayWorkerFunction } from "@/workers/parse-replay";
+import { hookWorkerFunction } from "@/workers/worker-helpers";
 
 /**
  * 1. on launch, scan demos folder and read in all filenames
@@ -15,16 +15,12 @@ import { createWorkerFunctions as createWorkerFunctions } from "@/workers/worker
  * - after launch, watch the demos dir and run #3 if new files added. run #4 if files deleted
  */
 export class ReplayContentAPI extends AbstractContentAPI {
-    protected parseReplay: typeof replayFunctions.parseReplay;
+    protected readonly replaysDir = path.join(api.info.contentPath, "demos");
+    protected parseReplay = hookWorkerFunction(new Worker(new URL(`../../workers/parse-replay.ts`, import.meta.url), { type: "module" }), parseReplayWorkerFunction);
 
-    constructor() {
-        super();
+    public override async init() {
+        await fs.promises.mkdir(this.replaysDir, { recursive: true });
 
-        const { parseReplay } = createWorkerFunctions(new Worker(new URL(`../../workers/parse-replay.ts`, import.meta.url), { type: "module" }), replayFunctions);
-        this.parseReplay = parseReplay;
-    }
-
-    public async init() {
         await api.cacheDb.schema.dropTable("replay").ifExists().execute();
 
         await api.cacheDb.schema
@@ -60,12 +56,11 @@ export class ReplayContentAPI extends AbstractContentAPI {
             .addColumn("fileName", "varchar", (col) => col.primaryKey())
             .execute();
 
-        this.cacheReplays();
+        return super.init();
     }
 
     protected async cacheReplays() {
-        const replaysFolder = path.join(api.info.contentPath, "demos");
-        const replayFiles = await fs.promises.readdir(replaysFolder);
+        const replayFiles = await fs.promises.readdir(this.replaysDir);
 
         const cachedReplayFiles = await api.cacheDb.selectFrom("replay").select(["fileName"]).execute();
         const cachedReplayFileNames = cachedReplayFiles.map((file) => file.fileName);
@@ -91,47 +86,15 @@ export class ReplayContentAPI extends AbstractContentAPI {
     }
 
     protected async cacheReplay(replayFileName: string) {
+        console.debug(`Caching: ${replayFileName}`);
+        console.time(`Cached: ${replayFileName}`);
+
         const replayFilePath = path.join(api.info.contentPath, "demos", replayFileName);
 
         const replayData = await this.parseReplay(replayFilePath);
 
-        const numOfPlayers = replayData.info.players.length + replayData.info.ais.length;
-        let preset: "duel" | "team" | "ffa" | "teamffa" = "duel";
-        if (replayData.info.allyTeams.length > 2 && replayData.info.players.some((player) => player.playerId !== player.allyTeamId)) {
-            preset = "teamffa";
-        } else if (replayData.info.allyTeams.length > 2) {
-            preset = "ffa";
-        } else if (numOfPlayers > 2) {
-            preset = "team";
-        }
+        await api.cacheDb.insertInto("replay").values(replayData).execute();
 
-        await api.cacheDb
-            .insertInto("replay")
-            .values({
-                gameId: replayData.header.gameId,
-                fileName: path.parse(replayFilePath).base,
-                engineVersion: replayData.header.versionString,
-                gameVersion: replayData.info.meta.engine,
-                mapScriptName: replayData.info.hostSettings.mapname,
-                startTime: replayData.info.meta.startTime,
-                gameDurationMs: replayData.info.meta.durationMs,
-                gameEndedNormally: replayData.info.meta.winningAllyTeamIds.length > 0,
-                chatlog: replayData.chatlog,
-                hasBots: replayData.info.ais.length > 0,
-                preset: preset,
-                startPosType: replayData.info.meta.startPosType,
-                winningTeamId: replayData.info.meta.winningAllyTeamIds[0],
-                teams: replayData.info.allyTeams,
-                contenders: [...replayData.info.players, ...replayData.info.ais],
-                spectators: replayData.info.spectators,
-                script: replayData.script,
-                battleSettings: replayData.info.hostSettings,
-                gameSettings: replayData.info.gameSettings,
-                mapSettings: replayData.info.mapSettings,
-                hostSettings: replayData.info.spadsSettings ?? {},
-            })
-            .execute();
-
-        console.log(`${replayFileName} cached`);
+        console.timeEnd(`Cached: ${replayFileName}`);
     }
 }

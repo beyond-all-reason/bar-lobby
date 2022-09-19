@@ -94,20 +94,10 @@ const onIntroEnd = () => {
 const onPreloadDone = async () => {
     console.time("onPreloadDone");
 
-    // TODO: init all content apis in api.content.init()
-
-    await api.content.engine.init();
-
     // TODO: should also check to see if game and maps are installed (need to fix bug where interrupted game dl reports as successful install)
     if (api.content.engine.installedVersions.length === 0) {
         state.value = "initial-setup";
     } else {
-        await api.content.game.init();
-
-        await api.content.maps.init();
-
-        // await api.content.replays.init();
-
         // TODO: fix the slight delay these cause on startup, probably best to move them into worker threads
         api.content.engine.downloadLatestEngine();
         api.content.game.downloadGame();

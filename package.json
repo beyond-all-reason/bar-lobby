@@ -63,7 +63,7 @@
     "rimraf": "^3.0.2",
     "sass": "^1.52.1",
     "sass-loader": "^13.0.0",
-    "spring-map-parser": "^4.3.5",
+    "spring-map-parser": "^4.6.0",
     "sqlite": "^4.1.1",
     "sqlite3": "^5.0.8",
     "tachyon-client": "^4.0.0",
@@ -86,7 +86,7 @@
     "electron-rebuild": "^3.2.9",
     "env-paths": "^3.0.0",
     "kysely": "^0.21.6",
-    "sdfz-demo-parser": "^5.0.0",
+    "sdfz-demo-parser": "^5.1.0",
     "steamworks.js": "0.0.21"
   }
 }
