@@ -11,17 +11,26 @@ import {
     ValueNode,
 } from "kysely";
 
-export class SerializeJsonPlugin implements KyselyPlugin {
-    protected serializeParametersTransformer = new SerializeParametersTransformer();
+export class SerializePlugin implements KyselyPlugin {
+    protected serializeTransformer = new SerializeParametersTransformer();
 
     public transformQuery(args: PluginTransformQueryArgs): RootOperationNode {
-        return this.serializeParametersTransformer.transformNode(args.node);
+        return this.serializeTransformer.transformNode(args.node);
     }
 
     public async transformResult(args: PluginTransformResultArgs): Promise<QueryResult<UnknownRow>> {
         for (const row of args.result.rows) {
             for (const key in row) {
-                if (this.serializeParametersTransformer.jsonCols.has(key)) {
+                if (this.serializeTransformer.jsonCols.has(key)) {
+                    row[key] = JSON.parse(row[key] as string);
+                } else if (this.serializeTransformer.dateCols.has(key)) {
+                    const str = JSON.parse(row[key] as string);
+                    if (!str || Number.isNaN(str)) {
+                        row[key] = null;
+                    } else {
+                        row[key] = new Date(str);
+                    }
+                } else if (this.serializeTransformer.booleanCols.has(key)) {
                     row[key] = JSON.parse(row[key] as string);
                 }
             }
@@ -32,9 +41,11 @@ export class SerializeJsonPlugin implements KyselyPlugin {
 
 export class SerializeParametersTransformer extends OperationNodeTransformer {
     public jsonCols: Set<string> = new Set();
+    public dateCols: Set<string> = new Set();
+    public booleanCols: Set<string> = new Set();
 
     protected readonly serializer = (parameter: unknown) => {
-        if (parameter && typeof parameter === "object") {
+        if (parameter !== null && parameter !== undefined && (typeof parameter === "object" || typeof parameter === "boolean")) {
             return JSON.stringify(parameter);
         }
         return parameter;
@@ -42,8 +53,14 @@ export class SerializeParametersTransformer extends OperationNodeTransformer {
 
     protected override transformCreateTable(node: CreateTableNode): CreateTableNode {
         for (const col of node.columns) {
-            if (col.dataType.kind === "DataTypeNode" && col.dataType.dataType.startsWith("json")) {
-                this.jsonCols.add(col.column.column.name);
+            if (col.dataType.kind === "DataTypeNode") {
+                if (col.dataType.dataType.startsWith("json")) {
+                    this.jsonCols.add(col.column.column.name);
+                } else if (col.dataType.dataType.startsWith("date")) {
+                    this.dateCols.add(col.column.column.name);
+                } else if (col.dataType.dataType === "boolean") {
+                    this.booleanCols.add(col.column.column.name);
+                }
             }
         }
         return node;

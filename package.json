@@ -86,7 +86,7 @@
     "electron-rebuild": "^3.2.9",
     "env-paths": "^3.0.0",
     "kysely": "^0.21.6",
-    "sdfz-demo-parser": "^5.1.0",
+    "sdfz-demo-parser": "^5.2.0",
     "steamworks.js": "0.0.21"
   }
 }

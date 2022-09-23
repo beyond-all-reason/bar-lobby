@@ -74,6 +74,8 @@ export class CommsAPI extends TachyonClient {
                 return;
             }
 
+            api.session.offlineMode.value = false;
+
             api.session.updateCurrentUser(userData);
 
             api.router.push("/home");

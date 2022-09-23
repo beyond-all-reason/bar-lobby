@@ -67,7 +67,6 @@ export class MapContentAPI extends AbstractContentAPI {
     // currently reliant on springfiles for scriptname lookup
     public async installMap(scriptName: string, host = contentSources.maps.http[0]!) {
         if (this.installedMaps.some((map) => map.scriptName === scriptName) || this.currentDownloads.some((download) => download.name === scriptName)) {
-            console.debug(`${scriptName} already installed or is installing`);
             return;
         }
 
@@ -92,7 +91,7 @@ export class MapContentAPI extends AbstractContentAPI {
 
     public async installMapByFilename(filename: string, scriptName: string, host = contentSources.maps.http[0]!): Promise<void> {
         // TODO: tidy up this logic to avoid downloading/caching the same maps multiple times, or incorrectly assuming maps are downloaded/cached when they're not
-        if (this.installedMaps.some((map) => map.fileName === filename)) {
+        if (this.installedMaps.some((map) => map.fileName === filename) || this.currentDownloads.some((download) => download.name === scriptName)) {
             return;
         }
 

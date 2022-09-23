@@ -21,7 +21,7 @@ import type { Info } from "@/model/info";
 import type { SettingsType } from "@/model/settings";
 import { settingsSchema } from "@/model/settings";
 import routes from "@/routes";
-import { SerializeJsonPlugin } from "@/utils/serialize-json-plugin";
+import { SerializePlugin } from "@/utils/serialize-json-plugin";
 
 interface API {
     account: StoreAPI<Account>;
@@ -82,8 +82,8 @@ export async function apiInit() {
         dialect: new SqliteDialect({
             database: new Database(path.join(api.info.configPath, "cache.db")),
         }),
-        plugins: [new SerializeJsonPlugin()],
-        log: ["query", "error"],
+        plugins: [new SerializePlugin()],
+        //log: ["query", "error"],
     });
 
     api.audio = new AudioAPI().init();

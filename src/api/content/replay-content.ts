@@ -21,8 +21,6 @@ export class ReplayContentAPI extends AbstractContentAPI {
     public override async init() {
         await fs.promises.mkdir(this.replaysDir, { recursive: true });
 
-        await api.cacheDb.schema.dropTable("replay").ifExists().execute();
-
         await api.cacheDb.schema
             .createTable("replay")
             .ifNotExists()
@@ -31,7 +29,7 @@ export class ReplayContentAPI extends AbstractContentAPI {
             .addColumn("fileName", "varchar", (col) => col.notNull())
             .addColumn("engineVersion", "varchar", (col) => col.notNull())
             .addColumn("gameVersion", "varchar", (col) => col.notNull())
-            .addColumn("mapScriptName", "varchar", (col) => col.notNull().references("map.scriptName"))
+            .addColumn("mapScriptName", "varchar", (col) => col.notNull())
             .addColumn("startTime", "datetime", (col) => col.notNull())
             .addColumn("gameDurationMs", "integer", (col) => col.notNull())
             .addColumn("gameEndedNormally", "boolean", (col) => col.notNull())
@@ -39,7 +37,7 @@ export class ReplayContentAPI extends AbstractContentAPI {
             .addColumn("hasBots", "boolean", (col) => col.notNull())
             .addColumn("preset", "varchar", (col) => col.notNull())
             .addColumn("startPosType", "integer", (col) => col.notNull())
-            .addColumn("winningTeamId", "integer", (col) => col.notNull())
+            .addColumn("winningTeamId", "integer", (col) => col)
             .addColumn("teams", "json", (col) => col.notNull())
             .addColumn("contenders", "json", (col) => col.notNull())
             .addColumn("spectators", "json", (col) => col.notNull())
@@ -56,7 +54,19 @@ export class ReplayContentAPI extends AbstractContentAPI {
             .addColumn("fileName", "varchar", (col) => col.primaryKey())
             .execute();
 
+        this.cacheReplays().then(() => {
+            fs.watch(this.replaysDir, (watchEvent, filename) => {
+                if (watchEvent === "change") {
+                    console.log(filename);
+                }
+            });
+        });
+
         return super.init();
+    }
+
+    public async getReplays(offset = 0, limit = 100) {
+        return api.cacheDb.selectFrom("replay").selectAll().offset(offset).limit(limit).execute();
     }
 
     protected async cacheReplays() {
@@ -78,9 +88,12 @@ export class ReplayContentAPI extends AbstractContentAPI {
             } catch (err) {
                 console.error(`Error parsing replay: ${replayFileName}`, err);
 
-                api.cacheDb.insertInto("replayError").values({
-                    fileName: replayFileName,
-                });
+                await api.cacheDb
+                    .insertInto("replayError")
+                    .values({
+                        fileName: replayFileName,
+                    })
+                    .execute();
             }
         }
     }

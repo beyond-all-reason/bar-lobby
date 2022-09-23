@@ -9,21 +9,27 @@ export type WorkerMessageData = string | boolean | number | bigint | symbol | Da
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function hookWorkerFunction<T extends (...args: any[]) => Promise<WorkerMessageData>>(worker: Worker, func: T): T {
-    worker.addEventListener("error", (err) => {
-        console.error(err);
-    });
-
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const wrappedFunc = ((...args: any[]) => {
-        return new Promise((resolve) => {
+        return new Promise((resolve, reject) => {
+            const onErrorListener = (err: ErrorEvent) => {
+                worker.removeEventListener("message", onMessageListener);
+                worker.removeEventListener("error", onErrorListener);
+                reject(err);
+            };
+
             const onMessageListener = ({ data: message }: MessageEvent) => {
                 if (message?.function === func.name && message.result) {
                     worker.removeEventListener("message", onMessageListener);
+                    worker.removeEventListener("error", onErrorListener);
                     resolve(message.result);
+                } else if (message?.error) {
+                    onErrorListener(message.error);
                 }
             };
 
             worker.addEventListener("message", onMessageListener);
+            worker.addEventListener("error", onErrorListener);
 
             worker.postMessage({
                 function: func.name,
@@ -51,6 +57,12 @@ export function exposeWorkerFunction<T extends (...args: any[]) => Promise<Worke
                 result,
             });
         }
+    });
+
+    self.addEventListener("unhandledrejection", (err) => {
+        self.postMessage({
+            error: err.reason,
+        });
     });
 
     return func;
