@@ -23,9 +23,9 @@
 import { Ref, ref, watch } from "vue";
 
 import Modal from "@/components/common/Modal.vue";
-import Checkbox from "@/components/inputs/Checkbox.vue";
-import Range from "@/components/inputs/Range.vue";
-import Select from "@/components/inputs/Select.vue";
+import Checkbox from "@/components/controls/Checkbox.vue";
+import Range from "@/components/controls/Range.vue";
+import Select from "@/components/controls/Select.vue";
 
 const settings = api.settings.model;
 const displayOptions: Ref<Array<{ label: string; value: number }>> = ref([]);

@@ -65,8 +65,13 @@ export class ReplayContentAPI extends AbstractContentAPI {
         return super.init();
     }
 
-    public async getReplays(offset = 0, limit = 100) {
-        return api.cacheDb.selectFrom("replay").selectAll().offset(offset).limit(limit).execute();
+    public async getReplays(offset = 0, limit = -1) {
+        return api.cacheDb.selectFrom("replay").selectAll().orderBy("startTime", "desc").offset(offset).limit(limit).execute();
+    }
+
+    public async getTotalReplayCount() {
+        const { num_replays } = await api.cacheDb.selectFrom("replay").select(api.cacheDb.fn.count<number>("replayId").as("num_replays")).executeTakeFirstOrThrow();
+        return num_replays;
     }
 
     protected async cacheReplays() {

@@ -11,7 +11,7 @@ import { Icon } from "@iconify/vue";
 import checkBold from "@iconify-icons/mdi/check-bold";
 import { toRef } from "vue";
 
-import Control from "@/components/inputs/Control.vue";
+import Control from "@/components/controls/Control.vue";
 
 const props = withDefaults(
     defineProps<{

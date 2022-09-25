@@ -34,7 +34,7 @@ import { ref } from "vue";
 
 import Panel from "@/components/common/Panel.vue";
 import Tab from "@/components/common/Tab.vue";
-import Button from "@/components/inputs/Button.vue";
+import Button from "@/components/controls/Button.vue";
 import LoginForm from "@/components/login/LoginForm.vue";
 import RegisterForm from "@/components/login/RegisterForm.vue";
 import ResetPasswordForm from "@/components/login/ResetPasswordForm.vue";

@@ -12,7 +12,7 @@
 import { delay } from "jaz-ts-utils";
 import { ref } from "vue";
 
-import Select from "@/components/inputs/Select.vue";
+import Select from "@/components/controls/Select.vue";
 
 const color = ref("red");
 const colors = ref(["red", "green", "blue"]);

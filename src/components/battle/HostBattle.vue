@@ -33,8 +33,8 @@ import { computed, Ref, ref } from "vue";
 
 import Loader from "@/components/common/Loader.vue";
 import Modal from "@/components/common/Modal.vue";
-import Button from "@/components/inputs/Button.vue";
-import Select from "@/components/inputs/Select.vue";
+import Button from "@/components/controls/Button.vue";
+import Select from "@/components/controls/Select.vue";
 import Flag from "@/components/misc/Flag.vue";
 
 const regions = ref([

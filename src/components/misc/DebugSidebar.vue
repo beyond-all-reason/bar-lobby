@@ -24,8 +24,8 @@ import * as path from "path";
 import { effectScope, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 
-import Button from "@/components/inputs/Button.vue";
-import Select from "@/components/inputs/Select.vue";
+import Button from "@/components/controls/Button.vue";
+import Select from "@/components/controls/Select.vue";
 
 const scope = effectScope();
 

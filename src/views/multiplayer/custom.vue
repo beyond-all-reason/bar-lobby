@@ -35,8 +35,8 @@ import { computed, onUnmounted, ref } from "vue";
 
 import BattlePreview from "@/components/battle/BattlePreview.vue";
 import HostBattle from "@/components/battle/HostBattle.vue";
-import Button from "@/components/inputs/Button.vue";
-import Checkbox from "@/components/inputs/Checkbox.vue";
+import Button from "@/components/controls/Button.vue";
+import Checkbox from "@/components/controls/Checkbox.vue";
 import { SpadsBattle } from "@/model/battle/spads-battle";
 
 const hostBattleOpen = ref(false);

@@ -53,12 +53,12 @@
 <script lang="ts" setup>
 import { Ref, ref } from "vue";
 
-import Button from "@/components/inputs/Button.vue";
-import Checkbox from "@/components/inputs/Checkbox.vue";
-import Options from "@/components/inputs/Options.vue";
-import Range from "@/components/inputs/Range.vue";
-import Select from "@/components/inputs/Select.vue";
-import Textbox from "@/components/inputs/Textbox.vue";
+import Button from "@/components/controls/Button.vue";
+import Checkbox from "@/components/controls/Checkbox.vue";
+import Options from "@/components/controls/Options.vue";
+import Range from "@/components/controls/Range.vue";
+import Select from "@/components/controls/Select.vue";
+import Textbox from "@/components/controls/Textbox.vue";
 
 const text = ref("textbox");
 const onUpdateText = (newText: string) => {

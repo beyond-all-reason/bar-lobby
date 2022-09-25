@@ -11,7 +11,7 @@
 <script lang="ts" setup>
 import { ref } from "vue";
 
-import Select from "@/components/inputs/Select.vue";
+import Select from "@/components/controls/Select.vue";
 
 const selection = ref("blue");
 const selections = ref([

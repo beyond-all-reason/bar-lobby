@@ -1,0 +1,22 @@
+.p-paginator {
+    display: inline-flex !important;
+    background-color: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    .p-link {
+        min-height: 35px;
+        padding: 0 10px;
+        &:hover:not(.p-highlight) {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        &.p-disabled {
+            opacity: 0.4;
+        }
+        &.p-highlight {
+            background-color: rgba(255, 255, 255, 0.2);
+            color: #fff;
+        }
+    }
+    &-page-options {
+        width: unset;
+    }
+}

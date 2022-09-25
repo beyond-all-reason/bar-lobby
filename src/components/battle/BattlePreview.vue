@@ -52,8 +52,8 @@ import robot from "@iconify-icons/mdi/robot";
 import { computed, ref } from "vue";
 
 import Modal from "@/components/common/Modal.vue";
-import Button from "@/components/inputs/Button.vue";
-import Textbox from "@/components/inputs/Textbox.vue";
+import Button from "@/components/controls/Button.vue";
+import Textbox from "@/components/controls/Textbox.vue";
 import Flag from "@/components/misc/Flag.vue";
 import { AbstractBattle } from "@/model/battle/abstract-battle";
 
@@ -61,7 +61,7 @@ const props = defineProps<{
     battle: AbstractBattle;
 }>();
 
-const mapImageUrl = computed(() => (props.battle.map.value ? `file://${props.battle.map.value.textureImagePath}` : require("@/assets/images/default-minimap.png")));
+const mapImageUrl = computed(() => (props.battle.map.value ? `file://${api.content.maps.getMapImages(props.battle.map.value).textureImagePath}` : require("@/assets/images/default-minimap.png")));
 
 const attemptJoinBattle = async () => {
     if (props.battle.battleOptions.passworded) {

@@ -42,7 +42,7 @@ import chevronLeft from "@iconify-icons/mdi/chevron-left";
 import chevronRight from "@iconify-icons/mdi/chevron-right";
 import { computed, ref, toRefs, useSlots, VNode, watch } from "vue";
 
-import Button from "@/components/inputs/Button.vue";
+import Button from "@/components/controls/Button.vue";
 
 const props = withDefaults(
     defineProps<{

@@ -63,7 +63,7 @@ import { Ref, ref } from "vue";
 
 import BotParticipant from "@/components/battle/BotParticipant.vue";
 import PlayerParticipant from "@/components/battle/PlayerParticipant.vue";
-import Button from "@/components/inputs/Button.vue";
+import Button from "@/components/controls/Button.vue";
 import { aiNames } from "@/config/ai-names";
 import { AbstractBattle } from "@/model/battle/abstract-battle";
 import { Bot, Faction } from "@/model/battle/types";

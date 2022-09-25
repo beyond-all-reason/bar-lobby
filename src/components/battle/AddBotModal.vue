@@ -12,7 +12,7 @@
 import { computed } from "vue";
 
 import Modal from "@/components/common/Modal.vue";
-import Button from "@/components/inputs/Button.vue";
+import Button from "@/components/controls/Button.vue";
 import { AI } from "@/model/ai";
 
 const props = defineProps<{

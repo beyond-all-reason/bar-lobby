@@ -13,7 +13,7 @@
 import { Ref, ref } from "vue";
 
 import Modal from "@/components/common/Modal.vue";
-import Button from "@/components/inputs/Button.vue";
+import Button from "@/components/controls/Button.vue";
 
 const isVisible = ref(false);
 const error: Ref<ErrorEvent | null> = ref(null);

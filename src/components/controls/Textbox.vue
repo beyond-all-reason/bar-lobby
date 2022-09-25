@@ -7,7 +7,7 @@
 <script lang="ts" setup>
 import InputText from "primevue/inputtext";
 
-import Control from "@/components/inputs/Control.vue";
+import Control from "@/components/controls/Control.vue";
 </script>
 
 <style lang="scss" scoped>

@@ -1,8 +1,8 @@
 <template>
     <Control class="button" :class="[{ active }, $attrs.class]" :style="$attrs.style" :disabled="disabled" @click="onClick">
         <PrimeVueButton v-bind="$attrs">
-            <template v-for="(_, slot) of $slots" #[slot]="scope">
-                <slot :name="slot" v-bind="scope" />
+            <template v-for="(_, name) in ($slots as {})" #[name]="slotData">
+                <slot :name="name" v-bind="slotData || {}" />
             </template>
         </PrimeVueButton>
     </Control>
@@ -19,7 +19,7 @@ import PrimeVueButton, { ButtonProps } from "primevue/button";
 import { computed } from "vue";
 import { useRoute } from "vue-router";
 
-import Control from "@/components/inputs/Control.vue";
+import Control from "@/components/controls/Control.vue";
 
 // eslint-disable-next-line
 interface Props extends ButtonProps {

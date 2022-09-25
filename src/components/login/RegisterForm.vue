@@ -18,8 +18,8 @@
 import { ref } from "vue";
 
 import Loader from "@/components/common/Loader.vue";
-import Button from "@/components/inputs/Button.vue";
-import Textbox from "@/components/inputs/Textbox.vue";
+import Button from "@/components/controls/Button.vue";
+import Textbox from "@/components/controls/Textbox.vue";
 
 const emit = defineEmits(["register-success"]);
 

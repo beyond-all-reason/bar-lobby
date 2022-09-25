@@ -63,7 +63,7 @@ import cog from "@iconify-icons/mdi/cog";
 import { computed, inject, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 
-import Button from "@/components/inputs/Button.vue";
+import Button from "@/components/controls/Button.vue";
 import Downloads from "@/components/navbar/Downloads.vue";
 import DownloadsButton from "@/components/navbar/DownloadsButton.vue";
 import Exit from "@/components/navbar/Exit.vue";

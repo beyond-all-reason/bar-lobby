@@ -51,11 +51,11 @@ import { reactive, Ref, ref, toRaw } from "vue";
 import Modal from "@/components/common/Modal.vue";
 import Panel from "@/components/common/Panel.vue";
 import Tab from "@/components/common/Tab.vue";
-import Button from "@/components/inputs/Button.vue";
-import Checkbox from "@/components/inputs/Checkbox.vue";
-import Range from "@/components/inputs/Range.vue";
-import Select from "@/components/inputs/Select.vue";
-import Textbox from "@/components/inputs/Textbox.vue";
+import Button from "@/components/controls/Button.vue";
+import Checkbox from "@/components/controls/Checkbox.vue";
+import Range from "@/components/controls/Range.vue";
+import Select from "@/components/controls/Select.vue";
+import Textbox from "@/components/controls/Textbox.vue";
 import { LuaOptionBoolean, LuaOptionList, LuaOptionNumber, LuaOptionSection, LuaOptionString } from "@/model/lua-options";
 import { setObject } from "@/utils/set-object";
 

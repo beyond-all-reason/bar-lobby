@@ -36,8 +36,8 @@ import { entries, SignalBinding } from "jaz-ts-utils";
 import { computed, onMounted, onUnmounted, Ref, ref, watch, WatchStopHandle } from "vue";
 
 import defaultMinimapImage from "@/assets/images/default-minimap.png";
-import Button from "@/components/inputs/Button.vue";
-import Options from "@/components/inputs/Options.vue";
+import Button from "@/components/controls/Button.vue";
+import Options from "@/components/controls/Options.vue";
 import { defaultBoxes } from "@/config/default-boxes";
 import { AbstractBattle } from "@/model/battle/abstract-battle";
 import { StartBox, StartPosType } from "@/model/battle/types";

@@ -12,7 +12,7 @@ import InputNumber from "primevue/inputnumber";
 import Slider, { SliderProps } from "primevue/slider";
 import { computed, onMounted, Ref, ref } from "vue";
 
-import Control from "@/components/inputs/Control.vue";
+import Control from "@/components/controls/Control.vue";
 
 // eslint-disable-next-line
 interface Props extends SliderProps {
