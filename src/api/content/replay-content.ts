@@ -15,7 +15,8 @@ import { hookWorkerFunction } from "@/workers/worker-helpers";
  * - after launch, watch the demos dir and run #3 if new files added. run #4 if files deleted
  */
 export class ReplayContentAPI extends AbstractContentAPI {
-    protected readonly replaysDir = path.join(api.info.contentPath, "demos");
+    public readonly replaysDir = path.join(api.info.contentPath, "demos");
+
     protected parseReplay = hookWorkerFunction(new Worker(new URL(`../../workers/parse-replay.ts`, import.meta.url), { type: "module" }), parseReplayWorkerFunction);
 
     public override async init() {
@@ -67,6 +68,10 @@ export class ReplayContentAPI extends AbstractContentAPI {
 
     public async getReplays(offset = 0, limit = -1) {
         return api.cacheDb.selectFrom("replay").selectAll().orderBy("startTime", "desc").offset(offset).limit(limit).execute();
+    }
+
+    public async getReplayById(replayId: number) {
+        return api.cacheDb.selectFrom("replay").selectAll().where("replayId", "=", replayId).executeTakeFirstOrThrow();
     }
 
     public async getTotalReplayCount() {

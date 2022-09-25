@@ -3,15 +3,32 @@
 </route>
 
 <template>
-    <div>
-        <h1>{{ title }}</h1>
+    <div class="flex-row flex-grow gap-md">
+        <div class="flex-col flex-grow gap-md">
+            <h1>{{ title }}</h1>
 
-        <DataTable v-model:first="offset" :lazy="true" :value="replays" :paginator="true" :rows="limit" :totalRecords="totalReplays" @page="onPage">
-            <Column field="title" header="Title"></Column>
-            <Column field="date" header="Date"></Column>
-            <Column field="duration" header="Duration"></Column>
-            <Column field="map" header="Map"></Column>
-        </DataTable>
+            <DataTable
+                v-model:first="offset"
+                v-model:selection="selectedReplay"
+                :lazy="true"
+                :value="replays"
+                :paginator="true"
+                :rows="limit"
+                :totalRecords="totalReplays"
+                selectionMode="single"
+                dataKey="id"
+                @page="onPage"
+                @rowSelect="onRowSelect"
+            >
+                <Column field="title" header="Title"></Column>
+                <Column field="date" header="Date"></Column>
+                <Column field="duration" header="Duration"></Column>
+                <Column field="map" header="Map"></Column>
+            </DataTable>
+        </div>
+        <div class="right">
+            <ReplayPreview v-if="selectedReplay" :replay="selectedReplay" />
+        </div>
     </div>
 </template>
 
@@ -27,50 +44,50 @@
  * - Paginated
  */
 
-import { format } from "date-fns";
+import { format, intervalToDuration } from "date-fns";
 import Column from "primevue/column";
-import { DataTablePageEvent } from "primevue/datatable";
+import { DataTablePageEvent, DataTableRowSelectEvent } from "primevue/datatable";
 import { Ref, ref } from "vue";
 
 import DataTable from "@/components/controls/DataTable.vue";
-
-type ReplayPreview = {
-    title: string;
-    date: string;
-    duration: string;
-    map: string;
-    game: string;
-    engine: string;
-};
+import ReplayPreview from "@/components/misc/ReplayPreview.vue";
+import { ReplayPreviewData, SelectableReplayData } from "@/model/replay";
 
 const title = api.router.currentRoute.value.meta.title;
 const totalReplays = await api.content.replays.getTotalReplayCount();
 const offset = ref(0);
 const limit = ref(10);
-const replays: Ref<ReplayPreview[]> = ref([]);
+const replays: Ref<ReplayPreviewData[]> = ref([]);
+const selectedReplay: Ref<SelectableReplayData | null> = ref(null);
+
+const replayDataToPreview = (replayData: SelectableReplayData): ReplayPreviewData => {
+    const id = replayData.replayId;
+    const fileName = replayData.fileName;
+
+    let title: string = replayData.preset;
+    if (replayData.preset === "duel") {
+        title = `${replayData.contenders?.[0]?.name ?? "Nobody"} vs ${replayData.contenders?.[1]?.name ?? "Nobody"}`;
+    } else if (replayData.preset === "team") {
+        title = `${replayData.teams[0].playerCount} vs ${replayData.teams[1].playerCount}`;
+    } else if (replayData.preset === "ffa") {
+        title = `${replayData.contenders.length} Way FFA`;
+    } else if (replayData.preset === "teamffa") {
+        title = `${replayData.teams[0].playerCount} Way Team FFA`;
+    }
+
+    const date = format(replayData.startTime, "yyyy/MM/dd hh:mm a"); // https://date-fns.org/v2.29.3/docs/format
+    const durtationValues = intervalToDuration({ start: 0, end: replayData.gameDurationMs });
+    const duration = `${durtationValues.hours}:${durtationValues.minutes?.toString().padStart(2, "0")}:${durtationValues.seconds?.toString().padStart(2, "0")}`;
+    const map = replayData.mapScriptName;
+    const game = replayData.gameVersion;
+    const engine = replayData.engineVersion;
+
+    return { id, fileName, title, date, duration, map, game, engine };
+};
 
 const fetchReplays = async () => {
     const rows = await api.content.replays.getReplays(offset.value, limit.value);
-    replays.value = rows.map((row) => {
-        let title: string = row.preset;
-        if (row.preset === "duel") {
-            title = `${row.contenders?.[0]?.name ?? "Nobody"} vs ${row.contenders?.[1]?.name ?? "Nobody"}`;
-        } else if (row.preset === "team") {
-            title = `${row.teams[0].playerCount} vs ${row.teams[1].playerCount}`;
-        } else if (row.preset === "ffa") {
-            title = `${row.contenders.length} Way FFA`;
-        } else if (row.preset === "teamffa") {
-            title = `${row.teams[0].playerCount} Way Team FFA`;
-        }
-
-        const date = format(row.startTime, "yyyy/MM/dd hh:mm a");
-        const duration = format(row.gameDurationMs, "mm:ss");
-        const map = row.mapScriptName;
-        const game = row.gameVersion;
-        const engine = row.engineVersion;
-
-        return { title, date, duration, map, game, engine };
-    });
+    replays.value = rows.map(replayDataToPreview);
 };
 
 fetchReplays();
@@ -79,6 +96,16 @@ const onPage = (event: DataTablePageEvent) => {
     offset.value = event.first;
     fetchReplays();
 };
+
+const onRowSelect = async (event: DataTableRowSelectEvent) => {
+    const replayData = await api.content.replays.getReplayById(event.data.id);
+    selectedReplay.value = replayData;
+};
 </script>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+.right {
+    position: relative;
+    width: 400px;
+}
+</style>

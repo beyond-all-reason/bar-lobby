@@ -1,4 +1,4 @@
-import { Generated } from "kysely";
+import { Generated, Selectable } from "kysely";
 import { DemoModel } from "sdfz-demo-parser";
 
 import { StartPosType } from "@/model/battle/types";
@@ -26,4 +26,17 @@ export type ReplayData = {
     hostSettings?: Record<string, string>;
     gameSettings: Record<string, string>;
     mapSettings: Record<string, string>;
+};
+
+export type SelectableReplayData = Selectable<ReplayData>;
+
+export type ReplayPreviewData = {
+    id: number;
+    fileName: string;
+    title: string;
+    date: string;
+    duration: string;
+    map: string;
+    game: string;
+    engine: string;
 };

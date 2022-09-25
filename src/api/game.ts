@@ -6,6 +6,7 @@ import { Signal } from "jaz-ts-utils";
 import * as path from "path";
 
 import { AbstractBattle } from "@/model/battle/abstract-battle";
+import { SelectableReplayData } from "@/model/replay";
 import { StartScriptConverter } from "@/utils/start-script-converter";
 
 export class GameAPI {
@@ -16,23 +17,20 @@ export class GameAPI {
     protected gameProcess: Ref<ChildProcess | null> = ref(null);
     protected scriptConverter = new StartScriptConverter();
 
-    public async launch(battle: AbstractBattle): Promise<void>;
-    public async launch(startScript: string, engine: string): Promise<void>;
-    public async launch(battleOrStartScript: AbstractBattle | string, engine?: string): Promise<void> {
-        const engineVersion = typeof battleOrStartScript === "string" ? engine! : battleOrStartScript.battleOptions.engineVersion;
+    public async launch(options: { battle: AbstractBattle } | { replay: SelectableReplayData }): Promise<void> {
+        const engineVersion = "battle" in options ? options.battle?.battleOptions.engineVersion : options.replay.engineVersion;
         const enginePath = path.join(api.info.contentPath, "engine", engineVersion).replaceAll("\\", "/");
-        const scriptPath = path.join(api.info.contentPath, "barlobby_script.txt");
 
-        let scriptStr = "";
-        if (typeof battleOrStartScript === "object") {
-            scriptStr = this.battleToStartScript(battleOrStartScript);
+        let launchArg = "";
+        if ("battle" in options) {
+            launchArg = this.battleToStartScript(options.battle);
+            const scriptPath = path.join(api.info.contentPath, "script.txt");
+            await fs.promises.writeFile(scriptPath, launchArg);
         } else {
-            scriptStr = battleOrStartScript;
+            launchArg = path.join(api.content.replays.replaysDir, options.replay.fileName);
         }
 
-        await fs.promises.writeFile(scriptPath, scriptStr);
-
-        const args = ["--write-dir", api.info.contentPath, "--isolation", scriptPath];
+        const args = ["--write-dir", api.info.contentPath, "--isolation", launchArg];
 
         const binaryName = process.platform === "win32" ? "spring.exe" : "./spring";
         this.gameProcess.value = spawn(binaryName, args, {

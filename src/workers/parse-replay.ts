@@ -21,9 +21,9 @@ export const parseReplay = exposeWorkerFunction(async (replayPath: string) => {
     return {
         gameId: replayData.header.gameId,
         fileName: path.parse(replayPath).base,
-        engineVersion: replayData.header.versionString,
-        gameVersion: replayData.info.meta.engine,
-        mapScriptName: replayData.info.hostSettings.mapname,
+        engineVersion: replayData.info.meta.engine,
+        gameVersion: replayData.info.meta.game,
+        mapScriptName: replayData.info.meta.map,
         startTime: replayData.info.meta.startTime,
         gameDurationMs: replayData.info.meta.durationMs,
         gameEndedNormally: replayData.info.meta.winningAllyTeamIds.length > 0,
