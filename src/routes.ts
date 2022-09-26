@@ -354,6 +354,7 @@ export default [
       transition: {
         name: 'slide-left',
       },
+      offine: true,
     },
   },
   {
@@ -366,6 +367,7 @@ export default [
       transition: {
         name: 'slide-left',
       },
+      offine: true,
     },
   },
   {

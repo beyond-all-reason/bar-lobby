@@ -1,6 +1,6 @@
 import axios from "axios";
 import * as fs from "fs";
-import { removeFromArray } from "jaz-ts-utils";
+import { delay, removeFromArray, Signal } from "jaz-ts-utils";
 import { Selectable } from "kysely";
 import * as path from "path";
 import { reactive } from "vue";
@@ -14,11 +14,14 @@ import { hookWorkerFunction } from "@/workers/worker-helpers";
 
 export class MapContentAPI extends AbstractContentAPI {
     public readonly installedMaps: Selectable<MapData>[] = reactive([]);
+    public readonly onMapCached: Signal<Selectable<MapData>> = new Signal();
 
     protected readonly mapsDir = path.join(api.info.contentPath, "maps");
     protected readonly mapImagesDir = path.join(api.info.contentPath, "map-images");
     protected readonly path7za = path.join(api.info.resourcesPath, process.platform === "win32" ? "7za.exe" : "7za");
     protected readonly parseMap = hookWorkerFunction(new Worker(new URL(`../../workers/parse-map.ts`, import.meta.url), { type: "module" }), parseMapWorkerFunction);
+    protected readonly mapCacheQueue: Set<string> = reactive(new Set());
+    protected cachingMaps = false;
 
     public override async init() {
         await fs.promises.mkdir(this.mapsDir, { recursive: true });
@@ -54,6 +57,17 @@ export class MapContentAPI extends AbstractContentAPI {
 
         const maps = await api.cacheDb.selectFrom("map").selectAll().execute();
         this.installedMaps.push(...maps);
+
+        await this.queueMapsToCache();
+
+        this.cacheMaps();
+
+        fs.watch(this.mapsDir, (watchEvent, filename) => {
+            if ((watchEvent === "change" && filename.endsWith("sdz")) || filename.endsWith("sd7")) {
+                console.log(`adding ${filename} to queue`);
+                this.mapCacheQueue.add(filename);
+            }
+        });
 
         return super.init();
     }
@@ -131,80 +145,11 @@ export class MapContentAPI extends AbstractContentAPI {
 
             console.timeEnd(`Map downloaded: ${filename}`);
 
-            const mapData = await this.cacheMap(dest);
-
-            if (mapData) {
-                this.installedMaps.push(mapData);
-            }
-
             removeFromArray(this.currentDownloads, downloadInfo);
             this.onDownloadComplete.dispatch(downloadInfo);
         } catch (err) {
             console.error(`Failed to install map ${filename} from ${host}${filename}:`, err);
         }
-    }
-
-    public async cacheMaps() {
-        const mapFiles = await fs.promises.readdir(this.mapsDir);
-
-        const cachedMapFiles = await api.cacheDb.selectFrom("map").select(["fileName"]).execute();
-        const cachedMapFileNames = cachedMapFiles.map((file) => file.fileName);
-
-        const erroredMapFiles = await api.cacheDb.selectFrom("mapError").select(["fileName"]).execute();
-        const erroredMapFileNames = erroredMapFiles.map((file) => file.fileName);
-
-        for (const mapFileName of mapFiles) {
-            if (cachedMapFileNames.includes(mapFileName) || erroredMapFileNames.includes(mapFileName)) {
-                continue;
-            }
-
-            try {
-                await this.cacheMap(mapFileName);
-            } catch (err) {
-                console.error(`Error parsing replay: ${mapFileName}`, err);
-
-                api.cacheDb.insertInto("replayError").values({
-                    fileName: mapFileName,
-                });
-            }
-        }
-    }
-
-    public async cacheMap(mapFilePath: string) {
-        console.debug(`Caching: ${mapFilePath}`);
-        console.time(`Cached: ${mapFilePath}`);
-
-        const parsedMap = await this.parseMap(mapFilePath, this.mapImagesDir, this.path7za);
-
-        console.log(parsedMap);
-
-        const mapData = await api.cacheDb.insertInto("map").values(parsedMap).returningAll().executeTakeFirst();
-
-        console.timeEnd(`Cached: ${mapFilePath}`);
-
-        return mapData;
-    }
-
-    public async uncacheMap(name: { fileName: string } | { scriptName: string }) {
-        let map: Selectable<MapData> | undefined;
-        if ("fileName" in name) {
-            map = await api.cacheDb.selectFrom("map").selectAll().where("fileName", "=", name.fileName).executeTakeFirst();
-        } else {
-            map = await api.cacheDb.selectFrom("map").selectAll().where("scriptName", "=", name.scriptName).executeTakeFirst();
-        }
-
-        if (!map) {
-            return;
-        }
-
-        const mapImages = this.getMapImages({ map });
-
-        await fs.promises.rm(mapImages.textureImagePath, { force: true });
-        await fs.promises.rm(mapImages.heightImagePath, { force: true });
-        await fs.promises.rm(mapImages.metalImagePath, { force: true });
-        await fs.promises.rm(mapImages.typeImagePath, { force: true });
-
-        await api.cacheDb.deleteFrom("map").where("mapId", "=", map.mapId).execute();
     }
 
     public getMapImages(options: { map: Selectable<MapData> } | { fileName: string }) {
@@ -224,5 +169,119 @@ export class MapContentAPI extends AbstractContentAPI {
             metalImagePath: path.join(this.mapImagesDir, `${fileNameWithoutExt}-metal.jpg`),
             typeImagePath: path.join(this.mapImagesDir, `${fileNameWithoutExt}-type.jpg`),
         };
+    }
+
+    protected async queueMapsToCache() {
+        const mapFiles = await fs.promises.readdir(this.mapsDir);
+
+        const cachedMapFiles = await api.cacheDb.selectFrom("map").select(["fileName"]).execute();
+        const cachedMapFileNames = cachedMapFiles.map((file) => file.fileName);
+
+        const erroredMapFiles = await api.cacheDb.selectFrom("mapError").select(["fileName"]).execute();
+        const erroredMapFileNames = erroredMapFiles.map((file) => file.fileName);
+
+        const mapFilesToCache = mapFiles.filter((file) => !cachedMapFileNames.includes(file) && !erroredMapFileNames.includes(file));
+
+        for (const mapFileToCache of mapFilesToCache) {
+            this.mapCacheQueue.add(mapFileToCache);
+        }
+    }
+
+    protected async cacheMaps() {
+        if (this.cachingMaps) {
+            console.warn("Don't call cacheReplays more than once");
+            return;
+        }
+
+        this.cachingMaps = true;
+
+        // eslint-disable-next-line no-constant-condition
+        while (true) {
+            const [replayToCache] = this.mapCacheQueue;
+
+            if (replayToCache) {
+                await this.cacheMap(replayToCache);
+            } else {
+                await delay(500);
+            }
+        }
+    }
+
+    protected async cacheMap(mapFileName: string) {
+        try {
+            const fileName = path.parse(mapFileName).name;
+
+            const existingCachedMap = await api.cacheDb.selectFrom("map").select("mapId").where("fileName", "=", fileName).executeTakeFirst();
+            if (existingCachedMap || this.installedMaps.some((map) => map.fileName === mapFileName)) {
+                console.debug(`${fileName} already cached`);
+                return;
+            }
+
+            console.debug(`Caching: ${mapFileName}`);
+            console.time(`Cached: ${mapFileName}`);
+
+            const mapPath = path.join(this.mapsDir, mapFileName);
+
+            const parsedMap = await this.parseMap(mapPath, this.mapImagesDir, this.path7za);
+
+            const mapData = await api.cacheDb
+                .insertInto("map")
+                .values(parsedMap)
+                .onConflict((oc) => {
+                    const { scriptName, fileName, ...nonUniqueValues } = parsedMap;
+                    return oc.doUpdateSet(nonUniqueValues);
+                })
+                .returningAll()
+                .executeTakeFirst();
+
+            console.timeEnd(`Cached: ${mapFileName}`);
+
+            if (mapData) {
+                this.installedMaps.push(mapData);
+                this.onMapCached.dispatch(mapData);
+            }
+        } catch (err) {
+            console.error(`Error parsing replay: ${mapFileName}`, err);
+
+            await api.cacheDb
+                .insertInto("mapError")
+                .onConflict((oc) => oc.doNothing())
+                .values({ fileName: mapFileName })
+                .execute();
+        }
+
+        this.mapCacheQueue.delete(mapFileName);
+    }
+
+    protected mapCached(mapName: string) {
+        return new Promise<Selectable<MapData>>((resolve) => {
+            this.onMapCached.addOnce((map) => {
+                if (map.scriptName === mapName) {
+                    resolve(map);
+                }
+            });
+        });
+    }
+
+    protected async uncacheMap(name: { fileName: string } | { scriptName: string }) {
+        let map: Selectable<MapData> | undefined;
+        if ("fileName" in name) {
+            map = await api.cacheDb.selectFrom("map").selectAll().where("fileName", "=", name.fileName).executeTakeFirst();
+        } else {
+            map = await api.cacheDb.selectFrom("map").selectAll().where("scriptName", "=", name.scriptName).executeTakeFirst();
+        }
+
+        if (!map) {
+            return;
+        }
+
+        const mapImages = this.getMapImages({ map });
+
+        await fs.promises.rm(mapImages.textureImagePath, { force: true });
+        await fs.promises.rm(mapImages.heightImagePath, { force: true });
+        await fs.promises.rm(mapImages.metalImagePath, { force: true });
+        await fs.promises.rm(mapImages.typeImagePath, { force: true });
+
+        await api.cacheDb.deleteFrom("map").where("mapId", "=", map.mapId).execute();
     }
 }

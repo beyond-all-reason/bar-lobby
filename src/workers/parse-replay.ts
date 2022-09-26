@@ -30,7 +30,6 @@ export const parseReplay = exposeWorkerFunction(async (replayPath: string) => {
         chatlog: replayData.chatlog,
         hasBots: replayData.info.ais.length > 0,
         preset: preset,
-        startPosType: replayData.info.meta.startPosType,
         winningTeamId: replayData.info.meta.winningAllyTeamIds[0],
         teams: replayData.info.allyTeams,
         contenders: [...replayData.info.players, ...replayData.info.ais],

@@ -1,8 +1,6 @@
 import { Generated, Selectable } from "kysely";
 import { DemoModel } from "sdfz-demo-parser";
 
-import { StartPosType } from "@/model/battle/types";
-
 export type ReplayData = {
     replayId: Generated<number>;
     gameId: string;
@@ -16,7 +14,6 @@ export type ReplayData = {
     chatlog?: DemoModel.ChatMessage[];
     hasBots: boolean;
     preset: "duel" | "team" | "ffa" | "teamffa";
-    startPosType: StartPosType;
     winningTeamId: number;
     teams: DemoModel.Info.AllyTeam[];
     contenders: (DemoModel.Info.Player | DemoModel.Info.AI)[];

@@ -1,6 +1,7 @@
 import fs from "fs";
 import { delay } from "jaz-ts-utils";
 import path from "path";
+import { reactive } from "vue";
 
 import { AbstractContentAPI } from "@/api/content/abstract-content-api";
 import { parseReplay as parseReplayWorkerFunction } from "@/workers/parse-replay";
@@ -9,8 +10,9 @@ import { hookWorkerFunction } from "@/workers/worker-helpers";
 export class ReplayContentAPI extends AbstractContentAPI {
     public readonly replaysDir = path.join(api.info.contentPath, "demos");
 
-    protected parseReplay = hookWorkerFunction(new Worker(new URL(`../../workers/parse-replay.ts`, import.meta.url), { type: "module" }), parseReplayWorkerFunction);
-    protected replayCacheQueue: Set<string> = new Set();
+    protected readonly parseReplay = hookWorkerFunction(new Worker(new URL(`../../workers/parse-replay.ts`, import.meta.url), { type: "module" }), parseReplayWorkerFunction);
+    protected readonly replayCacheQueue: Set<string> = reactive(new Set());
+    protected cachingReplays = false;
 
     public override async init() {
         await fs.promises.mkdir(this.replaysDir, { recursive: true });
@@ -30,7 +32,6 @@ export class ReplayContentAPI extends AbstractContentAPI {
             .addColumn("chatlog", "json", (col) => col)
             .addColumn("hasBots", "boolean", (col) => col.notNull())
             .addColumn("preset", "varchar", (col) => col.notNull())
-            .addColumn("startPosType", "integer", (col) => col.notNull())
             .addColumn("winningTeamId", "integer", (col) => col)
             .addColumn("teams", "json", (col) => col.notNull())
             .addColumn("contenders", "json", (col) => col.notNull())
@@ -51,7 +52,7 @@ export class ReplayContentAPI extends AbstractContentAPI {
         await this.queueReplaysToCache();
 
         fs.watch(this.replaysDir, (watchEvent, filename) => {
-            if (watchEvent === "change") {
+            if (watchEvent === "change" && filename.endsWith("sdfz")) {
                 this.replayCacheQueue.add(filename);
             }
         });
@@ -91,15 +92,23 @@ export class ReplayContentAPI extends AbstractContentAPI {
     }
 
     protected async cacheReplays() {
-        const [replayToCache] = this.replayCacheQueue;
-
-        if (replayToCache) {
-            await this.cacheReplay(replayToCache);
-        } else {
-            await delay(5000);
+        if (this.cachingReplays) {
+            console.warn("Don't call cacheReplays more than once");
+            return;
         }
 
-        this.cacheReplays();
+        this.cachingReplays = true;
+
+        // eslint-disable-next-line no-constant-condition
+        while (true) {
+            const [replayToCache] = this.replayCacheQueue;
+
+            if (replayToCache) {
+                await this.cacheReplay(replayToCache);
+            } else {
+                await delay(500);
+            }
+        }
     }
 
     protected async cacheReplay(replayFileName: string) {
@@ -111,7 +120,14 @@ export class ReplayContentAPI extends AbstractContentAPI {
 
             const replayData = await this.parseReplay(replayFilePath);
 
-            await api.cacheDb.insertInto("replay").values(replayData).execute();
+            await api.cacheDb
+                .insertInto("replay")
+                .values(replayData)
+                .onConflict((oc) => {
+                    const { gameId, fileName, ...nonUniqueValues } = replayData;
+                    return oc.doUpdateSet(nonUniqueValues);
+                })
+                .execute();
 
             console.timeEnd(`Cached: ${replayFileName}`);
         } catch (err) {
@@ -119,9 +135,8 @@ export class ReplayContentAPI extends AbstractContentAPI {
 
             await api.cacheDb
                 .insertInto("replayError")
-                .values({
-                    fileName: replayFileName,
-                })
+                .onConflict((oc) => oc.doNothing())
+                .values({ fileName: replayFileName })
                 .execute();
         }
 

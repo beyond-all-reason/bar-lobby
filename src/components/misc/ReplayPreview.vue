@@ -2,7 +2,7 @@
     <div class="flex-col gap-md">
         <!-- <MapPreview /> -->
         <Button v-if="synced" class="green" @click="watch">Watch</Button>
-        <Button v-else class="blue" @click="downloadMissingContent">Download Missing Content</Button>
+        <Button v-else class="blue" :disabled="contentIsDownloading" @click="downloadMissingContent">Download Missing Content</Button>
 
         <div>{{ mapInstalled }} / {{ replay.mapScriptName }}</div>
         <div>{{ gameInstalled }}</div>
@@ -25,6 +25,12 @@ const mapInstalled = computed(() => api.content.maps.installedMaps.some((map) =>
 const gameInstalled = computed(() => api.content.game.installedVersions.some((version) => version === props.replay.gameVersion));
 const engineInstalled = computed(() => api.content.engine.installedVersions.some((version) => version === props.replay.engineVersion));
 const synced = computed(() => mapInstalled.value && gameInstalled.value && engineInstalled.value);
+const contentIsDownloading = computed(() => {
+    const isMapDownloading = api.content.maps.currentDownloads.some((dl) => dl.name === props.replay.mapScriptName);
+    const isGameDownloading = api.content.game.currentDownloads.some((dl) => dl.name === props.replay.gameVersion);
+    const isEngineDownloading = api.content.engine.currentDownloads.some((dl) => dl.name === props.replay.engineVersion);
+    return isMapDownloading || isGameDownloading || isEngineDownloading;
+});
 
 const downloadMissingContent = () => {
     if (!mapInstalled.value) {
