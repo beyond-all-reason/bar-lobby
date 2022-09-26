@@ -13,7 +13,7 @@ export class OfflineBattle extends AbstractBattle {
     }
 
     public start() {
-        api.game.launch(this);
+        api.game.launch({ battle: this });
     }
 
     public setEngine(engineVersion: string) {

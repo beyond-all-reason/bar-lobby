@@ -235,7 +235,7 @@ export class SpadsBattle extends AbstractBattle {
                 message: "!joinas spec",
             });
 
-            api.game.launch(this);
+            api.game.launch({ battle: this });
         } else {
             api.comms.request("c.lobby.message", {
                 message: "!cv start",

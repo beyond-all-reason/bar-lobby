@@ -170,7 +170,7 @@ export class CommsAPI extends TachyonClient {
             const battle = api.session.onlineBattle.value;
             if (battle && battle.battleOptions.founderId === client.userid) {
                 if (client.in_game) {
-                    api.game.launch(battle);
+                    api.game.launch({ battle });
                 }
             }
         });
