@@ -131,7 +131,11 @@ export class MapContentAPI extends AbstractContentAPI {
 
             console.timeEnd(`Map downloaded: ${filename}`);
 
-            await this.cacheMap(dest);
+            const mapData = await this.cacheMap(dest);
+
+            if (mapData) {
+                this.installedMaps.push(mapData);
+            }
 
             removeFromArray(this.currentDownloads, downloadInfo);
             this.onDownloadComplete.dispatch(downloadInfo);

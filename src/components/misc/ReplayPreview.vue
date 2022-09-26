@@ -3,6 +3,10 @@
         <!-- <MapPreview /> -->
         <Button v-if="synced" class="green" @click="watch">Watch</Button>
         <Button v-else class="blue" @click="downloadMissingContent">Download Missing Content</Button>
+
+        <div>{{ mapInstalled }} / {{ replay.mapScriptName }}</div>
+        <div>{{ gameInstalled }}</div>
+        <div>{{ engineInstalled }}</div>
     </div>
 </template>
 

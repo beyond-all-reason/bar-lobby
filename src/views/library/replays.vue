@@ -9,7 +9,7 @@
 
             <DataTable
                 v-model:first="offset"
-                v-model:selection="selectedReplay"
+                v-model:selection="selectedReplayPreview"
                 :lazy="true"
                 :value="replays"
                 :paginator="true"
@@ -18,7 +18,7 @@
                 selectionMode="single"
                 dataKey="id"
                 @page="onPage"
-                @rowSelect="onRowSelect"
+                @row-select="onRowSelect"
             >
                 <Column field="title" header="Title"></Column>
                 <Column field="date" header="Date"></Column>
@@ -58,6 +58,7 @@ const totalReplays = await api.content.replays.getTotalReplayCount();
 const offset = ref(0);
 const limit = ref(10);
 const replays: Ref<ReplayPreviewData[]> = ref([]);
+const selectedReplayPreview: Ref<ReplayPreviewData | null> = ref(null);
 const selectedReplay: Ref<SelectableReplayData | null> = ref(null);
 
 const replayDataToPreview = (replayData: SelectableReplayData): ReplayPreviewData => {
