@@ -29,6 +29,7 @@ import Control from "@/components/controls/Control.vue";
         padding: 0 7px;
         position: relative;
         overflow: unset;
+        flex-grow: 1;
         &:not(:last-child):after {
             @extend .fullsize;
             top: 0;

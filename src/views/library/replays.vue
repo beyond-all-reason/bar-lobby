@@ -54,7 +54,7 @@ import ReplayPreview from "@/components/misc/ReplayPreview.vue";
 import { ReplayPreviewData, SelectableReplayData } from "@/model/replay";
 
 const title = api.router.currentRoute.value.meta.title;
-const totalReplays = await api.content.replays.getTotalReplayCount();
+const totalReplays = ref(0);
 const offset = ref(0);
 const limit = ref(10);
 const replays: Ref<ReplayPreviewData[]> = ref([]);
@@ -87,6 +87,8 @@ const replayDataToPreview = (replayData: SelectableReplayData): ReplayPreviewDat
 };
 
 const fetchReplays = async () => {
+    totalReplays.value = await api.content.replays.getTotalReplayCount();
+
     const rows = await api.content.replays.getReplays(offset.value, limit.value);
     replays.value = rows.map(replayDataToPreview);
 };

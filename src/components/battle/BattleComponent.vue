@@ -18,7 +18,41 @@
             <BattleChat v-if="!isOfflineBattle" :battle="battle" />
         </div>
         <div class="right-col flex-col gap-md">
-            <MapPreview :battle="battle" :me="me" />
+            <MapPreview
+                :map="props.battle.battleOptions.map"
+                :startPosType="props.battle.battleOptions.startPosType"
+                :startBoxes="props.battle.battleOptions.startBoxes"
+                :isSpectator="me.battleStatus.isSpectator"
+                :myTeamId="me.battleStatus.teamId"
+            />
+
+            <div class="flex-row gap-md">
+                <Options
+                    :modelValue="battle.battleOptions.startPosType"
+                    :options="startPosOptions"
+                    label="Start Pos"
+                    optionLabel="label"
+                    optionValue="value"
+                    :unselectable="false"
+                    class="fullwidth"
+                    @update:model-value="onStartPosChange"
+                />
+                <div class="box-buttons" :class="{ disabled: battle.battleOptions.startPosType === StartPosType.Boxes }">
+                    <Button @click="setBoxes(defaultBoxes().EastVsWest)">
+                        <img src="@/assets/images/icons/east-vs-west.png" />
+                    </Button>
+                    <Button @click="setBoxes(defaultBoxes().NorthVsSouth)">
+                        <img src="@/assets/images/icons/north-vs-south.png" />
+                    </Button>
+                    <Button @click="setBoxes(defaultBoxes().NortheastVsSouthwest)">
+                        <img src="@/assets/images/icons/northeast-vs-southwest.png" />
+                    </Button>
+                    <Button @click="setBoxes(defaultBoxes().NorthwestVsSouthEast)">
+                        <img src="@/assets/images/icons/northwest-vs-southeast.png" />
+                    </Button>
+                </div>
+            </div>
+
             <div class="flex-row gap-md">
                 <Select
                     :modelValue="battle.battleOptions.map"
@@ -94,10 +128,13 @@ import LuaOptionsModal from "@/components/battle/LuaOptionsModal.vue";
 import MapPreview from "@/components/battle/MapPreview.vue";
 import Playerlist from "@/components/battle/Playerlist.vue";
 import Button from "@/components/controls/Button.vue";
+import Options from "@/components/controls/Options.vue";
 import Select from "@/components/controls/Select.vue";
 import Flag from "@/components/misc/Flag.vue";
+import { defaultBoxes } from "@/config/default-boxes";
 import { AbstractBattle } from "@/model/battle/abstract-battle";
 import { OfflineBattle } from "@/model/battle/offline-battle";
+import { StartBox, StartPosType } from "@/model/battle/types";
 import { LuaOptionSection } from "@/model/lua-options";
 import { CurrentUser } from "@/model/user";
 
@@ -113,6 +150,19 @@ const installedGames = api.content.game.installedVersions;
 const gameOptionsOpen = ref(false);
 const gameOptions: Ref<LuaOptionSection[]> = ref([]);
 const isGameRunning = api.game.isGameRunning;
+
+const startPosOptions: Array<{ label: string; value: StartPosType }> = [
+    { label: "Fixed", value: StartPosType.Fixed },
+    { label: "Boxes", value: StartPosType.Boxes },
+];
+
+const setBoxes = (boxes: StartBox[]) => {
+    props.battle.setStartBoxes(boxes);
+};
+
+const onStartPosChange = (startPosType: StartPosType) => {
+    props.battle.setStartPosType(startPosType);
+};
 
 const onEngineSelected = (engineVersion: string) => {
     props.battle.setEngine(engineVersion);
@@ -163,5 +213,24 @@ const start = async () => {
 }
 .subtitle {
     font-size: 16px;
+}
+.box-buttons {
+    display: flex;
+    flex-direction: row;
+    gap: 2px;
+    :deep(button) {
+        min-height: unset;
+        padding: 5px;
+        &:hover {
+            img {
+                opacity: 1;
+            }
+        }
+    }
+    img {
+        max-width: 23px;
+        image-rendering: pixelated;
+        opacity: 0.7;
+    }
 }
 </style>

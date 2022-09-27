@@ -1,6 +1,7 @@
 <template>
     <div class="flex-col gap-md">
-        <!-- <MapPreview /> -->
+        <MapPreview :map="replay.mapScriptName" :isSpectator="true" :myTeamId="0" :startBoxes="{}" :startPosType="1" />
+
         <Button v-if="synced" class="green" @click="watch">Watch</Button>
         <Button v-else class="blue" :disabled="contentIsDownloading" @click="downloadMissingContent">Download Missing Content</Button>
 
@@ -13,9 +14,9 @@
 <script lang="ts" setup>
 import { computed } from "vue";
 
+import MapPreview from "@/components/battle/MapPreview.vue";
 import Button from "@/components/controls/Button.vue";
 import { SelectableReplayData } from "@/model/replay";
-//import MapPreview from "@/components/battle/MapPreview.vue";
 
 const props = defineProps<{
     replay: SelectableReplayData;
