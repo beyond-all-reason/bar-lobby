@@ -28,16 +28,17 @@ let mapTransform: Transform;
 let loadingMap = false;
 
 const mapData = computed(() => api.content.maps.installedMaps.find((map) => map.scriptName === props.map));
-const mapImages = computed(() =>
-    mapData.value
-        ? api.content.maps.getMapImages({ map: mapData.value })
-        : {
-              textureImagePath: defaultMinimapImage,
-              heightImagePath: defaultMinimapImage,
-              metalImagePath: defaultMinimapImage,
-              typeImagePath: defaultMinimapImage,
-          }
-);
+const mapImages = computed(() => {
+    if (mapData.value) {
+        return api.content.maps.getMapImages({ map: mapData.value });
+    }
+    return {
+        textureImagePath: defaultMinimapImage,
+        heightImagePath: defaultMinimapImage,
+        metalImagePath: defaultMinimapImage,
+        typeImagePath: defaultMinimapImage,
+    };
+});
 
 let watchStopHandle: WatchStopHandle | undefined;
 let mapCachedSignalBinding: SignalBinding | undefined;
@@ -115,7 +116,7 @@ async function loadMap(canvasWidth: number) {
 
     mapTransform = { x: 0, y: 0, width: canvasWidth, height: canvasWidth };
 
-    const textureMap = await loadImage(mapImages.value.textureImagePath);
+    const textureMap = await loadImage(mapImages.value.textureImagePath, Boolean(mapData.value));
 
     const widthToHeightRatio = textureMap.width / textureMap.height;
     if (widthToHeightRatio > 1) {
