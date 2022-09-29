@@ -4,7 +4,7 @@
 
 <script lang="ts" setup>
 const props = defineProps<{
-    countryCode: string;
+    countryCode?: string;
 }>();
 </script>
 

@@ -54,8 +54,6 @@ const show = ref(false);
     :deep(.popper) {
         padding: 0 !important;
     }
-    &__entry {
-    }
     &__label {
         padding: 10px;
         &:hover {

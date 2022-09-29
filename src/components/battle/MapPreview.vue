@@ -16,9 +16,16 @@ type Transform = { x: number; y: number; width: number; height: number };
 const props = defineProps<{
     map: string;
     startPosType: StartPosType;
-    startBoxes: Record<number, StartBox | undefined>;
+    startBoxes?: Record<number, StartBox | undefined>;
     myTeamId: number;
     isSpectator: boolean;
+    startPositions?: Array<
+        | {
+              position: { x: number; z: number };
+              rgbColor?: { r: number; g: number; b: number };
+          }
+        | undefined
+    >;
 }>();
 
 const mapPreviewEl: Ref<HTMLDivElement | null> = ref(null);
@@ -135,6 +142,8 @@ async function loadMap(canvasWidth: number) {
     context.drawImage(textureMap, mapTransform.x, mapTransform.y, mapTransform.width, mapTransform.height);
 
     drawStartPosType();
+
+    drawStartPositions();
 }
 
 function drawStartPosType() {
@@ -148,19 +157,31 @@ function drawStartPosType() {
 function drawFixedPositions() {
     if (mapData.value?.startPositions) {
         for (const startPos of mapData.value.startPositions) {
-            const xPos = mapTransform.x + mapTransform.width * (startPos.x / (mapData.value.width * 512));
-            const yPos = mapTransform.y + mapTransform.height * (startPos.z / (mapData.value.height * 512));
-
-            context.fillStyle = "rgba(255, 255, 255, 0.6)";
-            context.beginPath();
-            context.arc(xPos, yPos, 5, 0, 2 * Math.PI);
-            context.fill();
-            context.closePath();
+            drawFixedPosition(startPos);
         }
     }
 }
 
+function drawFixedPosition(position: { x: number; z: number }, color = "rgba(255, 255, 255, 0.6)") {
+    if (!mapData.value) {
+        return;
+    }
+
+    const xPos = mapTransform.x + mapTransform.width * (position.x / (mapData.value.width * 512));
+    const yPos = mapTransform.y + mapTransform.height * (position.z / (mapData.value.height * 512));
+
+    context.fillStyle = color;
+    context.beginPath();
+    context.arc(xPos, yPos, 5, 0, 2 * Math.PI);
+    context.fill();
+    context.closePath();
+}
+
 function drawBoxes() {
+    if (!props.startBoxes) {
+        return;
+    }
+
     entries(props.startBoxes).forEach(([id, box], i) => {
         if (box) {
             if (props.isSpectator) {
@@ -184,6 +205,24 @@ function drawBoxes() {
             context.fillRect(boxTransform.x, boxTransform.y, boxTransform.width, boxTransform.height);
         }
     });
+}
+
+function drawStartPositions() {
+    if (!props.startPositions) {
+        return;
+    }
+
+    for (const startPos of props.startPositions) {
+        if (!startPos) {
+            continue;
+        }
+
+        if (startPos.rgbColor) {
+            drawFixedPosition(startPos.position, `rgb(${startPos.rgbColor.r}, ${startPos.rgbColor.g}, ${startPos.rgbColor.b})`);
+        } else {
+            drawFixedPosition(startPos.position);
+        }
+    }
 }
 
 function loadImage(url: string, isStatic = true) {

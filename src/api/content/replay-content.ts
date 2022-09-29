@@ -1,5 +1,5 @@
 import fs from "fs";
-import { delay } from "jaz-ts-utils";
+import { delay, Optionals } from "jaz-ts-utils";
 import path from "path";
 import { reactive } from "vue";
 
@@ -7,6 +7,17 @@ import { AbstractContentAPI } from "@/api/content/abstract-content-api";
 import { parseReplay as parseReplayWorkerFunction } from "@/workers/parse-replay";
 import { hookWorkerFunction } from "@/workers/worker-helpers";
 
+export type ReplayQueryOptions = {
+    offset?: number;
+    limit?: number;
+    endedNormally?: boolean | null;
+};
+
+export const defaultReplayQueryOptions: Optionals<ReplayQueryOptions> = {
+    offset: 0,
+    limit: -1,
+    endedNormally: true,
+};
 export class ReplayContentAPI extends AbstractContentAPI {
     public readonly replaysDir = path.join(api.info.contentPath, "demos");
 
@@ -62,8 +73,16 @@ export class ReplayContentAPI extends AbstractContentAPI {
         return super.init();
     }
 
-    public async getReplays(offset = 0, limit = -1) {
-        return api.cacheDb.selectFrom("replay").selectAll().orderBy("startTime", "desc").offset(offset).limit(limit).execute();
+    public async getReplays(optionsArg: ReplayQueryOptions) {
+        const options = { ...defaultReplayQueryOptions, ...optionsArg };
+
+        let query = api.cacheDb.selectFrom("replay").selectAll().orderBy("startTime", "desc");
+
+        if (options.endedNormally !== null) {
+            query = query.where("gameEndedNormally", "=", options.endedNormally);
+        }
+
+        return query.offset(options.offset).limit(options.limit).execute();
     }
 
     public async getReplayById(replayId: number) {

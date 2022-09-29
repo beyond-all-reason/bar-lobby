@@ -3,9 +3,13 @@
 </route>
 
 <template>
-    <div class="flex-row flex-grow gap-md">
+    <div class="flex-row flex-grow gap-md fullheight">
         <div class="flex-col flex-grow gap-md">
             <h1>{{ title }}</h1>
+
+            <div class="flex-row">
+                <TriStateCheckbox v-model="endedNormally" label="Ended Normally" @update:model-value="fetchReplays" />
+            </div>
 
             <DataTable
                 v-model:first="offset"
@@ -50,13 +54,15 @@ import { DataTablePageEvent, DataTableRowSelectEvent } from "primevue/datatable"
 import { Ref, ref } from "vue";
 
 import DataTable from "@/components/controls/DataTable.vue";
+import TriStateCheckbox from "@/components/controls/TriStateCheckbox.vue";
 import ReplayPreview from "@/components/misc/ReplayPreview.vue";
 import { ReplayPreviewData, SelectableReplayData } from "@/model/replay";
 
 const title = api.router.currentRoute.value.meta.title;
+const endedNormally: Ref<boolean | null> = ref(true);
 const totalReplays = ref(0);
 const offset = ref(0);
-const limit = ref(10);
+const limit = ref(18);
 const replays: Ref<ReplayPreviewData[]> = ref([]);
 const selectedReplayPreview: Ref<ReplayPreviewData | null> = ref(null);
 const selectedReplay: Ref<SelectableReplayData | null> = ref(null);
@@ -89,7 +95,11 @@ const replayDataToPreview = (replayData: SelectableReplayData): ReplayPreviewDat
 const fetchReplays = async () => {
     totalReplays.value = await api.content.replays.getTotalReplayCount();
 
-    const rows = await api.content.replays.getReplays(offset.value, limit.value);
+    const rows = await api.content.replays.getReplays({
+        offset: offset.value,
+        limit: limit.value,
+        endedNormally: endedNormally.value,
+    });
     replays.value = rows.map(replayDataToPreview);
 };
 
@@ -110,5 +120,7 @@ const onRowSelect = async (event: DataTableRowSelectEvent) => {
 .right {
     position: relative;
     width: 400px;
+    padding-right: 10px;
+    overflow-y: scroll;
 }
 </style>
