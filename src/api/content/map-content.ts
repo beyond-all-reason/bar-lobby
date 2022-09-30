@@ -64,7 +64,6 @@ export class MapContentAPI extends AbstractContentAPI {
 
         fs.watch(this.mapsDir, (watchEvent, filename) => {
             if ((watchEvent === "change" && filename.endsWith("sdz")) || filename.endsWith("sd7")) {
-                console.log(`adding ${filename} to queue`);
                 this.mapCacheQueue.add(filename);
             }
         });
