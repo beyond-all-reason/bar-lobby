@@ -74,9 +74,12 @@ onMounted(async () => {
         { deep: true }
     );
 
-    // TODO: this should only trigger when the download is of the currently selected map
-    mapCachedSignalBinding = api.content.maps.onDownloadComplete.add((data) => {
-        loadMap(canvasWidth);
+    mapCachedSignalBinding = api.content.maps.onMapCached.add((data) => {
+        if (data.scriptName === props.map) {
+            mapData.effect.run();
+            mapImages.effect.run();
+            loadMap(canvasWidth);
+        }
     });
 });
 
