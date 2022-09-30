@@ -62,12 +62,6 @@ export class ReplayContentAPI extends AbstractContentAPI {
 
         await this.queueReplaysToCache();
 
-        fs.watch(this.replaysDir, (watchEvent, filename) => {
-            if (watchEvent === "change" && filename.endsWith("sdfz")) {
-                this.replayCacheQueue.add(filename);
-            }
-        });
-
         this.cacheReplays();
 
         return super.init();
@@ -94,7 +88,7 @@ export class ReplayContentAPI extends AbstractContentAPI {
         return num_replays;
     }
 
-    protected async queueReplaysToCache() {
+    public async queueReplaysToCache() {
         const replayFiles = await fs.promises.readdir(this.replaysDir);
 
         const cachedReplayFiles = await api.cacheDb.selectFrom("replay").select(["fileName"]).execute();
@@ -147,8 +141,6 @@ export class ReplayContentAPI extends AbstractContentAPI {
                     return oc.doUpdateSet(nonUniqueValues);
                 })
                 .execute();
-
-            console.timeEnd(`Cached: ${replayFileName}`);
         } catch (err) {
             console.error(`Error parsing replay: ${replayFileName}`, err);
 
@@ -158,6 +150,8 @@ export class ReplayContentAPI extends AbstractContentAPI {
                 .values({ fileName: replayFileName })
                 .execute();
         }
+
+        console.timeEnd(`Cached: ${replayFileName}`);
 
         this.replayCacheQueue.delete(replayFileName);
     }

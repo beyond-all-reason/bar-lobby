@@ -1,5 +1,5 @@
 <template>
-    <Control class="select">
+    <Control class="select" v-bind="$props">
         <Dropdown v-bind="$attrs" filterPlaceholder="Search">
             <template v-for="(_, name) in ($slots as {})" #[name]="slotData">
                 <slot :name="name" v-bind="slotData || {}" />

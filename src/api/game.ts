@@ -23,9 +23,9 @@ export class GameAPI {
 
         let launchArg = "";
         if ("battle" in options) {
-            launchArg = this.battleToStartScript(options.battle);
-            const scriptPath = path.join(api.info.contentPath, "script.txt");
-            await fs.promises.writeFile(scriptPath, launchArg);
+            const script = this.battleToStartScript(options.battle);
+            const scriptPath = (launchArg = path.join(api.info.contentPath, "script.txt"));
+            await fs.promises.writeFile(scriptPath, script);
         } else {
             launchArg = path.join(api.content.replays.replaysDir, options.replay.fileName);
         }
@@ -50,6 +50,8 @@ export class GameAPI {
             this.onGameClosed.dispatch(exitCode);
 
             api.audio.unmuteMusic();
+
+            api.content.replays.queueReplaysToCache();
         });
     }
 

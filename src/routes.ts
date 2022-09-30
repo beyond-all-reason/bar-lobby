@@ -113,6 +113,7 @@ export default [
       transition: {
         name: 'slide-below',
       },
+      offline: true,
     },
     redirect: '/library/replays',
   },

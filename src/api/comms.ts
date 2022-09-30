@@ -30,7 +30,7 @@ export class CommsAPI extends TachyonClient {
 
                 // TODO: display alerts whenever connecting/disconnecting
                 console.log(`Disconnected from ${config.host}:${config.port}`);
-                api.session.offlineBattle.value = null;
+                api.session.onlineBattle.value = null;
                 api.session.users.clear();
                 api.session.battles.clear();
                 api.session.serverStats;
@@ -125,10 +125,8 @@ export class CommsAPI extends TachyonClient {
             battle.open();
         };
 
-        this.onResponse("s.lobby.join_response").add((data) => {
-            if (data.result === "approve") {
-                joinBattle(data);
-            }
+        this.onResponse("s.lobby.joined").add((data) => {
+            joinBattle(data);
         });
 
         this.onResponse("s.lobby.force_join").add((data) => {

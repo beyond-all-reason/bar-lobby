@@ -6,7 +6,8 @@
         "order": 2,
         "transition": {
             "name": "slide-below"
-        }
+        },
+        "offline": true
     }
 }
 </route>

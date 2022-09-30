@@ -62,12 +62,6 @@ export class MapContentAPI extends AbstractContentAPI {
 
         this.cacheMaps();
 
-        fs.watch(this.mapsDir, (watchEvent, filename) => {
-            if ((watchEvent === "change" && filename.endsWith("sdz")) || filename.endsWith("sd7")) {
-                this.mapCacheQueue.add(filename);
-            }
-        });
-
         return super.init();
     }
 
@@ -146,6 +140,8 @@ export class MapContentAPI extends AbstractContentAPI {
 
             removeFromArray(this.currentDownloads, downloadInfo);
             this.onDownloadComplete.dispatch(downloadInfo);
+
+            this.mapCacheQueue.add(filename);
         } catch (err) {
             console.error(`Failed to install map ${filename} from ${host}${filename}:`, err);
         }
@@ -170,7 +166,7 @@ export class MapContentAPI extends AbstractContentAPI {
         };
     }
 
-    protected async queueMapsToCache() {
+    public async queueMapsToCache() {
         const mapFiles = await fs.promises.readdir(this.mapsDir);
 
         const cachedMapFiles = await api.cacheDb.selectFrom("map").select(["fileName"]).execute();
@@ -213,6 +209,7 @@ export class MapContentAPI extends AbstractContentAPI {
             const existingCachedMap = await api.cacheDb.selectFrom("map").select("mapId").where("fileName", "=", fileName).executeTakeFirst();
             if (existingCachedMap || this.installedMaps.some((map) => map.fileName === mapFileName)) {
                 console.debug(`${fileName} already cached`);
+                this.mapCacheQueue.delete(mapFileName);
                 return;
             }
 
@@ -233,14 +230,12 @@ export class MapContentAPI extends AbstractContentAPI {
                 .returningAll()
                 .executeTakeFirst();
 
-            console.timeEnd(`Cached: ${mapFileName}`);
-
             if (mapData) {
                 this.installedMaps.push(mapData);
                 this.onMapCached.dispatch(mapData);
             }
         } catch (err) {
-            console.error(`Error parsing replay: ${mapFileName}`, err);
+            console.error(`Error parsing map: ${mapFileName}`, err);
 
             await api.cacheDb
                 .insertInto("mapError")
@@ -248,6 +243,8 @@ export class MapContentAPI extends AbstractContentAPI {
                 .values({ fileName: mapFileName })
                 .execute();
         }
+
+        console.timeEnd(`Cached: ${mapFileName}`);
 
         this.mapCacheQueue.delete(mapFileName);
     }
