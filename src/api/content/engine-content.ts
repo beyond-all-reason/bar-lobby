@@ -11,7 +11,6 @@ import { DownloadInfo } from "@/model/downloads";
 import { extract7z } from "@/utils/extract7z";
 
 export const engineVersionRegex = /^(?<major>\d+)\.(?<minor>\d+)\.(?<patch>\d+)-(?<revision>\d+)-g(?<sha>[0-9a-f]+) (?<branch>.*)$/i;
-
 export const gitEngineTagRegex = /^.*?\{(?<branch>.*?)\}(?<major>\d+)\.(?<minor>\d+)\.(?<patch>\d+)-(?<revision>\d+)-g(?<sha>[0-9a-f]+)$/i;
 
 export class EngineContentAPI extends AbstractContentAPI {
@@ -151,10 +150,27 @@ export class EngineContentAPI extends AbstractContentAPI {
 
     protected sortVersions() {
         this.installedVersions.sort((a, b) => {
-            const aRev = parseInt(a.split("-")[1]);
-            const bRev = parseInt(b.split("-")[1]);
-            return aRev - bRev;
+            const aParts = this.parseEngineVersionParts(a);
+            const bParts = this.parseEngineVersionParts(b);
+
+            if (aParts.major > bParts.major) {
+                return 1;
+            } else if (aParts.major < bParts.major) {
+                return -1;
+            }
+
+            if (aParts.revision > bParts.revision) {
+                return 1;
+            } else if (aParts.revision < bParts.revision) {
+                return -1;
+            }
+
+            return 0;
         });
+    }
+
+    protected isEngineVersionString(version: string): boolean {
+        return engineVersionRegex.test(version);
     }
 
     /**
@@ -175,7 +191,15 @@ export class EngineContentAPI extends AbstractContentAPI {
         return `${major}.${minor}.${patch}-${revision}-g${sha} BAR${major}`;
     }
 
-    protected isEngineVersionString(version: string): boolean {
-        return engineVersionRegex.test(version);
+    protected parseEngineVersionParts(engineVersionString: string) {
+        const { major, minor, patch, revision, sha, branch } = engineVersionString.match(engineVersionRegex)!.groups!;
+        return {
+            major: parseInt(major),
+            minor: parseInt(minor),
+            patch: parseInt(patch),
+            revision: parseInt(revision),
+            sha,
+            branch,
+        };
     }
 }

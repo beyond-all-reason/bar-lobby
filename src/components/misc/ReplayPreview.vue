@@ -7,7 +7,7 @@
             <div class="contenders">
                 <template v-for="(contender, contenderIndex) in replay.contenders" :key="`contender${contenderIndex}`">
                     <ReplayParticipant :contender="contender" />
-                    <Icon v-if="replay.winningTeamId === contender.allyTeamId" class="trophy" :icon="trophyVariant" height="18" />
+                    <Icon v-if="replay.winningTeamId === contender.allyTeamId && showSpoilers" class="trophy" :icon="trophyVariant" height="18" />
                 </template>
             </div>
         </div>
@@ -15,7 +15,7 @@
         <div v-for="[teamId, contenders] in teams" v-else :key="`team${teamId}`">
             <div class="team-title">
                 <div>Team {{ teamId + 1 }}</div>
-                <Icon v-if="replay.winningTeamId === teamId" class="trophy" :icon="trophyVariant" height="18" />
+                <Icon v-if="replay.winningTeamId === teamId && showSpoilers" class="trophy" :icon="trophyVariant" height="18" />
             </div>
             <div class="contenders">
                 <ReplayParticipant v-for="(contender, contenderIndex) in contenders" :key="`contender${contenderIndex}`" :contender="contender" />
