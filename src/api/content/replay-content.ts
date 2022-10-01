@@ -88,6 +88,11 @@ export class ReplayContentAPI extends AbstractContentAPI {
         return num_replays;
     }
 
+    public async clearCache() {
+        await api.cacheDb.deleteFrom("replay").execute();
+        await api.cacheDb.deleteFrom("replayError").execute();
+    }
+
     public async queueReplaysToCache() {
         const replayFiles = await fs.promises.readdir(this.replaysDir);
 

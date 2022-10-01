@@ -13,6 +13,7 @@ export class GameAPI {
     public readonly isGameRunning = computed(() => this.gameProcess.value !== null);
     public onGameLaunched = new Signal();
     public onGameClosed: Signal<number | null> = new Signal();
+    public readonly scriptName = "script.txt";
 
     protected gameProcess: Ref<ChildProcess | null> = ref(null);
     protected scriptConverter = new StartScriptConverter();
@@ -24,7 +25,7 @@ export class GameAPI {
         let launchArg = "";
         if ("battle" in options) {
             const script = this.battleToStartScript(options.battle);
-            const scriptPath = (launchArg = path.join(api.info.contentPath, "script.txt"));
+            const scriptPath = (launchArg = path.join(api.info.contentPath, this.scriptName));
             await fs.promises.writeFile(scriptPath, script);
         } else {
             launchArg = path.join(api.content.replays.replaysDir, options.replay.fileName);

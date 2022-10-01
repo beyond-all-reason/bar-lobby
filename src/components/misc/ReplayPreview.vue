@@ -5,32 +5,27 @@
         <div v-if="replay.preset === 'ffa'">
             <div class="team-title">Players</div>
             <div class="contenders">
-                <div v-for="(contender, contenderIndex) in replay.contenders" :key="`contender${contenderIndex}`" class="contender">
-                    <Flag v-if="'countryCode' in contender" class="flag" :countryCode="contender.countryCode" />
-                    <Icon v-if="'aiId' in contender" :icon="robot" :height="16" />
-                    <div>{{ contender.name }}</div>
-                </div>
+                <template v-for="(contender, contenderIndex) in replay.contenders" :key="`contender${contenderIndex}`">
+                    <ReplayParticipant :contender="contender" />
+                    <Icon v-if="replay.winningTeamId === contender.allyTeamId" class="trophy" :icon="trophyVariant" height="18" />
+                </template>
             </div>
         </div>
 
         <div v-for="[teamId, contenders] in teams" v-else :key="`team${teamId}`">
-            <div class="team-title">Team {{ teamId + 1 }}</div>
+            <div class="team-title">
+                <div>Team {{ teamId + 1 }}</div>
+                <Icon v-if="replay.winningTeamId === teamId" class="trophy" :icon="trophyVariant" height="18" />
+            </div>
             <div class="contenders">
-                <div v-for="(contender, contenderIndex) in contenders" :key="`contender${contenderIndex}`" class="contender">
-                    <Flag v-if="'countryCode' in contender" class="flag" :countryCode="contender.countryCode" />
-                    <Icon v-if="'aiId' in contender" :icon="robot" :height="16" />
-                    <div>{{ contender.name }}</div>
-                </div>
+                <ReplayParticipant v-for="(contender, contenderIndex) in contenders" :key="`contender${contenderIndex}`" :contender="contender" />
             </div>
         </div>
 
         <div v-if="replay.spectators.length">
             <div class="team-title">Spectators</div>
             <div class="contenders">
-                <div v-for="(spectator, spectatorIndex) in replay.spectators" :key="`spectator${spectatorIndex}`" class="contender">
-                    <Flag v-if="'countryCode' in spectator" class="flag" :countryCode="spectator.countryCode" />
-                    <div>{{ spectator.name }}</div>
-                </div>
+                <ReplayParticipant v-for="(spectator, spectatorIndex) in replay.spectators" :key="`spectator${spectatorIndex}`" :contender="spectator" />
             </div>
         </div>
 
@@ -59,8 +54,12 @@
             </div>
         </div>
 
-        <Button v-if="synced" class="green" @click="watch">Watch</Button>
-        <Button v-else class="blue" :disabled="contentIsDownloading" @click="downloadMissingContent">Download Missing Content</Button>
+        <div class="flex-row gap-md">
+            <Button v-if="synced" class="green" @click="watch">Watch</Button>
+            <Button v-else class="blue" :disabled="contentIsDownloading" @click="downloadMissingContent">Download Missing Content</Button>
+
+            <Button>Show File</Button>
+        </div>
     </div>
 </template>
 
@@ -68,18 +67,19 @@
 import { Icon } from "@iconify/vue";
 import checkBold from "@iconify-icons/mdi/check-bold";
 import closeThick from "@iconify-icons/mdi/close-thick";
-import robot from "@iconify-icons/mdi/robot";
+import trophyVariant from "@iconify-icons/mdi/trophy-variant";
 import { groupBy } from "jaz-ts-utils";
 import { computed } from "vue";
 
 import MapPreview from "@/components/battle/MapPreview.vue";
 import Button from "@/components/controls/Button.vue";
-import Flag from "@/components/misc/Flag.vue";
+import ReplayParticipant from "@/components/misc/ReplayParticipant.vue";
 import { StartBox, StartPosType } from "@/model/battle/types";
 import { SelectableReplayData } from "@/model/replay";
 
 const props = defineProps<{
     replay: SelectableReplayData;
+    showSpoilers: boolean;
 }>();
 
 const mapInstalled = computed(() => api.content.maps.installedMaps.some((map) => map.scriptName === props.replay.mapScriptName));
@@ -146,6 +146,9 @@ const watch = () => {
 
 <style lang="scss" scoped>
 .team-title {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
     font-weight: 500;
     margin-bottom: 3px;
 }
@@ -155,22 +158,14 @@ const watch = () => {
     gap: 4px;
     flex-wrap: wrap;
 }
-.contender {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    gap: 5px;
-    padding: 2px 6px;
-    border-radius: 3px;
-    background: rgba(0, 0, 0, 0.3);
-    font-size: 16px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-}
-.flag {
-    width: 16px;
-}
 .inline-icon {
     margin-top: 2px;
+}
+.trophy {
+    color: #ffbc00;
+    display: flex;
+    align-self: center;
+    margin-bottom: 1px;
 }
 .check {
     color: rgb(94, 230, 16);

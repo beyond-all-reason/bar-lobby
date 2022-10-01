@@ -56,6 +56,8 @@ export class MapContentAPI extends AbstractContentAPI {
             .execute();
 
         const maps = await api.cacheDb.selectFrom("map").selectAll().execute();
+
+        this.installedMaps.length = 0;
         this.installedMaps.push(...maps);
 
         await this.queueMapsToCache();
@@ -180,6 +182,21 @@ export class MapContentAPI extends AbstractContentAPI {
         for (const mapFileToCache of mapFilesToCache) {
             this.mapCacheQueue.add(mapFileToCache);
         }
+    }
+
+    public async uninstallMap(mapScriptName: string) {
+        const mapData = this.installedMaps.find((map) => map.scriptName === mapScriptName);
+        if (mapData) {
+            const mapPath = path.join(this.mapsDir, mapData.fileName);
+            await fs.promises.rm(mapPath);
+
+            console.debug(`${mapScriptName} successfully uninstalled`);
+        }
+    }
+
+    public async clearCache() {
+        await api.cacheDb.deleteFrom("map").execute();
+        await api.cacheDb.deleteFrom("mapError").execute();
     }
 
     protected async cacheMaps() {

@@ -257,5 +257,6 @@ function roundTransform(transform: Transform) {
     margin: 10px;
     aspect-ratio: 1;
     width: 100%;
+    image-rendering: pixelated;
 }
 </style>

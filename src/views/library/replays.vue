@@ -7,8 +7,12 @@
         <div class="flex-col flex-grow gap-md">
             <h1>{{ title }}</h1>
 
-            <div class="flex-row">
+            <div class="flex-row gap-md">
                 <TriStateCheckbox v-model="endedNormally" label="Ended Normally" @update:model-value="fetchReplays" />
+                <Checkbox v-model="showSpoilers" label="Show Spoilers" />
+                <div class="flex-right">
+                    <Button @click="openReplaysFolder">Open Replays Folder</Button>
+                </div>
             </div>
 
             <DataTable
@@ -31,7 +35,7 @@
             </DataTable>
         </div>
         <div class="right">
-            <ReplayPreview v-if="selectedReplay" :replay="selectedReplay" />
+            <ReplayPreview v-if="selectedReplay" :replay="selectedReplay" :showSpoilers="showSpoilers" />
         </div>
     </div>
 </template>
@@ -48,11 +52,17 @@
  * - Paginated
  */
 
+// https://primefaces.org/primevue/datatable/lazy
+
 import { format, intervalToDuration } from "date-fns";
+import { shell } from "electron";
+import path from "path";
 import Column from "primevue/column";
 import { DataTablePageEvent, DataTableRowSelectEvent } from "primevue/datatable";
 import { Ref, ref } from "vue";
 
+import Button from "@/components/controls/Button.vue";
+import Checkbox from "@/components/controls/Checkbox.vue";
 import DataTable from "@/components/controls/DataTable.vue";
 import TriStateCheckbox from "@/components/controls/TriStateCheckbox.vue";
 import ReplayPreview from "@/components/misc/ReplayPreview.vue";
@@ -60,6 +70,7 @@ import { ReplayPreviewData, SelectableReplayData } from "@/model/replay";
 
 const title = api.router.currentRoute.value.meta.title;
 const endedNormally: Ref<boolean | null> = ref(true);
+const showSpoilers = ref(true);
 const totalReplays = ref(0);
 const offset = ref(0);
 const limit = ref(18);
@@ -113,6 +124,10 @@ const onPage = (event: DataTablePageEvent) => {
 const onRowSelect = async (event: DataTableRowSelectEvent) => {
     const replayData = await api.content.replays.getReplayById(event.data.id);
     selectedReplay.value = replayData;
+};
+
+const openReplaysFolder = () => {
+    shell.openPath(path.join(api.content.replays.replaysDir));
 };
 </script>
 

@@ -87,7 +87,7 @@
     "env-paths": "^3.0.0",
     "kysely": "^0.21.6",
     "primeicons": "^6.0.1",
-    "sdfz-demo-parser": "^5.4.0",
+    "sdfz-demo-parser": "^5.4.1",
     "steamworks.js": "0.0.21"
   }
 }

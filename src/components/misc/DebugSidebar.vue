@@ -12,6 +12,8 @@
         <Button @click="openConfigDir"> Open Config Dir </Button>
         <Button @click="generateStartScript"> Generate Start Script </Button>
         <Button @click="openStartScript"> Open Latest Start Script </Button>
+        <Button @click="recacheMaps"> Recache Maps </Button>
+        <Button @click="recacheReplays"> Recache Replays </Button>
     </div>
 </template>
 
@@ -54,9 +56,7 @@ const generateStartScript = async () => {
         console.warn("Tried to generate start script but not in a battle");
         return;
     }
-    const engineVersion = battle.battleOptions.engineVersion;
-    const enginePath = path.join(api.info.contentPath, "engine", engineVersion).replaceAll("\\", "/");
-    const scriptPath = path.join(api.info.contentPath, "barlobby_script.txt");
+    const scriptPath = path.join(api.info.contentPath, api.game.scriptName);
 
     let scriptStr = api.game.battleToStartScript(battle);
 
@@ -64,7 +64,19 @@ const generateStartScript = async () => {
 };
 
 const openStartScript = async () => {
-    await shell.openPath(path.join(api.info.contentPath, "barlobby_script.txt"));
+    await shell.openPath(path.join(api.info.contentPath, api.game.scriptName));
+};
+
+const recacheMaps = async () => {
+    await api.content.maps.clearCache();
+
+    await api.content.maps.queueMapsToCache();
+};
+
+const recacheReplays = async () => {
+    await api.content.replays.clearCache();
+
+    await api.content.replays.queueReplaysToCache();
 };
 
 scope.run(() => {
