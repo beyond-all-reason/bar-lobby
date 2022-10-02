@@ -1,4 +1,4 @@
-import { BrowserWindow, screen, shell } from "electron";
+import { app, BrowserWindow, screen, shell } from "electron";
 import { autoUpdater } from "electron-updater";
 import * as path from "path";
 import { watch } from "vue";
@@ -74,7 +74,10 @@ export class MainWindow {
         } else {
             createProtocol("bar");
             await this.window.loadURL("bar://./index.html");
-            await autoUpdater.checkForUpdatesAndNotify();
+            const updateResult = await autoUpdater.checkForUpdatesAndNotify({
+                title: "Beyond All Reason",
+                body: `Updated to version ${app.getVersion()}`,
+            });
         }
     }
 
