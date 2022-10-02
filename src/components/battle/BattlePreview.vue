@@ -61,7 +61,14 @@ const props = defineProps<{
     battle: AbstractBattle;
 }>();
 
-const mapImageUrl = computed(() => (props.battle.map.value ? `file://${api.content.maps.getMapImages(props.battle.map.value).textureImagePath}` : require("@/assets/images/default-minimap.png")));
+const mapImageUrl = computed(() => {
+    const mapImages = api.content.maps.getMapImages({ scriptName: props.battle.battleOptions.map });
+    if (!mapImages) {
+        return require("@/assets/images/default-minimap.png");
+    } else {
+        return mapImages.textureImagePath;
+    }
+});
 
 const attemptJoinBattle = async () => {
     if (props.battle.battleOptions.passworded) {

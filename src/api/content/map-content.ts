@@ -3,6 +3,7 @@ import * as fs from "fs";
 import { delay, removeFromArray, Signal } from "jaz-ts-utils";
 import { Selectable } from "kysely";
 import * as path from "path";
+import url from "url";
 import { reactive } from "vue";
 
 import { AbstractContentAPI } from "@/api/content/abstract-content-api";
@@ -149,22 +150,28 @@ export class MapContentAPI extends AbstractContentAPI {
         }
     }
 
-    public getMapImages(options: { map: Selectable<MapData> } | { fileName: string }) {
-        let fileName = "";
+    public getMapImages(options: { map: Selectable<MapData> } | { scriptName: string } | { fileName: string }) {
+        let mapData: Selectable<MapData> | undefined;
 
         if ("map" in options) {
-            fileName = options.map.fileName;
+            mapData = options.map;
+        } else if ("scriptName" in options) {
+            mapData = this.installedMaps.find((map) => map.scriptName === options.scriptName);
         } else {
-            fileName = options.fileName;
+            this.installedMaps.find((map) => map.fileName === options.fileName);
         }
 
-        const fileNameWithoutExt = path.parse(fileName).name;
+        if (!mapData) {
+            return null;
+        }
+
+        const fileNameWithoutExt = path.parse(mapData.fileName).name;
 
         return {
-            textureImagePath: path.join(this.mapImagesDir, `${fileNameWithoutExt}-texture.jpg`),
-            heightImagePath: path.join(this.mapImagesDir, `${fileNameWithoutExt}-height.jpg`),
-            metalImagePath: path.join(this.mapImagesDir, `${fileNameWithoutExt}-metal.jpg`),
-            typeImagePath: path.join(this.mapImagesDir, `${fileNameWithoutExt}-type.jpg`),
+            textureImagePath: url.pathToFileURL(path.join(this.mapImagesDir, `${fileNameWithoutExt}-texture.jpg`)),
+            heightImagePath: url.pathToFileURL(path.join(this.mapImagesDir, `${fileNameWithoutExt}-height.jpg`)),
+            metalImagePath: url.pathToFileURL(path.join(this.mapImagesDir, `${fileNameWithoutExt}-metal.jpg`)),
+            typeImagePath: url.pathToFileURL(path.join(this.mapImagesDir, `${fileNameWithoutExt}-type.jpg`)),
         };
     }
 
@@ -290,11 +297,13 @@ export class MapContentAPI extends AbstractContentAPI {
 
         const mapImages = this.getMapImages({ map });
 
-        await fs.promises.rm(mapImages.textureImagePath, { force: true });
-        await fs.promises.rm(mapImages.heightImagePath, { force: true });
-        await fs.promises.rm(mapImages.metalImagePath, { force: true });
-        await fs.promises.rm(mapImages.typeImagePath, { force: true });
+        if (mapImages) {
+            await fs.promises.rm(mapImages.textureImagePath, { force: true });
+            await fs.promises.rm(mapImages.heightImagePath, { force: true });
+            await fs.promises.rm(mapImages.metalImagePath, { force: true });
+            await fs.promises.rm(mapImages.typeImagePath, { force: true });
 
-        await api.cacheDb.deleteFrom("map").where("mapId", "=", map.mapId).execute();
+            await api.cacheDb.deleteFrom("map").where("mapId", "=", map.mapId).execute();
+        }
     }
 }
