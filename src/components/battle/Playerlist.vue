@@ -11,7 +11,7 @@
             @drop="onDrop($event, teamId)"
         >
             <div class="flex-row gap-md">
-                <div class="title">Team {{ teamId + 1 }}</div>
+                <div class="title">Team {{ teamId + 1 }} ({{ contenders.length }})</div>
                 <Button class="slim" :flexGrow="false" @click="addBot(teamId)"> Add bot </Button>
                 <Button v-if="me.battleStatus.isSpectator || me.battleStatus.teamId !== teamId" class="slim" @click="joinTeam(teamId)"> Join </Button>
             </div>
@@ -38,7 +38,7 @@
         </div>
         <div class="group" data-type="group" @dragenter.prevent="dragEnter($event)" @dragover.prevent @dragleave.prevent="dragLeave($event)" @drop="onDrop($event)">
             <div class="flex-row gap-md">
-                <div class="title">Spectators</div>
+                <div class="title">Spectators ({{ battle.spectators.value.length }})</div>
                 <Button v-if="!me.battleStatus.isSpectator" class="slim" @click="joinTeam()"> Join </Button>
             </div>
             <div class="participants">

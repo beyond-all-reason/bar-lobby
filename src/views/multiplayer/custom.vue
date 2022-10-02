@@ -30,8 +30,9 @@
  * - Host battle modal that includes options such as public/passworded/friends-only/invite-only, title, map, mode etc
  */
 
+import { useIntervalFn } from "@vueuse/shared";
 import { delay } from "jaz-ts-utils";
-import { computed, onUnmounted, ref } from "vue";
+import { computed, ref } from "vue";
 
 import BattlePreview from "@/components/battle/BattlePreview.vue";
 import HostBattle from "@/components/battle/HostBattle.vue";
@@ -103,15 +104,7 @@ const updateBattleList = async () => {
 
 await updateBattleList();
 
-let queryIntervalId: number | undefined;
-
-queryIntervalId = window.setInterval(() => updateBattleList(), 5000);
-
-onUnmounted(() => {
-    if (queryIntervalId) {
-        window.clearInterval(queryIntervalId);
-    }
-});
+const queryInterval = useIntervalFn(() => updateBattleList(), 5000);
 </script>
 
 <style lang="scss" scoped>

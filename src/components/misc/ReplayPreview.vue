@@ -58,7 +58,7 @@
             <Button v-if="synced" class="green" @click="watch">Watch</Button>
             <Button v-else class="blue" :disabled="contentIsDownloading" @click="downloadMissingContent">Download Missing Content</Button>
 
-            <Button>Show File</Button>
+            <Button @click="showFile">Show File</Button>
         </div>
     </div>
 </template>
@@ -68,7 +68,9 @@ import { Icon } from "@iconify/vue";
 import checkBold from "@iconify-icons/mdi/check-bold";
 import closeThick from "@iconify-icons/mdi/close-thick";
 import trophyVariant from "@iconify-icons/mdi/trophy-variant";
+import { shell } from "electron";
 import { groupBy } from "jaz-ts-utils";
+import path from "path";
 import { computed } from "vue";
 
 import MapPreview from "@/components/battle/MapPreview.vue";
@@ -141,6 +143,10 @@ const downloadMissingContent = () => {
 
 const watch = () => {
     api.game.launch({ replay: props.replay });
+};
+
+const showFile = () => {
+    shell.showItemInFolder(path.join(api.content.replays.replaysDir, props.replay.fileName));
 };
 </script>
 

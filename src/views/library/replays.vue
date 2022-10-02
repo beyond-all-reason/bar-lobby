@@ -5,7 +5,11 @@
 <template>
     <div class="flex-row flex-grow gap-md fullheight">
         <div class="flex-col flex-grow gap-md">
-            <h1>{{ title }}</h1>
+            <div class="flex-row gap-md">
+                <h1>Local Replays</h1>
+                <!-- <Divider layout="vertical" />
+                <h1>Online Replays</h1> -->
+            </div>
 
             <div class="flex-row gap-md">
                 <TriStateCheckbox v-model="endedNormally" label="Ended Normally" @update:model-value="fetchReplays" />
