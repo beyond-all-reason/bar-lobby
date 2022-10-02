@@ -7,6 +7,7 @@ import url from "url";
 import { reactive } from "vue";
 
 import { AbstractContentAPI } from "@/api/content/abstract-content-api";
+import defaultMapImage from "@/assets/images/default-minimap.png";
 import { contentSources } from "@/config/content-sources";
 import type { DownloadInfo, SpringFilesMapMeta } from "@/model/downloads";
 import type { MapData } from "@/model/map-data";
@@ -150,7 +151,7 @@ export class MapContentAPI extends AbstractContentAPI {
         }
     }
 
-    public getMapImages(options: { map: Selectable<MapData> } | { scriptName: string } | { fileName: string }) {
+    public getMapImages(options: { map: Selectable<MapData> | undefined } | { scriptName: string | undefined } | { fileName: string | undefined }) {
         let mapData: Selectable<MapData> | undefined;
 
         if ("map" in options) {
@@ -158,11 +159,16 @@ export class MapContentAPI extends AbstractContentAPI {
         } else if ("scriptName" in options) {
             mapData = this.installedMaps.find((map) => map.scriptName === options.scriptName);
         } else {
-            this.installedMaps.find((map) => map.fileName === options.fileName);
+            mapData = this.installedMaps.find((map) => map.fileName === options.fileName);
         }
 
         if (!mapData) {
-            return null;
+            return {
+                textureImagePath: defaultMapImage,
+                heightImagePath: defaultMapImage,
+                metalImagePath: defaultMapImage,
+                typeImagePath: defaultMapImage,
+            };
         }
 
         const fileNameWithoutExt = path.parse(mapData.fileName).name;

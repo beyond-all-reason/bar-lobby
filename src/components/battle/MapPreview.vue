@@ -8,7 +8,6 @@
 import { entries, SignalBinding } from "jaz-ts-utils";
 import { computed, onMounted, onUnmounted, Ref, ref, watch, WatchStopHandle } from "vue";
 
-import defaultMinimapImage from "@/assets/images/default-minimap.png";
 import { StartBox, StartPosType } from "@/model/battle/types";
 
 type Transform = { x: number; y: number; width: number; height: number };
@@ -35,17 +34,7 @@ let mapTransform: Transform;
 let loadingMap = false;
 
 const mapData = computed(() => api.content.maps.installedMaps.find((map) => map.scriptName === props.map));
-const mapImages = computed(() => {
-    if (mapData.value) {
-        return api.content.maps.getMapImages({ map: mapData.value });
-    }
-    return {
-        textureImagePath: defaultMinimapImage,
-        heightImagePath: defaultMinimapImage,
-        metalImagePath: defaultMinimapImage,
-        typeImagePath: defaultMinimapImage,
-    };
-});
+const mapImages = computed(() => api.content.maps.getMapImages({ map: mapData.value }));
 
 let watchStopHandle: WatchStopHandle | undefined;
 let mapCachedSignalBinding: SignalBinding | undefined;
@@ -232,7 +221,7 @@ function loadImage(url: string, isStatic = true) {
     return new Promise<HTMLImageElement>((resolve) => {
         const img = new Image();
         img.onload = () => resolve(img);
-        img.src = `${isStatic ? "file://" : ""}${url}`;
+        img.src = url;
     });
 }
 
