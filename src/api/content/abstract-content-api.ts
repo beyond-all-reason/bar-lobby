@@ -8,6 +8,7 @@ export abstract class AbstractContentAPI {
     public onDownloadStart: Signal<DownloadInfo> = new Signal();
     public onDownloadComplete: Signal<DownloadInfo> = new Signal();
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     public async init(...args: any[]) {
         return this;
     }
