@@ -103,7 +103,7 @@ export abstract class AbstractBattle {
             watch(
                 () => this.battleOptions.map,
                 (mapScriptName) => {
-                    api.content.maps.installMap(mapScriptName);
+                    api.content.maps.installMaps(mapScriptName);
                 },
                 {
                     immediate: true,

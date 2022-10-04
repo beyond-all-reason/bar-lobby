@@ -1,20 +1,17 @@
-import axios from "axios";
 import * as fs from "fs";
-import { delay, removeFromArray, Signal } from "jaz-ts-utils";
+import { asArray, delay, Signal } from "jaz-ts-utils";
 import { Selectable } from "kysely";
 import * as path from "path";
 import url from "url";
 import { reactive } from "vue";
 
-import { AbstractContentAPI } from "@/api/content/abstract-content-api";
+import { PrDownloaderAPI } from "@/api/content/pr-downloader";
 import defaultMapImage from "@/assets/images/default-minimap.png";
-import { contentSources } from "@/config/content-sources";
-import type { DownloadInfo, SpringFilesMapMeta } from "@/model/downloads";
 import type { MapData } from "@/model/map-data";
 import { parseMap as parseMapWorkerFunction } from "@/workers/parse-map";
 import { hookWorkerFunction } from "@/workers/worker-helpers";
 
-export class MapContentAPI extends AbstractContentAPI {
+export class MapContentAPI extends PrDownloaderAPI {
     public readonly installedMaps: Selectable<MapData>[] = reactive([]);
     public readonly onMapCached: Signal<Selectable<MapData>> = new Signal();
 
@@ -69,85 +66,17 @@ export class MapContentAPI extends AbstractContentAPI {
         return super.init();
     }
 
-    public async installMaps(scriptNames: string[], host = contentSources.maps.http[0]) {
+    public async installMaps(scriptNameOrNames: string | string[]) {
+        const scriptNames = asArray(scriptNameOrNames);
+
         for (const scriptName of scriptNames) {
-            await this.installMap(scriptName, host);
-        }
-    }
-
-    // currently reliant on springfiles for scriptname lookup
-    public async installMap(scriptName: string, host = contentSources.maps.http[0]!) {
-        if (this.installedMaps.some((map) => map.scriptName === scriptName) || this.currentDownloads.some((download) => download.name === scriptName)) {
-            return;
-        }
-
-        const searchUrl = `https://springfiles.springrts.com/json.php?springname=${scriptName}&category=map`;
-        const searchResponse = await axios({
-            url: searchUrl,
-            method: "get",
-            responseType: "json",
-        });
-
-        if (searchResponse.status !== 200) {
-            throw new Error(searchResponse.statusText);
-        }
-
-        const mapResult: SpringFilesMapMeta | undefined = searchResponse.data[0];
-        if (!mapResult) {
-            throw new Error(`${scriptName} not found on springfiles.springrts.com`);
-        }
-
-        return this.installMapByFilename(mapResult.filename, mapResult.name, host);
-    }
-
-    public async installMapByFilename(filename: string, scriptName: string, host = contentSources.maps.http[0]!): Promise<void> {
-        // TODO: tidy up this logic to avoid downloading/caching the same maps multiple times, or incorrectly assuming maps are downloaded/cached when they're not
-        if (this.installedMaps.some((map) => map.fileName === filename) || this.currentDownloads.some((download) => download.name === scriptName)) {
-            return;
-        }
-
-        try {
-            console.debug(`Downloading map: ${filename}`);
-            console.time(`Map downloaded: ${filename}`);
-
-            const downloadInfo: DownloadInfo = reactive({
-                type: "map",
-                name: scriptName,
-                currentBytes: 0,
-                totalBytes: 1,
-            });
-
-            this.currentDownloads.push(downloadInfo);
-
-            this.onDownloadStart.dispatch(downloadInfo);
-
-            const downloadResponse = await axios({
-                url: `${host}${filename}`,
-                method: "get",
-                responseType: "arraybuffer",
-                headers: { "Content-Type": "application/7z" },
-                adapter: require("axios/lib/adapters/http"),
-                onDownloadProgress: (progress) => {
-                    downloadInfo.currentBytes = progress.loaded;
-                    downloadInfo.totalBytes = progress.total;
-                },
-            });
-
-            if (downloadResponse.status !== 200) {
-                throw new Error(downloadResponse.statusText);
+            if (this.installedMaps.some((map) => map.scriptName === scriptName) || this.currentDownloads.some((download) => download.name === scriptName)) {
+                continue;
             }
 
-            const dest = path.join(this.mapsDir, filename);
-            await fs.promises.writeFile(dest, Buffer.from(downloadResponse.data), { encoding: "binary" });
+            await this.downloadContent("map", scriptName);
 
-            console.timeEnd(`Map downloaded: ${filename}`);
-
-            removeFromArray(this.currentDownloads, downloadInfo);
-            this.onDownloadComplete.dispatch(downloadInfo);
-
-            this.mapCacheQueue.add(filename);
-        } catch (err) {
-            console.error(`Failed to install map ${filename} from ${host}${filename}:`, err);
+            await this.queueMapsToCache();
         }
     }
 

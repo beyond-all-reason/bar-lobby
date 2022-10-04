@@ -1,20 +1,16 @@
 import axios from "axios";
-import { ChildProcess, spawn } from "child_process";
 import * as fs from "fs";
 import * as glob from "glob-promise";
-import { BufferStream, lastInArray } from "jaz-ts-utils";
+import { BufferStream } from "jaz-ts-utils";
 import { Octokit } from "octokit";
-import os from "os";
 import * as path from "path";
 import { reactive } from "vue";
 import * as zlib from "zlib";
 
-import { AbstractContentAPI } from "@/api/content/abstract-content-api";
+import { PrDownloaderAPI } from "@/api/content/pr-downloader";
 import { contentSources } from "@/config/content-sources";
-import type { DownloadInfo } from "@/model/downloads";
 import { LuaOptionSection } from "@/model/lua-options";
-import type { Message, ProgressMessage, RapidVersion } from "@/model/pr-downloader";
-import { DownloadType } from "@/model/pr-downloader";
+import type { RapidVersion } from "@/model/pr-downloader";
 import { SdpFile, SdpFileMeta } from "@/model/sdp";
 import { parseLuaOptions } from "@/utils/parse-lua-options";
 
@@ -32,12 +28,22 @@ import { parseLuaOptions } from "@/utils/parse-lua-options";
  * when reporting a game version as installed when it's not really. Ideally needs solving within prd
  * @todo don't allow spawning multiple prd instances at once
  */
-export class GameContentAPI extends AbstractContentAPI {
+export class GameContentAPI extends PrDownloaderAPI {
     public readonly installedVersions: string[] = reactive([]);
 
-    protected prdProcess: ChildProcess | null = null;
     protected ocotokit = new Octokit();
     protected md5ToRapidVersionMap: Record<string, RapidVersion> = {};
+
+    constructor() {
+        super();
+
+        this.onDownloadComplete.add((downloadInfo) => {
+            if (!this.installedVersions.includes(downloadInfo.name)) {
+                this.installedVersions.push(downloadInfo.name);
+                this.sortVersions();
+            }
+        });
+    }
 
     public override async init() {
         await this.updateVersions();
@@ -50,71 +56,7 @@ export class GameContentAPI extends AbstractContentAPI {
      * @param gameVersion e.g. "Beyond All Reason test-16289-b154c3d"
      */
     public async downloadGame(gameVersion = `${contentSources.rapid.game}:test`) {
-        return new Promise<void>((resolve) => {
-            if (this.prdProcess) {
-                console.warn("Could not spawn new prd instance until existing instance has finished");
-                return;
-            }
-
-            const latestEngine = lastInArray(api.content.engine.installedVersions)!;
-            const binaryName = process.platform === "win32" ? "pr-downloader.exe" : "pr-downloader";
-            const prBinaryPath = path.join(api.info.contentPath, "engine", latestEngine, binaryName);
-
-            this.prdProcess = spawn(`${prBinaryPath}`, ["--filesystem-writepath", api.info.contentPath, "--download-game", gameVersion]);
-
-            console.debug(this.prdProcess.spawnargs);
-
-            let downloadType: DownloadType = DownloadType.Metadata;
-            let downloadInfo: DownloadInfo | undefined;
-
-            this.prdProcess.stdout?.on("data", (stdout: Buffer) => {
-                const lines = stdout.toString().trim().split(os.EOL).filter(Boolean);
-                console.debug(lines.join("\n"));
-                const messages = lines.map((line) => this.processPrDownloaderLine(line)).filter(Boolean) as Message[];
-                for (const message of messages) {
-                    if (this.isPrDownloaderProgressMessage(message) && downloadType === DownloadType.Game && downloadInfo) {
-                        message.downloadType = downloadType;
-                        downloadInfo.currentBytes = message.currentBytes;
-                        downloadInfo.totalBytes = message.totalBytes;
-                    } else if (message.parts?.[1]?.includes("downloadStream")) {
-                        downloadType = DownloadType.Game;
-                    } else if (message.parts?.[1]?.includes("download_name")) {
-                        downloadInfo = reactive({
-                            type: "game",
-                            name: message.parts.slice(2).join(" "),
-                            currentBytes: 0,
-                            totalBytes: 1,
-                        } as const);
-                        this.currentDownloads.push(downloadInfo);
-                        this.onDownloadStart.dispatch(downloadInfo);
-                    }
-                }
-            });
-
-            this.prdProcess.on("error", (err) => {
-                console.log("error2");
-            });
-
-            this.prdProcess.stderr?.on("data", (data: Buffer) => {
-                console.error(data.toString());
-            });
-
-            this.prdProcess.on("exit", async () => {
-                if (downloadInfo) {
-                    if (!this.installedVersions.includes(downloadInfo.name)) {
-                        this.installedVersions.push(downloadInfo.name);
-                        this.sortVersions();
-                    }
-                    this.onDownloadComplete.dispatch(downloadInfo);
-                }
-
-                this.currentDownloads.length = 0;
-
-                this.prdProcess = null;
-
-                resolve();
-            });
-        });
+        return this.downloadContent("game", gameVersion);
     }
 
     public async updateVersions() {
@@ -215,37 +157,6 @@ export class GameContentAPI extends AbstractContentAPI {
         }
 
         return fileData;
-    }
-
-    protected processPrDownloaderLine(line: string): Message | null {
-        if (!line) {
-            return null;
-        }
-
-        const parts = line.split(" ").filter(Boolean);
-
-        let type = parts[0];
-        if (type[0] === "[") {
-            type = type.slice(1, -1);
-        }
-
-        if (type === "Progress") {
-            const parsedPercent = parseInt(parts[1]) / 100;
-            const bytes = parts[parts.length - 1].split("/");
-            const currentBytes = parseInt(bytes[0]);
-            const totalBytes = parseInt(bytes[1]);
-            if (!totalBytes || Number.isNaN(totalBytes)) {
-                return null;
-            }
-            const message: Omit<ProgressMessage, "downloadType"> = { type, parts, currentBytes, totalBytes, parsedPercent };
-            return message;
-        }
-
-        return { type, parts };
-    }
-
-    protected isPrDownloaderProgressMessage(message: Message): message is ProgressMessage {
-        return message.type === "Progress";
     }
 
     protected sortVersions() {

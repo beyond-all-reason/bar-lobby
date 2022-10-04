@@ -4,7 +4,7 @@ import { clone } from "jaz-ts-utils";
 import * as path from "path";
 import { reactive } from "vue";
 
-import { AbstractContentAPI } from "@/api/content/abstract-content-api";
+import { AbstractContentAPI } from "@/api/content/abstract-content";
 import type { AI } from "@/model/ai";
 import { parseLuaOptions } from "@/utils/parse-lua-options";
 import { parseLuaTable } from "@/utils/parse-lua-table";

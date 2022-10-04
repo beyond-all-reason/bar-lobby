@@ -5,7 +5,7 @@ import { Octokit } from "octokit";
 import * as path from "path";
 import { reactive } from "vue";
 
-import { AbstractContentAPI } from "@/api/content/abstract-content-api";
+import { AbstractContentAPI } from "@/api/content/abstract-content";
 import { contentSources } from "@/config/content-sources";
 import { DownloadInfo } from "@/model/downloads";
 import { extract7z } from "@/utils/extract7z";

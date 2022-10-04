@@ -3,7 +3,7 @@ import { delay, Optionals } from "jaz-ts-utils";
 import path from "path";
 import { reactive } from "vue";
 
-import { AbstractContentAPI } from "@/api/content/abstract-content-api";
+import { AbstractContentAPI } from "@/api/content/abstract-content";
 import { parseReplay as parseReplayWorkerFunction } from "@/workers/parse-replay";
 import { hookWorkerFunction } from "@/workers/worker-helpers";
 

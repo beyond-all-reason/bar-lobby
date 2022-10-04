@@ -131,7 +131,7 @@ const teams = computed(() => {
 
 const downloadMissingContent = () => {
     if (!mapInstalled.value) {
-        api.content.maps.installMap(props.replay.mapScriptName);
+        api.content.maps.installMaps(props.replay.mapScriptName);
     }
     if (!gameInstalled.value) {
         api.content.game.downloadGame(props.replay.gameVersion);
