@@ -3,7 +3,7 @@
   "version": "0.10.1",
   "private": true,
   "description": "Lobby client for the RTS game Beyond All Reason",
-  "author": "Jazcash",
+  "author": "Jazcash <jaspercashmore@gmail.com>",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/beyond-all-reason/bar-lobby.git"
