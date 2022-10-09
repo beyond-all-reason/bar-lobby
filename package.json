@@ -21,6 +21,7 @@
     "postuninstall": "electron-builder install-app-deps",
     "clean-dist": "rimraf dist_electron",
     "dump-webpack-config": "vue inspect > output.js",
+    "preversion": "npm run lint-check && npm run format-check",
     "postversion": "git push && git push --tags"
   },
   "devDependencies": {
