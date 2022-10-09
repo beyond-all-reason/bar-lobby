@@ -3,7 +3,7 @@ name: Build
 on: [push, pull_request]
 
 concurrency:
-    group: ${{ github.head_ref }} # might need to use some other data here to cancel the build on master: https://docs.github.com/en/actions/learn-github-actions/contexts
+    group: ${{ github.ref }}
     cancel-in-progress: true
 
 jobs:
