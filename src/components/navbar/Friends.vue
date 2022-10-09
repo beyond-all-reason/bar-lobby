@@ -3,7 +3,7 @@
         <TabView ref="tabViewEl" v-model:activeIndex="activeIndex">
             <TabPanel header="Friends">
                 <div class="flex-row gap-md">
-                    <Textbox class="txtFriendId" label="Friend ID" />
+                    <Textbox class="txtFriendId" label="Friend ID" placeholder="12345" />
                     <Button class="blue">Add Friend</Button>
                 </div>
             </TabPanel>
@@ -119,6 +119,9 @@ const onClose = () => {
     }
 }
 :deep(.txtFriendId) {
-    background: blue;
+    flex-grow: 1;
+    .p-inputtext {
+        width: 100px;
+    }
 }
 </style>
