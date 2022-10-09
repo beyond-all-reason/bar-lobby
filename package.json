@@ -1,6 +1,6 @@
 {
   "name": "bar-lobby",
-  "version": "0.10.2",
+  "version": "0.10.1",
   "private": true,
   "description": "Lobby client for the RTS game Beyond All Reason",
   "author": "Jazcash <jaspercashmore@gmail.com>",
@@ -21,7 +21,6 @@
     "postuninstall": "electron-builder install-app-deps",
     "clean-dist": "rimraf dist_electron",
     "dump-webpack-config": "vue inspect > output.js",
-    "preversion": "npm run tidy",
     "postversion": "git push && git push --tags"
   },
   "devDependencies": {
