@@ -40,6 +40,7 @@
             </div>
         </transition>
     </div>
+    <Friends v-model:open="friendsOpen" />
     <Settings v-model="settingsOpen" />
     <Error />
 </template>
@@ -61,6 +62,7 @@ import Error from "@/components/misc/Error.vue";
 import InitialSetup from "@/components/misc/InitialSetup.vue";
 import IntroVideo from "@/components/misc/IntroVideo.vue";
 import Preloader from "@/components/misc/Preloader.vue";
+import Friends from "@/components/navbar/Friends.vue";
 import NavBar from "@/components/navbar/NavBar.vue";
 import Settings from "@/components/navbar/Settings.vue";
 import { defaultMaps } from "@/config/default-maps";
@@ -77,8 +79,10 @@ const empty = ref(false);
 const blurBg = ref(true);
 const lobbyVersion = api.info.lobby.version;
 const settingsOpen = ref(false);
+const friendsOpen = ref(false);
 
 provide("settingsOpen", settingsOpen);
+provide("friendsOpen", friendsOpen);
 
 playRandomMusic();
 

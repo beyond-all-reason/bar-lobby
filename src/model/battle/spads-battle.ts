@@ -222,7 +222,7 @@ export class SpadsBattle extends AbstractBattle {
     public override async leave() {
         super.leave();
 
-        api.comms.request("c.lobby.leave", {});
+        api.comms.request("c.lobby.leave");
         api.session.onlineBattle.value = null;
         if (api.router.currentRoute.value.name === "multiplayer-battle") {
             api.router.replace("/multiplayer/custom");

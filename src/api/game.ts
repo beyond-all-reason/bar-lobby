@@ -6,7 +6,7 @@ import { Signal } from "jaz-ts-utils";
 import * as path from "path";
 
 import { AbstractBattle } from "@/model/battle/abstract-battle";
-import { SelectableReplayData } from "@/model/replay";
+import { Replay } from "@/model/replay";
 import { StartScriptConverter } from "@/utils/start-script-converter";
 
 export class GameAPI {
@@ -18,7 +18,7 @@ export class GameAPI {
     protected gameProcess: Ref<ChildProcess | null> = ref(null);
     protected scriptConverter = new StartScriptConverter();
 
-    public async launch(options: { battle: AbstractBattle } | { replay: SelectableReplayData }): Promise<void> {
+    public async launch(options: { battle: AbstractBattle } | { replay: Replay }): Promise<void> {
         const engineVersion = "battle" in options ? options.battle?.battleOptions.engineVersion : options.replay.engineVersion;
         const enginePath = path.join(api.info.contentPath, "engine", engineVersion).replaceAll("\\", "/");
 

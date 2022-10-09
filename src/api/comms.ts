@@ -41,34 +41,13 @@ export class CommsAPI extends TachyonClient {
             });
         });
 
-        this.onResponse("s.system.server_stats").add(({ data }) => {
-            if (api.session.serverStats.value === null) {
-                api.session.serverStats.value = reactive(data);
-            } else {
-                assign(api.session.serverStats.value, data);
-            }
-        });
+        this.setupAuthComms();
+        this.setupLobbyComms();
+        this.setupSystemComms();
+        this.setupUserComms();
+    }
 
-        this.onResponse("s.system.server_event").add((data) => {
-            if (data.event === "server_restart") {
-                api.alerts.alert({
-                    type: "notification",
-                    severity: "warning",
-                    content: "Server is restarting",
-                });
-            }
-        });
-
-        this.onResponse("s.system.server_event").add((data) => {
-            if (data.event === "stop") {
-                api.alerts.alert({
-                    type: "notification",
-                    severity: "warning",
-                    content: "Server is shutting down",
-                });
-            }
-        });
-
+    protected setupAuthComms() {
         const onLogin = (result: string, userData: Static<typeof myUserSchema> | undefined) => {
             if (result !== "success" || !userData) {
                 return;
@@ -77,6 +56,8 @@ export class CommsAPI extends TachyonClient {
             api.session.offlineMode.value = false;
 
             api.session.updateCurrentUser(userData);
+
+            api.comms.request("c.user.list_friend_users_and_clients");
 
             api.router.push("/home");
         };
@@ -88,21 +69,13 @@ export class CommsAPI extends TachyonClient {
         this.onResponse("s.auth.verify").add((data) => {
             onLogin(data.result, data.user);
         });
+    }
 
-        this.onResponse("s.user.user_and_client_list").add(({ clients, users }) => {
-            for (const userData of users) {
-                api.session.updateUser(userData);
-            }
-
-            for (const client of clients) {
-                api.session.updateUserBattleStauts(client);
-            }
-        });
-
+    protected setupLobbyComms() {
         const joinBattle = async (data: Static<typeof battleSchema>) => {
             if (data.member_list) {
                 const userIds = data.member_list.map((member) => member.userid);
-                await this.updateUsers(userIds);
+                await api.comms.request("c.user.list_users_from_ids", { id_list: userIds, include_clients: true });
             }
 
             let battle = api.session.battles.get(data.lobby.id);
@@ -126,10 +99,6 @@ export class CommsAPI extends TachyonClient {
         };
 
         this.onResponse("s.lobby.joined").add((data) => {
-            joinBattle(data);
-        });
-
-        this.onResponse("s.lobby.force_join").add((data) => {
             joinBattle(data);
         });
 
@@ -282,6 +251,48 @@ export class CommsAPI extends TachyonClient {
                 text: data.message,
             });
         });
+    }
+
+    protected setupSystemComms() {
+        this.onResponse("s.system.server_stats").add(({ data }) => {
+            if (api.session.serverStats.value === null) {
+                api.session.serverStats.value = reactive(data);
+            } else {
+                assign(api.session.serverStats.value, data);
+            }
+        });
+
+        this.onResponse("s.system.server_event").add((data) => {
+            if (data.event === "server_restart") {
+                api.alerts.alert({
+                    type: "notification",
+                    severity: "warning",
+                    content: "Server is restarting",
+                });
+            }
+        });
+
+        this.onResponse("s.system.server_event").add((data) => {
+            if (data.event === "stop") {
+                api.alerts.alert({
+                    type: "notification",
+                    severity: "warning",
+                    content: "Server is shutting down",
+                });
+            }
+        });
+    }
+
+    protected setupUserComms() {
+        this.onResponse("s.user.user_and_client_list").add(({ clients, users }) => {
+            for (const userData of users) {
+                api.session.updateUser(userData);
+            }
+
+            for (const client of clients) {
+                api.session.updateUserBattleStauts(client);
+            }
+        });
 
         this.onResponse("s.user.user_and_client_list").add(({ clients, users }) => {
             const clientMap = arrayToMap(clients, "userid");
@@ -298,9 +309,5 @@ export class CommsAPI extends TachyonClient {
                 api.session.updateUserBattleStauts(battleStatus);
             }
         });
-    }
-
-    public async updateUsers(userIds: number[]) {
-        await api.comms.request("c.user.list_users_from_ids", { id_list: userIds, include_clients: true });
     }
 }

@@ -13,7 +13,7 @@
                     </Button>
                 </div>
                 <div class="primary-right">
-                    <Button v-tooltip.bottom="'Friends'" class="icon">
+                    <Button v-tooltip.bottom="'Friends'" class="icon" @click="friendsOpen = !friendsOpen">
                         <Icon :icon="accountMultiple" :height="40" />
                     </Button>
                     <DownloadsButton v-tooltip.bottom="'Downloads'" @click="downloadsOpen = true" />
@@ -48,7 +48,7 @@
                 </div>
             </div>
         </div>
-        <Friends />
+
         <Downloads v-model="downloadsOpen" />
         <Exit v-model="exitOpen" />
     </div>
@@ -67,7 +67,6 @@ import Button from "@/components/controls/Button.vue";
 import Downloads from "@/components/navbar/Downloads.vue";
 import DownloadsButton from "@/components/navbar/DownloadsButton.vue";
 import Exit from "@/components/navbar/Exit.vue";
-import Friends from "@/components/navbar/Friends.vue";
 
 const props = defineProps<{
     hidden?: boolean;
@@ -87,6 +86,7 @@ const secondaryRoutes = computed(() => {
 
 const downloadsOpen = ref(false);
 const settingsOpen = inject("settingsOpen");
+const friendsOpen = inject("friendsOpen");
 const exitOpen = ref(false);
 
 const currentUser = api.session.onlineUser;

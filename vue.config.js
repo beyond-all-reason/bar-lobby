@@ -50,7 +50,7 @@ module.exports = {
                 ],
                 win: {
                     target: ["nsis"],
-                    requestedExecutionLevel: "requireAdministrator",
+                    //requestedExecutionLevel: "requireAdministrator",
                 },
                 nsis: {
                     oneClick: false,

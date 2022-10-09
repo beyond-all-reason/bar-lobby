@@ -9,22 +9,21 @@ import { SpadsBattle } from "@/model/battle/spads-battle";
 import { CurrentUser, User } from "@/model/user";
 
 export class SessionAPI {
-    public readonly offlineMode: Ref<boolean>;
+    public readonly offlineMode: Ref<boolean> = ref(false);
     public readonly offlineBattle: Ref<OfflineBattle | null> = shallowRef(null);
     public readonly onlineBattle: Ref<SpadsBattle | null> = shallowRef(null);
     public readonly users: Map<number, User>;
     public readonly offlineUser: CurrentUser;
     public readonly onlineUser: CurrentUser;
     public readonly battles: Map<number, SpadsBattle>;
-    public readonly battleMessages: BattleChatMessage[];
+    public readonly battleMessages: BattleChatMessage[] = reactive([]);
     public readonly serverStats: Ref<ResponseType<"s.system.server_stats">["data"] | null> = shallowRef(null);
+    public readonly friends: User[] = reactive([]);
 
     // temporary necessity until https://github.com/beyond-all-reason/teiserver/issues/34 is implemented
     public lastBattleResponses: Map<number, Static<typeof lobbySchema>> = new Map();
 
     constructor() {
-        this.offlineMode = ref(false);
-
         this.offlineUser = reactive({
             userId: -1,
             username: "Player",
@@ -33,7 +32,6 @@ export class SessionAPI {
             skill: {},
             clanId: null,
             countryCode: "",
-            legacyId: null,
             permissions: [],
             friendUserIds: [],
             friendRequestUserIds: [],
@@ -60,8 +58,6 @@ export class SessionAPI {
         this.users = reactive(new Map<number, User>([]));
 
         this.battles = shallowReactive(new Map<number, SpadsBattle>());
-
-        this.battleMessages = reactive([]);
     }
 
     public updateCurrentUser(myUserData: Static<typeof myUserSchema>) {
@@ -88,7 +84,6 @@ export class SessionAPI {
         if (!user) {
             user = reactive({
                 userId: userData.id,
-                legacyId: parseInt(userData.springid.toString()) || null,
                 username: userData.name,
                 clanId: userData.clan_id,
                 isBot: userData.bot,
@@ -115,7 +110,6 @@ export class SessionAPI {
         this.users.set(user.userId, user);
 
         user.userId = userData.id;
-        user.legacyId = parseInt(userData.springid.toString()) || null;
         user.username = userData.name;
         user.clanId = userData.clan_id;
         user.isBot = userData.bot;

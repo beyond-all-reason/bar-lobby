@@ -88,7 +88,7 @@ const updateBattleList = async () => {
         userIds.push(battle.founder_id);
     }
 
-    await api.comms.updateUsers(userIds);
+    await api.comms.request("c.user.list_users_from_ids", { id_list: userIds, include_clients: true });
 
     for (const lobby of lobbies) {
         let battle = api.session.battles.get(lobby.lobby.id);

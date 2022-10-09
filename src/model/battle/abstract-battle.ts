@@ -1,7 +1,6 @@
 import { useNow } from "@vueuse/core";
 import { formatDuration } from "date-fns";
 import { groupBy } from "jaz-ts-utils";
-import { Selectable } from "kysely";
 import { computed, ComputedRef, reactive, shallowReactive, watch, WatchStopHandle } from "vue";
 
 import { BattleOptions, Bot, StartBox, StartPosType } from "@/model/battle/types";
@@ -27,7 +26,7 @@ export abstract class AbstractBattle {
     public readonly teams: ComputedRef<Map<number, Array<User | Bot>>>;
     public readonly founder: ComputedRef<User>;
     public readonly friendlyRuntime: ComputedRef<string | null>;
-    public readonly map: ComputedRef<Selectable<MapData> | undefined>;
+    public readonly map: ComputedRef<MapData | undefined>;
 
     protected watchStopHandles: WatchStopHandle[] = [];
 

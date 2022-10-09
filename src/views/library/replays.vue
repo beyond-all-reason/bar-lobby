@@ -70,7 +70,7 @@ import Checkbox from "@/components/controls/Checkbox.vue";
 import DataTable from "@/components/controls/DataTable.vue";
 import TriStateCheckbox from "@/components/controls/TriStateCheckbox.vue";
 import ReplayPreview from "@/components/misc/ReplayPreview.vue";
-import { ReplayPreviewData, SelectableReplayData } from "@/model/replay";
+import { Replay, ReplayPreviewData } from "@/model/replay";
 
 const title = api.router.currentRoute.value.meta.title;
 const endedNormally: Ref<boolean | null> = ref(true);
@@ -80,9 +80,9 @@ const offset = ref(0);
 const limit = ref(18);
 const replays: Ref<ReplayPreviewData[]> = ref([]);
 const selectedReplayPreview: Ref<ReplayPreviewData | null> = ref(null);
-const selectedReplay: Ref<SelectableReplayData | null> = ref(null);
+const selectedReplay: Ref<Replay | null> = ref(null);
 
-const replayDataToPreview = (replayData: SelectableReplayData): ReplayPreviewData => {
+const replayDataToPreview = (replayData: Replay): ReplayPreviewData => {
     const id = replayData.replayId;
     const fileName = replayData.fileName;
 

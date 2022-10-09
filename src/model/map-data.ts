@@ -1,8 +1,8 @@
 import type { DeepPartial } from "jaz-ts-utils";
-import { Generated } from "kysely";
+import { Generated, Selectable } from "kysely";
 import type { MapInfo } from "spring-map-parser";
 
-export type MapData = {
+export type MapDataTable = {
     mapId: Generated<number>;
     scriptName: string;
     fileName: string;
@@ -25,3 +25,5 @@ export type MapData = {
     maxDepth: number;
     mapInfo: DeepPartial<MapInfo> | null;
 };
+
+export type MapData = Selectable<MapDataTable>;

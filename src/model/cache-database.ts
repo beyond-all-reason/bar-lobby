@@ -1,9 +1,9 @@
-import { MapData } from "@/model/map-data";
-import { ReplayData } from "@/model/replay";
+import { MapDataTable } from "@/model/map-data";
+import { ReplayTable } from "@/model/replay";
 
 export interface CacheDatabase {
-    map: MapData;
+    map: MapDataTable;
     mapError: { fileName: string };
-    replay: ReplayData;
+    replay: ReplayTable;
     replayError: { fileName: string };
 }

@@ -77,10 +77,10 @@ import MapPreview from "@/components/battle/MapPreview.vue";
 import Button from "@/components/controls/Button.vue";
 import ReplayParticipant from "@/components/misc/ReplayParticipant.vue";
 import { StartBox, StartPosType } from "@/model/battle/types";
-import { SelectableReplayData } from "@/model/replay";
+import { Replay } from "@/model/replay";
 
 const props = defineProps<{
-    replay: SelectableReplayData;
+    replay: Replay;
     showSpoilers: boolean;
 }>();
 

@@ -7,7 +7,6 @@ export type User = {
     isBot: boolean;
     clanId: number | null;
     countryCode: string;
-    legacyId: number | null;
     battleStatus: BattleStatus;
 };
 

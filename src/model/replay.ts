@@ -1,7 +1,7 @@
 import { Generated, Selectable } from "kysely";
 import { DemoModel } from "sdfz-demo-parser";
 
-export type ReplayData = {
+export type ReplayTable = {
     replayId: Generated<number>;
     gameId: string;
     fileName: string;
@@ -25,7 +25,7 @@ export type ReplayData = {
     mapSettings: Record<string, string>;
 };
 
-export type SelectableReplayData = Selectable<ReplayData>;
+export type Replay = Selectable<ReplayTable>;
 
 export type ReplayPreviewData = {
     id: number;

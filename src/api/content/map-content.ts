@@ -1,6 +1,5 @@
 import * as fs from "fs";
 import { asArray, delay, Signal } from "jaz-ts-utils";
-import { Selectable } from "kysely";
 import * as path from "path";
 import url from "url";
 import { reactive } from "vue";
@@ -12,8 +11,8 @@ import { parseMap as parseMapWorkerFunction } from "@/workers/parse-map";
 import { hookWorkerFunction } from "@/workers/worker-helpers";
 
 export class MapContentAPI extends PrDownloaderAPI {
-    public readonly installedMaps: Selectable<MapData>[] = reactive([]);
-    public readonly onMapCached: Signal<Selectable<MapData>> = new Signal();
+    public readonly installedMaps: MapData[] = reactive([]);
+    public readonly onMapCached: Signal<MapData> = new Signal();
 
     protected readonly mapsDir = path.join(api.info.contentPath, "maps");
     protected readonly mapImagesDir = path.join(api.info.contentPath, "map-images");
@@ -80,8 +79,8 @@ export class MapContentAPI extends PrDownloaderAPI {
         }
     }
 
-    public getMapImages(options: { map: Selectable<MapData> | undefined } | { scriptName: string | undefined } | { fileName: string | undefined }) {
-        let mapData: Selectable<MapData> | undefined;
+    public getMapImages(options: { map: MapData | undefined } | { scriptName: string | undefined } | { fileName: string | undefined }) {
+        let mapData: MapData | undefined;
 
         if ("map" in options) {
             mapData = options.map;
@@ -209,7 +208,7 @@ export class MapContentAPI extends PrDownloaderAPI {
     }
 
     protected mapCached(mapName: string) {
-        return new Promise<Selectable<MapData>>((resolve) => {
+        return new Promise<MapData>((resolve) => {
             this.onMapCached.addOnce((map) => {
                 if (map.scriptName === mapName) {
                     resolve(map);
@@ -219,7 +218,7 @@ export class MapContentAPI extends PrDownloaderAPI {
     }
 
     protected async uncacheMap(name: { fileName: string } | { scriptName: string }) {
-        let map: Selectable<MapData> | undefined;
+        let map: MapData | undefined;
         if ("fileName" in name) {
             map = await api.cacheDb.selectFrom("map").selectAll().where("fileName", "=", name.fileName).executeTakeFirst();
         } else {

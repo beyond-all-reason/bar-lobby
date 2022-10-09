@@ -40,6 +40,8 @@ export abstract class PrDownloaderAPI extends AbstractContentAPI {
             prdProcess.stdout?.on("data", (stdout: Buffer) => {
                 const messages = stdout.toString().trim().split(os.EOL).filter(Boolean);
                 for (const message of messages) {
+                    console.debug(message);
+
                     this.onPrdMessage.dispatch(message);
 
                     if (message.startsWith("[Progress]")) {
