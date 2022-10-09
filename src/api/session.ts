@@ -1,6 +1,6 @@
 import { Static } from "@sinclair/typebox";
 import { assign, clone } from "jaz-ts-utils";
-import { lobbySchema, myUserSchema, ResponseType } from "tachyon-client";
+import { lobbySchema, myUserSchema, ResponseType, userSchema } from "tachyon-client";
 import { reactive, Ref, ref, shallowReactive, shallowRef, toRaw } from "vue";
 
 import { BattleChatMessage } from "@/model/battle/battle-chat";
@@ -78,7 +78,7 @@ export class SessionAPI {
         this.offlineUser.icons = user.icons;
     }
 
-    public updateUser(userData: ResponseType<"s.user.user_and_client_list">["users"][0]) {
+    public updateUser(userData: Static<typeof userSchema>) {
         let user = this.getUserById(userData.id);
 
         if (!user) {

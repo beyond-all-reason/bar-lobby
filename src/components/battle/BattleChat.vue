@@ -12,7 +12,7 @@
                 </div>
             </div>
         </div>
-        <Textbox v-model="myMessage" @keyup.enter="sendMessage" />
+        <Textbox v-model="myMessage" class="battle-chat__textbox" @keyup.enter="sendMessage" />
     </div>
 </template>
 
@@ -49,6 +49,9 @@ const sendMessage = () => {
     flex-direction: column;
     margin-top: auto;
     gap: 10px;
+    &__textbox {
+        width: 100%;
+    }
 }
 .messages {
     display: flex;
@@ -76,6 +79,7 @@ const sendMessage = () => {
     }
 }
 .text {
+    width: 100%;
     word-break: break-word;
     .system & {
         color: rgb(82, 215, 255);

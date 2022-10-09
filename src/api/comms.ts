@@ -284,29 +284,22 @@ export class CommsAPI extends TachyonClient {
     }
 
     protected setupUserComms() {
-        this.onResponse("s.user.user_and_client_list").add(({ clients, users }) => {
-            for (const userData of users) {
-                api.session.updateUser(userData);
-            }
-
-            for (const client of clients) {
-                api.session.updateUserBattleStauts(client);
-            }
-        });
-
-        this.onResponse("s.user.user_and_client_list").add(({ clients, users }) => {
-            const clientMap = arrayToMap(clients, "userid");
+        this.onResponse("s.user.user_list").add(({ clients, users }) => {
+            const clientMap = arrayToMap(clients ?? [], "userid");
 
             for (const user of users) {
                 const battleStatus = clientMap.get(user.id);
 
-                if (!battleStatus) {
+                api.session.updateUser(user);
+
+                if (clients && !battleStatus) {
                     console.warn(`Battle status could not be found for user with id ${user.id}`);
                     continue;
                 }
 
-                api.session.updateUser(user);
-                api.session.updateUserBattleStauts(battleStatus);
+                if (clients && battleStatus) {
+                    api.session.updateUserBattleStauts(battleStatus);
+                }
             }
         });
     }
