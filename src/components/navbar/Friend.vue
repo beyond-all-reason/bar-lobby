@@ -1,0 +1,112 @@
+<template>
+    <div class="friend">
+        <div class="flex-row gap-md">
+            <Flag :countryCode="user.countryCode" class="flag" />
+            <div class="username">{{ user.username }}</div>
+        </div>
+        <div class="flex-row gap-sm">
+            <template v-if="type === 'outgoing_request'">
+                <Button v-tooltip="`Cancel request`" class="slim red square" @click="cancelRequest">
+                    <Icon :icon="closeThick" />
+                </Button>
+            </template>
+
+            <template v-else-if="type === 'incoming_request'">
+                <Button v-tooltip="`Accept request`" class="slim red square" @click="acceptRequest">
+                    <Icon :icon="closeThick" />
+                </Button>
+                <Button v-tooltip="`Reject request`" class="slim green square" @click="rejectRequest">
+                    <Icon :icon="checkThick" />
+                </Button>
+            </template>
+
+            <template v-else>
+                <Button v-tooltip="`Send message`" class="slim square">
+                    <Icon :icon="messageReplyText" />
+                </Button>
+                <Button v-tooltip="`Join battle`" class="slim square">
+                    <Icon :icon="accountArrowRight" />
+                </Button>
+                <Button v-tooltip="`Invite to party`" class="slim square">
+                    <Icon :icon="accountMultiplePlus" />
+                </Button>
+                <Button v-tooltip="`Remove friend`" class="slim red square">
+                    <Icon :icon="deleteIcon" />
+                </Button>
+            </template>
+        </div>
+    </div>
+</template>
+
+<script lang="ts" setup>
+import { Icon } from "@iconify/vue";
+import accountArrowRight from "@iconify-icons/mdi/account-arrow-right";
+import accountMultiplePlus from "@iconify-icons/mdi/account-multiple-plus";
+import checkThick from "@iconify-icons/mdi/check-thick";
+import closeThick from "@iconify-icons/mdi/close-thick";
+import deleteIcon from "@iconify-icons/mdi/delete";
+import messageReplyText from "@iconify-icons/mdi/message-reply-text";
+
+import Button from "@/components/controls/Button.vue";
+import Flag from "@/components/misc/Flag.vue";
+import { User } from "@/model/user";
+
+const props = defineProps<{
+    user: User;
+    type: "outgoing_request" | "incoming_request" | "friend";
+}>();
+
+const cancelRequest = async () => {
+    await api.comms.request("c.user.rescind_friend_request", {
+        user_id: props.user.userId,
+    });
+
+    api.session.onlineUser.incomingFriendRequestUserIds.delete(props.user.userId);
+    api.session.onlineUser.outgoingFriendRequestUserIds.delete(props.user.userId);
+};
+
+const acceptRequest = async () => {
+    await api.comms.request("c.user.accept_friend_request", {
+        user_id: props.user.userId,
+    });
+
+    api.session.onlineUser.incomingFriendRequestUserIds.delete(props.user.userId);
+    api.session.onlineUser.outgoingFriendRequestUserIds.delete(props.user.userId);
+    api.session.onlineUser.friendUserIds.add(props.user.userId);
+};
+
+const rejectRequest = async () => {
+    await api.comms.request("c.user.reject_friend_request", {
+        user_id: props.user.userId,
+    });
+
+    api.session.onlineUser.incomingFriendRequestUserIds.delete(props.user.userId);
+    api.session.onlineUser.outgoingFriendRequestUserIds.delete(props.user.userId);
+};
+</script>
+
+<style lang="scss" scoped>
+.friend {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    background: rgba(0, 0, 0, 0.3);
+    padding: 5px 8px;
+    border-radius: 3px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+.flag {
+}
+.username {
+    font-size: 18px;
+    font-weight: 600;
+}
+.square {
+    :deep(.p-button) {
+        padding: 2px;
+        font-size: 17px;
+    }
+}
+</style>

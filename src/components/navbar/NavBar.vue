@@ -14,7 +14,8 @@
                 </div>
                 <div class="primary-right">
                     <Button v-tooltip.bottom="'Friends'" class="icon" @click="friendsOpen = !friendsOpen">
-                        <Icon :icon="accountMultiple" :height="40" />
+                        <Icon v-if="!friendsOpen" :icon="accountMultiple" :height="40" />
+                        <Icon v-else :icon="closeThick" :height="40" />
                     </Button>
                     <DownloadsButton v-tooltip.bottom="'Downloads'" @click="downloadsOpen = true" />
                     <Button v-tooltip.bottom="'Settings'" class="icon" @click="settingsOpen = true">
@@ -87,7 +88,7 @@ const secondaryRoutes = computed(() => {
 const downloadsOpen = ref(false);
 const settingsOpen = inject("settingsOpen");
 const friendsOpen = inject("friendsOpen");
-const exitOpen = ref(false);
+const exitOpen = inject("exitOpen");
 
 const currentUser = api.session.onlineUser;
 const serverStats = api.session.serverStats;

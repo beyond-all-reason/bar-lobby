@@ -13,8 +13,9 @@
         <div class="steam-overlay-hack">
             {{ frameCount }}
         </div>
-        <div v-if="empty" class="startup-settings" @click="settingsOpen = true">
-            <Icon :icon="cog" height="21" />
+        <div v-if="empty" class="splash-options">
+            <Icon :icon="cog" height="21" class="option" @click="settingsOpen = true" />
+            <Icon :icon="closeThick" height="21" class="option" @click="exitOpen = true" />
         </div>
         <transition mode="out-in" name="fade">
             <Preloader v-if="state === 'preloader'" @complete="onPreloadDone" />
@@ -47,6 +48,7 @@
 
 <script lang="ts" setup>
 import { Icon } from "@iconify/vue";
+import closeThick from "@iconify-icons/mdi/close-thick";
 import cog from "@iconify-icons/mdi/cog";
 import { provide, Ref } from "vue";
 import { ref } from "vue";
@@ -80,9 +82,11 @@ const blurBg = ref(true);
 const lobbyVersion = api.info.lobby.version;
 const settingsOpen = ref(false);
 const friendsOpen = ref(false);
+const exitOpen = ref(false);
 
 provide("settingsOpen", settingsOpen);
 provide("friendsOpen", friendsOpen);
+provide("exitOpen", exitOpen);
 
 playRandomMusic();
 
@@ -150,14 +154,20 @@ animFrame();
     top: -50px;
     opacity: 0.01;
 }
-.startup-settings {
+.splash-options {
     position: fixed;
     display: flex;
+    flex-direction: row;
+    gap: 5px;
+    right: 0;
+    top: 0;
     padding: 10px;
-    opacity: 0.8;
     z-index: 5;
-    &:hover {
-        opacity: 1;
+    .option {
+        opacity: 0.8;
+        &:hover {
+            opacity: 1;
+        }
     }
 }
 </style>

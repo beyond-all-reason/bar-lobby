@@ -1,7 +1,8 @@
 import { Static } from "@sinclair/typebox";
-import { assign, clone } from "jaz-ts-utils";
-import { lobbySchema, myUserSchema, ResponseType, userSchema } from "tachyon-client";
-import { reactive, Ref, ref, shallowReactive, shallowRef, toRaw } from "vue";
+import { computed } from "@vue/reactivity";
+import { assign } from "jaz-ts-utils";
+import { lobbySchema, myUserSchema, playerSchema, ResponseType, userSchema } from "tachyon-client";
+import { ComputedRef, reactive, Ref, ref, shallowReactive, shallowRef } from "vue";
 
 import { BattleChatMessage } from "@/model/battle/battle-chat";
 import { OfflineBattle } from "@/model/battle/offline-battle";
@@ -18,24 +19,27 @@ export class SessionAPI {
     public readonly battles: Map<number, SpadsBattle>;
     public readonly battleMessages: BattleChatMessage[] = reactive([]);
     public readonly serverStats: Ref<ResponseType<"s.system.server_stats">["data"] | null> = shallowRef(null);
-    public readonly friends: User[] = reactive([]);
+    public readonly outgoingFriendRequests: ComputedRef<User[]>;
+    public readonly incomingFriendRequests: ComputedRef<User[]>;
+    public readonly friends: ComputedRef<User[]>;
 
     // temporary necessity until https://github.com/beyond-all-reason/teiserver/issues/34 is implemented
     public lastBattleResponses: Map<number, Static<typeof lobbySchema>> = new Map();
 
     constructor() {
-        this.offlineUser = reactive({
+        const userData: CurrentUser = {
             userId: -1,
             username: "Player",
             isBot: false,
             icons: {},
-            skill: {},
             clanId: null,
             countryCode: "",
-            permissions: [],
-            friendUserIds: [],
-            friendRequestUserIds: [],
-            ignoreUserIds: [],
+            permissions: new Set([]),
+            friendUserIds: new Set([]),
+            incomingFriendRequestUserIds: new Set([]),
+            outgoingFriendRequestUserIds: new Set([]),
+            ignoreUserIds: new Set([]),
+            isOnline: true,
             battleStatus: {
                 inBattle: false,
                 away: false,
@@ -51,13 +55,19 @@ export class SessionAPI {
                 teamId: 0,
                 playerId: 0,
             },
-        });
+        };
 
-        this.onlineUser = reactive(clone(toRaw(this.offlineUser)));
+        this.offlineUser = reactive(userData);
+
+        this.onlineUser = reactive(userData);
 
         this.users = reactive(new Map<number, User>([]));
 
         this.battles = shallowReactive(new Map<number, SpadsBattle>());
+
+        this.outgoingFriendRequests = computed(() => [...this.onlineUser.outgoingFriendRequestUserIds].map((id) => this.getUserById(id)!).filter(Boolean));
+        this.incomingFriendRequests = computed(() => [...this.onlineUser.incomingFriendRequestUserIds].map((id) => this.getUserById(id)!).filter(Boolean));
+        this.friends = computed(() => [...this.onlineUser.friendUserIds].map((id) => this.getUserById(id)!).filter(Boolean));
     }
 
     public updateCurrentUser(myUserData: Static<typeof myUserSchema>) {
@@ -67,10 +77,10 @@ export class SessionAPI {
 
         assign(this.onlineUser, {
             ...user,
-            friendRequestUserIds: myUserData.friend_requests,
-            ignoreUserIds: [],
-            permissions: myUserData.permissions,
-            friendUserIds: myUserData.friends,
+            incomingFriendRequestUserIds: new Set(myUserData.friend_requests),
+            ignoreUserIds: new Set([]), // TODO
+            permissions: new Set(myUserData.permissions),
+            friendUserIds: new Set(myUserData.friends),
         });
 
         this.offlineUser.username = user.username;
@@ -89,6 +99,7 @@ export class SessionAPI {
                 isBot: userData.bot,
                 countryCode: userData.country,
                 icons: {},
+                isOnline: false,
                 battleStatus: {
                     inBattle: false,
                     away: false,
@@ -119,7 +130,7 @@ export class SessionAPI {
         return user;
     }
 
-    public updateUserBattleStauts(battleStatusData: ResponseType<"s.lobby.updated_client_battlestatus">["client"]) {
+    public updateUserBattleStauts(battleStatusData: Static<typeof playerSchema>) {
         const user = this.getUserById(battleStatusData.userid);
         if (!user) {
             throw new Error(`Tried to update battle status for an unknown user: ${battleStatusData.userid}`);

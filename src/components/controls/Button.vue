@@ -74,4 +74,11 @@ $btnColors: (
         }
     }
 }
+
+.slim {
+    min-height: unset;
+    align-self: center;
+    border-radius: 2px;
+    font-size: 16px;
+}
 </style>

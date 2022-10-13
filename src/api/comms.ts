@@ -57,7 +57,15 @@ export class CommsAPI extends TachyonClient {
 
             api.session.updateCurrentUser(userData);
 
-            api.comms.request("c.user.list_friend_users_and_clients");
+            api.comms.request("c.user.list_users_from_ids", {
+                id_list: [
+                    ...api.session.onlineUser.friendUserIds,
+                    ...api.session.onlineUser.incomingFriendRequestUserIds,
+                    ...api.session.onlineUser.outgoingFriendRequestUserIds,
+                    ...api.session.onlineUser.ignoreUserIds,
+                ],
+                include_clients: true,
+            });
 
             api.router.push("/home");
         };
@@ -287,20 +295,34 @@ export class CommsAPI extends TachyonClient {
         this.onResponse("s.user.user_list").add(({ clients, users }) => {
             const clientMap = arrayToMap(clients ?? [], "userid");
 
-            for (const user of users) {
-                const battleStatus = clientMap.get(user.id);
+            for (const userData of users) {
+                const battleStatus = clientMap.get(userData.id);
 
-                api.session.updateUser(user);
+                const user = api.session.updateUser(userData);
 
-                if (clients && !battleStatus) {
-                    console.warn(`Battle status could not be found for user with id ${user.id}`);
-                    continue;
-                }
-
-                if (clients && battleStatus) {
-                    api.session.updateUserBattleStauts(battleStatus);
+                if (clients) {
+                    if (battleStatus) {
+                        api.session.updateUserBattleStauts(battleStatus);
+                        user.isOnline = true;
+                    } else {
+                        user.isOnline = false;
+                    }
                 }
             }
+        });
+
+        this.onResponse("s.user.friend_added").add(({ user_id }) => {
+            api.session.onlineUser.friendUserIds.add(user_id);
+            api.session.onlineUser.incomingFriendRequestUserIds.delete(user_id);
+            api.session.onlineUser.outgoingFriendRequestUserIds.delete(user_id);
+        });
+
+        this.onResponse("s.user.friend_removed").add(({ user_id }) => {
+            api.session.onlineUser.friendUserIds.delete(user_id);
+        });
+
+        this.onResponse("s.user.friend_request").add(({ user_id }) => {
+            api.session.onlineUser.incomingFriendRequestUserIds.delete(user_id);
         });
     }
 }

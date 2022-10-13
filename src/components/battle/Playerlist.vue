@@ -235,10 +235,4 @@ const onDrop = (event: DragEvent, teamId?: number) => {
     flex-wrap: wrap;
     margin-top: 5px;
 }
-.slim {
-    min-height: unset;
-    align-self: center;
-    border-radius: 2px;
-    font-size: 16px;
-}
 </style>

@@ -1,3 +1,5 @@
+<!-- This file is forked from primevue/accordion to fix https://github.com/primefaces/primevue/pull/3086 -->
+
 <template>
     <div :class="contentClasses">
         <div class="p-tabview-nav-container">
