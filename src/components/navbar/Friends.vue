@@ -152,42 +152,6 @@ const addFriend = async () => {
         padding: 0;
     }
 }
-:deep(.p-tabview) {
-    .p-tabview-nav {
-        flex-direction: row;
-        background: rgba(0, 0, 0, 0.1);
-        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    }
-    .p-tabview-nav-link {
-        padding: 10px;
-        color: rgba(255, 255, 255, 0.4);
-        &:hover {
-            color: #fff;
-        }
-    }
-    .p-tabview-header {
-        width: 100%;
-        display: flex;
-        justify-content: center;
-        box-shadow: inset -1px 0 0 0 rgba(255, 255, 255, 0.1);
-        .p-tabview-nav-link {
-            width: 100%;
-            display: flex;
-            justify-content: center;
-        }
-        &.close {
-            width: unset;
-            box-shadow: unset;
-        }
-    }
-    .p-highlight .p-tabview-nav-link {
-        color: #fff;
-        background: rgba(255, 255, 255, 0.05);
-    }
-    .p-tabview-panel {
-        padding: 10px;
-    }
-}
 :deep(.txtFriendId) {
     flex-grow: 1;
     .p-inputtext {

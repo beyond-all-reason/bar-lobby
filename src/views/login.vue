@@ -5,16 +5,18 @@
 <template>
     <div class="container">
         <img ref="logo" class="logo" src="@/assets/images/BARLogoFull.png" />
-        <Panel v-if="isConnected" v-model:activeTabIndex="activeTab" class="login-forms">
-            <Tab title="Login">
-                <LoginForm />
-            </Tab>
-            <Tab title="Register">
-                <RegisterForm @register-success="activeTab = 0" />
-            </Tab>
-            <Tab title="Reset Password">
-                <ResetPasswordForm />
-            </Tab>
+        <Panel v-if="isConnected" class="login-forms" padding="0">
+            <TabView v-model:activeIndex="activeIndex">
+                <TabPanel header="Login">
+                    <LoginForm />
+                </TabPanel>
+                <TabPanel header="Register">
+                    <RegisterForm @register-success="activeIndex = 0" />
+                </TabPanel>
+                <TabPanel header="Reset Password">
+                    <ResetPasswordForm />
+                </TabPanel>
+            </TabView>
         </Panel>
         <div v-else class="flex-col gap-md">
             <div class="txt-error">Could not connect to {{ serverAddress }}</div>
@@ -33,13 +35,14 @@ import replayIcon from "@iconify-icons/mdi/replay";
 import { ref } from "vue";
 
 import Panel from "@/components/common/Panel.vue";
-import Tab from "@/components/common/Tab.vue";
+import TabPanel from "@/components/common/TabPanel.vue";
+import TabView from "@/components/common/TabView.vue";
 import Button from "@/components/controls/Button.vue";
 import LoginForm from "@/components/login/LoginForm.vue";
 import RegisterForm from "@/components/login/RegisterForm.vue";
 import ResetPasswordForm from "@/components/login/ResetPasswordForm.vue";
 
-const activeTab = ref(0);
+const activeIndex = ref(0);
 const isConnected = api.comms.isConnected;
 const serverAddress = `${api.comms.config.host}:${api.comms.config.port}`;
 
