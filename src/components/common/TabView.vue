@@ -456,6 +456,7 @@ export default {
 
 <style lang="scss">
 .p-tabview {
+    max-height: 100%;
     .p-tabview-nav {
         flex-direction: row;
         background: rgba(0, 0, 0, 0.1);
@@ -472,7 +473,9 @@ export default {
         width: 100%;
         display: flex;
         justify-content: center;
-        box-shadow: inset -1px 0 0 0 rgba(255, 255, 255, 0.1);
+        &:not(:first-child) {
+            box-shadow: inset 1px 0 0 0 rgba(255, 255, 255, 0.1);
+        }
         .p-tabview-nav-link {
             width: 100%;
             display: flex;
@@ -486,6 +489,11 @@ export default {
     .p-highlight .p-tabview-nav-link {
         color: #fff;
         background: rgba(255, 255, 255, 0.05);
+    }
+    .p-tabview-panels {
+        min-height: calc(100% - 39px);
+        max-height: calc(100% - 39px);
+        overflow-y: scroll;
     }
     .p-tabview-panel {
         padding: 30px;

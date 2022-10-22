@@ -12,15 +12,18 @@
             </template>
 
             <template v-else-if="type === 'incoming_request'">
-                <Button v-tooltip="`Accept request`" class="slim red square" @click="acceptRequest">
+                <Button v-tooltip="`Reject request`" class="slim red square" @click="acceptRequest">
                     <Icon :icon="closeThick" />
                 </Button>
-                <Button v-tooltip="`Reject request`" class="slim green square" @click="rejectRequest">
+                <Button v-tooltip="`Accept request`" class="slim green square" @click="rejectRequest">
                     <Icon :icon="checkThick" />
                 </Button>
             </template>
 
             <template v-else>
+                <Button v-tooltip="`View profile`" class="slim square">
+                    <Icon :icon="account" />
+                </Button>
                 <Button v-tooltip="`Send message`" class="slim square">
                     <Icon :icon="messageReplyText" />
                 </Button>
@@ -40,6 +43,7 @@
 
 <script lang="ts" setup>
 import { Icon } from "@iconify/vue";
+import account from "@iconify-icons/mdi/account";
 import accountArrowRight from "@iconify-icons/mdi/account-arrow-right";
 import accountMultiplePlus from "@iconify-icons/mdi/account-multiple-plus";
 import checkThick from "@iconify-icons/mdi/check-thick";

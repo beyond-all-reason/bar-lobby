@@ -1,8 +1,15 @@
 <template>
-    <Panel class="friends" :class="{ hidden: !open }">
+    <Panel class="friends" :class="{ hidden: !open }" padding="0">
         <TabView ref="tabViewEl" v-model:activeIndex="activeIndex">
             <TabPanel header="Friends">
-                <div class="flex-col gap-md container">
+                <div class="flex-col gap-lg container">
+                    <div class="flex-row gap-md">
+                        <div>
+                            Your User ID is <strong>{{ myUserId }}</strong>
+                        </div>
+                        <Button class="slim" @click="copyUserId">Copy</Button>
+                    </div>
+
                     <div class="flex-row gap-md">
                         <Textbox v-model="friendIdStr" type="number" class="txtFriendId" label="Friend ID" placeholder="12345" />
                         <Button class="blue" :disabled="!Boolean(friendIdStr)" @click="addFriend">Add Friend</Button>
@@ -86,6 +93,7 @@ const onlineFriends = computed(() => api.session.friends.value.filter((user) => 
 const offlineFriends = computed(() => api.session.friends.value.filter((user) => !user.isOnline));
 const outgoingFriendRequests = api.session.outgoingFriendRequests;
 const incomingFriendRequests = api.session.incomingFriendRequests;
+const myUserId = computed(() => api.session.onlineUser.userId);
 
 watch(
     () => props.open,
@@ -98,6 +106,10 @@ watch(
 
 const onClose = () => {
     emits("update:open", false);
+};
+
+const copyUserId = () => {
+    navigator.clipboard.writeText(myUserId.value.toString());
 };
 
 const addFriend = async () => {
@@ -125,14 +137,14 @@ const addFriend = async () => {
     right: 9px;
     top: 70px;
     z-index: 1;
-    min-width: 450px;
-    max-width: 450px;
+    min-width: 475px;
+    max-width: 475px;
     transform: translateX(0);
     opacity: 1;
     transition: transform 200ms, opacity 200ms;
     .container {
-        min-height: 300px;
-        max-height: 300px;
+        min-height: 400px;
+        max-height: 400px;
         overflow-y: scroll;
         padding-right: 5px;
     }
@@ -147,9 +159,7 @@ const addFriend = async () => {
     &.hidden {
         transform: translateX(20px);
         opacity: 0;
-    }
-    :deep(.content) {
-        padding: 0;
+        pointer-events: none;
     }
 }
 :deep(.txtFriendId) {
@@ -157,5 +167,8 @@ const addFriend = async () => {
     .p-inputtext {
         width: 100px;
     }
+}
+:deep(.p-tabview-panel) {
+    padding: 15px !important;
 }
 </style>

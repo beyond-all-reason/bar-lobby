@@ -348,7 +348,7 @@ export class SpadsBattle extends AbstractBattle {
             }
         }
 
-        if (api.content.game.installedVersions.some((gameVersion) => gameVersion === this.battleOptions.gameVersion)) {
+        if (Array.from(api.content.game.installedVersions.values()).some((gameVersion) => gameVersion === this.battleOptions.gameVersion)) {
             sync.game = 1;
         } else {
             const dl = api.content.game.currentDownloads.find((dl) => dl.name === this.battleOptions.gameVersion);

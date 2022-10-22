@@ -67,6 +67,8 @@ export abstract class PrDownloaderAPI extends AbstractContentAPI {
                                 downloadInfo.totalBytes = progress.totalBytes;
                             }
                         }
+                    } else if (message.includes("download_name():[Download] ") && downloadInfo) {
+                        downloadInfo.name = message.split("download_name():[Download] ")[1];
                     }
                 }
             });
@@ -86,7 +88,7 @@ export abstract class PrDownloaderAPI extends AbstractContentAPI {
                     this.onDownloadComplete.dispatch(downloadInfo);
                     removeFromArray(this.currentDownloads, downloadInfo);
 
-                    console.debug(`Downloaded ${name}`);
+                    console.debug(`Downloaded ${downloadInfo.name}`);
                 }
 
                 resolve();

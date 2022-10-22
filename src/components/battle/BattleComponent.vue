@@ -87,7 +87,6 @@
                     :luaOptions="battle.battleOptions.gameOptions"
                     :title="`Game Options - ${battle.battleOptions.gameVersion}`"
                     :sections="gameOptions"
-                    height="700px"
                     @set-options="setGameOptions"
                 />
             </div>
@@ -120,7 +119,7 @@
 <script lang="ts" setup>
 import { Icon } from "@iconify/vue";
 import cog from "@iconify-icons/mdi/cog";
-import { Ref, ref } from "vue";
+import { computed, Ref, ref } from "vue";
 import Markdown from "vue3-markdown-it";
 
 import BattleChat from "@/components/battle/BattleChat.vue";
@@ -144,9 +143,9 @@ const props = defineProps<{
 }>();
 
 const isOfflineBattle = props.battle instanceof OfflineBattle;
-const installedEngines = api.content.engine.installedVersions;
-const installedMaps = api.content.maps.installedMaps;
-const installedGames = api.content.game.installedVersions;
+const installedEngines = computed(() => api.content.engine.installedVersions);
+const installedMaps = computed(() => api.content.maps.installedMaps);
+const installedGames = computed(() => Array.from(api.content.game.installedVersions));
 const gameOptionsOpen = ref(false);
 const gameOptions: Ref<LuaOptionSection[]> = ref([]);
 const isGameRunning = api.game.isGameRunning;
@@ -172,6 +171,7 @@ const onGameSelected = (gameVersion: string) => {
     props.battle.setGame(gameVersion);
 };
 const openGameOptions = async () => {
+    // TODO: show loader on button (maybe @clickAsync event?)
     gameOptions.value = await api.content.game.getGameOptions(props.battle.battleOptions.gameVersion);
     gameOptionsOpen.value = true;
 };

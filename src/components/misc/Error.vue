@@ -38,7 +38,7 @@ const onReload = () => {
 
 <style lang="scss" scoped>
 :global(.modal.error-modal) {
-    background: rgba(224, 17, 17, 0.699);
+    background: rgba(224, 17, 17, 0.7) !important;
 }
 .error {
     font-size: 16px;

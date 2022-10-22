@@ -112,17 +112,9 @@ const sound = () => api.audio.getSound("button-hover").play();
     flex-grow: 0;
     background: rgba(0, 0, 0, 0.5);
     max-width: 800px;
-    :deep(.panel.tabbed),
-    :deep(.panel.tabbed:after) {
-        background: none;
-        backdrop-filter: none;
-        border: none;
-        box-shadow: none;
-    }
     &__title {
         padding: 5px 10px;
         flex-grow: 1;
-        //border-right: 1px solid rgba(255, 255, 255, 0.1);
         text-transform: capitalize;
         font-weight: 600;
     }

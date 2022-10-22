@@ -1,44 +1,49 @@
 <template>
-    <Modal ref="modal" :title="title" width="700px" height="400px" padding="0" @open="open">
-        <Panel scrollContent>
-            <Tab v-for="section of sections.filter((section) => !section.hidden)" :key="section.key" :tooltip="section.description" :title="section.name">
-                <div class="gap-md">
-                    <div class="gridform">
-                        <template v-for="option in section.options.filter((option) => !option.hidden)" :key="option.key">
-                            <div>
-                                <div>{{ option.name }}</div>
-                                <div v-if="option.description" class="txt-sm flex-wrap">
-                                    {{ option.description }}
+    <Modal ref="modal" :title="title" width="700px" height="600px" padding="0" @open="open">
+        <Panel style="overflow: hidden" padding="0" contentStyle="overflow: hidden">
+            <TabView>
+                <TabPanel v-for="section of sections.filter((section) => !section.hidden)" :key="section.key" :header="section.name">
+                    <div>{{ section.description }}</div>
+                    <div class="gap-md">
+                        <div class="gridform">
+                            <template v-for="option in section.options.filter((option) => !option.hidden)" :key="option.key">
+                                <div>
+                                    <div>{{ option.name }}</div>
+                                    <div v-if="option.description" class="txt-sm flex-wrap">
+                                        {{ option.description }}
+                                    </div>
                                 </div>
-                            </div>
-                            <Range
-                                v-if="option.type === 'number'"
-                                :modelValue="options[option.key] ?? option.default"
-                                :min="option.min"
-                                :max="option.max"
-                                :step="option.step"
-                                @update:model-value="(value: any) => setOptionValue(option, value)"
-                            />
-                            <Checkbox v-if="option.type === 'boolean'" :modelValue="options[option.key] ?? option.default" @update:model-value="(value) => setOptionValue(option, value)" />
-                            <Textbox v-if="option.type === 'string'" :modelValue="options[option.key] ?? option.default" @update:model-value="(value) => setOptionValue(option, value)" />
-                            <Select
-                                v-if="option.type === 'list'"
-                                :modelValue="options[option.key] ?? option.default"
-                                :options="option.options"
-                                optionLabel="name"
-                                optionValue="key"
-                                @update:model-value="(value: any) => setOptionValue(option, value)"
-                            />
-                        </template>
+                                <Range
+                                    v-if="option.type === 'number'"
+                                    :modelValue="options[option.key] ?? option.default"
+                                    :min="option.min"
+                                    :max="option.max"
+                                    :step="option.step"
+                                    @update:model-value="(value: any) => setOptionValue(option, value)"
+                                />
+                                <Checkbox v-if="option.type === 'boolean'" :modelValue="options[option.key] ?? option.default" @update:model-value="(value) => setOptionValue(option, value)" />
+                                <Textbox v-if="option.type === 'string'" :modelValue="options[option.key] ?? option.default" @update:model-value="(value) => setOptionValue(option, value)" />
+                                <Select
+                                    v-if="option.type === 'list'"
+                                    :modelValue="options[option.key] ?? option.default"
+                                    :options="option.options"
+                                    optionLabel="name"
+                                    optionValue="key"
+                                    @update:model-value="(value: any) => setOptionValue(option, value)"
+                                />
+                            </template>
+                        </div>
                     </div>
+                </TabPanel>
+            </TabView>
+            <template #footer>
+                <div class="actions">
+                    <Button class="red fullwidth" @click="close"> Cancel </Button>
+                    <Button class="yellow fullwidth" @click="reset"> Reset all to default </Button>
+                    <Button class="green fullwidth" @click="save"> Save </Button>
                 </div>
-            </Tab>
+            </template>
         </Panel>
-        <div class="actions">
-            <Button class="red fullwidth" @click="close"> Cancel </Button>
-            <Button class="yellow fullwidth" @click="reset"> Reset all to default </Button>
-            <Button class="green fullwidth" @click="save"> Save </Button>
-        </div>
     </Modal>
 </template>
 
@@ -50,7 +55,8 @@ import { reactive, Ref, ref, toRaw } from "vue";
 
 import Modal from "@/components/common/Modal.vue";
 import Panel from "@/components/common/Panel.vue";
-import Tab from "@/components/common/Tab.vue";
+import TabPanel from "@/components/common/TabPanel.vue";
+import TabView from "@/components/common/TabView.vue";
 import Button from "@/components/controls/Button.vue";
 import Checkbox from "@/components/controls/Checkbox.vue";
 import Range from "@/components/controls/Range.vue";
