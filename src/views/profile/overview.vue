@@ -5,11 +5,9 @@
 <template>
     <div class="flex-col">
         <div class="flex-row gap-lg">
-            <Flag :countryCode="user.countryCode" style="width: 50px" />
-            <h1>{{ user.username }}</h1>
+            <!-- <Flag :countryCode="user.countryCode" style="width: 50px" /> -->
+            <h1>{{ userId }}</h1>
         </div>
-
-        {{ user.icons }}
     </div>
 </template>
 
@@ -25,9 +23,11 @@
  * - Recent activity/matches
  */
 
-import Flag from "@/components/misc/Flag.vue";
-
 const user = api.session.onlineUser;
+
+const props = defineProps<{
+    userId: number;
+}>();
 </script>
 
 <style lang="scss" scoped></style>

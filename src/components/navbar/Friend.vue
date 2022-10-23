@@ -12,28 +12,28 @@
             </template>
 
             <template v-else-if="type === 'incoming_request'">
-                <Button v-tooltip="`Reject request`" class="slim red square" @click="acceptRequest">
+                <Button v-tooltip="`Reject request`" class="slim red square" @click="rejectRequest">
                     <Icon :icon="closeThick" />
                 </Button>
-                <Button v-tooltip="`Accept request`" class="slim green square" @click="rejectRequest">
+                <Button v-tooltip="`Accept request`" class="slim green square" @click="acceptRequest">
                     <Icon :icon="checkThick" />
                 </Button>
             </template>
 
             <template v-else>
-                <Button v-tooltip="`View profile`" class="slim square">
+                <Button v-tooltip="`View profile`" class="slim square" @click="viewProfile">
                     <Icon :icon="account" />
                 </Button>
-                <Button v-tooltip="`Send message`" class="slim square">
+                <Button v-tooltip="`Send message`" class="slim square" @click="sendMessage">
                     <Icon :icon="messageReplyText" />
                 </Button>
-                <Button v-tooltip="`Join battle`" class="slim square">
+                <Button v-tooltip="`Join battle`" class="slim square" @click="joinBattle">
                     <Icon :icon="accountArrowRight" />
                 </Button>
-                <Button v-tooltip="`Invite to party`" class="slim square">
+                <Button v-tooltip="`Invite to party`" class="slim square" @click="inviteToParty">
                     <Icon :icon="accountMultiplePlus" />
                 </Button>
-                <Button v-tooltip="`Remove friend`" class="slim red square">
+                <Button v-tooltip="`Remove friend`" class="slim red square" @click="removeFriend">
                     <Icon :icon="deleteIcon" />
                 </Button>
             </template>
@@ -86,6 +86,28 @@ const rejectRequest = async () => {
 
     api.session.onlineUser.incomingFriendRequestUserIds.delete(props.user.userId);
     api.session.onlineUser.outgoingFriendRequestUserIds.delete(props.user.userId);
+};
+
+const viewProfile = async () => {
+    api.router.push({
+        path: `/profile/overview/${props.user.userId}`,
+    });
+};
+
+const sendMessage = async () => {
+    // TODO
+};
+
+const joinBattle = async () => {
+    // TODO
+};
+
+const inviteToParty = async () => {
+    // TODO
+};
+
+const removeFriend = async () => {
+    // TODO
 };
 </script>
 
