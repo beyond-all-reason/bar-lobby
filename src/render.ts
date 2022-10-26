@@ -3,6 +3,7 @@ import "flag-icons/css/flag-icons.min.css";
 import "primeicons/primeicons.css";
 import "@/assets/styles/styles.scss";
 
+import { lastInArray } from "jaz-ts-utils";
 import PrimeVue from "primevue/config";
 import Tooltip from "primevue/tooltip";
 import type { TransitionProps } from "vue";
@@ -49,27 +50,32 @@ declare module "vue-router" {
     });
 })();
 
-const myLocale = Intl.DateTimeFormat().resolvedOptions().locale.split("-")[0];
+async function setupI18n() {
+    const myLocale = Intl.DateTimeFormat().resolvedOptions().locale.split("-")[0];
+    const gameVersion = lastInArray(Array.from(api.content.game.installedVersions))!;
+    const localeFiles = await api.content.game.getGameFiles(gameVersion, "language/" + myLocale + "/*.json");
+    const messages: Record<string, Record<string, string>> = {};
 
-const localeFiles = require.context("@/assets/language", true, /\.json$/).keys();
-const messages: Record<string, Record<string, string>> = {};
-for (const key of localeFiles) {
-    const fileLocale = key.split("/")[1].split(".")[0];
-    messages[fileLocale] = require(`@/assets/language/${fileLocale}.json`);
+    localeFiles.forEach(file => {
+        const i18nJson = JSON.parse(file.data.toString("utf8"));
+        messages[myLocale] = {...messages[myLocale], ...i18nJson};
+    });
+    
+    return createI18n({
+        locale: myLocale,
+        fallbackLocale: "en",
+        messages,
+        legacy: false,
+    });
 }
-
-const i18n = createI18n({
-    locale: myLocale,
-    fallbackLocale: "en",
-    messages,
-    legacy: false,
-});
 
 async function setupVue() {
     const app = createApp(App);
 
     app.use(api.router);
     app.use(PrimeVue);
+
+    const i18n = await setupI18n();
     app.use(i18n);
 
     app.directive("click-away", clickAwayDirective);
