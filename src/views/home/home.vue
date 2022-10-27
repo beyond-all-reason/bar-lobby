@@ -4,7 +4,8 @@
 
 <template>
     <div>
-        <h1>Home</h1><!-- <h1>{{ $t("ui.disablingcus") }}</h1> -->
+        <h1>Home</h1>
+        <!-- <h1>{{ $t("ui.disablingcus") }}</h1> -->
         <Markdown
             source="
 - Small panes that preview content that can be displayed in more detail when clicking through to their full pages

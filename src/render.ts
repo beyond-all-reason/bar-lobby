@@ -56,11 +56,11 @@ async function setupI18n() {
     const localeFiles = await api.content.game.getGameFiles(gameVersion, "language/" + myLocale + "/*.json");
     const messages: Record<string, Record<string, string>> = {};
 
-    localeFiles.forEach(file => {
+    localeFiles.forEach((file) => {
         const i18nJson = JSON.parse(file.data.toString("utf8"));
-        messages[myLocale] = {...messages[myLocale], ...i18nJson};
+        messages[myLocale] = { ...messages[myLocale], ...i18nJson };
     });
-    
+
     return createI18n({
         locale: myLocale,
         fallbackLocale: "en",
