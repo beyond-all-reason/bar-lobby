@@ -14,10 +14,10 @@ type Transform = { x: number; y: number; width: number; height: number };
 
 const props = defineProps<{
     map: string;
-    startPosType: StartPosType;
+    startPosType?: StartPosType;
     startBoxes?: Record<number, StartBox | undefined>;
-    myTeamId: number;
-    isSpectator: boolean;
+    myTeamId?: number;
+    isSpectator?: boolean;
     startPositions?: Array<
         | {
               position: { x: number; z: number };
@@ -100,19 +100,6 @@ async function loadMap(canvasWidth: number) {
         return;
     }
 
-    // hack to fix a strange bug where calling this function more than once causes the map to load the wrong dimensions
-    if (loadingMap) {
-        loadMapTimeoutId = window.setTimeout(() => {
-            loadMap(canvasWidth);
-        }, 100);
-        return;
-    } else {
-        loadingMap = true;
-        loadMapTimeoutId = window.setTimeout(() => {
-            loadingMap = false;
-        }, 100);
-    }
-
     mapTransform = { x: 0, y: 0, width: canvasWidth, height: canvasWidth };
 
     const textureMap = await loadImage(mapImages.value.textureImagePath, Boolean(mapData.value));
@@ -139,11 +126,17 @@ async function loadMap(canvasWidth: number) {
 }
 
 function drawStartPosType() {
-    if (props.startPosType === StartPosType.Boxes) {
-        drawBoxes();
-    } else {
-        drawFixedPositions();
-    }
+  switch(props.startPosType) {
+    case StartPosType.Boxes:
+      drawBoxes();
+      break;
+    case StartPosType.Fixed:
+    case StartPosType.Random:
+      drawFixedPositions();
+      break;
+    default:
+      return;
+  }
 }
 
 function drawFixedPositions() {
@@ -243,7 +236,7 @@ function roundTransform(transform: Transform) {
     position: relative;
 }
 .canvas {
-    margin: 10px;
+    margin: 0px;
     aspect-ratio: 1;
     width: 100%;
     image-rendering: pixelated;

@@ -18,7 +18,7 @@
             <BattleChat v-if="!isOfflineBattle" :battle="battle" />
         </div>
         <div class="right-col flex-col gap-md">
-            <MapPreview
+            <BattleMapPreview
                 :map="props.battle.battleOptions.map"
                 :startPosType="props.battle.battleOptions.startPosType"
                 :startBoxes="props.battle.battleOptions.startBoxes"
@@ -124,7 +124,7 @@ import Markdown from "vue3-markdown-it";
 
 import BattleChat from "@/components/battle/BattleChat.vue";
 import LuaOptionsModal from "@/components/battle/LuaOptionsModal.vue";
-import MapPreview from "@/components/battle/MapPreview.vue";
+import BattleMapPreview from "@/components/maps/BattleMapPreview.vue";
 import Playerlist from "@/components/battle/Playerlist.vue";
 import Button from "@/components/controls/Button.vue";
 import Options from "@/components/controls/Options.vue";

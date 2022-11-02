@@ -73,7 +73,7 @@ import { groupBy } from "jaz-ts-utils";
 import path from "path";
 import { computed } from "vue";
 
-import MapPreview from "@/components/battle/MapPreview.vue";
+import MapPreview from "@/components/maps/BattleMapPreview.vue";
 import Button from "@/components/controls/Button.vue";
 import ReplayParticipant from "@/components/misc/ReplayParticipant.vue";
 import { StartBox, StartPosType } from "@/model/battle/types";
