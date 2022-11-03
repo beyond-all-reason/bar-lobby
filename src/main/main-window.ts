@@ -1,13 +1,12 @@
 import { app, BrowserWindow, screen, shell } from "electron";
 import { autoUpdater } from "electron-updater";
+import path from "path";
 import { watch } from "vue";
 
 import type { StoreAPI } from "$/api/store";
 import type { SettingsType } from "$/model/settings";
 
 declare const __static: string;
-
-const isProd = process.env.NODE_ENV === "production";
 
 export class MainWindow {
     public window: BrowserWindow;
@@ -66,18 +65,19 @@ export class MainWindow {
     }
 
     public async init() {
-        const pageUrl =
-            import.meta.env.DEV && import.meta.env.VITE_DEV_SERVER_URL !== undefined ? import.meta.env.VITE_DEV_SERVER_URL : new URL("../renderer/dist/index.html", "file://" + __dirname).toString();
-            
-        await this.window.loadURL(pageUrl);
-
-        if (import.meta.env.DEV || import.meta.env.VITE_DEV_SERVER_URL !== undefined) {
-            this.window.webContents.openDevTools();
-        } else {
-            const updateResult = await autoUpdater.checkForUpdatesAndNotify({
+        if (app.isPackaged) {
+            await autoUpdater.checkForUpdatesAndNotify({
                 title: "Beyond All Reason",
                 body: `Updated to version ${app.getVersion()}`,
             });
+            this.window.loadFile(path.join(__dirname, "../renderer/index.html"));
+        } else {
+            if (process.env.ELECTRON_RENDERER_URL) {
+                this.window.loadURL(process.env.ELECTRON_RENDERER_URL);
+            } else {
+                console.error("ELECTRON_RENDERER_URL is undefined");
+            }
+            this.window.webContents.openDevTools();
         }
     }
 

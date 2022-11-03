@@ -71,7 +71,7 @@ export class GameContentAPI extends PrDownloaderAPI {
         const versionsStr = zlib.gunzipSync(response.data).toString().trim();
         const versionsParts = versionsStr.split("\n");
         versionsParts.map((versionLine) => {
-            const [tag, md5, _, version] = versionLine.split(",");
+            const [, md5, , version] = versionLine.split(",");
             this.md5ToRapidVersionMap[md5] = version;
         });
 

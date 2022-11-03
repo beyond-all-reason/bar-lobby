@@ -85,7 +85,7 @@ const props = defineProps<{
 }>();
 
 const mapInstalled = computed(() => api.content.maps.installedMaps.some((map) => map.scriptName === props.replay.mapScriptName));
-const gameInstalled = computed(() => api.content.game.installedVersions.some((version) => version === props.replay.gameVersion));
+const gameInstalled = computed(() => api.content.game.installedVersions.has(props.replay.gameVersion));
 const engineInstalled = computed(() => api.content.engine.installedVersions.some((version) => version === props.replay.engineVersion));
 const synced = computed(() => mapInstalled.value && gameInstalled.value && engineInstalled.value);
 const contentIsDownloading = computed(() => {

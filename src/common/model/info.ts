@@ -1,4 +1,4 @@
-export interface Info {
+export type Info = {
     resourcesPath: string;
     contentPath: string;
     configPath: string;
@@ -11,4 +11,4 @@ export interface Info {
         numOfDisplays: number;
         currentDisplayIndex: number;
     };
-}
+};

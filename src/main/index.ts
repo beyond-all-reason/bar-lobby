@@ -1,6 +1,5 @@
 import type { App } from "electron";
 import { app, ipcMain, protocol, screen } from "electron";
-import installExtension, { VUEJS3_DEVTOOLS } from "electron-devtools-installer";
 import unhandled from "electron-unhandled";
 import envPaths from "env-paths";
 import * as path from "path";
@@ -11,11 +10,11 @@ import type { Info } from "$/model/info";
 import type { SettingsType } from "$/model/settings";
 import { settingsSchema } from "$/model/settings";
 
-const isProd = process.env.NODE_ENV === "production";
 export class Application {
     protected app: App;
     protected mainWindow?: MainWindow;
     protected settings?: StoreAPI<SettingsType>;
+    protected initialised = false;
 
     constructor(app: App) {
         this.app = app;
@@ -57,27 +56,21 @@ export class Application {
         }
 
         this.app.on("ready", () => this.onReady());
-        this.app.on("activate", () => this.onActivate());
         this.app.on("window-all-closed", () => this.app.quit());
     }
 
     protected async onReady() {
-        if (!isProd && !process.env.IS_TEST) {
+        if (!app.isPackaged) {
             try {
-                await installExtension(VUEJS3_DEVTOOLS);
+                // await installExtension("nhdogjmejiglipccpnnnanhbledajbpd");
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
             } catch (e: any) {
                 console.error("Vue Devtools failed to install:", e.toString());
             }
         }
 
-        if (!this.mainWindow) {
-            this.init();
-        }
-    }
-
-    protected async onActivate() {
-        if (!this.mainWindow) {
+        if (!this.initialised) {
+            this.initialised = true;
             this.init();
         }
     }
@@ -93,17 +86,17 @@ export class Application {
     }
 
     protected setupHandlers() {
-        ipcMain.handle("getInfo", async (event) => {
+        ipcMain.handle("getInfo", async () => {
             return this.getInfo();
         });
 
-        ipcMain.handle("highlightTaskbarIcon", (event, shouldHighlight: boolean) => {
+        ipcMain.handle("highlightTaskbarIcon", (_, shouldHighlight: boolean) => {
             this.mainWindow?.window.flashFrame(shouldHighlight);
         });
     }
 
     protected getInfo() {
-        const resourcesPath = process.env.NODE_ENV === "production" ? process.resourcesPath : path.join(path.parse(this.app.getAppPath()).dir, "resources");
+        const resourcesPath = process.env.NODE_ENV === "production" ? process.resourcesPath : path.join(this.app.getAppPath(), "resources");
         const paths = envPaths(app.getName(), { suffix: "" });
 
         const displayIds = screen.getAllDisplays().map((display) => display.id);
