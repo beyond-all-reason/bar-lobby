@@ -53,21 +53,20 @@ onMounted(async () => {
     context = canvas.value.getContext("2d")!;
     context.imageSmoothingEnabled = false;
 
-    loadMap(canvasWidth);
+    loadMap();
 
     watchStopHandle = watch(
         [() => props.map, () => props.startPosType, () => props.startBoxes, () => props.myTeamId],
         () => {
-            loadMap(canvasWidth);
+            loadMap();
         },
-        { deep: true }
     );
 
     mapCachedSignalBinding = api.content.maps.onMapCached.add((data) => {
         if (data.scriptName === props.map) {
             mapData.effect.run();
             mapImages.effect.run();
-            loadMap(canvasWidth);
+            loadMap();
         }
     });
 });
@@ -95,10 +94,12 @@ function onCanvasResize() {
     });
 }
 
-async function loadMap(canvasWidth: number) {
+async function loadMap() {
     if (!canvas.value) {
         return;
     }
+
+    const canvasWidth = canvas.value?.width;
 
     mapTransform = { x: 0, y: 0, width: canvasWidth, height: canvasWidth };
 
@@ -122,12 +123,13 @@ async function loadMap(canvasWidth: number) {
 
     drawStartPosType();
 
-    drawStartPositions();
+    //drawStartPositions();
 }
 
 function drawStartPosType() {
   switch(props.startPosType) {
     case StartPosType.Boxes:
+      console.log('draw type boxes');
       drawBoxes();
       break;
     case StartPosType.Fixed:
@@ -163,12 +165,17 @@ function drawFixedPosition(position: { x: number; z: number }, color = "rgba(255
 }
 
 function drawBoxes() {
+    console.log('drawing boxes', props.startBoxes);
+    console.log('props', props);
     if (!props.startBoxes) {
         return;
     }
 
-    entries(props.startBoxes).forEach(([id, box], i) => {
+    const startBoxEntries = entries(props.startBoxes);
+    console.log('start box entries', startBoxEntries);
+    startBoxEntries.forEach(([id, box], i) => {
         if (box) {
+          console.log('iterating box', box);
             if (props.isSpectator) {
                 context.fillStyle = "rgba(255, 255, 255, 0.2)";
             } else if (props.myTeamId === i) {
@@ -186,8 +193,11 @@ function drawBoxes() {
                 width: mapTransform.width * box.widthPercent,
                 height: mapTransform.height * box.heightPercent,
             };
+            console.log('rendering box with transform', boxTransform);
             boxTransform = roundTransform(boxTransform);
             context.fillRect(boxTransform.x, boxTransform.y, boxTransform.width, boxTransform.height);
+        } else {
+          console.error('missing box', box);
         }
     });
 }
@@ -239,6 +249,5 @@ function roundTransform(transform: Transform) {
     margin: 0px;
     aspect-ratio: 1;
     width: 100%;
-    image-rendering: pixelated;
 }
 </style>
