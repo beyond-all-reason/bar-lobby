@@ -31,7 +31,6 @@ const mapPreviewEl: Ref<HTMLDivElement | null> = ref(null);
 const canvas: Ref<HTMLCanvasElement | null> = ref(null);
 let context: CanvasRenderingContext2D;
 let mapTransform: Transform;
-let loadingMap = false;
 
 const mapData = computed(() => api.content.maps.installedMaps.find((map) => map.scriptName === props.map));
 const mapImages = computed(() => api.content.maps.getMapImages({ map: mapData.value }));
@@ -72,25 +71,23 @@ onMounted(async () => {
 });
 
 onUnmounted(() => {
-    if (watchStopHandle) {
-        watchStopHandle();
-        watchStopHandle = undefined;
-    }
-    if (mapCachedSignalBinding) {
-        mapCachedSignalBinding.destroy();
-        mapCachedSignalBinding = undefined;
-    }
-    if (loadMapTimeoutId) {
-        window.clearTimeout(loadMapTimeoutId);
-    }
+  watchStopHandle?.();
+  watchStopHandle = undefined;
+
+  mapCachedSignalBinding?.destroy();
+  mapCachedSignalBinding = undefined;
+
+  if (loadMapTimeoutId) {
+      window.clearTimeout(loadMapTimeoutId);
+  }
 });
 
 function onCanvasResize() {
     return new Promise<number>((resolve) => {
-        const resizeObserver = new ResizeObserver((thing) => {
-            resolve(thing[0].contentRect.width);
-        });
-        resizeObserver.observe(canvas.value!);
+      const resizeObserver = new ResizeObserver((thing) => {
+        resolve(thing[0].contentRect.width);
+      });
+      resizeObserver.observe(canvas.value!);
     });
 }
 
@@ -103,7 +100,7 @@ async function loadMap() {
 
     mapTransform = { x: 0, y: 0, width: canvasWidth, height: canvasWidth };
 
-    const textureMap = await loadImage(mapImages.value.textureImagePath, Boolean(mapData.value));
+    const textureMap = await loadImage(mapImages.value.textureImagePath);
 
     const widthToHeightRatio = textureMap.width / textureMap.height;
     if (widthToHeightRatio > 1) {
@@ -122,22 +119,17 @@ async function loadMap() {
     context.drawImage(textureMap, mapTransform.x, mapTransform.y, mapTransform.width, mapTransform.height);
 
     drawStartPosType();
-
-    //drawStartPositions();
 }
 
 function drawStartPosType() {
   switch(props.startPosType) {
     case StartPosType.Boxes:
-      console.log('draw type boxes');
       drawBoxes();
       break;
     case StartPosType.Fixed:
     case StartPosType.Random:
       drawFixedPositions();
       break;
-    default:
-      return;
   }
 }
 
@@ -150,9 +142,7 @@ function drawFixedPositions() {
 }
 
 function drawFixedPosition(position: { x: number; z: number }, color = "rgba(255, 255, 255, 0.6)") {
-    if (!mapData.value) {
-        return;
-    }
+    if (!mapData.value) return;
 
     const xPos = mapTransform.x + mapTransform.width * (position.x / (mapData.value.width * 512));
     const yPos = mapTransform.y + mapTransform.height * (position.z / (mapData.value.height * 512));
@@ -165,17 +155,11 @@ function drawFixedPosition(position: { x: number; z: number }, color = "rgba(255
 }
 
 function drawBoxes() {
-    console.log('drawing boxes', props.startBoxes);
-    console.log('props', props);
-    if (!props.startBoxes) {
-        return;
-    }
+    if (!props.startBoxes) return;
 
     const startBoxEntries = entries(props.startBoxes);
-    console.log('start box entries', startBoxEntries);
     startBoxEntries.forEach(([id, box], i) => {
         if (box) {
-          console.log('iterating box', box);
             if (props.isSpectator) {
                 context.fillStyle = "rgba(255, 255, 255, 0.2)";
             } else if (props.myTeamId === i) {
@@ -193,34 +177,13 @@ function drawBoxes() {
                 width: mapTransform.width * box.widthPercent,
                 height: mapTransform.height * box.heightPercent,
             };
-            console.log('rendering box with transform', boxTransform);
             boxTransform = roundTransform(boxTransform);
             context.fillRect(boxTransform.x, boxTransform.y, boxTransform.width, boxTransform.height);
-        } else {
-          console.error('missing box', box);
         }
     });
 }
 
-function drawStartPositions() {
-    if (!props.startPositions) {
-        return;
-    }
-
-    for (const startPos of props.startPositions) {
-        if (!startPos) {
-            continue;
-        }
-
-        if (startPos.rgbColor) {
-            drawFixedPosition(startPos.position, `rgb(${startPos.rgbColor.r}, ${startPos.rgbColor.g}, ${startPos.rgbColor.b})`);
-        } else {
-            drawFixedPosition(startPos.position);
-        }
-    }
-}
-
-function loadImage(url: string, isStatic = true) {
+function loadImage(url: string) {
     return new Promise<HTMLImageElement>((resolve) => {
         const img = new Image();
         img.onload = () => resolve(img);

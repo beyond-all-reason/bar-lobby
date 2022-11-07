@@ -21,14 +21,21 @@ const promiseError: Ref<PromiseRejectionEvent | null> = ref(null);
 
 window.addEventListener("unhandledrejection", function (event) {
     console.error(event);
+    console.log('unhandled rejection');
     promiseError.value = event;
     isVisible.value = true;
 });
 
 window.addEventListener("error", (event) => {
-    console.error(event);
-    error.value = event;
-    isVisible.value = true;
+  error.value = event;
+  if(event.message === "ResizeObserver loop limit exceeded") {
+    console.log('caught loop limit');
+    return;
+  }
+  console.error(event);
+  isVisible.value = true;
+
+
 });
 
 const onReload = () => {
