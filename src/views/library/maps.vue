@@ -6,13 +6,13 @@
     <div>
         <h1>Maps</h1>
         <div class="sort-options flex-row gap-md">
+            <SearchBox v-model="searchVal" />
             <div class="sort-dropdown">
                 <Select
                     model-value="Name"
                     v-model="sortMethod"
                     :options="sortMethods"
                     label="Sort By"
-                    @update:model-value="(value: any) => sortBy(value)"
                 />
             </div>
 
@@ -41,18 +41,26 @@
 
 import { computed, ref } from "vue";
 import Select from "@/components/controls/Select.vue";
-
 import MapListCard from "@/components/maps/MapListCard.vue";
+import SearchBox from "@/components/controls/SearchBox.vue";
+import { MapData } from "@/model/map-data";
 
 enum SortMethod {
     Name = "Name",
     Size = "Size",
 }
 
-const sortMethods = ref(["Name", "Size"]);
-const sortMethod = ref("Name");
+const sortMethods = ref([SortMethod.Name, SortMethod.Size]);
+const sortMethod = ref(SortMethod.Name.valueOf());
+const searchVal = ref("");
 const filteredMaps = computed(() => {
-    const maps = Array.from(api.content.maps.installedMaps);
+    let maps = Array.from(api.content.maps.installedMaps);
+
+    if(searchVal.value.length > 0) {
+        maps = maps.filter((map: MapData) => {
+            return map.friendlyName.toLowerCase().includes(searchVal.value.toLowerCase());
+        })
+    }
 
     switch (sortMethod.value) {
         case SortMethod.Name:
@@ -67,11 +75,6 @@ const filteredMaps = computed(() => {
     }
     return maps;
 });
-
-function sortBy(method: SortMethod) {
-    console.log('sortby', method);
-    sortMethod.value = method;
-}
 
 </script>
 
@@ -89,7 +92,7 @@ function sortBy(method: SortMethod) {
 
 .sort-options {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     width: 100%;
     gap: 15px;
     padding-bottom: 15px;
