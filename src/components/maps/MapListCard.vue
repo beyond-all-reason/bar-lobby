@@ -1,5 +1,5 @@
 <template>
-    <div class="map-preview">
+    <div class="map-preview" @click="openMapDetails">
         <div class="background" :style="`background-image: url('${mapImageUrl}')`" />
         <div class="header">
             <div class="title">
@@ -38,6 +38,11 @@ const props = defineProps<{
 const mapImageUrl = computed(() => {
   return require("@/assets/images/default-minimap.png");
 });
+
+function openMapDetails() {
+    api.session.libraryPage.value = props.map;
+    api.router.push("/library/map");
+}
 </script>
 
 <style lang="scss" scoped>

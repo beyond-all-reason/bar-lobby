@@ -8,6 +8,7 @@ import { BattleChatMessage } from "@/model/battle/battle-chat";
 import { OfflineBattle } from "@/model/battle/offline-battle";
 import { SpadsBattle } from "@/model/battle/spads-battle";
 import { CurrentUser, User } from "@/model/user";
+import { MapData } from "@/model/map-data";
 
 export class SessionAPI {
     public readonly offlineMode: Ref<boolean> = ref(false);
@@ -22,6 +23,7 @@ export class SessionAPI {
     public readonly outgoingFriendRequests: ComputedRef<User[]>;
     public readonly incomingFriendRequests: ComputedRef<User[]>;
     public readonly friends: ComputedRef<User[]>;
+    public readonly libraryPage: Ref<MapData | null> = shallowRef(null);
 
     // temporary necessity until https://github.com/beyond-all-reason/teiserver/issues/34 is implemented
     public lastBattleResponses: Map<number, Static<typeof lobbySchema>> = new Map();
