@@ -1,5 +1,5 @@
 <template>
-    <div class="map-preview" @click="openMapDetails">
+    <div class="map-preview" @click="mapSelected">
         <div class="background" :style="`background-image: url('${mapImageUrl}')`" />
         <div class="header">
             <div class="title">
@@ -38,6 +38,12 @@ const props = defineProps<{
 const mapImageUrl = computed(() => {
   return require("@/assets/images/default-minimap.png");
 });
+
+const emit = defineEmits(["mapSelected"]);
+
+function mapSelected() {
+    emit("mapSelected", props.map);
+}
 
 function openMapDetails() {
     api.session.libraryPage.value = props.map;

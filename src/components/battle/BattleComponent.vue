@@ -64,11 +64,17 @@
                     :placeholder="battle.battleOptions.map"
                     @update:model-value="onMapSelected"
                 />
-                <Button>
-                    <Icon :icon="cog" height="23" />
+                <Button @click="openMapList">
+                    <Icon :icon="listIcon" height="23" />
                 </Button>
+                <MapListModal
+                    v-model="mapListOpen"
+                    title="Maps"
+                    @mapSelected="onMapSelected"
+                />
             </div>
             <div class="flex-row gap-md">
+
                 <Select
                     :modelValue="battle.battleOptions.gameVersion"
                     :options="installedGames"
@@ -79,7 +85,7 @@
                     @update:model-value="onGameSelected"
                 />
                 <Button @click="openGameOptions">
-                    <Icon :icon="cog" height="23" />
+                    <Icon :icon="cogIcon" height="23" />
                 </Button>
                 <LuaOptionsModal
                     id="game-options"
@@ -118,7 +124,8 @@
 
 <script lang="ts" setup>
 import { Icon } from "@iconify/vue";
-import cog from "@iconify-icons/mdi/cog";
+import cogIcon from "@iconify-icons/mdi/cog";
+import listIcon  from "@iconify-icons/mdi/format-list-bulleted";
 import { computed, Ref, ref } from "vue";
 import Markdown from "vue3-markdown-it";
 
@@ -136,6 +143,7 @@ import { OfflineBattle } from "@/model/battle/offline-battle";
 import { StartBox, StartPosType } from "@/model/battle/types";
 import { LuaOptionSection } from "@/model/lua-options";
 import { CurrentUser } from "@/model/user";
+import MapListModal from "@/components/battle/MapListModal.vue";
 
 const props = defineProps<{
     battle: AbstractBattle;
@@ -146,6 +154,7 @@ const isOfflineBattle = props.battle instanceof OfflineBattle;
 const installedEngines = computed(() => api.content.engine.installedVersions);
 const installedMaps = computed(() => api.content.maps.installedMaps);
 const installedGames = computed(() => Array.from(api.content.game.installedVersions));
+const mapListOpen = ref(false);
 const gameOptionsOpen = ref(false);
 const gameOptions: Ref<LuaOptionSection[]> = ref([]);
 const isGameRunning = api.game.isGameRunning;
@@ -162,6 +171,10 @@ const setBoxes = (boxes: StartBox[]) => {
 const onStartPosChange = (startPosType: StartPosType) => {
     props.battle.setStartPosType(startPosType);
 };
+
+const openMapList = () => {
+    mapListOpen.value = true;
+}
 
 const onEngineSelected = (engineVersion: string) => {
     props.battle.setEngine(engineVersion);
@@ -181,6 +194,7 @@ const setGameOptions = (options: Record<string, any>) => {
 };
 
 const onMapSelected = (mapScriptName: string) => {
+    mapListOpen.value = false;
     props.battle.setMap(mapScriptName);
 };
 
