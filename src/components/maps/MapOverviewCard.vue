@@ -45,10 +45,6 @@ function mapSelected() {
     emit("mapSelected", props.map);
 }
 
-function openMapDetails() {
-    api.session.libraryPage.value = props.map;
-    api.router.push("/library/map");
-}
 </script>
 
 <style lang="scss" scoped>

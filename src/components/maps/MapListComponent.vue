@@ -1,7 +1,7 @@
 <template>
     <div>
         <div class="sort-options flex-row gap-md">
-            <SearchBox v-model="searchVal" />
+            <SearchBox v-model="searchVal"/>
             <div class="sort-dropdown">
                 <Select
                     model-value="Name"
@@ -14,7 +14,7 @@
         </div>
         <div class="map-list">
             <div class="maps">
-                <MapListCard
+                <MapOverviewCard
                     v-for="map in filteredMaps" :map="map"
                     @mapSelected="mapSelected"
                 />
@@ -35,7 +35,7 @@
 
 import { computed, ref } from "vue";
 import Select from "@/components/controls/Select.vue";
-import MapListCard from "@/components/maps/MapListCard.vue";
+import MapOverviewCard from "@/components/maps/MapOverviewCard.vue";
 import SearchBox from "@/components/controls/SearchBox.vue";
 import { MapData } from "@/model/map-data";
 

@@ -10,7 +10,7 @@
 
 <script lang="ts" setup>
 
-import { ref, Ref, toRaw } from "vue";
+import { ref, Ref } from "vue";
 import Modal from "@/components/common/Modal.vue";
 import MapListComponent from "@/components/maps/MapListComponent.vue";
 import { MapData } from "@/model/map-data";

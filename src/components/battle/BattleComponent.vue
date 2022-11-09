@@ -152,7 +152,9 @@ const props = defineProps<{
 
 const isOfflineBattle = props.battle instanceof OfflineBattle;
 const installedEngines = computed(() => api.content.engine.installedVersions);
-const installedMaps = computed(() => api.content.maps.installedMaps);
+const installedMaps = computed(() => api.content.maps.installedMaps.sort((a, b) => {
+    return a.friendlyName.localeCompare(b.friendlyName);
+}));
 const installedGames = computed(() => Array.from(api.content.game.installedVersions));
 const mapListOpen = ref(false);
 const gameOptionsOpen = ref(false);

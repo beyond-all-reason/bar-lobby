@@ -29,6 +29,17 @@
 </template>
 
 <script lang="ts" setup>
+
+/*
+ * TODO:
+ * Switch map preview between types
+ * - Metal
+ * - Height
+ * - Type?
+ * - 3D model
+ * Back button to return to map list
+ */
+
 import BattleMapPreview from "@/components/maps/BattleMapPreview.vue";
 import { MapData } from "@/model/map-data";
 
