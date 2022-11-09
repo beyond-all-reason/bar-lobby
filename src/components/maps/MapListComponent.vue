@@ -78,10 +78,6 @@ function mapSelected(map: MapData) {
 </script>
 
 <style lang="scss" scoped>
-:global(.view--multiplayer-custom > .panel > .content) {
-    overflow-y: scroll;
-}
-
 .map-list {
     display: flex;
     flex-direction: column;
@@ -100,45 +96,6 @@ function mapSelected(map: MapData) {
 
 .sort-dropdown {
     width: 200px;
-}
-
-.filters {
-    & > div {
-        background: linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 0%, rgba(0 0 0 / 0.3) 100%);
-
-        &:hover {
-            background: linear-gradient(to bottom, rgba(255, 255, 255, 0.1) 0%, rgba(0 0 0 / 0.2) 100%);
-        }
-    }
-}
-
-:deep(.row) {
-    display: grid;
-    grid-template-columns: 40px 28px 2fr 70px 2fr 170px 90px;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-    background: linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0) 100%);
-
-    &:last-child {
-        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    }
-
-    &:not(.filters):hover {
-        background: rgba(255, 255, 255, 0.2);
-        box-shadow: 0 1px 0 0 rgba(255, 255, 255, 0.2);
-    }
-
-    & > div {
-        display: block;
-        overflow: hidden;
-        white-space: nowrap;
-        text-overflow: ellipsis;
-        padding: 6px 10px;
-        border-left: 1px solid rgba(255, 255, 255, 0.1);
-
-        &:last-child {
-            border-right: 1px solid rgba(255, 255, 255, 0.1);
-        }
-    }
 }
 
 .maps {

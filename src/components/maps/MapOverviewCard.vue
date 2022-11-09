@@ -81,21 +81,8 @@ function mapSelected() {
         }
     }
 
-    .header,
-    .meta {
-        display: flex;
-        flex-direction: row;
-        align-items: center;
-        justify-content: space-between;
-        gap: 5px;
-    }
-
     .header {
         font-weight: 600;
-    }
-
-    .meta {
-        font-size: 16px;
     }
 
     .title {
