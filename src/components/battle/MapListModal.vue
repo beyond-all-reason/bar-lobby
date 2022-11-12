@@ -1,7 +1,7 @@
 <template>
     <Modal ref="modal" :title="title" width="600px" height="75vh" padding="0">
         <div class="container">
-            <MapListComponent @mapSelected="mapSelected" />
+            <MapListComponent @map-selected="mapSelected" />
         </div>
     </Modal>
 </template>

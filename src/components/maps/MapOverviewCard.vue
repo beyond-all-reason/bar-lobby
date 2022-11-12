@@ -1,5 +1,5 @@
 <template>
-    <div class="map-preview" @click="mapSelected">
+    <div class="map-preview">
         <div class="background" :style="`background-image: url('${mapImageUrl}')`" />
         <div class="header">
             <div class="title">
@@ -36,12 +36,6 @@ const props = defineProps<{
 const mapImageUrl = computed(() => {
     return require("@/assets/images/default-minimap.png");
 });
-
-const emit = defineEmits(["mapSelected"]);
-
-function mapSelected() {
-    emit("mapSelected", props.map);
-}
 </script>
 
 <style lang="scss" scoped>

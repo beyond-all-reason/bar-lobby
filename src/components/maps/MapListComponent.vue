@@ -8,7 +8,7 @@
         </div>
         <div class="map-list">
             <div class="maps">
-                <MapOverviewCard v-for="(map, index) in filteredMaps" :key="index" :map="map" @map-selected="mapSelected" />
+                <MapOverviewCard v-for="(map, index) in filteredMaps" :key="index" :map="map" @click="mapSelected(map)" />
             </div>
         </div>
     </div>
