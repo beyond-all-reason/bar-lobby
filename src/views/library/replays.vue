@@ -3,7 +3,7 @@
 </route>
 
 <template>
-    <div class="flex-row flex-grow gap-md fullheight">
+    <div class="flex-row flex-grow gap-md">
         <div class="flex-col flex-grow gap-md">
             <div class="flex-row gap-md">
                 <h1>Local Replays</h1>
@@ -140,6 +140,5 @@ const openReplaysFolder = () => {
     position: relative;
     width: 400px;
     padding-right: 10px;
-    overflow-y: scroll;
 }
 </style>
