@@ -4,8 +4,8 @@
 
 <template>
     <div>
-        <h1>{{ route.meta.title }}</h1>
-        <div>TEst</div>
+        <h1>Maps</h1>
+        <MapListComponent @map-selected="onMapSelected" />
     </div>
 </template>
 
@@ -22,9 +22,11 @@
  * - Paginated
  */
 
-import { useRoute } from "vue-router";
+import MapListComponent from "@/components/maps/MapListComponent.vue";
+import { MapData } from "@/model/map-data";
 
-const route = useRoute();
+function onMapSelected(map: MapData) {
+    api.session.libraryPage.value = map;
+    api.router.push("/library/map");
+}
 </script>
-
-<style lang="scss" scoped></style>

@@ -21,13 +21,14 @@ const promiseError: Ref<PromiseRejectionEvent | null> = ref(null);
 
 window.addEventListener("unhandledrejection", function (event) {
     console.error(event);
+    console.log("unhandled rejection");
     promiseError.value = event;
     isVisible.value = true;
 });
 
 window.addEventListener("error", (event) => {
-    console.error(event);
     error.value = event;
+    console.error(event);
     isVisible.value = true;
 });
 

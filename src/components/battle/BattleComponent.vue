@@ -61,12 +61,14 @@
                     optionLabel="friendlyName"
                     optionValue="scriptName"
                     :filter="true"
+                    class="fullwidth"
                     :placeholder="battle.battleOptions.map"
                     @update:model-value="onMapSelected"
                 />
-                <Button>
-                    <Icon :icon="cog" height="23" />
+                <Button @click="openMapList">
+                    <Icon :icon="listIcon" height="23" />
                 </Button>
+                <MapListModal v-model="mapListOpen" title="Maps" @map-selected="onMapSelected" />
             </div>
             <div class="flex-row gap-md">
                 <Select
@@ -76,10 +78,11 @@
                     :filter="true"
                     :placeholder="battle.battleOptions.gameVersion"
                     :disabled="!isOfflineBattle"
+                    class="fullwidth"
                     @update:model-value="onGameSelected"
                 />
                 <Button @click="openGameOptions">
-                    <Icon :icon="cog" height="23" />
+                    <Icon :icon="cogIcon" height="23" />
                 </Button>
                 <LuaOptionsModal
                     id="game-options"
@@ -97,6 +100,7 @@
                 :filter="true"
                 :placeholder="battle.battleOptions.engineVersion"
                 :disabled="!isOfflineBattle"
+                class="fullwidth"
                 @update:model-value="onEngineSelected"
             />
             <Markdown
@@ -118,17 +122,19 @@
 
 <script lang="ts" setup>
 import { Icon } from "@iconify/vue";
-import cog from "@iconify-icons/mdi/cog";
+import cogIcon from "@iconify-icons/mdi/cog";
+import listIcon from "@iconify-icons/mdi/format-list-bulleted";
 import { computed, Ref, ref } from "vue";
 import Markdown from "vue3-markdown-it";
 
 import BattleChat from "@/components/battle/BattleChat.vue";
 import LuaOptionsModal from "@/components/battle/LuaOptionsModal.vue";
-import MapPreview from "@/components/battle/MapPreview.vue";
+import MapListModal from "@/components/battle/MapListModal.vue";
 import Playerlist from "@/components/battle/Playerlist.vue";
 import Button from "@/components/controls/Button.vue";
 import Options from "@/components/controls/Options.vue";
 import Select from "@/components/controls/Select.vue";
+import MapPreview from "@/components/maps/MapPreview.vue";
 import Flag from "@/components/misc/Flag.vue";
 import { defaultBoxes } from "@/config/default-boxes";
 import { AbstractBattle } from "@/model/battle/abstract-battle";
@@ -144,8 +150,13 @@ const props = defineProps<{
 
 const isOfflineBattle = props.battle instanceof OfflineBattle;
 const installedEngines = computed(() => api.content.engine.installedVersions);
-const installedMaps = computed(() => api.content.maps.installedMaps);
+const installedMaps = computed(() =>
+    api.content.maps.installedMaps.sort((a, b) => {
+        return a.friendlyName.localeCompare(b.friendlyName);
+    })
+);
 const installedGames = computed(() => Array.from(api.content.game.installedVersions));
+const mapListOpen = ref(false);
 const gameOptionsOpen = ref(false);
 const gameOptions: Ref<LuaOptionSection[]> = ref([]);
 const isGameRunning = api.game.isGameRunning;
@@ -161,6 +172,10 @@ const setBoxes = (boxes: StartBox[]) => {
 
 const onStartPosChange = (startPosType: StartPosType) => {
     props.battle.setStartPosType(startPosType);
+};
+
+const openMapList = () => {
+    mapListOpen.value = true;
 };
 
 const onEngineSelected = (engineVersion: string) => {
@@ -181,6 +196,7 @@ const setGameOptions = (options: Record<string, any>) => {
 };
 
 const onMapSelected = (mapScriptName: string) => {
+    mapListOpen.value = false;
     props.battle.setMap(mapScriptName);
 };
 

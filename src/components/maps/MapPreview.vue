@@ -1,6 +1,7 @@
 <template>
     <div ref="mapPreviewEl" class="map-preview">
-        <canvas ref="canvas" class="canvas" />
+        <img v-if="static" :src="mapImages.textureImagePath" />
+        <canvas v-else ref="canvas" class="canvas" />
     </div>
 </template>
 
@@ -14,10 +15,10 @@ type Transform = { x: number; y: number; width: number; height: number };
 
 const props = defineProps<{
     map: string;
-    startPosType: StartPosType;
+    startPosType?: StartPosType;
     startBoxes?: Record<number, StartBox | undefined>;
-    myTeamId: number;
-    isSpectator: boolean;
+    myTeamId?: number;
+    isSpectator?: boolean;
     startPositions?: Array<
         | {
               position: { x: number; z: number };
@@ -25,13 +26,13 @@ const props = defineProps<{
           }
         | undefined
     >;
+    static?: boolean;
 }>();
 
 const mapPreviewEl: Ref<HTMLDivElement | null> = ref(null);
 const canvas: Ref<HTMLCanvasElement | null> = ref(null);
 let context: CanvasRenderingContext2D;
 let mapTransform: Transform;
-let loadingMap = false;
 
 const mapData = computed(() => api.content.maps.installedMaps.find((map) => map.scriptName === props.map));
 const mapImages = computed(() => api.content.maps.getMapImages({ map: mapData.value }));
@@ -53,34 +54,28 @@ onMounted(async () => {
     context = canvas.value.getContext("2d")!;
     context.imageSmoothingEnabled = false;
 
-    loadMap(canvasWidth);
+    loadMap();
 
-    watchStopHandle = watch(
-        [() => props.map, () => props.startPosType, () => props.startBoxes, () => props.myTeamId],
-        () => {
-            loadMap(canvasWidth);
-        },
-        { deep: true }
-    );
+    watchStopHandle = watch([() => props.map, () => props.startPosType, () => props.startBoxes, () => props.myTeamId], () => {
+        loadMap();
+    });
 
     mapCachedSignalBinding = api.content.maps.onMapCached.add((data) => {
         if (data.scriptName === props.map) {
             mapData.effect.run();
             mapImages.effect.run();
-            loadMap(canvasWidth);
+            loadMap();
         }
     });
 });
 
 onUnmounted(() => {
-    if (watchStopHandle) {
-        watchStopHandle();
-        watchStopHandle = undefined;
-    }
-    if (mapCachedSignalBinding) {
-        mapCachedSignalBinding.destroy();
-        mapCachedSignalBinding = undefined;
-    }
+    watchStopHandle?.();
+    watchStopHandle = undefined;
+
+    mapCachedSignalBinding?.destroy();
+    mapCachedSignalBinding = undefined;
+
     if (loadMapTimeoutId) {
         window.clearTimeout(loadMapTimeoutId);
     }
@@ -90,32 +85,22 @@ function onCanvasResize() {
     return new Promise<number>((resolve) => {
         const resizeObserver = new ResizeObserver((thing) => {
             resolve(thing[0].contentRect.width);
+            resizeObserver.disconnect();
         });
         resizeObserver.observe(canvas.value!);
     });
 }
 
-async function loadMap(canvasWidth: number) {
+async function loadMap() {
     if (!canvas.value) {
         return;
     }
 
-    // hack to fix a strange bug where calling this function more than once causes the map to load the wrong dimensions
-    if (loadingMap) {
-        loadMapTimeoutId = window.setTimeout(() => {
-            loadMap(canvasWidth);
-        }, 100);
-        return;
-    } else {
-        loadingMap = true;
-        loadMapTimeoutId = window.setTimeout(() => {
-            loadingMap = false;
-        }, 100);
-    }
+    const canvasWidth = canvas.value?.width;
 
     mapTransform = { x: 0, y: 0, width: canvasWidth, height: canvasWidth };
 
-    const textureMap = await loadImage(mapImages.value.textureImagePath, Boolean(mapData.value));
+    const textureMap = await loadImage(mapImages.value.textureImagePath);
 
     const widthToHeightRatio = textureMap.width / textureMap.height;
     if (widthToHeightRatio > 1) {
@@ -134,15 +119,17 @@ async function loadMap(canvasWidth: number) {
     context.drawImage(textureMap, mapTransform.x, mapTransform.y, mapTransform.width, mapTransform.height);
 
     drawStartPosType();
-
-    drawStartPositions();
 }
 
 function drawStartPosType() {
-    if (props.startPosType === StartPosType.Boxes) {
-        drawBoxes();
-    } else {
-        drawFixedPositions();
+    switch (props.startPosType) {
+        case StartPosType.Boxes:
+            drawBoxes();
+            break;
+        case StartPosType.Fixed:
+        case StartPosType.Random:
+            drawFixedPositions();
+            break;
     }
 }
 
@@ -155,9 +142,7 @@ function drawFixedPositions() {
 }
 
 function drawFixedPosition(position: { x: number; z: number }, color = "rgba(255, 255, 255, 0.6)") {
-    if (!mapData.value) {
-        return;
-    }
+    if (!mapData.value) return;
 
     const xPos = mapTransform.x + mapTransform.width * (position.x / (mapData.value.width * 512));
     const yPos = mapTransform.y + mapTransform.height * (position.z / (mapData.value.height * 512));
@@ -170,11 +155,10 @@ function drawFixedPosition(position: { x: number; z: number }, color = "rgba(255
 }
 
 function drawBoxes() {
-    if (!props.startBoxes) {
-        return;
-    }
+    if (!props.startBoxes) return;
 
-    entries(props.startBoxes).forEach(([id, box], i) => {
+    const startBoxEntries = entries(props.startBoxes);
+    startBoxEntries.forEach(([id, box], i) => {
         if (box) {
             if (props.isSpectator) {
                 context.fillStyle = "rgba(255, 255, 255, 0.2)";
@@ -199,25 +183,7 @@ function drawBoxes() {
     });
 }
 
-function drawStartPositions() {
-    if (!props.startPositions) {
-        return;
-    }
-
-    for (const startPos of props.startPositions) {
-        if (!startPos) {
-            continue;
-        }
-
-        if (startPos.rgbColor) {
-            drawFixedPosition(startPos.position, `rgb(${startPos.rgbColor.r}, ${startPos.rgbColor.g}, ${startPos.rgbColor.b})`);
-        } else {
-            drawFixedPosition(startPos.position);
-        }
-    }
-}
-
-function loadImage(url: string, isStatic = true) {
+function loadImage(url: string) {
     return new Promise<HTMLImageElement>((resolve) => {
         const img = new Image();
         img.onload = () => resolve(img);
@@ -241,11 +207,13 @@ function roundTransform(transform: Transform) {
     background: rgba(0, 0, 0, 0.3);
     border: 1px solid rgba(255, 255, 255, 0.1);
     position: relative;
+    image-rendering: pixelated;
+    align-items: center;
+    justify-content: center;
 }
 .canvas {
-    margin: 10px;
+    margin: 0px;
     aspect-ratio: 1;
     width: 100%;
-    image-rendering: pixelated;
 }
 </style>

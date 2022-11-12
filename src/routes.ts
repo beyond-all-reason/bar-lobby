@@ -24,6 +24,7 @@ import home_news from '@/views/home/news.vue'
 import home_store from '@/views/home/store.vue'
 import library_commands from '@/views/library/commands.vue'
 import library_guides from '@/views/library/guides.vue'
+import library_map from '@/views/library/map.vue'
 import library_maps from '@/views/library/maps.vue'
 import library_replays from '@/views/library/replays.vue'
 import library_tutorials from '@/views/library/tutorials.vue'
@@ -340,6 +341,17 @@ export default [
     meta: {
       title: 'Guides',
       order: 3,
+      transition: {
+        name: 'slide-left',
+      },
+    },
+  },
+  {
+    name: 'library-map',
+    path: '/library/map',
+    component: library_map,
+    meta: {
+      title: 'Map Details',
       transition: {
         name: 'slide-left',
       },
