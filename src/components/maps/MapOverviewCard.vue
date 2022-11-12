@@ -49,7 +49,7 @@ const mapImageUrl = computed(() => {
         display: flex;
         flex-direction: column;
         margin: 10px;
-        width: 200px;
+        min-width: 200px;
     }
     .detail-text {
         padding: 5px;

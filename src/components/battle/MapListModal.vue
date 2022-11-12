@@ -25,6 +25,6 @@ function mapSelected(map: MapData) {
     padding: 15px;
 }
 .map-list {
-    width: 900px;
+    width: 1000px;
 }
 </style>

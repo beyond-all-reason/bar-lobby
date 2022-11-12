@@ -64,6 +64,6 @@ function mapSelected(map: MapData) {
 .maps {
     display: grid;
     grid-gap: 15px;
-    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(450px, 1fr));
 }
 </style>
