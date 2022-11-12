@@ -18,7 +18,7 @@
             <BattleChat v-if="!isOfflineBattle" :battle="battle" />
         </div>
         <div class="right-col flex-col gap-md">
-            <BattleMapPreview
+            <MapPreview
                 :map="props.battle.battleOptions.map"
                 :startPosType="props.battle.battleOptions.startPosType"
                 :startBoxes="props.battle.battleOptions.startBoxes"
@@ -67,14 +67,9 @@
                 <Button @click="openMapList">
                     <Icon :icon="listIcon" height="23" />
                 </Button>
-                <MapListModal
-                    v-model="mapListOpen"
-                    title="Maps"
-                    @mapSelected="onMapSelected"
-                />
+                <MapListModal v-model="mapListOpen" title="Maps" @mapSelected="onMapSelected" />
             </div>
             <div class="flex-row gap-md">
-
                 <Select
                     :modelValue="battle.battleOptions.gameVersion"
                     :options="installedGames"
@@ -125,17 +120,18 @@
 <script lang="ts" setup>
 import { Icon } from "@iconify/vue";
 import cogIcon from "@iconify-icons/mdi/cog";
-import listIcon  from "@iconify-icons/mdi/format-list-bulleted";
+import listIcon from "@iconify-icons/mdi/format-list-bulleted";
 import { computed, Ref, ref } from "vue";
 import Markdown from "vue3-markdown-it";
 
 import BattleChat from "@/components/battle/BattleChat.vue";
 import LuaOptionsModal from "@/components/battle/LuaOptionsModal.vue";
-import BattleMapPreview from "@/components/maps/BattleMapPreview.vue";
+import MapListModal from "@/components/battle/MapListModal.vue";
 import Playerlist from "@/components/battle/Playerlist.vue";
 import Button from "@/components/controls/Button.vue";
 import Options from "@/components/controls/Options.vue";
 import Select from "@/components/controls/Select.vue";
+import MapPreview from "@/components/maps/MapPreview.vue";
 import Flag from "@/components/misc/Flag.vue";
 import { defaultBoxes } from "@/config/default-boxes";
 import { AbstractBattle } from "@/model/battle/abstract-battle";
@@ -143,7 +139,6 @@ import { OfflineBattle } from "@/model/battle/offline-battle";
 import { StartBox, StartPosType } from "@/model/battle/types";
 import { LuaOptionSection } from "@/model/lua-options";
 import { CurrentUser } from "@/model/user";
-import MapListModal from "@/components/battle/MapListModal.vue";
 
 const props = defineProps<{
     battle: AbstractBattle;
@@ -152,9 +147,11 @@ const props = defineProps<{
 
 const isOfflineBattle = props.battle instanceof OfflineBattle;
 const installedEngines = computed(() => api.content.engine.installedVersions);
-const installedMaps = computed(() => api.content.maps.installedMaps.sort((a, b) => {
-    return a.friendlyName.localeCompare(b.friendlyName);
-}));
+const installedMaps = computed(() =>
+    api.content.maps.installedMaps.sort((a, b) => {
+        return a.friendlyName.localeCompare(b.friendlyName);
+    })
+);
 const installedGames = computed(() => Array.from(api.content.game.installedVersions));
 const mapListOpen = ref(false);
 const gameOptionsOpen = ref(false);
@@ -176,7 +173,7 @@ const onStartPosChange = (startPosType: StartPosType) => {
 
 const openMapList = () => {
     mapListOpen.value = true;
-}
+};
 
 const onEngineSelected = (engineVersion: string) => {
     props.battle.setEngine(engineVersion);

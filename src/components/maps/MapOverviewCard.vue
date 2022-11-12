@@ -10,33 +10,31 @@
         </div>
 
         <div class="container">
-          <div class="thumbnail">
-            <BattleMapPreview
-                :map="map.scriptName"
-            />
-          </div>
-          <div class="details">
-            <div class="detail-text"><b>Size:</b> {{map.width}} x {{map.height}}</div>
-            <div class="detail-text"><b>Wind:</b> {{map.minWind}} - {{map.maxWind}}</div>
-            <div class="detail-text"><b>Description:</b> {{map.description}}</div>
-            <div class="detail-text"><b>Author:</b> {{map.mapInfo.author}}</div>
-          </div>
+            <div class="thumbnail">
+                <MapPreview :map="map.scriptName" />
+            </div>
+            <div class="details">
+                <div class="detail-text"><b>Size:</b> {{ map.width }} x {{ map.height }}</div>
+                <div class="detail-text"><b>Wind:</b> {{ map.minWind }} - {{ map.maxWind }}</div>
+                <div class="detail-text"><b>Description:</b> {{ map.description }}</div>
+                <div class="detail-text"><b>Author:</b> {{ map.mapInfo.author }}</div>
+            </div>
         </div>
     </div>
 </template>
 
 <script lang="ts" setup>
-import { computed, ref } from "vue";
+import { computed } from "vue";
 
+import MapPreview from "@/components/maps/MapPreview.vue";
 import { MapData } from "@/model/map-data";
-import BattleMapPreview from "@/components/maps/BattleMapPreview.vue";
 
 const props = defineProps<{
     map: MapData;
 }>();
 
 const mapImageUrl = computed(() => {
-  return require("@/assets/images/default-minimap.png");
+    return require("@/assets/images/default-minimap.png");
 });
 
 const emit = defineEmits(["mapSelected"]);
@@ -44,7 +42,6 @@ const emit = defineEmits(["mapSelected"]);
 function mapSelected() {
     emit("mapSelected", props.map);
 }
-
 </script>
 
 <style lang="scss" scoped>
@@ -58,22 +55,22 @@ function mapSelected() {
     font-weight: 500;
 
     .container {
-      display: flex;
-      flex-direction: row;
+        display: flex;
+        flex-direction: row;
     }
 
     .details {
-      display:flex;
-      flex-direction: column;
-      margin: 10px;
-      width: 200px;
+        display: flex;
+        flex-direction: column;
+        margin: 10px;
+        width: 200px;
     }
 
     .detail-text {
-      padding: 5px;
-      font-weight: normal;
-      font-size: 16px;
-    };
+        padding: 5px;
+        font-weight: normal;
+        font-size: 16px;
+    }
 
     &:hover {
         .background {

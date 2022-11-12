@@ -7,21 +7,19 @@
         <h1 class="title">{{ map.friendlyName }}</h1>
         <div class="map-container">
             <div class="preview-container">
-                <BattleMapPreview class="preview"
-                                  :map="map.scriptName"
-                />
+                <MapPreview class="preview" :map="map.scriptName" />
             </div>
             <div class="detail-container">
                 <div class="details">
-                    <div class="detail-text"><b>Description:</b> {{map.description}}</div>
-                    <div class="detail-text"><b>Author:</b> {{map.mapInfo.author}}</div>
-                    <div class="detail-text"><b>Size:</b> {{map.width}} x {{map.height}}</div>
-                    <div class="detail-text"><b>Wind:</b> {{map.minWind}} - {{map.maxWind}}</div>
-                    <div class="detail-text"><b>Tidal:</b> {{map.tidalStrength}}</div>
-                    <div class="detail-text"><b>Gravity:</b> {{map.gravity}}</div>
-                    <div class="detail-text"><b>Depth:</b> {{map.minDepth}} - {{map.maxDepth}}</div>
-                    <div class="detail-text"><b>Hardness:</b> {{map.mapHardness}}</div>
-                    <div class="detail-text"><b>Start Positions:</b> {{map.startPositions.length}}</div>
+                    <div class="detail-text"><b>Description:</b> {{ map.description }}</div>
+                    <div class="detail-text"><b>Author:</b> {{ map.mapInfo.author }}</div>
+                    <div class="detail-text"><b>Size:</b> {{ map.width }} x {{ map.height }}</div>
+                    <div class="detail-text"><b>Wind:</b> {{ map.minWind }} - {{ map.maxWind }}</div>
+                    <div class="detail-text"><b>Tidal:</b> {{ map.tidalStrength }}</div>
+                    <div class="detail-text"><b>Gravity:</b> {{ map.gravity }}</div>
+                    <div class="detail-text"><b>Depth:</b> {{ map.minDepth }} - {{ map.maxDepth }}</div>
+                    <div class="detail-text"><b>Hardness:</b> {{ map.mapHardness }}</div>
+                    <div class="detail-text"><b>Start Positions:</b> {{ map.startPositions.length }}</div>
                 </div>
             </div>
         </div>
@@ -29,7 +27,6 @@
 </template>
 
 <script lang="ts" setup>
-
 /*
  * TODO:
  * Switch map preview between types
@@ -40,7 +37,7 @@
  * Back button to return to map list
  */
 
-import BattleMapPreview from "@/components/maps/BattleMapPreview.vue";
+import MapPreview from "@/components/maps/MapPreview.vue";
 import { MapData } from "@/model/map-data";
 
 const map = api.session.libraryPage.value as MapData;
@@ -61,10 +58,9 @@ const map = api.session.libraryPage.value as MapData;
     width: 60%;
 }
 .preview {
-
 }
 .details {
-    display:flex;
+    display: flex;
     flex-direction: column;
     margin: 10px;
 }
@@ -73,5 +69,5 @@ const map = api.session.libraryPage.value as MapData;
     padding: 5px;
     font-weight: normal;
     font-size: 18px;
-};
+}
 </style>
