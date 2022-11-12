@@ -46,7 +46,7 @@
     "bar-db": "^6.3.0",
     "cross-env": "^7.0.3",
     "date-fns": "^2.29.1",
-    "electron": "^16.2.6",
+    "electron": "^18.3.7",
     "electron-devtools-installer": "^3.1.0",
     "electron-unhandled": "^3.0.2",
     "electron-updater": "^4.6.1",
