@@ -5,14 +5,11 @@
 <template>
     <div>
         <h1>Maps</h1>
-        <MapListComponent
-            @mapSelected="onMapSelected"
-        />
+        <MapListComponent @map-selected="onMapSelected" />
     </div>
 </template>
 
 <script lang="ts" setup>
-
 /**
  * TODO:
  * - Similar to online map browser
@@ -32,5 +29,4 @@ function onMapSelected(map: MapData) {
     api.session.libraryPage.value = map;
     api.router.push("/library/map");
 }
-
 </script>

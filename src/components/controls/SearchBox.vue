@@ -1,5 +1,3 @@
-
-
 <template>
     <div v-bind="attrsStyles">
         <slot name="prepend"></slot>
@@ -32,35 +30,35 @@
  * It doesn't work out of the box and the types were messed up, since it was just one file it was
  * easiest to just copy and clean up. MIT license, so safe to do.
  */
-import { PropType, computed, defineComponent, ref } from 'vue'
-export const fieldType = ['search', 'text'];
+import { computed, defineComponent, PropType, ref } from "vue";
+export const fieldType = ["search", "text"];
 export type FieldType = typeof fieldType[number];
 const filterObject = (obj: { [key: string]: unknown }, properties: (string | number)[], remove = true) => {
-    const res: { [key: string]: unknown } = {}
+    const res: { [key: string]: unknown } = {};
     Object.keys(obj).forEach((objAttr) => {
-        const condition = remove ? properties.indexOf(objAttr) === -1 : properties.indexOf(objAttr) >= 0
+        const condition = remove ? properties.indexOf(objAttr) === -1 : properties.indexOf(objAttr) >= 0;
         if (condition) {
-            res[objAttr] = obj[objAttr]
+            res[objAttr] = obj[objAttr];
         }
-    })
-    return res
-}
-const defaultBoolean = (val = true) => ({ type: Boolean, default: val })
+    });
+    return res;
+};
+const defaultBoolean = (val = true) => ({ type: Boolean, default: val });
 export default defineComponent({
     inheritAttrs: false,
     props: {
         type: {
             type: String as PropType<FieldType>,
-            default: 'search',
-            validator: (prop: FieldType) => fieldType.includes(prop)
+            default: "search",
+            validator: (prop: FieldType) => fieldType.includes(prop),
         },
         modelValue: {
             type: String,
-            default: ''
+            default: "",
         },
         wrapperClass: {
             type: String,
-            default: 'search-input-wrapper'
+            default: "search-input-wrapper",
         },
         searchIcon: defaultBoolean(),
         clearIcon: defaultBoolean(),
@@ -68,32 +66,32 @@ export default defineComponent({
         blurOnEsc: defaultBoolean(),
         selectOnFocus: defaultBoolean(),
     },
-    emits: ['update:modelValue'],
+    emits: ["update:modelValue"],
     setup(props, { emit, attrs }) {
-        const hasFocus = ref(false)
-        const inputRef = ref<null | HTMLInputElement>(null)
-        const attrsWithoutStyles = computed(() => filterObject(attrs, ['class', 'style']))
+        const hasFocus = ref(false);
+        const inputRef = ref<null | HTMLInputElement>(null);
+        const attrsWithoutStyles = computed(() => filterObject(attrs, ["class", "style"]));
         const attrsStyles = computed(() => {
-            const res = filterObject(attrs, ['class', 'style'], false)
-            if (!res.class) res.class = props.wrapperClass
-            return res
-        })
-        const showClearIcon = computed(() => !!(props.clearIcon && props.modelValue.length > 0))
+            const res = filterObject(attrs, ["class", "style"], false);
+            if (!res.class) res.class = props.wrapperClass;
+            return res;
+        });
+        const showClearIcon = computed(() => !!(props.clearIcon && props.modelValue.length > 0));
         const clear = () => {
-            emit('update:modelValue', '')
-        }
+            emit("update:modelValue", "");
+        };
         const onInput = (e: Event) => {
-            emit('update:modelValue', (e.target as HTMLInputElement).value)
-        }
+            emit("update:modelValue", (e.target as HTMLInputElement).value);
+        };
         const onKeydown = (e: KeyboardEvent) => {
-            if (e.key === 'Escape') {
-                props.clearOnEsc && clear()
+            if (e.key === "Escape") {
+                props.clearOnEsc && clear();
                 if (props.blurOnEsc) {
-                    const el = inputRef.value as HTMLInputElement
-                    el.blur()
+                    const el = inputRef.value as HTMLInputElement;
+                    el.blur();
                 }
             }
-        }
+        };
         return {
             inputRef,
             hasFocus,
@@ -103,13 +101,12 @@ export default defineComponent({
             attrsStyles,
             attrsWithoutStyles,
             showClearIcon,
-        }
-    }
-})
+        };
+    },
+});
 </script>
 
 <style lang="scss" scoped>
-
 $input-color: #ccc;
 $input-background: #ffffff11;
 $icon-color: $input-color;
@@ -117,7 +114,7 @@ $active-color: #ccc;
 .search-input-wrapper {
     position: relative;
 
-    input[data-search-input='true'] {
+    input[data-search-input="true"] {
         display: block;
         width: 100%;
         padding: 6px 20px 6px 35px;
@@ -156,7 +153,7 @@ $active-color: #ccc;
         }
         &.search::after {
             color: darken($icon-color, 30%);
-            content: '';
+            content: "";
             display: block;
             box-sizing: border-box;
             position: absolute;
@@ -188,7 +185,7 @@ $active-color: #ccc;
         }
         &.clear::after,
         &.clear::before {
-            content: '';
+            content: "";
             display: block;
             box-sizing: border-box;
             position: absolute;
@@ -207,21 +204,21 @@ $active-color: #ccc;
 }
 
 /* Fix the X appearing in search field on Chrome and IE */
-input[type='search']::-ms-clear {
+input[type="search"]::-ms-clear {
     display: none;
     width: 0;
     height: 0;
 }
-input[type='search']::-ms-reveal {
+input[type="search"]::-ms-reveal {
     display: none;
     width: 0;
     height: 0;
 }
 
-input[type='search']::-webkit-search-decoration,
-input[type='search']::-webkit-search-cancel-button,
-input[type='search']::-webkit-search-results-button,
-input[type='search']::-webkit-search-results-decoration {
+input[type="search"]::-webkit-search-decoration,
+input[type="search"]::-webkit-search-cancel-button,
+input[type="search"]::-webkit-search-results-button,
+input[type="search"]::-webkit-search-results-decoration {
     display: none;
 }
 </style>

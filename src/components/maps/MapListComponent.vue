@@ -1,30 +1,20 @@
 <template>
     <div>
         <div class="sort-options flex-row gap-md">
-            <SearchBox v-model="searchVal"/>
+            <SearchBox v-model="searchVal" />
             <div class="sort-dropdown">
-                <Select
-                    model-value="Name"
-                    v-model="sortMethod"
-                    :options="sortMethods"
-                    label="Sort By"
-                />
+                <Select v-model="sortMethod" :options="sortMethods" label="Sort By" />
             </div>
-
         </div>
         <div class="map-list">
             <div class="maps">
-                <MapOverviewCard
-                    v-for="map in filteredMaps" :map="map"
-                    @mapSelected="mapSelected"
-                />
+                <MapOverviewCard v-for="(map, index) in filteredMaps" :key="index" :map="map" @map-selected="mapSelected" />
             </div>
         </div>
     </div>
 </template>
 
 <script lang="ts" setup>
-
 /**
  * TODO:
  * - Similar to online map browser
@@ -34,9 +24,10 @@
  */
 
 import { computed, ref } from "vue";
+
+import SearchBox from "@/components/controls/SearchBox.vue";
 import Select from "@/components/controls/Select.vue";
 import MapOverviewCard from "@/components/maps/MapOverviewCard.vue";
-import SearchBox from "@/components/controls/SearchBox.vue";
 import { MapData } from "@/model/map-data";
 
 enum SortMethod {
@@ -51,10 +42,10 @@ const emit = defineEmits(["mapSelected"]);
 const filteredMaps = computed(() => {
     let maps = Array.from(api.content.maps.installedMaps);
 
-    if(searchVal.value.length > 0) {
+    if (searchVal.value.length > 0) {
         maps = maps.filter((map: MapData) => {
             return map.friendlyName.toLowerCase().includes(searchVal.value.toLowerCase());
-        })
+        });
     }
 
     switch (sortMethod.value) {
@@ -66,7 +57,7 @@ const filteredMaps = computed(() => {
         case SortMethod.Size:
             maps.sort((a, b) => {
                 return a.width * a.height - b.width * b.height;
-            })
+            });
     }
     return maps;
 });
@@ -74,7 +65,6 @@ const filteredMaps = computed(() => {
 function mapSelected(map: MapData) {
     emit("mapSelected", map);
 }
-
 </script>
 
 <style lang="scss" scoped>

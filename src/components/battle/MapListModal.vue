@@ -1,16 +1,14 @@
 <template>
     <Modal ref="modal" :title="title" width="600px" height="75vh" padding="0">
         <div class="container">
-            <MapListComponent
-                @mapSelected="mapSelected"
-            />
+            <MapListComponent @mapSelected="mapSelected" />
         </div>
     </Modal>
 </template>
 
 <script lang="ts" setup>
+import { Ref, ref } from "vue";
 
-import { ref, Ref } from "vue";
 import Modal from "@/components/common/Modal.vue";
 import MapListComponent from "@/components/maps/MapListComponent.vue";
 import { MapData } from "@/model/map-data";
@@ -26,7 +24,6 @@ const emit = defineEmits(["mapSelected"]);
 function mapSelected(map: MapData) {
     emit("mapSelected", map.scriptName);
 }
-
 </script>
 
 <style lang="scss" scoped>
@@ -34,4 +31,3 @@ function mapSelected(map: MapData) {
     padding: 15px;
 }
 </style>
-
