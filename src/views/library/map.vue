@@ -7,7 +7,7 @@
         <h1 class="title">{{ map.friendlyName }}</h1>
         <div class="map-container">
             <div class="preview-container">
-                <MapPreview class="preview" :map="map.scriptName" />
+                <MapPreview class="preview" :map="map.scriptName" :static="true" />
             </div>
             <div class="detail-container">
                 <div class="details">

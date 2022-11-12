@@ -1,6 +1,7 @@
 <template>
     <div ref="mapPreviewEl" class="map-preview">
-        <canvas ref="canvas" class="canvas" />
+        <img v-if="static" :src="mapImages.textureImagePath" />
+        <canvas v-else ref="canvas" class="canvas" />
     </div>
 </template>
 
@@ -25,6 +26,7 @@ const props = defineProps<{
           }
         | undefined
     >;
+    static?: boolean;
 }>();
 
 const mapPreviewEl: Ref<HTMLDivElement | null> = ref(null);
@@ -205,6 +207,9 @@ function roundTransform(transform: Transform) {
     background: rgba(0, 0, 0, 0.3);
     border: 1px solid rgba(255, 255, 255, 0.1);
     position: relative;
+    image-rendering: pixelated;
+    align-items: center;
+    justify-content: center;
 }
 .canvas {
     margin: 0px;
