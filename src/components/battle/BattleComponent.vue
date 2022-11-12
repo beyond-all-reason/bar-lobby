@@ -67,7 +67,7 @@
                 <Button @click="openMapList">
                     <Icon :icon="listIcon" height="23" />
                 </Button>
-                <MapListModal v-model="mapListOpen" title="Maps" @mapSelected="onMapSelected" />
+                <MapListModal v-model="mapListOpen" title="Maps" @map-selected="onMapSelected" />
             </div>
             <div class="flex-row gap-md">
                 <Select
