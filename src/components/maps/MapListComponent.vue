@@ -23,20 +23,17 @@
  * - Demo map button that launches a simple offline game on the map
  */
 
-import { computed, ref } from "vue";
+import { computed, Ref, ref } from "vue";
 
 import SearchBox from "@/components/controls/SearchBox.vue";
 import Select from "@/components/controls/Select.vue";
 import MapOverviewCard from "@/components/maps/MapOverviewCard.vue";
 import { MapData } from "@/model/map-data";
 
-enum SortMethod {
-    Name = "Name",
-    Size = "Size",
-}
+type SortMethod = "Name" | "Size";
 
-const sortMethods = ref([SortMethod.Name, SortMethod.Size]);
-const sortMethod = ref(SortMethod.Name.valueOf());
+const sortMethods: SortMethod[] = ["Name", "Size"];
+const sortMethod: Ref<SortMethod> = ref("Name");
 const searchVal = ref("");
 const emit = defineEmits(["mapSelected"]);
 const filteredMaps = computed(() => {
@@ -49,12 +46,12 @@ const filteredMaps = computed(() => {
     }
 
     switch (sortMethod.value) {
-        case SortMethod.Name:
+        case "Name":
             maps.sort((a, b) => {
                 return a.friendlyName.localeCompare(b.friendlyName);
             });
             break;
-        case SortMethod.Size:
+        case "Size":
             maps.sort((a, b) => {
                 return a.width * a.height - b.width * b.height;
             });
