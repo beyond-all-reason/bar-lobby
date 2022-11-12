@@ -111,7 +111,6 @@ const sound = () => api.audio.getSound("button-hover").play();
 .modal {
     flex-grow: 0;
     background: rgba(0, 0, 0, 0.5);
-    max-width: 800px;
     &__title {
         padding: 5px 10px;
         flex-grow: 1;
