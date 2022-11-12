@@ -25,7 +25,6 @@ const props = defineProps<Props>();
 
 <style lang="scss">
 .select {
-    width: 100%;
     align-self: center;
 }
 .p-dropdown {
@@ -60,6 +59,9 @@ const props = defineProps<Props>();
     }
     &-filter-icon {
         right: 10px;
+    }
+    &.p-inputwrapper {
+        gap: 10px;
     }
 }
 </style>

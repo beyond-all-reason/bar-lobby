@@ -1,15 +1,11 @@
 <template>
-    <div>
+    <div class="map-list flex-col gap-lg">
         <div class="sort-options flex-row gap-md">
             <SearchBox v-model="searchVal" />
-            <div class="sort-dropdown">
-                <Select v-model="sortMethod" :options="sortMethods" label="Sort By" />
-            </div>
+            <Select v-model="sortMethod" :options="sortMethods" label="Sort By" />
         </div>
-        <div class="map-list">
-            <div class="maps">
-                <MapOverviewCard v-for="(map, index) in filteredMaps" :key="index" :map="map" @click="mapSelected(map)" />
-            </div>
+        <div class="maps">
+            <MapOverviewCard v-for="(map, index) in filteredMaps" :key="index" :map="map" @click="mapSelected(map)" />
         </div>
     </div>
 </template>
@@ -65,26 +61,6 @@ function mapSelected(map: MapData) {
 </script>
 
 <style lang="scss" scoped>
-.map-list {
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    margin-bottom: 15px;
-}
-
-.sort-options {
-    display: flex;
-    flex-direction: row;
-    width: 100%;
-    gap: 15px;
-    padding-bottom: 15px;
-    padding-top: 15px;
-}
-
-.sort-dropdown {
-    width: 200px;
-}
-
 .maps {
     display: grid;
     grid-gap: 15px;

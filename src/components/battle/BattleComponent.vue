@@ -61,6 +61,7 @@
                     optionLabel="friendlyName"
                     optionValue="scriptName"
                     :filter="true"
+                    class="fullwidth"
                     :placeholder="battle.battleOptions.map"
                     @update:model-value="onMapSelected"
                 />
@@ -77,6 +78,7 @@
                     :filter="true"
                     :placeholder="battle.battleOptions.gameVersion"
                     :disabled="!isOfflineBattle"
+                    class="fullwidth"
                     @update:model-value="onGameSelected"
                 />
                 <Button @click="openGameOptions">
@@ -98,6 +100,7 @@
                 :filter="true"
                 :placeholder="battle.battleOptions.engineVersion"
                 :disabled="!isOfflineBattle"
+                class="fullwidth"
                 @update:model-value="onEngineSelected"
             />
             <Markdown
