@@ -54,12 +54,9 @@ onMounted(async () => {
 
     loadMap();
 
-    watchStopHandle = watch(
-        [() => props.map, () => props.startPosType, () => props.startBoxes, () => props.myTeamId],
-        () => {
-            loadMap();
-        },
-    );
+    watchStopHandle = watch([() => props.map, () => props.startPosType, () => props.startBoxes, () => props.myTeamId], () => {
+        loadMap();
+    });
 
     mapCachedSignalBinding = api.content.maps.onMapCached.add((data) => {
         if (data.scriptName === props.map) {
@@ -71,23 +68,24 @@ onMounted(async () => {
 });
 
 onUnmounted(() => {
-  watchStopHandle?.();
-  watchStopHandle = undefined;
+    watchStopHandle?.();
+    watchStopHandle = undefined;
 
-  mapCachedSignalBinding?.destroy();
-  mapCachedSignalBinding = undefined;
+    mapCachedSignalBinding?.destroy();
+    mapCachedSignalBinding = undefined;
 
-  if (loadMapTimeoutId) {
-      window.clearTimeout(loadMapTimeoutId);
-  }
+    if (loadMapTimeoutId) {
+        window.clearTimeout(loadMapTimeoutId);
+    }
 });
 
 function onCanvasResize() {
     return new Promise<number>((resolve) => {
-      const resizeObserver = new ResizeObserver((thing) => {
-        resolve(thing[0].contentRect.width);
-      });
-      resizeObserver.observe(canvas.value!);
+        const resizeObserver = new ResizeObserver((thing) => {
+            resolve(thing[0].contentRect.width);
+            resizeObserver.disconnect();
+        });
+        resizeObserver.observe(canvas.value!);
     });
 }
 
@@ -122,15 +120,15 @@ async function loadMap() {
 }
 
 function drawStartPosType() {
-  switch(props.startPosType) {
-    case StartPosType.Boxes:
-      drawBoxes();
-      break;
-    case StartPosType.Fixed:
-    case StartPosType.Random:
-      drawFixedPositions();
-      break;
-  }
+    switch (props.startPosType) {
+        case StartPosType.Boxes:
+            drawBoxes();
+            break;
+        case StartPosType.Fixed:
+        case StartPosType.Random:
+            drawFixedPositions();
+            break;
+    }
 }
 
 function drawFixedPositions() {
