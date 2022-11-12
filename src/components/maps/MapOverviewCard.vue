@@ -17,7 +17,7 @@
                 <div class="detail-text"><b>Size:</b> {{ map.width }} x {{ map.height }}</div>
                 <div class="detail-text"><b>Wind:</b> {{ map.minWind }} - {{ map.maxWind }}</div>
                 <div class="detail-text"><b>Description:</b> {{ map.description }}</div>
-                <div class="detail-text"><b>Author:</b> {{ map.mapInfo.author }}</div>
+                <div v-if="map.mapInfo" class="detail-text"><b>Author:</b> {{ map.mapInfo.author }}</div>
             </div>
         </div>
     </div>

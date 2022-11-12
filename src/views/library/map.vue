@@ -12,14 +12,14 @@
             <div class="detail-container">
                 <div class="details">
                     <div class="detail-text"><b>Description:</b> {{ map.description }}</div>
-                    <div class="detail-text"><b>Author:</b> {{ map.mapInfo.author }}</div>
+                    <div v-if="map.mapInfo" class="detail-text"><b>Author:</b> {{ map.mapInfo.author }}</div>
                     <div class="detail-text"><b>Size:</b> {{ map.width }} x {{ map.height }}</div>
                     <div class="detail-text"><b>Wind:</b> {{ map.minWind }} - {{ map.maxWind }}</div>
                     <div class="detail-text"><b>Tidal:</b> {{ map.tidalStrength }}</div>
                     <div class="detail-text"><b>Gravity:</b> {{ map.gravity }}</div>
                     <div class="detail-text"><b>Depth:</b> {{ map.minDepth }} - {{ map.maxDepth }}</div>
                     <div class="detail-text"><b>Hardness:</b> {{ map.mapHardness }}</div>
-                    <div class="detail-text"><b>Start Positions:</b> {{ map.startPositions.length }}</div>
+                    <div v-if="map.startPositions" class="detail-text"><b>Start Positions:</b> {{ map.startPositions.length }}</div>
                 </div>
             </div>
         </div>
