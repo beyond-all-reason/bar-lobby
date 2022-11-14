@@ -8,16 +8,13 @@ if (process.env.VITE_APP_VERSION === undefined) {
  * @see https://www.electron.build/configuration/configuration
  */
 const config = {
-    files: ["packages/**/dist/**"],
+    files: ["out"],
     directories: {
         output: "dist",
         buildResources: "buildResources",
     },
     appId: "beyond-all-reason",
     productName: "Beyond All Reason",
-    directories: {
-        buildResources: "build",
-    },
     extraResources: [
         {
             from: "resources",

@@ -1,5 +1,4 @@
 import { app, BrowserWindow, screen, shell } from "electron";
-import { autoUpdater } from "electron-updater";
 import path from "path";
 import { watch } from "vue";
 
@@ -65,11 +64,11 @@ export class MainWindow {
     }
 
     public async init() {
-        if (app.isPackaged) {
-            await autoUpdater.checkForUpdatesAndNotify({
-                title: "Beyond All Reason",
-                body: `Updated to version ${app.getVersion()}`,
-            });
+        if (app.isPackaged && process.env.NODE_ENV !== "development") {
+            // await autoUpdater.checkForUpdatesAndNotify({
+            //     title: "Beyond All Reason",
+            //     body: `Updated to version ${app.getVersion()}`,
+            // });
             this.window.loadFile(path.join(__dirname, "../renderer/index.html"));
         } else {
             if (process.env.ELECTRON_RENDERER_URL) {

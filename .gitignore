@@ -23,6 +23,7 @@ pnpm-debug.log*
 
 #Electron-builder output
 /dist_electron
+out
 
 /working-files
 /src/test
@@ -38,3 +39,4 @@ thumbs.db
 .eslintcache
 .browserslistrc
 .electron-vendors.cache.json
+/out

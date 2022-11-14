@@ -46,6 +46,14 @@ export default defineConfig({
                 },
             },
         },
+        // build: {
+        //     rollupOptions: {
+        //         external: ["better-sqlite3"],
+        //         output: {
+        //             inlineDynamicImports: true,
+        //         },
+        //     },
+        // },
         plugins: [
             vue(),
             renderer({
