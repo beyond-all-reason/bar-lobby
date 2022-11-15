@@ -29,8 +29,7 @@
     "test:main": "vitest run -r packages/main --passWithNoTests",
     "test:renderer": "vitest run -r packages/renderer --passWithNoTests",
     "preversion": "npm run lint-check && npm run format-check",
-    "postversion": "git push && git push --tags",
-    "update-electron-vendors": "cross-env ELECTRON_RUN_AS_NODE=1 electron scripts/update-electron-vendors.mjs"
+    "postversion": "git push && git push --tags"
   },
   "debug": {
     "env": {

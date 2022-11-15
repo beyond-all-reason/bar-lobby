@@ -8,7 +8,14 @@ if (process.env.VITE_APP_VERSION === undefined) {
  * @see https://www.electron.build/configuration/configuration
  */
 const config = {
-    files: ["out"],
+    files: [
+        "!**/.vscode/*",
+        "!src/*",
+        "!electron.vite.config.{js,ts,mjs,cjs}",
+        "!{.eslintignore,.eslintrc.cjs,.prettierignore,.prettierrc.yaml,dev-app-update.yml,CHANGELOG.md,README.md}",
+        "!{tsconfig.json,tsconfig.node.json,tsconfig.web.json}",
+    ],
+    asarUnpack: ["**/*.{node,dll}"],
     directories: {
         output: "dist",
         buildResources: "buildResources",

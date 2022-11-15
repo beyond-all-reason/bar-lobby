@@ -64,11 +64,13 @@ export class MainWindow {
     }
 
     public async init() {
+        console.log("yep", app.isPackaged, process.env.NODE_ENV);
         if (app.isPackaged && process.env.NODE_ENV !== "development") {
             // await autoUpdater.checkForUpdatesAndNotify({
             //     title: "Beyond All Reason",
             //     body: `Updated to version ${app.getVersion()}`,
             // });
+            console.log("loading", path.join(__dirname, "../renderer/index.html"));
             this.window.loadFile(path.join(__dirname, "../renderer/index.html"));
         } else {
             if (process.env.ELECTRON_RENDERER_URL) {
