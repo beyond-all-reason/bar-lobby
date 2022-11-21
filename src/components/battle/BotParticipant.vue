@@ -1,8 +1,8 @@
 <template>
-    <ContextMenu :entries="actions" :args="[bot]">
+    <ContextMenu :entries="getActions(bot)" :args="[bot]">
         <div class="participant" data-type="participant" @mouseenter.stop="onMouseEnter">
             <Icon :icon="robot" :height="16" />
-            <div>{{ props.bot.name }}</div>
+            <div>[{{getAiFriendlyName(props.bot.aiShortName)}}] {{  props.bot.name }}</div>
         </div>
         <LuaOptionsModal :id="`configure-bot-${bot.name}`" v-model="aiOptionsOpen" :luaOptions="bot.aiOptions" title="Configure Bot" :sections="aiOptions" @set-options="setBotOptions" />
     </ContextMenu>
@@ -18,6 +18,7 @@ import ContextMenu, { ContextMenuEntry } from "@/components/common/ContextMenu.v
 import { AbstractBattle } from "@/model/battle/abstract-battle";
 import { Bot } from "@/model/battle/types";
 import { LuaOptionSection } from "@/model/lua-options";
+import { getAiFriendlyName } from "@/model/ai";
 
 const props = defineProps<{
     battle: AbstractBattle;
@@ -32,24 +33,30 @@ const kickAi = (bot: Bot) => {
 };
 
 const configureAi = async (bot: Bot) => {
-    await api.content.ai.processAis(props.battle.battleOptions.engineVersion);
+    const engine = props.battle.battleOptions.engineVersion
+    await api.content.ai.processAis(engine);
 
-    if (aiOptions.value.length === 0) {
-        const ai = api.content.ai.getAis(props.battle.battleOptions.engineVersion)!.find((ai) => ai.shortName === bot.aiShortName)!;
+    const ai = api.content.ai.getEngineAI(bot.aiShortName, engine)
+    if (ai) {
         aiOptions.value = ai.options;
+        aiOptionsOpen.value = true;
     }
-
-    aiOptionsOpen.value = true;
 };
 
 const setBotOptions = (options: Record<string, unknown>) => {
     props.battle.setBotOptions(props.bot.name, options);
 };
 
-const actions: ContextMenuEntry[] = [
-    { label: "Kick", action: kickAi },
-    { label: "Configure", action: configureAi },
-];
+function getActions(bot: Bot): ContextMenuEntry[] {
+    const kickAction = { label: "Kick", action: kickAi };
+    const configureAction = { label: "Configure", action: configureAi }
+    const engine = props.battle.battleOptions.engineVersion
+    const ai = api.content.ai.getEngineAI(bot.aiShortName, engine)
+    if(ai) {
+        return [kickAction, configureAction] as ContextMenuEntry[]
+    }
+    return [kickAction] as ContextMenuEntry[];
+}
 
 const onMouseEnter = () => {
     api.audio.getSound("button-hover").play();

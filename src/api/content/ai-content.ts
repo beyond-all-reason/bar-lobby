@@ -1,16 +1,17 @@
 import * as fs from "fs";
 import * as glob from "glob-promise";
-import { clone } from "jaz-ts-utils";
 import * as path from "path";
 import { reactive } from "vue";
 
 import { AbstractContentAPI } from "@/api/content/abstract-content";
-import type { AI } from "@/model/ai";
+import type { EngineAI } from "@/model/ai";
 import { parseLuaOptions } from "@/utils/parse-lua-options";
 import { parseLuaTable } from "@/utils/parse-lua-table";
+import { gameAis } from "@/model/ai";
+import { clone } from "jaz-ts-utils";
 
 export class AiContentAPI extends AbstractContentAPI {
-    protected readonly installedAis: Record<string, AI[]> = reactive({});
+    protected readonly installedAis: Record<string, EngineAI[]> = reactive({});
 
     // TODO: cache AIs and load on init
     public async processAis(engine: string): Promise<void> {
@@ -19,7 +20,7 @@ export class AiContentAPI extends AbstractContentAPI {
             return;
         }
 
-        const ais: AI[] = [];
+        const ais: EngineAI[] = [];
         const aisDir = path.join(api.info.contentPath, "engine", engine, "AI", "Skirmish");
         const aiDirs = await fs.promises.readdir(aisDir);
 
@@ -35,11 +36,21 @@ export class AiContentAPI extends AbstractContentAPI {
         this.installedAis[engine] = ais;
     }
 
-    public getAis(engine: string): AI[] | undefined {
-        return clone(this.installedAis[engine]);
+    public getAis(engine: string): string[] | undefined {
+        const ais = clone(this.installedAis[engine]);
+        const engineAI = ais?.map((ai) => ai.shortName) ?? [];
+        return [...engineAI, ...gameAis];
     }
 
-    protected async fetchAi(aiDirPath: string): Promise<AI> {
+    public isEngineAI(name: string, engine: string): boolean {
+        return this.getEngineAI(name, engine) !== undefined;
+    }
+
+    public getEngineAI(name: string, engine: string): EngineAI | undefined {
+        return this.installedAis[engine].find((ai) => ai.shortName === name);
+    }
+
+    protected async fetchAi(aiDirPath: string): Promise<EngineAI> {
         const filePaths = await glob.promise(`${aiDirPath}/**/{AIInfo.lua,AIOptions.lua,*.dll,*.so}`);
 
         const aiInfoPath = filePaths.find((filePath) => filePath.endsWith("AIInfo.lua"));
@@ -58,7 +69,7 @@ export class AiContentAPI extends AbstractContentAPI {
             aiInfo[field.key] = field.value;
         }
 
-        const ai: AI = {
+        const ai: EngineAI = {
             shortName: aiInfo.shortName,
             name: aiInfo.name,
             description: aiInfo.description,

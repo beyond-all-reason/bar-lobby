@@ -12,7 +12,8 @@
         >
             <div class="flex-row gap-md">
                 <div class="title">Team {{ teamId + 1 }} ({{ contenders.length }})</div>
-                <Button class="slim" :flexGrow="false" @click="addBot(teamId)"> Add bot </Button>
+                <Button class="slim" @click="openBotList()"> Add bot </Button>
+                <AddBotModal v-model="botListOpen" :engine-version="battle.battleOptions.engineVersion" :team-id="teamId" title="Add Bot" @bot-selected="onBotSelected" />
                 <Button v-if="me.battleStatus.isSpectator || me.battleStatus.teamId !== teamId" class="slim" @click="joinTeam(teamId)"> Join </Button>
             </div>
             <div class="participants">
@@ -32,7 +33,8 @@
         >
             <div class="flex-row gap-md">
                 <div class="title">Team {{ emptyTeamId + 1 }}</div>
-                <Button class="slim" @click="addBot(emptyTeamId)"> Add bot </Button>
+                <Button class="slim" @click="openBotList()"> Add bot </Button>
+                <AddBotModal v-model="botListOpen" :engine-version="battle.battleOptions.engineVersion" :team-id="emptyTeamId" title="Add Bot" @bot-selected="onBotSelected" />
                 <Button class="slim" @click="joinTeam(emptyTeamId)"> Join </Button>
             </div>
         </div>
@@ -68,11 +70,13 @@ import { aiNames } from "@/config/ai-names";
 import { AbstractBattle } from "@/model/battle/abstract-battle";
 import { Bot, Faction } from "@/model/battle/types";
 import { CurrentUser, User } from "@/model/user";
+import AddBotModal from "@/components/battle/AddBotModal.vue";
 
 const props = defineProps<{
     battle: AbstractBattle;
     me: CurrentUser;
 }>();
+const botListOpen = ref(false);
 
 const emptyTeamId = computed(() => {
     const teams = props.battle.teams.value;
@@ -84,7 +88,16 @@ const emptyTeamId = computed(() => {
     return -1;
 });
 
-const addBot = (teamId: number) => {
+const openBotList = () => {
+    botListOpen.value = true;
+}
+
+const onBotSelected = (bot: string, teamId: number) => {
+    botListOpen.value = false;
+    addBot(bot, teamId);
+}
+
+const addBot = (bot: string, teamId: number) => {
     let randomName = randomFromArray(aiNames);
     while (props.battle.bots.some((bot) => bot.name === randomName)) {
         randomName = randomFromArray(aiNames);
@@ -94,7 +107,7 @@ const addBot = (teamId: number) => {
         playerId: props.battle.contenders.value.length,
         teamId,
         name: randomName!,
-        aiShortName: "BARb",
+        aiShortName: bot,
         faction: Faction.Armada,
         ownerUserId: props.me.userId,
         aiOptions: {},
