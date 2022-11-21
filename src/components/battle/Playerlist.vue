@@ -1,5 +1,12 @@
 <template>
     <div class="playerlist" :class="{ dragging: draggedParticipant !== null }">
+        <AddBotModal
+            v-model="botListOpen"
+            :engine-version="battle.battleOptions.engineVersion"
+            :team-id="botModalTeamId"
+            title="Add Bot"
+            @bot-selected="onBotSelected"
+        />
         <div
             v-for="[teamId, contenders] in battle.teams.value"
             :key="`team${teamId}`"
@@ -11,10 +18,14 @@
             @drop="onDrop($event, teamId)"
         >
             <div class="flex-row gap-md">
-                <div class="title">Team {{ teamId + 1 }} ({{ contenders.length }})</div>
-                <Button class="slim" @click="openBotList()"> Add bot </Button>
-                <AddBotModal v-model="botListOpen" :engine-version="battle.battleOptions.engineVersion" :team-id="teamId" title="Add Bot" @bot-selected="onBotSelected" />
-                <Button v-if="me.battleStatus.isSpectator || me.battleStatus.teamId !== teamId" class="slim" @click="joinTeam(teamId)"> Join </Button>
+                <div class="title">Team {{ teamId + 1 }} ({{ contenders.length }} Members)</div>
+                <Button class="slim" @click="openBotList(teamId)"> Add bot </Button>
+
+                <Button
+                    class="slim"
+                    v-if="me.battleStatus.isSpectator || me.battleStatus.teamId !== teamId"
+                    @click="joinTeam(teamId)"
+                > Join </Button>
             </div>
             <div class="participants">
                 <div v-for="(contender, contenderIndex) in contenders" :key="`contender${contenderIndex}`" draggable @dragstart="dragStart($event, contender)" @dragend="dragEnd($event, contender)">
@@ -33,8 +44,7 @@
         >
             <div class="flex-row gap-md">
                 <div class="title">Team {{ emptyTeamId + 1 }}</div>
-                <Button class="slim" @click="openBotList()"> Add bot </Button>
-                <AddBotModal v-model="botListOpen" :engine-version="battle.battleOptions.engineVersion" :team-id="emptyTeamId" title="Add Bot" @bot-selected="onBotSelected" />
+                <Button class="slim" @click="openBotList(emptyTeamId)"> Add bot </Button>
                 <Button class="slim" @click="joinTeam(emptyTeamId)"> Join </Button>
             </div>
         </div>
@@ -77,6 +87,11 @@ const props = defineProps<{
     me: CurrentUser;
 }>();
 const botListOpen = ref(false);
+const botModalTeamId = ref(0);
+
+// This data is improperly cached, I'm unsure of the ideal way to fix it. I force it to refetch
+const engine = props.battle.battleOptions.engineVersion
+await api.content.ai.processAis(engine);
 
 const emptyTeamId = computed(() => {
     const teams = props.battle.teams.value;
@@ -88,11 +103,13 @@ const emptyTeamId = computed(() => {
     return -1;
 });
 
-const openBotList = () => {
+const openBotList = (teamId: number) => {
+    botModalTeamId.value = teamId;
     botListOpen.value = true;
 }
 
 const onBotSelected = (bot: string, teamId: number) => {
+    console.log('adding bot to team', teamId);
     botListOpen.value = false;
     addBot(bot, teamId);
 }

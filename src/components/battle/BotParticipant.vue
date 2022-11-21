@@ -34,8 +34,7 @@ const kickAi = (bot: Bot) => {
 
 const configureAi = async (bot: Bot) => {
     const engine = props.battle.battleOptions.engineVersion
-    await api.content.ai.processAis(engine);
-
+    //await api.content.ai.processAis(engine);
     const ai = api.content.ai.getEngineAI(bot.aiShortName, engine)
     if (ai) {
         aiOptions.value = ai.options;
