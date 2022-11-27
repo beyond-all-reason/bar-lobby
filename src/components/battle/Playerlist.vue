@@ -8,7 +8,7 @@
             @bot-selected="onBotSelected"
         />
         <div
-            v-for="[teamId, contenders] in battle.teams.value"
+            v-for="[teamId, contenders] in appendedTeams"
             :key="`team${teamId}`"
             class="group"
             data-type="group"
@@ -28,7 +28,13 @@
                 > Join </Button>
             </div>
             <div class="participants">
-                <div v-for="(contender, contenderIndex) in contenders" :key="`contender${contenderIndex}`" draggable @dragstart="dragStart($event, contender)" @dragend="dragEnd($event, contender)">
+                <div
+                    v-for="(contender, contenderIndex) in contenders"
+                    :key="`contender${contenderIndex}`"
+                    draggable
+                    @dragstart="dragStart($event, contender)"
+                    @dragend="dragEnd($event, contender)"
+                >
                     <PlayerParticipant v-if="'userId' in contender" :battle="battle" :player="contender" />
                     <BotParticipant v-else :battle="battle" :bot="contender" />
                 </div>
@@ -37,18 +43,10 @@
         <div
             class="group"
             data-type="group"
-            @dragenter.prevent="dragEnter($event, emptyTeamId)"
+            @dragenter.prevent="dragEnter($event)"
             @dragover.prevent
-            @dragleave.prevent="dragLeave($event, emptyTeamId)"
-            @drop="onDrop($event, emptyTeamId)"
-        >
-            <div class="flex-row gap-md">
-                <div class="title">Team {{ emptyTeamId + 1 }}</div>
-                <Button class="slim" @click="openBotList(emptyTeamId)"> Add bot </Button>
-                <Button class="slim" @click="joinTeam(emptyTeamId)"> Join </Button>
-            </div>
-        </div>
-        <div class="group" data-type="group" @dragenter.prevent="dragEnter($event)" @dragover.prevent @dragleave.prevent="dragLeave($event)" @drop="onDrop($event)">
+            @dragleave.prevent="dragLeave($event)"
+            @drop="onDrop($event)">
             <div class="flex-row gap-md">
                 <div class="title">Spectators ({{ battle.spectators.value.length }})</div>
                 <Button v-if="!me.battleStatus.isSpectator" class="slim" @click="joinTeam()"> Join </Button>
@@ -88,6 +86,11 @@ const props = defineProps<{
 }>();
 const botListOpen = ref(false);
 const botModalTeamId = ref(0);
+const appendedTeams = computed(() => {
+    const teams = props.battle.teams.value
+    teams.set(teams.size, []);
+    return teams;
+})
 
 // This data is improperly cached, I'm unsure of the ideal way to fix it. I force it to refetch
 const engine = props.battle.battleOptions.engineVersion
