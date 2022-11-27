@@ -19,7 +19,19 @@ export type EngineAI = {
  *  Would love to find a better way to handle the distinction between engine AI and game AI
  */
 
-export const gameAis = ["ChickensAI", "ScavengersAI", "SimpleAI", "SimpleDefenderAI", "SimpleConstructorAI", "ControlModeAI", ];
+/*
+ * chobby did not add STAI manually, but it doesn't show as an engine AI, I do not know how chobby
+ * gets it in the UI. Adding it manually here seems to work.
+ */
+export const gameAis = [
+    "ChickensAI",
+    "ScavengersAI",
+    "STAI",
+    "SimpleAI",
+    "SimpleDefenderAI",
+    "SimpleConstructorAI",
+    "ControlModeAI",
+];
 
 export const aiDescription = new Map<string, string>([
     ['SimpleAI', "A simple, easy playing beginner AI (Great for your first game!)"],
@@ -36,7 +48,6 @@ const aiFriendlyName = new Map<string, string>([
     ['NullAI', "Inactive AI"],
     ['ScavengersAI', "ScavengersDefense AI"],
     ['ChickensAI', "RaptorsDefense AI"],
-    ['STAI', "STAI"],
 ]);
 
 export function getAiFriendlyName(name: string) {

@@ -109,7 +109,6 @@ const openBotList = (teamId: number) => {
 }
 
 const onBotSelected = (bot: string, teamId: number) => {
-    console.log('adding bot to team', teamId);
     botListOpen.value = false;
     addBot(bot, teamId);
 }

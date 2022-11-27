@@ -42,10 +42,6 @@ export class AiContentAPI extends AbstractContentAPI {
         return [...engineAI, ...gameAis];
     }
 
-    public isEngineAI(name: string, engine: string): boolean {
-        return this.getEngineAI(name, engine) !== undefined;
-    }
-
     public getEngineAI(name: string, engine: string): EngineAI | undefined {
         return this.installedAis[engine].find((ai) => ai.shortName === name);
     }
