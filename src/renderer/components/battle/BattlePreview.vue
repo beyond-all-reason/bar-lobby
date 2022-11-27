@@ -51,7 +51,7 @@ import lock from "@iconify-icons/mdi/lock";
 import robot from "@iconify-icons/mdi/robot";
 import { computed, ref } from "vue";
 
-import defaultMinimap from "!/images/default-minimap.png";
+import defaultMinimap from "@/assets/images/default-minimap.png";
 import Modal from "@/components/common/Modal.vue";
 import Button from "@/components/controls/Button.vue";
 import Textbox from "@/components/controls/Textbox.vue";

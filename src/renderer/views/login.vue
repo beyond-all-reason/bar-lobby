@@ -4,7 +4,7 @@
 
 <template>
     <div class="container">
-        <img ref="logo" class="logo" src="~!/images/BARLogoFull.png" />
+        <img ref="logo" class="logo" src="~@/assets/images/BARLogoFull.png" />
         <Panel v-if="isConnected" class="login-forms" padding="0">
             <TabView v-model:activeIndex="activeIndex">
                 <TabPanel header="Login">

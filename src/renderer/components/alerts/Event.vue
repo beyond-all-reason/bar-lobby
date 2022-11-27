@@ -35,7 +35,7 @@ const onClose = () => {
     backdrop-filter: blur(4px);
     &:before {
         @extend .fullsize;
-        background-image: url("!/images/squares.png");
+        background-image: url("@/assets/images/squares.png");
         background-size: auto;
         opacity: 0.3;
         z-index: -1;

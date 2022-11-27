@@ -39,16 +39,16 @@
                 />
                 <div class="box-buttons" :class="{ disabled: battle.battleOptions.startPosType === StartPosType.Boxes }">
                     <Button @click="setBoxes(defaultBoxes().EastVsWest)">
-                        <img src="~!/images/icons/east-vs-west.png" />
+                        <img src="~@/assets/images/icons/east-vs-west.png" />
                     </Button>
                     <Button @click="setBoxes(defaultBoxes().NorthVsSouth)">
-                        <img src="~!/images/icons/north-vs-south.png" />
+                        <img src="~@/assets/images/icons/north-vs-south.png" />
                     </Button>
                     <Button @click="setBoxes(defaultBoxes().NortheastVsSouthwest)">
-                        <img src="~!/images/icons/northeast-vs-southwest.png" />
+                        <img src="~@/assets/images/icons/northeast-vs-southwest.png" />
                     </Button>
                     <Button @click="setBoxes(defaultBoxes().NorthwestVsSouthEast)">
-                        <img src="~!/images/icons/northwest-vs-southeast.png" />
+                        <img src="~@/assets/images/icons/northwest-vs-southeast.png" />
                     </Button>
                 </div>
             </div>

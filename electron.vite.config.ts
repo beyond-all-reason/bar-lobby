@@ -1,7 +1,9 @@
 import vue from "@vitejs/plugin-vue";
 import { defineConfig, externalizeDepsPlugin } from "electron-vite";
 import path from "path";
-import renderer, { worker } from "vite-plugin-electron-renderer";
+import renderer from "vite-plugin-electron-renderer";
+
+//https://vitejs.dev/config/shared-options.html#root
 
 export default defineConfig({
     main: {
@@ -12,6 +14,7 @@ export default defineConfig({
             },
         },
         build: {
+            assetsDir: ".",
             rollupOptions: {
                 output: {
                     manualChunks(id) {
@@ -28,9 +31,14 @@ export default defineConfig({
     renderer: {
         resolve: {
             alias: {
-                "@": path.join(__dirname, "src/renderer/src"),
-                "!": path.join(__dirname, "src/renderer/assets"),
+                "@": path.join(__dirname, "src/renderer"),
                 $: path.join(__dirname, "src/common"),
+            },
+        },
+        build: {
+            assetsDir: ".",
+            rollupOptions: {
+                external: ["better-sqlite3"],
             },
         },
         optimizeDeps: {
@@ -42,13 +50,8 @@ export default defineConfig({
             modules: false,
             preprocessorOptions: {
                 scss: {
-                    additionalData: `@use "!/styles/_utils.scss";`,
+                    additionalData: `@use "@/assets/styles/_utils.scss";`,
                 },
-            },
-        },
-        build: {
-            rollupOptions: {
-                external: ["better-sqlite3"],
             },
         },
         plugins: [
@@ -70,9 +73,6 @@ export default defineConfig({
                         { name: "axios", type: "commonjs" },
                     ],
                 },
-            }),
-            worker({
-                nodeIntegrationInWorker: true,
             }),
         ],
     },

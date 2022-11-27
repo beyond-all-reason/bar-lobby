@@ -4,8 +4,8 @@ import * as path from "path";
 import url from "url";
 import { reactive } from "vue";
 
-import defaultMapImage from "!/images/default-minimap.png";
 import { PrDownloaderAPI } from "@/api/content/pr-downloader";
+import defaultMapImage from "@/assets/images/default-minimap.png";
 import { parseMap as parseMapWorkerFunction } from "@/workers/parse-map";
 import { hookWorkerFunction } from "@/workers/worker-helpers";
 import type { MapData } from "$/model/map-data";
@@ -17,7 +17,7 @@ export class MapContentAPI extends PrDownloaderAPI {
     protected readonly mapsDir = path.join(api.info.contentPath, "maps");
     protected readonly mapImagesDir = path.join(api.info.contentPath, "map-images");
     protected readonly path7za = path.join(api.info.resourcesPath, process.platform === "win32" ? "7za.exe" : "7za");
-    protected readonly parseMap = hookWorkerFunction(new Worker(new URL(`../../workers/parse-map.ts`, import.meta.url), { type: "module" }), parseMapWorkerFunction);
+    protected readonly parseMap = hookWorkerFunction(new Worker(new URL("../../workers/parse-map.ts", import.meta.url), { type: "module" }), parseMapWorkerFunction);
     protected readonly mapCacheQueue: Set<string> = reactive(new Set());
     protected cachingMaps = false;
 

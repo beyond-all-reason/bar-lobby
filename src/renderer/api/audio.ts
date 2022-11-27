@@ -23,12 +23,12 @@ export class AudioAPI {
             return this;
         }
 
-        const audioFiles = import.meta.glob("../../assets/audio/**/*");
+        const audioFiles = import.meta.glob("@/assets/audio/**/*", { as: "url" });
 
         for (const filePath in audioFiles) {
             const isMusic = filePath.includes("music");
             const key = path.parse(filePath).name;
-            const src = ((await audioFiles[filePath]()) as any).default;
+            const src = await audioFiles[filePath]();
             const volume = isMusic ? api.settings.model.musicVolume.value / 100 : api.settings.model.sfxVolume.value / 100;
 
             const sound = new Sound(key, isMusic, { src, volume });

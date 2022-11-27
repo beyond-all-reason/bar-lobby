@@ -18,7 +18,7 @@ const videoSrc = ref("");
 
 onMounted(async () => {
     const videoPaths: string[] = [];
-    const videoModules = import.meta.glob("../../../assets/videos/**/*");
+    const videoModules = import.meta.glob("@/assets/videos/**/*");
     for (const key in videoModules) {
         const videoModule = (await videoModules[key]()) as any;
         videoPaths.push(videoModule.default);

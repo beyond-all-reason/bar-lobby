@@ -8,16 +8,9 @@ if (process.env.VITE_APP_VERSION === undefined) {
  * @see https://www.electron.build/configuration/configuration
  */
 const config = {
-    files: [
-        "!**/.vscode/*",
-        "!src/*",
-        "!electron.vite.config.{js,ts,mjs,cjs}",
-        "!{.eslintignore,.eslintrc.cjs,.prettierignore,.prettierrc.yaml,dev-app-update.yml,CHANGELOG.md,README.md}",
-        "!{tsconfig.json,tsconfig.node.json,tsconfig.web.json}",
-    ],
+    files: ["out/main", "out/renderer", "node_modules/better-sqlite3"],
     asarUnpack: ["**/*.{node,dll}"],
     directories: {
-        output: "dist",
         buildResources: "buildResources",
     },
     appId: "beyond-all-reason",

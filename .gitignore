@@ -40,3 +40,4 @@ thumbs.db
 .browserslistrc
 .electron-vendors.cache.json
 /out
+/tsconfig.node.tsbuildinfo

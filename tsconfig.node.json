@@ -9,10 +9,12 @@
     "composite": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
+    "baseUrl": ".",
     "paths": {
       "@/*": ["src/main/*"],
       "$/*": ["src/common/*"]
     },
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "noEmit": true
   }
 }

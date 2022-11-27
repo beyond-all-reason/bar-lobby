@@ -17,27 +17,27 @@ const totalFiles = ref(0);
 const loadedFiles = ref(0);
 const loadedPercent = computed(() => loadedFiles.value / totalFiles.value);
 
-const imageFiles = import.meta.glob("../../../assets/images/**/*");
-const fontFiles = import.meta.glob("../../../assets/fonts/**/*");
+const imageFiles = import.meta.glob("@/assets/images/**/*", { as: "url" });
+const fontFiles = import.meta.glob("@/assets/fonts/*", { as: "url" });
 
 // totalFiles.value = imageFiles.length + fontFiles.length;
 
 onMounted(async () => {
     const randomImageFileKey = randomFromArray(Object.keys(imageFiles).filter((key) => key.includes("backgrounds")))!;
-    const randomImageFile = ((await imageFiles[randomImageFileKey]()) as any).default;
+    const randomImageFile = await imageFiles[randomImageFileKey]();
     document.documentElement.style.setProperty("--background", `url(${randomImageFile})`);
 
     const loadedImages: string[] = [];
 
     for (const imageFile in imageFiles) {
-        const resolvedUrl = ((await imageFiles[imageFile]()) as any).default;
+        const resolvedUrl = await imageFiles[imageFile]();
         const image = await loadImage(resolvedUrl);
         loadedImages.push(image);
         loadedFiles.value++;
     }
 
     for (const fontFile in fontFiles) {
-        const resolvedUrl = ((await fontFiles[fontFile]()) as any).default;
+        const resolvedUrl = await fontFiles[fontFile]();
         await loadFont(resolvedUrl);
         loadedFiles.value++;
     }
@@ -46,10 +46,8 @@ onMounted(async () => {
 });
 
 async function loadFont(url: string) {
-    const fileName = path.parse(url).name;
-    const family = path.parse(path.parse(url).dir).name;
-    const [weight, style] = fileName.split("-");
-
+    const fileName = path.parse(url).name.split(".")[0];
+    const [family, weight, style] = fileName.split("-");
     const font = new FontFace(family, `url(${url})`, { weight, style });
     document.fonts.add(font);
     return font.load();
