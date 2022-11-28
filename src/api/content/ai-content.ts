@@ -1,14 +1,14 @@
 import * as fs from "fs";
 import * as glob from "glob-promise";
+import { clone } from "jaz-ts-utils";
 import * as path from "path";
 import { reactive } from "vue";
 
 import { AbstractContentAPI } from "@/api/content/abstract-content";
 import type { EngineAI } from "@/model/ai";
+import { gameAis } from "@/model/ai";
 import { parseLuaOptions } from "@/utils/parse-lua-options";
 import { parseLuaTable } from "@/utils/parse-lua-table";
-import { gameAis } from "@/model/ai";
-import { clone } from "jaz-ts-utils";
 
 export class AiContentAPI extends AbstractContentAPI {
     protected readonly installedAis: Record<string, EngineAI[]> = reactive({});

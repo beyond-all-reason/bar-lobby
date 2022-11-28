@@ -23,10 +23,10 @@ import { Ref, ref } from "vue";
 
 import LuaOptionsModal from "@/components/battle/LuaOptionsModal.vue";
 import ContextMenu, { ContextMenuEntry } from "@/components/common/ContextMenu.vue";
+import { getAiFriendlyName } from "@/model/ai";
 import { AbstractBattle } from "@/model/battle/abstract-battle";
 import { Bot } from "@/model/battle/types";
 import { LuaOptionSection } from "@/model/lua-options";
-import { getAiFriendlyName } from "@/model/ai";
 
 const props = defineProps<{
     battle: AbstractBattle;

@@ -2,13 +2,14 @@
     <div class="playerlist" :class="{ dragging: draggedParticipant !== null }">
         <AddBotModal
             v-model="botListOpen"
-            :engine-version="battle.battleOptions.engineVersion"
-            :team-id="botModalTeamId"
+            :engineVersion="battle.battleOptions.engineVersion"
+            :teamId="botModalTeamId"
             title="Add Bot"
             @bot-selected="onBotSelected" />
         <TeamComponent
-            v-for="[teamId, name] in sortedTeams"
-            :team-id="teamId"
+            v-for="[teamId] in sortedTeams"
+            :key="teamId"
+            :teamId="teamId"
             :battle="battle"
             :me="me"
             @add-bot-clicked="openBotList"
@@ -23,14 +24,14 @@
 
 <script lang="ts" setup>
 import { randomFromArray } from "jaz-ts-utils";
-import { computed, ComputedRef, Ref, ref } from "vue";
+import { computed, Ref, ref } from "vue";
 
+import AddBotModal from "@/components/battle/AddBotModal.vue";
+import TeamComponent from "@/components/battle/TeamComponent.vue";
 import { aiNames } from "@/config/ai-names";
 import { AbstractBattle } from "@/model/battle/abstract-battle";
 import { Bot, Faction } from "@/model/battle/types";
 import { CurrentUser, User } from "@/model/user";
-import AddBotModal from "@/components/battle/AddBotModal.vue";
-import TeamComponent from "@/components/battle/TeamComponent.vue";
 
 const props = defineProps<{
     battle: AbstractBattle;
@@ -45,10 +46,6 @@ const sortedTeams = computed(() => {
     teams.set(-1, props.battle.spectators.value); // Spectators
     return teams;
 });
-
-// This data is improperly cached, I'm unsure of the ideal way to fix it. I force it to refetch
-const engine = props.battle.battleOptions.engineVersion;
-await api.content.ai.processAis(engine);
 
 const openBotList = (teamId: number) => {
     botModalTeamId.value = teamId;

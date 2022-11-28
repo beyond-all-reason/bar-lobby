@@ -9,10 +9,9 @@
     >
         <div class="flex-row flex-center-items gap-md">
             <div class="title">{{ title }}</div>
-            <div class="member-count" v-if="memberCount > 0">({{ memberCount }} Members)</div>
-            <Button class="slim" v-if="!isSpectator" @click="addBotClicked(teamId)"> Add bot </Button>
-
-            <Button class="slim" v-if="showJoin" @click="onJoinClicked(teamId)"> Join </Button>
+            <div v-if="memberCount > 0" class="member-count">({{ memberCount }} Members)</div>
+            <Button v-if="!isSpectator" class="slim" @click="addBotClicked(teamId)"> Add bot </Button>
+            <Button v-if="showJoin" class="slim" @click="onJoinClicked(teamId)"> Join </Button>
         </div>
         <div class="participants">
             <div
@@ -36,18 +35,14 @@ import BotParticipant from "@/components/battle/BotParticipant.vue";
 import PlayerParticipant from "@/components/battle/PlayerParticipant.vue";
 import Button from "@/components/controls/Button.vue";
 import { AbstractBattle } from "@/model/battle/abstract-battle";
-import { CurrentUser, User } from "@/model/user";
 import { Bot } from "@/model/battle/types";
+import { CurrentUser, User } from "@/model/user";
 
 const props = defineProps<{
     battle: AbstractBattle;
     teamId: number;
     me: CurrentUser;
 }>();
-
-// This data is improperly cached, I'm unsure of the ideal way to fix it. I force it to refetch
-const engine = props.battle.battleOptions.engineVersion;
-await api.content.ai.processAis(engine);
 
 const isSpectator = computed(() => {
     return props.teamId < 0;
