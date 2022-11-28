@@ -79,11 +79,12 @@ const addBot = (bot: string, teamId: number) => {
 };
 
 const joinTeam = (teamId: number) => {
-    if (props.me.battleStatus.isSpectator && teamId !== undefined) {
+    const playerIsSpectator = props.me.battleStatus.isSpectator;
+    if (playerIsSpectator && teamId >= 0) {
         props.battle.spectatorToPlayer(props.me, teamId);
-    } else if (!props.me.battleStatus.isSpectator && (teamId === undefined || teamId < 0)) {
+    } else if (!playerIsSpectator && teamId < 0) {
         props.battle.playerToSpectator(props.me);
-    } else if (!props.me.battleStatus.isSpectator && teamId !== undefined) {
+    } else if (!playerIsSpectator && teamId >= 0) {
         props.battle.setContenderTeam(props.me, teamId);
     }
 };
@@ -91,7 +92,7 @@ const joinTeam = (teamId: number) => {
 let draggedParticipant: Ref<User | Bot | null> = ref(null);
 let draggedEl: Element | null = null;
 
-const dragEnter = (event: DragEvent) => {
+const dragEnter = (event: DragEvent, teamId: number) => {
     if (!draggedParticipant.value) {
         return;
     }
@@ -101,10 +102,24 @@ const dragEnter = (event: DragEvent) => {
     if (draggedEl && groupEl) {
         document.querySelectorAll("[data-type=group]").forEach((el) => {
             el.classList.remove("highlight");
+            el.classList.remove("highlight-error");
         });
     }
+    // this is a little verbose, but previous syntax was very hard to read
+    const playerMember = draggedParticipant.value as User;
+    const botMember = draggedParticipant.value as Bot;
+    const isPlayer = 'battleStatus' in playerMember;
+    const isBot = 'teamId' in botMember;
+    const isSpectator = isPlayer && playerMember.battleStatus.isSpectator;
+    const memberTeamId = playerMember?.battleStatus?.teamId ?? botMember.teamId;
+
+    const invalidMove =
+        (isBot && teamId < 0)
+        || (isSpectator && teamId < 0)
+        || (memberTeamId === teamId && !isSpectator);
+
     if (groupEl) {
-        groupEl.classList.add("highlight");
+        invalidMove ? groupEl.classList.add("highlight-error") : groupEl.classList.add("highlight")
     }
 };
 
@@ -127,12 +142,12 @@ const dragEnd = () => {
 
     document.querySelectorAll("[data-type=group]").forEach((el) => {
         el.classList.remove("highlight");
+        el.classList.remove("highlight-error");
     });
 };
 
 const onDrop = (event: DragEvent, teamId: number) => {
     const target = event.target as Element;
-    console.log('ondrop, drag participant, teamid', draggedParticipant.value, teamId);
     if(!draggedParticipant.value || target.getAttribute("data-type") !== "group") {
         return;
     }
@@ -147,7 +162,7 @@ const onDrop = (event: DragEvent, teamId: number) => {
             props.battle.spectatorToPlayer(draggedParticipant.value as User, teamId);
         }
     } else {
-        // spectate
+        // move to spectate
         if(isPlayer && !playerIsSpectator) {
             props.battle.playerToSpectator(draggedParticipant.value as User);
         }
@@ -184,6 +199,16 @@ const onDrop = (event: DragEvent, teamId: number) => {
             left: -5px;
             top: -5px;
             background: rgba(255, 255, 255, 0.1);
+        }
+    }
+    &.highlight-error {
+        &:before {
+            @extend .fullsize;
+            width: calc(100% + 10px);
+            height: calc(100%);
+            left: -5px;
+            top: -5px;
+            background: rgba(255, 100, 100, 0.1);
         }
     }
 }

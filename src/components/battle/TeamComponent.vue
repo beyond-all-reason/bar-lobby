@@ -3,7 +3,7 @@
         :key="`team${teamId}`"
         class="group"
         data-type="group"
-        @dragenter.prevent="onDragEnter($event)"
+        @dragenter.prevent="onDragEnter($event, teamId)"
         @dragover.prevent
         @drop="onDrop($event, teamId)"
     >
@@ -100,8 +100,8 @@ function onDragEnd() {
     emit("onDragEnd");
 }
 
-function onDragEnter(event: DragEvent) {
-    emit("onDragEnter", event);
+function onDragEnter(event: DragEvent, teamId: number) {
+    emit("onDragEnter", event, teamId);
 }
 
 function onDrop(event: DragEvent, teamId: number) {
