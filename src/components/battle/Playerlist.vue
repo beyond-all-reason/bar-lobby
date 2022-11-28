@@ -1,12 +1,12 @@
 <template>
+    <AddBotModal
+        v-model="botListOpen"
+        :engineVersion="battle.battleOptions.engineVersion"
+        :teamId="botModalTeamId"
+        title="Add Bot"
+        @bot-selected="onBotSelected"
+    />
     <div class="playerlist" :class="{ dragging: draggedParticipant !== null }">
-        <AddBotModal
-            v-model="botListOpen"
-            :engineVersion="battle.battleOptions.engineVersion"
-            :teamId="botModalTeamId"
-            title="Add Bot"
-            @bot-selected="onBotSelected"
-        />
         <TeamComponent
             v-for="[teamId] in sortedTeams"
             :key="teamId"
@@ -174,46 +174,5 @@ const onDrop = (event: DragEvent, teamId: number) => {
     &.dragging .group > * {
         pointer-events: none;
     }
-}
-.group {
-    position: relative;
-    &:not(:last-child):after {
-        content: "";
-        display: flex;
-        background: rgba(255, 255, 255, 0.1);
-        width: 100%;
-        height: 1px;
-        margin: 10px 0;
-    }
-    &.highlight {
-        &:before {
-            @extend .fullsize;
-            width: calc(100% + 10px);
-            height: calc(100%);
-            left: -5px;
-            top: -5px;
-            background: rgba(255, 255, 255, 0.1);
-        }
-    }
-    &.highlight-error {
-        &:before {
-            @extend .fullsize;
-            width: calc(100% + 10px);
-            height: calc(100%);
-            left: -5px;
-            top: -5px;
-            background: rgba(255, 100, 100, 0.1);
-        }
-    }
-}
-.title {
-    font-size: 26px;
-}
-.participants {
-    display: flex;
-    flex-direction: row;
-    gap: 5px;
-    flex-wrap: wrap;
-    margin-top: 5px;
 }
 </style>

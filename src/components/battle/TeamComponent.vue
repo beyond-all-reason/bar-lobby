@@ -17,7 +17,7 @@
             <div
                 v-for="(member, memberIndex) in members"
                 :key="`member${memberIndex}`"
-                draggable
+                draggable="true"
                 @dragstart="onDragStart($event, member)"
                 @dragend="onDragEnd()"
             >
@@ -94,15 +94,6 @@ function onDrop(event: DragEvent, teamId: number) {
 </script>
 
 <style lang="scss" scoped>
-.playerlist {
-    display: flex;
-    flex-direction: column;
-    overflow-y: auto;
-    padding-right: 5px;
-    &.dragging .group > * {
-        pointer-events: none;
-    }
-}
 .group {
     position: relative;
     &:not(:last-child):after {
@@ -121,6 +112,16 @@ function onDrop(event: DragEvent, teamId: number) {
             left: -5px;
             top: -5px;
             background: rgba(255, 255, 255, 0.1);
+        }
+    }
+    &.highlight-error {
+        &:before {
+            @extend .fullsize;
+            width: calc(100% + 10px);
+            height: calc(100%);
+            left: -5px;
+            top: -5px;
+            background: rgba(255, 100, 100, 0.1);
         }
     }
 }
