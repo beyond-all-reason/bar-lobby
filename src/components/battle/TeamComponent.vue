@@ -7,8 +7,9 @@
         @dragover.prevent
         @drop="onDrop($event, teamId)"
     >
-        <div class="flex-row gap-md">
+        <div class="flex-row flex-center-items gap-md">
             <div class="title">{{title}}</div>
+            <div class="member-count">({{memberCount}} Members)</div>
             <Button
                 class="slim"
                 v-if="!isSpectator"
@@ -37,7 +38,7 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, Ref, ref } from "vue";
+import { computed } from "vue";
 
 import BotParticipant from "@/components/battle/BotParticipant.vue";
 import PlayerParticipant from "@/components/battle/PlayerParticipant.vue";
@@ -73,6 +74,11 @@ const showJoin = computed(() => {
     const listIsSpectator = props.teamId < 0;
 
     return playerTeam !== listTeam || (listIsSpectator && !playerIsSpectator);
+})
+const memberCount = computed(() => {
+    return isSpectator.value
+        ? props.battle.spectators.value.length
+        : props.battle.teams.value.get(props.teamId)?.length ?? 0;
 })
 
 const emit = defineEmits([
@@ -144,6 +150,12 @@ function onDrop(event: DragEvent, teamId: number) {
 }
 .title {
     font-size: 26px;
+}
+.member-count {
+    display: inline-block;
+    font-size: 20px;
+    opacity: 0.5;
+    vertical-align: middle;
 }
 .participants {
     display: flex;
