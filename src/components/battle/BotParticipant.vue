@@ -2,9 +2,16 @@
     <ContextMenu :entries="getActions(bot)" :args="[bot]">
         <div class="participant" data-type="participant" @mouseenter.stop="onMouseEnter">
             <Icon :icon="robot" :height="16" />
-            <div>[{{getAiFriendlyName(props.bot.aiShortName)}}] {{  props.bot.name }}</div>
+            <div>[{{ getAiFriendlyName(props.bot.aiShortName) }}] {{ props.bot.name }}</div>
         </div>
-        <LuaOptionsModal :id="`configure-bot-${bot.name}`" v-model="aiOptionsOpen" :luaOptions="bot.aiOptions" title="Configure Bot" :sections="aiOptions" @set-options="setBotOptions" />
+        <LuaOptionsModal
+            :id="`configure-bot-${bot.name}`"
+            v-model="aiOptionsOpen"
+            :luaOptions="bot.aiOptions"
+            title="Configure Bot"
+            :sections="aiOptions"
+            @set-options="setBotOptions"
+        />
     </ContextMenu>
 </template>
 
@@ -33,8 +40,8 @@ const kickAi = (bot: Bot) => {
 };
 
 const configureAi = async (bot: Bot) => {
-    const engine = props.battle.battleOptions.engineVersion
-    const ai = api.content.ai.getEngineAI(bot.aiShortName, engine)
+    const engine = props.battle.battleOptions.engineVersion;
+    const ai = api.content.ai.getEngineAI(bot.aiShortName, engine);
     if (ai) {
         aiOptions.value = ai.options;
         aiOptionsOpen.value = true;
@@ -47,11 +54,11 @@ const setBotOptions = (options: Record<string, unknown>) => {
 
 function getActions(bot: Bot): ContextMenuEntry[] {
     const kickAction = { label: "Kick", action: kickAi };
-    const configureAction = { label: "Configure", action: configureAi }
-    const engine = props.battle.battleOptions.engineVersion
-    const ai = api.content.ai.getEngineAI(bot.aiShortName, engine)
-    if(ai) {
-        return [kickAction, configureAction] as ContextMenuEntry[]
+    const configureAction = { label: "Configure", action: configureAi };
+    const engine = props.battle.battleOptions.engineVersion;
+    const ai = api.content.ai.getEngineAI(bot.aiShortName, engine);
+    if (ai) {
+        return [kickAction, configureAction] as ContextMenuEntry[];
     }
     return [kickAction] as ContextMenuEntry[];
 }

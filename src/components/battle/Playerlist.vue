@@ -5,8 +5,7 @@
             :engine-version="battle.battleOptions.engineVersion"
             :team-id="botModalTeamId"
             title="Add Bot"
-            @bot-selected="onBotSelected"
-        />
+            @bot-selected="onBotSelected" />
         <TeamComponent
             v-for="[teamId, name] in sortedTeams"
             :team-id="teamId"
@@ -48,18 +47,18 @@ const sortedTeams = computed(() => {
 });
 
 // This data is improperly cached, I'm unsure of the ideal way to fix it. I force it to refetch
-const engine = props.battle.battleOptions.engineVersion
+const engine = props.battle.battleOptions.engineVersion;
 await api.content.ai.processAis(engine);
 
 const openBotList = (teamId: number) => {
     botModalTeamId.value = teamId;
     botListOpen.value = true;
-}
+};
 
 const onBotSelected = (bot: string, teamId: number) => {
     botListOpen.value = false;
     addBot(bot, teamId);
-}
+};
 
 const addBot = (bot: string, teamId: number) => {
     let randomName = randomFromArray(aiNames);
@@ -108,18 +107,15 @@ const dragEnter = (event: DragEvent, teamId: number) => {
     // this is a little verbose, but previous syntax was very hard to read
     const playerMember = draggedParticipant.value as User;
     const botMember = draggedParticipant.value as Bot;
-    const isPlayer = 'battleStatus' in playerMember;
-    const isBot = 'teamId' in botMember;
+    const isPlayer = "battleStatus" in playerMember;
+    const isBot = "teamId" in botMember;
     const isSpectator = isPlayer && playerMember.battleStatus.isSpectator;
     const memberTeamId = playerMember?.battleStatus?.teamId ?? botMember.teamId;
 
-    const invalidMove =
-        (isBot && teamId < 0)
-        || (isSpectator && teamId < 0)
-        || (memberTeamId === teamId && !isSpectator);
+    const invalidMove = (isBot && teamId < 0) || (isSpectator && teamId < 0) || (memberTeamId === teamId && !isSpectator);
 
     if (groupEl) {
-        invalidMove ? groupEl.classList.add("highlight-error") : groupEl.classList.add("highlight")
+        invalidMove ? groupEl.classList.add("highlight-error") : groupEl.classList.add("highlight");
     }
 };
 
@@ -148,26 +144,26 @@ const dragEnd = () => {
 
 const onDrop = (event: DragEvent, teamId: number) => {
     const target = event.target as Element;
-    if(!draggedParticipant.value || target.getAttribute("data-type") !== "group") {
+    if (!draggedParticipant.value || target.getAttribute("data-type") !== "group") {
         return;
     }
-    const isPlayer = "userId" in draggedParticipant.value;
-    const playerIsSpectator = isPlayer ? (draggedParticipant.value as User).battleStatus.isSpectator : false;
+    const playerMember = draggedParticipant.value as User;
+    const isPlayer = "battleStatus" in playerMember;
+    const isSpectator = isPlayer && playerMember.battleStatus.isSpectator;
 
     if (teamId >= 0) {
         // move to team
-        if(isPlayer && !playerIsSpectator || !isPlayer) {
+        if ((isPlayer && !isSpectator) || !isPlayer) {
             props.battle.setContenderTeam(draggedParticipant.value, teamId);
-        } else if (isPlayer && playerIsSpectator) {
-            props.battle.spectatorToPlayer(draggedParticipant.value as User, teamId);
+        } else if (isPlayer && isSpectator) {
+            props.battle.spectatorToPlayer(playerMember, teamId);
         }
     } else {
         // move to spectate
-        if(isPlayer && !playerIsSpectator) {
-            props.battle.playerToSpectator(draggedParticipant.value as User);
+        if (isPlayer && !isSpectator) {
+            props.battle.playerToSpectator(playerMember);
         }
     }
-
 };
 </script>
 

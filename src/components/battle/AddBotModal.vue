@@ -1,13 +1,7 @@
 <template>
     <Modal title="Add Bot">
         <div class="gap-md container">
-            <Button class="ai-button"
-                    v-tooltip.bottom="{value: getAiDescription(ai)}"
-                    v-for="(ai, i) in ais"
-                    :key="i"
-                    @click="addBot(ai)"
-
-            >
+            <Button class="ai-button" v-tooltip.bottom="{ value: getAiDescription(ai) }" v-for="(ai, i) in ais" :key="i" @click="addBot(ai)">
                 {{ getAiFriendlyName(ai) }}
             </Button>
         </div>
