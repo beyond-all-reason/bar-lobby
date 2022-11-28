@@ -43,7 +43,7 @@ export class AiContentAPI extends AbstractContentAPI {
     }
 
     public getEngineAI(name: string, engine: string): EngineAI | undefined {
-        return this.installedAis[engine].find((ai) => ai.shortName === name);
+        return this.installedAis[engine]?.find((ai) => ai.shortName === name);
     }
 
     protected async fetchAi(aiDirPath: string): Promise<EngineAI> {
