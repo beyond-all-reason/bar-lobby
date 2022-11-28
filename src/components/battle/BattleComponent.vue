@@ -109,7 +109,13 @@
             />
             <div class="flex-row flex-bottom gap-md">
                 <Button class="red fullwidth" @click="leave"> Leave </Button>
-                <Button v-if="!isOfflineBattle" class="fullwidth" :class="{ gray: !me.battleStatus.ready, green: me.battleStatus.ready }" :disabled="me.battleStatus.isSpectator" @click="toggleReady">
+                <Button
+                    v-if="!isOfflineBattle"
+                    class="fullwidth"
+                    :class="{ gray: !me.battleStatus.ready, green: me.battleStatus.ready }"
+                    :disabled="me.battleStatus.isSpectator"
+                    @click="toggleReady"
+                >
                     Ready
                 </Button>
                 <Button class="green fullwidth" :disabled="isGameRunning" @click="start">

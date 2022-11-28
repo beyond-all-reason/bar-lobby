@@ -5,7 +5,8 @@
             :engineVersion="battle.battleOptions.engineVersion"
             :teamId="botModalTeamId"
             title="Add Bot"
-            @bot-selected="onBotSelected" />
+            @bot-selected="onBotSelected"
+        />
         <TeamComponent
             v-for="[teamId] in sortedTeams"
             :key="teamId"

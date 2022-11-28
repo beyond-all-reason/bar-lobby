@@ -21,8 +21,16 @@
                                     :step="option.step"
                                     @update:model-value="(value: any) => setOptionValue(option, value)"
                                 />
-                                <Checkbox v-if="option.type === 'boolean'" :modelValue="options[option.key] ?? option.default" @update:model-value="(value) => setOptionValue(option, value)" />
-                                <Textbox v-if="option.type === 'string'" :modelValue="options[option.key] ?? option.default" @update:model-value="(value) => setOptionValue(option, value)" />
+                                <Checkbox
+                                    v-if="option.type === 'boolean'"
+                                    :modelValue="options[option.key] ?? option.default"
+                                    @update:model-value="(value) => setOptionValue(option, value)"
+                                />
+                                <Textbox
+                                    v-if="option.type === 'string'"
+                                    :modelValue="options[option.key] ?? option.default"
+                                    @update:model-value="(value) => setOptionValue(option, value)"
+                                />
                                 <Select
                                     v-if="option.type === 'list'"
                                     :modelValue="options[option.key] ?? option.default"

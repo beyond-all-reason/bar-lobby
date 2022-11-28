@@ -2,7 +2,7 @@
     <ContextMenu :entries="getActions(bot)" :args="[bot]">
         <div class="participant" data-type="participant" @mouseenter.stop="onMouseEnter">
             <Icon :icon="robot" :height="16" />
-            <div class="bot-type">[{{ getAiFriendlyName(props.bot.aiShortName) }}] </div>
+            <div class="bot-type">[{{ getAiFriendlyName(props.bot.aiShortName) }}]</div>
             <div>{{ props.bot.name }}</div>
         </div>
         <LuaOptionsModal
@@ -41,9 +41,9 @@ const kickAi = (bot: Bot) => {
 };
 
 const configureAi = async (bot: Bot) => {
-    const engine = props.battle.battleOptions.engineVersion
+    const engine = props.battle.battleOptions.engineVersion;
     await api.content.ai.processAis(engine);
-    const ai = api.content.ai.getEngineAI(bot.aiShortName, engine)
+    const ai = api.content.ai.getEngineAI(bot.aiShortName, engine);
     if (ai) {
         aiOptions.value = ai.options;
         aiOptionsOpen.value = true;
