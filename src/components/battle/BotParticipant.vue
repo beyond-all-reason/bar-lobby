@@ -2,7 +2,8 @@
     <ContextMenu :entries="getActions(bot)" :args="[bot]">
         <div class="participant" data-type="participant" @mouseenter.stop="onMouseEnter">
             <Icon :icon="robot" :height="16" />
-            <div>[{{ getAiFriendlyName(props.bot.aiShortName) }}] {{ props.bot.name }}</div>
+            <div class="bot-type">[{{ getAiFriendlyName(props.bot.aiShortName) }}] </div>
+            <div>{{ props.bot.name }}</div>
         </div>
         <LuaOptionsModal
             :id="`configure-bot-${bot.name}`"
@@ -85,5 +86,8 @@ const onMouseEnter = () => {
     &:hover {
         background: rgba(255, 255, 255, 0.1);
     }
+}
+.bot-type {
+    opacity: 0.5;
 }
 </style>
