@@ -9,7 +9,7 @@
     >
         <div class="flex-row flex-center-items gap-md">
             <div class="title">{{ title }}</div>
-            <div class="member-count">({{ memberCount }} Members)</div>
+            <div class="member-count" v-if="memberCount > 0">({{ memberCount }} Members)</div>
             <Button class="slim" v-if="!isSpectator" @click="addBotClicked(teamId)"> Add bot </Button>
 
             <Button class="slim" v-if="showJoin" @click="onJoinClicked(teamId)"> Join </Button>
