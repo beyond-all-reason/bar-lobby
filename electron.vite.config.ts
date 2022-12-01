@@ -40,6 +40,7 @@ export default defineConfig({
             rollupOptions: {
                 external: ["better-sqlite3"],
             },
+            sourcemap: true,
         },
         optimizeDeps: {
             esbuildOptions: {

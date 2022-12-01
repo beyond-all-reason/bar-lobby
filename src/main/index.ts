@@ -96,7 +96,7 @@ export class Application {
     }
 
     protected getInfo() {
-        const resourcesPath = process.env.NODE_ENV === "production" ? process.resourcesPath : path.join(this.app.getAppPath(), "resources");
+        const resourcesPath = path.join(this.app.getAppPath(), "resources");
         const paths = envPaths(app.getName(), { suffix: "" });
 
         const displayIds = screen.getAllDisplays().map((display) => display.id);

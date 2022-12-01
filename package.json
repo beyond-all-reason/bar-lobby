@@ -10,8 +10,7 @@
   },
   "main": "./out/main/index.js",
   "scripts": {
-    "start": "electron-vite preview",
-    "dev": "electron-vite dev",
+    "dev": "electron-vite preview",
     "prebuild": "rimraf dist && electron-vite build",
     "build": "npm run compile",
     "compile": "electron-builder --config .electron-builder.config.js",
