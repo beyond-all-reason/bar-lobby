@@ -11,7 +11,7 @@
   "main": "./out/main/index.js",
   "scripts": {
     "dev": "electron-vite preview",
-    "build": "rimraf dist && electron-vite build",
+    "build": "cross-env NODE_OPTIONS='--max-old-space-size=8192' rimraf dist && electron-vite build",
     "compile": "electron-builder --config .electron-builder.config.js",
     "tidy": "npm run lint && npm run format",
     "lint-check": "eslint . --ext .ts,.vue",
