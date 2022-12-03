@@ -18,12 +18,22 @@
                     <Accordion :activeIndex="accordianActiveIndexes" multiple>
                         <AccordionTab v-if="outgoingFriendRequests.length" header="Outgoing Friend Requests">
                             <div class="user-list">
-                                <Friend v-for="(user, i) in outgoingFriendRequests" :key="`outgoingFriendRequest${i}`" :user="user" :type="'outgoing_request'" />
+                                <Friend
+                                    v-for="(user, i) in outgoingFriendRequests"
+                                    :key="`outgoingFriendRequest${i}`"
+                                    :user="user"
+                                    :type="'outgoing_request'"
+                                />
                             </div>
                         </AccordionTab>
                         <AccordionTab v-if="incomingFriendRequests.length" header="Incoming Friend Requests">
                             <div class="user-list">
-                                <Friend v-for="(user, i) in incomingFriendRequests" :key="`incomingFriendRequest${i}`" :user="user" :type="'incoming_request'" />
+                                <Friend
+                                    v-for="(user, i) in incomingFriendRequests"
+                                    :key="`incomingFriendRequest${i}`"
+                                    :user="user"
+                                    :type="'incoming_request'"
+                                />
                             </div>
                         </AccordionTab>
                         <AccordionTab v-if="onlineFriends.length" header="Online">

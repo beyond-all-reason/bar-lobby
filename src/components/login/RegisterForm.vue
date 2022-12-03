@@ -8,7 +8,14 @@
             <Textbox v-model="email" type="email" label="Email" required class="fullwidth" />
             <Textbox v-model="username" label="Username" required class="fullwidth" />
             <Textbox v-model="password" type="password" label="Password" required class="fullwidth" />
-            <Textbox v-model="confirmPassword" type="password" label="Confirm Password" :validation="validatePassword" required class="fullwidth" />
+            <Textbox
+                v-model="confirmPassword"
+                type="password"
+                label="Confirm Password"
+                :validation="validatePassword"
+                required
+                class="fullwidth"
+            />
             <Button type="submit" class="blue"> Register </Button>
         </form>
     </div>
@@ -39,7 +46,11 @@ const validatePassword = (value: string) => {
 const register = async () => {
     loading.value = true;
 
-    const registerResponse = await api.comms.request("c.auth.register", { email: email.value, username: username.value, password: password.value });
+    const registerResponse = await api.comms.request("c.auth.register", {
+        email: email.value,
+        username: username.value,
+        password: password.value,
+    });
 
     if (registerResponse.result === "success") {
         error.value = "";

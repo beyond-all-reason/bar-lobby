@@ -35,7 +35,7 @@ export abstract class AbstractBattle {
         this.bots = reactive(config.bots);
         this.users = shallowReactive(config.users); // users already reactive
 
-        this.participants = computed(() => [...this.bots, ...this.users]);
+        this.participants = computed(() => [...this.users, ...this.bots]);
         this.contenders = computed(() => this.participants.value.filter((participant) => ("userId" in participant ? !participant.battleStatus.isSpectator : true)));
         this.players = computed(() => this.users.filter((user) => !user.battleStatus.isSpectator));
         this.spectators = computed(() => this.users.filter((user) => user.battleStatus.isSpectator));

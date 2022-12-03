@@ -1,69 +1,34 @@
 <template>
+    <AddBotModal
+        v-model="botListOpen"
+        :engineVersion="battle.battleOptions.engineVersion"
+        :teamId="botModalTeamId"
+        title="Add Bot"
+        @bot-selected="onBotSelected"
+    />
     <div class="playerlist" :class="{ dragging: draggedParticipant !== null }">
-        <div
-            v-for="[teamId, contenders] in battle.teams.value"
-            :key="`team${teamId}`"
-            class="group"
-            data-type="group"
-            @dragenter.prevent="dragEnter($event, teamId)"
-            @dragover.prevent
-            @dragleave.prevent="dragLeave($event, teamId)"
-            @drop="onDrop($event, teamId)"
-        >
-            <div class="flex-row gap-md">
-                <div class="title">Team {{ teamId + 1 }} ({{ contenders.length }})</div>
-                <Button class="slim" :flexGrow="false" @click="addBot(teamId)"> Add bot </Button>
-                <Button v-if="me.battleStatus.isSpectator || me.battleStatus.teamId !== teamId" class="slim" @click="joinTeam(teamId)"> Join </Button>
-            </div>
-            <div class="participants">
-                <div v-for="(contender, contenderIndex) in contenders" :key="`contender${contenderIndex}`" draggable @dragstart="dragStart($event, contender)" @dragend="dragEnd($event, contender)">
-                    <PlayerParticipant v-if="'userId' in contender" :battle="battle" :player="contender" />
-                    <BotParticipant v-else :battle="battle" :bot="contender" />
-                </div>
-            </div>
-        </div>
-        <div
-            class="group"
-            data-type="group"
-            @dragenter.prevent="dragEnter($event, emptyTeamId)"
-            @dragover.prevent
-            @dragleave.prevent="dragLeave($event, emptyTeamId)"
-            @drop="onDrop($event, emptyTeamId)"
-        >
-            <div class="flex-row gap-md">
-                <div class="title">Team {{ emptyTeamId + 1 }}</div>
-                <Button class="slim" @click="addBot(emptyTeamId)"> Add bot </Button>
-                <Button class="slim" @click="joinTeam(emptyTeamId)"> Join </Button>
-            </div>
-        </div>
-        <div class="group" data-type="group" @dragenter.prevent="dragEnter($event)" @dragover.prevent @dragleave.prevent="dragLeave($event)" @drop="onDrop($event)">
-            <div class="flex-row gap-md">
-                <div class="title">Spectators ({{ battle.spectators.value.length }})</div>
-                <Button v-if="!me.battleStatus.isSpectator" class="slim" @click="joinTeam()"> Join </Button>
-            </div>
-            <div class="participants">
-                <div
-                    v-for="(spectator, spectatorIndex) in battle.spectators.value"
-                    :key="`spectator${spectatorIndex}`"
-                    draggable
-                    @dragstart="dragStart($event, spectator)"
-                    @dragend="dragEnd($event, spectator)"
-                >
-                    <PlayerParticipant :battle="battle" :player="spectator" />
-                </div>
-            </div>
-        </div>
+        <TeamComponent
+            v-for="[teamId] in sortedTeams"
+            :key="teamId"
+            :teamId="teamId"
+            :battle="battle"
+            :me="me"
+            @add-bot-clicked="openBotList"
+            @on-join-clicked="joinTeam"
+            @on-drag-start="dragStart"
+            @on-drag-end="dragEnd"
+            @on-drag-enter="dragEnter"
+            @on-drop="onDrop"
+        />
     </div>
 </template>
 
 <script lang="ts" setup>
-import { computed } from "@vue/reactivity";
 import { randomFromArray } from "jaz-ts-utils";
-import { Ref, ref } from "vue";
+import { computed, Ref, ref } from "vue";
 
-import BotParticipant from "@/components/battle/BotParticipant.vue";
-import PlayerParticipant from "@/components/battle/PlayerParticipant.vue";
-import Button from "@/components/controls/Button.vue";
+import AddBotModal from "@/components/battle/AddBotModal.vue";
+import TeamComponent from "@/components/battle/TeamComponent.vue";
 import { aiNames } from "@/config/ai-names";
 import { AbstractBattle } from "@/model/battle/abstract-battle";
 import { Bot, Faction } from "@/model/battle/types";
@@ -73,18 +38,27 @@ const props = defineProps<{
     battle: AbstractBattle;
     me: CurrentUser;
 }>();
+const botListOpen = ref(false);
+const botModalTeamId = ref(0);
 
-const emptyTeamId = computed(() => {
-    const teams = props.battle.teams.value;
-    for (let i = 0; i <= teams.size; i++) {
-        if (!teams.get(i)) {
-            return i;
-        }
-    }
-    return -1;
+const sortedTeams = computed(() => {
+    const teams = new Map(props.battle.teams.value);
+    teams.set(teams.size, []); // Empty team
+    teams.set(-1, props.battle.spectators.value); // Spectators
+    return teams;
 });
 
-const addBot = (teamId: number) => {
+const openBotList = (teamId: number) => {
+    botModalTeamId.value = teamId;
+    botListOpen.value = true;
+};
+
+const onBotSelected = (bot: string, teamId: number) => {
+    botListOpen.value = false;
+    addBot(bot, teamId);
+};
+
+const addBot = (bot: string, teamId: number) => {
     let randomName = randomFromArray(aiNames);
     while (props.battle.bots.some((bot) => bot.name === randomName)) {
         randomName = randomFromArray(aiNames);
@@ -94,19 +68,20 @@ const addBot = (teamId: number) => {
         playerId: props.battle.contenders.value.length,
         teamId,
         name: randomName!,
-        aiShortName: "BARb",
+        aiShortName: bot,
         faction: Faction.Armada,
         ownerUserId: props.me.userId,
         aiOptions: {},
     });
 };
 
-const joinTeam = (teamId?: number) => {
-    if (props.me.battleStatus.isSpectator && teamId !== undefined) {
+const joinTeam = (teamId: number) => {
+    const playerIsSpectator = props.me.battleStatus.isSpectator;
+    if (playerIsSpectator && teamId >= 0) {
         props.battle.spectatorToPlayer(props.me, teamId);
-    } else if (!props.me.battleStatus.isSpectator && teamId === undefined) {
+    } else if (!playerIsSpectator && teamId < 0) {
         props.battle.playerToSpectator(props.me);
-    } else if (!props.me.battleStatus.isSpectator && teamId !== undefined) {
+    } else if (!playerIsSpectator && teamId >= 0) {
         props.battle.setContenderTeam(props.me, teamId);
     }
 };
@@ -114,7 +89,7 @@ const joinTeam = (teamId?: number) => {
 let draggedParticipant: Ref<User | Bot | null> = ref(null);
 let draggedEl: Element | null = null;
 
-const dragEnter = (event: DragEvent, teamId?: number) => {
+const dragEnter = (event: DragEvent, teamId: number) => {
     if (!draggedParticipant.value) {
         return;
     }
@@ -124,37 +99,21 @@ const dragEnter = (event: DragEvent, teamId?: number) => {
     if (draggedEl && groupEl) {
         document.querySelectorAll("[data-type=group]").forEach((el) => {
             el.classList.remove("highlight");
+            el.classList.remove("highlight-error");
         });
     }
+    // this is a little verbose, but previous syntax was very hard to read
+    const playerMember = draggedParticipant.value as User;
+    const botMember = draggedParticipant.value as Bot;
+    const isPlayer = "battleStatus" in playerMember;
+    const isBot = "teamId" in botMember;
+    const isSpectator = isPlayer && playerMember.battleStatus.isSpectator;
+    const memberTeamId = playerMember?.battleStatus?.teamId ?? botMember.teamId;
 
-    const draggingContenderToOwnTeam =
-        ("userId" in draggedParticipant.value && !draggedParticipant.value.battleStatus.isSpectator && draggedParticipant.value.battleStatus.teamId === teamId) ||
-        (!("userId" in draggedParticipant.value) && draggedParticipant.value.teamId === teamId);
-    const draggingSpectatorToSpectator = "userId" in draggedParticipant.value && draggedParticipant.value.battleStatus.isSpectator && teamId === undefined;
-    const draggingBotToSpectator = !("userId" in draggedParticipant.value) && teamId === undefined;
-    if (draggingContenderToOwnTeam || draggingSpectatorToSpectator || draggingBotToSpectator) {
-        // TODO: disable drag cursor
-        return;
-    }
+    const invalidMove = (isBot && teamId < 0) || (isSpectator && teamId < 0) || (memberTeamId === teamId && !isSpectator);
 
     if (groupEl) {
-        groupEl.classList.add("highlight");
-    }
-};
-
-const dragLeave = (event: DragEvent, teamId?: number) => {
-    if (!draggedParticipant.value) {
-        return;
-    }
-
-    const draggingContenderToOwnTeam =
-        ("userId" in draggedParticipant.value && !draggedParticipant.value.battleStatus.isSpectator && draggedParticipant.value.battleStatus.teamId === teamId) ||
-        (!("userId" in draggedParticipant.value) && draggedParticipant.value.teamId === teamId);
-    const draggingSpectatorToSpectator = "userId" in draggedParticipant.value && draggedParticipant.value.battleStatus.isSpectator && teamId === undefined;
-    const draggingBotToSpectator = !("userId" in draggedParticipant.value) && teamId === undefined;
-    if (draggingContenderToOwnTeam || draggingSpectatorToSpectator || draggingBotToSpectator) {
-        // TODO: disable drag cursor
-        return;
+        invalidMove ? groupEl.classList.add("highlight-error") : groupEl.classList.add("highlight");
     }
 };
 
@@ -167,7 +126,7 @@ const dragStart = (event: DragEvent, participant: User | Bot) => {
     }
 };
 
-const dragEnd = (event: DragEvent, participant: User | Bot) => {
+const dragEnd = () => {
     const participantEl = draggedEl?.querySelector("[data-type=participant]");
     if (participantEl) {
         participantEl.classList.remove("dragging");
@@ -177,18 +136,30 @@ const dragEnd = (event: DragEvent, participant: User | Bot) => {
 
     document.querySelectorAll("[data-type=group]").forEach((el) => {
         el.classList.remove("highlight");
+        el.classList.remove("highlight-error");
     });
 };
 
-const onDrop = (event: DragEvent, teamId?: number) => {
+const onDrop = (event: DragEvent, teamId: number) => {
     const target = event.target as Element;
-    if (target.getAttribute("data-type") === "group" && draggedParticipant.value) {
-        if (teamId !== undefined && (("userId" in draggedParticipant.value && !draggedParticipant.value.battleStatus.isSpectator) || !("userId" in draggedParticipant.value))) {
+    if (!draggedParticipant.value || target.getAttribute("data-type") !== "group") {
+        return;
+    }
+    const playerMember = draggedParticipant.value as User;
+    const isPlayer = "battleStatus" in playerMember;
+    const isSpectator = isPlayer && playerMember.battleStatus.isSpectator;
+
+    if (teamId >= 0) {
+        // move to team
+        if ((isPlayer && !isSpectator) || !isPlayer) {
             props.battle.setContenderTeam(draggedParticipant.value, teamId);
-        } else if ("userId" in draggedParticipant.value && !draggedParticipant.value.battleStatus.isSpectator) {
-            props.battle.playerToSpectator(draggedParticipant.value);
-        } else if (teamId !== undefined && "userId" in draggedParticipant.value && draggedParticipant.value.battleStatus.isSpectator) {
-            props.battle.spectatorToPlayer(draggedParticipant.value, teamId);
+        } else if (isPlayer && isSpectator) {
+            props.battle.spectatorToPlayer(playerMember, teamId);
+        }
+    } else {
+        // move to spectate
+        if (isPlayer && !isSpectator) {
+            props.battle.playerToSpectator(playerMember);
         }
     }
 };
@@ -203,36 +174,5 @@ const onDrop = (event: DragEvent, teamId?: number) => {
     &.dragging .group > * {
         pointer-events: none;
     }
-}
-.group {
-    position: relative;
-    &:not(:last-child):after {
-        content: "";
-        display: flex;
-        background: rgba(255, 255, 255, 0.1);
-        width: 100%;
-        height: 1px;
-        margin: 10px 0;
-    }
-    &.highlight {
-        &:before {
-            @extend .fullsize;
-            width: calc(100% + 10px);
-            height: calc(100%);
-            left: -5px;
-            top: -5px;
-            background: rgba(255, 255, 255, 0.1);
-        }
-    }
-}
-.title {
-    font-size: 26px;
-}
-.participants {
-    display: flex;
-    flex-direction: row;
-    gap: 5px;
-    flex-wrap: wrap;
-    margin-top: 5px;
 }
 </style>
