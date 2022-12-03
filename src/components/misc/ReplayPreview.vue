@@ -1,13 +1,25 @@
 <template>
     <div class="flex-col gap-md">
-        <MapPreview :map="replay.mapScriptName" :isSpectator="true" :myTeamId="0" :startBoxes="startBoxes" :startPosType="startPosType" :startPositions="startPositions" />
+        <MapPreview
+            :map="replay.mapScriptName"
+            :isSpectator="true"
+            :myTeamId="0"
+            :startBoxes="startBoxes"
+            :startPosType="startPosType"
+            :startPositions="startPositions"
+        />
 
         <div v-if="replay.preset === 'ffa'">
             <div class="team-title">Players</div>
             <div class="contenders">
                 <template v-for="(contender, contenderIndex) in replay.contenders" :key="`contender${contenderIndex}`">
                     <ReplayParticipant :contender="contender" />
-                    <Icon v-if="replay.winningTeamId === contender.allyTeamId && showSpoilers" class="trophy" :icon="trophyVariant" height="18" />
+                    <Icon
+                        v-if="replay.winningTeamId === contender.allyTeamId && showSpoilers"
+                        class="trophy"
+                        :icon="trophyVariant"
+                        height="18"
+                    />
                 </template>
             </div>
         </div>
@@ -18,14 +30,22 @@
                 <Icon v-if="replay.winningTeamId === teamId && showSpoilers" class="trophy" :icon="trophyVariant" height="18" />
             </div>
             <div class="contenders">
-                <ReplayParticipant v-for="(contender, contenderIndex) in contenders" :key="`contender${contenderIndex}`" :contender="contender" />
+                <ReplayParticipant
+                    v-for="(contender, contenderIndex) in contenders"
+                    :key="`contender${contenderIndex}`"
+                    :contender="contender"
+                />
             </div>
         </div>
 
         <div v-if="replay.spectators.length">
             <div class="team-title">Spectators</div>
             <div class="contenders">
-                <ReplayParticipant v-for="(spectator, spectatorIndex) in replay.spectators" :key="`spectator${spectatorIndex}`" :contender="spectator" />
+                <ReplayParticipant
+                    v-for="(spectator, spectatorIndex) in replay.spectators"
+                    :key="`spectator${spectatorIndex}`"
+                    :contender="spectator"
+                />
             </div>
         </div>
 
