@@ -55,14 +55,14 @@ const setBotOptions = (options: Record<string, unknown>) => {
 };
 
 function getActions(bot: Bot): ContextMenuEntry[] {
-    const kickAction = { label: "Kick", action: kickAi };
-    const configureAction = { label: "Configure", action: configureAi };
+    const kickAction: ContextMenuEntry = { label: "Kick", action: kickAi };
+    const configureAction: ContextMenuEntry = { label: "Configure", action: configureAi };
     const engine = props.battle.battleOptions.engineVersion;
     const ai = api.content.ai.getEngineAI(bot.aiShortName, engine);
     if (ai) {
-        return [kickAction, configureAction] as ContextMenuEntry[];
+        return [kickAction, configureAction];
     }
-    return [kickAction] as ContextMenuEntry[];
+    return [kickAction];
 }
 
 const onMouseEnter = () => {
