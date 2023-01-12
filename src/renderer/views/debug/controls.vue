@@ -17,9 +17,31 @@
             <div class="value">{{ text }}</div>
         </div>
         <div class="flex-row gap-md flex-center-items">
-            <Select :modelValue="selection" :options="selections" optionLabel="name" optionValue="value" :placeholder="selection" @update:model-value="onUpdateSelection" />
-            <Select v-model="selection" :options="selections" label="Label" optionLabel="name" optionValue="value" :placeholder="selection" :filter="true" />
-            <Select v-model="selection" :options="selections" optionLabel="name" optionValue="value" :placeholder="selection" :disabled="true" />
+            <Select
+                :modelValue="selection"
+                :options="selections"
+                optionLabel="name"
+                optionValue="value"
+                :placeholder="selection"
+                @update:model-value="onUpdateSelection"
+            />
+            <Select
+                v-model="selection"
+                :options="selections"
+                label="Label"
+                optionLabel="name"
+                optionValue="value"
+                :placeholder="selection"
+                :filter="true"
+            />
+            <Select
+                v-model="selection"
+                :options="selections"
+                optionLabel="name"
+                optionValue="value"
+                :placeholder="selection"
+                :disabled="true"
+            />
             <div class="value">{{ selection }}</div>
         </div>
         <div class="flex-row gap-md flex-center-items">
@@ -42,7 +64,14 @@
         </div>
         <div class="flex-row">
             <Textbox v-model="text" />
-            <Select v-model="selection" :options="selections" optionLabel="name" optionValue="value" :placeholder="selection" :filter="true" />
+            <Select
+                v-model="selection"
+                :options="selections"
+                optionLabel="name"
+                optionValue="value"
+                :placeholder="selection"
+                :filter="true"
+            />
             <Range v-model="range" />
             <Checkbox v-model="checked" />
             <Options v-model="option" :options="options" />

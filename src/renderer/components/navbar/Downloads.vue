@@ -10,7 +10,11 @@
                         {{ download.type }}
                     </div>
                 </div>
-                <Progress :percent="download.currentBytes / download.totalBytes" :text="progressText(download.currentBytes, download.totalBytes)" themed />
+                <Progress
+                    :percent="download.currentBytes / download.totalBytes"
+                    :text="progressText(download.currentBytes, download.totalBytes)"
+                    themed
+                />
             </div>
         </div>
         <div v-else class="flex-row flex-grow flex-center">No downloads active</div>
@@ -27,7 +31,9 @@ const emits = defineEmits<{
     (e: "percentChange", newPercent: number): void;
 }>();
 
-const downloads = computed(() => api.content.engine.currentDownloads.concat(api.content.game.currentDownloads, api.content.maps.currentDownloads));
+const downloads = computed(() =>
+    api.content.engine.currentDownloads.concat(api.content.game.currentDownloads, api.content.maps.currentDownloads)
+);
 
 const progressText = (currentBytes: number, totalBytes: number) => {
     const percent = currentBytes / totalBytes;

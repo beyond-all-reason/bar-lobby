@@ -4,7 +4,14 @@
 
 <template>
     <div>
-        <Select :modelValue="selection" :options="selections" optionLabel="name" optionValue="value" :placeholder="selection" @update:model-value="onUpdateSelection" />
+        <Select
+            :modelValue="selection"
+            :options="selections"
+            optionLabel="name"
+            optionValue="value"
+            :placeholder="selection"
+            @update:model-value="onUpdateSelection"
+        />
     </div>
 </template>
 

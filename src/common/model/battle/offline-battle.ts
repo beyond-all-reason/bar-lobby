@@ -18,6 +18,7 @@ export class OfflineBattle extends AbstractBattle {
 
     public setEngine(engineVersion: string) {
         this.battleOptions.engineVersion = engineVersion;
+        api.content.ai.processAis(engineVersion);
     }
 
     public setGame(gameVersion: string) {

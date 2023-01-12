@@ -39,6 +39,5 @@ thumbs.db
 .eslintcache
 .browserslistrc
 .electron-vendors.cache.json
-/out
 /tsconfig.node.tsbuildinfo
 /tsconfig.web.tsbuildinfo

@@ -1,7 +1,14 @@
 <template>
     <Control class="range">
         <Slider ref="slider" v-bind="$attrs" :modelValue="modelValue" @update:model-value="onSlide" />
-        <InputNumber v-if="typeof modelValue === 'number'" :modelValue="modelValue" :step="props.step" :min="props.min" :max="props.max" @update:model-value="onInput" />
+        <InputNumber
+            v-if="typeof modelValue === 'number'"
+            :modelValue="modelValue"
+            :step="props.step"
+            :min="props.min"
+            :max="props.max"
+            @update:model-value="onInput"
+        />
     </Control>
 </template>
 

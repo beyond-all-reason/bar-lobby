@@ -99,7 +99,9 @@ const replayDataToPreview = (replayData: Replay): ReplayPreviewData => {
 
     const date = format(replayData.startTime, "yyyy/MM/dd hh:mm a"); // https://date-fns.org/v2.29.3/docs/format
     const durtationValues = intervalToDuration({ start: 0, end: replayData.gameDurationMs });
-    const duration = `${durtationValues.hours}:${durtationValues.minutes?.toString().padStart(2, "0")}:${durtationValues.seconds?.toString().padStart(2, "0")}`;
+    const duration = `${durtationValues.hours}:${durtationValues.minutes?.toString().padStart(2, "0")}:${durtationValues.seconds
+        ?.toString()
+        .padStart(2, "0")}`;
     const map = replayData.mapScriptName;
     const game = replayData.gameVersion;
     const engine = replayData.engineVersion;

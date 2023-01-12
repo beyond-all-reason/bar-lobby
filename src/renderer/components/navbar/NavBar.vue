@@ -78,9 +78,11 @@ const primaryRoutes = allRoutes
     .filter((r) => ["/singleplayer", "/multiplayer", "/library", "/learn", "/store", "/development"].includes(r.path))
     .sort((a, b) => (a.meta.order ?? 99) - (b.meta.order ?? 99));
 
-const secondaryRoutes = computed(() =>
-    allRoutes.filter((r) => r.meta.order !== undefined && r.path.startsWith(`/${api.router.currentRoute.value.path.split("/")[1]}/`)).sort((a, b) => (a.meta.order ?? 99) - (b.meta.order ?? 99))
-);
+const secondaryRoutes = computed(() => {
+    return allRoutes
+        .filter((r) => r.meta.order !== undefined && r.path.startsWith(`/${api.router.currentRoute.value.path.split("/")[1]}/`))
+        .sort((a, b) => (a.meta.order ?? 99) - (b.meta.order ?? 99));
+});
 
 const downloadsOpen = ref(false);
 const settingsOpen = inject("settingsOpen");
@@ -169,7 +171,8 @@ const serverOffline = api.session.offlineMode;
             background: radial-gradient(rgba(0, 0, 0, 0), rgba(255, 255, 255, 0.15));
             color: #fff;
             text-shadow: 0 0 7px #fff;
-            box-shadow: 1px 0 0 rgba(255, 255, 255, 0.2), -1px 0 0 rgba(255, 255, 255, 0.2), 0 1px 0 rgba(255, 255, 255, 0.2), 7px -3px 10px rgba(0, 0, 0, 0.5), -7px -3px 10px rgba(0, 0, 0, 0.5) !important;
+            box-shadow: 1px 0 0 rgba(255, 255, 255, 0.2), -1px 0 0 rgba(255, 255, 255, 0.2), 0 1px 0 rgba(255, 255, 255, 0.2),
+                7px -3px 10px rgba(0, 0, 0, 0.5), -7px -3px 10px rgba(0, 0, 0, 0.5) !important;
         }
         &.active {
             z-index: 1;
@@ -233,7 +236,8 @@ const serverOffline = api.session.offlineMode;
 }
 .button.close:hover {
     background: rgba(255, 0, 0, 0.2);
-    box-shadow: 1px 0 0 rgba(255, 47, 47, 0.418), -1px 0 0 rgba(255, 47, 47, 0.418), 0 1px 0 rgba(255, 47, 47, 0.418), 7px -3px 10px rgba(0, 0, 0, 0.5), -7px -3px 10px rgba(0, 0, 0, 0.5) !important;
+    box-shadow: 1px 0 0 rgba(255, 47, 47, 0.418), -1px 0 0 rgba(255, 47, 47, 0.418), 0 1px 0 rgba(255, 47, 47, 0.418),
+        7px -3px 10px rgba(0, 0, 0, 0.5), -7px -3px 10px rgba(0, 0, 0, 0.5) !important;
 }
 .server-status-dot {
     font-size: 12px;
