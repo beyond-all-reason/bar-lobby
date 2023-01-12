@@ -1,0 +1,19 @@
+{
+  "extends": "@electron-toolkit/tsconfig/tsconfig.web.json",
+  "include": [
+    "src/renderer/**/*", "src/common/**/*"
+  ],
+  "compilerOptions": {
+    "composite": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/renderer/*"],
+      "$/*": ["src/common/*"]
+    },
+    "types": ["vite/client"],
+    "noEmit": true,
+    "downlevelIteration": true,
+    "noUnusedParameters": false,
+    "noUnusedLocals": false
+  }
+}
