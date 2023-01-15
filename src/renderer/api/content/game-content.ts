@@ -81,7 +81,7 @@ export class GameContentAPI extends PrDownloaderAPI {
             for (const sdpPath of sdpFilePaths) {
                 const sdpMd5 = path.parse(sdpPath).name;
                 const version = this.md5ToRapidVersionMap[sdpMd5];
-                if (!this.installedVersions.has(version)) {
+                if (!this.installedVersions.has(version) && version !== "byar:test") {
                     this.installedVersions.add(version);
                 }
             }
