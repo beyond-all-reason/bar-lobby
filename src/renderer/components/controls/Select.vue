@@ -14,8 +14,7 @@ import Dropdown, { DropdownProps } from "primevue/dropdown";
 
 import Control from "@/components/controls/Control.vue";
 
-// eslint-disable-next-line
-interface Props extends DropdownProps {
+export interface Props extends DropdownProps {
     disabled?: boolean;
     label?: string;
 }

@@ -143,13 +143,13 @@ const addFriend = async () => {
 
 <style lang="scss" scoped>
 .friends {
-    position: absolute;
-    right: 9px;
+    position: fixed;
+    right: 0;
     top: 70px;
-    z-index: 1;
+    z-index: 2;
     min-width: 475px;
     max-width: 475px;
-    transform: translateX(0);
+    transform: translateX(-9px);
     opacity: 1;
     transition: transform 200ms, opacity 200ms;
     .container {

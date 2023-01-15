@@ -21,8 +21,7 @@ import { computed, onMounted, Ref, ref } from "vue";
 
 import Control from "@/components/controls/Control.vue";
 
-// eslint-disable-next-line
-interface Props extends SliderProps {
+export interface Props extends SliderProps {
     modelValue: number | number[] | undefined;
 }
 

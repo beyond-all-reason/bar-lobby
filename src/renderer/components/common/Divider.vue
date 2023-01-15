@@ -5,8 +5,7 @@
 <script lang="ts" setup>
 import Divider, { DividerProps } from "primevue/divider";
 
-// eslint-disable-next-line
-interface Props extends DividerProps {}
+export type Props = DividerProps;
 
 const props = defineProps<Props>();
 </script>

@@ -9,8 +9,7 @@
 <script lang="ts" setup>
 import Paginator, { PaginatorProps } from "primevue/paginator";
 
-// eslint-disable-next-line
-interface Props extends PaginatorProps {
+export interface Props extends PaginatorProps {
     disabled?: boolean;
 }
 

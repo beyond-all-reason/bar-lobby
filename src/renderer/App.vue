@@ -7,6 +7,7 @@
         <StickyBattle />
         <Background :blur="blurBg" />
         <Alerts />
+        <Friends v-model:open="friendsOpen" />
         <div class="lobby-version">
             {{ lobbyVersion }}
         </div>
@@ -41,7 +42,6 @@
             </div>
         </transition>
     </div>
-    <Friends v-model:open="friendsOpen" />
     <Settings v-model="settingsOpen" />
     <Error />
 </template>

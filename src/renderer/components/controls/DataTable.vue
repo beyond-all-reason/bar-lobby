@@ -9,8 +9,7 @@
 <script lang="ts" setup>
 import DataTable, { DataTableProps } from "primevue/datatable";
 
-// eslint-disable-next-line
-interface Props extends DataTableProps {
+export interface Props extends DataTableProps {
     disabled?: boolean;
 }
 
