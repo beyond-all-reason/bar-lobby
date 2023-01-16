@@ -10,6 +10,7 @@
 import { computed, onMounted, ref } from "vue";
 
 import { defaultMaps } from "@/config/default-maps";
+import { latestStableEngineVersion } from "@/config/latest-engine";
 
 const emit = defineEmits<{
     (event: "complete"): void;
@@ -22,11 +23,11 @@ onMounted(async () => {
 
     if (api.content.engine.installedVersions.length === 0) {
         text.value = "Downloading engine";
-        await api.content.engine.downloadLatestEngine();
+        await api.content.engine.downloadEngine(latestStableEngineVersion);
         text.value = "Installing engine";
     }
 
-    if (api.content.game.installedVersions.length === 0) {
+    if (api.content.game.installedVersions.size === 0) {
         text.value = "Downloading game";
         await api.content.game.downloadGame();
         text.value = "Installing game";

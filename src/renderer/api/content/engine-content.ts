@@ -35,13 +35,6 @@ export class EngineContentAPI extends AbstractContentAPI {
         return this;
     }
 
-    public async downloadLatestEngine() {
-        const latestEngineReleaseTag = await this.getLatestEngineReleaseTag();
-        const engineVersion = this.gitEngineTagToEngineVersionString(latestEngineReleaseTag);
-
-        return this.downloadEngine(engineVersion);
-    }
-
     public async downloadEngine(engineVersion: string) {
         if (this.installedVersions.includes(engineVersion)) {
             return;
@@ -62,7 +55,7 @@ export class EngineContentAPI extends AbstractContentAPI {
         const archStr = process.platform === "win32" ? "windows" : "linux";
         const asset = data.assets.find((asset) => asset.name.includes(archStr) && asset.name.includes("portable"));
         if (!asset) {
-            throw new Error("Failed to fetch latest engine release asset");
+            throw new Error("Failed to fetch engine release asset");
         }
 
         const downloadInfo: DownloadInfo = reactive({
@@ -110,17 +103,6 @@ export class EngineContentAPI extends AbstractContentAPI {
         return engineVersion;
     }
 
-    public async getLatestEngineReleaseTag() {
-        // if the engine releases switch to not marking every release as prerelease then we should use the repos.getLatestRelease octokit method instead
-        const releasesResponse = await this.ocotokit.rest.repos.listReleases({
-            owner: contentSources.engineGitHub.owner,
-            repo: contentSources.engineGitHub.repo,
-            per_page: 1,
-        });
-
-        return releasesResponse.data[0].tag_name;
-    }
-
     public async getEngineReleaseInfo(engineTag: string) {
         try {
             const release = await this.ocotokit.rest.repos.getReleaseByTag({
@@ -134,13 +116,6 @@ export class EngineContentAPI extends AbstractContentAPI {
             console.error(err);
             throw new Error(`Couldn't get engine release for tag: ${engineTag}`);
         }
-    }
-
-    public async isLatestEngineVersionInstalled() {
-        const latestEngineTag = await this.getLatestEngineReleaseTag();
-        const engineVersion = this.gitEngineTagToEngineVersionString(latestEngineTag);
-
-        return this.isEngineVersionInstalled(engineVersion);
     }
 
     public isEngineVersionInstalled(engineTag: string) {
