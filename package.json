@@ -58,7 +58,7 @@
     "node-self": "^1.0.1",
     "octokit": "^1.7.1",
     "primeicons": "^6.0.1",
-    "primevue": "^3.16.2",
+    "primevue": "^3.22.2",
     "sdfz-demo-parser": "^5.4.1",
     "spring-map-parser": "^6.0.2",
     "sqlite": "^4.1.1",

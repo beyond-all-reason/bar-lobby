@@ -58,7 +58,7 @@
                     :modelValue="battle.battleOptions.map"
                     :options="installedMaps"
                     label="Map"
-                    optionLabel="friendlyName"
+                    optionLabel="scriptName"
                     optionValue="scriptName"
                     :filter="true"
                     class="fullwidth"

@@ -1,6 +1,6 @@
 <template>
     <Control class="select" v-bind="$props">
-        <Dropdown v-bind="$attrs" filterPlaceholder="Search">
+        <Dropdown v-bind="$attrs" filterPlaceholder="Search" :autoFilterFocus="true">
             <template v-for="(_, name) in ($slots as {})" #[name]="slotData">
                 <slot :name="name" v-bind="slotData || {}" />
             </template>

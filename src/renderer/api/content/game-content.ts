@@ -35,7 +35,7 @@ export class GameContentAPI extends PrDownloaderAPI {
         super();
 
         this.onDownloadComplete.add((downloadInfo) => {
-            if (!this.installedVersions.has(downloadInfo.name)) {
+            if (!this.installedVersions.has(downloadInfo.name) && downloadInfo.name !== "byar:test") {
                 this.installedVersions.add(downloadInfo.name);
                 this.sortVersions();
             }
