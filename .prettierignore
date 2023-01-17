@@ -1,3 +1,4 @@
 dist_electron
 src/routes.ts
 node_modules
+typed-router.d.ts
