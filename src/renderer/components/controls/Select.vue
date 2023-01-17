@@ -1,6 +1,6 @@
 <template>
     <Control class="select" v-bind="$props">
-        <Dropdown v-bind="$attrs" filterPlaceholder="Search" :autoFilterFocus="true">
+        <Dropdown v-bind="$attrs" filterPlaceholder="Search" :autoFilterFocus="true" :autoOptionFocus="true" :resetFilterOnHide="true">
             <template v-for="(_, name) in ($slots as {})" #[name]="slotData">
                 <slot :name="name" v-bind="slotData || {}" />
             </template>
@@ -51,7 +51,8 @@ const props = defineProps<Props>();
         padding: 5px 10px;
     }
     &-item:hover,
-    .p-highlight {
+    &-item.p-highlight,
+    &-item.p-focus {
         color: #000;
         background: #eee;
         text-shadow: none;
