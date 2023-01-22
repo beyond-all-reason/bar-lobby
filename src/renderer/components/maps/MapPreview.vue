@@ -52,7 +52,6 @@ onMounted(async () => {
     canvas.value.height = canvasWidth;
 
     context = canvas.value.getContext("2d")!;
-    context.imageSmoothingEnabled = false;
 
     loadMap();
 
@@ -211,7 +210,6 @@ function roundTransform(transform: Transform) {
     background: rgba(0, 0, 0, 0.3);
     border: 1px solid rgba(255, 255, 255, 0.1);
     position: relative;
-    image-rendering: pixelated;
     align-items: center;
     justify-content: center;
 }
