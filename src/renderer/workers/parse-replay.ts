@@ -3,10 +3,14 @@ import { DemoParser } from "sdfz-demo-parser";
 
 import { exposeWorkerFunction } from "@/workers/worker-helpers";
 
-const demoParser = new DemoParser();
+const demoParser = new DemoParser({
+    skipPackets: true,
+});
 
 export const parseReplay = exposeWorkerFunction(async (replayPath: string) => {
     const replayData = await demoParser.parseDemo(replayPath);
+
+    console.log(replayData);
 
     const numOfPlayers = replayData.info.players.length + replayData.info.ais.length;
     let preset: "duel" | "team" | "ffa" | "teamffa" = "duel";

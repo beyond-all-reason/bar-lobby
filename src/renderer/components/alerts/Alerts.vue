@@ -14,7 +14,7 @@ import { computed } from "vue";
 
 import Event from "@/components/alerts/Event.vue";
 import Notification from "@/components/alerts/Notification.vue";
-import { EventAlert, NotificationAlert } from "$/model/alert";
+import { EventAlert, NotificationAlert } from "@/model/alert";
 
 const alerts = api.alerts.alerts;
 
@@ -41,7 +41,7 @@ const events = computed(() => alerts.filter((alert): alert is EventAlert => aler
 }
 .notifications {
     position: fixed;
-    top: 130px;
+    top: 105px;
     display: flex;
     flex-direction: column;
 }

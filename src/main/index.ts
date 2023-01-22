@@ -1,6 +1,8 @@
-import type { App } from "electron";
+import { App, dialog } from "electron";
 import { app, ipcMain, protocol, screen } from "electron";
+import installExtension from "electron-devtools-installer";
 import unhandled from "electron-unhandled";
+import { autoUpdater, UpdateInfo } from "electron-updater";
 import envPaths from "env-paths";
 import * as path from "path";
 
@@ -62,11 +64,26 @@ export class Application {
     protected async onReady() {
         if (!app.isPackaged) {
             try {
-                // await installExtension("nhdogjmejiglipccpnnnanhbledajbpd");
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                await installExtension("nhdogjmejiglipccpnnnanhbledajbpd");
             } catch (e: any) {
                 console.error("Vue Devtools failed to install:", e.toString());
             }
+        } else if (app.isPackaged && process.env.NODE_ENV !== "development") {
+            autoUpdater.autoInstallOnAppQuit = true;
+            autoUpdater.checkForUpdates();
+            autoUpdater.addListener("update-downloaded", async (info: UpdateInfo) => {
+                const { response } = await dialog.showMessageBox({
+                    title: "Restart Beyond All Reason Lobby?",
+                    type: "question",
+                    message: `New version "Beyond All Reason Lobby ${info.version}" has been successfully downloaded.`,
+                    buttons: ["Yes", "Later", "Yes, Update"],
+                    cancelId: 1,
+                });
+
+                if (response === 0 || response === 2) {
+                    autoUpdater.quitAndInstall();
+                }
+            });
         }
 
         if (!this.initialised) {

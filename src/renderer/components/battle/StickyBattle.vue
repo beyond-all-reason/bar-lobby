@@ -1,5 +1,5 @@
 <template>
-    <div class="sticky-battle flex-row" :class="{ hidden: !battle || route.name === 'multiplayer-battle' }" @click="openBattle">
+    <div class="sticky-battle flex-row" :class="{ hidden: !battle || route.path === '/multiplayer/battle' }" @click="openBattle">
         <div class="leave" @click.stop="leaveBattle">
             <Icon :icon="closeThick" height="18" />
         </div>
@@ -35,7 +35,7 @@ import robotIcon from "@iconify-icons/mdi/robot";
 import swordCross from "@iconify-icons/mdi/sword-cross";
 import { computed } from "vue";
 
-const route = api.router.currentRoute.value;
+const route = api.router.currentRoute;
 const me = api.session.onlineUser;
 const battle = api.session.onlineBattle;
 const playerCount = computed(() => battle.value?.contenders.value.filter((c) => "userId" in c).length);

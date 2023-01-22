@@ -9,7 +9,7 @@
 import { Icon } from "@iconify/vue";
 import closeThick from "@iconify-icons/mdi/close-thick";
 
-import { EventAlert } from "$/model/alert";
+import { EventAlert } from "@/model/alert";
 
 const props = defineProps<{
     event: EventAlert;

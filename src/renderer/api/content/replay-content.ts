@@ -1,5 +1,5 @@
 import fs from "fs";
-import { delay, Optionals } from "jaz-ts-utils";
+import { delay, Optionals, Signal } from "jaz-ts-utils";
 import path from "path";
 import { reactive } from "vue";
 
@@ -20,6 +20,7 @@ export const defaultReplayQueryOptions: Optionals<ReplayQueryOptions> = {
 };
 export class ReplayContentAPI extends AbstractContentAPI {
     public readonly replaysDir = path.join(api.info.contentPath, "demos");
+    public readonly onReplayCached = new Signal();
 
     protected readonly parseReplay = hookWorkerFunction(new Worker(new URL(`../../workers/parse-replay.ts`, import.meta.url), { type: "module" }), parseReplayWorkerFunction);
     protected readonly replayCacheQueue: Set<string> = reactive(new Set());
@@ -94,7 +95,8 @@ export class ReplayContentAPI extends AbstractContentAPI {
     }
 
     public async queueReplaysToCache() {
-        const replayFiles = await fs.promises.readdir(this.replaysDir);
+        let replayFiles = await fs.promises.readdir(this.replaysDir);
+        replayFiles = replayFiles.filter((replayFile) => replayFile.endsWith("sdfz"));
 
         const cachedReplayFiles = await api.cacheDb.selectFrom("replay").select(["fileName"]).execute();
         const cachedReplayFileNames = cachedReplayFiles.map((file) => file.fileName);
@@ -132,7 +134,6 @@ export class ReplayContentAPI extends AbstractContentAPI {
     protected async cacheReplay(replayFileName: string) {
         try {
             console.debug(`Caching: ${replayFileName}`);
-            console.time(`Cached: ${replayFileName}`);
 
             const replayFilePath = path.join(api.info.contentPath, "demos", replayFileName);
 
@@ -146,6 +147,8 @@ export class ReplayContentAPI extends AbstractContentAPI {
                     return oc.doUpdateSet(nonUniqueValues);
                 })
                 .execute();
+
+            this.onReplayCached.dispatch();
         } catch (err) {
             console.error(`Error parsing replay: ${replayFileName}`, err);
 
@@ -155,8 +158,6 @@ export class ReplayContentAPI extends AbstractContentAPI {
                 .values({ fileName: replayFileName })
                 .execute();
         }
-
-        console.timeEnd(`Cached: ${replayFileName}`);
 
         this.replayCacheQueue.delete(replayFileName);
     }

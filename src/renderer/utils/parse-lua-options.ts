@@ -1,5 +1,5 @@
+import { LuaOption, LuaOptionBoolean, LuaOptionList, LuaOptionNumber, LuaOptionSection, LuaOptionString } from "@/model/lua-options";
 import { parseLuaTable } from "@/utils/parse-lua-table";
-import { LuaOption, LuaOptionBoolean, LuaOptionList, LuaOptionNumber, LuaOptionSection, LuaOptionString } from "$/model/lua-options";
 
 export function parseLuaOptions(lua: Buffer): LuaOptionSection[] {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

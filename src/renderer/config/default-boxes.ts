@@ -1,4 +1,4 @@
-import { StartBox } from "$/model/battle/types";
+import { StartBox } from "@/model/battle/types";
 
 // TODO: add deep readonly type and add a clone method that removes it
 export const defaultBoxes = () => {

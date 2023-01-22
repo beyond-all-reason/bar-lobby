@@ -14,7 +14,7 @@ import closeThick from "@iconify-icons/mdi/close-thick";
 import infoOutline from "@iconify-icons/mdi/information-outline";
 import { computed } from "vue";
 
-import { NotificationAlert } from "$/model/alert";
+import { NotificationAlert } from "@/model/alert";
 
 const props = defineProps<{
     notification: NotificationAlert;

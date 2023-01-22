@@ -1,204 +1,224 @@
 <template>
-    <div class="battle-preview" @click="attemptJoinBattle">
-        <div class="background" :style="`background-image: url('${mapImageUrl}')`" />
-        <div class="header">
-            <div class="title">
-                <div class="flex-row flex-center gap-sm">
-                    <Flag :countryCode="battle.founder.value.countryCode" />
-                    <Icon v-if="battle.battleOptions.locked" :icon="lock" />
-                    <Icon v-if="battle.battleOptions.passworded" :icon="key" />
-                    {{ battle.battleOptions.title }}
+    <div class="flex-col gap-md fullheight">
+        <MapPreview
+            :map="mapScriptName"
+            :isSpectator="true"
+            :myTeamId="0"
+            :startBoxes="startBoxes"
+            :startPosType="startPosType"
+            :startPositions="startPositions"
+        />
+
+        <div class="teams">
+            <div v-if="isFFA">
+                <div class="team-title">Players</div>
+                <div class="contenders">
+                    <template v-if="isBattle(battle)">
+                        <template v-for="(contender, i) in battle.contenders.value" :key="`contender${i}`">
+                            <BattlePreviewParticipant :contender="contender" />
+                        </template>
+                    </template>
+                    <template v-else-if="isReplay(battle)">
+                        <template v-for="(contender, i) in battle.contenders" :key="`contender${i}`">
+                            <BattlePreviewParticipant :contender="contender" />
+                            <Icon
+                                v-if="isReplay(battle) && battle.winningTeamId === contender.allyTeamId && showSpoilers"
+                                class="trophy"
+                                :icon="trophyVariant"
+                                height="18"
+                            />
+                        </template>
+                    </template>
                 </div>
             </div>
-            <div>{{ battle.map.value?.friendlyName ?? battle.battleOptions.map }}</div>
-        </div>
-        <div class="header meta">
-            {{ battle.friendlyRuntime.value }}
-        </div>
-        <div class="clients players">
-            <div v-for="player in battle.players.value" :key="player.userId" class="client">
-                <Flag :countryCode="player.countryCode" />
-                <div>
-                    {{ player.username }}
+
+            <div v-for="[teamId, contenders] in teams" v-else :key="`team${teamId}`">
+                <div class="team-title">
+                    <div>Team {{ teamId + 1 }}</div>
+                    <Icon
+                        v-if="isReplay(battle) && battle.winningTeamId === teamId && showSpoilers"
+                        class="trophy"
+                        :icon="trophyVariant"
+                        height="18"
+                    />
+                </div>
+                <div class="contenders">
+                    <BattlePreviewParticipant
+                        v-for="(contender, contenderIndex) in contenders"
+                        :key="`contender${contenderIndex}`"
+                        :contender="contender"
+                    />
                 </div>
             </div>
-            <div v-for="(bot, i) in battle.bots" :key="i" class="client">
-                <Icon :icon="robot" />
-                {{ bot.name }}
-            </div>
-        </div>
-        <div v-if="battle.spectators.value.length" class="clients spectators">
-            <div v-for="spectator in battle.spectators.value" :key="spectator.userId" class="client">
-                <Flag :countryCode="spectator.countryCode" />
-                {{ spectator.username }}
+
+            <div v-if="isReplay(battle) ? battle.spectators.length : battle.spectators.value.length">
+                <div class="team-title">Spectators</div>
+                <div class="contenders">
+                    <BattlePreviewParticipant
+                        v-for="(spectator, spectatorIndex) in isReplay(battle) ? battle.spectators : battle.spectators.value"
+                        :key="`spectator${spectatorIndex}`"
+                        :contender="spectator"
+                    />
+                </div>
             </div>
         </div>
 
-        <Modal v-model="passwordPromptOpen" title="Battle Password" @submit="onPasswordPromptSubmit">
-            <div class="flex-col gap-md">
-                <p>Please enter the password for this battle</p>
-                <Textbox type="password" name="password" />
-                <Button type="submit">Submit</Button>
-            </div>
-        </Modal>
+        <div class="flex-row flex-bottom gap-md">
+            <slot name="actions" :battle="battle"></slot>
+        </div>
     </div>
 </template>
 
 <script lang="ts" setup>
 import { Icon } from "@iconify/vue";
-import key from "@iconify-icons/mdi/key";
-import lock from "@iconify-icons/mdi/lock";
-import robot from "@iconify-icons/mdi/robot";
-import { computed, ref } from "vue";
+import trophyVariant from "@iconify-icons/mdi/trophy-variant";
+import { groupBy } from "jaz-ts-utils";
+import { computed, ComputedRef } from "vue";
 
-import defaultMinimap from "@/assets/images/default-minimap.png";
-import Modal from "@/components/common/Modal.vue";
-import Button from "@/components/controls/Button.vue";
-import Textbox from "@/components/controls/Textbox.vue";
-import Flag from "@/components/misc/Flag.vue";
-import { AbstractBattle } from "$/model/battle/abstract-battle";
+import MapPreview from "@/components/maps/MapPreview.vue";
+import BattlePreviewParticipant from "@/components/misc/BattlePreviewParticipant.vue";
+import { AbstractBattle } from "@/model/battle/abstract-battle";
+import { StartBox, StartPosType } from "@/model/battle/types";
+import { Replay } from "@/model/replay";
+import { isBattle, isReplay, isUser } from "@/utils/type-checkers";
 
 const props = defineProps<{
-    battle: AbstractBattle;
+    battle: AbstractBattle | Replay;
+    showSpoilers?: boolean;
 }>();
 
-const mapImageUrl = computed(() => {
-    const mapImages = api.content.maps.getMapImages({ scriptName: props.battle.battleOptions.map });
-    if (!mapImages) {
-        return defaultMinimap;
+const mapScriptName = computed(() => {
+    return props.battle instanceof AbstractBattle ? props.battle.battleOptions.map : props.battle.mapScriptName;
+});
+const gameVersion = computed(() =>
+    props.battle instanceof AbstractBattle ? props.battle.battleOptions.gameVersion : props.battle.gameVersion
+);
+const engineVersion = computed(() =>
+    props.battle instanceof AbstractBattle ? props.battle.battleOptions.engineVersion : props.battle.engineVersion
+);
+const isFFA = computed(() => {
+    if (props.battle instanceof AbstractBattle) {
+        // TODO: get preset from spads/server
+        return false;
     } else {
-        return mapImages.textureImagePath;
+        return props.battle.preset === "ffa";
     }
 });
-
-const attemptJoinBattle = async () => {
-    if (props.battle.battleOptions.passworded) {
-        passwordPromptOpen.value = true;
+const contenders = computed(() => (isBattle(props.battle) ? props.battle.contenders.value : props.battle.contenders));
+const teams = computed(() => {
+    if (isBattle(props.battle)) {
+        const teams = groupBy(props.battle.contenders.value, (contender) =>
+            isUser(contender) ? contender.battleStatus.teamId : contender.teamId
+        );
+        const sortedTeams = new Map([...teams.entries()].sort());
+        return sortedTeams;
     } else {
-        await api.comms.request("c.lobby.join", {
-            lobby_id: props.battle.battleOptions.id,
-        });
+        const teams = groupBy(props.battle.contenders, (contender) =>
+            isUser(contender) ? contender.battleStatus.teamId : contender.allyTeamId
+        );
+        const sortedTeams = new Map([...teams.entries()].sort());
+        return sortedTeams;
     }
-};
-
-const passwordPromptOpen = ref(false);
-const onPasswordPromptSubmit: (data: { password?: string }) => Promise<void> = async (data) => {
-    const response = await api.comms.request("c.lobby.join", {
-        lobby_id: props.battle.battleOptions.id,
-        password: data.password,
+});
+const startPosType: ComputedRef<StartPosType> = computed(() => {
+    if (isBattle(props.battle)) {
+        return props.battle.battleOptions.startPosType;
+    } else {
+        return parseInt(props.battle.battleSettings.startpostype);
+    }
+});
+const startBoxes = computed(() => {
+    if (startPosType.value !== StartPosType.Boxes) {
+        return undefined;
+    }
+    const startBoxes: Record<number, StartBox | undefined> = {};
+    teams.value.forEach((team) => {
+        if (team.startBox) {
+            startBoxes[team.allyTeamId] = {
+                xPercent: team.startBox.left,
+                yPercent: team.startBox.top,
+                widthPercent: team.startBox.right - team.startBox.left,
+                heightPercent: team.startBox.bottom - team.startBox.top,
+            };
+        }
     });
-    if (response.result === "failure") {
-        api.alerts.alert({
-            type: "notification",
-            severity: "error",
-            content: "The password you entered was invalid.",
-        });
-    } else {
-        passwordPromptOpen.value = false;
-    }
-};
+    return startBoxes;
+});
+const startPositions = computed(() => {
+    return contenders.value.map((contender) => {
+        if (!contender.startPos) {
+            return;
+        }
+        return {
+            position: contender.startPos,
+            rgbColor: contender.rgbColor,
+        };
+    });
+});
+
+// const attemptJoinBattle = async () => {
+//     if (props.battle.battleOptions.passworded) {
+//         passwordPromptOpen.value = true;
+//     } else {
+//         await api.comms.request("c.lobby.join", {
+//             lobby_id: props.battle.battleOptions.id,
+//         });
+//     }
+// };
+
+// const passwordPromptOpen = ref(false);
+// const onPasswordPromptSubmit: (data: { password?: string }) => Promise<void> = async (data) => {
+//     const response = await api.comms.request("c.lobby.join", {
+//         lobby_id: props.battle.battleOptions.id,
+//         password: data.password,
+//     });
+//     if (response.result === "failure") {
+//         api.alerts.alert({
+//             type: "notification",
+//             severity: "error",
+//             content: "The password you entered was invalid.",
+//         });
+//     } else {
+//         passwordPromptOpen.value = false;
+//     }
+// };
 </script>
 
 <style lang="scss" scoped>
-.battle-preview {
+.teams {
     display: flex;
     flex-direction: column;
-    position: relative;
-    z-index: 0;
-    padding-bottom: 5px;
     gap: 5px;
-    padding: 10px;
+    flex: 1 1 auto;
+    overflow-y: auto;
+    height: 0px;
+}
+.team-title {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
     font-weight: 500;
-    &:hover {
-        .background {
-            filter: brightness(1.1);
-        }
-    }
-    .header,
-    .meta {
-        display: flex;
-        flex-direction: row;
-        align-items: center;
-        justify-content: space-between;
-        gap: 5px;
-    }
-    .header {
-        font-weight: 600;
-    }
-    .meta {
-        font-size: 16px;
-    }
-    .title {
-        display: flex;
-        flex-direction: row;
-        align-items: center;
-        gap: 5px;
-    }
-    .background {
-        @extend .fullsize;
-        left: 0;
-        top: 0;
-        image-rendering: pixelated;
-        z-index: -1;
-        background-position: center;
-        background-size: cover;
-        overflow: hidden;
-        filter: brightness(0.9);
-        &:before {
-            @extend .fullsize;
-            left: 0;
-            top: 0;
-            transition: all 0.05s;
-            background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0));
-        }
-        &:after {
-            @extend .fullsize;
-            left: 0;
-            top: 0;
-            border-top: 1px solid rgba(255, 255, 255, 0.2);
-            border-left: 1px solid rgba(255, 255, 255, 0.1);
-            border-right: 1px solid rgba(255, 255, 255, 0.1);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-        }
-    }
-    .clients {
-        display: flex;
-        flex-direction: row;
-        flex-wrap: wrap;
-        gap: 4px;
-        &.spectators {
-            position: relative;
-            padding-top: 5px;
-            &:before {
-                content: "";
-                position: absolute;
-                top: 0;
-                left: 2.5%;
-                width: 95%;
-                height: 1px;
-                background: rgba(255, 255, 255, 0.1);
-            }
-        }
-    }
-    .client {
-        display: flex;
-        flex-direction: row;
-        align-items: center;
-        gap: 5px;
-        padding: 2px 8px;
-        border-radius: 3px;
-        background: rgba(0, 0, 0, 0.6);
-        border: none;
-        font-size: 14px;
-        font-weight: 500;
-        svg {
-            width: 14px;
-            height: 14px;
-        }
-        .flag {
-            font-size: 12px;
-            vertical-align: middle;
-        }
-    }
+    margin-bottom: 3px;
+}
+.contenders {
+    display: flex;
+    flex-direction: row;
+    gap: 4px;
+    flex-wrap: wrap;
+}
+.inline-icon {
+    margin-top: 2px;
+}
+.trophy {
+    color: #ffbc00;
+    display: flex;
+    align-self: center;
+    margin-bottom: 1px;
+}
+.check {
+    color: rgb(94, 230, 16);
+}
+.cross {
+    color: rgb(223, 35, 35);
 }
 </style>

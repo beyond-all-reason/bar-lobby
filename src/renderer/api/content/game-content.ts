@@ -8,9 +8,9 @@ import * as zlib from "zlib";
 
 import { PrDownloaderAPI } from "@/api/content/pr-downloader";
 import { contentSources } from "@/config/content-sources";
+import { LuaOptionSection } from "@/model/lua-options";
+import { SdpFile, SdpFileMeta } from "@/model/sdp";
 import { parseLuaOptions } from "@/utils/parse-lua-options";
-import { LuaOptionSection } from "$/model/lua-options";
-import { SdpFile, SdpFileMeta } from "$/model/sdp";
 
 /**
  * This API utilises pr-downloader to download game files, therefore it requires at least one engine version to be installed and for api.content.engine to be initialised

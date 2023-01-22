@@ -143,11 +143,11 @@ import Select from "@/components/controls/Select.vue";
 import MapPreview from "@/components/maps/MapPreview.vue";
 import Flag from "@/components/misc/Flag.vue";
 import { defaultBoxes } from "@/config/default-boxes";
-import { AbstractBattle } from "$/model/battle/abstract-battle";
-import { OfflineBattle } from "$/model/battle/offline-battle";
-import { StartBox, StartPosType } from "$/model/battle/types";
-import { LuaOptionSection } from "$/model/lua-options";
-import { CurrentUser } from "$/model/user";
+import { AbstractBattle } from "@/model/battle/abstract-battle";
+import { OfflineBattle } from "@/model/battle/offline-battle";
+import { StartBox, StartPosType } from "@/model/battle/types";
+import { LuaOptionSection } from "@/model/lua-options";
+import { CurrentUser } from "@/model/user";
 
 const props = defineProps<{
     battle: AbstractBattle;

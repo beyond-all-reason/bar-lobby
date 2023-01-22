@@ -7,7 +7,7 @@
 <script lang="ts" setup>
 import Modal from "@/components/common/Modal.vue";
 import MapListComponent from "@/components/maps/MapListComponent.vue";
-import { MapData } from "$/model/map-data";
+import { MapData } from "@/model/map-data";
 
 const props = defineProps<{
     title: string;

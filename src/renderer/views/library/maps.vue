@@ -23,7 +23,7 @@
  */
 
 import MapListComponent from "@/components/maps/MapListComponent.vue";
-import { MapData } from "$/model/map-data";
+import { MapData } from "@/model/map-data";
 
 function onMapSelected(map: MapData) {
     api.session.libraryPage.value = map;

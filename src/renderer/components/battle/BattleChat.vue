@@ -20,7 +20,7 @@
 import { ref } from "vue";
 
 import Textbox from "@/components/controls/Textbox.vue";
-import { AbstractBattle } from "$/model/battle/abstract-battle";
+import { AbstractBattle } from "@/model/battle/abstract-battle";
 
 const props = defineProps<{
     battle: AbstractBattle;

@@ -50,7 +50,7 @@
 import { Icon } from "@iconify/vue";
 import closeThick from "@iconify-icons/mdi/close-thick";
 import cog from "@iconify-icons/mdi/cog";
-import { provide, Ref } from "vue";
+import { computed, provide, Ref } from "vue";
 import { ref } from "vue";
 import { useRouter } from "vue-router/auto";
 
@@ -84,6 +84,7 @@ const lobbyVersion = api.info.lobby.version;
 const settingsOpen = ref(false);
 const friendsOpen = ref(false);
 const exitOpen = ref(false);
+const viewOverflowY = computed(() => (api.router.currentRoute.value.meta.showScroller ? "scroll" : "hidden"));
 
 provide("settingsOpen", settingsOpen);
 provide("friendsOpen", friendsOpen);
@@ -110,7 +111,7 @@ const onPreloadDone = async () => {
         // TODO: fix the slight delay these cause on startup, probably best to move them into worker threads
         api.content.engine.downloadEngine(latestStableEngineVersion);
         api.content.game.downloadGame();
-        api.content.maps.installMaps(defaultMaps);
+        api.content.maps.downloadMaps(defaultMaps);
 
         state.value = "default";
     }
@@ -136,12 +137,15 @@ animFrame();
 
 <style lang="scss" scoped>
 .view {
-    overflow-y: hidden;
     padding: 20px;
     display: flex;
     flex-direction: column;
     flex-grow: 1;
     gap: 10px;
+    overflow: hidden;
+}
+:deep(.view > .panel > .content) {
+    overflow-y: v-bind(viewOverflowY);
 }
 .lobby-version {
     position: absolute;

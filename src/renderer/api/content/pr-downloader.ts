@@ -5,8 +5,8 @@ import path from "path";
 import { reactive } from "vue";
 
 import { AbstractContentAPI } from "@/api/content/abstract-content";
-import { DownloadInfo } from "$/model/downloads";
-import { PrdProgressMessage } from "$/model/pr-downloader";
+import { DownloadInfo } from "@/model/downloads";
+import { PrdProgressMessage } from "@/model/pr-downloader";
 
 export abstract class PrDownloaderAPI extends AbstractContentAPI {
     public readonly onPrdStart = new Signal<void>();

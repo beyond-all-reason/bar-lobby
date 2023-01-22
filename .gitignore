@@ -41,3 +41,4 @@ thumbs.db
 .electron-vendors.cache.json
 /tsconfig.node.tsbuildinfo
 /tsconfig.web.tsbuildinfo
+debug.log

@@ -38,7 +38,7 @@
  */
 
 import MapPreview from "@/components/maps/MapPreview.vue";
-import { MapData } from "$/model/map-data";
+import { MapData } from "@/model/map-data";
 
 const map = api.session.libraryPage.value as MapData;
 </script>

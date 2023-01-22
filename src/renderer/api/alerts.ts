@@ -1,7 +1,7 @@
 import { v4 as uuid } from "uuid";
 import { reactive } from "vue";
 
-import { EventAlert, NotificationAlert } from "$/model/alert";
+import { EventAlert, NotificationAlert } from "@/model/alert";
 
 export class AlertsAPI {
     public readonly alerts: Array<NotificationAlert | EventAlert> = reactive([]);

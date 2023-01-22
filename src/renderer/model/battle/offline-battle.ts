@@ -1,7 +1,7 @@
 import { defaultBoxes, defaultMapBoxes } from "@/config/default-boxes";
-import { AbstractBattle } from "$/model/battle/abstract-battle";
-import { Bot, StartBox, StartPosType } from "$/model/battle/types";
-import { User } from "$/model/user";
+import { AbstractBattle } from "@/model/battle/abstract-battle";
+import { Bot, StartBox, StartPosType } from "@/model/battle/types";
+import { User } from "@/model/user";
 
 export class OfflineBattle extends AbstractBattle {
     public override leave() {
@@ -13,7 +13,7 @@ export class OfflineBattle extends AbstractBattle {
     }
 
     public start() {
-        api.game.launch({ battle: this });
+        api.game.launch(this);
     }
 
     public setEngine(engineVersion: string) {

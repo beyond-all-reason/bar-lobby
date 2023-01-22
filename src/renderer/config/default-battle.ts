@@ -3,8 +3,8 @@ import { lastInArray, randomFromArray } from "jaz-ts-utils";
 import { aiNames } from "@/config/ai-names";
 import { defaultBoxes, defaultMapBoxes } from "@/config/default-boxes";
 import { defaultMaps } from "@/config/default-maps";
-import { OfflineBattle } from "$/model/battle/offline-battle";
-import { StartPosType } from "$/model/battle/types";
+import { OfflineBattle } from "@/model/battle/offline-battle";
+import { StartPosType } from "@/model/battle/types";
 
 export const defaultBattle: () => OfflineBattle = () => {
     const me = api.session.offlineUser;

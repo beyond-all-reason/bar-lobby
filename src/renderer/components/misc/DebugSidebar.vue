@@ -12,7 +12,9 @@
             :filter="true"
             optionLabel="path"
             optionValue="path"
-            :placeholder="currentRoute"
+            :placeholder="currentRoute.path"
+            class="fullwidth"
+            @update:model-value="onRouteSelect"
         />
         <Button to="/debug"> Debug Sandbox </Button>
         <Button @click="openSettings"> Open Settings File </Button>
@@ -31,20 +33,21 @@ import tools from "@iconify-icons/mdi/tools";
 import { shell } from "electron";
 import * as fs from "fs";
 import * as path from "path";
-import { effectScope, ref, watch } from "vue";
+import { ref } from "vue";
 import { useRouter } from "vue-router";
 
 import Button from "@/components/controls/Button.vue";
 import Select from "@/components/controls/Select.vue";
 
-const scope = effectScope();
-
 const active = ref(false);
 
-const route = api.router.currentRoute.value;
 const router = useRouter();
 const routes = router.getRoutes().sort((a, b) => a.path.localeCompare(b.path));
-const currentRoute = ref(route.path);
+const currentRoute = api.router.currentRoute;
+
+const onRouteSelect = async (newRoute) => {
+    await api.router.replace(newRoute);
+};
 
 const openSettings = () => {
     api.settings.openFileInEditor();
@@ -86,16 +89,6 @@ const recacheReplays = async () => {
 
     await api.content.replays.queueReplaysToCache();
 };
-
-scope.run(() => {
-    watch(currentRoute, async () => {
-        await router.replace(currentRoute.value);
-    });
-
-    watch(router.currentRoute, () => {
-        currentRoute.value = route.path;
-    });
-});
 </script>
 
 <style lang="scss" scoped>

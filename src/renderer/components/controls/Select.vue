@@ -37,7 +37,7 @@ const props = defineProps<Props>();
         border: 1px solid rgba(255, 255, 255, 0.2);
         transform: translateX(-1px);
         box-sizing: content-box;
-        z-index: 5;
+        z-index: 15;
         .p-inputtext {
             border: none;
             border-bottom: 1px solid #333;

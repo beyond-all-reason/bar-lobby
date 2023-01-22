@@ -2,13 +2,14 @@ import { Static } from "@sinclair/typebox";
 import { assign, entries, objectKeys } from "jaz-ts-utils";
 import { battleSchema, lobbySchema } from "tachyon-client";
 
-import { AbstractBattle } from "$/model/battle/abstract-battle";
-import { Bot, StartBox, StartPosType } from "$/model/battle/types";
-import { User } from "$/model/user";
+import { AbstractBattle } from "@/model/battle/abstract-battle";
+import { Bot, StartBox, StartPosType } from "@/model/battle/types";
+import { User } from "@/model/user";
 
 type LobbyType = Static<typeof lobbySchema>;
 type BattleType = Static<typeof battleSchema>;
 type LobbyResponseHandlers = { [K in keyof Required<LobbyType>]: (data: Required<LobbyType[K]>) => void };
+
 export class SpadsBattle extends AbstractBattle {
     protected responseHandlers: { [K in keyof Required<BattleType>]: (data: Required<BattleType[K]>) => void } = {
         lobby: (data) => {
@@ -224,7 +225,7 @@ export class SpadsBattle extends AbstractBattle {
 
         api.comms.request("c.lobby.leave");
         api.session.onlineBattle.value = null;
-        if (api.router.currentRoute.value.name === "multiplayer-battle") {
+        if (api.router.currentRoute.value.path === "/multiplayer/battle") {
             api.router.replace("/multiplayer/custom");
         }
     }
@@ -235,7 +236,7 @@ export class SpadsBattle extends AbstractBattle {
                 message: "!joinas spec",
             });
 
-            api.game.launch({ battle: this });
+            api.game.launch(this);
         } else {
             api.comms.request("c.lobby.message", {
                 message: "!cv start",

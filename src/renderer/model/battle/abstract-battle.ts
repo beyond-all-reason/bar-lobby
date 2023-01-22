@@ -3,9 +3,9 @@ import { formatDuration } from "date-fns";
 import { groupBy } from "jaz-ts-utils";
 import { computed, ComputedRef, reactive, shallowReactive, watch, WatchStopHandle } from "vue";
 
-import { BattleOptions, Bot, StartBox, StartPosType } from "$/model/battle/types";
-import { MapData } from "$/model/map-data";
-import { User } from "$/model/user";
+import { BattleOptions, Bot, StartBox, StartPosType } from "@/model/battle/types";
+import { MapData } from "@/model/map-data";
+import { User } from "@/model/user";
 
 export interface BattleConfig {
     battleOptions: BattleOptions;
@@ -26,6 +26,7 @@ export abstract class AbstractBattle {
     public readonly teams: ComputedRef<Map<number, Array<User | Bot>>>;
     public readonly founder: ComputedRef<User>;
     public readonly friendlyRuntime: ComputedRef<string | null>;
+    public readonly runtimeMs: ComputedRef<number | null>;
     public readonly map: ComputedRef<MapData | undefined>;
 
     protected watchStopHandles: WatchStopHandle[] = [];
@@ -33,7 +34,7 @@ export abstract class AbstractBattle {
     constructor(config: BattleConfig) {
         this.battleOptions = reactive(config.battleOptions);
         this.bots = reactive(config.bots);
-        this.users = shallowReactive(config.users); // users already reactive
+        this.users = shallowReactive(config.users); // users are already reactive, so making them doubly reactive here will cause bugs
 
         this.participants = computed(() => [...this.users, ...this.bots]);
         this.contenders = computed(() => this.participants.value.filter((participant) => ("userId" in participant ? !participant.battleStatus.isSpectator : true)));
@@ -45,6 +46,13 @@ export abstract class AbstractBattle {
             return sortedTeams;
         });
         this.founder = computed(() => api.session.getUserById(this.battleOptions.founderId)!);
+        this.runtimeMs = computed(() => {
+            if (!this.battleOptions.startTime) {
+                return null;
+            }
+            const ms = useNow({ interval: 1000 }).value.getTime() - this.battleOptions.startTime.getTime();
+            return ms;
+        });
         this.friendlyRuntime = computed(() => {
             if (!this.battleOptions.startTime) {
                 return null;
@@ -102,7 +110,7 @@ export abstract class AbstractBattle {
             watch(
                 () => this.battleOptions.map,
                 (mapScriptName) => {
-                    api.content.maps.installMaps(mapScriptName);
+                    api.content.maps.downloadMaps(mapScriptName);
                 },
                 {
                     immediate: true,
@@ -115,6 +123,10 @@ export abstract class AbstractBattle {
         for (const stopWatchHandle of this.watchStopHandles) {
             stopWatchHandle();
         }
+    }
+
+    public get id() {
+        return this.battleOptions.id;
     }
 
     public abstract start(): void;

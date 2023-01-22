@@ -21,7 +21,6 @@ export class MainWindow {
             fullscreen: this.settings.model.fullscreen.value,
             frame: true,
             show: false,
-            //icon: path.join(__static, "icon.png"),
             minWidth: 1440,
             minHeight: 900,
             darkTheme: true,

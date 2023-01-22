@@ -6,9 +6,9 @@ import { reactive } from "vue";
 
 import { PrDownloaderAPI } from "@/api/content/pr-downloader";
 import defaultMapImage from "@/assets/images/default-minimap.png";
+import type { MapData } from "@/model/map-data";
 import { parseMap as parseMapWorkerFunction } from "@/workers/parse-map";
 import { hookWorkerFunction } from "@/workers/worker-helpers";
-import type { MapData } from "$/model/map-data";
 
 export class MapContentAPI extends PrDownloaderAPI {
     public readonly installedMaps: MapData[] = reactive([]);
@@ -65,7 +65,7 @@ export class MapContentAPI extends PrDownloaderAPI {
         return super.init();
     }
 
-    public async installMaps(scriptNameOrNames: string | string[]) {
+    public async downloadMaps(scriptNameOrNames: string | string[]) {
         const scriptNames = asArray(scriptNameOrNames);
 
         for (const scriptName of scriptNames) {
@@ -110,7 +110,8 @@ export class MapContentAPI extends PrDownloaderAPI {
     }
 
     public async queueMapsToCache() {
-        const mapFiles = await fs.promises.readdir(this.mapsDir);
+        let mapFiles = await fs.promises.readdir(this.mapsDir);
+        mapFiles = mapFiles.filter((mapFile) => mapFile.endsWith("sd7"));
 
         const cachedMapFiles = await api.cacheDb.selectFrom("map").select(["fileName"]).execute();
         const cachedMapFileNames = cachedMapFiles.map((file) => file.fileName);

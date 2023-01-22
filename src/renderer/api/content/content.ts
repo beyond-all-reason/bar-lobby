@@ -5,7 +5,7 @@ import { EngineContentAPI } from "@/api/content/engine-content";
 import { GameContentAPI } from "@/api/content/game-content";
 import { MapContentAPI } from "@/api/content/map-content";
 import { ReplayContentAPI } from "@/api/content/replay-content";
-import { DownloadInfo } from "$/model/downloads";
+import { DownloadInfo } from "@/model/downloads";
 
 export class ContentAPI {
     public engine: EngineContentAPI;

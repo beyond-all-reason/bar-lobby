@@ -1,4 +1,4 @@
-import { LuaOptionSection } from "$/model/lua-options";
+import { LuaOptionSection } from "@/model/lua-options";
 
 export type EngineAI = {
     shortName: string;

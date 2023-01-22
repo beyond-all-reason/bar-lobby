@@ -19,8 +19,8 @@ import { computed } from "vue";
 
 import Modal from "@/components/common/Modal.vue";
 import Button from "@/components/controls/Button.vue";
-import { getAiFriendlyName } from "$/model/ai";
-import { getAiDescription } from "$/model/ai";
+import { getAiFriendlyName } from "@/model/ai";
+import { getAiDescription } from "@/model/ai";
 
 const props = defineProps<{
     engineVersion: string;

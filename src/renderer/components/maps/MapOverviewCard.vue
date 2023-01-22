@@ -24,7 +24,7 @@
 <script lang="ts" setup>
 import defaultMapImage from "@/assets/images/default-minimap.png";
 import MapPreview from "@/components/maps/MapPreview.vue";
-import { MapData } from "$/model/map-data";
+import { MapData } from "@/model/map-data";
 
 const props = defineProps<{
     map: MapData;

@@ -9,7 +9,7 @@
 import { entries, SignalBinding } from "jaz-ts-utils";
 import { computed, onMounted, onUnmounted, Ref, ref, watch, WatchStopHandle } from "vue";
 
-import { StartBox, StartPosType } from "$/model/battle/types";
+import { StartBox, StartPosType } from "@/model/battle/types";
 
 type Transform = { x: number; y: number; width: number; height: number };
 
@@ -56,8 +56,11 @@ onMounted(async () => {
 
     loadMap();
 
-    watchStopHandle = watch([() => props.map, () => props.startPosType, () => props.startBoxes, () => props.myTeamId], () => {
-        loadMap();
+    watchStopHandle = watch([() => props.map, () => props.startPosType, () => props.startBoxes, () => props.myTeamId], (current, old) => {
+        if (JSON.stringify(current) !== JSON.stringify(old)) {
+            // only loadMap if there is new data
+            loadMap();
+        }
     });
 
     mapCachedSignalBinding = api.content.maps.onMapCached.add((data) => {
@@ -83,14 +86,15 @@ onUnmounted(() => {
 
 function onCanvasResize() {
     return new Promise<number>((resolve) => {
-        const resizeObserver = new ResizeObserver((thing) => {
-            resolve(thing[0].contentRect.width);
+        const resizeObserver = new ResizeObserver((resizeObserverEntries) => {
+            resolve(resizeObserverEntries[0].contentRect.width);
             resizeObserver.disconnect();
         });
         resizeObserver.observe(canvas.value!);
     });
 }
 
+// bug: map textures will be the wrong dimensions if this function is called multiple times at once
 async function loadMap() {
     if (!canvas.value) {
         return;

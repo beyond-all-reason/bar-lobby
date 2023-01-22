@@ -6,7 +6,7 @@
                 <Loader :absolutePosition="false"></Loader>
             </template>
             <template v-else>
-                <Select v-model="selectedRegion" :options="regions" label="Region" optionLabel="name" optionValue="code">
+                <Select v-model="selectedRegion" :options="regions" label="Region" optionLabel="name" optionValue="code" class="fullwidth">
                     <template #value>
                         <div class="flex-row gap-md">
                             <Flag :countryCode="selectedRegion" />

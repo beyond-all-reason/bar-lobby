@@ -53,7 +53,7 @@ import messageReplyText from "@iconify-icons/mdi/message-reply-text";
 
 import Button from "@/components/controls/Button.vue";
 import Flag from "@/components/misc/Flag.vue";
-import { User } from "$/model/user";
+import { User } from "@/model/user";
 
 const props = defineProps<{
     user: User;

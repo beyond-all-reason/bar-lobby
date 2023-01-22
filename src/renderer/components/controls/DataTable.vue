@@ -7,6 +7,8 @@
 </template>
 
 <script lang="ts" setup>
+// https://primefaces.org/primevue/datatable
+
 import DataTable, { DataTableProps } from "primevue/datatable";
 
 export interface Props extends DataTableProps {
@@ -28,12 +30,16 @@ const props = defineProps<Props>();
         th,
         td {
             padding: 5px 10px;
+            vertical-align: middle;
+            & > * {
+                height: 100%;
+            }
         }
     }
     th {
         background: rgba(255, 255, 255, 0.1);
     }
-    .p-selectable-row {
+    :not(.p-datatable-thead) > tr {
         background: rgba(255, 255, 255, 0.1);
         border-top: 1px solid rgba(255, 255, 255, 0.1);
         &:hover:not(.p-highlight) {
@@ -45,7 +51,9 @@ const props = defineProps<Props>();
             border-top: 1px solid rgba(255, 255, 255, 0.3);
         }
     }
-    &-thead {
-    }
+}
+.p-paginator-bottom {
+    display: flex;
+    justify-content: center;
 }
 </style>

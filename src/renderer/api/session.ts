@@ -4,11 +4,11 @@ import { assign } from "jaz-ts-utils";
 import { lobbySchema, myUserSchema, playerSchema, ResponseType, userSchema } from "tachyon-client";
 import { ComputedRef, reactive, Ref, ref, shallowReactive, shallowRef } from "vue";
 
-import { BattleChatMessage } from "$/model/battle/battle-chat";
-import { OfflineBattle } from "$/model/battle/offline-battle";
-import { SpadsBattle } from "$/model/battle/spads-battle";
-import { MapData } from "$/model/map-data";
-import { CurrentUser, User } from "$/model/user";
+import { BattleChatMessage } from "@/model/battle/battle-chat";
+import { OfflineBattle } from "@/model/battle/offline-battle";
+import { SpadsBattle } from "@/model/battle/spads-battle";
+import { MapData } from "@/model/map-data";
+import { CurrentUser, User } from "@/model/user";
 
 export class SessionAPI {
     public readonly offlineMode: Ref<boolean> = ref(false);

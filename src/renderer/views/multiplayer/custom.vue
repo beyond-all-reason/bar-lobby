@@ -3,10 +3,12 @@
 </route>
 
 <template>
-    <div>
-        <h1>Multiplayer Custom Battles</h1>
+    <div class="flex-row flex-grow gap-md hide-overflow">
+        <div class="flex-col flex-grow gap-md">
+            <div class="flex-row gap-md">
+                <h1>Multiplayer Custom Battles</h1>
+            </div>
 
-        <div class="battle-list">
             <div class="flex-row gap-md">
                 <Button class="blue" @click="hostBattleOpen = true">Host Battle</Button>
                 <HostBattle v-model="hostBattleOpen" />
@@ -15,10 +17,66 @@
                 <Checkbox v-model="hideEmpty" label="Hide Empty" />
             </div>
 
-            <div class="battles">
-                <BattlePreview v-for="battle in filteredBattles" :key="battle.battleOptions.id" :battle="battle" />
+            <div class="battlelist">
+                <DataTable
+                    v-model:selection="selectedBattle"
+                    :value="battles"
+                    :autoLayout="true"
+                    class="p-datatable-sm"
+                    selectionMode="single"
+                >
+                    <Column headerStyle="width: 0">
+                        <template #header>
+                            <Icon :icon="lock" />
+                        </template>
+                        <template #body="{ data }">
+                            <Icon v-if="data.battleOptions.locked || data.battleOptions.passworded" :icon="lock" />
+                        </template>
+                    </Column>
+                    <Column header="Runtime">
+                        <template #body="{ data }">
+                            <div v-if="data.runtimeMs.value >= 1">
+                                {{ getFriendlyDuration(data.runtimeMs.value) }}
+                            </div>
+                        </template>
+                    </Column>
+                    <Column field="battleOptions.title" header="Title" />
+                    <Column field="battleOptions.map" header="Map" />
+                    <Column header="Players">
+                        <template #body="{ data }">
+                            <div class="flex-row flex-center-items gap-md">
+                                <div v-if="data.players.value.length > 0" class="flex-row flex-center-items" style="gap: 2px">
+                                    <Icon :icon="account" height="17" />{{ data.players.value.length }}
+                                </div>
+                                <div v-if="data.spectators.value.length > 0" class="flex-row flex-center-items gap-xs" style="gap: 4px">
+                                    <Icon :icon="eye" height="17" />{{ data.spectators.value.length }}
+                                </div>
+                                <div v-if="data.bots.length > 0" class="flex-row flex-center-items gap-xs" style="gap: 4px">
+                                    <Icon :icon="robot" height="17" />{{ data.bots.length }}
+                                </div>
+                            </div>
+                        </template>
+                    </Column>
+                </DataTable>
             </div>
         </div>
+        <div class="right">
+            <BattlePreview v-if="selectedBattle" :battle="selectedBattle">
+                <template #actions="{ battle }">
+                    <template v-if="isBattle(battle)">
+                        <Button class="green flex-grow" @click="attemptJoinBattle(battle)">Join</Button>
+                    </template>
+                </template>
+            </BattlePreview>
+        </div>
+
+        <Modal v-model="passwordPromptOpen" title="Battle Password" @submit="onPasswordPromptSubmit">
+            <div class="flex-col gap-md">
+                <p>Please enter the password for this battle</p>
+                <Textbox type="password" name="password" />
+                <Button type="submit">Submit</Button>
+            </div>
+        </Modal>
     </div>
 </template>
 
@@ -30,21 +88,34 @@
  * - Host battle modal that includes options such as public/passworded/friends-only/invite-only, title, map, mode etc
  */
 
+import { Icon } from "@iconify/vue";
+import account from "@iconify-icons/mdi/account";
+import eye from "@iconify-icons/mdi/eye";
+import lock from "@iconify-icons/mdi/lock";
+import robot from "@iconify-icons/mdi/robot";
 import { useIntervalFn } from "@vueuse/shared";
 import { delay } from "jaz-ts-utils";
-import { computed, ref } from "vue";
+import Column from "primevue/column";
+import { computed, Ref, ref, shallowRef } from "vue";
 
 import BattlePreview from "@/components/battle/BattlePreview.vue";
 import HostBattle from "@/components/battle/HostBattle.vue";
+import Modal from "@/components/common/Modal.vue";
 import Button from "@/components/controls/Button.vue";
 import Checkbox from "@/components/controls/Checkbox.vue";
-import { SpadsBattle } from "$/model/battle/spads-battle";
+import DataTable from "@/components/controls/DataTable.vue";
+import Textbox from "@/components/controls/Textbox.vue";
+import { AbstractBattle } from "@/model/battle/abstract-battle";
+import { SpadsBattle } from "@/model/battle/spads-battle";
+import { getFriendlyDuration } from "@/utils/misc";
+import { isBattle } from "@/utils/type-checkers";
 
 const hostBattleOpen = ref(false);
 const hidePvE = ref(false);
 const hideLocked = ref(false);
 const hideEmpty = ref(true);
-const filteredBattles = computed(() => {
+const selectedBattle: Ref<SpadsBattle | null> = shallowRef(null);
+const battles = computed(() => {
     let battles = Array.from(api.session.battles.values());
 
     battles = battles.filter((battle) => {
@@ -69,6 +140,11 @@ const filteredBattles = computed(() => {
             return b.users.length - a.users.length;
         }
     });
+
+    if (selectedBattle.value === null) {
+        // eslint-disable-next-line vue/no-side-effects-in-computed-properties
+        selectedBattle.value = battles[0];
+    }
 
     return battles;
 });
@@ -104,54 +180,50 @@ const updateBattleList = async () => {
 
 await updateBattleList();
 
-const queryInterval = useIntervalFn(() => updateBattleList(), 5000);
+useIntervalFn(() => updateBattleList(), 5000);
+
+const attemptJoinBattle = async (battle: AbstractBattle) => {
+    if (battle.battleOptions.passworded) {
+        passwordPromptOpen.value = true;
+    } else {
+        await api.comms.request("c.lobby.join", {
+            lobby_id: battle.battleOptions.id,
+        });
+    }
+};
+
+const passwordPromptOpen = ref(false);
+const onPasswordPromptSubmit: (data: { password?: string }) => Promise<void> = async (data) => {
+    if (!selectedBattle.value) {
+        console.warn("Prompting for battle password but no battle selected");
+        return;
+    }
+
+    const response = await api.comms.request("c.lobby.join", {
+        lobby_id: selectedBattle.value.battleOptions.id,
+        password: data.password,
+    });
+
+    if (response.result === "failure") {
+        api.alerts.alert({
+            type: "notification",
+            severity: "error",
+            content: "The password you entered was invalid.",
+        });
+    } else {
+        passwordPromptOpen.value = false;
+    }
+};
 </script>
 
 <style lang="scss" scoped>
-:global(.view--multiplayer-custom > .panel > .content) {
-    overflow-y: scroll;
+.battlelist {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    height: 0px;
 }
-.battle-list {
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    gap: 15px;
-}
-.filters {
-    & > div {
-        background: linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 0%, rgba(0 0 0 / 0.3) 100%);
-        &:hover {
-            background: linear-gradient(to bottom, rgba(255, 255, 255, 0.1) 0%, rgba(0 0 0 / 0.2) 100%);
-        }
-    }
-}
-:deep(.row) {
-    display: grid;
-    grid-template-columns: 40px 28px 2fr 70px 2fr 170px 90px;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-    background: linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0) 100%);
-    &:last-child {
-        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    }
-    &:not(.filters):hover {
-        background: rgba(255, 255, 255, 0.2);
-        box-shadow: 0 1px 0 0 rgba(255, 255, 255, 0.2);
-    }
-    & > div {
-        display: block;
-        overflow: hidden;
-        white-space: nowrap;
-        text-overflow: ellipsis;
-        padding: 6px 10px;
-        border-left: 1px solid rgba(255, 255, 255, 0.1);
-        &:last-child {
-            border-right: 1px solid rgba(255, 255, 255, 0.1);
-        }
-    }
-}
-.battles {
-    display: grid;
-    grid-gap: 15px;
-    grid-template-columns: repeat(auto-fill, minmax(500px, 1fr));
+.right {
+    position: relative;
+    width: 400px;
 }
 </style>

@@ -4,19 +4,31 @@
 
 <template>
     <div>
-        {{ stuff }}
+        <DataTable :value="data" class="p-datatable-lg">
+            <Column field="name" header="Name"></Column>
+            <Column field="color" header="Colour"></Column>
+            <Column field="number" header="Number"></Column>
+        </DataTable>
     </div>
 </template>
 
 <script lang="ts" setup>
-import { delay } from "jaz-ts-utils";
-import { ref } from "vue";
+import Column from "primevue/column";
 
-const stuff = ref("blue");
+import DataTable from "@/components/controls/DataTable.vue";
 
-await delay(40000);
-
-stuff.value = "red";
+const data = [
+    {
+        name: "bob",
+        color: "red",
+        number: 5,
+    },
+    {
+        name: "fred",
+        color: "blue",
+        number: 10,
+    },
+];
 </script>
 
 <style lang="scss" scoped></style>

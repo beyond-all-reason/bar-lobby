@@ -5,10 +5,10 @@ import * as path from "path";
 import { reactive } from "vue";
 
 import { AbstractContentAPI } from "@/api/content/abstract-content";
+import type { EngineAI } from "@/model/ai";
+import { gameAis } from "@/model/ai";
 import { parseLuaOptions } from "@/utils/parse-lua-options";
 import { parseLuaTable } from "@/utils/parse-lua-table";
-import type { EngineAI } from "$/model/ai";
-import { gameAis } from "$/model/ai";
 
 export class AiContentAPI extends AbstractContentAPI {
     protected readonly installedAis: Record<string, EngineAI[]> = reactive({});
@@ -53,8 +53,12 @@ export class AiContentAPI extends AbstractContentAPI {
         const aiOptionsPath = filePaths.find((filePath) => filePath.endsWith("AIOptions.lua"));
         const dllPath = filePaths.find((filePath) => filePath.endsWith(".dll") || filePath.endsWith(".so"));
 
-        if (aiInfoPath === undefined || dllPath === undefined) {
-            throw new Error("AIInfo.lua or .dll not found");
+        if (aiInfoPath === undefined) {
+            throw new Error("AIInfo.lua or AIOptions.lua not found");
+        }
+
+        if (dllPath === undefined) {
+            throw new Error(".dll or .so not found");
         }
 
         const aiInfoFile = await fs.promises.readFile(aiInfoPath);

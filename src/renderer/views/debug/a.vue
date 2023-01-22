@@ -5,6 +5,8 @@
 <template>
     <div>
         <Select v-model="color" :options="colors" />
+
+        test
     </div>
 </template>
 

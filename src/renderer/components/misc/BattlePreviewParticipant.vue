@@ -2,7 +2,7 @@
     <div class="contender" :class="{ color: Boolean(color) }">
         <Flag v-if="'countryCode' in contender" class="flag" :countryCode="contender.countryCode" />
         <Icon v-if="'aiId' in contender" :icon="robot" :height="16" />
-        <div>{{ contender.name }}</div>
+        <div>{{ name }}</div>
     </div>
 </template>
 
@@ -13,10 +13,15 @@ import { DemoModel } from "sdfz-demo-parser";
 import { computed } from "vue";
 
 import Flag from "@/components/misc/Flag.vue";
+import { Bot } from "@/model/battle/types";
+import { User } from "@/model/user";
+import { isUser } from "@/utils/type-checkers";
 
 const props = defineProps<{
-    contender: DemoModel.Info.Player | DemoModel.Info.AI | DemoModel.Info.Spectator;
+    contender: DemoModel.Info.Player | DemoModel.Info.AI | DemoModel.Info.Spectator | User | Bot;
 }>();
+
+const name = computed(() => (isUser(props.contender) ? props.contender.username : props.contender.name));
 
 const color = computed(() => {
     if ("rgbColor" in props.contender) {
@@ -36,7 +41,8 @@ const color = computed(() => {
     padding: 2px 6px;
     border-radius: 3px;
     background: rgba(0, 0, 0, 0.3);
-    font-size: 16px;
+    font-size: 14px;
+    font-weight: 500;
     border: 1px solid rgba(255, 255, 255, 0.1);
     overflow: hidden;
     &.color {
