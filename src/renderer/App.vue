@@ -23,8 +23,9 @@
             <InitialSetup v-else-if="state === 'initial-setup'" @complete="onInitialSetupDone" />
             <div v-else class="fullsize">
                 <NavBar :class="{ hidden: empty }" />
-                <div :class="`view view--${route.name?.toString()}`">
+                <div :class="`view view--${$router.currentRoute.value.name?.toString()}`">
                     <Panel :empty="empty">
+                        <Breadcrumbs :class="{ hidden: empty }" />
                         <router-view v-slot="{ Component }">
                             <template v-if="Component">
                                 <transition mode="out-in" name="slide-left">
@@ -64,6 +65,7 @@ import Error from "@/components/misc/Error.vue";
 import InitialSetup from "@/components/misc/InitialSetup.vue";
 import IntroVideo from "@/components/misc/IntroVideo.vue";
 import Preloader from "@/components/misc/Preloader.vue";
+import Breadcrumbs from "@/components/navbar/Breadcrumbs.vue";
 import Friends from "@/components/navbar/Friends.vue";
 import NavBar from "@/components/navbar/NavBar.vue";
 import Settings from "@/components/navbar/Settings.vue";
@@ -74,7 +76,6 @@ import { playRandomMusic } from "@/utils/play-random-music";
 const isProduction = process.env.NODE_ENV === "production";
 
 const router = useRouter();
-const route = api.router.currentRoute.value;
 const skipIntro = api.settings.model.skipIntro;
 const videoVisible = ref(!api.settings.model.skipIntro.value);
 const state: Ref<"preloader" | "initial-setup" | "default"> = ref("preloader");
@@ -84,7 +85,7 @@ const lobbyVersion = api.info.lobby.version;
 const settingsOpen = ref(false);
 const friendsOpen = ref(false);
 const exitOpen = ref(false);
-const viewOverflowY = computed(() => (api.router.currentRoute.value.meta.showScroller ? "scroll" : "hidden"));
+const viewOverflowY = computed(() => (router.currentRoute.value.meta.showScroller ? "scroll" : "hidden"));
 
 provide("settingsOpen", settingsOpen);
 provide("friendsOpen", friendsOpen);

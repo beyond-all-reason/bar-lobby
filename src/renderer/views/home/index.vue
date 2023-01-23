@@ -1,7 +1,7 @@
 <route lang="json">
 {
     "meta": {
-        "redirect": "/home/home",
+        "redirect": "/home/overview",
         "title": "Home",
         "order": 0,
         "transition": {

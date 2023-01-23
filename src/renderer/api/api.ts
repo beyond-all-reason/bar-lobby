@@ -46,7 +46,7 @@ declare global {
 
 export async function apiInit() {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    window.api = {} as any;
+    const api: API = (window.api = {} as any);
 
     api.utils = new UtilsAPI();
 

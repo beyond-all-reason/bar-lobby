@@ -15,10 +15,6 @@
 </template>
 
 <script lang="ts" setup>
-/**
- * TODO: replace tabs with https://www.primefaces.org/primevue/tabview
- */
-
 const props = withDefaults(
     defineProps<{
         is?: string;
