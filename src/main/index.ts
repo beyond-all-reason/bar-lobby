@@ -1,6 +1,5 @@
 import { App, dialog } from "electron";
 import { app, ipcMain, protocol, screen } from "electron";
-import installExtension from "electron-devtools-installer";
 import unhandled from "electron-unhandled";
 import { autoUpdater, UpdateInfo } from "electron-updater";
 import envPaths from "env-paths";
@@ -64,7 +63,7 @@ export class Application {
     protected async onReady() {
         if (!app.isPackaged) {
             try {
-                await installExtension("nhdogjmejiglipccpnnnanhbledajbpd");
+                // await installExtension("nhdogjmejiglipccpnnnanhbledajbpd"); // commenting out for now because seems to sometimes not work and spam errors in console
             } catch (e: any) {
                 console.error("Vue Devtools failed to install:", e.toString());
             }
