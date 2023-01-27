@@ -44,7 +44,6 @@ export default defineConfig({
             sourcemap: true,
         },
         optimizeDeps: {
-            exclude: ["@iconify-icons"],
             esbuildOptions: {
                 target: "esnext",
             },

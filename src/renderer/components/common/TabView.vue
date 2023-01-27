@@ -493,7 +493,7 @@ export default {
     .p-tabview-panels {
         min-height: calc(100% - 39px);
         max-height: calc(100% - 39px);
-        overflow-y: scroll;
+        overflow-y: auto;
     }
     .p-tabview-panel {
         padding: 30px;

@@ -27,8 +27,6 @@ onMounted(async () => {
         }
     } catch (error) {
         console.error(error);
-
-        api.session.offlineMode.value = true;
     }
 
     api.router.replace("/login");

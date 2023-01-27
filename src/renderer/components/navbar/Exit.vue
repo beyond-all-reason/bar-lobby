@@ -21,7 +21,7 @@ const logout = async () => {
     api.account.model.token.value = "";
     try {
         if (!api.session.offlineMode.value) {
-            await api.comms.request("c.auth.disconnect", {}); // TODO: replace with logout https://github.com/beyond-all-reason/teiserver/issues/56
+            await api.comms.request("c.auth.disconnect"); // TODO: replace with logout https://github.com/beyond-all-reason/teiserver/issues/56
         }
     } catch (err) {
         console.error(err);

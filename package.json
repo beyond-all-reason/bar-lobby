@@ -64,7 +64,7 @@
     "sqlite": "^4.1.1",
     "sqlite3": "^5.0.8",
     "steamworks.js": "0.0.21",
-    "tachyon-client": "^6.0.3",
+    "tachyon-client": "^6.0.4",
     "vue-i18n": "^9.2.2",
     "vue3-markdown-it": "^1.0.9",
     "vue3-popper": "^1.4.1"

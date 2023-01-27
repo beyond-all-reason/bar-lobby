@@ -1,4 +1,4 @@
-import { App, dialog } from "electron";
+import { App, dialog, safeStorage } from "electron";
 import { app, ipcMain, protocol, screen } from "electron";
 import unhandled from "electron-unhandled";
 import { autoUpdater, UpdateInfo } from "electron-updater";
@@ -108,6 +108,22 @@ export class Application {
 
         ipcMain.handle("highlightTaskbarIcon", (_, shouldHighlight: boolean) => {
             this.mainWindow?.window.flashFrame(shouldHighlight);
+        });
+
+        ipcMain.handle("encryptString", async (event, str: string) => {
+            if (safeStorage.isEncryptionAvailable()) {
+                return safeStorage.encryptString(str);
+            }
+            console.warn(`encryption not available, storing as plaintext`);
+            return str;
+        });
+
+        ipcMain.handle("decryptString", async (event, buffer: Buffer) => {
+            if (safeStorage.isEncryptionAvailable()) {
+                return safeStorage.decryptString(buffer);
+            }
+            console.warn(`encryption not available, returning buffer`);
+            return buffer.toString();
         });
     }
 
