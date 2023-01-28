@@ -11,7 +11,8 @@
   "main": "./out/main/index.js",
   "scripts": {
     "dev": "electron-vite",
-    "build": "cross-env NODE_OPTIONS='--max-old-space-size=8192' npm run clean && electron-vite build && electron-builder --config .electron-builder.config.js",
+    "build": "cross-env NODE_OPTIONS='--max-old-space-size=8192' npm run clean && electron-vite build",
+    "compile": "cross-env NODE_OPTIONS='--max-old-space-size=8192' electron-builder --config .electron-builder.config.js",
     "clean": "rimraf dist dist_electron out",
     "tidy": "npm run lint && npm run format",
     "lint-check": "eslint . --ext .ts,.vue",

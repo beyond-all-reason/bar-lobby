@@ -38,7 +38,8 @@ jobs:
             - name: Electron Builder Action
               uses: samuelmeuli/action-electron-builder@v1.6.0
               env:
-                  NODE_OPTIONS: "--max_old_space_size=4096"
+                  NODE_OPTIONS: "--max_old_space_size=8192"
               with:
                   github_token: ${{ secrets.github_token }}
                   release: ${{ startsWith(github.ref, 'refs/tags/v') }}
+                  args: "--config .electron-builder.config.js"
