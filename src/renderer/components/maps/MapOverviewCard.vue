@@ -4,6 +4,9 @@
         <div class="name">
             {{ map.friendlyName }}
         </div>
+        <div class="attributes">
+            <div>{{ map.width }} x {{ map.height }}</div>
+        </div>
     </div>
 </template>
 
@@ -45,6 +48,9 @@ const mapTextureImage = computed(() => api.content.maps.getMapImages(props.map).
                 opacity: 0;
             }
         }
+        .attributes {
+            opacity: 0;
+        }
     }
 }
 .background {
@@ -80,6 +86,17 @@ const mapTextureImage = computed(() => api.content.maps.getMapImages(props.map).
     font-size: 38px;
     font-weight: 600;
     text-shadow: 2px 2px 0px rgba(0, 0, 0, 0.5);
+    transition: 0.2s opacity;
+}
+.attributes {
+    position: absolute;
+    bottom: 10px;
+    left: 10px;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    background: rgba(0, 0, 0, 0.2);
+    font-size: 16px;
+    font-weight: 600;
+    padding: 2px 5px;
     transition: 0.2s opacity;
 }
 </style>

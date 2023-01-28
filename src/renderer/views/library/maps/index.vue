@@ -4,7 +4,7 @@
 
 <template>
     <div>
-        <h1>Maps</h1>
+        <h1>Installed Maps</h1>
         <MapListComponent @map-selected="onMapSelected" />
     </div>
 </template>
