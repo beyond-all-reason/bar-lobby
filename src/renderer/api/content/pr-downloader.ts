@@ -26,8 +26,8 @@ export abstract class PrDownloaderAPI extends AbstractContentAPI {
                 env: {
                     ...process.env,
                     PRD_RAPID_USE_STREAMER: "false",
-                    PRD_RAPID_REPO_MASTER: "https://bar-rapid.p2004a.com/repos.gz",
-                    PRD_HTTP_SEARCH_URL: "https://bar-springfiles.p2004a.com/find",
+                    PRD_RAPID_REPO_MASTER: "https://repos-cdn.beyondallreason.dev/repos.gz",
+                    PRD_HTTP_SEARCH_URL: "https://files-cdn.beyondallreason.dev/find",
                 },
             });
 
