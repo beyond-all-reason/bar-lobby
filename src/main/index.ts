@@ -128,7 +128,7 @@ export class Application {
     }
 
     protected getInfo() {
-        const resourcesPath = path.join(this.app.getAppPath(), "resources");
+        const resourcesPath = path.join(this.app.getAppPath(), "resources").split("resources")[0] + "resources";
         const paths = envPaths(app.getName(), { suffix: "" });
 
         const displayIds = screen.getAllDisplays().map((display) => display.id);
