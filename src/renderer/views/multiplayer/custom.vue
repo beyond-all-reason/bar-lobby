@@ -24,25 +24,27 @@
                     :autoLayout="true"
                     class="p-datatable-sm"
                     selectionMode="single"
+                    :sortOrder="-1"
+                    sortField="playerCount.value"
                 >
-                    <Column headerStyle="width: 0">
+                    <Column headerStyle="width: 0" sortable sortField="isLockedOrPassworded.value">
                         <template #header>
                             <Icon :icon="lock" />
                         </template>
                         <template #body="{ data }">
-                            <Icon v-if="data.battleOptions.locked || data.battleOptions.passworded" :icon="lock" />
+                            <Icon v-if="data.isLockedOrPassworded.value" :icon="lock" />
                         </template>
                     </Column>
-                    <Column header="Runtime">
+                    <Column header="Runtime" sortable sortField="runtimeMs.value">
                         <template #body="{ data }">
                             <div v-if="data.runtimeMs.value >= 1">
                                 {{ getFriendlyDuration(data.runtimeMs.value) }}
                             </div>
                         </template>
                     </Column>
-                    <Column field="battleOptions.title" header="Title" />
-                    <Column field="battleOptions.map" header="Map" />
-                    <Column header="Players">
+                    <Column field="battleOptions.title" header="Title" sortable />
+                    <Column field="battleOptions.map" header="Map" sortable />
+                    <Column header="Players" sortable sortField="playerCount.value">
                         <template #body="{ data }">
                             <div class="flex-row flex-center-items gap-md">
                                 <div v-if="data.players.value.length > 0" class="flex-row flex-center-items" style="gap: 2px">
@@ -131,19 +133,10 @@ const battles = computed(() => {
         return true;
     });
 
-    battles = battles.sort((a, b) => {
-        if ((a.battleOptions.locked || a.battleOptions.passworded) && !b.battleOptions.locked && !b.battleOptions.passworded) {
-            return 1;
-        } else if (!a.battleOptions.locked && !a.battleOptions.passworded && (b.battleOptions.locked || b.battleOptions.passworded)) {
-            return -1;
-        } else {
-            return b.users.length - a.users.length;
-        }
-    });
-
     if (selectedBattle.value === null) {
+        const biggestBattle = battles.sort((a, b) => b.playerCount.value - a.playerCount.value)[0];
         // eslint-disable-next-line vue/no-side-effects-in-computed-properties
-        selectedBattle.value = battles[0];
+        selectedBattle.value = biggestBattle;
     }
 
     return battles;

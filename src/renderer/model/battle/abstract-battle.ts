@@ -28,6 +28,8 @@ export abstract class AbstractBattle {
     public readonly friendlyRuntime: ComputedRef<string | null>;
     public readonly runtimeMs: ComputedRef<number | null>;
     public readonly map: ComputedRef<MapData | undefined>;
+    public readonly playerCount: ComputedRef<number>;
+    public readonly isLockedOrPassworded: ComputedRef<boolean>;
 
     protected watchStopHandles: WatchStopHandle[] = [];
 
@@ -65,6 +67,10 @@ export abstract class AbstractBattle {
             return `Running for ${formatDuration({ hours, minutes, seconds })}`;
         });
         this.map = computed(() => api.content.maps.installedMaps.find((map) => map.scriptName === this.battleOptions.map));
+        this.playerCount = computed(() => {
+            return this.players.value.length + this.spectators.value.length;
+        });
+        this.isLockedOrPassworded = computed(() => this.battleOptions.locked || this.battleOptions.passworded);
     }
 
     public getTeamParticipants(teamId: number): Array<User | Bot> {

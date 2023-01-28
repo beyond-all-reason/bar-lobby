@@ -4,6 +4,7 @@ import path from "path";
 import { reactive } from "vue";
 
 import { AbstractContentAPI } from "@/api/content/abstract-content";
+import { Replay } from "@/model/replay";
 import { parseReplay as parseReplayWorkerFunction } from "@/workers/parse-replay";
 import { hookWorkerFunction } from "@/workers/worker-helpers";
 
@@ -11,13 +12,18 @@ export type ReplayQueryOptions = {
     offset?: number;
     limit?: number;
     endedNormally?: boolean | null;
+    sortField?: keyof Replay | null;
+    sortOrder?: "asc" | "desc";
 };
 
 export const defaultReplayQueryOptions: Optionals<ReplayQueryOptions> = {
     offset: 0,
     limit: -1,
     endedNormally: true,
+    sortField: null,
+    sortOrder: "asc",
 };
+
 export class ReplayContentAPI extends AbstractContentAPI {
     public readonly replaysDir = path.join(api.info.contentPath, "demos");
     public readonly onReplayCached = new Signal();
@@ -71,10 +77,14 @@ export class ReplayContentAPI extends AbstractContentAPI {
     public async getReplays(optionsArg: ReplayQueryOptions) {
         const options = { ...defaultReplayQueryOptions, ...optionsArg };
 
-        let query = api.cacheDb.selectFrom("replay").selectAll().orderBy("startTime", "desc");
+        let query = api.cacheDb.selectFrom("replay").selectAll();
 
         if (options.endedNormally !== null) {
             query = query.where("gameEndedNormally", "=", options.endedNormally);
+        }
+
+        if (options.sortField !== null) {
+            query = query.orderBy(options.sortField, options.sortOrder);
         }
 
         return query.offset(options.offset).limit(options.limit).execute();

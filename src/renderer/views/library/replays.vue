@@ -30,7 +30,10 @@
                 :totalRecords="totalReplays"
                 selectionMode="single"
                 dataKey="replayId"
+                :sortOrder="sortOrder === 'asc' ? 1 : -1"
+                :sortField="sortField"
                 @page="onPage"
+                @sort="onSort"
             >
                 <Column header="Name">
                     <template #body="{ data }">
@@ -48,17 +51,17 @@
                         </template>
                     </template>
                 </Column>
-                <Column header="Date">
+                <Column header="Date" :sortable="true" sortField="startTime">
                     <template #body="{ data }">
                         {{ format(data.startTime, "yyyy/MM/dd hh:mm a") }}
                     </template>
                 </Column>
-                <Column header="Duration">
+                <Column header="Duration" :sortable="true" sortField="gameDurationMs">
                     <template #body="{ data }">
                         {{ getFriendlyDuration(data.gameDurationMs) }}
                     </template>
                 </Column>
-                <Column field="mapScriptName" header="Map" />
+                <Column field="mapScriptName" header="Map" :sortable="true" sortField="mapScriptName" />
             </DataTable>
         </div>
         <div class="right">
@@ -109,6 +112,8 @@ const showSpoilers = ref(true);
 const totalReplays = ref(0);
 const offset = ref(0);
 const limit = ref(18);
+const sortField: Ref<keyof Replay> = ref("startTime");
+const sortOrder: Ref<"asc" | "desc"> = ref("desc");
 const replays: Ref<Replay[]> = shallowRef([]);
 const selectedReplay: Ref<Replay | null> = shallowRef(null);
 
@@ -119,6 +124,8 @@ const fetchReplays = async () => {
         offset: offset.value,
         limit: limit.value,
         endedNormally: endedNormally.value,
+        sortField: sortField.value,
+        sortOrder: sortOrder.value,
     });
 
     if (selectedReplay.value === null) {
@@ -136,6 +143,12 @@ const onPage = (event: DataTableStateEvent) => {
     offset.value = event.first;
     fetchReplays();
 };
+
+function onSort(event: DataTableStateEvent) {
+    sortField.value = event.sortField as keyof Replay;
+    sortOrder.value = event.sortOrder === 1 ? "asc" : "desc";
+    fetchReplays();
+}
 
 const refresh = () => {
     api.content.replays.queueReplaysToCache();

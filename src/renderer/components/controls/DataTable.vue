@@ -56,4 +56,12 @@ const props = defineProps<Props>();
     display: flex;
     justify-content: center;
 }
+.p-column-header-content {
+    gap: 3px;
+}
+.p-sortable-column {
+    &:hover {
+        background: rgba(255, 255, 255, 0.2);
+    }
+}
 </style>
