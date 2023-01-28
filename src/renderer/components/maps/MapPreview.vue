@@ -1,7 +1,6 @@
 <template>
     <div ref="mapPreviewEl" class="map-preview">
-        <img v-if="static" :src="mapImages.textureImagePath" />
-        <canvas v-else ref="canvas" class="canvas" />
+        <canvas ref="canvas" class="canvas" />
     </div>
 </template>
 
@@ -26,7 +25,6 @@ const props = defineProps<{
           }
         | undefined
     >;
-    static?: boolean;
 }>();
 
 const mapPreviewEl: Ref<HTMLDivElement | null> = ref(null);

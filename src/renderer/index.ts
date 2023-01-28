@@ -23,7 +23,7 @@ declare module "vue-router" {
         empty?: boolean;
         blurBg?: boolean;
         transition?: TransitionProps;
-        showScroller?: boolean;
+        overflowY?: "scroll" | "hidden";
     }
 }
 

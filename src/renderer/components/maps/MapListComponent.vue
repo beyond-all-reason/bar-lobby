@@ -1,11 +1,12 @@
 <template>
-    <div class="map-list flex-col gap-lg">
-        <div class="sort-options flex-row gap-md">
+    <div class="flex-col gap-lg">
+        <div class="flex-row gap-md">
             <SearchBox v-model="searchVal" />
             <Select v-model="sortMethod" :options="sortMethods" label="Sort By" />
         </div>
+
         <div class="maps">
-            <MapOverviewCard v-for="(map, index) in filteredMaps" :key="index" :map="map" @click="mapSelected(map)" />
+            <MapOverviewCard v-for="(map, i) in filteredMaps" :key="i" :map="map" @click="mapSelected(map)" />
         </div>
     </div>
 </template>
@@ -31,7 +32,9 @@ type SortMethod = "Name" | "Size";
 const sortMethods: SortMethod[] = ["Name", "Size"];
 const sortMethod: Ref<SortMethod> = ref("Name");
 const searchVal = ref("");
-const emit = defineEmits(["mapSelected"]);
+const emit = defineEmits<{
+    (event: "map-selected", map: MapData): void;
+}>();
 const filteredMaps = computed(() => {
     let maps = Array.from(api.content.maps.installedMaps);
 
@@ -56,7 +59,7 @@ const filteredMaps = computed(() => {
 });
 
 function mapSelected(map: MapData) {
-    emit("mapSelected", map);
+    emit("map-selected", map);
 }
 </script>
 
@@ -64,6 +67,6 @@ function mapSelected(map: MapData) {
 .maps {
     display: grid;
     grid-gap: 15px;
-    grid-template-columns: repeat(auto-fill, minmax(450px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
 }
 </style>

@@ -85,7 +85,7 @@ const lobbyVersion = api.info.lobby.version;
 const settingsOpen = ref(false);
 const friendsOpen = ref(false);
 const exitOpen = ref(false);
-const viewOverflowY = computed(() => (router.currentRoute.value.meta.showScroller ? "scroll" : "hidden"));
+const viewOverflowY = computed(() => (router.currentRoute.value.meta.overflowY ? router.currentRoute.value.meta.overflowY : "auto"));
 
 provide("settingsOpen", settingsOpen);
 provide("friendsOpen", friendsOpen);

@@ -7,7 +7,6 @@ import { ComputedRef, reactive, Ref, ref, shallowReactive, shallowRef } from "vu
 import { BattleChatMessage } from "@/model/battle/battle-chat";
 import { OfflineBattle } from "@/model/battle/offline-battle";
 import { SpadsBattle } from "@/model/battle/spads-battle";
-import { MapData } from "@/model/map-data";
 import { CurrentUser, User } from "@/model/user";
 
 export class SessionAPI {
@@ -23,7 +22,6 @@ export class SessionAPI {
     public readonly outgoingFriendRequests: ComputedRef<User[]>;
     public readonly incomingFriendRequests: ComputedRef<User[]>;
     public readonly friends: ComputedRef<User[]>;
-    public readonly libraryPage: Ref<MapData | null> = shallowRef(null);
 
     // temporary necessity until https://github.com/beyond-all-reason/teiserver/issues/34 is implemented
     public lastBattleResponses: Map<number, Static<typeof lobbySchema>> = new Map();

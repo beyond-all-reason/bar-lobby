@@ -1,5 +1,5 @@
 <template>
-    <Modal :title="title" height="75vh">
+    <Modal :title="title" height="80vh" width="90vw">
         <MapListComponent @map-selected="mapSelected" />
     </Modal>
 </template>

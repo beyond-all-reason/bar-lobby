@@ -65,8 +65,11 @@
                     :placeholder="battle.battleOptions.map"
                     @update:model-value="onMapSelected"
                 />
-                <Button @click="openMapList">
+                <Button v-tooltip.left="'Open map selector'" @click="openMapList">
                     <Icon :icon="listIcon" height="23" />
+                </Button>
+                <Button v-tooltip.left="'Configure map options'" @click="openMapOptions">
+                    <Icon :icon="cogIcon" height="23" />
                 </Button>
                 <MapListModal v-model="mapListOpen" title="Maps" @map-selected="onMapSelected" />
             </div>
@@ -81,7 +84,7 @@
                     class="fullwidth"
                     @update:model-value="onGameSelected"
                 />
-                <Button @click="openGameOptions">
+                <Button v-tooltip.left="'Configure game options'" @click="openGameOptions">
                     <Icon :icon="cogIcon" height="23" />
                 </Button>
                 <LuaOptionsModal
@@ -182,6 +185,9 @@ const onStartPosChange = (startPosType: StartPosType) => {
 
 const openMapList = () => {
     mapListOpen.value = true;
+};
+const openMapOptions = () => {
+    // TODO
 };
 
 const onEngineSelected = (engineVersion: string) => {

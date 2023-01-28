@@ -33,8 +33,8 @@ import { nextTick, Ref, ref, toRef, watch } from "vue";
 
 import Panel from "@/components/common/Panel.vue";
 
-type PanelProps = InstanceType<typeof Panel>["$props"];
-interface ModalProps extends PanelProps {
+export type PanelProps = InstanceType<typeof Panel>["$props"];
+export interface ModalProps extends PanelProps {
     modelValue: boolean;
     title?: string;
 }

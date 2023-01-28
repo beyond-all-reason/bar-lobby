@@ -25,7 +25,7 @@ export const parseMap = exposeWorkerFunction(async (mapPath: string, mapImagesPa
     return {
         fileName: path.parse(mapPath).base,
         scriptName: map.scriptName.trim(),
-        friendlyName: map.mapInfo?.name || map.scriptName.trim().replace(/[_-]/g, " "),
+        friendlyName: (map.mapInfo?.name || map.scriptName).trim().replace(/[_-]/g, " "),
         description: map.mapInfo?.description || map.smd?.description || null,
         mapHardness: map.mapInfo?.maphardness ?? map.smd?.mapHardness!,
         gravity: map.mapInfo?.gravity ?? map.smd?.gravity!,

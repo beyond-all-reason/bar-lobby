@@ -6,9 +6,9 @@ import { defaultMaps } from "@/config/default-maps";
 import { OfflineBattle } from "@/model/battle/offline-battle";
 import { StartPosType } from "@/model/battle/types";
 
-export const defaultBattle: () => OfflineBattle = () => {
+export const defaultBattle: (mapScriptName?: string) => OfflineBattle = (mapScriptName) => {
     const me = api.session.offlineUser;
-    const map = randomFromArray(defaultMaps)!;
+    const map = mapScriptName ?? randomFromArray(defaultMaps)!;
 
     me.battleStatus.playerId = 0;
     me.battleStatus.teamId = 0;

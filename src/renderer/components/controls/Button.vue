@@ -30,7 +30,7 @@ const props = defineProps<Props>();
 
 const active = computed(() => props?.to && api.router.currentRoute.value.path.includes(props.to));
 const onClick = () => {
-    if (props.to && !active.value) {
+    if (props.to && api.router.currentRoute.value.path !== props.to) {
         api.router.push(props.to);
     }
 };
@@ -40,6 +40,15 @@ const onClick = () => {
 .button {
     padding: 0;
     align-self: unset;
+    &.inline {
+        align-self: flex-start;
+    }
+    &.slim {
+        min-height: unset;
+        align-self: center;
+        border-radius: 2px;
+        font-size: 16px;
+    }
 }
 .p-button {
     width: 100%;
@@ -71,12 +80,5 @@ $btnColors: (
             box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.1), inset 0 -17px 0 rgba(0, 0, 0, 0.05);
         }
     }
-}
-
-.slim {
-    min-height: unset;
-    align-self: center;
-    border-radius: 2px;
-    font-size: 16px;
 }
 </style>

@@ -1,96 +1,85 @@
 <template>
-    <div class="map-preview">
-        <div class="background" :style="`background-image: url('${defaultMapImage}')`" />
-        <div class="header">
-            <div class="title">
-                <div class="flex-row flex-center gap-sm">
-                    {{ map.friendlyName }}
-                </div>
-            </div>
-        </div>
-
-        <div class="flex-row fullheight">
-            <MapPreview :map="map.scriptName" :static="true" />
-            <div class="details">
-                <div class="detail-text"><b>Size:</b> {{ map.width }} x {{ map.height }}</div>
-                <div class="detail-text"><b>Wind:</b> {{ map.minWind }} - {{ map.maxWind }}</div>
-                <div class="detail-text"><b>Description:</b> {{ map.description }}</div>
-                <div v-if="map.mapInfo" class="detail-text"><b>Author:</b> {{ map.mapInfo.author }}</div>
-            </div>
+    <div class="map">
+        <div class="background" :style="`background-image: url('${mapTextureImage}')`"></div>
+        <div class="name">
+            {{ map.friendlyName }}
         </div>
     </div>
 </template>
 
 <script lang="ts" setup>
-import defaultMapImage from "@/assets/images/default-minimap.png";
-import MapPreview from "@/components/maps/MapPreview.vue";
+import { computed } from "vue";
+
 import { MapData } from "@/model/map-data";
 
 const props = defineProps<{
     map: MapData;
 }>();
+
+const mapTextureImage = computed(() => api.content.maps.getMapImages(props.map).textureImagePath);
 </script>
 
 <style lang="scss" scoped>
-.map-preview {
-    display: flex;
-    flex-direction: column;
+.map {
+    aspect-ratio: 1;
     position: relative;
-    z-index: 0;
-    gap: 5px;
-    padding: 10px;
-    font-weight: 500;
-    .details {
-        display: flex;
-        flex-direction: column;
-        margin: 10px;
-        min-width: 200px;
-    }
-    .detail-text {
-        padding: 5px;
-        font-weight: normal;
-        font-size: 16px;
+    overflow: hidden;
+    &:after {
+        @extend .fullsize;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        box-shadow: inset 0 1px 0 rgba(0, 0, 0, 0.3), inset 0 -1px 0 rgba(0, 0, 0, 0.3), inset 1px 0 0 rgba(0, 0, 0, 0.3),
+            inset -1px 0 0 rgba(0, 0, 0, 0.3);
+        border: 3px solid rgba(0, 0, 0, 0.2);
+        z-index: 5;
     }
     &:hover {
+        .name {
+            opacity: 0;
+        }
         .background {
-            filter: brightness(1.1);
+            transform: scale(1.01);
+            &:after {
+                opacity: 0;
+            }
         }
     }
-    .header {
-        font-weight: 600;
-    }
-    .title {
-        display: flex;
-        flex-direction: row;
-        align-items: center;
-        gap: 5px;
-    }
-    .background {
+}
+.background {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+    position: relative;
+    transform: scale(1.1);
+    transition: 0.2s transform;
+    will-change: transform;
+    z-index: 0;
+    &:after {
         @extend .fullsize;
-        left: 0;
-        top: 0;
-        image-rendering: pixelated;
-        z-index: -1;
-        background-position: center;
-        background-size: cover;
-        overflow: hidden;
-        filter: brightness(0.9);
-        &:before {
-            @extend .fullsize;
-            left: 0;
-            top: 0;
-            transition: all 0.05s;
-            background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0));
-        }
-        &:after {
-            @extend .fullsize;
-            left: 0;
-            top: 0;
-            border-top: 1px solid rgba(255, 255, 255, 0.2);
-            border-left: 1px solid rgba(255, 255, 255, 0.1);
-            border-right: 1px solid rgba(255, 255, 255, 0.1);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-        }
+        z-index: 1;
+        background: linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0));
+        transition: 0.2s opacity;
     }
+}
+.name {
+    z-index: 21;
+    @extend .fullsize;
+    top: 0;
+    left: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    word-break: break-word;
+    padding: 10px;
+    font-size: 38px;
+    font-weight: 600;
+    text-shadow: 2px 2px 0px rgba(0, 0, 0, 0.5);
+    transition: 0.2s opacity;
 }
 </style>

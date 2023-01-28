@@ -155,33 +155,6 @@ const startPositions = computed(() => {
         };
     });
 });
-
-// const attemptJoinBattle = async () => {
-//     if (props.battle.battleOptions.passworded) {
-//         passwordPromptOpen.value = true;
-//     } else {
-//         await api.comms.request("c.lobby.join", {
-//             lobby_id: props.battle.battleOptions.id,
-//         });
-//     }
-// };
-
-// const passwordPromptOpen = ref(false);
-// const onPasswordPromptSubmit: (data: { password?: string }) => Promise<void> = async (data) => {
-//     const response = await api.comms.request("c.lobby.join", {
-//         lobby_id: props.battle.battleOptions.id,
-//         password: data.password,
-//     });
-//     if (response.result === "failure") {
-//         api.alerts.alert({
-//             type: "notification",
-//             severity: "error",
-//             content: "The password you entered was invalid.",
-//         });
-//     } else {
-//         passwordPromptOpen.value = false;
-//     }
-// };
 </script>
 
 <style lang="scss" scoped>

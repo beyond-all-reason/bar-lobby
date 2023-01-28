@@ -65,6 +65,10 @@ export class MapContentAPI extends PrDownloaderAPI {
         return super.init();
     }
 
+    public getMapByScriptName(scriptName: string) {
+        return this.installedMaps.find((map) => map.scriptName === scriptName);
+    }
+
     public async downloadMaps(scriptNameOrNames: string | string[]) {
         const scriptNames = asArray(scriptNameOrNames);
 

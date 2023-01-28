@@ -25,8 +25,7 @@
 import MapListComponent from "@/components/maps/MapListComponent.vue";
 import { MapData } from "@/model/map-data";
 
-function onMapSelected(map: MapData) {
-    api.session.libraryPage.value = map;
-    api.router.push("/library/map");
-}
+const onMapSelected = (map: MapData) => {
+    api.router.push(`/library/maps/${map.scriptName}`);
+};
 </script>
