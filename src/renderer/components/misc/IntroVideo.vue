@@ -1,6 +1,6 @@
 <template>
     <div class="intro fullsize">
-        <video ref="videoEl" @loadstart="play" @durationchange="onDurationChange" @click="end">
+        <video ref="videoEl" @click="end">
             <source v-if="videoSrc" :src="videoSrc" type="video/mp4" />
         </video>
     </div>
@@ -25,23 +25,22 @@ onMounted(async () => {
     }
 
     videoSrc.value = randomFromArray(videoPaths)!;
+
+    if (videoEl.value) {
+        try {
+            await videoEl.value.play();
+            videoEl.value.volume = 0.2;
+
+            const fadeOutDuration = 1000;
+            window.setTimeout(() => {
+                emit("complete");
+            }, videoEl.value.duration * 1000 - fadeOutDuration);
+        } catch (err) {
+            console.debug(err);
+            end();
+        }
+    }
 });
-
-const play = () => {
-    if (videoEl.value) {
-        videoEl.value.volume = 0.2;
-        videoEl.value.play();
-    }
-};
-
-const onDurationChange = () => {
-    if (videoEl.value) {
-        const fadeOutDuration = 1000;
-        window.setTimeout(() => {
-            emit("complete");
-        }, videoEl.value.duration * 1000 - fadeOutDuration);
-    }
-};
 
 const end = () => {
     emit("complete");
