@@ -60,6 +60,7 @@ export default defineConfig({
             VueRouter({
                 routesFolder: "src/renderer/views",
                 dts: "src/renderer/typed-router.d.ts",
+                importMode: "sync",
             }),
             vue(),
             renderer({
