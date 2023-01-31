@@ -1,5 +1,5 @@
-<route lang="json">
-{ "meta": { "title": "Multiplayer Custom Battle", "transition": { "name": "slide-left" } } }
+<route lang="json5">
+{ meta: { title: "Multiplayer Custom Battle", transition: { name: "slide-left" } } }
 </route>
 
 <template>

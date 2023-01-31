@@ -1,5 +1,5 @@
-<route lang="json">
-{ "meta": { "empty": true, "blurBg": true, "offline": true, "transition": { "name": "login" } } }
+<route lang="json5">
+{ meta: { empty: true, blurBg: true, offline: true, transition: { name: "login" } } }
 </route>
 
 <template>

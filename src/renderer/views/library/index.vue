@@ -1,13 +1,17 @@
-<route lang="json">
+<route lang="json5">
 {
-    "meta": {
-        "redirect": "/library/replays",
-        "title": "Library",
-        "order": 2,
-        "transition": {
-            "name": "slide-below"
+    meta: {
+        redirect: "/library/replays",
+        title: "Library",
+        order: 2,
+        transition: {
+            name: "slide-below",
         },
-        "offline": true
-    }
+        offline: true,
+    },
 }
 </route>
+
+<template>
+    <div></div>
+</template>

@@ -23,7 +23,6 @@ export class MainWindow {
             show: false,
             minWidth: 1440,
             minHeight: 900,
-            darkTheme: true,
             paintWhenInitiallyHidden: true,
             webPreferences: {
                 nodeIntegration: true,

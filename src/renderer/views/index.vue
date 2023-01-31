@@ -1,5 +1,5 @@
-<route lang="json">
-{ "meta": { "empty": true } }
+<route lang="json5">
+{ meta: { empty: true } }
 </route>
 
 <template>
