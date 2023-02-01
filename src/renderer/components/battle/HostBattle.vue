@@ -78,7 +78,7 @@ const hostBattle = async () => {
             hostedBattleData.value = { name, password };
         } catch (err) {
             console.error(`Error parsing autohost response: ${data.message}`);
-            throw err;
+            return;
         }
 
         // TODO: when we move away from polling lobby.query then this should be changed to listen for newly created battles
