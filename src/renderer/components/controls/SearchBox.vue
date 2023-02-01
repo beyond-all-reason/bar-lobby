@@ -32,7 +32,7 @@
  */
 import { computed, defineComponent, PropType, ref } from "vue";
 export const fieldType = ["search", "text"];
-export type FieldType = typeof fieldType[number];
+export type FieldType = (typeof fieldType)[number];
 const filterObject = (obj: { [key: string]: unknown }, properties: (string | number)[], remove = true) => {
     const res: { [key: string]: unknown } = {};
     Object.keys(obj).forEach((objAttr) => {
