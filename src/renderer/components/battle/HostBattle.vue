@@ -73,9 +73,13 @@ const hostBattle = async () => {
             return;
         }
 
-        const { name, password } = data.message.match(/name=(?<name>.*)?,\spassword=(?<password>.*)?\)/)!.groups!;
-
-        hostedBattleData.value = { name, password };
+        try {
+            const { name, password } = data.message.match(/name=(?<name>.*)?,\spassword=(?<password>.*)?\)/)!.groups!;
+            hostedBattleData.value = { name, password };
+        } catch (err) {
+            console.error(`Error parsing autohost response: ${data.message}`);
+            throw err;
+        }
 
         // TODO: when we move away from polling lobby.query then this should be changed to listen for newly created battles
         battleOpenedBinding = api.comms.onResponse("s.lobby.query").add((data) => {
