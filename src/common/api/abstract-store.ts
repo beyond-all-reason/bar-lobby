@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { TObject } from "@sinclair/typebox";
 import type { ValidateFunction } from "ajv";
 import Ajv from "ajv";
@@ -6,16 +5,14 @@ import { shell } from "electron";
 import * as fs from "fs";
 import * as path from "path";
 import type { ToRefs } from "vue";
-import { reactive, toRefs, watch } from "vue";
+import { reactive, toRefs } from "vue";
 
-export class StoreAPI<T extends Record<string, unknown>> {
+export abstract class AsbtractStoreAPI<T extends Record<string, unknown>> {
     public model!: ToRefs<T>; // TODO: replace with reactive object
 
     protected filePath: string;
     protected name: string;
     protected schema: TObject<any>;
-    // protected dir: string;
-    // protected filePath: string;
     protected ajv: Ajv;
     protected validator: ValidateFunction;
     protected fileHandle!: fs.promises.FileHandle;
@@ -37,29 +34,6 @@ export class StoreAPI<T extends Record<string, unknown>> {
         await fs.promises.mkdir(dir, { recursive: true });
 
         await this.read();
-
-        // TODO: refactor to watch file and pull changes into model without retriggering a write
-        if (process.type === "renderer") {
-            const ipcRenderer = (await import("electron")).ipcRenderer;
-
-            for (const value of Object.values(this.model) as Array<ToRefs<T>>) {
-                watch(value, async () => {
-                    await this.write();
-
-                    if (this.syncWithMain) {
-                        ipcRenderer.invoke(`store-update:${this.name}`, this.serialize());
-                    }
-                });
-            }
-        } else if (process.type === "browser") {
-            const ipcMain = (await import("electron")).ipcMain;
-
-            ipcMain.handle(`store-update:${this.name}`, async (event, model: T) => {
-                for (const [key, val] of Object.entries(model)) {
-                    this.model[key].value = val;
-                }
-            });
-        }
 
         return this;
     }
@@ -96,9 +70,7 @@ export class StoreAPI<T extends Record<string, unknown>> {
             clearTimeout(this.writeTimeout);
         }
 
-        const timeoutFunc = process.type === "renderer" ? window.setTimeout : setTimeout;
-
-        this.writeTimeout = timeoutFunc(async () => {
+        this.writeTimeout = setTimeout(async () => {
             const obj: Record<string, unknown> = {};
             for (const key in this.model) {
                 const value = this.model[key as keyof T];

@@ -5,8 +5,8 @@ import { autoUpdater, UpdateInfo } from "electron-updater";
 import envPaths from "env-paths";
 import * as path from "path";
 
+import { StoreAPI } from "@/api/store";
 import { MainWindow } from "@/main-window";
-import { StoreAPI } from "$/api/store";
 import type { Info } from "$/model/info";
 import type { SettingsType } from "$/model/settings";
 import { settingsSchema } from "$/model/settings";

@@ -3,7 +3,7 @@ import { autoUpdater } from "electron-updater";
 import path from "path";
 import { watch } from "vue";
 
-import type { StoreAPI } from "$/api/store";
+import type { AsbtractStoreAPI } from "$/api/abstract-store";
 import type { SettingsType } from "$/model/settings";
 
 declare const __static: string;
@@ -11,9 +11,9 @@ declare const __static: string;
 export class MainWindow {
     public window: BrowserWindow;
 
-    protected settings: StoreAPI<SettingsType>;
+    protected settings: AsbtractStoreAPI<SettingsType>;
 
-    constructor(settings: StoreAPI<SettingsType>) {
+    constructor(settings: AsbtractStoreAPI<SettingsType>) {
         this.settings = settings;
 
         this.window = new BrowserWindow({
