@@ -1,7 +1,7 @@
-import { App, dialog, safeStorage } from "electron";
+import { App, safeStorage } from "electron";
 import { app, ipcMain, protocol, screen } from "electron";
 import unhandled from "electron-unhandled";
-import { autoUpdater, UpdateInfo } from "electron-updater";
+import { autoUpdater } from "electron-updater";
 import envPaths from "env-paths";
 import * as path from "path";
 
@@ -61,33 +61,23 @@ export class Application {
     }
 
     protected async onReady() {
-        if (!app.isPackaged) {
+        console.log("process.env.NODE_ENV", process.env.NODE_ENV);
+        console.log("app.isPackaged", app.isPackaged);
+
+        if (process.env.NODE_ENV === "development") {
             try {
                 // await installExtension("nhdogjmejiglipccpnnnanhbledajbpd"); // commenting out for now because seems to sometimes not work and spam errors in console
             } catch (e: any) {
                 console.error("Vue Devtools failed to install:", e.toString());
             }
         } else if (app.isPackaged && process.env.NODE_ENV !== "development") {
-            autoUpdater.autoInstallOnAppQuit = true;
-            autoUpdater.checkForUpdates();
-            autoUpdater.addListener("update-downloaded", async (info: UpdateInfo) => {
-                const { response } = await dialog.showMessageBox({
-                    title: "Restart Beyond All Reason Lobby?",
-                    type: "question",
-                    message: `New version "Beyond All Reason Lobby ${info.version}" has been successfully downloaded.`,
-                    buttons: ["Yes", "Later", "Yes, Update"],
-                    cancelId: 1,
-                });
-
-                if (response === 0 || response === 2) {
-                    autoUpdater.quitAndInstall();
-                }
-            });
+            const updateInfo = autoUpdater.checkForUpdatesAndNotify();
+            console.log(updateInfo);
         }
 
         if (!this.initialised) {
             this.initialised = true;
-            this.init();
+            await this.init();
         }
     }
 

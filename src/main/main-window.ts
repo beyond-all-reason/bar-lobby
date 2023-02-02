@@ -1,12 +1,9 @@
-import { app, BrowserWindow, screen, shell } from "electron";
-import { autoUpdater } from "electron-updater";
+import { BrowserWindow, screen, shell } from "electron";
 import path from "path";
 import { watch } from "vue";
 
 import type { AsbtractStoreAPI } from "$/api/abstract-store";
 import type { SettingsType } from "$/model/settings";
-
-declare const __static: string;
 
 export class MainWindow {
     public window: BrowserWindow;
@@ -59,23 +56,10 @@ export class MainWindow {
             this.window.maximize();
         });
 
-        this.init();
-    }
-
-    public async init() {
         if (process.env.ELECTRON_RENDERER_URL) {
             this.window.loadURL(process.env.ELECTRON_RENDERER_URL);
             this.window.webContents.openDevTools();
         } else {
-            if (app.isPackaged && process.env.NODE_ENV !== "development") {
-                await autoUpdater.checkForUpdatesAndNotify({
-                    title: "Beyond All Reason",
-                    body: `Updated to version ${app.getVersion()}`,
-                });
-            } else {
-                this.window.webContents.openDevTools();
-            }
-
             this.window.loadFile(path.join(__dirname, "../renderer/index.html"));
         }
     }
