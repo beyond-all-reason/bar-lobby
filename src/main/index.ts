@@ -61,9 +61,6 @@ export class Application {
     }
 
     protected async onReady() {
-        console.log("process.env.NODE_ENV", process.env.NODE_ENV);
-        console.log("app.isPackaged", app.isPackaged);
-
         if (process.env.NODE_ENV === "development") {
             try {
                 // await installExtension("nhdogjmejiglipccpnnnanhbledajbpd"); // commenting out for now because seems to sometimes not work and spam errors in console

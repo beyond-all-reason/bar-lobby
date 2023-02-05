@@ -56,7 +56,9 @@ async function setupVue() {
     const app = createApp(App);
 
     app.use(api.router);
-    app.use(PrimeVue);
+    app.use(PrimeVue, {
+        ripple: true,
+    });
     app.use(await setupI18n());
 
     app.directive("click-away", clickAwayDirective);
