@@ -15,12 +15,14 @@
 </template>
 
 <script lang="ts" setup>
+/**
+ * TODO
+ * - get rid of width/height/padding settings
+ */
+
 const props = withDefaults(
     defineProps<{
         is?: string;
-        width?: string;
-        height?: string;
-        padding?: string;
         hidden?: boolean;
         light?: boolean;
         empty?: boolean;
@@ -28,9 +30,6 @@ const props = withDefaults(
     }>(),
     {
         is: "div",
-        width: "initial",
-        height: "initial",
-        padding: "30px",
         hidden: false,
         light: false,
         contentStyle: "",
@@ -44,7 +43,6 @@ const props = withDefaults(
     max-height: 100%;
     display: flex;
     flex-direction: column;
-    flex-grow: 1;
     background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.6));
     backdrop-filter: blur(10px) brightness(1) saturate(2);
     border: 1px solid rgba(255, 255, 255, 0.2);
@@ -66,10 +64,8 @@ const props = withDefaults(
         display: flex;
         flex-direction: column;
         flex-grow: 1;
-        width: v-bind(width);
-        height: v-bind(height);
-        padding: v-bind(padding);
         overflow-y: auto;
+        padding: 30px;
     }
     .header {
         position: relative;
@@ -79,6 +75,7 @@ const props = withDefaults(
         justify-content: space-between;
         width: 100%;
         z-index: 1;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         :deep(.control.button) {
             align-self: unset;
         }

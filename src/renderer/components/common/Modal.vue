@@ -1,18 +1,19 @@
 <template>
     <teleport to="#wrapper">
         <transition name="modal" appear>
-            <form v-if="isOpen" ref="form" class="modal-container" @submit.prevent="onSubmit" @keydown.enter="onSubmit">
-                <Panel id="modal" class="modal" v-bind="$attrs">
+            <form v-if="isOpen" ref="form" class="container" @submit.prevent="onSubmit" @keydown.enter="onSubmit">
+                <Panel id="modal" class="modal-panel" v-bind="$attrs">
                     <template #header>
-                        <div class="modal__title">
+                        <div class="title">
                             <slot name="title">
                                 {{ title }}
                             </slot>
                         </div>
-                        <div class="modal__close" @click="close" @mouseenter="sound">
+                        <div class="close" @click="close" @mouseenter="sound">
                             <Icon :icon="closeThick" height="23" />
                         </div>
                     </template>
+
                     <slot />
                 </Panel>
             </form>
@@ -43,9 +44,6 @@ const props = withDefaults(defineProps<ModalProps>(), {
     modelValue: false,
     title: undefined,
     is: "div",
-    width: "initial",
-    height: "initial",
-    padding: "30px",
     activeTab: 0,
 });
 
@@ -98,7 +96,7 @@ const sound = () => api.audio.getSound("button-hover").play();
 </script>
 
 <style lang="scss" scoped>
-.modal-container {
+.container {
     @extend .fullsize;
     left: 0;
     top: 0;
@@ -108,22 +106,22 @@ const sound = () => api.audio.getSound("button-hover").play();
     background-color: rgba(0, 0, 0, 0.3);
     backdrop-filter: blur(5px);
 }
-.modal {
+.modal-panel {
     flex-grow: 0;
     background: rgba(0, 0, 0, 0.5);
-    &__title {
-        padding: 5px 10px;
-        flex-grow: 1;
-        text-transform: capitalize;
-        font-weight: 600;
-    }
-    &__close {
-        display: flex;
-        margin-left: auto;
-        padding: 5px 10px;
-        &:hover {
-            background: rgba(219, 20, 20, 0.6);
-        }
+}
+.title {
+    padding: 5px 10px;
+    flex-grow: 1;
+    text-transform: capitalize;
+    font-weight: 600;
+}
+.close {
+    display: flex;
+    margin-left: auto;
+    padding: 5px 10px;
+    &:hover {
+        background: rgba(219, 20, 20, 0.6);
     }
 }
 .modal-enter-active,

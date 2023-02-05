@@ -38,7 +38,7 @@ const onReload = () => {
 </script>
 
 <style lang="scss" scoped>
-:global(.modal.error-modal) {
+:global(.error-modal) {
     background: rgba(224, 17, 17, 0.7) !important;
 }
 .error {

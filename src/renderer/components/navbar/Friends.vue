@@ -1,5 +1,5 @@
 <template>
-    <Panel class="friends" :class="{ hidden: !open }" padding="0">
+    <Panel class="friends" :class="{ hidden: !open }">
         <TabView ref="tabViewEl" v-model:activeIndex="activeIndex">
             <TabPanel header="Friends">
                 <div class="flex-col gap-lg container">
@@ -152,6 +152,9 @@ const addFriend = async () => {
     transform: translateX(-9px);
     opacity: 1;
     transition: transform 200ms, opacity 200ms;
+    :deep(.content) {
+        padding: 0;
+    }
     .container {
         min-height: 400px;
         max-height: 400px;

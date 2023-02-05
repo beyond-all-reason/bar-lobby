@@ -1,5 +1,5 @@
 <template>
-    <Modal :title="title" height="80vh" width="90vw">
+    <Modal :title="title" class="map-list-modal">
         <MapListComponent @map-selected="mapSelected" />
     </Modal>
 </template>
@@ -21,6 +21,10 @@ function mapSelected(map: MapData) {
 </script>
 
 <style lang="scss" scoped>
+:global(.map-list-modal) {
+    width: 90vw;
+    height: 80vh;
+}
 .container {
     padding: 15px;
 }

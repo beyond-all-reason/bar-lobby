@@ -11,9 +11,9 @@
         <div class="lobby-version">
             {{ lobbyVersion }}
         </div>
-        <div class="steam-overlay-hack">
+        <!-- <div class="steam-overlay-hack">
             {{ frameCount }}
-        </div>
+        </div> -->
         <div v-if="empty" class="splash-options">
             <Icon :icon="cog" height="21" class="option" @click="settingsOpen = true" />
             <Icon :icon="closeThick" height="21" class="option" @click="exitOpen = true" />
@@ -24,7 +24,7 @@
             <div v-else class="fullsize">
                 <NavBar :class="{ hidden: empty }" />
                 <div :class="`view view--${$router.currentRoute.value.name?.toString()}`">
-                    <Panel :empty="empty">
+                    <Panel :empty="empty" class="flex-grow">
                         <Breadcrumbs :class="{ hidden: empty }" />
                         <router-view v-slot="{ Component }">
                             <template v-if="Component">

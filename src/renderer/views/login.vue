@@ -5,7 +5,7 @@
 <template>
     <div class="container">
         <img ref="logo" class="logo" src="~@/assets/images/BARLogoFull.png" />
-        <Panel v-if="isConnected" class="login-forms" padding="0">
+        <Panel v-if="isConnected" class="login-forms">
             <TabView v-model:activeIndex="activeIndex">
                 <TabPanel header="Login">
                     <LoginForm />
@@ -87,6 +87,9 @@ connect();
 
 .login-forms {
     width: 100%;
+    :deep(.content) {
+        padding: 0;
+    }
 }
 
 .retry {
