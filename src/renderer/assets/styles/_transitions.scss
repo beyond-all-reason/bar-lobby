@@ -23,8 +23,8 @@
 $dirs: (
     "left": translateX(-15px),
     "right": translateX(15px),
-    "above": translateY(-15px),
-    "below": translateY(15px),
+    "up": translateY(15px),
+    "down": translateY(-15px),
 );
 
 @each $name, $transform in $dirs {

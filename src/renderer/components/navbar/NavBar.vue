@@ -219,8 +219,9 @@ const serverOffline = api.session.offlineMode;
         border: none;
         color: rgba(255, 255, 255, 0.5);
         flex-grow: 0;
-        padding: 0 15px;
-        gap: 5px;
+        :deep(> button) {
+            padding: 0 20px;
+        }
         &:hover,
         &.active {
             color: #fff;

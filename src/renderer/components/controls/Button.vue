@@ -15,6 +15,8 @@ export default {
 </script>
 
 <script lang="ts" setup>
+// https://primevue.org/button
+
 import PrimeVueButton, { ButtonProps } from "primevue/button";
 import { computed } from "vue";
 

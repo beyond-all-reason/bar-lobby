@@ -1,8 +1,9 @@
 import { Static } from "@sinclair/typebox";
 import { assign, entries, objectKeys } from "jaz-ts-utils";
 import { battleSchema, lobbySchema } from "tachyon-client";
-import { computed, ComputedRef } from "vue";
+import { computed, ComputedRef, Ref, ref } from "vue";
 
+import { SpadsVote } from "@/config/spads";
 import { AbstractBattle } from "@/model/battle/abstract-battle";
 import { Bot, SpadsBattleOptions, StartBox, StartPosType } from "@/model/battle/types";
 import { User } from "@/model/user";
@@ -19,6 +20,7 @@ type LobbyResponseHandlers = { [K in keyof Required<LobbyType>]: (data: Required
 export class SpadsBattle extends AbstractBattle<SpadsBattleOptions> {
     public readonly founder: ComputedRef<User>;
     public readonly isLockedOrPassworded: ComputedRef<boolean>;
+    public readonly currentVote: Ref<SpadsVote | null> = ref(null);
 
     protected responseHandlers: { [K in keyof Required<BattleType>]: (data: Required<BattleType[K]>) => void } = {
         lobby: (data) => {

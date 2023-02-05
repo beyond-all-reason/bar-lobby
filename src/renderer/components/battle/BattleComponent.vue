@@ -139,6 +139,10 @@
                 </Button>
             </div>
         </div>
+
+        <Transition name="slide-up">
+            <VotingPanel v-if="isSpadsBattle(battle) && battle.currentVote.value" :vote="battle.currentVote.value" />
+        </Transition>
     </div>
 </template>
 
@@ -155,6 +159,7 @@ import BattleChat from "@/components/battle/BattleChat.vue";
 import LuaOptionsModal from "@/components/battle/LuaOptionsModal.vue";
 import MapListModal from "@/components/battle/MapListModal.vue";
 import Playerlist from "@/components/battle/Playerlist.vue";
+import VotingPanel from "@/components/battle/VotingPanel.vue";
 import Button from "@/components/controls/Button.vue";
 import Options from "@/components/controls/Options.vue";
 import Select from "@/components/controls/Select.vue";
