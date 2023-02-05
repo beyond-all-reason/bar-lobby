@@ -58,12 +58,11 @@ const waitingForBattleCreation = ref(false);
 let replyBinding: SignalBinding | undefined;
 let battleOpenedBinding: SignalBinding | undefined;
 
-const hostBattle = async () => {
+async function hostBattle() {
     /**
      * for now, we interface with the SPADS cluster bots via the !privatehost command
      * in the future, we should setup an actual API to interface through, probably via the server, which should act as a broker for assigning available hosts
      * */
-
     waitingForBattleCreation.value = true;
 
     const targetClusterBotUserId = clusterBotUserIds[selectedRegion.value][0]; // not sure when to use fallback clusters, for now we'll just always use the first one
@@ -114,19 +113,19 @@ const hostBattle = async () => {
         recipient_id: targetClusterBotUserId,
         message: `!privatehost`,
     });
-};
+}
 
-const onOpen = () => {
+function onOpen() {
     waitingForBattleCreation.value = false;
-};
+}
 
-const onClose = () => {
+function onClose() {
     if (replyBinding) {
         replyBinding.destroy();
     }
 
     hostedBattleData.value = undefined;
-};
+}
 </script>
 
 <style lang="scss" scoped></style>

@@ -51,13 +51,13 @@ const color = computed(() => {
     }
 });
 
-const openBattle = () => {
+function openBattle() {
     api.router.push("/multiplayer/battle");
-};
+}
 
-const leaveBattle = () => {
+function leaveBattle() {
     battle.value?.leave();
-};
+}
 </script>
 
 <style lang="scss" scoped>

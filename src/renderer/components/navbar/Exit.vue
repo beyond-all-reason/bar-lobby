@@ -17,7 +17,7 @@ import Button from "@/components/controls/Button.vue";
 const router = useRouter();
 const modal: Ref<InstanceType<typeof Modal> | null> = ref(null);
 
-const logout = async () => {
+async function logout() {
     api.account.model.token.value = "";
     try {
         if (!api.session.offlineMode.value) {
@@ -28,11 +28,11 @@ const logout = async () => {
     }
     router.push("/login");
     modal.value?.close();
-};
+}
 
-const quitToDesktop = async () => {
+async function quitToDesktop() {
     window.close();
-};
+}
 </script>
 
 <style lang="scss" scoped></style>

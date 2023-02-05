@@ -32,9 +32,9 @@ window.addEventListener("error", (event) => {
     isVisible.value = true;
 });
 
-const onReload = () => {
+function onReload() {
     window.document.location.reload();
-};
+}
 </script>
 
 <style lang="scss" scoped>

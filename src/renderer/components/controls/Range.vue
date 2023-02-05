@@ -40,15 +40,15 @@ onMounted(() => {
     }
 });
 
-const onSlide = (input: number | number[]) => {
+function onSlide(input: number | number[]) {
     emits("update:modelValue", input);
-};
+}
 
-const onInput = (input: number | number[]) => {
+function onInput(input: number | number[]) {
     if (typeof input === "number" && !Array.isArray(input)) {
         emits("update:modelValue", input);
     }
-};
+}
 </script>
 
 <style lang="scss" scoped>

@@ -90,9 +90,9 @@ import Select from "@/components/controls/Select.vue";
 import Textbox from "@/components/controls/Textbox.vue";
 
 const text = ref("textbox");
-const onUpdateText = (newText: string) => {
+function onUpdateText(newText: string) {
     text.value = newText;
-};
+}
 
 const selection = ref("blue");
 const selections = ref([
@@ -100,25 +100,25 @@ const selections = ref([
     { name: "Blue", value: "blue" },
     { name: "Green", value: "green" },
 ]);
-const onUpdateSelection = (newSelection: string) => {
+function onUpdateSelection(newSelection: string) {
     selection.value = newSelection;
-};
+}
 
 const range: Ref<number | number[]> = ref(0);
-const onUpdateRange = (newRange: number | number[]) => {
+function onUpdateRange(newRange: number | number[]) {
     range.value = newRange;
-};
+}
 
 const checked = ref(false);
-const onUpdateChecked = () => {
+function onUpdateChecked() {
     checked.value = !checked.value;
-};
+}
 
 const option: Ref<string | null> = ref(null);
 const options = ref(["Purple", "Orange", "Black"]);
-const onUpdateOption = (newValue: string | null) => {
+function onUpdateOption(newValue: string | null) {
     option.value = newValue;
-};
+}
 </script>
 
 <style lang="scss" scoped>

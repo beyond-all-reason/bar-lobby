@@ -48,17 +48,17 @@ const sortedTeams = computed(() => {
     return teams;
 });
 
-const openBotList = (teamId: number) => {
+function openBotList(teamId: number) {
     botModalTeamId.value = teamId;
     botListOpen.value = true;
-};
+}
 
-const onBotSelected = (bot: string, teamId: number) => {
+function onBotSelected(bot: string, teamId: number) {
     botListOpen.value = false;
     addBot(bot, teamId);
-};
+}
 
-const addBot = (bot: string, teamId: number) => {
+function addBot(bot: string, teamId: number) {
     let randomName = randomFromArray(aiNames);
     while (props.battle.bots.some((bot) => bot.name === randomName)) {
         randomName = randomFromArray(aiNames);
@@ -73,9 +73,9 @@ const addBot = (bot: string, teamId: number) => {
         ownerUserId: props.me.userId,
         aiOptions: {},
     });
-};
+}
 
-const joinTeam = (teamId: number) => {
+function joinTeam(teamId: number) {
     const playerIsSpectator = props.me.battleStatus.isSpectator;
     if (playerIsSpectator && teamId >= 0) {
         props.battle.spectatorToPlayer(props.me, teamId);
@@ -84,12 +84,12 @@ const joinTeam = (teamId: number) => {
     } else if (!playerIsSpectator && teamId >= 0) {
         props.battle.setContenderTeam(props.me, teamId);
     }
-};
+}
 
 let draggedParticipant: Ref<User | Bot | null> = ref(null);
 let draggedEl: Element | null = null;
 
-const dragEnter = (event: DragEvent, teamId: number) => {
+function dragEnter(event: DragEvent, teamId: number) {
     if (!draggedParticipant.value) {
         return;
     }
@@ -115,18 +115,18 @@ const dragEnter = (event: DragEvent, teamId: number) => {
     if (groupEl) {
         invalidMove ? groupEl.classList.add("highlight-error") : groupEl.classList.add("highlight");
     }
-};
+}
 
-const dragStart = (event: DragEvent, participant: User | Bot) => {
+function dragStart(event: DragEvent, participant: User | Bot) {
     draggedParticipant.value = participant;
     draggedEl = event.target as Element;
     const participantEl = draggedEl?.querySelector("[data-type=participant]");
     if (participantEl) {
         participantEl.classList.add("dragging");
     }
-};
+}
 
-const dragEnd = () => {
+function dragEnd() {
     const participantEl = draggedEl?.querySelector("[data-type=participant]");
     if (participantEl) {
         participantEl.classList.remove("dragging");
@@ -138,9 +138,9 @@ const dragEnd = () => {
         el.classList.remove("highlight");
         el.classList.remove("highlight-error");
     });
-};
+}
 
-const onDrop = (event: DragEvent, teamId: number) => {
+function onDrop(event: DragEvent, teamId: number) {
     const target = event.target as Element;
     if (!draggedParticipant.value || target.getAttribute("data-type") !== "group") {
         return;
@@ -162,7 +162,7 @@ const onDrop = (event: DragEvent, teamId: number) => {
             props.battle.playerToSpectator(playerMember);
         }
     }
-};
+}
 </script>
 
 <style lang="scss" scoped>

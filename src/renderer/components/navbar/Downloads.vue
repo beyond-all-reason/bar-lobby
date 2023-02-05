@@ -35,13 +35,13 @@ const downloads = computed(() =>
     api.content.engine.currentDownloads.concat(api.content.game.currentDownloads, api.content.maps.currentDownloads)
 );
 
-const progressText = (currentBytes: number, totalBytes: number) => {
+function progressText(currentBytes: number, totalBytes: number) {
     const percent = currentBytes / totalBytes;
     const currentMB = currentBytes / Math.pow(1024, 2);
     const totalMB = totalBytes / Math.pow(1024, 2);
 
     return `${currentMB.toFixed(2)}MB/${totalMB.toFixed(2)}MB (${(percent * 100).toFixed(2)}%)`;
-};
+}
 </script>
 
 <style lang="scss" scoped>

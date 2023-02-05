@@ -87,30 +87,30 @@ const emits = defineEmits<{
     (event: "setOptions", options: Record<string, any>): void;
 }>();
 
-const setOptionValue = (option: LuaOptionNumber | LuaOptionBoolean | LuaOptionString | LuaOptionList, value: unknown) => {
+function setOptionValue(option: LuaOptionNumber | LuaOptionBoolean | LuaOptionString | LuaOptionList, value: unknown) {
     if (value === option.default) {
         delete options[option.key];
     } else {
         options[option.key] = value;
     }
-};
+}
 
-const open = () => {
+function open() {
     setObject(options, toRaw(props.luaOptions));
-};
+}
 
-const close = () => {
+function close() {
     modal.value?.close();
-};
+}
 
-const reset = () => {
+function reset() {
     setObject(options, {});
-};
+}
 
-const save = () => {
+function save() {
     emits("setOptions", clone(toRaw(options)));
     modal.value?.close();
-};
+}
 </script>
 
 <style lang="scss" scoped>

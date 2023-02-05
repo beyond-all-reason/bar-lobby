@@ -18,9 +18,9 @@ import chevronLeft from "@iconify-icons/mdi/chevron-left";
 
 const currentRoute = api.router.currentRoute;
 
-const onBack = () => {
+function onBack() {
     api.router.back();
-};
+}
 </script>
 
 <style lang="scss" scoped>

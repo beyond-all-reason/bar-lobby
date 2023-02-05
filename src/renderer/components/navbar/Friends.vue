@@ -54,13 +54,6 @@
                     <div class="user-list">TODO</div>
                 </div>
             </TabPanel>
-            <template #header>
-                <li class="p-tabview-header close" @click="onClose">
-                    <div class="p-tabview-nav-link p-tabview-header-action">
-                        <Icon :icon="closeThick" />
-                    </div>
-                </li>
-            </template>
         </TabView>
     </Panel>
 </template>
@@ -75,8 +68,6 @@
  * invite to battle button
  */
 
-import { Icon } from "@iconify/vue";
-import closeThick from "@iconify-icons/mdi/close-thick";
 import AccordionTab from "primevue/accordiontab";
 import { computed, ref, watch } from "vue";
 
@@ -114,15 +105,11 @@ watch(
     }
 );
 
-const onClose = () => {
-    emits("update:open", false);
-};
-
-const copyUserId = () => {
+function copyUserId() {
     navigator.clipboard.writeText(myUserId.value.toString());
-};
+}
 
-const addFriend = async () => {
+async function addFriend() {
     if (friendIdStr.value) {
         const friendId = parseInt(friendIdStr.value);
 
@@ -138,7 +125,7 @@ const addFriend = async () => {
             api.session.onlineUser.incomingFriendRequestUserIds.add(friendId);
         }
     }
-};
+}
 </script>
 
 <style lang="scss" scoped>

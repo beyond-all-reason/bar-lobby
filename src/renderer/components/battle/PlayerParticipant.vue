@@ -38,29 +38,29 @@ const syncStatus = computed(() => {
         `;
 });
 
-const viewProfile = (player: User) => {
+function viewProfile(player: User) {
     //
-};
+}
 
-const kickPlayer = (player: User) => {
+function kickPlayer(player: User) {
     //
-};
+}
 
-const messagePlayer = (player: User) => {
+function messagePlayer(player: User) {
     //
-};
+}
 
-const blockPlayer = (player: User) => {
+function blockPlayer(player: User) {
     //
-};
+}
 
-const addFriend = (player: User) => {
+function addFriend(player: User) {
     //
-};
+}
 
-const reportPlayer = (player: User) => {
+function reportPlayer(player: User) {
     //
-};
+}
 
 const playerActions: ContextMenuEntry[] = [
     { label: "View Profile", action: viewProfile },
@@ -75,9 +75,9 @@ const selfActions: ContextMenuEntry[] = [{ label: "View Profile", action: viewPr
 
 const actions = props.player.userId === api.session.onlineUser.userId || props.player.userId === -1 ? selfActions : playerActions;
 
-const onMouseEnter = () => {
+function onMouseEnter() {
     api.audio.getSound("button-hover").play();
-};
+}
 </script>
 
 <style lang="scss" scoped>

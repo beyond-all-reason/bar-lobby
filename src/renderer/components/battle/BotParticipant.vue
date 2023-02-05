@@ -36,11 +36,11 @@ const props = defineProps<{
 const aiOptions: Ref<LuaOptionSection[]> = ref([]);
 const aiOptionsOpen = ref(false);
 
-const kickAi = (bot: Bot) => {
+function kickAi(bot: Bot) {
     props.battle.removeBot(bot);
-};
+}
 
-const configureAi = async (bot: Bot) => {
+async function configureAi(bot: Bot) {
     const engine = props.battle.battleOptions.engineVersion;
     await api.content.ai.processAis(engine);
     const ai = api.content.ai.getEngineAI(bot.aiShortName, engine);
@@ -48,11 +48,11 @@ const configureAi = async (bot: Bot) => {
         aiOptions.value = ai.options;
         aiOptionsOpen.value = true;
     }
-};
+}
 
-const setBotOptions = (options: Record<string, unknown>) => {
+function setBotOptions(options: Record<string, unknown>) {
     props.battle.setBotOptions(props.bot.name, options);
-};
+}
 
 function getActions(bot: Bot): ContextMenuEntry[] {
     const kickAction: ContextMenuEntry = { label: "Kick", action: kickAi };
@@ -65,9 +65,9 @@ function getActions(bot: Bot): ContextMenuEntry[] {
     return [kickAction];
 }
 
-const onMouseEnter = () => {
+function onMouseEnter() {
     api.audio.getSound("button-hover").play();
-};
+}
 </script>
 
 <style lang="scss" scoped>

@@ -117,7 +117,7 @@ const sortOrder: Ref<"asc" | "desc"> = ref("desc");
 const replays: Ref<Replay[]> = shallowRef([]);
 const selectedReplay: Ref<Replay | null> = shallowRef(null);
 
-const fetchReplays = async () => {
+async function fetchReplays() {
     totalReplays.value = await api.content.replays.getTotalReplayCount();
 
     replays.value = await api.content.replays.getReplays({
@@ -131,7 +131,7 @@ const fetchReplays = async () => {
     if (selectedReplay.value === null) {
         selectedReplay.value = replays.value[0];
     }
-};
+}
 
 api.content.replays.onReplayCached.add(() => {
     fetchReplays();
@@ -139,10 +139,10 @@ api.content.replays.onReplayCached.add(() => {
 
 fetchReplays();
 
-const onPage = (event: DataTableStateEvent) => {
+function onPage(event: DataTableStateEvent) {
     offset.value = event.first;
     fetchReplays();
-};
+}
 
 function onSort(event: DataTableStateEvent) {
     sortField.value = event.sortField as keyof Replay;
@@ -150,21 +150,21 @@ function onSort(event: DataTableStateEvent) {
     fetchReplays();
 }
 
-const refresh = () => {
+function refresh() {
     api.content.replays.queueReplaysToCache();
-};
+}
 
-const openReplaysFolder = () => {
+function openReplaysFolder() {
     shell.openPath(path.join(api.content.replays.replaysDir));
-};
+}
 
-const watchReplay = (replay: Replay) => {
+function watchReplay(replay: Replay) {
     api.game.launch(replay);
-};
+}
 
-const showReplayFile = (replay: Replay) => {
+function showReplayFile(replay: Replay) {
     shell.showItemInFolder(path.join(api.content.replays.replaysDir, replay.fileName));
-};
+}
 </script>
 
 <style lang="scss" scoped>

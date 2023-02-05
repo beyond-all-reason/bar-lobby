@@ -24,9 +24,9 @@ import Textbox from "@/components/controls/Textbox.vue";
 const email = ref("");
 const username = ref("");
 
-const requestPasswordReset = () => {
+function requestPasswordReset() {
     console.log(email.value, username.value);
-};
+}
 </script>
 
 <style lang="scss" scoped></style>

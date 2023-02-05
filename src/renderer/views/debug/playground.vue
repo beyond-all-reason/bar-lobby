@@ -26,9 +26,9 @@ const selections = ref([
     { name: "Blue", value: "blue" },
     { name: "Green", value: "green" },
 ]);
-const onUpdateSelection = (newSelection: string) => {
+function onUpdateSelection(newSelection: string) {
     selection.value = newSelection;
-};
+}
 </script>
 
 <style lang="scss" scoped></style>

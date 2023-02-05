@@ -30,9 +30,9 @@ const emits = defineEmits<{
 
 const value = toRef(props, "modelValue");
 
-const onClick = () => {
+function onClick() {
     emits("update:modelValue", props.modelValue === true ? false : props.modelValue === false ? null : true);
-};
+}
 </script>
 
 <style lang="scss" scoped>

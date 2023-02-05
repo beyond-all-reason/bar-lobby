@@ -60,16 +60,16 @@ const props = defineProps<{
     type: "outgoing_request" | "incoming_request" | "friend";
 }>();
 
-const cancelRequest = async () => {
+async function cancelRequest() {
     await api.comms.request("c.user.rescind_friend_request", {
         user_id: props.user.userId,
     });
 
     api.session.onlineUser.incomingFriendRequestUserIds.delete(props.user.userId);
     api.session.onlineUser.outgoingFriendRequestUserIds.delete(props.user.userId);
-};
+}
 
-const acceptRequest = async () => {
+async function acceptRequest() {
     await api.comms.request("c.user.accept_friend_request", {
         user_id: props.user.userId,
     });
@@ -77,38 +77,38 @@ const acceptRequest = async () => {
     api.session.onlineUser.incomingFriendRequestUserIds.delete(props.user.userId);
     api.session.onlineUser.outgoingFriendRequestUserIds.delete(props.user.userId);
     api.session.onlineUser.friendUserIds.add(props.user.userId);
-};
+}
 
-const rejectRequest = async () => {
+async function rejectRequest() {
     await api.comms.request("c.user.reject_friend_request", {
         user_id: props.user.userId,
     });
 
     api.session.onlineUser.incomingFriendRequestUserIds.delete(props.user.userId);
     api.session.onlineUser.outgoingFriendRequestUserIds.delete(props.user.userId);
-};
+}
 
-const viewProfile = async () => {
+async function viewProfile() {
     api.router.push({
         path: `/profile/overview/${props.user.userId}`,
     });
-};
+}
 
-const sendMessage = async () => {
+async function sendMessage() {
     // TODO
-};
+}
 
-const joinBattle = async () => {
+async function joinBattle() {
     // TODO
-};
+}
 
-const inviteToParty = async () => {
+async function inviteToParty() {
     // TODO
-};
+}
 
-const removeFriend = async () => {
+async function removeFriend() {
     // TODO
-};
+}
 </script>
 
 <style lang="scss" scoped>

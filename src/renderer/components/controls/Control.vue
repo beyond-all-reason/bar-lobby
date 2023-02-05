@@ -15,7 +15,7 @@ const props = defineProps<{
 
 const control: Ref<HTMLElement | null> = ref(null);
 
-const focus = () => {
+function focus() {
     if (control.value) {
         const slotEl = control.value.lastElementChild as HTMLElement | null;
         if (slotEl) {
@@ -23,11 +23,11 @@ const focus = () => {
             slotEl.focus();
         }
     }
-};
+}
 
-const onMouseEnter = () => {
+function onMouseEnter() {
     api.audio.getSound("button-hover").play();
-};
+}
 </script>
 
 <style lang="scss" scoped>

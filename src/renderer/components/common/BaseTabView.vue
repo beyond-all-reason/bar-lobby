@@ -79,7 +79,7 @@
     </div>
 </template>
 
-<script>
+<script lang="js">
 import Ripple from "primevue/ripple";
 import { DomHandler, UniqueComponentId } from "primevue/utils";
 

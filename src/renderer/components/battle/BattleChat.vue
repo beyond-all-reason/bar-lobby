@@ -30,7 +30,7 @@ const messages = api.session.battleMessages;
 const myMessage = ref("");
 const messagesEl = ref(null as HTMLElement | null);
 
-const sendMessage = () => {
+function sendMessage() {
     if (!myMessage.value) {
         return;
     }
@@ -40,7 +40,7 @@ const sendMessage = () => {
     });
 
     myMessage.value = "";
-};
+}
 </script>
 
 <style lang="scss" scoped>

@@ -12,13 +12,13 @@ export function hookWorkerFunction<T extends (...args: any[]) => Promise<WorkerM
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const wrappedFunc = ((...args: any[]) => {
         return new Promise((resolve, reject) => {
-            const onErrorListener = (err: ErrorEvent) => {
+            function onErrorListener(err: ErrorEvent) {
                 worker.removeEventListener("message", onMessageListener);
                 worker.removeEventListener("error", onErrorListener);
                 reject(err);
-            };
+            }
 
-            const onMessageListener = ({ data: message }: MessageEvent) => {
+            function onMessageListener({ data: message }: MessageEvent) {
                 if (message?.function === func.name && message.result) {
                     worker.removeEventListener("message", onMessageListener);
                     worker.removeEventListener("error", onErrorListener);
@@ -26,7 +26,7 @@ export function hookWorkerFunction<T extends (...args: any[]) => Promise<WorkerM
                 } else if (message?.error) {
                     onErrorListener(message.error);
                 }
-            };
+            }
 
             worker.addEventListener("message", onMessageListener);
             worker.addEventListener("error", onErrorListener);

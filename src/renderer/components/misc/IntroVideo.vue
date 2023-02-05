@@ -42,9 +42,9 @@ onMounted(async () => {
     }
 });
 
-const end = () => {
+function end() {
     emit("complete");
-};
+}
 </script>
 
 <style lang="scss" scoped>

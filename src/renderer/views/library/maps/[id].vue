@@ -55,14 +55,14 @@ const props = defineProps<{
 
 const map = computed(() => api.content.maps.getMapByScriptName(props.id));
 
-const downloadMap = () => {
+function downloadMap() {
     api.content.maps.downloadMaps(props.id);
-};
+}
 
-const play = () => {
+function play() {
     const battle = defaultBattle(map.value?.scriptName);
     api.game.launch(battle);
-};
+}
 </script>
 
 <style lang="scss" scoped>

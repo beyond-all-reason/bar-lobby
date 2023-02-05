@@ -31,11 +31,11 @@ export interface Props extends ButtonProps {
 const props = defineProps<Props>();
 
 const active = computed(() => props?.to && api.router.currentRoute.value.path.includes(props.to));
-const onClick = () => {
+function onClick() {
     if (props.to && api.router.currentRoute.value.path !== props.to) {
         api.router.push(props.to);
     }
-};
+}
 </script>
 
 <style lang="scss" scoped>

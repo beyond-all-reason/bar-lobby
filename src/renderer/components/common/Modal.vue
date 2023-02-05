@@ -15,6 +15,10 @@
                     </template>
 
                     <slot />
+
+                    <template #footer>
+                        <slot name="footer"></slot>
+                    </template>
                 </Panel>
             </form>
         </transition>
@@ -62,9 +66,9 @@ defineExpose({
     close: () => emits("update:modelValue", false),
 });
 
-const close = () => {
+function close() {
     emits("update:modelValue", false);
-};
+}
 
 watch(isOpen, (open) => {
     if (open) {
@@ -75,7 +79,7 @@ watch(isOpen, (open) => {
     }
 });
 
-const onSubmit = async () => {
+async function onSubmit() {
     const data: Record<string, unknown> = {};
 
     if (!form.value?.elements) {
@@ -90,9 +94,11 @@ const onSubmit = async () => {
         }
     }
     await emits("submit", data);
-};
+}
 
-const sound = () => api.audio.getSound("button-hover").play();
+function sound() {
+    return api.audio.getSound("button-hover").play();
+}
 </script>
 
 <style lang="scss" scoped>

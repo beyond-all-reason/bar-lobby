@@ -37,14 +37,14 @@ const confirmPassword = ref("");
 const password = ref("");
 const error = ref("");
 
-const validatePassword = (value: string) => {
+function validatePassword(value: string) {
     if (password.value && confirmPassword.value && password.value !== confirmPassword.value) {
         return "Passwords do not match";
     }
     return;
-};
+}
 
-const register = async () => {
+async function register() {
     loading.value = true;
 
     const registerResponse = await api.comms.request("c.auth.register", {
@@ -64,7 +64,7 @@ const register = async () => {
     }
 
     loading.value = false;
-};
+}
 </script>
 
 <style lang="scss" scoped></style>

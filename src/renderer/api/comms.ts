@@ -49,7 +49,7 @@ export class CommsAPI extends TachyonClient {
     }
 
     protected setupAuthComms() {
-        const onLogin = (result: string, userData: Static<typeof myUserSchema> | undefined) => {
+        function onLogin(result: string, userData: Static<typeof myUserSchema> | undefined) {
             if (result !== "success" || !userData) {
                 return;
             }
@@ -69,7 +69,7 @@ export class CommsAPI extends TachyonClient {
             });
 
             api.router.push("/home");
-        };
+        }
 
         this.onResponse("s.auth.login").add((data) => {
             onLogin(data.result, data.user);
@@ -81,7 +81,7 @@ export class CommsAPI extends TachyonClient {
     }
 
     protected setupLobbyComms() {
-        const joinBattle = async (data: Static<typeof battleSchema>) => {
+        async function joinBattle(data: Static<typeof battleSchema>) {
             if (data.member_list) {
                 const userIds = data.member_list.map((member) => member.userid);
                 await api.comms.request("c.user.list_users_from_ids", { id_list: userIds, include_clients: true });
@@ -105,7 +105,7 @@ export class CommsAPI extends TachyonClient {
             api.router.push("/multiplayer/battle");
 
             battle.open();
-        };
+        }
 
         this.onResponse("s.lobby.joined").add((data) => {
             joinBattle(data);

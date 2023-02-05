@@ -51,7 +51,7 @@ if (loginAutomatically.value) {
 
 watch(api.account.model.email, () => (email.value = api.account.model.email.value));
 
-const login = async () => {
+async function login() {
     loading.value = true;
 
     const tokenResponse = await api.comms.request("c.auth.get_token", { email: email.value, password: password.value });
@@ -84,9 +84,9 @@ const login = async () => {
     }
 
     loading.value = false;
-};
+}
 
-const verify = async () => {
+async function verify() {
     loading.value = true;
 
     const verifyResult = await api.comms.request("c.auth.verify", { token: api.account.model.token.value, code: verificationCode.value });
@@ -96,7 +96,7 @@ const verify = async () => {
     }
 
     loading.value = false;
-};
+}
 </script>
 
 <style lang="scss" scoped></style>

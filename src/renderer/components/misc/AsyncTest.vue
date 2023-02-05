@@ -12,17 +12,17 @@
 </template>
 
 <script lang="ts" setup>
-const pending = () => {
+function pending() {
     console.log("pending");
-};
+}
 
-const fallback = () => {
+function fallback() {
     console.log("fallback");
-};
+}
 
-const resolve = () => {
+function resolve() {
     console.log("resolve");
-};
+}
 </script>
 
 <style lang="scss" scoped></style>

@@ -35,13 +35,13 @@ watch(settings.displayIndex, async () => {
     api.info.hardware.currentDisplayIndex = settings.displayIndex.value;
 });
 
-const onOpen = () => {
+function onOpen() {
     displayOptions.value = Array(api.info.hardware.numOfDisplays)
         .fill(0)
         .map((x, i) => {
             return { label: `Display ${i + 1}`, value: i };
         });
-};
+}
 </script>
 
 <style lang="scss" scoped></style>

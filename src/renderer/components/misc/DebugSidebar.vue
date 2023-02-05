@@ -45,23 +45,23 @@ const router = useRouter();
 const routes = router.getRoutes().sort((a, b) => a.path.localeCompare(b.path));
 const currentRoute = api.router.currentRoute;
 
-const onRouteSelect = async (newRoute) => {
+async function onRouteSelect(newRoute) {
     await api.router.replace(newRoute);
-};
+}
 
-const openSettings = () => {
+function openSettings() {
     api.settings.openFileInEditor();
-};
+}
 
-const openContentDir = async () => {
+async function openContentDir() {
     await shell.openPath(api.info.contentPath);
-};
+}
 
-const openConfigDir = async () => {
+async function openConfigDir() {
     await shell.openPath(api.info.configPath);
-};
+}
 
-const generateStartScript = async () => {
+async function generateStartScript() {
     const battle = api.session.onlineBattle.value ?? api.session.offlineBattle.value;
     if (!battle) {
         console.warn("Tried to generate start script but not in a battle");
@@ -72,23 +72,23 @@ const generateStartScript = async () => {
     let scriptStr = api.game.battleToStartScript(battle);
 
     await fs.promises.writeFile(scriptPath, scriptStr);
-};
+}
 
-const openStartScript = async () => {
+async function openStartScript() {
     await shell.openPath(path.join(api.info.contentPath, api.game.scriptName));
-};
+}
 
-const recacheMaps = async () => {
+async function recacheMaps() {
     await api.content.maps.clearCache();
 
     await api.content.maps.queueMapsToCache();
-};
+}
 
-const recacheReplays = async () => {
+async function recacheReplays() {
     await api.content.replays.clearCache();
 
     await api.content.replays.queueReplaysToCache();
-};
+}
 </script>
 
 <style lang="scss" scoped>

@@ -46,23 +46,23 @@ const activeIndex = ref(0);
 const isConnected = api.comms.isConnected;
 const serverAddress = `${api.comms.config.host}:${api.comms.config.port}`;
 
-const connect = async () => {
+async function connect() {
     try {
         await api.comms.connect();
     } catch (err) {
         console.error(err);
     }
-};
+}
 
-const onRetry = async () => {
+async function onRetry() {
     await connect();
-};
+}
 
-const playOffline = () => {
+function playOffline() {
     api.session.offlineMode.value = true;
     api.comms.disconnect();
     api.router.push("/singleplayer/custom");
-};
+}
 
 connect();
 </script>

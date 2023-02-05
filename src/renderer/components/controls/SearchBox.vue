@@ -33,7 +33,7 @@
 import { computed, defineComponent, PropType, ref } from "vue";
 export const fieldType = ["search", "text"];
 export type FieldType = (typeof fieldType)[number];
-const filterObject = (obj: { [key: string]: unknown }, properties: (string | number)[], remove = true) => {
+function filterObject(obj: { [key: string]: unknown }, properties: (string | number)[], remove = true) {
     const res: { [key: string]: unknown } = {};
     Object.keys(obj).forEach((objAttr) => {
         const condition = remove ? properties.indexOf(objAttr) === -1 : properties.indexOf(objAttr) >= 0;
@@ -42,8 +42,10 @@ const filterObject = (obj: { [key: string]: unknown }, properties: (string | num
         }
     });
     return res;
-};
-const defaultBoolean = (val = true) => ({ type: Boolean, default: val });
+}
+function defaultBoolean(val = true) {
+    return { type: Boolean, default: val };
+}
 export default defineComponent({
     inheritAttrs: false,
     props: {
@@ -77,13 +79,13 @@ export default defineComponent({
             return res;
         });
         const showClearIcon = computed(() => !!(props.clearIcon && props.modelValue.length > 0));
-        const clear = () => {
+        function clear() {
             emit("update:modelValue", "");
-        };
-        const onInput = (e: Event) => {
+        }
+        function onInput(e: Event) {
             emit("update:modelValue", (e.target as HTMLInputElement).value);
-        };
-        const onKeydown = (e: KeyboardEvent) => {
+        }
+        function onKeydown(e: KeyboardEvent) {
             if (e.key === "Escape") {
                 props.clearOnEsc && clear();
                 if (props.blurOnEsc) {
@@ -91,7 +93,7 @@ export default defineComponent({
                     el.blur();
                 }
             }
-        };
+        }
         return {
             inputRef,
             hasFocus,

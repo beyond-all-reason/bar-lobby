@@ -15,9 +15,9 @@ const props = defineProps<{
     event: EventAlert;
 }>();
 
-const onClose = () => {
+function onClose() {
     api.alerts.closeAlert(props.event);
-};
+}
 </script>
 
 <style lang="scss" scoped>

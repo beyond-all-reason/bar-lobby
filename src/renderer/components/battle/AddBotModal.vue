@@ -34,9 +34,9 @@ const emit = defineEmits<{
     (event: "bot-selected", bot: string, teamId: number): void;
 }>();
 
-const addBot = (bot: string) => {
+function addBot(bot: string) {
     emit("bot-selected", bot, props.teamId);
-};
+}
 </script>
 
 <style lang="scss" scoped>

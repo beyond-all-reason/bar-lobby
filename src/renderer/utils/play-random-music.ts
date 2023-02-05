@@ -2,7 +2,7 @@ import { randomFromArray } from "jaz-ts-utils";
 
 const musicKeys: string[] = [];
 
-export const playRandomMusic = () => {
+export function playRandomMusic() {
     const musicSounds = api.audio.getSounds().filter((sound) => sound.isMusic);
     for (const sound of musicSounds) {
         sound.on("end", () => {
@@ -14,4 +14,4 @@ export const playRandomMusic = () => {
         const randomMusic = randomFromArray(musicSounds)!;
         randomMusic.play();
     }
-};
+}

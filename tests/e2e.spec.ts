@@ -21,11 +21,13 @@ test("Main window state", async () => {
     const windowState: { isVisible: boolean; isDevToolsOpened: boolean; isCrashed: boolean } = await electronApp.evaluate(({ BrowserWindow }) => {
         const mainWindow = BrowserWindow.getAllWindows()[0];
 
-        const getState = () => ({
-            isVisible: mainWindow.isVisible(),
-            isDevToolsOpened: mainWindow.webContents.isDevToolsOpened(),
-            isCrashed: mainWindow.webContents.isCrashed(),
-        });
+        function getState() {
+            return {
+                isVisible: mainWindow.isVisible(),
+                isDevToolsOpened: mainWindow.webContents.isDevToolsOpened(),
+                isCrashed: mainWindow.webContents.isCrashed(),
+            };
+        }
 
         return new Promise((resolve) => {
             if (mainWindow.isVisible()) {

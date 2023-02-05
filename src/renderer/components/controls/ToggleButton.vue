@@ -30,9 +30,9 @@ const emits = defineEmits<{
     (event: "update:modelValue", on: boolean): void;
 }>();
 
-const onClick = () => {
+function onClick() {
     emits("update:modelValue", !props.modelValue);
-};
+}
 </script>
 
 <style lang="scss" scoped></style>

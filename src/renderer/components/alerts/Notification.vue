@@ -30,9 +30,9 @@ const icon = computed(() => {
     }
 });
 
-const onClose = () => {
+function onClose() {
     api.alerts.closeAlert(props.notification);
-};
+}
 
 if (props.notification.timeoutMs) {
     setTimeout(() => {

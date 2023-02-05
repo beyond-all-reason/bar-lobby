@@ -98,11 +98,11 @@ router.afterEach(async (to, from) => {
     blurBg.value = to?.meta?.blurBg ?? blurBg.value;
 });
 
-const onIntroEnd = () => {
+function onIntroEnd() {
     videoVisible.value = false;
-};
+}
 
-const onPreloadDone = async () => {
+async function onPreloadDone() {
     console.time("onPreloadDone");
 
     // TODO: should also check to see if game and maps are installed (need to fix bug where interrupted game dl reports as successful install)
@@ -118,21 +118,25 @@ const onPreloadDone = async () => {
     }
 
     console.timeEnd("onPreloadDone");
-};
+}
 
-const onInitialSetupDone = () => {
+function onInitialSetupDone() {
     state.value = "default";
-};
+}
 
-const leftClick = () => api.utils.onLeftClick.dispatch();
-const rightClick = () => api.utils.onRightClick.dispatch();
+function leftClick() {
+    return api.utils.onLeftClick.dispatch();
+}
+function rightClick() {
+    return api.utils.onRightClick.dispatch();
+}
 
 const frameCount = ref(0);
 
-const animFrame = () => {
+function animFrame() {
     frameCount.value++;
     requestAnimationFrame(() => animFrame());
-};
+}
 animFrame();
 </script>
 

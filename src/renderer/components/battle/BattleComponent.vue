@@ -194,42 +194,42 @@ const startPosOptions: Array<{ label: string; value: StartPosType }> = [
     { label: "Boxes", value: StartPosType.Boxes },
 ];
 
-const setBoxes = (boxes: StartBox[]) => {
+function setBoxes(boxes: StartBox[]) {
     props.battle.setStartBoxes(boxes);
-};
+}
 
-const onStartPosChange = (startPosType: StartPosType) => {
+function onStartPosChange(startPosType: StartPosType) {
     props.battle.setStartPosType(startPosType);
-};
+}
 
-const openMapList = () => {
+function openMapList() {
     mapListOpen.value = true;
-};
-const openMapOptions = () => {
+}
+function openMapOptions() {
     // TODO
-};
+}
 
-const onEngineSelected = (engineVersion: string) => {
+function onEngineSelected(engineVersion: string) {
     props.battle.setEngine(engineVersion);
-};
+}
 
-const onGameSelected = (gameVersion: string) => {
+function onGameSelected(gameVersion: string) {
     props.battle.setGame(gameVersion);
-};
-const openGameOptions = async () => {
+}
+async function openGameOptions() {
     // TODO: show loader on button (maybe @clickAsync event?)
     gameOptions.value = await api.content.game.getGameOptions(props.battle.battleOptions.gameVersion);
     gameOptionsOpen.value = true;
-};
+}
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const setGameOptions = (options: Record<string, any>) => {
+function setGameOptions(options: Record<string, any>) {
     props.battle.setGameOptions(options);
-};
+}
 
-const onMapSelected = (mapScriptName: string) => {
+function onMapSelected(mapScriptName: string) {
     mapListOpen.value = false;
     props.battle.setMap(mapScriptName);
-};
+}
 
 function onPresetSelected(preset: string) {
     if (isSpadsBattle(props.battle)) {
@@ -237,20 +237,20 @@ function onPresetSelected(preset: string) {
     }
 }
 
-const toggleReady = () => {
+function toggleReady() {
     api.comms.request("c.lobby.update_status", {
         client: {
             ready: !props.me.battleStatus.ready,
         },
     });
-};
+}
 
-const leave = () => {
+function leave() {
     props.battle.leave();
-};
-const start = async () => {
+}
+async function start() {
     props.battle.start();
-};
+}
 </script>
 
 <style lang="scss" scoped>

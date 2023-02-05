@@ -3,7 +3,7 @@ import { Directive, DirectiveBinding } from "vue";
 
 const UNIQUE_ID = "__vue_click_away__";
 
-const mounted = (el: any, binding: DirectiveBinding) => {
+function mounted(el: any, binding: DirectiveBinding) {
     unmounted(el);
 
     const callback = binding.value;
@@ -21,19 +21,19 @@ const mounted = (el: any, binding: DirectiveBinding) => {
 
     document.addEventListener("click", el[UNIQUE_ID], false);
     document.addEventListener("contextmenu", el[UNIQUE_ID], false);
-};
+}
 
-const unmounted = (el: any) => {
+function unmounted(el: any) {
     document.removeEventListener("click", el[UNIQUE_ID], false);
     document.removeEventListener("contextmenu", el[UNIQUE_ID], false);
     delete el[UNIQUE_ID];
-};
+}
 
-const updated = (el: any, binding: DirectiveBinding) => {
+function updated(el: any, binding: DirectiveBinding) {
     if (binding.value === binding.oldValue) {
         return;
     }
     mounted(el, binding);
-};
+}
 
 export const clickAwayDirective: Directive = { mounted, unmounted, updated };
