@@ -2,7 +2,7 @@
     <slot></slot>
 </template>
 
-<script>
+<script lang="ts">
 export default {
     name: "TabPanel",
     inheritAttrs: false,
