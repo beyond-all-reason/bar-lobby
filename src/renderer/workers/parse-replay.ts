@@ -10,8 +10,6 @@ const demoParser = new DemoParser({
 export const parseReplay = exposeWorkerFunction(async (replayPath: string) => {
     const replayData = await demoParser.parseDemo(replayPath);
 
-    console.log(replayData);
-
     const numOfPlayers = replayData.info.players.length + replayData.info.ais.length;
     let preset: "duel" | "team" | "ffa" | "teamffa" = "duel";
     if (replayData.info.allyTeams.length > 2 && replayData.info.players.some((player) => player.playerId !== player.allyTeamId)) {

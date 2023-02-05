@@ -2,6 +2,11 @@ import type { ElectronApplication } from "playwright";
 import { _electron as electron } from "playwright";
 import { afterAll, beforeAll, expect, test } from "vitest";
 
+/**
+ * TODO
+ * make this work
+ */
+
 let electronApp: ElectronApplication;
 
 beforeAll(async () => {

@@ -41,6 +41,7 @@ const validatePassword = (value: string) => {
     if (password.value && confirmPassword.value && password.value !== confirmPassword.value) {
         return "Passwords do not match";
     }
+    return;
 };
 
 const register = async () => {
