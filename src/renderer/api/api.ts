@@ -79,15 +79,15 @@ export async function apiInit() {
     });
 
     api.router.beforeResolve(async (to) => {
-        if (!to.meta?.offline && api.session.offlineMode.value) {
-            api.alerts.alert({
-                type: "notification",
-                severity: "error",
-                content: `Cannot open ${to.path} in offline mode`,
-            });
-            return false;
-        }
-        return true;
+        // if (!to.meta?.offline && api.session.offlineMode.value) {
+        //     api.alerts.alert({
+        //         type: "notification",
+        //         severity: "error",
+        //         content: `Cannot open ${to.path} in offline mode`,
+        //     });
+        //     return false;
+        // }
+        // return true;
     });
 
     api.cacheDb = new Kysely<CacheDatabase>({
