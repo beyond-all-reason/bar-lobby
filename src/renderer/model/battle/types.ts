@@ -1,24 +1,31 @@
 export type BattleOptions = {
-    id: number;
     title: string;
     engineVersion: string;
     gameVersion: string;
     map: string;
-    isHost: boolean;
     startPosType: StartPosType;
     startBoxes: Record<number, StartBox | undefined>;
+    startTime: Date | null;
+    gameOptions: Record<string, string | number | boolean>;
+    mapOptions: Record<string, string | number | boolean>;
+    restrictions: Restriction[];
+};
+
+export type OfflineBattleOptions = BattleOptions;
+
+export type SpadsBattleOptions = BattleOptions & {
+    id: number;
+    isHost: boolean;
     passworded: boolean;
     password: string | null;
     scriptPassword: string | null;
-    startTime: Date | null;
     founderId: number;
     ip: string | null;
     port: number | null;
     locked: boolean;
     maxPlayers: number;
-    gameOptions: Record<string, string | number | boolean>;
-    mapOptions: Record<string, string | number | boolean>;
-    restrictions: Restriction[];
+    preset: string;
+    joinQueueUserIds: number[];
 };
 
 export type StartBox = {

@@ -145,7 +145,7 @@ animFrame();
     gap: 10px;
     overflow: hidden;
 }
-:deep(.view > .panel > .content) {
+:deep(.view > .panel) {
     overflow-y: v-bind(viewOverflowY);
 }
 .lobby-version {

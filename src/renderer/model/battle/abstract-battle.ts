@@ -7,14 +7,14 @@ import { BattleOptions, Bot, StartBox, StartPosType } from "@/model/battle/types
 import { MapData } from "@/model/map-data";
 import { User } from "@/model/user";
 
-export interface BattleConfig {
-    battleOptions: BattleOptions;
+export interface BattleConfig<T extends BattleOptions = BattleOptions> {
+    battleOptions: T;
     bots: Bot[];
     users: User[];
 }
 
-export abstract class AbstractBattle {
-    public readonly battleOptions: BattleOptions;
+export abstract class AbstractBattle<T extends BattleOptions = BattleOptions> {
+    public readonly battleOptions: T;
     public readonly bots: Bot[];
     public readonly users: User[];
 
@@ -24,17 +24,15 @@ export abstract class AbstractBattle {
     public readonly players: ComputedRef<Array<User>>;
     public readonly spectators: ComputedRef<Array<User>>;
     public readonly teams: ComputedRef<Map<number, Array<User | Bot>>>;
-    public readonly founder: ComputedRef<User>;
     public readonly friendlyRuntime: ComputedRef<string | null>;
     public readonly runtimeMs: ComputedRef<number | null>;
     public readonly map: ComputedRef<MapData | undefined>;
     public readonly playerCount: ComputedRef<number>;
-    public readonly isLockedOrPassworded: ComputedRef<boolean>;
 
     protected watchStopHandles: WatchStopHandle[] = [];
 
-    constructor(config: BattleConfig) {
-        this.battleOptions = reactive(config.battleOptions);
+    constructor(config: BattleConfig<T>) {
+        this.battleOptions = reactive(config.battleOptions) as T;
         this.bots = reactive(config.bots);
         this.users = shallowReactive(config.users); // users are already reactive, so making them doubly reactive here will cause bugs
 
@@ -47,7 +45,6 @@ export abstract class AbstractBattle {
             const sortedTeams = new Map([...teams.entries()].sort());
             return sortedTeams;
         });
-        this.founder = computed(() => api.session.getUserById(this.battleOptions.founderId)!);
         this.runtimeMs = computed(() => {
             if (!this.battleOptions.startTime) {
                 return null;
@@ -70,7 +67,6 @@ export abstract class AbstractBattle {
         this.playerCount = computed(() => {
             return this.players.value.length + this.spectators.value.length;
         });
-        this.isLockedOrPassworded = computed(() => this.battleOptions.locked || this.battleOptions.passworded);
     }
 
     public getTeamParticipants(teamId: number): Array<User | Bot> {
@@ -129,10 +125,6 @@ export abstract class AbstractBattle {
         for (const stopWatchHandle of this.watchStopHandles) {
             stopWatchHandle();
         }
-    }
-
-    public get id() {
-        return this.battleOptions.id;
     }
 
     public abstract start(): void;

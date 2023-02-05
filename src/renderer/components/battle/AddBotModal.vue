@@ -1,6 +1,6 @@
 <template>
     <Modal title="Add Bot">
-        <div class="gap-md container">
+        <div class="flex-col gap-md container">
             <Button
                 v-for="(ai, i) in ais"
                 :key="i"

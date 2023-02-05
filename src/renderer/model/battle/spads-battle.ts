@@ -1,16 +1,25 @@
 import { Static } from "@sinclair/typebox";
 import { assign, entries, objectKeys } from "jaz-ts-utils";
 import { battleSchema, lobbySchema } from "tachyon-client";
+import { computed, ComputedRef } from "vue";
 
 import { AbstractBattle } from "@/model/battle/abstract-battle";
-import { Bot, StartBox, StartPosType } from "@/model/battle/types";
+import { Bot, SpadsBattleOptions, StartBox, StartPosType } from "@/model/battle/types";
 import { User } from "@/model/user";
 
 type LobbyType = Static<typeof lobbySchema>;
 type BattleType = Static<typeof battleSchema>;
 type LobbyResponseHandlers = { [K in keyof Required<LobbyType>]: (data: Required<LobbyType[K]>) => void };
 
-export class SpadsBattle extends AbstractBattle {
+/**
+ * TODO
+ * - BattleOptions should probably be a generic on AbstractBattle that allows for BattleOptions derivatives such as SpadsBattleOptions
+ */
+
+export class SpadsBattle extends AbstractBattle<SpadsBattleOptions> {
+    public readonly founder: ComputedRef<User>;
+    public readonly isLockedOrPassworded: ComputedRef<boolean>;
+
     protected responseHandlers: { [K in keyof Required<BattleType>]: (data: Required<BattleType[K]>) => void } = {
         lobby: (data) => {
             const lobbyResponseHandlers: LobbyResponseHandlers = {
@@ -193,12 +202,17 @@ export class SpadsBattle extends AbstractBattle {
                 startPosType: StartPosType.Fixed,
                 startTime: null,
                 title: "",
+                preset: "team",
+                joinQueueUserIds: [],
             },
             users: [],
             bots: [],
         });
 
         this.handleServerResponse(serverBattleResponse);
+
+        this.founder = computed(() => api.session.getUserById(this.battleOptions.founderId)!);
+        this.isLockedOrPassworded = computed(() => this.battleOptions.locked || this.battleOptions.passworded);
     }
 
     public handleServerResponse(battleUpdateResponse: Partial<Omit<BattleType, "lobby"> & { lobby?: Partial<BattleType["lobby"]> }>) {
@@ -335,6 +349,12 @@ export class SpadsBattle extends AbstractBattle {
     public setBotOptions(botName: string, options: Record<string, any>) {
         console.warn("not implemented: setBotOptions");
         // TODO
+    }
+
+    public setPreset(preset: string) {
+        api.comms.request("c.lobby.message", {
+            message: `!cv preset ${preset}`,
+        });
     }
 
     protected updateSync() {

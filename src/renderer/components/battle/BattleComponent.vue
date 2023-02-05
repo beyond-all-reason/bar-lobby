@@ -3,7 +3,8 @@
         <div class="flex-col flex-grow gap-md">
             <div class="flex-col gap-sm">
                 <h1 class="title">{{ battle.battleOptions.title }}</h1>
-                <div v-if="!isOfflineBattle" class="subtitle flex-row gap-md">
+
+                <div v-if="isSpadsBattle(battle)" class="subtitle flex-row gap-md">
                     <div class="flex-row gap-sm">
                         Hosted by
                         <div class="founder flex-row gap-sm">
@@ -14,8 +15,10 @@
                     <div class="flex-right">{{ battle.friendlyRuntime.value }}</div>
                 </div>
             </div>
+
             <Playerlist :battle="battle" :me="me" />
-            <BattleChat v-if="!isOfflineBattle" :battle="battle" />
+
+            <BattleChat v-if="isSpadsBattle(battle)" :battle="battle" />
         </div>
         <div class="right-col flex-col gap-md">
             <MapPreview
@@ -73,6 +76,7 @@
                 </Button>
                 <MapListModal v-model="mapListOpen" title="Maps" @map-selected="onMapSelected" />
             </div>
+
             <div class="flex-row gap-md">
                 <Select
                     :modelValue="battle.battleOptions.gameVersion"
@@ -80,7 +84,7 @@
                     label="Game"
                     :filter="true"
                     :placeholder="battle.battleOptions.gameVersion"
-                    :disabled="!isOfflineBattle"
+                    :disabled="isSpadsBattle(battle)"
                     class="fullwidth"
                     @update:model-value="onGameSelected"
                 />
@@ -96,24 +100,33 @@
                     @set-options="setGameOptions"
                 />
             </div>
+
             <Select
                 :modelValue="battle.battleOptions.engineVersion"
                 :options="installedEngines"
                 label="Engine"
                 :filter="true"
                 :placeholder="battle.battleOptions.engineVersion"
-                :disabled="!isOfflineBattle"
+                :disabled="isSpadsBattle(battle)"
                 class="fullwidth"
                 @update:model-value="onEngineSelected"
             />
-            <Markdown
-                source="TODO: boss, ring, forcespec, kick, ban, preset, votes, rename battle, custom boxes, 
-            show non-default mod/map options, tweakunits, stop, rejoin, balance mode"
+
+            <Select
+                v-if="isSpadsBattle(battle)"
+                :modelValue="battle.battleOptions.preset"
+                :options="['duel', 'team', 'ffa', 'teamffa']"
+                label="Preset"
+                :placeholder="battle.battleOptions.preset"
+                class="fullwidth"
+                @update:model-value="onPresetSelected"
             />
+
             <div class="flex-row flex-bottom gap-md">
                 <Button class="red fullwidth" @click="leave"> Leave </Button>
+
                 <Button
-                    v-if="!isOfflineBattle"
+                    v-if="isSpadsBattle(battle)"
                     class="fullwidth"
                     :class="{ gray: !me.battleStatus.ready, green: me.battleStatus.ready }"
                     :disabled="me.battleStatus.isSpectator"
@@ -130,11 +143,13 @@
 </template>
 
 <script lang="ts" setup>
+// TODO: boss, ring, forcespec, kick, ban, preset, votes, rename battle, custom boxes,
+// show non-default mod/map options, tweakunits, stop, rejoin, balance mode
+
 import { Icon } from "@iconify/vue";
 import cogIcon from "@iconify-icons/mdi/cog";
 import listIcon from "@iconify-icons/mdi/format-list-bulleted";
 import { computed, Ref, ref } from "vue";
-import Markdown from "vue3-markdown-it";
 
 import BattleChat from "@/components/battle/BattleChat.vue";
 import LuaOptionsModal from "@/components/battle/LuaOptionsModal.vue";
@@ -147,17 +162,16 @@ import MapPreview from "@/components/maps/MapPreview.vue";
 import Flag from "@/components/misc/Flag.vue";
 import { defaultBoxes } from "@/config/default-boxes";
 import { AbstractBattle } from "@/model/battle/abstract-battle";
-import { OfflineBattle } from "@/model/battle/offline-battle";
 import { StartBox, StartPosType } from "@/model/battle/types";
 import { LuaOptionSection } from "@/model/lua-options";
 import { CurrentUser } from "@/model/user";
+import { isSpadsBattle } from "@/utils/type-checkers";
 
 const props = defineProps<{
     battle: AbstractBattle;
     me: CurrentUser;
 }>();
 
-const isOfflineBattle = props.battle instanceof OfflineBattle;
 const installedEngines = computed(() => api.content.engine.installedVersions);
 const installedMaps = computed(() =>
     api.content.maps.installedMaps.sort((a, b) => {
@@ -211,6 +225,12 @@ const onMapSelected = (mapScriptName: string) => {
     mapListOpen.value = false;
     props.battle.setMap(mapScriptName);
 };
+
+function onPresetSelected(preset: string) {
+    if (isSpadsBattle(props.battle)) {
+        props.battle.setPreset(preset);
+    }
+}
 
 const toggleReady = () => {
     api.comms.request("c.lobby.update_status", {

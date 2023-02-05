@@ -260,6 +260,13 @@ export class CommsAPI extends TachyonClient {
                 text: data.message,
             });
         });
+
+        this.onResponse("s.lobby.updated_queue").add((data) => {
+            const battle = api.session.battles.get(data.lobby_id);
+            if (battle) {
+                battle.battleOptions.joinQueueUserIds = data.queue;
+            }
+        });
     }
 
     protected setupSystemComms() {

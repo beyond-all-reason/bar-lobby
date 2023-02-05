@@ -65,7 +65,7 @@
         <div class="right">
             <BattlePreview v-if="selectedBattle" :battle="selectedBattle">
                 <template #actions="{ battle }">
-                    <template v-if="isBattle(battle)">
+                    <template v-if="isSpadsBattle(battle)">
                         <Button class="green flex-grow" @click="attemptJoinBattle(battle)">Join</Button>
                     </template>
                 </template>
@@ -107,10 +107,9 @@ import Button from "@/components/controls/Button.vue";
 import Checkbox from "@/components/controls/Checkbox.vue";
 import DataTable from "@/components/controls/DataTable.vue";
 import Textbox from "@/components/controls/Textbox.vue";
-import { AbstractBattle } from "@/model/battle/abstract-battle";
 import { SpadsBattle } from "@/model/battle/spads-battle";
 import { getFriendlyDuration } from "@/utils/misc";
-import { isBattle } from "@/utils/type-checkers";
+import { isSpadsBattle } from "@/utils/type-checkers";
 
 const hostBattleOpen = ref(false);
 const hidePvE = ref(false);
@@ -175,7 +174,7 @@ await updateBattleList();
 
 useIntervalFn(() => updateBattleList(), 5000);
 
-const attemptJoinBattle = async (battle: AbstractBattle) => {
+const attemptJoinBattle = async (battle: SpadsBattle) => {
     if (battle.battleOptions.passworded) {
         passwordPromptOpen.value = true;
     } else {

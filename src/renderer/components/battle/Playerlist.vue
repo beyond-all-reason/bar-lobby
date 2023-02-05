@@ -171,6 +171,10 @@ const onDrop = (event: DragEvent, teamId: number) => {
     flex-direction: column;
     overflow-y: auto;
     padding-right: 5px;
+    height: 0;
+    flex-grow: 1;
+    flex-shrink: 1;
+    flex-basis: auto;
     &.dragging .group > * {
         pointer-events: none;
     }

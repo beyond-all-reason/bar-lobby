@@ -16,23 +16,13 @@ export const defaultBattle: (mapScriptName?: string) => OfflineBattle = (mapScri
 
     return new OfflineBattle({
         battleOptions: {
-            id: -1,
             title: "Offline Custom Battle",
-            founderId: me.userId,
-            locked: false,
-            maxPlayers: 1,
-            passworded: false,
-            password: null,
-            scriptPassword: null,
             startTime: null,
             engineVersion: lastInArray(api.content.engine.installedVersions)!,
             gameVersion: Array.from(api.content.game.installedVersions).pop()!,
             map: map,
             startPosType: StartPosType.Boxes,
             startBoxes: defaultMapBoxes()[map] ?? defaultBoxes().NorthVsSouth,
-            isHost: true,
-            ip: null,
-            port: null,
             gameOptions: {},
             mapOptions: {},
             restrictions: [],
