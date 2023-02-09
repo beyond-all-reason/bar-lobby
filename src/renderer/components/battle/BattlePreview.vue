@@ -78,7 +78,7 @@ import { computed, ComputedRef } from "vue";
 import MapPreview from "@/components/maps/MapPreview.vue";
 import BattlePreviewParticipant from "@/components/misc/BattlePreviewParticipant.vue";
 import { AbstractBattle } from "@/model/battle/abstract-battle";
-import { StartBox, StartPosType } from "@/model/battle/types";
+import { StartBox, StartPosType } from "@/model/battle/battle-types";
 import { Replay } from "@/model/replay";
 import { isBattle, isReplay, isUser } from "@/utils/type-checkers";
 

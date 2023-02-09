@@ -22,7 +22,7 @@ import { computed } from "vue";
 
 import Panel from "@/components/common/Panel.vue";
 import Button from "@/components/controls/Button.vue";
-import { SpadsVote } from "@/config/spads";
+import { SpadsVote } from "@/model/spads/spads-types";
 
 const props = defineProps<{
     vote: SpadsVote;

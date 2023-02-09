@@ -3,9 +3,9 @@ import { assign, entries, objectKeys } from "jaz-ts-utils";
 import { battleSchema, lobbySchema } from "tachyon-client";
 import { computed, ComputedRef, Ref, ref } from "vue";
 
-import { SpadsVote } from "@/config/spads";
 import { AbstractBattle } from "@/model/battle/abstract-battle";
-import { Bot, SpadsBattleOptions, StartBox, StartPosType } from "@/model/battle/types";
+import { Bot, SpadsBattleOptions, StartBox, StartPosType } from "@/model/battle/battle-types";
+import { SpadsVote } from "@/model/spads/spads-types";
 import { User } from "@/model/user";
 
 type LobbyType = Static<typeof lobbySchema>;

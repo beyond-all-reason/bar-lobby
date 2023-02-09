@@ -8,7 +8,7 @@
 import { entries, SignalBinding } from "jaz-ts-utils";
 import { computed, onMounted, onUnmounted, Ref, ref, watch, WatchStopHandle } from "vue";
 
-import { StartBox, StartPosType } from "@/model/battle/types";
+import { StartBox, StartPosType } from "@/model/battle/battle-types";
 
 type Transform = { x: number; y: number; width: number; height: number };
 

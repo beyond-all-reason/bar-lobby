@@ -31,7 +31,7 @@ import AddBotModal from "@/components/battle/AddBotModal.vue";
 import TeamComponent from "@/components/battle/TeamComponent.vue";
 import { aiNames } from "@/config/ai-names";
 import { AbstractBattle } from "@/model/battle/abstract-battle";
-import { Bot, Faction } from "@/model/battle/types";
+import { Bot, Faction } from "@/model/battle/battle-types";
 import { CurrentUser, User } from "@/model/user";
 
 const props = defineProps<{

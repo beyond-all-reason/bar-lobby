@@ -255,29 +255,14 @@ export class CommsAPI extends TachyonClient {
         });
 
         this.onResponse("s.lobby.announce").add((data) => {
+            // for now we assume that all lobby announcements are from a SPADS autohost
+
             api.session.battleMessages.push({
                 type: "system",
                 text: data.message,
             });
 
-            if (data.message.startsWith("* Vote in progress:")) {
-                const battle = api.session.battles.get(data.lobby_id);
-                if (battle) {
-                    try {
-                        const vote = api.spads.parseVoteText(data.message);
-                        if (battle.currentVote.value) {
-                            assign(battle.currentVote.value, vote);
-                        } else {
-                            battle.currentVote.value = vote;
-                        }
-                    } catch (err) {
-                        console.error(`Failed to parse SPADS vote: ${data.message}`, err);
-                        battle.currentVote.value = null;
-                    }
-                }
-            } else if (data.message.startsWith("dfsdfsdf")) {
-                //
-            }
+            api.spads.handleAnnouncement(data);
         });
 
         this.onResponse("s.lobby.updated_queue").add((data) => {

@@ -3,7 +3,7 @@ import { formatDuration } from "date-fns";
 import { groupBy } from "jaz-ts-utils";
 import { computed, ComputedRef, reactive, shallowReactive, watch, WatchStopHandle } from "vue";
 
-import { BattleOptions, Bot, StartBox, StartPosType } from "@/model/battle/types";
+import { BattleOptions, Bot, StartBox, StartPosType } from "@/model/battle/battle-types";
 import { MapData } from "@/model/map-data";
 import { User } from "@/model/user";
 

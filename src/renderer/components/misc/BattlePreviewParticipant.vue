@@ -13,7 +13,7 @@ import { DemoModel } from "sdfz-demo-parser";
 import { computed } from "vue";
 
 import Flag from "@/components/misc/Flag.vue";
-import { Bot } from "@/model/battle/types";
+import { Bot } from "@/model/battle/battle-types";
 import { User } from "@/model/user";
 import { isUser } from "@/utils/type-checkers";
 

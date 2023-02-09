@@ -40,7 +40,7 @@ export class Application {
         this.app.commandLine.appendSwitch("disable-direct-composition");
 
         // commented out until we have a gameid for bar via steamworks
-        //this.setupSteam();
+        // this.setupSteam();
 
         if (process.env.NODE_ENV !== "production") {
             if (process.platform === "win32") {

@@ -2,9 +2,9 @@
 import { assign } from "jaz-ts-utils";
 
 import { AbstractBattle } from "@/model/battle/abstract-battle";
+import { StartPosType } from "@/model/battle/battle-types";
 import { OfflineBattle } from "@/model/battle/offline-battle";
 import { SpadsBattle } from "@/model/battle/spads-battle";
-import { StartPosType } from "@/model/battle/types";
 import type { StartScriptTypes } from "@/model/start-script";
 
 /**

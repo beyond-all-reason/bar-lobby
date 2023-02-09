@@ -1,7 +1,7 @@
 import { AbstractBattle } from "@/model/battle/abstract-battle";
+import { Bot } from "@/model/battle/battle-types";
 import { OfflineBattle } from "@/model/battle/offline-battle";
 import { SpadsBattle } from "@/model/battle/spads-battle";
-import { Bot } from "@/model/battle/types";
 import { Replay } from "@/model/replay";
 import { User } from "@/model/user";
 

@@ -167,7 +167,7 @@ import MapPreview from "@/components/maps/MapPreview.vue";
 import Flag from "@/components/misc/Flag.vue";
 import { defaultBoxes } from "@/config/default-boxes";
 import { AbstractBattle } from "@/model/battle/abstract-battle";
-import { StartBox, StartPosType } from "@/model/battle/types";
+import { StartBox, StartPosType } from "@/model/battle/battle-types";
 import { LuaOptionSection } from "@/model/lua-options";
 import { CurrentUser } from "@/model/user";
 import { isSpadsBattle } from "@/utils/type-checkers";
