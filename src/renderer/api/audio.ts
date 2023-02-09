@@ -31,7 +31,7 @@ export class AudioAPI {
             const src = await audioFiles[filePath]();
             const volume = isMusic ? api.settings.model.musicVolume.value / 100 : api.settings.model.sfxVolume.value / 100;
 
-            const sound = new Sound(key, isMusic, { src, volume });
+            const sound = new Sound(key, isMusic, { src, volume, preload: false, html5: true });
 
             sound.on("play", () => {
                 this.sounds.forEach((_sound) => {
@@ -61,6 +61,12 @@ export class AudioAPI {
         });
 
         return this;
+    }
+
+    public load() {
+        this.sounds.forEach((sound) => {
+            sound.load();
+        });
     }
 
     public getSounds(): Sound[] {

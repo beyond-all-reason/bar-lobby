@@ -42,6 +42,8 @@ onMounted(async () => {
         loadedFiles.value++;
     }
 
+    api.audio.load();
+
     emit("complete");
 });
 
