@@ -18,9 +18,10 @@ type LobbyResponseHandlers = { [K in keyof Required<LobbyType>]: (data: Required
  */
 
 export class SpadsBattle extends AbstractBattle<SpadsBattleOptions> {
+    public readonly currentVote: Ref<SpadsVote | null> = ref(null);
     public readonly founder: ComputedRef<User>;
     public readonly isLockedOrPassworded: ComputedRef<boolean>;
-    public readonly currentVote: Ref<SpadsVote | null> = ref(null);
+    public readonly meInQueue: ComputedRef<boolean>;
 
     protected responseHandlers: { [K in keyof Required<BattleType>]: (data: Required<BattleType[K]>) => void } = {
         lobby: (data) => {
@@ -215,6 +216,7 @@ export class SpadsBattle extends AbstractBattle<SpadsBattleOptions> {
 
         this.founder = computed(() => api.session.getUserById(this.battleOptions.founderId)!);
         this.isLockedOrPassworded = computed(() => this.battleOptions.locked || this.battleOptions.passworded);
+        this.meInQueue = computed(() => this.battleOptions.joinQueueUserIds.includes(api.session.onlineUser.userId));
     }
 
     public handleServerResponse(battleUpdateResponse: Partial<Omit<BattleType, "lobby"> & { lobby?: Partial<BattleType["lobby"]> }>) {

@@ -3,8 +3,10 @@
 </route>
 
 <template>
-    <BattleComponent v-if="battle" :battle="battle" :me="me" />
-    <div v-else>Error: no offline battle set</div>
+    <div class="flex-col flex-grow">
+        <BattleComponent v-if="battle" :battle="battle" :me="me" />
+        <div v-else>Error: no offline battle set</div>
+    </div>
 </template>
 
 <script lang="ts" setup>

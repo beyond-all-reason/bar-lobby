@@ -1,13 +1,11 @@
-import { ResponseType } from "tachyon-client";
-
 import { spadsResponseDefinitions } from "@/model/spads/spads-responses";
 import { SpadsCommandDefinition } from "@/model/spads/spads-types";
 
 export class SpadsApi {
     protected commandDefinitions: SpadsCommandDefinition[] = [];
 
-    public handleAnnouncement<T extends ResponseType<"s.lobby.announce">>(announcement: T) {
-        const battle = api.session.battles.get(announcement.lobby_id);
+    public handleAnnouncement<T extends { message: string; sender_id: number; lobby_id?: number }>(announcement: T) {
+        const battle = announcement.lobby_id !== undefined ? api.session.battles.get(announcement.lobby_id) : api.session.onlineBattle.value;
 
         if (!battle) {
             console.error("Received announcement for an unknown battle", announcement);

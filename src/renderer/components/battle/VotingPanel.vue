@@ -1,7 +1,7 @@
 <template>
     <div class="container">
         <Panel class="voting-panel">
-            <div class="title"><strong>Vote:</strong> {{ vote.title }}</div>
+            <div class="title"><strong>Vote:</strong> {{ vote.command }}</div>
 
             <div class="actions">
                 <Button class="vote-button green" @click="onYes">Yes (F1)</Button>
@@ -10,7 +10,8 @@
 
             <div class="vote-display">
                 <div v-for="i in vote.yesVotes" :key="i" class="segment yes"></div>
-                <div v-for="i in missingVotes" :key="i" class="segment"></div>
+                <div v-for="i in missingYesVotes" :key="i" class="segment missing-yes"></div>
+                <div v-for="i in missingNoVotes" :key="i" class="segment missing-no"></div>
                 <div v-for="i in vote.noVotes" :key="i" class="segment no"></div>
             </div>
         </Panel>
@@ -33,7 +34,8 @@ const emits = defineEmits<{
     (event: "no"): void;
 }>();
 
-const missingVotes = computed(() => props.vote.maxVotes - props.vote.yesVotes - props.vote.noVotes);
+const missingYesVotes = computed(() => props.vote.requiredYesVotes - props.vote.yesVotes);
+const missingNoVotes = computed(() => props.vote.requiredNoVotes - props.vote.noVotes);
 
 function onYes() {
     emits("yes");
@@ -100,8 +102,14 @@ function onNo() {
     &.yes {
         background: rgba(96, 216, 26, 0.6);
     }
+    &.missing-yes {
+        background: rgba(96, 216, 26, 0.247);
+    }
     &.no {
         background: rgba(165, 30, 30, 0.6);
+    }
+    &.missing-no {
+        background: rgba(165, 30, 30, 0.164);
     }
 }
 </style>

@@ -96,6 +96,7 @@ import eye from "@iconify-icons/mdi/eye";
 import lock from "@iconify-icons/mdi/lock";
 import robot from "@iconify-icons/mdi/robot";
 import { useIntervalFn } from "@vueuse/shared";
+import { delay } from "jaz-ts-utils";
 import Column from "primevue/column";
 import { computed, Ref, ref, shallowRef } from "vue";
 
@@ -165,7 +166,7 @@ async function updateBattleList() {
         }
     }
 
-    // await delay(200); // fixes a weird bug when switching from battle page to this page
+    await delay(100); // fixes a weird bug when switching from battle page to this page
 }
 
 await updateBattleList();

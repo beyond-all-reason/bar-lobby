@@ -81,14 +81,14 @@ export class AudioAPI {
         return this.getSounds().filter((sound) => sound.playing());
     }
 
-    public muteMusic(fadeTime = 1000) {
+    public muteMusic(fadeTime = 4000) {
         const musicSounds = this.getSounds().filter((sound) => sound.isMusic);
         for (const sound of musicSounds) {
             sound.fade(sound.volume(), 0, fadeTime);
         }
     }
 
-    public unmuteMusic(fadeTime = 1000) {
+    public unmuteMusic(fadeTime = 4000) {
         const musicSounds = this.getSounds().filter((sound) => sound.isMusic);
         for (const sound of musicSounds) {
             sound.fade(0, api.settings.model.musicVolume.value / 100, fadeTime);

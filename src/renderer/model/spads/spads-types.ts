@@ -23,10 +23,14 @@ export type SpadsResponse<T extends TSchema> = {
 };
 
 export type SpadsVote = {
-    title: string;
+    command: string;
     yesVotes: number;
+    requiredYesVotes: number;
+    maxYesVotes?: number;
     noVotes: number;
-    maxVotes: number;
+    requiredNoVotes: number;
+    maxNoVotes?: number;
+    secondsRemaining: number;
 };
 
 const ajv = new Ajv({ coerceTypes: true, useDefaults: true });

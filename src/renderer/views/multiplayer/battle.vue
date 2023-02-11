@@ -3,7 +3,9 @@
 </route>
 
 <template>
-    <BattleComponent v-if="battle" :battle="battle" :me="me" />
+    <div class="flex-col flex-grow">
+        <BattleComponent v-if="battle" :battle="battle" :me="me" />
+    </div>
 </template>
 
 <script lang="ts" setup>

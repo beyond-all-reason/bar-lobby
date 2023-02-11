@@ -125,18 +125,28 @@
             <div class="flex-row flex-bottom gap-md">
                 <Button class="red fullwidth" @click="leave"> Leave </Button>
 
-                <Button
-                    v-if="isSpadsBattle(battle)"
-                    class="fullwidth"
-                    :class="{ gray: !me.battleStatus.ready, green: me.battleStatus.ready }"
-                    :disabled="me.battleStatus.isSpectator"
-                    @click="toggleReady"
-                >
-                    Ready
-                </Button>
-                <Button class="green fullwidth" :disabled="isGameRunning" @click="start">
-                    {{ battle.battleOptions.startTime === null ? "Start" : "Join" }}
-                </Button>
+                <template v-if="isSpadsBattle(battle)">
+                    <template v-if="me.battleStatus.isSpectator">
+                        <Button v-if="battle.meInQueue.value" class="fullwidth red" @click="leaveQueue">Leave Queue</Button>
+                        <Button v-else class="fullwidth green" @click="joinQueue">Join Queue</Button>
+
+                        <Button v-if="battle.battleOptions.startTime" class="fullwidth green" :disabled="isGameRunning" @click="start"
+                            >Watch</Button
+                        >
+                    </template>
+                    <template v-else>
+                        <Button v-if="me.battleStatus.ready" class="fullwidth blue" @click="toggleReady">Unready</Button>
+                        <Button v-else class="fullwidth blue" @click="toggleReady">Ready</Button>
+
+                        <Button v-if="battle.battleOptions.startTime" class="fullwidth green" :disabled="isGameRunning" @click="start"
+                            >Rejoin</Button
+                        >
+                        <Button v-else class="fullwidth green" :disabled="isGameRunning" @click="start">Start</Button>
+                    </template>
+                </template>
+                <template v-else-if="isOfflineBattle(battle)">
+                    <Button class="fullwidth green" :disabled="isGameRunning" @click="start">Start</Button>
+                </template>
             </div>
         </div>
 
@@ -170,7 +180,7 @@ import { AbstractBattle } from "@/model/battle/abstract-battle";
 import { StartBox, StartPosType } from "@/model/battle/battle-types";
 import { LuaOptionSection } from "@/model/lua-options";
 import { CurrentUser } from "@/model/user";
-import { isSpadsBattle } from "@/utils/type-checkers";
+import { isOfflineBattle, isSpadsBattle } from "@/utils/type-checkers";
 
 const props = defineProps<{
     battle: AbstractBattle;
@@ -242,6 +252,18 @@ function toggleReady() {
         client: {
             ready: !props.me.battleStatus.ready,
         },
+    });
+}
+
+function joinQueue() {
+    api.comms.request("c.lobby.message", {
+        message: "$joinq",
+    });
+}
+
+function leaveQueue() {
+    api.comms.request("c.lobby.message", {
+        message: "$leaveq",
     });
 }
 

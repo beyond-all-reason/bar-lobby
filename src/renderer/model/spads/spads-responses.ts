@@ -34,7 +34,7 @@ export const spadsResponseDefinitions = defineSpadsResponses(
         // * Vote in progress: "set map Tempest_V3" [y:2/6(9), n:0/6(8)] (25s remaining)
         name: "vote-in-progress",
         regex: new RegExp(
-            /\* Vote in progress: "(?<command>.*?)" \[y:(?<yesVotes>\d*)\/(?<requiredYesVotes>\d*)(?:\((?<maxYesVotes>\d*)\))?, n:(?<noVotes>\d*)\/(?<requiredNoVotes>\d*)(?:\((?<maxNoVotes>\d*)\))?] \((?<seconds>\d*)s.*/
+            /\* Vote in progress: "(?<command>.*?)" \[y:(?<yesVotes>\d*)\/(?<requiredYesVotes>\d*)(?:\((?<maxYesVotes>\d*)\))?, n:(?<noVotes>\d*)\/(?<requiredNoVotes>\d*)(?:\((?<maxNoVotes>\d*)\))?] \((?<secondsRemaining>\d*)s.*/
         ),
         schema: Type.Object({
             command: Type.String(),
@@ -44,18 +44,10 @@ export const spadsResponseDefinitions = defineSpadsResponses(
             noVotes: Type.Number(),
             requiredNoVotes: Type.Number(),
             maxNoVotes: Type.Optional(Type.Number()),
-            seconds: Type.Number(),
+            secondsRemaining: Type.Number(),
         }),
         handler(data, battle) {
-            const maxYesVotes = data.maxYesVotes || data.requiredYesVotes;
-            const maxNoVotes = data.maxNoVotes || data.requiredNoVotes;
-
-            const vote: SpadsVote = {
-                title: data.command,
-                yesVotes: data.yesVotes,
-                noVotes: data.noVotes,
-                maxVotes: maxYesVotes + maxNoVotes,
-            };
+            const vote: SpadsVote = data;
 
             if (battle.currentVote.value) {
                 assign(battle.currentVote.value, vote);
@@ -77,11 +69,12 @@ export const spadsResponseDefinitions = defineSpadsResponses(
     },
     {
         // * Vote for command "lock" failed (delay expired, away vote mode activated for 7 users).
+        // * Vote for command "resign jaztest1 TEAM" failed.
         name: "vote-failed",
-        regex: new RegExp(/\* Vote for command "(?<command>.*)" failed \(delay expired, away vote mode activated for (?<awayCount>\d*) users\)./),
+        regex: new RegExp(/\* Vote for command "(?<command>.*)" failed(?: \(delay expired, away vote mode activated for (?<awayCount>\d*) users\))?./),
         schema: Type.Object({
             command: Type.String(),
-            awayCount: Type.Number(),
+            awayCount: Type.Optional(Type.Number()),
         }),
         handler(data, battle) {
             battle.currentVote.value = null;
@@ -97,13 +90,33 @@ export const spadsResponseDefinitions = defineSpadsResponses(
         handler(data, battle) {
             console.log(data);
         },
+    },
+    {
+        // * 13 users allowed to vote.
+        name: "users-allowed-to-vote",
+        regex: new RegExp(/\* (?<numOfUsersAllowedToVote>\d*) users allowed to vote./),
+        schema: Type.Object({
+            numOfUsersAllowedToVote: Type.Number(),
+        }),
+    },
+    {
+        // * lamancha, you have already voted for current vote.
+        name: "user-already-voted",
+        regex: new RegExp(/\* (?<username>.*), you have already voted for current vote./),
+        schema: Type.Object({
+            username: Type.Number(),
+        }),
+    },
+    {
+        // * lamancha, you have already voted for current vote.
+        name: "user-already-voted",
+        regex: new RegExp(/\* (?<username>.*), you have already voted for current vote./),
+        schema: Type.Object({
+            username: Type.Number(),
+        }),
     }
 );
 
-// * Vote for command "lock" failed (delay expired, away vote mode activated for 7 users).
-// * fan called a vote for command "start" [!vote y, !vote n, !vote b]
-// * 13 users allowed to vote.
-// * lamancha, you have already voted for current vote.
 // * raptortomas57, you are not allowed to vote for current vote.
 // * User(s) allowed to vote: fan,[Phoenix],[SPM]B000M,Flash,Hyldenchamp
 // * Vote in progress: "start" [y:4/8, n:0/7] (40s remaining)
@@ -123,3 +136,9 @@ export const spadsResponseDefinitions = defineSpadsResponses(
 // * Player "Sandec" has already been added at start
 // * Adding user fan as spectator
 // * Balancing according to current balance mode: skill (teams were already balanced, balance deviation: 24%)
+// * Balancing according to current balance mode: clan;skill (balance deviation: 1%)
+// * Ally team 0 won! (moep, WingR, StarDoM, raptortomas57, TArules, VINT, Panalo, ProAustralian)
+// *   Damage award:  raptortomas57  (total damage: 473K.)
+// *   Eco award:     Panalo         (resources produced: 64102K.)  [ OWNAGE! ]
+// *   Micro award:   markivs        (damage efficiency: 162%)
+// * In-game mute added for YEP by Coordinator (type: full, duration: one game)

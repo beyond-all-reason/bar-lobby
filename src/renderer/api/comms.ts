@@ -82,11 +82,6 @@ export class CommsAPI extends TachyonClient {
 
     protected setupLobbyComms() {
         async function joinBattle(data: Static<typeof battleSchema>) {
-            if (data.member_list) {
-                const userIds = data.member_list.map((member) => member.userid);
-                await api.comms.request("c.user.list_users_from_ids", { id_list: userIds, include_clients: true });
-            }
-
             let battle = api.session.battles.get(data.lobby.id);
             if (!battle) {
                 battle = new SpadsBattle(data);
@@ -101,6 +96,11 @@ export class CommsAPI extends TachyonClient {
             api.session.onlineBattle.value = battle;
 
             api.session.battleMessages.length = 0;
+
+            if (data.member_list) {
+                const userIds = data.member_list.map((member) => member.userid);
+                await api.comms.request("c.user.list_users_from_ids", { id_list: userIds, include_clients: true });
+            }
 
             api.router.push("/multiplayer/battle");
 
@@ -255,8 +255,15 @@ export class CommsAPI extends TachyonClient {
         });
 
         this.onResponse("s.lobby.announce").add((data) => {
-            // for now we assume that all lobby announcements are from a SPADS autohost
+            api.session.battleMessages.push({
+                type: "system",
+                text: data.message,
+            });
 
+            api.spads.handleAnnouncement(data);
+        });
+
+        this.onResponse("s.lobby.received_lobby_direct_announce").add((data) => {
             api.session.battleMessages.push({
                 type: "system",
                 text: data.message,
