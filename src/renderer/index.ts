@@ -28,14 +28,6 @@ declare module "vue-router" {
 }
 
 (async () => {
-    window.setInterval(() => {
-        const memoryMB = window.performance.memory.usedJSHeapSize / 1048576;
-        if (memoryMB > 300) {
-            console.log("HELP MEMORY IS HUGE");
-            debugger;
-        }
-    }, 1000);
-
     await apiInit();
 
     await setupVue();
