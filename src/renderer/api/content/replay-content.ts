@@ -5,6 +5,7 @@ import { reactive } from "vue";
 
 import { AbstractContentAPI } from "@/api/content/abstract-content";
 import { Replay } from "@/model/replay";
+import { isFileInUse } from "@/utils/misc";
 import { parseReplay as parseReplayWorkerFunction } from "@/workers/parse-replay";
 import { hookWorkerFunction } from "@/workers/worker-helpers";
 
@@ -134,22 +135,32 @@ export class ReplayContentAPI extends AbstractContentAPI {
             const [replayToCache] = this.replayCacheQueue;
 
             if (replayToCache) {
-                await this.cacheReplay(replayToCache);
+                const replayFilePath = path.join(api.info.contentPath, "demos", replayToCache);
+                const fileInUse = await isFileInUse(replayFilePath);
+                if (fileInUse) {
+                    console.debug(`Cannot parse replay yet because it is still being written: ${replayToCache}`);
+                    this.replayCacheQueue.delete(replayToCache);
+                } else {
+                    await this.cacheReplay(replayFilePath);
+                }
             } else {
                 await delay(500);
             }
         }
     }
 
-    protected async cacheReplay(replayFileName: string) {
+    protected async cacheReplay(replayFilePath: string) {
+        const replayFileName = path.parse(replayFilePath).base;
+        console.debug(`Caching: ${replayFileName}`);
+
         try {
-            console.debug(`Caching: ${replayFileName}`);
-
-            const replayFilePath = path.join(api.info.contentPath, "demos", replayFileName);
-
             const replayData = await this.parseReplay(replayFilePath);
 
-            await api.cacheDb
+            if (replayData.gameId === "00000000000000000000000000000000") {
+                throw new Error(`invalid gameId for replay: ${replayFileName}`);
+            }
+
+            const rows = await api.cacheDb
                 .insertInto("replay")
                 .values(replayData)
                 .onConflict((oc) => {
@@ -158,9 +169,11 @@ export class ReplayContentAPI extends AbstractContentAPI {
                 })
                 .execute();
 
+            console.debug(`Cached replay: ${replayFileName}`);
+
             this.onReplayCached.dispatch();
         } catch (err) {
-            console.error(`Error parsing replay: ${replayFileName}`, err);
+            console.error(`Error caching replay: ${replayFileName}`, err);
 
             await api.cacheDb
                 .insertInto("replayError")
