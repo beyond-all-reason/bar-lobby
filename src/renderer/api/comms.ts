@@ -243,33 +243,27 @@ export class CommsAPI extends TachyonClient {
         });
 
         this.onResponse("s.lobby.say").add((data) => {
-            const user = api.session.getUserById(data.sender_id);
-            if (!user) {
-                console.error("User not in session data", data.sender_id);
-            }
-            api.session.battleMessages.push({
-                type: "chat",
-                name: user?.username ?? "Unknown",
+            api.messages.handleBattleChat({
+                type: "battle-message",
+                senderUserId: data.sender_id,
                 text: data.message,
             });
         });
 
-        this.onResponse("s.lobby.announce").add((data) => {
-            api.session.battleMessages.push({
-                type: "system",
+        this.onResponse("s.lobby.announce").add(async (data) => {
+            api.messages.handleBattleAnnouncement({
+                type: "battle-announcement",
+                senderUserId: data.sender_id,
                 text: data.message,
             });
-
-            api.spads.handleAnnouncement(data);
         });
 
-        this.onResponse("s.lobby.received_lobby_direct_announce").add((data) => {
-            api.session.battleMessages.push({
-                type: "system",
+        this.onResponse("s.lobby.received_lobby_direct_announce").add(async (data) => {
+            api.messages.handleDirectAnnouncement({
+                type: "direct-announcement",
+                senderUserId: data.sender_id,
                 text: data.message,
             });
-
-            api.spads.handleAnnouncement(data);
         });
 
         this.onResponse("s.lobby.updated_queue").add((data) => {

@@ -127,8 +127,12 @@
 
                 <template v-if="isSpadsBattle(battle)">
                     <template v-if="me.battleStatus.isSpectator">
-                        <Button v-if="battle.meInQueue.value" class="fullwidth red" @click="leaveQueue">Leave Queue</Button>
-                        <Button v-else class="fullwidth green" @click="joinQueue">Join Queue</Button>
+                        <Button v-if="battle.myQueuePosition.value" class="fullwidth red" @click="leaveQueue"
+                            >Leave Queue ({{ battle.myQueuePosition.value }})</Button
+                        >
+                        <Button v-else class="fullwidth green" @click="joinQueue"
+                            >Join Queue ({{ battle.battleOptions.joinQueueUserIds.length + 1 }})</Button
+                        >
 
                         <Button v-if="battle.battleOptions.startTime" class="fullwidth green" :disabled="isGameRunning" @click="start"
                             >Watch</Button

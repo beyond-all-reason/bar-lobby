@@ -12,8 +12,8 @@ import { AudioAPI } from "@/api/audio";
 import { CommsAPI } from "@/api/comms";
 import { ContentAPI } from "@/api/content/content";
 import { GameAPI } from "@/api/game";
+import { MessagesAPI } from "@/api/messages/messages";
 import { SessionAPI } from "@/api/session";
-import { SpadsApi as SpadsAPI } from "@/api/spads";
 import { StoreAPI } from "@/api/store";
 import { UtilsAPI } from "@/api/utils";
 import { serverConfig } from "@/config/server";
@@ -33,10 +33,10 @@ interface API {
     content: ContentAPI;
     game: GameAPI;
     info: Info;
+    messages: MessagesAPI;
     router: Router;
     session: SessionAPI;
     settings: StoreAPI<SettingsType>;
-    spads: SpadsAPI;
     utils: UtilsAPI;
 }
 
@@ -108,7 +108,7 @@ export async function apiInit() {
 
     api.game = new GameAPI();
 
-    api.spads = new SpadsAPI();
+    api.messages = new MessagesAPI();
 
     api.comms = new CommsAPI(serverConfig);
 

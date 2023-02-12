@@ -4,9 +4,9 @@ import { assign } from "jaz-ts-utils";
 import { lobbySchema, myUserSchema, playerSchema, ResponseType, userSchema } from "tachyon-client";
 import { ComputedRef, reactive, Ref, ref, shallowReactive, shallowRef } from "vue";
 
-import { BattleChatMessage } from "@/model/battle/battle-chat";
 import { OfflineBattle } from "@/model/battle/offline-battle";
 import { SpadsBattle } from "@/model/battle/spads-battle";
+import { Message } from "@/model/messages";
 import { CurrentUser, User } from "@/model/user";
 
 export class SessionAPI {
@@ -17,7 +17,7 @@ export class SessionAPI {
     public readonly offlineUser: CurrentUser;
     public readonly onlineUser: CurrentUser;
     public readonly battles: Map<number, SpadsBattle>;
-    public readonly battleMessages: BattleChatMessage[] = reactive([]);
+    public readonly battleMessages: Message[] = reactive([]);
     public readonly serverStats: Ref<ResponseType<"s.system.server_stats">["data"] | null> = shallowRef(null);
     public readonly outgoingFriendRequests: ComputedRef<User[]>;
     public readonly incomingFriendRequests: ComputedRef<User[]>;

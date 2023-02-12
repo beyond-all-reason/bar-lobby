@@ -12,16 +12,11 @@ type LobbyType = Static<typeof lobbySchema>;
 type BattleType = Static<typeof battleSchema>;
 type LobbyResponseHandlers = { [K in keyof Required<LobbyType>]: (data: Required<LobbyType[K]>) => void };
 
-/**
- * TODO
- * - BattleOptions should probably be a generic on AbstractBattle that allows for BattleOptions derivatives such as SpadsBattleOptions
- */
-
 export class SpadsBattle extends AbstractBattle<SpadsBattleOptions> {
     public readonly currentVote: Ref<SpadsVote | null> = ref(null);
     public readonly founder: ComputedRef<User>;
     public readonly isLockedOrPassworded: ComputedRef<boolean>;
-    public readonly meInQueue: ComputedRef<boolean>;
+    public readonly myQueuePosition: ComputedRef<number | null>;
 
     protected responseHandlers: { [K in keyof Required<BattleType>]: (data: Required<BattleType[K]>) => void } = {
         lobby: (data) => {
@@ -216,7 +211,13 @@ export class SpadsBattle extends AbstractBattle<SpadsBattleOptions> {
 
         this.founder = computed(() => api.session.getUserById(this.battleOptions.founderId)!);
         this.isLockedOrPassworded = computed(() => this.battleOptions.locked || this.battleOptions.passworded);
-        this.meInQueue = computed(() => this.battleOptions.joinQueueUserIds.includes(api.session.onlineUser.userId));
+        this.myQueuePosition = computed(() => {
+            const queuePosIndex = this.battleOptions.joinQueueUserIds.indexOf(api.session.onlineUser.userId);
+            if (queuePosIndex === -1) {
+                return null;
+            }
+            return queuePosIndex + 1;
+        });
     }
 
     public handleServerResponse(battleUpdateResponse: Partial<Omit<BattleType, "lobby"> & { lobby?: Partial<BattleType["lobby"]> }>) {

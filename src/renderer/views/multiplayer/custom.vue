@@ -75,7 +75,7 @@
         <Modal v-model="passwordPromptOpen" title="Battle Password" @submit="onPasswordPromptSubmit">
             <div class="flex-col gap-md">
                 <p>Please enter the password for this battle</p>
-                <Textbox type="password" name="password" />
+                <Textbox type="password" name="password" class="fullwidth" />
                 <Button type="submit">Submit</Button>
             </div>
         </Modal>

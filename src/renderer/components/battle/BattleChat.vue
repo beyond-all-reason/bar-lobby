@@ -1,24 +1,33 @@
 <template>
     <div class="battle-chat">
-        <div ref="messagesEl" class="messages">
-            <div>
-                <div v-for="(message, i) in messages" :key="i" class="message" :class="{ system: message.type === 'system' }">
-                    <div v-if="message.type === 'chat'" class="author">
-                        {{ message.name }}
-                    </div>
-                    <div class="text">
-                        {{ message.text }}
-                    </div>
-                </div>
+        <div class="messages-container">
+            <div
+                v-tooltip="showHiddenMessages ? 'Show junk messages' : 'Hide junk messages'"
+                class="toggle-hidden"
+                :class="{ enabled: !showHiddenMessages }"
+                @click="showHiddenMessages = !showHiddenMessages"
+            >
+                <Icon :icon="eyeIcon" height="18" />
+            </div>
+            <div class="messages">
+                <BattleMessage
+                    v-for="(message, i) in messages"
+                    v-show="(!message.hide && showHiddenMessages) || !showHiddenMessages"
+                    :key="i"
+                    :message="message"
+                />
             </div>
         </div>
-        <Textbox v-model="myMessage" class="battle-chat__textbox" @keyup.enter="sendMessage" />
+        <Textbox v-model="myMessage" class="fullwidth dark" @keyup.enter="sendMessage" />
     </div>
 </template>
 
 <script lang="ts" setup>
+import { Icon } from "@iconify/vue";
+import eyeIcon from "@iconify-icons/mdi/eye";
 import { ref } from "vue";
 
+import BattleMessage from "@/components/battle/BattleMessage.vue";
 import Textbox from "@/components/controls/Textbox.vue";
 import { AbstractBattle } from "@/model/battle/abstract-battle";
 
@@ -28,7 +37,7 @@ const props = defineProps<{
 
 const messages = api.session.battleMessages;
 const myMessage = ref("");
-const messagesEl = ref(null as HTMLElement | null);
+const showHiddenMessages = ref(false);
 
 function sendMessage() {
     if (!myMessage.value) {
@@ -49,41 +58,36 @@ function sendMessage() {
     flex-direction: column;
     margin-top: auto;
     gap: 10px;
+    position: relative;
     &__textbox {
         width: 100%;
     }
 }
-.messages {
+.messages-container {
     display: flex;
     flex-direction: column-reverse;
-    background: rgba(0, 0, 0, 0.3);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    height: 236px;
-    padding: 15px;
     overflow-y: scroll;
     scroll-behavior: smooth;
-    * {
-        user-select: text;
-    }
+    height: 280px;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
-.message {
+.toggle-hidden {
+    position: absolute;
+    top: 0;
+    right: 11px;
+    padding: 5px;
     display: flex;
-    flex-direction: row;
-}
-.author {
-    font-weight: 600;
-    flex-direction: row;
-    &:after {
-        content: ":";
-        margin-right: 5px;
+    opacity: 0.2;
+    &:hover,
+    &.enabled {
+        opacity: 0.8;
     }
 }
-.text {
-    width: 100%;
-    word-break: break-word;
-    .system & {
-        color: rgb(82, 215, 255);
-        font-weight: 600;
-    }
+.messages {
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+    gap: 5px;
 }
 </style>
