@@ -4,8 +4,6 @@ import path from "path";
 import VueRouter from "unplugin-vue-router/vite";
 import renderer from "vite-plugin-electron-renderer";
 
-//https://vitejs.dev/config/shared-options.html#root
-
 export default defineConfig({
     main: {
         resolve: {
