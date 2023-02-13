@@ -2,8 +2,7 @@
     <ContextMenu :entries="getActions(bot)" :args="[bot]">
         <div class="participant" data-type="participant" @mouseenter.stop="onMouseEnter">
             <Icon :icon="robot" :height="16" />
-            <div class="bot-type">[{{ getAiFriendlyName(props.bot.aiShortName) }}]</div>
-            <div>{{ props.bot.name }}</div>
+            <div>{{ getAiFriendlyName(props.bot.aiShortName) }}</div>
         </div>
         <LuaOptionsModal
             :id="`configure-bot-${bot.name}`"
