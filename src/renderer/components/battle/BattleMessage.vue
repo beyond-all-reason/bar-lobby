@@ -31,10 +31,10 @@ const fromHost = api.session.onlineBattle.value?.founder.value.userId === props.
     border-radius: 3px;
     overflow: hidden;
     &.from-host {
-        background: rgba(119, 255, 180, 0.24);
+        background: rgba(110, 186, 216, 0.4);
     }
     &.battle-announcement {
-        background: rgba(110, 186, 216, 0.4);
+        background: rgba(119, 255, 180, 0.24);
     }
 }
 $padding: 4px 8px;

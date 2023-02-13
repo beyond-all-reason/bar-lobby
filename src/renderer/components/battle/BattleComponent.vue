@@ -1,26 +1,26 @@
 <template>
-    <div class="battle flex-row flex-grow gap-lg">
-        <div class="flex-col flex-grow gap-md">
-            <div class="flex-col gap-sm">
-                <h1 class="title">{{ battle.battleOptions.title }}</h1>
+    <div :class="['container', { singleplayer: isOfflineBattle(battle) }]">
+        <div class="header flex-col gap-md">
+            <h1 class="title">{{ battle.battleOptions.title }}</h1>
 
-                <div v-if="isSpadsBattle(battle)" class="subtitle flex-row gap-md">
-                    <div class="flex-row gap-sm">
-                        Hosted by
-                        <div class="founder flex-row gap-sm">
-                            <Flag :countryCode="battle.founder.value.countryCode" style="width: 16px" />
-                            {{ battle.founder.value.username }}
-                        </div>
+            <div v-if="isSpadsBattle(battle)" class="subtitle flex-row gap-md">
+                <div class="flex-row gap-sm">
+                    Hosted by
+                    <div class="founder flex-row gap-sm">
+                        <Flag :countryCode="battle.founder.value.countryCode" style="width: 16px" />
+                        {{ battle.founder.value.username }}
                     </div>
-                    <div class="flex-right">{{ battle.friendlyRuntime.value }}</div>
                 </div>
+                <div class="flex-right">{{ battle.friendlyRuntime.value }}</div>
             </div>
-
-            <Playerlist :battle="battle" :me="me" />
-
-            <BattleChat v-if="isSpadsBattle(battle)" :battle="battle" />
         </div>
-        <div class="right-col flex-col gap-md">
+        <div class="players flex-col gap-md">
+            <Playerlist :battle="battle" :me="me" />
+        </div>
+        <div v-if="isSpadsBattle(battle)" class="chat flex-col gap-md">
+            <BattleChat :battle="battle" />
+        </div>
+        <div class="settings flex-col gap-md">
             <MapPreview
                 :map="props.battle.battleOptions.map"
                 :startPosType="props.battle.battleOptions.startPosType"
@@ -280,14 +280,35 @@ async function start() {
 </script>
 
 <style lang="scss" scoped>
-.battle {
-    max-height: 100%;
+.container {
+    height: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr 450px;
+    grid-template-rows: auto 1fr;
+    gap: 10px;
+    grid-template-areas:
+        "header chat settings"
+        "players chat settings";
+    &.singleplayer {
+        grid-template-areas:
+            "header header settings"
+            "players players settings";
+    }
 }
-.right-col {
-    min-width: 500px;
-    max-width: 500px;
+.header {
+    grid-area: header;
+}
+.settings {
+    grid-area: settings;
+}
+.players {
+    grid-area: players;
+}
+.chat {
+    grid-area: chat;
 }
 .title {
+    font-size: 30px;
     line-height: 0.8;
 }
 .subtitle {

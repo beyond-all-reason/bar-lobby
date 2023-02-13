@@ -2,20 +2,15 @@
     <div class="battle-chat">
         <div class="messages-container">
             <div
-                v-tooltip="showHiddenMessages ? 'Show junk messages' : 'Hide junk messages'"
+                v-tooltip="showHiddenMessages ? 'Hide junk messages' : 'Show junk messages'"
                 class="toggle-hidden"
-                :class="{ enabled: !showHiddenMessages }"
+                :class="{ enabled: showHiddenMessages }"
                 @click="showHiddenMessages = !showHiddenMessages"
             >
                 <Icon :icon="eyeIcon" height="18" />
             </div>
             <div class="messages">
-                <BattleMessage
-                    v-for="(message, i) in messages"
-                    v-show="(!message.hide && showHiddenMessages) || !showHiddenMessages"
-                    :key="i"
-                    :message="message"
-                />
+                <BattleMessage v-for="(message, i) in messages" v-show="!message.hide || showHiddenMessages" :key="i" :message="message" />
             </div>
         </div>
         <Textbox v-model="myMessage" class="fullwidth dark" @keyup.enter="sendMessage" />
@@ -56,21 +51,21 @@ function sendMessage() {
 .battle-chat {
     display: flex;
     flex-direction: column;
-    margin-top: auto;
     gap: 10px;
     position: relative;
-    &__textbox {
-        width: 100%;
-    }
+    height: 100%;
 }
 .messages-container {
     display: flex;
     flex-direction: column-reverse;
     overflow-y: scroll;
     scroll-behavior: smooth;
-    height: 280px;
     background: rgba(0, 0, 0, 0.3);
     border: 1px solid rgba(255, 255, 255, 0.1);
+    flex-grow: 1;
+    flex-shrink: 1;
+    flex-basis: auto;
+    height: 0;
 }
 .toggle-hidden {
     position: absolute;
