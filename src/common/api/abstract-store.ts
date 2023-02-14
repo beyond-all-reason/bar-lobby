@@ -7,8 +7,14 @@ import * as path from "path";
 import type { ToRefs } from "vue";
 import { reactive, toRefs } from "vue";
 
+/**
+ * TODO
+ * - replace generic T extends TSchema
+ * - make model reaction object
+ */
+
 export abstract class AsbtractStoreAPI<T extends Record<string, unknown>> {
-    public model!: ToRefs<T>; // TODO: replace with reactive object
+    public model!: ToRefs<T>;
 
     protected filePath: string;
     protected name: string;

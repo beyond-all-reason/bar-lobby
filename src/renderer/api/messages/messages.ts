@@ -11,7 +11,6 @@ export class MessagesAPI {
     public async handleBattleChat(message: Message) {
         await this.handleMessage(message, messageHandlers);
 
-        // TODO: add option for message handlers to stop messages being added to chat, or filter/manipulate them in some way
         api.session.battleMessages.push(message);
     }
 
@@ -22,7 +21,6 @@ export class MessagesAPI {
     public async handleBattleAnnouncement(message: Message) {
         await this.handleMessage(message, battleAnnouncementHandlers);
 
-        // TODO: add option for message handlers to stop messages being added to chat, or filter/manipulate them in some way
         api.session.battleMessages.push(message);
     }
 
@@ -51,7 +49,12 @@ export class MessagesAPI {
                 }
             }
 
-            return handler.handler(data, message);
+            try {
+                await handler.handler(data, message);
+                return;
+            } catch (err) {
+                console.error(`Error in BarManager message handler`, err, handler);
+            }
         }
 
         console.warn(`No BarManager message handler defined for message`, message);
@@ -97,7 +100,12 @@ export class MessagesAPI {
                 }
             }
 
-            return handler.handler(data, message);
+            try {
+                await handler.handler(data, message);
+                return;
+            } catch (err) {
+                console.error(`Error in message handler`, err, handler);
+            }
         }
 
         console.warn(`No message handler defined for message`, message);

@@ -104,7 +104,6 @@ const isFFA = computed(() => {
         return props.battle.preset === "ffa";
     }
 });
-const contenders = computed(() => (isBattle(props.battle) ? props.battle.contenders.value : props.battle.contenders));
 const teams = computed(() => {
     if (isBattle(props.battle)) {
         const teams = groupBy(props.battle.contenders.value, (contender) =>
@@ -145,7 +144,9 @@ const startBoxes = computed(() => {
     return startBoxes;
 });
 const startPositions = computed(() => {
-    return contenders.value.map((contender) => {
+    const contenders = isBattle(props.battle) ? props.battle.contenders.value : props.battle.contenders;
+
+    return contenders.map((contender) => {
         if (!contender.startPos) {
             return;
         }
