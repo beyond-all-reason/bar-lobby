@@ -1,5 +1,5 @@
 <template>
-    <div :class="['container', { singleplayer: isOfflineBattle(battle) }]">
+    <div :class="['battle-container', { singleplayer: isOfflineBattle(battle) }]">
         <div class="header flex-col gap-md">
             <h1 class="title">{{ battle.battleOptions.title }}</h1>
 
@@ -153,11 +153,10 @@
                 </template>
             </div>
         </div>
-
-        <Transition name="slide-up">
-            <VotingPanel v-if="isSpadsBattle(battle) && battle.currentVote.value" :vote="battle.currentVote.value" />
-        </Transition>
     </div>
+    <Transition name="slide-up">
+        <VotingPanel v-if="isSpadsBattle(battle) && battle.currentVote.value" :vote="battle.currentVote.value" :battle="battle" />
+    </Transition>
 </template>
 
 <script lang="ts" setup>
@@ -280,7 +279,7 @@ async function start() {
 </script>
 
 <style lang="scss" scoped>
-.container {
+.battle-container {
     height: 100%;
     display: grid;
     grid-template-columns: 1fr 1fr 450px;

@@ -1,14 +1,16 @@
 <template>
-    <div class="container">
+    <div class="voting-container">
         <Panel class="voting-panel">
             <div class="title"><strong>Vote:</strong> {{ vote.command }}</div>
 
             <div class="actions">
-                <Button class="vote-button green" @click="onYes">Yes (F1)</Button>
-                <Button class="vote-button red" @click="onNo">No (F2)</Button>
+                <Button class="vote-button green" :disabled="isSpectator" @click="onYes">Yes (F1)</Button>
+                <Button class="vote-button red" :disabled="isSpectator" @click="onNo">No (F2)</Button>
             </div>
 
-            <div class="vote-display">
+            <div v-if="vote.callerName" class="caller">Called by {{ vote.callerName }}</div>
+
+            <div v-if="missingYesVotes" class="vote-display">
                 <div v-for="i in vote.yesVotes" :key="i" class="segment yes"></div>
                 <div v-for="i in missingYesVotes" :key="i" class="segment missing-yes"></div>
                 <div v-for="i in missingNoVotes" :key="i" class="segment missing-no"></div>
@@ -23,10 +25,12 @@ import { computed } from "vue";
 
 import Panel from "@/components/common/Panel.vue";
 import Button from "@/components/controls/Button.vue";
+import { SpadsBattle } from "@/model/battle/spads-battle";
 import { SpadsVote } from "@/model/spads/spads-types";
 
 const props = defineProps<{
     vote: SpadsVote;
+    battle: SpadsBattle;
 }>();
 
 const emits = defineEmits<{
@@ -34,8 +38,20 @@ const emits = defineEmits<{
     (event: "no"): void;
 }>();
 
-const missingYesVotes = computed(() => props.vote.requiredYesVotes - props.vote.yesVotes);
-const missingNoVotes = computed(() => props.vote.requiredNoVotes - props.vote.noVotes);
+const missingYesVotes = computed(() => {
+    if (props.vote.requiredYesVotes === undefined || props.vote.yesVotes === undefined) {
+        return null;
+    }
+    return props.vote.requiredYesVotes - props.vote.yesVotes;
+});
+const missingNoVotes = computed(() => {
+    if (props.vote.requiredNoVotes === undefined || props.vote.noVotes === undefined) {
+        return null;
+    }
+    return props.vote.requiredNoVotes - props.vote.noVotes;
+});
+
+const isSpectator = api.session.onlineUser.battleStatus.isSpectator;
 
 function onYes() {
     emits("yes");
@@ -47,7 +63,7 @@ function onNo() {
 </script>
 
 <style lang="scss" scoped>
-.container {
+.voting-container {
     position: fixed;
     width: 100%;
     left: 0;
@@ -55,11 +71,14 @@ function onNo() {
     display: flex;
     align-items: center;
     justify-content: center;
+    background: rgba(255, 0, 0, 0.1);
+    pointer-events: none;
 }
 .voting-panel {
     background: radial-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.9));
     border-radius: 7px;
     overflow: hidden;
+    pointer-events: auto;
     :deep(.content) {
         padding: 10px 15px;
         padding-bottom: 23px;
@@ -82,6 +101,9 @@ function onNo() {
     font-size: 20px;
     font-weight: 600;
     flex-grow: 1;
+}
+.caller {
+    text-align: center;
 }
 .vote-display {
     position: absolute;

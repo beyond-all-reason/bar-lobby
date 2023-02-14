@@ -3,6 +3,8 @@ import { DeepReadonly } from "vue";
 
 import { SpadsCommandDefinition } from "@/model/spads/spads-types";
 
+// TODO
+
 // this data could be automatically parsed from spads !helpall output, either on launch or as a compile-time script
 export const spadsCommandDefinitions = [
     {

@@ -26,6 +26,10 @@ export type SpadsBattleOptions = BattleOptions & {
     maxPlayers: number;
     preset: string;
     joinQueueUserIds: number[];
+    autoBalance: string;
+    teamSize: number;
+    nbTeams: number;
+    balanceMode: string;
 };
 
 export type StartBox = {

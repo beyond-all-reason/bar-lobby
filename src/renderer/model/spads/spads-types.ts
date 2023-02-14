@@ -13,11 +13,12 @@ export type SpadsCommandArgumentDefinition<T extends TSchema> = {
 
 export type SpadsVote = {
     command: string;
-    yesVotes: number;
-    requiredYesVotes: number;
+    callerName?: string;
+    yesVotes?: number;
+    requiredYesVotes?: number;
     maxYesVotes?: number;
-    noVotes: number;
-    requiredNoVotes: number;
+    noVotes?: number;
+    requiredNoVotes?: number;
     maxNoVotes?: number;
-    secondsRemaining: number;
+    secondsRemaining?: number;
 };
