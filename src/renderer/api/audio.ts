@@ -69,27 +69,30 @@ export class AudioAPI {
         });
     }
 
-    public getSounds(): Sound[] {
+    public getAllSounds(): Sound[] {
         return Array.from(this.sounds.values());
     }
 
-    public getSound(name: string) {
-        return this.sounds.get(name)!;
-    }
-
-    public getPlayingSounds() {
-        return this.getSounds().filter((sound) => sound.playing());
+    public play(key: string) {
+        const sound = this.sounds.get(key);
+        if (sound) {
+            sound.play();
+            return sound;
+        } else {
+            console.error(`Could not find sound: ${key}`);
+            return;
+        }
     }
 
     public muteMusic(fadeTime = 4000) {
-        const musicSounds = this.getSounds().filter((sound) => sound.isMusic);
+        const musicSounds = this.getAllSounds().filter((sound) => sound.isMusic);
         for (const sound of musicSounds) {
             sound.fade(sound.volume(), 0, fadeTime);
         }
     }
 
     public unmuteMusic(fadeTime = 4000) {
-        const musicSounds = this.getSounds().filter((sound) => sound.isMusic);
+        const musicSounds = this.getAllSounds().filter((sound) => sound.isMusic);
         for (const sound of musicSounds) {
             sound.fade(0, api.settings.model.musicVolume.value / 100, fadeTime);
         }

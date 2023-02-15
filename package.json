@@ -33,6 +33,9 @@
       "VITE_DEV_SERVER_URL": "http://127.0.0.1:3344"
     }
   },
+  "engines": {
+    "node": "14.21.2"
+  },
   "dependencies": {
     "@iconify-icons/mdi": "^1.2.14",
     "@iconify/json": "^2.2.14",

@@ -86,6 +86,8 @@ export class Application {
 
         this.mainWindow = new MainWindow(this.settings);
 
+        this.mainWindow.window.on("restore", () => this.mainWindow?.window.flashFrame(false));
+
         this.setupHandlers();
     }
 

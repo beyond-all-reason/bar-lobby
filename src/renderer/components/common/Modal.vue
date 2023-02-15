@@ -97,7 +97,7 @@ async function onSubmit() {
 }
 
 function sound() {
-    return api.audio.getSound("button-hover").play();
+    return api.audio.play("button-hover");
 }
 </script>
 

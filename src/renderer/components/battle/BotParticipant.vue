@@ -65,7 +65,7 @@ function getActions(bot: Bot): ContextMenuEntry[] {
 }
 
 function onMouseEnter() {
-    api.audio.getSound("button-hover").play();
+    api.audio.play("button-hover");
 }
 </script>
 

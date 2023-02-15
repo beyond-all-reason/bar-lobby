@@ -37,9 +37,9 @@ export const battleAnnouncementHandlers = createMessageHandlers(
         }),
         async handler(data, message) {
             if (api.session.onlineUser.username === data.ringeeUsername) {
-                // api.alerts.alert({
-                //     type: "notification",
-                // });
+                api.notifications.event({
+                    text: `${data.ringerUsername} rang you`,
+                });
             }
         },
     },

@@ -76,7 +76,7 @@ const selfActions: ContextMenuEntry[] = [{ label: "View Profile", action: viewPr
 const actions = props.player.userId === api.session.onlineUser.userId || props.player.userId === -1 ? selfActions : playerActions;
 
 function onMouseEnter() {
-    api.audio.getSound("button-hover").play();
+    api.audio.play("button-hover");
 }
 </script>
 

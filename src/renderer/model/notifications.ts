@@ -14,8 +14,8 @@ export type Alert = {
 };
 
 /**
- * Events are for important, usually interactive notifications, and will commonly occur when the lobby is minimized, so
- *  by default they will flash the app icon and play a sound.
+ * Events are for important, possibly interactive notifications, and will commonly occur when the lobby is minimized, so
+ *  they will also flash the app icon and play a sound to get the user's attention.
  *
  * Examples:
  * - invited to a party
@@ -25,5 +25,6 @@ export type Event = {
     id: string;
     text: string;
     timeoutMs?: number;
-    action: () => void;
+    playSound?: boolean;
+    action?: () => void;
 };

@@ -1,7 +1,9 @@
 <template>
-    <div class="event">
+    <div class="event" @click="onClick">
         <div class="text">{{ event.text }}</div>
-        <div class="close" @click="onClose"><Icon :icon="closeThick" height="21"></Icon></div>
+        <div class="close" @click.stop="onClose">
+            <Icon :icon="closeThick" height="21" />
+        </div>
     </div>
 </template>
 
@@ -14,6 +16,10 @@ import { Event } from "@/model/notifications";
 const props = defineProps<{
     event: Event;
 }>();
+
+function onClick() {
+    props.event?.action?.();
+}
 
 function onClose() {
     api.notifications.closeEvent(props.event);

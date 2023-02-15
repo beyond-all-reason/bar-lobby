@@ -4,7 +4,7 @@
             <Alert v-for="notification in notifications.alerts" :key="notification.id" :alert="notification" />
         </TransitionGroup>
         <TransitionGroup name="list" class="events" tag="div">
-            <Event v-for="(event, i) in notifications.events" :key="i" :event="event" />
+            <Event v-for="event in notifications.events" :key="event.id" :event="event" />
         </TransitionGroup>
     </div>
 </template>

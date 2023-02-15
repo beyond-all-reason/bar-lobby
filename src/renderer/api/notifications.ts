@@ -26,8 +26,13 @@ export class NotificationsAPI {
         const event: Event = {
             id: uuid(),
             timeoutMs: Math.max(eventConfig.text.length * 75, 10000),
+            playSound: true,
             ...eventConfig,
         };
+
+        api.audio.play("ring");
+
+        api.utils.flashFrame(true);
 
         this.events.push(event);
     }
