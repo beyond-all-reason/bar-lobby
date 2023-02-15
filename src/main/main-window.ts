@@ -32,6 +32,7 @@ export class MainWindow {
         });
 
         this.window.once("ready-to-show", () => this.show());
+        this.window.on("restore");
 
         this.window.webContents.on("render-process-gone", (event, details) => {
             console.error(details);

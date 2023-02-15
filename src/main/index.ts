@@ -58,6 +58,7 @@ export class Application {
 
         this.app.on("ready", () => this.onReady());
         this.app.on("window-all-closed", () => this.app.quit());
+        this.app.on("browser-window-focus", () => this.mainWindow?.window.flashFrame(false));
     }
 
     protected async onReady() {
@@ -93,8 +94,8 @@ export class Application {
             return this.getInfo();
         });
 
-        ipcMain.handle("highlightTaskbarIcon", (_, shouldHighlight: boolean) => {
-            this.mainWindow?.window.flashFrame(shouldHighlight);
+        ipcMain.handle("flashFrame", (event, flag: boolean) => {
+            this.mainWindow?.window.flashFrame(flag);
         });
 
         ipcMain.handle("encryptString", async (event, str: string) => {
