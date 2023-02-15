@@ -32,10 +32,10 @@
 <script lang="ts" setup>
 import { Icon } from "@iconify/vue";
 import replayIcon from "@iconify-icons/mdi/replay";
+import TabPanel from "primevue/tabpanel";
 import { ref } from "vue";
 
 import Panel from "@/components/common/Panel.vue";
-import TabPanel from "@/components/common/TabPanel.vue";
 import TabView from "@/components/common/TabView.vue";
 import Button from "@/components/controls/Button.vue";
 import LoginForm from "@/components/login/LoginForm.vue";

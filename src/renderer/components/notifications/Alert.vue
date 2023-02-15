@@ -1,7 +1,7 @@
 <template>
-    <div :class="`notification ${notification.severity}`">
+    <div :class="`alert ${alert.severity}`">
         <div class="icon"><Icon :icon="icon" height="21"></Icon></div>
-        <div class="text">{{ notification.content }}</div>
+        <div class="text">{{ alert.text }}</div>
         <div class="close" @click="onClose"><Icon :icon="closeThick" height="21"></Icon></div>
     </div>
 </template>
@@ -14,16 +14,16 @@ import closeThick from "@iconify-icons/mdi/close-thick";
 import infoOutline from "@iconify-icons/mdi/information-outline";
 import { computed } from "vue";
 
-import { NotificationAlert } from "@/model/alert";
+import { Alert } from "@/model/notifications";
 
 const props = defineProps<{
-    notification: NotificationAlert;
+    alert: Alert;
 }>();
 
 const icon = computed(() => {
-    if (props.notification.severity === "error") {
+    if (props.alert.severity === "error") {
         return alertCircleOutline;
-    } else if (props.notification.severity === "warning") {
+    } else if (props.alert.severity === "warning") {
         return alertOutline;
     } else {
         return infoOutline;
@@ -31,18 +31,18 @@ const icon = computed(() => {
 });
 
 function onClose() {
-    api.alerts.closeAlert(props.notification);
+    api.notifications.closeAlert(props.alert);
 }
 
-if (props.notification.timeoutMs) {
+if (props.alert.timeoutMs) {
     setTimeout(() => {
-        api.alerts.closeAlert(props.notification);
-    }, props.notification.timeoutMs);
+        api.notifications.closeAlert(props.alert);
+    }, props.alert.timeoutMs);
 }
 </script>
 
 <style lang="scss" scoped>
-.notification {
+.alert {
     display: flex;
     align-self: center;
     border-radius: 3px;

@@ -30,6 +30,20 @@ export const battleAnnouncementHandlers = createMessageHandlers(
         },
     },
     {
+        regex: new RegExp(/\* Ringing (?<ringeeUsername>.*) (by (?<ringerUsername>.*))/),
+        schema: Type.Object({
+            ringeeUsername: Type.String(),
+            ringerUsername: Type.String(),
+        }),
+        async handler(data, message) {
+            if (api.session.onlineUser.username === data.ringeeUsername) {
+                // api.alerts.alert({
+                //     type: "notification",
+                // });
+            }
+        },
+    },
+    {
         regex: new RegExp(/\* (?<username>.*) called a vote for command "(?<command>.*)"/),
         schema: Type.Object({
             username: Type.String(),
@@ -46,6 +60,8 @@ export const battleAnnouncementHandlers = createMessageHandlers(
                 command: data.command,
                 callerName: data.username,
             };
+
+            message.hide = true;
         },
     },
     {
@@ -118,7 +134,7 @@ export const battleAnnouncementHandlers = createMessageHandlers(
         },
     },
     {
-        regex: new RegExp(/\* Awaiting following vote\(s\):/),
+        regex: new RegExp(/\* Awaiting following vote/),
         schema: Type.Object({}),
         async handler(data, message) {
             message.hide = true;
@@ -134,8 +150,24 @@ export const battleAnnouncementHandlers = createMessageHandlers(
         },
     },
     {
-        regex: new RegExp(/\* Awaiting following vote\(s\):/),
+        regex: new RegExp(/\* Away vote mode for/),
         schema: Type.Object({}),
+        async handler(data, message) {
+            message.hide = true;
+        },
+    },
+    {
+        regex: new RegExp(/\* Warning: in-game IP address/),
+        schema: Type.Object({}),
+        async handler(data, message) {
+            message.hide = true;
+        },
+    },
+    {
+        regex: new RegExp(/\* Player "(?<username>.*)" has already been added at start/),
+        schema: Type.Object({
+            username: Type.String(),
+        }),
         async handler(data, message) {
             message.hide = true;
         },

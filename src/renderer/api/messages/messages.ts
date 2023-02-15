@@ -19,13 +19,13 @@ export class MessagesAPI {
     }
 
     public async handleBattleAnnouncement(message: Message) {
-        await this.handleMessage(message, battleAnnouncementHandlers);
+        await this.handleMessage(message, battleAnnouncementHandlers, true);
 
         api.session.battleMessages.push(message);
     }
 
     public async handleDirectAnnouncement(message: Message) {
-        await this.handleMessage(message, directAnnouncementHandlers);
+        await this.handleMessage(message, directAnnouncementHandlers, true);
     }
 
     public async handleBarManagerMessage(obj: Record<string, string>, message: Message) {
@@ -60,7 +60,7 @@ export class MessagesAPI {
         console.warn(`No BarManager message handler defined for message`, message);
     }
 
-    protected async handleMessage(message: Message, handlers: MessageHandler<TSchema>[]) {
+    protected async handleMessage(message: Message, handlers: MessageHandler<TSchema>[], warnIfUnhandled = false) {
         const sender = api.session.getUserById(message.senderUserId);
         if (!sender) {
             console.warn(`Message from unknown user, querying server for user's details`);
@@ -108,6 +108,8 @@ export class MessagesAPI {
             }
         }
 
-        console.warn(`No message handler defined for message`, message);
+        if (warnIfUnhandled) {
+            console.warn(`No message handler defined for message`, message);
+        }
     }
 }

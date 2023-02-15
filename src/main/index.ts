@@ -64,8 +64,8 @@ export class Application {
         if (process.env.NODE_ENV === "development") {
             try {
                 // await installExtension("nhdogjmejiglipccpnnnanhbledajbpd"); // commenting out for now because seems to sometimes not work and spam errors in console
-            } catch (e: any) {
-                console.error("Vue Devtools failed to install:", e.toString());
+            } catch (err) {
+                console.error("Vue Devtools failed to install:", err?.toString());
             }
         } else if (app.isPackaged && process.env.NODE_ENV !== "development") {
             const updateInfo = autoUpdater.checkForUpdatesAndNotify();

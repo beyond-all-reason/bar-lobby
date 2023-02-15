@@ -285,20 +285,18 @@ export class CommsAPI extends TachyonClient {
 
         this.onResponse("s.system.server_event").add((data) => {
             if (data.event === "server_restart") {
-                api.alerts.alert({
-                    type: "notification",
+                api.notifications.alert({
                     severity: "warning",
-                    content: "Server is restarting",
+                    text: "Server is restarting",
                 });
             }
         });
 
         this.onResponse("s.system.server_event").add((data) => {
             if (data.event === "stop") {
-                api.alerts.alert({
-                    type: "notification",
+                api.notifications.alert({
                     severity: "warning",
-                    content: "Server is shutting down",
+                    text: "Server is shutting down",
                 });
             }
         });

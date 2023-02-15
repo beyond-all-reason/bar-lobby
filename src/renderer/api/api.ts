@@ -7,12 +7,12 @@ import { Router } from "vue-router/auto";
 import { createRouter } from "vue-router/auto";
 import { createMemoryHistory } from "vue-router/auto";
 
-import { AlertsAPI } from "@/api/alerts";
 import { AudioAPI } from "@/api/audio";
 import { CommsAPI } from "@/api/comms";
 import { ContentAPI } from "@/api/content/content";
 import { GameAPI } from "@/api/game";
 import { MessagesAPI } from "@/api/messages/messages";
+import { NotificationsAPI } from "@/api/notifications";
 import { SessionAPI } from "@/api/session";
 import { StoreAPI } from "@/api/store";
 import { UtilsAPI } from "@/api/utils";
@@ -26,7 +26,7 @@ import { settingsSchema } from "$/model/settings";
 
 interface API {
     account: StoreAPI<Account>;
-    alerts: AlertsAPI;
+    notifications: NotificationsAPI;
     audio: AudioAPI;
     cacheDb: Kysely<CacheDatabase>;
     comms: CommsAPI;
@@ -114,5 +114,5 @@ export async function apiInit() {
 
     api.content = await new ContentAPI().init();
 
-    api.alerts = new AlertsAPI();
+    api.notifications = new NotificationsAPI();
 }

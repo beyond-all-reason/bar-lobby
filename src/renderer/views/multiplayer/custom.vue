@@ -196,10 +196,9 @@ async function onPasswordPromptSubmit(data) {
     });
 
     if (response.result === "failure") {
-        api.alerts.alert({
-            type: "notification",
+        api.notifications.alert({
             severity: "error",
-            content: "The password you entered was invalid.",
+            text: "The password you entered was invalid.",
         });
     } else {
         passwordPromptOpen.value = false;

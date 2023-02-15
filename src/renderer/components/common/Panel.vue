@@ -1,40 +1,23 @@
 <template>
-    <component :is="is" class="panel" :class="{ empty }">
+    <div class="panel" :class="{ empty }">
         <div v-if="$slots.header" class="header">
             <slot name="header" />
         </div>
 
-        <div class="content" :style="contentStyle">
+        <div class="content">
             <slot />
         </div>
 
         <div v-if="$slots.footer" class="footer">
             <slot name="footer" />
         </div>
-    </component>
+    </div>
 </template>
 
 <script lang="ts" setup>
-/**
- * TODO
- * - get rid of width/height/padding settings
- */
-
-const props = withDefaults(
-    defineProps<{
-        is?: string;
-        hidden?: boolean;
-        light?: boolean;
-        empty?: boolean;
-        contentStyle?: any;
-    }>(),
-    {
-        is: "div",
-        hidden: false,
-        light: false,
-        contentStyle: "",
-    }
-);
+const props = defineProps<{
+    empty?: boolean;
+}>();
 </script>
 
 <style lang="scss" scoped>

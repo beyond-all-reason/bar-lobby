@@ -1,6 +1,8 @@
 <template>
     <div class="voting-container">
         <Panel class="voting-panel">
+            <div :class="['remaining-time', { animating: showTimeRemaining }]"></div>
+
             <div class="title"><strong>Vote:</strong> {{ vote.command }}</div>
 
             <div class="actions">
@@ -21,7 +23,7 @@
 </template>
 
 <script lang="ts" setup>
-import { computed } from "vue";
+import { computed, ref, watch } from "vue";
 
 import Panel from "@/components/common/Panel.vue";
 import Button from "@/components/controls/Button.vue";
@@ -53,6 +55,20 @@ const missingNoVotes = computed(() => {
 
 const isSpectator = api.session.onlineUser.battleStatus.isSpectator;
 
+const remainingTimeDurationCss = ref("60s");
+const showTimeRemaining = ref(false);
+watch(
+    () => props.vote.secondsRemaining,
+    (newValue, oldValue) => {
+        if (newValue && !oldValue) {
+            remainingTimeDurationCss.value = `${newValue}s`;
+            showTimeRemaining.value = true;
+        } else if (!newValue) {
+            showTimeRemaining.value = false;
+        }
+    }
+);
+
 function onYes() {
     emits("yes");
 }
@@ -71,7 +87,6 @@ function onNo() {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: rgba(255, 0, 0, 0.1);
     pointer-events: none;
 }
 .voting-panel {
@@ -81,9 +96,27 @@ function onNo() {
     pointer-events: auto;
     :deep(.content) {
         padding: 10px 15px;
+        padding-top: 13px;
         padding-bottom: 23px;
         gap: 10px;
         overflow: hidden;
+    }
+}
+.remaining-time {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 5px;
+    background: rgba(255, 255, 255, 0.15);
+    transform: scaleX(1);
+    visibility: hidden;
+    &.animating {
+        visibility: visible;
+        transition-property: transform;
+        transition-timing-function: linear;
+        transition-duration: v-bind(remainingTimeDurationCss);
+        transform: scaleX(0);
     }
 }
 .title {
@@ -104,6 +137,8 @@ function onNo() {
 }
 .caller {
     text-align: center;
+    font-size: 14px;
+    opacity: 0.8;
 }
 .vote-display {
     position: absolute;

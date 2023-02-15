@@ -6,7 +6,7 @@
         <DebugSidebar v-if="!isProduction" />
         <StickyBattle />
         <Background :blur="blurBg" />
-        <Alerts />
+        <Notifications />
         <Friends v-model:open="friendsOpen" />
         <div class="lobby-version">
             {{ lobbyVersion }}
@@ -55,7 +55,6 @@ import { computed, provide, Ref } from "vue";
 import { ref } from "vue";
 import { useRouter } from "vue-router/auto";
 
-import Alerts from "@/components/alerts/Alerts.vue";
 import StickyBattle from "@/components/battle/StickyBattle.vue";
 import Loader from "@/components/common/Loader.vue";
 import Panel from "@/components/common/Panel.vue";
@@ -69,6 +68,7 @@ import Breadcrumbs from "@/components/navbar/Breadcrumbs.vue";
 import Friends from "@/components/navbar/Friends.vue";
 import NavBar from "@/components/navbar/NavBar.vue";
 import Settings from "@/components/navbar/Settings.vue";
+import Notifications from "@/components/notifications/Notifications.vue";
 import { defaultMaps } from "@/config/default-maps";
 import { latestStableEngineVersion } from "@/config/latest-engine";
 import { playRandomMusic } from "@/utils/play-random-music";

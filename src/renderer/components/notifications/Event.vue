@@ -1,7 +1,7 @@
 <template>
     <div class="event">
+        <div class="text">{{ event.text }}</div>
         <div class="close" @click="onClose"><Icon :icon="closeThick" height="21"></Icon></div>
-        {{ event.content }}
     </div>
 </template>
 
@@ -9,56 +9,48 @@
 import { Icon } from "@iconify/vue";
 import closeThick from "@iconify-icons/mdi/close-thick";
 
-import { EventAlert } from "@/model/alert";
+import { Event } from "@/model/notifications";
 
 const props = defineProps<{
-    event: EventAlert;
+    event: Event;
 }>();
 
 function onClose() {
-    api.alerts.closeAlert(props.event);
+    api.notifications.closeEvent(props.event);
 }
 </script>
 
 <style lang="scss" scoped>
 .event {
-    display: block;
-    padding: 6px 10px;
-    gap: 5px;
-    max-width: 250px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 250px;
+    height: 75px;
+    position: relative;
     pointer-events: auto;
-    font-size: 16px;
     border: 1px solid rgb(15, 15, 15);
     box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.4), inset 0 0 0 1px rgba(255, 255, 255, 0.11);
     background: linear-gradient(to bottom, rgba(31, 31, 31, 0.295), rgba(15, 15, 15, 0.616));
-    text-align: left;
     backdrop-filter: blur(4px);
-    &:before {
-        @extend .fullsize;
-        background-image: url("@/assets/images/squares.png");
-        background-size: auto;
-        opacity: 0.3;
-        z-index: -1;
-    }
     &:hover {
         background: linear-gradient(to bottom, rgba(88, 88, 88, 0.295), rgba(53, 53, 53, 0.616));
     }
 }
+.text {
+    text-align: center;
+    font-size: 18px;
+    padding: 6px 10px;
+    padding-right: 20px;
+}
 .close {
-    float: right;
-    position: relative;
-    color: rgba(255, 255, 255, 0.7);
-    padding-bottom: 5px;
-    margin: {
-        left: 5px;
-        bottom: 5px;
-    }
-    &:after {
-        @extend .fullsize;
-        width: calc(100% + 10px);
-        height: calc(100% + 10px);
-        top: -5px;
-    }
+    display: flex;
+    position: absolute;
+    top: 0;
+    right: 0;
+    padding: 5px;
+    color: rgba(255, 255, 255, 0.3);
+    margin-left: auto;
     &:hover {
         color: #fff;
     }

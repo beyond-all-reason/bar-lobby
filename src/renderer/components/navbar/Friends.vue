@@ -69,11 +69,11 @@
  */
 
 import AccordionTab from "primevue/accordiontab";
+import TabPanel from "primevue/tabpanel";
 import { computed, ref, watch } from "vue";
 
 import Accordion from "@/components/common/Accordion.vue";
 import Panel from "@/components/common/Panel.vue";
-import TabPanel from "@/components/common/TabPanel.vue";
 import TabView from "@/components/common/TabView.vue";
 import Button from "@/components/controls/Button.vue";
 import Textbox from "@/components/controls/Textbox.vue";

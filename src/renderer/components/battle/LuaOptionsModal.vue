@@ -58,10 +58,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { clone } from "jaz-ts-utils";
+import TabPanel from "primevue/tabpanel";
 import { reactive, Ref, ref, toRaw } from "vue";
 
 import Modal from "@/components/common/Modal.vue";
-import TabPanel from "@/components/common/TabPanel.vue";
 import TabView from "@/components/common/TabView.vue";
 import Button from "@/components/controls/Button.vue";
 import Checkbox from "@/components/controls/Checkbox.vue";
