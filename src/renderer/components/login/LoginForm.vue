@@ -8,7 +8,7 @@
             <Textbox v-model="email" type="email" label="Email" required validate class="fullwidth" />
             <Textbox v-model="password" type="password" label="Password" required class="fullwidth" />
             <div class="flex-row gap-md">
-                <Checkbox v-model="loginAutomatically" type="checkbox" label="Remember Me" />
+                <Checkbox v-model="settings.loginAutomatically" type="checkbox" label="Remember Me" />
                 <Button class="blue fullwidth" type="submit"> Login </Button>
             </div>
         </form>
@@ -36,14 +36,14 @@ import { linkify } from "@/utils/linkify";
 const loading = ref(false);
 const email = ref("");
 const password = ref("");
-const loginAutomatically = api.settings.model.loginAutomatically;
+const settings = api.settings.model;
 const requestVerification = ref(false);
 const verificationMessage = ref("");
 const verificationCode = ref("");
 const loginError = ref("");
 const verificationError = ref("");
 
-if (loginAutomatically) {
+if (settings.loginAutomatically) {
     if (api.account.model.email) {
         email.value = api.account.model.email;
     }

@@ -1,4 +1,4 @@
-import type { Static, TSchema } from "@sinclair/typebox";
+import type { Static, TObject } from "@sinclair/typebox";
 import type { ValidateFunction } from "ajv";
 import Ajv from "ajv";
 import fs from "fs";
@@ -6,7 +6,7 @@ import { assign } from "jaz-ts-utils";
 import path from "path";
 import { reactive, watch } from "vue";
 
-export abstract class AsbtractStoreAPI<T extends TSchema> {
+export abstract class AsbtractStoreAPI<T extends TObject> {
     public readonly model: Static<T> = reactive({});
     public readonly filePath: string;
 
@@ -33,12 +33,10 @@ export abstract class AsbtractStoreAPI<T extends TSchema> {
             await this.write();
         }
 
-        watch(
-            () => this.model,
-            async () => {
-                await this.write();
-            }
-        );
+        watch(this.model, () => {
+            console.log("model changed");
+            this.write();
+        });
 
         return this;
     }

@@ -1,11 +1,11 @@
-import { Static, TSchema } from "@sinclair/typebox";
+import { Static, TObject } from "@sinclair/typebox";
 import { ipcMain } from "electron";
 import { assign } from "jaz-ts-utils";
 import path from "path";
 
 import { AsbtractStoreAPI } from "$/api/abstract-store";
 
-export class StoreAPI<T extends TSchema> extends AsbtractStoreAPI<T> {
+export class StoreAPI<T extends TObject> extends AsbtractStoreAPI<T> {
     public async init() {
         await super.init();
 

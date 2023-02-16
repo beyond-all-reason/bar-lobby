@@ -2,19 +2,19 @@
     <Modal title="settings" @open="onOpen">
         <div class="gridform">
             <div>Fullscreen</div>
-            <Checkbox v-model="fullscreen" />
+            <Checkbox v-model="settings.fullscreen" />
 
             <div>Display</div>
-            <Select v-model="displayIndex" :options="displayOptions" optionLabel="label" optionValue="value" />
+            <Select v-model="settings.displayIndex" :options="displayOptions" optionLabel="label" optionValue="value" />
 
             <div>Skip Intro</div>
-            <Checkbox v-model="skipIntro" />
+            <Checkbox v-model="settings.skipIntro" />
 
             <div>Sfx Volume</div>
-            <Range v-model="sfxVolume" :min="0" :max="100" :step="1" />
+            <Range v-model="settings.sfxVolume" :min="0" :max="100" :step="1" />
 
             <div>Music Volume</div>
-            <Range v-model="musicVolume" :min="0" :max="100" :step="1" />
+            <Range v-model="settings.musicVolume" :min="0" :max="100" :step="1" />
         </div>
     </Modal>
 </template>
@@ -29,10 +29,9 @@ import Select from "@/components/controls/Select.vue";
 
 const settings = api.settings.model;
 const displayOptions: Ref<Array<{ label: string; value: number }>> = ref([]);
-const { fullscreen, displayIndex, skipIntro, sfxVolume, musicVolume } = api.settings.model;
 
 watch(
-    () => displayIndex,
+    () => settings.displayIndex,
     async () => {
         api.info.hardware.currentDisplayIndex = settings.displayIndex;
     }
