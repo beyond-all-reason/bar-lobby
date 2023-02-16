@@ -31,12 +31,12 @@ const icon = computed(() => {
 });
 
 function onClose() {
-    api.notifications.closeAlert(props.alert);
+    api.notifications.closeNotification(props.alert);
 }
 
 if (props.alert.timeoutMs) {
     setTimeout(() => {
-        api.notifications.closeAlert(props.alert);
+        api.notifications.closeNotification(props.alert);
     }, props.alert.timeoutMs);
 }
 </script>

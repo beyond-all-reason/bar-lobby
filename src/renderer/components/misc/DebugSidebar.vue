@@ -50,7 +50,7 @@ async function onRouteSelect(newRoute) {
 }
 
 function openSettings() {
-    api.settings.openFileInEditor();
+    shell.openPath(api.settings.filePath);
 }
 
 async function openContentDir() {

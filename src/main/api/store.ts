@@ -1,15 +1,18 @@
+import { Static, TSchema } from "@sinclair/typebox";
 import { ipcMain } from "electron";
+import { assign } from "jaz-ts-utils";
+import path from "path";
 
 import { AsbtractStoreAPI } from "$/api/abstract-store";
 
-export class StoreAPI<T extends Record<string, unknown>> extends AsbtractStoreAPI<T> {
+export class StoreAPI<T extends TSchema> extends AsbtractStoreAPI<T> {
     public async init() {
         await super.init();
 
-        ipcMain.handle(`store-update:${this.name}`, async (event, model: T) => {
-            for (const [key, val] of Object.entries(model)) {
-                this.model[key].value = val;
-            }
+        const name = path.parse(this.filePath).name;
+
+        ipcMain.handle(`store-update:${name}`, async (event, model: Static<T>) => {
+            assign(this.model, model);
         });
 
         return this;

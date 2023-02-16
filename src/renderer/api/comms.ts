@@ -1,10 +1,19 @@
-import { Static } from "@sinclair/typebox";
+import { Static, TSchema } from "@sinclair/typebox";
 import { arrayToMap, assign } from "jaz-ts-utils";
 import { battleSchema, myUserSchema, TachyonClient } from "tachyon-client";
-import { reactive, Ref, ref } from "vue";
+import { nextTick, reactive, Ref, ref } from "vue";
 
+import { barManagerHandlers } from "@/api/response-handlers/messages/bar-manager";
+import { battleAnnouncementHandlers } from "@/api/response-handlers/messages/battle-announcement";
+import { battleMessageHandlers } from "@/api/response-handlers/messages/battle-message";
+import { directAnnouncementHandlers } from "@/api/response-handlers/messages/direct-announcement";
 import { SpadsBattle } from "@/model/battle/spads-battle";
+import { Message, MessageHandler } from "@/model/messages";
 import { tachyonLog } from "@/utils/tachyon-log";
+
+/**
+ * TODO: move most of the response logic into separate response-handler files
+ */
 
 export class CommsAPI extends TachyonClient {
     public readonly isConnected: Ref<boolean> = ref(false);
@@ -242,28 +251,45 @@ export class CommsAPI extends TachyonClient {
             }
         });
 
-        this.onResponse("s.lobby.say").add((data) => {
-            api.messages.handleBattleChat({
+        this.onResponse("s.lobby.say").add(async (data) => {
+            const message: Message = {
                 type: "battle-message",
                 senderUserId: data.sender_id,
                 text: data.message,
-            });
+            };
+
+            api.session.battleMessages.push(message);
+
+            await this.handleMessage(message, battleMessageHandlers);
         });
 
         this.onResponse("s.lobby.announce").add(async (data) => {
-            api.messages.handleBattleAnnouncement({
+            const message: Message = {
                 type: "battle-announcement",
                 senderUserId: data.sender_id,
                 text: data.message,
-            });
+            };
+
+            api.session.battleMessages.push(message);
+
+            if (data.message.startsWith("* BarManager")) {
+                message.hide = true;
+                await this.handleBarManagerMessage(message);
+            } else {
+                await this.handleMessage(message, battleAnnouncementHandlers);
+            }
         });
 
         this.onResponse("s.lobby.received_lobby_direct_announce").add(async (data) => {
-            api.messages.handleDirectAnnouncement({
+            const message: Message = {
                 type: "direct-announcement",
                 senderUserId: data.sender_id,
                 text: data.message,
-            });
+            };
+
+            api.session.battleMessages.push(message);
+
+            await this.handleMessage(message, directAnnouncementHandlers);
         });
 
         this.onResponse("s.lobby.updated_queue").add((data) => {
@@ -335,5 +361,92 @@ export class CommsAPI extends TachyonClient {
         this.onResponse("s.user.friend_request").add(({ user_id }) => {
             api.session.onlineUser.incomingFriendRequestUserIds.delete(user_id);
         });
+    }
+
+    protected async handleBarManagerMessage(message: Message) {
+        const jsonStr = message.text.split("|")[1];
+        const obj = JSON.parse(jsonStr);
+
+        const key = Object.keys(obj)[0];
+
+        for (const handler of barManagerHandlers) {
+            if (!handler.regex.test(key)) {
+                continue;
+            }
+
+            if (!handler.handler) {
+                return;
+            }
+
+            const data = obj[key];
+            if (handler.validator) {
+                const valid = handler.validator(data);
+                if (!valid) {
+                    console.error(`BarManager message handler failed schema validation`, handler, handler.validator.errors);
+                    return;
+                }
+            }
+
+            try {
+                await handler.handler(data, message);
+                return;
+            } catch (err) {
+                console.error(`Error in BarManager message handler`, err, handler);
+            }
+        }
+
+        console.warn(`No BarManager message handler defined for message`, message);
+    }
+
+    protected async handleMessage(message: Message, handlers: MessageHandler<TSchema>[], warnIfUnhandled = false) {
+        const sender = api.session.getUserById(message.senderUserId);
+        if (!sender) {
+            console.warn(`Message from unknown user, querying server for user's details`);
+            await api.comms.request("c.user.list_users_from_ids", { id_list: [message.senderUserId], include_clients: true });
+            await nextTick();
+            this.handleMessage(message, handlers);
+            return;
+        }
+
+        for (const handler of handlers) {
+            if (!handler.regex.test(message.text)) {
+                continue;
+            }
+
+            if (!handler.handler) {
+                return;
+            }
+
+            let data: Record<string, string> | undefined = {};
+
+            if (handler.validator) {
+                const matches = message.text.match(handler.regex);
+                if (!matches) {
+                    console.error(`Message handler found but matches could not be processed`, handler);
+                    return;
+                }
+
+                if (matches.groups) {
+                    data = matches.groups;
+                }
+
+                const valid = handler.validator(data);
+                if (!valid) {
+                    console.error(`Message handler failed schema validation`, handler, handler.validator.errors);
+                    return;
+                }
+            }
+
+            try {
+                await handler.handler(data, message);
+                return;
+            } catch (err) {
+                console.error(`Error in message handler`, err, handler);
+            }
+        }
+
+        if (warnIfUnhandled) {
+            console.warn(`No message handler defined for message`, message);
+        }
     }
 }

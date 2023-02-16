@@ -8,13 +8,12 @@ import * as path from "path";
 import { StoreAPI } from "@/api/store";
 import { MainWindow } from "@/main-window";
 import type { Info } from "$/model/info";
-import type { SettingsType } from "$/model/settings";
 import { settingsSchema } from "$/model/settings";
 
 export class Application {
     protected app: App;
     protected mainWindow?: MainWindow;
-    protected settings?: StoreAPI<SettingsType>;
+    protected settings?: StoreAPI<typeof settingsSchema>;
     protected initialised = false;
 
     constructor(app: App) {
@@ -82,7 +81,7 @@ export class Application {
     protected async init() {
         const info = this.getInfo();
         const settingsFilePath = path.join(info.configPath, "settings.json");
-        this.settings = await new StoreAPI<SettingsType>(settingsFilePath, settingsSchema).init();
+        this.settings = await new StoreAPI(settingsFilePath, settingsSchema).init();
 
         this.mainWindow = new MainWindow(this.settings);
 

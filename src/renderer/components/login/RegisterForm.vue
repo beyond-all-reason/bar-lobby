@@ -55,7 +55,7 @@ async function register() {
 
     if (registerResponse.result === "success") {
         error.value = "";
-        api.account.model.email.value = email.value;
+        api.account.model.email = email.value;
         emit("register-success");
     } else {
         if (registerResponse.reason) {

@@ -11,21 +11,19 @@ import { AudioAPI } from "@/api/audio";
 import { CommsAPI } from "@/api/comms";
 import { ContentAPI } from "@/api/content/content";
 import { GameAPI } from "@/api/game";
-import { MessagesAPI } from "@/api/messages/messages";
 import { NotificationsAPI } from "@/api/notifications";
 import { SessionAPI } from "@/api/session";
 import { StoreAPI } from "@/api/store";
 import { UtilsAPI } from "@/api/utils";
 import { serverConfig } from "@/config/server";
-import { Account, accountSchema } from "@/model/account";
+import { accountSchema } from "@/model/account";
 import { CacheDatabase } from "@/model/cache-database";
 import { SerializePlugin } from "@/utils/serialize-json-plugin";
 import type { Info } from "$/model/info";
-import type { SettingsType } from "$/model/settings";
 import { settingsSchema } from "$/model/settings";
 
 interface API {
-    account: StoreAPI<Account>;
+    account: StoreAPI<typeof accountSchema>;
     notifications: NotificationsAPI;
     audio: AudioAPI;
     cacheDb: Kysely<CacheDatabase>;
@@ -33,10 +31,9 @@ interface API {
     content: ContentAPI;
     game: GameAPI;
     info: Info;
-    messages: MessagesAPI;
     router: Router;
     session: SessionAPI;
-    settings: StoreAPI<SettingsType>;
+    settings: StoreAPI<typeof settingsSchema>;
     utils: UtilsAPI;
 }
 
@@ -56,7 +53,7 @@ export async function apiInit() {
     api.info = await ipcRenderer.invoke("getInfo");
 
     const settingsFilePath = path.join(api.info.configPath, "settings.json");
-    api.settings = await new StoreAPI<SettingsType>(settingsFilePath, settingsSchema, true).init();
+    api.settings = await new StoreAPI(settingsFilePath, settingsSchema).init();
 
     await fs.promises.mkdir(api.info.contentPath, {
         recursive: true,
@@ -81,34 +78,19 @@ export async function apiInit() {
         history: createMemoryHistory(),
     });
 
-    api.router.beforeResolve(async (to) => {
-        // if (!to.meta?.offline && api.session.offlineMode.value) {
-        //     api.alerts.alert({
-        //         type: "notification",
-        //         severity: "error",
-        //         content: `Cannot open ${to.path} in offline mode`,
-        //     });
-        //     return false;
-        // }
-        // return true;
-    });
-
     api.cacheDb = new Kysely<CacheDatabase>({
         dialect: new SqliteDialect({
             database: new Database(path.join(api.info.configPath, "cache.db")),
         }),
         plugins: [new SerializePlugin()],
-        //log: ["query", "error"],
     });
 
     api.audio = await new AudioAPI().init();
 
     const accountFilePath = path.join(api.info.configPath, "account.json");
-    api.account = await new StoreAPI<Account>(accountFilePath, accountSchema).init();
+    api.account = await new StoreAPI(accountFilePath, accountSchema).init();
 
     api.game = new GameAPI();
-
-    api.messages = new MessagesAPI();
 
     api.comms = new CommsAPI(serverConfig);
 

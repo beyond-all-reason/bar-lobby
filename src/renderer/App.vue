@@ -77,7 +77,7 @@ const isProduction = process.env.NODE_ENV === "production";
 
 const router = useRouter();
 const skipIntro = api.settings.model.skipIntro;
-const videoVisible = ref(!api.settings.model.skipIntro.value);
+const videoVisible = ref(!api.settings.model.skipIntro);
 const state: Ref<"preloader" | "initial-setup" | "default"> = ref("preloader");
 const empty = ref(false);
 const blurBg = ref(true);

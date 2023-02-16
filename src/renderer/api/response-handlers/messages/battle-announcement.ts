@@ -5,21 +5,6 @@ import { createMessageHandlers } from "@/model/messages";
 
 export const battleAnnouncementHandlers = createMessageHandlers(
     {
-        // * BarManager|{"BattleStateChanged": {"locked": "unlocked", "autoBalance": "advanced", "teamSize": "8", "nbTeams": "2", "balanceMode": "clan;skill", "preset": "team"}}
-        // * BarManager|{"onVoteStart": {"user": "ohmegaherz", "command": ["resign", "ohmegaherz", "TEAM"]}}
-        regex: new RegExp(/\* BarManager\|(?<jsonStr>.*)/),
-        schema: Type.Object({
-            jsonStr: Type.String(),
-        }),
-        async handler(data, message) {
-            message.hide = true;
-
-            const obj: Record<string, string> = JSON.parse(data.jsonStr);
-
-            return api.messages.handleBarManagerMessage(obj, message);
-        },
-    },
-    {
         regex: new RegExp(/\* Hi (?<username>.*)! Current battle type is (?<preset>.*)\./),
         schema: Type.Object({
             username: Type.String(),
@@ -30,7 +15,7 @@ export const battleAnnouncementHandlers = createMessageHandlers(
         },
     },
     {
-        regex: new RegExp(/\* Ringing (?<ringeeUsername>.*) (by (?<ringerUsername>.*))/),
+        regex: new RegExp(/\* Ringing (?<ringeeUsername>.*) \(by (?<ringerUsername>.*)\)/),
         schema: Type.Object({
             ringeeUsername: Type.String(),
             ringerUsername: Type.String(),

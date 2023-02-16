@@ -1,6 +1,5 @@
 import { Static, TSchema } from "@sinclair/typebox";
 import Ajv, { ValidateFunction } from "ajv";
-import { SetOptional } from "type-fest";
 
 export interface Message {
     type: "battle-message" | "direct-message" | "battle-announcement" | "direct-announcement";
@@ -18,14 +17,12 @@ export type MessageHandler<T extends TSchema> = {
 
 const ajv = new Ajv({ coerceTypes: true, useDefaults: true });
 
-type MessageHandlersConfig<T extends readonly TSchema[]> = { [I in keyof T]: SetOptional<Omit<MessageHandler<T[I]>, "validator">, "schema"> };
+type MessageHandlersConfig<T extends readonly TSchema[]> = { [I in keyof T]: Omit<MessageHandler<T[I]>, "validator"> };
 type MessageHandlers<T extends readonly TSchema[]> = { [I in keyof T]: MessageHandler<T[I]> };
 
 export function createMessageHandlers<T extends readonly TSchema[]>(...responses: MessageHandlersConfig<T>) {
     return (responses as MessageHandlers<T>).map((response) => {
-        if (response.schema) {
-            response.validator = ajv.compile(response.schema);
-        }
+        response.validator = ajv.compile(response.schema);
         return response;
     });
 }

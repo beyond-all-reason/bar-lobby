@@ -37,7 +37,7 @@ declare module "vue-router" {
     window.addEventListener("keydown", (event) => {
         if (event.code === "F11") {
             event.preventDefault();
-            api.settings.model.fullscreen.value = !api.settings.model.fullscreen.value;
+            api.settings.model.fullscreen = !api.settings.model.fullscreen;
         }
     });
 
@@ -76,10 +76,10 @@ async function setupI18n() {
 
     const messages: Record<string, Record<string, string>> = {};
 
-    const localeFilePaths = import.meta.glob("@/assets/language/*.json");
+    const localeFilePaths = import.meta.glob<Record<string, string>>("@/assets/language/*.json", { import: "default" });
     for (const filePath in localeFilePaths) {
         const localeCode = path.parse(filePath).name;
-        messages[localeCode] = ((await localeFilePaths[filePath]()) as any).default;
+        messages[localeCode] = await localeFilePaths[filePath]();
     }
 
     return createI18n({

@@ -1,21 +1,22 @@
+import { TSchema } from "@sinclair/typebox";
 import { ipcRenderer } from "electron";
-import { ToRefs, watch } from "vue";
+import path from "path";
+import { watch } from "vue";
 
 import { AsbtractStoreAPI } from "$/api/abstract-store";
 
-export class StoreAPI<T extends Record<string, unknown>> extends AsbtractStoreAPI<T> {
+export class StoreAPI<T extends TSchema> extends AsbtractStoreAPI<T> {
     public async init() {
         await super.init();
 
-        for (const value of Object.values(this.model) as Array<ToRefs<T>>) {
-            watch(value, async () => {
-                await this.write();
+        const name = path.parse(this.filePath).name;
 
-                if (this.syncWithMain) {
-                    ipcRenderer.invoke(`store-update:${this.name}`, this.serialize());
-                }
-            });
-        }
+        watch(
+            () => this.model,
+            async () => {
+                await ipcRenderer.invoke(`store-update:${name}`, this.model);
+            }
+        );
 
         return this;
     }

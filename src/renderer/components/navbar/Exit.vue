@@ -18,7 +18,7 @@ const router = useRouter();
 const modal: Ref<InstanceType<typeof Modal> | null> = ref(null);
 
 async function logout() {
-    api.account.model.token.value = "";
+    api.account.model.token = "";
     try {
         if (!api.session.offlineMode.value) {
             await api.comms.request("c.auth.disconnect"); // TODO: replace with logout https://github.com/beyond-all-reason/teiserver/issues/56

@@ -1,3 +1,4 @@
+import { removeFromArray } from "jaz-ts-utils";
 import { v4 as uuid } from "uuid";
 import { reactive } from "vue";
 
@@ -18,10 +19,6 @@ export class NotificationsAPI {
         this.alerts.push(alert);
     }
 
-    public closeAlert(alert: Alert) {
-        this.alerts.splice(this.alerts.indexOf(alert), 1);
-    }
-
     public event(eventConfig: Omit<Event, "id">) {
         const event: Event = {
             id: uuid(),
@@ -37,7 +34,11 @@ export class NotificationsAPI {
         this.events.push(event);
     }
 
-    public closeEvent(event: Event) {
-        this.events.splice(this.events.indexOf(event), 1);
+    public closeNotification(notification: Alert | Event) {
+        if (this.alerts.includes(notification)) {
+            removeFromArray(this.alerts, notification);
+        } else if (this.events.includes(notification)) {
+            removeFromArray(this.events, notification);
+        }
     }
 }

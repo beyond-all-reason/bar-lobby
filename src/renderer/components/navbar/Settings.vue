@@ -31,9 +31,12 @@ const settings = api.settings.model;
 const displayOptions: Ref<Array<{ label: string; value: number }>> = ref([]);
 const { fullscreen, displayIndex, skipIntro, sfxVolume, musicVolume } = api.settings.model;
 
-watch(settings.displayIndex, async () => {
-    api.info.hardware.currentDisplayIndex = settings.displayIndex.value;
-});
+watch(
+    () => displayIndex,
+    async () => {
+        api.info.hardware.currentDisplayIndex = settings.displayIndex;
+    }
+);
 
 function onOpen() {
     displayOptions.value = Array(api.info.hardware.numOfDisplays)

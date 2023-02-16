@@ -43,13 +43,16 @@ const verificationCode = ref("");
 const loginError = ref("");
 const verificationError = ref("");
 
-if (loginAutomatically.value) {
-    if (api.account.model.email.value) {
-        email.value = api.account.model.email.value;
+if (loginAutomatically) {
+    if (api.account.model.email) {
+        email.value = api.account.model.email;
     }
 }
 
-watch(api.account.model.email, () => (email.value = api.account.model.email.value));
+watch(
+    () => api.account.model.email,
+    () => (email.value = api.account.model.email)
+);
 
 async function login() {
     loading.value = true;
@@ -57,11 +60,11 @@ async function login() {
     const tokenResponse = await api.comms.request("c.auth.get_token", { email: email.value, password: password.value });
 
     if (tokenResponse.result === "success" && tokenResponse.token) {
-        api.account.model.email.value = email.value;
-        api.account.model.token.value = tokenResponse.token;
+        api.account.model.email = email.value;
+        api.account.model.token = tokenResponse.token;
 
         const loginResponse = await api.comms.request("c.auth.login", {
-            token: api.account.model.token.value,
+            token: api.account.model.token,
             lobby_name: api.info.lobby.name,
             lobby_version: api.info.lobby.version,
             lobby_hash: api.info.lobby.hash,
@@ -89,7 +92,7 @@ async function login() {
 async function verify() {
     loading.value = true;
 
-    const verifyResult = await api.comms.request("c.auth.verify", { token: api.account.model.token.value, code: verificationCode.value });
+    const verifyResult = await api.comms.request("c.auth.verify", { token: api.account.model.token, code: verificationCode.value });
 
     if (verifyResult.reason) {
         verificationError.value = verifyResult.reason;

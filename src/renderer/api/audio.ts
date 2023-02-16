@@ -29,7 +29,7 @@ export class AudioAPI {
             const isMusic = filePath.includes("music");
             const key = path.parse(filePath).name;
             const src = await audioFiles[filePath]();
-            const volume = isMusic ? api.settings.model.musicVolume.value / 100 : api.settings.model.sfxVolume.value / 100;
+            const volume = isMusic ? api.settings.model.musicVolume / 100 : api.settings.model.sfxVolume / 100;
 
             const sound = new Sound(key, isMusic, { src, volume, preload: false, html5: true });
 
@@ -44,21 +44,27 @@ export class AudioAPI {
             this.sounds.set(key, sound);
         }
 
-        watch(api.settings.model.sfxVolume, () => {
-            this.sounds.forEach((sound) => {
-                if (!sound.isMusic) {
-                    sound.volume(api.settings.model.sfxVolume.value / 100);
-                }
-            });
-        });
+        watch(
+            () => api.settings.model.sfxVolume,
+            () => {
+                this.sounds.forEach((sound) => {
+                    if (!sound.isMusic) {
+                        sound.volume(api.settings.model.sfxVolume / 100);
+                    }
+                });
+            }
+        );
 
-        watch(api.settings.model.musicVolume, () => {
-            this.sounds.forEach((sound) => {
-                if (sound.isMusic) {
-                    sound.volume(api.settings.model.musicVolume.value / 100);
-                }
-            });
-        });
+        watch(
+            () => api.settings.model.musicVolume,
+            () => {
+                this.sounds.forEach((sound) => {
+                    if (sound.isMusic) {
+                        sound.volume(api.settings.model.musicVolume / 100);
+                    }
+                });
+            }
+        );
 
         return this;
     }
@@ -94,7 +100,7 @@ export class AudioAPI {
     public unmuteMusic(fadeTime = 4000) {
         const musicSounds = this.getAllSounds().filter((sound) => sound.isMusic);
         for (const sound of musicSounds) {
-            sound.fade(0, api.settings.model.musicVolume.value / 100, fadeTime);
+            sound.fade(0, api.settings.model.musicVolume / 100, fadeTime);
         }
     }
 }

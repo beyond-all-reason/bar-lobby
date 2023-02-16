@@ -3,19 +3,19 @@ import path from "path";
 import { watch } from "vue";
 
 import type { AsbtractStoreAPI } from "$/api/abstract-store";
-import type { SettingsType } from "$/model/settings";
+import { settingsSchema } from "$/model/settings";
 
 export class MainWindow {
     public window: BrowserWindow;
 
-    protected settings: AsbtractStoreAPI<SettingsType>;
+    protected settings: AsbtractStoreAPI<typeof settingsSchema>;
 
-    constructor(settings: AsbtractStoreAPI<SettingsType>) {
+    constructor(settings: AsbtractStoreAPI<typeof settingsSchema>) {
         this.settings = settings;
 
         this.window = new BrowserWindow({
             title: "Beyond All Reason",
-            fullscreen: this.settings.model.fullscreen.value,
+            fullscreen: this.settings.model.fullscreen,
             frame: true,
             show: false,
             minWidth: 1440,
@@ -54,11 +54,17 @@ export class MainWindow {
             callback(obj);
         });
 
-        watch(this.settings.model.displayIndex, (displayIndex) => this.setDisplay(displayIndex));
-        watch(this.settings.model.fullscreen, (fullscreen) => {
-            this.window.setFullScreen(fullscreen);
-            this.window.maximize();
-        });
+        watch(
+            () => this.settings.model.displayIndex,
+            (displayIndex) => this.setDisplay(displayIndex)
+        );
+        watch(
+            () => this.settings.model.fullscreen,
+            (fullscreen) => {
+                this.window.setFullScreen(fullscreen);
+                this.window.maximize();
+            }
+        );
 
         if (process.env.ELECTRON_RENDERER_URL) {
             this.window.loadURL(process.env.ELECTRON_RENDERER_URL);
@@ -69,7 +75,7 @@ export class MainWindow {
     }
 
     public show() {
-        this.setDisplay(this.settings.model.displayIndex.value);
+        this.setDisplay(this.settings.model.displayIndex);
 
         this.window.setMenuBarVisibility(false);
 
@@ -84,7 +90,7 @@ export class MainWindow {
             this.window.setPosition(x, y);
             this.window.setSize(width, height);
             this.window.maximize();
-            this.settings.model.displayIndex.value = displayIndex;
+            this.settings.model.displayIndex = displayIndex;
         }
     }
 }
