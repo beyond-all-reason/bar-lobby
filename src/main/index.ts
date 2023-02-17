@@ -1,4 +1,4 @@
-import { App, safeStorage } from "electron";
+import { safeStorage } from "electron";
 import { app, ipcMain, protocol, screen } from "electron";
 import unhandled from "electron-unhandled";
 import { autoUpdater } from "electron-updater";
@@ -11,15 +11,12 @@ import type { Info } from "$/model/info";
 import { settingsSchema } from "$/model/settings";
 
 export class Application {
-    protected app: App;
     protected mainWindow?: MainWindow;
     protected settings?: StoreAPI<typeof settingsSchema>;
     protected initialised = false;
 
-    constructor(app: App) {
-        this.app = app;
-
-        this.app.setName("Beyond All Reason");
+    constructor() {
+        app.setName("Beyond All Reason");
 
         process.env["ELECTRON_DISABLE_SECURITY_WARNINGS"] = "true";
 
@@ -34,9 +31,9 @@ export class Application {
             },
         ]);
 
-        this.app.commandLine.appendSwitch("disable-features", "HardwareMediaKeyHandling,MediaSessionService");
-        this.app.commandLine.appendSwitch("in-process-gpu");
-        this.app.commandLine.appendSwitch("disable-direct-composition");
+        app.commandLine.appendSwitch("disable-features", "HardwareMediaKeyHandling,MediaSessionService");
+        app.commandLine.appendSwitch("in-process-gpu");
+        app.commandLine.appendSwitch("disable-direct-composition");
 
         // commented out until we have a gameid for bar via steamworks
         // this.setupSteam();
@@ -55,9 +52,9 @@ export class Application {
             }
         }
 
-        this.app.on("ready", () => this.onReady());
-        this.app.on("window-all-closed", () => this.app.quit());
-        this.app.on("browser-window-focus", () => this.mainWindow?.window.flashFrame(false));
+        app.on("ready", () => this.onReady());
+        app.on("window-all-closed", () => app.quit());
+        app.on("browser-window-focus", () => this.mainWindow?.window.flashFrame(false));
     }
 
     protected async onReady() {
@@ -68,8 +65,7 @@ export class Application {
                 console.error("Vue Devtools failed to install:", err?.toString());
             }
         } else if (app.isPackaged && process.env.NODE_ENV !== "development") {
-            const updateInfo = autoUpdater.checkForUpdatesAndNotify();
-            console.log(updateInfo);
+            autoUpdater.checkForUpdatesAndNotify();
         }
 
         if (!this.initialised) {
@@ -117,7 +113,7 @@ export class Application {
     }
 
     protected getInfo() {
-        const resourcesPath = path.join(this.app.getAppPath(), "resources").split("resources")[0] + "resources";
+        const resourcesPath = path.join(app.getAppPath(), "resources").split("resources")[0] + "resources";
         const paths = envPaths(app.getName(), { suffix: "" });
 
         const displayIds = screen.getAllDisplays().map((display) => display.id);
@@ -132,8 +128,8 @@ export class Application {
             configPath: paths.config,
             lobby: {
                 name: "BAR Lobby",
-                version: this.app.getVersion(),
-                hash: "123", // TODO: generate and inject checksum of app build in CI pipeline
+                version: app.getVersion(),
+                hash: "123", // TODO: this should be the checksum of the official build
             },
             hardware: {
                 numOfDisplays: displayIds.length,
@@ -147,7 +143,6 @@ export class Application {
     protected async setupSteam() {
         try {
             const steamworks = await import("steamworks.js");
-
             const client = steamworks.init(480);
             console.log(client.localplayer.getName());
         } catch (err) {
@@ -158,4 +153,4 @@ export class Application {
 
 unhandled();
 
-new Application(app);
+new Application();

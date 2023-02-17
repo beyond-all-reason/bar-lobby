@@ -34,7 +34,6 @@ export abstract class AsbtractStoreAPI<T extends TObject> {
         }
 
         watch(this.model, () => {
-            console.log("model changed");
             this.write();
         });
 

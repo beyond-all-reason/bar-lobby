@@ -28,6 +28,7 @@
 </template>
 
 <script lang="ts" setup>
+import { SignalBinding } from "jaz-ts-utils";
 import { computed, Ref, ref } from "vue";
 
 import Loader from "@/components/common/Loader.vue";
@@ -54,6 +55,9 @@ const hostedBattleData: Ref<{ name: string; password: string } | undefined> = re
 
 const waitingForBattleCreation = ref(false);
 
+let replyBinding: SignalBinding | undefined;
+let battleOpenedBinding: SignalBinding | undefined;
+
 async function hostBattle() {
     /**
      * for now, we interface with the SPADS cluster bots via the !privatehost command
@@ -62,6 +66,48 @@ async function hostBattle() {
     waitingForBattleCreation.value = true;
 
     const targetClusterBotUserId = clusterBotUserIds[selectedRegion.value][0]; // not sure when to use fallback clusters, for now we'll just always use the first one
+
+    replyBinding = api.comms.onResponse("s.communication.received_direct_message").addOnce((data) => {
+        if (data.sender_id !== targetClusterBotUserId) {
+            return;
+        }
+
+        try {
+            const { name, password } = data.message.match(/name=(?<name>.*)?,\spassword=(?<password>.*)?\)/)!.groups!;
+            hostedBattleData.value = { name, password };
+        } catch (err) {
+            console.error(`Error parsing autohost response: ${data.message}`);
+            return;
+        }
+
+        // TODO: when we move away from polling lobby.query then this should be changed to listen for newly created battles
+        battleOpenedBinding = api.comms.onResponse("s.lobby.query").add((data) => {
+            if (hostedBattleData.value === undefined) {
+                console.warn("Listening for a battle to open but no hosted battle data is set");
+                return;
+            }
+
+            const autohostUser = api.session.getUserByName(hostedBattleData.value.name);
+
+            if (!autohostUser) {
+                console.warn(`Listening for a battle but could not find user data for the autohost user: ${hostedBattleData.value.name}`);
+                return;
+            }
+
+            for (const battle of data.lobbies) {
+                if (battle.lobby.founder_id === autohostUser.userId) {
+                    battleOpenedBinding?.destroy();
+
+                    api.comms.request("c.lobby.join", {
+                        lobby_id: battle.lobby.id,
+                        password: hostedBattleData.value.password,
+                    });
+
+                    return;
+                }
+            }
+        });
+    });
 
     const response = await api.comms.request("c.communication.send_direct_message", {
         recipient_id: targetClusterBotUserId,
@@ -74,6 +120,10 @@ function onOpen() {
 }
 
 function onClose() {
+    if (replyBinding) {
+        replyBinding.destroy();
+    }
+
     hostedBattleData.value = undefined;
 }
 </script>

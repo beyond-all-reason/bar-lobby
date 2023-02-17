@@ -18,6 +18,7 @@
 .intro-enter-from,
 .intro-leave-to {
     opacity: 0;
+    pointer-events: none;
 }
 
 $dirs: (

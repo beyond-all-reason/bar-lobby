@@ -7,6 +7,7 @@ import { barManagerHandlers } from "@/api/response-handlers/messages/bar-manager
 import { battleAnnouncementHandlers } from "@/api/response-handlers/messages/battle-announcement";
 import { battleMessageHandlers } from "@/api/response-handlers/messages/battle-message";
 import { directAnnouncementHandlers } from "@/api/response-handlers/messages/direct-announcement";
+import { directMessageHandlers } from "@/api/response-handlers/messages/direct-message";
 import { SpadsBattle } from "@/model/battle/spads-battle";
 import { Message, MessageHandler } from "@/model/messages";
 import { tachyonLog } from "@/utils/tachyon-log";
@@ -49,6 +50,18 @@ export class CommsAPI extends TachyonClient {
                     api.router.replace("/login");
                 }
             });
+        });
+
+        this.onResponse("s.communication.received_direct_message").add(async (data) => {
+            const message: Message = {
+                type: "direct-message",
+                senderUserId: data.sender_id,
+                text: data.message,
+            };
+
+            // TODO: add to DMs
+
+            await this.handleMessage(message, directMessageHandlers);
         });
 
         this.setupAuthComms();

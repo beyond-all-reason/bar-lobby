@@ -72,11 +72,13 @@
             </BattlePreview>
         </div>
 
-        <Modal v-model="passwordPromptOpen" title="Battle Password" @submit="onPasswordPromptSubmit">
+        <Modal v-model="passwordPromptOpen" title="Battle Password" @submit="onPasswordPromptSubmit" @open="failureReason = undefined">
             <div class="flex-col gap-md">
                 <p>Please enter the password for this battle</p>
                 <Textbox type="password" name="password" class="fullwidth" />
                 <Button type="submit">Submit</Button>
+
+                <div v-if="failureReason" class="txt-error txt-center">{{ failureReason }}</div>
             </div>
         </Modal>
     </div>
@@ -95,10 +97,9 @@ import account from "@iconify-icons/mdi/account";
 import eye from "@iconify-icons/mdi/eye";
 import lock from "@iconify-icons/mdi/lock";
 import robot from "@iconify-icons/mdi/robot";
-import { useIntervalFn } from "@vueuse/shared";
 import { delay } from "jaz-ts-utils";
 import Column from "primevue/column";
-import { computed, Ref, ref, shallowRef } from "vue";
+import { computed, onUnmounted, Ref, ref, shallowRef } from "vue";
 
 import BattlePreview from "@/components/battle/BattlePreview.vue";
 import HostBattle from "@/components/battle/HostBattle.vue";
@@ -116,6 +117,8 @@ const hidePvE = ref(false);
 const hideLocked = ref(false);
 const hideEmpty = ref(true);
 const selectedBattle: Ref<SpadsBattle | null> = shallowRef(null);
+const passwordPromptOpen = ref(false);
+const failureReason: Ref<string | undefined> = ref();
 const battles = computed(() => {
     let battles = Array.from(api.session.battles.values());
 
@@ -141,7 +144,19 @@ const battles = computed(() => {
     return battles;
 });
 
+await updateBattleList();
+
+await delay(500);
+
+const intervalId = window.setInterval(updateBattleList, 5000);
+
+onUnmounted(() => {
+    console.log("unmount");
+    window.clearInterval(intervalId);
+});
+
 async function updateBattleList() {
+    console.log("update");
     // this prevents polling for updates if the user isn't looking at the battle list
     // commented out for now because the host battle functionality also depends on this to know when the battle is created
     // if (document.visibilityState === "hidden") {
@@ -165,13 +180,7 @@ async function updateBattleList() {
             battle.handleServerResponse(lobby);
         }
     }
-
-    await delay(100); // fixes a weird bug when switching from battle page to this page
 }
-
-await updateBattleList();
-
-useIntervalFn(() => updateBattleList(), 5000);
 
 async function attemptJoinBattle(battle: SpadsBattle) {
     if (battle.battleOptions.passworded) {
@@ -183,7 +192,6 @@ async function attemptJoinBattle(battle: SpadsBattle) {
     }
 }
 
-const passwordPromptOpen = ref(false);
 async function onPasswordPromptSubmit(data) {
     if (!selectedBattle.value) {
         console.warn("Prompting for battle password but no battle selected");
@@ -196,10 +204,7 @@ async function onPasswordPromptSubmit(data) {
     });
 
     if (response.result === "failure") {
-        api.notifications.alert({
-            severity: "error",
-            text: "The password you entered was invalid.",
-        });
+        failureReason.value = response.reason;
     } else {
         passwordPromptOpen.value = false;
     }
