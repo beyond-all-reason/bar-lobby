@@ -36,7 +36,12 @@ export class AiContentAPI extends AbstractContentAPI {
         this.installedAis[engine] = ais;
     }
 
-    public getAis(engine: string): string[] | undefined {
+    public getAis(engine: string): string[] {
+        if (!this.installedAis[engine]) {
+            console.error(`Tried to fetch AIs from an engine version that hasn't been installed or processed yet`);
+            return [];
+        }
+
         const ais = clone(this.installedAis[engine]);
         const engineAI = ais?.map((ai) => ai.shortName) ?? [];
         return [...engineAI, ...gameAis];
