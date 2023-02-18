@@ -13,15 +13,16 @@ export class SessionAPI {
     public readonly offlineMode: Ref<boolean> = ref(false);
     public readonly offlineBattle: Ref<OfflineBattle | null> = shallowRef(null);
     public readonly onlineBattle: Ref<SpadsBattle | null> = shallowRef(null);
-    public readonly users: Map<number, User>;
+    public readonly users: Map<number, User> = reactive(new Map<number, User>([]));
     public readonly offlineUser: CurrentUser;
     public readonly onlineUser: CurrentUser;
-    public readonly battles: Map<number, SpadsBattle>;
+    public readonly battles: Map<number, SpadsBattle> = shallowReactive(new Map<number, SpadsBattle>());
     public readonly battleMessages: Message[] = reactive([]);
     public readonly serverStats: Ref<ResponseType<"s.system.server_stats">["data"] | null> = shallowRef(null);
     public readonly outgoingFriendRequests: ComputedRef<User[]>;
     public readonly incomingFriendRequests: ComputedRef<User[]>;
     public readonly friends: ComputedRef<User[]>;
+    public readonly directMessages: Map<number, Message[]> = shallowReactive(new Map());
 
     // temporary necessity until https://github.com/beyond-all-reason/teiserver/issues/34 is implemented
     public lastBattleResponses: Map<number, Static<typeof lobbySchema>> = new Map();
@@ -60,10 +61,6 @@ export class SessionAPI {
         this.offlineUser = reactive(userData);
 
         this.onlineUser = reactive(userData);
-
-        this.users = reactive(new Map<number, User>([]));
-
-        this.battles = shallowReactive(new Map<number, SpadsBattle>());
 
         this.outgoingFriendRequests = computed(() => [...this.onlineUser.outgoingFriendRequestUserIds].map((id) => this.getUserById(id)!).filter(Boolean));
         this.incomingFriendRequests = computed(() => [...this.onlineUser.incomingFriendRequestUserIds].map((id) => this.getUserById(id)!).filter(Boolean));

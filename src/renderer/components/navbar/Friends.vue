@@ -1,6 +1,6 @@
 <template>
-    <Panel class="friends" :class="{ hidden: !open }">
-        <TabView ref="tabViewEl" v-model:activeIndex="activeIndex">
+    <PopOutPanel :open="open">
+        <TabView v-model:activeIndex="activeIndex">
             <TabPanel header="Friends">
                 <div class="flex-col gap-lg container">
                     <div class="flex-row gap-md">
@@ -50,12 +50,12 @@
                 </div>
             </TabPanel>
             <TabPanel header="Blocked">
-                <div class="flex-col gap-md container">
+                <div class="flex-col gap-md user-container">
                     <div class="user-list">TODO</div>
                 </div>
             </TabPanel>
         </TabView>
-    </Panel>
+    </PopOutPanel>
 </template>
 
 <script lang="ts" setup>
@@ -73,11 +73,11 @@ import TabPanel from "primevue/tabpanel";
 import { computed, ref, watch } from "vue";
 
 import Accordion from "@/components/common/Accordion.vue";
-import Panel from "@/components/common/Panel.vue";
 import TabView from "@/components/common/TabView.vue";
 import Button from "@/components/controls/Button.vue";
 import Textbox from "@/components/controls/Textbox.vue";
 import Friend from "@/components/navbar/Friend.vue";
+import PopOutPanel from "@/components/navbar/PopOutPanel.vue";
 
 const props = defineProps<{
     open: boolean;
@@ -136,31 +136,32 @@ async function addFriend() {
     z-index: 2;
     min-width: 475px;
     max-width: 475px;
+    min-height: 400px;
+    max-height: 400px;
     transform: translateX(-9px);
     opacity: 1;
     transition: transform 200ms, opacity 200ms;
+    background: rgba(0, 0, 0, 0.85);
     :deep(.content) {
         padding: 0;
-    }
-    .container {
-        min-height: 400px;
-        max-height: 400px;
-        overflow-y: scroll;
-        padding-right: 5px;
-    }
-    .user-list {
-        width: 100%;
-        height: 100%;
-        display: flex;
-        flex-direction: column;
-        flex-grow: 1;
-        gap: 5px;
     }
     &.hidden {
         transform: translateX(20px);
         opacity: 0;
         pointer-events: none;
     }
+}
+.user-container {
+    overflow-y: scroll;
+    padding-right: 5px;
+}
+.user-list {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    gap: 5px;
 }
 :deep(.txtFriendId) {
     flex-grow: 1;
@@ -169,6 +170,6 @@ async function addFriend() {
     }
 }
 :deep(.p-tabview-panel) {
-    padding: 15px !important;
+    padding: 15px;
 }
 </style>

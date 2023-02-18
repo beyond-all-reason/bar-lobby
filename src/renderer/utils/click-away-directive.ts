@@ -1,20 +1,32 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+// https://vuejs.org/guide/reusability/custom-directives.html#introduction
+
+/**
+ * TODO:
+ * - add options for left click, right click, double click
+ * - add arg that represents a unique id so we can add it to element to be excluded
+ */
+
 import { Directive, DirectiveBinding } from "vue";
+
+type ClickAwayDirectiveOptions = {
+    left: boolean;
+    right: boolean;
+    double: boolean;
+};
 
 const UNIQUE_ID = "__vue_click_away__";
 
-function mounted(el: any, binding: DirectiveBinding) {
+function mounted(el: HTMLElement, binding: DirectiveBinding) {
     unmounted(el);
 
     const callback = binding.value;
 
-    let nextTick = false;
-    setTimeout(() => {
-        nextTick = true;
-    }, 0);
+    el[UNIQUE_ID] = (event: MouseEvent) => {
+        if (!event.target) {
+            return;
+        }
 
-    el[UNIQUE_ID] = (event: Event) => {
-        if ((!el || !el.contains(event.target)) && callback && nextTick && typeof callback === "function") {
+        if ((!el || !el.contains(event.target as Node)) && callback && typeof callback === "function") {
             return callback.call(binding.instance, event);
         }
     };
@@ -23,13 +35,13 @@ function mounted(el: any, binding: DirectiveBinding) {
     document.addEventListener("contextmenu", el[UNIQUE_ID], false);
 }
 
-function unmounted(el: any) {
+function unmounted(el: HTMLElement) {
     document.removeEventListener("click", el[UNIQUE_ID], false);
     document.removeEventListener("contextmenu", el[UNIQUE_ID], false);
     delete el[UNIQUE_ID];
 }
 
-function updated(el: any, binding: DirectiveBinding) {
+function updated(el: HTMLElement, binding: DirectiveBinding) {
     if (binding.value === binding.oldValue) {
         return;
     }

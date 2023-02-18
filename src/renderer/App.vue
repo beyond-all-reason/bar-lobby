@@ -7,7 +7,6 @@
         <StickyBattle />
         <Background :blur="blurBg" />
         <Notifications />
-        <Friends v-model:open="friendsOpen" />
         <div class="lobby-version">
             {{ lobbyVersion }}
         </div>
@@ -65,7 +64,6 @@ import InitialSetup from "@/components/misc/InitialSetup.vue";
 import IntroVideo from "@/components/misc/IntroVideo.vue";
 import Preloader from "@/components/misc/Preloader.vue";
 import Breadcrumbs from "@/components/navbar/Breadcrumbs.vue";
-import Friends from "@/components/navbar/Friends.vue";
 import NavBar from "@/components/navbar/NavBar.vue";
 import Settings from "@/components/navbar/Settings.vue";
 import Notifications from "@/components/notifications/Notifications.vue";
@@ -83,12 +81,10 @@ const empty = ref(false);
 const blurBg = ref(true);
 const lobbyVersion = api.info.lobby.version;
 const settingsOpen = ref(false);
-const friendsOpen = ref(false);
 const exitOpen = ref(false);
 const viewOverflowY = computed(() => (router.currentRoute.value.meta.overflowY ? router.currentRoute.value.meta.overflowY : "auto"));
 
 provide("settingsOpen", settingsOpen);
-provide("friendsOpen", friendsOpen);
 provide("exitOpen", exitOpen);
 
 playRandomMusic();

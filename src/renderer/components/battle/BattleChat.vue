@@ -24,11 +24,6 @@ import { ref } from "vue";
 
 import BattleMessage from "@/components/battle/BattleMessage.vue";
 import Textbox from "@/components/controls/Textbox.vue";
-import { AbstractBattle } from "@/model/battle/abstract-battle";
-
-const props = defineProps<{
-    battle: AbstractBattle;
-}>();
 
 const messages = api.session.battleMessages;
 const myMessage = ref("");

@@ -18,7 +18,7 @@
             <Playerlist :battle="battle" :me="me" />
         </div>
         <div v-if="isSpadsBattle(battle)" class="chat flex-col gap-md">
-            <BattleChat :battle="battle" />
+            <BattleChat />
         </div>
         <div class="settings flex-col gap-md">
             <MapPreview

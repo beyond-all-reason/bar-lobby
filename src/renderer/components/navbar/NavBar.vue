@@ -13,11 +13,27 @@
                     </Button>
                 </div>
                 <div class="primary-right">
-                    <Button v-tooltip.bottom="'Friends'" class="icon" @click="friendsOpen = !friendsOpen">
-                        <Icon v-if="!friendsOpen" :icon="accountMultiple" :height="40" />
-                        <Icon v-else :icon="closeThick" :height="40" />
+                    <Button
+                        v-tooltip.bottom="'Direct Messages'"
+                        v-click-away="() => (messagesOpen = false)"
+                        class="icon"
+                        @click="messagesOpen = true"
+                    >
+                        <Icon :icon="messageIcon" :height="40" />
                     </Button>
-                    <DownloadsButton v-tooltip.bottom="'Downloads'" @click="downloadsOpen = true" />
+                    <Button
+                        v-tooltip.bottom="'Friends'"
+                        v-click-away="() => (friendsOpen = false)"
+                        class="icon"
+                        @click="friendsOpen = true"
+                    >
+                        <Icon :icon="accountMultiple" :height="40" />
+                    </Button>
+                    <DownloadsButton
+                        v-tooltip.bottom="'Downloads'"
+                        v-click-away="() => (downloadsOpen = false)"
+                        @click="downloadsOpen = true"
+                    />
                     <Button v-tooltip.bottom="'Settings'" class="icon" @click="settingsOpen = true">
                         <Icon :icon="cog" :height="40" />
                     </Button>
@@ -50,7 +66,9 @@
             </div>
         </div>
 
-        <Downloads v-model="downloadsOpen" />
+        <Friends :open="friendsOpen" />
+        <Messages :open="messagesOpen" />
+        <Downloads :open="downloadsOpen" />
         <Exit v-model="exitOpen" />
     </div>
 </template>
@@ -59,6 +77,7 @@
 import { Icon } from "@iconify/vue";
 import account from "@iconify-icons/mdi/account";
 import accountMultiple from "@iconify-icons/mdi/account-multiple";
+import messageIcon from "@iconify-icons/mdi/chat";
 import closeThick from "@iconify-icons/mdi/close-thick";
 import cog from "@iconify-icons/mdi/cog";
 import { computed, inject, ref } from "vue";
@@ -67,6 +86,8 @@ import Button from "@/components/controls/Button.vue";
 import Downloads from "@/components/navbar/Downloads.vue";
 import DownloadsButton from "@/components/navbar/DownloadsButton.vue";
 import Exit from "@/components/navbar/Exit.vue";
+import Friends from "@/components/navbar/Friends.vue";
+import Messages from "@/components/navbar/Messages.vue";
 
 const props = defineProps<{
     hidden?: boolean;
@@ -84,9 +105,10 @@ const secondaryRoutes = computed(() => {
         .sort((a, b) => (a.meta.order ?? 99) - (b.meta.order ?? 99));
 });
 
+const messagesOpen = ref(false);
 const downloadsOpen = ref(false);
+const friendsOpen = ref(false);
 const settingsOpen = inject("settingsOpen");
-const friendsOpen = inject("friendsOpen");
 const exitOpen = inject("exitOpen");
 
 const currentUser = api.session.onlineUser;

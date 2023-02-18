@@ -54,7 +54,6 @@ import BaseTabView from "@/components/common/BaseTabView.vue";
         overflow-y: auto;
     }
     .p-tabview-panel {
-        padding: 30px;
         position: relative;
     }
 }

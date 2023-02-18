@@ -6,8 +6,8 @@
             <div class="title"><strong>Vote:</strong> {{ vote.command }}</div>
 
             <div class="actions">
-                <Button class="vote-button green" :disabled="isSpectator" @click="onYes">Yes (F1)</Button>
-                <Button class="vote-button red" :disabled="isSpectator" @click="onNo">No (F2)</Button>
+                <Button class="vote-button green" @click="onYes">Yes (F1)</Button>
+                <Button class="vote-button red" @click="onNo">No (F2)</Button>
             </div>
 
             <div v-if="vote.callerName" class="caller">Called by {{ vote.callerName }}</div>
@@ -52,8 +52,6 @@ const missingNoVotes = computed(() => {
     }
     return props.vote.requiredNoVotes - props.vote.noVotes;
 });
-
-const isSpectator = api.session.onlineUser.battleStatus.isSpectator;
 
 const remainingTimeDurationCss = ref("60s");
 const showTimeRemaining = ref(false);

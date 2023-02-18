@@ -144,4 +144,7 @@ function sound() {
         transform: translateY(-20px);
     }
 }
+:deep(.p-tabview-panel) {
+    padding: 25px;
+}
 </style>

@@ -1,5 +1,5 @@
 <template>
-    <Modal title="Downloads" width="500px" height="500px">
+    <PopOutPanel :open="open">
         <div v-if="downloads.length" class="downloads">
             <div v-for="(download, i) in downloads" :key="i" class="downloads__download">
                 <div class="downloads__info">
@@ -18,14 +18,18 @@
             </div>
         </div>
         <div v-else class="flex-row flex-grow flex-center">No downloads active</div>
-    </Modal>
+    </PopOutPanel>
 </template>
 
 <script lang="ts" setup>
 import { computed } from "vue";
 
-import Modal from "@/components/common/Modal.vue";
 import Progress from "@/components/common/Progress.vue";
+import PopOutPanel from "@/components/navbar/PopOutPanel.vue";
+
+const props = defineProps<{
+    open: boolean;
+}>();
 
 const emits = defineEmits<{
     (e: "percentChange", newPercent: number): void;

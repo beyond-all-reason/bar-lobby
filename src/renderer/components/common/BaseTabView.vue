@@ -1,4 +1,8 @@
-<!-- Can delete this file and use primevue/tabview if this PR gets merged: https://github.com/primefaces/primevue/pull/3627 -->
+<!--
+    Can delete this file and use primevue/tabview if these PR get merged:
+    https://github.com/primefaces/primevue/pull/3086
+    https://github.com/primefaces/primevue/pull/3627
+-->
 
 <template>
     <div :class="contentClasses">
@@ -121,6 +125,7 @@ export default {
     emits: ["update:activeIndex", "tab-change", "tab-click"],
     data() {
         return {
+            updateKey: 0,
             id: this.$attrs.id,
             d_activeIndex: this.activeIndex,
             isPrevButtonDisabled: true,
@@ -137,6 +142,8 @@ export default {
             ];
         },
         tabs() {
+            this.updateKey;
+
             const nodes = this.$slots.default();
 
             return this.getTabNodes(nodes);
@@ -163,6 +170,9 @@ export default {
 
         this.updateInkBar();
         this.scrollable && this.updateButtonState();
+    },
+    beforeUpdate() {
+        this.updateKey++;
     },
     updated() {
         this.updateInkBar();
