@@ -1,25 +1,25 @@
 import { Directive, DirectiveBinding } from "vue";
 
 type ObserveeConfig = {
-    element: Element;
+    element: HTMLElement;
     out: boolean;
     once: boolean;
-    callback: () => void;
+    callback: (element: HTMLElement) => void;
 };
 
-const observees: Map<Element, ObserveeConfig> = ((window as any).test = new Map());
+const observees: Map<HTMLElement, ObserveeConfig> = ((window as any).test = new Map());
 
 const intersectionObserver = new IntersectionObserver((entries) => {
     for (const entry of entries) {
         for (const [element, config] of observees) {
             if (!config.out && entry.isIntersecting) {
-                config.callback();
+                config.callback(element);
 
                 if (config.once) {
                     unmounted(config.element);
                 }
             } else if (config.out && !entry.isIntersecting) {
-                config.callback();
+                config.callback(element);
 
                 if (config.once) {
                     unmounted(config.element);
@@ -29,21 +29,21 @@ const intersectionObserver = new IntersectionObserver((entries) => {
     }
 });
 
-function mounted(el: Element, binding: DirectiveBinding) {
+function mounted(el: HTMLElement, binding: DirectiveBinding) {
     intersectionObserver.observe(el);
     setObservee(el, binding);
 }
 
-function unmounted(el: Element) {
+function unmounted(el: HTMLElement) {
     intersectionObserver.unobserve(el);
     observees.delete(el);
 }
 
-function updated(el: Element, binding: DirectiveBinding) {
+function updated(el: HTMLElement, binding: DirectiveBinding) {
     setObservee(el, binding);
 }
 
-function setObservee(el: Element, binding: DirectiveBinding) {
+function setObservee(el: HTMLElement, binding: DirectiveBinding) {
     observees.set(el, {
         element: el,
         callback: binding.value,

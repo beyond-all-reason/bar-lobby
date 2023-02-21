@@ -4,22 +4,21 @@
 
 <template>
     <div>
-        <div class="a"></div>
-        <div v-in-view="() => inView()">Hello world</div>
-        <div class="a"></div>
+        <Button v-click-away:messages="() => {}" @click="stuff">Click</Button>
+        {{ messagesOpen }}
     </div>
 </template>
 
 <script lang="ts" setup>
-function inView() {
-    console.log("Yep!");
+import { inject, Ref } from "vue";
+
+import Button from "@/components/controls/Button.vue";
+
+const messagesOpen = inject<Ref<boolean>>("messagesOpen")!;
+
+function stuff() {
+    messagesOpen.value = true;
 }
 </script>
 
-<style lang="scss" scoped>
-.a {
-    background: green;
-    width: 50px;
-    height: 1000px;
-}
-</style>
+<style lang="scss" scoped></style>

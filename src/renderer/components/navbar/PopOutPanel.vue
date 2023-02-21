@@ -10,10 +10,6 @@ import Panel from "@/components/common/Panel.vue";
 const props = defineProps<{
     open: boolean;
 }>();
-
-const emits = defineEmits<{
-    (event: "update:open", open: boolean): void;
-}>();
 </script>
 
 <style lang="scss" scoped>

@@ -151,12 +151,10 @@ await delay(500);
 const intervalId = window.setInterval(updateBattleList, 5000);
 
 onUnmounted(() => {
-    console.log("unmount");
     window.clearInterval(intervalId);
 });
 
 async function updateBattleList() {
-    console.log("update");
     // this prevents polling for updates if the user isn't looking at the battle list
     // commented out for now because the host battle functionality also depends on this to know when the battle is created
     // if (document.visibilityState === "hidden") {

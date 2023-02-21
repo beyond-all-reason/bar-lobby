@@ -1,6 +1,6 @@
 <template>
-    <PopOutPanel :open="open">
-        <TabView class="messages-tabview">
+    <PopOutPanel :open="modelValue">
+        <TabView class="messages-tabview" :activeIndex="activeTabIndex">
             <TabPanel v-for="[userId, messages] of directMessages" :key="userId" :header="getUsername(userId)">
                 <div class="messages">
                     <div class="flex-col gap-sm">
@@ -15,7 +15,13 @@
                     </div>
                 </div>
                 <div class="padding-md padding-right-lg flex-row gap-sm flex-bottom">
-                    <Textbox v-model="text" class="reply" placeholder="Message" @keyup.enter.stop="sendDirectMessage(userId, text)" />
+                    <Textbox
+                        v-model="text"
+                        v-in-view="focusTextbox"
+                        class="reply"
+                        placeholder="Message"
+                        @keyup.enter.stop="sendDirectMessage(userId, text)"
+                    />
                     <Button @click="sendDirectMessage(userId, text)">Send</Button>
                 </div>
             </TabPanel>
@@ -46,7 +52,7 @@
 import { Icon } from "@iconify/vue";
 import chatPlus from "@iconify-icons/mdi/chat-plus";
 import TabPanel from "primevue/tabpanel";
-import { ref } from "vue";
+import { inject, Ref, ref } from "vue";
 
 import TabView from "@/components/common/TabView.vue";
 import Button from "@/components/controls/Button.vue";
@@ -55,7 +61,11 @@ import PopOutPanel from "@/components/navbar/PopOutPanel.vue";
 import { Message } from "@/model/messages";
 
 const props = defineProps<{
-    open: boolean;
+    modelValue: boolean;
+}>();
+
+const emits = defineEmits<{
+    (event: "update:modelValue", open: boolean): void;
 }>();
 
 const text = ref("");
@@ -63,6 +73,29 @@ const newMessage = ref("");
 const newMessageUserId = ref("");
 const directMessages = api.session.directMessages;
 const myUserId = api.session.onlineUser.userId;
+const activeTabIndex = ref(Math.max(directMessages.size - 1, 0));
+const openMessages = inject<Ref<((userId?: number) => void) | undefined>>("openMessages")!;
+
+openMessages.value = (userIdToActivate?: number) => {
+    emits("update:modelValue", true);
+
+    if (userIdToActivate) {
+        let i = 0;
+        for (const [userId] of directMessages) {
+            if (userId === userIdToActivate) {
+                break;
+            }
+            i++;
+        }
+        activeTabIndex.value = i;
+    }
+};
+
+function focusTextbox(el: HTMLElement) {
+    if (el.firstElementChild && el.firstElementChild instanceof HTMLElement) {
+        el.firstElementChild.focus();
+    }
+}
 
 function getUsername(userId: number) {
     return api.session.getUserById(userId)?.username ?? "??";

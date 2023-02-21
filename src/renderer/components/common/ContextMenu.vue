@@ -1,3 +1,5 @@
+<!-- TODO: replace with https://primevue.org/contextmenu -->
+
 <template>
     <Popper
         v-click-away="() => (show = false)"
@@ -12,7 +14,7 @@
     >
         <slot />
         <template #content>
-            <div v-for="entry in props.entries" :key="entry.label" class="context-menu__entry">
+            <div v-for="entry in props.entries" :key="entry.label" v-click-away:messages="() => {}" class="context-menu__entry">
                 <div
                     class="context-menu__label"
                     @click="

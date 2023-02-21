@@ -1,5 +1,5 @@
 <template>
-    <PopOutPanel :open="open">
+    <PopOutPanel :open="modelValue">
         <div v-if="downloads.length" class="downloads">
             <div v-for="(download, i) in downloads" :key="i" class="downloads__download">
                 <div class="downloads__info">
@@ -28,10 +28,11 @@ import Progress from "@/components/common/Progress.vue";
 import PopOutPanel from "@/components/navbar/PopOutPanel.vue";
 
 const props = defineProps<{
-    open: boolean;
+    modelValue: boolean;
 }>();
 
 const emits = defineEmits<{
+    (e: "update:modelValue", newPercent: number): void;
     (e: "percentChange", newPercent: number): void;
 }>();
 

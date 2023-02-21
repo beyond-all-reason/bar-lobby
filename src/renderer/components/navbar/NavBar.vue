@@ -68,13 +68,13 @@
         </div>
 
         <TransitionGroup name="slide-right">
-            <Messages v-show="messagesOpen" key="messages" v-click-away:messages="() => (messagesOpen = false)" :open="messagesOpen" />
-            <Friends v-show="friendsOpen" key="friends" v-click-away:friends="() => (friendsOpen = false)" :open="friendsOpen" />
+            <Messages v-show="messagesOpen" key="messages" v-model="messagesOpen" v-click-away:messages="() => (messagesOpen = false)" />
+            <Friends v-show="friendsOpen" key="friends" v-model="friendsOpen" v-click-away:friends="() => (friendsOpen = false)" />
             <Downloads
                 v-show="downloadsOpen"
                 key="downloads"
+                v-model="downloadsOpen"
                 v-click-away:downloads="() => (downloadsOpen = false)"
-                :open="downloadsOpen"
             />
         </TransitionGroup>
 
@@ -117,8 +117,8 @@ const secondaryRoutes = computed(() => {
 const messagesOpen = ref(false);
 const downloadsOpen = ref(false);
 const friendsOpen = ref(false);
-const settingsOpen = inject<Ref<boolean>>("settingsOpen");
-const exitOpen = inject<Ref<boolean>>("exitOpen");
+const settingsOpen = inject<Ref<boolean>>("settingsOpen")!;
+const exitOpen = inject<Ref<boolean>>("exitOpen")!;
 
 const messagesUnread = computed(() => {
     for (const [userId, messages] of api.session.directMessages) {

@@ -1,5 +1,5 @@
 <template>
-    <PopOutPanel :open="open">
+    <PopOutPanel :open="modelValue">
         <TabView v-model:activeIndex="activeIndex">
             <TabPanel header="Friends">
                 <div class="flex-col gap-lg container">
@@ -80,11 +80,11 @@ import Friend from "@/components/navbar/Friend.vue";
 import PopOutPanel from "@/components/navbar/PopOutPanel.vue";
 
 const props = defineProps<{
-    open: boolean;
+    modelValue: boolean;
 }>();
 
 const emits = defineEmits<{
-    (event: "update:open", open: boolean): void;
+    (event: "update:modelValue", open: boolean): void;
 }>();
 
 const activeIndex = ref(0);
@@ -97,7 +97,7 @@ const incomingFriendRequests = api.session.incomingFriendRequests;
 const myUserId = computed(() => api.session.onlineUser.userId);
 
 watch(
-    () => props.open,
+    () => props.modelValue,
     (open: boolean) => {
         if (open) {
             activeIndex.value = 0;

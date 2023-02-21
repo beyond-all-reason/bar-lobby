@@ -14,7 +14,7 @@
 <script lang="ts" setup>
 import { Icon } from "@iconify/vue";
 import syncAlert from "@iconify-icons/mdi/sync-alert";
-import { computed } from "vue";
+import { computed, inject, Ref } from "vue";
 
 import ContextMenu, { ContextMenuEntry } from "@/components/common/ContextMenu.vue";
 import Flag from "@/components/misc/Flag.vue";
@@ -46,8 +46,16 @@ function kickPlayer(player: User) {
     //
 }
 
+const openMessages = inject<Ref<((userId: number) => void) | undefined>>("openMessages")!;
+
 function messagePlayer(player: User) {
-    //
+    if (!api.session.directMessages.has(player.userId)) {
+        api.session.directMessages.set(player.userId, []);
+    }
+
+    if (openMessages.value) {
+        openMessages.value(player.userId);
+    }
 }
 
 function blockPlayer(player: User) {

@@ -80,12 +80,16 @@ const state: Ref<"preloader" | "initial-setup" | "default"> = ref("preloader");
 const empty = ref(false);
 const blurBg = ref(true);
 const lobbyVersion = api.info.lobby.version;
+const viewOverflowY = computed(() => (router.currentRoute.value.meta.overflowY ? router.currentRoute.value.meta.overflowY : "auto"));
+
 const settingsOpen = ref(false);
 const exitOpen = ref(false);
-const viewOverflowY = computed(() => (router.currentRoute.value.meta.overflowY ? router.currentRoute.value.meta.overflowY : "auto"));
 
 provide("settingsOpen", settingsOpen);
 provide("exitOpen", exitOpen);
+
+const openMessages: Ref<((userId?: number) => void) | undefined> = ref();
+provide("openMessages", openMessages);
 
 playRandomMusic();
 

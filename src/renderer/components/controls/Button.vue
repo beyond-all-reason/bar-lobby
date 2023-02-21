@@ -45,6 +45,11 @@ function onClick() {
     &.inline {
         align-self: flex-start;
     }
+    &:not(.slim) {
+        .p-button {
+            min-height: 33px;
+        }
+    }
     &.slim {
         min-height: unset;
         align-self: center;
