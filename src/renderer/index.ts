@@ -14,6 +14,7 @@ import { createI18n } from "vue-i18n";
 import { apiInit } from "@/api/api";
 import App from "@/App.vue";
 import { clickAwayDirective } from "@/utils/click-away-directive";
+import { elementInViewDirective } from "@/utils/element-in-view-directive";
 
 declare module "vue-router" {
     interface RouteMeta {
@@ -62,6 +63,7 @@ async function setupVue() {
     app.use(await setupI18n());
 
     app.directive("click-away", clickAwayDirective);
+    app.directive("in-view", elementInViewDirective);
     app.directive("tooltip", Tooltip);
 
     app.mount("#app");

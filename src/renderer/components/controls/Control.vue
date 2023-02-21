@@ -47,6 +47,10 @@ function onMouseEnter() {
         padding: 5px 10px;
         border-radius: 0px;
         border-right: 1px solid rgba(255, 255, 255, 0.1);
+        align-self: stretch;
+        align-items: center;
+        justify-content: center;
+        display: flex;
         white-space: nowrap;
     }
     &.disabled {

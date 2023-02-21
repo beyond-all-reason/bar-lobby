@@ -2,7 +2,7 @@ import { Static } from "@sinclair/typebox";
 import { computed } from "@vue/reactivity";
 import { assign } from "jaz-ts-utils";
 import { lobbySchema, myUserSchema, playerSchema, ResponseType, userSchema } from "tachyon-client";
-import { ComputedRef, reactive, Ref, ref, shallowReactive, shallowRef } from "vue";
+import { ComputedRef, nextTick, reactive, Ref, ref, shallowReactive, shallowRef } from "vue";
 
 import { OfflineBattle } from "@/model/battle/offline-battle";
 import { SpadsBattle } from "@/model/battle/spads-battle";
@@ -22,7 +22,7 @@ export class SessionAPI {
     public readonly outgoingFriendRequests: ComputedRef<User[]>;
     public readonly incomingFriendRequests: ComputedRef<User[]>;
     public readonly friends: ComputedRef<User[]>;
-    public readonly directMessages: Map<number, Message[]> = shallowReactive(new Map());
+    public readonly directMessages: Map<number, Message[]> = reactive(new Map());
 
     // temporary necessity until https://github.com/beyond-all-reason/teiserver/issues/34 is implemented
     public lastBattleResponses: Map<number, Static<typeof lobbySchema>> = new Map();
@@ -157,5 +157,15 @@ export class SessionAPI {
         }
 
         return undefined;
+    }
+
+    public async fetchUserById(userId: number): Promise<User> {
+        const user = this.getUserById(userId);
+        if (user) {
+            return user;
+        }
+        await api.comms.request("c.user.list_users_from_ids", { id_list: [userId], include_clients: true });
+        await nextTick();
+        return this.fetchUserById(userId);
     }
 }

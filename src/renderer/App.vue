@@ -137,6 +137,9 @@ animFrame();
 </script>
 
 <style lang="scss" scoped>
+.wrapper {
+    overflow: hidden;
+}
 .view {
     padding: 20px;
     display: flex;

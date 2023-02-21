@@ -6,6 +6,7 @@ export interface Message {
     senderUserId: number;
     text: string;
     hide?: boolean;
+    read?: boolean;
 }
 
 export type MessageHandler<T extends TSchema> = {

@@ -4,31 +4,22 @@
 
 <template>
     <div>
-        <Select
-            :modelValue="selection"
-            :options="selections"
-            optionLabel="name"
-            optionValue="value"
-            :placeholder="selection"
-            @update:model-value="onUpdateSelection"
-        />
+        <div class="a"></div>
+        <div v-in-view="() => inView()">Hello world</div>
+        <div class="a"></div>
     </div>
 </template>
 
 <script lang="ts" setup>
-import { ref } from "vue";
-
-import Select from "@/components/controls/Select.vue";
-
-const selection = ref("blue");
-const selections = ref([
-    { name: "Red", value: "red" },
-    { name: "Blue", value: "blue" },
-    { name: "Green", value: "green" },
-]);
-function onUpdateSelection(newSelection: string) {
-    selection.value = newSelection;
+function inView() {
+    console.log("Yep!");
 }
 </script>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+.a {
+    background: green;
+    width: 50px;
+    height: 1000px;
+}
+</style>

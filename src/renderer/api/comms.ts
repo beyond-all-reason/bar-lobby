@@ -59,7 +59,12 @@ export class CommsAPI extends TachyonClient {
                 text: data.message,
             };
 
-            // TODO: add to DMs
+            const chatlog = api.session.directMessages.get(data.sender_id);
+            if (chatlog) {
+                chatlog.push(message);
+            } else {
+                api.session.directMessages.set(data.sender_id, [message]);
+            }
 
             await this.handleMessage(message, directMessageHandlers);
         });

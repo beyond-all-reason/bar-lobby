@@ -30,17 +30,17 @@ const emits = defineEmits<{
     max-width: 475px;
     min-height: 400px;
     max-height: 400px;
-    transform: translateX(-9px);
-    opacity: 1;
-    transition: transform 200ms, opacity 200ms;
+    //transform: translateX(-9px);
+    //opacity: 1;
+    //transition: transform 200ms, opacity 200ms;
     background: rgba(0, 0, 0, 0.85);
     :deep(.content) {
         padding: 0;
     }
-    &.hidden {
-        transform: translateX(20px);
-        opacity: 0;
-        pointer-events: none;
-    }
+    // &.hidden {
+    //     transform: translateX(20px);
+    //     opacity: 0;
+    //     pointer-events: none;
+    // }
 }
 </style>

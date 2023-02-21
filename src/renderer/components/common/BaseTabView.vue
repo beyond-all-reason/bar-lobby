@@ -1,7 +1,8 @@
 <!--
-    Can delete this file and use primevue/tabview if these PR get merged:
-    https://github.com/primefaces/primevue/pull/3086
-    https://github.com/primefaces/primevue/pull/3627
+    Implements:
+    - https://github.com/primefaces/primevue/pull/3086
+    - https://github.com/primefaces/primevue/pull/3627
+    - <slot name="header"/>
 -->
 
 <template>
@@ -49,6 +50,7 @@
                         </a>
                     </li>
                     <li ref="inkbar" class="p-tabview-ink-bar" role="presentation" aria-hidden="true"></li>
+                    <slot name="header"></slot>
                 </ul>
             </div>
             <button
@@ -379,11 +381,21 @@ export default {
             return ["p-tabview-panel", this.getTabProp(tab, "contentClass")];
         },
         getTabNodes(nodes) {
-            if (this.isTabPanel(nodes[0])) {
-                return nodes;
-            } else {
-                return this.getTabNodes(nodes[0].children);
+            const tabNodes = [];
+
+            if (Array.isArray(nodes)) {
+                for (const node of nodes) {
+                    if (this.isTabPanel(node)) {
+                        tabNodes.push(node);
+                    } else if (node.children?.length) {
+                        tabNodes.push(...this.getTabNodes(node.children));
+                    }
+                }
+            } else if (this.isTabPanel(nodes)) {
+                tabNodes.push(nodes);
             }
+
+            return tabNodes;
         },
     },
 };
@@ -422,6 +434,10 @@ export default {
     position: relative;
     text-decoration: none;
     overflow: hidden;
+}
+
+.p-tabview-header-right {
+    width: unset !important;
 }
 
 .p-tabview-ink-bar {

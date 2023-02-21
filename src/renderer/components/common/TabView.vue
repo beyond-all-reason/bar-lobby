@@ -31,6 +31,7 @@ import BaseTabView from "@/components/common/BaseTabView.vue";
         width: 100%;
         display: flex;
         justify-content: center;
+        overflow: hidden;
         &:not(:first-child) {
             box-shadow: inset 1px 0 0 0 rgba(255, 255, 255, 0.1);
         }

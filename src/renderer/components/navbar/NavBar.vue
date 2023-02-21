@@ -15,15 +15,16 @@
                 <div class="primary-right">
                     <Button
                         v-tooltip.bottom="'Direct Messages'"
-                        v-click-away="() => (messagesOpen = false)"
+                        v-click-away:messages="() => (messagesOpen = false)"
                         class="icon"
                         @click="messagesOpen = true"
                     >
                         <Icon :icon="messageIcon" :height="40" />
+                        <div v-if="messagesUnread" class="unread-dot"></div>
                     </Button>
                     <Button
                         v-tooltip.bottom="'Friends'"
-                        v-click-away="() => (friendsOpen = false)"
+                        v-click-away:friends="() => (friendsOpen = false)"
                         class="icon"
                         @click="friendsOpen = true"
                     >
@@ -31,7 +32,7 @@
                     </Button>
                     <DownloadsButton
                         v-tooltip.bottom="'Downloads'"
-                        v-click-away="() => (downloadsOpen = false)"
+                        v-click-away:downloads="() => (downloadsOpen = false)"
                         @click="downloadsOpen = true"
                     />
                     <Button v-tooltip.bottom="'Settings'" class="icon" @click="settingsOpen = true">
@@ -66,9 +67,17 @@
             </div>
         </div>
 
-        <Friends :open="friendsOpen" />
-        <Messages :open="messagesOpen" />
-        <Downloads :open="downloadsOpen" />
+        <TransitionGroup name="slide-right">
+            <Messages v-show="messagesOpen" key="messages" v-click-away:messages="() => (messagesOpen = false)" :open="messagesOpen" />
+            <Friends v-show="friendsOpen" key="friends" v-click-away:friends="() => (friendsOpen = false)" :open="friendsOpen" />
+            <Downloads
+                v-show="downloadsOpen"
+                key="downloads"
+                v-click-away:downloads="() => (downloadsOpen = false)"
+                :open="downloadsOpen"
+            />
+        </TransitionGroup>
+
         <Exit v-model="exitOpen" />
     </div>
 </template>
@@ -80,7 +89,7 @@ import accountMultiple from "@iconify-icons/mdi/account-multiple";
 import messageIcon from "@iconify-icons/mdi/chat";
 import closeThick from "@iconify-icons/mdi/close-thick";
 import cog from "@iconify-icons/mdi/cog";
-import { computed, inject, ref } from "vue";
+import { computed, inject, Ref, ref } from "vue";
 
 import Button from "@/components/controls/Button.vue";
 import Downloads from "@/components/navbar/Downloads.vue";
@@ -108,8 +117,19 @@ const secondaryRoutes = computed(() => {
 const messagesOpen = ref(false);
 const downloadsOpen = ref(false);
 const friendsOpen = ref(false);
-const settingsOpen = inject("settingsOpen");
-const exitOpen = inject("exitOpen");
+const settingsOpen = inject<Ref<boolean>>("settingsOpen");
+const exitOpen = inject<Ref<boolean>>("exitOpen");
+
+const messagesUnread = computed(() => {
+    for (const [userId, messages] of api.session.directMessages) {
+        for (const message of messages) {
+            if (!message.read) {
+                return true;
+            }
+        }
+    }
+    return false;
+});
 
 const currentUser = api.session.onlineUser;
 const serverStats = api.session.serverStats;
@@ -271,5 +291,14 @@ const serverOffline = api.session.offlineMode;
 }
 .user {
     text-transform: unset;
+}
+.unread-dot {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    border-radius: 100%;
+    right: 17px;
+    bottom: 17px;
+    background: red;
 }
 </style>

@@ -28,14 +28,10 @@ import Control from "@/components/controls/Control.vue";
         height: 100%;
         padding: 0 7px;
         position: relative;
-        overflow: unset;
         flex-grow: 1;
-        &:not(:last-child):after {
-            @extend .fullsize;
-            top: 0;
-            background: rgba(255, 255, 255, 0.2);
-            width: 1px;
-            right: -1px;
+        &:not(:last-child) {
+            box-shadow: 1px 0 0 0 rgba(255, 255, 255, 0.1);
+            z-index: 2;
         }
         &:not(.p-highlight) {
             background: rgba(0, 0, 0, 0.2);
@@ -47,7 +43,6 @@ import Control from "@/components/controls/Control.vue";
         background: rgba(255, 255, 255, 0.05);
         color: #fff;
         text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.6);
-        box-shadow: inset 1px 1px 0 rgba(0, 0, 0, 0.1), inset -1px -1px 0 rgba(0, 0, 0, 0.1);
     }
 }
 </style>
