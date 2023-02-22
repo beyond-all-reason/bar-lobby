@@ -6,34 +6,34 @@
         </div>
         <div class="flex-row gap-sm">
             <template v-if="type === 'outgoing_request'">
-                <Button v-tooltip="`Cancel request`" class="slim red square" @click="cancelRequest">
+                <Button v-tooltip.left="`Cancel request`" class="slim red square" @click="cancelRequest">
                     <Icon :icon="closeThick" />
                 </Button>
             </template>
 
             <template v-else-if="type === 'incoming_request'">
-                <Button v-tooltip="`Reject request`" class="slim red square" @click="rejectRequest">
+                <Button v-tooltip.left="`Reject request`" class="slim red square" @click="rejectRequest">
                     <Icon :icon="closeThick" />
                 </Button>
-                <Button v-tooltip="`Accept request`" class="slim green square" @click="acceptRequest">
+                <Button v-tooltip.left="`Accept request`" class="slim green square" @click="acceptRequest">
                     <Icon :icon="checkThick" />
                 </Button>
             </template>
 
             <template v-else>
-                <Button v-tooltip="`View profile`" class="slim square" @click="viewProfile">
+                <Button v-tooltip.left="`View profile`" class="slim square" @click="viewProfile">
                     <Icon :icon="account" />
                 </Button>
-                <Button v-tooltip="`Send message`" class="slim square" @click="sendMessage">
+                <Button v-tooltip.left="`Send message`" class="slim square" @click="sendMessage">
                     <Icon :icon="messageReplyText" />
                 </Button>
-                <Button v-tooltip="`Join battle`" class="slim square" @click="joinBattle">
+                <Button v-tooltip.left="`Join battle`" class="slim square" @click="joinBattle">
                     <Icon :icon="accountArrowRight" />
                 </Button>
-                <Button v-tooltip="`Invite to party`" class="slim square" @click="inviteToParty">
+                <Button v-tooltip.left="`Invite to party`" class="slim square" @click="inviteToParty">
                     <Icon :icon="accountMultiplePlus" />
                 </Button>
-                <Button v-tooltip="`Remove friend`" class="slim red square" @click="removeFriend">
+                <Button v-tooltip.left="`Remove friend`" class="slim red square" @click="removeFriend">
                     <Icon :icon="deleteIcon" />
                 </Button>
             </template>

@@ -22,6 +22,12 @@ export class AiContentAPI extends AbstractContentAPI {
 
         const ais: EngineAI[] = [];
         const aisDir = path.join(api.info.contentPath, "engine", engine, "AI", "Skirmish");
+
+        if (!fs.existsSync(aisDir)) {
+            console.error(`Tried to process AIs for an engine version that is not installed: ${engine}`);
+            return;
+        }
+
         const aiDirs = await fs.promises.readdir(aisDir);
 
         for (const aiDir of aiDirs) {

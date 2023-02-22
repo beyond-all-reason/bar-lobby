@@ -32,7 +32,7 @@
                 </template>
 
                 <div class="flex-col flex-grow padding-md">
-                    <Textbox v-model="newMessageUserId" class="fullwidth" label="UserID" placeholder="32452" />
+                    <Textbox v-model="newMessageUserId" v-in-view="focusTextbox" class="fullwidth" label="UserID" placeholder="32452" />
                     <div class="flex-row gap-sm flex-bottom">
                         <Textbox
                             v-model="newMessage"
