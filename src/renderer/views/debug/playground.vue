@@ -4,20 +4,19 @@
 
 <template>
     <div>
-        <Button v-click-away:messages="() => {}" @click="stuff">Click</Button>
-        {{ messagesOpen }}
+        <Button @click="stuff">Click</Button>
     </div>
 </template>
 
 <script lang="ts" setup>
-import { inject, Ref } from "vue";
+import { onKeyStroke } from "@vueuse/core";
 
 import Button from "@/components/controls/Button.vue";
 
-const messagesOpen = inject<Ref<boolean>>("messagesOpen")!;
+onKeyStroke("F1", stuff);
 
 function stuff() {
-    messagesOpen.value = true;
+    console.log("stuff");
 }
 </script>
 

@@ -6,7 +6,7 @@
             <div class="title"><strong>Vote:</strong> {{ vote.command }}</div>
 
             <div class="actions">
-                <Button class="vote-button green" @click="onYes">Yes (F1)</Button>
+                <Button class="vote-button green" @click="onYes" @keyup.f1="onYes">Yes (F1)</Button>
                 <Button class="vote-button red" @click="onNo">No (F2)</Button>
             </div>
 
@@ -23,6 +23,7 @@
 </template>
 
 <script lang="ts" setup>
+import { onKeyStroke } from "@vueuse/core";
 import { computed, ref, watch } from "vue";
 
 import Panel from "@/components/common/Panel.vue";
@@ -33,11 +34,6 @@ import { SpadsVote } from "@/model/spads/spads-types";
 const props = defineProps<{
     vote: SpadsVote;
     battle: SpadsBattle;
-}>();
-
-const emits = defineEmits<{
-    (event: "yes"): void;
-    (event: "no"): void;
 }>();
 
 const missingYesVotes = computed(() => {
@@ -67,12 +63,19 @@ watch(
     }
 );
 
+onKeyStroke("F1", onYes);
+onKeyStroke("F2", onNo);
+
 function onYes() {
-    emits("yes");
+    api.comms.request("c.lobby.message", {
+        message: "!vote y",
+    });
 }
 
 function onNo() {
-    emits("no");
+    api.comms.request("c.lobby.message", {
+        message: "!vote n",
+    });
 }
 </script>
 
