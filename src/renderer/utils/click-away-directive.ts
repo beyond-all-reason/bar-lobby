@@ -17,7 +17,7 @@ type ClickAwayDirectiveOptions = {
 
 const UNIQUE_ID = "__vue_click_away__";
 
-const idElements: Map<string, Set<HTMLElement>> = ((window as any).stuff = new Map());
+const idElements: Map<string, Set<HTMLElement>> = new Map();
 
 function mounted(el: HTMLElement, binding: DirectiveBinding) {
     if (binding.arg) {

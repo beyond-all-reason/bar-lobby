@@ -7,7 +7,7 @@ type ObserveeConfig = {
     callback: (element: HTMLElement) => void;
 };
 
-const observees: Map<HTMLElement, ObserveeConfig> = ((window as any).test = new Map());
+const observees: Map<HTMLElement, ObserveeConfig> = new Map();
 
 const intersectionObserver = new IntersectionObserver((entries) => {
     for (const entry of entries) {
