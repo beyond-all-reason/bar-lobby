@@ -1,15 +1,15 @@
 <template>
-    <BaseTabView v-bind="$attrs">
+    <PrimeVueTabView v-bind="$attrs">
         <template v-for="(_, name) in $slots" #[name]="slotData">
             <slot :name="name" v-bind="slotData || {}" />
         </template>
-    </BaseTabView>
+    </PrimeVueTabView>
 </template>
 
 <script lang="ts" setup>
 // https://primefaces.org/primevue/tabview
 
-import BaseTabView from "@/components/common/BaseTabView.vue";
+import PrimeVueTabView from "@/components/primevue/PrimeVueTabView.vue";
 </script>
 
 <style lang="scss">

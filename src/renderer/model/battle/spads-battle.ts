@@ -246,11 +246,8 @@ export class SpadsBattle extends AbstractBattle<SpadsBattleOptions> {
     public override async leave() {
         super.leave();
 
-        api.comms.request("c.lobby.leave");
+        await api.comms.request("c.lobby.leave");
         api.session.onlineBattle.value = null;
-        if (api.router.currentRoute.value.path === "/multiplayer/battle") {
-            api.router.replace("/multiplayer/custom");
-        }
     }
 
     public start() {
@@ -358,12 +355,6 @@ export class SpadsBattle extends AbstractBattle<SpadsBattleOptions> {
     public setBotOptions(botName: string, options: Record<string, any>) {
         console.warn("not implemented: setBotOptions");
         // TODO
-    }
-
-    public setPreset(preset: string) {
-        api.comms.request("c.lobby.message", {
-            message: `!cv preset ${preset}`,
-        });
     }
 
     protected updateSync() {

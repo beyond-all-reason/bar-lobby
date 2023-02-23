@@ -9,7 +9,6 @@ export class OfflineBattle extends AbstractBattle {
 
         api.session.offlineBattle.value = null;
         api.session.onlineUser.battleStatus.battleId = -1;
-        api.router.replace("/home");
     }
 
     public start() {

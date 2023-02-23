@@ -20,6 +20,7 @@ export const barManagerHandlers = createMessageHandlers(
             battle.battleOptions.autoBalance = data.autoBalance;
             battle.battleOptions.teamSize = data.teamSize;
             battle.battleOptions.nbTeams = data.nbTeams;
+            battle.battleOptions.balanceMode = data.balanceMode;
             battle.battleOptions.preset = data.preset;
         },
     },

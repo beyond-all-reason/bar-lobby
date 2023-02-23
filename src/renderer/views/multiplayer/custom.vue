@@ -217,6 +217,7 @@ async function onPasswordPromptSubmit(data) {
 }
 .right {
     position: relative;
-    width: 400px;
+    min-width: 400px;
+    max-width: 400px;
 }
 </style>

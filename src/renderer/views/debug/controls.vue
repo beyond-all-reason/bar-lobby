@@ -17,6 +17,12 @@
             <div class="value">{{ text }}</div>
         </div>
         <div class="flex-row gap-md flex-center-items">
+            <Number :modelValue="num" showButtons @update:model-value="onUpdateNum" />
+            <Number v-model="num" label="Label" showButtons />
+            <Number v-model="num" :disabled="true" />
+            <div class="value">{{ num }}</div>
+        </div>
+        <div class="flex-row gap-md flex-center-items">
             <Select
                 :modelValue="selection"
                 :options="selections"
@@ -84,6 +90,7 @@ import { Ref, ref } from "vue";
 
 import Button from "@/components/controls/Button.vue";
 import Checkbox from "@/components/controls/Checkbox.vue";
+import Number from "@/components/controls/Number.vue";
 import Options from "@/components/controls/Options.vue";
 import Range from "@/components/controls/Range.vue";
 import Select from "@/components/controls/Select.vue";
@@ -92,6 +99,11 @@ import Textbox from "@/components/controls/Textbox.vue";
 const text = ref("textbox");
 function onUpdateText(newText: string) {
     text.value = newText;
+}
+
+const num = ref(5);
+function onUpdateNum(newNum: number) {
+    num.value = newNum;
 }
 
 const selection = ref("blue");

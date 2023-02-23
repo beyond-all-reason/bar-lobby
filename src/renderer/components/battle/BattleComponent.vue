@@ -112,15 +112,58 @@
                 @update:model-value="onEngineSelected"
             />
 
-            <Select
-                v-if="isSpadsBattle(battle)"
-                :modelValue="battle.battleOptions.preset"
-                :options="['duel', 'team', 'ffa', 'teamffa']"
-                label="Preset"
-                :placeholder="battle.battleOptions.preset"
-                class="fullwidth"
-                @update:model-value="onPresetSelected"
-            />
+            <template v-if="isSpadsBattle(battle)">
+                <div class="flex-row gap-md">
+                    <Checkbox label="Locked" :modelValue="battle.battleOptions.locked" showButtons @update:model-value="onLockedChanged" />
+
+                    <Select
+                        :modelValue="battle.battleOptions.preset"
+                        :options="['duel', 'team', 'ffa', 'teamffa']"
+                        label="Preset"
+                        :placeholder="battle.battleOptions.preset"
+                        class="fullwidth"
+                        @update:model-value="onPresetSelected"
+                    />
+                </div>
+
+                <div class="flex-row gap-md">
+                    <Select
+                        :modelValue="battle.battleOptions.balanceMode"
+                        :options="['skill', 'clan;skill', 'random']"
+                        label="Balance Mode"
+                        :placeholder="battle.battleOptions.balanceMode"
+                        class="fullwidth"
+                        @update:model-value="onBalanceModeSelected"
+                    />
+
+                    <Number
+                        label="Team Size"
+                        :modelValue="battle.battleOptions.teamSize"
+                        class="fullwidth"
+                        showButtons
+                        @update:model-value="onTeamSizeSelected"
+                    />
+                </div>
+
+                <div class="flex-row gap-md">
+                    <Select
+                        :modelValue="battle.battleOptions.autoBalance"
+                        :options="['on', 'off', 'advanced']"
+                        label="Auto Balance"
+                        :placeholder="battle.battleOptions.autoBalance"
+                        class="fullwidth"
+                        @update:model-value="onAutoBalanceSelected"
+                    />
+
+                    <Number
+                        label="Num of Teams"
+                        :modelValue="battle.battleOptions.nbTeams"
+                        class="fullwidth"
+                        showButtons
+                        @update:model-value="onNbTeamsSelected"
+                    />
+                </div>
+            </template>
 
             <div class="flex-row flex-bottom gap-md">
                 <Button class="red fullwidth" @click="leave"> Leave </Button>
@@ -174,6 +217,8 @@ import MapListModal from "@/components/battle/MapListModal.vue";
 import Playerlist from "@/components/battle/Playerlist.vue";
 import VotingPanel from "@/components/battle/VotingPanel.vue";
 import Button from "@/components/controls/Button.vue";
+import Checkbox from "@/components/controls/Checkbox.vue";
+import Number from "@/components/controls/Number.vue";
 import Options from "@/components/controls/Options.vue";
 import Select from "@/components/controls/Select.vue";
 import MapPreview from "@/components/maps/MapPreview.vue";
@@ -245,9 +290,39 @@ function onMapSelected(mapScriptName: string) {
 }
 
 function onPresetSelected(preset: string) {
-    if (isSpadsBattle(props.battle)) {
-        props.battle.setPreset(preset);
-    }
+    api.comms.request("c.lobby.message", {
+        message: `!cv preset ${preset}`,
+    });
+}
+
+function onBalanceModeSelected(balanceMode: string) {
+    api.comms.request("c.lobby.message", {
+        message: `!cv balanceMode ${balanceMode}`,
+    });
+}
+
+function onAutoBalanceSelected(autoBalance: string) {
+    api.comms.request("c.lobby.message", {
+        message: `!cv autoBalance ${autoBalance}`,
+    });
+}
+
+function onNbTeamsSelected(nbTeams: number) {
+    api.comms.request("c.lobby.message", {
+        message: `!cv nbTeams ${nbTeams}`,
+    });
+}
+
+function onTeamSizeSelected(teamSize: number) {
+    api.comms.request("c.lobby.message", {
+        message: `!cv teamSize ${teamSize}`,
+    });
+}
+
+function onLockedChanged(locked: boolean) {
+    api.comms.request("c.lobby.message", {
+        message: `!${locked ? "lock" : "unlock"}`,
+    });
 }
 
 function toggleReady() {
@@ -272,6 +347,12 @@ function leaveQueue() {
 
 function leave() {
     props.battle.leave();
+
+    if (isSpadsBattle(props.battle)) {
+        api.router.replace("/multiplayer/custom");
+    } else {
+        api.router.replace("/home");
+    }
 }
 async function start() {
     props.battle.start();
