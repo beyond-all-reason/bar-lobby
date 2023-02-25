@@ -33,6 +33,9 @@ const props = defineProps<{
     :deep(.content) {
         padding: 0;
     }
+    :deep(.p-tabview-panel) {
+        padding: 15px;
+    }
     // &.hidden {
     //     transform: translateX(20px);
     //     opacity: 0;

@@ -58,10 +58,10 @@ async function onRetry() {
     await connect();
 }
 
-function playOffline() {
+async function playOffline() {
     api.session.offlineMode.value = true;
     api.comms.disconnect();
-    api.router.push("/singleplayer/custom");
+    await api.router.push("/singleplayer/custom");
 }
 
 connect();

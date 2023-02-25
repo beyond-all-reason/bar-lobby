@@ -26,7 +26,7 @@ async function logout() {
     } catch (err) {
         console.error(err);
     }
-    router.push("/login");
+    await router.push("/login");
     modal.value?.close();
 }
 

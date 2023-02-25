@@ -110,6 +110,13 @@ export const battleAnnouncementHandlers = createMessageHandlers(
         },
     },
     {
+        regex: new RegExp(/\* User\(s\) allowed to vote/),
+        schema: Type.Object({}),
+        async handler(data, message) {
+            message.hide = true;
+        },
+    },
+    {
         regex: new RegExp(/\* (?<username>.*), you have already voted for current vote./),
         schema: Type.Object({
             username: Type.String(),

@@ -2,7 +2,7 @@
     <PopOutPanel :open="modelValue">
         <TabView v-model:activeIndex="activeIndex">
             <TabPanel header="Friends">
-                <div class="flex-col gap-lg container">
+                <div class="flex-col gap-lg">
                     <div class="flex-row gap-md">
                         <div>
                             Your User ID is <strong>{{ myUserId }}</strong>
@@ -38,12 +38,12 @@
                         </AccordionTab>
                         <AccordionTab v-if="onlineFriends.length" header="Online">
                             <div class="user-list">
-                                <Friend v-for="(user, i) in offlineFriends" :key="`offlineFriends${i}`" :user="user" :type="'friend'" />
+                                <Friend v-for="(user, i) in onlineFriends" :key="`onlineFriend${i}`" :user="user" :type="'friend'" />
                             </div>
                         </AccordionTab>
                         <AccordionTab v-if="offlineFriends.length" header="Offline">
                             <div class="user-list">
-                                <Friend v-for="(user, i) in offlineFriends" :key="`offlineFriends${i}`" :user="user" :type="'friend'" />
+                                <Friend v-for="(user, i) in offlineFriends" :key="`offlineFriend${i}`" :user="user" :type="'friend'" />
                             </div>
                         </AccordionTab>
                     </Accordion>
@@ -70,7 +70,7 @@
 
 import AccordionTab from "primevue/accordiontab";
 import TabPanel from "primevue/tabpanel";
-import { computed, ref, watch } from "vue";
+import { computed, inject, Ref, ref, watch } from "vue";
 
 import Accordion from "@/components/common/Accordion.vue";
 import TabView from "@/components/common/TabView.vue";
@@ -95,6 +95,11 @@ const offlineFriends = computed(() => api.session.friends.value.filter((user) =>
 const outgoingFriendRequests = api.session.outgoingFriendRequests;
 const incomingFriendRequests = api.session.incomingFriendRequests;
 const myUserId = computed(() => api.session.onlineUser.userId);
+const toggleFriends = inject<Ref<(open?: boolean) => void>>("toggleFriends")!;
+
+toggleFriends.value = (open?: boolean) => {
+    emits("update:modelValue", open ?? !props.modelValue);
+};
 
 watch(
     () => props.modelValue,
@@ -142,9 +147,6 @@ async function addFriend() {
     opacity: 1;
     transition: transform 200ms, opacity 200ms;
     background: rgba(0, 0, 0, 0.85);
-    :deep(.content) {
-        padding: 0;
-    }
     &.hidden {
         transform: translateX(20px);
         opacity: 0;
@@ -168,8 +170,5 @@ async function addFriend() {
     .p-inputtext {
         width: 100px;
     }
-}
-:deep(.p-tabview-panel) {
-    padding: 15px;
 }
 </style>

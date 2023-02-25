@@ -129,7 +129,7 @@ export class CommsAPI extends TachyonClient {
                 await api.comms.request("c.user.list_users_from_ids", { id_list: userIds, include_clients: true });
             }
 
-            api.router.push("/multiplayer/battle");
+            await api.router.push("/multiplayer/battle");
 
             battle.open();
         }

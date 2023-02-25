@@ -88,8 +88,14 @@ const exitOpen = ref(false);
 provide("settingsOpen", settingsOpen);
 provide("exitOpen", exitOpen);
 
-const openMessages: Ref<((userId?: number) => void) | undefined> = ref();
-provide("openMessages", openMessages);
+const toggleMessages: Ref<((open?: boolean, userId?: number) => void) | undefined> = ref();
+provide("toggleMessages", toggleMessages);
+
+const toggleFriends: Ref<((open?: boolean) => void) | undefined> = ref();
+provide("toggleFriends", toggleFriends);
+
+const toggleDownloads: Ref<((open?: boolean) => void) | undefined> = ref();
+provide("toggleDownloads", toggleDownloads);
 
 playRandomMusic();
 

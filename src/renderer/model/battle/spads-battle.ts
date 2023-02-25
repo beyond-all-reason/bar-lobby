@@ -1,5 +1,5 @@
 import { Static } from "@sinclair/typebox";
-import { assign, entries, objectKeys } from "jaz-ts-utils";
+import { assign, entries, objectKeys, roundToMultiple } from "jaz-ts-utils";
 import { battleSchema, lobbySchema } from "tachyon-client";
 import { computed, ComputedRef, Ref, ref } from "vue";
 
@@ -73,10 +73,10 @@ export class SpadsBattle extends AbstractBattle<SpadsBattleOptions> {
                     const startBoxes: StartBox[] = [];
                     entries(data).forEach(([teamId, startBox]) => {
                         startBoxes[teamId] = {
-                            xPercent: startBox.x1 / 200,
-                            yPercent: startBox.y1 / 200,
-                            widthPercent: startBox.x2 / 200 - startBox.x1 / 200,
-                            heightPercent: startBox.y2 / 200 - startBox.y1 / 200,
+                            xPercent: roundToMultiple(startBox.x1 / 200, 0.01),
+                            yPercent: roundToMultiple(startBox.y1 / 200, 0.01),
+                            widthPercent: roundToMultiple(startBox.x2 / 200 - startBox.x1 / 200, 0.01),
+                            heightPercent: roundToMultiple(startBox.y2 / 200 - startBox.y1 / 200, 0.01),
                         };
                     });
                     this.battleOptions.startBoxes = startBoxes;

@@ -9,7 +9,19 @@
 <script lang="ts" setup>
 // https://primefaces.org/primevue/tabview
 
+import { TabViewEmits, TabViewProps } from "primevue/tabview";
+
 import PrimeVueTabView from "@/components/primevue/PrimeVueTabView.vue";
+
+// eslint-disable-next-line
+export interface Props extends TabViewProps {}
+
+// eslint-disable-next-line
+export interface Emits extends TabViewEmits {}
+
+const props = defineProps<Props>();
+
+const emits = defineEmits<Emits>();
 </script>
 
 <style lang="scss">
@@ -56,6 +68,7 @@ import PrimeVueTabView from "@/components/primevue/PrimeVueTabView.vue";
     }
     .p-tabview-panel {
         position: relative;
+        padding: 25px;
     }
 }
 </style>

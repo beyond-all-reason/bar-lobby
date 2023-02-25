@@ -49,13 +49,25 @@ const actions: MenuItem[] =
     props.player.userId === api.session.onlineUser.userId
         ? [
               { label: "View Profile", command: viewProfile },
-              { label: "Message", command: messagePlayer },
-              { label: "Kick", command: kickPlayer },
-              { label: "Block", command: blockPlayer },
-              { label: "Add Friend", command: addFriend },
-              { label: "Report", command: reportPlayer },
+              { label: "Make Boss", command: makeBoss },
+              { label: "Add Bonus", command: addBonus },
           ]
-        : [{ label: "View Profile", command: viewProfile }];
+        : [
+              { label: "View Profile", command: viewProfile },
+              { label: "Message", command: messagePlayer },
+              //{ label: "Block", command: blockPlayer },
+              { label: "Add Friend", command: addFriend },
+              { label: "Kick", command: kickPlayer },
+              { label: "Ring", command: ringPlayer },
+              {
+                  label: "More",
+                  items: [
+                      { label: "Make Boss", command: makeBoss },
+                      { label: "Add Bonus", command: addBonus },
+                  ],
+              },
+              //{ label: "Report", command: reportPlayer },
+          ];
 
 function onRightClick(event: MouseEvent) {
     if (menu.value) {
@@ -63,36 +75,55 @@ function onRightClick(event: MouseEvent) {
     }
 }
 
-function viewProfile() {
-    //
+async function viewProfile() {
+    await api.router.push(`/profile/${props.player.userId}`);
 }
 
-function kickPlayer() {
-    //
+async function kickPlayer() {
+    await api.comms.request("c.lobby.message", {
+        message: `!cv kick ${props.player.username}`,
+    });
 }
 
-const openMessages = inject<Ref<((userId: number) => void) | undefined>>("openMessages")!;
+async function ringPlayer() {
+    await api.comms.request("c.lobby.message", {
+        message: `!ring ${props.player.username}`,
+    });
+}
 
+const toggleDownloads = inject<Ref<((open?: boolean, userId?: number) => void) | undefined>>("toggleDownloads")!;
 function messagePlayer() {
     if (!api.session.directMessages.has(props.player.userId)) {
         api.session.directMessages.set(props.player.userId, []);
     }
 
-    if (openMessages.value) {
-        openMessages.value(props.player.userId);
+    if (toggleDownloads.value) {
+        toggleDownloads.value(true, props.player.userId);
     }
 }
 
-function blockPlayer() {
-    //
+async function makeBoss() {
+    await api.comms.request("c.lobby.message", {
+        message: `!cv boss ${props.player.username}`,
+    });
 }
 
-function addFriend() {
-    //
+async function addBonus() {
+    // TODO
+}
+
+function blockPlayer() {
+    // TODO
+}
+
+async function addFriend() {
+    await api.comms.request("c.user.add_friend", {
+        user_id: props.player.userId,
+    });
 }
 
 function reportPlayer() {
-    //
+    // TODO
 }
 
 function onMouseEnter() {

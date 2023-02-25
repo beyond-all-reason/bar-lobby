@@ -11,8 +11,8 @@ export class StoreAPI<T extends TObject> extends AsbtractStoreAPI<T> {
 
         const name = path.parse(this.filePath).name;
 
-        watch(this.model, async () => {
-            await ipcRenderer.invoke(`store-update:${name}`, toRaw(this.model));
+        watch(this.model, () => {
+            ipcRenderer.send(`store-update:${name}`, toRaw(this.model));
         });
 
         return this;

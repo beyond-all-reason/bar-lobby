@@ -51,7 +51,6 @@ function toggle(event: Event): void {
     font-weight: 500;
 }
 .p-submenu-list {
-    border-left: 1px solid rgba(255, 255, 255, 0);
     margin-top: -1px !important;
 }
 .p-menuitem-link {

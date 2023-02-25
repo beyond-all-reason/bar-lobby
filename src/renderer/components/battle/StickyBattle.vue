@@ -51,8 +51,8 @@ const color = computed(() => {
     }
 });
 
-function openBattle() {
-    api.router.push("/multiplayer/battle");
+async function openBattle() {
+    await api.router.push("/multiplayer/battle");
 }
 
 function leaveBattle() {

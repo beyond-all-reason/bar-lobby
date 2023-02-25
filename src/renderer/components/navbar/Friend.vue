@@ -24,7 +24,7 @@
                 <Button v-tooltip.left="`View profile`" class="slim square" @click="viewProfile">
                     <Icon :icon="account" />
                 </Button>
-                <Button v-tooltip.left="`Send message`" class="slim square" @click="sendMessage">
+                <Button v-tooltip.left="`Send message`" v-click-away:messages="() => {}" class="slim square" @click="sendMessage">
                     <Icon :icon="messageReplyText" />
                 </Button>
                 <Button v-tooltip.left="`Join battle`" class="slim square" @click="joinBattle">
@@ -50,6 +50,7 @@ import checkThick from "@iconify-icons/mdi/check-thick";
 import closeThick from "@iconify-icons/mdi/close-thick";
 import deleteIcon from "@iconify-icons/mdi/delete";
 import messageReplyText from "@iconify-icons/mdi/message-reply-text";
+import { inject, Ref } from "vue";
 
 import Button from "@/components/controls/Button.vue";
 import Flag from "@/components/misc/Flag.vue";
@@ -89,13 +90,18 @@ async function rejectRequest() {
 }
 
 async function viewProfile() {
-    api.router.push({
-        path: `/profile/overview/${props.user.userId}`,
-    });
+    await api.router.push(`/profile/overview/${props.user.userId}`);
 }
 
-async function sendMessage() {
-    // TODO
+const toggleMessages = inject<Ref<((open?: boolean, userId?: number) => void) | undefined>>("toggleMessages")!;
+function sendMessage() {
+    if (!api.session.directMessages.has(props.user.userId)) {
+        api.session.directMessages.set(props.user.userId, []);
+    }
+
+    if (toggleMessages.value) {
+        toggleMessages.value(true, props.user.userId);
+    }
 }
 
 async function joinBattle() {

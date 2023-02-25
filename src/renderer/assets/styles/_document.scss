@@ -45,8 +45,11 @@ hr {
     background: rgba(255, 255, 255, 0.1);
     height: 1px;
 }
-svg,
-path {
-    // disable pointer events on svg and path elements because they break .contains method used in click-away directive
-    pointer-events: none;
+.button,
+button {
+    svg,
+    path {
+        // disable pointer events on svg and path elements because they break .contains method used in click-away directive
+        pointer-events: none;
+    }
 }

@@ -32,9 +32,6 @@ const props = defineProps<{
     id: string;
 }>();
 
-console.log(props.id);
-console.log(typeof props.id);
-
 const user = api.session.getUserById(parseInt(props.id));
 </script>
 

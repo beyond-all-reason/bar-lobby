@@ -16,7 +16,7 @@
                     <Button
                         v-tooltip.bottom="'Direct Messages'"
                         v-click-away:messages="() => (messagesOpen = false)"
-                        class="icon"
+                        :class="['icon', { active: messagesOpen }]"
                         @click="messagesOpen = true"
                     >
                         <Icon :icon="messageIcon" :height="40" />
@@ -25,7 +25,7 @@
                     <Button
                         v-tooltip.bottom="'Friends'"
                         v-click-away:friends="() => (friendsOpen = false)"
-                        class="icon"
+                        :class="['icon', { active: friendsOpen }]"
                         @click="friendsOpen = true"
                     >
                         <Icon :icon="accountMultiple" :height="40" />
@@ -33,6 +33,7 @@
                     <DownloadsButton
                         v-tooltip.bottom="'Downloads'"
                         v-click-away:downloads="() => (downloadsOpen = false)"
+                        :class="['icon', { active: downloadsOpen }]"
                         @click="downloadsOpen = true"
                     />
                     <Button v-tooltip.bottom="'Settings'" class="icon" @click="settingsOpen = true">
@@ -115,8 +116,8 @@ const secondaryRoutes = computed(() => {
 });
 
 const messagesOpen = ref(false);
-const downloadsOpen = ref(false);
 const friendsOpen = ref(false);
+const downloadsOpen = ref(false);
 const settingsOpen = inject<Ref<boolean>>("settingsOpen")!;
 const exitOpen = inject<Ref<boolean>>("exitOpen")!;
 

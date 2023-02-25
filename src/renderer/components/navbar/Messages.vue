@@ -1,6 +1,6 @@
 <template>
     <PopOutPanel :open="modelValue">
-        <TabView class="messages-tabview" :activeIndex="activeTabIndex">
+        <TabView v-model:activeIndex="activeTabIndex" class="messages-tabview">
             <TabPanel v-for="[userId, messages] of directMessages" :key="userId" :header="getUsername(userId)">
                 <div class="messages">
                     <div class="flex-col gap-sm">
@@ -14,7 +14,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="padding-md padding-right-lg flex-row gap-sm flex-bottom">
+                <div class="flex-row gap-sm flex-bottom">
                     <Textbox
                         v-model="text"
                         v-in-view="focusTextbox"
@@ -31,7 +31,7 @@
                     <Icon :icon="chatPlus" />
                 </template>
 
-                <div class="flex-col flex-grow padding-md">
+                <div class="flex-col flex-grow">
                     <Textbox v-model="newMessageUserId" v-in-view="focusTextbox" class="fullwidth" label="UserID" placeholder="32452" />
                     <div class="flex-row gap-sm flex-bottom">
                         <Textbox
@@ -74,10 +74,14 @@ const newMessageUserId = ref("");
 const directMessages = api.session.directMessages;
 const myUserId = api.session.onlineUser.userId;
 const activeTabIndex = ref(Math.max(directMessages.size - 1, 0));
-const openMessages = inject<Ref<((userId?: number) => void) | undefined>>("openMessages")!;
+const toggleMessages = inject<Ref<(open?: boolean, userId?: number) => void>>("toggleMessages")!;
+const toggleFriends = inject<Ref<(open?: boolean) => void>>("toggleFriends")!;
+const toggleDownloads = inject<Ref<(open?: boolean) => void>>("toggleDownloads")!;
 
-openMessages.value = (userIdToActivate?: number) => {
-    emits("update:modelValue", true);
+toggleMessages.value = async (open?: boolean, userIdToActivate?: number) => {
+    toggleFriends.value(false);
+
+    emits("update:modelValue", open ?? !props.modelValue);
 
     if (userIdToActivate) {
         let i = 0;
