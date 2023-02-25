@@ -1,27 +1,27 @@
 <template>
-    <ContextMenu :entries="getActions(bot)" :args="[bot]">
-        <div class="participant" data-type="participant" @mouseenter.stop="onMouseEnter">
-            <Icon :icon="robot" :height="16" />
-            <div>{{ getAiFriendlyName(props.bot.aiShortName) }}</div>
-        </div>
-        <LuaOptionsModal
-            :id="`configure-bot-${bot.name}`"
-            v-model="aiOptionsOpen"
-            :luaOptions="bot.aiOptions"
-            title="Configure Bot"
-            :sections="aiOptions"
-            @set-options="setBotOptions"
-        />
-    </ContextMenu>
+    <div class="participant" data-type="participant" @mouseenter.stop="onMouseEnter" @contextmenu="onRightClick">
+        <Icon :icon="robot" :height="16" />
+        <div>{{ getAiFriendlyName(props.bot.aiShortName) }}</div>
+    </div>
+    <LuaOptionsModal
+        :id="`configure-bot-${bot.name}`"
+        v-model="botOptionsOpen"
+        :luaOptions="bot.aiOptions"
+        title="Configure Bot"
+        :sections="botOptions"
+        @set-options="setBotOptions"
+    />
+    <ContextMenu ref="menu" :model="actions" />
 </template>
 
 <script lang="ts" setup>
 import { Icon } from "@iconify/vue";
 import robot from "@iconify-icons/mdi/robot";
+import { MenuItem } from "primevue/menuitem";
 import { Ref, ref } from "vue";
 
 import LuaOptionsModal from "@/components/battle/LuaOptionsModal.vue";
-import ContextMenu, { ContextMenuEntry } from "@/components/common/ContextMenu.vue";
+import ContextMenu from "@/components/common/ContextMenu.vue";
 import { getAiFriendlyName } from "@/model/ai";
 import { AbstractBattle } from "@/model/battle/abstract-battle";
 import { Bot } from "@/model/battle/battle-types";
@@ -32,36 +32,43 @@ const props = defineProps<{
     bot: Bot;
 }>();
 
-const aiOptions: Ref<LuaOptionSection[]> = ref([]);
-const aiOptionsOpen = ref(false);
+const botOptions: Ref<LuaOptionSection[]> = ref([]);
+const botOptionsOpen = ref(false);
+const menu = ref<InstanceType<typeof ContextMenu>>();
 
-function kickAi(bot: Bot) {
-    props.battle.removeBot(bot);
+const actions: MenuItem[] = [
+    {
+        label: "Configure",
+        command: configureBot,
+    },
+    {
+        label: "Kick",
+        command: kickBot,
+    },
+];
+
+function onRightClick(event: MouseEvent) {
+    if (menu.value) {
+        menu.value.show(event);
+    }
 }
 
-async function configureAi(bot: Bot) {
+function kickBot() {
+    props.battle.removeBot(props.bot);
+}
+
+async function configureBot() {
     const engine = props.battle.battleOptions.engineVersion;
     await api.content.ai.processAis(engine);
-    const ai = api.content.ai.getEngineAI(bot.aiShortName, engine);
+    const ai = api.content.ai.getEngineAI(props.bot.aiShortName, engine);
     if (ai) {
-        aiOptions.value = ai.options;
-        aiOptionsOpen.value = true;
+        botOptions.value = ai.options;
+        botOptionsOpen.value = true;
     }
 }
 
 function setBotOptions(options: Record<string, unknown>) {
     props.battle.setBotOptions(props.bot.name, options);
-}
-
-function getActions(bot: Bot): ContextMenuEntry[] {
-    const kickAction: ContextMenuEntry = { label: "Kick", action: kickAi };
-    const configureAction: ContextMenuEntry = { label: "Configure", action: configureAi };
-    const engine = props.battle.battleOptions.engineVersion;
-    const ai = api.content.ai.getEngineAI(bot.aiShortName, engine);
-    if (ai) {
-        return [kickAction, configureAction];
-    }
-    return [kickAction];
 }
 
 function onMouseEnter() {

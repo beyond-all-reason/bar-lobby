@@ -1,78 +1,71 @@
-<!-- TODO: replace with https://primevue.org/contextmenu -->
-
 <template>
-    <Popper
-        v-click-away="() => (show = false)"
-        v-bind="$attrs"
-        openDelay="0"
-        closeDelay="0"
-        offsetDistance="0"
-        :show="show"
-        placement="right-start"
-        class="context-menu"
-        @click.right="show = true"
-    >
-        <slot />
-        <template #content>
-            <div v-for="entry in props.entries" :key="entry.label" v-click-away:messages="() => {}" class="context-menu__entry">
-                <div
-                    class="context-menu__label"
-                    @click="
-                        () => {
-                            entry.action(...args);
-                            show = false;
-                        }
-                    "
-                >
-                    {{ entry.label }}
-                </div>
-            </div>
-        </template>
-    </Popper>
+    <ContextMenu ref="contextMenu" v-bind="$attrs" />
 </template>
 
 <script lang="ts" setup>
-// https://valgeirb.github.io/vue3-popper/guide/api.html#props
-// https://github.com/valgeirb/vue3-popper/blob/main/src/component/Popper.vue#L60
+// https://primefaces.org/primevue/contextmenu
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
+import ContextMenu, { ContextMenuEmits, ContextMenuProps } from "primevue/contextmenu";
 import { ref } from "vue";
-import Popper from "vue3-popper";
 
-export interface ContextMenuEntry {
-    label: string;
-    action: (...args: any[]) => void;
-    icon?: string;
-    children?: ContextMenuEntry[];
+// eslint-disable-next-line
+export interface Props extends ContextMenuProps {}
+
+// eslint-disable-next-line
+export interface Emits extends ContextMenuEmits {}
+
+const props = defineProps<Props>();
+
+const emits = defineEmits<Emits>();
+
+const contextMenu = ref<ContextMenu>();
+
+defineExpose<{
+    hide: ContextMenu["show"];
+    show: ContextMenu["show"];
+    toggle: ContextMenu["show"];
+}>({
+    hide,
+    show,
+    toggle,
+});
+
+function hide(event: Event): void {
+    contextMenu.value!.hide();
 }
 
-const props = withDefaults(
-    defineProps<{
-        entries: ContextMenuEntry[];
-        args: any[];
-    }>(),
-    {
-        entries: () => [],
-        args: () => [],
-    }
-);
+function show(event: Event): void {
+    contextMenu.value!.show(event);
+}
 
-const show = ref(false);
+function toggle(event: Event): void {
+    contextMenu.value!.toggle(event);
+}
 </script>
 
-<style lang="scss" scoped>
-.context-menu {
-    :deep(.popper) {
-        padding: 0 !important;
+<style lang="scss">
+.p-contextmenu,
+.p-submenu-list {
+    border: 1px solid rgb(51, 51, 51);
+    box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.4);
+    font-weight: 500;
+}
+.p-submenu-list {
+    border-left: 1px solid rgba(255, 255, 255, 0);
+    margin-top: -1px !important;
+}
+.p-menuitem-link {
+    background: rgba(10, 10, 10, 1);
+    padding: 10px !important;
+    &:hover {
+        background: rgb(223, 223, 223);
+        color: #111;
+        text-shadow: none;
     }
-    &__label {
-        padding: 10px;
-        &:hover {
-            background-color: #ddd;
-            color: #000;
-            text-shadow: none;
-        }
-    }
+}
+.p-menuitem-link {
+    display: flex;
+    gap: 5px;
+    font-size: 16px;
 }
 </style>
