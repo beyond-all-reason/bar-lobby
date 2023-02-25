@@ -70,6 +70,7 @@ declare module 'vue-router/auto/routes' {
     '/multiplayer/ranked': RouteRecordInfo<'/multiplayer/ranked', '/multiplayer/ranked', Record<never, never>, Record<never, never>>,
     '/multiplayer/tournaments': RouteRecordInfo<'/multiplayer/tournaments', '/multiplayer/tournaments', Record<never, never>, Record<never, never>>,
     '/profile/': RouteRecordInfo<'/profile/', '/profile', Record<never, never>, Record<never, never>>,
+    '/profile/[id]': RouteRecordInfo<'/profile/[id]', '/profile/:id', { id: ParamValue<true> }, { id: ParamValue<false> }>,
     '/profile/achievements': RouteRecordInfo<'/profile/achievements', '/profile/achievements', Record<never, never>, Record<never, never>>,
     '/profile/matches': RouteRecordInfo<'/profile/matches', '/profile/matches', Record<never, never>, Record<never, never>>,
     '/profile/overview': RouteRecordInfo<'/profile/overview', '/profile/overview', Record<never, never>, Record<never, never>>,
