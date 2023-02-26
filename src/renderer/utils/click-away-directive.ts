@@ -28,7 +28,7 @@ function mounted(el: HTMLElement, binding: DirectiveBinding) {
         }
     }
 
-    el[UNIQUE_ID] = (event: MouseEvent) => {
+    el[UNIQUE_ID] = async (event: MouseEvent) => {
         if (!event.target) {
             return;
         }
@@ -38,10 +38,6 @@ function mounted(el: HTMLElement, binding: DirectiveBinding) {
         }
 
         if (!binding.value) {
-            return;
-        }
-
-        if (typeof binding.value !== "function") {
             return;
         }
 
@@ -57,7 +53,13 @@ function mounted(el: HTMLElement, binding: DirectiveBinding) {
             }
         }
 
-        return binding.value.call(binding.instance, event);
+        if (!document.contains(event.target as HTMLElement)) {
+            return;
+        }
+
+        if (binding.value && typeof binding.value === "function") {
+            return binding.value.call(binding.instance, event);
+        }
     };
 
     document.addEventListener("click", el[UNIQUE_ID], false);

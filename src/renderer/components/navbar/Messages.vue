@@ -1,7 +1,16 @@
 <template>
     <PopOutPanel :open="modelValue">
         <TabView v-model:activeIndex="activeTabIndex" class="messages-tabview">
-            <TabPanel v-for="[userId, messages] of directMessages" :key="userId" :header="getUsername(userId)">
+            <TabPanel v-for="[userId, messages] of directMessages" :key="userId">
+                <template #header>
+                    <div class="flex-row">
+                        <div>{{ getUsername(userId) }}</div>
+                        <div class="flex-row close" @click="close(userId)">
+                            <Icon :icon="closeThick" />
+                        </div>
+                    </div>
+                </template>
+
                 <div class="messages">
                     <div class="flex-col gap-sm">
                         <div
@@ -51,6 +60,7 @@
 <script lang="ts" setup>
 import { Icon } from "@iconify/vue";
 import chatPlus from "@iconify-icons/mdi/chat-plus";
+import closeThick from "@iconify-icons/mdi/close-thick";
 import TabPanel from "primevue/tabpanel";
 import { inject, Ref, ref } from "vue";
 
@@ -132,6 +142,10 @@ async function sendDirectMessage(userIdInput: number | string, messageText: stri
         }
     }
 }
+
+function close(userId: number) {
+    api.session.directMessages.delete(userId);
+}
 </script>
 
 <style lang="scss" scoped>
@@ -174,5 +188,24 @@ async function sendDirectMessage(userIdInput: number | string, messageText: stri
 }
 .reply {
     width: 100%;
+}
+.close {
+    position: absolute;
+    height: 100%;
+    top: 0;
+    right: 0;
+    display: flex;
+    align-items: center;
+    background: none;
+    border: none;
+    opacity: 0.5;
+    padding: 10px;
+    visibility: hidden;
+    &:hover {
+        opacity: 1;
+    }
+}
+.p-tabview-nav-link:hover .close {
+    visibility: visible;
 }
 </style>
