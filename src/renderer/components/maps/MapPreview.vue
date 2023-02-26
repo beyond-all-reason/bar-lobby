@@ -30,14 +30,12 @@ const props = defineProps<{
 const mapPreviewEl: Ref<HTMLDivElement | null> = ref(null);
 const canvas: Ref<HTMLCanvasElement | null> = ref(null);
 let context: CanvasRenderingContext2D;
-let mapTransform: Transform;
 
 const mapData = computed(() => api.content.maps.installedMaps.find((map) => map.scriptName === props.map));
 const mapImages = computed(() => api.content.maps.getMapImages({ map: mapData.value }));
 
 let watchStopHandle: WatchStopHandle | undefined;
 let mapCachedSignalBinding: SignalBinding | undefined;
-let loadMapTimeoutId: number | undefined;
 
 onMounted(async () => {
     if (!canvas.value || !mapPreviewEl.value) {
@@ -51,20 +49,21 @@ onMounted(async () => {
 
     context = canvas.value.getContext("2d")!;
 
-    loadMap();
+    await loadMap();
 
-    watchStopHandle = watch([() => props.map, () => props.startPosType, () => props.startBoxes, () => props.myTeamId], (current, old) => {
-        if (JSON.stringify(current) !== JSON.stringify(old)) {
-            // only loadMap if there is new data
-            loadMap();
-        }
-    });
+    watchStopHandle = watch(
+        [() => props.map, () => props.startPosType, () => props.startBoxes, () => props.myTeamId],
+        async () => {
+            await loadMap();
+        },
+        { deep: true }
+    );
 
-    mapCachedSignalBinding = api.content.maps.onMapCached.add((data) => {
+    mapCachedSignalBinding = api.content.maps.onMapCached.add(async (data) => {
         if (data.scriptName === props.map) {
             mapData.effect.run();
             mapImages.effect.run();
-            loadMap();
+            await loadMap();
         }
     });
 });
@@ -75,10 +74,6 @@ onUnmounted(() => {
 
     mapCachedSignalBinding?.destroy();
     mapCachedSignalBinding = undefined;
-
-    if (loadMapTimeoutId) {
-        window.clearTimeout(loadMapTimeoutId);
-    }
 });
 
 function onCanvasResize() {
@@ -91,7 +86,6 @@ function onCanvasResize() {
     });
 }
 
-// bug: map textures will be the wrong dimensions if this function is called multiple times at once
 async function loadMap() {
     if (!canvas.value) {
         return;
@@ -99,7 +93,7 @@ async function loadMap() {
 
     const canvasWidth = canvas.value?.width;
 
-    mapTransform = { x: 0, y: 0, width: canvasWidth, height: canvasWidth };
+    let mapTransform: Transform = { x: 0, y: 0, width: canvasWidth, height: canvasWidth };
 
     const textureMap = await loadImage(mapImages.value.textureImagePath);
 
@@ -119,30 +113,30 @@ async function loadMap() {
 
     context.drawImage(textureMap, mapTransform.x, mapTransform.y, mapTransform.width, mapTransform.height);
 
-    drawStartPosType();
+    drawStartPosType(mapTransform);
 }
 
-function drawStartPosType() {
+function drawStartPosType(mapTransform: Transform) {
     switch (props.startPosType) {
         case StartPosType.Boxes:
-            drawBoxes();
+            drawBoxes(mapTransform);
             break;
         case StartPosType.Fixed:
         case StartPosType.Random:
-            drawFixedPositions();
+            drawFixedPositions(mapTransform);
             break;
     }
 }
 
-function drawFixedPositions() {
+function drawFixedPositions(mapTransform: Transform) {
     if (mapData.value?.startPositions) {
         for (const startPos of mapData.value.startPositions) {
-            drawFixedPosition(startPos);
+            drawFixedPosition(mapTransform, startPos);
         }
     }
 }
 
-function drawFixedPosition(position: { x: number; z: number }, color = "rgba(255, 255, 255, 0.6)") {
+function drawFixedPosition(mapTransform: Transform, position: { x: number; z: number }, color = "rgba(255, 255, 255, 0.6)") {
     if (!mapData.value) return;
 
     const xPos = mapTransform.x + mapTransform.width * (position.x / (mapData.value.width * 512));
@@ -155,7 +149,7 @@ function drawFixedPosition(position: { x: number; z: number }, color = "rgba(255
     context.closePath();
 }
 
-function drawBoxes() {
+function drawBoxes(mapTransform: Transform) {
     if (!props.startBoxes) return;
 
     const startBoxEntries = entries(props.startBoxes);
