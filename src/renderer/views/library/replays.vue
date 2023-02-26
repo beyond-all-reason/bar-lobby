@@ -95,13 +95,12 @@ import { format } from "date-fns";
 import { shell } from "electron";
 import path from "path";
 import Column from "primevue/column";
-import { DataTableStateEvent } from "primevue/datatable";
+import DataTable, { DataTablePageEvent, DataTableStateEvent } from "primevue/datatable";
 import { Ref, ref, shallowRef } from "vue";
 
 import BattlePreview from "@/components/battle/BattlePreview.vue";
 import Button from "@/components/controls/Button.vue";
 import Checkbox from "@/components/controls/Checkbox.vue";
-import DataTable from "@/components/controls/DataTable.vue";
 import TriStateCheckbox from "@/components/controls/TriStateCheckbox.vue";
 import { Replay } from "@/model/replay";
 import { getFriendlyDuration } from "@/utils/misc";
@@ -139,7 +138,7 @@ api.content.replays.onReplayCached.add(() => {
 
 fetchReplays();
 
-function onPage(event: DataTableStateEvent) {
+function onPage(event: DataTablePageEvent) {
     offset.value = event.first;
     fetchReplays();
 }

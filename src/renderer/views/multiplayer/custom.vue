@@ -26,6 +26,7 @@
                     selectionMode="single"
                     :sortOrder="-1"
                     sortField="playerCount.value"
+                    @row-dblclick="onDoubleClick"
                 >
                     <Column headerStyle="width: 0" sortable sortField="isLockedOrPassworded.value">
                         <template #header>
@@ -99,6 +100,7 @@ import lock from "@iconify-icons/mdi/lock";
 import robot from "@iconify-icons/mdi/robot";
 import { delay } from "jaz-ts-utils";
 import Column from "primevue/column";
+import DataTable, { DataTableRowDoubleClickEvent } from "primevue/datatable";
 import { computed, onUnmounted, Ref, ref, shallowRef } from "vue";
 
 import BattlePreview from "@/components/battle/BattlePreview.vue";
@@ -106,7 +108,6 @@ import HostBattle from "@/components/battle/HostBattle.vue";
 import Modal from "@/components/common/Modal.vue";
 import Button from "@/components/controls/Button.vue";
 import Checkbox from "@/components/controls/Checkbox.vue";
-import DataTable from "@/components/controls/DataTable.vue";
 import Textbox from "@/components/controls/Textbox.vue";
 import { SpadsBattle } from "@/model/battle/spads-battle";
 import { getFriendlyDuration } from "@/utils/misc";
@@ -188,6 +189,11 @@ async function attemptJoinBattle(battle: SpadsBattle) {
             lobby_id: battle.battleOptions.id,
         });
     }
+}
+
+function onDoubleClick(event: DataTableRowDoubleClickEvent) {
+    //const battle = event.data;
+    console.log(event);
 }
 
 async function onPasswordPromptSubmit(data) {

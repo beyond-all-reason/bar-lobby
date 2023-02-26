@@ -1,3 +1,9 @@
+/**
+    For now, we're using this file to globally override PrimeVue component styles because extending PrimeVue
+    components causes issues with typings due to PrimeVue components being Vue 2 and we're using Vue 3,
+    so best to use the actual PrimeVue component directly if all we're changing is the style
+*/
+
 .p-paginator {
     display: inline-flex !important;
     background-color: rgba(255, 255, 255, 0.1);
@@ -19,5 +25,51 @@
     }
     &-page-options {
         width: unset;
+    }
+    &-bottom {
+        display: flex;
+        justify-content: center;
+    }
+}
+
+.p-datatable {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    &-wrapper {
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    tr {
+        th,
+        td {
+            padding: 5px 10px;
+            vertical-align: middle;
+            & > * {
+                height: 100%;
+            }
+        }
+    }
+    th {
+        background: rgba(255, 255, 255, 0.1);
+    }
+    :not(.p-datatable-thead) > tr {
+        background: rgba(255, 255, 255, 0.1);
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        &:hover:not(.p-highlight) {
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.2);
+        }
+        &.p-highlight {
+            background: rgba(255, 255, 255, 0.3);
+            border-top: 1px solid rgba(255, 255, 255, 0.3);
+        }
+    }
+    .p-column-header-content {
+        gap: 3px;
+    }
+    .p-sortable-column {
+        &:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
     }
 }
