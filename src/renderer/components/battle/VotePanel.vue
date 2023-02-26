@@ -23,7 +23,7 @@
 </template>
 
 <script lang="ts" setup>
-import { onKeyStroke } from "@vueuse/core";
+import { onKeyUp } from "@vueuse/core";
 import { computed, ref, watch } from "vue";
 
 import Panel from "@/components/common/Panel.vue";
@@ -63,8 +63,8 @@ watch(
     }
 );
 
-onKeyStroke("F1", onYes);
-onKeyStroke("F2", onNo);
+onKeyUp("F1", onYes);
+onKeyUp("F2", onNo);
 
 function onYes() {
     api.comms.request("c.lobby.message", {

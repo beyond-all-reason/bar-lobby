@@ -191,9 +191,8 @@ async function attemptJoinBattle(battle: SpadsBattle) {
     }
 }
 
-function onDoubleClick(event: DataTableRowDoubleClickEvent) {
-    //const battle = event.data;
-    console.log(event);
+async function onDoubleClick(event: DataTableRowDoubleClickEvent) {
+    await attemptJoinBattle(event.data);
 }
 
 async function onPasswordPromptSubmit(data) {

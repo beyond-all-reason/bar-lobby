@@ -112,6 +112,7 @@ export class CommsAPI extends TachyonClient {
             let battle = api.session.battles.get(data.lobby.id);
             if (!battle) {
                 battle = new SpadsBattle(data);
+                api.session.battles.set(data.lobby.id, battle);
             }
 
             battle.handleServerResponse(data);
@@ -129,9 +130,9 @@ export class CommsAPI extends TachyonClient {
                 await api.comms.request("c.user.list_users_from_ids", { id_list: userIds, include_clients: true });
             }
 
-            await api.router.push("/multiplayer/battle");
+            await battle.open();
 
-            battle.open();
+            await api.router.push("/multiplayer/battle");
         }
 
         this.onResponse("s.lobby.joined").add((data) => {

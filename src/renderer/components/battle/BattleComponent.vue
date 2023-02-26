@@ -215,7 +215,7 @@ import BattleChat from "@/components/battle/BattleChat.vue";
 import LuaOptionsModal from "@/components/battle/LuaOptionsModal.vue";
 import MapListModal from "@/components/battle/MapListModal.vue";
 import Playerlist from "@/components/battle/Playerlist.vue";
-import VotingPanel from "@/components/battle/VotingPanel.vue";
+import VotingPanel from "@/components/battle/VotePanel.vue";
 import Button from "@/components/controls/Button.vue";
 import Checkbox from "@/components/controls/Checkbox.vue";
 import Number from "@/components/controls/Number.vue";

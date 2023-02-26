@@ -23,7 +23,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="flex-row gap-sm flex-bottom">
+                <div class="flex-row gap-sm flex-bottom padding-md">
                     <Textbox
                         v-model="text"
                         v-in-view="focusTextbox"
@@ -40,7 +40,7 @@
                     <Icon :icon="chatPlus" />
                 </template>
 
-                <div class="flex-col flex-grow">
+                <div class="flex-col flex-grow padding-md">
                     <Textbox v-model="newMessageUserId" v-in-view="focusTextbox" class="fullwidth" label="UserID" placeholder="32452" />
                     <div class="flex-row gap-sm flex-bottom">
                         <Textbox
@@ -155,6 +155,7 @@ function close(userId: number) {
     display: flex;
     flex-direction: column;
     flex-grow: 1;
+    padding: 0 !important;
 }
 :deep(.p-tabview-header-action) {
     overflow: unset;
@@ -163,7 +164,7 @@ function close(userId: number) {
     display: flex;
     flex-direction: column-reverse;
     overflow-y: scroll;
-    padding: 10px 0;
+    padding: 10px;
     flex: 1 1 auto;
     height: 0;
 }
