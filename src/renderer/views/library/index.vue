@@ -4,7 +4,6 @@
         redirect: "/library/replays",
         title: "Library",
         order: 2,
-        offline: true,
     },
 }
 </route>

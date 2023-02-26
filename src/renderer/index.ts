@@ -20,7 +20,7 @@ declare module "vue-router" {
     interface RouteMeta {
         title?: string;
         order?: number;
-        offline?: boolean;
+        availableOffline?: boolean;
         empty?: boolean;
         blurBg?: boolean;
         transition?: TransitionProps;

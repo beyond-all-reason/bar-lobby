@@ -4,7 +4,6 @@
         redirect: "/singleplayer/campaign",
         title: "Singleplayer",
         order: 0,
-        offline: true,
     },
 }
 </route>

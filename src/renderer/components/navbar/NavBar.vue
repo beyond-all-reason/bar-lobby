@@ -14,6 +14,7 @@
                 </div>
                 <div class="primary-right">
                     <Button
+                        v-if="!offlineMode"
                         v-tooltip.bottom="'Direct Messages'"
                         v-click-away:messages="() => (messagesOpen = false)"
                         :class="['icon', { active: messagesOpen }]"
@@ -23,6 +24,7 @@
                         <div v-if="messagesUnread" class="unread-dot"></div>
                     </Button>
                     <Button
+                        v-if="!offlineMode"
                         v-tooltip.bottom="'Friends'"
                         v-click-away:friends="() => (friendsOpen = false)"
                         :class="['icon', { active: friendsOpen }]"
@@ -51,14 +53,14 @@
                     </Button>
                 </div>
                 <div class="secondary-right flex-row flex-right">
-                    <Button class="server-status">
+                    <Button v-if="!offlineMode" class="server-status">
                         <div class="flex-row flex-center gap-sm">
                             <div class="server-status-dot" :class="{ offline: serverOffline }">⬤</div>
                             <div v-if="serverStats && !serverOffline">{{ serverStats.user_count }} Players Online</div>
                             <div v-else-if="serverOffline">Offline Mode</div>
                         </div>
                     </Button>
-                    <Button class="user" to="/profile">
+                    <Button v-if="!offlineMode" class="user" to="/profile">
                         <div class="flex-row flex-center gap-sm">
                             <Icon :icon="account" :height="20" />
                             <div>{{ currentUser.username }}</div>
@@ -104,17 +106,29 @@ const props = defineProps<{
 }>();
 
 const allRoutes = api.router.getRoutes();
-
-const primaryRoutes = allRoutes
-    .filter((r) => ["/singleplayer", "/multiplayer", "/library", "/learn", "/store", "/development"].includes(r.path))
-    .sort((a, b) => (a.meta.order ?? 99) - (b.meta.order ?? 99));
-
+const offlineMode = api.session.offlineMode;
+const primaryRoutes = computed(() => {
+    return allRoutes
+        .filter((r) => ["/singleplayer", "/multiplayer", "/library", "/learn", "/store", "/development"].includes(r.path))
+        .filter(
+            (r) =>
+                r.meta.availableOffline === undefined ||
+                r.meta.availableOffline ||
+                (r.meta.availableOffline === false && !offlineMode.value)
+        )
+        .sort((a, b) => (a.meta.order ?? 99) - (b.meta.order ?? 99));
+});
 const secondaryRoutes = computed(() => {
     return allRoutes
         .filter((r) => r.meta.order !== undefined && r.path.startsWith(`/${api.router.currentRoute.value.path.split("/")[1]}/`))
+        .filter(
+            (r) =>
+                r.meta.availableOffline === undefined ||
+                r.meta.availableOffline ||
+                (r.meta.availableOffline === false && !offlineMode.value)
+        )
         .sort((a, b) => (a.meta.order ?? 99) - (b.meta.order ?? 99));
 });
-
 const messagesOpen = ref(false);
 const friendsOpen = ref(false);
 const downloadsOpen = ref(false);
