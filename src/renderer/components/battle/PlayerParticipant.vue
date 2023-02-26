@@ -50,7 +50,7 @@ const actions: MenuItem[] =
         ? [
               { label: "View Profile", command: viewProfile },
               { label: "Make Boss", command: makeBoss },
-              { label: "Add Bonus", command: addBonus },
+              //   { label: "Add Bonus", command: addBonus },
           ]
         : [
               { label: "View Profile", command: viewProfile },
@@ -63,7 +63,7 @@ const actions: MenuItem[] =
                   label: "More",
                   items: [
                       { label: "Make Boss", command: makeBoss },
-                      { label: "Add Bonus", command: addBonus },
+                      //   { label: "Add Bonus", command: addBonus },
                   ],
               },
               //{ label: "Report", command: reportPlayer },

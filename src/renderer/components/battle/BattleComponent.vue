@@ -85,7 +85,6 @@
                     :filter="true"
                     :placeholder="battle.battleOptions.gameVersion"
                     :disabled="isSpadsBattle(battle)"
-                    class="fullwidth"
                     @update:model-value="onGameSelected"
                 />
                 <Button v-tooltip.left="'Configure game options'" @click="openGameOptions">

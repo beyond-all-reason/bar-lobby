@@ -25,6 +25,7 @@ const props = defineProps<Props>();
 <style lang="scss">
 .select {
     align-self: center;
+    width: 100%;
 }
 .p-dropdown {
     display: inline-flex;
