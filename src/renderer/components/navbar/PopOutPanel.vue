@@ -29,7 +29,7 @@ const props = defineProps<{
     //transform: translateX(-9px);
     //opacity: 1;
     //transition: transform 200ms, opacity 200ms;
-    background: rgba(0, 0, 0, 0.85);
+    background: rgba(0, 0, 0, 0.95);
     :deep(.content) {
         padding: 0;
     }
