@@ -191,9 +191,13 @@ export class CommsAPI extends TachyonClient {
         this.onResponse("s.lobby.remove_user").add((data) => {
             const user = api.session.getUserById(data.leaver_id);
             const battle = api.session.battles.get(data.lobby_id);
-            if (user && battle) {
-                const index = battle.users.findIndex((user) => user.userId === data.leaver_id);
-                battle.users.splice(index, 1);
+            if (user) {
+                if (battle) {
+                    const index = battle.users.findIndex((user) => user.userId === data.leaver_id);
+                    battle.users.splice(index, 1);
+                }
+
+                user.battleStatus.battleId = null;
             }
         });
 
@@ -358,7 +362,6 @@ export class CommsAPI extends TachyonClient {
                 if (clients) {
                     if (battleStatus) {
                         api.session.updateUserBattleStauts(battleStatus);
-                        user.isOnline = true;
                     } else {
                         user.isOnline = false;
                     }

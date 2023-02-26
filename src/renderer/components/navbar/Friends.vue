@@ -15,7 +15,11 @@
                         <Button class="blue" :disabled="!Boolean(friendIdStr)" @click="addFriend">Add Friend</Button>
                     </div>
 
-                    <Accordion :activeIndex="accordianActiveIndexes" multiple>
+                    <Accordion
+                        v-if="outgoingFriendRequests.length || incomingFriendRequests.length"
+                        :activeIndex="accordianActiveIndexes"
+                        multiple
+                    >
                         <AccordionTab v-if="outgoingFriendRequests.length" header="Outgoing Friend Requests">
                             <div class="user-list">
                                 <Friend
@@ -36,17 +40,12 @@
                                 />
                             </div>
                         </AccordionTab>
-                        <AccordionTab v-if="onlineFriends.length" header="Online">
-                            <div class="user-list">
-                                <Friend v-for="(user, i) in onlineFriends" :key="`onlineFriend${i}`" :user="user" :type="'friend'" />
-                            </div>
-                        </AccordionTab>
-                        <AccordionTab v-if="offlineFriends.length" header="Offline">
-                            <div class="user-list">
-                                <Friend v-for="(user, i) in offlineFriends" :key="`offlineFriend${i}`" :user="user" :type="'friend'" />
-                            </div>
-                        </AccordionTab>
                     </Accordion>
+
+                    <div class="user-list">
+                        <Friend v-for="(user, i) in onlineFriends" :key="`onlineFriend${i}`" :user="user" :type="'friend'" />
+                        <Friend v-for="(user, i) in offlineFriends" :key="`offlineFriend${i}`" :user="user" :type="'friend'" />
+                    </div>
                 </div>
             </TabPanel>
             <TabPanel header="Blocked">

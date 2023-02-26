@@ -17,7 +17,7 @@
                             v-for="(message, i) in messages"
                             :key="i"
                             v-in-view.once="() => (message.read = true)"
-                            :class="['message', { fromMe: message.senderUserId === myUserId }]"
+                            :class="['message', { fromMe: message.senderUserId === myUser.userId }]"
                         >
                             {{ message.text }}
                         </div>
@@ -82,7 +82,7 @@ const text = ref("");
 const newMessage = ref("");
 const newMessageUserId = ref("");
 const directMessages = api.session.directMessages;
-const myUserId = api.session.onlineUser.userId;
+const myUser = api.session.onlineUser;
 const activeTabIndex = ref(Math.max(directMessages.size - 1, 0));
 const toggleMessages = inject<Ref<(open?: boolean, userId?: number) => void>>("toggleMessages")!;
 const toggleFriends = inject<Ref<(open?: boolean) => void>>("toggleFriends")!;
@@ -163,7 +163,7 @@ function close(userId: number) {
     display: flex;
     flex-direction: column-reverse;
     overflow-y: scroll;
-    padding: 10px;
+    padding: 10px 0;
     flex: 1 1 auto;
     height: 0;
 }
@@ -200,12 +200,8 @@ function close(userId: number) {
     border: none;
     opacity: 0.5;
     padding: 10px;
-    visibility: hidden;
     &:hover {
         opacity: 1;
     }
-}
-.p-tabview-nav-link:hover .close {
-    visibility: visible;
 }
 </style>

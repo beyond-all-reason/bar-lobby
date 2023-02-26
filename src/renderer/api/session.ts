@@ -142,6 +142,8 @@ export class SessionAPI {
         user.battleStatus.playerId = battleStatusData.player_number;
         user.battleStatus.color = battleStatusData.team_colour;
         user.battleStatus.ready = battleStatusData.ready;
+
+        user.isOnline = true;
     }
 
     public getUserById(userId: number) {

@@ -1,8 +1,9 @@
 <template>
     <div class="friend">
-        <div class="flex-row gap-md">
+        <div class="flex-row gap-md flex-center-items">
             <Flag :countryCode="user.countryCode" class="flag" />
             <div class="username">{{ user.username }}</div>
+            <div :class="['online-dot', { offline: !user.isOnline }]">⬤</div>
         </div>
         <div class="flex-row gap-sm">
             <template v-if="type === 'outgoing_request'">
@@ -24,13 +25,24 @@
                 <Button v-tooltip.left="`View profile`" class="slim square" @click="viewProfile">
                     <Icon :icon="account" />
                 </Button>
-                <Button v-tooltip.left="`Send message`" v-click-away:messages="() => {}" class="slim square" @click="sendMessage">
+                <Button
+                    v-if="user.isOnline"
+                    v-tooltip.left="`Send message`"
+                    v-click-away:messages="() => {}"
+                    class="slim square"
+                    @click="sendMessage"
+                >
                     <Icon :icon="messageReplyText" />
                 </Button>
-                <Button v-tooltip.left="`Join battle`" class="slim square" @click="joinBattle">
+                <Button
+                    v-if="user.isOnline && user.battleStatus.battleId"
+                    v-tooltip.left="`Join battle`"
+                    class="slim square"
+                    @click="joinBattle"
+                >
                     <Icon :icon="accountArrowRight" />
                 </Button>
-                <Button v-tooltip.left="`Invite to party`" class="slim square" @click="inviteToParty">
+                <Button v-if="user.isOnline" v-tooltip.left="`Invite to party`" class="slim square" @click="inviteToParty">
                     <Icon :icon="accountMultiplePlus" />
                 </Button>
                 <Button v-tooltip.left="`Remove friend`" class="slim red square" @click="removeFriend">
@@ -90,7 +102,7 @@ async function rejectRequest() {
 }
 
 async function viewProfile() {
-    await api.router.push(`/profile/overview/${props.user.userId}`);
+    await api.router.push(`/profile/${props.user.userId}`);
 }
 
 const toggleMessages = inject<Ref<((open?: boolean, userId?: number) => void) | undefined>>("toggleMessages")!;
@@ -113,7 +125,9 @@ async function inviteToParty() {
 }
 
 async function removeFriend() {
-    // TODO
+    await api.comms.request("c.user.remove_friend", {
+        user_id: props.user.userId,
+    });
 }
 </script>
 
@@ -139,6 +153,13 @@ async function removeFriend() {
     :deep(.p-button) {
         padding: 2px;
         font-size: 17px;
+    }
+}
+.online-dot {
+    font-size: 12px;
+    color: rgb(121, 226, 0);
+    &.offline {
+        color: rgb(216, 46, 46);
     }
 }
 </style>
