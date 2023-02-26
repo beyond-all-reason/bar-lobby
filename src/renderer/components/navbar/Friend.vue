@@ -36,13 +36,13 @@
                 </Button>
                 <Button
                     v-if="user.isOnline && user.battleStatus.battleId"
-                    v-tooltip.left="`Join battle`"
+                    v-tooltip.left="`Join battle (TODO)`"
                     class="slim square"
                     @click="joinBattle"
                 >
                     <Icon :icon="accountArrowRight" />
                 </Button>
-                <Button v-if="user.isOnline" v-tooltip.left="`Invite to party`" class="slim square" @click="inviteToParty">
+                <Button v-if="user.isOnline" v-tooltip.left="`Invite to party (TODO)`" class="slim square" @click="inviteToParty">
                     <Icon :icon="accountMultiplePlus" />
                 </Button>
                 <Button v-tooltip.left="`Remove friend`" class="slim red square" @click="removeFriend">
@@ -118,6 +118,7 @@ function sendMessage() {
 
 async function joinBattle() {
     // TODO
+    // Will need to move password modal up to top level so it can be prompted from anywhere
 }
 
 async function inviteToParty() {

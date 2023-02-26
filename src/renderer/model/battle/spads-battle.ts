@@ -3,6 +3,7 @@ import { assign, entries, objectKeys, roundToMultiple } from "jaz-ts-utils";
 import { battleSchema, lobbySchema } from "tachyon-client";
 import { computed, ComputedRef, Ref, ref } from "vue";
 
+import { defaultBoxes } from "@/config/default-boxes";
 import { AbstractBattle } from "@/model/battle/abstract-battle";
 import { Bot, SpadsBattleOptions, StartBox, StartPosType } from "@/model/battle/battle-types";
 import { SpadsVote } from "@/model/spads/spads-types";
@@ -287,7 +288,15 @@ export class SpadsBattle extends AbstractBattle<SpadsBattleOptions> {
     }
 
     public setStartBoxes(startBoxes: StartBox[]) {
-        console.warn("not implemented: setStartBoxes");
+        if (JSON.stringify(startBoxes) === JSON.stringify(defaultBoxes().EastVsWest)) {
+            api.comms.request("c.lobby.message", { message: `!split v 30` });
+        } else if (JSON.stringify(startBoxes) === JSON.stringify(defaultBoxes().NorthVsSouth)) {
+            api.comms.request("c.lobby.message", { message: `!split h 30` });
+        } else if (JSON.stringify(startBoxes) === JSON.stringify(defaultBoxes().NorthwestVsSouthEast)) {
+            api.comms.request("c.lobby.message", { message: `!split c1 30` });
+        } else if (JSON.stringify(startBoxes) === JSON.stringify(defaultBoxes().NortheastVsSouthwest)) {
+            api.comms.request("c.lobby.message", { message: `!split c2 30` });
+        }
     }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
