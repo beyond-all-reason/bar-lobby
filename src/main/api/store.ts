@@ -11,7 +11,7 @@ export class StoreAPI<T extends TObject> extends AsbtractStoreAPI<T> {
 
         const name = path.parse(this.filePath).name;
 
-        ipcMain.handle(`store-update:${name}`, async (event, model: Static<T>) => {
+        ipcMain.on(`store-update:${name}`, (event, model: Static<T>) => {
             assign(this.model, model);
         });
 

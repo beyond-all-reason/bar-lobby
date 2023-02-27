@@ -2,15 +2,15 @@ import { BrowserWindow, screen, shell } from "electron";
 import path from "path";
 import { watch } from "vue";
 
-import type { AsbtractStoreAPI } from "$/api/abstract-store";
+import { StoreAPI } from "@/api/store";
 import { settingsSchema } from "$/model/settings";
 
 export class MainWindow {
     public window: BrowserWindow;
 
-    protected settings: AsbtractStoreAPI<typeof settingsSchema>;
+    protected settings: StoreAPI<typeof settingsSchema>;
 
-    constructor(settings: AsbtractStoreAPI<typeof settingsSchema>) {
+    constructor(settings: StoreAPI<typeof settingsSchema>) {
         this.settings = settings;
 
         this.window = new BrowserWindow({
@@ -58,6 +58,7 @@ export class MainWindow {
             () => this.settings.model.displayIndex,
             (displayIndex) => this.setDisplay(displayIndex)
         );
+
         watch(
             () => this.settings.model.fullscreen,
             (fullscreen) => {

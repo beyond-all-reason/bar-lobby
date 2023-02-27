@@ -14,8 +14,12 @@
             {{ frameCount }}
         </div> -->
         <div v-if="empty" class="splash-options">
-            <Icon :icon="cog" height="21" class="option" @click="settingsOpen = true" />
-            <Icon :icon="closeThick" height="21" class="option" @click="exitOpen = true" />
+            <div class="option" @click="settingsOpen = true">
+                <Icon :icon="cog" height="21" />
+            </div>
+            <div class="option" @click="exitOpen = true">
+                <Icon :icon="closeThick" height="21" />
+            </div>
         </div>
         <transition mode="out-in" name="fade">
             <Preloader v-if="state === 'preloader'" @complete="onPreloadDone" />
