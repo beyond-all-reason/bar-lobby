@@ -94,9 +94,17 @@ const offlineFriends = computed(() => api.session.friends.value.filter((user) =>
 const outgoingFriendRequests = api.session.outgoingFriendRequests;
 const incomingFriendRequests = api.session.incomingFriendRequests;
 const myUserId = computed(() => api.session.onlineUser.userId);
+
+const toggleMessages = inject<Ref<(open?: boolean, userId?: number) => void>>("toggleMessages")!;
 const toggleFriends = inject<Ref<(open?: boolean) => void>>("toggleFriends")!;
+const toggleDownloads = inject<Ref<(open?: boolean) => void>>("toggleDownloads")!;
 
 toggleFriends.value = (open?: boolean) => {
+    if (open) {
+        toggleMessages.value(false);
+        toggleDownloads.value(false);
+    }
+
     emits("update:modelValue", open ?? !props.modelValue);
 };
 

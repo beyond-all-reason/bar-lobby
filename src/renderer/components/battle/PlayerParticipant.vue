@@ -19,6 +19,7 @@
 <script lang="ts" setup>
 import { Icon } from "@iconify/vue";
 import syncAlert from "@iconify-icons/mdi/sync-alert";
+import { delay } from "jaz-ts-utils";
 import { MenuItem } from "primevue/menuitem";
 import { computed, inject, Ref, ref } from "vue";
 
@@ -91,14 +92,15 @@ async function ringPlayer() {
     });
 }
 
-const toggleDownloads = inject<Ref<((open?: boolean, userId?: number) => void) | undefined>>("toggleDownloads")!;
-function messagePlayer() {
+const toggleMessages = inject<Ref<((open?: boolean, userId?: number) => void) | undefined>>("toggleMessages")!;
+async function messagePlayer() {
     if (!api.session.directMessages.has(props.player.userId)) {
         api.session.directMessages.set(props.player.userId, []);
     }
 
-    if (toggleDownloads.value) {
-        toggleDownloads.value(true, props.player.userId);
+    if (toggleMessages.value) {
+        await delay(10); // needed because the v-click-away directive tells the messages popout to close on the same frame as this would otherwise tell it to open
+        toggleMessages.value(true, props.player.userId);
     }
 }
 
@@ -112,7 +114,7 @@ async function addBonus() {
     // TODO
 }
 
-function blockPlayer() {
+async function blockPlayer() {
     // TODO
 }
 

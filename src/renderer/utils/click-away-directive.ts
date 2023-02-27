@@ -1,19 +1,6 @@
 // https://vuejs.org/guide/reusability/custom-directives.html#introduction
 
-/**
- * arg is unique id that can be used to prevent the callback from being called on other elements
- *
- * TODO:
- * - add options for left click, right click, double click
- */
-
 import { Directive, DirectiveBinding } from "vue";
-
-type ClickAwayDirectiveOptions = {
-    left: boolean;
-    right: boolean;
-    double: boolean;
-};
 
 const UNIQUE_ID = "__vue_click_away__";
 
@@ -54,6 +41,7 @@ function mounted(el: HTMLElement, binding: DirectiveBinding) {
         }
 
         if (!document.contains(event.target as HTMLElement)) {
+            console.log(event.target);
             return;
         }
 

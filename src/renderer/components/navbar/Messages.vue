@@ -84,12 +84,16 @@ const newMessageUserId = ref("");
 const directMessages = api.session.directMessages;
 const myUser = api.session.onlineUser;
 const activeTabIndex = ref(Math.max(directMessages.size - 1, 0));
+
 const toggleMessages = inject<Ref<(open?: boolean, userId?: number) => void>>("toggleMessages")!;
 const toggleFriends = inject<Ref<(open?: boolean) => void>>("toggleFriends")!;
 const toggleDownloads = inject<Ref<(open?: boolean) => void>>("toggleDownloads")!;
 
 toggleMessages.value = async (open?: boolean, userIdToActivate?: number) => {
-    toggleFriends.value(false);
+    if (open) {
+        toggleFriends.value(false);
+        toggleDownloads.value(false);
+    }
 
     emits("update:modelValue", open ?? !props.modelValue);
 

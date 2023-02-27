@@ -22,7 +22,7 @@
 </template>
 
 <script lang="ts" setup>
-import { computed } from "vue";
+import { computed, inject, Ref } from "vue";
 
 import Progress from "@/components/common/Progress.vue";
 import PopOutPanel from "@/components/navbar/PopOutPanel.vue";
@@ -32,9 +32,22 @@ const props = defineProps<{
 }>();
 
 const emits = defineEmits<{
-    (e: "update:modelValue", newPercent: number): void;
+    (e: "update:modelValue", open: boolean): void;
     (e: "percentChange", newPercent: number): void;
 }>();
+
+const toggleMessages = inject<Ref<(open?: boolean, userId?: number) => void>>("toggleMessages")!;
+const toggleFriends = inject<Ref<(open?: boolean) => void>>("toggleFriends")!;
+const toggleDownloads = inject<Ref<(open?: boolean) => void>>("toggleDownloads")!;
+
+toggleDownloads.value = async (open?: boolean) => {
+    if (open) {
+        toggleMessages.value(false);
+        toggleFriends.value(false);
+    }
+
+    emits("update:modelValue", open ?? !props.modelValue);
+};
 
 const downloads = computed(() =>
     api.content.engine.currentDownloads.concat(api.content.game.currentDownloads, api.content.maps.currentDownloads)
