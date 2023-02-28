@@ -10,6 +10,13 @@ import { MainWindow } from "@/main-window";
 import type { Info } from "$/model/info";
 import { settingsSchema } from "$/model/settings";
 
+/** Steam integration, commented out until we have a dedicated app id */
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+// const steamworks = require("steamworks.js");
+// const client = steamworks.init(480);
+// console.log(client.localplayer.getName());
+// steamworks.electronEnableSteamOverlay();
+
 export class Application {
     protected mainWindow?: MainWindow;
     protected settings?: StoreAPI<typeof settingsSchema>;
@@ -32,11 +39,6 @@ export class Application {
         ]);
 
         app.commandLine.appendSwitch("disable-features", "HardwareMediaKeyHandling,MediaSessionService");
-        app.commandLine.appendSwitch("in-process-gpu");
-        app.commandLine.appendSwitch("disable-direct-composition");
-
-        // commented out until we have a gameid for bar via steamworks
-        // this.setupSteam();
 
         if (process.env.NODE_ENV !== "production") {
             if (process.platform === "win32") {
@@ -138,16 +140,6 @@ export class Application {
         };
 
         return info;
-    }
-
-    protected async setupSteam() {
-        try {
-            const steamworks = await import("steamworks.js");
-            const client = steamworks.init(480);
-            console.log(client.localplayer.getName());
-        } catch (err) {
-            console.error(err);
-        }
     }
 }
 

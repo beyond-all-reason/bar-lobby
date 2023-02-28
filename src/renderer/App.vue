@@ -10,9 +10,6 @@
         <div class="lobby-version">
             {{ lobbyVersion }}
         </div>
-        <!-- <div class="steam-overlay-hack">
-            {{ frameCount }}
-        </div> -->
         <div v-if="empty" class="splash-options">
             <div class="option" @click="settingsOpen = true">
                 <Icon :icon="cog" height="21" />
@@ -140,14 +137,6 @@ function leftClick() {
 function rightClick() {
     return api.utils.onRightClick.dispatch();
 }
-
-const frameCount = ref(0);
-
-function animFrame() {
-    frameCount.value++;
-    requestAnimationFrame(() => animFrame());
-}
-animFrame();
 </script>
 
 <style lang="scss" scoped>
@@ -171,11 +160,6 @@ animFrame();
     bottom: 1px;
     font-size: 12px;
     color: rgba(255, 255, 255, 0.3);
-}
-.steam-overlay-hack {
-    position: fixed;
-    top: -50px;
-    opacity: 0.01;
 }
 .splash-options {
     position: fixed;
