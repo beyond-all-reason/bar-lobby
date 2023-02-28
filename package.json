@@ -36,6 +36,9 @@
   "engines": {
     "node": "14.21.2"
   },
+  "build": {
+    "electronDist": "node_modules/electron/dist"
+  },
   "dependencies": {
     "@iconify-icons/mdi": "^1.2.14",
     "@iconify/json": "^2.2.14",
@@ -87,7 +90,6 @@
     "electron": "^22.1.0",
     "electron-builder": "^23.6.0",
     "electron-devtools-installer": "^3.2.0",
-    "electron-rebuild": "^3.2.9",
     "electron-unhandled": "^4.0.1",
     "electron-updater": "^5.3.0",
     "electron-vite": "^1.0.11",
