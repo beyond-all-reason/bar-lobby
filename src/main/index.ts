@@ -3,7 +3,8 @@ import { app, ipcMain, protocol, screen } from "electron";
 import unhandled from "electron-unhandled";
 import { autoUpdater } from "electron-updater";
 import envPaths from "env-paths";
-import * as path from "path";
+import os from "os";
+import path from "path";
 
 import { StoreAPI } from "@/api/store";
 import { MainWindow } from "@/main-window";
@@ -124,6 +125,9 @@ export class Application {
             currentDisplayId = screen.getDisplayNearestPoint(this.mainWindow.window.getBounds()).id;
         }
 
+        const networkInterfaces = os.networkInterfaces();
+        const defaultNetworkInterface = networkInterfaces["Ethernet"]?.[0] ?? Object.values(networkInterfaces)[0]?.[0];
+
         const info: Info = {
             resourcesPath,
             contentPath: paths.data,
@@ -131,7 +135,7 @@ export class Application {
             lobby: {
                 name: "BAR Lobby",
                 version: app.getVersion(),
-                hash: "123", // TODO: this should be the checksum of the official build
+                hash: defaultNetworkInterface?.mac ?? "123",
             },
             hardware: {
                 numOfDisplays: displayIds.length,
