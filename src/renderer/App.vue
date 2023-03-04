@@ -69,7 +69,7 @@ import NavBar from "@/components/navbar/NavBar.vue";
 import Settings from "@/components/navbar/Settings.vue";
 import Notifications from "@/components/notifications/Notifications.vue";
 import { defaultMaps } from "@/config/default-maps";
-import { latestStableEngineVersion } from "@/config/latest-engine";
+import { defaultEngineVersion, defaultGameVersion } from "@/config/default-versions";
 import { playRandomMusic } from "@/utils/play-random-music";
 
 const isProduction = process.env.NODE_ENV === "production";
@@ -117,8 +117,8 @@ async function onPreloadDone() {
         state.value = "initial-setup";
     } else {
         // TODO: fix the slight delay these cause on startup, probably best to move them into worker threads
-        api.content.engine.downloadEngine(latestStableEngineVersion);
-        api.content.game.downloadGame();
+        api.content.engine.downloadEngine(defaultEngineVersion);
+        api.content.game.downloadGame(defaultGameVersion);
         api.content.maps.downloadMaps(defaultMaps);
 
         state.value = "default";

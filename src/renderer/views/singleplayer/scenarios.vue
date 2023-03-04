@@ -5,19 +5,24 @@
 <template>
     <div>
         <h1>{{ route.meta.title }}</h1>
-        <Markdown
-            source="
-- Scenarios list - pull from online scenarios database?
-- Scenario preview panel - shows mission objective, top 10 leaderboard
-"
-        />
+
+        <Button @click="test"></Button>
     </div>
 </template>
 
 <script lang="ts" setup>
-import Markdown from "vue3-markdown-it";
+import Button from "@/components/controls/Button.vue";
 
 const route = api.router.currentRoute.value;
+
+function test() {
+    // const battle = new OfflineBattle({
+    //     battleOptions: {
+    //         engineVersion: ""
+    //     }
+    // });
+    // api.game.launch(battle);
+}
 </script>
 
 <style lang="scss" scoped></style>

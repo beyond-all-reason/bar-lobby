@@ -1,8 +1,9 @@
-import { lastInArray, randomFromArray } from "jaz-ts-utils";
+import { randomFromArray } from "jaz-ts-utils";
 
 import { aiNames } from "@/config/ai-names";
 import { defaultMapBoxes } from "@/config/default-boxes";
 import { defaultMaps } from "@/config/default-maps";
+import { defaultEngineVersion, defaultGameVersion } from "@/config/default-versions";
 import { StartPosType } from "@/model/battle/battle-types";
 import { OfflineBattle } from "@/model/battle/offline-battle";
 
@@ -18,8 +19,8 @@ export function defaultBattle(mapScriptName?: string) {
         battleOptions: {
             title: "Offline Custom Battle",
             startTime: null,
-            engineVersion: lastInArray(api.content.engine.installedVersions)!,
-            gameVersion: Array.from(api.content.game.installedVersions).pop()!,
+            engineVersion: defaultEngineVersion,
+            gameVersion: defaultGameVersion,
             map: map,
             startPosType: StartPosType.Boxes,
             startBoxes: defaultMapBoxes(map),

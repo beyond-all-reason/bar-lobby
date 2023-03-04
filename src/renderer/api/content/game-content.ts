@@ -8,6 +8,7 @@ import * as zlib from "zlib";
 
 import { PrDownloaderAPI } from "@/api/content/pr-downloader";
 import { contentSources } from "@/config/content-sources";
+import { defaultGameVersion } from "@/config/default-versions";
 import { LuaOptionSection } from "@/model/lua-options";
 import { SdpFile, SdpFileMeta } from "@/model/sdp";
 import { parseLuaOptions } from "@/utils/parse-lua-options";
@@ -57,8 +58,6 @@ export class GameContentAPI extends PrDownloaderAPI {
     }
 
     public async updateVersions() {
-        console.debug("Updating game versions");
-
         const response = await axios({
             url: `${contentSources.rapid.host}/${contentSources.rapid.game}/versions.gz`,
             method: "GET",
@@ -95,7 +94,7 @@ export class GameContentAPI extends PrDownloaderAPI {
      * @param filePatterns glob pattern for which files to retrieve
      * @example getGameFiles("Beyond All Reason test-16289-b154c3d", ["units/CorAircraft/T2/*.lua"])
      */
-    public async getGameFiles(version: string, filePattern: string): Promise<SdpFile[]> {
+    public async getGameFiles(version: string = defaultGameVersion, filePattern: string): Promise<SdpFile[]> {
         if (!this.installedVersions.has(version)) {
             throw new Error(`Cannot fetch files for ${version}, as it is not installed`);
         }
@@ -138,6 +137,10 @@ export class GameContentAPI extends PrDownloaderAPI {
         const gameFiles = await this.getGameFiles(version, "modoptions.lua");
         const gameOptionsLua = gameFiles[0].data;
         return parseLuaOptions(gameOptionsLua);
+    }
+
+    public async getScenarios() {
+        //const scenarios = this.getGameFiles();
     }
 
     protected async parseSdpFile(sdpFilePath: string, filePattern?: string): Promise<SdpFileMeta[]> {
