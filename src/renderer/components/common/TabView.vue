@@ -31,6 +31,7 @@ const emits = defineEmits<Emits>();
         flex-direction: row;
         background: rgba(0, 0, 0, 0.1);
         border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        justify-content: space-between;
     }
     .p-tabview-nav-link {
         padding: 10px;
@@ -40,10 +41,10 @@ const emits = defineEmits<Emits>();
         }
     }
     .p-tabview-header {
-        width: 100%;
         display: flex;
         justify-content: center;
         overflow: hidden;
+        flex-grow: 1;
         &:not(:first-child) {
             box-shadow: inset 1px 0 0 0 rgba(255, 255, 255, 0.1);
         }

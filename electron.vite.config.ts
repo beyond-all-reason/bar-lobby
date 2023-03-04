@@ -48,11 +48,11 @@ export default defineConfig({
         },
         css: {
             modules: false,
-            preprocessorOptions: {
-                scss: {
-                    additionalData: `@use "@/assets/styles/_utils.scss";`,
-                },
-            },
+            // preprocessorOptions: {
+            //     scss: {
+            //         additionalData: `@use "@/assets/styles/_utils.scss";`,
+            //     },
+            // },
         },
         plugins: [
             VueRouter({

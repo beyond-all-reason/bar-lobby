@@ -1,17 +1,23 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type { LocalStatement, TableConstructorExpression } from "luaparse";
-import * as luaparse from "luaparse";
+import luaparse from "luaparse";
 
-export function parseLuaTable(luaFile: Buffer, tableVariableName?: string): any {
-    const parsedLua = luaparse.parse(luaFile.toString(), { encodingMode: "x-user-defined", comments: false });
+type ParseLuaTableOptions = {
+    tableVariableName?: string;
+};
+
+export function parseLuaTable(luaFile: Buffer, options?: ParseLuaTableOptions): any {
+    const parsedLua = luaparse.parse(luaFile.toString(), { comments: false });
 
     let tableConstructorExpression: TableConstructorExpression | undefined;
-    if (tableVariableName) {
-        const localStatement = parsedLua.body.find((body) => body.type === "LocalStatement" && body.variables.find((variable) => variable.name === tableVariableName)) as LocalStatement | undefined;
+    if (options?.tableVariableName) {
+        const localStatement = parsedLua.body.find((body) => body.type === "LocalStatement" && body.variables.find((variable) => variable.name === options?.tableVariableName)) as
+            | LocalStatement
+            | undefined;
         if (localStatement) {
             tableConstructorExpression = localStatement.init.find((obj) => obj.type === "TableConstructorExpression") as TableConstructorExpression | undefined;
         } else {
-            throw new Error(`Could not find local statement for local table: ${tableVariableName}`);
+            throw new Error(`Could not find local statement for local table: ${options?.tableVariableName}`);
         }
     } else {
         const localStatement = parsedLua.body.find((body) => body.type === "LocalStatement") as LocalStatement | undefined;
@@ -32,14 +38,21 @@ export function luaTableToObj(table: TableConstructorExpression): any {
     for (const field of table.fields) {
         if (field.type === "TableKeyString") {
             const key = field.key.name;
-            if (field.value.type === "StringLiteral" || field.value.type === "NumericLiteral" || field.value.type === "BooleanLiteral") {
-                obj[key] = field.value.value;
+            const value = field.value;
+            if (value.type === "StringLiteral") {
+                obj[key] = (value.value as string | null) ?? value.raw.slice(1, -1);
+            } else if (value.type === "NumericLiteral" || value.type === "BooleanLiteral") {
+                obj[key] = value.value;
             } else if (field.value.type === "TableConstructorExpression") {
                 obj[key] = luaTableToObj(field.value);
             }
         } else if (field.type === "TableValue") {
             if (field.value.type === "TableConstructorExpression") {
                 blocks.push(luaTableToObj(field.value));
+            } else if (field.value.type === "StringLiteral") {
+                blocks.push((field.value.value as string | null) ?? field.value.raw.slice(1, -1));
+            } else if (field.value.type === "NumericLiteral" || field.value.type === "BooleanLiteral") {
+                blocks.push(field.value.value);
             }
         }
     }

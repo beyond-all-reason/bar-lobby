@@ -3,15 +3,20 @@ import * as fs from "fs";
 import * as glob from "glob-promise";
 import { BufferStream, entries } from "jaz-ts-utils";
 import * as path from "path";
+import util from "util";
 import { reactive } from "vue";
-import * as zlib from "zlib";
+import zlib from "zlib";
 
 import { PrDownloaderAPI } from "@/api/content/pr-downloader";
 import { contentSources } from "@/config/content-sources";
 import { defaultGameVersion } from "@/config/default-versions";
 import { LuaOptionSection } from "@/model/lua-options";
+import { Scenario } from "@/model/scenario";
 import { SdpFile, SdpFileMeta } from "@/model/sdp";
 import { parseLuaOptions } from "@/utils/parse-lua-options";
+import { parseLuaTable } from "@/utils/parse-lua-table";
+
+const gunzip = util.promisify(zlib.gunzip);
 
 /**
  * This API utilises pr-downloader to download game files, therefore it requires at least one engine version to be installed and for api.content.engine to be initialised
@@ -94,7 +99,9 @@ export class GameContentAPI extends PrDownloaderAPI {
      * @param filePatterns glob pattern for which files to retrieve
      * @example getGameFiles("Beyond All Reason test-16289-b154c3d", ["units/CorAircraft/T2/*.lua"])
      */
-    public async getGameFiles(version: string = defaultGameVersion, filePattern: string): Promise<SdpFile[]> {
+    public async getGameFiles(version: string, filePattern: string, parseData?: false): Promise<SdpFileMeta[]>;
+    public async getGameFiles(version: string, filePattern: string, parseData?: true): Promise<SdpFile[]>;
+    public async getGameFiles(version: string, filePattern: string, parseData = false): Promise<SdpFileMeta[] | SdpFile[]> {
         if (!this.installedVersions.has(version)) {
             throw new Error(`Cannot fetch files for ${version}, as it is not installed`);
         }
@@ -116,17 +123,20 @@ export class GameContentAPI extends PrDownloaderAPI {
 
         const sdpEntries = await this.parseSdpFile(filePath, filePattern);
 
-        const sdpFiles: SdpFile[] = [];
+        const sdpFiles: Array<SdpFileMeta & { data?: Buffer }> = [];
 
         for (const sdpEntry of sdpEntries) {
             const poolDir = sdpEntry.md5.slice(0, 2);
             const archiveFileName = `${sdpEntry.md5.slice(2)}.gz`;
             const archiveFilePath = path.join(api.info.contentPath, "pool", poolDir, archiveFileName);
             const archiveFile = await fs.promises.readFile(archiveFilePath);
-            const data = zlib.gunzipSync(archiveFile);
 
-            const sdpFile: SdpFile = { ...sdpEntry, data };
-            sdpFiles.push(sdpFile);
+            if (parseData) {
+                const data = await gunzip(archiveFile);
+                sdpFiles.push({ ...sdpEntry, data });
+            } else {
+                sdpFiles.push(sdpEntry);
+            }
         }
 
         return sdpFiles;
@@ -134,13 +144,37 @@ export class GameContentAPI extends PrDownloaderAPI {
 
     public async getGameOptions(version: string): Promise<LuaOptionSection[]> {
         // TODO: cache per session
-        const gameFiles = await this.getGameFiles(version, "modoptions.lua");
+        const gameFiles = await this.getGameFiles(version, "modoptions.lua", true);
         const gameOptionsLua = gameFiles[0].data;
         return parseLuaOptions(gameOptionsLua);
     }
 
-    public async getScenarios() {
-        //const scenarios = this.getGameFiles();
+    public async getScenarios(): Promise<Scenario[]> {
+        const scenarioImages = await this.getGameFiles(defaultGameVersion, "singleplayer/scenarios/**/*.{jpg,png}", false);
+        const scenarioDefinitions = await this.getGameFiles(defaultGameVersion, "singleplayer/scenarios/**/*.lua", true);
+
+        const cacheDir = path.join(api.info.contentPath, "scenario-images");
+        await fs.promises.mkdir(cacheDir, { recursive: true });
+
+        for (const scenarioImage of scenarioImages) {
+            const data = await fs.promises.readFile(scenarioImage.archivePath);
+            const buffer = await gunzip(data);
+            const fileName = path.parse(scenarioImage.fileName).base;
+            await fs.promises.writeFile(path.join(cacheDir, fileName), buffer);
+        }
+
+        const scenarios: Scenario[] = [];
+
+        for (const scenarioDefinition of scenarioDefinitions) {
+            try {
+                const scenario = parseLuaTable(scenarioDefinition.data);
+                scenarios.push(scenario);
+            } catch (err) {
+                console.error(`error parsing scenario lua file: ${scenarioDefinition.fileName}`, err);
+            }
+        }
+
+        return scenarios;
     }
 
     protected async parseSdpFile(sdpFilePath: string, filePattern?: string): Promise<SdpFileMeta[]> {

@@ -27,3 +27,13 @@
 .relative {
     position: relative;
 }
+.test {
+    background: green;
+    display: flex;
+    flex-direction: column;
+    height: 0;
+    overflow-y: auto;
+    flex-grow: 1;
+    flex-shrink: 1;
+    flex-basis: auto;
+}

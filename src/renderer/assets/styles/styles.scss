@@ -1,14 +1,14 @@
 @use "sass:color";
 
-@import "reset";
+@use "reset";
 
-@import "utils";
+// @use "utils";
 
-@import "document";
-@import "flex";
-@import "spacing";
-@import "text";
-@import "transitions";
-@import "popper";
-@import "tooltip";
-@import "primevue";
+@use "document";
+@use "flex";
+@use "spacing";
+@use "text";
+@use "transitions";
+@use "popper";
+@use "tooltip";
+@use "primevue";
