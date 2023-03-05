@@ -179,6 +179,8 @@ export class GameContentAPI extends PrDownloaderAPI {
             }
         }
 
+        scenarios.sort((a, b) => a.index - b.index);
+
         return scenarios;
     }
 

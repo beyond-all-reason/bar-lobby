@@ -33,7 +33,7 @@
                         <div>{{ selectedScenario.losscondition }}</div>
                     </div>
                     <Select v-model="selectedFaction" label="Faction" :options="factions" />
-                    <Select v-model="selectedDifficulty" label="Difficulty" :options="difficulties" optionLabel="name" optionValue="name" />
+                    <Select v-model="selectedDifficulty" label="Difficulty" :options="difficulties" optionLabel="name" />
                     <Button class="green" @click="launch">Launch</Button>
                 </div>
             </div>
@@ -56,13 +56,13 @@ const scenarios = await api.content.game.getScenarios();
 const selectedScenario = ref<Scenario>(scenarios[0]);
 
 const difficulties = computed(() => selectedScenario.value.difficulties);
-const selectedDifficulty = ref(selectedScenario.value.defaultdifficulty);
+const selectedDifficulty = ref(difficulties.value.find((dif) => dif.name === selectedScenario.value.defaultdifficulty));
 
 const factions = computed(() => selectedScenario.value.allowedsides);
-const selectedFaction = ref<string>(factions.value[0]);
+const selectedFaction = ref(factions.value[0]);
 
 watch(selectedScenario, (newScenario) => {
-    selectedDifficulty.value = newScenario.defaultdifficulty;
+    selectedDifficulty.value = difficulties.value.find((dif) => dif.name === newScenario.defaultdifficulty);
     selectedFaction.value = factions.value[0] ?? "Armada";
 });
 
@@ -87,8 +87,8 @@ async function launch() {
         .replaceAll("__BARVERSION__", defaultGameVersion)
         .replaceAll("__MAPNAME__", selectedScenario.value.mapfilename)
         .replaceAll("__PLAYERSIDE__", selectedFaction.value)
-        //.replaceAll("__ENEMYHANDICAP__", "")
-        //.replaceAll("__PLAYERHANDICAP__", "")
+        .replaceAll("__ENEMYHANDICAP__", selectedDifficulty.value?.enemyhandicap?.toString() ?? "0")
+        .replaceAll("__PLAYERHANDICAP__", selectedDifficulty.value?.playerhandicap?.toString() ?? "0")
         .replaceAll("__RESTRICTEDUNITS__", restrictionsStr)
         .replaceAll("__NUMRESTRICTIONS__", restrictionCount.toString());
 
