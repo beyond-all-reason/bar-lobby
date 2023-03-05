@@ -47,7 +47,6 @@ const props = defineProps<{
         display: flex;
         flex-direction: column;
         flex-grow: 1;
-        overflow-y: auto;
         padding: 30px;
     }
     .header {

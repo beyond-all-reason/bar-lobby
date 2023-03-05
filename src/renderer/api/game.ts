@@ -5,10 +5,11 @@ import * as fs from "fs";
 import { Signal } from "jaz-ts-utils";
 import * as path from "path";
 
+import { defaultEngineVersion } from "@/config/default-versions";
 import { AbstractBattle } from "@/model/battle/abstract-battle";
 import { Replay } from "@/model/replay";
 import { StartScriptConverter } from "@/utils/start-script-converter";
-import { isBattle, isReplay } from "@/utils/type-checkers";
+import { isReplay } from "@/utils/type-checkers";
 
 export class GameAPI {
     public readonly isGameRunning = computed(() => this.gameProcess.value !== null);
@@ -19,19 +20,47 @@ export class GameAPI {
     protected gameProcess: Ref<ChildProcess | null> = ref(null);
     protected scriptConverter = new StartScriptConverter();
 
-    public async launch(battle: AbstractBattle | Replay): Promise<void> {
-        await this.fetchMissingContent(battle);
+    public async launch(battle: AbstractBattle): Promise<void>;
+    public async launch(replay: Replay): Promise<void>;
+    public async launch(script: string): Promise<void>;
+    public async launch(arg: AbstractBattle | Replay | string): Promise<void> {
+        let engineVersion: string | undefined;
+        let gameVersion: string | undefined;
+        let mapName: string | undefined;
+        let script: string | undefined;
 
-        const engineVersion = isBattle(battle) ? battle.battleOptions.engineVersion : battle.engineVersion;
+        if (arg instanceof AbstractBattle) {
+            engineVersion = arg.battleOptions.engineVersion;
+            gameVersion = arg.battleOptions.engineVersion;
+            mapName = arg.battleOptions.map;
+            script = this.scriptConverter.generateScriptStr(arg);
+        } else if (typeof arg === "string") {
+            engineVersion = defaultEngineVersion;
+            gameVersion = arg.match(/gametype\s*=\s*(.*);/)?.[1];
+            mapName = arg.match(/mapname\s*=\s*(.*);/)?.[1];
+            if (!gameVersion) {
+                throw new Error("Could not parse game version from script");
+            }
+            if (!mapName) {
+                throw new Error("Could not map name from script");
+            }
+            script = arg;
+        } else {
+            engineVersion = arg.engineVersion;
+            gameVersion = arg.gameVersion;
+            mapName = arg.mapScriptName;
+        }
+
+        await this.fetchMissingContent(engineVersion, gameVersion, mapName);
+
         const enginePath = path.join(api.info.contentPath, "engine", engineVersion).replaceAll("\\", "/");
 
         let launchArg = "";
-        if (isBattle(battle)) {
-            const script = this.battleToStartScript(battle);
+        if (script) {
             const scriptPath = (launchArg = path.join(api.info.contentPath, this.scriptName));
             await fs.promises.writeFile(scriptPath, script);
-        } else {
-            launchArg = path.join(api.content.replays.replaysDir, battle.fileName);
+        } else if (isReplay(arg)) {
+            launchArg = path.join(api.content.replays.replaysDir, arg.fileName);
         }
 
         const args = ["--write-dir", api.info.contentPath, "--isolation", launchArg];
@@ -59,15 +88,7 @@ export class GameAPI {
         });
     }
 
-    public battleToStartScript(battle: AbstractBattle): string {
-        return this.scriptConverter.generateScriptStr(battle);
-    }
-
-    protected async fetchMissingContent(battle: AbstractBattle | Replay) {
-        const engineVersion = isReplay(battle) ? battle.engineVersion : battle.battleOptions.engineVersion;
-        const gameVersion = isReplay(battle) ? battle.gameVersion : battle.battleOptions.gameVersion;
-        const mapScriptName = isReplay(battle) ? battle.mapScriptName : battle.battleOptions.map;
-
+    protected async fetchMissingContent(engineVersion: string, gameVersion: string, mapScriptName: string) {
         const isEngineInstalled = api.content.engine.installedVersions.some((version) => version === engineVersion);
         const isGameInstalled = api.content.game.installedVersions.has(gameVersion);
         const isMapInstalled = api.content.maps.installedMaps.some((map) => map.scriptName === mapScriptName);

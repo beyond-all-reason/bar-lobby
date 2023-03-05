@@ -62,14 +62,14 @@ const mapTextureImage = computed(() => api.content.maps.getMapImages(props.map).
     background-position: center;
     position: relative;
     transform: scale(1.1);
-    transition: 0.2s transform;
+    transition: 0.1s transform;
     will-change: transform;
     z-index: 0;
     &:after {
         @extend .fullsize;
         z-index: 1;
         background: linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0));
-        transition: 0.2s opacity;
+        transition: 0.1s opacity;
     }
 }
 .name {

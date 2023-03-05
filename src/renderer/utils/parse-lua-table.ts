@@ -57,5 +57,5 @@ export function luaTableToObj(table: TableConstructorExpression): any {
         }
     }
 
-    return blocks.length > 1 ? blocks : obj;
+    return blocks.length > 0 ? blocks : obj;
 }

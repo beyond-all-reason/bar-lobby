@@ -167,7 +167,12 @@ export class GameContentAPI extends PrDownloaderAPI {
 
         for (const scenarioDefinition of scenarioDefinitions) {
             try {
-                const scenario = parseLuaTable(scenarioDefinition.data);
+                const scenario = parseLuaTable(scenarioDefinition.data) as Scenario;
+                scenario.imagepath = path.join(cacheDir, scenario.imagepath).replaceAll("\\", "/");
+                scenario.summary = scenario.summary.replace(/\[|\]/g, "");
+                scenario.briefing = scenario.briefing.replace(/\[|\]/g, "");
+                scenario.allowedsides = Array.isArray(scenario.allowedsides) && scenario.allowedsides[0] !== "" ? scenario.allowedsides : ["Armada", "Cortext", "Random"];
+                scenario.startscript = scenario.startscript.slice(1, -1);
                 scenarios.push(scenario);
             } catch (err) {
                 console.error(`error parsing scenario lua file: ${scenarioDefinition.fileName}`, err);

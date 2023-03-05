@@ -6,6 +6,6 @@
  * In the future these values should probably be set and fetched from the master server, so we don't need to deploy a new lobby release every time.
  */
 
-export const defaultEngineVersion = "105.1.1-1594-g7d210e3 BAR105";
+export const defaultEngineVersion = "105.1.1-1544-g058c8ea BAR105";
 
 export const defaultGameVersion = "Beyond All Reason test-22425-e6c0e37";

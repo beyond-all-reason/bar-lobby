@@ -27,11 +27,11 @@
 .relative {
     position: relative;
 }
-.test {
-    background: green;
+.scroll-container {
+    // parent needs to be flex-col for this to work
     display: flex;
     flex-direction: column;
-    height: 0;
+    height: 0px;
     overflow-y: auto;
     flex-grow: 1;
     flex-shrink: 1;
