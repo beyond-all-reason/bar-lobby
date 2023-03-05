@@ -20,7 +20,6 @@
         <Button @click="openSettings"> Open Settings File </Button>
         <Button @click="openContentDir"> Open Content Dir </Button>
         <Button @click="openConfigDir"> Open Config Dir </Button>
-        <Button @click="generateStartScript"> Generate Start Script </Button>
         <Button @click="openStartScript"> Open Latest Start Script </Button>
         <Button @click="recacheMaps"> Recache Maps </Button>
         <Button @click="recacheReplays"> Recache Replays </Button>
@@ -31,7 +30,6 @@
 import { Icon } from "@iconify/vue";
 import tools from "@iconify-icons/mdi/tools";
 import { shell } from "electron";
-import * as fs from "fs";
 import * as path from "path";
 import { ref } from "vue";
 import { useRouter } from "vue-router";
@@ -59,19 +57,6 @@ async function openContentDir() {
 
 async function openConfigDir() {
     await shell.openPath(api.info.configPath);
-}
-
-async function generateStartScript() {
-    const battle = api.session.onlineBattle.value ?? api.session.offlineBattle.value;
-    if (!battle) {
-        console.warn("Tried to generate start script but not in a battle");
-        return;
-    }
-    const scriptPath = path.join(api.info.contentPath, api.game.scriptName);
-
-    let scriptStr = api.game.battleToStartScript(battle);
-
-    await fs.promises.writeFile(scriptPath, scriptStr);
 }
 
 async function openStartScript() {
