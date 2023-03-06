@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import type { LocalStatement, TableConstructorExpression } from "luaparse";
+import type { LocalStatement, ReturnStatement, TableConstructorExpression } from "luaparse";
 import luaparse from "luaparse";
 
 type ParseLuaTableOptions = {
@@ -21,7 +21,12 @@ export function parseLuaTable(luaFile: Buffer, options?: ParseLuaTableOptions): 
         }
     } else {
         const localStatement = parsedLua.body.find((body) => body.type === "LocalStatement") as LocalStatement | undefined;
-        tableConstructorExpression = localStatement?.init.find((obj) => obj.type === "TableConstructorExpression") as TableConstructorExpression | undefined;
+        if (localStatement) {
+            tableConstructorExpression = localStatement?.init.find((obj) => obj.type === "TableConstructorExpression") as TableConstructorExpression | undefined;
+        } else {
+            const returnStatement = parsedLua.body.find((body) => body.type === "ReturnStatement") as ReturnStatement | undefined;
+            tableConstructorExpression = returnStatement?.arguments.find((obj) => obj.type === "TableConstructorExpression") as TableConstructorExpression | undefined;
+        }
     }
 
     if (!tableConstructorExpression) {

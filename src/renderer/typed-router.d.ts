@@ -41,6 +41,7 @@ declare module 'vue-router/auto/routes' {
     '/debug/b': RouteRecordInfo<'/debug/b', '/debug/b', Record<never, never>, Record<never, never>>,
     '/debug/controls': RouteRecordInfo<'/debug/controls', '/debug/controls', Record<never, never>, Record<never, never>>,
     '/debug/playground': RouteRecordInfo<'/debug/playground', '/debug/playground', Record<never, never>, Record<never, never>>,
+    '/debug/script-launcher': RouteRecordInfo<'/debug/script-launcher', '/debug/script-launcher', Record<never, never>, Record<never, never>>,
     '/debug/test': RouteRecordInfo<'/debug/test', '/debug/test', Record<never, never>, Record<never, never>>,
     '/development/': RouteRecordInfo<'/development/', '/development', Record<never, never>, Record<never, never>>,
     '/development/game-dev': RouteRecordInfo<'/development/game-dev', '/development/game-dev', Record<never, never>, Record<never, never>>,

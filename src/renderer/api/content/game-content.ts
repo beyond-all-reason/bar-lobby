@@ -59,6 +59,11 @@ export class GameContentAPI extends PrDownloaderAPI {
      * @param gameVersion e.g. "Beyond All Reason test-16289-b154c3d"
      */
     public async downloadGame(gameVersion = `${contentSources.rapid.game}:test`) {
+        // skip download if already installed
+        if (this.installedVersions.has(gameVersion)) {
+            return;
+        }
+
         return this.downloadContent("game", gameVersion);
     }
 
@@ -91,6 +96,20 @@ export class GameContentAPI extends PrDownloaderAPI {
             }
 
             this.sortVersions();
+        }
+
+        const gamesDir = path.join(api.info.contentPath, "games");
+        if (fs.existsSync(gamesDir)) {
+            const dirs = await fs.promises.readdir(gamesDir);
+            for (const dir of dirs) {
+                try {
+                    const modInfoLua = await fs.promises.readFile(path.join(gamesDir, dir, "modinfo.lua"));
+                    const modInfo = parseLuaTable(modInfoLua);
+                    this.installedVersions.add(`${modInfo.game} ${modInfo.version}`);
+                } catch (err) {
+                    console.error(err);
+                }
+            }
         }
     }
 

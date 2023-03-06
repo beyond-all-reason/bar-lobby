@@ -31,7 +31,7 @@ export class GameAPI {
 
         if (arg instanceof AbstractBattle) {
             engineVersion = arg.battleOptions.engineVersion;
-            gameVersion = arg.battleOptions.engineVersion;
+            gameVersion = arg.battleOptions.gameVersion;
             mapName = arg.battleOptions.map;
             script = this.scriptConverter.generateScriptStr(arg);
         } else if (typeof arg === "string") {
