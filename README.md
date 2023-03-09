@@ -18,34 +18,18 @@ BAR Lobby is a new WIP lobby for the RTS game [Beyond All Reason](https://www.be
 ### Primary Tech Stack
 - [Electron](https://www.electronjs.org/)
 - [TypeScript](https://www.typescriptlang.org/)
-- [Vue 3](https://v3.vuejs.org/) with Composition API
+- [Vue 3](https://v3.vuejs.org/)
 - [SCSS](https://sass-lang.com/)
-- [Howler](https://howlerjs.com/)
-- [Tachyon Client](https://github.com/Jazcash/tachyon-client)
 
 ### Recommended Environment
 It is highly recommended to use [VSCode](https://code.visualstudio.com/) for development, as it provides full, built-in TypeScript support, as well as useful extensions such as [ESLint](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint) and [Volar](https://marketplace.visualstudio.com/items?itemName=johnsoncodehk.volar).
 
 ### Requirements
 - [Node.js](https://nodejs.org/en/download/) (node v14 required)
-- [Git LFS](https://git-lfs.github.com/)
 
 ### Project setup:
 
 ```
-git lfs install
-git clone git@github.com:beyond-all-reason/bar-lobby.git
 npm install
+npm run dev
 ```
-
-### NPM Scripts
-
-Compile and hot-reload for development: `npm run dev`
-
-Compile and minify for production: `npm run build`
-
-Lint files: `npm run lint`
-
-Format files: `npm run format`
-
-Bump version and deploy: `npm version patch` / `npm version minor` / `npm version major`
