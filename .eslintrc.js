@@ -8,5 +8,7 @@ module.exports = {
     rules: {
         // Rules should only be added here for testing temporarily and should eventually be moved into jaz-ts-utils to ensure consistency across projects
         "func-style": ["error", "declaration"],
+        "no-throw-literal": "off",
+        "@typescript-eslint/no-throw-literal": "error",
     },
 };
