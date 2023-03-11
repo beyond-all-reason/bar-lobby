@@ -83,33 +83,23 @@ export class MapContentAPI extends PrDownloaderAPI {
         }
     }
 
-    public getMapImages(options: { map: MapData | undefined } | { scriptName: string | undefined } | { fileName: string | undefined }) {
-        let mapData: MapData | undefined;
-
-        if ("map" in options) {
-            mapData = options.map;
-        } else if ("scriptName" in options) {
-            mapData = this.installedMaps.find((map) => map.scriptName === options.scriptName);
-        } else {
-            mapData = this.installedMaps.find((map) => map.fileName === options.fileName);
-        }
-
+    public getMapImages(mapData: MapData | undefined) {
         if (!mapData) {
             return {
-                textureImagePath: defaultMapImage,
-                heightImagePath: defaultMapImage,
-                metalImagePath: defaultMapImage,
-                typeImagePath: defaultMapImage,
+                textureImagePath: defaultMapImage as string,
+                heightImagePath: defaultMapImage as string,
+                metalImagePath: defaultMapImage as string,
+                typeImagePath: defaultMapImage as string,
             };
         }
 
         const fileNameWithoutExt = path.parse(mapData.fileName).name;
 
         return {
-            textureImagePath: url.pathToFileURL(path.join(this.mapImagesDir, `${fileNameWithoutExt}-texture.jpg`)),
-            heightImagePath: url.pathToFileURL(path.join(this.mapImagesDir, `${fileNameWithoutExt}-height.jpg`)),
-            metalImagePath: url.pathToFileURL(path.join(this.mapImagesDir, `${fileNameWithoutExt}-metal.jpg`)),
-            typeImagePath: url.pathToFileURL(path.join(this.mapImagesDir, `${fileNameWithoutExt}-type.jpg`)),
+            textureImagePath: url.pathToFileURL(path.join(this.mapImagesDir, `${fileNameWithoutExt}-texture.jpg`)).toString(),
+            heightImagePath: url.pathToFileURL(path.join(this.mapImagesDir, `${fileNameWithoutExt}-height.jpg`)).toString(),
+            metalImagePath: url.pathToFileURL(path.join(this.mapImagesDir, `${fileNameWithoutExt}-metal.jpg`)).toString(),
+            typeImagePath: url.pathToFileURL(path.join(this.mapImagesDir, `${fileNameWithoutExt}-type.jpg`)).toString(),
         };
     }
 
@@ -222,19 +212,14 @@ export class MapContentAPI extends PrDownloaderAPI {
         });
     }
 
-    protected async uncacheMap(name: { fileName: string } | { scriptName: string }) {
-        let map: MapData | undefined;
-        if ("fileName" in name) {
-            map = await api.cacheDb.selectFrom("map").selectAll().where("fileName", "=", name.fileName).executeTakeFirst();
-        } else {
-            map = await api.cacheDb.selectFrom("map").selectAll().where("scriptName", "=", name.scriptName).executeTakeFirst();
-        }
+    protected async uncacheMap(mapData: MapData) {
+        const map = await api.cacheDb.selectFrom("map").selectAll().where("scriptName", "=", mapData.scriptName).executeTakeFirst();
 
         if (!map) {
             return;
         }
 
-        const mapImages = this.getMapImages({ map });
+        const mapImages = this.getMapImages(map);
 
         if (mapImages) {
             await fs.promises.rm(mapImages.textureImagePath, { force: true });

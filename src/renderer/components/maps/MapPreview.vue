@@ -32,7 +32,7 @@ const canvas: Ref<HTMLCanvasElement | null> = ref(null);
 let context: CanvasRenderingContext2D;
 
 const mapData = computed(() => api.content.maps.installedMaps.find((map) => map.scriptName === props.map));
-const mapImages = computed(() => api.content.maps.getMapImages({ map: mapData.value }));
+const mapImages = computed(() => api.content.maps.getMapImages(mapData.value));
 
 let watchStopHandle: WatchStopHandle | undefined;
 let mapCachedSignalBinding: SignalBinding | undefined;

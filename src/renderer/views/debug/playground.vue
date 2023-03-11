@@ -3,155 +3,69 @@
 </route>
 
 <template>
-    <div>
-        <div @contextmenu="onRightClick">Hello world</div>
-        <ContextMenu ref="menu" :model="items" />
+    <div class="container">
+        <MapPreview :map="'Red Comet Remake 1.8'" :startBoxes="boxes" :startPositions="positions"></MapPreview>
+        <MapPreview2 :map="redComet" :startBoxes="boxes" :startPositions="positions"></MapPreview2>
     </div>
 </template>
 
 <script lang="ts" setup>
-import { MenuItem } from "primevue/menuitem";
-import { ref } from "vue";
+import MapPreview from "@/components/maps/MapPreview.vue";
+import MapPreview2 from "@/components/maps/MapPreviewPixi.vue";
+import { StartBox } from "@/model/battle/battle-types";
 
-import ContextMenu from "@/components/common/ContextMenu.vue";
-
-const menu = ref<InstanceType<typeof ContextMenu>>();
-
-function onRightClick(event: MouseEvent) {
-    if (menu.value) {
-        menu.value.show(event);
-    }
-}
-
-const items: MenuItem[] = [
+const redComet = api.content.maps.getMapByScriptName("Red Comet Remake 1.8");
+const boxes: Record<number, StartBox | undefined> = {
+    0: { xPercent: 0, yPercent: 0, widthPercent: 0.2, heightPercent: 1 },
+    1: { xPercent: 0.8, yPercent: 0, widthPercent: 0.2, heightPercent: 1 },
+};
+const positions: (
+    | {
+          position: {
+              x: number;
+              z: number;
+          };
+          rgbColor?:
+              | {
+                    r: number;
+                    g: number;
+                    b: number;
+                }
+              | undefined;
+      }
+    | undefined
+)[] = [
     {
-        label: "File",
-        icon: "pi pi-fw pi-file",
-        items: [
-            {
-                label: "New",
-                icon: "pi pi-fw pi-plus",
-                items: [
-                    {
-                        label: "Bookmark",
-                        icon: "pi pi-fw pi-bookmark",
-                        command: () => {
-                            console.log("hello");
-                        },
-                    },
-                    {
-                        label: "Video",
-                        icon: "pi pi-fw pi-video",
-                    },
-                ],
-            },
-            {
-                label: "Delete",
-                icon: "pi pi-fw pi-trash",
-            },
-            {
-                separator: true,
-            },
-            {
-                label: "Export",
-                icon: "pi pi-fw pi-external-link",
-            },
-        ],
+        position: {
+            x: 200,
+            z: 3500,
+        },
+        rgbColor: {
+            r: 255,
+            g: 0,
+            b: 0,
+        },
     },
     {
-        label: "Edit",
-        icon: "pi pi-fw pi-pencil",
-        items: [
-            {
-                label: "Left",
-                icon: "pi pi-fw pi-align-left",
-            },
-            {
-                label: "Right",
-                icon: "pi pi-fw pi-align-right",
-            },
-            {
-                label: "Center",
-                icon: "pi pi-fw pi-align-center",
-            },
-            {
-                label: "Justify",
-                icon: "pi pi-fw pi-align-justify",
-            },
-        ],
-    },
-    {
-        label: "Users",
-        icon: "pi pi-fw pi-user",
-        items: [
-            {
-                label: "New",
-                icon: "pi pi-fw pi-user-plus",
-            },
-            {
-                label: "Delete",
-                icon: "pi pi-fw pi-user-minus",
-            },
-            {
-                label: "Search",
-                icon: "pi pi-fw pi-users",
-                items: [
-                    {
-                        label: "Filter",
-                        icon: "pi pi-fw pi-filter",
-                        items: [
-                            {
-                                label: "Print",
-                                icon: "pi pi-fw pi-print",
-                            },
-                        ],
-                    },
-                    {
-                        icon: "pi pi-fw pi-bars",
-                        label: "List",
-                    },
-                ],
-            },
-        ],
-    },
-    {
-        label: "Events",
-        icon: "pi pi-fw pi-calendar",
-        items: [
-            {
-                label: "Edit",
-                icon: "pi pi-fw pi-pencil",
-                items: [
-                    {
-                        label: "Save",
-                        icon: "pi pi-fw pi-calendar-plus",
-                    },
-                    {
-                        label: "Delete",
-                        icon: "pi pi-fw pi-calendar-minus",
-                    },
-                ],
-            },
-            {
-                label: "Archieve",
-                icon: "pi pi-fw pi-calendar-times",
-                items: [
-                    {
-                        label: "Remove",
-                        icon: "pi pi-fw pi-calendar-minus",
-                    },
-                ],
-            },
-        ],
-    },
-    {
-        separator: true,
-    },
-    {
-        label: "Quit",
-        icon: "pi pi-fw pi-power-off",
+        position: {
+            x: 5500,
+            z: 400,
+        },
+        rgbColor: {
+            r: 0,
+            g: 255,
+            b: 0,
+        },
     },
 ];
 </script>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+.container {
+    width: 100%;
+    height: 500px;
+    background: green;
+    display: flex;
+    gap: 10px;
+}
+</style>

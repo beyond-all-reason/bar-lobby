@@ -59,6 +59,7 @@
     "node-7z": "^3.0.0",
     "node-self": "^1.0.1",
     "octokit": "^2.0.14",
+    "pixi.js": "^7.1.4",
     "primeicons": "^6.0.1",
     "primevue": "^3.23.0",
     "sdfz-demo-parser": "^5.7.0",

@@ -240,6 +240,7 @@ const installedMaps = computed(() =>
         return a.friendlyName.localeCompare(b.friendlyName);
     })
 );
+const map = computed(() => api.content.maps.getMapByScriptName(props.battle.battleOptions.map));
 const installedGames = computed(() => Array.from(api.content.game.installedVersions));
 const mapListOpen = ref(false);
 const gameOptionsOpen = ref(false);

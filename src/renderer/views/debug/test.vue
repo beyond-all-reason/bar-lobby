@@ -3,7 +3,7 @@
 </route>
 
 <template>
-    <div></div>
+    <div>Test</div>
 </template>
 
 <script lang="ts" setup>

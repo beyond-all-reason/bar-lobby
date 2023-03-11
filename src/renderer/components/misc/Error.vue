@@ -27,6 +27,12 @@ window.addEventListener("unhandledrejection", function (event) {
 });
 
 window.addEventListener("error", (event) => {
+    if (event.message === "ResizeObserver loop limit exceeded") {
+        event.stopPropagation();
+        console.warn(event);
+        return;
+    }
+
     error.value = event;
     console.error(event);
     isVisible.value = true;

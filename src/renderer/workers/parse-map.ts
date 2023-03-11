@@ -5,10 +5,12 @@ import { exposeWorkerFunction } from "@/workers/worker-helpers";
 
 let mapParser: MapParser | undefined;
 
+export const mipmapSize = 8;
+
 export const parseMap = exposeWorkerFunction(async (mapPath: string, mapImagesPath: string, path7za: string) => {
     if (!mapParser) {
         mapParser = new MapParser({
-            mipmapSize: 8,
+            mipmapSize: mipmapSize,
             path7za,
         });
     }
