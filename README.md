@@ -2,7 +2,7 @@
 
 BAR Lobby is a new WIP lobby for the RTS game [Beyond All Reason](https://www.beyondallreason.info/). It hopes to boldly go where no Spring client has gone before, providing a more streamlined experience, with good visuals and UX being high priority. The ultimate goal of BAR Lobby is to replace all other lobbies when it comes to playing BAR. If a significant amount of people don't wish to use it because of reasons such as functionality or speed, then this project is going very wrong.
 
-![image](https://user-images.githubusercontent.com/1434248/187312627-91e685db-8824-456b-ab30-28aa881be4fe.png)
+![image](https://user-images.githubusercontent.com/1434248/223881325-bb8ac4f5-ed14-4ad8-ad33-970781cf3089.png)
 
 ## Functionality and Goals
 
@@ -17,35 +17,20 @@ BAR Lobby is a new WIP lobby for the RTS game [Beyond All Reason](https://www.be
 
 ### Primary Tech Stack
 - [Electron](https://www.electronjs.org/)
+- [Vue 3](https://v3.vuejs.org/)
 - [TypeScript](https://www.typescriptlang.org/)
-- [Vue 3](https://v3.vuejs.org/) with Composition API
 - [SCSS](https://sass-lang.com/)
-- [Howler](https://howlerjs.com/)
-- [Tachyon Client](https://github.com/Jazcash/tachyon-client)
+- [PrimeVue Components](https://primevue.org/datatable)
 
 ### Recommended Environment
 It is highly recommended to use [VSCode](https://code.visualstudio.com/) for development, as it provides full, built-in TypeScript support, as well as useful extensions such as [ESLint](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint) and [Volar](https://marketplace.visualstudio.com/items?itemName=johnsoncodehk.volar).
 
 ### Requirements
 - [Node.js](https://nodejs.org/en/download/) (node v14 required)
-- [Git LFS](https://git-lfs.github.com/)
 
 ### Project setup:
 
 ```
-git lfs install
-git clone git@github.com:beyond-all-reason/bar-lobby.git
 npm install
+npm run dev
 ```
-
-### NPM Scripts
-
-Compile and hot-reload for development: `npm run dev`
-
-Compile and minify for production: `npm run build`
-
-Lint files: `npm run lint`
-
-Format files: `npm run format`
-
-Bump version and deploy: `npm version patch` / `npm version minor` / `npm version major`
