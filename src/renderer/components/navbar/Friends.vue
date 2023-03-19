@@ -1,8 +1,8 @@
 <template>
-    <PopOutPanel :open="modelValue">
-        <TabView v-model:activeIndex="activeIndex">
+    <PopOutPanel :open="modelValue" class="flex-col flex-grow fullheight">
+        <TabView v-model:activeIndex="activeIndex" class="flex-col flex-grow fullheight">
             <TabPanel header="Friends">
-                <div class="flex-col gap-lg">
+                <div class="flex-col gap-lg flex-grow fullheight">
                     <div class="flex-row gap-md">
                         <div>
                             Your User ID is <strong>{{ myUserId }}</strong>
@@ -21,38 +21,42 @@
                         multiple
                     >
                         <AccordionTab v-if="outgoingFriendRequests.length" header="Outgoing Friend Requests">
-                            <div class="user-list">
-                                <Friend
-                                    v-for="(user, i) in outgoingFriendRequests"
-                                    :key="`outgoingFriendRequest${i}`"
-                                    :user="user"
-                                    :type="'outgoing_request'"
-                                />
+                            <div class="scroll-container">
+                                <div class="user-list">
+                                    <div class="scroll-container gap-sm padding-right-sm">
+                                        <Friend
+                                            v-for="(user, i) in outgoingFriendRequests"
+                                            :key="`outgoingFriendRequest${i}`"
+                                            :user="user"
+                                            :type="'outgoing_request'"
+                                        />
+                                    </div>
+                                </div>
                             </div>
                         </AccordionTab>
                         <AccordionTab v-if="incomingFriendRequests.length" header="Incoming Friend Requests">
                             <div class="user-list">
-                                <Friend
-                                    v-for="(user, i) in incomingFriendRequests"
-                                    :key="`incomingFriendRequest${i}`"
-                                    :user="user"
-                                    :type="'incoming_request'"
-                                />
+                                <div class="scroll-container gap-sm padding-right-sm">
+                                    <Friend
+                                        v-for="(user, i) in incomingFriendRequests"
+                                        :key="`incomingFriendRequest${i}`"
+                                        :user="user"
+                                        :type="'incoming_request'"
+                                    />
+                                </div>
                             </div>
                         </AccordionTab>
                     </Accordion>
 
                     <div class="user-list">
-                        <Friend v-for="(user, i) in onlineFriends" :key="`onlineFriend${i}`" :user="user" :type="'friend'" />
-                        <Friend v-for="(user, i) in offlineFriends" :key="`offlineFriend${i}`" :user="user" :type="'friend'" />
+                        <div class="scroll-container gap-sm padding-right-sm">
+                            <Friend v-for="(user, i) in onlineFriends" :key="`onlineFriend${i}`" :user="user" :type="'friend'" />
+                            <Friend v-for="(user, i) in offlineFriends" :key="`offlineFriend${i}`" :user="user" :type="'friend'" />
+                        </div>
                     </div>
                 </div>
             </TabPanel>
-            <TabPanel header="Blocked">
-                <div class="flex-col gap-md user-container">
-                    <div class="user-list">TODO</div>
-                </div>
-            </TabPanel>
+            <TabPanel header="Blocked"> TODO </TabPanel>
         </TabView>
     </PopOutPanel>
 </template>
@@ -141,36 +145,12 @@ async function addFriend() {
 </script>
 
 <style lang="scss" scoped>
-.friends {
-    position: fixed;
-    right: 0;
-    top: 70px;
-    z-index: 2;
-    min-width: 475px;
-    max-width: 475px;
-    min-height: 400px;
-    max-height: 400px;
-    transform: translateX(-9px);
-    opacity: 1;
-    transition: transform 200ms, opacity 200ms;
-    background: rgba(0, 0, 0, 0.85);
-    &.hidden {
-        transform: translateX(20px);
-        opacity: 0;
-        pointer-events: none;
-    }
-}
-.user-container {
-    overflow-y: scroll;
-    padding-right: 5px;
-}
 .user-list {
     width: 100%;
     height: 100%;
     display: flex;
     flex-direction: column;
     flex-grow: 1;
-    gap: 5px;
 }
 :deep(.txtFriendId) {
     flex-grow: 1;

@@ -1,12 +1,16 @@
 <template>
-    <div class="flex-col gap-lg">
+    <div class="flex-col gap-lg flex-grow fullheight">
         <div class="flex-row gap-md">
             <SearchBox v-model="searchVal" />
             <Select v-model="sortMethod" :options="sortMethods" label="Sort By" />
         </div>
 
-        <div class="maps">
-            <MapOverviewCard v-for="(map, i) in filteredMaps" :key="i" :map="map" @click="mapSelected(map)" />
+        <div class="flex-col flex-grow fullheight">
+            <div class="scroll-container">
+                <div class="maps">
+                    <MapOverviewCard v-for="(map, i) in filteredMaps" :key="i" :map="map" @click="mapSelected(map)" />
+                </div>
+            </div>
         </div>
     </div>
 </template>
@@ -68,5 +72,6 @@ function mapSelected(map: MapData) {
     display: grid;
     grid-gap: 15px;
     grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    padding-right: 10px;
 }
 </style>

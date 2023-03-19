@@ -70,6 +70,10 @@ const emits = defineEmits<Emits>();
     .p-tabview-panel {
         position: relative;
         padding: 25px;
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
     }
 }
 </style>

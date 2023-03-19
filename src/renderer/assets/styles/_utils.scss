@@ -28,7 +28,7 @@
     position: relative;
 }
 .scroll-container {
-    // parent needs to be flex-col for this to work
+    // all ancestor elements need to fill their height for this to work (flex-col flex-grow fullheight)
     display: flex;
     flex-direction: column;
     height: 0px;
@@ -36,4 +36,5 @@
     flex-grow: 1;
     flex-shrink: 1;
     flex-basis: auto;
+    will-change: scroll-position;
 }

@@ -3,7 +3,7 @@
         <transition mode="in-out" name="intro">
             <IntroVideo v-if="!skipIntro && videoVisible" @complete="onIntroEnd" />
         </transition>
-        <DebugSidebar v-if="!isProduction" />
+        <DebugSidebar v-if="settings.devMode" />
         <StickyBattle />
         <Background :blur="blurBg" />
         <Notifications />
@@ -72,11 +72,10 @@ import { defaultMaps } from "@/config/default-maps";
 import { defaultEngineVersion, defaultGameVersion } from "@/config/default-versions";
 import { playRandomMusic } from "@/utils/play-random-music";
 
-const isProduction = process.env.NODE_ENV === "production";
-
 const router = useRouter();
-const skipIntro = api.settings.model.skipIntro;
-const videoVisible = ref(!api.settings.model.skipIntro);
+const settings = api.settings.model;
+const skipIntro = settings.skipIntro;
+const videoVisible = ref(!settings.skipIntro);
 const state: Ref<"preloader" | "initial-setup" | "default"> = ref("preloader");
 const empty = ref(false);
 const blurBg = ref(true);

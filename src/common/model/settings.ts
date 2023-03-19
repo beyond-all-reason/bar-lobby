@@ -7,4 +7,5 @@ export const settingsSchema = Type.Object({
     sfxVolume: Type.Number({ default: 5, minimum: 0, maximum: 100 }),
     musicVolume: Type.Number({ default: 5, minimum: 0, maximum: 100 }),
     loginAutomatically: Type.Boolean({ default: true }),
+    devMode: Type.Boolean({ default: false }),
 });

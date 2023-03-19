@@ -15,6 +15,9 @@
 
             <div>Music Volume</div>
             <Range v-model="settings.musicVolume" :min="0" :max="100" :step="1" />
+
+            <div>Dev Mode</div>
+            <Checkbox v-model="settings.devMode" />
         </div>
     </Modal>
 </template>
