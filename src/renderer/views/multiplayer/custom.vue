@@ -15,6 +15,7 @@
                 <Checkbox v-model="hidePvE" label="Hide PvE" />
                 <Checkbox v-model="hideLocked" label="Hide Locked" />
                 <Checkbox v-model="hideEmpty" label="Hide Empty" />
+                <SearchBox v-model="searchVal" />
             </div>
 
             <div class="battlelist">
@@ -108,6 +109,7 @@ import HostBattle from "@/components/battle/HostBattle.vue";
 import Modal from "@/components/common/Modal.vue";
 import Button from "@/components/controls/Button.vue";
 import Checkbox from "@/components/controls/Checkbox.vue";
+import SearchBox from "@/components/controls/SearchBox.vue";
 import Textbox from "@/components/controls/Textbox.vue";
 import { SpadsBattle } from "@/model/battle/spads-battle";
 import { getFriendlyDuration } from "@/utils/misc";
@@ -117,6 +119,7 @@ const hostBattleOpen = ref(false);
 const hidePvE = ref(false);
 const hideLocked = ref(false);
 const hideEmpty = ref(true);
+const searchVal = ref("");
 const selectedBattle: Ref<SpadsBattle | null> = shallowRef(null);
 const passwordPromptOpen = ref(false);
 const failureReason: Ref<string | undefined> = ref();
@@ -133,6 +136,12 @@ const battles = computed(() => {
         if (hideEmpty.value && battle.users.length === 0) {
             return false;
         }
+        if(searchVal.value.length > 0) {
+            if (!battle.battleOptions.title.toLowerCase().includes(searchVal.value.toLowerCase())) {
+                return false;
+            }
+        }
+
         return true;
     });
 
