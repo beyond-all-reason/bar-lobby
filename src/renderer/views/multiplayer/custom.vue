@@ -137,9 +137,24 @@ const battles = computed(() => {
             return false;
         }
         if (searchVal.value.length > 0) {
-            if (!battle.battleOptions.title.toLowerCase().includes(searchVal.value.toLowerCase())) {
-                return false;
+            const searchTerm = searchVal.value.toLowerCase();
+            if (battle.battleOptions.title.toLowerCase().includes(searchTerm)) {
+                return true;
             }
+            if (battle.battleOptions.map.toLowerCase().includes(searchTerm)) {
+                return true;
+            }
+            for (const player of battle.players.value) {
+                if (player.username.toLowerCase().includes(searchTerm)) {
+                    return true;
+                }
+            }
+            for (const spectator of battle.spectators.value) {
+                if (spectator.username.toLowerCase().includes(searchTerm)) {
+                    return true;
+                }
+            }
+            return false;
         }
 
         return true;
