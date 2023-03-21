@@ -136,7 +136,7 @@ const battles = computed(() => {
         if (hideEmpty.value && battle.users.length === 0) {
             return false;
         }
-        if(searchVal.value.length > 0) {
+        if (searchVal.value.length > 0) {
             if (!battle.battleOptions.title.toLowerCase().includes(searchVal.value.toLowerCase())) {
                 return false;
             }
