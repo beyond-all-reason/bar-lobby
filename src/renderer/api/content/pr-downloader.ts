@@ -8,6 +8,11 @@ import { AbstractContentAPI } from "@/api/content/abstract-content";
 import { DownloadInfo } from "@/model/downloads";
 import { PrdProgressMessage } from "@/model/pr-downloader";
 
+/**
+ * https://github.com/beyond-all-reason/pr-downloader
+ * https://springrts.com/wiki/Pr-downloader
+ * https://springrts.com/wiki/Rapid
+ */
 export abstract class PrDownloaderAPI extends AbstractContentAPI {
     public readonly onPrdStart = new Signal<void>();
     public readonly onPrdMessage = new Signal<string>();

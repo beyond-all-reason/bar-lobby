@@ -18,38 +18,66 @@ import { parseLuaTable } from "@/utils/parse-lua-table";
 
 const gunzip = util.promisify(zlib.gunzip);
 
-/**
- * This API utilises pr-downloader to download game files, therefore it requires at least one engine version to be installed and for api.content.engine to be initialised
- * prd is quite a dated tool at this point, and is lacking a lot of desired functionality that
- * would simplify this wrapper a lot
- *
- * https://github.com/beyond-all-reason/pr-downloader
- * https://springrts.com/wiki/Pr-downloader
- * https://springrts.com/wiki/Rapid
- *
- * @todo installedVersions is primitive and prone to bugs, as it only checks the packages folder and matches each sdp file
- * against the version listed in versions.gz. We don't verify if an sdp installation is incomplete or corrupted, so bugs may arise
- * when reporting a game version as installed when it's not really. Ideally needs solving within prd
- * @todo don't allow spawning multiple prd instances at once
- */
 export class GameContentAPI extends PrDownloaderAPI {
     public readonly installedVersions: Set<string> = reactive(new Set());
 
+    /**
+     * The reason we're keeping a map of game version -> md5 is to speed up the getGameFiles function.
+     * The directory of all files for a game version are stored in .sdp files in the rapid dir, where the filename is an md5
+     */
     protected md5ToRapidVersionMap: Record<string, string> = {};
 
     constructor() {
         super();
 
-        this.onDownloadComplete.add((downloadInfo) => {
+        this.onDownloadComplete.add(async (downloadInfo) => {
             if (!this.installedVersions.has(downloadInfo.name) && downloadInfo.name !== "byar:test") {
                 this.installedVersions.add(downloadInfo.name);
                 this.sortVersions();
+
+                const md5 = await this.getMd5(downloadInfo.name);
+
+                await api.cacheDb
+                    .insertInto("game_versions")
+                    .onConflict((oc) => oc.doNothing())
+                    .values({
+                        id: downloadInfo.name,
+                        md5: md5 ?? "",
+                    })
+                    .execute();
             }
         });
     }
 
     public override async init() {
-        await this.updateVersions();
+        await api.cacheDb.schema
+            .createTable("game_versions")
+            .ifNotExists()
+            .addColumn("id", "varchar", (col) => col.primaryKey())
+            .addColumn("md5", "varchar")
+            .execute();
+
+        const gameVersions = await api.cacheDb.selectFrom("game_versions").selectAll().execute();
+
+        for (const version of gameVersions) {
+            this.installedVersions.add(version.id);
+        }
+
+        const gamesDir = path.join(api.info.contentPath, "games");
+        if (fs.existsSync(gamesDir)) {
+            const dirs = await fs.promises.readdir(gamesDir);
+            for (const dir of dirs) {
+                try {
+                    const modInfoLua = await fs.promises.readFile(path.join(gamesDir, dir, "modinfo.lua"));
+                    const modInfo = parseLuaTable(modInfoLua);
+                    this.installedVersions.add(`${modInfo.game} ${modInfo.version}`);
+                } catch (err) {
+                    console.error(err);
+                }
+            }
+        }
+
+        this.sortVersions();
 
         return this;
     }
@@ -67,52 +95,6 @@ export class GameContentAPI extends PrDownloaderAPI {
         return this.downloadContent("game", gameVersion);
     }
 
-    public async updateVersions() {
-        const response = await axios({
-            url: `${contentSources.rapid.host}/${contentSources.rapid.game}/versions.gz`,
-            method: "GET",
-            responseType: "arraybuffer",
-            headers: {
-                "Content-Type": "application/gzip",
-            },
-        });
-
-        const versionsStr = zlib.gunzipSync(response.data).toString().trim();
-        const versionsParts = versionsStr.split("\n");
-        versionsParts.map((versionLine) => {
-            const [, md5, , version] = versionLine.split(",");
-            this.md5ToRapidVersionMap[md5] = version;
-        });
-
-        const packagesDir = path.join(api.info.contentPath, "packages");
-        if (fs.existsSync(packagesDir)) {
-            const sdpFilePaths = await fs.promises.readdir(packagesDir);
-            for (const sdpPath of sdpFilePaths) {
-                const sdpMd5 = path.parse(sdpPath).name;
-                const version = this.md5ToRapidVersionMap[sdpMd5];
-                if (!this.installedVersions.has(version) && version !== "byar:test") {
-                    this.installedVersions.add(version);
-                }
-            }
-
-            this.sortVersions();
-        }
-
-        const gamesDir = path.join(api.info.contentPath, "games");
-        if (fs.existsSync(gamesDir)) {
-            const dirs = await fs.promises.readdir(gamesDir);
-            for (const dir of dirs) {
-                try {
-                    const modInfoLua = await fs.promises.readFile(path.join(gamesDir, dir, "modinfo.lua"));
-                    const modInfo = parseLuaTable(modInfoLua);
-                    this.installedVersions.add(`${modInfo.game} ${modInfo.version}`);
-                } catch (err) {
-                    console.error(err);
-                }
-            }
-        }
-    }
-
     /**
      * @todo need to lookup sdp file for specified game
      * @param filePatterns glob pattern for which files to retrieve
@@ -125,7 +107,7 @@ export class GameContentAPI extends PrDownloaderAPI {
             throw new Error(`Cannot fetch files for ${version}, as it is not installed`);
         }
 
-        // TODO: lookup correct filePath
+        // TODO: lookup correct filePath directly from cache
         let sdpFile = "";
         entries(this.md5ToRapidVersionMap).forEach(([md5, gameVersion]) => {
             if (gameVersion === version) {
@@ -234,11 +216,37 @@ export class GameContentAPI extends PrDownloaderAPI {
         return fileData;
     }
 
+    protected async getMd5(targetVersion: string) {
+        const response = await axios({
+            url: `${contentSources.rapid.host}/${contentSources.rapid.game}/versions.gz`,
+            method: "GET",
+            responseType: "arraybuffer",
+            headers: {
+                "Content-Type": "application/gzip",
+            },
+        });
+
+        const versionsStr = zlib.gunzipSync(response.data).toString().trim();
+        const versionsParts = versionsStr.split("\n");
+        for (const versionLine of versionsParts) {
+            const [, md5, , version] = versionLine.split(",");
+            if (version === targetVersion) {
+                return md5;
+            }
+        }
+
+        return null;
+    }
+
     protected sortVersions() {
         const sortedVersions = Array.from(this.installedVersions).sort((a, b) => {
-            const aRev = parseInt(a.split("-")[1]);
-            const bRev = parseInt(b.split("-")[1]);
-            return aRev - bRev;
+            try {
+                const aRev = parseInt(a.split("-")[1]);
+                const bRev = parseInt(b.split("-")[1]);
+                return aRev - bRev;
+            } catch (err) {
+                return 1;
+            }
         });
 
         this.installedVersions.clear();

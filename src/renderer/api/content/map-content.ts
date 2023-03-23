@@ -31,7 +31,7 @@ export class MapContentAPI extends PrDownloaderAPI {
             .addColumn("scriptName", "varchar", (col) => col.notNull().unique())
             .addColumn("fileName", "varchar", (col) => col.notNull().unique())
             .addColumn("friendlyName", "varchar", (col) => col.notNull())
-            .addColumn("description", "varchar", (col) => col)
+            .addColumn("description", "varchar")
             .addColumn("mapHardness", "double precision", (col) => col.notNull())
             .addColumn("gravity", "double precision", (col) => col.notNull())
             .addColumn("tidalStrength", "double precision", (col) => col.notNull())
@@ -39,12 +39,12 @@ export class MapContentAPI extends PrDownloaderAPI {
             .addColumn("extractorRadius", "double precision", (col) => col.notNull())
             .addColumn("minWind", "double precision", (col) => col.notNull())
             .addColumn("maxWind", "double precision", (col) => col.notNull())
-            .addColumn("startPositions", "json", (col) => col)
+            .addColumn("startPositions", "json")
             .addColumn("width", "double precision", (col) => col.notNull())
             .addColumn("height", "double precision", (col) => col.notNull())
             .addColumn("minDepth", "double precision", (col) => col.notNull())
             .addColumn("maxDepth", "double precision", (col) => col.notNull())
-            .addColumn("mapInfo", "json", (col) => col)
+            .addColumn("mapInfo", "json")
             .execute();
 
         await api.cacheDb.schema
