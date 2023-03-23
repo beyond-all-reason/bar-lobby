@@ -135,9 +135,10 @@
                         @update:model-value="onBalanceModeSelected"
                     />
 
-                    <Number
+                    <Select
                         label="Team Size"
                         :modelValue="battle.battleOptions.teamSize"
+                        :options="[1, 2, 3, 4, 5, 6, 7, 8]"
                         class="fullwidth"
                         showButtons
                         @update:model-value="onTeamSizeSelected"
@@ -154,9 +155,10 @@
                         @update:model-value="onAutoBalanceSelected"
                     />
 
-                    <Number
+                    <Select
                         label="Num of Teams"
                         :modelValue="battle.battleOptions.nbTeams"
+                        :options="[2, 3, 4]"
                         class="fullwidth"
                         showButtons
                         @update:model-value="onNbTeamsSelected"
@@ -217,7 +219,6 @@ import Playerlist from "@/components/battle/Playerlist.vue";
 import VotingPanel from "@/components/battle/VotePanel.vue";
 import Button from "@/components/controls/Button.vue";
 import Checkbox from "@/components/controls/Checkbox.vue";
-import Number from "@/components/controls/Number.vue";
 import Options from "@/components/controls/Options.vue";
 import Select from "@/components/controls/Select.vue";
 import MapPreview from "@/components/maps/MapPreview.vue";
