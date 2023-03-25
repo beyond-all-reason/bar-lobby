@@ -1,7 +1,7 @@
 import axios from "axios";
 import * as fs from "fs";
 import * as glob from "glob-promise";
-import { BufferStream, entries } from "jaz-ts-utils";
+import { BufferStream } from "jaz-ts-utils";
 import * as path from "path";
 import util from "util";
 import { reactive } from "vue";
@@ -20,12 +20,6 @@ const gunzip = util.promisify(zlib.gunzip);
 
 export class GameContentAPI extends PrDownloaderAPI {
     public readonly installedVersions: Set<string> = reactive(new Set());
-
-    /**
-     * The reason we're keeping a map of game version -> md5 is to speed up the getGameFiles function.
-     * The directory of all files for a game version are stored in .sdp files in the rapid dir, where the filename is an md5
-     */
-    protected md5ToRapidVersionMap: Record<string, string> = {};
 
     constructor() {
         super();
@@ -107,20 +101,10 @@ export class GameContentAPI extends PrDownloaderAPI {
             throw new Error(`Cannot fetch files for ${version}, as it is not installed`);
         }
 
-        // TODO: lookup correct filePath directly from cache
-        let sdpFile = "";
-        entries(this.md5ToRapidVersionMap).forEach(([md5, gameVersion]) => {
-            if (gameVersion === version) {
-                sdpFile = `${md5}.sdp`;
-                return;
-            }
-        });
+        const md5 = await this.getMd5(version);
+        const sdpFileName = `${md5}.sdp`;
 
-        if (!sdpFile) {
-            throw new Error(`Couldn't find .sdp package file for game version: ${version}`);
-        }
-
-        const filePath = path.join(api.info.contentPath, "packages", sdpFile);
+        const filePath = path.join(api.info.contentPath, "packages", sdpFileName);
 
         const sdpEntries = await this.parseSdpFile(filePath, filePattern);
 
@@ -216,6 +200,7 @@ export class GameContentAPI extends PrDownloaderAPI {
         return fileData;
     }
 
+    // TODO: make this check from local file system
     protected async getMd5(targetVersion: string) {
         const response = await axios({
             url: `${contentSources.rapid.host}/${contentSources.rapid.game}/versions.gz`,
