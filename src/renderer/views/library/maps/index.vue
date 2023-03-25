@@ -3,7 +3,7 @@
 </route>
 
 <template>
-    <div>
+    <div class="flex-col fullheight">
         <h1>Installed Maps</h1>
         <MapListComponent @map-selected="onMapSelected" />
     </div>
