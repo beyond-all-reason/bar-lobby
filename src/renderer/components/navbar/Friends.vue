@@ -104,7 +104,7 @@ const emits = defineEmits<{
 const activeIndex = ref(0);
 const accordianActiveIndexes = ref([0, 1, 2]);
 const friendId = ref();
-let addFriendDisabled = ref(true);
+const addFriendDisabled = ref(true);
 const onlineFriends = computed(() => api.session.friends.value.filter((user) => user.isOnline));
 const offlineFriends = computed(() => api.session.friends.value.filter((user) => !user.isOnline));
 const outgoingFriendRequests = api.session.outgoingFriendRequests;
