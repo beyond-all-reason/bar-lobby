@@ -26,6 +26,7 @@ const props = defineProps<Props>();
 .select {
     align-self: center;
     width: 100%;
+    overflow: hidden;
 }
 .p-dropdown {
     display: inline-flex;
@@ -33,6 +34,7 @@ const props = defineProps<Props>();
     align-items: center;
     padding: 5px 10px;
     width: 100%;
+    overflow: hidden;
     &-panel {
         background: #111;
         border: 1px solid rgba(255, 255, 255, 0.2);
