@@ -26,13 +26,15 @@ TODO:
 </template>
 
 <script lang="ts" setup>
+import { computed } from "vue";
+
 import Flag from "@/components/misc/Flag.vue";
 
 const props = defineProps<{
     id: string;
 }>();
 
-const user = api.session.getUserById(parseInt(props.id));
+const user = computed(() => api.session.getUserById(parseInt(props.id)));
 </script>
 
 <style lang="scss" scoped></style>
