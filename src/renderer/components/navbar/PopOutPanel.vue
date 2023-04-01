@@ -23,6 +23,7 @@ const props = defineProps<{
     min-height: 400px;
     max-height: 400px;
     background: rgba(0, 0, 0, 0.95);
+    font-family: Poppins;
     :deep(.content) {
         padding: 0;
     }

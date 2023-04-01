@@ -42,7 +42,6 @@ const color = computed(() => {
     border-radius: 3px;
     background: rgba(0, 0, 0, 0.3);
     font-size: 14px;
-    font-weight: 500;
     border: 1px solid rgba(255, 255, 255, 0.1);
     overflow: hidden;
     &.color {

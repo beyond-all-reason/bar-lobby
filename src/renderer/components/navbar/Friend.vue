@@ -147,8 +147,6 @@ async function removeFriend() {
 .flag {
 }
 .username {
-    font-size: 18px;
-    font-weight: 600;
 }
 .square {
     :deep(.p-button) {

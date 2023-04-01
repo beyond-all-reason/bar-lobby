@@ -117,11 +117,10 @@ function onDrop(event: DragEvent, teamId: number) {
     }
 }
 .title {
-    font-size: 26px;
+    font-size: 20px;
 }
 .member-count {
     display: inline-block;
-    font-size: 20px;
     opacity: 0.5;
     vertical-align: middle;
 }

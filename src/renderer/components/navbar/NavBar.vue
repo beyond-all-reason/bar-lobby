@@ -112,20 +112,22 @@ const primaryRoutes = computed(() => {
         .filter((r) => ["/singleplayer", "/multiplayer", "/library", "/learn", "/store", "/development"].includes(r.path))
         .filter(
             (r) =>
-                r.meta.availableOffline === undefined ||
-                r.meta.availableOffline ||
-                (r.meta.availableOffline === false && !offlineMode.value)
+                (r.meta.hide === false || r.meta.hide === undefined) &&
+                (r.meta.availableOffline === undefined ||
+                    r.meta.availableOffline ||
+                    (r.meta.availableOffline === false && !offlineMode.value))
         )
         .sort((a, b) => (a.meta.order ?? 99) - (b.meta.order ?? 99));
 });
 const secondaryRoutes = computed(() => {
     return allRoutes
-        .filter((r) => r.meta.order !== undefined && r.path.startsWith(`/${api.router.currentRoute.value.path.split("/")[1]}/`))
+        .filter((r) => r.path.startsWith(`/${api.router.currentRoute.value.path.split("/")[1]}/`))
         .filter(
             (r) =>
-                r.meta.availableOffline === undefined ||
-                r.meta.availableOffline ||
-                (r.meta.availableOffline === false && !offlineMode.value)
+                (r.meta.hide === false || r.meta.hide === undefined) &&
+                (r.meta.availableOffline === undefined ||
+                    r.meta.availableOffline ||
+                    (r.meta.availableOffline === false && !offlineMode.value))
         )
         .sort((a, b) => (a.meta.order ?? 99) - (b.meta.order ?? 99));
 });
@@ -164,6 +166,7 @@ const serverOffline = api.session.offlineMode;
     gap: 1px;
     transition: transform 0.3s, opacity 0.3s;
     z-index: 1;
+    font-family: Rajdhani, sans-serif;
     &.hidden {
         opacity: 0;
         transform: translateY(-100%);
@@ -215,6 +218,7 @@ const serverOffline = api.session.offlineMode;
         height: 100%;
         font-weight: 600;
         text-transform: uppercase;
+        max-height: unset;
         :deep(.p-button) {
             padding: 0 22px;
         }
@@ -271,6 +275,7 @@ const serverOffline = api.session.offlineMode;
     border-top: 1px solid rgba(255, 255, 255, 0.15);
     display: flex;
     height: 36px;
+    font-size: 18px;
     .button {
         background: none;
         border: none;

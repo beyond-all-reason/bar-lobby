@@ -1,8 +1,8 @@
 <template>
-    <div class="participant" data-type="participant" @mouseenter.stop="onMouseEnter" @contextmenu="onRightClick">
+    <TeamParticipant :battle="battle" @contextmenu="onRightClick">
         <Icon :icon="robot" :height="16" />
         <div>{{ getAiFriendlyName(props.bot.aiShortName) }}</div>
-    </div>
+    </TeamParticipant>
     <LuaOptionsModal
         :id="`configure-bot-${bot.name}`"
         v-model="botOptionsOpen"
@@ -21,6 +21,7 @@ import { MenuItem } from "primevue/menuitem";
 import { Ref, ref } from "vue";
 
 import LuaOptionsModal from "@/components/battle/LuaOptionsModal.vue";
+import TeamParticipant from "@/components/battle/TeamParticipant.vue";
 import ContextMenu from "@/components/common/ContextMenu.vue";
 import { getAiFriendlyName } from "@/model/ai";
 import { AbstractBattle } from "@/model/battle/abstract-battle";
@@ -70,29 +71,9 @@ async function configureBot() {
 function setBotOptions(options: Record<string, unknown>) {
     props.battle.setBotOptions(props.bot.name, options);
 }
-
-function onMouseEnter() {
-    api.audio.play("button-hover");
-}
 </script>
 
 <style lang="scss" scoped>
-.participant {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    gap: 5px;
-    padding: 3px 8px;
-    border-radius: 3px;
-    background: rgba(0, 0, 0, 0.3);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    &.dragging {
-        pointer-events: auto;
-    }
-    &:hover {
-        background: rgba(255, 255, 255, 0.1);
-    }
-}
 .bot-type {
     opacity: 0.5;
 }

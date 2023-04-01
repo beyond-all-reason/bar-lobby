@@ -21,6 +21,7 @@ declare module "vue-router" {
         title?: string;
         order?: number;
         availableOffline?: boolean;
+        hide?: boolean;
         empty?: boolean;
         blurBg?: boolean;
         transition?: TransitionProps;

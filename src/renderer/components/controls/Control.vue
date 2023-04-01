@@ -34,6 +34,7 @@ function onMouseEnter() {
 .control {
     display: flex;
     min-height: 35px;
+    max-height: 35px;
     align-items: center;
     align-self: center;
     justify-self: flex-start;

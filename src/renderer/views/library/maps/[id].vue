@@ -1,5 +1,5 @@
 <route lang="json5">
-{ props: true, meta: { title: "Map Details", transition: { name: "slide-left" } } }
+{ props: true, meta: { title: "Map Details", hide: true, transition: { name: "slide-left" } } }
 </route>
 
 <template>

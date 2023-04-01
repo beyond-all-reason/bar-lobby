@@ -1,18 +1,12 @@
 <template>
-    <div
-        v-tooltip.bottom="syncStatus"
-        class="participant"
-        data-type="participant"
-        @mouseenter.stop="onMouseEnter"
-        @contextmenu="onRightClick"
-    >
+    <TeamParticipant :battle="battle" @contextmenu="onRightClick">
         <Flag class="flag" :countryCode="player.countryCode" />
         <div>{{ player.username }}</div>
         <div v-if="!player.battleStatus.isSpectator">
             <div class="ready" :class="{ isReady: player.battleStatus.ready }">⬤</div>
         </div>
         <Icon v-if="!isSynced" :icon="syncAlert" :height="16" color="#f00" />
-    </div>
+    </TeamParticipant>
     <ContextMenu ref="menu" :model="actions" />
 </template>
 
@@ -23,6 +17,7 @@ import { delay } from "jaz-ts-utils";
 import { MenuItem } from "primevue/menuitem";
 import { computed, inject, Ref, ref } from "vue";
 
+import TeamParticipant from "@/components/battle/TeamParticipant.vue";
 import ContextMenu from "@/components/common/ContextMenu.vue";
 import Flag from "@/components/misc/Flag.vue";
 import { AbstractBattle } from "@/model/battle/abstract-battle";
@@ -127,29 +122,9 @@ async function addFriend() {
 function reportPlayer() {
     // TODO
 }
-
-function onMouseEnter() {
-    api.audio.play("button-hover");
-}
 </script>
 
 <style lang="scss" scoped>
-.participant {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    gap: 5px;
-    padding: 3px 8px;
-    border-radius: 3px;
-    background: rgba(0, 0, 0, 0.3);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    &.dragging {
-        pointer-events: auto;
-    }
-    &:hover {
-        background: rgba(255, 255, 255, 0.1);
-    }
-}
 .flag {
     width: 16px;
 }

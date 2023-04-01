@@ -54,7 +54,8 @@ async function onClick() {
         min-height: unset;
         align-self: center;
         border-radius: 2px;
-        font-size: 16px;
+        font-size: 14px;
+        font-weight: 300;
     }
 }
 .p-button {
