@@ -11,8 +11,18 @@
                     </div>
 
                     <div class="flex-row gap-md">
-                        <Textbox v-model="friendIdStr" type="number" class="txtFriendId" label="Friend ID" placeholder="12345" />
-                        <Button class="blue" :disabled="!Boolean(friendIdStr)" @click="addFriend">Add Friend</Button>
+                        <InputNumber
+                            id="friendId"
+                            v-model="friendId"
+                            type="number"
+                            class="FriendId"
+                            :allowEmpty="true"
+                            :min="1"
+                            :useGrouping="false"
+                            placeholder="Friend ID"
+                            @input="handleFriendIdInput"
+                        />
+                        <Button class="blue" :disabled="addFriendDisabled" @click="addFriend">Add Friend</Button>
                     </div>
 
                     <Accordion
@@ -72,13 +82,14 @@
  */
 
 import AccordionTab from "primevue/accordiontab";
+import InputNumber from "primevue/inputnumber";
+import { InputNumberBlurEvent } from "primevue/inputnumber";
 import TabPanel from "primevue/tabpanel";
 import { computed, inject, Ref, ref, watch } from "vue";
 
 import Accordion from "@/components/common/Accordion.vue";
 import TabView from "@/components/common/TabView.vue";
 import Button from "@/components/controls/Button.vue";
-import Textbox from "@/components/controls/Textbox.vue";
 import Friend from "@/components/navbar/Friend.vue";
 import PopOutPanel from "@/components/navbar/PopOutPanel.vue";
 
@@ -92,7 +103,8 @@ const emits = defineEmits<{
 
 const activeIndex = ref(0);
 const accordianActiveIndexes = ref([0, 1, 2]);
-const friendIdStr = ref("");
+const friendId = ref();
+const addFriendDisabled = ref(true);
 const onlineFriends = computed(() => api.session.friends.value.filter((user) => user.isOnline));
 const offlineFriends = computed(() => api.session.friends.value.filter((user) => !user.isOnline));
 const outgoingFriendRequests = api.session.outgoingFriendRequests;
@@ -102,6 +114,14 @@ const myUserId = computed(() => api.session.onlineUser.userId);
 const toggleMessages = inject<Ref<(open?: boolean, userId?: number) => void>>("toggleMessages")!;
 const toggleFriends = inject<Ref<(open?: boolean) => void>>("toggleFriends")!;
 const toggleDownloads = inject<Ref<(open?: boolean) => void>>("toggleDownloads")!;
+
+function handleFriendIdInput(event: InputNumberBlurEvent) {
+    if (event && event.value !== null) {
+        addFriendDisabled.value = false;
+    } else {
+        addFriendDisabled.value = true;
+    }
+}
 
 toggleFriends.value = (open?: boolean) => {
     if (open) {
@@ -126,20 +146,16 @@ function copyUserId() {
 }
 
 async function addFriend() {
-    if (friendIdStr.value) {
-        const friendId = parseInt(friendIdStr.value);
+    api.comms.request("c.user.add_friend", {
+        user_id: friendId.value,
+    });
 
-        api.comms.request("c.user.add_friend", {
-            user_id: friendId,
-        });
+    const { users } = await api.comms.request("c.user.list_users_from_ids", {
+        id_list: [friendId.value],
+    });
 
-        const { users } = await api.comms.request("c.user.list_users_from_ids", {
-            id_list: [friendId],
-        });
-
-        if (users.length) {
-            api.session.onlineUser.incomingFriendRequestUserIds.add(friendId);
-        }
+    if (users.length) {
+        api.session.onlineUser.incomingFriendRequestUserIds.add(friendId.value);
     }
 }
 </script>
@@ -152,10 +168,14 @@ async function addFriend() {
     flex-direction: column;
     flex-grow: 1;
 }
-:deep(.txtFriendId) {
+:deep(.FriendId) {
     flex-grow: 1;
-    .p-inputtext {
+    .p-inputnumber {
         width: 100px;
+    }
+    .p-inputtext {
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        background-color: rgba(255, 255, 255, 0.2);
     }
 }
 </style>
