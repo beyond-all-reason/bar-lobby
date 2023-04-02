@@ -44,16 +44,16 @@ const color = computed(() => {
     font-size: 14px;
     border: 1px solid rgba(255, 255, 255, 0.1);
     overflow: hidden;
-    &.color {
-        padding-left: 10px;
-        &:before {
-            @extend .fullsize;
-            left: 0;
-            top: 0;
-            width: 4px;
-            background: v-bind(color);
-        }
-    }
+    // &.color { // disabled for now because colors need to be parsed from packet stream (because of colour gadget), and we want to skip packet parsing to speed things up
+    //     padding-left: 10px;
+    //     &:before {
+    //         @extend .fullsize;
+    //         left: 0;
+    //         top: 0;
+    //         width: 4px;
+    //         background: v-bind(color);
+    //     }
+    // }
 }
 .flag {
     width: 16px;
