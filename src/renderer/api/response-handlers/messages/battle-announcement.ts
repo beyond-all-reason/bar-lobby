@@ -101,6 +101,16 @@ export const battleAnnouncementHandlers = createMessageHandlers(
         },
     },
     {
+        regex: new RegExp(/\* Vote cancelled by (?<username>.*)/),
+        schema: Type.Object({
+            username: Type.String(),
+        }),
+        async handler(data, message) {
+            const battle = api.session.onlineBattle.value!;
+            battle.currentVote.value = null;
+        },
+    },
+    {
         regex: new RegExp(/\* (?<numOfUsersAllowedToVote>\d*) users allowed to vote./),
         schema: Type.Object({
             numOfUsersAllowedToVote: Type.Number(),
