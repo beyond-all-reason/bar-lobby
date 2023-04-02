@@ -19,10 +19,10 @@
             </TabView>
         </Panel>
         <div v-else class="flex-col gap-md">
-            <div class="txt-error">Could not connect to {{ serverAddress }}</div>
-            <Button class="retry" @click="onRetry">
+            <div class="txt-error">Disconnected from {{ serverAddress }}</div>
+            <Button class="retry gap-sm" @click="onRetry">
                 <Icon :icon="replayIcon" />
-                Retry
+                Reconnect
             </Button>
         </div>
         <div class="play-offline" @click="playOffline">Play Offline</div>

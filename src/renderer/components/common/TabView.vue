@@ -63,8 +63,6 @@ const emits = defineEmits<Emits>();
         background: rgba(255, 255, 255, 0.05);
     }
     .p-tabview-panels {
-        min-height: calc(100% - 39px);
-        max-height: calc(100% - 39px);
         overflow-y: auto;
     }
     .p-tabview-panel {

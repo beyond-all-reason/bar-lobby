@@ -20,49 +20,53 @@
                 </div>
             </div>
 
-            <DataTable
-                v-model:first="offset"
-                v-model:selection="selectedReplay"
-                :lazy="true"
-                :value="replays"
-                :paginator="true"
-                :rows="limit"
-                :totalRecords="totalReplays"
-                selectionMode="single"
-                dataKey="replayId"
-                :sortOrder="sortOrder === 'asc' ? 1 : -1"
-                :sortField="sortField"
-                @page="onPage"
-                @sort="onSort"
-            >
-                <Column header="Name">
-                    <template #body="{ data }">
-                        <template v-if="isBattle(data)">{{ data.battleOptions.title }}</template>
-                        <template v-else-if="isReplay(data)">
-                            <template v-if="data.preset === 'duel'">
-                                {{ data.contenders?.[0]?.name ?? "Nobody" }} vs
-                                {{ data.contenders?.[1]?.name ?? "Nobody" }}
+            <div class="flex-col fullheight">
+                <div class="scroll-container padding-right-sm">
+                    <DataTable
+                        v-model:first="offset"
+                        v-model:selection="selectedReplay"
+                        :lazy="true"
+                        :value="replays"
+                        :paginator="true"
+                        :rows="limit"
+                        :totalRecords="totalReplays"
+                        selectionMode="single"
+                        dataKey="replayId"
+                        :sortOrder="sortOrder === 'asc' ? 1 : -1"
+                        :sortField="sortField"
+                        @page="onPage"
+                        @sort="onSort"
+                    >
+                        <Column header="Name">
+                            <template #body="{ data }">
+                                <template v-if="isBattle(data)">{{ data.battleOptions.title }}</template>
+                                <template v-else-if="isReplay(data)">
+                                    <template v-if="data.preset === 'duel'">
+                                        {{ data.contenders?.[0]?.name ?? "Nobody" }} vs
+                                        {{ data.contenders?.[1]?.name ?? "Nobody" }}
+                                    </template>
+                                    <template v-else-if="data.preset === 'team'">
+                                        {{ data.teams[0].playerCount }} vs {{ data.teams[1].playerCount }}
+                                    </template>
+                                    <template v-if="data.preset === 'ffa'"> {{ data.contenders.length }} Way FFA </template>
+                                    <template v-if="data.preset === 'teamffa'"> {{ data.teams[0].playerCount }} Way Team FFA </template>
+                                </template>
                             </template>
-                            <template v-else-if="data.preset === 'team'">
-                                {{ data.teams[0].playerCount }} vs {{ data.teams[1].playerCount }}
+                        </Column>
+                        <Column header="Date" :sortable="true" sortField="startTime">
+                            <template #body="{ data }">
+                                {{ format(data.startTime, "yyyy/MM/dd hh:mm a") }}
                             </template>
-                            <template v-if="data.preset === 'ffa'"> {{ data.contenders.length }} Way FFA </template>
-                            <template v-if="data.preset === 'teamffa'"> {{ data.teams[0].playerCount }} Way Team FFA </template>
-                        </template>
-                    </template>
-                </Column>
-                <Column header="Date" :sortable="true" sortField="startTime">
-                    <template #body="{ data }">
-                        {{ format(data.startTime, "yyyy/MM/dd hh:mm a") }}
-                    </template>
-                </Column>
-                <Column header="Duration" :sortable="true" sortField="gameDurationMs">
-                    <template #body="{ data }">
-                        {{ getFriendlyDuration(data.gameDurationMs) }}
-                    </template>
-                </Column>
-                <Column field="mapScriptName" header="Map" :sortable="true" sortField="mapScriptName" />
-            </DataTable>
+                        </Column>
+                        <Column header="Duration" :sortable="true" sortField="gameDurationMs">
+                            <template #body="{ data }">
+                                {{ getFriendlyDuration(data.gameDurationMs) }}
+                            </template>
+                        </Column>
+                        <Column field="mapScriptName" header="Map" :sortable="true" sortField="mapScriptName" />
+                    </DataTable>
+                </div>
+            </div>
         </div>
         <div class="right">
             <BattlePreview v-if="selectedReplay" :battle="selectedReplay" :showSpoilers="showSpoilers">
@@ -110,7 +114,7 @@ const endedNormally: Ref<boolean | null> = ref(true);
 const showSpoilers = ref(true);
 const totalReplays = ref(0);
 const offset = ref(0);
-const limit = ref(18);
+const limit = ref(15);
 const sortField: Ref<keyof Replay> = ref("startTime");
 const sortOrder: Ref<"asc" | "desc"> = ref("desc");
 const replays: Ref<Replay[]> = shallowRef([]);

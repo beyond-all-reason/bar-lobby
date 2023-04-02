@@ -118,6 +118,8 @@ function save() {
     padding: 0 !important;
 }
 .lua-options-panel {
+    display: flex;
+    flex-direction: column;
     width: 700px;
     height: 600px;
 }

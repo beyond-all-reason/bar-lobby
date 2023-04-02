@@ -11,7 +11,7 @@
                     </div>
 
                     <div class="flex-row gap-md">
-                        <InputNumber
+                        <Number
                             id="friendId"
                             v-model="friendId"
                             type="number"
@@ -82,7 +82,6 @@
  */
 
 import AccordionTab from "primevue/accordiontab";
-import InputNumber from "primevue/inputnumber";
 import { InputNumberBlurEvent } from "primevue/inputnumber";
 import TabPanel from "primevue/tabpanel";
 import { computed, inject, Ref, ref, watch } from "vue";
@@ -90,6 +89,7 @@ import { computed, inject, Ref, ref, watch } from "vue";
 import Accordion from "@/components/common/Accordion.vue";
 import TabView from "@/components/common/TabView.vue";
 import Button from "@/components/controls/Button.vue";
+import Number from "@/components/controls/Number.vue";
 import Friend from "@/components/navbar/Friend.vue";
 import PopOutPanel from "@/components/navbar/PopOutPanel.vue";
 
@@ -170,12 +170,5 @@ async function addFriend() {
 }
 :deep(.FriendId) {
     flex-grow: 1;
-    .p-inputnumber {
-        width: 100px;
-    }
-    .p-inputtext {
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        background-color: rgba(255, 255, 255, 0.2);
-    }
 }
 </style>

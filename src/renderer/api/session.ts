@@ -28,6 +28,16 @@ export class SessionAPI {
     public lastBattleResponses: Map<number, Static<typeof lobbySchema>> = new Map();
 
     constructor() {
+        // TODO: remove class initialisers, do everything in clear function, then call this.clear() from this constructor, and also call .clear() on logout
+        this.offlineMode.value = false;
+        this.offlineBattle.value = null;
+        this.onlineBattle.value = null;
+        this.users.clear();
+        this.battles.clear();
+        this.battleMessages.length = 0;
+        this.serverStats.value = null;
+        this.directMessages.clear();
+
         const userData: CurrentUser = {
             userId: -1,
             username: "Player",
@@ -65,6 +75,10 @@ export class SessionAPI {
         this.outgoingFriendRequests = computed(() => [...this.onlineUser.outgoingFriendRequestUserIds].map((id) => this.getUserById(id)!).filter(Boolean));
         this.incomingFriendRequests = computed(() => [...this.onlineUser.incomingFriendRequestUserIds].map((id) => this.getUserById(id)!).filter(Boolean));
         this.friends = computed(() => [...this.onlineUser.friendUserIds].map((id) => this.getUserById(id)!).filter(Boolean));
+    }
+
+    public clear() {
+        // TODO
     }
 
     public updateCurrentUser(myUserData: Static<typeof myUserSchema>) {
