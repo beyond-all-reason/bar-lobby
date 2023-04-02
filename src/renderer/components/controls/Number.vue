@@ -1,31 +1,27 @@
 <template>
     <Control class="number">
-        <PrimeVueInputNumber :modelValue="modelValue" v-bind="$attrs" @update:model-value="onInput" />
+        <PrimeVueInputNumber v-bind="$attrs" />
     </Control>
 </template>
 
 <script lang="ts" setup>
-import { InputNumberProps } from "primevue/inputnumber";
+import { InputNumberEmits, InputNumberProps } from "primevue/inputnumber";
 import { computed, ref } from "vue";
 
 import Control from "@/components/controls/Control.vue";
 import PrimeVueInputNumber from "@/components/primevue/PrimeVueInputNumber.vue";
 
-export interface Props extends InputNumberProps {
-    modelValue: number | undefined;
-}
+// eslint-disable-next-line
+export interface Props extends InputNumberProps {}
+
+// eslint-disable-next-line
+export interface Emits extends InputNumberEmits {}
 
 const props = defineProps<Props>();
-const emits = defineEmits<{
-    (event: "update:modelValue", value: number): void;
-}>();
+const emits = defineEmits<Emits>();
 
 const max = ref(100);
 const maxInputWidth = computed(() => `${max.value.toString().length + 1}ch`);
-
-function onInput(input: number) {
-    emits("update:modelValue", input);
-}
 </script>
 
 <style lang="scss" scoped>

@@ -41,7 +41,6 @@ function mounted(el: HTMLElement, binding: DirectiveBinding) {
         }
 
         if (!document.contains(event.target as HTMLElement)) {
-            console.log(event.target);
             return;
         }
 

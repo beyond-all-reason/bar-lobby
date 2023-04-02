@@ -13,6 +13,7 @@
     "dev": "electron-vite",
     "build": "electron-vite build",
     "compile": "electron-builder --config .electron-builder.config.js",
+    "local-build": "npm run build && npm run compile",
     "fix": "npm run type-check && npm run tidy",
     "check": "npm run type-check && npm run tidy-check",
     "type-check": "vue-tsc --noEmit -p tsconfig.node.json && vue-tsc --noEmit -p tsconfig.web.json",

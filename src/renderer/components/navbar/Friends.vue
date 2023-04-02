@@ -103,7 +103,7 @@ const emits = defineEmits<{
 
 const activeIndex = ref(0);
 const accordianActiveIndexes = ref([0, 1, 2]);
-const friendId = ref();
+const friendId = ref<number>();
 const addFriendDisabled = ref(true);
 const onlineFriends = computed(() => api.session.friends.value.filter((user) => user.isOnline));
 const offlineFriends = computed(() => api.session.friends.value.filter((user) => !user.isOnline));
@@ -146,6 +146,10 @@ function copyUserId() {
 }
 
 async function addFriend() {
+    if (!friendId.value) {
+        return;
+    }
+
     api.comms.request("c.user.add_friend", {
         user_id: friendId.value,
     });
