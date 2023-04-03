@@ -25,15 +25,15 @@
                         <Button class="blue" :disabled="addFriendDisabled" @click="addFriend">Add Friend</Button>
                     </div>
 
-                    <Accordion
-                        v-if="outgoingFriendRequests.length || incomingFriendRequests.length"
-                        :activeIndex="accordianActiveIndexes"
-                        multiple
-                    >
-                        <AccordionTab v-if="outgoingFriendRequests.length" header="Outgoing Friend Requests">
-                            <div class="scroll-container">
-                                <div class="user-list">
-                                    <div class="scroll-container gap-sm padding-right-sm">
+                    <div class="flex-col fullheight">
+                        <div class="scroll-container gap-md padding-right-sm">
+                            <Accordion
+                                v-if="outgoingFriendRequests.length || incomingFriendRequests.length"
+                                :activeIndex="accordianActiveIndexes"
+                                multiple
+                            >
+                                <AccordionTab v-if="outgoingFriendRequests.length" header="Outgoing Friend Requests">
+                                    <div class="user-list">
                                         <Friend
                                             v-for="(user, i) in outgoingFriendRequests"
                                             :key="`outgoingFriendRequest${i}`"
@@ -41,27 +41,23 @@
                                             :type="'outgoing_request'"
                                         />
                                     </div>
-                                </div>
-                            </div>
-                        </AccordionTab>
-                        <AccordionTab v-if="incomingFriendRequests.length" header="Incoming Friend Requests">
-                            <div class="user-list">
-                                <div class="scroll-container gap-sm padding-right-sm">
-                                    <Friend
-                                        v-for="(user, i) in incomingFriendRequests"
-                                        :key="`incomingFriendRequest${i}`"
-                                        :user="user"
-                                        :type="'incoming_request'"
-                                    />
-                                </div>
-                            </div>
-                        </AccordionTab>
-                    </Accordion>
+                                </AccordionTab>
+                                <AccordionTab v-if="incomingFriendRequests.length" header="Incoming Friend Requests">
+                                    <div class="user-list">
+                                        <Friend
+                                            v-for="(user, i) in incomingFriendRequests"
+                                            :key="`incomingFriendRequest${i}`"
+                                            :user="user"
+                                            :type="'incoming_request'"
+                                        />
+                                    </div>
+                                </AccordionTab>
+                            </Accordion>
 
-                    <div class="user-list">
-                        <div class="scroll-container gap-sm padding-right-sm">
-                            <Friend v-for="(user, i) in onlineFriends" :key="`onlineFriend${i}`" :user="user" :type="'friend'" />
-                            <Friend v-for="(user, i) in offlineFriends" :key="`offlineFriend${i}`" :user="user" :type="'friend'" />
+                            <div class="user-list">
+                                <Friend v-for="(user, i) in onlineFriends" :key="`onlineFriend${i}`" :user="user" :type="'friend'" />
+                                <Friend v-for="(user, i) in offlineFriends" :key="`offlineFriend${i}`" :user="user" :type="'friend'" />
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -171,8 +167,12 @@ async function addFriend() {
     display: flex;
     flex-direction: column;
     flex-grow: 1;
+    gap: 5px;
 }
 :deep(.FriendId) {
     flex-grow: 1;
+}
+:deep(.p-tabview-panels) {
+    height: 100%;
 }
 </style>

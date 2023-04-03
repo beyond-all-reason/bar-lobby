@@ -26,11 +26,11 @@
                 <div :class="`view view--${$router.currentRoute.value.name?.toString()}`">
                     <Panel :empty="empty" class="flex-grow">
                         <Breadcrumbs :class="{ hidden: empty }" />
-                        <router-view v-slot="{ Component }">
+                        <router-view v-slot="{ Component, route }">
                             <template v-if="Component">
                                 <transition mode="out-in" name="slide-left">
                                     <suspense timeout="0">
-                                        <component :is="Component" />
+                                        <component :is="Component" :key="route.path" />
                                         <template #fallback>
                                             <Loader />
                                         </template>
