@@ -181,13 +181,21 @@ async function updateBattleList() {
     await api.comms.request("c.user.list_users_from_ids", { id_list: userIds, include_clients: true });
 
     for (const lobby of lobbies) {
-        let battle = api.session.battles.get(lobby.lobby.id);
+        const battle = api.session.battles.get(lobby.lobby.id);
         if (!battle) {
             api.session.battles.set(lobby.lobby.id, new SpadsBattle(lobby));
         } else {
             battle.handleServerResponse(lobby);
         }
     }
+
+    // clear up dead battles
+    const lobbyIds = lobbies.map((lobby) => lobby.lobby.id);
+    api.session.battles.forEach((battle) => {
+        if (!lobbyIds.includes(battle.battleOptions.id)) {
+            api.session.battles.delete(battle.battleOptions.id);
+        }
+    });
 }
 
 async function attemptJoinBattle(battle: SpadsBattle) {
