@@ -18,7 +18,7 @@
                 <SearchBox v-model="searchVal" />
             </div>
 
-            <div class="battlelist">
+            <div class="scroll-container padding-right-sm">
                 <DataTable
                     v-model:selection="selectedBattle"
                     :value="battles"
@@ -224,11 +224,6 @@ async function onPasswordPromptSubmit(data) {
 </script>
 
 <style lang="scss" scoped>
-.battlelist {
-    flex: 1 1 auto;
-    overflow-y: auto;
-    height: 0px;
-}
 .right {
     position: relative;
     min-width: 400px;
