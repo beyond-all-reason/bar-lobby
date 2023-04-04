@@ -6,11 +6,27 @@
         title="Add Bot"
         @bot-selected="onBotSelected"
     />
-    <div class="playerlist" :class="{ dragging: draggedParticipant !== null }">
+    <div>
+        <div class="playerlist" :class="{ dragging: draggedParticipant !== null }">
+            <TeamComponent
+                v-for="[teamId] in sortedTeams"
+                :key="teamId"
+                :teamId="teamId"
+                :battle="battle"
+                :me="me"
+                @add-bot-clicked="openBotList"
+                @on-join-clicked="joinTeam"
+                @on-drag-start="dragStart"
+                @on-drag-end="dragEnd"
+                @on-drag-enter="dragEnter"
+                @on-drop="onDrop"
+            />
+        </div>
+        <hr class="margin-top-sm margin-bottom-sm" />
         <TeamComponent
-            v-for="[teamId] in sortedTeams"
-            :key="teamId"
-            :teamId="teamId"
+            :key="-1"
+            class="spectators"
+            :teamId="-1"
             :battle="battle"
             :me="me"
             @add-bot-clicked="openBotList"
@@ -44,9 +60,10 @@ const botModalTeamId = ref(0);
 const sortedTeams = computed(() => {
     const teams = new Map(props.battle.teams.value);
     teams.set(teams.size, []); // Empty team
-    teams.set(-1, props.battle.spectators.value); // Spectators
     return teams;
 });
+
+//const spectators = props.battle.spectators.value;
 
 function openBotList(teamId: number) {
     botModalTeamId.value = teamId;
@@ -167,16 +184,15 @@ function onDrop(event: DragEvent, teamId: number) {
 
 <style lang="scss" scoped>
 .playerlist {
-    display: flex;
-    flex-direction: column;
-    overflow-y: auto;
-    padding-right: 5px;
-    height: 0;
-    flex-grow: 1;
-    flex-shrink: 1;
-    flex-basis: auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-auto-rows: max-content;
+    gap: 10px;
     &.dragging .group > * {
         pointer-events: none;
+    }
+    @media (max-width: 1919px) {
+        grid-template-columns: 1fr;
     }
 }
 </style>

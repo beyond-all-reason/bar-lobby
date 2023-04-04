@@ -1,6 +1,8 @@
 <template>
     <TeamParticipant :battle="battle" @contextmenu="onRightClick">
-        <Icon :icon="robot" :height="16" />
+        <div class="flex-row flex-center">
+            <Icon :icon="robot" :height="16" />
+        </div>
         <div>{{ getAiFriendlyName(props.bot.aiShortName) }}</div>
     </TeamParticipant>
     <LuaOptionsModal

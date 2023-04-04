@@ -63,7 +63,7 @@ async function onClick() {
     height: 100%;
     display: flex;
     justify-content: center;
-    padding: 0 10px;
+    padding: 0 8px;
 }
 
 $btnColors: (

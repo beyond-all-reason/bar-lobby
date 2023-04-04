@@ -19,7 +19,6 @@ function onMouseEnter() {
 <style lang="scss" scoped>
 .participant {
     display: flex;
-    flex-direction: row;
     align-items: center;
     gap: 5px;
     padding: 3px 8px;

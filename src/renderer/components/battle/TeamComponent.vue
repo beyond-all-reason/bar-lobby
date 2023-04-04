@@ -87,14 +87,6 @@ function onDrop(event: DragEvent, teamId: number) {
 <style lang="scss" scoped>
 .group {
     position: relative;
-    &:not(:last-child):after {
-        content: "";
-        display: flex;
-        background: rgba(255, 255, 255, 0.1);
-        width: 100%;
-        height: 1px;
-        margin: 10px 0;
-    }
     &.highlight {
         &:before {
             @extend .fullsize;
@@ -126,9 +118,13 @@ function onDrop(event: DragEvent, teamId: number) {
 }
 .participants {
     display: flex;
-    flex-direction: row;
-    gap: 5px;
+    flex-direction: column;
+    gap: 3px;
     flex-wrap: wrap;
     margin-top: 5px;
+    .spectators & {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+    }
 }
 </style>

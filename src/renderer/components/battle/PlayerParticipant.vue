@@ -1,18 +1,30 @@
 <template>
     <TeamParticipant :battle="battle" @contextmenu="onRightClick">
-        <Flag class="flag" :countryCode="player.countryCode" />
-        <div>{{ player.username }}</div>
-        <div v-if="!player.battleStatus.isSpectator">
-            <div class="ready" :class="{ isReady: player.battleStatus.ready }">⬤</div>
+        <div>
+            <Flag class="flag" :countryCode="player.countryCode" />
         </div>
-        <Icon v-if="!isSynced" :icon="syncAlert" :height="16" color="#f00" />
+        <div>{{ player.username }}</div>
+        <div class="flex-row flex-right flex-center">
+            <div class="flex-row flex-center gap-sm">
+                <div
+                    v-if="!player.battleStatus.isSpectator && isSpadsBattle(battle)"
+                    class="ready"
+                    :class="{ isReady: player.battleStatus.ready }"
+                >
+                    ⬤
+                </div>
+                <Icon v-if="isSynced" :icon="checkBold" :height="16" color="#0f0" />
+                <Icon v-else :icon="cloudDownload" :height="16" color="#f00" />
+            </div>
+        </div>
     </TeamParticipant>
     <ContextMenu ref="menu" :model="actions" />
 </template>
 
 <script lang="ts" setup>
 import { Icon } from "@iconify/vue";
-import syncAlert from "@iconify-icons/mdi/sync-alert";
+import checkBold from "@iconify-icons/mdi/check-bold";
+import cloudDownload from "@iconify-icons/mdi/cloud-download";
 import { delay } from "jaz-ts-utils";
 import { MenuItem } from "primevue/menuitem";
 import { computed, inject, Ref, ref } from "vue";
@@ -22,6 +34,7 @@ import ContextMenu from "@/components/common/ContextMenu.vue";
 import Flag from "@/components/misc/Flag.vue";
 import { AbstractBattle } from "@/model/battle/abstract-battle";
 import { User } from "@/model/user";
+import { isSpadsBattle } from "@/utils/type-checkers";
 
 const props = defineProps<{
     battle: AbstractBattle;
