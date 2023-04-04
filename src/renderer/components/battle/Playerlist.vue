@@ -6,7 +6,7 @@
         title="Add Bot"
         @bot-selected="onBotSelected"
     />
-    <div>
+    <div class="scroll-container padding-right-sm">
         <div class="playerlist" :class="{ dragging: draggedParticipant !== null }">
             <TeamComponent
                 v-for="[teamId] in sortedTeams"
