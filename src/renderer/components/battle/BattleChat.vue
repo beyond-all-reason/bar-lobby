@@ -61,6 +61,7 @@ function sendMessage() {
     flex-shrink: 1;
     flex-basis: auto;
     height: 0;
+    will-change: scroll-position;
 }
 .toggle-hidden {
     position: absolute;
