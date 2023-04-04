@@ -5,7 +5,10 @@
 <template>
     <div class="container">
         <img ref="logo" class="logo" src="~@/assets/images/BARLogoFull.png" />
-        <Panel v-if="isConnected" class="login-forms">
+        <div v-if="connecting" class="relative">
+            <Loader></Loader>
+        </div>
+        <Panel v-else-if="isConnected" class="login-forms">
             <TabView v-model:activeIndex="activeIndex">
                 <TabPanel header="Login">
                     <LoginForm />
@@ -32,9 +35,11 @@
 <script lang="ts" setup>
 import { Icon } from "@iconify/vue";
 import replayIcon from "@iconify-icons/mdi/replay";
+import { delay } from "jaz-ts-utils";
 import TabPanel from "primevue/tabpanel";
 import { ref } from "vue";
 
+import Loader from "@/components/common/Loader.vue";
 import Panel from "@/components/common/Panel.vue";
 import TabView from "@/components/common/TabView.vue";
 import Button from "@/components/controls/Button.vue";
@@ -45,6 +50,7 @@ import ResetPasswordForm from "@/components/login/ResetPasswordForm.vue";
 const activeIndex = ref(0);
 const isConnected = api.comms.isConnected;
 const serverAddress = `${api.comms.config.host}:${api.comms.config.port}`;
+const connecting = ref(false);
 
 async function connect() {
     try {
@@ -55,7 +61,10 @@ async function connect() {
 }
 
 async function onRetry() {
+    connecting.value = true;
     await connect();
+    await delay(100);
+    connecting.value = false;
 }
 
 async function playOffline() {
