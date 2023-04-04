@@ -72,10 +72,13 @@ async function hostBattle() {
             return;
         }
 
-        try {
+        if (data.message.startsWith("Starting a new")) {
             const { name, password } = data.message.match(/name=(?<name>.*)?,\spassword=(?<password>.*)?\)/)!.groups!;
             hostedBattleData.value = { name, password };
-        } catch (err) {
+        } else if (data.message.startsWith("There is already")) {
+            const { name } = data.message.match(/you: (?<name>.*)? \(/)!.groups!;
+            hostedBattleData.value = { name, password: "" };
+        } else {
             console.error(`Error parsing autohost response: ${data.message}`);
             return;
         }
