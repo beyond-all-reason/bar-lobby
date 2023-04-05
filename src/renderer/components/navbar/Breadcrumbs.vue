@@ -2,6 +2,7 @@
     <div class="breadcrumbs">
         <div class="item back" @click="onBack">
             <Icon :icon="chevronLeft" height="21" />
+            <div>Back</div>
         </div>
         <!-- <template v-for="item in currentRoute.matched" :key="item.path">
             <div v-if="item.children" class="separator">/</div>
@@ -32,8 +33,15 @@ function onBack() {
     display: flex;
     flex-direction: row;
     align-items: center;
-    width: 100%;
+    padding-right: 10px;
+    padding-bottom: 3px;
     transition: 0.4s opacity;
+
+    &:hover {
+        background-color: rgba(255, 255, 255, 0.2);
+        border-color: rgba(255, 255, 255, 0.2);
+    }
+
     &.hidden {
         opacity: 0;
     }
