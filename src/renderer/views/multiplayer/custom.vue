@@ -11,11 +11,12 @@
 
             <div class="flex-row gap-md">
                 <Button class="blue" @click="hostBattleOpen = true">Host Battle</Button>
-                <HostBattle v-model="hostBattleOpen" />
-                <Checkbox v-model="hidePvE" label="Hide PvE" />
-                <Checkbox v-model="hideLocked" label="Hide Locked" />
-                <Checkbox v-model="hideEmpty" label="Hide Empty" />
-                <SearchBox v-model="searchVal" />
+                <HostBattle v-model="hostBattleOpen"/>
+                <Checkbox v-model="settings.battlesHidePvE" label="Hide PvE"/>
+                <Checkbox v-model="settings.battlesHideLocked" label="Hide Locked"/>
+                <Checkbox v-model="settings.battlesHideEmpty" label="Hide Empty"/>
+                <Checkbox v-model="settings.battlesHideInProgress" label="Hide Running"/>
+                <SearchBox v-model="searchVal"/>
             </div>
 
             <div class="scroll-container padding-right-sm">
@@ -116,30 +117,49 @@ import { getFriendlyDuration } from "@/utils/misc";
 import { isSpadsBattle } from "@/utils/type-checkers";
 
 const hostBattleOpen = ref(false);
-const hidePvE = ref(false);
-const hideLocked = ref(false);
-const hideEmpty = ref(true);
 const searchVal = ref("");
 const selectedBattle: Ref<SpadsBattle | null> = shallowRef(null);
 const passwordPromptOpen = ref(false);
 const failureReason: Ref<string | undefined> = ref();
+const settings = api.settings.model;
 const battles = computed(() => {
     let battles = Array.from(api.session.battles.values());
 
     battles = battles.filter((battle) => {
-        if (hidePvE.value && battle.bots.length > 0) {
+        if (settings.battlesHideEmpty && battle.users.length === 0) {
             return false;
         }
-        if (hideLocked.value && (battle.battleOptions.locked || battle.battleOptions.passworded)) {
+        if (settings.battlesHideLocked && (battle.battleOptions.locked || battle.battleOptions.passworded)) {
             return false;
         }
-        if (hideEmpty.value && battle.users.length === 0) {
+        if (settings.battlesHidePvE && battle.bots.length > 0) {
             return false;
         }
-        if (searchVal.value.length > 0) {
-            if (!battle.battleOptions.title.toLowerCase().includes(searchVal.value.toLowerCase())) {
+        const runtime = battle.runtimeMs.value;
+        if (settings.battlesHideInProgress) {
+            if (runtime && Number.isInteger(runtime) && runtime > 0) {
                 return false;
             }
+        }
+        if (searchVal.value.length > 0) {
+            const searchTerm = searchVal.value.toLowerCase();
+            if (battle.battleOptions.title.toLowerCase().includes(searchTerm)) {
+                return true;
+            }
+            if (battle.battleOptions.map.toLowerCase().includes(searchTerm)) {
+                return true;
+            }
+            for (const player of battle.players.value) {
+                if (player.username.toLowerCase().includes(searchTerm)) {
+                    return true;
+                }
+            }
+            for (const spectator of battle.spectators.value) {
+                if (spectator.username.toLowerCase().includes(searchTerm)) {
+                    return true;
+                }
+            }
+            return false;
         }
 
         return true;
