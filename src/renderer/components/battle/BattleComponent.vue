@@ -3,7 +3,7 @@
         <div class="header flex-col gap-md">
             <h1 class="title">{{ battle.battleOptions.title }}</h1>
 
-            <div v-if="isSpadsBattle(battle)" class="subtitle flex-row gap-md">
+            <div v-if="isSpadsBattle(battle)" class="subtitle flex-row gap-md flex-wrap">
                 <div class="flex-row gap-sm">
                     Hosted by
                     <div class="founder flex-row gap-sm">
