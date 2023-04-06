@@ -390,7 +390,7 @@ async function start() {
 }
 .title {
     font-size: 30px;
-    line-height: 0.8;
+    line-height: 1.2;
 }
 .subtitle {
     font-size: 16px;
