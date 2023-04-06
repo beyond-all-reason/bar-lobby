@@ -11,12 +11,12 @@
 
             <div class="flex-row gap-md">
                 <Button class="blue" @click="hostBattleOpen = true">Host Battle</Button>
-                <HostBattle v-model="hostBattleOpen"/>
-                <Checkbox v-model="settings.battlesHidePvE" label="Hide PvE"/>
-                <Checkbox v-model="settings.battlesHideLocked" label="Hide Locked"/>
-                <Checkbox v-model="settings.battlesHideEmpty" label="Hide Empty"/>
-                <Checkbox v-model="settings.battlesHideInProgress" label="Hide Running"/>
-                <SearchBox v-model="searchVal"/>
+                <HostBattle v-model="hostBattleOpen" />
+                <Checkbox v-model="settings.battlesHidePvE" label="Hide PvE" />
+                <Checkbox v-model="settings.battlesHideLocked" label="Hide Locked" />
+                <Checkbox v-model="settings.battlesHideEmpty" label="Hide Empty" />
+                <Checkbox v-model="settings.battlesHideInProgress" label="Hide Running" />
+                <SearchBox v-model="searchVal" />
             </div>
 
             <div class="scroll-container padding-right-sm">
