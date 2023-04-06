@@ -348,12 +348,6 @@ function leaveQueue() {
 
 function leave() {
     props.battle.leave();
-
-    if (isSpadsBattle(props.battle)) {
-        api.router.replace("/multiplayer/custom");
-    } else {
-        api.router.replace("/home");
-    }
 }
 async function start() {
     props.battle.start();

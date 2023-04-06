@@ -248,7 +248,6 @@ export class SpadsBattle extends AbstractBattle<SpadsBattleOptions> {
         super.leave();
 
         await api.comms.request("c.lobby.leave");
-        api.session.onlineBattle.value = null;
     }
 
     public start() {
