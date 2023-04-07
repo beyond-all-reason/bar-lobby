@@ -3,7 +3,7 @@
 </route>
 
 <template>
-    <div  class="flex-row flex-grow gap-md hide-overflow">
+    <div class="flex-row flex-grow gap-md hide-overflow">
         <Loader v-if="loading"></Loader>
         <div v-if="!loading" class="flex-col flex-grow gap-md">
             <div class="flex-row gap-md">
@@ -104,7 +104,7 @@ import robot from "@iconify-icons/mdi/robot";
 import { delay } from "jaz-ts-utils";
 import Column from "primevue/column";
 import DataTable, { DataTableRowDoubleClickEvent } from "primevue/datatable";
-import { computed, onMounted,onUnmounted,Ref, ref, shallowRef } from "vue";
+import { computed, onMounted, onUnmounted, Ref, ref, shallowRef } from "vue";
 
 import BattlePreview from "@/components/battle/BattlePreview.vue";
 import HostBattle from "@/components/battle/HostBattle.vue";
@@ -117,7 +117,6 @@ import Textbox from "@/components/controls/Textbox.vue";
 import { SpadsBattle } from "@/model/battle/spads-battle";
 import { getFriendlyDuration } from "@/utils/misc";
 import { isSpadsBattle } from "@/utils/type-checkers";
-
 
 const loading = ref(false);
 const hostBattleOpen = ref(false);
@@ -191,7 +190,6 @@ const watchForLobbyJoinFailure = api.comms.onResponse("s.lobby.join").add((data)
     data.result === "failure" || data.reason === "Battle locked" ? (loading.value = false) : null;
 });
 
-
 onUnmounted(() => {
     window.clearInterval(intervalId);
     watchForLobbyJoin.destroy();
@@ -233,14 +231,12 @@ async function updateBattleList() {
 }
 
 async function attemptJoinBattle(battle: SpadsBattle) {
-
-
     if (battle.battleOptions.passworded) {
         passwordPromptOpen.value = true;
     } else {
         loading.value = true;
         // if user is in a other lobby, leave it
-        api.session.onlineBattle.value && await api.comms.request("c.lobby.leave");
+        api.session.onlineBattle.value && (await api.comms.request("c.lobby.leave"));
 
         await api.comms.request("c.lobby.join", {
             lobby_id: battle.battleOptions.id,
@@ -269,8 +265,6 @@ async function onPasswordPromptSubmit(data) {
     } else {
         passwordPromptOpen.value = false;
     }
-
-
 }
 </script>
 
