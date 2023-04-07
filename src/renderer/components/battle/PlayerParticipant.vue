@@ -3,6 +3,9 @@
         <div>
             <Flag class="flag" :countryCode="player.countryCode" />
         </div>
+        <div>
+            <img class="rank" :src="`/assets/images/icons/ranks/${player.icons.play_time_rank}.png`" />
+        </div>
         <div>{{ player.username }}</div>
         <div class="flex-row flex-right flex-center">
             <div class="flex-row flex-center gap-sm">
@@ -140,6 +143,11 @@ function reportPlayer() {
 <style lang="scss" scoped>
 .flag {
     width: 16px;
+}
+
+.rank {
+    margin-top: 3px;
+    max-width: 24px;
 }
 .ready {
     font-size: 12px;
