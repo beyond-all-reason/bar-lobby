@@ -4,8 +4,11 @@
 
 <template>
     <div>
-        <h1>{{ $t("home") }}</h1>
-        <p>This page is a work-in-progress</p>
+        <h1>Beyond All Reason</h1>
+        <p>
+            Welcome to the new lobby! Be aware this project is a work-in-progress and it is still recommended you use the standard lobby
+            client for now.
+        </p>
     </div>
 </template>
 
