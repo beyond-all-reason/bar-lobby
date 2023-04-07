@@ -113,6 +113,7 @@ const primaryRoutes = computed(() => {
         .filter(
             (r) =>
                 (r.meta.hide === false || r.meta.hide === undefined) &&
+                ((r.meta.devOnly && api.settings.model.devMode) || !r.meta.devOnly) &&
                 (r.meta.availableOffline === undefined ||
                     r.meta.availableOffline ||
                     (r.meta.availableOffline === false && !offlineMode.value))
@@ -125,6 +126,7 @@ const secondaryRoutes = computed(() => {
         .filter(
             (r) =>
                 (r.meta.hide === false || r.meta.hide === undefined) &&
+                ((r.meta.devOnly && api.settings.model.devMode) || !r.meta.devOnly) &&
                 (r.meta.availableOffline === undefined ||
                     r.meta.availableOffline ||
                     (r.meta.availableOffline === false && !offlineMode.value))
