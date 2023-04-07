@@ -26,6 +26,7 @@ declare module "vue-router" {
         blurBg?: boolean;
         transition?: TransitionProps;
         overflowY?: "scroll" | "hidden";
+        devOnly?: boolean;
     }
 }
 

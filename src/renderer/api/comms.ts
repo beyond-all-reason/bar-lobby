@@ -222,13 +222,12 @@ export class CommsAPI extends TachyonClient {
         });
 
         this.onResponse("s.lobby.closed").add((data) => {
-            const battle = api.session.battles.get(data.lobby_id);
-
-            if (battle === api.session.onlineBattle.value) {
-                battle.leave();
-            }
-
             api.session.battles.delete(data.lobby_id);
+        });
+
+        this.onResponse("s.lobby.leave").add((data) => {
+            api.session.onlineBattle.value = null;
+            api.router.replace("/multiplayer/custom");
         });
 
         this.onResponse("s.lobby.add_bot").add(({ bot }) => {

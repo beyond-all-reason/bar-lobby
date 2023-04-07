@@ -3,7 +3,7 @@
         <div class="header flex-col gap-md">
             <h1 class="title">{{ battle.battleOptions.title }}</h1>
 
-            <div v-if="isSpadsBattle(battle)" class="subtitle flex-row gap-md">
+            <div v-if="isSpadsBattle(battle)" class="subtitle flex-row gap-md flex-wrap">
                 <div class="flex-row gap-sm">
                     Hosted by
                     <div class="founder flex-row gap-sm">
@@ -348,12 +348,6 @@ function leaveQueue() {
 
 function leave() {
     props.battle.leave();
-
-    if (isSpadsBattle(props.battle)) {
-        api.router.replace("/multiplayer/custom");
-    } else {
-        api.router.replace("/home");
-    }
 }
 async function start() {
     props.battle.start();
@@ -390,7 +384,7 @@ async function start() {
 }
 .title {
     font-size: 30px;
-    line-height: 0.8;
+    line-height: 1.2;
 }
 .subtitle {
     font-size: 16px;
