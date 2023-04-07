@@ -22,9 +22,8 @@
                 @dragstart="onDragStart($event, member)"
                 @dragend="onDragEnd()"
             >
-                <SpectatorParticipant
-                    v-if="isUser(member) && member.battleStatus.isSpectator"
-                    :battle="battle" :player="member"/>
+                <SpectatorParticipant v-if="isUser(member) && member.battleStatus.isSpectator"
+                                      :battle="battle" :player="member"/>
                 <PlayerParticipant v-else-if="isUser(member)" :battle="battle" :player="member"/>
                 <BotParticipant v-else-if="isBot(member)" :battle="battle" :bot="member"/>
             </div>

@@ -13,7 +13,8 @@
                         :key="i"
                         :map="map"
                         :friendlyName="map.friendlyName"
-                        @click="mapSelected(map)"/>
+                        @click="mapSelected(map)"
+                    />
                 </div>
             </div>
         </div>

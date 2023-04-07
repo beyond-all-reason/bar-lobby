@@ -227,7 +227,6 @@ const gameOptionsOpen = ref(false);
 const gameOptions: Ref<LuaOptionSection[]> = ref([]);
 const isGameRunning = api.game.isGameRunning;
 
-
 function openMapList() {
     mapListOpen.value = true;
 }

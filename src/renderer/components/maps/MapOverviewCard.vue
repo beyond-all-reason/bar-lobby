@@ -17,10 +17,10 @@ import { MapData } from "@/model/map-data";
 
 const props = defineProps<{
     map?: MapData;
-    friendlyName: string
+    friendlyName: string;
 }>();
 
-const mapSize = computed(() => props.map ? props.map.width + "x" + props.map.height : "Unknown")
+const mapSize = computed(() => (props.map ? props.map.width + "x" + props.map.height : "Unknown"));
 
 const mapTextureImage = computed(() => api.content.maps.getMapImages(props.map).textureImagePath);
 </script>

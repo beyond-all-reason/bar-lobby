@@ -1,12 +1,8 @@
 <template>
     <Modal ref="modal" :title="title" class="map-list-modal">
         <div class="container">
-            <MapPreview
-                :map="map"
-                :currentUser="me"
-                :startPosType="startPosType"
-                :startBoxes="startBoxes"
-            />
+            <MapPreview :map="map" :currentUser="me" :startPosType="startPosType"
+                        :startBoxes="startBoxes"/>
 
             <div class="options flex-col gap-md">
                 <Options
@@ -20,32 +16,26 @@
                     @update:model-value="onStartPosChange"
                 />
                 <div class="box-buttons">
-                    <Button
-                        :disabled="disableBoxControls"
-                        @click="setBoxType(DefaultBoxes.EastVsWest)">
+                    <Button :disabled="disableBoxControls"
+                            @click="setBoxType(DefaultBoxes.EastVsWest)">
                         <img src="~@/assets/images/icons/east-vs-west.png"/>
                     </Button>
-                    <Button
-                        :disabled="disableBoxControls"
-                        @click="setBoxType(DefaultBoxes.NorthVsSouth)">
+                    <Button :disabled="disableBoxControls"
+                            @click="setBoxType(DefaultBoxes.NorthVsSouth)">
                         <img src="~@/assets/images/icons/north-vs-south.png"/>
                     </Button>
-                    <Button
-                        :disabled="disableBoxControls"
-                        @click="setBoxType(DefaultBoxes.NortheastVsSouthwest)">
+                    <Button :disabled="disableBoxControls"
+                            @click="setBoxType(DefaultBoxes.NortheastVsSouthwest)">
                         <img src="~@/assets/images/icons/northeast-vs-southwest.png"/>
                     </Button>
-                    <Button
-                        :disabled="disableBoxControls"
-                        @click="setBoxType(DefaultBoxes.NorthwestVsSouthEast)">
+                    <Button :disabled="disableBoxControls"
+                            @click="setBoxType(DefaultBoxes.NorthwestVsSouthEast)">
                         <img src="~@/assets/images/icons/northwest-vs-southeast.png"/>
                     </Button>
                 </div>
                 <div>
-                    <Range
-                        v-model="boxRange"
-                        :disabled="disableSlider"
-                        :min="5" :max="100" :step="5"/>
+                    <Range v-model="boxRange" :disabled="disableSlider" :min="5" :max="100"
+                           :step="5"/>
                 </div>
                 <div class="actions">
                     <Button class="red fullwidth" @click="close"> Cancel</Button>
@@ -53,7 +43,6 @@
                 </div>
             </div>
         </div>
-
     </Modal>
 </template>
 
@@ -74,32 +63,35 @@ const modal: Ref<null | InstanceType<typeof Modal>> = ref(null);
 
 const props = defineProps<{
     title: string;
-    map: MapData,
-    startBoxes: Record<number, StartBox>,
-    startPosType: StartPosType,
+    map: MapData;
+    startBoxes: Record<number, StartBox>;
+    startPosType: StartPosType;
     me: CurrentUser;
 }>();
 
 const boxRange = ref(25);
-const startBoxes = ref(props.startBoxes)
-const startPosType = ref(props.startPosType)
+const startBoxes = ref(props.startBoxes);
+const startPosType = ref(props.startPosType);
 const disableBoxControls = ref(startPosType.value === StartPosType.Fixed);
-const disableSlider = ref(false)
+const disableSlider = ref(false);
 
 let boxOrientation: DefaultBoxes | undefined = undefined;
 
 watch(boxRange, () => {
     updateBoxSize();
-})
-
-watch(() => props.startBoxes, (boxes) => {
-    if (Object.keys(boxes).length > 1) {
-        setBoxes(Object.entries(boxes).map(([k, v]) => v));
-    }
-
-    boxOrientation = undefined;
-    updateOrientation();
 });
+
+watch(
+    () => props.startBoxes,
+    (boxes) => {
+        if (Object.keys(boxes).length > 1) {
+            setBoxes(Object.entries(boxes).map(([k, v]) => v));
+        }
+
+        boxOrientation = undefined;
+        updateOrientation();
+    }
+);
 
 const startPosOptions: Array<{ label: string; value: StartPosType }> = [
     { label: "Fixed", value: StartPosType.Fixed },
@@ -110,14 +102,14 @@ const emit = defineEmits(["setMapOptions"]);
 
 function getBoxOrientation() {
     const boxes = startBoxes.value;
-    const count = Object.keys(boxes).length
+    const count = Object.keys(boxes).length;
     // I don't really care enough to build in support for diagonal boxes right now
     if (count === 2) {
         if (boxes[0]?.yPercent === 0 && boxes[1]?.yPercent === 0) {
-            return DefaultBoxes.EastVsWest
+            return DefaultBoxes.EastVsWest;
         }
         if (boxes[0]?.xPercent === 0 && boxes[1]?.xPercent === 0) {
-            return DefaultBoxes.NorthVsSouth
+            return DefaultBoxes.NorthVsSouth;
         }
     }
     return undefined;
@@ -157,7 +149,6 @@ function save() {
     modal.value?.close();
 }
 </script>
-
 
 <style lang="scss" scoped>
 :global(.map-list-modal) {
@@ -216,5 +207,4 @@ function save() {
     margin-top: auto;
     width: 100%;
 }
-
 </style>

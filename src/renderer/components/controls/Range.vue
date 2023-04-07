@@ -20,7 +20,7 @@ export interface Props extends SliderProps {
 
 const props = defineProps<Props>();
 const emits = defineEmits<{
-    (event: "update:modelValue", value: number | number[]): void
+    (event: "update:modelValue", value: number | number[]): void;
 }>();
 
 const slider: Ref<null | Props> = ref(null);
