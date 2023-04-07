@@ -2,15 +2,17 @@
     <div class="flex-col gap-md fullheight">
         <MapOverviewCard
             :map="map"
+            :friendlyName="mapName"
         />
 
-        <div class="teams">
+        <div class="teams scroll-container">
             <div v-if="isFFA">
                 <div class="team-title">Players</div>
                 <div class="contenders">
                     <template v-if="isBattle(battle)">
-                        <template v-for="(contender, i) in battle.contenders.value"
-                                  :key="`contender${i}`">
+                        <template
+                            v-for="(contender, i) in battle.contenders.value"
+                            :key="`contender${i}`">
                             <BattlePreviewParticipant :contender="contender"/>
                         </template>
                     </template>
@@ -88,6 +90,11 @@ const map = computed(() => {
         ? api.content.maps.getMapByScriptName(props.battle.battleOptions.map)
         : api.content.maps.getMapByScriptName(props.battle.mapScriptName);
 });
+const mapName = computed(() => {
+    return props.battle instanceof AbstractBattle
+        ? props.battle.battleOptions.map
+        : props.battle.mapScriptName
+})
 const gameVersion = computed(() =>
     props.battle instanceof AbstractBattle ? props.battle.battleOptions.gameVersion : props.battle.gameVersion
 );
@@ -158,12 +165,7 @@ const startPositions = computed(() => {
 
 <style lang="scss" scoped>
 .teams {
-    display: flex;
-    flex-direction: column;
     gap: 5px;
-    flex: 1 1 auto;
-    overflow-y: auto;
-    height: 0px;
 }
 .team-title {
     display: flex;

@@ -10,7 +10,8 @@
         <div class="flex-row flex-center-items gap-md">
             <div class="title">{{ title }}</div>
             <div v-if="memberCount > 0" class="member-count">({{ memberCount }} Member{{ memberCount > 1 ? "s" : "" }})</div>
-            <Button v-if="!isSpectator" class="slim" @click="addBotClicked(teamId)"> Add bot </Button>
+            <Button v-if="!iAmSpectator" class="slim" @click="addBotClicked(teamId)"> Add bot
+            </Button>
             <Button v-if="showJoin" class="slim" @click="onJoinClicked(teamId)"> Join </Button>
         </div>
         <div class="participants">
@@ -21,8 +22,10 @@
                 @dragstart="onDragStart($event, member)"
                 @dragend="onDragEnd()"
             >
-                <PlayerParticipant v-if="'userId' in member" :battle="battle" :player="member" />
-                <BotParticipant v-else :battle="battle" :bot="member" />
+                <SpectatorParticipant v-if="isUser(member) && member.battleStatus.isSpectator"
+                                      :battle="battle" :player="member"/>
+                <PlayerParticipant v-else-if="isUser(member)" :battle="battle" :player="member"/>
+                <BotParticipant v-else-if="isBot(member)" :battle="battle" :bot="member"/>
             </div>
         </div>
     </div>
@@ -33,25 +36,27 @@ import { computed } from "vue";
 
 import BotParticipant from "@/components/battle/BotParticipant.vue";
 import PlayerParticipant from "@/components/battle/PlayerParticipant.vue";
+import SpectatorParticipant from "@/components/battle/SpectatorParticipant.vue";
 import Button from "@/components/controls/Button.vue";
 import { AbstractBattle } from "@/model/battle/abstract-battle";
 import { Bot } from "@/model/battle/battle-types";
 import { CurrentUser, User } from "@/model/user";
+import { isBot, isUser } from "@/utils/type-checkers";
 
 const props = defineProps<{
     battle: AbstractBattle;
     teamId: number;
     me: CurrentUser;
 }>();
-const isSpectator = computed(() => {
+const iAmSpectator = computed(() => {
     return props.teamId < 0;
 });
 const title = computed(() => {
-    return isSpectator.value ? "Spectators" : "Team " + (props.teamId + 1);
+    return iAmSpectator.value ? "Spectators" : "Team " + (props.teamId + 1);
 });
 const members = computed(() => {
     const battle = props.battle;
-    return isSpectator.value ? battle.spectators.value : battle.teams.value.get(props.teamId);
+    return iAmSpectator.value ? battle.spectators.value : battle.teams.value.get(props.teamId);
 });
 const showJoin = computed(() => {
     const playerIsSpectator = props.me.battleStatus.isSpectator;
@@ -61,7 +66,7 @@ const showJoin = computed(() => {
     return playerTeam !== listTeam || (listIsSpectator && !playerIsSpectator);
 });
 const memberCount = computed(() => {
-    return isSpectator.value ? props.battle.spectators.value.length : props.battle.teams.value.get(props.teamId)?.length ?? 0;
+    return iAmSpectator.value ? props.battle.spectators.value.length : props.battle.teams.value.get(props.teamId)?.length ?? 0;
 });
 const emit = defineEmits(["addBotClicked", "onJoinClicked", "onDragStart", "onDragEnd", "onDragEnter", "onDrop"]);
 function addBotClicked(teamId: number) {

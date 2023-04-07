@@ -2,10 +2,10 @@
     <div class="map">
         <div class="background" :style="`background-image: url('${mapTextureImage}')`"></div>
         <div class="name">
-            {{ map?.friendlyName ?? "" }}
+            {{ map?.friendlyName ?? friendlyName }}
         </div>
         <div class="attributes">
-            <div>{{ map?.width ?? "0" }} x {{ map?.height ?? "0" }}</div>
+            <div>{{ mapSize }}</div>
         </div>
     </div>
 </template>
@@ -17,7 +17,10 @@ import { MapData } from "@/model/map-data";
 
 const props = defineProps<{
     map?: MapData;
+    friendlyName: string
 }>();
+
+const mapSize = computed(() => props.map ? props.map.width + "x" + props.map.height : "Unknown")
 
 const mapTextureImage = computed(() => api.content.maps.getMapImages(props.map).textureImagePath);
 </script>
