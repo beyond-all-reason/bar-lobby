@@ -104,7 +104,7 @@ import robot from "@iconify-icons/mdi/robot";
 import { delay } from "jaz-ts-utils";
 import Column from "primevue/column";
 import DataTable, { DataTableRowDoubleClickEvent } from "primevue/datatable";
-import { computed, onBeforeUnmount, onUnmounted, Ref, ref, shallowRef } from "vue";
+import { computed, onBeforeUnmount, Ref, ref, shallowRef } from "vue";
 
 import BattlePreview from "@/components/battle/BattlePreview.vue";
 import HostBattle from "@/components/battle/HostBattle.vue";
@@ -190,13 +190,10 @@ const watchForLobbyJoinFailure = api.comms.onResponse("s.lobby.join").add((data)
     data.result === "failure" || data.reason === "Battle locked" ? (loading.value = false) : null;
 });
 
-onUnmounted(() => {
-    window.clearInterval(intervalId);
-    watchForLobbyJoin.destroy();
-    watchForLobbyJoinFailure.destroy();
-});
 
 onBeforeUnmount(() => {
+    watchForLobbyJoin.destroy();
+    watchForLobbyJoinFailure.destroy();
     abortController.abort();
     window.clearInterval(intervalId);
     active = false;
