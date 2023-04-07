@@ -45,6 +45,7 @@
                 </Button>
                 <MapListModal v-model="mapListOpen" title="Maps" @map-selected="onMapSelected"/>
                 <MapOptionsModal
+                    v-if="map"
                     v-model="mapOptionsOpen"
                     title="Map Options"
                     :map="map"

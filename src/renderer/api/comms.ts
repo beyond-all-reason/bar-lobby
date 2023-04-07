@@ -217,7 +217,7 @@ export class CommsAPI extends TachyonClient {
         this.onResponse("s.lobby.remove_start_area").add((data) => {
             const battle = api.session.battles.get(data.lobby_id);
             if (battle) {
-                battle.battleOptions.startBoxes[data.area_id] = undefined;
+                delete battle.battleOptions.startBoxes[data.area_id];
             }
         });
 
