@@ -100,9 +100,6 @@ watch(() => props.startBoxes, (boxes) => {
     boxOrientation = undefined;
     updateOrientation();
 });
-watch(props.startBoxes, (boxes) => {
-
-})
 
 const startPosOptions: Array<{ label: string; value: StartPosType }> = [
     { label: "Fixed", value: StartPosType.Fixed },
