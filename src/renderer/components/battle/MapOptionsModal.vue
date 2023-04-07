@@ -1,8 +1,7 @@
 <template>
     <Modal ref="modal" :title="title" class="map-list-modal">
         <div class="container">
-            <MapPreview :map="map" :currentUser="me" :startPosType="startPosType"
-                        :startBoxes="startBoxes"/>
+            <MapPreview :map="map" :currentUser="me" :startPosType="startPosType" :startBoxes="startBoxes" />
 
             <div class="options flex-col gap-md">
                 <Options
@@ -16,26 +15,21 @@
                     @update:model-value="onStartPosChange"
                 />
                 <div class="box-buttons">
-                    <Button :disabled="disableBoxControls"
-                            @click="setBoxType(DefaultBoxes.EastVsWest)">
-                        <img src="~@/assets/images/icons/east-vs-west.png"/>
+                    <Button :disabled="disableBoxControls" @click="setBoxType(DefaultBoxes.EastVsWest)">
+                        <img src="~@/assets/images/icons/east-vs-west.png" />
                     </Button>
-                    <Button :disabled="disableBoxControls"
-                            @click="setBoxType(DefaultBoxes.NorthVsSouth)">
-                        <img src="~@/assets/images/icons/north-vs-south.png"/>
+                    <Button :disabled="disableBoxControls" @click="setBoxType(DefaultBoxes.NorthVsSouth)">
+                        <img src="~@/assets/images/icons/north-vs-south.png" />
                     </Button>
-                    <Button :disabled="disableBoxControls"
-                            @click="setBoxType(DefaultBoxes.NortheastVsSouthwest)">
-                        <img src="~@/assets/images/icons/northeast-vs-southwest.png"/>
+                    <Button :disabled="disableBoxControls" @click="setBoxType(DefaultBoxes.NortheastVsSouthwest)">
+                        <img src="~@/assets/images/icons/northeast-vs-southwest.png" />
                     </Button>
-                    <Button :disabled="disableBoxControls"
-                            @click="setBoxType(DefaultBoxes.NorthwestVsSouthEast)">
-                        <img src="~@/assets/images/icons/northwest-vs-southeast.png"/>
+                    <Button :disabled="disableBoxControls" @click="setBoxType(DefaultBoxes.NorthwestVsSouthEast)">
+                        <img src="~@/assets/images/icons/northwest-vs-southeast.png" />
                     </Button>
                 </div>
                 <div>
-                    <Range v-model="boxRange" :disabled="disableSlider" :min="5" :max="100"
-                           :step="5"/>
+                    <Range v-model="boxRange" :disabled="disableSlider" :min="5" :max="100" :step="5" />
                 </div>
                 <div class="actions">
                     <Button class="red fullwidth" @click="close"> Cancel</Button>

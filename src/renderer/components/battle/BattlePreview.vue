@@ -1,15 +1,14 @@
 <template>
     <div class="flex-col gap-md fullheight">
-        <MapOverviewCard :map="map" :friendlyName="mapName"/>
+        <MapOverviewCard :map="map" :friendlyName="mapName" />
 
         <div class="teams scroll-container">
             <div v-if="isFFA">
                 <div class="team-title">Players</div>
                 <div class="contenders">
                     <template v-if="isBattle(battle)">
-                        <template v-for="(contender, i) in battle.contenders.value"
-                                  :key="`contender${i}`">
-                            <BattlePreviewParticipant :contender="contender"/>
+                        <template v-for="(contender, i) in battle.contenders.value" :key="`contender${i}`">
+                            <BattlePreviewParticipant :contender="contender" />
                         </template>
                     </template>
                     <template v-else-if="isReplay(battle)">

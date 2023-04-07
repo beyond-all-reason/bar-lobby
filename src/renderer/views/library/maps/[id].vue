@@ -7,7 +7,7 @@
         <h1>{{ map.friendlyName }}</h1>
 
         <div class="container">
-            <MapPreview class="map-preview" :map="map"/>
+            <MapPreview class="map-preview" :map="map" />
 
             <div class="details">
                 <div class="detail-text"><b>Description:</b> {{ map.description }}</div>

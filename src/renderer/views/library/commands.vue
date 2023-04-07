@@ -6,8 +6,8 @@
     <div class="flex-col gap-lg flex-grow fullheight">
         <h1>{{ route.meta.title }}</h1>
         <div class="flex-row gap-md">
-            <SearchBox v-model="searchVal"/>
-            <Select v-model="filterMethod" :options="filterMethods" label="Type"/>
+            <SearchBox v-model="searchVal" />
+            <Select v-model="filterMethod" :options="filterMethods" label="Type" />
         </div>
 
         <div class="flex-col flex-grow fullheight">

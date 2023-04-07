@@ -5,17 +5,17 @@
             <div class="flex-row gap-sm">
                 Hosted by
                 <div class="founder flex-row gap-sm">
-                    <Flag :countryCode="battle.founder.value.countryCode" style="width: 16px"/>
+                    <Flag :countryCode="battle.founder.value.countryCode" style="width: 16px" />
                     {{ battle.founder.value.username }}
                 </div>
             </div>
             <div class="flex-right">{{ battle.friendlyRuntime.value }}</div>
         </div>
         <div class="players flex-col gap-md">
-            <Playerlist :battle="battle" :me="me"/>
+            <Playerlist :battle="battle" :me="me" />
         </div>
         <div v-if="isSpadsBattle(battle)" class="chat flex-col gap-md">
-            <BattleChat/>
+            <BattleChat />
         </div>
         <div class="settings flex-col gap-md">
             <MapPreview
@@ -38,12 +38,12 @@
                     @update:model-value="onMapSelected"
                 />
                 <Button v-tooltip.left="'Open map selector'" @click="openMapList">
-                    <Icon :icon="listIcon" height="23"/>
+                    <Icon :icon="listIcon" height="23" />
                 </Button>
                 <Button v-tooltip.left="'Configure map options'" @click="openMapOptions">
-                    <Icon :icon="cogIcon" height="23"/>
+                    <Icon :icon="cogIcon" height="23" />
                 </Button>
-                <MapListModal v-model="mapListOpen" title="Maps" @map-selected="onMapSelected"/>
+                <MapListModal v-model="mapListOpen" title="Maps" @map-selected="onMapSelected" />
                 <MapOptionsModal
                     v-if="map"
                     v-model="mapOptionsOpen"

@@ -1,11 +1,11 @@
 <template>
     <TeamParticipant :battle="battle" @contextmenu="onRightClick">
         <div>
-            <Flag class="flag" :countryCode="player.countryCode"/>
+            <Flag class="flag" :countryCode="player.countryCode" />
         </div>
         <div>{{ player.username }}</div>
     </TeamParticipant>
-    <ContextMenu ref="menu" :model="actions"/>
+    <ContextMenu ref="menu" :model="actions" />
 </template>
 
 <script lang="ts" setup>
@@ -29,22 +29,22 @@ const menu = ref<InstanceType<typeof ContextMenu>>();
 const actions: MenuItem[] =
     props.player.userId === api.session.onlineUser.userId
         ? [
-            { label: "View Profile", command: viewProfile },
-            { label: "Make Boss", command: makeBoss },
-        ]
+              { label: "View Profile", command: viewProfile },
+              { label: "Make Boss", command: makeBoss },
+          ]
         : [
-            { label: "View Profile", command: viewProfile },
-            { label: "Message", command: messagePlayer },
-            //{ label: "Block", command: blockPlayer },
-            { label: "Add Friend", command: addFriend },
-            { label: "Kick", command: kickPlayer },
-            { label: "Ring", command: ringPlayer },
-            {
-                label: "More",
-                items: [{ label: "Make Boss", command: makeBoss }],
-            },
-            //{ label: "Report", command: reportPlayer },
-        ];
+              { label: "View Profile", command: viewProfile },
+              { label: "Message", command: messagePlayer },
+              //{ label: "Block", command: blockPlayer },
+              { label: "Add Friend", command: addFriend },
+              { label: "Kick", command: kickPlayer },
+              { label: "Ring", command: ringPlayer },
+              {
+                  label: "More",
+                  items: [{ label: "Make Boss", command: makeBoss }],
+              },
+              //{ label: "Report", command: reportPlayer },
+          ];
 
 function onRightClick(event: MouseEvent) {
     if (menu.value) {

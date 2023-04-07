@@ -10,8 +10,7 @@
         <div class="flex-row flex-center-items gap-md">
             <div class="title">{{ title }}</div>
             <div v-if="memberCount > 0" class="member-count">({{ memberCount }} Member{{ memberCount > 1 ? "s" : "" }})</div>
-            <Button v-if="!iAmSpectator" class="slim" @click="addBotClicked(teamId)"> Add bot
-            </Button>
+            <Button v-if="!iAmSpectator" class="slim" @click="addBotClicked(teamId)"> Add bot </Button>
             <Button v-if="showJoin" class="slim" @click="onJoinClicked(teamId)"> Join </Button>
         </div>
         <div class="participants">
@@ -22,10 +21,9 @@
                 @dragstart="onDragStart($event, member)"
                 @dragend="onDragEnd()"
             >
-                <SpectatorParticipant v-if="isUser(member) && member.battleStatus.isSpectator"
-                                      :battle="battle" :player="member"/>
-                <PlayerParticipant v-else-if="isUser(member)" :battle="battle" :player="member"/>
-                <BotParticipant v-else-if="isBot(member)" :battle="battle" :bot="member"/>
+                <SpectatorParticipant v-if="isUser(member) && member.battleStatus.isSpectator" :battle="battle" :player="member" />
+                <PlayerParticipant v-else-if="isUser(member)" :battle="battle" :player="member" />
+                <BotParticipant v-else-if="isBot(member)" :battle="battle" :bot="member" />
             </div>
         </div>
     </div>

@@ -20,9 +20,9 @@ const props = defineProps<{
     startBoxes?: Record<number, StartBox | undefined>;
     startPositions?: Array<
         | {
-        position: { x: number; z: number };
-        rgbColor?: { r: number; g: number; b: number };
-    }
+              position: { x: number; z: number };
+              rgbColor?: { r: number; g: number; b: number };
+          }
         | undefined
     >;
 }>();
