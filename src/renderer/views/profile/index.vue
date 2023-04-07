@@ -2,6 +2,7 @@
 {
     meta: {
         title: "Profile",
+        devOnly: true,
         transition: {
             name: "slide-below",
         },

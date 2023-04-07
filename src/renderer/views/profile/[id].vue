@@ -10,7 +10,7 @@ TODO:
 -->
 
 <route lang="json5">
-{ props: true, meta: { title: "Profile", transition: { name: "slide-left" } } }
+{ props: true, meta: { title: "Profile", hide: true, transition: { name: "slide-left" } } }
 </route>
 
 <template>
