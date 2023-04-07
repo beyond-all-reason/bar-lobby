@@ -3,8 +3,9 @@
 </route>
 
 <template>
-    <div class="flex-row flex-grow gap-md hide-overflow">
-        <div class="flex-col flex-grow gap-md">
+    <div  class="flex-row flex-grow gap-md hide-overflow">
+        <Loader v-if="loading"></Loader>
+        <div v-if="!loading" class="flex-col flex-grow gap-md">
             <div class="flex-row gap-md">
                 <h1>Multiplayer Custom Battles</h1>
             </div>
@@ -65,7 +66,7 @@
                 </DataTable>
             </div>
         </div>
-        <div class="right">
+        <div v-if="!loading" class="right">
             <BattlePreview v-if="selectedBattle" :battle="selectedBattle">
                 <template #actions="{ battle }">
                     <template v-if="isSpadsBattle(battle)">
@@ -103,10 +104,11 @@ import robot from "@iconify-icons/mdi/robot";
 import { delay } from "jaz-ts-utils";
 import Column from "primevue/column";
 import DataTable, { DataTableRowDoubleClickEvent } from "primevue/datatable";
-import { computed, onUnmounted, Ref, ref, shallowRef } from "vue";
+import { computed, onMounted,onUnmounted,Ref, ref, shallowRef } from "vue";
 
 import BattlePreview from "@/components/battle/BattlePreview.vue";
 import HostBattle from "@/components/battle/HostBattle.vue";
+import Loader from "@/components/common/Loader.vue";
 import Modal from "@/components/common/Modal.vue";
 import Button from "@/components/controls/Button.vue";
 import Checkbox from "@/components/controls/Checkbox.vue";
@@ -116,6 +118,8 @@ import { SpadsBattle } from "@/model/battle/spads-battle";
 import { getFriendlyDuration } from "@/utils/misc";
 import { isSpadsBattle } from "@/utils/type-checkers";
 
+
+const loading = ref(false);
 const hostBattleOpen = ref(false);
 const searchVal = ref("");
 const selectedBattle: Ref<SpadsBattle | null> = shallowRef(null);
@@ -179,9 +183,19 @@ await updateBattleList();
 await delay(500);
 
 const intervalId = window.setInterval(updateBattleList, 5000);
+const watchForLobbyJoin = api.comms.onResponse("s.lobby.updated_client_battlestatus").add(() => {
+    loading.value = false;
+});
+
+const watchForLobbyJoinFailure = api.comms.onResponse("s.lobby.join").add((data) => {
+    data.result === "failure" || data.reason === "Battle locked" ? (loading.value = false) : null;
+});
+
 
 onUnmounted(() => {
     window.clearInterval(intervalId);
+    watchForLobbyJoin.destroy();
+    watchForLobbyJoinFailure.destroy();
 });
 
 async function updateBattleList() {
@@ -219,9 +233,15 @@ async function updateBattleList() {
 }
 
 async function attemptJoinBattle(battle: SpadsBattle) {
+
+
     if (battle.battleOptions.passworded) {
         passwordPromptOpen.value = true;
     } else {
+        loading.value = true;
+        // if user is in a other lobby, leave it
+        api.session.onlineBattle.value && await api.comms.request("c.lobby.leave");
+
         await api.comms.request("c.lobby.join", {
             lobby_id: battle.battleOptions.id,
         });
@@ -237,7 +257,7 @@ async function onPasswordPromptSubmit(data) {
         console.warn("Prompting for battle password but no battle selected");
         return;
     }
-
+    loading.value = true;
     const response = await api.comms.request("c.lobby.join", {
         lobby_id: selectedBattle.value.battleOptions.id,
         password: data.password,
@@ -245,9 +265,12 @@ async function onPasswordPromptSubmit(data) {
 
     if (response.result === "failure") {
         failureReason.value = response.reason;
+        loading.value = false;
     } else {
         passwordPromptOpen.value = false;
     }
+
+
 }
 </script>
 
