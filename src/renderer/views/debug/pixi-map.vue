@@ -4,14 +4,12 @@
 
 <template>
     <div class="container">
-        <MapPreview :map="'Red Comet Remake 1.8'" :startBoxes="boxes" :startPositions="positions"></MapPreview>
-        <MapPreview2 :map="redComet" :startBoxes="boxes" :startPositions="positions"></MapPreview2>
+        <MapPreview :map="redComet" :startBoxes="boxes" :startPositions="positions"></MapPreview>
     </div>
 </template>
 
 <script lang="ts" setup>
 import MapPreview from "@/components/maps/MapPreview.vue";
-import MapPreview2 from "@/components/maps/MapPreviewPixi.vue";
 import { StartBox } from "@/model/battle/battle-types";
 
 const redComet = api.content.maps.getMapByScriptName("Red Comet Remake 1.8");

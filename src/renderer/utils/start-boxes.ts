@@ -32,15 +32,15 @@ export function getBoxes(orientation: DefaultBoxes, percent = 30) {
 }
 
 export enum DefaultBoxes {
-    EastVsWest,
-    NorthVsSouth,
-    NortheastVsSouthwest,
-    NorthwestVsSouthEast,
+    EastVsWest = "EastVsWeast",
+    NorthVsSouth = "NorthVsSouth",
+    NortheastVsSouthwest = "NortheastVsSouthwest",
+    NorthwestVsSouthEast = "NorthwestVsSouthEast",
 }
 
 export function defaultMapBoxes(mapScriptName?: string) {
     if (!mapScriptName) {
-        return getBoxes(DefaultBoxes.NorthVsSouth);
+        return getBoxes(DefaultBoxes.EastVsWest);
     }
 
     const mapBoxes = {
@@ -48,5 +48,5 @@ export function defaultMapBoxes(mapScriptName?: string) {
         "Quicksilver Remake 1.24": getBoxes(DefaultBoxes.NorthVsSouth),
     };
 
-    return mapBoxes[mapScriptName] ?? getBoxes(DefaultBoxes.NorthVsSouth);
+    return mapBoxes[mapScriptName] ?? getBoxes(DefaultBoxes.EastVsWest);
 }

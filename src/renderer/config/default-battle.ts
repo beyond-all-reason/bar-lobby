@@ -22,7 +22,7 @@ export function defaultBattle(mapScriptName?: string) {
             engineVersion: defaultEngineVersion,
             gameVersion: defaultGameVersion,
             map: map,
-            startPosType: StartPosType.Fixed,
+            startPosType: StartPosType.Boxes,
             startBoxes: defaultMapBoxes(map),
             gameOptions: {},
             mapOptions: {},

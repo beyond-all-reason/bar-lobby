@@ -1,7 +1,7 @@
 import { AbstractBattle } from "@/model/battle/abstract-battle";
 import { Bot, StartBox, StartPosType } from "@/model/battle/battle-types";
 import { User } from "@/model/user";
-import { DefaultBoxes, defaultMapBoxes, getBoxes } from "@/utils/start-boxes";
+import { defaultMapBoxes } from "@/utils/start-boxes";
 
 export class OfflineBattle extends AbstractBattle {
     public override leave() {
@@ -24,10 +24,10 @@ export class OfflineBattle extends AbstractBattle {
         this.battleOptions.gameVersion = gameVersion;
     }
 
-    public setMap(map: string) {
-        this.battleOptions.map = map;
+    public setMap(mapName: string) {
+        this.battleOptions.map = mapName;
 
-        const boxes = defaultMapBoxes()[map] ?? getBoxes(DefaultBoxes.NorthVsSouth);
+        const boxes = defaultMapBoxes(mapName);
 
         this.setStartBoxes(boxes);
     }

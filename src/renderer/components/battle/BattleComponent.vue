@@ -19,11 +19,10 @@
         </div>
         <div class="settings flex-col gap-md">
             <MapPreview
-                :map="props.battle.battleOptions.map"
+                :map="map"
                 :startPosType="props.battle.battleOptions.startPosType"
                 :startBoxes="props.battle.battleOptions.startBoxes"
-                :isSpectator="me.battleStatus.isSpectator"
-                :myTeamId="me.battleStatus.teamId"
+                :currentUser="me"
             />
 
             <div class="flex-row gap-md">
@@ -48,8 +47,9 @@
                 <MapOptionsModal
                     v-model="mapOptionsOpen"
                     title="Map Options"
-                    :battle="battle"
-                    :battleOptions="battle.battleOptions"
+                    :map="map"
+                    :startBoxes="battle.battleOptions.startBoxes"
+                    :startPosType="battle.battleOptions.startPosType"
                     :me="me"
                     @set-map-options="setMapOptions"
                 />
@@ -254,7 +254,6 @@ function setGameOptions(options: Record<string, any>) {
 }
 
 function setMapOptions(startPosType: StartPosType, startBoxes: StartBox[]) {
-    console.log('got map options', startPosType, startBoxes);
     props.battle.setStartPosType(startPosType);
     props.battle.setStartBoxes(startBoxes);
 }

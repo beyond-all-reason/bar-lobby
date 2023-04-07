@@ -1,15 +1,12 @@
 <template>
     <Modal ref="modal" :title="title" class="map-list-modal">
         <div class="container">
-            <div class="map-container">
-                <MapPreview
-                    :map="props.battle.battleOptions.map"
-                    :startPosType="startPosType"
-                    :startBoxes="startBoxes"
-                    :isSpectator="me.battleStatus.isSpectator"
-                    :myTeamId="me.battleStatus.teamId"
-                />
-            </div>
+            <MapPreview
+                :map="map"
+                :currentUser="me"
+                :startPosType="startPosType"
+                :startBoxes="startBoxes"
+            />
 
             <div class="options flex-col gap-md">
                 <Options
@@ -23,8 +20,9 @@
                     @update:model-value="onStartPosChange"
                 />
                 <div class="box-buttons">
-                    <Button :disabled="disableBoxControls"
-                            @click="setBoxType(DefaultBoxes.EastVsWest)">
+                    <Button
+                        :disabled="disableBoxControls"
+                        @click="setBoxType(DefaultBoxes.EastVsWest)">
                         <img src="~@/assets/images/icons/east-vs-west.png"/>
                     </Button>
                     <Button
@@ -46,9 +44,8 @@
                 <div>
                     <Range
                         v-model="boxRange"
-                        :disabled="disableBoxControls"
-                        :min="5" :max="100" :step="5"
-                        @on-update="updateBoxSize"/>
+                        :disabled="disableSlider"
+                        :min="5" :max="100" :step="5"/>
                 </div>
                 <div class="actions">
                     <Button class="red fullwidth" @click="close"> Cancel</Button>
@@ -61,15 +58,15 @@
 </template>
 
 <script lang="ts" setup>
-import { Ref, ref } from "vue";
+import { Ref, ref, watch } from "vue";
 
 import Modal from "@/components/common/Modal.vue";
 import Button from "@/components/controls/Button.vue";
 import Options from "@/components/controls/Options.vue";
 import Range from "@/components/controls/Range.vue";
 import MapPreview from "@/components/maps/MapPreview.vue";
-import { AbstractBattle } from "@/model/battle/abstract-battle";
-import { BattleOptions, StartBox, StartPosType } from "@/model/battle/battle-types";
+import { StartBox, StartPosType } from "@/model/battle/battle-types";
+import { MapData } from "@/model/map-data";
 import { CurrentUser } from "@/model/user";
 import { DefaultBoxes, getBoxes } from "@/utils/start-boxes";
 
@@ -77,10 +74,35 @@ const modal: Ref<null | InstanceType<typeof Modal>> = ref(null);
 
 const props = defineProps<{
     title: string;
-    battle: AbstractBattle;
-    battleOptions: BattleOptions;
+    map: MapData,
+    startBoxes: Record<number, StartBox>,
+    startPosType: StartPosType,
     me: CurrentUser;
 }>();
+
+const boxRange = ref(25);
+const startBoxes = ref(props.startBoxes)
+const startPosType = ref(props.startPosType)
+const disableBoxControls = ref(startPosType.value === StartPosType.Fixed);
+const disableSlider = ref(false)
+
+let boxOrientation: DefaultBoxes | undefined = undefined;
+
+watch(boxRange, () => {
+    updateBoxSize();
+})
+
+watch(() => props.startBoxes, (boxes) => {
+    if (Object.keys(boxes).length > 1) {
+        setBoxes(Object.entries(boxes).map(([k, v]) => v));
+    }
+
+    boxOrientation = undefined;
+    updateOrientation();
+});
+watch(props.startBoxes, (boxes) => {
+
+})
 
 const startPosOptions: Array<{ label: string; value: StartPosType }> = [
     { label: "Fixed", value: StartPosType.Fixed },
@@ -89,15 +111,27 @@ const startPosOptions: Array<{ label: string; value: StartPosType }> = [
 
 const emit = defineEmits(["setMapOptions"]);
 
-const boxRange = ref(25);
-const boxOrientation = ref(DefaultBoxes.EastVsWest);
+function getBoxOrientation() {
+    const boxes = startBoxes.value;
+    const count = Object.keys(boxes).length
+    // I don't really care enough to build in support for diagonal boxes right now
+    if (count === 2) {
+        if (boxes[0]?.yPercent === 0 && boxes[1]?.yPercent === 0) {
+            return DefaultBoxes.EastVsWest
+        }
+        if (boxes[0]?.xPercent === 0 && boxes[1]?.xPercent === 0) {
+            return DefaultBoxes.NorthVsSouth
+        }
+    }
+    return undefined;
+}
 
-const startBoxes = ref(props.battleOptions.startBoxes)
-const startPosType = ref(props.battleOptions.startPosType)
-const disableBoxControls = ref(startPosType.value === StartPosType.Fixed);
+function updateOrientation() {
+    disableSlider.value = startPosType.value === StartPosType.Fixed || !getBoxOrientation();
+}
 
 function setBoxType(type: DefaultBoxes) {
-    boxOrientation.value = type;
+    boxOrientation = type;
     setBoxes(getBoxes(type, boxRange.value));
 }
 
@@ -106,7 +140,10 @@ function setBoxes(boxes: StartBox[]) {
 }
 
 function updateBoxSize() {
-    setBoxType(boxOrientation.value);
+    const orientation = boxOrientation || getBoxOrientation();
+    if (orientation) {
+        setBoxType(orientation);
+    }
 }
 
 function onStartPosChange(type: StartPosType) {
@@ -123,6 +160,7 @@ function save() {
     modal.value?.close();
 }
 </script>
+
 
 <style lang="scss" scoped>
 :global(.map-list-modal) {

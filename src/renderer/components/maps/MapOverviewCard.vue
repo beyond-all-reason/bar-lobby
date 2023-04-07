@@ -2,10 +2,10 @@
     <div class="map">
         <div class="background" :style="`background-image: url('${mapTextureImage}')`"></div>
         <div class="name">
-            {{ map.friendlyName }}
+            {{ map?.friendlyName ?? "" }}
         </div>
         <div class="attributes">
-            <div>{{ map.width }} x {{ map.height }}</div>
+            <div>{{ map?.width ?? "0" }} x {{ map?.height ?? "0" }}</div>
         </div>
     </div>
 </template>
@@ -16,7 +16,7 @@ import { computed } from "vue";
 import { MapData } from "@/model/map-data";
 
 const props = defineProps<{
-    map: MapData;
+    map?: MapData;
 }>();
 
 const mapTextureImage = computed(() => api.content.maps.getMapImages(props.map).textureImagePath);
