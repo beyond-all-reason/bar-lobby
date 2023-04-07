@@ -20,7 +20,8 @@ export interface Props extends SliderProps {
 
 const props = defineProps<Props>();
 const emits = defineEmits<{
-    (event: "update:modelValue", value: number | number[]): void;
+    (event: "update:modelValue", value: number | number[]): void
+    (event: "onUpdate", value: number | number[]): void
 }>();
 
 const slider: Ref<null | Props> = ref(null);
@@ -35,11 +36,13 @@ onMounted(() => {
 
 function onSlide(input: number | number[]) {
     emits("update:modelValue", input);
+    emits("onUpdate", input);
 }
 
 function onInput(input: number | number[]) {
     if (typeof input === "number" && !Array.isArray(input)) {
         emits("update:modelValue", input);
+        emits("onUpdate", input);
     }
 }
 </script>

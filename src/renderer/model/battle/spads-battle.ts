@@ -3,11 +3,11 @@ import { assign, entries, objectKeys, roundToMultiple } from "jaz-ts-utils";
 import { battleSchema, lobbySchema } from "tachyon-client";
 import { computed, ComputedRef, Ref, ref } from "vue";
 
-import { defaultBoxes } from "@/config/default-boxes";
 import { AbstractBattle } from "@/model/battle/abstract-battle";
 import { Bot, SpadsBattleOptions, StartBox, StartPosType } from "@/model/battle/battle-types";
 import { SpadsVote } from "@/model/spads/spads-types";
 import { User } from "@/model/user";
+import { DefaultBoxes, getBoxes } from "@/utils/start-boxes";
 
 type LobbyType = Static<typeof lobbySchema>;
 type BattleType = Static<typeof battleSchema>;
@@ -288,13 +288,13 @@ export class SpadsBattle extends AbstractBattle<SpadsBattleOptions> {
     }
 
     public setStartBoxes(startBoxes: StartBox[]) {
-        if (JSON.stringify(startBoxes) === JSON.stringify(defaultBoxes().EastVsWest)) {
+        if (JSON.stringify(startBoxes) === JSON.stringify(getBoxes(DefaultBoxes.EastVsWest))) {
             api.comms.request("c.lobby.message", { message: `!split v 30` });
-        } else if (JSON.stringify(startBoxes) === JSON.stringify(defaultBoxes().NorthVsSouth)) {
+        } else if (JSON.stringify(startBoxes) === JSON.stringify(getBoxes(DefaultBoxes.NorthVsSouth))) {
             api.comms.request("c.lobby.message", { message: `!split h 30` });
-        } else if (JSON.stringify(startBoxes) === JSON.stringify(defaultBoxes().NorthwestVsSouthEast)) {
+        } else if (JSON.stringify(startBoxes) === JSON.stringify(getBoxes(DefaultBoxes.NorthwestVsSouthEast))) {
             api.comms.request("c.lobby.message", { message: `!split c1 30` });
-        } else if (JSON.stringify(startBoxes) === JSON.stringify(defaultBoxes().NortheastVsSouthwest)) {
+        } else if (JSON.stringify(startBoxes) === JSON.stringify(getBoxes(DefaultBoxes.NortheastVsSouthwest))) {
             api.comms.request("c.lobby.message", { message: `!split c2 30` });
         }
     }

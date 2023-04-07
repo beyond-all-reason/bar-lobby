@@ -79,7 +79,9 @@ onUnmounted(() => {
 function onCanvasResize() {
     return new Promise<number>((resolve) => {
         const resizeObserver = new ResizeObserver((resizeObserverEntries) => {
-            resolve(resizeObserverEntries[0].contentRect.width);
+            const rect = resizeObserverEntries[0].contentRect;
+
+            resolve(Math.max(rect.width, rect.height));
             resizeObserver.disconnect();
         });
         resizeObserver.observe(canvas.value!);
@@ -204,10 +206,14 @@ function roundTransform(transform: Transform) {
     position: relative;
     align-items: center;
     justify-content: center;
+    max-width: 100%;
+    max-height: 100%;
 }
 .canvas {
-    margin: 0px;
+    margin: 0;
     aspect-ratio: 1;
     width: 100%;
+    max-width: 100%;
+    max-height: 100%;
 }
 </style>

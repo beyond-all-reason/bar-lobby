@@ -1,24 +1,21 @@
 <template>
+    <h1>{{ battle.battleOptions.title }}</h1>
     <div :class="['battle-container', { singleplayer: isOfflineBattle(battle) }]">
-        <div class="header flex-col gap-md">
-            <h1 class="title">{{ battle.battleOptions.title }}</h1>
-
-            <div v-if="isSpadsBattle(battle)" class="subtitle flex-row gap-md">
-                <div class="flex-row gap-sm">
-                    Hosted by
-                    <div class="founder flex-row gap-sm">
-                        <Flag :countryCode="battle.founder.value.countryCode" style="width: 16px" />
-                        {{ battle.founder.value.username }}
-                    </div>
+        <div v-if="isSpadsBattle(battle)" class="subtitle flex-row gap-md">
+            <div class="flex-row gap-sm">
+                Hosted by
+                <div class="founder flex-row gap-sm">
+                    <Flag :countryCode="battle.founder.value.countryCode" style="width: 16px"/>
+                    {{ battle.founder.value.username }}
                 </div>
-                <div class="flex-right">{{ battle.friendlyRuntime.value }}</div>
             </div>
+            <div class="flex-right">{{ battle.friendlyRuntime.value }}</div>
         </div>
         <div class="players flex-col gap-md">
-            <Playerlist :battle="battle" :me="me" />
+            <Playerlist :battle="battle" :me="me"/>
         </div>
         <div v-if="isSpadsBattle(battle)" class="chat flex-col gap-md">
-            <BattleChat />
+            <BattleChat/>
         </div>
         <div class="settings flex-col gap-md">
             <MapPreview
@@ -28,33 +25,6 @@
                 :isSpectator="me.battleStatus.isSpectator"
                 :myTeamId="me.battleStatus.teamId"
             />
-
-            <div class="flex-row gap-md">
-                <Options
-                    :modelValue="battle.battleOptions.startPosType"
-                    :options="startPosOptions"
-                    label="Start Pos"
-                    optionLabel="label"
-                    optionValue="value"
-                    :unselectable="false"
-                    class="fullwidth"
-                    @update:model-value="onStartPosChange"
-                />
-                <div class="box-buttons" :class="{ disabled: battle.battleOptions.startPosType === StartPosType.Boxes }">
-                    <Button @click="setBoxes(defaultBoxes().EastVsWest)">
-                        <img src="~@/assets/images/icons/east-vs-west.png" />
-                    </Button>
-                    <Button @click="setBoxes(defaultBoxes().NorthVsSouth)">
-                        <img src="~@/assets/images/icons/north-vs-south.png" />
-                    </Button>
-                    <Button @click="setBoxes(defaultBoxes().NortheastVsSouthwest)">
-                        <img src="~@/assets/images/icons/northeast-vs-southwest.png" />
-                    </Button>
-                    <Button @click="setBoxes(defaultBoxes().NorthwestVsSouthEast)">
-                        <img src="~@/assets/images/icons/northwest-vs-southeast.png" />
-                    </Button>
-                </div>
-            </div>
 
             <div class="flex-row gap-md">
                 <Select
@@ -69,12 +39,20 @@
                     @update:model-value="onMapSelected"
                 />
                 <Button v-tooltip.left="'Open map selector'" @click="openMapList">
-                    <Icon :icon="listIcon" height="23" />
+                    <Icon :icon="listIcon" height="23"/>
                 </Button>
                 <Button v-tooltip.left="'Configure map options'" @click="openMapOptions">
-                    <Icon :icon="cogIcon" height="23" />
+                    <Icon :icon="cogIcon" height="23"/>
                 </Button>
-                <MapListModal v-model="mapListOpen" title="Maps" @map-selected="onMapSelected" />
+                <MapListModal v-model="mapListOpen" title="Maps" @map-selected="onMapSelected"/>
+                <MapOptionsModal
+                    v-model="mapOptionsOpen"
+                    title="Map Options"
+                    :battle="battle"
+                    :battleOptions="battle.battleOptions"
+                    :me="me"
+                    @set-map-options="setMapOptions"
+                />
             </div>
 
             <div class="flex-row gap-md">
@@ -215,15 +193,14 @@ import { computed, Ref, ref } from "vue";
 import BattleChat from "@/components/battle/BattleChat.vue";
 import LuaOptionsModal from "@/components/battle/LuaOptionsModal.vue";
 import MapListModal from "@/components/battle/MapListModal.vue";
+import MapOptionsModal from "@/components/battle/MapOptionsModal.vue";
 import Playerlist from "@/components/battle/Playerlist.vue";
 import VotingPanel from "@/components/battle/VotePanel.vue";
 import Button from "@/components/controls/Button.vue";
 import Checkbox from "@/components/controls/Checkbox.vue";
-import Options from "@/components/controls/Options.vue";
 import Select from "@/components/controls/Select.vue";
 import MapPreview from "@/components/maps/MapPreview.vue";
 import Flag from "@/components/misc/Flag.vue";
-import { defaultBoxes } from "@/config/default-boxes";
 import { AbstractBattle } from "@/model/battle/abstract-battle";
 import { StartBox, StartPosType } from "@/model/battle/battle-types";
 import { LuaOptionSection } from "@/model/lua-options";
@@ -244,28 +221,17 @@ const installedMaps = computed(() =>
 const map = computed(() => api.content.maps.getMapByScriptName(props.battle.battleOptions.map));
 const installedGames = computed(() => Array.from(api.content.game.installedVersions));
 const mapListOpen = ref(false);
+const mapOptionsOpen = ref(false);
 const gameOptionsOpen = ref(false);
 const gameOptions: Ref<LuaOptionSection[]> = ref([]);
 const isGameRunning = api.game.isGameRunning;
 
-const startPosOptions: Array<{ label: string; value: StartPosType }> = [
-    { label: "Fixed", value: StartPosType.Fixed },
-    { label: "Boxes", value: StartPosType.Boxes },
-];
-
-function setBoxes(boxes: StartBox[]) {
-    props.battle.setStartBoxes(boxes);
-}
-
-function onStartPosChange(startPosType: StartPosType) {
-    props.battle.setStartPosType(startPosType);
-}
 
 function openMapList() {
     mapListOpen.value = true;
 }
 function openMapOptions() {
-    // TODO
+    mapOptionsOpen.value = true;
 }
 
 function onEngineSelected(engineVersion: string) {
@@ -275,14 +241,22 @@ function onEngineSelected(engineVersion: string) {
 function onGameSelected(gameVersion: string) {
     props.battle.setGame(gameVersion);
 }
+
 async function openGameOptions() {
     // TODO: show loader on button (maybe @clickAsync event?)
     gameOptions.value = await api.content.game.getGameOptions(props.battle.battleOptions.gameVersion);
     gameOptionsOpen.value = true;
 }
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function setGameOptions(options: Record<string, any>) {
     props.battle.setGameOptions(options);
+}
+
+function setMapOptions(startPosType: StartPosType, startBoxes: StartBox[]) {
+    console.log('got map options', startPosType, startBoxes);
+    props.battle.setStartPosType(startPosType);
+    props.battle.setStartBoxes(startBoxes);
 }
 
 function onMapSelected(mapScriptName: string) {
@@ -394,24 +368,5 @@ async function start() {
 }
 .subtitle {
     font-size: 16px;
-}
-.box-buttons {
-    display: flex;
-    flex-direction: row;
-    gap: 2px;
-    :deep(button) {
-        min-height: unset;
-        padding: 5px;
-        &:hover {
-            img {
-                opacity: 1;
-            }
-        }
-    }
-    img {
-        max-width: 23px;
-        image-rendering: pixelated;
-        opacity: 0.7;
-    }
 }
 </style>
