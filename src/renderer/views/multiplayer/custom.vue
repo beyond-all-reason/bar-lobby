@@ -5,7 +5,7 @@
 <template>
     <div class="flex-row flex-grow gap-md hide-overflow">
         <Loader v-if="loading"></Loader>
-        <div v-if="!loading" class="flex-col flex-grow gap-md">
+        <div v-else class="flex-col flex-grow gap-md">
             <div class="flex-row gap-md">
                 <h1>Multiplayer Custom Battles</h1>
             </div>
@@ -187,7 +187,9 @@ const watchForLobbyJoin = api.comms.onResponse("s.lobby.updated_client_battlesta
 });
 
 const watchForLobbyJoinFailure = api.comms.onResponse("s.lobby.join").add((data) => {
-    data.result === "failure" || data.reason === "Battle locked" ? (loading.value = false) : null;
+    if (data.result === "failure" || data.reason === "Battle locked") {
+        loading.value = false;
+    }
 });
 
 onBeforeUnmount(() => {
@@ -241,8 +243,9 @@ async function attemptJoinBattle(battle: SpadsBattle) {
     } else {
         loading.value = true;
         // if user is in a other lobby, leave it
-        api.session.onlineBattle.value && (await api.comms.request("c.lobby.leave"));
-
+        if (api.session.onlineBattle.value) {
+            await api.comms.request("c.lobby.leave");
+        }
         await api.comms.request("c.lobby.join", {
             lobby_id: battle.battleOptions.id,
         });
