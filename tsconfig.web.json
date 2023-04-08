@@ -8,7 +8,8 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/renderer/*"],
-      "$/*": ["src/common/*"]
+      "$/*": ["src/common/*"],
+      "jaz-ts-utils": ["node_modules/jaz-ts-utils"]
     },
     "types": ["vite/client"],
     "noEmit": true,
