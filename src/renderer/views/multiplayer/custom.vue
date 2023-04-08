@@ -190,7 +190,6 @@ const watchForLobbyJoinFailure = api.comms.onResponse("s.lobby.join").add((data)
     data.result === "failure" || data.reason === "Battle locked" ? (loading.value = false) : null;
 });
 
-
 onBeforeUnmount(() => {
     watchForLobbyJoin.destroy();
     watchForLobbyJoinFailure.destroy();
