@@ -1,5 +1,5 @@
 <route lang="json5">
-{ meta: { title: "Units", order: 1, transition: { name: "slide-left" } } }
+{ meta: { title: "Units", order: 1, devOnly: true, transition: { name: "slide-left" } } }
 </route>
 
 <template>

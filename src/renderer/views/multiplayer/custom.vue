@@ -103,7 +103,7 @@ import robot from "@iconify-icons/mdi/robot";
 import { delay } from "jaz-ts-utils";
 import Column from "primevue/column";
 import DataTable, { DataTableRowDoubleClickEvent } from "primevue/datatable";
-import { computed, onUnmounted, Ref, ref, shallowRef } from "vue";
+import { computed, onBeforeUnmount, Ref, ref, shallowRef } from "vue";
 
 import BattlePreview from "@/components/battle/BattlePreview.vue";
 import HostBattle from "@/components/battle/HostBattle.vue";
@@ -174,22 +174,26 @@ const battles = computed(() => {
     return battles;
 });
 
-await updateBattleList();
+let intervalId = 0;
+let active = true;
 
-await delay(500);
+const abortController = new AbortController();
 
-const intervalId = window.setInterval(updateBattleList, 5000);
-
-onUnmounted(() => {
+onBeforeUnmount(() => {
+    abortController.abort();
     window.clearInterval(intervalId);
+    active = false;
 });
 
+await updateBattleList();
+
+await delay(500, abortController.signal); // might be able to remove this once #179 is fixed
+
+if (active) {
+    intervalId = window.setInterval(updateBattleList, 5000);
+}
+
 async function updateBattleList() {
-    // this prevents polling for updates if the user isn't looking at the battle list
-    // commented out for now because the host battle functionality also depends on this to know when the battle is created
-    // if (document.visibilityState === "hidden") {
-    //     return;
-    // }
     const { lobbies } = await api.comms.request("c.lobby.query", { query: {}, fields: ["lobby", "bots", "modoptions", "member_list"] });
 
     const userIds: number[] = [];
