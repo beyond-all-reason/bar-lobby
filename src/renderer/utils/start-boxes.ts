@@ -1,24 +1,28 @@
 // TODO: add deep readonly type and add a clone method that removes it
-export function getBoxes(orientation: DefaultBoxes, percent = 30) {
+import { roundToMultiple } from "jaz-ts-utils";
+
+import { StartBox } from "@/model/battle/battle-types";
+
+export function getBoxes(orientation: StartBoxOrientation, percent = 30) {
     const size = percent / 100;
     const sizeInverse = 1.0 - size;
     switch (orientation) {
-        case DefaultBoxes.EastVsWest:
+        case StartBoxOrientation.EastVsWest:
             return [
                 { xPercent: 0, yPercent: 0, widthPercent: size, heightPercent: 1 },
                 { xPercent: sizeInverse, yPercent: 0, widthPercent: size, heightPercent: 1 },
             ];
-        case DefaultBoxes.NorthVsSouth:
+        case StartBoxOrientation.NorthVsSouth:
             return [
                 { xPercent: 0, yPercent: 0, widthPercent: 1, heightPercent: size },
                 { xPercent: 0, yPercent: sizeInverse, widthPercent: 1, heightPercent: size },
             ];
-        case DefaultBoxes.NortheastVsSouthwest:
+        case StartBoxOrientation.NortheastVsSouthwest:
             return [
                 { xPercent: sizeInverse, yPercent: 0, widthPercent: size, heightPercent: size },
                 { xPercent: 0, yPercent: sizeInverse, widthPercent: size, heightPercent: size },
             ];
-        case DefaultBoxes.NorthwestVsSouthEast:
+        case StartBoxOrientation.NorthwestVsSouthEast:
             return [
                 { xPercent: 0, yPercent: 0, widthPercent: size, heightPercent: size },
                 {
@@ -31,7 +35,7 @@ export function getBoxes(orientation: DefaultBoxes, percent = 30) {
     }
 }
 
-export enum DefaultBoxes {
+export enum StartBoxOrientation {
     EastVsWest = "EastVsWeast",
     NorthVsSouth = "NorthVsSouth",
     NortheastVsSouthwest = "NortheastVsSouthwest",
@@ -40,13 +44,24 @@ export enum DefaultBoxes {
 
 export function defaultMapBoxes(mapScriptName?: string) {
     if (!mapScriptName) {
-        return getBoxes(DefaultBoxes.EastVsWest);
+        return getBoxes(StartBoxOrientation.EastVsWest);
     }
 
     const mapBoxes = {
-        "Red Comet Remake 1.8": getBoxes(DefaultBoxes.EastVsWest),
-        "Quicksilver Remake 1.24": getBoxes(DefaultBoxes.NorthVsSouth),
+        "Red Comet Remake 1.8": getBoxes(StartBoxOrientation.EastVsWest),
+        "Quicksilver Remake 1.24": getBoxes(StartBoxOrientation.NorthVsSouth),
     };
 
-    return mapBoxes[mapScriptName] ?? getBoxes(DefaultBoxes.EastVsWest);
+    return mapBoxes[mapScriptName] ?? getBoxes(StartBoxOrientation.EastVsWest);
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function spadsBoxToStartBox(spadsBox: any) {
+    const box: StartBox = {
+        xPercent: roundToMultiple(spadsBox.x1 / 200, 0.01),
+        yPercent: roundToMultiple(spadsBox.y1 / 200, 0.01),
+        widthPercent: roundToMultiple(spadsBox.x2 / 200 - spadsBox.x1 / 200, 0.01),
+        heightPercent: roundToMultiple(spadsBox.y2 / 200 - spadsBox.y1 / 200, 0.01),
+    };
+    return box;
 }

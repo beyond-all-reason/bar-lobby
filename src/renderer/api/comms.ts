@@ -1,5 +1,5 @@
 import { Static, TSchema } from "@sinclair/typebox";
-import { arrayToMap, assign, roundToMultiple } from "jaz-ts-utils";
+import { arrayToMap, assign } from "jaz-ts-utils";
 import { battleSchema, myUserSchema, TachyonClient } from "tachyon-client";
 import { nextTick, reactive, Ref, ref } from "vue";
 
@@ -10,6 +10,7 @@ import { directAnnouncementHandlers } from "@/api/response-handlers/messages/dir
 import { directMessageHandlers } from "@/api/response-handlers/messages/direct-message";
 import { SpadsBattle } from "@/model/battle/spads-battle";
 import { Message, MessageHandler } from "@/model/messages";
+import { spadsBoxToStartBox } from "@/utils/start-boxes";
 import { tachyonLog } from "@/utils/tachyon-log";
 
 /**
@@ -205,12 +206,7 @@ export class CommsAPI extends TachyonClient {
         this.onResponse("s.lobby.add_start_area").add((data) => {
             const battle = api.session.battles.get(data.lobby_id);
             if (battle) {
-                battle.battleOptions.startBoxes[data.area_id] = {
-                    xPercent: roundToMultiple(data.structure.x1 / 200, 0.01),
-                    yPercent: roundToMultiple(data.structure.y1 / 200, 0.01),
-                    widthPercent: roundToMultiple(data.structure.x2 / 200 - data.structure.x1 / 200, 0.01),
-                    heightPercent: roundToMultiple(data.structure.y2 / 200 - data.structure.y1 / 200, 0.01),
-                };
+                battle.battleOptions.startBoxes[data.area_id] = spadsBoxToStartBox(data.structure);
             }
         });
 

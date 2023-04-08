@@ -49,7 +49,7 @@ watch([parentSize.width, parentSize.height], ([width, height], [oldWidth, oldHei
 });
 
 watch(() => props.map, setMapImage);
-watch(() => props.startBoxes, drawBoxes);
+watch(() => props.startBoxes, drawBoxes, { deep: true });
 watch(() => props.startPositions, drawStartPositions);
 watch(
     () => props.currentUser?.battleStatus.teamId,

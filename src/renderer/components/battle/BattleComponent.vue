@@ -203,9 +203,10 @@ import Select from "@/components/controls/Select.vue";
 import MapPreview from "@/components/maps/MapPreview.vue";
 import Flag from "@/components/misc/Flag.vue";
 import { AbstractBattle } from "@/model/battle/abstract-battle";
-import { StartBox, StartPosType } from "@/model/battle/battle-types";
+import { StartPosType } from "@/model/battle/battle-types";
 import { LuaOptionSection } from "@/model/lua-options";
 import { CurrentUser } from "@/model/user";
+import { StartBoxOrientation } from "@/utils/start-boxes";
 import { isOfflineBattle, isSpadsBattle } from "@/utils/type-checkers";
 
 const props = defineProps<{
@@ -253,9 +254,9 @@ function setGameOptions(options: Record<string, any>) {
     props.battle.setGameOptions(options);
 }
 
-function setMapOptions(startPosType: StartPosType, startBoxes: StartBox[]) {
+function setMapOptions(startPosType: StartPosType, orientation: StartBoxOrientation, size: number) {
+    props.battle.setStartBoxes(orientation, size);
     props.battle.setStartPosType(startPosType);
-    props.battle.setStartBoxes(startBoxes);
 }
 
 function onMapSelected(mapScriptName: string) {

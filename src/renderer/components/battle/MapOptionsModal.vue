@@ -15,16 +15,16 @@
                     @update:model-value="onStartPosChange"
                 />
                 <div class="box-buttons">
-                    <Button :disabled="disableBoxControls" @click="setBoxType(DefaultBoxes.EastVsWest)">
+                    <Button :disabled="disableBoxControls" @click="setBoxType(StartBoxOrientation.EastVsWest)">
                         <img src="~@/assets/images/icons/east-vs-west.png" />
                     </Button>
-                    <Button :disabled="disableBoxControls" @click="setBoxType(DefaultBoxes.NorthVsSouth)">
+                    <Button :disabled="disableBoxControls" @click="setBoxType(StartBoxOrientation.NorthVsSouth)">
                         <img src="~@/assets/images/icons/north-vs-south.png" />
                     </Button>
-                    <Button :disabled="disableBoxControls" @click="setBoxType(DefaultBoxes.NortheastVsSouthwest)">
+                    <Button :disabled="disableBoxControls" @click="setBoxType(StartBoxOrientation.NortheastVsSouthwest)">
                         <img src="~@/assets/images/icons/northeast-vs-southwest.png" />
                     </Button>
-                    <Button :disabled="disableBoxControls" @click="setBoxType(DefaultBoxes.NorthwestVsSouthEast)">
+                    <Button :disabled="disableBoxControls" @click="setBoxType(StartBoxOrientation.NorthwestVsSouthEast)">
                         <img src="~@/assets/images/icons/northwest-vs-southeast.png" />
                     </Button>
                 </div>
@@ -51,7 +51,7 @@ import MapPreview from "@/components/maps/MapPreview.vue";
 import { StartBox, StartPosType } from "@/model/battle/battle-types";
 import { MapData } from "@/model/map-data";
 import { CurrentUser } from "@/model/user";
-import { DefaultBoxes, getBoxes } from "@/utils/start-boxes";
+import { getBoxes, StartBoxOrientation } from "@/utils/start-boxes";
 
 const modal: Ref<null | InstanceType<typeof Modal>> = ref(null);
 
@@ -69,7 +69,7 @@ const startPosType = ref(props.startPosType);
 const disableBoxControls = ref(startPosType.value === StartPosType.Fixed);
 const disableSlider = ref(false);
 
-let boxOrientation: DefaultBoxes | undefined = undefined;
+let boxOrientation: StartBoxOrientation | undefined = undefined;
 
 watch(boxRange, () => {
     updateBoxSize();
@@ -100,10 +100,10 @@ function getBoxOrientation() {
     // I don't really care enough to build in support for diagonal boxes right now
     if (count === 2) {
         if (boxes[0]?.yPercent === 0 && boxes[1]?.yPercent === 0) {
-            return DefaultBoxes.EastVsWest;
+            return StartBoxOrientation.EastVsWest;
         }
         if (boxes[0]?.xPercent === 0 && boxes[1]?.xPercent === 0) {
-            return DefaultBoxes.NorthVsSouth;
+            return StartBoxOrientation.NorthVsSouth;
         }
     }
     return undefined;
@@ -113,7 +113,7 @@ function updateOrientation() {
     disableSlider.value = startPosType.value === StartPosType.Fixed || !getBoxOrientation();
 }
 
-function setBoxType(type: DefaultBoxes) {
+function setBoxType(type: StartBoxOrientation) {
     boxOrientation = type;
     setBoxes(getBoxes(type, boxRange.value));
 }
@@ -139,7 +139,7 @@ function close() {
 }
 
 function save() {
-    emit("setMapOptions", startPosType.value, startBoxes.value);
+    emit("setMapOptions", startPosType.value, getBoxOrientation(), boxRange.value);
     modal.value?.close();
 }
 </script>
