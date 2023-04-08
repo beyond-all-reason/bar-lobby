@@ -81,5 +81,9 @@ export default defineConfig({
                 },
             }),
         ],
+        assetsInclude: [
+            // Include all files except those in src/renderer/assets/images/ranks
+            "!src/renderer/assets/images/ranks/**/*",
+        ],
     },
 });

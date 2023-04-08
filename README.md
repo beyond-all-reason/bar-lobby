@@ -34,3 +34,8 @@ It is highly recommended to use [VSCode](https://code.visualstudio.com/) for dev
 npm install
 npm run dev
 ```
+
+### Vite Build
+
+kill `npm run dev` and run `npm run local-build`
+located 'dist/win-unpacked/Beyond All Reason.exe' to run client.

@@ -4,7 +4,7 @@
             <Flag class="flag" :countryCode="player.countryCode" />
         </div>
         <div>
-            <img class="rank" :src="`/assets/images/icons/ranks/${player.icons.play_time_rank}.png`" />
+            <img class="rank" :src="src" />
         </div>
         <div>{{ player.username }}</div>
         <div class="flex-row flex-right flex-center">
@@ -43,6 +43,11 @@ const props = defineProps<{
     battle: AbstractBattle;
     player: User;
 }>();
+
+const src = computed(() => {
+    const path = new URL("@/assets/images/icons/ranks/", import.meta.url);
+    return `${path}/${props.player.icons.play_time_rank}.png`;
+});
 
 const isSynced = computed(() => {
     const syncStatus = props.player.battleStatus.sync;
