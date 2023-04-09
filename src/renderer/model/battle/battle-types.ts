@@ -4,7 +4,7 @@ export type BattleOptions = {
     gameVersion: string;
     map: string;
     startPosType: StartPosType;
-    startBoxes: Record<number, StartBox | undefined>;
+    startBoxes: Record<number, StartBox>;
     startTime: Date | null;
     gameOptions: Record<string, string | number | boolean>;
     mapOptions: Record<string, string | number | boolean>;

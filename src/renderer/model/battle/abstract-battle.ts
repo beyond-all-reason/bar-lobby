@@ -3,9 +3,10 @@ import { formatDuration } from "date-fns";
 import { groupBy } from "jaz-ts-utils";
 import { computed, ComputedRef, reactive, shallowReactive, watch, WatchStopHandle } from "vue";
 
-import { BattleOptions, Bot, StartBox, StartPosType } from "@/model/battle/battle-types";
+import { BattleOptions, Bot, StartPosType } from "@/model/battle/battle-types";
 import { MapData } from "@/model/map-data";
 import { User } from "@/model/user";
+import { StartBoxOrientation } from "@/utils/start-boxes";
 
 export interface BattleConfig<T extends BattleOptions = BattleOptions> {
     battleOptions: T;
@@ -132,7 +133,7 @@ export abstract class AbstractBattle<T extends BattleOptions = BattleOptions> {
     public abstract setGame(gameVersion: string): void;
     public abstract setEngine(engineVersion: string): void;
     public abstract setStartPosType(startPosType: StartPosType): void;
-    public abstract setStartBoxes(startBoxes: StartBox[]): void;
+    public abstract setStartBoxes(orientation: StartBoxOrientation, size: number): void;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     public abstract setGameOptions(options: Record<string, any>): void;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

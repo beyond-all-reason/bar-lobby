@@ -35,6 +35,7 @@ interface Command {
     cmd: string;
     cmdDescription: string;
 }
+
 const searchVal = ref("");
 
 /**
@@ -219,6 +220,7 @@ onUnmounted(() => {
     align-items: center;
     margin-bottom: 5px;
 }
+
 .cmd {
     background-color: rgba(0, 0, 0, 0.3);
     color: white;
@@ -230,6 +232,7 @@ onUnmounted(() => {
     min-width: 162px;
     border: 1px solid rgba(255, 255, 255, 0.1);
 }
+
 .cmdDescription {
     flex-grow: 1;
     margin-left: 5px;

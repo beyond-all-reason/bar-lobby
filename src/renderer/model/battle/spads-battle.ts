@@ -1,13 +1,13 @@
 import { Static } from "@sinclair/typebox";
-import { assign, entries, objectKeys, roundToMultiple } from "jaz-ts-utils";
+import { assign, entries, objectKeys } from "jaz-ts-utils";
 import { battleSchema, lobbySchema } from "tachyon-client";
 import { computed, ComputedRef, Ref, ref } from "vue";
 
-import { defaultBoxes } from "@/config/default-boxes";
 import { AbstractBattle } from "@/model/battle/abstract-battle";
 import { Bot, SpadsBattleOptions, StartBox, StartPosType } from "@/model/battle/battle-types";
 import { SpadsVote } from "@/model/spads/spads-types";
 import { User } from "@/model/user";
+import { spadsBoxToStartBox, StartBoxOrientation } from "@/utils/start-boxes";
 
 type LobbyType = Static<typeof lobbySchema>;
 type BattleType = Static<typeof battleSchema>;
@@ -73,12 +73,7 @@ export class SpadsBattle extends AbstractBattle<SpadsBattleOptions> {
                 start_areas: (data) => {
                     const startBoxes: StartBox[] = [];
                     entries(data).forEach(([teamId, startBox]) => {
-                        startBoxes[teamId] = {
-                            xPercent: roundToMultiple(startBox.x1 / 200, 0.01),
-                            yPercent: roundToMultiple(startBox.y1 / 200, 0.01),
-                            widthPercent: roundToMultiple(startBox.x2 / 200 - startBox.x1 / 200, 0.01),
-                            heightPercent: roundToMultiple(startBox.y2 / 200 - startBox.y1 / 200, 0.01),
-                        };
+                        startBoxes[teamId] = spadsBoxToStartBox(startBox);
                     });
                     this.battleOptions.startBoxes = startBoxes;
                 },
@@ -286,16 +281,25 @@ export class SpadsBattle extends AbstractBattle<SpadsBattleOptions> {
         });
     }
 
-    public setStartBoxes(startBoxes: StartBox[]) {
-        if (JSON.stringify(startBoxes) === JSON.stringify(defaultBoxes().EastVsWest)) {
-            api.comms.request("c.lobby.message", { message: `!split v 30` });
-        } else if (JSON.stringify(startBoxes) === JSON.stringify(defaultBoxes().NorthVsSouth)) {
-            api.comms.request("c.lobby.message", { message: `!split h 30` });
-        } else if (JSON.stringify(startBoxes) === JSON.stringify(defaultBoxes().NorthwestVsSouthEast)) {
-            api.comms.request("c.lobby.message", { message: `!split c1 30` });
-        } else if (JSON.stringify(startBoxes) === JSON.stringify(defaultBoxes().NortheastVsSouthwest)) {
-            api.comms.request("c.lobby.message", { message: `!split c2 30` });
+    // This is intentionally a simple implementation, a more robust version will be made if/when
+    // the new lobby supports custom boxes and/or polygons for start areas
+    public setStartBoxes(orientation: StartBoxOrientation, size: number) {
+        let message = "";
+        switch (orientation) {
+            case StartBoxOrientation.EastVsWest:
+                message = `!split v ${size}`;
+                break;
+            case StartBoxOrientation.NorthVsSouth:
+                message = `!split h ${size}`;
+                break;
+            case StartBoxOrientation.NorthwestVsSouthEast:
+                message = `!split c1 ${size}`;
+                break;
+            case StartBoxOrientation.NortheastVsSouthwest:
+                message = `!split c2 ${size}`;
+                break;
         }
+        api.comms.request("c.lobby.message", { message });
     }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

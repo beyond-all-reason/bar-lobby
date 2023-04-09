@@ -1,13 +1,6 @@
 <template>
     <div class="flex-col gap-md fullheight">
-        <MapPreview
-            :map="mapScriptName"
-            :isSpectator="true"
-            :myTeamId="0"
-            :startBoxes="startBoxes"
-            :startPosType="startPosType"
-            :startPositions="startPositions"
-        />
+        <MapOverviewCard :map="map" :friendlyName="mapName" />
 
         <div class="teams scroll-container">
             <div v-if="isFFA">
@@ -75,7 +68,7 @@ import trophyVariant from "@iconify-icons/mdi/trophy-variant";
 import { groupBy } from "jaz-ts-utils";
 import { computed, ComputedRef } from "vue";
 
-import MapPreview from "@/components/maps/MapPreview.vue";
+import MapOverviewCard from "@/components/maps/MapOverviewCard.vue";
 import BattlePreviewParticipant from "@/components/misc/BattlePreviewParticipant.vue";
 import { AbstractBattle } from "@/model/battle/abstract-battle";
 import { StartBox, StartPosType } from "@/model/battle/battle-types";
@@ -87,7 +80,12 @@ const props = defineProps<{
     showSpoilers?: boolean;
 }>();
 
-const mapScriptName = computed(() => {
+const map = computed(() => {
+    return props.battle instanceof AbstractBattle
+        ? api.content.maps.getMapByScriptName(props.battle.battleOptions.map)
+        : api.content.maps.getMapByScriptName(props.battle.mapScriptName);
+});
+const mapName = computed(() => {
     return props.battle instanceof AbstractBattle ? props.battle.battleOptions.map : props.battle.mapScriptName;
 });
 const gameVersion = computed(() =>

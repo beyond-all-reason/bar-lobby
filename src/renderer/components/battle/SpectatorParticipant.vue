@@ -69,6 +69,7 @@ async function ringPlayer() {
 }
 
 const toggleMessages = inject<Ref<((open?: boolean, userId?: number) => void) | undefined>>("toggleMessages")!;
+
 async function messagePlayer() {
     if (!api.session.directMessages.has(props.player.userId)) {
         api.session.directMessages.set(props.player.userId, []);

@@ -8,7 +8,13 @@
         <div class="flex-col flex-grow fullheight">
             <div class="scroll-container">
                 <div class="maps">
-                    <MapOverviewCard v-for="(map, i) in filteredMaps" :key="i" :map="map" @click="mapSelected(map)" />
+                    <MapOverviewCard
+                        v-for="(map, i) in filteredMaps"
+                        :key="i"
+                        :map="map"
+                        :friendlyName="map.friendlyName"
+                        @click="mapSelected(map)"
+                    />
                 </div>
             </div>
         </div>
