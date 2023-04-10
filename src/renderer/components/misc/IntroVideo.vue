@@ -14,17 +14,10 @@ const videoEl: Ref<HTMLVideoElement | null> = ref(null);
 
 const emit = defineEmits(["complete"]);
 
-const introVideos = import.meta.glob("@/assetsStatic/videos/intros/**/*", { as: "url" });
-const randomIntroVideo = randomFromArray(Object.keys(introVideos))?.split("/assetsStatic/")[1];
+const introVideos = import.meta.glob("@/assets/videos/intros/**/*", { as: "url" });
+const randomIntroVideo = randomFromArray(Object.keys(introVideos))?.split("/assets/")[1];
 
 onMounted(async () => {
-    const videoPaths: string[] = [];
-    const videoModules = import.meta.glob<string>("@/assets/videos/**/*", { import: "default" });
-    for (const key in videoModules) {
-        const videoModule = await videoModules[key]();
-        videoPaths.push(videoModule);
-    }
-
     if (videoEl.value) {
         try {
             await videoEl.value.play();

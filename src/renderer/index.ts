@@ -2,7 +2,7 @@ import "node-self";
 import "primevue/resources/primevue.min.css";
 import "flag-icons/css/flag-icons.min.css";
 import "primeicons/primeicons.css";
-import "@/assets/styles/styles.scss";
+import "@/styles/styles.scss";
 
 import path from "path";
 import PrimeVue from "primevue/config";
@@ -80,7 +80,7 @@ async function setupI18n() {
 
     const messages: Record<string, Record<string, string>> = {};
 
-    const localeFilePaths = import.meta.glob<Record<string, string>>("@/assets/language/*.json", { import: "default" });
+    const localeFilePaths = import.meta.glob<Record<string, string>>("$/language/*.json", { import: "default" });
     for (const filePath in localeFilePaths) {
         const localeCode = path.parse(filePath).name;
         messages[localeCode] = await localeFilePaths[filePath]();

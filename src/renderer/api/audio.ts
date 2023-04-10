@@ -28,7 +28,7 @@ export class AudioAPI {
         for (const filePath in audioFiles) {
             const isMusic = filePath.includes("music");
             const key = path.parse(filePath).name;
-            const src = await audioFiles[filePath]();
+            const src = filePath.split("assets/")[1];
             const volume = isMusic ? api.settings.model.musicVolume / 100 : api.settings.model.sfxVolume / 100;
 
             const sound = new Sound(key, isMusic, { src, volume, preload: false, html5: true });

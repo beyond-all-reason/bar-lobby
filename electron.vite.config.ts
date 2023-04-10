@@ -28,7 +28,7 @@ export default defineConfig({
         plugins: [externalizeDepsPlugin({ exclude: ["env-paths"] })],
     },
     renderer: {
-        publicDir: "assetsStatic",
+        publicDir: "assets",
         resolve: {
             alias: {
                 "@": path.join(__dirname, "src/renderer"),
@@ -51,7 +51,7 @@ export default defineConfig({
             modules: false,
             preprocessorOptions: {
                 scss: {
-                    additionalData: `@use "@/assets/styles/_utils.scss";`,
+                    additionalData: `@use "@/styles/_utils.scss";`,
                 },
             },
         },
