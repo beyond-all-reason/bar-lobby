@@ -28,6 +28,7 @@ export default defineConfig({
         plugins: [externalizeDepsPlugin({ exclude: ["env-paths"] })],
     },
     renderer: {
+        publicDir: "assetsStatic",
         resolve: {
             alias: {
                 "@": path.join(__dirname, "src/renderer"),

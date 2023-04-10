@@ -5,7 +5,6 @@ import url from "url";
 import { reactive } from "vue";
 
 import { PrDownloaderAPI } from "@/api/content/pr-downloader";
-import defaultMapImage from "@/assets/images/default-minimap.png";
 import type { MapData } from "@/model/map-data";
 import { parseMap as parseMapWorkerFunction } from "@/workers/parse-map";
 import { hookWorkerFunction } from "@/workers/worker-helpers";
@@ -86,10 +85,10 @@ export class MapContentAPI extends PrDownloaderAPI {
     public getMapImages(mapData: MapData | undefined) {
         if (!mapData) {
             return {
-                textureImagePath: defaultMapImage as string,
-                heightImagePath: defaultMapImage as string,
-                metalImagePath: defaultMapImage as string,
-                typeImagePath: defaultMapImage as string,
+                textureImagePath: "/images/default-minimap.png",
+                heightImagePath: "/images/default-minimap.png",
+                metalImagePath: "/images/default-minimap.png",
+                typeImagePath: "/images/default-minimap.png",
             };
         }
 

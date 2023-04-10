@@ -1,7 +1,7 @@
 <template>
     <div class="intro fullsize">
         <video ref="videoEl" @click="end">
-            <source v-if="videoSrc" :src="videoSrc" type="video/mp4" />
+            <source :src="randomIntroVideo" type="video/mp4" />
         </video>
     </div>
 </template>
@@ -14,7 +14,8 @@ const videoEl: Ref<HTMLVideoElement | null> = ref(null);
 
 const emit = defineEmits(["complete"]);
 
-const videoSrc = ref("");
+const introVideos = import.meta.glob("@/assetsStatic/videos/intros/**/*", { as: "url" });
+const randomIntroVideo = randomFromArray(Object.keys(introVideos))?.split("/assetsStatic/")[1];
 
 onMounted(async () => {
     const videoPaths: string[] = [];
@@ -23,8 +24,6 @@ onMounted(async () => {
         const videoModule = await videoModules[key]();
         videoPaths.push(videoModule);
     }
-
-    videoSrc.value = randomFromArray(videoPaths)!;
 
     if (videoEl.value) {
         try {

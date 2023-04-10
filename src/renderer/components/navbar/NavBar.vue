@@ -2,7 +2,7 @@
     <div class="nav" :class="{ hidden }">
         <div class="logo">
             <Button to="/home">
-                <img src="~@/assets/images/logo.svg" />
+                <img src="/images/logo.svg" />
             </Button>
         </div>
         <div class="flex-col flex-grow">
@@ -180,7 +180,7 @@ const serverOffline = api.session.offlineMode;
         content: "";
         z-index: -1;
         opacity: 0.2;
-        background-image: url("@/assets/images/squares.png");
+        background-image: url("./images/squares.png");
     }
 }
 .logo {

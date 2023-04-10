@@ -78,7 +78,7 @@ const props = defineProps<{
     @extend .fullsize;
     left: 0;
     top: 0;
-    background-image: url("@/assets/images/squares.png");
+    background-image: url("./images/squares.png");
     background-size: auto;
     opacity: 0.3;
     mix-blend-mode: overlay;

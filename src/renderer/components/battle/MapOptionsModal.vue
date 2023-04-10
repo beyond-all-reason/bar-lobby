@@ -16,16 +16,16 @@
                 />
                 <div class="box-buttons">
                     <Button :disabled="disableBoxControls" @click="setBoxType(StartBoxOrientation.EastVsWest)">
-                        <img src="~@/assets/images/icons/east-vs-west.png" />
+                        <img src="/images/icons/east-vs-west.png" />
                     </Button>
                     <Button :disabled="disableBoxControls" @click="setBoxType(StartBoxOrientation.NorthVsSouth)">
-                        <img src="~@/assets/images/icons/north-vs-south.png" />
+                        <img src="/images/icons/north-vs-south.png" />
                     </Button>
                     <Button :disabled="disableBoxControls" @click="setBoxType(StartBoxOrientation.NortheastVsSouthwest)">
-                        <img src="~@/assets/images/icons/northeast-vs-southwest.png" />
+                        <img src="/images/icons/northeast-vs-southwest.png" />
                     </Button>
                     <Button :disabled="disableBoxControls" @click="setBoxType(StartBoxOrientation.NorthwestVsSouthEast)">
-                        <img src="~@/assets/images/icons/northwest-vs-southeast.png" />
+                        <img src="/images/icons/northwest-vs-southeast.png" />
                     </Button>
                 </div>
                 <div>
