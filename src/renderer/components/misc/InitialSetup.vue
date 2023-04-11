@@ -27,7 +27,7 @@ onMounted(async () => {
         text.value = "Installing engine";
     }
 
-    if (api.content.game.installedVersions.size === 0) {
+    if (api.content.game.installedVersions.length === 0) {
         text.value = "Downloading game";
         await api.content.game.downloadGame(defaultGameVersion);
         text.value = "Installing game";

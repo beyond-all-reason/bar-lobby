@@ -47,6 +47,7 @@ export class ContentAPI {
                 });
             }
         });
+
         this.engine.onDownloadComplete.add((data) => {
             const battle = api.session.onlineBattle.value;
             const me = api.session.onlineUser;

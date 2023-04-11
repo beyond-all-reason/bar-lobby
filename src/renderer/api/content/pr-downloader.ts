@@ -1,5 +1,5 @@
 import { spawn } from "child_process";
-import { lastInArray, removeFromArray, Signal } from "jaz-ts-utils";
+import { lastInArray, removeFromArray } from "jaz-ts-utils";
 import os from "os";
 import path from "path";
 import { reactive } from "vue";
@@ -14,10 +14,6 @@ import { PrdProgressMessage } from "@/model/pr-downloader";
  * https://springrts.com/wiki/Rapid
  */
 export abstract class PrDownloaderAPI extends AbstractContentAPI {
-    public readonly onPrdStart = new Signal<void>();
-    public readonly onPrdMessage = new Signal<string>();
-    public readonly onPrdEnd = new Signal<void>();
-
     protected downloadContent(type: "game" | "map", name: string) {
         return new Promise<void>((resolve) => {
             console.debug(`Downloading ${name}...`);
@@ -38,16 +34,10 @@ export abstract class PrDownloaderAPI extends AbstractContentAPI {
 
             let downloadInfo: DownloadInfo | undefined;
 
-            prdProcess.on("spawn", () => {
-                this.onPrdStart.dispatch();
-            });
-
             prdProcess.stdout?.on("data", (stdout: Buffer) => {
                 const messages = stdout.toString().trim().split(os.EOL).filter(Boolean);
                 for (const message of messages) {
                     console.debug(message);
-
-                    this.onPrdMessage.dispatch(message);
 
                     if (message.startsWith("[Progress]")) {
                         const progressData = this.parseProgressMessage(message);
@@ -67,6 +57,8 @@ export abstract class PrDownloaderAPI extends AbstractContentAPI {
                                 });
 
                                 this.currentDownloads.push(downloadInfo);
+
+                                this.downloadStarted(downloadInfo);
                             } else {
                                 downloadInfo.currentBytes = progress.currentBytes;
                                 downloadInfo.totalBytes = progress.totalBytes;
@@ -87,10 +79,8 @@ export abstract class PrDownloaderAPI extends AbstractContentAPI {
             });
 
             prdProcess.on("exit", () => {
-                this.onPrdEnd.dispatch();
-
                 if (downloadInfo) {
-                    this.onDownloadComplete.dispatch(downloadInfo);
+                    this.downloadComplete(downloadInfo);
                     removeFromArray(this.currentDownloads, downloadInfo);
 
                     console.debug(`Downloaded ${downloadInfo.name}`);

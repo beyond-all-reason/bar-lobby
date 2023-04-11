@@ -81,7 +81,7 @@
     "@types/electron-devtools-installer": "^2.2.0",
     "@types/howler": "^2.2.4",
     "@types/luaparse": "^0.2.8",
-    "@types/node-7z": "^2.1.4",
+    "@types/node-7z": "^2.1.5",
     "@types/uuid": "^9.0.0",
     "@vitejs/plugin-vue": "^4.0.0",
     "@vue/compiler-sfc": "^3.2.29",

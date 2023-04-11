@@ -2,7 +2,7 @@ import { AbstractBattle } from "@/model/battle/abstract-battle";
 import { Bot } from "@/model/battle/battle-types";
 import { OfflineBattle } from "@/model/battle/offline-battle";
 import { SpadsBattle } from "@/model/battle/spads-battle";
-import { Replay } from "@/model/replay";
+import { Replay } from "@/model/cache/replay";
 import { User } from "@/model/user";
 
 export function isReplay(replay: any): replay is Replay {

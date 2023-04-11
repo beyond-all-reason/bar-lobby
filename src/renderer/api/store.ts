@@ -6,7 +6,7 @@ import { toRaw, watch } from "vue";
 import { AsbtractStoreAPI } from "$/api/abstract-store";
 
 export class StoreAPI<T extends TObject> extends AsbtractStoreAPI<T> {
-    public async init() {
+    public override async init() {
         await super.init();
 
         const name = path.parse(this.filePath).name;

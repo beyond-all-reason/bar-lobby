@@ -49,7 +49,7 @@ import Options from "@/components/controls/Options.vue";
 import Range from "@/components/controls/Range.vue";
 import MapPreview from "@/components/maps/MapPreview.vue";
 import { StartBox, StartPosType } from "@/model/battle/battle-types";
-import { MapData } from "@/model/map-data";
+import { MapData } from "@/model/cache/map-data";
 import { CurrentUser } from "@/model/user";
 import { getBoxes, StartBoxOrientation } from "@/utils/start-boxes";
 

@@ -7,7 +7,7 @@ import * as path from "path";
 
 import { defaultEngineVersion } from "@/config/default-versions";
 import { AbstractBattle } from "@/model/battle/abstract-battle";
-import { Replay } from "@/model/replay";
+import { Replay } from "@/model/cache/replay";
 import { StartScriptConverter } from "@/utils/start-script-converter";
 import { isReplay } from "@/utils/type-checkers";
 
@@ -75,6 +75,8 @@ export class GameAPI {
         this.gameProcess.value.addListener("spawn", () => {
             this.onGameLaunched.dispatch();
 
+            this.updateLastLaunched(engineVersion, gameVersion, mapName);
+
             api.audio.muteMusic();
         });
 
@@ -89,8 +91,8 @@ export class GameAPI {
     }
 
     protected async fetchMissingContent(engineVersion: string, gameVersion: string, mapScriptName: string) {
-        const isEngineInstalled = api.content.engine.installedVersions.some((version) => version === engineVersion);
-        const isGameInstalled = api.content.game.installedVersions.has(gameVersion);
+        const isEngineInstalled = api.content.engine.installedVersions.includes(engineVersion);
+        const isGameInstalled = api.content.game.installedVersions.includes(gameVersion);
         const isMapInstalled = api.content.maps.installedMaps.some((map) => map.scriptName === mapScriptName);
 
         if (!isEngineInstalled || !isGameInstalled || !isMapInstalled) {
@@ -102,5 +104,35 @@ export class GameAPI {
         }
 
         return;
+    }
+
+    protected async updateLastLaunched(engineVersion: string, gameVersion: string, mapScriptName: string) {
+        try {
+            await api.cacheDb
+                .updateTable("engineVersion")
+                .set({
+                    lastLaunched: new Date(),
+                })
+                .where("id", "=", engineVersion)
+                .execute();
+
+            await api.cacheDb
+                .updateTable("gameVersion")
+                .set({
+                    lastLaunched: new Date(),
+                })
+                .where("id", "=", gameVersion)
+                .execute();
+
+            await api.cacheDb
+                .updateTable("map")
+                .set({
+                    lastLaunched: new Date(),
+                })
+                .where("scriptName", "=", mapScriptName)
+                .execute();
+        } catch (err) {
+            console.error("Error updating lastLaunched field", err);
+        }
     }
 }

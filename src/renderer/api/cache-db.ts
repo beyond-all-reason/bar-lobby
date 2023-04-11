@@ -1,0 +1,149 @@
+import Database from "better-sqlite3";
+import { Kysely, Migration, Migrator, SqliteDialect } from "kysely";
+import path from "path";
+
+import { EngineVersionTable } from "@/model/cache/engine-version";
+import { GameVersionTable } from "@/model/cache/game-version";
+import { MapDataTable } from "@/model/cache/map-data";
+import { ReplayTable } from "@/model/cache/replay";
+import { SerializePlugin } from "@/utils/serialize-json-plugin";
+
+type CacheDatabase = {
+    map: MapDataTable;
+    mapError: { fileName: string };
+    replay: ReplayTable;
+    replayError: { fileName: string };
+    gameVersion: GameVersionTable;
+    engineVersion: EngineVersionTable;
+};
+
+export class CacheDbAPI extends Kysely<CacheDatabase> {
+    constructor() {
+        super({
+            dialect: new SqliteDialect({
+                database: new Database(path.join(api.info.configPath, "cache.db")),
+            }),
+            plugins: [new SerializePlugin()],
+        });
+    }
+
+    public async init() {
+        await this.schema
+            .createTable("map")
+            .ifNotExists()
+            .addColumn("mapId", "integer", (col) => col.primaryKey().autoIncrement())
+            .addColumn("scriptName", "varchar", (col) => col.notNull().unique())
+            .addColumn("fileName", "varchar", (col) => col.notNull().unique())
+            .addColumn("friendlyName", "varchar", (col) => col.notNull())
+            .addColumn("description", "varchar")
+            .addColumn("mapHardness", "double precision", (col) => col.notNull())
+            .addColumn("gravity", "double precision", (col) => col.notNull())
+            .addColumn("tidalStrength", "double precision", (col) => col.notNull())
+            .addColumn("maxMetal", "double precision", (col) => col.notNull())
+            .addColumn("extractorRadius", "double precision", (col) => col.notNull())
+            .addColumn("minWind", "double precision", (col) => col.notNull())
+            .addColumn("maxWind", "double precision", (col) => col.notNull())
+            .addColumn("startPositions", "json")
+            .addColumn("width", "double precision", (col) => col.notNull())
+            .addColumn("height", "double precision", (col) => col.notNull())
+            .addColumn("minDepth", "double precision", (col) => col.notNull())
+            .addColumn("maxDepth", "double precision", (col) => col.notNull())
+            .addColumn("mapInfo", "json")
+            .execute();
+
+        await this.schema
+            .createTable("mapError")
+            .ifNotExists()
+            .addColumn("fileName", "varchar", (col) => col.primaryKey())
+            .execute();
+
+        await this.schema
+            .createTable("gameVersion")
+            .ifNotExists()
+            .addColumn("id", "varchar", (col) => col.primaryKey())
+            .addColumn("md5", "varchar")
+            .addColumn("lastLaunched", "datetime")
+            .execute();
+
+        await this.schema
+            .createTable("engineVersion")
+            .ifNotExists()
+            .addColumn("id", "varchar", (col) => col.primaryKey())
+            .addColumn("lastLaunched", "datetime")
+            .execute();
+
+        await this.schema
+            .createTable("replay")
+            .ifNotExists()
+            .addColumn("replayId", "integer", (col) => col.primaryKey().autoIncrement())
+            .addColumn("gameId", "varchar", (col) => col.notNull().unique())
+            .addColumn("fileName", "varchar", (col) => col.notNull().unique())
+            .addColumn("engineVersion", "varchar", (col) => col.notNull())
+            .addColumn("gameVersion", "varchar", (col) => col.notNull())
+            .addColumn("mapScriptName", "varchar", (col) => col.notNull())
+            .addColumn("startTime", "datetime", (col) => col.notNull())
+            .addColumn("gameDurationMs", "integer", (col) => col.notNull())
+            .addColumn("gameEndedNormally", "boolean", (col) => col.notNull())
+            .addColumn("chatlog", "json", (col) => col)
+            .addColumn("hasBots", "boolean", (col) => col.notNull())
+            .addColumn("preset", "varchar", (col) => col.notNull())
+            .addColumn("winningTeamId", "integer", (col) => col)
+            .addColumn("teams", "json", (col) => col.notNull())
+            .addColumn("contenders", "json", (col) => col.notNull())
+            .addColumn("spectators", "json", (col) => col.notNull())
+            .addColumn("script", "text", (col) => col.notNull())
+            .addColumn("battleSettings", "json", (col) => col.notNull())
+            .addColumn("gameSettings", "json", (col) => col.notNull())
+            .addColumn("mapSettings", "json", (col) => col.notNull())
+            .addColumn("hostSettings", "json", (col) => col.notNull())
+            .execute();
+
+        await this.schema
+            .createTable("replayError")
+            .ifNotExists()
+            .addColumn("fileName", "varchar", (col) => col.primaryKey())
+            .execute();
+
+        await this.migrateToLatest();
+
+        return this;
+    }
+
+    // https://github.com/kysely-org/kysely#migrations
+    protected migrations(): Record<string, Migration> {
+        return {
+            // yyyy-mm-dd
+            "2023-04-10": {
+                async up(db: CacheDbAPI) {
+                    await db.schema.alterTable("map").addColumn("lastLaunched", "datetime").execute();
+                },
+            },
+        };
+    }
+
+    protected async migrateToLatest() {
+        const migrator = new Migrator({
+            db: this,
+            provider: {
+                getMigrations: async () => {
+                    return this.migrations();
+                },
+            },
+        });
+
+        const { error, results } = await migrator.migrateToLatest();
+
+        results?.forEach((it) => {
+            if (it.status === "Success") {
+                console.log(`migration "${it.migrationName}" was executed successfully`);
+            } else if (it.status === "Error") {
+                console.error(`failed to execute migration "${it.migrationName}"`);
+            }
+        });
+
+        if (error) {
+            console.error("failed to run `migrateToLatest`");
+            console.error(error);
+        }
+    }
+}

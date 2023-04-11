@@ -22,11 +22,17 @@ export class EngineContentAPI extends AbstractContentAPI {
     public override async init() {
         await fs.promises.mkdir(this.engineDir, { recursive: true });
 
-        const engineDirs = await fs.promises.readdir(this.engineDir);
+        const engineVersions = await api.cacheDb.selectFrom("engineVersion").selectAll().execute();
 
-        for (const dir of engineDirs) {
-            if (this.isEngineVersionString(dir)) {
-                this.installedVersions.push(dir);
+        for (const version of engineVersions) {
+            this.installedVersions.push(version.id);
+        }
+
+        const files = await fs.promises.readdir(this.engineDir, { withFileTypes: true });
+        const dirs = files.filter((file) => file.isDirectory()).map((dir) => dir.name);
+        for (const dir of dirs) {
+            if (!this.installedVersions.includes(dir)) {
+                await this.addEngine(dir, false);
             }
         }
 
@@ -67,7 +73,7 @@ export class EngineContentAPI extends AbstractContentAPI {
 
         this.currentDownloads.push(downloadInfo);
 
-        this.onDownloadStart.dispatch(downloadInfo);
+        this.downloadStarted(downloadInfo);
 
         const downloadResponse = await axios({
             url: asset.browser_download_url,
@@ -96,7 +102,7 @@ export class EngineContentAPI extends AbstractContentAPI {
         this.sortVersions();
 
         removeFromArray(this.currentDownloads, downloadInfo);
-        this.onDownloadComplete.dispatch(downloadInfo);
+        this.downloadComplete(downloadInfo);
 
         await api.content.ai.processAis(engineVersion);
 
@@ -116,10 +122,6 @@ export class EngineContentAPI extends AbstractContentAPI {
             console.error(err);
             throw new Error(`Couldn't get engine release for tag: ${engineTag}`);
         }
-    }
-
-    public isEngineVersionInstalled(engineTag: string) {
-        return this.installedVersions.includes(engineTag);
     }
 
     protected sortVersions() {
@@ -175,5 +177,29 @@ export class EngineContentAPI extends AbstractContentAPI {
             sha,
             branch,
         };
+    }
+
+    protected override async downloadComplete(downloadInfo: DownloadInfo) {
+        super.downloadComplete(downloadInfo);
+
+        this.addEngine(downloadInfo.name);
+    }
+
+    protected async addEngine(engine: string, sort = true) {
+        if (!this.installedVersions.includes(engine)) {
+            this.installedVersions.push(engine);
+
+            if (sort) {
+                this.sortVersions();
+            }
+
+            await api.cacheDb
+                .insertInto("engineVersion")
+                .onConflict((oc) => oc.doNothing())
+                .values({
+                    id: engine,
+                })
+                .execute();
+        }
     }
 }

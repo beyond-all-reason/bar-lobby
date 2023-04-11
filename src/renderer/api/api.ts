@@ -1,13 +1,12 @@
-import Database from "better-sqlite3";
 import { ipcRenderer } from "electron";
 import * as fs from "fs";
-import { Kysely, SqliteDialect } from "kysely";
 import * as path from "path";
 import { Router } from "vue-router/auto";
 import { createRouter } from "vue-router/auto";
 import { createMemoryHistory } from "vue-router/auto";
 
 import { AudioAPI } from "@/api/audio";
+import { CacheDbAPI } from "@/api/cache-db";
 import { CommsAPI } from "@/api/comms";
 import { ContentAPI } from "@/api/content/content";
 import { GameAPI } from "@/api/game";
@@ -17,8 +16,6 @@ import { StoreAPI } from "@/api/store";
 import { UtilsAPI } from "@/api/utils";
 import { serverConfig } from "@/config/server";
 import { accountSchema } from "@/model/account";
-import { CacheDatabase } from "@/model/cache-database";
-import { SerializePlugin } from "@/utils/serialize-json-plugin";
 import type { Info } from "$/model/info";
 import { settingsSchema } from "$/model/settings";
 
@@ -26,7 +23,7 @@ interface API {
     account: StoreAPI<typeof accountSchema>;
     notifications: NotificationsAPI;
     audio: AudioAPI;
-    cacheDb: Kysely<CacheDatabase>;
+    cacheDb: CacheDbAPI;
     comms: CommsAPI;
     content: ContentAPI;
     game: GameAPI;
@@ -78,12 +75,7 @@ export async function apiInit() {
         history: createMemoryHistory(),
     });
 
-    api.cacheDb = new Kysely<CacheDatabase>({
-        dialect: new SqliteDialect({
-            database: new Database(path.join(api.info.configPath, "cache.db")),
-        }),
-        plugins: [new SerializePlugin()],
-    });
+    api.cacheDb = await new CacheDbAPI().init();
 
     api.audio = await new AudioAPI().init();
 

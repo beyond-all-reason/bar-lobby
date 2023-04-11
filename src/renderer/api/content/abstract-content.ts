@@ -12,4 +12,12 @@ export abstract class AbstractContentAPI {
     public async init(...args: any[]) {
         return this;
     }
+
+    protected async downloadStarted(downloadInfo: DownloadInfo) {
+        this.onDownloadStart.dispatch(downloadInfo);
+    }
+
+    protected async downloadComplete(downloadInfo: DownloadInfo) {
+        this.onDownloadComplete.dispatch(downloadInfo);
+    }
 }

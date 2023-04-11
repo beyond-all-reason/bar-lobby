@@ -72,7 +72,7 @@ import MapOverviewCard from "@/components/maps/MapOverviewCard.vue";
 import BattlePreviewParticipant from "@/components/misc/BattlePreviewParticipant.vue";
 import { AbstractBattle } from "@/model/battle/abstract-battle";
 import { StartBox, StartPosType } from "@/model/battle/battle-types";
-import { Replay } from "@/model/replay";
+import { Replay } from "@/model/cache/replay";
 import { isBattle, isReplay, isUser } from "@/utils/type-checkers";
 
 const props = defineProps<{

@@ -16,6 +16,7 @@
     "downlevelIteration": true,
     "noUnusedParameters": false,
     "noUnusedLocals": false,
+    "noImplicitOverride": true,
     "allowJs": true
   }
 }

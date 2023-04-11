@@ -35,7 +35,7 @@ import { computed, Ref, ref } from "vue";
 import SearchBox from "@/components/controls/SearchBox.vue";
 import Select from "@/components/controls/Select.vue";
 import MapOverviewCard from "@/components/maps/MapOverviewCard.vue";
-import { MapData } from "@/model/map-data";
+import { MapData } from "@/model/cache/map-data";
 
 type SortMethod = "Name" | "Size";
 

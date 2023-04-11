@@ -9,7 +9,7 @@ import { Application, Graphics, Sprite } from "pixi.js";
 import { onMounted, onUnmounted, ref, watch } from "vue";
 
 import { StartBox, StartPosType } from "@/model/battle/battle-types";
-import { MapData } from "@/model/map-data";
+import { MapData } from "@/model/cache/map-data";
 import { CurrentUser } from "@/model/user";
 import { mipmapSize } from "@/workers/parse-map";
 

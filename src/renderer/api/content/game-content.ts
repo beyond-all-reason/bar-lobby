@@ -10,6 +10,7 @@ import zlib from "zlib";
 import { PrDownloaderAPI } from "@/api/content/pr-downloader";
 import { contentSources } from "@/config/content-sources";
 import { defaultGameVersion } from "@/config/default-versions";
+import { DownloadInfo } from "@/model/downloads";
 import { LuaOptionSection } from "@/model/lua-options";
 import { Scenario } from "@/model/scenario";
 import { SdpFile, SdpFileMeta } from "@/model/sdp";
@@ -19,44 +20,16 @@ import { parseLuaTable } from "@/utils/parse-lua-table";
 const gunzip = util.promisify(zlib.gunzip);
 
 export class GameContentAPI extends PrDownloaderAPI {
-    public readonly installedVersions: Set<string> = reactive(new Set());
-
-    constructor() {
-        super();
-
-        this.onDownloadComplete.add(async (downloadInfo) => {
-            if (!this.installedVersions.has(downloadInfo.name) && downloadInfo.name !== "byar:test") {
-                this.installedVersions.add(downloadInfo.name);
-                this.sortVersions();
-
-                const md5 = await this.getMd5(downloadInfo.name);
-
-                await api.cacheDb
-                    .insertInto("game_versions")
-                    .onConflict((oc) => oc.doNothing())
-                    .values({
-                        id: downloadInfo.name,
-                        md5: md5 ?? "",
-                    })
-                    .execute();
-            }
-        });
-    }
+    public readonly installedVersions: string[] = reactive([]);
 
     public override async init() {
-        await api.cacheDb.schema
-            .createTable("game_versions")
-            .ifNotExists()
-            .addColumn("id", "varchar", (col) => col.primaryKey())
-            .addColumn("md5", "varchar")
-            .execute();
-
-        const gameVersions = await api.cacheDb.selectFrom("game_versions").selectAll().execute();
+        const gameVersions = await api.cacheDb.selectFrom("gameVersion").selectAll().execute();
 
         for (const version of gameVersions) {
-            this.installedVersions.add(version.id);
+            this.installedVersions.push(version.id);
         }
 
+        // load custom .sdd games
         const gamesDir = path.join(api.info.contentPath, "games");
         if (fs.existsSync(gamesDir)) {
             const dirs = await fs.promises.readdir(gamesDir);
@@ -64,7 +37,7 @@ export class GameContentAPI extends PrDownloaderAPI {
                 try {
                     const modInfoLua = await fs.promises.readFile(path.join(gamesDir, dir, "modinfo.lua"));
                     const modInfo = parseLuaTable(modInfoLua);
-                    this.installedVersions.add(`${modInfo.game} ${modInfo.version}`);
+                    this.installedVersions.push(`${modInfo.game} ${modInfo.version}`);
                 } catch (err) {
                     console.error(err);
                 }
@@ -82,7 +55,7 @@ export class GameContentAPI extends PrDownloaderAPI {
      */
     public async downloadGame(gameVersion = `${contentSources.rapid.game}:test`) {
         // skip download if already installed
-        if (this.installedVersions.has(gameVersion)) {
+        if (this.installedVersions.includes(gameVersion)) {
             return;
         }
 
@@ -97,7 +70,7 @@ export class GameContentAPI extends PrDownloaderAPI {
     public async getGameFiles(version: string, filePattern: string, parseData?: false): Promise<SdpFileMeta[]>;
     public async getGameFiles(version: string, filePattern: string, parseData?: true): Promise<SdpFile[]>;
     public async getGameFiles(version: string, filePattern: string, parseData = false): Promise<SdpFileMeta[] | SdpFile[]> {
-        if (!this.installedVersions.has(version)) {
+        if (!this.installedVersions.includes(version)) {
             throw new Error(`Cannot fetch files for ${version}, as it is not installed`);
         }
 
@@ -224,7 +197,7 @@ export class GameContentAPI extends PrDownloaderAPI {
     }
 
     protected sortVersions() {
-        const sortedVersions = Array.from(this.installedVersions).sort((a, b) => {
+        this.installedVersions.sort((a, b) => {
             try {
                 const aRev = parseInt(a.split("-")[1]);
                 const bRev = parseInt(b.split("-")[1]);
@@ -233,11 +206,26 @@ export class GameContentAPI extends PrDownloaderAPI {
                 return 1;
             }
         });
+    }
 
-        this.installedVersions.clear();
+    protected override async downloadComplete(downloadInfo: DownloadInfo) {
+        super.downloadComplete(downloadInfo);
 
-        for (const version of sortedVersions) {
-            this.installedVersions.add(version);
+        if (!this.installedVersions.includes(downloadInfo.name) && downloadInfo.name !== "byar:test") {
+            this.installedVersions.push(downloadInfo.name);
+
+            this.sortVersions();
+
+            const md5 = await this.getMd5(downloadInfo.name);
+
+            await api.cacheDb
+                .insertInto("gameVersion")
+                .onConflict((oc) => oc.doNothing())
+                .values({
+                    id: downloadInfo.name,
+                    md5: md5 ?? "",
+                })
+                .execute();
         }
     }
 }

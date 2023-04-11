@@ -12,6 +12,7 @@ export function extract7z(archivePath: string, outputName: string) {
 
         const stream = extractFull(archivePath, outputPath, {
             $bin: path.join(api.info.resourcesPath, binaryName),
+            $raw: ["-ao"],
         });
 
         stream.on("error", reject);

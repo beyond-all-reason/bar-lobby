@@ -4,7 +4,7 @@ import { groupBy } from "jaz-ts-utils";
 import { computed, ComputedRef, reactive, shallowReactive, watch, WatchStopHandle } from "vue";
 
 import { BattleOptions, Bot, StartPosType } from "@/model/battle/battle-types";
-import { MapData } from "@/model/map-data";
+import { MapData } from "@/model/cache/map-data";
 import { User } from "@/model/user";
 import { StartBoxOrientation } from "@/utils/start-boxes";
 

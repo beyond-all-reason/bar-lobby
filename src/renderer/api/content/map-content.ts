@@ -5,7 +5,7 @@ import url from "url";
 import { reactive } from "vue";
 
 import { PrDownloaderAPI } from "@/api/content/pr-downloader";
-import type { MapData } from "@/model/map-data";
+import { MapData } from "@/model/cache/map-data";
 import { parseMap as parseMapWorkerFunction } from "@/workers/parse-map";
 import { hookWorkerFunction } from "@/workers/worker-helpers";
 
@@ -22,35 +22,6 @@ export class MapContentAPI extends PrDownloaderAPI {
 
     public override async init() {
         await fs.promises.mkdir(this.mapsDir, { recursive: true });
-
-        await api.cacheDb.schema
-            .createTable("map")
-            .ifNotExists()
-            .addColumn("mapId", "integer", (col) => col.primaryKey().autoIncrement())
-            .addColumn("scriptName", "varchar", (col) => col.notNull().unique())
-            .addColumn("fileName", "varchar", (col) => col.notNull().unique())
-            .addColumn("friendlyName", "varchar", (col) => col.notNull())
-            .addColumn("description", "varchar")
-            .addColumn("mapHardness", "double precision", (col) => col.notNull())
-            .addColumn("gravity", "double precision", (col) => col.notNull())
-            .addColumn("tidalStrength", "double precision", (col) => col.notNull())
-            .addColumn("maxMetal", "double precision", (col) => col.notNull())
-            .addColumn("extractorRadius", "double precision", (col) => col.notNull())
-            .addColumn("minWind", "double precision", (col) => col.notNull())
-            .addColumn("maxWind", "double precision", (col) => col.notNull())
-            .addColumn("startPositions", "json")
-            .addColumn("width", "double precision", (col) => col.notNull())
-            .addColumn("height", "double precision", (col) => col.notNull())
-            .addColumn("minDepth", "double precision", (col) => col.notNull())
-            .addColumn("maxDepth", "double precision", (col) => col.notNull())
-            .addColumn("mapInfo", "json")
-            .execute();
-
-        await api.cacheDb.schema
-            .createTable("mapError")
-            .ifNotExists()
-            .addColumn("fileName", "varchar", (col) => col.primaryKey())
-            .execute();
 
         const maps = await api.cacheDb.selectFrom("map").selectAll().execute();
 

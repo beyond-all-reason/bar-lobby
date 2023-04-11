@@ -4,7 +4,7 @@ import path from "path";
 import { reactive } from "vue";
 
 import { AbstractContentAPI } from "@/api/content/abstract-content";
-import { Replay } from "@/model/replay";
+import { Replay } from "@/model/cache/replay";
 import { isFileInUse } from "@/utils/misc";
 import { parseReplay as parseReplayWorkerFunction } from "@/workers/parse-replay";
 import { hookWorkerFunction } from "@/workers/worker-helpers";
@@ -35,38 +35,6 @@ export class ReplayContentAPI extends AbstractContentAPI {
 
     public override async init() {
         await fs.promises.mkdir(this.replaysDir, { recursive: true });
-
-        await api.cacheDb.schema
-            .createTable("replay")
-            .ifNotExists()
-            .addColumn("replayId", "integer", (col) => col.primaryKey().autoIncrement())
-            .addColumn("gameId", "varchar", (col) => col.notNull().unique())
-            .addColumn("fileName", "varchar", (col) => col.notNull().unique())
-            .addColumn("engineVersion", "varchar", (col) => col.notNull())
-            .addColumn("gameVersion", "varchar", (col) => col.notNull())
-            .addColumn("mapScriptName", "varchar", (col) => col.notNull())
-            .addColumn("startTime", "datetime", (col) => col.notNull())
-            .addColumn("gameDurationMs", "integer", (col) => col.notNull())
-            .addColumn("gameEndedNormally", "boolean", (col) => col.notNull())
-            .addColumn("chatlog", "json", (col) => col)
-            .addColumn("hasBots", "boolean", (col) => col.notNull())
-            .addColumn("preset", "varchar", (col) => col.notNull())
-            .addColumn("winningTeamId", "integer", (col) => col)
-            .addColumn("teams", "json", (col) => col.notNull())
-            .addColumn("contenders", "json", (col) => col.notNull())
-            .addColumn("spectators", "json", (col) => col.notNull())
-            .addColumn("script", "text", (col) => col.notNull())
-            .addColumn("battleSettings", "json", (col) => col.notNull())
-            .addColumn("gameSettings", "json", (col) => col.notNull())
-            .addColumn("mapSettings", "json", (col) => col.notNull())
-            .addColumn("hostSettings", "json", (col) => col.notNull())
-            .execute();
-
-        await api.cacheDb.schema
-            .createTable("replayError")
-            .ifNotExists()
-            .addColumn("fileName", "varchar", (col) => col.primaryKey())
-            .execute();
 
         await this.queueReplaysToCache();
 

@@ -23,7 +23,7 @@
  */
 
 import MapListComponent from "@/components/maps/MapListComponent.vue";
-import { MapData } from "@/model/map-data";
+import { MapData } from "@/model/cache/map-data";
 
 async function onMapSelected(map: MapData) {
     await api.router.push(`/library/maps/${map.scriptName}`);

@@ -13,7 +13,7 @@
 <script lang="ts" setup>
 import { computed } from "vue";
 
-import { MapData } from "@/model/map-data";
+import { MapData } from "@/model/cache/map-data";
 
 const props = defineProps<{
     map?: MapData;
