@@ -24,9 +24,9 @@ export class GameAPI {
     public async launch(replay: Replay): Promise<void>;
     public async launch(script: string): Promise<void>;
     public async launch(arg: AbstractBattle | Replay | string): Promise<void> {
-        let engineVersion: string | undefined;
-        let gameVersion: string | undefined;
-        let mapName: string | undefined;
+        let engineVersion: string;
+        let gameVersion: string;
+        let mapName: string;
         let script: string | undefined;
 
         if (arg instanceof AbstractBattle) {
@@ -36,8 +36,8 @@ export class GameAPI {
             script = this.scriptConverter.generateScriptStr(arg);
         } else if (typeof arg === "string") {
             engineVersion = defaultEngineVersion;
-            gameVersion = arg.match(/gametype\s*=\s*(.*);/)?.[1];
-            mapName = arg.match(/mapname\s*=\s*(.*);/)?.[1];
+            gameVersion = arg.match(/gametype\s*=\s*(.*);/)?.[1]!;
+            mapName = arg.match(/mapname\s*=\s*(.*);/)?.[1]!;
             if (!gameVersion) {
                 throw new Error("Could not parse game version from script");
             }
