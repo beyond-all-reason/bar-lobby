@@ -9,6 +9,11 @@ import { MapData } from "@/model/cache/map-data";
 import { parseMap as parseMapWorkerFunction } from "@/workers/parse-map";
 import { hookWorkerFunction } from "@/workers/worker-helpers";
 
+/**
+ * TODO
+ * - replace queue method with syncMapCache function once prd returns map file name
+ */
+
 export class MapContentAPI extends PrDownloaderAPI {
     public readonly installedMaps: MapData[] = reactive([]);
     public readonly onMapCached: Signal<MapData> = new Signal();
@@ -84,9 +89,14 @@ export class MapContentAPI extends PrDownloaderAPI {
         const erroredMapFileNames = erroredMapFiles.map((file) => file.fileName);
 
         const mapFilesToCache = mapFiles.filter((file) => !cachedMapFileNames.includes(file) && !erroredMapFileNames.includes(file));
+        const mapFilesToUncache = cachedMapFileNames.filter((fileName) => !mapFiles.includes(fileName));
 
         for (const mapFileToCache of mapFilesToCache) {
             this.mapCacheQueue.add(mapFileToCache);
+        }
+
+        for (const mapFileToUncache of mapFilesToUncache) {
+            await this.uncacheMap(mapFileToUncache);
         }
     }
 
@@ -107,7 +117,7 @@ export class MapContentAPI extends PrDownloaderAPI {
 
     protected async cacheMaps() {
         if (this.cachingMaps) {
-            console.warn("Don't call cacheReplays more than once");
+            console.warn("Don't call cacheMaps more than once");
             return;
         }
 
@@ -115,10 +125,10 @@ export class MapContentAPI extends PrDownloaderAPI {
 
         // eslint-disable-next-line no-constant-condition
         while (true) {
-            const [replayToCache] = this.mapCacheQueue;
+            const [mapToCache] = this.mapCacheQueue;
 
-            if (replayToCache) {
-                await this.cacheMap(replayToCache);
+            if (mapToCache) {
+                await this.cacheMap(mapToCache);
             } else {
                 await delay(500);
             }
@@ -157,6 +167,8 @@ export class MapContentAPI extends PrDownloaderAPI {
                 this.installedMaps.push(mapData);
                 this.onMapCached.dispatch(mapData);
             }
+
+            console.timeEnd(`Cached: ${mapFileName}`);
         } catch (err) {
             console.error(`Error parsing map: ${mapFileName}`, err);
 
@@ -166,8 +178,6 @@ export class MapContentAPI extends PrDownloaderAPI {
                 .values({ fileName: mapFileName })
                 .execute();
         }
-
-        console.timeEnd(`Cached: ${mapFileName}`);
 
         this.mapCacheQueue.delete(mapFileName);
     }
@@ -182,22 +192,43 @@ export class MapContentAPI extends PrDownloaderAPI {
         });
     }
 
-    protected async uncacheMap(mapData: MapData) {
-        const map = await api.cacheDb.selectFrom("map").selectAll().where("scriptName", "=", mapData.scriptName).executeTakeFirst();
+    protected async uncacheMap(fileName: string) {
+        const fileNameWithoutExt = path.parse(fileName).name;
 
-        if (!map) {
-            return;
+        await fs.promises.rm(path.join(this.mapImagesDir, `${fileNameWithoutExt}-texture.jpg`), { force: true });
+        await fs.promises.rm(path.join(this.mapImagesDir, `${fileNameWithoutExt}-height.jpg`), { force: true });
+        await fs.promises.rm(path.join(this.mapImagesDir, `${fileNameWithoutExt}-metal.jpg`), { force: true });
+        await fs.promises.rm(path.join(this.mapImagesDir, `${fileNameWithoutExt}-type.jpg`), { force: true });
+
+        await api.cacheDb.deleteFrom("map").where("fileName", "=", fileName).execute();
+
+        const index = this.installedMaps.findIndex(map => map.fileName === fileName);
+        if (index) {
+            this.installedMaps.splice(index, 1);
+        }
+    }
+
+    // currently unused, waiting for prd to return map file name so we know which file to cache
+    /** Remove maps from cache that aren't in the filesystem and add maps to cache that are */
+    protected async syncMapCache() {
+        let mapFiles = await fs.promises.readdir(this.mapsDir);
+        mapFiles = mapFiles.filter((mapFile) => mapFile.endsWith("sd7"));
+
+        const cachedMapFiles = await api.cacheDb.selectFrom("map").select(["fileName"]).execute();
+        const cachedMapFileNames = cachedMapFiles.map((file) => file.fileName);
+
+        const erroredMapFiles = await api.cacheDb.selectFrom("mapError").select(["fileName"]).execute();
+        const erroredMapFileNames = erroredMapFiles.map((file) => file.fileName);
+
+        const mapFilesToCache = mapFiles.filter((file) => !cachedMapFileNames.includes(file) && !erroredMapFileNames.includes(file));
+        const mapFilesToUncache = cachedMapFileNames.filter((fileName) => !mapFiles.includes(fileName));
+
+        for (const mapFileToUncache of mapFilesToUncache) {
+            await this.uncacheMap(mapFileToUncache);
         }
 
-        const mapImages = this.getMapImages(map);
-
-        if (mapImages) {
-            await fs.promises.rm(mapImages.textureImagePath, { force: true });
-            await fs.promises.rm(mapImages.heightImagePath, { force: true });
-            await fs.promises.rm(mapImages.metalImagePath, { force: true });
-            await fs.promises.rm(mapImages.typeImagePath, { force: true });
-
-            await api.cacheDb.deleteFrom("map").where("mapId", "=", map.mapId).execute();
+        for (const mapFileToCache of mapFilesToCache) {
+            await this.cacheMap(mapFileToCache);
         }
     }
 }
