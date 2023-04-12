@@ -202,8 +202,6 @@ onBeforeUnmount(() => {
 
 await updateBattleList();
 
-await delay(500, abortController.signal); // might be able to remove this once #179 is fixed
-
 if (active) {
     intervalId = window.setInterval(updateBattleList, 5000);
 }
