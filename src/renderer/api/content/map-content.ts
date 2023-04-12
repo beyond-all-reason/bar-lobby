@@ -202,7 +202,7 @@ export class MapContentAPI extends PrDownloaderAPI {
 
         await api.cacheDb.deleteFrom("map").where("fileName", "=", fileName).execute();
 
-        const index = this.installedMaps.findIndex(map => map.fileName === fileName);
+        const index = this.installedMaps.findIndex((map) => map.fileName === fileName);
         if (index) {
             this.installedMaps.splice(index, 1);
         }

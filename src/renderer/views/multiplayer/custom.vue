@@ -101,7 +101,6 @@ import account from "@iconify-icons/mdi/account";
 import eye from "@iconify-icons/mdi/eye";
 import lock from "@iconify-icons/mdi/lock";
 import robot from "@iconify-icons/mdi/robot";
-import { delay } from "jaz-ts-utils";
 import Column from "primevue/column";
 import DataTable, { DataTableRowDoubleClickEvent } from "primevue/datatable";
 import { computed, onBeforeUnmount, Ref, ref, shallowRef } from "vue";
