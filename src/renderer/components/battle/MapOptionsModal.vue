@@ -145,59 +145,39 @@ function save() {
 </script>
 
 <style lang="scss" scoped>
-:global(.map-list-modal) {
-    width: 90vw;
-    height: 80vh;
-}
-
 .container {
     position: relative;
-    display: grid;
-    grid-template-columns: 3fr 1fr;
-    grid-column-gap: 10px;
-    width: 100%;
-    height: 100%;
+    display: flex;
+    gap: 10px;
 }
-
-.map-container {
-    height: 100%;
-}
-
-.options {
-    width: 25vw;
-}
-
 .box-buttons {
     display: flex;
     flex-direction: row;
     gap: 5px;
-
     :deep(button) {
         padding: 5px;
-
         &:hover {
             img {
                 opacity: 1;
             }
         }
     }
-
     img {
         max-width: 50px;
         image-rendering: pixelated;
         opacity: 0.7;
     }
 }
-
+.options {
+    width: 100%;
+}
 .control {
     max-height: 80px;
 }
-
 .actions {
     display: grid;
     grid-template-columns: 1fr 1fr;
     grid-column-gap: 10px;
-    padding: 10px;
     margin-top: auto;
     width: 100%;
 }
