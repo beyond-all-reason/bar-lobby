@@ -1,13 +1,6 @@
 /**
  * @fileoverview Comms API
  *
- * This documentation comment created on 12APR2023 by @knoxy5467
- *
- * last updated on 12APR2023 by @knoxy5467
- *
- * @class CommsAPI
- * @classdesc Comms API
- *
  * This class is a extension of the TachyonClient class. It is used to communicate with the server.
  * all communication with the server should be done through this class.
  *
