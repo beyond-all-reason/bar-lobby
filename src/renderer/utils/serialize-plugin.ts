@@ -16,7 +16,7 @@ export class SerializePlugin implements KyselyPlugin {
     /** hacky because will break with cols of same name but different types. no solution for this because transformResult doesn't say which table cols come from */
     protected colTypes = new Map<string, "json" | "datetime" | "boolean">();
 
-    public async setSchema(db: Kysely<any>) {
+    public async setSchema(db: Kysely<unknown>) {
         const tableMetadata = await db.introspection.getTables();
         for (const table of tableMetadata) {
             for (const col of table.columns) {
