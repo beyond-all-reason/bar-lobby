@@ -80,14 +80,14 @@ export class CacheDbAPI extends Kysely<CacheDatabase> {
             .ifNotExists()
             .addColumn("id", "varchar", (col) => col.primaryKey())
             .addColumn("md5", "varchar")
-            .addColumn("lastLaunched", "datetime")
+            .addColumn("lastLaunched", "datetime", (col) => col.notNull())
             .execute();
 
         await this.schema
             .createTable("engineVersion")
             .ifNotExists()
             .addColumn("id", "varchar", (col) => col.primaryKey())
-            .addColumn("lastLaunched", "datetime")
+            .addColumn("lastLaunched", "datetime", (col) => col.notNull())
             .execute();
 
         await this.schema
@@ -133,7 +133,10 @@ export class CacheDbAPI extends Kysely<CacheDatabase> {
             // yyyy-mm-dd
             "2023-04-10": {
                 async up(db) {
-                    await db.schema.alterTable("map").addColumn("lastLaunched", "datetime").execute();
+                    await db.schema
+                        .alterTable("map")
+                        .addColumn("lastLaunched", "datetime", (col) => col.notNull())
+                        .execute();
                 },
             },
             "2023-04-15": {

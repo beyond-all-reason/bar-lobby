@@ -165,7 +165,10 @@ export class MapContentAPI extends PrDownloaderAPI<MapData> {
 
             const mapData = await api.cacheDb
                 .insertInto("map")
-                .values(parsedMap)
+                .values({
+                    ...parsedMap,
+                    lastLaunched: new Date(),
+                })
                 .onConflict((oc) => {
                     const { scriptName, fileName, ...nonUniqueValues } = parsedMap;
                     return oc.doUpdateSet(nonUniqueValues);

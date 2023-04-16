@@ -4,7 +4,7 @@ import { LuaOptionSection } from "@/model/lua-options";
 
 export type EngineVersionTable = {
     id: string;
-    lastLaunched: Date | null;
+    lastLaunched: Date;
     ais: EngineAI[];
 };
 

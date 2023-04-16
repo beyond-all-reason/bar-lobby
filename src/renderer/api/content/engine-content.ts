@@ -38,6 +38,8 @@ export class EngineContentAPI extends AbstractContentAPI<EngineVersion> {
             }
         }
 
+        await this.cleanupOldVersions();
+
         this.sortVersions();
 
         return this;
@@ -109,17 +111,22 @@ export class EngineContentAPI extends AbstractContentAPI<EngineVersion> {
         return engineVersion;
     }
 
-    public async uninstallVersion(version: EngineVersion) {
-        const engineDir = path.join(this.engineDirs, version.id);
+    public async uninstallVersion(version: EngineVersion | string) {
+        if (typeof version === "object") {
+            version = version.id;
+        }
+
+        const engineDir = path.join(this.engineDirs, version);
         await fs.promises.rm(engineDir, { force: true, recursive: true });
 
         await this.uncacheVersion(version);
 
-        removeFromArray(this.installedVersions, version);
+        const index = this.installedVersions.findIndex((installedVersion) => installedVersion.id === version);
+        this.installedVersions.splice(index, 1);
     }
 
-    protected async uncacheVersion(version: EngineVersion) {
-        await api.cacheDb.deleteFrom("engineVersion").where("id", "=", version.id).execute();
+    protected async uncacheVersion(id: string) {
+        await api.cacheDb.deleteFrom("engineVersion").where("id", "=", id).execute();
     }
 
     protected sortVersions() {
@@ -186,7 +193,7 @@ export class EngineContentAPI extends AbstractContentAPI<EngineVersion> {
 
         const ais = await this.parseAis(id);
 
-        const engineVersion = await api.cacheDb.insertInto("engineVersion").values({ id, ais }).returningAll().executeTakeFirstOrThrow();
+        const engineVersion = await api.cacheDb.insertInto("engineVersion").values({ id, ais, lastLaunched: new Date() }).returningAll().executeTakeFirstOrThrow();
 
         this.installedVersions.push(engineVersion);
 
@@ -244,5 +251,18 @@ export class EngineContentAPI extends AbstractContentAPI<EngineVersion> {
             version: aiInfo.version,
             options: aiOptions,
         };
+    }
+
+    protected async cleanupOldVersions() {
+        const maxDays = 90;
+
+        const oldestDate = new Date();
+        oldestDate.setDate(oldestDate.getDate() - maxDays);
+
+        const versionsToRemove = await api.cacheDb.selectFrom("engineVersion").where("lastLaunched", "<", oldestDate).select("id").execute();
+
+        for (const version of versionsToRemove) {
+            await this.uninstallVersion(version.id);
+        }
     }
 }

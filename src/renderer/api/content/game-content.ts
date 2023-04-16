@@ -265,7 +265,7 @@ export class GameContentAPI extends PrDownloaderAPI<GameVersion | CustomGameVers
         const luaAiFile = (await this.getGameFiles({ md5 }, "luaai.lua", true))[0];
         const ais = await this.parseAis(luaAiFile.data);
 
-        const gameVersion = await api.cacheDb.insertInto("gameVersion").values({ id, md5, ais }).returningAll().executeTakeFirstOrThrow();
+        const gameVersion = await api.cacheDb.insertInto("gameVersion").values({ id, md5, ais, lastLaunched: new Date() }).returningAll().executeTakeFirstOrThrow();
 
         this.installedVersions.push(gameVersion);
 
@@ -286,5 +286,19 @@ export class GameContentAPI extends PrDownloaderAPI<GameVersion | CustomGameVers
         }
 
         return ais;
+    }
+
+    protected async cleanupOldVersions() {
+        const maxDays = 90;
+
+        const oldestDate = new Date();
+        oldestDate.setDate(oldestDate.getDate() - maxDays);
+
+        const versionsToRemove = await api.cacheDb.selectFrom("gameVersion").where("lastLaunched", "<", oldestDate).select("id").execute();
+
+        for (const version of versionsToRemove) {
+            // TODO: needs https://github.com/beyond-all-reason/pr-downloader/issues/21
+            // await this.uninstallVersion(version.id);
+        }
     }
 }
