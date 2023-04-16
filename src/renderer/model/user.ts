@@ -1,6 +1,7 @@
 import { BattleContenderConfig } from "@/model/battle/battle-types";
 
 export type User = {
+    avatarUrl: string | undefined;
     userId: number;
     username: string;
     icons: Record<string, string>;
