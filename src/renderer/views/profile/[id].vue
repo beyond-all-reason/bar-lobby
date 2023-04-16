@@ -23,7 +23,7 @@ TODO:
                     {{ user.username }}
                 </h2>
                 <p>User ID: {{ user.userId }}</p>
-                 <!-- email info is not it user object -->
+                <!-- email info is not it user object -->
                 <p>email@email.com</p>
                 <!-- temp this should not be showed -->
                 <p>
@@ -82,7 +82,7 @@ TODO:
             </div>
         </div>
         <hr class="margin-top-sm margin-bottom-sm" />
-         <!-- just for testing -->
+        <!-- just for testing -->
         <Modal v-model="changeSteamIDPromptOpen" title="Change Password" @submit="onSteamIDChangeSubmit">
             <div class="flex-col gap-md">
                 <p>New steam ID</p>
@@ -111,7 +111,6 @@ const props = defineProps<{
     id: string;
 }>();
 
-
 interface SteamUserInfo {
     avatarfull?: string;
     personaname?: string;
@@ -120,7 +119,7 @@ interface SteamUserInfo {
 }
 
 const user = computed(() => api.session.getUserById(parseInt(props.id)));
-console.log(user.value)
+console.log(user.value);
 const steamUserInfo: Ref<SteamUserInfo> = ref<SteamUserInfo>({});
 
 // temp test of api call
