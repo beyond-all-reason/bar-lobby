@@ -64,7 +64,7 @@ export abstract class AbstractBattle<T extends BattleOptions = BattleOptions> {
             const seconds = runtimeDate.getSeconds();
             return `Running for ${formatDuration({ hours, minutes, seconds })}`;
         });
-        this.map = computed(() => api.content.maps.installedMaps.find((map) => map.scriptName === this.battleOptions.map));
+        this.map = computed(() => api.content.maps.installedVersions.find((map) => map.scriptName === this.battleOptions.map));
         this.playerCount = computed(() => {
             return this.players.value.length + this.spectators.value.length;
         });

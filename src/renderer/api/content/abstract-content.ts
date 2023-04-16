@@ -3,7 +3,8 @@ import { reactive } from "vue";
 
 import type { DownloadInfo } from "@/model/downloads";
 
-export abstract class AbstractContentAPI {
+export abstract class AbstractContentAPI<T> {
+    public installedVersions: T[] = reactive([]);
     public currentDownloads: DownloadInfo[] = reactive([]);
     public onDownloadStart: Signal<DownloadInfo> = new Signal();
     public onDownloadComplete: Signal<DownloadInfo> = new Signal();
@@ -12,6 +13,10 @@ export abstract class AbstractContentAPI {
     public async init(...args: any[]) {
         return this;
     }
+
+    public abstract isVersionInstalled(id: string): boolean;
+
+    public abstract uninstallVersion(version: T): Promise<void>;
 
     protected async downloadStarted(downloadInfo: DownloadInfo) {
         this.onDownloadStart.dispatch(downloadInfo);

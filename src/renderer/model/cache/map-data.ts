@@ -24,7 +24,7 @@ export type MapDataTable = {
     minDepth: number;
     maxDepth: number;
     mapInfo: DeepPartial<MapInfo> | null;
-    lastLaunched?: Date;
+    lastLaunched: Date | null;
 };
 
 export type MapData = Selectable<MapDataTable>;

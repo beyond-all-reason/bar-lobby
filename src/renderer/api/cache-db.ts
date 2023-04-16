@@ -6,7 +6,7 @@ import { EngineVersionTable } from "@/model/cache/engine-version";
 import { GameVersionTable } from "@/model/cache/game-version";
 import { MapDataTable } from "@/model/cache/map-data";
 import { ReplayTable } from "@/model/cache/replay";
-import { SerializePlugin } from "@/utils/serialize-json-plugin";
+import { SerializePlugin } from "@/utils/serialize-plugin";
 
 type CacheDatabase = {
     map: MapDataTable;
@@ -18,16 +18,34 @@ type CacheDatabase = {
 };
 
 export class CacheDbAPI extends Kysely<CacheDatabase> {
+    protected migrator: Migrator;
+    protected serializePlugin;
+
     constructor() {
+        const serializePlugin = new SerializePlugin();
+
         super({
             dialect: new SqliteDialect({
                 database: new Database(path.join(api.info.configPath, "cache.db")),
             }),
-            plugins: [new SerializePlugin()],
+            plugins: [serializePlugin],
+        });
+
+        this.serializePlugin = serializePlugin;
+
+        this.migrator = new Migrator({
+            db: this,
+            provider: {
+                getMigrations: async () => {
+                    return this.migrations();
+                },
+            },
         });
     }
 
     public async init() {
+        await this.serializePlugin.setSchema(this);
+
         await this.schema
             .createTable("map")
             .ifNotExists()
@@ -114,24 +132,31 @@ export class CacheDbAPI extends Kysely<CacheDatabase> {
         return {
             // yyyy-mm-dd
             "2023-04-10": {
-                async up(db: CacheDbAPI) {
+                async up(db) {
                     await db.schema.alterTable("map").addColumn("lastLaunched", "datetime").execute();
+                },
+            },
+            "2023-04-15": {
+                async up(db) {
+                    await db.schema.dropTable("game_versions").ifExists().execute();
+                    await db.deleteFrom("engineVersion").execute();
+                    await db.deleteFrom("gameVersion").execute();
+
+                    await db.schema
+                        .alterTable("engineVersion")
+                        .addColumn("ais", "json", (col) => col.notNull())
+                        .execute();
+                    await db.schema
+                        .alterTable("gameVersion")
+                        .addColumn("ais", "json", (col) => col.notNull())
+                        .execute();
                 },
             },
         };
     }
 
     protected async migrateToLatest() {
-        const migrator = new Migrator({
-            db: this,
-            provider: {
-                getMigrations: async () => {
-                    return this.migrations();
-                },
-            },
-        });
-
-        const { error, results } = await migrator.migrateToLatest();
+        const { error, results } = await this.migrator.migrateToLatest();
 
         results?.forEach((it) => {
             if (it.status === "Success") {

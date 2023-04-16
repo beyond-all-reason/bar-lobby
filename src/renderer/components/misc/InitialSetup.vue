@@ -33,7 +33,7 @@ onMounted(async () => {
         text.value = "Installing game";
     }
 
-    if (Object.keys(api.content.maps.installedMaps).length === 0) {
+    if (Object.keys(api.content.maps.installedVersions).length === 0) {
         text.value = "Downloading maps";
         await api.content.maps.downloadMaps(defaultMaps);
     }

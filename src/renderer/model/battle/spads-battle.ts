@@ -372,7 +372,7 @@ export class SpadsBattle extends AbstractBattle<SpadsBattleOptions> {
     protected updateSync() {
         const sync = { engine: 0, game: 0, map: 0 };
 
-        if (api.content.engine.installedVersions.includes(this.battleOptions.engineVersion)) {
+        if (api.content.engine.isVersionInstalled(this.battleOptions.engineVersion)) {
             sync.engine = 1;
         } else {
             const dl = api.content.engine.currentDownloads.find((dl) => dl.name === this.battleOptions.engineVersion);
@@ -381,7 +381,7 @@ export class SpadsBattle extends AbstractBattle<SpadsBattleOptions> {
             }
         }
 
-        if (api.content.game.installedVersions.includes(this.battleOptions.gameVersion)) {
+        if (api.content.game.isVersionInstalled(this.battleOptions.gameVersion)) {
             sync.game = 1;
         } else {
             const dl = api.content.game.currentDownloads.find((dl) => dl.name === this.battleOptions.gameVersion);
@@ -390,7 +390,7 @@ export class SpadsBattle extends AbstractBattle<SpadsBattleOptions> {
             }
         }
 
-        if (api.content.maps.installedMaps.some((map) => map.scriptName === this.battleOptions.map)) {
+        if (api.content.maps.isVersionInstalled(this.battleOptions.map)) {
             sync.map = 1;
         } else {
             const dl = api.content.maps.currentDownloads.find((dl) => dl.name === this.battleOptions.map);

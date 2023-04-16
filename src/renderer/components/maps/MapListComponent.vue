@@ -46,7 +46,7 @@ const emit = defineEmits<{
     (event: "map-selected", map: MapData): void;
 }>();
 const filteredMaps = computed(() => {
-    let maps = Array.from(api.content.maps.installedMaps);
+    let maps = Array.from(api.content.maps.installedVersions);
 
     if (searchVal.value.length > 0) {
         maps = maps.filter((map: MapData) => {

@@ -18,7 +18,7 @@ export function parseLuaOptions(lua: Buffer): LuaOptionSection[] {
         const baseOption: Omit<LuaOption, "type"> = {
             key: luaOptionObj.key,
             name: luaOptionObj.name,
-            description: luaOptionObj.desc,
+            description: luaOptionObj.desc.replaceAll("\\n", "\n"),
             hidden: luaOptionObj.hidden ?? false,
         };
 
@@ -61,7 +61,7 @@ export function parseLuaOptions(lua: Buffer): LuaOptionSection[] {
                     type: "list",
                     key: option.key,
                     name: option.name,
-                    description: option.desc,
+                    description: option.desc.replaceAll("\\n", "\n"),
                     hidden: option.hidden,
                 });
             }

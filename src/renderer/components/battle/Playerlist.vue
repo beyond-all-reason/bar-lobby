@@ -2,6 +2,7 @@
     <AddBotModal
         v-model="botListOpen"
         :engineVersion="battle.battleOptions.engineVersion"
+        :gameVersion="battle.battleOptions.gameVersion"
         :teamId="botModalTeamId"
         title="Add Bot"
         @bot-selected="onBotSelected"
@@ -40,14 +41,14 @@
 </template>
 
 <script lang="ts" setup>
-import { randomFromArray } from "jaz-ts-utils";
 import { computed, Ref, ref } from "vue";
 
 import AddBotModal from "@/components/battle/AddBotModal.vue";
 import TeamComponent from "@/components/battle/TeamComponent.vue";
-import { aiNames } from "@/config/ai-names";
 import { AbstractBattle } from "@/model/battle/abstract-battle";
 import { Bot, Faction } from "@/model/battle/battle-types";
+import { EngineAI } from "@/model/cache/engine-version";
+import { GameAI } from "@/model/cache/game-version";
 import { CurrentUser, User } from "@/model/user";
 
 const props = defineProps<{
@@ -70,22 +71,17 @@ function openBotList(teamId: number) {
     botListOpen.value = true;
 }
 
-function onBotSelected(bot: string, teamId: number) {
+function onBotSelected(bot: EngineAI | GameAI, teamId: number) {
     botListOpen.value = false;
     addBot(bot, teamId);
 }
 
-function addBot(bot: string, teamId: number) {
-    let randomName = randomFromArray(aiNames);
-    while (props.battle.bots.some((bot) => bot.name === randomName)) {
-        randomName = randomFromArray(aiNames);
-    }
-
+function addBot(ai: EngineAI | GameAI, teamId: number) {
     props.battle.addBot({
         playerId: props.battle.contenders.value.length,
         teamId,
-        name: randomName!,
-        aiShortName: bot,
+        name: ai.name,
+        aiShortName: "shortName" in ai ? ai.shortName : ai.name,
         faction: Faction.Armada,
         ownerUserId: props.me.userId,
         aiOptions: {},

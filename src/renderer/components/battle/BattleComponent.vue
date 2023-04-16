@@ -62,6 +62,8 @@
                 <Select
                     :modelValue="battle.battleOptions.gameVersion"
                     :options="installedGames"
+                    optionLabel="id"
+                    optionValue="id"
                     label="Game"
                     :filter="true"
                     :placeholder="battle.battleOptions.gameVersion"
@@ -84,6 +86,8 @@
             <Select
                 :modelValue="battle.battleOptions.engineVersion"
                 :options="installedEngines"
+                optionLabel="id"
+                optionValue="id"
                 label="Engine"
                 :filter="true"
                 :placeholder="battle.battleOptions.engineVersion"
@@ -218,7 +222,7 @@ const props = defineProps<{
 
 const installedEngines = computed(() => api.content.engine.installedVersions);
 const installedMaps = computed(() =>
-    api.content.maps.installedMaps.sort((a, b) => {
+    api.content.maps.installedVersions.sort((a, b) => {
         return a.friendlyName.localeCompare(b.friendlyName);
     })
 );

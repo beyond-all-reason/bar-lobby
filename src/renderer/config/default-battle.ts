@@ -1,6 +1,5 @@
 import { randomFromArray } from "jaz-ts-utils";
 
-import { aiNames } from "@/config/ai-names";
 import { defaultMaps } from "@/config/default-maps";
 import { defaultEngineVersion, defaultGameVersion } from "@/config/default-versions";
 import { StartPosType } from "@/model/battle/battle-types";
@@ -14,6 +13,9 @@ export function defaultBattle(mapScriptName?: string) {
     me.battleStatus.playerId = 0;
     me.battleStatus.teamId = 0;
     me.battleStatus.isSpectator = false;
+
+    const engine = api.content.engine.installedVersions.find((version) => version.id === defaultEngineVersion);
+    const barb = engine?.ais.find((ai) => ai.shortName === "BARb")!;
 
     return new OfflineBattle({
         battleOptions: {
@@ -29,6 +31,6 @@ export function defaultBattle(mapScriptName?: string) {
             restrictions: [],
         },
         users: [me],
-        bots: [{ playerId: 1, teamId: 1, ownerUserId: me.userId, name: randomFromArray(aiNames)!, aiShortName: "BARb", aiOptions: {} }],
+        bots: [{ playerId: 1, teamId: 1, ownerUserId: me.userId, name: barb.name, aiShortName: barb.shortName, aiOptions: {} }],
     });
 }
