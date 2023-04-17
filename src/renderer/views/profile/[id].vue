@@ -13,10 +13,10 @@ TODO:
 { props: true, meta: { title: "Profile", hide: true, transition: { name: "slide-left" } } }
 </route>
 <template>
+    <div class="warn-message">not a real profile stats, TODO replace with api</div>
     <div v-if="user">
         <div class="profile-header">
-            <img v-if="steamUserInfo" class="avatar" :src="steamUserInfo && steamUserInfo?.avatarfull" alt="Avatar" />
-            <img v-else ref="logo" class="avatar" src="/images/BARLogoFull.png" />
+            <img ref="logo" class="avatar" src="/images/BARLogoFull.png" />
             <div class="profile-user-info">
                 <h2 class="flex-row gap-lg">
                     <Flag :countryCode="user.countryCode" style="width: 50px" />
@@ -25,13 +25,11 @@ TODO:
                 <p>User ID: {{ user.userId }}</p>
                 <!-- email info is not it user object -->
                 <p>email@email.com</p>
-                <!-- temp this should not be showed -->
+                <Button class="slim" @click="onChangeEmailModalOpen()"> Change email </Button>
                 <p>
                     <i class="steam-icon"></i>
-                    Steam ID: {{ steamID }}
+                    Steam ID: 5845926471791
                 </p>
-                <!-- temp this should not be showed -->
-                <Button class="slim" @click="changeSteamID()"> Change steam ID(test) </Button>
             </div>
             <div class="profile-info">
                 <h5>Win Rate</h5>
@@ -82,10 +80,10 @@ TODO:
             </div>
         </div>
         <hr class="margin-top-sm margin-bottom-sm" />
-        <!-- just for testing -->
-        <Modal v-model="changeSteamIDPromptOpen" title="Change Password" @submit="onSteamIDChangeSubmit">
+        <!-- not implemented yet -->
+        <Modal v-model="changeEmailOpen" title="Change Password" @submit="changeEmail">
             <div class="flex-col gap-md">
-                <p>New steam ID</p>
+                <p>New email</p>
                 <Textbox type="newSteamID" name="newSteamID" class="fullwidth" />
                 <Button type="submit">Submit</Button>
             </div>
@@ -95,8 +93,7 @@ TODO:
 </template>
 
 <script lang="ts" setup>
-import axios from "axios";
-import { computed, ComputedRef, defineProps, onMounted, Ref, ref } from "vue";
+import { computed, ComputedRef, defineProps, Ref, ref } from "vue";
 
 // replace with real api call
 // eslint-disable-next-line no-restricted-imports
@@ -119,28 +116,12 @@ interface SteamUserInfo {
 }
 
 const user = computed(() => api.session.getUserById(parseInt(props.id)));
-console.log(user.value);
-const steamUserInfo: Ref<SteamUserInfo> = ref<SteamUserInfo>({});
 
-// temp test of api call
-// if you want to test this, open your steam profile online,
-// id is in the url https://steamcommunity.com/profiles/<<<steamID>>>/
-const steamID = ref("76561197960435530");
-const changeSteamIDPromptOpen = ref(false);
+const changeEmailOpen = ref(false);
 const armyNames = ["armada", "cortex", "legion"];
-
-function changeSteamID() {
-    changeSteamIDPromptOpen.value = true;
-}
 
 const avatarSrc = computed(() => `/temp-acc-mock/${selectedSeasonData?.value?.rank}.png`);
 const featuredUnit = computed(() => `/temp-acc-mock/${selectedSeasonData?.value?.featuredUnit}.png`);
-
-async function onSteamIDChangeSubmit(e) {
-    changeSteamIDPromptOpen.value = false;
-    steamID.value = e.newSteamID;
-    getSteamUserInfo(steamID.value);
-}
 
 function generateArmyStats(selectedSeasonData, armyName) {
     const winRate = (selectedSeasonData[armyName]?.winRate * 100).toFixed(0);
@@ -161,24 +142,14 @@ const selectedSeasonData: ComputedRef<SeasonData | undefined> = computed(() => {
     return season.seasonData.find((s) => s.gameType === gameType.value);
 });
 
-async function getSteamUserInfo(steamID: string) {
-    // temp api key
-    // replace with steam integration
-    const apiKey = process.env.VUE_APP_STEAM_API_KEY || "678F3C9B77262C5F37D749DE2FCE87A4";
-    // to do replace
-    const apiUrl = `https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/?key=${apiKey}&steamids=${steamID}`;
-
-    try {
-        const response = await axios.get(apiUrl);
-        steamUserInfo.value = response.data.response.players[0];
-    } catch (error) {
-        console.error("Error fetching Steam user info:", error);
-    }
+// to do implement after api is ready
+function changeEmail() {
+    changeEmailOpen.value = false;
 }
 
-onMounted(async () => {
-    getSteamUserInfo(steamID.value);
-});
+function onChangeEmailModalOpen() {
+    changeEmailOpen.value = true;
+}
 </script>
 
 <style lang="scss" scoped>
@@ -221,7 +192,7 @@ onMounted(async () => {
 .profile-user-info {
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: 3px;
 }
 
 .selected-season {
@@ -269,5 +240,11 @@ onMounted(async () => {
     .game-type-select {
         max-width: 100px;
     }
+}
+
+.warn-message {
+    font-size: 11px;
+    color: orange;
+    margin-left: auto;
 }
 </style>
