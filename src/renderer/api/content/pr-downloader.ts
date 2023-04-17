@@ -13,12 +13,12 @@ import { PrdProgressMessage } from "@/model/pr-downloader";
  * https://springrts.com/wiki/Pr-downloader
  * https://springrts.com/wiki/Rapid
  */
-export abstract class PrDownloaderAPI extends AbstractContentAPI {
+export abstract class PrDownloaderAPI<T> extends AbstractContentAPI<T> {
     protected downloadContent(type: "game" | "map", name: string) {
         return new Promise<void>((resolve) => {
             console.debug(`Downloading ${name}...`);
 
-            const latestEngine = lastInArray(api.content.engine.installedVersions)!;
+            const latestEngine = lastInArray(api.content.engine.installedVersions)!.id;
             const binaryName = process.platform === "win32" ? "pr-downloader.exe" : "pr-downloader";
             const prBinaryPath = path.join(api.info.contentPath, "engine", latestEngine, binaryName);
             const downloadArg = type === "game" ? "--download-game" : "--download-map";

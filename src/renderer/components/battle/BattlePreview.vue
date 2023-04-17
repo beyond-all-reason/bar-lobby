@@ -110,11 +110,17 @@ const teams = computed(() => {
         const sortedTeams = new Map([...teams.entries()].sort());
         return sortedTeams;
     } else {
-        const teams = groupBy(props.battle.contenders, (contender) =>
-            isUser(contender) ? contender.battleStatus.teamId : contender.allyTeamId
-        );
+        const teams = groupBy(props.battle.contenders, (contender) => contender.allyTeamId);
         const sortedTeams = new Map([...teams.entries()].sort());
         return sortedTeams;
+        // const orderedTeams = new Map<number, (User | Bot)[]>();
+        // for (const contender of props.battle.contenders) {
+        //     if (!orderedTeams[contender.allyTeamId]) {
+        //         orderedTeams[contender.allyTeamId] = [];
+        //     }
+        //     orderedTeams[contender.allyTeamId].push(contender);
+        // }
+        // return orderedTeams;
     }
 });
 const startPosType: ComputedRef<StartPosType> = computed(() => {

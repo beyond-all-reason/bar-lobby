@@ -3,7 +3,6 @@ import { delay, Optionals, Signal } from "jaz-ts-utils";
 import path from "path";
 import { reactive } from "vue";
 
-import { AbstractContentAPI } from "@/api/content/abstract-content";
 import { Replay } from "@/model/cache/replay";
 import { isFileInUse } from "@/utils/misc";
 import { parseReplay as parseReplayWorkerFunction } from "@/workers/parse-replay";
@@ -25,7 +24,7 @@ export const defaultReplayQueryOptions: Optionals<ReplayQueryOptions> = {
     sortOrder: "asc",
 };
 
-export class ReplayContentAPI extends AbstractContentAPI {
+export class ReplayContentAPI {
     public readonly replaysDir = path.join(api.info.contentPath, "demos");
     public readonly onReplayCached = new Signal();
 
@@ -33,14 +32,14 @@ export class ReplayContentAPI extends AbstractContentAPI {
     protected readonly replayCacheQueue: Set<string> = reactive(new Set());
     protected cachingReplays = false;
 
-    public override async init() {
+    public async init() {
         await fs.promises.mkdir(this.replaysDir, { recursive: true });
 
         await this.queueReplaysToCache();
 
         this.cacheReplays();
 
-        return super.init();
+        return this;
     }
 
     public async getReplays(optionsArg: ReplayQueryOptions) {

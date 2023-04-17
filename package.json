@@ -34,9 +34,6 @@
       "VITE_DEV_SERVER_URL": "http://127.0.0.1:3344"
     }
   },
-  "engines": {
-    "node": "14.21.2"
-  },
   "build": {
     "electronDist": "node_modules/electron/dist"
   },
@@ -63,7 +60,7 @@
     "pixi.js": "^7.1.4",
     "primeicons": "^6.0.1",
     "primevue": "^3.23.0",
-    "sdfz-demo-parser": "^5.7.0",
+    "sdfz-demo-parser": "^5.9.1",
     "spring-map-parser": "^6.0.3",
     "sqlite": "^4.1.1",
     "sqlite3": "^5.0.8",

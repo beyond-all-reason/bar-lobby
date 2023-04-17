@@ -91,9 +91,9 @@ export class GameAPI {
     }
 
     protected async fetchMissingContent(engineVersion: string, gameVersion: string, mapScriptName: string) {
-        const isEngineInstalled = api.content.engine.installedVersions.includes(engineVersion);
-        const isGameInstalled = api.content.game.installedVersions.includes(gameVersion);
-        const isMapInstalled = api.content.maps.installedMaps.some((map) => map.scriptName === mapScriptName);
+        const isEngineInstalled = api.content.engine.isVersionInstalled(engineVersion);
+        const isGameInstalled = api.content.game.isVersionInstalled(gameVersion);
+        const isMapInstalled = api.content.maps.isVersionInstalled(mapScriptName);
 
         if (!isEngineInstalled || !isGameInstalled || !isMapInstalled) {
             api.notifications.alert({
@@ -115,7 +115,11 @@ export class GameAPI {
                 })
                 .where("id", "=", engineVersion)
                 .execute();
+        } catch (err) {
+            console.error(`Error updating lastLaunched field for engine: ${engineVersion}`, err);
+        }
 
+        try {
             await api.cacheDb
                 .updateTable("gameVersion")
                 .set({
@@ -123,7 +127,11 @@ export class GameAPI {
                 })
                 .where("id", "=", gameVersion)
                 .execute();
+        } catch (err) {
+            console.error(`Error updating lastLaunched field for game: ${gameVersion}`, err);
+        }
 
+        try {
             await api.cacheDb
                 .updateTable("map")
                 .set({
@@ -132,7 +140,7 @@ export class GameAPI {
                 .where("scriptName", "=", mapScriptName)
                 .execute();
         } catch (err) {
-            console.error("Error updating lastLaunched field", err);
+            console.error(`Error updating lastLaunched field for map: ${mapScriptName}`, err);
         }
     }
 }

@@ -1,6 +1,5 @@
 import { computed, ComputedRef } from "vue";
 
-import { AiContentAPI } from "@/api/content/ai-content";
 import { EngineContentAPI } from "@/api/content/engine-content";
 import { GameContentAPI } from "@/api/content/game-content";
 import { MapContentAPI } from "@/api/content/map-content";
@@ -11,7 +10,6 @@ export class ContentAPI {
     public engine: EngineContentAPI;
     public game: GameContentAPI;
     public maps: MapContentAPI;
-    public ai: AiContentAPI;
     public replays: ReplayContentAPI;
 
     public downloads: ComputedRef<DownloadInfo[]>;
@@ -23,7 +21,6 @@ export class ContentAPI {
         this.engine = new EngineContentAPI();
         this.game = new GameContentAPI();
         this.maps = new MapContentAPI();
-        this.ai = new AiContentAPI();
         this.replays = new ReplayContentAPI();
 
         this.downloads = computed(() => [...this.engine.currentDownloads, ...this.game.currentDownloads, ...this.maps.currentDownloads]);
@@ -136,7 +133,6 @@ export class ContentAPI {
         await this.engine.init();
         await this.game.init();
         await this.maps.init();
-        await this.ai.init();
         await this.replays.init();
 
         return this;

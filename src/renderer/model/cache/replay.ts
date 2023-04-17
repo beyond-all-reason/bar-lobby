@@ -11,7 +11,7 @@ export type ReplayTable = {
     startTime: Date;
     gameDurationMs: number;
     gameEndedNormally: boolean;
-    chatlog?: DemoModel.ChatMessage[];
+    chatlog: DemoModel.ChatMessage[] | null;
     hasBots: boolean;
     preset: "duel" | "team" | "ffa" | "teamffa";
     winningTeamId: number;
@@ -20,7 +20,7 @@ export type ReplayTable = {
     spectators: DemoModel.Info.Spectator[];
     script: string;
     battleSettings: Record<string, string>;
-    hostSettings?: Record<string, string>;
+    hostSettings: Record<string, string>;
     gameSettings: Record<string, string>;
     mapSettings: Record<string, string>;
 };

@@ -3,22 +3,18 @@
 </route>
 
 <template>
-    <div>Test</div>
+    <div class="test">{{ txt }}</div>
 </template>
 
 <script lang="ts" setup>
-const data = [
-    {
-        name: "bob",
-        color: "red",
-        number: 5,
-    },
-    {
-        name: "fred",
-        color: "blue",
-        number: 10,
-    },
-];
+import { ref } from "vue";
+
+const txt = ref("this is a test\nlol");
+//txt.value = txt.value.replaceAll("\n", "<br>");
 </script>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+.test {
+    white-space: pre;
+}
+</style>
