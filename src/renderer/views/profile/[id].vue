@@ -108,12 +108,13 @@ const props = defineProps<{
     id: string;
 }>();
 
-interface SteamUserInfo {
-    avatarfull?: string;
-    personaname?: string;
-    realname?: string;
-    profileurl?: string;
-}
+// temp disabled
+// interface SteamUserInfo {
+//     avatarfull?: string;
+//     personaname?: string;
+//     realname?: string;
+//     profileurl?: string;
+// }
 
 const user = computed(() => api.session.getUserById(parseInt(props.id)));
 
