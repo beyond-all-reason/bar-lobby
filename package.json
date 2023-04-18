@@ -34,13 +34,11 @@
       "VITE_DEV_SERVER_URL": "http://127.0.0.1:3344"
     }
   },
+  "engines": {
+    "node": "14.21.2"
+  },
   "build": {
     "electronDist": "node_modules/electron/dist"
-  },
-  "overrides": {
-    "eslint": "^8.38.0",
-    "eslint-plugin-unused-imports": "^2.0.0",
-    "@typescript-eslint/eslint-plugin": "^5.58.0"
   },
   "dependencies": {
     "@iconify-icons/mdi": "^1.2.14",
