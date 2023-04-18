@@ -81,7 +81,7 @@ TODO:
         </div>
         <hr class="margin-top-sm margin-bottom-sm" />
         <!-- not implemented yet -->
-        <Modal v-model="changeEmailOpen" title="Change Password" @submit="changeEmail">
+        <Modal v-model="changeEmailOpen" title="Change Email" @submit="changeEmail">
             <div class="flex-col gap-md">
                 <p>New email</p>
                 <Textbox type="newSteamID" name="newSteamID" class="fullwidth" />
