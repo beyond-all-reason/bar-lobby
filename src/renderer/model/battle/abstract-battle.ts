@@ -113,7 +113,7 @@ export abstract class AbstractBattle<T extends BattleOptions = BattleOptions> {
             watch(
                 () => this.battleOptions.map,
                 (mapScriptName) => {
-                    api.content.maps.downloadMaps(mapScriptName);
+                    api.content.maps.downloadMap(mapScriptName);
                 },
                 {
                     immediate: true,

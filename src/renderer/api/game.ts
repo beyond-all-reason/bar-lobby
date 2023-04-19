@@ -100,7 +100,7 @@ export class GameAPI {
                 text: "Downloading missing content - the game will auto-launch when downloads complete",
             });
 
-            return Promise.all([api.content.engine.downloadEngine(engineVersion), api.content.game.downloadGame(gameVersion), api.content.maps.downloadMaps(mapScriptName)]);
+            return Promise.all([api.content.engine.downloadEngine(engineVersion), api.content.game.downloadGame(gameVersion), api.content.maps.downloadMap(mapScriptName)]);
         }
 
         return;

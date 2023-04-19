@@ -177,13 +177,13 @@ export class CommsAPI extends TachyonClient {
             }
         });
 
-        this.onResponse("s.lobby.updated_client_battlestatus").add(({ client }) => {
+        this.onResponse("s.lobby.updated_client_battlestatus").add(async ({ client }) => {
             api.session.updateUserBattleStauts(client);
 
             const battle = api.session.onlineBattle.value;
             if (battle && battle.battleOptions.founderId === client.userid) {
                 if (client.in_game) {
-                    api.game.launch(battle);
+                    await api.game.launch(battle);
                 }
             }
         });

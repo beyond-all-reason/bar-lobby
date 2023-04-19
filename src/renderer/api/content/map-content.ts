@@ -1,5 +1,5 @@
 import * as fs from "fs";
-import { asArray, delay, removeFromArray, Signal } from "jaz-ts-utils";
+import { delay, removeFromArray, Signal } from "jaz-ts-utils";
 import * as path from "path";
 import url from "url";
 import { reactive } from "vue";
@@ -44,18 +44,28 @@ export class MapContentAPI extends PrDownloaderAPI<MapData> {
         return this.installedVersions.find((map) => map.scriptName === scriptName);
     }
 
-    public async downloadMaps(scriptNameOrNames: string | string[]) {
-        const scriptNames = asArray(scriptNameOrNames);
+    public async downloadMaps(scriptNames: string[]) {
+        return Promise.all(scriptNames.map((scriptName) => this.downloadMap(scriptName)));
+    }
 
-        for (const scriptName of scriptNames) {
-            if (this.installedVersions.some((map) => map.scriptName === scriptName) || this.currentDownloads.some((download) => download.name === scriptName)) {
-                continue;
-            }
-
-            await this.downloadContent("map", scriptName);
-
-            await this.queueMapsToCache();
+    public async downloadMap(scriptName: string) {
+        if (this.installedVersions.some((map) => map.scriptName === scriptName)) {
+            return;
         }
+
+        if (this.currentDownloads.some((download) => download.name === scriptName)) {
+            await new Promise<void>((resolve) => {
+                this.onDownloadComplete.addOnce((mapData) => {
+                    if (mapData.name === scriptName) {
+                        resolve();
+                    }
+                });
+            });
+        } else {
+            await this.downloadContent("map", scriptName);
+        }
+
+        await this.queueMapsToCache();
     }
 
     public getMapImages(mapData: MapData | undefined) {
@@ -107,6 +117,8 @@ export class MapContentAPI extends PrDownloaderAPI<MapData> {
         await this.uncacheMap(version.fileName);
 
         removeFromArray(this.installedVersions, version);
+
+        console.debug(`Map removed: ${version.scriptName}`);
     }
 
     protected async uncacheMap(fileName: string) {
