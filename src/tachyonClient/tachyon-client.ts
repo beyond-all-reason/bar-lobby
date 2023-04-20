@@ -1,5 +1,5 @@
-import { TachyonRequestCommand } from "./requests";
-import { TachyonResponseCommand } from "./responses";
+import { TachyonRequestCommand } from "./schema/requests";
+import { TachyonResponseCommand } from "./schema/responses";
 
  type TachyonAuthObject = {
     result : string;

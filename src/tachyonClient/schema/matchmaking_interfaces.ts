@@ -1,4 +1,4 @@
-import { TachyonMessage } from "./tachyon-client";
+import { TachyonMessage } from "../tachyon-client";
 interface Queue {
   queue_id: number;
   name: string;
