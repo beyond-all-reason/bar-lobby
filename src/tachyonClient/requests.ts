@@ -1,4 +1,4 @@
- const requestCommands: string[] = [
+ const requestCommands  = [
     // auth
     "c.auth.login",
     "c.auth.logout",
@@ -103,5 +103,5 @@
   "c.user.link_discord",
   "c.user.unlink_discord",
   "c.user.set_privacy"
-];
+] as const;
 export type TachyonRequestCommand = typeof requestCommands[number];

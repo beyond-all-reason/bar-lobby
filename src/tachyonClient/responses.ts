@@ -11,4 +11,4 @@ const TachyonResponseCommands = [
     "s.matchmaking.cancel",
     "s.matchmaking.cancel_all",
 
-]
+] as const;

@@ -35,13 +35,10 @@ export class JsonTachyonClient {
 }
 addListener(listener: (message: TachyonMessage) => void) {
     if (this.ws) {
-        this.ws.addEventListener ("message",(event: TachyonEvent) => listener(event.data));
+        this.ws.addEventListener ("message",(event: MessageEvent) => listener(JSON.parse(event.data) as TachyonMessage));
     }
  }
 }
  export interface TachyonMessage  {
     cmd : TachyonRequestCommand | TachyonResponseCommand;
- }
- interface TachyonEvent extends MessageEvent {
-    data: TachyonMessage;
  }
