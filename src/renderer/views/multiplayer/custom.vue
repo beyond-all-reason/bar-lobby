@@ -20,52 +20,52 @@
                 <SearchBox v-model="searchVal" />
             </div>
 
-            <div class="scroll-container padding-right-sm">
-                <DataTable
-                    v-model:selection="selectedBattle"
-                    :value="battles"
-                    :autoLayout="true"
-                    class="p-datatable-sm"
-                    selectionMode="single"
-                    :sortOrder="-1"
-                    sortField="playerCount.value"
-                    :virtualScrollerOptions="{ itemSize: 50 }"
-                    @row-dblclick="onDoubleClick"
-                >
-                    <Column headerStyle="width: 0" sortable sortField="isLockedOrPassworded.value">
-                        <template #header>
-                            <Icon :icon="lock" />
-                        </template>
-                        <template #body="{ data }">
-                            <Icon v-if="data.isLockedOrPassworded.value" :icon="lock" />
-                        </template>
-                    </Column>
-                    <Column header="Runtime" sortable sortField="runtimeMs.value">
-                        <template #body="{ data }">
-                            <div v-if="data.runtimeMs.value >= 1">
-                                {{ getFriendlyDuration(data.runtimeMs.value) }}
+            <DataTable
+                v-model:selection="selectedBattle"
+                :value="battles"
+                :autoLayout="true"
+                class="p-datatable-sm"
+                selectionMode="single"
+                :sortOrder="-1"
+                sortField="playerCount.value"
+                scrollable
+                scrollHeight="100%"
+                :virtualScrollerOptions="{ itemSize: 50, numToleratedItems: 50 }"
+                @row-dblclick="onDoubleClick"
+            >
+                <Column headerStyle="width: 0" sortable sortField="isLockedOrPassworded.value">
+                    <template #header>
+                        <Icon :icon="lock" />
+                    </template>
+                    <template #body="{ data }">
+                        <Icon v-if="data.isLockedOrPassworded.value" :icon="lock" />
+                    </template>
+                </Column>
+                <Column header="Runtime" sortable sortField="runtimeMs.value">
+                    <template #body="{ data }">
+                        <div v-if="data.runtimeMs.value >= 1">
+                            {{ getFriendlyDuration(data.runtimeMs.value) }}
+                        </div>
+                    </template>
+                </Column>
+                <Column field="battleOptions.title" header="Title" sortable />
+                <Column field="battleOptions.map" header="Map" sortable />
+                <Column header="Players" sortable sortField="playerCount.value">
+                    <template #body="{ data }">
+                        <div class="flex-row flex-center-items gap-md">
+                            <div v-if="data.players.value.length > 0" class="flex-row flex-center-items" style="gap: 2px">
+                                <Icon :icon="account" height="17" />{{ data.players.value.length }}
                             </div>
-                        </template>
-                    </Column>
-                    <Column field="battleOptions.title" header="Title" sortable />
-                    <Column field="battleOptions.map" header="Map" sortable />
-                    <Column header="Players" sortable sortField="playerCount.value">
-                        <template #body="{ data }">
-                            <div class="flex-row flex-center-items gap-md">
-                                <div v-if="data.players.value.length > 0" class="flex-row flex-center-items" style="gap: 2px">
-                                    <Icon :icon="account" height="17" />{{ data.players.value.length }}
-                                </div>
-                                <div v-if="data.spectators.value.length > 0" class="flex-row flex-center-items gap-xs" style="gap: 4px">
-                                    <Icon :icon="eye" height="17" />{{ data.spectators.value.length }}
-                                </div>
-                                <div v-if="data.bots.length > 0" class="flex-row flex-center-items gap-xs" style="gap: 4px">
-                                    <Icon :icon="robot" height="17" />{{ data.bots.length }}
-                                </div>
+                            <div v-if="data.spectators.value.length > 0" class="flex-row flex-center-items gap-xs" style="gap: 4px">
+                                <Icon :icon="eye" height="17" />{{ data.spectators.value.length }}
                             </div>
-                        </template>
-                    </Column>
-                </DataTable>
-            </div>
+                            <div v-if="data.bots.length > 0" class="flex-row flex-center-items gap-xs" style="gap: 4px">
+                                <Icon :icon="robot" height="17" />{{ data.bots.length }}
+                            </div>
+                        </div>
+                    </template>
+                </Column>
+            </DataTable>
         </div>
         <div v-if="!loading" class="right">
             <BattlePreview v-if="selectedBattle" :battle="selectedBattle">
@@ -279,5 +279,11 @@ async function onPasswordPromptSubmit(data) {
     position: relative;
     min-width: 400px;
     max-width: 400px;
+}
+:deep(.p-datatable) {
+    height: 100%;
+}
+:deep(.p-datatable-wrapper) {
+    height: 100%;
 }
 </style>
