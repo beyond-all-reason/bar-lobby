@@ -29,6 +29,7 @@
                     selectionMode="single"
                     :sortOrder="-1"
                     sortField="playerCount.value"
+                    :virtualScrollerOptions="{ itemSize: 50 }"
                     @row-dblclick="onDoubleClick"
                 >
                     <Column headerStyle="width: 0" sortable sortField="isLockedOrPassworded.value">
