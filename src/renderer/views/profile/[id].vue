@@ -93,7 +93,7 @@ TODO:
 </template>
 
 <script lang="ts" setup>
-import { computed, ComputedRef, defineProps, Ref, ref } from "vue";
+import { computed, ComputedRef, Ref, ref } from "vue";
 
 // replace with real api call
 // eslint-disable-next-line no-restricted-imports

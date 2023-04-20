@@ -222,7 +222,8 @@ export class CommsAPI extends TachyonClient {
         this.onResponse("s.lobby.remove_start_area").add((data) => {
             const battle = api.session.battles.get(data.lobby_id);
             if (battle) {
-                delete battle.battleOptions.startBoxes[data.area_id];
+                // TODO: using assertion as quick fix hack for now instead of updating tachyon-client because current tachon-client is deprecated anyway
+                delete battle.battleOptions.startBoxes[(data.area_id as any).area_id];
             }
         });
 

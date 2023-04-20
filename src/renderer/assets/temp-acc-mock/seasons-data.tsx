@@ -1,5 +1,3 @@
-
-
 interface Army {
   win: number;
   lost: number;
