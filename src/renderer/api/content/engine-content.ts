@@ -1,5 +1,6 @@
 import axios from "axios";
 import * as fs from "fs";
+import * as glob from "glob-promise";
 import { removeFromArray } from "jaz-ts-utils";
 import { Octokit } from "octokit";
 import * as path from "path";
@@ -7,42 +8,49 @@ import { reactive } from "vue";
 
 import { AbstractContentAPI } from "@/api/content/abstract-content";
 import { contentSources } from "@/config/content-sources";
+import { EngineAI, EngineVersion } from "@/model/cache/engine-version";
 import { DownloadInfo } from "@/model/downloads";
 import { extract7z } from "@/utils/extract7z";
+import { parseLuaOptions } from "@/utils/parse-lua-options";
+import { parseLuaTable } from "@/utils/parse-lua-table";
 
 export const engineVersionRegex = /^(?<major>\d+)\.(?<minor>\d+)\.(?<patch>\d+)-(?<revision>\d+)-g(?<sha>[0-9a-f]+) (?<branch>.*)$/i;
 export const gitEngineTagRegex = /^.*?\{(?<branch>.*?)\}(?<major>\d+)\.(?<minor>\d+)\.(?<patch>\d+)-(?<revision>\d+)-g(?<sha>[0-9a-f]+)$/i;
 
-export class EngineContentAPI extends AbstractContentAPI {
-    public readonly installedVersions: string[] = reactive([]);
-
-    protected readonly engineDir = path.join(api.info.contentPath, "engine");
+export class EngineContentAPI extends AbstractContentAPI<EngineVersion> {
+    protected readonly engineDirs = path.join(api.info.contentPath, "engine");
     protected readonly ocotokit = new Octokit();
 
     public override async init() {
-        await fs.promises.mkdir(this.engineDir, { recursive: true });
+        await fs.promises.mkdir(this.engineDirs, { recursive: true });
 
         const engineVersions = await api.cacheDb.selectFrom("engineVersion").selectAll().execute();
 
         for (const version of engineVersions) {
-            this.installedVersions.push(version.id);
+            this.installedVersions.push(version);
         }
 
-        const files = await fs.promises.readdir(this.engineDir, { withFileTypes: true });
+        const files = await fs.promises.readdir(this.engineDirs, { withFileTypes: true });
         const dirs = files.filter((file) => file.isDirectory()).map((dir) => dir.name);
         for (const dir of dirs) {
-            if (!this.installedVersions.includes(dir)) {
+            if (!this.isVersionInstalled(dir)) {
                 await this.addEngine(dir, false);
             }
         }
+
+        await this.cleanupOldVersions();
 
         this.sortVersions();
 
         return this;
     }
 
+    public isVersionInstalled(id: string): boolean {
+        return this.installedVersions.some((installedVersion) => installedVersion.id === id);
+    }
+
     public async downloadEngine(engineVersion: string) {
-        if (this.installedVersions.includes(engineVersion)) {
+        if (this.isVersionInstalled(engineVersion)) {
             return;
         }
 
@@ -88,46 +96,43 @@ export class EngineContentAPI extends AbstractContentAPI {
 
         const engine7z = downloadResponse.data as ArrayBuffer;
 
-        const downloadPath = path.join(api.info.contentPath, "engine");
-        const downloadFile = path.join(downloadPath, asset.name);
+        const downloadFile = path.join(this.engineDirs, asset.name);
 
-        await fs.promises.mkdir(downloadPath, { recursive: true });
+        await fs.promises.mkdir(this.engineDirs, { recursive: true });
         await fs.promises.writeFile(downloadFile, Buffer.from(engine7z), { encoding: "binary" });
 
         await extract7z(downloadFile, engineVersion);
 
         await fs.promises.unlink(downloadFile);
 
-        this.installedVersions.push(engineVersion);
-        this.sortVersions();
-
         removeFromArray(this.currentDownloads, downloadInfo);
         this.downloadComplete(downloadInfo);
-
-        await api.content.ai.processAis(engineVersion);
 
         return engineVersion;
     }
 
-    public async getEngineReleaseInfo(engineTag: string) {
-        try {
-            const release = await this.ocotokit.rest.repos.getReleaseByTag({
-                owner: contentSources.engineGitHub.owner,
-                repo: contentSources.engineGitHub.repo,
-                tag: engineTag,
-            });
-
-            return release;
-        } catch (err) {
-            console.error(err);
-            throw new Error(`Couldn't get engine release for tag: ${engineTag}`);
+    public async uninstallVersion(version: EngineVersion | string) {
+        if (typeof version === "object") {
+            version = version.id;
         }
+
+        const engineDir = path.join(this.engineDirs, version);
+        await fs.promises.rm(engineDir, { force: true, recursive: true });
+
+        await this.uncacheVersion(version);
+
+        const index = this.installedVersions.findIndex((installedVersion) => installedVersion.id === version);
+        this.installedVersions.splice(index, 1);
+    }
+
+    protected async uncacheVersion(id: string) {
+        await api.cacheDb.deleteFrom("engineVersion").where("id", "=", id).execute();
     }
 
     protected sortVersions() {
         this.installedVersions.sort((a, b) => {
-            const aParts = this.parseEngineVersionParts(a);
-            const bParts = this.parseEngineVersionParts(b);
+            const aParts = this.parseEngineVersionParts(a.id);
+            const bParts = this.parseEngineVersionParts(b.id);
 
             if (aParts.major > bParts.major) {
                 return 1;
@@ -143,10 +148,6 @@ export class EngineContentAPI extends AbstractContentAPI {
 
             return 0;
         });
-    }
-
-    protected isEngineVersionString(version: string): boolean {
-        return engineVersionRegex.test(version);
     }
 
     /**
@@ -180,26 +181,88 @@ export class EngineContentAPI extends AbstractContentAPI {
     }
 
     protected override async downloadComplete(downloadInfo: DownloadInfo) {
-        super.downloadComplete(downloadInfo);
+        await this.addEngine(downloadInfo.name, true);
 
-        this.addEngine(downloadInfo.name);
+        super.downloadComplete(downloadInfo);
     }
 
-    protected async addEngine(engine: string, sort = true) {
-        if (!this.installedVersions.includes(engine)) {
-            this.installedVersions.push(engine);
+    protected async addEngine(id: string, sort = true) {
+        if (this.isVersionInstalled(id)) {
+            return;
+        }
 
-            if (sort) {
-                this.sortVersions();
+        const ais = await this.parseAis(id);
+
+        const engineVersion = await api.cacheDb.insertInto("engineVersion").values({ id, ais, lastLaunched: new Date() }).returningAll().executeTakeFirstOrThrow();
+
+        this.installedVersions.push(engineVersion);
+
+        if (sort) {
+            this.sortVersions();
+        }
+    }
+
+    protected async parseAis(engineVersion: string): Promise<EngineAI[]> {
+        const ais: EngineAI[] = [];
+
+        const aisPath = path.join(this.engineDirs, engineVersion, "AI", "Skirmish");
+        const aiDirs = await fs.promises.readdir(aisPath);
+        for (const aiDir of aiDirs) {
+            try {
+                const ai = await this.parseAi(path.join(aisPath, aiDir));
+                ais.push(ai);
+            } catch (err) {
+                console.error(`Error parsing AI: ${aiDir}`, err);
             }
+        }
 
-            await api.cacheDb
-                .insertInto("engineVersion")
-                .onConflict((oc) => oc.doNothing())
-                .values({
-                    id: engine,
-                })
-                .execute();
+        return ais;
+    }
+
+    protected async parseAi(aiPath: string): Promise<EngineAI> {
+        const aiDefinitions = await glob.promise(`${aiPath}/**/{AIInfo.lua,AIOptions.lua}`);
+        const aiInfoPath = aiDefinitions.find((filePath) => filePath.endsWith("AIInfo.lua"));
+        const aiOptionsPath = aiDefinitions.find((filePath) => filePath.endsWith("AIOptions.lua"));
+
+        if (aiInfoPath === undefined) {
+            throw new Error(`AIInfo.lua not found in ${aiPath}`);
+        }
+
+        if (aiOptionsPath === undefined) {
+            throw new Error(`AIOptions.lua not found in ${aiPath}`);
+        }
+
+        const aiInfoFile = await fs.promises.readFile(aiInfoPath);
+        const aiInfoFields = parseLuaTable(aiInfoFile);
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const aiInfo: Record<string, any> = {};
+        for (const field of aiInfoFields) {
+            aiInfo[field.key] = field.value;
+        }
+
+        const aiOptionsFile = await fs.promises.readFile(aiOptionsPath);
+        const aiOptions = parseLuaOptions(aiOptionsFile);
+
+        return {
+            shortName: aiInfo.shortName,
+            name: aiInfo.name,
+            description: aiInfo.description,
+            version: aiInfo.version,
+            options: aiOptions,
+        };
+    }
+
+    protected async cleanupOldVersions() {
+        const maxDays = 90;
+
+        const oldestDate = new Date();
+        oldestDate.setDate(oldestDate.getDate() - maxDays);
+
+        const versionsToRemove = await api.cacheDb.selectFrom("engineVersion").where("lastLaunched", "<", oldestDate).select("id").execute();
+
+        for (const version of versionsToRemove) {
+            await this.uninstallVersion(version.id);
         }
     }
 }

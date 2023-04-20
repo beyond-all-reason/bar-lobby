@@ -172,18 +172,19 @@ export class CommsAPI extends TachyonClient {
             const battle = api.session.onlineBattle.value;
             if (battle) {
                 battle.handleServerResponse({
-                    modoptions: data.new_options,
+                    // TODO: using assertion as quick fix hack for now instead of updating tachyon-client because current tachon-client is deprecated anyway
+                    modoptions: (data.new_options as any).options,
                 });
             }
         });
 
-        this.onResponse("s.lobby.updated_client_battlestatus").add(({ client }) => {
+        this.onResponse("s.lobby.updated_client_battlestatus").add(async ({ client }) => {
             api.session.updateUserBattleStauts(client);
 
             const battle = api.session.onlineBattle.value;
             if (battle && battle.battleOptions.founderId === client.userid) {
                 if (client.in_game) {
-                    api.game.launch(battle);
+                    await api.game.launch(battle);
                 }
             }
         });
@@ -321,7 +322,8 @@ export class CommsAPI extends TachyonClient {
         this.onResponse("s.lobby.updated_queue").add((data) => {
             const battle = api.session.battles.get(data.lobby_id);
             if (battle) {
-                battle.battleOptions.joinQueueUserIds = data.queue;
+                // TODO: using assertion as quick fix hack for now instead of updating tachyon-client because current tachon-client is deprecated anyway
+                battle.battleOptions.joinQueueUserIds = (data.queue as any).id_list;
             }
         });
     }

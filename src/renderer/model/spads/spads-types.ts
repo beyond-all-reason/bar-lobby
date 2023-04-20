@@ -2,6 +2,7 @@ import { TSchema } from "@sinclair/typebox";
 
 export type SpadsCommandDefinition = {
     name: string;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     args: SpadsCommandArgumentDefinition<any>[];
     help: string;
 };

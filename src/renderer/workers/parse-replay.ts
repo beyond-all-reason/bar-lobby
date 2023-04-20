@@ -29,7 +29,7 @@ export const parseReplay = exposeWorkerFunction(async (replayPath: string) => {
         startTime: replayData.info.meta.startTime,
         gameDurationMs: replayData.info.meta.durationMs,
         gameEndedNormally: replayData.info.meta.winningAllyTeamIds.length > 0,
-        chatlog: replayData.chatlog,
+        chatlog: replayData.chatlog || null,
         hasBots: replayData.info.ais.length > 0,
         preset: preset,
         winningTeamId: replayData.info.meta.winningAllyTeamIds[0],

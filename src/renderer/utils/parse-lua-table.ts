@@ -36,7 +36,7 @@ export function parseLuaTable(luaFile: Buffer, options?: ParseLuaTableOptions): 
     return luaTableToObj(tableConstructorExpression);
 }
 
-export function luaTableToObj(table: TableConstructorExpression): any {
+function luaTableToObj(table: TableConstructorExpression): any {
     const blocks: any[] = [];
     const obj: Record<string, unknown> = {};
 

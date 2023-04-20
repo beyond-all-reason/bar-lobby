@@ -31,7 +31,7 @@ import type {
   // data fetching
   _DataLoader,
   _DefineLoaderOptions,
-} from 'unplugin-vue-router'
+} from 'unplugin-vue-router/types'
 
 declare module 'vue-router/auto/routes' {
   export interface RouteNamedMap {
@@ -50,8 +50,8 @@ declare module 'vue-router/auto/routes' {
     '/development/server-dev': RouteRecordInfo<'/development/server-dev', '/development/server-dev', Record<never, never>, Record<never, never>>,
     '/development/website-dev': RouteRecordInfo<'/development/website-dev', '/development/website-dev', Record<never, never>, Record<never, never>>,
     '/home/': RouteRecordInfo<'/home/', '/home', Record<never, never>, Record<never, never>>,
-    '/home/changes': RouteRecordInfo<'/home/changes', '/home/changes', Record<never, never>, Record<never, never>>,
     '/home/donate': RouteRecordInfo<'/home/donate', '/home/donate', Record<never, never>, Record<never, never>>,
+    '/home/changes': RouteRecordInfo<'/home/changes', '/home/changes', Record<never, never>, Record<never, never>>,
     '/home/news': RouteRecordInfo<'/home/news', '/home/news', Record<never, never>, Record<never, never>>,
     '/home/overview': RouteRecordInfo<'/home/overview', '/home/overview', Record<never, never>, Record<never, never>>,
     '/home/store': RouteRecordInfo<'/home/store', '/home/store', Record<never, never>, Record<never, never>>,
@@ -137,7 +137,7 @@ declare module 'vue-router/auto' {
   export function onBeforeRouteUpdate(guard: NavigationGuard<RouteNamedMap>): void
 
   export const RouterLink: RouterLinkTyped<RouteNamedMap>
-  
+
   // Experimental Data Fetching
 
   export function defineLoader<

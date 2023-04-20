@@ -9,7 +9,7 @@
                         <template v-for="option in section.options.filter((option) => !option.hidden)" :key="option.key">
                             <div>
                                 <div>{{ option.name }}</div>
-                                <div v-if="option.description" class="txt-sm flex-wrap">
+                                <div v-if="option.description" class="description txt-sm flex-wrap">
                                     {{ option.description }}
                                 </div>
                             </div>
@@ -122,6 +122,9 @@ function save() {
     flex-direction: column;
     width: 700px;
     height: 600px;
+}
+.description {
+    white-space: pre;
 }
 .actions {
     display: flex;

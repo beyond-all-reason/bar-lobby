@@ -3,7 +3,7 @@
         <div class="flex-row flex-center">
             <Icon :icon="robot" :height="16" />
         </div>
-        <div>{{ getAiFriendlyName(props.bot.aiShortName) }}</div>
+        <div>{{ bot.name }}</div>
     </TeamParticipant>
     <LuaOptionsModal
         :id="`configure-bot-${bot.name}`"
@@ -25,7 +25,6 @@ import { Ref, ref } from "vue";
 import LuaOptionsModal from "@/components/battle/LuaOptionsModal.vue";
 import TeamParticipant from "@/components/battle/TeamParticipant.vue";
 import ContextMenu from "@/components/common/ContextMenu.vue";
-import { getAiFriendlyName } from "@/model/ai";
 import { AbstractBattle } from "@/model/battle/abstract-battle";
 import { Bot } from "@/model/battle/battle-types";
 import { LuaOptionSection } from "@/model/lua-options";
@@ -61,9 +60,8 @@ function kickBot() {
 }
 
 async function configureBot() {
-    const engine = props.battle.battleOptions.engineVersion;
-    await api.content.ai.processAis(engine);
-    const ai = api.content.ai.getEngineAI(props.bot.aiShortName, engine);
+    const engineVersion = api.content.engine.installedVersions.find((version) => version.id === props.battle.battleOptions.engineVersion);
+    const ai = engineVersion?.ais.find((ai) => ai.name === props.bot.name);
     if (ai) {
         botOptions.value = ai.options;
         botOptionsOpen.value = true;

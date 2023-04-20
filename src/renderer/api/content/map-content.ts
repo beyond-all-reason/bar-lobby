@@ -1,5 +1,5 @@
 import * as fs from "fs";
-import { asArray, delay, Signal } from "jaz-ts-utils";
+import { delay, removeFromArray, Signal } from "jaz-ts-utils";
 import * as path from "path";
 import url from "url";
 import { reactive } from "vue";
@@ -10,12 +10,9 @@ import { parseMap as parseMapWorkerFunction } from "@/workers/parse-map";
 import { hookWorkerFunction } from "@/workers/worker-helpers";
 
 /**
- * TODO
- * - replace queue method with syncMapCache function once prd returns map file name
+ * @todo replace queue method with syncMapCache function once prd returns map file name
  */
-
-export class MapContentAPI extends PrDownloaderAPI {
-    public readonly installedMaps: MapData[] = reactive([]);
+export class MapContentAPI extends PrDownloaderAPI<MapData> {
     public readonly onMapCached: Signal<MapData> = new Signal();
 
     protected readonly mapsDir = path.join(api.info.contentPath, "maps");
@@ -30,8 +27,7 @@ export class MapContentAPI extends PrDownloaderAPI {
 
         const maps = await api.cacheDb.selectFrom("map").selectAll().execute();
 
-        this.installedMaps.length = 0;
-        this.installedMaps.push(...maps);
+        this.installedVersions.push(...maps);
 
         await this.queueMapsToCache();
 
@@ -40,22 +36,36 @@ export class MapContentAPI extends PrDownloaderAPI {
         return super.init();
     }
 
-    public getMapByScriptName(scriptName: string) {
-        return this.installedMaps.find((map) => map.scriptName === scriptName);
+    public isVersionInstalled(id: string): boolean {
+        return this.installedVersions.some((map) => map.scriptName === id);
     }
 
-    public async downloadMaps(scriptNameOrNames: string | string[]) {
-        const scriptNames = asArray(scriptNameOrNames);
+    public getMapByScriptName(scriptName: string) {
+        return this.installedVersions.find((map) => map.scriptName === scriptName);
+    }
 
-        for (const scriptName of scriptNames) {
-            if (this.installedMaps.some((map) => map.scriptName === scriptName) || this.currentDownloads.some((download) => download.name === scriptName)) {
-                continue;
-            }
+    public async downloadMaps(scriptNames: string[]) {
+        return Promise.all(scriptNames.map((scriptName) => this.downloadMap(scriptName)));
+    }
 
-            await this.downloadContent("map", scriptName);
-
-            await this.queueMapsToCache();
+    public async downloadMap(scriptName: string) {
+        if (this.installedVersions.some((map) => map.scriptName === scriptName)) {
+            return;
         }
+
+        if (this.currentDownloads.some((download) => download.name === scriptName)) {
+            await new Promise<void>((resolve) => {
+                this.onDownloadComplete.addOnce((mapData) => {
+                    if (mapData.name === scriptName) {
+                        resolve();
+                    }
+                });
+            });
+        } else {
+            await this.downloadContent("map", scriptName);
+        }
+
+        await this.queueMapsToCache();
     }
 
     public getMapImages(mapData: MapData | undefined) {
@@ -100,19 +110,31 @@ export class MapContentAPI extends PrDownloaderAPI {
         }
     }
 
-    public async uninstallMap(mapScriptName: string) {
-        const mapData = this.installedMaps.find((map) => map.scriptName === mapScriptName);
-        if (mapData) {
-            const mapPath = path.join(this.mapsDir, mapData.fileName);
-            await fs.promises.rm(mapPath);
+    public async uninstallVersion(version: MapData) {
+        const mapFile = path.join(this.mapsDir, version.fileName);
+        await fs.promises.rm(mapFile, { force: true, recursive: true });
 
-            console.debug(`${mapScriptName} successfully uninstalled`);
-        }
+        await this.uncacheMap(version.fileName);
+
+        removeFromArray(this.installedVersions, version);
+
+        console.debug(`Map removed: ${version.scriptName}`);
     }
 
-    public async clearCache() {
-        await api.cacheDb.deleteFrom("map").execute();
-        await api.cacheDb.deleteFrom("mapError").execute();
+    protected async uncacheMap(fileName: string) {
+        const fileNameWithoutExt = path.parse(fileName).name;
+
+        await fs.promises.rm(path.join(this.mapImagesDir, `${fileNameWithoutExt}-texture.jpg`), { force: true });
+        await fs.promises.rm(path.join(this.mapImagesDir, `${fileNameWithoutExt}-height.jpg`), { force: true });
+        await fs.promises.rm(path.join(this.mapImagesDir, `${fileNameWithoutExt}-metal.jpg`), { force: true });
+        await fs.promises.rm(path.join(this.mapImagesDir, `${fileNameWithoutExt}-type.jpg`), { force: true });
+
+        await api.cacheDb.deleteFrom("map").where("fileName", "=", fileName).execute();
+
+        const index = this.installedVersions.findIndex((map) => map.fileName === fileName);
+        if (index) {
+            this.installedVersions.splice(index, 1);
+        }
     }
 
     protected async cacheMaps() {
@@ -140,7 +162,7 @@ export class MapContentAPI extends PrDownloaderAPI {
             const fileName = path.parse(mapFileName).name;
 
             const existingCachedMap = await api.cacheDb.selectFrom("map").select("mapId").where("fileName", "=", fileName).executeTakeFirst();
-            if (existingCachedMap || this.installedMaps.some((map) => map.fileName === mapFileName)) {
+            if (existingCachedMap || this.installedVersions.some((map) => map.fileName === mapFileName)) {
                 console.debug(`${fileName} already cached`);
                 this.mapCacheQueue.delete(mapFileName);
                 return;
@@ -155,7 +177,10 @@ export class MapContentAPI extends PrDownloaderAPI {
 
             const mapData = await api.cacheDb
                 .insertInto("map")
-                .values(parsedMap)
+                .values({
+                    ...parsedMap,
+                    lastLaunched: new Date(),
+                })
                 .onConflict((oc) => {
                     const { scriptName, fileName, ...nonUniqueValues } = parsedMap;
                     return oc.doUpdateSet(nonUniqueValues);
@@ -164,7 +189,7 @@ export class MapContentAPI extends PrDownloaderAPI {
                 .executeTakeFirst();
 
             if (mapData) {
-                this.installedMaps.push(mapData);
+                this.installedVersions.push(mapData);
                 this.onMapCached.dispatch(mapData);
             }
 
@@ -190,22 +215,6 @@ export class MapContentAPI extends PrDownloaderAPI {
                 }
             });
         });
-    }
-
-    protected async uncacheMap(fileName: string) {
-        const fileNameWithoutExt = path.parse(fileName).name;
-
-        await fs.promises.rm(path.join(this.mapImagesDir, `${fileNameWithoutExt}-texture.jpg`), { force: true });
-        await fs.promises.rm(path.join(this.mapImagesDir, `${fileNameWithoutExt}-height.jpg`), { force: true });
-        await fs.promises.rm(path.join(this.mapImagesDir, `${fileNameWithoutExt}-metal.jpg`), { force: true });
-        await fs.promises.rm(path.join(this.mapImagesDir, `${fileNameWithoutExt}-type.jpg`), { force: true });
-
-        await api.cacheDb.deleteFrom("map").where("fileName", "=", fileName).execute();
-
-        const index = this.installedMaps.findIndex((map) => map.fileName === fileName);
-        if (index) {
-            this.installedMaps.splice(index, 1);
-        }
     }
 
     // currently unused, waiting for prd to return map file name so we know which file to cache
