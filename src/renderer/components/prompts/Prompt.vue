@@ -13,16 +13,17 @@
 <script lang="ts" setup>
 import { ref } from "vue";
 
+import { promptRef } from "@/api/prompt";
 import Button from "@/components/controls/Button.vue";
 
 const form = ref<HTMLFormElement>();
 
 function cancel() {
-    api.prompt.promptRef.value?.close();
+    promptRef.value?.close();
 }
 
 function submit() {
-    api.prompt.promptRef.value?.submit();
+    promptRef.value?.submit();
 }
 </script>
 

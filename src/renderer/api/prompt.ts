@@ -19,23 +19,21 @@ type BindingReturnType<C extends DefineComponent<any, any, any>> = C extends Def
 type MethodReturnType<C extends DefineComponent<any, any, any, any, any>> = C extends DefineComponent<any, any, any, any, infer X> ? (X extends { returnValue: () => infer Y } ? Y : never) : never;
 type ReturnType<C extends DefineComponent<any, any, any, any, any>> = BindingReturnType<C> extends never ? MethodReturnType<C> : BindingReturnType<C>;
 
-export class PromptAPI {
-    public readonly promptRef = shallowRef<Prompt<any>>();
+export const promptRef = shallowRef<Prompt<any>>();
 
-    public open<C extends DefineComponent<any, any, any, any, any>>(options: PromptOptions<C>): Promise<ReturnType<C> | undefined> {
-        return new Promise((resolve) => {
-            this.promptRef.value = {
-                ...options,
-                close: () => {
-                    resolve(undefined);
-                    this.promptRef.value = undefined;
-                },
-                submit: () => {
-                    const returnValue = this.promptRef.value?.componentInstance?.returnValue();
-                    resolve(returnValue);
-                    this.promptRef.value = undefined;
-                },
-            };
-        });
-    }
+export function prompt<C extends DefineComponent<any, any, any, any, any>>(options: PromptOptions<C>): Promise<ReturnType<C> | undefined> {
+    return new Promise((resolve) => {
+        promptRef.value = {
+            ...options,
+            close: () => {
+                resolve(undefined);
+                promptRef.value = undefined;
+            },
+            submit: () => {
+                const returnValue = promptRef.value?.componentInstance?.returnValue();
+                resolve(returnValue);
+                promptRef.value = undefined;
+            },
+        };
+    });
 }

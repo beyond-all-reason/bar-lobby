@@ -26,9 +26,9 @@ import { Icon } from "@iconify/vue";
 import closeThick from "@iconify-icons/mdi/close-thick";
 import { ref, watch } from "vue";
 
+import { promptRef } from "@/api/prompt";
 import Panel from "@/components/common/Panel.vue";
 
-const promptRef = api.prompt.promptRef;
 const promptInstance = ref();
 watch(promptInstance, () => {
     if (promptInstance.value && promptRef.value) {
@@ -37,7 +37,7 @@ watch(promptInstance, () => {
 });
 
 function close() {
-    api.prompt.promptRef.value?.close();
+    promptRef.value?.close();
 }
 
 function sound() {

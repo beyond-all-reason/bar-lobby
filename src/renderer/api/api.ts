@@ -11,7 +11,7 @@ import { CommsAPI } from "@/api/comms";
 import { ContentAPI } from "@/api/content/content";
 import { GameAPI } from "@/api/game";
 import { NotificationsAPI } from "@/api/notifications";
-import { PromptAPI } from "@/api/prompt";
+import { prompt } from "@/api/prompt";
 import { SessionAPI } from "@/api/session";
 import { StoreAPI } from "@/api/store";
 import { UtilsAPI } from "@/api/utils";
@@ -29,7 +29,7 @@ interface API {
     game: GameAPI;
     info: Info;
     notifications: NotificationsAPI;
-    prompt: PromptAPI;
+    prompt: typeof prompt;
     router: Router;
     session: SessionAPI;
     settings: StoreAPI<typeof settingsSchema>;
@@ -92,5 +92,5 @@ export async function apiInit() {
 
     api.notifications = new NotificationsAPI();
 
-    api.prompt = new PromptAPI();
+    api.prompt = prompt;
 }

@@ -9,7 +9,7 @@ import Button from "@/components/controls/Button.vue";
 import Password from "@/components/prompts/Password.vue";
 
 async function go() {
-    const data = await api.prompt.open({
+    const data = await api.prompt({
         component: Password,
         title: "Battle Password",
     });
