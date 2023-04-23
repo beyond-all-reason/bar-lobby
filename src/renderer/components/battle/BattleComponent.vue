@@ -1,7 +1,12 @@
 <template>
     <div :class="['battle-container', { singleplayer: isOfflineBattle(battle) }]">
         <div class="header flex-col gap-md">
-            <h1 class="title">{{ battle.battleOptions.title }}</h1>
+            <div class="flex-row flex-center-items">
+                <h1 class="title">{{ battle.battleOptions.title }}</h1>
+                <div v-if="isSpadsBattle(battle)" class="flex-col flex-center edit-title">
+                    <Icon :icon="squareEditOutline" height="23" />
+                </div>
+            </div>
             <div v-if="isSpadsBattle(battle)" class="subtitle flex-row gap-md flex-wrap">
                 <div class="flex-row gap-sm">
                     Hosted by
@@ -195,6 +200,7 @@
 import { Icon } from "@iconify/vue";
 import cogIcon from "@iconify-icons/mdi/cog";
 import listIcon from "@iconify-icons/mdi/format-list-bulleted";
+import squareEditOutline from "@iconify-icons/mdi/square-edit-outline";
 import { computed, Ref, ref } from "vue";
 
 import BattleChat from "@/components/battle/BattleChat.vue";
@@ -365,6 +371,13 @@ async function start() {
 .title {
     font-size: 30px;
     line-height: 1.2;
+}
+.edit-title {
+    padding: 5px;
+    color: rgba(255, 255, 255, 0.5);
+    &:hover {
+        color: #fff;
+    }
 }
 .subtitle {
     font-size: 16px;

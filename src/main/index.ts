@@ -1,6 +1,5 @@
 import { safeStorage } from "electron";
 import { app, ipcMain, protocol, screen } from "electron";
-import installExtension, { VUEJS_DEVTOOLS } from "electron-devtools-installer";
 import unhandled from "electron-unhandled";
 import { autoUpdater } from "electron-updater";
 import envPaths from "env-paths";
@@ -64,7 +63,7 @@ export class Application {
     protected async onReady() {
         if (process.env.NODE_ENV === "development") {
             try {
-                await installExtension(VUEJS_DEVTOOLS);
+                // await installExtension(VUEJS_DEVTOOLS);
             } catch (err) {
                 console.error("Vue Devtools failed to install:", err?.toString());
             }

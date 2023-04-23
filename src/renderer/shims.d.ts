@@ -1,9 +1,9 @@
 declare const __static: string;
 
+/* eslint-disable */
 declare module "*.vue" {
-    import type { DefineComponent } from "vue";
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const component: DefineComponent<Record<string, unknown>, Record<string, unknown>, any>;
+    import type { Component } from "vue";
+    const component: Component<{}, {}, any>;
     export default component;
 }
 

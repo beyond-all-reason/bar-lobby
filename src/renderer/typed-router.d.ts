@@ -43,6 +43,7 @@ declare module 'vue-router/auto/routes' {
     '/debug/pixi-map': RouteRecordInfo<'/debug/pixi-map', '/debug/pixi-map', Record<never, never>, Record<never, never>>,
     '/debug/script-launcher': RouteRecordInfo<'/debug/script-launcher', '/debug/script-launcher', Record<never, never>, Record<never, never>>,
     '/debug/test': RouteRecordInfo<'/debug/test', '/debug/test', Record<never, never>, Record<never, never>>,
+    '/debug/test2': RouteRecordInfo<'/debug/test2', '/debug/test2', Record<never, never>, Record<never, never>>,
     '/development/': RouteRecordInfo<'/development/', '/development', Record<never, never>, Record<never, never>>,
     '/development/game-dev': RouteRecordInfo<'/development/game-dev', '/development/game-dev', Record<never, never>, Record<never, never>>,
     '/development/lobby-dev': RouteRecordInfo<'/development/lobby-dev', '/development/lobby-dev', Record<never, never>, Record<never, never>>,

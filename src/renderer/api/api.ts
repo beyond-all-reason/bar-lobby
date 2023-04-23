@@ -11,6 +11,7 @@ import { CommsAPI } from "@/api/comms";
 import { ContentAPI } from "@/api/content/content";
 import { GameAPI } from "@/api/game";
 import { NotificationsAPI } from "@/api/notifications";
+import { PromptAPI } from "@/api/prompt";
 import { SessionAPI } from "@/api/session";
 import { StoreAPI } from "@/api/store";
 import { UtilsAPI } from "@/api/utils";
@@ -21,13 +22,14 @@ import { settingsSchema } from "$/model/settings";
 
 interface API {
     account: StoreAPI<typeof accountSchema>;
-    notifications: NotificationsAPI;
     audio: AudioAPI;
     cacheDb: CacheDbAPI;
     comms: CommsAPI;
     content: ContentAPI;
     game: GameAPI;
     info: Info;
+    notifications: NotificationsAPI;
+    prompt: PromptAPI;
     router: Router;
     session: SessionAPI;
     settings: StoreAPI<typeof settingsSchema>;
@@ -89,4 +91,6 @@ export async function apiInit() {
     api.content = await new ContentAPI().init();
 
     api.notifications = new NotificationsAPI();
+
+    api.prompt = new PromptAPI();
 }
