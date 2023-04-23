@@ -33,6 +33,7 @@ export class PromptAPI {
                 submit: () => {
                     const returnValue = this.promptRef.value?.componentInstance?.returnValue();
                     resolve(returnValue);
+                    this.promptRef.value = undefined;
                 },
             };
         });

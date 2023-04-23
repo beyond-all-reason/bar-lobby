@@ -22,20 +22,6 @@ function cancel() {
 }
 
 function submit() {
-    // const data: Record<string, unknown> = {};
-
-    // if (!form.value?.elements) {
-    //     return;
-    // }
-
-    // // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    // const fields = Array.from(form.value.elements) as any;
-    // for (const field of fields) {
-    //     if (field.name && field.value !== undefined) {
-    //         data[field.name] = field.value;
-    //     }
-    // }
-
     api.prompt.promptRef.value?.submit();
 }
 </script>
