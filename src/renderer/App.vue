@@ -7,7 +7,7 @@
         <StickyBattle />
         <Background :blur="blurBg" />
         <Notifications />
-        <DialogContainer />
+        <PromptContainer />
         <div class="lobby-version">
             {{ lobbyVersion }}
         </div>
@@ -69,7 +69,7 @@ import Breadcrumbs from "@/components/navbar/Breadcrumbs.vue";
 import NavBar from "@/components/navbar/NavBar.vue";
 import Settings from "@/components/navbar/Settings.vue";
 import Notifications from "@/components/notifications/Notifications.vue";
-import DialogContainer from "@/components/prompts/DialogContainer.vue";
+import PromptContainer from "@/components/prompts/PromptContainer.vue";
 import { defaultMaps } from "@/config/default-maps";
 import { defaultEngineVersion, defaultGameVersion } from "@/config/default-versions";
 import { playRandomMusic } from "@/utils/play-random-music";
