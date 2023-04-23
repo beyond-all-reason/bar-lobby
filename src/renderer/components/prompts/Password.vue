@@ -1,6 +1,6 @@
 <template>
     <Prompt>
-        <Textbox v-model="password" label="Password" type="password" required />
+        <Textbox v-model="password" label="Password" type="password" />
     </Prompt>
 </template>
 

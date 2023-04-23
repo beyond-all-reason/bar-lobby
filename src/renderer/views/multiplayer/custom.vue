@@ -110,6 +110,8 @@ import { getFriendlyDuration } from "@/utils/misc";
 import { isSpadsBattle } from "@/utils/type-checkers";
 
 const loading = ref(false);
+const intervalId = ref(0);
+const active = ref(true);
 const hostBattleOpen = ref(false);
 const searchVal = ref("");
 const selectedBattle: Ref<SpadsBattle | null> = shallowRef(null);
@@ -166,11 +168,6 @@ const battles = computed(() => {
     return battles;
 });
 
-let intervalId = 0;
-let active = true;
-
-const abortController = new AbortController();
-
 const watchForLobbyJoin = api.comms.onResponse("s.lobby.updated_client_battlestatus").add(() => {
     loading.value = false;
 });
@@ -184,15 +181,16 @@ const watchForLobbyJoinFailure = api.comms.onResponse("s.lobby.join").add((data)
 onBeforeUnmount(() => {
     watchForLobbyJoin.destroy();
     watchForLobbyJoinFailure.destroy();
-    abortController.abort();
-    window.clearInterval(intervalId);
-    active = false;
+    window.clearInterval(intervalId.value);
+    active.value = false;
 });
 
 await updateBattleList();
 
-if (active) {
-    intervalId = window.setInterval(updateBattleList, 5000);
+console.log("e");
+
+if (active.value) {
+    intervalId.value = window.setInterval(updateBattleList, 5000);
 }
 
 async function updateBattleList() {
@@ -204,7 +202,10 @@ async function updateBattleList() {
         userIds.push(battle.founder_id);
     }
 
+    console.log("a");
+
     await api.comms.request("c.user.list_users_from_ids", { id_list: userIds, include_clients: true });
+    console.log("b");
 
     for (const lobby of lobbies) {
         const battle = api.session.battles.get(lobby.lobby.id);
@@ -214,6 +215,7 @@ async function updateBattleList() {
             battle.handleServerResponse(lobby);
         }
     }
+    console.log("c");
 
     // clear up dead battles
     const lobbyIds = lobbies.map((lobby) => lobby.lobby.id);
@@ -222,6 +224,7 @@ async function updateBattleList() {
             api.session.battles.delete(battle.battleOptions.id);
         }
     });
+    console.log("d");
 }
 
 async function onDoubleClick(event: DataTableRowDoubleClickEvent) {

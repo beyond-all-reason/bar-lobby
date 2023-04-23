@@ -117,8 +117,8 @@ function sendMessage() {
 }
 
 async function joinBattle() {
-    // TODO
-    // Will need to move password modal up to top level so it can be prompted from anywhere
+    // TODO: need to know about the battle before attempting to join it because it may be passworded
+    // await attemptJoinBattle();
 }
 
 async function inviteToParty() {
