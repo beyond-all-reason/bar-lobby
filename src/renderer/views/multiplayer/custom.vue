@@ -20,52 +20,54 @@
                 <SearchBox v-model="searchVal" />
             </div>
 
-            <DataTable
-                v-model:selection="selectedBattle"
-                :value="battles"
-                :autoLayout="true"
-                class="p-datatable-sm"
-                selectionMode="single"
-                :sortOrder="-1"
-                sortField="playerCount.value"
-                scrollable
-                scrollHeight="100%"
-                :virtualScrollerOptions="{ itemSize: 50, numToleratedItems: 50 }"
-                @row-dblclick="onDoubleClick"
-            >
-                <Column headerStyle="width: 0" sortable sortField="isLockedOrPassworded.value">
-                    <template #header>
-                        <Icon :icon="lock" />
-                    </template>
-                    <template #body="{ data }">
-                        <Icon v-if="data.isLockedOrPassworded.value" :icon="lock" />
-                    </template>
-                </Column>
-                <Column header="Runtime" sortable sortField="runtimeMs.value">
-                    <template #body="{ data }">
-                        <div v-if="data.runtimeMs.value >= 1">
-                            {{ getFriendlyDuration(data.runtimeMs.value) }}
-                        </div>
-                    </template>
-                </Column>
-                <Column field="battleOptions.title" header="Title" sortable />
-                <Column field="battleOptions.map" header="Map" sortable />
-                <Column header="Players" sortable sortField="playerCount.value">
-                    <template #body="{ data }">
-                        <div class="flex-row flex-center-items gap-md">
-                            <div v-if="data.players.value.length > 0" class="flex-row flex-center-items" style="gap: 2px">
-                                <Icon :icon="account" height="17" />{{ data.players.value.length }}
+            <div class="scroll-container padding-right-sm">
+                <DataTable
+                    v-model:selection="selectedBattle"
+                    :value="battles"
+                    autoLayout
+                    class="p-datatable-sm"
+                    selectionMode="single"
+                    :sortOrder="-1"
+                    sortField="playerCount.value"
+                    paginator
+                    :rows="16"
+                    :pageLinkSize="20"
+                    @row-dblclick="onDoubleClick"
+                >
+                    <Column headerStyle="width: 0" sortable sortField="isLockedOrPassworded.value">
+                        <template #header>
+                            <Icon :icon="lock" />
+                        </template>
+                        <template #body="{ data }">
+                            <Icon v-if="data.isLockedOrPassworded.value" :icon="lock" />
+                        </template>
+                    </Column>
+                    <Column header="Runtime" sortable sortField="runtimeMs.value">
+                        <template #body="{ data }">
+                            <div v-if="data.runtimeMs.value >= 1">
+                                {{ getFriendlyDuration(data.runtimeMs.value) }}
                             </div>
-                            <div v-if="data.spectators.value.length > 0" class="flex-row flex-center-items gap-xs" style="gap: 4px">
-                                <Icon :icon="eye" height="17" />{{ data.spectators.value.length }}
+                        </template>
+                    </Column>
+                    <Column field="battleOptions.title" header="Title" sortable />
+                    <Column field="battleOptions.map" header="Map" sortable />
+                    <Column header="Players" sortable sortField="playerCount.value">
+                        <template #body="{ data }">
+                            <div class="flex-row flex-center-items gap-md">
+                                <div v-if="data.players.value.length > 0" class="flex-row flex-center-items" style="gap: 2px">
+                                    <Icon :icon="account" height="17" />{{ data.players.value.length }}
+                                </div>
+                                <div v-if="data.spectators.value.length > 0" class="flex-row flex-center-items gap-xs" style="gap: 4px">
+                                    <Icon :icon="eye" height="17" />{{ data.spectators.value.length }}
+                                </div>
+                                <div v-if="data.bots.length > 0" class="flex-row flex-center-items gap-xs" style="gap: 4px">
+                                    <Icon :icon="robot" height="17" />{{ data.bots.length }}
+                                </div>
                             </div>
-                            <div v-if="data.bots.length > 0" class="flex-row flex-center-items gap-xs" style="gap: 4px">
-                                <Icon :icon="robot" height="17" />{{ data.bots.length }}
-                            </div>
-                        </div>
-                    </template>
-                </Column>
-            </DataTable>
+                        </template>
+                    </Column>
+                </DataTable>
+            </div>
         </div>
         <div v-if="!loading" class="right">
             <BattlePreview v-if="selectedBattle" :battle="selectedBattle">
@@ -76,16 +78,6 @@
                 </template>
             </BattlePreview>
         </div>
-
-        <Modal v-model="passwordPromptOpen" title="Battle Password" @submit="onPasswordPromptSubmit" @open="failureReason = undefined">
-            <div class="flex-col gap-md">
-                <p>Please enter the password for this battle</p>
-                <Textbox type="password" name="password" class="fullwidth" />
-                <Button type="submit">Submit</Button>
-
-                <div v-if="failureReason" class="txt-error txt-center">{{ failureReason }}</div>
-            </div>
-        </Modal>
     </div>
 </template>
 
@@ -109,12 +101,11 @@ import { computed, onBeforeUnmount, Ref, ref, shallowRef } from "vue";
 import BattlePreview from "@/components/battle/BattlePreview.vue";
 import HostBattle from "@/components/battle/HostBattle.vue";
 import Loader from "@/components/common/Loader.vue";
-import Modal from "@/components/common/Modal.vue";
 import Button from "@/components/controls/Button.vue";
 import Checkbox from "@/components/controls/Checkbox.vue";
 import SearchBox from "@/components/controls/SearchBox.vue";
-import Textbox from "@/components/controls/Textbox.vue";
 import { SpadsBattle } from "@/model/battle/spads-battle";
+import { attemptJoinBattle } from "@/utils/attempt-join-battle";
 import { getFriendlyDuration } from "@/utils/misc";
 import { isSpadsBattle } from "@/utils/type-checkers";
 
@@ -122,8 +113,6 @@ const loading = ref(false);
 const hostBattleOpen = ref(false);
 const searchVal = ref("");
 const selectedBattle: Ref<SpadsBattle | null> = shallowRef(null);
-const passwordPromptOpen = ref(false);
-const failureReason: Ref<string | undefined> = ref();
 const settings = api.settings.model;
 const battles = computed(() => {
     let battles = Array.from(api.session.battles.values());
@@ -235,42 +224,8 @@ async function updateBattleList() {
     });
 }
 
-async function attemptJoinBattle(battle: SpadsBattle) {
-    if (battle.battleOptions.passworded) {
-        passwordPromptOpen.value = true;
-    } else {
-        loading.value = true;
-        // if user is in a other lobby, leave it
-        if (api.session.onlineBattle.value) {
-            await api.comms.request("c.lobby.leave");
-        }
-        await api.comms.request("c.lobby.join", {
-            lobby_id: battle.battleOptions.id,
-        });
-    }
-}
-
 async function onDoubleClick(event: DataTableRowDoubleClickEvent) {
     await attemptJoinBattle(event.data);
-}
-
-async function onPasswordPromptSubmit(data) {
-    if (!selectedBattle.value) {
-        console.warn("Prompting for battle password but no battle selected");
-        return;
-    }
-    loading.value = true;
-    const response = await api.comms.request("c.lobby.join", {
-        lobby_id: selectedBattle.value.battleOptions.id,
-        password: data.password,
-    });
-
-    if (response.result === "failure") {
-        failureReason.value = response.reason;
-        loading.value = false;
-    } else {
-        passwordPromptOpen.value = false;
-    }
 }
 </script>
 
@@ -279,11 +234,5 @@ async function onPasswordPromptSubmit(data) {
     position: relative;
     min-width: 400px;
     max-width: 400px;
-}
-:deep(.p-datatable) {
-    height: 100%;
-}
-:deep(.p-datatable-wrapper) {
-    height: 100%;
 }
 </style>
