@@ -108,6 +108,7 @@ export class CommsAPI extends TachyonClient {
         }
 
         this.onResponse("s.auth.login").add((data) => {
+            // TODO: handle data.result === "queued"
             onLogin(data.result, data.user);
         });
 

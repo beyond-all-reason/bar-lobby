@@ -187,8 +187,6 @@ onBeforeUnmount(() => {
 
 await updateBattleList();
 
-console.log("e");
-
 if (active.value) {
     intervalId.value = window.setInterval(updateBattleList, 5000);
 }
@@ -202,10 +200,7 @@ async function updateBattleList() {
         userIds.push(battle.founder_id);
     }
 
-    console.log("a");
-
     await api.comms.request("c.user.list_users_from_ids", { id_list: userIds, include_clients: true });
-    console.log("b");
 
     for (const lobby of lobbies) {
         const battle = api.session.battles.get(lobby.lobby.id);
@@ -215,7 +210,6 @@ async function updateBattleList() {
             battle.handleServerResponse(lobby);
         }
     }
-    console.log("c");
 
     // clear up dead battles
     const lobbyIds = lobbies.map((lobby) => lobby.lobby.id);
@@ -224,7 +218,6 @@ async function updateBattleList() {
             api.session.battles.delete(battle.battleOptions.id);
         }
     });
-    console.log("d");
 }
 
 async function onDoubleClick(event: DataTableRowDoubleClickEvent) {
