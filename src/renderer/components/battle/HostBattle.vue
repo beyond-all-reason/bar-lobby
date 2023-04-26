@@ -37,8 +37,21 @@ import Button from "@/components/controls/Button.vue";
 import Select from "@/components/controls/Select.vue";
 import Flag from "@/components/misc/Flag.vue";
 
+const clusterUsernames = new Set<string>();
+api.session.battles.forEach((battle) => {
+    const founder = battle.founder.value;
+    if (founder.isBot && founder.username.startsWith("[teh]") && founder.username.endsWith("]")) {
+        try {
+            const clusterName = founder.username.split("]")[1].split("[")[0];
+            clusterUsernames.add(clusterName);
+        } catch (err) {
+            console.error(err);
+        }
+    }
+});
+
 const regions = ref([
-    { name: "Europe", code: "HU" },
+    { name: "Europe", code: "EU" },
     { name: "United States", code: "US" },
     { name: "Australia", code: "AU" },
 ]);

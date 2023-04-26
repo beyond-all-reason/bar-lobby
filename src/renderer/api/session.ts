@@ -95,7 +95,7 @@ export class SessionAPI {
         });
 
         this.offlineUser.username = user.username;
-        this.offlineUser.countryCode = user.countryCode;
+        this.offlineUser.countryCode = user.countryCode; // TODO: temp hack because server schema changed and I'm lazy
         this.offlineUser.icons = user.icons;
     }
 
