@@ -86,6 +86,15 @@ export class CommsAPI extends TachyonClient {
 
     protected setupAuthComms() {
         function onLogin(result: string, userData: Static<typeof myUserSchema> | undefined) {
+            if (result === "queued") {
+                api.notifications.alert({
+                    text: `The server is currently at max capacity - You are position ? in the queue`,
+                    severity: "warning",
+                });
+
+                return;
+            }
+
             if (result !== "success" || !userData) {
                 return;
             }
@@ -108,7 +117,6 @@ export class CommsAPI extends TachyonClient {
         }
 
         this.onResponse("s.auth.login").add((data) => {
-            // TODO: handle data.result === "queued"
             onLogin(data.result, data.user);
         });
 
