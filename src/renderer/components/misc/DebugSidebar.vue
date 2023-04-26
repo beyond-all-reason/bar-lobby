@@ -21,7 +21,7 @@
         <Button @click="openContentDir"> Open Content Dir </Button>
         <Button @click="openConfigDir"> Open Config Dir </Button>
         <Button @click="openStartScript"> Open Latest Start Script </Button>
-        <Button @click="recacheReplays"> Recache Replays </Button>
+        <Button @click="attemptCacheErrorMaps"> Recache Errored Maps </Button>
     </div>
 </template>
 
@@ -62,10 +62,10 @@ async function openStartScript() {
     await shell.openPath(path.join(api.info.contentPath, api.game.scriptName));
 }
 
-async function recacheReplays() {
-    await api.content.replays.clearCache();
+async function attemptCacheErrorMaps() {
+    await api.cacheDb.deleteFrom("mapError").execute();
 
-    await api.content.replays.queueReplaysToCache();
+    await api.content.maps.queueMapsToCache();
 }
 </script>
 

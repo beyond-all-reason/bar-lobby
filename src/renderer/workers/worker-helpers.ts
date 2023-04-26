@@ -59,5 +59,11 @@ export function exposeWorkerFunction<T extends (...args: any[]) => Promise<Worke
         }
     });
 
+    self.addEventListener("unhandledrejection", (err) => {
+        self.postMessage({
+            error: err.reason,
+        });
+    });
+
     return func;
 }
