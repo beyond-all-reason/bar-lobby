@@ -68,8 +68,8 @@ import trophyVariant from "@iconify-icons/mdi/trophy-variant";
 import { groupBy } from "jaz-ts-utils";
 import { computed, ComputedRef } from "vue";
 
+import BattlePreviewParticipant from "@/components/battle/BattlePreviewParticipant.vue";
 import MapOverviewCard from "@/components/maps/MapOverviewCard.vue";
-import BattlePreviewParticipant from "@/components/misc/BattlePreviewParticipant.vue";
 import { AbstractBattle } from "@/model/battle/abstract-battle";
 import { StartBox, StartPosType } from "@/model/battle/battle-types";
 import { Replay } from "@/model/cache/replay";

@@ -22,6 +22,9 @@
         <Button @click="openConfigDir"> Open Config Dir </Button>
         <Button @click="openStartScript"> Open Latest Start Script </Button>
         <Button @click="attemptCacheErrorMaps"> Recache Errored Maps </Button>
+        <Button @click="openSyncLobbyContentTool"> Sync Lobby Content Tool </Button>
+
+        <!-- <SyncDataDirsDialog v-model="syncLobbyContentToolOpen" /> -->
     </div>
 </template>
 
@@ -37,6 +40,7 @@ import Button from "@/components/controls/Button.vue";
 import Select from "@/components/controls/Select.vue";
 
 const active = ref(false);
+const syncLobbyContentToolOpen = ref(false);
 
 const router = useRouter();
 const routes = router.getRoutes().sort((a, b) => a.path.localeCompare(b.path));
@@ -66,6 +70,10 @@ async function attemptCacheErrorMaps() {
     await api.cacheDb.deleteFrom("mapError").execute();
 
     await api.content.maps.queueMapsToCache();
+}
+
+function openSyncLobbyContentTool() {
+    syncLobbyContentToolOpen.value = true;
 }
 </script>
 

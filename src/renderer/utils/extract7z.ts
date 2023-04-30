@@ -1,21 +1,19 @@
-import { extractFull } from "node-7z";
-import * as path from "path";
+import { exec } from "child_process";
+import path from "path";
+import { promisify } from "util";
 
-// binaries taken from https://github.com/develar/7zip-bin
+const execPromise = promisify(exec);
 
-export function extract7z(archivePath: string, outputName: string) {
-    return new Promise<void>((resolve, reject) => {
-        const archivePathObj = path.parse(archivePath);
-        const outputPath = path.join(archivePathObj.dir, outputName);
+export async function extract7z(archivePath: string, outputName: string) {
+    const archivePathObj = path.parse(archivePath);
+    const outputPath = path.join(archivePathObj.dir, outputName);
 
-        const binaryName = process.platform === "win32" ? "7za.exe" : "7za";
+    const binaryName = process.platform === "win32" ? "7za.exe" : "7za";
+    const path7z = path.join(api.info.resourcesPath, binaryName);
 
-        const stream = extractFull(archivePath, outputPath, {
-            $bin: path.join(api.info.resourcesPath, binaryName),
-            $raw: ["-ao"],
-        });
+    const { stdout, stderr } = await execPromise(`"${path7z}" x "${archivePath}" -aoa -o"${outputPath}"`);
 
-        stream.on("error", reject);
-        stream.on("end", resolve);
-    });
+    if (stderr) {
+        throw new Error("Error in 7z extraction\n" + stderr);
+    }
 }

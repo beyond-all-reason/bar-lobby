@@ -18,7 +18,9 @@ export function hookWorkerFunction<T extends (...args: any[]) => Promise<WorkerM
                 reject(err);
             }
 
-            function onMessageListener({ data: message }: MessageEvent) {
+            function onMessageListener(event: MessageEvent<any>) {
+                const message = typeof event.data === "string" ? JSON.parse(event.data) : event.data;
+
                 if (message?.function === func.name && message.result) {
                     worker.removeEventListener("message", onMessageListener);
                     worker.removeEventListener("error", onErrorListener);
@@ -48,21 +50,23 @@ export function hookWorkerFunction<T extends (...args: any[]) => Promise<WorkerM
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function exposeWorkerFunction<T extends (...args: any[]) => Promise<WorkerMessageData>>(func: T): T {
-    self.addEventListener("message", async ({ data: message }) => {
+    addEventListener("message", async ({ data: message }) => {
         if (message?.function === func.name && message.args) {
             const result = await func(...message.args);
 
-            self.postMessage({
+            postMessage({
                 function: func.name,
                 result,
             });
         }
     });
 
-    self.addEventListener("unhandledrejection", (err) => {
-        self.postMessage({
-            error: err.reason,
-        });
+    addEventListener("unhandledrejection", (err) => {
+        postMessage(
+            JSON.stringify({
+                error: err.reason,
+            })
+        );
     });
 
     return func;

@@ -72,9 +72,11 @@ export class EngineContentAPI extends AbstractContentAPI<EngineVersion> {
             throw new Error("Failed to fetch engine release asset");
         }
 
+        const engineName = this.gitEngineTagToEngineVersionString(releaseTag);
+
         const downloadInfo: DownloadInfo = reactive({
             type: "engine",
-            name: engineVersion,
+            name: engineName,
             currentBytes: 0,
             totalBytes: 1,
         });
@@ -101,14 +103,14 @@ export class EngineContentAPI extends AbstractContentAPI<EngineVersion> {
         await fs.promises.mkdir(this.engineDirs, { recursive: true });
         await fs.promises.writeFile(downloadFile, Buffer.from(engine7z), { encoding: "binary" });
 
-        await extract7z(downloadFile, engineVersion);
+        await extract7z(downloadFile, engineName);
 
         await fs.promises.unlink(downloadFile);
 
         removeFromArray(this.currentDownloads, downloadInfo);
         this.downloadComplete(downloadInfo);
 
-        return engineVersion;
+        return engineName;
     }
 
     public async uninstallVersion(version: EngineVersion | string) {
@@ -150,19 +152,11 @@ export class EngineContentAPI extends AbstractContentAPI<EngineVersion> {
         });
     }
 
-    /**
-     * BAR-105.1.1-814-g9774f22 -> spring_bar_{BAR105}105.1.1-814-g9774f22
-     * if the git tag format ever changes then this will need updating
-     * */
     protected engineVersionToGitEngineTag(engineVersionString: string) {
         const { major, minor, patch, revision, sha, branch } = engineVersionString.match(engineVersionRegex)!.groups!;
         return `spring_bar_{${branch}}${major}.${minor}.${patch}-${revision}-g${sha}`;
     }
 
-    /**
-     * spring_bar_{BAR105}105.1.1-814-g9774f22 -> BAR-105.1.1-814-g9774f22
-     * if the git tag format ever changes then this will need updating
-     * */
     protected gitEngineTagToEngineVersionString(gitEngineTag: string) {
         const { major, minor, patch, revision, sha, branch } = gitEngineTag.match(gitEngineTagRegex)!.groups!;
         return `${major}.${minor}.${patch}-${revision}-g${sha} BAR${major}`;
