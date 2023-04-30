@@ -59,17 +59,16 @@ export class ReplayContentAPI {
     }
 
     public async getReplayById(replayId: number) {
-        return api.cacheDb.selectFrom("replay").selectAll().where("replayId", "=", replayId).executeTakeFirstOrThrow();
+        return api.cacheDb.selectFrom("replay").selectAll().where("replayId", "=", replayId).executeTakeFirst();
+    }
+
+    public async getReplayByGameId(gameId: string) {
+        return api.cacheDb.selectFrom("replay").selectAll().where("gameId", "=", gameId).executeTakeFirst();
     }
 
     public async getTotalReplayCount() {
         const { num_replays } = await api.cacheDb.selectFrom("replay").select(api.cacheDb.fn.count<number>("replayId").as("num_replays")).executeTakeFirstOrThrow();
         return num_replays;
-    }
-
-    public async clearCache() {
-        await api.cacheDb.deleteFrom("replay").execute();
-        await api.cacheDb.deleteFrom("replayError").execute();
     }
 
     public async queueReplaysToCache() {
@@ -86,6 +85,16 @@ export class ReplayContentAPI {
 
         for (const replayFileToCache of replaysFilesToCache) {
             this.replayCacheQueue.add(replayFileToCache);
+        }
+    }
+
+    public async deleteReplay(replayId: number) {
+        try {
+            const { fileName } = await api.cacheDb.deleteFrom("replay").where("replayId", "=", replayId).returning("fileName").executeTakeFirstOrThrow();
+            const filePath = path.join(api.info.contentPath, "demos", fileName);
+            await fs.promises.rm(filePath);
+        } catch (err) {
+            console.error("Error deleting replay", err);
         }
     }
 
@@ -127,14 +136,24 @@ export class ReplayContentAPI {
                 throw new Error(`invalid gameId for replay: ${replayFileName}`);
             }
 
-            const rows = await api.cacheDb
-                .insertInto("replay")
-                .values(replayData)
-                .onConflict((oc) => {
-                    const { gameId, fileName, ...nonUniqueValues } = replayData;
-                    return oc.doUpdateSet(nonUniqueValues);
-                })
-                .execute();
+            const conflictingReplay = await this.getReplayByGameId(replayData.gameId);
+            if (conflictingReplay) {
+                // when leaving a game and rejoining it, 2 demo files are created with the same gameId. below we delete the shortest replay
+                if (conflictingReplay.gameDurationMs > replayData.gameDurationMs) {
+                    await fs.promises.rm(replayFilePath);
+                } else {
+                    const filePath = path.join(api.info.contentPath, "demos", conflictingReplay.fileName);
+                    await fs.promises.rm(filePath);
+
+                    await api.cacheDb
+                        .insertInto("replay")
+                        .values(replayData)
+                        .onConflict((oc) => oc.doUpdateSet(replayData))
+                        .execute();
+                }
+            } else {
+                await api.cacheDb.insertInto("replay").values(replayData).execute();
+            }
 
             console.debug(`Cached replay: ${replayFileName}`);
 
