@@ -5,7 +5,7 @@
             <p v-if="loginError" class="error">
                 {{ loginError }}
             </p>
-            <Textbox v-model="email" type="email" label="Email" required validate class="fullwidth" />
+            <Textbox v-model="email" type="email" label="Email (Case Sensitive)" required validate class="fullwidth" />
             <Textbox v-model="password" type="password" label="Password" required class="fullwidth" />
             <div class="flex-row gap-md">
                 <Checkbox v-model="settings.loginAutomatically" type="checkbox" label="Remember Me" />
