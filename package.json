@@ -11,6 +11,7 @@
   "main": "./out/main/index.js",
   "scripts": {
     "dev": "electron-vite",
+    "debug": "electron-vite --remote-debugging-port=9223",
     "build": "electron-vite build",
     "compile": "electron-builder --config .electron-builder.config.js",
     "local-build": "npm run build && npm run compile",
