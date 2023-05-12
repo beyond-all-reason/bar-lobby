@@ -184,4 +184,33 @@ export class SessionAPI {
         await nextTick();
         return this.fetchUserById(userId);
     }
+
+    public async updateBattleList() {
+        const { lobbies } = await api.comms.request("c.lobby.query", { query: {}, fields: ["lobby", "bots", "modoptions", "member_list"] });
+
+        const userIds: number[] = [];
+        for (const battle of lobbies.map((data) => data.lobby)) {
+            userIds.push(...battle.players);
+            userIds.push(battle.founder_id);
+        }
+
+        await api.comms.request("c.user.list_users_from_ids", { id_list: userIds, include_clients: true });
+
+        for (const lobby of lobbies) {
+            const battle = api.session.battles.get(lobby.lobby.id);
+            if (!battle) {
+                api.session.battles.set(lobby.lobby.id, new SpadsBattle(lobby));
+            } else {
+                battle.handleServerResponse(lobby);
+            }
+        }
+
+        // clear up dead battles
+        const lobbyIds = lobbies.map((lobby) => lobby.lobby.id);
+        api.session.battles.forEach((battle) => {
+            if (!lobbyIds.includes(battle.battleOptions.id)) {
+                api.session.battles.delete(battle.battleOptions.id);
+            }
+        });
+    }
 }
