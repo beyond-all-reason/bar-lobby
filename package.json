@@ -25,7 +25,7 @@
     "format": "prettier --write src/**/*.{ts,vue,scss,json}",
     "format-check": "prettier --check src/**/*.{ts,vue,scss,json}",
     "test": "vitest run",
-    "postinstall": "electron-builder install-app-deps",
+    "postinstall": "patch-package && electron-builder install-app-deps",
     "postuninstall": "electron-builder install-app-deps",
     "preversion": "npm run check",
     "postversion": "git push && git push --tags"
@@ -100,6 +100,7 @@
     "eslint": "^8.38.0",
     "eslint-config-prettier": "^8.8.0",
     "eslint-plugin-unused-imports": "^2.0.0",
+    "patch-package": "^7.0.0",
     "playwright": "^1.30.0",
     "prettier": "^2.6.2",
     "rimraf": "^4.1.2",
