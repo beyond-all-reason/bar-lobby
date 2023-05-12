@@ -24,7 +24,7 @@
     "format": "prettier --write src/**/*.{ts,vue,scss,json}",
     "format-check": "prettier --check src/**/*.{ts,vue,scss,json}",
     "test": "vitest run",
-    "postinstall": "electron-builder install-app-deps",
+    "postinstall": "patch-package && electron-builder install-app-deps",
     "postuninstall": "electron-builder install-app-deps",
     "preversion": "npm run check",
     "postversion": "git push && git push --tags"
