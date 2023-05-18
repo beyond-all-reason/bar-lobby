@@ -383,6 +383,6 @@ async function start() {
     font-size: 16px;
 }
 .checkbox {
-    margin-right: 11px;
+    margin-right: 10px;
 }
 </style>
