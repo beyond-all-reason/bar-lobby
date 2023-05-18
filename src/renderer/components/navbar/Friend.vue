@@ -36,7 +36,7 @@
                 </Button>
                 <Button
                     v-if="user.isOnline && user.battleStatus.battleId"
-                    v-tooltip.left="`Join battle (TODO)`"
+                    v-tooltip.left="`Join battle`"
                     class="slim square"
                     @click="joinBattle"
                 >
@@ -67,6 +67,7 @@ import { inject, Ref } from "vue";
 import Button from "@/components/controls/Button.vue";
 import Flag from "@/components/misc/Flag.vue";
 import { User } from "@/model/user";
+import { attemptJoinBattle } from "@/utils/attempt-join-battle";
 
 const props = defineProps<{
     user: User;
@@ -117,8 +118,18 @@ function sendMessage() {
 }
 
 async function joinBattle() {
-    // TODO: need to know about the battle before attempting to join it because it may be passworded
-    // await attemptJoinBattle();
+    const battleIdToJoin = props.user.battleStatus.battleId;
+    await api.session.updateBattleList();
+    if (!battleIdToJoin) {
+        console.warn("Joining battle but battle is null");
+        return;
+    }
+    let battle = api.session.battles.get(battleIdToJoin);
+    if (!battle) {
+        console.warn(`Battle with id ${battleIdToJoin} not found, hence can not join.`);
+        return;
+    }
+    await attemptJoinBattle(battle);
 }
 
 async function inviteToParty() {
