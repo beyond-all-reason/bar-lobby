@@ -51,13 +51,13 @@ const noLoss = markdown === processedText;
         color: rgb(82, 215, 255);
         font-weight: 600;
     }
-}
 
-.text :deep(code) {
-    border-radius: 5px;
-    border: 1px solid #BCBEC0;
-    padding: 1px;
-    background-color: #272822;
-    font-family: monospace;
+    :deep(code) {
+        border-radius: 5px;
+        border: 1px solid #BCBEC0;
+        padding: 1px;
+        background-color: #272822;
+        font-family: monospace;
+    }
 }
 </style>
