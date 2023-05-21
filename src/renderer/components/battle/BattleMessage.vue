@@ -4,14 +4,13 @@
             <Flag :countryCode="user.countryCode" style="width: 16px" />
             <div>{{ user.username }}</div>
         </div>
-        <div class="text">
-            {{ message.text }}
-        </div>
+        <MarkDown :text="message.text" />
     </div>
 </template>
 
 <script lang="ts" setup>
 import Flag from "@/components/misc/Flag.vue";
+import MarkDown from "@/components/misc/MarkDown.vue";
 import { Message } from "@/model/messages";
 
 const props = defineProps<{
@@ -47,15 +46,5 @@ const fromHost = api.session.onlineBattle.value?.founder.value.userId === props.
     border-right: 1px solid rgba(255, 255, 255, 0.1);
     box-shadow: 2px 0 5px rgba(0, 0, 0, 0.4);
     font-weight: 500;
-}
-.text {
-    width: 100%;
-    word-break: break-word;
-    padding: 4px 8px;
-    user-select: text;
-    .system & {
-        color: rgb(82, 215, 255);
-        font-weight: 600;
-    }
 }
 </style>
