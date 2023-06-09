@@ -1,13 +1,12 @@
-name: Build
+name: Test and build
 
 on: [push, pull_request]
 
 jobs:
   checks:
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
     strategy:
       matrix:
-        os: [ubuntu-latest]
         node-version: [14]
 
     steps:
@@ -41,7 +40,7 @@ jobs:
         run: npm run format-check
 
   build:
-    # if: github.ref == 'refs/heads/master' # build only on master
+    if: startsWith(github.ref, 'refs/tags/v') # build only on tag
     needs: checks
     runs-on: ${{ matrix.os }}
     strategy:
@@ -76,11 +75,10 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Electron Builder Action
-        uses: samuelmeuli/action-electron-builder@v1.6.0
+      - name: Electon Build & Publish
+        run: |
+          npm run build
+          npm x -- electron-builder --config .electron-builder.config.js
         env:
-          NODE_OPTIONS: "--max_old_space_size=8192"
-        with:
-          github_token: ${{ secrets.github_token }}
-          args: "--config .electron-builder.config.js"
-          release: ${{ startsWith(github.ref, 'refs/tags/v') }}
+          NODE_OPTIONS: "--max-old-space-size=8192"
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
