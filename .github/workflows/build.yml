@@ -45,6 +45,7 @@ jobs:
     needs: checks
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
         os: [windows-latest, ubuntu-latest]
         node-version: [14]
