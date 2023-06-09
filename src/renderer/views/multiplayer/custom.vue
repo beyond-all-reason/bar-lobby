@@ -42,11 +42,12 @@
                             <Icon v-if="data.isLockedOrPassworded.value" :icon="lock" />
                         </template>
                     </Column>
-                    <Column header="Runtime" sortable sortField="runtimeMs.value">
+                    <Column header="Runtime (H:MM)" sortable sortField="runtimeMs.value">
                         <template #body="{ data }">
                             <div v-if="data.runtimeMs.value >= 1">
-                                {{ getFriendlyDuration(data.runtimeMs.value) }}
+                                {{ getFriendlyDuration(data.runtimeMs.value, false) }}
                             </div>
+                            <div v-else>----</div>
                         </template>
                     </Column>
                     <Column field="battleOptions.title" header="Title" sortable />
