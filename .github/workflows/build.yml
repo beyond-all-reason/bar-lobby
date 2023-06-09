@@ -3,39 +3,77 @@ name: Build
 on: [push, pull_request]
 
 jobs:
-    build:
-        runs-on: ${{ matrix.os }}
-        strategy:
-            matrix:
-                os: [windows-latest, ubuntu-latest]
-                node-version: [14]
-        steps:
-            - name: Check out Git repository
-              uses: actions/checkout@v3
+  checks:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        node-version: [14]
 
-            - name: Install Node.js, NPM and Yarn
-              uses: actions/setup-node@v3
-              with:
-                  node-version: ${{ matrix.node-version }}
-                  cache: "npm"
+    steps:
+      - name: Check out Git repository
+        uses: actions/checkout@v3
 
-            - name: Install dependencies
-              run: npm ci
+      - name: Install Node.js, NPM and Yarn
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: "npm"
 
-            - name: Type check
-              run: npm run type-check
+      - name: Ensure fresh npm version
+        run: npm i npm
 
-            - name: Lint check
-              run: npm run lint-check
+      - name: Build Env Information
+        run: |
+          node -v
+          npm -v
 
-            - name: Format check
-              run: npm run format-check
+      - name: Install dependencies
+        run: npm ci
 
-            - name: Electron Builder Action
-              uses: samuelmeuli/action-electron-builder@v1.6.0
-              env:
-                  NODE_OPTIONS: "--max_old_space_size=8192"
-              with:
-                  github_token: ${{ secrets.github_token }}
-                  args: "--config .electron-builder.config.js"
-                  release: ${{ startsWith(github.ref, 'refs/tags/v') }}
+      - name: Type check
+        run: npm run type-check
+
+      - name: Lint check
+        run: npm run lint-check
+
+      - name: Format check
+        run: npm run format-check
+
+  build:
+    # if: github.ref == 'refs/heads/master' # build only on master
+    needs: checks
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+        node-version: [14]
+
+    steps:
+      - name: Check out Git repository
+        uses: actions/checkout@v3
+
+      - name: Install Node.js, NPM and Yarn
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: "npm"
+      - name: Build Env Information
+        run: |
+          node -v
+          npm -v
+
+      - name: Ensure fresh npm version
+        run: npm i npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Electron Builder Action
+        uses: samuelmeuli/action-electron-builder@v1.6.0
+        env:
+          NODE_OPTIONS: "--max_old_space_size=8192"
+        with:
+          github_token: ${{ secrets.github_token }}
+          args: "--config .electron-builder.config.js"
+          release: ${{ startsWith(github.ref, 'refs/tags/v') }}
