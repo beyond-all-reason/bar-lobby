@@ -21,7 +21,7 @@ jobs:
           cache: "npm"
 
       - name: Ensure fresh npm version
-        run: npm i npm
+        run: npm install -g npm@latest
 
       - name: Build Env Information
         run: |
