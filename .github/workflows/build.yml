@@ -77,8 +77,7 @@ jobs:
 
       - name: Electon Build & Publish
         run: |
-          npm run build
-          npm x -- electron-builder --config .electron-builder.config.js
+          npm run release
         env:
           NODE_OPTIONS: "--max-old-space-size=8192"
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
