@@ -40,7 +40,8 @@ jobs:
         run: npm run format-check
 
   build:
-    if: startsWith(github.ref, 'refs/tags/v') # build only on tag
+    # build only on push to master or on pushed tag
+    #if: ${{ github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags/v') }}
     needs: checks
     runs-on: ${{ matrix.os }}
     strategy:
@@ -62,7 +63,7 @@ jobs:
       - name: Ensure fresh npm version (Windows pre-requirement)
         # https://github.com/actions/setup-node/issues/411
         run: npm i -g npm@8
-        if: ${{ matrix.os }} == 'windows-latest'
+        if: ${{ matrix.os == 'windows-latest' }}
 
       - name: Ensure fresh npm version
         run: npm install -g npm@latest
@@ -75,7 +76,7 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Electon Build & Publish
+      - name: Electron Build & Publish
         run: |
           npm run release
         env:
