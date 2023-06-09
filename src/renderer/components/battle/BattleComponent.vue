@@ -173,7 +173,9 @@
                         >
                     </template>
                     <template v-else>
-                        <Button v-if="me.battleStatus.ready" class="fullwidth green" @click="toggleReady"><span class="checkbox">✔</span>Unready</Button>
+                        <Button v-if="me.battleStatus.ready" class="fullwidth green" @click="toggleReady"
+                            ><span class="checkbox">✔</span>Unready</Button
+                        >
                         <Button v-else class="fullwidth yellow" @click="toggleReady"><span class="checkbox">✖</span>Ready</Button>
 
                         <Button v-if="battle.battleOptions.startTime" class="fullwidth green" :disabled="isGameRunning" @click="start"
