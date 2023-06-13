@@ -29,7 +29,7 @@ const config = {
         target: ["AppImage"],
         category: "Game",
     },
-    publish: ["github"],
+    publish: null,
 };
 
 module.exports = config;

@@ -8,6 +8,8 @@ on:
 
 jobs:
     build:
+        env:
+            NODE_ENV: "production"
         runs-on: ${{ matrix.os }}
         strategy:
             fail-fast: false

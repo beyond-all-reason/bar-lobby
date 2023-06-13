@@ -61,13 +61,13 @@ export class Application {
     }
 
     protected async onReady() {
-        if (process.env.NODE_ENV === "development") {
+        if (process.env.NODE_ENV !== "production") {
             try {
                 // await installExtension(VUEJS_DEVTOOLS);
             } catch (err) {
                 console.error("Vue Devtools failed to install:", err?.toString());
             }
-        } else if (app.isPackaged && process.env.NODE_ENV !== "development") {
+        } else if (app.isPackaged && process.env.NODE_ENV === "production") {
             autoUpdater.checkForUpdatesAndNotify();
         }
 
