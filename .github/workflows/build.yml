@@ -1,50 +1,50 @@
 name: Build
 
 on:
-  push:
-    tags:
-      - "*"
-  workflow_dispatch:
+    push:
+        tags:
+            - "*"
+    workflow_dispatch:
 
 jobs:
-  build:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [windows-latest, ubuntu-latest]
-        node-version: [14]
+    build:
+        runs-on: ${{ matrix.os }}
+        strategy:
+            fail-fast: false
+            matrix:
+                os: [windows-latest, ubuntu-latest]
+                node-version: [18]
 
-    steps:
-      - name: Check out Git repository
-        uses: actions/checkout@v3
+        steps:
+            - name: Check out Git repository
+              uses: actions/checkout@v3
 
-      - name: Install Node.js, NPM and Yarn
-        uses: actions/setup-node@v3
-        with:
-          node-version: ${{ matrix.node-version }}
-          cache: "npm"
+            - name: Install Node.js, NPM and Yarn
+              uses: actions/setup-node@v3
+              with:
+                  node-version: ${{ matrix.node-version }}
+                  cache: "npm"
 
-      - name: Ensure fresh npm version (Windows pre-requirement)
-        # https://github.com/actions/setup-node/issues/411
-        run: npm i -g npm@8
-        if: ${{ matrix.os == 'windows-latest' }}
+            - name: Ensure fresh npm version (Windows pre-requirement)
+              # https://github.com/actions/setup-node/issues/411
+              run: npm i -g npm@8
+              if: ${{ matrix.os == 'windows-latest' }}
 
-      - name: Ensure fresh npm version
-        run: npm install -g npm@latest
+            - name: Ensure fresh npm version
+              run: npm install -g npm@latest
 
-      - name: Build Env Information
-        run: |
-          node -v
-          npm -v
+            - name: Build Env Information
+              run: |
+                  node -v
+                  npm -v
 
-      - name: Install dependencies
-        run: npm ci
+            - name: Install dependencies
+              run: npm ci
 
-      - name: Electron Build & Publish
-        run: |
-          npm run build
-          npm run release
-        env:
-          NODE_OPTIONS: "--max-old-space-size=8192"
-          GITHUB_TOKEN: ${{ secrets.github_token }}
+            - name: Electron Build & Publish
+              run: |
+                  npm run build
+                  npm run release
+              env:
+                  NODE_OPTIONS: "--max-old-space-size=8192"
+                  GITHUB_TOKEN: ${{ secrets.github_token }}

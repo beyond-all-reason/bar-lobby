@@ -4,8 +4,8 @@
     <div v-else class="text">{{ props.text }}</div>
 </template>
 <script lang="ts" setup>
-import DOMPurify from 'dompurify';
-import { marked } from 'marked';
+import DOMPurify from "dompurify";
+import { marked } from "marked";
 
 const props = defineProps<{
     text: string;
@@ -14,32 +14,20 @@ const props = defineProps<{
 // Prevents marked from parsing #.
 marked.use({
     tokenizer: {
-        heading() {return false;}
-    }
-})
+        heading() {
+            return false;
+        },
+    },
+});
 
 const sanitizeOptions: DOMPurify.Config = {
     ALLOWED_ATTR: [],
-    ALLOWED_TAGS: [
-        'p',
-        'em',
-        'b',
-        'strong',
-        'ul',
-        'ol',
-        'li',
-        'code',
-        'pre',
-        'blockquote',
-        'span',
-        'del',
-    ]
-}
+    ALLOWED_TAGS: ["p", "em", "b", "strong", "ul", "ol", "li", "code", "pre", "blockquote", "span", "del"],
+};
 
 const markdown = marked.parse(props.text);
 const processedText = DOMPurify.sanitize(markdown, sanitizeOptions);
 const noLoss = markdown === processedText;
-
 </script>
 <style lang="scss" scoped>
 .text {
@@ -54,7 +42,7 @@ const noLoss = markdown === processedText;
 
     :deep(code) {
         border-radius: 5px;
-        border: 1px solid #BCBEC0;
+        border: 1px solid #bcbec0;
         padding: 1px;
         background-color: #272822;
         font-family: monospace;
