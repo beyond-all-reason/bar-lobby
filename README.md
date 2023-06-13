@@ -6,27 +6,30 @@ BAR Lobby is a new WIP lobby for the RTS game [Beyond All Reason](https://www.be
 
 ## Functionality and Goals
 
-- Provide functionality for everything related to BAR. Campaigns, Missions, Multiplayer, Replays etc
-- Simple and intutive codebase, lots of documenation for contributing
-- Steam integration, automatic account creation and login
-- Smooth, seemless, fully integrated downloads. Content should be preloaded when sensible
-- Communicate entirely via Teiserver's new protocol, [Tachyon](https://github.com/beyond-all-reason/teiserver/tree/master/documents/tachyon). No support for the legacy SpringLobbyProtocol
-- TLS only, no unencypted comms
+-   Provide functionality for everything related to BAR. Campaigns, Missions, Multiplayer, Replays etc
+-   Simple and intutive codebase, lots of documenation for contributing
+-   Steam integration, automatic account creation and login
+-   Smooth, seemless, fully integrated downloads. Content should be preloaded when sensible
+-   Communicate entirely via Teiserver's new protocol, [Tachyon](https://github.com/beyond-all-reason/teiserver/tree/master/documents/tachyon). No support for the legacy SpringLobbyProtocol
+-   TLS only, no unencypted comms
 
 ## Development
 
 ### Primary Tech Stack
-- [Electron](https://www.electronjs.org/)
-- [Vue 3](https://v3.vuejs.org/)
-- [TypeScript](https://www.typescriptlang.org/)
-- [SCSS](https://sass-lang.com/)
-- [PrimeVue Components](https://primevue.org/datatable)
+
+-   [Electron](https://www.electronjs.org/)
+-   [Vue 3](https://v3.vuejs.org/)
+-   [TypeScript](https://www.typescriptlang.org/)
+-   [SCSS](https://sass-lang.com/)
+-   [PrimeVue Components](https://primevue.org/datatable)
 
 ### Recommended Environment
+
 It is highly recommended to use [VSCode](https://code.visualstudio.com/) for development, as it provides full, built-in TypeScript support, as well as useful extensions such as [ESLint](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint) and [Volar](https://marketplace.visualstudio.com/items?itemName=johnsoncodehk.volar).
 
 ### Requirements
-- [Node.js](https://nodejs.org/en/download/) (node v14 required)
+
+-   [Node.js](https://nodejs.org/en/download/)
 
 ### Project setup:
 
