@@ -19,9 +19,9 @@ marked.use({
     tokenizer: {
         heading() {
             return false;
-        }
-    }
-})
+        },
+    },
+});
 
 const allowedTags = ["p","em","b","strong","ul","ol","li","code","pre","blockquote","span","del","body"];
 
@@ -61,7 +61,7 @@ const noLoss = !props.allowLinks ? markdown === processedText : DOMPurify.remove
 
     :deep(code) {
         border-radius: 5px;
-        border: 1px solid #BCBEC0;
+        border: 1px solid #bcbec0;
         padding: 1px;
         background-color: #272822;
         font-family: monospace;

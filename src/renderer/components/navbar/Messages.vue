@@ -67,7 +67,7 @@ import { inject, Ref, ref } from "vue";
 import TabView from "@/components/common/TabView.vue";
 import Button from "@/components/controls/Button.vue";
 import Textbox from "@/components/controls/Textbox.vue";
-import MarkDown from '@/components/misc/MarkDown.vue';
+import MarkDown from "@/components/misc/MarkDown.vue";
 import PopOutPanel from "@/components/navbar/PopOutPanel.vue";
 import { Message } from "@/model/messages";
 

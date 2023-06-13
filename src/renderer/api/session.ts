@@ -1,8 +1,7 @@
 import { Static } from "@sinclair/typebox";
-import { computed } from "@vue/reactivity";
 import { assign } from "jaz-ts-utils";
 import { lobbySchema, myUserSchema, playerSchema, ResponseType, userSchema } from "tachyon-client";
-import { ComputedRef, nextTick, reactive, Ref, ref, shallowReactive, shallowRef } from "vue";
+import { computed, ComputedRef, nextTick, reactive, Ref, ref, shallowReactive, shallowRef } from "vue";
 
 import { OfflineBattle } from "@/model/battle/offline-battle";
 import { SpadsBattle } from "@/model/battle/spads-battle";

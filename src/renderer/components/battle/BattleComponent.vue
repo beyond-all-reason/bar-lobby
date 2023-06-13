@@ -168,22 +168,24 @@
                             >Join Queue ({{ battle.battleOptions.joinQueueUserIds.length + 1 }})</Button
                         >
 
-                        <Button v-if="battle.battleOptions.startTime" class="fullwidth green" :disabled="isGameRunning" @click="start"
+                        <Button v-if="battle.battleOptions.startTime" class="fullwidth green" :disabled="isGameRunning.value" @click="start"
                             >Watch</Button
                         >
                     </template>
                     <template v-else>
-                        <Button v-if="me.battleStatus.ready" class="fullwidth green" @click="toggleReady"><span class="checkbox">✔</span>Unready</Button>
+                        <Button v-if="me.battleStatus.ready" class="fullwidth green" @click="toggleReady"
+                            ><span class="checkbox">✔</span>Unready</Button
+                        >
                         <Button v-else class="fullwidth yellow" @click="toggleReady"><span class="checkbox">✖</span>Ready</Button>
 
-                        <Button v-if="battle.battleOptions.startTime" class="fullwidth green" :disabled="isGameRunning" @click="start"
+                        <Button v-if="battle.battleOptions.startTime" class="fullwidth green" :disabled="isGameRunning.value" @click="start"
                             >Rejoin</Button
                         >
-                        <Button v-else class="fullwidth green" :disabled="isGameRunning" @click="start">Start</Button>
+                        <Button v-else class="fullwidth green" :disabled="isGameRunning.value" @click="start">Start</Button>
                     </template>
                 </template>
                 <template v-else-if="isOfflineBattle(battle)">
-                    <Button class="fullwidth green" :disabled="isGameRunning" @click="start">Start</Button>
+                    <Button class="fullwidth green" :disabled="isGameRunning.value" @click="start">Start</Button>
                 </template>
             </div>
         </div>
