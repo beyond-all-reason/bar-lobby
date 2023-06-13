@@ -125,5 +125,10 @@
     "vue-router": "^4.1.6",
     "vue-tsc": "^1.0.9",
     "worker-plugin": "^5.0.1"
+  },
+  "overrides": {
+    "eslint": "$eslint",
+    "@typescript-eslint/eslint-plugin": "$@typescript-eslint/eslint-plugin",
+    "eslint-plugin-unused-imports": "$eslint-plugin-unused-imports"
   }
 }
