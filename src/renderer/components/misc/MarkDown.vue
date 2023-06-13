@@ -23,7 +23,7 @@ marked.use({
     },
 });
 
-const allowedTags = ["p","em","b","strong","ul","ol","li","code","pre","blockquote","span","del","body"];
+const allowedTags = ["p", "em", "b", "strong", "ul", "ol", "li", "code", "pre", "blockquote", "span", "del", "body"];
 
 const allowedAttributes: string[] = [];
 
@@ -35,18 +35,17 @@ if (props.allowLinks) {
 
     markdownRenderer.link = (href, title, text) => {
         return `<a href="${href}" target="_blank">${text}</a>`;
-    }
+    };
 }
 
 const sanitizeOptions: DOMPurify.Config = {
     ALLOWED_ATTR: allowedAttributes,
     ALLOWED_TAGS: allowedTags,
-}
+};
 
-const markdown = marked.parse(props.text, {renderer: markdownRenderer});
+const markdown = marked.parse(props.text, { renderer: markdownRenderer });
 const processedText = DOMPurify.sanitize(markdown, sanitizeOptions);
 const noLoss = !props.allowLinks ? markdown === processedText : DOMPurify.removed.length === 0;
-
 </script>
 <style lang="scss" scoped>
 .text {
