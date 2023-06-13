@@ -5,11 +5,14 @@
 </template>
 <script lang="ts" setup>
 import DOMPurify from 'dompurify';
-import { marked } from 'marked';
+import { marked, Renderer } from 'marked';
 
 const props = defineProps<{
     text: string;
+    allowLinks?: boolean;
 }>();
+
+const markdownRenderer = new Renderer();
 
 // Prevents marked from parsing #.
 marked.use({
@@ -18,9 +21,7 @@ marked.use({
     }
 })
 
-const sanitizeOptions: DOMPurify.Config = {
-    ALLOWED_ATTR: [],
-    ALLOWED_TAGS: [
+const allowedTags = [
         'p',
         'em',
         'b',
@@ -33,12 +34,30 @@ const sanitizeOptions: DOMPurify.Config = {
         'blockquote',
         'span',
         'del',
-    ]
+        'body',
+    ];
+
+const allowedAttributes: string[] = [];
+
+if (props.allowLinks) {
+    allowedTags.push('a');
+
+    allowedAttributes.push('href');
+    allowedAttributes.push('target');
+
+    markdownRenderer.link = (href, title, text) => {
+        return `<a href="${href}" target="_blank">${text}</a>`;
+    }
 }
 
-const markdown = marked.parse(props.text);
+const sanitizeOptions: DOMPurify.Config = {
+    ALLOWED_ATTR: allowedAttributes,
+    ALLOWED_TAGS: allowedTags,
+}
+
+const markdown = marked.parse(props.text, {renderer: markdownRenderer});
 const processedText = DOMPurify.sanitize(markdown, sanitizeOptions);
-const noLoss = markdown === processedText;
+const noLoss = !props.allowLinks ? markdown === processedText : DOMPurify.removed.length === 0;
 
 </script>
 <style lang="scss" scoped>
