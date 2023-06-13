@@ -4,8 +4,8 @@
     <div v-else class="text">{{ props.text }}</div>
 </template>
 <script lang="ts" setup>
-import DOMPurify from 'dompurify';
-import { marked, Renderer } from 'marked';
+import DOMPurify from "dompurify";
+import { marked, Renderer } from "marked";
 
 const props = defineProps<{
     text: string;
@@ -17,33 +17,21 @@ const markdownRenderer = new Renderer();
 // Prevents marked from parsing #.
 marked.use({
     tokenizer: {
-        heading() {return false;}
+        heading() {
+            return false;
+        }
     }
 })
 
-const allowedTags = [
-        'p',
-        'em',
-        'b',
-        'strong',
-        'ul',
-        'ol',
-        'li',
-        'code',
-        'pre',
-        'blockquote',
-        'span',
-        'del',
-        'body',
-    ];
+const allowedTags = ["p","em","b","strong","ul","ol","li","code","pre","blockquote","span","del","body"];
 
 const allowedAttributes: string[] = [];
 
 if (props.allowLinks) {
-    allowedTags.push('a');
+    allowedTags.push("a");
 
-    allowedAttributes.push('href');
-    allowedAttributes.push('target');
+    allowedAttributes.push("href");
+    allowedAttributes.push("target");
 
     markdownRenderer.link = (href, title, text) => {
         return `<a href="${href}" target="_blank">${text}</a>`;
