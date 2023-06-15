@@ -13,7 +13,7 @@
                 <BattleMessage v-for="(message, i) in messages" v-show="!message.hide || showHiddenMessages" :key="i" :message="message" />
             </div>
         </div>
-        <Textbox v-model="myMessage" class="fullwidth dark" @keyup.enter="sendMessage" />
+        <AutoSuggest v-model="myMessage" class="fullwidth dark" @keyup.enter="sendMessage" />
     </div>
 </template>
 
@@ -23,7 +23,7 @@ import eyeIcon from "@iconify-icons/mdi/eye";
 import { ref } from "vue";
 
 import BattleMessage from "@/components/battle/BattleMessage.vue";
-import Textbox from "@/components/controls/Textbox.vue";
+import AutoSuggest from "@/components/controls/AutoSuggest.vue";
 
 const messages = api.session.battleMessages;
 const myMessage = ref("");
