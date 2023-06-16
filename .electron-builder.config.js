@@ -29,7 +29,14 @@ const config = {
         target: ["AppImage"],
         category: "Game",
     },
-    publish: null,
+    fileAssociations: [
+        {
+            "ext": "sdfz",
+            "description": "BAR Replay File",
+            "role": "Viewer"
+        }
+    ],
+    publish: ["github"],
 };
 
 module.exports = config;
