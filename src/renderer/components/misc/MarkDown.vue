@@ -26,7 +26,31 @@ marked.use({
 const allowedTags = ["p", "em", "b", "strong", "ul", "ol", "li", "code", "pre", "blockquote", "span", "del", "body"];
 
 const allowedAttributes: string[] = [];
+function htmlEncode(toBeSanitized: string | null): string | undefined {
+    const map = {
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#x27;",
+        "/": "&#x2F;",
+    };
+    const reg = /[&<>"'/]/gi;
+    return toBeSanitized?.replace(reg, (match) => map[match]);
+}
 
+function validateURL(url: string | null): string | null {
+    if (!url) return null;
+    try {
+        const urlObject = new URL(url);
+        if (urlObject.protocol != "http:" && urlObject.protocol != "https:") {
+            return null;
+        }
+        return urlObject.toString();
+    } catch (e) {
+        return null;
+    }
+}
 if (props.allowLinks) {
     allowedTags.push("a");
 
@@ -34,7 +58,7 @@ if (props.allowLinks) {
     allowedAttributes.push("target");
 
     markdownRenderer.link = (href, title, text) => {
-        return `<a href="${href}" target="_blank">${text}</a>`;
+        return `<a href="${validateURL(href)}" target="_blank">${htmlEncode(text)}</a>`;
     };
 }
 
