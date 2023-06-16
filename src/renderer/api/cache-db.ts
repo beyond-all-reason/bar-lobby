@@ -44,8 +44,6 @@ export class CacheDbAPI extends Kysely<CacheDatabase> {
     }
 
     public async init() {
-        await this.serializePlugin.setSchema(this);
-
         await this.schema
             .createTable("map")
             .ifNotExists()
@@ -122,7 +120,11 @@ export class CacheDbAPI extends Kysely<CacheDatabase> {
             .addColumn("fileName", "varchar", (col) => col.primaryKey())
             .execute();
 
+        await this.serializePlugin.setSchema(this); //might be needed already for migration
+
         await this.migrateToLatest();
+
+        await this.serializePlugin.setSchema(this); //again in case migration changed the database
 
         return this;
     }
