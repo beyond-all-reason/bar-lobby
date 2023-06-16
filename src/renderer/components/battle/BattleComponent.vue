@@ -1,12 +1,7 @@
 <template>
     <div :class="['battle-container', { singleplayer: isOfflineBattle(battle) }]">
         <div class="header flex-col gap-md">
-            <div class="flex-row flex-center-items">
-                <h1 class="title">{{ battle.battleOptions.title }}</h1>
-                <div v-if="isSpadsBattle(battle)" class="flex-col flex-center edit-title">
-                    <Icon :icon="squareEditOutline" height="23" />
-                </div>
-            </div>
+            <BattleTitleComponent :battle="battle" :me="me"></BattleTitleComponent>
             <div v-if="isSpadsBattle(battle)" class="subtitle flex-row gap-md flex-wrap">
                 <div class="flex-row gap-sm">
                     Hosted by
@@ -202,10 +197,10 @@
 import { Icon } from "@iconify/vue";
 import cogIcon from "@iconify-icons/mdi/cog";
 import listIcon from "@iconify-icons/mdi/format-list-bulleted";
-import squareEditOutline from "@iconify-icons/mdi/square-edit-outline";
 import { computed, Ref, ref } from "vue";
 
 import BattleChat from "@/components/battle/BattleChat.vue";
+import BattleTitleComponent from "@/components/battle/BattleTitleComponent.vue";
 import LuaOptionsModal from "@/components/battle/LuaOptionsModal.vue";
 import MapListModal from "@/components/battle/MapListModal.vue";
 import MapOptionsModal from "@/components/battle/MapOptionsModal.vue";
@@ -222,6 +217,7 @@ import { LuaOptionSection } from "@/model/lua-options";
 import { CurrentUser } from "@/model/user";
 import { StartBoxOrientation } from "@/utils/start-boxes";
 import { isOfflineBattle, isSpadsBattle } from "@/utils/type-checkers";
+
 
 const props = defineProps<{
     battle: AbstractBattle;
