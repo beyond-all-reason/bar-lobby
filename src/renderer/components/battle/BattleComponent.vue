@@ -218,7 +218,6 @@ import { CurrentUser } from "@/model/user";
 import { StartBoxOrientation } from "@/utils/start-boxes";
 import { isOfflineBattle, isSpadsBattle } from "@/utils/type-checkers";
 
-
 const props = defineProps<{
     battle: AbstractBattle;
     me: CurrentUser;
