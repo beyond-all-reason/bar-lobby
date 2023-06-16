@@ -58,20 +58,20 @@ export class Application {
         app.on("ready", () => this.onReady());
         app.on("window-all-closed", () => app.quit());
         app.on("browser-window-focus", () => this.mainWindow?.window.flashFrame(false));
-        app.on("web-contents-created", (event, contents) => {
-            contents.on("will-navigate", (event, navigationUrl) => {
-                const parsedUrl = new URL(navigationUrl);
-                if (process.env.ELECTRON_RENDERER_URL && parsedUrl.protocol == "http:" && parsedUrl == new URL(process.env.ELECTRON_RENDERER_URL)) {
+        app.on('web-contents-created', (event, contents) => {
+            contents.on('will-navigate', (event, navigationUrl) => {
+              const parsedUrl = new URL(navigationUrl)
+              if (process.env.ELECTRON_RENDERER_URL && parsedUrl.protocol == "http:" && parsedUrl == new URL(process.env.ELECTRON_RENDERER_URL)) {
+                return; //allow
+              }
+              if(parsedUrl.protocol == "file:" && parsedUrl.pathname){
+                if(path.resolve(parsedUrl.pathname) == path.resolve(path.join(__dirname, "../renderer/index.html"))){
                     return; //allow
                 }
-                if (parsedUrl.protocol == "file:" && parsedUrl.pathname) {
-                    if (path.resolve(parsedUrl.pathname) == path.resolve(path.join(__dirname, "../renderer/index.html"))) {
-                        return; //allow
-                    }
-                }
-                event.preventDefault(); //disallow
-            });
-        });
+              }
+              event.preventDefault(); //disallow
+            })
+          })
     }
 
     protected async onReady() {
