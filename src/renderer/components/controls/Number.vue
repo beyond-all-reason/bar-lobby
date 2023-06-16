@@ -25,9 +25,6 @@ const maxInputWidth = computed(() => `${max.value.toString().length + 1}ch`);
 </script>
 
 <style lang="scss" scoped>
-.number {
-    max-height: 35px;
-}
 :deep(.p-inputtext) {
     padding: 0 10px;
     width: v-bind(maxInputWidth);

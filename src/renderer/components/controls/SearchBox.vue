@@ -115,13 +115,13 @@ $icon-color: $input-color;
 $active-color: #ccc;
 .search-input-wrapper {
     position: relative;
+    flex-shrink: 0;
 
     input[data-search-input="true"] {
         display: block;
         width: 100%;
         padding: 6px 20px 6px 35px;
         font-size: 20px;
-        height: 35px;
         color: $input-color;
         max-width: 125px;
         background-color: $input-background;
