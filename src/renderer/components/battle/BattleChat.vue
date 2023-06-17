@@ -13,7 +13,13 @@
                 <BattleMessage v-for="(message, i) in messages" v-show="!message.hide || showHiddenMessages" :key="i" :message="message" />
             </div>
         </div>
-        <AutoSuggest v-model="myMessage" class="fullwidth dark" @keyup.enter="sendMessage" />
+        <AutoSuggest
+            v-model="myMessage"
+            :options="optionList"
+            class="fullwidth dark"
+            @keyup.enter="sendMessage"
+            @update:model-value="(value) => (myMessage = value)"
+        />
     </div>
 </template>
 
@@ -25,6 +31,7 @@ import { ref } from "vue";
 import BattleMessage from "@/components/battle/BattleMessage.vue";
 import AutoSuggest from "@/components/controls/AutoSuggest.vue";
 
+const optionList = ref(["hello", "he", "there"]);
 const messages = api.session.battleMessages;
 const myMessage = ref("");
 const showHiddenMessages = ref(false);
