@@ -28,7 +28,7 @@
                     class="p-datatable-sm"
                     selectionMode="single"
                     :sortOrder="-1"
-                    sortField="playerCount.value"
+                    sortField="score"
                     paginator
                     :rows="16"
                     :pageLinkSize="20"
@@ -63,6 +63,13 @@
                                 <div v-if="data.bots.length > 0" class="flex-row flex-center-items gap-xs" style="gap: 4px">
                                     <Icon :icon="robot" height="17" />{{ data.bots.length }}
                                 </div>
+                            </div>
+                        </template>
+                    </Column>
+                    <Column header="Best Battle" sortable sortField="score">
+                        <template #body="{ data }">
+                            <div class="flex-row flex-center-items gap-md">
+                                {{ data.primaryFactor }}, {{ Math.round(data.score * 100) / 100 }}
                             </div>
                         </template>
                     </Column>
@@ -116,6 +123,13 @@ const hostBattleOpen = ref(false);
 const searchVal = ref("");
 const selectedBattle: Ref<SpadsBattle | null> = shallowRef(null);
 const settings = api.settings.model;
+
+interface ScoredSpadsBattle extends SpadsBattle {
+    score: number;
+    factors: { [factorName: string]: number };
+    primaryFactor: string;
+}
+
 const battles = computed(() => {
     let battles = Array.from(api.session.battles.values());
 
@@ -165,8 +179,95 @@ const battles = computed(() => {
         selectedBattle.value = biggestBattle;
     }
 
-    return battles;
+    const scoredBattles = battles.map(scoreBattle);
+
+    return scoredBattles;
 });
+
+function scoreBattle(battle: SpadsBattle) {
+    let score = 0;
+    let factors = {};
+    let primaryFactor = "";
+
+    const inBattle = battle.players.value.find((p) => p.username === "kozan");
+    if (inBattle) {
+        addFactor("In Lobby", 50);
+    }
+
+    if (battle.battleOptions.locked) {
+        addFactor("Locked", -5);
+    }
+
+    if (battle.battleOptions.passworded) {
+        addFactor("Passworded", -5);
+    }
+
+    const runtime = battle.runtimeMs.value || 0;
+    let running = runtime > 0;
+
+    // Hardcoded for now, but in the future could be pulled from match type
+    const medianRuntime = 1800000; // 30 minutes
+    const stdRuntime = 900000; // 15 minutes
+    if (runtime > medianRuntime) {
+        const runtimeVariance = (runtime - medianRuntime) / stdRuntime;
+        addFactor("Ending Soon", Math.log(runtimeVariance) * 5);
+    }
+
+    if (running) {
+        addFactor("Running", -10);
+    }
+
+    const playerCount = battle.players.value.length;
+    if (!running && playerCount === 0) {
+        addFactor("No Players", -15);
+    }
+
+    const maxPlayers = battle.battleOptions.maxPlayers;
+    const halfOfMaxPlayers = maxPlayers / 2;
+    const remainingPlayers = maxPlayers - playerCount;
+    if (!running && playerCount > halfOfMaxPlayers && playerCount < maxPlayers) {
+        addFactor("Almost full", (-5 / halfOfMaxPlayers) * remainingPlayers + 5);
+    }
+
+    const queueSize = battle.battleOptions.joinQueueUserIds?.length || 0;
+    if (!running && playerCount >= maxPlayers) {
+        addFactor("Full", 1 - queueSize * 0.5);
+    }
+
+    // TODO: within skill range
+    // TODO: median skill close to won
+    // TODO: friend in lobby
+    // TODO: blocked in lobby
+    // TODO: Highly rated map
+    // TODO: Downloaded map
+
+    // TODO: Is a noob lobby and I am noob
+
+    if (!running && playerCount) {
+        addFactor("Waiting for players", (2 * playerCount) / maxPlayers);
+    }
+
+    // Number of spectators
+    const nSpectators = battle.spectators.value.length;
+    if (nSpectators > 0) {
+        addFactor("Spectators", 2.5 + Math.log(nSpectators + 2) - 1);
+    }
+
+    return {
+        ...battle,
+        score,
+        factors,
+        primaryFactor,
+    } as ScoredSpadsBattle;
+
+    function addFactor(factorName: string, factorScore: number) {
+        score += factorScore;
+        factors[factorName] = factorScore;
+        if (!primaryFactor) {
+            primaryFactor = factorName;
+        }
+    }
+}
 
 const watchForLobbyJoin = api.comms.onResponse("s.lobby.updated_client_battlestatus").add(() => {
     loading.value = false;
