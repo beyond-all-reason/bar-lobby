@@ -19,6 +19,7 @@
             class="fullwidth dark"
             @keyup.enter="sendMessage"
             @update:model-value="(value) => (myMessage = value)"
+            @update-selection="(newSelection) => (autoSuggestionSelection = newSelection)"
         />
     </div>
 </template>
@@ -26,18 +27,26 @@
 <script lang="ts" setup>
 import { Icon } from "@iconify/vue";
 import eyeIcon from "@iconify-icons/mdi/eye";
+import type { Ref } from "vue";
 import { ref } from "vue";
 
 import BattleMessage from "@/components/battle/BattleMessage.vue";
 import AutoSuggest from "@/components/controls/AutoSuggest.vue";
 
-const optionList = ref(["hello", "he", "there"]);
+const optionList = ref(["hello", "he", "hel", "hell", "there"]);
 const messages = api.session.battleMessages;
 const myMessage = ref("");
 const showHiddenMessages = ref(false);
+const autoSuggestionSelection: Ref<string | null> = ref(null);
 
 function sendMessage() {
     if (!myMessage.value) {
+        return;
+    }
+
+    // If an autosuggestion is currently keyboard selected: pressing enter should autocomplete the suggestion instead of sending the message.
+    if (autoSuggestionSelection.value != null) {
+        myMessage.value = autoSuggestionSelection.value;
         return;
     }
 
