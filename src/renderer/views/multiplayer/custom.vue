@@ -231,7 +231,7 @@ function scoreBattle(battle: SpadsBattle) {
 
     const queueSize = battle.battleOptions.joinQueueUserIds?.length || 0;
     if (!running && playerCount >= maxPlayers) {
-        addFactor("Full", 1 - queueSize * 0.5);
+        addFactor("Full", -queueSize * 0.5);
     }
 
     // TODO: within skill range
@@ -244,7 +244,7 @@ function scoreBattle(battle: SpadsBattle) {
     // TODO: Is a noob lobby and I am noob
 
     if (!running && playerCount) {
-        addFactor("Waiting for players", (2 * playerCount) / maxPlayers);
+        addFactor("Waiting for players", (1.2 * playerCount) / maxPlayers);
     }
 
     // Number of spectators
