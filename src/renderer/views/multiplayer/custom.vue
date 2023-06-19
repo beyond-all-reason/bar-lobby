@@ -28,24 +28,29 @@
                     class="p-datatable-sm"
                     selectionMode="single"
                     :sortOrder="-1"
-                    sortField="playerCount.value"
+                    sortField="score"
                     paginator
                     :rows="16"
                     :pageLinkSize="20"
+                    @row-select="onRowSelect"
                     @row-dblclick="onDoubleClick"
                 >
-                    <Column headerStyle="width: 0" sortable sortField="isLockedOrPassworded.value">
-                        <template #header>
-                            <Icon :icon="lock" />
-                        </template>
+                    <Column header="Best Battle" sortable sortField="score">
                         <template #body="{ data }">
-                            <Icon v-if="data.isLockedOrPassworded.value" :icon="lock" />
-                        </template>
-                    </Column>
-                    <Column header="Runtime" sortable sortField="runtimeMs.value">
-                        <template #body="{ data }">
-                            <div v-if="data.runtimeMs.value >= 1">
-                                {{ getFriendlyDuration(data.runtimeMs.value) }}
+                            <div
+                                v-if="data.primaryFactor !== 'Running'"
+                                v-tooltip.right="battleScoreTooltip(data)"
+                                class="flex-row flex-center-items gap-md"
+                            >
+                                {{ data.primaryFactor }}
+                            </div>
+                            <div
+                                v-if="data.primaryFactor === 'Running'"
+                                v-tooltip.right="battleScoreTooltip(data)"
+                                class="flex-row flex-center-items gap-md"
+                            >
+                                Running for
+                                {{ getFriendlyDuration(data.runtimeMs.value, false) }}
                             </div>
                         </template>
                     </Column>
@@ -64,6 +69,14 @@
                                     <Icon :icon="robot" height="17" />{{ data.bots.length }}
                                 </div>
                             </div>
+                        </template>
+                    </Column>
+                    <Column headerStyle="width: 0" sortable sortField="isLockedOrPassworded.value">
+                        <template #header>
+                            <Icon :icon="lock" />
+                        </template>
+                        <template #body="{ data }">
+                            <Icon v-if="data.isLockedOrPassworded.value" :icon="lock" />
                         </template>
                     </Column>
                 </DataTable>
@@ -116,6 +129,13 @@ const hostBattleOpen = ref(false);
 const searchVal = ref("");
 const selectedBattle: Ref<SpadsBattle | null> = shallowRef(null);
 const settings = api.settings.model;
+
+interface ScoredSpadsBattle extends SpadsBattle {
+    score: number;
+    factors: { [factorName: string]: number };
+    primaryFactor: string;
+}
+
 const battles = computed(() => {
     let battles = Array.from(api.session.battles.values());
 
@@ -159,14 +179,130 @@ const battles = computed(() => {
         return true;
     });
 
+    const scoredBattles = battles.map(scoreBattle);
+
     if (selectedBattle.value === null) {
-        const biggestBattle = battles.sort((a, b) => b.playerCount.value - a.playerCount.value)[0];
         // eslint-disable-next-line vue/no-side-effects-in-computed-properties
-        selectedBattle.value = biggestBattle;
+        selectedBattle.value = scoredBattles[0];
     }
 
-    return battles;
+    return scoredBattles;
 });
+
+function battleScoreTooltip(data: ScoredSpadsBattle) {
+    const scoreExplanation = `\
+All Sorting Factors: ${data.score.toFixed(2)}
+---
+${Object.entries(data.factors)
+    .sort(([factorNameA, factorScoreA], [factorNameB, factorScoreB]) => {
+        if (factorNameA === data.primaryFactor) {
+            return -1;
+        }
+        if (factorNameB === data.primaryFactor) {
+            return 1;
+        }
+        if (Math.abs(factorScoreA) > Math.abs(factorScoreB)) {
+            return -1;
+        }
+        if (Math.abs(factorScoreA) < Math.abs(factorScoreB)) {
+            return 1;
+        }
+
+        return 0;
+    })
+    .map(([factorName, factorScore]) => {
+        return `${factorName}: ${factorScore.toFixed(2)}`;
+    })
+    .join("\n")}
+`;
+
+    return scoreExplanation;
+}
+
+function scoreBattle(battle: SpadsBattle) {
+    let score = 0;
+    let factors: ScoredSpadsBattle["factors"] = {};
+    let primaryFactor = "";
+
+    const inBattle = battle.players.value.find((p) => p.userId === api.session.onlineUser?.userId);
+    if (inBattle) {
+        addFactor("In Lobby", 50);
+    }
+
+    if (battle.battleOptions.locked) {
+        addFactor("Locked", -9);
+    }
+
+    if (battle.battleOptions.passworded) {
+        addFactor("Private", -9);
+    }
+
+    const runtime = battle.runtimeMs.value || 0;
+    let running = runtime > 0;
+
+    // Hardcoded for now, but in the future could be pulled from match type
+    const medianRuntime = 1800000; // 30 minutes
+    const stdRuntime = 900000; // 15 minutes
+    if (runtime > medianRuntime) {
+        const runtimeVariance = (runtime - medianRuntime) / stdRuntime;
+        addFactor("Ending Soon", Math.log(runtimeVariance + 0.1) * 5);
+    }
+
+    if (running) {
+        addFactor("Running", -10);
+    }
+
+    const playerCount = battle.players.value.length;
+    if (!running && playerCount === 0) {
+        addFactor("No Players", -15);
+    }
+
+    const maxPlayers = battle.battleOptions.maxPlayers;
+    const halfOfMaxPlayers = maxPlayers / 2;
+    const remainingPlayers = maxPlayers - playerCount;
+    if (!running && playerCount > halfOfMaxPlayers && playerCount < maxPlayers) {
+        addFactor("Almost full", (-5 / halfOfMaxPlayers) * remainingPlayers + 5);
+    }
+
+    const queueSize = battle.battleOptions.joinQueueUserIds?.length || 0;
+    if (!running && playerCount >= maxPlayers) {
+        addFactor("Full", -1 - queueSize * 0.2);
+    }
+
+    // TODO: within skill range
+    // TODO: median skill close to won
+    // TODO: friend in lobby
+    // TODO: blocked in lobby
+    // TODO: Highly rated map
+    // TODO: Downloaded map
+
+    // TODO: Is a noob lobby and I am noob
+
+    if (!running && playerCount) {
+        addFactor("Waiting for players", (1.2 * playerCount) / maxPlayers);
+    }
+
+    // Number of spectators
+    const nSpectators = battle.spectators.value.length;
+    if (nSpectators > 0) {
+        addFactor("Spectators", 0.4 * (Math.log(nSpectators + 2) - 1));
+    }
+
+    return {
+        ...battle,
+        score,
+        factors,
+        primaryFactor,
+    } as ScoredSpadsBattle;
+
+    function addFactor(factorName: string, factorScore: number) {
+        score += factorScore;
+        factors[factorName] = factorScore;
+        if (!primaryFactor) {
+            primaryFactor = factorName;
+        }
+    }
+}
 
 const watchForLobbyJoin = api.comms.onResponse("s.lobby.updated_client_battlestatus").add(() => {
     loading.value = false;
@@ -189,6 +325,23 @@ await api.session.updateBattleList();
 
 if (active.value) {
     intervalId.value = window.setInterval(api.session.updateBattleList, 5000);
+}
+
+function onRowSelect(event: DataTableRowDoubleClickEvent) {
+    const data = event.data as ScoredSpadsBattle;
+    const scoreExplanation = `\
+Score explanation for ${data.battleOptions.title}
+Primary Factor: ${data.primaryFactor}
+Total score: ${data.score}
+Factors: ${Object.entries(data.factors).length}
+${Object.entries(data.factors)
+    .map(([factorName, factorScore]) => {
+        return `${factorName.padEnd(20, " ")}: ${factorScore.toFixed(2)}`;
+    })
+    .join("\n")}
+`;
+
+    console.log(scoreExplanation, event.data);
 }
 
 async function onDoubleClick(event: DataTableRowDoubleClickEvent) {
