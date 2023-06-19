@@ -35,14 +35,6 @@
                     @row-select="onRowSelect"
                     @row-dblclick="onDoubleClick"
                 >
-                    <Column headerStyle="width: 0" sortable sortField="isLockedOrPassworded.value">
-                        <template #header>
-                            <Icon :icon="lock" />
-                        </template>
-                        <template #body="{ data }">
-                            <Icon v-if="data.isLockedOrPassworded.value" :icon="lock" />
-                        </template>
-                    </Column>
                     <Column header="Best Battle" sortable sortField="score">
                         <template #body="{ data }">
                             <div class="flex-row flex-center-items gap-md">
@@ -73,6 +65,14 @@
                             <div v-if="data.runtimeMs.value >= 1">
                                 {{ getFriendlyDuration(data.runtimeMs.value) }}
                             </div>
+                        </template>
+                    </Column>
+                    <Column headerStyle="width: 0" sortable sortField="isLockedOrPassworded.value">
+                        <template #header>
+                            <Icon :icon="lock" />
+                        </template>
+                        <template #body="{ data }">
+                            <Icon v-if="data.isLockedOrPassworded.value" :icon="lock" />
                         </template>
                     </Column>
                 </DataTable>
@@ -196,11 +196,11 @@ function scoreBattle(battle: SpadsBattle) {
     }
 
     if (battle.battleOptions.locked) {
-        addFactor("Locked", -5);
+        addFactor("Locked", -9);
     }
 
     if (battle.battleOptions.passworded) {
-        addFactor("Passworded", -5);
+        addFactor("Passworded", -9);
     }
 
     const runtime = battle.runtimeMs.value || 0;
