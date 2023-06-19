@@ -157,6 +157,14 @@ export class CacheDbAPI extends Kysely<CacheDatabase> {
                         .execute();
                 },
             },
+            "2023-06-20": {
+                async up(db) {
+                    await db.schema
+                        .alterTable("replay")
+                        .addColumn("filePath", "varchar", (col) => col)
+                        .execute();
+                },
+            },
         };
     }
 

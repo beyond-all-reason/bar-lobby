@@ -101,6 +101,39 @@ export class Application {
         this.mainWindow.window.on("restore", () => this.mainWindow?.window.flashFrame(false));
 
         this.setupHandlers();
+        this.setupSecondInstanceOpened();
+    }
+
+    protected setupSecondInstanceOpened() {
+        app.on("second-instance", (_event, commandLine, _workingDirectory, _additionalData) => {
+            console.log("Second Instance opening with command line: " + commandLine);
+
+            this.focusWindows();
+
+            this.openFile(commandLine[commandLine.length-1]);
+        });
+
+        app.on("open-file", (_, path) => {
+            console.log("Mac OS opening file: " + path);
+
+            this.focusWindows();
+
+            this.openFile(path);
+        });
+    }
+
+    protected openFile(path: string) {
+        if(!path.endsWith(".sdfz")){
+            return;
+        }
+        this.mainWindow?.window.webContents.send("open-replay", path);
+    }
+
+    private focusWindows() {
+        if (this.mainWindow?.window) {
+            if (this.mainWindow?.window.isMinimized()) this.mainWindow?.window.restore();
+            this.mainWindow?.window.focus();
+        }
     }
 
     protected setupHandlers() {
@@ -108,11 +141,11 @@ export class Application {
             return this.getInfo();
         });
 
-        ipcMain.handle("flashFrame", (event, flag: boolean) => {
+        ipcMain.handle("flashFrame", (_event, flag: boolean) => {
             this.mainWindow?.window.flashFrame(flag);
         });
 
-        ipcMain.handle("encryptString", async (event, str: string) => {
+        ipcMain.handle("encryptString", async (_event, str: string) => {
             if (safeStorage.isEncryptionAvailable()) {
                 return safeStorage.encryptString(str);
             }
@@ -120,12 +153,19 @@ export class Application {
             return str;
         });
 
-        ipcMain.handle("decryptString", async (event, buffer: Buffer) => {
+        ipcMain.handle("decryptString", async (_event, buffer: Buffer) => {
             if (safeStorage.isEncryptionAvailable()) {
                 return safeStorage.decryptString(buffer);
             }
             console.warn(`encryption not available, returning buffer`);
             return buffer.toString();
+        });
+        let openedReplayAlready = false;
+        ipcMain.handle("opened-replay", () => {
+            console.log(process.argv);
+            if (process.argv.length == 0 || openedReplayAlready) return null;
+            openedReplayAlready = true; //in case of reloading the app do not open replay again
+            return process.argv[process.argv.length - 1].endsWith(".sdfz") ? process.argv[process.argv.length - 1] : null;
         });
     }
 
@@ -161,6 +201,11 @@ export class Application {
     }
 }
 
-unhandled();
+const gotTheLock = app.requestSingleInstanceLock();
 
-new Application();
+if (!gotTheLock) {
+    app.quit();
+} else {
+    unhandled();
+    new Application();
+}

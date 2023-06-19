@@ -58,6 +58,11 @@ export class ReplayContentAPI {
         return query.offset(options.offset).limit(options.limit).execute();
     }
 
+    public async parseAndLaunchReplay(replayPath: string) {
+        const replay = await this.parseReplay(replayPath);
+        api.game.launch((await replay) as Replay);
+    }
+
     public async getReplayById(replayId: number) {
         return api.cacheDb.selectFrom("replay").selectAll().where("replayId", "=", replayId).executeTakeFirst();
     }
@@ -125,12 +130,12 @@ export class ReplayContentAPI {
         }
     }
 
-    protected async cacheReplay(replayFilePath: string) {
+    public async cacheReplay(replayFilePath: string): Promise<string | undefined> {
         const replayFileName = path.parse(replayFilePath).base;
         console.debug(`Caching: ${replayFileName}`);
-
+        let replayData;
         try {
-            const replayData = await this.parseReplay(replayFilePath);
+            replayData = await this.parseReplay(replayFilePath);
 
             if (replayData.gameId === "00000000000000000000000000000000") {
                 throw new Error(`invalid gameId for replay: ${replayFileName}`);
@@ -169,5 +174,6 @@ export class ReplayContentAPI {
         }
 
         this.replayCacheQueue.delete(replayFileName);
+        return replayData?.gameId;
     }
 }
