@@ -166,6 +166,10 @@ function watchReplay(replay: Replay) {
 }
 
 function showReplayFile(replay: Replay) {
+    if (replay.filePath) {
+        shell.showItemInFolder(replay.filePath);
+        return;
+    }
     shell.showItemInFolder(path.join(api.content.replays.replaysDir, replay.fileName));
 }
 </script>

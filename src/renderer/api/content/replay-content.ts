@@ -58,6 +58,11 @@ export class ReplayContentAPI {
         return query.offset(options.offset).limit(options.limit).execute();
     }
 
+    public async parseAndLaunchReplay(replayPath: string) {
+        const replay = await this.parseReplay(replayPath);
+        api.game.launch((await replay) as Replay);
+    }
+
     public async getReplayById(replayId: number) {
         return api.cacheDb.selectFrom("replay").selectAll().where("replayId", "=", replayId).executeTakeFirst();
     }
@@ -124,7 +129,6 @@ export class ReplayContentAPI {
             }
         }
     }
-
     protected async cacheReplay(replayFilePath: string) {
         const replayFileName = path.parse(replayFilePath).base;
         console.debug(`Caching: ${replayFileName}`);
