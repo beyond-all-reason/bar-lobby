@@ -1,9 +1,13 @@
 import { intervalToDuration } from "date-fns";
 import fs from "fs";
 
-export function getFriendlyDuration(durationMs: number) {
-    const durtationValues = intervalToDuration({ start: 0, end: durationMs });
-    return `${durtationValues.hours}:${durtationValues.minutes?.toString().padStart(2, "0")}:${durtationValues.seconds?.toString().padStart(2, "0")}`;
+export function getFriendlyDuration(durationMs: number, withSeconds = true) {
+    const durationValues = intervalToDuration({ start: 0, end: durationMs });
+    const result = `${durationValues.hours}:${durationValues.minutes?.toString().padStart(2, "0")}`;
+    if (withSeconds) {
+        return result + `:${durationValues.seconds?.toString().padStart(2, "0")}`;
+    }
+    return result;
 }
 
 export async function isFileInUse(filePath: string): Promise<boolean> {

@@ -37,9 +37,20 @@
                 >
                     <Column header="Best Battle" sortable sortField="score">
                         <template #body="{ data }">
-                            <div class="flex-row flex-center-items gap-md">
+                            <div
+                                v-if="data.primaryFactor !== 'Running'"
+                                v-tooltip.right="battleScoreTooltip(data)"
+                                class="flex-row flex-center-items gap-md"
+                            >
                                 {{ data.primaryFactor }}
-                                <!-- {{ Math.round(data.score * 100) / 100 }} -->
+                            </div>
+                            <div
+                                v-if="data.primaryFactor === 'Running'"
+                                v-tooltip.right="battleScoreTooltip(data)"
+                                class="flex-row flex-center-items gap-md"
+                            >
+                                Running for
+                                {{ getFriendlyDuration(data.runtimeMs.value, false) }}
                             </div>
                         </template>
                     </Column>
@@ -57,13 +68,6 @@
                                 <div v-if="data.bots.length > 0" class="flex-row flex-center-items gap-xs" style="gap: 4px">
                                     <Icon :icon="robot" height="17" />{{ data.bots.length }}
                                 </div>
-                            </div>
-                        </template>
-                    </Column>
-                    <Column header="Runtime" sortable sortField="runtimeMs.value">
-                        <template #body="{ data }">
-                            <div v-if="data.runtimeMs.value >= 1">
-                                {{ getFriendlyDuration(data.runtimeMs.value) }}
                             </div>
                         </template>
                     </Column>
@@ -185,12 +189,42 @@ const battles = computed(() => {
     return scoredBattles;
 });
 
+function battleScoreTooltip(data: ScoredSpadsBattle) {
+    const scoreExplanation = `\
+All Sorting Factors: ${data.score.toFixed(2)}
+---
+${Object.entries(data.factors)
+    .sort(([factorNameA, factorScoreA], [factorNameB, factorScoreB]) => {
+        if (factorNameA === data.primaryFactor) {
+            return -1;
+        }
+        if (factorNameB === data.primaryFactor) {
+            return 1;
+        }
+        if (Math.abs(factorScoreA) > Math.abs(factorScoreB)) {
+            return -1;
+        }
+        if (Math.abs(factorScoreA) < Math.abs(factorScoreB)) {
+            return 1;
+        }
+
+        return 0;
+    })
+    .map(([factorName, factorScore]) => {
+        return `${factorName}: ${factorScore.toFixed(2)}`;
+    })
+    .join("\n")}
+`;
+
+    return scoreExplanation;
+}
+
 function scoreBattle(battle: SpadsBattle) {
     let score = 0;
-    let factors = {};
+    let factors: ScoredSpadsBattle["factors"] = {};
     let primaryFactor = "";
 
-    const inBattle = battle.players.value.find((p) => p.username === "kozan");
+    const inBattle = battle.players.value.find((p) => p.userId === api.session.onlineUser?.userId);
     if (inBattle) {
         addFactor("In Lobby", 50);
     }
@@ -200,7 +234,7 @@ function scoreBattle(battle: SpadsBattle) {
     }
 
     if (battle.battleOptions.passworded) {
-        addFactor("Passworded", -9);
+        addFactor("Private", -9);
     }
 
     const runtime = battle.runtimeMs.value || 0;
@@ -232,7 +266,7 @@ function scoreBattle(battle: SpadsBattle) {
 
     const queueSize = battle.battleOptions.joinQueueUserIds?.length || 0;
     if (!running && playerCount >= maxPlayers) {
-        addFactor("Full", -0.2 - -queueSize * 0.5);
+        addFactor("Full", -1 - queueSize * 0.2);
     }
 
     // TODO: within skill range
@@ -251,7 +285,7 @@ function scoreBattle(battle: SpadsBattle) {
     // Number of spectators
     const nSpectators = battle.spectators.value.length;
     if (nSpectators > 0) {
-        addFactor("Spectators", Math.log(nSpectators + 2) - 1);
+        addFactor("Spectators", 0.4 * (Math.log(nSpectators + 2) - 1));
     }
 
     return {
