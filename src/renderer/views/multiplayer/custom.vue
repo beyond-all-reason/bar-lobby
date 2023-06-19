@@ -32,6 +32,7 @@
                     paginator
                     :rows="16"
                     :pageLinkSize="20"
+                    @row-select="onRowSelect"
                     @row-dblclick="onDoubleClick"
                 >
                     <Column headerStyle="width: 0" sortable sortField="isLockedOrPassworded.value">
@@ -42,10 +43,11 @@
                             <Icon v-if="data.isLockedOrPassworded.value" :icon="lock" />
                         </template>
                     </Column>
-                    <Column header="Runtime" sortable sortField="runtimeMs.value">
+                    <Column header="Best Battle" sortable sortField="score">
                         <template #body="{ data }">
-                            <div v-if="data.runtimeMs.value >= 1">
-                                {{ getFriendlyDuration(data.runtimeMs.value) }}
+                            <div class="flex-row flex-center-items gap-md">
+                                {{ data.primaryFactor }}
+                                <!-- {{ Math.round(data.score * 100) / 100 }} -->
                             </div>
                         </template>
                     </Column>
@@ -66,10 +68,10 @@
                             </div>
                         </template>
                     </Column>
-                    <Column header="Best Battle" sortable sortField="score">
+                    <Column header="Runtime" sortable sortField="runtimeMs.value">
                         <template #body="{ data }">
-                            <div class="flex-row flex-center-items gap-md">
-                                {{ data.primaryFactor }}, {{ Math.round(data.score * 100) / 100 }}
+                            <div v-if="data.runtimeMs.value >= 1">
+                                {{ getFriendlyDuration(data.runtimeMs.value) }}
                             </div>
                         </template>
                     </Column>
@@ -173,13 +175,12 @@ const battles = computed(() => {
         return true;
     });
 
-    if (selectedBattle.value === null) {
-        const biggestBattle = battles.sort((a, b) => b.playerCount.value - a.playerCount.value)[0];
-        // eslint-disable-next-line vue/no-side-effects-in-computed-properties
-        selectedBattle.value = biggestBattle;
-    }
-
     const scoredBattles = battles.map(scoreBattle);
+
+    if (selectedBattle.value === null) {
+        // eslint-disable-next-line vue/no-side-effects-in-computed-properties
+        selectedBattle.value = scoredBattles[0];
+    }
 
     return scoredBattles;
 });
@@ -210,7 +211,7 @@ function scoreBattle(battle: SpadsBattle) {
     const stdRuntime = 900000; // 15 minutes
     if (runtime > medianRuntime) {
         const runtimeVariance = (runtime - medianRuntime) / stdRuntime;
-        addFactor("Ending Soon", Math.log(runtimeVariance) * 5);
+        addFactor("Ending Soon", Math.log(runtimeVariance + 0.1) * 5);
     }
 
     if (running) {
@@ -231,7 +232,7 @@ function scoreBattle(battle: SpadsBattle) {
 
     const queueSize = battle.battleOptions.joinQueueUserIds?.length || 0;
     if (!running && playerCount >= maxPlayers) {
-        addFactor("Full", -queueSize * 0.5);
+        addFactor("Full", -0.2 - -queueSize * 0.5);
     }
 
     // TODO: within skill range
@@ -250,7 +251,7 @@ function scoreBattle(battle: SpadsBattle) {
     // Number of spectators
     const nSpectators = battle.spectators.value.length;
     if (nSpectators > 0) {
-        addFactor("Spectators", 2.5 + Math.log(nSpectators + 2) - 1);
+        addFactor("Spectators", Math.log(nSpectators + 2) - 1);
     }
 
     return {
@@ -290,6 +291,23 @@ await api.session.updateBattleList();
 
 if (active.value) {
     intervalId.value = window.setInterval(api.session.updateBattleList, 5000);
+}
+
+function onRowSelect(event: DataTableRowDoubleClickEvent) {
+    const data = event.data as ScoredSpadsBattle;
+    const scoreExplanation = `\
+Score explanation for ${data.battleOptions.title}
+Primary Factor: ${data.primaryFactor}
+Total score: ${data.score}
+Factors: ${Object.entries(data.factors).length}
+${Object.entries(data.factors)
+    .map(([factorName, factorScore]) => {
+        return `${factorName.padEnd(20, " ")}: ${factorScore.toFixed(2)}`;
+    })
+    .join("\n")}
+`;
+
+    console.log(scoreExplanation, event.data);
 }
 
 async function onDoubleClick(event: DataTableRowDoubleClickEvent) {
