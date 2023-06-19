@@ -17,6 +17,7 @@ export class SerializePlugin implements KyselyPlugin {
     protected colTypes = new Map<string, "json" | "datetime" | "boolean">();
 
     public async setSchema(db: Kysely<unknown>) {
+        this.colTypes.clear();
         const tableMetadata = await db.introspection.getTables();
         for (const table of tableMetadata) {
             for (const col of table.columns) {

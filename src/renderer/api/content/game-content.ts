@@ -128,7 +128,7 @@ export class GameContentAPI extends PrDownloaderAPI<GameVersion | CustomGameVers
         if ("dir" in version) {
             const sdpFiles: Array<SdpFileMeta & { data?: Buffer }> = [];
             const customGameDir = path.join(api.info.contentPath, "games", version.dir);
-            const files = await glob.promise(path.join(customGameDir, filePattern));
+            const files = await glob.promise(path.join(customGameDir, filePattern), { windowsPathsNoEscape: true });
 
             for (const file of files) {
                 const sdpData = {
