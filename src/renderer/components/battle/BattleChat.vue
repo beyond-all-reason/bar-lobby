@@ -16,6 +16,7 @@
         <AutoSuggest
             v-model="myMessage"
             :options="optionList"
+            :showDescription="true"
             class="fullwidth dark"
             @keyup.enter="sendMessage"
             @update:model-value="(value) => (myMessage = value)"
@@ -31,9 +32,22 @@ import type { Ref } from "vue";
 import { ref } from "vue";
 
 import BattleMessage from "@/components/battle/BattleMessage.vue";
-import AutoSuggest from "@/components/controls/AutoSuggest.vue";
+import AutoSuggest, { AutoSuggestionOption } from "@/components/controls/AutoSuggest.vue";
 
-const optionList = ref(["hello", "he", "hel", "hell", "there"]);
+const optionList: Ref<AutoSuggestionOption[]> = ref([
+    {
+        suggestion: "Hello",
+        description: "Says hello",
+    },
+    {
+        suggestion: "hell",
+        description: "Says hell",
+    },
+    {
+        suggestion: "hel",
+        description: "Says hel",
+    },
+]);
 const messages = api.session.battleMessages;
 const myMessage = ref("");
 const showHiddenMessages = ref(false);
