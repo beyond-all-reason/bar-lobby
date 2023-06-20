@@ -26,7 +26,6 @@ marked.use({
 const allowedTags = ["p", "em", "b", "strong", "ul", "ol", "li", "code", "pre", "blockquote", "span", "del", "body"];
 
 const allowedAttributes: string[] = [];
-
 if (props.allowLinks) {
     allowedTags.push("a");
 
