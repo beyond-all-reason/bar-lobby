@@ -8,7 +8,7 @@
                 @click="clickOption(option.suggestion)"
             >
                 <b class="suggestion">{{ replacePrefix(option.suggestion) }}</b>
-                <p v-if="option.description != null && showDescription" class="description">{{ option.description }}</p>
+                <p v-if="option.description != null && !hideDescription" class="description">{{ option.description }}</p>
             </div>
         </div>
         <Textbox
@@ -34,7 +34,7 @@ export interface AutoSuggestionOption {
 const props = defineProps<{
     modelValue: string;
     options: AutoSuggestionOption[];
-    showDescription?: boolean;
+    hideDescription?: boolean;
     prefix?: string;
 }>();
 const emit = defineEmits(["update:modelValue", "update-selection"]);
