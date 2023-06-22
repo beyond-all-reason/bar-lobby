@@ -7,7 +7,7 @@
                 :class="{ selected: keyboardSelectionIndex === index }"
                 @click="clickOption(option.suggestion)"
             >
-                <b class="suggestion">{{ option.suggestion }}</b>
+                <b class="suggestion">{{ replacePrefix(option.suggestion) }}</b>
                 <p v-if="option.description != null && showDescription" class="description">{{ option.description }}</p>
             </div>
         </div>
@@ -35,6 +35,7 @@ const props = defineProps<{
     modelValue: string;
     options: AutoSuggestionOption[];
     showDescription?: boolean;
+    prefix?: string;
 }>();
 const emit = defineEmits(["update:modelValue", "update-selection"]);
 
@@ -63,10 +64,17 @@ watch(
 
         const lower = newValue.toLowerCase();
         filteredOptions.value = originalOptions.value.filter(
-            (option) => option.suggestion.startsWith(lower) && option.suggestion !== lower
+            (option) => replacePrefix(option.suggestion).startsWith(lower) && replacePrefix(option.suggestion) !== lower
         );
     }
 );
+
+function replacePrefix(str: string) {
+    if (props.prefix == null) {
+        return str;
+    }
+    return props.prefix + str.substring(props.prefix.length);
+}
 
 function clickOption(option: string) {
     emit("update:modelValue", option);

@@ -17,6 +17,7 @@
             v-model="myMessage"
             :options="optionList"
             :showDescription="true"
+            prefix="/"
             class="fullwidth dark"
             @keyup.enter="sendMessage"
             @update:model-value="(value) => (myMessage = value)"
