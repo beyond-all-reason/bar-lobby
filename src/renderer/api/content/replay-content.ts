@@ -132,9 +132,9 @@ export class ReplayContentAPI {
     protected async cacheReplay(replayFilePath: string) {
         const replayFileName = path.parse(replayFilePath).base;
         console.debug(`Caching: ${replayFileName}`);
-
+        let replayData;
         try {
-            const replayData = await this.parseReplay(replayFilePath);
+            replayData = await this.parseReplay(replayFilePath);
 
             if (replayData.gameId === "00000000000000000000000000000000") {
                 throw new Error(`invalid gameId for replay: ${replayFileName}`);
@@ -173,5 +173,6 @@ export class ReplayContentAPI {
         }
 
         this.replayCacheQueue.delete(replayFileName);
+        return replayData?.gameId;
     }
 }
