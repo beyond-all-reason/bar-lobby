@@ -172,5 +172,5 @@ export class ReplayContentAPI {
         }
 
         this.replayCacheQueue.delete(replayFileName);
-        }
+    }
 }
