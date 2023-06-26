@@ -16,7 +16,6 @@
         <AutoSuggest
             v-model="myMessage"
             :options="optionList"
-            prefix="/"
             class="fullwidth dark"
             @keyup.enter="sendMessage"
             @update:model-value="(value) => (myMessage = value)"
@@ -36,16 +35,22 @@ import AutoSuggest, { AutoSuggestionOption } from "@/components/controls/AutoSug
 
 const optionList: Ref<AutoSuggestionOption[]> = ref([
     {
-        suggestion: "Hello",
+        suggestion: "/Hello (there)",
         description: "Says hello",
+        replaceSuggestion: "$hello",
     },
     {
-        suggestion: "hell",
+        suggestion: "/hello 2",
         description: "Says hell",
     },
     {
         suggestion: "hel",
         description: "Says hel",
+    },
+    {
+        suggestion: "/Hello (you)",
+        description: "Says hello you",
+        replaceSuggestion: "!hello",
     },
 ]);
 const messages = api.session.battleMessages;
@@ -58,10 +63,9 @@ function sendMessage() {
         return;
     }
 
-    // If an autosuggestion is currently keyboard selected: pressing enter should autocomplete the suggestion instead of sending the message.
+    // If an autosuggestion is currently keyboard selected: pressing enter should autocomplete the suggestion
     if (autoSuggestionSelection.value != null) {
         myMessage.value = autoSuggestionSelection.value;
-        return;
     }
 
     api.comms.request("c.lobby.message", {

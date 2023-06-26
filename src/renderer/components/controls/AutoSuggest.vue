@@ -5,10 +5,10 @@
                 v-for="(option, index) in filteredOptions"
                 :key="index"
                 :class="{ selected: keyboardSelectionIndex === index }"
-                @click="clickOption(option.suggestion)"
+                @click="clickOption(option)"
             >
-                <b class="suggestion">{{ replacePrefix(option.suggestion) }}</b>
-                <p v-if="option.description != null && !hideDescription" class="description">{{ option.description }}</p>
+                <b class="suggestion">{{ option.suggestion }}</b>
+                <p v-if="option.description != null" class="description">{{ option.description }}</p>
             </div>
         </div>
         <Textbox
@@ -26,30 +26,33 @@ import { onMounted, ref, watch } from "vue";
 
 import Textbox from "@/components/controls/Textbox.vue";
 
+/**
+ * The data for an autosuggestion option.
+ *
+ * @interface AutoSuggestionOption
+ * @member {string} suggestion the user facing suggestion.
+ * @member {string} description optionally gives the user more information about the suggestion.
+ * @member {string} replaceSuggestion optionally replace the user facing suggestion with this value when a user selects the suggestion.
+ *
+ */
 export interface AutoSuggestionOption {
     suggestion: string;
     description?: string;
+    replaceSuggestion?: string;
 }
 
 const props = defineProps<{
     modelValue: string;
     options: AutoSuggestionOption[];
-    hideDescription?: boolean;
-    prefix?: string;
 }>();
-const emit = defineEmits(["update:modelValue", "update-selection"]);
+const emit = defineEmits(["update:modelValue", "update-selection", "exact-match"]);
 
 const originalOptions: Ref<AutoSuggestionOption[]> = ref(props.options);
 const filteredOptions: Ref<AutoSuggestionOption[] | null> = ref(null);
 const keyboardSelectionIndex: Ref<number | null> = ref(0);
 
 onMounted(() => {
-    originalOptions.value = props.options.map((v) => {
-        return {
-            suggestion: v.suggestion.toLowerCase(),
-            description: v.description,
-        };
-    });
+    updateOriginalOptions(props.options);
 });
 
 watch(
@@ -64,20 +67,37 @@ watch(
 
         const lower = newValue.toLowerCase();
         filteredOptions.value = originalOptions.value.filter(
-            (option) => replacePrefix(option.suggestion).startsWith(lower) && replacePrefix(option.suggestion) !== lower
+            (option) => option.suggestion.startsWith(lower) && option.suggestion !== lower
         );
+
+        originalOptions.value.forEach((option) => {
+            if (option.suggestion === lower) {
+                emit("update-selection", option.suggestion);
+            }
+        });
     }
 );
 
-function replacePrefix(str: string) {
-    if (props.prefix == null) {
-        return str;
+watch(
+    () => props.options,
+    (newOptions) => {
+        updateOriginalOptions(newOptions);
     }
-    return props.prefix + str.substring(props.prefix.length);
+);
+
+function updateOriginalOptions(options: AutoSuggestionOption[]) {
+    originalOptions.value = options.map((v) => {
+        return {
+            suggestion: v.suggestion.toLowerCase(),
+            description: v.description,
+            replaceSuggestion: v.replaceSuggestion,
+        };
+    });
 }
 
-function clickOption(option: string) {
-    emit("update:modelValue", option);
+function clickOption(option: AutoSuggestionOption) {
+    const newValue = option.replaceSuggestion ?? option.suggestion;
+    emit("update:modelValue", newValue);
     updateKeyboardSelectionIndex(null);
 
     // Refocus on the input so that users can key "enter" right after selecting an auto-suggestion.
@@ -104,10 +124,11 @@ function changeKeyboardSelection(direction: 1 | -1) {
 
 function updateKeyboardSelectionIndex(newSelectionIndex: null | number) {
     keyboardSelectionIndex.value = newSelectionIndex;
-    const newSelection =
-        filteredOptions.value == null || keyboardSelectionIndex.value == null
-            ? null
-            : filteredOptions.value[keyboardSelectionIndex.value]?.suggestion;
+    let newSelection: string | null = null;
+    if (filteredOptions.value != null && keyboardSelectionIndex.value != null) {
+        const autosuggestion = filteredOptions.value[keyboardSelectionIndex.value];
+        newSelection = autosuggestion.replaceSuggestion ?? autosuggestion.suggestion;
+    }
     emit("update-selection", newSelection);
 }
 </script>
