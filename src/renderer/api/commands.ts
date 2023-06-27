@@ -127,7 +127,7 @@ export const commandList = [
 export function setupCommandListner() {
     return api.comms.onResponse("s.communication.received_direct_message").add(async (data) => {
         const { message } = data;
-    
+
         // Check if the message is a command
         if (!message.startsWith("!") && !message.startsWith("$")) return;
         const cmd = message.split("-")[0].split(" ")[0];
