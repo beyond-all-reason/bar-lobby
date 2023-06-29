@@ -25,21 +25,7 @@ import type { Ref } from "vue";
 import { onMounted, ref, watch } from "vue";
 
 import Textbox from "@/components/controls/Textbox.vue";
-
-/**
- * The data for an autosuggestion option.
- *
- * @interface AutoSuggestionOption
- * @member {string} suggestion the user facing suggestion.
- * @member {string} description optionally gives the user more information about the suggestion.
- * @member {string} replaceSuggestion optionally replace the user facing suggestion with this value when a user selects the suggestion.
- *
- */
-export interface AutoSuggestionOption {
-    suggestion: string;
-    description?: string;
-    replaceSuggestion?: string;
-}
+import AutoSuggestionOption from "@/utils/auto-suggestion-option";
 
 const props = defineProps<{
     modelValue: string;

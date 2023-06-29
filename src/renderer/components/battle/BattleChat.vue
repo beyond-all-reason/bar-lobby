@@ -31,7 +31,8 @@ import type { Ref } from "vue";
 import { ref } from "vue";
 
 import BattleMessage from "@/components/battle/BattleMessage.vue";
-import AutoSuggest, { AutoSuggestionOption } from "@/components/controls/AutoSuggest.vue";
+import AutoSuggest from "@/components/controls/AutoSuggest.vue";
+import AutoSuggestionOption from "@/utils/auto-suggestion-option";
 
 const optionList: Ref<AutoSuggestionOption[]> = ref([
     {

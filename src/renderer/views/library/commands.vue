@@ -24,18 +24,13 @@
 <script lang="ts" setup>
 import { computed, onMounted, onUnmounted, reactive, Ref, ref } from "vue";
 
-import { commandList, destroyCommandListner, grabSPADSCommands, setupCommandListner } from "@/api/commands";
+import { Command, commandList, destroyCommandListner, grabSPADSCommands, setupCommandListner } from "@/api/commands";
 import SearchBox from "@/components/controls/SearchBox.vue";
 import Select from "@/components/controls/Select.vue";
 
 type FilterMethod = "All" | "Spads" | "Server";
 const filterMethods: FilterMethod[] = ["All", "Spads", "Server"];
 const filterMethod: Ref<FilterMethod> = ref("All");
-
-interface Command {
-    cmd: string;
-    cmdDescription: string;
-}
 
 const searchVal = ref("");
 

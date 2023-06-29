@@ -1,5 +1,7 @@
 import { SignalBinding } from "jaz-ts-utils";
 
+import AutoSuggestionOption from "@/utils/auto-suggestion-option";
+
 export interface Command {
     cmd: string;
     cmdDescription: string;
@@ -145,4 +147,20 @@ export function grabSPADSCommands() {
 
 export function destroyCommandListner(listner: SignalBinding) {
     listner.destroy();
+}
+
+export function getCommandsAsAutoSuggestions(): AutoSuggestionOption[] {
+    const unique = new Set<string>();
+    return commandList.map((command) => {
+        let suggestion = `/${command.cmd.substring(1)}`;
+        if (unique.has(suggestion)) {
+            suggestion = command.cmd.startsWith("!") ? suggestion + " (SERVER)" : suggestion + " (SPADS)";
+        }
+        unique.add(suggestion);
+        return {
+            suggestion: `/${command.cmd.substring(1)}`,
+            description: command.cmdDescription,
+            replaceSuggestion: command.cmd,
+        };
+    });
 }
