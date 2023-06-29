@@ -154,7 +154,7 @@ export function getCommandsAsAutoSuggestions(): AutoSuggestionOption[] {
     return commandList.map((command) => {
         let suggestion = `/${command.cmd.substring(1)}`;
         if (unique.has(suggestion)) {
-            suggestion = command.cmd.startsWith("!") ? suggestion + " (SERVER)" : suggestion + " (SPADS)";
+            suggestion = command.cmd.startsWith("!") ? suggestion + " (SPADS)" : suggestion + " (SERVER)";
         }
         unique.add(suggestion);
         return {
