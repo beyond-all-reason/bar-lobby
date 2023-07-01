@@ -24,7 +24,7 @@
 <script lang="ts" setup>
 import { computed, onMounted, onUnmounted, reactive, Ref, ref } from "vue";
 
-import { Command, commandList, destroyCommandListner, grabSPADSCommands, setupCommandListner } from "@/api/commands";
+import { Command, serverCommandList } from "@/api/commands";
 import SearchBox from "@/components/controls/SearchBox.vue";
 import Select from "@/components/controls/Select.vue";
 
@@ -39,7 +39,7 @@ const searchVal = ref("");
  * if they start come as spads commands, it could break the script
  **/
 
-const commands = reactive<Command[]>(commandList);
+const commands = reactive<Command[]>(structuredClone(serverCommandList));
 
 // Sort the commands array based on the sort method
 function filterCommands(commands: Command[], filterMethod: FilterMethod) {
@@ -67,16 +67,26 @@ const filteredCommands = computed(() => {
 
 const route = api.router.currentRoute.value;
 
-const listner = setupCommandListner();
+const directMessageCommandListener = api.comms.onResponse("s.communication.received_direct_message").add(async (data) => {
+    const { message } = data;
+    // Check if the message is a command
+    if (!message.startsWith("!") && !message.startsWith("$")) return;
+    const cmd = message.split("-")[0].split(" ")[0];
+    const cmdDescription = message.slice(cmd.length + 1).replace("-", " ");
+    cmdDescription && !cmdDescription.includes("*") && commands.push({ cmd, cmdDescription });
+});
 
 onMounted(() => {
     // Send a message to the server to get all the commands
-    grabSPADSCommands();
+    api.comms.request("c.communication.send_direct_message", {
+        recipient_id: 3137,
+        message: `!helpall`,
+    });
 });
 
 // Unsubscribe from the response listener when the component is not visible anymore
 onUnmounted(() => {
-    destroyCommandListner(listner);
+    directMessageCommandListener.destroy();
 });
 </script>
 

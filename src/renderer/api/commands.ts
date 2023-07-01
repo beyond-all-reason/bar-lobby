@@ -1,5 +1,3 @@
-import { SignalBinding } from "jaz-ts-utils";
-
 import AutoSuggestionOption from "@/utils/auto-suggestion-option";
 
 export interface Command {
@@ -7,7 +5,23 @@ export interface Command {
     cmdDescription: string;
 }
 
-export const commandList = [
+export function getAutoSuggestions(commands: Command[]): AutoSuggestionOption[] {
+    const unique = new Set<string>();
+    return commands.map((command) => {
+        let suggestion = `/${command.cmd.substring(1)}`;
+        if (unique.has(suggestion)) {
+            suggestion = command.cmd.startsWith("!") ? suggestion + " (SPADS)" : suggestion + " (SERVER)";
+        }
+        unique.add(suggestion);
+        return {
+            suggestion: suggestion,
+            description: command.cmdDescription,
+            replaceSuggestion: command.cmd,
+        };
+    });
+}
+
+export const serverCommandList = [
     {
         cmd: "$help",
         cmdDescription: "Displays this help text.",
@@ -125,42 +139,3 @@ export const commandList = [
         cmdDescription: `<min-level> <max-level> Sets the minimum and maximum rating levels for players. Requires boss privileges.`,
     },
 ];
-
-export function setupCommandListner() {
-    return api.comms.onResponse("s.communication.received_direct_message").add(async (data) => {
-        const { message } = data;
-
-        // Check if the message is a command
-        if (!message.startsWith("!") && !message.startsWith("$")) return;
-        const cmd = message.split("-")[0].split(" ")[0];
-        const cmdDescription = message.slice(cmd.length + 1).replace("-", " ");
-        cmdDescription && !cmdDescription.includes("*") && commandList.push({ cmd, cmdDescription });
-    });
-}
-
-export function grabSPADSCommands() {
-    api.comms.request("c.communication.send_direct_message", {
-        recipient_id: 3137,
-        message: `!helpall`,
-    });
-}
-
-export function destroyCommandListner(listner: SignalBinding) {
-    listner.destroy();
-}
-
-export function getCommandsAsAutoSuggestions(): AutoSuggestionOption[] {
-    const unique = new Set<string>();
-    return commandList.map((command) => {
-        let suggestion = `/${command.cmd.substring(1)}`;
-        if (unique.has(suggestion)) {
-            suggestion = command.cmd.startsWith("!") ? suggestion + " (SPADS)" : suggestion + " (SERVER)";
-        }
-        unique.add(suggestion);
-        return {
-            suggestion: `/${command.cmd.substring(1)}`,
-            description: command.cmdDescription,
-            replaceSuggestion: command.cmd,
-        };
-    });
-}
