@@ -58,7 +58,7 @@ watch(
 
         originalOptions.value.forEach((option) => {
             if (option.suggestion === lower) {
-                emit("update-selection", option.suggestion);
+                emit("update-selection", option.replaceSuggestion ?? option.suggestion);
             }
         });
     }
