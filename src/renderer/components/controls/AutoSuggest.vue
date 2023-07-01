@@ -96,7 +96,7 @@ function changeKeyboardSelection(direction: 1 | -1) {
         return;
     }
 
-    let tmpSelectionIndex = (keyboardSelectionIndex.value ?? -1) + direction;
+    let tmpSelectionIndex = (keyboardSelectionIndex.value ?? filteredOptions.value.length) + direction;
 
     if (tmpSelectionIndex >= filteredOptions.value.length) {
         tmpSelectionIndex = filteredOptions.value.length - 1;
