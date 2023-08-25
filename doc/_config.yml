@@ -1,0 +1,21 @@
+title: BAR Lobby Documentation
+description: >-
+  Documentation for the Beyond All Reason Client.
+theme: just-the-docs
+
+url: https://github.com/Row-oar-sleep/doc_test_1
+
+#Makes Aux links open in new tab. Default is false
+aux_links_new_tab: true
+
+#For copy button on code
+enable_copy_code_button: true
+
+# Back to top link
+back_to_top: true
+back_to_top_text: "Back to top"
+
+aux_links:
+  Lobby Repository: https://github.com/beyond-all-reason/bar-lobby
+
+color_scheme: dark
