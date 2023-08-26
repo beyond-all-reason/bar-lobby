@@ -1,7 +1,8 @@
 ---
-title: Setting up for development
-layout: default
-nav_order: 3
+layout: post
+title: Setting up bar-lobby
+parent: Guides
+permalink: guides/set_up
 ---
 
 This will eventually be the step-by-step guide in written form, modified from the source video made by Jazcash.
@@ -10,7 +11,7 @@ If you prefer video to text, you can watch the original [guide from Jazcash].
 
 ---
 
-Windows 10 Guide:
+## Windows 10 Guide: ##
 
 Assumptions: This guide starts from a fresh installation of Windows 10 and assumes no prior installed software.
 
