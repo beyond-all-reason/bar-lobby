@@ -32,7 +32,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     defaults:
-      runs:
+      run:
         working-directory: docs
     steps:
       - name: Checkout
