@@ -4,7 +4,7 @@ title: Overview of Bar Lobby
 parent: Guides
 permalink: guides/overview
 ---
-# Tech Stack:
+## Tech Stack: ##
 
 BAR Lobby uses:
  - Electron

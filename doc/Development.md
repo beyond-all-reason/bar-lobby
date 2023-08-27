@@ -1,6 +1,6 @@
 ---
 layout: default
-title: Duides
+title: Development
 nav_order: 4
 has_children: true
 permalink: development
