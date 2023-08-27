@@ -1,8 +1,8 @@
 ---
 layout: post
 title: Setting up bar-lobby
-parent: Guides
-permalink: guides/set_up
+parent: Development
+permalink: development/set_up
 ---
 
 This will eventually be the step-by-step guide in written form, modified from the source video made by Jazcash.
