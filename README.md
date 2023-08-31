@@ -4,6 +4,8 @@ BAR Lobby is a new WIP lobby for the RTS game [Beyond All Reason](https://www.be
 
 ![image](https://user-images.githubusercontent.com/1434248/223881325-bb8ac4f5-ed14-4ad8-ad33-970781cf3089.png)
 
+## [Docs](https://beyond-all-reason.github.io/bar-lobby/)
+
 ## Functionality and Goals
 
 -   Provide functionality for everything related to BAR. Campaigns, Missions, Multiplayer, Replays etc
