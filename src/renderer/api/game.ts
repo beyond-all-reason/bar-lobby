@@ -60,7 +60,7 @@ export class GameAPI {
             const scriptPath = (launchArg = path.join(api.info.contentPath, this.scriptName));
             await fs.promises.writeFile(scriptPath, script);
         } else if (isReplay(arg)) {
-            launchArg = path.join(api.content.replays.replaysDir, arg.fileName);
+            launchArg = arg.filePath ? arg.filePath : path.join(api.content.replays.replaysDir, arg.fileName);
         }
 
         const args = ["--write-dir", api.info.contentPath, "--isolation", launchArg];

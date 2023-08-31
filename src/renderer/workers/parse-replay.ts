@@ -23,6 +23,7 @@ export const parseReplay = exposeWorkerFunction(async (replayPath: string) => {
     return {
         gameId: replayData.header.gameId,
         fileName: path.parse(replayPath).base,
+        filePath: replayPath,
         engineVersion: replayData.info.meta.engine,
         gameVersion: replayData.info.meta.game,
         mapScriptName: replayData.info.meta.map,

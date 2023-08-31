@@ -30,6 +30,13 @@ const config = {
         category: "Game",
     },
     publish: null,
+    fileAssociations: [
+        {
+            "ext": "sdfz",
+            "description": "BAR Replay File",
+            "role": "Viewer"
+        }
+    ]
 };
 
 module.exports = config;

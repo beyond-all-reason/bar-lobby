@@ -4,6 +4,7 @@ import "flag-icons/css/flag-icons.min.css";
 import "primeicons/primeicons.css";
 import "@/styles/styles.scss";
 
+import { ipcRenderer } from "electron";
 import path from "path";
 import PrimeVue from "primevue/config";
 import Tooltip from "primevue/tooltip";
@@ -44,15 +45,7 @@ declare module "vue-router" {
         }
     });
 
-    // window.addEventListener("beforeunload", async (event) => {
-    //     console.debug("beforeunload", event);
-    //     event.preventDefault();
-    //     if (api.comms.isConnected.value) {
-    //         //await api.comms.request("c.auth.disconnect", {});
-    //         api.comms.disconnect();
-    //     }
-    //     return event;
-    // });
+    await replayOpenedHandlers();
 })();
 
 async function setupVue() {
@@ -73,6 +66,17 @@ async function setupVue() {
     if (process.env.NODE_ENV !== "production") {
         app.config.globalProperties.window = window;
     }
+}
+
+async function replayOpenedHandlers() {
+    const replay = await ipcRenderer.invoke("opened-replay");
+    if (replay) {
+        api.content.replays.parseAndLaunchReplay(replay);
+    }
+    ipcRenderer.on("open-replay", (_event, arg) => {
+        console.log("renderer recaeived replay to launch:" + arg);
+        api.content.replays.parseAndLaunchReplay(arg);
+    });
 }
 
 async function setupI18n() {

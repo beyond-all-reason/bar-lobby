@@ -5,6 +5,7 @@ export type ReplayTable = {
     replayId: Generated<number>;
     gameId: string;
     fileName: string;
+    filePath: string | null;
     engineVersion: string;
     gameVersion: string;
     mapScriptName: string;
