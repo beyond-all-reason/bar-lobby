@@ -108,7 +108,7 @@ export class EngineContentAPI extends AbstractContentAPI<EngineVersion> {
         await fs.promises.unlink(downloadFile);
 
         removeFromArray(this.currentDownloads, downloadInfo);
-        this.downloadComplete(downloadInfo);
+        await this.downloadComplete(downloadInfo);
 
         return engineName;
     }
