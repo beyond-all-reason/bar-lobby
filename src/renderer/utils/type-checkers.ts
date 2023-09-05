@@ -11,7 +11,7 @@ export function isReplay(replay: any): replay is Replay {
     return "replayId" in replay;
 }
 export function isBattle(battle: any): battle is AbstractBattle {
-    return battle instanceof AbstractBattle;
+    return battle instanceof AbstractBattle || ("discriminator" in battle && (battle as AbstractBattle).discriminator == "AbstractBattle");
 }
 export function isOfflineBattle(battle: any): battle is OfflineBattle {
     return battle instanceof OfflineBattle;

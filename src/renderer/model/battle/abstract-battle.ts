@@ -15,6 +15,7 @@ export interface BattleConfig<T extends BattleOptions = BattleOptions> {
 }
 
 export abstract class AbstractBattle<T extends BattleOptions = BattleOptions> {
+    public readonly discriminator: "AbstractBattle";
     public readonly battleOptions: T;
     public readonly bots: Bot[];
     public readonly users: User[];
@@ -33,6 +34,7 @@ export abstract class AbstractBattle<T extends BattleOptions = BattleOptions> {
     protected watchStopHandles: WatchStopHandle[] = [];
 
     constructor(config: BattleConfig<T>) {
+        this.discriminator = "AbstractBattle";
         this.battleOptions = reactive(config.battleOptions) as T;
         this.bots = reactive(config.bots);
         this.users = shallowReactive(config.users); // users are already reactive, so making them doubly reactive here will cause bugs
