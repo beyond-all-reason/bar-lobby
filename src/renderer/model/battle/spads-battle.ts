@@ -13,11 +13,18 @@ type LobbyType = Static<typeof lobbySchema>;
 type BattleType = Static<typeof battleSchema>;
 type LobbyResponseHandlers = { [K in keyof Required<LobbyType>]: (data: Required<LobbyType[K]>) => void };
 
+interface SpadsScore {
+    score: number;
+    factors: { [factorName: string]: number };
+    primaryFactor: string;
+}
+
 export class SpadsBattle extends AbstractBattle<SpadsBattleOptions> {
     public readonly currentVote: Ref<SpadsVote | null> = ref(null);
     public readonly founder: ComputedRef<User>;
     public readonly isLockedOrPassworded: ComputedRef<boolean>;
     public readonly myQueuePosition: ComputedRef<number | null>;
+    public spadsScore: SpadsScore;
 
     protected responseHandlers: { [K in keyof Required<BattleType>]: (data: Required<BattleType[K]>) => void } = {
         lobby: (data) => {
@@ -218,6 +225,11 @@ export class SpadsBattle extends AbstractBattle<SpadsBattleOptions> {
             }
             return queuePosIndex + 1;
         });
+        this.spadsScore = {
+            score: 0,
+            factors: {},
+            primaryFactor: "",
+        };
     }
 
     public handleServerResponse(battleUpdateResponse: Partial<Omit<BattleType, "lobby"> & { lobby?: Partial<BattleType["lobby"]> }>) {
@@ -402,5 +414,21 @@ export class SpadsBattle extends AbstractBattle<SpadsBattleOptions> {
         api.comms.request("c.lobby.update_status", {
             client: { sync },
         });
+    }
+
+    public addScoreFactor(factorName: string, factorScore: number) {
+        this.spadsScore.score += factorScore;
+        this.spadsScore.factors[factorName] = factorScore;
+        if (!this.spadsScore.primaryFactor) {
+            this.spadsScore.primaryFactor = factorName;
+        }
+    }
+
+    public clearScore() {
+        this.spadsScore = {
+            score: 0,
+            factors: {},
+            primaryFactor: "",
+        };
     }
 }
