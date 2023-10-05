@@ -17,6 +17,7 @@
                 <Checkbox v-model="settings.battlesHideLocked" label="Hide Locked" />
                 <Checkbox v-model="settings.battlesHideEmpty" label="Hide Empty" />
                 <Checkbox v-model="settings.battlesHideInProgress" label="Hide Running" />
+                <Checkbox v-model="settings.battlesHideNoFriends" label="Only Friends" />
                 <SearchBox v-model="searchVal" />
             </div>
 
@@ -60,7 +61,7 @@
                         <template #body="{ data }">
                             <div class="flex-row flex-center-items gap-md">
                                 <div v-if="data.players.value.length > 0" class="flex-row flex-center-items" style="gap: 2px">
-                                    <Icon :icon="account" height="17" />{{ data.players.value.length }}
+                                    <Icon :icon="friendsInBattle(data).length > 0 ? accountMultiple : account" height="17" />{{ data.players.value.length }}
                                 </div>
                                 <div v-if="data.spectators.value.length > 0" class="flex-row flex-center-items gap-xs" style="gap: 4px">
                                     <Icon :icon="eye" height="17" />{{ data.spectators.value.length }}
@@ -104,6 +105,7 @@
 
 import { Icon } from "@iconify/vue";
 import account from "@iconify-icons/mdi/account";
+import accountMultiple from "@iconify-icons/mdi/account-multiple";
 import eye from "@iconify-icons/mdi/eye";
 import lock from "@iconify-icons/mdi/lock";
 import robot from "@iconify-icons/mdi/robot";
@@ -155,6 +157,9 @@ const battles = computed(() => {
                 return false;
             }
         }
+        if (settings.battlesHideNoFriends && friendsInBattle(battle).length === 0) {
+            return false;
+        }
         if (searchVal.value.length > 0) {
             const searchTerm = searchVal.value.toLowerCase();
             if (battle.battleOptions.title.toLowerCase().includes(searchTerm)) {
@@ -188,6 +193,13 @@ const battles = computed(() => {
 
     return scoredBattles;
 });
+
+function friendsInBattle(battle: SpadsBattle) {
+    const friends = api.session.friends.value;
+    const playersInBattle = battle.players.value;
+    const friendsInBattle = playersInBattle.filter((player) => friends.includes(player));
+    return friendsInBattle;
+}
 
 function battleScoreTooltip(data: ScoredSpadsBattle) {
     const scoreExplanation = `\
@@ -271,7 +283,10 @@ function scoreBattle(battle: SpadsBattle) {
 
     // TODO: within skill range
     // TODO: median skill close to won
-    // TODO: friend in lobby
+    const friendsInBattleList = friendsInBattle(battle);
+    if (friendsInBattleList.length > 0) {
+        addFactor("Friends In Battle", friendsInBattleList.length * 0.5)
+    }
     // TODO: blocked in lobby
     // TODO: Highly rated map
     // TODO: Downloaded map
