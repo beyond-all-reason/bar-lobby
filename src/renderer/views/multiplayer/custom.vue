@@ -61,7 +61,9 @@
                         <template #body="{ data }">
                             <div class="flex-row flex-center-items gap-md">
                                 <div v-if="data.players.value.length > 0" class="flex-row flex-center-items" style="gap: 2px">
-                                    <Icon :icon="friendsInBattle(data).length > 0 ? accountMultiple : account" height="17" />{{ data.players.value.length }}
+                                    <Icon :icon="friendsInBattle(data).length > 0 ? accountMultiple : account" height="17" />{{
+                                        data.players.value.length
+                                    }}
                                 </div>
                                 <div v-if="data.spectators.value.length > 0" class="flex-row flex-center-items gap-xs" style="gap: 4px">
                                     <Icon :icon="eye" height="17" />{{ data.spectators.value.length }}
@@ -285,7 +287,7 @@ function scoreBattle(battle: SpadsBattle) {
     // TODO: median skill close to won
     const friendsInBattleList = friendsInBattle(battle);
     if (friendsInBattleList.length > 0) {
-        addFactor("Friends In Battle", friendsInBattleList.length * 0.5)
+        addFactor("Friends In Battle", friendsInBattleList.length * 0.5);
     }
     // TODO: blocked in lobby
     // TODO: Highly rated map
