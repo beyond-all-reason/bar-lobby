@@ -61,9 +61,11 @@
                         <template #body="{ data }">
                             <div class="flex-row flex-center-items gap-md">
                                 <div v-if="data.players.value.length > 0" class="flex-row flex-center-items" style="gap: 2px">
-                                    <Icon :icon="friendsInBattle(data).length > 0 ? accountMultiple : account" height="17" />{{
-                                        data.players.value.length
-                                    }}
+                                    <Icon
+                                        :color="friendsInBattle(data).length > 0 ? 'green' : ''"
+                                        :icon="friendsInBattle(data).length > 0 ? accountMultiple : account"
+                                        height="17"
+                                    />{{ data.players.value.length }}
                                 </div>
                                 <div v-if="data.spectators.value.length > 0" class="flex-row flex-center-items gap-xs" style="gap: 4px">
                                     <Icon :icon="eye" height="17" />{{ data.spectators.value.length }}
