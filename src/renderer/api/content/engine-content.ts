@@ -108,7 +108,7 @@ export class EngineContentAPI extends AbstractContentAPI<EngineVersion> {
         await fs.promises.unlink(downloadFile);
 
         removeFromArray(this.currentDownloads, downloadInfo);
-        this.downloadComplete(downloadInfo);
+        await this.downloadComplete(downloadInfo);
 
         return engineName;
     }
@@ -214,7 +214,7 @@ export class EngineContentAPI extends AbstractContentAPI<EngineVersion> {
     }
 
     protected async parseAi(aiPath: string): Promise<EngineAI> {
-        const aiDefinitions = await glob.promise(`${aiPath}/**/{AIInfo.lua,AIOptions.lua}`);
+        const aiDefinitions = await glob.promise(`${aiPath}/**/{AIInfo.lua,AIOptions.lua}`, { windowsPathsNoEscape: true });
         const aiInfoPath = aiDefinitions.find((filePath) => filePath.endsWith("AIInfo.lua"));
         const aiOptionsPath = aiDefinitions.find((filePath) => filePath.endsWith("AIOptions.lua"));
 

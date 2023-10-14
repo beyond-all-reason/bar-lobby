@@ -15,7 +15,7 @@ export function defaultBattle(mapScriptName?: string) {
     me.battleStatus.isSpectator = false;
 
     const engine = api.content.engine.installedVersions.find((version) => version.id === defaultEngineVersion);
-    const barb = engine?.ais.find((ai) => ai.shortName === "BARb")!;
+    const barb = engine?.ais.find((ai) => ai.shortName === "BARb");
 
     return new OfflineBattle({
         battleOptions: {
@@ -31,6 +31,6 @@ export function defaultBattle(mapScriptName?: string) {
             restrictions: [],
         },
         users: [me],
-        bots: [{ playerId: 1, teamId: 1, ownerUserId: me.userId, name: barb.name, aiShortName: barb.shortName, aiOptions: {} }],
+        bots: barb ? [{ playerId: 1, teamId: 1, ownerUserId: me.userId, name: barb.name, aiShortName: barb.shortName, aiOptions: {} }] : [],
     });
 }

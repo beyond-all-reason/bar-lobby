@@ -28,16 +28,17 @@
                     <Panel :empty="empty" class="flex-grow">
                         <Breadcrumbs :class="{ hidden: empty }" />
                         <router-view v-slot="{ Component, route }">
-                            <template v-if="Component">
-                                <transition mode="out-in" name="slide-left">
+                            <transition name="slide-left">
+                                <!--mode= "out-in" causes bug see https://github.com/beyond-all-reason/bar-lobby/issues/61 add back in once vue fixes underlining issue-->
+                                <template v-if="Component">
                                     <suspense timeout="0">
                                         <component :is="Component" :key="route.path" />
                                         <template #fallback>
                                             <Loader />
                                         </template>
                                     </suspense>
-                                </transition>
-                            </template>
+                                </template>
+                            </transition>
                         </router-view>
                     </Panel>
                 </div>

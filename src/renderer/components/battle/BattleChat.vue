@@ -13,25 +13,43 @@
                 <BattleMessage v-for="(message, i) in messages" v-show="!message.hide || showHiddenMessages" :key="i" :message="message" />
             </div>
         </div>
-        <Textbox v-model="myMessage" class="fullwidth dark" @keyup.enter="sendMessage" />
+        <AutoSuggest
+            v-model="myMessage"
+            :options="optionList"
+            class="fullwidth dark"
+            @keyup.enter="sendMessage"
+            @update:model-value="(value) => (myMessage = value)"
+            @update-selection="(newSelection) => (autoSuggestionSelection = newSelection)"
+        />
     </div>
 </template>
 
 <script lang="ts" setup>
 import { Icon } from "@iconify/vue";
 import eyeIcon from "@iconify-icons/mdi/eye";
-import { ref } from "vue";
+import type { Ref } from "vue";
+import { onMounted, onUnmounted, reactive, ref, watch } from "vue";
 
+import { Command, getAutoSuggestions, serverCommandList } from "@/api/commands";
 import BattleMessage from "@/components/battle/BattleMessage.vue";
-import Textbox from "@/components/controls/Textbox.vue";
+import AutoSuggest from "@/components/controls/AutoSuggest.vue";
+import AutoSuggestionOption from "@/utils/auto-suggestion-option";
 
+const optionList: Ref<AutoSuggestionOption[]> = ref([]);
+const commandList = reactive<Command[]>(structuredClone(serverCommandList));
 const messages = api.session.battleMessages;
 const myMessage = ref("");
 const showHiddenMessages = ref(false);
+const autoSuggestionSelection: Ref<string | null> = ref(null);
 
 function sendMessage() {
     if (!myMessage.value) {
         return;
+    }
+
+    // If an autosuggestion is currently keyboard selected: pressing enter should autocomplete the suggestion
+    if (autoSuggestionSelection.value != null) {
+        myMessage.value = autoSuggestionSelection.value;
     }
 
     api.comms.request("c.lobby.message", {
@@ -40,6 +58,34 @@ function sendMessage() {
 
     myMessage.value = "";
 }
+
+watch(
+    commandList,
+    (newCommandList) => {
+        optionList.value = getAutoSuggestions(newCommandList);
+    },
+    { deep: true }
+);
+
+const commandListener = api.comms.onResponse("s.communication.received_direct_message").add(async (data) => {
+    const { message } = data;
+    // Check if the message is a command
+    if (!message.startsWith("!") && !message.startsWith("$")) return;
+    const cmd = message.split("-")[0].split(" ")[0];
+    const cmdDescription = message.slice(cmd.length + 1).replace("-", " ");
+    cmdDescription && !cmdDescription.includes("*") && commandList.push({ cmd, cmdDescription });
+});
+
+onMounted(() => {
+    api.comms.request("c.communication.send_direct_message", {
+        recipient_id: 3137,
+        message: `!helpall`,
+    });
+});
+
+onUnmounted(() => {
+    commandListener.destroy();
+});
 </script>
 
 <style lang="scss" scoped>
