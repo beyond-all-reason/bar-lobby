@@ -215,6 +215,7 @@ import { AbstractBattle } from "@/model/battle/abstract-battle";
 import { StartPosType } from "@/model/battle/battle-types";
 import { LuaOptionSection } from "@/model/lua-options";
 import { CurrentUser } from "@/model/user";
+import { setIdleTimer } from "@/utils/idle-timer";
 import { StartBoxOrientation } from "@/utils/start-boxes";
 import { isOfflineBattle, isSpadsBattle } from "@/utils/type-checkers";
 
@@ -236,6 +237,8 @@ const mapOptionsOpen = ref(false);
 const gameOptionsOpen = ref(false);
 const gameOptions: Ref<LuaOptionSection[]> = ref([]);
 const isGameRunning = api.game.isGameRunning;
+
+setIdleTimer(onIdle, onBack, 5);
 
 function openMapList() {
     mapListOpen.value = true;
@@ -334,6 +337,14 @@ function leave() {
 }
 async function start() {
     props.battle.start();
+}
+
+function onIdle() {
+    console.log("Is Away!");
+}
+
+function onBack() {
+    console.log("Is Back!");
 }
 </script>
 
