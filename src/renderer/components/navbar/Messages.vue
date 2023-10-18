@@ -3,7 +3,7 @@
         <TabView v-model:activeIndex="activeTabIndex" class="messages-tabview">
             <TabPanel v-for="[userId, messages] of directMessages" :key="userId">
                 <template #header>
-                    <div class="flex-row">
+                    <div class="tab-header">
                         <div>{{ getUsername(userId) }}</div>
                         <div class="flex-row close" @click="close(userId)">
                             <Icon :icon="closeThick" />
@@ -162,6 +162,15 @@ function close(userId: number) {
     flex-grow: 1;
     padding: 0 !important;
 }
+
+:deep(.p-tabview-header) {
+    flex-shrink: 0;
+}
+
+:deep(.p-tabview-nav) {
+    overflow-x: auto;
+}
+
 :deep(.p-tabview-header-action) {
     overflow: unset;
 }
@@ -209,5 +218,8 @@ function close(userId: number) {
     &:hover {
         opacity: 1;
     }
+}
+.tab-header {
+    min-width: 100px;
 }
 </style>
