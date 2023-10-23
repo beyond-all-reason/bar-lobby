@@ -35,17 +35,17 @@
                     @row-select="onRowSelect"
                     @row-dblclick="onDoubleClick"
                 >
-                    <Column header="Best Battle" sortable sortField="score">
+                    <Column header="Best Battle" sortable sortField="spadsScore.score">
                         <template #body="{ data }">
                             <div
-                                v-if="data.primaryFactor !== 'Running'"
+                                v-if="data.spadsScore.primaryFactor !== 'Running'"
                                 v-tooltip.right="battleScoreTooltip(data)"
                                 class="flex-row flex-center-items gap-md"
                             >
-                                {{ data.primaryFactor }}
+                                {{ data.spadsScore.primaryFactor }}
                             </div>
                             <div
-                                v-if="data.primaryFactor === 'Running'"
+                                v-if="data.spadsScore.primaryFactor === 'Running'"
                                 v-tooltip.right="battleScoreTooltip(data)"
                                 class="flex-row flex-center-items gap-md"
                             >
@@ -130,12 +130,6 @@ const searchVal = ref("");
 const selectedBattle: Ref<SpadsBattle | null> = shallowRef(null);
 const settings = api.settings.model;
 
-interface ScoredSpadsBattle extends SpadsBattle {
-    score: number;
-    factors: { [factorName: string]: number };
-    primaryFactor: string;
-}
-
 const battles = computed(() => {
     let battles = Array.from(api.session.battles.values());
 
@@ -179,26 +173,26 @@ const battles = computed(() => {
         return true;
     });
 
-    const scoredBattles = battles.map(scoreBattle);
+    battles.forEach(scoreBattle);
 
     if (selectedBattle.value === null) {
         // eslint-disable-next-line vue/no-side-effects-in-computed-properties
-        selectedBattle.value = scoredBattles[0];
+        selectedBattle.value = battles[0];
     }
 
-    return scoredBattles;
+    return battles;
 });
 
-function battleScoreTooltip(data: ScoredSpadsBattle) {
+function battleScoreTooltip(data: SpadsBattle) {
     const scoreExplanation = `\
-All Sorting Factors: ${data.score.toFixed(2)}
+All Sorting Factors: ${data.spadsScore.score.toFixed(2)}
 ---
-${Object.entries(data.factors)
+${Object.entries(data.spadsScore.factors)
     .sort(([factorNameA, factorScoreA], [factorNameB, factorScoreB]) => {
-        if (factorNameA === data.primaryFactor) {
+        if (factorNameA === data.spadsScore.primaryFactor) {
             return -1;
         }
-        if (factorNameB === data.primaryFactor) {
+        if (factorNameB === data.spadsScore.primaryFactor) {
             return 1;
         }
         if (Math.abs(factorScoreA) > Math.abs(factorScoreB)) {
@@ -220,21 +214,18 @@ ${Object.entries(data.factors)
 }
 
 function scoreBattle(battle: SpadsBattle) {
-    let score = 0;
-    let factors: ScoredSpadsBattle["factors"] = {};
-    let primaryFactor = "";
-
+    battle.clearScore();
     const inBattle = battle.players.value.find((p) => p.userId === api.session.onlineUser?.userId);
     if (inBattle) {
-        addFactor("In Lobby", 50);
+        battle.addScoreFactor("In Lobby", 50);
     }
 
     if (battle.battleOptions.locked) {
-        addFactor("Locked", -9);
+        battle.addScoreFactor("Locked", -9);
     }
 
     if (battle.battleOptions.passworded) {
-        addFactor("Private", -9);
+        battle.addScoreFactor("Private", -9);
     }
 
     const runtime = battle.runtimeMs.value || 0;
@@ -245,28 +236,28 @@ function scoreBattle(battle: SpadsBattle) {
     const stdRuntime = 900000; // 15 minutes
     if (runtime > medianRuntime) {
         const runtimeVariance = (runtime - medianRuntime) / stdRuntime;
-        addFactor("Ending Soon", Math.log(runtimeVariance + 0.1) * 5);
+        battle.addScoreFactor("Ending Soon", Math.log(runtimeVariance + 0.1) * 5);
     }
 
     if (running) {
-        addFactor("Running", -10);
+        battle.addScoreFactor("Running", -10);
     }
 
     const playerCount = battle.players.value.length;
     if (!running && playerCount === 0) {
-        addFactor("No Players", -15);
+        battle.addScoreFactor("No Players", -15);
     }
 
     const maxPlayers = battle.battleOptions.maxPlayers;
     const halfOfMaxPlayers = maxPlayers / 2;
     const remainingPlayers = maxPlayers - playerCount;
     if (!running && playerCount > halfOfMaxPlayers && playerCount < maxPlayers) {
-        addFactor("Almost full", (-5 / halfOfMaxPlayers) * remainingPlayers + 5);
+        battle.addScoreFactor("Almost full", (-5 / halfOfMaxPlayers) * remainingPlayers + 5);
     }
 
     const queueSize = battle.battleOptions.joinQueueUserIds?.length || 0;
     if (!running && playerCount >= maxPlayers) {
-        addFactor("Full", -1 - queueSize * 0.2);
+        battle.addScoreFactor("Full", -1 - queueSize * 0.2);
     }
 
     // TODO: within skill range
@@ -279,28 +270,13 @@ function scoreBattle(battle: SpadsBattle) {
     // TODO: Is a noob lobby and I am noob
 
     if (!running && playerCount) {
-        addFactor("Waiting for players", (1.2 * playerCount) / maxPlayers);
+        battle.addScoreFactor("Waiting for players", (1.2 * playerCount) / maxPlayers);
     }
 
     // Number of spectators
     const nSpectators = battle.spectators.value.length;
     if (nSpectators > 0) {
-        addFactor("Spectators", 0.4 * (Math.log(nSpectators + 2) - 1));
-    }
-
-    return {
-        ...battle,
-        score,
-        factors,
-        primaryFactor,
-    } as ScoredSpadsBattle;
-
-    function addFactor(factorName: string, factorScore: number) {
-        score += factorScore;
-        factors[factorName] = factorScore;
-        if (!primaryFactor) {
-            primaryFactor = factorName;
-        }
+        battle.addScoreFactor("Spectators", 0.4 * (Math.log(nSpectators + 2) - 1));
     }
 }
 
@@ -328,13 +304,13 @@ if (active.value) {
 }
 
 function onRowSelect(event: DataTableRowDoubleClickEvent) {
-    const data = event.data as ScoredSpadsBattle;
+    const data = event.data as SpadsBattle;
     const scoreExplanation = `\
 Score explanation for ${data.battleOptions.title}
-Primary Factor: ${data.primaryFactor}
-Total score: ${data.score}
-Factors: ${Object.entries(data.factors).length}
-${Object.entries(data.factors)
+Primary Factor: ${data.spadsScore.primaryFactor}
+Total score: ${data.spadsScore.score}
+Factors: ${Object.entries(data.spadsScore.factors).length}
+${Object.entries(data.spadsScore.factors)
     .map(([factorName, factorScore]) => {
         return `${factorName.padEnd(20, " ")}: ${factorScore.toFixed(2)}`;
     })
