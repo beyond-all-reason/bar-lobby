@@ -5,6 +5,7 @@ import { autoUpdater } from "electron-updater";
 import envPaths from "env-paths";
 import os from "os";
 import path from "path";
+import * as steamworks from "steamworks.js";
 
 import { StoreAPI } from "@/api/store";
 import { MainWindow } from "@/main-window";
@@ -12,11 +13,8 @@ import type { Info } from "$/model/info";
 import { settingsSchema } from "$/model/settings";
 
 /** Steam integration, commented out until we have a dedicated app id */
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-// const steamworks = require("steamworks.js");
-// const client = steamworks.init(480);
-// console.log(client.localplayer.getName());
-// steamworks.electronEnableSteamOverlay();
+const client = steamworks.init(480);
+steamworks.electronEnableSteamOverlay();
 
 export class Application {
     protected mainWindow?: MainWindow;
@@ -92,7 +90,7 @@ export class Application {
     }
 
     protected async init() {
-        const info = this.getInfo();
+        const info = await this.getInfo();
         const settingsFilePath = path.join(info.configPath, "settings.json");
         this.settings = await new StoreAPI(settingsFilePath, settingsSchema).init();
 
@@ -114,8 +112,6 @@ export class Application {
         });
 
         app.on("open-file", (_, path) => {
-            console.log("Mac OS opening file: " + path);
-
             this.focusWindows();
 
             this.openFile(path);
@@ -162,14 +158,13 @@ export class Application {
         });
         let openedReplayAlready = false;
         ipcMain.handle("opened-replay", () => {
-            console.log(process.argv);
             if (process.argv.length == 0 || openedReplayAlready) return null;
             openedReplayAlready = true; //in case of reloading the app do not open replay again
             return process.argv[process.argv.length - 1].endsWith(".sdfz") ? process.argv[process.argv.length - 1] : null;
         });
     }
 
-    protected getInfo() {
+    protected async getInfo() {
         const resourcesPath = path.join(app.getAppPath(), "resources").split("resources")[0] + "resources";
         const paths = envPaths(app.getName(), { suffix: "" });
 
@@ -181,6 +176,8 @@ export class Application {
 
         const networkInterfaces = os.networkInterfaces();
         const defaultNetworkInterface = networkInterfaces["Ethernet"]?.[0] ?? Object.values(networkInterfaces)[0]?.[0];
+
+        const steamTicket = await client.auth.getSessionTicket(); // TODO: do this in async ipc handler on render load
 
         const info: Info = {
             resourcesPath,
@@ -195,6 +192,7 @@ export class Application {
                 numOfDisplays: displayIds.length,
                 currentDisplayIndex: displayIds.indexOf(currentDisplayId),
             },
+            steamSessionTicket: steamTicket.getBytes().toString("hex"),
         };
 
         return info;

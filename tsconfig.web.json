@@ -16,6 +16,7 @@
     "downlevelIteration": true,
     "noUnusedParameters": false,
     "noUnusedLocals": false,
+    "resolveJsonModule": true,
     "noImplicitOverride": true,
     "allowJs": true
   }

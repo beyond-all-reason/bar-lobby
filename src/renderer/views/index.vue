@@ -1,36 +1,14 @@
 <route lang="json5">
-{ meta: { empty: true } }
+{
+    meta: {
+        redirect: "/login",
+        transition: {
+            name: "slide-below",
+        },
+    },
+}
 </route>
 
 <template>
-    <div />
+    <div></div>
 </template>
-
-<script lang="ts" setup>
-import { onMounted } from "vue";
-
-onMounted(async () => {
-    try {
-        if (api.account.model.token && api.settings.model.loginAutomatically) {
-            await api.comms.connect();
-
-            const loginResponse = await api.comms.request("c.auth.login", {
-                token: api.account.model.token,
-                lobby_name: api.info.lobby.name,
-                lobby_version: api.info.lobby.version,
-                lobby_hash: api.info.lobby.hash,
-            });
-
-            if (loginResponse.result === "success") {
-                return;
-            }
-        }
-    } catch (error) {
-        console.error(error);
-    }
-
-    api.router.replace("/login");
-});
-</script>
-
-<style lang="scss" scoped></style>

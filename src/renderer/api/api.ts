@@ -15,7 +15,6 @@ import { prompt } from "@/api/prompt";
 import { SessionAPI } from "@/api/session";
 import { StoreAPI } from "@/api/store";
 import { UtilsAPI } from "@/api/utils";
-import { serverConfig } from "@/config/server";
 import { accountSchema } from "@/model/account";
 import type { Info } from "$/model/info";
 import { settingsSchema } from "$/model/settings";
@@ -64,6 +63,10 @@ export async function apiInit() {
         // https://github.com/posva/unplugin-vue-router/discussions/63#discussioncomment-3632637
         extendRoutes: (routes) => {
             for (const route of routes) {
+                if (route.meta?.redirect && typeof route.meta?.redirect === "string") {
+                    route.redirect = { path: route.meta.redirect };
+                }
+
                 if (route.children) {
                     for (const childRoute of route.children) {
                         if (childRoute.meta?.redirect && typeof childRoute.meta?.redirect === "string") {
@@ -86,7 +89,11 @@ export async function apiInit() {
 
     api.game = new GameAPI();
 
-    api.comms = new CommsAPI(serverConfig);
+    api.comms = new CommsAPI({
+        host: "127.0.0.1", // TODO: temporary host for local testing
+        port: 3005,
+        logging: true,
+    });
 
     api.content = await new ContentAPI().init();
 

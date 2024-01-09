@@ -63,22 +63,19 @@ export default defineConfig({
             }),
             vue(),
             renderer({
-                nodeIntegration: true,
-                optimizeDeps: {
-                    include: [
-                        { name: "path", type: "commonjs" },
-                        { name: "fs", type: "commonjs" },
-                        { name: "child_process", type: "commonjs" },
-                        { name: "stream", type: "commonjs" },
-                        { name: "os", type: "commonjs" },
-                        { name: "node-fetch", type: "module" },
-                        { name: "spring-map-parser", type: "commonjs" },
-                        { name: "better-sqlite3", type: "commonjs" },
-                        { name: "tachyon-client", type: "commonjs" },
-                        { name: "octokit", type: "commonjs" },
-                        { name: "axios", type: "commonjs" },
-                        { name: "glob-promise", type: "commonjs" },
-                    ],
+                resolve: {
+                    "better-sqlite3": {
+                        type: "esm",
+                    },
+                    "tachyon-client": {
+                        type: "cjs",
+                    },
+                    "tachyon-protocol": {
+                        type: "cjs",
+                    },
+                    ws: {
+                        type: "esm",
+                    },
                 },
             }),
         ],

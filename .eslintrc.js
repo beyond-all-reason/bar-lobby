@@ -4,6 +4,9 @@ module.exports = {
         node: true,
         browser: true,
     },
+    globals: {
+        "NodeJS": true
+    },
     ignorePatterns: ["typed-router.d.ts"],
     rules: {
         // Rules should only be added here for testing temporarily and should eventually be moved into jaz-ts-utils to ensure consistency across projects

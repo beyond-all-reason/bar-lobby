@@ -5,29 +5,19 @@
 <template>
     <div class="container">
         <img ref="logo" class="logo" src="/images/BARLogoFull.png" />
+
         <div v-if="connecting" class="relative">
             <Loader></Loader>
         </div>
-        <Panel v-else-if="isConnected" class="login-forms">
-            <TabView v-model:activeIndex="activeIndex">
-                <TabPanel header="Login">
-                    <LoginForm />
-                </TabPanel>
-                <TabPanel header="Register">
-                    <RegisterForm @register-success="activeIndex = 0" />
-                </TabPanel>
-                <TabPanel header="Reset Password">
-                    <ResetPasswordForm />
-                </TabPanel>
-            </TabView>
-        </Panel>
+
         <div v-else class="flex-col gap-md">
-            <div class="txt-error">Disconnected from {{ serverAddress }}</div>
-            <Button class="retry gap-sm" @click="onRetry">
+            <div class="txt-error">Could not connect to {{ serverAddress }}</div>
+            <Button class="retry gap-sm" @click="connect">
                 <Icon :icon="replayIcon" />
                 Reconnect
             </Button>
         </div>
+
         <div class="play-offline" @click="playOffline">Play Offline</div>
     </div>
 </template>
@@ -36,35 +26,24 @@
 import { Icon } from "@iconify/vue";
 import replayIcon from "@iconify-icons/mdi/replay";
 import { delay } from "jaz-ts-utils";
-import TabPanel from "primevue/tabpanel";
 import { ref } from "vue";
 
 import Loader from "@/components/common/Loader.vue";
-import Panel from "@/components/common/Panel.vue";
-import TabView from "@/components/common/TabView.vue";
 import Button from "@/components/controls/Button.vue";
-import LoginForm from "@/components/login/LoginForm.vue";
-import RegisterForm from "@/components/login/RegisterForm.vue";
-import ResetPasswordForm from "@/components/login/ResetPasswordForm.vue";
 
-const activeIndex = ref(0);
-const isConnected = api.comms.isConnected;
 const serverAddress = `${api.comms.config.host}:${api.comms.config.port}`;
 const connecting = ref(false);
 
 async function connect() {
+    connecting.value = true;
     try {
-        await api.comms.connect();
+        await api.comms.connect(api.info.steamSessionTicket);
     } catch (err) {
         console.error(err);
+    } finally {
+        await delay(100);
+        connecting.value = false;
     }
-}
-
-async function onRetry() {
-    connecting.value = true;
-    await connect();
-    await delay(100);
-    connecting.value = false;
 }
 
 async function playOffline() {
@@ -73,7 +52,7 @@ async function playOffline() {
     await api.router.push("/singleplayer/custom");
 }
 
-connect();
+await connect();
 </script>
 
 <style lang="scss" scoped>

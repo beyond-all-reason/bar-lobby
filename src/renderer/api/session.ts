@@ -1,6 +1,6 @@
 import { Static } from "@sinclair/typebox";
 import { assign } from "jaz-ts-utils";
-import { lobbySchema, myUserSchema, playerSchema, ResponseType, userSchema } from "tachyon-client";
+import { PrivateUser, SuccessResponseData } from "tachyon-protocol";
 import { computed, ComputedRef, nextTick, reactive, Ref, ref, shallowReactive, shallowRef } from "vue";
 
 import { OfflineBattle } from "@/model/battle/offline-battle";
@@ -17,14 +17,11 @@ export class SessionAPI {
     public readonly onlineUser: CurrentUser;
     public readonly battles: Map<number, SpadsBattle> = shallowReactive(new Map<number, SpadsBattle>());
     public readonly battleMessages: Message[] = reactive([]);
-    public readonly serverStats: Ref<ResponseType<"s.system.server_stats">["data"] | null> = shallowRef(null);
+    public readonly serverStats: Ref<SuccessResponseData<"system", "serverStats"> | null> = shallowRef(null);
     public readonly outgoingFriendRequests: ComputedRef<User[]>;
     public readonly incomingFriendRequests: ComputedRef<User[]>;
     public readonly friends: ComputedRef<User[]>;
     public readonly directMessages: Map<number, Message[]> = reactive(new Map());
-
-    // temporary necessity until https://github.com/beyond-all-reason/teiserver/issues/34 is implemented
-    public lastBattleResponses: Map<number, Static<typeof lobbySchema>> = new Map();
 
     constructor() {
         // TODO: remove class initialisers, do everything in clear function, then call this.clear() from this constructor, and also call .clear() on logout
@@ -80,8 +77,8 @@ export class SessionAPI {
         // TODO
     }
 
-    public updateCurrentUser(myUserData: Static<typeof myUserSchema>) {
-        this.users.set(myUserData.id, this.onlineUser);
+    public updateCurrentUser(myUserData: PrivateUser) {
+        this.users.set(myUserData.accountId, this.onlineUser);
 
         const user = this.updateUser(myUserData);
 
@@ -98,7 +95,7 @@ export class SessionAPI {
         this.offlineUser.icons = user.icons;
     }
 
-    public updateUser(userData: Static<typeof userSchema>) {
+    public updateUser(userData: User) {
         let user = this.getUserById(userData.id);
 
         if (!user) {
