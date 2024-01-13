@@ -73,6 +73,7 @@ import Notifications from "@/components/notifications/Notifications.vue";
 import PromptContainer from "@/components/prompts/PromptContainer.vue";
 import { defaultMaps } from "@/config/default-maps";
 import { defaultEngineVersion, defaultGameVersion } from "@/config/default-versions";
+import { setIdleTimer } from "@/utils/idle-timer";
 import { playRandomMusic } from "@/utils/play-random-music";
 
 const router = useRouter();
@@ -99,6 +100,11 @@ provide("toggleFriends", toggleFriends);
 
 const toggleDownloads: Ref<((open?: boolean) => void) | undefined> = ref();
 provide("toggleDownloads", toggleDownloads);
+
+const setIdleBehavior = setIdleTimer({
+    onBack: () => {console.log("back")}
+});
+provide("idleTimer", setIdleBehavior)
 
 playRandomMusic();
 

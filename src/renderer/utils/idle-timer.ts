@@ -1,7 +1,19 @@
 import { onMounted, onUnmounted } from "vue";
 
-export function setIdleTimer(onIdle: () => void, onBack: () => void, seconds: number) {
+export interface IdleBehavior {
+    onIdle?: () => void
+    onBack?: () => void
+    seconds?: number 
+}
+
+export function setIdleTimer(initial: IdleBehavior) {
     let timer, timer_running;
+
+    const {onIdle, onBack, seconds} = initial;
+
+    let currentOnIdle = onIdle ?? (() => {let x});
+    let currentOnBack = onBack ?? (() => {let x});
+    let currentSeconds = seconds ?? 5;
 
     setupTimer();
 
@@ -17,17 +29,26 @@ export function setIdleTimer(onIdle: () => void, onBack: () => void, seconds: nu
 
     function setupTimer() {
         timer = setTimeout(() => {
-            onIdle();
+            currentOnIdle();
             timer_running = false;
-        }, seconds * 1000);
+        }, currentSeconds * 1000);
         timer_running = true;
     }
 
     function resetTimer() {
         if (!timer_running) {
-            onBack();
+            currentOnBack();
         }
         clearTimeout(timer);
         setupTimer();
     }
+
+    function setIdleBehavior(update: IdleBehavior) {
+        const {onIdle, onBack, seconds} = update;
+        if (onIdle != null) currentOnIdle = onIdle;
+        if (onBack != null) currentOnBack = onBack;
+        if (seconds != null) currentSeconds = seconds;
+    }
+    
+    return setIdleBehavior;
 }
