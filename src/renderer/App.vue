@@ -102,9 +102,11 @@ const toggleDownloads: Ref<((open?: boolean) => void) | undefined> = ref();
 provide("toggleDownloads", toggleDownloads);
 
 const setIdleBehavior = setIdleTimer({
-    onBack: () => {console.log("back")}
+    onBack: () => {
+        console.log("back");
+    },
 });
-provide("idleTimer", setIdleBehavior)
+provide("idleTimer", setIdleBehavior);
 
 playRandomMusic();
 

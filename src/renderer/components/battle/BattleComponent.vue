@@ -238,14 +238,14 @@ const gameOptionsOpen = ref(false);
 const gameOptions: Ref<LuaOptionSection[]> = ref([]);
 const isGameRunning = api.game.isGameRunning;
 
-const updateIdleBehavior: ((update: IdleBehavior) => void) | undefined = inject("idleTimer")
+const updateIdleBehavior: ((update: IdleBehavior) => void) | undefined = inject("idleTimer");
 
 if (updateIdleBehavior != undefined) {
     updateIdleBehavior({
         onBack: () => {
-            console.log("Back in lobby!")
-        }
-    })
+            console.log("Back in lobby!");
+        },
+    });
 }
 
 function openMapList() {
@@ -345,14 +345,6 @@ function leave() {
 }
 async function start() {
     props.battle.start();
-}
-
-function onIdle() {
-    console.log("Is Away!");
-}
-
-function onBack() {
-    console.log("Is Back!");
 }
 </script>
 
