@@ -1,11 +1,11 @@
+import { randomUUID } from "crypto";
 import { Signal } from "jaz-ts-utils";
-import { type RequestData, type RequestEndpointId, type ResponseEndpointId, type ResponseType, type ServiceId, getValidator, SuccessResponseData, tachyonMeta } from "tachyon-protocol";
-import { ClientOptions, WebSocket } from "ws";
-
 /*
  * This whole file should be deliberately kept separate from the rest of the codebase because it is intended to be usable by projects other than this lobby.
  * It's only here for now for ease of development, but once network comms are stable then this file should be deleted and moved to the tachyon-client package instead.
  */
+import { EndpointId, GenericRequestCommand, getValidator, RequestData, ResponseCommand, ServiceId, SuccessResponseData, tachyonMeta } from "tachyon-protocol";
+import { ClientOptions, WebSocket } from "ws";
 
 export interface TachyonClientOptions extends ClientOptions {
     host: string;
@@ -109,13 +109,21 @@ export class TachyonClient {
         });
     }
 
-    public request<S extends ServiceId, E extends RequestEndpointId<S> & ResponseEndpointId<S>>(serviceId: S, endpointId: E & string, data: RequestData<S, E>): Promise<ResponseType<S, E>> {
+    public request<S extends ServiceId, E extends EndpointId<S>>(
+        ...args: RequestData<S, E> extends never ? [serviceId: S, endpointId: E] : [serviceId: S, endpointId: E, data: RequestData<S, E>]
+    ): Promise<ResponseCommand<S, E>> {
         return new Promise((resolve) => {
-            const commandId = `${serviceId}/${endpointId}/request`;
-            const request = {
-                command: commandId,
-                data,
-            };
+            const serviceId = args[0];
+            const endpointId = args[1];
+            const data = args[2];
+
+            const commandId = `${serviceId}/${endpointId as string}/request`;
+            const messageId = randomUUID();
+            const request: GenericRequestCommand = { commandId, messageId };
+
+            if (data) {
+                Object.assign(request, data);
+            }
 
             const validator = getValidator(request);
             const isValid = validator(request);
@@ -128,8 +136,10 @@ export class TachyonClient {
                 }
             }
 
-            this.on(serviceId, endpointId).addOnce((data) => {
-                resolve(data);
+            this.on(serviceId, endpointId).addOnce((response) => {
+                if (response.messageId === messageId) {
+                    resolve(response);
+                }
             });
 
             this.socket?.send(JSON.stringify(request));
@@ -140,7 +150,7 @@ export class TachyonClient {
         });
     }
 
-    public on<S extends ServiceId, E extends ResponseEndpointId<S>>(serviceId: S, endpointId: E): Signal<ResponseType<S, E>> {
+    public on<S extends ServiceId, E extends EndpointId<S>>(serviceId: S, endpointId: E): Signal<ResponseCommand<S, E>> {
         const commandId = `${serviceId}/${endpointId.toString()}/response`;
         let signal = this.responseSignals.get(commandId);
         if (!signal) {
@@ -151,7 +161,7 @@ export class TachyonClient {
         return signal;
     }
 
-    public waitFor<S extends ServiceId, E extends ResponseEndpointId<S>>(serviceId: S, endpointId: E): Promise<ResponseType<S, E>> {
+    public waitFor<S extends ServiceId, E extends EndpointId<S>>(serviceId: S, endpointId: E): Promise<ResponseCommand<S, E>> {
         return new Promise((resolve) => {
             this.on(serviceId, endpointId).addOnce((data) => {
                 resolve(data);

@@ -1,137 +1,89 @@
-import { Static } from "@sinclair/typebox";
 import { assign, entries, objectKeys } from "jaz-ts-utils";
-import { battleSchema, lobbySchema } from "tachyon-client";
+import { TachyonCustomBattle } from "tachyon-protocol";
 import { computed, ComputedRef, Ref, ref } from "vue";
 
 import { AbstractBattle } from "@/model/battle/abstract-battle";
-import { Bot, SpadsBattleOptions, StartBox, StartPosType } from "@/model/battle/battle-types";
+import { Bot, CustomBattleOptions, StartBox, StartPosType } from "@/model/battle/battle-types";
 import { SpadsVote } from "@/model/spads/spads-types";
 import { User } from "@/model/user";
 import { spadsBoxToStartBox, StartBoxOrientation } from "@/utils/start-boxes";
 
-type LobbyType = Static<typeof lobbySchema>;
-type BattleType = Static<typeof battleSchema>;
-type LobbyResponseHandlers = { [K in keyof Required<LobbyType>]: (data: Required<LobbyType[K]>) => void };
-
-export class SpadsBattle extends AbstractBattle<SpadsBattleOptions> {
+export class OnlineBattle extends AbstractBattle<CustomBattleOptions> {
     public readonly currentVote: Ref<SpadsVote | null> = ref(null);
     public readonly founder: ComputedRef<User>;
     public readonly isLockedOrPassworded: ComputedRef<boolean>;
     public readonly myQueuePosition: ComputedRef<number | null>;
 
-    protected responseHandlers: { [K in keyof Required<BattleType>]: (data: Required<BattleType[K]>) => void } = {
-        lobby: (data) => {
-            const lobbyResponseHandlers: LobbyResponseHandlers = {
-                disabled_units: (data) => {
-                    // TODO
-                },
-                engine_name: (data) => {
-                    this.battleOptions.engineVersion = data;
-                },
-                engine_version: (data) => {
-                    this.battleOptions.engineVersion = data;
-                },
-                founder_id: (data) => {
-                    this.battleOptions.founderId = data;
-                },
-                game_name: (data) => {
-                    this.battleOptions.gameVersion = data;
-                },
-                id: (data) => {
-                    this.battleOptions.id = data;
-                },
-                in_progress: (data) => {
-                    // TODO
-                },
-                ip: (data) => {
-                    this.battleOptions.ip = data;
-                },
-                port: (data) => {
-                    this.battleOptions.port = data;
-                },
-                locked: (data) => {
-                    this.battleOptions.locked = data;
-                },
-                map_hash: (data) => {
-                    // TODO
-                },
-                map_name: (data) => {
-                    this.battleOptions.map = data;
-                },
-                max_players: (data) => {
-                    this.battleOptions.maxPlayers = data;
-                },
-                name: (data) => {
-                    this.battleOptions.title = data;
-                },
-                passworded: (data) => {
-                    this.battleOptions.passworded = data;
-                },
-                players: (data) => {
-                    // using member_list handler instead
-                },
-                start_areas: (data) => {
-                    const startBoxes: StartBox[] = [];
-                    entries(data).forEach(([teamId, startBox]) => {
-                        startBoxes[teamId] = spadsBoxToStartBox(startBox);
-                    });
-                    this.battleOptions.startBoxes = startBoxes;
-                },
-                started_at: (data) => {
-                    if (data) {
-                        this.battleOptions.startTime = new Date(data * 1000);
-                    } else {
-                        this.battleOptions.startTime = null;
-                    }
-                },
-                type: (data) => {
-                    // TODO
-                },
-            };
+    protected responseHandlers: { [K in keyof Required<TachyonCustomBattle>]: (data: Required<TachyonCustomBattle[K]>) => void } = {
+        battleId: (data) => (this.battleOptions.id = data),
+        engine: (data) => (this.battleOptions.engineVersion = data),
+        hostId: (data) => (this.battleOptions.hostId = data),
+        game: (data) => (this.battleOptions.gameVersion = data),
+        map: (data) => (this.battleOptions.map = data),
+        ip: (data) => (this.battleOptions.ip = data),
+        port: (data) => (this.battleOptions.port = data),
+        locked: (data) => (this.battleOptions.locked = data),
+        title: (data) => (this.battleOptions.title = data),
+        passworded: (data) => (this.battleOptions.passworded = data),
+        scriptPassword: (data) => (this.battleOptions.scriptPassword = data),
+        bossIds: (data) => {
+            // TODO
+        },
+        joinQueueIds: (data) => {
+            // TODO
+        },
+        limits: (data) => {
+            // TODO
+        },
+        startPosType: (data) => {
+            // TODO
+        },
+        startAreas: (data) => {
+            const startBoxes: StartBox[] = [];
+            entries(data).forEach(([teamId, startBox]) => {
+                startBoxes[teamId] = spadsBoxToStartBox(startBox);
+            });
+            this.battleOptions.startBoxes = startBoxes;
+        },
+        startTime: (data) => {
+            if (data) {
+                this.battleOptions.startTime = new Date(data * 1000);
+            } else {
+                this.battleOptions.startTime = null;
+            }
+        },
+        bots: (data) => {
+            for (const botData of data) {
+                const bot: Bot = {
+                    name: botData.name,
+                    playerId: botData.playerId,
+                    teamId: botData.teamId,
+                    ownerUserId: botData.ownerId,
+                    aiOptions: {},
+                    aiShortName: botData.aiShortName,
+                };
 
-            objectKeys(data).forEach((key) => {
-                const value = data[key];
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                const responseHandler = lobbyResponseHandlers[key] as any;
-                if (responseHandler) {
-                    responseHandler(value);
+                const existingBot = this.bots.find((bot) => bot.name === botData.name);
+
+                if (!existingBot) {
+                    this.bots.push(bot);
+                } else {
+                    assign(existingBot, bot);
+                }
+            }
+
+            this.bots.forEach((bot, i) => {
+                if (!(bot.name in data)) {
+                    this.bots.splice(i, 1);
                 }
             });
         },
-        bots: (data) => {
-            if (data) {
-                entries(data).forEach(([botId, botData]) => {
-                    const bot: Bot = {
-                        name: botData.name,
-                        playerId: botData.player_number,
-                        teamId: botData.team_number,
-                        ownerUserId: botData.owner_id,
-                        aiOptions: {},
-                        aiShortName: botData.ai_dll,
-                    };
-
-                    const existingBot = this.bots.find((bot) => bot.name === botId);
-
-                    if (!existingBot) {
-                        this.bots.push(bot);
-                    } else {
-                        assign(existingBot, bot);
-                    }
-                });
-
-                this.bots.forEach((bot, i) => {
-                    if (!(bot.name in data)) {
-                        this.bots.splice(i, 1);
-                    }
-                });
-            }
-        },
-        member_list: (data) => {
+        users: (data) => {
             if (data) {
                 const newUsers = data.map((client) => {
-                    const user = api.session.getUserById(client.userid);
+                    const user = api.session.getUserById(client.userId);
                     if (!user) {
-                        console.error(`Trying to add unknown user to battle: ${client.userid}`);
+                        console.error(`Trying to add unknown user to battle: ${client.userId}`);
                     }
                     return user;
                 });
@@ -154,29 +106,15 @@ export class SpadsBattle extends AbstractBattle<SpadsBattleOptions> {
                 }
             }
         },
-        modoptions: (data) => {
-            if (data) {
-                this.battleOptions.gameOptions = data;
-
-                // TODO
-                if (data["game/startpostype"] === "0") {
-                    this.battleOptions.startPosType = StartPosType.Fixed;
-                } else if (data["game/startpostype"] === "1") {
-                    this.battleOptions.startPosType = StartPosType.Random;
-                } else {
-                    this.battleOptions.startPosType = StartPosType.Boxes;
-                }
-            }
-        },
-        script_password: (data) => {
-            this.battleOptions.scriptPassword = data ?? null;
+        modOptions: (data) => {
+            // TODO
         },
     };
 
-    constructor(serverBattleResponse: BattleType) {
+    constructor(serverBattleResponse: TachyonCustomBattle) {
         super({
             battleOptions: {
-                founderId: -1,
+                hostId: -1,
                 engineVersion: "",
                 gameOptions: {},
                 gameVersion: "",
@@ -188,7 +126,6 @@ export class SpadsBattle extends AbstractBattle<SpadsBattleOptions> {
                 map: "",
                 mapOptions: {},
                 maxPlayers: 16,
-                password: null,
                 scriptPassword: null,
                 passworded: false,
                 restrictions: [],
@@ -209,7 +146,7 @@ export class SpadsBattle extends AbstractBattle<SpadsBattleOptions> {
 
         this.handleServerResponse(serverBattleResponse);
 
-        this.founder = computed(() => api.session.getUserById(this.battleOptions.founderId)!);
+        this.founder = computed(() => api.session.getUserById(this.battleOptions.hostId)!);
         this.isLockedOrPassworded = computed(() => this.battleOptions.locked || this.battleOptions.passworded);
         this.myQueuePosition = computed(() => {
             const queuePosIndex = this.battleOptions.joinQueueUserIds.indexOf(api.session.onlineUser.userId);
@@ -220,29 +157,20 @@ export class SpadsBattle extends AbstractBattle<SpadsBattleOptions> {
         });
     }
 
-    public handleServerResponse(battleUpdateResponse: Partial<Omit<BattleType, "lobby"> & { lobby?: Partial<BattleType["lobby"]> }>) {
+    public handleServerResponse(battleUpdateResponse: Partial<TachyonCustomBattle>) {
         objectKeys(battleUpdateResponse).forEach((key) => {
             const data = battleUpdateResponse[key];
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const responseHandler = this.responseHandlers[key] as any;
+            const responseHandler = this.responseHandlers[key] as (data: unknown) => void;
             if (responseHandler) {
                 responseHandler(data);
             }
         });
     }
 
-    public override async open() {
-        super.open();
-
-        await api.comms.request("c.user.list_users_from_ids", { id_list: this.users.map((user) => user.userId), include_clients: true });
-
-        this.updateSync();
-    }
-
     public override async leave() {
         super.leave();
 
-        await api.comms.request("c.lobby.leave");
+        await api.comms.request("customBattle", "leave");
     }
 
     public start() {

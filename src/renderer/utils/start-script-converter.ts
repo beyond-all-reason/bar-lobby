@@ -126,7 +126,7 @@ export class StartScriptConverter {
             mapname: battle.battleOptions.map,
             modoptions: battle.battleOptions.gameOptions,
             ishost: 1,
-            myplayername: api.session.offlineUser.username,
+            myplayername: api.session.offlineUser.displayName,
             startpostype: battle.battleOptions.startPosType,
             allyTeams,
             teams,

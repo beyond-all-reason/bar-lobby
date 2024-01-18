@@ -13,13 +13,12 @@ export type BattleOptions = {
 
 export type OfflineBattleOptions = BattleOptions;
 
-export type SpadsBattleOptions = BattleOptions & {
+export type CustomBattleOptions = BattleOptions & {
     id: number;
     isHost: boolean;
     passworded: boolean;
-    password: string | null;
     scriptPassword: string | null;
-    founderId: number;
+    hostId: number;
     ip: string | null;
     port: number | null;
     locked: boolean;

@@ -24,15 +24,12 @@ export class CommsAPI extends TachyonClient {
 
         api.session.offlineMode.value = false;
 
-        api.session.updateCurrentUser(userData);
+        api.session.updateCurrentUser(userResponse);
 
         this.socket?.addEventListener("close", () => {
             this.isConnectedRef.value = false;
 
-            api.session.onlineBattle.value = null;
-            api.session.users.clear();
-            api.session.battles.clear();
-            api.session.serverStats;
+            api.session.clear();
 
             if (api.router.currentRoute.value.path !== "/" && api.router.currentRoute.value.path !== "/login" && !api.session.offlineMode.value) {
                 api.router.replace("/login");

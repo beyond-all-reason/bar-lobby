@@ -15,7 +15,7 @@ export interface BattleConfig<T extends BattleOptions = BattleOptions> {
 }
 
 export abstract class AbstractBattle<T extends BattleOptions = BattleOptions> {
-    public readonly battleOptions: T;
+    public readonly battleOptions: T; // this should probably be protected with getters exposed but not setters
     public readonly bots: Bot[];
     public readonly users: User[];
 
