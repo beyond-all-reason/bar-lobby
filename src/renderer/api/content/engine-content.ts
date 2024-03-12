@@ -1,6 +1,6 @@
 import axios from "axios";
 import * as fs from "fs";
-import * as glob from "glob-promise";
+import { glob } from "glob";
 import { removeFromArray } from "jaz-ts-utils";
 import { Octokit } from "octokit";
 import * as path from "path";
@@ -214,7 +214,7 @@ export class EngineContentAPI extends AbstractContentAPI<EngineVersion> {
     }
 
     protected async parseAi(aiPath: string): Promise<EngineAI> {
-        const aiDefinitions = await glob.promise(`${aiPath}/**/{AIInfo.lua,AIOptions.lua}`, { windowsPathsNoEscape: true });
+        const aiDefinitions = await glob(`${aiPath}/**/{AIInfo.lua,AIOptions.lua}`, { windowsPathsNoEscape: true });
         const aiInfoPath = aiDefinitions.find((filePath) => filePath.endsWith("AIInfo.lua"));
         const aiOptionsPath = aiDefinitions.find((filePath) => filePath.endsWith("AIOptions.lua"));
 

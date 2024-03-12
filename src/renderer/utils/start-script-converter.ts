@@ -2,26 +2,28 @@
 import { assign } from "jaz-ts-utils";
 
 import { AbstractBattle } from "@/model/battle/abstract-battle";
-import { StartPosType } from "@/model/battle/battle-types";
-import { OfflineBattle } from "@/model/battle/offline-battle";
-import { SpadsBattle } from "@/model/battle/spads-battle";
+import { BattleOptions, StartPosType } from "@/model/battle/battle-types";
+import { OfflineCustomBattle } from "@/model/battle/offline-custom-battle";
+import { OnlineCustomBattle } from "@/model/battle/online-custom-battle";
 import type { StartScriptTypes } from "@/model/start-script";
 
 /**
  * https://springrts.com/wiki/Script.txt
  * https://github.com/spring/spring/blob/106.0/doc/StartScriptFormat.txt
- *
+ *ty
  * TODO:
  * - parse and convert restrictions
  */
 export class StartScriptConverter {
-    public generateScriptStr(battle: AbstractBattle): string {
+    public generateScriptStr(battle: AbstractBattle<BattleOptions>): string {
         let scriptStr = "";
-        if (battle instanceof OfflineBattle) {
+        if (battle instanceof OfflineCustomBattle) {
             const script = this.offlineBattleToStartScript(battle);
             scriptStr = this.generateScriptString(script);
-        } else if (battle instanceof SpadsBattle) {
+        } else if (battle instanceof OnlineCustomBattle) {
             scriptStr = this.generateOnlineScript(battle);
+        } else {
+            throw new Error("Unsupported battle type");
         }
         return scriptStr;
     }
@@ -34,14 +36,14 @@ export class StartScriptConverter {
         return obj;
     }
 
-    protected offlineBattleToStartScript(battle: AbstractBattle): StartScriptTypes.Game {
+    protected offlineBattleToStartScript(battle: OfflineCustomBattle): StartScriptTypes.Game {
         const allyTeams: StartScriptTypes.AllyTeam[] = [];
         const teams: StartScriptTypes.Team[] = [];
         const players: StartScriptTypes.Player[] = [];
         const bots: StartScriptTypes.Bot[] = [];
 
         let allyTeamId = 0;
-        let playerId = 0;
+        let teamId = 0;
 
         battle.teams.value.forEach((allyTeamConfig) => {
             const allyTeam: StartScriptTypes.AllyTeam = {
@@ -72,11 +74,11 @@ export class StartScriptConverter {
                     id: contenderOptions.playerId,
                     allyteam: contenderOptions.teamId,
                     teamleader: 0,
-                    advantage: contenderOptions.advantage,
-                    handicap: contenderOptions.handicap,
-                    incomemultiplier: contenderOptions.incomeMultiplier,
-                    startposx: contenderOptions.startPos?.x,
-                    startposz: contenderOptions.startPos?.z,
+                    //advantage: contenderOptions.advantage,
+                    //handicap: contenderOptions.handicap,
+                    //incomemultiplier: contenderOptions.incomeMultiplier,
+                    //startposx: contenderOptions.startPos?.x,
+                    //startposz: contenderOptions.startPos?.z,
                 };
                 teams.push(team);
 
@@ -88,7 +90,7 @@ export class StartScriptConverter {
                         userId: contender.userId,
                     };
                     players.push(player);
-                    playerId++;
+                    teamId++;
                 } else {
                     const bot: StartScriptTypes.Bot = {
                         id: contenderOptions.playerId,
@@ -105,7 +107,7 @@ export class StartScriptConverter {
 
         battle.spectators.value.forEach((spectatorConfig) => {
             const spectator: StartScriptTypes.Player = {
-                id: spectatorConfig.battleStatus.playerId,
+                id: players.length,
                 spectator: 1,
                 name: api.session.getUserById(spectatorConfig.userId)?.username || "Player",
                 userId: spectatorConfig.userId,
@@ -270,7 +272,7 @@ export class StartScriptConverter {
         return str;
     }
 
-    protected generateOnlineScript(battle: SpadsBattle) {
+    protected generateOnlineScript(battle: OnlineCustomBattle) {
         return `[game] {
     hostip = ${battle.battleOptions.ip};
     hostport = ${battle.battleOptions.port};

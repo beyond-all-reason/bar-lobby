@@ -1,8 +1,8 @@
 <template>
-    <div :class="['battle-container', { singleplayer: isOfflineBattle(battle) }]">
+    <div :class="['battle-container', { singleplayer: isOfflineCustomBattle(battle) }]">
         <div class="header flex-col gap-md">
             <BattleTitleComponent :battle="battle" :me="me"></BattleTitleComponent>
-            <div v-if="isSpadsBattle(battle)" class="subtitle flex-row gap-md flex-wrap">
+            <div v-if="isOnlineCustomBattle(battle)" class="subtitle flex-row gap-md flex-wrap">
                 <div class="flex-row gap-sm">
                     Hosted by
                     <div class="founder flex-row gap-sm">
@@ -16,16 +16,11 @@
         <div class="players flex-col gap-md">
             <Playerlist :battle="battle" :me="me" />
         </div>
-        <div v-if="isSpadsBattle(battle)" class="chat flex-col gap-md">
+        <div v-if="isOnlineCustomBattle(battle)" class="chat flex-col gap-md">
             <BattleChat />
         </div>
         <div class="settings flex-col gap-md">
-            <MapPreview
-                :map="map"
-                :startPosType="props.battle.battleOptions.startPosType"
-                :startBoxes="props.battle.battleOptions.startBoxes"
-                :currentUser="me"
-            />
+            <MapPreview :map="map" :startPosType="props.battle.battleOptions.startPosType" :startBoxes="props.battle.battleOptions.startBoxes" :currentUser="me" />
 
             <div class="flex-row gap-md">
                 <Select
@@ -120,14 +115,7 @@
                         @update:model-value="onBalanceModeSelected"
                     />
 
-                    <Select
-                        label="Team Size"
-                        :modelValue="battle.battleOptions.teamSize"
-                        :options="[1, 2, 3, 4, 5, 6, 7, 8]"
-                        class="fullwidth"
-                        showButtons
-                        @update:model-value="onTeamSizeSelected"
-                    />
+                    <Select label="Team Size" :modelValue="battle.battleOptions.teamSize" :options="[1, 2, 3, 4, 5, 6, 7, 8]" class="fullwidth" showButtons @update:model-value="onTeamSizeSelected" />
                 </div>
 
                 <div class="flex-row gap-md">
@@ -140,14 +128,7 @@
                         @update:model-value="onAutoBalanceSelected"
                     />
 
-                    <Select
-                        label="Num of Teams"
-                        :modelValue="battle.battleOptions.nbTeams"
-                        :options="[2, 3, 4]"
-                        class="fullwidth"
-                        showButtons
-                        @update:model-value="onNbTeamsSelected"
-                    />
+                    <Select label="Num of Teams" :modelValue="battle.battleOptions.nbTeams" :options="[2, 3, 4]" class="fullwidth" showButtons @update:model-value="onNbTeamsSelected" />
                 </div>
             </template>
 
@@ -156,30 +137,20 @@
 
                 <template v-if="isSpadsBattle(battle)">
                     <template v-if="me.battleStatus.isSpectator">
-                        <Button v-if="battle.myQueuePosition.value" class="fullwidth red" @click="leaveQueue"
-                            >Leave Queue ({{ battle.myQueuePosition.value }})</Button
-                        >
-                        <Button v-else class="fullwidth green" @click="joinQueue"
-                            >Join Queue ({{ battle.battleOptions.joinQueueUserIds.length + 1 }})</Button
-                        >
+                        <Button v-if="battle.myQueuePosition.value" class="fullwidth red" @click="leaveQueue">Leave Queue ({{ battle.myQueuePosition.value }})</Button>
+                        <Button v-else class="fullwidth green" @click="joinQueue">Join Queue ({{ battle.battleOptions.joinQueueUserIds.length + 1 }})</Button>
 
-                        <Button v-if="battle.battleOptions.startTime" class="fullwidth green" :disabled="isGameRunning.value" @click="start"
-                            >Watch</Button
-                        >
+                        <Button v-if="battle.battleOptions.startTime" class="fullwidth green" :disabled="isGameRunning.value" @click="start">Watch</Button>
                     </template>
                     <template v-else>
-                        <Button v-if="me.battleStatus.ready" class="fullwidth green" @click="toggleReady"
-                            ><span class="checkbox">✔</span>Unready</Button
-                        >
+                        <Button v-if="me.battleStatus.ready" class="fullwidth green" @click="toggleReady"><span class="checkbox">✔</span>Unready</Button>
                         <Button v-else class="fullwidth yellow" @click="toggleReady"><span class="checkbox">✖</span>Ready</Button>
 
-                        <Button v-if="battle.battleOptions.startTime" class="fullwidth green" :disabled="isGameRunning.value" @click="start"
-                            >Rejoin</Button
-                        >
+                        <Button v-if="battle.battleOptions.startTime" class="fullwidth green" :disabled="isGameRunning.value" @click="start">Rejoin</Button>
                         <Button v-else class="fullwidth green" :disabled="isGameRunning.value" @click="start">Start</Button>
                     </template>
                 </template>
-                <template v-else-if="isOfflineBattle(battle)">
+                <template v-else-if="isOfflineCustomBattle(battle)">
                     <Button class="fullwidth green" :disabled="isGameRunning.value" @click="start">Start</Button>
                 </template>
             </div>
@@ -211,15 +182,15 @@ import Checkbox from "@/components/controls/Checkbox.vue";
 import Select from "@/components/controls/Select.vue";
 import MapPreview from "@/components/maps/MapPreview.vue";
 import Flag from "@/components/misc/Flag.vue";
-import { AbstractBattle } from "@/model/battle/abstract-battle";
 import { StartPosType } from "@/model/battle/battle-types";
+import { OfflineCustomBattle } from "@/model/battle/offline-custom-battle";
+import { OnlineCustomBattle } from "@/model/battle/online-custom-battle";
 import { LuaOptionSection } from "@/model/lua-options";
-import { CurrentUser } from "@/model/user";
 import { StartBoxOrientation } from "@/utils/start-boxes";
-import { isOfflineBattle, isSpadsBattle } from "@/utils/type-checkers";
+import { isOfflineCustomBattle, isOnlineCustomBattle } from "@/utils/type-checkers";
 
 const props = defineProps<{
-    battle: AbstractBattle;
+    battle: OnlineCustomBattle | OfflineCustomBattle;
     me: CurrentUser;
 }>();
 

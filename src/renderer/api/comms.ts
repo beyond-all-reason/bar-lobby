@@ -6,9 +6,9 @@
  *
  * this includes matchmaking, chat, direct messages, and other lobby related functions.
  */
-import { ref } from "vue";
 
-import { TachyonClient } from "@/utils/tachyon-client";
+import { TachyonClient } from "tachyon-client";
+import { ref } from "vue";
 
 /**
  * TODO: move most of the response logic into separate response-handler files
@@ -17,8 +17,8 @@ import { TachyonClient } from "@/utils/tachyon-client";
 export class CommsAPI extends TachyonClient {
     public readonly isConnectedRef = ref(false);
 
-    public override async connect(steamSessionTicket: string): ReturnType<TachyonClient["connect"]> {
-        const userResponse = await super.connect(steamSessionTicket);
+    public override async connect(token: string): ReturnType<TachyonClient["connect"]> {
+        const userResponse = await super.connect(token);
 
         this.isConnectedRef.value = this.isConnected();
 

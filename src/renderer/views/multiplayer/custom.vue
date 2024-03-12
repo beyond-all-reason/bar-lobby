@@ -85,7 +85,7 @@
         <div v-if="!loading" class="right">
             <BattlePreview v-if="selectedBattle" :battle="selectedBattle">
                 <template #actions="{ battle }">
-                    <template v-if="isSpadsBattle(battle)">
+                    <template v-if="isOnlineCustomBattle(battle)">
                         <Button class="green flex-grow" @click="attemptJoinBattle(battle)">Join</Button>
                     </template>
                 </template>
@@ -117,27 +117,26 @@ import Loader from "@/components/common/Loader.vue";
 import Button from "@/components/controls/Button.vue";
 import Checkbox from "@/components/controls/Checkbox.vue";
 import SearchBox from "@/components/controls/SearchBox.vue";
-import { SpadsBattle } from "@/model/battle/spads-battle";
+import { isOnlineCustomBattle, OnlineCustomBattle } from "@/model/battle/online-custom-battle";
 import { attemptJoinBattle } from "@/utils/attempt-join-battle";
 import { getFriendlyDuration } from "@/utils/misc";
-import { isSpadsBattle } from "@/utils/type-checkers";
 
 const loading = ref(false);
 const intervalId = ref(0);
 const active = ref(true);
 const hostBattleOpen = ref(false);
 const searchVal = ref("");
-const selectedBattle: Ref<SpadsBattle | null> = shallowRef(null);
+const selectedBattle: Ref<OnlineCustomBattle | null> = shallowRef(null);
 const settings = api.settings.model;
 
-interface ScoredSpadsBattle extends SpadsBattle {
+interface ScoredSpadsBattle extends OnlineCustomBattle {
     score: number;
     factors: { [factorName: string]: number };
     primaryFactor: string;
 }
 
 const battles = computed(() => {
-    let battles = Array.from(api.session.battles.values());
+    let battles = Array.from(api.session.customBattles.values());
 
     battles = battles.filter((battle) => {
         if (settings.battlesHideEmpty && battle.users.length === 0) {
@@ -219,7 +218,7 @@ ${Object.entries(data.factors)
     return scoreExplanation;
 }
 
-function scoreBattle(battle: SpadsBattle) {
+function scoreBattle(battle: OnlineCustomBattle) {
     let score = 0;
     let factors: ScoredSpadsBattle["factors"] = {};
     let primaryFactor = "";
@@ -304,28 +303,33 @@ function scoreBattle(battle: SpadsBattle) {
     }
 }
 
-const watchForLobbyJoin = api.comms.onResponse("s.lobby.updated_client_battlestatus").add(() => {
-    loading.value = false;
-});
+// TODO
+// const watchForLobbyJoin = api.comms.onResponse("s.lobby.updated_client_battlestatus").add(() => {
+//     loading.value = false;
+// });
 
-const watchForLobbyJoinFailure = api.comms.onResponse("s.lobby.join").add((data) => {
-    if (data.result === "failure" || data.reason === "Battle locked") {
-        loading.value = false;
-    }
-});
+// TODO
+// const watchForLobbyJoinFailure = api.comms.onResponse("s.lobby.join").add((data) => {
+//     if (data.result === "failure" || data.reason === "Battle locked") {
+//         loading.value = false;
+//     }
+// });
 
 onBeforeUnmount(() => {
-    watchForLobbyJoin.destroy();
-    watchForLobbyJoinFailure.destroy();
+    // TODO
+    // watchForLobbyJoin.destroy();
+    // watchForLobbyJoinFailure.destroy();
     window.clearInterval(intervalId.value);
     active.value = false;
 });
 
-await api.session.updateBattleList();
+// TODO
+// await api.session.updateBattleList();
 
-if (active.value) {
-    intervalId.value = window.setInterval(api.session.updateBattleList, 5000);
-}
+// TODO
+// if (active.value) {
+//     intervalId.value = window.setInterval(api.session.updateBattleList, 5000);
+// }
 
 function onRowSelect(event: DataTableRowDoubleClickEvent) {
     const data = event.data as ScoredSpadsBattle;

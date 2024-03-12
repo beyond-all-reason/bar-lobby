@@ -6,22 +6,28 @@ import envPaths from "env-paths";
 import os from "os";
 import path from "path";
 import * as steamworks from "steamworks.js";
+import { auth } from "steamworks.js/client";
 
 import { StoreAPI } from "@/api/store";
 import { MainWindow } from "@/main-window";
 import type { Info } from "$/model/info";
 import { settingsSchema } from "$/model/settings";
 
-/** Steam integration, commented out until we have a dedicated app id */
-const client = steamworks.init(480);
-steamworks.electronEnableSteamOverlay();
-
 export class Application {
     protected mainWindow?: MainWindow;
     protected settings?: StoreAPI<typeof settingsSchema>;
     protected initialised = false;
+    protected steamClient?: ReturnType<typeof steamworks.init>;
+    protected steamSessionTicket?: auth.Ticket;
 
     constructor() {
+        try {
+            this.steamClient = steamworks.init(480);
+            steamworks.electronEnableSteamOverlay();
+        } catch (err) {
+            console.error("failed to init the steamworks API");
+        }
+
         app.setName("Beyond All Reason");
 
         process.env["ELECTRON_DISABLE_SECURITY_WARNINGS"] = "true";
@@ -39,22 +45,21 @@ export class Application {
 
         app.commandLine.appendSwitch("disable-features", "HardwareMediaKeyHandling,MediaSessionService");
 
-        if (process.env.NODE_ENV !== "production") {
-            if (process.platform === "win32") {
-                process.on("message", (data) => {
-                    if (data === "graceful-exit") {
-                        app.quit();
-                    }
-                });
-            } else {
-                process.on("SIGTERM", () => {
-                    app.quit();
-                });
+        process.on("SIGTERM", () => {
+            app.quit();
+        });
+        process.on("message", (data) => {
+            if (data === "graceful-exit") {
+                app.quit();
             }
-        }
+        });
 
         app.on("ready", () => this.onReady());
-        app.on("window-all-closed", () => app.quit());
+        app.on("window-all-closed", app.quit);
+        app.on("before-quit", () => {
+            this.mainWindow?.window.removeAllListeners("close");
+            this.mainWindow?.window.close();
+        });
         app.on("browser-window-focus", () => this.mainWindow?.window.flashFrame(false));
         app.on("web-contents-created", (event, contents) => {
             contents.on("will-navigate", (event, navigationUrl) => {
@@ -69,6 +74,10 @@ export class Application {
                 }
                 event.preventDefault(); //disallow
             });
+        });
+        app.on("quit", () => {
+            console.log("voiding steam session ticket");
+            this.steamSessionTicket?.cancel();
         });
     }
 
@@ -156,15 +165,24 @@ export class Application {
             console.warn(`encryption not available, returning buffer`);
             return buffer.toString();
         });
+
         let openedReplayAlready = false;
         ipcMain.handle("opened-replay", () => {
             if (process.argv.length == 0 || openedReplayAlready) return null;
             openedReplayAlready = true; //in case of reloading the app do not open replay again
             return process.argv[process.argv.length - 1].endsWith(".sdfz") ? process.argv[process.argv.length - 1] : null;
         });
+
+        ipcMain.handle("get-steam-session-ticket", async () => {
+            if (!this.steamClient) {
+                return null;
+            }
+            const steamSessionTicket = await this.steamClient.auth.getSessionTicket();
+            return steamSessionTicket.getBytes().toString("hex");
+        });
     }
 
-    protected async getInfo() {
+    protected async getInfo(): Promise<Info> {
         const resourcesPath = path.join(app.getAppPath(), "resources").split("resources")[0] + "resources";
         const paths = envPaths(app.getName(), { suffix: "" });
 
@@ -177,9 +195,7 @@ export class Application {
         const networkInterfaces = os.networkInterfaces();
         const defaultNetworkInterface = networkInterfaces["Ethernet"]?.[0] ?? Object.values(networkInterfaces)[0]?.[0];
 
-        const steamTicket = await client.auth.getSessionTicket(); // TODO: do this in async ipc handler on render load
-
-        const info: Info = {
+        return {
             resourcesPath,
             contentPath: paths.data,
             configPath: paths.config,
@@ -192,10 +208,7 @@ export class Application {
                 numOfDisplays: displayIds.length,
                 currentDisplayIndex: displayIds.indexOf(currentDisplayId),
             },
-            steamSessionTicket: steamTicket.getBytes().toString("hex"),
         };
-
-        return info;
     }
 }
 

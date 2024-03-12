@@ -4,12 +4,13 @@
 
 <template>
     <div class="flex-col flex-grow">
-        <BattleComponent v-if="battle" :battle="battle" :me="me" />
+        <!-- <BattleComponent v-if="battle" :battle="battle" :me="me" /> -->
+        <OnlineBattleComponent />
     </div>
 </template>
 
 <script lang="ts" setup>
-import BattleComponent from "@/components/battle/BattleComponent.vue";
+import OnlineBattleComponent from "@/components/battle/OnlineBattleComponent.vue";
 
 const battle = api.session.onlineBattle.value;
 const me = api.session.onlineUser;

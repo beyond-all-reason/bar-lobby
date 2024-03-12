@@ -1,7 +1,8 @@
 import axios from "axios";
 import * as fs from "fs";
-import * as glob from "glob-promise";
+import { glob } from "glob";
 import { BufferStream, removeFromArray } from "jaz-ts-utils";
+import { Minimatch } from "minimatch";
 import * as path from "path";
 import util from "util";
 import zlib from "zlib";
@@ -128,7 +129,7 @@ export class GameContentAPI extends PrDownloaderAPI<GameVersion | CustomGameVers
         if ("dir" in version) {
             const sdpFiles: Array<SdpFileMeta & { data?: Buffer }> = [];
             const customGameDir = path.join(api.info.contentPath, "games", version.dir);
-            const files = await glob.promise(path.join(customGameDir, filePattern), { windowsPathsNoEscape: true });
+            const files = await glob(path.join(customGameDir, filePattern), { windowsPathsNoEscape: true });
 
             for (const file of files) {
                 const sdpData = {
@@ -192,9 +193,9 @@ export class GameContentAPI extends PrDownloaderAPI<GameVersion | CustomGameVers
 
         const fileData: SdpFileMeta[] = [];
 
-        let globPattern: InstanceType<typeof glob.Glob> | undefined;
+        let globPattern: Minimatch | undefined;
         if (filePattern) {
-            globPattern = new glob.Glob(filePattern);
+            globPattern = new Minimatch(filePattern); //new glob.Glob(filePattern);
         }
 
         while (bufferStream.readStream.readableLength > 0) {
@@ -205,7 +206,7 @@ export class GameContentAPI extends PrDownloaderAPI<GameVersion | CustomGameVers
             const filesizeBytes = bufferStream.readInt(4, true);
             const archivePath = path.join(api.info.contentPath, "pool", md5.slice(0, 2), `${md5.slice(2)}.gz`);
 
-            if (globPattern && globPattern.minimatch.match(fileName)) {
+            if (globPattern && globPattern.match(fileName)) {
                 fileData.push({ fileName, md5, crc32, filesizeBytes, archivePath });
             } else if (!globPattern) {
                 fileData.push({ fileName, md5, crc32, filesizeBytes, archivePath });

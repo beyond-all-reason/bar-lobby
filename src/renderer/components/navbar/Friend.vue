@@ -124,7 +124,7 @@ async function joinBattle() {
         console.warn("Joining battle but battle is null");
         return;
     }
-    let battle = api.session.battles.get(battleIdToJoin);
+    let battle = api.session.customBattles.get(battleIdToJoin);
     if (!battle) {
         console.warn(`Battle with id ${battleIdToJoin} not found, hence can not join.`);
         return;

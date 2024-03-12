@@ -23,6 +23,7 @@
         <Button @click="openStartScript"> Open Latest Start Script </Button>
         <Button @click="attemptCacheErrorMaps"> Recache Errored Maps </Button>
         <Button @click="openSyncLobbyContentTool"> Sync Lobby Content Tool </Button>
+        <Button @click="test"> Test </Button>
 
         <!-- <SyncDataDirsDialog v-model="syncLobbyContentToolOpen" /> -->
     </div>
@@ -74,6 +75,11 @@ async function attemptCacheErrorMaps() {
 
 function openSyncLobbyContentTool() {
     syncLobbyContentToolOpen.value = true;
+}
+
+async function test() {
+    //await shell.openExternal("https://www.google.com");
+    await api.comms.auth({ open: shell.openExternal });
 }
 </script>
 

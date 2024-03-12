@@ -11,5 +11,4 @@ export type Info = {
         numOfDisplays: number;
         currentDisplayIndex: number;
     };
-    steamSessionTicket: string;
 };

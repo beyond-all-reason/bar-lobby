@@ -38,7 +38,7 @@ import Select from "@/components/controls/Select.vue";
 import Flag from "@/components/misc/Flag.vue";
 
 const clusterUsernames = new Set<string>();
-api.session.battles.forEach((battle) => {
+api.session.customBattles.forEach((battle) => {
     const founder = battle.founder.value;
     if (founder.isBot && founder.username.startsWith("[teh]") && founder.username.endsWith("]")) {
         try {

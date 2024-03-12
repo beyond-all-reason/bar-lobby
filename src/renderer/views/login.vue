@@ -6,12 +6,20 @@
     <div class="container">
         <img ref="logo" class="logo" src="/images/BARLogoFull.png" />
 
-        <div v-if="connecting" class="relative">
+        <div v-if="state === 'connecting'" class="relative">
             <Loader></Loader>
         </div>
 
-        <div v-else class="flex-col gap-md">
-            <div class="txt-error">Could not connect to {{ serverAddress }}</div>
+        <div v-else-if="state === 'waiting_for_auth'" class="relative flex-col gap-md">
+            <p class="txt-center">Please authenticate via your web browser.</p>
+            <Button class="retry gap-sm" @click="connect">
+                <Icon :icon="replayIcon" />
+                Retry
+            </Button>
+        </div>
+
+        <div v-else-if="state === 'error'" class="flex-col gap-md">
+            <div class="txt-error txt-center">{{ error }}</div>
             <Button class="retry gap-sm" @click="connect">
                 <Icon :icon="replayIcon" />
                 Reconnect
@@ -25,25 +33,51 @@
 <script lang="ts" setup>
 import { Icon } from "@iconify/vue";
 import replayIcon from "@iconify-icons/mdi/replay";
+import { ipcRenderer, shell } from "electron";
 import { delay } from "jaz-ts-utils";
-import { ref } from "vue";
+import { Ref, ref } from "vue";
 
 import Loader from "@/components/common/Loader.vue";
 import Button from "@/components/controls/Button.vue";
 
 const serverAddress = `${api.comms.config.host}:${api.comms.config.port}`;
-const connecting = ref(false);
+const state: Ref<"connecting" | "waiting_for_auth" | "connected" | "error"> = ref("connecting");
+const error = ref("");
 
 async function connect() {
-    connecting.value = true;
     try {
-        await api.comms.connect(api.info.steamSessionTicket);
+        state.value = "connecting";
+
+        let oauthToken: Awaited<ReturnType<typeof api.comms.auth>> | undefined;
+
+        const steamSessionTicket: string | null = await ipcRenderer.invoke("get-steam-session-ticket");
+
+        state.value = "waiting_for_auth";
+        if (steamSessionTicket) {
+            console.log(steamSessionTicket);
+            oauthToken = await api.comms.steamAuth(steamSessionTicket);
+        } else {
+            oauthToken = await api.comms.auth({ open: shell.openExternal });
+        }
+
+        console.log(oauthToken);
+
+        state.value = "connecting";
+
+        await api.comms.connect(oauthToken.accessToken);
+
+        state.value = "connected";
     } catch (err) {
+        state.value = "error";
+        if (err instanceof Error) {
+            error.value = err.message;
+        } else {
+            error.value = "An unknown error occurred when trying to connect to the server.";
+        }
         console.error(err);
-    } finally {
-        await delay(100);
-        connecting.value = false;
     }
+
+    await delay(100);
 }
 
 async function playOffline() {

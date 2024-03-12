@@ -1,3 +1,5 @@
+import "@total-typescript/ts-reset";
+
 declare const __static: string;
 
 /* eslint-disable */

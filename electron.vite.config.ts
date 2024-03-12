@@ -46,6 +46,9 @@ export default defineConfig({
             esbuildOptions: {
                 target: "esnext",
             },
+            exclude: [
+                "tachyon-client", // only when using npm link
+            ],
         },
         css: {
             modules: false,
@@ -66,12 +69,6 @@ export default defineConfig({
                 resolve: {
                     "better-sqlite3": {
                         type: "esm",
-                    },
-                    "tachyon-client": {
-                        type: "cjs",
-                    },
-                    "tachyon-protocol": {
-                        type: "cjs",
                     },
                     ws: {
                         type: "esm",

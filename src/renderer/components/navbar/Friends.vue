@@ -101,10 +101,10 @@ const activeIndex = ref(0);
 const accordianActiveIndexes = ref([0, 1, 2]);
 const friendId = ref<number>();
 const addFriendDisabled = ref(true);
-const onlineFriends = computed(() => api.session.friends.value.filter((user) => user.isOnline));
-const offlineFriends = computed(() => api.session.friends.value.filter((user) => !user.isOnline));
-const outgoingFriendRequests = api.session.outgoingFriendRequests;
-const incomingFriendRequests = api.session.incomingFriendRequests;
+const onlineFriends = computed(() => api.session.friends.value.filter((user) => user.status !== "offline"));
+const offlineFriends = computed(() => api.session.friends.value.filter((user) => user.status === "offline"));
+const outgoingFriendRequests = api.session.onlineUser.outgoingFriendRequestIds;
+const incomingFriendRequests = api.session.onlineUser.incomingFriendRequestIds;
 const myUserId = computed(() => api.session.onlineUser.userId);
 
 const toggleMessages = inject<Ref<(open?: boolean, userId?: number) => void>>("toggleMessages")!;
@@ -146,17 +146,18 @@ async function addFriend() {
         return;
     }
 
-    api.comms.request("c.user.add_friend", {
-        user_id: friendId.value,
-    });
+    // TODO
+    // api.comms.request("c.user.add_friend", {
+    //     user_id: friendId.value,
+    // });
 
-    const { users } = await api.comms.request("c.user.list_users_from_ids", {
-        id_list: [friendId.value],
-    });
+    // const { users } = await api.comms.request("c.user.list_users_from_ids", {
+    //     id_list: [friendId.value],
+    // });
 
-    if (users.length) {
-        api.session.onlineUser.incomingFriendRequestUserIds.add(friendId.value);
-    }
+    // if (users.length) {
+    //     api.session.onlineUser.incomingFriendRequestUserIds.add(friendId.value);
+    // }
 }
 </script>
 

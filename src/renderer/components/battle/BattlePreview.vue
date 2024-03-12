@@ -70,13 +70,15 @@ import { computed, ComputedRef } from "vue";
 
 import BattlePreviewParticipant from "@/components/battle/BattlePreviewParticipant.vue";
 import MapOverviewCard from "@/components/maps/MapOverviewCard.vue";
-import { AbstractBattle } from "@/model/battle/abstract-battle";
+import { AbstractBattle, isBattle } from "@/model/battle/abstract-battle";
 import { StartBox, StartPosType } from "@/model/battle/battle-types";
+import { OfflineCustomBattle } from "@/model/battle/offline-custom-battle";
+import { OnlineCustomBattle } from "@/model/battle/online-custom-battle";
 import { Replay } from "@/model/cache/replay";
-import { isBattle, isReplay, isUser } from "@/utils/type-checkers";
+import { isReplay, isUser } from "@/utils/type-checkers";
 
 const props = defineProps<{
-    battle: AbstractBattle | Replay;
+    battle: OnlineCustomBattle | OfflineCustomBattle | Replay;
     showSpoilers?: boolean;
 }>();
 

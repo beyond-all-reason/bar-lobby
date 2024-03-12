@@ -35,20 +35,25 @@ import robotIcon from "@iconify-icons/mdi/robot";
 import swordCross from "@iconify-icons/mdi/sword-cross";
 import { computed } from "vue";
 
+import { isOnlineCustomBattle } from "@/model/battle/online-custom-battle";
+
 const route = api.router.currentRoute;
 const me = api.session.onlineUser;
-const battle = api.session.onlineBattle;
+const battle = computed(() =>
+    api.session.onlineBattle.value && isOnlineCustomBattle(api.session.onlineBattle.value) ? api.session.onlineBattle.value : null
+);
 const playerCount = computed(() => battle.value?.contenders.value.filter((c) => "userId" in c).length);
 const botCount = computed(() => battle.value?.bots.length);
 const specCount = computed(() => battle.value?.spectators.value.length);
 const color = computed(() => {
-    if (me.battleStatus.sync.engine < 1 || me.battleStatus.sync.game < 1 || me.battleStatus.sync.map < 1) {
-        return "rgb(165, 30, 30)";
-    } else if (!me.battleStatus.ready) {
-        return "rgb(243, 213, 79)";
-    } else {
-        return "rgb(120, 189, 57)";
-    }
+    // if (me.battleStatus && me.battleStatus.sync.engine < 1 || me.battleStatus.sync.game < 1 || me.battleStatus.sync.map < 1) {
+    //     return "rgb(165, 30, 30)";
+    // } else if (!me.battleStatus?.ready) {
+    //     return "rgb(243, 213, 79)";
+    // } else {
+    //     return "rgb(120, 189, 57)";
+    // }
+    return "rgb(120, 189, 57)";
 });
 
 async function openBattle() {

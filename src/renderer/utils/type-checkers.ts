@@ -1,28 +1,28 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+import { TachyonUser } from "tachyon-client/node_modules/tachyon-protocol";
 
-import { AbstractBattle } from "@/model/battle/abstract-battle";
-import { Bot } from "@/model/battle/battle-types";
-import { OfflineBattle } from "@/model/battle/offline-battle";
-import { SpadsBattle } from "@/model/battle/spads-battle";
+import { BattlePlayer, BattleSpectator, Bot } from "@/model/battle/battle-types";
 import { Replay } from "@/model/cache/replay";
-import { User } from "@/model/user";
 
-export function isReplay(replay: any): replay is Replay {
-    return "replayId" in replay;
-}
-export function isBattle(battle: any): battle is AbstractBattle {
-    return battle instanceof AbstractBattle;
-}
-export function isOfflineBattle(battle: any): battle is OfflineBattle {
-    return battle instanceof OfflineBattle;
-}
-export function isSpadsBattle(battle: any): battle is SpadsBattle {
-    return battle instanceof SpadsBattle;
+export function isReplay(replay: unknown): replay is Replay {
+    return typeof replay === "object" && replay !== null && "replayId" in replay;
 }
 
-export function isUser(user: any): user is User {
-    return "userId" in user;
+export function isUser(user: unknown): user is TachyonUser {
+    return typeof user === "object" && user !== null && "userId" in user;
 }
-export function isBot(bot: any): bot is Bot {
+
+export function isBattleUser(user: unknown): user is BattlePlayer | BattleSpectator {
+    return isUser(user) && user.battleStatus !== null;
+}
+
+export function isPlayer(user: unknown): user is BattlePlayer {
+    return isBattleUser(user) && user.battleStatus.isSpectator === false;
+}
+
+export function isSpectator(user: unknown): user is BattleSpectator {
+    return isBattleUser(user) && user.battleStatus.isSpectator === true;
+}
+
+export function isBot(bot: unknown): bot is Bot {
     return !isUser(bot);
 }
