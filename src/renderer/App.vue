@@ -80,7 +80,7 @@ const settings = api.settings.model;
 const skipIntro = settings.skipIntro;
 const videoVisible = ref(!settings.skipIntro);
 const state: Ref<"preloader" | "initial-setup" | "default"> = ref("preloader");
-const empty = ref(false);
+const empty = ref(api.router.currentRoute.value.meta.empty ?? false);
 const blurBg = ref(true);
 const lobbyVersion = api.info.lobby.version;
 const viewOverflowY = computed(() => (router.currentRoute.value.meta.overflowY ? router.currentRoute.value.meta.overflowY : "auto"));
@@ -112,8 +112,6 @@ function onIntroEnd() {
 }
 
 async function onPreloadDone() {
-    console.time("onPreloadDone");
-
     // TODO: should also check to see if game and maps are installed (need to fix bug where interrupted game dl reports as successful install)
     if (api.content.engine.installedVersions.length === 0) {
         state.value = "initial-setup";
@@ -125,8 +123,6 @@ async function onPreloadDone() {
 
         state.value = "default";
     }
-
-    console.timeEnd("onPreloadDone");
 }
 
 function onInitialSetupDone() {

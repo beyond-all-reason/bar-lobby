@@ -47,7 +47,7 @@ export default defineConfig({
                 target: "esnext",
             },
             exclude: [
-                "tachyon-client", // only when using npm link
+                //"tachyon-client", // only when using npm link
             ],
         },
         css: {
@@ -73,6 +73,9 @@ export default defineConfig({
                     ws: {
                         type: "esm",
                     },
+                    // "tachyon-client": {
+                    //     type: "esm",
+                    // },
                 },
             }),
         ],

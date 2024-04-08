@@ -35,6 +35,7 @@ import { Icon } from "@iconify/vue";
 import replayIcon from "@iconify-icons/mdi/replay";
 import { ipcRenderer, shell } from "electron";
 import { delay } from "jaz-ts-utils";
+import { UserNotFoundError } from "tachyon-client";
 import { Ref, ref } from "vue";
 
 import Loader from "@/components/common/Loader.vue";
@@ -52,29 +53,40 @@ async function connect() {
 
         const steamSessionTicket: string | null = await ipcRenderer.invoke("get-steam-session-ticket");
 
-        state.value = "waiting_for_auth";
         if (steamSessionTicket) {
-            console.log(steamSessionTicket);
-            oauthToken = await api.comms.steamAuth(steamSessionTicket);
+            state.value = "connecting";
+            oauthToken = await steamAuth(steamSessionTicket);
         } else {
+            state.value = "waiting_for_auth";
             oauthToken = await api.comms.auth({ open: shell.openExternal });
         }
 
         console.log(oauthToken);
-
-        state.value = "connecting";
+        // TODO: store token
 
         await api.comms.connect(oauthToken.accessToken);
 
         state.value = "connected";
     } catch (err) {
         state.value = "error";
-        if (err instanceof Error) {
-            error.value = err.message;
+        if (err instanceof UserNotFoundError) {
+            console.error("User not found");
+        } else if (err instanceof Error) {
+            if (
+                err.message.includes("ECONNREFUSED") ||
+                err.message.includes("fetch failed") ||
+                err.message.includes("ERR_CONNECTION_REFUSED") ||
+                err.message.includes("Failed to fetch")
+            ) {
+                error.value = `Could not connect to server at ${api.comms.getServerBaseUrl()}`;
+            } else {
+                error.value = err.message;
+                console.error(err);
+            }
         } else {
             error.value = "An unknown error occurred when trying to connect to the server.";
+            console.error(err);
         }
-        console.error(err);
     }
 
     await delay(100);
@@ -84,6 +96,26 @@ async function playOffline() {
     api.session.offlineMode.value = true;
     api.comms.disconnect();
     await api.router.push("/singleplayer/custom");
+}
+
+async function steamAuth(steamSessionTicket: string): Promise<ReturnType<typeof api.comms.auth>> {
+    console.log(steamSessionTicket);
+    try {
+        const token = await api.comms.steamAuth(steamSessionTicket);
+        return token;
+    } catch (err) {
+        if (err instanceof UserNotFoundError) {
+            const username = await promptUsername();
+            await api.comms.register({ steamSessionTicket, username });
+            return await steamAuth(steamSessionTicket);
+        } else {
+            throw err;
+        }
+    }
+}
+
+async function promptUsername(): Promise<string> {
+    return "bob";
 }
 
 await connect();
