@@ -35,7 +35,6 @@ import { Icon } from "@iconify/vue";
 import replayIcon from "@iconify-icons/mdi/replay";
 import { ipcRenderer, shell } from "electron";
 import { delay } from "jaz-ts-utils";
-import { UserNotFoundError } from "tachyon-client";
 import { Ref, ref } from "vue";
 
 import Loader from "@/components/common/Loader.vue";
@@ -69,9 +68,7 @@ async function connect() {
         state.value = "connected";
     } catch (err) {
         state.value = "error";
-        if (err instanceof UserNotFoundError) {
-            console.error("User not found");
-        } else if (err instanceof Error) {
+        if (err instanceof Error) {
             if (
                 err.message.includes("ECONNREFUSED") ||
                 err.message.includes("fetch failed") ||
@@ -104,7 +101,7 @@ async function steamAuth(steamSessionTicket: string): Promise<ReturnType<typeof 
         const token = await api.comms.steamAuth(steamSessionTicket);
         return token;
     } catch (err) {
-        if (err instanceof UserNotFoundError) {
+        if (err instanceof Error && err.message.includes("user_not_found")) {
             const username = await promptUsername();
             await api.comms.register({ steamSessionTicket, username });
             return await steamAuth(steamSessionTicket);

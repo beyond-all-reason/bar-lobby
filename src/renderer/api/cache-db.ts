@@ -24,9 +24,14 @@ export class CacheDbAPI extends Kysely<CacheDatabase> {
     constructor() {
         const serializePlugin = new SerializePlugin();
 
+        // const thing = import.meta.resolve("better-sqlite3/build/Release/better_sqlite3.node");
+        // console.log(thing);
+
         super({
             dialect: new SqliteDialect({
-                database: new Database(path.join(api.info.configPath, "cache.db")),
+                database: new Database(path.join(api.info.configPath, "cache.db"), {
+                    //nativeBinding: thing,
+                }),
             }),
             plugins: [serializePlugin],
         });

@@ -94,6 +94,7 @@ export async function apiInit() {
         port: 3005,
         logging: true,
     });
+    await api.comms.init();
 
     api.content = await new ContentAPI().init();
 

@@ -34,6 +34,7 @@ export default defineConfig({
                 "@": path.join(__dirname, "src/renderer"),
                 $: path.join(__dirname, "src/common"),
             },
+            preserveSymlinks: true,
         },
         build: {
             assetsDir: ".",
@@ -46,9 +47,10 @@ export default defineConfig({
             esbuildOptions: {
                 target: "esnext",
             },
-            exclude: [
-                //"tachyon-client", // only when using npm link
-            ],
+            // exclude: [
+            //     "tachyon-client", // only when using npm link
+            //     "tachyon-protocol", // only when using npm link
+            // ],
         },
         css: {
             modules: false,
@@ -67,14 +69,14 @@ export default defineConfig({
             vue(),
             renderer({
                 resolve: {
-                    "better-sqlite3": {
-                        type: "esm",
-                    },
+                    // "better-sqlite3": {
+                    //     type: "esm",
+                    // },
                     ws: {
                         type: "esm",
                     },
-                    // "tachyon-client": {
-                    //     type: "esm",
+                    // "tachyon-protocol": {
+                    //     type: "cjs",
                     // },
                 },
             }),

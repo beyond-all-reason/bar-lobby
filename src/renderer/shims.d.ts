@@ -11,6 +11,10 @@ declare module "*.vue" {
 
 declare module "vue3-markdown-it";
 declare module "vue3-popper";
+declare module "tachyon-protocol/validators" {
+    const validators: any;
+    export = validators;
+}
 
 declare module "*.png";
 declare module "*.mp3";

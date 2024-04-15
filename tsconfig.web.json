@@ -11,13 +11,13 @@
       "$/*": ["src/common/*"],
       "jaz-ts-utils": ["node_modules/jaz-ts-utils"]
     },
-    "types": ["vite/client"],
     "noEmit": true,
     "downlevelIteration": true,
     "noUnusedParameters": false,
     "noUnusedLocals": false,
     "resolveJsonModule": true,
     "noImplicitOverride": true,
-    "allowJs": true
+    "allowJs": true,
+    "types": ["vite/client"]
   }
 }

@@ -23,7 +23,7 @@ export class AudioAPI {
             return this;
         }
 
-        const audioFiles = import.meta.glob("@/assets/audio/**/*", { as: "url" });
+        const audioFiles = import.meta.glob("@/assets/audio/**/*", { query: "?url", import: "default" });
 
         for (const filePath in audioFiles) {
             const isMusic = filePath.includes("music");

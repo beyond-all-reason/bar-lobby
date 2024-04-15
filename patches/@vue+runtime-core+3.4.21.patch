@@ -1,0 +1,13 @@
+diff --git a/node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js b/node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js
+index 554d6bd..1be1d09 100644
+--- a/node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js
++++ b/node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js
+@@ -6596,7 +6596,7 @@ function baseCreateRenderer(options, createHydrationFns) {
+   };
+   const removeFragment = (cur, end) => {
+     let next;
+-    while (cur !== end) {
++    while (cur && cur !== end) {
+       next = hostNextSibling(cur);
+       hostRemove(cur);
+       cur = next;

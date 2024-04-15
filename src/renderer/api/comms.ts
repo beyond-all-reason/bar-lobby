@@ -7,8 +7,9 @@
  * this includes matchmaking, chat, direct messages, and other lobby related functions.
  */
 
-import { TachyonClient } from "tachyon-client";
 import { ref } from "vue";
+import { TachyonClient } from "@/utils/tachyon-client";
+//import { TachyonClient } from "tachyon-client";
 
 /**
  * TODO: move most of the response logic into separate response-handler files

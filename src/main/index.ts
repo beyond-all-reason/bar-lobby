@@ -58,7 +58,9 @@ export class Application {
         app.on("window-all-closed", app.quit);
         app.on("before-quit", () => {
             this.mainWindow?.window.removeAllListeners("close");
-            this.mainWindow?.window.close();
+            if (!this.mainWindow?.window?.isDestroyed()) {
+                this.mainWindow?.window.close();
+            }
         });
         app.on("browser-window-focus", () => this.mainWindow?.window.flashFrame(false));
         app.on("web-contents-created", (event, contents) => {
