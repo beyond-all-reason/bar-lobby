@@ -2,6 +2,7 @@ import vue from "@vitejs/plugin-vue";
 import { defineConfig, externalizeDepsPlugin } from "electron-vite";
 import path from "path";
 import VueRouter from "unplugin-vue-router/vite";
+import commonjs from "vite-plugin-commonjs";
 import renderer from "vite-plugin-electron-renderer";
 
 export default defineConfig({
@@ -47,10 +48,7 @@ export default defineConfig({
             esbuildOptions: {
                 target: "esnext",
             },
-            // exclude: [
-            //     "tachyon-client", // only when using npm link
-            //     "tachyon-protocol", // only when using npm link
-            // ],
+            include: ["tachyon-protocol"],
         },
         css: {
             modules: false,
@@ -75,9 +73,12 @@ export default defineConfig({
                     ws: {
                         type: "esm",
                     },
-                    // "tachyon-protocol": {
-                    //     type: "cjs",
-                    // },
+                },
+            }),
+            commonjs({
+                filter: (id) => {
+                    const fileRegex = /precompiled.*validations\.js$/;
+                    return fileRegex.test(id);
                 },
             }),
         ],

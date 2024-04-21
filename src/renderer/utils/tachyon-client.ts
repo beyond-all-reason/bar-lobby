@@ -1,11 +1,13 @@
 import { generateCodeVerifier, OAuth2Client, OAuth2Token } from "@badgateway/oauth2-client";
-import { randomUUID } from "node:crypto";
 import { Signal } from "jaz-ts-utils";
-import { EndpointId, GenericRequestCommand, RequestData, ResponseCommand, ServiceId, SuccessResponseData, tachyonMeta } from "tachyon-protocol";
-import { SetOptional } from "type-fest";
-import { ClientOptions, WebSocket } from "ws";
+import { randomUUID } from "node:crypto";
 import http from "node:http";
 import { AddressInfo } from "node:net";
+import { EndpointId, GenericRequestCommand, RequestData, ResponseCommand, ServiceId, SuccessResponseData, tachyonMeta } from "tachyon-protocol";
+// @ts-ignore
+import * as validators from "tachyon-protocol/validators";
+import { SetOptional } from "type-fest";
+import { ClientOptions, WebSocket } from "ws";
 
 export type AuthOptions = {
     /** An OAuth 2 access token. If a previous token has been generated and stored, it can be passed here to be validated or refreshed, if necessary */
@@ -39,7 +41,6 @@ export class TachyonClient {
 
     protected responseSignals: Map<string, Signal> = new Map();
     protected oauthClient: OAuth2Client;
-    protected validators: any;
 
     constructor(config: SetOptional<TachyonClientOptions, keyof typeof defaultTachyonClientOptions>) {
         this.config = { ...defaultTachyonClientOptions, ...config };
@@ -54,7 +55,7 @@ export class TachyonClient {
 
     public async init() {
         // @ts-ignore
-        this.validators = await import("tachyon-protocol/validators");
+        //this.validators = await import("tachyon-protocol/validators");
     }
 
     public async connect(token: string): Promise<SuccessResponseData<"system", "connected">> {
@@ -89,7 +90,7 @@ export class TachyonClient {
 
                     const [serviceId, endpointId, commandType] = commandId.split("/");
 
-                    const validator = this.validators[`${serviceId}_${endpointId}_${commandType}`];
+                    const validator = validators[`${serviceId}_${endpointId}_${commandType}`];
                     const isValid = validator(response);
                     if (!isValid) {
                         console.error(`Command validation failed for ${commandId}`);
@@ -163,7 +164,7 @@ export class TachyonClient {
         const commandId = `${serviceId}/${endpointId as string}/request`;
         const messageId = randomUUID();
         const request: GenericRequestCommand = { commandId, messageId };
-        const validator = this.validators[`${serviceId as string}_${endpointId as string}_request`];
+        const validator = validators[`${serviceId as string}_${endpointId as string}_request`];
 
         if (data) {
             Object.assign(request, data);
