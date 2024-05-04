@@ -1,5 +1,6 @@
 import { assign } from "jaz-ts-utils";
-import { TachyonPrivateUser, TachyonUser } from "tachyon-client/node_modules/tachyon-protocol";
+import { TachyonPrivateUser, TachyonUser } from "tachyon-protocol";
+import { SuccessResponseData } from "tachyon-protocol";
 import { computed, ComputedRef, reactive, Ref, ref, shallowReactive, shallowRef } from "vue";
 
 import { MatchmakingBattle } from "@/model/battle/matchmaking-battle";
@@ -17,7 +18,7 @@ export class SessionAPI {
     public readonly onlineUser: TachyonPrivateUser;
     public readonly customBattles: Map<number, OnlineCustomBattle> = shallowReactive(new Map());
     public readonly battleMessages: Message[] = reactive([]);
-    //public readonly serverStats: Ref<SuccessResponseData<"system", "serverStats"> | null> = shallowRef(null);
+    public readonly serverStats: Ref<SuccessResponseData<"system", "serverStats"> | null> = shallowRef(null);
     // public readonly outgoingFriendRequests: ComputedRef<User[]>;
     // public readonly incomingFriendRequests: ComputedRef<User[]>;
     public readonly friends: ComputedRef<TachyonUser[]>;
@@ -31,7 +32,7 @@ export class SessionAPI {
         this.users.clear();
         this.customBattles.clear();
         this.battleMessages.length = 0;
-        //this.serverStats.value = null;
+        this.serverStats.value = null;
         this.directMessages.clear();
 
         const user: TachyonPrivateUser = {

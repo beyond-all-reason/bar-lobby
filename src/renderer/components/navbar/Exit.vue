@@ -21,11 +21,12 @@ async function logout() {
     api.account.model.token = "";
     try {
         if (!api.session.offlineMode.value) {
-            await api.comms.request("c.auth.disconnect"); // TODO: replace with logout https://github.com/beyond-all-reason/teiserver/issues/56
+            await api.comms.request("system", "disconnect");
         }
     } catch (err) {
         console.error(err);
     }
+    api.settings.model.loginAutomatically = false;
     await router.push("/login");
     modal.value?.close();
 }

@@ -15,6 +15,7 @@ import { prompt } from "@/api/prompt";
 import { SessionAPI } from "@/api/session";
 import { StoreAPI } from "@/api/store";
 import { UtilsAPI } from "@/api/utils";
+import { serverConfig } from "@/config/server";
 import { accountSchema } from "@/model/account";
 import type { Info } from "$/model/info";
 import { settingsSchema } from "$/model/settings";
@@ -90,11 +91,10 @@ export async function apiInit() {
     api.game = new GameAPI();
 
     api.comms = new CommsAPI({
-        host: "127.0.0.1", // TODO: temporary host for local testing
-        port: 3005,
+        host: serverConfig.host,
+        port: serverConfig.port,
         logging: true,
     });
-    await api.comms.init();
 
     api.content = await new ContentAPI().init();
 

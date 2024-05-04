@@ -53,7 +53,7 @@ async function setupVue() {
 
     app.use(api.router);
     app.use(PrimeVue, {
-        ripple: true,
+        ripple: false, // disabled for now because it's creating weird displacement issues when triggered, maybe fixed in latest primevue
     });
     app.use(await setupI18n());
 

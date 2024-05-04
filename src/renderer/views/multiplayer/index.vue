@@ -1,7 +1,7 @@
 <route lang="json5">
 {
     meta: {
-        redirect: "/multiplayer/custom",
+        redirect: "/multiplayer/ranked",
         title: "Multiplayer",
         order: 1,
         availableOffline: false,

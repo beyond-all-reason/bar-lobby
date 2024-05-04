@@ -66,6 +66,8 @@ async function connect() {
         await api.comms.connect(oauthToken.accessToken);
 
         state.value = "connected";
+
+        await api.router.push("/home");
     } catch (err) {
         state.value = "error";
         if (err instanceof Error) {
@@ -115,7 +117,9 @@ async function promptUsername(): Promise<string> {
     return "bob";
 }
 
-await connect();
+if (api.settings.model.loginAutomatically) {
+    await connect();
+}
 </script>
 
 <style lang="scss" scoped>

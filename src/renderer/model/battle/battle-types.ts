@@ -1,4 +1,4 @@
-import { TachyonUser } from "tachyon-client/node_modules/tachyon-protocol";
+import { TachyonUser } from "tachyon-protocol";
 
 export type BattleUser = BattlePlayer | BattleSpectator;
 export type BattlePlayer = TachyonUser & { battleStatus: { isSpectator: false } };

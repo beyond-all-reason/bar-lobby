@@ -48,7 +48,7 @@ export default defineConfig({
             esbuildOptions: {
                 target: "esnext",
             },
-            include: ["tachyon-protocol"],
+            exclude: ["tachyon-protocol"], // only when using npm link?
         },
         css: {
             modules: false,

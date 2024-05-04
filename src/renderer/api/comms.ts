@@ -7,7 +7,9 @@
  * this includes matchmaking, chat, direct messages, and other lobby related functions.
  */
 
+import { GenericResponseCommand } from "tachyon-protocol";
 import { ref } from "vue";
+
 import { TachyonClient } from "@/utils/tachyon-client";
 //import { TachyonClient } from "tachyon-client";
 
@@ -17,6 +19,16 @@ import { TachyonClient } from "@/utils/tachyon-client";
 
 export class CommsAPI extends TachyonClient {
     public readonly isConnectedRef = ref(false);
+
+    constructor(...args: ConstructorParameters<typeof TachyonClient>) {
+        super(...args);
+
+        this.onResponse.add((responseCommand: GenericResponseCommand) => {
+            if (responseCommand.status === "failed") {
+                console.error(`Failed response: ${responseCommand.commandId}`, responseCommand.reason);
+            }
+        });
+    }
 
     public override async connect(token: string): ReturnType<TachyonClient["connect"]> {
         const userResponse = await super.connect(token);

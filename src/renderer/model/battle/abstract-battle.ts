@@ -1,7 +1,7 @@
 import { useNow } from "@vueuse/core";
 import { formatDuration } from "date-fns";
 import { groupBy } from "jaz-ts-utils";
-import { TachyonUser } from "tachyon-client/node_modules/tachyon-protocol";
+import { TachyonUser } from "tachyon-protocol";
 import { computed, ComputedRef, reactive, shallowReactive, WatchStopHandle } from "vue";
 
 import { BattleOptions, BattlePlayer, BattleSpectator, BattleUser, Bot } from "@/model/battle/battle-types";

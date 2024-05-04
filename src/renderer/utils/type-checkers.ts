@@ -1,4 +1,4 @@
-import { TachyonUser } from "tachyon-client/node_modules/tachyon-protocol";
+import { TachyonUser } from "tachyon-protocol";
 
 import { BattlePlayer, BattleSpectator, Bot } from "@/model/battle/battle-types";
 import { Replay } from "@/model/cache/replay";

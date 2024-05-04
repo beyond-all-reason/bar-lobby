@@ -3,8 +3,7 @@ import { Signal } from "jaz-ts-utils";
 import { randomUUID } from "node:crypto";
 import http from "node:http";
 import { AddressInfo } from "node:net";
-import { EndpointId, GenericRequestCommand, RequestData, ResponseCommand, ServiceId, SuccessResponseData, tachyonMeta } from "tachyon-protocol";
-// @ts-ignore
+import { EndpointId, GenericRequestCommand, GenericResponseCommand, RequestData, ResponseCommand, ServiceId, SuccessResponseData, tachyonMeta } from "tachyon-protocol";
 import * as validators from "tachyon-protocol/validators";
 import { SetOptional } from "type-fest";
 import { ClientOptions, WebSocket } from "ws";
@@ -38,6 +37,8 @@ const defaultTachyonClientOptions = {
 export class TachyonClient {
     public socket?: WebSocket;
     public config: TachyonClientOptions;
+    public onRequest: Signal<GenericRequestCommand> = new Signal();
+    public onResponse: Signal<GenericResponseCommand> = new Signal();
 
     protected responseSignals: Map<string, Signal> = new Map();
     protected oauthClient: OAuth2Client;
@@ -51,11 +52,6 @@ export class TachyonClient {
             authorizationEndpoint: "/authorize",
             tokenEndpoint: "/token",
         });
-    }
-
-    public async init() {
-        // @ts-ignore
-        //this.validators = await import("tachyon-protocol/validators");
     }
 
     public async connect(token: string): Promise<SuccessResponseData<"system", "connected">> {
@@ -94,16 +90,13 @@ export class TachyonClient {
                     const isValid = validator(response);
                     if (!isValid) {
                         console.error(`Command validation failed for ${commandId}`);
-                        if (validator.errors) {
-                            for (const error of validator.errors) {
-                                console.error(error);
-                            }
-                        }
+                        console.error(validator.errors);
                     }
 
                     const signal = this.responseSignals.get(response.commandId);
                     if (signal) {
                         signal.dispatch(response);
+                        this.onResponse.dispatch(response as GenericResponseCommand);
                     }
                 });
 
@@ -167,20 +160,17 @@ export class TachyonClient {
         const validator = validators[`${serviceId as string}_${endpointId as string}_request`];
 
         if (data) {
-            Object.assign(request, data);
+            request.data = data;
         }
 
         const isValid = validator(request);
         if (!isValid) {
             console.error(`Command validation failed for ${commandId}`);
-            if (validator.errors) {
-                for (const error of validator.errors) {
-                    console.error(error);
-                }
-            }
+            console.error(validator.errors);
         }
 
         this.socket?.send(JSON.stringify(request));
+        this.onRequest.dispatch(request);
 
         this.log("REQUEST", request);
 
