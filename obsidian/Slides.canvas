@@ -1,0 +1,11 @@
+{
+	"nodes":[
+		{"id":"91df74ed25ff564d","type":"text","text":"# Who am I?\n- 45 years old\n- Professional Software Engineer for 10 years\n- Switched to BA/RE 8 years ago\n- Learned about BAR in late 2020\n- Have been playing here and there, always ended up being put off by the weird unit system","x":-740,"y":-340,"width":420,"height":380},
+		{"id":"c86859d8adecb7a7","type":"text","text":"When I heard that a new client was planned but currently on hold, I wanted to see whether I might be of help.\n\nAfter seeing the current redesign ideas, I believe I can.","x":-80,"y":-320,"width":420,"height":340},
+		{"id":"d87aa805606fd789","type":"text","text":"# Management summary\n- The current new client is repeating several design mistakes from the chobby client","x":64,"y":147,"width":416,"height":333}
+	],
+	"edges":[
+		{"id":"05ffb838f6c58e9a","fromNode":"91df74ed25ff564d","fromSide":"right","toNode":"c86859d8adecb7a7","toSide":"left"},
+		{"id":"0349243bbc77a536","fromNode":"c86859d8adecb7a7","fromSide":"bottom","toNode":"d87aa805606fd789","toSide":"top"}
+	]
+}
