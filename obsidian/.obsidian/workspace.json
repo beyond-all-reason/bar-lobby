@@ -48,9 +48,9 @@
               "state": {
                 "file": "Slides.canvas",
                 "viewState": {
-                  "x": -250,
-                  "y": 70,
-                  "zoom": 0
+                  "x": 332.2110821795616,
+                  "y": 234.33707165987968,
+                  "zoom": -0.6666666666666666
                 }
               }
             }
@@ -175,8 +175,9 @@
   },
   "active": "45cee898faf293f5",
   "lastOpenFiles": [
-    "Matchmaking.md",
     "Tasks.md",
+    "Slides.canvas",
+    "Matchmaking.md",
     "Screen designs.md",
     "Use cases importance vs. frequency.md",
     "Files/Pasted image 20240730182712.png",
@@ -192,7 +193,6 @@
     "Diagram Files/Use case importance vs. frequency.svg",
     "Diagram Files/Use case importance vs. frequency.svg.xml",
     "BAR - use cases importance vs. frequency.md",
-    "Slides.canvas",
     "Files/Pasted image 20240730182735.png",
     "Untitled Kanban.md",
     "Files",
