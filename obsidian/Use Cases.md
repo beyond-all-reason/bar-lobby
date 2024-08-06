@@ -1,7 +1,7 @@
 # Legend
 Primary use cases are use cases the game needs to have in order to make any sense.
 Secondary use cases are really important, but in theory, the game could live without them.
-Tertiary use cases are nice-to-have.
+Tertiary use cases are nice-to-have and could be left to the website, if needed.
 # Primary use cases
 - Play the game
 - Exit the game

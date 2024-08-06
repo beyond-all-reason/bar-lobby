@@ -22,7 +22,7 @@
   "trimNames": true,
   "labeledNav": false,
   "fullWidthMedia": true,
-  "bordersToggle": true,
+  "bordersToggle": false,
   "minimalStatus": true,
   "focusMode": false,
   "underlineInternal": true,

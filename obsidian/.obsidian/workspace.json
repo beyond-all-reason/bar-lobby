@@ -11,52 +11,18 @@
             "id": "2fafd42902d5fb95",
             "type": "leaf",
             "state": {
-              "type": "markdown",
-              "state": {
-                "file": "Screen designs.md",
-                "mode": "preview",
-                "source": false
-              }
-            }
-          },
-          {
-            "id": "66b1352c7ee62386",
-            "type": "leaf",
-            "state": {
-              "type": "kanban",
-              "state": {
-                "file": "Tasks.md",
-                "kanbanViewState": {
-                  "kanban-plugin": "board",
-                  "list-collapse": [
-                    false,
-                    false,
-                    false,
-                    false,
-                    false,
-                    false
-                  ]
-                }
-              }
-            }
-          },
-          {
-            "id": "45cee898faf293f5",
-            "type": "leaf",
-            "state": {
               "type": "canvas",
               "state": {
-                "file": "Slides.canvas",
+                "file": "Beyond All Reason.canvas",
                 "viewState": {
-                  "x": 332.2110821795616,
-                  "y": 234.33707165987968,
-                  "zoom": -0.6666666666666666
+                  "x": 190,
+                  "y": 30,
+                  "zoom": 0
                 }
               }
             }
           }
-        ],
-        "currentTab": 2
+        ]
       }
     ],
     "direction": "vertical"
@@ -107,7 +73,8 @@
       }
     ],
     "direction": "horizontal",
-    "width": 339.5
+    "width": 339.5,
+    "collapsed": true
   },
   "right": {
     "id": "dd1e6afdee71fead",
@@ -123,7 +90,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "Slides.canvas",
+                "file": "Beyond All Reason.canvas",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -140,7 +107,7 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "Slides.canvas",
+                "file": "Beyond All Reason.canvas",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               }
@@ -152,7 +119,7 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "Slides.canvas"
+                "file": "Beyond All Reason.canvas"
               }
             }
           }
@@ -173,23 +140,28 @@
       "markdown-importer:Open format converter": false
     }
   },
-  "active": "45cee898faf293f5",
+  "active": "3dfe9d4f6cac9d2e",
   "lastOpenFiles": [
+    "Use Cases.md",
     "Tasks.md",
-    "Slides.canvas",
-    "Matchmaking.md",
+    "Beyond All Reason.canvas",
+    "Files/~$A new client for BAR.pptx",
     "Screen designs.md",
+    "Slides.canvas",
+    "Files/A new client for BAR.pptx",
+    "Design principles.md",
+    "Pasted image 20240806201609.png",
+    "Pasted image 20240806201640.png",
+    "Pasted image 20240806200956.png",
+    "Matchmaking.md",
     "Use cases importance vs. frequency.md",
     "Files/Pasted image 20240730182712.png",
-    "Use Cases.md",
     "UI description.md",
     "PvP.md",
     "PvE.md",
     "Player motivation.md",
-    "Design principles.md",
     "Data Model.canvas",
     "Chobby options.md",
-    "Beyond All Reason.canvas",
     "Diagram Files/Use case importance vs. frequency.svg",
     "Diagram Files/Use case importance vs. frequency.svg.xml",
     "BAR - use cases importance vs. frequency.md",
@@ -201,14 +173,10 @@
     "Diagram Files/Screen designs.svg",
     "Diagram Files/BAR - Multiplayer scenarios.svg",
     "Diagram Files/BAR - use cases.svg",
-    "Diagram Files/Manor Lords - Town Layout.svg",
-    "Diagram Files/Finanzen.svg",
     "Diagram Files/Manor Lords - Town Layout.svg.xml",
     "Diagram Files/Finanzen.svg.xml",
     "Diagram Files/BAR - use cases.svg.xml",
     "Diagram Files/Use case importance vs. frequency.svg.xml",
-    "Diagram Files/Screen designs.svg.xml",
-    "Diagram Files/BAR - Multiplayer scenarios.svg.xml",
-    "Diagram Files"
+    "Diagram Files/Screen designs.svg.xml"
   ]
 }

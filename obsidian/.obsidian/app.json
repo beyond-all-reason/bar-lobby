@@ -4,5 +4,7 @@
   "defaultViewMode": "preview",
   "autoPairBrackets": false,
   "autoPairMarkdown": false,
-  "useTab": false
+  "useTab": false,
+  "showRibbon": false,
+  "showUnsupportedFiles": true
 }
