@@ -73,8 +73,7 @@
       }
     ],
     "direction": "horizontal",
-    "width": 339.5,
-    "collapsed": true
+    "width": 339.5
   },
   "right": {
     "id": "dd1e6afdee71fead",
@@ -140,27 +139,27 @@
       "markdown-importer:Open format converter": false
     }
   },
-  "active": "3dfe9d4f6cac9d2e",
+  "active": "2fafd42902d5fb95",
   "lastOpenFiles": [
     "Use Cases.md",
+    "UI description.md",
     "Tasks.md",
+    "Use cases importance vs. frequency.md",
+    "Screen designs.md",
+    "Data Model.canvas",
+    "PvE.md",
+    "PvP.md",
+    "Matchmaking.md",
     "Beyond All Reason.canvas",
     "Files/~$A new client for BAR.pptx",
-    "Screen designs.md",
     "Slides.canvas",
     "Files/A new client for BAR.pptx",
     "Design principles.md",
     "Pasted image 20240806201609.png",
     "Pasted image 20240806201640.png",
     "Pasted image 20240806200956.png",
-    "Matchmaking.md",
-    "Use cases importance vs. frequency.md",
     "Files/Pasted image 20240730182712.png",
-    "UI description.md",
-    "PvP.md",
-    "PvE.md",
     "Player motivation.md",
-    "Data Model.canvas",
     "Chobby options.md",
     "Diagram Files/Use case importance vs. frequency.svg",
     "Diagram Files/Use case importance vs. frequency.svg.xml",
