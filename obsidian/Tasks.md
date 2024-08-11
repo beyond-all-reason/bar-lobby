@@ -6,11 +6,13 @@ kanban-plugin: board
 
 ## Todo
 
-- [ ] Fix diagram for more single player
-- [ ] "Opponent found" screen for 1v1 matchmaking
 - [ ] Data Model
 - [ ] Features
 - [ ] Element hierarchy for main screen
+
+
+## Up Next
+
 
 
 ## In Progress
@@ -28,6 +30,8 @@ kanban-plugin: board
 ## Done
 
 **Complete**
+- [x] "Opponent found" screen for 1v1 matchmaking
+- [x] Fix diagram for more single player
 - [x] Fix use case comparison diagram
 - [x] Use cases per play mode
 - [x] Fix matchmaking process
@@ -36,11 +40,6 @@ kanban-plugin: board
 - [x] Do lobby UI for Raptors
 - [x] Add lock to lobby screens
 - [ ] Finish lobby UI for Scavengers
-
-
-## Cancelled
-
-**Complete**
 
 
 

@@ -11,13 +11,19 @@
             "id": "2fafd42902d5fb95",
             "type": "leaf",
             "state": {
-              "type": "canvas",
+              "type": "kanban",
               "state": {
-                "file": "Beyond All Reason.canvas",
-                "viewState": {
-                  "x": 190,
-                  "y": 30,
-                  "zoom": 0
+                "file": "Tasks.md",
+                "kanbanViewState": {
+                  "kanban-plugin": "board",
+                  "list-collapse": [
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    false
+                  ]
                 }
               }
             }
@@ -73,7 +79,8 @@
       }
     ],
     "direction": "horizontal",
-    "width": 339.5
+    "width": 339.5,
+    "collapsed": true
   },
   "right": {
     "id": "dd1e6afdee71fead",
@@ -89,7 +96,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "Beyond All Reason.canvas",
+                "file": "Tasks.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -106,7 +113,7 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "Beyond All Reason.canvas",
+                "file": "Tasks.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               }
@@ -118,7 +125,7 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "Beyond All Reason.canvas"
+                "file": "Tasks.md"
               }
             }
           }
@@ -141,16 +148,16 @@
   },
   "active": "2fafd42902d5fb95",
   "lastOpenFiles": [
+    "Screen designs.md",
+    "Tasks.md",
+    "Beyond All Reason.canvas",
     "Use Cases.md",
     "UI description.md",
-    "Tasks.md",
     "Use cases importance vs. frequency.md",
-    "Screen designs.md",
     "Data Model.canvas",
     "PvE.md",
     "PvP.md",
     "Matchmaking.md",
-    "Beyond All Reason.canvas",
     "Files/~$A new client for BAR.pptx",
     "Slides.canvas",
     "Files/A new client for BAR.pptx",

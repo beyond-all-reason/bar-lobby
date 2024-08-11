@@ -7,5 +7,7 @@
   "minimal-style@@inline-title-size": "2.000em",
   "minimal-style@@p-spacing": "0.75rem",
   "minimal-style@@heading-spacing": "1.0rem",
-  "minimal-style@@h1-l": true
+  "minimal-style@@h1-l": true,
+  "minimal-style@@tabs-style": "tabs-default",
+  "minimal-style@@frame-icon-color@@dark": "#FDC04C"
 }
