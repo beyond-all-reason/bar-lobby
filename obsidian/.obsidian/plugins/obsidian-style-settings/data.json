@@ -1,0 +1,13 @@
+{
+  "minimal-advanced@@font-ui-small": 14,
+  "minimal-advanced@@font-ui-smaller": 12,
+  "minimal-advanced@@animations": "disable-animations",
+  "minimal-advanced@@styled-scrollbars": true,
+  "minimal-style@@inline-title-font": "Poppins",
+  "minimal-style@@inline-title-size": "2.000em",
+  "minimal-style@@p-spacing": "0.75rem",
+  "minimal-style@@heading-spacing": "1.0rem",
+  "minimal-style@@h1-l": true,
+  "minimal-style@@tabs-style": "tabs-default",
+  "minimal-style@@frame-icon-color@@dark": "#FDC04C"
+}

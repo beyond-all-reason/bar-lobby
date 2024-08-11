@@ -1,0 +1,10 @@
+{
+  "promptDelete": false,
+  "alwaysUpdateLinks": true,
+  "defaultViewMode": "preview",
+  "autoPairBrackets": false,
+  "autoPairMarkdown": false,
+  "useTab": false,
+  "showRibbon": false,
+  "showUnsupportedFiles": true
+}
