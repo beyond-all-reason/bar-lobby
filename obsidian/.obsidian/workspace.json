@@ -8,22 +8,16 @@
         "type": "tabs",
         "children": [
           {
-            "id": "2fafd42902d5fb95",
+            "id": "be1f254f65bdfc3a",
             "type": "leaf",
             "state": {
-              "type": "kanban",
+              "type": "canvas",
               "state": {
-                "file": "Tasks.md",
-                "kanbanViewState": {
-                  "kanban-plugin": "board",
-                  "list-collapse": [
-                    false,
-                    false,
-                    false,
-                    false,
-                    false,
-                    false
-                  ]
+                "file": "Design Showroom.canvas",
+                "viewState": {
+                  "x": 2470.6009280742455,
+                  "y": 2696.046403712297,
+                  "zoom": -2.4083272776892914
                 }
               }
             }
@@ -96,7 +90,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "Tasks.md",
+                "file": "Design Showroom.canvas",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -113,7 +107,7 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "Tasks.md",
+                "file": "Design Showroom.canvas",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               }
@@ -125,7 +119,7 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "Tasks.md"
+                "file": "Design Showroom.canvas"
               }
             }
           }
@@ -146,39 +140,41 @@
       "markdown-importer:Open format converter": false
     }
   },
-  "active": "2fafd42902d5fb95",
+  "active": "be1f254f65bdfc3a",
   "lastOpenFiles": [
-    "Screen designs.md",
-    "Tasks.md",
     "Beyond All Reason.canvas",
+    "PvE.md",
+    "Matchmaking.md",
+    "Design Showroom.canvas",
+    "Design principles.md",
+    "Data Model.canvas",
+    "Chobby options.md",
+    "Screen designs.md",
+    "Files/Showcase - Scavenger lobby with party.png",
+    "Files/Showcase - Raptor lobby with party.png",
+    "Files/Showcase - Multiplayer match found soloQ 2v2.png",
+    "Files/Showcase - Multiplayer solo-queueing 2v2.png",
+    "Files/Showcase - Multiplayer hover.png",
+    "Files/Showcase - Multiplayer match found 1v1.png",
+    "Files/Showcase - Multiplayer queueing 1v1.png",
+    "Files/Showcase - Multiplayer match found 2v2 (1).png",
+    "Files/Showcase - Multiplayer queueing 2v2 (1).png",
+    "Files/Showcase - Main Screen with Party (1).png",
+    "Design Showcase.md",
+    "Tasks.md",
+    "Use cases importance vs. frequency.md",
+    "Slides.canvas",
     "Use Cases.md",
     "UI description.md",
-    "Use cases importance vs. frequency.md",
-    "Data Model.canvas",
-    "PvE.md",
     "PvP.md",
-    "Matchmaking.md",
     "Files/~$A new client for BAR.pptx",
-    "Slides.canvas",
     "Files/A new client for BAR.pptx",
-    "Design principles.md",
-    "Pasted image 20240806201609.png",
-    "Pasted image 20240806201640.png",
-    "Pasted image 20240806200956.png",
-    "Files/Pasted image 20240730182712.png",
     "Player motivation.md",
-    "Chobby options.md",
-    "Diagram Files/Use case importance vs. frequency.svg",
     "Diagram Files/Use case importance vs. frequency.svg.xml",
     "BAR - use cases importance vs. frequency.md",
-    "Files/Pasted image 20240730182735.png",
     "Untitled Kanban.md",
     "Files",
     "New folder",
-    "Diagram Files/Use case importance vs. frequency.svg",
-    "Diagram Files/Screen designs.svg",
-    "Diagram Files/BAR - Multiplayer scenarios.svg",
-    "Diagram Files/BAR - use cases.svg",
     "Diagram Files/Manor Lords - Town Layout.svg.xml",
     "Diagram Files/Finanzen.svg.xml",
     "Diagram Files/BAR - use cases.svg.xml",

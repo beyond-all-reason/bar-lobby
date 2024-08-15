@@ -2,7 +2,7 @@
 	"nodes":[
 		{"id":"644854ac3f9e0a5b","type":"text","text":"# Discussions\n[[Player motivation]]\n[[Matchmaking]]\n[[PvE]]\n[[PvP]]","x":-440,"y":-260,"width":380,"height":260},
 		{"id":"54456893abe919dd","type":"text","text":"# Work area\n[[Tasks]]\n[Questionnaire](https://docs.google.com/forms/d/108G-Z2_Nwn5uAi78Bq48oO4_OSf4wumkCfGLwIpN9Tk/edit)","x":0,"y":-260,"width":380,"height":260},
-		{"id":"588cd6f34df2b2e7","type":"text","text":"# UX\n[[Design principles]]\n[[Screen designs]]","x":440,"y":-260,"width":380,"height":260},
+		{"id":"588cd6f34df2b2e7","type":"text","text":"# UX\n[[Design principles]]\n[[Design Showroom.canvas|Design Showroom]]\n\n[[Screen designs.svg|Screen design diagram]]","x":440,"y":-260,"width":380,"height":260},
 		{"id":"f38d777144db0b4e","type":"text","text":"# Reference Material\n[[Chobby options]]\n[Miro Board](https://miro.com/app/board/uXjVKwg_QqI=/)\n[Figma Board](https://www.figma.com/design/8w9G5E5AbeuldYNAjaaslh/BAR-UI-%7C-Scopa?node-id=828-2967&t=fF0obEZAPM9OtEu7-0)\n[Jazcash's new lobby introduction](https://www.youtube.com/watch?v=bVcKYPvVE8Q)\n[[A new client for BAR.pptx|Presentation \"A new client for BAR\"]]","x":0,"y":60,"width":380,"height":260},
 		{"id":"489991f6e8084bfb","type":"text","text":"# Requirements Engineering\n[[Data Model.canvas|Data Model]]\n[[Use Cases]]","x":-440,"y":60,"width":380,"height":260}
 	],

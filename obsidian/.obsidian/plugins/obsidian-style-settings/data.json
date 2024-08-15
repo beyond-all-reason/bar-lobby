@@ -9,5 +9,11 @@
   "minimal-style@@heading-spacing": "1.0rem",
   "minimal-style@@h1-l": true,
   "minimal-style@@tabs-style": "tabs-default",
-  "minimal-style@@frame-icon-color@@dark": "#FDC04C"
+  "minimal-style@@frame-icon-color@@dark": "#FDC04C",
+  "minimal-style@@h1-font": "Poppins",
+  "minimal-style@@h1-size": "1.5em",
+  "minimal-style@@h2-size": "1.25em",
+  "minimal-style@@h2-color@@dark": "#FDC04C",
+  "minimal-style@@h3-color@@dark": "#FDC04C",
+  "minimal-style@@h1-color@@dark": "#FDC04C"
 }

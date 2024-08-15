@@ -13,6 +13,7 @@ kanban-plugin: board
 
 ## Up Next
 
+- [ ] Showcase page
 
 
 ## In Progress
