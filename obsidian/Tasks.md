@@ -9,11 +9,12 @@ kanban-plugin: board
 - [ ] Data Model
 - [ ] Features
 - [ ] Element hierarchy for main screen
+- [ ] Coop vs. AI Lobby
 
 
 ## Up Next
 
-- [ ] Showcase page
+- [ ] Multiplayer Lobbies
 
 
 ## In Progress
@@ -31,6 +32,7 @@ kanban-plugin: board
 ## Done
 
 **Complete**
+- [x] Showcase page
 - [x] "Opponent found" screen for 1v1 matchmaking
 - [x] Fix diagram for more single player
 - [x] Fix use case comparison diagram

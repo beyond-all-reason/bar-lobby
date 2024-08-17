@@ -13,11 +13,11 @@
             "state": {
               "type": "canvas",
               "state": {
-                "file": "Design Showroom.canvas",
+                "file": "Beyond All Reason.canvas",
                 "viewState": {
-                  "x": 2470.6009280742455,
-                  "y": 2696.046403712297,
-                  "zoom": -2.4083272776892914
+                  "x": 509.5,
+                  "y": 30,
+                  "zoom": 0
                 }
               }
             }
@@ -73,8 +73,7 @@
       }
     ],
     "direction": "horizontal",
-    "width": 339.5,
-    "collapsed": true
+    "width": 339.5
   },
   "right": {
     "id": "dd1e6afdee71fead",
@@ -90,7 +89,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "Design Showroom.canvas",
+                "file": "Beyond All Reason.canvas",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -107,7 +106,7 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "Design Showroom.canvas",
+                "file": "Beyond All Reason.canvas",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               }
@@ -119,7 +118,7 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "Design Showroom.canvas"
+                "file": "Beyond All Reason.canvas"
               }
             }
           }
@@ -142,13 +141,16 @@
   },
   "active": "be1f254f65bdfc3a",
   "lastOpenFiles": [
+    "Chobby options.md",
     "Beyond All Reason.canvas",
+    "Files/Chobby Lobby.png",
+    "Design Showroom.canvas",
+    "Tasks.md",
+    "Use Cases.md",
     "PvE.md",
     "Matchmaking.md",
-    "Design Showroom.canvas",
     "Design principles.md",
     "Data Model.canvas",
-    "Chobby options.md",
     "Screen designs.md",
     "Files/Showcase - Scavenger lobby with party.png",
     "Files/Showcase - Raptor lobby with party.png",
@@ -159,12 +161,9 @@
     "Files/Showcase - Multiplayer queueing 1v1.png",
     "Files/Showcase - Multiplayer match found 2v2 (1).png",
     "Files/Showcase - Multiplayer queueing 2v2 (1).png",
-    "Files/Showcase - Main Screen with Party (1).png",
     "Design Showcase.md",
-    "Tasks.md",
     "Use cases importance vs. frequency.md",
     "Slides.canvas",
-    "Use Cases.md",
     "UI description.md",
     "PvP.md",
     "Files/~$A new client for BAR.pptx",

@@ -6,5 +6,6 @@
   "autoPairMarkdown": false,
   "useTab": false,
   "showRibbon": false,
-  "showUnsupportedFiles": true
+  "showUnsupportedFiles": true,
+  "attachmentFolderPath": "Files"
 }
