@@ -42,3 +42,6 @@ thumbs.db
 /tsconfig.node.tsbuildinfo
 /tsconfig.web.tsbuildinfo
 debug.log
+
+#Obsidian workspace file
+/obsidian/.obsidian/workspace.json
