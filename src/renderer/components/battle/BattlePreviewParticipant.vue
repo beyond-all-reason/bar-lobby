@@ -1,7 +1,7 @@
 <template>
     <div class="contender" :class="{ color: Boolean(color) }">
-        <Flag v-if="'countryCode' in contender" class="flag" :countryCode="contender.countryCode" />
-        <Icon v-if="'aiId' in contender" :icon="robot" :height="16" />
+        <Flag v-if="typeof contender === 'object' && 'countryCode' in contender" class="flag" :countryCode="contender.countryCode" />
+        <Icon v-if="typeof contender === 'object' && 'aiId' in contender" :icon="robot" :height="16" />
         <div>{{ name }}</div>
     </div>
 </template>
@@ -21,13 +21,14 @@ const props = defineProps<{
     contender: DemoModel.Info.Player | DemoModel.Info.AI | DemoModel.Info.Spectator | User | Bot;
 }>();
 
-const name = computed(() => (isUser(props.contender) ? props.contender.username : props.contender.name));
+const name = computed(
+    () => (typeof props.contender === "object" && (isUser(props.contender) ? props.contender.username : props.contender?.name)) || "Unknown"
+);
 
 const color = computed(() => {
-    if ("rgbColor" in props.contender) {
-        return `rgb(${props.contender.rgbColor.r}, ${props.contender.rgbColor.g}, ${props.contender.rgbColor.b})`;
-    }
-    return null;
+    return typeof props.contender === "object" && "rgbColor" in props.contender
+        ? `rgb(${props.contender.rgbColor.r}, ${props.contender.rgbColor.g}, ${props.contender.rgbColor.b})`
+        : null;
 });
 </script>
 

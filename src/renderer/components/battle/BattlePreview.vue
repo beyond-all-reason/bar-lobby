@@ -65,7 +65,7 @@
 <script lang="ts" setup>
 import { Icon } from "@iconify/vue";
 import trophyVariant from "@iconify-icons/mdi/trophy-variant";
-import { groupBy } from "jaz-ts-utils";
+import _groupBy from "lodash";
 import { computed, ComputedRef } from "vue";
 
 import BattlePreviewParticipant from "@/components/battle/BattlePreviewParticipant.vue";
@@ -104,13 +104,13 @@ const isFFA = computed(() => {
 });
 const teams = computed(() => {
     if (isBattle(props.battle)) {
-        const teams = groupBy(props.battle.contenders.value, (contender) =>
+        const teams = _groupBy(props.battle.contenders.value, (contender) =>
             isUser(contender) ? contender.battleStatus.teamId : contender.teamId
         );
         const sortedTeams = new Map([...teams.entries()].sort());
         return sortedTeams;
     } else {
-        const teams = groupBy(props.battle.contenders, (contender) => contender.allyTeamId);
+        const teams = _groupBy(props.battle.contenders, (contender) => contender.allyTeamId);
         const sortedTeams = new Map([...teams.entries()].sort());
         return sortedTeams;
         // const orderedTeams = new Map<number, (User | Bot)[]>();

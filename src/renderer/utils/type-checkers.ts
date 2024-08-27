@@ -21,7 +21,7 @@ export function isSpadsBattle(battle: any): battle is SpadsBattle {
 }
 
 export function isUser(user: any): user is User {
-    return "username" in user;
+    return typeof user === "object" && "username" in user;
 }
 export function isBot(bot: any): bot is Bot {
     return "ownerUserId" in bot;

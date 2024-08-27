@@ -78,7 +78,7 @@ async function hostBattle() {
      * */
     waitingForBattleCreation.value = true;
 
-    const targetClusterBotUserId = clusterBotUserIds[selectedRegion.value][0]; // not sure when to use fallback clusters, for now we'll just always use the first one
+    const targetClusterBotUserId = clusterBotUserIds[selectedRegion.value]?.[0] ?? clusterBotUserIds["US"]?.[0]; // not sure when to use fallback clusters, for now we'll just always use the first one
 
     replyBinding = api.comms.onResponse("s.communication.received_direct_message").addOnce((data) => {
         if (data.sender_id !== targetClusterBotUserId) {
