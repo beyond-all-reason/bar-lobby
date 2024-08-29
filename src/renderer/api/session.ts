@@ -1,6 +1,6 @@
 import { assign } from "jaz-ts-utils";
-import { TachyonPrivateUser, TachyonUser } from "tachyon-protocol";
-import { SuccessResponseData } from "tachyon-protocol";
+import { GetCommandData, GetCommands } from "tachyon-protocol";
+import { PrivateUser, User } from "tachyon-protocol/types";
 import { computed, ComputedRef, reactive, Ref, ref, shallowReactive, shallowRef } from "vue";
 
 import { MatchmakingBattle } from "@/model/battle/matchmaking-battle";
@@ -13,16 +13,17 @@ export class SessionAPI {
     public readonly offlineMode: Ref<boolean> = ref(false);
     public readonly offlineBattle: Ref<OfflineCustomBattle | null> = shallowRef(null);
     public readonly onlineBattle: Ref<OnlineCustomBattle | MatchmakingBattle | null> = shallowRef(null);
-    public readonly users: Map<string, TachyonUser> = reactive(new Map([]));
-    public readonly offlineUser: TachyonUser;
-    public readonly onlineUser: TachyonPrivateUser;
+    public readonly users: Map<string, User> = reactive(new Map([]));
+    public readonly offlineUser: User;
+    public readonly onlineUser: PrivateUser;
     public readonly customBattles: Map<number, OnlineCustomBattle> = shallowReactive(new Map());
     public readonly battleMessages: Message[] = reactive([]);
-    public readonly serverStats: Ref<SuccessResponseData<"system", "serverStats"> | null> = shallowRef(null);
+    public readonly serverStats: Ref<GetCommandData<GetCommands<"server", "user", "response", "system/serverStats">> | null> = shallowRef(null);
     // public readonly outgoingFriendRequests: ComputedRef<User[]>;
     // public readonly incomingFriendRequests: ComputedRef<User[]>;
-    public readonly friends: ComputedRef<TachyonUser[]>;
+    public readonly friends: ComputedRef<User[]>;
     public readonly directMessages: Map<number, Message[]> = reactive(new Map());
+    public readonly searchingForGame = ref(false);
 
     constructor() {
         // TODO: should be in this.clear()?
@@ -35,7 +36,7 @@ export class SessionAPI {
         this.serverStats.value = null;
         this.directMessages.clear();
 
-        const user: TachyonPrivateUser = {
+        const user: PrivateUser = {
             userId: "",
             username: "Player",
             displayName: "Player",
@@ -47,9 +48,10 @@ export class SessionAPI {
             ignoreIds: [],
             incomingFriendRequestIds: [],
             outgoingFriendRequestIds: [],
-            avatarUrl: "",
+            //avatarUrl: "",
             partyId: null,
-            roles: [],
+            scopes: [],
+            //roles: [],
         };
 
         this.offlineUser = reactive(user);
@@ -67,7 +69,7 @@ export class SessionAPI {
         api.session.customBattles.clear();
     }
 
-    public updateCurrentUser(userData: Partial<TachyonPrivateUser>) {
+    public updateCurrentUser(userData: Partial<PrivateUser>) {
         if (!userData.userId) {
             console.error("Received user update without userId", userData);
             return;
@@ -78,13 +80,13 @@ export class SessionAPI {
         assign(this.onlineUser, userData);
     }
 
-    public updateUser(userData: TachyonUser) {
+    public updateUser(userData: User) {
         if (!userData.userId) {
             console.error("Received user update without userId", userData);
             return;
         }
 
-        let user: TachyonUser | undefined = this.getUserById(userData.userId);
+        let user: User | undefined = this.getUserById(userData.userId);
 
         if (!user) {
             user = reactive(userData);
@@ -93,7 +95,7 @@ export class SessionAPI {
         }
     }
 
-    public getUserById(userId: string): TachyonUser | undefined {
+    public getUserById(userId: string): User | undefined {
         const user = this.users.get(userId);
         return user;
     }

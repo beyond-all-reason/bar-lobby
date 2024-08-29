@@ -2,7 +2,7 @@
     <div class="nav" :class="{ hidden }">
         <div class="logo">
             <Button to="/home">
-                <img src="/images/logo.svg" />
+                <img :src="logo" />
             </Button>
         </div>
         <div class="flex-col flex-grow">
@@ -93,6 +93,7 @@ import messageIcon from "@iconify-icons/mdi/chat";
 import closeThick from "@iconify-icons/mdi/close-thick";
 import cog from "@iconify-icons/mdi/cog";
 import { computed, inject, Ref, ref } from "vue";
+import logo from "@/assets/images/logo.svg?url";
 
 import Button from "@/components/controls/Button.vue";
 import Downloads from "@/components/navbar/Downloads.vue";

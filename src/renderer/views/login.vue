@@ -61,9 +61,32 @@ async function connect() {
         }
 
         console.log(oauthToken);
+
         // TODO: store token
 
         await api.comms.connect(oauthToken.accessToken);
+
+        const userResponse = await api.comms.nextEvent("privateUser/add");
+
+        api.comms.isConnectedRef.value = true;
+
+        api.session.offlineMode.value = false;
+
+        api.session.updateCurrentUser(userResponse.user);
+
+        api.comms.socket?.addEventListener("close", () => {
+            api.comms.isConnectedRef.value = false;
+
+            api.session.clear();
+
+            if (
+                api.router.currentRoute.value.path !== "/" &&
+                api.router.currentRoute.value.path !== "/login" &&
+                !api.session.offlineMode.value
+            ) {
+                api.router.replace("/login");
+            }
+        });
 
         state.value = "connected";
 
@@ -100,7 +123,7 @@ async function playOffline() {
 async function steamAuth(steamSessionTicket: string): Promise<ReturnType<typeof api.comms.auth>> {
     console.log(steamSessionTicket);
     try {
-        const token = await api.comms.steamAuth(steamSessionTicket);
+        const token = await api.comms.auth({ steamSessionTicket: steamSessionTicket });
         return token;
     } catch (err) {
         if (err instanceof Error && err.message.includes("user_not_found")) {

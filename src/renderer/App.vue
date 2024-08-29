@@ -24,7 +24,8 @@
             <InitialSetup v-else-if="state === 'initial-setup'" @complete="onInitialSetupDone" />
             <div v-else class="fullsize">
                 <NavBar :class="{ hidden: empty }" />
-                <div :class="`view view--${$router.currentRoute.value.name?.toString()}`">
+                <div :class="`relative view view--${$router.currentRoute.value.name?.toString()}`">
+                    <MatchmakingQueueStatus />
                     <Panel :empty="empty" class="flex-grow">
                         <Breadcrumbs :class="{ hidden: empty }" />
                         <router-view v-slot="{ Component, route }">
@@ -65,6 +66,7 @@ import DebugSidebar from "@/components/misc/DebugSidebar.vue";
 import Error from "@/components/misc/Error.vue";
 import InitialSetup from "@/components/misc/InitialSetup.vue";
 import IntroVideo from "@/components/misc/IntroVideo.vue";
+import MatchmakingQueueStatus from "@/components/misc/MatchmakingQueueStatus.vue";
 import Preloader from "@/components/misc/Preloader.vue";
 import Breadcrumbs from "@/components/navbar/Breadcrumbs.vue";
 import NavBar from "@/components/navbar/NavBar.vue";

@@ -7,49 +7,37 @@
  * this includes matchmaking, chat, direct messages, and other lobby related functions.
  */
 
-import { GenericResponseCommand } from "tachyon-protocol";
+import { TachyonClient } from "tachyon-client";
 import { ref } from "vue";
 
-import { TachyonClient } from "@/utils/tachyon-client";
-//import { TachyonClient } from "tachyon-client";
+import { serverConfig } from "@/config/server";
 
 /**
  * TODO: move most of the response logic into separate response-handler files
  */
 
-export class CommsAPI extends TachyonClient {
-    public readonly isConnectedRef = ref(false);
+export class CommsAPI extends TachyonClient<"user"> {
+    public isConnectedRef = ref(false);
 
-    constructor(...args: ConstructorParameters<typeof TachyonClient>) {
-        super(...args);
-
-        this.onResponse.add((responseCommand: GenericResponseCommand) => {
-            if (responseCommand.status === "failed") {
-                console.error(`Failed response: ${responseCommand.commandId}`, responseCommand.reason);
-            }
-        });
-    }
-
-    public override async connect(token: string): ReturnType<TachyonClient["connect"]> {
-        const userResponse = await super.connect(token);
-
-        this.isConnectedRef.value = this.isConnected();
-
-        api.session.offlineMode.value = false;
-
-        api.session.updateCurrentUser(userResponse);
-
-        this.socket?.addEventListener("close", () => {
-            this.isConnectedRef.value = false;
-
-            api.session.clear();
-
-            if (api.router.currentRoute.value.path !== "/" && api.router.currentRoute.value.path !== "/login" && !api.session.offlineMode.value) {
-                api.router.replace("/login");
-            }
+    constructor() {
+        super("user", {
+            host: serverConfig.host,
+            port: serverConfig.port,
+            logging: true,
+            requestHandlers: {
+                "battle/start": async (data) => {
+                    return {
+                        status: "success",
+                    };
+                },
+            },
         });
 
-        return userResponse;
+        // this.onResponse.add((responseCommand: GenericResponseCommand) => {
+        //     if (responseCommand.status === "failed") {
+        //         console.error(`Failed response: ${responseCommand.commandId}`, responseCommand.reason);
+        //     }
+        // });
     }
 }
 

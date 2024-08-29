@@ -2,8 +2,8 @@ import vue from "@vitejs/plugin-vue";
 import { defineConfig, externalizeDepsPlugin } from "electron-vite";
 import path from "path";
 import VueRouter from "unplugin-vue-router/vite";
-import commonjs from "vite-plugin-commonjs";
 import renderer from "vite-plugin-electron-renderer";
+import svgLoader from "vite-svg-loader";
 
 export default defineConfig({
     main: {
@@ -48,7 +48,10 @@ export default defineConfig({
             esbuildOptions: {
                 target: "esnext",
             },
-            exclude: ["tachyon-protocol"], // only when using npm link?
+            exclude: [
+                "tachyon-client", // only when using npm link?
+                "tachyon-protocol", // only when using npm link?
+            ],
         },
         css: {
             modules: false,
@@ -65,6 +68,7 @@ export default defineConfig({
                 importMode: "sync",
             }),
             vue(),
+            svgLoader(),
             renderer({
                 resolve: {
                     // "better-sqlite3": {
@@ -73,12 +77,12 @@ export default defineConfig({
                     ws: {
                         type: "esm",
                     },
-                },
-            }),
-            commonjs({
-                filter: (id) => {
-                    const fileRegex = /precompiled.*validations\.js$/;
-                    return fileRegex.test(id);
+                    "tachyon-client": {
+                        type: "esm",
+                    },
+                    "@badgateway/oauth2-client": {
+                        type: "esm",
+                    },
                 },
             }),
         ],

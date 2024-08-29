@@ -15,6 +15,7 @@ import { Ref, ref } from "vue";
 
 import Modal from "@/components/common/Modal.vue";
 import Button from "@/components/controls/Button.vue";
+import { ipcRenderer } from "electron";
 
 const isVisible = ref(false);
 const error: Ref<ErrorEvent | null> = ref(null);
@@ -42,7 +43,8 @@ window.addEventListener("error", (event) => {
 });
 
 function onReload() {
-    window.document.location.reload();
+    //window.document.location.reload(); // doesn't work for some reason
+    ipcRenderer.send("reload-window");
 }
 
 function sanitizeStack(stack: string) {

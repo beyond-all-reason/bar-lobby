@@ -4,6 +4,7 @@ import * as path from "path";
 import { Router } from "vue-router/auto";
 import { createRouter } from "vue-router/auto";
 import { createMemoryHistory } from "vue-router/auto";
+import { routes } from "vue-router/auto-routes";
 
 import { AudioAPI } from "@/api/audio";
 import { CacheDbAPI } from "@/api/cache-db";
@@ -15,7 +16,6 @@ import { prompt } from "@/api/prompt";
 import { SessionAPI } from "@/api/session";
 import { StoreAPI } from "@/api/store";
 import { UtilsAPI } from "@/api/utils";
-import { serverConfig } from "@/config/server";
 import { accountSchema } from "@/model/account";
 import type { Info } from "$/model/info";
 import { settingsSchema } from "$/model/settings";
@@ -60,25 +60,24 @@ export async function apiInit() {
 
     api.session = new SessionAPI();
 
-    api.router = createRouter({
-        // https://github.com/posva/unplugin-vue-router/discussions/63#discussioncomment-3632637
-        extendRoutes: (routes) => {
-            for (const route of routes) {
-                if (route.meta?.redirect && typeof route.meta?.redirect === "string") {
-                    route.redirect = { path: route.meta.redirect };
-                }
+    // https://github.com/posva/unplugin-vue-router/discussions/63#discussioncomment-3632637
+    for (const route of routes) {
+        if (route.meta?.redirect && typeof route.meta?.redirect === "string") {
+            route.redirect = { path: route.meta.redirect };
+        }
 
-                if (route.children) {
-                    for (const childRoute of route.children) {
-                        if (childRoute.meta?.redirect && typeof childRoute.meta?.redirect === "string") {
-                            childRoute.redirect = { path: childRoute.meta.redirect };
-                        }
-                    }
+        if (route.children) {
+            for (const childRoute of route.children) {
+                if (childRoute.meta?.redirect && typeof childRoute.meta?.redirect === "string") {
+                    childRoute.redirect = { path: childRoute.meta.redirect };
                 }
             }
-            return routes;
-        },
+        }
+    }
+
+    api.router = createRouter({
         history: createMemoryHistory(),
+        routes,
     });
 
     api.cacheDb = await new CacheDbAPI().init();
@@ -90,11 +89,7 @@ export async function apiInit() {
 
     api.game = new GameAPI();
 
-    api.comms = new CommsAPI({
-        host: serverConfig.host,
-        port: serverConfig.port,
-        logging: true,
-    });
+    api.comms = new CommsAPI();
 
     api.content = await new ContentAPI().init();
 

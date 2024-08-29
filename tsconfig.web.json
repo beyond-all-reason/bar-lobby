@@ -1,24 +1,22 @@
 {
-  "extends": "@electron-toolkit/tsconfig/tsconfig.web.json",
-  "include": [
-    "src/renderer/**/*", "src/common/**/*"
-  ],
-  "compilerOptions": {
-    "composite": true,
-    "baseUrl": ".",
-    "paths": {
-      "@/*": ["src/renderer/*"],
-      "$/*": ["src/common/*"],
-      "jaz-ts-utils": ["node_modules/jaz-ts-utils"]
-    },
-    "moduleResolution": "Bundler",
-    "noEmit": true,
-    "downlevelIteration": true,
-    "noUnusedParameters": false,
-    "noUnusedLocals": false,
-    "resolveJsonModule": true,
-    "noImplicitOverride": true,
-    "allowJs": true,
-    "types": ["vite/client"]
-  }
+    "extends": "@electron-toolkit/tsconfig/tsconfig.web.json",
+    "include": ["src/renderer/**/*", "src/common/**/*", "src/renderer/typed-router.d.ts"],
+    "compilerOptions": {
+        "composite": true,
+        "baseUrl": ".",
+        "paths": {
+            "@/*": ["src/renderer/*"],
+            "$/*": ["src/common/*"],
+            "jaz-ts-utils": ["node_modules/jaz-ts-utils"]
+        },
+        "moduleResolution": "Bundler",
+        "noEmit": true,
+        "downlevelIteration": true,
+        "noUnusedParameters": false,
+        "noUnusedLocals": false,
+        "resolveJsonModule": true,
+        "noImplicitOverride": true,
+        "allowJs": true,
+        "types": ["vite/client", "unplugin-vue-router/client"]
+    }
 }

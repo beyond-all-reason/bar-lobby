@@ -15,6 +15,7 @@ declare module "*.vue" {
 declare module "vue3-markdown-it";
 declare module "vue3-popper";
 
+declare module "*.svg";
 declare module "*.png";
 declare module "*.mp3";
 declare module "*.ogg";

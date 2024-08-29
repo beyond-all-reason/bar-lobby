@@ -123,7 +123,7 @@ const props = defineProps<{
 //     profileurl?: string;
 // }
 
-const user = computed(() => api.session.getUserById(parseInt(props.id)));
+const user = computed(() => api.session.getUserById(props.id));
 
 const changeEmailOpen = ref(false);
 const armyNames = ["armada", "cortex", "legion"];

@@ -40,12 +40,12 @@
 // - Player being AFK for more than x minutes counts as abandon
 // - Players who abandon are punished in some way, lower reputation, banned from matchmaking for x time or something
 
-import { SuccessResponseData } from "tachyon-protocol";
+import { MatchmakingListOkResponseData } from "tachyon-protocol/types";
 import { reactive, ref } from "vue";
 
 import Button from "@/components/controls/Button.vue";
 
-type MatchmatchPlaylist = SuccessResponseData<"matchmaking", "list">["playlists"][0] & {
+type MatchmatchPlaylist = MatchmakingListOkResponseData["playlists"][0] & {
     checked?: boolean;
 };
 
@@ -53,7 +53,7 @@ const playlists = reactive<MatchmatchPlaylist[]>([]);
 const selectedPlaylistIds = reactive<Set<string>>(new Set());
 const queueing = ref(false);
 
-const listResponse = await api.comms.request("matchmaking", "list");
+const listResponse = await api.comms.request("matchmaking/list");
 
 if (listResponse.status === "success") {
     playlists.length = 0;
@@ -71,7 +71,7 @@ function toggleCheck(playlistId: string) {
 async function queue() {
     const playlistIds = Array.from(selectedPlaylistIds) as [string, ...string[]];
 
-    const queueResponse = await api.comms.request("matchmaking", "queue", { queues: playlistIds });
+    const queueResponse = await api.comms.request("matchmaking/queue", { queues: playlistIds });
 
     queueing.value = queueResponse.status === "success";
 }

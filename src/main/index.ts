@@ -182,6 +182,10 @@ export class Application {
             const steamSessionTicket = await this.steamClient.auth.getSessionTicket();
             return steamSessionTicket.getBytes().toString("hex");
         });
+
+        ipcMain.handle("reload-window", () => {
+            this.mainWindow?.window.reload();
+        });
     }
 
     protected async getInfo(): Promise<Info> {
