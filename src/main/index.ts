@@ -183,7 +183,7 @@ export class Application {
             return steamSessionTicket.getBytes().toString("hex");
         });
 
-        ipcMain.handle("reload-window", () => {
+        ipcMain.handle("reload-window", async () => {
             this.mainWindow?.window.reload();
         });
     }

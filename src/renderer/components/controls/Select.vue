@@ -1,6 +1,12 @@
 <template>
     <Control class="select" v-bind="$props">
-        <Dropdown v-bind="$attrs" filterPlaceholder="Search" :autoFilterFocus="true" :autoOptionFocus="true" :resetFilterOnHide="true">
+        <Dropdown
+            v-bind="($attrs, $props)"
+            filterPlaceholder="Search"
+            :autoFilterFocus="true"
+            :autoOptionFocus="true"
+            :resetFilterOnHide="true"
+        >
             <template v-for="(_, name) in ($slots as {})" #[name]="slotData">
                 <slot :name="name" v-bind="slotData || {}" />
             </template>
@@ -13,6 +19,10 @@
 import Dropdown, { DropdownProps } from "primevue/dropdown";
 
 import Control from "@/components/controls/Control.vue";
+
+defineOptions({
+    inheritAttrs: false,
+});
 
 export interface Props extends DropdownProps {
     disabled?: boolean;
@@ -35,6 +45,7 @@ const props = defineProps<Props>();
     padding: 5px 10px;
     width: 100%;
     overflow: hidden;
+    justify-content: space-between;
     &-panel {
         background: #111;
         border: 1px solid rgba(255, 255, 255, 0.2);
@@ -49,7 +60,13 @@ const props = defineProps<Props>();
         }
     }
     &-empty-message,
+    &-items {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
     &-item {
+        display: flex;
         color: #eee;
         padding: 5px 10px;
     }

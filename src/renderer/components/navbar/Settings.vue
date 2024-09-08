@@ -41,6 +41,8 @@ watch(
 );
 
 function onOpen() {
+    console.log("test");
+
     displayOptions.value = Array(api.info.hardware.numOfDisplays)
         .fill(0)
         .map((x, i) => {

@@ -50,6 +50,7 @@ function onInput(input: number | number[]) {
     align-self: center;
 }
 :deep(.p-slider) {
+    position: relative;
     width: 100%;
     margin: 0 15px;
     &:before {

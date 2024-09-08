@@ -43,8 +43,7 @@ window.addEventListener("error", (event) => {
 });
 
 function onReload() {
-    //window.document.location.reload(); // doesn't work for some reason
-    ipcRenderer.send("reload-window");
+    ipcRenderer.invoke("reloadWindow");
 }
 
 function sanitizeStack(stack: string) {

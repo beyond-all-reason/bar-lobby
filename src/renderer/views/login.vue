@@ -39,6 +39,7 @@ import { Ref, ref } from "vue";
 
 import Loader from "@/components/common/Loader.vue";
 import Button from "@/components/controls/Button.vue";
+import { pollServerStats } from "@/utils/poll-server-stats";
 
 const serverAddress = `${api.comms.config.host}:${api.comms.config.port}`;
 const state: Ref<"connecting" | "waiting_for_auth" | "connected" | "error"> = ref("connecting");
@@ -67,6 +68,8 @@ async function connect() {
         await api.comms.connect(oauthToken.accessToken);
 
         const userResponse = await api.comms.nextEvent("privateUser/add");
+
+        pollServerStats();
 
         api.comms.isConnectedRef.value = true;
 

@@ -67,6 +67,8 @@ export class SessionAPI {
         api.session.onlineBattle.value = null;
         api.session.users.clear();
         api.session.customBattles.clear();
+
+        // TODO: reset online user
     }
 
     public updateCurrentUser(userData: Partial<PrivateUser>) {
