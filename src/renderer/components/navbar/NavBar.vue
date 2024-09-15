@@ -36,7 +36,7 @@
                         v-tooltip.bottom="'Downloads'"
                         v-click-away:downloads="() => (downloadsOpen = false)"
                         :class="['icon', { active: downloadsOpen }]"
-                        @click="downloadsOpen = true"
+                        @click="downloadsOpen = !downloadsOpen"
                     />
                     <Button v-tooltip.bottom="'Settings'" class="icon" @click="settingsOpen = true">
                         <Icon :icon="cog" :height="40" />
