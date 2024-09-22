@@ -364,7 +364,7 @@ export class SpadsBattle extends AbstractBattle<SpadsBattleOptions> {
     }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    public setBotOptions(botName: string, options: Record<string, any>) {
+    public setBotOptions(playerId: number, options: Record<string, any>) {
         console.warn("not implemented: setBotOptions");
         // TODO
     }

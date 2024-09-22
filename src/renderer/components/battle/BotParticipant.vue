@@ -20,7 +20,7 @@
 import { Icon } from "@iconify/vue";
 import robot from "@iconify-icons/mdi/robot";
 import { MenuItem } from "primevue/menuitem";
-import { Ref, ref } from "vue";
+import { Ref, ref, toRaw } from "vue";
 
 import LuaOptionsModal from "@/components/battle/LuaOptionsModal.vue";
 import TeamParticipant from "@/components/battle/TeamParticipant.vue";
@@ -80,8 +80,7 @@ async function configureBot() {
 }
 
 function setBotOptions(options: Record<string, unknown>) {
-    console.log("Set bot options");
-    props.battle.setBotOptions(props.bot.name, options);
+    props.battle.setBotOptions(props.bot.playerId, options);
 }
 </script>
 
