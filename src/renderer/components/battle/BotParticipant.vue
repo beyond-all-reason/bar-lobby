@@ -3,7 +3,7 @@
         <div class="flex-row flex-center">
             <Icon :icon="robot" :height="16" />
         </div>
-        <div>{{ bot.name }}</div>
+        <div>{{ bot.name }} - {{ botNameAffix }}</div>
     </TeamParticipant>
     <LuaOptionsModal
         :id="`configure-bot-${bot.name}`"
@@ -44,6 +44,10 @@ const actions: MenuItem[] = [
         command: configureBot,
     },
     {
+        label: "Duplicate",
+        command: duplicateBot,
+    },
+    {
         label: "Kick",
         command: kickBot,
     },
@@ -57,6 +61,13 @@ function onRightClick(event: MouseEvent) {
 
 function kickBot() {
     props.battle.removeBot(props.bot);
+}
+
+// Duplicates this bot and its settings and gives it a new player id.
+function duplicateBot() {
+    let duplicatedBot = JSON.parse(JSON.stringify(props.bot));
+    duplicatedBot.playerId = props.battle.contenders.value.length;
+    props.battle.addBot(duplicatedBot);
 }
 
 async function configureBot() {
