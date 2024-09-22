@@ -3,7 +3,7 @@
         <div class="flex-row flex-center">
             <Icon :icon="robot" :height="16" />
         </div>
-        <div>{{ bot.name }} - {{ botNameAffix }}</div>
+        <div>{{ bot.name }}</div>
     </TeamParticipant>
     <LuaOptionsModal
         :id="`configure-bot-${bot.name}`"
