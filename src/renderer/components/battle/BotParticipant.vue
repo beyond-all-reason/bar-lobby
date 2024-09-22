@@ -65,7 +65,7 @@ function kickBot() {
 
 // Duplicates this bot and its settings and gives it a new player id.
 function duplicateBot() {
-    let duplicatedBot = JSON.parse(JSON.stringify(props.bot));
+    const duplicatedBot = structuredClone(toRaw(props.bot));
     duplicatedBot.playerId = props.battle.contenders.value.length;
     props.battle.addBot(duplicatedBot);
 }
@@ -80,6 +80,7 @@ async function configureBot() {
 }
 
 function setBotOptions(options: Record<string, unknown>) {
+    console.log("Set bot options");
     props.battle.setBotOptions(props.bot.name, options);
 }
 </script>
