@@ -91,13 +91,10 @@ export abstract class AbstractBattle<T extends BattleOptions = BattleOptions> {
     }
 
     // Returns a bot by it's PlayerId. Returns undefined if not found..
-    public getBotParticipantByPlayerId(playerId: number): User | Bot | undefined {
-        return this.participants.value.find((participant) => {
-            const isBot = !("userId" in participant);
-            if (isBot) {
-                if (participant.playerId === playerId) {
-                    return true;
-                }
+    public getBotByPlayerId(playerId: number): Bot | undefined {
+        return this.bots.find((bot) => {
+            if (bot.playerId === playerId) {
+                return true;
             }
             return false;
         });

@@ -73,7 +73,7 @@ export class OfflineBattle extends AbstractBattle {
     }
 
     public setBotOptions(playerId: number, options: Record<string, unknown>) {
-        const bot = this.getBotParticipantByPlayerId(playerId) as Bot;
+        const bot = this.getBotByPlayerId(playerId) as Bot;
         bot.aiOptions = options;
     }
 
