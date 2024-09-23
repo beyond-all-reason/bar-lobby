@@ -47,13 +47,15 @@ const error = ref("");
 
 async function connect() {
     try {
+        console.log("Running connect");
+
         state.value = "connecting";
 
         let oauthToken: Awaited<ReturnType<typeof api.comms.auth>> | undefined;
 
         const steamSessionTicket: string | null = await ipcRenderer.invoke("get-steam-session-ticket");
 
-        if (steamSessionTicket) {
+        if (false) {
             state.value = "connecting";
             oauthToken = await steamAuth(steamSessionTicket);
         } else {
