@@ -16,7 +16,8 @@ import OfflineBattleComponent from "@/components/battle/OfflineBattleComponent.v
 import { defaultBattle } from "@/config/default-battle";
 
 api.session.offlineBattle.value = defaultBattle();
-api.session.offlineBattle.value.open();
+// Currently no implementation
+//api.session.offlineBattle.value.open();
 
 const battle = api.session.offlineBattle.value;
 const me = api.session.offlineUser;

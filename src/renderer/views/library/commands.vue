@@ -67,26 +67,32 @@ const filteredCommands = computed(() => {
 
 const route = api.router.currentRoute.value;
 
-const directMessageCommandListener = api.comms.onResponse("s.communication.received_direct_message").add(async (data) => {
-    const { message } = data;
-    // Check if the message is a command
-    if (!message.startsWith("!") && !message.startsWith("$")) return;
-    const cmd = message.split("-")[0].split(" ")[0];
-    const cmdDescription = message.slice(cmd.length + 1).replace("-", " ");
-    cmdDescription && !cmdDescription.includes("*") && commands.push({ cmd, cmdDescription });
-});
+if (!api.session.offlineMode) {
+    const directMessageCommandListener = api.comms.onResponse("s.communication.received_direct_message").add(async (data) => {
+        const { message } = data;
+        // Check if the message is a command
+        if (!message.startsWith("!") && !message.startsWith("$")) return;
+        const cmd = message.split("-")[0].split(" ")[0];
+        const cmdDescription = message.slice(cmd.length + 1).replace("-", " ");
+        cmdDescription && !cmdDescription.includes("*") && commands.push({ cmd, cmdDescription });
+    });
+}
 
 onMounted(() => {
-    // Send a message to the server to get all the commands
-    api.comms.request("c.communication.send_direct_message", {
-        recipient_id: 3137,
-        message: `!helpall`,
-    });
+    if (!api.session.offlineMode) {
+        // Send a message to the server to get all the commands
+        api.comms.request("c.communication.send_direct_message", {
+            recipient_id: 3137,
+            message: `!helpall`,
+        });
+    }
 });
 
 // Unsubscribe from the response listener when the component is not visible anymore
 onUnmounted(() => {
-    directMessageCommandListener.destroy();
+    if (!api.session.offlineMode) {
+        directMessageCommandListener.destroy();
+    }
 });
 </script>
 
