@@ -1,15 +1,16 @@
 {
     "version": "0.2.0",
     "configurations": [
-    
         {
             "type": "node",
             "request": "launch",
             "name": "Electron: Main",
-            "runtimeExecutable": "npm",
-            "runtimeArgs": [
-                "run", "debug"
-            ]
+            "runtimeExecutable": "${workspaceRoot}/node_modules/.bin/electron-vite",
+            "windows": {
+                "runtimeExecutable": "${workspaceRoot}/node_modules/.bin/electron-vite.cmd"
+            },
+            "runtimeArgs": ["--sourcemap"],
+            "env": { "REMOTE_DEBUGGING_PORT": "9223" }
         },
         {
             "name": "Electron: Renderer",
@@ -23,10 +24,10 @@
     "compounds": [
         {
             "name": "Electron: All",
-            "configurations": [
-                "Electron: Main",
-                "Electron: Renderer"
-            ]
+            "configurations": ["Electron: Main", "Electron: Renderer"],
+            "presentation": {
+                "order": 1
+            }
         }
     ]
 }
