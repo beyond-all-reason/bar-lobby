@@ -24,6 +24,7 @@ export class SessionAPI {
     public readonly friends: ComputedRef<User[]>;
     public readonly directMessages: Map<number, Message[]> = reactive(new Map());
     public readonly searchingForGame = ref(false);
+    public readonly bearerToken = ref("");
 
     constructor() {
         // TODO: should be in this.clear()?

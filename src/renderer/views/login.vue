@@ -10,6 +10,12 @@
             <Loader></Loader>
         </div>
 
+        <div v-else-if="state === 'login_method'" class="relative flex-col gap-md">
+            <p class="txt-center">Please choose login method..</p>
+            <Button class="gap-sm" @click="connect">> BAR Account </Button>
+            <Button class="gap-sm" @click="playOffline">> Play Offline </Button>
+        </div>
+
         <div v-else-if="state === 'waiting_for_auth'" class="relative flex-col gap-md">
             <p class="txt-center">Please authenticate via your web browser.</p>
             <Button class="retry gap-sm" @click="connect">
@@ -25,8 +31,6 @@
                 Reconnect
             </Button>
         </div>
-
-        <div class="play-offline" @click="playOffline">Play Offline</div>
     </div>
 </template>
 
@@ -35,14 +39,14 @@ import { Icon } from "@iconify/vue";
 import replayIcon from "@iconify-icons/mdi/replay";
 import { ipcRenderer, shell } from "electron";
 import { delay } from "jaz-ts-utils";
-import { Ref, ref } from "vue";
+import { ref, watch, onMounted } from "vue";
 
 import Loader from "@/components/common/Loader.vue";
 import Button from "@/components/controls/Button.vue";
 import { pollServerStats } from "@/utils/poll-server-stats";
 
 const serverAddress = `${api.comms.config.host}:${api.comms.config.port}`;
-const state: Ref<"connecting" | "waiting_for_auth" | "connected" | "error"> = ref("connecting");
+const state = ref<"login_method" | "connecting" | "waiting_for_auth" | "connected" | "error">("login_method");
 const error = ref("");
 
 async function connect() {
@@ -53,9 +57,8 @@ async function connect() {
 
         let oauthToken: Awaited<ReturnType<typeof api.comms.auth>> | undefined;
 
-        const steamSessionTicket: string | null = await ipcRenderer.invoke("get-steam-session-ticket");
-
-        if (false) {
+        if (api.settings.model.useSteamAuth) {
+            const steamSessionTicket: string | null = await ipcRenderer.invoke("get-steam-session-ticket");
             state.value = "connecting";
             oauthToken = await steamAuth(steamSessionTicket);
         } else {
@@ -63,21 +66,18 @@ async function connect() {
             oauthToken = await api.comms.auth({ open: shell.openExternal });
         }
 
-        console.log(oauthToken);
-
         // TODO: store token
+        api.session.bearerToken.value = oauthToken.accessToken;
 
         await api.comms.connect(oauthToken.accessToken);
 
-        const userResponse = await api.comms.nextEvent("privateUser/add");
-
-        pollServerStats();
+        // Not implemented yet
+        //const userResponse = await api.comms.nextEvent("privateUser/add");
+        //pollServerStats();
+        //api.session.updateCurrentUser(userResponse.user);
 
         api.comms.isConnectedRef.value = true;
-
         api.session.offlineMode.value = false;
-
-        api.session.updateCurrentUser(userResponse.user);
 
         api.comms.socket?.addEventListener("close", () => {
             api.comms.isConnectedRef.value = false;
@@ -145,9 +145,13 @@ async function promptUsername(): Promise<string> {
     return "bob";
 }
 
-if (api.settings.model.loginAutomatically) {
-    await connect();
-}
+onMounted(async () => {
+    if (api.settings.model.loginAutomatically) {
+        await connect();
+    } else {
+        state.value = "login_method";
+    }
+});
 </script>
 
 <style lang="scss" scoped>

@@ -18,6 +18,9 @@
 
             <div>Dev Mode</div>
             <Checkbox v-model="settings.devMode" />
+
+            <div>Login Automatically</div>
+            <Checkbox v-model="settings.loginAutomatically" />
         </div>
     </Modal>
 </template>
