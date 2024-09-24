@@ -61,7 +61,7 @@ export class Application {
         app.on("web-contents-created", (event, contents) => {
             contents.on("will-navigate", (event, navigationUrl) => {
                 const parsedUrl = new URL(navigationUrl);
-                if (process.env.ELECTRON_RENDERER_URL && parsedUrl.protocol == "http:" && parsedUrl == new URL(process.env.ELECTRON_RENDERER_URL)) {
+                if (process.env.ELECTRON_RENDERER_URL && parsedUrl.protocol == "http:" && parsedUrl.toString() == process.env.ELECTRON_RENDERER_URL + "/") {
                     return; //allow
                 }
                 if (parsedUrl.protocol == "file:" && parsedUrl.pathname) {
