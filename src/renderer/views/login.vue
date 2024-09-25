@@ -51,8 +51,6 @@ const error = ref("");
 
 async function connect() {
     try {
-        console.log("Running connect");
-
         state.value = "connecting";
 
         let oauthToken: Awaited<ReturnType<typeof api.comms.auth>> | undefined;

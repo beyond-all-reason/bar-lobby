@@ -22,7 +22,7 @@ export class CommsAPI extends TachyonClient<"user"> {
     constructor() {
         super("user", {
             host: serverConfig.host,
-            port: serverConfig.port,
+            ssl: serverConfig.ssl,
             logging: true,
             requestHandlers: {
                 "battle/start": async (data) => {
