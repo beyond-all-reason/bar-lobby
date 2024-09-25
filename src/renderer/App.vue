@@ -29,7 +29,7 @@
                     <Panel :empty="empty" class="flex-grow">
                         <Breadcrumbs :class="{ hidden: empty }" />
                         <router-view v-slot="{ Component, route }">
-                            <transition name="slide-left">
+                            <transition name="slide-left" mode="out-in">
                                 <!--mode= "out-in" causes bug see https://github.com/beyond-all-reason/bar-lobby/issues/61 add back in once vue fixes underlining issue-->
                                 <template v-if="Component">
                                     <suspense timeout="0">
