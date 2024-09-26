@@ -18,7 +18,7 @@
                         v-tooltip.bottom="'Direct Messages'"
                         v-click-away:messages="() => (messagesOpen = false)"
                         :class="['icon', { active: messagesOpen }]"
-                        @click="messagesOpen = true"
+                        @click="messagesOpen = !messagesOpen"
                     >
                         <Icon :icon="messageIcon" :height="40" />
                         <div v-if="messagesUnread" class="unread-dot"></div>
@@ -28,7 +28,7 @@
                         v-tooltip.bottom="'Friends'"
                         v-click-away:friends="() => (friendsOpen = false)"
                         :class="['icon', { active: friendsOpen }]"
-                        @click="friendsOpen = true"
+                        @click="friendsOpen = !friendsOpen"
                     >
                         <Icon :icon="accountMultiple" :height="40" />
                     </Button>
