@@ -29,7 +29,8 @@
     "postinstall": "patch-package && electron-builder install-app-deps && tsx scripts/fix-better-sqlite3-bindings.mts",
     "postuninstall": "electron-builder install-app-deps",
     "preversion": "npm run check",
-    "postversion": "git push && git push --tags"
+    "postversion": "git push && git push --tags",
+    "vue-dev": "concurrently --kill-others \"npx vue-devtools\" \"npm run dev\""
   },
   "debug": {
     "env": {
@@ -95,7 +96,8 @@
     "@typescript-eslint/eslint-plugin": "^5.58.0",
     "@vitejs/plugin-vue": "^4.0.0",
     "@vue/compiler-sfc": "^3.2.29",
-    "@vue/devtools": "^6.5.0",
+    "@vue/devtools": "^7.4.4",
+    "concurrently": "^9.0.1",
     "cross-env": "^7.0.3",
     "date-fns": "^2.29.1",
     "electron": "^22.1.0",

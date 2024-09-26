@@ -17,6 +17,8 @@ import App from "@/App.vue";
 import { clickAwayDirective } from "@/utils/click-away-directive";
 import { elementInViewDirective } from "@/utils/element-in-view-directive";
 
+import { devtools } from "@vue/devtools";
+
 declare module "vue-router" {
     interface RouteMeta {
         title?: string;
@@ -33,6 +35,17 @@ declare module "vue-router" {
 
 (async () => {
     await apiInit();
+
+    if (process.env.NODE_ENV === "development") {
+        try {
+            let response = await fetch("http://localhost:8098");
+            if (response.status == 200) {
+                devtools.connect();
+            }
+        } catch (ex) {
+            console.log("Connecting to Vue Devtools on http://localhost:8098/ failed, aborting.");
+        }
+    }
 
     await setupVue();
 
