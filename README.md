@@ -55,7 +55,7 @@ node -v # should print `v18.20.4`
 
 ### Project setup:
 
-```
+```bash
 npm install
 npm run dev
 ```
