@@ -90,6 +90,16 @@ export abstract class AbstractBattle<T extends BattleOptions = BattleOptions> {
         });
     }
 
+    // Returns a bot by it's PlayerId. Returns undefined if not found..
+    public getBotByPlayerId(playerId: number): Bot | undefined {
+        return this.bots.find((bot) => {
+            if (bot.playerId === playerId) {
+                return true;
+            }
+            return false;
+        });
+    }
+
     public open() {
         this.watchStopHandles = [
             watch(
@@ -137,7 +147,7 @@ export abstract class AbstractBattle<T extends BattleOptions = BattleOptions> {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     public abstract setGameOptions(options: Record<string, any>): void;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    public abstract setBotOptions(botName: string, options: Record<string, any>): void;
+    public abstract setBotOptions(playerId: number, options: Record<string, any>): void;
     public abstract addBot(bot: Bot): void;
     public abstract removeBot(bot: Bot): void;
     public abstract playerToSpectator(player: User): void;

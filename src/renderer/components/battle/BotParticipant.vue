@@ -20,7 +20,7 @@
 import { Icon } from "@iconify/vue";
 import robot from "@iconify-icons/mdi/robot";
 import { MenuItem } from "primevue/menuitem";
-import { Ref, ref } from "vue";
+import { Ref, ref, toRaw } from "vue";
 
 import LuaOptionsModal from "@/components/battle/LuaOptionsModal.vue";
 import TeamParticipant from "@/components/battle/TeamParticipant.vue";
@@ -44,6 +44,10 @@ const actions: MenuItem[] = [
         command: configureBot,
     },
     {
+        label: "Duplicate",
+        command: duplicateBot,
+    },
+    {
         label: "Kick",
         command: kickBot,
     },
@@ -59,6 +63,13 @@ function kickBot() {
     props.battle.removeBot(props.bot);
 }
 
+// Duplicates this bot and its settings and gives it a new player id.
+function duplicateBot() {
+    const duplicatedBot = structuredClone(toRaw(props.bot));
+    duplicatedBot.playerId = props.battle.contenders.value.length;
+    props.battle.addBot(duplicatedBot);
+}
+
 async function configureBot() {
     const engineVersion = api.content.engine.installedVersions.find((version) => version.id === props.battle.battleOptions.engineVersion);
     const ai = engineVersion?.ais.find((ai) => ai.name === props.bot.name);
@@ -69,7 +80,7 @@ async function configureBot() {
 }
 
 function setBotOptions(options: Record<string, unknown>) {
-    props.battle.setBotOptions(props.bot.name, options);
+    props.battle.setBotOptions(props.bot.playerId, options);
 }
 </script>
 
