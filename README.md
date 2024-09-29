@@ -27,11 +27,11 @@ BAR Lobby is a new WIP lobby for the RTS game [Beyond All Reason](https://www.be
 
 ### Recommended Environment
 
-It is highly recommended to use [VSCode](https://code.visualstudio.com/) for development, as it provides full, built-in TypeScript support, as well as useful extensions such as [ESLint](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint) and [Volar](https://marketplace.visualstudio.com/items?itemName=johnsoncodehk.volar).
+It is highly recommended to use [VSCode](https://code.visualstudio.com/) for development, as it provides full, built-in TypeScript support, as well as useful extensions such as [ESLint](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint) and [Vue - Official (previously Volar)](https://marketplace.visualstudio.com/items?itemName=vue.volar).
 
 ### Requirements
 
--   [Node.js](https://nodejs.org/en/download/)
+-   [Node.js 18](https://nodejs.org/en/download/)
 
 ### Project setup:
 
