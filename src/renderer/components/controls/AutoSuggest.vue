@@ -91,7 +91,7 @@ function clickOption(option: AutoSuggestionOption) {
 }
 
 function changeKeyboardSelection(direction: 1 | -1) {
-    if (filteredOptions.value == null) {
+    if (filteredOptions.value == null || filteredOptions.value.length === 0) {
         updateKeyboardSelectionIndex(null);
         return;
     }
