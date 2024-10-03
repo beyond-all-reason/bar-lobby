@@ -197,7 +197,7 @@
 import { Icon } from "@iconify/vue";
 import cogIcon from "@iconify-icons/mdi/cog";
 import listIcon from "@iconify-icons/mdi/format-list-bulleted";
-import { computed, Ref, ref } from "vue";
+import { computed, inject, Ref, ref } from "vue";
 
 import BattleChat from "@/components/battle/BattleChat.vue";
 import BattleTitleComponent from "@/components/battle/BattleTitleComponent.vue";
@@ -215,6 +215,7 @@ import { AbstractBattle } from "@/model/battle/abstract-battle";
 import { StartPosType } from "@/model/battle/battle-types";
 import { LuaOptionSection } from "@/model/lua-options";
 import { CurrentUser } from "@/model/user";
+import { IdleBehavior } from "@/utils/idle-timer";
 import { StartBoxOrientation } from "@/utils/start-boxes";
 import { isOfflineBattle, isSpadsBattle } from "@/utils/type-checkers";
 
@@ -236,6 +237,16 @@ const mapOptionsOpen = ref(false);
 const gameOptionsOpen = ref(false);
 const gameOptions: Ref<LuaOptionSection[]> = ref([]);
 const isGameRunning = api.game.isGameRunning;
+
+const updateIdleBehavior: ((update: IdleBehavior) => void) | undefined = inject("idleTimer");
+
+if (updateIdleBehavior != undefined) {
+    updateIdleBehavior({
+        onBack: () => {
+            console.log("Back in lobby!");
+        },
+    });
+}
 
 function openMapList() {
     mapListOpen.value = true;
