@@ -1,0 +1,18 @@
+{
+	"nodes":[
+		{"id":"27af8137eb3a5583","type":"text","text":"## Global\n- players: [Player]\n- matches: [Match]\n- queues: [Queue]","x":-440,"y":-99,"width":380,"height":200},
+		{"id":"16b3d7cba56045f7","type":"text","text":"## Player\n- name\n- country\n- open skill\n- accumulated play hours","x":160,"y":-120,"width":380,"height":243},
+		{"id":"c00c08f3bcca43dc","type":"text","text":"## Queue\n- queued player count","x":-440,"y":220,"width":380,"height":170},
+		{"id":"481b9842ae5566e7","type":"text","text":"## Match State\n| Lobby\n| Running\n| Finished","x":-440,"y":-760,"width":380,"height":200},
+		{"id":"bde94ef2b45eaa2c","type":"text","text":"## Team\n- players: [Player]","x":160,"y":-384,"width":380,"height":128},
+		{"id":"1299f38ef8650535","type":"text","text":"## Match\n- map: Map\n- teams: [Team]\n- match settings: Match Settings\n- match state: Match State","x":-440,"y":-450,"width":380,"height":260}
+	],
+	"edges":[
+		{"id":"33fdc9abd0cf8141","fromNode":"27af8137eb3a5583","fromSide":"right","toNode":"16b3d7cba56045f7","toSide":"left"},
+		{"id":"e84d25f7d04dccd5","fromNode":"27af8137eb3a5583","fromSide":"bottom","toNode":"c00c08f3bcca43dc","toSide":"top"},
+		{"id":"beaa1df6a8146364","fromNode":"27af8137eb3a5583","fromSide":"top","toNode":"1299f38ef8650535","toSide":"bottom"},
+		{"id":"3ad987b9ca6e61ac","fromNode":"1299f38ef8650535","fromSide":"top","toNode":"481b9842ae5566e7","toSide":"bottom"},
+		{"id":"82531b0d81c0c8ab","fromNode":"1299f38ef8650535","fromSide":"right","toNode":"bde94ef2b45eaa2c","toSide":"left"},
+		{"id":"b294cc8ec088a279","fromNode":"bde94ef2b45eaa2c","fromSide":"bottom","toNode":"16b3d7cba56045f7","toSide":"top"}
+	]
+}

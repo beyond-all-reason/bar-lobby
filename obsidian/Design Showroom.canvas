@@ -1,0 +1,41 @@
+{
+	"nodes":[
+		{"id":"94395306e3de94fc","type":"file","file":"Files/Showcase - Main Screen Initial.png","x":-1000,"y":-580,"width":1458,"height":820},
+		{"id":"3789882be12e0b95","type":"text","text":"The main screen of the client after having just started it.","x":-1000,"y":-700,"width":1458,"height":80},
+		{"id":"c69cbf7dc1343ab3","type":"file","file":"Files/Showcase - Single Player hover.png","x":580,"y":-580,"width":1458,"height":820},
+		{"id":"4bd32aee8125420c","type":"text","text":"The main screen with the player hovering over the Single player tile","x":580,"y":-700,"width":1458,"height":80},
+		{"id":"883951e7b5c231ed","type":"file","file":"Files/Showcase - Multiplayer match found 1v1.png","x":3740,"y":448,"width":1458,"height":820},
+		{"id":"0af5452c90d9a28c","type":"text","text":"The main screen with a single player having found a 1v1 match.","x":3740,"y":320,"width":1458,"height":80},
+		{"id":"59da993f109b7323","type":"file","file":"Files/Showcase - Multiplayer queueing 1v1.png","x":2160,"y":448,"width":1458,"height":820},
+		{"id":"4a7e84698f4fac92","type":"text","text":"The main screen with a single player queueing for 1v1.","x":2160,"y":320,"width":1458,"height":80},
+		{"id":"0eddfa4029d52228","type":"file","file":"Files/Showcase - Multiplayer hover.png","x":580,"y":448,"width":1458,"height":820},
+		{"id":"1fd38949cdaf5e46","type":"text","text":"The main screen with the player hovering over the Multiplayer tile and 1v1 game mode selected.","x":580,"y":320,"width":1458,"height":80},
+		{"id":"49d3afea91df78ee","type":"file","file":"Files/Showcase - Multiplayer solo-queueing 2v2.png","x":2160,"y":1440,"width":1458,"height":820},
+		{"id":"b2e76ef02892d8ff","type":"text","text":"The main screen with a party and a match found for 2v2.","x":2160,"y":2480,"width":1458,"height":80},
+		{"id":"f1b290e3b12ab22c","type":"file","file":"Files/Showcase - Multiplayer match found 2v2.png","x":2160,"y":2600,"width":1458,"height":820},
+		{"id":"c708d95ca2ef61be","type":"text","text":"The main screen with a party queueing for 2v2.","x":580,"y":2480,"width":1458,"height":80},
+		{"id":"83f104ad18ddfd37","type":"file","file":"Files/Showcase - Multiplayer queueing 2v2.png","x":580,"y":2600,"width":1458,"height":820},
+		{"id":"e6f1bfe832454c7f","type":"text","text":"Main Screen with a Party of two people as seen by the party leader. The Single player tile gets replaced with a Party detail section with party chat. The multiplayer tile is automatically turned showing all available game modes.","x":-1000,"y":2480,"width":1458,"height":80},
+		{"id":"7b9c0f7c25c798b1","type":"file","file":"Files/Showcase - Main Screen with Party.png","x":-1000,"y":2600,"width":1458,"height":820},
+		{"id":"29ab6776a910d5e5","type":"text","text":"The main screen with a single player queueing for 2v2","x":2160,"y":1320,"width":1458,"height":80},
+		{"id":"77d3b7b1e5d6fb17","type":"file","file":"Files/Showcase - Multiplayer match found soloQ 2v2.png","x":3740,"y":1440,"width":1458,"height":820},
+		{"id":"2bfab15087f1ee82","type":"text","text":"The main screen with a single player having found a 2v2 match.","x":3740,"y":1320,"width":1458,"height":80},
+		{"id":"f77459f632819c45","type":"file","file":"Files/Showcase - Raptor lobby with party.png","x":580,"y":3640,"width":1458,"height":820},
+		{"id":"3497e10e0a69fd7e","type":"file","file":"Files/Showcase - Scavenger lobby with party.png","x":580,"y":4720,"width":1458,"height":820},
+		{"id":"aededa162447fef4","type":"text","text":"The raptor lobby with a party and additional random player.","x":580,"y":3520,"width":1458,"height":80},
+		{"id":"6c966d6b4ea305d9","type":"text","text":"The scavenger lobby with a party and additional random player","x":580,"y":4600,"width":1458,"height":80}
+	],
+	"edges":[
+		{"id":"f65507e8ecff7d61","fromNode":"94395306e3de94fc","fromSide":"right","toNode":"c69cbf7dc1343ab3","toSide":"left"},
+		{"id":"c6e8f181e113413b","fromNode":"83f104ad18ddfd37","fromSide":"right","toNode":"f1b290e3b12ab22c","toSide":"left"},
+		{"id":"77aa8ed6c832ce74","fromNode":"94395306e3de94fc","fromSide":"bottom","toNode":"7b9c0f7c25c798b1","toSide":"top"},
+		{"id":"f8a7210f1ca34cfa","fromNode":"7b9c0f7c25c798b1","fromSide":"right","toNode":"83f104ad18ddfd37","toSide":"left"},
+		{"id":"501dcd25256c98ff","fromNode":"59da993f109b7323","fromSide":"right","toNode":"883951e7b5c231ed","toSide":"left"},
+		{"id":"49c2305e1e42fb40","fromNode":"0eddfa4029d52228","fromSide":"right","toNode":"59da993f109b7323","toSide":"left"},
+		{"id":"888af3843cbfbd44","fromNode":"94395306e3de94fc","fromSide":"right","toNode":"0eddfa4029d52228","toSide":"left"},
+		{"id":"2a2b99bc0e70bf11","fromNode":"0eddfa4029d52228","fromSide":"right","toNode":"49d3afea91df78ee","toSide":"left"},
+		{"id":"1de7fc8fd4c7659f","fromNode":"49d3afea91df78ee","fromSide":"right","toNode":"77d3b7b1e5d6fb17","toSide":"left"},
+		{"id":"12e733d8458146cb","fromNode":"7b9c0f7c25c798b1","fromSide":"right","toNode":"f77459f632819c45","toSide":"left"},
+		{"id":"cbd84b69ed79a354","fromNode":"7b9c0f7c25c798b1","fromSide":"right","toNode":"3497e10e0a69fd7e","toSide":"left"}
+	]
+}
