@@ -10,20 +10,19 @@
         <div class="flex-row flex-center-items gap-md">
             <div class="title">{{ title }}</div>
             <div v-if="memberCount > 0" class="member-count">({{ memberCount }} Member{{ memberCount > 1 ? "s" : "" }})</div>
-            <Button v-if="!iAmSpectator" class="slim" @click="addBotClicked(teamId)"> Add bot </Button>
+            <Button class="slim" @click="addBotClicked(teamId)"> Add bot </Button>
             <Button v-if="showJoin" class="slim" @click="onJoinClicked(teamId)"> Join </Button>
         </div>
         <div class="participants">
             <div
-                v-for="(member, memberIndex) in members"
-                :key="`member${memberIndex}`"
+                v-for="member in battleWithMetadataStore.teams[teamId]"
+                :key="member.id"
                 draggable="true"
                 @dragstart="onDragStart($event, member)"
                 @dragend="onDragEnd()"
             >
-                <SpectatorParticipant v-if="isUser(member) && member.battleStatus.isSpectator" :battle="battle" :player="member" />
-                <PlayerParticipant v-else-if="isUser(member)" :battle="battle" :player="member" />
-                <BotParticipant v-else-if="isBot(member)" :battle="battle" :bot="member" />
+                <PlayerParticipant v-if="isPlayer(member)" :player="member" />
+                <BotParticipant v-else-if="isBot(member)" :bot="member" />
             </div>
         </div>
     </div>
@@ -32,57 +31,42 @@
 <script lang="ts" setup>
 import { computed } from "vue";
 
-import BotParticipant from "@/components/battle/BotParticipant.vue";
-import PlayerParticipant from "@/components/battle/PlayerParticipant.vue";
-import SpectatorParticipant from "@/components/battle/SpectatorParticipant.vue";
-import Button from "@/components/controls/Button.vue";
-import { AbstractBattle } from "@/model/battle/abstract-battle";
-import { Bot } from "@/model/battle/battle-types";
-import { CurrentUser, User } from "@/model/user";
-import { isBot, isUser } from "@/utils/type-checkers";
+import BotParticipant from "@renderer/components/battle/BotParticipant.vue";
+import PlayerParticipant from "@renderer/components/battle/PlayerParticipant.vue";
+import Button from "@renderer/components/controls/Button.vue";
+import { Bot, isBot, isPlayer, Player } from "@main/game/battle/battle-types";
+import { battleWithMetadataStore, mePlayer } from "@renderer/store/battle.store";
 
 const props = defineProps<{
-    battle: AbstractBattle;
-    teamId: number;
-    me: CurrentUser;
+    teamId: string;
 }>();
-const iAmSpectator = computed(() => {
-    return props.teamId < 0;
-});
-const title = computed(() => {
-    return iAmSpectator.value ? "Spectators" : "Team " + (props.teamId + 1);
-});
-const members = computed(() => {
-    const battle = props.battle;
-    return iAmSpectator.value ? battle.spectators.value : battle.teams.value.get(props.teamId);
-});
-const showJoin = computed(() => {
-    const playerIsSpectator = props.me.battleStatus.isSpectator;
-    const playerTeam = playerIsSpectator ? -1 : props.me.battleStatus.teamId;
-    const listTeam = props.teamId;
-    const listIsSpectator = props.teamId < 0;
-    return playerTeam !== listTeam || (listIsSpectator && !playerIsSpectator);
-});
+const title = "Team " + (Number(props.teamId) + 1);
+
 const memberCount = computed(() => {
-    return iAmSpectator.value ? props.battle.spectators.value.length : props.battle.teams.value.get(props.teamId)?.length ?? 0;
+    return battleWithMetadataStore.teams[props.teamId]?.length || 0;
 });
+
+const showJoin = computed(() => {
+    return props.teamId !== mePlayer.battleStatus.teamId;
+});
+
 const emit = defineEmits(["addBotClicked", "onJoinClicked", "onDragStart", "onDragEnd", "onDragEnter", "onDrop"]);
-function addBotClicked(teamId: number) {
+function addBotClicked(teamId: string) {
     emit("addBotClicked", teamId);
 }
-function onJoinClicked(teamId: number) {
+function onJoinClicked(teamId: string) {
     emit("onJoinClicked", teamId);
 }
-function onDragStart(event: DragEvent, member: User | Bot) {
+function onDragStart(event: DragEvent, member: Player | Bot) {
     emit("onDragStart", event, member);
 }
 function onDragEnd() {
     emit("onDragEnd");
 }
-function onDragEnter(event: DragEvent, teamId: number) {
+function onDragEnter(event: DragEvent, teamId: string) {
     emit("onDragEnter", event, teamId);
 }
-function onDrop(event: DragEvent, teamId: number) {
+function onDrop(event: DragEvent, teamId: string) {
     emit("onDrop", event, teamId);
 }
 </script>
@@ -119,15 +103,11 @@ function onDrop(event: DragEvent, teamId: number) {
     opacity: 0.5;
     vertical-align: middle;
 }
-.participants {
+.team-members {
     display: flex;
     flex-direction: column;
     gap: 3px;
     flex-wrap: wrap;
     margin-top: 5px;
-    .spectators & {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-    }
 }
 </style>

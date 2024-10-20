@@ -9,19 +9,14 @@
 <script lang="ts" setup>
 import { Icon } from "@iconify/vue";
 import robot from "@iconify-icons/mdi/robot";
-import { DemoModel } from "sdfz-demo-parser";
 import { computed } from "vue";
-
-import Flag from "@/components/misc/Flag.vue";
-import { Bot } from "@/model/battle/battle-types";
-import { User } from "@/model/user";
-import { isUser } from "@/utils/type-checkers";
+import Flag from "@renderer/components/misc/Flag.vue";
 
 const props = defineProps<{
-    contender: DemoModel.Info.Player | DemoModel.Info.AI | DemoModel.Info.Spectator | User | Bot;
+    contender: { name: string; rgbColor?: { r: number; g: number; b: number }; countryCode?: string; aiId?: number };
 }>();
 
-const name = computed(() => (isUser(props.contender) ? props.contender.username : props.contender.name));
+const name = computed(() => props.contender.name);
 
 const color = computed(() => {
     if ("rgbColor" in props.contender) {

@@ -12,12 +12,12 @@
 <script lang="ts" setup>
 import { Ref, ref } from "vue";
 
-import Modal from "@/components/common/Modal.vue";
-import Button from "@/components/controls/Button.vue";
+import Modal from "@renderer/components/common/Modal.vue";
+import Button from "@renderer/components/controls/Button.vue";
 
 const isVisible = ref(false);
-const error: Ref<ErrorEvent | null> = ref(null);
-const promiseError: Ref<PromiseRejectionEvent | null> = ref(null);
+const error: Ref<ErrorEvent> = ref();
+const promiseError: Ref<PromiseRejectionEvent> = ref();
 
 window.addEventListener("unhandledrejection", function (event) {
     console.error(event);

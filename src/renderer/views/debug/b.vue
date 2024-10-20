@@ -9,10 +9,10 @@
 </template>
 
 <script lang="ts" setup>
-import { delay } from "jaz-ts-utils";
+import { delay } from "$/jaz-ts-utils/delay";
 import { ref } from "vue";
 
-import Select from "@/components/controls/Select.vue";
+import Select from "@renderer/components/controls/Select.vue";
 
 const color = ref("red");
 const colors = ref(["red", "green", "blue"]);

@@ -11,7 +11,7 @@
 import { Icon } from "@iconify/vue";
 import closeThick from "@iconify-icons/mdi/close-thick";
 
-import { Event } from "@/model/notifications";
+import { Event } from "@renderer/model/notifications";
 
 const props = defineProps<{
     event: Event;

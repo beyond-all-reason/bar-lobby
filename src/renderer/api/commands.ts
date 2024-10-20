@@ -1,4 +1,4 @@
-import AutoSuggestionOption from "@/utils/auto-suggestion-option";
+import AutoSuggestionOption from "@renderer/utils/auto-suggestion-option";
 
 export interface Command {
     cmd: string;

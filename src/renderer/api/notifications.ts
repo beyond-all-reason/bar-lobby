@@ -1,10 +1,11 @@
-import { removeFromArray } from "jaz-ts-utils";
+import { removeFromArray } from "$/jaz-ts-utils/object";
 import { v4 as uuid } from "uuid";
 import { reactive } from "vue";
 
-import { Alert, Event } from "@/model/notifications";
+import { Alert, Event } from "@renderer/model/notifications";
+import { audioApi } from "../audio/audio";
 
-export class NotificationsAPI {
+class NotificationsAPI {
     public readonly alerts: Array<Alert> = reactive([]);
     public readonly events: Array<Event> = reactive([]);
 
@@ -15,7 +16,6 @@ export class NotificationsAPI {
             severity: "info",
             ...alertConfig,
         };
-
         this.alerts.push(alert);
     }
 
@@ -26,11 +26,8 @@ export class NotificationsAPI {
             playSound: true,
             ...eventConfig,
         };
-
-        api.audio.play("ring");
-
-        api.utils.flashFrame(true);
-
+        audioApi.play("ring");
+        window.mainWindow.flashFrame(true);
         this.events.push(event);
     }
 
@@ -42,3 +39,5 @@ export class NotificationsAPI {
         }
     }
 }
+
+export const notificationsApi = new NotificationsAPI();

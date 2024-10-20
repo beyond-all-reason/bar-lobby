@@ -1,7 +1,7 @@
 import { Type } from "@sinclair/typebox";
-import { assign } from "jaz-ts-utils";
+import { assign } from "$/jaz-ts-utils/object";
 
-import { createMessageHandlers } from "@/model/messages";
+import { createMessageHandlers } from "@renderer/model/messages";
 
 export const battleAnnouncementHandlers = createMessageHandlers(
     {

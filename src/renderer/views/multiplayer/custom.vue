@@ -85,9 +85,7 @@
         <div v-if="!loading" class="right">
             <BattlePreview v-if="selectedBattle" :battle="selectedBattle">
                 <template #actions="{ battle }">
-                    <template v-if="isSpadsBattle(battle)">
-                        <Button class="green flex-grow" @click="attemptJoinBattle(battle)">Join</Button>
-                    </template>
+                    <Button class="green flex-grow" @click="attemptJoinBattle(battle)">Join</Button>
                 </template>
             </BattlePreview>
         </div>
@@ -111,26 +109,25 @@ import Column from "primevue/column";
 import DataTable, { DataTableRowDoubleClickEvent } from "primevue/datatable";
 import { computed, onBeforeUnmount, Ref, ref, shallowRef } from "vue";
 
-import BattlePreview from "@/components/battle/BattlePreview.vue";
-import HostBattle from "@/components/battle/HostBattle.vue";
-import Loader from "@/components/common/Loader.vue";
-import Button from "@/components/controls/Button.vue";
-import Checkbox from "@/components/controls/Checkbox.vue";
-import SearchBox from "@/components/controls/SearchBox.vue";
-import { SpadsBattle } from "@/model/battle/spads-battle";
-import { attemptJoinBattle } from "@/utils/attempt-join-battle";
-import { getFriendlyDuration } from "@/utils/misc";
-import { isSpadsBattle } from "@/utils/type-checkers";
+import BattlePreview from "@renderer/components/battle/BattlePreview.vue";
+import HostBattle from "@renderer/components/battle/HostBattle.vue";
+import Loader from "@renderer/components/common/Loader.vue";
+import Button from "@renderer/components/controls/Button.vue";
+import Checkbox from "@renderer/components/controls/Checkbox.vue";
+import SearchBox from "@renderer/components/controls/SearchBox.vue";
+import { attemptJoinBattle } from "@renderer/utils/attempt-join-battle";
+import { getFriendlyDuration } from "@renderer/utils/misc";
+import { Battle } from "@renderer/game/battle";
 
 const loading = ref(false);
 const intervalId = ref(0);
 const active = ref(true);
 const hostBattleOpen = ref(false);
 const searchVal = ref("");
-const selectedBattle: Ref<SpadsBattle | null> = shallowRef(null);
+const selectedBattle: Ref<Battle | null> = shallowRef(null);
 const settings = api.settings.model;
 
-interface ScoredSpadsBattle extends SpadsBattle {
+interface ScoredOfflineBattle extends OfflineBattle {
     score: number;
     factors: { [factorName: string]: number };
     primaryFactor: string;
@@ -189,7 +186,7 @@ const battles = computed(() => {
     return scoredBattles;
 });
 
-function battleScoreTooltip(data: ScoredSpadsBattle) {
+function battleScoreTooltip(data: ScoredOfflineBattle) {
     const scoreExplanation = `\
 All Sorting Factors: ${data.score.toFixed(2)}
 ---
@@ -219,9 +216,9 @@ ${Object.entries(data.factors)
     return scoreExplanation;
 }
 
-function scoreBattle(battle: SpadsBattle) {
+function scoreBattle(battle: OfflineBattle) {
     let score = 0;
-    let factors: ScoredSpadsBattle["factors"] = {};
+    let factors: ScoredOfflineBattle["factors"] = {};
     let primaryFactor = "";
 
     const inBattle = battle.players.value.find((p) => p.userId === api.session.onlineUser?.userId);
@@ -293,7 +290,7 @@ function scoreBattle(battle: SpadsBattle) {
         score,
         factors,
         primaryFactor,
-    } as ScoredSpadsBattle;
+    } as ScoredOfflineBattle;
 
     function addFactor(factorName: string, factorScore: number) {
         score += factorScore;
@@ -328,7 +325,7 @@ if (active.value) {
 }
 
 function onRowSelect(event: DataTableRowDoubleClickEvent) {
-    const data = event.data as ScoredSpadsBattle;
+    const data = event.data as ScoredOfflineBattle;
     const scoreExplanation = `\
 Score explanation for ${data.battleOptions.title}
 Primary Factor: ${data.primaryFactor}

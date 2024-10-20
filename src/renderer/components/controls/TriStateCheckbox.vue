@@ -13,7 +13,7 @@ import checkBold from "@iconify-icons/mdi/check-bold";
 import closeThick from "@iconify-icons/mdi/close-thick";
 import { toRef } from "vue";
 
-import Control from "@/components/controls/Control.vue";
+import Control from "@renderer/components/controls/Control.vue";
 
 const props = withDefaults(
     defineProps<{

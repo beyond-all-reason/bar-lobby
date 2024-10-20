@@ -8,8 +8,8 @@
 import { InputNumberEmits, InputNumberProps } from "primevue/inputnumber";
 import { computed, ref } from "vue";
 
-import Control from "@/components/controls/Control.vue";
-import PrimeVueInputNumber from "@/components/primevue/PrimeVueInputNumber.vue";
+import Control from "@renderer/components/controls/Control.vue";
+import PrimeVueInputNumber from "@renderer/components/primevue/PrimeVueInputNumber.vue";
 
 // eslint-disable-next-line
 export interface Props extends InputNumberProps {}

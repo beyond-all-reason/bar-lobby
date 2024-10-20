@@ -2,7 +2,7 @@
     <div class="nav" :class="{ hidden }">
         <div class="logo">
             <Button to="/home">
-                <img src="/images/logo.svg" />
+                <img src="/src/renderer/assets/images/logo.svg" />
             </Button>
         </div>
         <div class="flex-col flex-grow">
@@ -94,18 +94,21 @@ import closeThick from "@iconify-icons/mdi/close-thick";
 import cog from "@iconify-icons/mdi/cog";
 import { computed, inject, Ref, ref } from "vue";
 
-import Button from "@/components/controls/Button.vue";
-import Downloads from "@/components/navbar/Downloads.vue";
-import DownloadsButton from "@/components/navbar/DownloadsButton.vue";
-import Exit from "@/components/navbar/Exit.vue";
-import Friends from "@/components/navbar/Friends.vue";
-import Messages from "@/components/navbar/Messages.vue";
+import Button from "@renderer/components/controls/Button.vue";
+import Downloads from "@renderer/components/navbar/Downloads.vue";
+import DownloadsButton from "@renderer/components/navbar/DownloadsButton.vue";
+import Exit from "@renderer/components/navbar/Exit.vue";
+import Friends from "@renderer/components/navbar/Friends.vue";
+import Messages from "@renderer/components/navbar/Messages.vue";
+import { useRouter } from "vue-router";
+import { settingsStore } from "@renderer/store/settings.store";
 
 const props = defineProps<{
     hidden?: boolean;
 }>();
 
-const allRoutes = api.router.getRoutes();
+const router = useRouter();
+const allRoutes = router.getRoutes();
 const offlineMode = api.session.offlineMode;
 const primaryRoutes = computed(() => {
     return allRoutes
@@ -113,23 +116,19 @@ const primaryRoutes = computed(() => {
         .filter(
             (r) =>
                 (r.meta.hide === false || r.meta.hide === undefined) &&
-                ((r.meta.devOnly && api.settings.model.devMode) || !r.meta.devOnly) &&
-                (r.meta.availableOffline === undefined ||
-                    r.meta.availableOffline ||
-                    (r.meta.availableOffline === false && !offlineMode.value))
+                ((r.meta.devOnly && settingsStore.devMode) || !r.meta.devOnly) &&
+                (r.meta.availableOffline === undefined || r.meta.availableOffline || (r.meta.availableOffline === false && !offlineMode))
         )
         .sort((a, b) => (a.meta.order ?? 99) - (b.meta.order ?? 99));
 });
 const secondaryRoutes = computed(() => {
     return allRoutes
-        .filter((r) => r.path.startsWith(`/${api.router.currentRoute.value.path.split("/")[1]}/`))
+        .filter((r) => r.path.startsWith(`/${router.currentRoute.value.path.split("/")[1]}/`))
         .filter(
             (r) =>
                 (r.meta.hide === false || r.meta.hide === undefined) &&
-                ((r.meta.devOnly && api.settings.model.devMode) || !r.meta.devOnly) &&
-                (r.meta.availableOffline === undefined ||
-                    r.meta.availableOffline ||
-                    (r.meta.availableOffline === false && !offlineMode.value))
+                ((r.meta.devOnly && settingsStore.devMode) || !r.meta.devOnly) &&
+                (r.meta.availableOffline === undefined || r.meta.availableOffline || (r.meta.availableOffline === false && !offlineMode))
         )
         .sort((a, b) => (a.meta.order ?? 99) - (b.meta.order ?? 99));
 });
@@ -163,10 +162,14 @@ const serverOffline = api.session.offlineMode;
     justify-content: flex-start;
     backdrop-filter: blur(5px);
     background: linear-gradient(rgba(0, 0, 0, 0.75), rgba(0, 0, 0, 0.9));
-    box-shadow: 0 1px 0 rgba(0, 0, 0, 0.4), 0 3px 5px rgba(0, 0, 0, 0.5);
+    box-shadow:
+        0 1px 0 rgba(0, 0, 0, 0.4),
+        0 3px 5px rgba(0, 0, 0, 0.5);
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     gap: 1px;
-    transition: transform 0.3s, opacity 0.3s;
+    transition:
+        transform 0.3s,
+        opacity 0.3s;
     z-index: 1;
     font-family: Rajdhani, sans-serif;
     &.hidden {
@@ -180,7 +183,7 @@ const serverOffline = api.session.offlineMode;
         content: "";
         z-index: -1;
         opacity: 0.2;
-        background-image: url("./images/squares.png");
+        background-image: url("/src/renderer/assets/images/squares.png");
     }
 }
 .logo {
@@ -214,7 +217,9 @@ const serverOffline = api.session.offlineMode;
         font-weight: 600;
         background: radial-gradient(rgba(73, 49, 49, 0), rgba(255, 255, 255, 0.05));
         color: rgba(255, 255, 255, 0.8);
-        box-shadow: 1px 0 0 rgba(255, 255, 255, 0.05), -1px 0 0 rgba(255, 255, 255, 0.05);
+        box-shadow:
+            1px 0 0 rgba(255, 255, 255, 0.05),
+            -1px 0 0 rgba(255, 255, 255, 0.05);
         border: none;
         flex-grow: 0;
         height: 100%;
@@ -234,8 +239,12 @@ const serverOffline = api.session.offlineMode;
             background: radial-gradient(rgba(0, 0, 0, 0), rgba(255, 255, 255, 0.15));
             color: #fff;
             text-shadow: 0 0 7px #fff;
-            box-shadow: 1px 0 0 rgba(255, 255, 255, 0.2), -1px 0 0 rgba(255, 255, 255, 0.2), 0 1px 0 rgba(255, 255, 255, 0.2),
-                7px -3px 10px rgba(0, 0, 0, 0.5), -7px -3px 10px rgba(0, 0, 0, 0.5) !important;
+            box-shadow:
+                1px 0 0 rgba(255, 255, 255, 0.2),
+                -1px 0 0 rgba(255, 255, 255, 0.2),
+                0 1px 0 rgba(255, 255, 255, 0.2),
+                7px -3px 10px rgba(0, 0, 0, 0.5),
+                -7px -3px 10px rgba(0, 0, 0, 0.5) !important;
         }
         &.active {
             z-index: 1;
@@ -257,13 +266,17 @@ const serverOffline = api.session.offlineMode;
         box-shadow: 1px 0 0 rgba(255, 255, 255, 0.05);
     }
     &:last-child {
-        box-shadow: -1px 0 0 rgba(255, 255, 255, 0.05), 1px 0 0 rgba(255, 255, 255, 0.15);
+        box-shadow:
+            -1px 0 0 rgba(255, 255, 255, 0.05),
+            1px 0 0 rgba(255, 255, 255, 0.15);
     }
 }
 .primary-right {
     box-shadow: -5px 0 20px rgba(0, 0, 0, 0.4);
     &:first-child {
-        box-shadow: 1px 0 0 rgba(255, 255, 255, 0.05), -1px 0 0 rgba(255, 255, 255, 0.15);
+        box-shadow:
+            1px 0 0 rgba(255, 255, 255, 0.05),
+            -1px 0 0 rgba(255, 255, 255, 0.15);
     }
     &:last-child {
         box-shadow: -1px 0 0 rgba(255, 255, 255, 0.05);
@@ -290,7 +303,9 @@ const serverOffline = api.session.offlineMode;
         &.active {
             color: #fff;
             background: rgba(255, 255, 255, 0.05);
-            box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.5), 0 1px 0 rgba(255, 255, 255, 0.2);
+            box-shadow:
+                inset 0 2px 10px rgba(0, 0, 0, 0.5),
+                0 1px 0 rgba(255, 255, 255, 0.2);
         }
     }
     &-right {
@@ -301,8 +316,12 @@ const serverOffline = api.session.offlineMode;
 }
 .button.close:hover {
     background: rgba(255, 0, 0, 0.2);
-    box-shadow: 1px 0 0 rgba(255, 47, 47, 0.418), -1px 0 0 rgba(255, 47, 47, 0.418), 0 1px 0 rgba(255, 47, 47, 0.418),
-        7px -3px 10px rgba(0, 0, 0, 0.5), -7px -3px 10px rgba(0, 0, 0, 0.5) !important;
+    box-shadow:
+        1px 0 0 rgba(255, 47, 47, 0.418),
+        -1px 0 0 rgba(255, 47, 47, 0.418),
+        0 1px 0 rgba(255, 47, 47, 0.418),
+        7px -3px 10px rgba(0, 0, 0, 0.5),
+        -7px -3px 10px rgba(0, 0, 0, 0.5) !important;
 }
 .server-status-dot {
     font-size: 12px;

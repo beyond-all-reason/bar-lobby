@@ -28,14 +28,14 @@
 </template>
 
 <script lang="ts" setup>
-import { SignalBinding } from "jaz-ts-utils";
+import { SignalBinding } from "$/jaz-ts-utils/signal";
 import { computed, Ref, ref } from "vue";
 
-import Loader from "@/components/common/Loader.vue";
-import Modal from "@/components/common/Modal.vue";
-import Button from "@/components/controls/Button.vue";
-import Select from "@/components/controls/Select.vue";
-import Flag from "@/components/misc/Flag.vue";
+import Loader from "@renderer/components/common/Loader.vue";
+import Modal from "@renderer/components/common/Modal.vue";
+import Button from "@renderer/components/controls/Button.vue";
+import Select from "@renderer/components/controls/Select.vue";
+import Flag from "@renderer/components/misc/Flag.vue";
 
 const clusterUsernames = new Set<string>();
 api.session.battles.forEach((battle) => {

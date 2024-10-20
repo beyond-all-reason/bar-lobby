@@ -3,12 +3,12 @@
         <Textbox
             class="title-textbox"
             :class="{ 'control-not-editable': !editing }"
-            :value="battle.battleOptions.title"
-            :readonly="!editing"
+            :value="battleStore.title"
+            :readonly="!editing || !battleStore.isOnline"
             :style="{ width: titleLength + 'ch' }"
-            @keyup.enter="(event) => handleEnter(event)"
+            @keyup.enter="handleEnter"
         />
-        <div v-if="isSpadsBattle(battle) && !editing" class="flex-col flex-center edit-title" @click="setEditiong">
+        <div v-if="!editing && battleStore.isOnline" class="flex-col flex-center edit-title" @click="setEditing">
             <Icon :icon="squareEditOutline" height="23" />
         </div>
     </div>
@@ -17,32 +17,24 @@
 <script lang="ts" setup>
 import { Icon } from "@iconify/vue";
 import squareEditOutline from "@iconify-icons/mdi/square-edit-outline";
-import { computed } from "@vue/reactivity";
+import { computed } from "vue";
 import { ref } from "vue";
 
-import Textbox from "@/components/controls/Textbox.vue";
-import { AbstractBattle } from "@/model/battle/abstract-battle";
-import { CurrentUser } from "@/model/user";
-import { isSpadsBattle } from "@/utils/type-checkers";
+import Textbox from "@renderer/components/controls/Textbox.vue";
+import { battleStore } from "@renderer/store/battle.store";
 
-const props = defineProps<{
-    battle: AbstractBattle;
-    me: CurrentUser;
-}>();
-const titleLength = computed(() => props.battle.battleOptions.title.length);
-
+const titleLength = computed(() => battleStore.title.length);
 const editing = ref(false);
 
-function setEditiong() {
+function setEditing() {
     editing.value = true;
 }
 
-function handleEnter(event) {
-    api.comms.request("c.lobby.message", {
-        message: `$rename ${event.target.value}`,
-    });
+function handleEnter() {
+    // api.comms.request("c.lobby.message", {
+    //     message: `$rename ${event.target.value}`,
+    // });
     editing.value = false;
-    event.stopPropagation();
 }
 </script>
 

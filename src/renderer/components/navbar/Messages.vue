@@ -19,7 +19,7 @@
                             v-in-view.once="() => (message.read = true)"
                             :class="['message', { fromMe: message.senderUserId === myUser.userId }]"
                         >
-                            <MarkDown :text="message.text" />
+                            <Markdown :source="message.text" />
                         </div>
                     </div>
                 </div>
@@ -64,12 +64,12 @@ import closeThick from "@iconify-icons/mdi/close-thick";
 import TabPanel from "primevue/tabpanel";
 import { inject, Ref, ref } from "vue";
 
-import TabView from "@/components/common/TabView.vue";
-import Button from "@/components/controls/Button.vue";
-import Textbox from "@/components/controls/Textbox.vue";
-import MarkDown from "@/components/misc/MarkDown.vue";
-import PopOutPanel from "@/components/navbar/PopOutPanel.vue";
-import { Message } from "@/model/messages";
+import TabView from "@renderer/components/common/TabView.vue";
+import Button from "@renderer/components/controls/Button.vue";
+import Textbox from "@renderer/components/controls/Textbox.vue";
+import Markdown from "@renderer/components/misc/Markdown.vue";
+import PopOutPanel from "@renderer/components/navbar/PopOutPanel.vue";
+import { Message } from "@renderer/model/messages";
 
 const props = defineProps<{
     modelValue: boolean;

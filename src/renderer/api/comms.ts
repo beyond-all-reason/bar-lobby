@@ -7,19 +7,17 @@
  * this includes matchmaking, chat, direct messages, and other lobby related functions.
  */
 import { Static, TSchema } from "@sinclair/typebox";
-import { arrayToMap, assign } from "jaz-ts-utils";
-import { battleSchema, myUserSchema, TachyonClient } from "tachyon-client";
+import { arrayToMap, assign } from "$/jaz-ts-utils/object";
 import { nextTick, reactive, Ref, ref } from "vue";
 
-import { barManagerHandlers } from "@/api/response-handlers/messages/bar-manager";
-import { battleAnnouncementHandlers } from "@/api/response-handlers/messages/battle-announcement";
-import { battleMessageHandlers } from "@/api/response-handlers/messages/battle-message";
-import { directAnnouncementHandlers } from "@/api/response-handlers/messages/direct-announcement";
-import { directMessageHandlers } from "@/api/response-handlers/messages/direct-message";
-import { SpadsBattle } from "@/model/battle/spads-battle";
-import { Message, MessageHandler } from "@/model/messages";
-import { spadsBoxToStartBox } from "@/utils/start-boxes";
-import { tachyonLog } from "@/utils/tachyon-log";
+import { barManagerHandlers } from "@renderer/api/response-handlers/messages/bar-manager";
+import { battleAnnouncementHandlers } from "@renderer/api/response-handlers/messages/battle-announcement";
+import { battleMessageHandlers } from "@renderer/api/response-handlers/messages/battle-message";
+import { directAnnouncementHandlers } from "@renderer/api/response-handlers/messages/direct-announcement";
+import { directMessageHandlers } from "@renderer/api/response-handlers/messages/direct-message";
+import { Message, MessageHandler } from "@renderer/model/messages";
+import { spadsBoxToStartBox } from "@renderer/utils/start-boxes";
+import { tachyonLog } from "@renderer/utils/tachyon-log";
 
 /**
  * TODO: move most of the response logic into separate response-handler files

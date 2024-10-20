@@ -1,5 +1,5 @@
 <template>
-    <TeamParticipant :battle="battle" @contextmenu="onRightClick">
+    <TeamParticipant @contextmenu="onRightClick">
         <div class="flex-row flex-center">
             <Icon :icon="robot" :height="16" />
         </div>
@@ -20,17 +20,15 @@
 import { Icon } from "@iconify/vue";
 import robot from "@iconify-icons/mdi/robot";
 import { MenuItem } from "primevue/menuitem";
-import { Ref, ref, toRaw } from "vue";
+import { Ref, ref } from "vue";
 
-import LuaOptionsModal from "@/components/battle/LuaOptionsModal.vue";
-import TeamParticipant from "@/components/battle/TeamParticipant.vue";
-import ContextMenu from "@/components/common/ContextMenu.vue";
-import { AbstractBattle } from "@/model/battle/abstract-battle";
-import { Bot } from "@/model/battle/battle-types";
-import { LuaOptionSection } from "@/model/lua-options";
+import LuaOptionsModal from "@renderer/components/battle/LuaOptionsModal.vue";
+import TeamParticipant from "@renderer/components/battle/TeamParticipant.vue";
+import ContextMenu from "@renderer/components/common/ContextMenu.vue";
+import { LuaOptionSection } from "@main/content/game/lua-options";
+import { Bot } from "@main/game/battle/battle-types";
 
 const props = defineProps<{
-    battle: AbstractBattle;
     bot: Bot;
 }>();
 
@@ -60,27 +58,28 @@ function onRightClick(event: MouseEvent) {
 }
 
 function kickBot() {
-    props.battle.removeBot(props.bot);
+    // battleStore.bots = battleStore.bots.filter((b) => b.battleStatus.participantId !== props.bot.battleStatus.participantId);
 }
 
 // Duplicates this bot and its settings and gives it a new player id.
 function duplicateBot() {
-    const duplicatedBot = structuredClone(toRaw(props.bot));
-    duplicatedBot.playerId = props.battle.contenders.value.length;
-    props.battle.addBot(duplicatedBot);
+    // const duplicatedBot = structuredClone(toRaw(props.bot));
+    // duplicatedBot.battleStatus.participantId = battleWithMetadataStore.participants.length + 1;
+    // battleStore.bots.push(duplicatedBot);
 }
 
 async function configureBot() {
-    const engineVersion = api.content.engine.installedVersions.find((version) => version.id === props.battle.battleOptions.engineVersion);
-    const ai = engineVersion?.ais.find((ai) => ai.name === props.bot.name);
-    if (ai) {
-        botOptions.value = ai.options;
-        botOptionsOpen.value = true;
-    }
+    //TODO probably need a selected engine version store
+    // const engineVersion = api.content.engine.installedVersions.find((version) => version.id === props.battle.battleOptions.engineVersion);
+    // const ai = engineVersion?.ais.find((ai) => ai.name === props.bot.name);
+    // if (ai) {
+    //     botOptions.value = ai.options;
+    //     botOptionsOpen.value = true;
+    // }
 }
 
 function setBotOptions(options: Record<string, unknown>) {
-    props.battle.setBotOptions(props.bot.playerId, options);
+    // props.battle.setBotOptions(props.bot.playerId, options);
 }
 </script>
 

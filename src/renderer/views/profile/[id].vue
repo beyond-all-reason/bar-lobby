@@ -17,7 +17,7 @@ TODO:
         <div class="warn-message">not a real profile stats, TODO replace with api</div>
         <div v-if="user">
             <div class="profile-header">
-                <img ref="logo" class="avatar" src="/images/BARLogoFull.png" />
+                <img ref="logo" class="avatar" src="/src/renderer/assets/images/BARLogoFull.png" />
                 <div class="profile-user-info">
                     <h2 class="flex-row gap-lg">
                         <Flag :countryCode="user.countryCode" style="width: 50px" />
@@ -102,14 +102,14 @@ TODO:
 <script lang="ts" setup>
 import { computed, ComputedRef, Ref, ref } from "vue";
 
-import Modal from "@/components/common/Modal.vue";
-import Button from "@/components/controls/Button.vue";
-import Select from "@/components/controls/Select.vue";
-import Textbox from "@/components/controls/Textbox.vue";
-import Flag from "@/components/misc/Flag.vue";
+import Modal from "@renderer/components/common/Modal.vue";
+import Button from "@renderer/components/controls/Button.vue";
+import Select from "@renderer/components/controls/Select.vue";
+import Textbox from "@renderer/components/controls/Textbox.vue";
+import Flag from "@renderer/components/misc/Flag.vue";
 // replace with real api call
-// eslint-disable-next-line no-restricted-imports
-import { SeasonData, seasonsData, seasonsList } from "@/utils/temp-seasons-data.js";
+ 
+import { SeasonData, seasonsData, seasonsList } from "@renderer/utils/temp-seasons-data.js";
 
 const props = defineProps<{
     id: string;

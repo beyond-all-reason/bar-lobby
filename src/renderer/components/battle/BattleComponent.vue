@@ -1,42 +1,42 @@
 <template>
-    <div :class="['battle-container', { singleplayer: isOfflineBattle(battle) }]">
+    <div :class="['battle-container', { singleplayer: true }]">
         <div class="header flex-col gap-md">
-            <BattleTitleComponent :battle="battle" :me="me"></BattleTitleComponent>
-            <div v-if="isSpadsBattle(battle)" class="subtitle flex-row gap-md flex-wrap">
+            <BattleTitleComponent />
+            <!-- <div v-if="isSpadsBattle(battle)" class="subtitle flex-row gap-md flex-wrap">
                 <div class="flex-row gap-sm">
                     Hosted by
                     <div class="founder flex-row gap-sm">
-                        <Flag :countryCode="battle.founder.value.countryCode" style="width: 16px" />
-                        {{ battle.founder.value.username }}
+                        <Flag :countryCode="battleStore.founder.value.countryCode" style="width: 16px" />
+                        {{ battleStore.founder.value.username }}
                     </div>
                 </div>
-                <div class="flex-right">{{ battle.friendlyRuntime.value }}</div>
-            </div>
+                <div class="flex-right">{{ battleStore.friendlyRuntime.value }}</div>
+            </div> -->
         </div>
         <div class="players flex-col gap-md">
-            <Playerlist :battle="battle" :me="me" />
+            <Playerlist />
         </div>
-        <div v-if="isSpadsBattle(battle)" class="chat flex-col gap-md">
+        <!-- <div v-if="isSpadsBattle(battle)" class="chat flex-col gap-md">
             <BattleChat />
-        </div>
+        </div> -->
         <div class="settings flex-col gap-md">
-            <MapPreview
+            <!-- <MapPreview
+                v-if="map"
                 :map="map"
-                :startPosType="props.battle.battleOptions.startPosType"
-                :startBoxes="props.battle.battleOptions.startBoxes"
-                :currentUser="me"
-            />
-
+                :startPosType="battleStore.battleOptions.startPosType"
+                :startBoxes="battleStore.battleOptions.startBoxes"
+            /> -->
+            <MapOverviewCard :map="map" friendly-name="" />
             <div class="flex-row gap-md">
                 <Select
-                    :modelValue="battle.battleOptions.map"
-                    :options="installedMaps"
+                    :modelValue="battleStore.battleOptions.mapScriptName"
+                    :options="mapListOptions"
                     label="Map"
                     optionLabel="scriptName"
                     optionValue="scriptName"
                     :filter="true"
                     class="fullwidth"
-                    :placeholder="battle.battleOptions.map"
+                    :placeholder="battleStore.battleOptions.mapScriptName"
                     @update:model-value="onMapSelected"
                 />
                 <Button v-tooltip.left="'Open map selector'" @click="openMapList">
@@ -51,23 +51,20 @@
                     v-model="mapOptionsOpen"
                     title="Map Options"
                     :map="map"
-                    :startBoxes="battle.battleOptions.startBoxes"
-                    :startPosType="battle.battleOptions.startPosType"
-                    :me="me"
+                    :startBoxes="battleStore.battleOptions.startBoxes"
+                    :startPosType="battleStore.battleOptions.startPosType"
                     @set-map-options="setMapOptions"
                 />
             </div>
-
             <div class="flex-row gap-md">
                 <Select
-                    :modelValue="battle.battleOptions.gameVersion"
-                    :options="installedGames"
-                    optionLabel="id"
-                    optionValue="id"
+                    :modelValue="battleStore.battleOptions.gameVersion"
+                    :options="gameListOptions"
+                    optionLabel="gameVersion"
+                    optionValue="gameVersion"
                     label="Game"
                     :filter="true"
-                    :placeholder="battle.battleOptions.gameVersion"
-                    :disabled="isSpadsBattle(battle)"
+                    :placeholder="battleStore.battleOptions.gameVersion"
                     @update:model-value="onGameSelected"
                 />
                 <Button v-tooltip.left="'Configure game options'" @click="openGameOptions">
@@ -76,166 +73,167 @@
                 <LuaOptionsModal
                     id="game-options"
                     v-model="gameOptionsOpen"
-                    :luaOptions="battle.battleOptions.gameOptions"
-                    :title="`Game Options - ${battle.battleOptions.gameVersion}`"
+                    :luaOptions="battleStore.battleOptions.gameOptions"
+                    :title="`Game Options - ${battleStore.battleOptions.gameVersion}`"
                     :sections="gameOptions"
                     @set-options="setGameOptions"
                 />
             </div>
-
-            <Select
-                :modelValue="battle.battleOptions.engineVersion"
-                :options="installedEngines"
-                optionLabel="id"
-                optionValue="id"
-                label="Engine"
-                :filter="true"
-                :placeholder="battle.battleOptions.engineVersion"
-                :disabled="isSpadsBattle(battle)"
-                class="fullwidth"
-                @update:model-value="onEngineSelected"
-            />
-
-            <template v-if="isSpadsBattle(battle)">
+            <div>
+                <Select
+                    :modelValue="battleStore.battleOptions.engineVersion"
+                    :options="engineListOptions"
+                    optionLabel="id"
+                    optionValue="id"
+                    label="Engine"
+                    :filter="true"
+                    :placeholder="battleStore.battleOptions.engineVersion"
+                    class="fullwidth"
+                    @update:model-value="onEngineSelected"
+                />
+            </div>
+            <!-- <template v-if="isSpadsBattle(battle)">
                 <div class="flex-row gap-md">
-                    <Checkbox label="Locked" :modelValue="battle.battleOptions.locked" showButtons @update:model-value="onLockedChanged" />
-
+                    <Checkbox label="Locked" :modelValue="battleStore.battleOptions.locked" showButtons @update:model-value="onLockedChanged" />
                     <Select
-                        :modelValue="battle.battleOptions.preset"
+                        :modelValue="battleStore.battleOptions.preset"
                         :options="['duel', 'team', 'ffa', 'teamffa']"
                         label="Preset"
-                        :placeholder="battle.battleOptions.preset"
+                        :placeholder="battleStore.battleOptions.preset"
                         class="fullwidth"
                         @update:model-value="onPresetSelected"
                     />
                 </div>
-
                 <div class="flex-row gap-md">
                     <Select
-                        :modelValue="battle.battleOptions.balanceMode"
+                        :modelValue="battleStore.battleOptions.balanceMode"
                         :options="['skill', 'clan;skill', 'random']"
                         label="Balance Mode"
-                        :placeholder="battle.battleOptions.balanceMode"
+                        :placeholder="battleStore.battleOptions.balanceMode"
                         class="fullwidth"
                         @update:model-value="onBalanceModeSelected"
                     />
-
                     <Select
                         label="Team Size"
-                        :modelValue="battle.battleOptions.teamSize"
+                        :modelValue="battleStore.battleOptions.teamSize"
                         :options="[1, 2, 3, 4, 5, 6, 7, 8]"
                         class="fullwidth"
                         showButtons
                         @update:model-value="onTeamSizeSelected"
                     />
                 </div>
-
                 <div class="flex-row gap-md">
                     <Select
-                        :modelValue="battle.battleOptions.autoBalance"
+                        :modelValue="battleStore.battleOptions.autoBalance"
                         :options="['on', 'off', 'advanced']"
                         label="Auto Balance"
-                        :placeholder="battle.battleOptions.autoBalance"
+                        :placeholder="battleStore.battleOptions.autoBalance"
                         class="fullwidth"
                         @update:model-value="onAutoBalanceSelected"
                     />
-
                     <Select
                         label="Num of Teams"
-                        :modelValue="battle.battleOptions.nbTeams"
+                        :modelValue="battleStore.battleOptions.nbTeams"
                         :options="[2, 3, 4]"
                         class="fullwidth"
                         showButtons
                         @update:model-value="onNbTeamsSelected"
                     />
                 </div>
-            </template>
-
+            </template> -->
             <div class="flex-row flex-bottom gap-md">
-                <Button class="red fullwidth" @click="leave"> Leave </Button>
-
-                <template v-if="isSpadsBattle(battle)">
-                    <template v-if="me.battleStatus.isSpectator">
-                        <Button v-if="battle.myQueuePosition.value" class="fullwidth red" @click="leaveQueue"
-                            >Leave Queue ({{ battle.myQueuePosition.value }})</Button
+                <!-- <Button class="red fullwidth" @click="leave">Leave</Button> -->
+                <Button class="fullwidth green" :disabled="gameStore.isGameRunning" @click="battleActions.startBattle">Start</Button>
+                <!-- <template v-if="isSpadsBattle(battle)">
+                    <template v-if="mePlayer.battleStatus.isSpectator">
+                        <Button v-if="battleStore.myQueuePosition.value" class="fullwidth red" @click="leaveQueue"
+                            >Leave Queue ({{ battleStore.myQueuePosition.value }})</Button
                         >
                         <Button v-else class="fullwidth green" @click="joinQueue"
-                            >Join Queue ({{ battle.battleOptions.joinQueueUserIds.length + 1 }})</Button
+                            >Join Queue ({{ battleStore.battleOptions.joinQueueUserIds.length + 1 }})</Button
                         >
-
-                        <Button v-if="battle.battleOptions.startTime" class="fullwidth green" :disabled="isGameRunning.value" @click="start"
+                        <Button
+                            v-if="battleStore.battleOptions.startTime"
+                            class="fullwidth green"
+                            :disabled="gameStore.isGameRunning"
+                            @click="start"
                             >Watch</Button
                         >
                     </template>
                     <template v-else>
-                        <Button v-if="me.battleStatus.ready" class="fullwidth green" @click="toggleReady"
+                        <Button v-if="mePlayer.battleStatus.ready" class="fullwidth green" @click="toggleReady"
                             ><span class="checkbox">✔</span>Unready</Button
                         >
                         <Button v-else class="fullwidth yellow" @click="toggleReady"><span class="checkbox">✖</span>Ready</Button>
-
-                        <Button v-if="battle.battleOptions.startTime" class="fullwidth green" :disabled="isGameRunning.value" @click="start"
+                        <Button
+                            v-if="battleStore.battleOptions.startTime"
+                            class="fullwidth green"
+                            :disabled="gameStore.isGameRunning"
+                            @click="start"
                             >Rejoin</Button
                         >
-                        <Button v-else class="fullwidth green" :disabled="isGameRunning.value" @click="start">Start</Button>
+                        <Button v-else class="fullwidth green" :disabled="gameStore.isGameRunning" @click="start">Start</Button>
                     </template>
-                </template>
-                <template v-else-if="isOfflineBattle(battle)">
-                    <Button class="fullwidth green" :disabled="isGameRunning.value" @click="start">Start</Button>
-                </template>
+                </template> -->
             </div>
         </div>
     </div>
-    <Transition name="slide-up">
-        <VotingPanel v-if="isSpadsBattle(battle) && battle.currentVote.value" :vote="battle.currentVote.value" :battle="battle" />
-    </Transition>
+    <!-- <Transition name="slide-up">
+        <VotingPanel v-if="isSpadsBattle(battle) && battleStore.currentVote.value" :vote="battleStore.currentVote.value" :battle="battle" />
+    </Transition> -->
 </template>
 
 <script lang="ts" setup>
 // TODO: boss, ring, forcespec, kick, ban, preset, votes, rename battle, custom boxes,
 // show non-default mod/map options, tweakunits, stop, rejoin, balance mode
-
+import { Ref, ref, watch } from "vue";
+import { getBoxes, StartBoxOrientation } from "@renderer/utils/start-boxes";
+import { LuaOptionSection } from "@main/content/game/lua-options";
+import { StartPosType } from "@main/game/battle/battle-types";
+import { gameStore } from "@renderer/store/game.store";
+import BattleTitleComponent from "@renderer/components/battle/BattleTitleComponent.vue";
+import Playerlist from "@renderer/components/battle/Playerlist.vue";
+import Select from "@renderer/components/controls/Select.vue";
 import { Icon } from "@iconify/vue";
-import cogIcon from "@iconify-icons/mdi/cog";
+import MapListModal from "@renderer/components/battle/MapListModal.vue";
+import MapOptionsModal from "@renderer/components/battle/MapOptionsModal.vue";
+import LuaOptionsModal from "@renderer/components/battle/LuaOptionsModal.vue";
+import { battleActions, battleStore } from "@renderer/store/battle.store";
+import Button from "@renderer/components/controls/Button.vue";
+import { MapData } from "@main/content/maps/map-data";
+import { db } from "@renderer/store/db";
+import MapOverviewCard from "@renderer/components/maps/MapOverviewCard.vue";
 import listIcon from "@iconify-icons/mdi/format-list-bulleted";
-import { computed, Ref, ref } from "vue";
+import cogIcon from "@iconify-icons/mdi/cog";
+import { useDexieLiveQuery } from "@renderer/composables/useDexieLiveQuery";
 
-import BattleChat from "@/components/battle/BattleChat.vue";
-import BattleTitleComponent from "@/components/battle/BattleTitleComponent.vue";
-import LuaOptionsModal from "@/components/battle/LuaOptionsModal.vue";
-import MapListModal from "@/components/battle/MapListModal.vue";
-import MapOptionsModal from "@/components/battle/MapOptionsModal.vue";
-import Playerlist from "@/components/battle/Playerlist.vue";
-import VotingPanel from "@/components/battle/VotePanel.vue";
-import Button from "@/components/controls/Button.vue";
-import Checkbox from "@/components/controls/Checkbox.vue";
-import Select from "@/components/controls/Select.vue";
-import MapPreview from "@/components/maps/MapPreview.vue";
-import Flag from "@/components/misc/Flag.vue";
-import { AbstractBattle } from "@/model/battle/abstract-battle";
-import { StartPosType } from "@/model/battle/battle-types";
-import { LuaOptionSection } from "@/model/lua-options";
-import { CurrentUser } from "@/model/user";
-import { StartBoxOrientation } from "@/utils/start-boxes";
-import { isOfflineBattle, isSpadsBattle } from "@/utils/type-checkers";
+// onBeforeMount(async () => {
+//     const engine = await db.engineVersions.orderBy("id").first();
+//     const game = await db.gameVersions.orderBy("gameVersion").first();
+//     const map = await db.maps.orderBy("scriptName").first();
+//     resetToDefaultBattle(engine, game, map);
+// });
 
-const props = defineProps<{
-    battle: AbstractBattle;
-    me: CurrentUser;
-}>();
-
-const installedEngines = computed(() => api.content.engine.installedVersions);
-const installedMaps = computed(() =>
-    api.content.maps.installedVersions.sort((a, b) => {
-        return a.friendlyName.localeCompare(b.friendlyName);
-    })
+const map = ref<MapData>();
+watch(
+    () => battleStore.battleOptions.mapScriptName,
+    async (mapScriptName) => {
+        console.log("mapScriptName for this battle", mapScriptName);
+        if (!mapScriptName) {
+            return;
+        }
+        map.value = await db.maps.get(mapScriptName);
+    }
 );
-const map = computed(() => api.content.maps.getMapByScriptName(props.battle.battleOptions.map));
-const installedGames = computed(() => Array.from(api.content.game.installedVersions));
+
 const mapListOpen = ref(false);
 const mapOptionsOpen = ref(false);
 const gameOptionsOpen = ref(false);
+const mapListOptions = useDexieLiveQuery(() => db.maps.toArray());
+const gameListOptions = useDexieLiveQuery(() => db.gameVersions.toArray());
+const engineListOptions = useDexieLiveQuery(() => db.engineVersions.toArray());
+
 const gameOptions: Ref<LuaOptionSection[]> = ref([]);
-const isGameRunning = api.game.isGameRunning;
 
 function openMapList() {
     mapListOpen.value = true;
@@ -245,95 +243,93 @@ function openMapOptions() {
 }
 
 function onEngineSelected(engineVersion: string) {
-    props.battle.setEngine(engineVersion);
+    battleStore.battleOptions.engineVersion = engineVersion;
 }
 
 function onGameSelected(gameVersion: string) {
-    props.battle.setGame(gameVersion);
+    battleStore.battleOptions.gameVersion = gameVersion;
 }
 
 async function openGameOptions() {
     // TODO: show loader on button (maybe @clickAsync event?)
-    gameOptions.value = await api.content.game.getGameOptions(props.battle.battleOptions.gameVersion);
+    gameOptions.value = await window.game.getGameOptions(battleStore.battleOptions.gameVersion);
     gameOptionsOpen.value = true;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function setGameOptions(options: Record<string, any>) {
-    props.battle.setGameOptions(options);
+    battleStore.battleOptions.gameOptions = options;
 }
 
 function setMapOptions(startPosType: StartPosType, orientation: StartBoxOrientation, size: number) {
-    props.battle.setStartBoxes(orientation, size);
-    props.battle.setStartPosType(startPosType);
+    battleStore.battleOptions.startPosType = startPosType;
+    battleStore.battleOptions.startBoxes = getBoxes(orientation, size);
 }
 
 function onMapSelected(mapScriptName: string) {
     mapListOpen.value = false;
-    props.battle.setMap(mapScriptName);
+    battleStore.battleOptions.mapScriptName = mapScriptName;
 }
 
 function onPresetSelected(preset: string) {
-    api.comms.request("c.lobby.message", {
-        message: `!cv preset ${preset}`,
-    });
+    // api.comms.request("c.lobby.message", {
+    //     message: `!cv preset ${preset}`,
+    // });
 }
 
 function onBalanceModeSelected(balanceMode: string) {
-    api.comms.request("c.lobby.message", {
-        message: `!cv balanceMode ${balanceMode}`,
-    });
+    // api.comms.request("c.lobby.message", {
+    //     message: `!cv balanceMode ${balanceMode}`,
+    // });
 }
 
 function onAutoBalanceSelected(autoBalance: string) {
-    api.comms.request("c.lobby.message", {
-        message: `!cv autoBalance ${autoBalance}`,
-    });
+    // api.comms.request("c.lobby.message", {
+    //     message: `!cv autoBalance ${autoBalance}`,
+    // });
 }
 
 function onNbTeamsSelected(nbTeams: number) {
-    api.comms.request("c.lobby.message", {
-        message: `!cv nbTeams ${nbTeams}`,
-    });
+    // api.comms.request("c.lobby.message", {
+    //     message: `!cv nbTeams ${nbTeams}`,
+    // });
 }
 
 function onTeamSizeSelected(teamSize: number) {
-    api.comms.request("c.lobby.message", {
-        message: `!cv teamSize ${teamSize}`,
-    });
+    // api.comms.request("c.lobby.message", {
+    //     message: `!cv teamSize ${teamSize}`,
+    // });
 }
 
 function onLockedChanged(locked: boolean) {
-    api.comms.request("c.lobby.message", {
-        message: `!${locked ? "lock" : "unlock"}`,
-    });
+    // api.comms.request("c.lobby.message", {
+    //     message: `!${locked ? "lock" : "unlock"}`,
+    // });
 }
 
 function toggleReady() {
-    api.comms.request("c.lobby.update_status", {
-        client: {
-            ready: !props.me.battleStatus.ready,
-        },
-    });
+    // api.comms.request("c.lobby.update_status", {
+    //     client: {
+    //         ready: !props.mePlayer.battleStatus.ready,
+    //     },
+    // });
 }
 
 function joinQueue() {
-    api.comms.request("c.lobby.message", {
-        message: "$joinq",
-    });
+    // api.comms.request("c.lobby.message", {
+    //     message: "$joinq",
+    // });
 }
 
 function leaveQueue() {
-    api.comms.request("c.lobby.message", {
-        message: "$leaveq",
-    });
+    // api.comms.request("c.lobby.message", {
+    //     message: "$leaveq",
+    // });
 }
 
 function leave() {
-    props.battle.leave();
-}
-async function start() {
-    props.battle.start();
+    // battleStore.leave();
+    // resetToDefaultBattle();
 }
 </script>
 

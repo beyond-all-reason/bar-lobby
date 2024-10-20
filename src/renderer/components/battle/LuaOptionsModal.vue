@@ -57,19 +57,19 @@
 <script lang="ts" setup>
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { clone } from "jaz-ts-utils";
+import { clone } from "$/jaz-ts-utils/object";
 import TabPanel from "primevue/tabpanel";
 import { reactive, Ref, ref, toRaw } from "vue";
 
-import Modal from "@/components/common/Modal.vue";
-import TabView from "@/components/common/TabView.vue";
-import Button from "@/components/controls/Button.vue";
-import Checkbox from "@/components/controls/Checkbox.vue";
-import Range from "@/components/controls/Range.vue";
-import Select from "@/components/controls/Select.vue";
-import Textbox from "@/components/controls/Textbox.vue";
-import { LuaOptionBoolean, LuaOptionList, LuaOptionNumber, LuaOptionSection, LuaOptionString } from "@/model/lua-options";
-import { setObject } from "@/utils/temp";
+import Modal from "@renderer/components/common/Modal.vue";
+import TabView from "@renderer/components/common/TabView.vue";
+import Button from "@renderer/components/controls/Button.vue";
+import Checkbox from "@renderer/components/controls/Checkbox.vue";
+import Range from "@renderer/components/controls/Range.vue";
+import Select from "@renderer/components/controls/Select.vue";
+import Textbox from "@renderer/components/controls/Textbox.vue";
+import { setObject } from "@renderer/utils/temp";
+import { LuaOptionSection, LuaOptionNumber, LuaOptionBoolean, LuaOptionString, LuaOptionList } from "@main/content/game/lua-options";
 
 const props = defineProps<{
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

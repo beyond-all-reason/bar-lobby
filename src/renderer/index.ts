@@ -1,21 +1,26 @@
-import "node-self";
 import "primevue/resources/primevue.min.css";
 import "flag-icons/css/flag-icons.min.css";
 import "primeicons/primeicons.css";
-import "@/styles/styles.scss";
+import "@renderer/styles/styles.scss";
 
-import { ipcRenderer } from "electron";
-import path from "path";
 import PrimeVue from "primevue/config";
 import Tooltip from "primevue/tooltip";
 import type { TransitionProps } from "vue";
 import { createApp } from "vue";
 import { createI18n } from "vue-i18n";
+import { localeFilePaths } from "@renderer/assets/assetFiles";
 
-import { apiInit } from "@/api/api";
-import App from "@/App.vue";
-import { clickAwayDirective } from "@/utils/click-away-directive";
-import { elementInViewDirective } from "@/utils/element-in-view-directive";
+import App from "@renderer/App.vue";
+import { clickAwayDirective } from "@renderer/utils/click-away-directive";
+import { elementInViewDirective } from "@renderer/utils/element-in-view-directive";
+import { audioApi } from "@renderer/audio/audio";
+import { apiInit } from "@renderer/api/api";
+import { router } from "@renderer/router";
+import { settingsStore } from "@renderer/store/settings.store";
+import { initStores } from "@renderer/store/stores";
+
+// Apply unsafe-eval patch for pixi.js
+import "pixi.js/unsafe-eval";
 
 declare module "vue-router" {
     interface RouteMeta {
@@ -28,68 +33,62 @@ declare module "vue-router" {
         transition?: TransitionProps;
         overflowY?: "scroll" | "hidden";
         devOnly?: boolean;
+        redirect?: string;
     }
 }
 
 (async () => {
+    //TODO replace or drop completely apiInit
     await apiInit();
-
     await setupVue();
-
-    api.router.replace("/");
-
     window.addEventListener("keydown", (event) => {
         if (event.code === "F11") {
             event.preventDefault();
-            api.settings.model.fullscreen = !api.settings.model.fullscreen;
+            settingsStore.fullscreen = !settingsStore.fullscreen;
         }
     });
-
-    await replayOpenedHandlers();
+    //TODO implement this
+    // await replayOpenedHandlers();
 })();
 
 async function setupVue() {
     const app = createApp(App);
-
-    app.use(api.router);
+    app.use(router);
     app.use(PrimeVue, {
         ripple: true,
     });
     app.use(await setupI18n());
-
     app.directive("click-away", clickAwayDirective);
     app.directive("in-view", elementInViewDirective);
     app.directive("tooltip", Tooltip);
-
-    app.mount("#app");
-
     if (process.env.NODE_ENV !== "production") {
         app.config.globalProperties.window = window;
     }
+    // Init stores before mounting app
+    await initStores();
+    await audioApi.init();
+    app.mount("#app");
 }
 
+//TODO implement this, needs to be moved to preload probably
 async function replayOpenedHandlers() {
-    const replay = await ipcRenderer.invoke("opened-replay");
-    if (replay) {
-        api.content.replays.parseAndLaunchReplay(replay);
-    }
-    ipcRenderer.on("open-replay", (_event, arg) => {
-        console.log("renderer recaeived replay to launch:" + arg);
-        api.content.replays.parseAndLaunchReplay(arg);
-    });
+    // const replay = await ipcRenderer.invoke("opened-replay");
+    // if (replay) {
+    //     window.replays.parseAndLaunchReplay(replay);
+    // }
+    // ipcRenderer.on("open-replay", (_event, arg) => {
+    //     console.log("renderer received replay to launch:" + arg);
+    //     api.content.replays.parseAndLaunchReplay(arg);
+    // });
 }
 
 async function setupI18n() {
     const myLocale = Intl.DateTimeFormat().resolvedOptions().locale.split("-")[0];
-
     const messages: Record<string, Record<string, string>> = {};
-
-    const localeFilePaths = import.meta.glob<Record<string, string>>("$/language/*.json", { import: "default" });
     for (const filePath in localeFilePaths) {
-        const localeCode = path.parse(filePath).name;
-        messages[localeCode] = await localeFilePaths[filePath]();
+        const localeCode = filePath.match(/([a-z]{2})\.json$/)![1];
+        messages[localeCode] = localeFilePaths[filePath];
     }
-
     return createI18n({
         locale: myLocale,
         fallbackLocale: "en",

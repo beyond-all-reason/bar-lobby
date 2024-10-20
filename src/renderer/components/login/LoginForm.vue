@@ -27,23 +27,23 @@
 <script lang="ts" setup>
 import { ref, watch } from "vue";
 
-import Loader from "@/components/common/Loader.vue";
-import Button from "@/components/controls/Button.vue";
-import Checkbox from "@/components/controls/Checkbox.vue";
-import Textbox from "@/components/controls/Textbox.vue";
-import { linkify } from "@/utils/linkify";
+import Loader from "@renderer/components/common/Loader.vue";
+import Button from "@renderer/components/controls/Button.vue";
+import Checkbox from "@renderer/components/controls/Checkbox.vue";
+import Textbox from "@renderer/components/controls/Textbox.vue";
+import { linkify } from "@renderer/utils/linkify";
+import { settingsStore } from "@renderer/store/settings.store";
 
 const loading = ref(false);
 const email = ref("");
 const password = ref("");
-const settings = api.settings.model;
 const requestVerification = ref(false);
 const verificationMessage = ref("");
 const verificationCode = ref("");
 const loginError = ref("");
 const verificationError = ref("");
 
-if (settings.loginAutomatically) {
+if (settingsStore.loginAutomatically) {
     if (api.account.model.email) {
         email.value = api.account.model.email;
     }
@@ -65,9 +65,11 @@ async function login() {
 
         const loginResponse = await api.comms.request("c.auth.login", {
             token: api.account.model.token,
-            lobby_name: api.info.lobby.name,
-            lobby_version: api.info.lobby.version,
-            lobby_hash: api.info.lobby.hash,
+
+            //TODO replace with infosStore
+            // lobby_name: api.info.lobby.name,
+            // lobby_version: api.info.lobby.version,
+            // lobby_hash: api.info.lobby.hash,
         });
 
         if (loginResponse.result === "success") {

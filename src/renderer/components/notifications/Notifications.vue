@@ -10,8 +10,8 @@
 </template>
 
 <script lang="ts" setup>
-import Alert from "@/components/notifications/Alert.vue";
-import Event from "@/components/notifications/Event.vue";
+import Alert from "@renderer/components/notifications/Alert.vue";
+import Event from "@renderer/components/notifications/Event.vue";
 
 const notifications = api.notifications;
 </script>

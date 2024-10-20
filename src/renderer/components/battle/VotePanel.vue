@@ -26,10 +26,9 @@
 import { onKeyUp } from "@vueuse/core";
 import { computed, ref, watch } from "vue";
 
-import Panel from "@/components/common/Panel.vue";
-import Button from "@/components/controls/Button.vue";
-import { SpadsBattle } from "@/model/battle/spads-battle";
-import { SpadsVote } from "@/model/spads/spads-types";
+import Panel from "@renderer/components/common/Panel.vue";
+import Button from "@renderer/components/controls/Button.vue";
+import { SpadsVote } from "@main/model/spads/spads-types";
 
 const props = defineProps<{
     vote: SpadsVote;

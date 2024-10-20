@@ -8,7 +8,7 @@
 <script lang="ts" setup>
 import { computed } from "vue";
 
-import Button from "@/components/controls/Button.vue";
+import Button from "@renderer/components/controls/Button.vue";
 
 const props = withDefaults(
     defineProps<{

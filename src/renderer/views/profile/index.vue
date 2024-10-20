@@ -15,9 +15,12 @@
 </template>
 
 <script lang="ts" setup>
+import { useRouter } from "vue-router";
+
 const myUserId = api.session.onlineUser.userId;
 
-await api.router.push(`/profile/${myUserId}`);
+const router = useRouter();
+await router.push(`/profile/${myUserId}`);
 </script>
 
 <style lang="scss" scoped></style>

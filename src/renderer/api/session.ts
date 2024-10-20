@@ -1,21 +1,20 @@
 import { Static } from "@sinclair/typebox";
-import { assign } from "jaz-ts-utils";
-import { lobbySchema, myUserSchema, playerSchema, ResponseType, userSchema } from "tachyon-client";
+import { assign } from "$/jaz-ts-utils/object";
+// import { lobbySchema, myUserSchema, playerSchema, ResponseType, userSchema } from "tachyon-client";
 import { computed, ComputedRef, nextTick, reactive, Ref, ref, shallowReactive, shallowRef } from "vue";
 
-import { OfflineBattle } from "@/model/battle/offline-battle";
-import { SpadsBattle } from "@/model/battle/spads-battle";
-import { Message } from "@/model/messages";
-import { CurrentUser, User } from "@/model/user";
+import { Message } from "@renderer/model/messages";
+import { CurrentUser, User } from "@main/model/user";
+import { Battle } from "@renderer/game/battle";
 
 export class SessionAPI {
     public readonly offlineMode: Ref<boolean> = ref(false);
-    public readonly offlineBattle: Ref<OfflineBattle | null> = shallowRef(null);
-    public readonly onlineBattle: Ref<SpadsBattle | null> = shallowRef(null);
+    public readonly offlineBattle: Ref<Battle | null> = shallowRef(null);
+    public readonly onlineBattle: Ref<Battle | null> = shallowRef(null);
     public readonly users: Map<number, User> = reactive(new Map<number, User>([]));
     public readonly offlineUser: CurrentUser;
     public readonly onlineUser: CurrentUser;
-    public readonly battles: Map<number, SpadsBattle> = shallowReactive(new Map<number, SpadsBattle>());
+    public readonly battles: Map<number, Battle> = shallowReactive(new Map<number, Battle>());
     public readonly battleMessages: Message[] = reactive([]);
     public readonly serverStats: Ref<ResponseType<"s.system.server_stats">["data"] | null> = shallowRef(null);
     public readonly outgoingFriendRequests: ComputedRef<User[]>;

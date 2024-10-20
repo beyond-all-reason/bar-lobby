@@ -7,15 +7,14 @@
 </template>
 
 <script lang="ts" setup>
-import { computed } from "vue";
-
-import { Scenario } from "@/model/scenario";
+import { Scenario } from "@main/content/game/scenario";
+import { ref } from "vue";
 
 const props = defineProps<{
     scenario: Scenario;
 }>();
 
-const backgroundImageCss = computed(() => `url('${props.scenario.imagepath}')`);
+const backgroundImageCss = ref(`url('bar://${props.scenario.imagepath}')`);
 </script>
 
 <style lang="scss" scoped>
@@ -33,7 +32,7 @@ const backgroundImageCss = computed(() => `url('${props.scenario.imagepath}')`);
     will-change: outline;
     &:before {
         @extend .fullsize;
-        background-image: v-bind(backgroundImageCss);
+        background-image: v-bind("backgroundImageCss");
         background-position: center;
         background-size: cover;
         background-repeat: no-repeat;

@@ -12,7 +12,7 @@ import InputNumber from "primevue/inputnumber";
 import Slider, { SliderProps } from "primevue/slider";
 import { computed, onMounted, Ref, ref } from "vue";
 
-import Control from "@/components/controls/Control.vue";
+import Control from "@renderer/components/controls/Control.vue";
 
 export interface Props extends SliderProps {
     modelValue: number | number[] | undefined;

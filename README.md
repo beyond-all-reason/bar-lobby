@@ -31,11 +31,11 @@ It is highly recommended to use [VSCode](https://code.visualstudio.com/) for dev
 
 ### Requirements
 
--   [Node.js 18](https://nodejs.org/en/download/)
+-   [Node.js 20](https://nodejs.org/en/download/)
 
 ### Project setup:
 
 ```bash
 npm install
-npm run dev
+npm run start
 ```

@@ -1,6 +1,6 @@
 import { Type } from "@sinclair/typebox";
 
-import { createMessageHandlers } from "@/model/messages";
+import { createMessageHandlers } from "@renderer/model/messages";
 
 export const barManagerHandlers = createMessageHandlers(
     {

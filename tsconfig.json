@@ -1,4 +1,21 @@
 {
-  "files": [],
-  "references": [{ "path": "./tsconfig.node.json" }, { "path": "./tsconfig.web.json" }]
+    "compilerOptions": {
+        "target": "ESNext",
+        "module": "CommonJS",
+        "paths": {
+            "@preload/*": ["src/preload/*"],
+            "@renderer/*": ["src/renderer/*"],
+            "$/*": ["src/common/*"],
+            "@main/*": ["src/main/*"]
+        },
+        "types": ["vite/client"],
+        "allowJs": true,
+        "skipLibCheck": true,
+        "esModuleInterop": true,
+        "noImplicitAny": true,
+        "baseUrl": ".",
+        "outDir": "dist",
+        "moduleResolution": "node",
+        "resolveJsonModule": true
+    }
 }

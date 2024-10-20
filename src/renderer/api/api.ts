@@ -1,39 +1,16 @@
-import { ipcRenderer } from "electron";
-import * as fs from "fs";
-import * as path from "path";
-import { Router } from "vue-router/auto";
-import { createRouter } from "vue-router/auto";
-import { createMemoryHistory } from "vue-router/auto";
-
-import { AudioAPI } from "@/api/audio";
-import { CacheDbAPI } from "@/api/cache-db";
-import { CommsAPI } from "@/api/comms";
-import { ContentAPI } from "@/api/content/content";
-import { GameAPI } from "@/api/game";
-import { NotificationsAPI } from "@/api/notifications";
-import { prompt } from "@/api/prompt";
-import { SessionAPI } from "@/api/session";
-import { StoreAPI } from "@/api/store";
-import { UtilsAPI } from "@/api/utils";
-import { serverConfig } from "@/config/server";
-import { accountSchema } from "@/model/account";
-import type { Info } from "$/model/info";
-import { settingsSchema } from "$/model/settings";
+import { notificationsApi } from "./notifications";
+import { Account } from "@main/services/account.service";
+import { Message } from "@renderer/model/messages";
 
 interface API {
-    account: StoreAPI<typeof accountSchema>;
-    audio: AudioAPI;
-    cacheDb: CacheDbAPI;
-    comms: CommsAPI;
-    content: ContentAPI;
-    game: GameAPI;
-    info: Info;
-    notifications: NotificationsAPI;
+    account: Account;
+    //TODO implement comms
+    comms: any;
+    notifications: typeof notificationsApi;
+    //TODO implement prompt, see usePrompt
     prompt: typeof prompt;
-    router: Router;
-    session: SessionAPI;
-    settings: StoreAPI<typeof settingsSchema>;
-    utils: UtilsAPI;
+    //TODO implement sesssion
+    session: any;
 }
 
 declare global {
@@ -47,50 +24,109 @@ export async function apiInit() {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const api: API = (window.api = {} as any);
 
-    api.utils = new UtilsAPI();
-
-    api.info = await ipcRenderer.invoke("getInfo");
-
-    const settingsFilePath = path.join(api.info.configPath, "settings.json");
-    api.settings = await new StoreAPI(settingsFilePath, settingsSchema).init();
-
-    await fs.promises.mkdir(api.info.contentPath, {
-        recursive: true,
-    });
-
-    api.session = new SessionAPI();
-
-    api.router = createRouter({
-        // https://github.com/posva/unplugin-vue-router/discussions/63#discussioncomment-3632637
-        extendRoutes: (routes) => {
-            for (const route of routes) {
-                if (route.children) {
-                    for (const childRoute of route.children) {
-                        if (childRoute.meta?.redirect && typeof childRoute.meta?.redirect === "string") {
-                            childRoute.redirect = { path: childRoute.meta.redirect };
-                        }
-                    }
-                }
-            }
-            return routes;
+    // TODO implement session when new tachyon protocol is released
+    // api.session = new SessionAPI();
+    // Mock session object
+    api.session = {
+        directMessages: new Map<number, Message[]>([
+            [
+                1,
+                [
+                    {
+                        type: "chat",
+                        senderUserId: 1,
+                        text: "Hello",
+                    },
+                ],
+            ],
+            [2, []],
+            [3, []],
+        ]),
+        updateUserBattleStauts: () => {},
+        getUserById: () => {},
+        getUserByName: () => {},
+        fetchUserById: () => {},
+        updateBattleList: () => {},
+        onlineUser: {
+            battleStatus: {
+                ready: false,
+                sync: {
+                    engine: 0,
+                    game: 0,
+                    map: 0,
+                },
+            },
         },
-        history: createMemoryHistory(),
-    });
+        onlineBattle: undefined,
+        // {
+        //     contenders: [],
+        //     bots: [],
+        //     spectators: [],
+        //     battleOptions: {},
+        //     battleStatus: {
+        //         ready: false,
+        //         sync: {
+        //             engine: 0,
+        //             game: 0,
+        //             map: 0,
+        //         },
+        //     },
+        // },
+        offlineBattle: {
+            open: () => {},
+            contenders: [],
+            bots: [],
+            spectators: [],
+            battleOptions: {},
+            battleStatus: {
+                ready: false,
+                sync: {
+                    engine: 0,
+                    game: 0,
+                    map: 0,
+                },
+            },
+        },
+        offlineUser: {
+            battleStatus: {
+                ready: false,
+                sync: {
+                    engine: 0,
+                    game: 0,
+                    map: 0,
+                },
+            },
+        },
+        offlineMode: true,
+        outgoingFriendRequests: [],
+        incomingFriendRequests: [],
+        friends: [],
+    };
 
-    api.cacheDb = await new CacheDbAPI().init();
+    // replaced by window.account
+    // api.account = await new StoreAPI(accountFilePath, accountSchema).init();
+    api.account = await window.account.getAccount();
 
-    api.audio = await new AudioAPI().init();
+    // TODO implement session when new tachyon protocol is released
+    // api.comms = new CommsAPI(serverConfig);
+    // Mock comms object
+    api.comms = {
+        connect: () => {},
+        disconnect: () => {},
+        onResponse: (command: string) => {
+            return { add: () => {} };
+        },
+        request: () => {},
+        isConnected: false,
+        config: {
+            host: "localhost",
+            port: 1234,
+        },
+    };
 
-    const accountFilePath = path.join(api.info.configPath, "account.json");
-    api.account = await new StoreAPI(accountFilePath, accountSchema).init();
+    // replaced by notificationsApi
+    api.notifications = notificationsApi;
 
-    api.game = new GameAPI();
-
-    api.comms = new CommsAPI(serverConfig);
-
-    api.content = await new ContentAPI().init();
-
-    api.notifications = new NotificationsAPI();
-
+    // replaced by nothing, use prompt directly when needed
     api.prompt = prompt;
 }

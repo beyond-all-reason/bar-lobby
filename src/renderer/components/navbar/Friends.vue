@@ -82,12 +82,12 @@ import { InputNumberBlurEvent } from "primevue/inputnumber";
 import TabPanel from "primevue/tabpanel";
 import { computed, inject, Ref, ref, watch } from "vue";
 
-import Accordion from "@/components/common/Accordion.vue";
-import TabView from "@/components/common/TabView.vue";
-import Button from "@/components/controls/Button.vue";
-import Number from "@/components/controls/Number.vue";
-import Friend from "@/components/navbar/Friend.vue";
-import PopOutPanel from "@/components/navbar/PopOutPanel.vue";
+import Accordion from "@renderer/components/common/Accordion.vue";
+import TabView from "@renderer/components/common/TabView.vue";
+import Button from "@renderer/components/controls/Button.vue";
+import Number from "@renderer/components/controls/Number.vue";
+import Friend from "@renderer/components/navbar/Friend.vue";
+import PopOutPanel from "@renderer/components/navbar/PopOutPanel.vue";
 
 const props = defineProps<{
     modelValue: boolean;
@@ -101,8 +101,8 @@ const activeIndex = ref(0);
 const accordianActiveIndexes = ref([0, 1, 2]);
 const friendId = ref<number>();
 const addFriendDisabled = ref(true);
-const onlineFriends = computed(() => api.session.friends.value.filter((user) => user.isOnline));
-const offlineFriends = computed(() => api.session.friends.value.filter((user) => !user.isOnline));
+const onlineFriends = computed(() => api.session.friends.filter((user) => user.isOnline));
+const offlineFriends = computed(() => api.session.friends.filter((user) => !user.isOnline));
 const outgoingFriendRequests = api.session.outgoingFriendRequests;
 const incomingFriendRequests = api.session.incomingFriendRequests;
 const myUserId = computed(() => api.session.onlineUser.userId);

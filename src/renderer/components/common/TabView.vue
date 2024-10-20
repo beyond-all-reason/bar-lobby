@@ -11,7 +11,7 @@
 
 import { TabViewEmits, TabViewProps } from "primevue/tabview";
 
-import PrimeVueTabView from "@/components/primevue/PrimeVueTabView.vue";
+import PrimeVueTabView from "@renderer/components/primevue/PrimeVueTabView.vue";
 
 // eslint-disable-next-line
 export interface Props extends TabViewProps {}

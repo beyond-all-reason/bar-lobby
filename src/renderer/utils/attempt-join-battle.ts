@@ -1,7 +1,7 @@
-import Password from "@/components/prompts/Password.vue";
-import { SpadsBattle } from "@/model/battle/spads-battle";
+import Password from "@renderer/components/prompts/Password.vue";
+import { Battle } from "@renderer/game/battle";
 
-export async function attemptJoinBattle(battle: SpadsBattle) {
+export async function attemptJoinBattle(battle: Battle) {
     if (battle.battleOptions.passworded) {
         const data = await api.prompt({
             title: "Battle Password",

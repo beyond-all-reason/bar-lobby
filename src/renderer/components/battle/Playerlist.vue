@@ -1,112 +1,92 @@
 <template>
     <AddBotModal
         v-model="botListOpen"
-        :engineVersion="battle.battleOptions.engineVersion"
-        :gameVersion="battle.battleOptions.gameVersion"
+        :engineVersion="battleStore.battleOptions.engineVersion"
+        :gameVersion="battleStore.battleOptions.gameVersion"
         :teamId="botModalTeamId"
         title="Add Bot"
         @bot-selected="onBotSelected"
     />
     <div class="scroll-container padding-right-sm">
-        <div class="playerlist" :class="{ dragging: draggedParticipant !== null }">
+        <div class="playerlist" :class="{ dragging: draggedBot || draggedPlayer }">
             <TeamComponent
-                v-for="[teamId] in sortedTeams"
+                v-for="(team, teamId) in battleWithMetadataStore.teams"
                 :key="teamId"
                 :teamId="teamId"
-                :battle="battle"
-                :me="me"
                 @add-bot-clicked="openBotList"
                 @on-join-clicked="joinTeam"
                 @on-drag-start="dragStart"
                 @on-drag-end="dragEnd"
-                @on-drag-enter="dragEnter"
-                @on-drop="onDrop"
+                @on-drag-enter="dragEnterTeam"
+                @on-drop="onDropTeam"
             />
         </div>
         <hr class="margin-top-sm margin-bottom-sm" />
-        <TeamComponent
-            :key="-1"
-            class="spectators"
-            :teamId="-1"
-            :battle="battle"
-            :me="me"
-            @add-bot-clicked="openBotList"
-            @on-join-clicked="joinTeam"
-            @on-drag-start="dragStart"
-            @on-drag-end="dragEnd"
-            @on-drag-enter="dragEnter"
-            @on-drop="onDrop"
-        />
+        <div class="playerlist" :class="{ dragging: draggedBot || draggedPlayer }">
+            <SpectatorsComponent
+                class="spectators"
+                @on-join-clicked="joinSpectators"
+                @on-drag-start="dragStart"
+                @on-drag-end="dragEnd"
+                @on-drag-enter="dragEnterSpectators"
+                @on-drop="onDropSpectators"
+            />
+        </div>
     </div>
 </template>
 
 <script lang="ts" setup>
-import { computed, Ref, ref } from "vue";
+import { Ref, ref } from "vue";
 
-import AddBotModal from "@/components/battle/AddBotModal.vue";
-import TeamComponent from "@/components/battle/TeamComponent.vue";
-import { AbstractBattle } from "@/model/battle/abstract-battle";
-import { Bot, Faction } from "@/model/battle/battle-types";
-import { EngineAI } from "@/model/cache/engine-version";
-import { GameAI } from "@/model/cache/game-version";
-import { CurrentUser, User } from "@/model/user";
+import AddBotModal from "@renderer/components/battle/AddBotModal.vue";
+import TeamComponent from "@renderer/components/battle/TeamComponent.vue";
+import { EngineAI } from "@main/content/engine/engine-version";
+import { Bot, isBot, Player } from "@main/game/battle/battle-types";
+import { battleWithMetadataStore, battleStore, battleActions } from "@renderer/store/battle.store";
+import { me } from "@renderer/store/me.store";
+import SpectatorsComponent from "@renderer/components/battle/SpectatorsComponent.vue";
 
-const props = defineProps<{
-    battle: AbstractBattle;
-    me: CurrentUser;
-}>();
 const botListOpen = ref(false);
-const botModalTeamId = ref(0);
-
-const sortedTeams = computed(() => {
-    const teams = new Map(props.battle.teams.value);
-    teams.set(teams.size, []); // Empty team
-    return teams;
-});
-
-//const spectators = props.battle.spectators.value;
+const botModalTeamId = ref("0");
 
 function openBotList(teamId: number) {
     botModalTeamId.value = teamId;
     botListOpen.value = true;
 }
 
-function onBotSelected(bot: EngineAI | GameAI, teamId: number) {
+//TODO only handling engine AIs for now
+function onBotSelected(bot: EngineAI, teamId: number) {
     botListOpen.value = false;
     addBot(bot, teamId);
 }
 
-function addBot(ai: EngineAI | GameAI, teamId: number) {
-    props.battle.addBot({
-        playerId: props.battle.contenders.value.length,
-        teamId,
+//TODO only handling engine AIs for now
+function addBot(ai: EngineAI, teamId: number) {
+    battleStore.teams[teamId].push({
+        id: battleWithMetadataStore.participants.length,
         name: ai.name,
-        aiShortName: "shortName" in ai ? ai.shortName : ai.name,
-        faction: Faction.Armada,
-        ownerUserId: props.me.userId,
-        aiOptions: {},
-    });
+        aiOptions: {}, //TODO where to get this from?
+        aiShortName: ai.shortName,
+        ownerUserId: me.userId,
+    } as Bot);
 }
 
 function joinTeam(teamId: number) {
-    const playerIsSpectator = props.me.battleStatus.isSpectator;
-    if (playerIsSpectator && teamId >= 0) {
-        props.battle.spectatorToPlayer(props.me, teamId);
-    } else if (!playerIsSpectator && teamId < 0) {
-        props.battle.playerToSpectator(props.me);
-    } else if (!playerIsSpectator && teamId >= 0) {
-        props.battle.setContenderTeam(props.me, teamId);
-    }
+    battleActions.movePlayerToTeam(battleStore.me, teamId);
 }
 
-let draggedParticipant: Ref<User | Bot | null> = ref(null);
+function joinSpectators() {
+    battleActions.movePlayerToSpectators(battleStore.me);
+}
+
+const draggedPlayer: Ref<Player | null> = ref(null);
+const draggedBot: Ref<Bot | null> = ref(null);
 let draggedEl: Element | null = null;
 
-function dragEnter(event: DragEvent, teamId: number) {
-    if (!draggedParticipant.value) {
+function dragEnterTeam(event: DragEvent, teamId: number) {
+    if (!draggedPlayer.value && !draggedBot.value) {
         return;
     }
-
     const target = event.target as HTMLElement;
     const groupEl = target.closest("[data-type=group]");
     if (draggedEl && groupEl) {
@@ -115,23 +95,35 @@ function dragEnter(event: DragEvent, teamId: number) {
             el.classList.remove("highlight-error");
         });
     }
-    // this is a little verbose, but previous syntax was very hard to read
-    const playerMember = draggedParticipant.value as User;
-    const botMember = draggedParticipant.value as Bot;
-    const isPlayer = "battleStatus" in playerMember;
-    const isBot = "teamId" in botMember;
-    const isSpectator = isPlayer && playerMember.battleStatus.isSpectator;
-    const memberTeamId = playerMember?.battleStatus?.teamId ?? botMember.teamId;
+    groupEl.classList.add("highlight");
+}
 
-    const invalidMove = (isBot && teamId < 0) || (isSpectator && teamId < 0) || (memberTeamId === teamId && !isSpectator);
-
-    if (groupEl) {
-        invalidMove ? groupEl.classList.add("highlight-error") : groupEl.classList.add("highlight");
+function dragEnterSpectators(event: DragEvent) {
+    if (!draggedPlayer.value && !draggedBot.value) {
+        return;
+    }
+    const target = event.target as HTMLElement;
+    const groupEl = target.closest("[data-type=group]");
+    if (draggedEl && groupEl) {
+        document.querySelectorAll("[data-type=group]").forEach((el) => {
+            el.classList.remove("highlight");
+            el.classList.remove("highlight-error");
+        });
+    }
+    if (draggedPlayer.value) {
+        groupEl.classList.add("highlight");
+    }
+    if (draggedBot.value) {
+        groupEl.classList.add("highlight-error");
     }
 }
 
-function dragStart(event: DragEvent, participant: User | Bot) {
-    draggedParticipant.value = participant;
+function dragStart(event: DragEvent, participant: Player | Bot) {
+    if (isBot(participant)) {
+        draggedBot.value = participant;
+    } else {
+        draggedPlayer.value = participant;
+    }
     draggedEl = event.target as Element;
     const participantEl = draggedEl?.querySelector("[data-type=participant]");
     if (participantEl) {
@@ -144,37 +136,37 @@ function dragEnd() {
     if (participantEl) {
         participantEl.classList.remove("dragging");
     }
-    draggedParticipant.value = null;
+    draggedBot.value = null;
+    draggedPlayer.value = null;
     draggedEl = null;
-
     document.querySelectorAll("[data-type=group]").forEach((el) => {
         el.classList.remove("highlight");
         el.classList.remove("highlight-error");
     });
 }
 
-function onDrop(event: DragEvent, teamId: number) {
+function onDropTeam(event: DragEvent, teamId: number) {
     const target = event.target as Element;
-    if (!draggedParticipant.value || target.getAttribute("data-type") !== "group") {
+    if (!draggedBot.value && !draggedPlayer.value) {
         return;
     }
-    const playerMember = draggedParticipant.value as User;
-    const isPlayer = "battleStatus" in playerMember;
-    const isSpectator = isPlayer && playerMember.battleStatus.isSpectator;
-
-    if (teamId >= 0) {
-        // move to team
-        if ((isPlayer && !isSpectator) || !isPlayer) {
-            props.battle.setContenderTeam(draggedParticipant.value, teamId);
-        } else if (isPlayer && isSpectator) {
-            props.battle.spectatorToPlayer(playerMember, teamId);
-        }
-    } else {
-        // move to spectate
-        if (isPlayer && !isSpectator) {
-            props.battle.playerToSpectator(playerMember);
-        }
+    if (target.getAttribute("data-type") !== "group") {
+        return;
     }
+    if (draggedBot.value) {
+        battleActions.moveBotToTeam(draggedBot.value, teamId);
+    }
+    if (draggedPlayer.value) {
+        battleActions.movePlayerToTeam(draggedPlayer.value, teamId);
+    }
+}
+
+function onDropSpectators(event: DragEvent) {
+    const target = event.target as Element;
+    if (draggedBot.value || !draggedPlayer.value || target.getAttribute("data-type") !== "group") {
+        return;
+    }
+    battleActions.movePlayerToSpectators(draggedPlayer.value);
 }
 </script>
 

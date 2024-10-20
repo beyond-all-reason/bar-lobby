@@ -1,15 +1,16 @@
 <template>
-    <div id="wrapper" class="wrapper fullsize" @click.left="leftClick" @click.right="rightClick">
+    <div v-if="settingsStore.isInitialized" id="wrapper" class="wrapper fullsize">
         <transition mode="in-out" name="intro">
-            <IntroVideo v-if="!skipIntro && videoVisible" @complete="onIntroEnd" />
+            <IntroVideo v-if="!settingsStore.skipIntro && videoVisible" @complete="onIntroEnd" />
         </transition>
-        <DebugSidebar v-if="settings.devMode" />
+        <DebugSidebar v-if="settingsStore.devMode" />
         <StickyBattle />
         <Background :blur="blurBg" />
         <Notifications />
         <PromptContainer />
+        <NavBar :class="{ hidden: empty || state === 'preloader' || state === 'initial-setup' }" />
         <div class="lobby-version">
-            {{ lobbyVersion }}
+            {{ infosStore.lobby.version }}
         </div>
         <div v-if="empty" class="splash-options">
             <div class="option" @click="settingsOpen = true">
@@ -19,71 +20,63 @@
                 <Icon :icon="closeThick" height="21" />
             </div>
         </div>
-        <transition mode="out-in" name="fade">
+        <Transition mode="out-in" name="fade">
             <Preloader v-if="state === 'preloader'" @complete="onPreloadDone" />
             <InitialSetup v-else-if="state === 'initial-setup'" @complete="onInitialSetupDone" />
-            <div v-else class="fullsize">
-                <NavBar :class="{ hidden: empty }" />
-                <div :class="`view view--${$router.currentRoute.value.name?.toString()}`">
-                    <Panel :empty="empty" class="flex-grow">
-                        <Breadcrumbs :class="{ hidden: empty }" />
-                        <router-view v-slot="{ Component, route }">
-                            <transition name="slide-left">
-                                <!--mode= "out-in" causes bug see https://github.com/beyond-all-reason/bar-lobby/issues/61 add back in once vue fixes underlining issue-->
-                                <template v-if="Component">
-                                    <suspense timeout="0">
-                                        <component :is="Component" :key="route.path" />
-                                        <template #fallback>
-                                            <Loader />
-                                        </template>
-                                    </suspense>
-                                </template>
-                            </transition>
-                        </router-view>
-                    </Panel>
-                </div>
+            <div class="view-container" v-else>
+                <RouterView v-slot="{ Component, route }">
+                    <template v-if="Component">
+                        <Transition v-bind="route.meta.transition" mode="out-in">
+                            <KeepAlive>
+                                <Suspense suspensible timeout="0">
+                                    <component :is="Component" />
+                                    <template #fallback>
+                                        <Loader />
+                                    </template>
+                                </Suspense>
+                            </KeepAlive>
+                        </Transition>
+                    </template>
+                </RouterView>
             </div>
-        </transition>
+        </Transition>
+        <Settings v-model="settingsOpen" />
+        <Error />
     </div>
-    <Settings v-model="settingsOpen" />
-    <Error />
 </template>
 
 <script lang="ts" setup>
 import { Icon } from "@iconify/vue";
 import closeThick from "@iconify-icons/mdi/close-thick";
 import cog from "@iconify-icons/mdi/cog";
-import { computed, provide, Ref } from "vue";
+import { provide, Ref, toRef, toValue, Transition, Suspense } from "vue";
 import { ref } from "vue";
-import { useRouter } from "vue-router/auto";
+import { useRouter } from "vue-router";
 
-import StickyBattle from "@/components/battle/StickyBattle.vue";
-import Loader from "@/components/common/Loader.vue";
-import Panel from "@/components/common/Panel.vue";
-import Background from "@/components/misc/Background.vue";
-import DebugSidebar from "@/components/misc/DebugSidebar.vue";
-import Error from "@/components/misc/Error.vue";
-import InitialSetup from "@/components/misc/InitialSetup.vue";
-import IntroVideo from "@/components/misc/IntroVideo.vue";
-import Preloader from "@/components/misc/Preloader.vue";
-import Breadcrumbs from "@/components/navbar/Breadcrumbs.vue";
-import NavBar from "@/components/navbar/NavBar.vue";
-import Settings from "@/components/navbar/Settings.vue";
-import Notifications from "@/components/notifications/Notifications.vue";
-import PromptContainer from "@/components/prompts/PromptContainer.vue";
-import { defaultMaps } from "@/config/default-maps";
-import { defaultEngineVersion, defaultGameVersion } from "@/config/default-versions";
-import { playRandomMusic } from "@/utils/play-random-music";
+import StickyBattle from "@renderer/components/battle/StickyBattle.vue";
+import Loader from "@renderer/components/common/Loader.vue";
+import Background from "@renderer/components/misc/Background.vue";
+import DebugSidebar from "@renderer/components/misc/DebugSidebar.vue";
+import Error from "@renderer/components/misc/Error.vue";
+import InitialSetup from "@renderer/components/misc/InitialSetup.vue";
+import IntroVideo from "@renderer/components/misc/IntroVideo.vue";
+import Preloader from "@renderer/components/misc/Preloader.vue";
+import NavBar from "@renderer/components/navbar/NavBar.vue";
+import Settings from "@renderer/components/navbar/Settings.vue";
+import Notifications from "@renderer/components/notifications/Notifications.vue";
+import PromptContainer from "@renderer/components/prompts/PromptContainer.vue";
+
+import { playRandomMusic } from "@renderer/utils/play-random-music";
+import { settingsStore } from "./store/settings.store";
+import { infosStore } from "@renderer/store/infos.store";
+import { enginesStore } from "@renderer/store/engine.store";
 
 const router = useRouter();
-const settings = api.settings.model;
-const skipIntro = settings.skipIntro;
-const videoVisible = ref(!settings.skipIntro);
+const videoVisible = toRef(!toValue(settingsStore.skipIntro));
+
 const state: Ref<"preloader" | "initial-setup" | "default"> = ref("preloader");
-const empty = ref(false);
-const blurBg = ref(true);
-const lobbyVersion = api.info.lobby.version;
-const viewOverflowY = computed(() => (router.currentRoute.value.meta.overflowY ? router.currentRoute.value.meta.overflowY : "auto"));
+const empty = ref(router.currentRoute.value?.meta?.empty ?? false);
+const blurBg = ref(router.currentRoute.value?.meta?.blurBg ?? true);
 
 const settingsOpen = ref(false);
 const exitOpen = ref(false);
@@ -102,60 +95,60 @@ provide("toggleDownloads", toggleDownloads);
 
 playRandomMusic();
 
+const simpleRouterMemory = new Map<string, string>();
+router.beforeEach(async (to, from) => {
+    if (to.meta?.redirect) {
+        const redirection = simpleRouterMemory.get(to.fullPath.split("/")[1]) ?? to.meta.redirect;
+        return {
+            path: redirection,
+        };
+    }
+});
+
 router.afterEach(async (to, from) => {
+    simpleRouterMemory.set(to.fullPath.split("/")[1], to.fullPath);
     empty.value = to?.meta?.empty ?? false;
     blurBg.value = to?.meta?.blurBg ?? blurBg.value;
 });
 
 function onIntroEnd() {
     videoVisible.value = false;
+    console.log("Intro video ended");
 }
 
 async function onPreloadDone() {
-    console.time("onPreloadDone");
-
+    state.value = "initial-setup";
     // TODO: should also check to see if game and maps are installed (need to fix bug where interrupted game dl reports as successful install)
-    if (api.content.engine.installedVersions.length === 0) {
+    const installedEngines = await window.engine.getInstalledVersions();
+    console.log(installedEngines);
+    if (installedEngines.length === 0) {
         state.value = "initial-setup";
-    } else {
-        // TODO: fix the slight delay these cause on startup, probably best to move them into worker threads
-        api.content.engine.downloadEngine(defaultEngineVersion);
-        api.content.game.downloadGame(defaultGameVersion);
-        api.content.maps.downloadMaps(defaultMaps);
-
-        state.value = "default";
+        return;
     }
-
-    console.timeEnd("onPreloadDone");
+    const installedGameVersions = await window.game.getInstalledVersions();
+    console.log(installedGameVersions);
+    if (installedGameVersions.length === 0) {
+        state.value = "initial-setup";
+        return;
+    }
+    state.value = "default";
 }
 
 function onInitialSetupDone() {
     state.value = "default";
-}
-
-function leftClick() {
-    return api.utils.onLeftClick.dispatch();
-}
-function rightClick() {
-    return api.utils.onRightClick.dispatch();
+    console.log("Initial setup done");
 }
 </script>
 
 <style lang="scss" scoped>
+.view-container {
+    flex: auto;
+}
+
 .wrapper {
     overflow: hidden;
 }
-.view {
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-    flex-grow: 1;
-    gap: 10px;
-    overflow: hidden;
-}
-:deep(.view > .panel) {
-    overflow-y: v-bind(viewOverflowY);
-}
+
 .lobby-version {
     position: absolute;
     left: 3px;

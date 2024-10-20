@@ -24,8 +24,8 @@
 import type { Ref } from "vue";
 import { onMounted, ref, watch } from "vue";
 
-import Textbox from "@/components/controls/Textbox.vue";
-import AutoSuggestionOption from "@/utils/auto-suggestion-option";
+import Textbox from "@renderer/components/controls/Textbox.vue";
+import AutoSuggestionOption from "@renderer/utils/auto-suggestion-option";
 
 const props = defineProps<{
     modelValue: string;

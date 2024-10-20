@@ -1,7 +1,6 @@
 // TODO: move to jaz-ts-utils
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/ban-types */
 export type TypedProxyHandler<T extends object> = Omit<ProxyHandler<T>, "set"> & {
     apply?(target: T, thisArg: any, argArray: any[]): any;
     construct?(target: T, argArray: any[], newTarget: Function): object;

@@ -17,8 +17,8 @@
 </template>
 
 <script lang="ts" setup>
-import Modal from "@/components/common/Modal.vue";
-import Button from "@/components/controls/Button.vue";
+import Modal from "@renderer/components/common/Modal.vue";
+import Button from "@renderer/components/controls/Button.vue";
 
 function test(evt) {
     console.log(evt);

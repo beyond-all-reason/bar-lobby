@@ -1,25 +1,34 @@
 <template>
     <Control class="select" v-bind="$props">
-        <Dropdown v-bind="$attrs" filterPlaceholder="Search" :autoFilterFocus="true" :autoOptionFocus="true" :resetFilterOnHide="true">
-            <template v-for="(_, name) in ($slots as {})" #[name]="slotData">
-                <slot :name="name" v-bind="slotData || {}" />
-            </template>
+        <Dropdown
+            v-bind="$props"
+            filterPlaceholder="Search"
+            :autoFilterFocus="true"
+            :autoOptionFocus="true"
+            :resetFilterOnHide="true"
+            @update:modelValue="handleEvent"
+        >
+            <slot />
         </Dropdown>
     </Control>
 </template>
 
 <script lang="ts" setup>
-// https://primefaces.org/primevue/dropdown
 import Dropdown, { DropdownProps } from "primevue/dropdown";
 
-import Control from "@/components/controls/Control.vue";
+import Control from "@renderer/components/controls/Control.vue";
 
 export interface Props extends DropdownProps {
     disabled?: boolean;
     label?: string;
 }
 
-const props = defineProps<Props>();
+defineProps<Props>();
+
+const emit = defineEmits(["update:modelValue"]);
+function handleEvent(value: any) {
+    emit("update:modelValue", value);
+}
 </script>
 
 <style lang="scss">

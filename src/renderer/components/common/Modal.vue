@@ -1,48 +1,55 @@
 <template>
-    <teleport to="#wrapper">
-        <transition name="modal" appear>
-            <form v-if="isOpen" ref="form" class="container" @submit.prevent="onSubmit" @keydown.enter="onSubmit">
-                <Panel id="modal" class="modal-panel" v-bind="$attrs">
-                    <template #header>
-                        <div class="title">
-                            <slot name="title">
-                                {{ title }}
-                            </slot>
-                        </div>
-                        <div class="close" @click="close" @mouseenter="sound">
-                            <Icon :icon="closeThick" height="23" />
-                        </div>
-                    </template>
+    <teleport v-if="isLoaded" to="#wrapper">
+        <!-- <transition name="modal" appear> -->
+        <form v-if="isOpen" ref="form" class="container" @submit.prevent="onSubmit" @keydown.enter="onSubmit">
+            <Panel id="modal" class="modal-panel" v-bind="$attrs">
+                <template #header>
+                    <div class="title">
+                        <slot name="title">
+                            {{ title }}
+                        </slot>
+                    </div>
+                    <div class="close" @click="close" @mouseenter="sound">
+                        <Icon :icon="closeThick" height="23" />
+                    </div>
+                </template>
 
-                    <slot />
+                <slot />
 
-                    <template #footer>
-                        <slot name="footer"></slot>
-                    </template>
-                </Panel>
-            </form>
-        </transition>
+                <template #footer>
+                    <slot name="footer"></slot>
+                </template>
+            </Panel>
+        </form>
+        <!-- </transition> -->
     </teleport>
 </template>
 
 <script lang="ts">
 export default {
     inheritAttrs: false,
+    emits: [],
 };
 </script>
 
 <script lang="ts" setup>
 import { Icon } from "@iconify/vue";
 import closeThick from "@iconify-icons/mdi/close-thick";
-import { nextTick, Ref, ref, toRef, watch } from "vue";
+import { nextTick, onMounted, Ref, ref, toRef, watch } from "vue";
 
-import Panel from "@/components/common/Panel.vue";
+import Panel from "@renderer/components/common/Panel.vue";
+import { audioApi } from "@renderer/audio/audio";
 
 export type PanelProps = InstanceType<typeof Panel>["$props"];
-export interface ModalProps extends PanelProps {
-    modelValue: boolean;
+export interface ModalProps extends /* @vue-ignore */ PanelProps {
+    modelValue?: boolean;
     title?: string;
 }
+
+const isLoaded = ref(false);
+onMounted(() => {
+    isLoaded.value = true;
+});
 
 const props = withDefaults(defineProps<ModalProps>(), {
     modelValue: false,
@@ -97,7 +104,7 @@ async function onSubmit() {
 }
 
 function sound() {
-    return api.audio.play("button-hover");
+    return audioApi.play("button-hover");
 }
 </script>
 

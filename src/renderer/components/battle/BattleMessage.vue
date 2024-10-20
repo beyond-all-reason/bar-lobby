@@ -4,14 +4,14 @@
             <Flag :countryCode="user.countryCode" style="width: 16px" />
             <div>{{ user.username }}</div>
         </div>
-        <MarkDown :text="message.text" />
+        <Markdown :source="message.text" />
     </div>
 </template>
 
 <script lang="ts" setup>
-import Flag from "@/components/misc/Flag.vue";
-import MarkDown from "@/components/misc/MarkDown.vue";
-import { Message } from "@/model/messages";
+import Flag from "@renderer/components/misc/Flag.vue";
+import Markdown from "@renderer/components/misc/Markdown.vue";
+import { Message } from "@renderer/model/messages";
 
 const props = defineProps<{
     message: Message;

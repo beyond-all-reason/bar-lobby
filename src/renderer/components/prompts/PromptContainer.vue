@@ -26,8 +26,9 @@ import { Icon } from "@iconify/vue";
 import closeThick from "@iconify-icons/mdi/close-thick";
 import { ref, watch } from "vue";
 
-import { promptRef } from "@/api/prompt";
-import Panel from "@/components/common/Panel.vue";
+import { promptRef } from "@renderer/api/prompt";
+import Panel from "@renderer/components/common/Panel.vue";
+import { audioApi } from "@renderer/audio/audio";
 
 const promptInstance = ref();
 watch(promptInstance, () => {
@@ -41,7 +42,7 @@ function close() {
 }
 
 function sound() {
-    return api.audio.play("button-hover");
+    return audioApi.play("button-hover");
 }
 </script>
 

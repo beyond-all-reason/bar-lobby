@@ -33,26 +33,29 @@ import closeThick from "@iconify-icons/mdi/close-thick";
 import eyeIcon from "@iconify-icons/mdi/eye";
 import robotIcon from "@iconify-icons/mdi/robot";
 import swordCross from "@iconify-icons/mdi/sword-cross";
-import { computed } from "vue";
+import { computed, ref } from "vue";
+import { useRouter } from "vue-router";
 
-const route = api.router.currentRoute;
-const me = api.session.onlineUser;
-const battle = api.session.onlineBattle;
+const router = useRouter();
+const route = router.currentRoute;
+const battle = ref(api.session.onlineBattle);
 const playerCount = computed(() => battle.value?.contenders.value.filter((c) => "userId" in c).length);
 const botCount = computed(() => battle.value?.bots.length);
 const specCount = computed(() => battle.value?.spectators.value.length);
 const color = computed(() => {
-    if (me.battleStatus.sync.engine < 1 || me.battleStatus.sync.game < 1 || me.battleStatus.sync.map < 1) {
-        return "rgb(165, 30, 30)";
-    } else if (!me.battleStatus.ready) {
-        return "rgb(243, 213, 79)";
-    } else {
-        return "rgb(120, 189, 57)";
-    }
+    //TODO need a better way to check content status
+    // if (mePlayer.battleStatus.sync.engine < 1 || mePlayer.battleStatus.sync.game < 1 || mePlayer.battleStatus.sync.map < 1) {
+    //     return "rgb(165, 30, 30)";
+    // } else if (!mePlayer.battleStatus.isReady) {
+    //     return "rgb(243, 213, 79)";
+    // } else {
+    //     return "rgb(120, 189, 57)";
+    // }
+    return "rgb(120, 189, 57)";
 });
 
 async function openBattle() {
-    await api.router.push("/multiplayer/battle");
+    await router.push("/multiplayer/battle");
 }
 
 function leaveBattle() {

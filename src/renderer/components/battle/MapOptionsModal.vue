@@ -1,7 +1,7 @@
 <template>
     <Modal ref="modal" :title="title" class="map-list-modal">
         <div class="container">
-            <MapPreview :map="map" :currentUser="me" :startPosType="startPosType" :startBoxes="startBoxes" />
+            <MapPreview :map="map" :startPosType="startPosType" :startBoxes="startBoxes" />
 
             <div class="options flex-col gap-md">
                 <Options
@@ -16,16 +16,16 @@
                 />
                 <div class="box-buttons">
                     <Button :disabled="disableBoxControls" @click="setBoxType(StartBoxOrientation.EastVsWest)">
-                        <img src="/images/icons/east-vs-west.png" />
+                        <img src="/src/renderer/assets/images/icons/east-vs-west.png" />
                     </Button>
                     <Button :disabled="disableBoxControls" @click="setBoxType(StartBoxOrientation.NorthVsSouth)">
-                        <img src="/images/icons/north-vs-south.png" />
+                        <img src="/src/renderer/assets/images/icons/north-vs-south.png" />
                     </Button>
                     <Button :disabled="disableBoxControls" @click="setBoxType(StartBoxOrientation.NortheastVsSouthwest)">
-                        <img src="/images/icons/northeast-vs-southwest.png" />
+                        <img src="/src/renderer/assets/images/icons/northeast-vs-southwest.png" />
                     </Button>
                     <Button :disabled="disableBoxControls" @click="setBoxType(StartBoxOrientation.NorthwestVsSouthEast)">
-                        <img src="/images/icons/northwest-vs-southeast.png" />
+                        <img src="/src/renderer/assets/images/icons/northwest-vs-southeast.png" />
                     </Button>
                 </div>
                 <div>
@@ -43,15 +43,14 @@
 <script lang="ts" setup>
 import { Ref, ref, watch } from "vue";
 
-import Modal from "@/components/common/Modal.vue";
-import Button from "@/components/controls/Button.vue";
-import Options from "@/components/controls/Options.vue";
-import Range from "@/components/controls/Range.vue";
-import MapPreview from "@/components/maps/MapPreview.vue";
-import { StartBox, StartPosType } from "@/model/battle/battle-types";
-import { MapData } from "@/model/cache/map-data";
-import { CurrentUser } from "@/model/user";
-import { getBoxes, StartBoxOrientation } from "@/utils/start-boxes";
+import Modal from "@renderer/components/common/Modal.vue";
+import Button from "@renderer/components/controls/Button.vue";
+import Options from "@renderer/components/controls/Options.vue";
+import Range from "@renderer/components/controls/Range.vue";
+import { getBoxes, StartBoxOrientation } from "@renderer/utils/start-boxes";
+import { StartBox, StartPosType } from "@main/game/battle/battle-types";
+import { MapData } from "@main/content/maps/map-data";
+import MapPreview from "@renderer/components/maps/MapPreview.vue";
 
 const modal: Ref<null | InstanceType<typeof Modal>> = ref(null);
 
@@ -60,7 +59,6 @@ const props = defineProps<{
     map: MapData;
     startBoxes: Record<number, StartBox>;
     startPosType: StartPosType;
-    me: CurrentUser;
 }>();
 
 const boxRange = ref(25);

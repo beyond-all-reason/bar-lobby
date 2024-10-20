@@ -109,6 +109,7 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
+@use "sass:color";
 $input-color: #ccc;
 $input-background: #ffffff11;
 $icon-color: $input-color;
@@ -130,7 +131,7 @@ $active-color: #ccc;
         transition-duration: 0.25s;
         transition-timing-function: ease-in-out;
         &:focus {
-            background-color: lighten($input-background, 25%);
+            background-color: color.adjust($input-background, $lightness: 25%);
             border-color: $active-color;
             outline: 0;
             box-shadow: none;
@@ -143,7 +144,7 @@ $active-color: #ccc;
         &.search {
             color: $icon-color;
             left: 12px;
-            bottom: 12px;
+            bottom: 14px;
             box-sizing: border-box;
             display: block;
             width: 16px;
@@ -154,7 +155,7 @@ $active-color: #ccc;
             margin-top: -4px;
         }
         &.search::after {
-            color: darken($icon-color, 30%);
+            color: color.adjust($icon-color, $lightness: -30%);
             content: "";
             display: block;
             box-sizing: border-box;
@@ -182,7 +183,7 @@ $active-color: #ccc;
             padding: 0px;
             outline: none;
             &:focus {
-                background: darken($input-background, 4%);
+                background: color.adjust($input-background, $lightness: -4%);
             }
         }
         &.clear::after,

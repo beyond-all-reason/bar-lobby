@@ -1,6 +1,6 @@
 /* eslint-disable no-restricted-imports */
 
-import { parseLuaTable } from "../src/renderer/utils/parse-lua-table";
+import { parseLuaTable } from "@main/utils/parse-lua-table";
 
 const table = `
 local table = {
