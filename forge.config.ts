@@ -1,10 +1,7 @@
 import type { ForgeConfig } from "@electron-forge/shared-types";
-import { MakerSquirrel } from "@electron-forge/maker-squirrel";
-import { MakerZIP } from "@electron-forge/maker-zip";
 import { MakerDeb } from "@electron-forge/maker-deb";
 import { MakerRpm } from "@electron-forge/maker-rpm";
 import { MakerFlatpak } from "@electron-forge/maker-flatpak";
-import { MakerSnap } from "@electron-forge/maker-snap";
 import { VitePlugin } from "@electron-forge/plugin-vite";
 
 const config: ForgeConfig = {
@@ -14,7 +11,6 @@ const config: ForgeConfig = {
     rebuildConfig: {},
     makers: [
         new MakerSquirrel({}),
-        new MakerZIP({}, ["darwin"]),
         new MakerRpm({
             options: {
                 mimeType: ["application/sdfz"],
@@ -28,7 +24,6 @@ const config: ForgeConfig = {
         }),
         new MakerDeb({}),
         new MakerFlatpak({}),
-        new MakerSnap({}),
     ],
     plugins: [
         new VitePlugin({
