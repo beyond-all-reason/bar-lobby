@@ -6,7 +6,7 @@
 </template>
 
 <script lang="ts" setup>
-const props = defineProps<{
+defineProps<{
     countryCode?: string;
 }>();
 </script>

@@ -26,7 +26,7 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, onMounted, onUnmounted, reactive, Ref, ref } from "vue";
+import { computed, onMounted, onUnmounted, Ref, ref } from "vue";
 
 import { Command, serverCommandList } from "@renderer/api/commands";
 import SearchBox from "@renderer/components/controls/SearchBox.vue";
@@ -80,7 +80,9 @@ const directMessageCommandListener = api.comms.onResponse("s.communication.recei
     if (!message.startsWith("!") && !message.startsWith("$")) return;
     const cmd = message.split("-")[0].split(" ")[0];
     const cmdDescription = message.slice(cmd.length + 1).replace("-", " ");
-    cmdDescription && !cmdDescription.includes("*") && commands.push({ cmd, cmdDescription });
+    if (cmdDescription && !cmdDescription.includes("*")) {
+        commands.push({ cmd, cmdDescription });
+    }
 });
 
 onMounted(() => {

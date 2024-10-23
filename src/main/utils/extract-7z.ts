@@ -1,5 +1,4 @@
 import { cmd, unpack } from "7zip-min";
-import fs from "fs";
 
 export function extract7z(archivePath: string, outputPath: string) {
     return new Promise<void>((resolve, reject) => {

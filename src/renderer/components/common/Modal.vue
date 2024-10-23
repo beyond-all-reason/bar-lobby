@@ -28,7 +28,6 @@
 <script lang="ts">
 export default {
     inheritAttrs: false,
-    emits: [],
 };
 </script>
 

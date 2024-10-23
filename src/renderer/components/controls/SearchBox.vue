@@ -86,8 +86,8 @@ export default defineComponent({
             emit("update:modelValue", (e.target as HTMLInputElement).value);
         }
         function onKeydown(e: KeyboardEvent) {
-            if (e.key === "Escape") {
-                props.clearOnEsc && clear();
+            if (e.key === "Escape" && props.clearOnEsc) {
+                clear();
                 if (props.blurOnEsc) {
                     const el = inputRef.value as HTMLInputElement;
                     el.blur();

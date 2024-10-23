@@ -9,7 +9,7 @@ import { MapData } from "@main/content/maps/map-data";
 import Modal from "@renderer/components/common/Modal.vue";
 import MapListComponent from "@renderer/components/maps/MapListComponent.vue";
 
-const props = defineProps<{
+defineProps<{
     title: string;
 }>();
 

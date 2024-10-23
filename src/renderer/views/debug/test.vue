@@ -40,7 +40,7 @@ async function go() {
     try {
         const stuff = await PasswordPrompt.start();
         console.log(stuff);
-    } catch (err) {
+    } catch {
         console.error("Cancelled");
     }
 }

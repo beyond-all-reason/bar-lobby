@@ -8,7 +8,7 @@
 </template>
 
 <script lang="ts" setup>
-const props = withDefaults(
+withDefaults(
     defineProps<{
         absolutePosition?: boolean;
     }>(),

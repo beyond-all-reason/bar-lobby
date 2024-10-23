@@ -105,7 +105,6 @@ const mapsApi = {
     downloadMap: (version: string): Promise<void> => ipcRenderer.invoke("maps:downloadMap", version),
     downloadMaps: (scriptNames: string[]): Promise<void> => ipcRenderer.invoke("maps:downloadMaps", scriptNames),
     getInstalledVersions: (): Promise<MapData[]> => ipcRenderer.invoke("maps:getInstalledVersions"),
-    getMapByScriptName: (scriptName: string): Promise<MapData> => ipcRenderer.invoke("maps:getMapByScriptName", scriptName),
     isVersionInstalled: (id: string): Promise<boolean> => ipcRenderer.invoke("maps:isVersionInstalled", id),
     attemptCacheErrorMaps: (): Promise<void> => ipcRenderer.invoke("maps:attemptCacheErrorMaps"),
 

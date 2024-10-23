@@ -17,8 +17,8 @@ export interface Props extends InputNumberProps {}
 // eslint-disable-next-line
 export interface Emits extends InputNumberEmits {}
 
-const props = defineProps<Props>();
-const emits = defineEmits<Emits>();
+defineProps<Props>();
+defineEmits<Emits>();
 
 const max = ref(100);
 const maxInputWidth = computed(() => `${max.value.toString().length + 1}ch`);

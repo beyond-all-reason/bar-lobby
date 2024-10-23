@@ -90,10 +90,6 @@ export class MapContentAPI extends PrDownloaderAPI<MapData> {
         return this.mapNameFileNameLookup[scriptName] !== undefined;
     }
 
-    public getMapByScriptName(scriptName: string) {
-        throw new Error("Method not implemented.");
-    }
-
     public async downloadMaps(scriptNames: string[]) {
         return Promise.all(scriptNames.map((scriptName) => this.downloadMap(scriptName)));
     }

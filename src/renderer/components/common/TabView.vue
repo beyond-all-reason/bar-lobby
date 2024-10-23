@@ -19,9 +19,8 @@ export interface Props extends TabViewProps {}
 // eslint-disable-next-line
 export interface Emits extends TabViewEmits {}
 
-const props = defineProps<Props>();
-
-const emits = defineEmits<Emits>();
+defineProps<Props>();
+defineEmits<Emits>();
 </script>
 
 <style lang="scss">

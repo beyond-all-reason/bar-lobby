@@ -87,7 +87,7 @@
 </template>
 
 <script lang="ts" setup>
-import { onMounted, Ref, ref, watch } from "vue";
+import { Ref, ref, watch } from "vue";
 import { getBoxes, StartBoxOrientation } from "@renderer/utils/start-boxes";
 import { LuaOptionSection } from "@main/content/game/lua-options";
 import { StartPosType } from "@main/game/battle/battle-types";

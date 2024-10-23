@@ -7,7 +7,7 @@ import Divider, { DividerProps } from "primevue/divider";
 
 export type Props = DividerProps;
 
-const props = defineProps<Props>();
+defineProps<Props>();
 </script>
 
 <style lang="scss" scoped>

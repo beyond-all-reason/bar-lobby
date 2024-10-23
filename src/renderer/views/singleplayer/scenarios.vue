@@ -54,7 +54,7 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, ref, TransitionGroup, watch } from "vue";
+import { computed, ref, watch } from "vue";
 
 import Button from "@renderer/components/controls/Button.vue";
 import Select from "@renderer/components/controls/Select.vue";

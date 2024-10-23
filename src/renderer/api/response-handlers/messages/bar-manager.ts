@@ -30,7 +30,7 @@ export const barManagerHandlers = createMessageHandlers(
             user: Type.String(),
             command: Type.Array(Type.String()),
         }),
-        async handler(data) {
+        async handler() {
             // parsing from the normal spads vote announcement instead
         },
     }

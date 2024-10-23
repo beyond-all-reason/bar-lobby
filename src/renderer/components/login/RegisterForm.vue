@@ -37,7 +37,7 @@ const confirmPassword = ref("");
 const password = ref("");
 const error = ref("");
 
-function validatePassword(value: string) {
+function validatePassword() {
     if (password.value && confirmPassword.value && password.value !== confirmPassword.value) {
         return "Passwords do not match";
     }

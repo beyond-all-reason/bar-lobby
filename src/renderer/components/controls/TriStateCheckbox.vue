@@ -11,7 +11,6 @@
 import { Icon } from "@iconify/vue";
 import checkBold from "@iconify-icons/mdi/check-bold";
 import closeThick from "@iconify-icons/mdi/close-thick";
-import { toRef } from "vue";
 
 import Control from "@renderer/components/controls/Control.vue";
 
@@ -27,8 +26,6 @@ const props = withDefaults(
 const emits = defineEmits<{
     (event: "update:modelValue", checked: boolean | null): void;
 }>();
-
-const value = toRef(props, "modelValue");
 
 function onClick() {
     emits("update:modelValue", props.modelValue === true ? false : props.modelValue === false ? null : true);

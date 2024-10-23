@@ -103,7 +103,7 @@ import Messages from "@renderer/components/navbar/Messages.vue";
 import { useRouter } from "vue-router";
 import { settingsStore } from "@renderer/store/settings.store";
 
-const props = defineProps<{
+defineProps<{
     hidden?: boolean;
 }>();
 
@@ -139,7 +139,7 @@ const settingsOpen = inject<Ref<boolean>>("settingsOpen")!;
 const exitOpen = inject<Ref<boolean>>("exitOpen")!;
 
 const messagesUnread = computed(() => {
-    for (const [userId, messages] of api.session.directMessages) {
+    for (const [, messages] of api.session.directMessages) {
         for (const message of messages) {
             if (!message.read) {
                 return true;

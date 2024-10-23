@@ -56,8 +56,6 @@
 
 <script lang="ts" setup>
 /* eslint-disable @typescript-eslint/no-explicit-any */
-
-import { clone } from "$/jaz-ts-utils/object";
 import TabPanel from "primevue/tabpanel";
 import { reactive, Ref, ref, toRaw } from "vue";
 
@@ -72,7 +70,6 @@ import { setObject } from "@renderer/utils/temp";
 import { LuaOptionSection, LuaOptionNumber, LuaOptionBoolean, LuaOptionString, LuaOptionList } from "@main/content/game/lua-options";
 
 const props = defineProps<{
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     luaOptions: Record<string, any>;
     id: string;
     title: string;
@@ -108,7 +105,7 @@ function reset() {
 }
 
 function save() {
-    emits("setOptions", clone(toRaw(options)));
+    emits("setOptions", toRaw(options));
     modal.value?.close();
 }
 </script>

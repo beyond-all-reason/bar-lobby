@@ -23,9 +23,9 @@
  * - Recent activity/matches
  */
 
-const user = api.session.onlineUser;
+// const user = api.session.onlineUser;
 
-const props = defineProps<{
+defineProps<{
     userId: number;
 }>();
 </script>

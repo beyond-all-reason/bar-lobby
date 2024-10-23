@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, screen, shell } from "electron";
+import { app, BrowserWindow, ipcMain, screen } from "electron";
 import path from "path";
 import { settingsService } from "./services/settings.service";
 import { logger } from "./utils/logger";
@@ -55,7 +55,7 @@ export function createWindow() {
     mainWindow.on("restore", () => mainWindow.flashFrame(false));
 
     app.on("browser-window-focus", () => mainWindow.flashFrame(false));
-    app.on("second-instance", (_event, commandLine, _workingDirectory, _additionalData) => {
+    app.on("second-instance", (_event, commandLine) => {
         log.info("Second Instance opening with command line: " + commandLine);
         focusWindows();
         openFile(commandLine[commandLine.length - 1]);

@@ -79,7 +79,7 @@ export class RedirectHandler {
 
         if (!this.callbackUrl) {
             await new Promise<void>((resolve, reject) => {
-                const handler = (req: http.IncomingMessage, res: http.ServerResponse) => {
+                const handler = () => {
                     // The callbackUrl is set in the handleRequest method and
                     // we depend on the event listeners order to check it here.
                     if (this.callbackUrl) {

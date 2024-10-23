@@ -7,7 +7,7 @@
 <script lang="ts" setup>
 import Panel from "@renderer/components/common/Panel.vue";
 
-const props = defineProps<{
+defineProps<{
     open: boolean;
 }>();
 </script>

@@ -14,9 +14,8 @@ export interface Props extends ContextMenuProps {}
 // eslint-disable-next-line
 export interface Emits extends ContextMenuEmits {}
 
-const props = defineProps<Props>();
-
-const emits = defineEmits<Emits>();
+defineProps<Props>();
+defineEmits<Emits>();
 
 const contextMenu = ref<ContextMenu>();
 
@@ -30,7 +29,7 @@ defineExpose<{
     toggle,
 });
 
-function hide(event: Event): void {
+function hide(): void {
     contextMenu.value!.hide();
 }
 

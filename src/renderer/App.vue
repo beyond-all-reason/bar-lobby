@@ -49,7 +49,7 @@
 import { Icon } from "@iconify/vue";
 import closeThick from "@iconify-icons/mdi/close-thick";
 import cog from "@iconify-icons/mdi/cog";
-import { provide, Ref, toRef, toValue, Transition, Suspense } from "vue";
+import { provide, Ref, toRef, toValue } from "vue";
 import { ref } from "vue";
 import { useRouter } from "vue-router";
 
@@ -69,7 +69,6 @@ import PromptContainer from "@renderer/components/prompts/PromptContainer.vue";
 import { playRandomMusic } from "@renderer/utils/play-random-music";
 import { settingsStore } from "./store/settings.store";
 import { infosStore } from "@renderer/store/infos.store";
-import { enginesStore } from "@renderer/store/engine.store";
 
 const router = useRouter();
 const videoVisible = toRef(!toValue(settingsStore.skipIntro));
@@ -96,7 +95,7 @@ provide("toggleDownloads", toggleDownloads);
 playRandomMusic();
 
 const simpleRouterMemory = new Map<string, string>();
-router.beforeEach(async (to, from) => {
+router.beforeEach(async (to) => {
     if (to.meta?.redirect) {
         const redirection = simpleRouterMemory.get(to.fullPath.split("/")[1]) ?? to.meta.redirect;
         return {
@@ -105,7 +104,7 @@ router.beforeEach(async (to, from) => {
     }
 });
 
-router.afterEach(async (to, from) => {
+router.afterEach(async (to) => {
     simpleRouterMemory.set(to.fullPath.split("/")[1], to.fullPath);
     empty.value = to?.meta?.empty ?? false;
     blurBg.value = to?.meta?.blurBg ?? blurBg.value;

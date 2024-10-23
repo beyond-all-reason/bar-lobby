@@ -137,7 +137,7 @@ export class EngineContentAPI extends AbstractContentAPI<EngineVersion> {
     }
 
     protected gitEngineTagToEngineVersionString(gitEngineTag: string) {
-        const { major, minor, patch, revision, sha, branch } = gitEngineTag.match(gitEngineTagRegex)!.groups!;
+        const { major, minor, patch, revision, sha } = gitEngineTag.match(gitEngineTagRegex)!.groups!;
         return `${major}.${minor}.${patch}-${revision}-g${sha} BAR${major}`;
     }
 

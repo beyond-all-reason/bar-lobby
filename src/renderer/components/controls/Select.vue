@@ -26,6 +26,8 @@ export interface Props extends DropdownProps {
 defineProps<Props>();
 
 const emit = defineEmits(["update:modelValue"]);
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function handleEvent(value: any) {
     emit("update:modelValue", value);
 }

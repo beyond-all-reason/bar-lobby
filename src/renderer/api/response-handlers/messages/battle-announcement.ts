@@ -20,7 +20,7 @@ export const battleAnnouncementHandlers = createMessageHandlers(
             ringeeUsername: Type.String(),
             ringerUsername: Type.String(),
         }),
-        async handler(data, message) {
+        async handler(data) {
             if (api.session.onlineUser.username === data.ringeeUsername) {
                 api.notifications.event({
                     text: `${data.ringerUsername} rang you`,
@@ -84,7 +84,7 @@ export const battleAnnouncementHandlers = createMessageHandlers(
         schema: Type.Object({
             command: Type.String(),
         }),
-        async handler(data, message) {
+        async handler() {
             const battle = api.session.onlineBattle.value!;
             battle.currentVote.value = null;
         },
@@ -95,7 +95,7 @@ export const battleAnnouncementHandlers = createMessageHandlers(
             command: Type.String(),
             awayCount: Type.Optional(Type.Number()),
         }),
-        async handler(data, message) {
+        async handler() {
             const battle = api.session.onlineBattle.value!;
             battle.currentVote.value = null;
         },
@@ -105,7 +105,7 @@ export const battleAnnouncementHandlers = createMessageHandlers(
         schema: Type.Object({
             username: Type.String(),
         }),
-        async handler(data, message) {
+        async handler() {
             const battle = api.session.onlineBattle.value!;
             battle.currentVote.value = null;
         },

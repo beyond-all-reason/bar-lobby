@@ -70,18 +70,6 @@ async function setupVue() {
     app.mount("#app");
 }
 
-//TODO implement this, needs to be moved to preload probably
-async function replayOpenedHandlers() {
-    // const replay = await ipcRenderer.invoke("opened-replay");
-    // if (replay) {
-    //     window.replays.parseAndLaunchReplay(replay);
-    // }
-    // ipcRenderer.on("open-replay", (_event, arg) => {
-    //     console.log("renderer received replay to launch:" + arg);
-    //     api.content.replays.parseAndLaunchReplay(arg);
-    // });
-}
-
 async function setupI18n() {
     const myLocale = Intl.DateTimeFormat().resolvedOptions().locale.split("-")[0];
     const messages: Record<string, Record<string, string>> = {};

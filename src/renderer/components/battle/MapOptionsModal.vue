@@ -77,7 +77,7 @@ watch(
     () => props.startBoxes,
     (boxes) => {
         if (Object.keys(boxes).length > 1) {
-            setBoxes(Object.entries(boxes).map(([k, v]) => v));
+            setBoxes(Object.entries(boxes).map(([, v]) => v));
         }
 
         boxOrientation = undefined;

@@ -42,6 +42,7 @@ async function fetchNewsRssFeed() {
         newsFeed = (await extract(
             RSS_URL,
             {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 getExtraEntryFields: (entry: any) => {
                     const thumbnail = entry["media:thumbnail"];
                     const thumbnailUrl = thumbnail ? thumbnail["@_url"] : null;

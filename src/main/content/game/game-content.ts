@@ -247,7 +247,7 @@ export class GameContentAPI extends PrDownloaderAPI<GameVersion> {
                 const aRev = parseInt(a.gameVersion.split("-")[1]);
                 const bRev = parseInt(b.gameVersion.split("-")[1]);
                 return aRev - bRev;
-            } catch (err) {
+            } catch {
                 return 1;
             }
         });

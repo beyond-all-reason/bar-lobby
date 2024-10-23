@@ -73,7 +73,9 @@ const commandListener = api.comms.onResponse("s.communication.received_direct_me
     if (!message.startsWith("!") && !message.startsWith("$")) return;
     const cmd = message.split("-")[0].split(" ")[0];
     const cmdDescription = message.slice(cmd.length + 1).replace("-", " ");
-    cmdDescription && !cmdDescription.includes("*") && commandList.push({ cmd, cmdDescription });
+    if (cmdDescription && !cmdDescription.includes("*")) {
+        commandList.push({ cmd, cmdDescription });
+    }
 });
 
 onMounted(() => {

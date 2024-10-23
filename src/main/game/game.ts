@@ -47,11 +47,11 @@ export class GameAPI {
 
     public async launchScript(script: string): Promise<void> {
         log.debug(`Launching game with script: ${script}`);
-        const gameVersion = script.match(/gametype\s*=\s*(.*);/)?.[1]!;
+        const gameVersion = script.match(/gametype\s*=\s*(.*);/)?.[1];
         if (!gameVersion) {
             throw new Error("Could not parse game version from script");
         }
-        const mapScriptName = script.match(/mapname\s*=\s*(.*);/)?.[1]!;
+        const mapScriptName = script.match(/mapname\s*=\s*(.*);/)?.[1];
         if (!mapScriptName) {
             throw new Error("Could not parse map name from script");
         }
@@ -78,7 +78,7 @@ export class GameAPI {
     }): Promise<void> {
         try {
             log.info(`Launching game with engine: ${engineVersion}, game: ${gameVersion}, map: ${mapScriptName}`);
-            await this.fetchMissingContent(engineVersion, gameVersion, mapScriptName);
+            await this.fetchMissingContent(engineVersion, gameVersion);
             const enginePath = path.join(CONTENT_PATH, "engine", engineVersion).replaceAll("\\", "/");
             const args = ["--write-dir", CONTENT_PATH, "--isolation", launchArg];
             const binaryName = process.platform === "win32" ? "spring.exe" : "./spring";
@@ -129,7 +129,7 @@ export class GameAPI {
     }
 
     //TODO not handling maps, not sure if needed if we always come from the lobby's UI
-    protected async fetchMissingContent(engineVersion: string, gameVersion: string, mapScriptName: string) {
+    protected async fetchMissingContent(engineVersion: string, gameVersion: string) {
         const isEngineInstalled = engineContentAPI.isVersionInstalled(engineVersion);
         const isGameInstalled = gameContentAPI.isVersionInstalled(gameVersion);
         if (!isEngineInstalled || !isGameInstalled) {

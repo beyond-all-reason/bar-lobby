@@ -83,7 +83,7 @@ const draggedPlayer: Ref<Player | null> = ref(null);
 const draggedBot: Ref<Bot | null> = ref(null);
 let draggedEl: Element | null = null;
 
-function dragEnterTeam(event: DragEvent, teamId: number) {
+function dragEnterTeam(event: DragEvent) {
     if (!draggedPlayer.value && !draggedBot.value) {
         return;
     }
