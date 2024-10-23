@@ -108,7 +108,7 @@ import Select from "@renderer/components/controls/Select.vue";
 import Textbox from "@renderer/components/controls/Textbox.vue";
 import Flag from "@renderer/components/misc/Flag.vue";
 // replace with real api call
- 
+
 import { SeasonData, seasonsData, seasonsList } from "@renderer/utils/temp-seasons-data.js";
 
 const props = defineProps<{

@@ -21,7 +21,6 @@ import { computed } from "vue";
 import Control from "@renderer/components/controls/Control.vue";
 import { useRouter } from "vue-router";
 
- 
 export interface Props extends /* @vue-ignore */ ButtonProps {
     to?: string;
     disabled?: boolean;

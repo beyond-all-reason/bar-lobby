@@ -860,8 +860,8 @@ export default {
                             currencyCharIndex >= selectionStart
                                 ? currencyCharIndex - 1
                                 : suffixCharIndex >= selectionStart
-                                ? suffixCharIndex
-                                : inputValue.length;
+                                  ? suffixCharIndex
+                                  : inputValue.length;
 
                         newValueStr =
                             inputValue.slice(0, selectionStart) +

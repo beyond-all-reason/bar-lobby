@@ -1,11 +1,5 @@
 {
-    "recommendations": [
-        "vue.volar",
-        "dbaeumer.vscode-eslint",
-        "drknoxy.eslint-disable-snippets",
-        "esbenp.prettier-vscode",
-        "mrmlnc.vscode-scss"
-    ],
+    "recommendations": ["vue.volar", "dbaeumer.vscode-eslint", "drknoxy.eslint-disable-snippets", "esbenp.prettier-vscode", "mrmlnc.vscode-scss"],
     "unwantedRecommendations": [
         "octref.vetur",
         "vscode.typescript-language-features" // https://github.com/johnsoncodehk/volar/discussions/471

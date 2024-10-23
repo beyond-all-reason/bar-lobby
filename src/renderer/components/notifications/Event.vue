@@ -42,7 +42,9 @@ if (props.event.timeoutMs) {
     position: relative;
     pointer-events: auto;
     border: 1px solid rgb(15, 15, 15);
-    box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.4), inset 0 0 0 1px rgba(255, 255, 255, 0.11);
+    box-shadow:
+        1px 1px 3px rgba(0, 0, 0, 0.4),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.11);
     background: linear-gradient(to bottom, rgba(31, 31, 31, 0.295), rgba(15, 15, 15, 0.616));
     backdrop-filter: blur(4px);
     &:hover {

@@ -1,6 +1,6 @@
 <template>
     <Accordion v-bind="$attrs">
-        <template v-for="(_, name) in ($slots as {})" #[name]="slotData">
+        <template v-for="(_, name) in $slots as {}" #[name]="slotData">
             <slot :name="name" v-bind="slotData || {}" />
         </template>
     </Accordion>
