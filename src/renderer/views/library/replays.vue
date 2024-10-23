@@ -114,6 +114,7 @@ import { useDexieLiveQueryWithDeps } from "@renderer/composables/useDexieLiveQue
 import ReplayPreview from "@renderer/components/battle/ReplayPreview.vue";
 import { downloadsStore } from "@renderer/store/downloads.store";
 import { mapFileNameToFriendlyName } from "@main/content/maps/map-data";
+import { REPLAY_SERVICE_URL } from "@main/services/shell.service";
 
 const endedNormally: Ref<boolean | null> = ref(true);
 const showSpoilers = ref(true);
@@ -157,7 +158,7 @@ function onSort(event: DataTableStateEvent) {
 }
 
 function openBrowserToReplayService() {
-    window.shell.openExternal("https://bar-rts.com/replays");
+    window.shell.openInBrowser(REPLAY_SERVICE_URL);
 }
 
 function openReplaysFolder() {

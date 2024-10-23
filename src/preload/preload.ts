@@ -36,7 +36,9 @@ const shellApi = {
     openStartScript: (): Promise<void> => ipcRenderer.invoke("shell:openStartScript"),
     openReplaysDir: (): Promise<void> => ipcRenderer.invoke("shell:openReplaysDir"),
     showReplayInFolder: (fileName: string): Promise<void> => ipcRenderer.invoke("shell:showReplayInFolder", fileName),
-    openExternal: (url: string): Promise<void> => ipcRenderer.invoke("shell:openExternal", url),
+
+    // External
+    openInBrowser: (url: string): Promise<void> => ipcRenderer.invoke("shell:openInBrowser", url),
 };
 export type ShellApi = typeof shellApi;
 contextBridge.exposeInMainWorld("shell", shellApi);
