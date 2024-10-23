@@ -3,8 +3,8 @@ import { CONFIG_PATH, CONTENT_PATH, REPLAYS_PATH } from "@main/config/app";
 import { ipcMain, shell } from "electron";
 import path from "path";
 
-export const REPLAY_SERVICE_URL = "https://bar-rts.com/replays";
-export const NEWS_SERVICE_URL = "https://www.beyondallreason.info/news";
+const REPLAY_SERVICE_URL = "https://bar-rts.com/replays";
+const NEWS_SERVICE_URL = "https://www.beyondallreason.info/news";
 
 // Careful with shell.openExternal. https://benjamin-altpeter.de/shell-openexternal-dangers/
 function openInBrowser(url: string) {
