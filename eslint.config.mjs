@@ -6,7 +6,7 @@ import pluginVue from "eslint-plugin-vue";
 export default [
     { files: ["**/*.{js,mjs,cjs,ts,vue}"] },
     {
-        ignores: ["**/.vite", "**/dist", "**/build", "**/out", "**/dist_electron", "**/node_modules", "**/working-files", "**/typed-router.d.ts"],
+        ignores: ["**/.vite", "**/dist", "**/build", "**/out", "**/dist_electron", "**/node_modules", "**/working-files", "**/typed-router.d.ts", "**/vendor"],
     },
     {
         languageOptions: {

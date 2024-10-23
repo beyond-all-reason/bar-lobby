@@ -1,4 +1,4 @@
-import { StartPos } from "@main/content/maps/map-model";
+import { StartPos } from "$/map-parser/map-model";
 import { MapParser } from "$/map-parser/spring-map-parser";
 import path from "path";
 import { MapData } from "@main/content/maps/map-data";

@@ -5,7 +5,7 @@
         "paths": {
             "@preload/*": ["src/preload/*"],
             "@renderer/*": ["src/renderer/*"],
-            "$/*": ["src/common/*"],
+            "$/*": ["vendor/*"],
             "@main/*": ["src/main/*"]
         },
         "types": ["vite/client"],

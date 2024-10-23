@@ -1,5 +1,5 @@
 import type { DeepPartial } from "$/jaz-ts-utils/types";
-import { MapInfo } from "@main/content/maps/map-model";
+import { MapInfo } from "$/map-parser/map-model";
 
 export type MapData = {
     scriptName: string;

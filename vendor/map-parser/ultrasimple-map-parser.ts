@@ -6,7 +6,7 @@ import * as path from "path";
 import { DeepPartial } from "$/jaz-ts-utils/types";
 import { StreamZipAsync } from "node-stream-zip";
 import { extractSpecificFiles } from "@main/utils/extract-7z";
-import { MapInfo } from "@main/content/maps/map-model";
+import { MapInfo } from "$/map-parser/map-model";
 
 export class UltraSimpleMapParser {
     public async parseMap(mapFilePath: string): Promise<{

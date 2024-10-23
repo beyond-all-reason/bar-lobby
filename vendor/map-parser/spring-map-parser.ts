@@ -3,7 +3,7 @@ import { glob } from "glob";
 import { LocalStatement, TableConstructorExpression, TableKey, TableKeyString, TableValue, parse } from "luaparse";
 import * as os from "os";
 import * as path from "path";
-import { defaultWaterOptions, MapInfo, SMD, SMF, SpringMap, WaterOptions } from "../../main/content/maps/map-model";
+import { defaultWaterOptions, MapInfo, SMD, SMF, SpringMap, WaterOptions } from "$/map-parser/map-model";
 import { BufferStream } from "@main/utils/buffer-stream";
 import { DeepPartial } from "$/jaz-ts-utils/types";
 import { JimpInstance, Jimp, intToRGBA, rgbaToInt } from "jimp";

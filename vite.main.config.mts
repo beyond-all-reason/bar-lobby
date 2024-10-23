@@ -10,7 +10,7 @@ export default defineConfig({
             "@main": path.join(__dirname, "src/main"),
             "@renderer": path.join(__dirname, "src/renderer"),
             "@preload": path.join(__dirname, "src/preload"),
-            $: path.join(__dirname, "src/common"),
+            $: path.join(__dirname, "vendor"),
         },
     },
     build: {
