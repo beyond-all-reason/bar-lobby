@@ -13,7 +13,6 @@ export function createWindow() {
     const settings = settingsService.getSettings();
     log.info("Creating main window with settings: ", settings);
 
-    const primaryDisplay = screen.getPrimaryDisplay();
     const mainWindow = new BrowserWindow({
         title: "Beyond All Reason",
         fullscreen: settings.fullscreen,
@@ -24,7 +23,6 @@ export function createWindow() {
         paintWhenInitiallyHidden: true,
         webPreferences: {
             preload: path.join(__dirname, "../build/preload.js"),
-            zoomFactor: zoomFactor(primaryDisplay),
         },
     });
     process.env.MAIN_WINDOW_ID = mainWindow.id.toString();
@@ -85,17 +83,11 @@ export function createWindow() {
         replayContentAPI.copyParseAndLaunchReplay(path);
     }
 
-    // TODO add a setting to scale up and down the UI
-    function zoomFactor(display: Electron.Display) {
-        return (display.size.height * display.scaleFactor) / 1080;
-    }
-
     function setDisplay(display: Electron.Display) {
         const { x, y, width, height } = display.bounds;
         mainWindow.setPosition(x, y);
         mainWindow.setSize(width, height);
         mainWindow.maximize();
-        mainWindow.webContents.setZoomFactor(zoomFactor(display));
     }
     setDisplay(screen.getAllDisplays()[settings.displayIndex]);
 
