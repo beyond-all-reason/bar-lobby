@@ -15,6 +15,7 @@ import downloadsService from "@main/services/downloads.service";
 import replaysService from "@main/services/replays.service";
 import { miscService } from "@main/services/news.service";
 import { replayContentAPI } from "@main/content/replays/replay-content";
+import path from "path";
 
 const log = logger("main/index.ts");
 log.info("Starting Electron main process");
@@ -53,10 +54,11 @@ function registerBarFileProtocol() {
             const decodedUrl = decodeURIComponent(request.url);
             const filePath = decodedUrl.slice("bar://".length);
             // Security Check: Ensure the file is within the content folder
-            if (!filePath.startsWith(CONTENT_PATH)) {
-                throw new Error(`Attempt to access file outside content folder <${filePath}>`);
+            const resolvedFilePath = path.resolve(filePath);
+            if (!resolvedFilePath.startsWith(CONTENT_PATH)) {
+                throw new Error(`Attempt to access file outside content folder <${resolvedFilePath}>`);
             }
-            return net.fetch(url.pathToFileURL(filePath).toString());
+            return net.fetch(url.pathToFileURL(resolvedFilePath).toString());
         } catch (err) {
             log.error(err);
         }

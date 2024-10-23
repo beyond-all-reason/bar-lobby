@@ -14,7 +14,7 @@ const props = defineProps<{
     scenario: Scenario;
 }>();
 
-const backgroundImageCss = ref(`url('bar://${props.scenario.imagepath}')`);
+const backgroundImageCss = ref(`url('bar://${encodeURIComponent(props.scenario.imagepath)}')`);
 </script>
 
 <style lang="scss" scoped>
