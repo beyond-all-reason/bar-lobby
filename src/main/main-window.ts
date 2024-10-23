@@ -39,6 +39,11 @@ export function createWindow() {
         console.error(details);
     });
 
+    // Disable new window creation
+    mainWindow.webContents.setWindowOpenHandler(() => {
+        return { action: "deny" };
+    });
+
     // and load the index.html of the app.
     if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
         mainWindow.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL);
