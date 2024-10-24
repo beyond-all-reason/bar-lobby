@@ -174,7 +174,7 @@ export class MapParser {
     }
 
     protected async extractArchiveFiles(outPath: string) {
-        const files = glob.sync(`${outPath}/**/*`);
+        const files = glob.sync(`${outPath}/**/*`, { windowsPathsNoEscape: true });
 
         const smfPath = files.find((filePath) => filePath.match(/.*\.smf/))!;
         const smtPath = files.find((filePath) => filePath.match(/.*\.smt/))!;
