@@ -9,17 +9,15 @@
             <div class="flex-row gap-md">
                 <h1>Multiplayer Custom Battles</h1>
             </div>
-
             <div class="flex-row gap-md">
                 <Button class="blue" @click="hostBattleOpen = true">Host Battle</Button>
                 <HostBattle v-model="hostBattleOpen" />
-                <Checkbox v-model="settings.battlesHidePvE" label="Hide PvE" />
-                <Checkbox v-model="settings.battlesHideLocked" label="Hide Locked" />
-                <Checkbox v-model="settings.battlesHideEmpty" label="Hide Empty" />
-                <Checkbox v-model="settings.battlesHideInProgress" label="Hide Running" />
+                <Checkbox v-model="settingsStore.battlesHidePvE" label="Hide PvE" />
+                <Checkbox v-model="settingsStore.battlesHideLocked" label="Hide Locked" />
+                <Checkbox v-model="settingsStore.battlesHideEmpty" label="Hide Empty" />
+                <Checkbox v-model="settingsStore.battlesHideInProgress" label="Hide Running" />
                 <SearchBox v-model="searchVal" />
             </div>
-
             <div class="scroll-container padding-right-sm">
                 <DataTable
                     v-model:selection="selectedBattle"
@@ -32,23 +30,15 @@
                     paginator
                     :rows="16"
                     :pageLinkSize="20"
-                    @row-select="onRowSelect"
-                    @row-dblclick="onDoubleClick"
+                    @row-select="selectedBattle = $event.data"
+                    @row-dblclick="attemptJoinBattle($event.data)"
                 >
                     <Column header="Best Battle" sortable sortField="score">
                         <template #body="{ data }">
-                            <div
-                                v-if="data.primaryFactor !== 'Running'"
-                                v-tooltip.right="battleScoreTooltip(data)"
-                                class="flex-row flex-center-items gap-md"
-                            >
+                            <div v-if="data.primaryFactor !== 'Running'" class="flex-row flex-center-items gap-md">
                                 {{ data.primaryFactor }}
                             </div>
-                            <div
-                                v-if="data.primaryFactor === 'Running'"
-                                v-tooltip.right="battleScoreTooltip(data)"
-                                class="flex-row flex-center-items gap-md"
-                            >
+                            <div v-if="data.primaryFactor === 'Running'" class="flex-row flex-center-items gap-md">
                                 Running for
                                 {{ getFriendlyDuration(data.runtimeMs.value, false) }}
                             </div>
@@ -106,8 +96,8 @@ import eye from "@iconify-icons/mdi/eye";
 import lock from "@iconify-icons/mdi/lock";
 import robot from "@iconify-icons/mdi/robot";
 import Column from "primevue/column";
-import DataTable, { DataTableRowDoubleClickEvent } from "primevue/datatable";
-import { computed, onBeforeUnmount, Ref, ref, shallowRef } from "vue";
+import DataTable from "primevue/datatable";
+import { Ref, ref, shallowRef } from "vue";
 
 import BattlePreview from "@renderer/components/battle/BattlePreview.vue";
 import HostBattle from "@renderer/components/battle/HostBattle.vue";
@@ -115,234 +105,20 @@ import Loader from "@renderer/components/common/Loader.vue";
 import Button from "@renderer/components/controls/Button.vue";
 import Checkbox from "@renderer/components/controls/Checkbox.vue";
 import SearchBox from "@renderer/components/controls/SearchBox.vue";
-import { attemptJoinBattle } from "@renderer/utils/attempt-join-battle";
 import { getFriendlyDuration } from "@renderer/utils/misc";
-import { Battle } from "@renderer/game/battle";
+import { OngoingBattle } from "@main/content/replays/replay";
+import { settingsStore } from "@renderer/store/settings.store";
 
 const loading = ref(false);
-const intervalId = ref(0);
-const active = ref(true);
 const hostBattleOpen = ref(false);
 const searchVal = ref("");
-const selectedBattle: Ref<Battle | null> = shallowRef(null);
-const settings = api.settings.model;
+const selectedBattle: Ref<OngoingBattle | null> = shallowRef(null);
 
-interface ScoredOfflineBattle extends OfflineBattle {
-    score: number;
-    factors: { [factorName: string]: number };
-    primaryFactor: string;
-}
+//TODO uses dexie to retrieve known battles and to filter them, check how its done in the replays
+const battles = [] as OngoingBattle[];
 
-const battles = computed(() => {
-    let battles = Array.from(api.session.battles.values());
-
-    battles = battles.filter((battle) => {
-        if (settings.battlesHideEmpty && battle.users.length === 0) {
-            return false;
-        }
-        if (settings.battlesHideLocked && (battle.battleOptions.locked || battle.battleOptions.passworded)) {
-            return false;
-        }
-        if (settings.battlesHidePvE && battle.bots.length > 0) {
-            return false;
-        }
-        const runtime = battle.runtimeMs.value;
-        if (settings.battlesHideInProgress) {
-            if (runtime && Number.isInteger(runtime) && runtime > 0) {
-                return false;
-            }
-        }
-        if (searchVal.value.length > 0) {
-            const searchTerm = searchVal.value.toLowerCase();
-            if (battle.battleOptions.title.toLowerCase().includes(searchTerm)) {
-                return true;
-            }
-            if (battle.battleOptions.map.toLowerCase().includes(searchTerm)) {
-                return true;
-            }
-            for (const player of battle.players.value) {
-                if (player.username.toLowerCase().includes(searchTerm)) {
-                    return true;
-                }
-            }
-            for (const spectator of battle.spectators.value) {
-                if (spectator.username.toLowerCase().includes(searchTerm)) {
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        return true;
-    });
-
-    const scoredBattles = battles.map(scoreBattle);
-
-    if (selectedBattle.value === null) {
-        // eslint-disable-next-line vue/no-side-effects-in-computed-properties
-        selectedBattle.value = scoredBattles[0];
-    }
-
-    return scoredBattles;
-});
-
-function battleScoreTooltip(data: ScoredOfflineBattle) {
-    const scoreExplanation = `\
-All Sorting Factors: ${data.score.toFixed(2)}
----
-${Object.entries(data.factors)
-    .sort(([factorNameA, factorScoreA], [factorNameB, factorScoreB]) => {
-        if (factorNameA === data.primaryFactor) {
-            return -1;
-        }
-        if (factorNameB === data.primaryFactor) {
-            return 1;
-        }
-        if (Math.abs(factorScoreA) > Math.abs(factorScoreB)) {
-            return -1;
-        }
-        if (Math.abs(factorScoreA) < Math.abs(factorScoreB)) {
-            return 1;
-        }
-
-        return 0;
-    })
-    .map(([factorName, factorScore]) => {
-        return `${factorName}: ${factorScore.toFixed(2)}`;
-    })
-    .join("\n")}
-`;
-
-    return scoreExplanation;
-}
-
-function scoreBattle(battle: OfflineBattle) {
-    let score = 0;
-    let factors: ScoredOfflineBattle["factors"] = {};
-    let primaryFactor = "";
-
-    const inBattle = battle.players.value.find((p) => p.userId === api.session.onlineUser?.userId);
-    if (inBattle) {
-        addFactor("In Lobby", 50);
-    }
-
-    if (battle.battleOptions.locked) {
-        addFactor("Locked", -9);
-    }
-
-    if (battle.battleOptions.passworded) {
-        addFactor("Private", -9);
-    }
-
-    const runtime = battle.runtimeMs.value || 0;
-    let running = runtime > 0;
-
-    // Hardcoded for now, but in the future could be pulled from match type
-    const medianRuntime = 1800000; // 30 minutes
-    const stdRuntime = 900000; // 15 minutes
-    if (runtime > medianRuntime) {
-        const runtimeVariance = (runtime - medianRuntime) / stdRuntime;
-        addFactor("Ending Soon", Math.log(runtimeVariance + 0.1) * 5);
-    }
-
-    if (running) {
-        addFactor("Running", -10);
-    }
-
-    const playerCount = battle.players.value.length;
-    if (!running && playerCount === 0) {
-        addFactor("No Players", -15);
-    }
-
-    const maxPlayers = battle.battleOptions.maxPlayers;
-    const halfOfMaxPlayers = maxPlayers / 2;
-    const remainingPlayers = maxPlayers - playerCount;
-    if (!running && playerCount > halfOfMaxPlayers && playerCount < maxPlayers) {
-        addFactor("Almost full", (-5 / halfOfMaxPlayers) * remainingPlayers + 5);
-    }
-
-    const queueSize = battle.battleOptions.joinQueueUserIds?.length || 0;
-    if (!running && playerCount >= maxPlayers) {
-        addFactor("Full", -1 - queueSize * 0.2);
-    }
-
-    // TODO: within skill range
-    // TODO: median skill close to won
-    // TODO: friend in lobby
-    // TODO: blocked in lobby
-    // TODO: Highly rated map
-    // TODO: Downloaded map
-
-    // TODO: Is a noob lobby and I am noob
-
-    if (!running && playerCount) {
-        addFactor("Waiting for players", (1.2 * playerCount) / maxPlayers);
-    }
-
-    // Number of spectators
-    const nSpectators = battle.spectators.value.length;
-    if (nSpectators > 0) {
-        addFactor("Spectators", 0.4 * (Math.log(nSpectators + 2) - 1));
-    }
-
-    return {
-        ...battle,
-        score,
-        factors,
-        primaryFactor,
-    } as ScoredOfflineBattle;
-
-    function addFactor(factorName: string, factorScore: number) {
-        score += factorScore;
-        factors[factorName] = factorScore;
-        if (!primaryFactor) {
-            primaryFactor = factorName;
-        }
-    }
-}
-
-const watchForLobbyJoin = api.comms.onResponse("s.lobby.updated_client_battlestatus").add(() => {
-    loading.value = false;
-});
-
-const watchForLobbyJoinFailure = api.comms.onResponse("s.lobby.join").add((data) => {
-    if (data.result === "failure" || data.reason === "Battle locked") {
-        loading.value = false;
-    }
-});
-
-onBeforeUnmount(() => {
-    watchForLobbyJoin.destroy();
-    watchForLobbyJoinFailure.destroy();
-    window.clearInterval(intervalId.value);
-    active.value = false;
-});
-
-await api.session.updateBattleList();
-
-if (active.value) {
-    intervalId.value = window.setInterval(api.session.updateBattleList, 5000);
-}
-
-function onRowSelect(event: DataTableRowDoubleClickEvent) {
-    const data = event.data as ScoredOfflineBattle;
-    const scoreExplanation = `\
-Score explanation for ${data.battleOptions.title}
-Primary Factor: ${data.primaryFactor}
-Total score: ${data.score}
-Factors: ${Object.entries(data.factors).length}
-${Object.entries(data.factors)
-    .map(([factorName, factorScore]) => {
-        return `${factorName.padEnd(20, " ")}: ${factorScore.toFixed(2)}`;
-    })
-    .join("\n")}
-`;
-
-    console.log(scoreExplanation, event.data);
-}
-
-async function onDoubleClick(event: DataTableRowDoubleClickEvent) {
-    await attemptJoinBattle(event.data);
+function attemptJoinBattle(battle: OngoingBattle) {
+    console.log("Joining battle", battle);
 }
 </script>
 

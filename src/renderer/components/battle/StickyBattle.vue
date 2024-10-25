@@ -7,7 +7,7 @@
             <Icon :color="color" :icon="swordCross" height="32"></Icon>
         </div>
         <div class="flex-col flex-center-content">
-            <div class="label">{{ battle?.battleOptions.title }}</div>
+            <div class="label">{{ battle?.title }}</div>
             <div class="flex-row gap-md">
                 <div class="flex-row flex-center gap-xs">
                     <Icon :icon="accountIcon" height="18" />
@@ -33,15 +33,18 @@ import closeThick from "@iconify-icons/mdi/close-thick";
 import eyeIcon from "@iconify-icons/mdi/eye";
 import robotIcon from "@iconify-icons/mdi/robot";
 import swordCross from "@iconify-icons/mdi/sword-cross";
-import { computed, ref } from "vue";
+import { computed } from "vue";
 import { useRouter } from "vue-router";
+import { battleStore } from "@renderer/store/battle.store";
 
 const router = useRouter();
 const route = router.currentRoute;
-const battle = ref(api.session.onlineBattle);
-const playerCount = computed(() => battle.value?.contenders.value.filter((c) => "userId" in c).length);
-const botCount = computed(() => battle.value?.bots.length);
-const specCount = computed(() => battle.value?.spectators.value.length);
+
+const battle = battleStore;
+
+const playerCount = computed(() => 0);
+const botCount = computed(() => 0);
+const specCount = computed(() => 0);
 const color = computed(() => {
     //TODO need a better way to check content status
     // if (mePlayer.battleStatus.sync.engine < 1 || mePlayer.battleStatus.sync.game < 1 || mePlayer.battleStatus.sync.map < 1) {
@@ -55,11 +58,11 @@ const color = computed(() => {
 });
 
 async function openBattle() {
-    await router.push("/multiplayer/battle");
+    if (battle.isOnline) await router.push("/multiplayer/battle");
 }
 
 function leaveBattle() {
-    battle.value?.leave();
+    // battle.leave();
 }
 </script>
 

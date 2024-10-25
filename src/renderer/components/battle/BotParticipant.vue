@@ -28,7 +28,7 @@ import ContextMenu from "@renderer/components/common/ContextMenu.vue";
 import { LuaOptionSection } from "@main/content/game/lua-options";
 import { Bot } from "@main/game/battle/battle-types";
 
-const props = defineProps<{
+defineProps<{
     bot: Bot;
 }>();
 
@@ -79,6 +79,7 @@ async function configureBot() {
 }
 
 function setBotOptions(options: Record<string, unknown>) {
+    console.log("setBotOptions", options);
     // props.battle.setBotOptions(props.bot.playerId, options);
 }
 </script>

@@ -32,7 +32,6 @@ import { SpadsVote } from "@main/model/spads/spads-types";
 
 const props = defineProps<{
     vote: SpadsVote;
-    battle: SpadsBattle;
 }>();
 
 const missingYesVotes = computed(() => {
@@ -66,15 +65,15 @@ onKeyUp("F1", onYes);
 onKeyUp("F2", onNo);
 
 function onYes() {
-    api.comms.request("c.lobby.message", {
-        message: "!vote y",
-    });
+    // api.comms.request("c.lobby.message", {
+    //     message: "!vote y",
+    // });
 }
 
 function onNo() {
-    api.comms.request("c.lobby.message", {
-        message: "!vote n",
-    });
+    // api.comms.request("c.lobby.message", {
+    //     message: "!vote n",
+    // });
 }
 </script>
 

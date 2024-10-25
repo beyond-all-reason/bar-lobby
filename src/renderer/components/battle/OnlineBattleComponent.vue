@@ -270,67 +270,6 @@ function onMapSelected(mapScriptName: string) {
     mapListOpen.value = false;
     battleStore.battleOptions.mapScriptName = mapScriptName;
 }
-
-function onPresetSelected(preset: string) {
-    // api.comms.request("c.lobby.message", {
-    //     message: `!cv preset ${preset}`,
-    // });
-}
-
-function onBalanceModeSelected(balanceMode: string) {
-    // api.comms.request("c.lobby.message", {
-    //     message: `!cv balanceMode ${balanceMode}`,
-    // });
-}
-
-function onAutoBalanceSelected(autoBalance: string) {
-    // api.comms.request("c.lobby.message", {
-    //     message: `!cv autoBalance ${autoBalance}`,
-    // });
-}
-
-function onNbTeamsSelected(nbTeams: number) {
-    // api.comms.request("c.lobby.message", {
-    //     message: `!cv nbTeams ${nbTeams}`,
-    // });
-}
-
-function onTeamSizeSelected(teamSize: number) {
-    // api.comms.request("c.lobby.message", {
-    //     message: `!cv teamSize ${teamSize}`,
-    // });
-}
-
-function onLockedChanged(locked: boolean) {
-    // api.comms.request("c.lobby.message", {
-    //     message: `!${locked ? "lock" : "unlock"}`,
-    // });
-}
-
-function toggleReady() {
-    // api.comms.request("c.lobby.update_status", {
-    //     client: {
-    //         ready: !props.mePlayer.battleStatus.ready,
-    //     },
-    // });
-}
-
-function joinQueue() {
-    // api.comms.request("c.lobby.message", {
-    //     message: "$joinq",
-    // });
-}
-
-function leaveQueue() {
-    // api.comms.request("c.lobby.message", {
-    //     message: "$leaveq",
-    // });
-}
-
-function leave() {
-    // battleStore.leave();
-    // resetToDefaultBattle();
-}
 </script>
 
 <style lang="scss" scoped>

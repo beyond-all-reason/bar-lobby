@@ -25,6 +25,7 @@ export type Replay = {
 };
 
 export type OngoingBattle = {
+    title: string;
     gameId: string;
     engineVersion: string;
     gameVersion: string;

@@ -12,14 +12,14 @@
                     </template>
                 </div>
             </div>
-            <div v-for="[teamId, contenders] in teams" v-else :key="`team${teamId}`">
+            <!-- <div v-for="[teamId, contenders] in teams" v-else :key="`team${teamId}`">
                 <div class="team-title">
                     <div>Team {{ teamId + 1 }}</div>
                 </div>
                 <div class="contenders">
                     <BattlePreviewParticipant v-for="contender in contenders" :key="contender.participantId" :contender="contender" />
                 </div>
-            </div>
+            </div> -->
             <div v-if="battle.spectators.length">
                 <div class="team-title">Spectators</div>
                 <div class="contenders">
@@ -42,7 +42,6 @@ import { computed } from "vue";
 
 import BattlePreviewParticipant from "@renderer/components/battle/BattlePreviewParticipant.vue";
 import MapOverviewCard from "@renderer/components/maps/MapOverviewCard.vue";
-import { StartBox, StartPosType } from "@main/game/battle/battle-types";
 import { db } from "@renderer/store/db";
 import { computedAsync } from "@vueuse/core";
 import { OngoingBattle } from "@main/content/replays/replay";
@@ -64,54 +63,9 @@ const mapName = computed(() => {
     return props.battle.battleSettings.map;
 });
 
-const gameVersion = computed(() => props.battle.gameVersion);
-
-const engineVersion = computed(() => props.battle.engineVersion);
-
 const isFFA = computed(() => {
     // TODO: get preset from spads/server
     return false;
-});
-
-const teams = computed(() => {
-    const teams = props.battle.contenders;
-    const sortedTeams = new Map([...teams.entries()].sort());
-    return sortedTeams;
-});
-
-const startPosType = computed(() => {
-    return props.battle.battleSettings.startPosType;
-});
-
-const startBoxes = computed(() => {
-    if (startPosType.value !== StartPosType.Boxes) {
-        return undefined;
-    }
-    const startBoxes: Record<number, StartBox | undefined> = {};
-    teams.value.forEach((team) => {
-        if (team.startBox) {
-            startBoxes[team.allyTeamId] = {
-                xPercent: team.startBox.left,
-                yPercent: team.startBox.top,
-                widthPercent: team.startBox.right - team.startBox.left,
-                heightPercent: team.startBox.bottom - team.startBox.top,
-            };
-        }
-    });
-    return startBoxes;
-});
-
-const startPositions = computed(() => {
-    const contenders = props.battle.contenders.value;
-    return contenders.map((contender) => {
-        if (!contender.startPos) {
-            return;
-        }
-        return {
-            position: contender.startPos,
-            rgbColor: contender.rgbColor,
-        };
-    });
 });
 </script>
 

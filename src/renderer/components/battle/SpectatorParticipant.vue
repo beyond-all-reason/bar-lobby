@@ -18,6 +18,7 @@ import ContextMenu from "@renderer/components/common/ContextMenu.vue";
 import Flag from "@renderer/components/misc/Flag.vue";
 import { useRouter } from "vue-router";
 import { Player } from "@main/game/battle/battle-types";
+import { me } from "@renderer/store/me.store";
 
 const router = useRouter();
 
@@ -28,7 +29,7 @@ const props = defineProps<{
 const menu = ref<InstanceType<typeof ContextMenu>>();
 
 const actions: MenuItem[] =
-    props.player.user.userId === api.session.onlineUser.userId
+    props.player.user.userId === me.userId
         ? [
               { label: "View Profile", command: viewProfile },
               { label: "Make Boss", command: makeBoss },
@@ -58,24 +59,23 @@ async function viewProfile() {
 }
 
 async function kickPlayer() {
-    await api.comms.request("c.lobby.message", {
-        message: `!cv kick ${props.player.user.username}`,
-    });
+    // await api.comms.request("c.lobby.message", {
+    //     message: `!cv kick ${props.player.user.username}`,
+    // });
 }
 
 async function ringPlayer() {
-    await api.comms.request("c.lobby.message", {
-        message: `!ring ${props.player.user.username}`,
-    });
+    // await api.comms.request("c.lobby.message", {
+    //     message: `!ring ${props.player.user.username}`,
+    // });
 }
 
 const toggleMessages = inject<Ref<((open?: boolean, userId?: number) => void) | undefined>>("toggleMessages")!;
 
 async function messagePlayer() {
-    if (!api.session.directMessages.has(props.player.user.userId)) {
-        api.session.directMessages.set(props.player.user.userId, []);
-    }
-
+    // if (!api.session.directMessages.has(props.player.user.userId)) {
+    //     api.session.directMessages.set(props.player.user.userId, []);
+    // }
     if (toggleMessages.value) {
         await delay(10); // needed because the v-click-away directive tells the messages popout to close on the same frame as this would otherwise tell it to open
         toggleMessages.value(true, props.player.user.userId);
@@ -83,23 +83,15 @@ async function messagePlayer() {
 }
 
 async function makeBoss() {
-    await api.comms.request("c.lobby.message", {
-        message: `!cv boss ${props.player.user.username}`,
-    });
-}
-
-async function blockPlayer() {
-    // TODO
+    // await api.comms.request("c.lobby.message", {
+    //     message: `!cv boss ${props.player.user.username}`,
+    // });
 }
 
 async function addFriend() {
-    await api.comms.request("c.user.add_friend", {
-        user_id: props.player.user.userId,
-    });
-}
-
-function reportPlayer() {
-    // TODO
+    // await api.comms.request("c.user.add_friend", {
+    //     user_id: props.player.user.userId,
+    // });
 }
 </script>
 
