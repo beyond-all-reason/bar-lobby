@@ -51,13 +51,13 @@ import { useRouter } from "vue-router";
 const router = useRouter();
 
 const activeIndex = ref(0);
-const isConnected = api.comms.isConnected;
-const serverAddress = `${api.comms.config.host}:${api.comms.config.port}`;
+const isConnected = true; // api.comms.isConnected;
+const serverAddress = ""; //`${api.comms.config.host}:${api.comms.config.port}`;
 const connecting = ref(false);
 
 async function connect() {
     try {
-        await api.comms.connect();
+        // await api.comms.connect();
     } catch (err) {
         console.error(err);
     }
@@ -71,8 +71,8 @@ async function onRetry() {
 }
 
 async function playOffline() {
-    api.session.offlineMode = true;
-    api.comms.disconnect();
+    // api.session.offlineMode = true;
+    // api.comms.disconnect();
     await router.push("/home/overview");
 }
 

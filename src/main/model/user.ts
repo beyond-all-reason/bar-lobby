@@ -5,6 +5,7 @@ export type User = {
     clanId: number | null;
     countryCode: string;
     isOnline: boolean;
+    battleStatus: Record<string, string>; // TODO: Define this type
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

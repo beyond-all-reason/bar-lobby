@@ -123,7 +123,11 @@ const props = defineProps<{
 //     profileurl?: string;
 // }
 
-const user = computed(() => api.session.getUserById(parseInt(props.id)));
+const user = {
+    userId: props.id,
+    username: "User Name",
+    countryCode: "US",
+};
 
 const changeEmailOpen = ref(false);
 const armyNames = ["armada", "cortex", "legion"];
@@ -131,9 +135,10 @@ const armyNames = ["armada", "cortex", "legion"];
 const avatarSrc = computed(() => `/temp-acc-mock/${selectedSeasonData?.value?.rank}.png`);
 const featuredUnit = computed(() => `/temp-acc-mock/${selectedSeasonData?.value?.featuredUnit}.png`);
 
-function generateArmyStats(selectedSeasonData, armyName) {
-    const winRate = (selectedSeasonData[armyName]?.winRate * 100).toFixed(0);
-    return `${selectedSeasonData[armyName]?.win}W - ${selectedSeasonData[armyName]?.lost}L WR ${winRate}%`;
+function generateArmyStats(selectedSeasonData: SeasonData, armyName: string) {
+    console.log("generateArmyStats", selectedSeasonData, armyName);
+    // const winRate = (selectedSeasonData[armyName]?.winRate * 100).toFixed(0);
+    // return `${selectedSeasonData[armyName]?.win}W - ${selectedSeasonData[armyName]?.lost}L WR ${winRate}%`;
 }
 
 const gameTypeOptions = ["1v1", "2v2", "3v3", "4v4"];

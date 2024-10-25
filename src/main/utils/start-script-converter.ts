@@ -1,8 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { assign } from "$/jaz-ts-utils/object";
-import { isPlayer, StartPosType } from "@main/game/battle/battle-types";
-import { StartScriptTypes } from "@main/model/start-script";
-import { BattleWithMetadata } from "@renderer/store/battle.store";
+import { BattleWithMetadata, isPlayer, StartPosType } from "@main/game/battle/battle-types";
+import { AllyTeam, Bot, Game, Player, Team } from "@main/model/start-script";
 
 /**
  * https://springrts.com/wiki/Script.txt
@@ -21,7 +20,7 @@ class StartScriptConverter {
         return scriptStr;
     }
 
-    public parseScript(scriptStr: string): StartScriptTypes.Game {
+    public parseScript(scriptStr: string): Game {
         let obj = this.scriptToObject(scriptStr).game;
         obj = this.coerceTypes(obj);
         obj = this.parseGroups(obj);
@@ -29,16 +28,16 @@ class StartScriptConverter {
         return obj;
     }
 
-    protected offlineBattleToStartScript(battle: BattleWithMetadata): StartScriptTypes.Game {
-        const allyTeams: StartScriptTypes.AllyTeam[] = [];
-        const teams: StartScriptTypes.Team[] = [];
-        const players: StartScriptTypes.Player[] = [];
-        const bots: StartScriptTypes.Bot[] = [];
+    protected offlineBattleToStartScript(battle: BattleWithMetadata): Game {
+        const allyTeams: AllyTeam[] = [];
+        const teams: Team[] = [];
+        const players: Player[] = [];
+        const bots: Bot[] = [];
 
         Object.entries(battle.teams).forEach((entry) => {
             const teamId = Number(entry[0]);
             const team = entry[1];
-            const allyTeam: StartScriptTypes.AllyTeam = {
+            const allyTeam: AllyTeam = {
                 id: teamId,
                 numallies: 0,
             };
@@ -60,7 +59,7 @@ class StartScriptConverter {
 
             team.forEach((teamMember) => {
                 const { id, advantage, handicap, incomeMultiplier, startPos } = teamMember;
-                const team: StartScriptTypes.Team = {
+                const team: Team = {
                     id,
                     allyteam: teamId,
                     teamleader: 0,
@@ -73,7 +72,7 @@ class StartScriptConverter {
                 teams.push(team);
 
                 if (isPlayer(teamMember)) {
-                    const player: StartScriptTypes.Player = {
+                    const player: Player = {
                         id,
                         team: team.id,
                         name: teamMember.user.username,
@@ -81,7 +80,7 @@ class StartScriptConverter {
                     };
                     players.push(player);
                 } else {
-                    const bot: StartScriptTypes.Bot = {
+                    const bot: Bot = {
                         id,
                         team: team.id,
                         shortname: teamMember.aiShortName,
@@ -125,7 +124,7 @@ class StartScriptConverter {
         };
     }
 
-    protected generateScriptString(script: StartScriptTypes.Game): string {
+    protected generateScriptString(script: Game): string {
         let scriptObj: Record<string, any> = JSON.parse(JSON.stringify(script));
         scriptObj = this.convertGroups(scriptObj);
         const scriptStr = this.stringifyScriptObj(scriptObj);
@@ -176,12 +175,12 @@ class StartScriptConverter {
         return obj;
     }
 
-    protected parseGroups(obj: Record<string, any>): StartScriptTypes.Game {
-        const game = {} as StartScriptTypes.Game;
-        const allyteams: StartScriptTypes.AllyTeam[] = [];
-        const teams: StartScriptTypes.Team[] = [];
-        const players: StartScriptTypes.Player[] = [];
-        const ais: StartScriptTypes.Bot[] = [];
+    protected parseGroups(obj: Record<string, any>): Game {
+        const game = {} as Game;
+        const allyteams: AllyTeam[] = [];
+        const teams: Team[] = [];
+        const players: Player[] = [];
+        const ais: Bot[] = [];
 
         for (const key in obj) {
             const val = obj[key];
@@ -259,16 +258,6 @@ class StartScriptConverter {
 
         return str;
     }
-
-    //     protected generateOnlineScript(battle: SpadsBattle) {
-    //         return `[game] {
-    //     hostip = ${battle.battleOptions.ip};
-    //     hostport = ${battle.battleOptions.port};
-    //     ishost = 0;
-    //     mypasswd = ${battle.battleOptions.scriptPassword};
-    //     myplayername = ${api.session.onlineUser.username};
-    // }`;
-    //     }
 }
 
 export const startScriptConverter = new StartScriptConverter();

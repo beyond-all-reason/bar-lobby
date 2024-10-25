@@ -1,14 +1,9 @@
 <template>
-    <Accordion v-bind="$attrs">
-        <template v-for="(_, name) in $slots as {}" #[name]="slotData">
-            <slot :name="name" v-bind="slotData || {}" />
-        </template>
-    </Accordion>
+    <Accordion v-bind="$attrs" />
 </template>
 
 <script lang="ts" setup>
 // https://primefaces.org/primevue/accordion
-
 import Accordion from "primevue/accordion";
 </script>
 

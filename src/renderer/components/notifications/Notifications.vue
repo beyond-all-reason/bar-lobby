@@ -1,19 +1,26 @@
 <template>
     <div class="fullsize notifications">
         <TransitionGroup name="list" class="alerts" tag="div">
-            <Alert v-for="notification in notifications.alerts" :key="notification.id" :alert="notification" />
+            <AlertComponent v-for="notification in notifications.alerts" :key="notification.id" :alert="notification" />
         </TransitionGroup>
         <TransitionGroup name="list" class="events" tag="div">
-            <Event v-for="event in notifications.events" :key="event.id" :event="event" />
+            <EventComponent v-for="event in notifications.events" :key="event.id" :event="event" />
         </TransitionGroup>
     </div>
 </template>
 
 <script lang="ts" setup>
-import Alert from "@renderer/components/notifications/Alert.vue";
-import Event from "@renderer/components/notifications/Event.vue";
+import AlertComponent from "@renderer/components/notifications/Alert.vue";
+import EventComponent from "@renderer/components/notifications/Event.vue";
+import { Alert, Event } from "@renderer/model/notifications";
 
-const notifications = api.notifications;
+const notifications: {
+    alerts: Alert[];
+    events: Event[];
+} = {
+    alerts: [],
+    events: [],
+};
 </script>
 
 <style lang="scss" scoped>
