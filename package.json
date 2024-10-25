@@ -15,13 +15,15 @@
         "package": "electron-forge package",
         "make": "electron-forge make",
         "publish": "electron-forge publish",
-        "lint": "eslint"
+        "lint": "eslint",
+        "format": "prettier --write --cache .",
+        "format:check": "prettier --check --cache .",
+        "typecheck": "vue-tsc --noEmit"
     },
     "engines": {
         "node": "20.18.0"
     },
     "dependencies": {
-        "7zip-min": "^1.4.5",
         "@extractus/feed-extractor": "^7.1.3",
         "@iconify-icons/mdi": "^1.2.48",
         "@iconify/json": "^2.2.261",
@@ -30,6 +32,7 @@
         "@pixi/unsafe-eval": "^7.4.2",
         "@sinclair/typebox": "^0.33.17",
         "@vueuse/core": "^11.1.0",
+        "7zip-min": "^1.4.5",
         "ajv": "^8.17.1",
         "ajv-formats": "^3.0.1",
         "axios": "^1.7.7",
@@ -93,6 +96,7 @@
         "unplugin-vue-router": "^0.10.8",
         "vite": "^5.4.9",
         "vite-plugin-static-copy": "^2.0.0",
-        "vitest": "^2.1.3"
+        "vitest": "^2.1.3",
+        "vue-tsc": "^2.1.6"
     }
 }
