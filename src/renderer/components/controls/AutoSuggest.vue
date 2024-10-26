@@ -87,7 +87,7 @@ function clickOption(option: AutoSuggestionOption) {
     updateKeyboardSelectionIndex(null);
 
     // Refocus on the input so that users can key "enter" right after selecting an auto-suggestion.
-    document.getElementsByTagName("input")["textInput"].focus();
+    document.getElementById("textInput")?.focus();
 }
 
 function changeKeyboardSelection(direction: 1 | -1) {

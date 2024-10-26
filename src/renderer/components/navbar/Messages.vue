@@ -1,7 +1,7 @@
 <template>
     <PopOutPanel :open="modelValue">
         <TabView v-model:activeIndex="activeTabIndex" class="messages-tabview">
-            <TabPanel v-for="[userId, messages] of directMessages" :key="userId">
+            <TabPanel v-for="[userId, messages] in directMessages" :key="userId">
                 <template #header>
                     <div class="tab-header">
                         <div>{{ getUsername(userId) }}</div>
@@ -10,14 +10,13 @@
                         </div>
                     </div>
                 </template>
-
                 <div class="messages">
                     <div class="flex-col gap-sm">
                         <div
                             v-for="(message, i) in messages"
                             :key="i"
                             v-in-view.once="() => (message.read = true)"
-                            :class="['message', { fromMe: message.senderUserId === myUser.userId }]"
+                            :class="['message', { fromMe: message.senderUserId === me.userId }]"
                         >
                             <Markdown :source="message.text" />
                         </div>
@@ -34,12 +33,10 @@
                     <Button @click="sendDirectMessage(userId, text)">Send</Button>
                 </div>
             </TabPanel>
-
             <TabPanel>
                 <template #header>
                     <Icon :icon="chatPlus" />
                 </template>
-
                 <div class="flex-col flex-grow padding-md">
                     <Textbox v-model="newMessageUserId" v-in-view="focusTextbox" class="fullwidth" label="UserID" placeholder="32452" />
                     <div class="flex-row gap-sm flex-bottom">
@@ -63,13 +60,13 @@ import chatPlus from "@iconify-icons/mdi/chat-plus";
 import closeThick from "@iconify-icons/mdi/close-thick";
 import TabPanel from "primevue/tabpanel";
 import { inject, Ref, ref } from "vue";
-
 import TabView from "@renderer/components/common/TabView.vue";
 import Button from "@renderer/components/controls/Button.vue";
 import Textbox from "@renderer/components/controls/Textbox.vue";
 import Markdown from "@renderer/components/misc/Markdown.vue";
 import PopOutPanel from "@renderer/components/navbar/PopOutPanel.vue";
 import { Message } from "@renderer/model/messages";
+import { me } from "@renderer/store/me.store";
 
 const props = defineProps<{
     modelValue: boolean;
@@ -82,9 +79,8 @@ const emits = defineEmits<{
 const text = ref("");
 const newMessage = ref("");
 const newMessageUserId = ref("");
-const directMessages = api.session.directMessages;
-const myUser = api.session.onlineUser;
-const activeTabIndex = ref(Math.max(directMessages.size - 1, 0));
+const directMessages: Map<number, Message[]> = new Map();
+const activeTabIndex = ref(0);
 
 const toggleMessages = inject<Ref<(open?: boolean, userId?: number) => void>>("toggleMessages")!;
 const toggleFriends = inject<Ref<(open?: boolean) => void>>("toggleFriends")!;
@@ -95,18 +91,9 @@ toggleMessages.value = async (open?: boolean, userIdToActivate?: number) => {
         toggleFriends.value(false);
         toggleDownloads.value(false);
     }
-
     emits("update:modelValue", open ?? !props.modelValue);
-
     if (userIdToActivate) {
-        let i = 0;
-        for (const [userId] of directMessages) {
-            if (userId === userIdToActivate) {
-                break;
-            }
-            i++;
-        }
-        activeTabIndex.value = i;
+        activeTabIndex.value = userIdToActivate;
     }
 };
 
@@ -117,39 +104,40 @@ function focusTextbox(el: HTMLElement) {
 }
 
 function getUsername(userId: number) {
-    return api.session.getUserById(userId)?.username ?? "??";
+    console.log("getUsername", userId);
+    // return api.session.getUserById(userId)?.username ?? "??";
 }
 
 async function sendDirectMessage(userIdInput: number | string, messageText: string) {
-    const userId = typeof userIdInput === "string" ? parseInt(userIdInput) : userIdInput;
-
+    console.log("sendDirectMessage", userIdInput, messageText);
+    // const userId = typeof userIdInput === "string" ? parseInt(userIdInput) : userIdInput;
     newMessageUserId.value = "";
     newMessage.value = "";
     text.value = "";
+    // const response = await api.comms.request("c.communication.send_direct_message", {
+    //     recipient_id: userId,
+    //     message: messageText,
+    // });
 
-    const response = await api.comms.request("c.communication.send_direct_message", {
-        recipient_id: userId,
-        message: messageText,
-    });
-
-    if (response.result === "success") {
-        const chatlog = api.session.directMessages.get(userId);
-        const message: Message = {
-            senderUserId: api.session.onlineUser.userId,
-            text: messageText,
-            type: "direct-message",
-            read: true,
-        };
-        if (chatlog) {
-            chatlog.push(message);
-        } else {
-            api.session.directMessages.set(userId, [message]);
-        }
-    }
+    // if (response.result === "success") {
+    //     const chatlog = api.session.directMessages.get(userId);
+    //     const message: Message = {
+    //         senderUserId: api.session.onlineUser.userId,
+    //         text: messageText,
+    //         type: "direct-message",
+    //         read: true,
+    //     };
+    //     if (chatlog) {
+    //         chatlog.push(message);
+    //     } else {
+    //         api.session.directMessages.set(userId, [message]);
+    //     }
+    // }
 }
 
 function close(userId: number) {
-    api.session.directMessages.delete(userId);
+    console.log("close", userId);
+    // api.session.directMessages.delete(userId);
 }
 </script>
 

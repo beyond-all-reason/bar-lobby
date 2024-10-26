@@ -5,17 +5,15 @@
 <script lang="ts" setup>
 // https://primefaces.org/primevue/contextmenu
 
-import ContextMenu, { ContextMenuEmits, ContextMenuProps } from "primevue/contextmenu";
+import ContextMenu, { ContextMenuProps } from "primevue/contextmenu";
 import { ref } from "vue";
 
-// eslint-disable-next-line
-export interface Props extends ContextMenuProps {}
-
-// eslint-disable-next-line
-export interface Emits extends ContextMenuEmits {}
-
-defineProps<Props>();
-defineEmits<Emits>();
+defineProps<ContextMenuProps>();
+defineEmits<{
+    (e: "show", event: Event): void;
+    (e: "hide"): void;
+    (e: "toggle", event: Event): void;
+}>();
 
 const contextMenu = ref<ContextMenu>();
 

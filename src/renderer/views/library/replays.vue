@@ -107,7 +107,7 @@ import Checkbox from "@renderer/components/controls/Checkbox.vue";
 import TriStateCheckbox from "@renderer/components/controls/TriStateCheckbox.vue";
 import { getFriendlyDuration } from "@renderer/utils/misc";
 import { Replay } from "@main/content/replays/replay";
-import DataTable, { DataTablePageEvent, DataTableStateEvent } from "primevue/datatable";
+import DataTable, { DataTablePageEvent, DataTableSortEvent, DataTableStateEvent } from "primevue/datatable";
 import Panel from "@renderer/components/common/Panel.vue";
 import { db } from "@renderer/store/db";
 import { useDexieLiveQueryWithDeps } from "@renderer/composables/useDexieLiveQuery";
@@ -151,7 +151,7 @@ function onPage(event: DataTablePageEvent) {
     offset.value = event.first;
 }
 
-function onSort(event: DataTableStateEvent) {
+function onSort(event: DataTableSortEvent) {
     sortField.value = event.sortField as keyof Replay;
     sortOrder.value = event.sortOrder === 1 ? "asc" : "desc";
 }

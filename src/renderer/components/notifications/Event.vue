@@ -22,12 +22,12 @@ function onClick() {
 }
 
 function onClose() {
-    api.notifications.closeNotification(props.event);
+    // api.notifications.closeNotification(props.event);
 }
 
 if (props.event.timeoutMs) {
     setTimeout(() => {
-        api.notifications.closeNotification(props.event);
+        // api.notifications.closeNotification(props.event);
     }, props.event.timeoutMs);
 }
 </script>

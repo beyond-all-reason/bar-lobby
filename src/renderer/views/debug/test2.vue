@@ -9,12 +9,11 @@ import Button from "@renderer/components/controls/Button.vue";
 import Password from "@renderer/components/prompts/Password.vue";
 
 async function go() {
-    const data = await api.prompt({
-        component: Password,
-        title: "Battle Password",
-    });
-
-    console.log(data);
+    // const data = await api.prompt({
+    //     component: Password,
+    //     title: "Battle Password",
+    // });
+    // console.log(data);
 }
 </script>
 

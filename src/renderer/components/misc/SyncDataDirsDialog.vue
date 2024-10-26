@@ -20,7 +20,7 @@
 import Modal from "@renderer/components/common/Modal.vue";
 import Button from "@renderer/components/controls/Button.vue";
 
-function test(evt) {
+function test(evt: Event) {
     console.log(evt);
 }
 

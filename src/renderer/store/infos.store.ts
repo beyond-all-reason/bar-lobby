@@ -1,5 +1,5 @@
+import { Info } from "@main/services/info.service";
 import { reactive } from "vue";
-import { Info } from "@main/utils/info";
 
 export const infosStore = reactive({
     isInitialized: false,

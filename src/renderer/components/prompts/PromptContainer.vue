@@ -25,10 +25,11 @@
 import { Icon } from "@iconify/vue";
 import closeThick from "@iconify-icons/mdi/close-thick";
 import { ref, watch } from "vue";
-
-import { promptRef } from "@renderer/api/prompt";
 import Panel from "@renderer/components/common/Panel.vue";
 import { audioApi } from "@renderer/audio/audio";
+import { usePrompt } from "@renderer/composables/usePrompt";
+
+const { promptRef } = usePrompt();
 
 const promptInstance = ref();
 watch(promptInstance, () => {

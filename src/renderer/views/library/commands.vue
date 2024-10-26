@@ -26,7 +26,7 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, onMounted, onUnmounted, Ref, ref } from "vue";
+import { computed, onMounted, Ref, ref } from "vue";
 
 import { Command, serverCommandList } from "@renderer/api/commands";
 import SearchBox from "@renderer/components/controls/SearchBox.vue";
@@ -74,29 +74,29 @@ const filteredCommands = computed(() => {
 const router = useRouter();
 const route = router.currentRoute.value;
 
-const directMessageCommandListener = api.comms.onResponse("s.communication.received_direct_message").add(async (data) => {
-    const { message } = data;
-    // Check if the message is a command
-    if (!message.startsWith("!") && !message.startsWith("$")) return;
-    const cmd = message.split("-")[0].split(" ")[0];
-    const cmdDescription = message.slice(cmd.length + 1).replace("-", " ");
-    if (cmdDescription && !cmdDescription.includes("*")) {
-        commands.push({ cmd, cmdDescription });
-    }
-});
+// const directMessageCommandListener = api.comms.onResponse("s.communication.received_direct_message").add(async (data) => {
+//     const { message } = data;
+//     // Check if the message is a command
+//     if (!message.startsWith("!") && !message.startsWith("$")) return;
+//     const cmd = message.split("-")[0].split(" ")[0];
+//     const cmdDescription = message.slice(cmd.length + 1).replace("-", " ");
+//     if (cmdDescription && !cmdDescription.includes("*")) {
+//         commands.push({ cmd, cmdDescription });
+//     }
+// });
 
 onMounted(() => {
-    // Send a message to the server to get all the commands
-    api.comms.request("c.communication.send_direct_message", {
-        recipient_id: 3137,
-        message: `!helpall`,
-    });
+    // // Send a message to the server to get all the commands
+    // api.comms.request("c.communication.send_direct_message", {
+    //     recipient_id: 3137,
+    //     message: `!helpall`,
+    // });
 });
 
-// Unsubscribe from the response listener when the component is not visible anymore
-onUnmounted(() => {
-    directMessageCommandListener.destroy();
-});
+// // Unsubscribe from the response listener when the component is not visible anymore
+// onUnmounted(() => {
+//     directMessageCommandListener.destroy();
+// });
 </script>
 
 <style lang="scss" scoped>

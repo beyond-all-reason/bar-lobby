@@ -18,14 +18,14 @@ const router = useRouter();
 const modal: Ref<InstanceType<typeof Modal> | null> = ref(null);
 
 async function logout() {
-    api.account.token = "";
-    try {
-        if (!api.session.offlineMode.value) {
-            await api.comms.request("c.auth.disconnect"); // TODO: replace with logout https://github.com/beyond-all-reason/teiserver/issues/56
-        }
-    } catch (err) {
-        console.error(err);
-    }
+    // api.account.token = "";
+    // try {
+    //     if (!api.session.offlineMode.value) {
+    //         await api.comms.request("c.auth.disconnect"); // TODO: replace with logout https://github.com/beyond-all-reason/teiserver/issues/56
+    //     }
+    // } catch (err) {
+    //     console.error(err);
+    // }
     await router.push("/login");
     modal.value?.close();
 }

@@ -12,11 +12,11 @@
 
 <script lang="ts" setup>
 import { ref } from "vue";
-
-import { promptRef } from "@renderer/api/prompt";
 import Button from "@renderer/components/controls/Button.vue";
+import { usePrompt } from "@renderer/composables/usePrompt";
 
 const form = ref<HTMLFormElement>();
+const { promptRef } = usePrompt();
 
 function cancel() {
     promptRef.value?.close();
