@@ -45,7 +45,7 @@ export async function parseReplay(replayPath: string) {
 
 export function asyncParseReplay(replayFilePath: string): Promise<Replay> {
     return new Promise<Replay>((resolve, reject) => {
-        const worker = new Worker(path.join(__dirname, "parse-replay-worker.js"), {
+        const worker = new Worker(path.join(__dirname, "parse-replay-worker.cjs"), {
             workerData: { replayFilePath },
         });
         worker.on("message", resolve);
