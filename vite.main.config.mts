@@ -21,6 +21,13 @@ export default defineConfig({
                 "parse-replay-worker": path.resolve(__dirname, "src/main/content/replays/parse-replay-worker.ts"),
             },
         },
+        lib: {
+            entry: path.resolve(__dirname, "src/main/main.ts"),
+            formats: ["cjs"],
+            fileName(format, entryName) {
+                return `${entryName}.cjs`;
+            },
+        },
         sourcemap: true,
     },
     plugins: [

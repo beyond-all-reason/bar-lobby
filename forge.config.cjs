@@ -1,11 +1,10 @@
-import type { ForgeConfig } from "@electron-forge/shared-types";
-import { MakerDeb } from "@electron-forge/maker-deb";
-import { MakerRpm } from "@electron-forge/maker-rpm";
-import { MakerFlatpak } from "@electron-forge/maker-flatpak";
-import { MakerSquirrel } from "@electron-forge/maker-squirrel";
-import { VitePlugin } from "@electron-forge/plugin-vite";
+const { MakerDeb } = require("@electron-forge/maker-deb");
+const { MakerRpm } = require("@electron-forge/maker-rpm");
+const { MakerFlatpak } = require("@electron-forge/maker-flatpak");
+const { MakerSquirrel } = require("@electron-forge/maker-squirrel");
+const { VitePlugin } = require("@electron-forge/plugin-vite");
 
-const config: ForgeConfig = {
+const config = {
     packagerConfig: {
         asar: false, // Cannot enable asar, it breaks map parsing
     },
@@ -28,11 +27,8 @@ const config: ForgeConfig = {
     ],
     plugins: [
         new VitePlugin({
-            // `build` can specify multiple entry builds, which can be Main process, Preload scripts, Worker process, etc.
-            // If you are familiar with Vite configuration, it will look really familiar.
             build: [
                 {
-                    // `entry` is just an alias for `build.lib.entry` in the corresponding file of `config`.
                     entry: "src/main/main.ts",
                     config: "vite.main.config.mts",
                     target: "main",
@@ -54,8 +50,7 @@ const config: ForgeConfig = {
         //     name: "@electron-forge/plugin-auto-unpack-natives",
         //     config: {},
         // },
-        // Fuses are used to enable/disable various Electron functionality
-        // at package time, before code signing the application
+        // Uncomment and configure fuses if needed:
         // new FusesPlugin({
         //     version: FuseVersion.V1,
         //     [FuseV1Options.RunAsNode]: false,
@@ -68,4 +63,4 @@ const config: ForgeConfig = {
     ],
 };
 
-export default config;
+module.exports = config;

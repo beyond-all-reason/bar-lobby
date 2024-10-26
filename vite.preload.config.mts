@@ -12,6 +12,13 @@ export default defineConfig({
         },
     },
     build: {
+        lib: {
+            entry: path.resolve(__dirname, "src/preload/preload.ts"),
+            formats: ["cjs"],
+            fileName(format, entryName) {
+                return `${entryName}.cjs`;
+            },
+        },
         sourcemap: true,
     },
 });
