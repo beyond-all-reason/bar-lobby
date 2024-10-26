@@ -1,7 +1,7 @@
 {
     "compilerOptions": {
         "target": "ESNext",
-        "module": "Preserve",
+        "module": "CommonJS",
         "allowJs": true,
         "skipLibCheck": true,
         "esModuleInterop": true,

@@ -9,8 +9,7 @@
         "type": "git",
         "url": "git+https://github.com/beyond-all-reason/bar-lobby.git"
     },
-    "main": ".vite/build/index.js",
-    "type": "module",
+    "main": ".vite/build/main.js",
     "scripts": {
         "start": "cross-env NODE_OPTIONS=--enable-source-maps electron-forge start",
         "package": "electron-forge package",
