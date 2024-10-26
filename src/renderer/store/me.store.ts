@@ -1,7 +1,7 @@
 import { CurrentUser } from "@main/model/user";
 import { reactive, readonly } from "vue";
 
-const _me = reactive({
+export const _me = reactive({
     userId: 0,
     isOnline: false,
     username: "Player",

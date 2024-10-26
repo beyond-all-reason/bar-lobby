@@ -25,13 +25,11 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, watch } from "vue";
-
+import { ref } from "vue";
 import Loader from "@renderer/components/common/Loader.vue";
 import Button from "@renderer/components/controls/Button.vue";
 import Checkbox from "@renderer/components/controls/Checkbox.vue";
 import Textbox from "@renderer/components/controls/Textbox.vue";
-import { linkify } from "@renderer/utils/linkify";
 import { settingsStore } from "@renderer/store/settings.store";
 
 const loading = ref(false);

@@ -35,7 +35,8 @@ import BotParticipant from "@renderer/components/battle/BotParticipant.vue";
 import PlayerParticipant from "@renderer/components/battle/PlayerParticipant.vue";
 import Button from "@renderer/components/controls/Button.vue";
 import { Bot, isBot, isPlayer, Player } from "@main/game/battle/battle-types";
-import { battleWithMetadataStore, mePlayer } from "@renderer/store/battle.store";
+import { battleWithMetadataStore } from "@renderer/store/battle.store";
+import { me } from "@renderer/store/me.store";
 
 const props = defineProps<{
     teamId: string;
@@ -47,7 +48,7 @@ const memberCount = computed(() => {
 });
 
 const showJoin = computed(() => {
-    return props.teamId !== mePlayer.battleStatus.teamId;
+    return props.teamId !== me.battleRoomState.teamId;
 });
 
 const emit = defineEmits(["addBotClicked", "onJoinClicked", "onDragStart", "onDragEnd", "onDragEnter", "onDrop"]);

@@ -9,7 +9,7 @@ import { onMounted, onUnmounted, useTemplateRef, watch } from "vue";
 import { MapData } from "@main/content/maps/map-data";
 import { StartBox, StartPosType } from "@main/game/battle/battle-types";
 import { MIPMAP_SIZE } from "@main/config/map-parsing";
-import { mePlayer } from "@renderer/store/battle.store";
+import { me } from "@renderer/store/me.store";
 
 const props = defineProps<{
     map?: MapData;
@@ -62,7 +62,7 @@ watch(() => props.map, setMapImage, { deep: true });
 watch(() => props.startBoxes, drawBoxes, { deep: true });
 watch(() => props.startPositions, drawStartPositions);
 watch(
-    () => mePlayer.battleStatus.teamId,
+    () => me.battleRoomState.teamId,
     () => {
         drawBoxes();
         drawStartPositions();
@@ -129,8 +129,8 @@ function drawBoxes() {
         boxesGfx.alpha = 0.2;
         boxesGfx.clear();
     }
-    const isSpectator = mePlayer.battleStatus.isSpectator;
-    const myTeamId = mePlayer.battleStatus.teamId;
+    const isSpectator = me.battleRoomState.isSpectator;
+    const myTeamId = me.battleRoomState.teamId;
     for (const teamId in props.startBoxes) {
         const box = props.startBoxes[teamId];
         if (!box) {

@@ -5,7 +5,15 @@ export type User = {
     clanId: number | null;
     countryCode: string;
     isOnline: boolean;
-    battleStatus: Record<string, string>; // TODO: Define this type
+    status?: "busy" | "away" | "online" | "offline" | "in-lobby" | "playing" | "spectating";
+    gameId?: string;
+
+    // When user is a contender in a battle
+    battleRoomState: {
+        isSpectator?: boolean;
+        isReady?: boolean;
+        teamId?: string;
+    };
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

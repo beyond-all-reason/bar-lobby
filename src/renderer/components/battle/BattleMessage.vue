@@ -23,7 +23,7 @@ const user: User = {
     userId: 1,
     username: "User Name",
     countryCode: "US",
-    battleStatus: {},
+    battleRoomState: {},
     clanId: 1,
     isOnline: true,
     icons: {},

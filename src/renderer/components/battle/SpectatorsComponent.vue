@@ -24,13 +24,14 @@ import { computed } from "vue";
 
 import SpectatorParticipant from "@renderer/components/battle/SpectatorParticipant.vue";
 import Button from "@renderer/components/controls/Button.vue";
-import { battleWithMetadataStore, mePlayer } from "@renderer/store/battle.store";
+import { battleWithMetadataStore } from "@renderer/store/battle.store";
 import { Player } from "@main/game/battle/battle-types";
+import { me } from "@renderer/store/me.store";
 
 const title = "Spectators";
 
 const showJoin = computed(() => {
-    return mePlayer.battleStatus.isSpectator === false;
+    return me.battleRoomState.isSpectator === false;
 });
 
 const memberCount = computed(() => {

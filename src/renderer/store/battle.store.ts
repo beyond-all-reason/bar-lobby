@@ -2,8 +2,8 @@ import { EngineVersion } from "@main/content/engine/engine-version";
 import { GameVersion } from "@main/content/game/game-version";
 import { MapData } from "@main/content/maps/map-data";
 import { Battle, BattleOptions, BattleWithMetadata, Bot, Faction, Player, StartPosType } from "@main/game/battle/battle-types";
-import { CurrentUser, User } from "@main/model/user";
-import { me } from "@renderer/store/me.store";
+import { User } from "@main/model/user";
+import { _me, me } from "@renderer/store/me.store";
 import { deepToRaw } from "@renderer/utils/deep-toraw";
 import { defaultMapBoxes } from "@renderer/utils/start-boxes";
 import { reactive, readonly, watch } from "vue";
@@ -124,37 +124,20 @@ async function startBattle() {
     await window.game.launchBattle(deepToRaw(_battleWithMetadataStore));
 }
 
-// Should probably make a MyBattleStatus store of some sort
-interface CurrentPlayer extends CurrentUser {
-    battleStatus: {
-        isSpectator: boolean;
-        isReady: boolean;
-        teamId?: string;
-    };
-}
-const _mePlayer = reactive({
-    ...me,
-    battleStatus: {
-        isSpectator: false,
-        isReady: false,
-    },
-} as CurrentPlayer);
-export const mePlayer = readonly(_mePlayer);
-
 // Automatically compute my battle status given the changes in the battle
 watch(
     battleWithMetadataStore,
     (battle) => {
         if (battle.spectators.find((spectator) => spectator.user.userId === me.userId)) {
-            _mePlayer.battleStatus.isSpectator = true;
-            _mePlayer.battleStatus.isReady = true;
-            delete _mePlayer.battleStatus.teamId;
+            _me.battleRoomState.isSpectator = true;
+            _me.battleRoomState.isReady = true;
+            delete _me.battleRoomState.teamId;
         } else {
-            _mePlayer.battleStatus.isSpectator = false;
+            _me.battleRoomState.isSpectator = false;
             // iterate over the map id, team to find the user's team
             Object.entries(battle.teams).forEach(([teamId, team]) => {
                 if (team.find((participant) => "user" in participant && participant.user.userId === me.userId)) {
-                    _mePlayer.battleStatus.teamId = teamId;
+                    _me.battleRoomState.teamId = teamId;
                 }
             });
         }

@@ -107,7 +107,7 @@ import Checkbox from "@renderer/components/controls/Checkbox.vue";
 import TriStateCheckbox from "@renderer/components/controls/TriStateCheckbox.vue";
 import { getFriendlyDuration } from "@renderer/utils/misc";
 import { Replay } from "@main/content/replays/replay";
-import DataTable, { DataTablePageEvent, DataTableSortEvent, DataTableStateEvent } from "primevue/datatable";
+import DataTable, { DataTablePageEvent, DataTableSortEvent } from "primevue/datatable";
 import Panel from "@renderer/components/common/Panel.vue";
 import { db } from "@renderer/store/db";
 import { useDexieLiveQueryWithDeps } from "@renderer/composables/useDexieLiveQuery";
