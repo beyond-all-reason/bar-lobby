@@ -102,6 +102,7 @@ import Friends from "@renderer/components/navbar/Friends.vue";
 import Messages from "@renderer/components/navbar/Messages.vue";
 import { useRouter } from "vue-router";
 import { settingsStore } from "@renderer/store/settings.store";
+import { me } from "@renderer/store/me.store";
 
 defineProps<{
     hidden?: boolean;
@@ -109,7 +110,7 @@ defineProps<{
 
 const router = useRouter();
 const allRoutes = router.getRoutes();
-const offlineMode = api.session.offlineMode;
+const offlineMode = true;
 const primaryRoutes = computed(() => {
     return allRoutes
         .filter((r) => ["/singleplayer", "/multiplayer", "/library", "/learn", "/store", "/development"].includes(r.path))
@@ -118,8 +119,8 @@ const primaryRoutes = computed(() => {
                 (r.meta.hide === false || r.meta.hide === undefined) &&
                 ((r.meta.devOnly && settingsStore.devMode) || !r.meta.devOnly) &&
                 (r.meta.availableOffline === undefined || r.meta.availableOffline || (r.meta.availableOffline === false && !offlineMode))
-        )
-        .sort((a, b) => (a.meta.order ?? 99) - (b.meta.order ?? 99));
+        );
+    // .sort((a, b) => (a.meta.order ?? 99) - (b.meta.order ?? 99));
 });
 const secondaryRoutes = computed(() => {
     return allRoutes
@@ -129,8 +130,8 @@ const secondaryRoutes = computed(() => {
                 (r.meta.hide === false || r.meta.hide === undefined) &&
                 ((r.meta.devOnly && settingsStore.devMode) || !r.meta.devOnly) &&
                 (r.meta.availableOffline === undefined || r.meta.availableOffline || (r.meta.availableOffline === false && !offlineMode))
-        )
-        .sort((a, b) => (a.meta.order ?? 99) - (b.meta.order ?? 99));
+        );
+    // .sort((a, b) => (a.meta.order ?? 99) - (b.meta.order ?? 99));
 });
 const messagesOpen = ref(false);
 const friendsOpen = ref(false);
@@ -139,19 +140,22 @@ const settingsOpen = inject<Ref<boolean>>("settingsOpen")!;
 const exitOpen = inject<Ref<boolean>>("exitOpen")!;
 
 const messagesUnread = computed(() => {
-    for (const [, messages] of api.session.directMessages) {
-        for (const message of messages) {
-            if (!message.read) {
-                return true;
-            }
-        }
-    }
+    //TODO dmStores
+    // for (const [, messages] of api.session.directMessages) {
+    //     for (const message of messages) {
+    //         if (!message.read) {
+    //             return true;
+    //         }
+    //     }
+    // }
     return false;
 });
 
-const currentUser = api.session.onlineUser;
-const serverStats = api.session.serverStats;
-const serverOffline = api.session.offlineMode;
+const currentUser = me;
+const serverStats = {
+    user_count: 0,
+};
+const serverOffline = true;
 </script>
 
 <style lang="scss" scoped>
