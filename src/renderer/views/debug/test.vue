@@ -19,13 +19,13 @@
 </template>
 
 <script lang="ts" setup>
-// import BattlePassword from "@/components/battle/BattlePassword.vue";
+// import BattlePassword from "@renderer/components/battle/BattlePassword.vue";
 
 import { createTemplatePromise } from "@vueuse/core";
 import { ref } from "vue";
 
-import Button from "@/components/controls/Button.vue";
-import Textbox from "@/components/controls/Textbox.vue";
+import Button from "@renderer/components/controls/Button.vue";
+import Textbox from "@renderer/components/controls/Textbox.vue";
 
 const thing = ref("");
 
@@ -40,7 +40,7 @@ async function go() {
     try {
         const stuff = await PasswordPrompt.start();
         console.log(stuff);
-    } catch (err) {
+    } catch {
         console.error("Cancelled");
     }
 }

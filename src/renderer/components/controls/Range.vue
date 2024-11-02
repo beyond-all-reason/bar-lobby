@@ -12,13 +12,13 @@ import InputNumber from "primevue/inputnumber";
 import Slider, { SliderProps } from "primevue/slider";
 import { computed, onMounted, Ref, ref } from "vue";
 
-import Control from "@/components/controls/Control.vue";
+import Control from "@renderer/components/controls/Control.vue";
 
 export interface Props extends SliderProps {
     modelValue: number | number[] | undefined;
 }
 
-const props = defineProps<Props>();
+defineProps<Props>();
 const emits = defineEmits<{
     (event: "update:modelValue", value: number | number[]): void;
 }>();
@@ -74,7 +74,11 @@ function onInput(input: number | number[]) {
         background: #eee;
         border-radius: 50%;
         transform: translateX(-50%) translateY(-50%);
-        transition: background-color 0.2s, color 0.2s, border-color 0.2s, box-shadow 0.2s;
+        transition:
+            background-color 0.2s,
+            color 0.2s,
+            border-color 0.2s,
+            box-shadow 0.2s;
     }
     .p-slider-sliding .p-slider-handle,
     .p-slider-handle:hover {

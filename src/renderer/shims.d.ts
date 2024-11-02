@@ -7,10 +7,9 @@ declare module "*.vue" {
     export default component;
 }
 
-declare module "vue3-markdown-it";
-declare module "vue3-popper";
-
 declare module "*.png";
 declare module "*.mp3";
 declare module "*.ogg";
 declare module "*.mp4";
+
+declare module "tga";

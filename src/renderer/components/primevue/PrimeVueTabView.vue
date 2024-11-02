@@ -144,10 +144,7 @@ export default {
             ];
         },
         tabs() {
-            this.updateKey;
-
             const nodes = this.$slots.default();
-
             return this.getTabNodes(nodes);
         },
         prevButtonAriaLabel() {
@@ -171,7 +168,7 @@ export default {
         this.id = this.id || UniqueComponentId();
 
         this.updateInkBar();
-        this.scrollable && this.updateButtonState();
+        if (this.scrollable) this.updateButtonState();
     },
     beforeUpdate() {
         this.updateKey++;
@@ -199,15 +196,13 @@ export default {
             return `${this.id}_${index}_content`;
         },
         onScroll(event) {
-            this.scrollable && this.updateButtonState();
-
+            if (this.scrollable) this.updateButtonState();
             event.preventDefault();
         },
         onPrevButtonClick() {
             const content = this.$refs.content;
             const width = DomHandler.getWidth(content) - this.getVisibleButtonWidths();
             const pos = content.scrollLeft - width;
-
             content.scrollLeft = pos <= 0 ? 0 : pos;
         },
         onNextButtonClick() {
@@ -215,7 +210,6 @@ export default {
             const width = DomHandler.getWidth(content) - this.getVisibleButtonWidths();
             const pos = content.scrollLeft + width;
             const lastPos = content.scrollWidth - width;
-
             content.scrollLeft = pos >= lastPos ? lastPos : pos;
         },
         onTabClick(event, tab, index) {
@@ -259,14 +253,20 @@ export default {
         },
         onTabArrowRightKey(event) {
             const nextHeaderAction = this.findNextHeaderAction(event.target.parentElement);
-
-            nextHeaderAction ? this.changeFocusedTab(event, nextHeaderAction) : this.onTabHomeKey(event);
+            if (nextHeaderAction) {
+                this.changeFocusedTab(event, nextHeaderAction);
+            } else {
+                this.onTabHomeKey(event);
+            }
             event.preventDefault();
         },
         onTabArrowLeftKey(event) {
             const prevHeaderAction = this.findPrevHeaderAction(event.target.parentElement);
-
-            prevHeaderAction ? this.changeFocusedTab(event, prevHeaderAction) : this.onTabEndKey(event);
+            if (prevHeaderAction) {
+                this.changeFocusedTab(event, prevHeaderAction);
+            } else {
+                this.onTabEndKey(event);
+            }
             event.preventDefault();
         },
         onTabHomeKey(event) {
@@ -343,9 +343,8 @@ export default {
         },
         scrollInView({ element, index = -1 }) {
             const currentElement = element || this.$refs.nav.children[index];
-
-            if (currentElement) {
-                currentElement.scrollIntoView && currentElement.scrollIntoView({ block: "nearest" });
+            if (currentElement && currentElement.scrollIntoView) {
+                currentElement.scrollIntoView({ block: "nearest" });
             }
         },
         updateInkBar() {

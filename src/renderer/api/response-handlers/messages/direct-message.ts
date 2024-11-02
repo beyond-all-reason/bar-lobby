@@ -1,3 +1,3 @@
-import { createMessageHandlers } from "@/model/messages";
+import { createMessageHandlers } from "@renderer/model/messages";
 
 export const directMessageHandlers = createMessageHandlers();

@@ -4,23 +4,25 @@
             <Icon :icon="chevronLeft" height="21" />
             <div>Back</div>
         </div>
-        <!-- <template v-for="item in currentRoute.matched" :key="item.path">
+        <template v-for="item in currentRoute.matched" :key="item.path">
             <div v-if="item.children" class="separator">/</div>
             <router-link class="item" :class="{ active: item.path === currentRoute.path }" :to="item.path">
                 {{ item.meta.title ?? item.name }}
             </router-link>
-        </template> -->
+        </template>
     </div>
 </template>
 
 <script lang="ts" setup>
 import { Icon } from "@iconify/vue";
 import chevronLeft from "@iconify-icons/mdi/chevron-left";
+import { useRouter } from "vue-router";
 
-const currentRoute = api.router.currentRoute;
+const router = useRouter();
+const currentRoute = router.currentRoute;
 
 function onBack() {
-    api.router.back();
+    router.back();
 }
 </script>
 

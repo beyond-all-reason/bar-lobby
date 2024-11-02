@@ -28,26 +28,26 @@
                     <div class="flex-col fullheight">
                         <div class="scroll-container gap-md padding-right-sm">
                             <Accordion
-                                v-if="outgoingFriendRequests.length || incomingFriendRequests.length"
+                                v-if="outgoingFriendRequests.size || incomingFriendRequests.size"
                                 :activeIndex="accordianActiveIndexes"
                                 multiple
                             >
-                                <AccordionTab v-if="outgoingFriendRequests.length" header="Outgoing Friend Requests">
+                                <AccordionTab v-if="outgoingFriendRequests.size" header="Outgoing Friend Requests">
                                     <div class="user-list">
                                         <Friend
-                                            v-for="(user, i) in outgoingFriendRequests"
-                                            :key="`outgoingFriendRequest${i}`"
-                                            :user="user"
+                                            v-for="userId in outgoingFriendRequests"
+                                            :key="`outgoingFriendRequest${userId}`"
+                                            :userId="userId"
                                             :type="'outgoing_request'"
                                         />
                                     </div>
                                 </AccordionTab>
-                                <AccordionTab v-if="incomingFriendRequests.length" header="Incoming Friend Requests">
+                                <AccordionTab v-if="incomingFriendRequests.size" header="Incoming Friend Requests">
                                     <div class="user-list">
                                         <Friend
-                                            v-for="(user, i) in incomingFriendRequests"
-                                            :key="`incomingFriendRequest${i}`"
-                                            :user="user"
+                                            v-for="userId in incomingFriendRequests"
+                                            :key="`incomingFriendRequest${userId}`"
+                                            :userId="userId"
                                             :type="'incoming_request'"
                                         />
                                     </div>
@@ -55,8 +55,13 @@
                             </Accordion>
 
                             <div class="user-list">
-                                <Friend v-for="(user, i) in onlineFriends" :key="`onlineFriend${i}`" :user="user" :type="'friend'" />
-                                <Friend v-for="(user, i) in offlineFriends" :key="`offlineFriend${i}`" :user="user" :type="'friend'" />
+                                <Friend v-for="userId in onlineFriends" :key="`onlineFriend${userId}`" :userId="userId" :type="'friend'" />
+                                <Friend
+                                    v-for="userId in offlineFriends"
+                                    :key="`offlineFriend${userId}`"
+                                    :userId="userId"
+                                    :type="'friend'"
+                                />
                             </div>
                         </div>
                     </div>
@@ -82,12 +87,13 @@ import { InputNumberBlurEvent } from "primevue/inputnumber";
 import TabPanel from "primevue/tabpanel";
 import { computed, inject, Ref, ref, watch } from "vue";
 
-import Accordion from "@/components/common/Accordion.vue";
-import TabView from "@/components/common/TabView.vue";
-import Button from "@/components/controls/Button.vue";
-import Number from "@/components/controls/Number.vue";
-import Friend from "@/components/navbar/Friend.vue";
-import PopOutPanel from "@/components/navbar/PopOutPanel.vue";
+import Accordion from "@renderer/components/common/Accordion.vue";
+import TabView from "@renderer/components/common/TabView.vue";
+import Button from "@renderer/components/controls/Button.vue";
+import Number from "@renderer/components/controls/Number.vue";
+import Friend from "@renderer/components/navbar/Friend.vue";
+import PopOutPanel from "@renderer/components/navbar/PopOutPanel.vue";
+import { me } from "@renderer/store/me.store";
 
 const props = defineProps<{
     modelValue: boolean;
@@ -101,11 +107,11 @@ const activeIndex = ref(0);
 const accordianActiveIndexes = ref([0, 1, 2]);
 const friendId = ref<number>();
 const addFriendDisabled = ref(true);
-const onlineFriends = computed(() => api.session.friends.value.filter((user) => user.isOnline));
-const offlineFriends = computed(() => api.session.friends.value.filter((user) => !user.isOnline));
-const outgoingFriendRequests = api.session.outgoingFriendRequests;
-const incomingFriendRequests = api.session.incomingFriendRequests;
-const myUserId = computed(() => api.session.onlineUser.userId);
+const onlineFriends = computed(() => []);
+const offlineFriends = computed(() => []);
+const outgoingFriendRequests = me.outgoingFriendRequestUserIds;
+const incomingFriendRequests = me.incomingFriendRequestUserIds;
+const myUserId = computed(() => me.userId);
 
 const toggleMessages = inject<Ref<(open?: boolean, userId?: number) => void>>("toggleMessages")!;
 const toggleFriends = inject<Ref<(open?: boolean) => void>>("toggleFriends")!;
@@ -141,23 +147,7 @@ function copyUserId() {
     navigator.clipboard.writeText(myUserId.value.toString());
 }
 
-async function addFriend() {
-    if (!friendId.value) {
-        return;
-    }
-
-    api.comms.request("c.user.add_friend", {
-        user_id: friendId.value,
-    });
-
-    const { users } = await api.comms.request("c.user.list_users_from_ids", {
-        id_list: [friendId.value],
-    });
-
-    if (users.length) {
-        api.session.onlineUser.incomingFriendRequestUserIds.add(friendId.value);
-    }
-}
+async function addFriend() {}
 </script>
 
 <style lang="scss" scoped>

@@ -1,5 +1,5 @@
 <template>
-    <div class="progress" :class="{ themed: themed }" :style="percentStr">
+    <div class="progress" :class="{ themed: themed, pulse: pulsating }" :style="percentStr">
         <div class="progress__bar" :style="`height: ${height}px`">
             <div class="progress__current" />
             <div class="progress__text">
@@ -18,6 +18,7 @@ const props = withDefaults(
         text?: string;
         themed?: boolean;
         height?: number;
+        pulsating?: boolean;
     }>(),
     {
         text: undefined,
@@ -61,6 +62,10 @@ watch(
     &.themed .progress__current {
         background: linear-gradient(rgba(217, 255, 0, 0.5) 0%, rgba(217, 255, 0, 0.5) 50%, rgba(194, 228, 0, 0.5) 51%);
         border-top: 1px solid rgba(255, 255, 255, 0.3);
+        transition: width 1s ease;
+    }
+    &.pulse .progress__current {
+        animation: pulse 1s infinite;
     }
     &__text {
         @extend .fullsize;

@@ -1,24 +1,36 @@
 <template>
     <div class="message" :class="[{ 'from-host': fromHost }, message.type]">
-        <div v-if="user && !user.isBot" class="user">
+        <div v-if="user" class="user">
             <Flag :countryCode="user.countryCode" style="width: 16px" />
             <div>{{ user.username }}</div>
         </div>
-        <MarkDown :text="message.text" />
+        <Markdown :source="message.text" />
     </div>
 </template>
 
 <script lang="ts" setup>
-import Flag from "@/components/misc/Flag.vue";
-import MarkDown from "@/components/misc/MarkDown.vue";
-import { Message } from "@/model/messages";
+import { User } from "@main/model/user";
+import Flag from "@renderer/components/misc/Flag.vue";
+import Markdown from "@renderer/components/misc/Markdown.vue";
+import { Message } from "@renderer/model/messages";
+import { me } from "@renderer/store/me.store";
 
-const props = defineProps<{
+defineProps<{
     message: Message;
 }>();
 
-const user = api.session.getUserById(props.message.senderUserId);
-const fromHost = api.session.onlineBattle.value?.founder.value.userId === props.message.senderUserId;
+const user: User = {
+    userId: 1,
+    username: "User Name",
+    countryCode: "US",
+    battleRoomState: {},
+    clanId: 1,
+    isOnline: true,
+    icons: {},
+};
+
+// const user = api.session.getUserById(props.message.senderUserId);
+const fromHost = user.userId === me.userId;
 </script>
 
 <style lang="scss" scoped>

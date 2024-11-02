@@ -24,11 +24,11 @@
 <script lang="ts" setup>
 import { ref } from "vue";
 
-import Loader from "@/components/common/Loader.vue";
-import Button from "@/components/controls/Button.vue";
-import Textbox from "@/components/controls/Textbox.vue";
+import Loader from "@renderer/components/common/Loader.vue";
+import Button from "@renderer/components/controls/Button.vue";
+import Textbox from "@renderer/components/controls/Textbox.vue";
 
-const emit = defineEmits(["register-success"]);
+// const emit = defineEmits(["register-success"]);
 
 const loading = ref(false);
 const email = ref("");
@@ -37,7 +37,7 @@ const confirmPassword = ref("");
 const password = ref("");
 const error = ref("");
 
-function validatePassword(value: string) {
+function validatePassword() {
     if (password.value && confirmPassword.value && password.value !== confirmPassword.value) {
         return "Passwords do not match";
     }
@@ -47,21 +47,21 @@ function validatePassword(value: string) {
 async function register() {
     loading.value = true;
 
-    const registerResponse = await api.comms.request("c.auth.register", {
-        email: email.value,
-        username: username.value,
-        password: password.value,
-    });
+    // const registerResponse = await api.comms.request("c.auth.register", {
+    //     email: email.value,
+    //     username: username.value,
+    //     password: password.value,
+    // });
 
-    if (registerResponse.result === "success") {
-        error.value = "";
-        api.account.model.email = email.value;
-        emit("register-success");
-    } else {
-        if (registerResponse.reason) {
-            error.value = registerResponse.reason;
-        }
-    }
+    // if (registerResponse.result === "success") {
+    //     error.value = "";
+    //     api.account.model.email = email.value;
+    //     emit("register-success");
+    // } else {
+    //     if (registerResponse.reason) {
+    //         error.value = registerResponse.reason;
+    //     }
+    // }
 
     loading.value = false;
 }

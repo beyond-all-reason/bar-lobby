@@ -2,6 +2,12 @@
 
 import { Directive, DirectiveBinding } from "vue";
 
+declare global {
+    interface HTMLElement {
+        __vue_click_away__?: (event: MouseEvent) => void;
+    }
+}
+
 const UNIQUE_ID = "__vue_click_away__";
 
 const idElements: Map<string, Set<HTMLElement>> = new Map();

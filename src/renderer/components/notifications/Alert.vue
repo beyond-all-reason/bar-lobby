@@ -14,7 +14,7 @@ import closeThick from "@iconify-icons/mdi/close-thick";
 import infoOutline from "@iconify-icons/mdi/information-outline";
 import { computed } from "vue";
 
-import { Alert } from "@/model/notifications";
+import { Alert } from "@renderer/model/notifications";
 
 const props = defineProps<{
     alert: Alert;
@@ -31,12 +31,12 @@ const icon = computed(() => {
 });
 
 function onClose() {
-    api.notifications.closeNotification(props.alert);
+    // api.notifications.closeNotification(props.alert);
 }
 
 if (props.alert.timeoutMs) {
     setTimeout(() => {
-        api.notifications.closeNotification(props.alert);
+        // api.notifications.closeNotification(props.alert);
     }, props.alert.timeoutMs);
 }
 </script>

@@ -2,19 +2,21 @@
     <div class="flex-col gap-lg flex-grow fullheight">
         <div class="flex-row gap-md">
             <SearchBox v-model="searchVal" />
-            <Select v-model="sortMethod" :options="sortMethods" label="Sort By" />
+            <Select v-model="sortMethod" :options="sortMethods" label="Sort By" optionLabel="label" />
         </div>
 
         <div class="flex-col flex-grow fullheight">
-            <div class="scroll-container">
+            <div class="scroll-container" style="overflow-y: scroll">
                 <div class="maps">
-                    <MapOverviewCard
-                        v-for="(map, i) in filteredMaps"
-                        :key="i"
-                        :map="map"
-                        :friendlyName="map.friendlyName"
-                        @click="mapSelected(map)"
-                    />
+                    <TransitionGroup name="maps-list">
+                        <MapOverviewCard
+                            v-for="map in maps"
+                            :key="map.scriptName"
+                            :map="map"
+                            :friendlyName="map.friendlyName"
+                            @click="mapSelected(map)"
+                        />
+                    </TransitionGroup>
                 </div>
             </div>
         </div>
@@ -30,43 +32,32 @@
  * - Demo map button that launches a simple offline game on the map
  */
 
-import { computed, Ref, ref } from "vue";
+import { Ref, ref } from "vue";
 
-import SearchBox from "@/components/controls/SearchBox.vue";
-import Select from "@/components/controls/Select.vue";
-import MapOverviewCard from "@/components/maps/MapOverviewCard.vue";
-import { MapData } from "@/model/cache/map-data";
+import SearchBox from "@renderer/components/controls/SearchBox.vue";
+import Select from "@renderer/components/controls/Select.vue";
+import MapOverviewCard from "@renderer/components/maps/MapOverviewCard.vue";
+import { MapData } from "@main/content/maps/map-data";
+import { db } from "@renderer/store/db";
+import { useDexieLiveQueryWithDeps } from "@renderer/composables/useDexieLiveQuery";
 
-type SortMethod = "Name" | "Size";
+type SortMethod = { label: string; dbKey: string };
 
-const sortMethods: SortMethod[] = ["Name", "Size"];
-const sortMethod: Ref<SortMethod> = ref("Name");
+const sortMethods: SortMethod[] = [
+    { label: "Name", dbKey: "friendlyName" },
+    { label: "Size", dbKey: "width" },
+];
+const sortMethod: Ref<SortMethod> = ref(sortMethods.at(0));
 const searchVal = ref("");
 const emit = defineEmits<{
     (event: "map-selected", map: MapData): void;
 }>();
-const filteredMaps = computed(() => {
-    let maps = Array.from(api.content.maps.installedVersions);
 
-    if (searchVal.value.length > 0) {
-        maps = maps.filter((map: MapData) => {
-            return map.friendlyName.toLowerCase().includes(searchVal.value.toLowerCase());
-        });
-    }
-
-    switch (sortMethod.value) {
-        case "Name":
-            maps.sort((a, b) => {
-                return a.friendlyName.localeCompare(b.friendlyName);
-            });
-            break;
-        case "Size":
-            maps.sort((a, b) => {
-                return a.width * a.height - b.width * b.height;
-            });
-    }
-    return maps;
-});
+const maps = useDexieLiveQueryWithDeps([searchVal, sortMethod], () =>
+    db.maps
+        .filter((map) => map.friendlyName.toLocaleLowerCase().includes(searchVal.value.toLocaleLowerCase()))
+        .sortBy(sortMethod.value.dbKey)
+);
 
 function mapSelected(map: MapData) {
     emit("map-selected", map);
@@ -79,5 +70,20 @@ function mapSelected(map: MapData) {
     grid-gap: 15px;
     grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
     padding-right: 10px;
+}
+
+// Transition
+.maps-list-move,
+.maps-list-enter-active,
+.maps-list-leave-active {
+    transition: all 0.5s ease;
+}
+.maps-list-enter-from,
+.maps-list-leave-to {
+    opacity: 0;
+    // transform: translateX(0, 30px);
+}
+.maps-list-leave-active {
+    position: absolute;
 }
 </style>

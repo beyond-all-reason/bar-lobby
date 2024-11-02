@@ -26,14 +26,12 @@
 import { onKeyUp } from "@vueuse/core";
 import { computed, ref, watch } from "vue";
 
-import Panel from "@/components/common/Panel.vue";
-import Button from "@/components/controls/Button.vue";
-import { SpadsBattle } from "@/model/battle/spads-battle";
-import { SpadsVote } from "@/model/spads/spads-types";
+import Panel from "@renderer/components/common/Panel.vue";
+import Button from "@renderer/components/controls/Button.vue";
+import { SpadsVote } from "@main/model/spads/spads-types";
 
 const props = defineProps<{
     vote: SpadsVote;
-    battle: SpadsBattle;
 }>();
 
 const missingYesVotes = computed(() => {
@@ -67,15 +65,15 @@ onKeyUp("F1", onYes);
 onKeyUp("F2", onNo);
 
 function onYes() {
-    api.comms.request("c.lobby.message", {
-        message: "!vote y",
-    });
+    // api.comms.request("c.lobby.message", {
+    //     message: "!vote y",
+    // });
 }
 
 function onNo() {
-    api.comms.request("c.lobby.message", {
-        message: "!vote n",
-    });
+    // api.comms.request("c.lobby.message", {
+    //     message: "!vote n",
+    // });
 }
 </script>
 

@@ -1,9 +1,8 @@
-import { randomFromArray } from "jaz-ts-utils";
-
-const musicKeys: string[] = [];
+import { randomFromArray } from "$/jaz-ts-utils/object";
+import { audioApi } from "@renderer/audio/audio";
 
 export function playRandomMusic() {
-    const musicSounds = api.audio.getAllSounds().filter((sound) => sound.isMusic);
+    const musicSounds = audioApi.getAllSounds().filter((sound) => sound.isMusic);
     const randomMusic = randomFromArray(musicSounds)!;
     randomMusic.once("end", () => {
         playRandomMusic();

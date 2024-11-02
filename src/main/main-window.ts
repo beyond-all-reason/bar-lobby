@@ -1,97 +1,107 @@
-import { BrowserWindow, screen, shell } from "electron";
+import { app, BrowserWindow, ipcMain, screen } from "electron";
 import path from "path";
-import { watch } from "vue";
+import { settingsService } from "./services/settings.service";
+import { logger } from "./utils/logger";
+import { replayContentAPI } from "@main/content/replays/replay-content";
 
-import { StoreAPI } from "@/api/store";
-import { settingsSchema } from "$/model/settings";
+declare const MAIN_WINDOW_VITE_DEV_SERVER_URL: string;
+declare const MAIN_WINDOW_VITE_NAME: string;
 
-export class MainWindow {
-    public window: BrowserWindow;
+const log = logger("main-window");
 
-    protected settings: StoreAPI<typeof settingsSchema>;
+export function createWindow() {
+    const settings = settingsService.getSettings();
+    log.info("Creating main window with settings: ", settings);
 
-    constructor(settings: StoreAPI<typeof settingsSchema>) {
-        this.settings = settings;
+    const mainWindow = new BrowserWindow({
+        title: "Beyond All Reason",
+        fullscreen: settings.fullscreen,
+        frame: true,
+        show: true,
+        minWidth: 1440,
+        minHeight: 900,
+        paintWhenInitiallyHidden: true,
+        webPreferences: {
+            preload: path.join(__dirname, "../build/preload.js"),
+        },
+    });
+    process.env.MAIN_WINDOW_ID = mainWindow.id.toString();
 
-        this.window = new BrowserWindow({
-            title: "Beyond All Reason",
-            fullscreen: this.settings.model.fullscreen,
-            frame: true,
-            show: false,
-            minWidth: 1440,
-            minHeight: 900,
-            paintWhenInitiallyHidden: true,
-            webPreferences: {
-                nodeIntegration: true,
-                contextIsolation: false,
-                nodeIntegrationInSubFrames: true,
-                nodeIntegrationInWorker: true,
-                webSecurity: false,
-                backgroundThrottling: false,
-            },
-        });
+    log.debug("Settings: ", settings);
 
-        this.window.once("ready-to-show", () => this.show());
+    mainWindow.once("ready-to-show", () => {
+        mainWindow.setMenuBarVisibility(false);
+        mainWindow.show();
+        mainWindow.focus();
+    });
 
-        this.window.webContents.on("render-process-gone", (event, details) => {
-            console.error(details);
-        });
+    mainWindow.webContents.on("render-process-gone", (event, details) => {
+        console.error(details);
+    });
 
-        this.window.webContents.setWindowOpenHandler(({ url }) => {
-            shell.openExternal(url);
-            return { action: "deny" };
-        });
+    // Disable new window creation
+    mainWindow.webContents.setWindowOpenHandler(() => {
+        return { action: "deny" };
+    });
 
-        this.window.webContents.session.webRequest.onBeforeSendHeaders((details, callback) => {
-            callback({ requestHeaders: { Origin: "*", ...details.requestHeaders } });
-        });
+    // and load the index.html of the app.
+    if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
+        mainWindow.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL);
+    } else {
+        mainWindow.loadFile(path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`));
+    }
 
-        this.window.webContents.session.webRequest.onHeadersReceived((details, callback) => {
-            const obj = { responseHeaders: { ...details.responseHeaders } };
-            if (!obj.responseHeaders["Access-Control-Allow-Origin"] && !obj.responseHeaders["access-control-allow-origin"]) {
-                obj.responseHeaders["Access-Control-Allow-Origin"] = ["*"];
-            }
-            callback(obj);
-        });
+    // Open the DevTools.
+    if (process.env.NODE_ENV === "development") {
+        log.debug(`NODE_ENV is development, opening dev tools`);
+        mainWindow.webContents.openDevTools();
+    }
 
-        watch(
-            () => this.settings.model.displayIndex,
-            (displayIndex) => this.setDisplay(displayIndex)
-        );
+    mainWindow.on("restore", () => mainWindow.flashFrame(false));
 
-        watch(
-            () => this.settings.model.fullscreen,
-            (fullscreen) => {
-                this.window.setFullScreen(fullscreen);
-                this.window.maximize();
-            }
-        );
+    app.on("browser-window-focus", () => mainWindow.flashFrame(false));
+    app.on("second-instance", (_event, commandLine) => {
+        log.info("Second Instance opening with command line: " + commandLine);
+        focusWindows();
+        openFile(commandLine[commandLine.length - 1]);
+    });
+    app.on("open-file", (_, path) => {
+        log.info("Mac OS opening file: " + path);
+        focusWindows();
+        openFile(path);
+    });
 
-        if (process.env.ELECTRON_RENDERER_URL) {
-            this.window.loadURL(process.env.ELECTRON_RENDERER_URL);
-            this.window.webContents.openDevTools();
-        } else {
-            this.window.loadFile(path.join(__dirname, "../renderer/index.html"));
+    function focusWindows() {
+        if (mainWindow.isMinimized()) mainWindow.restore();
+        mainWindow.focus();
+    }
+
+    function openFile(path: string) {
+        if (!path.endsWith(".sdfz")) {
+            return;
         }
+        replayContentAPI.copyParseAndLaunchReplay(path);
     }
 
-    public show() {
-        this.setDisplay(this.settings.model.displayIndex);
-
-        this.window.setMenuBarVisibility(false);
-
-        this.window.show();
-        this.window.focus();
+    function setDisplay(display: Electron.Display) {
+        const { x, y, width, height } = display.bounds;
+        mainWindow.setPosition(x, y);
+        mainWindow.setSize(width, height);
+        mainWindow.maximize();
     }
+    setDisplay(screen.getAllDisplays()[settings.displayIndex]);
 
-    public setDisplay(displayIndex: number) {
-        const display = screen.getAllDisplays()[displayIndex];
-        if (display) {
-            const { x, y, width, height } = display.bounds;
-            this.window.setPosition(x, y);
-            this.window.setSize(width, height);
-            this.window.maximize();
-            this.settings.model.displayIndex = displayIndex;
-        }
-    }
+    //TODO add an IPC handler for changing display via the settings
+
+    // Register IPC handlers for the main window
+    ipcMain.handle("mainWindow:setFullscreen", (_event, flag: boolean) => {
+        mainWindow.setFullScreen(flag);
+    });
+    ipcMain.handle("mainWindow:toggleFullscreen", () => mainWindow.setFullScreen(!mainWindow.isFullScreen()));
+    ipcMain.handle("mainWindow:flashFrame", (_event, flag: boolean) => {
+        mainWindow.flashFrame(flag);
+    });
+    /////////////////////////////////////////////
+
+    return mainWindow;
 }

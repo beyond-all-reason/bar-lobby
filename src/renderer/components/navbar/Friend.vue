@@ -62,74 +62,84 @@ import checkThick from "@iconify-icons/mdi/check-thick";
 import closeThick from "@iconify-icons/mdi/close-thick";
 import deleteIcon from "@iconify-icons/mdi/delete";
 import messageReplyText from "@iconify-icons/mdi/message-reply-text";
-import { inject, Ref } from "vue";
+import { computed, inject, Ref } from "vue";
 
-import Button from "@/components/controls/Button.vue";
-import Flag from "@/components/misc/Flag.vue";
-import { User } from "@/model/user";
-import { attemptJoinBattle } from "@/utils/attempt-join-battle";
+import Button from "@renderer/components/controls/Button.vue";
+import Flag from "@renderer/components/misc/Flag.vue";
+import { useRouter } from "vue-router";
+
+const router = useRouter();
 
 const props = defineProps<{
-    user: User;
+    userId: number;
     type: "outgoing_request" | "incoming_request" | "friend";
 }>();
 
-async function cancelRequest() {
-    await api.comms.request("c.user.rescind_friend_request", {
-        user_id: props.user.userId,
-    });
+// TODO fetch from store of users
+const user = computed(() => {
+    return {
+        userId: props.userId,
+        username: "User Name",
+        countryCode: "US",
+        isOnline: true,
+        battleStatus: {
+            battleId: 0,
+        },
+    };
+});
 
-    api.session.onlineUser.incomingFriendRequestUserIds.delete(props.user.userId);
-    api.session.onlineUser.outgoingFriendRequestUserIds.delete(props.user.userId);
+async function cancelRequest() {
+    // await api.comms.request("c.user.rescind_friend_request", {
+    //     user_id: props.user.userId,
+    // });
+    // api.session.onlineUser.incomingFriendRequestUserIds.delete(props.user.userId);
+    // api.session.onlineUser.outgoingFriendRequestUserIds.delete(props.user.userId);
 }
 
 async function acceptRequest() {
-    await api.comms.request("c.user.accept_friend_request", {
-        user_id: props.user.userId,
-    });
-
-    api.session.onlineUser.incomingFriendRequestUserIds.delete(props.user.userId);
-    api.session.onlineUser.outgoingFriendRequestUserIds.delete(props.user.userId);
-    api.session.onlineUser.friendUserIds.add(props.user.userId);
+    // await api.comms.request("c.user.accept_friend_request", {
+    //     user_id: props.user.userId,
+    // });
+    // api.session.onlineUser.incomingFriendRequestUserIds.delete(props.user.userId);
+    // api.session.onlineUser.outgoingFriendRequestUserIds.delete(props.user.userId);
+    // api.session.onlineUser.friendUserIds.add(props.user.userId);
 }
 
 async function rejectRequest() {
-    await api.comms.request("c.user.reject_friend_request", {
-        user_id: props.user.userId,
-    });
-
-    api.session.onlineUser.incomingFriendRequestUserIds.delete(props.user.userId);
-    api.session.onlineUser.outgoingFriendRequestUserIds.delete(props.user.userId);
+    // await api.comms.request("c.user.reject_friend_request", {
+    //     user_id: props.user.userId,
+    // });
+    // api.session.onlineUser.incomingFriendRequestUserIds.delete(props.user.userId);
+    // api.session.onlineUser.outgoingFriendRequestUserIds.delete(props.user.userId);
 }
 
 async function viewProfile() {
-    await api.router.push(`/profile/${props.user.userId}`);
+    await router.push(`/profile/${props.userId}`);
 }
 
 const toggleMessages = inject<Ref<((open?: boolean, userId?: number) => void) | undefined>>("toggleMessages")!;
 function sendMessage() {
-    if (!api.session.directMessages.has(props.user.userId)) {
-        api.session.directMessages.set(props.user.userId, []);
-    }
-
+    // if (!api.session.directMessages.has(props.user.userId)) {
+    //     api.session.directMessages.set(props.user.userId, []);
+    // }
     if (toggleMessages.value) {
-        toggleMessages.value(true, props.user.userId);
+        toggleMessages.value(true, props.userId);
     }
 }
 
 async function joinBattle() {
-    const battleIdToJoin = props.user.battleStatus.battleId;
-    await api.session.updateBattleList();
-    if (!battleIdToJoin) {
-        console.warn("Joining battle but battle is null");
-        return;
-    }
-    let battle = api.session.battles.get(battleIdToJoin);
-    if (!battle) {
-        console.warn(`Battle with id ${battleIdToJoin} not found, hence can not join.`);
-        return;
-    }
-    await attemptJoinBattle(battle);
+    // const battleIdToJoin = props.user.battleStatus.battleId;
+    // await api.session.updateBattleList();
+    // if (!battleIdToJoin) {
+    //     console.warn("Joining battle but battle is null");
+    //     return;
+    // }
+    // let battle = api.session.battles.get(battleIdToJoin);
+    // if (!battle) {
+    //     console.warn(`Battle with id ${battleIdToJoin} not found, hence can not join.`);
+    //     return;
+    // }
+    // await attemptJoinBattle(battle);
 }
 
 async function inviteToParty() {
@@ -137,9 +147,9 @@ async function inviteToParty() {
 }
 
 async function removeFriend() {
-    await api.comms.request("c.user.remove_friend", {
-        user_id: props.user.userId,
-    });
+    // await api.comms.request("c.user.remove_friend", {
+    //     user_id: props.user.userId,
+    // });
 }
 </script>
 
@@ -155,16 +165,14 @@ async function removeFriend() {
     border-radius: 3px;
     border: 1px solid rgba(255, 255, 255, 0.1);
 }
-.flag {
-}
-.username {
-}
+
 .square {
     :deep(.p-button) {
         padding: 2px;
         font-size: 17px;
     }
 }
+
 .online-dot {
     font-size: 12px;
     color: rgb(121, 226, 0);

@@ -3,9 +3,13 @@
 </route>
 
 <template>
-    <div class="flex-col fullheight">
-        <h1>Installed Maps</h1>
-        <MapListComponent @map-selected="onMapSelected" />
+    <div class="view">
+        <Panel class="flex-grow">
+            <div class="flex-col fullheight">
+                <h1>Installed Maps</h1>
+                <MapListComponent @map-selected="onMapSelected" />
+            </div>
+        </Panel>
     </div>
 </template>
 
@@ -22,10 +26,16 @@
  * - Paginated
  */
 
-import MapListComponent from "@/components/maps/MapListComponent.vue";
-import { MapData } from "@/model/cache/map-data";
+import { MapData } from "@main/content/maps/map-data";
+import Panel from "@renderer/components/common/Panel.vue";
+import MapListComponent from "@renderer/components/maps/MapListComponent.vue";
+import { useRouter } from "vue-router";
+
+const router = useRouter();
 
 async function onMapSelected(map: MapData) {
-    await api.router.push(`/library/maps/${map.scriptName}`);
+    await router.push(`/library/maps/${map.scriptName}`);
 }
 </script>
+
+<style lang="scss" scoped></style>

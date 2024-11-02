@@ -8,7 +8,7 @@
             <Textbox v-model="email" type="email" label="Email" required validate class="fullwidth" />
             <Textbox v-model="password" type="password" label="Password" required class="fullwidth" />
             <div class="flex-row gap-md">
-                <Checkbox v-model="settings.loginAutomatically" type="checkbox" label="Remember Me" />
+                <Checkbox v-model="settingsStore.loginAutomatically" type="checkbox" label="Remember Me" />
                 <Button class="blue fullwidth" type="submit"> Login </Button>
             </div>
         </form>
@@ -25,79 +25,70 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, watch } from "vue";
-
-import Loader from "@/components/common/Loader.vue";
-import Button from "@/components/controls/Button.vue";
-import Checkbox from "@/components/controls/Checkbox.vue";
-import Textbox from "@/components/controls/Textbox.vue";
-import { linkify } from "@/utils/linkify";
+import { ref } from "vue";
+import Loader from "@renderer/components/common/Loader.vue";
+import Button from "@renderer/components/controls/Button.vue";
+import Checkbox from "@renderer/components/controls/Checkbox.vue";
+import Textbox from "@renderer/components/controls/Textbox.vue";
+import { settingsStore } from "@renderer/store/settings.store";
 
 const loading = ref(false);
 const email = ref("");
 const password = ref("");
-const settings = api.settings.model;
 const requestVerification = ref(false);
 const verificationMessage = ref("");
 const verificationCode = ref("");
 const loginError = ref("");
 const verificationError = ref("");
 
-if (settings.loginAutomatically) {
-    if (api.account.model.email) {
-        email.value = api.account.model.email;
-    }
+if (settingsStore.loginAutomatically) {
+    // if (api.account.model.email) {
+    //     email.value = api.account.model.email;
+    // }
 }
 
-watch(
-    () => api.account.model.email,
-    () => (email.value = api.account.model.email)
-);
+// watch(
+//     () => api.account.model.email,
+//     () => (email.value = api.account.model.email)
+// );
 
 async function login() {
     loading.value = true;
-
-    const tokenResponse = await api.comms.request("c.auth.get_token", { email: email.value, password: password.value });
-
-    if (tokenResponse.result === "success" && tokenResponse.token) {
-        api.account.model.email = email.value;
-        api.account.model.token = tokenResponse.token;
-
-        const loginResponse = await api.comms.request("c.auth.login", {
-            token: api.account.model.token,
-            lobby_name: api.info.lobby.name,
-            lobby_version: api.info.lobby.version,
-            lobby_hash: api.info.lobby.hash,
-        });
-
-        if (loginResponse.result === "success") {
-            return;
-        } else if (loginResponse.result === "unverified" && loginResponse.agreement) {
-            verificationMessage.value = linkify(loginResponse.agreement);
-            requestVerification.value = true;
-        } else {
-            if (loginResponse.reason) {
-                loginError.value = loginResponse.reason;
-            }
-        }
-    } else {
-        if (tokenResponse.reason) {
-            loginError.value = tokenResponse.reason;
-        }
-    }
-
+    // const tokenResponse = await api.comms.request("c.auth.get_token", { email: email.value, password: password.value });
+    // if (tokenResponse.result === "success" && tokenResponse.token) {
+    //     api.account.model.email = email.value;
+    //     api.account.model.token = tokenResponse.token;
+    //     const loginResponse = await api.comms.request("c.auth.login", {
+    //         token: api.account.model.token,
+    //         //TODO replace with infosStore
+    //         // lobby_name: api.info.lobby.name,
+    //         // lobby_version: api.info.lobby.version,
+    //         // lobby_hash: api.info.lobby.hash,
+    //     });
+    //     if (loginResponse.result === "success") {
+    //         return;
+    //     } else if (loginResponse.result === "unverified" && loginResponse.agreement) {
+    //         verificationMessage.value = linkify(loginResponse.agreement);
+    //         requestVerification.value = true;
+    //     } else {
+    //         if (loginResponse.reason) {
+    //             loginError.value = loginResponse.reason;
+    //         }
+    //     }
+    // } else {
+    //     if (tokenResponse.reason) {
+    //         loginError.value = tokenResponse.reason;
+    //     }
+    // }
     loading.value = false;
 }
 
 async function verify() {
     loading.value = true;
-
-    const verifyResult = await api.comms.request("c.auth.verify", { token: api.account.model.token, code: verificationCode.value });
-
-    if (verifyResult.reason) {
-        verificationError.value = verifyResult.reason;
-    }
-
+    // const verifyResult = await api.comms.request("c.auth.verify", { token: api.account.model.token, code: verificationCode.value });
+    // if (verifyResult.reason) {
+    //     verificationError.value = verifyResult.reason;
+    // }
     loading.value = false;
 }
 </script>

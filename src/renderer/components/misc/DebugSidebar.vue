@@ -24,52 +24,50 @@
         <Button @click="attemptCacheErrorMaps"> Recache Errored Maps </Button>
         <Button @click="openSyncLobbyContentTool"> Sync Lobby Content Tool </Button>
 
-        <!-- <SyncDataDirsDialog v-model="syncLobbyContentToolOpen" /> -->
+        <SyncDataDirsDialog v-model="syncLobbyContentToolOpen" />
     </div>
 </template>
 
 <script lang="ts" setup>
 import { Icon } from "@iconify/vue";
 import tools from "@iconify-icons/mdi/tools";
-import { shell } from "electron";
-import * as path from "path";
 import { ref } from "vue";
 import { useRouter } from "vue-router";
 
-import Button from "@/components/controls/Button.vue";
-import Select from "@/components/controls/Select.vue";
+import Button from "@renderer/components/controls/Button.vue";
+import Select from "@renderer/components/controls/Select.vue";
+import SyncDataDirsDialog from "@renderer/components/misc/SyncDataDirsDialog.vue";
 
 const active = ref(false);
 const syncLobbyContentToolOpen = ref(false);
 
 const router = useRouter();
 const routes = router.getRoutes().sort((a, b) => a.path.localeCompare(b.path));
-const currentRoute = api.router.currentRoute;
+const currentRoute = router.currentRoute;
 
-async function onRouteSelect(newRoute) {
-    await api.router.replace(newRoute);
+async function onRouteSelect(newRoute: string) {
+    console.log("Navigating to", newRoute);
+    await router.replace(newRoute);
 }
 
 function openSettings() {
-    shell.openPath(api.settings.filePath);
+    window.shell.openSettingsFile();
 }
 
 async function openContentDir() {
-    await shell.openPath(api.info.contentPath);
+    window.shell.openContentDir();
 }
 
 async function openConfigDir() {
-    await shell.openPath(api.info.configPath);
+    window.shell.openConfigDir();
 }
 
 async function openStartScript() {
-    await shell.openPath(path.join(api.info.contentPath, api.game.scriptName));
+    window.shell.openStartScript();
 }
 
 async function attemptCacheErrorMaps() {
-    await api.cacheDb.deleteFrom("mapError").execute();
-
-    await api.content.maps.queueMapsToCache();
+    window.maps.attemptCacheErrorMaps();
 }
 
 function openSyncLobbyContentTool() {

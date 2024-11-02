@@ -3,16 +3,22 @@
 </route>
 
 <template>
-    <div class="container">
-        <MapPreview :map="redComet" :startBoxes="boxes" :startPositions="positions"></MapPreview>
+    <div class="view">
+        <Panel class="flex-grow">
+            <div class="container">
+                <MapPreview :map="redComet" :startBoxes="boxes" :startPositions="positions"></MapPreview>
+            </div>
+        </Panel>
     </div>
 </template>
 
 <script lang="ts" setup>
-import MapPreview from "@/components/maps/MapPreview.vue";
-import { StartBox } from "@/model/battle/battle-types";
+import { StartBox } from "@main/game/battle/battle-types";
+import Panel from "@renderer/components/common/Panel.vue";
+import MapPreview from "@renderer/components/maps/MapPreview.vue";
+import { db } from "@renderer/store/db";
 
-const redComet = api.content.maps.getMapByScriptName("Red Comet Remake 1.8");
+const redComet = await db.maps.get("Red Comet Remake 1.8");
 const boxes: Record<number, StartBox | undefined> = {
     0: { xPercent: 0, yPercent: 0, widthPercent: 0.2, heightPercent: 1 },
     1: { xPercent: 0.8, yPercent: 0, widthPercent: 0.2, heightPercent: 1 },

@@ -5,9 +5,9 @@
 </template>
 
 <script lang="ts" setup>
-import Panel from "@/components/common/Panel.vue";
+import Panel from "@renderer/components/common/Panel.vue";
 
-const props = defineProps<{
+defineProps<{
     open: boolean;
 }>();
 </script>

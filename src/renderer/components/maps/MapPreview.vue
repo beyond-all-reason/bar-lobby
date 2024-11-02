@@ -3,19 +3,16 @@
 </template>
 
 <script lang="ts" setup>
-import { rgb2hex } from "@pixi/utils";
 import { useElementSize } from "@vueuse/core";
-import { Application, Graphics, Sprite } from "pixi.js";
-import { onMounted, onUnmounted, ref, watch } from "vue";
-
-import { StartBox, StartPosType } from "@/model/battle/battle-types";
-import { MapData } from "@/model/cache/map-data";
-import { CurrentUser } from "@/model/user";
-import { mipmapSize } from "@/workers/parse-map";
+import { Application, Assets, Graphics, Sprite, Texture, Color } from "pixi.js";
+import { onMounted, onUnmounted, useTemplateRef, watch } from "vue";
+import { MapData } from "@main/content/maps/map-data";
+import { StartBox, StartPosType } from "@main/game/battle/battle-types";
+import { MIPMAP_SIZE } from "@main/config/map-parsing";
+import { me } from "@renderer/store/me.store";
 
 const props = defineProps<{
     map?: MapData;
-    currentUser?: CurrentUser;
     startPosType?: StartPosType;
     startBoxes?: Record<number, StartBox | undefined>;
     startPositions?: Array<
@@ -27,38 +24,50 @@ const props = defineProps<{
     >;
 }>();
 
-const app = ref<Application>();
-const canvasContainerEl = ref<HTMLElement>();
+const canvasContainerEl = useTemplateRef<HTMLDivElement>("canvasContainerEl");
 const parentSize = useElementSize(canvasContainerEl);
 
-onMounted(setup);
-onUnmounted(() => {
-    // make sure pixi app is properly destroyed after out transition has finished
-    setTimeout(() => {
-        app.value?.destroy(true);
-    }, 150);
+let app: Application;
+let mapSprite: Sprite;
+const boxesGfx = new Graphics();
+const startPositionsGfx = new Graphics();
+
+onMounted(async () => {
+    app = new Application();
+    await app.init({
+        background: "#000",
+        backgroundAlpha: 0.3,
+        antialias: true,
+        resizeTo: canvasContainerEl.value,
+    });
+    app.canvas.style.position = "absolute";
+    app.stage.addChild(boxesGfx);
+    app.stage.addChild(startPositionsGfx);
+    setMapImage();
+    canvasContainerEl.value.appendChild(app.canvas);
 });
 
-watch([parentSize.width, parentSize.height], ([width, height], [oldWidth, oldHeight]) => {
-    if (app.value && width && height) {
-        const smallestDimension = Math.min(width, height);
-        app.value.renderer.resize(smallestDimension, smallestDimension);
-        app.value.render();
+onUnmounted(() => {
+    // make sure pixi app is properly destroyed after out transition has finished
+    app.destroy(true);
+});
+
+watch([parentSize.width, parentSize.height], ([width, height]) => {
+    if (width && height) {
         onResize();
     }
 });
 
-watch(() => props.map, setMapImage);
+watch(() => props.map, setMapImage, { deep: true });
 watch(() => props.startBoxes, drawBoxes, { deep: true });
 watch(() => props.startPositions, drawStartPositions);
 watch(
-    () => props.currentUser?.battleStatus.teamId,
+    () => me.battleRoomState.teamId,
     () => {
         drawBoxes();
         drawStartPositions();
     }
 );
-watch(() => props.currentUser?.battleStatus.isSpectator, drawBoxes);
 watch(
     () => props.startPosType,
     () => {
@@ -67,78 +76,51 @@ watch(
     }
 );
 
-let mapSprite: Sprite | undefined;
-let boxesGfx: Graphics | undefined;
-let startPositionsGfx: Graphics | undefined;
-
-function setup() {
-    app.value = new Application({
-        background: "#000",
-        backgroundAlpha: 0.3,
-        antialias: true,
-    });
-    if (app.value.view && app.value.view instanceof HTMLCanvasElement) {
-        canvasContainerEl.value?.appendChild(app.value.view);
-    }
-
-    boxesGfx = new Graphics();
-    app.value.stage.addChild(boxesGfx);
-
-    startPositionsGfx = new Graphics();
-    app.value.stage.addChild(startPositionsGfx);
-
-    setMapImage();
-}
-
 function onResize() {
-    // this is often 0 in modals, don't want to waste render time
-    if (parentSize.width.value > 0 && parentSize.height.value > 0) {
-        resizeMapImage();
-        drawBoxes();
-        drawStartPositions();
+    if (app.resize) {
+        app.resize();
     }
+    resizeMapImage();
+    drawBoxes();
+    drawStartPositions();
 }
 
 async function setMapImage() {
-    if (!app.value || !props.map) {
+    if (!props.map) {
         return;
     }
-
     if (mapSprite) {
-        app.value.stage.removeChild(mapSprite);
+        app.stage.removeChild(mapSprite);
     }
-
-    const textureImage = api.content.maps.getMapImages(props.map).textureImagePath;
-    mapSprite = Sprite.from(textureImage, {
-        width: props.map.width * mipmapSize * 16,
-        height: props.map.height * mipmapSize * 16,
+    const texture = await Assets.load<Texture>(props.map.images.texture);
+    mapSprite = Sprite.from(texture);
+    mapSprite.setSize({
+        width: props.map.width * MIPMAP_SIZE * 16,
+        height: props.map.height * MIPMAP_SIZE * 16,
     });
-    app.value.stage.addChildAt(mapSprite, 0);
-
+    app.stage.addChildAt(mapSprite, 0);
     onResize();
 }
 
 function resizeMapImage() {
-    if (!app.value || !mapSprite) {
+    if (!mapSprite) {
         return;
     }
-
     if (mapSprite.width > mapSprite.height) {
-        mapSprite.width = app.value.view.width;
+        mapSprite.width = app.canvas.width;
         mapSprite.scale.y = mapSprite.scale.x;
     } else {
-        mapSprite.height = app.value.view.height;
+        mapSprite.height = app.canvas.height;
         mapSprite.scale.x = mapSprite.scale.y;
     }
-    mapSprite.x = app.value.view.width * 0.5 - mapSprite.width * 0.5;
-    mapSprite.y = app.value.view.height * 0.5 - mapSprite.height * 0.5;
+    mapSprite.x = app.canvas.width * 0.5 - mapSprite.width * 0.5;
+    mapSprite.y = app.canvas.height * 0.5 - mapSprite.height * 0.5;
 }
 
 function drawBoxes() {
-    if (!app.value || !boxesGfx || !mapSprite) {
+    if (!boxesGfx || !mapSprite) {
         return;
     }
-
     if (props.startPosType !== StartPosType.Boxes) {
         boxesGfx.visible = false;
         return;
@@ -147,26 +129,21 @@ function drawBoxes() {
         boxesGfx.alpha = 0.2;
         boxesGfx.clear();
     }
-
-    const isSpectator = props.currentUser?.battleStatus.isSpectator;
-    const myTeamId = props.currentUser?.battleStatus.teamId;
-
-    for (const teamIdStr in props.startBoxes) {
-        const box = props.startBoxes[teamIdStr];
+    const isSpectator = me.battleRoomState.isSpectator;
+    const myTeamId = me.battleRoomState.teamId;
+    for (const teamId in props.startBoxes) {
+        const box = props.startBoxes[teamId];
         if (!box) {
             continue;
         }
-
-        const teamId = parseInt(teamIdStr);
         if (isSpectator) {
-            boxesGfx?.beginFill(0xffffff);
+            boxesGfx?.fill(0xffffff);
         } else if (myTeamId === teamId) {
-            boxesGfx?.beginFill(0x00ff00);
+            boxesGfx?.fill(0x00ff00);
         } else {
-            boxesGfx?.beginFill(0xff0000);
+            boxesGfx?.fill(0xff0000);
         }
-
-        boxesGfx?.drawRect(
+        boxesGfx?.rect(
             box.xPercent * mapSprite.width + mapSprite.x,
             box.yPercent * mapSprite.height + mapSprite.y,
             box.widthPercent * mapSprite.width,
@@ -176,10 +153,9 @@ function drawBoxes() {
 }
 
 function drawStartPositions() {
-    if (!app.value || !mapSprite || !startPositionsGfx || !props.map) {
+    if (!mapSprite || !startPositionsGfx || !props.map) {
         return;
     }
-
     if (props.startPosType === StartPosType.Boxes) {
         startPositionsGfx.visible = false;
         return;
@@ -187,7 +163,6 @@ function drawStartPositions() {
         startPositionsGfx.visible = true;
         startPositionsGfx.clear();
     }
-
     const startPositions =
         props.startPositions ??
         props.map.startPositions?.map((pos) => {
@@ -197,33 +172,27 @@ function drawStartPositions() {
             };
         }) ??
         [];
-
     for (const startPos of startPositions) {
         if (!startPos) {
             continue;
         }
-
-        let color = 0xffffff;
+        let color = Color.shared.setValue(0xffffff);
         if (startPos.rgbColor) {
-            color = rgb2hex([startPos.rgbColor.r / 255, startPos.rgbColor.g / 255, startPos.rgbColor.b / 255]);
+            color = new Color([startPos.rgbColor.r / 255, startPos.rgbColor.g / 255, startPos.rgbColor.b / 255]);
         }
-        startPositionsGfx.beginFill(color);
-
+        startPositionsGfx.fill(color);
         const x = (startPos.position.x / (props.map.width * 512)) * mapSprite.width + mapSprite.x;
         const y = (startPos.position.z / (props.map.height * 512)) * mapSprite.height + mapSprite.y;
         const radius = 5;
-        startPositionsGfx.drawEllipse(x - radius * 0.5, y - radius * 0.5, radius, radius);
+        startPositionsGfx.ellipse(x - radius * 0.5, y - radius * 0.5, radius, radius);
     }
 }
 </script>
 
 <style lang="scss" scoped>
 .canvas-container {
-    overflow: hidden;
-    width: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
     border: 1px solid rgba(255, 255, 255, 0.1);
+    width: 100%;
+    height: 100%;
 }
 </style>

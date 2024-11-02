@@ -1,9 +1,7 @@
 <template>
     <Control class="button" :class="[{ active }, $attrs.class]" :style="$attrs.style" :disabled="disabled" @click="onClick">
         <PrimeVueButton v-bind="$attrs">
-            <template v-for="(_, name) in ($slots as {})" #[name]="slotData">
-                <slot :name="name" v-bind="slotData || {}" />
-            </template>
+            <slot />
         </PrimeVueButton>
     </Control>
 </template>
@@ -20,20 +18,20 @@ export default {
 import PrimeVueButton, { ButtonProps } from "primevue/button";
 import { computed } from "vue";
 
-import Control from "@/components/controls/Control.vue";
+import Control from "@renderer/components/controls/Control.vue";
+import { useRouter } from "vue-router";
 
-// eslint-disable-next-line
-export interface Props extends ButtonProps {
+export interface Props extends /* @vue-ignore */ ButtonProps {
     to?: string;
     disabled?: boolean;
 }
 
 const props = defineProps<Props>();
-
-const active = computed(() => props?.to && api.router.currentRoute.value.path.includes(props.to));
+const router = useRouter();
+const active = computed(() => props?.to && router.currentRoute.value.path.includes(props.to));
 async function onClick() {
-    if (props.to && api.router.currentRoute.value.path !== props.to) {
-        await api.router.push(props.to);
+    if (props.to && router.currentRoute.value.path !== props.to) {
+        await router.push(props.to);
     }
 }
 </script>
@@ -82,10 +80,14 @@ $btnColors: (
     .control.#{$colorKey} {
         background-color: rgba($color, 0.6);
         border-color: rgba(255, 255, 255, 0.15);
-        box-shadow: 1px 1px 3px rgba(49, 47, 47, 0.1), inset 0 -17px 0 rgba(0, 0, 0, 0.05);
+        box-shadow:
+            1px 1px 3px rgba(49, 47, 47, 0.1),
+            inset 0 -17px 0 rgba(0, 0, 0, 0.05);
         &:hover {
             background-color: rgba($color, 0.8);
-            box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.1), inset 0 -17px 0 rgba(0, 0, 0, 0.05);
+            box-shadow:
+                1px 1px 3px rgba(0, 0, 0, 0.1),
+                inset 0 -17px 0 rgba(0, 0, 0, 0.05);
         }
     }
 }

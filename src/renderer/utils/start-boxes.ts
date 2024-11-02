@@ -1,7 +1,6 @@
 // TODO: add deep readonly type and add a clone method that removes it
-import { roundToMultiple } from "jaz-ts-utils";
-
-import { StartBox } from "@/model/battle/battle-types";
+import { roundToMultiple } from "$/jaz-ts-utils/math";
+import { StartBox } from "@main/game/battle/battle-types";
 
 export function getBoxes(orientation: StartBoxOrientation, percent = 30) {
     const size = percent / 100;
@@ -42,16 +41,14 @@ export enum StartBoxOrientation {
     NorthwestVsSouthEast = "NorthwestVsSouthEast",
 }
 
-export function defaultMapBoxes(mapScriptName?: string) {
+export function defaultMapBoxes(mapScriptName?: "Red Comet Remake 1.8" | "Quicksilver Remake 1.24") {
     if (!mapScriptName) {
         return getBoxes(StartBoxOrientation.EastVsWest);
     }
-
     const mapBoxes = {
         "Red Comet Remake 1.8": getBoxes(StartBoxOrientation.EastVsWest),
         "Quicksilver Remake 1.24": getBoxes(StartBoxOrientation.NorthVsSouth),
     };
-
     return mapBoxes[mapScriptName] ?? getBoxes(StartBoxOrientation.EastVsWest);
 }
 

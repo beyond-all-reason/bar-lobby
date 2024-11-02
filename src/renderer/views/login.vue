@@ -4,7 +4,7 @@
 
 <template>
     <div class="container">
-        <img ref="logo" class="logo" src="/images/BARLogoFull.png" />
+        <img ref="logo" class="logo" src="/src/renderer/assets/images/BARLogoFull.png" />
         <div v-if="connecting" class="relative">
             <Loader></Loader>
         </div>
@@ -35,26 +35,29 @@
 <script lang="ts" setup>
 import { Icon } from "@iconify/vue";
 import replayIcon from "@iconify-icons/mdi/replay";
-import { delay } from "jaz-ts-utils";
+import { delay } from "$/jaz-ts-utils/delay";
 import TabPanel from "primevue/tabpanel";
 import { ref } from "vue";
 
-import Loader from "@/components/common/Loader.vue";
-import Panel from "@/components/common/Panel.vue";
-import TabView from "@/components/common/TabView.vue";
-import Button from "@/components/controls/Button.vue";
-import LoginForm from "@/components/login/LoginForm.vue";
-import RegisterForm from "@/components/login/RegisterForm.vue";
-import ResetPasswordForm from "@/components/login/ResetPasswordForm.vue";
+import Loader from "@renderer/components/common/Loader.vue";
+import Panel from "@renderer/components/common/Panel.vue";
+import TabView from "@renderer/components/common/TabView.vue";
+import Button from "@renderer/components/controls/Button.vue";
+import LoginForm from "@renderer/components/login/LoginForm.vue";
+import RegisterForm from "@renderer/components/login/RegisterForm.vue";
+import ResetPasswordForm from "@renderer/components/login/ResetPasswordForm.vue";
+import { useRouter } from "vue-router";
+
+const router = useRouter();
 
 const activeIndex = ref(0);
-const isConnected = api.comms.isConnected;
-const serverAddress = `${api.comms.config.host}:${api.comms.config.port}`;
+const isConnected = true; // api.comms.isConnected;
+const serverAddress = ""; //`${api.comms.config.host}:${api.comms.config.port}`;
 const connecting = ref(false);
 
 async function connect() {
     try {
-        await api.comms.connect();
+        // await api.comms.connect();
     } catch (err) {
         console.error(err);
     }
@@ -68,9 +71,9 @@ async function onRetry() {
 }
 
 async function playOffline() {
-    api.session.offlineMode.value = true;
-    api.comms.disconnect();
-    await api.router.push("/singleplayer/custom");
+    // api.session.offlineMode = true;
+    // api.comms.disconnect();
+    await router.push("/home/overview");
 }
 
 connect();

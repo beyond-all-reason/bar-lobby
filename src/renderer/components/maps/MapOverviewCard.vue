@@ -1,8 +1,8 @@
 <template>
     <div class="map">
-        <div class="background" :style="`background-image: url('${mapTextureImage}')`"></div>
+        <div class="background" :style="`background-image: url('${imageUrl}')`"></div>
         <div class="name">
-            {{ map?.friendlyName ?? friendlyName }}
+            {{ friendlyName }}
         </div>
         <div class="attributes">
             <div>{{ mapSize }}</div>
@@ -11,22 +11,33 @@
 </template>
 
 <script lang="ts" setup>
-import { computed } from "vue";
-
-import { MapData } from "@/model/cache/map-data";
+import { MapData } from "@main/content/maps/map-data";
+import defaultMiniMap from "/src/renderer/assets/images/default-minimap.png?url";
+import { ref, watch } from "vue";
+import { useImageBlobUrlCache } from "@renderer/composables/useImageBlobUrlCache";
 
 const props = defineProps<{
     map?: MapData;
     friendlyName: string;
 }>();
 
-const mapSize = computed(() => (props.map ? props.map.width + "x" + props.map.height : "Unknown"));
+const cache = useImageBlobUrlCache();
 
-const mapTextureImage = computed(() => api.content.maps.getMapImages(props.map).textureImagePath);
+const mapSize = ref(props.map ? props.map.width + "x" + props.map.height : "Unknown");
+const imageUrl = ref(props.map ? cache.get(props.map.fileName, props.map.images.texture) : defaultMiniMap);
+
+watch(
+    () => props.map,
+    () => {
+        mapSize.value = props.map ? props.map.width + "x" + props.map.height : "Unknown";
+        imageUrl.value = props.map ? cache.get(props.map.fileName, props.map.images.texture) : defaultMiniMap;
+    }
+);
 </script>
 
 <style lang="scss" scoped>
 .map {
+    will-change: transform, opacity;
     aspect-ratio: 1;
     position: relative;
     overflow: hidden;
@@ -36,7 +47,10 @@ const mapTextureImage = computed(() => api.content.maps.getMapImages(props.map).
         left: 0;
         width: 100%;
         height: 100%;
-        box-shadow: inset 0 1px 0 rgba(0, 0, 0, 0.3), inset 0 -1px 0 rgba(0, 0, 0, 0.3), inset 1px 0 0 rgba(0, 0, 0, 0.3),
+        box-shadow:
+            inset 0 1px 0 rgba(0, 0, 0, 0.3),
+            inset 0 -1px 0 rgba(0, 0, 0, 0.3),
+            inset 1px 0 0 rgba(0, 0, 0, 0.3),
             inset -1px 0 0 rgba(0, 0, 0, 0.3);
         border: 3px solid rgba(0, 0, 0, 0.2);
         z-index: 5;
@@ -74,9 +88,9 @@ const mapTextureImage = computed(() => api.content.maps.getMapImages(props.map).
         background: linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0));
         transition: 0.1s opacity;
     }
+    transition: background-image 0.1s ease-in-out;
 }
 .name {
-    z-index: 21;
     @extend .fullsize;
     top: 0;
     left: 0;

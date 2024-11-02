@@ -14,9 +14,11 @@
 </template>
 
 <script lang="ts" setup>
-import Markdown from "vue3-markdown-it";
+import { useRouter } from "vue-router";
+import Markdown from "@renderer/components/misc/Markdown.vue";
 
-const route = api.router.currentRoute.value;
+const router = useRouter();
+const route = router.currentRoute.value;
 </script>
 
 <style lang="scss" scoped></style>

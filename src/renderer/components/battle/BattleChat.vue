@@ -30,14 +30,15 @@ import eyeIcon from "@iconify-icons/mdi/eye";
 import type { Ref } from "vue";
 import { onMounted, onUnmounted, reactive, ref, watch } from "vue";
 
-import { Command, getAutoSuggestions, serverCommandList } from "@/api/commands";
-import BattleMessage from "@/components/battle/BattleMessage.vue";
-import AutoSuggest from "@/components/controls/AutoSuggest.vue";
-import AutoSuggestionOption from "@/utils/auto-suggestion-option";
+import { Command, getAutoSuggestions, serverCommandList } from "@renderer/api/commands";
+import BattleMessage from "@renderer/components/battle/BattleMessage.vue";
+import AutoSuggest from "@renderer/components/controls/AutoSuggest.vue";
+import AutoSuggestionOption from "@renderer/utils/auto-suggestion-option";
+import { Message } from "@renderer/model/messages";
 
 const optionList: Ref<AutoSuggestionOption[]> = ref([]);
 const commandList = reactive<Command[]>(structuredClone(serverCommandList));
-const messages = api.session.battleMessages;
+const messages: Message[] = [];
 const myMessage = ref("");
 const showHiddenMessages = ref(false);
 const autoSuggestionSelection: Ref<string | null> = ref(null);
@@ -52,9 +53,9 @@ function sendMessage() {
         myMessage.value = autoSuggestionSelection.value;
     }
 
-    api.comms.request("c.lobby.message", {
-        message: myMessage.value,
-    });
+    // api.comms.request("c.lobby.message", {
+    //     message: myMessage.value,
+    // });
 
     myMessage.value = "";
 }
@@ -67,24 +68,26 @@ watch(
     { deep: true }
 );
 
-const commandListener = api.comms.onResponse("s.communication.received_direct_message").add(async (data) => {
-    const { message } = data;
-    // Check if the message is a command
-    if (!message.startsWith("!") && !message.startsWith("$")) return;
-    const cmd = message.split("-")[0].split(" ")[0];
-    const cmdDescription = message.slice(cmd.length + 1).replace("-", " ");
-    cmdDescription && !cmdDescription.includes("*") && commandList.push({ cmd, cmdDescription });
-});
+// const commandListener = api.comms.onResponse("s.communication.received_direct_message").add(async (data) => {
+//     const { message } = data;
+//     // Check if the message is a command
+//     if (!message.startsWith("!") && !message.startsWith("$")) return;
+//     const cmd = message.split("-")[0].split(" ")[0];
+//     const cmdDescription = message.slice(cmd.length + 1).replace("-", " ");
+//     if (cmdDescription && !cmdDescription.includes("*")) {
+//         commandList.push({ cmd, cmdDescription });
+//     }
+// });
 
 onMounted(() => {
-    api.comms.request("c.communication.send_direct_message", {
-        recipient_id: 3137,
-        message: `!helpall`,
-    });
+    // api.comms.request("c.communication.send_direct_message", {
+    //     recipient_id: 3137,
+    //     message: `!helpall`,
+    // });
 });
 
 onUnmounted(() => {
-    commandListener.destroy();
+    // commandListener.destroy();
 });
 </script>
 

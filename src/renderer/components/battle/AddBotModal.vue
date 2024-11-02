@@ -11,38 +11,33 @@
 <script lang="ts" setup>
 import { computed } from "vue";
 
-import Modal from "@/components/common/Modal.vue";
-import Button from "@/components/controls/Button.vue";
-import { EngineAI } from "@/model/cache/engine-version";
-import { GameAI } from "@/model/cache/game-version";
+import Modal from "@renderer/components/common/Modal.vue";
+import Button from "@renderer/components/controls/Button.vue";
+import { EngineAI } from "@main/content/engine/engine-version";
+import { GameAI } from "@main/content/game/game-version";
 
 const props = defineProps<{
     engineVersion: string;
     gameVersion: string;
-    teamId: number;
+    teamId: string;
 }>();
-
-const engineVersion = computed(() => {
-    return api.content.engine.installedVersions.find((version) => version.id === props.engineVersion);
-});
-
-const gameVersion = computed(() => {
-    return api.content.game.installedVersions.find((version) => version.id === props.gameVersion);
-});
 
 const ais = computed(() => {
     const ais: Array<EngineAI | GameAI> = [];
-    if (engineVersion.value) {
-        ais.push(...engineVersion.value.ais);
-    }
-    if (gameVersion.value) {
-        ais.push(...gameVersion.value.ais);
-    }
+
+    // TODO probably need a selected engine/game version store or something similar
+
+    // if (engineVersion.value) {
+    //     ais.push(...engineVersion.value.ais);
+    // }
+    // if (gameVersion.value) {
+    //     ais.push(...gameVersion.value.ais);
+    // }
     return ais;
 });
 
 const emit = defineEmits<{
-    (event: "bot-selected", ai: EngineAI | GameAI, teamId: number): void;
+    (event: "bot-selected", ai: EngineAI | GameAI, teamId: string): void;
 }>();
 
 function addBot(ai: EngineAI | GameAI) {

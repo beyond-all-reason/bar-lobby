@@ -1,7 +1,7 @@
 .DS_Store
 node_modules
 dist
-
+.vite
 
 # local env files
 .env.local
@@ -42,3 +42,4 @@ thumbs.db
 /tsconfig.node.tsbuildinfo
 /tsconfig.web.tsbuildinfo
 debug.log
+bun.lockb

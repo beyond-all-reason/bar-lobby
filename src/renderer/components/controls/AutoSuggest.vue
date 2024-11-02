@@ -24,8 +24,8 @@
 import type { Ref } from "vue";
 import { onMounted, ref, watch } from "vue";
 
-import Textbox from "@/components/controls/Textbox.vue";
-import AutoSuggestionOption from "@/utils/auto-suggestion-option";
+import Textbox from "@renderer/components/controls/Textbox.vue";
+import AutoSuggestionOption from "@renderer/utils/auto-suggestion-option";
 
 const props = defineProps<{
     modelValue: string;
@@ -87,7 +87,7 @@ function clickOption(option: AutoSuggestionOption) {
     updateKeyboardSelectionIndex(null);
 
     // Refocus on the input so that users can key "enter" right after selecting an auto-suggestion.
-    document.getElementsByTagName("input")["textInput"].focus();
+    document.getElementById("textInput")?.focus();
 }
 
 function changeKeyboardSelection(direction: 1 | -1) {

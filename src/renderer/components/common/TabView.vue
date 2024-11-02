@@ -8,20 +8,12 @@
 
 <script lang="ts" setup>
 // https://primefaces.org/primevue/tabview
-
-import { TabViewEmits, TabViewProps } from "primevue/tabview";
-
-import PrimeVueTabView from "@/components/primevue/PrimeVueTabView.vue";
-
-// eslint-disable-next-line
-export interface Props extends TabViewProps {}
-
-// eslint-disable-next-line
-export interface Emits extends TabViewEmits {}
-
-const props = defineProps<Props>();
-
-const emits = defineEmits<Emits>();
+import { TabViewProps } from "primevue/tabview";
+import PrimeVueTabView from "@renderer/components/primevue/PrimeVueTabView.vue";
+defineProps<TabViewProps>();
+defineEmits<{
+    (e: "update:modelValue", value: number): void;
+}>();
 </script>
 
 <style lang="scss">

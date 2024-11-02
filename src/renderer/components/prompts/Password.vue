@@ -7,8 +7,8 @@
 <script lang="ts" setup>
 import { ref } from "vue";
 
-import Textbox from "@/components/controls/Textbox.vue";
-import Prompt from "@/components/prompts/Prompt.vue";
+import Textbox from "@renderer/components/controls/Textbox.vue";
+import Prompt from "@renderer/components/prompts/Prompt.vue";
 
 const password = ref("");
 
