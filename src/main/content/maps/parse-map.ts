@@ -51,7 +51,7 @@ export const parseMap = async (mapPath: string) => {
 
 export function asyncParseMap(mapPath: string) {
     return new Promise<MapData>((resolve, reject) => {
-        const worker = new Worker(path.join(__dirname, "parse-map-worker.js"), {
+        const worker = new Worker(path.join(__dirname, "parse-map-worker.cjs"), {
             workerData: { mapPath },
         });
         worker.on("message", resolve);
