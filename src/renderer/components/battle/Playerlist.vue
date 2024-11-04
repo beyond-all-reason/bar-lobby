@@ -47,21 +47,21 @@ import { me } from "@renderer/store/me.store";
 import SpectatorsComponent from "@renderer/components/battle/SpectatorsComponent.vue";
 
 const botListOpen = ref(false);
-const botModalTeamId = ref("0");
+const botModalTeamId = ref(0);
 
-function openBotList(teamId: string) {
+function openBotList(teamId: number) {
     botModalTeamId.value = teamId;
     botListOpen.value = true;
 }
 
 //TODO only handling engine AIs for now
-function onBotSelected(bot: EngineAI, teamId: string) {
+function onBotSelected(bot: EngineAI, teamId: number) {
     botListOpen.value = false;
     addBot(bot, teamId);
 }
 
 //TODO only handling engine AIs for now
-function addBot(ai: EngineAI, teamId: string) {
+function addBot(ai: EngineAI, teamId: number) {
     battleStore.teams[teamId].push({
         id: battleWithMetadataStore.participants.length,
         name: ai.name,

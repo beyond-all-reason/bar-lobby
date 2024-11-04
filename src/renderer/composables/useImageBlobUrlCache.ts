@@ -14,7 +14,7 @@ function base64ToBlobUrl(base64: string) {
 const cache = new Map<string, string>();
 
 export const useImageBlobUrlCache = () => {
-    const get = (id: string, base64: string) => {
+    const base64 = (id: string, base64: string) => {
         if (cache.has(id)) {
             return cache.get(id);
         }
@@ -23,5 +23,14 @@ export const useImageBlobUrlCache = () => {
         return url;
     };
 
-    return { get };
+    const get = (id: string, blob: Blob) => {
+        if (cache.has(id)) {
+            return cache.get(id);
+        }
+        const url = URL.createObjectURL(blob);
+        cache.set(id, url);
+        return url;
+    };
+
+    return { base64, get };
 };

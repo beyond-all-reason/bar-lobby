@@ -14,9 +14,9 @@
                         </div>
                         <Progress
                             :percent="download.currentBytes / download.totalBytes"
-                            :text="progressText(download.currentBytes, download.totalBytes, download.caching)"
+                            :text="progressText(download.currentBytes, download.totalBytes)"
                             themed
-                            :pulsating="download.caching"
+                            pulsating
                         />
                     </div>
                 </TransitionGroup>
@@ -62,10 +62,7 @@ toggleDownloads.value = async (open?: boolean) => {
     emits("update:modelValue", open ?? !props.modelValue);
 };
 
-function progressText(currentBytes: number, totalBytes: number, caching: boolean): string {
-    if (caching) {
-        return "Caching...";
-    }
+function progressText(currentBytes: number, totalBytes: number): string {
     if (currentBytes === 0) {
         return "Starting...";
     }

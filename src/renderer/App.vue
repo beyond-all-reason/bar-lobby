@@ -112,20 +112,19 @@ router.afterEach(async (to) => {
 
 function onIntroEnd() {
     videoVisible.value = false;
-    console.log("Intro video ended");
 }
 
 async function onPreloadDone() {
     state.value = "initial-setup";
     // TODO: should also check to see if game and maps are installed (need to fix bug where interrupted game dl reports as successful install)
     const installedEngines = await window.engine.getInstalledVersions();
-    console.log(installedEngines);
+    console.debug(installedEngines);
     if (installedEngines.length === 0) {
         state.value = "initial-setup";
         return;
     }
     const installedGameVersions = await window.game.getInstalledVersions();
-    console.log(installedGameVersions);
+    console.debug(installedGameVersions);
     if (installedGameVersions.length === 0) {
         state.value = "initial-setup";
         return;
@@ -135,7 +134,7 @@ async function onPreloadDone() {
 
 function onInitialSetupDone() {
     state.value = "default";
-    console.log("Initial setup done");
+    console.debug("Initial setup done");
 }
 </script>
 

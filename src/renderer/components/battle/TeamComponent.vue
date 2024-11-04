@@ -9,7 +9,7 @@
     >
         <div class="flex-row flex-center-items gap-md">
             <div class="title">{{ title }}</div>
-            <div v-if="memberCount > 0" class="member-count">({{ memberCount }} Member{{ memberCount > 1 ? "s" : "" }})</div>
+            <div class="member-count">({{ memberCount }}/{{ maxPlayersPerTeam }} players)</div>
             <Button class="slim" @click="addBotClicked(teamId)"> Add bot </Button>
             <Button v-if="showJoin" class="slim" @click="onJoinClicked(teamId)"> Join </Button>
         </div>
@@ -34,12 +34,12 @@ import { computed } from "vue";
 import BotParticipant from "@renderer/components/battle/BotParticipant.vue";
 import PlayerParticipant from "@renderer/components/battle/PlayerParticipant.vue";
 import Button from "@renderer/components/controls/Button.vue";
-import { Bot, isBot, isPlayer, Player } from "@main/game/battle/battle-types";
+import { Bot, isBot, isPlayer, Player, StartPosType } from "@main/game/battle/battle-types";
 import { battleWithMetadataStore } from "@renderer/store/battle.store";
 import { me } from "@renderer/store/me.store";
 
 const props = defineProps<{
-    teamId: string;
+    teamId: number;
 }>();
 const title = "Team " + (Number(props.teamId) + 1);
 
@@ -47,27 +47,43 @@ const memberCount = computed(() => {
     return battleWithMetadataStore.teams[props.teamId]?.length || 0;
 });
 
+const maxPlayersPerTeam = computed(() => {
+    if (!battleWithMetadataStore.battleOptions.map) return 1;
+    if (battleWithMetadataStore.battleOptions.mapOptions.startPosType === StartPosType.Boxes)
+        return battleWithMetadataStore.battleOptions.map.startboxesSet[battleWithMetadataStore.battleOptions.mapOptions.startBoxesIndex]
+            .maxPlayersPerStartbox;
+    if (battleWithMetadataStore.battleOptions.mapOptions.startPosType === StartPosType.Fixed)
+        return battleWithMetadataStore.battleOptions.map.startPos.team[battleWithMetadataStore.battleOptions.mapOptions.fixedPositionsIndex]
+            .playersPerTeam;
+    return 1;
+});
+
 const showJoin = computed(() => {
     return props.teamId !== me.battleRoomState.teamId;
 });
 
 const emit = defineEmits(["addBotClicked", "onJoinClicked", "onDragStart", "onDragEnd", "onDragEnter", "onDrop"]);
-function addBotClicked(teamId: string) {
+function addBotClicked(teamId: number) {
     emit("addBotClicked", teamId);
 }
-function onJoinClicked(teamId: string) {
+
+function onJoinClicked(teamId: number) {
     emit("onJoinClicked", teamId);
 }
+
 function onDragStart(event: DragEvent, member: Player | Bot) {
     emit("onDragStart", event, member);
 }
+
 function onDragEnd() {
     emit("onDragEnd");
 }
-function onDragEnter(event: DragEvent, teamId: string) {
+
+function onDragEnter(event: DragEvent, teamId: number) {
     emit("onDragEnter", event, teamId);
 }
-function onDrop(event: DragEvent, teamId: string) {
+
+function onDrop(event: DragEvent, teamId: number) {
     emit("onDrop", event, teamId);
 }
 </script>

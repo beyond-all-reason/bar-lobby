@@ -1,25 +1,39 @@
 import { MapData } from "@main/content/maps/map-data";
 import { mapContentAPI } from "@main/content/maps/map-content";
 import { ipcMain } from "electron";
+import { MapMetadata } from "@main/content/maps/online-map";
+import { fetchMapImages } from "@main/content/maps/map-image";
 
 function init() {
     mapContentAPI.init();
 }
 
+async function fetchAllMaps() {
+    const maps = await fetch("https://maps-metadata.beyondallreason.dev/latest/lobby_maps.validated.json");
+    const mapsAsObject = await maps.json();
+    const mapsAsArray = Object.values(mapsAsObject) as MapMetadata[];
+    return mapsAsArray.map((map: MapMetadata) => {
+        // transform the map object to a MapData object
+        return {
+            ...map,
+            isInstalled: mapContentAPI.isVersionInstalled(map.springName),
+        } as MapData;
+    });
+}
+
 function registerIpcHandlers(mainWindow: Electron.BrowserWindow) {
-    ipcMain.handle("maps:sync", (_, maps: { scriptName: string; fileName: string }[]) => mapContentAPI.sync(maps));
-    ipcMain.handle("maps:downloadMap", (_, scriptName: string) => mapContentAPI.downloadMap(scriptName));
-    ipcMain.handle("maps:downloadMaps", (_, scriptNames: string[]) => mapContentAPI.downloadMaps(scriptNames));
+    ipcMain.handle("maps:downloadMap", (_, springName: string) => mapContentAPI.downloadMap(springName));
+    ipcMain.handle("maps:downloadMaps", (_, springNames: string[]) => mapContentAPI.downloadMaps(springNames));
     ipcMain.handle("maps:getInstalledVersions", () => mapContentAPI.installedVersions);
     ipcMain.handle("maps:isVersionInstalled", (_, id: string) => mapContentAPI.isVersionInstalled(id));
     ipcMain.handle("maps:attemptCacheErrorMaps", () => mapContentAPI.attemptCacheErrorMaps());
 
+    ipcMain.handle("maps:online:fetchAllMaps", () => fetchAllMaps());
+    ipcMain.handle("maps:online:fetchMapImages", (_, imageSource: string) => fetchMapImages(imageSource));
+
     // Events
-    mapContentAPI.onMapCachingStarted.add((filename: string) => {
-        mainWindow.webContents.send("maps:mapCachingStarted", filename);
-    });
-    mapContentAPI.onMapCached.add((mapData: MapData) => {
-        mainWindow.webContents.send("maps:mapCached", mapData);
+    mapContentAPI.onMapAdded.add((filename: string) => {
+        mainWindow.webContents.send("maps:mapAdded", filename);
     });
     mapContentAPI.onMapDeleted.add((filename: string) => {
         mainWindow.webContents.send("maps:mapDeleted", filename);

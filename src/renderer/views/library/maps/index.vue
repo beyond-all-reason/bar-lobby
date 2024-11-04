@@ -34,7 +34,7 @@ import { useRouter } from "vue-router";
 const router = useRouter();
 
 async function onMapSelected(map: MapData) {
-    await router.push(`/library/maps/${map.scriptName}`);
+    await router.push(`/library/maps/${map.springName}`);
 }
 </script>
 

@@ -11,7 +11,7 @@ export interface Game {
     mypasswd?: string;
     nohelperais?: number;
     gamestartdelay?: number;
-    scriptname?: string;
+    springName?: string;
     startpostype?: number;
     demofile?: string;
     savefile?: string;

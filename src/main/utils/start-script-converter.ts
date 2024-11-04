@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { assign } from "$/jaz-ts-utils/object";
 import { BattleWithMetadata, isPlayer, StartPosType } from "@main/game/battle/battle-types";
 import { AllyTeam, Bot, Game, Player, Team } from "@main/model/start-script";
 
@@ -43,18 +42,22 @@ class StartScriptConverter {
             };
             allyTeams.push(allyTeam);
 
-            if (battle.battleOptions.startPosType === StartPosType.Boxes) {
-                const box = battle.battleOptions.startBoxes[allyTeam.id];
-                if (box) {
-                    assign(allyTeam, {
-                        startrectleft: box.xPercent,
-                        startrecttop: box.yPercent,
-                        startrectright: box.xPercent + box.widthPercent,
-                        startrectbottom: box.yPercent + box.heightPercent,
-                    });
-                } else {
-                    console.warn(`Ally team ${allyTeam.id} has no defined start area for this map`);
-                }
+            if (battle.battleOptions.mapOptions.startPosType === StartPosType.Boxes) {
+                const startBoxesIndex = battle.battleOptions.mapOptions.startBoxesIndex;
+                const box = battle.battleOptions.map.startboxesSet[startBoxesIndex].startboxes[allyTeam.id];
+
+                //TODO: implement start area
+                throw new Error("Not implemented");
+                // if (box) {
+                //     Object.assign(allyTeam, {
+                //         startrectleft: box.xPercent,
+                //         startrecttop: box.yPercent,
+                //         startrectright: box.xPercent + box.widthPercent,
+                //         startrectbottom: box.yPercent + box.heightPercent,
+                //     });
+                // } else {
+                //     console.warn(`Ally team ${allyTeam.id} has no defined start area for this map`);
+                // }
             }
 
             team.forEach((teamMember) => {
@@ -112,11 +115,11 @@ class StartScriptConverter {
 
         return {
             gametype: battle.battleOptions.gameVersion,
-            mapname: battle.battleOptions.mapScriptName,
-            modoptions: battle.battleOptions.gameOptions,
+            mapname: battle.battleOptions.map.springName,
+            modoptions: battle.battleOptions.gameMode.options,
             ishost: 1,
             myplayername: battle.me.user.username,
-            startpostype: battle.battleOptions.startPosType,
+            startpostype: battle.battleOptions.mapOptions.startPosType,
             allyTeams,
             teams,
             players,

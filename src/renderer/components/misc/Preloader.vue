@@ -11,14 +11,19 @@ import { computed, onMounted, ref } from "vue";
 import Progress from "@renderer/components/common/Progress.vue";
 import { audioApi } from "@renderer/audio/audio";
 import { backgroundImages, fontFiles } from "@renderer/assets/assetFiles";
+import { initMapsStore } from "@renderer/store/maps.store";
+import { initReplaysStore } from "@renderer/store/replays.store";
+import { initDb } from "@renderer/store/db";
 
 const emit = defineEmits(["complete"]);
 
-const totalFiles = Object.values(fontFiles).length;
-const loadedFiles = ref(0);
-const loadedPercent = computed(() => loadedFiles.value / totalFiles);
+const thingsToPreload = [initDb, loadAllFonts, initMapsStore, initReplaysStore];
 
-console.debug(`Loading ${totalFiles} font files...`);
+const total = Object.values(fontFiles).length + thingsToPreload.length;
+const progress = ref(0);
+const loadedPercent = computed(() => progress.value / total);
+
+console.debug(`Loading ${total} font files...`);
 console.debug(`Loading ${Object.values(backgroundImages).length} background images...`);
 const randomBackgroundImage = randomFromArray(Object.values(backgroundImages));
 console.debug("Setting background image:", randomBackgroundImage);
@@ -26,16 +31,22 @@ document.documentElement.style.setProperty("--background", `url(${randomBackgrou
 
 onMounted(async () => {
     try {
-        for (const fontFile of Object.values(fontFiles)) {
-            await loadFont(fontFile);
-            loadedFiles.value++;
+        for (const thing of thingsToPreload) {
+            await thing();
+            progress.value++;
         }
     } catch (error) {
-        console.error(`Failed to load fonts: `, error);
+        console.error(`Failed to preload: `, error);
     }
     audioApi.load();
     emit("complete");
 });
+
+async function loadAllFonts() {
+    for (const fontFile of Object.values(fontFiles)) {
+        await loadFont(fontFile);
+    }
+}
 
 async function loadFont(url: string) {
     console.debug("Loading font:", url);

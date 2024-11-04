@@ -17,21 +17,51 @@ export async function getRandomMap(): Promise<MapData> {
 }
 
 export async function initMapsStore() {
-    window.maps.onMapCached((mapData: MapData) => {
-        console.debug("Received map cached event", mapData);
-        db.maps.add(mapData);
+    if (mapsStore.isInitialized) return;
+    return init();
+}
+
+async function init() {
+    window.maps.onMapAdded((filename: string) => {
+        console.debug("Received map added event", filename);
+        db.maps.where("fileName").equals(filename).modify({ isInstalled: true });
     });
     window.maps.onMapDeleted((filename: string) => {
         console.debug("Received map deleted event", filename);
-        db.maps.where("fileName").equals(filename).delete();
+        db.maps.where("fileName").equals(filename).modify({ isInstalled: false });
     });
-    await syncMaps();
+    const maps = await window.maps.fetchAllMaps();
+    console.debug("Received all maps", maps);
+    await Promise.allSettled(
+        maps.map((map) => {
+            db.maps.get(map.springName).then((existingMap) => {
+                if (!existingMap) {
+                    return db.maps.put(map) as Promise<unknown>;
+                } else {
+                    return db.maps.update(map.springName, { ...map }) as Promise<unknown>;
+                }
+            });
+        })
+    );
     mapsStore.isInitialized = true;
 }
 
-async function syncMaps() {
-    console.debug("Syncing maps");
-    // Sync all maps with actual files in map folder
-    const allMaps = await db.maps.toArray();
-    window.maps.sync(allMaps.map((map) => ({ scriptName: map.scriptName, fileName: map.fileName })));
+export async function fetchMapImages(map: MapData) {
+    if (map.imagesBlob?.preview) return;
+    const arrayBuffer = await window.maps.fetchMapImages(map.images?.preview);
+    await db.maps.update(map.springName, { imagesBlob: { preview: new Blob([arrayBuffer], { type: "image/webp" }) } });
+    console.debug("Updated map images ", map.springName);
+}
+
+export async function downloadMap(springName: string) {
+    db.maps.update(springName, { isDownloading: true });
+    await window.maps
+        .downloadMap(springName)
+        .then(() => {
+            db.maps.update(springName, { isInstalled: true, isDownloading: false });
+        })
+        .catch((error) => {
+            console.error("Failed to download map", error);
+            db.maps.update(springName, { isDownloading: false });
+        });
 }
