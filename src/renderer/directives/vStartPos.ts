@@ -27,9 +27,6 @@ const vStartPos: Directive = {
         }
     },
     updated(el: HTMLElement, binding: DirectiveBinding) {
-        console.log("updated");
-        console.log(binding.value);
-
         const { x, y } = binding.value[0] as { x: number; y: number };
         const mapWidthElmos = binding.value[1] as number;
         const mapHeightElmos = binding.value[2] as number;
