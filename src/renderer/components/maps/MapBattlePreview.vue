@@ -1,6 +1,6 @@
 <template>
     <div class="map-container">
-        <div v-if="map" class="map" :style="aspectRatioDrivenStyle">
+        <div v-if="battleStore.battleOptions.map" class="map" :style="aspectRatioDrivenStyle">
             <img loading="lazy" :src="mapTextureUrl" />
             <div v-if="battleStore.battleOptions.mapOptions.startPosType === StartPosType.Boxes && boxes" class="boxes">
                 <div v-for="(box, i) in boxes" :key="`box${i}`" v-startBox="box" class="box highlight">
@@ -11,13 +11,19 @@
             </div>
             <div v-if="battleStore.battleOptions.mapOptions.startPosType === StartPosType.Fixed" class="start-positions">
                 <div
-                    v-for="(side, sideIndex) in map.startPos?.team[battleStore.battleOptions.mapOptions.fixedPositionsIndex]?.sides"
+                    v-for="(side, sideIndex) in battleStore.battleOptions.map.startPos?.team[
+                        battleStore.battleOptions.mapOptions.fixedPositionsIndex
+                    ]?.sides"
                     :key="`side${sideIndex}`"
                 >
                     <div
                         v-for="(spawnPoint, spIndex) in side.starts"
                         :key="`startPos${spIndex}`"
-                        v-startPos="[map.startPos.positions[spawnPoint.spawnPoint], mapWidthElmos, mapHeightElmos]"
+                        v-startPos="[
+                            battleStore.battleOptions.map.startPos.positions[spawnPoint.spawnPoint],
+                            mapWidthElmos,
+                            mapHeightElmos,
+                        ]"
                         v-setPlayerColor="rgbColors[sideIndex]"
                         class="start-pos"
                     >
@@ -38,8 +44,7 @@ import vSetPlayerColor from "@renderer/directives/vSetPlayerColor";
 import vStartBox from "@renderer/directives/vStartBox";
 import vStartPos from "@renderer/directives/vStartPos";
 import { battleStore } from "@renderer/store/battle.store";
-import { fetchMapImages } from "@renderer/store/maps.store";
-import { computed, defineComponent, ref, watch, watchEffect } from "vue";
+import { computed, defineComponent, ref, watch } from "vue";
 
 defineComponent({
     directives: {
@@ -49,36 +54,25 @@ defineComponent({
     },
 });
 
-const map = ref(battleStore.battleOptions.map);
 const { get } = useImageBlobUrlCache();
 const mapTextureUrl = computed(() => {
-    if (!map.value?.images) {
+    if (!battleStore.battleOptions.map?.images) {
         return;
     }
-    return get(map.value?.springName, map.value?.imagesBlob?.preview);
+    return get(battleStore.battleOptions.map?.springName, battleStore.battleOptions.map?.imagesBlob?.preview);
 });
 
-watchEffect(() => {
-    if (!map.value?.springName) {
-        return;
-    }
-    if (!map.value?.imagesBlob?.preview) {
-        fetchMapImages(map.value);
-    }
-});
-
-const startBoxes = ref(map.value?.startboxesSet);
-const startPositions = ref(map.value?.startPos);
-const mapWidthElmos = ref(map.value?.mapWidth ? map.value.mapWidth * 512 : null);
-const mapHeightElmos = ref(map.value?.mapHeight ? map.value.mapHeight * 512 : null);
+const startBoxes = ref(battleStore.battleOptions.map?.startboxesSet);
+const startPositions = ref(battleStore.battleOptions.map?.startPos);
+const mapWidthElmos = ref(battleStore.battleOptions.map?.mapWidth ? battleStore.battleOptions.map.mapWidth * 512 : null);
+const mapHeightElmos = ref(battleStore.battleOptions.map?.mapHeight ? battleStore.battleOptions.map.mapHeight * 512 : null);
 watch(
     () => battleStore.battleOptions.map,
     () => {
-        map.value = battleStore.battleOptions.map;
-        startBoxes.value = map.value?.startboxesSet;
-        startPositions.value = map.value?.startPos;
-        mapWidthElmos.value = map.value?.mapWidth ? map.value.mapWidth * 512 : null;
-        mapHeightElmos.value = map.value?.mapHeight ? map.value.mapHeight * 512 : null;
+        startBoxes.value = battleStore.battleOptions.map?.startboxesSet;
+        startPositions.value = battleStore.battleOptions.map?.startPos;
+        mapWidthElmos.value = battleStore.battleOptions.map?.mapWidth ? battleStore.battleOptions.map.mapWidth * 512 : null;
+        mapHeightElmos.value = battleStore.battleOptions.map?.mapHeight ? battleStore.battleOptions.map.mapHeight * 512 : null;
     }
 );
 
@@ -96,10 +90,10 @@ const boxes = computed(() => {
 });
 
 const aspectRatioDrivenStyle = computed(() => {
-    if (!map.value?.mapWidth || !map.value?.mapHeight) {
+    if (!battleStore.battleOptions.map?.mapWidth || !battleStore.battleOptions.map?.mapHeight) {
         return;
     }
-    return map.value.mapWidth / map.value.mapHeight > 1 ? "height: auto;" : "height: 100%;";
+    return battleStore.battleOptions.map.mapWidth / battleStore.battleOptions.map.mapHeight > 1 ? "height: auto;" : "height: 100%;";
 });
 
 const rgbColors = [

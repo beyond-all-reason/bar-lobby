@@ -189,10 +189,20 @@ watch(
 watch(
     () => battleStore.battleOptions.map,
     () => {
+        console.log(`battleStore.battleOptions.map`, battleStore.battleOptions.map);
         battleStore.battleOptions.mapOptions.startPosType = StartPosType.Boxes;
         battleStore.battleOptions.mapOptions.startBoxesIndex = 0;
         updateTeams();
-    }
+    },
+    { deep: true }
+);
+
+watch(
+    () => battleStore,
+    () => {
+        console.log(`battleStore CHANGED`, battleStore);
+    },
+    { deep: true }
 );
 
 export const battleActions = {

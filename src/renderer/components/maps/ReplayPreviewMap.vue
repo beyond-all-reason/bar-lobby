@@ -30,11 +30,10 @@ import { Replay } from "@main/content/replays/replay";
 import { useDexieLiveQueryWithDeps } from "@renderer/composables/useDexieLiveQuery";
 import { useImageBlobUrlCache } from "@renderer/composables/useImageBlobUrlCache";
 import { db } from "@renderer/store/db";
-import { computed, defineComponent, ref, watch, watchEffect } from "vue";
+import { computed, defineComponent, ref, watch } from "vue";
 import vStartBox from "@renderer/directives/vStartBox";
 import vStartPos from "@renderer/directives/vStartPos";
 import vSetPlayerColor from "@renderer/directives/vSetPlayerColor";
-import { fetchMapImages } from "@renderer/store/maps.store";
 
 const props = defineProps<{
     replay?: Replay;
@@ -67,14 +66,6 @@ const cache = useImageBlobUrlCache();
 const mapTextureUrl = computed(() => {
     if (!map.value?.imagesBlob?.preview) return null;
     return cache.get(map.value.springName, map.value.imagesBlob?.preview);
-});
-watchEffect(() => {
-    if (!map.value) {
-        return;
-    }
-    if (!map.value.imagesBlob?.preview) {
-        fetchMapImages(map.value);
-    }
 });
 </script>
 

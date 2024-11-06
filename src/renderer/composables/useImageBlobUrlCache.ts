@@ -23,13 +23,15 @@ export const useImageBlobUrlCache = () => {
         return url;
     };
 
-    const get = (id: string, blob: Blob) => {
+    const get = (id: string, blob?: Blob) => {
         if (cache.has(id)) {
             return cache.get(id);
         }
-        const url = URL.createObjectURL(blob);
-        cache.set(id, url);
-        return url;
+        if (blob) {
+            const url = URL.createObjectURL(blob);
+            cache.set(id, url);
+            return url;
+        }
     };
 
     return { base64, get };

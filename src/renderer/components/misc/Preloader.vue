@@ -11,13 +11,13 @@ import { computed, onMounted, ref } from "vue";
 import Progress from "@renderer/components/common/Progress.vue";
 import { audioApi } from "@renderer/audio/audio";
 import { backgroundImages, fontFiles } from "@renderer/assets/assetFiles";
-import { initMapsStore } from "@renderer/store/maps.store";
+import { fetchMissingMapImages, initMapsStore } from "@renderer/store/maps.store";
 import { initReplaysStore } from "@renderer/store/replays.store";
 import { initDb } from "@renderer/store/db";
 
 const emit = defineEmits(["complete"]);
 
-const thingsToPreload = [initDb, loadAllFonts, initMapsStore, initReplaysStore];
+const thingsToPreload = [initDb, loadAllFonts, initMapsStore, fetchMissingMapImages, initReplaysStore];
 
 const total = Object.values(fontFiles).length + thingsToPreload.length;
 const progress = ref(0);

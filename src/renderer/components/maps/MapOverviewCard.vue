@@ -12,9 +12,8 @@
 
 <script lang="ts" setup>
 import defaultMiniMap from "/src/renderer/assets/images/default-minimap.png?url";
-import { computed, watchEffect } from "vue";
+import { computed } from "vue";
 import { useImageBlobUrlCache } from "@renderer/composables/useImageBlobUrlCache";
-import { fetchMapImages } from "@renderer/store/maps.store";
 import { MapData } from "@main/content/maps/map-data";
 
 const props = defineProps<{
@@ -26,15 +25,6 @@ const mapSize = computed(() => (props.map ? props.map.mapWidth + "x" + props.map
 const imageUrl = computed(() =>
     props.map.imagesBlob?.preview ? cache.get(props.map.springName, props.map.imagesBlob?.preview) : defaultMiniMap
 );
-
-watchEffect(() => {
-    if (!props.map) {
-        return;
-    }
-    if (!props.map.imagesBlob?.preview) {
-        fetchMapImages(props.map);
-    }
-});
 </script>
 
 <style lang="scss" scoped>

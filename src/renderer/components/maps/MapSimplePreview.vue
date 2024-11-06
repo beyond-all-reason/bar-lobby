@@ -9,8 +9,7 @@ import { MapData } from "@main/content/maps/map-data";
 import { useImageBlobUrlCache } from "@renderer/composables/useImageBlobUrlCache";
 import vStartBox from "@renderer/directives/vStartBox";
 import vStartPos from "@renderer/directives/vStartPos";
-import { fetchMapImages } from "@renderer/store/maps.store";
-import { computed, defineComponent, watchEffect } from "vue";
+import { computed, defineComponent } from "vue";
 
 defineComponent({
     directives: {
@@ -30,15 +29,6 @@ const mapTextureUrl = computed(() => {
         return;
     }
     return get(props.map?.springName, props.map?.imagesBlob?.preview);
-});
-
-watchEffect(() => {
-    if (!props.map?.springName) {
-        return;
-    }
-    if (!props.map?.imagesBlob?.preview) {
-        fetchMapImages(props.map);
-    }
 });
 </script>
 

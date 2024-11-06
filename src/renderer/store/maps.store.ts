@@ -24,11 +24,11 @@ export async function initMapsStore() {
 async function init() {
     window.maps.onMapAdded((filename: string) => {
         console.debug("Received map added event", filename);
-        db.maps.where("fileName").equals(filename).modify({ isInstalled: true });
+        db.maps.where("filename").equals(filename).modify({ isInstalled: true });
     });
     window.maps.onMapDeleted((filename: string) => {
         console.debug("Received map deleted event", filename);
-        db.maps.where("fileName").equals(filename).modify({ isInstalled: false });
+        db.maps.where("filename").equals(filename).modify({ isInstalled: false });
     });
     const maps = await window.maps.fetchAllMaps();
     console.debug("Received all maps", maps);
@@ -46,7 +46,13 @@ async function init() {
     mapsStore.isInitialized = true;
 }
 
-export async function fetchMapImages(map: MapData) {
+export async function fetchMissingMapImages() {
+    const maps = await db.maps.toArray();
+    const missingImages = maps.filter((map) => !map.imagesBlob?.preview);
+    return await Promise.allSettled(missingImages.map(fetchMapImages));
+}
+
+async function fetchMapImages(map: MapData) {
     if (map.imagesBlob?.preview) return;
     const arrayBuffer = await window.maps.fetchMapImages(map.images?.preview);
     await db.maps.update(map.springName, { imagesBlob: { preview: new Blob([arrayBuffer], { type: "image/webp" }) } });

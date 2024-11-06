@@ -12,6 +12,7 @@
                 <Select
                     :modelValue="battleStore.battleOptions.map"
                     :options="mapListOptions"
+                    :data-key="'springName'"
                     label="Map"
                     optionLabel="springName"
                     :filter="true"
@@ -55,8 +56,8 @@
             </div>
             <div class="flex-row flex-bottom gap-md">
                 <DownloadContentButton
-                    v-if="battleStore.battleOptions.map"
-                    :map="battleStore.battleOptions.map"
+                    v-if="map"
+                    :map="map"
                     class="fullwidth green"
                     :disabled="gameStore.isGameRunning"
                     @click="battleActions.startBattle"
@@ -82,7 +83,7 @@ import Button from "@renderer/components/controls/Button.vue";
 import { db } from "@renderer/store/db";
 import listIcon from "@iconify-icons/mdi/format-list-bulleted";
 import cogIcon from "@iconify-icons/mdi/cog";
-import { useDexieLiveQuery } from "@renderer/composables/useDexieLiveQuery";
+import { useDexieLiveQuery, useDexieLiveQueryWithDeps } from "@renderer/composables/useDexieLiveQuery";
 import DownloadContentButton from "@renderer/components/controls/DownloadContentButton.vue";
 import MapBattlePreview from "@renderer/components/maps/MapBattlePreview.vue";
 import { MapData } from "@main/content/maps/map-data";
@@ -94,6 +95,11 @@ const mapOptionsOpen = ref(false);
 const mapListOptions = useDexieLiveQuery(() => db.maps.toArray());
 const gameListOptions = useDexieLiveQuery(() => db.gameVersions.toArray());
 const engineListOptions = useDexieLiveQuery(() => db.engineVersions.toArray());
+
+const map = useDexieLiveQueryWithDeps([() => battleStore.battleOptions.map], () => {
+    if (!battleStore.battleOptions.map) return null;
+    return db.maps.get(battleStore.battleOptions.map.springName);
+});
 
 function openMapList() {
     mapListOpen.value = true;
