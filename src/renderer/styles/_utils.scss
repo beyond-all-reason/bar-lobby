@@ -6,12 +6,15 @@
     flex-direction: column;
     content: "";
 }
+
 .fullwidth {
     width: 100%;
 }
+
 .fullheight {
     height: 100%;
 }
+
 .gridform {
     display: grid;
     grid-template-columns: auto minmax(300px, 2fr);
@@ -23,12 +26,15 @@
         justify-content: center;
     }
 }
+
 .hide-overflow {
     overflow: hidden;
 }
+
 .relative {
     position: relative;
 }
+
 .scroll-container {
     // all ancestor elements need to fill their height for this to work (flex-col flex-grow fullheight)
     display: flex;

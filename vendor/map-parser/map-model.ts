@@ -1,90 +1,6 @@
-import { DeepPartial, Optionals } from "$/jaz-ts-utils/types";
-import { JimpInstance } from "jimp";
-
-export type SpringMap = {
-    fileName: string;
-    fileNameWithExt: string;
-    scriptName: string;
-    minHeight: number;
-    maxHeight: number;
-    mapInfo?: DeepPartial<MapInfo>;
-    smd?: SMD;
-    smf?: SMF;
-    textureMap?: JimpInstance;
-    heightMap: JimpInstance;
-    miniMap: JimpInstance;
-    metalMap: JimpInstance;
-    typeMap: JimpInstance;
-    resources?: Record<string, JimpInstance | undefined>;
-};
-
-export type SMD = {
-    description: string;
-    tidalStrength: number;
-    gravity: number;
-    maxMetal: number;
-    extractorRadius: number;
-    mapHardness: number;
-    minWind: number;
-    maxWind: number;
-    minHeight?: number;
-    maxHeight?: number;
-    startPositions: Array<{ x: number; z: number }>;
-};
-
-export type SMF = {
-    magic: string;
-    version: number;
-    id: number;
-    mapWidth: number;
-    mapWidthUnits: number;
-    mapHeight: number;
-    mapHeightUnits: number;
-    squareSize: number;
-    texelsPerSquare: number;
-    tileSize: number;
-    minDepth: number;
-    maxDepth: number;
-    heightMapIndex: number;
-    typeMapIndex: number;
-    tileIndexMapIndex: number;
-    miniMapIndex: number;
-    metalMapIndex: number;
-    featureMapIndex: number;
-    noOfExtraHeaders: number;
-    extraHeaders: Array<SMFExtraHeader>;
-    numOfTileFiles: number;
-    numOfTilesInAllFiles: number;
-    numOfTilesInThisFile: number;
-    smtFileName: string;
-    heightMap: JimpInstance;
-    typeMap: JimpInstance;
-    miniMap: JimpInstance;
-    metalMap: JimpInstance;
-    tileIndexMap: number[];
-    features: any; // TODO
-    heightMapValues: number[];
-};
-
-export type SMFExtraHeader = {
-    size: number;
-    type: number;
-    data: Buffer;
-};
-
-export type WaterOptions = {
-    textureMap: JimpInstance;
-    heightMapValues: number[];
-    minHeight: number;
-    maxHeight: number;
-
-    rgbColor?: { r: number; g: number; b: number };
-    rgbModifier?: { r: number; g: number; b: number };
-};
-
 export type MapInfo = {
     fileName: string;
-    scriptName: string;
+    springName: string;
     name: string;
     shortname: string;
     description: string;
@@ -259,9 +175,4 @@ export type Precipitation = {
 export type Custom = {
     fog: Fog;
     precipitation: Precipitation;
-};
-
-export const defaultWaterOptions: Optionals<WaterOptions> = {
-    rgbColor: { r: 33, g: 35, b: 77 },
-    rgbModifier: { r: 1, g: 1.2, b: 1 },
 };

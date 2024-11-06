@@ -1,15 +1,20 @@
-import { EngineVersion } from "@main/content/engine/engine-version";
-import { GameVersion } from "@main/content/game/game-version";
+import { EngineAI, EngineVersion } from "@main/content/engine/engine-version";
+import { GameAI, GameVersion } from "@main/content/game/game-version";
 import { MapData } from "@main/content/maps/map-data";
 import { Battle, BattleOptions, BattleWithMetadata, Bot, Faction, Player, StartPosType } from "@main/game/battle/battle-types";
 import { User } from "@main/model/user";
 import { _me, me } from "@renderer/store/me.store";
 import { deepToRaw } from "@renderer/utils/deep-toraw";
-import { defaultMapBoxes } from "@renderer/utils/start-boxes";
 import { reactive, readonly, watch } from "vue";
 
 // Store
-export const battleStore = reactive({} as Battle);
+export const battleStore = reactive({
+    title: "Battle",
+    isOnline: false,
+    battleOptions: {},
+    teams: [],
+    spectators: [],
+} as Battle);
 
 // Automatically computing metadata for the battle
 const _battleWithMetadataStore = reactive({} as BattleWithMetadata);
@@ -18,7 +23,6 @@ watch(
     battleStore,
     (battle) => {
         Object.assign(_battleWithMetadataStore, battle);
-
         _battleWithMetadataStore.participants = Object.values(battle.teams).flat();
         if (battle.started && !_battleWithMetadataStore.startTime) _battleWithMetadataStore.startTime = new Date();
     },
@@ -36,6 +40,16 @@ function removeFromTeams(participant: Player | Bot) {
 function removeFromSpectators(participant: Player) {
     const index = battleStore.spectators.findIndex((p) => p.id === participant.id);
     if (index !== -1) battleStore.spectators.splice(index, 1);
+}
+
+function addBot(ai: EngineAI | GameAI, teamId: number) {
+    battleStore.teams[teamId].push({
+        id: battleWithMetadataStore.participants.length,
+        name: ai.name,
+        aiOptions: ai.options || {},
+        aiShortName: ai.shortName,
+        ownerUserId: me.userId,
+    } as Bot);
 }
 
 function movePlayerToTeam(player: Player, teamId: number) {
@@ -68,6 +82,30 @@ function userToPlayer(user: User): Player {
     } as Player;
 }
 
+//TODO move extra players to spectators
+function updateTeams() {
+    if (!battleStore.battleOptions.map) return;
+    const currentParticipants = Object.values(battleStore.teams).flat();
+    if (battleStore.battleOptions.mapOptions.startPosType === StartPosType.Boxes) {
+        // get all participant in team order
+        // update teams with selected BoxDetails
+        const startBoxes = battleStore.battleOptions.map.startboxesSet[battleStore.battleOptions.mapOptions.startBoxesIndex];
+        const numberOfTeams = startBoxes.startboxes.length;
+        const maxPlayersPerStartbox = startBoxes.maxPlayersPerStartbox;
+        battleStore.teams = new Array(numberOfTeams).fill(null).map((_, i) => {
+            return currentParticipants.slice(i * maxPlayersPerStartbox, (i + 1) * maxPlayersPerStartbox);
+        });
+    }
+    if (battleStore.battleOptions.mapOptions.startPosType === StartPosType.Fixed) {
+        const teamPreset = battleStore.battleOptions.map.startPos.team[battleStore.battleOptions.mapOptions.fixedPositionsIndex];
+        const numberOfTeams = teamPreset.sides.length;
+        const maxPlayersPerTeam = teamPreset.playersPerTeam;
+        battleStore.teams = new Array(numberOfTeams).fill(null).map((_, i) => {
+            return currentParticipants.slice(i * maxPlayersPerTeam, (i + 1) * maxPlayersPerTeam);
+        });
+    }
+}
+
 function defaultOfflineBattle(engine?: EngineVersion, game?: GameVersion, map?: MapData) {
     const barbAi = engine?.ais.find((ai) => ai.shortName === "BARb");
     const battle = {
@@ -77,18 +115,18 @@ function defaultOfflineBattle(engine?: EngineVersion, game?: GameVersion, map?: 
         battleOptions: {
             engineVersion: engine?.id,
             gameVersion: game?.gameVersion,
-            mapScriptName: map?.scriptName,
-            startPosType: StartPosType.Boxes,
-            startBoxes: defaultMapBoxes(),
-            gameOptions: {},
-            mapOptions: {},
+            gameMode: {
+                label: "Default",
+                options: game?.luaOptionSections || {},
+            },
+            map,
+            mapOptions: {
+                startPosType: StartPosType.Boxes,
+                startBoxesIndex: 0,
+            },
             restrictions: [],
         } as BattleOptions,
-        metadata: {},
-        teams: {
-            0: [],
-            1: [],
-        },
+        teams: [[], []], // Maybe make a Team interface with maxPlayersPerTeam or fetch that info from the map
         spectators: [],
         started: false,
     } as Battle;
@@ -96,6 +134,7 @@ function defaultOfflineBattle(engine?: EngineVersion, game?: GameVersion, map?: 
     battle.teams[0].push({
         id: 0,
         user: me,
+        name: me.username,
         contentSyncState: {
             engine: 1,
             game: 1,
@@ -108,7 +147,7 @@ function defaultOfflineBattle(engine?: EngineVersion, game?: GameVersion, map?: 
         id: 1,
         aiOptions: {},
         faction: Faction.Armada,
-        name: "AI",
+        name: "AI 1",
         aiShortName: barbAi?.shortName || "BARb",
         ownerUserId: 0,
     } as Bot);
@@ -135,8 +174,12 @@ watch(
         } else {
             _me.battleRoomState.isSpectator = false;
             // iterate over the map id, team to find the user's team
-            Object.entries(battle.teams).forEach(([teamId, team]) => {
-                if (team.find((participant) => "user" in participant && participant.user.userId === me.userId)) {
+            battle.teams.forEach((team, teamId) => {
+                if (
+                    team.find((participant) => {
+                        return participant && "user" in participant && participant.user.userId === me.userId;
+                    })
+                ) {
                     _me.battleRoomState.teamId = teamId;
                 }
             });
@@ -145,12 +188,32 @@ watch(
     { deep: true }
 );
 
+watch(
+    () => battleStore.battleOptions.mapOptions,
+    () => {
+        updateTeams();
+    },
+    { deep: true }
+);
+
+watch(
+    () => battleStore.battleOptions.map,
+    () => {
+        battleStore.battleOptions.mapOptions.startPosType = StartPosType.Boxes;
+        battleStore.battleOptions.mapOptions.startBoxesIndex = 0;
+        updateTeams();
+    },
+    { deep: true }
+);
+
 export const battleActions = {
     movePlayerToTeam,
     movePlayerToSpectators,
     moveBotToTeam,
+    addBot,
     removeBot,
     startBattle,
+    updateTeams,
     resetToDefaultBattle,
 };
 

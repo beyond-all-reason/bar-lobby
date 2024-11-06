@@ -80,8 +80,10 @@ export class GameContentAPI extends PrDownloaderAPI<GameVersion> {
         for (const packageFile of packages) {
             const packageMd5 = packageFile.replace(".sdp", "");
             const gameVersion = this.packageGameVersionLookup[packageMd5];
+            const luaOptionSections = await this.getGameOptions(packageMd5);
+            const ais = await this.getAis(packageMd5);
             if (gameVersion) {
-                this.installedVersions.push({ gameVersion, packageMd5 });
+                this.installedVersions.push({ gameVersion, packageMd5, luaOptionSections, ais });
             }
         }
         this.sortVersions();
@@ -117,13 +119,16 @@ export class GameContentAPI extends PrDownloaderAPI<GameVersion> {
         });
     }
 
-    public async getGameOptions(version: string): Promise<LuaOptionSection[]> {
-        const gameVersion = this.installedVersions.find((installedVersion) => installedVersion.gameVersion === version);
-        // TODO: cache per session
-        const gameFiles = await this.getGameFiles(gameVersion.packageMd5, "modoptions.lua", true);
-        const gameOptionsLua = gameFiles[0].data;
-        // TODO maybe send ais as well
-        return parseLuaOptions(gameOptionsLua);
+    protected async getGameOptions(packageMd5: string): Promise<LuaOptionSection[]> {
+        const gameFiles = await this.getGameFiles(packageMd5, "modoptions.lua", true);
+        const modoptions = gameFiles[0].data;
+        return parseLuaOptions(modoptions);
+    }
+
+    protected async getAis(packageMd5: string): Promise<GameAI[]> {
+        const gameFiles = await this.getGameFiles(packageMd5, "luaai.lua", true);
+        const luaai = gameFiles[0].data;
+        return this.parseAis(luaai);
     }
 
     public async getScenarios(): Promise<Scenario[]> {
@@ -259,14 +264,13 @@ export class GameContentAPI extends PrDownloaderAPI<GameVersion> {
     }
 
     protected async addGame(gameVersion: string) {
-        //TODO reimplement ais lookup now that its no longer in the GameVersion object
-        // const luaAiFile = (await this.getGameFiles({ md5: packageMd5 }, "luaai.lua", true))[0];
-        // const ais = await this.parseAis(luaAiFile.data);
         if (gameVersion === "byar:test") {
             await this.scanPackagesDir();
         } else {
             const packageMd5 = this.gameVersionPackageLookup[gameVersion];
-            this.installedVersions.push({ gameVersion, packageMd5 });
+            const luaOptionSections = await this.getGameOptions(packageMd5);
+            const ais = await this.getAis(packageMd5);
+            this.installedVersions.push({ gameVersion, packageMd5, luaOptionSections, ais });
             this.sortVersions();
         }
     }
@@ -277,6 +281,7 @@ export class GameContentAPI extends PrDownloaderAPI<GameVersion> {
         for (const def of aiDefinitions) {
             ais.push({
                 name: def.name,
+                shortName: def.name,
                 description: def.desc,
             });
         }

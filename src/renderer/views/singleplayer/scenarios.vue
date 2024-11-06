@@ -66,7 +66,6 @@ import Panel from "@renderer/components/common/Panel.vue";
 import { db } from "@renderer/store/db";
 import { useDexieLiveQueryWithDeps } from "@renderer/composables/useDexieLiveQuery";
 import { downloadsStore } from "@renderer/store/downloads.store";
-import { mapFileNameToFriendlyName } from "@main/content/maps/map-data";
 import Markdown from "@renderer/components/misc/Markdown.vue";
 
 const router = useRouter();
@@ -76,10 +75,8 @@ const scenarios = await window.game.getScenarios();
 const selectedScenario = ref<Scenario>(scenarios[0]);
 
 const hasMap = useDexieLiveQueryWithDeps([selectedScenario], () => db.maps.get(selectedScenario.value?.mapfilename));
-// Hacky solution with mapFileNameToFriendlyName
-const downloading = computed(() =>
-    downloadsStore.mapDownloads.some((d) => d.name === mapFileNameToFriendlyName(selectedScenario.value?.mapfilename))
-);
+// Hacky solution with mapFileNameTodisplayName
+const downloading = computed(() => downloadsStore.mapDownloads.some((d) => d.name === selectedScenario.value?.mapfilename));
 
 const difficulties = computed(() => selectedScenario.value.difficulties);
 const selectedDifficulty = ref(difficulties.value.find((dif) => dif.name === selectedScenario.value.defaultdifficulty));

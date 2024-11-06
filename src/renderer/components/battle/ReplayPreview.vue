@@ -1,6 +1,6 @@
 <template>
     <div class="flex-col gap-md fullheight">
-        <MapOverviewCard :map="map" :friendlyName="mapName" />
+        <ReplayPreviewMap :replay="replay" />
         <div class="teams scroll-container">
             <div v-if="isFFA">
                 <div class="team-title">Players</div>
@@ -31,7 +31,7 @@
                     />
                 </div>
             </div>
-            <div v-if="replay.spectators.length">
+            <div v-if="replay?.spectators.length">
                 <div class="team-title">Spectators</div>
                 <div class="contenders">
                     <BattlePreviewParticipant
@@ -53,35 +53,23 @@ import { Icon } from "@iconify/vue";
 import trophyVariant from "@iconify-icons/mdi/trophy-variant";
 import { computed } from "vue";
 import BattlePreviewParticipant from "@renderer/components/battle/BattlePreviewParticipant.vue";
-import MapOverviewCard from "@renderer/components/maps/MapOverviewCard.vue";
 import { Replay } from "@main/content/replays/replay";
-import { db } from "@renderer/store/db";
-import { useDexieLiveQueryWithDeps } from "@renderer/composables/useDexieLiveQuery";
-import { mapFileNameToFriendlyName } from "@main/content/maps/map-data";
-import { groupBy } from "$/jaz-ts-utils/object";
+import ReplayPreviewMap from "@renderer/components/maps/ReplayPreviewMap.vue";
 
 const props = defineProps<{
-    replay: Replay;
+    replay?: Replay;
     showSpoilers?: boolean;
 }>();
 
-const replay = computed(() => props.replay);
-const scriptName = computed(() => props.replay.mapScriptName || "");
-
-const map = useDexieLiveQueryWithDeps([scriptName], () => {
-    return db.maps.get(scriptName.value);
-});
-
-const mapName = computed(() => {
-    return mapFileNameToFriendlyName(props.replay.mapScriptName);
-});
-
 const isFFA = computed(() => {
-    return props.replay.preset === "ffa";
+    return props.replay?.preset === "ffa";
 });
 
 const teams = computed(() => {
-    const teams = groupBy(props.replay.contenders, (contender) => contender.allyTeamId);
+    if (!props.replay) {
+        return [];
+    }
+    const teams = Map.groupBy(props.replay.contenders, (contender) => contender.allyTeamId);
     const sortedTeams = new Map([...teams.entries()].sort());
     return sortedTeams;
 });

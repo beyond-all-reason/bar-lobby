@@ -2,10 +2,8 @@ import type { Static, TObject } from "@sinclair/typebox";
 import type { ValidateFunction } from "ajv";
 import Ajv from "ajv";
 import fs from "fs";
-import { assign } from "$/jaz-ts-utils/object";
 import path from "path";
 import { logger } from "@main/utils/logger";
-import { SetUndefinedValues } from "$/jaz-ts-utils/types";
 
 const log = logger("file-store.ts");
 
@@ -40,9 +38,9 @@ export class FileStore<T extends TObject> {
     }
 
     // could throw if the data is invalid
-    public async update(data: SetUndefinedValues<T>) {
+    public async update(data: Partial<T>) {
         // not great since we're modifying the model before validation
-        assign(this.model, data);
+        Object.assign(this.model, data);
         const isValid = this.validator(this.model);
         if (isValid) {
             await this.write();
@@ -58,7 +56,7 @@ export class FileStore<T extends TObject> {
             const model = JSON.parse(modelStr);
             const isValid = this.validator(model);
             if (isValid) {
-                assign(this.model, model as Static<T>);
+                Object.assign(this.model, model as Static<T>);
             } else {
                 log.error(`Error validating file: ${this.filePath}`, this.validator.errors);
             }

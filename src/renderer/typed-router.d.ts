@@ -23,7 +23,6 @@ declare module 'vue-router/auto-routes' {
     '/debug/b': RouteRecordInfo<'/debug/b', '/debug/b', Record<never, never>, Record<never, never>>,
     '/debug/controls': RouteRecordInfo<'/debug/controls', '/debug/controls', Record<never, never>, Record<never, never>>,
     '/debug/font': RouteRecordInfo<'/debug/font', '/debug/font', Record<never, never>, Record<never, never>>,
-    '/debug/pixi-map': RouteRecordInfo<'/debug/pixi-map', '/debug/pixi-map', Record<never, never>, Record<never, never>>,
     '/debug/script-launcher': RouteRecordInfo<'/debug/script-launcher', '/debug/script-launcher', Record<never, never>, Record<never, never>>,
     '/debug/test': RouteRecordInfo<'/debug/test', '/debug/test', Record<never, never>, Record<never, never>>,
     '/debug/test2': RouteRecordInfo<'/debug/test2', '/debug/test2', Record<never, never>, Record<never, never>>,

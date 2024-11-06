@@ -8,7 +8,7 @@
         <div v-if="connecting" class="relative">
             <Loader></Loader>
         </div>
-        <Panel v-else-if="isConnected" class="login-forms">
+        <Panel v-else-if="isConnected" class="login-forms" no-padding>
             <TabView v-model:activeIndex="activeIndex">
                 <TabPanel header="Login">
                     <LoginForm />
@@ -99,9 +99,6 @@ connect();
 
 .login-forms {
     width: 100%;
-    :deep(.content) {
-        padding: 0;
-    }
 }
 
 .retry {

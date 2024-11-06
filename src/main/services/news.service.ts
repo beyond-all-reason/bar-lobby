@@ -18,7 +18,7 @@ const MAX_NEWS_TO_LOAD = 7;
 
 let newsFeed: NewsFeedData | null = null;
 
-async function fetchImageToBase64(url: string) {
+export async function fetchImageToBase64(url: string) {
     try {
         const response = await fetch(url);
         if (!response.ok) {

@@ -21,7 +21,6 @@
         <Button @click="openContentDir"> Open Content Dir </Button>
         <Button @click="openConfigDir"> Open Config Dir </Button>
         <Button @click="openStartScript"> Open Latest Start Script </Button>
-        <Button @click="attemptCacheErrorMaps"> Recache Errored Maps </Button>
         <Button @click="openSyncLobbyContentTool"> Sync Lobby Content Tool </Button>
 
         <SyncDataDirsDialog v-model="syncLobbyContentToolOpen" />
@@ -64,10 +63,6 @@ async function openConfigDir() {
 
 async function openStartScript() {
     window.shell.openStartScript();
-}
-
-async function attemptCacheErrorMaps() {
-    window.maps.attemptCacheErrorMaps();
 }
 
 function openSyncLobbyContentTool() {

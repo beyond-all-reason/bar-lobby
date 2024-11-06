@@ -6,7 +6,7 @@ export type Replay = {
     filePath: string;
     engineVersion: string;
     gameVersion: string;
-    mapScriptName: string;
+    mapSpringName: string;
     startTime: Date;
     gameDurationMs: number;
     gameEndedNormally: 0 | 1;
@@ -29,7 +29,7 @@ export type OngoingBattle = {
     gameId: string;
     engineVersion: string;
     gameVersion: string;
-    mapScriptName: string;
+    mapSpringName: string;
     startTime: Date;
     hasBots: 0 | 1;
     preset: "duel" | "team" | "ffa" | "teamffa";

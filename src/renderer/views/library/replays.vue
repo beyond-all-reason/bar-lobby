@@ -8,15 +8,13 @@
             <div class="flex-row flex-grow gap-md">
                 <div class="flex-col flex-grow gap-md">
                     <div class="flex-row gap-md">
-                        <h1>Local Replays</h1>
-                        <!-- <Divider layout="vertical" />
-                <h1>Online Replays</h1> -->
+                        <h1>Replays</h1>
                     </div>
                     <div class="flex-row gap-md">
                         <TriStateCheckbox v-model="endedNormally" label="Ended Normally" />
                         <Checkbox v-model="showSpoilers" label="Show Spoilers" />
                         <div class="flex-right flex-row gap-md" style="padding-right: 5px">
-                            <Button @click="openBrowserToReplayService">Download</Button>
+                            <Button @click="openBrowserToReplayService">Browse Online Replays</Button>
                             <Button @click="openReplaysFolder">Open Replays Folder</Button>
                         </div>
                     </div>
@@ -62,18 +60,18 @@
                                         {{ getFriendlyDuration(data.gameDurationMs) }}
                                     </template>
                                 </Column>
-                                <Column field="mapScriptName" header="Map" :sortable="true" sortField="mapScriptName" />
+                                <Column field="mapspringName" header="Map" :sortable="true" sortField="mapspringName" />
                             </DataTable>
                         </div>
                     </div>
                 </div>
-                <div class="right">
-                    <ReplayPreview v-if="selectedReplay" :replay="selectedReplay" :showSpoilers="showSpoilers">
+                <div class="right-section">
+                    <ReplayPreview :replay="selectedReplay" :showSpoilers="showSpoilers">
                         <template #actions="{ replay }">
-                            <Button v-if="hasMap" class="green flex-grow" @click="watchReplay(replay)">Watch</Button>
-                            <Button v-else-if="downloading" class="green flex-grow" disabled>Downloading map ...</Button>
-                            <Button v-else class="red flex-grow" @click="downloadMap(replay)">Download map</Button>
-                            <Button @click="showReplayFile(replay)">Show File</Button>
+                            <DownloadContentButton v-if="map" :map="map" @click="watchReplay(replay)">Watch</DownloadContentButton>
+                            <Button v-else disabled style="flex-grow: 1">Watch</Button>
+                            <Button v-if="replay" @click="showReplayFile(replay)">Show File</Button>
+                            <Button v-else disabled>Show File</Button>
                         </template>
                     </ReplayPreview>
                 </div>
@@ -100,7 +98,7 @@
 
 import { format } from "date-fns";
 import Column from "primevue/column";
-import { computed, Ref, ref, shallowRef } from "vue";
+import { Ref, ref, shallowRef } from "vue";
 
 import Button from "@renderer/components/controls/Button.vue";
 import Checkbox from "@renderer/components/controls/Checkbox.vue";
@@ -112,8 +110,7 @@ import Panel from "@renderer/components/common/Panel.vue";
 import { db } from "@renderer/store/db";
 import { useDexieLiveQueryWithDeps } from "@renderer/composables/useDexieLiveQuery";
 import ReplayPreview from "@renderer/components/battle/ReplayPreview.vue";
-import { downloadsStore } from "@renderer/store/downloads.store";
-import { mapFileNameToFriendlyName } from "@main/content/maps/map-data";
+import DownloadContentButton from "@renderer/components/controls/DownloadContentButton.vue";
 
 const endedNormally: Ref<boolean | null> = ref(true);
 const showSpoilers = ref(true);
@@ -141,11 +138,10 @@ const replays = useDexieLiveQueryWithDeps([endedNormally, offset, limit, sortFie
     return query.reverse().sortBy(sortField.value);
 });
 
-const hasMap = useDexieLiveQueryWithDeps([selectedReplay], () => db.maps.get(selectedReplay.value?.mapScriptName));
-//TODO inefficient and potentially buggy because of the mapFileNameToFriendlyName
-const downloading = computed(() =>
-    downloadsStore.mapDownloads.some((d) => d.name === mapFileNameToFriendlyName(selectedReplay.value?.mapScriptName))
-);
+const map = useDexieLiveQueryWithDeps([() => selectedReplay.value?.mapSpringName], () => {
+    if (!selectedReplay.value) return null;
+    return db.maps.get(selectedReplay.value.mapSpringName);
+});
 
 function onPage(event: DataTablePageEvent) {
     offset.value = event.first;
@@ -168,17 +164,13 @@ function watchReplay(replay: Replay) {
     window.game.launchReplay(replay);
 }
 
-function downloadMap(replay: Replay) {
-    window.maps.downloadMap(replay.mapScriptName);
-}
-
 function showReplayFile(replay: Replay) {
     window.shell.showReplayInFolder(replay.fileName);
 }
 </script>
 
 <style lang="scss" scoped>
-.right {
+.right-section {
     position: relative;
     width: 400px;
 }

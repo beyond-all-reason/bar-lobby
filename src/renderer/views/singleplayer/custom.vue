@@ -28,9 +28,9 @@ onMounted(async () => {
     if (!battleStore.battleOptions.gameVersion) {
         battleStore.battleOptions.gameVersion = gameStore.latestGameVersion.gameVersion;
     }
-    if (!battleStore.battleOptions.mapScriptName) {
+    if (!battleStore.battleOptions.map) {
         const randomMap = await getRandomMap();
-        battleStore.battleOptions.mapScriptName = randomMap.scriptName;
+        battleStore.battleOptions.map = randomMap;
     }
 });
 </script>

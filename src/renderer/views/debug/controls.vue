@@ -9,11 +9,11 @@
                 <div class="flex-row gap-md flex-center-items">
                     <Button> Button </Button>
                     <Button :disabled="true"> Disabled Button </Button>
-                    <Button v-tooltip="'Red button'" class="green"> Green Button </Button>
+                    <Button v-tooltip="'Green button'" class="green"> Green Button </Button>
                     <Button v-tooltip="'Red button'" class="red"> Red Button </Button>
                     <Button v-tooltip.bottom="'Blue button'" class="blue"> Blue Button </Button>
-                    <Button v-tooltip="'Red button'" class="black"> Black Button </Button>
-                    <Button v-tooltip="'Red button'" class="grey"> Grey Button </Button>
+                    <Button v-tooltip="'Black button'" class="black"> Black Button </Button>
+                    <Button v-tooltip="'Grey button'" class="grey"> Grey Button </Button>
                 </div>
                 <div class="flex-row gap-md flex-center-items">
                     <Textbox :modelValue="text" @update:model-value="onUpdateText" />

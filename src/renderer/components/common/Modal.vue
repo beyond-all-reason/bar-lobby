@@ -1,6 +1,5 @@
 <template>
-    <teleport v-if="isLoaded" to="#wrapper">
-        <!-- <transition name="modal" appear> -->
+    <Teleport v-if="isLoaded" to="#wrapper">
         <form v-if="isOpen" ref="form" class="container" @submit.prevent="onSubmit" @keydown.enter="onSubmit">
             <Panel id="modal" class="modal-panel" v-bind="$attrs">
                 <template #header>
@@ -13,16 +12,13 @@
                         <Icon :icon="closeThick" height="23" />
                     </div>
                 </template>
-
                 <slot />
-
                 <template #footer>
                     <slot name="footer"></slot>
                 </template>
             </Panel>
         </form>
-        <!-- </transition> -->
-    </teleport>
+    </Teleport>
 </template>
 
 <script lang="ts">

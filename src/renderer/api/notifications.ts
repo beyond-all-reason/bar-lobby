@@ -1,17 +1,19 @@
 import { removeFromArray } from "$/jaz-ts-utils/object";
-import { v4 as uuid } from "uuid";
 import { reactive } from "vue";
 
 import { Alert, Event } from "@renderer/model/notifications";
 import { audioApi } from "../audio/audio";
+
+let notificationId = 0;
 
 class NotificationsAPI {
     public readonly alerts: Array<Alert> = reactive([]);
     public readonly events: Array<Event> = reactive([]);
 
     public alert(alertConfig: Omit<Alert, "id">) {
+        notificationId++;
         const alert: Alert = {
-            id: uuid(),
+            id: notificationId.toString(),
             timeoutMs: Math.max(alertConfig.text.length * 75, 5000),
             severity: "info",
             ...alertConfig,
@@ -20,8 +22,9 @@ class NotificationsAPI {
     }
 
     public event(eventConfig: Omit<Event, "id">) {
+        notificationId++;
         const event: Event = {
-            id: uuid(),
+            id: notificationId.toString(),
             timeoutMs: Math.max(eventConfig.text.length * 75, 10000),
             playSound: true,
             ...eventConfig,

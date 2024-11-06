@@ -20,18 +20,18 @@ const engineLogger = logger("[RECOIL ENGINE]", { separator: "\n", level: "info" 
 export class GameAPI {
     public onGameLaunched = new Signal();
     public onGameClosed: Signal<number | null> = new Signal();
-    public readonly scriptName = "script.txt";
+    public readonly springName = "script.txt";
 
     protected gameProcess: ChildProcess | null = null;
 
     public async launchBattle(battle: BattleWithMetadata): Promise<void> {
         const script = startScriptConverter.generateScriptStr(battle);
-        const scriptPath = path.join(CONTENT_PATH, this.scriptName);
+        const scriptPath = path.join(CONTENT_PATH, this.springName);
         await fs.promises.writeFile(scriptPath, script);
         await this.launch({
             engineVersion: battle.battleOptions.engineVersion,
             gameVersion: battle.battleOptions.gameVersion,
-            mapScriptName: battle.battleOptions.mapScriptName,
+            mapSpringName: battle.battleOptions.map.springName,
             launchArg: scriptPath,
         });
     }
@@ -40,7 +40,7 @@ export class GameAPI {
         await this.launch({
             engineVersion: replay.engineVersion,
             gameVersion: replay.gameVersion,
-            mapScriptName: replay.mapScriptName,
+            mapSpringName: replay.mapSpringName,
             launchArg: replay.filePath ? replay.filePath : path.join(REPLAYS_PATH, replay.fileName),
         });
     }
@@ -51,16 +51,16 @@ export class GameAPI {
         if (!gameVersion) {
             throw new Error("Could not parse game version from script");
         }
-        const mapScriptName = script.match(/mapname\s*=\s*(.*);/)?.[1];
-        if (!mapScriptName) {
+        const mapSpringName = script.match(/mapname\s*=\s*(.*);/)?.[1];
+        if (!mapSpringName) {
             throw new Error("Could not parse map name from script");
         }
-        const scriptPath = path.join(CONTENT_PATH, this.scriptName);
+        const scriptPath = path.join(CONTENT_PATH, this.springName);
         await fs.promises.writeFile(scriptPath, script);
         await this.launch({
             engineVersion: DEFAULT_ENGINE_VERSION,
             gameVersion,
-            mapScriptName,
+            mapSpringName,
             launchArg: scriptPath,
         });
     }
@@ -68,16 +68,16 @@ export class GameAPI {
     public async launch({
         engineVersion = DEFAULT_ENGINE_VERSION,
         gameVersion,
-        mapScriptName,
+        mapSpringName,
         launchArg,
     }: {
         engineVersion: string;
         gameVersion: string;
-        mapScriptName: string;
+        mapSpringName: string;
         launchArg: string;
     }): Promise<void> {
         try {
-            log.info(`Launching game with engine: ${engineVersion}, game: ${gameVersion}, map: ${mapScriptName}`);
+            log.info(`Launching game with engine: ${engineVersion}, game: ${gameVersion}, map: ${mapSpringName}`);
             await this.fetchMissingContent(engineVersion, gameVersion);
             const enginePath = path.join(CONTENT_PATH, "engine", engineVersion).replaceAll("\\", "/");
             const args = ["--write-dir", CONTENT_PATH, "--isolation", launchArg];

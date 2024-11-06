@@ -2,7 +2,7 @@
     <div class="map">
         <div class="background" :style="`background-image: url('${imageUrl}')`"></div>
         <div class="name">
-            {{ friendlyName }}
+            {{ map?.displayName }}
         </div>
         <div class="attributes">
             <div>{{ mapSize }}</div>
@@ -11,27 +11,19 @@
 </template>
 
 <script lang="ts" setup>
-import { MapData } from "@main/content/maps/map-data";
 import defaultMiniMap from "/src/renderer/assets/images/default-minimap.png?url";
-import { ref, watch } from "vue";
+import { computed } from "vue";
 import { useImageBlobUrlCache } from "@renderer/composables/useImageBlobUrlCache";
+import { MapData } from "@main/content/maps/map-data";
 
 const props = defineProps<{
-    map?: MapData;
-    friendlyName: string;
+    map: MapData;
 }>();
 
 const cache = useImageBlobUrlCache();
-
-const mapSize = ref(props.map ? props.map.width + "x" + props.map.height : "Unknown");
-const imageUrl = ref(props.map ? cache.get(props.map.fileName, props.map.images.texture) : defaultMiniMap);
-
-watch(
-    () => props.map,
-    () => {
-        mapSize.value = props.map ? props.map.width + "x" + props.map.height : "Unknown";
-        imageUrl.value = props.map ? cache.get(props.map.fileName, props.map.images.texture) : defaultMiniMap;
-    }
+const mapSize = computed(() => (props.map ? props.map.mapWidth + "x" + props.map.mapHeight : "Unknown"));
+const imageUrl = computed(() =>
+    props.map.imagesBlob?.preview ? cache.get(props.map.springName, props.map.imagesBlob?.preview) : defaultMiniMap
 );
 </script>
 

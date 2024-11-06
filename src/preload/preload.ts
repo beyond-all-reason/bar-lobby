@@ -6,14 +6,11 @@ import { Account } from "@main/services/account.service";
 import { EngineVersion } from "@main/content/engine/engine-version";
 import { GameVersion } from "@main/content/game/game-version";
 import { MapData } from "@main/content/maps/map-data";
-import { LuaOptionSection } from "@main/content/game/lua-options";
 import { Scenario } from "@main/content/game/scenario";
 import { DownloadInfo } from "@main/content/downloads";
 import { Info } from "@main/services/info.service";
 import { NewsFeedData } from "@main/services/news.service";
 import { BattleWithMetadata } from "@main/game/battle/battle-types";
-
-console.log("preload.ts loaded");
 
 const infoApi = {
     getInfo: (): Promise<Info> => ipcRenderer.invoke("info:get"),
@@ -82,7 +79,6 @@ contextBridge.exposeInMainWorld("engine", engineApi);
 const gameApi = {
     // Content
     downloadGame: (version: string): Promise<void> => ipcRenderer.invoke("game:downloadGame", version),
-    getGameOptions: (version: string): Promise<LuaOptionSection[]> => ipcRenderer.invoke("game:getOptions", version),
     getScenarios: (): Promise<Scenario[]> => ipcRenderer.invoke("game:getScenarios"),
     getInstalledVersions: (): Promise<GameVersion[]> => ipcRenderer.invoke("game:getInstalledVersions"),
     isVersionInstalled: (version: string): Promise<boolean> => ipcRenderer.invoke("game:isVersionInstalled", version),
@@ -101,16 +97,18 @@ export type GameApi = typeof gameApi;
 contextBridge.exposeInMainWorld("game", gameApi);
 
 const mapsApi = {
-    sync: (maps: { scriptName: string; fileName: string }[]): Promise<void> => ipcRenderer.invoke("maps:sync", maps),
-    downloadMap: (version: string): Promise<void> => ipcRenderer.invoke("maps:downloadMap", version),
-    downloadMaps: (scriptNames: string[]): Promise<void> => ipcRenderer.invoke("maps:downloadMaps", scriptNames),
+    // Content
+    downloadMap: (springName: string): Promise<void> => ipcRenderer.invoke("maps:downloadMap", springName),
+    downloadMaps: (springNames: string[]): Promise<void> => ipcRenderer.invoke("maps:downloadMaps", springNames),
     getInstalledVersions: (): Promise<MapData[]> => ipcRenderer.invoke("maps:getInstalledVersions"),
-    isVersionInstalled: (id: string): Promise<boolean> => ipcRenderer.invoke("maps:isVersionInstalled", id),
-    attemptCacheErrorMaps: (): Promise<void> => ipcRenderer.invoke("maps:attemptCacheErrorMaps"),
+    isVersionInstalled: (springName: string): Promise<boolean> => ipcRenderer.invoke("maps:isVersionInstalled", springName),
+
+    // Online features
+    fetchAllMaps: (): Promise<MapData[]> => ipcRenderer.invoke("maps:online:fetchAllMaps"),
+    fetchMapImages: (imageSource: string): Promise<ArrayBuffer> => ipcRenderer.invoke("maps:online:fetchMapImages", imageSource),
 
     // Events
-    onMapCachingStarted: (callback: (filename: string) => void) => ipcRenderer.on("maps:mapCachingStarted", (_event, filename) => callback(filename as string)),
-    onMapCached: (callback: (mapData: MapData) => void) => ipcRenderer.on("maps:mapCached", (_event, mapData) => callback(mapData as MapData)),
+    onMapAdded: (callback: (filename: string) => void) => ipcRenderer.on("maps:mapAdded", (_event, filename) => callback(filename as string)),
     onMapDeleted: (callback: (filename: string) => void) => ipcRenderer.on("maps:mapDeleted", (_event, filename) => callback(filename as string)),
 };
 export type MapsApi = typeof mapsApi;

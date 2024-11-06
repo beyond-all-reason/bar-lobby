@@ -11,5 +11,5 @@ export interface EngineAI {
     shortName: string;
     version: string;
     description: string;
-    options: LuaOptionSection[];
+    options?: LuaOptionSection[];
 }

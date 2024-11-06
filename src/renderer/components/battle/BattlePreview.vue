@@ -1,6 +1,6 @@
 <template>
     <div class="flex-col gap-md fullheight">
-        <MapOverviewCard v-if="map" :map="map" :friendlyName="mapName" />
+        <MapOverviewCard :map="map" />
         <div class="teams scroll-container">
             <div v-if="isFFA">
                 <div class="team-title">Players</div>
@@ -42,30 +42,20 @@ import { computed } from "vue";
 
 import BattlePreviewParticipant from "@renderer/components/battle/BattlePreviewParticipant.vue";
 import MapOverviewCard from "@renderer/components/maps/MapOverviewCard.vue";
-import { db } from "@renderer/store/db";
-import { computedAsync } from "@vueuse/core";
 import { OngoingBattle } from "@main/content/replays/replay";
+import { useDexieLiveQueryWithDeps } from "@renderer/composables/useDexieLiveQuery";
+import { db } from "@renderer/store/db";
 
 const props = defineProps<{
     battle: OngoingBattle;
     showSpoilers?: boolean;
 }>();
 
-const map = computedAsync(async () => {
-    const allMaps = await db.maps.toArray();
-    return allMaps.at(0);
-    // return props.battle instanceof Battle
-    //     ? await window.maps.getMapByScriptName(props.battle.battleOptions.map)
-    //     : await window.maps.getMapByScriptName(props.battle.mapScriptName);
-});
-
-const mapName = computed(() => {
-    return props.battle.battleSettings.map;
-});
+const map = useDexieLiveQueryWithDeps([() => props.battle], () => db.maps.get(props.battle.mapSpringName));
 
 const isFFA = computed(() => {
     // TODO: get preset from spads/server
-    return false;
+    return true;
 });
 </script>
 
