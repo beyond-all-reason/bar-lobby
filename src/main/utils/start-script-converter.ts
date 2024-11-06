@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { spadsPointsToLTRBPercent } from "@main/content/maps/box-utils";
 import { BattleWithMetadata, isPlayer, StartPosType } from "@main/game/battle/battle-types";
 import { AllyTeam, Bot, Game, Player, Team } from "@main/model/start-script";
 
@@ -15,6 +16,9 @@ class StartScriptConverter {
         if (!battle.isOnline) {
             const script = this.offlineBattleToStartScript(battle);
             scriptStr = this.generateScriptString(script);
+        } else {
+            throw new Error("Online battles are not supported yet");
+            //scriptStr = this.generateOnlineScript(battle);
         }
         return scriptStr;
     }
@@ -44,20 +48,21 @@ class StartScriptConverter {
 
             if (battle.battleOptions.mapOptions.startPosType === StartPosType.Boxes) {
                 const startBoxesIndex = battle.battleOptions.mapOptions.startBoxesIndex;
-                const box = battle.battleOptions.map.startboxesSet[startBoxesIndex].startboxes[allyTeam.id];
+                const startBoxes = battle.battleOptions.map.startboxesSet[startBoxesIndex].startboxes;
 
-                //TODO: implement start area
-                throw new Error("Not implemented");
-                // if (box) {
-                //     Object.assign(allyTeam, {
-                //         startrectleft: box.xPercent,
-                //         startrecttop: box.yPercent,
-                //         startrectright: box.xPercent + box.widthPercent,
-                //         startrectbottom: box.yPercent + box.heightPercent,
-                //     });
-                // } else {
-                //     console.warn(`Ally team ${allyTeam.id} has no defined start area for this map`);
-                // }
+                // X and Y are between 0-200
+                const box = startBoxes[allyTeam.id];
+                if (box) {
+                    const { left: startrectleft, top: startrecttop, right: startrectright, bottom: startrectbottom } = spadsPointsToLTRBPercent(box.poly);
+                    Object.assign(allyTeam, {
+                        startrectleft,
+                        startrecttop,
+                        startrectright,
+                        startrectbottom,
+                    });
+                } else {
+                    console.warn(`Ally team ${allyTeam.id} has no defined start area for this map`);
+                }
             }
 
             team.forEach((teamMember) => {
@@ -117,6 +122,7 @@ class StartScriptConverter {
             gametype: battle.battleOptions.gameVersion,
             mapname: battle.battleOptions.map.springName,
             modoptions: battle.battleOptions.gameMode.options,
+            // mapoptions: battle.battleOptions.???,
             ishost: 1,
             myplayername: battle.me.user.username,
             startpostype: battle.battleOptions.mapOptions.startPosType,
@@ -261,6 +267,17 @@ class StartScriptConverter {
 
         return str;
     }
+
+    //TODO implement online script generation
+    //     protected generateOnlineScript(battle: SpadsBattle) {
+    //         return `[game] {
+    //     hostip = ${battle.battleOptions.ip};
+    //     hostport = ${battle.battleOptions.port};
+    //     ishost = 0;
+    //     mypasswd = ${battle.battleOptions.scriptPassword};
+    //     myplayername = ${api.session.onlineUser.username};
+    // }`;
+    //     }
 }
 
 export const startScriptConverter = new StartScriptConverter();

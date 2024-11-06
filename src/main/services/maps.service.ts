@@ -1,7 +1,7 @@
 import { MapData } from "@main/content/maps/map-data";
 import { mapContentAPI } from "@main/content/maps/map-content";
 import { ipcMain } from "electron";
-import { MapMetadata } from "@main/content/maps/online-map";
+import { MapMetadata } from "@main/content/maps/map-metadata";
 import { fetchMapImages } from "@main/content/maps/map-image";
 
 function init() {
