@@ -9,5 +9,7 @@ export type GameVersion = {
 
 export interface GameAI {
     name: string;
+    shortName: string;
     description: string;
+    options?: LuaOptionSection[];
 }

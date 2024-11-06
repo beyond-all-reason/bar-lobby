@@ -1,5 +1,5 @@
-import { EngineVersion } from "@main/content/engine/engine-version";
-import { GameVersion } from "@main/content/game/game-version";
+import { EngineAI, EngineVersion } from "@main/content/engine/engine-version";
+import { GameAI, GameVersion } from "@main/content/game/game-version";
 import { MapData } from "@main/content/maps/map-data";
 import { Battle, BattleOptions, BattleWithMetadata, Bot, Faction, Player, StartPosType } from "@main/game/battle/battle-types";
 import { User } from "@main/model/user";
@@ -40,6 +40,16 @@ function removeFromTeams(participant: Player | Bot) {
 function removeFromSpectators(participant: Player) {
     const index = battleStore.spectators.findIndex((p) => p.id === participant.id);
     if (index !== -1) battleStore.spectators.splice(index, 1);
+}
+
+function addBot(ai: EngineAI | GameAI, teamId: number) {
+    battleStore.teams[teamId].push({
+        id: battleWithMetadataStore.participants.length,
+        name: ai.name,
+        aiOptions: ai.options || {},
+        aiShortName: ai.shortName,
+        ownerUserId: me.userId,
+    } as Bot);
 }
 
 function movePlayerToTeam(player: Player, teamId: number) {
@@ -200,6 +210,7 @@ export const battleActions = {
     movePlayerToTeam,
     movePlayerToSpectators,
     moveBotToTeam,
+    addBot,
     removeBot,
     startBattle,
     updateTeams,

@@ -281,6 +281,7 @@ export class GameContentAPI extends PrDownloaderAPI<GameVersion> {
         for (const def of aiDefinitions) {
             ais.push({
                 name: def.name,
+                shortName: def.name,
                 description: def.desc,
             });
         }

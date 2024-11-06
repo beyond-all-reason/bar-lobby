@@ -43,8 +43,8 @@ import TeamComponent from "@renderer/components/battle/TeamComponent.vue";
 import { EngineAI } from "@main/content/engine/engine-version";
 import { Bot, isBot, Player } from "@main/game/battle/battle-types";
 import { battleWithMetadataStore, battleStore, battleActions } from "@renderer/store/battle.store";
-import { me } from "@renderer/store/me.store";
 import SpectatorsComponent from "@renderer/components/battle/SpectatorsComponent.vue";
+import { GameAI } from "@main/content/game/game-version";
 
 const botListOpen = ref(false);
 const botModalTeamId = ref(0);
@@ -54,21 +54,9 @@ function openBotList(teamId: number) {
     botListOpen.value = true;
 }
 
-//TODO only handling engine AIs for now
-function onBotSelected(bot: EngineAI, teamId: number) {
+function onBotSelected(bot: EngineAI | GameAI, teamId: number) {
     botListOpen.value = false;
-    addBot(bot, teamId);
-}
-
-//TODO only handling engine AIs for now
-function addBot(ai: EngineAI, teamId: number) {
-    battleStore.teams[teamId].push({
-        id: battleWithMetadataStore.participants.length,
-        name: ai.name,
-        aiOptions: {}, //TODO where to get this from?
-        aiShortName: ai.shortName,
-        ownerUserId: me.userId,
-    } as Bot);
+    battleActions.addBot(bot, teamId);
 }
 
 function joinTeam(teamId: number) {
