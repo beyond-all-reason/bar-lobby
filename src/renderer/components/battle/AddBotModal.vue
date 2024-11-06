@@ -10,6 +10,16 @@
             >
                 {{ ai.name }}
             </Button>
+
+            <Button
+                v-for="(ai, i) in gameStore.latestGameVersion.ais"
+                :key="i"
+                v-tooltip.bottom="{ value: ai.description }"
+                class="ai-button"
+                @click="addBot(ai)"
+            >
+                {{ ai.name }}
+            </Button>
         </div>
     </Modal>
 </template>
@@ -20,6 +30,7 @@ import Button from "@renderer/components/controls/Button.vue";
 import { EngineAI } from "@main/content/engine/engine-version";
 import { GameAI } from "@main/content/game/game-version";
 import { enginesStore } from "@renderer/store/engine.store";
+import { gameStore } from "@renderer/store/game.store";
 
 const props = defineProps<{
     engineVersion: string;
