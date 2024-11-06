@@ -2,8 +2,8 @@
     <div class="container">
         <Select
             :modelValue="battleStore.battleOptions.gameMode"
-            optionLabel="label"
             :options="gameModeListOptions"
+            optionLabel="label"
             label="Presets"
             @update:model-value="onGameModeSelected"
         />

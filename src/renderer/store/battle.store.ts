@@ -106,8 +106,8 @@ function defaultOfflineBattle(engine?: EngineVersion, game?: GameVersion, map?: 
             engineVersion: engine?.id,
             gameVersion: game?.gameVersion,
             gameMode: {
-                label: "Skirmish",
-                options: game?.luaOptionSections,
+                label: "Default",
+                options: game?.luaOptionSections || {},
             },
             map,
             mapOptions: {
@@ -116,7 +116,6 @@ function defaultOfflineBattle(engine?: EngineVersion, game?: GameVersion, map?: 
             },
             restrictions: [],
         } as BattleOptions,
-        metadata: {},
         teams: [[], []], // Maybe make a Team interface with maxPlayersPerTeam or fetch that info from the map
         spectators: [],
         started: false,
