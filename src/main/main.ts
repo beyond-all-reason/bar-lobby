@@ -16,6 +16,11 @@ import replaysService from "@main/services/replays.service";
 import { miscService } from "@main/services/news.service";
 import { replayContentAPI } from "@main/content/replays/replay-content";
 import path from "path";
+import electronSquirrelStartup from "@main/utils/electron-squirrel-startup";
+
+if (electronSquirrelStartup) {
+    app.quit();
+}
 
 const log = logger("main/index.ts");
 log.info("Starting Electron main process");
