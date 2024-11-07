@@ -14,6 +14,7 @@ function registerIpcHandlers(mainWindow: Electron.BrowserWindow) {
     ipcMain.handle("game:downloadGame", (_, version: string) => gameContentAPI.downloadGame(version));
     ipcMain.handle("game:getGameOptions", (_, version: string) => gameContentAPI.getGameOptions(version));
     ipcMain.handle("game:getScenarios", () => gameContentAPI.getScenarios());
+    ipcMain.handle("game:getUnits", () => gameContentAPI.getUnits());
     ipcMain.handle("game:getInstalledVersions", () => gameContentAPI.installedVersions);
     ipcMain.handle("game:isVersionInstalled", (_, id: string) => gameContentAPI.isVersionInstalled(id));
     ipcMain.handle("game:uninstallVersion", (_, version: GameVersion) => gameContentAPI.uninstallVersion(version));
