@@ -46,6 +46,7 @@ async function init() {
     mapsStore.isInitialized = true;
 }
 
+//TODO We need to support updating map images when reference in map metadata changes.
 export async function fetchMissingMapImages() {
     const maps = await db.maps.toArray();
     const missingImages = maps.filter((map) => !map.imagesBlob?.preview);
