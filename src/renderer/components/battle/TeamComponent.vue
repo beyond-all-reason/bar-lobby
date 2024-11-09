@@ -22,7 +22,7 @@
                 @dragend="onDragEnd()"
             >
                 <PlayerParticipant v-if="isPlayer(member)" :player="member" />
-                <BotParticipant v-else-if="isBot(member)" :bot="member" />
+                <BotParticipant v-else-if="isBot(member)" :bot="member" :team-id="teamId" />
             </div>
         </div>
     </div>

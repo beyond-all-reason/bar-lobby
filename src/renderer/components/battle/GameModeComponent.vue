@@ -19,9 +19,9 @@
         <Button class="fullwidth" @click="openGameOptions">Configure Game Options</Button>
         <LuaOptionsModal
             id="game-options"
-            v-model="gameOptionsOpen"
-            :luaOptions="battleStore.battleOptions.gameMode"
             title="Game Options"
+            v-model="gameOptionsOpen"
+            :options="battleStore.battleOptions.gameMode"
             :sections="gameStore.latestGameVersion.luaOptionSections"
         />
     </div>

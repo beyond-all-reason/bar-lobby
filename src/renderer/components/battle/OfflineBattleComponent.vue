@@ -54,11 +54,11 @@
                     @update:model-value="onEngineSelected"
                 />
             </div>
-            <div class="flex-row flex-bottom gap-md">
+            <div class="flex-row flex-bottom gap-md flex-grow">
                 <DownloadContentButton
                     v-if="map"
                     :map="map"
-                    class="fullwidth green flex-grow"
+                    class="fullwidth green"
                     :disabled="gameStore.isGameRunning"
                     @click="battleActions.startBattle"
                     >Start</DownloadContentButton

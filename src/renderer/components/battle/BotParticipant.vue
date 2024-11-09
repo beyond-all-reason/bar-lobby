@@ -1,19 +1,21 @@
 <template>
-    <TeamParticipant @contextmenu="onRightClick">
-        <div class="flex-row flex-center">
-            <Icon :icon="robot" :height="16" />
-        </div>
-        <div>{{ bot.name }}</div>
-    </TeamParticipant>
-    <LuaOptionsModal
-        :id="`configure-bot-${bot.name}`"
-        v-model="botOptionsOpen"
-        :luaOptions="bot.aiOptions"
-        title="Configure Bot"
-        :sections="botOptions"
-        @set-options="setBotOptions"
-    />
-    <ContextMenu ref="menu" :model="actions" />
+    <div @contextmenu="onRightClick">
+        <TeamParticipant>
+            <div class="flex-row flex-center">
+                <Icon :icon="robot" :height="16" />
+            </div>
+            <div>{{ bot.name }}</div>
+        </TeamParticipant>
+        <LuaOptionsModal
+            :id="`configure-bot-${bot.name}`"
+            title="Configure Bot"
+            v-model="botOptionsOpen"
+            :options="bot.aiOptions"
+            :sections="botOptions"
+            @set-options="setBotOptions"
+        />
+        <ContextMenu ref="menu" :model="actions" />
+    </div>
 </template>
 
 <script lang="ts" setup>
@@ -24,15 +26,19 @@ import { Ref, ref } from "vue";
 
 import LuaOptionsModal from "@renderer/components/battle/LuaOptionsModal.vue";
 import TeamParticipant from "@renderer/components/battle/TeamParticipant.vue";
-import ContextMenu from "@renderer/components/common/ContextMenu.vue";
 import { LuaOptionSection } from "@main/content/game/lua-options";
 import { Bot } from "@main/game/battle/battle-types";
+import ContextMenu from "primevue/contextmenu";
+import { battleActions } from "@renderer/store/battle.store";
+import { enginesStore } from "@renderer/store/engine.store";
+import { gameStore } from "@renderer/store/game.store";
 
-defineProps<{
+const props = defineProps<{
     bot: Bot;
+    teamId: number;
 }>();
 
-const botOptions: Ref<LuaOptionSection[]> = ref([]);
+const botOptions: Ref<LuaOptionSection[]> = ref();
 const botOptionsOpen = ref(false);
 const menu = ref<InstanceType<typeof ContextMenu>>();
 
@@ -58,29 +64,23 @@ function onRightClick(event: MouseEvent) {
 }
 
 function kickBot() {
-    // battleStore.bots = battleStore.bots.filter((b) => b.battleStatus.participantId !== props.bot.battleStatus.participantId);
+    battleActions.removeBot(props.bot);
 }
 
 // Duplicates this bot and its settings and gives it a new player id.
 function duplicateBot() {
-    // const duplicatedBot = structuredClone(toRaw(props.bot));
-    // duplicatedBot.battleStatus.participantId = battleWithMetadataStore.participants.length + 1;
-    // battleStore.bots.push(duplicatedBot);
+    battleActions.duplicateBot(props.bot, props.teamId);
 }
 
 async function configureBot() {
-    //TODO probably need a selected engine version store
-    // const engineVersion = api.content.engine.installedVersions.find((version) => version.id === props.battle.battleOptions.engineVersion);
-    // const ai = engineVersion?.ais.find((ai) => ai.name === props.bot.name);
-    // if (ai) {
-    //     botOptions.value = ai.options;
-    //     botOptionsOpen.value = true;
-    // }
+    botOptions.value = [...enginesStore.latestEngineVersion.ais, ...gameStore.latestGameVersion.ais].find(
+        (ai) => ai.name === props.bot.name
+    ).options;
+    botOptionsOpen.value = true;
 }
 
 function setBotOptions(options: Record<string, unknown>) {
-    console.log("setBotOptions", options);
-    // props.battle.setBotOptions(props.bot.playerId, options);
+    battleActions.updateBotOptions(props.bot, options);
 }
 </script>
 

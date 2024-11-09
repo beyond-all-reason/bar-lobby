@@ -46,10 +46,26 @@ function addBot(ai: EngineAI | GameAI, teamId: number) {
     battleStore.teams[teamId].push({
         id: battleWithMetadataStore.participants.length,
         name: ai.name,
-        aiOptions: ai.options || {},
+        aiOptions: {},
         aiShortName: ai.shortName,
         ownerUserId: me.userId,
     } as Bot);
+}
+
+function removeBot(bot: Bot) {
+    removeFromTeams(bot);
+}
+
+function duplicateBot(bot: Bot, teamId: number) {
+    const newBot = {
+        ...bot,
+        id: battleWithMetadataStore.participants.length,
+    };
+    battleStore.teams[teamId].push(newBot);
+}
+
+function updateBotOptions(bot: Bot, options: Record<string, unknown>) {
+    (battleStore.teams.flat().find((participant) => participant.id === bot.id) as Bot).aiOptions = options;
 }
 
 function movePlayerToTeam(player: Player, teamId: number) {
@@ -69,10 +85,6 @@ function moveBotToTeam(bot: Bot, teamId: number) {
     removeFromTeams(bot);
     if (!battleStore.teams[teamId]) battleStore.teams[teamId] = [];
     battleStore.teams[teamId].push(bot);
-}
-
-function removeBot(bot: Bot) {
-    removeFromTeams(bot);
 }
 
 function userToPlayer(user: User): Player {
@@ -212,6 +224,8 @@ export const battleActions = {
     moveBotToTeam,
     addBot,
     removeBot,
+    duplicateBot,
+    updateBotOptions,
     startBattle,
     updateTeams,
     resetToDefaultBattle,

@@ -109,7 +109,7 @@ export type Player = {
 export type Bot = {
     id: number;
     ownerUserId: number;
-    aiShortName: string; // TODO: point directly to AI obj and object.freeze it?
+    aiShortName: string;
     name: string;
     aiOptions: Record<string, unknown>;
 

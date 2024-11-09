@@ -3,58 +3,58 @@
         <TabView class="lua-options-panel">
             <TabPanel v-for="section of sections.filter((section) => !section.hidden)" :key="section.key" :header="section.name">
                 <div class="gridform">
-                    <template v-for="option in section.options.filter((option) => !option.hidden)" :key="option.key">
+                    <template v-for="o in section.options.filter((option) => !option.hidden)" :key="o.key">
                         <div>
                             <div
-                                v-tooltip.bottom="{ value: option.description || '' }"
+                                v-tooltip.bottom="{ value: o.description || '' }"
                                 :class="{
-                                    overriden: battleStore.battleOptions.gameMode.options[option.key] !== undefined,
+                                    overriden: options[o.key] !== undefined,
                                 }"
                             >
-                                {{ option.name }}
+                                {{ o.name }}
                             </div>
                         </div>
                         <Range
-                            v-if="option.type === 'number'"
-                            :modelValue="battleStore.battleOptions.gameMode.options[option.key] ?? option.default"
-                            :min="option.min"
-                            :max="option.max"
-                            :step="option.step"
-                            @update:model-value="(value: any) => setOptionValue(option, value)"
-                            v-tooltip.bottom="{ value: option.description || '' }"
+                            v-if="o.type === 'number'"
+                            :modelValue="options[o.key] ?? o.default"
+                            :min="o.min"
+                            :max="o.max"
+                            :step="o.step"
+                            @update:model-value="(value: any) => setOptionValue(o, value)"
+                            v-tooltip.bottom="{ value: o.description || '' }"
                             :class="{
-                                overriden: battleStore.battleOptions.gameMode.options[option.key] !== undefined,
+                                overriden: options[o.key] !== undefined,
                             }"
                         />
                         <Checkbox
-                            v-if="option.type === 'boolean'"
-                            :modelValue="battleStore.battleOptions.gameMode.options[option.key] ?? option.default"
-                            @update:model-value="(value) => setOptionValue(option, value)"
-                            v-tooltip.right="{ value: option.description || '' }"
+                            v-if="o.type === 'boolean'"
+                            :modelValue="options[o.key] ?? o.default"
+                            @update:model-value="(value) => setOptionValue(o, value)"
+                            v-tooltip.right="{ value: o.description || '' }"
                             :class="{
-                                overriden: battleStore.battleOptions.gameMode.options[option.key] !== undefined,
+                                overriden: options[o.key] !== undefined,
                             }"
                         />
                         <Textarea
-                            v-if="option.type === 'string'"
+                            v-if="o.type === 'string'"
                             class="fullwidth"
-                            :modelValue="battleStore.battleOptions.gameMode.options[option.key] ?? option.default"
-                            @update:model-value="(value) => setOptionValue(option, value)"
-                            v-tooltip.bottom="{ value: option.description || '' }"
+                            :modelValue="options[o.key] ?? o.default"
+                            @update:model-value="(value) => setOptionValue(o, value)"
+                            v-tooltip.bottom="{ value: o.description || '' }"
                             :class="{
-                                overriden: battleStore.battleOptions.gameMode.options[option.key] !== undefined,
+                                overriden: options[o.key] !== undefined,
                             }"
                         />
                         <Select
-                            v-if="option.type === 'list'"
-                            :modelValue="battleStore.battleOptions.gameMode.options[option.key] ?? option.default"
-                            :options="option.options"
+                            v-if="o.type === 'list'"
+                            :modelValue="options[o.key] ?? o.default"
+                            :options="o.options"
                             optionLabel="name"
                             optionValue="key"
-                            @update:model-value="(value: any) => setOptionValue(option, value)"
-                            v-tooltip.bottom="{ value: option.description || '' }"
+                            @update:model-value="(value: any) => setOptionValue(o, value)"
+                            v-tooltip.bottom="{ value: o.description || '' }"
                             :class="{
-                                overriden: battleStore.battleOptions.gameMode.options[option.key] !== undefined,
+                                overriden: options[o.key] !== undefined,
                             }"
                         />
                     </template>
@@ -81,22 +81,30 @@ import Range from "@renderer/components/controls/Range.vue";
 import Select from "@renderer/components/controls/Select.vue";
 import { LuaOptionSection, LuaOptionNumber, LuaOptionBoolean, LuaOptionString, LuaOptionList } from "@main/content/game/lua-options";
 import Textarea from "@renderer/components/controls/Textarea.vue";
-import { battleStore } from "@renderer/store/battle.store";
 
-defineProps<{
+const props = defineProps<{
     id: string;
     title: string;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    options: Record<string, any>;
     sections: LuaOptionSection[];
+}>();
+
+const options = ref(props.options);
+
+const emit = defineEmits<{
+    (event: "set-options", options: Record<string, unknown>): void;
 }>();
 
 const modal: Ref<null | InstanceType<typeof Modal>> = ref(null);
 
 function setOptionValue(option: LuaOptionNumber | LuaOptionBoolean | LuaOptionString | LuaOptionList, value: unknown) {
     if (value === option.default) {
-        delete battleStore.battleOptions.gameMode.options[option.key];
+        delete options.value[option.key];
     } else {
-        battleStore.battleOptions.gameMode.options[option.key] = value;
+        options.value[option.key] = value;
     }
+    emit("set-options", options.value);
 }
 
 function close() {
@@ -104,7 +112,8 @@ function close() {
 }
 
 function reset() {
-    battleStore.battleOptions.gameMode.options = {};
+    options.value = {};
+    emit("set-options", options.value);
 }
 </script>
 
