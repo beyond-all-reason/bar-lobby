@@ -58,12 +58,12 @@
                 <DownloadContentButton
                     v-if="map"
                     :map="map"
-                    class="fullwidth green"
+                    class="fullwidth green flex-grow"
                     :disabled="gameStore.isGameRunning"
                     @click="battleActions.startBattle"
                     >Start</DownloadContentButton
                 >
-                <Button v-else class="fullwidth green" disabled>Start</Button>
+                <Button v-else class="fullwidth green flex-grow" disabled>Start</Button>
             </div>
         </div>
     </div>

@@ -132,8 +132,13 @@ async function launch() {
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     padding-right: 10px;
 }
+
 .scenario-preview {
     width: 550px;
     padding-right: 10px;
+}
+
+.launch-button {
+    flex-grow: 0;
 }
 </style>

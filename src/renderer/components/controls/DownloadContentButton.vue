@@ -1,9 +1,9 @@
 <template>
-    <Button v-if="map.isInstalled" class="green flex-grow" :class="props.class" :disabled="props.disabled" @click="props.onClick">
+    <Button v-if="map.isInstalled" class="green" :class="props.class" :disabled="props.disabled" @click="props.onClick">
         <slot />
     </Button>
-    <Button v-else-if="map.isDownloading" class="green flex-grow" disabled>Downloading map ...</Button>
-    <Button v-else class="red flex-grow" @click="downloadMap(map.springName)">Download map</Button>
+    <Button v-else-if="map.isDownloading" class="green" disabled>Downloading map ...</Button>
+    <Button v-else class="red" @click="downloadMap(map.springName)">Download map</Button>
 </template>
 
 <script lang="ts" setup>
