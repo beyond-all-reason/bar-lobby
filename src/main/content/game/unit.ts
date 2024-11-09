@@ -52,7 +52,7 @@ export type UnitLanguage = {
     };
 };
 
-export type FactionKey = "arm" | "cor" | "leg" | "chicken" | "random";
+export type FactionKey = "arm" | "cor" | "leg" | "raptor" | "random";
 export type TechLevel = "T1" | "T2" | "T3";
 export type UnitGroup = "bots" | "vehicles" | "air" | "sea" | "hover" | "factories" | "defense" | "buildings";
 
@@ -60,12 +60,12 @@ function getFactionKey(unitId: string): FactionKey {
     if (unitId.startsWith("arm")) return "arm";
     if (unitId.startsWith("cor")) return "cor";
     if (unitId.startsWith("leg")) return "leg";
-    if (unitId.startsWith("chicken")) return "chicken";
+    if (unitId.startsWith("chicken")) return "raptor";
     return "random";
 }
 const levelsMap: Record<number, TechLevel> = { 1: "T1", 2: "T2", 3: "T3" };
 
-// TODO: this probably isn't the best option
+// TODO: there is probably a better way to achieve this
 function getUnitCategory(unit: Unit): UnitGroup {
     const categories = unit.category.split(" ");
     if (categories.includes(categoryNames.MINE)) return "defense";

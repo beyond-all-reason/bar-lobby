@@ -15,7 +15,7 @@
 <script lang="ts" setup>
 /**
  * Similar to online unit browser, but automated
- * https://www.beyondallreason.info/units
+ * https://www.beyondallreason.info/units/armada-bots
  */
 import { useRouter } from "vue-router";
 

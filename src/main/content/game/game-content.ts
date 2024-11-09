@@ -5,8 +5,6 @@ import util, { promisify } from "util";
 import zlib from "zlib";
 import assert from "assert";
 import { removeFromArray } from "$/jaz-ts-utils/object";
-// import parseDDS from "$/map-parser/utex.dds";
-
 import { GameAI, GameVersion } from "@main/content/game/game-version";
 import { parseLuaTable } from "@main/utils/parse-lua-table";
 import { parseLuaOptions } from "@main/utils/parse-lua-options";
