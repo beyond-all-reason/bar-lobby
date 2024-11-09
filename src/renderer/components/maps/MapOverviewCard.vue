@@ -24,13 +24,13 @@ const props = defineProps<{
 const cache = useImageBlobUrlCache();
 
 const mapSize = ref(props.map ? props.map.width + "x" + props.map.height : "Unknown");
-const imageUrl = ref(props.map ? cache.get(props.map.fileName, props.map.images.texture) : defaultMiniMap);
+const imageUrl = ref(props.map ? cache.base64(props.map.fileName, props.map.images.texture) : defaultMiniMap);
 
 watch(
     () => props.map,
     () => {
         mapSize.value = props.map ? props.map.width + "x" + props.map.height : "Unknown";
-        imageUrl.value = props.map ? cache.get(props.map.fileName, props.map.images.texture) : defaultMiniMap;
+        imageUrl.value = props.map ? cache.base64(props.map.fileName, props.map.images.texture) : defaultMiniMap;
     }
 );
 </script>

@@ -18,8 +18,8 @@ const props = defineProps<{
     featured?: boolean;
 }>();
 
-const { get } = useImageBlobUrlCache();
-const backgroundImageCss = ref(`url('${get(props.news.thumbnailUrl, props.news.thumbnail)}')`);
+const cache = useImageBlobUrlCache();
+const backgroundImageCss = ref(`url('${cache.base64(props.news.thumbnailUrl, props.news.thumbnail)}')`);
 
 const openNews = () => {
     window.shell.openInBrowser(props.news.link);

@@ -16,7 +16,7 @@ $spacing: (
         padding: $value;
     }
     .margin-#{$key} {
-        padding: $value;
+        margin: $value;
     }
     @each $dir in top, left, bottom, right {
         .padding-#{$dir}-#{$key} {

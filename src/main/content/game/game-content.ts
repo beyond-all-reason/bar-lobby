@@ -1,19 +1,20 @@
 import * as fs from "fs";
 import * as glob from "glob-promise";
-import { removeFromArray } from "$/jaz-ts-utils/object";
 import * as path from "path";
 import util, { promisify } from "util";
 import zlib from "zlib";
+import assert from "assert";
+import { removeFromArray } from "$/jaz-ts-utils/object";
 import { GameAI, GameVersion } from "@main/content/game/game-version";
 import { parseLuaTable } from "@main/utils/parse-lua-table";
 import { parseLuaOptions } from "@main/utils/parse-lua-options";
 import { BufferStream } from "@main/utils/buffer-stream";
 import { logger } from "@main/utils/logger";
-import assert from "assert";
 import { contentSources } from "@main/config/content-sources";
 import { DownloadInfo } from "@main/content/downloads";
 import { LuaOptionSection } from "@main/content/game/lua-options";
 import { Scenario } from "@main/content/game/scenario";
+import { extendUnitData, Unit, UnitLanguage, UnitMetadata } from "@main/content/game/unit";
 import { SdpFileMeta, SdpFile } from "@main/content/game/sdp";
 import { PrDownloaderAPI } from "@main/content/pr-downloader";
 import { CONTENT_PATH, GAME_VERSIONS_GZ_PATH } from "@main/config/app";
@@ -160,6 +161,33 @@ export class GameContentAPI extends PrDownloaderAPI<GameVersion> {
         }
         scenarios.sort((a, b) => a.index - b.index);
         return scenarios;
+    }
+
+    public async getUnits(): Promise<Unit[]> {
+        const currentGameVersion = this.installedVersions.at(-1);
+        assert(currentGameVersion, "No current game version found");
+        const unitDefinitions = await this.getGameFiles(currentGameVersion.packageMd5, "units/**/*.lua", true);
+
+        const units: Unit[] = [];
+        for (const unitDefinition of unitDefinitions) {
+            try {
+                const unitMetadata = parseLuaTable(unitDefinition.data) as { [unitId: string]: UnitMetadata };
+                const unit = extendUnitData(unitMetadata);
+                unit.fileName = unitDefinition.fileName;
+                units.push(unit);
+            } catch (err) {
+                console.error(`error parsing unit lua file: ${unitDefinition.fileName}`, err);
+            }
+        }
+        return units;
+    }
+
+    public async getUnitLanguage(locale: string): Promise<UnitLanguage> {
+        const currentGameVersion = this.installedVersions.at(-1);
+        assert(currentGameVersion, "No current game version found");
+        const unitLanguage = await this.getGameFiles(currentGameVersion.packageMd5, `language/${locale}/units.json`, true);
+
+        return JSON.parse(unitLanguage[0].data.toString()) as UnitLanguage;
     }
 
     public async uninstallVersion(version: GameVersion) {

@@ -19,6 +19,7 @@ export default defineConfig({
                 main: path.resolve(__dirname, "src/main/main.ts"),
                 "parse-map-worker": path.resolve(__dirname, "src/main/content/maps/parse-map-worker.ts"),
                 "parse-replay-worker": path.resolve(__dirname, "src/main/content/replays/parse-replay-worker.ts"),
+                "image-worker": path.resolve(__dirname, "src/main/utils/background/image-worker.ts"),
             },
         },
         lib: {

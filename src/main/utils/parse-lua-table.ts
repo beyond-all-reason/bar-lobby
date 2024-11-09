@@ -23,7 +23,8 @@ export function parseLuaTable(luaFile: Buffer, options?: ParseLuaTableOptions): 
         const localStatement = parsedLua.body.find((body) => body.type === "LocalStatement") as LocalStatement | undefined;
         if (localStatement) {
             tableConstructorExpression = localStatement?.init.find((obj) => obj.type === "TableConstructorExpression") as TableConstructorExpression | undefined;
-        } else {
+        }
+        if (!tableConstructorExpression) {
             const returnStatement = parsedLua.body.find((body) => body.type === "ReturnStatement") as ReturnStatement | undefined;
             tableConstructorExpression = returnStatement?.arguments.find((obj) => obj.type === "TableConstructorExpression") as TableConstructorExpression | undefined;
         }
@@ -48,10 +49,10 @@ function luaTableToObj(table: TableConstructorExpression): any {
                 obj[key] = (value.value as string | null) ?? value.raw.slice(1, -1);
             } else if (value.type === "NumericLiteral" || value.type === "BooleanLiteral") {
                 obj[key] = value.value;
-            } else if (field.value.type === "TableConstructorExpression") {
-                obj[key] = luaTableToObj(field.value);
+            } else if (value.type === "TableConstructorExpression") {
+                obj[key] = luaTableToObj(value);
             }
-        } else if (field.type === "TableValue") {
+        } else if (field.type === "TableValue" || field.type === "TableKey") {
             if (field.value.type === "TableConstructorExpression") {
                 blocks.push(luaTableToObj(field.value));
             } else if (field.value.type === "StringLiteral") {

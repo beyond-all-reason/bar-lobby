@@ -1,6 +1,8 @@
 <template>
     <Control class="options">
-        <SelectButton v-bind="$attrs" />
+        <SelectButton v-bind="$attrs">
+            <template v-slot:option="scope"><slot name="option" v-bind="scope" /></template>
+        </SelectButton>
     </Control>
 </template>
 

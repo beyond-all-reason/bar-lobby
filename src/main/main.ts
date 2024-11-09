@@ -16,6 +16,7 @@ import replaysService from "@main/services/replays.service";
 import { miscService } from "@main/services/news.service";
 import { replayContentAPI } from "@main/content/replays/replay-content";
 import path from "path";
+import unitsService from "@main/services/units.service";
 
 const log = logger("main/index.ts");
 log.info("Starting Electron main process");
@@ -148,6 +149,7 @@ app.whenReady().then(() => {
     shellService.registerIpcHandlers();
     downloadsService.registerIpcHandlers(mainWindow);
     miscService.registerIpcHandlers();
+    unitsService.registerIpcHandlers();
 
     const file = replayFileOpenedWithTheApp();
     if (file) {
