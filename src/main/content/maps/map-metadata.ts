@@ -3,7 +3,7 @@
 export interface MapMetadata {
     author: string;
     certified: boolean;
-    description: string;
+    description?: string;
     displayName: string;
     filename: string;
     images: {
@@ -18,11 +18,11 @@ export interface MapMetadata {
     startboxesSet: Startbox[];
     startPos?: {
         positions: Record<string, { x: number; y: number }>;
-        team: Team[];
+        team?: Team[];
     };
     tags: string[];
     terrain: string[];
-    tidalStrength: number;
+    tidalStrength?: number;
     windMax: number;
     windMin: number;
 }
@@ -36,7 +36,7 @@ export interface Team {
     playersPerTeam: number;
     sides: {
         starts: {
-            role: string;
+            role?: string;
             spawnPoint: string;
         }[];
     }[];
