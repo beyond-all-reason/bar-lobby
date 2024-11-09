@@ -11,6 +11,7 @@ import { computed, onMounted, ref } from "vue";
 import Progress from "@renderer/components/common/Progress.vue";
 import { audioApi } from "@renderer/audio/audio";
 import { backgroundImages, fontFiles } from "@renderer/assets/assetFiles";
+import { fetchMissingUnitImages } from "@renderer/store/units.store";
 
 const emit = defineEmits(["complete"]);
 
@@ -30,6 +31,7 @@ onMounted(async () => {
             await loadFont(fontFile);
             loadedFiles.value++;
         }
+        await fetchMissingUnitImages();
     } catch (error) {
         console.error(`Failed to load fonts: `, error);
     }

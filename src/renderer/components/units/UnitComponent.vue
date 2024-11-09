@@ -1,11 +1,10 @@
 <template>
     <div class="flex-col gap-lg flex-grow fullheight">
-        <div class="flex-col flex-grow fullheight">
+        <div class="flex-col gap-md flex-grow fullheight">
             <div class="scroll-container" style="overflow-y: scroll">
-                <div class="units">
-                    <TransitionGroup name="units-list">
-                        {{ unit.unitId }}
-                    </TransitionGroup>
+                <div class="units flex-row">
+                    <UnitImage :unit="unit" />
+                    <UnitStats :unit="unit" />
                 </div>
             </div>
         </div>
@@ -13,35 +12,20 @@
 </template>
 
 <script lang="ts" setup>
-import { Ref, ref } from "vue";
+/*
+ * TODO:
+ * - 3D model
+ * - More unit resources
+ * - Descriptions
+ * - Related units
+ * - Buildable units
+ */
 
 import { Unit } from "@main/content/game/unit";
+import UnitImage from "@renderer/components/units/UnitImage.vue";
+import UnitStats from "@renderer/components/units/UnitStats.vue";
 
-const props = defineProps<{
-    unit: Unit;
-}>();
+defineProps<{ unit: Unit }>();
 </script>
 
-<style lang="scss" scoped>
-.maps {
-    display: grid;
-    grid-gap: 15px;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    padding-right: 10px;
-}
-
-// Transition
-.maps-list-move,
-.maps-list-enter-active,
-.maps-list-leave-active {
-    transition: all 0.5s ease;
-}
-.maps-list-enter-from,
-.maps-list-leave-to {
-    opacity: 0;
-    // transform: translateX(0, 30px);
-}
-.maps-list-leave-active {
-    position: absolute;
-}
-</style>
+<style lang="scss" scoped></style>

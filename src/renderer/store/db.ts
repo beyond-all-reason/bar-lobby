@@ -17,7 +17,15 @@ db.version(1).stores({
     replays:
         "fileName, gameId, filePath, engineVersion, gameVersion, mapScriptName, startTime, gameDurationMs, gameEndedNormally, chatlog, hasBots, preset, winningTeamId, teams, contenders, spectators, script, battleSettings, hostSettings, gameSettings, mapSettings",
     maps: "scriptName, fileName, friendlyName, description, mapHardness, gravity, tidalStrength, maxMetal, extractorRadius, minWind, maxWind, width, height, minDepth, maxDepth, lastLaunched",
-    units: "unitId, buildcostenergy, buildcostmetal, buildtime",
+    units: `
+        &unitId,
+        images.preview,
+        images.preview3d,
+        factionKey,
+        unitName,
+        unitDescription,
+        unitCategory
+        `,
     gameVersions: "gameVersion, packageMd5",
     engineVersions: "id, lastLaunched, ais",
 });

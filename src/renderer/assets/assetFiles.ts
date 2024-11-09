@@ -11,6 +11,7 @@ export const introVideos = import.meta.glob<string>("./videos/intros/*", { eager
 
 // Images
 export const backgroundImages = import.meta.glob<string>("./images/backgrounds/*", { eager: true, import: "default", query: "?url" });
+export const factionIcons = import.meta.glob<string>("./images/icons/factions/*", { eager: true, import: "default", query: "?url" });
 
 // Fonts
 export const fontFiles = import.meta.glob<string>("./fonts/*", { eager: true, import: "default", query: "?url" });

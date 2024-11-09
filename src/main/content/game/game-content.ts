@@ -16,7 +16,7 @@ import { contentSources } from "@main/config/content-sources";
 import { DownloadInfo } from "@main/content/downloads";
 import { LuaOptionSection } from "@main/content/game/lua-options";
 import { Scenario } from "@main/content/game/scenario";
-import { Unit } from "@main/content/game/unit";
+import { extendUnitData, Unit, UnitLanguage, UnitMetadata } from "@main/content/game/unit";
 import { SdpFileMeta, SdpFile } from "@main/content/game/sdp";
 import { PrDownloaderAPI } from "@main/content/pr-downloader";
 import { CONTENT_PATH, GAME_VERSIONS_GZ_PATH } from "@main/config/app";
@@ -166,58 +166,30 @@ export class GameContentAPI extends PrDownloaderAPI<GameVersion> {
     }
 
     public async getUnits(): Promise<Unit[]> {
-        console.log("units");
         const currentGameVersion = this.installedVersions.at(-1);
         assert(currentGameVersion, "No current game version found");
-        const unitImages = await this.getGameFiles(currentGameVersion.packageMd5, "unitpics/**/*.dds", false);
         const unitDefinitions = await this.getGameFiles(currentGameVersion.packageMd5, "units/**/*.lua", true);
-        console.log("unitImages", unitImages[0]);
-        console.log("allUnits", unitDefinitions[0]);
-
-        const cacheDir = path.join(CONTENT_PATH, "unit-images");
-        await fs.promises.mkdir(cacheDir, { recursive: true });
-        for (const unitImage of unitImages) {
-            const data = await fs.promises.readFile(unitImage.archivePath);
-            const buffer = await gunzip(data);
-            const fileName = path.parse(unitImage.fileName).base;
-            // const decodedDXT1 = parseDDS(buffer);
-            await fs.promises.writeFile(path.join(cacheDir, fileName), buffer);
-        }
 
         const units: Unit[] = [];
         for (const unitDefinition of unitDefinitions) {
             try {
-                const unit = parseLuaTable(unitDefinition.data) as { [unitId: string]: Unit };
-                const unitId = Object.keys(unit)[0];
-                const unitData = unit[unitId];
-                unitData.unitId = unitId;
-                unitData.fileName = unitDefinition.fileName;
-                unitData.imagePath = path.join(cacheDir, `${unitData.unitId}.dds`).replaceAll("\\", "/");
-
-                // if (unit.imagepath) {
-                //     log.debug(`Imagepath: ${unit.imagepath}`);
-                // } else {
-                //     log.warn(`No imagepath for unit: ${unit.title}`);
-                // }
-
-                // if (scenario.imagepath) {
-                //     log.debug(`Imagepath: ${scenario.imagepath}`);
-                //     scenario.imagepath = path.join(cacheDir, scenario.imagepath).replaceAll("\\", "/");
-                // } else {
-                //     log.warn(`No imagepath for scenario: ${scenario.title}`);
-                // }
-                // scenario.summary = scenario.summary.replace(/\[|\]/g, "");
-                // scenario.briefing = scenario.briefing.replace(/\[|\]/g, "");
-                // scenario.allowedsides = Array.isArray(scenario.allowedsides) && scenario.allowedsides[0] !== "" ? scenario.allowedsides : ["Armada", "Cortext", "Random"];
-                // scenario.startscript = scenario.startscript.slice(1, -1);
-
-                units.push(unitData);
+                const unitMetadata = parseLuaTable(unitDefinition.data) as { [unitId: string]: UnitMetadata };
+                const unit = extendUnitData(unitMetadata);
+                unit.fileName = unitDefinition.fileName;
+                units.push(unit);
             } catch (err) {
                 console.error(`error parsing unit lua file: ${unitDefinition.fileName}`, err);
             }
         }
-        // units.sort((a, b) => a.index - b.index);
         return units;
+    }
+
+    public async getUnitLanguage(locale: string): Promise<UnitLanguage> {
+        const currentGameVersion = this.installedVersions.at(-1);
+        assert(currentGameVersion, "No current game version found");
+        const unitLanguage = await this.getGameFiles(currentGameVersion.packageMd5, `language/${locale}/units.json`, true);
+
+        return JSON.parse(unitLanguage[0].data.toString()) as UnitLanguage;
     }
 
     public async uninstallVersion(version: GameVersion) {

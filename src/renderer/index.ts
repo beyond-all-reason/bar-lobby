@@ -79,5 +79,6 @@ async function setupI18n() {
         fallbackLocale: "en",
         messages,
         legacy: false,
+        globalInjection: true,
     });
 }

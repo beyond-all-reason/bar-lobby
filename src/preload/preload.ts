@@ -8,7 +8,7 @@ import { GameVersion } from "@main/content/game/game-version";
 import { MapData } from "@main/content/maps/map-data";
 import { LuaOptionSection } from "@main/content/game/lua-options";
 import { Scenario } from "@main/content/game/scenario";
-import { Unit } from "@main/content/game/unit";
+import { Unit, UnitLanguage } from "@main/content/game/unit";
 import { DownloadInfo } from "@main/content/downloads";
 import { Info } from "@main/services/info.service";
 import { NewsFeedData } from "@main/services/news.service";
@@ -86,6 +86,7 @@ const gameApi = {
     getGameOptions: (version: string): Promise<LuaOptionSection[]> => ipcRenderer.invoke("game:getOptions", version),
     getScenarios: (): Promise<Scenario[]> => ipcRenderer.invoke("game:getScenarios"),
     getUnits: (): Promise<Unit[]> => ipcRenderer.invoke("game:getUnits"),
+    getUnitLanguage: (locale: string): Promise<UnitLanguage> => ipcRenderer.invoke("game:getUnitLanguage", locale),
     getInstalledVersions: (): Promise<GameVersion[]> => ipcRenderer.invoke("game:getInstalledVersions"),
     isVersionInstalled: (version: string): Promise<boolean> => ipcRenderer.invoke("game:isVersionInstalled", version),
     uninstallVersion: (version: GameVersion): Promise<void> => ipcRenderer.invoke("game:uninstallVersion", version),
@@ -117,6 +118,12 @@ const mapsApi = {
 };
 export type MapsApi = typeof mapsApi;
 contextBridge.exposeInMainWorld("maps", mapsApi);
+
+const unitsApi = {
+    fetchUnitImage: (imageSource: string): Promise<ArrayBuffer> => ipcRenderer.invoke("units:fetchUnitImage", imageSource),
+};
+export type UnitsApi = typeof unitsApi;
+contextBridge.exposeInMainWorld("units", unitsApi);
 
 const downloadsApi = {
     // Events
