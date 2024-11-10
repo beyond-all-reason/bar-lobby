@@ -254,17 +254,18 @@ class StartScriptConverter {
     protected stringifyScriptObj(obj: Record<string, any>, depth = 1): string {
         let str = "";
         const spacer = " ".repeat(depth * 4);
-
         for (const key in obj) {
             const val = obj[key];
-
             if (typeof val === "object") {
                 str += `\n${spacer}[${key}] {${this.stringifyScriptObj(val, depth + 1)}\n${spacer}}`;
+            } else if (val === true) {
+                str += `\n${spacer}${key}=1;`;
+            } else if (val === false) {
+                str += `\n${spacer}${key}=0;`;
             } else {
                 str += `\n${spacer}${key}=${val};`;
             }
         }
-
         return str;
     }
 
