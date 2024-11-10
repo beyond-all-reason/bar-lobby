@@ -60,7 +60,7 @@
                                         {{ getFriendlyDuration(data.gameDurationMs) }}
                                     </template>
                                 </Column>
-                                <Column field="mapspringName" header="Map" :sortable="true" sortField="mapspringName" />
+                                <Column field="mapSpringName" header="Map" :sortable="true" sortField="mapSpringName" />
                             </DataTable>
                         </div>
                     </div>
