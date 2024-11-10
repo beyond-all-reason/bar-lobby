@@ -38,6 +38,7 @@ async function init() {
                 if (!existingMap) {
                     return db.maps.put(map) as Promise<unknown>;
                 } else {
+                    //TODO this has a limitation. if a field change from defined to undefined it will not be updated.
                     return db.maps.update(map.springName, { ...map }) as Promise<unknown>;
                 }
             });
