@@ -1,5 +1,6 @@
 <template>
     <AddBotModal
+        v-if="battleStore.battleOptions.engineVersion && battleStore.battleOptions.gameVersion"
         v-model="botListOpen"
         :engineVersion="battleStore.battleOptions.engineVersion"
         :gameVersion="battleStore.battleOptions.gameVersion"

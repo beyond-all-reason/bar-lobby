@@ -38,7 +38,7 @@ const props = defineProps<{
     teamId: number;
 }>();
 
-const botOptions: Ref<LuaOptionSection[]> = ref();
+const botOptions: Ref<LuaOptionSection[]> = ref([]);
 const botOptionsOpen = ref(false);
 const menu = ref<InstanceType<typeof ContextMenu>>();
 
@@ -73,9 +73,9 @@ function duplicateBot() {
 }
 
 async function configureBot() {
-    botOptions.value = [...enginesStore.latestEngineVersion.ais, ...gameStore.latestGameVersion.ais].find(
-        (ai) => ai.name === props.bot.name
-    ).options;
+    botOptions.value =
+        [...enginesStore.latestEngineVersion.ais, ...gameStore.latestGameVersion.ais].find((ai) => ai.name === props.bot.name)?.options ||
+        [];
     botOptionsOpen.value = true;
 }
 

@@ -6,6 +6,7 @@
             optionLabel="label"
             label="Presets"
             @update:model-value="onGameModeSelected"
+            disabled
         />
         <div class="custom-game-options scroll-container">
             <div v-for="[section, options] in groupedBySection.entries()" :key="section.name">
