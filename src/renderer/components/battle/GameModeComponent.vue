@@ -1,6 +1,7 @@
 <template>
     <div class="container">
         <Select
+            :data-key="'label'"
             :modelValue="battleStore.battleOptions.gameMode"
             :options="gameModeListOptions"
             optionLabel="label"
@@ -24,6 +25,7 @@
             v-model="gameOptionsOpen"
             :options="battleStore.battleOptions.gameMode"
             :sections="gameStore.latestGameVersion.luaOptionSections"
+            @set-options="onOptionsChanged"
         />
     </div>
 </template>
@@ -76,6 +78,10 @@ async function openGameOptions() {
 
 function onGameModeSelected(gameMode: GameMode) {
     battleStore.battleOptions.gameMode = gameMode;
+}
+
+function onOptionsChanged(options: Record<string, boolean | string | number>) {
+    battleStore.battleOptions.gameMode.options = options;
 }
 </script>
 
