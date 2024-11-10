@@ -61,7 +61,9 @@ export class UltraSimpleMapParser {
     }
 
     protected async extractArchiveFiles(outPath: string) {
-        const files = glob.sync(`${outPath}/**/*`);
+        const files = glob.sync(`${outPath}/**/*`, {
+            windowsPathsNoEscape: true,
+        });
         const smfPath = files.find((filePath) => filePath.match(/.*\.smf/))!;
         const mapInfoPath = files.find((filePath) => path.resolve(filePath) === path.join(outPath, "/", "mapinfo.lua"));
         const smfName = smfPath ? path.parse(smfPath).name : undefined;
