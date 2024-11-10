@@ -7,6 +7,8 @@ import { _me, me } from "@renderer/store/me.store";
 import { deepToRaw } from "@renderer/utils/deep-toraw";
 import { reactive, readonly, watch } from "vue";
 
+let participantId = 0;
+
 // Store
 export const battleStore = reactive({
     title: "Battle",
@@ -44,7 +46,7 @@ function removeFromSpectators(participant: Player) {
 
 function addBot(ai: EngineAI | GameAI, teamId: number) {
     battleStore.teams[teamId].push({
-        id: battleWithMetadataStore.participants.length,
+        id: participantId++,
         name: ai.name,
         aiOptions: {},
         aiShortName: ai.shortName,
@@ -59,7 +61,7 @@ function removeBot(bot: Bot) {
 function duplicateBot(bot: Bot, teamId: number) {
     const newBot = {
         ...bot,
-        id: battleWithMetadataStore.participants.length,
+        id: participantId++,
     };
     battleStore.teams[teamId].push(newBot);
 }
@@ -144,7 +146,7 @@ function defaultOfflineBattle(engine?: EngineVersion, game?: GameVersion, map?: 
     } as Battle;
 
     battle.teams[0].push({
-        id: 0,
+        id: participantId++,
         user: me,
         name: me.username,
         contentSyncState: {
@@ -156,7 +158,7 @@ function defaultOfflineBattle(engine?: EngineVersion, game?: GameVersion, map?: 
     } as Player);
 
     battle.teams[1].push({
-        id: 1,
+        id: participantId++,
         aiOptions: {},
         faction: Faction.Armada,
         name: "AI 1",

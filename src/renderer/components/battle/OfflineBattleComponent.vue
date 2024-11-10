@@ -89,6 +89,7 @@ import MapBattlePreview from "@renderer/components/maps/MapBattlePreview.vue";
 import { MapData } from "@main/content/maps/map-data";
 import { settingsStore } from "@renderer/store/settings.store";
 import GameModeComponent from "@renderer/components/battle/GameModeComponent.vue";
+import { enginesStore } from "@renderer/store/engine.store";
 
 const mapListOpen = ref(false);
 const mapOptionsOpen = ref(false);
@@ -109,11 +110,13 @@ function openMapOptions() {
     mapOptionsOpen.value = true;
 }
 
-function onEngineSelected(engineVersion: string) {
+async function onEngineSelected(engineVersion: string) {
+    enginesStore.selectedEngineVersion = await db.engineVersions.get(engineVersion);
     battleStore.battleOptions.engineVersion = engineVersion;
 }
 
-function onGameSelected(gameVersion: string) {
+async function onGameSelected(gameVersion: string) {
+    gameStore.selectedGameVersion = await db.gameVersions.get(gameVersion);
     battleStore.battleOptions.gameVersion = gameVersion;
 }
 

@@ -23,8 +23,8 @@
             id="game-options"
             title="Game Options"
             v-model="gameOptionsOpen"
-            :options="battleStore.battleOptions.gameMode"
-            :sections="gameStore.latestGameVersion.luaOptionSections"
+            :options="battleStore.battleOptions.gameMode.options"
+            :sections="gameStore.selectedGameVersion.luaOptionSections"
             @set-options="onOptionsChanged"
         />
     </div>
@@ -54,7 +54,7 @@ watch(
     () => battleStore.battleOptions.gameMode.options,
     (overridenOptions) => {
         groupedBySection.value.clear();
-        gameStore.latestGameVersion.luaOptionSections.forEach((section) => {
+        gameStore.selectedGameVersion.luaOptionSections.forEach((section) => {
             section.options.forEach((option) => {
                 if (overridenOptions[option.key] !== undefined) {
                     if (!groupedBySection.value.has(section)) {

@@ -2,7 +2,7 @@
     <Modal title="Add Bot">
         <div class="flex-col gap-md container">
             <Button
-                v-for="(ai, i) in enginesStore.latestEngineVersion.ais"
+                v-for="(ai, i) in enginesStore.selectedEngineVersion.ais"
                 :key="i"
                 v-tooltip.bottom="{ value: ai.description }"
                 class="ai-button"
@@ -12,7 +12,7 @@
             </Button>
 
             <Button
-                v-for="(ai, i) in gameStore.latestGameVersion.ais"
+                v-for="(ai, i) in gameStore.selectedGameVersion.ais"
                 :key="i"
                 v-tooltip.bottom="{ value: ai.description }"
                 class="ai-button"

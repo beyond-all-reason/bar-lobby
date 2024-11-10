@@ -23,10 +23,10 @@ import { onMounted } from "vue";
 
 onMounted(async () => {
     if (!battleStore.battleOptions.engineVersion) {
-        battleStore.battleOptions.engineVersion = enginesStore.latestEngineVersion.id;
+        battleStore.battleOptions.engineVersion = enginesStore.selectedEngineVersion.id;
     }
     if (!battleStore.battleOptions.gameVersion) {
-        battleStore.battleOptions.gameVersion = gameStore.latestGameVersion.gameVersion;
+        battleStore.battleOptions.gameVersion = gameStore.selectedGameVersion.gameVersion;
     }
     if (!battleStore.battleOptions.map) {
         const randomMap = await getRandomMap();

@@ -9,7 +9,7 @@ export const gameStore = reactive({
 } as {
     isInitialized: boolean;
     isGameRunning: boolean;
-    latestGameVersion?: GameVersion;
+    selectedGameVersion?: GameVersion;
     optionsMap?: Record<string, LuaOption & { section: string }>;
 });
 
@@ -18,11 +18,11 @@ async function refreshStore() {
     const installedVersions = await window.game.getInstalledVersions();
     await db.gameVersions.bulkAdd(installedVersions);
     const latestGameVersion = await db.gameVersions.orderBy("gameVersion").last();
-    gameStore.latestGameVersion = latestGameVersion;
+    gameStore.selectedGameVersion = latestGameVersion;
 }
 
 watch(
-    () => gameStore.latestGameVersion,
+    () => gameStore.selectedGameVersion,
     (latestGameVersion) => {
         if (latestGameVersion) {
             gameStore.optionsMap = latestGameVersion.luaOptionSections.reduce(
