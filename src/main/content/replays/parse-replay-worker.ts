@@ -7,7 +7,7 @@ if (isMainThread) {
     throw new Error("This script should be run in worker thread.");
 } else {
     const demoParser = new DemoParser();
-    async function parseReplay(replayPath: string) {
+    async function parseReplay(replayPath: string): Promise<Replay> {
         const replayData = await demoParser.parseDemo(replayPath);
         const numOfPlayers = replayData.info.players.length + replayData.info.ais.length;
         let preset: "duel" | "team" | "ffa" | "teamffa" = "duel";
@@ -40,7 +40,7 @@ if (isMainThread) {
             gameSettings: replayData.info.gameSettings,
             mapSettings: replayData.info.mapSettings,
             hostSettings: replayData.info.spadsSettings ?? {},
-        } as Replay;
+        };
     }
     // listen to messages from the main thread
     parentPort.on("message", async (replayFilePath: string) => {
