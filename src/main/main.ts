@@ -126,7 +126,7 @@ app.whenReady().then(() => {
         callback({
             responseHeaders: {
                 ...details.responseHeaders,
-                "Content-Security-Policy": ["default-src 'self' 'unsafe-inline' data: blob:"],
+                "Content-Security-Policy": ["default-src 'self' 'unsafe-inline' blob:"],
             },
         });
     });
