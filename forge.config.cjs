@@ -10,7 +10,10 @@ const config = {
     },
     rebuildConfig: {},
     makers: [
-        new MakerSquirrel({}),
+        new MakerSquirrel({
+            authors: "BAR Team",
+            description: "Beyond All Reason Lobby",
+        }),
         new MakerRpm({
             options: {
                 mimeType: ["application/sdfz"],

@@ -4,7 +4,7 @@
             <slot name="header" />
         </div>
 
-        <div class="content">
+        <div class="content" :style="{ padding: noPadding ? 0 : '30px' }">
             <slot />
         </div>
 
@@ -17,6 +17,7 @@
 <script lang="ts" setup>
 defineProps<{
     empty?: boolean;
+    noPadding?: boolean;
 }>();
 </script>
 
@@ -27,7 +28,7 @@ defineProps<{
     display: flex;
     flex-direction: column;
     background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.6));
-    backdrop-filter: blur(10px) brightness(1) saturate(2);
+    backdrop-filter: blur(10px) brightness(1) saturate(2); //doesn't support opacity transition
     border: 1px solid rgba(255, 255, 255, 0.2);
     border-top: 1px solid rgba(255, 255, 255, 0.3);
     border-bottom: 1px solid rgba(124, 124, 124, 0.3);
@@ -53,7 +54,6 @@ defineProps<{
         display: flex;
         flex-direction: column;
         flex-grow: 1;
-        padding: 30px;
     }
     .header {
         position: relative;
@@ -87,7 +87,7 @@ defineProps<{
     background-image: url("/src/renderer/assets/images/squares.png");
     background-size: auto;
     opacity: 0.3;
-    mix-blend-mode: overlay;
+    mix-blend-mode: overlay; // doesn't support transition
     z-index: -1;
 }
 </style>

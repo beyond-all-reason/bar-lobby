@@ -1,7 +1,23 @@
 <template>
     <Modal title="Add Bot">
         <div class="flex-col gap-md container">
-            <Button v-for="(ai, i) in ais" :key="i" v-tooltip.bottom="{ value: ai.description }" class="ai-button" @click="addBot(ai)">
+            <Button
+                v-for="(ai, i) in enginesStore.selectedEngineVersion.ais"
+                :key="i"
+                v-tooltip.bottom="{ value: ai.description }"
+                class="ai-button"
+                @click="addBot(ai)"
+            >
+                {{ ai.name }}
+            </Button>
+
+            <Button
+                v-for="(ai, i) in gameStore.selectedGameVersion.ais"
+                :key="i"
+                v-tooltip.bottom="{ value: ai.description }"
+                class="ai-button"
+                @click="addBot(ai)"
+            >
                 {{ ai.name }}
             </Button>
         </div>
@@ -9,35 +25,21 @@
 </template>
 
 <script lang="ts" setup>
-import { computed } from "vue";
-
 import Modal from "@renderer/components/common/Modal.vue";
 import Button from "@renderer/components/controls/Button.vue";
 import { EngineAI } from "@main/content/engine/engine-version";
 import { GameAI } from "@main/content/game/game-version";
+import { enginesStore } from "@renderer/store/engine.store";
+import { gameStore } from "@renderer/store/game.store";
 
 const props = defineProps<{
     engineVersion: string;
     gameVersion: string;
-    teamId: string;
+    teamId: number;
 }>();
 
-const ais = computed(() => {
-    const ais: Array<EngineAI | GameAI> = [];
-
-    // TODO probably need a selected engine/game version store or something similar
-
-    // if (engineVersion.value) {
-    //     ais.push(...engineVersion.value.ais);
-    // }
-    // if (gameVersion.value) {
-    //     ais.push(...gameVersion.value.ais);
-    // }
-    return ais;
-});
-
 const emit = defineEmits<{
-    (event: "bot-selected", ai: EngineAI | GameAI, teamId: string): void;
+    (event: "bot-selected", ai: EngineAI | GameAI, teamId: number): void;
 }>();
 
 function addBot(ai: EngineAI | GameAI) {

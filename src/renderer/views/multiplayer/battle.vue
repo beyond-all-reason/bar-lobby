@@ -4,12 +4,12 @@
 
 <template>
     <div class="flex-col flex-grow">
-        <OnlineBattleComponent />
+        <OfflineBattleComponent />
     </div>
 </template>
 
 <script lang="ts" setup>
-import OnlineBattleComponent from "@renderer/components/battle/OnlineBattleComponent.vue";
+import OfflineBattleComponent from "@renderer/components/battle/OfflineBattleComponent.vue";
 </script>
 
 <style lang="scss" scoped></style>

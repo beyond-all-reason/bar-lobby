@@ -50,6 +50,8 @@ function luaTableToObj(table: TableConstructorExpression): any {
                 obj[key] = value.value;
             } else if (field.value.type === "TableConstructorExpression") {
                 obj[key] = luaTableToObj(field.value);
+            } else if (value.type === "UnaryExpression" && value.operator === "-" && value.argument.type === "NumericLiteral") {
+                obj[key] = -value.argument.value;
             }
         } else if (field.type === "TableValue") {
             if (field.value.type === "TableConstructorExpression") {

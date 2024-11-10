@@ -6,7 +6,7 @@ export const enginesStore = reactive({
     isInitialized: false,
 } as {
     isInitialized: boolean;
-    latestEngineVersion?: EngineVersion;
+    selectedEngineVersion?: EngineVersion;
 });
 
 async function refreshStore() {
@@ -14,7 +14,7 @@ async function refreshStore() {
     await db.engineVersions.clear();
     await db.engineVersions.bulkAdd(engineVersions);
     const latestEngineVersion = await db.engineVersions.orderBy("id").last();
-    enginesStore.latestEngineVersion = latestEngineVersion;
+    enginesStore.selectedEngineVersion = latestEngineVersion;
 }
 
 export async function initEnginesStore() {

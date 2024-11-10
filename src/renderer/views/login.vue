@@ -8,7 +8,7 @@
         <div v-if="connecting" class="relative">
             <Loader></Loader>
         </div>
-        <Panel v-else-if="isConnected" class="login-forms">
+        <!-- <Panel v-else-if="isConnected" class="login-forms" no-padding>
             <TabView v-model:activeIndex="activeIndex">
                 <TabPanel header="Login">
                     <LoginForm />
@@ -27,32 +27,22 @@
                 <Icon :icon="replayIcon" />
                 Reconnect
             </Button>
-        </div>
+        </div> -->
         <div class="play-offline" @click="playOffline">Play Offline</div>
     </div>
 </template>
 
 <script lang="ts" setup>
-import { Icon } from "@iconify/vue";
-import replayIcon from "@iconify-icons/mdi/replay";
-import { delay } from "$/jaz-ts-utils/delay";
-import TabPanel from "primevue/tabpanel";
 import { ref } from "vue";
 
 import Loader from "@renderer/components/common/Loader.vue";
-import Panel from "@renderer/components/common/Panel.vue";
-import TabView from "@renderer/components/common/TabView.vue";
-import Button from "@renderer/components/controls/Button.vue";
-import LoginForm from "@renderer/components/login/LoginForm.vue";
-import RegisterForm from "@renderer/components/login/RegisterForm.vue";
-import ResetPasswordForm from "@renderer/components/login/ResetPasswordForm.vue";
 import { useRouter } from "vue-router";
 
 const router = useRouter();
 
-const activeIndex = ref(0);
-const isConnected = true; // api.comms.isConnected;
-const serverAddress = ""; //`${api.comms.config.host}:${api.comms.config.port}`;
+// const activeIndex = ref(0);
+// const isConnected = true; // api.comms.isConnected;
+// const serverAddress = ""; //`${api.comms.config.host}:${api.comms.config.port}`;
 const connecting = ref(false);
 
 async function connect() {
@@ -63,12 +53,12 @@ async function connect() {
     }
 }
 
-async function onRetry() {
-    connecting.value = true;
-    await connect();
-    await delay(100);
-    connecting.value = false;
-}
+// async function onRetry() {
+//     connecting.value = true;
+//     await connect();
+//     await delay(100);
+//     connecting.value = false;
+// }
 
 async function playOffline() {
     // api.session.offlineMode = true;
@@ -99,9 +89,6 @@ connect();
 
 .login-forms {
     width: 100%;
-    :deep(.content) {
-        padding: 0;
-    }
 }
 
 .retry {
@@ -112,7 +99,7 @@ connect();
     display: flex;
     align-self: center;
     margin-top: 20px;
-    font-size: 16px;
+    font-size: 32px;
     opacity: 0.3;
     &:hover {
         opacity: 1;

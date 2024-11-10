@@ -1,10 +1,8 @@
-import { existsSync, promises as fs } from "fs";
+import { promises as fs } from "fs";
 import { glob } from "glob";
 import { LocalStatement, TableConstructorExpression, TableKey, TableKeyString, TableValue, parse } from "luaparse";
 import * as os from "os";
 import * as path from "path";
-import { DeepPartial } from "$/jaz-ts-utils/types";
-import { StreamZipAsync } from "node-stream-zip";
 import { extractSpecificFiles } from "@main/utils/extract-7z";
 import { MapInfo } from "$/map-parser/map-model";
 
@@ -12,40 +10,37 @@ export class UltraSimpleMapParser {
     public async parseMap(mapFilePath: string): Promise<{
         fileName: string;
         fileNameWithExt: string;
-        scriptName: string;
+        springName: string;
     }> {
         const filePath = path.parse(mapFilePath);
         const fileName = filePath.name;
         const fileExt = filePath.ext;
         const tempArchiveDir = path.join(os.tmpdir(), fileName);
-        const sigintBinding = process.on("SIGINT", async () => this.sigint(tempArchiveDir));
         try {
-            if (fileExt !== ".sd7" && fileExt !== ".sdz") {
+            if (fileExt !== ".sd7") {
                 throw new Error(`${mapFilePath} - ${fileExt} extension is not supported, .sd7 and .sdz only.`);
             }
-            const archive = fileExt === ".sd7" ? await this.extractSd7(mapFilePath, tempArchiveDir) : await this.extractSdz(mapFilePath, tempArchiveDir);
-            let mapInfo: DeepPartial<MapInfo> | undefined;
-            if (archive.mapInfo) {
-                mapInfo = await this.parseMapInfo(archive.mapInfo);
+            const archive = await this.extractSd7(mapFilePath, tempArchiveDir);
+            if(!archive.mapInfo) {
+                throw new Error(`${mapFilePath} - mapinfo.lua not found in the archive`);
             }
-            let scriptName = "";
+            const mapInfo = await this.parseMapInfo(archive.mapInfo);
+            let springName = "";
             if (mapInfo && mapInfo.name && mapInfo.version && mapInfo.name.includes(mapInfo.version!)) {
-                scriptName = mapInfo.name;
+                springName = mapInfo.name;
             } else if (mapInfo && mapInfo.name) {
-                scriptName = `${mapInfo.name} ${mapInfo.version}`;
+                springName = `${mapInfo.name} ${mapInfo.version}`;
             } else if (archive.smfName) {
-                scriptName = archive.smfName;
+                springName = archive.smfName;
             }
-            sigintBinding.removeAllListeners();
-            await this.cleanup(tempArchiveDir);
+            this.cleanup(tempArchiveDir);
             return {
                 fileName: filePath.name,
                 fileNameWithExt: filePath.base,
-                scriptName,
+                springName,
             };
         } catch (err: any) {
             await this.cleanup(tempArchiveDir);
-            sigintBinding.removeAllListeners();
             console.error(err);
             throw err;
         }
@@ -65,19 +60,10 @@ export class UltraSimpleMapParser {
         return archiveFiles;
     }
 
-    protected async extractSdz(sdzPath: string, outPath: string) {
-        if (!existsSync(sdzPath)) {
-            throw new Error(`File not found: ${sdzPath}`);
-        }
-        await fs.mkdir(outPath, { recursive: true });
-        const zip = new StreamZipAsync({ file: sdzPath });
-        await zip.extract("maps/", outPath);
-        await (zip as any).close();
-        return this.extractArchiveFiles(outPath);
-    }
-
     protected async extractArchiveFiles(outPath: string) {
-        const files = glob.sync(`${outPath}/**/*`);
+        const files = glob.sync(`${outPath}/**/*`, {
+            windowsPathsNoEscape: true,
+        });
         const smfPath = files.find((filePath) => filePath.match(/.*\.smf/))!;
         const mapInfoPath = files.find((filePath) => path.resolve(filePath) === path.join(outPath, "/", "mapinfo.lua"));
         const smfName = smfPath ? path.parse(smfPath).name : undefined;
@@ -135,10 +121,5 @@ export class UltraSimpleMapParser {
         } catch (err) {
             console.error(err);
         }
-    }
-
-    protected async sigint(tmpDir: string) {
-        await this.cleanup(tmpDir);
-        process.exit();
     }
 }

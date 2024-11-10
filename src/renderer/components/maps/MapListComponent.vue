@@ -6,16 +6,10 @@
         </div>
 
         <div class="flex-col flex-grow fullheight">
-            <div class="scroll-container" style="overflow-y: scroll">
+            <div class="scroll-container" style="overflow-y: scroll" ref="el">
                 <div class="maps">
                     <TransitionGroup name="maps-list">
-                        <MapOverviewCard
-                            v-for="map in maps"
-                            :key="map.scriptName"
-                            :map="map"
-                            :friendlyName="map.friendlyName"
-                            @click="mapSelected(map)"
-                        />
+                        <MapOverviewCard v-for="map in maps" :key="map.springName" :map="map" @click="mapSelected(map)" />
                     </TransitionGroup>
                 </div>
             </div>
@@ -41,10 +35,12 @@ import { MapData } from "@main/content/maps/map-data";
 import { db } from "@renderer/store/db";
 import { useDexieLiveQueryWithDeps } from "@renderer/composables/useDexieLiveQuery";
 
+import { useInfiniteScroll } from "@vueuse/core";
+
 type SortMethod = { label: string; dbKey: string };
 
 const sortMethods: SortMethod[] = [
-    { label: "Name", dbKey: "friendlyName" },
+    { label: "Name", dbKey: "displayName" },
     { label: "Size", dbKey: "width" },
 ];
 const sortMethod: Ref<SortMethod> = ref(sortMethods.at(0));
@@ -53,9 +49,19 @@ const emit = defineEmits<{
     (event: "map-selected", map: MapData): void;
 }>();
 
-const maps = useDexieLiveQueryWithDeps([searchVal, sortMethod], () =>
+const limit = ref(30);
+const el = ref<HTMLElement | null>(null);
+useInfiniteScroll(
+    el,
+    () => {
+        limit.value += 30;
+    },
+    { distance: 300, interval: 550 }
+);
+const maps = useDexieLiveQueryWithDeps([searchVal, sortMethod, limit], () =>
     db.maps
-        .filter((map) => map.friendlyName.toLocaleLowerCase().includes(searchVal.value.toLocaleLowerCase()))
+        .filter((map) => map.displayName.toLocaleLowerCase().includes(searchVal.value.toLocaleLowerCase()))
+        .limit(limit.value)
         .sortBy(sortMethod.value.dbKey)
 );
 

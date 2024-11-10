@@ -1,5 +1,6 @@
 <template>
     <AddBotModal
+        v-if="battleStore.battleOptions.engineVersion && battleStore.battleOptions.gameVersion"
         v-model="botListOpen"
         :engineVersion="battleStore.battleOptions.engineVersion"
         :gameVersion="battleStore.battleOptions.gameVersion"
@@ -43,32 +44,20 @@ import TeamComponent from "@renderer/components/battle/TeamComponent.vue";
 import { EngineAI } from "@main/content/engine/engine-version";
 import { Bot, isBot, Player } from "@main/game/battle/battle-types";
 import { battleWithMetadataStore, battleStore, battleActions } from "@renderer/store/battle.store";
-import { me } from "@renderer/store/me.store";
 import SpectatorsComponent from "@renderer/components/battle/SpectatorsComponent.vue";
+import { GameAI } from "@main/content/game/game-version";
 
 const botListOpen = ref(false);
-const botModalTeamId = ref("0");
+const botModalTeamId = ref(0);
 
-function openBotList(teamId: string) {
+function openBotList(teamId: number) {
     botModalTeamId.value = teamId;
     botListOpen.value = true;
 }
 
-//TODO only handling engine AIs for now
-function onBotSelected(bot: EngineAI, teamId: string) {
+function onBotSelected(bot: EngineAI | GameAI, teamId: number) {
     botListOpen.value = false;
-    addBot(bot, teamId);
-}
-
-//TODO only handling engine AIs for now
-function addBot(ai: EngineAI, teamId: string) {
-    battleStore.teams[teamId].push({
-        id: battleWithMetadataStore.participants.length,
-        name: ai.name,
-        aiOptions: {}, //TODO where to get this from?
-        aiShortName: ai.shortName,
-        ownerUserId: me.userId,
-    } as Bot);
+    battleActions.addBot(bot, teamId);
 }
 
 function joinTeam(teamId: number) {

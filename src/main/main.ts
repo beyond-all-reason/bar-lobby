@@ -16,6 +16,11 @@ import replaysService from "@main/services/replays.service";
 import { miscService } from "@main/services/news.service";
 import { replayContentAPI } from "@main/content/replays/replay-content";
 import path from "path";
+import electronSquirrelStartup from "@main/utils/electron-squirrel-startup";
+
+if (electronSquirrelStartup) {
+    app.quit();
+}
 
 const log = logger("main/index.ts");
 log.info("Starting Electron main process");
@@ -43,7 +48,6 @@ protocol.registerSchemesAsPrivileged([
         scheme: "bar",
         privileges: {
             bypassCSP: true,
-            supportFetchAPI: true, // Required for fetch calls, such as in pixi.js
         },
     },
 ]);
@@ -122,7 +126,7 @@ app.whenReady().then(() => {
         callback({
             responseHeaders: {
                 ...details.responseHeaders,
-                "Content-Security-Policy": ["default-src 'self' 'unsafe-inline' data: blob:"], // data: and blob: are required for PIXI.js
+                "Content-Security-Policy": ["default-src 'self' 'unsafe-inline' blob:"],
             },
         });
     });

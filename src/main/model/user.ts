@@ -12,7 +12,7 @@ export type User = {
     battleRoomState: {
         isSpectator?: boolean;
         isReady?: boolean;
-        teamId?: string;
+        teamId?: number;
     };
 };
 

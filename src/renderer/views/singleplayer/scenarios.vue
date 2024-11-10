@@ -41,10 +41,15 @@
                             <div>
                                 <Select v-model="selectedDifficulty" label="Difficulty" :options="difficulties" optionLabel="name" />
                             </div>
-                            <Button v-if="hasMap" class="green" @click="launch">Launch</Button>
-                            <!-- could also add a download game update state -->
-                            <Button v-else-if="downloading" class="green" disabled>Downloading map ...</Button>
-                            <Button v-else class="red" @click="downloadMap">Download map</Button>
+                            <DownloadContentButton
+                                v-if="map"
+                                :map="map"
+                                class="fullwidth green"
+                                :disabled="gameStore.isGameRunning"
+                                @click="launch"
+                                >Launch</DownloadContentButton
+                            >
+                            <Button v-else class="fullwidth green" disabled>Launch</Button>
                         </div>
                     </div>
                 </div>
@@ -65,9 +70,9 @@ import { LATEST_GAME_VERSION } from "@main/config/default-versions";
 import Panel from "@renderer/components/common/Panel.vue";
 import { db } from "@renderer/store/db";
 import { useDexieLiveQueryWithDeps } from "@renderer/composables/useDexieLiveQuery";
-import { downloadsStore } from "@renderer/store/downloads.store";
-import { mapFileNameToFriendlyName } from "@main/content/maps/map-data";
 import Markdown from "@renderer/components/misc/Markdown.vue";
+import DownloadContentButton from "@renderer/components/controls/DownloadContentButton.vue";
+import { gameStore } from "@renderer/store/game.store";
 
 const router = useRouter();
 const route = router.currentRoute.value;
@@ -75,11 +80,7 @@ const route = router.currentRoute.value;
 const scenarios = await window.game.getScenarios();
 const selectedScenario = ref<Scenario>(scenarios[0]);
 
-const hasMap = useDexieLiveQueryWithDeps([selectedScenario], () => db.maps.get(selectedScenario.value?.mapfilename));
-// Hacky solution with mapFileNameToFriendlyName
-const downloading = computed(() =>
-    downloadsStore.mapDownloads.some((d) => d.name === mapFileNameToFriendlyName(selectedScenario.value?.mapfilename))
-);
+const map = useDexieLiveQueryWithDeps([selectedScenario], () => db.maps.get(selectedScenario.value?.mapfilename));
 
 const difficulties = computed(() => selectedScenario.value.difficulties);
 const selectedDifficulty = ref(difficulties.value.find((dif) => dif.name === selectedScenario.value.defaultdifficulty));
@@ -91,10 +92,6 @@ watch(selectedScenario, (newScenario) => {
     selectedDifficulty.value = difficulties.value.find((dif) => dif.name === newScenario.defaultdifficulty);
     selectedFaction.value = factions.value[0] ?? "Armada";
 });
-
-async function downloadMap() {
-    await window.maps.downloadMap(selectedScenario.value.mapfilename);
-}
 
 async function launch() {
     const scenarioOptions = {
@@ -135,8 +132,13 @@ async function launch() {
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     padding-right: 10px;
 }
+
 .scenario-preview {
     width: 550px;
     padding-right: 10px;
+}
+
+.launch-button {
+    flex-grow: 0;
 }
 </style>

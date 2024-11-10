@@ -7,23 +7,16 @@
             <Playerlist />
         </div>
         <div class="settings flex-col gap-md">
-            <!-- <MapPreview
-                v-if="map"
-                :map="map"
-                :startPosType="battleStore.battleOptions.startPosType"
-                :startBoxes="battleStore.battleOptions.startBoxes"
-            /> -->
-            <MapOverviewCard :map="map" friendly-name="" />
+            <MapBattlePreview />
             <div class="flex-row gap-md">
                 <Select
-                    :modelValue="battleStore.battleOptions.mapScriptName"
+                    :modelValue="battleStore.battleOptions.map"
                     :options="mapListOptions"
+                    :data-key="'springName'"
                     label="Map"
-                    optionLabel="scriptName"
-                    optionValue="scriptName"
+                    optionLabel="springName"
                     :filter="true"
                     class="fullwidth"
-                    :placeholder="battleStore.battleOptions.mapScriptName"
                     @update:model-value="onMapSelected"
                 />
                 <Button v-tooltip.left="'Open map selector'" @click="openMapList">
@@ -33,17 +26,10 @@
                     <Icon :icon="cogIcon" height="23" />
                 </Button>
                 <MapListModal v-model="mapListOpen" title="Maps" @map-selected="onMapSelected" />
-                <MapOptionsModal
-                    v-if="map"
-                    v-model="mapOptionsOpen"
-                    title="Map Options"
-                    :map="map"
-                    :startBoxes="battleStore.battleOptions.startBoxes"
-                    :startPosType="battleStore.battleOptions.startPosType"
-                    @set-map-options="setMapOptions"
-                />
+                <MapOptionsModal v-if="battleStore.battleOptions.map" v-model="mapOptionsOpen" />
             </div>
-            <div class="flex-row gap-md">
+            <GameModeComponent />
+            <div v-if="settingsStore.devMode">
                 <Select
                     :modelValue="battleStore.battleOptions.gameVersion"
                     :options="gameListOptions"
@@ -54,19 +40,8 @@
                     :placeholder="battleStore.battleOptions.gameVersion"
                     @update:model-value="onGameSelected"
                 />
-                <Button v-tooltip.left="'Configure game options'" @click="openGameOptions">
-                    <Icon :icon="cogIcon" height="23" />
-                </Button>
-                <LuaOptionsModal
-                    id="game-options"
-                    v-model="gameOptionsOpen"
-                    :luaOptions="battleStore.battleOptions.gameOptions"
-                    :title="`Game Options - ${battleStore.battleOptions.gameVersion}`"
-                    :sections="gameOptions"
-                    @set-options="setGameOptions"
-                />
             </div>
-            <div>
+            <div v-if="settingsStore.devMode">
                 <Select
                     :modelValue="battleStore.battleOptions.engineVersion"
                     :options="engineListOptions"
@@ -79,18 +54,23 @@
                     @update:model-value="onEngineSelected"
                 />
             </div>
-            <div class="flex-row flex-bottom gap-md">
-                <Button class="fullwidth green" :disabled="gameStore.isGameRunning" @click="battleActions.startBattle">Start</Button>
+            <div class="flex-row flex-bottom gap-md flex-grow">
+                <DownloadContentButton
+                    v-if="map"
+                    :map="map"
+                    class="fullwidth green"
+                    :disabled="gameStore.isGameRunning"
+                    @click="battleActions.startBattle"
+                    >Start</DownloadContentButton
+                >
+                <Button v-else class="fullwidth green flex-grow" disabled>Start</Button>
             </div>
         </div>
     </div>
 </template>
 
 <script lang="ts" setup>
-import { Ref, ref, watch } from "vue";
-import { getBoxes, StartBoxOrientation } from "@renderer/utils/start-boxes";
-import { LuaOptionSection } from "@main/content/game/lua-options";
-import { StartPosType } from "@main/game/battle/battle-types";
+import { ref } from "vue";
 import { gameStore } from "@renderer/store/game.store";
 import BattleTitleComponent from "@renderer/components/battle/BattleTitleComponent.vue";
 import Playerlist from "@renderer/components/battle/Playerlist.vue";
@@ -98,72 +78,51 @@ import Select from "@renderer/components/controls/Select.vue";
 import { Icon } from "@iconify/vue";
 import MapListModal from "@renderer/components/battle/MapListModal.vue";
 import MapOptionsModal from "@renderer/components/battle/MapOptionsModal.vue";
-import LuaOptionsModal from "@renderer/components/battle/LuaOptionsModal.vue";
 import { battleActions, battleStore } from "@renderer/store/battle.store";
 import Button from "@renderer/components/controls/Button.vue";
-import { MapData } from "@main/content/maps/map-data";
 import { db } from "@renderer/store/db";
-import MapOverviewCard from "@renderer/components/maps/MapOverviewCard.vue";
 import listIcon from "@iconify-icons/mdi/format-list-bulleted";
 import cogIcon from "@iconify-icons/mdi/cog";
-import { useDexieLiveQuery } from "@renderer/composables/useDexieLiveQuery";
-
-const map = ref<MapData>();
-watch(
-    () => battleStore.battleOptions.mapScriptName,
-    async (mapScriptName) => {
-        console.log("mapScriptName for this battle", mapScriptName);
-        if (!mapScriptName) {
-            return;
-        }
-        map.value = await db.maps.get(mapScriptName);
-    }
-);
+import { useDexieLiveQuery, useDexieLiveQueryWithDeps } from "@renderer/composables/useDexieLiveQuery";
+import DownloadContentButton from "@renderer/components/controls/DownloadContentButton.vue";
+import MapBattlePreview from "@renderer/components/maps/MapBattlePreview.vue";
+import { MapData } from "@main/content/maps/map-data";
+import { settingsStore } from "@renderer/store/settings.store";
+import GameModeComponent from "@renderer/components/battle/GameModeComponent.vue";
+import { enginesStore } from "@renderer/store/engine.store";
 
 const mapListOpen = ref(false);
 const mapOptionsOpen = ref(false);
-const gameOptionsOpen = ref(false);
 const mapListOptions = useDexieLiveQuery(() => db.maps.toArray());
 const gameListOptions = useDexieLiveQuery(() => db.gameVersions.toArray());
 const engineListOptions = useDexieLiveQuery(() => db.engineVersions.toArray());
 
-const gameOptions: Ref<LuaOptionSection[]> = ref([]);
+const map = useDexieLiveQueryWithDeps([() => battleStore.battleOptions.map], () => {
+    if (!battleStore.battleOptions.map) return null;
+    return db.maps.get(battleStore.battleOptions.map.springName);
+});
 
 function openMapList() {
     mapListOpen.value = true;
 }
+
 function openMapOptions() {
     mapOptionsOpen.value = true;
 }
 
-function onEngineSelected(engineVersion: string) {
+async function onEngineSelected(engineVersion: string) {
+    enginesStore.selectedEngineVersion = await db.engineVersions.get(engineVersion);
     battleStore.battleOptions.engineVersion = engineVersion;
 }
 
-function onGameSelected(gameVersion: string) {
+async function onGameSelected(gameVersion: string) {
+    gameStore.selectedGameVersion = await db.gameVersions.get(gameVersion);
     battleStore.battleOptions.gameVersion = gameVersion;
 }
 
-//TODO this is not working
-async function openGameOptions() {
-    // TODO: show loader on button (maybe @clickAsync event?)
-    gameOptions.value = await window.game.getGameOptions(battleStore.battleOptions.gameVersion);
-    gameOptionsOpen.value = true;
-}
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function setGameOptions(options: Record<string, any>) {
-    battleStore.battleOptions.gameOptions = options;
-}
-
-function setMapOptions(startPosType: StartPosType, orientation: StartBoxOrientation, size: number) {
-    battleStore.battleOptions.startPosType = startPosType;
-    battleStore.battleOptions.startBoxes = getBoxes(orientation, size);
-}
-
-function onMapSelected(mapScriptName: string) {
+function onMapSelected(map: MapData) {
+    battleStore.battleOptions.map = map;
     mapListOpen.value = false;
-    battleStore.battleOptions.mapScriptName = mapScriptName;
 }
 </script>
 
@@ -183,22 +142,28 @@ function onMapSelected(mapScriptName: string) {
             "players players settings";
     }
 }
+
 .header {
     grid-area: header;
 }
+
 .settings {
     grid-area: settings;
 }
+
 .players {
     grid-area: players;
 }
+
 .chat {
     grid-area: chat;
 }
+
 .title {
     font-size: 30px;
     line-height: 1.2;
 }
+
 .edit-title {
     padding: 5px;
     color: rgba(255, 255, 255, 0.5);
@@ -206,9 +171,11 @@ function onMapSelected(mapScriptName: string) {
         color: #fff;
     }
 }
+
 .subtitle {
     font-size: 16px;
 }
+
 .checkbox {
     margin-right: 10px;
 }

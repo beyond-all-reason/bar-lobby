@@ -1,3 +1,4 @@
+import { MapData } from "@main/content/maps/map-data";
 import { User } from "@main/model/user";
 
 export interface Battle {
@@ -5,7 +6,7 @@ export interface Battle {
     isOnline: boolean;
     battleOptions: BattleOptions;
     me: Player;
-    teams: Record<string, Array<Player | Bot>>;
+    teams: Array<Array<Player | Bot>>;
     spectators: Player[];
     started: boolean;
 }
@@ -15,14 +16,22 @@ export interface BattleWithMetadata extends Battle {
     participants: Array<Player | Bot>;
 }
 
+export type GameMode = {
+    label: string;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    options: Record<string, any>;
+};
+
 export type BattleOptions = {
     engineVersion?: string;
     gameVersion?: string;
-    mapScriptName?: string;
-    startPosType: StartPosType;
-    startBoxes: Record<number, StartBox>;
-    gameOptions: Record<string, string | number | boolean>;
-    mapOptions: Record<string, string | number | boolean>;
+    gameMode: GameMode;
+    map?: MapData;
+    mapOptions: {
+        startPosType: StartPosType;
+        startBoxesIndex?: number;
+        fixedPositionsIndex?: number;
+    };
     restrictions: Restriction[];
 };
 
@@ -80,6 +89,7 @@ export type Restriction = {
 
 export type Player = {
     id: number;
+    name: string;
     user: User;
     contentSyncState: {
         engine: number;
@@ -99,7 +109,7 @@ export type Player = {
 export type Bot = {
     id: number;
     ownerUserId: number;
-    aiShortName: string; // TODO: point directly to AI obj and object.freeze it?
+    aiShortName: string;
     name: string;
     aiOptions: Record<string, unknown>;
 

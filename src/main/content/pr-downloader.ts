@@ -9,7 +9,6 @@ import { engineContentAPI } from "./engine/engine-content";
 import { logger } from "@main/utils/logger";
 import { CONTENT_PATH } from "@main/config/app";
 import { DEFAULT_ENGINE_VERSION } from "@main/config/default-versions";
-import { mapFileNameToFriendlyName } from "@main/content/maps/map-data";
 
 const log = logger("pr-downloader.ts");
 
@@ -67,7 +66,7 @@ export abstract class PrDownloaderAPI<T> extends AbstractContentAPI<T> {
                             if (!downloadInfo) {
                                 downloadInfo = {
                                     type,
-                                    name: type === "map" ? mapFileNameToFriendlyName(name) : name, // ridiculous hack to somewhat have a match between a file name, a scriptname and a prd progress message
+                                    name,
                                     currentBytes: 0,
                                     totalBytes: progress.totalBytes,
                                 };

@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { assign } from "$/jaz-ts-utils/object";
+import { spadsPointsToLTRBPercent } from "@main/content/maps/box-utils";
 import { BattleWithMetadata, isPlayer, StartPosType } from "@main/game/battle/battle-types";
 import { AllyTeam, Bot, Game, Player, Team } from "@main/model/start-script";
 
@@ -16,6 +16,9 @@ class StartScriptConverter {
         if (!battle.isOnline) {
             const script = this.offlineBattleToStartScript(battle);
             scriptStr = this.generateScriptString(script);
+        } else {
+            throw new Error("Online battles are not supported yet");
+            //scriptStr = this.generateOnlineScript(battle);
         }
         return scriptStr;
     }
@@ -43,14 +46,19 @@ class StartScriptConverter {
             };
             allyTeams.push(allyTeam);
 
-            if (battle.battleOptions.startPosType === StartPosType.Boxes) {
-                const box = battle.battleOptions.startBoxes[allyTeam.id];
+            if (battle.battleOptions.mapOptions.startPosType === StartPosType.Boxes) {
+                const startBoxesIndex = battle.battleOptions.mapOptions.startBoxesIndex;
+                const startBoxes = battle.battleOptions.map.startboxesSet[startBoxesIndex].startboxes;
+
+                // X and Y are between 0-200
+                const box = startBoxes[allyTeam.id];
                 if (box) {
-                    assign(allyTeam, {
-                        startrectleft: box.xPercent,
-                        startrecttop: box.yPercent,
-                        startrectright: box.xPercent + box.widthPercent,
-                        startrectbottom: box.yPercent + box.heightPercent,
+                    const { left: startrectleft, top: startrecttop, right: startrectright, bottom: startrectbottom } = spadsPointsToLTRBPercent(box.poly);
+                    Object.assign(allyTeam, {
+                        startrectleft,
+                        startrecttop,
+                        startrectright,
+                        startrectbottom,
                     });
                 } else {
                     console.warn(`Ally team ${allyTeam.id} has no defined start area for this map`);
@@ -112,11 +120,12 @@ class StartScriptConverter {
 
         return {
             gametype: battle.battleOptions.gameVersion,
-            mapname: battle.battleOptions.mapScriptName,
-            modoptions: battle.battleOptions.gameOptions,
+            mapname: battle.battleOptions.map.springName,
+            modoptions: battle.battleOptions.gameMode.options,
+            // mapoptions: battle.battleOptions.???,
             ishost: 1,
             myplayername: battle.me.user.username,
-            startpostype: battle.battleOptions.startPosType,
+            startpostype: battle.battleOptions.mapOptions.startPosType,
             allyTeams,
             teams,
             players,
@@ -245,19 +254,31 @@ class StartScriptConverter {
     protected stringifyScriptObj(obj: Record<string, any>, depth = 1): string {
         let str = "";
         const spacer = " ".repeat(depth * 4);
-
         for (const key in obj) {
             const val = obj[key];
-
             if (typeof val === "object") {
                 str += `\n${spacer}[${key}] {${this.stringifyScriptObj(val, depth + 1)}\n${spacer}}`;
+            } else if (val === true) {
+                str += `\n${spacer}${key}=1;`;
+            } else if (val === false) {
+                str += `\n${spacer}${key}=0;`;
             } else {
                 str += `\n${spacer}${key}=${val};`;
             }
         }
-
         return str;
     }
+
+    //TODO implement online script generation
+    //     protected generateOnlineScript(battle: SpadsBattle) {
+    //         return `[game] {
+    //     hostip = ${battle.battleOptions.ip};
+    //     hostport = ${battle.battleOptions.port};
+    //     ishost = 0;
+    //     mypasswd = ${battle.battleOptions.scriptPassword};
+    //     myplayername = ${api.session.onlineUser.username};
+    // }`;
+    //     }
 }
 
 export const startScriptConverter = new StartScriptConverter();
