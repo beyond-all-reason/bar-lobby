@@ -7,26 +7,29 @@ const { VitePlugin } = require("@electron-forge/plugin-vite");
 const config = {
     packagerConfig: {
         asar: false, // Cannot enable asar, it breaks map parsing
+        icon: "src/main/assets/icon",
     },
     rebuildConfig: {},
     makers: [
         new MakerSquirrel({
             authors: "BAR Team",
             description: "Beyond All Reason Lobby",
+            setupIcon: "src/main/assets/icon.ico",
+            loadingGif: "src/main/assets/BAR_installer.png",
         }),
         new MakerRpm({
             options: {
                 mimeType: ["application/sdfz"],
                 categories: ["Game"],
-                icon: "src/renderer/assets/images/icon.png",
+                icon: "src/main/assets/icon.png",
                 homepage: "https://www.beyondallreason.info/",
                 license: "MIT",
                 name: "bar-lobby",
                 productName: "BAR Lobby",
             },
         }),
-        new MakerDeb({}),
-        new MakerFlatpak({}),
+        new MakerDeb({ options: { icon: "src/main/assets/icon.png" } }),
+        new MakerFlatpak({ options: { icon: "src/main/assets/icon.png" } }),
     ],
     plugins: [
         new VitePlugin({

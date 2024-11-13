@@ -4,7 +4,7 @@
     "version": "0.15.0-alpha.1",
     "private": true,
     "description": "Lobby client for the RTS game Beyond All Reason",
-    "author": "Jazcash <jaspercashmore@gmail.com>",
+    "author": "BAR Team",
     "license": "MIT",
     "repository": {
         "type": "git",
