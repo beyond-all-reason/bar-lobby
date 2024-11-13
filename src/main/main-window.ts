@@ -3,7 +3,7 @@ import path from "path";
 import { settingsService } from "./services/settings.service";
 import { logger } from "./utils/logger";
 import { replayContentAPI } from "@main/content/replays/replay-content";
-import icon from "./assets/icon.png?url"; // vite converts to url ==> data:image/png;base64
+import icon from "@renderer/assets/images/icon.png?url"; // vite converts to url ==> data:image/png;base64
 
 declare const MAIN_WINDOW_VITE_DEV_SERVER_URL: string;
 declare const MAIN_WINDOW_VITE_NAME: string;
