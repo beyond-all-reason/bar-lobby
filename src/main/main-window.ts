@@ -3,9 +3,7 @@ import path from "path";
 import { settingsService } from "./services/settings.service";
 import { logger } from "./utils/logger";
 import { replayContentAPI } from "@main/content/replays/replay-content";
-
-declare const MAIN_WINDOW_VITE_DEV_SERVER_URL: string;
-declare const MAIN_WINDOW_VITE_NAME: string;
+import icon from "/resources/icon.png?asset";
 
 const log = logger("main-window");
 
@@ -16,13 +14,14 @@ export function createWindow() {
     const mainWindow = new BrowserWindow({
         title: "Beyond All Reason",
         fullscreen: settings.fullscreen,
+        icon,
         frame: true,
         show: true,
         minWidth: 1440,
         minHeight: 900,
         paintWhenInitiallyHidden: true,
         webPreferences: {
-            preload: path.join(__dirname, "../build/preload.js"),
+            preload: path.join(__dirname, "../preload/preload.js"),
         },
     });
     process.env.MAIN_WINDOW_ID = mainWindow.id.toString();
@@ -30,6 +29,12 @@ export function createWindow() {
     log.debug("Settings: ", settings);
 
     mainWindow.once("ready-to-show", () => {
+        // Open the DevTools.
+        if (process.env.NODE_ENV === "development") {
+            log.debug(`NODE_ENV is development, opening dev tools`);
+            mainWindow.webContents.openDevTools();
+        }
+
         mainWindow.setMenuBarVisibility(false);
         mainWindow.show();
         mainWindow.focus();
@@ -45,16 +50,16 @@ export function createWindow() {
     });
 
     // and load the index.html of the app.
-    if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
-        mainWindow.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL);
-    } else {
-        mainWindow.loadFile(path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`));
-    }
+    // if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
+    //     mainWindow.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL);
+    // } else {
+    //     mainWindow.loadFile(path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`));
+    // }
 
-    // Open the DevTools.
-    if (process.env.NODE_ENV === "development") {
-        log.debug(`NODE_ENV is development, opening dev tools`);
-        mainWindow.webContents.openDevTools();
+    if (!app.isPackaged && process.env["ELECTRON_RENDERER_URL"]) {
+        mainWindow.loadURL(process.env["ELECTRON_RENDERER_URL"]);
+    } else {
+        mainWindow.loadFile(path.join(__dirname, "../renderer/index.html"));
     }
 
     mainWindow.on("restore", () => mainWindow.flashFrame(false));

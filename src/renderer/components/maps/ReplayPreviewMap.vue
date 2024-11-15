@@ -14,9 +14,9 @@
                     class="start-pos"
                 >
                     <div class="start-pos-tooltip">
-                        <img v-if="player.faction === 'Armada'" src="/src/renderer/assets/images/factions/armada_faction.png" />
-                        <img v-else-if="player.faction === 'Cortex'" src="/src/renderer/assets/images/factions/cortex_faction.png" />
-                        <img v-else src="/src/renderer/assets/images/factions/unknown_faction.png" />
+                        <img v-if="player.faction === 'Armada'" src="/assets/images/factions/armada_faction.png" />
+                        <img v-else-if="player.faction === 'Cortex'" src="/assets/images/factions/cortex_faction.png" />
+                        <img v-else src="/assets/images/factions/unknown_faction.png" />
                         <span>{{ player.name }}</span>
                     </div>
                 </div>

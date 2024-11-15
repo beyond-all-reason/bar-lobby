@@ -1,7 +1,7 @@
 import path from "path";
 import { Worker } from "worker_threads";
 
-const worker = new Worker(path.join(__dirname, "map-image-worker.cjs"));
+const worker = new Worker(path.join(__dirname, "map-image-worker.js"));
 
 const jobs = new Map<
     string,

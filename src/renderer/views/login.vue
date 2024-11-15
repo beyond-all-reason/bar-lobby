@@ -4,7 +4,7 @@
 
 <template>
     <div class="container">
-        <img ref="logo" class="logo" src="/src/renderer/assets/images/BARLogoFull.png" />
+        <img ref="logo" class="logo" src="/assets/images/BARLogoFull.png" />
         <div v-if="connecting" class="relative">
             <Loader></Loader>
         </div>

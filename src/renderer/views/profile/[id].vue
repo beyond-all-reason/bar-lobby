@@ -17,7 +17,7 @@ TODO:
         <div class="warn-message">not a real profile stats, TODO replace with api</div>
         <div v-if="user">
             <div class="profile-header">
-                <img ref="logo" class="avatar" src="/src/renderer/assets/images/BARLogoFull.png" />
+                <img ref="logo" class="avatar" src="/assets/images/BARLogoFull.png" />
                 <div class="profile-user-info">
                     <h2 class="flex-row gap-lg">
                         <Flag :countryCode="user.countryCode" style="width: 50px" />

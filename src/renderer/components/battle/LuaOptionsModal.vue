@@ -93,7 +93,7 @@ const props = defineProps<{
 const options = ref(props.options);
 
 const emit = defineEmits<{
-    (event: "set-options", options: Record<string, unknown>): void;
+    (event: "set-options", options: Record<string, boolean | string | number>): void;
 }>();
 
 const modal: Ref<null | InstanceType<typeof Modal>> = ref(null);

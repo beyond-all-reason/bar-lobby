@@ -28,16 +28,16 @@
                     <h4>Custom boxes</h4>
                     <div class="box-buttons">
                         <Button>
-                            <img src="/src/renderer/assets/images/icons/east-vs-west.png" />
+                            <img src="/assets/images/icons/east-vs-west.png" />
                         </Button>
                         <Button>
-                            <img src="/src/renderer/assets/images/icons/north-vs-south.png" />
+                            <img src="/assets/images/icons/north-vs-south.png" />
                         </Button>
                         <Button>
-                            <img src="/src/renderer/assets/images/icons/northeast-vs-southwest.png" />
+                            <img src="/assets/images/icons/northeast-vs-southwest.png" />
                         </Button>
                         <Button>
-                            <img src="/src/renderer/assets/images/icons/northwest-vs-southeast.png" />
+                            <img src="/assets/images/icons/northwest-vs-southeast.png" />
                         </Button>
                     </div>
                     <div class="box-buttons">

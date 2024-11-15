@@ -2,7 +2,10 @@ import { Replay } from "@main/content/replays/replay";
 import path from "path";
 import { Worker } from "worker_threads";
 
-const worker = new Worker(path.join(__dirname, "parse-replay-worker.cjs"));
+const worker = new Worker(path.join(__dirname, "parse-replay-worker.js"));
+
+// import createWorker from "parse-replay-worker?nodeWorker";
+// const worker = createWorker({ workerData: "worker" });
 
 const jobs = new Map<
     string,

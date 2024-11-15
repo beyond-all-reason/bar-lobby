@@ -2,7 +2,7 @@
     <div class="nav" :class="{ hidden }">
         <div class="logo">
             <Button to="/home">
-                <img src="/src/renderer/assets/images/logo.svg" />
+                <img src="@renderer/assets/images/logo.svg" />
             </Button>
         </div>
         <div class="flex-col flex-grow">
@@ -187,7 +187,7 @@ const serverOffline = true;
         content: "";
         z-index: -1;
         opacity: 0.2;
-        background-image: url("/src/renderer/assets/images/squares.png");
+        background-image: url("@renderer/assets/images/squares.png");
     }
 }
 .logo {

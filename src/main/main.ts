@@ -1,4 +1,6 @@
 import { app, ipcMain, net, protocol, safeStorage, session } from "electron";
+import path from "path";
+import url from "url";
 
 import { createWindow } from "@main/main-window";
 import { settingsService } from "./services/settings.service";
@@ -9,13 +11,11 @@ import mapsService from "./services/maps.service";
 import gameService from "./services/game.service";
 import { logger } from "./utils/logger";
 import { APP_NAME, CONTENT_PATH } from "./config/app";
-import url from "url";
 import { shellService } from "@main/services/shell.service";
 import downloadsService from "@main/services/downloads.service";
 import replaysService from "@main/services/replays.service";
 import { miscService } from "@main/services/news.service";
 import { replayContentAPI } from "@main/content/replays/replay-content";
-import path from "path";
 import electronSquirrelStartup from "@main/utils/electron-squirrel-startup";
 
 if (electronSquirrelStartup) {
@@ -65,6 +65,7 @@ function registerBarFileProtocol() {
             return net.fetch(url.pathToFileURL(resolvedFilePath).toString());
         } catch (err) {
             log.error(err);
+            // throw new Error(`Unable to access file`);
         }
     });
 }
