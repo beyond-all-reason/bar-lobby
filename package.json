@@ -14,6 +14,7 @@
     "scripts": {
         "start": "cross-env NODE_OPTIONS=--enable-source-maps electron-forge start",
         "package": "electron-forge package",
+        "preview": "electron-forge package && electron .",
         "build:win": "electron-builder --config electron-builder.config.ts --win",
         "build:linux": "electron-builder --config electron-builder.config.ts --linux",
         "build:unpack": "electron-builder --config electron-builder.config.ts --dir",

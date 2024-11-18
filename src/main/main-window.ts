@@ -5,8 +5,6 @@ import { logger } from "./utils/logger";
 import { replayContentAPI } from "@main/content/replays/replay-content";
 import icon from "@main/resources/icon.png";
 
-console.log("ICON", icon);
-
 declare const MAIN_WINDOW_VITE_DEV_SERVER_URL: string;
 declare const MAIN_WINDOW_VITE_NAME: string;
 

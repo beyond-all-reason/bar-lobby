@@ -98,6 +98,10 @@ npm run dev
     -   Runs `electron-forge` in `production` mode
     -   **renderer** us bundled to `.vite/renderer`
     -   **main** and **preload** are bundled to `.vite/build`
+-   `npm run preview`
+    -   Runs `electron-forge` in `production` mode, and runs electron
+    -   **main**, **preload**, and **renderer** are bundled to `.vite/build`
+    -   This is useful for validating the `production` build without packaging the app
 -   `npm run build:win`
     -   Runs `npm run build` and `electron-builder`, building for Windows
     -   Outputs NSIS installer in `dist`
