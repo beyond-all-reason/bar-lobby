@@ -14,7 +14,7 @@
 import { computed } from "vue";
 import { useImageBlobUrlCache } from "@renderer/composables/useImageBlobUrlCache";
 import { MapData } from "@main/content/maps/map-data";
-import defaultMiniMap from "/assets/images/default-minimap.png?url";
+import defaultMiniMap from "/src/renderer/assets/images/default-minimap.png?url";
 
 const props = defineProps<{
     map: MapData;

@@ -10,8 +10,8 @@
         "type": "git",
         "url": "git+https://github.com/beyond-all-reason/bar-lobby.git"
     },
-    "main3": ".vite/build/main.cjs",
-    "main": "out/main/main.js",
+    "main": ".vite/build/main.cjs",
+    "main2": "out/main/main.js",
     "scripts": {
         "start": "cross-env NODE_OPTIONS=--enable-source-maps electron-forge start",
         "package": "electron-forge package",

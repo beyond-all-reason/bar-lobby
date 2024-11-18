@@ -1,8 +1,8 @@
 * {
-    cursor: url("/assets/images/cursor_default.png"), auto !important;
+    cursor: url("/src/renderer/assets/images/cursor_default.png"), auto !important;
     a,
     button {
-        cursor: url("/assets/images/cursor_pointer.png"), pointer !important;
+        cursor: url("/src/renderer/assets/images/cursor_pointer.png"), pointer !important;
     }
     &::-webkit-scrollbar {
         width: 10px;
