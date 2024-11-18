@@ -64,51 +64,51 @@ npm run dev
 └──...
 ```
 
-- [**Main process**](https://www.electronjs.org/docs/latest/tutorial/process-model#the-main-process)
-  - Runs in a Node.js environment and has access to Node.js APIs
-  - Anything requiring access to the operating system or Node.js APIs needs to live here
-- [**Preload script**](https://www.electronjs.org/docs/latest/tutorial/process-model#preload-scripts)
-  - Runs in a Node.js environment
-  - Defines global objects that can be used in the renderer
-  - Handles communication between the main and renderer processes
-    - Uses Electron's ipcMain and ipcRenderer modules for inter-process communication (IPC).
-- [**Renderer process**](https://www.electronjs.org/docs/latest/tutorial/process-model#the-renderer-process)
-  - Runs in a web environment and has **no** direct access to Node.js APIs
+-   [**Main process**](https://www.electronjs.org/docs/latest/tutorial/process-model#the-main-process)
+    -   Runs in a Node.js environment and has access to Node.js APIs
+    -   Anything requiring access to the operating system or Node.js APIs needs to live here
+-   [**Preload script**](https://www.electronjs.org/docs/latest/tutorial/process-model#preload-scripts)
+    -   Runs in a Node.js environment
+    -   Defines global objects that can be used in the renderer
+    -   Handles communication between the main and renderer processes
+        -   Uses Electron's ipcMain and ipcRenderer modules for inter-process communication (IPC).
+-   [**Renderer process**](https://www.electronjs.org/docs/latest/tutorial/process-model#the-renderer-process)
+    -   Runs in a web environment and has **no** direct access to Node.js APIs
 
 ### Build & Publish:
 
-- [`electron-vite`](https://electron-vite.org/guide/introduction)
-  - Builds the app with a pre-configured Vite setup for Electron apps
-  - This intentionally does not include `electron` or any other `node_modules` dependencies in the build
-    - Dependencies get added to the package by `electron-builder` with ASAR
-    - Note: apps that only have CJS exports need to be included in the build, e.g. `glob-promise`
-- [`electron-builder`](https://www.electron.build/)
-  - Packages Electron app for distribution
-    - Configured for Windows NSIS installer and Linux AppImage
-  - Handles publishing updates
-    - Auto-updates TBD
+-   [`electron-vite`](https://electron-vite.org/guide/introduction)
+    -   Builds the app with a pre-configured Vite setup for Electron apps
+    -   This intentionally does not include `electron` or any other `node_modules` dependencies in the build
+        -   Dependencies get added to the package by `electron-builder` with ASAR
+        -   Note: apps that only have CJS exports need to be included in the build, e.g. `glob-promise`
+-   [`electron-builder`](https://www.electron.build/)
+    -   Packages Electron app for distribution
+        -   Configured for Windows NSIS installer and Linux AppImage
+    -   Handles publishing updates
+        -   Auto-updates TBD
 
 ### Commands
 
-- `npm start`
-  - Runs `electron-forge` in `development` mode
-  - **renderer** runs with Hot Module Replacement (HMR)
-  - **main** and **preload** are directly bundled to `.vite/build`
-- `npm run package`
-  - Runs `electron-forge` in `production` mode
-  - **renderer** us bundled to `.vite/renderer`
-  - **main** and **preload** are bundled to `.vite/build`
-- `npm run build:win`
-  - Runs `npm run build` and `electron-builder`, building for Windows
-  - Outputs NSIS installer in `dist`
-- `npm run build:linux`
-  - Runs `npm run build` and `electron-builder`, building for Linux
-  - Outputs AppImage executable in `dist`
-- `npm run build:unpack`
-  - Runs `npm run build` and `electron-builder`, building an unpackaged directory
-  - Outputs the unpacked contents in `dist`
-  - Useful for testing
-- `npm run dev-cert` (optional and only for Windows development)
-  - Runs `electron-builder` to create a self-signed cert for Windows apps.
-  - After selecting "None" in the pop-up, a cert file should be created called `BAR Team.pfx`
-  - Then run `npm run build:win:dev-cert` to build a signed Windows installer
+-   `npm start`
+    -   Runs `electron-forge` in `development` mode
+    -   **renderer** runs with Hot Module Replacement (HMR)
+    -   **main** and **preload** are directly bundled to `.vite/build`
+-   `npm run package`
+    -   Runs `electron-forge` in `production` mode
+    -   **renderer** us bundled to `.vite/renderer`
+    -   **main** and **preload** are bundled to `.vite/build`
+-   `npm run build:win`
+    -   Runs `npm run build` and `electron-builder`, building for Windows
+    -   Outputs NSIS installer in `dist`
+-   `npm run build:linux`
+    -   Runs `npm run build` and `electron-builder`, building for Linux
+    -   Outputs AppImage executable in `dist`
+-   `npm run build:unpack`
+    -   Runs `npm run build` and `electron-builder`, building an unpackaged directory
+    -   Outputs the unpacked contents in `dist`
+    -   Useful for testing
+-   `npm run dev-cert` (optional and only for Windows development)
+    -   Runs `electron-builder` to create a self-signed cert for Windows apps.
+    -   After selecting "None" in the pop-up, a cert file should be created called `BAR Team.pfx`
+    -   Then run `npm run build:win:dev-cert` to build a signed Windows installer
