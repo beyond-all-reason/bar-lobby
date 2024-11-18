@@ -17,7 +17,7 @@ const config: Configuration = {
     directories: { buildResources: "buildResources" },
     asarUnpack: ["resources/**"],
 
-    publish: { provider: "generic", url: "https://example.com/auto-updates" },
+    publish: { provider: "github" },
     fileAssociations: [
         {
             ext: "sdfz",
