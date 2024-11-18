@@ -4,12 +4,11 @@
     "compilerOptions": {
         "strict": false,
         "composite": true,
-        "types": ["electron-vite/node", "node"],
+        "types": ["node"],
         "baseUrl": ".",
         "paths": {
             "@main/*": ["src/main/*"],
             "@preload/*": ["src/preload/*"],
-            // "@renderer/*": ["src/renderer/*"], // TODO: Remove references to renderer
             "$/*": ["vendor/*"]
         },
 

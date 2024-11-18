@@ -13,7 +13,6 @@ export default defineConfig({
             $: path.join(__dirname, "vendor"),
         },
     },
-    publicDir: "resources",
     build: {
         rollupOptions: {
             input: {

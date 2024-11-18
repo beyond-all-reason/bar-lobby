@@ -90,19 +90,14 @@ npm run dev
 
 ### Commands
 
-- `npm run dev` or `npm start`
-  - Runs `electron-vite` in `development` mode
+- `npm start`
+  - Runs `electron-forge` in `development` mode
   - **renderer** runs with Hot Module Replacement (HMR)
-  - **main** and **preload** are directly bundled to `out`
-    - Run as `npm run dev -- --watch` to [enable Hot Reloading](https://electron-vite.org/guide/hot-reloading#enable-hot-reloading) in **main** and **preload**
-- `npm run preview`
-  - Runs `electron-vite` in `production` mode, and runs electron
-  - **main**, **preload**, and **renderer** are bundled to `out`
-  - This is useful for validating the `production` build without packaging the app
-- `npm run build`
-  - Runs `electron-vite` in `production` mode
-  - **main**, **preload**, and **renderer** are bundled to `out`
-  - Also runs TypeScript typechecking
+  - **main** and **preload** are directly bundled to `.vite/build`
+- `npm run package`
+  - Runs `electron-forge` in `production` mode
+  - **renderer** us bundled to `.vite/renderer`
+  - **main** and **preload** are bundled to `.vite/build`
 - `npm run build:win`
   - Runs `npm run build` and `electron-builder`, building for Windows
   - Outputs NSIS installer in `dist`
