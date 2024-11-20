@@ -29,13 +29,13 @@
  * - Easy one click install button
  * - Demo map button that launches a simple offline game on the map
  */
-
 import { Ref, ref } from "vue";
 
 import SearchBox from "@renderer/components/controls/SearchBox.vue";
 import Select from "@renderer/components/controls/Select.vue";
 import MapOverviewCard from "@renderer/components/maps/MapOverviewCard.vue";
 import { type MapData } from "@main/content/maps/map-data";
+import type { GameType, Terrain } from "@main/content/maps/map-metadata";
 import { db } from "@renderer/store/db";
 import { useDexieLiveQueryWithDeps } from "@renderer/composables/useDexieLiveQuery";
 import { mapsStore } from "@renderer/store/maps.store";
@@ -68,16 +68,8 @@ useInfiniteScroll(
 
 const maps = useDexieLiveQueryWithDeps([searchVal, sortMethod, limit, filters], () => {
     const { terrain, gameType } = filters;
-    const terrainFilters = new Set([
-        ...Object.entries(terrain)
-            .filter(([_, v]) => v)
-            .map(([k]) => k),
-    ]);
-    const gameTypeFilters = new Set([
-        ...Object.entries(gameType)
-            .filter(([_, v]) => v)
-            .map(([k]) => k),
-    ]);
+    const terrainFilters = new Set([...(<Terrain[]>Object.keys(terrain)).filter((key) => !!terrain[key]).map((k) => k)]);
+    const gameTypeFilters = new Set([...(<GameType[]>Object.keys(gameType)).filter((key) => gameType[key]).map((k) => k)]);
     return db.maps
         .filter(
             (map) =>

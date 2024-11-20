@@ -60,7 +60,6 @@ import type { MapData } from "@main/content/maps/map-data";
 import Panel from "@renderer/components/common/Panel.vue";
 import MapFiltersComponent from "@renderer/components/maps/MapFiltersComponent.vue";
 import MapListComponent from "@renderer/components/maps/MapListComponent.vue";
-import { ref } from "vue";
 import { useRouter } from "vue-router";
 const router = useRouter();
 async function onMapSelected(map: MapData) {

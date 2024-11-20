@@ -1,6 +1,11 @@
 <template>
     <div class="game-type-container gap-md">
-        <IconFilterCheckbox v-for="gameType in gameTypeOptions" v-model:checked="gameTypeFilters[gameType]" class="game-type-option">
+        <IconFilterCheckbox
+            v-for="gameType in gameTypeOptions"
+            v-model:checked="gameTypeFilters[gameType]"
+            v-bind:key="gameType"
+            class="game-type-option"
+        >
             <div>{{ /^\D.*/.test(gameType) ? gameType.toUpperCase() : gameType }}</div>
         </IconFilterCheckbox>
     </div>

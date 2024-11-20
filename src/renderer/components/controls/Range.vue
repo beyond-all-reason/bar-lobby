@@ -39,7 +39,7 @@ import Slider, { type SliderProps } from "primevue/slider";
 
 import Control from "@renderer/components/controls/Control.vue";
 
-export interface Props extends SliderProps {}
+export type Props = SliderProps;
 
 const props = defineProps<Props>();
 const emits = defineEmits<{

@@ -29,7 +29,13 @@ export default [
         rules: {
             "vue/multi-word-component-names": "off",
             "@typescript-eslint/no-unused-vars": "warn",
-            "@typescript-eslint/no-unused-expressions": "warn",
+            "@typescript-eslint/no-unused-expressions": [
+                "warn",
+                {
+                    allowShortCircuit: true,
+                    allowTernary: true,
+                },
+            ],
             "@typescript-eslint/no-explicit-any": "warn",
             "@typescript-eslint/no-non-null-asserted-optional-chain": "warn",
             "@typescript-eslint/no-unsafe-function-type": "warn",

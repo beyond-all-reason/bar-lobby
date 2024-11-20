@@ -1,18 +1,18 @@
 <template>
     <div class="flex-col gap-md">
         <div class="terrain-container gap-md">
-            <IconFilterCheckbox v-for="terrain in terrainOptions" v-model:checked="terrainFilters[terrain]">
+            <IconFilterCheckbox v-for="terrain in terrainOptions" v-model:checked="terrainFilters[terrain]" v-bind:key="terrain">
                 <TerrainIcon :terrain="terrain" class="lg" />
             </IconFilterCheckbox>
         </div>
         <div class="flex-row gap-md">
             <div class="terrain-container water gap-md">
-                <IconFilterCheckbox v-for="terrain in waterOptions" v-model:checked="terrainFilters[terrain]">
+                <IconFilterCheckbox v-for="terrain in waterOptions" v-model:checked="terrainFilters[terrain]" v-bind:key="terrain">
                     <TerrainIcon :terrain="terrain" class="lg" />
                 </IconFilterCheckbox>
             </div>
             <div class="terrain-container layout gap-md">
-                <IconFilterCheckbox v-for="terrain in layoutOptions" v-model:checked="terrainFilters[terrain]">
+                <IconFilterCheckbox v-for="terrain in layoutOptions" v-model:checked="terrainFilters[terrain]" v-bind:key="terrain">
                     <TerrainIcon :terrain="terrain" class="lg" />
                 </IconFilterCheckbox>
             </div>

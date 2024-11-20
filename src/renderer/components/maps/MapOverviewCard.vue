@@ -11,7 +11,7 @@
             </div>
         </div>
         <div class="attributes br flex-row gap-sm">
-            <TerrainIcon v-for="terrain in map?.terrain" :terrain="terrain" />
+            <TerrainIcon v-for="terrain in map?.terrain" :terrain="terrain" v-bind:key="terrain" />
         </div>
     </div>
 </template>
