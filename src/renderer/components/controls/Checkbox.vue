@@ -50,7 +50,7 @@ function onClick() {
     align-items: center;
     justify-content: center;
     min-height: 33px;
-    max-width: 33px;
+    max-height: 33px;
     max-width: 33px;
     min-width: 33px;
 }
