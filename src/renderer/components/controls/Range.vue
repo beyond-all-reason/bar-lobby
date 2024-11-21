@@ -1,46 +1,65 @@
 <template>
     <Control class="range">
-        <Slider ref="slider" v-bind="$attrs" :modelValue="modelValue" @update:model-value="onSlide" />
-        <InputNumber v-if="typeof modelValue === 'number'" v-bind="$attrs" :modelValue="modelValue" @update:model-value="onInput" />
+        <InputNumber
+            v-if="range"
+            v-bind="$attrs"
+            :modelValue="low"
+            @update:modelValue="(input: number) => onInput([input, high])"
+            class="min"
+        />
+        <Slider v-bind="$props" :modelValue="modelValue" @update:modelValue="onSlide" />
+        <InputNumber
+            v-bind="$attrs"
+            :modelValue="typeof modelValue === 'number' ? modelValue : high"
+            @update:modelValue="typeof modelValue === 'number' ? onInput : (input: number) => onInput([low, input])"
+            class="max"
+        />
+        <!-- <InputNumber
+            v-if="!range && typeof modelValue === 'number'"
+            v-bind="$attrs"
+            :modelValue="typeof modelValue === 'number' ? modelValue : high"
+            @update:modelValue="onInput"
+            class="max"
+        />
+        <InputNumber
+            v-if="range"
+            v-bind="$attrs"
+            :modelValue="high"
+            @update:modelValue="(input: number) => onInput([low, input])"
+            class="max"
+        /> -->
     </Control>
 </template>
 
 <script lang="ts" setup>
-// https://primefaces.org/primevue/slider
-
+import { computed } from "vue";
+// https://v3.primevue.org/slider/
 import InputNumber from "primevue/inputnumber";
-import Slider, { SliderProps } from "primevue/slider";
-import { computed, onMounted, Ref, ref } from "vue";
+import Slider, { type SliderProps } from "primevue/slider";
 
 import Control from "@renderer/components/controls/Control.vue";
 
-export interface Props extends SliderProps {
-    modelValue: number | number[] | undefined;
-}
+export type Props = SliderProps;
 
-defineProps<Props>();
+const props = defineProps<Props>();
 const emits = defineEmits<{
     (event: "update:modelValue", value: number | number[]): void;
 }>();
 
-const slider: Ref<null | Props> = ref(null);
-const max = ref(100);
-const maxInputWidth = computed(() => `${max.value.toString().length + 1}ch`);
+const low = computed(() => (props.modelValue instanceof Array ? props.modelValue[0] : null));
+const high = computed(() => (props.modelValue instanceof Array ? props.modelValue[1] : null));
 
-onMounted(() => {
-    if (slider.value?.max) {
-        max.value = slider.value?.max;
-    }
-});
+const min = computed<number>(() => props?.min ?? 0);
+const minInputWidth = computed(() => `${min.value.toString().length + 1}ch`);
+const max = computed<number>(() => props?.max ?? 100);
+const maxInputWidth = computed(() => `${max.value.toString().length + 1}ch`);
 
 function onSlide(input: number | number[]) {
     emits("update:modelValue", input);
 }
 
 function onInput(input: number | number[]) {
-    if (typeof input === "number" && !Array.isArray(input)) {
-        emits("update:modelValue", input);
-    }
+    emits("update:modelValue", input);
 }
 </script>
 
@@ -85,7 +104,11 @@ function onInput(input: number | number[]) {
         background-color: #fff;
     }
 }
-:deep(.p-inputtext) {
+.min :deep(.p-inputtext) {
+    width: v-bind(minInputWidth);
+    text-align: center;
+}
+.max :deep(.p-inputtext) {
     width: v-bind(maxInputWidth);
     text-align: center;
 }
@@ -101,6 +124,10 @@ function onInput(input: number | number[]) {
         content: "";
         top: 0;
         background: rgba(255, 255, 255, 0.1);
+    }
+    &.min:before {
+        left: unset;
+        right: 0;
     }
 }
 </style>

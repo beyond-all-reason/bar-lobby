@@ -4,8 +4,14 @@
         <div class="name">
             {{ map?.displayName }}
         </div>
-        <div class="attributes">
-            <div>{{ mapSize }}</div>
+        <div class="attributes bl">
+            <div class="flex-row flex-center-items gap-sm"><Icon :icon="gridIcon" />{{ mapSize }}</div>
+            <div class="flex-row flex-center-items gap-sm">
+                <Icon :icon="personIcon" />{{ map?.playerCountMin }} - {{ map?.playerCountMax }}
+            </div>
+        </div>
+        <div class="attributes br flex-row gap-sm">
+            <TerrainIcon v-for="terrain in map?.terrain" :terrain="terrain" v-bind:key="terrain" />
         </div>
     </div>
 </template>
@@ -15,6 +21,10 @@ import defaultMiniMap from "/src/renderer/assets/images/default-minimap.png?url"
 import { computed } from "vue";
 import { useImageBlobUrlCache } from "@renderer/composables/useImageBlobUrlCache";
 import { MapData } from "@main/content/maps/map-data";
+import TerrainIcon from "@renderer/components/maps/filters/TerrainIcon.vue";
+import { Icon } from "@iconify/vue/dist/iconify.js";
+import personIcon from "@iconify-icons/mdi/person-multiple";
+import gridIcon from "@iconify-icons/mdi/grid";
 
 const props = defineProps<{
     map: MapData;
@@ -99,13 +109,20 @@ const imageUrl = computed(() =>
 }
 .attributes {
     position: absolute;
-    bottom: 10px;
-    left: 10px;
     border: 1px solid rgba(0, 0, 0, 0.1);
     background: rgba(0, 0, 0, 0.2);
     font-size: 16px;
     font-weight: 600;
     padding: 2px 5px;
     transition: 0.2s opacity;
+
+    &.bl {
+        bottom: 10px;
+        left: 10px;
+    }
+    &.br {
+        bottom: 10px;
+        right: 10px;
+    }
 }
 </style>
