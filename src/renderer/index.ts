@@ -16,7 +16,7 @@ import { audioApi } from "@renderer/audio/audio";
 import { router } from "@renderer/router";
 import { initPreMountStores } from "@renderer/store/stores";
 
-await setupVue();
+setupVue();
 
 async function setupVue() {
     const app = createApp(App);
