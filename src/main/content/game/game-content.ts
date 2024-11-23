@@ -28,28 +28,7 @@ export class GameContentAPI extends PrDownloaderAPI<GameVersion> {
     public override async init() {
         await this.initLookupTables();
         await this.scanPackagesDir();
-        // TODO handle custom game files .sdd, maybe in another service
-        // const gamesDir = path.join(CONTENT_PATH, "games");
-        // if (fs.existsSync(gamesDir)) {
-        //     const dirs = await fs.promises.readdir(gamesDir);
-        //     log.info(`Found ${dirs.length} game versions`);
-        //     for (const dir of dirs) {
-        //         log.info(`-- Version ${dir}`);
-        //         try {
-        //             const modInfoLua = await fs.promises.readFile(path.join(gamesDir, dir, "modinfo.lua"));
-        //             const modInfo = parseLuaTable(modInfoLua);
-        //             const aiInfoLua = await fs.promises.readFile(path.join(gamesDir, dir, "luaai.lua"));
-        //             const ais = await this.parseAis(aiInfoLua);
-        //             this.installedVersions.push({
-        //                 id: `${modInfo.game} ${modInfo.version}`,
-        //                 dir,
-        //                 ais,
-        //             });
-        //         } catch (err) {
-        //             console.error(err);
-        //         }
-        //     }
-        // }
+        await this.scanLocalGames();
         return this;
     }
 
@@ -91,6 +70,33 @@ export class GameContentAPI extends PrDownloaderAPI<GameVersion> {
         this.installedVersions.forEach((version) => {
             log.info(`-- ${version.gameVersion}`);
         });
+    }
+
+    // Load local/custom game files from .sdd folders in the games directory
+    protected async scanLocalGames() {
+        const gamesDir = path.join(CONTENT_PATH, "games");
+        if (fs.existsSync(gamesDir)) {
+            const allfiles = await fs.promises.readdir(gamesDir, { withFileTypes: true });
+            const dirs = allfiles.filter((file) => (file.isDirectory() || file.isSymbolicLink()) && file.name.endsWith(".sdd"));
+            log.info(`Found ${dirs.length} local game versions`);
+            for (const dir of dirs) {
+                log.info(`-- Version ${dir.name}`);
+                try {
+                    const modOptionsLua = await fs.promises.readFile(path.join(gamesDir, dir.name, "modoptions.lua"));
+                    const luaOptionSections = parseLuaOptions(modOptionsLua);
+                    const aiInfoLua = await fs.promises.readFile(path.join(gamesDir, dir.name, "luaai.lua"));
+                    const ais = await this.parseAis(aiInfoLua);
+                    this.installedVersions.push({
+                        gameVersion: dir.name,
+                        packageMd5: dir.name, // kinda hacky since this doesn't have a packageMd5
+                        luaOptionSections,
+                        ais,
+                    });
+                } catch (err) {
+                    console.error(err);
+                }
+            }
+        }
     }
 
     public override isVersionInstalled(version: string) {
@@ -180,28 +186,30 @@ export class GameContentAPI extends PrDownloaderAPI<GameVersion> {
     protected async getGameFiles(packageMd5: string, filePattern: string, parseData?: false): Promise<SdpFileMeta[]>;
     protected async getGameFiles(packageMd5: string, filePattern: string, parseData?: true): Promise<SdpFile[]>;
     protected async getGameFiles(packageMd5: string, filePattern: string, parseData = false): Promise<SdpFileMeta[] | SdpFile[]> {
-        // TODO this is for custom games
-        // if ("dir" in version) {
-        //     const sdpFiles: Array<SdpFileMeta & { data?: Buffer }> = [];
-        //     const customGameDir = path.join(CONTENT_PATH, "games", version.dir);
-        //     const files = await glob.promise(path.join(customGameDir, filePattern), { windowsPathsNoEscape: true });
-        //     for (const file of files) {
-        //         const sdpData = {
-        //             archivePath: file,
-        //             fileName: path.parse(file).base,
-        //             crc32: "",
-        //             md5: "",
-        //             filesizeBytes: 0,
-        //         };
-        //         if (parseData) {
-        //             const data = await fs.promises.readFile(file);
-        //             sdpFiles.push({ ...sdpData, data });
-        //         } else {
-        //             sdpFiles.push(sdpData);
-        //         }
-        //     }
-        //     return sdpFiles;
-        // }
+        // Custom game versions are stored in the games directory
+        if (packageMd5.endsWith(".sdd")) {
+            const gameDirName = packageMd5;
+            const sdpFiles: Array<SdpFileMeta & { data?: Buffer }> = [];
+            const customGameDir = path.join(CONTENT_PATH, "games", gameDirName);
+            const files = await glob.promise(path.join(customGameDir, filePattern), { windowsPathsNoEscape: true });
+            for (const file of files) {
+                const sdpData = {
+                    archivePath: file,
+                    fileName: path.parse(file).base,
+                    crc32: "",
+                    md5: "",
+                    filesizeBytes: 0,
+                };
+                if (parseData) {
+                    const data = await fs.promises.readFile(file);
+                    sdpFiles.push({ ...sdpData, data });
+                } else {
+                    sdpFiles.push(sdpData);
+                }
+            }
+            return sdpFiles;
+        }
+        // Normal game versions are stored in the packages directory
         const sdpFileName = `${packageMd5}.sdp`;
         const filePath = path.join(CONTENT_PATH, "packages", sdpFileName);
         const sdpEntries = await this.parseSdpFile(filePath, filePattern);
