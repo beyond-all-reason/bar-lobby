@@ -23,6 +23,25 @@
         <Button @click="openStartScript"> Open Latest Start Script </Button>
         <Button @click="openSyncLobbyContentTool"> Sync Lobby Content Tool </Button>
 
+        <Select
+            :modelValue="gameStore.selectedGameVersion"
+            :options="gameListOptions"
+            optionLabel="gameVersion"
+            label="Game"
+            :filter="true"
+            @update:model-value="onGameSelected"
+        />
+
+        <Select
+            :modelValue="enginesStore.selectedEngineVersion"
+            :options="engineListOptions"
+            optionLabel="id"
+            label="Engine"
+            :filter="true"
+            class="fullwidth"
+            @update:model-value="onEngineSelected"
+        />
+
         <SyncDataDirsDialog v-model="syncLobbyContentToolOpen" />
     </div>
 </template>
@@ -36,6 +55,12 @@ import { useRouter } from "vue-router";
 import Button from "@renderer/components/controls/Button.vue";
 import Select from "@renderer/components/controls/Select.vue";
 import SyncDataDirsDialog from "@renderer/components/misc/SyncDataDirsDialog.vue";
+import { useDexieLiveQuery } from "@renderer/composables/useDexieLiveQuery";
+import { db } from "@renderer/store/db";
+import { gameStore } from "@renderer/store/game.store";
+import { enginesStore } from "@renderer/store/engine.store";
+import { EngineVersion } from "@main/content/engine/engine-version";
+import { GameVersion } from "@main/content/game/game-version";
 
 const active = ref(false);
 const syncLobbyContentToolOpen = ref(false);
@@ -43,6 +68,17 @@ const syncLobbyContentToolOpen = ref(false);
 const router = useRouter();
 const routes = router.getRoutes().sort((a, b) => a.path.localeCompare(b.path));
 const currentRoute = router.currentRoute;
+
+const gameListOptions = useDexieLiveQuery(() => db.gameVersions.toArray());
+const engineListOptions = useDexieLiveQuery(() => db.engineVersions.toArray());
+
+async function onEngineSelected(engineVersion: EngineVersion) {
+    enginesStore.selectedEngineVersion = engineVersion;
+}
+
+async function onGameSelected(gameVersion: GameVersion) {
+    gameStore.selectedGameVersion = gameVersion;
+}
 
 async function onRouteSelect(newRoute: string) {
     console.log("Navigating to", newRoute);

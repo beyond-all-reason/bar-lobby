@@ -137,45 +137,62 @@ export class GameContentAPI extends PrDownloaderAPI<GameVersion> {
         return this.parseAis(luaai);
     }
 
-    public async getScenarios(): Promise<Scenario[]> {
-        const currentGameVersion = this.installedVersions.at(-1);
-        assert(currentGameVersion, "No current game version found");
-        const scenarioImages = await this.getGameFiles(currentGameVersion.packageMd5, "singleplayer/scenarios/**/*.{jpg,png}", false);
-        const scenarioDefinitions = await this.getGameFiles(currentGameVersion.packageMd5, "singleplayer/scenarios/**/*.lua", true);
-        const cacheDir = path.join(CONTENT_PATH, "scenario-images");
-        await fs.promises.mkdir(cacheDir, { recursive: true });
-        for (const scenarioImage of scenarioImages) {
-            const data = await fs.promises.readFile(scenarioImage.archivePath);
-            const buffer = await gunzip(data);
-            const fileName = path.parse(scenarioImage.fileName).base;
-            await fs.promises.writeFile(path.join(cacheDir, fileName), buffer);
-        }
-        const scenarios: Scenario[] = [];
-        for (const scenarioDefinition of scenarioDefinitions) {
-            try {
-                const scenario = parseLuaTable(scenarioDefinition.data) as Scenario;
-                if (scenario.imagepath) {
-                    log.debug(`Imagepath: ${scenario.imagepath}`);
-                    scenario.imagepath = path.join(cacheDir, scenario.imagepath).replaceAll("\\", "/");
+    public async getScenarios(gameVersion: string): Promise<Scenario[]> {
+        try {
+            const version = this.installedVersions.find((version) => version.gameVersion === gameVersion);
+            assert(version, `No installed version found for game version: ${gameVersion}`);
+            const scenarioImages = await this.getGameFiles(version.packageMd5, "singleplayer/scenarios/**/*.{jpg,png}", false);
+            const scenarioDefinitions = await this.getGameFiles(version.packageMd5, "singleplayer/scenarios/**/*.lua", true);
+            const cacheDir = path.join(CONTENT_PATH, "scenario-images");
+            await fs.promises.mkdir(cacheDir, { recursive: true });
+            for (const scenarioImage of scenarioImages) {
+                let buffer: Buffer;
+                if (scenarioImage.archivePath.endsWith(".gz")) {
+                    const data = await fs.promises.readFile(scenarioImage.archivePath);
+                    buffer = await gunzip(data);
                 } else {
-                    log.warn(`No imagepath for scenario: ${scenario.title}`);
+                    buffer = await fs.promises.readFile(scenarioImage.archivePath);
                 }
-                scenario.summary = scenario.summary.replace(/\[|\]/g, "");
-                scenario.briefing = scenario.briefing.replace(/\[|\]/g, "");
-                scenario.allowedsides = Array.isArray(scenario.allowedsides) && scenario.allowedsides[0] !== "" ? scenario.allowedsides : ["Armada", "Cortext", "Random"];
-                scenario.startscript = scenario.startscript.slice(1, -1);
-                scenarios.push(scenario);
-            } catch (err) {
-                console.error(`error parsing scenario lua file: ${scenarioDefinition.fileName}`, err);
+                const fileName = path.parse(scenarioImage.fileName).base;
+                await fs.promises.writeFile(path.join(cacheDir, fileName), buffer);
             }
+            const scenarios: Scenario[] = [];
+            for (const scenarioDefinition of scenarioDefinitions) {
+                try {
+                    const scenario = parseLuaTable(scenarioDefinition.data) as Scenario;
+                    if (scenario.imagepath) {
+                        log.debug(`Imagepath: ${scenario.imagepath}`);
+                        scenario.imagepath = path.join(cacheDir, scenario.imagepath).replaceAll("\\", "/");
+                    } else {
+                        log.warn(`No imagepath for scenario: ${scenario.title}`);
+                    }
+                    scenario.summary = scenario.summary.replace(/\[|\]/g, "");
+                    scenario.briefing = scenario.briefing.replace(/\[|\]/g, "");
+                    scenario.allowedsides = Array.isArray(scenario.allowedsides) && scenario.allowedsides[0] !== "" ? scenario.allowedsides : ["Armada", "Cortext", "Random"];
+                    scenario.startscript = scenario.startscript.slice(1, -1);
+                    scenarios.push(scenario);
+                } catch (err) {
+                    console.error(`error parsing scenario lua file: ${scenarioDefinition.fileName}`, err);
+                }
+            }
+            scenarios.sort((a, b) => a.index - b.index);
+            return scenarios;
+        } catch (err) {
+            log.error(`Error getting scenarios: ${err}`);
+            return [];
         }
-        scenarios.sort((a, b) => a.index - b.index);
-        return scenarios;
+    }
+
+    public async uninstallVersionById(gameVersion: string) {
+        const version = this.installedVersions.find((version) => version.gameVersion === gameVersion);
+        await this.uninstallVersion(version);
     }
 
     public async uninstallVersion(version: GameVersion) {
         // TODO: Uninstall game version through prd when prd supports it
-        removeFromArray(this.installedVersions, version);
+        assert(!version.packageMd5.endsWith(".sdd"), "Cannot uninstall local/custom game versions");
+        await fs.promises.rm(path.join(CONTENT_PATH, "packages", `${version.packageMd5}.sdp`));
+        this.installedVersions = this.installedVersions.filter((version) => version.packageMd5 !== version.packageMd5);
     }
 
     /**

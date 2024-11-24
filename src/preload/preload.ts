@@ -79,10 +79,10 @@ contextBridge.exposeInMainWorld("engine", engineApi);
 const gameApi = {
     // Content
     downloadGame: (version: string): Promise<void> => ipcRenderer.invoke("game:downloadGame", version),
-    getScenarios: (): Promise<Scenario[]> => ipcRenderer.invoke("game:getScenarios"),
+    getScenarios: (version: string): Promise<Scenario[]> => ipcRenderer.invoke("game:getScenarios", version),
     getInstalledVersions: (): Promise<GameVersion[]> => ipcRenderer.invoke("game:getInstalledVersions"),
     isVersionInstalled: (version: string): Promise<boolean> => ipcRenderer.invoke("game:isVersionInstalled", version),
-    uninstallVersion: (version: GameVersion): Promise<void> => ipcRenderer.invoke("game:uninstallVersion", version),
+    uninstallVersion: (version: string): Promise<void> => ipcRenderer.invoke("game:uninstallVersion", version),
 
     // Game
     launchScript: (script: string): Promise<void> => ipcRenderer.invoke("game:launchScript", script),
