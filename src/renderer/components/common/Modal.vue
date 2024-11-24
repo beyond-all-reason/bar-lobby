@@ -34,6 +34,7 @@ import { nextTick, onMounted, Ref, ref, toRef, watch } from "vue";
 
 import Panel from "@renderer/components/common/Panel.vue";
 import { audioApi } from "@renderer/audio/audio";
+import { onKeyDown } from "@vueuse/core";
 
 export type PanelProps = InstanceType<typeof Panel>["$props"];
 export interface ModalProps extends /* @vue-ignore */ PanelProps {
@@ -80,6 +81,18 @@ watch(isOpen, (open) => {
         emits("close");
     }
 });
+
+onKeyDown(
+    "Escape",
+    (e) => {
+        if (isOpen.value) {
+            e.preventDefault();
+            e.stopPropagation();
+            close();
+        }
+    },
+    { target: document }
+);
 
 async function onSubmit() {
     const data: Record<string, unknown> = {};
