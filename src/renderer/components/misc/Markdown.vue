@@ -24,14 +24,12 @@ if (props.allowLinks) {
     // };
 }
 
-const sanitizeOptions: DOMPurify.Config = {
-    ALLOWED_ATTR: allowedAttributes,
-    ALLOWED_TAGS: allowedTags,
-};
-
 const processedText = computedAsync(async () => {
     const markdown = await marked.parse(props.source, { renderer: markdownRenderer });
-    return DOMPurify.sanitize(markdown, sanitizeOptions);
+    return DOMPurify.sanitize(markdown, {
+        ALLOWED_ATTR: allowedAttributes,
+        ALLOWED_TAGS: allowedTags,
+    });
 });
 </script>
 <style lang="scss" scoped>
