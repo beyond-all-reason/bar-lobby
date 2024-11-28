@@ -51,6 +51,7 @@ function sendMessage() {
     // If an autosuggestion is currently keyboard selected: pressing enter should autocomplete the suggestion
     if (autoSuggestionSelection.value != null) {
         myMessage.value = autoSuggestionSelection.value;
+        return;
     }
 
     // api.comms.request("c.lobby.message", {
