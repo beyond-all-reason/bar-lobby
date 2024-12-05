@@ -69,6 +69,7 @@ import PromptContainer from "@renderer/components/prompts/PromptContainer.vue";
 import { playRandomMusic } from "@renderer/utils/play-random-music";
 import { settingsStore } from "./store/settings.store";
 import { infosStore } from "@renderer/store/infos.store";
+import { useGlobalKeybindings } from "@renderer/composables/useGlobalKeybindings";
 
 const router = useRouter();
 const videoVisible = toRef(!toValue(settingsStore.skipIntro));
@@ -82,6 +83,8 @@ const exitOpen = ref(false);
 
 provide("settingsOpen", settingsOpen);
 provide("exitOpen", exitOpen);
+
+useGlobalKeybindings({ exitOpen });
 
 const toggleMessages: Ref<((open?: boolean, userId?: number) => void) | undefined> = ref();
 provide("toggleMessages", toggleMessages);

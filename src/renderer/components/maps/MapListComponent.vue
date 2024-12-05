@@ -11,6 +11,10 @@
                     <TransitionGroup name="maps-list">
                         <MapOverviewCard v-for="map in maps" :key="map.springName" :map="map" @click="mapSelected(map)" />
                     </TransitionGroup>
+                    <div v-if="maps?.length <= 0">
+                        <h4>No maps found!</h4>
+                        <span>Please try different keywords / filters</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -25,17 +29,20 @@
  * - Easy one click install button
  * - Demo map button that launches a simple offline game on the map
  */
-
 import { Ref, ref } from "vue";
 
 import SearchBox from "@renderer/components/controls/SearchBox.vue";
 import Select from "@renderer/components/controls/Select.vue";
 import MapOverviewCard from "@renderer/components/maps/MapOverviewCard.vue";
-import { MapData } from "@main/content/maps/map-data";
+import { type MapData } from "@main/content/maps/map-data";
+import type { GameType, Terrain } from "@main/content/maps/map-metadata";
 import { db } from "@renderer/store/db";
 import { useDexieLiveQueryWithDeps } from "@renderer/composables/useDexieLiveQuery";
+import { mapsStore } from "@renderer/store/maps.store";
 
 import { useInfiniteScroll } from "@vueuse/core";
+
+const { filters } = mapsStore;
 
 type SortMethod = { label: string; dbKey: string };
 
@@ -58,12 +65,23 @@ useInfiniteScroll(
     },
     { distance: 300, interval: 550 }
 );
-const maps = useDexieLiveQueryWithDeps([searchVal, sortMethod, limit], () =>
-    db.maps
-        .filter((map) => map.displayName.toLocaleLowerCase().includes(searchVal.value.toLocaleLowerCase()))
+
+const maps = useDexieLiveQueryWithDeps([searchVal, sortMethod, limit, filters], () => {
+    const { terrain, gameType } = filters;
+    const terrainFilters = new Set([...(<Terrain[]>Object.keys(terrain)).filter((key) => !!terrain[key]).map((k) => k)]);
+    const gameTypeFilters = new Set([...(<GameType[]>Object.keys(gameType)).filter((key) => gameType[key]).map((k) => k)]);
+    return db.maps
+        .filter(
+            (map) =>
+                map.displayName.toLocaleLowerCase().includes(searchVal.value.toLocaleLowerCase()) &&
+                filters.minPlayers < map.playerCountMax &&
+                filters.maxPlayers > map.playerCountMax &&
+                (terrainFilters.size === 0 || terrainFilters.isSubsetOf(new Set([...map.terrain]))) &&
+                (gameTypeFilters.size === 0 || !gameTypeFilters.isDisjointFrom(new Set([...map.tags])))
+        )
         .limit(limit.value)
-        .sortBy(sortMethod.value.dbKey)
-);
+        .sortBy(sortMethod.value.dbKey);
+});
 
 function mapSelected(map: MapData) {
     emit("map-selected", map);

@@ -76,9 +76,10 @@ import { gameStore } from "@renderer/store/game.store";
 
 const router = useRouter();
 const route = router.currentRoute.value;
-//TODO move that to our db
-const scenarios = await window.game.getScenarios();
-const selectedScenario = ref<Scenario>(scenarios[0]);
+
+const loadedScenarios = await window.game.getScenarios(gameStore.selectedGameVersion.gameVersion);
+const scenarios = ref<Scenario[]>(loadedScenarios);
+const selectedScenario = ref<Scenario>(scenarios.value[0]);
 
 const map = useDexieLiveQueryWithDeps([selectedScenario], () => db.maps.get(selectedScenario.value?.mapfilename));
 
@@ -87,6 +88,15 @@ const selectedDifficulty = ref(difficulties.value.find((dif) => dif.name === sel
 
 const factions = computed(() => selectedScenario.value.allowedsides);
 const selectedFaction = ref(factions.value[0]);
+
+watch(
+    () => gameStore.selectedGameVersion.gameVersion,
+    async (selectedVersion) => {
+        const loadedScenarios = await window.game.getScenarios(selectedVersion);
+        scenarios.value = loadedScenarios;
+        selectedScenario.value = scenarios.value[0];
+    }
+);
 
 watch(selectedScenario, (newScenario) => {
     selectedDifficulty.value = difficulties.value.find((dif) => dif.name === newScenario.defaultdifficulty);

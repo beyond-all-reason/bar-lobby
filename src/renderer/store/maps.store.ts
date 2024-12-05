@@ -1,11 +1,24 @@
 import { reactive } from "vue";
-import { MapData } from "@main/content/maps/map-data";
+import type { MapData } from "@main/content/maps/map-data";
+import type { GameType, Terrain } from "@main/content/maps/map-metadata";
 import { db } from "@renderer/store/db";
 
 export const mapsStore = reactive({
     isInitialized: false,
+    filters: {
+        terrain: {},
+        gameType: {},
+        minPlayers: 2,
+        maxPlayers: 40,
+    },
 } as {
     isInitialized: boolean;
+    filters: {
+        terrain: Partial<Record<Terrain, boolean>>;
+        gameType: Partial<Record<GameType, boolean>>;
+        minPlayers: number;
+        maxPlayers: number;
+    };
 });
 
 export async function getRandomMap(): Promise<MapData> {
@@ -72,4 +85,8 @@ export async function downloadMap(springName: string) {
             console.error("Failed to download map", error);
             db.maps.update(springName, { isDownloading: false });
         });
+}
+
+export function getFilters() {
+    return mapsStore.filters;
 }
