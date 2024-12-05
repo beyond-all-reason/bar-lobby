@@ -1,6 +1,6 @@
 {
     "extends": "./tsconfig.shared.json",
-    "include": ["electron.vite.config.*", "electron-builder.config.*", "src/main/**/*", "src/preload/**/*", "vendor/*"],
+    "include": ["electron.vite.config.*", "electron-builder.config.*", "src/main/**/*", "src/preload/**/*", "vendor/**/*"],
     "compilerOptions": {
         "strict": false,
         "composite": true,
