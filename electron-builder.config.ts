@@ -35,9 +35,9 @@ const config: Configuration = {
     nsis: {
         artifactName: "${productName}-${version}-setup.${ext}",
         uninstallDisplayName: "${productName}",
-        oneClick: false,
+        oneClick: true,
         perMachine: true,
-        allowToChangeInstallationDirectory: true,
+        allowToChangeInstallationDirectory: false,
     },
 
     // Linux

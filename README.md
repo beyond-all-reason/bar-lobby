@@ -31,13 +31,13 @@ It is highly recommended to use [VSCode](https://code.visualstudio.com/) for dev
 
 ### Requirements
 
--   [Node.js 20](https://nodejs.org/en/download/)
+-   [Node.js 20.18.0](https://nodejs.org/en/download/)
 
 ### Local Development
 
 ```bash
 npm install
-npm run dev
+npm start
 ```
 
 ### Project Structure
@@ -77,7 +77,7 @@ npm run dev
 
 ### Build & Publish:
 
--   [`electron-vite`](https://electron-vite.org/guide/introduction)
+-   [`electron-forge`](https://www.electronforge.io/config/plugins/vite)
     -   Builds the app with a pre-configured Vite setup for Electron apps
     -   This intentionally does not include `electron` or any other `node_modules` dependencies in the build
         -   Dependencies get added to the package by `electron-builder` with ASAR
