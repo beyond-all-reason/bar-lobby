@@ -45,7 +45,6 @@ npm start
 ```
 .
 ├──buildResources   # used by electron-builder
-├──resources        # publicDir for main & preload
 ├──src
 │  ├──main
 │  │  ├──main.ts

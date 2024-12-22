@@ -1,9 +1,6 @@
 const { VitePlugin } = require("@electron-forge/plugin-vite");
 
 const config = {
-    packagerConfig: {
-        icon: "buildResources/icon",
-    },
     plugins: [
         new VitePlugin({
             build: [
