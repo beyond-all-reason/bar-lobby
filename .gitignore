@@ -43,3 +43,4 @@ thumbs.db
 /tsconfig.web.tsbuildinfo
 debug.log
 bun.lockb
+*.pfx

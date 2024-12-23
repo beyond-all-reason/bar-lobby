@@ -1,0 +1,20 @@
+{
+    "extends": "./tsconfig.shared.json",
+    "include": ["electron.vite.config.*", "electron-builder.config.*", "src/main/**/*", "src/preload/**/*", "vendor/**/*"],
+    "compilerOptions": {
+        "strict": false,
+        "composite": true,
+        "types": ["node"],
+        "baseUrl": ".",
+        "paths": {
+            "@main/*": ["src/main/*"],
+            "@preload/*": ["src/preload/*"],
+            "$/*": ["vendor/*"]
+        },
+
+        // TODO: Enable these for better typechecking
+        "noImplicitReturns": false,
+        "noUnusedLocals": false,
+        "noUnusedParameters": false
+    }
+}
