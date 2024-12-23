@@ -61,7 +61,6 @@ function registerBarFileProtocol() {
             return net.fetch(url.pathToFileURL(resolvedFilePath).toString());
         } catch (err) {
             log.error(err);
-            // throw new Error(`Unable to access file`);
         }
     });
 }

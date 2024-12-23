@@ -4,9 +4,6 @@ import { Worker } from "worker_threads";
 
 const worker = new Worker(path.join(__dirname, "parse-replay-worker.cjs"));
 
-// import createWorker from "parse-replay-worker?nodeWorker";
-// const worker = createWorker({ workerData: "worker" });
-
 const jobs = new Map<
     string,
     {
