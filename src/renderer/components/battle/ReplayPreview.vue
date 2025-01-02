@@ -55,6 +55,7 @@ import { computed } from "vue";
 import BattlePreviewParticipant from "@renderer/components/battle/BattlePreviewParticipant.vue";
 import { Replay } from "@main/content/replays/replay";
 import ReplayPreviewMap from "@renderer/components/maps/ReplayPreviewMap.vue";
+import { DemoModel } from "$/sdfz-demo-parser";
 
 const props = defineProps<{
     replay?: Replay;
@@ -65,9 +66,9 @@ const isFFA = computed(() => {
     return props.replay?.preset === "ffa";
 });
 
-const teams = computed(() => {
+const teams = computed<Map<number, (DemoModel.Info.Player | DemoModel.Info.AI)[]>>(() => {
     if (!props.replay) {
-        return [];
+        return new Map();
     }
     const teams = Map.groupBy(props.replay.contenders, (contender) => contender.allyTeamId);
     const sortedTeams = new Map([...teams.entries()].sort());
