@@ -6,15 +6,10 @@ import { Configuration } from "electron-builder";
 const config: Configuration = {
     appId: "BeyondAllReason",
     productName: "Beyond All Reason",
-    files: [
-        "!**/.vscode/*",
-        "!{src,out,tests,vendor}/*",
-        "!vite.*.config.{js,ts,mjs,cjs,mts}",
-        "!{eslint.config.mjs,.prettierignore,prettier.config.mjs,README.md}",
-        "!{.env,.env.*,.npmrc,pnpm-lock.yaml}",
-        "!{tsconfig.json,tsconfig.*.json}",
-        "!{electron-builder.config.ts,forge.config.cjs}",
-    ],
+
+    asar: true,
+    disableDefaultIgnoredFiles: true,
+    files: ["./.vite/**", "!node_modules", "./node_modules/7zip-bin/**"],
     directories: { buildResources: "buildResources" },
     asarUnpack: ["resources/**"],
 
