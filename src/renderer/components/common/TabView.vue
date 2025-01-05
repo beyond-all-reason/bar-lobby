@@ -8,9 +8,10 @@
 
 <script lang="ts" setup>
 // https://primefaces.org/primevue/tabview
-import { TabViewProps } from "primevue/tabview";
+import { TabViewProps, TabViewSlots } from "primevue/tabview";
 import PrimeVueTabView from "@renderer/components/primevue/PrimeVueTabView.vue";
 defineProps<TabViewProps>();
+defineSlots<TabViewSlots>();
 defineEmits<{
     (e: "update:modelValue", value: number): void;
 }>();
