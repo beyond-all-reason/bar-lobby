@@ -8,22 +8,22 @@ BAR Lobby is a new WIP lobby for the RTS game [Beyond All Reason](https://www.be
 
 ## Functionality and Goals
 
--   Provide functionality for everything related to BAR. Campaigns, Missions, Multiplayer, Replays etc
--   Simple and intutive codebase, lots of documenation for contributing
--   Steam integration, automatic account creation and login
--   Smooth, seemless, fully integrated downloads. Content should be preloaded when sensible
--   Communicate entirely via Teiserver's new protocol, [Tachyon](https://github.com/beyond-all-reason/teiserver/tree/master/documents/tachyon). No support for the legacy SpringLobbyProtocol
--   TLS only, no unencypted comms
+- Provide functionality for everything related to BAR. Campaigns, Missions, Multiplayer, Replays etc
+- Simple and intutive codebase, lots of documenation for contributing
+- Steam integration, automatic account creation and login
+- Smooth, seemless, fully integrated downloads. Content should be preloaded when sensible
+- Communicate entirely via Teiserver's new protocol, [Tachyon](https://github.com/beyond-all-reason/teiserver/tree/master/documents/tachyon). No support for the legacy SpringLobbyProtocol
+- TLS only, no unencypted comms
 
 ## Development
 
 ### Primary Tech Stack
 
--   [Electron](https://www.electronjs.org/)
--   [Vue 3](https://v3.vuejs.org/)
--   [TypeScript](https://www.typescriptlang.org/)
--   [SCSS](https://sass-lang.com/)
--   [PrimeVue Components](https://primevue.org/datatable)
+- [Electron](https://www.electronjs.org/)
+- [Vue 3](https://v3.vuejs.org/)
+- [TypeScript](https://www.typescriptlang.org/)
+- [SCSS](https://sass-lang.com/)
+- [PrimeVue Components](https://primevue.org/datatable)
 
 ### Recommended Environment
 
@@ -31,7 +31,7 @@ It is highly recommended to use [VSCode](https://code.visualstudio.com/) for dev
 
 ### Requirements
 
--   [Node.js 20.18.0](https://nodejs.org/en/download/)
+- [Node.js 20.18.0](https://nodejs.org/en/download/)
 
 ### Local Development
 
@@ -63,55 +63,55 @@ npm start
 └──...
 ```
 
--   [**Main process**](https://www.electronjs.org/docs/latest/tutorial/process-model#the-main-process)
-    -   Runs in a Node.js environment and has access to Node.js APIs
-    -   Anything requiring access to the operating system or Node.js APIs needs to live here
--   [**Preload script**](https://www.electronjs.org/docs/latest/tutorial/process-model#preload-scripts)
-    -   Runs in a Node.js environment
-    -   Defines global objects that can be used in the renderer
-    -   Handles communication between the main and renderer processes
-        -   Uses Electron's ipcMain and ipcRenderer modules for inter-process communication (IPC).
--   [**Renderer process**](https://www.electronjs.org/docs/latest/tutorial/process-model#the-renderer-process)
-    -   Runs in a web environment and has **no** direct access to Node.js APIs
+- [**Main process**](https://www.electronjs.org/docs/latest/tutorial/process-model#the-main-process)
+    - Runs in a Node.js environment and has access to Node.js APIs
+    - Anything requiring access to the operating system or Node.js APIs needs to live here
+- [**Preload script**](https://www.electronjs.org/docs/latest/tutorial/process-model#preload-scripts)
+    - Runs in a Node.js environment
+    - Defines global objects that can be used in the renderer
+    - Handles communication between the main and renderer processes
+        - Uses Electron's ipcMain and ipcRenderer modules for inter-process communication (IPC).
+- [**Renderer process**](https://www.electronjs.org/docs/latest/tutorial/process-model#the-renderer-process)
+    - Runs in a web environment and has **no** direct access to Node.js APIs
 
 ### Build & Publish:
 
--   [`electron-forge`](https://www.electronforge.io/config/plugins/vite)
-    -   Builds the app with a pre-configured Vite setup for Electron apps
-    -   This intentionally does not include `electron` or any other `node_modules` dependencies in the build
-        -   Dependencies get added to the package by `electron-builder` with ASAR
-        -   Note: apps that only have CJS exports need to be included in the build, e.g. `glob-promise`
--   [`electron-builder`](https://www.electron.build/)
-    -   Packages Electron app for distribution
-        -   Configured for Windows NSIS installer and Linux AppImage
-    -   Handles publishing updates
-        -   Auto-updates TBD
+- [`electron-forge`](https://www.electronforge.io/config/plugins/vite)
+    - Builds the app with a pre-configured Vite setup for Electron apps
+    - This intentionally does not include `electron` or any other `node_modules` dependencies in the build
+        - Dependencies get added to the package by `electron-builder` with ASAR
+        - Note: apps that only have CJS exports need to be included in the build, e.g. `glob-promise`
+- [`electron-builder`](https://www.electron.build/)
+    - Packages Electron app for distribution
+        - Configured for Windows NSIS installer and Linux AppImage
+    - Handles publishing updates
+        - Auto-updates TBD
 
 ### Commands
 
--   `npm start`
-    -   Runs `electron-forge` in `development` mode
-    -   **renderer** runs with Hot Module Replacement (HMR)
-    -   **main** and **preload** are directly bundled to `.vite/build`
--   `npm run package`
-    -   Runs `electron-forge` in `production` mode
-    -   **renderer** us bundled to `.vite/renderer`
-    -   **main** and **preload** are bundled to `.vite/build`
--   `npm run preview`
-    -   Runs `electron-forge` in `production` mode, and runs electron
-    -   **main**, **preload**, and **renderer** are bundled to `.vite/build`
-    -   This is useful for validating the `production` build without packaging the app
--   `npm run build:win`
-    -   Runs `npm run build` and `electron-builder`, building for Windows
-    -   Outputs NSIS installer in `dist`
--   `npm run build:linux`
-    -   Runs `npm run build` and `electron-builder`, building for Linux
-    -   Outputs AppImage executable in `dist`
--   `npm run build:unpack`
-    -   Runs `npm run build` and `electron-builder`, building an unpackaged directory
-    -   Outputs the unpacked contents in `dist`
-    -   Useful for testing
--   `npm run dev-cert` (optional and only for Windows development)
-    -   Runs `electron-builder` to create a self-signed cert for Windows apps.
-    -   After selecting "None" in the pop-up, a cert file should be created called `BAR Team.pfx`
-    -   Then run `npm run build:win:dev-cert` to build a signed Windows installer
+- `npm start`
+    - Runs `electron-forge` in `development` mode
+    - **renderer** runs with Hot Module Replacement (HMR)
+    - **main** and **preload** are directly bundled to `.vite/build`
+- `npm run package`
+    - Runs `electron-forge` in `production` mode
+    - **renderer** us bundled to `.vite/renderer`
+    - **main** and **preload** are bundled to `.vite/build`
+- `npm run preview`
+    - Runs `electron-forge` in `production` mode, and runs electron
+    - **main**, **preload**, and **renderer** are bundled to `.vite/build`
+    - This is useful for validating the `production` build without packaging the app
+- `npm run build:win`
+    - Runs `npm run build` and `electron-builder`, building for Windows
+    - Outputs NSIS installer in `dist`
+- `npm run build:linux`
+    - Runs `npm run build` and `electron-builder`, building for Linux
+    - Outputs AppImage executable in `dist`
+- `npm run build:unpack`
+    - Runs `npm run build` and `electron-builder`, building an unpackaged directory
+    - Outputs the unpacked contents in `dist`
+    - Useful for testing
+- `npm run dev-cert` (optional and only for Windows development)
+    - Runs `electron-builder` to create a self-signed cert for Windows apps.
+    - After selecting "None" in the pop-up, a cert file should be created called `BAR Team.pfx`
+    - Then run `npm run build:win:dev-cert` to build a signed Windows installer
