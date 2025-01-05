@@ -1,4 +1,4 @@
-import { cmd, unpack } from "7zip-min";
+import { unpack, cmd } from "$/7zip-min/7zip-min";
 
 export function extract7z(archivePath: string, outputPath: string) {
     return new Promise<void>((resolve, reject) => {
