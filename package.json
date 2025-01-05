@@ -4,7 +4,7 @@
     "version": "0.15.0-alpha.1",
     "private": true,
     "description": "Lobby client for the RTS game Beyond All Reason",
-    "author": "Jazcash <jaspercashmore@gmail.com>",
+    "author": "BAR Team",
     "license": "MIT",
     "repository": {
         "type": "git",
@@ -14,12 +14,20 @@
     "scripts": {
         "start": "cross-env NODE_OPTIONS=--enable-source-maps electron-forge start",
         "package": "electron-forge package",
-        "make": "electron-forge make",
-        "publish": "electron-forge publish",
+        "preview": "electron-forge package && electron .",
+        "build:win": "electron-builder --config electron-builder.config.ts --win",
+        "build:linux": "electron-builder --config electron-builder.config.ts --linux",
+        "build:unpack": "electron-builder --config electron-builder.config.ts --dir",
+        "dev-cert": "electron-builder create-self-signed-cert -p \"BAR Team\"",
+        "build:win:dev-cert": "cross-env CSC_LINK=\"./BAR Team.pfx\" npm run build:win",
+        "postinstall": "electron-builder install-app-deps",
+        "release": "electron-builder --config electron-builder.config.ts",
         "lint": "eslint",
         "format": "prettier --write --cache .",
         "format:check": "prettier --check --cache .",
-        "typecheck": "vue-tsc --noEmit"
+        "typecheck:node": "tsc --noEmit -p tsconfig.node.json --composite false",
+        "typecheck:web": "vue-tsc --noEmit -p tsconfig.web.json --composite false",
+        "typecheck": "npm run typecheck:node && npm run typecheck:web"
     },
     "engines": {
         "node": "20.18.0"
@@ -72,6 +80,8 @@
         "@vitejs/plugin-vue": "^5.2.1",
         "cross-env": "^7.0.3",
         "electron": "33.2.1",
+        "electron-builder": "^25.1.8",
+        "electron-updater": "^6.3.9",
         "eslint": "^9.17.0",
         "eslint-config-prettier": "^9.1.0",
         "eslint-plugin-unused-imports": "^4.1.4",

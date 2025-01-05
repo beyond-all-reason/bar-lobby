@@ -1,23 +1,4 @@
 {
-    "compilerOptions": {
-        "target": "ESNext",
-        "module": "ESNext",
-        "allowJs": true,
-        "skipLibCheck": true,
-        "esModuleInterop": true,
-        "noImplicitAny": true,
-        "sourceMap": true,
-        "baseUrl": ".",
-        "outDir": "dist",
-        "moduleResolution": "bundler",
-        "resolveJsonModule": true,
-        "isolatedModules": true,
-        "paths": {
-            "@main/*": ["src/main/*"],
-            "@preload/*": ["src/preload/*"],
-            "@renderer/*": ["src/renderer/*"],
-            "$/*": ["vendor/*"]
-        },
-        "types": ["vite/client", "node"]
-    }
+    "files": [],
+    "references": [{ "path": "./tsconfig.node.json" }, { "path": "./tsconfig.web.json" }]
 }

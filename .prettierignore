@@ -4,3 +4,7 @@ node_modules
 typed-router.d.ts
 vendor
 docs
+dist
+.vite
+out
+buildResources
