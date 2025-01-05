@@ -8,7 +8,7 @@ const config: Configuration = {
     productName: "Beyond All Reason",
     files: [
         "!**/.vscode/*",
-        "!{docs,src,out,tests,vendor}/*",
+        "!{src,out,tests,vendor}/*",
         "!vite.*.config.{js,ts,mjs,cjs,mts}",
         "!{eslint.config.mjs,.prettierignore,prettier.config.mjs,README.md}",
         "!{.env,.env.*,.npmrc,pnpm-lock.yaml}",
