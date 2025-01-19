@@ -3,20 +3,29 @@ import { GameAI, GameVersion } from "@main/content/game/game-version";
 import { MapData } from "@main/content/maps/map-data";
 import { Battle, BattleOptions, BattleWithMetadata, Bot, Faction, Player, StartPosType } from "@main/game/battle/battle-types";
 import { User } from "@main/model/user";
+import { enginesStore } from "@renderer/store/engine.store";
+import { gameStore } from "@renderer/store/game.store";
+import { getRandomMap } from "@renderer/store/maps.store";
 import { _me, me } from "@renderer/store/me.store";
 import { deepToRaw } from "@renderer/utils/deep-toraw";
 import { reactive, readonly, watch } from "vue";
 
 let participantId = 0;
+interface BattleLobby {
+    isJoined: boolean;
+    isLobbyOpened: boolean;
+    isSelectingGameMode: boolean;
+}
 
 // Store
 export const battleStore = reactive({
+    isJoined: false,
     title: "Battle",
     isOnline: false,
     battleOptions: {},
     teams: [],
     spectators: [],
-} as Battle);
+} as Battle & BattleLobby);
 
 // Automatically computing metadata for the battle
 const _battleWithMetadataStore = reactive({} as BattleWithMetadata);
@@ -26,6 +35,8 @@ watch(
     (battle) => {
         Object.assign(_battleWithMetadataStore, battle);
         _battleWithMetadataStore.participants = Object.values(battle.teams).flat();
+        _battleWithMetadataStore.bots = _battleWithMetadataStore.participants.filter((participant) => "aiShortName" in participant);
+        _battleWithMetadataStore.players = _battleWithMetadataStore.participants.filter((participant) => "user" in participant);
         if (battle.started && !_battleWithMetadataStore.startTime) _battleWithMetadataStore.startTime = new Date();
     },
     { deep: true }
@@ -220,6 +231,96 @@ watch(
     { deep: true }
 );
 
+function leaveBattle() {
+    battleStore.isJoined = false;
+    resetToDefaultBattle();
+}
+
+export enum GameMode {
+    CLASSIC = "classic",
+    RAPTORS = "raptors",
+    SCAVENGERS = "scavengers",
+    FFA = "ffa",
+}
+
+async function loadGameMode(gameMode: GameMode) {
+    if (!battleStore.battleOptions.engineVersion) {
+        battleStore.battleOptions.engineVersion = enginesStore.selectedEngineVersion.id;
+    }
+    if (!battleStore.battleOptions.gameVersion) {
+        battleStore.battleOptions.gameVersion = gameStore.selectedGameVersion.gameVersion;
+    }
+    if (!battleStore.battleOptions.map) {
+        const randomMap = await getRandomMap();
+        battleStore.battleOptions.map = randomMap;
+    }
+
+    switch (gameMode) {
+        case GameMode.CLASSIC:
+            battleStore.title = "Classic";
+            battleStore.battleOptions = {
+                ...battleStore.battleOptions,
+                gameMode: {
+                    label: "Classic",
+                    options: {},
+                },
+                mapOptions: {
+                    startPosType: StartPosType.Boxes,
+                    startBoxesIndex: 0,
+                },
+                restrictions: [],
+            };
+            break;
+        case GameMode.RAPTORS:
+            battleStore.title = "Raptors";
+            battleStore.battleOptions = {
+                ...battleStore.battleOptions,
+                gameMode: {
+                    label: "Raptors",
+                    options: {},
+                },
+                mapOptions: {
+                    startPosType: StartPosType.Boxes,
+                    startBoxesIndex: 0,
+                },
+                restrictions: [],
+            };
+            break;
+        case GameMode.SCAVENGERS:
+            battleStore.title = "Scavengers";
+            battleStore.battleOptions = {
+                ...battleStore.battleOptions,
+                gameMode: {
+                    label: "Scavengers",
+                    options: {},
+                },
+                mapOptions: {
+                    startPosType: StartPosType.Boxes,
+                    startBoxesIndex: 0,
+                },
+                restrictions: [],
+            };
+            break;
+        case GameMode.FFA:
+            battleStore.title = "FFA";
+            battleStore.battleOptions = {
+                ...battleStore.battleOptions,
+                gameMode: {
+                    label: "FFA",
+                    options: {},
+                },
+                mapOptions: {
+                    startPosType: StartPosType.Boxes,
+                    startBoxesIndex: 0,
+                },
+                restrictions: [],
+            };
+            break;
+        default:
+            console.error("Unknown game mode", gameMode);
+    }
+}
+
 export const battleActions = {
     movePlayerToTeam,
     movePlayerToSpectators,
@@ -231,6 +332,8 @@ export const battleActions = {
     startBattle,
     updateTeams,
     resetToDefaultBattle,
+    leaveLobby: leaveBattle,
+    loadGameMode,
 };
 
 export function initBattleStore() {

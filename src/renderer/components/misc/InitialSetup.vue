@@ -8,7 +8,7 @@
 
 <script lang="ts" setup>
 import { defaultMaps } from "@main/config/default-maps";
-import { DEFAULT_ENGINE_VERSION, DEFAULT_GAME_VERSION } from "@main/config/default-versions";
+import { LATEST, LATEST_GAME_VERSION } from "@main/config/default-versions";
 import { DownloadInfo } from "@main/content/downloads";
 import { db } from "@renderer/store/db";
 import { downloadsStore } from "@renderer/store/downloads.store";
@@ -23,20 +23,19 @@ const state = ref<"engine" | "game" | "maps">("engine");
 
 onMounted(async () => {
     console.debug("Initial setup");
-    const installedEngineVersions = await window.engine.getInstalledVersions();
-    if (installedEngineVersions.length === 0) {
+    const isNewEngineVersionAvailable = await window.engine.isNewVersionAvailable();
+    if (isNewEngineVersionAvailable) {
         state.value = "engine";
         text.value = "Downloading engine";
-        await window.engine.downloadEngine(DEFAULT_ENGINE_VERSION);
+        await window.engine.downloadEngine(LATEST);
         text.value = "Installing engine";
     }
-    const installedGameVersions = await window.game.getInstalledVersions();
-    if (installedGameVersions.length === 0) {
-        state.value = "game";
-        text.value = "Downloading game";
-        await window.game.downloadGame(DEFAULT_GAME_VERSION);
-        text.value = "Installing game";
-    }
+
+    state.value = "game";
+    text.value = "Downloading game";
+    await window.game.downloadGame(LATEST_GAME_VERSION);
+    text.value = "Installing game";
+
     const installedMaps = await db.maps.count();
     if (installedMaps === 0) {
         state.value = "maps";

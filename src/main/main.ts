@@ -1,4 +1,4 @@
-import { app, ipcMain, net, protocol, safeStorage, session } from "electron";
+import { app, net, protocol, session } from "electron";
 import path from "path";
 import url from "url";
 
@@ -75,33 +75,12 @@ app.setName(APP_NAME);
 app.commandLine.appendSwitch("disable-features", "HardwareMediaKeyHandling,MediaSessionService");
 app.on("window-all-closed", () => app.quit());
 
-//TODO move these to services
-function setupHandlers() {
-    ipcMain.handle("encryptString", async (_event, str: string) => {
-        if (safeStorage.isEncryptionAvailable()) {
-            return safeStorage.encryptString(str);
-        }
-        log.warn(`encryption not available, storing as plaintext`);
-        return str;
-    });
-    ipcMain.handle("decryptString", async (_event, buffer: Buffer) => {
-        if (safeStorage.isEncryptionAvailable()) {
-            return safeStorage.decryptString(buffer);
-        }
-        log.warn(`encryption not available, returning buffer`);
-        return buffer.toString();
-    });
-    let openedReplayAlready = false;
-    ipcMain.handle("opened-replay", () => {
-        log.info(process.argv);
-        if (process.argv.length == 0 || openedReplayAlready) return null;
-        openedReplayAlready = true; //in case of reloading the app do not open replay again
-        return process.argv[process.argv.length - 1].endsWith(".sdfz") ? process.argv[process.argv.length - 1] : null;
-    });
-}
-
 // Security
 app.enableSandbox();
+
+app.commandLine.appendSwitch("high-dpi-support", "1");
+app.commandLine.appendSwitch("force-device-scale-factor", "1");
+app.commandLine.appendSwitch("disable-pinch", "1");
 
 app.whenReady().then(() => {
     registerBarFileProtocol();
@@ -126,7 +105,6 @@ app.whenReady().then(() => {
         });
     });
 
-    setupHandlers();
     settingsService.init();
     accountService.init();
     replaysService.init();

@@ -3,7 +3,7 @@
         <div class="flex-row flex-center-items gap-md">
             <div class="title">{{ title }}</div>
             <div v-if="memberCount > 0" class="member-count">({{ memberCount }} Member{{ memberCount > 1 ? "s" : "" }})</div>
-            <Button v-if="showJoin" class="slim" @click="onJoinClicked()"> Join </Button>
+            <Button v-if="showJoin" class="slim black" @click="onJoinClicked()"> Join </Button>
         </div>
         <div class="participants">
             <div
@@ -61,6 +61,11 @@ function onDrop(event: DragEvent) {
 
 <style lang="scss" scoped>
 .group {
+    border: 1px inset rgba(255, 255, 255, 0.1);
+    background: radial-gradient(circle, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.8));
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 1);
+    min-height: 100px;
+    padding: 10px;
     position: relative;
     &.highlight {
         &:before {

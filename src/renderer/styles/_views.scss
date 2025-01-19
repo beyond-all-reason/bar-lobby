@@ -1,10 +1,21 @@
 .view {
     height: 100%;
     width: 100%;
-    padding: 20px;
+    padding-top: 30px;
+    padding-bottom: 140px;
     display: flex;
     flex-direction: column;
     flex-grow: 1;
     gap: 10px;
     overflow: hidden;
+}
+
+.view-title {
+    margin-bottom: 24px;
+    h1 {
+        filter: drop-shadow(3px 3px 5px rgba(0, 0, 0, 0.8));
+    }
+    p {
+        filter: drop-shadow(3px 3px 5px rgba(0, 0, 0, 0.8));
+    }
 }

@@ -1,13 +1,13 @@
 <template>
-    <div class="sticky-battle flex-row" :class="{ hidden: !battle || route.path === '/multiplayer/battle' }" @click="openBattle">
-        <div class="leave" @click.stop="leaveBattle">
+    <!-- <div class="sticky-battle flex-row" v-if="battleStore" @click="openBattle">
+        <div class="leave" @click.stop="leaveLobby">
             <Icon :icon="closeThick" height="18" />
         </div>
         <div class="title flex-col flex-center">
             <Icon :color="color" :icon="swordCross" height="32"></Icon>
         </div>
         <div class="flex-col flex-center-content">
-            <div class="label">{{ battle?.title }}</div>
+            <div class="label">{{ battleStore?.title }}</div>
             <div class="flex-row gap-md">
                 <div class="flex-row flex-center gap-xs">
                     <Icon :icon="accountIcon" height="18" />
@@ -23,56 +23,55 @@
                 </div>
             </div>
         </div>
-    </div>
+    </div> -->
+    <!-- <BattleLobbyModal v-model="isLobbyOpen" /> -->
+    <BattleLobbyDrawer />
 </template>
 
 <script lang="ts" setup>
-import { Icon } from "@iconify/vue";
-import accountIcon from "@iconify-icons/mdi/account";
-import closeThick from "@iconify-icons/mdi/close-thick";
-import eyeIcon from "@iconify-icons/mdi/eye";
-import robotIcon from "@iconify-icons/mdi/robot";
-import swordCross from "@iconify-icons/mdi/sword-cross";
-import { computed } from "vue";
-import { useRouter } from "vue-router";
-import { battleStore } from "@renderer/store/battle.store";
+// import { Icon } from "@iconify/vue";
+// import accountIcon from "@iconify-icons/mdi/account";
+// import closeThick from "@iconify-icons/mdi/close-thick";
+// import eyeIcon from "@iconify-icons/mdi/eye";
+// import robotIcon from "@iconify-icons/mdi/robot";
+// import swordCross from "@iconify-icons/mdi/sword-cross";
+// import { computed } from "vue";
+// import { battleActions, battleStore, battleWithMetadataStore } from "@renderer/store/battle.store";
+import BattleLobbyDrawer from "@renderer/components/battle/BattleLobbyDrawer.vue";
 
-const router = useRouter();
-const route = router.currentRoute;
+// const playerCount = computed(() => battleWithMetadataStore.participants.length);
+// const botCount = computed(() => battleWithMetadataStore.bots.length);
+// const specCount = computed(() => battleWithMetadataStore.spectators.length);
 
-const battle = battleStore;
+// const color = computed(() => {
+//     //TODO need a better way to check content status
+//     // if (mePlayer.battleStatus.sync.engine < 1 || mePlayer.battleStatus.sync.game < 1 || mePlayer.battleStatus.sync.map < 1) {
+//     //     return "rgb(165, 30, 30)";
+//     // } else if (!mePlayer.battleStatus.isReady) {
+//     //     return "rgb(243, 213, 79)";
+//     // } else {
+//     //     return "rgb(120, 189, 57)";
+//     // }
+//     return "rgb(120, 189, 57)";
+// });
 
-const playerCount = computed(() => 0);
-const botCount = computed(() => 0);
-const specCount = computed(() => 0);
-const color = computed(() => {
-    //TODO need a better way to check content status
-    // if (mePlayer.battleStatus.sync.engine < 1 || mePlayer.battleStatus.sync.game < 1 || mePlayer.battleStatus.sync.map < 1) {
-    //     return "rgb(165, 30, 30)";
-    // } else if (!mePlayer.battleStatus.isReady) {
-    //     return "rgb(243, 213, 79)";
-    // } else {
-    //     return "rgb(120, 189, 57)";
-    // }
-    return "rgb(120, 189, 57)";
-});
+// async function openBattle() {
+//     battleStore.isLobbyOpened = true;
+// }
 
-async function openBattle() {
-    if (battle.isOnline) await router.push("/multiplayer/battle");
-}
-
-function leaveBattle() {
-    // battle.leave();
-}
+// function leaveLobby() {
+//     battleStore.isLobbyOpened = true;
+//     battleActions.leaveLobby();
+// }
 </script>
 
 <style lang="scss" scoped>
 .sticky-battle {
     position: absolute;
-    bottom: 5px;
-    left: -40px;
-    z-index: 1;
-    padding: 7px 25px 5px 50px;
+    bottom: 20px;
+    left: -30px;
+    z-index: 4;
+    padding: 10px 25px 5px 50px;
     gap: 10px;
     transition: all 0.1s ease-in-out;
     will-change: left;
@@ -85,7 +84,7 @@ function leaveBattle() {
         top: 0;
         z-index: -1;
         background: linear-gradient(90deg, rgba(0, 0, 0, 0.4) 60%, rgba(0, 0, 0, 0) 100%);
-        backdrop-filter: blur(8px) brightness(300%) saturate(150%);
+        backdrop-filter: blur(8px) brightness(150%);
         transform: skewX(30deg);
         border-top: 1px solid rgba(255, 255, 255, 0.2);
         border-right: 1px solid rgba(255, 255, 255, 0.25);
@@ -95,22 +94,25 @@ function leaveBattle() {
     &:hover {
         left: 0;
         &:before {
-            backdrop-filter: blur(8px) brightness(400%) saturate(200%);
+            backdrop-filter: blur(8px) brightness(300%);
         }
     }
 }
+
 .title {
     font-size: 27px;
     display: flex;
     align-items: center;
     justify-content: center;
 }
+
 .label {
     font-size: 12px;
     font-weight: 500;
     text-transform: uppercase;
     opacity: 0.7;
 }
+
 .leave {
     position: absolute;
     top: 0;

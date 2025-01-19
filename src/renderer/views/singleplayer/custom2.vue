@@ -1,5 +1,5 @@
 <route lang="json5">
-{ meta: { title: "Custom", order: 2, transition: { name: "slide-left" } } }
+{ meta: { title: "Custom 2", order: 3, transition: { name: "slide-left" } } }
 </route>
 
 <template>
@@ -9,13 +9,16 @@
                 <h1>Custom game</h1>
                 <p>Play against the AI in a custom game mode.</p>
             </div>
-            <GameModeSelector />
+            <Panel>
+                <OfflineBattleComponent />
+            </Panel>
         </div>
     </div>
 </template>
 
 <script lang="ts" setup>
-import GameModeSelector from "@renderer/components/misc/GameModeSelector.vue";
+import OfflineBattleComponent from "@renderer/components/battle/OfflineBattleComponent.vue";
+import Panel from "@renderer/components/common/Panel.vue";
 </script>
 
 <style lang="scss" scoped>
@@ -25,7 +28,7 @@ import GameModeSelector from "@renderer/components/misc/GameModeSelector.vue";
     align-self: center;
     gap: 20px;
     height: 100%;
-    width: 1300px;
+    width: 1000px;
     overflow: visible;
 }
 </style>

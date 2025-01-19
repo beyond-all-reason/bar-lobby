@@ -55,7 +55,8 @@ const backgroundImageCss = ref(`url('bar://${encodeURIComponent(props.scenario.i
             transform: scale(1);
             filter: saturate(1) brightness(1.1) contrast(1.1);
         }
-        outline: 1px solid rgba(255, 255, 255, 0.5);
+        outline: 1px solid #22c55e;
+        box-shadow: 0 8px 15px rgba(34, 197, 94, 0.4);
     }
 }
 .title {

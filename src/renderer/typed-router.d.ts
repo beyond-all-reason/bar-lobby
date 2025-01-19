@@ -41,8 +41,8 @@ declare module 'vue-router/auto-routes' {
     '/library/': RouteRecordInfo<'/library/', '/library', Record<never, never>, Record<never, never>>,
     '/library/commands': RouteRecordInfo<'/library/commands', '/library/commands', Record<never, never>, Record<never, never>>,
     '/library/guides': RouteRecordInfo<'/library/guides', '/library/guides', Record<never, never>, Record<never, never>>,
-    '/library/maps/': RouteRecordInfo<'/library/maps/', '/library/maps', Record<never, never>, Record<never, never>>,
     '/library/maps/[id]': RouteRecordInfo<'/library/maps/[id]', '/library/maps/:id', { id: ParamValue<true> }, { id: ParamValue<false> }>,
+    '/library/maps/maps': RouteRecordInfo<'/library/maps/maps', '/library/maps/maps', Record<never, never>, Record<never, never>>,
     '/library/replays': RouteRecordInfo<'/library/replays', '/library/replays', Record<never, never>, Record<never, never>>,
     '/library/units': RouteRecordInfo<'/library/units', '/library/units', Record<never, never>, Record<never, never>>,
     '/login': RouteRecordInfo<'/login', '/login', Record<never, never>, Record<never, never>>,
@@ -61,6 +61,7 @@ declare module 'vue-router/auto-routes' {
     '/singleplayer/': RouteRecordInfo<'/singleplayer/', '/singleplayer', Record<never, never>, Record<never, never>>,
     '/singleplayer/campaign': RouteRecordInfo<'/singleplayer/campaign', '/singleplayer/campaign', Record<never, never>, Record<never, never>>,
     '/singleplayer/custom': RouteRecordInfo<'/singleplayer/custom', '/singleplayer/custom', Record<never, never>, Record<never, never>>,
+    '/singleplayer/custom2': RouteRecordInfo<'/singleplayer/custom2', '/singleplayer/custom2', Record<never, never>, Record<never, never>>,
     '/singleplayer/scenarios': RouteRecordInfo<'/singleplayer/scenarios', '/singleplayer/scenarios', Record<never, never>, Record<never, never>>,
     '/singleplayer/tutorials': RouteRecordInfo<'/singleplayer/tutorials', '/singleplayer/tutorials', Record<never, never>, Record<never, never>>,
   }

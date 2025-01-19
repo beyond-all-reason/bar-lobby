@@ -2,7 +2,9 @@
     <div @contextmenu="onRightClick">
         <TeamParticipant>
             <div class="flex-row flex-center">
-                <Icon :icon="robot" :height="16" />
+                <GameIconsVelociraptor v-if="isRaptor(bot)" />
+                <Icon v-else-if="isScavenger(bot)" :icon="robotAngry" />
+                <Icon v-else :icon="robot" />
             </div>
             <div>{{ bot.name }}</div>
         </TeamParticipant>
@@ -21,17 +23,19 @@
 <script lang="ts" setup>
 import { Icon } from "@iconify/vue";
 import robot from "@iconify-icons/mdi/robot";
+import robotAngry from "@iconify-icons/mdi/robot-angry";
 import { MenuItem } from "primevue/menuitem";
 import { Ref, ref } from "vue";
 
 import LuaOptionsModal from "@renderer/components/battle/LuaOptionsModal.vue";
 import TeamParticipant from "@renderer/components/battle/TeamParticipant.vue";
 import { LuaOptionSection } from "@main/content/game/lua-options";
-import { Bot } from "@main/game/battle/battle-types";
+import { Bot, isRaptor, isScavenger } from "@main/game/battle/battle-types";
 import ContextMenu from "primevue/contextmenu";
 import { battleActions } from "@renderer/store/battle.store";
 import { enginesStore } from "@renderer/store/engine.store";
 import { gameStore } from "@renderer/store/game.store";
+import GameIconsVelociraptor from "@renderer/components/icons/GameIconsVelociraptor.vue";
 
 const props = defineProps<{
     bot: Bot;

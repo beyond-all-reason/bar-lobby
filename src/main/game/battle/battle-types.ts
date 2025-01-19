@@ -14,6 +14,8 @@ export interface Battle {
 export interface BattleWithMetadata extends Battle {
     startTime?: Date;
     participants: Array<Player | Bot>;
+    bots: Bot[];
+    players: Player[];
 }
 
 export type GameMode = {
@@ -124,6 +126,14 @@ export type Bot = {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function isBot(bot: any): bot is Bot {
     return "aiShortName" in bot;
+}
+
+export function isRaptor(bot: Bot): boolean {
+    return bot.aiShortName === "RaptorsAI";
+}
+
+export function isScavenger(bot: Bot): boolean {
+    return bot.aiShortName === "ScavengersAI";
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

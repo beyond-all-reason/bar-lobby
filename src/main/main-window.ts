@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, nativeImage, screen } from "electron";
+import { app, BrowserWindow, ipcMain, nativeImage } from "electron";
 import path from "path";
 import { settingsService } from "./services/settings.service";
 import { logger } from "./utils/logger";
@@ -14,19 +14,58 @@ export function createWindow() {
     const settings = settingsService.getSettings();
     log.info("Creating main window with settings: ", settings);
 
+    const width = 1920;
+    const height = 1080;
+
     const mainWindow = new BrowserWindow({
         title: "Beyond All Reason",
-        fullscreen: settings.fullscreen,
+        fullscreen: settings?.fullscreen || false,
         icon: nativeImage.createFromDataURL(icon),
-        frame: true,
-        show: true,
-        minWidth: 1440,
-        minHeight: 900,
-        paintWhenInitiallyHidden: true,
+        width: width,
+        height: height,
+        minWidth: width,
+        minHeight: height,
+        resizable: true,
+        center: true,
+        frame: false,
+        autoHideMenuBar: true,
         webPreferences: {
             preload: path.join(__dirname, "../build/preload.js"),
+            zoomFactor: 1,
         },
     });
+
+    function setZoomFactor(isFullScreen: boolean) {
+        const zoomFactor = isFullScreen ? mainWindow.getContentSize()[1] / height : 1.0;
+        console.log("Window size: ", mainWindow.getContentSize());
+        console.log("Zoom factor: ", zoomFactor);
+        mainWindow.webContents.zoomFactor = zoomFactor;
+    }
+    setZoomFactor(settings.fullscreen);
+
+    mainWindow.on("enter-full-screen", () => {
+        console.log("Enter full screen event");
+        setZoomFactor(true);
+    });
+
+    mainWindow.on("leave-full-screen", () => {
+        console.log("Leave full screen event");
+        setZoomFactor(false);
+    });
+
+    // mainWindow.setSize(width, height);
+    // mainWindow.setAspectRatio(16 / 9);
+
+    // function setDisplay(display: Electron.Display) {
+    //     // const { x, y, width, height } = display.bounds;
+    //     // mainWindow.setPosition(x, y);
+    //     mainWindow.setPosition(display.bounds.x, display.bounds.y);
+    //     mainWindow.setSize(width, height);
+    //     mainWindow.center();
+    //     // mainWindow.maximize();
+    // }
+    // setDisplay(screen.getAllDisplays()[settings.displayIndex]);
+
     process.env.MAIN_WINDOW_ID = mainWindow.id.toString();
 
     log.debug("Settings: ", settings);
@@ -85,14 +124,6 @@ export function createWindow() {
         replayContentAPI.copyParseAndLaunchReplay(path);
     }
 
-    function setDisplay(display: Electron.Display) {
-        const { x, y, width, height } = display.bounds;
-        mainWindow.setPosition(x, y);
-        mainWindow.setSize(width, height);
-        mainWindow.maximize();
-    }
-    setDisplay(screen.getAllDisplays()[settings.displayIndex]);
-
     //TODO add an IPC handler for changing display via the settings
 
     // Register IPC handlers for the main window
@@ -104,6 +135,11 @@ export function createWindow() {
         mainWindow.flashFrame(flag);
     });
     /////////////////////////////////////////////
+
+    // Subscribe to game events
+    mainWindow.webContents.ipc.handle("game:launched", () => {
+        log.info("Game launched");
+    });
 
     return mainWindow;
 }

@@ -4,25 +4,27 @@
 
 <template>
     <div class="view">
-        <Panel class="flex-grow">
-            <div v-if="map" class="gap-md page">
-                <h1>{{ map.displayName }}</h1>
-                <div class="container">
-                    <MapSimplePreview :map="map" />
-                    <div class="details">
-                        <div class="detail-text"><b>Description:</b> {{ map.description }}</div>
-                        <div v-if="map.author" class="detail-text"><b>Author:</b> {{ map.author }}</div>
-                        <div class="detail-text"><b>Size:</b> {{ map.mapWidth }} x {{ map.mapHeight }}</div>
-                        <div class="detail-text"><b>Wind:</b> {{ map.windMin }} - {{ map.windMax }}</div>
-                        <div class="detail-text"><b>Tidal:</b> {{ map.tidalStrength }}</div>
-                        <!-- <div v-if="map.startPositions" class="detail-text"><b>Start Positions:</b> {{ map.startPositions.length }}</div> -->
-                        <Button v-if="map.isInstalled" class="green inline" @click="play">Play</Button>
-                        <Button v-else-if="map.isDownloading" class="green inline" disabled>Downloading map...</Button>
-                        <Button v-else class="red inline" @click="downloadMap(map.springName)">Download</Button>
+        <div class="map-details-container">
+            <Panel class="flex-grow">
+                <div v-if="map" class="gap-md page">
+                    <h1>{{ map.displayName }}</h1>
+                    <div class="container">
+                        <MapSimplePreview :map="map" />
+                        <div class="details">
+                            <div class="detail-text"><b>Description:</b> {{ map.description }}</div>
+                            <div v-if="map.author" class="detail-text"><b>Author:</b> {{ map.author }}</div>
+                            <div class="detail-text"><b>Size:</b> {{ map.mapWidth }} x {{ map.mapHeight }}</div>
+                            <div class="detail-text"><b>Wind:</b> {{ map.windMin }} - {{ map.windMax }}</div>
+                            <div class="detail-text"><b>Tidal:</b> {{ map.tidalStrength }}</div>
+                            <!-- <div v-if="map.startPositions" class="detail-text"><b>Start Positions:</b> {{ map.startPositions.length }}</div> -->
+                            <Button v-if="map.isInstalled" class="green inline" @click="play">Play</Button>
+                            <Button v-else-if="map.isDownloading" class="green inline" disabled>Downloading map...</Button>
+                            <Button v-else class="red inline" @click="downloadMap(map.springName)">Download</Button>
+                        </div>
                     </div>
                 </div>
-            </div>
-        </Panel>
+            </Panel>
+        </div>
     </div>
 </template>
 
@@ -61,9 +63,11 @@ async function play() {
 </script>
 
 <style lang="scss" scoped>
-.view {
-    padding: 20px;
-    overflow: hidden;
+.map-details-container {
+    display: flex;
+    align-self: center;
+    height: 100%;
+    width: 1600px;
 }
 
 .page {

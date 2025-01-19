@@ -2,28 +2,34 @@
     <div
         :key="`team${teamId}`"
         class="group"
+        :class="{
+            raptor: battleWithMetadataStore.teams[teamId].some((member) => isBot(member) && isRaptor(member)),
+            scavenger: battleWithMetadataStore.teams[teamId].some((member) => isBot(member) && isScavenger(member)),
+        }"
         data-type="group"
         @dragenter.prevent="onDragEnter($event, teamId)"
         @dragover.prevent
         @drop="onDrop($event, teamId)"
     >
-        <div class="flex-row flex-center-items gap-md">
+        <div class="group-header flex-row flex-center-items gap-md">
             <div class="title">{{ title }}</div>
             <div class="member-count">({{ memberCount }}/{{ maxPlayersPerTeam }} players)</div>
-            <Button class="slim" @click="addBotClicked(teamId)"> Add bot </Button>
-            <Button v-if="showJoin" class="slim" @click="onJoinClicked(teamId)"> Join </Button>
+            <Button class="slim black" @click="addBotClicked(teamId)"> Add bot </Button>
+            <!-- <Button v-if="showJoin" class="slim black" @click="onJoinClicked(teamId)">Join</Button> -->
         </div>
-        <div class="participants">
-            <div
-                v-for="member in battleWithMetadataStore.teams[teamId]"
-                :key="member.id"
-                draggable="true"
-                @dragstart="onDragStart($event, member)"
-                @dragend="onDragEnd()"
-            >
-                <PlayerParticipant v-if="isPlayer(member)" :player="member" />
-                <BotParticipant v-else-if="isBot(member)" :bot="member" :team-id="teamId" />
-            </div>
+        <div
+            v-for="member in battleWithMetadataStore.teams[teamId]"
+            :key="member.id"
+            draggable="true"
+            @dragstart="onDragStart($event, member)"
+            @dragend="onDragEnd()"
+            class="participant"
+        >
+            <PlayerParticipant v-if="isPlayer(member)" :player="member" />
+            <BotParticipant v-else-if="isBot(member)" :bot="member" :team-id="teamId" />
+        </div>
+        <div v-for="(_, i) in maxPlayersPerTeam - memberCount" :key="i">
+            <button class="join-button" :class="{ first: i === 0 }" @click="onJoinClicked(teamId)">Join</button>
         </div>
     </div>
 </template>
@@ -34,7 +40,7 @@ import { computed } from "vue";
 import BotParticipant from "@renderer/components/battle/BotParticipant.vue";
 import PlayerParticipant from "@renderer/components/battle/PlayerParticipant.vue";
 import Button from "@renderer/components/controls/Button.vue";
-import { Bot, isBot, isPlayer, Player, StartPosType } from "@main/game/battle/battle-types";
+import { Bot, isBot, isPlayer, isRaptor, isScavenger, Player, StartPosType } from "@main/game/battle/battle-types";
 import { battleWithMetadataStore } from "@renderer/store/battle.store";
 import { me } from "@renderer/store/me.store";
 
@@ -58,9 +64,9 @@ const maxPlayersPerTeam = computed(() => {
     return 1;
 });
 
-const showJoin = computed(() => {
-    return props.teamId !== me.battleRoomState.teamId;
-});
+// const showJoin = computed(() => {
+//     return props.teamId !== me.battleRoomState.teamId;
+// });
 
 const emit = defineEmits(["addBotClicked", "onJoinClicked", "onDragStart", "onDragEnd", "onDragEnter", "onDrop"]);
 function addBotClicked(teamId: number) {
@@ -90,41 +96,90 @@ function onDrop(event: DragEvent, teamId: number) {
 
 <style lang="scss" scoped>
 .group {
+    border: 1px inset rgba(255, 255, 255, 0.1);
+    background: radial-gradient(circle, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.8));
+    box-shadow: 0 0 10px rgba(0, 0, 0, 1) inset;
+    min-height: 100px;
+    padding: 10px;
     position: relative;
+    display: flex;
+    flex-direction: column;
     &.highlight {
         &:before {
-            @extend .fullsize;
-            width: calc(100% + 10px);
-            height: calc(100%);
-            left: -5px;
-            top: -5px;
+            width: 100%;
+            height: 100%;
             background: rgba(255, 255, 255, 0.1);
         }
     }
     &.highlight-error {
         &:before {
-            @extend .fullsize;
-            width: calc(100% + 10px);
-            height: calc(100%);
-            left: -5px;
-            top: -5px;
+            width: 100%;
+            height: 100%;
             background: rgba(255, 100, 100, 0.1);
         }
     }
+    &.raptor {
+        border-color: rgb(206, 73, 73);
+        background-image: url("/src/renderer/assets/images/modes/raptors.jpg");
+        background-position: center;
+        background-repeat: no-repeat;
+        background-size: cover;
+    }
+    &.scavenger {
+        border-color: rgb(135, 69, 176);
+        background-image: url("/src/renderer/assets/images/modes/scavengers.webp");
+        background-position: center;
+        background-repeat: no-repeat;
+        background-size: cover;
+    }
 }
+
+.group-header {
+    margin-bottom: 4px;
+}
+
+.participant {
+    height: 46px;
+}
+
 .title {
     font-size: 20px;
+    filter: drop-shadow(2px 2px 2px rgba(0, 0, 0, 0.8));
 }
+
 .member-count {
+    filter: drop-shadow(2px 2px 2px rgba(0, 0, 0, 0.8));
     display: inline-block;
-    opacity: 0.5;
     vertical-align: middle;
 }
+
 .team-members {
     display: flex;
     flex-direction: column;
     gap: 3px;
     flex-wrap: wrap;
     margin-top: 5px;
+}
+
+.join-button {
+    height: 46px;
+    &.first {
+        border-top: none;
+    }
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 8px;
+    width: 100%;
+    text-align: center;
+    text-transform: uppercase;
+    text-shadow: inset 0 0 10px rgba(0, 0, 0, 1);
+    font-size: 1.2em;
+    color: rgba(255, 255, 255, 0.15);
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 1);
+    &:hover {
+        color: rgba(255, 255, 255, 0.9);
+        background-color: rgba(255, 255, 255, 0.05);
+    }
 }
 </style>

@@ -28,17 +28,30 @@ const openNews = () => {
 
 <style lang="scss" scoped>
 .news-tile {
-    height: 300px;
+    height: 250px;
+    width: 340px;
     display: flex;
     align-items: flex-end;
     justify-content: flex-start;
     position: relative;
-    border: 4px solid rgba(0, 0, 0, 0.2);
-    outline: 1px solid rgba(255, 255, 255, 0.1);
-    outline-offset: -1px;
     overflow: hidden;
     transition: 0.1s all;
     will-change: outline;
+
+    background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.6));
+    backdrop-filter: blur(10px) brightness(1) saturate(2); //doesn't support opacity transition
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-top: 1px solid rgba(255, 255, 255, 0.3);
+    border-bottom: 1px solid rgba(124, 124, 124, 0.3);
+    box-shadow:
+        -1px 0 0 rgba(0, 0, 0, 0.3),
+        1px 0 0 rgba(0, 0, 0, 0.3),
+        0 1px 0 rgba(0, 0, 0, 0.3),
+        0 -1px 0 rgba(0, 0, 0, 0.3),
+        inset 0 0 50px rgba(255, 255, 255, 0.15),
+        inset 0 3px 8px rgba(255, 255, 255, 0.1),
+        3px 3px 10px rgba(0, 0, 0, 0.8);
+
     &:before {
         @extend .fullsize;
         background-image: v-bind("backgroundImageCss");
@@ -76,7 +89,7 @@ const openNews = () => {
 
     // add a dark background to the text
     .title {
-        font-size: 24px;
+        font-size: 20px;
         text-align: left;
         font-weight: 500;
         z-index: 2;

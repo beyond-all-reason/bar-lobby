@@ -1,5 +1,5 @@
 <template>
-    <Panel class="popout-panel" :class="{ hidden: !open }">
+    <Panel class="popout-panel" :class="{ hidden: !open }" no-padding>
         <slot></slot>
     </Panel>
 </template>

@@ -5,7 +5,6 @@
             :class="{ 'control-not-editable': !editing }"
             :value="battleStore.title"
             :readonly="!editing || !battleStore.isOnline"
-            :style="{ width: titleLength + 'ch' }"
             @keyup.enter="handleEnter"
         />
         <div v-if="!editing && battleStore.isOnline" class="flex-col flex-center edit-title" @click="setEditing">
@@ -17,13 +16,11 @@
 <script lang="ts" setup>
 import { Icon } from "@iconify/vue";
 import squareEditOutline from "@iconify-icons/mdi/square-edit-outline";
-import { computed } from "vue";
 import { ref } from "vue";
 
 import Textbox from "@renderer/components/controls/Textbox.vue";
 import { battleStore } from "@renderer/store/battle.store";
 
-const titleLength = computed(() => battleStore.title.length);
 const editing = ref(false);
 
 function setEditing() {
@@ -44,7 +41,11 @@ function handleEnter() {
     border: 0px;
 }
 .title-textbox {
-    font-size: 48px;
+    width: 100%;
+    font-size: 36px;
+    font-weight: bold;
+    text-transform: uppercase;
+    filter: drop-shadow(0 0 5px rgba(0, 0, 0, 0.9));
     max-height: unset;
 }
 </style>

@@ -21,7 +21,7 @@ defineProps<{
     z-index: -1;
     transition: 1s ease-in-out;
     &__overlay {
-        background-color: rgba(0, 0, 0, 0);
+        background-color: rgba(0, 0, 0, 0.65);
         backdrop-filter: blur(0px);
         z-index: -1;
         transition:

@@ -110,7 +110,9 @@ defineProps<{
 
 const router = useRouter();
 const allRoutes = router.getRoutes();
-const offlineMode = true;
+const offlineMode = computed(() => {
+    return me.isOnline === false;
+});
 const primaryRoutes = computed(() => {
     return allRoutes
         .filter((r) => ["/singleplayer", "/multiplayer", "/library", "/learn", "/store", "/development"].includes(r.path))
@@ -118,7 +120,9 @@ const primaryRoutes = computed(() => {
             (r) =>
                 (r.meta.hide === false || r.meta.hide === undefined) &&
                 ((r.meta.devOnly && settingsStore.devMode) || !r.meta.devOnly) &&
-                (r.meta.availableOffline === undefined || r.meta.availableOffline || (r.meta.availableOffline === false && !offlineMode))
+                (r.meta.availableOffline === undefined ||
+                    r.meta.availableOffline ||
+                    (r.meta.availableOffline === false && !offlineMode.value))
         )
         .sort((a, b) => (a.meta.order ?? 99) - (b.meta.order ?? 99));
 });
@@ -129,7 +133,9 @@ const secondaryRoutes = computed(() => {
             (r) =>
                 (r.meta.hide === false || r.meta.hide === undefined) &&
                 ((r.meta.devOnly && settingsStore.devMode) || !r.meta.devOnly) &&
-                (r.meta.availableOffline === undefined || r.meta.availableOffline || (r.meta.availableOffline === false && !offlineMode))
+                (r.meta.availableOffline === undefined ||
+                    r.meta.availableOffline ||
+                    (r.meta.availableOffline === false && !offlineMode.value))
         )
         .sort((a, b) => (a.meta.order ?? 99) - (b.meta.order ?? 99));
 });
@@ -174,7 +180,7 @@ const serverOffline = true;
     transition:
         transform 0.3s,
         opacity 0.3s;
-    z-index: 1;
+    z-index: 2;
     font-family: Rajdhani, sans-serif;
     &.hidden {
         opacity: 0;
@@ -251,10 +257,10 @@ const serverOffline = true;
                 -7px -3px 10px rgba(0, 0, 0, 0.5) !important;
         }
         &.active {
-            z-index: 1;
+            z-index: 2;
         }
         &:hover {
-            z-index: 2;
+            z-index: 3;
         }
     }
 }

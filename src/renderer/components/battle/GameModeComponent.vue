@@ -24,7 +24,7 @@
             title="Game Options"
             v-model="gameOptionsOpen"
             :options="battleStore.battleOptions.gameMode.options"
-            :sections="gameStore.selectedGameVersion.luaOptionSections"
+            :sections="gameStore.selectedGameVersion?.luaOptionSections"
             @set-options="onOptionsChanged"
         />
     </div>

@@ -122,7 +122,7 @@ async function addFriend() {
 
 <style lang="scss" scoped>
 .flag {
-    width: 16px;
+    width: 20px;
 }
 .ready {
     font-size: 12px;

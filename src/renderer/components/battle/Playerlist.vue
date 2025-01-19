@@ -162,14 +162,11 @@ function onDropSpectators(event: DragEvent) {
 <style lang="scss" scoped>
 .playerlist {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr;
     grid-auto-rows: max-content;
     gap: 10px;
     &.dragging .group > * {
         pointer-events: none;
-    }
-    @media (max-width: 1919px) {
-        grid-template-columns: 1fr;
     }
 }
 </style>

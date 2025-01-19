@@ -3,7 +3,7 @@ import { DirectiveBinding, Directive } from "vue";
 const vStartBox: Directive = {
     // Called when the bound element is mounted to the DOM
     mounted(el: HTMLElement, binding: DirectiveBinding<{ top: number; bottom: number; left: number; right: number }>) {
-        if (binding.value === null) {
+        if (!binding?.value) {
             return;
         }
         const { top, bottom, left, right } = binding.value as {
@@ -20,7 +20,7 @@ const vStartBox: Directive = {
         el.style.height = `${height * 100}%`;
     },
     updated(el: HTMLElement, binding: DirectiveBinding<{ top: number; bottom: number; left: number; right: number }>) {
-        if (binding.value === null) {
+        if (!binding?.value) {
             return;
         }
         const { top, bottom, left, right } = binding.value as {

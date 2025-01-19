@@ -68,6 +68,7 @@ export type AccountApi = typeof accountApi;
 contextBridge.exposeInMainWorld("account", accountApi);
 
 const engineApi = {
+    isNewVersionAvailable: (): Promise<boolean> => ipcRenderer.invoke("engine:isNewVersionAvailable"),
     downloadEngine: (version: string): Promise<void> => ipcRenderer.invoke("engine:downloadEngine", version),
     getInstalledVersions: (): Promise<EngineVersion[]> => ipcRenderer.invoke("engine:getInstalledVersions"),
     isVersionInstalled: (id: string): Promise<boolean> => ipcRenderer.invoke("engine:isVersionInstalled", id),
@@ -136,7 +137,8 @@ export type DownloadsApi = typeof downloadsApi;
 contextBridge.exposeInMainWorld("downloads", downloadsApi);
 
 const miscApi = {
-    getNewsRssFeed: (): Promise<NewsFeedData> => ipcRenderer.invoke("misc:getNewsRssFeed"),
+    getNewsRssFeed: (numberOfNews: number): Promise<NewsFeedData> => ipcRenderer.invoke("misc:getNewsRssFeed", numberOfNews),
+    getDevlogRssFeed: (numberOfNews: number): Promise<NewsFeedData> => ipcRenderer.invoke("misc:getDevlogRssFeed", numberOfNews),
 };
 export type MiscApi = typeof miscApi;
 contextBridge.exposeInMainWorld("misc", miscApi);

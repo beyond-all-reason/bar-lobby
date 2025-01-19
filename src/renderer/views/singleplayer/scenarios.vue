@@ -4,57 +4,58 @@
 
 <template>
     <div class="view">
-        <Panel class="flex-grow">
-            <div class="flex-col fullheight">
-                <h1>{{ route.meta.title }}</h1>
+        <div class="scenarios-container">
+            <div class="view-title">
+                <h1>Scenarios</h1>
+                <p>Test your skills in this set of challenging yet rewarding missions.</p>
+            </div>
+            <Panel class="scenarios-main-panel" noPadding>
                 <div class="flex-row gap-lg fullheight">
                     <div class="fullwidth flex-col">
-                        <div class="scroll-container">
-                            <div class="scenarios">
-                                <TransitionGroup name="fade">
-                                    <ScenarioTile
-                                        v-for="scenario in scenarios"
-                                        :key="scenario.title"
-                                        :scenario="scenario"
-                                        :class="{ selected: selectedScenario.scenarioid === scenario.scenarioid }"
-                                        @click="selectedScenario = scenario"
-                                    />
-                                </TransitionGroup>
-                            </div>
+                        <div class="scenarios scroll-container">
+                            <TransitionGroup name="fade">
+                                <ScenarioTile
+                                    v-for="scenario in scenarios"
+                                    :key="scenario.title"
+                                    :scenario="scenario"
+                                    :class="{ selected: selectedScenario.scenarioid === scenario.scenarioid }"
+                                    @click="selectedScenario = scenario"
+                                />
+                            </TransitionGroup>
                         </div>
                     </div>
-                    <div class="flex-col">
-                        <div class="scroll-container scenario-preview flex-col gap-md">
-                            <h4>{{ selectedScenario.title }}</h4>
+                    <div class="scenario-preview flex-col gap-md">
+                        <h4>{{ selectedScenario.title }}</h4>
+                        <div class="scroll-container flex-grow">
                             <Markdown :source="selectedScenario.summary" />
                             <Markdown :source="selectedScenario.briefing" />
-                            <div class="gridform">
-                                <div>Victory condition</div>
-                                <div>{{ selectedScenario.victorycondition }}</div>
-
-                                <div>Lose condition</div>
-                                <div>{{ selectedScenario.losscondition }}</div>
-                            </div>
-                            <div>
-                                <Select v-model="selectedFaction" label="Faction" :options="factions" />
-                            </div>
-                            <div>
-                                <Select v-model="selectedDifficulty" label="Difficulty" :options="difficulties" optionLabel="name" />
-                            </div>
-                            <DownloadContentButton
-                                v-if="map"
-                                :map="map"
-                                class="fullwidth green"
-                                :disabled="gameStore.isGameRunning"
-                                @click="launch"
-                                >Launch</DownloadContentButton
-                            >
-                            <Button v-else class="fullwidth green" disabled>Launch</Button>
                         </div>
+                        <div class="gridform">
+                            <div>Victory condition</div>
+                            <div>{{ selectedScenario.victorycondition }}</div>
+
+                            <div>Lose condition</div>
+                            <div>{{ selectedScenario.losscondition }}</div>
+                        </div>
+                        <div>
+                            <Select v-model="selectedFaction" label="Faction" :options="factions" />
+                        </div>
+                        <div>
+                            <Select v-model="selectedDifficulty" label="Difficulty" :options="difficulties" optionLabel="name" />
+                        </div>
+                        <DownloadContentButton
+                            v-if="map"
+                            :map="map"
+                            class="fullwidth green"
+                            :disabled="gameStore.isGameRunning"
+                            @click="launch"
+                            >Launch</DownloadContentButton
+                        >
+                        <Button v-else class="fullwidth green" disabled>Launch</Button>
                     </div>
                 </div>
-            </div>
-        </Panel>
+            </Panel>
+        </div>
     </div>
 </template>
 
@@ -64,7 +65,6 @@ import { computed, ref, watch } from "vue";
 import Button from "@renderer/components/controls/Button.vue";
 import Select from "@renderer/components/controls/Select.vue";
 import ScenarioTile from "@renderer/components/misc/ScenarioTile.vue";
-import { useRouter } from "vue-router";
 import { Scenario } from "@main/content/game/scenario";
 import { LATEST_GAME_VERSION } from "@main/config/default-versions";
 import Panel from "@renderer/components/common/Panel.vue";
@@ -73,9 +73,6 @@ import { useDexieLiveQueryWithDeps } from "@renderer/composables/useDexieLiveQue
 import Markdown from "@renderer/components/misc/Markdown.vue";
 import DownloadContentButton from "@renderer/components/controls/DownloadContentButton.vue";
 import { gameStore } from "@renderer/store/game.store";
-
-const router = useRouter();
-const route = router.currentRoute.value;
 
 const loadedScenarios = await window.game.getScenarios(gameStore.selectedGameVersion.gameVersion);
 const scenarios = ref<Scenario[]>(loadedScenarios);
@@ -135,7 +132,25 @@ async function launch() {
 </script>
 
 <style lang="scss" scoped>
+.scenarios-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    align-self: center;
+    width: 1600px;
+}
+
+.scenarios-main-panel {
+    padding: 30px;
+    padding-left: 0;
+    padding-bottom: 0;
+    height: 100%;
+}
+
 .scenarios {
+    padding-left: 30px;
+    padding-bottom: 30px;
+    margin-bottom: 30px;
     width: 100%;
     display: grid;
     grid-gap: 15px;
@@ -144,8 +159,9 @@ async function launch() {
 }
 
 .scenario-preview {
-    width: 550px;
-    padding-right: 10px;
+    width: 600px;
+    height: 100%;
+    padding-bottom: 30px;
 }
 
 .launch-button {

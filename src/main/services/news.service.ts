@@ -13,10 +13,8 @@ export interface NewsFeedEntry extends FeedEntry {
 
 const log = logger("news.service.ts");
 
-const RSS_URL = "https://www.beyondallreason.info/news/rss.xml";
-const MAX_NEWS_TO_LOAD = 7;
-
-let newsFeed: NewsFeedData | null = null;
+const NEWS_RSS_URL = "https://www.beyondallreason.info/news/rss.xml";
+const DEVLOG_RSS_URL = "https://www.beyondallreason.info/microblogs/rss.xml";
 
 export async function fetchImageToBase64(url: string) {
     try {
@@ -34,13 +32,14 @@ export async function fetchImageToBase64(url: string) {
     }
 }
 
-async function fetchNewsRssFeed() {
+let newsFeed: NewsFeedData | null = null;
+async function fetchNewsRssFeed(numberOfNews: number): Promise<NewsFeedData | null> {
     try {
         if (newsFeed) {
             return newsFeed;
         }
         newsFeed = (await extract(
-            RSS_URL,
+            NEWS_RSS_URL,
             {
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 getExtraEntryFields: (entry: any) => {
@@ -56,12 +55,15 @@ async function fetchNewsRssFeed() {
             {}
         )) as NewsFeedData;
         newsFeed.entries = await Promise.all(
-            newsFeed.entries.slice(0, MAX_NEWS_TO_LOAD).map(async (entry) => {
-                if (entry.thumbnailUrl) {
-                    entry.thumbnail = await fetchImageToBase64(entry.thumbnailUrl);
-                }
-                return entry;
-            })
+            newsFeed.entries
+                .sort((a, b) => new Date(b.published).getTime() - new Date(a.published).getTime())
+                .slice(0, numberOfNews)
+                .map(async (entry) => {
+                    if (entry.thumbnailUrl) {
+                        entry.thumbnail = await fetchImageToBase64(entry.thumbnailUrl);
+                    }
+                    return entry;
+                })
         );
         return newsFeed;
     } catch (error) {
@@ -69,8 +71,22 @@ async function fetchNewsRssFeed() {
     }
 }
 
+let devlogFeed: NewsFeedData | null = null;
+async function fetchDevlogRssFeed(): Promise<NewsFeedData | null> {
+    try {
+        if (devlogFeed) {
+            return devlogFeed;
+        }
+        devlogFeed = (await extract(DEVLOG_RSS_URL, {}, {})) as NewsFeedData;
+        return devlogFeed;
+    } catch (error) {
+        log.error("Error fetching devlog feed:", error);
+    }
+}
+
 function registerIpcHandlers() {
-    ipcMain.handle("misc:getNewsRssFeed", fetchNewsRssFeed);
+    ipcMain.handle("misc:getNewsRssFeed", (_event, numberOfNews: number) => fetchNewsRssFeed(numberOfNews));
+    ipcMain.handle("misc:getDevlogRssFeed", () => fetchDevlogRssFeed());
 }
 
 export const miscService = {
