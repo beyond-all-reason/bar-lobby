@@ -7,20 +7,23 @@
 // https://www.rfc-editor.org/rfc/rfc8252#section-8.3
 // https://datatracker.ietf.org/doc/html/rfc8252#section-7.3
 
+import { logger } from "@main/utils/logger";
 import http from "node:http";
 import { AddressInfo } from "node:net";
+
+const LIFE_TIME = 60 * 1000 * 5; // 5 minutes
+const log = logger("redirect-handler");
 
 export default class RedirectHandler {
     private path: string;
     private server: http.Server;
-    private error?: Error;
     private callbackUrl?: URL;
 
     constructor() {
         this.path = "/oauth2callback";
         this.server = http.createServer((req, res) => this.handleRequest(req, res));
         this.server.on("error", (err) => {
-            this.error = err;
+            log.error("Error in redirect handler server", err);
             this.close();
         });
     }
@@ -31,13 +34,11 @@ export default class RedirectHandler {
     }
 
     public async start(): Promise<string> {
+        setTimeout(() => this.close(), LIFE_TIME);
         this.server.listen({
             port: 0,
             host: "127.0.0.1", // We assume that IPv4 is always available
         });
-        if (this.error) {
-            throw this.error;
-        }
         if (!this.server.listening) {
             await new Promise<void>((resolve, reject) => {
                 this.server.once("listening", resolve);
@@ -62,14 +63,9 @@ export default class RedirectHandler {
     }
 
     public async waitForCallback(): Promise<URL> {
-        if (this.error) {
-            throw this.error;
-        }
-
         if (!this.server.listening) {
             throw new Error("Server is not listening, how did you get redirect url?");
         }
-
         if (!this.callbackUrl) {
             await new Promise<void>((resolve, reject) => {
                 const handler = () => {
@@ -85,11 +81,9 @@ export default class RedirectHandler {
                 this.server.once("close", () => reject(new Error("Server closed before callback")));
             });
         }
-
         if (!this.callbackUrl) {
             throw new Error("Unknown error while waiting for callback");
         }
-
         return this.callbackUrl;
     }
 }

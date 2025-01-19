@@ -25,8 +25,9 @@ export async function fetchAuthorizationServerMetadata(): Promise<{
     }
     const { authorization_endpoint, token_endpoint } = await response.json();
     if (!authorization_endpoint || !token_endpoint) {
+        const responseText = await response.text();
         const error = "Invalid OAuth2 authorization server metadata";
-        log.error(error);
+        log.error(`${error}: ${responseText}`);
         throw new Error(error);
     }
     // TODO: Remove this hack once the server is fixed
@@ -78,14 +79,16 @@ export async function authenticate(): Promise<TokenResponse> {
             method: "POST",
         });
         if (tokenResponse.status !== 200) {
-            const error = `Failed to fetch OAuth2 token: ${tokenResponse.status} ${tokenResponse.statusText}`;
+            const responseText = await tokenResponse.text();
+            const error = `Failed to fetch OAuth2 token: ${tokenResponse.status} ${tokenResponse.statusText} ${responseText}`;
             log.error(error);
             throw new Error(error);
         }
         const { access_token, refresh_token, expires_in } = await tokenResponse.json();
         if (!access_token || !refresh_token) {
+            const responseText = await tokenResponse.text();
             const error = "Invalid OAuth2 token response";
-            log.error(error);
+            log.error(`${error}: ${responseText}`);
             throw new Error(error);
         }
         return {
