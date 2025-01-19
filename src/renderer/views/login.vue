@@ -5,30 +5,16 @@
 <template>
     <div class="container">
         <img ref="logo" class="logo" src="/src/renderer/assets/images/BARLogoFull.png" />
-        <div v-if="connecting" class="relative">
-            <Loader></Loader>
-        </div>
-        <!-- <Panel v-else-if="isConnected" class="login-forms" no-padding>
-            <TabView v-model:activeIndex="activeIndex">
-                <TabPanel header="Login">
-                    <LoginForm />
-                </TabPanel>
-                <TabPanel header="Register">
-                    <RegisterForm @register-success="activeIndex = 0" />
-                </TabPanel>
-                <TabPanel header="Reset Password">
-                    <ResetPasswordForm />
-                </TabPanel>
-            </TabView>
-        </Panel>
-        <div v-else class="flex-col gap-md">
-            <div class="txt-error">Disconnected from {{ serverAddress }}</div>
-            <Button class="retry gap-sm" @click="onRetry">
-                <Icon :icon="replayIcon" />
-                Reconnect
-            </Button>
-        </div> -->
-        <div class="play-offline" @click="playOffline">Play Offline</div>
+        <Transition mode="out-in" name="fade">
+            <div v-if="connecting" class="relative">
+                <Loader></Loader>
+            </div>
+            <div v-else class="buttons-container">
+                <Button class="login-button" @click="login">Login</Button>
+                <div v-if="error" class="txt-error">{{ error }}</div>
+                <div class="play-offline" @click="playOffline">Play Offline</div>
+            </div>
+        </Transition>
     </div>
 </template>
 
@@ -37,36 +23,35 @@ import { ref } from "vue";
 
 import Loader from "@renderer/components/common/Loader.vue";
 import { useRouter } from "vue-router";
+import { auth } from "@renderer/store/me.store";
+import { settingsStore } from "@renderer/store/settings.store";
 
 const router = useRouter();
 
-// const activeIndex = ref(0);
-// const isConnected = true; // api.comms.isConnected;
-// const serverAddress = ""; //`${api.comms.config.host}:${api.comms.config.port}`;
 const connecting = ref(false);
+const error = ref<string>();
 
-async function connect() {
+async function login() {
     try {
-        // await api.comms.connect();
-    } catch (err) {
-        console.error(err);
+        connecting.value = true;
+        await auth.login();
+        await router.push("/home/overview");
+    } catch (e) {
+        console.error(e);
+        error.value = (e as Error).message;
+    } finally {
+        connecting.value = false;
     }
 }
 
-// async function onRetry() {
-//     connecting.value = true;
-//     await connect();
-//     await delay(100);
-//     connecting.value = false;
-// }
-
 async function playOffline() {
-    // api.session.offlineMode = true;
-    // api.comms.disconnect();
+    auth.playOffline();
     await router.push("/home/overview");
 }
 
-connect();
+if (settingsStore.loginAutomatically) {
+    login();
+}
 </script>
 
 <style lang="scss" scoped>
@@ -87,14 +72,6 @@ connect();
     margin-bottom: 80px;
 }
 
-.login-forms {
-    width: 100%;
-}
-
-.retry {
-    align-self: center;
-}
-
 .play-offline {
     display: flex;
     align-self: center;
@@ -104,5 +81,54 @@ connect();
     &:hover {
         opacity: 1;
     }
+}
+
+.login-button {
+    align-self: center;
+    width: 500px;
+    text-transform: uppercase;
+    font-family: Rajdhani;
+    font-weight: bold;
+    font-size: 2rem;
+    padding: 20px 40px;
+    color: #fff;
+    background: linear-gradient(90deg, #22c55e, #16a34a);
+    border: none;
+    border-radius: 2px;
+    box-shadow: 0 0 15px rgba(34, 197, 94, 0.4);
+    text-align: center;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition:
+        transform 0.3s ease,
+        box-shadow 0.3s ease;
+}
+
+.login-button:hover {
+    box-shadow: 0 0 25px rgba(34, 197, 94, 0.6);
+}
+
+.login-button::before {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 200%;
+    height: 200%;
+    background: rgba(255, 255, 255, 0.2);
+    transform: translate(-50%, -50%) scale(0);
+    border-radius: 50%;
+    transition: transform 0.4s ease;
+}
+
+.login-button:hover::before {
+    box-shadow: 0 0 15px rgba(34, 197, 94, 0.4);
+}
+
+.buttons-container {
+    display: flex;
+    gap: 20px;
+    flex-direction: column;
+    align-items: center;
 }
 </style>

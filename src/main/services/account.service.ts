@@ -1,9 +1,11 @@
 import { CONFIG_PATH } from "@main/config/app";
 import { FileStore } from "@main/json/file-store";
 import { accountSchema } from "@main/json/model/account";
-
-import { ipcMain } from "electron";
+import { logger } from "@main/utils/logger";
+import { safeStorage } from "electron";
 import path from "path";
+
+const log = logger("account-service");
 
 const accountStore = new FileStore<typeof accountSchema>(path.join(CONFIG_PATH, "account.json"), accountSchema);
 
@@ -11,27 +13,53 @@ function init() {
     accountStore.init();
 }
 
-function getAccount() {
-    return accountStore.model;
+async function saveToken(token: string) {
+    if (safeStorage.isEncryptionAvailable()) {
+        token = safeStorage.encryptString(token).toString("base64");
+    } else {
+        log.warn("Encryption is not available, storing token in plain text");
+    }
+    await accountStore.update({ token });
 }
 
-async function updateAccount(data: Partial<typeof accountSchema>) {
-    await accountStore.update(data);
+async function saveRefreshToken(refreshToken: string) {
+    if (safeStorage.isEncryptionAvailable()) {
+        refreshToken = safeStorage.encryptString(refreshToken).toString("base64");
+    } else {
+        log.warn("Encryption is not available, storing refreshToken in plain text");
+    }
+    await accountStore.update({ refreshToken });
 }
 
-function registerIpcHandlers() {
-    ipcMain.handle("account:get", async () => {
-        return getAccount();
-    });
-    ipcMain.handle("account:update", async (_event, data: Partial<typeof accountSchema>) => {
-        return updateAccount(data);
+async function getToken() {
+    const { token } = await accountStore.model;
+    if (safeStorage.isEncryptionAvailable() && token) {
+        return safeStorage.decryptString(Buffer.from(token, "base64"));
+    }
+    return token;
+}
+
+async function getRefreshToken() {
+    const { refreshToken } = await accountStore.model;
+    if (safeStorage.isEncryptionAvailable() && refreshToken) {
+        return safeStorage.decryptString(Buffer.from(refreshToken, "base64"));
+    }
+    return refreshToken;
+}
+
+async function wipe() {
+    await accountStore.update({
+        token: "",
+        refreshToken: "",
     });
 }
 
 export type Account = typeof accountStore.model;
 export const accountService = {
     init,
-    registerIpcHandlers,
-    getAccount,
-    updateAccount,
+    saveToken,
+    saveRefreshToken,
+    getToken,
+    getRefreshToken,
+    wipe,
 };

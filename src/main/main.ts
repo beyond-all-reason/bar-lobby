@@ -17,6 +17,7 @@ import replaysService from "@main/services/replays.service";
 import { miscService } from "@main/services/news.service";
 import { autoUpdaterService } from "@main/services/auto-updater.service";
 import { replayContentAPI } from "@main/content/replays/replay-content";
+import { authService } from "@main/services/auth.service";
 
 const log = logger("main/index.ts");
 log.info("Starting Electron main process");
@@ -117,7 +118,7 @@ app.whenReady().then(() => {
     // Handlers may need the mainWindow to send events
     infoService.registerIpcHandlers();
     settingsService.registerIpcHandlers();
-    accountService.registerIpcHandlers();
+    authService.registerIpcHandlers();
     replaysService.registerIpcHandlers(mainWindow);
     engineService.registerIpcHandlers();
     gameService.registerIpcHandlers(mainWindow);

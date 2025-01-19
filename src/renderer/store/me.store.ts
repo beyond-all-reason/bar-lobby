@@ -17,4 +17,19 @@ export const _me = reactive({
     status: "offline",
 } as CurrentUser);
 
+async function login() {
+    await window.auth.login();
+    _me.isOnline = true;
+}
+
+function playOffline() {
+    _me.isOnline = false;
+}
+
+function logout() {
+    window.auth.logout();
+    _me.isOnline = false;
+}
+
 export const me = readonly(_me);
+export const auth = { login, playOffline, logout };

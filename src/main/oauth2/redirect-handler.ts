@@ -7,32 +7,24 @@
 // https://www.rfc-editor.org/rfc/rfc8252#section-8.3
 // https://datatracker.ietf.org/doc/html/rfc8252#section-7.3
 
+import { logger } from "@main/utils/logger";
 import http from "node:http";
 import { AddressInfo } from "node:net";
 
-export class RedirectHandler {
+const TIMEOUT = 60 * 1000; // 1 minute
+const log = logger("redirect-handler");
+
+export default class RedirectHandler {
     private path: string;
     private server: http.Server;
-    private error?: Error;
     private callbackUrl?: URL;
 
-    constructor(signal?: AbortSignal) {
+    constructor() {
         this.path = "/oauth2callback";
-
         this.server = http.createServer((req, res) => this.handleRequest(req, res));
-
-        // We don't just set the signal on the server, because we want to be
-        // able to force close all the connections when we are done.
-        signal?.addEventListener("abort", () => this.close());
-
         this.server.on("error", (err) => {
-            this.error = err;
+            log.error("Error in redirect handler server", err);
             this.close();
-        });
-
-        this.server.listen({
-            port: 0,
-            host: "127.0.0.1", // We assume that IPv4 is always available
         });
     }
 
@@ -41,10 +33,14 @@ export class RedirectHandler {
         this.server.closeAllConnections();
     }
 
-    public async getRedirectUrl(): Promise<string> {
-        if (this.error) {
-            throw this.error;
-        }
+    public async start(): Promise<string> {
+        // Times out after some time to prevent leaving a running server in case of
+        // some error in the application, the user interrupting the flow etc...
+        setTimeout(() => this.close(), TIMEOUT);
+        this.server.listen({
+            port: 0,
+            host: "127.0.0.1", // We assume that IPv4 is always available
+        });
         if (!this.server.listening) {
             await new Promise<void>((resolve, reject) => {
                 this.server.once("listening", resolve);
@@ -69,14 +65,9 @@ export class RedirectHandler {
     }
 
     public async waitForCallback(): Promise<URL> {
-        if (this.error) {
-            throw this.error;
-        }
-
         if (!this.server.listening) {
             throw new Error("Server is not listening, how did you get redirect url?");
         }
-
         if (!this.callbackUrl) {
             await new Promise<void>((resolve, reject) => {
                 const handler = () => {
@@ -92,11 +83,9 @@ export class RedirectHandler {
                 this.server.once("close", () => reject(new Error("Server closed before callback")));
             });
         }
-
         if (!this.callbackUrl) {
             throw new Error("Unknown error while waiting for callback");
         }
-
         return this.callbackUrl;
     }
 }
