@@ -1,4 +1,4 @@
-import { OAUTH_AUTHORIZATION_SERVER_URL, OAUTH_CLIENT_ID, WELL_KNOWN_OAUTH_AUTHORIZATION_SERVER_URL } from "@main/config/server";
+import { OAUTH_AUTHORIZATION_SERVER_URL, OAUTH_CLIENT_ID, OAUTH_SCOPE, WELL_KNOWN_OAUTH_AUTHORIZATION_SERVER_URL } from "@main/config/server";
 import { generatePKCE } from "@main/oauth2/pkce";
 import RedirectHandler from "@main/oauth2/redirect-handler";
 import { logger } from "@main/utils/logger";
@@ -13,6 +13,7 @@ interface TokenResponse {
     expiresIn: number;
 }
 
+//TODO cache this response according to HTTP cache headers returned from server
 export async function fetchAuthorizationServerMetadata(): Promise<{
     authorizationEndpoint: string;
     tokenEndpoint: string;
@@ -58,6 +59,7 @@ export async function authenticate(): Promise<TokenResponse> {
         const redirect_uri = await redirectHandler.start();
         const url = createUrlWithQuerystring(authorizationEndpoint, {
             client_id: OAUTH_CLIENT_ID,
+            scope: OAUTH_SCOPE,
             response_type: "code",
             redirect_uri,
             code_challenge,
@@ -71,6 +73,7 @@ export async function authenticate(): Promise<TokenResponse> {
         const tokenUrl = createUrlWithQuerystring(tokenEndpoint, {
             grant_type: "authorization_code",
             client_id: OAUTH_CLIENT_ID,
+            scoe: OAUTH_SCOPE,
             code,
             code_verifier,
             redirect_uri,
@@ -116,6 +119,7 @@ export async function renewAccessToken(refreshToken: string): Promise<TokenRespo
     const tokenUrl = createUrlWithQuerystring(tokenEndpoint, {
         grant_type: "refresh_token",
         client_id: OAUTH_CLIENT_ID,
+        scope: OAUTH_SCOPE,
         refresh_token: refreshToken,
     });
     const tokenResponse = await fetch(tokenUrl, {
