@@ -87,6 +87,7 @@ export async function authenticate(): Promise<TokenResponse> {
             log.error(error);
             throw new Error(error);
         }
+        // Refresh token is mandatory for this app to work
         const { access_token, refresh_token, expires_in } = await tokenResponse.json();
         if (!access_token || !refresh_token) {
             const responseText = await tokenResponse.text();
@@ -131,15 +132,18 @@ export async function renewAccessToken(refreshToken: string): Promise<TokenRespo
         throw new Error(error);
     }
     const { access_token, refresh_token, expires_in } = await tokenResponse.json();
-    if (!access_token || !refresh_token) {
+    if (!access_token || !expires_in) {
         const error = "Invalid OAuth2 token response";
         log.error(error);
         throw new Error(error);
     }
+    if (!refresh_token) {
+        log.info("No new refresh token in token response, keeping the current one.");
+    }
     log.debug("Renewed access token");
     return {
         token: access_token,
-        refreshToken: refresh_token,
+        refreshToken: refresh_token ? refresh_token : refreshToken,
         expiresIn: expires_in,
     };
 }
