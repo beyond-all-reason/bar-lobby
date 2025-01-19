@@ -57,6 +57,8 @@ export async function authenticate(): Promise<TokenResponse> {
     const redirectHandler = new RedirectHandler();
     try {
         const redirect_uri = await redirectHandler.start();
+        // TODO set state parameter to prevent CSRF attacks
+        // https://www.rfc-editor.org/rfc/rfc6749#section-4.1.1
         const url = createUrlWithQuerystring(authorizationEndpoint, {
             client_id: OAUTH_CLIENT_ID,
             scope: OAUTH_SCOPE,

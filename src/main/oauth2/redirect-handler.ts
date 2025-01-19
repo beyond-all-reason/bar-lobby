@@ -11,7 +11,7 @@ import { logger } from "@main/utils/logger";
 import http from "node:http";
 import { AddressInfo } from "node:net";
 
-const LIFE_TIME = 60 * 1000 * 5; // 5 minutes
+const TIMEOUT = 60 * 1000; // 1 minute
 const log = logger("redirect-handler");
 
 export default class RedirectHandler {
@@ -34,7 +34,9 @@ export default class RedirectHandler {
     }
 
     public async start(): Promise<string> {
-        setTimeout(() => this.close(), LIFE_TIME);
+        // Times out after some time to prevent leaving a running server in case of
+        // some error in the application, the user interrupting the flow etc...
+        setTimeout(() => this.close(), TIMEOUT);
         this.server.listen({
             port: 0,
             host: "127.0.0.1", // We assume that IPv4 is always available
