@@ -10,29 +10,18 @@
 import http from "node:http";
 import { AddressInfo } from "node:net";
 
-export class RedirectHandler {
+export default class RedirectHandler {
     private path: string;
     private server: http.Server;
     private error?: Error;
     private callbackUrl?: URL;
 
-    constructor(signal?: AbortSignal) {
+    constructor() {
         this.path = "/oauth2callback";
-
         this.server = http.createServer((req, res) => this.handleRequest(req, res));
-
-        // We don't just set the signal on the server, because we want to be
-        // able to force close all the connections when we are done.
-        signal?.addEventListener("abort", () => this.close());
-
         this.server.on("error", (err) => {
             this.error = err;
             this.close();
-        });
-
-        this.server.listen({
-            port: 0,
-            host: "127.0.0.1", // We assume that IPv4 is always available
         });
     }
 
@@ -41,7 +30,11 @@ export class RedirectHandler {
         this.server.closeAllConnections();
     }
 
-    public async getRedirectUrl(): Promise<string> {
+    public async start(): Promise<string> {
+        this.server.listen({
+            port: 0,
+            host: "127.0.0.1", // We assume that IPv4 is always available
+        });
         if (this.error) {
             throw this.error;
         }

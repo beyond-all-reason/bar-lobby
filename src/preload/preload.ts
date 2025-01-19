@@ -2,7 +2,6 @@ import { contextBridge, ipcRenderer } from "electron";
 
 import { Replay } from "@main/content/replays/replay";
 import { Settings } from "@main/services/settings.service";
-import { Account } from "@main/services/account.service";
 import { EngineVersion } from "@main/content/engine/engine-version";
 import { GameVersion } from "@main/content/game/game-version";
 import { MapData } from "@main/content/maps/map-data";
@@ -60,12 +59,12 @@ const settingsApi = {
 export type SettingsApi = typeof settingsApi;
 contextBridge.exposeInMainWorld("settings", settingsApi);
 
-const accountApi = {
-    getAccount: (): Promise<Account> => ipcRenderer.invoke("account:get"),
-    updateAccount: (data: Partial<Account>): Promise<void> => ipcRenderer.invoke("account:update", data),
+const authApi = {
+    login: (): Promise<void> => ipcRenderer.invoke("auth:login"),
+    logout: (): Promise<void> => ipcRenderer.invoke("auth:logout"),
 };
-export type AccountApi = typeof accountApi;
-contextBridge.exposeInMainWorld("account", accountApi);
+export type AuthApi = typeof authApi;
+contextBridge.exposeInMainWorld("auth", authApi);
 
 const engineApi = {
     isNewVersionAvailable: (): Promise<boolean> => ipcRenderer.invoke("engine:isNewVersionAvailable"),
