@@ -13,16 +13,14 @@ import { useRouter } from "vue-router";
 
 import Modal from "@renderer/components/common/Modal.vue";
 import Button from "@renderer/components/controls/Button.vue";
-// TODO Add again when https://github.com/beyond-all-reason/bar-lobby/pull/290 is merged
-// import { auth } from "@renderer/store/me.store";
+import { auth } from "@renderer/store/me.store";
 import { settingsStore } from "@renderer/store/settings.store";
 
 const router = useRouter();
 const modal: Ref<InstanceType<typeof Modal> | null> = ref(null);
 
 async function logout() {
-    // TODO Add again when https://github.com/beyond-all-reason/bar-lobby/pull/290 is merged
-    // auth.logout();
+    auth.logout();
     settingsStore.loginAutomatically = false;
     await router.push("/login");
     modal.value?.close();
