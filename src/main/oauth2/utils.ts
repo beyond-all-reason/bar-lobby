@@ -3,7 +3,7 @@ import { generatePKCE } from "@main/oauth2/pkce";
 import RedirectHandler from "@main/oauth2/redirect-handler";
 import { logger } from "@main/utils/logger";
 import { shell } from "electron";
-import { stringify } from "querystring";
+import { stringify } from "node:querystring";
 
 const log = logger("oauth2-utils");
 
@@ -30,6 +30,7 @@ export async function fetchAuthorizationServerMetadata(): Promise<{
         throw new Error(error);
     }
     // TODO: Remove this hack once the server is fixed
+    // see https://github.com/beyond-all-reason/teiserver/pull/555
     const fixedAuthorizationEndpoint = authorization_endpoint.replaceAll(":8888", "");
     const fixedTokenEndpoint = token_endpoint.replaceAll(":8888", "");
     return { authorizationEndpoint: fixedAuthorizationEndpoint, tokenEndpoint: fixedTokenEndpoint };

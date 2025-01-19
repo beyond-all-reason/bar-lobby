@@ -20,7 +20,6 @@ function registerIpcHandlers() {
         }
     });
     ipcMain.handle("auth:logout", async () => {
-        // TODO maybe revoke refresh token as well here
         stopTokenRenewer();
         await accountService.wipe();
     });

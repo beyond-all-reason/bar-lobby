@@ -1,4 +1,4 @@
-import { createHash, randomInt } from "crypto";
+import { createHash, randomInt } from "node:crypto";
 
 export function generatePKCE(): [string, string] {
     /**
