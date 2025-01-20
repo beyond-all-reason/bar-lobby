@@ -1,4 +1,4 @@
-import { authenticate, renewAccessToken, startTokenRenewer, stopTokenRenewer } from "@main/oauth2/utils";
+import { authenticate, renewAccessToken, startTokenRenewer, stopTokenRenewer } from "@main/oauth2/oauth2";
 import { accountService } from "@main/services/account.service";
 import { logger } from "@main/utils/logger";
 import { ipcMain } from "electron";

@@ -24,17 +24,26 @@ export async function fetchAuthorizationServerMetadata(): Promise<{
         log.error(error);
         throw new Error(error);
     }
-    const { authorization_endpoint, token_endpoint } = await response.json();
-    if (!authorization_endpoint || !token_endpoint) {
-        const responseText = await response.text();
+    const body = await response.json();
+    const { authorization_endpoint, token_endpoint, issuer } = body;
+    if (!authorization_endpoint || !token_endpoint || !issuer) {
         const error = "Invalid OAuth2 authorization server metadata";
-        log.error(`${error}: ${responseText}`);
+        log.error(`${error}: ${JSON.stringify(body)}`);
         throw new Error(error);
     }
+
     // TODO: Remove this hack once the server is fixed
     // see https://github.com/beyond-all-reason/teiserver/pull/555
     const fixedAuthorizationEndpoint = authorization_endpoint.replaceAll(":8888", "");
     const fixedTokenEndpoint = token_endpoint.replaceAll(":8888", "");
+    const fixedIssuer = issuer.replaceAll(":8888", "");
+
+    if (fixedIssuer !== OAUTH_AUTHORIZATION_SERVER_URL) {
+        const error = `Invalid OAuth2 issuer: ${fixedIssuer} does not match expected ${OAUTH_AUTHORIZATION_SERVER_URL}`;
+        log.error(error);
+        throw new Error(error);
+    }
+
     return { authorizationEndpoint: fixedAuthorizationEndpoint, tokenEndpoint: fixedTokenEndpoint };
 }
 
@@ -90,11 +99,11 @@ export async function authenticate(): Promise<TokenResponse> {
             throw new Error(error);
         }
         // Refresh token is mandatory for this app to work
-        const { access_token, refresh_token, expires_in } = await tokenResponse.json();
+        const body = await tokenResponse.json();
+        const { access_token, refresh_token, expires_in } = body;
         if (!access_token || !refresh_token) {
-            const responseText = await tokenResponse.text();
             const error = "Invalid OAuth2 token response";
-            log.error(`${error}: ${responseText}`);
+            log.error(`${error}: ${JSON.stringify(body)}`);
             throw new Error(error);
         }
         return {
@@ -130,13 +139,15 @@ export async function renewAccessToken(refreshToken: string): Promise<TokenRespo
     });
     if (tokenResponse.status !== 200) {
         const error = `Failed to renew token: ${tokenResponse.status} ${tokenResponse.statusText}`;
-        log.error(error);
+        const responseText = await tokenResponse.text();
+        log.error(`${error}: ${responseText}`);
         throw new Error(error);
     }
-    const { access_token, refresh_token, expires_in } = await tokenResponse.json();
+    const body = await tokenResponse.json();
+    const { access_token, refresh_token, expires_in } = body;
     if (!access_token || !expires_in) {
         const error = "Invalid OAuth2 token response";
-        log.error(error);
+        log.error(`${error}: ${JSON.stringify(body)}`);
         throw new Error(error);
     }
     if (!refresh_token) {
