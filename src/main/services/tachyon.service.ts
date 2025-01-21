@@ -48,7 +48,7 @@ function registerIpcHandlers(mainWindow: Electron.BrowserWindow) {
         }
     });
 
-    ipcMain.handle("tachyon:req", async (_event, command, args) => {
+    ipcMain.handle("tachyon:request", async (_event, command, args) => {
         return await tachyonClient.request(command, args);
     });
 }

@@ -34,7 +34,7 @@ export function initTachyonStore() {
     // Periodically fetch server stats
     setInterval(() => {
         if (!tachyonStore.isConnected) return;
-        window.tachyon.req("system/serverStats").then((response) => {
+        window.tachyon.request("system/serverStats").then((response) => {
             if (response.status === "success") {
                 tachyonStore.serverStats = response.data;
             } else {
