@@ -114,7 +114,7 @@ export class TachyonClient {
         }
         validateCommand(request);
         this.socket.send(JSON.stringify(request));
-        log.debug("OUTGOING REQUEST", request);
+        log.debug(`OUTGOING REQUEST ${JSON.stringify(request)}`);
         return new Promise((resolve) => {
             this.onResponse(commandId).addOnce((response: TachyonResponse) => {
                 if (response.messageId === messageId) {
@@ -130,7 +130,7 @@ export class TachyonClient {
         }
         validateCommand(event);
         this.socket.send(JSON.stringify(event));
-        log.debug("OUTGOING EVENT", event);
+        log.debug(`OUTGOING EVENT ${JSON.stringify(event)}`);
     }
 
     // public nextEvent<C extends GetCommandIds<"server", "user", "event">>(commandId: C): Promise<GetCommandData<GetCommands<"server", "user", "event", C>>> {
@@ -188,11 +188,11 @@ export class TachyonClient {
         } as TachyonResponse;
         validateCommand(response);
         this.socket?.send(JSON.stringify(response));
-        log.debug("OUTGOING RESPONSE", response);
+        log.debug(`OUTGOING RESPONSE ${JSON.stringify(response)}`);
     }
 
     protected async handleResponse(response: TachyonResponse) {
-        log.debug("INCOMING RESPONSE", response);
+        log.debug(`INCOMING RESPONSE ${JSON.stringify(response)}`);
         const signal = this.responseHandlers.get(response.commandId);
         if (signal) {
             signal.dispatch(response as GetCommands<"server", "user", "response">);
@@ -200,7 +200,7 @@ export class TachyonClient {
     }
 
     protected async handleEvent(event: TachyonEvent) {
-        log.debug("INCOMING EVENT", event);
+        log.debug(`INCOMING EVENT ${JSON.stringify(event)}`);
         this.onEvent.dispatch(event);
     }
 
