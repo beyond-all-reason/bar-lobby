@@ -1,5 +1,5 @@
 <template>
-    <Button v-if="!me.isOnline">
+    <Button>
         <div class="flex-row flex-center gap-sm">
             <div class="server-status-dot" :class="{ offline: !tachyonStore.isConnected }">⬤</div>
             <div v-if="tachyonStore.isConnected">{{ tachyonStore.serverStats?.userCount || 0 }} Players Online</div>
@@ -9,7 +9,6 @@
 </template>
 <script lang="ts" setup>
 import Button from "@renderer/components/controls/Button.vue";
-import { me } from "@renderer/store/me.store";
 import { tachyonStore } from "@renderer/store/tachyon.store";
 </script>
 <style lang="scss" scoped>

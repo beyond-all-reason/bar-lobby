@@ -14,7 +14,7 @@
                 </div>
                 <div class="primary-right">
                     <Button
-                        v-if="!me.isOnline"
+                        v-if="me.isOnline"
                         v-tooltip.bottom="'Direct Messages'"
                         v-click-away:messages="() => (messagesOpen = false)"
                         :class="['icon', { active: messagesOpen }]"
@@ -24,7 +24,7 @@
                         <div v-if="messagesUnread" class="unread-dot"></div>
                     </Button>
                     <Button
-                        v-if="!me.isOnline"
+                        v-if="me.isOnline"
                         v-tooltip.bottom="'Friends'"
                         v-click-away:friends="() => (friendsOpen = false)"
                         :class="['icon', { active: friendsOpen }]"
@@ -53,8 +53,8 @@
                     </Button>
                 </div>
                 <div class="secondary-right flex-row flex-right">
-                    <ServerStatus />
-                    <Button v-if="!me.isOnline" class="user" to="/profile">
+                    <ServerStatus v-if="me.isOnline" />
+                    <Button v-if="me.isOnline" class="user" to="/profile">
                         <div class="flex-row flex-center gap-sm">
                             <Icon :icon="account" :height="20" />
                             <div>{{ me.username }}</div>
@@ -105,7 +105,7 @@ defineProps<{
 
 const router = useRouter();
 const allRoutes = router.getRoutes();
-const primaryRoutes = watchEffect(() => {
+const primaryRoutes = computed(() => {
     return allRoutes
         .filter((r) => ["/singleplayer", "/multiplayer", "/library", "/learn", "/store", "/development"].includes(r.path))
         .filter(
