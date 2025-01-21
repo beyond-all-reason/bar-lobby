@@ -1,4 +1,4 @@
-import { OAUTH_AUTHORIZATION_SERVER_URL, OAUTH_CLIENT_ID, OAUTH_SCOPE, WELL_KNOWN_OAUTH_AUTHORIZATION_SERVER_URL } from "@main/config/server";
+import { OAUTH_AUTHORIZATION_SERVER_URL, OAUTH_CLIENT_ID, OAUTH_SCOPE, OAUTH_WELL_KNOWN_URL } from "@main/config/server";
 import { generatePKCE } from "@main/oauth2/pkce";
 import RedirectHandler from "@main/oauth2/redirect-handler";
 import { logger } from "@main/utils/logger";
@@ -18,7 +18,7 @@ export async function fetchAuthorizationServerMetadata(): Promise<{
     authorizationEndpoint: string;
     tokenEndpoint: string;
 }> {
-    const response = await fetch(WELL_KNOWN_OAUTH_AUTHORIZATION_SERVER_URL);
+    const response = await fetch(OAUTH_WELL_KNOWN_URL);
     if (response.status !== 200) {
         const error = `Failed to fetch OAuth2 authorization server metadata: ${response.status} ${response.statusText}`;
         log.error(error);

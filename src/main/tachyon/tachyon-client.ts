@@ -54,6 +54,7 @@ export class TachyonClient {
                 serverProtocol = response.headers["sec-websocket-protocol"];
             });
             this.socket.addEventListener("message", (message) => {
+                log.debug(`SOCKET INCOMING MESSAGE ${JSON.stringify(message)}`);
                 try {
                     this.handleMessage(message);
                 } catch (err) {
