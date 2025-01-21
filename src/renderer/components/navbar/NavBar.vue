@@ -86,7 +86,7 @@ import accountMultiple from "@iconify-icons/mdi/account-multiple";
 import messageIcon from "@iconify-icons/mdi/chat";
 import closeThick from "@iconify-icons/mdi/close-thick";
 import cog from "@iconify-icons/mdi/cog";
-import { computed, inject, Ref, ref } from "vue";
+import { computed, inject, Ref, ref, watch, watchEffect } from "vue";
 
 import Button from "@renderer/components/controls/Button.vue";
 import Downloads from "@renderer/components/navbar/Downloads.vue";
@@ -105,14 +105,14 @@ defineProps<{
 
 const router = useRouter();
 const allRoutes = router.getRoutes();
-const primaryRoutes = computed(() => {
+const primaryRoutes = watchEffect(() => {
     return allRoutes
         .filter((r) => ["/singleplayer", "/multiplayer", "/library", "/learn", "/store", "/development"].includes(r.path))
         .filter(
             (r) =>
                 (r.meta.hide === false || r.meta.hide === undefined) &&
                 ((r.meta.devOnly && settingsStore.devMode) || !r.meta.devOnly) &&
-                (r.meta.availableOffline === undefined || r.meta.availableOffline || (r.meta.availableOffline === false && !me.isOnline))
+                ((r.meta.onlineOnly && me.isOnline) || !r.meta.onlineOnly)
         )
         .sort((a, b) => (a.meta.order ?? 99) - (b.meta.order ?? 99));
 });
@@ -123,7 +123,7 @@ const secondaryRoutes = computed(() => {
             (r) =>
                 (r.meta.hide === false || r.meta.hide === undefined) &&
                 ((r.meta.devOnly && settingsStore.devMode) || !r.meta.devOnly) &&
-                (r.meta.availableOffline === undefined || r.meta.availableOffline || (r.meta.availableOffline === false && !me.isOnline))
+                ((r.meta.onlineOnly && me.isOnline) || !r.meta.onlineOnly)
         )
         .sort((a, b) => (a.meta.order ?? 99) - (b.meta.order ?? 99));
 });

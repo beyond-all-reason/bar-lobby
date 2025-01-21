@@ -4,7 +4,7 @@
         redirect: "/multiplayer/custom",
         title: "Multiplayer",
         order: 1,
-        availableOffline: false,
+        onlineOnly: true,
     },
 }
 </route>

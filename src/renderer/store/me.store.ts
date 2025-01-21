@@ -1,7 +1,7 @@
 import { CurrentUser } from "@main/model/user";
 import { reactive, readonly } from "vue";
 
-export const _me = reactive({
+export const _me = reactive<CurrentUser>({
     userId: 0,
     isOnline: false,
     username: "Player",
@@ -15,7 +15,7 @@ export const _me = reactive({
     clanId: null,
     countryCode: "",
     status: "offline",
-} as CurrentUser);
+});
 
 async function login() {
     await window.auth.login();
@@ -33,3 +33,7 @@ async function logout() {
 
 export const me = readonly(_me);
 export const auth = { login, playOffline, logout };
+
+export function initMeStore() {
+    
+}

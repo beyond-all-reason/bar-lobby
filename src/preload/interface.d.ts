@@ -22,7 +22,7 @@ declare module "vue-router" {
     interface RouteMeta {
         title?: string;
         order?: number;
-        availableOffline?: boolean;
+        onlineOnly?: boolean;
         hide?: boolean;
         empty?: boolean;
         blurBg?: boolean;
