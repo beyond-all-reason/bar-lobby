@@ -18,6 +18,7 @@ import { miscService } from "@main/services/news.service";
 import { autoUpdaterService } from "@main/services/auto-updater.service";
 import { replayContentAPI } from "@main/content/replays/replay-content";
 import { authService } from "@main/services/auth.service";
+import { tachyonService } from "@main/services/tachyon.service";
 
 const log = logger("main/index.ts");
 log.info("Starting Electron main process");
@@ -119,6 +120,7 @@ app.whenReady().then(() => {
     infoService.registerIpcHandlers();
     settingsService.registerIpcHandlers();
     authService.registerIpcHandlers();
+    tachyonService.registerIpcHandlers(mainWindow);
     replaysService.registerIpcHandlers(mainWindow);
     engineService.registerIpcHandlers();
     gameService.registerIpcHandlers(mainWindow);
