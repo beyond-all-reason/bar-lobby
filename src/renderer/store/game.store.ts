@@ -52,7 +52,5 @@ export async function initGameStore() {
         gameStore.isGameRunning = false;
     });
 
-    refreshStore();
-
     gameStore.isInitialized = true;
 }
