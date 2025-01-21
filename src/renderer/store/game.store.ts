@@ -39,6 +39,7 @@ watch(
 );
 
 export async function initGameStore() {
+    await refreshStore();
     window.downloads.onDownloadGameComplete(async (downloadInfo) => {
         console.debug("Received game download completed event", downloadInfo);
         refreshStore();
@@ -51,6 +52,5 @@ export async function initGameStore() {
         console.debug("Game closed");
         gameStore.isGameRunning = false;
     });
-
     gameStore.isInitialized = true;
 }
