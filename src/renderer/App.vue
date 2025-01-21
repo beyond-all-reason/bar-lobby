@@ -42,7 +42,7 @@
         </Transition>
         <Settings v-model="settingsOpen" />
         <Error />
-        <ChatComponent v-if="false" />
+        <ChatComponent v-if="me.isOnline && tachyonStore.isConnected" />
         <FullscreenGameModeSelector :visible="battleStore.isSelectingGameMode" />
     </div>
 </template>
@@ -75,6 +75,8 @@ import ChatComponent from "@renderer/components/social/ChatComponent.vue";
 import { battleStore } from "@renderer/store/battle.store";
 import FullscreenGameModeSelector from "@renderer/components/battle/FullscreenGameModeSelector.vue";
 import { useGlobalKeybindings } from "@renderer/composables/useGlobalKeybindings";
+import { me } from "@renderer/store/me.store";
+import { tachyonStore } from "@renderer/store/tachyon.store";
 
 const router = useRouter();
 const videoVisible = toRef(!toValue(settingsStore.skipIntro));

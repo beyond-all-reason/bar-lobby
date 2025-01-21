@@ -14,7 +14,7 @@
                 </div>
                 <div class="primary-right">
                     <Button
-                        v-if="me.isOnline"
+                        v-if="false"
                         v-tooltip.bottom="'Direct Messages'"
                         v-click-away:messages="() => (messagesOpen = false)"
                         :class="['icon', { active: messagesOpen }]"

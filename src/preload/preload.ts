@@ -11,9 +11,6 @@ import { Info } from "@main/services/info.service";
 import { NewsFeedData } from "@main/services/news.service";
 import { BattleWithMetadata } from "@main/game/battle/battle-types";
 import { GetCommandData, GetCommandIds, GetCommands, TachyonEvent } from "tachyon-protocol";
-import { connect } from "http2";
-import { send } from "process";
-import { on } from "events";
 
 const infoApi = {
     getInfo: (): Promise<Info> => ipcRenderer.invoke("info:get"),
@@ -158,6 +155,7 @@ const tachyonApi = {
     disconnect: (): Promise<void> => ipcRenderer.invoke("tachyon:disconnect"),
 
     // Requests
+    sendEvent: (event: TachyonEvent) => ipcRenderer.invoke("tachyon:sendEvent", event),
     request,
 
     // Events

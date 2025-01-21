@@ -1,7 +1,7 @@
 import { CurrentUser } from "@main/model/user";
-import { reactive, readonly } from "vue";
+import { reactive } from "vue";
 
-export const _me = reactive<CurrentUser>({
+export const me = reactive<CurrentUser>({
     userId: 0,
     isOnline: false,
     username: "Player",
@@ -19,21 +19,19 @@ export const _me = reactive<CurrentUser>({
 
 async function login() {
     await window.auth.login();
-    _me.isOnline = true;
+    me.isOnline = true;
 }
 
 function playOffline() {
-    _me.isOnline = false;
+    me.isOnline = false;
 }
 
 async function logout() {
     await window.auth.logout();
-    _me.isOnline = false;
+    me.isOnline = false;
 }
 
-export const me = readonly(_me);
+// export const me = readonly(_me);
 export const auth = { login, playOffline, logout };
 
-export function initMeStore() {
-    
-}
+export function initMeStore() {}

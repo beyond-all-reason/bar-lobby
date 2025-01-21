@@ -6,7 +6,7 @@ import { User } from "@main/model/user";
 import { enginesStore } from "@renderer/store/engine.store";
 import { gameStore } from "@renderer/store/game.store";
 import { getRandomMap } from "@renderer/store/maps.store";
-import { _me, me } from "@renderer/store/me.store";
+import { me } from "@renderer/store/me.store";
 import { deepToRaw } from "@renderer/utils/deep-toraw";
 import { reactive, readonly, watch } from "vue";
 
@@ -193,11 +193,11 @@ watch(
     battleWithMetadataStore,
     (battle) => {
         if (battle.spectators.find((spectator) => spectator.user.userId === me.userId)) {
-            _me.battleRoomState.isSpectator = true;
-            _me.battleRoomState.isReady = true;
-            delete _me.battleRoomState.teamId;
+            me.battleRoomState.isSpectator = true;
+            me.battleRoomState.isReady = true;
+            delete me.battleRoomState.teamId;
         } else {
-            _me.battleRoomState.isSpectator = false;
+            me.battleRoomState.isSpectator = false;
             // iterate over the map id, team to find the user's team
             battle.teams.forEach((team, teamId) => {
                 if (
@@ -205,7 +205,7 @@ watch(
                         return participant && "user" in participant && participant.user.userId === me.userId;
                     })
                 ) {
-                    _me.battleRoomState.teamId = teamId;
+                    me.battleRoomState.teamId = teamId;
                 }
             });
         }
