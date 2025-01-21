@@ -26,8 +26,8 @@ function playOffline() {
     _me.isOnline = false;
 }
 
-function logout() {
-    window.auth.logout();
+async function logout() {
+    await window.auth.logout();
     _me.isOnline = false;
 }
 

@@ -19,9 +19,12 @@ export type TachyonClientRequestHandlers = {
 export class TachyonClient {
     public socket?: WebSocket;
 
-    protected responseHandlers: Map<string, Signal<GetCommands<"server", "user", "response">>> = new Map();
-    protected eventHandlers: Map<string, Signal<GetCommands<"server", "user", "event">>> = new Map();
-    protected requestHandlers: TachyonClientRequestHandlers;
+    public onSocketOpen: Signal<void> = new Signal();
+    public onSocketClose: Signal<void> = new Signal();
+    public onEvent: Signal<TachyonEvent> = new Signal();
+
+    private requestHandlers: TachyonClientRequestHandlers;
+    private responseHandlers: Map<string, Signal<GetCommands<"server", "user", "response">>> = new Map();
 
     constructor(requestHandlers: TachyonClientRequestHandlers) {
         this.requestHandlers = requestHandlers;
@@ -60,6 +63,7 @@ export class TachyonClient {
             });
             this.socket.addEventListener("open", async () => {
                 log.info(`Connected to ${WS_SERVER_URL} using Tachyon Version ${tachyonMeta.version}`);
+                this.onSocketOpen.dispatch();
                 resolve();
             });
             let disconnectReason: string;
@@ -76,8 +80,8 @@ export class TachyonClient {
                     }
                 }
                 this.socket = undefined;
+                this.onSocketClose.dispatch();
                 log.info(`Disconnected: ${disconnectReason}`);
-                throw new Error(disconnectReason);
             });
             this.socket.addEventListener("error", (err) => {
                 if (err.message.includes("invalid subprotocol")) {
@@ -126,15 +130,6 @@ export class TachyonClient {
         validateCommand(event);
         this.socket.send(JSON.stringify(event));
         log.debug("OUTGOING EVENT", event);
-    }
-
-    public onEvent(commandId: GetCommandIds<"server", "user", "event">): Signal<GetCommands<"server", "user", "event", typeof commandId>> {
-        let signal = this.eventHandlers.get(commandId);
-        if (!signal) {
-            signal = new Signal();
-            this.eventHandlers.set(commandId, signal);
-        }
-        return signal;
     }
 
     // public nextEvent<C extends GetCommandIds<"server", "user", "event">>(commandId: C): Promise<GetCommandData<GetCommands<"server", "user", "event", C>>> {
@@ -205,10 +200,7 @@ export class TachyonClient {
 
     protected async handleEvent(event: TachyonEvent) {
         log.debug("INCOMING EVENT", event);
-        const signal = this.eventHandlers.get(event.commandId);
-        if (signal) {
-            signal.dispatch(event as GetCommands<"server", "user", "event">);
-        }
+        this.onEvent.dispatch(event);
     }
 
     public isConnected(): boolean {

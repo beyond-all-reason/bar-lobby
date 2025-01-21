@@ -16,7 +16,21 @@ function registerIpcHandlers(mainWindow: Electron.BrowserWindow) {
         },
     };
     const tachyonClient = new TachyonClient(requestHandlers);
-    tachyonClient.onEvent();
+
+    tachyonClient.onSocketOpen.add(() => {
+        log.info("Connected to Tachyon server");
+        mainWindow.webContents.send("tachyon:connected");
+    });
+
+    tachyonClient.onSocketClose.add(() => {
+        log.info("Disconnected from Tachyon server");
+        mainWindow.webContents.send("tachyon:disconnected");
+    });
+
+    tachyonClient.onEvent.add((event) => {
+        log.info(`Received event: ${JSON.stringify(event)}`);
+        mainWindow.webContents.send("tachyon:event", event);
+    });
 
     ipcMain.handle("tachyon:connect", async () => {
         if (!tachyonClient.isConnected()) {
@@ -34,7 +48,9 @@ function registerIpcHandlers(mainWindow: Electron.BrowserWindow) {
         }
     });
 
-    ipcMain.handle("tachyon:req:battleStart", async (_event, success) => {});
+    ipcMain.handle("tachyon:req", async (_event, command, args) => {
+        return await tachyonClient.request(command, args);
+    });
 }
 
 export const tachyonService = {

@@ -10,6 +10,10 @@ import { DownloadInfo } from "@main/content/downloads";
 import { Info } from "@main/services/info.service";
 import { NewsFeedData } from "@main/services/news.service";
 import { BattleWithMetadata } from "@main/game/battle/battle-types";
+import { GetCommandData, GetCommandIds, GetCommands, TachyonEvent } from "tachyon-protocol";
+import { connect } from "http2";
+import { send } from "process";
+import { on } from "events";
 
 const infoApi = {
     getInfo: (): Promise<Info> => ipcRenderer.invoke("info:get"),
@@ -141,3 +145,25 @@ const miscApi = {
 };
 export type MiscApi = typeof miscApi;
 contextBridge.exposeInMainWorld("misc", miscApi);
+
+// Tachyon API
+function request<C extends GetCommandIds<"user", "server", "request">>(
+    ...args: GetCommandData<GetCommands<"user", "server", "request", C>> extends never ? [commandId: C] : [commandId: C, data: GetCommandData<GetCommands<"user", "server", "request", C>>]
+): Promise<GetCommands<"server", "user", "response", C>> {
+    return ipcRenderer.invoke("tachyon:request", ...args);
+}
+
+const tachyonApi = {
+    connect: (): Promise<void> => ipcRenderer.invoke("tachyon:connect"),
+    disconnect: (): Promise<void> => ipcRenderer.invoke("tachyon:disconnect"),
+
+    // Requests
+    req: request,
+
+    // Events
+    onConnected: (callback: () => void) => ipcRenderer.on("tachyon:connected", callback),
+    onDisconnected: (callback: () => void) => ipcRenderer.on("tachyon:disconnected", callback),
+    onEvent: (callback: (event: TachyonEvent) => void) => ipcRenderer.on("tachyon:event", (_event, event) => callback(event as TachyonEvent)),
+};
+export type TachyonApi = typeof tachyonApi;
+contextBridge.exposeInMainWorld("tachyon", tachyonApi);
