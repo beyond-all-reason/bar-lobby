@@ -1,8 +1,9 @@
 import { contentSources } from "@main/config/content-sources";
 import envPaths from "env-paths";
 import path from "path";
+import { env } from "process";
 
-export const APP_NAME = "Beyond All Reason";
+export const APP_NAME = `Beyond All Reason${env.APP_NAME_SUFFIX ? ` ${env.APP_NAME_SUFFIX}` : ""}`;
 
 const paths = envPaths(APP_NAME, { suffix: "" });
 export const CONTENT_PATH = paths.data;

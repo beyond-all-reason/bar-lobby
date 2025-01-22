@@ -9,5 +9,5 @@
 export const DEFAULT_ENGINE_VERSION = "2025.01.3";
 export const LATEST = "LATEST";
 
-export const DEFAULT_GAME_VERSION = "byar:test";
+export const DEFAULT_GAME_VERSION = "Beyond All Reason test-27360-7e6be2a";
 export const LATEST_GAME_VERSION = "byar:test";

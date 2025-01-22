@@ -1,15 +1,22 @@
+import { gameAPI } from "@main/game/game";
 import { accountService } from "@main/services/account.service";
 import { TachyonClient, TachyonClientRequestHandlers } from "@main/tachyon/tachyon-client";
 import { logger } from "@main/utils/logger";
 import { ipcMain } from "electron";
+import { BattleStartRequestData } from "tachyon-protocol/types";
 
 const log = logger("tachyon-service");
 
+// //./engine/105.1.1-2511-g747f18b\ bar/spring --isolation --write-dir $PWD spring://Player:password1@127.0.0.1:20004
+
 function registerIpcHandlers(mainWindow: Electron.BrowserWindow) {
     const requestHandlers: TachyonClientRequestHandlers = {
-        "battle/start": async (data) => {
+        "battle/start": async (data: BattleStartRequestData) => {
             log.info(`Received battle start request: ${JSON.stringify(data)}`);
+            const { ip, port, username, password } = data;
             mainWindow.webContents.send("tachyon:battleStart", data);
+            const springString = `spring://${username}:${password}@${ip}:${port}`;
+            await gameAPI.launchMultiplayerString(springString);
             return {
                 status: "success",
             };

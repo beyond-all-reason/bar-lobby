@@ -10,7 +10,7 @@ import { DownloadInfo } from "@main/content/downloads";
 import { Info } from "@main/services/info.service";
 import { NewsFeedData } from "@main/services/news.service";
 import { BattleWithMetadata } from "@main/game/battle/battle-types";
-import { GetCommandData, GetCommandIds, GetCommands, TachyonEvent } from "tachyon-protocol";
+import { GetCommandData, GetCommandIds, GetCommands } from "tachyon-protocol";
 
 const infoApi = {
     getInfo: (): Promise<Info> => ipcRenderer.invoke("info:get"),
@@ -152,7 +152,10 @@ function request<C extends GetCommandIds<"user", "server", "request">>(
 
 function onEvent<C extends GetCommandIds<"server", "user", "event">>(eventID: C, callback: (event: GetCommandData<GetCommands<"server", "user", "event", C>>) => void) {
     return ipcRenderer.on("tachyon:event", (_event, event) => {
-        if (event.commandId === eventID) callback(event);
+        console.debug(` ==== preload ==== trying to broadcast event ${JSON.stringify(event)}`);
+        if (event.commandId === eventID) {
+            callback(event);
+        }
     });
 }
 
@@ -167,6 +170,13 @@ const tachyonApi = {
     // Events
     onConnected: (callback: () => void) => ipcRenderer.on("tachyon:connected", callback),
     onDisconnected: (callback: () => void) => ipcRenderer.on("tachyon:disconnected", callback),
+    // onEvent: (eventID: string, callback: (event) => void) => {
+    //     console.log(` ==== preload ==== trying to listen to event ${eventID}`);
+    //     ipcRenderer.on("tachyon:event", (_event, event) => {
+    //         console.debug(` ==== preload ==== trying to broadcast event ${JSON.stringify(event)}`);
+    //         callback(event);
+    //     });
+    // },
     onEvent,
 };
 export type TachyonApi = typeof tachyonApi;

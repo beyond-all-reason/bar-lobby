@@ -20,6 +20,11 @@ export const matchmakingStore = reactive<{
 });
 
 export function initializeMatchmakingStore() {
+    window.tachyon.onEvent("user/updated", (event) => {
+        console.log(event);
+        console.log(JSON.stringify(event));
+    });
+
     window.tachyon.onEvent("matchmaking/queueUpdate", (event) => {
         console.log(event);
         console.log(JSON.stringify(event));
@@ -28,6 +33,7 @@ export function initializeMatchmakingStore() {
     window.tachyon.onEvent("matchmaking/lost", (event) => {
         console.log(event);
         console.log(JSON.stringify(event));
+        matchmakingStore.status = MatchmakingStatus.Idle;
     });
 
     window.tachyon.onEvent("matchmaking/foundUpdate", (event) => {
@@ -38,12 +44,15 @@ export function initializeMatchmakingStore() {
     window.tachyon.onEvent("matchmaking/cancelled", (event) => {
         console.log(event);
         console.log(JSON.stringify(event));
+        matchmakingStore.status = MatchmakingStatus.Idle;
     });
 
     window.tachyon.onEvent("matchmaking/found", (event) => {
         console.log(event);
         console.log(JSON.stringify(event));
+        matchmakingStore.status = MatchmakingStatus.MatchFound;
     });
+
     matchmakingStore.isInitialized = true;
 }
 

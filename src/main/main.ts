@@ -37,7 +37,7 @@ if (process.env.NODE_ENV !== "production") {
     }
 }
 
-if (!app.requestSingleInstanceLock()) {
+if (process.env.NODE_ENV === "production" && !app.requestSingleInstanceLock()) {
     app.quit();
 }
 

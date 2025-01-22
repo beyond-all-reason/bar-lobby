@@ -8,7 +8,7 @@ import { engineContentAPI } from "@main/content/engine/engine-content";
 
 import { Replay } from "@main/content/replays/replay";
 import { startScriptConverter } from "@main/utils/start-script-converter";
-import { DEFAULT_ENGINE_VERSION } from "@main/config/default-versions";
+import { DEFAULT_ENGINE_VERSION, LATEST_GAME_VERSION } from "@main/config/default-versions";
 import { logger } from "@main/utils/logger";
 import { gameContentAPI } from "@main/content/game/game-content";
 import { CONTENT_PATH, REPLAYS_PATH } from "@main/config/app";
@@ -31,7 +31,6 @@ export class GameAPI {
         await this.launch({
             engineVersion: battle.battleOptions.engineVersion,
             gameVersion: battle.battleOptions.gameVersion,
-            mapSpringName: battle.battleOptions.map.springName,
             launchArg: scriptPath,
         });
     }
@@ -40,7 +39,6 @@ export class GameAPI {
         await this.launch({
             engineVersion: replay.engineVersion,
             gameVersion: replay.gameVersion,
-            mapSpringName: replay.mapSpringName,
             launchArg: replay.filePath ? replay.filePath : path.join(REPLAYS_PATH, replay.fileName),
         });
     }
@@ -60,24 +58,21 @@ export class GameAPI {
         await this.launch({
             engineVersion: DEFAULT_ENGINE_VERSION,
             gameVersion,
-            mapSpringName,
             launchArg: scriptPath,
         });
     }
 
-    public async launch({
-        engineVersion = DEFAULT_ENGINE_VERSION,
-        gameVersion,
-        mapSpringName,
-        launchArg,
-    }: {
-        engineVersion: string;
-        gameVersion: string;
-        mapSpringName: string;
-        launchArg: string;
-    }): Promise<void> {
+    public async launchMultiplayerString(springString: string) {
+        return this.launch({
+            engineVersion: DEFAULT_ENGINE_VERSION,
+            gameVersion: LATEST_GAME_VERSION,
+            launchArg: springString,
+        });
+    }
+
+    public async launch({ engineVersion = DEFAULT_ENGINE_VERSION, gameVersion, launchArg }: { engineVersion: string; gameVersion: string; launchArg: string }): Promise<void> {
         try {
-            log.info(`Launching game with engine: ${engineVersion}, game: ${gameVersion}, map: ${mapSpringName}`);
+            log.info(`Launching game with engine: ${engineVersion}, game: ${gameVersion}`);
             await this.fetchMissingContent(engineVersion, gameVersion);
             const enginePath = path.join(CONTENT_PATH, "engine", engineVersion).replaceAll("\\", "/");
             const args = ["--write-dir", CONTENT_PATH, "--isolation", launchArg];
