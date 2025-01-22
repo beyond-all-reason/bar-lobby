@@ -4,6 +4,7 @@
 
 <template>
     <div class="view">
+        <div class="ranked-background"></div>
         <div class="ranked-container">
             <div class="view-title">
                 <h1>Ranked</h1>
@@ -19,7 +20,8 @@
                         selected: matchmakingStore.selectedQueue === '2v2',
                     }"
                     @click="() => (matchmakingStore.selectedQueue = '2v2')"
-                    >2 vs 2</Button
+                    :disabled="matchmakingStore.status !== MatchmakingStatus.Idle"
+                    ><span>2 vs 2</span></Button
                 >
                 <Button
                     class="mode-column classic"
@@ -27,7 +29,8 @@
                         selected: matchmakingStore.selectedQueue === '1v1',
                     }"
                     @click="() => (matchmakingStore.selectedQueue = '1v1')"
-                    >1 vs 1</Button
+                    :disabled="matchmakingStore.status !== MatchmakingStatus.Idle"
+                    ><span>DUEL</span></Button
                 >
                 <Button
                     class="mode-column classic"
@@ -35,7 +38,8 @@
                         selected: matchmakingStore.selectedQueue === '3v3',
                     }"
                     @click="() => (matchmakingStore.selectedQueue = '3v3')"
-                    >3 vs 3</Button
+                    :disabled="matchmakingStore.status !== MatchmakingStatus.Idle"
+                    ><span>3 vs 3</span></Button
                 >
             </div>
             <div class="button-container">
@@ -90,6 +94,28 @@ import Button from "primevue/button";
 </script>
 
 <style lang="scss" scoped>
+.ranked-background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle, #000000ba, #000000fd);
+    // animation: pulse 1s infinite ease-in-out;
+}
+
+@keyframes pulse {
+    0%,
+    100% {
+        background-size: 100% 100%;
+        opacity: 0.8;
+    }
+    50% {
+        background-size: 110% 110%;
+        opacity: 1;
+    }
+}
+
 .ranked-container {
     display: flex;
     flex-direction: column;
