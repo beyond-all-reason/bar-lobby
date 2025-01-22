@@ -1,5 +1,4 @@
 import { me } from "@renderer/store/me.store";
-import { TachyonEvent } from "tachyon-protocol";
 import { SystemServerStatsOkResponseData } from "tachyon-protocol/types";
 import { reactive, watch } from "vue";
 
@@ -7,12 +6,10 @@ export const tachyonStore = reactive({
     isInitialized: false,
     isConnected: false,
     serverStats: undefined,
-    lastEvent: undefined,
 } as {
     isInitialized: boolean;
     isConnected: boolean;
     serverStats?: SystemServerStatsOkResponseData;
-    lastEvent?: TachyonEvent;
 });
 
 export function initTachyonStore() {
@@ -26,11 +23,6 @@ export function initTachyonStore() {
         tachyonStore.isConnected = false;
     });
 
-    window.tachyon.onEvent((event) => {
-        console.debug("Tachyon event", event);
-        tachyonStore.lastEvent = event;
-    });
-
     // Periodically fetch server stats
     setInterval(() => {
         if (!tachyonStore.isConnected) return;
@@ -42,6 +34,23 @@ export function initTachyonStore() {
             }
         });
     }, 60000);
+
+    // Try to connect to Tachyon server periodically
+    let connectInterval;
+    watch(
+        () => tachyonStore.isConnected,
+        (isConnected) => {
+            if (isConnected) {
+                clearInterval(connectInterval);
+            } else {
+                connectInterval = setInterval(() => {
+                    if (me.isOnline) {
+                        window.tachyon.connect();
+                    }
+                }, 10000);
+            }
+        }
+    );
 
     watch(
         () => me.isOnline,

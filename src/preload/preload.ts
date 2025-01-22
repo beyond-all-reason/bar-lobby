@@ -150,18 +150,24 @@ function request<C extends GetCommandIds<"user", "server", "request">>(
     return ipcRenderer.invoke("tachyon:request", ...args);
 }
 
+function onEvent<C extends GetCommandIds<"server", "user", "event">>(eventID: C, callback: (event: GetCommandData<GetCommands<"server", "user", "event", C>>) => void) {
+    return ipcRenderer.on("tachyon:event", (_event, event) => {
+        if (event.commandId === eventID) callback(event);
+    });
+}
+
 const tachyonApi = {
     connect: (): Promise<void> => ipcRenderer.invoke("tachyon:connect"),
     disconnect: (): Promise<void> => ipcRenderer.invoke("tachyon:disconnect"),
 
     // Requests
-    sendEvent: (event: TachyonEvent) => ipcRenderer.invoke("tachyon:sendEvent", event),
+    // sendEvent: (event: TachyonEvent) => ipcRenderer.invoke("tachyon:sendEvent", event),
     request,
 
     // Events
     onConnected: (callback: () => void) => ipcRenderer.on("tachyon:connected", callback),
     onDisconnected: (callback: () => void) => ipcRenderer.on("tachyon:disconnected", callback),
-    onEvent: (callback: (event: TachyonEvent) => void) => ipcRenderer.on("tachyon:event", (_event, event) => callback(event as TachyonEvent)),
+    onEvent,
 };
 export type TachyonApi = typeof tachyonApi;
 contextBridge.exposeInMainWorld("tachyon", tachyonApi);

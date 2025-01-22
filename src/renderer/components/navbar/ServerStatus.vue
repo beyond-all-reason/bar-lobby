@@ -3,7 +3,7 @@
         <div class="flex-row flex-center gap-sm">
             <div class="server-status-dot" :class="{ offline: !tachyonStore.isConnected }">⬤</div>
             <div v-if="tachyonStore.isConnected">{{ tachyonStore.serverStats?.userCount || 0 }} Players Online</div>
-            <div v-else>Offline Mode</div>
+            <div v-else>Reconnecting...</div>
         </div>
     </Button>
 </template>

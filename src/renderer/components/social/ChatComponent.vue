@@ -16,13 +16,14 @@
         </div>
         <div class="chat-input">
             <div class="target">To (Lobby):</div>
-            <input v-model="newMessage" @keydown.enter="sendMessage" placeholder="Type here to chat. Use '/' for commands." />
+            <input ref="textBox" v-model="newMessage" @keydown.enter="sendMessage" placeholder="Type here to chat. Use '/' for commands." />
         </div>
     </div>
 </template>
 <script lang="ts" setup>
 import { battleStore } from "@renderer/store/battle.store";
-import { ref } from "vue";
+import { onKeyDown } from "@vueuse/core";
+import { ref, useTemplateRef } from "vue";
 
 interface Message {
     user: string;
@@ -36,6 +37,8 @@ const messages = ref<Message[]>([
 ]);
 const newMessage = ref("");
 const isExpanded = ref(false);
+
+const textBox = useTemplateRef<HTMLInputElement>("textBox");
 
 const sendMessage = () => {
     if (newMessage.value.trim() !== "") {
@@ -56,6 +59,34 @@ const expandChat = () => {
 const collapseChat = () => {
     isExpanded.value = false;
 };
+
+onKeyDown(
+    "Enter",
+    (e) => {
+        if (isExpanded.value) {
+            e.preventDefault();
+            e.stopPropagation();
+        } else {
+            e.preventDefault();
+            e.stopPropagation();
+            textBox.value?.focus();
+        }
+    },
+    { target: document }
+);
+
+onKeyDown(
+    "Escape",
+    (e) => {
+        if (isExpanded.value) {
+            e.preventDefault();
+            e.stopPropagation();
+            textBox.value?.blur();
+            isExpanded.value = false;
+        }
+    },
+    { target: document }
+);
 </script>
 
 <style lang="scss" scoped>

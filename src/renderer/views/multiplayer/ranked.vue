@@ -1,5 +1,5 @@
 <route lang="json5">
-{ meta: { title: "Ranked", order: 0, devOnly: true, onlineOnly: true, transition: { name: "slide-left" } } }
+{ meta: { title: "Ranked", order: 0, onlineOnly: true, transition: { name: "slide-left" } } }
 </route>
 
 <template>
@@ -9,41 +9,75 @@
                 <h1>Ranked</h1>
                 <p>Join a multiplayer ranked queue.</p>
             </div>
+            <div class="my-rank">
+                <div></div>
+            </div>
             <div class="mode-select">
                 <Button
                     class="mode-column classic"
                     :class="{
-                        selected: matchmakingStore.selectedQueue === '2vs2',
+                        selected: matchmakingStore.selectedQueue === '2v2',
                     }"
-                    @click="() => (matchmakingStore.selectedQueue = '2vs2')"
+                    @click="() => (matchmakingStore.selectedQueue = '2v2')"
                     >2 vs 2</Button
                 >
                 <Button
                     class="mode-column classic"
                     :class="{
-                        selected: matchmakingStore.selectedQueue === '1vs1',
+                        selected: matchmakingStore.selectedQueue === '1v1',
                     }"
-                    @click="() => (matchmakingStore.selectedQueue = '1vs1')"
+                    @click="() => (matchmakingStore.selectedQueue = '1v1')"
                     >1 vs 1</Button
                 >
                 <Button
                     class="mode-column classic"
                     :class="{
-                        selected: matchmakingStore.selectedQueue === '3vs3',
+                        selected: matchmakingStore.selectedQueue === '3v3',
                     }"
-                    @click="() => (matchmakingStore.selectedQueue = '3vs3')"
+                    @click="() => (matchmakingStore.selectedQueue = '3v3')"
                     >3 vs 3</Button
                 >
             </div>
             <div class="button-container">
                 <button
+                    v-if="matchmakingStore.status === MatchmakingStatus.Idle"
                     class="quick-play-button"
                     :class="{
                         disabled: !matchmakingStore.selectedQueue,
                     }"
-                    @click="joinQueue"
+                    @click="matchmaking.startSearch"
                 >
                     Search game
+                </button>
+                <button
+                    v-else-if="matchmakingStore.status === MatchmakingStatus.Searching"
+                    class="quick-play-button"
+                    :class="{
+                        disabled: !matchmakingStore.selectedQueue,
+                    }"
+                    @click="matchmaking.stopSearch"
+                >
+                    Cancel
+                </button>
+                <button
+                    v-else-if="matchmakingStore.status === MatchmakingStatus.MatchFound"
+                    class="quick-play-button"
+                    :class="{
+                        disabled: !matchmakingStore.selectedQueue,
+                    }"
+                    @click="matchmaking.acceptMatch"
+                >
+                    Match found
+                </button>
+                <button
+                    v-else-if="matchmakingStore.status === MatchmakingStatus.MatchAccepted"
+                    class="quick-play-button"
+                    :class="{
+                        disabled: !matchmakingStore.selectedQueue,
+                    }"
+                    disabled
+                >
+                    Accepted
                 </button>
             </div>
         </div>
@@ -51,12 +85,8 @@
 </template>
 
 <script lang="ts" setup>
-import { matchmakingStore } from "@renderer/store/matchmaking.store";
+import { matchmaking, MatchmakingStatus, matchmakingStore } from "@renderer/store/matchmaking.store";
 import Button from "primevue/button";
-
-const joinQueue = () => {
-    console.log("Joining queue");
-};
 </script>
 
 <style lang="scss" scoped>
@@ -141,6 +171,7 @@ const joinQueue = () => {
     display: flex;
     justify-content: center;
     margin-top: 40px;
+    margin-bottom: 40px;
     flex-grow: 1;
 }
 
