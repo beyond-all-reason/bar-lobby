@@ -39,6 +39,10 @@ function registerIpcHandlers(mainWindow: Electron.BrowserWindow) {
         mainWindow.webContents.send("tachyon:event", event);
     });
 
+    ipcMain.handle("tachyon:isConnected", () => {
+        return tachyonClient.isConnected();
+    });
+
     ipcMain.handle("tachyon:connect", async () => {
         if (!tachyonClient.isConnected()) {
             const token = await accountService.getToken();

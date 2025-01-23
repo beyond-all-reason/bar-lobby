@@ -12,7 +12,9 @@ export const tachyonStore = reactive({
     serverStats?: SystemServerStatsOkResponseData;
 });
 
-export function initTachyonStore() {
+export async function initTachyonStore() {
+    tachyonStore.isConnected = await window.tachyon.isConnected();
+
     window.tachyon.onConnected(() => {
         console.debug("Connected to Tachyon server");
         tachyonStore.isConnected = true;

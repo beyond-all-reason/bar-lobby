@@ -161,6 +161,7 @@ function onEvent<C extends GetCommandIds<"server", "user", "event">>(eventID: C,
 }
 
 const tachyonApi = {
+    isConnected: (): Promise<boolean> => ipcRenderer.invoke("tachyon:isConnected"),
     connect: (): Promise<void> => ipcRenderer.invoke("tachyon:connect"),
     disconnect: (): Promise<void> => ipcRenderer.invoke("tachyon:disconnect"),
 
