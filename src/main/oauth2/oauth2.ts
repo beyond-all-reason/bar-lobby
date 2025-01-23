@@ -1,6 +1,7 @@
 import { OAUTH_AUTHORIZATION_SERVER_URL, OAUTH_CLIENT_ID, OAUTH_SCOPE, OAUTH_WELL_KNOWN_URL } from "@main/config/server";
 import { generatePKCE } from "@main/oauth2/pkce";
 import RedirectHandler from "@main/oauth2/redirect-handler";
+import { accountService } from "@main/services/account.service";
 import { logger } from "@main/utils/logger";
 import { shell } from "electron";
 import { stringify } from "node:querystring";
@@ -119,9 +120,10 @@ export async function authenticate(): Promise<TokenResponse> {
     }
 }
 
-export async function renewAccessToken(refreshToken: string): Promise<TokenResponse> {
+export async function renewAccessToken(): Promise<TokenResponse> {
     log.debug("Renewing access token");
     const { tokenEndpoint } = await fetchAuthorizationServerMetadata();
+    const refreshToken = await accountService.getRefreshToken();
     if (!refreshToken) {
         const error = "No refresh token available";
         log.error(error);

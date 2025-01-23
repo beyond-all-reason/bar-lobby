@@ -15,7 +15,7 @@ function registerIpcHandlers() {
     ipcMain.handle("auth:login", async () => {
         try {
             const existingRefreshToken = await accountService.getRefreshToken();
-            const { token, refreshToken, expiresIn } = existingRefreshToken ? await renewAccessToken(existingRefreshToken) : await authenticate();
+            const { token, refreshToken, expiresIn } = existingRefreshToken ? await renewAccessToken() : await authenticate();
             await accountService.saveToken(token);
             await accountService.saveRefreshToken(refreshToken);
             startTokenRenewer((expiresIn / 2) * 1000);

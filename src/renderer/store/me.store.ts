@@ -41,6 +41,15 @@ async function changeAccount() {
     me.isOnline = false;
 }
 
+window.tachyon.onEvent("user/updated", (event) => {
+    console.log(`Received user/updated event: ${JSON.stringify(event)}`);
+    // const users = event.users;
+    // const meUser = users.find((user) => user.userId === me.userId);
+    // if (me) {
+    //     Object.assign(me, meUser);
+    // }
+});
+
 // export const me = readonly(_me);
 export const auth = { login, playOffline, logout, changeAccount };
 
