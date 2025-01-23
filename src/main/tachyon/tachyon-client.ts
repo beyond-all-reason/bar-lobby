@@ -47,7 +47,7 @@ export class TachyonClient {
                 res.on("data", (chunk: Buffer) => {
                     const error = `HTTP Error ${res.statusCode}: ${chunk.toString()}`;
                     log.error(error);
-                    throw new Error(error);
+                    reject(error);
                 });
             });
             this.socket.on("upgrade", (response) => {
@@ -92,6 +92,7 @@ export class TachyonClient {
                 } else {
                     disconnectReason = err.message;
                 }
+                reject(disconnectReason);
             });
         });
     }

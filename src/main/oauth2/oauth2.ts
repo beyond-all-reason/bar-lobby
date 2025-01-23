@@ -35,17 +35,20 @@ export async function fetchAuthorizationServerMetadata(): Promise<{
 
     // TODO: Remove this hack once the server is fixed
     // see https://github.com/beyond-all-reason/teiserver/pull/555
-    const fixedAuthorizationEndpoint = authorization_endpoint.replaceAll(":8888", "");
-    const fixedTokenEndpoint = token_endpoint.replaceAll(":8888", "");
-    const fixedIssuer = issuer.replaceAll(":8888", "");
+    // const fixedAuthorizationEndpoint = authorization_endpoint.replaceAll(":8888", "");
+    // const fixedTokenEndpoint = token_endpoint.replaceAll(":8888", "");
+    // const fixedIssuer = issuer.replaceAll(":8888", "");
 
-    if (fixedIssuer !== OAUTH_AUTHORIZATION_SERVER_URL) {
-        const error = `Invalid OAuth2 issuer: ${fixedIssuer} does not match expected ${OAUTH_AUTHORIZATION_SERVER_URL}`;
+    if (issuer !== OAUTH_AUTHORIZATION_SERVER_URL) {
+        const error = `Invalid OAuth2 issuer: ${issuer} does not match expected ${OAUTH_AUTHORIZATION_SERVER_URL}`;
         log.error(error);
         throw new Error(error);
     }
 
-    return { authorizationEndpoint: fixedAuthorizationEndpoint, tokenEndpoint: fixedTokenEndpoint };
+    return {
+        authorizationEndpoint: authorization_endpoint,
+        tokenEndpoint: token_endpoint,
+    };
 }
 
 // Careful with shell.openExternal. https://benjamin-altpeter.de/shell-openexternal-dangers/
@@ -140,9 +143,10 @@ export async function renewAccessToken(): Promise<TokenResponse> {
         method: "POST",
     });
     if (tokenResponse.status !== 200) {
-        const error = `Failed to renew token: ${tokenResponse.status} ${tokenResponse.statusText}`;
+        const error = `Failed to renew token, wiping: ${tokenResponse.status} ${tokenResponse.statusText}`;
         const responseText = await tokenResponse.text();
         log.error(`${error}: ${responseText}`);
+        accountService.wipe();
         throw new Error(error);
     }
     const body = await tokenResponse.json();

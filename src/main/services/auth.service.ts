@@ -5,13 +5,7 @@ import { ipcMain } from "electron";
 
 const log = logger("auth-service");
 
-const isLoggedIn: boolean = false;
-
 function registerIpcHandlers() {
-    //TODO
-    ipcMain.handle("auth:isLoggedIn", async () => {
-        return isLoggedIn;
-    });
     ipcMain.handle("auth:login", async () => {
         try {
             const existingRefreshToken = await accountService.getRefreshToken();

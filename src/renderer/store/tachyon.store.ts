@@ -1,4 +1,4 @@
-import { me } from "@renderer/store/me.store";
+import { auth, me } from "@renderer/store/me.store";
 import { SystemServerStatsOkResponseData } from "tachyon-protocol/types";
 import { reactive, watch } from "vue";
 
@@ -6,11 +6,25 @@ export const tachyonStore = reactive({
     isInitialized: false,
     isConnected: false,
     serverStats: undefined,
+    error: undefined,
 } as {
     isInitialized: boolean;
     isConnected: boolean;
     serverStats?: SystemServerStatsOkResponseData;
+    error?: string;
 });
+
+async function connect() {
+    if (!me.isOnline) return;
+    try {
+        await window.tachyon.connect();
+        tachyonStore.error = undefined;
+    } catch (err) {
+        console.error("Failed to connect to Tachyon server", err);
+        tachyonStore.error = "Error";
+        auth.logout();
+    }
+}
 
 export async function initTachyonStore() {
     tachyonStore.isConnected = await window.tachyon.isConnected();
@@ -45,11 +59,7 @@ export async function initTachyonStore() {
             if (isConnected) {
                 clearInterval(connectInterval);
             } else {
-                connectInterval = setInterval(() => {
-                    if (me.isOnline) {
-                        window.tachyon.connect();
-                    }
-                }, 10000);
+                connectInterval = setInterval(connect, 10000);
             }
         }
     );
@@ -58,7 +68,7 @@ export async function initTachyonStore() {
         () => me.isOnline,
         (isOnline) => {
             if (isOnline) {
-                window.tachyon.connect();
+                connect();
             } else {
                 window.tachyon.disconnect();
             }
