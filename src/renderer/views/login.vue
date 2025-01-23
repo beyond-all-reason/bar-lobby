@@ -11,6 +11,7 @@
             </div>
             <div v-else class="buttons-container">
                 <Button class="login-button" @click="login">Login</Button>
+                <div v-if="hasCredentials" class="play-offline" @click="changeAccount">Change account</div>
                 <div v-if="error" class="txt-error">{{ error }}</div>
                 <div class="play-offline" @click="playOffline">Play Offline</div>
             </div>
@@ -31,17 +32,24 @@ const router = useRouter();
 const connecting = ref(false);
 const error = ref<string>();
 
+const hasCredentials = await window.auth.hasCredentials();
+
 async function login() {
     try {
         connecting.value = true;
         await auth.login();
-        await router.push("/home/overview");
+        await router.replace("/home/overview");
     } catch (e) {
         console.error(e);
         error.value = (e as Error).message;
     } finally {
         connecting.value = false;
     }
+}
+
+async function changeAccount() {
+    await auth.changeAccount();
+    login();
 }
 
 async function playOffline() {

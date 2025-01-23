@@ -1,7 +1,12 @@
 import { CurrentUser } from "@main/model/user";
 import { reactive } from "vue";
 
-export const me = reactive<CurrentUser>({
+export const me = reactive<
+    CurrentUser & {
+        isInitialized: boolean;
+    }
+>({
+    isInitialized: false,
     userId: 0,
     isOnline: false,
     username: "Player",
@@ -31,7 +36,14 @@ async function logout() {
     me.isOnline = false;
 }
 
-// export const me = readonly(_me);
-export const auth = { login, playOffline, logout };
+async function changeAccount() {
+    await window.auth.wipe();
+    me.isOnline = false;
+}
 
-export function initMeStore() {}
+// export const me = readonly(_me);
+export const auth = { login, playOffline, logout, changeAccount };
+
+export function initMeStore() {
+    me.isInitialized = true;
+}

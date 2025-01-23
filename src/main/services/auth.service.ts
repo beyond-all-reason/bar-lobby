@@ -27,7 +27,15 @@ function registerIpcHandlers() {
     });
     ipcMain.handle("auth:logout", async () => {
         stopTokenRenewer();
+        await accountService.forgetToken();
+    });
+    ipcMain.handle("auth:wipe", async () => {
+        stopTokenRenewer();
         await accountService.wipe();
+    });
+    ipcMain.handle("auth:hasCredentials", async () => {
+        const refreshToken = await accountService.getRefreshToken();
+        return !!refreshToken;
     });
 }
 

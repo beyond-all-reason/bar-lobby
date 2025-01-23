@@ -63,6 +63,8 @@ contextBridge.exposeInMainWorld("settings", settingsApi);
 const authApi = {
     login: (): Promise<void> => ipcRenderer.invoke("auth:login"),
     logout: (): Promise<void> => ipcRenderer.invoke("auth:logout"),
+    wipe: (): Promise<void> => ipcRenderer.invoke("auth:wipe"),
+    hasCredentials: (): Promise<boolean> => ipcRenderer.invoke("auth:hasCredentials"),
 };
 export type AuthApi = typeof authApi;
 contextBridge.exposeInMainWorld("auth", authApi);
@@ -152,7 +154,6 @@ function request<C extends GetCommandIds<"user", "server", "request">>(
 
 function onEvent<C extends GetCommandIds<"server", "user", "event">>(eventID: C, callback: (event: GetCommandData<GetCommands<"server", "user", "event", C>>) => void) {
     return ipcRenderer.on("tachyon:event", (_event, event) => {
-        console.debug(` ==== preload ==== trying to broadcast event ${JSON.stringify(event)}`);
         if (event.commandId === eventID) {
             callback(event);
         }
@@ -170,13 +171,6 @@ const tachyonApi = {
     // Events
     onConnected: (callback: () => void) => ipcRenderer.on("tachyon:connected", callback),
     onDisconnected: (callback: () => void) => ipcRenderer.on("tachyon:disconnected", callback),
-    // onEvent: (eventID: string, callback: (event) => void) => {
-    //     console.log(` ==== preload ==== trying to listen to event ${eventID}`);
-    //     ipcRenderer.on("tachyon:event", (_event, event) => {
-    //         console.debug(` ==== preload ==== trying to broadcast event ${JSON.stringify(event)}`);
-    //         callback(event);
-    //     });
-    // },
     onEvent,
 };
 export type TachyonApi = typeof tachyonApi;

@@ -47,6 +47,12 @@ async function getRefreshToken() {
     return refreshToken;
 }
 
+async function forgetToken() {
+    await accountStore.update({
+        token: "",
+    });
+}
+
 async function wipe() {
     await accountStore.update({
         token: "",
@@ -62,4 +68,5 @@ export const accountService = {
     getToken,
     getRefreshToken,
     wipe,
+    forgetToken,
 };
