@@ -33,12 +33,6 @@ export async function fetchAuthorizationServerMetadata(): Promise<{
         throw new Error(error);
     }
 
-    // TODO: Remove this hack once the server is fixed
-    // see https://github.com/beyond-all-reason/teiserver/pull/555
-    // const fixedAuthorizationEndpoint = authorization_endpoint.replaceAll(":8888", "");
-    // const fixedTokenEndpoint = token_endpoint.replaceAll(":8888", "");
-    // const fixedIssuer = issuer.replaceAll(":8888", "");
-
     if (issuer !== OAUTH_AUTHORIZATION_SERVER_URL) {
         const error = `Invalid OAuth2 issuer: ${issuer} does not match expected ${OAUTH_AUTHORIZATION_SERVER_URL}`;
         log.error(error);

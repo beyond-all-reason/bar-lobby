@@ -86,7 +86,7 @@ import accountMultiple from "@iconify-icons/mdi/account-multiple";
 import messageIcon from "@iconify-icons/mdi/chat";
 import closeThick from "@iconify-icons/mdi/close-thick";
 import cog from "@iconify-icons/mdi/cog";
-import { computed, inject, Ref, ref, watch, watchEffect } from "vue";
+import { computed, inject, Ref, ref } from "vue";
 
 import Button from "@renderer/components/controls/Button.vue";
 import Downloads from "@renderer/components/navbar/Downloads.vue";

@@ -7,7 +7,13 @@ export const me = reactive<
     }
 >({
     isInitialized: false,
-    userId: 0,
+    userId: "0",
+    clanId: null,
+    partyId: null,
+    countryCode: "",
+    displayName: "",
+    scopes: [],
+    status: "offline",
     isOnline: false,
     username: "Player",
     battleRoomState: {},
@@ -16,10 +22,6 @@ export const me = reactive<
     friendUserIds: new Set<number>(),
     ignoreUserIds: new Set<number>(),
     permissions: new Set<string>(),
-    icons: {},
-    clanId: null,
-    countryCode: "",
-    status: "offline",
 });
 
 async function login() {
@@ -43,11 +45,13 @@ async function changeAccount() {
 
 window.tachyon.onEvent("user/updated", (event) => {
     console.log(`Received user/updated event: ${JSON.stringify(event)}`);
-    // const users = event.users;
-    // const meUser = users.find((user) => user.userId === me.userId);
-    // if (me) {
-    //     Object.assign(me, meUser);
-    // }
+
+    // TODO change this when we have a proper protocol for users
+    // see https://github.com/beyond-all-reason/tachyon/blob/master/docs/schema/user.md
+    const myData = event.users[0];
+    if (myData) {
+        Object.assign(me, myData);
+    }
 });
 
 // export const me = readonly(_me);

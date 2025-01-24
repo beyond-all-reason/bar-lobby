@@ -155,7 +155,7 @@ function request<C extends GetCommandIds<"user", "server", "request">>(
 function onEvent<C extends GetCommandIds<"server", "user", "event">>(eventID: C, callback: (event: GetCommandData<GetCommands<"server", "user", "event", C>>) => void) {
     return ipcRenderer.on("tachyon:event", (_event, event) => {
         if (event.commandId === eventID) {
-            callback(event);
+            callback(event.data);
         }
     });
 }

@@ -1,12 +1,12 @@
 export type User = {
-    userId: number;
+    userId: string;
     username: string;
-    icons: Record<string, string>;
-    clanId: number | null;
+    displayName: string;
+    clanId: string | null;
+    partyId: string | null;
+    scopes: string[];
     countryCode: string;
-    isOnline: boolean;
-    status?: "busy" | "away" | "online" | "offline" | "in-lobby" | "playing" | "spectating";
-    gameId?: string;
+    status: "offline" | "menu" | "playing" | "lobby";
 
     // When user is a contender in a battle
     battleRoomState: {
@@ -22,6 +22,7 @@ export function isUser(user: any): user is User {
 }
 
 export type CurrentUser = User & {
+    isOnline: boolean;
     permissions: Set<string>;
     friendUserIds: Set<number>;
     outgoingFriendRequestUserIds: Set<number>;
