@@ -141,6 +141,9 @@ export async function renewAccessToken(): Promise<TokenResponse> {
         const responseText = await tokenResponse.text();
         log.error(`${error}: ${responseText}`);
         accountService.wipe();
+        if (tokenResponse.status === 400) {
+            log.error(`400 Bad request: ${tokenUrl}`);
+        }
         throw new Error(error);
     }
     const body = await tokenResponse.json();

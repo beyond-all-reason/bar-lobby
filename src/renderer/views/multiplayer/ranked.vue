@@ -53,35 +53,27 @@
                 >
                     Search game
                 </button>
-                <button
-                    v-else-if="matchmakingStore.status === MatchmakingStatus.Searching"
-                    class="quick-play-button"
-                    :class="{
-                        disabled: !matchmakingStore.selectedQueue,
-                    }"
-                    @click="matchmaking.stopSearch"
-                >
-                    Cancel
+                <button v-else-if="matchmakingStore.status === MatchmakingStatus.Searching" class="quick-play-button searching" disabled>
+                    Searching for opponent
                 </button>
                 <button
                     v-else-if="matchmakingStore.status === MatchmakingStatus.MatchFound"
                     class="quick-play-button"
-                    :class="{
-                        disabled: !matchmakingStore.selectedQueue,
-                    }"
                     @click="matchmaking.acceptMatch"
                 >
                     Match found
                 </button>
-                <button
-                    v-else-if="matchmakingStore.status === MatchmakingStatus.MatchAccepted"
-                    class="quick-play-button"
-                    :class="{
-                        disabled: !matchmakingStore.selectedQueue,
-                    }"
-                    disabled
-                >
+                <button v-else-if="matchmakingStore.status === MatchmakingStatus.MatchAccepted" class="quick-play-button" disabled>
                     Accepted
+                </button>
+                <button
+                    class="cancel-button"
+                    :class="{
+                        disabled: matchmakingStore.status === MatchmakingStatus.Idle,
+                    }"
+                    @click="matchmaking.stopSearch"
+                >
+                    Cancel
                 </button>
             </div>
         </div>
@@ -101,6 +93,7 @@ import Button from "primevue/button";
     width: 100%;
     height: 100%;
     background: radial-gradient(circle, #000000ba, #000000fd);
+    transition: all 1s ease;
     // animation: pulse 1s infinite ease-in-out;
 }
 
@@ -108,11 +101,11 @@ import Button from "primevue/button";
     0%,
     100% {
         background-size: 100% 100%;
-        opacity: 0.8;
+        filter: brightness(0.8);
     }
     50% {
         background-size: 110% 110%;
-        opacity: 1;
+        filter: brightness(1);
     }
 }
 
@@ -195,6 +188,7 @@ import Button from "primevue/button";
 
 .button-container {
     display: flex;
+    flex-direction: column;
     justify-content: center;
     margin-top: 40px;
     margin-bottom: 40px;
@@ -223,6 +217,10 @@ import Button from "primevue/button";
         box-shadow 0.3s ease;
 }
 
+.searching {
+    animation: pulse 3s infinite ease-in-out;
+}
+
 .quick-play-button:hover {
     box-shadow: 0 0 25px rgba(34, 197, 94, 0.6);
 }
@@ -241,5 +239,49 @@ import Button from "primevue/button";
 
 .quick-play-button:hover::before {
     box-shadow: 0 0 15px rgba(34, 197, 94, 0.4);
+}
+
+.cancel-button {
+    align-self: center;
+    width: 200px;
+    text-transform: uppercase;
+    font-family: Rajdhani;
+    font-weight: bold;
+    font-size: 1.5rem;
+    padding: 20px 40px;
+    color: #fff;
+    // background: linear-gradient(90deg, #c52222, #a31616);
+    border: none;
+    border-radius: 2px;
+    // box-shadow: 0 0 15px rgba(197, 34, 34, 0.4);
+    text-align: center;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.cancel-button:hover {
+    // box-shadow: 0 0 25px rgba(197, 34, 34, 0.6);
+    color: #eee;
+    // transform: scale(0.99);
+    text-shadow: 0 0 25px rgba(255, 255, 255, 0.6);
+}
+
+.cancel-button::before {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 200%;
+    height: 200%;
+    background: rgba(105, 105, 105, 0.2);
+    transform: translate(-50%, -50%) scale(0);
+    border-radius: 50%;
+    transition: transform 0.4s ease;
+}
+
+.disabled {
+    cursor: not-allowed;
+    opacity: 0.1;
 }
 </style>
