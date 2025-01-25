@@ -22,17 +22,17 @@ const router = useRouter();
 const modal: Ref<InstanceType<typeof Modal> | null> = ref(null);
 const currentRoute = router.currentRoute;
 
-const onLoginPage = computed(() => currentRoute.value.path === "/login");
+const onLoginPage = computed(() => currentRoute.value.path === "/");
 
 async function login() {
-    await router.push("/login");
+    await router.push("/");
     modal.value?.close();
 }
 
 async function logout() {
     auth.logout();
     settingsStore.loginAutomatically = false;
-    await router.push("/login");
+    await router.push("/");
     modal.value?.close();
 }
 

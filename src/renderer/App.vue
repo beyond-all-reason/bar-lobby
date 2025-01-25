@@ -106,7 +106,9 @@ playRandomMusic();
 
 const simpleRouterMemory = new Map<string, string>();
 router.beforeEach(async (to) => {
+    console.log("META --- resolving ...");
     if (to.meta?.redirect) {
+        console.log("META --- Redirecting to", to.meta.redirect);
         const redirection = simpleRouterMemory.get(to.fullPath.split("/")[1]) ?? to.meta.redirect;
         return {
             path: redirection,
