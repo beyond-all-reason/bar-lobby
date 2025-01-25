@@ -10,6 +10,13 @@ import { me } from "@renderer/store/me.store";
 import { deepToRaw } from "@renderer/utils/deep-toraw";
 import { reactive, readonly, watch } from "vue";
 
+export enum GameMode {
+    CLASSIC = "classic",
+    RAPTORS = "raptors",
+    SCAVENGERS = "scavengers",
+    FFA = "ffa",
+}
+
 let participantId = 0;
 interface BattleLobby {
     isJoined: boolean;
@@ -18,14 +25,27 @@ interface BattleLobby {
 }
 
 // Store
-export const battleStore = reactive({
+export const battleStore = reactive<Battle & BattleLobby>({
     isJoined: false,
+    isLobbyOpened: false,
+    isSelectingGameMode: false,
     title: "Battle",
     isOnline: false,
-    battleOptions: {},
+    battleOptions: {
+        gameMode: {
+            label: GameMode.CLASSIC,
+            options: {},
+        },
+        mapOptions: {
+            startPosType: StartPosType.Boxes,
+            startBoxesIndex: 0,
+        },
+        restrictions: [],
+    },
     teams: [],
     spectators: [],
-} as Battle & BattleLobby);
+    started: false,
+});
 
 // Automatically computing metadata for the battle
 const _battleWithMetadataStore = reactive({} as BattleWithMetadata);
@@ -235,13 +255,6 @@ watch(
 function leaveBattle() {
     battleStore.isJoined = false;
     resetToDefaultBattle();
-}
-
-export enum GameMode {
-    CLASSIC = "classic",
-    RAPTORS = "raptors",
-    SCAVENGERS = "scavengers",
-    FFA = "ffa",
 }
 
 async function loadGameMode(gameMode: GameMode) {

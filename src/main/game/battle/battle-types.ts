@@ -5,7 +5,7 @@ export interface Battle {
     title: string;
     isOnline: boolean;
     battleOptions: BattleOptions;
-    me: Player;
+    me?: Player;
     teams: Array<Array<Player | Bot>>;
     spectators: Player[];
     started: boolean;
