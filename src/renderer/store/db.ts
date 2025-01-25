@@ -19,8 +19,26 @@ export const db = new Dexie("BarLobby") as Dexie & {
 };
 
 db.version(1).stores({
-    replays:
-        "fileName, gameId, filePath, engineVersion, gameVersion, springName, startTime, gameDurationMs, gameEndedNormally, hasBots, winningTeamId, teams, contenders, spectators, battleSettings, hostSettings, gameSettings, mapSettings",
+    replays: `
+        fileName,
+        gameId,
+        filePath,
+        engineVersion,
+        gameVersion,
+        springName,
+        startTime,
+        gameDurationMs,
+        gameEndedNormally,
+        hasBots,
+        winningTeamId,
+        teams,
+        contenders,
+        spectators,
+        battleSettings,
+        hostSettings,
+        gameSettings,
+        mapSettings
+    `,
     maps: `
         springName,
         author,
@@ -41,10 +59,10 @@ db.version(1).stores({
         windMin,
         isInstalled,
         isDownloading
-      `,
+    `,
     gameVersions: "gameVersion, packageMd5",
     engineVersions: "id, lastLaunched, ais",
-    users: "userId, username, countryCode, status, displayName, clanId, partyId, scopes",
+    users: "userId, username, countryCode, status, displayName, clanId, partyId, scopes, isMe",
 });
 
 db.on("ready", function () {

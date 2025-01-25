@@ -10,14 +10,12 @@ export const usersStore = reactive<{
     users: [],
 });
 
-// TODO call this to initalize the store / db for users, friends etc...
 // need a lot of work protocol side
 // see https://github.com/beyond-all-reason/tachyon/blob/master/docs/schema/user.md
 export function initUsersStore() {
     if (usersStore.isInitialized) return;
     window.tachyon.onEvent("user/updated", (event) => {
         console.debug(`Received user/updated event: ${JSON.stringify(event)}`);
-        // TODO unweirdify this after we have a proper protocol for users
         const users = event.users.map((user) => {
             return {
                 userId: user.userId || "",
@@ -29,6 +27,7 @@ export function initUsersStore() {
                 partyId: user.partyId || null,
                 scopes: user.scopes || [],
                 battleRoomState: {},
+                isMe: 1, // TODO unweirdify this after we have a proper protocol for users
             } as User;
         });
         db.users.bulkPut(users);

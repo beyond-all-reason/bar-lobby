@@ -1,9 +1,11 @@
-import { CurrentUser } from "@main/model/user";
+import { Me } from "@main/model/user";
+import { db } from "@renderer/store/db";
 import { reactive } from "vue";
 
 export const me = reactive<
-    CurrentUser & {
+    Me & {
         isInitialized: boolean;
+        isAuthenticated: boolean;
     }
 >({
     isInitialized: false,
@@ -14,7 +16,7 @@ export const me = reactive<
     displayName: "",
     scopes: [],
     status: "offline",
-    isOnline: false,
+    isAuthenticated: false,
     username: "Player",
     battleRoomState: {},
     outgoingFriendRequestUserIds: new Set<number>(),
@@ -26,21 +28,21 @@ export const me = reactive<
 
 async function login() {
     await window.auth.login();
-    me.isOnline = true;
+    me.isAuthenticated = true;
 }
 
 function playOffline() {
-    me.isOnline = false;
+    me.isAuthenticated = false;
 }
 
 async function logout() {
     await window.auth.logout();
-    me.isOnline = false;
+    me.isAuthenticated = false;
 }
 
 async function changeAccount() {
     await window.auth.wipe();
-    me.isOnline = false;
+    me.isAuthenticated = false;
 }
 
 window.tachyon.onEvent("user/updated", (event) => {
@@ -57,6 +59,18 @@ window.tachyon.onEvent("user/updated", (event) => {
 // export const me = readonly(_me);
 export const auth = { login, playOffline, logout, changeAccount };
 
-export function initMeStore() {
+export async function initMeStore() {
+    await db.users
+        .where({ isMe: 1 })
+        .first()
+        .then((user) => {
+            if (user) {
+                Object.assign(me, user);
+            }
+        });
+    const hasCredentials = await window.auth.hasCredentials();
+    if (hasCredentials) {
+        await login();
+    }
     me.isInitialized = true;
 }

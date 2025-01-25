@@ -24,7 +24,7 @@
                         <div v-if="messagesUnread" class="unread-dot"></div>
                     </Button>
                     <Button
-                        v-if="me.isOnline"
+                        v-if="me.isAuthenticated"
                         v-tooltip.bottom="'Friends'"
                         v-click-away:friends="() => (friendsOpen = false)"
                         :class="['icon', { active: friendsOpen }]"
@@ -53,8 +53,8 @@
                     </Button>
                 </div>
                 <div class="secondary-right flex-row flex-right">
-                    <ServerStatus v-if="me.isOnline" />
-                    <Button v-if="me.isOnline" class="user" to="/profile">
+                    <ServerStatus v-if="me.isAuthenticated" />
+                    <Button v-if="me.isAuthenticated" class="user" to="/profile">
                         <div class="flex-row flex-center gap-sm">
                             <Icon :icon="account" :height="20" />
                             <div>{{ me.username }}</div>
@@ -112,7 +112,7 @@ const primaryRoutes = computed(() => {
             (r) =>
                 (r.meta.hide === false || r.meta.hide === undefined) &&
                 ((r.meta.devOnly && settingsStore.devMode) || !r.meta.devOnly) &&
-                ((r.meta.onlineOnly && me.isOnline) || !r.meta.onlineOnly)
+                ((r.meta.onlineOnly && me.isAuthenticated) || !r.meta.onlineOnly)
         )
         .sort((a, b) => (a.meta.order ?? 99) - (b.meta.order ?? 99));
 });
@@ -123,7 +123,7 @@ const secondaryRoutes = computed(() => {
             (r) =>
                 (r.meta.hide === false || r.meta.hide === undefined) &&
                 ((r.meta.devOnly && settingsStore.devMode) || !r.meta.devOnly) &&
-                ((r.meta.onlineOnly && me.isOnline) || !r.meta.onlineOnly)
+                ((r.meta.onlineOnly && me.isAuthenticated) || !r.meta.onlineOnly)
         )
         .sort((a, b) => (a.meta.order ?? 99) - (b.meta.order ?? 99));
 });

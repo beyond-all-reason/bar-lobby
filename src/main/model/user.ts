@@ -8,6 +8,9 @@ export type User = {
     countryCode: string;
     status: "offline" | "menu" | "playing" | "lobby";
 
+    // Is the user me?
+    isMe?: 0 | 1;
+
     // When user is a contender in a battle
     battleRoomState: {
         isSpectator?: boolean;
@@ -21,8 +24,7 @@ export function isUser(user: any): user is User {
     return "username" in user;
 }
 
-export type CurrentUser = User & {
-    isOnline: boolean;
+export type Me = User & {
     permissions: Set<string>;
     friendUserIds: Set<number>;
     outgoingFriendRequestUserIds: Set<number>;

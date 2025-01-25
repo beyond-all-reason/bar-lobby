@@ -15,7 +15,7 @@ export const tachyonStore = reactive({
 });
 
 async function connect() {
-    if (!me.isOnline) return;
+    if (!me.isAuthenticated) throw new Error("Not authenticated");
     try {
         await window.tachyon.connect();
         tachyonStore.error = undefined;
@@ -65,7 +65,7 @@ export async function initTachyonStore() {
     );
 
     watch(
-        () => me.isOnline,
+        () => me.isAuthenticated,
         (isOnline) => {
             if (isOnline) {
                 connect();

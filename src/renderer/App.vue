@@ -42,7 +42,7 @@
         </Transition>
         <Settings v-model="settingsOpen" />
         <Error />
-        <ChatComponent v-if="me.isOnline && tachyonStore.isConnected" />
+        <ChatComponent v-if="me.isAuthenticated && tachyonStore.isConnected" />
         <FullscreenGameModeSelector :visible="battleStore.isSelectingGameMode" />
     </div>
 </template>
