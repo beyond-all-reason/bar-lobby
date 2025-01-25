@@ -14,7 +14,7 @@ import { ref } from "vue";
 
 import Button from "@renderer/components/controls/Button.vue";
 import Textarea from "@renderer/components/controls/Textarea.vue";
-import { DEFAULT_GAME_VERSION } from "@main/config/default-versions";
+import { LATEST_GAME_VERSION } from "@main/config/default-versions";
 
 const script = ref(`[game] {
     [ais] {
@@ -33,7 +33,7 @@ const script = ref(`[game] {
     mapname=Red Comet Remake 1.8;
     myplayername=player;
     ishost=1;
-    gametype=${DEFAULT_GAME_VERSION};
+    gametype=${LATEST_GAME_VERSION};
 }`);
 
 function launch() {
