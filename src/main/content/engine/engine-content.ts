@@ -31,7 +31,7 @@ export class EngineContentAPI extends AbstractContentAPI<EngineVersion> {
             for (const dir of dirs) {
                 log.info(`-- Engine ${dir}`);
                 const ais = await this.parseAis(dir);
-                this.installedVersions.push({ id: dir, lastLaunched: new Date(), ais });
+                this.installedVersions.add({ id: dir, ais });
             }
         } catch (err) {
             log.error(err);
@@ -40,7 +40,7 @@ export class EngineContentAPI extends AbstractContentAPI<EngineVersion> {
     }
 
     public isVersionInstalled(id: string): boolean {
-        return this.installedVersions.some((installedVersion) => installedVersion.id === id);
+        return this.installedVersions.values().some((installedVersion) => installedVersion.id === id);
     }
 
     protected async getLatestTagName() {
@@ -121,13 +121,13 @@ export class EngineContentAPI extends AbstractContentAPI<EngineVersion> {
         }
         const engineDir = path.join(this.engineDirs, version);
         await fs.promises.rm(engineDir, { force: true, recursive: true });
-        const index = this.installedVersions.findIndex((installedVersion) => installedVersion.id === version);
-        this.installedVersions.splice(index, 1);
+        const toRemove = this.installedVersions.values().find((installedVersion) => installedVersion.id === version);
+        this.installedVersions.delete(toRemove);
     }
 
     protected override async downloadComplete(downloadInfo: DownloadInfo) {
         log.debug(`Download complete: ${downloadInfo.name}`);
-        this.installedVersions.push({ id: downloadInfo.name, lastLaunched: new Date(), ais: [] });
+        this.installedVersions.add({ id: downloadInfo.name, ais: [] });
         super.downloadComplete(downloadInfo);
     }
 

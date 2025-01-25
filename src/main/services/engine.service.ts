@@ -9,7 +9,7 @@ async function init() {
 function registerIpcHandlers() {
     ipcMain.handle("engine:isNewVersionAvailable", () => engineContentAPI.isNewVersionAvailable());
     ipcMain.handle("engine:downloadEngine", (_, version: string) => engineContentAPI.downloadEngine(version));
-    ipcMain.handle("engine:getInstalledVersions", () => engineContentAPI.installedVersions);
+    ipcMain.handle("engine:getInstalledVersions", () => engineContentAPI.installedVersions.values().toArray());
     ipcMain.handle("engine:isVersionInstalled", (_, id: string) => engineContentAPI.isVersionInstalled(id));
     ipcMain.handle("engine:uninstallVersion", (_, version: EngineVersion) => engineContentAPI.uninstallVersion(version));
 }

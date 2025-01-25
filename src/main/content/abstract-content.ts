@@ -2,7 +2,7 @@ import { Signal } from "$/jaz-ts-utils/signal";
 import { DownloadInfo } from "./downloads";
 
 export abstract class AbstractContentAPI<T> {
-    public installedVersions: T[] = [];
+    public installedVersions: Set<T> = new Set();
     public currentDownloads: DownloadInfo[] = [];
 
     public onDownloadStart: Signal<DownloadInfo> = new Signal();

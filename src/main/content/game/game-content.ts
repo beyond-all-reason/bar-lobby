@@ -50,23 +50,20 @@ export class GameContentAPI extends PrDownloaderAPI<GameVersion> {
         const packagesDir = path.join(CONTENT_PATH, "packages");
         await fs.promises.mkdir(packagesDir, { recursive: true });
         const packages = await fs.promises.readdir(packagesDir);
-
         // On the first run, we couldn't initialize the lookup tables because the GZ file wasn't there yet
         if (Object.entries(this.packageGameVersionLookup).length === 0) {
             await this.initLookupTables();
         }
-
         for (const packageFile of packages) {
             const packageMd5 = packageFile.replace(".sdp", "");
             const gameVersion = this.packageGameVersionLookup[packageMd5];
             const luaOptionSections = await this.getGameOptions(packageMd5);
             const ais = await this.getAis(packageMd5);
             if (gameVersion) {
-                this.installedVersions.push({ gameVersion, packageMd5, luaOptionSections, ais });
+                this.installedVersions.add({ gameVersion, packageMd5, luaOptionSections, ais });
             }
         }
-        this.sortVersions();
-        log.info(`Found ${this.installedVersions.length} installed game versions`);
+        log.info(`Found ${this.installedVersions.size} installed game versions`);
         this.installedVersions.forEach((version) => {
             log.info(`-- ${version.gameVersion}`);
         });
@@ -86,7 +83,7 @@ export class GameContentAPI extends PrDownloaderAPI<GameVersion> {
                     const luaOptionSections = parseLuaOptions(modOptionsLua);
                     const aiInfoLua = await fs.promises.readFile(path.join(gamesDir, dir.name, "luaai.lua"));
                     const ais = await this.parseAis(aiInfoLua);
-                    this.installedVersions.push({
+                    this.installedVersions.add({
                         gameVersion: dir.name,
                         packageMd5: dir.name, // kinda hacky since this doesn't have a packageMd5
                         luaOptionSections,
@@ -103,7 +100,7 @@ export class GameContentAPI extends PrDownloaderAPI<GameVersion> {
         if (version === "byar:test") {
             return false;
         }
-        return this.installedVersions.some((installedVersion) => installedVersion.gameVersion === version);
+        return this.installedVersions.values().some((installedVersion) => installedVersion.gameVersion === version);
     }
 
     /**
@@ -139,7 +136,7 @@ export class GameContentAPI extends PrDownloaderAPI<GameVersion> {
 
     public async getScenarios(gameVersion: string): Promise<Scenario[]> {
         try {
-            const version = this.installedVersions.find((version) => version.gameVersion === gameVersion);
+            const version = this.installedVersions.values().find((version) => version.gameVersion === gameVersion);
             assert(version, `No installed version found for game version: ${gameVersion}`);
             const scenarioImages = await this.getGameFiles(version.packageMd5, "singleplayer/scenarios/**/*.{jpg,png}", false);
             const scenarioDefinitions = await this.getGameFiles(version.packageMd5, "singleplayer/scenarios/**/*.lua", true);
@@ -184,7 +181,7 @@ export class GameContentAPI extends PrDownloaderAPI<GameVersion> {
     }
 
     public async uninstallVersionById(gameVersion: string) {
-        const version = this.installedVersions.find((version) => version.gameVersion === gameVersion);
+        const version = this.installedVersions.values().find((version) => version.gameVersion === gameVersion);
         await this.uninstallVersion(version);
     }
 
@@ -192,7 +189,7 @@ export class GameContentAPI extends PrDownloaderAPI<GameVersion> {
         // TODO: Uninstall game version through prd when prd supports it
         assert(!version.packageMd5.endsWith(".sdd"), "Cannot uninstall local/custom game versions");
         await fs.promises.rm(path.join(CONTENT_PATH, "packages", `${version.packageMd5}.sdp`));
-        this.installedVersions = this.installedVersions.filter((version) => version.packageMd5 !== version.packageMd5);
+        this.installedVersions.delete(version);
     }
 
     /**
@@ -271,18 +268,6 @@ export class GameContentAPI extends PrDownloaderAPI<GameVersion> {
         return fileData;
     }
 
-    protected sortVersions() {
-        this.installedVersions.sort((a, b) => {
-            try {
-                const aRev = parseInt(a.gameVersion.split("-")[1]);
-                const bRev = parseInt(b.gameVersion.split("-")[1]);
-                return aRev - bRev;
-            } catch {
-                return 1;
-            }
-        });
-    }
-
     protected override async downloadComplete(downloadInfo: DownloadInfo) {
         await this.addGame(downloadInfo.name);
         super.downloadComplete(downloadInfo);
@@ -295,8 +280,7 @@ export class GameContentAPI extends PrDownloaderAPI<GameVersion> {
             const packageMd5 = this.gameVersionPackageLookup[gameVersion];
             const luaOptionSections = await this.getGameOptions(packageMd5);
             const ais = await this.getAis(packageMd5);
-            this.installedVersions.push({ gameVersion, packageMd5, luaOptionSections, ais });
-            this.sortVersions();
+            this.installedVersions.add({ gameVersion, packageMd5, luaOptionSections, ais });
         }
     }
 
