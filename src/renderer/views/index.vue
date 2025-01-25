@@ -62,7 +62,8 @@ async function playOffline() {
     router.push("/home/overview");
 }
 
-if (settingsStore.loginAutomatically) {
+if (hasCredentials && settingsStore.loginAutomatically) {
+    console.log("Logging in automatically");
     login();
 }
 </script>

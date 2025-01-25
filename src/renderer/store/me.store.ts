@@ -26,8 +26,13 @@ export const me = reactive<
 });
 
 async function login() {
-    await window.auth.login();
-    me.isAuthenticated = true;
+    try {
+        await window.auth.login();
+        me.isAuthenticated = true;
+    } catch (e) {
+        console.error(e);
+        me.isAuthenticated = false;
+    }
 }
 
 function playOffline() {

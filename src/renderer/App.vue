@@ -4,10 +4,10 @@
             <IntroVideo v-if="!settingsStore.skipIntro && videoVisible" @complete="onIntroEnd" />
         </transition>
         <DebugSidebar v-if="settingsStore.devMode" />
-        <StickyBattle />
+        <StickyBattle v-if="state === 'default'" />
         <Background :blur="blurBg" />
-        <Notifications />
-        <PromptContainer />
+        <Notifications v-if="state === 'default'" />
+        <PromptContainer v-if="state === 'default'" />
         <NavBar :class="{ hidden: empty || state === 'preloader' || state === 'initial-setup' }" />
         <div class="lobby-version">
             {{ infosStore.lobby.version }}
@@ -42,8 +42,8 @@
         </Transition>
         <Settings v-model="settingsOpen" />
         <Error />
-        <ChatComponent v-if="me.isAuthenticated && tachyonStore.isConnected" />
-        <FullscreenGameModeSelector :visible="battleStore.isSelectingGameMode" />
+        <ChatComponent v-if="state === 'default' && me.isAuthenticated && tachyonStore.isConnected" />
+        <FullscreenGameModeSelector v-if="state === 'default'" :visible="battleStore.isSelectingGameMode" />
     </div>
 </template>
 
@@ -154,6 +154,7 @@ function onInitialSetupDone() {
     font-size: 12px;
     color: rgba(255, 255, 255, 0.3);
 }
+
 .splash-options {
     position: fixed;
     display: flex;
