@@ -1,5 +1,8 @@
-// export const TEISERVER_HOSTNAME_PORT = "server5.beyondallreason.info"; //"tachyon.geekingfrog.com:4321";
-// export const TEISERVER_HOSTNAME_PORT = "tachyon.geekingfrog.com:4321";
+// TODO: this should reference a real server like server5.beyondallreason.info
+// there is an issue with port handling right now, so we can't use the real server
+// see https://github.com/beyond-all-reason/teiserver/pull/555
+
+// export const TEISERVER_HOSTNAME_PORT = "server5.beyondallreason.info";
 export const TEISERVER_HOSTNAME_PORT = "lobby-server-dev.beyondallreason.dev";
 
 export const OAUTH_AUTHORIZATION_SERVER_URL = `https://${TEISERVER_HOSTNAME_PORT}`;
