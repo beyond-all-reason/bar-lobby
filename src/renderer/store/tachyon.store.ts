@@ -28,6 +28,7 @@ async function connect() {
 
 export async function initTachyonStore() {
     tachyonStore.isConnected = await window.tachyon.isConnected();
+    console.debug(`Tachyon server is ${tachyonStore.isConnected ? "connected" : "disconnected"}`);
 
     window.tachyon.onConnected(() => {
         console.debug("Connected to Tachyon server");
@@ -64,16 +65,18 @@ export async function initTachyonStore() {
         }
     );
 
-    watch(
-        () => me.isAuthenticated,
-        (isOnline) => {
-            if (isOnline) {
-                connect();
-            } else {
-                window.tachyon.disconnect();
-            }
-        }
-    );
+    // watch(
+    //     () => me.isAuthenticated,
+    //     (isOnline) => {
+    //         if (isOnline) {
+    //             connect();
+    //         } else {
+    //             window.tachyon.disconnect();
+    //         }
+    //     }
+    // );
 
     tachyonStore.isInitialized = true;
 }
+
+export const tachyon = { connect };

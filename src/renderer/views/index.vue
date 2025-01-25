@@ -10,7 +10,7 @@
                 <Loader></Loader>
             </div>
             <div v-else class="buttons-container">
-                <Button class="login-button" @click="login">Login</Button>
+                <button class="login-button" @click="login">Login</button>
                 <div v-if="hasCredentials" class="play-offline" @click="changeAccount">Change account</div>
                 <div v-if="error" class="txt-error">{{ error }}</div>
                 <div class="play-offline" @click="playOffline">Play Offline</div>
@@ -26,6 +26,7 @@ import Loader from "@renderer/components/common/Loader.vue";
 import { useRouter } from "vue-router";
 import { auth } from "@renderer/store/me.store";
 import { settingsStore } from "@renderer/store/settings.store";
+import { tachyon } from "@renderer/store/tachyon.store";
 
 const router = useRouter();
 
@@ -38,12 +39,16 @@ async function login() {
     try {
         connecting.value = true;
         await auth.login();
-        await router.replace("/home/overview");
+        await tachyon.connect();
+        router.push("/home/overview");
     } catch (e) {
         console.error(e);
         error.value = (e as Error).message;
     } finally {
-        connecting.value = false;
+        // Removes the stutter when transitioning to the next page
+        setTimeout(() => {
+            connecting.value = false;
+        }, 1000);
     }
 }
 
@@ -54,7 +59,7 @@ async function changeAccount() {
 
 async function playOffline() {
     auth.playOffline();
-    await router.push("/home/overview");
+    router.push("/home/overview");
 }
 
 if (settingsStore.loginAutomatically) {
