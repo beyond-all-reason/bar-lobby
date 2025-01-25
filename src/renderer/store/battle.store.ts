@@ -80,7 +80,7 @@ function addBot(ai: EngineAI | GameAI, teamId: number) {
         name: ai.name,
         aiOptions: {},
         aiShortName: ai.shortName,
-        ownerUserId: me.userId,
+        host: battleStore.me.id,
     } as Bot);
 }
 
@@ -183,11 +183,11 @@ function defaultOfflineBattle(engine?: EngineVersion, game?: GameVersion, map?: 
     battle.teams[0].push(mePlayer);
     battle.teams[1].push({
         id: participantId++,
+        host: mePlayer.id,
         aiOptions: {},
         faction: Faction.Armada,
         name: "AI 1",
         aiShortName: barbAi?.shortName || "BARb",
-        ownerUserId: "0",
     } as Bot);
     return battle;
 }

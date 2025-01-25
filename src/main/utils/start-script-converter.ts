@@ -93,7 +93,7 @@ class StartScriptConverter {
                         team: team.id,
                         shortname: teamMember.aiShortName,
                         name: teamMember.name,
-                        host: teamMember.id,
+                        host: teamMember.host,
                         options: teamMember.aiOptions,
                     };
                     bots.push(bot);

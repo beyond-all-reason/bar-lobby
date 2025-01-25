@@ -110,7 +110,7 @@ export type Player = {
 
 export type Bot = {
     id: number;
-    ownerUserId: string;
+    host: number;
     aiShortName: string;
     name: string;
     aiOptions: Record<string, unknown>;
