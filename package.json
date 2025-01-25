@@ -1,7 +1,7 @@
 {
     "name": "bar-lobby",
     "type": "module",
-    "version": "0.15.0-alpha.1",
+    "version": "0.15.0-alpha.2",
     "private": true,
     "description": "Lobby client for the RTS game Beyond All Reason",
     "author": "BAR Team",

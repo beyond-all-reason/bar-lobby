@@ -7,8 +7,6 @@ import { BattleStartRequestData } from "tachyon-protocol/types";
 
 const log = logger("tachyon-service");
 
-// //./engine/105.1.1-2511-g747f18b\ bar/spring --isolation --write-dir $PWD spring://Player:password1@127.0.0.1:20004
-
 function registerIpcHandlers(mainWindow: Electron.BrowserWindow) {
     const requestHandlers: TachyonClientRequestHandlers = {
         "battle/start": async (data: BattleStartRequestData) => {
