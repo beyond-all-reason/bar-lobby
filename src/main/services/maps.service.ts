@@ -4,8 +4,8 @@ import { ipcMain } from "electron";
 import { MapMetadata } from "@main/content/maps/map-metadata";
 import { fetchMapImages } from "@main/content/maps/map-image";
 
-function init() {
-    mapContentAPI.init();
+async function init() {
+    await mapContentAPI.init();
 }
 
 async function fetchAllMaps() {

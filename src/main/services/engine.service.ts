@@ -3,7 +3,7 @@ import { engineContentAPI } from "@main/content/engine/engine-content";
 import { ipcMain } from "electron";
 
 async function init() {
-    return engineContentAPI.init();
+    await engineContentAPI.init();
 }
 
 function registerIpcHandlers() {

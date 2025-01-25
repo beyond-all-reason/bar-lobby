@@ -4,8 +4,8 @@ import { ipcMain } from "electron";
 import { Replay } from "@main/content/replays/replay";
 import { BattleWithMetadata } from "@main/game/battle/battle-types";
 
-function init() {
-    gameContentAPI.init();
+async function init() {
+    await gameContentAPI.init();
 }
 
 function registerIpcHandlers(mainWindow: Electron.BrowserWindow) {

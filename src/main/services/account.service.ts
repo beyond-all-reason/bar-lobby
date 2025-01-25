@@ -9,8 +9,8 @@ const log = logger("account-service");
 
 const accountStore = new FileStore<typeof accountSchema>(path.join(CONFIG_PATH, "account.json"), accountSchema);
 
-function init() {
-    accountStore.init();
+async function init() {
+    await accountStore.init();
 }
 
 async function saveToken(token: string) {

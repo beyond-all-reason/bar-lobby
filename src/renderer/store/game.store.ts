@@ -39,6 +39,8 @@ watch(
 );
 
 export async function initGameStore() {
+    if (gameStore.isInitialized) return;
+
     await refreshStore();
     window.downloads.onDownloadGameComplete(async (downloadInfo) => {
         console.debug("Received game download completed event", downloadInfo);

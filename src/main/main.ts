@@ -84,7 +84,7 @@ app.commandLine.appendSwitch("high-dpi-support", "1");
 app.commandLine.appendSwitch("force-device-scale-factor", "1");
 app.commandLine.appendSwitch("disable-pinch", "1");
 
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
     registerBarFileProtocol();
 
     if (process.env.NODE_ENV !== "production") {
@@ -107,12 +107,8 @@ app.whenReady().then(() => {
         });
     });
 
-    settingsService.init();
-    accountService.init();
-    replaysService.init();
-    engineService.init();
-    gameService.init();
-    mapsService.init();
+    // Initialize services
+    await Promise.all([settingsService.init(), accountService.init(), replaysService.init(), engineService.init(), gameService.init(), mapsService.init()]);
 
     const mainWindow = createWindow();
 
