@@ -2,7 +2,6 @@ import { EngineAI, EngineVersion } from "@main/content/engine/engine-version";
 import { GameAI, GameVersion } from "@main/content/game/game-version";
 import { MapData } from "@main/content/maps/map-data";
 import { Battle, BattleOptions, BattleWithMetadata, Bot, Faction, Player, StartPosType } from "@main/game/battle/battle-types";
-import { User } from "@main/model/user";
 import { enginesStore } from "@renderer/store/engine.store";
 import { gameStore } from "@renderer/store/game.store";
 import { getRandomMap } from "@renderer/store/maps.store";
@@ -118,13 +117,6 @@ function moveBotToTeam(bot: Bot, teamId: number) {
     removeFromTeams(bot);
     if (!battleStore.teams[teamId]) battleStore.teams[teamId] = [];
     battleStore.teams[teamId].push(bot);
-}
-
-function userToPlayer(user: User, participantId: number): Player {
-    return {
-        id: participantId,
-        user,
-    } as Player;
 }
 
 //TODO move extra players to spectators
