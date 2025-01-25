@@ -14,7 +14,9 @@ function registerIpcHandlers(mainWindow: Electron.BrowserWindow) {
             const { ip, port, username, password } = data;
             mainWindow.webContents.send("tachyon:battleStart", data);
             const springString = `spring://${username}:${password}@${ip}:${port}`;
-            await gameAPI.launchMultiplayerString(springString);
+
+            //TODO ideally we should get an engine version from the server to pass to launchMultiplayerString
+            await gameAPI.launchMultiplayer(springString);
             return {
                 status: "success",
             };

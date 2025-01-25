@@ -8,11 +8,12 @@ import { engineContentAPI } from "@main/content/engine/engine-content";
 
 import { Replay } from "@main/content/replays/replay";
 import { startScriptConverter } from "@main/utils/start-script-converter";
-import { DEFAULT_ENGINE_VERSION, LATEST_GAME_VERSION } from "@main/config/default-versions";
+import { LATEST_GAME_VERSION } from "@main/config/default-versions";
 import { logger } from "@main/utils/logger";
 import { gameContentAPI } from "@main/content/game/game-content";
 import { CONTENT_PATH, REPLAYS_PATH } from "@main/config/app";
 import { BattleWithMetadata } from "@main/game/battle/battle-types";
+import engineService from "@main/services/engine.service";
 
 const log = logger("main/game/game.ts");
 const engineLogger = logger("[RECOIL ENGINE]", { separator: "\n", level: "info" });
@@ -56,21 +57,21 @@ export class GameAPI {
         const scriptPath = path.join(CONTENT_PATH, this.springName);
         await fs.promises.writeFile(scriptPath, script);
         await this.launch({
-            engineVersion: DEFAULT_ENGINE_VERSION,
+            engineVersion: engineContentAPI.getLatestInstalledVersion().id,
             gameVersion,
             launchArg: scriptPath,
         });
     }
 
-    public async launchMultiplayerString(springString: string) {
+    public async launchMultiplayer(springString: string) {
         return this.launch({
-            engineVersion: DEFAULT_ENGINE_VERSION,
+            engineVersion: engineContentAPI.getLatestInstalledVersion().id, //TODO: replace this with the engine version from the server
             gameVersion: LATEST_GAME_VERSION,
             launchArg: springString,
         });
     }
 
-    public async launch({ engineVersion = DEFAULT_ENGINE_VERSION, gameVersion, launchArg }: { engineVersion: string; gameVersion: string; launchArg: string }): Promise<void> {
+    public async launch({ engineVersion, gameVersion, launchArg }: { engineVersion: string; gameVersion: string; launchArg: string }): Promise<void> {
         try {
             log.info(`Launching game with engine: ${engineVersion}, game: ${gameVersion}`);
             await this.fetchMissingContent(engineVersion, gameVersion);

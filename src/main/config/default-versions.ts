@@ -6,7 +6,5 @@
  * In the future these values should probably be set and fetched from the master server, so we don't need to deploy a new lobby release every time.
  */
 
-export const DEFAULT_ENGINE_VERSION = "2025.01.3";
 export const LATEST = "LATEST";
-
 export const LATEST_GAME_VERSION = "byar:test";

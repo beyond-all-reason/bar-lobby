@@ -43,6 +43,14 @@ export class EngineContentAPI extends AbstractContentAPI<EngineVersion> {
         return this.installedVersions.values().some((installedVersion) => installedVersion.id === id);
     }
 
+    public getLatestInstalledVersion() {
+        return this.installedVersions
+            .values()
+            .toArray()
+            .sort((a, b) => a.id.localeCompare(b.id))
+            .pop();
+    }
+
     protected async getLatestTagName() {
         const { data } = await this.ocotokit.rest.repos.getLatestRelease({
             owner: contentSources.engineGitHub.owner,
