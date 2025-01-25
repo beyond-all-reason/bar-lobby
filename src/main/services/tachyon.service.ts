@@ -1,4 +1,3 @@
-import { gameAPI } from "@main/game/game";
 import { accountService } from "@main/services/account.service";
 import { TachyonClient, TachyonClientRequestHandlers } from "@main/tachyon/tachyon-client";
 import { logger } from "@main/utils/logger";
@@ -12,11 +11,8 @@ function registerIpcHandlers(mainWindow: Electron.BrowserWindow) {
         "battle/start": async (data: BattleStartRequestData) => {
             log.info(`Received battle start request: ${JSON.stringify(data)}`);
             const { ip, port, username, password } = data;
-            mainWindow.webContents.send("tachyon:battleStart", data);
             const springString = `spring://${username}:${password}@${ip}:${port}`;
-
-            //TODO ideally we should get an engine version from the server to pass to launchMultiplayerString
-            await gameAPI.launchMultiplayer(springString);
+            mainWindow.webContents.send("tachyon:battleStart", springString);
             return {
                 status: "success",
             };

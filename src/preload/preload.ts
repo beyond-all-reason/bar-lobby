@@ -11,6 +11,7 @@ import { Info } from "@main/services/info.service";
 import { NewsFeedData } from "@main/services/news.service";
 import { BattleWithMetadata } from "@main/game/battle/battle-types";
 import { GetCommandData, GetCommandIds, GetCommands } from "tachyon-protocol";
+import { MultiplayerLaunchSettings } from "@main/game/game";
 
 const infoApi = {
     getInfo: (): Promise<Info> => ipcRenderer.invoke("info:get"),
@@ -88,6 +89,7 @@ const gameApi = {
     uninstallVersion: (version: string): Promise<void> => ipcRenderer.invoke("game:uninstallVersion", version),
 
     // Game
+    launchMultiplayer: (settings: MultiplayerLaunchSettings): Promise<void> => ipcRenderer.invoke("game:launchMultiplayer", settings),
     launchScript: (script: string): Promise<void> => ipcRenderer.invoke("game:launchScript", script),
     launchReplay: (replay: Replay): Promise<void> => ipcRenderer.invoke("game:launchReplay", replay),
     launchBattle: (battle: BattleWithMetadata): Promise<void> => ipcRenderer.invoke("game:launchBattle", battle),
@@ -173,6 +175,7 @@ const tachyonApi = {
     onConnected: (callback: () => void) => ipcRenderer.on("tachyon:connected", callback),
     onDisconnected: (callback: () => void) => ipcRenderer.on("tachyon:disconnected", callback),
     onEvent,
+    onBattleStart: (callback: (springString: string) => void) => ipcRenderer.on("tachyon:battleStart", (_event, springString) => callback(springString as string)),
 };
 export type TachyonApi = typeof tachyonApi;
 contextBridge.exposeInMainWorld("tachyon", tachyonApi);

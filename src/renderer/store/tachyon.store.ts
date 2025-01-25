@@ -1,3 +1,5 @@
+import { enginesStore } from "@renderer/store/engine.store";
+import { gameStore } from "@renderer/store/game.store";
 import { auth, me } from "@renderer/store/me.store";
 import { SystemServerStatsOkResponseData } from "tachyon-protocol/types";
 import { reactive, watch } from "vue";
@@ -40,6 +42,23 @@ export async function initTachyonStore() {
         tachyonStore.isConnected = false;
     });
 
+    window.tachyon.onBattleStart((springString) => {
+        console.debug("Received battle start event", springString);
+        if (!enginesStore.selectedEngineVersion) {
+            console.error("No engine version selected");
+            return;
+        }
+        if (!gameStore.selectedGameVersion) {
+            console.error("No game version selected");
+            return;
+        }
+        window.game.launchMultiplayer({
+            engineVersion: enginesStore.selectedEngineVersion.id,
+            gameVersion: gameStore.selectedGameVersion.gameVersion,
+            springString,
+        });
+    });
+
     // Periodically fetch server stats
     setInterval(() => {
         if (!tachyonStore.isConnected) return;
@@ -64,17 +83,6 @@ export async function initTachyonStore() {
             }
         }
     );
-
-    // watch(
-    //     () => me.isAuthenticated,
-    //     (isOnline) => {
-    //         if (isOnline) {
-    //             connect();
-    //         } else {
-    //             window.tachyon.disconnect();
-    //         }
-    //     }
-    // );
 
     tachyonStore.isInitialized = true;
 }
