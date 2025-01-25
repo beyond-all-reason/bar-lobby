@@ -4,7 +4,7 @@ export type User = {
     displayName: string;
     clanId: string | null;
     partyId: string | null;
-    scopes: string[];
+    // scopes: string[];
     countryCode: string;
     status: "offline" | "menu" | "playing" | "lobby";
 

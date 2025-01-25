@@ -93,7 +93,7 @@ class StartScriptConverter {
                         team: team.id,
                         shortname: teamMember.aiShortName,
                         name: teamMember.name,
-                        host: teamMember.ownerUserId,
+                        host: teamMember.id,
                         options: teamMember.aiOptions,
                     };
                     bots.push(bot);
@@ -110,13 +110,14 @@ class StartScriptConverter {
             });
         });
 
-        for (const bot of bots) {
-            const owner = players.find((player) => player.userId === bot.host);
-            if (!owner) {
-                throw new Error(`Couldn't find owner for bot, ${JSON.stringify(bot)}`);
-            }
-            bot.host = owner.id;
-        }
+        // TODO: Something is not right here
+        // for (const bot of bots) {
+        //     const owner = players.find((player) => player.userId === bot.host);
+        //     if (!owner) {
+        //         throw new Error(`Couldn't find owner for bot, ${JSON.stringify(bot)}`);
+        //     }
+        //     bot.host = owner.id;
+        // }
 
         return {
             gametype: battle.battleOptions.gameVersion,

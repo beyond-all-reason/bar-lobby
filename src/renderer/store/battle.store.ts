@@ -100,9 +100,9 @@ function moveBotToTeam(bot: Bot, teamId: number) {
     battleStore.teams[teamId].push(bot);
 }
 
-function userToPlayer(user: User): Player {
+function userToPlayer(user: User, participantId: number): Player {
     return {
-        id: user.userId,
+        id: participantId,
         user,
     } as Player;
 }
@@ -134,7 +134,6 @@ function updateTeams() {
 function defaultOfflineBattle(engine?: EngineVersion, game?: GameVersion, map?: MapData) {
     const barbAi = engine?.ais.find((ai) => ai.shortName === "BARb");
     const battle = {
-        me: userToPlayer(me),
         title: "Offline Custom Battle",
         isOnline: false,
         battleOptions: {
@@ -156,7 +155,7 @@ function defaultOfflineBattle(engine?: EngineVersion, game?: GameVersion, map?: 
         started: false,
     } as Battle;
 
-    battle.teams[0].push({
+    const mePlayer = {
         id: participantId++,
         user: me,
         name: me.username,
@@ -166,15 +165,17 @@ function defaultOfflineBattle(engine?: EngineVersion, game?: GameVersion, map?: 
             map: 1,
         },
         inGame: false,
-    } as Player);
+    } as Player;
 
+    battle.me = mePlayer;
+    battle.teams[0].push(mePlayer);
     battle.teams[1].push({
         id: participantId++,
         aiOptions: {},
         faction: Faction.Armada,
         name: "AI 1",
         aiShortName: barbAi?.shortName || "BARb",
-        ownerUserId: 0,
+        ownerUserId: "0",
     } as Bot);
     return battle;
 }

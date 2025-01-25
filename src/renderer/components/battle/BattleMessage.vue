@@ -20,13 +20,14 @@ defineProps<{
 }>();
 
 const user: User = {
-    userId: 1,
-    username: "User Name",
-    countryCode: "US",
     battleRoomState: {},
-    clanId: 1,
-    isOnline: true,
-    icons: {},
+    countryCode: "US",
+    userId: "123",
+    clanId: "123",
+    username: "Test User",
+    displayName: "Test User",
+    partyId: "123",
+    status: "lobby",
 };
 
 // const user = api.session.getUserById(props.message.senderUserId);

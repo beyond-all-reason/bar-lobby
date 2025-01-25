@@ -3,7 +3,7 @@ import Ajv, { ValidateFunction } from "ajv";
 
 export interface Message {
     type: "battle-message" | "direct-message" | "battle-announcement" | "direct-announcement";
-    senderUserId: number;
+    senderUserId: string;
     text: string;
     hide?: boolean;
     read?: boolean;

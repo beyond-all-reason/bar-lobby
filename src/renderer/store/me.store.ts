@@ -14,7 +14,6 @@ export const me = reactive<
     partyId: null,
     countryCode: "",
     displayName: "",
-    scopes: [],
     status: "offline",
     isAuthenticated: false,
     username: "Player",
