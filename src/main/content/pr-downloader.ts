@@ -31,7 +31,7 @@ export type RapidVersion = {
  * https://springrts.com/wiki/Pr-downloader
  * https://springrts.com/wiki/Rapid
  */
-export abstract class PrDownloaderAPI<T> extends AbstractContentAPI<T> {
+export abstract class PrDownloaderAPI<ID, T> extends AbstractContentAPI<ID, T> {
     protected downloadContent(type: "game" | "map", name: string) {
         return new Promise<DownloadInfo>((resolve) => {
             log.debug(`Downloading ${name}...`);
@@ -39,7 +39,7 @@ export abstract class PrDownloaderAPI<T> extends AbstractContentAPI<T> {
             if (!latestEngine) throw new Error("No engine version found");
 
             const binaryName = process.platform === "win32" ? "pr-downloader.exe" : "pr-downloader";
-            const prBinaryPath = path.join(CONTENT_PATH, "engine", latestEngine.id, binaryName);
+            const prBinaryPath = path.join(CONTENT_PATH, "engine", latestEngine, binaryName);
             const downloadArg = type === "game" ? "--download-game" : "--download-map";
             const prdProcess = spawn(`${prBinaryPath}`, ["--filesystem-writepath", CONTENT_PATH, downloadArg, name], {
                 env: {
