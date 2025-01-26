@@ -3,7 +3,9 @@
         <transition mode="in-out" name="intro">
             <IntroVideo v-if="!settingsStore.skipIntro && videoVisible" @complete="onIntroEnd" />
         </transition>
-        <DebugSidebar v-if="settingsStore.devMode" />
+        <Suspense>
+            <DebugSidebar v-if="settingsStore.devMode" />
+        </Suspense>
         <StickyBattle v-if="state === 'default'" />
         <Background :blur="blurBg" />
         <Notifications v-if="state === 'default'" />

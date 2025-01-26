@@ -34,8 +34,8 @@
 
         <Select
             :modelValue="enginesStore.selectedEngineVersion"
-            :options="engineListOptions"
-            optionLabel="id"
+            :options="availableEngineVersions"
+            option-label="id"
             label="Engine"
             :filter="true"
             class="fullwidth"
@@ -59,8 +59,8 @@ import { useDexieLiveQuery } from "@renderer/composables/useDexieLiveQuery";
 import { db } from "@renderer/store/db";
 import { gameStore } from "@renderer/store/game.store";
 import { enginesStore } from "@renderer/store/engine.store";
-import { EngineVersion } from "@main/content/engine/engine-version";
 import { GameVersion } from "@main/content/game/game-version";
+import { EngineVersion } from "@main/content/engine/engine-version";
 
 const active = ref(false);
 const syncLobbyContentToolOpen = ref(false);
@@ -70,9 +70,13 @@ const routes = router.getRoutes().sort((a, b) => a.path.localeCompare(b.path));
 const currentRoute = router.currentRoute;
 
 const gameListOptions = useDexieLiveQuery(() => db.gameVersions.toArray());
-const engineListOptions = useDexieLiveQuery(() => db.engineVersions.toArray());
+const installedEngineVersions = useDexieLiveQuery(() => db.engineVersions.toArray());
+const availableEngineVersions = await window.engine.listAvailableVersions();
 
 async function onEngineSelected(engineVersion: EngineVersion) {
+    if (!installedEngineVersions.value.includes(engineVersion)) {
+        await window.engine.downloadEngine(engineVersion.id);
+    }
     enginesStore.selectedEngineVersion = engineVersion;
 }
 

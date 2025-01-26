@@ -3,7 +3,7 @@ import { DownloadInfo } from "./downloads";
 
 export abstract class AbstractContentAPI<ID, T> {
     public installedVersions: Map<ID, T> = new Map();
-    public availableVersionsToDownload: Array<ID> = [];
+    public availableVersionsToDownload: Array<T> = [];
     public currentDownloads: DownloadInfo[] = [];
 
     public onDownloadStart: Signal<DownloadInfo> = new Signal();
