@@ -149,8 +149,8 @@ function defaultOfflineBattle(engine?: EngineVersion, game?: GameVersion, map?: 
         title: "Offline Custom Battle",
         isOnline: false,
         battleOptions: {
-            engineVersion: engine?.id,
-            gameVersion: game?.gameVersion,
+            engineVersion: engine?.id || enginesStore.selectedEngineVersion.id,
+            gameVersion: game?.gameVersion || gameStore.selectedGameVersion.gameVersion,
             gameMode: {
                 label: "Default",
                 options: game?.luaOptionSections || {},
@@ -242,6 +242,20 @@ watch(
         updateTeams();
     },
     { deep: true }
+);
+
+watch(
+    () => enginesStore.selectedEngineVersion,
+    (engineVersion) => {
+        battleStore.battleOptions.engineVersion = engineVersion.id;
+    }
+);
+
+watch(
+    () => gameStore.selectedGameVersion,
+    (gameVersion) => {
+        battleStore.battleOptions.gameVersion = gameVersion.gameVersion;
+    }
 );
 
 function leaveBattle() {

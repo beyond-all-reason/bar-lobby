@@ -16,11 +16,11 @@ export async function initPreMountStores() {
         initInfosStore(),
         initGameStore(),
         initDownloadsStore(),
-        initBattleStore(),
         initEnginesStore(),
         initTachyonStore(),
         initializeMatchmakingStore(),
         initUsersStore(),
         initMeStore(),
     ]);
+    await initBattleStore();
 }

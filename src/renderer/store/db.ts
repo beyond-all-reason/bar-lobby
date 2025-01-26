@@ -1,4 +1,3 @@
-import { EngineVersion } from "@main/content/engine/engine-version";
 import { GameVersion } from "@main/content/game/game-version";
 import { MapData } from "@main/content/maps/map-data";
 import { Replay } from "@main/content/replays/replay";
@@ -14,7 +13,6 @@ export const db = new Dexie("BarLobby") as Dexie & {
     replays: EntityTable<Replay, "fileName">;
     maps: EntityTable<MapData, "springName">;
     gameVersions: EntityTable<GameVersion, "gameVersion">;
-    engineVersions: EntityTable<EngineVersion, "id">;
     users: EntityTable<User, "userId">;
 };
 
@@ -61,7 +59,6 @@ db.version(1).stores({
         isDownloading
     `,
     gameVersions: "gameVersion, packageMd5",
-    engineVersions: "id, lastLaunched, ais",
     users: "userId, username, countryCode, status, displayName, clanId, partyId, scopes, isMe",
 });
 
