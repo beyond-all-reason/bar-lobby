@@ -29,7 +29,7 @@ It is highly recommended to use [VSCode](https://code.visualstudio.com/) for dev
 
 ### Requirements
 
-- [Node.js 20.18.0](https://nodejs.org/en/download/)
+- [Node.js 22.11.0](https://nodejs.org/en/download/)
 
 ### Local Development
 
