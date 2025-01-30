@@ -119,9 +119,11 @@ export class GameContentAPI extends PrDownloaderAPI<string, GameVersion> {
         }
         log.info(`Downloading game version: ${gameVersion}`);
         const downloadInfo = await this.downloadContent("game", gameVersion);
-        await this.downloadComplete(downloadInfo);
-        removeFromArray(this.currentDownloads, downloadInfo);
-        log.debug(`Downloaded ${downloadInfo.name}`);
+        if (downloadInfo) {
+            await this.downloadComplete(downloadInfo);
+            removeFromArray(this.currentDownloads, downloadInfo);
+            log.debug(`Downloaded ${downloadInfo.name}`);
+        }
     }
 
     protected async getGameOptions(packageMd5: string): Promise<LuaOptionSection[]> {
