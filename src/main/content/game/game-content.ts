@@ -35,14 +35,18 @@ export class GameContentAPI extends PrDownloaderAPI<string, GameVersion> {
     // Reading all existing game versions from GAME_VERSIONS_GZ_PATH so
     // we can easily check if a version is installed from its md5
     protected async initLookupTables() {
-        const versionsGz = await fs.promises.readFile(GAME_VERSIONS_GZ_PATH);
-        const versions = await promisify(zlib.gunzip)(versionsGz);
-        const versionsStr = versions.toString().trim();
-        const versionsParts = versionsStr.split("\n");
-        for (const versionLine of versionsParts) {
-            const [, packageMd5, , version] = versionLine.split(",");
-            this.packageGameVersionLookup[packageMd5] = version;
-            this.gameVersionPackageLookup[version] = packageMd5;
+        try {
+            const versionsGz = await fs.promises.readFile(GAME_VERSIONS_GZ_PATH);
+            const versions = await promisify(zlib.gunzip)(versionsGz);
+            const versionsStr = versions.toString().trim();
+            const versionsParts = versionsStr.split("\n");
+            for (const versionLine of versionsParts) {
+                const [, packageMd5, , version] = versionLine.split(",");
+                this.packageGameVersionLookup[packageMd5] = version;
+                this.gameVersionPackageLookup[version] = packageMd5;
+            }
+        } catch (err) {
+            log.warn(`Couldn't initialize lookup tables (is this the first startup ?): ${err}`);
         }
     }
 
@@ -60,11 +64,11 @@ export class GameContentAPI extends PrDownloaderAPI<string, GameVersion> {
             const luaOptionSections = await this.getGameOptions(packageMd5);
             const ais = await this.getAis(packageMd5);
             if (gameVersion) {
-                this.installedVersions.set(gameVersion, { gameVersion, packageMd5, luaOptionSections, ais });
+                this.availableVersions.set(gameVersion, { gameVersion, packageMd5, luaOptionSections, ais });
             }
         }
-        log.info(`Found ${this.installedVersions.size} installed game versions`);
-        this.installedVersions.forEach((version) => {
+        log.info(`Found ${this.availableVersions.size} installed game versions`);
+        this.availableVersions.forEach((version) => {
             log.info(`-- ${version.gameVersion}`);
         });
     }
@@ -84,7 +88,7 @@ export class GameContentAPI extends PrDownloaderAPI<string, GameVersion> {
                     const aiInfoLua = await fs.promises.readFile(path.join(gamesDir, dir.name, "luaai.lua"));
                     const ais = await this.parseAis(aiInfoLua);
                     const gameVersion = dir.name;
-                    this.installedVersions.set(gameVersion, {
+                    this.availableVersions.set(gameVersion, {
                         gameVersion,
                         packageMd5: dir.name, // kinda hacky since this doesn't have a packageMd5
                         luaOptionSections,
@@ -101,7 +105,7 @@ export class GameContentAPI extends PrDownloaderAPI<string, GameVersion> {
         if (version === "byar:test") {
             return false;
         }
-        return this.installedVersions.values().some((installedVersion) => installedVersion.gameVersion === version);
+        return this.availableVersions.values().some((installedVersion) => installedVersion.gameVersion === version);
     }
 
     /**
@@ -114,13 +118,10 @@ export class GameContentAPI extends PrDownloaderAPI<string, GameVersion> {
             return;
         }
         log.info(`Downloading game version: ${gameVersion}`);
-        return this.downloadContent("game", gameVersion).then((downloadInfo) => {
-            if (downloadInfo) {
-                this.downloadComplete(downloadInfo);
-                removeFromArray(this.currentDownloads, downloadInfo);
-                log.debug(`Downloaded ${downloadInfo.name}`);
-            }
-        });
+        const downloadInfo = await this.downloadContent("game", gameVersion);
+        await this.downloadComplete(downloadInfo);
+        removeFromArray(this.currentDownloads, downloadInfo);
+        log.debug(`Downloaded ${downloadInfo.name}`);
     }
 
     protected async getGameOptions(packageMd5: string): Promise<LuaOptionSection[]> {
@@ -137,7 +138,7 @@ export class GameContentAPI extends PrDownloaderAPI<string, GameVersion> {
 
     public async getScenarios(gameVersion: string): Promise<Scenario[]> {
         try {
-            const version = this.installedVersions.values().find((version) => version.gameVersion === gameVersion);
+            const version = this.availableVersions.values().find((version) => version.gameVersion === gameVersion);
             assert(version, `No installed version found for game version: ${gameVersion}`);
             const scenarioImages = await this.getGameFiles(version.packageMd5, "singleplayer/scenarios/**/*.{jpg,png}", false);
             const scenarioDefinitions = await this.getGameFiles(version.packageMd5, "singleplayer/scenarios/**/*.lua", true);
@@ -182,7 +183,7 @@ export class GameContentAPI extends PrDownloaderAPI<string, GameVersion> {
     }
 
     public async uninstallVersionById(gameVersion: string) {
-        const version = this.installedVersions.values().find((version) => version.gameVersion === gameVersion);
+        const version = this.availableVersions.values().find((version) => version.gameVersion === gameVersion);
         await this.uninstallVersion(version);
     }
 
@@ -190,7 +191,7 @@ export class GameContentAPI extends PrDownloaderAPI<string, GameVersion> {
         // TODO: Uninstall game version through prd when prd supports it
         assert(!version.packageMd5.endsWith(".sdd"), "Cannot uninstall local/custom game versions");
         await fs.promises.rm(path.join(CONTENT_PATH, "packages", `${version.packageMd5}.sdp`));
-        this.installedVersions.delete(version.gameVersion);
+        this.availableVersions.delete(version.gameVersion);
     }
 
     /**
@@ -281,7 +282,7 @@ export class GameContentAPI extends PrDownloaderAPI<string, GameVersion> {
             const packageMd5 = this.gameVersionPackageLookup[gameVersion];
             const luaOptionSections = await this.getGameOptions(packageMd5);
             const ais = await this.getAis(packageMd5);
-            this.installedVersions.set(gameVersion, { gameVersion, packageMd5, luaOptionSections, ais });
+            this.availableVersions.set(gameVersion, { gameVersion, packageMd5, luaOptionSections, ais });
         }
     }
 

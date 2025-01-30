@@ -356,6 +356,7 @@ export const battleActions = {
     loadGameMode,
 };
 
+// Needs game files to exists.
 export function initBattleStore() {
     resetToDefaultBattle();
 }

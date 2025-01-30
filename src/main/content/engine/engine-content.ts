@@ -13,7 +13,6 @@ import { extract7z } from "@main/utils/extract-7z";
 import { contentSources } from "@main/config/content-sources";
 import { AbstractContentAPI } from "@main/content/abstract-content";
 import { CONTENT_PATH } from "@main/config/app";
-import { LATEST } from "@main/config/default-versions";
 
 const log = logger("engine-content.ts");
 
@@ -33,15 +32,19 @@ export class EngineContentAPI extends AbstractContentAPI<string, EngineVersion> 
             const dirs = files
                 .filter((file) => file.isDirectory() || file.isSymbolicLink())
                 .map((dir) => dir.name)
-                .filter((dir) => compatibleVersionRegex.test(dir));
+                .filter((dir) => compatibleVersionRegex.test(dir) || dir.includes("local"));
             log.info(`Found ${dirs.length} installed engine versions`);
             for (const dir of dirs) {
                 log.info(`-- Engine ${dir}`);
                 const ais = await this.parseAis(dir);
-                this.installedVersions.set(dir, { id: dir, ais, installed: true });
+                this.availableVersions.set(dir, { id: dir, ais, installed: true });
             }
-            this.availableVersionsToDownload = await this.fetchAvailableVersions();
-            log.info(`Found ${this.availableVersionsToDownload.length} available engine versions`);
+            try {
+                await this.fetchAvailableVersionsOnline();
+            } catch (err) {
+                log.error(`Failed to fetch available engine versions online: ${err}`);
+            }
+            log.info(`Found ${this.availableVersions.size} engine versions total.`);
         } catch (err) {
             log.error(err);
         }
@@ -49,44 +52,40 @@ export class EngineContentAPI extends AbstractContentAPI<string, EngineVersion> 
     }
 
     public isVersionInstalled(id: string): boolean {
-        return this.installedVersions.has(id);
+        return this.availableVersions.get(id)?.installed ?? false;
     }
 
     public getLatestInstalledVersion() {
-        return this.installedVersions
-            .keys()
+        return this.availableVersions
+            .values()
+            .filter((version) => version.installed)
             .toArray()
-            .sort((a, b) => a.localeCompare(b))
+            .sort((a, b) => a.id.localeCompare(b.id))
             .at(-1);
     }
 
-    protected async fetchAvailableVersions(): Promise<EngineVersion[]> {
+    protected async fetchAvailableVersionsOnline() {
         const { data } = await this.ocotokit.rest.repos.listReleases({
             owner: contentSources.engineGitHub.owner,
             repo: contentSources.engineGitHub.repo,
         });
-        return data
-            .map((release) => release.tag_name)
+        data.map((release) => release.tag_name)
             .filter((tag) => compatibleVersionRegex.test(tag))
+            .filter((tag) => !this.availableVersions.has(tag))
             .map((tag) => {
                 return {
                     id: tag,
                     ais: [],
-                    installed: this.isVersionInstalled(tag),
+                    installed: false,
                 };
+            })
+            .forEach((version) => {
+                this.availableVersions.set(version.id, version);
             });
-    }
-
-    public async isNewVersionAvailable() {
-        const version = this.availableVersionsToDownload.at(-1);
-        return !version.installed;
     }
 
     public async downloadEngine(engineVersion: string) {
         try {
-            if (engineVersion === LATEST) {
-                engineVersion = await this.getLatestInstalledVersion();
-            }
             if (this.isVersionInstalled(engineVersion)) {
                 return;
             }
@@ -147,13 +146,12 @@ export class EngineContentAPI extends AbstractContentAPI<string, EngineVersion> 
         }
         const engineDir = path.join(this.engineDirs, version);
         await fs.promises.rm(engineDir, { force: true, recursive: true });
-        this.installedVersions.delete(version);
+        this.availableVersions.delete(version);
     }
 
     protected override async downloadComplete(downloadInfo: DownloadInfo) {
         log.debug(`Download complete: ${downloadInfo.name}`);
-        this.installedVersions.set(downloadInfo.name, { id: downloadInfo.name, ais: [], installed: true });
-        this.availableVersionsToDownload.find((version) => version.id === downloadInfo.name)!.installed = true;
+        this.availableVersions.set(downloadInfo.name, { id: downloadInfo.name, ais: [], installed: true });
         super.downloadComplete(downloadInfo);
     }
 

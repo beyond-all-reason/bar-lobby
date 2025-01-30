@@ -1,4 +1,3 @@
-import { initBattleStore } from "@renderer/store/battle.store";
 import { initDownloadsStore } from "@renderer/store/downloads.store";
 import { initEnginesStore } from "@renderer/store/engine.store";
 import { initGameStore } from "@renderer/store/game.store";
@@ -22,5 +21,4 @@ export async function initPreMountStores() {
         initUsersStore(),
         initMeStore(),
     ]);
-    await initBattleStore();
 }

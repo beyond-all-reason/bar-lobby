@@ -108,7 +108,8 @@ app.whenReady().then(async () => {
     });
 
     // Initialize services
-    await Promise.all([settingsService.init(), accountService.init(), replaysService.init(), engineService.init(), gameService.init(), mapsService.init()]);
+    await engineService.init();
+    await Promise.all([settingsService.init(), accountService.init(), replaysService.init(), gameService.init(), mapsService.init()]);
 
     const mainWindow = createWindow();
 

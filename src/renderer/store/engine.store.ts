@@ -3,18 +3,15 @@ import { EngineVersion } from "@main/content/engine/engine-version";
 
 export const enginesStore = reactive<{
     isInitialized: boolean;
-    installedEngineVersions: EngineVersion[];
     availableEngineVersions: EngineVersion[];
     selectedEngineVersion?: EngineVersion;
 }>({
     isInitialized: false,
-    installedEngineVersions: [],
     availableEngineVersions: [],
     selectedEngineVersion: undefined,
 });
 
 async function refreshStore() {
-    enginesStore.installedEngineVersions = await window.engine.getInstalledVersions();
     enginesStore.availableEngineVersions = await window.engine.listAvailableVersions();
 }
 
@@ -31,8 +28,11 @@ export async function initEnginesStore() {
     window.downloads.onDownloadEngineComplete(async (downloadInfo) => {
         console.debug("Received engine download completed event", downloadInfo);
         await refreshStore();
+        enginesStore.selectedEngineVersion = enginesStore.availableEngineVersions.find((e) => e.id === downloadInfo.name);
     });
     await refreshStore();
-    enginesStore.selectedEngineVersion = enginesStore.installedEngineVersions.at(-1);
+    const latestInstalledVersion = enginesStore.availableEngineVersions.filter((e) => e.installed).at(-1);
+    const latestKnownVersion = enginesStore.availableEngineVersions.at(-1);
+    enginesStore.selectedEngineVersion = latestInstalledVersion || latestKnownVersion;
     enginesStore.isInitialized = true;
 }
