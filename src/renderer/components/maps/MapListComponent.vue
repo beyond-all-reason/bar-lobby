@@ -77,7 +77,8 @@ const maps = useDexieLiveQueryWithDeps([searchVal, sortMethod, limit, filters], 
                 filters.minPlayers < map.playerCountMax &&
                 filters.maxPlayers > map.playerCountMax &&
                 (terrainFilters.size === 0 || terrainFilters.isSubsetOf(new Set([...map.terrain]))) &&
-                (gameTypeFilters.size === 0 || !gameTypeFilters.isDisjointFrom(new Set([...map.tags])))
+                (gameTypeFilters.size === 0 || !gameTypeFilters.isDisjointFrom(new Set([...map.tags]))) &&
+                (!filters.favoritesOnly || map.isFavorite)
         )
         .limit(limit.value)
         .sortBy(sortMethod.value.dbKey);

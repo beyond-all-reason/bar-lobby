@@ -10,6 +10,7 @@ export const mapsStore = reactive({
         gameType: {},
         minPlayers: 2,
         maxPlayers: 40,
+        favoritesOnly: false,
     },
 } as {
     isInitialized: boolean;
@@ -18,6 +19,7 @@ export const mapsStore = reactive({
         gameType: Partial<Record<GameType, boolean>>;
         minPlayers: number;
         maxPlayers: number;
+        favoritesOnly: boolean;
     };
 });
 

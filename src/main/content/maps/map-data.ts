@@ -6,4 +6,5 @@ export type MapData = MapMetadata & {
     };
     isInstalled?: boolean;
     isDownloading?: boolean;
+    isFavorite?: boolean;
 };

@@ -56,7 +56,8 @@ db.version(1).stores({
         windMax,
         windMin,
         isInstalled,
-        isDownloading
+        isDownloading,
+        isFavorite
     `,
     gameVersions: "gameVersion, packageMd5",
     users: "userId, username, countryCode, status, displayName, clanId, partyId, scopes, isMe",
