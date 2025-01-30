@@ -102,8 +102,11 @@ const imageUrl = computed(() =>
     position: absolute;
     top: 10px;
     right: 10px;
-    scale: 1.3;
     transition: 0.2s opacity;
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    font-size: 25px;
+    padding: 3px;
 }
 .name {
     @extend .fullsize;
