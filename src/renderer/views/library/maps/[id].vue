@@ -40,7 +40,6 @@
  * Back button to return to map list
  */
 import Button from "@renderer/components/controls/Button.vue";
-import ToggleButton from "@renderer/components/controls/ToggleButton.vue";
 import { db } from "@renderer/store/db";
 import { battleActions } from "@renderer/store/battle.store";
 import { useRouter } from "vue-router";

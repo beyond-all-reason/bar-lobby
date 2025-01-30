@@ -8,7 +8,6 @@ import Checkbox from "@renderer/components/controls/Checkbox.vue";
 import { mapsStore } from "@renderer/store/maps.store";
 
 const favoritesOnly = ref(false);
-const { filters } = mapsStore;
 
 watch(favoritesOnly, (newFavoritesOnly) => {
     mapsStore.filters.favoritesOnly = newFavoritesOnly;
