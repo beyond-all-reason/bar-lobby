@@ -38,7 +38,8 @@ db.version(1).stores({
         windMax,
         windMin,
         isInstalled,
-        isDownloading
+        isDownloading,
+        favorite
       `,
     gameVersions: "gameVersion, packageMd5",
     engineVersions: "id, lastLaunched, ais",
