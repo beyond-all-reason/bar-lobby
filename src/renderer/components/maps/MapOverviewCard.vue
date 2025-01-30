@@ -67,7 +67,6 @@ const imageUrl = computed(() =>
         }
         .background {
             transform: scale(1.01);
-            transition: transform 0.2s ease-in-out;
             &:after {
                 opacity: 0;
             }
@@ -90,6 +89,7 @@ const imageUrl = computed(() =>
     background-position: center;
     position: relative;
     transform: scale(1.1);
+    transition: 0.1s transform;
     will-change: transform;
     z-index: 0;
     &:after {
@@ -98,7 +98,7 @@ const imageUrl = computed(() =>
         background: linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0));
         transition: 0.1s opacity;
     }
-    transition: transform 0.2s ease-in-out;
+    transition: background-image 0.1s ease-in-out;
 }
 .favorite {
     position: absolute;
