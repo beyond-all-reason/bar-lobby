@@ -14,7 +14,7 @@ import { initBattleStore } from "@renderer/store/battle.store";
 import { db } from "@renderer/store/db";
 import { downloadsStore } from "@renderer/store/downloads.store";
 import { enginesStore } from "@renderer/store/engine.store";
-import { downloadGame, gameStore } from "@renderer/store/game.store";
+import { downloadGame } from "@renderer/store/game.store";
 import { onMounted, ref, watch } from "vue";
 
 const emit = defineEmits<{

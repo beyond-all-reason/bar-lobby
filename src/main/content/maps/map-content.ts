@@ -14,7 +14,7 @@ const log = logger("map-content.ts");
 /**
  * @todo replace queue method with syncMapCache function once prd returns map file name
  */
-export class MapContentAPI extends PrDownloaderAPI<MapData> {
+export class MapContentAPI extends PrDownloaderAPI<string, MapData> {
     public mapNameFileNameLookup: { [springName: string]: string } = {};
     public fileNameMapNameLookup: { [fileName: string]: string } = {};
 
