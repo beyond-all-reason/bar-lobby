@@ -1,8 +1,8 @@
 import { Signal } from "$/jaz-ts-utils/signal";
 import { DownloadInfo } from "./downloads";
 
-export abstract class AbstractContentAPI<T> {
-    public installedVersions: T[] = [];
+export abstract class AbstractContentAPI<ID, T> {
+    public availableVersions: Map<ID, T> = new Map();
     public currentDownloads: DownloadInfo[] = [];
 
     public onDownloadStart: Signal<DownloadInfo> = new Signal();
@@ -14,9 +14,9 @@ export abstract class AbstractContentAPI<T> {
         return this;
     }
 
-    public abstract isVersionInstalled(id: string): boolean;
+    public abstract isVersionInstalled(id: ID): boolean;
 
-    public abstract uninstallVersion(version: T): Promise<void>;
+    public abstract uninstallVersion(version: ID | T): Promise<void>;
 
     protected async downloadStarted(downloadInfo: DownloadInfo) {
         this.onDownloadStart.dispatch(downloadInfo);

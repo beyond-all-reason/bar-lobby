@@ -10,6 +10,9 @@
             <div>Skip Intro</div>
             <Checkbox v-model="settingsStore.skipIntro" />
 
+            <div>Login automatically</div>
+            <Checkbox v-model="settingsStore.loginAutomatically" />
+
             <div>Sfx Volume</div>
             <Range v-model="settingsStore.sfxVolume" :min="0" :max="100" :step="1" />
 

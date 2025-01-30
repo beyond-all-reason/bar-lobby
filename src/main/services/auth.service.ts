@@ -9,7 +9,7 @@ function registerIpcHandlers() {
     ipcMain.handle("auth:login", async () => {
         try {
             const existingRefreshToken = await accountService.getRefreshToken();
-            const { token, refreshToken, expiresIn } = existingRefreshToken ? await renewAccessToken(existingRefreshToken) : await authenticate();
+            const { token, refreshToken, expiresIn } = existingRefreshToken ? await renewAccessToken() : await authenticate();
             await accountService.saveToken(token);
             await accountService.saveRefreshToken(refreshToken);
             startTokenRenewer((expiresIn / 2) * 1000);
@@ -21,7 +21,15 @@ function registerIpcHandlers() {
     });
     ipcMain.handle("auth:logout", async () => {
         stopTokenRenewer();
+        await accountService.forgetToken();
+    });
+    ipcMain.handle("auth:wipe", async () => {
+        stopTokenRenewer();
         await accountService.wipe();
+    });
+    ipcMain.handle("auth:hasCredentials", async () => {
+        const refreshToken = await accountService.getRefreshToken();
+        return !!refreshToken;
     });
 }
 

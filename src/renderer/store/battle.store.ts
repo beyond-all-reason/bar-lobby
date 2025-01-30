@@ -2,13 +2,19 @@ import { EngineAI, EngineVersion } from "@main/content/engine/engine-version";
 import { GameAI, GameVersion } from "@main/content/game/game-version";
 import { MapData } from "@main/content/maps/map-data";
 import { Battle, BattleOptions, BattleWithMetadata, Bot, Faction, Player, StartPosType } from "@main/game/battle/battle-types";
-import { User } from "@main/model/user";
 import { enginesStore } from "@renderer/store/engine.store";
 import { gameStore } from "@renderer/store/game.store";
 import { getRandomMap } from "@renderer/store/maps.store";
-import { _me, me } from "@renderer/store/me.store";
+import { me } from "@renderer/store/me.store";
 import { deepToRaw } from "@renderer/utils/deep-toraw";
 import { reactive, readonly, watch } from "vue";
+
+export enum GameMode {
+    CLASSIC = "classic",
+    RAPTORS = "raptors",
+    SCAVENGERS = "scavengers",
+    FFA = "ffa",
+}
 
 let participantId = 0;
 interface BattleLobby {
@@ -18,14 +24,27 @@ interface BattleLobby {
 }
 
 // Store
-export const battleStore = reactive({
+export const battleStore = reactive<Battle & BattleLobby>({
     isJoined: false,
+    isLobbyOpened: false,
+    isSelectingGameMode: false,
     title: "Battle",
     isOnline: false,
-    battleOptions: {},
+    battleOptions: {
+        gameMode: {
+            label: GameMode.CLASSIC,
+            options: {},
+        },
+        mapOptions: {
+            startPosType: StartPosType.Boxes,
+            startBoxesIndex: 0,
+        },
+        restrictions: [],
+    },
     teams: [],
     spectators: [],
-} as Battle & BattleLobby);
+    started: false,
+});
 
 // Automatically computing metadata for the battle
 const _battleWithMetadataStore = reactive({} as BattleWithMetadata);
@@ -61,7 +80,7 @@ function addBot(ai: EngineAI | GameAI, teamId: number) {
         name: ai.name,
         aiOptions: {},
         aiShortName: ai.shortName,
-        ownerUserId: me.userId,
+        host: battleStore.me.id,
     } as Bot);
 }
 
@@ -100,13 +119,6 @@ function moveBotToTeam(bot: Bot, teamId: number) {
     battleStore.teams[teamId].push(bot);
 }
 
-function userToPlayer(user: User): Player {
-    return {
-        id: user.userId,
-        user,
-    } as Player;
-}
-
 //TODO move extra players to spectators
 function updateTeams() {
     if (!battleStore.battleOptions.map) return;
@@ -134,12 +146,11 @@ function updateTeams() {
 function defaultOfflineBattle(engine?: EngineVersion, game?: GameVersion, map?: MapData) {
     const barbAi = engine?.ais.find((ai) => ai.shortName === "BARb");
     const battle = {
-        me: userToPlayer(me),
         title: "Offline Custom Battle",
         isOnline: false,
         battleOptions: {
-            engineVersion: engine?.id,
-            gameVersion: game?.gameVersion,
+            engineVersion: engine?.id || enginesStore.selectedEngineVersion.id,
+            gameVersion: game?.gameVersion || gameStore.selectedGameVersion.gameVersion,
             gameMode: {
                 label: "Default",
                 options: game?.luaOptionSections || {},
@@ -156,7 +167,7 @@ function defaultOfflineBattle(engine?: EngineVersion, game?: GameVersion, map?: 
         started: false,
     } as Battle;
 
-    battle.teams[0].push({
+    const mePlayer = {
         id: participantId++,
         user: me,
         name: me.username,
@@ -166,15 +177,17 @@ function defaultOfflineBattle(engine?: EngineVersion, game?: GameVersion, map?: 
             map: 1,
         },
         inGame: false,
-    } as Player);
+    } as Player;
 
+    battle.me = mePlayer;
+    battle.teams[0].push(mePlayer);
     battle.teams[1].push({
         id: participantId++,
+        host: mePlayer.id,
         aiOptions: {},
         faction: Faction.Armada,
         name: "AI 1",
         aiShortName: barbAi?.shortName || "BARb",
-        ownerUserId: 0,
     } as Bot);
     return battle;
 }
@@ -193,11 +206,11 @@ watch(
     battleWithMetadataStore,
     (battle) => {
         if (battle.spectators.find((spectator) => spectator.user.userId === me.userId)) {
-            _me.battleRoomState.isSpectator = true;
-            _me.battleRoomState.isReady = true;
-            delete _me.battleRoomState.teamId;
+            me.battleRoomState.isSpectator = true;
+            me.battleRoomState.isReady = true;
+            delete me.battleRoomState.teamId;
         } else {
-            _me.battleRoomState.isSpectator = false;
+            me.battleRoomState.isSpectator = false;
             // iterate over the map id, team to find the user's team
             battle.teams.forEach((team, teamId) => {
                 if (
@@ -205,7 +218,7 @@ watch(
                         return participant && "user" in participant && participant.user.userId === me.userId;
                     })
                 ) {
-                    _me.battleRoomState.teamId = teamId;
+                    me.battleRoomState.teamId = teamId;
                 }
             });
         }
@@ -231,16 +244,23 @@ watch(
     { deep: true }
 );
 
+watch(
+    () => enginesStore.selectedEngineVersion,
+    (engineVersion) => {
+        battleStore.battleOptions.engineVersion = engineVersion.id;
+    }
+);
+
+watch(
+    () => gameStore.selectedGameVersion,
+    (gameVersion) => {
+        battleStore.battleOptions.gameVersion = gameVersion.gameVersion;
+    }
+);
+
 function leaveBattle() {
     battleStore.isJoined = false;
     resetToDefaultBattle();
-}
-
-export enum GameMode {
-    CLASSIC = "classic",
-    RAPTORS = "raptors",
-    SCAVENGERS = "scavengers",
-    FFA = "ffa",
 }
 
 async function loadGameMode(gameMode: GameMode) {
@@ -336,6 +356,7 @@ export const battleActions = {
     loadGameMode,
 };
 
+// Needs game files to exists.
 export function initBattleStore() {
     resetToDefaultBattle();
 }

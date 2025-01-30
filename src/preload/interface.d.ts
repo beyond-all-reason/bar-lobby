@@ -1,4 +1,4 @@
-import type { AuthApi, DownloadsApi, EngineApi, GameApi, InfoApi, MainWindowApi, MapsApi, MiscApi, ReplaysApi, SettingsApi, ShellApi } from "@preload/preload";
+import type { AuthApi, DownloadsApi, EngineApi, GameApi, InfoApi, MainWindowApi, MapsApi, MiscApi, ReplaysApi, SettingsApi, ShellApi, TachyonApi } from "@preload/preload";
 import type { TransitionProps } from "vue";
 
 declare global {
@@ -14,6 +14,7 @@ declare global {
         maps: MapsApi;
         downloads: DownloadsApi;
         misc: MiscApi;
+        tachyon: TachyonApi;
     }
 }
 
@@ -21,7 +22,7 @@ declare module "vue-router" {
     interface RouteMeta {
         title?: string;
         order?: number;
-        availableOffline?: boolean;
+        onlineOnly?: boolean;
         hide?: boolean;
         empty?: boolean;
         blurBg?: boolean;

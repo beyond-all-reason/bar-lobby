@@ -45,7 +45,6 @@ declare module 'vue-router/auto-routes' {
     '/library/maps/maps': RouteRecordInfo<'/library/maps/maps', '/library/maps/maps', Record<never, never>, Record<never, never>>,
     '/library/replays': RouteRecordInfo<'/library/replays', '/library/replays', Record<never, never>, Record<never, never>>,
     '/library/units': RouteRecordInfo<'/library/units', '/library/units', Record<never, never>, Record<never, never>>,
-    '/login': RouteRecordInfo<'/login', '/login', Record<never, never>, Record<never, never>>,
     '/multiplayer/': RouteRecordInfo<'/multiplayer/', '/multiplayer', Record<never, never>, Record<never, never>>,
     '/multiplayer/battle': RouteRecordInfo<'/multiplayer/battle', '/multiplayer/battle', Record<never, never>, Record<never, never>>,
     '/multiplayer/casual': RouteRecordInfo<'/multiplayer/casual', '/multiplayer/casual', Record<never, never>, Record<never, never>>,

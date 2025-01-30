@@ -1,5 +1,5 @@
 <route lang="json5">
-{ meta: { title: "Multiplayer Custom Battle", availableOffline: false, hide: true, transition: { name: "slide-left" } } }
+{ meta: { title: "Multiplayer Custom Battle", onlineOnly: true, hide: true, transition: { name: "slide-left" } } }
 </route>
 
 <template>

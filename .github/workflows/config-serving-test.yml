@@ -1,0 +1,32 @@
+name: Config Serving CI
+on:
+    push:
+        branches:
+            - master
+        paths:
+            - "auxiliary/config-serving/**"
+            - ".github/workflows/config-serving-test.yml"
+    pull_request:
+        paths:
+            - "auxiliary/config-serving/**"
+            - ".github/workflows/config-serving-test.yml"
+    workflow_dispatch:
+jobs:
+    test-config-serving:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout Git repository
+              uses: actions/checkout@v4
+            - name: Setup node
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 20
+            - name: Install deps
+              working-directory: auxiliary/config-serving
+              run: npm ci
+            - name: Typecheck
+              working-directory: auxiliary/config-serving
+              run: npm run typecheck
+            - name: Test
+              working-directory: auxiliary/config-serving
+              run: npm test run
