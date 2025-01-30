@@ -14,7 +14,7 @@
                 </div>
                 <div class="primary-right">
                     <Button
-                        v-if="!offlineMode"
+                        v-if="false"
                         v-tooltip.bottom="'Direct Messages'"
                         v-click-away:messages="() => (messagesOpen = false)"
                         :class="['icon', { active: messagesOpen }]"
@@ -24,7 +24,7 @@
                         <div v-if="messagesUnread" class="unread-dot"></div>
                     </Button>
                     <Button
-                        v-if="!offlineMode"
+                        v-if="me.isAuthenticated"
                         v-tooltip.bottom="'Friends'"
                         v-click-away:friends="() => (friendsOpen = false)"
                         :class="['icon', { active: friendsOpen }]"
@@ -53,17 +53,11 @@
                     </Button>
                 </div>
                 <div class="secondary-right flex-row flex-right">
-                    <Button v-if="!offlineMode" class="server-status">
-                        <div class="flex-row flex-center gap-sm">
-                            <div class="server-status-dot" :class="{ offline: serverOffline }">⬤</div>
-                            <div v-if="serverStats && !serverOffline">{{ serverStats.user_count }} Players Online</div>
-                            <div v-else-if="serverOffline">Offline Mode</div>
-                        </div>
-                    </Button>
-                    <Button v-if="!offlineMode" class="user" to="/profile">
+                    <ServerStatus v-if="me.isAuthenticated" />
+                    <Button v-if="me.isAuthenticated" class="user" to="/profile">
                         <div class="flex-row flex-center gap-sm">
                             <Icon :icon="account" :height="20" />
-                            <div>{{ currentUser.username }}</div>
+                            <div>{{ me.username }}</div>
                         </div>
                     </Button>
                 </div>
@@ -103,6 +97,7 @@ import Messages from "@renderer/components/navbar/Messages.vue";
 import { useRouter } from "vue-router";
 import { settingsStore } from "@renderer/store/settings.store";
 import { me } from "@renderer/store/me.store";
+import ServerStatus from "@renderer/components/navbar/ServerStatus.vue";
 
 defineProps<{
     hidden?: boolean;
@@ -110,9 +105,6 @@ defineProps<{
 
 const router = useRouter();
 const allRoutes = router.getRoutes();
-const offlineMode = computed(() => {
-    return me.isOnline === false;
-});
 const primaryRoutes = computed(() => {
     return allRoutes
         .filter((r) => ["/singleplayer", "/multiplayer", "/library", "/learn", "/store", "/development"].includes(r.path))
@@ -120,9 +112,7 @@ const primaryRoutes = computed(() => {
             (r) =>
                 (r.meta.hide === false || r.meta.hide === undefined) &&
                 ((r.meta.devOnly && settingsStore.devMode) || !r.meta.devOnly) &&
-                (r.meta.availableOffline === undefined ||
-                    r.meta.availableOffline ||
-                    (r.meta.availableOffline === false && !offlineMode.value))
+                ((r.meta.onlineOnly && me.isAuthenticated) || !r.meta.onlineOnly)
         )
         .sort((a, b) => (a.meta.order ?? 99) - (b.meta.order ?? 99));
 });
@@ -133,9 +123,7 @@ const secondaryRoutes = computed(() => {
             (r) =>
                 (r.meta.hide === false || r.meta.hide === undefined) &&
                 ((r.meta.devOnly && settingsStore.devMode) || !r.meta.devOnly) &&
-                (r.meta.availableOffline === undefined ||
-                    r.meta.availableOffline ||
-                    (r.meta.availableOffline === false && !offlineMode.value))
+                ((r.meta.onlineOnly && me.isAuthenticated) || !r.meta.onlineOnly)
         )
         .sort((a, b) => (a.meta.order ?? 99) - (b.meta.order ?? 99));
 });
@@ -156,12 +144,6 @@ const messagesUnread = computed(() => {
     // }
     return false;
 });
-
-const currentUser = me;
-const serverStats = {
-    user_count: 0,
-};
-const serverOffline = true;
 </script>
 
 <style lang="scss" scoped>
@@ -332,13 +314,6 @@ const serverOffline = true;
         0 1px 0 rgba(255, 47, 47, 0.418),
         7px -3px 10px rgba(0, 0, 0, 0.5),
         -7px -3px 10px rgba(0, 0, 0, 0.5) !important;
-}
-.server-status-dot {
-    font-size: 12px;
-    color: rgb(121, 226, 0);
-    &.offline {
-        color: rgb(216, 46, 46);
-    }
 }
 .user {
     text-transform: unset;

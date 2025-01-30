@@ -8,7 +8,6 @@ import { engineContentAPI } from "@main/content/engine/engine-content";
 
 import { Replay } from "@main/content/replays/replay";
 import { startScriptConverter } from "@main/utils/start-script-converter";
-import { DEFAULT_ENGINE_VERSION } from "@main/config/default-versions";
 import { logger } from "@main/utils/logger";
 import { gameContentAPI } from "@main/content/game/game-content";
 import { CONTENT_PATH, REPLAYS_PATH } from "@main/config/app";
@@ -16,6 +15,18 @@ import { BattleWithMetadata } from "@main/game/battle/battle-types";
 
 const log = logger("main/game/game.ts");
 const engineLogger = logger("[RECOIL ENGINE]", { separator: "\n", level: "info" });
+
+export interface ScriptLaunchSettings {
+    engineVersion: string;
+    gameVersion: string;
+    script: string;
+}
+
+export interface MultiplayerLaunchSettings {
+    engineVersion: string;
+    gameVersion: string;
+    springString: string;
+}
 
 export class GameAPI {
     public onGameLaunched = new Signal();
@@ -31,7 +42,6 @@ export class GameAPI {
         await this.launch({
             engineVersion: battle.battleOptions.engineVersion,
             gameVersion: battle.battleOptions.gameVersion,
-            mapSpringName: battle.battleOptions.map.springName,
             launchArg: scriptPath,
         });
     }
@@ -40,17 +50,13 @@ export class GameAPI {
         await this.launch({
             engineVersion: replay.engineVersion,
             gameVersion: replay.gameVersion,
-            mapSpringName: replay.mapSpringName,
             launchArg: replay.filePath ? replay.filePath : path.join(REPLAYS_PATH, replay.fileName),
         });
     }
 
-    public async launchScript(script: string): Promise<void> {
+    public async launchScript({ engineVersion, gameVersion, script }: ScriptLaunchSettings) {
         log.debug(`Launching game with script: ${script}`);
-        const gameVersion = script.match(/gametype\s*=\s*(.*);/)?.[1];
-        if (!gameVersion) {
-            throw new Error("Could not parse game version from script");
-        }
+        const scriptGameVersion = script.match(/gametype\s*=\s*(.*);/)?.[1];
         const mapSpringName = script.match(/mapname\s*=\s*(.*);/)?.[1];
         if (!mapSpringName) {
             throw new Error("Could not parse map name from script");
@@ -58,27 +64,24 @@ export class GameAPI {
         const scriptPath = path.join(CONTENT_PATH, this.springName);
         await fs.promises.writeFile(scriptPath, script);
         await this.launch({
-            engineVersion: DEFAULT_ENGINE_VERSION,
-            gameVersion,
-            mapSpringName,
+            engineVersion,
+            gameVersion: scriptGameVersion || gameVersion, // using script's game version if available
             launchArg: scriptPath,
         });
     }
 
-    public async launch({
-        engineVersion = DEFAULT_ENGINE_VERSION,
-        gameVersion,
-        mapSpringName,
-        launchArg,
-    }: {
-        engineVersion: string;
-        gameVersion: string;
-        mapSpringName: string;
-        launchArg: string;
-    }): Promise<void> {
+    public async launchMultiplayer({ engineVersion, gameVersion, springString }: MultiplayerLaunchSettings) {
+        return this.launch({
+            engineVersion,
+            gameVersion,
+            launchArg: springString,
+        });
+    }
+
+    public async launch({ engineVersion, gameVersion, launchArg }: { engineVersion: string; gameVersion: string; launchArg: string }): Promise<void> {
         try {
-            log.info(`Launching game with engine: ${engineVersion}, game: ${gameVersion}, map: ${mapSpringName}`);
-            await this.fetchMissingContent(engineVersion, gameVersion);
+            log.info(`Launching game with engine: ${engineVersion}, game: ${gameVersion}`);
+            await this.fetchMissingContent(engineVersion, gameVersion); // TODO preload anything needed through the UI before launching. Remove this step
             const enginePath = path.join(CONTENT_PATH, "engine", engineVersion).replaceAll("\\", "/");
             const args = ["--write-dir", CONTENT_PATH, "--isolation", launchArg];
             const binaryName = process.platform === "win32" ? "spring.exe" : "./spring";

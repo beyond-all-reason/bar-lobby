@@ -3,11 +3,13 @@
         <transition mode="in-out" name="intro">
             <IntroVideo v-if="!settingsStore.skipIntro && videoVisible" @complete="onIntroEnd" />
         </transition>
-        <DebugSidebar v-if="settingsStore.devMode" />
-        <StickyBattle />
+        <Suspense>
+            <DebugSidebar v-if="settingsStore.devMode" />
+        </Suspense>
+        <StickyBattle v-if="state === 'default'" />
         <Background :blur="blurBg" />
-        <Notifications />
-        <PromptContainer />
+        <Notifications v-if="state === 'default'" />
+        <PromptContainer v-if="state === 'default'" />
         <NavBar :class="{ hidden: empty || state === 'preloader' || state === 'initial-setup' }" />
         <div class="lobby-version">
             {{ infosStore.lobby.version }}
@@ -42,8 +44,8 @@
         </Transition>
         <Settings v-model="settingsOpen" />
         <Error />
-        <ChatComponent v-if="false" />
-        <FullscreenGameModeSelector :visible="battleStore.isSelectingGameMode" />
+        <ChatComponent v-if="state === 'default' && me.isAuthenticated && tachyonStore.isConnected" />
+        <FullscreenGameModeSelector v-if="state === 'default'" :visible="battleStore.isSelectingGameMode" />
     </div>
 </template>
 
@@ -75,6 +77,8 @@ import ChatComponent from "@renderer/components/social/ChatComponent.vue";
 import { battleStore } from "@renderer/store/battle.store";
 import FullscreenGameModeSelector from "@renderer/components/battle/FullscreenGameModeSelector.vue";
 import { useGlobalKeybindings } from "@renderer/composables/useGlobalKeybindings";
+import { me } from "@renderer/store/me.store";
+import { tachyonStore } from "@renderer/store/tachyon.store";
 
 const router = useRouter();
 const videoVisible = toRef(!toValue(settingsStore.skipIntro));
@@ -152,6 +156,7 @@ function onInitialSetupDone() {
     font-size: 12px;
     color: rgba(255, 255, 255, 0.3);
 }
+
 .splash-options {
     position: fixed;
     display: flex;

@@ -10,6 +10,8 @@ import { DownloadInfo } from "@main/content/downloads";
 import { Info } from "@main/services/info.service";
 import { NewsFeedData } from "@main/services/news.service";
 import { BattleWithMetadata } from "@main/game/battle/battle-types";
+import { GetCommandData, GetCommandIds, GetCommands } from "tachyon-protocol";
+import { MultiplayerLaunchSettings } from "@main/game/game";
 
 const infoApi = {
     getInfo: (): Promise<Info> => ipcRenderer.invoke("info:get"),
@@ -62,14 +64,15 @@ contextBridge.exposeInMainWorld("settings", settingsApi);
 const authApi = {
     login: (): Promise<void> => ipcRenderer.invoke("auth:login"),
     logout: (): Promise<void> => ipcRenderer.invoke("auth:logout"),
+    wipe: (): Promise<void> => ipcRenderer.invoke("auth:wipe"),
+    hasCredentials: (): Promise<boolean> => ipcRenderer.invoke("auth:hasCredentials"),
 };
 export type AuthApi = typeof authApi;
 contextBridge.exposeInMainWorld("auth", authApi);
 
 const engineApi = {
-    isNewVersionAvailable: (): Promise<boolean> => ipcRenderer.invoke("engine:isNewVersionAvailable"),
+    listAvailableVersions: (): Promise<EngineVersion[]> => ipcRenderer.invoke("engine:listAvailableVersions"),
     downloadEngine: (version: string): Promise<void> => ipcRenderer.invoke("engine:downloadEngine", version),
-    getInstalledVersions: (): Promise<EngineVersion[]> => ipcRenderer.invoke("engine:getInstalledVersions"),
     isVersionInstalled: (id: string): Promise<boolean> => ipcRenderer.invoke("engine:isVersionInstalled", id),
     uninstallVersion: (version: EngineVersion): Promise<void> => ipcRenderer.invoke("engine:uninstallVersion", version),
 };
@@ -85,6 +88,7 @@ const gameApi = {
     uninstallVersion: (version: string): Promise<void> => ipcRenderer.invoke("game:uninstallVersion", version),
 
     // Game
+    launchMultiplayer: (settings: MultiplayerLaunchSettings): Promise<void> => ipcRenderer.invoke("game:launchMultiplayer", settings),
     launchScript: (script: string): Promise<void> => ipcRenderer.invoke("game:launchScript", script),
     launchReplay: (replay: Replay): Promise<void> => ipcRenderer.invoke("game:launchReplay", replay),
     launchBattle: (battle: BattleWithMetadata): Promise<void> => ipcRenderer.invoke("game:launchBattle", battle),
@@ -141,3 +145,36 @@ const miscApi = {
 };
 export type MiscApi = typeof miscApi;
 contextBridge.exposeInMainWorld("misc", miscApi);
+
+// Tachyon API
+function request<C extends GetCommandIds<"user", "server", "request">>(
+    ...args: GetCommandData<GetCommands<"user", "server", "request", C>> extends never ? [commandId: C] : [commandId: C, data: GetCommandData<GetCommands<"user", "server", "request", C>>]
+): Promise<GetCommands<"server", "user", "response", C>> {
+    return ipcRenderer.invoke("tachyon:request", ...args);
+}
+
+function onEvent<C extends GetCommandIds<"server", "user", "event">>(eventID: C, callback: (event: GetCommandData<GetCommands<"server", "user", "event", C>>) => void) {
+    return ipcRenderer.on("tachyon:event", (_event, event) => {
+        if (event.commandId === eventID) {
+            callback(event.data);
+        }
+    });
+}
+
+const tachyonApi = {
+    isConnected: (): Promise<boolean> => ipcRenderer.invoke("tachyon:isConnected"),
+    connect: (): Promise<void> => ipcRenderer.invoke("tachyon:connect"),
+    disconnect: (): Promise<void> => ipcRenderer.invoke("tachyon:disconnect"),
+
+    // Requests
+    // sendEvent: (event: TachyonEvent) => ipcRenderer.invoke("tachyon:sendEvent", event),
+    request,
+
+    // Events
+    onConnected: (callback: () => void) => ipcRenderer.on("tachyon:connected", callback),
+    onDisconnected: (callback: () => void) => ipcRenderer.on("tachyon:disconnected", callback),
+    onEvent,
+    onBattleStart: (callback: (springString: string) => void) => ipcRenderer.on("tachyon:battleStart", (_event, springString) => callback(springString as string)),
+};
+export type TachyonApi = typeof tachyonApi;
+contextBridge.exposeInMainWorld("tachyon", tachyonApi);

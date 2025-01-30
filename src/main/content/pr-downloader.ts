@@ -1,5 +1,4 @@
 import { spawn } from "child_process";
-import { lastInArray } from "$/jaz-ts-utils/object";
 import os from "os";
 import path from "path";
 
@@ -8,7 +7,6 @@ import { AbstractContentAPI } from "./abstract-content";
 import { engineContentAPI } from "./engine/engine-content";
 import { logger } from "@main/utils/logger";
 import { CONTENT_PATH } from "@main/config/app";
-import { DEFAULT_ENGINE_VERSION } from "@main/config/default-versions";
 
 const log = logger("pr-downloader.ts");
 
@@ -33,11 +31,13 @@ export type RapidVersion = {
  * https://springrts.com/wiki/Pr-downloader
  * https://springrts.com/wiki/Rapid
  */
-export abstract class PrDownloaderAPI<T> extends AbstractContentAPI<T> {
+export abstract class PrDownloaderAPI<ID, T> extends AbstractContentAPI<ID, T> {
     protected downloadContent(type: "game" | "map", name: string) {
         return new Promise<DownloadInfo>((resolve) => {
             log.debug(`Downloading ${name}...`);
-            const latestEngine = lastInArray(engineContentAPI.installedVersions)?.id || DEFAULT_ENGINE_VERSION;
+            const latestEngine = engineContentAPI.getLatestInstalledVersion().id;
+            if (!latestEngine) throw new Error("No engine version found");
+
             const binaryName = process.platform === "win32" ? "pr-downloader.exe" : "pr-downloader";
             const prBinaryPath = path.join(CONTENT_PATH, "engine", latestEngine, binaryName);
             const downloadArg = type === "game" ? "--download-game" : "--download-map";

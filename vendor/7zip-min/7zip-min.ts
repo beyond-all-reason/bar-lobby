@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 // https://github.com/onikienko/7zip-min/blob/master/index.js
 // with a fix for using this with asar `.replace('app.asar', 'app.asar.unpacked');`
 

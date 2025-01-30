@@ -11,6 +11,19 @@
 import OfflineBattleComponent from "@renderer/components/battle/OfflineBattleComponent.vue";
 import Panel from "@renderer/components/common/Panel.vue";
 import { battleStore } from "@renderer/store/battle.store";
+import { onKeyDown } from "@vueuse/core";
+
+onKeyDown(
+    "Escape",
+    (e) => {
+        if (battleStore.isLobbyOpened) {
+            e.preventDefault();
+            e.stopPropagation();
+            battleStore.isLobbyOpened = false;
+        }
+    },
+    { target: document }
+);
 </script>
 
 <style lang="scss" scoped>

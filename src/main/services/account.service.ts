@@ -9,8 +9,8 @@ const log = logger("account-service");
 
 const accountStore = new FileStore<typeof accountSchema>(path.join(CONFIG_PATH, "account.json"), accountSchema);
 
-function init() {
-    accountStore.init();
+async function init() {
+    await accountStore.init();
 }
 
 async function saveToken(token: string) {
@@ -34,7 +34,12 @@ async function saveRefreshToken(refreshToken: string) {
 async function getToken() {
     const { token } = await accountStore.model;
     if (safeStorage.isEncryptionAvailable() && token) {
-        return safeStorage.decryptString(Buffer.from(token, "base64"));
+        try {
+            return safeStorage.decryptString(Buffer.from(token, "base64"));
+        } catch (e) {
+            log.error("Failed to decrypt token, wiping account data", e);
+            await wipe();
+        }
     }
     return token;
 }
@@ -42,9 +47,20 @@ async function getToken() {
 async function getRefreshToken() {
     const { refreshToken } = await accountStore.model;
     if (safeStorage.isEncryptionAvailable() && refreshToken) {
-        return safeStorage.decryptString(Buffer.from(refreshToken, "base64"));
+        try {
+            return safeStorage.decryptString(Buffer.from(refreshToken, "base64"));
+        } catch (e) {
+            log.error("Failed to decrypt refreshToken, wiping account data", e);
+            await wipe();
+        }
     }
     return refreshToken;
+}
+
+async function forgetToken() {
+    await accountStore.update({
+        token: "",
+    });
 }
 
 async function wipe() {
@@ -62,4 +78,5 @@ export const accountService = {
     getToken,
     getRefreshToken,
     wipe,
+    forgetToken,
 };

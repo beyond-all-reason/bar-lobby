@@ -18,6 +18,7 @@ import { miscService } from "@main/services/news.service";
 import { autoUpdaterService } from "@main/services/auto-updater.service";
 import { replayContentAPI } from "@main/content/replays/replay-content";
 import { authService } from "@main/services/auth.service";
+import { tachyonService } from "@main/services/tachyon.service";
 
 const log = logger("main/index.ts");
 log.info("Starting Electron main process");
@@ -36,7 +37,7 @@ if (process.env.NODE_ENV !== "production") {
     }
 }
 
-if (!app.requestSingleInstanceLock()) {
+if (process.env.NODE_ENV === "production" && !app.requestSingleInstanceLock()) {
     app.quit();
 }
 
@@ -83,7 +84,7 @@ app.commandLine.appendSwitch("high-dpi-support", "1");
 app.commandLine.appendSwitch("force-device-scale-factor", "1");
 app.commandLine.appendSwitch("disable-pinch", "1");
 
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
     registerBarFileProtocol();
 
     if (process.env.NODE_ENV !== "production") {
@@ -106,12 +107,9 @@ app.whenReady().then(() => {
         });
     });
 
-    settingsService.init();
-    accountService.init();
-    replaysService.init();
-    engineService.init();
-    gameService.init();
-    mapsService.init();
+    // Initialize services
+    await engineService.init();
+    await Promise.all([settingsService.init(), accountService.init(), replaysService.init(), gameService.init(), mapsService.init()]);
 
     const mainWindow = createWindow();
 
@@ -119,6 +117,7 @@ app.whenReady().then(() => {
     infoService.registerIpcHandlers();
     settingsService.registerIpcHandlers();
     authService.registerIpcHandlers();
+    tachyonService.registerIpcHandlers(mainWindow);
     replaysService.registerIpcHandlers(mainWindow);
     engineService.registerIpcHandlers();
     gameService.registerIpcHandlers(mainWindow);

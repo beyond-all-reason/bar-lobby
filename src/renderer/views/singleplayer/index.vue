@@ -1,7 +1,7 @@
 <route lang="json5">
 {
     meta: {
-        redirect: "/singleplayer/custom",
+        redirect: "/singleplayer/scenarios",
         title: "Singleplayer",
         order: 0,
     },

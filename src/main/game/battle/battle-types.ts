@@ -5,7 +5,7 @@ export interface Battle {
     title: string;
     isOnline: boolean;
     battleOptions: BattleOptions;
-    me: Player;
+    me?: Player;
     teams: Array<Array<Player | Bot>>;
     spectators: Player[];
     started: boolean;
@@ -110,7 +110,7 @@ export type Player = {
 
 export type Bot = {
     id: number;
-    ownerUserId: number;
+    host: number;
     aiShortName: string;
     name: string;
     aiOptions: Record<string, unknown>;

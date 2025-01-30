@@ -96,7 +96,7 @@ async function ringPlayer() {
     // });
 }
 
-const toggleMessages = inject<Ref<((open?: boolean, userId?: number) => void) | undefined>>("toggleMessages")!;
+const toggleMessages = inject<Ref<((open?: boolean, userId?: string) => void) | undefined>>("toggleMessages")!;
 async function messagePlayer() {
     // if (!api.session.directMessages.has(props.player.user.userId)) {
     //     api.session.directMessages.set(props.player.user.userId, []);
