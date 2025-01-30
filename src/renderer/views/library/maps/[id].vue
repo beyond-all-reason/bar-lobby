@@ -17,7 +17,7 @@
                             <div class="detail-text"><b>Wind:</b> {{ map.windMin }} - {{ map.windMax }}</div>
                             <div class="detail-text"><b>Tidal:</b> {{ map.tidalStrength }}</div>
                             <!-- <div v-if="map.startPositions" class="detail-text"><b>Start Positions:</b> {{ map.startPositions.length }}</div> -->
-                            <Button @click="toggleMapFavorite"> {{ map.favorite ? "Remove from favorites" : "Add to favorites" }}</Button>
+                            <Button @click="toggleMapFavorite"> {{ map.isFavorite ? "Remove from favorites" : "Add to favorites" }}</Button>
                             <Button v-if="map.isInstalled" class="green inline" @click="play">Play</Button>
                             <Button v-else-if="map.isDownloading" class="green inline" disabled>Downloading map...</Button>
                             <Button v-else class="red inline" @click="downloadMap(map.springName)">Download</Button>
@@ -64,8 +64,8 @@ async function play() {
 }
 
 function toggleMapFavorite() {
-    db.maps.update(id, { favorite: !map.value.favorite });
-    map.value.favorite = !map.value.favorite;
+    db.maps.update(id, { isFavorite: !map.value.isFavorite });
+    map.value.isFavorite = !map.value.isFavorite;
 }
 </script>
 

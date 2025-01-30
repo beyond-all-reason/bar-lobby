@@ -1,9 +1,7 @@
 <template>
     <div class="map">
         <div class="background" :style="`background-image: url('${imageUrl}')`"></div>
-        <div class="favorite">
-            <Icon v-if="map?.favorite" :icon="heartIcon" />
-        </div>
+        <Icon class="favorite" v-if="map?.isFavorite" :icon="heartIcon" />
         <div class="name">
             {{ map?.displayName }}
         </div>
