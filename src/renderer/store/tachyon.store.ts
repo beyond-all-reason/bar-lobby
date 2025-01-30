@@ -72,17 +72,13 @@ export async function initTachyonStore() {
     }, 60000);
 
     // Try to connect to Tachyon server periodically
-    let connectInterval;
-    watch(
-        () => tachyonStore.isConnected,
-        (isConnected) => {
-            if (isConnected) {
-                clearInterval(connectInterval);
-            } else {
-                connectInterval = setInterval(connect, 10000);
-            }
+    setInterval(() => {
+        try {
+            if (me.isAuthenticated && !tachyonStore.isConnected) connect();
+        } catch (err) {
+            console.warn("Failed to re-connect to Tachyon server", err);
         }
-    );
+    }, 10000);
 
     tachyonStore.isInitialized = true;
 }
