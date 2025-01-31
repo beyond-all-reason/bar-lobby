@@ -10,6 +10,7 @@
                     <Select
                         :modelValue="battleStore.battleOptions.map"
                         :options="mapListOptions"
+                        data-key="springName"
                         label="Map"
                         optionLabel="springName"
                         :filter="true"
