@@ -32,6 +32,7 @@ export function createWindow() {
         webPreferences: {
             preload: path.join(__dirname, "../build/preload.js"),
             zoomFactor: 1,
+            spellcheck: false,
         },
     });
 
