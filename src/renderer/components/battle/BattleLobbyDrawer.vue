@@ -33,7 +33,7 @@ onKeyDown(
     left: 0;
     height: 100%;
     padding-top: 96px;
-    width: 1000px;
+    width: 900px;
     transform: translateX(-100%);
     transition: all 0.4s ease-out;
     z-index: 2;

@@ -10,7 +10,9 @@
                 <Button :class="{ active: chatStore.selectedChatRoom.id === chatRoom.id }" @click="clickTab(chatRoom)">
                     <span class="unread-messages-dot" :class="{ active: chatRoom.unreadMessages > 0 }">⬤</span>
                     {{ chatRoom.name }}
-                    <span class="close-button" v-if="chatRoom.closeable" @click="(e) => closeChatRoom(e, chatRoom)">x</span>
+                    <span class="close-button" v-if="chatRoom.closeable" @click="(e) => closeChatRoom(e, chatRoom)">
+                        <Icon :icon="closeThick" />
+                    </span>
                 </Button>
             </div>
         </div>
@@ -34,12 +36,14 @@
     </div>
 </template>
 <script lang="ts" setup>
+import { Icon } from "@iconify/vue/dist/iconify.js";
 import Button from "@renderer/components/controls/Button.vue";
 import { battleStore } from "@renderer/store/battle.store";
 import { chatActions, ChatRoom, chatStore } from "@renderer/store/chat.store";
 import { me } from "@renderer/store/me.store";
 import { onKeyDown, useMagicKeys } from "@vueuse/core";
 import { ref, useTemplateRef, watch } from "vue";
+import closeThick from "@iconify-icons/mdi/close-thick";
 
 const keys = useMagicKeys();
 const shiftEnter = keys["Shift+Enter"];
@@ -144,10 +148,10 @@ onKeyDown(
     position: absolute;
     z-index: 1;
     right: 4px;
-    padding: 4px;
+    padding: 3px;
     cursor: pointer;
-    line-height: 8px;
-    font-size: 10px;
+    line-height: 0;
+    font-size: 8px;
     border-radius: 200px;
     &:hover {
         background-color: rgba(255, 255, 255, 0.1);
@@ -171,7 +175,7 @@ onKeyDown(
         height: 400px;
     }
     &.translated {
-        left: 1000px;
+        left: 900px;
         transform: translate(20px, 0);
     }
 }
