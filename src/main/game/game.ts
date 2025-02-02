@@ -26,6 +26,7 @@ export class GameAPI {
 
     public async launchBattle(battle: BattleWithMetadata): Promise<void> {
         const script = startScriptConverter.generateScriptStr(battle);
+        console.log("start script", script);
         const scriptPath = path.join(CONTENT_PATH, this.springName);
         await fs.promises.writeFile(scriptPath, script);
         await this.launch({

@@ -1,32 +1,64 @@
 <template>
     <div class="battle-container">
-        <div class="main-content">
-            <div class="player-list">
-                <Playerlist />
+        <div class="header flex-row flex-space-between flex-center-items">
+            <div>
+                <h1>{{ battleStore.title }}</h1>
+                <!-- <p>Play against the AI in a custom game mode.</p> -->
             </div>
-            <div class="options">
-                <MapBattlePreview />
-                <div class="flex-row gap-md">
-                    <Select
-                        :modelValue="battleStore.battleOptions.map"
-                        :options="mapListOptions"
-                        label="Map"
-                        optionLabel="springName"
-                        :filter="true"
-                        class="fullwidth"
-                        @update:model-value="onMapSelected"
-                    />
-                    <Button v-tooltip.left="'Open map selector'" @click="openMapList">
-                        <Icon :icon="listIcon" height="23" />
+            <AdvancedOptions />
+        </div>
+
+        <div class="main-content">
+            <div class="map card padding-md">
+                <!-- <Select
+                    :modelValue="battleStore.battleOptions.map"
+                    :options="mapListOptions"
+                    label="Map"
+                    optionLabel="springName"
+                    :filter="true"
+                    class="fullwidth"
+                    @update:model-value="onMapSelected"
+                /> -->
+                <div class="map-title card padding-md flex-row flex-space-between flex-align-center">
+                    <h4>{{ battleStore.battleOptions.map?.displayName }}</h4>
+                    <Button v-tooltip.left="'Change map'" @click="openMapList">
+                        <Icon :icon="arrowDownIcon" height="24" />
                     </Button>
+                    <MapListModal v-model="mapListOpen" title="Maps" @map-selected="onMapSelected" />
+                </div>
+
+                <div class="card padding-md flex-row flex-space-between flex-align-center">
+                    <!-- TODO: What info about the map is most important to show here? -->
+                    <span><b>Size</b> {{ battleStore.battleOptions.map?.mapWidth }}x{{ battleStore.battleOptions.map?.mapHeight }}</span>
+                    <span><b>Max Players</b> {{ battleStore.battleOptions.map?.playerCountMax }}</span>
+                </div>
+
+                <div class="card">
+                    <MapBattlePreview />
+                </div>
+
+                <div class="flex-row gap-md">
                     <Button v-tooltip.left="'Configure map options'" @click="openMapOptions">
                         <Icon :icon="cogIcon" height="23" />
                     </Button>
-                    <MapListModal v-model="mapListOpen" title="Maps" @map-selected="onMapSelected" />
                     <MapOptionsModal v-if="battleStore.battleOptions.map" v-model="mapOptionsOpen" />
                 </div>
-                <GameModeComponent />
-                <div v-if="settingsStore.devMode">
+            </div>
+
+            <div class="player-list">
+                <div class="card padding-md">
+                    <GameModeComponent />
+                </div>
+                <Playerlist />
+            </div>
+            <div class="options">
+                <div class="card padding-md flex-col flex-grow fullheight">
+                    <!-- <SelectedOptions /> -->
+                    <div class="scroll-container" style="white-space: pre-wrap">
+                        <pre>{{ JSON.stringify(battleStore, null, 4) }}</pre>
+                    </div>
+                </div>
+                <!-- <div v-if="settingsStore.devMode">
                     <Select
                         :modelValue="battleStore.battleOptions.gameVersion"
                         :options="gameListOptions"
@@ -50,19 +82,21 @@
                         class="fullwidth"
                         @update:model-value="onEngineSelected"
                     />
-                </div>
-                <div class="flex-row flex-bottom gap-md flex-grow">
-                    <DownloadContentButton
-                        v-if="map"
-                        :map="map"
-                        class="fullwidth green"
-                        :disabled="gameStore.isGameRunning"
-                        @click="battleActions.startBattle"
-                        >Start the game</DownloadContentButton
-                    >
-                    <Button v-else class="fullwidth green flex-grow" disabled>Start the game</Button>
-                </div>
+                </div> -->
             </div>
+        </div>
+
+        <div class="card padding-md flex-row flex-bottom gap-md flex-grow">
+            <DownloadContentButton
+                v-if="map"
+                :map="map"
+                class="fullwidth green"
+                :disabled="gameStore.isGameRunning"
+                @click="battleActions.startBattle"
+            >
+                Start the game
+            </DownloadContentButton>
+            <!-- <Button v-else class="fullwidth green flex-grow" disabled>Start the game</Button> -->
         </div>
     </div>
 </template>
@@ -77,7 +111,7 @@ import MapOptionsModal from "@renderer/components/battle/MapOptionsModal.vue";
 import { battleActions, battleStore } from "@renderer/store/battle.store";
 import Button from "@renderer/components/controls/Button.vue";
 import { db } from "@renderer/store/db";
-import listIcon from "@iconify-icons/mdi/format-list-bulleted";
+import arrowDownIcon from "@iconify-icons/mdi/keyboard-arrow-down";
 import cogIcon from "@iconify-icons/mdi/cog";
 import { useDexieLiveQuery, useDexieLiveQueryWithDeps } from "@renderer/composables/useDexieLiveQuery";
 import MapBattlePreview from "@renderer/components/maps/MapBattlePreview.vue";
@@ -87,6 +121,8 @@ import GameModeComponent from "@renderer/components/battle/GameModeComponent.vue
 import { enginesStore } from "@renderer/store/engine.store";
 import { gameStore } from "@renderer/store/game.store";
 import DownloadContentButton from "@renderer/components/controls/DownloadContentButton.vue";
+import AdvancedOptions from "@renderer/components/battle/AdvancedOptions.vue";
+import SelectedOptions from "@renderer/components/battle/SelectedOptions.vue";
 
 const mapListOpen = ref(false);
 const mapOptionsOpen = ref(false);
@@ -98,6 +134,8 @@ const map = useDexieLiveQueryWithDeps([() => battleStore.battleOptions.map], () 
     if (!battleStore.battleOptions.map) return null;
     return db.maps.get(battleStore.battleOptions.map.springName);
 });
+
+console.log(battleStore.battleOptions.map);
 
 function openMapList() {
     mapListOpen.value = true;
@@ -131,9 +169,33 @@ function onMapSelected(map: MapData) {
     gap: 10px;
 }
 
-.title {
-    font-size: 30px;
-    line-height: 1.2;
+.card {
+    background: rgba(0, 0, 0, 0.5);
+    // padding: 0.5rem;
+
+    > .card {
+        background: rgba(0, 0, 0, 0.3);
+    }
+}
+
+.main-content {
+    display: grid;
+    grid-template-columns: minmax(450px, 1fr) 2fr 0.5fr;
+    grid-auto-rows: auto;
+    flex-direction: row;
+    gap: 10px;
+    height: 100%;
+}
+
+.map {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    height: 100%;
+}
+
+.map-title {
+    border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
 .player-list {
@@ -144,20 +206,17 @@ function onMapSelected(map: MapData) {
     height: 100%;
 }
 
-.options {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    height: 100%;
-    width: 400px;
-}
-
-.main-content {
-    display: flex;
-    flex-direction: row;
-    gap: 10px;
-    height: 100%;
-}
+// .title {
+//     font-size: 30px;
+//     line-height: 1.2;
+// }
+// .options {
+//     display: flex;
+//     flex-direction: column;
+//     gap: 10px;
+//     height: 100%;
+//     width: 400px;
+// }
 
 .footer {
     display: flex;

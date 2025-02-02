@@ -18,8 +18,11 @@ export interface BattleWithMetadata extends Battle {
     players: Player[];
 }
 
+// export type GameModeType = "classic" | "raptors" | "scavengers" | "ffa";
+export type GameModeType = "Default" | "Classic" | "Skirmish" | "Raptors" | "Scavengers" | "FFA";
+
 export type GameMode = {
-    label: string;
+    label: GameModeType;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     options: Record<string, any>;
 };
@@ -66,7 +69,10 @@ export type StartBox = {
 export enum StartPosType {
     Fixed = 0,
     Random = 1,
+    /** Choose in game */
     Boxes = 2,
+    /** Choose before game */
+    BoxesBeforeGame = 3,
 }
 
 export enum Faction {

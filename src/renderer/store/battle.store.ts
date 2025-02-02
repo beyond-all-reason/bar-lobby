@@ -1,7 +1,7 @@
 import { EngineAI, EngineVersion } from "@main/content/engine/engine-version";
 import { GameAI, GameVersion } from "@main/content/game/game-version";
 import { MapData } from "@main/content/maps/map-data";
-import { Battle, BattleOptions, BattleWithMetadata, Bot, Faction, Player, StartPosType } from "@main/game/battle/battle-types";
+import { Battle, BattleOptions, BattleWithMetadata, Bot, Faction, GameModeType, Player, StartPosType } from "@main/game/battle/battle-types";
 import { User } from "@main/model/user";
 import { enginesStore } from "@renderer/store/engine.store";
 import { gameStore } from "@renderer/store/game.store";
@@ -18,7 +18,7 @@ interface BattleLobby {
 }
 
 // Store
-export const battleStore = reactive({
+export const battleStore = reactive<Battle & BattleLobby>({
     isJoined: false,
     title: "Battle",
     isOnline: false,
@@ -156,17 +156,20 @@ function defaultOfflineBattle(engine?: EngineVersion, game?: GameVersion, map?: 
         started: false,
     } as Battle;
 
-    battle.teams[0].push({
+    const mePlayer = {
         id: participantId++,
         user: me,
         name: me.username,
         contentSyncState: {
             engine: 1,
             game: 1,
-            map: 1,
+            map: 1, // TODO map.isInstalled
         },
         inGame: false,
-    } as Player);
+    } as Player;
+
+    battle.me = mePlayer;
+    battle.teams[0].push(mePlayer);
 
     battle.teams[1].push({
         id: participantId++,
@@ -236,14 +239,14 @@ function leaveBattle() {
     resetToDefaultBattle();
 }
 
-export enum GameMode {
-    CLASSIC = "classic",
-    RAPTORS = "raptors",
-    SCAVENGERS = "scavengers",
-    FFA = "ffa",
-}
+export const GameMode: Record<string, GameModeType> = {
+    CLASSIC: "Classic",
+    RAPTORS: "Raptors",
+    SCAVENGERS: "Scavengers",
+    FFA: "FFA",
+};
 
-async function loadGameMode(gameMode: GameMode) {
+async function loadGameMode(gameMode: GameModeType) {
     if (!battleStore.battleOptions.engineVersion) {
         battleStore.battleOptions.engineVersion = enginesStore.selectedEngineVersion.id;
     }

@@ -1,5 +1,5 @@
 <template>
-    <div class="map-container">
+    <div class="map-container" :style="dynamicAspectRatio">
         <div v-if="battleStore.battleOptions.map" class="map" :style="aspectRatioDrivenStyle">
             <img loading="lazy" :src="mapTextureUrl" />
             <div v-if="battleStore.battleOptions.mapOptions.startPosType === StartPosType.Boxes && boxes" class="boxes">
@@ -94,6 +94,14 @@ const aspectRatioDrivenStyle = computed(() => {
         return;
     }
     return battleStore.battleOptions.map.mapWidth / battleStore.battleOptions.map.mapHeight > 1 ? "height: auto;" : "height: 100%;";
+});
+const dynamicAspectRatio = computed(() => {
+    if (!battleStore.battleOptions.map?.mapWidth || !battleStore.battleOptions.map?.mapHeight) {
+        return;
+    }
+    return battleStore.battleOptions.map.mapWidth / battleStore.battleOptions.map.mapHeight > 1
+        ? "aspect-ratio: 1;"
+        : `aspect-ratio: ${Math.max(0.6, battleStore.battleOptions.map.mapWidth / battleStore.battleOptions.map.mapHeight)};`;
 });
 
 const rgbColors = [
