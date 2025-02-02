@@ -1,6 +1,7 @@
-import { OAUTH_AUTHORIZATION_SERVER_URL, OAUTH_CLIENT_ID, OAUTH_SCOPE, WELL_KNOWN_OAUTH_AUTHORIZATION_SERVER_URL } from "@main/config/server";
+import { OAUTH_AUTHORIZATION_SERVER_URL, OAUTH_CLIENT_ID, OAUTH_SCOPE, OAUTH_WELL_KNOWN_URL } from "@main/config/server";
 import { generatePKCE } from "@main/oauth2/pkce";
 import RedirectHandler from "@main/oauth2/redirect-handler";
+import { accountService } from "@main/services/account.service";
 import { logger } from "@main/utils/logger";
 import { shell } from "electron";
 import { stringify } from "node:querystring";
@@ -18,7 +19,7 @@ export async function fetchAuthorizationServerMetadata(): Promise<{
     authorizationEndpoint: string;
     tokenEndpoint: string;
 }> {
-    const response = await fetch(WELL_KNOWN_OAUTH_AUTHORIZATION_SERVER_URL);
+    const response = await fetch(OAUTH_WELL_KNOWN_URL);
     if (response.status !== 200) {
         const error = `Failed to fetch OAuth2 authorization server metadata: ${response.status} ${response.statusText}`;
         log.error(error);
@@ -32,19 +33,16 @@ export async function fetchAuthorizationServerMetadata(): Promise<{
         throw new Error(error);
     }
 
-    // TODO: Remove this hack once the server is fixed
-    // see https://github.com/beyond-all-reason/teiserver/pull/555
-    const fixedAuthorizationEndpoint = authorization_endpoint.replaceAll(":8888", "");
-    const fixedTokenEndpoint = token_endpoint.replaceAll(":8888", "");
-    const fixedIssuer = issuer.replaceAll(":8888", "");
-
-    if (fixedIssuer !== OAUTH_AUTHORIZATION_SERVER_URL) {
-        const error = `Invalid OAuth2 issuer: ${fixedIssuer} does not match expected ${OAUTH_AUTHORIZATION_SERVER_URL}`;
+    if (issuer !== OAUTH_AUTHORIZATION_SERVER_URL) {
+        const error = `Invalid OAuth2 issuer: ${issuer} does not match expected ${OAUTH_AUTHORIZATION_SERVER_URL}`;
         log.error(error);
         throw new Error(error);
     }
 
-    return { authorizationEndpoint: fixedAuthorizationEndpoint, tokenEndpoint: fixedTokenEndpoint };
+    return {
+        authorizationEndpoint: authorization_endpoint,
+        tokenEndpoint: token_endpoint,
+    };
 }
 
 // Careful with shell.openExternal. https://benjamin-altpeter.de/shell-openexternal-dangers/
@@ -119,9 +117,10 @@ export async function authenticate(): Promise<TokenResponse> {
     }
 }
 
-export async function renewAccessToken(refreshToken: string): Promise<TokenResponse> {
+export async function renewAccessToken(): Promise<TokenResponse> {
     log.debug("Renewing access token");
     const { tokenEndpoint } = await fetchAuthorizationServerMetadata();
+    const refreshToken = await accountService.getRefreshToken();
     if (!refreshToken) {
         const error = "No refresh token available";
         log.error(error);
@@ -138,9 +137,13 @@ export async function renewAccessToken(refreshToken: string): Promise<TokenRespo
         method: "POST",
     });
     if (tokenResponse.status !== 200) {
-        const error = `Failed to renew token: ${tokenResponse.status} ${tokenResponse.statusText}`;
+        const error = `Failed to renew token, wiping: ${tokenResponse.status} ${tokenResponse.statusText}`;
         const responseText = await tokenResponse.text();
         log.error(`${error}: ${responseText}`);
+        accountService.wipe();
+        if (tokenResponse.status === 400) {
+            log.error(`400 Bad request: ${tokenUrl}`);
+        }
         throw new Error(error);
     }
     const body = await tokenResponse.json();

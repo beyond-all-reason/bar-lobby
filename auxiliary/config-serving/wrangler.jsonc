@@ -1,0 +1,54 @@
+/**
+ * For more details on how to configure Wrangler, refer to:
+ * https://developers.cloudflare.com/workers/wrangler/configuration/
+ */
+{
+    "$schema": "node_modules/wrangler/config-schema.json",
+    "name": "lobby-config-dev",
+    "main": "src/index.ts",
+    "compatibility_date": "2024-12-30",
+    "account_id": "5e015123d861c65819b733acb27db18e",
+    "observability": {
+        "enabled": true,
+    },
+    "env": {
+        "prod": {
+            "name": "lobby-config-prod",
+            "observability": {
+                "enabled": true,
+                "head_sampling_rate": 0.01,
+            },
+            "routes": [
+                {
+                    "custom_domain": true,
+                    "pattern": "lobby-config.beyondallreason.dev",
+                },
+            ],
+            "kv_namespaces": [
+                {
+                    "binding": "CONFIG_KV",
+                    "id": "42e3fa1bcd5e4cf581282b08551dcfa6",
+                },
+            ],
+            "vars": {
+                "OIDC_ISSUER": "https://token.actions.githubusercontent.com",
+                "OIDC_TOKEN_REQUIRED_CLAIMS": {
+                    "repository": "beyond-all-reason/bar-lobby",
+                    "ref": "refs/heads/master",
+                },
+            },
+        },
+    },
+    "kv_namespaces": [
+        {
+            "binding": "CONFIG_KV",
+            "id": "afc7d3134f324ffcb48969abed5b188d",
+        },
+    ],
+    "vars": {
+        "OIDC_ISSUER": "https://token.actions.githubusercontent.com",
+        "OIDC_TOKEN_REQUIRED_CLAIMS": {
+            "repository": "beyond-all-reason/bar-lobby",
+        },
+    },
+}

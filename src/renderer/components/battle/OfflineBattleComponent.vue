@@ -72,15 +72,14 @@
                 </div>
                 <div v-if="settingsStore.devMode">
                     <Select
-                        :modelValue="battleStore.battleOptions.engineVersion"
-                        :options="engineListOptions"
+                        :modelValue="enginesStore.selectedEngineVersion"
+                        @update:model-value="(engine) => (enginesStore.selectedEngineVersion = engine)"
+                        :options="enginesStore.availableEngineVersions"
+                        data-key="id"
                         optionLabel="id"
-                        optionValue="id"
                         label="Engine"
                         :filter="true"
-                        :placeholder="battleStore.battleOptions.engineVersion"
                         class="fullwidth"
-                        @update:model-value="onEngineSelected"
                     />
                 </div> -->
             </div>
@@ -118,17 +117,16 @@ import MapBattlePreview from "@renderer/components/maps/MapBattlePreview.vue";
 import { MapData } from "@main/content/maps/map-data";
 import { settingsStore } from "@renderer/store/settings.store";
 import GameModeComponent from "@renderer/components/battle/GameModeComponent.vue";
-import { enginesStore } from "@renderer/store/engine.store";
 import { gameStore } from "@renderer/store/game.store";
 import DownloadContentButton from "@renderer/components/controls/DownloadContentButton.vue";
 import AdvancedOptions from "@renderer/components/battle/AdvancedOptions.vue";
 import SelectedOptions from "@renderer/components/battle/SelectedOptions.vue";
+import { enginesStore } from "@renderer/store/engine.store";
 
 const mapListOpen = ref(false);
 const mapOptionsOpen = ref(false);
 const mapListOptions = useDexieLiveQuery(() => db.maps.toArray());
 const gameListOptions = useDexieLiveQuery(() => db.gameVersions.toArray());
-const engineListOptions = useDexieLiveQuery(() => db.engineVersions.toArray());
 
 const map = useDexieLiveQueryWithDeps([() => battleStore.battleOptions.map], () => {
     if (!battleStore.battleOptions.map) return null;
@@ -143,11 +141,6 @@ function openMapList() {
 
 function openMapOptions() {
     mapOptionsOpen.value = true;
-}
-
-async function onEngineSelected(engineVersion: string) {
-    enginesStore.selectedEngineVersion = await db.engineVersions.get(engineVersion);
-    battleStore.battleOptions.engineVersion = engineVersion;
 }
 
 async function onGameSelected(gameVersion: string) {

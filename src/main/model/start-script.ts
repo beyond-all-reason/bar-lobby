@@ -89,7 +89,7 @@ export interface Player {
     isfromdemo?: number;
     countrycode?: string;
     rank?: number;
-    userId?: number;
+    userId?: string;
 }
 
 export interface Bot {

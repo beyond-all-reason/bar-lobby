@@ -1,6 +1,7 @@
 <template>
     <div class="map">
         <div class="background" :style="`background-image: url('${imageUrl}')`"></div>
+        <Icon class="favorite" v-if="map?.isFavorite" :icon="heartIcon" />
         <div class="name">
             {{ map?.displayName }}
         </div>
@@ -25,6 +26,7 @@ import TerrainIcon from "@renderer/components/maps/filters/TerrainIcon.vue";
 import { Icon } from "@iconify/vue/dist/iconify.js";
 import personIcon from "@iconify-icons/mdi/person-multiple";
 import gridIcon from "@iconify-icons/mdi/grid";
+import heartIcon from "@iconify-icons/mdi/heart";
 
 const props = defineProps<{
     map: MapData;
@@ -63,12 +65,18 @@ const imageUrl = computed(() =>
         }
         .background {
             transform: scale(1.01);
+            transition: 0.2s ease-in-out;
             &:after {
                 opacity: 0;
+                transition: 0.2s ease-in-out;
             }
         }
         .attributes {
             opacity: 0;
+        }
+        .favorite {
+            opacity: 0;
+            transition: opacity 0.2s;
         }
     }
 }
@@ -81,16 +89,25 @@ const imageUrl = computed(() =>
     background-position: center;
     position: relative;
     transform: scale(1.1);
-    transition: 0.1s transform;
     will-change: transform;
     z-index: 0;
     &:after {
         @extend .fullsize;
         z-index: 1;
         background: linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0));
-        transition: 0.1s opacity;
+        transition: 0.2s opacity ease-in-out;
     }
-    transition: background-image 0.1s ease-in-out;
+    transition: 0.2s ease-in-out;
+}
+.favorite {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    transition: 0.2s opacity;
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    font-size: 25px;
+    padding: 3px;
 }
 .name {
     @extend .fullsize;

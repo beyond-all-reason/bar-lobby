@@ -5,45 +5,60 @@
         @focusin="expandChat"
         @focusout="collapseChat"
     >
+        <div class="tabs">
+            <div class="tab" v-for="chatRoom in chatStore.chatRooms" :key="chatRoom.id">
+                <Button :class="{ active: chatStore.selectedChatRoom.id === chatRoom.id }" @click="clickTab(chatRoom)">
+                    <span class="unread-messages-dot" :class="{ active: chatRoom.unreadMessages > 0 }">⬤</span>
+                    {{ chatRoom.name }}
+                    <span class="close-button" v-if="chatRoom.closeable" @click="(e) => closeChatRoom(e, chatRoom)">
+                        <Icon :icon="closeThick" />
+                    </span>
+                </Button>
+            </div>
+        </div>
         <div class="chat-messages" :class="{ expanded: isExpanded || battleStore.isLobbyOpened }">
-            <div v-for="(message, index) in messages" :key="index" :class="['chat-message', message.user]">
+            <div
+                v-for="(message, index) in chatStore.selectedChatRoom.messages.toReversed()"
+                :key="index"
+                :class="['chat-message', message.userId]"
+            >
                 <div class="message-content">
-                    <span class="username">{{ message.user }}:</span>
+                    <span class="username" :style="{ color: chatStore.selectedChatRoom.color }">{{ message.userName }}:</span>
                     <span class="text">{{ message.text }}</span>
-                    <!-- <span class="timestamp">{{ message.time }}</span> -->
+                    <!-- <span class="timestamp">{{ message.timestamp }}</span> -->
                 </div>
             </div>
         </div>
         <div class="chat-input">
-            <div class="target">To (Lobby):</div>
-            <input v-model="newMessage" @keydown.enter="sendMessage" placeholder="Type here to chat. Use '/' for commands." />
+            <div class="target" :style="{ color: chatStore.selectedChatRoom.color }">To ({{ chatStore.selectedChatRoom.name }}):</div>
+            <input ref="textBox" v-model="newMessage" @keydown.enter="sendMessage" placeholder="Type here to chat. Use '/' for commands." />
         </div>
     </div>
 </template>
 <script lang="ts" setup>
+import { Icon } from "@iconify/vue/dist/iconify.js";
+import Button from "@renderer/components/controls/Button.vue";
 import { battleStore } from "@renderer/store/battle.store";
-import { ref } from "vue";
+import { chatActions, ChatRoom, chatStore } from "@renderer/store/chat.store";
+import { me } from "@renderer/store/me.store";
+import { onKeyDown, useMagicKeys } from "@vueuse/core";
+import { ref, useTemplateRef, watch } from "vue";
+import closeThick from "@iconify-icons/mdi/close-thick";
 
-interface Message {
-    user: string;
-    text: string;
-    time: string;
-}
+const keys = useMagicKeys();
+const shiftEnter = keys["Shift+Enter"];
 
-const messages = ref<Message[]>([
-    { user: "Player2", text: "Ready for the game?", time: "12:02" },
-    { user: "Player1", text: "Hello, team!", time: "12:01" },
-]);
 const newMessage = ref("");
 const isExpanded = ref(false);
+const textBox = useTemplateRef<HTMLInputElement>("textBox");
 
 const sendMessage = () => {
     if (newMessage.value.trim() !== "") {
-        const time = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-        messages.value.unshift({
-            user: "You",
+        chatActions.sendMessage({
+            userId: me.userId,
+            userName: me.username,
             text: newMessage.value,
-            time,
+            timestamp: Date.now(),
         });
         newMessage.value = "";
     }
@@ -56,9 +71,93 @@ const expandChat = () => {
 const collapseChat = () => {
     isExpanded.value = false;
 };
+
+const clickTab = (chatRoom: ChatRoom) => {
+    chatActions.selectChatRoom(chatRoom.id);
+    textBox.value?.focus();
+};
+
+const closeChatRoom = (e: Event, chatRoom: ChatRoom) => {
+    e.stopPropagation();
+    chatActions.closeChatRoom(chatRoom.id);
+    textBox.value?.focus();
+};
+
+watch(shiftEnter, () => {
+    if (!isExpanded.value) {
+        textBox.value?.focus();
+    }
+});
+
+onKeyDown(
+    "Escape",
+    (e) => {
+        if (isExpanded.value) {
+            e.preventDefault();
+            e.stopPropagation();
+            textBox.value?.blur();
+            isExpanded.value = false;
+        }
+    },
+    { target: document }
+);
 </script>
 
 <style lang="scss" scoped>
+.tabs {
+    transition: all 0.4s ease-in-out;
+    flex-direction: row;
+    background: black;
+    width: 100%;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+    display: flex;
+    font-size: 14px;
+    .tab {
+        padding-left: 8px;
+        padding-top: 8px;
+    }
+    .button {
+        background: rgb(0, 0, 0);
+        border: none;
+        color: rgba(255, 255, 255, 0.5);
+        flex-grow: 0;
+        :deep(> button) {
+            padding: 0 20px;
+        }
+        &:hover,
+        &.active {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.05);
+        }
+    }
+}
+
+.unread-messages-dot {
+    position: absolute;
+    left: 8px;
+    display: none;
+    font-size: 8px;
+    margin-right: 8px;
+    color: rgb(226, 91, 91);
+    &.active {
+        display: inline;
+    }
+}
+
+.close-button {
+    position: absolute;
+    z-index: 1;
+    right: 4px;
+    padding: 3px;
+    cursor: pointer;
+    line-height: 0;
+    font-size: 8px;
+    border-radius: 200px;
+    &:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+    }
+}
+
 .chat-container {
     position: absolute;
     left: 50%;
@@ -66,17 +165,18 @@ const collapseChat = () => {
     bottom: 20px;
     display: flex;
     flex-direction: column;
-    height: 100px;
+    height: 150px;
     transition: all 0.4s ease-in-out;
     width: 50%;
     max-width: 600px;
     z-index: 3;
     &.expanded {
         mask-image: none;
-        height: 500px;
+        height: 400px;
     }
     &.translated {
-        transform: translateX(0%) translateY(-20%);
+        left: 900px;
+        transform: translate(20px, 0);
     }
 }
 
@@ -84,15 +184,18 @@ const collapseChat = () => {
     @extend .fullsize;
     left: 0;
     top: 0;
-    background-image: url("/src/renderer/assets/images/squares.png");
-    background-size: auto;
     opacity: 0.3;
     mix-blend-mode: overlay; // doesn't support transition
     z-index: -1;
 }
 
+// tabs are fading out when chat is collapsed
+.chat-container:not(.expanded) .tabs {
+    opacity: 0;
+}
+
 .chat-messages {
-    mask-image: linear-gradient(to top, #000 0 50%, transparent);
+    mask-image: linear-gradient(to top, #000 0 70%, transparent);
     flex-grow: 1;
     padding: 8px;
     display: flex;
@@ -107,7 +210,7 @@ const collapseChat = () => {
 }
 
 .chat-message {
-    font-size: 15px;
+    font-size: 13px;
 }
 
 .message-content {
@@ -119,7 +222,6 @@ const collapseChat = () => {
 
 .username {
     font-weight: bold;
-    color: #87ceeb;
 }
 
 .timestamp {
@@ -136,15 +238,15 @@ const collapseChat = () => {
 
 .chat-input .target {
     padding: 4px 8px;
-    color: #87ceeb;
-    font-weight: semibold;
+    font-weight: bold;
+    font-size: 13px;
 }
 
 .chat-input input {
     flex-grow: 1;
     padding: 0px 8px;
     color: #e0e0e0;
-    font-size: 15px;
+    font-size: 13px;
 }
 
 // .chat-input button {

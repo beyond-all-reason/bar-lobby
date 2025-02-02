@@ -16,7 +16,7 @@ export const gameStore = reactive({
 async function refreshStore() {
     await db.gameVersions.clear();
     const installedVersions = await window.game.getInstalledVersions();
-    await db.gameVersions.bulkAdd(installedVersions);
+    await db.gameVersions.bulkPut(installedVersions);
     const latestGameVersion = await db.gameVersions.orderBy("gameVersion").last();
     gameStore.selectedGameVersion = latestGameVersion;
 }
@@ -38,11 +38,17 @@ watch(
     }
 );
 
+export async function downloadGame(version: string) {
+    await window.game.downloadGame(version);
+    await refreshStore();
+}
+
 export async function initGameStore() {
+    if (gameStore.isInitialized) return;
     await refreshStore();
     window.downloads.onDownloadGameComplete(async (downloadInfo) => {
         console.debug("Received game download completed event", downloadInfo);
-        refreshStore();
+        await refreshStore();
     });
     window.game.onGameLaunched(() => {
         console.debug("Game loaded");

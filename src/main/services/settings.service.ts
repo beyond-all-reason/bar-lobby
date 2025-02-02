@@ -19,8 +19,8 @@ const settingsStore = new FileStore<typeof settingsSchema>(path.join(CONFIG_PATH
     battlesHideEmpty: true,
 });
 
-function init() {
-    settingsStore.init();
+async function init() {
+    await settingsStore.init();
 }
 
 function getSettings() {

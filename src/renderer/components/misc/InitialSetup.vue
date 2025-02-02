@@ -8,10 +8,13 @@
 
 <script lang="ts" setup>
 import { defaultMaps } from "@main/config/default-maps";
-import { LATEST, LATEST_GAME_VERSION } from "@main/config/default-versions";
+import { LATEST_GAME_VERSION } from "@main/config/default-versions";
 import { DownloadInfo } from "@main/content/downloads";
+import { initBattleStore } from "@renderer/store/battle.store";
 import { db } from "@renderer/store/db";
 import { downloadsStore } from "@renderer/store/downloads.store";
+import { enginesStore } from "@renderer/store/engine.store";
+import { downloadGame } from "@renderer/store/game.store";
 import { onMounted, ref, watch } from "vue";
 
 const emit = defineEmits<{
@@ -23,17 +26,17 @@ const state = ref<"engine" | "game" | "maps">("engine");
 
 onMounted(async () => {
     console.debug("Initial setup");
-    const isNewEngineVersionAvailable = await window.engine.isNewVersionAvailable();
-    if (isNewEngineVersionAvailable) {
+    const latestKnownEngineVersion = enginesStore.availableEngineVersions.at(-1);
+    if (latestKnownEngineVersion?.installed === false) {
         state.value = "engine";
         text.value = "Downloading engine";
-        await window.engine.downloadEngine(LATEST);
+        await window.engine.downloadEngine(latestKnownEngineVersion.id);
         text.value = "Installing engine";
     }
 
     state.value = "game";
     text.value = "Downloading game";
-    await window.game.downloadGame(LATEST_GAME_VERSION);
+    await downloadGame(LATEST_GAME_VERSION);
     text.value = "Installing game";
 
     const installedMaps = await db.maps.count();
@@ -42,6 +45,8 @@ onMounted(async () => {
         text.value = "Downloading maps";
         await window.maps.downloadMaps(defaultMaps);
     }
+
+    await initBattleStore();
     emit("complete");
 });
 

@@ -13,11 +13,14 @@ import { extract7z } from "@main/utils/extract-7z";
 import { contentSources } from "@main/config/content-sources";
 import { AbstractContentAPI } from "@main/content/abstract-content";
 import { CONTENT_PATH } from "@main/config/app";
-import { LATEST } from "@main/config/default-versions";
 
 const log = logger("engine-content.ts");
 
-export class EngineContentAPI extends AbstractContentAPI<EngineVersion> {
+// TODO: add support for old engine version tag naming scheme, careful it is not string sortable (!)
+// Regex matching new engine version tags (e.g. "2025.01.3", "2025.01.3-rc1")
+const compatibleVersionRegex = /^\d{4}\.\d{2}\.\d{1,2}(-rc\d+)?$/;
+
+export class EngineContentAPI extends AbstractContentAPI<string, EngineVersion> {
     protected readonly engineDirs = path.join(CONTENT_PATH, "engine");
     protected readonly ocotokit = new Octokit();
 
@@ -26,13 +29,22 @@ export class EngineContentAPI extends AbstractContentAPI<EngineVersion> {
             log.info("Initializing engine content API");
             await fs.promises.mkdir(this.engineDirs, { recursive: true });
             const files = await fs.promises.readdir(this.engineDirs, { withFileTypes: true });
-            const dirs = files.filter((file) => file.isDirectory() || file.isSymbolicLink()).map((dir) => dir.name);
+            const dirs = files
+                .filter((file) => file.isDirectory() || file.isSymbolicLink())
+                .map((dir) => dir.name)
+                .filter((dir) => compatibleVersionRegex.test(dir) || dir.includes("local"));
             log.info(`Found ${dirs.length} installed engine versions`);
             for (const dir of dirs) {
                 log.info(`-- Engine ${dir}`);
                 const ais = await this.parseAis(dir);
-                this.installedVersions.push({ id: dir, lastLaunched: new Date(), ais });
+                this.availableVersions.set(dir, { id: dir, ais, installed: true });
             }
+            try {
+                await this.fetchAvailableVersionsOnline();
+            } catch (err) {
+                log.error(`Failed to fetch available engine versions online: ${err}`);
+            }
+            log.info(`Found ${this.availableVersions.size} engine versions total.`);
         } catch (err) {
             log.error(err);
         }
@@ -40,27 +52,40 @@ export class EngineContentAPI extends AbstractContentAPI<EngineVersion> {
     }
 
     public isVersionInstalled(id: string): boolean {
-        return this.installedVersions.some((installedVersion) => installedVersion.id === id);
+        return this.availableVersions.get(id)?.installed ?? false;
     }
 
-    protected async getLatestTagName() {
-        const { data } = await this.ocotokit.rest.repos.getLatestRelease({
+    public getLatestInstalledVersion() {
+        return this.availableVersions
+            .values()
+            .filter((version) => version.installed)
+            .toArray()
+            .sort((a, b) => a.id.localeCompare(b.id))
+            .at(-1);
+    }
+
+    protected async fetchAvailableVersionsOnline() {
+        const { data } = await this.ocotokit.rest.repos.listReleases({
             owner: contentSources.engineGitHub.owner,
             repo: contentSources.engineGitHub.repo,
         });
-        return data.tag_name;
-    }
-
-    public async isNewVersionAvailable() {
-        const tagName = await this.getLatestTagName();
-        return !this.isVersionInstalled(tagName);
+        data.map((release) => release.tag_name)
+            .filter((tag) => compatibleVersionRegex.test(tag))
+            .filter((tag) => !this.availableVersions.has(tag))
+            .map((tag) => {
+                return {
+                    id: tag,
+                    ais: [],
+                    installed: false,
+                };
+            })
+            .forEach((version) => {
+                this.availableVersions.set(version.id, version);
+            });
     }
 
     public async downloadEngine(engineVersion: string) {
         try {
-            if (engineVersion === LATEST) {
-                engineVersion = await this.getLatestTagName();
-            }
             if (this.isVersionInstalled(engineVersion)) {
                 return;
             }
@@ -121,13 +146,12 @@ export class EngineContentAPI extends AbstractContentAPI<EngineVersion> {
         }
         const engineDir = path.join(this.engineDirs, version);
         await fs.promises.rm(engineDir, { force: true, recursive: true });
-        const index = this.installedVersions.findIndex((installedVersion) => installedVersion.id === version);
-        this.installedVersions.splice(index, 1);
+        this.availableVersions.delete(version);
     }
 
     protected override async downloadComplete(downloadInfo: DownloadInfo) {
         log.debug(`Download complete: ${downloadInfo.name}`);
-        this.installedVersions.push({ id: downloadInfo.name, lastLaunched: new Date(), ais: [] });
+        this.availableVersions.set(downloadInfo.name, { id: downloadInfo.name, ais: [], installed: true });
         super.downloadComplete(downloadInfo);
     }
 

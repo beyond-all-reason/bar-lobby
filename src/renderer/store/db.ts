@@ -1,7 +1,7 @@
-import { EngineVersion } from "@main/content/engine/engine-version";
 import { GameVersion } from "@main/content/game/game-version";
 import { MapData } from "@main/content/maps/map-data";
 import { Replay } from "@main/content/replays/replay";
+import { User } from "@main/model/user";
 import Dexie, { EntityTable } from "dexie";
 
 export async function initDb() {
@@ -13,12 +13,30 @@ export const db = new Dexie("BarLobby") as Dexie & {
     replays: EntityTable<Replay, "fileName">;
     maps: EntityTable<MapData, "springName">;
     gameVersions: EntityTable<GameVersion, "gameVersion">;
-    engineVersions: EntityTable<EngineVersion, "id">;
+    users: EntityTable<User, "userId">;
 };
 
 db.version(1).stores({
-    replays:
-        "fileName, gameId, filePath, engineVersion, gameVersion, springName, startTime, gameDurationMs, gameEndedNormally, hasBots, winningTeamId, teams, contenders, spectators, battleSettings, hostSettings, gameSettings, mapSettings",
+    replays: `
+        fileName,
+        gameId,
+        filePath,
+        engineVersion,
+        gameVersion,
+        springName,
+        startTime,
+        gameDurationMs,
+        gameEndedNormally,
+        hasBots,
+        winningTeamId,
+        teams,
+        contenders,
+        spectators,
+        battleSettings,
+        hostSettings,
+        gameSettings,
+        mapSettings
+    `,
     maps: `
         springName,
         author,
@@ -38,10 +56,11 @@ db.version(1).stores({
         windMax,
         windMin,
         isInstalled,
-        isDownloading
-      `,
+        isDownloading,
+        isFavorite
+    `,
     gameVersions: "gameVersion, packageMd5",
-    engineVersions: "id, lastLaunched, ais",
+    users: "userId, username, countryCode, status, displayName, clanId, partyId, scopes, isMe",
 });
 
 db.on("ready", function () {

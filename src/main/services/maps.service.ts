@@ -4,8 +4,8 @@ import { ipcMain } from "electron";
 import { MapMetadata } from "@main/content/maps/map-metadata";
 import { fetchMapImages } from "@main/content/maps/map-image";
 
-function init() {
-    mapContentAPI.init();
+async function init() {
+    await mapContentAPI.init();
 }
 
 async function fetchAllMaps() {
@@ -24,7 +24,7 @@ async function fetchAllMaps() {
 function registerIpcHandlers(mainWindow: Electron.BrowserWindow) {
     ipcMain.handle("maps:downloadMap", (_, springName: string) => mapContentAPI.downloadMap(springName));
     ipcMain.handle("maps:downloadMaps", (_, springNames: string[]) => mapContentAPI.downloadMaps(springNames));
-    ipcMain.handle("maps:getInstalledVersions", () => mapContentAPI.installedVersions);
+    ipcMain.handle("maps:getInstalledVersions", () => mapContentAPI.availableVersions);
     ipcMain.handle("maps:isVersionInstalled", (_, id: string) => mapContentAPI.isVersionInstalled(id));
     ipcMain.handle("maps:attemptCacheErrorMaps", () => mapContentAPI.attemptCacheErrorMaps());
 

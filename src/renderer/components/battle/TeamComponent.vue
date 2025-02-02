@@ -42,7 +42,6 @@ import PlayerParticipant from "@renderer/components/battle/PlayerParticipant.vue
 import Button from "@renderer/components/controls/Button.vue";
 import { Bot, isBot, isPlayer, isRaptor, isScavenger, Player, StartPosType } from "@main/game/battle/battle-types";
 import { battleWithMetadataStore } from "@renderer/store/battle.store";
-import { me } from "@renderer/store/me.store";
 
 const props = defineProps<{
     teamId: number;

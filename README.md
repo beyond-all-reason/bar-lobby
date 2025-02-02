@@ -29,7 +29,7 @@ It is highly recommended to use [VSCode](https://code.visualstudio.com/) for dev
 
 ### Requirements
 
-- [Node.js 20.18.0](https://nodejs.org/en/download/)
+- [Node.js 22.11.0](https://nodejs.org/en/download/)
 
 ### Local Development
 
@@ -72,7 +72,7 @@ npm start
 - [**Renderer process**](https://www.electronjs.org/docs/latest/tutorial/process-model#the-renderer-process)
     - Runs in a web environment and has **no** direct access to Node.js APIs
 
-### Build & Publish:
+### Build & Publish
 
 - [`electron-forge`](https://www.electronforge.io/config/plugins/vite)
     - Builds the app with a pre-configured Vite setup for Electron apps
@@ -113,3 +113,13 @@ npm start
     - Runs `electron-builder` to create a self-signed cert for Windows apps.
     - After selecting "None" in the pop-up, a cert file should be created called `BAR Team.pfx`
     - Then run `npm run build:win:dev-cert` to build a signed Windows installer
+
+### Tips
+
+You can start multiple separate instances using `APP_NAME_SUFFIX` env variable (e.g. to work on multiplayer features) :
+
+```
+APP_NAME_SUFFIX=1 npm start
+APP_NAME_SUFFIX=2 npm start
+APP_NAME_SUFFIX=3 npm start
+```
