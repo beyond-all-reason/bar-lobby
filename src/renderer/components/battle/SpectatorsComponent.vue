@@ -62,8 +62,8 @@ function onDrop(event: DragEvent) {
 <style lang="scss" scoped>
 .group {
     border: 1px inset rgba(255, 255, 255, 0.1);
-    background: rgba(0, 0, 0, 0.5); //radial-gradient(circle, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.8));
-    // box-shadow: inset 0 0 10px rgba(0, 0, 0, 1);
+    background: radial-gradient(circle, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.8));
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 1);
     min-height: 100px;
     padding: 10px;
     position: relative;

@@ -126,8 +126,6 @@ function close() {
 
 .map-preview-container {
     aspect-ratio: 1;
-    display: flex;
-    justify-content: center;
 }
 
 .box-buttons {

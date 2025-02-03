@@ -1,7 +1,7 @@
 <template>
     <div class="lobby-drawer" :class="{ 'is-open': battleStore.isLobbyOpened }">
         <Panel class="panel" no-padding>
-            <OfflineBattleComponent v-if="battleStore.isLobbyOpened" />
+            <OfflineBattleComponent />
         </Panel>
     </div>
     <div class="backdrop" @click="battleStore.isLobbyOpened = false" v-if="battleStore.isLobbyOpened"></div>
