@@ -25,8 +25,7 @@ const loadedPercent = computed(() => progress.value / total);
 
 console.debug(`Loading ${total} font files...`);
 console.debug(`Loading ${Object.values(backgroundImages).length} background images...`);
-// const randomBackgroundImage = randomFromArray(Object.values(backgroundImages));
-const randomBackgroundImage = Object.values(backgroundImages).find((x) => x.includes("BAR3-5K_Loadingscreen_1"));
+const randomBackgroundImage = randomFromArray(Object.values(backgroundImages));
 console.debug("Setting background image:", randomBackgroundImage);
 document.documentElement.style.setProperty("--background", `url(${randomBackgroundImage})`);
 
