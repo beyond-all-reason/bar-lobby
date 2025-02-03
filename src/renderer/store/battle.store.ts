@@ -9,15 +9,8 @@ import { me } from "@renderer/store/me.store";
 import { deepToRaw } from "@renderer/utils/deep-toraw";
 import { reactive, readonly, watch } from "vue";
 
-// export enum GameMode {
-//     CLASSIC = "classic",
-//     RAPTORS = "raptors",
-//     SCAVENGERS = "scavengers",
-//     FFA = "ffa",
-// }
-
 export const GameMode: Record<string, GameModeType> = {
-    CLASSIC: "Skirmish",
+    CLASSIC: "Classic",
     RAPTORS: "Raptors",
     SCAVENGERS: "Scavengers",
     FFA: "FFA",
@@ -355,7 +348,7 @@ async function loadGameMode(gameMode: GameModeType) {
             battleStore.battleOptions = {
                 ...battleStore.battleOptions,
                 gameMode: {
-                    label: "Skirmish",
+                    label: "Classic",
                     options: {},
                 },
                 mapOptions: {
