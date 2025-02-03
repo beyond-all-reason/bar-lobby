@@ -1,64 +1,79 @@
-// TODO: add deep readonly type and add a clone method that removes it
-import { StartBox } from "@main/game/battle/battle-types";
+/**
+ * Map startbox formats:
+ * 1. Map metadata format:
+ *    - {
+ *        poly: [{ x: number; y: number }, { x: number; y: number }] }[]
+ *      }
+ *    - x and y are in [0, 200], with (0, 0) at the top left
+ *    - Each polygon defines 2 opposite corners of a startbox
+ * 2. The start script format:
+ *    - {
+ *        startrectleft: number;
+ *        startrecttop: number;
+ *        startrectright: number;
+ *        startrectbottom: number;
+ *      }
+ *    - Values are in [0, 1] as a percentage from the top left
+ * 3. The tachyon StartBox format:
+ *    - {
+ *        top: number;
+ *        bottom: number;
+ *        left: number;
+ *        right: number;
+ *      }
+ *    - Values are in [0, 1] as a percentage from the top left
+ */
 
-export function getBoxes(orientation: StartBoxOrientation, percent = 30) {
+import { StartBoxPoly } from "@main/content/maps/map-metadata";
+import { StartBoxOrientation } from "@main/game/battle/battle-types";
+import type { StartBox } from "tachyon-protocol/types";
+
+export function getBoxes(orientation: StartBoxOrientation, percent = 30): StartBox[] {
     const size = percent / 100;
     const sizeInverse = 1.0 - size;
     switch (orientation) {
         case StartBoxOrientation.EastVsWest:
             return [
-                { xPercent: 0, yPercent: 0, widthPercent: size, heightPercent: 1 },
-                { xPercent: sizeInverse, yPercent: 0, widthPercent: size, heightPercent: 1 },
+                { left: 0, top: 0, right: size, bottom: 1 },
+                { left: sizeInverse, top: 0, right: 1, bottom: 1 },
             ];
         case StartBoxOrientation.NorthVsSouth:
             return [
-                { xPercent: 0, yPercent: 0, widthPercent: 1, heightPercent: size },
-                { xPercent: 0, yPercent: sizeInverse, widthPercent: 1, heightPercent: size },
+                { left: 0, top: 0, right: 1, bottom: size },
+                { left: 0, top: sizeInverse, right: 1, bottom: 1 },
             ];
         case StartBoxOrientation.NortheastVsSouthwest:
             return [
-                { xPercent: sizeInverse, yPercent: 0, widthPercent: size, heightPercent: size },
-                { xPercent: 0, yPercent: sizeInverse, widthPercent: size, heightPercent: size },
+                { left: sizeInverse, top: 0, right: 1, bottom: size },
+                { left: 0, top: sizeInverse, right: size, bottom: 1 },
             ];
-        case StartBoxOrientation.NorthwestVsSouthEast:
+        case StartBoxOrientation.NorthwestVsSoutheast:
             return [
-                { xPercent: 0, yPercent: 0, widthPercent: size, heightPercent: size },
-                {
-                    xPercent: sizeInverse,
-                    yPercent: sizeInverse,
-                    widthPercent: size,
-                    heightPercent: size,
-                },
+                { left: 0, top: 0, right: size, bottom: size },
+                { left: sizeInverse, top: sizeInverse, right: 1, bottom: 1 },
             ];
     }
 }
 
-export enum StartBoxOrientation {
-    EastVsWest = "EastVsWeast",
-    NorthVsSouth = "NorthVsSouth",
-    NortheastVsSouthwest = "NortheastVsSouthwest",
-    NorthwestVsSouthEast = "NorthwestVsSouthEast",
-}
-
-export function defaultMapBoxes(mapspringName?: "Red Comet Remake 1.8" | "Quicksilver Remake 1.24") {
-    if (!mapspringName) {
-        return getBoxes(StartBoxOrientation.EastVsWest);
+export function spadsBoxToStartBox(points: StartBoxPoly[]) {
+    if (points.length !== 2) {
+        throw new Error("spadsBoxToStartBox expects exactly 2 points");
     }
-    const mapBoxes = {
-        "Red Comet Remake 1.8": getBoxes(StartBoxOrientation.EastVsWest),
-        "Quicksilver Remake 1.24": getBoxes(StartBoxOrientation.NorthVsSouth),
-    };
-    return mapBoxes[mapspringName] ?? getBoxes(StartBoxOrientation.EastVsWest);
-}
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function spadsBoxToStartBox(spadsBox: any) {
+    const xs = points.map((point) => point.x);
+    const ys = points.map((point) => point.y);
+    const x1 = Math.min(...xs);
+    const y1 = Math.min(...ys);
+    const x2 = Math.max(...xs);
+    const y2 = Math.max(...ys);
+
     const box: StartBox = {
-        xPercent: roundToMultiple(spadsBox.x1 / 200, 0.01),
-        yPercent: roundToMultiple(spadsBox.y1 / 200, 0.01),
-        widthPercent: roundToMultiple(spadsBox.x2 / 200 - spadsBox.x1 / 200, 0.01),
-        heightPercent: roundToMultiple(spadsBox.y2 / 200 - spadsBox.y1 / 200, 0.01),
+        left: roundToMultiple(x1 / 200, 0.01),
+        top: roundToMultiple(y1 / 200, 0.01),
+        right: roundToMultiple(x2 / 200, 0.01),
+        bottom: roundToMultiple(y2 / 200, 0.01),
     };
+
     return box;
 }
 

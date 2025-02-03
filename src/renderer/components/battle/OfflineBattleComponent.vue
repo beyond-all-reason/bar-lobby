@@ -8,17 +8,8 @@
             <AdvancedOptions />
         </div>
 
-        <div class="main-content">
+        <div class="main-content fullheight">
             <div class="map card padding-md">
-                <!-- <Select
-                    :modelValue="battleStore.battleOptions.map"
-                    :options="mapListOptions"
-                    label="Map"
-                    optionLabel="springName"
-                    :filter="true"
-                    class="fullwidth"
-                    @update:model-value="onMapSelected"
-                /> -->
                 <div class="map-title card padding-md flex-row flex-space-between flex-align-center">
                     <h4>{{ battleStore.battleOptions.map?.displayName }}</h4>
                     <Button v-tooltip.left="'Change map'" @click="openMapList">
@@ -27,7 +18,7 @@
                     <MapListModal v-model="mapListOpen" title="Maps" @map-selected="onMapSelected" />
                 </div>
 
-                <div class="card padding-md flex-row flex-space-between flex-align-center">
+                <div class="card padding-md flex-row flex-space-between flex-align-center" v-if="battleStore.battleOptions.map">
                     <!-- TODO: What info about the map is most important to show here? -->
                     <span><b>Size</b> {{ battleStore.battleOptions.map?.mapWidth }}x{{ battleStore.battleOptions.map?.mapHeight }}</span>
                     <span><b>Max Players</b> {{ battleStore.battleOptions.map?.playerCountMax }}</span>
@@ -52,44 +43,41 @@
                 <Playerlist />
             </div>
             <div class="options">
-                <div class="card padding-md flex-col flex-grow fullheight">
-                    <!-- <SelectedOptions /> -->
-                    <div class="scroll-container" style="white-space: pre-wrap">
-                        <pre>{{ JSON.stringify(battleStore, null, 4) }}</pre>
+                <div class="card padding-md flex-col flex-grow fullheight gap-sm">
+                    <SelectedOptions />
+                    <div v-if="settingsStore.devMode">
+                        <Select
+                            :modelValue="battleStore.battleOptions.gameVersion"
+                            :options="gameListOptions"
+                            optionLabel="gameVersion"
+                            optionValue="gameVersion"
+                            label="Game"
+                            :filter="true"
+                            :placeholder="battleStore.battleOptions.gameVersion"
+                            @update:model-value="onGameSelected"
+                        />
+                    </div>
+                    <div v-if="settingsStore.devMode">
+                        <Select
+                            :modelValue="enginesStore.selectedEngineVersion"
+                            @update:model-value="(engine) => (enginesStore.selectedEngineVersion = engine)"
+                            :options="enginesStore.availableEngineVersions"
+                            data-key="id"
+                            optionLabel="id"
+                            label="Engine"
+                            :filter="true"
+                            class="fullwidth"
+                        />
                     </div>
                 </div>
-                <!-- <div v-if="settingsStore.devMode">
-                    <Select
-                        :modelValue="battleStore.battleOptions.gameVersion"
-                        :options="gameListOptions"
-                        optionLabel="gameVersion"
-                        optionValue="gameVersion"
-                        label="Game"
-                        :filter="true"
-                        :placeholder="battleStore.battleOptions.gameVersion"
-                        @update:model-value="onGameSelected"
-                    />
-                </div>
-                <div v-if="settingsStore.devMode">
-                    <Select
-                        :modelValue="enginesStore.selectedEngineVersion"
-                        @update:model-value="(engine) => (enginesStore.selectedEngineVersion = engine)"
-                        :options="enginesStore.availableEngineVersions"
-                        data-key="id"
-                        optionLabel="id"
-                        label="Engine"
-                        :filter="true"
-                        class="fullwidth"
-                    />
-                </div> -->
             </div>
         </div>
 
-        <div class="card padding-md flex-row flex-bottom gap-md flex-grow">
+        <div class="footer card padding-md flex-row flex-bottom gap-md flex-grow">
             <DownloadContentButton
                 v-if="map"
                 :map="map"
-                class="fullwidth green"
+                class="green"
                 :disabled="gameStore.isGameRunning"
                 @click="battleActions.startBattle"
             >
@@ -125,15 +113,12 @@ import { enginesStore } from "@renderer/store/engine.store";
 
 const mapListOpen = ref(false);
 const mapOptionsOpen = ref(false);
-const mapListOptions = useDexieLiveQuery(() => db.maps.toArray());
 const gameListOptions = useDexieLiveQuery(() => db.gameVersions.toArray());
 
 const map = useDexieLiveQueryWithDeps([() => battleStore.battleOptions.map], () => {
     if (!battleStore.battleOptions.map) return null;
     return db.maps.get(battleStore.battleOptions.map.springName);
 });
-
-console.log(battleStore.battleOptions.map);
 
 function openMapList() {
     mapListOpen.value = true;
@@ -164,7 +149,6 @@ function onMapSelected(map: MapData) {
 
 .card {
     background: rgba(0, 0, 0, 0.5);
-    // padding: 0.5rem;
 
     > .card {
         background: rgba(0, 0, 0, 0.3);
@@ -173,7 +157,7 @@ function onMapSelected(map: MapData) {
 
 .main-content {
     display: grid;
-    grid-template-columns: minmax(450px, 1fr) 2fr 0.5fr;
+    grid-template-columns: minmax(450px, 1fr) 2fr 1fr;
     grid-auto-rows: auto;
     flex-direction: row;
     gap: 10px;
@@ -199,21 +183,10 @@ function onMapSelected(map: MapData) {
     height: 100%;
 }
 
-// .title {
-//     font-size: 30px;
-//     line-height: 1.2;
-// }
-// .options {
-//     display: flex;
-//     flex-direction: column;
-//     gap: 10px;
-//     height: 100%;
-//     width: 400px;
-// }
-
 .footer {
-    display: flex;
-    flex-direction: row;
+    display: grid;
+    grid-template-columns: minmax(450px, 1fr) 2fr 1fr;
+    direction: rtl;
     gap: 10px;
 }
 

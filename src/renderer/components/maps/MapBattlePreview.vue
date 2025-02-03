@@ -1,5 +1,5 @@
 <template>
-    <div class="map-container" :style="dynamicAspectRatio">
+    <div class="map-container fullheight" :style="dynamicAspectRatio">
         <div v-if="battleStore.battleOptions.map" class="map" :style="aspectRatioDrivenStyle">
             <img loading="lazy" :src="mapTextureUrl" />
             <div v-if="battleStore.battleOptions.mapOptions.startPosType === StartPosType.Boxes && boxes" class="boxes">
@@ -9,10 +9,13 @@
                     </div>
                 </div>
             </div>
-            <div v-if="battleStore.battleOptions.mapOptions.startPosType === StartPosType.Fixed" class="start-positions">
+            <div
+                v-if="battleStore.battleOptions.mapOptions.startPosType in [StartPosType.Fixed, StartPosType.Random]"
+                class="start-positions"
+            >
                 <div
                     v-for="(side, sideIndex) in battleStore.battleOptions.map.startPos?.team[
-                        battleStore.battleOptions.mapOptions.fixedPositionsIndex
+                        battleStore.battleOptions.mapOptions.fixedPositionsIndex ?? 0
                     ]?.sides"
                     :key="`side${sideIndex}`"
                 >
@@ -44,6 +47,8 @@ import vSetPlayerColor from "@renderer/directives/vSetPlayerColor";
 import vStartBox from "@renderer/directives/vStartBox";
 import vStartPos from "@renderer/directives/vStartPos";
 import { battleStore } from "@renderer/store/battle.store";
+import { spadsBoxToStartBox } from "@renderer/utils/start-boxes";
+import { StartBox } from "tachyon-protocol/types";
 import { computed, defineComponent, ref, watch } from "vue";
 
 defineComponent({
@@ -76,24 +81,22 @@ watch(
     }
 );
 
-const boxes = computed(() => {
-    return startBoxes.value.at(battleStore.battleOptions.mapOptions.startBoxesIndex)?.startboxes.map((box) => {
-        const { x: x1, y: y1 } = box.poly.at(0);
-        const { x: x2, y: y2 } = box.poly.at(1);
-        return {
-            top: y1 / 200,
-            bottom: y2 / 200,
-            left: x1 / 200,
-            right: x2 / 200,
-        };
-    });
+const boxes = computed<StartBox[]>(() => {
+    if (battleStore.battleOptions.mapOptions.startBoxesIndex >= 0) {
+        return startBoxes.value
+            .at(battleStore.battleOptions.mapOptions.startBoxesIndex)
+            ?.startboxes.map((box) => spadsBoxToStartBox(box.poly));
+    } else if (battleStore.battleOptions.mapOptions?.customStartBoxes) {
+        return battleStore.battleOptions.mapOptions?.customStartBoxes;
+    }
+    return [];
 });
 
 const aspectRatioDrivenStyle = computed(() => {
     if (!battleStore.battleOptions.map?.mapWidth || !battleStore.battleOptions.map?.mapHeight) {
         return;
     }
-    return battleStore.battleOptions.map.mapWidth / battleStore.battleOptions.map.mapHeight > 1 ? "height: auto;" : "height: 100%;";
+    return battleStore.battleOptions.map.mapWidth / battleStore.battleOptions.map.mapHeight > 1 ? "height: auto;" : "";
 });
 const dynamicAspectRatio = computed(() => {
     if (!battleStore.battleOptions.map?.mapWidth || !battleStore.battleOptions.map?.mapHeight) {
@@ -119,9 +122,6 @@ const rgbColors = [
     flex-shrink: 0;
     aspect-ratio: 1;
     overflow: hidden;
-    display: flex;
-    align-items: center;
-    justify-content: center;
     border: 1px solid rgba(255, 255, 255, 0.1);
     background-color: rgba(0, 0, 0, 0.3);
 }

@@ -27,7 +27,7 @@ export function createWindow() {
         minHeight: height / 2,
         resizable: true,
         center: true,
-        // frame: false,
+        frame: false,
         autoHideMenuBar: true,
         webPreferences: {
             preload: path.join(__dirname, "../build/preload.js"),

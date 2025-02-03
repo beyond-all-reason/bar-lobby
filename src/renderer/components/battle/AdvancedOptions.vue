@@ -1,16 +1,13 @@
 <template>
     <div class="flex-row gap-md">
-        <Button class="fullwidth" @click="openGameOptions">Advanced Settings</Button>
+        <Button class="gap-sm" @click="openGameOptions"> Advanced Settings <Icon :icon="settingsIcon" height="24" /> </Button>
+        <!-- TODO: Exclude raptor and scavenger options from this menu with ?.filter((s) => s.key !== 'raptor_defense_options' && s.key !== 'scav_defense_options') -->
         <LuaOptionsModal
             id="game-options"
             title="Game Options"
             v-model="gameOptionsOpen"
             :options="battleStore.battleOptions.gameMode.options"
-            :sections="
-                gameStore.selectedGameVersion?.luaOptionSections?.filter(
-                    (s) => s.key !== 'raptor_defense_options' && s.key !== 'scav_defense_options'
-                )
-            "
+            :sections="gameStore.selectedGameVersion?.luaOptionSections"
             @set-options="onOptionsChanged"
         />
     </div>
@@ -22,11 +19,10 @@ import Button from "@renderer/components/controls/Button.vue";
 import { battleStore } from "@renderer/store/battle.store";
 import { gameStore } from "@renderer/store/game.store";
 import { ref, watch } from "vue";
+import settingsIcon from "@iconify-icons/mdi/settings";
+import { Icon } from "@iconify/vue";
 
 const groupedBySection = ref(new Map<LuaOptionSection, (LuaOption & { value: boolean | string | number })[]>());
-
-console.log("selectedGameVersion?.luaOptionSections", gameStore.selectedGameVersion?.luaOptionSections);
-console.log("optionsMap", gameStore.optionsMap);
 
 watch(
     () => battleStore.battleOptions.gameMode.options,

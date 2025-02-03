@@ -15,7 +15,6 @@ import { battleActions, battleStore } from "@renderer/store/battle.store";
 
 //TODO have theses presets come from the game
 const gameModeListOptions: GameMode[] = [
-    // { label: "Default", options: {} },
     { label: "Skirmish", options: {} },
     { label: "FFA", options: {} },
     { label: "Raptors", options: {} },
