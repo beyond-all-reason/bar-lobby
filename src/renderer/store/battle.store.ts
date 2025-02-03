@@ -245,7 +245,7 @@ function defaultOfflineBattle(engine?: EngineVersion, game?: GameVersion, map?: 
         contentSyncState: {
             engine: 1,
             game: 1,
-            map: 1, // TODO map.isInstalled
+            map: map?.isInstalled ? 1 : 0,
         },
         inGame: false,
     } as Player;
@@ -308,9 +308,9 @@ watch(
 watch(
     () => battleStore.battleOptions.map,
     () => {
-        console.log(battleStore.battleOptions.map);
         battleStore.battleOptions.mapOptions.startPosType = StartPosType.Boxes;
         battleStore.battleOptions.mapOptions.startBoxesIndex = 0;
+        battleStore.me.contentSyncState.map = battleStore.battleOptions.map?.isInstalled ? 1 : 0;
         updateTeams();
     },
     { deep: true }
