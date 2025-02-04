@@ -1,5 +1,5 @@
 <route lang="json5">
-{ meta: { title: "Custom 2", order: 3, transition: { name: "slide-left" } } }
+{ meta: { title: "Custom 2", order: 3, blurBg: true, transition: { name: "slide-left" } } }
 </route>
 
 <template>
@@ -29,6 +29,8 @@ import Panel from "@renderer/components/common/Panel.vue";
     gap: 20px;
     height: 100%;
     width: 1000px;
+    width: clamp(50vw, 100rem, 100vw);
     overflow: visible;
+    padding: 1rem;
 }
 </style>

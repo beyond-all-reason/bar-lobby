@@ -27,9 +27,14 @@ export interface MapMetadata {
     windMin: number;
 }
 
+export interface StartBoxPoly {
+    x: number;
+    y: number;
+}
+
 export interface Startbox {
     maxPlayersPerStartbox: number;
-    startboxes: { poly: { x: number; y: number }[] }[];
+    startboxes: { poly: StartBoxPoly[] }[];
 }
 
 export interface Team {

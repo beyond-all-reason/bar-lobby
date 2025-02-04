@@ -129,7 +129,6 @@ function onMapSelected(map: MapData) {
     font-size: 30px;
     line-height: 1.2;
 }
-
 .player-list {
     display: flex;
     flex-direction: column;
@@ -137,7 +136,6 @@ function onMapSelected(map: MapData) {
     gap: 10px;
     height: 100%;
 }
-
 .options {
     display: flex;
     flex-direction: column;
@@ -145,14 +143,12 @@ function onMapSelected(map: MapData) {
     height: 100%;
     width: 400px;
 }
-
 .main-content {
     display: flex;
     flex-direction: row;
     gap: 10px;
     height: 100%;
 }
-
 .footer {
     display: flex;
     flex-direction: row;

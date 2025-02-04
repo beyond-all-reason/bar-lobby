@@ -3,8 +3,8 @@
         :key="`team${teamId}`"
         class="group"
         :class="{
-            raptor: battleWithMetadataStore.teams[teamId].some((member) => isBot(member) && isRaptor(member)),
-            scavenger: battleWithMetadataStore.teams[teamId].some((member) => isBot(member) && isScavenger(member)),
+            raptor: isRaptorTeam(teamId),
+            scavenger: isScavengerTeam(teamId),
         }"
         data-type="group"
         @dragenter.prevent="onDragEnter($event, teamId)"
@@ -13,14 +13,18 @@
     >
         <div class="group-header flex-row flex-center-items gap-md">
             <div class="title">{{ title }}</div>
-            <div class="member-count">({{ memberCount }}/{{ maxPlayersPerTeam }} players)</div>
-            <Button class="slim black" @click="addBotClicked(teamId)"> Add bot </Button>
+            <div class="member-count" v-if="!isRaptorTeam(teamId) && !isScavengerTeam(teamId)">
+                ({{ memberCount }}/{{ maxPlayersPerTeam }} players)
+            </div>
+            <Button class="slim black" @click="addBotClicked(teamId)" v-if="!isRaptorTeam(teamId) && !isScavengerTeam(teamId)">
+                Add bot
+            </Button>
             <!-- <Button v-if="showJoin" class="slim black" @click="onJoinClicked(teamId)">Join</Button> -->
         </div>
         <div
             v-for="member in battleWithMetadataStore.teams[teamId]"
             :key="member.id"
-            draggable="true"
+            :draggable="!isRaptorTeam(teamId) && !isScavengerTeam(teamId)"
             @dragstart="onDragStart($event, member)"
             @dragend="onDragEnd()"
             class="participant"
@@ -28,8 +32,10 @@
             <PlayerParticipant v-if="isPlayer(member)" :player="member" />
             <BotParticipant v-else-if="isBot(member)" :bot="member" :team-id="teamId" />
         </div>
-        <div v-for="(_, i) in maxPlayersPerTeam - memberCount" :key="i">
-            <button class="join-button" :class="{ first: i === 0 }" @click="onJoinClicked(teamId)">Join</button>
+        <div v-if="!isRaptorTeam(teamId) && !isScavengerTeam(teamId)">
+            <div v-for="(_, i) in maxPlayersPerTeam > 0 ? maxPlayersPerTeam - memberCount : 1" :key="i">
+                <button class="join-button" :class="{ first: i === 0 }" @click="onJoinClicked(teamId)">Join</button>
+            </div>
         </div>
     </div>
 </template>
@@ -46,7 +52,7 @@ import { battleWithMetadataStore } from "@renderer/store/battle.store";
 const props = defineProps<{
     teamId: number;
 }>();
-const title = "Team " + (Number(props.teamId) + 1);
+const title = isScavengerTeam(props.teamId) ? "Scavengers" : isRaptorTeam(props.teamId) ? "Raptors" : "Team " + (Number(props.teamId) + 1);
 
 const memberCount = computed(() => {
     return battleWithMetadataStore.teams[props.teamId]?.length || 0;
@@ -56,12 +62,20 @@ const maxPlayersPerTeam = computed(() => {
     if (!battleWithMetadataStore.battleOptions.map) return 1;
     if (battleWithMetadataStore.battleOptions.mapOptions.startPosType === StartPosType.Boxes)
         return battleWithMetadataStore.battleOptions.map.startboxesSet[battleWithMetadataStore.battleOptions.mapOptions.startBoxesIndex]
-            .maxPlayersPerStartbox;
-    if (battleWithMetadataStore.battleOptions.mapOptions.startPosType === StartPosType.Fixed)
-        return battleWithMetadataStore.battleOptions.map.startPos.team[battleWithMetadataStore.battleOptions.mapOptions.fixedPositionsIndex]
-            .playersPerTeam;
+            ?.maxPlayersPerStartbox;
+    if (battleWithMetadataStore.battleOptions.mapOptions.startPosType in [StartPosType.Fixed, StartPosType.Random])
+        return battleWithMetadataStore.battleOptions.map.startPos.team[
+            battleWithMetadataStore.battleOptions.mapOptions.fixedPositionsIndex ?? 0
+        ].playersPerTeam;
     return 1;
 });
+
+function isRaptorTeam(teamId: number) {
+    return battleWithMetadataStore.teams[teamId].some((member) => isBot(member) && isRaptor(member));
+}
+function isScavengerTeam(teamId: number) {
+    return battleWithMetadataStore.teams[teamId].some((member) => isBot(member) && isScavenger(member));
+}
 
 // const showJoin = computed(() => {
 //     return props.teamId !== me.battleRoomState.teamId;
@@ -81,14 +95,17 @@ function onDragStart(event: DragEvent, member: Player | Bot) {
 }
 
 function onDragEnd() {
+    if (isRaptorTeam(props.teamId) || isScavengerTeam(props.teamId)) return;
     emit("onDragEnd");
 }
 
 function onDragEnter(event: DragEvent, teamId: number) {
+    if (isRaptorTeam(props.teamId) || isScavengerTeam(props.teamId)) return;
     emit("onDragEnter", event, teamId);
 }
 
 function onDrop(event: DragEvent, teamId: number) {
+    if (isRaptorTeam(props.teamId) || isScavengerTeam(props.teamId)) return;
     emit("onDrop", event, teamId);
 }
 </script>
@@ -96,8 +113,7 @@ function onDrop(event: DragEvent, teamId: number) {
 <style lang="scss" scoped>
 .group {
     border: 1px inset rgba(255, 255, 255, 0.1);
-    background: radial-gradient(circle, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.8));
-    box-shadow: 0 0 10px rgba(0, 0, 0, 1) inset;
+    background: rgba(0, 0, 0, 0.5);
     min-height: 100px;
     padding: 10px;
     position: relative;

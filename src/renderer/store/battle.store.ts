@@ -1,7 +1,7 @@
 import { EngineAI, EngineVersion } from "@main/content/engine/engine-version";
 import { GameAI, GameVersion } from "@main/content/game/game-version";
 import { MapData } from "@main/content/maps/map-data";
-import { Battle, BattleOptions, BattleWithMetadata, Bot, Faction, Player, StartPosType } from "@main/game/battle/battle-types";
+import { Battle, BattleOptions, BattleWithMetadata, Bot, Faction, GameModeType, isBot, isPlayer, isRaptor, isScavenger, Player, StartPosType } from "@main/game/battle/battle-types";
 import { enginesStore } from "@renderer/store/engine.store";
 import { gameStore } from "@renderer/store/game.store";
 import { getRandomMap } from "@renderer/store/maps.store";
@@ -9,12 +9,12 @@ import { me } from "@renderer/store/me.store";
 import { deepToRaw } from "@renderer/utils/deep-toraw";
 import { reactive, readonly, watch } from "vue";
 
-export enum GameMode {
-    CLASSIC = "classic",
-    RAPTORS = "raptors",
-    SCAVENGERS = "scavengers",
-    FFA = "ffa",
-}
+export const GameMode: Record<string, GameModeType> = {
+    CLASSIC: "Classic",
+    RAPTORS: "Raptors",
+    SCAVENGERS: "Scavengers",
+    FFA: "FFA",
+};
 
 let participantId = 0;
 interface BattleLobby {
@@ -119,26 +119,90 @@ function moveBotToTeam(bot: Bot, teamId: number) {
     battleStore.teams[teamId].push(bot);
 }
 
-//TODO move extra players to spectators
+function getNumberOfTeams(): number {
+    let numberOfTeams = 0;
+
+    if (battleStore.battleOptions.mapOptions.startPosType === StartPosType.Boxes) {
+        if (battleStore.battleOptions.mapOptions.startBoxesIndex >= 0) {
+            const startBoxes = battleStore.battleOptions.map.startboxesSet[battleStore.battleOptions.mapOptions.startBoxesIndex];
+            numberOfTeams = startBoxes.startboxes?.length;
+        } else if (battleStore.battleOptions.mapOptions.customStartBoxes) {
+            numberOfTeams = battleStore.battleOptions.mapOptions.customStartBoxes.length;
+        }
+    }
+
+    if (battleStore.battleOptions.mapOptions.startPosType in [StartPosType.Fixed, StartPosType.Random]) {
+        const teamPreset = battleStore.battleOptions.map.startPos.team[battleStore.battleOptions.mapOptions.fixedPositionsIndex ?? 0];
+        numberOfTeams = teamPreset.sides.length;
+    }
+
+    return numberOfTeams;
+}
+
+function getMaxPlayersPerTeam(): number {
+    let maxPlayersPerTeam: number = null;
+
+    if (battleStore.battleOptions.mapOptions.startPosType === StartPosType.Boxes) {
+        if (battleStore.battleOptions.mapOptions.startBoxesIndex >= 0) {
+            const startBoxes = battleStore.battleOptions.map.startboxesSet[battleStore.battleOptions.mapOptions.startBoxesIndex];
+            maxPlayersPerTeam = startBoxes.maxPlayersPerStartbox;
+        }
+    }
+
+    if (battleStore.battleOptions.mapOptions.startPosType in [StartPosType.Fixed, StartPosType.Random]) {
+        const teamPreset = battleStore.battleOptions.map.startPos.team[battleStore.battleOptions.mapOptions.fixedPositionsIndex ?? 0];
+        maxPlayersPerTeam = teamPreset.playersPerTeam;
+    }
+
+    return maxPlayersPerTeam;
+}
+
 function updateTeams() {
     if (!battleStore.battleOptions.map) return;
-    const currentParticipants = Object.values(battleStore.teams).flat();
-    if (battleStore.battleOptions.mapOptions.startPosType === StartPosType.Boxes) {
-        // get all participant in team order
-        // update teams with selected BoxDetails
-        const startBoxes = battleStore.battleOptions.map.startboxesSet[battleStore.battleOptions.mapOptions.startBoxesIndex];
-        const numberOfTeams = startBoxes.startboxes.length;
-        const maxPlayersPerStartbox = startBoxes.maxPlayersPerStartbox;
-        battleStore.teams = new Array(numberOfTeams).fill(null).map((_, i) => {
-            return currentParticipants.slice(i * maxPlayersPerStartbox, (i + 1) * maxPlayersPerStartbox);
-        });
+    const numberOfTeams = getNumberOfTeams();
+    const maxPlayersPerTeam = getMaxPlayersPerTeam();
+
+    // Try to keep players on the same team, then fill the other teams, then move extra players to spectators
+
+    // Adjust number of teams
+    let extraParticipants: Array<Player | Bot> = [];
+    if (battleStore.teams.length < numberOfTeams) {
+        const teamsToAdd = numberOfTeams - battleStore.teams.length;
+        battleStore.teams = [...battleStore.teams, ...new Array(teamsToAdd).fill([])];
+    } else if (battleStore.teams.length > numberOfTeams) {
+        extraParticipants = [...extraParticipants, ...battleStore.teams.slice(numberOfTeams).flat()];
+        battleStore.teams = [...battleStore.teams.slice(0, numberOfTeams)];
     }
-    if (battleStore.battleOptions.mapOptions.startPosType === StartPosType.Fixed) {
-        const teamPreset = battleStore.battleOptions.map.startPos.team[battleStore.battleOptions.mapOptions.fixedPositionsIndex];
-        const numberOfTeams = teamPreset.sides.length;
-        const maxPlayersPerTeam = teamPreset.playersPerTeam;
-        battleStore.teams = new Array(numberOfTeams).fill(null).map((_, i) => {
-            return currentParticipants.slice(i * maxPlayersPerTeam, (i + 1) * maxPlayersPerTeam);
+
+    // Remove extra players/bots from teams
+    for (const [index, team] of battleStore.teams.entries()) {
+        const raptorsOrScavengers = team.find((participant) => isBot(participant) && (isRaptor(participant) || isScavenger(participant)));
+        if (raptorsOrScavengers) {
+            extraParticipants.push(...team.filter((participant) => !isBot(participant) || (!isRaptor(participant) && !isScavenger(participant))));
+            battleStore.teams[index] = [raptorsOrScavengers];
+        } else if (index >= numberOfTeams) {
+            extraParticipants.push(...team);
+        } else if (team.length > maxPlayersPerTeam) {
+            extraParticipants = [...extraParticipants, ...team.slice(maxPlayersPerTeam)];
+            team.splice(0, maxPlayersPerTeam);
+        }
+    }
+
+    // Add extra players/bots to teams where they fit
+    for (const team of battleStore.teams.values()) {
+        // Don't fill scav/raptor team
+        if (team.some((participant) => isBot(participant) && (isRaptor(participant) || isScavenger(participant)))) return;
+
+        if (team.length < maxPlayersPerTeam && extraParticipants.length > 0) {
+            const numberOfPlayersToAdd = maxPlayersPerTeam - team.length;
+            team.push(...extraParticipants.splice(0, numberOfPlayersToAdd));
+        }
+    }
+
+    // Move any remaining players to spectators and delete remaining bots
+    if (extraParticipants.length > 0) {
+        extraParticipants.forEach((participant) => {
+            if (isPlayer(participant)) movePlayerToSpectators(participant);
         });
     }
 }
@@ -152,7 +216,7 @@ function defaultOfflineBattle(engine?: EngineVersion, game?: GameVersion, map?: 
             engineVersion: engine?.id || enginesStore.selectedEngineVersion.id,
             gameVersion: game?.gameVersion || gameStore.selectedGameVersion.gameVersion,
             gameMode: {
-                label: "Default",
+                label: "Classic",
                 options: game?.luaOptionSections || {},
             },
             map,
@@ -174,7 +238,7 @@ function defaultOfflineBattle(engine?: EngineVersion, game?: GameVersion, map?: 
         contentSyncState: {
             engine: 1,
             game: 1,
-            map: 1,
+            map: map?.isInstalled ? 1 : 0,
         },
         inGame: false,
     } as Player;
@@ -239,6 +303,7 @@ watch(
     () => {
         battleStore.battleOptions.mapOptions.startPosType = StartPosType.Boxes;
         battleStore.battleOptions.mapOptions.startBoxesIndex = 0;
+        battleStore.me.contentSyncState.map = battleStore.battleOptions.map?.isInstalled ? 1 : 0;
         updateTeams();
     },
     { deep: true }
@@ -263,7 +328,7 @@ function leaveBattle() {
     resetToDefaultBattle();
 }
 
-async function loadGameMode(gameMode: GameMode) {
+async function loadGameMode(gameMode: GameModeType) {
     if (!battleStore.battleOptions.engineVersion) {
         battleStore.battleOptions.engineVersion = enginesStore.selectedEngineVersion.id;
     }
@@ -277,6 +342,8 @@ async function loadGameMode(gameMode: GameMode) {
 
     switch (gameMode) {
         case GameMode.CLASSIC:
+            removeScavengersAI();
+            removeRaptorsAI();
             battleStore.title = "Classic";
             battleStore.battleOptions = {
                 ...battleStore.battleOptions,
@@ -292,6 +359,8 @@ async function loadGameMode(gameMode: GameMode) {
             };
             break;
         case GameMode.RAPTORS:
+            removeScavengersAI();
+            addRaptorsAI();
             battleStore.title = "Raptors";
             battleStore.battleOptions = {
                 ...battleStore.battleOptions,
@@ -307,6 +376,8 @@ async function loadGameMode(gameMode: GameMode) {
             };
             break;
         case GameMode.SCAVENGERS:
+            removeRaptorsAI();
+            addScavengersAI();
             battleStore.title = "Scavengers";
             battleStore.battleOptions = {
                 ...battleStore.battleOptions,
@@ -322,6 +393,8 @@ async function loadGameMode(gameMode: GameMode) {
             };
             break;
         case GameMode.FFA:
+            removeScavengersAI();
+            removeRaptorsAI();
             battleStore.title = "FFA";
             battleStore.battleOptions = {
                 ...battleStore.battleOptions,
@@ -339,6 +412,22 @@ async function loadGameMode(gameMode: GameMode) {
         default:
             console.error("Unknown game mode", gameMode);
     }
+}
+
+function removeScavengersAI() {
+    battleStore.teams.flat().forEach((p) => isBot(p) && isScavenger(p) && removeBot(p));
+}
+function removeRaptorsAI() {
+    battleStore.teams.flat().forEach((p) => isBot(p) && isRaptor(p) && removeBot(p));
+}
+
+function addScavengersAI() {
+    const scavengersAI = gameStore.selectedGameVersion.ais?.find((ai) => ai.shortName === "ScavengersAI");
+    addBot(scavengersAI, getNumberOfTeams() - 1);
+}
+function addRaptorsAI() {
+    const raptorsAI = gameStore.selectedGameVersion.ais?.find((ai) => ai.shortName === "RaptorsAI");
+    addBot(raptorsAI, getNumberOfTeams() - 1);
 }
 
 export const battleActions = {

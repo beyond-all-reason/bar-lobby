@@ -35,21 +35,19 @@ import { GameMode } from "@main/game/battle/battle-types";
 import LuaOptionsModal from "@renderer/components/battle/LuaOptionsModal.vue";
 import Button from "@renderer/components/controls/Button.vue";
 import Select from "@renderer/components/controls/Select.vue";
-import { battleStore } from "@renderer/store/battle.store";
+import { battleActions, battleStore } from "@renderer/store/battle.store";
 import { gameStore } from "@renderer/store/game.store";
 import { ref, watch } from "vue";
 
 //TODO have theses presets come from the game
 const gameModeListOptions: GameMode[] = [
-    { label: "Default", options: {} },
-    { label: "Skirmish", options: {} },
+    { label: "Classic", options: {} },
     { label: "FFA", options: {} },
     { label: "Raptors", options: {} },
     { label: "Scavengers", options: {} },
 ];
 
 const groupedBySection = ref(new Map<LuaOptionSection, (LuaOption & { value: boolean | string | number })[]>());
-
 watch(
     () => battleStore.battleOptions.gameMode.options,
     (overridenOptions) => {
@@ -69,15 +67,12 @@ watch(
         deep: true,
     }
 );
-
 const gameOptionsOpen = ref(false);
-
 async function openGameOptions() {
     gameOptionsOpen.value = true;
 }
-
-function onGameModeSelected(gameMode: GameMode) {
-    battleStore.battleOptions.gameMode = gameMode;
+async function onGameModeSelected(gameMode: GameMode) {
+    await battleActions.loadGameMode(gameMode.label);
 }
 
 function onOptionsChanged(options: Record<string, boolean | string | number>) {
@@ -91,7 +86,6 @@ function onOptionsChanged(options: Record<string, boolean | string | number>) {
     display: flex;
     flex-direction: column;
 }
-
 .custom-game-options {
     padding: 10px;
     display: flex;
@@ -102,19 +96,16 @@ function onOptionsChanged(options: Record<string, boolean | string | number>) {
     font-size: smaller;
     color: #ffcc00;
 }
-
 .overriden-section {
     color: rgba(255, 255, 255, 0.5);
     font-weight: bold;
     padding: 5px;
 }
-
 .overriden-game-option {
     display: flex;
     justify-content: space-between;
     gap: 20px;
 }
-
 .value {
     overflow-x: hidden;
     text-overflow: ellipsis;

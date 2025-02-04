@@ -12,7 +12,9 @@
             </Button>
 
             <Button
-                v-for="(ai, i) in gameStore.selectedGameVersion.ais"
+                v-for="(ai, i) in gameStore.selectedGameVersion.ais?.filter(
+                    (ai) => ai.shortName !== 'RaptorsAI' && ai.shortName !== 'ScavengersAI'
+                )"
                 :key="i"
                 v-tooltip.bottom="{ value: ai.description }"
                 class="ai-button"

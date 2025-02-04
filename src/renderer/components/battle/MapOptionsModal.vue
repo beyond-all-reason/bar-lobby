@@ -27,16 +27,16 @@
                 <div class="flex-col gap-sm">
                     <h4>Custom boxes</h4>
                     <div class="box-buttons">
-                        <Button>
+                        <Button @click="() => setCustomBoxes(StartBoxOrientation.EastVsWest)">
                             <img src="/src/renderer/assets/images/icons/east-vs-west.png" />
                         </Button>
-                        <Button>
+                        <Button @click="() => setCustomBoxes(StartBoxOrientation.NorthVsSouth)">
                             <img src="/src/renderer/assets/images/icons/north-vs-south.png" />
                         </Button>
-                        <Button>
+                        <Button @click="() => setCustomBoxes(StartBoxOrientation.NortheastVsSouthwest)">
                             <img src="/src/renderer/assets/images/icons/northeast-vs-southwest.png" />
                         </Button>
-                        <Button>
+                        <Button @click="() => setCustomBoxes(StartBoxOrientation.NorthwestVsSoutheast)">
                             <img src="/src/renderer/assets/images/icons/northwest-vs-southeast.png" />
                         </Button>
                     </div>
@@ -44,23 +44,21 @@
                         <Range v-model="customBoxRange" :min="5" :max="100" :step="5" />
                     </div>
                 </div>
-                <div>
+                <div v-if="battleStore.battleOptions.map.startPos">
                     <h4>Fixed positions</h4>
                     <div class="box-buttons">
                         <Button
                             v-for="(teamSet, i) in battleStore.battleOptions.map.startPos?.team"
                             :key="`team${i}`"
-                            @click="
-                                () => {
-                                    delete battleStore.battleOptions.mapOptions.startBoxesIndex;
-                                    battleStore.battleOptions.mapOptions.startPosType = StartPosType.Fixed;
-                                    battleStore.battleOptions.mapOptions.fixedPositionsIndex = i;
-                                }
-                            "
+                            @click="() => setFixedPositions(i)"
                             :disabled="battleStore.battleOptions.mapOptions.startPosType === StartPosType.Fixed"
-                            ><span>{{ i + 1 }}</span></Button
                         >
-                        <Button>
+                            <span>{{ i + 1 }}</span>
+                        </Button>
+                        <Button
+                            @click="setRandomPositions"
+                            :disabled="battleStore.battleOptions.mapOptions.startPosType === StartPosType.Random"
+                        >
                             <span>Random</span>
                         </Button>
                     </div>
@@ -80,8 +78,9 @@ import Modal from "@renderer/components/common/Modal.vue";
 import Button from "@renderer/components/controls/Button.vue";
 import Range from "@renderer/components/controls/Range.vue";
 import { battleStore } from "@renderer/store/battle.store";
-import { StartPosType } from "@main/game/battle/battle-types";
+import { StartBoxOrientation, StartPosType } from "@main/game/battle/battle-types";
 import MapBattlePreview from "@renderer/components/maps/MapBattlePreview.vue";
+import { getBoxes } from "@renderer/utils/start-boxes";
 
 const modal: Ref<null | InstanceType<typeof Modal>> = ref(null);
 
@@ -93,6 +92,24 @@ watch(
         customBoxRange.value = 25;
     }
 );
+
+function setCustomBoxes(orientation: StartBoxOrientation) {
+    const customStartBoxes = getBoxes(orientation, customBoxRange.value);
+    delete battleStore.battleOptions.mapOptions.startBoxesIndex;
+    battleStore.battleOptions.mapOptions.startPosType = StartPosType.Boxes;
+    battleStore.battleOptions.mapOptions.customStartBoxes = customStartBoxes;
+}
+
+function setFixedPositions(index: number) {
+    delete battleStore.battleOptions.mapOptions.startBoxesIndex;
+    battleStore.battleOptions.mapOptions.startPosType = StartPosType.Fixed;
+    battleStore.battleOptions.mapOptions.fixedPositionsIndex = index;
+}
+function setRandomPositions() {
+    delete battleStore.battleOptions.mapOptions.startBoxesIndex;
+    delete battleStore.battleOptions.mapOptions.fixedPositionsIndex;
+    battleStore.battleOptions.mapOptions.startPosType = StartPosType.Random;
+}
 
 function close() {
     modal.value?.close();
