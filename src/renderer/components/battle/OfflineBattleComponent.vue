@@ -9,7 +9,7 @@
         </div>
 
         <div class="main-content fullheight">
-            <div class="map card padding-md">
+            <div class="map card padding-md scroll-container">
                 <div class="map-title card padding-md flex-row flex-space-between flex-align-center">
                     <h4>{{ battleStore.battleOptions.map?.displayName }}</h4>
                     <Button v-tooltip.left="'Change map'" @click="openMapList">
@@ -162,6 +162,7 @@ function onMapSelected(map: MapData) {
     flex-direction: row;
     gap: 10px;
     height: 100%;
+    min-height: 0;
 }
 
 .map {

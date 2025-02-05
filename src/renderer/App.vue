@@ -138,6 +138,7 @@ function onInitialSetupDone() {
 
 <style lang="scss" scoped>
 .view-container {
+    height: 100%;
     flex: auto;
     transition: transform 0.4s ease-out;
     &.translated-right {

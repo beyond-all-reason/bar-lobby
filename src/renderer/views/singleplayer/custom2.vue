@@ -3,7 +3,7 @@
 </route>
 
 <template>
-    <div class="flex-col fullheight">
+    <div class="view">
         <div class="custom-game-container">
             <OfflineBattleComponent />
         </div>
@@ -22,6 +22,5 @@ import OfflineBattleComponent from "@renderer/components/battle/OfflineBattleCom
     height: 100%;
     width: clamp(50vw, 100rem, 100vw);
     overflow: visible;
-    padding: 1rem;
 }
 </style>
