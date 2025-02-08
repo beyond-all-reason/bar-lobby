@@ -4,6 +4,7 @@ export interface ChatRoom {
     id: string;
     name: string;
     color: string;
+    type: "room" | "player";
     messages: ChatMessage[];
     unreadMessages: number;
     closeable: boolean;
@@ -14,6 +15,7 @@ export interface ChatMessage {
     userName: string;
     text: string;
     timestamp: number;
+    failed?: boolean;
 }
 
 export enum WellKnownChatRooms {
@@ -26,6 +28,7 @@ const defaultChatRooms: ChatRoom[] = [
         id: WellKnownChatRooms.General,
         name: "General",
         color: "#87ceeb",
+        type: "room",
         messages: [
             {
                 userId: "System",
@@ -41,6 +44,7 @@ const defaultChatRooms: ChatRoom[] = [
         id: WellKnownChatRooms.Lobby,
         name: "Lobby",
         color: "#87ceeb",
+        type: "room",
         messages: [
             {
                 userId: "System",
@@ -74,6 +78,7 @@ const defaultChatRooms: ChatRoom[] = [
         id: "101",
         name: "Melon",
         color: "#ff6347",
+        type: "player",
         messages: [
             {
                 userId: "101",
@@ -90,17 +95,62 @@ const defaultChatRooms: ChatRoom[] = [
 export const chatStore = reactive<{
     chatRooms: ChatRoom[];
     selectedChatRoom: ChatRoom;
+    isInitialized?: boolean;
 }>({
     chatRooms: defaultChatRooms,
     selectedChatRoom: defaultChatRooms.at(0),
+    isInitialized: false,
 });
+
+export function initChatStore() {
+    window.tachyon.onEvent("messaging/received", (data) => {
+        console.debug(`Received message: ${JSON.stringify(data)}`);
+        const { message, source, timestamp } = data;
+        const newMessage: ChatMessage = {
+            userId: source.userId,
+            userName: source.userId,
+            text: message,
+            timestamp,
+        };
+        const chatRoom = chatStore.chatRooms.find((room) => room.id === source.userId);
+        if (chatRoom === undefined) {
+            chatActions.openChatRoom({
+                id: source.userId,
+                name: source.userId, //TODO change this with the user name we have in db maybe
+                color: "#ff6347",
+                type: "player",
+                messages: [newMessage],
+                unreadMessages: 1,
+                closeable: true,
+            });
+        } else {
+            chatRoom.messages.push(newMessage);
+        }
+    });
+    chatStore.isInitialized = true;
+}
 
 export const chatActions = {
     selectChatRoom(id: string) {
         chatStore.selectedChatRoom = chatStore.chatRooms.find((room) => room.id === id);
         chatStore.selectedChatRoom.unreadMessages = 0;
     },
-    sendMessage(message: ChatMessage) {
+    async sendMessage(message: ChatMessage) {
+        //TODO change this when we have room support in protocol
+        if (chatStore.selectedChatRoom.type === "player") {
+            const repsonse = await window.tachyon.request("messaging/send", {
+                message: message.text,
+                target: {
+                    type: chatStore.selectedChatRoom.type,
+                    userId: chatStore.selectedChatRoom.id,
+                },
+            });
+            if (repsonse.status === "success") {
+                message.failed = false;
+            } else {
+                message.failed = true;
+            }
+        }
         chatStore.selectedChatRoom.messages.push(message);
     },
     addMessage(roomId: string, message: ChatMessage) {

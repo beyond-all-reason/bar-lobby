@@ -25,6 +25,7 @@
                 <div class="message-content">
                     <span class="username" :style="{ color: chatStore.selectedChatRoom.color }">{{ message.userName }}:</span>
                     <span class="text">{{ message.text }}</span>
+                    <span class="failed" v-if="message.failed">failed to deliver</span>
                     <!-- <span class="timestamp">{{ message.timestamp }}</span> -->
                 </div>
             </div>
@@ -222,6 +223,13 @@ onKeyDown(
 
 .username {
     font-weight: bold;
+}
+
+.failed {
+    color: rgba(226, 91, 91, 0.521);
+    font-size: 8px;
+    position: absolute;
+    right: 20px;
 }
 
 .timestamp {
