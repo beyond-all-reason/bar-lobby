@@ -24,8 +24,6 @@ export function initUsersStore() {
                 status: user.status || "offline",
                 displayName: user.displayName || "",
                 clanId: user.clanId || null,
-                partyId: user.partyId || null,
-                scopes: user.scopes || [],
                 battleRoomState: {},
                 isMe: 1, // TODO unweirdify this after we have a proper protocol for users
             } as User;
