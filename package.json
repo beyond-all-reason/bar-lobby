@@ -81,7 +81,7 @@
         "@types/ws": "^8.5.14",
         "@vitejs/plugin-vue": "^5.2.1",
         "cross-env": "^7.0.3",
-        "electron": "34.0.2",
+        "electron": "34.2.0",
         "electron-builder": "^25.1.8",
         "electron-updater": "^6.3.9",
         "eslint": "^9.20.1",
