@@ -8,7 +8,7 @@
         title="Add Bot"
         @bot-selected="onBotSelected"
     />
-    <div class="scroll-container padding-right-sm">
+    <div class="scroll-container">
         <div class="playerlist" :class="{ dragging: draggedBot || draggedPlayer }">
             <TeamComponent
                 v-for="(team, teamId) in battleWithMetadataStore.teams"
@@ -22,7 +22,7 @@
                 @on-drop="onDropTeam"
             />
         </div>
-        <hr class="margin-top-sm margin-bottom-sm" />
+        <hr class="margin-top-md margin-bottom-md" />
         <div class="playerlist" :class="{ dragging: draggedBot || draggedPlayer }">
             <SpectatorsComponent
                 class="spectators"

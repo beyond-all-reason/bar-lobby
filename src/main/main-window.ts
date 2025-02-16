@@ -23,8 +23,8 @@ export function createWindow() {
         icon: nativeImage.createFromDataURL(icon),
         width: width,
         height: height,
-        minWidth: width,
-        minHeight: height,
+        minWidth: width / 2,
+        minHeight: height / 2,
         resizable: true,
         center: true,
         frame: false,
@@ -78,7 +78,7 @@ export function createWindow() {
             mainWindow.webContents.openDevTools();
         }
 
-        mainWindow.setMenuBarVisibility(false);
+        mainWindow.setMenuBarVisibility(process.env.NODE_ENV === "development");
         mainWindow.show();
         mainWindow.focus();
     });
