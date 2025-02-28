@@ -11,7 +11,7 @@
                     <TransitionGroup name="maps-list">
                         <MapOverviewCard v-for="map in maps" :key="map.springName" :map="map" @click="mapSelected(map)" />
                     </TransitionGroup>
-                    <div v-if="maps?.length <= 0">
+                    <div v-if="(maps?.length || 0) <= 0">
                         <h4>No maps found!</h4>
                         <span>Please try different keywords / filters</span>
                     </div>
@@ -50,7 +50,7 @@ const sortMethods: SortMethod[] = [
     { label: "Name", dbKey: "displayName" },
     { label: "Size", dbKey: "width" },
 ];
-const sortMethod: Ref<SortMethod> = ref(sortMethods.at(0));
+const sortMethod: Ref<SortMethod | undefined> = ref(sortMethods.at(0));
 const searchVal = ref("");
 const emit = defineEmits<{
     (event: "map-selected", map: MapData): void;
@@ -71,17 +71,18 @@ const maps = useDexieLiveQueryWithDeps([searchVal, sortMethod, limit, filters], 
     const terrainFilters = new Set([...(<Terrain[]>Object.keys(terrain)).filter((key) => !!terrain[key]).map((k) => k)]);
     const gameTypeFilters = new Set([...(<GameType[]>Object.keys(gameType)).filter((key) => gameType[key]).map((k) => k)]);
     return db.maps
-        .filter(
-            (map) =>
+        .filter((map) =>
+            Boolean(
                 map.displayName.toLocaleLowerCase().includes(searchVal.value.toLocaleLowerCase()) &&
-                filters.minPlayers < map.playerCountMax &&
-                filters.maxPlayers > map.playerCountMax &&
-                (terrainFilters.size === 0 || terrainFilters.isSubsetOf(new Set([...map.terrain]))) &&
-                (gameTypeFilters.size === 0 || !gameTypeFilters.isDisjointFrom(new Set([...map.tags]))) &&
-                (!filters.favoritesOnly || map.isFavorite)
+                    filters.minPlayers < map.playerCountMax &&
+                    filters.maxPlayers > map.playerCountMax &&
+                    (terrainFilters.size === 0 || terrainFilters.isSubsetOf(new Set([...map.terrain]))) &&
+                    (gameTypeFilters.size === 0 || !gameTypeFilters.isDisjointFrom(new Set([...map.tags]))) &&
+                    (!filters.favoritesOnly || map.isFavorite)
+            )
         )
         .limit(limit.value)
-        .sortBy(sortMethod.value.dbKey);
+        .sortBy(sortMethod.value?.dbKey || "");
 });
 
 function mapSelected(map: MapData) {

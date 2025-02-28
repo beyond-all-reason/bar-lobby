@@ -1,6 +1,6 @@
 <template>
     <div class="news-tile" :class="{ featured }" @click="openNews">
-        <div class="title">{{ news.title.replace(" ⇀ News ★ Beyond All Reason RTS", "") }}</div>
+        <div class="title">{{ news.title?.replace(" ⇀ News ★ Beyond All Reason RTS", "") }}</div>
         <div class="description">
             {{ news.description }}
             <div class="cta">Click to read more</div>
@@ -19,10 +19,11 @@ const props = defineProps<{
 }>();
 
 const { base64 } = useImageBlobUrlCache();
-const backgroundImageCss = ref(`url('${base64(props.news.thumbnailUrl, props.news.thumbnail)}')`);
+const newsThumbnail = props.news.thumbnailUrl;
+const backgroundImageCss = newsThumbnail ? ref(`url('${base64(newsThumbnail, props.news.thumbnail || "")}')`) : ref();
 
 const openNews = () => {
-    window.shell.openInBrowser(props.news.link);
+    if (props.news.link) window.shell.openInBrowser(props.news.link);
 };
 </script>
 

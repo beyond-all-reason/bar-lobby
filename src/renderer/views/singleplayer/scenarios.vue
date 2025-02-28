@@ -74,7 +74,7 @@ import Markdown from "@renderer/components/misc/Markdown.vue";
 import DownloadContentButton from "@renderer/components/controls/DownloadContentButton.vue";
 import { gameStore } from "@renderer/store/game.store";
 
-const loadedScenarios = await window.game.getScenarios(gameStore.selectedGameVersion.gameVersion);
+const loadedScenarios = await window.game.getScenarios(gameStore.selectedGameVersion?.gameVersion);
 const scenarios = ref<Scenario[]>(loadedScenarios);
 const selectedScenario = ref<Scenario>(scenarios.value[0]);
 
@@ -87,7 +87,7 @@ const factions = computed(() => selectedScenario.value.allowedsides);
 const selectedFaction = ref(factions.value[0]);
 
 watch(
-    () => gameStore.selectedGameVersion.gameVersion,
+    () => gameStore.selectedGameVersion?.gameVersion,
     async (selectedVersion) => {
         const loadedScenarios = await window.game.getScenarios(selectedVersion);
         scenarios.value = loadedScenarios;

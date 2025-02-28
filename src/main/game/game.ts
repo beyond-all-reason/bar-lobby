@@ -6,12 +6,12 @@ import * as path from "path";
 
 import { engineContentAPI } from "@main/content/engine/engine-content";
 
-import { Replay } from "@main/content/replays/replay";
 import { startScriptConverter } from "@main/utils/start-script-converter";
 import { logger } from "@main/utils/logger";
 import { gameContentAPI } from "@main/content/game/game-content";
 import { CONTENT_PATH, REPLAYS_PATH } from "@main/config/app";
 import { BattleWithMetadata } from "@main/game/battle/battle-types";
+import { LaunchReplay } from "@main/content/game/type";
 
 const log = logger("main/game/game.ts");
 const engineLogger = logger("[RECOIL ENGINE]", { separator: "\n", level: "info" });
@@ -46,13 +46,15 @@ export class GameAPI {
         });
     }
 
-    public async launchReplay(replay: Replay): Promise<void> {
-        await this.launch({
-            engineVersion: replay.engineVersion,
-            gameVersion: replay.gameVersion,
-            launchArg: replay.filePath ? replay.filePath : path.join(REPLAYS_PATH, replay.fileName),
-        });
-    }
+    public launchReplay: LaunchReplay = async (replay) => {
+        if (replay) {
+            await this.launch({
+                engineVersion: replay.engineVersion,
+                gameVersion: replay.gameVersion,
+                launchArg: replay.filePath ? replay.filePath : path.join(REPLAYS_PATH, replay.fileName),
+            });
+        }
+    };
 
     public async launchScript({ engineVersion, gameVersion, script }: ScriptLaunchSettings) {
         log.debug(`Launching game with script: ${script}`);
@@ -78,7 +80,9 @@ export class GameAPI {
         });
     }
 
-    public async launch({ engineVersion, gameVersion, launchArg }: { engineVersion: string; gameVersion: string; launchArg: string }): Promise<void> {
+    public async launch({ engineVersion, gameVersion, launchArg }: { engineVersion?: string; gameVersion?: string; launchArg?: string }): Promise<void> {
+        if (!engineVersion || !gameVersion || !launchArg) return;
+
         try {
             log.info(`Launching game with engine: ${engineVersion}, game: ${gameVersion}`);
             await this.fetchMissingContent(engineVersion, gameVersion); // TODO preload anything needed through the UI before launching. Remove this step
@@ -93,18 +97,18 @@ export class GameAPI {
                 detached: true,
             });
 
-            this.gameProcess.stdout.on("data", (data) => {
+            this.gameProcess?.stdout?.on("data", (data) => {
                 engineLogger.debug(`${data}`);
             });
-            this.gameProcess.stderr.on("data", (data) => {
+            this.gameProcess?.stderr?.on("data", (data) => {
                 engineLogger.error(`${data}`);
             });
 
-            this.gameProcess.addListener("error", (err) => {
+            this.gameProcess?.addListener("error", (err) => {
                 log.error(err);
             });
 
-            this.gameProcess.addListener("exit", (code) => {
+            this.gameProcess?.addListener("exit", (code) => {
                 if (code !== 0) {
                     log.error(`Game process exited with code: ${code}`);
                 } else {
@@ -112,16 +116,16 @@ export class GameAPI {
                 }
             });
 
-            this.gameProcess.addListener("spawn", () => {
+            this.gameProcess?.addListener("spawn", () => {
                 this.onGameLaunched.dispatch();
                 // this.updateLastLaunched(engineVersion, gameVersion, mapName);
             });
 
-            this.gameProcess.addListener("close", (exitCode) => {
+            this.gameProcess?.addListener("close", (exitCode) => {
                 this.gameProcess = null;
                 this.onGameClosed.dispatch(exitCode);
             });
-            log.debug(`Game process PID: ${this.gameProcess.pid}`);
+            log.debug(`Game process PID: ${this.gameProcess?.pid}`);
         } catch (err) {
             log.error(err);
         }
@@ -132,7 +136,9 @@ export class GameAPI {
     }
 
     //TODO not handling maps, not sure if needed if we always come from the lobby's UI
-    protected async fetchMissingContent(engineVersion: string, gameVersion: string) {
+    protected async fetchMissingContent(engineVersion?: string, gameVersion?: string) {
+        if (!engineVersion || !gameVersion) return;
+
         const isEngineInstalled = engineContentAPI.isVersionInstalled(engineVersion);
         const isGameInstalled = gameContentAPI.isVersionInstalled(gameVersion);
         if (!isEngineInstalled || !isGameInstalled) {

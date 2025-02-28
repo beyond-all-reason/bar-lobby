@@ -13,6 +13,7 @@ import { extract7z } from "@main/utils/extract-7z";
 import { contentSources } from "@main/config/content-sources";
 import { AbstractContentAPI } from "@main/content/abstract-content";
 import { CONTENT_PATH } from "@main/config/app";
+import { DownloadEngine } from "@main/content/game/type";
 
 const log = logger("engine-content.ts");
 
@@ -84,7 +85,9 @@ export class EngineContentAPI extends AbstractContentAPI<string, EngineVersion> 
             });
     }
 
-    public async downloadEngine(engineVersion: string) {
+    public downloadEngine: DownloadEngine = async (engineVersion) => {
+        if (!engineVersion) return;
+
         try {
             if (this.isVersionInstalled(engineVersion)) {
                 return;
@@ -118,7 +121,7 @@ export class EngineContentAPI extends AbstractContentAPI<string, EngineVersion> 
                 headers: { "Content-Type": "application/7z" },
                 onDownloadProgress: (progress) => {
                     downloadInfo.currentBytes = progress.loaded;
-                    downloadInfo.totalBytes = progress.total;
+                    downloadInfo.totalBytes = progress.total || 0;
                     this.downloadProgress(downloadInfo);
                 },
             });
@@ -138,7 +141,7 @@ export class EngineContentAPI extends AbstractContentAPI<string, EngineVersion> 
         } catch (err) {
             log.error(err);
         }
-    }
+    };
 
     public async uninstallVersion(version: EngineVersion | string) {
         if (typeof version === "object") {

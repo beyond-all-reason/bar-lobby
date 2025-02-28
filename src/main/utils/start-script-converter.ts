@@ -50,11 +50,11 @@ class StartScriptConverter {
                 const startBoxesIndex = battle.battleOptions.mapOptions.startBoxesIndex;
                 const customStartBoxes = battle.battleOptions.mapOptions.customStartBoxes;
 
-                if (startBoxesIndex >= 0) {
-                    const startBoxes = battle.battleOptions.map.startboxesSet[startBoxesIndex].startboxes;
+                if (typeof startBoxesIndex === "number" && !Number.isNaN(startBoxesIndex) && Number(startBoxesIndex) >= 0) {
+                    const startBoxes = battle.battleOptions.map?.startboxesSet[startBoxesIndex].startboxes;
 
                     // X and Y are between 0-200
-                    const box = startBoxes[allyTeam.id];
+                    const box = startBoxes?.[allyTeam.id];
                     if (box) {
                         const { left: startrectleft, top: startrecttop, right: startrectright, bottom: startrectbottom } = spadsPointsToLTRBPercent(box.poly);
                         Object.assign(allyTeam, {
@@ -138,11 +138,11 @@ class StartScriptConverter {
 
         return {
             gametype: battle.battleOptions.gameVersion,
-            mapname: battle.battleOptions.map.springName,
+            mapname: battle.battleOptions.map?.springName,
             modoptions: battle.battleOptions.gameMode.options,
             // mapoptions: battle.battleOptions.???,
             ishost: 1,
-            myplayername: battle.me.user.username,
+            myplayername: battle.me?.user.username,
             startpostype: battle.battleOptions.mapOptions.startPosType,
             allyTeams,
             teams,

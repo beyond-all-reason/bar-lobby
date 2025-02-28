@@ -23,7 +23,7 @@ export const mapsStore = reactive({
     };
 });
 
-export async function getRandomMap(): Promise<MapData> {
+export async function getRandomMap(): Promise<MapData | undefined> {
     const mapCount = await db.maps.count();
     if (mapCount === 0) throw new Error("No maps available");
     const randomIndex = Math.floor(Math.random() * mapCount);

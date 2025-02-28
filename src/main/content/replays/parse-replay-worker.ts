@@ -43,12 +43,12 @@ if (isMainThread) {
         };
     }
     // listen to messages from the main thread
-    parentPort.on("message", async (replayFilePath: string) => {
+    parentPort?.on("message", async (replayFilePath: string) => {
         try {
             const replay = await parseReplay(replayFilePath);
-            parentPort.postMessage({ replayFilePath, replay });
+            parentPort?.postMessage({ replayFilePath, replay });
         } catch (error) {
-            parentPort.postMessage({ replayFilePath, undefined, error });
+            parentPort?.postMessage({ replayFilePath, undefined, error });
             console.error(error);
         }
     });

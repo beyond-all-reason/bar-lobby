@@ -144,7 +144,7 @@ const replays = useDexieLiveQueryWithDeps([endedNormally, offset, limit, sortFie
 });
 
 const map = useDexieLiveQueryWithDeps([() => selectedReplay.value?.mapSpringName], () => {
-    if (!selectedReplay.value) return null;
+    if (!selectedReplay.value) return undefined;
     return db.maps.get(selectedReplay.value.mapSpringName);
 });
 
@@ -165,12 +165,12 @@ function openReplaysFolder() {
     window.shell.openReplaysDir();
 }
 
-function watchReplay(replay: Replay) {
+function watchReplay(replay: Replay | undefined | null) {
     window.game.launchReplay(replay);
 }
 
-function showReplayFile(replay: Replay) {
-    window.shell.showReplayInFolder(replay.fileName);
+function showReplayFile(replay: Replay | undefined) {
+    if (replay?.fileName) window.shell.showReplayInFolder(replay.fileName);
 }
 </script>
 

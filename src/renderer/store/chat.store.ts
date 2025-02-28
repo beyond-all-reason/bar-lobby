@@ -89,7 +89,7 @@ const defaultChatRooms: ChatRoom[] = [
 
 export const chatStore = reactive<{
     chatRooms: ChatRoom[];
-    selectedChatRoom: ChatRoom;
+    selectedChatRoom: ChatRoom | undefined;
 }>({
     chatRooms: defaultChatRooms,
     selectedChatRoom: defaultChatRooms.at(0),
@@ -97,17 +97,21 @@ export const chatStore = reactive<{
 
 export const chatActions = {
     selectChatRoom(id: string) {
-        chatStore.selectedChatRoom = chatStore.chatRooms.find((room) => room.id === id);
-        chatStore.selectedChatRoom.unreadMessages = 0;
+        const selectedChatRoom = chatStore.chatRooms.find((room) => room.id === id);
+
+        if (selectedChatRoom) {
+            chatStore.selectedChatRoom = selectedChatRoom;
+            chatStore.selectedChatRoom.unreadMessages = 0;
+        }
     },
     sendMessage(message: ChatMessage) {
-        chatStore.selectedChatRoom.messages.push(message);
+        chatStore.selectedChatRoom?.messages.push(message);
     },
     addMessage(roomId: string, message: ChatMessage) {
         const room = chatStore.chatRooms.find((room) => room.id === roomId);
         if (room) {
             room.messages.push(message);
-            if (chatStore.selectedChatRoom.id !== roomId) {
+            if (chatStore.selectedChatRoom?.id !== roomId) {
                 room.unreadMessages++;
             }
         }

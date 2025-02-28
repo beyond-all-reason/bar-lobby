@@ -15,9 +15,9 @@ const jobs = new Map<
 worker.on("message", ({ replayFilePath, replay, error }) => {
     const promiseHandles = jobs.get(replayFilePath);
     if (error) {
-        promiseHandles.reject(error);
+        promiseHandles?.reject(error);
     } else {
-        promiseHandles.resolve(replay);
+        promiseHandles?.resolve(replay);
     }
     jobs.delete(replayFilePath);
 });

@@ -4,7 +4,7 @@
             {{ title }}
         </div>
         <div class="dev-date">
-            {{ formatDistanceToNow(entry.published, { addSuffix: true }) }}
+            {{ formatDistanceToNow(entry?.published, { addSuffix: true }) }}
         </div>
         <div class="dev-desc">{{ description }}</div>
     </div>
@@ -13,11 +13,11 @@
 import { NewsFeedData } from "@main/services/news.service";
 import { formatDistanceToNow } from "date-fns";
 
-const { entry } = defineProps<{ entry: NewsFeedData }>();
+const { entry } = defineProps<{ entry: NewsFeedData | undefined }>();
 
-const title = entry.title.replace(" ⇀ Microblog ★ Beyond All Reason RTS", "");
+const title = entry?.title?.replace(" ⇀ Microblog ★ Beyond All Reason RTS", "");
 // const tags = entry.description.split("|")[0]?.trim();
-const description = entry.description.split("|")[1]?.trim();
+const description = entry?.description?.split("|")[1]?.trim();
 </script>
 <style lang="css" scoped>
 .dev-title {

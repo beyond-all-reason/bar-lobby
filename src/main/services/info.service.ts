@@ -19,8 +19,10 @@ export type Info = {
 function getInfo() {
     const displayIds = screen.getAllDisplays().map((display) => display.id);
     let currentDisplayId = 0;
-    const ID = Number.parseInt(process.env.MAIN_WINDOW_ID);
-    currentDisplayId = screen.getDisplayNearestPoint(BrowserWindow.fromId(ID)?.getBounds()).id;
+    const ID = process.env.MAIN_WINDOW_ID ? Number.parseInt(process.env.MAIN_WINDOW_ID) : undefined;
+    const point = ID && BrowserWindow.fromId(ID)?.getBounds();
+    currentDisplayId = ID && point ? screen.getDisplayNearestPoint(point).id : currentDisplayId;
+
     const networkInterfaces = os.networkInterfaces();
     const defaultNetworkInterface = networkInterfaces["Ethernet"]?.[0] ?? Object.values(networkInterfaces)[0]?.[0];
     const info: Info = {

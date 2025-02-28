@@ -18,8 +18,8 @@ async function refreshStore() {
 watch(
     () => enginesStore.selectedEngineVersion,
     async (engineVersion) => {
-        if (!engineVersion.installed) {
-            await window.engine.downloadEngine(engineVersion.id);
+        if (!engineVersion?.installed) {
+            await window.engine.downloadEngine(engineVersion?.id);
         }
     }
 );

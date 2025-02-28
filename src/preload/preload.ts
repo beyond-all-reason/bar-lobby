@@ -5,13 +5,13 @@ import { Settings } from "@main/services/settings.service";
 import { EngineVersion } from "@main/content/engine/engine-version";
 import { GameVersion } from "@main/content/game/game-version";
 import { MapData } from "@main/content/maps/map-data";
-import { Scenario } from "@main/content/game/scenario";
 import { DownloadInfo } from "@main/content/downloads";
 import { Info } from "@main/services/info.service";
-import { NewsFeedData } from "@main/services/news.service";
 import { BattleWithMetadata } from "@main/game/battle/battle-types";
 import { GetCommandData, GetCommandIds, GetCommands } from "tachyon-protocol";
 import { MultiplayerLaunchSettings } from "@main/game/game";
+import { FetchNewsRssFeed } from "@main/services/type";
+import { GetScenarios, LaunchReplay, DownloadEngine } from "@main/content/game/type";
 
 const infoApi = {
     getInfo: (): Promise<Info> => ipcRenderer.invoke("info:get"),
@@ -72,7 +72,7 @@ contextBridge.exposeInMainWorld("auth", authApi);
 
 const engineApi = {
     listAvailableVersions: (): Promise<EngineVersion[]> => ipcRenderer.invoke("engine:listAvailableVersions"),
-    downloadEngine: (version: string): Promise<void> => ipcRenderer.invoke("engine:downloadEngine", version),
+    downloadEngine: ((version: string): Promise<void> => ipcRenderer.invoke("engine:downloadEngine", version)) as DownloadEngine,
     isVersionInstalled: (id: string): Promise<boolean> => ipcRenderer.invoke("engine:isVersionInstalled", id),
     uninstallVersion: (version: EngineVersion): Promise<void> => ipcRenderer.invoke("engine:uninstallVersion", version),
 };
@@ -82,7 +82,7 @@ contextBridge.exposeInMainWorld("engine", engineApi);
 const gameApi = {
     // Content
     downloadGame: (version: string): Promise<void> => ipcRenderer.invoke("game:downloadGame", version),
-    getScenarios: (version: string): Promise<Scenario[]> => ipcRenderer.invoke("game:getScenarios", version),
+    getScenarios: ((version) => ipcRenderer.invoke("game:getScenarios", version)) as GetScenarios,
     getInstalledVersions: (): Promise<GameVersion[]> => ipcRenderer.invoke("game:getInstalledVersions"),
     isVersionInstalled: (version: string): Promise<boolean> => ipcRenderer.invoke("game:isVersionInstalled", version),
     uninstallVersion: (version: string): Promise<void> => ipcRenderer.invoke("game:uninstallVersion", version),
@@ -90,7 +90,7 @@ const gameApi = {
     // Game
     launchMultiplayer: (settings: MultiplayerLaunchSettings): Promise<void> => ipcRenderer.invoke("game:launchMultiplayer", settings),
     launchScript: (script: string): Promise<void> => ipcRenderer.invoke("game:launchScript", script),
-    launchReplay: (replay: Replay): Promise<void> => ipcRenderer.invoke("game:launchReplay", replay),
+    launchReplay: ((replay) => ipcRenderer.invoke("game:launchReplay", replay)) as LaunchReplay,
     launchBattle: (battle: BattleWithMetadata): Promise<void> => ipcRenderer.invoke("game:launchBattle", battle),
 
     // Events
@@ -140,8 +140,8 @@ export type DownloadsApi = typeof downloadsApi;
 contextBridge.exposeInMainWorld("downloads", downloadsApi);
 
 const miscApi = {
-    getNewsRssFeed: (numberOfNews: number): Promise<NewsFeedData> => ipcRenderer.invoke("misc:getNewsRssFeed", numberOfNews),
-    getDevlogRssFeed: (numberOfNews: number): Promise<NewsFeedData> => ipcRenderer.invoke("misc:getDevlogRssFeed", numberOfNews),
+    getNewsRssFeed: ((numberOfNews) => ipcRenderer.invoke("misc:getNewsRssFeed", numberOfNews)) as FetchNewsRssFeed,
+    getDevlogRssFeed: ((numberOfNews) => ipcRenderer.invoke("misc:getDevlogRssFeed", numberOfNews)) as FetchNewsRssFeed,
 };
 export type MiscApi = typeof miscApi;
 contextBridge.exposeInMainWorld("misc", miscApi);

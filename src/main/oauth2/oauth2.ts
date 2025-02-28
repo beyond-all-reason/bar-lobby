@@ -77,7 +77,7 @@ export async function authenticate(): Promise<TokenResponse> {
         openInBrowser(url);
         const callbackUrl = await redirectHandler.waitForCallback();
         log.debug(`Received callback URL: ${callbackUrl}`);
-        const code = callbackUrl.searchParams.get("code");
+        const code = callbackUrl.searchParams.get("code") || "";
         log.debug(`Received OAuth2 code: ${code}`);
         const tokenUrl = createUrlWithQuerystring(tokenEndpoint, {
             grant_type: "authorization_code",
