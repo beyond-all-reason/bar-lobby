@@ -89,19 +89,19 @@ export class EngineContentAPI extends AbstractContentAPI<string, EngineVersion> 
             if (this.isVersionInstalled(engineVersion)) {
                 return;
             }
-            const { data } = await this.ocotokit.rest.repos.getReleaseByTag({
-                owner: contentSources.engineGitHub.owner,
-                repo: contentSources.engineGitHub.repo,
-                tag: engineVersion,
-            });
-            if (!data) {
+
+            const archStr = process.platform === "win32" ? "windows64" : "linux64";
+            const engineResponse = await axios.get(`https://files-cdn.beyondallreason.dev/find?category=engine_${archStr}&springname=${engineVersion}`);
+
+            if (engineResponse.status !== 200) {
                 throw new Error(`Couldn't find engine release for tag: ${engineVersion}`);
             }
-            const archStr = process.platform === "win32" ? "windows" : "linux";
-            const asset = data.assets.find((asset) => asset.name.includes(archStr) && asset.name.includes("portable"));
-            if (!asset) {
-                throw new Error("Failed to fetch engine release asset");
-            }
+
+            const asset = {
+                name: engineResponse.data[0].filename,
+                browser_download_url: engineResponse.data[0].mirrors[0],
+            };
+
             const downloadInfo: DownloadInfo = {
                 type: "engine",
                 name: engineVersion,
