@@ -10,7 +10,7 @@ import { parseLuaTable } from "@main/utils/parse-lua-table";
 import { parseLuaOptions } from "@main/utils/parse-lua-options";
 import { logger } from "@main/utils/logger";
 import { extract7z } from "@main/utils/extract-7z";
-import { contentSources } from "@main/config/content-sources";
+import { contentSources, getEngineReleaseInfo, EngineReleaseInfo } from "@main/config/content-sources";
 import { AbstractContentAPI } from "@main/content/abstract-content";
 import { CONTENT_PATH } from "@main/config/app";
 import { DownloadEngine } from "@main/content/game/type";
@@ -95,17 +95,7 @@ export class EngineContentAPI extends AbstractContentAPI<string, EngineVersion> 
                 return;
             }
 
-            const archStr = process.platform === "win32" ? "windows64" : "linux64";
-            const engineResponse = await axios.get(`https://files-cdn.beyondallreason.dev/find?category=engine_${archStr}&springname=${engineVersion}`);
-
-            if (engineResponse.status !== 200) {
-                throw new Error(`Couldn't find engine release for tag: ${engineVersion}`);
-            }
-
-            const asset = {
-                name: engineResponse.data[0].filename,
-                browser_download_url: engineResponse.data[0].mirrors[0],
-            };
+            const engineInfo = await getEngineReleaseInfo(engineVersion);
 
             const downloadInfo: DownloadInfo = {
                 type: "engine",
@@ -117,7 +107,7 @@ export class EngineContentAPI extends AbstractContentAPI<string, EngineVersion> 
             this.downloadStarted(downloadInfo);
             log.info(`Downloading engine: ${engineVersion}`);
             const downloadResponse = await axios({
-                url: asset.browser_download_url,
+                url: engineInfo.mirrors[0],
                 method: "get",
                 responseType: "arraybuffer",
                 headers: { "Content-Type": "application/7z" },
@@ -128,15 +118,15 @@ export class EngineContentAPI extends AbstractContentAPI<string, EngineVersion> 
                 },
             });
             const engine7z = downloadResponse.data as ArrayBuffer;
-            const downloadedFilePath = path.join(this.engineDirs, asset.name);
+            const downloadedFilePath = path.join(this.engineDirs, engineInfo.filename);
             const engineDestinationPath = path.join(this.engineDirs, engineVersion);
-            log.info(`Extracting <${asset.name}> to ${engineDestinationPath}`);
+            log.info(`Extracting <${engineInfo.filename}> to ${engineDestinationPath}`);
             await fs.promises.mkdir(this.engineDirs, { recursive: true });
             await fs.promises.writeFile(downloadedFilePath, Buffer.from(engine7z), { encoding: "binary" });
             await extract7z(downloadedFilePath, engineDestinationPath);
             await fs.promises.unlink(downloadedFilePath);
             removeFromArray(this.currentDownloads, downloadInfo);
-            log.info(`Extracted engine <${asset.name}>`);
+            log.info(`Extracted engine <${engineInfo.filename}>`);
             await this.downloadComplete(downloadInfo);
             log.info(`Downloaded engine: ${engineVersion}`);
             return engineVersion;
