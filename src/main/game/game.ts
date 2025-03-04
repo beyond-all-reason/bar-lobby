@@ -81,7 +81,9 @@ export class GameAPI {
     }
 
     public async launch({ engineVersion, gameVersion, launchArg }: { engineVersion?: string; gameVersion?: string; launchArg?: string }): Promise<void> {
-        if (!engineVersion || !gameVersion || !launchArg) return;
+        if (!engineVersion || !gameVersion || !launchArg) {
+            throw new Error("Engine Version, Game Version and launch Arguments need to be specified");
+        }
 
         try {
             log.info(`Launching game with engine: ${engineVersion}, game: ${gameVersion}`);
@@ -137,7 +139,9 @@ export class GameAPI {
 
     //TODO not handling maps, not sure if needed if we always come from the lobby's UI
     protected async fetchMissingContent(engineVersion?: string, gameVersion?: string) {
-        if (!engineVersion || !gameVersion) return;
+        if (!engineVersion || !gameVersion) {
+            throw new Error("Engine Version and Game Version need to be specified");
+        }
 
         const isEngineInstalled = engineContentAPI.isVersionInstalled(engineVersion);
         const isGameInstalled = gameContentAPI.isVersionInstalled(gameVersion);

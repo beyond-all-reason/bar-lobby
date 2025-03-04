@@ -14,6 +14,7 @@ import { contentSources } from "@main/config/content-sources";
 import { AbstractContentAPI } from "@main/content/abstract-content";
 import { CONTENT_PATH } from "@main/config/app";
 import { DownloadEngine } from "@main/content/game/type";
+import { assert } from 'assert';
 
 const log = logger("engine-content.ts");
 
@@ -86,7 +87,9 @@ export class EngineContentAPI extends AbstractContentAPI<string, EngineVersion> 
     }
 
     public downloadEngine: DownloadEngine = async (engineVersion) => {
-        if (!engineVersion) return;
+        if (!engineVersion) {
+            throw new Error('Engine Version is not specified');
+        }
 
         try {
             if (this.isVersionInstalled(engineVersion)) {
