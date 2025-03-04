@@ -86,7 +86,7 @@ export class MapContentAPI extends PrDownloaderAPI<string, MapData> {
                 const pathBaseName = path.basename(filepath);
 
                 if (pathBaseName) {
-                    if (this.fileNameMapNameLookup?.[pathBaseName]) this.mapNameFileNameLookup[this.fileNameMapNameLookup?.[pathBaseName]] = undefined;
+                    if (this.fileNameMapNameLookup[pathBaseName]) this.mapNameFileNameLookup[this.fileNameMapNameLookup[pathBaseName]] = undefined;
                     this.fileNameMapNameLookup[pathBaseName] = undefined;
 
                     this.onMapDeleted.dispatch(pathBaseName);

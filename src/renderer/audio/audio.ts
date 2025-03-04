@@ -126,8 +126,11 @@ class AudioAPI {
 
     public unmuteMusic(fadeTime = 4000) {
         const musicSounds = this.getAllSounds().filter((sound) => sound.isMusic);
+
+        if (!this.settings) throw new Error("failed to access settings");
+
         for (const sound of musicSounds) {
-            sound.fade(0, (this.settings?.musicVolume || 0) / 100, fadeTime);
+            sound.fade(0, (this.settings.musicVolume || 0) / 100, fadeTime);
         }
     }
 }

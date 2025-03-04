@@ -14,7 +14,10 @@ const promises = new Map<string, Promise<ArrayBuffer>>();
 
 worker.on("message", ({ imageSource, arrayBuffer }) => {
     const promiseHandles = jobs.get(imageSource);
-    promiseHandles?.resolve(arrayBuffer);
+
+    if (!promiseHandles) throw new Error("failed to access image source promise handlers");
+
+    promiseHandles.resolve(arrayBuffer);
     jobs.delete(imageSource);
     promises.delete(imageSource);
 });

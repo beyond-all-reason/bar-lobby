@@ -105,13 +105,17 @@ export const chatActions = {
         }
     },
     sendMessage(message: ChatMessage) {
-        chatStore.selectedChatRoom?.messages.push(message);
+        if (!chatStore.selectedChatRoom) throw new Error("failed to access chat room");
+
+        chatStore.selectedChatRoom.messages.push(message);
     },
     addMessage(roomId: string, message: ChatMessage) {
         const room = chatStore.chatRooms.find((room) => room.id === roomId);
         if (room) {
             room.messages.push(message);
-            if (chatStore.selectedChatRoom?.id !== roomId) {
+            if (!chatStore.selectedChatRoom) throw new Error("failed to access chat room");
+
+            if (chatStore.selectedChatRoom.id !== roomId) {
                 room.unreadMessages++;
             }
         }

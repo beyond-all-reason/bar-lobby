@@ -14,10 +14,13 @@ const jobs = new Map<
 
 worker.on("message", ({ replayFilePath, replay, error }) => {
     const promiseHandles = jobs.get(replayFilePath);
+
+    if (!promiseHandles) throw new Error("failed to access image source promise handlers");
+
     if (error) {
-        promiseHandles?.reject(error);
+        promiseHandles.reject(error);
     } else {
-        promiseHandles?.resolve(replay);
+        promiseHandles.resolve(replay);
     }
     jobs.delete(replayFilePath);
 });
