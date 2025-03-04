@@ -29,10 +29,16 @@ class AudioAPI {
         this.settings = await window.settings.getSettings();
         console.debug("Loading music files...");
         for (const filePath in musicFiles) {
-            const name = filePath.split("/").pop()?.split(".")[0] || "";
+            const name = filePath.split("/").pop()?.split(".")[0];
             console.debug(name);
             const src = musicFiles[filePath];
             const volume = this.settings.musicVolume / 100;
+
+            if (!name) {
+                console.error(`something wrong with audio file named ${name}`);
+                continue;
+            }
+
             const sound = new Sound(name, true, { src, volume, preload: false, html5: true });
             sound.on("play", () => {
                 this.sounds.forEach((_sound) => {

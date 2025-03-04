@@ -8,7 +8,9 @@ if (isMainThread) {
         try {
             const response = await fetch(imageSource);
             const arrayBuffer = await response.arrayBuffer();
-            parentPort?.postMessage({ imageSource, arrayBuffer });
+            if (!parentPort) throw new Error("Parent Port is not defined");
+
+            parentPort.postMessage({ imageSource, arrayBuffer });
         } catch (error) {
             console.error(error);
         }

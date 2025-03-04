@@ -2,7 +2,7 @@ export interface Game {
     [key: string]: unknown;
 
     myplayername?: string;
-    gametype: string | undefined;
+    gametype?: string;
     mapname?: string;
     ishost: number;
     hostip?: string;
