@@ -3,8 +3,8 @@
         <div class="dev-title">
             {{ title }}
         </div>
-        <div class="dev-date">
-            {{ formatDistanceToNow(entry?.published, { addSuffix: true }) }}
+        <div v-if="entry?.published" class="dev-date">
+            {{ formatDistanceToNow(entry.published, { addSuffix: true }) }}
         </div>
         <div class="dev-desc">{{ description }}</div>
     </div>
