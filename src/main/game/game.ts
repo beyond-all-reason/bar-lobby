@@ -99,18 +99,20 @@ export class GameAPI {
                 detached: true,
             });
 
-            this.gameProcess?.stdout?.on("data", (data) => {
+            if (!this.gameProcess.stdout || !this.gameProcess.stderr) throw new Error("failed to access game process stream");
+
+            this.gameProcess.stdout.on("data", (data) => {
                 engineLogger.debug(`${data}`);
             });
-            this.gameProcess?.stderr?.on("data", (data) => {
+            this.gameProcess.stderr.on("data", (data) => {
                 engineLogger.error(`${data}`);
             });
 
-            this.gameProcess?.addListener("error", (err) => {
+            this.gameProcess.addListener("error", (err) => {
                 log.error(err);
             });
 
-            this.gameProcess?.addListener("exit", (code) => {
+            this.gameProcess.addListener("exit", (code) => {
                 if (code !== 0) {
                     log.error(`Game process exited with code: ${code}`);
                 } else {
@@ -118,16 +120,16 @@ export class GameAPI {
                 }
             });
 
-            this.gameProcess?.addListener("spawn", () => {
+            this.gameProcess.addListener("spawn", () => {
                 this.onGameLaunched.dispatch();
                 // this.updateLastLaunched(engineVersion, gameVersion, mapName);
             });
 
-            this.gameProcess?.addListener("close", (exitCode) => {
+            this.gameProcess.addListener("close", (exitCode) => {
                 this.gameProcess = null;
                 this.onGameClosed.dispatch(exitCode);
             });
-            log.debug(`Game process PID: ${this.gameProcess?.pid}`);
+            log.debug(`Game process PID: ${this.gameProcess.pid}`);
         } catch (err) {
             log.error(err);
         }

@@ -58,7 +58,7 @@ import ReplayPreviewMap from "@renderer/components/maps/ReplayPreviewMap.vue";
 import { DemoModel } from "$/sdfz-demo-parser";
 
 const props = defineProps<{
-    replay?: Replay | null | undefined;
+    replay: Replay;
     showSpoilers?: boolean;
 }>();
 

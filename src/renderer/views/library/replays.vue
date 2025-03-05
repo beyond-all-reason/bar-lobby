@@ -70,9 +70,11 @@
                 </div>
                 <div class="right-section">
                     <Panel class="flex-grow">
-                        <ReplayPreview :replay="selectedReplay" :showSpoilers="showSpoilers">
+                        <ReplayPreview v-if="selectedReplay" :replay="selectedReplay" :showSpoilers="showSpoilers">
                             <template #actions="{ replay }">
-                                <DownloadContentButton v-if="map" :map="map" @click="watchReplay(replay)">Watch</DownloadContentButton>
+                                <DownloadContentButton v-if="map && replay" :map="map" @click="watchReplay(replay)"
+                                    >Watch</DownloadContentButton
+                                >
                                 <Button v-else disabled style="flex-grow: 1">Watch</Button>
                                 <Button v-if="replay" @click="showReplayFile(replay)">Show File</Button>
                                 <Button v-else disabled>Show File</Button>

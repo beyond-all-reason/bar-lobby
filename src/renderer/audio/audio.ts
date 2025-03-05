@@ -35,7 +35,7 @@ class AudioAPI {
             const volume = this.settings.musicVolume / 100;
 
             if (!name) {
-                console.error(`something wrong with audio file named ${name}`);
+                console.error(`something wrong with audio file located at ${filePath}`);
                 continue;
             }
 
