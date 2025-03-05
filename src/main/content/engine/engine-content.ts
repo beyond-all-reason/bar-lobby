@@ -14,7 +14,6 @@ import { contentSources } from "@main/config/content-sources";
 import { AbstractContentAPI } from "@main/content/abstract-content";
 import { CONTENT_PATH } from "@main/config/app";
 import { DownloadEngine } from "@main/content/game/type";
-import { assert } from "assert";
 
 const log = logger("engine-content.ts");
 

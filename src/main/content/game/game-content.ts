@@ -187,7 +187,7 @@ export class GameContentAPI extends PrDownloaderAPI<string, GameVersion> {
 
     public async uninstallVersionById(gameVersion: string | undefined) {
         if (!gameVersion) {
-            throw new Error('Game Version is not specified');
+            throw new Error("Game Version is not specified");
         }
 
         const version = this.availableVersions.values().find((version) => version.gameVersion === gameVersion);
@@ -196,8 +196,8 @@ export class GameContentAPI extends PrDownloaderAPI<string, GameVersion> {
     }
 
     public async uninstallVersion(version: GameVersion) {
-        if (!gameVersion) {
-            throw new Error('Game Version is not specified');
+        if (!version) {
+            throw new Error("Game Version is not specified");
         }
 
         // TODO: Uninstall game version through prd when prd supports it
