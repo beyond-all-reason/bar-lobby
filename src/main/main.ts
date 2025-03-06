@@ -19,7 +19,10 @@ import { autoUpdaterService } from "@main/services/auto-updater.service";
 import { replayContentAPI } from "@main/content/replays/replay-content";
 import { authService } from "@main/services/auth.service";
 import { tachyonService } from "@main/services/tachyon.service";
+import netFromNode from "node:net";
 
+// Enable happy eyeballs for IPv6/IPv4 dual stack.
+netFromNode.setDefaultAutoSelectFamily(true);
 const log = logger("main/index.ts");
 log.info("Starting Electron main process");
 
