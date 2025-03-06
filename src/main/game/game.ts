@@ -6,12 +6,12 @@ import * as path from "path";
 
 import { engineContentAPI } from "@main/content/engine/engine-content";
 
-import { Replay } from "@main/content/replays/replay";
 import { startScriptConverter } from "@main/utils/start-script-converter";
 import { logger } from "@main/utils/logger";
 import { gameContentAPI } from "@main/content/game/game-content";
 import { CONTENT_PATH, REPLAYS_PATH } from "@main/config/app";
 import { BattleWithMetadata } from "@main/game/battle/battle-types";
+import { LaunchReplay } from "@main/content/game/type";
 
 const log = logger("main/game/game.ts");
 const engineLogger = logger("[RECOIL ENGINE]", { separator: "\n", level: "info" });
@@ -46,13 +46,15 @@ export class GameAPI {
         });
     }
 
-    public async launchReplay(replay: Replay): Promise<void> {
-        await this.launch({
-            engineVersion: replay.engineVersion,
-            gameVersion: replay.gameVersion,
-            launchArg: replay.filePath ? replay.filePath : path.join(REPLAYS_PATH, replay.fileName),
-        });
-    }
+    public launchReplay: LaunchReplay = async (replay) => {
+        if (replay) {
+            await this.launch({
+                engineVersion: replay.engineVersion,
+                gameVersion: replay.gameVersion,
+                launchArg: replay.filePath ? replay.filePath : path.join(REPLAYS_PATH, replay.fileName),
+            });
+        }
+    };
 
     public async launchScript({ engineVersion, gameVersion, script }: ScriptLaunchSettings) {
         log.debug(`Launching game with script: ${script}`);
@@ -78,7 +80,11 @@ export class GameAPI {
         });
     }
 
-    public async launch({ engineVersion, gameVersion, launchArg }: { engineVersion: string; gameVersion: string; launchArg: string }): Promise<void> {
+    public async launch({ engineVersion, gameVersion, launchArg }: { engineVersion?: string; gameVersion?: string; launchArg?: string }): Promise<void> {
+        if (!engineVersion || !gameVersion || !launchArg) {
+            throw new Error("Engine Version, Game Version and launch Arguments need to be specified");
+        }
+
         try {
             log.info(`Launching game with engine: ${engineVersion}, game: ${gameVersion}`);
             await this.fetchMissingContent(engineVersion, gameVersion); // TODO preload anything needed through the UI before launching. Remove this step
@@ -92,6 +98,8 @@ export class GameAPI {
                 stdio: "pipe",
                 detached: true,
             });
+
+            if (!this.gameProcess.stdout || !this.gameProcess.stderr) throw new Error("failed to access game process stream");
 
             this.gameProcess.stdout.on("data", (data) => {
                 engineLogger.debug(`${data}`);
@@ -132,7 +140,11 @@ export class GameAPI {
     }
 
     //TODO not handling maps, not sure if needed if we always come from the lobby's UI
-    protected async fetchMissingContent(engineVersion: string, gameVersion: string) {
+    protected async fetchMissingContent(engineVersion?: string, gameVersion?: string) {
+        if (!engineVersion || !gameVersion) {
+            throw new Error("Engine Version and Game Version need to be specified");
+        }
+
         const isEngineInstalled = engineContentAPI.isVersionInstalled(engineVersion);
         const isGameInstalled = gameContentAPI.isVersionInstalled(gameVersion);
         if (!isEngineInstalled || !isGameInstalled) {

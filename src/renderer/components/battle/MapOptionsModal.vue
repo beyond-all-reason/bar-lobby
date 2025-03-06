@@ -5,7 +5,7 @@
                 <MapBattlePreview />
             </div>
             <div class="options flex-col gap-md">
-                <div v-if="battleStore.battleOptions.map.startboxesSet">
+                <div v-if="battleStore.battleOptions.map?.startboxesSet">
                     <h4>Boxes presets</h4>
                     <div class="box-buttons">
                         <Button
@@ -44,7 +44,7 @@
                         <Range v-model="customBoxRange" :min="5" :max="100" :step="5" />
                     </div>
                 </div>
-                <div v-if="battleStore.battleOptions.map.startPos">
+                <div v-if="battleStore.battleOptions.map?.startPos">
                     <h4>Fixed positions</h4>
                     <div class="box-buttons">
                         <Button

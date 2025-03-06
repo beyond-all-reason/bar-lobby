@@ -20,7 +20,7 @@ class Sound extends Howl {
 class AudioAPI {
     public sounds: Map<string, Sound> = new Map();
 
-    private settings: Settings;
+    private settings: Settings | undefined;
 
     public async init() {
         if (this.sounds.size) {
@@ -29,10 +29,16 @@ class AudioAPI {
         this.settings = await window.settings.getSettings();
         console.debug("Loading music files...");
         for (const filePath in musicFiles) {
-            const name = filePath.split("/").pop().split(".")[0];
+            const name = filePath.split("/").pop()?.split(".")[0];
             console.debug(name);
             const src = musicFiles[filePath];
             const volume = this.settings.musicVolume / 100;
+
+            if (!name) {
+                console.error(`something wrong with audio file located at ${filePath}`);
+                continue;
+            }
+
             const sound = new Sound(name, true, { src, volume, preload: false, html5: true });
             sound.on("play", () => {
                 this.sounds.forEach((_sound) => {
@@ -46,7 +52,7 @@ class AudioAPI {
 
         console.debug("Loading sfx files...");
         for (const filePath in sfxFiles) {
-            const name = filePath.split("/").pop().split(".")[0];
+            const name = filePath.split("/").pop()?.split(".")[0] || "";
             console.debug(name);
             const src = sfxFiles[filePath];
             const volume = this.settings.sfxVolume / 100;
@@ -120,8 +126,11 @@ class AudioAPI {
 
     public unmuteMusic(fadeTime = 4000) {
         const musicSounds = this.getAllSounds().filter((sound) => sound.isMusic);
+
+        if (!this.settings) throw new Error("failed to access settings");
+
         for (const sound of musicSounds) {
-            sound.fade(0, this.settings.musicVolume / 100, fadeTime);
+            sound.fade(0, (this.settings.musicVolume || 0) / 100, fadeTime);
         }
     }
 }

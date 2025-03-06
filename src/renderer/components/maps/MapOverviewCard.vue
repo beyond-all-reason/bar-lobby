@@ -29,13 +29,13 @@ import gridIcon from "@iconify-icons/mdi/grid";
 import heartIcon from "@iconify-icons/mdi/heart";
 
 const props = defineProps<{
-    map: MapData;
+    map: MapData | undefined;
 }>();
 
 const cache = useImageBlobUrlCache();
 const mapSize = computed(() => (props.map ? props.map.mapWidth + "x" + props.map.mapHeight : "Unknown"));
 const imageUrl = computed(() =>
-    props.map.imagesBlob?.preview ? cache.get(props.map.springName, props.map.imagesBlob?.preview) : defaultMiniMap
+    props.map?.imagesBlob?.preview ? cache.get(props.map?.springName, props.map?.imagesBlob?.preview) : defaultMiniMap
 );
 </script>
 

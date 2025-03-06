@@ -17,6 +17,7 @@ import { Scenario } from "@main/content/game/scenario";
 import { SdpFileMeta, SdpFile } from "@main/content/game/sdp";
 import { PrDownloaderAPI } from "@main/content/pr-downloader";
 import { CONTENT_PATH, GAME_VERSIONS_GZ_PATH } from "@main/config/app";
+import { GetScenarios } from "@main/content/game/type";
 
 const log = logger("game-content.ts");
 const gunzip = util.promisify(zlib.gunzip);
@@ -138,7 +139,7 @@ export class GameContentAPI extends PrDownloaderAPI<string, GameVersion> {
         return this.parseAis(luaai);
     }
 
-    public async getScenarios(gameVersion: string): Promise<Scenario[]> {
+    public getScenarios: GetScenarios = async (gameVersion) => {
         try {
             const version = this.availableVersions.values().find((version) => version.gameVersion === gameVersion);
             assert(version, `No installed version found for game version: ${gameVersion}`);
@@ -182,14 +183,23 @@ export class GameContentAPI extends PrDownloaderAPI<string, GameVersion> {
             log.error(`Error getting scenarios: ${err}`);
             return [];
         }
-    }
+    };
 
-    public async uninstallVersionById(gameVersion: string) {
+    public async uninstallVersionById(gameVersion: string | undefined) {
+        if (!gameVersion) {
+            throw new Error("Game Version is not specified");
+        }
+
         const version = this.availableVersions.values().find((version) => version.gameVersion === gameVersion);
-        await this.uninstallVersion(version);
+
+        if (version) await this.uninstallVersion(version);
     }
 
     public async uninstallVersion(version: GameVersion) {
+        if (!version) {
+            throw new Error("Game Version is not specified");
+        }
+
         // TODO: Uninstall game version through prd when prd supports it
         assert(!version.packageMd5.endsWith(".sdd"), "Cannot uninstall local/custom game versions");
         await fs.promises.rm(path.join(CONTENT_PATH, "packages", `${version.packageMd5}.sdp`));
