@@ -92,56 +92,95 @@ export class EngineContentAPI extends AbstractContentAPI<string, EngineVersion> 
 
         try {
             if (this.isVersionInstalled(engineVersion)) {
+                log.debug(`Engine version ${engineVersion} is already installed, skipping download`);
                 return;
             }
-            const { data } = await this.ocotokit.rest.repos.getReleaseByTag({
-                owner: contentSources.engineGitHub.owner,
-                repo: contentSources.engineGitHub.repo,
-                tag: engineVersion,
-            });
-            if (!data) {
-                throw new Error(`Couldn't find engine release for tag: ${engineVersion}`);
+
+            // Use the recommended API endpoint instead of parsing GitHub releases
+            const platform = process.platform === "win32" ? "windows64" : "linux64";
+            const apiUrl = `https://files-cdn.beyondallreason.dev/find?category=engine_${platform}&springname=${encodeURIComponent(engineVersion)}`;
+
+            log.debug(`Fetching engine download URL from: ${apiUrl}`);
+
+            const { data } = await axios.get(apiUrl);
+
+            // Log the response data for debugging
+            log.debug(`API response for engine ${engineVersion}: ${JSON.stringify(data)}`);
+
+            // The API returns an array of objects, so we need to check if there are any results
+            if (!data || !Array.isArray(data) || data.length === 0) {
+                const errorMsg = `Couldn't find engine download URL for version: ${engineVersion}`;
+                log.error(errorMsg);
+                throw new Error(errorMsg);
             }
-            const archStr = process.platform === "win32" ? "windows" : "linux";
-            const asset = data.assets.find((asset) => asset.name.includes(archStr) && asset.name.includes("portable"));
-            if (!asset) {
-                throw new Error("Failed to fetch engine release asset");
+
+            // Get the first result
+            const engineData = data[0];
+            log.debug(`Engine data for ${engineVersion}: ${JSON.stringify(engineData)}`);
+
+            // Check if the engine data has mirrors
+            if (!engineData.mirrors || !Array.isArray(engineData.mirrors) || engineData.mirrors.length === 0) {
+                const errorMsg = `Engine data doesn't contain any download mirrors for version: ${engineVersion}`;
+                log.error(errorMsg);
+                throw new Error(errorMsg);
             }
+
+            // Use the first mirror URL
+            const downloadUrl = engineData.mirrors[0];
+            log.debug(`Found engine download URL for ${engineVersion}: ${downloadUrl}`);
+
             const downloadInfo: DownloadInfo = {
                 type: "engine",
                 name: engineVersion,
                 currentBytes: 0,
                 totalBytes: 1,
             };
+
             this.currentDownloads.push(downloadInfo);
             this.downloadStarted(downloadInfo);
-            log.info(`Downloading engine: ${engineVersion}`);
+            log.info(`Starting engine download for ${engineVersion} from ${downloadUrl}`);
+
             const downloadResponse = await axios({
-                url: asset.browser_download_url,
-                method: "get",
+                url: downloadUrl,
+                method: "GET",
                 responseType: "arraybuffer",
                 headers: { "Content-Type": "application/7z" },
-                onDownloadProgress: (progress) => {
-                    downloadInfo.currentBytes = progress.loaded;
-                    downloadInfo.totalBytes = progress.total || -1;
+                onDownloadProgress: (progressEvent) => {
+                    downloadInfo.currentBytes = progressEvent.loaded;
+                    downloadInfo.totalBytes = progressEvent.total || -1;
                     this.downloadProgress(downloadInfo);
                 },
             });
+
             const engine7z = downloadResponse.data as ArrayBuffer;
-            const downloadedFilePath = path.join(this.engineDirs, asset.name);
+
+            // Get filename from Content-Disposition header or use a default name
+            let filename = "engine.7z";
+            const contentDisposition = downloadResponse.headers["content-disposition"];
+            if (contentDisposition) {
+                const filenameMatch = contentDisposition.match(/filename="?([^"]+)"?/);
+                if (filenameMatch && filenameMatch[1]) {
+                    filename = filenameMatch[1];
+                }
+            }
+
+            const downloadedFilePath = path.join(this.engineDirs, filename);
             const engineDestinationPath = path.join(this.engineDirs, engineVersion);
-            log.info(`Extracting <${asset.name}> to ${engineDestinationPath}`);
+
+            log.info(`Extracting <${filename}> to ${engineDestinationPath}`);
             await fs.promises.mkdir(this.engineDirs, { recursive: true });
             await fs.promises.writeFile(downloadedFilePath, Buffer.from(engine7z), { encoding: "binary" });
             await extract7z(downloadedFilePath, engineDestinationPath);
             await fs.promises.unlink(downloadedFilePath);
             removeFromArray(this.currentDownloads, downloadInfo);
-            log.info(`Extracted engine <${asset.name}>`);
+            log.info(`Extracted engine <${filename}>`);
             await this.downloadComplete(downloadInfo);
             log.info(`Downloaded engine: ${engineVersion}`);
+
             return engineVersion;
         } catch (err) {
-            log.error(err);
+            log.error("Failed to fetch engine release asset", { err });
+            throw new Error("Failed to fetch engine release asset");
         }
     };
 

@@ -18,6 +18,8 @@ import { SdpFileMeta, SdpFile } from "@main/content/game/sdp";
 import { PrDownloaderAPI } from "@main/content/pr-downloader";
 import { CONTENT_PATH, GAME_VERSIONS_GZ_PATH } from "@main/config/app";
 import { GetScenarios } from "@main/content/game/type";
+import axios from "axios";
+import { LATEST_GAME_VERSION } from "@main/config/default-versions";
 
 const log = logger("game-content.ts");
 const gunzip = util.promisify(zlib.gunzip);
@@ -103,27 +105,125 @@ export class GameContentAPI extends PrDownloaderAPI<string, GameVersion> {
     }
 
     public override isVersionInstalled(version: string) {
-        if (version === "byar:test") {
+        if (version === LATEST_GAME_VERSION) {
             return false;
         }
         return this.availableVersions.values().some((installedVersion) => installedVersion.gameVersion === version);
     }
 
     /**
-     * Downloads the actual game files, will update to latest if no specific gameVersion is specified
+     * Downloads the actual game files
      * @param gameVersion e.g. "Beyond All Reason test-16289-b154c3d"
      */
-    public async downloadGame(gameVersion = `${contentSources.rapid.game}:test`) {
-        // skip download if already installed
-        if (this.isVersionInstalled(gameVersion)) {
-            return;
-        }
-        log.info(`Downloading game version: ${gameVersion}`);
-        const downloadInfo = await this.downloadContent("game", gameVersion);
-        if (downloadInfo) {
+    public async downloadGame(gameVersion: string) {
+        try {
+            // Skip download if already installed
+            if (this.isVersionInstalled(gameVersion)) {
+                log.debug(`Game version ${gameVersion} is already installed, skipping download`);
+                return;
+            }
+
+            log.info(`Downloading game version: ${gameVersion}`);
+
+            // Convert byar:test format to the correct format for the API
+            let apiGameVersion = gameVersion;
+            if (gameVersion.includes(":")) {
+                // Extract the part after the colon (e.g., "test" from "byar:test")
+                const parts = gameVersion.split(":");
+                if (parts.length === 2 && parts[0] === contentSources.rapid.game) {
+                    apiGameVersion = parts[1];
+                    log.debug(`Converting ${gameVersion} to ${apiGameVersion} for API request`);
+                }
+            }
+
+            // Use the API endpoint to get download information
+            const apiUrl = `https://files-cdn.beyondallreason.dev/find?category=game&springname=${encodeURIComponent(apiGameVersion)}`;
+            log.debug(`Fetching game download URL from: ${apiUrl}`);
+
+            const { data } = await axios.get(apiUrl);
+            log.debug(`API response for game ${gameVersion}: ${JSON.stringify(data)}`);
+
+            // Check if we got valid data
+            if (!data || !Array.isArray(data) || data.length === 0) {
+                // Try with "test" directly if we're using byar:test
+                if (gameVersion === LATEST_GAME_VERSION) {
+                    log.debug(`No results found for ${gameVersion}, trying with "test" directly`);
+                    return this.downloadGame("test");
+                }
+                const errorMsg = `Couldn't find game download information for version: ${gameVersion}`;
+                log.error(errorMsg);
+                throw new Error(errorMsg);
+            }
+
+            // Get the first result
+            const gameData = data[0];
+            log.debug(`Game data for ${gameVersion}: ${JSON.stringify(gameData)}`);
+
+            // Check if we have mirrors
+            if (!gameData.mirrors || !Array.isArray(gameData.mirrors) || gameData.mirrors.length === 0) {
+                const errorMsg = `Game data doesn't contain any download mirrors for version: ${gameVersion}`;
+                log.error(errorMsg);
+                throw new Error(errorMsg);
+            }
+
+            // Use the first mirror URL
+            const downloadUrl = gameData.mirrors[0];
+            log.debug(`Found game download URL: ${downloadUrl}`);
+
+            // Create download info
+            const downloadInfo: DownloadInfo = {
+                type: "game",
+                name: gameVersion,
+                currentBytes: 0,
+                totalBytes: gameData.size || 1,
+            };
+
+            // Add to current downloads and notify
+            this.currentDownloads.push(downloadInfo);
+            this.downloadStarted(downloadInfo);
+
+            // Download the game
+            const downloadResponse = await axios({
+                url: downloadUrl,
+                method: "GET",
+                responseType: "arraybuffer",
+                onDownloadProgress: (progressEvent) => {
+                    downloadInfo.currentBytes = progressEvent.loaded;
+                    downloadInfo.totalBytes = progressEvent.total || gameData.size || -1;
+                    this.downloadProgress(downloadInfo);
+                },
+            });
+
+            // Get the downloaded data
+            const gameArchive = downloadResponse.data as ArrayBuffer;
+
+            // Get filename from Content-Disposition header or use a default name
+            let filename = "game.sdp";
+            const contentDisposition = downloadResponse.headers["content-disposition"];
+            if (contentDisposition) {
+                const filenameMatch = contentDisposition.match(/filename="?([^"]+)"?/);
+                if (filenameMatch && filenameMatch[1]) {
+                    filename = filenameMatch[1];
+                }
+            }
+
+            // Save the downloaded file to the appropriate location
+            const rapidDir = path.join(CONTENT_PATH, "rapid", "pool");
+            await fs.promises.mkdir(rapidDir, { recursive: true });
+            const filePath = path.join(rapidDir, filename);
+
+            log.debug(`Saving game archive to: ${filePath}`);
+            await fs.promises.writeFile(filePath, Buffer.from(gameArchive), { encoding: "binary" });
+
+            // Complete the download
             await this.downloadComplete(downloadInfo);
             removeFromArray(this.currentDownloads, downloadInfo);
-            log.debug(`Downloaded ${downloadInfo.name}`);
+            log.info(`Downloaded game: ${gameVersion}`);
+
+            return gameVersion;
+        } catch (err: unknown) {
+            log.error("Failed to download game", { err });
+            throw new Error(`Failed to download game: ${err instanceof Error ? err.message : String(err)}`);
         }
     }
 
@@ -288,7 +388,7 @@ export class GameContentAPI extends PrDownloaderAPI<string, GameVersion> {
     }
 
     protected async addGame(gameVersion: string) {
-        if (gameVersion === "byar:test") {
+        if (gameVersion === LATEST_GAME_VERSION) {
             await this.scanPackagesDir();
         } else {
             const packageMd5 = this.gameVersionPackageLookup[gameVersion];
