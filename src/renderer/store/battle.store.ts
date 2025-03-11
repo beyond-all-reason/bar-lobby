@@ -75,8 +75,6 @@ function removeFromSpectators(participant: Player) {
 }
 
 function addBot(ai: EngineAI | GameAI, teamId: number) {
-    if (!battleStore.me) throw new Error("failed to access current player");
-
     battleStore.teams[teamId].push({
         id: participantId++,
         name: ai.name,
@@ -124,55 +122,39 @@ function moveBotToTeam(bot: Bot, teamId: number) {
 function getNumberOfTeams(): number {
     let numberOfTeams = 0;
 
-    const map = battleStore.battleOptions.map;
-
-    if (!map) throw new Error("failed to access battle options map");
-
     if (battleStore.battleOptions.mapOptions.startPosType === StartPosType.Boxes) {
-        const startBoxIndex = battleStore.battleOptions.mapOptions.startBoxesIndex || 0;
-
-        if (startBoxIndex >= 0) {
-            const startBoxes = map.startboxesSet[startBoxIndex];
-            numberOfTeams = startBoxes.startboxes.length || 0;
+        if (battleStore.battleOptions.mapOptions.startBoxesIndex >= 0) {
+            const startBoxes = battleStore.battleOptions.map.startboxesSet[battleStore.battleOptions.mapOptions.startBoxesIndex];
+            numberOfTeams = startBoxes.startboxes?.length;
         } else if (battleStore.battleOptions.mapOptions.customStartBoxes) {
             numberOfTeams = battleStore.battleOptions.mapOptions.customStartBoxes.length;
         }
     }
 
     if (battleStore.battleOptions.mapOptions.startPosType in [StartPosType.Fixed, StartPosType.Random]) {
-        if (!map.startPos || !map.startPos.team) throw new Error("failed to access team start position");
-
-        const teamPreset = map.startPos.team[battleStore.battleOptions.mapOptions.fixedPositionsIndex ?? 0];
-        numberOfTeams = teamPreset.sides.length || 0;
+        const teamPreset = battleStore.battleOptions.map.startPos.team[battleStore.battleOptions.mapOptions.fixedPositionsIndex ?? 0];
+        numberOfTeams = teamPreset.sides.length;
     }
 
     return numberOfTeams;
 }
 
-function getMaxPlayersPerTeam() {
-    let maxPlayersPerTeam: number | null = null;
-
-    const map = battleStore.battleOptions.map;
-
-    if (!map) throw new Error("failed to access battle options map");
+function getMaxPlayersPerTeam(): number {
+    let maxPlayersPerTeam: number = null;
 
     if (battleStore.battleOptions.mapOptions.startPosType === StartPosType.Boxes) {
-        const startBoxIndex = battleStore.battleOptions.mapOptions.startBoxesIndex || 0;
-
-        if (startBoxIndex >= 0) {
-            const startBoxes = map.startboxesSet[startBoxIndex];
-            maxPlayersPerTeam = startBoxes.maxPlayersPerStartbox || 0;
+        if (battleStore.battleOptions.mapOptions.startBoxesIndex >= 0) {
+            const startBoxes = battleStore.battleOptions.map.startboxesSet[battleStore.battleOptions.mapOptions.startBoxesIndex];
+            maxPlayersPerTeam = startBoxes.maxPlayersPerStartbox;
         }
     }
 
     if (battleStore.battleOptions.mapOptions.startPosType in [StartPosType.Fixed, StartPosType.Random]) {
-        if (!map.startPos || !map.startPos.team) throw new Error("failed to access team start position");
-
-        const teamPreset = map.startPos.team[battleStore.battleOptions.mapOptions.fixedPositionsIndex ?? 0];
-        maxPlayersPerTeam = teamPreset.playersPerTeam || 0;
+        const teamPreset = battleStore.battleOptions.map.startPos.team[battleStore.battleOptions.mapOptions.fixedPositionsIndex ?? 0];
+        maxPlayersPerTeam = teamPreset.playersPerTeam;
     }
 
-    return maxPlayersPerTeam || 0;
+    return maxPlayersPerTeam;
 }
 
 function updateTeams() {
@@ -231,8 +213,8 @@ function defaultOfflineBattle(engine?: EngineVersion, game?: GameVersion, map?: 
         title: "Offline Custom Battle",
         isOnline: false,
         battleOptions: {
-            engineVersion: engine?.id || enginesStore.selectedEngineVersion?.id,
-            gameVersion: game?.gameVersion || gameStore.selectedGameVersion?.gameVersion,
+            engineVersion: engine?.id || enginesStore.selectedEngineVersion.id,
+            gameVersion: game?.gameVersion || gameStore.selectedGameVersion.gameVersion,
             gameMode: {
                 label: "Classic",
                 options: game?.luaOptionSections || {},
@@ -321,7 +303,7 @@ watch(
     () => {
         battleStore.battleOptions.mapOptions.startPosType = StartPosType.Boxes;
         battleStore.battleOptions.mapOptions.startBoxesIndex = 0;
-        if (battleStore.me) battleStore.me.contentSyncState.map = battleStore.battleOptions.map?.isInstalled ? 1 : 0;
+        battleStore.me.contentSyncState.map = battleStore.battleOptions.map?.isInstalled ? 1 : 0;
         updateTeams();
     },
     { deep: true }
@@ -330,8 +312,6 @@ watch(
 watch(
     () => enginesStore.selectedEngineVersion,
     (engineVersion) => {
-        if (!engineVersion) throw new Error("failed to access engine version");
-
         battleStore.battleOptions.engineVersion = engineVersion.id;
     }
 );
@@ -339,8 +319,6 @@ watch(
 watch(
     () => gameStore.selectedGameVersion,
     (gameVersion) => {
-        if (!gameVersion) throw new Error("failed to access game version");
-
         battleStore.battleOptions.gameVersion = gameVersion.gameVersion;
     }
 );
@@ -352,13 +330,9 @@ function leaveBattle() {
 
 async function loadGameMode(gameMode: GameModeType) {
     if (!battleStore.battleOptions.engineVersion) {
-        if (!enginesStore.selectedEngineVersion) throw new Error("failed to access engine version");
-
         battleStore.battleOptions.engineVersion = enginesStore.selectedEngineVersion.id;
     }
     if (!battleStore.battleOptions.gameVersion) {
-        if (!gameStore.selectedGameVersion) throw new Error("failed to access game version");
-
         battleStore.battleOptions.gameVersion = gameStore.selectedGameVersion.gameVersion;
     }
     if (!battleStore.battleOptions.map) {
@@ -448,16 +422,12 @@ function removeRaptorsAI() {
 }
 
 function addScavengersAI() {
-    if (!gameStore.selectedGameVersion) throw new Error("failed to retrieve game version");
-
-    const scavengersAI = gameStore.selectedGameVersion.ais.find((ai) => ai.shortName === "ScavengersAI");
-    if (scavengersAI) addBot(scavengersAI, getNumberOfTeams() - 1);
+    const scavengersAI = gameStore.selectedGameVersion.ais?.find((ai) => ai.shortName === "ScavengersAI");
+    addBot(scavengersAI, getNumberOfTeams() - 1);
 }
 function addRaptorsAI() {
-    if (!gameStore.selectedGameVersion) throw new Error("failed to retrieve game version");
-
-    const raptorsAI = gameStore.selectedGameVersion.ais.find((ai) => ai.shortName === "RaptorsAI");
-    if (raptorsAI) addBot(raptorsAI, getNumberOfTeams() - 1);
+    const raptorsAI = gameStore.selectedGameVersion.ais?.find((ai) => ai.shortName === "RaptorsAI");
+    addBot(raptorsAI, getNumberOfTeams() - 1);
 }
 
 export const battleActions = {

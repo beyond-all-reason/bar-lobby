@@ -94,8 +94,7 @@ const mapListOptions = useDexieLiveQuery(() => db.maps.toArray());
 const gameListOptions = useDexieLiveQuery(() => db.gameVersions.toArray());
 
 const map = useDexieLiveQueryWithDeps([() => battleStore.battleOptions.map], () => {
-    if (!battleStore.battleOptions.map) throw new Error(`unable to retrieve battle map`);
-
+    if (!battleStore.battleOptions.map) return null;
     return db.maps.get(battleStore.battleOptions.map.springName);
 });
 

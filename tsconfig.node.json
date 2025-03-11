@@ -2,6 +2,7 @@
     "extends": "./tsconfig.shared.json",
     "include": ["electron.vite.config.*", "electron-builder.config.*", "src/main/**/*", "src/preload/**/*", "vendor/**/*"],
     "compilerOptions": {
+        "strict": false,
         "composite": true,
         "types": ["node"],
         "baseUrl": ".",
@@ -11,8 +12,6 @@
             "$/*": ["vendor/*"]
         },
 
-        "strict": true,
-        "strictNullChecks": true,
         // TODO: Enable these for better typechecking
         "noImplicitReturns": false,
         "noUnusedLocals": false,

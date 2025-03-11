@@ -7,7 +7,7 @@
     >
         <div class="tabs">
             <div class="tab" v-for="chatRoom in chatStore.chatRooms" :key="chatRoom.id">
-                <Button :class="{ active: chatStore.selectedChatRoom?.id === chatRoom.id }" @click="clickTab(chatRoom)">
+                <Button :class="{ active: chatStore.selectedChatRoom.id === chatRoom.id }" @click="clickTab(chatRoom)">
                     <span class="unread-messages-dot" :class="{ active: chatRoom.unreadMessages > 0 }">⬤</span>
                     {{ chatRoom.name }}
                     <span class="close-button" v-if="chatRoom.closeable" @click="(e) => closeChatRoom(e, chatRoom)">
@@ -18,19 +18,19 @@
         </div>
         <div class="chat-messages" :class="{ expanded: isExpanded || battleStore.isLobbyOpened }">
             <div
-                v-for="(message, index) in chatStore.selectedChatRoom?.messages.toReversed()"
+                v-for="(message, index) in chatStore.selectedChatRoom.messages.toReversed()"
                 :key="index"
                 :class="['chat-message', message.userId]"
             >
                 <div class="message-content">
-                    <span class="username" :style="{ color: chatStore.selectedChatRoom?.color }">{{ message.userName }}:</span>
+                    <span class="username" :style="{ color: chatStore.selectedChatRoom.color }">{{ message.userName }}:</span>
                     <span class="text">{{ message.text }}</span>
                     <!-- <span class="timestamp">{{ message.timestamp }}</span> -->
                 </div>
             </div>
         </div>
         <div class="chat-input">
-            <div class="target" :style="{ color: chatStore.selectedChatRoom?.color }">To ({{ chatStore.selectedChatRoom?.name }}):</div>
+            <div class="target" :style="{ color: chatStore.selectedChatRoom.color }">To ({{ chatStore.selectedChatRoom.name }}):</div>
             <input ref="textBox" v-model="newMessage" @keydown.enter="sendMessage" placeholder="Type here to chat. Use '/' for commands." />
         </div>
     </div>

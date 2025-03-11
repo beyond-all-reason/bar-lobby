@@ -15,8 +15,8 @@ const log = logger("map-content.ts");
  * @todo replace queue method with syncMapCache function once prd returns map file name
  */
 export class MapContentAPI extends PrDownloaderAPI<string, MapData> {
-    public mapNameFileNameLookup: { [springName: string]: string | undefined } = {};
-    public fileNameMapNameLookup: { [fileName: string]: string | undefined } = {};
+    public mapNameFileNameLookup: { [springName: string]: string } = {};
+    public fileNameMapNameLookup: { [fileName: string]: string } = {};
 
     public readonly onMapAdded: Signal<string> = new Signal();
     public readonly onMapDeleted: Signal<string> = new Signal();
@@ -40,7 +40,6 @@ export class MapContentAPI extends PrDownloaderAPI<string, MapData> {
             try {
                 const mapName = await this.getMapNameFromFile(filePath);
                 const fileName = path.basename(filePath);
-
                 this.mapNameFileNameLookup[mapName] = fileName;
                 this.fileNameMapNameLookup[fileName] = mapName;
             } catch (err) {
@@ -82,15 +81,9 @@ export class MapContentAPI extends PrDownloaderAPI<string, MapData> {
                     return;
                 }
                 log.debug(`Chokidar -=- Map removed: ${filepath}`);
-
-                const pathBaseName = path.basename(filepath);
-
-                if (pathBaseName) {
-                    if (this.fileNameMapNameLookup[pathBaseName]) this.mapNameFileNameLookup[this.fileNameMapNameLookup[pathBaseName]] = undefined;
-                    this.fileNameMapNameLookup[pathBaseName] = undefined;
-
-                    this.onMapDeleted.dispatch(pathBaseName);
-                }
+                this.mapNameFileNameLookup[this.fileNameMapNameLookup[path.basename(filepath)]] = undefined;
+                this.fileNameMapNameLookup[path.basename(filepath)] = undefined;
+                this.onMapDeleted.dispatch(path.basename(filepath));
             });
     }
 

@@ -26,6 +26,7 @@
 </template>
 
 <script lang="ts" setup>
+import { Ref } from "vue";
 import Modal from "@renderer/components/common/Modal.vue";
 import Checkbox from "@renderer/components/controls/Checkbox.vue";
 import Range from "@renderer/components/controls/Range.vue";
@@ -34,7 +35,7 @@ import { asyncComputed } from "@vueuse/core";
 import { settingsStore } from "@renderer/store/settings.store";
 import { infosStore } from "@renderer/store/infos.store";
 
-const displayOptions = asyncComputed(async () => {
+const displayOptions: Ref<Array<{ label: string; value: number }>> = asyncComputed(async () => {
     return Array(infosStore.hardware.numOfDisplays)
         .fill(0)
         .map((_, i) => {

@@ -70,11 +70,9 @@
                 </div>
                 <div class="right-section">
                     <Panel class="flex-grow">
-                        <ReplayPreview v-if="selectedReplay" :replay="selectedReplay" :showSpoilers="showSpoilers">
+                        <ReplayPreview :replay="selectedReplay" :showSpoilers="showSpoilers">
                             <template #actions="{ replay }">
-                                <DownloadContentButton v-if="map && replay" :map="map" @click="watchReplay(replay)"
-                                    >Watch</DownloadContentButton
-                                >
+                                <DownloadContentButton v-if="map" :map="map" @click="watchReplay(replay)">Watch</DownloadContentButton>
                                 <Button v-else disabled style="flex-grow: 1">Watch</Button>
                                 <Button v-if="replay" @click="showReplayFile(replay)">Show File</Button>
                                 <Button v-else disabled>Show File</Button>
@@ -146,8 +144,7 @@ const replays = useDexieLiveQueryWithDeps([endedNormally, offset, limit, sortFie
 });
 
 const map = useDexieLiveQueryWithDeps([() => selectedReplay.value?.mapSpringName], () => {
-    if (!selectedReplay.value) throw new Error(`unable to retrieve selected replay`);
-
+    if (!selectedReplay.value) return null;
     return db.maps.get(selectedReplay.value.mapSpringName);
 });
 
@@ -173,7 +170,7 @@ function watchReplay(replay: Replay) {
 }
 
 function showReplayFile(replay: Replay) {
-    if (replay?.fileName) window.shell.showReplayInFolder(replay.fileName);
+    window.shell.showReplayInFolder(replay.fileName);
 }
 </script>
 

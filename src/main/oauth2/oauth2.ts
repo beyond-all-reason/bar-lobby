@@ -78,9 +78,6 @@ export async function authenticate(): Promise<TokenResponse> {
         const callbackUrl = await redirectHandler.waitForCallback();
         log.debug(`Received callback URL: ${callbackUrl}`);
         const code = callbackUrl.searchParams.get("code");
-
-        if (!code) throw new Error("Call back URL code is not specified");
-
         log.debug(`Received OAuth2 code: ${code}`);
         const tokenUrl = createUrlWithQuerystring(tokenEndpoint, {
             grant_type: "authorization_code",

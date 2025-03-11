@@ -63,8 +63,8 @@ async function play() {
 }
 
 function toggleMapFavorite() {
-    db.maps.update(id, { isFavorite: !map.value?.isFavorite });
-    if (map.value) map.value.isFavorite = !map.value.isFavorite;
+    db.maps.update(id, { isFavorite: !map.value.isFavorite });
+    map.value.isFavorite = !map.value.isFavorite;
 }
 </script>
 

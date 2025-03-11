@@ -36,7 +36,7 @@ import vStartPos from "@renderer/directives/vStartPos";
 import vSetPlayerColor from "@renderer/directives/vSetPlayerColor";
 
 const props = defineProps<{
-    replay: Replay | null;
+    replay?: Replay;
 }>();
 
 const teams = ref(props.replay?.teams || []);
@@ -57,8 +57,7 @@ defineComponent({
 });
 
 const map = useDexieLiveQueryWithDeps([() => props.replay?.mapSpringName], () => {
-    if (!props.replay) throw new Error("unable to acces replay");
-
+    if (!props.replay) return null;
     return db.maps.get(props.replay.mapSpringName);
 });
 const mapWidthElmos = computed(() => (map.value?.mapWidth ? map.value.mapWidth * 512 : null));

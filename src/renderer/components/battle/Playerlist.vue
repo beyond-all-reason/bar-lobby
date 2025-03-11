@@ -61,11 +61,11 @@ function onBotSelected(bot: EngineAI | GameAI, teamId: number) {
 }
 
 function joinTeam(teamId: number) {
-    if (battleStore.me) battleActions.movePlayerToTeam(battleStore.me, teamId);
+    battleActions.movePlayerToTeam(battleStore.me, teamId);
 }
 
 function joinSpectators() {
-    if (battleStore.me) battleActions.movePlayerToSpectators(battleStore.me);
+    battleActions.movePlayerToSpectators(battleStore.me);
 }
 
 const draggedPlayer: Ref<Player | null> = ref(null);
@@ -84,7 +84,7 @@ function dragEnterTeam(event: DragEvent) {
             el.classList.remove("highlight-error");
         });
     }
-    groupEl?.classList.add("highlight");
+    groupEl.classList.add("highlight");
 }
 
 function dragEnterSpectators(event: DragEvent) {
@@ -100,10 +100,10 @@ function dragEnterSpectators(event: DragEvent) {
         });
     }
     if (draggedPlayer.value) {
-        groupEl?.classList.add("highlight");
+        groupEl.classList.add("highlight");
     }
     if (draggedBot.value) {
-        groupEl?.classList.add("highlight-error");
+        groupEl.classList.add("highlight-error");
     }
 }
 

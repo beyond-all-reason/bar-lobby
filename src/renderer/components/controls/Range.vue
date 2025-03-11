@@ -4,14 +4,14 @@
             v-if="range"
             v-bind="$attrs"
             :modelValue="low"
-            @update:modelValue="(input: number) => onInput([input, high || 0])"
+            @update:modelValue="(input: number) => onInput([input, high])"
             class="min"
         />
         <Slider v-bind="$props" :modelValue="modelValue" @update:modelValue="onSlide" />
         <InputNumber
             v-bind="$attrs"
             :modelValue="typeof modelValue === 'number' ? modelValue : high"
-            @update:modelValue="typeof modelValue === 'number' ? onInput : (input: number) => onInput([low || 0, input])"
+            @update:modelValue="typeof modelValue === 'number' ? onInput : (input: number) => onInput([low, input])"
             class="max"
         />
         <!-- <InputNumber

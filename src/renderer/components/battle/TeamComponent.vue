@@ -33,7 +33,7 @@
             <BotParticipant v-else-if="isBot(member)" :bot="member" :team-id="teamId" />
         </div>
         <div v-if="!isRaptorTeam(teamId) && !isScavengerTeam(teamId)">
-            <div v-for="(_, i) in (maxPlayersPerTeam || 0) > 0 ? (maxPlayersPerTeam || 0) - memberCount : 1" :key="i">
+            <div v-for="(_, i) in maxPlayersPerTeam > 0 ? maxPlayersPerTeam - memberCount : 1" :key="i">
                 <button class="join-button" :class="{ first: i === 0 }" @click="onJoinClicked(teamId)">Join</button>
             </div>
         </div>
@@ -61,11 +61,10 @@ const memberCount = computed(() => {
 const maxPlayersPerTeam = computed(() => {
     if (!battleWithMetadataStore.battleOptions.map) return 1;
     if (battleWithMetadataStore.battleOptions.mapOptions.startPosType === StartPosType.Boxes)
-        return battleWithMetadataStore.battleOptions.map.startboxesSet[
-            battleWithMetadataStore.battleOptions.mapOptions.startBoxesIndex || 0
-        ]?.maxPlayersPerStartbox;
+        return battleWithMetadataStore.battleOptions.map.startboxesSet[battleWithMetadataStore.battleOptions.mapOptions.startBoxesIndex]
+            ?.maxPlayersPerStartbox;
     if (battleWithMetadataStore.battleOptions.mapOptions.startPosType in [StartPosType.Fixed, StartPosType.Random])
-        return battleWithMetadataStore.battleOptions.map.startPos?.team?.[
+        return battleWithMetadataStore.battleOptions.map.startPos.team[
             battleWithMetadataStore.battleOptions.mapOptions.fixedPositionsIndex ?? 0
         ].playersPerTeam;
     return 1;

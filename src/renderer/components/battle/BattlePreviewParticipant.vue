@@ -20,7 +20,7 @@ const name = computed(() => props.contender.name);
 
 const color = computed(() => {
     if ("rgbColor" in props.contender) {
-        return `rgb(${props.contender.rgbColor?.r}, ${props.contender.rgbColor?.g}, ${props.contender.rgbColor?.b})`;
+        return `rgb(${props.contender.rgbColor.r}, ${props.contender.rgbColor.g}, ${props.contender.rgbColor.b})`;
     }
     return null;
 });

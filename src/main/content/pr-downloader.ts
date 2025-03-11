@@ -35,16 +35,11 @@ export abstract class PrDownloaderAPI<ID, T> extends AbstractContentAPI<ID, T> {
     protected downloadContent(type: "game" | "map", name: string) {
         return new Promise<DownloadInfo>((resolve) => {
             log.debug(`Downloading ${name}...`);
-
-            const latestEngine = engineContentAPI.getLatestInstalledVersion();
-
-            if (!latestEngine) throw new Error("Failed to retrive latest engine");
-
-            const latestEngineId = latestEngine.id;
-            if (!latestEngineId) throw new Error("No engine version found");
+            const latestEngine = engineContentAPI.getLatestInstalledVersion().id;
+            if (!latestEngine) throw new Error("No engine version found");
 
             const binaryName = process.platform === "win32" ? "pr-downloader.exe" : "pr-downloader";
-            const prBinaryPath = path.join(CONTENT_PATH, "engine", latestEngineId, binaryName);
+            const prBinaryPath = path.join(CONTENT_PATH, "engine", latestEngine, binaryName);
             const downloadArg = type === "game" ? "--download-game" : "--download-map";
             const prdProcess = spawn(`${prBinaryPath}`, ["--filesystem-writepath", CONTENT_PATH, downloadArg, name], {
                 env: {
@@ -98,9 +93,7 @@ export abstract class PrDownloaderAPI<ID, T> extends AbstractContentAPI<ID, T> {
             });
 
             prdProcess.on("exit", () => {
-                if (!downloadInfo) return;
-
-                return resolve(downloadInfo);
+                resolve(downloadInfo);
             });
         });
     }

@@ -14,7 +14,7 @@
                 class="start-positions"
             >
                 <div
-                    v-for="(side, sideIndex) in battleStore.battleOptions.map.startPos?.team?.[
+                    v-for="(side, sideIndex) in battleStore.battleOptions.map.startPos?.team[
                         battleStore.battleOptions.mapOptions.fixedPositionsIndex ?? 0
                     ]?.sides"
                     :key="`side${sideIndex}`"
@@ -23,7 +23,7 @@
                         v-for="(spawnPoint, spIndex) in side.starts"
                         :key="`startPos${spIndex}`"
                         v-startPos="[
-                            battleStore.battleOptions.map.startPos?.positions[spawnPoint.spawnPoint],
+                            battleStore.battleOptions.map.startPos.positions[spawnPoint.spawnPoint],
                             mapWidthElmos,
                             mapHeightElmos,
                         ]"
@@ -82,9 +82,10 @@ watch(
 );
 
 const boxes = computed<StartBox[]>(() => {
-    const startBoxIndex = battleStore.battleOptions.mapOptions.startBoxesIndex || 0;
-    if (startBoxIndex >= 0) {
-        return startBoxes.value?.at(startBoxIndex)?.startboxes.map((box) => spadsBoxToStartBox(box.poly)) || [];
+    if (battleStore.battleOptions.mapOptions.startBoxesIndex >= 0) {
+        return startBoxes.value
+            .at(battleStore.battleOptions.mapOptions.startBoxesIndex)
+            ?.startboxes.map((box) => spadsBoxToStartBox(box.poly));
     } else if (battleStore.battleOptions.mapOptions?.customStartBoxes) {
         return battleStore.battleOptions.mapOptions?.customStartBoxes;
     }

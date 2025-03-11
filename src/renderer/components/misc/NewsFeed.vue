@@ -2,13 +2,13 @@
 <template>
     <div class="fullheight fullwidth flex-col">
         <div class="news">
-            <NewsTile :news="item" v-for="item in newsRssFeed?.entries" v-bind:key="item.id" class="news-tile" />
+            <NewsTile :news="item" v-for="item in entries" v-bind:key="item.id" class="news-tile" />
         </div>
     </div>
 </template>
 <script lang="ts" setup>
 import NewsTile from "@renderer/components/misc/NewsTile.vue";
-const newsRssFeed = await window.misc.getNewsRssFeed(3);
+const { entries } = await window.misc.getNewsRssFeed(3);
 </script>
 
 <style lang="scss" scoped>

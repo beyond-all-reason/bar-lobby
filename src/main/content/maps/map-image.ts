@@ -14,9 +14,6 @@ const promises = new Map<string, Promise<ArrayBuffer>>();
 
 worker.on("message", ({ imageSource, arrayBuffer }) => {
     const promiseHandles = jobs.get(imageSource);
-
-    if (!promiseHandles) throw new Error("failed to access image source promise handlers");
-
     promiseHandles.resolve(arrayBuffer);
     jobs.delete(imageSource);
     promises.delete(imageSource);
@@ -26,7 +23,7 @@ worker.on("message", ({ imageSource, arrayBuffer }) => {
 //     if (code !== 0) reject(new Error(`map-image-worker stopped with exit code ${code}`));
 // });
 
-export function fetchMapImages(imageSource: string): Promise<ArrayBuffer> | undefined {
+export function fetchMapImages(imageSource: string): Promise<ArrayBuffer> {
     if (promises.has(imageSource)) return promises.get(imageSource);
     const promise = new Promise<ArrayBuffer>((resolve, reject) => {
         jobs.set(imageSource, { resolve, reject });
