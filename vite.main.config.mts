@@ -18,6 +18,7 @@ export default defineConfig({
                 "parse-replay-worker": path.resolve(__dirname, "src/main/content/replays/parse-replay-worker.ts"),
                 "map-image-worker": path.resolve(__dirname, "src/main/content/maps/map-image-worker.ts"),
             },
+            external: [/^node:/, /^(?!zod$|zod-to-json-schema$)/],
         },
         lib: {
             entry: path.resolve(__dirname, "src/main/main.ts"),

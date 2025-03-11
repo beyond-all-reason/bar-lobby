@@ -2,7 +2,6 @@ import axios from "axios";
 import * as fs from "fs";
 import * as glob from "glob-promise";
 import { removeFromArray } from "$/jaz-ts-utils/object";
-import { Octokit } from "@octokit/rest";
 import * as path from "path";
 import { EngineAI, EngineVersion } from "@main/content/engine/engine-version";
 import { DownloadInfo } from "../downloads";
@@ -11,6 +10,7 @@ import { parseLuaOptions } from "@main/utils/parse-lua-options";
 import { logger } from "@main/utils/logger";
 import { extract7z } from "@main/utils/extract-7z";
 import { contentSources } from "@main/config/content-sources";
+import { LATEST_ENGINE_VERSION } from "@main/config/default-versions";
 import { AbstractContentAPI } from "@main/content/abstract-content";
 import { CONTENT_PATH } from "@main/config/app";
 import { DownloadEngine } from "@main/content/game/type";
@@ -23,7 +23,6 @@ const compatibleVersionRegex = /^\d{4}\.\d{2}\.\d{1,2}(-rc\d+)?$/;
 
 export class EngineContentAPI extends AbstractContentAPI<string, EngineVersion> {
     protected readonly engineDirs = path.join(CONTENT_PATH, "engine");
-    protected readonly ocotokit = new Octokit();
 
     public override async init() {
         try {
@@ -66,28 +65,46 @@ export class EngineContentAPI extends AbstractContentAPI<string, EngineVersion> 
     }
 
     protected async fetchAvailableVersionsOnline() {
-        const { data } = await this.ocotokit.rest.repos.listReleases({
-            owner: contentSources.engineGitHub.owner,
-            repo: contentSources.engineGitHub.repo,
-        });
-        data.map((release) => release.tag_name)
-            .filter((tag) => compatibleVersionRegex.test(tag))
-            .filter((tag) => !this.availableVersions.has(tag))
-            .map((tag) => {
-                return {
-                    id: tag,
-                    ais: [],
+        try {
+            log.info("Fetching available engine versions online");
+
+            // Use the API endpoint to get available engine versions
+            const platform = process.platform === "win32" ? "windows64" : "linux64";
+            const url = new URL(contentSources.api.findEndpoint, contentSources.api.baseUrl);
+            url.searchParams.set("category", `engine_${platform}`);
+
+            const { data } = await axios.get(url.toString());
+
+            if (!data || !Array.isArray(data)) {
+                log.error("Failed to fetch engine versions: Invalid response format");
+                return;
+            }
+
+            data.forEach((item) => {
+                const version: EngineVersion = {
+                    id: item.springname,
                     installed: false,
+                    ais: [],
                 };
-            })
-            .forEach((version) => {
                 this.availableVersions.set(version.id, version);
             });
+        } catch (error) {
+            log.error("Failed to fetch engine versions:", error);
+        }
     }
 
     public downloadEngine: DownloadEngine = async (engineVersion) => {
         if (!engineVersion) {
             throw new Error("Engine Version is not specified");
+        }
+
+        // If LATEST is specified, we should use a specific hardcoded version
+        // In the future, this should be configured via the master server (#291)
+        if (engineVersion === LATEST_ENGINE_VERSION) {
+            // For now, we'll use a hardcoded version that we know works with the game
+            // This should be updated when a new stable engine version is released
+            engineVersion = "2025.01.3"; // Hardcoded stable version
+            log.info(`Using hardcoded stable engine version: ${engineVersion}`);
         }
 
         try {
@@ -96,11 +113,13 @@ export class EngineContentAPI extends AbstractContentAPI<string, EngineVersion> 
                 return;
             }
 
-            // Use the recommended API endpoint instead of parsing GitHub releases
+            // Use the recommended API endpoint
             const platform = process.platform === "win32" ? "windows64" : "linux64";
-            const apiUrl = `https://files-cdn.beyondallreason.dev/find?category=engine_${platform}&springname=${encodeURIComponent(engineVersion)}`;
+            const url = new URL(contentSources.api.findEndpoint, contentSources.api.baseUrl);
+            url.searchParams.set("category", `engine_${platform}`);
+            url.searchParams.set("springname", engineVersion);
 
-            log.debug(`Fetching engine download URL from: ${apiUrl}`);
+            log.debug(`Fetching engine download URL from: ${url.toString()}`);
 
             const { data } = await axios.get(apiUrl);
 

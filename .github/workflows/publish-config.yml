@@ -1,0 +1,119 @@
+name: Publish Configuration
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "config/**"
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Environment to publish to (dev, staging, prod)"
+        required: true
+        default: "dev"
+        type: choice
+        options:
+          - dev
+          - staging
+          - prod
+
+jobs:
+  publish-config:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build project
+        run: npm run build
+
+      - name: Generate JSON schema
+        run: npm run generate-schema || echo "Schema generation skipped"
+
+      - name: Determine environment
+        id: env
+        run: |
+          # Use the input environment if provided, otherwise default to 'dev'
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            ENV="${{ github.event.inputs.environment }}"
+          else
+            ENV="dev"  # Default for push events
+          fi
+          echo "name=$ENV" >> $GITHUB_OUTPUT
+
+      - name: Generate schema hash
+        id: schema-hash
+        run: |
+          # Generate a hash of the schema file itself
+          SCHEMA_FILE="schema/config.schema.json"
+          if [ -f "$SCHEMA_FILE" ]; then
+            SCHEMA_HASH=$(sha256sum "$SCHEMA_FILE" | cut -d' ' -f1 | head -c 8)
+          else
+            # Fallback to hashing the schema.ts file if the JSON schema doesn't exist
+            SCHEMA_HASH=$(sha256sum "src/main/config/schema.ts" | cut -d' ' -f1 | head -c 8)
+          fi
+          echo "hash=$SCHEMA_HASH" >> $GITHUB_OUTPUT
+
+      - name: Prepare configuration
+        run: |
+          ENV="${{ steps.env.outputs.name }}"
+          SCHEMA_HASH="${{ steps.schema-hash.outputs.hash }}"
+
+          # Load the environment-specific config
+          CONFIG_FILE="config/$ENV.json"
+          if [ ! -f "$CONFIG_FILE" ]; then
+            echo "Config file $CONFIG_FILE not found, creating from default"
+            mkdir -p config
+            echo '{}' > "$CONFIG_FILE"
+          fi
+
+          # Update the schema version in the config
+          node -e "
+            const fs = require('fs');
+            const config = JSON.parse(fs.readFileSync('$CONFIG_FILE', 'utf8'));
+            config.schemaVersion = '$SCHEMA_HASH';
+            fs.writeFileSync('$CONFIG_FILE', JSON.stringify(config, null, 2));
+          "
+
+          # Copy files to the publish directory
+          mkdir -p publish/$ENV
+          cp "$CONFIG_FILE" publish/$ENV/config.json
+          cp schema/config.schema.json publish/$ENV/schema.json
+
+      - name: Upload to CDN
+        run: |
+          ENV="${{ steps.env.outputs.name }}"
+
+          # This would use your preferred CDN provider's CLI or API
+          # For demonstration, we'll just echo the commands
+          echo "Uploading config for $ENV environment"
+          echo "aws s3 cp publish/$ENV/config.json s3://your-cdn-bucket/$ENV/config.json"
+          echo "aws s3 cp publish/$ENV/schema.json s3://your-cdn-bucket/$ENV/schema.json"
+
+          # In a real implementation, you would use something like:
+          # aws s3 cp publish/$ENV/config.json s3://your-cdn-bucket/$ENV/config.json
+          # aws s3 cp publish/$ENV/schema.json s3://your-cdn-bucket/$ENV/schema.json
+
+      - name: Create Release
+        if: ${{ steps.env.outputs.name == 'prod' }}
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: config-${{ steps.schema-hash.outputs.hash }}
+          release_name: Configuration ${{ steps.schema-hash.outputs.hash }}
+          body: |
+            Configuration update with schema hash: ${{ steps.schema-hash.outputs.hash }}
+
+            This release contains updated configuration files for all environments.
+          draft: false
+          prerelease: false

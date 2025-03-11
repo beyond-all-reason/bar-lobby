@@ -6,4 +6,10 @@
  * In the future these values should probably be set and fetched from the master server, so we don't need to deploy a new lobby release every time.
  */
 
-export const LATEST_GAME_VERSION = "byar:test";
+import { configManager } from "./config-manager";
+
+// Get version defaults from the configuration manager
+const versionDefaults = configManager.getVersionDefaults();
+
+export const LATEST_ENGINE_VERSION = versionDefaults.latestEngineVersion;
+export const LATEST_GAME_VERSION = versionDefaults.latestGameVersion;

@@ -1,0 +1,132 @@
+name: Schema Compatibility Check
+
+on:
+  pull_request:
+    paths:
+      - "src/main/config/schema.ts"
+      - "config/**"
+
+jobs:
+  check-schema-compatibility:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build project
+        run: npm run build
+
+      - name: Generate JSON schema
+        run: npm run generate-schema || echo "Schema generation skipped"
+
+      - name: Generate schema hash
+        id: new-schema
+        run: |
+          # Generate a hash of the schema file itself
+          SCHEMA_FILE="schema/config.schema.json"
+          if [ -f "$SCHEMA_FILE" ]; then
+            NEW_HASH=$(sha256sum "$SCHEMA_FILE" | cut -d' ' -f1 | head -c 8)
+          else
+            # Fallback to hashing the schema.ts file if the JSON schema doesn't exist
+            NEW_HASH=$(sha256sum "src/main/config/schema.ts" | cut -d' ' -f1 | head -c 8)
+          fi
+          echo "hash=$NEW_HASH" >> $GITHUB_OUTPUT
+
+      - name: Fetch current environment configs
+        id: current-configs
+        run: |
+          # Fetch configs from all environments
+          curl -s https://config.beyondallreason.dev/prod/config.json > prod-config.json || echo '{}' > prod-config.json
+          curl -s https://config.beyondallreason.dev/staging/config.json > staging-config.json || echo '{}' > staging-config.json
+          curl -s https://config.beyondallreason.dev/dev/config.json > dev-config.json || echo '{}' > dev-config.json
+
+          # Extract schema versions
+          PROD_VERSION=$(node -e "try { console.log(require('./prod-config.json').schemaVersion || 'none'); } catch(e) { console.log('none'); }")
+          STAGING_VERSION=$(node -e "try { console.log(require('./staging-config.json').schemaVersion || 'none'); } catch(e) { console.log('none'); }")
+          DEV_VERSION=$(node -e "try { console.log(require('./dev-config.json').schemaVersion || 'none'); } catch(e) { console.log('none'); }")
+
+          echo "prod=$PROD_VERSION" >> $GITHUB_OUTPUT
+          echo "staging=$STAGING_VERSION" >> $GITHUB_OUTPUT
+          echo "dev=$DEV_VERSION" >> $GITHUB_OUTPUT
+
+      - name: Check for config updates
+        run: |
+          NEW_HASH="${{ steps.new-schema.outputs.hash }}"
+          PROD_VERSION="${{ steps.current-configs.outputs.prod }}"
+          STAGING_VERSION="${{ steps.current-configs.outputs.staging }}"
+          DEV_VERSION="${{ steps.current-configs.outputs.dev }}"
+
+          echo "New schema hash: $NEW_HASH"
+          echo "Production schema version: $PROD_VERSION"
+          echo "Staging schema version: $STAGING_VERSION"
+          echo "Development schema version: $DEV_VERSION"
+
+          # Check if this PR includes config updates for all environments
+          CONFIG_FILES_UPDATED=$(git diff --name-only origin/main | grep -c "config/" || echo "0")
+
+          if [ "$NEW_HASH" != "$PROD_VERSION" ] && [ "$CONFIG_FILES_UPDATED" -eq 0 ]; then
+            echo "::error::Schema has changed but no config updates were found. Please update configs for all environments."
+            exit 1
+          fi
+
+          # Create or update a PR comment with compatibility information
+          echo "## Schema Compatibility Check" > comment.md
+          echo "" >> comment.md
+          echo "New schema hash: \`$NEW_HASH\`" >> comment.md
+          echo "" >> comment.md
+          echo "| Environment | Current Schema | Compatible |" >> comment.md
+          echo "|-------------|----------------|------------|" >> comment.md
+          echo "| Production  | \`$PROD_VERSION\` | $([ "$NEW_HASH" = "$PROD_VERSION" ] && echo "✅" || echo "❌") |" >> comment.md
+          echo "| Staging     | \`$STAGING_VERSION\` | $([ "$NEW_HASH" = "$STAGING_VERSION" ] && echo "✅" || echo "❌") |" >> comment.md
+          echo "| Development | \`$DEV_VERSION\` | $([ "$NEW_HASH" = "$DEV_VERSION" ] && echo "✅" || echo "❌") |" >> comment.md
+          echo "" >> comment.md
+
+          if [ "$NEW_HASH" != "$PROD_VERSION" ] || [ "$NEW_HASH" != "$STAGING_VERSION" ] || [ "$NEW_HASH" != "$DEV_VERSION" ]; then
+            echo "⚠️ **Action Required**: This PR changes the configuration schema. Please ensure that updated configurations are deployed to all environments before merging." >> comment.md
+          else
+            echo "✅ **All Good**: This PR is compatible with all environment configurations." >> comment.md
+          fi
+
+      - name: Add PR comment
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            const commentBody = fs.readFileSync('comment.md', 'utf8');
+
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const botComment = comments.find(comment => 
+              comment.user.type === 'Bot' && 
+              comment.body.includes('Schema Compatibility Check')
+            );
+
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: commentBody
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: commentBody
+              });
+            }

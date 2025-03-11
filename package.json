@@ -27,7 +27,9 @@
         "format:check": "prettier --check --cache .",
         "typecheck:node": "tsc --noEmit -p tsconfig.node.json --composite false",
         "typecheck:web": "vue-tsc --noEmit -p tsconfig.web.json --composite false",
-        "typecheck": "npm run typecheck:node && npm run typecheck:web"
+        "typecheck": "npm run typecheck:node && npm run typecheck:web",
+        "generate-schema": "ts-node scripts/generate-schema.ts",
+        "install-deps": "npm install zod zod-to-json-schema"
     },
     "engines": {
         "node": "22.11.0"
@@ -61,7 +63,8 @@
         "tachyon-protocol": "^1.10.0",
         "vue-i18n": "^11.1.1",
         "vue-router": "^4.5.0",
-        "ws": "^8.18.0"
+        "ws": "^8.18.0",
+        "zod": "^3.22.4"
     },
     "devDependencies": {
         "@electron-forge/cli": "^7.6.1",
@@ -79,6 +82,7 @@
         "@types/luaparse": "^0.2.12",
         "@types/node": "^22.13.4",
         "@types/ws": "^8.5.14",
+        "@types/zod": "^3.22.4",
         "@vitejs/plugin-vue": "^5.2.1",
         "cross-env": "^7.0.3",
         "electron": "34.2.0",
@@ -100,7 +104,8 @@
         "vite-plugin-static-copy": "^2.2.0",
         "vite-plugin-vue-devtools": "^7.7.2",
         "vitest": "^3.0.5",
-        "vue-tsc": "^2.2.2"
+        "vue-tsc": "^2.2.2",
+        "zod-to-json-schema": "^3.22.3"
     },
     "optionalDependencies": {
         "bufferutil": "^4.0.9"
