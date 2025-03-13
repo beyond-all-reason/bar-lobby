@@ -43,7 +43,7 @@
         "@vueuse/core": "^12.7.0",
         "ajv": "^8.17.1",
         "ajv-formats": "^3.0.1",
-        "axios": "^1.7.9",
+        "axios": "^1.8.2",
         "chokidar": "^4.0.3",
         "date-fns": "^4.1.0",
         "dexie": "^4.0.11",
