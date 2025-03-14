@@ -35,7 +35,7 @@
     "dependencies": {
         "@extractus/feed-extractor": "^7.1.4",
         "@iconify-icons/mdi": "^1.2.48",
-        "@iconify/json": "^2.2.316",
+        "@iconify/json": "^2.2.317",
         "@iconify/vue": "^4.3.0",
         "@octokit/rest": "^21.1.1",
         "@sinclair/typebox": "^0.34.30",
@@ -60,7 +60,6 @@
         "primeicons": "^6.0.1",
         "primevue": "3.23.0",
         "tachyon-protocol": "^1.11.0",
-        "utf-8-validate": "^5.0.10",
         "vue-i18n": "^11.1.2",
         "vue-router": "^4.5.0",
         "ws": "^8.18.1"
@@ -89,8 +88,8 @@
         "eslint": "^9.22.0",
         "eslint-config-prettier": "^10.1.1",
         "eslint-plugin-unused-imports": "^4.1.4",
-        "eslint-plugin-vue": "^9.33.0",
-        "globals": "^15.15.0",
+        "eslint-plugin-vue": "^10.0.0",
+        "globals": "^16.0.0",
         "prettier": "^3.5.3",
         "sass": "^1.85.1",
         "ts-node": "^10.9.2",
@@ -103,5 +102,9 @@
         "vite-plugin-vue-devtools": "^7.7.2",
         "vitest": "^3.0.8",
         "vue-tsc": "^2.2.8"
+    },
+    "optionalDependencies": {
+        "bufferutil": "^4.0.9",
+        "utf-8-validate": "^6.0.5"
     }
 }
