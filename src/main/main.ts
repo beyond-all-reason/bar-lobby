@@ -66,6 +66,7 @@ function registerBarFileProtocol() {
             return net.fetch(url.pathToFileURL(resolvedFilePath).toString());
         } catch (err) {
             log.error(err);
+            return new Response();
         }
     });
 }

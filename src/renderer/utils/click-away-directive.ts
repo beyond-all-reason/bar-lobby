@@ -60,8 +60,10 @@ function mounted(el: HTMLElement, binding: DirectiveBinding) {
 }
 
 function unmounted(el: HTMLElement, binding: DirectiveBinding) {
-    document.removeEventListener("click", el[UNIQUE_ID], false);
-    document.removeEventListener("contextmenu", el[UNIQUE_ID], false);
+    if (el[UNIQUE_ID]) {
+        document.removeEventListener("click", el[UNIQUE_ID], false);
+        document.removeEventListener("contextmenu", el[UNIQUE_ID], false);
+    }
 
     delete el[UNIQUE_ID];
 

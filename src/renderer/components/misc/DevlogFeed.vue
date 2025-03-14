@@ -3,14 +3,14 @@
     <div class="fullheight fullwidth flex-col">
         <div class="devlog-title">Latest changes</div>
         <div class="devlog-entries scroll-container">
-            <DevlogEntry v-for="entry in entries" :entry="entry" :key="entry.id" />
+            <DevlogEntry v-for="entry in devlogRssFeed?.entries" :entry="entry" :key="entry.id" />
         </div>
     </div>
 </template>
 <script lang="ts" setup>
 import DevlogEntry from "@renderer/components/misc/DevlogEntry.vue";
 
-const { entries } = await window.misc.getDevlogRssFeed(3);
+const devlogRssFeed = await window.misc.getDevlogRssFeed(3);
 </script>
 
 <style lang="scss" scoped>

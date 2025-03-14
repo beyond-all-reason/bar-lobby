@@ -43,12 +43,17 @@ if (isMainThread) {
         };
     }
     // listen to messages from the main thread
-    parentPort.on("message", async (replayFilePath: string) => {
+
+    if (!parentPort) throw new Error("Parent Port is not defined");
+
+    const narrowedParentPort = parentPort;
+
+    narrowedParentPort.on("message", async (replayFilePath: string) => {
         try {
             const replay = await parseReplay(replayFilePath);
-            parentPort.postMessage({ replayFilePath, replay });
+            narrowedParentPort.postMessage({ replayFilePath, replay });
         } catch (error) {
-            parentPort.postMessage({ replayFilePath, undefined, error });
+            narrowedParentPort.postMessage({ replayFilePath, undefined, error });
             console.error(error);
         }
     });

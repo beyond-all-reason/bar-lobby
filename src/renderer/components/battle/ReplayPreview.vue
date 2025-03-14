@@ -6,10 +6,10 @@
                 <div class="team-title">Players</div>
                 <div class="contenders">
                     <template>
-                        <template v-for="(contender, i) in replay.contenders" :key="`contender${i}`">
+                        <template v-for="(contender, i) in replay?.contenders" :key="`contender${i}`">
                             <BattlePreviewParticipant :contender="contender" />
                             <Icon
-                                v-if="replay.winningTeamId === contender.allyTeamId && showSpoilers"
+                                v-if="replay?.winningTeamId === contender.allyTeamId && showSpoilers"
                                 class="trophy"
                                 :icon="trophyVariant"
                                 height="18"
@@ -21,7 +21,7 @@
             <div v-for="[teamId, contenders] in teams" v-else :key="`team${teamId}`">
                 <div class="team-title">
                     <div>Team {{ teamId + 1 }}</div>
-                    <Icon v-if="replay.winningTeamId === teamId && showSpoilers" class="trophy" :icon="trophyVariant" height="18" />
+                    <Icon v-if="replay?.winningTeamId === teamId && showSpoilers" class="trophy" :icon="trophyVariant" height="18" />
                 </div>
                 <div class="contenders">
                     <BattlePreviewParticipant
@@ -58,7 +58,7 @@ import ReplayPreviewMap from "@renderer/components/maps/ReplayPreviewMap.vue";
 import { DemoModel } from "$/sdfz-demo-parser";
 
 const props = defineProps<{
-    replay?: Replay;
+    replay: Replay;
     showSpoilers?: boolean;
 }>();
 

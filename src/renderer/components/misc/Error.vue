@@ -16,8 +16,8 @@ import Modal from "@renderer/components/common/Modal.vue";
 import Button from "@renderer/components/controls/Button.vue";
 
 const isVisible = ref(false);
-const error: Ref<ErrorEvent> = ref();
-const promiseError: Ref<PromiseRejectionEvent> = ref();
+const error: Ref<ErrorEvent | undefined> = ref();
+const promiseError: Ref<PromiseRejectionEvent | undefined> = ref();
 
 window.addEventListener("unhandledrejection", function (event) {
     console.error(event);

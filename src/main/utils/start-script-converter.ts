@@ -50,7 +50,9 @@ class StartScriptConverter {
                 const startBoxesIndex = battle.battleOptions.mapOptions.startBoxesIndex;
                 const customStartBoxes = battle.battleOptions.mapOptions.customStartBoxes;
 
-                if (startBoxesIndex >= 0) {
+                if (typeof startBoxesIndex === "number" && !Number.isNaN(startBoxesIndex) && Number(startBoxesIndex) >= 0) {
+                    if (!battle.battleOptions.map) throw new Error("failed to access battle options map");
+
                     const startBoxes = battle.battleOptions.map.startboxesSet[startBoxesIndex].startboxes;
 
                     // X and Y are between 0-200
@@ -135,6 +137,9 @@ class StartScriptConverter {
         //     }
         //     bot.host = owner.id;
         // }
+
+        if (!battle.battleOptions.map) throw new Error("failed to access battle options map");
+        if (!battle.me) throw new Error("failed to access current player");
 
         return {
             gametype: battle.battleOptions.gameVersion,
