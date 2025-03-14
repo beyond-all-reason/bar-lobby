@@ -23,8 +23,8 @@ const log = logger("game-content.ts");
 const gunzip = util.promisify(zlib.gunzip);
 
 export class GameContentAPI extends PrDownloaderAPI<string, GameVersion> {
-    public packageGameVersionLookup: { [md5: string]: string } = {};
-    public gameVersionPackageLookup: { [gameVersion: string]: string } = {};
+    public packageGameVersionLookup: { [md5: string]: string | undefined } = {};
+    public gameVersionPackageLookup: { [gameVersion: string]: string | undefined } = {};
 
     public override async init() {
         await this.initLookupTables();
@@ -120,11 +120,9 @@ export class GameContentAPI extends PrDownloaderAPI<string, GameVersion> {
         }
         log.info(`Downloading game version: ${gameVersion}`);
         const downloadInfo = await this.downloadContent("game", gameVersion);
-        if (downloadInfo) {
-            await this.downloadComplete(downloadInfo);
-            removeFromArray(this.currentDownloads, downloadInfo);
-            log.debug(`Downloaded ${downloadInfo.name}`);
-        }
+        await this.downloadComplete(downloadInfo);
+        removeFromArray(this.currentDownloads, downloadInfo);
+        log.debug(`Downloaded ${downloadInfo.name}`);
     }
 
     protected async getGameOptions(packageMd5: string): Promise<LuaOptionSection[]> {
@@ -288,14 +286,17 @@ export class GameContentAPI extends PrDownloaderAPI<string, GameVersion> {
     }
 
     protected async addGame(gameVersion: string) {
+        await this.scanPackagesDir();
         if (gameVersion === "byar:test") {
-            await this.scanPackagesDir();
-        } else {
-            const packageMd5 = this.gameVersionPackageLookup[gameVersion];
-            const luaOptionSections = await this.getGameOptions(packageMd5);
-            const ais = await this.getAis(packageMd5);
-            this.availableVersions.set(gameVersion, { gameVersion, packageMd5, luaOptionSections, ais });
+            return;
         }
+        const packageMd5 = this.gameVersionPackageLookup[gameVersion];
+        if (!packageMd5) {
+            throw new Error(`No packageMd5 found for game version: ${gameVersion}`);
+        }
+        const luaOptionSections = await this.getGameOptions(packageMd5);
+        const ais = await this.getAis(packageMd5);
+        this.availableVersions.set(gameVersion, { gameVersion, packageMd5, luaOptionSections, ais });
     }
 
     protected async parseAis(aiInfo: Buffer): Promise<GameAI[]> {

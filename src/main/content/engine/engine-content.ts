@@ -103,9 +103,9 @@ export class EngineContentAPI extends AbstractContentAPI<string, EngineVersion> 
                 throw new Error(`Couldn't find engine release for tag: ${engineVersion}`);
             }
             const archStr = process.platform === "win32" ? "windows" : "linux";
-            const asset = data.assets.find((asset) => asset.name.includes(archStr) && asset.name.includes("portable"));
+            const asset = data.assets.find((asset) => asset.name.endsWith(`${archStr}.7z`));
             if (!asset) {
-                throw new Error("Failed to fetch engine release asset");
+                throw new Error("Failed to fetch an engine asset from Github");
             }
             const downloadInfo: DownloadInfo = {
                 type: "engine",

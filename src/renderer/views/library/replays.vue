@@ -146,8 +146,7 @@ const replays = useDexieLiveQueryWithDeps([endedNormally, offset, limit, sortFie
 });
 
 const map = useDexieLiveQueryWithDeps([() => selectedReplay.value?.mapSpringName], () => {
-    if (!selectedReplay.value) throw new Error(`unable to retrieve selected replay`);
-
+    if (!selectedReplay.value) return;
     return db.maps.get(selectedReplay.value.mapSpringName);
 });
 
