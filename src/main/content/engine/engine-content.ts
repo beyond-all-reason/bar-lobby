@@ -2,7 +2,6 @@ import axios from "axios";
 import * as fs from "fs";
 import * as glob from "glob-promise";
 import { removeFromArray } from "$/jaz-ts-utils/object";
-import { Octokit } from "@octokit/rest";
 import * as path from "path";
 import { EngineAI, EngineVersion } from "@main/content/engine/engine-version";
 import { DownloadInfo } from "../downloads";
@@ -10,10 +9,11 @@ import { parseLuaTable } from "@main/utils/parse-lua-table";
 import { parseLuaOptions } from "@main/utils/parse-lua-options";
 import { logger } from "@main/utils/logger";
 import { extract7z } from "@main/utils/extract-7z";
-import { contentSources, getEngineReleaseInfo, EngineReleaseInfo } from "@main/config/content-sources";
+import { getEngineReleaseInfo } from "@main/config/content-sources";
 import { AbstractContentAPI } from "@main/content/abstract-content";
 import { CONTENT_PATH } from "@main/config/app";
 import { DownloadEngine } from "@main/content/game/type";
+import { LATEST_ENGINE_VERSION } from "@main/config/default-versions";
 
 const log = logger("engine-content.ts");
 
@@ -23,7 +23,6 @@ const compatibleVersionRegex = /^\d{4}\.\d{2}\.\d{1,2}(-rc\d+)?$/;
 
 export class EngineContentAPI extends AbstractContentAPI<string, EngineVersion> {
     protected readonly engineDirs = path.join(CONTENT_PATH, "engine");
-    protected readonly ocotokit = new Octokit();
 
     public override async init() {
         try {
@@ -40,11 +39,7 @@ export class EngineContentAPI extends AbstractContentAPI<string, EngineVersion> 
                 const ais = await this.parseAis(dir);
                 this.availableVersions.set(dir, { id: dir, ais, installed: true });
             }
-            try {
-                await this.fetchAvailableVersionsOnline();
-            } catch (err) {
-                log.error(`Failed to fetch available engine versions online: ${err}`);
-            }
+            this.checkIfDefaultIsNew();
             log.info(`Found ${this.availableVersions.size} engine versions total.`);
         } catch (err) {
             log.error(err);
@@ -65,24 +60,14 @@ export class EngineContentAPI extends AbstractContentAPI<string, EngineVersion> 
             .at(-1);
     }
 
-    protected async fetchAvailableVersionsOnline() {
-        const { data } = await this.ocotokit.rest.repos.listReleases({
-            owner: contentSources.engineGitHub.owner,
-            repo: contentSources.engineGitHub.repo,
-        });
-        data.map((release) => release.tag_name)
-            .filter((tag) => compatibleVersionRegex.test(tag))
-            .filter((tag) => !this.availableVersions.has(tag))
-            .map((tag) => {
-                return {
-                    id: tag,
-                    ais: [],
-                    installed: false,
-                };
-            })
-            .forEach((version) => {
-                this.availableVersions.set(version.id, version);
+    protected checkIfDefaultIsNew() {
+        if (!this.availableVersions.has(LATEST_ENGINE_VERSION)) {
+            this.availableVersions.set(LATEST_ENGINE_VERSION, {
+                id: LATEST_ENGINE_VERSION,
+                ais: [],
+                installed: false,
             });
+        }
     }
 
     public downloadEngine: DownloadEngine = async (engineVersion) => {
