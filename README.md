@@ -4,6 +4,12 @@ BAR Lobby is a new WIP lobby for the RTS game [Beyond All Reason](https://www.be
 
 ![image](https://user-images.githubusercontent.com/1434248/223881325-bb8ac4f5-ed14-4ad8-ad33-970781cf3089.png)
 
+## Project Status
+
+BAR Lobby is a work-in-progress and actively developed project. We are currently working towards milestones defined in the [wiki/Roadmap](https://github.com/beyond-all-reason/bar-lobby/wiki/Roadmap).
+
+BAR Lobby is an important part of [BAR's Steam Roadmap](https://www.beyondallreason.info/development/steam-release), and there is a lot of other work in other places that support this development. Please take a look at the [infrastructure documentation](https://beyond-all-reason.github.io/infrastructure/new_client/) for details on how BAR Lobby fits into the rest of the system.
+
 ## Functionality and Goals
 
 - Provide functionality for everything related to BAR. Campaigns, Missions, Multiplayer, Replays etc
@@ -12,6 +18,10 @@ BAR Lobby is a new WIP lobby for the RTS game [Beyond All Reason](https://www.be
 - Smooth, seemless, fully integrated downloads. Content should be preloaded when sensible
 - Communicate entirely via Teiserver's new protocol, [Tachyon](https://github.com/beyond-all-reason/teiserver/tree/master/documents/tachyon). No support for the legacy SpringLobbyProtocol
 - TLS only, no unencypted comms
+
+## Contributing
+
+Please take a look at the [contributing guide](CONTRIBUTING.md) to learn how to help the project.
 
 ## Development
 
