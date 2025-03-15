@@ -2,7 +2,6 @@ import axios from "axios";
 import * as fs from "fs";
 import * as glob from "glob-promise";
 import { removeFromArray } from "$/jaz-ts-utils/object";
-import { Octokit } from "@octokit/rest";
 import * as path from "path";
 import { EngineAI, EngineVersion } from "@main/content/engine/engine-version";
 import { DownloadInfo } from "../downloads";
@@ -10,10 +9,11 @@ import { parseLuaTable } from "@main/utils/parse-lua-table";
 import { parseLuaOptions } from "@main/utils/parse-lua-options";
 import { logger } from "@main/utils/logger";
 import { extract7z } from "@main/utils/extract-7z";
-import { contentSources } from "@main/config/content-sources";
+import { getEngineReleaseInfo } from "@main/config/content-sources";
 import { AbstractContentAPI } from "@main/content/abstract-content";
 import { CONTENT_PATH } from "@main/config/app";
 import { DownloadEngine } from "@main/content/game/type";
+import { LATEST_ENGINE_VERSION } from "@main/config/default-versions";
 
 const log = logger("engine-content.ts");
 
@@ -23,7 +23,6 @@ const compatibleVersionRegex = /^\d{4}\.\d{2}\.\d{1,2}(-rc\d+)?$/;
 
 export class EngineContentAPI extends AbstractContentAPI<string, EngineVersion> {
     protected readonly engineDirs = path.join(CONTENT_PATH, "engine");
-    protected readonly ocotokit = new Octokit();
 
     public override async init() {
         try {
@@ -40,11 +39,7 @@ export class EngineContentAPI extends AbstractContentAPI<string, EngineVersion> 
                 const ais = await this.parseAis(dir);
                 this.availableVersions.set(dir, { id: dir, ais, installed: true });
             }
-            try {
-                await this.fetchAvailableVersionsOnline();
-            } catch (err) {
-                log.error(`Failed to fetch available engine versions online: ${err}`);
-            }
+            this.checkIfDefaultIsNew();
             log.info(`Found ${this.availableVersions.size} engine versions total.`);
         } catch (err) {
             log.error(err);
@@ -65,24 +60,14 @@ export class EngineContentAPI extends AbstractContentAPI<string, EngineVersion> 
             .at(-1);
     }
 
-    protected async fetchAvailableVersionsOnline() {
-        const { data } = await this.ocotokit.rest.repos.listReleases({
-            owner: contentSources.engineGitHub.owner,
-            repo: contentSources.engineGitHub.repo,
-        });
-        data.map((release) => release.tag_name)
-            .filter((tag) => compatibleVersionRegex.test(tag))
-            .filter((tag) => !this.availableVersions.has(tag))
-            .map((tag) => {
-                return {
-                    id: tag,
-                    ais: [],
-                    installed: false,
-                };
-            })
-            .forEach((version) => {
-                this.availableVersions.set(version.id, version);
+    protected checkIfDefaultIsNew() {
+        if (!this.availableVersions.has(LATEST_ENGINE_VERSION)) {
+            this.availableVersions.set(LATEST_ENGINE_VERSION, {
+                id: LATEST_ENGINE_VERSION,
+                ais: [],
+                installed: false,
             });
+        }
     }
 
     public downloadEngine: DownloadEngine = async (engineVersion) => {
@@ -94,19 +79,9 @@ export class EngineContentAPI extends AbstractContentAPI<string, EngineVersion> 
             if (this.isVersionInstalled(engineVersion)) {
                 return;
             }
-            const { data } = await this.ocotokit.rest.repos.getReleaseByTag({
-                owner: contentSources.engineGitHub.owner,
-                repo: contentSources.engineGitHub.repo,
-                tag: engineVersion,
-            });
-            if (!data) {
-                throw new Error(`Couldn't find engine release for tag: ${engineVersion}`);
-            }
-            const archStr = process.platform === "win32" ? "windows" : "linux";
-            const asset = data.assets.find((asset) => asset.name.endsWith(`${archStr}.7z`) || asset.name.endsWith(`${archStr}-64-minimal-portable.7z`));
-            if (!asset) {
-                throw new Error("Failed to fetch an engine asset from Github");
-            }
+
+            const engineInfo = await getEngineReleaseInfo(engineVersion);
+
             const downloadInfo: DownloadInfo = {
                 type: "engine",
                 name: engineVersion,
@@ -117,7 +92,7 @@ export class EngineContentAPI extends AbstractContentAPI<string, EngineVersion> 
             this.downloadStarted(downloadInfo);
             log.info(`Downloading engine: ${engineVersion}`);
             const downloadResponse = await axios({
-                url: asset.browser_download_url,
+                url: engineInfo.mirrors[0],
                 method: "get",
                 responseType: "arraybuffer",
                 headers: { "Content-Type": "application/7z" },
@@ -128,15 +103,15 @@ export class EngineContentAPI extends AbstractContentAPI<string, EngineVersion> 
                 },
             });
             const engine7z = downloadResponse.data as ArrayBuffer;
-            const downloadedFilePath = path.join(this.engineDirs, asset.name);
+            const downloadedFilePath = path.join(this.engineDirs, engineInfo.filename);
             const engineDestinationPath = path.join(this.engineDirs, engineVersion);
-            log.info(`Extracting <${asset.name}> to ${engineDestinationPath}`);
+            log.info(`Extracting <${engineInfo.filename}> to ${engineDestinationPath}`);
             await fs.promises.mkdir(this.engineDirs, { recursive: true });
             await fs.promises.writeFile(downloadedFilePath, Buffer.from(engine7z), { encoding: "binary" });
             await extract7z(downloadedFilePath, engineDestinationPath);
             await fs.promises.unlink(downloadedFilePath);
             removeFromArray(this.currentDownloads, downloadInfo);
-            log.info(`Extracted engine <${asset.name}>`);
+            log.info(`Extracted engine <${engineInfo.filename}>`);
             await this.downloadComplete(downloadInfo);
             log.info(`Downloaded engine: ${engineVersion}`);
             return engineVersion;

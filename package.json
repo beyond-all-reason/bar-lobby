@@ -37,7 +37,6 @@
         "@iconify-icons/mdi": "^1.2.48",
         "@iconify/json": "^2.2.317",
         "@iconify/vue": "^4.3.0",
-        "@octokit/rest": "^21.1.1",
         "@sinclair/typebox": "^0.34.30",
         "@vueuse/core": "^12.8.2",
         "7zip-bin": "^5.2.0",
