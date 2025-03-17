@@ -281,15 +281,8 @@ export class GameContentAPI extends PrDownloaderAPI<string, GameVersion> {
     }
 
     protected override async downloadComplete(downloadInfo: DownloadInfo) {
-        await this.addGame(downloadInfo.name);
-        super.downloadComplete(downloadInfo);
-    }
-
-    protected async addGame(gameVersion: string) {
+        const gameVersion = downloadInfo.name;
         await this.scanPackagesDir();
-        if (gameVersion === "byar:test") {
-            return;
-        }
         const packageMd5 = this.gameVersionPackageLookup[gameVersion];
         if (!packageMd5) {
             throw new Error(`No packageMd5 found for game version: ${gameVersion}`);
@@ -297,6 +290,7 @@ export class GameContentAPI extends PrDownloaderAPI<string, GameVersion> {
         const luaOptionSections = await this.getGameOptions(packageMd5);
         const ais = await this.getAis(packageMd5);
         this.availableVersions.set(gameVersion, { gameVersion, packageMd5, luaOptionSections, ais });
+        super.downloadComplete(downloadInfo);
     }
 
     protected async parseAis(aiInfo: Buffer): Promise<GameAI[]> {
