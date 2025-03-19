@@ -30,7 +30,7 @@
         "typecheck": "npm run typecheck:node && npm run typecheck:web"
     },
     "engines": {
-        "node": "22.11.0"
+        "node": "22.14.0"
     },
     "dependencies": {
         "@extractus/feed-extractor": "^7.1.4",
@@ -66,16 +66,7 @@
     },
     "devDependencies": {
         "@electron-forge/cli": "^7.7.0",
-        "@electron-forge/maker-deb": "^7.7.0",
-        "@electron-forge/maker-flatpak": "^7.7.0",
-        "@electron-forge/maker-rpm": "^7.7.0",
-        "@electron-forge/maker-squirrel": "^7.7.0",
-        "@electron-forge/plugin-auto-unpack-natives": "^7.7.0",
-        "@electron-forge/plugin-fuses": "^7.7.0",
         "@electron-forge/plugin-vite": "^7.7.0",
-        "@electron-forge/shared-types": "^7.7.0",
-        "@electron/fuses": "^1.8.0",
-        "@types/better-sqlite3": "^7.6.12",
         "@types/howler": "^2.2.12",
         "@types/luaparse": "^0.2.12",
         "@types/node": "^22.13.10",
@@ -92,8 +83,6 @@
         "globals": "^16.0.0",
         "prettier": "^3.5.3",
         "sass": "^1.85.1",
-        "ts-node": "^10.9.2",
-        "type-fest": "^4.37.0",
         "typescript": "^5.8.2",
         "typescript-eslint": "^8.26.1",
         "unplugin-vue-router": "^0.12.0",
@@ -102,9 +91,5 @@
         "vite-plugin-vue-devtools": "^7.7.2",
         "vitest": "^3.0.8",
         "vue-tsc": "^2.2.8"
-    },
-    "optionalDependencies": {
-        "bufferutil": "^4.0.9",
-        "utf-8-validate": "^6.0.5"
     }
 }
