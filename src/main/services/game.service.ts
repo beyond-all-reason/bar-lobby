@@ -15,6 +15,7 @@ function registerIpcHandlers(mainWindow: Electron.BrowserWindow) {
     ipcMain.handle("game:getInstalledVersions", () => gameContentAPI.availableVersions.values().toArray());
     ipcMain.handle("game:isVersionInstalled", (_, id: string) => gameContentAPI.isVersionInstalled(id));
     ipcMain.handle("game:uninstallVersion", (_, version: string) => gameContentAPI.uninstallVersionById(version));
+    ipcMain.handle("game:preloadPoolData", () => gameContentAPI.preloadPoolData());
 
     // Game
     ipcMain.handle("game:launchMultiplayer", (_, settings: MultiplayerLaunchSettings) => gameAPI.launchMultiplayer(settings));

@@ -36,6 +36,7 @@ onMounted(async () => {
 
     state.value = "game";
     text.value = "Downloading game";
+    await window.game.preloadPoolData();
     await downloadGame(LATEST_GAME_VERSION);
     text.value = "Installing game";
 

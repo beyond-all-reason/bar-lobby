@@ -18,6 +18,7 @@ import { SdpFileMeta, SdpFile } from "@main/content/game/sdp";
 import { PrDownloaderAPI } from "@main/content/pr-downloader";
 import { CONTENT_PATH, GAME_VERSIONS_GZ_PATH } from "@main/config/app";
 import { GetScenarios } from "@main/content/game/type";
+import { PoolCdnDownloader } from "@main/content/game/pool-cdn";
 
 const log = logger("game-content.ts");
 const gunzip = util.promisify(zlib.gunzip);
@@ -304,6 +305,16 @@ export class GameContentAPI extends PrDownloaderAPI<string, GameVersion> {
             });
         }
         return ais;
+    }
+
+    public async preloadPoolData() {
+        log.debug("Preloading pool data");
+        const poolCdn = new PoolCdnDownloader(this);
+        try {
+            await poolCdn.preloadPoolData();
+        } catch (error) {
+            log.warn(error, "Failed preloading pool data, ignoring");
+        }
     }
 
     // TODO reimplement a cleanup function
