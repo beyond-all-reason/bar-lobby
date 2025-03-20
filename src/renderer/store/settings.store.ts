@@ -22,6 +22,11 @@ watch(
     () => window.mainWindow.setFullscreen(settingsStore.fullscreen)
 );
 
+watch(
+    () => settingsStore.size,
+    () => window.mainWindow.setSize(settingsStore.size)
+);
+
 export async function initSettingsStore() {
     const currentSettings = await window.settings.getSettings();
     Object.assign(settingsStore, currentSettings);
