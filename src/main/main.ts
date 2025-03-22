@@ -21,10 +21,11 @@ import { authService } from "@main/services/auth.service";
 import { tachyonService } from "@main/services/tachyon.service";
 import netFromNode from "node:net";
 
-// Enable happy eyeballs for IPv6/IPv4 dual stack.
-netFromNode.setDefaultAutoSelectFamily(true);
 const log = logger("main/index.ts");
 log.info("Starting Electron main process");
+
+// Enable happy eyeballs for IPv6/IPv4 dual stack.
+netFromNode.setDefaultAutoSelectFamily(true);
 
 if (process.env.NODE_ENV !== "production") {
     if (process.platform === "win32") {
@@ -78,19 +79,17 @@ function replayFileOpenedWithTheApp() {
 }
 
 app.setName(APP_NAME);
-app.commandLine.appendSwitch("disable-features", "HardwareMediaKeyHandling,MediaSessionService");
 app.on("window-all-closed", () => app.quit());
 
 // Security
 app.enableSandbox();
 
-app.commandLine.appendSwitch("high-dpi-support", "1");
-app.commandLine.appendSwitch("force-device-scale-factor", "1");
+// Command line switches
+app.commandLine.appendSwitch("disable-features", "HardwareMediaKeyHandling,MediaSessionService");
 app.commandLine.appendSwitch("disable-pinch", "1");
 
 app.whenReady().then(async () => {
     registerBarFileProtocol();
-
     if (process.env.NODE_ENV !== "production") {
         try {
             // await installExtension(VUEJS_DEVTOOLS);
@@ -100,7 +99,6 @@ app.whenReady().then(async () => {
     } else if (app.isPackaged && process.env.NODE_ENV === "production") {
         autoUpdaterService.init();
     }
-
     // Define CSP for all webContents
     session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
         callback({
@@ -110,13 +108,10 @@ app.whenReady().then(async () => {
             },
         });
     });
-
     // Initialize services
     await engineService.init();
     await Promise.all([settingsService.init(), accountService.init(), replaysService.init(), gameService.init(), mapsService.init()]);
-
     const mainWindow = createWindow();
-
     // Handlers may need the mainWindow to send events
     infoService.registerIpcHandlers();
     settingsService.registerIpcHandlers();
@@ -129,7 +124,6 @@ app.whenReady().then(async () => {
     shellService.registerIpcHandlers();
     downloadsService.registerIpcHandlers(mainWindow);
     miscService.registerIpcHandlers();
-
     const file = replayFileOpenedWithTheApp();
     if (file) {
         log.info(`Opening replay file: ${file}`);

@@ -8,14 +8,16 @@ import icon from "@main/resources/icon.png";
 declare const MAIN_WINDOW_VITE_DEV_SERVER_URL: string;
 declare const MAIN_WINDOW_VITE_NAME: string;
 
+const ZOOM_FACTOR_BASELINE_HEIGHT = 1080;
+
 const log = logger("main-window");
 
 export function createWindow() {
     const settings = settingsService.getSettings();
     log.info("Creating main window with settings: ", settings);
 
-    const width = 1920;
-    const height = 1080;
+    const width = 1440;
+    const height = 900;
 
     const mainWindow = new BrowserWindow({
         title: "Beyond All Reason",
@@ -23,9 +25,9 @@ export function createWindow() {
         icon: nativeImage.createFromDataURL(icon),
         width: width,
         height: height,
-        minWidth: width,
-        minHeight: height,
-        resizable: true,
+        minWidth: 1280,
+        minHeight: 720,
+        resizable: process.env.NODE_ENV === "development",
         center: true,
         frame: false,
         autoHideMenuBar: true,
@@ -36,39 +38,40 @@ export function createWindow() {
         },
     });
 
-    function setZoomFactor(isFullScreen: boolean) {
-        const zoomFactor = isFullScreen ? mainWindow.getContentSize()[1] / height : 1.0;
-        console.log("Window size: ", mainWindow.getContentSize());
-        console.log("Zoom factor: ", zoomFactor);
+    // Disable zoom shortcuts in production
+    if (process.env.NODE_ENV === "production") {
+        mainWindow.webContents.on("before-input-event", (event, input) => {
+            // Block Ctrl/Cmd + '+', '-', '0' (zoom shortcuts)
+            if (((input.control || input.meta) && (input.key === "+" || input.key === "-" || input.key === "=")) || (input.key === "0" && (input.control || input.meta))) {
+                event.preventDefault();
+            }
+        });
+    }
+
+    function setZoomFactor() {
+        const zoomFactor = mainWindow.getContentSize()[1] / ZOOM_FACTOR_BASELINE_HEIGHT;
+        console.debug("Window size: ", mainWindow.getContentSize());
+        console.debug("Zoom factor: ", zoomFactor);
         mainWindow.webContents.zoomFactor = zoomFactor;
     }
-    setZoomFactor(settings.fullscreen);
+    setZoomFactor();
 
     mainWindow.on("enter-full-screen", () => {
-        console.log("Enter full screen event");
-        setZoomFactor(true);
+        console.debug("Enter full screen event");
+        setZoomFactor();
     });
 
     mainWindow.on("leave-full-screen", () => {
-        console.log("Leave full screen event");
-        setZoomFactor(false);
+        console.debug("Leave full screen event");
+        setZoomFactor();
     });
 
-    // mainWindow.setSize(width, height);
-    // mainWindow.setAspectRatio(16 / 9);
-
-    // function setDisplay(display: Electron.Display) {
-    //     // const { x, y, width, height } = display.bounds;
-    //     // mainWindow.setPosition(x, y);
-    //     mainWindow.setPosition(display.bounds.x, display.bounds.y);
-    //     mainWindow.setSize(width, height);
-    //     mainWindow.center();
-    //     // mainWindow.maximize();
-    // }
-    // setDisplay(screen.getAllDisplays()[settings.displayIndex]);
+    mainWindow.on("resize", () => {
+        console.debug("Resize event");
+        setZoomFactor();
+    });
 
     process.env.MAIN_WINDOW_ID = mainWindow.id.toString();
-
     log.debug("Settings: ", settings);
 
     mainWindow.once("ready-to-show", () => {
@@ -77,7 +80,6 @@ export function createWindow() {
             log.debug(`NODE_ENV is development, opening dev tools`);
             mainWindow.webContents.openDevTools();
         }
-
         mainWindow.setMenuBarVisibility(false);
         mainWindow.show();
         mainWindow.focus();
@@ -130,6 +132,9 @@ export function createWindow() {
     // Register IPC handlers for the main window
     ipcMain.handle("mainWindow:setFullscreen", (_event, flag: boolean) => {
         mainWindow.setFullScreen(flag);
+    });
+    ipcMain.handle("mainWindow:setSize", (_event, size: number) => {
+        mainWindow.setSize(Math.round((size * 16) / 9), size, true);
     });
     ipcMain.handle("mainWindow:toggleFullscreen", () => mainWindow.setFullScreen(!mainWindow.isFullScreen()));
     ipcMain.handle("mainWindow:flashFrame", (_event, flag: boolean) => {

@@ -7,6 +7,7 @@ import path from "path";
 
 const settingsStore = new FileStore<typeof settingsSchema>(path.join(CONFIG_PATH, "settings.json"), settingsSchema, {
     fullscreen: true,
+    size: 900,
     displayIndex: 0,
     skipIntro: false,
     sfxVolume: 5,
