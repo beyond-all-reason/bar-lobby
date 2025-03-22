@@ -11,5 +11,6 @@ export const CONFIG_PATH = paths.config;
 
 export const REPLAYS_PATH = path.join(CONTENT_PATH, "demos");
 export const MAPS_PATH = path.join(CONTENT_PATH, "maps");
+export const LOGS_PATH = path.join(CONTENT_PATH, "logs");
 
 export const GAME_VERSIONS_GZ_PATH = path.join(CONTENT_PATH, "rapid", contentSources.rapid.host, contentSources.rapid.game, "versions.gz");

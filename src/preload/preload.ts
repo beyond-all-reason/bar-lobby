@@ -12,6 +12,16 @@ import { GetCommandData, GetCommandIds, GetCommands } from "tachyon-protocol";
 import { MultiplayerLaunchSettings } from "@main/game/game";
 import { FetchNewsRssFeed } from "@main/services/type";
 import { GetScenarios, LaunchReplay, DownloadEngine } from "@main/content/game/type";
+import { logLevels } from "@main/services/log.service";
+
+const logApi = {
+    purge: (): Promise<string[]> => ipcRenderer.invoke("log:purge"),
+    pack: (): Promise<string> => ipcRenderer.invoke("log:pack"),
+    upload: (): Promise<void> => ipcRenderer.invoke("log:upload"),
+    log: (fileName: string, level: logLevels, msg: string): Promise<void> => ipcRenderer.invoke("log:log", fileName, level, msg),
+};
+export type LogApi = typeof logApi;
+contextBridge.exposeInMainWorld("logFile", logApi);
 
 const infoApi = {
     getInfo: (): Promise<Info> => ipcRenderer.invoke("info:get"),

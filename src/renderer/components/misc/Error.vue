@@ -5,6 +5,7 @@
             <div v-if="error" class="error">{{ error.message }}</div>
             <div v-if="promiseError?.reason.stack" class="error">{{ promiseError.reason.stack }}</div>
             <Button @click="onReload">Reload</Button>
+            <Button @click="uploadLogsAndReload">Upload logs & Reload</Button>
         </div>
     </Modal>
 </template>
@@ -14,14 +15,17 @@ import { Ref, ref } from "vue";
 
 import Modal from "@renderer/components/common/Modal.vue";
 import Button from "@renderer/components/controls/Button.vue";
+import { Logger, uploadLogs } from "@renderer/utils/log";
 
 const isVisible = ref(false);
 const error: Ref<ErrorEvent | undefined> = ref();
 const promiseError: Ref<PromiseRejectionEvent | undefined> = ref();
+const log = new Logger("Error.vue");
 
 window.addEventListener("unhandledrejection", function (event) {
     console.error(event);
     console.log("unhandled rejection");
+    log.error(event.reason.stack);
     promiseError.value = event;
     isVisible.value = true;
 });
@@ -35,11 +39,17 @@ window.addEventListener("error", (event) => {
 
     error.value = event;
     console.error(event);
+    log.error(event.message);
     isVisible.value = true;
 });
 
 function onReload() {
     window.document.location.reload();
+}
+
+async function uploadLogsAndReload() {
+    await uploadLogs();
+    onReload();
 }
 </script>
 
