@@ -27,7 +27,7 @@ export function createWindow() {
         height: height,
         minWidth: 1280,
         minHeight: 720,
-        resizable: true,
+        resizable: process.env.NODE_ENV === "development",
         center: true,
         frame: false,
         autoHideMenuBar: true,
@@ -38,13 +38,15 @@ export function createWindow() {
         },
     });
 
-    // Disable zoom shortcuts
-    mainWindow.webContents.on("before-input-event", (event, input) => {
-        // Block Ctrl/Cmd + '+', '-', '0' (zoom shortcuts)
-        if (((input.control || input.meta) && (input.key === "+" || input.key === "-" || input.key === "=")) || (input.key === "0" && (input.control || input.meta))) {
-            event.preventDefault();
-        }
-    });
+    // Disable zoom shortcuts in production
+    if (process.env.NODE_ENV === "production") {
+        mainWindow.webContents.on("before-input-event", (event, input) => {
+            // Block Ctrl/Cmd + '+', '-', '0' (zoom shortcuts)
+            if (((input.control || input.meta) && (input.key === "+" || input.key === "-" || input.key === "=")) || (input.key === "0" && (input.control || input.meta))) {
+                event.preventDefault();
+            }
+        });
+    }
 
     function setZoomFactor() {
         const zoomFactor = mainWindow.getContentSize()[1] / ZOOM_FACTOR_BASELINE_HEIGHT;
