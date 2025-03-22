@@ -22,6 +22,7 @@
         <Button @click="openConfigDir"> Open Config Dir </Button>
         <Button @click="openStartScript"> Open Latest Start Script </Button>
         <Button @click="openSyncLobbyContentTool"> Sync Lobby Content Tool </Button>
+        <Button @click="causeError"> Cause an error </Button>
 
         <Select
             :modelValue="gameStore.selectedGameVersion"
@@ -98,6 +99,13 @@ async function openStartScript() {
 
 function openSyncLobbyContentTool() {
     syncLobbyContentToolOpen.value = true;
+}
+
+function causeError() {
+    const x = null;
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    const j = x.hello;
 }
 </script>
 
