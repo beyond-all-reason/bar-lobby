@@ -103,9 +103,10 @@ function openSyncLobbyContentTool() {
 
 function causeError() {
     const x = null;
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
+    /* eslint-disable */
+    // @ts-expect-error: testing an intentional error
     const j = x.hello;
+    /* eslint-enable */
 }
 </script>
 
