@@ -1,12 +1,12 @@
 import { ipcMain } from "electron";
 import { LOGS_PATH } from "@main/config/app";
 import path from "path";
-import { glob, stat, rm, cp } from "fs/promises";
-import { readFileSync } from "fs";
+import { glob, stat, rm, cp, readFile } from "fs/promises";
 import { packSpecificFiles } from "@main/utils/pack-7z";
 import { randomBytes } from "crypto";
 import axios from "axios";
 import { logger } from "@main/utils/logger";
+import { settingsService } from "@main/services/settings.service";
 
 async function getSortedLogFiles() {
     type logData = {
@@ -41,9 +41,11 @@ async function getSortedLogFiles() {
 export async function purgeLogFiles() {
     const fileList = await getSortedLogFiles();
 
-    // Keep only the 7 most recent log files.
-    const filesToDelete = fileList.slice(7);
-    const remainingFiles = fileList.slice(0, 7);
+    // Keep only the 14 most recent log files.
+    const filesToDelete = fileList.slice(14);
+
+    // Get the 7 most recent files to upload.
+    const mostRecentFiles = fileList.slice(0, 7);
 
     for await (const logFilePath of filesToDelete) {
         await rm(logFilePath);
@@ -55,7 +57,7 @@ export async function purgeLogFiles() {
         await rm(zipPath);
     }
 
-    return remainingFiles;
+    return mostRecentFiles;
 }
 
 export async function packLogFiles() {
@@ -70,7 +72,7 @@ export async function packLogFiles() {
         return null;
     }
 
-    const newFileName = `${path.basename(currentFile, ".log")}copy.log`;
+    const newFileName = `${path.basename(currentFile, ".log")}most_recent.log`;
     const newFilePath = path.join(LOGS_PATH, newFileName);
     filesToPack.unshift(newFilePath);
 
@@ -99,20 +101,24 @@ export async function uploadLogFiles() {
     }
 
     const archiveFile = path.basename(archivePath);
+    const uploadUrl = settingsService.getSettings().logUploadUrl + archiveFile;
+    const dataToUpload = await readFile(archivePath);
 
-    axios({
+    await axios({
         method: "put",
-        url: "https://log.beyondallreason.dev/" + archiveFile,
+        url: uploadUrl,
         headers: {
             "content-type": "application/zip",
         },
-        data: readFileSync(archivePath),
-        validateStatus: function (status) {
-            return status === 200;
-        },
+        data: dataToUpload,
     }).catch(() => {
         throw new Error("Could not upload log file.");
     });
+
+    // Delete the ZIP file after upload
+    rm(archivePath);
+
+    return uploadUrl;
 }
 
 export type logLevels = "debug" | "info" | "error" | "fatal";

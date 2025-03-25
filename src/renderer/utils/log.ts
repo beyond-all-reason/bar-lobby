@@ -22,5 +22,5 @@ export class Logger {
 }
 
 export async function uploadLogs() {
-    await window.logFile.upload();
+    return await window.logFile.upload();
 }

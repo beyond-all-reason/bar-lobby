@@ -21,18 +21,32 @@
 
             <div>Dev Mode</div>
             <Checkbox v-model="settingsStore.devMode" />
+
+            <OverlayPanel ref="op">
+                <div class="container">
+                    {{ tooltipMessage }}
+                </div>
+            </OverlayPanel>
+            <Button @click="uploadLogsCommand">Upload logs</Button>
         </div>
     </Modal>
 </template>
 
 <script lang="ts" setup>
+import { ref } from "vue";
 import Modal from "@renderer/components/common/Modal.vue";
 import Checkbox from "@renderer/components/controls/Checkbox.vue";
 import Range from "@renderer/components/controls/Range.vue";
 import Select from "@renderer/components/controls/Select.vue";
+import Button from "@renderer/components/controls/Button.vue";
+import OverlayPanel from "primevue/overlaypanel";
 import { asyncComputed } from "@vueuse/core";
 import { settingsStore } from "@renderer/store/settings.store";
 import { infosStore } from "@renderer/store/infos.store";
+import { uploadLogs } from "@renderer/utils/log";
+
+const op = ref();
+const tooltipMessage = ref("");
 
 const displayOptions = asyncComputed(async () => {
     return Array(infosStore.hardware.numOfDisplays)
@@ -41,6 +55,29 @@ const displayOptions = asyncComputed(async () => {
             return { label: `Display ${i + 1}`, value: i };
         });
 });
+
+async function uploadLogsCommand(event) {
+    // Store off event and target to avoid async issue
+    const curE = event;
+    const curTarget = curE.currentTarget;
+
+    // Do the operations
+    try {
+        const url = await uploadLogs();
+        await navigator.clipboard.writeText(url);
+        tooltipMessage.value = "Log URL was copied to clipboard.";
+    } catch (_) {
+        tooltipMessage.value = "Unable to upload log.";
+    }
+
+    // Display feedback
+    op.value.show(curE, curTarget);
+}
 </script>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+.container {
+    background-color: rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(5px);
+}
+</style>

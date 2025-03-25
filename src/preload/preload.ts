@@ -17,7 +17,7 @@ import { logLevels } from "@main/services/log.service";
 const logApi = {
     purge: (): Promise<string[]> => ipcRenderer.invoke("log:purge"),
     pack: (): Promise<string> => ipcRenderer.invoke("log:pack"),
-    upload: (): Promise<void> => ipcRenderer.invoke("log:upload"),
+    upload: (): Promise<string> => ipcRenderer.invoke("log:upload"),
     log: (fileName: string, level: logLevels, msg: string): Promise<void> => ipcRenderer.invoke("log:log", fileName, level, msg),
 };
 export type LogApi = typeof logApi;

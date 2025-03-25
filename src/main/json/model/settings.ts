@@ -12,4 +12,5 @@ export const settingsSchema = Type.Object({
     battlesHidePvE: Type.Boolean({ default: false }),
     battlesHideLocked: Type.Boolean({ default: false }),
     battlesHideEmpty: Type.Boolean({ default: true }),
+    logUploadUrl: Type.String({ default: "https://log.beyondallreason.dev/" }),
 });

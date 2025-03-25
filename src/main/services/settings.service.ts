@@ -17,6 +17,7 @@ const settingsStore = new FileStore<typeof settingsSchema>(path.join(CONFIG_PATH
     battlesHidePvE: false,
     battlesHideLocked: false,
     battlesHideEmpty: true,
+    logUploadUrl: "https://log.beyondallreason.dev/",
 });
 
 async function init() {
