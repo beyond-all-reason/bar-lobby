@@ -17,10 +17,10 @@
                         class="fullwidth"
                         @update:model-value="onMapSelected"
                     />
-                    <Button v-tooltip.left="'Open map selector'" @click="openMapList">
+                    <Button v-tooltip.left="{ value: 'Open map selector', showDelay: 300, hideDelay: 200 }" @click="openMapList">
                         <Icon :icon="listIcon" height="23" />
                     </Button>
-                    <Button v-tooltip.left="'Configure map options'" @click="openMapOptions">
+                    <Button v-tooltip.left="{ value: 'Configure map options', showDelay: 300, hideDelay: 200 }" @click="openMapOptions">
                         <Icon :icon="cogIcon" height="23" />
                     </Button>
                     <MapListModal v-model="mapListOpen" title="Maps" @map-selected="onMapSelected" />
