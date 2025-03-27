@@ -61,7 +61,13 @@ export class GameContentAPI extends PrDownloaderAPI<string, GameVersion> {
             await this.initLookupTables();
         }
         for (const packageFile of packages) {
-            const packageMd5 = packageFile.replace(".sdp", "");
+            if (!packageFile.endsWith(".sdp")) {
+                // skip non-sdp files
+                // one case is pr-downloader interruption, which makes .sdp.incomplete files
+                log.debug(`Skipping non-sdp file: ${packageFile}!`);
+                continue;
+            }
+            const packageMd5 = packageFile.split(".")[0];
             const gameVersion = this.packageGameVersionLookup[packageMd5];
             const luaOptionSections = await this.getGameOptions(packageMd5);
             const ais = await this.getAis(packageMd5);
