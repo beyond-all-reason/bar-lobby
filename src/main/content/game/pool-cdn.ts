@@ -64,6 +64,8 @@ export class PoolCdnDownloader extends Downloader {
         const dlFilePath = path.join(CONTENT_PATH, "data.7z");
         const dl = new DownloaderHelper(this.poolDataUrl, CONTENT_PATH, {
             fileName: "data.7z",
+            timeout: 10000,
+            retry: { maxRetries: 3, delay: 1000 },
             override: true,
             resumeIfFileExists: true,
             resumeOnIncomplete: true,
