@@ -7,6 +7,7 @@ import { gameAPI } from "@main/game/game";
 import { logger } from "@main/utils/logger";
 import chokidar from "chokidar";
 import fs from "fs";
+import fsPromises from "fs/promises"
 
 import path from "path";
 
@@ -38,7 +39,8 @@ export class ReplayContentAPI {
                     return;
                 }
                 log.debug(`Chokidar -=- Replay added: ${filepath}`);
-                this.cacheReplay(filepath);
+                // Pass this object so that methods can be referenced from within the callback.
+                this.cacheReplay(filepath, this);
             })
             .on("unlink", (filepath) => {
                 if (!filepath.endsWith("sdfz")) {
@@ -67,7 +69,7 @@ export class ReplayContentAPI {
         existingFiles
             .filter((fileName) => !replayFileNames.includes(fileName))
             .map((fileName) => path.join(REPLAYS_PATH, fileName))
-            .forEach(this.cacheReplay);
+            .forEach((filePath) => this.cacheReplay(filePath, this));
     }
 
     protected async scanFolderForReplays() {
@@ -84,7 +86,11 @@ export class ReplayContentAPI {
         }
     }
 
-    protected async cacheReplay(replayFilePath: string) {
+    protected async cacheReplay(replayFilePath: string, obj: ReplayContentAPI) {
+        // Don't try to cache an empty replay file
+        const stat = await fsPromises.stat(replayFilePath);
+        if (stat.size === 0) return;
+
         log.debug(`Caching: ${replayFilePath}`);
         try {
             const replayData = await asyncParseReplay(replayFilePath);
@@ -103,7 +109,7 @@ export class ReplayContentAPI {
             //     }
             // }
             log.debug(`Cached replay: ${replayFilePath}`);
-            this.onReplayCached.dispatch(replayData);
+            obj.onReplayCached.dispatch(replayData);
         } catch (err) {
             log.error(`Error caching replay: ${replayFilePath}`, err);
             log.error(err);
