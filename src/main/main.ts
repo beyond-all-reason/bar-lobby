@@ -6,6 +6,7 @@ import { createWindow } from "@main/main-window";
 import { settingsService } from "./services/settings.service";
 import { infoService } from "./services/info.service";
 import { accountService } from "./services/account.service";
+import { logService } from "@main/services/log.service";
 import engineService from "./services/engine.service";
 import mapsService from "./services/maps.service";
 import gameService from "./services/game.service";
@@ -113,6 +114,7 @@ app.whenReady().then(async () => {
     await Promise.all([settingsService.init(), accountService.init(), replaysService.init(), gameService.init(), mapsService.init()]);
     const mainWindow = createWindow();
     // Handlers may need the mainWindow to send events
+    logService.registerIpcHandlers();
     infoService.registerIpcHandlers();
     settingsService.registerIpcHandlers();
     authService.registerIpcHandlers();

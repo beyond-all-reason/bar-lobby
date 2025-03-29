@@ -4,6 +4,7 @@ import { settingsService } from "./services/settings.service";
 import { logger } from "./utils/logger";
 import { replayContentAPI } from "@main/content/replays/replay-content";
 import icon from "@main/resources/icon.png";
+import { purgeLogFiles } from "@main/services/log.service";
 
 declare const MAIN_WINDOW_VITE_DEV_SERVER_URL: string;
 declare const MAIN_WINDOW_VITE_NAME: string;
@@ -146,6 +147,9 @@ export function createWindow() {
     mainWindow.webContents.ipc.handle("game:launched", () => {
         log.info("Game launched");
     });
+
+    // Purge old log files
+    purgeLogFiles();
 
     return mainWindow;
 }
