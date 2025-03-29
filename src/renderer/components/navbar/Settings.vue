@@ -66,8 +66,12 @@ async function uploadLogsCommand(event) {
         const url = await uploadLogs();
         await navigator.clipboard.writeText(url);
         tooltipMessage.value = "Log URL was copied to clipboard.";
-    } catch (_) {
-        tooltipMessage.value = "Unable to upload log.";
+    } catch (e) {
+        if (typeof e === "string") {
+            tooltipMessage.value = e;
+        } else {
+            tooltipMessage.value = "Could not upload log.";
+        }
     }
 
     // Display feedback
