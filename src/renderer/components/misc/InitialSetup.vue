@@ -33,6 +33,7 @@ onMounted(async () => {
         await window.engine.downloadEngine(latestKnownEngineVersion.id);
         text.value = "Installing engine";
     }
+    enginesStore.selectedEngineVersion = latestKnownEngineVersion;
 
     state.value = "game";
     text.value = "Downloading game";

@@ -33,8 +33,5 @@ export async function initEnginesStore() {
         enginesStore.selectedEngineVersion = enginesStore.availableEngineVersions.find((e) => e.id === downloadInfo.name);
     });
     await refreshStore();
-    const latestInstalledVersion = enginesStore.availableEngineVersions.filter((e) => e.installed).at(-1);
-    const latestKnownVersion = enginesStore.availableEngineVersions.at(-1);
-    enginesStore.selectedEngineVersion = latestInstalledVersion || latestKnownVersion;
     enginesStore.isInitialized = true;
 }
