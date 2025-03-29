@@ -7,7 +7,7 @@ import { gameAPI } from "@main/game/game";
 import { logger } from "@main/utils/logger";
 import chokidar from "chokidar";
 import fs from "fs";
-import fsPromises from "fs/promises"
+import fsPromises from "fs/promises";
 
 import path from "path";
 
