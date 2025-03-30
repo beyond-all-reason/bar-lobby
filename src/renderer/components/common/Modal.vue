@@ -1,5 +1,5 @@
 <template>
-    <Teleport v-if="isLoaded" to="#wrapper">
+    <Teleport v-if="isLoaded" to="#wrapper" :disabled="isError">
         <form v-if="isOpen" ref="form" class="container" @submit.prevent="onSubmit" @keydown.enter="onSubmit">
             <Panel id="modal" class="modal-panel" v-bind="$attrs">
                 <template #header>
@@ -40,6 +40,7 @@ export type PanelProps = InstanceType<typeof Panel>["$props"];
 export interface ModalProps extends /* @vue-ignore */ PanelProps {
     modelValue?: boolean;
     title?: string;
+    isError?: boolean; // disables teleport - errors have dedicated container
 }
 
 const isLoaded = ref(false);
@@ -52,6 +53,7 @@ const props = withDefaults(defineProps<ModalProps>(), {
     title: undefined,
     is: "div",
     activeTab: 0,
+    isError: false,
 });
 
 const emits = defineEmits<{
