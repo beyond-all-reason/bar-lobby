@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import type { LocalStatement, ReturnStatement, TableConstructorExpression } from "luaparse";
+import type { LocalStatement, ReturnStatement, TableConstructorExpression, Expression, BooleanLiteral, StringLiteral, UnaryExpression, BinaryExpression } from "luaparse";
 import luaparse from "luaparse";
 
 type ParseLuaTableOptions = {
@@ -32,37 +32,60 @@ export function parseLuaTable(luaFile: Buffer, options?: ParseLuaTableOptions): 
     if (!tableConstructorExpression) {
         throw new Error("Could not find table");
     }
-
     return luaTableToObj(tableConstructorExpression);
 }
 
 function luaTableToObj(table: TableConstructorExpression): any {
     const blocks: any[] = [];
     const obj: Record<string, unknown> = {};
-
     for (const field of table.fields) {
         if (field.type === "TableKeyString") {
             const key = field.key.name;
             const value = field.value;
-            if (value.type === "StringLiteral") {
-                obj[key] = (value.value as string | null) ?? value.raw.slice(1, -1);
-            } else if (value.type === "NumericLiteral" || value.type === "BooleanLiteral") {
-                obj[key] = value.value;
-            } else if (field.value.type === "TableConstructorExpression") {
-                obj[key] = luaTableToObj(field.value);
-            } else if (value.type === "UnaryExpression" && value.operator === "-" && value.argument.type === "NumericLiteral") {
-                obj[key] = -value.argument.value;
-            }
+            obj[key] = parseLuaAst(value);
         } else if (field.type === "TableValue") {
-            if (field.value.type === "TableConstructorExpression") {
-                blocks.push(luaTableToObj(field.value));
-            } else if (field.value.type === "StringLiteral") {
-                blocks.push((field.value.value as string | null) ?? field.value.raw.slice(1, -1));
-            } else if (field.value.type === "NumericLiteral" || field.value.type === "BooleanLiteral") {
-                blocks.push(field.value.value);
-            }
+            blocks.push(parseLuaAst(field.value));
         }
     }
-
     return blocks.length > 0 ? blocks : obj;
+}
+
+function parseLuaAst(value: Expression) {
+    switch (value.type) {
+        case "BinaryExpression":
+            return parseBinaryExpression(value as unknown as BinaryExpression);
+        case "StringLiteral":
+            if (value.value) return value;
+            let rawString = value.raw.slice(1, -1);
+            return rawString.replaceAll(/\x5c(\d+)/g, ""); //Some values have a color code embedded for the old chobby text coloring lets strip that out
+        case "BooleanLiteral":
+            return value.value;
+        case "NumericLiteral":
+            return value.value;
+        case "UnaryExpression":
+            return parseUnaryExpression(value);
+        case "TableConstructorExpression":
+            return luaTableToObj(value);
+        default:
+            console.log(value);
+            break;
+    }
+}
+
+function parseBinaryExpression(value: BinaryExpression): string {
+    let left = parseLuaAst(value.left);
+    let right = parseLuaAst(value.right);
+    if (value.operator === "..") {
+        return `${left}${right}`;
+    }
+    console.error("Unhandled binary expression operator");
+    return "";
+}
+
+function parseUnaryExpression(value: UnaryExpression) {
+    let expression = value as unknown as UnaryExpression;
+    if (expression.operator === "-") return -parseLuaAst(expression.argument);
+    if (expression.operator === "not") return !parseLuaAst(expression.argument);
+    if (expression.operator === "#") return parseLuaAst(expression.argument).length;
+    console.log("Unhandled Unary Expression Operator", expression);
 }
