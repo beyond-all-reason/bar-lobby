@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import type { LocalStatement, ReturnStatement, TableConstructorExpression, Expression, BooleanLiteral, StringLiteral, UnaryExpression, BinaryExpression } from "luaparse";
+import type { LocalStatement, ReturnStatement, TableConstructorExpression, Expression, UnaryExpression, BinaryExpression } from "luaparse";
 import luaparse from "luaparse";
 
 type ParseLuaTableOptions = {
@@ -54,10 +54,11 @@ function parseLuaAst(value: Expression) {
     switch (value.type) {
         case "BinaryExpression":
             return parseBinaryExpression(value as unknown as BinaryExpression);
-        case "StringLiteral":
+        case "StringLiteral": {
             if (value.value) return value;
-            let rawString = value.raw.slice(1, -1);
+            const rawString = value.raw.slice(1, -1);
             return rawString.replaceAll(/\x5c(\d+)/g, ""); //Some values have a color code embedded for the old chobby text coloring lets strip that out
+        }
         case "BooleanLiteral":
             return value.value;
         case "NumericLiteral":
@@ -73,8 +74,8 @@ function parseLuaAst(value: Expression) {
 }
 
 function parseBinaryExpression(value: BinaryExpression): string {
-    let left = parseLuaAst(value.left);
-    let right = parseLuaAst(value.right);
+    const left = parseLuaAst(value.left);
+    const right = parseLuaAst(value.right);
     if (value.operator === "..") {
         return `${left}${right}`;
     }
@@ -83,7 +84,7 @@ function parseBinaryExpression(value: BinaryExpression): string {
 }
 
 function parseUnaryExpression(value: UnaryExpression) {
-    let expression = value as unknown as UnaryExpression;
+    const expression = value as unknown as UnaryExpression;
     if (expression.operator === "-") return -parseLuaAst(expression.argument);
     if (expression.operator === "not") return !parseLuaAst(expression.argument);
     if (expression.operator === "#") return parseLuaAst(expression.argument).length;
