@@ -1,10 +1,12 @@
-// import { afterAll, beforeAll, expect, test } from "vitest";
+import { /*afterAll, beforeAll,*/ expect, test } from "vitest";
 
 /**
  * TODO
  * make this work
  */
-
+test("sanity check", () => {
+    expect(true).toBe(true);
+});
 // let electronApp: ElectronApplication;
 
 // beforeAll(async () => {

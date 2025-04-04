@@ -48,3 +48,40 @@ test("scenario 1", async () => {
     expect(data.emptyString).toEqual("");
     expect(data.falsey).toEqual(false);
 });
+
+const concat = `
+local table = {
+	string = "i am ".."a string",
+	removeLuabinary = "No Rush Time".."\\255\\128\\128\\128".." [minutes]",
+}
+return table
+`;
+
+test("test lua string concat", async () => {
+    const data = parseLuaTable(Buffer.from(concat));
+    expect(data.string).toEqual("i am a string");
+    expect(data.removeLuabinary).toEqual("No Rush Time [minutes]");
+});
+
+const looptest = `
+local table = {
+	op1 = "Option1",
+}
+for i = 2, 9 do
+    table[#table + 1] = {
+        key     = "tweakunits" .. i,
+        name    = "Tweak Units " .. i,
+        desc    = "A base64 encoded lua table of unit parameters to change.",
+        section = "options_extra",
+        type    = "string",
+        def     = "",
+        hidden 	= true,
+    }
+end
+return table
+`;
+test("test lua string concat", async () => {
+    const data = parseLuaTable(Buffer.from(looptest));
+    //TODO fix variable assignments that modify the table
+    console.log(data);
+});

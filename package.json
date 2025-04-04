@@ -23,6 +23,7 @@
         "postinstall": "electron-builder install-app-deps",
         "release": "electron-builder --config electron-builder.config.ts",
         "lint": "eslint",
+        "test": "vitest tests",
         "format": "prettier --write --cache .",
         "format:check": "prettier --check --cache .",
         "typecheck:node": "tsc --noEmit -p tsconfig.node.json --composite false",
