@@ -61,7 +61,6 @@ export class TachyonClient {
                         reject(details.error_description);
                         return;
                     }
-                    console.log(res, chunk.toString());
                     const error = `HTTP Error ${res.statusCode}: ${chunk.toString()}`;
                     log.error(error);
                     reject(error);
