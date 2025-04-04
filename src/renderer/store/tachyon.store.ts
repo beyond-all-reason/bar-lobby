@@ -23,7 +23,11 @@ async function connect() {
         tachyonStore.error = undefined;
     } catch (err) {
         console.error("Failed to connect to Tachyon server", err);
-        tachyonStore.error = "Error";
+        if (err instanceof Error && err.message.split(": ")[1]) {
+            tachyonStore.error = err.message.split(": ")[1];
+        } else {
+            tachyonStore.error = "Error";
+        }
         auth.logout();
     }
 }

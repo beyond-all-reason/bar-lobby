@@ -3,7 +3,7 @@
     meta: {
         redirect: "/multiplayer/ranked",
         title: "Multiplayer",
-        order: 1,
+        order: 2,
         onlineOnly: true,
     },
 }
