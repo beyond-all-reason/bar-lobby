@@ -44,6 +44,7 @@ It is highly recommended to use [VSCode](https://code.visualstudio.com/) for dev
 ### Local Development
 
 ```bash
+nvm use
 npm install
 npm start
 ```
