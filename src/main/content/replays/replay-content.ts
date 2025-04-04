@@ -38,7 +38,7 @@ export class ReplayContentAPI {
                     return;
                 }
                 log.debug(`Chokidar -=- Replay added: ${filepath}`);
-                this.replayCacheQueue.add(filepath);
+                this.cacheReplay(filepath);
             })
             .on("unlink", (filepath) => {
                 if (!filepath.endsWith("sdfz")) {
@@ -85,6 +85,12 @@ export class ReplayContentAPI {
     }
 
     cacheReplay = async (replayFilePath: string) => {
+        if (gameAPI.isGameRunning()) {
+            log.debug(`Queuing replay to be cached: ${replayFilePath}`);
+            this.replayCacheQueue.add(replayFilePath);
+            return;
+        }
+
         log.debug(`Caching: ${replayFilePath}`);
         try {
             const replayData = await asyncParseReplay(replayFilePath);
