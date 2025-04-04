@@ -120,6 +120,7 @@ export class ReplayContentAPI {
     public async cacheReplaysInQueue() {
         for (const replayFilePath of this.replayCacheQueue) {
             await this.cacheReplay(replayFilePath);
+            this.replayCacheQueue.delete(replayFilePath);
         }
     }
 }
