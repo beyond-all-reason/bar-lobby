@@ -53,7 +53,7 @@
                     </Button>
                 </div>
                 <div class="secondary-right flex-row flex-right">
-                    <ServerStatus v-if="me.isAuthenticated" />
+                    <ServerStatus />
                     <Button v-if="me.isAuthenticated" class="user" to="/profile">
                         <div class="flex-row flex-center gap-sm">
                             <Icon :icon="account" :height="20" />
@@ -107,7 +107,7 @@ const router = useRouter();
 const allRoutes = router.getRoutes();
 const primaryRoutes = computed(() => {
     return allRoutes
-        .filter((r) => ["/singleplayer", "/multiplayer", "/library", "/learn", "/store", "/development"].includes(r.path))
+        .filter((r) => ["/singleplayer", "/library", "/multiplayer", "/learn", "/store", "/development"].includes(r.path))
         .filter(
             (r) =>
                 (r.meta.hide === false || r.meta.hide === undefined) &&
