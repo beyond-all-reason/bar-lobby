@@ -41,6 +41,8 @@ It is highly recommended to use [VSCode](https://code.visualstudio.com/) for dev
 
 - [Node.js 22.14.0](https://nodejs.org/en/download/)
 
+We recommend tools management software like [NVM](https://github.com/nvm-sh/nvm) or [mise-en-place](https://mise.jdx.dev/) for installation of the correct node version.
+
 ### Local Development
 
 ```bash
