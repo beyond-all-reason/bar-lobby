@@ -67,7 +67,7 @@ export class ReplayContentAPI {
         existingFiles
             .filter((fileName) => !replayFileNames.includes(fileName))
             .map((fileName) => path.join(REPLAYS_PATH, fileName))
-            .forEach(this.cacheReplay);
+            .forEach((fileName) => this.cacheReplay(fileName));
     }
 
     protected async scanFolderForReplays() {
@@ -85,6 +85,12 @@ export class ReplayContentAPI {
     }
 
     protected async cacheReplay(replayFilePath: string) {
+        if (gameAPI.isGameRunning()) {
+            log.debug(`Queuing replay to be cached: ${replayFilePath}`);
+            this.replayCacheQueue.add(replayFilePath);
+            return;
+        }
+
         log.debug(`Caching: ${replayFilePath}`);
         try {
             const replayData = await asyncParseReplay(replayFilePath);
@@ -107,8 +113,14 @@ export class ReplayContentAPI {
         } catch (err) {
             log.error(`Error caching replay: ${replayFilePath}`, err);
             log.error(err);
-            fs.promises.rename(replayFilePath, replayFilePath + ".error");
             //TODO emit error signal
+        }
+    }
+
+    public async cacheReplaysInQueue() {
+        for (const replayFilePath of this.replayCacheQueue) {
+            await this.cacheReplay(replayFilePath);
+            this.replayCacheQueue.delete(replayFilePath);
         }
     }
 }

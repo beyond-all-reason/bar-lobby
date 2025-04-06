@@ -3,6 +3,7 @@ import { gameAPI, MultiplayerLaunchSettings, ScriptLaunchSettings } from "@main/
 import { ipcMain } from "electron";
 import { Replay } from "@main/content/replays/replay";
 import { BattleWithMetadata } from "@main/game/battle/battle-types";
+import { replayContentAPI } from "@main/content/replays/replay-content";
 
 async function init() {
     await gameContentAPI.init();
@@ -29,6 +30,7 @@ function registerIpcHandlers(mainWindow: Electron.BrowserWindow) {
     });
     gameAPI.onGameClosed.add(() => {
         mainWindow.webContents.send("game:closed");
+        replayContentAPI.cacheReplaysInQueue();
     });
 }
 
