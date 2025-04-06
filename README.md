@@ -105,8 +105,9 @@ npm start
     - **main** and **preload** are directly bundled to `.vite/build`
 - `npm run package`
     - Runs `electron-forge` in `production` mode
-    - **renderer** us bundled to `.vite/renderer`
+    - **renderer** is bundled to `.vite/renderer`
     - **main** and **preload** are bundled to `.vite/build`
+    - This should be run before any of the `npm run build` commands below.
 - `npm run preview`
     - Runs `electron-forge` in `production` mode, and runs electron
     - **main**, **preload**, and **renderer** are bundled to `.vite/build`
