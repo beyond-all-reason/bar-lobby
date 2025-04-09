@@ -44,7 +44,8 @@ export async function initTachyonStore() {
 
     window.tachyon.onBattleStart((springString) => {
         console.debug("Received battle start event", springString);
-        if (!enginesStore.selectedEngineVersion) {
+        const engineVersion = enginesStore.getEngineVersion();
+        if (engineVersion === undefined) {
             console.error("No engine version selected");
             return;
         }
@@ -53,7 +54,7 @@ export async function initTachyonStore() {
             return;
         }
         window.game.launchMultiplayer({
-            engineVersion: enginesStore.selectedEngineVersion.id,
+            engineVersion: engineVersion.id,
             gameVersion: gameStore.selectedGameVersion.gameVersion,
             springString,
         });

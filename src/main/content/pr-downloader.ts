@@ -36,10 +36,15 @@ export abstract class PrDownloaderAPI<ID, T> extends AbstractContentAPI<ID, T> {
         return new Promise<DownloadInfo>((resolve, reject) => {
             try {
                 log.debug(`Downloading ${name}...`);
-                const latestEngine = engineContentAPI.getLatestInstalledVersion();
-                if (!latestEngine) throw new Error("No installed engine version.");
+
+                const defaultEngine = engineContentAPI.getDefaultEngine();
+
+                // These two errors should in theory never happen...
+                if (!defaultEngine) throw new Error("No default engine version.");
+                if (defaultEngine.installed === false) throw new Error("Default engine is not installed.");
+
                 const binaryName = process.platform === "win32" ? "pr-downloader.exe" : "pr-downloader";
-                const prBinaryPath = path.join(CONTENT_PATH, "engine", latestEngine.id, binaryName);
+                const prBinaryPath = path.join(CONTENT_PATH, "engine", defaultEngine.id, binaryName);
                 const downloadArg = type === "game" ? "--download-game" : "--download-map";
                 const prdProcess = spawn(`${prBinaryPath}`, ["--filesystem-writepath", CONTENT_PATH, downloadArg, name], {
                     env: {

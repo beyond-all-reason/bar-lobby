@@ -1,24 +1,44 @@
 import { reactive, watch } from "vue";
 import { EngineVersion } from "@main/content/engine/engine-version";
 
-export const enginesStore = reactive<{
+class EnginesStore {
     isInitialized: boolean;
     availableEngineVersions: EngineVersion[];
     selectedEngineVersion?: EngineVersion;
-}>({
-    isInitialized: false,
-    availableEngineVersions: [],
-    selectedEngineVersion: undefined,
-});
+    defaultEngineVersion?: EngineVersion;
 
-async function refreshStore() {
-    enginesStore.availableEngineVersions = await window.engine.listAvailableVersions();
+    constructor() {
+        this.isInitialized = false;
+        this.availableEngineVersions = [];
+        this.selectedEngineVersion = undefined;
+        this.defaultEngineVersion = undefined;
+    }
+
+    async refreshStore() {
+        this.availableEngineVersions = await window.engine.listAvailableVersions();
+    }
+
+    getEngineVersion() {
+        return this.selectedEngineVersion ?? this.defaultEngineVersion;
+    }
+
+    setEngineVersion(engine: EngineVersion) {
+        if (engine.id === this.defaultEngineVersion?.id) {
+            this.selectedEngineVersion = undefined;
+        } else {
+            this.selectedEngineVersion = engine;
+        }
+    }
 }
+
+export const enginesStore = reactive(new EnginesStore());
 
 watch(
     () => enginesStore.selectedEngineVersion,
     async (engineVersion) => {
-        if (!engineVersion) throw new Error("failed to retrieve engine version");
+        if (!engineVersion) {
+            return;
+        }
 
         if (!engineVersion.installed) {
             await window.engine.downloadEngine(engineVersion.id);
@@ -29,9 +49,8 @@ watch(
 export async function initEnginesStore() {
     window.downloads.onDownloadEngineComplete(async (downloadInfo) => {
         console.debug("Received engine download completed event", downloadInfo);
-        await refreshStore();
-        enginesStore.selectedEngineVersion = enginesStore.availableEngineVersions.find((e) => e.id === downloadInfo.name);
+        await enginesStore.refreshStore();
     });
-    await refreshStore();
+    await enginesStore.refreshStore();
     enginesStore.isInitialized = true;
 }

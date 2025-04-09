@@ -34,14 +34,14 @@
         />
 
         <Select
-            :modelValue="enginesStore.selectedEngineVersion"
+            :modelValue="enginesStore.getEngineVersion()"
             :options="enginesStore.availableEngineVersions"
             data-key="id"
             option-label="id"
             label="Engine"
             :filter="true"
             class="fullwidth"
-            @update:model-value="(engine) => (enginesStore.selectedEngineVersion = engine)"
+            @update:model-value="(engine) => enginesStore.setEngineVersion(engine)"
         />
 
         <SyncDataDirsDialog v-model="syncLobbyContentToolOpen" />
