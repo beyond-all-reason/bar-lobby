@@ -41,8 +41,8 @@
                 </div>
                 <div v-if="settingsStore.devMode">
                     <Select
-                        :modelValue="enginesStore.selectedEngineVersion"
-                        @update:model-value="(engine) => (enginesStore.selectedEngineVersion = engine)"
+                        :modelValue="enginesStore.getEngineVersion()"
+                        @update:model-value="(engine) => enginesStore.setEngineVersion(engine)"
                         :options="enginesStore.availableEngineVersions"
                         data-key="id"
                         optionLabel="id"

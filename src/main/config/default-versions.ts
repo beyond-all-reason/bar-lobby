@@ -8,4 +8,4 @@
 
 export const LATEST = "LATEST";
 export const LATEST_GAME_VERSION = "byar:test";
-export const LATEST_ENGINE_VERSION = "2025.01.6";
+export const DEFAULT_ENGINE_VERSION = "2025.01.6";

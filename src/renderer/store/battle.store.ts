@@ -231,7 +231,7 @@ function defaultOfflineBattle(engine?: EngineVersion, game?: GameVersion, map?: 
         title: "Offline Custom Battle",
         isOnline: false,
         battleOptions: {
-            engineVersion: engine?.id || enginesStore.selectedEngineVersion?.id,
+            engineVersion: engine?.id || enginesStore.getEngineVersion()?.id,
             gameVersion: game?.gameVersion || gameStore.selectedGameVersion?.gameVersion,
             gameMode: {
                 label: "Classic",
@@ -329,7 +329,8 @@ watch(
 
 watch(
     () => enginesStore.selectedEngineVersion,
-    (engineVersion) => {
+    () => {
+        const engineVersion = enginesStore.getEngineVersion();
         if (!engineVersion) throw new Error("failed to access engine version");
 
         battleStore.battleOptions.engineVersion = engineVersion.id;
@@ -352,9 +353,10 @@ function leaveBattle() {
 
 async function loadGameMode(gameMode: GameModeType) {
     if (!battleStore.battleOptions.engineVersion) {
-        if (!enginesStore.selectedEngineVersion) throw new Error("failed to access engine version");
+        const engineVersion = enginesStore.getEngineVersion();
+        if (!engineVersion) throw new Error("failed to access engine version");
 
-        battleStore.battleOptions.engineVersion = enginesStore.selectedEngineVersion.id;
+        battleStore.battleOptions.engineVersion = engineVersion.id;
     }
     if (!battleStore.battleOptions.gameVersion) {
         if (!gameStore.selectedGameVersion) throw new Error("failed to access game version");

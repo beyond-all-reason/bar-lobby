@@ -58,7 +58,7 @@ const { id } = defineProps<{
 const map = useDexieLiveQueryWithDeps([() => id], () => db.maps.get(id));
 
 async function play() {
-    battleActions.resetToDefaultBattle(enginesStore.selectedEngineVersion, gameStore.selectedGameVersion, map.value);
+    battleActions.resetToDefaultBattle(enginesStore.getEngineVersion(), gameStore.selectedGameVersion, map.value);
     router.push("/singleplayer/custom");
 }
 

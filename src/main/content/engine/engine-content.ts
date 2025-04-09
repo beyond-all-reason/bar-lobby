@@ -13,7 +13,7 @@ import { getEngineReleaseInfo } from "@main/config/content-sources";
 import { AbstractContentAPI } from "@main/content/abstract-content";
 import { CONTENT_PATH } from "@main/config/app";
 import { DownloadEngine } from "@main/content/game/type";
-import { LATEST_ENGINE_VERSION } from "@main/config/default-versions";
+import { DEFAULT_ENGINE_VERSION } from "@main/config/default-versions";
 
 const log = logger("engine-content.ts");
 
@@ -51,19 +51,14 @@ export class EngineContentAPI extends AbstractContentAPI<string, EngineVersion> 
         return this.availableVersions.get(id)?.installed ?? false;
     }
 
-    public getLatestInstalledVersion() {
-        return this.availableVersions
-            .values()
-            .filter((version) => version.installed)
-            .toArray()
-            .sort((a, b) => a.id.localeCompare(b.id))
-            .at(-1);
+    public getDefaultEngine() {
+        return this.availableVersions.get(DEFAULT_ENGINE_VERSION);
     }
 
     protected checkIfDefaultIsNew() {
-        if (!this.availableVersions.has(LATEST_ENGINE_VERSION)) {
-            this.availableVersions.set(LATEST_ENGINE_VERSION, {
-                id: LATEST_ENGINE_VERSION,
+        if (!this.availableVersions.has(DEFAULT_ENGINE_VERSION)) {
+            this.availableVersions.set(DEFAULT_ENGINE_VERSION, {
+                id: DEFAULT_ENGINE_VERSION,
                 ais: [],
                 installed: false,
             });
