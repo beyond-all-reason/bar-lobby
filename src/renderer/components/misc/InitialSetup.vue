@@ -8,7 +8,7 @@
 
 <script lang="ts" setup>
 import { defaultMaps } from "@main/config/default-maps";
-import { LATEST_GAME_VERSION } from "@main/config/default-versions";
+import { DEFAULT_ENGINE_VERSION, LATEST_GAME_VERSION } from "@main/config/default-versions";
 import { DownloadInfo } from "@main/content/downloads";
 import { initBattleStore } from "@renderer/store/battle.store";
 import { db } from "@renderer/store/db";
@@ -26,14 +26,14 @@ const state = ref<"engine" | "game" | "maps">("engine");
 
 onMounted(async () => {
     console.debug("Initial setup");
-    const latestKnownEngineVersion = enginesStore.availableEngineVersions.at(-1);
-    if (latestKnownEngineVersion?.installed === false) {
+    const defaultEngineVersion = enginesStore.availableEngineVersions.find((e) => e.id === DEFAULT_ENGINE_VERSION);
+    if (defaultEngineVersion?.installed === false) {
         state.value = "engine";
         text.value = "Downloading engine";
-        await window.engine.downloadEngine(latestKnownEngineVersion.id);
+        await window.engine.downloadEngine(defaultEngineVersion.id);
         text.value = "Installing engine";
     }
-    enginesStore.selectedEngineVersion = latestKnownEngineVersion;
+    enginesStore.defaultEngineVersion = defaultEngineVersion;
 
     state.value = "game";
     text.value = "Downloading game";
