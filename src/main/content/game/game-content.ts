@@ -56,10 +56,8 @@ export class GameContentAPI extends PrDownloaderAPI<string, GameVersion> {
         const packagesDir = path.join(CONTENT_PATH, "packages");
         await fs.promises.mkdir(packagesDir, { recursive: true });
         const packages = await fs.promises.readdir(packagesDir);
-        // On the first run, we couldn't initialize the lookup tables because the GZ file wasn't there yet
-        if (Object.entries(this.packageGameVersionLookup).length === 0) {
-            await this.initLookupTables();
-        }
+        // Refersh lookup tables in case new versions.gz file was downloaded.
+        await this.initLookupTables();
         for (const packageFile of packages) {
             if (!packageFile.endsWith(".sdp")) {
                 // skip non-sdp files
@@ -73,6 +71,8 @@ export class GameContentAPI extends PrDownloaderAPI<string, GameVersion> {
             const ais = await this.getAis(packageMd5);
             if (gameVersion) {
                 this.availableVersions.set(gameVersion, { gameVersion, packageMd5, luaOptionSections, ais });
+            } else {
+                log.warn(`Not found matching game version for ${packageFile}`);
             }
         }
         log.info(`Found ${this.availableVersions.size} installed game versions`);
