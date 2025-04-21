@@ -77,8 +77,11 @@
                                     :map="map"
                                     @click="watchReplay(replay)"
                                     :disabled="isLaunching || gameStore.isGameRunning"
-                                    >{{ getWatchButtonText() }}</DownloadContentButton
                                 >
+                                    <template v-if="gameStore.isGameRunning"> Game Running </template>
+                                    <template v-else-if="isLaunching"> Launching... </template>
+                                    <template v-else> Watch </template>
+                                </DownloadContentButton>
                                 <Button v-else disabled style="flex-grow: 1">Watch</Button>
                                 <Button v-if="replay" @click="showReplayFile(replay)">Show File</Button>
                                 <Button v-else disabled>Show File</Button>
@@ -156,12 +159,6 @@ const map = useDexieLiveQueryWithDeps([() => selectedReplay.value?.mapSpringName
     return db.maps.get(selectedReplay.value.mapSpringName);
 });
 
-function getWatchButtonText() {
-    if (gameStore.isGameRunning) return "Game Running";
-    if (isLaunching.value) return "Launching...";
-    return "Watch";
-}
-
 function onPage(event: DataTablePageEvent) {
     offset.value = event.first;
 }
@@ -184,11 +181,14 @@ function watchReplay(replay: Replay) {
     if (isLaunching.value || gameStore.isGameRunning) return;
 
     isLaunching.value = true;
-    window.game.launchReplay(replay).then(() => {
-        isLaunching.value = false;
-    }).catch(() => {
-        isLaunching.value = false;
-    });
+    window.game
+        .launchReplay(replay)
+        .then(() => {
+            isLaunching.value = false;
+        })
+        .catch(() => {
+            isLaunching.value = false;
+        });
 }
 
 function showReplayFile(replay: Replay) {
