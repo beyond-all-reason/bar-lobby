@@ -63,10 +63,10 @@ watch(
 
 // Actions
 function removeFromTeams(participant: Player | Bot) {
-    for (const team of Object.values(battleStore.teams)) {
-        const index = team.findIndex((p) => p.id === participant.id);
-        if (index !== -1) team.splice(index, 1);
-    }
+    // new array for each team to avoid modifying while iterating
+    battleStore.teams = battleStore.teams.map((team) => {
+        return team.filter((p) => p.id !== participant.id);
+    });
 }
 
 function removeFromSpectators(participant: Player) {
