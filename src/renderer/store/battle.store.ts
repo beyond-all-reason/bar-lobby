@@ -63,10 +63,10 @@ watch(
 
 // Actions
 function removeFromTeams(participant: Player | Bot) {
-    for (const team of Object.values(battleStore.teams)) {
-        const index = team.findIndex((p) => p.id === participant.id);
-        if (index !== -1) team.splice(index, 1);
-    }
+    // new array for each team to avoid modifying while iterating
+    battleStore.teams = battleStore.teams.map((team) => {
+        return team.filter((p) => p.id !== participant.id);
+    });
 }
 
 function removeFromSpectators(participant: Player) {
@@ -154,7 +154,10 @@ function getMaxPlayersPerTeam() {
 
     const map = battleStore.battleOptions.map;
 
-    if (!map) throw new Error("failed to access battle options map");
+    // initially when we enter the custom game the map is empty until we set it
+    // the function in the TeamComponent.vue sets the playersPerTeam to 1 when map is not set
+    // so in case of empty map we return 1 so that it is somewhat default
+    if (!map) return 1;
 
     if (battleStore.battleOptions.mapOptions.startPosType === StartPosType.Boxes) {
         const startBoxIndex = battleStore.battleOptions.mapOptions.startBoxesIndex || 0;

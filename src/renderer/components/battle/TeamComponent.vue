@@ -33,7 +33,7 @@
             <BotParticipant v-else-if="isBot(member)" :bot="member" :team-id="teamId" />
         </div>
         <div v-if="!isRaptorTeam(teamId) && !isScavengerTeam(teamId)">
-            <div v-for="(_, i) in (maxPlayersPerTeam || 0) > 0 ? (maxPlayersPerTeam || 0) - memberCount : 1" :key="i">
+            <div v-for="(_, i) in getAmountOfJoinButtons(maxPlayersPerTeam, memberCount)" :key="i">
                 <button class="join-button" :class="{ first: i === 0 }" @click="onJoinClicked(teamId)">Join</button>
             </div>
         </div>
@@ -76,6 +76,18 @@ function isRaptorTeam(teamId: number) {
 }
 function isScavengerTeam(teamId: number) {
     return battleWithMetadataStore.teams[teamId].some((member) => isBot(member) && isScavenger(member));
+}
+
+function getAmountOfJoinButtons(maxPlayersPerTeam: number | undefined, memberCount: number) {
+    if (!maxPlayersPerTeam) return 1;
+
+    // notice that we can have more members than the max players so that it can be negative
+    const amount = maxPlayersPerTeam - memberCount;
+
+    // we only return positive amount, otherwise we return 0 so that
+    // we don't render any join buttons because the team is full or over full at this point
+    if (amount > 0) return amount;
+    return 0;
 }
 
 // const showJoin = computed(() => {
