@@ -72,9 +72,16 @@
                     <Panel class="flex-grow">
                         <ReplayPreview v-if="selectedReplay" :replay="selectedReplay" :showSpoilers="showSpoilers">
                             <template #actions="{ replay }">
-                                <DownloadContentButton v-if="map && replay" :map="map" @click="watchReplay(replay)"
-                                    >Watch</DownloadContentButton
+                                <DownloadContentButton
+                                    v-if="map && replay"
+                                    :map="map"
+                                    @click="watchReplay(replay)"
+                                    :disabled="isLaunching || gameStore.isGameRunning"
                                 >
+                                    <template v-if="gameStore.isGameRunning"> Game Running </template>
+                                    <template v-else-if="isLaunching"> Launching... </template>
+                                    <template v-else> Watch </template>
+                                </DownloadContentButton>
                                 <Button v-else disabled style="flex-grow: 1">Watch</Button>
                                 <Button v-if="replay" @click="showReplayFile(replay)">Show File</Button>
                                 <Button v-else disabled>Show File</Button>
@@ -118,6 +125,7 @@ import { db } from "@renderer/store/db";
 import { useDexieLiveQueryWithDeps } from "@renderer/composables/useDexieLiveQuery";
 import ReplayPreview from "@renderer/components/battle/ReplayPreview.vue";
 import DownloadContentButton from "@renderer/components/controls/DownloadContentButton.vue";
+import { gameStore } from "@renderer/store/game.store";
 
 const endedNormally: Ref<boolean | null> = ref(true);
 const showSpoilers = ref(true);
@@ -127,6 +135,7 @@ const limit = ref(15);
 const sortField: Ref<keyof Replay> = ref("startTime");
 const sortOrder: Ref<"asc" | "desc"> = ref("desc");
 const selectedReplay: Ref<Replay | null> = shallowRef(null);
+const isLaunching = ref(false);
 
 const replays = useDexieLiveQueryWithDeps([endedNormally, offset, limit, sortField, sortOrder], () => {
     let query;
@@ -168,7 +177,18 @@ function openReplaysFolder() {
 }
 
 function watchReplay(replay: Replay) {
-    window.game.launchReplay(replay);
+    // return early if isLaunching is true or game is running to not spam multiple launches
+    if (isLaunching.value || gameStore.isGameRunning) return;
+
+    isLaunching.value = true;
+    window.game
+        .launchReplay(replay)
+        .then(() => {
+            isLaunching.value = false;
+        })
+        .catch(() => {
+            isLaunching.value = false;
+        });
 }
 
 function showReplayFile(replay: Replay) {
