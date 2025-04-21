@@ -1,6 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type { LocalStatement, ReturnStatement, TableConstructorExpression, Expression, UnaryExpression, BinaryExpression } from "luaparse";
 import luaparse from "luaparse";
+import { logger } from "@main/utils/logger";
+
+const log = logger("parse-lua-table.ts");
 
 type ParseLuaTableOptions = {
     tableVariableName?: string;
@@ -68,7 +71,6 @@ function parseLuaAst(value: Expression) {
         case "TableConstructorExpression":
             return luaTableToObj(value);
         default:
-            console.log(value);
             break;
     }
 }
@@ -79,14 +81,19 @@ function parseBinaryExpression(value: BinaryExpression): string {
     if (value.operator === "..") {
         return `${left}${right}`;
     }
-    console.error("Unhandled binary expression operator");
+    log.warn(`Unhandled BinaryExpression operator '${value.operator}'`);
     return "";
 }
 
 function parseUnaryExpression(value: UnaryExpression) {
-    const expression = value as unknown as UnaryExpression;
-    if (expression.operator === "-") return -parseLuaAst(expression.argument);
-    if (expression.operator === "not") return !parseLuaAst(expression.argument);
-    if (expression.operator === "#") return parseLuaAst(expression.argument).length;
-    console.log("Unhandled Unary Expression Operator", expression);
+    switch (value.operator) {
+        case "-":
+            return -parseLuaAst(value.argument);
+        case "not":
+            return !parseLuaAst(value.argument);
+        case "#":
+            return parseLuaAst(value.argument).length;
+        default:
+            log.warn(`Unhandled UnaryExpression operator '${value.operator}'`);
+    }
 }
