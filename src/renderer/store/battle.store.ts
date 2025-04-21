@@ -154,10 +154,7 @@ function getMaxPlayersPerTeam() {
 
     const map = battleStore.battleOptions.map;
 
-    // initially when we enter the custom game the map is empty until we set it
-    // the function in the TeamComponent.vue sets the playersPerTeam to 1 when map is not set
-    // so in case of empty map we return 1 so that it is somewhat default
-    if (!map) return 1;
+    if (!map) throw new Error("failed to access battle options map");
 
     if (battleStore.battleOptions.mapOptions.startPosType === StartPosType.Boxes) {
         const startBoxIndex = battleStore.battleOptions.mapOptions.startBoxesIndex || 0;
