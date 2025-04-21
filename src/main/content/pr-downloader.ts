@@ -97,8 +97,12 @@ export abstract class PrDownloaderAPI<ID, T> extends AbstractContentAPI<ID, T> {
                     log.error(data.toString());
                 });
 
-                prdProcess.on("exit", () => {
-                    resolve(downloadInfo);
+                prdProcess.on("exit", (code, signal) => {
+                    if (code !== 0) {
+                        reject(new Error(`pr-downloader exited with code ${code}, signal ${signal}`));
+                    } else {
+                        resolve(downloadInfo);
+                    }
                 });
             } catch (err) {
                 log.error(err);
