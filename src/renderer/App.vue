@@ -43,9 +43,11 @@
             </div>
         </Transition>
         <Settings v-model="settingsOpen" />
-        <Error />
         <ChatComponent v-if="state === 'default' && me.isAuthenticated && tachyonStore.isConnected" />
         <FullscreenGameModeSelector v-if="state === 'default'" :visible="battleStore.isSelectingGameMode" />
+    </div>
+    <div id="error-container">
+        <Error />
     </div>
 </template>
 

@@ -1,5 +1,5 @@
 <template>
-    <Modal v-model="isVisible" title="Fatal Error" class="error-modal">
+    <Modal v-model="isVisible" title="Fatal Error" class="error-modal" isError>
         <div class="flex-col gap-md">
             <div>A fatal error has occurred and BAR Lobby needs to reload.</div>
             <div v-if="error" class="error">{{ error.message }}</div>
