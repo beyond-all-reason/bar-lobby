@@ -41,6 +41,9 @@
                     <Button v-tooltip.bottom="'Settings'" class="icon" @click="settingsOpen = true">
                         <Icon :icon="cog" :height="40" />
                     </Button>
+					<Button v-tooltip.bottom="'Lobby Server Settings'" class="icon" @click="serverSettingsOpen = true">
+						<Icon :icon="internet" :height="40" />
+					</Button>
                     <Button v-tooltip.bottom="'Exit'" class="icon close" @click="exitOpen = true">
                         <Icon :icon="closeThick" :height="40" />
                     </Button>
@@ -86,6 +89,7 @@ import accountMultiple from "@iconify-icons/mdi/account-multiple";
 import messageIcon from "@iconify-icons/mdi/chat";
 import closeThick from "@iconify-icons/mdi/close-thick";
 import cog from "@iconify-icons/mdi/cog";
+import internet from "@iconify-icons/mdi/internet"
 import { computed, inject, Ref, ref } from "vue";
 
 import Button from "@renderer/components/controls/Button.vue";
@@ -131,6 +135,7 @@ const messagesOpen = ref(false);
 const friendsOpen = ref(false);
 const downloadsOpen = ref(false);
 const settingsOpen = inject<Ref<boolean>>("settingsOpen")!;
+const serverSettingsOpen = inject<Ref<boolean>>("serverSettingsOpen")!;
 const exitOpen = inject<Ref<boolean>>("exitOpen")!;
 
 const messagesUnread = computed(() => {

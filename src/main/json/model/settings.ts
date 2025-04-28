@@ -1,4 +1,5 @@
 import { Type } from "@sinclair/typebox";
+import { TEISERVER_HOSTNAME_PORT } from "@main/config/server"
 
 export const settingsSchema = Type.Object({
     fullscreen: Type.Boolean({ default: true }),
@@ -14,4 +15,5 @@ export const settingsSchema = Type.Object({
     battlesHideLocked: Type.Boolean({ default: false }),
     battlesHideEmpty: Type.Boolean({ default: true }),
     logUploadUrl: Type.String({ default: "https://log.beyondallreason.dev/" }),
+	lobbyServer: Type.String({ default: TEISERVER_HOSTNAME_PORT})
 });
