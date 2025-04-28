@@ -11,7 +11,7 @@ import { logger } from "@main/utils/logger";
 import { extract7z } from "@main/utils/extract-7z";
 import { getEngineReleaseInfo } from "@main/config/content-sources";
 import { AbstractContentAPI } from "@main/content/abstract-content";
-import { CONTENT_PATH } from "@main/config/app";
+import { ENGINE_PATH } from "@main/config/app";
 import { DownloadEngine } from "@main/content/game/type";
 import { DEFAULT_ENGINE_VERSION } from "@main/config/default-versions";
 
@@ -22,7 +22,7 @@ const log = logger("engine-content.ts");
 const compatibleVersionRegex = /^\d{4}\.\d{2}\.\d{1,2}(-rc\d+)?$/;
 
 export class EngineContentAPI extends AbstractContentAPI<string, EngineVersion> {
-    protected readonly engineDirs = path.join(CONTENT_PATH, "engine");
+    protected readonly engineDirs = ENGINE_PATH;
 
     public override async init() {
         try {
