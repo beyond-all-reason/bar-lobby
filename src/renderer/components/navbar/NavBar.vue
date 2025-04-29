@@ -41,7 +41,7 @@
                     <Button v-tooltip.bottom="'Settings'" class="icon" @click="settingsOpen = true">
                         <Icon :icon="cog" :height="40" />
                     </Button>
-					<Button v-tooltip.bottom="'Lobby Server Settings'" class="icon" @click="serverSettingsOpen = true">
+					<Button v-if="settingsStore.devMode" v-tooltip.bottom="'Lobby Server Settings'" class="icon" @click="serverSettingsOpen = true">
 						<Icon :icon="internet" :height="40" />
 					</Button>
                     <Button v-tooltip.bottom="'Exit'" class="icon close" @click="exitOpen = true">

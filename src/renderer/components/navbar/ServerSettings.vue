@@ -5,9 +5,6 @@
             <div>Server</div>
             <Select v-model="settingsStore.lobbyServer" :options="serverOptions" />
 
-            <div>Login Automatically</div>
-            <Checkbox v-model="settingsStore.loginAutomatically" />
-
 			<Button>Add Server</Button>
 
             <OverlayPanel ref="op">
@@ -39,7 +36,7 @@ const serverOptions = [
     "server4.beyondallreason.info",
     "server5.beyondallreason.info",
     "lobby-server-dev.beyondallreason.dev" ,
-	"localhost:8200",
+	"localhost",
 ];
 
 

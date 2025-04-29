@@ -18,7 +18,7 @@
             <div class="option" @click="settingsOpen = true">
                 <Icon :icon="cog" height="21" />
             </div>
-			<div class="option" @click="serverSettingsOpen = true">
+			<div class="option" @click="serverSettingsOpen = true" v-if="settingsStore.devMode">
 				<Icon :icon="internet" height="21" />
 			</div>
             <div class="option" @click="exitOpen = true"> 

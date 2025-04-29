@@ -1,4 +1,4 @@
-import { OAUTH_AUTHORIZATION_SERVER_URL, OAUTH_CLIENT_ID, OAUTH_SCOPE, OAUTH_WELL_KNOWN_URL } from "@main/config/server";
+import { OAUTH_AUTHORIZATION_SERVER_URL, OAUTH_CLIENT_ID, OAUTH_SCOPE, OAUTH_WELL_KNOWN_URL, getOAuthAuthorizationServerURL, getOAuthWellKnownURL } from "@main/config/server";
 import { generatePKCE } from "@main/oauth2/pkce";
 import RedirectHandler from "@main/oauth2/redirect-handler";
 import { accountService } from "@main/services/account.service";
@@ -19,7 +19,7 @@ export async function fetchAuthorizationServerMetadata(): Promise<{
     authorizationEndpoint: string;
     tokenEndpoint: string;
 }> {
-    const response = await fetch(OAUTH_WELL_KNOWN_URL);
+    const response = await fetch(getOAuthWellKnownURL());
     if (response.status !== 200) {
         const error = `Failed to fetch OAuth2 authorization server metadata: ${response.status} ${response.statusText}`;
         log.error(error);
@@ -33,8 +33,8 @@ export async function fetchAuthorizationServerMetadata(): Promise<{
         throw new Error(error);
     }
 
-    if (issuer !== OAUTH_AUTHORIZATION_SERVER_URL) {
-        const error = `Invalid OAuth2 issuer: ${issuer} does not match expected ${OAUTH_AUTHORIZATION_SERVER_URL}`;
+	if (issuer !== getOAuthAuthorizationServerURL()) {
+        const error = `Invalid OAuth2 issuer: ${issuer} does not match expected ${getOAuthAuthorizationServerURL()}`;
         log.error(error);
         throw new Error(error);
     }
@@ -49,7 +49,7 @@ export async function fetchAuthorizationServerMetadata(): Promise<{
 function openInBrowser(url: string) {
     if (!["https:", "http:"].includes(new URL(url).protocol)) return;
     // Additional checks to prevent opening arbitrary URLs
-    if (!url.startsWith(OAUTH_AUTHORIZATION_SERVER_URL)) return;
+    if (!url.startsWith(getOAuthAuthorizationServerURL())) return;
     shell.openExternal(url);
 }
 

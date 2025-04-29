@@ -1,7 +1,6 @@
 import { CONFIG_PATH } from "@main/config/app";
 import { FileStore } from "@main/json/file-store";
 import { settingsSchema } from "@main/json/model/settings";
-import { TEISERVER_HOSTNAME_PORT } from "@main/config/server"
 
 import { ipcMain } from "electron";
 import path from "path";
@@ -20,7 +19,7 @@ const settingsStore = new FileStore<typeof settingsSchema>(path.join(CONFIG_PATH
     battlesHideLocked: false,
     battlesHideEmpty: true,
     logUploadUrl: "https://log.beyondallreason.dev/",
-	lobbyServer: TEISERVER_HOSTNAME_PORT,
+	lobbyServer: "",
 });
 
 async function init() {
