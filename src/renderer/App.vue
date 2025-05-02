@@ -18,9 +18,6 @@
             <div class="option" @click="settingsOpen = true">
                 <Icon :icon="cog" height="21" />
             </div>
-			<div class="option" @click="serverSettingsOpen = true" v-if="settingsStore.devMode">
-				<Icon :icon="internet" height="21" />
-			</div>
             <div class="option" @click="exitOpen = true"> 
                 <Icon :icon="closeThick" height="21" />
             </div>
@@ -57,7 +54,6 @@
 import { Icon } from "@iconify/vue";
 import closeThick from "@iconify-icons/mdi/close-thick";
 import cog from "@iconify-icons/mdi/cog";
-import internet from "@iconify-icons/mdi/internet";
 import { provide, Ref, toRef, toValue } from "vue";
 import { ref } from "vue";
 import { useRouter } from "vue-router";

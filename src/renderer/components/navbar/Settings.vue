@@ -31,6 +31,7 @@
                 </div>
             </OverlayPanel>
             <Button @click="uploadLogsCommand">Upload logs</Button>
+			<Button v-if="settingsStore.devMode" @click="{serverSettingsOpen = true; settingsOpen = false}">Lobby Server Settings</Button>
         </div>
     </Modal>
 </template>
@@ -47,6 +48,7 @@ import { asyncComputed } from "@vueuse/core";
 import { settingsStore } from "@renderer/store/settings.store";
 import { infosStore } from "@renderer/store/infos.store";
 import { uploadLogs } from "@renderer/utils/log";
+import { inject, Ref } from "vue";
 
 const op = ref();
 const tooltipMessage = ref("");
@@ -56,6 +58,9 @@ const sizeOptions = [
     { label: "1440x900", value: 900 },
     { label: "1280x720", value: 720 },
 ];
+
+const settingsOpen = inject<Ref<boolean>>("settingsOpen")!;
+const serverSettingsOpen = inject<Ref<boolean>>("serverSettingsOpen")!;
 
 const displayOptions = asyncComputed(async () => {
     return Array(infosStore.hardware.numOfDisplays)

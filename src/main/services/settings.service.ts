@@ -20,6 +20,7 @@ const settingsStore = new FileStore<typeof settingsSchema>(path.join(CONFIG_PATH
     battlesHideEmpty: true,
     logUploadUrl: "https://log.beyondallreason.dev/",
 	lobbyServer: "",
+	customServerList:[],
 });
 
 async function init() {
