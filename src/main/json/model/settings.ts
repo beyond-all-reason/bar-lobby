@@ -14,6 +14,6 @@ export const settingsSchema = Type.Object({
     battlesHideLocked: Type.Boolean({ default: false }),
     battlesHideEmpty: Type.Boolean({ default: true }),
     logUploadUrl: Type.String({ default: "https://log.beyondallreason.dev/" }),
-	lobbyServer: Type.String({ default: "server4.beyondallreason.info"}),
-	customServerList: Type.Array(Type.String(), { default:[] }),
+    lobbyServer: Type.String({ default: "server4.beyondallreason.info" }),
+    customServerList: Type.Array(Type.String(), { default: [] }),
 });

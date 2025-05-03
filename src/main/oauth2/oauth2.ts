@@ -1,4 +1,4 @@
-import { OAUTH_AUTHORIZATION_SERVER_URL, OAUTH_CLIENT_ID, OAUTH_SCOPE, OAUTH_WELL_KNOWN_URL, getOAuthAuthorizationServerURL, getOAuthWellKnownURL } from "@main/config/server";
+import { OAUTH_CLIENT_ID, OAUTH_SCOPE, getOAuthAuthorizationServerURL, getOAuthWellKnownURL } from "@main/config/server";
 import { generatePKCE } from "@main/oauth2/pkce";
 import RedirectHandler from "@main/oauth2/redirect-handler";
 import { accountService } from "@main/services/account.service";
@@ -33,7 +33,7 @@ export async function fetchAuthorizationServerMetadata(): Promise<{
         throw new Error(error);
     }
 
-	if (issuer !== getOAuthAuthorizationServerURL()) {
+    if (issuer !== getOAuthAuthorizationServerURL()) {
         const error = `Invalid OAuth2 issuer: ${issuer} does not match expected ${getOAuthAuthorizationServerURL()}`;
         log.error(error);
         throw new Error(error);
