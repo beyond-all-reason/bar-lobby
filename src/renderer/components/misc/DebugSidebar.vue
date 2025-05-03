@@ -43,7 +43,7 @@
             class="fullwidth"
             @update:model-value="(engine) => enginesStore.setEngineVersion(engine)"
         />
-
+        <Button @click="serverSettingsOpen = true">Lobby Server Settings</Button>
         <SyncDataDirsDialog v-model="syncLobbyContentToolOpen" />
     </div>
 </template>
@@ -62,9 +62,12 @@ import { db } from "@renderer/store/db";
 import { gameStore } from "@renderer/store/game.store";
 import { enginesStore } from "@renderer/store/engine.store";
 import { GameVersion } from "@main/content/game/game-version";
+import { inject, Ref } from "vue";
 
 const active = ref(false);
 const syncLobbyContentToolOpen = ref(false);
+
+const serverSettingsOpen = inject<Ref<boolean>>("serverSettingsOpen")!;
 
 const router = useRouter();
 const routes = router.getRoutes().sort((a, b) => a.path.localeCompare(b.path));
