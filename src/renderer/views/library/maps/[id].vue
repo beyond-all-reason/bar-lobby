@@ -7,7 +7,14 @@
         <div class="map-details-container">
             <Panel class="flex-grow">
                 <div v-if="map" class="gap-md page">
-                    <h1>{{ map.displayName }}</h1>
+                    <div class="gridform">
+                        <h1>{{ map.displayName }}</h1>
+                        <div class="flex-right">
+                            <Button v-tooltip.bottom="'Back'" class="icon close flex-right" @click="returnToMaps">
+                                <Icon :icon="arrow_back" :height="40" />
+                            </Button>
+                        </div>
+                    </div>
                     <div class="container">
                         <MapSimplePreview :map="map" />
                         <div class="details">
@@ -17,10 +24,27 @@
                             <div class="detail-text"><b>Wind:</b> {{ map.windMin }} - {{ map.windMax }}</div>
                             <div class="detail-text"><b>Tidal:</b> {{ map.tidalStrength }}</div>
                             <!-- <div v-if="map.startPositions" class="detail-text"><b>Start Positions:</b> {{ map.startPositions.length }}</div> -->
-                            <Button @click="toggleMapFavorite"> {{ map.isFavorite ? "Remove from favorites" : "Add to favorites" }}</Button>
-                            <Button v-if="map.isInstalled" class="green inline" @click="play">Play</Button>
-                            <Button v-else-if="map.isDownloading" class="green inline" disabled>Downloading map...</Button>
-                            <Button v-else class="red inline" @click="downloadMap(map.springName)">Download</Button>
+                            <div class="gridform">
+                                <Button
+                                    @click="toggleMapFavorite"
+                                    v-if="!map.isFavorite"
+                                    class="icon"
+                                    v-tooltip.bottom="'Add to favorites'"
+                                >
+                                    <Icon :icon="heart_plus" :height="33" />
+                                </Button>
+                                <Button
+                                    @click="toggleMapFavorite"
+                                    v-if="map.isFavorite"
+                                    class="icon"
+                                    v-tooltip.bottom="'Remove from favorites'"
+                                >
+                                    <Icon :icon="heart_minus" :height="33" />
+                                </Button>
+                                <Button v-if="map.isInstalled" class="green inline" @click="play">Play</Button>
+                                <Button v-else-if="map.isDownloading" class="green inline" disabled>Downloading map...</Button>
+                                <Button v-else class="red inline" @click="downloadMap(map.springName)">Download</Button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -49,6 +73,10 @@ import { downloadMap } from "@renderer/store/maps.store";
 import { useDexieLiveQueryWithDeps } from "@renderer/composables/useDexieLiveQuery";
 import Panel from "@renderer/components/common/Panel.vue";
 import MapSimplePreview from "@renderer/components/maps/MapSimplePreview.vue";
+import { Icon } from "@iconify/vue";
+import arrow_back from "@iconify-icons/mdi/arrow-back";
+import heart_plus from "@iconify-icons/mdi/heart-plus";
+import heart_minus from "@iconify-icons/mdi/heart-minus";
 
 const router = useRouter();
 const { id } = defineProps<{
@@ -65,6 +93,10 @@ async function play() {
 function toggleMapFavorite() {
     db.maps.update(id, { isFavorite: !map.value?.isFavorite });
     if (map.value) map.value.isFavorite = !map.value.isFavorite;
+}
+
+function returnToMaps() {
+    router.push("/library/maps/maps");
 }
 </script>
 
