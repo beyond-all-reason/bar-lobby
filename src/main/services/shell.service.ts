@@ -1,4 +1,4 @@
-import { CONFIG_PATH, CONTENT_PATH, REPLAYS_PATH } from "@main/config/app";
+import { CONFIG_PATH, DATA_PATH, REPLAYS_PATH } from "@main/config/app";
 
 import { ipcMain, shell } from "electron";
 import path from "path";
@@ -17,9 +17,9 @@ function openInBrowser(url: string) {
 
 function registerIpcHandlers() {
     ipcMain.handle("shell:openConfigDir", () => shell.openPath(CONFIG_PATH));
-    ipcMain.handle("shell:openContentDir", () => shell.openPath(CONTENT_PATH));
+    ipcMain.handle("shell:openContentDir", () => shell.openPath(DATA_PATH));
     ipcMain.handle("shell:openSettingsFile", () => shell.openPath(path.join(CONFIG_PATH, "settings.json")));
-    ipcMain.handle("shell:openStartScript", () => shell.openPath(path.join(CONTENT_PATH, "script.txt")));
+    ipcMain.handle("shell:openStartScript", () => shell.openPath(path.join(DATA_PATH, "script.txt")));
     ipcMain.handle("shell:openReplaysDir", () => shell.openPath(REPLAYS_PATH));
     ipcMain.handle("shell:showReplayInFolder", (_event, fileName: string) => shell.showItemInFolder(path.join(REPLAYS_PATH, fileName)));
 

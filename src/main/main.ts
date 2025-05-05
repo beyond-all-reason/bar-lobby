@@ -11,7 +11,7 @@ import engineService from "./services/engine.service";
 import mapsService from "./services/maps.service";
 import gameService from "./services/game.service";
 import { logger } from "./utils/logger";
-import { APP_NAME, CONTENT_PATH } from "./config/app";
+import { APP_NAME, DATA_PATH } from "./config/app";
 import { shellService } from "@main/services/shell.service";
 import downloadsService from "@main/services/downloads.service";
 import replaysService from "@main/services/replays.service";
@@ -62,7 +62,7 @@ function registerBarFileProtocol() {
             const filePath = decodedUrl.slice("bar://".length);
             // Security Check: Ensure the file is within the content folder
             const resolvedFilePath = path.resolve(filePath);
-            if (!resolvedFilePath.startsWith(CONTENT_PATH)) {
+            if (!resolvedFilePath.startsWith(DATA_PATH)) {
                 throw new Error(`Attempt to access file outside content folder <${resolvedFilePath}>`);
             }
             return net.fetch(url.pathToFileURL(resolvedFilePath).toString());

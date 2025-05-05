@@ -9,7 +9,7 @@ import { engineContentAPI } from "@main/content/engine/engine-content";
 import { startScriptConverter } from "@main/utils/start-script-converter";
 import { logger } from "@main/utils/logger";
 import { gameContentAPI } from "@main/content/game/game-content";
-import { CONTENT_PATH, REPLAYS_PATH } from "@main/config/app";
+import { DATA_PATH, REPLAYS_PATH } from "@main/config/app";
 import { BattleWithMetadata } from "@main/game/battle/battle-types";
 import { LaunchReplay } from "@main/content/game/type";
 
@@ -37,7 +37,7 @@ export class GameAPI {
 
     public async launchBattle(battle: BattleWithMetadata): Promise<void> {
         const script = startScriptConverter.generateScriptStr(battle);
-        const scriptPath = path.join(CONTENT_PATH, this.springName);
+        const scriptPath = path.join(DATA_PATH, this.springName);
         await fs.promises.writeFile(scriptPath, script);
         await this.launch({
             engineVersion: battle.battleOptions.engineVersion,
@@ -63,7 +63,7 @@ export class GameAPI {
         if (!mapSpringName) {
             throw new Error("Could not parse map name from script");
         }
-        const scriptPath = path.join(CONTENT_PATH, this.springName);
+        const scriptPath = path.join(DATA_PATH, this.springName);
         await fs.promises.writeFile(scriptPath, script);
         await this.launch({
             engineVersion,
@@ -88,8 +88,8 @@ export class GameAPI {
         try {
             log.info(`Launching game with engine: ${engineVersion}, game: ${gameVersion}`);
             await this.fetchMissingContent(engineVersion, gameVersion); // TODO preload anything needed through the UI before launching. Remove this step
-            const enginePath = path.join(CONTENT_PATH, "engine", engineVersion).replaceAll("\\", "/");
-            const args = ["--write-dir", CONTENT_PATH, "--isolation", launchArg];
+            const enginePath = path.join(DATA_PATH, "engine", engineVersion).replaceAll("\\", "/");
+            const args = ["--write-dir", DATA_PATH, "--isolation", launchArg];
             const binaryName = process.platform === "win32" ? "spring.exe" : "./spring";
             log.debug(`Running binary: ${path.join(enginePath, binaryName)}, args: ${args}`);
 
