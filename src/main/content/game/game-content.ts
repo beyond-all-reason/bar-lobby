@@ -148,8 +148,8 @@ export class GameContentAPI extends PrDownloaderAPI<string, GameVersion> {
         try {
             const version = this.availableVersions.values().find((version) => version.gameVersion === gameVersion);
             assert(version, `No installed version found for game version: ${gameVersion}`);
-            const scenarioImages = await this.getGameFiles(version.packageMd5, "singleplayer/scenarios/**/*.{jpg,png}", false);
-            const scenarioDefinitions = await this.getGameFiles(version.packageMd5, "singleplayer/scenarios/**/*.lua", true);
+            const scenarioImages = await this.getGameFiles(version.packageMd5, "singleplayer/scenarios/*.{jpg,png}", false);
+            const scenarioDefinitions = (await this.getGameFiles(version.packageMd5, "singleplayer/scenarios/*.lua", true)).filter(({ fileName }) => /[^/]*scenario[^/]*$/.test(fileName));
             const cacheDir = path.join(CONTENT_PATH, "scenario-images");
             await fs.promises.mkdir(cacheDir, { recursive: true });
             for (const scenarioImage of scenarioImages) {
