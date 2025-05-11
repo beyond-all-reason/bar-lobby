@@ -12,11 +12,11 @@
         "typecheck": "tsc"
     },
     "devDependencies": {
-        "@cloudflare/vitest-pool-workers": "^0.6.4",
+        "@cloudflare/vitest-pool-workers": "^0.8.23",
         "@cloudflare/workers-types": "^4.20250109.0",
         "typescript": "^5.7.3",
-        "vitest": "2.1.9",
-        "wrangler": "^3.103.2"
+        "vitest": "3.1.2",
+        "wrangler": "^4.13.2"
     },
     "dependencies": {
         "jose": "^5.9.6"
