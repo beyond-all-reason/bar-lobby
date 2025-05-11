@@ -1,4 +1,4 @@
-import { CONTENT_PATH } from "@main/config/app";
+import { DATA_PATH, POOL_PATH } from "@main/config/app";
 import * as fs from "fs";
 import path from "path";
 import { DownloaderHelper } from "node-downloader-helper";
@@ -38,7 +38,7 @@ export class PoolCdnDownloader extends Downloader {
      * Will try to reuse existing download if it exists (DownloadHelper will resume download).
      */
     public async preloadPoolData() {
-        const poolDirPath = path.join(CONTENT_PATH, "pool");
+        const poolDirPath = POOL_PATH;
         try {
             await fs.promises.stat(poolDirPath);
             log.debug("Pool folder exists, skipping download");
@@ -61,8 +61,8 @@ export class PoolCdnDownloader extends Downloader {
         };
         this.currentDownloads.push(downloadInfo);
 
-        const dlFilePath = path.join(CONTENT_PATH, "data.7z");
-        const dl = new DownloaderHelper(this.poolDataUrl, CONTENT_PATH, {
+        const dlFilePath = path.join(DATA_PATH, "data.7z");
+        const dl = new DownloaderHelper(this.poolDataUrl, DATA_PATH, {
             fileName: "data.7z",
             timeout: 10000,
             retry: { maxRetries: 3, delay: 1000 },
