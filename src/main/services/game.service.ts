@@ -20,7 +20,7 @@ function registerIpcHandlers(mainWindow: Electron.BrowserWindow) {
 
     // Game
     ipcMain.handle("game:launchMultiplayer", (_, settings: MultiplayerLaunchSettings) => gameAPI.launchMultiplayer(settings));
-    ipcMain.handle("game:launchScript", (_, settings: ScriptLaunchSettings) => gameAPI.launchScript(settings));
+    ipcMain.handle("game:launchScript", (_, scriptString: string, gameVersionString: string, engineVersionString: string) => gameAPI.launchScript({script:scriptString, engineVersion:engineVersionString, gameVersion:gameVersionString }));
     ipcMain.handle("game:launchReplay", (_, replay: Replay) => gameAPI.launchReplay(replay));
     ipcMain.handle("game:launchBattle", (_, battle: BattleWithMetadata) => gameAPI.launchBattle(battle));
 

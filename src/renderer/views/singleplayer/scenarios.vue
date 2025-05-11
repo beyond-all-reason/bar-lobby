@@ -66,7 +66,7 @@ import Button from "@renderer/components/controls/Button.vue";
 import Select from "@renderer/components/controls/Select.vue";
 import ScenarioTile from "@renderer/components/misc/ScenarioTile.vue";
 import { Scenario } from "@main/content/game/scenario";
-import { LATEST_GAME_VERSION } from "@main/config/default-versions";
+import { LATEST_GAME_VERSION, DEFAULT_ENGINE_VERSION } from "@main/config/default-versions";
 import Panel from "@renderer/components/common/Panel.vue";
 import { db } from "@renderer/store/db";
 import { useDexieLiveQueryWithDeps } from "@renderer/composables/useDexieLiveQuery";
@@ -127,7 +127,7 @@ async function launch() {
         .replaceAll("__RESTRICTEDUNITS__", restrictionsStr)
         .replaceAll("__NUMRESTRICTIONS__", restrictionCount.toString());
 
-    await window.game.launchScript(script);
+    await window.game.launchScript(script, LATEST_GAME_VERSION, DEFAULT_ENGINE_VERSION);
 }
 </script>
 
