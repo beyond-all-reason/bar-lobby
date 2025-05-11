@@ -21,7 +21,7 @@ const logApi = {
     log: (fileName: string, level: logLevels, msg: string): Promise<void> => ipcRenderer.invoke("log:log", fileName, level, msg),
 };
 export type LogApi = typeof logApi;
-contextBridge.exposeInMainWorld("logFile", logApi);
+contextBridge.exposeInMainWorld("log", logApi);
 
 const infoApi = {
     getInfo: (): Promise<Info> => ipcRenderer.invoke("info:get"),

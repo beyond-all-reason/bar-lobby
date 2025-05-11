@@ -5,22 +5,22 @@ export class Logger {
     }
 
     debug(msg: string) {
-        window.logFile.log(this.filename, "debug", msg);
+        window.log.log(this.filename, "debug", msg);
     }
 
     info(msg: string) {
-        window.logFile.log(this.filename, "info", msg);
+        window.log.log(this.filename, "info", msg);
     }
 
     error(msg: string) {
-        window.logFile.log(this.filename, "error", msg);
+        window.log.log(this.filename, "error", msg);
     }
 
     fatal(msg: string) {
-        window.logFile.log(this.filename, "fatal", msg);
+        window.log.log(this.filename, "fatal", msg);
     }
 }
 
 export async function uploadLogs() {
-    return await window.logFile.upload();
+    return await window.log.upload();
 }
