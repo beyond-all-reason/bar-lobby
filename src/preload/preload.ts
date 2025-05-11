@@ -101,7 +101,7 @@ const gameApi = {
 
     // Game
     launchMultiplayer: (settings: MultiplayerLaunchSettings): Promise<void> => ipcRenderer.invoke("game:launchMultiplayer", settings),
-    launchScript: (script: string): Promise<void> => ipcRenderer.invoke("game:launchScript", script),
+    launchScript: (script: string, gameVersion: string, engineVersion: string): Promise<void> => ipcRenderer.invoke("game:launchScript", script, gameVersion, engineVersion),
     launchReplay: ((replay) => ipcRenderer.invoke("game:launchReplay", replay)) as LaunchReplay,
     launchBattle: (battle: BattleWithMetadata): Promise<void> => ipcRenderer.invoke("game:launchBattle", battle),
 

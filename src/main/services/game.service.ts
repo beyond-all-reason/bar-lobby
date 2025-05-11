@@ -1,5 +1,5 @@
 import { gameContentAPI } from "@main/content/game/game-content";
-import { gameAPI, MultiplayerLaunchSettings, ScriptLaunchSettings } from "@main/game/game";
+import { gameAPI, MultiplayerLaunchSettings } from "@main/game/game";
 import { ipcMain } from "electron";
 import { Replay } from "@main/content/replays/replay";
 import { BattleWithMetadata } from "@main/game/battle/battle-types";
@@ -20,7 +20,9 @@ function registerIpcHandlers(mainWindow: Electron.BrowserWindow) {
 
     // Game
     ipcMain.handle("game:launchMultiplayer", (_, settings: MultiplayerLaunchSettings) => gameAPI.launchMultiplayer(settings));
-    ipcMain.handle("game:launchScript", (_, settings: ScriptLaunchSettings) => gameAPI.launchScript(settings));
+    ipcMain.handle("game:launchScript", (_, scriptString: string, gameVersionString: string, engineVersionString: string) =>
+        gameAPI.launchScript({ script: scriptString, engineVersion: engineVersionString, gameVersion: gameVersionString })
+    );
     ipcMain.handle("game:launchReplay", (_, replay: Replay) => gameAPI.launchReplay(replay));
     ipcMain.handle("game:launchBattle", (_, battle: BattleWithMetadata) => gameAPI.launchBattle(battle));
 
