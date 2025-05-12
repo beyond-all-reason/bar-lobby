@@ -1,17 +1,18 @@
-import { BattleWithMetadata } from "@main/game/battle/battle-types";
-import { DownloadInfo } from "@main/content/downloads";
-import { EngineVersion } from "@main/content/engine/engine-version";
-import { GameVersion } from "@main/content/game/game-version";
-import { Info } from "@main/services/info.service";
-import { ipcRenderer as electronIpcRenderer, ipcMain as electronIpcMain, IpcMain, IpcMainEvent, IpcMainInvokeEvent, IpcRenderer, IpcRendererEvent, WebContents } from "electron";
-import { logLevels } from "@main/services/log.service";
-import { MapData } from "@main/content/maps/map-data";
-import { MultiplayerLaunchSettings } from "@main/game/game";
-import { NewsFeedData } from "@main/services/news.service";
-import { Replay } from "@main/content/replays/replay";
-import { Scenario } from "@main/content/game/scenario";
-import { Settings } from "@main/services/settings.service";
-import { TachyonEvent } from "tachyon-protocol";
+import type { BattleWithMetadata } from "@main/game/battle/battle-types";
+import type { DownloadInfo } from "@main/content/downloads";
+import type { EngineVersion } from "@main/content/engine/engine-version";
+import type { GameVersion } from "@main/content/game/game-version";
+import type { Info } from "@main/services/info.service";
+import type { IpcMain, IpcMainEvent, IpcMainInvokeEvent, IpcRenderer, IpcRendererEvent, WebContents } from "electron";
+import type { logLevels } from "@main/services/log.service";
+import type { MapData } from "@main/content/maps/map-data";
+import type { MultiplayerLaunchSettings } from "@main/game/game";
+import type { NewsFeedData } from "@main/services/news.service";
+import type { Replay } from "@main/content/replays/replay";
+import type { Scenario } from "@main/content/game/scenario";
+import type { Settings } from "@main/services/settings.service";
+import type { TachyonEvent, TachyonResponse } from "tachyon-protocol";
+import { ipcRenderer as electronIpcRenderer, ipcMain as electronIpcMain } from "electron";
 
 export type IPCEvents = {
     "downloads:engine:complete": (downloadInfo: DownloadInfo) => void;
