@@ -41,7 +41,7 @@ function toggleFullscreen() {
 
 function registerIpcHandlers() {
     ipcMain.handle("settings:get", () => getSettings());
-    ipcMain.handle("settings:update", (_, data: Partial<typeof settingsSchema>) => updateSettings(data));
+    ipcMain.handle("settings:update", (_, data: Partial<Settings>) => updateSettings(data));
     ipcMain.handle("settings:toggleFullscreen", () => toggleFullscreen());
 }
 
