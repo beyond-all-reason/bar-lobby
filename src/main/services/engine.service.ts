@@ -1,6 +1,6 @@
 import { EngineVersion } from "@main/content/engine/engine-version";
 import { engineContentAPI } from "@main/content/engine/engine-content";
-import { ipcMain } from "electron";
+import { ipcMain } from "@main/typed-ipc";
 
 async function init() {
     await engineContentAPI.init();

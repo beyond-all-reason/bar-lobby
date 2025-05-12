@@ -1,6 +1,6 @@
 import { Replay } from "@main/content/replays/replay";
 import { replayContentAPI } from "@main/content/replays/replay-content";
-import { ipcMain } from "electron";
+import { ipcMain } from "@main/typed-ipc";
 
 async function init() {
     await replayContentAPI.init();

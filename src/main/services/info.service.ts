@@ -1,4 +1,5 @@
-import { app, screen, BrowserWindow, ipcMain } from "electron";
+import { app, screen, BrowserWindow } from "electron";
+import { ipcMain } from "@main/typed-ipc";
 import os from "os";
 import { CONFIG_PATH, CONTENT_PATH } from "@main/config/app";
 

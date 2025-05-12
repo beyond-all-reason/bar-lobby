@@ -1,6 +1,6 @@
 import { MapData } from "@main/content/maps/map-data";
 import { mapContentAPI } from "@main/content/maps/map-content";
-import { ipcMain } from "electron";
+import { ipcMain } from "@main/typed-ipc";
 import { MapMetadata } from "@main/content/maps/map-metadata";
 import { fetchMapImages } from "@main/content/maps/map-image";
 

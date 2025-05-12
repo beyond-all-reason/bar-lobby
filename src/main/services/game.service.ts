@@ -1,6 +1,6 @@
 import { gameContentAPI } from "@main/content/game/game-content";
 import { gameAPI, MultiplayerLaunchSettings } from "@main/game/game";
-import { ipcMain } from "electron";
+import { ipcMain } from "@main/typed-ipc";
 import { Replay } from "@main/content/replays/replay";
 import { BattleWithMetadata } from "@main/game/battle/battle-types";
 import { replayContentAPI } from "@main/content/replays/replay-content";
