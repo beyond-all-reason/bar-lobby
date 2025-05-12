@@ -40,7 +40,7 @@ function registerIpcHandlers(webContents: BarIpcWebContents) {
         webContents.send("downloads:map:progress", downloadInfo);
     });
     mapContentAPI.onDownloadFail.add((downloadInfo) => {
-        webContents.send("downloads:map:failed", downloadInfo);
+        webContents.send("downloads:map:fail", downloadInfo);
     });
 }
 
