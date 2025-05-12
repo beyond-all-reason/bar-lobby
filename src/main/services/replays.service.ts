@@ -1,24 +1,24 @@
 import { Replay } from "@main/content/replays/replay";
 import { replayContentAPI } from "@main/content/replays/replay-content";
-import { ipcMain } from "@main/typed-ipc";
+import { ipcMain, BarIpcWebContents } from "@main/typed-ipc";
 
 async function init() {
     await replayContentAPI.init();
 }
 
-function registerIpcHandlers(mainWindow: Electron.BrowserWindow) {
+function registerIpcHandlers(webContents: BarIpcWebContents) {
     ipcMain.handle("replays:sync", (_, replays: string[]) => replayContentAPI.sync(replays));
     ipcMain.handle("replays:delete", (_, fileName: string) => replayContentAPI.deleteReplay(fileName));
 
     // Events
     replayContentAPI.onReplayCachingStarted.add((filename: string) => {
-        mainWindow.webContents.send("replays:replayCachingStarted", filename);
+        webContents.send("replays:replayCachingStarted", filename);
     });
     replayContentAPI.onReplayCached.add((replay: Replay) => {
-        mainWindow.webContents.send("replays:replayCached", replay);
+        webContents.send("replays:replayCached", replay);
     });
     replayContentAPI.onReplayDeleted.add((filename: string) => {
-        mainWindow.webContents.send("replays:replayDeleted", filename);
+        webContents.send("replays:replayDeleted", filename);
     });
 }
 

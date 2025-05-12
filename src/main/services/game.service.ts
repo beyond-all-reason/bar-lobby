@@ -1,6 +1,6 @@
 import { gameContentAPI } from "@main/content/game/game-content";
 import { gameAPI, MultiplayerLaunchSettings } from "@main/game/game";
-import { ipcMain } from "@main/typed-ipc";
+import { ipcMain, BarIpcWebContents } from "@main/typed-ipc";
 import { Replay } from "@main/content/replays/replay";
 import { BattleWithMetadata } from "@main/game/battle/battle-types";
 import { replayContentAPI } from "@main/content/replays/replay-content";
@@ -9,7 +9,7 @@ async function init() {
     await gameContentAPI.init();
 }
 
-function registerIpcHandlers(mainWindow: Electron.BrowserWindow) {
+function registerIpcHandlers(webContents: BarIpcWebContents) {
     // Content
     ipcMain.handle("game:downloadGame", (_, version: string) => gameContentAPI.downloadGame(version));
     ipcMain.handle("game:getScenarios", (_, version: string) => gameContentAPI.getScenarios(version));
@@ -28,10 +28,10 @@ function registerIpcHandlers(mainWindow: Electron.BrowserWindow) {
 
     // Events
     gameAPI.onGameLaunched.add(() => {
-        mainWindow.webContents.send("game:launched");
+        webContents.send("game:launched");
     });
     gameAPI.onGameClosed.add(() => {
-        mainWindow.webContents.send("game:closed");
+        webContents.send("game:closed");
         replayContentAPI.cacheReplaysInQueue();
     });
 }
