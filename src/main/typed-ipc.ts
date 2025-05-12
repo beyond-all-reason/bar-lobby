@@ -93,11 +93,12 @@ export type IPCCommands = {
     "tachyon:disconnect": () => void;
     "tachyon:isConnected": () => boolean;
     "tachyon:sendEvent": (event: TachyonEvent) => void;
-    "tachyon:request": (...args: any[]) => Promise<any>;
+    "tachyon:request": (...args: unknown[]) => Promise<TachyonResponse>;
 };
 
 type Awaitable<T> = T | Promise<T>;
 type FnMapping = {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     [key: string]: (...args: any) => any;
 };
 

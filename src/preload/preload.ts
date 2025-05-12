@@ -160,12 +160,16 @@ contextBridge.exposeInMainWorld("misc", miscApi);
 function request<C extends GetCommandIds<"user", "server", "request">>(
     ...args: GetCommandData<GetCommands<"user", "server", "request", C>> extends never ? [commandId: C] : [commandId: C, data: GetCommandData<GetCommands<"user", "server", "request", C>>]
 ): Promise<GetCommands<"server", "user", "response", C>> {
+    // The return value is a generic TachyonResponse in the IPC interface.
+    // For consumers we cast it to the correct type based on the commandId.
     return ipcRenderer.invoke("tachyon:request", ...args) as Promise<GetCommands<"server", "user", "response", C>>;
 }
 
 function onEvent<C extends GetCommandIds<"server", "user", "event">>(eventID: C, callback: (event: GetCommandData<GetCommands<"server", "user", "event", C>>) => void) {
     return ipcRenderer.on("tachyon:event", (_event, event) => {
         if (event.commandId === eventID && "data" in event) {
+            // event is a generic TachyonEvent in the IPC interface.
+            // For consumers we cast it to the correct type based on the eventID.
             callback(event.data as GetCommandData<GetCommands<"server", "user", "event", C>>);
         }
     });
