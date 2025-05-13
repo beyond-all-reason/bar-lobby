@@ -112,7 +112,7 @@ defineEmits(["selected"]);
     font-family: Rajdhani;
     font-weight: bold;
     font-size: 2rem;
-    padding: 20px 40px;
+    padding: 20px calc(50% - 122px);
     color: #fff;
     background: linear-gradient(90deg, #22c55e, #16a34a);
     border: none;
