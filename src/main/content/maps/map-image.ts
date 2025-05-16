@@ -26,8 +26,10 @@ worker.on("message", ({ imageSource, arrayBuffer }) => {
 //     if (code !== 0) reject(new Error(`map-image-worker stopped with exit code ${code}`));
 // });
 
-export function fetchMapImages(imageSource: string): Promise<ArrayBuffer> | undefined {
-    if (promises.has(imageSource)) return promises.get(imageSource);
+export function fetchMapImages(imageSource: string): Promise<ArrayBuffer> {
+    const existingPromise = promises.get(imageSource);
+    if (existingPromise) return existingPromise;
+
     const promise = new Promise<ArrayBuffer>((resolve, reject) => {
         jobs.set(imageSource, { resolve, reject });
         worker.postMessage(imageSource);

@@ -1,6 +1,7 @@
 import { CONFIG_PATH, CONTENT_PATH, REPLAYS_PATH } from "@main/config/app";
 
-import { ipcMain, shell } from "electron";
+import { shell } from "electron";
+import { ipcMain } from "@main/typed-ipc";
 import path from "path";
 
 const REPLAY_SERVICE_URL = "https://bar-rts.com/replays";

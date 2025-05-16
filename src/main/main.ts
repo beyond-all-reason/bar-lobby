@@ -21,6 +21,7 @@ import { replayContentAPI } from "@main/content/replays/replay-content";
 import { authService } from "@main/services/auth.service";
 import { tachyonService } from "@main/services/tachyon.service";
 import netFromNode from "node:net";
+import { typedWebContents } from "@main/typed-ipc";
 
 const log = logger("main/index.ts");
 log.info("Starting Electron main process");
@@ -113,18 +114,19 @@ app.whenReady().then(async () => {
     await engineService.init();
     await Promise.all([settingsService.init(), accountService.init(), replaysService.init(), gameService.init(), mapsService.init()]);
     const mainWindow = createWindow();
-    // Handlers may need the mainWindow to send events
+    const webContents = typedWebContents(mainWindow.webContents);
+    // Handlers may need the webContents to send events
     logService.registerIpcHandlers();
     infoService.registerIpcHandlers();
     settingsService.registerIpcHandlers();
     authService.registerIpcHandlers();
-    tachyonService.registerIpcHandlers(mainWindow);
-    replaysService.registerIpcHandlers(mainWindow);
+    tachyonService.registerIpcHandlers(webContents);
+    replaysService.registerIpcHandlers(webContents);
     engineService.registerIpcHandlers();
-    gameService.registerIpcHandlers(mainWindow);
-    mapsService.registerIpcHandlers(mainWindow);
+    gameService.registerIpcHandlers(webContents);
+    mapsService.registerIpcHandlers(webContents);
     shellService.registerIpcHandlers();
-    downloadsService.registerIpcHandlers(mainWindow);
+    downloadsService.registerIpcHandlers(webContents);
     miscService.registerIpcHandlers();
     const file = replayFileOpenedWithTheApp();
     if (file) {

@@ -5,6 +5,7 @@ import { logger } from "./utils/logger";
 import { replayContentAPI } from "@main/content/replays/replay-content";
 import icon from "@main/resources/icon.png";
 import { purgeLogFiles } from "@main/services/log.service";
+import { typedWebContents } from "@main/typed-ipc";
 
 declare const MAIN_WINDOW_VITE_DEV_SERVER_URL: string;
 declare const MAIN_WINDOW_VITE_NAME: string;
@@ -39,9 +40,11 @@ export function createWindow() {
         },
     });
 
+    const webContents = typedWebContents(mainWindow.webContents);
+
     // Disable zoom shortcuts in production
     if (process.env.NODE_ENV === "production") {
-        mainWindow.webContents.on("before-input-event", (event, input) => {
+        webContents.on("before-input-event", (event, input) => {
             // Block Ctrl/Cmd + '+', '-', '0' (zoom shortcuts)
             if (((input.control || input.meta) && (input.key === "+" || input.key === "-" || input.key === "=")) || (input.key === "0" && (input.control || input.meta))) {
                 event.preventDefault();
@@ -53,7 +56,7 @@ export function createWindow() {
         const zoomFactor = mainWindow.getContentSize()[1] / ZOOM_FACTOR_BASELINE_HEIGHT;
         console.debug("Window size: ", mainWindow.getContentSize());
         console.debug("Zoom factor: ", zoomFactor);
-        mainWindow.webContents.zoomFactor = zoomFactor;
+        webContents.zoomFactor = zoomFactor;
     }
     setZoomFactor();
 
@@ -79,19 +82,19 @@ export function createWindow() {
         // Open the DevTools.
         if (process.env.NODE_ENV === "development") {
             log.debug(`NODE_ENV is development, opening dev tools`);
-            mainWindow.webContents.openDevTools();
+            webContents.openDevTools();
         }
         mainWindow.setMenuBarVisibility(false);
         mainWindow.show();
         mainWindow.focus();
     });
 
-    mainWindow.webContents.on("render-process-gone", (event, details) => {
+    webContents.on("render-process-gone", (event, details) => {
         console.error(details);
     });
 
     // Disable new window creation
-    mainWindow.webContents.setWindowOpenHandler(() => {
+    webContents.setWindowOpenHandler(() => {
         return { action: "deny" };
     });
 
@@ -142,9 +145,8 @@ export function createWindow() {
         mainWindow.flashFrame(flag);
     });
     /////////////////////////////////////////////
-
     // Subscribe to game events
-    mainWindow.webContents.ipc.handle("game:launched", () => {
+    webContents.ipc.on("game:launched", () => {
         log.info("Game launched");
     });
 
