@@ -1,5 +1,5 @@
 import { Signal } from "$/jaz-ts-utils/signal";
-import { WS_SERVER_URL } from "@main/config/server";
+import { getWSServerURL } from "@main/config/server";
 import { logger } from "@main/utils/logger";
 import { randomUUID } from "node:crypto";
 
@@ -38,7 +38,7 @@ export class TachyonClient {
                 return;
             }
             let serverProtocol: string | undefined;
-            this.socket = new WebSocket(WS_SERVER_URL, `v0.tachyon`, {
+            this.socket = new WebSocket(getWSServerURL(), `v0.tachyon`, {
                 headers: {
                     authorization: `Bearer ${token}`,
                 },
@@ -63,7 +63,7 @@ export class TachyonClient {
                 }
             });
             this.socket.addEventListener("open", async () => {
-                log.info(`Connected to ${WS_SERVER_URL} using Tachyon Version ${tachyonMeta.version}`);
+                log.info(`Connected to ${getWSServerURL()} using Tachyon Version ${tachyonMeta.version}`);
                 this.onSocketOpen.dispatch();
                 resolve();
             });
@@ -88,7 +88,7 @@ export class TachyonClient {
                 if (err.message.includes("invalid subprotocol")) {
                     disconnectReason = `Tachyon server protocol version (${serverProtocol}) is incompatible with this client (tachyon-${tachyonMeta.version})`;
                 } else if (err.message.includes("ECONNREFUSED")) {
-                    disconnectReason = `Could not connect to server at ${WS_SERVER_URL}`;
+                    disconnectReason = `Could not connect to server at ${getWSServerURL()}`;
                 } else {
                     disconnectReason = err.message;
                 }

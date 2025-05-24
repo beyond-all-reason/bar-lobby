@@ -6,6 +6,21 @@
             </div>
             <div class="options">
                 <MapBattlePreview />
+                <div class="flex-row flex-space-between">
+                    <div class="flex-row gap-lg flex-center-items">
+                        <div class="flex-row flex-center-items gap-sm">
+                            <Icon :icon="personIcon" />{{ map?.playerCountMin }} - {{ map?.playerCountMax }}
+                        </div>
+                        <div class="flex-row flex-center-items gap-sm">
+                            <Icon :icon="gridIcon" />{{ map?.mapWidth }} x {{ map?.mapHeight }}
+                        </div>
+                    </div>
+                    <div class="flex-row flex-justify-end">
+                        <div class="flex-row flex-center-items gap-sm">
+                            <TerrainIcon v-for="terrain in map?.terrain" :terrain="terrain" v-bind:key="terrain" />
+                        </div>
+                    </div>
+                </div>
                 <div class="flex-row gap-md">
                     <Select
                         :modelValue="battleStore.battleOptions.map"
@@ -87,6 +102,9 @@ import GameModeComponent from "@renderer/components/battle/GameModeComponent.vue
 import { gameStore } from "@renderer/store/game.store";
 import DownloadContentButton from "@renderer/components/controls/DownloadContentButton.vue";
 import { enginesStore } from "@renderer/store/engine.store";
+import TerrainIcon from "@renderer/components/maps/filters/TerrainIcon.vue";
+import personIcon from "@iconify-icons/mdi/person-multiple";
+import gridIcon from "@iconify-icons/mdi/grid";
 
 const mapListOpen = ref(false);
 const mapOptionsOpen = ref(false);

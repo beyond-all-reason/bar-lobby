@@ -7,20 +7,67 @@
         <div class="map-details-container">
             <Panel class="flex-grow">
                 <div v-if="map" class="gap-md page">
-                    <h1>{{ map.displayName }}</h1>
+                    <div class="gridform">
+                        <h1>{{ map.displayName }}</h1>
+                        <div class="flex-right">
+                            <Button v-tooltip.bottom="'Back'" class="icon close flex-right" @click="returnToMaps">
+                                <Icon :icon="arrow_back" :height="40" />
+                            </Button>
+                        </div>
+                    </div>
                     <div class="container">
                         <MapSimplePreview :map="map" />
-                        <div class="details">
-                            <div class="detail-text"><b>Description:</b> {{ map.description }}</div>
-                            <div v-if="map.author" class="detail-text"><b>Author:</b> {{ map.author }}</div>
-                            <div class="detail-text"><b>Size:</b> {{ map.mapWidth }} x {{ map.mapHeight }}</div>
-                            <div class="detail-text"><b>Wind:</b> {{ map.windMin }} - {{ map.windMax }}</div>
-                            <div class="detail-text"><b>Tidal:</b> {{ map.tidalStrength }}</div>
+                        <div class="flex-row flex-space-between">
+                            <div class="flex-row gap-lg flex-center-items"></div>
+                            <div class="flex-row flex-justify-end">
+                                <div class="flex-row flex-center-items gap-sm"></div>
+                            </div>
+                        </div>
+                        <div class="info">
+                            <div class="details">
+                                <div class="detail-text"><b>Description:</b> {{ map.description }}</div>
+                                <div v-if="map.author" class="detail-text"><b>Author:</b> {{ map.author }}</div>
+                                <h3>Map Properties</h3>
+                                <div class="flex-row flex-center-items gap-sm">
+                                    <Icon :icon="windPower" width="25" height="25" />{{ map.windMin }} - {{ map.windMax }}
+                                </div>
+                                <div class="flex-row flex-center-items gap-sm">
+                                    <Icon :icon="waves" width="25" height="25" />{{ map.tidalStrength }}
+                                </div>
+                                <div class="flex-row flex-center-items gap-sm">
+                                    <Icon :icon="personIcon" width="25" height="25" />{{ map?.playerCountMin }} - {{ map?.playerCountMax }}
+                                </div>
+                                <div class="flex-row flex-center-items gap-sm">
+                                    <Icon :icon="gridIcon" width="25" height="25" />{{ map?.mapWidth }} x {{ map?.mapHeight }}
+                                </div>
+                                <div class="mt-5">
+                                    <div class="detail-text flex-row gap-sm">
+                                        <TerrainIcon v-for="terrain in map?.terrain" :terrain="terrain" v-bind:key="terrain" />
+                                    </div>
+                                </div>
+                            </div>
                             <!-- <div v-if="map.startPositions" class="detail-text"><b>Start Positions:</b> {{ map.startPositions.length }}</div> -->
-                            <Button @click="toggleMapFavorite"> {{ map.isFavorite ? "Remove from favorites" : "Add to favorites" }}</Button>
-                            <Button v-if="map.isInstalled" class="green inline" @click="play">Play</Button>
-                            <Button v-else-if="map.isDownloading" class="green inline" disabled>Downloading map...</Button>
-                            <Button v-else class="red inline" @click="downloadMap(map.springName)">Download</Button>
+                            <div class="gridform">
+                                <Button
+                                    @click="toggleMapFavorite"
+                                    v-if="!map.isFavorite"
+                                    class="icon"
+                                    v-tooltip.bottom="'Add to favorites'"
+                                >
+                                    <Icon :icon="heart_plus" :height="33" />
+                                </Button>
+                                <Button
+                                    @click="toggleMapFavorite"
+                                    v-if="map.isFavorite"
+                                    class="icon"
+                                    v-tooltip.bottom="'Remove from favorites'"
+                                >
+                                    <Icon :icon="heart_minus" :height="33" />
+                                </Button>
+                                <Button v-if="map.isInstalled" class="green inline" @click="play">Play</Button>
+                                <Button v-else-if="map.isDownloading" class="green inline" disabled>Downloading map...</Button>
+                                <Button v-else class="red inline" @click="downloadMap(map.springName)">Download</Button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -49,6 +96,15 @@ import { downloadMap } from "@renderer/store/maps.store";
 import { useDexieLiveQueryWithDeps } from "@renderer/composables/useDexieLiveQuery";
 import Panel from "@renderer/components/common/Panel.vue";
 import MapSimplePreview from "@renderer/components/maps/MapSimplePreview.vue";
+import TerrainIcon from "@renderer/components/maps/filters/TerrainIcon.vue";
+import { Icon } from "@iconify/vue";
+import arrow_back from "@iconify-icons/mdi/arrow-back";
+import heart_plus from "@iconify-icons/mdi/heart-plus";
+import heart_minus from "@iconify-icons/mdi/heart-minus";
+import personIcon from "@iconify-icons/mdi/person-multiple";
+import waves from "@iconify-icons/mdi/waves";
+import gridIcon from "@iconify-icons/mdi/grid";
+import windPower from "@iconify-icons/mdi/wind-power";
 
 const router = useRouter();
 const { id } = defineProps<{
@@ -65,6 +121,10 @@ async function play() {
 function toggleMapFavorite() {
     db.maps.update(id, { isFavorite: !map.value?.isFavorite });
     if (map.value) map.value.isFavorite = !map.value.isFavorite;
+}
+
+function returnToMaps() {
+    router.push("/library/maps/maps");
 }
 </script>
 
@@ -89,11 +149,12 @@ function toggleMapFavorite() {
     gap: 15px;
     height: 100%;
 }
-
 .details {
     display: flex;
     flex-direction: column;
     gap: 5px;
     width: 512px;
+    font-size: 1.2em;
+    margin-bottom: 15px;
 }
 </style>

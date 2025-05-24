@@ -5,21 +5,7 @@ import { settingsSchema } from "@main/json/model/settings";
 import { ipcMain } from "electron";
 import path from "path";
 
-const settingsStore = new FileStore<typeof settingsSchema>(path.join(CONFIG_PATH, "settings.json"), settingsSchema, {
-    fullscreen: true,
-    size: 900,
-    displayIndex: 0,
-    skipIntro: false,
-    sfxVolume: 5,
-    musicVolume: 5,
-    loginAutomatically: true,
-    devMode: false,
-    battlesHideInProgress: false,
-    battlesHidePvE: false,
-    battlesHideLocked: false,
-    battlesHideEmpty: true,
-    logUploadUrl: "https://log.beyondallreason.dev/",
-});
+const settingsStore = new FileStore<typeof settingsSchema>(path.join(CONFIG_PATH, "settings.json"), settingsSchema);
 
 async function init() {
     await settingsStore.init();

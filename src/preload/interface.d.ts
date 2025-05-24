@@ -15,7 +15,7 @@ declare global {
         downloads: DownloadsApi;
         misc: MiscApi;
         tachyon: TachyonApi;
-        logFile: LogApi;
+        log: LogApi;
     }
 }
 

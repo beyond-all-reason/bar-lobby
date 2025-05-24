@@ -94,7 +94,7 @@ export async function packLogFiles() {
     return archivePath;
 }
 
-export async function uploadLogFiles() {
+async function uploadLogFiles() {
     const archivePath = await packLogFiles().catch(() => {
         throw new Error("Could not upload log because no logs to pack.");
     });
@@ -122,7 +122,7 @@ export async function uploadLogFiles() {
 
 export type logLevels = "debug" | "info" | "error" | "fatal";
 
-export async function log(fileName: string, level: logLevels, msg: string) {
+async function log(fileName: string, level: logLevels, msg: string) {
     const logInstance = logger(fileName, {
         source: "renderer",
         separator: " - ",
@@ -146,9 +146,9 @@ export async function log(fileName: string, level: logLevels, msg: string) {
 }
 
 function registerIpcHandlers() {
-    ipcMain.handle("log:purge", purgeLogFiles satisfies () => Promise<string[]>);
-    ipcMain.handle("log:pack", packLogFiles satisfies () => Promise<string>);
-    ipcMain.handle("log:upload", uploadLogFiles satisfies () => Promise<string>);
+    ipcMain.handle("log:purge", purgeLogFiles);
+    ipcMain.handle("log:pack", packLogFiles);
+    ipcMain.handle("log:upload", uploadLogFiles);
     ipcMain.handle("log:log", async (_, fileName: string, level: logLevels, msg: string) => log(fileName, level, msg));
 }
 

@@ -43,6 +43,7 @@
             </div>
         </Transition>
         <Settings v-model="settingsOpen" />
+        <ServerSettings v-model="serverSettingsOpen" />
         <Error />
         <ChatComponent v-if="state === 'default' && me.isAuthenticated && tachyonStore.isConnected" />
         <FullscreenGameModeSelector v-if="state === 'default'" :visible="battleStore.isSelectingGameMode" />
@@ -67,6 +68,7 @@ import IntroVideo from "@renderer/components/misc/IntroVideo.vue";
 import Preloader from "@renderer/components/misc/Preloader.vue";
 import NavBar from "@renderer/components/navbar/NavBar.vue";
 import Settings from "@renderer/components/navbar/Settings.vue";
+import ServerSettings from "@renderer/components/navbar/ServerSettings.vue";
 import Notifications from "@renderer/components/notifications/Notifications.vue";
 import PromptContainer from "@renderer/components/prompts/PromptContainer.vue";
 
@@ -88,9 +90,11 @@ const empty = ref(router.currentRoute.value?.meta?.empty ?? false);
 const blurBg = ref(router.currentRoute.value?.meta?.blurBg ?? false);
 
 const settingsOpen = ref(false);
+const serverSettingsOpen = ref(false);
 const exitOpen = ref(false);
 
 provide("settingsOpen", settingsOpen);
+provide("serverSettingsOpen", serverSettingsOpen);
 provide("exitOpen", exitOpen);
 
 useGlobalKeybindings({ exitOpen });

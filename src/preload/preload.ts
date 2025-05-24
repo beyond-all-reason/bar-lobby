@@ -21,7 +21,7 @@ const logApi = {
     log: (fileName: string, level: logLevels, msg: string): Promise<void> => ipcRenderer.invoke("log:log", fileName, level, msg),
 };
 export type LogApi = typeof logApi;
-contextBridge.exposeInMainWorld("logFile", logApi);
+contextBridge.exposeInMainWorld("log", logApi);
 
 const infoApi = {
     getInfo: (): Promise<Info> => ipcRenderer.invoke("info:get"),
@@ -101,7 +101,7 @@ const gameApi = {
 
     // Game
     launchMultiplayer: (settings: MultiplayerLaunchSettings): Promise<void> => ipcRenderer.invoke("game:launchMultiplayer", settings),
-    launchScript: (script: string): Promise<void> => ipcRenderer.invoke("game:launchScript", script),
+    launchScript: (script: string, gameVersion: string, engineVersion: string): Promise<void> => ipcRenderer.invoke("game:launchScript", script, gameVersion, engineVersion),
     launchReplay: ((replay) => ipcRenderer.invoke("game:launchReplay", replay)) as LaunchReplay,
     launchBattle: (battle: BattleWithMetadata): Promise<void> => ipcRenderer.invoke("game:launchBattle", battle),
 
