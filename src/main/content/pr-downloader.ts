@@ -6,7 +6,7 @@ import { DownloadInfo } from "./downloads";
 import { AbstractContentAPI } from "./abstract-content";
 import { engineContentAPI } from "./engine/engine-content";
 import { logger } from "@main/utils/logger";
-import { CONTENT_PATH } from "@main/config/app";
+import { DATA_PATH, ENGINE_PATH } from "@main/config/app";
 
 const log = logger("pr-downloader.ts");
 
@@ -44,9 +44,9 @@ export abstract class PrDownloaderAPI<ID, T> extends AbstractContentAPI<ID, T> {
                 if (defaultEngine.installed === false) throw new Error("Default engine is not installed.");
 
                 const binaryName = process.platform === "win32" ? "pr-downloader.exe" : "pr-downloader";
-                const prBinaryPath = path.join(CONTENT_PATH, "engine", defaultEngine.id, binaryName);
+                const prBinaryPath = path.join(ENGINE_PATH, defaultEngine.id, binaryName);
                 const downloadArg = type === "game" ? "--download-game" : "--download-map";
-                const prdProcess = spawn(`${prBinaryPath}`, ["--filesystem-writepath", CONTENT_PATH, downloadArg, name], {
+                const prdProcess = spawn(`${prBinaryPath}`, ["--filesystem-writepath", DATA_PATH, downloadArg, name], {
                     env: {
                         ...process.env,
                         PRD_RAPID_USE_STREAMER: "false",
