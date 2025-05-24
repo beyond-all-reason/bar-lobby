@@ -2,7 +2,7 @@ import { CONFIG_PATH } from "@main/config/app";
 import { FileStore } from "@main/json/file-store";
 import { settingsSchema } from "@main/json/model/settings";
 
-import { ipcMain } from "electron";
+import { ipcMain } from "@main/typed-ipc";
 import path from "path";
 
 const settingsStore = new FileStore<typeof settingsSchema>(path.join(CONFIG_PATH, "settings.json"), settingsSchema);
@@ -25,7 +25,7 @@ function toggleFullscreen() {
 
 function registerIpcHandlers() {
     ipcMain.handle("settings:get", () => getSettings());
-    ipcMain.handle("settings:update", (_, data: Partial<typeof settingsSchema>) => updateSettings(data));
+    ipcMain.handle("settings:update", (_, data: Partial<Settings>) => updateSettings(data));
     ipcMain.handle("settings:toggleFullscreen", () => toggleFullscreen());
 }
 

@@ -3,16 +3,17 @@ import { TachyonClient, TachyonClientRequestHandlers } from "@main/tachyon/tachy
 import { logger } from "@main/utils/logger";
 import { ipcMain } from "electron";
 import { BattleStartRequestData } from "tachyon-protocol/types";
+import { BarIpcWebContents } from "@main/typed-ipc";
 
 const log = logger("tachyon-service");
 
-function registerIpcHandlers(mainWindow: Electron.BrowserWindow) {
+function registerIpcHandlers(webContents: BarIpcWebContents) {
     const requestHandlers: TachyonClientRequestHandlers = {
         "battle/start": async (data: BattleStartRequestData) => {
             log.info(`Received battle start request: ${JSON.stringify(data)}`);
             const { ip, port, username, password } = data;
             const springString = `spring://${username}:${password}@${ip}:${port}`;
-            mainWindow.webContents.send("tachyon:battleStart", springString);
+            webContents.send("tachyon:battleStart", springString);
             return {
                 status: "success",
             };
@@ -22,17 +23,17 @@ function registerIpcHandlers(mainWindow: Electron.BrowserWindow) {
 
     tachyonClient.onSocketOpen.add(() => {
         log.info("Connected to Tachyon server");
-        mainWindow.webContents.send("tachyon:connected");
+        webContents.send("tachyon:connected");
     });
 
     tachyonClient.onSocketClose.add(() => {
         log.info("Disconnected from Tachyon server");
-        mainWindow.webContents.send("tachyon:disconnected");
+        webContents.send("tachyon:disconnected");
     });
 
     tachyonClient.onEvent.add((event) => {
         log.info(`Received event: ${JSON.stringify(event)}`);
-        mainWindow.webContents.send("tachyon:event", event);
+        webContents.send("tachyon:event", event);
     });
 
     ipcMain.handle("tachyon:isConnected", () => {

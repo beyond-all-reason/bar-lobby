@@ -72,6 +72,10 @@ export async function fetchMissingMapImages() {
 async function fetchMapImages(map: MapData) {
     if (map.imagesBlob?.preview) return;
     const arrayBuffer = await window.maps.fetchMapImages(map.images?.preview);
+    if (!arrayBuffer) {
+        console.error("Failed to fetch map images", map.springName);
+        return;
+    }
     await db.maps.update(map.springName, { imagesBlob: { preview: new Blob([arrayBuffer], { type: "image/webp" }) } });
     console.debug("Updated map images ", map.springName);
 }

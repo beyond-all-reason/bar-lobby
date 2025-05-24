@@ -1,7 +1,7 @@
 import { authenticate, renewAccessToken, startTokenRenewer, stopTokenRenewer } from "@main/oauth2/oauth2";
 import { accountService } from "@main/services/account.service";
 import { logger } from "@main/utils/logger";
-import { ipcMain } from "electron";
+import { ipcMain } from "@main/typed-ipc";
 
 const log = logger("auth-service");
 

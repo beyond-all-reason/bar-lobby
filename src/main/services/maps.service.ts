@@ -1,6 +1,6 @@
 import { MapData } from "@main/content/maps/map-data";
 import { mapContentAPI } from "@main/content/maps/map-content";
-import { ipcMain } from "electron";
+import { ipcMain, BarIpcWebContents } from "@main/typed-ipc";
 import { MapMetadata } from "@main/content/maps/map-metadata";
 import { fetchMapImages } from "@main/content/maps/map-image";
 
@@ -21,7 +21,7 @@ async function fetchAllMaps() {
     });
 }
 
-function registerIpcHandlers(mainWindow: Electron.BrowserWindow) {
+function registerIpcHandlers(webContents: BarIpcWebContents) {
     ipcMain.handle("maps:downloadMap", (_, springName: string) => mapContentAPI.downloadMap(springName));
     ipcMain.handle("maps:downloadMaps", (_, springNames: string[]) => mapContentAPI.downloadMaps(springNames));
     ipcMain.handle("maps:getInstalledVersions", () => mapContentAPI.availableVersions);
@@ -33,10 +33,10 @@ function registerIpcHandlers(mainWindow: Electron.BrowserWindow) {
 
     // Events
     mapContentAPI.onMapAdded.add((filename: string) => {
-        mainWindow.webContents.send("maps:mapAdded", filename);
+        webContents.send("maps:mapAdded", filename);
     });
     mapContentAPI.onMapDeleted.add((filename: string) => {
-        mainWindow.webContents.send("maps:mapDeleted", filename);
+        webContents.send("maps:mapDeleted", filename);
     });
 }
 

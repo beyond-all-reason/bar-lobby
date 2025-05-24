@@ -1,7 +1,7 @@
 import { extract, FeedData, FeedEntry } from "@extractus/feed-extractor";
 import { FetchDevlogRssFeed, FetchNewsRssFeed } from "@main/services/type";
 import { logger } from "@main/utils/logger";
-import { ipcMain } from "electron";
+import { ipcMain } from "@main/typed-ipc";
 
 export interface NewsFeedData extends FeedData {
     entries?: Array<NewsFeedEntry>;

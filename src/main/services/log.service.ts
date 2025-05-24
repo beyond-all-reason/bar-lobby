@@ -1,4 +1,4 @@
-import { ipcMain } from "electron";
+import { ipcMain } from "@main/typed-ipc";
 import { LOGS_PATH } from "@main/config/app";
 import path from "path";
 import { glob, stat, rm, cp, readFile } from "fs/promises";
