@@ -44,6 +44,15 @@
                         <Range v-model="customBoxRange" :min="5" :max="100" :step="5" />
                     </div>
                 </div>
+                <div v-if="battleStore.battleOptions.mapOptions.customStartBoxes?.length > 0">
+                    <div v-for="(box, boxId) in battleStore.battleOptions.mapOptions.customStartBoxes" :key="`delete-box-${boxId}`">
+                        <Button class="red fullwidth" @click="() => deleteCustomBox(boxId)">Delete Box {{ boxId + 1 }}</Button>
+                    </div>
+                    
+                    <div>
+                        <Button class="green fullwidth" @click="addCustomBox">Add box</Button>
+                    </div> 
+                </div>
                 <div v-if="battleStore.battleOptions.map?.startPos">
                     <h4>Fixed positions</h4>
                     <div class="box-buttons">
@@ -98,6 +107,24 @@ function setCustomBoxes(orientation: StartBoxOrientation) {
     delete battleStore.battleOptions.mapOptions.startBoxesIndex;
     battleStore.battleOptions.mapOptions.startPosType = StartPosType.Boxes;
     battleStore.battleOptions.mapOptions.customStartBoxes = customStartBoxes;
+}
+
+function addCustomBox() {
+    const customBoxes = battleStore.battleOptions.mapOptions.customStartBoxes;
+    
+    if (customBoxes?.length > 0) {
+        const lastBox = customBoxes.at(-1);
+        battleStore.battleOptions.mapOptions.customStartBoxes = [...customBoxes, lastBox];
+    }
+}
+
+function deleteCustomBox(boxId: number) {
+    const customBoxes = battleStore.battleOptions.mapOptions.customStartBoxes;
+
+    if (customBoxes[boxId]) {
+        const newBoxes = customBoxes.filter((_, index) => index !== boxId);
+        battleStore.battleOptions.mapOptions.customStartBoxes = newBoxes;
+    }
 }
 
 function setFixedPositions(index: number) {
