@@ -4,7 +4,7 @@ import { Replay } from "@main/content/replays/replay";
 import { Settings } from "@main/services/settings.service";
 import { EngineVersion } from "@main/content/engine/engine-version";
 import { GameVersion } from "@main/content/game/game-version";
-import { MapData } from "@main/content/maps/map-data";
+import { MapData, MapDownloadData } from "@main/content/maps/map-data";
 import { DownloadInfo } from "@main/content/downloads";
 import { Info } from "@main/services/info.service";
 import { BattleWithMetadata } from "@main/game/battle/battle-types";
@@ -118,7 +118,7 @@ const mapsApi = {
     isVersionInstalled: (springName: string): Promise<boolean> => ipcRenderer.invoke("maps:isVersionInstalled", springName),
 
     // Online features
-    fetchAllMaps: (): Promise<MapData[]> => ipcRenderer.invoke("maps:online:fetchAllMaps"),
+    fetchAllMaps: (): Promise<[MapData[], MapDownloadData[]]> => ipcRenderer.invoke("maps:online:fetchAllMaps"),
     fetchMapImages: (imageSource: string): Promise<ArrayBuffer | undefined> => ipcRenderer.invoke("maps:online:fetchMapImages", imageSource),
 
     // Events
