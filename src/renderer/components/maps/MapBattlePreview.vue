@@ -82,11 +82,13 @@ watch(
 );
 
 const boxes = computed<StartBox[]>(() => {
-    const startBoxIndex = battleStore.battleOptions.mapOptions.startBoxesIndex || 0;
-    if (startBoxIndex >= 0) {
-        return startBoxes.value?.at(startBoxIndex)?.startboxes.map((box) => spadsBoxToStartBox(box.poly)) || [];
-    } else if (battleStore.battleOptions.mapOptions?.customStartBoxes) {
-        return battleStore.battleOptions.mapOptions?.customStartBoxes;
+    const startBoxIndex = battleStore.battleOptions.mapOptions.startBoxesIndex;
+    const customStartBoxes = battleStore.battleOptions.mapOptions.customStartBoxes || [];
+
+    if (startBoxIndex != undefined) {
+        return startBoxes.value?.at(startBoxIndex)?.startboxes.map((box) => spadsBoxToStartBox(box.poly)) || [];   
+    } else if (customStartBoxes.length > 0) {
+        return customStartBoxes;
     }
     return [];
 });
