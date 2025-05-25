@@ -4,44 +4,60 @@
             <img loading="lazy" :src="mapTextureUrl" />
             <div v-if="battleStore.battleOptions.mapOptions.startPosType === StartPosType.Boxes && boxes" class="boxes">
                 <div v-for="(box, i) in boxes" :key="`box${i}`" v-startBox="box" class="box highlight">
-                    <div class="box-tooltip" @mousedown="e => handleBoxDragStart(i, e)">
+                    <div class="box-tooltip" @mousedown="(e) => handleBoxDragStart(i, e)">
                         <!-- Helper elements to modify the dimensions for the boxes -->
 
                         <!-- Sides -->
-                        <div v-if="battleStore.battleOptions.mapOptions.customStartBoxes?.length > 0" 
-                            class="box-tooltip-side n-side" 
-                            data-side="north" 
-                            @mousedown="e => handleResizeStart(i, 'north', null, e)" />
-                        <div v-if="battleStore.battleOptions.mapOptions.customStartBoxes?.length > 0"
+                        <div
+                            v-if="battleStore.battleOptions.mapOptions.customStartBoxes?.length > 0"
+                            class="box-tooltip-side n-side"
+                            data-side="north"
+                            @mousedown="(e) => handleResizeStart(i, 'north', null, e)"
+                        />
+                        <div
+                            v-if="battleStore.battleOptions.mapOptions.customStartBoxes?.length > 0"
                             class="box-tooltip-side e-side"
-                            data-side="east" 
-                            @mousedown="e => handleResizeStart(i, 'east', null, e)" />
-                        <div v-if="battleStore.battleOptions.mapOptions.customStartBoxes?.length > 0"
+                            data-side="east"
+                            @mousedown="(e) => handleResizeStart(i, 'east', null, e)"
+                        />
+                        <div
+                            v-if="battleStore.battleOptions.mapOptions.customStartBoxes?.length > 0"
                             class="box-tooltip-side s-side"
-                            data-side="south" 
-                            @mousedown="e => handleResizeStart(i, 'south', null, e)" />
-                        <div v-if="battleStore.battleOptions.mapOptions.customStartBoxes?.length > 0"
+                            data-side="south"
+                            @mousedown="(e) => handleResizeStart(i, 'south', null, e)"
+                        />
+                        <div
+                            v-if="battleStore.battleOptions.mapOptions.customStartBoxes?.length > 0"
                             class="box-tooltip-side w-side"
-                            data-side="west" 
-                            @mousedown="e => handleResizeStart(i, 'west', null, e)" />
-                        
+                            data-side="west"
+                            @mousedown="(e) => handleResizeStart(i, 'west', null, e)"
+                        />
+
                         <!-- Corners -->
-                        <div v-if="battleStore.battleOptions.mapOptions.customStartBoxes?.length > 0"
+                        <div
+                            v-if="battleStore.battleOptions.mapOptions.customStartBoxes?.length > 0"
                             class="box-tooltip-corner ne-corner"
-                            data-corner="north-east" 
-                            @mousedown="e => handleResizeStart(i, null, 'north-east', e)" />
-                        <div v-if="battleStore.battleOptions.mapOptions.customStartBoxes?.length > 0"
+                            data-corner="north-east"
+                            @mousedown="(e) => handleResizeStart(i, null, 'north-east', e)"
+                        />
+                        <div
+                            v-if="battleStore.battleOptions.mapOptions.customStartBoxes?.length > 0"
                             class="box-tooltip-corner se-corner"
-                            data-corner="south-east" 
-                            @mousedown="e => handleResizeStart(i, null, 'south-east', e)" />
-                        <div v-if="battleStore.battleOptions.mapOptions.customStartBoxes?.length > 0"
+                            data-corner="south-east"
+                            @mousedown="(e) => handleResizeStart(i, null, 'south-east', e)"
+                        />
+                        <div
+                            v-if="battleStore.battleOptions.mapOptions.customStartBoxes?.length > 0"
                             class="box-tooltip-corner sw-corner"
-                            data-corner="south-west" 
-                            @mousedown="e => handleResizeStart(i, null, 'south-west', e)" />
-                        <div v-if="battleStore.battleOptions.mapOptions.customStartBoxes?.length > 0"
+                            data-corner="south-west"
+                            @mousedown="(e) => handleResizeStart(i, null, 'south-west', e)"
+                        />
+                        <div
+                            v-if="battleStore.battleOptions.mapOptions.customStartBoxes?.length > 0"
                             class="box-tooltip-corner nw-corner"
-                            data-corner="north-west" 
-                            @mousedown="e => handleResizeStart(i, null, 'north-west', e)" />
+                            data-corner="north-west"
+                            @mousedown="(e) => handleResizeStart(i, null, 'north-west', e)"
+                        />
 
                         <span>{{ i + 1 }}</span>
                     </div>
@@ -120,13 +136,12 @@ watch(
     battleStore.battleOptions.mapOptions.customStartBoxes
 );
 
-
 const boxes = computed<StartBox[]>(() => {
     const startBoxIndex = battleStore.battleOptions.mapOptions.startBoxesIndex;
     const customStartBoxes = battleStore.battleOptions.mapOptions.customStartBoxes || [];
 
     if (startBoxIndex != undefined) {
-        return startBoxes.value?.at(startBoxIndex)?.startboxes.map((box) => spadsBoxToStartBox(box.poly)) || [];   
+        return startBoxes.value?.at(startBoxIndex)?.startboxes.map((box) => spadsBoxToStartBox(box.poly)) || [];
     } else if (customStartBoxes.length > 0) {
         return customStartBoxes;
     }
@@ -167,9 +182,9 @@ function handleResizeStart(boxIndex: number, side: string | null, corner: string
     activeResizeBox = boxIndex;
     activeResizeSide = side;
     activeResizeCorner = corner;
-    startBoundingRect = (event.target as HTMLElement).closest('.map')?.getBoundingClientRect() || null;
-    document.addEventListener('mousemove', handleResizeMove);
-    document.addEventListener('mouseup', handleResizeEnd);
+    startBoundingRect = (event.target as HTMLElement).closest(".map")?.getBoundingClientRect() || null;
+    document.addEventListener("mousemove", handleResizeMove);
+    document.addEventListener("mouseup", handleResizeEnd);
 }
 
 function handleResizeMove(event: MouseEvent) {
@@ -179,7 +194,7 @@ function handleResizeMove(event: MouseEvent) {
     const mapHeight = boundingRect.height;
     const trueEndPos = {
         x: event.clientX - boundingRect.x,
-        y: event.clientY - boundingRect.y
+        y: event.clientY - boundingRect.y,
     };
     const normX = Math.min(Math.max(trueEndPos.x / mapWidth, 0), 1);
     const normY = Math.min(Math.max(trueEndPos.y / mapHeight, 0), 1);
@@ -187,17 +202,37 @@ function handleResizeMove(event: MouseEvent) {
     const box = { ...boxes[activeResizeBox] };
     if (activeResizeSide) {
         switch (activeResizeSide) {
-            case "north": box.top = normY; break;
-            case "south": box.bottom = normY; break;
-            case "west": box.left = normX; break;
-            case "east": box.right = normX; break;
+            case "north":
+                box.top = normY;
+                break;
+            case "south":
+                box.bottom = normY;
+                break;
+            case "west":
+                box.left = normX;
+                break;
+            case "east":
+                box.right = normX;
+                break;
         }
     } else if (activeResizeCorner) {
         switch (activeResizeCorner) {
-            case "north-west": box.top = normY; box.left = normX; break;
-            case "north-east": box.top = normY; box.right = normX; break;
-            case "south-west": box.bottom = normY; box.left = normX; break;
-            case "south-east": box.bottom = normY; box.right = normX; break;
+            case "north-west":
+                box.top = normY;
+                box.left = normX;
+                break;
+            case "north-east":
+                box.top = normY;
+                box.right = normX;
+                break;
+            case "south-west":
+                box.bottom = normY;
+                box.left = normX;
+                break;
+            case "south-east":
+                box.bottom = normY;
+                box.right = normX;
+                break;
         }
     }
     box.top = Math.min(Math.max(box.top, 0), 1);
@@ -214,25 +249,28 @@ function handleResizeEnd() {
     activeResizeSide = null;
     activeResizeCorner = null;
     startBoundingRect = null;
-    document.removeEventListener('mousemove', handleResizeMove);
-    document.removeEventListener('mouseup', handleResizeEnd);
+    document.removeEventListener("mousemove", handleResizeMove);
+    document.removeEventListener("mouseup", handleResizeEnd);
 }
 
 // --- Drag to move box ---
 function handleBoxDragStart(boxIndex: number, event: MouseEvent) {
     // Only start drag if not clicking on a side/corner
-    if ((event.target as HTMLElement).classList.contains('box-tooltip-side') || (event.target as HTMLElement).classList.contains('box-tooltip-corner')) {
+    if (
+        (event.target as HTMLElement).classList.contains("box-tooltip-side") ||
+        (event.target as HTMLElement).classList.contains("box-tooltip-corner")
+    ) {
         return;
     }
     event.preventDefault();
     isActiveDrag = true;
     dragBoxIndex = boxIndex;
-    startBoundingRect = (event.target as HTMLElement).closest('.map')?.getBoundingClientRect() || null;
+    startBoundingRect = (event.target as HTMLElement).closest(".map")?.getBoundingClientRect() || null;
     dragStartMouse = { x: event.clientX, y: event.clientY };
     const box = battleStore.battleOptions.mapOptions.customStartBoxes[boxIndex];
     dragStartBox = { top: box.top, left: box.left, bottom: box.bottom, right: box.right };
-    document.addEventListener('mousemove', handleBoxDragMove);
-    document.addEventListener('mouseup', handleBoxDragEnd);
+    document.addEventListener("mousemove", handleBoxDragMove);
+    document.addEventListener("mouseup", handleBoxDragEnd);
 }
 
 function handleBoxDragMove(event: MouseEvent) {
@@ -261,11 +299,11 @@ function handleBoxDragMove(event: MouseEvent) {
         newLeft = 0;
     }
     if (newBottom > 1) {
-        newTop -= (newBottom - 1);
+        newTop -= newBottom - 1;
         newBottom = 1;
     }
     if (newRight > 1) {
-        newLeft -= (newRight - 1);
+        newLeft -= newRight - 1;
         newRight = 1;
     }
     // Update box
@@ -280,8 +318,8 @@ function handleBoxDragEnd() {
     dragStartMouse = null;
     dragStartBox = null;
     startBoundingRect = null;
-    document.removeEventListener('mousemove', handleBoxDragMove);
-    document.removeEventListener('mouseup', handleBoxDragEnd);
+    document.removeEventListener("mousemove", handleBoxDragMove);
+    document.removeEventListener("mouseup", handleBoxDragEnd);
 }
 </script>
 
@@ -389,28 +427,28 @@ $sideLength: calc(100% - $sideWidth);
     width: $sideWidth;
     height: $sideWidth;
     top: $centerOffset;
-    right: $centerOffset
+    right: $centerOffset;
 }
 
 .box-tooltip-corner.se-corner {
     width: $sideWidth;
     height: $sideWidth;
     bottom: $centerOffset;
-    right: $centerOffset
+    right: $centerOffset;
 }
 
 .box-tooltip-corner.nw-corner {
     width: $sideWidth;
     height: $sideWidth;
     top: $centerOffset;
-    left: $centerOffset
+    left: $centerOffset;
 }
 
 .box-tooltip-corner.sw-corner {
     width: $sideWidth;
     height: $sideWidth;
     bottom: $centerOffset;
-    left: $centerOffset
+    left: $centerOffset;
 }
 
 @keyframes subtleGlow {

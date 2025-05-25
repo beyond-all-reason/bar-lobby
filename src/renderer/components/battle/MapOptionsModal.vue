@@ -48,10 +48,10 @@
                     <div v-for="(box, boxId) in battleStore.battleOptions.mapOptions.customStartBoxes" :key="`delete-box-${boxId}`">
                         <Button class="red fullwidth" @click="() => deleteCustomBox(boxId)">Delete Box {{ boxId + 1 }}</Button>
                     </div>
-                    
+
                     <div>
                         <Button class="green fullwidth" @click="addCustomBox">Add box</Button>
-                    </div> 
+                    </div>
                 </div>
                 <div v-if="battleStore.battleOptions.map?.startPos">
                     <h4>Fixed positions</h4>
@@ -111,7 +111,7 @@ function setCustomBoxes(orientation: StartBoxOrientation) {
 
 function addCustomBox() {
     const customBoxes = battleStore.battleOptions.mapOptions.customStartBoxes;
-    
+
     if (customBoxes?.length > 0) {
         const lastBox = customBoxes.at(-1);
         battleStore.battleOptions.mapOptions.customStartBoxes = [...customBoxes, lastBox];
