@@ -44,7 +44,7 @@
                         <Range v-model="customBoxRange" :min="5" :max="100" :step="5" />
                     </div>
                 </div>
-                <div v-if="battleStore.battleOptions.mapOptions.customStartBoxes?.length > 0">
+                <div v-if="hasCustomStartBoxes">
                     <div v-for="(box, boxId) in battleStore.battleOptions.mapOptions.customStartBoxes" :key="`delete-box-${boxId}`">
                         <Button class="red fullwidth" @click="() => deleteCustomBox(boxId)">Delete Box {{ boxId + 1 }}</Button>
                     </div>
@@ -81,7 +81,7 @@
 </template>
 
 <script lang="ts" setup>
-import { Ref, ref, watch } from "vue";
+import { Ref, ref, watch, computed } from "vue";
 
 import Modal from "@renderer/components/common/Modal.vue";
 import Button from "@renderer/components/controls/Button.vue";
@@ -102,6 +102,15 @@ watch(
     }
 );
 
+const hasCustomStartBoxes = computed(() => {
+    const customStartBoxes = battleStore.battleOptions.mapOptions.customStartBoxes;
+    const startBoxesIndex = battleStore.battleOptions.mapOptions.startBoxesIndex;
+
+    if (customStartBoxes == undefined || startBoxesIndex != undefined) return false;
+
+    return true;
+});
+
 function setCustomBoxes(orientation: StartBoxOrientation) {
     const customStartBoxes = getBoxes(orientation, customBoxRange.value);
     delete battleStore.battleOptions.mapOptions.startBoxesIndex;
@@ -111,15 +120,30 @@ function setCustomBoxes(orientation: StartBoxOrientation) {
 
 function addCustomBox() {
     const customBoxes = battleStore.battleOptions.mapOptions.customStartBoxes;
+    const customBoxesLength = customBoxes?.length ?? 0;
 
-    if (customBoxes?.length > 0) {
+    if (customBoxes == undefined) return;
+
+    if (customBoxesLength == 0) {
+        // Add a default box with proper sizing at the top-left of the map
+        const defaultBox = {
+            top: 0.0,
+            bottom: 1,
+            left: 0.0,
+            right: customBoxRange.value / 100,
+        };
+        battleStore.battleOptions.mapOptions.customStartBoxes = [...customBoxes, defaultBox];
+    } else {
         const lastBox = customBoxes.at(-1);
+        if (lastBox == undefined) return;
         battleStore.battleOptions.mapOptions.customStartBoxes = [...customBoxes, lastBox];
     }
 }
 
 function deleteCustomBox(boxId: number) {
     const customBoxes = battleStore.battleOptions.mapOptions.customStartBoxes;
+
+    if (customBoxes == undefined || customBoxes.length == 0) return;
 
     if (customBoxes[boxId]) {
         const newBoxes = customBoxes.filter((_, index) => index !== boxId);
