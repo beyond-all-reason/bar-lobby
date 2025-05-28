@@ -1,14 +1,14 @@
 <template>
     <div ref="boxElement" class="box-container box highlight" :style="boxStyles" :class="{ dragging: isDragging, resizing: isResizing }">
         <div class="box-tooltip" @mousedown="startDrag">
-            <div class="box-tooltip-side n-side" @mousedown.stop="startResize('n-side', null, $event)"></div>
-            <div class="box-tooltip-side e-side" @mousedown.stop="startResize('e-side', null, $event)"></div>
-            <div class="box-tooltip-side s-side" @mousedown.stop="startResize('s-side', null, $event)"></div>
-            <div class="box-tooltip-side w-side" @mousedown.stop="startResize('w-side', null, $event)"></div>
-            <div class="box-tooltip-corner ne-corner" @mousedown.stop="startResize(null, 'ne-corner', $event)"></div>
-            <div class="box-tooltip-corner se-corner" @mousedown.stop="startResize(null, 'se-corner', $event)"></div>
-            <div class="box-tooltip-corner nw-corner" @mousedown.stop="startResize(null, 'nw-corner', $event)"></div>
-            <div class="box-tooltip-corner sw-corner" @mousedown.stop="startResize(null, 'sw-corner', $event)"></div>
+            <div class="box-tooltip-side n-side" @mousedown.stop="startResize('n', null, $event)"></div>
+            <div class="box-tooltip-side e-side" @mousedown.stop="startResize(null, 'e', $event)"></div>
+            <div class="box-tooltip-side s-side" @mousedown.stop="startResize('s', null, $event)"></div>
+            <div class="box-tooltip-side w-side" @mousedown.stop="startResize(null, 'w', $event)"></div>
+            <div class="box-tooltip-corner ne-corner" @mousedown.stop="startResize('n', 'e', $event)"></div>
+            <div class="box-tooltip-corner se-corner" @mousedown.stop="startResize('s', 'e', $event)"></div>
+            <div class="box-tooltip-corner nw-corner" @mousedown.stop="startResize('s', 'e', $event)"></div>
+            <div class="box-tooltip-corner sw-corner" @mousedown.stop="startResize('s', 'w', $event)"></div>
             <span>{{ id + 1 }}</span>
         </div>
     </div>
@@ -18,6 +18,7 @@
 import { ref, computed } from "vue";
 import { StartBox } from "tachyon-protocol/types";
 import { battleStore } from "@renderer/store/battle.store";
+import { spadsBoxToStartBox } from "@renderer/utils/start-boxes";
 
 const props = defineProps({
     id: {
@@ -38,7 +39,7 @@ const boxElement = ref<HTMLElement | null>(null);
 // Track drag state
 const isDragging = ref(false);
 const isResizing = ref(false);
-const activeHandle = ref<string | null>(null);
+const activeHandle = ref<{ h: string | null, v: string | null }>({ h: null, v: null });
 const startPos = ref({ x: 0, y: 0 });
 const startBox = ref<StartBox | null>(null);
 const parentRect = ref<DOMRect | null>(null);
@@ -143,13 +144,13 @@ function resetDrag() {
 }
 
 // Resize handlers
-function startResize(side: string | null, corner: string | null, event: MouseEvent) {
+function startResize(vertical: 'n' | 's' | null, horizontal: 'e' | 'w' | null, event: MouseEvent) {
     event.preventDefault();
     event.stopPropagation();
     isResizing.value = true;
 
-    if (side) activeHandle.value = side;
-    if (corner) activeHandle.value = corner;
+    if (vertical) activeHandle.value.v = vertical;
+    if (horizontal) activeHandle.value.h = horizontal;
 
     // Store initial positions
     startPos.value = { x: event.clientX, y: event.clientY };
@@ -170,15 +171,26 @@ function startResize(side: string | null, corner: string | null, event: MouseEve
         boxElement.value.classList.add("resizing");
     }
 
+    const comb = (vertical ??  '') + (horizontal ?? ''); 
+
     // Set cursor for the entire document during resize
-    if (side === "n-side" || side === "s-side") {
-        document.body.style.cursor = "ns-resize";
-    } else if (side === "e-side" || side === "w-side") {
-        document.body.style.cursor = "ew-resize";
-    } else if (corner === "ne-corner" || corner === "sw-corner") {
-        document.body.style.cursor = "nesw-resize";
-    } else if (corner === "nw-corner" || corner === "se-corner") {
-        document.body.style.cursor = "nwse-resize";
+    switch (comb) {
+        case 'n':
+        case 's':
+            document.body.style.cursor = "ns-resize";
+            break;
+        case 'e':
+        case 'w':
+            document.body.style.cursor = "ew-resize";
+            break;
+        case 'ne':
+        case 'sw':
+            document.body.style.cursor = "nesw-resize";
+            break;
+        case 'nw':
+        case 'se':
+            document.body.style.cursor = "nwse-resize";
+            break;
     }
 }
 
@@ -193,36 +205,23 @@ function handleResize(event: MouseEvent) {
     const newBox = { ...startBox.value };
 
     // Update the appropriate sides based on which handle is dragged
-    switch (activeHandle.value) {
-        // Sides
-        case "n-side":
+    
+    // Vertical Sides
+    switch (activeHandle.value.v) {
+        case "n":
             newBox.top = Math.min(newBox.bottom - 0.05, startBox.value.top + dy);
             break;
-        case "e-side":
-            newBox.right = Math.max(newBox.left + 0.05, startBox.value.right + dx);
-            break;
-        case "s-side":
+        case "s":
             newBox.bottom = Math.max(newBox.top + 0.05, startBox.value.bottom + dy);
             break;
-        case "w-side":
-            newBox.left = Math.min(newBox.right - 0.05, startBox.value.left + dx);
-            break;
+    }
 
-        // Corners
-        case "ne-corner":
-            newBox.top = Math.min(newBox.bottom - 0.05, startBox.value.top + dy);
+    // Horizontal Sides
+    switch (activeHandle.value.h) {
+        case "e":
             newBox.right = Math.max(newBox.left + 0.05, startBox.value.right + dx);
             break;
-        case "se-corner":
-            newBox.bottom = Math.max(newBox.top + 0.05, startBox.value.bottom + dy);
-            newBox.right = Math.max(newBox.left + 0.05, startBox.value.right + dx);
-            break;
-        case "sw-corner":
-            newBox.bottom = Math.max(newBox.top + 0.05, startBox.value.bottom + dy);
-            newBox.left = Math.min(newBox.right - 0.05, startBox.value.left + dx);
-            break;
-        case "nw-corner":
-            newBox.top = Math.min(newBox.bottom - 0.05, startBox.value.top + dy);
+        case "w":
             newBox.left = Math.min(newBox.right - 0.05, startBox.value.left + dx);
             break;
     }
@@ -275,7 +274,7 @@ function endResize() {
 
 function resetResize() {
     isResizing.value = false;
-    activeHandle.value = null;
+    activeHandle.value = { v: null, h: null };
     startBox.value = null;
     document.body.style.cursor = "";
     document.removeEventListener("mousemove", handleResize);
@@ -287,13 +286,14 @@ function updateBoxInStore(newBox: StartBox) {
     // Clone the current boxes array from the store to ensure reactivity
     const customBoxes = [...(battleStore.battleOptions.mapOptions.customStartBoxes || [])];
 
+    if (battleStore.battleOptions.mapOptions.startBoxesIndex != undefined) {
+        changeFromPresetToCustomBoxes(newBox, battleStore.battleOptions.mapOptions.startBoxesIndex)
+        return;
+    }
+
     // Make sure we're working with valid data
     if (!customBoxes || props.id < 0 || props.id >= customBoxes.length) {
-        if (battleStore.battleOptions.mapOptions.startBoxesIndex != undefined) {
-            console.warn('Invalid update on predefined boxes')
-        } else {
-            console.error("Invalid box data or index:", props.id, customBoxes);
-        }
+        console.error("Invalid box data or index:", props.id, customBoxes);
         return;
     }
 
@@ -302,10 +302,21 @@ function updateBoxInStore(newBox: StartBox) {
 
     // Save back to the store with a new array reference to trigger reactivity
     battleStore.battleOptions.mapOptions.customStartBoxes = customBoxes;
-
-    // Log for debugging
-    console.log("Box updated in store:", props.id, newBox, customBoxes, battleStore.battleOptions.mapOptions.customStartBoxes);
 }
+
+function changeFromPresetToCustomBoxes(newBox: StartBox, startBoxesIndex: number) {
+    
+    const currentStartBoxes =  battleStore.battleOptions.map?.startboxesSet.at(startBoxesIndex)?.startboxes.map((box) => spadsBoxToStartBox(box.poly)) || [];
+    
+    delete battleStore.battleOptions.mapOptions.startBoxesIndex;
+    delete battleStore.battleOptions.mapOptions.customStartBoxes;
+
+    currentStartBoxes[props.id] = newBox;
+
+    // Save back to the store with a new array reference to trigger reactivity
+    battleStore.battleOptions.mapOptions.customStartBoxes = currentStartBoxes;
+}
+
 </script>
 
 <style lang="scss" scoped>
@@ -321,7 +332,8 @@ function updateBoxInStore(newBox: StartBox) {
         z-index: 10; /* Ensure the box being manipulated appears on top */
     }
 
-    &.dragging {
+    &.dragging,
+    &.resizing {
         box-shadow:
             0 0 8px rgba(200, 200, 200, 0.6),
             0 0 15px rgba(200, 200, 200, 0.5);
@@ -345,6 +357,7 @@ function updateBoxInStore(newBox: StartBox) {
 
 .box-tooltip-side,
 .box-tooltip-corner {
+    border-radius: 100%;
     position: absolute;
 }
 
