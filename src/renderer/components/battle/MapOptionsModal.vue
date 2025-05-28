@@ -120,9 +120,9 @@ function setCustomBoxes(orientation: StartBoxOrientation) {
 
 function addCustomBox() {
     const customBoxes = battleStore.battleOptions.mapOptions.customStartBoxes;
-    
+
     if (customBoxes == undefined) return;
-    
+
     if (customBoxes.length == 0) {
         // Add a default box with proper sizing at the top-left of the map
         const defaultBox = {

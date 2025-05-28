@@ -39,7 +39,7 @@ const boxElement = ref<HTMLElement | null>(null);
 // Track drag state
 const isDragging = ref(false);
 const isResizing = ref(false);
-const activeHandle = ref<{ h: string | null, v: string | null }>({ h: null, v: null });
+const activeHandle = ref<{ h: string | null; v: string | null }>({ h: null, v: null });
 const startPos = ref({ x: 0, y: 0 });
 const startBox = ref<StartBox | null>(null);
 const parentRect = ref<DOMRect | null>(null);
@@ -144,7 +144,7 @@ function resetDrag() {
 }
 
 // Resize handlers
-function startResize(vertical: 'n' | 's' | null, horizontal: 'e' | 'w' | null, event: MouseEvent) {
+function startResize(vertical: "n" | "s" | null, horizontal: "e" | "w" | null, event: MouseEvent) {
     event.preventDefault();
     event.stopPropagation();
     isResizing.value = true;
@@ -171,24 +171,24 @@ function startResize(vertical: 'n' | 's' | null, horizontal: 'e' | 'w' | null, e
         boxElement.value.classList.add("resizing");
     }
 
-    const comb = (vertical ??  '') + (horizontal ?? ''); 
+    const comb = (vertical ?? "") + (horizontal ?? "");
 
     // Set cursor for the entire document during resize
     switch (comb) {
-        case 'n':
-        case 's':
+        case "n":
+        case "s":
             document.body.style.cursor = "ns-resize";
             break;
-        case 'e':
-        case 'w':
+        case "e":
+        case "w":
             document.body.style.cursor = "ew-resize";
             break;
-        case 'ne':
-        case 'sw':
+        case "ne":
+        case "sw":
             document.body.style.cursor = "nesw-resize";
             break;
-        case 'nw':
-        case 'se':
+        case "nw":
+        case "se":
             document.body.style.cursor = "nwse-resize";
             break;
     }
@@ -205,7 +205,7 @@ function handleResize(event: MouseEvent) {
     const newBox = { ...startBox.value };
 
     // Update the appropriate sides based on which handle is dragged
-    
+
     // Vertical Sides
     switch (activeHandle.value.v) {
         case "n":
@@ -287,7 +287,7 @@ function updateBoxInStore(newBox: StartBox) {
     const customBoxes = [...(battleStore.battleOptions.mapOptions.customStartBoxes || [])];
 
     if (battleStore.battleOptions.mapOptions.startBoxesIndex != undefined) {
-        changeFromPresetToCustomBoxes(newBox, battleStore.battleOptions.mapOptions.startBoxesIndex)
+        changeFromPresetToCustomBoxes(newBox, battleStore.battleOptions.mapOptions.startBoxesIndex);
         return;
     }
 
@@ -305,9 +305,9 @@ function updateBoxInStore(newBox: StartBox) {
 }
 
 function changeFromPresetToCustomBoxes(newBox: StartBox, startBoxesIndex: number) {
-    
-    const currentStartBoxes =  battleStore.battleOptions.map?.startboxesSet.at(startBoxesIndex)?.startboxes.map((box) => spadsBoxToStartBox(box.poly)) || [];
-    
+    const currentStartBoxes =
+        battleStore.battleOptions.map?.startboxesSet.at(startBoxesIndex)?.startboxes.map((box) => spadsBoxToStartBox(box.poly)) || [];
+
     delete battleStore.battleOptions.mapOptions.startBoxesIndex;
     delete battleStore.battleOptions.mapOptions.customStartBoxes;
 
@@ -316,7 +316,6 @@ function changeFromPresetToCustomBoxes(newBox: StartBox, startBoxesIndex: number
     // Save back to the store with a new array reference to trigger reactivity
     battleStore.battleOptions.mapOptions.customStartBoxes = currentStartBoxes;
 }
-
 </script>
 
 <style lang="scss" scoped>
