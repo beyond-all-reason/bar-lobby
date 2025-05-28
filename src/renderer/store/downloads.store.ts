@@ -1,16 +1,16 @@
 import { DownloadInfo } from "@main/content/downloads";
 import { reactive } from "vue";
 
-export const downloadsStore = reactive({
-    isInitialized: false,
-    mapDownloads: [],
-    engineDownloads: [],
-    gameDownloads: [],
-} as {
+export const downloadsStore: {
     isInitialized: boolean;
     mapDownloads: DownloadInfo[];
     engineDownloads: DownloadInfo[];
     gameDownloads: DownloadInfo[];
+} = reactive({
+    isInitialized: false,
+    mapDownloads: [],
+    engineDownloads: [],
+    gameDownloads: [],
 });
 
 export function initDownloadsStore() {

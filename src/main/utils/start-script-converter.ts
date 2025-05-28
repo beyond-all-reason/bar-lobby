@@ -208,8 +208,8 @@ class StartScriptConverter {
     }
 
     protected parseGroups(obj: Record<string, any>): Game {
-        const game = {} as Game;
-        const allyteams: AllyTeam[] = [];
+        const game = {};
+        const allyTeams: AllyTeam[] = [];
         const teams: Team[] = [];
         const players: Player[] = [];
         const ais: Bot[] = [];
@@ -226,7 +226,7 @@ class StartScriptConverter {
                 val.id = Number(id);
 
                 if (groupKey === "allyteam") {
-                    allyteams.push(val);
+                    allyTeams.push(val);
                 } else if (groupKey === "team") {
                     teams.push(val);
                 } else if (groupKey === "player") {
@@ -244,7 +244,7 @@ class StartScriptConverter {
 
         return {
             ...game,
-            allyteams,
+            allyTeams,
             teams,
             players,
             ais,

@@ -57,7 +57,7 @@ export class ReplayContentAPI {
         }
         const replay = await asyncParseReplay(replayPath);
         await mapContentAPI.downloadMap(replay.mapSpringName);
-        gameAPI.launchReplay((await replay) as Replay);
+        gameAPI.launchReplay(await replay);
     }
 
     public async sync(replayFileNames: string[]) {

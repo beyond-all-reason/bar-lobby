@@ -8,7 +8,7 @@ async function init() {
     await mapContentAPI.init();
 }
 
-async function fetchAllMaps() {
+async function fetchAllMaps(): Promise<MapData[]> {
     const maps = await fetch("https://maps-metadata.beyondallreason.dev/latest/lobby_maps.validated.json");
     const mapsAsObject = await maps.json();
     const mapsAsArray = Object.values(mapsAsObject) as MapMetadata[];
@@ -17,7 +17,7 @@ async function fetchAllMaps() {
         return {
             ...map,
             isInstalled: mapContentAPI.isVersionInstalled(map.springName),
-        } as MapData;
+        };
     });
 }
 

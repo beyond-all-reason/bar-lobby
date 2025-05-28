@@ -3,16 +3,7 @@ import type { MapData } from "@main/content/maps/map-data";
 import type { GameType, Terrain } from "@main/content/maps/map-metadata";
 import { db } from "@renderer/store/db";
 
-export const mapsStore = reactive({
-    isInitialized: false,
-    filters: {
-        terrain: {},
-        gameType: {},
-        minPlayers: 2,
-        maxPlayers: 40,
-        favoritesOnly: false,
-    },
-} as {
+export const mapsStore: {
     isInitialized: boolean;
     filters: {
         terrain: Partial<Record<Terrain, boolean>>;
@@ -21,6 +12,15 @@ export const mapsStore = reactive({
         maxPlayers: number;
         favoritesOnly: boolean;
     };
+} = reactive({
+    isInitialized: false,
+    filters: {
+        terrain: {},
+        gameType: {},
+        minPlayers: 2,
+        maxPlayers: 40,
+        favoritesOnly: false,
+    },
 });
 
 export async function getRandomMap() {
