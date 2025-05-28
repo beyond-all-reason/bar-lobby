@@ -29,7 +29,7 @@ export function createWindow() {
         height: height,
         minWidth: 1280,
         minHeight: 720,
-        resizable: process.env.NODE_ENV === "development",
+        resizable: true,
         center: true,
         frame: false,
         autoHideMenuBar: true,
