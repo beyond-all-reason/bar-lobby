@@ -3,11 +3,7 @@
         <div v-if="battleStore.battleOptions.map" class="map" :style="aspectRatioDrivenStyle">
             <img loading="lazy" :src="mapTextureUrl" />
             <div v-if="battleStore.battleOptions.mapOptions.startPosType === StartPosType.Boxes && boxes" class="boxes">
-                <div v-for="(box, i) in boxes" :key="`box${i}`" v-startBox="box" class="box highlight">
-                    <div class="box-tooltip">
-                        <span>{{ i + 1 }}</span>
-                    </div>
-                </div>
+                <MapBattlePreviewStartBox v-for="(box, i) in boxes" v-startBox="box" :key="`box${i}`" :id="i" :box="box" />
             </div>
             <div
                 v-if="battleStore.battleOptions.mapOptions.startPosType in [StartPosType.Fixed, StartPosType.Random]"
@@ -50,6 +46,7 @@ import { battleStore } from "@renderer/store/battle.store";
 import { spadsBoxToStartBox } from "@renderer/utils/start-boxes";
 import { StartBox } from "tachyon-protocol/types";
 import { computed, defineComponent, ref, watch } from "vue";
+import MapBattlePreviewStartBox from "@renderer/components/maps/MapBattlePreviewStartBox.vue";
 
 defineComponent({
     directives: {
@@ -82,13 +79,13 @@ watch(
 );
 
 const boxes = computed<StartBox[]>(() => {
-    const startBoxIndex = battleStore.battleOptions.mapOptions.startBoxesIndex || 0;
-    if (startBoxIndex >= 0) {
+    const startBoxIndex = battleStore.battleOptions.mapOptions.startBoxesIndex;
+
+    if (startBoxIndex != undefined) {
         return startBoxes.value?.at(startBoxIndex)?.startboxes.map((box) => spadsBoxToStartBox(box.poly)) || [];
-    } else if (battleStore.battleOptions.mapOptions?.customStartBoxes) {
-        return battleStore.battleOptions.mapOptions?.customStartBoxes;
     }
-    return [];
+
+    return battleStore.battleOptions.mapOptions.customStartBoxes || [];
 });
 
 const aspectRatioDrivenStyle = computed(() => {
@@ -137,50 +134,6 @@ const rgbColors = [
     position: absolute;
     width: 100%;
     height: 100%;
-}
-
-.box {
-    position: absolute;
-    box-sizing: border-box;
-    // &:nth-child(1) {
-    //     background: rgba(23, 202, 32, 0.3);
-    // }
-}
-
-.box-tooltip {
-    height: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    color: white;
-    font-size: 1.5rem;
-}
-
-@keyframes subtleGlow {
-    0%,
-    100% {
-        box-shadow:
-            0 0 8px rgba(200, 200, 200, 0.4),
-            0 0 15px rgba(200, 200, 200, 0.3);
-        background-color: rgba(200, 200, 200, 0.1);
-    }
-    50% {
-        box-shadow:
-            0 0 15px rgba(200, 200, 200, 0.5),
-            0 0 25px rgba(200, 200, 200, 0.4);
-        background-color: rgba(200, 200, 200, 0.15);
-    }
-}
-
-.highlight {
-    border: 2px dashed rgba(255, 255, 255, 1);
-    box-shadow:
-        0 0 15px rgba(200, 200, 200, 0.5),
-        0 0 25px rgba(200, 200, 200, 0.4);
-    background-color: rgba(200, 200, 200, 0.15);
-    //animation: subtleGlow 1.5s infinite ease-in-out; // super resource intensive unfortunately
-    transition: all 0.2s ease;
-    will-change: width, height, top, left;
 }
 
 .start-positions {
