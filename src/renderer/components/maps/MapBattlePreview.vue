@@ -80,14 +80,12 @@ watch(
 
 const boxes = computed<StartBox[]>(() => {
     const startBoxIndex = battleStore.battleOptions.mapOptions.startBoxesIndex;
-    const customStartBoxes = battleStore.battleOptions.mapOptions.customStartBoxes || [];
 
     if (startBoxIndex != undefined) {
         return startBoxes.value?.at(startBoxIndex)?.startboxes.map((box) => spadsBoxToStartBox(box.poly)) || [];
-    } else if (customStartBoxes.length > 0) {
-        return customStartBoxes;
     }
-    return [];
+
+    return battleStore.battleOptions.mapOptions.customStartBoxes || [];
 });
 
 const aspectRatioDrivenStyle = computed(() => {
