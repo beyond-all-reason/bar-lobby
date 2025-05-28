@@ -29,7 +29,7 @@ export interface MultiplayerLaunchSettings {
 }
 
 export class GameAPI {
-    public onGameLaunched = new Signal();
+    public onGameLaunched = new Signal<void>();
     public onGameClosed: Signal<number | null> = new Signal();
     public readonly springName = "script.txt";
 

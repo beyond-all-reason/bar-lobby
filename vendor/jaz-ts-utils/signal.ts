@@ -14,9 +14,9 @@ export class Signal<T = any> {
         return binding;
     }
 
-    public dispatch(data?: T) {
+    public dispatch(data: T) {
         for (const binding of this.bindings) {
-            binding.execute(data as T);
+            binding.execute(data);
         }
     }
 
