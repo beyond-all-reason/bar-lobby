@@ -32,8 +32,9 @@ const config: Configuration = {
         artifactName: "${productName}-${version}-setup.${ext}",
         uninstallDisplayName: "${productName}",
         oneClick: true,
-        perMachine: true,
+        perMachine: false,
         allowToChangeInstallationDirectory: false,
+        include: "build/installer.nsh",
     },
 
     // Linux

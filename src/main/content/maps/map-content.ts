@@ -5,7 +5,7 @@ import { MapData } from "@main/content/maps/map-data";
 import { logger } from "@main/utils/logger";
 import { Signal } from "$/jaz-ts-utils/signal";
 import { PrDownloaderAPI } from "@main/content/pr-downloader";
-import { CONTENT_PATH } from "@main/config/app";
+import { MAPS_PATH } from "@main/config/app";
 import chokidar from "chokidar";
 import { UltraSimpleMapParser } from "$/map-parser/ultrasimple-map-parser";
 
@@ -21,7 +21,7 @@ export class MapContentAPI extends PrDownloaderAPI<string, MapData> {
     public readonly onMapAdded: Signal<string> = new Signal();
     public readonly onMapDeleted: Signal<string> = new Signal();
 
-    protected readonly mapsDir = path.join(CONTENT_PATH, "maps");
+    protected readonly mapsDir = MAPS_PATH;
     protected readonly mapCacheQueue: Set<string> = new Set();
     protected cachingMaps = false;
 

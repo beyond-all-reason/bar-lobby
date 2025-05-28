@@ -115,9 +115,13 @@ npm start
 - `npm run build:win`
     - Runs `npm run build` and `electron-builder`, building for Windows
     - Outputs NSIS installer in `dist`
+- `npm run buildall:win`
+    - Runs `npm run package` then runs `npm run build:win`.
 - `npm run build:linux`
     - Runs `npm run build` and `electron-builder`, building for Linux
     - Outputs AppImage executable in `dist`
+- `npm run buildall:linux`
+    - Runs `npm run package` then runs `npm run build:linux`.
 - `npm run build:unpack`
     - Runs `npm run build` and `electron-builder`, building an unpackaged directory
     - Outputs the unpacked contents in `dist`
