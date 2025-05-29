@@ -54,28 +54,28 @@ async function init() {
     console.debug("Received maps", [liveMaps, nonLiveMaps]);
 
     await Promise.allSettled(
-        liveMaps.map((map) => {
-            db.maps.get(map.springName).then((existingMap) => {
-                if (!existingMap) {
-                    return db.maps.put(map) as Promise<unknown>;
-                } else {
-                    //TODO this has a limitation. if a field change from defined to undefined it will not be updated.
-                    return db.maps.update(map.springName, { ...map, isDownloading: false }) as Promise<unknown>;
-                }
-            });
-        })
-    );
-
-    await Promise.allSettled(
-        nonLiveMaps.map((map) => {
-            db.nonLiveMaps.get(map.springName).then((existingMap) => {
-                if (!existingMap) {
-                    return db.nonLiveMaps.put(map) as Promise<unknown>;
-                } else {
-                    return db.nonLiveMaps.update(map.springName, { ...map }) as Promise<unknown>;
-                }
-            });
-        })
+        liveMaps
+            .map((map) => {
+                db.maps.get(map.springName).then((existingMap) => {
+                    if (!existingMap) {
+                        return db.maps.put(map) as Promise<unknown>;
+                    } else {
+                        //TODO this has a limitation. if a field change from defined to undefined it will not be updated.
+                        return db.maps.update(map.springName, { ...map, isDownloading: false }) as Promise<unknown>;
+                    }
+                });
+            })
+            .concat(
+                nonLiveMaps.map((map) => {
+                    db.nonLiveMaps.get(map.springName).then((existingMap) => {
+                        if (!existingMap) {
+                            return db.nonLiveMaps.put(map) as Promise<unknown>;
+                        } else {
+                            return db.nonLiveMaps.update(map.springName, { ...map, isDownloading: false }) as Promise<unknown>;
+                        }
+                    });
+                })
+            )
     );
 
     mapsStore.isInitialized = true;

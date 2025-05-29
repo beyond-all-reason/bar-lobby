@@ -21,13 +21,11 @@ async function fetchAllMaps(): Promise<[MapData[], MapDownloadData[]]> {
         } satisfies MapData;
     });
 
+    const liveMapsSet = new Set(liveMaps.map((m) => m.springName));
+
     const nonLiveMaps = Object.entries(mapContentAPI.mapNameFileNameLookup)
         .map(([springName]) => {
-            if (
-                liveMaps.some((m) => {
-                    return m.springName === springName;
-                })
-            ) {
+            if (liveMapsSet.has(springName)) {
                 return;
             }
 

@@ -126,7 +126,6 @@ import { useDexieLiveQueryWithDeps } from "@renderer/composables/useDexieLiveQue
 import ReplayPreview from "@renderer/components/battle/ReplayPreview.vue";
 import DownloadContentButton from "@renderer/components/controls/DownloadContentButton.vue";
 import { gameStore } from "@renderer/store/game.store";
-import { MapDownloadData } from "@main/content/maps/map-data";
 
 const endedNormally: Ref<boolean | null> = ref(true);
 const showSpoilers = ref(true);
@@ -159,9 +158,9 @@ let map = useDexieLiveQueryWithDeps([() => selectedReplay.value?.mapSpringName],
     let selected = selectedReplay.value;
     if (!selected) return;
 
-    let selectedMap = (await db.maps.get(selected.mapSpringName)) as MapDownloadData | undefined;
+    const [live, nonLive] = await Promise.all([db.maps.get(selected.mapSpringName), db.nonLiveMaps.get(selected.mapSpringName)]);
 
-    return selectedMap ?? db.nonLiveMaps.get(selected.mapSpringName);
+    return live ?? nonLive;
 });
 
 function onPage(event: DataTablePageEvent) {
