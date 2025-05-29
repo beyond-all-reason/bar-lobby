@@ -4,7 +4,7 @@ import { Configuration } from "electron-builder";
  * @see https://www.electron.build/configuration
  */
 const config: Configuration = {
-    appId: "BeyondAllReason",
+    appId: "info.beyondallreason.lobby",
     productName: "Beyond All Reason",
 
     asar: true,
