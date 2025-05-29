@@ -87,11 +87,10 @@ export class MapContentAPI extends PrDownloaderAPI<string, MapData> {
                 const pathBaseName = path.basename(filepath);
 
                 if (pathBaseName) {
-                    if (this.fileNameMapNameLookup[pathBaseName]) this.mapNameFileNameLookup[this.fileNameMapNameLookup[pathBaseName]] = undefined;
                     const springName = this.fileNameMapNameLookup[pathBaseName];
                     this.fileNameMapNameLookup[pathBaseName] = undefined;
-
                     if (springName) {
+                        this.mapNameFileNameLookup[springName] = undefined;
                         this.onMapDeleted.dispatch(springName);
                     }
                 }
