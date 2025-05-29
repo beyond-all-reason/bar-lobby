@@ -18,7 +18,7 @@ async function fetchAllMaps(): Promise<[MapData[], MapDownloadData[]]> {
         return {
             ...map,
             isInstalled: mapContentAPI.isVersionInstalled(map.springName),
-        };
+        } satisfies MapData;
     });
 
     const nonLiveMaps = (await mapContentAPI.scanFolderForMaps())
@@ -37,7 +37,7 @@ async function fetchAllMaps(): Promise<[MapData[], MapDownloadData[]]> {
                 springName: springName,
                 isDownloading: false,
                 isInstalled: mapContentAPI.isVersionInstalled(springName),
-            } as MapDownloadData;
+            } satisfies MapDownloadData;
         })
         .filter((v) => v != undefined);
 
