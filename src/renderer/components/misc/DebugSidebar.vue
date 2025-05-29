@@ -18,8 +18,8 @@
         />
         <Button to="/debug"> Debug Sandbox </Button>
         <Button @click="openSettings"> Open Settings File </Button>
-        <Button @click="openContentDir"> Open Content Dir </Button>
-        <Button @click="openConfigDir"> Open Config Dir </Button>
+        <Button @click="openAssetsDir"> Open Assets Dir </Button>
+        <Button @click="openStateDir"> Open State Dir </Button>
         <Button @click="openStartScript"> Open Latest Start Script </Button>
         <Button @click="openSyncLobbyContentTool"> Sync Lobby Content Tool </Button>
         <Button @click="causeError"> Cause an error </Button>
@@ -88,12 +88,12 @@ function openSettings() {
     window.shell.openSettingsFile();
 }
 
-async function openContentDir() {
-    window.shell.openContentDir();
+async function openAssetsDir() {
+    window.shell.openAssetsDir();
 }
 
-async function openConfigDir() {
-    window.shell.openConfigDir();
+async function openStateDir() {
+    window.shell.openStateDir();
 }
 
 async function openStartScript() {

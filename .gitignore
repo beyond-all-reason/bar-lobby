@@ -3,6 +3,10 @@ node_modules
 dist
 .vite
 
+# Game state+assets
+/assets*
+/state*
+
 # local env files
 .env.local
 .env.*.local

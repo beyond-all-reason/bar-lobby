@@ -9,3 +9,12 @@ export async function isFileInUse(filePath: string): Promise<boolean> {
         return true;
     }
 }
+
+export async function fileExists(filePath: string): Promise<boolean> {
+    try {
+        await fs.promises.access(filePath, fs.constants.F_OK);
+        return true;
+    } catch {
+        return false;
+    }
+}
