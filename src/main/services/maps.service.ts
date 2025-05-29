@@ -21,10 +21,8 @@ async function fetchAllMaps(): Promise<[MapData[], MapDownloadData[]]> {
         } satisfies MapData;
     });
 
-    const nonLiveMaps = (await mapContentAPI.scanFolderForMaps())
-        .map((filename) => {
-            const springName = mapContentAPI.fileNameMapNameLookup[filename];
-            if (springName == undefined) return;
+    const nonLiveMaps = Object.entries(mapContentAPI.mapNameFileNameLookup)
+        .map(([springName]) => {
             if (
                 liveMaps.some((m) => {
                     return m.springName === springName;

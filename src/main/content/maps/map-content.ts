@@ -125,12 +125,6 @@ export class MapContentAPI extends PrDownloaderAPI<string, MapData> {
         throw new Error("Method not implemented.");
     }
 
-    public async scanFolderForMaps() {
-        let mapFiles = await fs.promises.readdir(this.mapsDir);
-        mapFiles = mapFiles.filter((mapFile) => mapFile.endsWith("sd7"));
-        return mapFiles;
-    }
-
     public async uninstallVersion(version: MapData) {
         const mapFile = path.join(this.mapsDir, version.filename);
         await fs.promises.rm(mapFile, { force: true, recursive: true });
