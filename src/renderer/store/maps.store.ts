@@ -51,8 +51,7 @@ async function init() {
 
     const [liveMaps, nonLiveMaps] = await window.maps.fetchAllMaps();
 
-    console.debug("Received all live maps", liveMaps);
-    console.debug("Received all nonlive maps", nonLiveMaps);
+    console.debug("Received maps", [liveMaps, nonLiveMaps]);
 
     await Promise.allSettled(
         liveMaps.map((map) => {
