@@ -106,6 +106,14 @@ export async function downloadMap(springName: string) {
 
     if (!mapIsLive) {
         dbDelegate = db.nonLiveMaps;
+        const isInNonLiveDB = await db.nonLiveMaps.get(springName);
+        if (!isInNonLiveDB) {
+            db.nonLiveMaps.put({
+                springName: springName,
+                isDownloading: false,
+                isInstalled: false,
+            } satisfies MapDownloadData);
+        }
     }
 
     dbDelegate.update(springName, { isDownloading: true });
