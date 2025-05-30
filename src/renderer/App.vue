@@ -30,7 +30,7 @@
                     <template v-if="Component">
                         <Transition v-bind="route.meta.transition" mode="out-in">
                             <KeepAlive>
-                                <Suspense suspensible timeout="0">
+                                <Suspense timeout="0">
                                     <component :is="Component" />
                                     <template #fallback>
                                         <Loader />
