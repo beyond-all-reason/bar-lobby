@@ -78,6 +78,15 @@ async function init() {
             )
     );
 
+    // Refresh the nonLiveMaps
+    const nonLiveMapSet = new Set(nonLiveMaps.map((map) => map.springName));
+
+    (await db.nonLiveMaps.toArray())
+        .filter((map) => !nonLiveMapSet.has(map.springName))
+        .forEach((map) => {
+            db.nonLiveMaps.update(map.springName, { ...map, isInstalled: false });
+        });
+
     mapsStore.isInitialized = true;
 }
 
