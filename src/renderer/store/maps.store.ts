@@ -1,7 +1,8 @@
 import { reactive } from "vue";
-import type { MapData } from "@main/content/maps/map-data";
+import type { MapData, MapDownloadData } from "@main/content/maps/map-data";
 import type { GameType, Terrain } from "@main/content/maps/map-metadata";
 import { db } from "@renderer/store/db";
+import { EntityTable } from "dexie";
 
 export const mapsStore: {
     isInitialized: boolean;
@@ -37,28 +38,55 @@ export async function initMapsStore() {
 }
 
 async function init() {
-    window.maps.onMapAdded((filename: string) => {
-        console.debug("Received map added event", filename);
-        db.maps.where("filename").equals(filename).modify({ isInstalled: true });
+    window.maps.onMapAdded((springName: string) => {
+        console.debug("Received map added event", springName);
+        db.maps.where("springName").equals(springName).modify({ isInstalled: true });
+        db.nonLiveMaps.where("springName").equals(springName).modify({ isInstalled: true });
     });
-    window.maps.onMapDeleted((filename: string) => {
-        console.debug("Received map deleted event", filename);
-        db.maps.where("filename").equals(filename).modify({ isInstalled: false });
+    window.maps.onMapDeleted((springName: string) => {
+        console.debug("Received map deleted event", springName);
+        db.maps.where("springName").equals(springName).modify({ isInstalled: false });
+        db.nonLiveMaps.where("springName").equals(springName).modify({ isInstalled: false });
     });
-    const maps = await window.maps.fetchAllMaps();
-    console.debug("Received all maps", maps);
+
+    const [liveMaps, nonLiveMaps] = await window.maps.fetchAllMaps();
+
+    console.debug("Received maps", [liveMaps, nonLiveMaps]);
+
     await Promise.allSettled(
-        maps.map((map) => {
-            db.maps.get(map.springName).then((existingMap) => {
-                if (!existingMap) {
-                    return db.maps.put(map) as Promise<unknown>;
-                } else {
-                    //TODO this has a limitation. if a field change from defined to undefined it will not be updated.
-                    return db.maps.update(map.springName, { ...map }) as Promise<unknown>;
-                }
-            });
-        })
+        liveMaps
+            .map((map) => {
+                db.maps.get(map.springName).then((existingMap) => {
+                    if (!existingMap) {
+                        return db.maps.put(map) as Promise<unknown>;
+                    } else {
+                        //TODO this has a limitation. if a field change from defined to undefined it will not be updated.
+                        return db.maps.update(map.springName, { ...map, isDownloading: false }) as Promise<unknown>;
+                    }
+                });
+            })
+            .concat(
+                nonLiveMaps.map((map) => {
+                    db.nonLiveMaps.get(map.springName).then((existingMap) => {
+                        if (!existingMap) {
+                            return db.nonLiveMaps.put(map) as Promise<unknown>;
+                        } else {
+                            return db.nonLiveMaps.update(map.springName, { ...map, isDownloading: false }) as Promise<unknown>;
+                        }
+                    });
+                })
+            )
     );
+
+    // Refresh the nonLiveMaps
+    const nonLiveMapSet = new Set(nonLiveMaps.map((map) => map.springName));
+
+    (await db.nonLiveMaps.toArray())
+        .filter((map) => !nonLiveMapSet.has(map.springName))
+        .forEach((map) => {
+            db.nonLiveMaps.update(map.springName, { ...map, isInstalled: false });
+        });
+
     mapsStore.isInitialized = true;
 }
 
@@ -81,15 +109,31 @@ async function fetchMapImages(map: MapData) {
 }
 
 export async function downloadMap(springName: string) {
-    db.maps.update(springName, { isDownloading: true });
+    let dbDelegate: EntityTable<MapData, "springName"> | EntityTable<MapDownloadData, "springName"> = db.maps;
+
+    const mapIsLive = await db.maps.get(springName);
+
+    if (!mapIsLive) {
+        dbDelegate = db.nonLiveMaps;
+        const isInNonLiveDB = await db.nonLiveMaps.get(springName);
+        if (!isInNonLiveDB) {
+            db.nonLiveMaps.put({
+                springName: springName,
+                isDownloading: false,
+                isInstalled: false,
+            } satisfies MapDownloadData);
+        }
+    }
+
+    dbDelegate.update(springName, { isDownloading: true });
     await window.maps
         .downloadMap(springName)
         .then(() => {
-            db.maps.update(springName, { isInstalled: true, isDownloading: false });
+            dbDelegate.update(springName, { isInstalled: true, isDownloading: false });
         })
         .catch((error) => {
             console.error("Failed to download map", error);
-            db.maps.update(springName, { isDownloading: false });
+            dbDelegate.update(springName, { isDownloading: false });
         });
 }
 
