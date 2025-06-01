@@ -8,6 +8,7 @@ import { PrDownloaderAPI } from "@main/content/pr-downloader";
 import { MAPS_PATH } from "@main/config/app";
 import chokidar from "chokidar";
 import { UltraSimpleMapParser } from "$/map-parser/ultrasimple-map-parser";
+import { removeFromArray } from "$/jaz-ts-utils/object";
 
 const log = logger("map-content.ts");
 
@@ -74,8 +75,8 @@ export class MapContentAPI extends PrDownloaderAPI<string, MapData> {
                 this.getMapNameFromFile(filename).then((mapName) => {
                     this.mapNameFileNameLookup[mapName] = filename;
                     this.fileNameMapNameLookup[filename] = mapName;
+                    this.onMapAdded.dispatch(mapName);
                 });
-                this.onMapAdded.dispatch(filename);
             })
             .on("unlink", (filepath) => {
                 if (!filepath.endsWith("sd7")) {
@@ -86,10 +87,12 @@ export class MapContentAPI extends PrDownloaderAPI<string, MapData> {
                 const pathBaseName = path.basename(filepath);
 
                 if (pathBaseName) {
-                    if (this.fileNameMapNameLookup[pathBaseName]) this.mapNameFileNameLookup[this.fileNameMapNameLookup[pathBaseName]] = undefined;
+                    const springName = this.fileNameMapNameLookup[pathBaseName];
                     this.fileNameMapNameLookup[pathBaseName] = undefined;
-
-                    this.onMapDeleted.dispatch(pathBaseName);
+                    if (springName) {
+                        this.mapNameFileNameLookup[springName] = undefined;
+                        this.onMapDeleted.dispatch(springName);
+                    }
                 }
             });
     }
@@ -114,17 +117,12 @@ export class MapContentAPI extends PrDownloaderAPI<string, MapData> {
             });
         }
         const downloadInfo = await this.downloadContent("map", springName);
+        removeFromArray(this.currentDownloads, downloadInfo);
         this.onDownloadComplete.dispatch(downloadInfo);
     }
 
     public async attemptCacheErrorMaps() {
         throw new Error("Method not implemented.");
-    }
-
-    public async scanFolderForMaps() {
-        let mapFiles = await fs.promises.readdir(this.mapsDir);
-        mapFiles = mapFiles.filter((mapFile) => mapFile.endsWith("sd7"));
-        return mapFiles;
     }
 
     public async uninstallVersion(version: MapData) {

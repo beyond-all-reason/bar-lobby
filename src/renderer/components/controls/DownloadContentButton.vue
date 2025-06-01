@@ -13,13 +13,13 @@
 </template>
 
 <script lang="ts" setup>
-import { MapData } from "@main/content/maps/map-data";
+import { MapDownloadData } from "@main/content/maps/map-data";
 import Button from "@renderer/components/controls/Button.vue";
 import { downloadMap } from "@renderer/store/maps.store";
 import { ButtonProps } from "primevue/button";
 
 export interface Props extends /* @vue-ignore */ ButtonProps {
-    map: MapData;
+    map: MapDownloadData;
     disabled?: boolean;
     class?: string;
     onClick?: (event: MouseEvent) => void;
