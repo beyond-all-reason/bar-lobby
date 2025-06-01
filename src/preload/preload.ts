@@ -37,8 +37,8 @@ export type MainWindowApi = typeof mainWindowApi;
 contextBridge.exposeInMainWorld("mainWindow", mainWindowApi);
 
 const shellApi = {
-    openConfigDir: (): Promise<string> => ipcRenderer.invoke("shell:openConfigDir"),
-    openContentDir: (): Promise<string> => ipcRenderer.invoke("shell:openContentDir"),
+    openStateDir: (): Promise<string> => ipcRenderer.invoke("shell:openStateDir"),
+    openAssetsDir: (): Promise<string> => ipcRenderer.invoke("shell:openAssetsDir"),
     openSettingsFile: (): Promise<string> => ipcRenderer.invoke("shell:openSettingsFile"),
     openStartScript: (): Promise<string> => ipcRenderer.invoke("shell:openStartScript"),
     openReplaysDir: (): Promise<string> => ipcRenderer.invoke("shell:openReplaysDir"),
