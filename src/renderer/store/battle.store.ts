@@ -54,7 +54,7 @@ watch(
     battleStore,
     (battle) => {
         Object.assign(_battleWithMetadataStore, battle);
-        _battleWithMetadataStore.participants = battle.teams.flatMap(team => team.participants);
+        _battleWithMetadataStore.participants = battle.teams.flatMap((team) => team.participants);
         _battleWithMetadataStore.bots = _battleWithMetadataStore.participants.filter((participant) => "aiShortName" in participant);
         _battleWithMetadataStore.players = _battleWithMetadataStore.participants.filter((participant) => "user" in participant);
         if (battle.started && !_battleWithMetadataStore.startTime) _battleWithMetadataStore.startTime = new Date();
@@ -75,7 +75,6 @@ function removeFromSpectators(participant: Player) {
 }
 
 function removeTeam(teamId: number) {
-
     if (!battleStore.teams[teamId]) {
         console.error(`Trying to remove team with teamId=${teamId}`, "Teams:", battleStore.teams);
         return;
@@ -83,7 +82,7 @@ function removeTeam(teamId: number) {
 
     const teamParticipants = battleStore.teams[teamId].participants;
 
-    teamParticipants.map((participant) => isPlayer(participant) ? movePlayerToSpectators(participant as Player) : removeBot(participant));
+    teamParticipants.map((participant) => (isPlayer(participant) ? movePlayerToSpectators(participant as Player) : removeBot(participant)));
 
     battleStore.teams.splice(teamId, 1);
 }
@@ -110,7 +109,7 @@ function addTeam() {
     }
 
     const newTeams = [...battleStore.teams];
-    
+
     // Find the index where this team should go or replace
     const existingIndex = newTeams.findIndex((team) => team.id === newTeamId);
 
@@ -125,12 +124,12 @@ function addTeam() {
     // Sort teams by ID for consistency
     newTeams.sort((a, b) => a.id - b.id);
 
-    newTeams.forEach(team => team.maxParticipants = maxParticipants / newTeams.length)
+    newTeams.forEach((team) => (team.maxParticipants = maxParticipants / newTeams.length));
 
     // Update the teams array
     battleStore.teams = newTeams;
 
-    console.log(battleStore.teams)
+    console.log(battleStore.teams);
 
     return newTeamId;
 }
@@ -255,7 +254,7 @@ function updateTeams() {
     const maxPlayersPerTeam = getMaxPlayersPerTeam();
 
     console.log("numberOfTeams:", numberOfTeams, "maxPlayersPerTeam:", maxPlayersPerTeam, "battleStore.teams.length:", battleStore.teams.length);
-    
+
     // Try to keep players on the same team, then fill the other teams, then move extra players to spectators
 
     // Adjust number of teams
@@ -269,12 +268,10 @@ function updateTeams() {
         }
     }
 
-    battleStore.teams = battleStore.teams.map(team => {
+    battleStore.teams = battleStore.teams.map((team) => {
         team.maxParticipants = maxPlayersPerTeam;
         return team;
     });
-
-
 
     // Remove extra players/bots from teams
     // for (const [index, team] of battleStore.teams.entries()) {
@@ -360,7 +357,6 @@ function defaultOfflineBattle(engine?: EngineVersion, game?: GameVersion, map?: 
         name: "AI 1",
         aiShortName: barbAi?.shortName || "BARb",
     } satisfies Bot;
-
 
     battle.teams[1].participants.push(defaultBot);
 
