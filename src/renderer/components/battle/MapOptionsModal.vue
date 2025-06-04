@@ -86,7 +86,7 @@ import { Ref, ref, watch, computed } from "vue";
 import Modal from "@renderer/components/common/Modal.vue";
 import Button from "@renderer/components/controls/Button.vue";
 import Range from "@renderer/components/controls/Range.vue";
-import { battleStore } from "@renderer/store/battle.store";
+import { battleStore, battleActions } from "@renderer/store/battle.store";
 import { StartBoxOrientation, StartPosType } from "@main/game/battle/battle-types";
 import MapBattlePreview from "@renderer/components/maps/MapBattlePreview.vue";
 import { getBoxes } from "@renderer/utils/start-boxes";
@@ -137,6 +137,8 @@ function addCustomBox() {
         if (lastBox == undefined) return;
         battleStore.battleOptions.mapOptions.customStartBoxes = [...customBoxes, lastBox];
     }
+
+    if (battleStore.teams.length < customBoxes.length + 1) battleActions.addTeam();
 }
 
 function deleteCustomBox(boxId: number) {
@@ -148,6 +150,8 @@ function deleteCustomBox(boxId: number) {
         const newBoxes = customBoxes.filter((_, index) => index !== boxId);
         battleStore.battleOptions.mapOptions.customStartBoxes = newBoxes;
     }
+
+    battleActions.removeTeam(boxId);
 }
 
 function setFixedPositions(index: number) {

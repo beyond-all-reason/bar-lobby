@@ -47,7 +47,7 @@ import BotParticipant from "@renderer/components/battle/BotParticipant.vue";
 import PlayerParticipant from "@renderer/components/battle/PlayerParticipant.vue";
 import Button from "@renderer/components/controls/Button.vue";
 import { Bot, isBot, isPlayer, isRaptor, isScavenger, Player, StartPosType } from "@main/game/battle/battle-types";
-import { battleWithMetadataStore } from "@renderer/store/battle.store";
+import { battleActions, battleWithMetadataStore } from "@renderer/store/battle.store";
 
 const props = defineProps<{
     teamId: number;
@@ -60,15 +60,7 @@ const memberCount = computed(() => {
 
 const maxPlayersPerTeam = computed(() => {
     if (!battleWithMetadataStore.battleOptions.map) return 1;
-    if (battleWithMetadataStore.battleOptions.mapOptions.startPosType === StartPosType.Boxes)
-        return battleWithMetadataStore.battleOptions.map.startboxesSet[
-            battleWithMetadataStore.battleOptions.mapOptions.startBoxesIndex || 0
-        ]?.maxPlayersPerStartbox;
-    if (battleWithMetadataStore.battleOptions.mapOptions.startPosType in [StartPosType.Fixed, StartPosType.Random])
-        return battleWithMetadataStore.battleOptions.map.startPos?.team?.[
-            battleWithMetadataStore.battleOptions.mapOptions.fixedPositionsIndex ?? 0
-        ].playersPerTeam;
-    return 1;
+    return battleActions.getMaxPlayersPerTeam();
 });
 
 function isRaptorTeam(teamId: number) {
