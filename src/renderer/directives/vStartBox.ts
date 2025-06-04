@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2025 The BAR Lobby Authors
+//
+// SPDX-License-Identifier: MIT
+
 import { StartBox } from "tachyon-protocol/types";
 import { DirectiveBinding, Directive } from "vue";
 

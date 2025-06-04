@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2025 The BAR Lobby Authors
+//
+// SPDX-License-Identifier: MIT
+
 import { DownloadInfo } from "@main/content/downloads";
 import { reactive } from "vue";
 

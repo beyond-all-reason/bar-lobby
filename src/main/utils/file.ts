@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2025 The BAR Lobby Authors
+//
+// SPDX-License-Identifier: MIT
+
 import fs from "fs";
 
 export async function isFileInUse(filePath: string): Promise<boolean> {

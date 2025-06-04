@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2025 The BAR Lobby Authors
+
+SPDX-License-Identifier: MIT
+-->
+
 // a news feed component that displays the latest news from this rss feed https://www.beyondallreason.info/microblogs/rss.xml
 <template>
     <div class="fullheight fullwidth flex-col">

@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2025 The BAR Lobby Authors
+//
+// SPDX-License-Identifier: MIT
+
 import { DemoParser } from "$/sdfz-demo-parser";
 import { Replay } from "@main/content/replays/replay";
 import path from "path";

@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2025 The BAR Lobby Authors
+
+SPDX-License-Identifier: MIT
+-->
+
 <template>
     <div class="progress" :class="{ themed: themed, pulse: pulsating }" :style="percentStr">
         <div class="progress__bar" :style="`height: ${height}px`">

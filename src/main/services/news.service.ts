@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2025 The BAR Lobby Authors
+//
+// SPDX-License-Identifier: MIT
+
 import { extract, FeedData, FeedEntry } from "@extractus/feed-extractor";
 import { FetchDevlogRssFeed, FetchNewsRssFeed } from "@main/services/type";
 import { logger } from "@main/utils/logger";

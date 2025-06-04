@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2025 The BAR Lobby Authors
+
+SPDX-License-Identifier: MIT
+-->
+
 <template>
     <Modal v-model="isVisible" title="Fatal Error" class="error-modal">
         <div class="flex-col gap-md">

@@ -1,3 +1,10 @@
+<!--
+SPDX-FileCopyrightText: 2015 Daniel Cardoso <@DanielCardoso>
+SPDX-FileCopyrightText: 2025 The BAR Lobby Authors
+
+SPDX-License-Identifier: MIT
+-->
+
 <template>
     <div :class="{ fullsize: absolutePosition, 'flex-center': absolutePosition }">
         <div class="loader la-ball-clip-rotate-multiple">

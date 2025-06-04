@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2025 The BAR Lobby Authors
+
+SPDX-License-Identifier: MIT
+-->
+
 <template>
     <Button :class="activeClasses" v-bind="$attrs" @click="onClick">
         <template v-if="modelValue">{{ onText }}</template>

@@ -1,4 +1,11 @@
 <!--
+SPDX-FileCopyrightText: 2023 PrimeTek
+SPDX-FileCopyrightText: 2025 The BAR Lobby Authors
+
+SPDX-License-Identifier: MIT
+-->
+
+<!--
     Makes the onInputBlur event only emit an update if the new value is different
 -->
 

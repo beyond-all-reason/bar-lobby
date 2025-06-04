@@ -1,3 +1,8 @@
+// SPDX-FileCopyrightText: 2022 Régis Lemaigre
+// SPDX-FileCopyrightText: 2025 The BAR Lobby Authors
+//
+// SPDX-License-Identifier: MIT
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // inspired by https://github.com/rlemaigre/vue3-promise-dialog
 

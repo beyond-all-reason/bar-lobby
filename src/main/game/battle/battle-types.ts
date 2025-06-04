@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2025 The BAR Lobby Authors
+//
+// SPDX-License-Identifier: MIT
+
 import { MapData } from "@main/content/maps/map-data";
 import { User } from "@main/model/user";
 import { StartBox } from "tachyon-protocol/types";

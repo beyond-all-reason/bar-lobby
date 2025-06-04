@@ -1,3 +1,10 @@
+<!--
+SPDX-FileCopyrightText: 2023 Giannis Koutsaftakis
+SPDX-FileCopyrightText: 2025 The BAR Lobby Authors
+
+SPDX-License-Identifier: MIT
+-->
+
 <template>
     <div v-bind="attrsStyles">
         <slot name="prepend"></slot>

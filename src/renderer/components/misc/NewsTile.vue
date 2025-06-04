@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2025 The BAR Lobby Authors
+
+SPDX-License-Identifier: MIT
+-->
+
 <template>
     <div class="news-tile" :class="{ featured }" @click="openNews">
         <div class="title">{{ news.title?.replace(" ⇀ News ★ Beyond All Reason RTS", "") }}</div>

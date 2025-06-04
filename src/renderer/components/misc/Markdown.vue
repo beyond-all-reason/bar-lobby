@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2025 The BAR Lobby Authors
+
+SPDX-License-Identifier: MIT
+-->
+
 <template>
     <!-- eslint-disable-next-line vue/no-v-html -->
     <div class="text" v-html="processedText"></div>
