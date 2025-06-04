@@ -1,0 +1,16 @@
+version = 1
+
+[[annotations]]
+# We don't consider the top level configuration files copyrightable in any way
+path = [
+	".*",
+	"package*.json",
+	"tsconfig.json",
+	"test/tsconfig.json",
+	"vitest.config.mts",
+	"worker-configuration.d.ts",
+	"wrangler.jsonc",
+]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "NONE"
+SPDX-License-Identifier = "CC0-1.0"
