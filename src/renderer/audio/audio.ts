@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2025 The BAR Lobby Authors
+//
+// SPDX-License-Identifier: MIT
+
 import { Settings } from "@main/services/settings.service";
 import { musicFiles, sfxFiles } from "@renderer/assets/assetFiles";
 import { gameStore } from "@renderer/store/game.store";

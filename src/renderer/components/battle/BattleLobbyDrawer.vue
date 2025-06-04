@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2025 The BAR Lobby Authors
+
+SPDX-License-Identifier: MIT
+-->
+
 <template>
     <div class="lobby-drawer" :class="{ 'is-open': battleStore.isLobbyOpened }">
         <Panel class="panel" no-padding>

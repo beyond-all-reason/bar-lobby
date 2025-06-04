@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2025 The BAR Lobby Authors
+
+SPDX-License-Identifier: MIT
+-->
+
 <template>
     <Modal style="height: 80vh; width: 90vw; max-width: 1400px">
         <OfflineBattleComponent />

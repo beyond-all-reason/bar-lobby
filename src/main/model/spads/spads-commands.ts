@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2025 The BAR Lobby Authors
+//
+// SPDX-License-Identifier: MIT
+
 import { Type } from "@sinclair/typebox";
 import { DeepReadonly } from "vue";
 import { SpadsCommandDefinition } from "./spads-types";

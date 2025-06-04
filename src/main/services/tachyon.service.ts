@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2025 The BAR Lobby Authors
+//
+// SPDX-License-Identifier: MIT
+
 import { accountService } from "@main/services/account.service";
 import { TachyonClient, TachyonClientRequestHandlers } from "@main/tachyon/tachyon-client";
 import { logger } from "@main/utils/logger";

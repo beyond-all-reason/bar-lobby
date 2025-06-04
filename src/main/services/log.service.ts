@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2025 The BAR Lobby Authors
+//
+// SPDX-License-Identifier: MIT
+
 import { ipcMain } from "@main/typed-ipc";
 import { LOGS_PATH } from "@main/config/app";
 import path from "path";

@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2025 The BAR Lobby Authors
+//
+// SPDX-License-Identifier: MIT
+
 import { Ref } from "vue";
 import { useRouter } from "vue-router";
 import { onKeyDown } from "@vueuse/core";

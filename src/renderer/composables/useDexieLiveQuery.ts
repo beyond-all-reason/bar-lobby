@@ -1,5 +1,9 @@
+// SPDX-FileCopyrightText: 2023 Weiss (https://github.com/devweissmikhail)
+//
+// SPDX-License-Identifier: MIT
+// SPDX-FileAttributionText: https://github.com/devweissmikhail/useDexieLiveQuery/blob/main/useDexieLiveQuery.ts
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
-// https://github.com/devweissmikhail/useDexieLiveQuery/blob/main/useDexieLiveQuery.ts
 import { liveQuery, type Subscription } from "dexie";
 import { shallowRef, getCurrentScope, onScopeDispose, watch, type ShallowRef, type WatchOptions } from "vue";
 
