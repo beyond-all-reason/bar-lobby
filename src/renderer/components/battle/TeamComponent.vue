@@ -22,7 +22,7 @@
             <!-- <Button v-if="showJoin" class="slim black" @click="onJoinClicked(teamId)">Join</Button> -->
         </div>
         <div
-            v-for="member in battleWithMetadataStore.teams[teamId]"
+            v-for="member in battleWithMetadataStore.teams[teamId].participants"
             :key="member.id"
             :draggable="!isRaptorTeam(teamId) && !isScavengerTeam(teamId)"
             @dragstart="onDragStart($event, member)"
@@ -55,7 +55,7 @@ const props = defineProps<{
 const title = isScavengerTeam(props.teamId) ? "Scavengers" : isRaptorTeam(props.teamId) ? "Raptors" : "Team " + (Number(props.teamId) + 1);
 
 const memberCount = computed(() => {
-    return battleWithMetadataStore.teams[props.teamId]?.length || 0;
+    return battleWithMetadataStore.teams[props.teamId]?.participants.length || 0;
 });
 
 const maxPlayersPerTeam = computed(() => {
@@ -72,10 +72,10 @@ const maxPlayersPerTeam = computed(() => {
 });
 
 function isRaptorTeam(teamId: number) {
-    return battleWithMetadataStore.teams[teamId].some((member) => isBot(member) && isRaptor(member));
+    return battleWithMetadataStore.teams[teamId].participants.some((member) => isBot(member) && isRaptor(member));
 }
 function isScavengerTeam(teamId: number) {
-    return battleWithMetadataStore.teams[teamId].some((member) => isBot(member) && isScavenger(member));
+    return battleWithMetadataStore.teams[teamId]?.participants.some((member) => isBot(member) && isScavenger(member));
 }
 
 function getAmountOfJoinButtons(maxPlayersPerTeam: number | undefined, memberCount: number) {

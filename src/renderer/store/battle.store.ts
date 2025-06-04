@@ -53,7 +53,7 @@ watch(
     battleStore,
     (battle) => {
         Object.assign(_battleWithMetadataStore, battle);
-        _battleWithMetadataStore.participants = Object.values(battle.teams).flat();
+        _battleWithMetadataStore.participants = battle.teams.flatMap(team => team.participants);
         _battleWithMetadataStore.bots = _battleWithMetadataStore.participants.filter((participant) => "aiShortName" in participant);
         _battleWithMetadataStore.players = _battleWithMetadataStore.participants.filter((participant) => "user" in participant);
         if (battle.started && !_battleWithMetadataStore.startTime) _battleWithMetadataStore.startTime = new Date();
@@ -63,9 +63,8 @@ watch(
 
 // Actions
 function removeFromTeams(participant: Player | Bot) {
-    // new array for each team to avoid modifying while iterating
     battleStore.teams = battleStore.teams.map((team) => {
-        return team.filter((p) => p.id !== participant.id);
+        return { id: team.id, maxParticipants: team.maxParticipants, participants: team.participants.filter((p) => p.id !== participant.id) };
     });
 }
 
@@ -77,7 +76,7 @@ function removeFromSpectators(participant: Player) {
 function addBot(ai: EngineAI | GameAI, teamId: number) {
     if (!battleStore.me) throw new Error("failed to access current player");
 
-    battleStore.teams[teamId].push({
+    battleStore.teams[teamId].participants.push({
         id: participantId++,
         name: ai.name,
         aiOptions: {},
@@ -95,7 +94,7 @@ function duplicateBot(bot: Bot, teamId: number) {
         ...bot,
         id: participantId++,
     };
-    battleStore.teams[teamId].push(newBot);
+    battleStore.teams[teamId].participants.push(newBot);
 }
 
 function updateBotOptions(bot: Bot, options: Record<string, unknown>) {
@@ -112,8 +111,8 @@ function updateBotOptions(bot: Bot, options: Record<string, unknown>) {
 function movePlayerToTeam(player: Player, teamId: number) {
     removeFromTeams(player);
     removeFromSpectators(player);
-    if (!battleStore.teams[teamId]) battleStore.teams[teamId] = [];
-    battleStore.teams[teamId].push(player);
+    if (!battleStore.teams[teamId]) addTeam();
+    battleStore.teams[teamId].participants.push(player);
 }
 
 function movePlayerToSpectators(player: Player) {
@@ -124,8 +123,8 @@ function movePlayerToSpectators(player: Player) {
 
 function moveBotToTeam(bot: Bot, teamId: number) {
     removeFromTeams(bot);
-    if (!battleStore.teams[teamId]) battleStore.teams[teamId] = [];
-    battleStore.teams[teamId].push(bot);
+    if (!battleStore.teams[teamId]) addTeam();
+    battleStore.teams[teamId].participants.push(bot);
 }
 
 function getNumberOfTeams(): number {
@@ -251,7 +250,10 @@ function defaultOfflineBattle(engine?: EngineVersion, game?: GameVersion, map?: 
             },
             restrictions: [],
         },
-        teams: [[], []], // Maybe make a Team interface with maxPlayersPerTeam or fetch that info from the map
+        teams: [
+            { id: 0, maxParticipants: Math.floor(mapsStore.filters.maxPlayers / 2), participants: [] },
+            { id: 1, maxParticipants: Math.floor(mapsStore.filters.maxPlayers / 2), participants: [] },
+        ],
         spectators: [],
         started: false,
     };
@@ -269,15 +271,21 @@ function defaultOfflineBattle(engine?: EngineVersion, game?: GameVersion, map?: 
     };
 
     battle.me = mePlayer;
-    battle.teams[0].push(mePlayer);
-    battle.teams[1].push({
+
+    battle.teams[0].participants.push(mePlayer);
+
+    const defaultBot = {
         id: participantId++,
         host: mePlayer.id,
         aiOptions: {},
         faction: Faction.Armada,
         name: "AI 1",
         aiShortName: barbAi?.shortName || "BARb",
-    } satisfies Bot);
+    } satisfies Bot;
+
+
+    battle.teams[1].participants.push(defaultBot);
+
     return battle;
 }
 
@@ -303,7 +311,7 @@ watch(
             // iterate over the map id, team to find the user's team
             battle.teams.forEach((team, teamId) => {
                 if (
-                    team.find((participant) => {
+                    team.participants.find((participant) => {
                         return participant && "user" in participant && participant.user.userId === me.userId;
                     })
                 ) {
