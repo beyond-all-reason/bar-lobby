@@ -129,8 +129,6 @@ function addTeam() {
     // Update the teams array
     battleStore.teams = newTeams;
 
-    console.log(battleStore.teams);
-
     return newTeamId;
 }
 
@@ -253,16 +251,10 @@ function updateTeams() {
     const numberOfTeams = getNumberOfTeams();
     const maxPlayersPerTeam = getMaxPlayersPerTeam();
 
-    console.log("numberOfTeams:", numberOfTeams, "maxPlayersPerTeam:", maxPlayersPerTeam, "battleStore.teams.length:", battleStore.teams.length);
-
-    // Try to keep players on the same team, then fill the other teams, then move extra players to spectators
-
     // Adjust number of teams
     if (battleStore.teams.length < numberOfTeams) {
         addTeams(numberOfTeams - battleStore.teams.length);
     } else if (battleStore.teams.length > numberOfTeams) {
-        console.log("battleStore.teams.length:", battleStore.teams.length, "numberOfTeams:", numberOfTeams);
-
         for (let i = battleStore.teams.length - 1; i + 1 > numberOfTeams; i--) {
             removeTeam(i);
         }
@@ -272,38 +264,6 @@ function updateTeams() {
         team.maxParticipants = maxPlayersPerTeam;
         return team;
     });
-
-    // Remove extra players/bots from teams
-    // for (const [index, team] of battleStore.teams.entries()) {
-    //     const raptorsOrScavengers = team.find((participant) => isBot(participant) && (isRaptor(participant) || isScavenger(participant)));
-    //     if (raptorsOrScavengers) {
-    //         extraParticipants.push(...team.filter((participant) => !isBot(participant) || (!isRaptor(participant) && !isScavenger(participant))));
-    //         battleStore.teams[index] = [raptorsOrScavengers];
-    //     } else if (index >= numberOfTeams) {
-    //         extraParticipants.push(...team);
-    //     } else if (team.length > maxPlayersPerTeam) {
-    //         extraParticipants = [...extraParticipants, ...team.slice(maxPlayersPerTeam)];
-    //         team.splice(0, maxPlayersPerTeam);
-    //     }
-    // }
-
-    // Add extra players/bots to teams where they fit
-    // for (const team of battleStore.teams.values()) {
-    //     // Don't fill scav/raptor team
-    //     if (team.some((participant) => isBot(participant) && (isRaptor(participant) || isScavenger(participant)))) return;
-
-    //     if (team.length < maxPlayersPerTeam && extraParticipants.length > 0) {
-    //         const numberOfPlayersToAdd = maxPlayersPerTeam - team.length;
-    //         team.push(...extraParticipants.splice(0, numberOfPlayersToAdd));
-    //     }
-    // }
-
-    // Move any remaining players to spectators and delete remaining bots
-    // if (extraParticipants.length > 0) {
-    //     extraParticipants.forEach((participant) => {
-    //         if (isPlayer(participant)) movePlayerToSpectators(participant);
-    //     });
-    // }
 }
 
 function defaultOfflineBattle(engine?: EngineVersion, game?: GameVersion, map?: MapData) {
