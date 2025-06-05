@@ -7,7 +7,7 @@ export interface Battle {
     isOnline: boolean;
     battleOptions: BattleOptions;
     me?: Player;
-    teams: Array<Array<Player | Bot>>;
+    teams: Array<Team>;
     spectators: Player[];
     started: boolean;
 }
@@ -129,6 +129,12 @@ export type Bot = {
     advantage?: number;
     incomeMultiplier?: number;
     color?: string;
+};
+
+export type Team = {
+    id: number;
+    maxParticipants: number;
+    participants: Array<Player | Bot>;
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

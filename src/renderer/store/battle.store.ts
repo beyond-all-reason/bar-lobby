@@ -1,9 +1,10 @@
 import { EngineAI, EngineVersion } from "@main/content/engine/engine-version";
 import { GameAI, GameVersion } from "@main/content/game/game-version";
 import { MapData } from "@main/content/maps/map-data";
-import { Battle, BattleWithMetadata, Bot, Faction, GameModeType, isBot, isPlayer, isRaptor, isScavenger, Player, StartPosType } from "@main/game/battle/battle-types";
+import { Battle, BattleWithMetadata, Bot, Faction, GameModeType, isBot, isPlayer, isRaptor, isScavenger, Player, StartPosType, Team } from "@main/game/battle/battle-types";
 import { enginesStore } from "@renderer/store/engine.store";
 import { gameStore } from "@renderer/store/game.store";
+import { mapsStore } from "@renderer/store/maps.store";
 import { getRandomMap } from "@renderer/store/maps.store";
 import { me } from "@renderer/store/me.store";
 import { deepToRaw } from "@renderer/utils/deep-toraw";
@@ -53,7 +54,7 @@ watch(
     battleStore,
     (battle) => {
         Object.assign(_battleWithMetadataStore, battle);
-        _battleWithMetadataStore.participants = Object.values(battle.teams).flat();
+        _battleWithMetadataStore.participants = battle.teams.flatMap((team) => team.participants);
         _battleWithMetadataStore.bots = _battleWithMetadataStore.participants.filter((participant) => "aiShortName" in participant);
         _battleWithMetadataStore.players = _battleWithMetadataStore.participants.filter((participant) => "user" in participant);
         if (battle.started && !_battleWithMetadataStore.startTime) _battleWithMetadataStore.startTime = new Date();
@@ -63,9 +64,8 @@ watch(
 
 // Actions
 function removeFromTeams(participant: Player | Bot) {
-    // new array for each team to avoid modifying while iterating
     battleStore.teams = battleStore.teams.map((team) => {
-        return team.filter((p) => p.id !== participant.id);
+        return { id: team.id, maxParticipants: team.maxParticipants, participants: team.participants.filter((p) => p.id !== participant.id) };
     });
 }
 
@@ -74,10 +74,72 @@ function removeFromSpectators(participant: Player) {
     if (index !== -1) battleStore.spectators.splice(index, 1);
 }
 
+function removeTeam(teamId: number) {
+    if (!battleStore.teams[teamId]) {
+        console.error(`Trying to remove team with teamId=${teamId}`, "Teams:", battleStore.teams);
+        return;
+    }
+
+    const teamParticipants = battleStore.teams[teamId].participants;
+
+    teamParticipants.map((participant) => (isPlayer(participant) ? movePlayerToSpectators(participant as Player) : removeBot(participant)));
+
+    battleStore.teams.splice(teamId, 1);
+}
+
+function addTeam() {
+    // Find the maximum team ID
+    const maxTeamId = battleStore.teams.reduce((maxId, team) => Math.max(maxId, team.id), -1);
+
+    // Create a new team with an incremented ID
+    const newTeamId = maxTeamId + 1;
+
+    // Calculate max participants based on map's max players divided by team count
+    const maxParticipants = getMaxPlayersPerTeam();
+
+    const newTeam = {
+        id: newTeamId,
+        maxParticipants,
+        participants: [],
+    };
+
+    // Check if we're potentially overriding an existing team
+    if (battleStore.teams.some((team) => team.id === newTeamId)) {
+        console.warn("Overriding existing team");
+    }
+
+    const newTeams = [...battleStore.teams];
+
+    // Find the index where this team should go or replace
+    const existingIndex = newTeams.findIndex((team) => team.id === newTeamId);
+
+    if (existingIndex >= 0) {
+        // Replace existing team
+        newTeams[existingIndex] = newTeam;
+    } else {
+        // Add new team
+        newTeams.push(newTeam);
+    }
+
+    // Sort teams by ID for consistency
+    newTeams.sort((a, b) => a.id - b.id);
+
+    newTeams.forEach((team) => (team.maxParticipants = maxParticipants / newTeams.length));
+
+    // Update the teams array
+    battleStore.teams = newTeams;
+
+    return newTeamId;
+}
+
+function addTeams(amount: number) {
+    for (let i = 0; i < amount; i++) addTeam();
+}
+
 function addBot(ai: EngineAI | GameAI, teamId: number) {
     if (!battleStore.me) throw new Error("failed to access current player");
 
-    battleStore.teams[teamId].push({
+    battleStore.teams[teamId].participants.push({
         id: participantId++,
         name: ai.name,
         aiOptions: {},
@@ -95,7 +157,7 @@ function duplicateBot(bot: Bot, teamId: number) {
         ...bot,
         id: participantId++,
     };
-    battleStore.teams[teamId].push(newBot);
+    battleStore.teams[teamId].participants.push(newBot);
 }
 
 function updateBotOptions(bot: Bot, options: Record<string, unknown>) {
@@ -112,8 +174,8 @@ function updateBotOptions(bot: Bot, options: Record<string, unknown>) {
 function movePlayerToTeam(player: Player, teamId: number) {
     removeFromTeams(player);
     removeFromSpectators(player);
-    if (!battleStore.teams[teamId]) battleStore.teams[teamId] = [];
-    battleStore.teams[teamId].push(player);
+    if (!battleStore.teams[teamId]) addTeam();
+    battleStore.teams[teamId].participants.push(player);
 }
 
 function movePlayerToSpectators(player: Player) {
@@ -124,8 +186,8 @@ function movePlayerToSpectators(player: Player) {
 
 function moveBotToTeam(bot: Bot, teamId: number) {
     removeFromTeams(bot);
-    if (!battleStore.teams[teamId]) battleStore.teams[teamId] = [];
-    battleStore.teams[teamId].push(bot);
+    if (!battleStore.teams[teamId]) addTeam();
+    battleStore.teams[teamId].participants.push(bot);
 }
 
 function getNumberOfTeams(): number {
@@ -136,11 +198,11 @@ function getNumberOfTeams(): number {
     if (!map) throw new Error("failed to access battle options map");
 
     if (battleStore.battleOptions.mapOptions.startPosType === StartPosType.Boxes) {
-        const startBoxIndex = battleStore.battleOptions.mapOptions.startBoxesIndex || 0;
+        const startBoxIndex = battleStore.battleOptions.mapOptions.startBoxesIndex;
 
-        if (startBoxIndex >= 0) {
+        if (startBoxIndex != undefined) {
             const startBoxes = map.startboxesSet[startBoxIndex];
-            numberOfTeams = startBoxes.startboxes.length || 0;
+            numberOfTeams = startBoxes.startboxes.length;
         } else if (battleStore.battleOptions.mapOptions.customStartBoxes) {
             numberOfTeams = battleStore.battleOptions.mapOptions.customStartBoxes.length;
         }
@@ -164,11 +226,13 @@ function getMaxPlayersPerTeam() {
     if (!map) throw new Error("failed to access battle options map");
 
     if (battleStore.battleOptions.mapOptions.startPosType === StartPosType.Boxes) {
-        const startBoxIndex = battleStore.battleOptions.mapOptions.startBoxesIndex || 0;
+        const startBoxIndex = battleStore.battleOptions.mapOptions.startBoxesIndex;
 
-        if (startBoxIndex >= 0) {
+        if (startBoxIndex != undefined) {
             const startBoxes = map.startboxesSet[startBoxIndex];
-            maxPlayersPerTeam = startBoxes.maxPlayersPerStartbox || 0;
+            maxPlayersPerTeam = startBoxes.maxPlayersPerStartbox;
+        } else if (battleStore.battleOptions.mapOptions.customStartBoxes) {
+            maxPlayersPerTeam = Math.round(map.playerCountMax / battleStore.battleOptions.mapOptions.customStartBoxes.length);
         }
     }
 
@@ -187,49 +251,19 @@ function updateTeams() {
     const numberOfTeams = getNumberOfTeams();
     const maxPlayersPerTeam = getMaxPlayersPerTeam();
 
-    // Try to keep players on the same team, then fill the other teams, then move extra players to spectators
-
     // Adjust number of teams
-    let extraParticipants: Array<Player | Bot> = [];
     if (battleStore.teams.length < numberOfTeams) {
-        const teamsToAdd = numberOfTeams - battleStore.teams.length;
-        battleStore.teams = [...battleStore.teams, ...new Array(teamsToAdd).fill([])];
+        addTeams(numberOfTeams - battleStore.teams.length);
     } else if (battleStore.teams.length > numberOfTeams) {
-        extraParticipants = [...extraParticipants, ...battleStore.teams.slice(numberOfTeams).flat()];
-        battleStore.teams = [...battleStore.teams.slice(0, numberOfTeams)];
-    }
-
-    // Remove extra players/bots from teams
-    for (const [index, team] of battleStore.teams.entries()) {
-        const raptorsOrScavengers = team.find((participant) => isBot(participant) && (isRaptor(participant) || isScavenger(participant)));
-        if (raptorsOrScavengers) {
-            extraParticipants.push(...team.filter((participant) => !isBot(participant) || (!isRaptor(participant) && !isScavenger(participant))));
-            battleStore.teams[index] = [raptorsOrScavengers];
-        } else if (index >= numberOfTeams) {
-            extraParticipants.push(...team);
-        } else if (team.length > maxPlayersPerTeam) {
-            extraParticipants = [...extraParticipants, ...team.slice(maxPlayersPerTeam)];
-            team.splice(0, maxPlayersPerTeam);
+        for (let i = battleStore.teams.length - 1; i + 1 > numberOfTeams; i--) {
+            removeTeam(i);
         }
     }
 
-    // Add extra players/bots to teams where they fit
-    for (const team of battleStore.teams.values()) {
-        // Don't fill scav/raptor team
-        if (team.some((participant) => isBot(participant) && (isRaptor(participant) || isScavenger(participant)))) return;
-
-        if (team.length < maxPlayersPerTeam && extraParticipants.length > 0) {
-            const numberOfPlayersToAdd = maxPlayersPerTeam - team.length;
-            team.push(...extraParticipants.splice(0, numberOfPlayersToAdd));
-        }
-    }
-
-    // Move any remaining players to spectators and delete remaining bots
-    if (extraParticipants.length > 0) {
-        extraParticipants.forEach((participant) => {
-            if (isPlayer(participant)) movePlayerToSpectators(participant);
-        });
-    }
+    battleStore.teams = battleStore.teams.map((team) => {
+        team.maxParticipants = maxPlayersPerTeam;
+        return team;
+    });
 }
 
 function defaultOfflineBattle(engine?: EngineVersion, game?: GameVersion, map?: MapData) {
@@ -251,7 +285,10 @@ function defaultOfflineBattle(engine?: EngineVersion, game?: GameVersion, map?: 
             },
             restrictions: [],
         },
-        teams: [[], []], // Maybe make a Team interface with maxPlayersPerTeam or fetch that info from the map
+        teams: [
+            { id: 0, maxParticipants: Math.floor(mapsStore.filters.maxPlayers / 2), participants: [] },
+            { id: 1, maxParticipants: Math.floor(mapsStore.filters.maxPlayers / 2), participants: [] },
+        ],
         spectators: [],
         started: false,
     };
@@ -269,15 +306,20 @@ function defaultOfflineBattle(engine?: EngineVersion, game?: GameVersion, map?: 
     };
 
     battle.me = mePlayer;
-    battle.teams[0].push(mePlayer);
-    battle.teams[1].push({
+
+    battle.teams[0].participants.push(mePlayer);
+
+    const defaultBot = {
         id: participantId++,
         host: mePlayer.id,
         aiOptions: {},
         faction: Faction.Armada,
         name: "AI 1",
         aiShortName: barbAi?.shortName || "BARb",
-    } satisfies Bot);
+    } satisfies Bot;
+
+    battle.teams[1].participants.push(defaultBot);
+
     return battle;
 }
 
@@ -303,7 +345,7 @@ watch(
             // iterate over the map id, team to find the user's team
             battle.teams.forEach((team, teamId) => {
                 if (
-                    team.find((participant) => {
+                    team.participants.find((participant) => {
                         return participant && "user" in participant && participant.user.userId === me.userId;
                     })
                 ) {
@@ -473,6 +515,9 @@ export const battleActions = {
     movePlayerToTeam,
     movePlayerToSpectators,
     moveBotToTeam,
+    addTeam,
+    addTeams,
+    removeTeam,
     addBot,
     removeBot,
     duplicateBot,
@@ -482,6 +527,7 @@ export const battleActions = {
     resetToDefaultBattle,
     leaveLobby: leaveBattle,
     loadGameMode,
+    getMaxPlayersPerTeam,
 };
 
 // Needs game files to exists.
