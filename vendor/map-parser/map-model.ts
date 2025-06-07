@@ -1,3 +1,9 @@
+// SPDX-FileCopyrightText: 2023 Jazcash
+// SPDX-FileCopyrightText: 2025 The BAR Lobby Authors
+//
+// SPDX-License-Identifier: MIT
+// SPDX-FileAttributionText: Original code from https://github.com/beyond-all-reason/map-parser
+
 export type MapInfo = {
     fileName: string;
     springName: string;
