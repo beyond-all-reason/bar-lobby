@@ -13,6 +13,7 @@ path = [
 	"electron-builder*",
 	".vscode/*",
 	"vendor/README.md",
+	"AUTHORS",
 ]
 precedence = "aggregate"
 SPDX-FileCopyrightText = "NONE"
