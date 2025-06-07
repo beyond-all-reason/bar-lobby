@@ -1,3 +1,9 @@
+// SPDX-FileCopyrightText: 2024 Jazcash
+// SPDX-FileCopyrightText: 2025 The BAR Lobby Authors
+//
+// SPDX-License-Identifier: MIT AND Unlicense
+// SPDX-FileAttributionText: Original code from https://github.com/beyond-all-reason/demo-parser
+
 // https://github.com/spring/spring/blob/develop/rts/Net/Protocol/NetMessageTypes.h
 // https://github.com/spring/spring/blob/develop/rts/Net/Protocol/BaseNetProtocol.cpp
 // https://github.com/spring/spring/blob/develop/rts/Sim/Units/CommandAI/Command.h

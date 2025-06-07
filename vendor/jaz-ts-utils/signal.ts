@@ -1,3 +1,9 @@
+// SPDX-FileCopyrightText: 2024 Jazcash
+// SPDX-FileCopyrightText: 2025 The BAR Lobby Authors
+//
+// SPDX-License-Identifier: MIT AND Unlicense
+// SPDX-FileAttributionText: Original code from https://github.com/Jazcash/jaz-ts-utils
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export class Signal<T = any> {
     public bindings: Array<SignalBinding<T>> = [];
