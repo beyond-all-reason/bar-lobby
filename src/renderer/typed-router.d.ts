@@ -1,7 +1,3 @@
-// SPDX-FileCopyrightText: 2025 The BAR Lobby Authors
-//
-// SPDX-License-Identifier: MIT
-
 /* eslint-disable */
 /* prettier-ignore */
 // @ts-nocheck
