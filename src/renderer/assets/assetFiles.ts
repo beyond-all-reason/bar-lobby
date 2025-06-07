@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2025 The BAR Lobby Authors
+//
+// SPDX-License-Identifier: MIT
+
 // This returns an object with relative path and url of the files
 // i.e. { "./audio/music/track1.mp3": "/path/to/track1.mp3" }
 // The value could be an url or a data: url. Check out sfxFiles in production app for example

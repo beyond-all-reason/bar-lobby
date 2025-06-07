@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2025 The BAR Lobby Authors
+//
+// SPDX-License-Identifier: MIT
+
 import { parseLuaTable } from "@main/utils/parse-lua-table";
 import { expect, test } from "vitest";
 

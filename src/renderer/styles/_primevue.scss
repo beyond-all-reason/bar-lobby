@@ -1,3 +1,9 @@
+/*
+ * SPDX-FileCopyrightText: 2025 The BAR Lobby Authors
+ *
+ * SPDX-License-Identifier: MIT
+ */
+
 /**
     For now, we're using this file to globally override PrimeVue component styles because extending PrimeVue
     components causes issues with typings due to PrimeVue components being Vue 2 and we're using Vue 3,

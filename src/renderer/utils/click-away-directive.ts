@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2025 The BAR Lobby Authors
+//
+// SPDX-License-Identifier: MIT
+
 // https://vuejs.org/guide/reusability/custom-directives.html#introduction
 
 import { Directive, DirectiveBinding } from "vue";
