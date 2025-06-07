@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2025 The BAR Lobby Authors
+//
+// SPDX-License-Identifier: MIT
+
 import type { ChildProcess } from "child_process";
 import { spawn } from "child_process";
 import * as fs from "fs";

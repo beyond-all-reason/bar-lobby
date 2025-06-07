@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2025 The BAR Lobby Authors
+
+SPDX-License-Identifier: MIT
+-->
+
 <route lang="json5">
 { meta: { title: "Server", order: 3, transition: { name: "slide-left" } } }
 </route>

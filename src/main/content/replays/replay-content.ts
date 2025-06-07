@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2025 The BAR Lobby Authors
+//
+// SPDX-License-Identifier: MIT
+
 import { Signal } from "$/jaz-ts-utils/signal";
 import { REPLAYS_PATH } from "@main/config/app";
 import { mapContentAPI } from "@main/content/maps/map-content";

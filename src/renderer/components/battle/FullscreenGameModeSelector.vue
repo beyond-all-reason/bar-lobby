@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2025 The BAR Lobby Authors
+
+SPDX-License-Identifier: MIT
+-->
+
 <template>
     <div class="fullscreen" :class="{ hidden: !battleStore.isSelectingGameMode }" @click="battleStore.isSelectingGameMode = false">
         <div class="gamemode-container">

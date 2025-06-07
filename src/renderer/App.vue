@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2025 The BAR Lobby Authors
+
+SPDX-License-Identifier: MIT
+-->
+
 <template>
     <div v-if="settingsStore.isInitialized" id="wrapper" class="wrapper fullsize">
         <transition mode="in-out" name="intro">

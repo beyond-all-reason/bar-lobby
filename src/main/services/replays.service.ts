@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2025 The BAR Lobby Authors
+//
+// SPDX-License-Identifier: MIT
+
 import { Replay } from "@main/content/replays/replay";
 import { replayContentAPI } from "@main/content/replays/replay-content";
 import { ipcMain, BarIpcWebContents } from "@main/typed-ipc";

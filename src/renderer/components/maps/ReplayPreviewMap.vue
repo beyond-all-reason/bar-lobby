@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2025 The BAR Lobby Authors
+
+SPDX-License-Identifier: MIT
+-->
+
 <template>
     <div class="map-container" :style="{ aspectRatio: mapTextureUrl ? 'auto' : 1 }">
         <div v-if="mapTextureUrl" class="map">

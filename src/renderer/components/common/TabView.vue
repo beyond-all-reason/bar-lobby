@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2025 The BAR Lobby Authors
+
+SPDX-License-Identifier: MIT
+-->
+
 <template>
     <PrimeVueTabView v-bind="$attrs">
         <template v-for="(_, name) in $slots" #[name]="slotData">

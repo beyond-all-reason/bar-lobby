@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2025 The BAR Lobby Authors
+
+SPDX-License-Identifier: MIT
+-->
+
 <template>
     <Modal :title="title" style="height: 80vh; width: 80vw; max-width: 1440px">
         <div class="layout">

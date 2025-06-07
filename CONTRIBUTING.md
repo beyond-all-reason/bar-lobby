@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2025 The BAR Lobby Authors
+
+SPDX-License-Identifier: CC0-1.0
+-->
+
 # How to Contribute
 
 Thank you for your interest in contributing to BAR Lobby! Everything in Beyond All Reason is done by volunteers, and we need help to ensure that the project progresses.

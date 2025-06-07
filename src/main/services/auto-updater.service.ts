@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2025 The BAR Lobby Authors
+//
+// SPDX-License-Identifier: MIT
+
 import { app } from "electron";
 import electronUpdater from "electron-updater";
 const { autoUpdater } = electronUpdater;

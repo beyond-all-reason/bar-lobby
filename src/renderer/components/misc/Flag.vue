@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2025 The BAR Lobby Authors
+
+SPDX-License-Identifier: MIT
+-->
+
 <template>
     <div class="flex-col flex-center">
         <div v-if="countryCode && countryCode !== '??'" :class="`flag fi fi-${countryCode.toLowerCase()}`" />

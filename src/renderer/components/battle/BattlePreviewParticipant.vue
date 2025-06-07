@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2025 The BAR Lobby Authors
+
+SPDX-License-Identifier: MIT
+-->
+
 <template>
     <div class="contender" :class="{ color: Boolean(color) }">
         <Flag v-if="'countryCode' in contender" class="flag" :countryCode="contender.countryCode" />

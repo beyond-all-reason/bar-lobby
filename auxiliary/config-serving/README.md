@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2025 The BAR Lobby Authors
+
+SPDX-License-Identifier: CC0-1.0
+-->
+
 # Config serving
 
 Cloudflare Worker service hosting lobby config at https://lobby-config.beyondallreason.dev/config.json

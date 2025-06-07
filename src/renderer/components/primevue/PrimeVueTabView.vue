@@ -1,4 +1,11 @@
 <!--
+SPDX-FileCopyrightText: 2023 PrimeTek
+SPDX-FileCopyrightText: 2025 The BAR Lobby Authors
+
+SPDX-License-Identifier: MIT
+-->
+
+<!--
     Implements:
     - https://github.com/primefaces/primevue/pull/3086
     - https://github.com/primefaces/primevue/pull/3627

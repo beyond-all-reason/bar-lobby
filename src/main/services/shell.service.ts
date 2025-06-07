@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2025 The BAR Lobby Authors
+//
+// SPDX-License-Identifier: MIT
+
 import { CONFIG_PATH, DATA_PATH, REPLAYS_PATH } from "@main/config/app";
 
 import { shell } from "electron";

@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2025 The BAR Lobby Authors
+//
+// SPDX-License-Identifier: MIT
+
 import { settingsService } from "@main/services/settings.service";
 
 export const OAUTH_CLIENT_ID = "generic_lobby";

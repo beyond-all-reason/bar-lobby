@@ -1,3 +1,9 @@
+// SPDX-FileCopyrightText: 2024 Jazcash
+// SPDX-FileCopyrightText: 2025 The BAR Lobby Authors
+//
+// SPDX-License-Identifier: MIT AND Unlicense
+// SPDX-FileAttributionText: Original code from https://github.com/beyond-all-reason/demo-parser
+
 import { promises as fs } from "fs";
 import * as path from "path";
 

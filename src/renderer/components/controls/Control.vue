@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2025 The BAR Lobby Authors
+
+SPDX-License-Identifier: MIT
+-->
+
 <template>
     <div ref="control" class="control" :class="{ disabled }" @mouseenter="onMouseEnter" @click.self="focus">
         <div v-if="label" class="label" @click="focus">{{ label }}</div>
