@@ -11,7 +11,8 @@ path = [
 	"vite*",
 	"prettier*",
 	"electron-builder*",
-	".vscode/*"
+	".vscode/*",
+	"vendor/README.md",
 ]
 precedence = "aggregate"
 SPDX-FileCopyrightText = "NONE"
