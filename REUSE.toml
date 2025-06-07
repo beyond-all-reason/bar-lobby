@@ -19,17 +19,20 @@ SPDX-FileCopyrightText = "NONE"
 SPDX-License-Identifier = "CC0-1.0"
 
 [[annotations]]
-path = [
-	"src/renderer/assets/fonts/Poppins-*.ttf"
-]
+path = ["src/renderer/assets/fonts/Poppins-*.ttf"]
 precedence = "aggregate"
 SPDX-FileCopyrightText = "2020 The Poppins Project Authors (https://github.com/itfoundry/Poppins)"
 SPDX-License-Identifier = "OFL-1.1"
 
 [[annotations]]
-path = [
-	"src/renderer/assets/fonts/Rajdhani-*.ttf"
-]
+path = ["src/renderer/assets/fonts/Rajdhani-*.ttf"]
 precedence = "aggregate"
 SPDX-FileCopyrightText = "2014 Indian Type Foundry (info@indiantypefoundry.com)"
 SPDX-License-Identifier = "OFL-1.1"
+
+[[annotations]]
+# Let's tread all the language translation files as a single aggregate with license (we apply MIT, alternative would be CC-BY-SA-4.0)
+path = ["src/renderer/assets/languages/*.json"]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2025 The BAR Lobby Authors"
+SPDX-License-Identifier = "MIT"
