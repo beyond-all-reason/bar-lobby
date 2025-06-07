@@ -1,7 +1,14 @@
-// @ts-nocheck
+// SPDX-FileCopyrightText: 2018-2025 Mykhailo Onikiienko
+// SPDX-FileCopyrightText: 2025 The BAR Lobby Authors
+//
+// SPDX-License-Identifier: MIT
+// SPDX-FileAttributionText: <text>
+// Adapted from the 7zip-min library https://github.com/onikienko/7zip-min
+// with modifications to work with asar enabled electron apps
+// (`.replace('app.asar', 'app.asar.unpacked');`)
+// </text>
 
-// https://github.com/onikienko/7zip-min/blob/master/index.js
-// with a fix for using this with asar `.replace('app.asar', 'app.asar.unpacked');`
+// @ts-nocheck
 
 'use strict';
 
