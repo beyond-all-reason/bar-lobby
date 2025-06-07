@@ -1,0 +1,105 @@
+                     IFOPE Public License Agreement
+              The International Flag of Planet Earth (IFOPE)
+
+License
+
+THE INTERNATIONAL FLAG OF PLANET EARTH (THE “WORK”) IS PROVIDED UNDER THE TERMS
+OF THIS IFOPE PUBLIC LICENSE (“LICENSE”) BY THE INTERNATIONAL FLAG OF PLANET
+EARTH ORGANIZATION. THE WORK IS PROTECTED BY COPYRIGHT. ANY USE OF THE WORK
+OTHER THAN AS AUTHORIZED UNDER THIS LICENSE OR COPYRIGHT LAW IS PROHIBITED.
+
+BY EXERCISING ANY RIGHTS TO THE WORK PROVIDED HERE, YOU ACCEPT AND AGREE TO THE
+TERMS OF THIS LICENSE.
+
+1. Allowable Uses.
+
+The intended use rights (“Intentions”) are:
+
+  a) to represent the astronomical body of planet Earth; not a business,
+     organization, brand, community or individual; thus no trademark/logotype
+     is accepted (see Restrictions below).
+  b) to honor the original Work; thus no changes to the emblem design or colors
+     are allowed, however the rectangular shape of the design may vary
+     depending on the use.
+
+2. License Grant
+
+Subject to the terms and conditions of this License, Licensor hereby grants You
+a world-wide, royalty-free, non-exclusive, perpetual (for the duration of the
+applicable copyright and provided you follow the terms of this License) license
+to exercise the rights in the Work as stated below:
+
+  a) to reproduce, publicly display, publicly perform and distribute the Work
+     for private and commercial purposes and to incorporate the Work into your
+     creative projects (subject to the restrictions below), in line with the
+     Intentions and without alterations of the emblem and the colors of the
+     work;
+  b) to change the shape of the Work depending on the use, in line with the
+     Intentions and while keeping the emblem and colors intact.
+
+The above rights may be exercised in all media and formats whether now known or
+hereafter devised. The above rights include the right to make such
+modifications as are technically necessary to exercise the rights in other
+media and formats, and the right to incorporate the Work into your own creative
+works in line with the Intentions but otherwise you have no rights to make
+derivative works. No alterations to the emblem or colors are allowed.
+
+All rights not expressly granted by Licensor are hereby reserved.
+
+3. Restrictions
+
+The license granted above is expressly made subject to and limited by the
+following restrictions:
+
+  a) You may not use the Work as a personal or business trademark/logo and must
+     refrain from any other use than mentioned Intentions above.
+  b) You may not offer or impose any terms on the Work that alter or restrict
+     the terms of this License or the recipients’ exercise of the rights
+     granted hereunder.
+  c) You may not sublicense the Work.
+  d) You may not reproduce, distribute, publicly display, or publicly perform,
+     the Work with any technological measures that control access or use of the
+     Work in a manner inconsistent with the terms of this License Agreement.
+
+4. Disclaimer of warranties and limitation on liability.
+
+LICENSOR PROVIDES THE WORK ‘AS IS’ WITHOUT AND EXPRESSLY DISCLAIMS ANY
+REPRESENTATIONS, WARRANTIES, COVENANTS, OR CONDITIONS OF ANY KIND (EXPRESS OR
+IMPLIED, STATUTORY OR OTHERWISE), INCLUDING, BUT NOT LIMITED TO, WARRANTIES OF
+MERCHANTABILITY, TITLE, FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT.
+EXCEPT TO THE EXTENT REQUIRED BY APPLICABLE LAW, IN NO EVENT WILL LICENSOR BE
+LIABLE TO YOU ON ANY LEGAL THEORY FOR ANY SPECIAL, INDIRECT, INCIDENTAL,
+CONSEQUENTIAL, PUNITIVE OR EXEMPLARY DAMAGES ARISING OUT OF THIS LICENSE OR THE
+USE OF THE WORK, EVEN IF LICENSOR HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH
+DAMAGES. IN NO EVENT SHALL LICENSOR’S TOTAL LIABILITY IN CONNECTION WITH THIS
+LICENSE EXCEED $1.
+
+5. Termination
+
+  a) This License and the rights granted hereunder will terminate automatically
+     upon any breach by You of the terms of this License. Individuals or
+     entities who have received creative works from You under this License,
+     however, will not have their licenses terminated, provided such
+     individuals or entities remain in full compliance with those licenses.
+  b) Subject to the above terms and conditions, the license granted here is
+     perpetual (for the duration of the applicable copyright in the Work).
+     Notwithstanding the above, Licensor reserves the right to release the Work
+     under different license terms or to stop distributing the Work at any
+     time; provided, however that any such election will not serve to withdraw
+     this License (or any other license that has been, or is required to be,
+     granted under the terms of this License), and this License will continue
+     in full force and effect unless terminated as stated above.
+
+6. Miscellaneous
+
+  a) If any provision of this License is invalid or unenforceable under
+     applicable law, it shall not affect the validity or enforceability of the
+     remainder of the terms of this License, and without further action by the
+     parties to this agreement, such provision shall be reformed to the minimum
+     extent necessary to make such provision valid and enforceable.
+  b) This License constitutes the agreement between the parties with respect to
+     the Work licensed here. The Licensor shall not be bound by any provisions
+     that may appear in any communication from You. This License may not be
+     modified.
+  c) In the event of a dispute arising under this License, you agree to the
+     exclusive jurisdiction of the courts located in Colorado, USA.
