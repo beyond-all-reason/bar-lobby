@@ -132,8 +132,6 @@ export type Bot = {
 };
 
 export type Team = {
-    id: number;
-    maxParticipants: number;
     participants: Array<Player | Bot>;
 };
 
