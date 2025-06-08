@@ -87,8 +87,8 @@ function removeTeam(teamId: number) {
 
     battleStore.teams.splice(teamId, 1);
 
-    // If it is a special AI (scavengers or raptors), 
-    // it should go in its own team 
+    // If it is a special AI (scavengers or raptors),
+    // it should go in its own team
     // so we separate it from the rest of the participants
     if (scavengersOrRaptorsIndex) scavengersOrRaptors = participants.splice(scavengersOrRaptorsIndex, 1) as Array<Bot>;
 
@@ -114,7 +114,7 @@ function removeTeam(teamId: number) {
         } else {
             battleStore.teams = [...battleStore.teams, { participants: scavengersOrRaptors } as Team];
         }
-    };
+    }
 }
 
 function addTeam() {
