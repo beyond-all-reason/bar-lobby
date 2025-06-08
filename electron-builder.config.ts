@@ -5,7 +5,9 @@ import { Configuration } from "electron-builder";
  */
 const config: Configuration = {
     appId: "info.beyondallreason.lobby",
-    productName: "Beyond All Reason",
+    // Should be the same as APP_NAME in src/main/config/app.ts and in
+    // workaround in installer.nsh.
+    productName: "BeyondAllReason",
 
     asar: true,
     disableDefaultIgnoredFiles: true,
@@ -30,7 +32,8 @@ const config: Configuration = {
     },
     nsis: {
         artifactName: "${productName}-${version}-setup.${ext}",
-        uninstallDisplayName: "${productName}",
+        uninstallDisplayName: "Beyond All Reason",
+        shortcutName: "Beyond All Reason",
         oneClick: true,
         perMachine: false,
         allowToChangeInstallationDirectory: false,

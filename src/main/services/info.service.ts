@@ -1,11 +1,11 @@
 import { app, screen, BrowserWindow } from "electron";
 import { ipcMain } from "@main/typed-ipc";
 import os from "os";
-import { CONFIG_PATH, DATA_PATH } from "@main/config/app";
+import { STATE_PATH, ASSETS_PATH } from "@main/config/app";
 
 export type Info = {
-    contentPath: string;
-    configPath: string;
+    statePath: string;
+    assetsPath: string;
     lobby: {
         name: string;
         version: string;
@@ -27,8 +27,8 @@ function getInfo() {
     const networkInterfaces = os.networkInterfaces();
     const defaultNetworkInterface = networkInterfaces["Ethernet"]?.[0] ?? Object.values(networkInterfaces)[0]?.[0];
     const info: Info = {
-        contentPath: DATA_PATH,
-        configPath: CONFIG_PATH,
+        statePath: STATE_PATH,
+        assetsPath: ASSETS_PATH,
         lobby: {
             name: "BAR Lobby",
             version: app.getVersion(),

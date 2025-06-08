@@ -16,9 +16,10 @@ import { LuaOptionSection } from "@main/content/game/lua-options";
 import { Scenario } from "@main/content/game/scenario";
 import { SdpFileMeta, SdpFile } from "@main/content/game/sdp";
 import { PrDownloaderAPI } from "@main/content/pr-downloader";
-import { GAME_VERSIONS_GZ_PATH, PACKAGE_PATH, GAME_PATH, POOL_PATH, SCENARIO_IMAGE_PATH } from "@main/config/app";
+import { RAPID_INDEX_PATH, PACKAGE_PATH, GAME_PATHS, POOL_PATH, SCENARIO_IMAGE_PATH } from "@main/config/app";
 import { GetScenarios } from "@main/content/game/type";
 import { PoolCdnDownloader } from "@main/content/game/pool-cdn";
+import { fileExists } from "@main/utils/file";
 
 const log = logger("game-content.ts");
 const gunzip = util.promisify(zlib.gunzip);
@@ -34,11 +35,12 @@ export class GameContentAPI extends PrDownloaderAPI<string, GameVersion> {
         return this;
     }
 
-    // Reading all existing game versions from GAME_VERSIONS_GZ_PATH so
+    // Reading all existing game versions from rapid versions index so
     // we can easily check if a version is installed from its md5
     protected async initLookupTables() {
         try {
-            const versionsGz = await fs.promises.readFile(GAME_VERSIONS_GZ_PATH);
+            const versionsGzPath = path.join(RAPID_INDEX_PATH, contentSources.rapid.host, contentSources.rapid.game, "versions.gz");
+            const versionsGz = await fs.promises.readFile(versionsGzPath);
             const versions = await promisify(zlib.gunzip)(versionsGz);
             const versionsStr = versions.toString().trim();
             const versionsParts = versionsStr.split("\n");
@@ -83,28 +85,36 @@ export class GameContentAPI extends PrDownloaderAPI<string, GameVersion> {
 
     // Load local/custom game files from .sdd folders in the games directory
     protected async scanLocalGames() {
-        const gamesDir = GAME_PATH;
-        if (fs.existsSync(gamesDir)) {
-            const allfiles = await fs.promises.readdir(gamesDir, { withFileTypes: true });
-            const dirs = allfiles.filter((file) => (file.isDirectory() || file.isSymbolicLink()) && file.name.endsWith(".sdd"));
-            log.info(`Found ${dirs.length} local game versions`);
-            for (const dir of dirs) {
-                log.info(`-- Version ${dir.name}`);
-                try {
-                    const modOptionsLua = await fs.promises.readFile(path.join(gamesDir, dir.name, "modoptions.lua"));
-                    const luaOptionSections = parseLuaOptions(modOptionsLua);
-                    const aiInfoLua = await fs.promises.readFile(path.join(gamesDir, dir.name, "luaai.lua"));
-                    const ais = await this.parseAis(aiInfoLua);
-                    const gameVersion = dir.name;
-                    this.availableVersions.set(gameVersion, {
-                        gameVersion,
-                        packageMd5: dir.name, // kinda hacky since this doesn't have a packageMd5
-                        luaOptionSections,
-                        ais,
-                    });
-                } catch (err) {
-                    console.error(err);
+        async function* findLocalGames() {
+            // We apply toReversed to keep the precedence order: higher precedence visited later.
+            for (const gamesDir of GAME_PATHS.toReversed()) {
+                if (await fileExists(gamesDir)) {
+                    for (const entry of await fs.promises.readdir(gamesDir, { withFileTypes: true })) {
+                        if ((entry.isDirectory() || entry.isSymbolicLink()) && entry.name.endsWith(".sdd")) {
+                            yield [gamesDir, entry.name] as const;
+                        }
+                    }
                 }
+            }
+        }
+
+        log.info("Scanning for local games");
+        for await (const [gamesDir, gameDirName] of findLocalGames()) {
+            log.info(`-- Game ${gameDirName}`);
+            try {
+                const modOptionsLua = await fs.promises.readFile(path.join(gamesDir, gameDirName, "modoptions.lua"));
+                const luaOptionSections = parseLuaOptions(modOptionsLua);
+                const aiInfoLua = await fs.promises.readFile(path.join(gamesDir, gameDirName, "luaai.lua"));
+                const ais = await this.parseAis(aiInfoLua);
+                const gameVersion = gameDirName;
+                this.availableVersions.set(gameVersion, {
+                    gameVersion,
+                    packageMd5: gameDirName, // kinda hacky since this doesn't have a packageMd5
+                    luaOptionSections,
+                    ais,
+                });
+            } catch (err) {
+                console.error(err);
             }
         }
     }
@@ -225,7 +235,15 @@ export class GameContentAPI extends PrDownloaderAPI<string, GameVersion> {
         if (packageMd5.endsWith(".sdd")) {
             const gameDirName = packageMd5;
             const sdpFiles: Array<SdpFileMeta & { data?: Buffer }> = [];
-            const customGameDir = path.join(GAME_PATH, gameDirName);
+            const customGameDir = await (async () => {
+                for (const gamesDir of GAME_PATHS) {
+                    const customGameDir = path.join(gamesDir, gameDirName);
+                    if (await fileExists(customGameDir)) {
+                        return customGameDir;
+                    }
+                }
+                throw new Error(`Custom game directory not found for: ${gameDirName}`);
+            })();
             const files = await glob.promise(path.join(customGameDir, filePattern), { windowsPathsNoEscape: true });
             for (const file of files) {
                 const sdpData = {

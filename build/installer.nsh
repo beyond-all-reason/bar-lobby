@@ -12,7 +12,7 @@
       StrCmp $1 ".." skip
 
       ${if} ${isUpdated}
-        StrCmp $1 "data" skip
+        StrCmp $1 "assets" skip
       ${EndIf}
       
       ${If} ${FileExists} "$INSTDIR\$1\*.*"
@@ -28,4 +28,9 @@
       Goto loop
     done:
     FindClose $0
+!macroend
+
+!macro customHeader
+  ; Workaround for https://github.com/electron-userland/electron-builder/issues/4803
+  !define /redef APP_FILENAME "BeyondAllReason"
 !macroend
