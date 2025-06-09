@@ -123,10 +123,6 @@ function addTeam() {
     battleStore.teams.push({ participants: [] } as Team);
 }
 
-function addTeams(amount: number) {
-    for (let i = 0; i < amount; i++) addTeam();
-}
-
 function addBot(ai: EngineAI | GameAI, teamId: number) {
     if (!battleStore.me) throw new Error("failed to access current player");
 
@@ -245,11 +241,9 @@ function updateTeams() {
 
     // Adjust number of teams
     if (battleStore.teams.length < numberOfTeams) {
-        addTeams(numberOfTeams - battleStore.teams.length);
+        for (let i = 0; i < numberOfTeams - battleStore.teams.length; i++) addTeam();
     } else if (battleStore.teams.length > numberOfTeams) {
-        for (let i = battleStore.teams.length - 1; i + 1 > numberOfTeams; i--) {
-            removeTeam(i);
-        }
+        for (let i = battleStore.teams.length - 1; i + 1 > numberOfTeams; i--) removeTeam(i);
     }
 
     updateStartBoxes();
@@ -570,7 +564,6 @@ export const battleActions = {
     movePlayerToSpectators,
     moveBotToTeam,
     addTeam,
-    addTeams,
     removeTeam,
     addBot,
     removeBot,
