@@ -90,7 +90,7 @@ function removeTeam(teamId: number) {
     // If it is a special AI (scavengers or raptors),
     // it should go in its own team
     // so we separate it from the rest of the participants
-    if (scavengersOrRaptorsIndex) scavengersOrRaptors = participants.splice(scavengersOrRaptorsIndex, 1) as Array<Bot>;
+    if (scavengersOrRaptorsIndex >= 0) scavengersOrRaptors = participants.splice(scavengersOrRaptorsIndex, 1) as Array<Bot>;
 
     const maxPlayersPerTeam = getMaxPlayersPerTeam();
 
@@ -106,19 +106,19 @@ function removeTeam(teamId: number) {
     }
 
     // if there is scavs/raptors add them back in their own team
-    if (scavengersOrRaptorsIndex) {
+    if (scavengersOrRaptorsIndex >= 0) {
         const emptyTeam = battleStore.teams.findIndex((team) => team.participants.length == 0);
 
-        if (emptyTeam) {
+        if (emptyTeam >= 0) {
             battleStore.teams[emptyTeam].participants.push(...scavengersOrRaptors);
         } else {
-            battleStore.teams = [...battleStore.teams, { participants: scavengersOrRaptors } as Team];
+            battleStore.teams.push({ participants: scavengersOrRaptors } as Team);
         }
     }
 }
 
 function addTeam() {
-    battleStore.teams = [...battleStore.teams, { participants: [] } as Team];
+    battleStore.teams.push({ participants: [] } as Team);
 }
 
 function addTeams(amount: number) {
