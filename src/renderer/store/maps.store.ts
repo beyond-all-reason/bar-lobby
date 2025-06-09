@@ -12,6 +12,7 @@ export const mapsStore: {
         minPlayers: number;
         maxPlayers: number;
         favoritesOnly: boolean;
+        downloadedOnly: boolean;
     };
 } = reactive({
     isInitialized: false,
@@ -21,6 +22,7 @@ export const mapsStore: {
         minPlayers: 2,
         maxPlayers: 40,
         favoritesOnly: false,
+        downloadedOnly: false,
     },
 });
 
