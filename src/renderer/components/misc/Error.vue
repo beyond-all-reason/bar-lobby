@@ -1,26 +1,26 @@
 <template>
-    <Modal v-model="isVisible" title="Fatal Error" class="error-modal">
-        <div class="flex-col gap-md">
-            <div>A fatal error has occurred and BAR Lobby needs to reload.</div>
-            <div v-if="error" class="error">{{ error.message }}</div>
-            <div v-if="promiseError?.reason.stack" class="error">{{ promiseError.reason.stack }}</div>
-            <OverlayPanel ref="op">
-                <div class="container">
-                    {{ tooltipMessage }}
-                </div>
-            </OverlayPanel>
-            <Button @click="uploadLogsCommand">Upload logs</Button>
-            <Button @click="onReload">Reload</Button>
-        </div>
-    </Modal>
+    <div v-if="isVisible" class="container">
+        <Panel class="error-modal">
+            <template #header>
+                <div class="title">Fatal Error</div>
+            </template>
+            <div class="flex-col gap-md">
+                <div>A fatal error has occurred and BAR Lobby needs to reload.</div>
+                <div v-if="error" class="error">{{ error.message }}</div>
+                <div v-if="promiseError?.reason.stack" class="error">{{ promiseError.reason.stack }}</div>
+                <Button @click="uploadLogsCommand">Upload logs</Button>
+                <div v-if="uploadLogMsg">{{ uploadLogMsg }}</div>
+                <Button @click="reload">Reload</Button>
+                <Button @click="quitToDesktop">Quit to Desktop</Button>
+            </div>
+        </Panel>
+    </div>
 </template>
 
 <script lang="ts" setup>
-import { Ref, ref, onBeforeUnmount } from "vue";
-
-import Modal from "@renderer/components/common/Modal.vue";
+import { Ref, ref } from "vue";
+import Panel from "@renderer/components/common/Panel.vue";
 import Button from "@renderer/components/controls/Button.vue";
-import OverlayPanel from "primevue/overlaypanel";
 import { Logger, uploadLogs } from "@renderer/utils/log";
 
 const log = new Logger("Error.vue");
@@ -28,12 +28,7 @@ const log = new Logger("Error.vue");
 const isVisible = ref(false);
 const error: Ref<ErrorEvent | undefined> = ref();
 const promiseError: Ref<PromiseRejectionEvent | undefined> = ref();
-const tooltipMessage = ref("");
-const op = ref();
-
-onBeforeUnmount(() => {
-    tooltipMessage.value = "";
-});
+const uploadLogMsg = ref("");
 
 window.addEventListener("unhandledrejection", function (event) {
     console.error(event);
@@ -56,35 +51,35 @@ window.addEventListener("error", (event) => {
     isVisible.value = true;
 });
 
-function onReload() {
+function reload() {
     window.document.location.reload();
 }
 
-async function uploadLogsCommand(event) {
-    // Store off event and target to avoid async issue
-    const curE = event;
-    const curTarget = curE.currentTarget;
+async function quitToDesktop() {
+    window.close();
+}
 
-    // Do the operations
+async function uploadLogsCommand() {
     try {
+        uploadLogMsg.value = "Uploading...";
         const url = await uploadLogs();
         await navigator.clipboard.writeText(url);
-        tooltipMessage.value = "Log URL was copied to clipboard.";
+        uploadLogMsg.value = "Log URL was copied to clipboard.";
     } catch (e) {
         if (typeof e === "string") {
-            tooltipMessage.value = e;
+            uploadLogMsg.value = e;
+        } else if (e instanceof Error) {
+            uploadLogMsg.value = `Could not upload log: ${e.message}`;
         } else {
-            tooltipMessage.value = "Could not upload log.";
+            uploadLogMsg.value = "Could not upload log.";
         }
+        console.error(e);
     }
-
-    // Display feedback
-    op.value.show(curE, curTarget);
 }
 </script>
 
 <style lang="scss" scoped>
-:global(.error-modal) {
+.error-modal {
     background: rgba(224, 17, 17, 0.7) !important;
 }
 .error {
@@ -95,7 +90,17 @@ async function uploadLogsCommand(event) {
     user-select: all;
 }
 .container {
+    @extend .fullsize;
+    z-index: 2147483645; // max available value, 2147483646 is used by vue inspector.
+    justify-content: center;
+    align-items: center;
     background-color: rgba(0, 0, 0, 0.3);
     backdrop-filter: blur(5px);
+}
+.title {
+    padding: 5px 10px;
+    flex-grow: 1;
+    text-transform: capitalize;
+    font-weight: 600;
 }
 </style>
