@@ -7,6 +7,8 @@ import { gameStore } from "@renderer/store/game.store";
 import { getRandomMap } from "@renderer/store/maps.store";
 import { me } from "@renderer/store/me.store";
 import { deepToRaw } from "@renderer/utils/deep-toraw";
+import { spadsBoxToStartBox } from "@renderer/utils/start-boxes";
+import { StartBox } from "tachyon-protocol/types";
 import { reactive, readonly, watch } from "vue";
 
 export const GameMode: Record<string, GameModeType> = {
@@ -186,6 +188,8 @@ function getNumberOfTeams(): number {
 
     if (!map) throw new Error("failed to access battle options map");
 
+    if (battleStore.battleOptions.gameMode.label == "Raptors" || battleStore.battleOptions.gameMode.label == "Scavengers") return 2;
+
     if (battleStore.battleOptions.mapOptions.startPosType === StartPosType.Boxes) {
         const startBoxIndex = battleStore.battleOptions.mapOptions.startBoxesIndex;
 
@@ -246,6 +250,68 @@ function updateTeams() {
         for (let i = battleStore.teams.length - 1; i + 1 > numberOfTeams; i--) {
             removeTeam(i);
         }
+    }
+
+    updateStartBoxes();
+}
+
+function updateStartBoxes() {
+    const startBoxesIndex = battleStore.battleOptions.mapOptions.startBoxesIndex;
+    let currentStartBoxes: Array<StartBox> = [];
+
+    if (startBoxesIndex != undefined) {
+        currentStartBoxes = battleStore.battleOptions.map?.startboxesSet.at(startBoxesIndex)?.startboxes.map((box) => spadsBoxToStartBox(box.poly)) || [];
+    } else {
+        currentStartBoxes = battleStore.battleOptions.mapOptions.customStartBoxes as Array<StartBox>;
+    }
+
+    if (currentStartBoxes.length == battleStore.teams.length) {
+        return;
+    }
+
+    if (startBoxesIndex != undefined) {
+        delete battleStore.battleOptions.mapOptions.startBoxesIndex;
+        delete battleStore.battleOptions.mapOptions.customStartBoxes;
+
+        battleStore.battleOptions.mapOptions.customStartBoxes = currentStartBoxes;
+    }
+
+    if (currentStartBoxes.length < battleStore.teams.length) {
+        for (let i = currentStartBoxes.length; i < battleStore.teams.length; i++) addCustomStartBox();
+    } else if (currentStartBoxes.length > battleStore.teams.length) {
+        for (let i = battleStore.teams.length; i < currentStartBoxes.length; i++) removeCustomStartBox(i);
+    }
+}
+
+function addCustomStartBox() {
+    const customBoxes = battleStore.battleOptions.mapOptions.customStartBoxes;
+
+    if (customBoxes == undefined) return;
+
+    if (customBoxes.length == 0) {
+        // Add a default box with proper sizing at the top-left of the map
+        const defaultBox = {
+            top: 0.0,
+            bottom: 1,
+            left: 0.0,
+            right: 0.25,
+        };
+        battleStore.battleOptions.mapOptions.customStartBoxes = [...customBoxes, defaultBox];
+    } else {
+        const lastBox = customBoxes.at(-1);
+        if (lastBox == undefined) return;
+        battleStore.battleOptions.mapOptions.customStartBoxes = [...customBoxes, lastBox];
+    }
+}
+
+function removeCustomStartBox(boxId: number) {
+    const customBoxes = battleStore.battleOptions.mapOptions.customStartBoxes;
+
+    if (customBoxes == undefined || customBoxes.length == 0) return;
+
+    if (customBoxes[boxId]) {
+        const newBoxes = customBoxes.filter((_, index) => index !== boxId);
+        battleStore.battleOptions.mapOptions.customStartBoxes = newBoxes;
     }
 }
 
@@ -471,7 +537,6 @@ function removeCoopAIs() {
     for (const team of battleStore.teams) team.participants.forEach((p) => isBot(p) && (isScavenger(p) || isRaptor(p)) && removeBot(p));
 }
 
-
 function addCoopAI(coopAI: "RaptorsAI" | "ScavengersAI") {
     if (!gameStore.selectedGameVersion) throw new Error("failed to retrieve game version");
 
@@ -488,7 +553,7 @@ function addCoopAI(coopAI: "RaptorsAI" | "ScavengersAI") {
             } else {
                 movePlayerToSpectators(participant);
             }
-        } else if (isBot(participant)) {           
+        } else if (isBot(participant)) {
             if (isRaptor(participant) || isScavenger(participant)) continue;
 
             if (battleStore.teams[0].participants.length < getMaxPlayersPerTeam()) {
@@ -497,11 +562,6 @@ function addCoopAI(coopAI: "RaptorsAI" | "ScavengersAI") {
                 removeBot(participant);
             }
         }
-    }
-
-    // Remove any extra teams
-    for (let i = 2; i < battleStore.teams.length; i++) {
-        removeTeam(i);
     }
 }
 

@@ -46,21 +46,27 @@
                 </div>
                 <div v-if="hasCustomStartBoxes">
                     <div v-for="(box, boxId) in battleStore.battleOptions.mapOptions.customStartBoxes || []" :key="`delete-box-${boxId}`">
-                        <Button :disabled="customStartBoxesLength < 3" :class="{ red: customStartBoxesLength > 2 }" class="fullwidth" @click="() => deleteCustomBox(boxId)">
-                            <span v-if="customStartBoxesLength < 3">
-                                Start Box {{ boxId + 1 }}
-                            </span>
-                            <span v-else>
-                                Delete Start Box {{ boxId + 1 }}
-                            </span>
+                        <Button
+                            :disabled="customStartBoxesLength < 3"
+                            :class="{ red: customStartBoxesLength > 2 }"
+                            class="fullwidth"
+                            @click="() => battleActions.removeTeam(boxId)"
+                        >
+                            <span v-if="customStartBoxesLength < 3"> Start Box {{ boxId + 1 }} </span>
+                            <span v-else> Delete Start Box {{ boxId + 1 }} </span>
                         </Button>
                     </div>
 
-                    <div v-if="battleStore.battleOptions.gameMode.label =='Raptors' || battleStore.battleOptions.gameMode.label == 'Scavengers'">
+                    <div
+                        v-if="
+                            battleStore.battleOptions.gameMode.label == 'Raptors' ||
+                            battleStore.battleOptions.gameMode.label == 'Scavengers'
+                        "
+                    >
                         <Button class="fullwidth" disabled>Disabled for AI Coop</Button>
                     </div>
                     <div v-else>
-                        <Button class="green fullwidth" @click="addCustomBox">Add Start Box</Button>
+                        <Button class="green fullwidth" @click="() => battleActions.addTeam()">Add Start Box</Button>
                     </div>
                 </div>
                 <div v-else>
@@ -135,42 +141,6 @@ function setCustomBoxes(orientation: StartBoxOrientation) {
     battleStore.battleOptions.mapOptions.customStartBoxes = customStartBoxes;
 }
 
-function addCustomBox() {
-    const customBoxes = battleStore.battleOptions.mapOptions.customStartBoxes;
-
-    if (customBoxes == undefined) return;
-
-    if (customBoxes.length == 0) {
-        // Add a default box with proper sizing at the top-left of the map
-        const defaultBox = {
-            top: 0.0,
-            bottom: 1,
-            left: 0.0,
-            right: customBoxRange.value / 100,
-        };
-        battleStore.battleOptions.mapOptions.customStartBoxes = [...customBoxes, defaultBox];
-    } else {
-        const lastBox = customBoxes.at(-1);
-        if (lastBox == undefined) return;
-        battleStore.battleOptions.mapOptions.customStartBoxes = [...customBoxes, lastBox];
-    }
-
-    if (battleStore.teams.length < customBoxes.length + 1) battleActions.addTeam();
-}
-
-function deleteCustomBox(boxId: number) {
-    const customBoxes = battleStore.battleOptions.mapOptions.customStartBoxes;
-
-    if (customBoxes == undefined || customBoxes.length == 0) return;
-
-    if (customBoxes[boxId]) {
-        const newBoxes = customBoxes.filter((_, index) => index !== boxId);
-        battleStore.battleOptions.mapOptions.customStartBoxes = newBoxes;
-    }
-
-    battleActions.removeTeam(boxId);
-}
-
 function setFixedPositions(index: number) {
     delete battleStore.battleOptions.mapOptions.startBoxesIndex;
     battleStore.battleOptions.mapOptions.startPosType = StartPosType.Fixed;
@@ -189,9 +159,8 @@ function setCustomBoxesFromPresetBoxes() {
         return;
     }
 
-    const currentStartBoxes = battleStore.battleOptions.map?.
-        startboxesSet.at(startBoxesIndex)?.
-        startboxes.map((box) => spadsBoxToStartBox(box.poly)) || [];
+    const currentStartBoxes =
+        battleStore.battleOptions.map?.startboxesSet.at(startBoxesIndex)?.startboxes.map((box) => spadsBoxToStartBox(box.poly)) || [];
 
     delete battleStore.battleOptions.mapOptions.startBoxesIndex;
     delete battleStore.battleOptions.mapOptions.customStartBoxes;
