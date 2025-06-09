@@ -6,7 +6,9 @@
                 <MaxPlayersFilter />
             </div>
             <div>
+                <h6>Filter By</h6>
                 <FavoritesFilter />
+                <DownloadedFilter />
             </div>
             <div>
                 <h6>Terrain</h6>
@@ -40,6 +42,7 @@ import GameTypeFilter from "@renderer/components/maps/filters/GameTypeFilter.vue
 import MaxPlayersFilter from "@renderer/components/maps/filters/MaxPlayersFilter.vue";
 import TerrainFilter from "@renderer/components/maps/filters/TerrainFilter.vue";
 import FavoritesFilter from "@renderer/components/maps/filters/FavoritesFilter.vue";
+import DownloadedFilter from "@renderer/components/maps/filters/DownloadedFilter.vue";
 </script>
 
 <style lang="scss" scoped>
