@@ -399,8 +399,7 @@ async function loadGameMode(gameMode: GameModeType) {
 
     switch (gameMode) {
         case GameMode.CLASSIC:
-            removeScavengersAI();
-            removeRaptorsAI();
+            removeCoopAIs();
             battleStore.title = "Classic";
             battleStore.battleOptions = {
                 ...battleStore.battleOptions,
@@ -416,8 +415,7 @@ async function loadGameMode(gameMode: GameModeType) {
             };
             break;
         case GameMode.RAPTORS:
-            removeScavengersAI();
-            addRaptorsAI();
+            addCoopAI("RaptorsAI");
             battleStore.title = "Raptors";
             battleStore.battleOptions = {
                 ...battleStore.battleOptions,
@@ -433,8 +431,7 @@ async function loadGameMode(gameMode: GameModeType) {
             };
             break;
         case GameMode.SCAVENGERS:
-            removeRaptorsAI();
-            addScavengersAI();
+            addCoopAI("ScavengersAI");
             battleStore.title = "Scavengers";
             battleStore.battleOptions = {
                 ...battleStore.battleOptions,
@@ -450,8 +447,7 @@ async function loadGameMode(gameMode: GameModeType) {
             };
             break;
         case GameMode.FFA:
-            removeScavengersAI();
-            removeRaptorsAI();
+            removeCoopAIs();
             battleStore.title = "FFA";
             battleStore.battleOptions = {
                 ...battleStore.battleOptions,
@@ -471,24 +467,42 @@ async function loadGameMode(gameMode: GameModeType) {
     }
 }
 
-function removeScavengersAI() {
-    battleStore.teams.flat().forEach((p) => isBot(p) && isScavenger(p) && removeBot(p));
-}
-function removeRaptorsAI() {
-    battleStore.teams.flat().forEach((p) => isBot(p) && isRaptor(p) && removeBot(p));
+function removeCoopAIs() {
+    for (const team of battleStore.teams) team.participants.forEach((p) => isBot(p) && (isScavenger(p) || isRaptor(p)) && removeBot(p));
 }
 
-function addScavengersAI() {
+
+function addCoopAI(coopAI: "RaptorsAI" | "ScavengersAI") {
     if (!gameStore.selectedGameVersion) throw new Error("failed to retrieve game version");
 
-    const scavengersAI = gameStore.selectedGameVersion.ais.find((ai) => ai.shortName === "ScavengersAI");
-    if (scavengersAI) addBot(scavengersAI, getNumberOfTeams() - 1);
-}
-function addRaptorsAI() {
-    if (!gameStore.selectedGameVersion) throw new Error("failed to retrieve game version");
+    removeCoopAIs();
 
-    const raptorsAI = gameStore.selectedGameVersion.ais.find((ai) => ai.shortName === "RaptorsAI");
-    if (raptorsAI) addBot(raptorsAI, getNumberOfTeams() - 1);
+    const ai = gameStore.selectedGameVersion.ais.find((ai) => ai.shortName === coopAI);
+
+    if (ai) addBot(ai, 1);
+
+    for (const participant of battleStore.teams[1].participants) {
+        if (isPlayer(participant)) {
+            if (battleStore.teams[0].participants.length < getMaxPlayersPerTeam()) {
+                movePlayerToTeam(participant, 0);
+            } else {
+                movePlayerToSpectators(participant);
+            }
+        } else if (isBot(participant)) {           
+            if (isRaptor(participant) || isScavenger(participant)) continue;
+
+            if (battleStore.teams[0].participants.length < getMaxPlayersPerTeam()) {
+                moveBotToTeam(participant, 0);
+            } else {
+                removeBot(participant);
+            }
+        }
+    }
+
+    // Remove any extra teams
+    for (let i = 2; i < battleStore.teams.length; i++) {
+        removeTeam(i);
+    }
 }
 
 export const battleActions = {
