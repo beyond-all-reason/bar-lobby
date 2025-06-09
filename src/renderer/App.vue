@@ -44,10 +44,10 @@
         </Transition>
         <Settings v-model="settingsOpen" />
         <ServerSettings v-model="serverSettingsOpen" />
-        <Error />
         <ChatComponent v-if="state === 'default' && me.isAuthenticated && tachyonStore.isConnected" />
         <FullscreenGameModeSelector v-if="state === 'default'" :visible="battleStore.isSelectingGameMode" />
     </div>
+    <Error />
 </template>
 
 <script lang="ts" setup>
