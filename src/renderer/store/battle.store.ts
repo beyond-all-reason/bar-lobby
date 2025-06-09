@@ -241,7 +241,7 @@ function updateTeams() {
 
     // Adjust number of teams
     if (battleStore.teams.length < numberOfTeams) {
-        for (let i = 0; i < numberOfTeams - battleStore.teams.length; i++) addTeam();
+        for (let i = 0; i <= numberOfTeams - battleStore.teams.length; i++) addTeam();
     } else if (battleStore.teams.length > numberOfTeams) {
         for (let i = battleStore.teams.length - 1; i + 1 > numberOfTeams; i--) removeTeam(i);
     }
@@ -251,13 +251,8 @@ function updateTeams() {
 
 function updateStartBoxes() {
     const startBoxesIndex = battleStore.battleOptions.mapOptions.startBoxesIndex;
-    let currentStartBoxes: Array<StartBox> = [];
 
-    if (startBoxesIndex != undefined) {
-        currentStartBoxes = battleStore.battleOptions.map?.startboxesSet.at(startBoxesIndex)?.startboxes.map((box) => spadsBoxToStartBox(box.poly)) || [];
-    } else {
-        currentStartBoxes = battleStore.battleOptions.mapOptions.customStartBoxes as Array<StartBox>;
-    }
+    const currentStartBoxes: Array<StartBox> = getCurrentStartBoxes();
 
     if (currentStartBoxes.length == battleStore.teams.length) {
         return;
@@ -275,6 +270,13 @@ function updateStartBoxes() {
     } else if (currentStartBoxes.length > battleStore.teams.length) {
         for (let i = battleStore.teams.length; i < currentStartBoxes.length; i++) removeCustomStartBox(i);
     }
+}
+
+function getCurrentStartBoxes(): Array<StartBox> {
+    const startBoxesIndex = battleStore.battleOptions.mapOptions.startBoxesIndex;
+    return startBoxesIndex != undefined
+        ? battleStore.battleOptions.map?.startboxesSet.at(startBoxesIndex)?.startboxes.map((box) => spadsBoxToStartBox(box.poly)) || []
+        : (battleStore.battleOptions.mapOptions.customStartBoxes as Array<StartBox>);
 }
 
 function addCustomStartBox() {
@@ -575,6 +577,7 @@ export const battleActions = {
     leaveLobby: leaveBattle,
     loadGameMode,
     getMaxPlayersPerTeam,
+    getCurrentStartBoxes,
 };
 
 // Needs game files to exists.

@@ -110,7 +110,7 @@ import Range from "@renderer/components/controls/Range.vue";
 import { battleStore, battleActions } from "@renderer/store/battle.store";
 import { StartBoxOrientation, StartPosType } from "@main/game/battle/battle-types";
 import MapBattlePreview from "@renderer/components/maps/MapBattlePreview.vue";
-import { getBoxes, spadsBoxToStartBox } from "@renderer/utils/start-boxes";
+import { getBoxes } from "@renderer/utils/start-boxes";
 
 const modal: Ref<null | InstanceType<typeof Modal>> = ref(null);
 
@@ -159,8 +159,7 @@ function setCustomBoxesFromPresetBoxes() {
         return;
     }
 
-    const currentStartBoxes =
-        battleStore.battleOptions.map?.startboxesSet.at(startBoxesIndex)?.startboxes.map((box) => spadsBoxToStartBox(box.poly)) || [];
+    const currentStartBoxes = battleActions.getCurrentStartBoxes();
 
     delete battleStore.battleOptions.mapOptions.startBoxesIndex;
     delete battleStore.battleOptions.mapOptions.customStartBoxes;
