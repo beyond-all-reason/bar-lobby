@@ -45,12 +45,27 @@
                     </div>
                 </div>
                 <div v-if="hasCustomStartBoxes">
-                    <div v-for="(box, boxId) in battleStore.battleOptions.mapOptions.customStartBoxes" :key="`delete-box-${boxId}`">
-                        <Button class="red fullwidth" @click="() => deleteCustomBox(boxId)">Delete Box {{ boxId + 1 }}</Button>
+                    <div v-for="(box, boxId) in battleStore.battleOptions.mapOptions.customStartBoxes || []" :key="`delete-box-${boxId}`">
+                        <Button :disabled="customStartBoxesLength < 3" :class="{ red: customStartBoxesLength > 2 }" class="fullwidth" @click="() => deleteCustomBox(boxId)">
+                            <span v-if="customStartBoxesLength < 3">
+                                Start Box {{ boxId + 1 }}
+                            </span>
+                            <span v-else>
+                                Delete Start Box {{ boxId + 1 }}
+                            </span>
+                        </Button>
                     </div>
 
+                    <div v-if="battleStore.battleOptions.gameMode.label =='Raptors' || battleStore.battleOptions.gameMode.label == 'Scavengers'">
+                        <Button class="fullwidth" disabled>Disabled for AI Coop</Button>
+                    </div>
+                    <div v-else>
+                        <Button class="green fullwidth" @click="addCustomBox">Add Start Box</Button>
+                    </div>
+                </div>
+                <div v-else>
                     <div>
-                        <Button class="green fullwidth" @click="addCustomBox">Add box</Button>
+                        <Button class="fullwidth" @click="setCustomBoxesFromPresetBoxes">Edit preset start boxes</Button>
                     </div>
                 </div>
                 <div v-if="battleStore.battleOptions.map?.startPos">
@@ -89,7 +104,7 @@ import Range from "@renderer/components/controls/Range.vue";
 import { battleStore, battleActions } from "@renderer/store/battle.store";
 import { StartBoxOrientation, StartPosType } from "@main/game/battle/battle-types";
 import MapBattlePreview from "@renderer/components/maps/MapBattlePreview.vue";
-import { getBoxes } from "@renderer/utils/start-boxes";
+import { getBoxes, spadsBoxToStartBox } from "@renderer/utils/start-boxes";
 
 const modal: Ref<null | InstanceType<typeof Modal>> = ref(null);
 
@@ -110,6 +125,8 @@ const hasCustomStartBoxes = computed(() => {
 
     return true;
 });
+
+const customStartBoxesLength = computed(() => battleStore.battleOptions.mapOptions.customStartBoxes?.length || 0);
 
 function setCustomBoxes(orientation: StartBoxOrientation) {
     const customStartBoxes = getBoxes(orientation, customBoxRange.value);
@@ -163,6 +180,23 @@ function setRandomPositions() {
     delete battleStore.battleOptions.mapOptions.startBoxesIndex;
     delete battleStore.battleOptions.mapOptions.fixedPositionsIndex;
     battleStore.battleOptions.mapOptions.startPosType = StartPosType.Random;
+}
+
+function setCustomBoxesFromPresetBoxes() {
+    const startBoxesIndex = battleStore.battleOptions.mapOptions.startBoxesIndex;
+
+    if (startBoxesIndex == undefined) {
+        return;
+    }
+
+    const currentStartBoxes = battleStore.battleOptions.map?.
+        startboxesSet.at(startBoxesIndex)?.
+        startboxes.map((box) => spadsBoxToStartBox(box.poly)) || [];
+
+    delete battleStore.battleOptions.mapOptions.startBoxesIndex;
+    delete battleStore.battleOptions.mapOptions.customStartBoxes;
+
+    battleStore.battleOptions.mapOptions.customStartBoxes = currentStartBoxes;
 }
 
 function close() {
