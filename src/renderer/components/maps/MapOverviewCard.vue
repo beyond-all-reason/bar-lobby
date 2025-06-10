@@ -140,6 +140,9 @@ const imageUrl = computed(() =>
     &.br {
         bottom: 10px;
         right: 10px;
+        flex-wrap: wrap-reverse;
+        justify-content: flex-end;
+        max-width:55%;
     }
 }
 </style>
