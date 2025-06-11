@@ -109,7 +109,6 @@ function dragEnterSpectators(event: DragEvent) {
 
 function dragStart(event: DragEvent, participant: Player | Bot) {
     if (isBot(participant)) {
-        if (isRaptor(participant) || isScavenger(participant)) return;
         draggedBot.value = participant;
     } else {
         draggedPlayer.value = participant;
@@ -144,6 +143,7 @@ function onDropTeam(event: DragEvent, teamId: number) {
         return;
     }
     if (draggedBot.value) {
+        if ((isRaptor(draggedBot.value) || isScavenger(draggedBot.value)) && battleStore.teams[teamId].participants.length != 0) return;
         battleActions.moveBotToTeam(draggedBot.value, teamId);
     }
     if (draggedPlayer.value) {
