@@ -1,7 +1,7 @@
 import { EngineAI, EngineVersion } from "@main/content/engine/engine-version";
 import { GameAI, GameVersion } from "@main/content/game/game-version";
 import { MapData } from "@main/content/maps/map-data";
-import { Battle, BattleWithMetadata, Bot, Faction, GameModeType, isBot, isPlayer, isRaptor, isScavenger, Player, StartPosType, Team } from "@main/game/battle/battle-types";
+import { Battle, BattleWithMetadata, Bot, Faction, GameModeID, GameModeType, isBot, isPlayer, isRaptor, isScavenger, Player, StartPosType, Team } from "@main/game/battle/battle-types";
 import { enginesStore } from "@renderer/store/engine.store";
 import { gameStore } from "@renderer/store/game.store";
 import { getRandomMap } from "@renderer/store/maps.store";
@@ -11,8 +11,9 @@ import { spadsBoxToStartBox } from "@renderer/utils/start-boxes";
 import { StartBox } from "tachyon-protocol/types";
 import { reactive, readonly, watch } from "vue";
 
-export const GameMode: Record<string, GameModeType> = {
+export const GameModes: Record<GameModeID, GameModeType> = {
     CLASSIC: "Classic",
+    SKIRMISH: "Skirmish",
     RAPTORS: "Raptors",
     SCAVENGERS: "Scavengers",
     FFA: "FFA",
@@ -34,7 +35,7 @@ export const battleStore = reactive<Battle & BattleLobby>({
     isOnline: false,
     battleOptions: {
         gameMode: {
-            label: GameMode.CLASSIC,
+            label: GameModes.CLASSIC,
             options: {},
         },
         mapOptions: {
@@ -320,7 +321,7 @@ function defaultOfflineBattle(engine?: EngineVersion, game?: GameVersion, map?: 
             engineVersion: engine?.id || enginesStore.getEngineVersion()?.id,
             gameVersion: game?.gameVersion || gameStore.selectedGameVersion?.gameVersion,
             gameMode: {
-                label: "Classic",
+                label: GameModes.CLASSIC,
                 options: game?.luaOptionSections || {},
             },
             map,
@@ -460,13 +461,13 @@ async function loadGameMode(gameMode: GameModeType) {
     }
 
     switch (gameMode) {
-        case GameMode.CLASSIC:
+        case GameModes.CLASSIC:
             removeCoopAIs();
             battleStore.title = "Classic";
             battleStore.battleOptions = {
                 ...battleStore.battleOptions,
                 gameMode: {
-                    label: "Classic",
+                    label: GameModes.CLASSIC,
                     options: {},
                 },
                 mapOptions: {
@@ -476,13 +477,13 @@ async function loadGameMode(gameMode: GameModeType) {
                 restrictions: [],
             };
             break;
-        case GameMode.RAPTORS:
+        case GameModes.RAPTORS:
             addCoopAI("RaptorsAI");
             battleStore.title = "Raptors";
             battleStore.battleOptions = {
                 ...battleStore.battleOptions,
                 gameMode: {
-                    label: "Raptors",
+                    label: GameModes.RAPTORS,
                     options: {},
                 },
                 mapOptions: {
@@ -492,13 +493,13 @@ async function loadGameMode(gameMode: GameModeType) {
                 restrictions: [],
             };
             break;
-        case GameMode.SCAVENGERS:
+        case GameModes.SCAVENGERS:
             addCoopAI("ScavengersAI");
             battleStore.title = "Scavengers";
             battleStore.battleOptions = {
                 ...battleStore.battleOptions,
                 gameMode: {
-                    label: "Scavengers",
+                    label: GameModes.SCAVENGERS,
                     options: {},
                 },
                 mapOptions: {
@@ -508,13 +509,13 @@ async function loadGameMode(gameMode: GameModeType) {
                 restrictions: [],
             };
             break;
-        case GameMode.FFA:
+        case GameModes.FFA:
             removeCoopAIs();
             battleStore.title = "FFA";
             battleStore.battleOptions = {
                 ...battleStore.battleOptions,
                 gameMode: {
-                    label: "FFA",
+                    label: GameModes.FFA,
                     options: {},
                 },
                 mapOptions: {

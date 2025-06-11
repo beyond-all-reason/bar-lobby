@@ -35,16 +35,16 @@ import { GameMode } from "@main/game/battle/battle-types";
 import LuaOptionsModal from "@renderer/components/battle/LuaOptionsModal.vue";
 import Button from "@renderer/components/controls/Button.vue";
 import Select from "@renderer/components/controls/Select.vue";
-import { battleActions, battleStore } from "@renderer/store/battle.store";
+import { battleActions, battleStore, GameModes } from "@renderer/store/battle.store";
 import { gameStore } from "@renderer/store/game.store";
 import { ref, watch } from "vue";
 
 //TODO have theses presets come from the game
 const gameModeListOptions: GameMode[] = [
-    { label: "Classic", options: {} },
-    { label: "FFA", options: {} },
-    { label: "Raptors", options: {} },
-    { label: "Scavengers", options: {} },
+    { label: GameModes.CLASSIC, options: {} },
+    { label: GameModes.FFA, options: {} },
+    { label: GameModes.CLASSIC, options: {} },
+    { label: GameModes.SCAVENGERS, options: {} },
 ];
 
 const groupedBySection = ref(new Map<LuaOptionSection, (LuaOption & { value: boolean | string | number })[]>());

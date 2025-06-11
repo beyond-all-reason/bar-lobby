@@ -20,6 +20,7 @@ export interface BattleWithMetadata extends Battle {
 }
 
 export type GameModeType = "Classic" | "Skirmish" | "Raptors" | "Scavengers" | "FFA";
+export type GameModeID = "CLASSIC" | "SKIRMISH" | "RAPTORS" | "SCAVENGERS" | "FFA";
 
 export type GameMode = {
     label: GameModeType;
