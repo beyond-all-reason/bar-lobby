@@ -51,7 +51,7 @@ async function changeAccount() {
 
 window.tachyon.onEvent("user/self", (event) => {
     // console.log(`Received user/self event: ${JSON.stringify(event)}`);
-    if(event && event.user){
+    if (event && event.user) {
         Object.assign(me, event.user);
     }
 });
