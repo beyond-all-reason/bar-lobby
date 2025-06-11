@@ -142,7 +142,6 @@ import { downloadsStore } from "@renderer/store/downloads.store";
 import Progress from "@renderer/components/common/Progress.vue";
 import { MapDownloadData } from "@main/content/maps/map-data";
 
-
 const endedNormally: Ref<boolean | null> = ref(true);
 const showSpoilers = ref(true);
 const totalReplays = ref(0);
