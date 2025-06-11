@@ -5,9 +5,10 @@ import { MapData } from "@main/content/maps/map-data";
 import { logger } from "@main/utils/logger";
 import { Signal } from "$/jaz-ts-utils/signal";
 import { PrDownloaderAPI } from "@main/content/pr-downloader";
-import { CONTENT_PATH } from "@main/config/app";
+import { MAPS_PATHS } from "@main/config/app";
 import chokidar from "chokidar";
 import { UltraSimpleMapParser } from "$/map-parser/ultrasimple-map-parser";
+import { removeFromArray } from "$/jaz-ts-utils/object";
 
 const log = logger("map-content.ts");
 
@@ -21,22 +22,27 @@ export class MapContentAPI extends PrDownloaderAPI<string, MapData> {
     public readonly onMapAdded: Signal<string> = new Signal();
     public readonly onMapDeleted: Signal<string> = new Signal();
 
-    protected readonly mapsDir = path.join(CONTENT_PATH, "maps");
     protected readonly mapCacheQueue: Set<string> = new Set();
     protected cachingMaps = false;
 
     public override async init() {
-        await fs.promises.mkdir(this.mapsDir, { recursive: true });
+        for (const mapsDir of MAPS_PATHS) {
+            await fs.promises.mkdir(mapsDir, { recursive: true });
+        }
         this.initLookupMaps();
         this.startWatchingMapFolder();
         return super.init();
     }
 
     protected async initLookupMaps() {
-        const filePaths = await fs.promises.readdir(this.mapsDir);
-        const sd7filePaths = filePaths.filter((path) => path.endsWith(".sd7"));
-        log.debug(`Found ${sd7filePaths.length} maps`);
-        for (const filePath of sd7filePaths) {
+        async function* findMaps() {
+            // We apply toReversed to keep the precedence order: higher precedence visited later.
+            for (const mapsDir of MAPS_PATHS.toReversed()) {
+                yield* (await fs.promises.readdir(mapsDir)).filter((f) => f.endsWith(".sd7")).map((f) => path.join(mapsDir, f));
+            }
+        }
+        log.debug("Scanning for maps");
+        for await (const filePath of findMaps()) {
             try {
                 const mapName = await this.getMapNameFromFile(filePath);
                 const fileName = path.basename(filePath);
@@ -45,22 +51,22 @@ export class MapContentAPI extends PrDownloaderAPI<string, MapData> {
                 this.fileNameMapNameLookup[fileName] = mapName;
             } catch (err) {
                 log.error(`File may be corrupted, removing ${filePath}: ${err}`);
-                fs.promises.rm(path.join(this.mapsDir, filePath));
+                fs.promises.rm(filePath);
             }
         }
         log.info(`Found ${Object.keys(this.mapNameFileNameLookup).length} maps`);
     }
 
-    protected async getMapNameFromFile(file: string) {
+    protected async getMapNameFromFile(filePath: string) {
         const ultraSimpleMapParser = new UltraSimpleMapParser();
-        const parsedMap = await ultraSimpleMapParser.parseMap(path.join(this.mapsDir, file));
+        const parsedMap = await ultraSimpleMapParser.parseMap(filePath);
         return parsedMap.springName;
     }
 
     protected startWatchingMapFolder() {
         //using chokidar to watch for changes in the maps folder
         chokidar
-            .watch(this.mapsDir, {
+            .watch(MAPS_PATHS.slice(), {
                 ignoreInitial: true, //ignore the initial scan
                 awaitWriteFinish: true, //wait for the file to be fully written before emitting the event
             })
@@ -71,11 +77,11 @@ export class MapContentAPI extends PrDownloaderAPI<string, MapData> {
                 log.debug(`Chokidar -=- Map added: ${filepath}`);
                 const filename = path.basename(filepath);
                 // Update the lookup maps
-                this.getMapNameFromFile(filename).then((mapName) => {
+                this.getMapNameFromFile(filepath).then((mapName) => {
                     this.mapNameFileNameLookup[mapName] = filename;
                     this.fileNameMapNameLookup[filename] = mapName;
+                    this.onMapAdded.dispatch(mapName);
                 });
-                this.onMapAdded.dispatch(filename);
             })
             .on("unlink", (filepath) => {
                 if (!filepath.endsWith("sd7")) {
@@ -86,10 +92,12 @@ export class MapContentAPI extends PrDownloaderAPI<string, MapData> {
                 const pathBaseName = path.basename(filepath);
 
                 if (pathBaseName) {
-                    if (this.fileNameMapNameLookup[pathBaseName]) this.mapNameFileNameLookup[this.fileNameMapNameLookup[pathBaseName]] = undefined;
+                    const springName = this.fileNameMapNameLookup[pathBaseName];
                     this.fileNameMapNameLookup[pathBaseName] = undefined;
-
-                    this.onMapDeleted.dispatch(pathBaseName);
+                    if (springName) {
+                        this.mapNameFileNameLookup[springName] = undefined;
+                        this.onMapDeleted.dispatch(springName);
+                    }
                 }
             });
     }
@@ -114,6 +122,7 @@ export class MapContentAPI extends PrDownloaderAPI<string, MapData> {
             });
         }
         const downloadInfo = await this.downloadContent("map", springName);
+        removeFromArray(this.currentDownloads, downloadInfo);
         this.onDownloadComplete.dispatch(downloadInfo);
     }
 
@@ -121,15 +130,11 @@ export class MapContentAPI extends PrDownloaderAPI<string, MapData> {
         throw new Error("Method not implemented.");
     }
 
-    public async scanFolderForMaps() {
-        let mapFiles = await fs.promises.readdir(this.mapsDir);
-        mapFiles = mapFiles.filter((mapFile) => mapFile.endsWith("sd7"));
-        return mapFiles;
-    }
-
     public async uninstallVersion(version: MapData) {
-        const mapFile = path.join(this.mapsDir, version.filename);
-        await fs.promises.rm(mapFile, { force: true, recursive: true });
+        for (const mapsDir of MAPS_PATHS) {
+            const mapFile = path.join(mapsDir, version.filename);
+            await fs.promises.rm(mapFile, { force: true });
+        }
         log.debug(`Map removed: ${version.springName}`);
     }
 }

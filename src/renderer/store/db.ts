@@ -1,5 +1,5 @@
 import { GameVersion } from "@main/content/game/game-version";
-import { MapData } from "@main/content/maps/map-data";
+import { MapData, MapDownloadData } from "@main/content/maps/map-data";
 import { Replay } from "@main/content/replays/replay";
 import { User } from "@main/model/user";
 import Dexie, { EntityTable } from "dexie";
@@ -12,6 +12,7 @@ export async function initDb() {
 export const db = new Dexie("BarLobby") as Dexie & {
     replays: EntityTable<Replay, "fileName">;
     maps: EntityTable<MapData, "springName">;
+    nonLiveMaps: EntityTable<MapDownloadData, "springName">;
     gameVersions: EntityTable<GameVersion, "gameVersion">;
     users: EntityTable<User, "userId">;
 };
@@ -58,6 +59,11 @@ db.version(1).stores({
         isInstalled,
         isDownloading,
         isFavorite
+    `,
+    nonLiveMaps: `
+        springName,
+        isInstalled,
+        isDownloading
     `,
     gameVersions: "gameVersion, packageMd5",
     users: "userId, username, countryCode, status, displayName, clanId, partyId, scopes, isMe",

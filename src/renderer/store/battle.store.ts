@@ -1,7 +1,7 @@
 import { EngineAI, EngineVersion } from "@main/content/engine/engine-version";
 import { GameAI, GameVersion } from "@main/content/game/game-version";
 import { MapData } from "@main/content/maps/map-data";
-import { Battle, BattleOptions, BattleWithMetadata, Bot, Faction, GameModeType, isBot, isPlayer, isRaptor, isScavenger, Player, StartPosType } from "@main/game/battle/battle-types";
+import { Battle, BattleWithMetadata, Bot, Faction, GameModeType, isBot, isPlayer, isRaptor, isScavenger, Player, StartPosType } from "@main/game/battle/battle-types";
 import { enginesStore } from "@renderer/store/engine.store";
 import { gameStore } from "@renderer/store/game.store";
 import { getRandomMap } from "@renderer/store/maps.store";
@@ -83,7 +83,7 @@ function addBot(ai: EngineAI | GameAI, teamId: number) {
         aiOptions: {},
         aiShortName: ai.shortName,
         host: battleStore.me.id,
-    } as Bot);
+    } satisfies Bot);
 }
 
 function removeBot(bot: Bot) {
@@ -99,7 +99,14 @@ function duplicateBot(bot: Bot, teamId: number) {
 }
 
 function updateBotOptions(bot: Bot, options: Record<string, unknown>) {
-    (battleStore.teams.flat().find((participant) => participant.id === bot.id) as Bot).aiOptions = options;
+    const foundBot = battleStore.teams
+        .flat()
+        .filter((p) => isBot(p))
+        .find((p) => p.id === bot.id);
+    if (!foundBot) {
+        throw Error(`Failed to find bot ${bot.name} (${bot.id})`);
+    }
+    bot.aiOptions = options;
 }
 
 function movePlayerToTeam(player: Player, teamId: number) {
@@ -227,7 +234,7 @@ function updateTeams() {
 
 function defaultOfflineBattle(engine?: EngineVersion, game?: GameVersion, map?: MapData) {
     const barbAi = engine?.ais.find((ai) => ai.shortName === "BARb");
-    const battle = {
+    const battle: Battle = {
         title: "Offline Custom Battle",
         isOnline: false,
         battleOptions: {
@@ -243,13 +250,13 @@ function defaultOfflineBattle(engine?: EngineVersion, game?: GameVersion, map?: 
                 startBoxesIndex: 0,
             },
             restrictions: [],
-        } as BattleOptions,
+        },
         teams: [[], []], // Maybe make a Team interface with maxPlayersPerTeam or fetch that info from the map
         spectators: [],
         started: false,
-    } as Battle;
+    };
 
-    const mePlayer = {
+    const mePlayer: Player = {
         id: participantId++,
         user: me,
         name: me.username,
@@ -259,7 +266,7 @@ function defaultOfflineBattle(engine?: EngineVersion, game?: GameVersion, map?: 
             map: map?.isInstalled ? 1 : 0,
         },
         inGame: false,
-    } as Player;
+    };
 
     battle.me = mePlayer;
     battle.teams[0].push(mePlayer);
@@ -270,7 +277,7 @@ function defaultOfflineBattle(engine?: EngineVersion, game?: GameVersion, map?: 
         faction: Faction.Armada,
         name: "AI 1",
         aiShortName: barbAi?.shortName || "BARb",
-    } as Bot);
+    } satisfies Bot);
     return battle;
 }
 

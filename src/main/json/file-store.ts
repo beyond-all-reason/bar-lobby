@@ -13,7 +13,7 @@ export class FileStore<T extends TObject> {
 
     protected readonly schema: T;
     protected readonly ajv: Ajv;
-    protected readonly validator: ValidateFunction;
+    protected readonly validator: ValidateFunction<Static<T>>;
 
     constructor(filePath: string, schema: T, defaultModel?: Static<T>) {
         this.filePath = filePath;
@@ -56,7 +56,7 @@ export class FileStore<T extends TObject> {
             const model = JSON.parse(modelStr);
             const isValid = this.validator(model);
             if (isValid) {
-                Object.assign(this.model, model as Static<T>);
+                Object.assign(this.model, model);
             } else {
                 log.error(`Error validating file: ${this.filePath}`, this.validator.errors);
             }

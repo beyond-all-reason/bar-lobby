@@ -1,4 +1,4 @@
-import { CONTENT_PATH } from "@main/config/app";
+import { ASSETS_PATH, POOL_PATH } from "@main/config/app";
 import * as fs from "fs";
 import path from "path";
 import { DownloaderHelper } from "node-downloader-helper";
@@ -9,6 +9,7 @@ import { Downloader } from "@main/content/abstract-content";
 import { removeFromArray } from "$/jaz-ts-utils/object";
 import { GameContentAPI } from "@main/content/game/game-content";
 import { extract7z } from "@main/utils/extract-7z";
+import { fileExists } from "@main/utils/file";
 
 const log = logger("pool-cdn.ts");
 
@@ -38,20 +39,12 @@ export class PoolCdnDownloader extends Downloader {
      * Will try to reuse existing download if it exists (DownloadHelper will resume download).
      */
     public async preloadPoolData() {
-        const poolDirPath = path.join(CONTENT_PATH, "pool");
-        try {
-            await fs.promises.stat(poolDirPath);
-            log.debug("Pool folder exists, skipping download");
+        if (await fileExists(POOL_PATH)) {
+            log.debug("Pool folder already exists, skipping download");
             return;
-        } catch (e) {
-            if ((e as NodeJS.ErrnoException).code !== "ENOENT") {
-                console.error("Error checking pool folder", e);
-                throw e;
-            }
-            // Pool folder does not exist, create and continue
-            await fs.promises.mkdir(poolDirPath);
         }
         log.info("Pool folder does not exist, downloading pool data");
+        await fs.promises.mkdir(POOL_PATH);
 
         const downloadInfo: DownloadInfo = {
             type: "game",
@@ -61,8 +54,8 @@ export class PoolCdnDownloader extends Downloader {
         };
         this.currentDownloads.push(downloadInfo);
 
-        const dlFilePath = path.join(CONTENT_PATH, "data.7z");
-        const dl = new DownloaderHelper(this.poolDataUrl, CONTENT_PATH, {
+        const dlFilePath = path.join(ASSETS_PATH, "data.7z");
+        const dl = new DownloaderHelper(this.poolDataUrl, ASSETS_PATH, {
             fileName: "data.7z",
             timeout: 10000,
             retry: { maxRetries: 3, delay: 1000 },
@@ -99,7 +92,7 @@ export class PoolCdnDownloader extends Downloader {
             removeFromArray(this.currentDownloads, downloadInfo);
         }
 
-        await extract7z(dlFilePath, poolDirPath);
+        await extract7z(dlFilePath, POOL_PATH);
         log.info("Pool data extracted");
 
         await fs.promises.rm(dlFilePath);

@@ -16,9 +16,10 @@ import { LuaOptionSection } from "@main/content/game/lua-options";
 import { Scenario } from "@main/content/game/scenario";
 import { SdpFileMeta, SdpFile } from "@main/content/game/sdp";
 import { PrDownloaderAPI } from "@main/content/pr-downloader";
-import { CONTENT_PATH, GAME_VERSIONS_GZ_PATH } from "@main/config/app";
+import { RAPID_INDEX_PATH, PACKAGE_PATH, GAME_PATHS, POOL_PATH, SCENARIO_IMAGE_PATH } from "@main/config/app";
 import { GetScenarios } from "@main/content/game/type";
 import { PoolCdnDownloader } from "@main/content/game/pool-cdn";
+import { fileExists } from "@main/utils/file";
 
 const log = logger("game-content.ts");
 const gunzip = util.promisify(zlib.gunzip);
@@ -34,11 +35,12 @@ export class GameContentAPI extends PrDownloaderAPI<string, GameVersion> {
         return this;
     }
 
-    // Reading all existing game versions from GAME_VERSIONS_GZ_PATH so
+    // Reading all existing game versions from rapid versions index so
     // we can easily check if a version is installed from its md5
     protected async initLookupTables() {
         try {
-            const versionsGz = await fs.promises.readFile(GAME_VERSIONS_GZ_PATH);
+            const versionsGzPath = path.join(RAPID_INDEX_PATH, contentSources.rapid.host, contentSources.rapid.game, "versions.gz");
+            const versionsGz = await fs.promises.readFile(versionsGzPath);
             const versions = await promisify(zlib.gunzip)(versionsGz);
             const versionsStr = versions.toString().trim();
             const versionsParts = versionsStr.split("\n");
@@ -53,7 +55,7 @@ export class GameContentAPI extends PrDownloaderAPI<string, GameVersion> {
     }
 
     protected async scanPackagesDir() {
-        const packagesDir = path.join(CONTENT_PATH, "packages");
+        const packagesDir = PACKAGE_PATH;
         await fs.promises.mkdir(packagesDir, { recursive: true });
         const packages = await fs.promises.readdir(packagesDir);
         // Refersh lookup tables in case new versions.gz file was downloaded.
@@ -83,28 +85,36 @@ export class GameContentAPI extends PrDownloaderAPI<string, GameVersion> {
 
     // Load local/custom game files from .sdd folders in the games directory
     protected async scanLocalGames() {
-        const gamesDir = path.join(CONTENT_PATH, "games");
-        if (fs.existsSync(gamesDir)) {
-            const allfiles = await fs.promises.readdir(gamesDir, { withFileTypes: true });
-            const dirs = allfiles.filter((file) => (file.isDirectory() || file.isSymbolicLink()) && file.name.endsWith(".sdd"));
-            log.info(`Found ${dirs.length} local game versions`);
-            for (const dir of dirs) {
-                log.info(`-- Version ${dir.name}`);
-                try {
-                    const modOptionsLua = await fs.promises.readFile(path.join(gamesDir, dir.name, "modoptions.lua"));
-                    const luaOptionSections = parseLuaOptions(modOptionsLua);
-                    const aiInfoLua = await fs.promises.readFile(path.join(gamesDir, dir.name, "luaai.lua"));
-                    const ais = await this.parseAis(aiInfoLua);
-                    const gameVersion = dir.name;
-                    this.availableVersions.set(gameVersion, {
-                        gameVersion,
-                        packageMd5: dir.name, // kinda hacky since this doesn't have a packageMd5
-                        luaOptionSections,
-                        ais,
-                    });
-                } catch (err) {
-                    console.error(err);
+        async function* findLocalGames() {
+            // We apply toReversed to keep the precedence order: higher precedence visited later.
+            for (const gamesDir of GAME_PATHS.toReversed()) {
+                if (await fileExists(gamesDir)) {
+                    for (const entry of await fs.promises.readdir(gamesDir, { withFileTypes: true })) {
+                        if ((entry.isDirectory() || entry.isSymbolicLink()) && entry.name.endsWith(".sdd")) {
+                            yield [gamesDir, entry.name] as const;
+                        }
+                    }
                 }
+            }
+        }
+
+        log.info("Scanning for local games");
+        for await (const [gamesDir, gameDirName] of findLocalGames()) {
+            log.info(`-- Game ${gameDirName}`);
+            try {
+                const modOptionsLua = await fs.promises.readFile(path.join(gamesDir, gameDirName, "modoptions.lua"));
+                const luaOptionSections = parseLuaOptions(modOptionsLua);
+                const aiInfoLua = await fs.promises.readFile(path.join(gamesDir, gameDirName, "luaai.lua"));
+                const ais = await this.parseAis(aiInfoLua);
+                const gameVersion = gameDirName;
+                this.availableVersions.set(gameVersion, {
+                    gameVersion,
+                    packageMd5: gameDirName, // kinda hacky since this doesn't have a packageMd5
+                    luaOptionSections,
+                    ais,
+                });
+            } catch (err) {
+                console.error(err);
             }
         }
     }
@@ -148,9 +158,11 @@ export class GameContentAPI extends PrDownloaderAPI<string, GameVersion> {
         try {
             const version = this.availableVersions.values().find((version) => version.gameVersion === gameVersion);
             assert(version, `No installed version found for game version: ${gameVersion}`);
+
             const scenarioImages = await this.getGameFiles(version.packageMd5, "singleplayer/scenarios/*.{jpg,png}", false);
             const scenarioDefinitions = (await this.getGameFiles(version.packageMd5, "singleplayer/scenarios/*.lua", true)).filter(({ fileName }) => /[^/]*scenario[^/]*$/.test(fileName));
-            const cacheDir = path.join(CONTENT_PATH, "scenario-images");
+            const cacheDir = SCENARIO_IMAGE_PATH;
+
             await fs.promises.mkdir(cacheDir, { recursive: true });
             for (const scenarioImage of scenarioImages) {
                 let buffer: Buffer;
@@ -207,7 +219,7 @@ export class GameContentAPI extends PrDownloaderAPI<string, GameVersion> {
 
         // TODO: Uninstall game version through prd when prd supports it
         assert(!version.packageMd5.endsWith(".sdd"), "Cannot uninstall local/custom game versions");
-        await fs.promises.rm(path.join(CONTENT_PATH, "packages", `${version.packageMd5}.sdp`));
+        await fs.promises.rm(path.join(PACKAGE_PATH, `${version.packageMd5}.sdp`));
         this.availableVersions.delete(version.gameVersion);
     }
 
@@ -223,7 +235,15 @@ export class GameContentAPI extends PrDownloaderAPI<string, GameVersion> {
         if (packageMd5.endsWith(".sdd")) {
             const gameDirName = packageMd5;
             const sdpFiles: Array<SdpFileMeta & { data?: Buffer }> = [];
-            const customGameDir = path.join(CONTENT_PATH, "games", gameDirName);
+            const customGameDir = await (async () => {
+                for (const gamesDir of GAME_PATHS) {
+                    const customGameDir = path.join(gamesDir, gameDirName);
+                    if (await fileExists(customGameDir)) {
+                        return customGameDir;
+                    }
+                }
+                throw new Error(`Custom game directory not found for: ${gameDirName}`);
+            })();
             const files = await glob.promise(path.join(customGameDir, filePattern), { windowsPathsNoEscape: true });
             for (const file of files) {
                 const sdpData = {
@@ -244,13 +264,13 @@ export class GameContentAPI extends PrDownloaderAPI<string, GameVersion> {
         }
         // Normal game versions are stored in the packages directory
         const sdpFileName = `${packageMd5}.sdp`;
-        const filePath = path.join(CONTENT_PATH, "packages", sdpFileName);
+        const filePath = path.join(PACKAGE_PATH, sdpFileName);
         const sdpEntries = await this.parseSdpFile(filePath, filePattern);
         const sdpFiles: Array<SdpFileMeta & { data?: Buffer }> = [];
         for (const sdpEntry of sdpEntries) {
             const poolDir = sdpEntry.md5.slice(0, 2);
             const archiveFileName = `${sdpEntry.md5.slice(2)}.gz`;
-            const archiveFilePath = path.join(CONTENT_PATH, "pool", poolDir, archiveFileName);
+            const archiveFilePath = path.join(POOL_PATH, poolDir, archiveFileName);
             const archiveFile = await fs.promises.readFile(archiveFilePath);
             if (parseData) {
                 const data = await gunzip(archiveFile);
@@ -277,7 +297,7 @@ export class GameContentAPI extends PrDownloaderAPI<string, GameVersion> {
             const md5 = bufferStream.read(16).toString("hex");
             const crc32 = bufferStream.read(4).toString("hex");
             const filesizeBytes = bufferStream.readInt(4, true);
-            const archivePath = path.join(CONTENT_PATH, "pool", md5.slice(0, 2), `${md5.slice(2)}.gz`);
+            const archivePath = path.join(POOL_PATH, md5.slice(0, 2), `${md5.slice(2)}.gz`);
             if (globPattern && globPattern.minimatch.match(fileName)) {
                 fileData.push({ fileName, md5, crc32, filesizeBytes, archivePath });
             } else if (!globPattern) {

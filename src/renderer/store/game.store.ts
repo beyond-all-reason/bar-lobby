@@ -3,14 +3,14 @@ import { LuaOption } from "@main/content/game/lua-options";
 import { db } from "@renderer/store/db";
 import { reactive, watch } from "vue";
 
-export const gameStore = reactive({
-    isInitialized: false,
-    isGameRunning: false,
-} as {
+export const gameStore: {
     isInitialized: boolean;
     isGameRunning: boolean;
     selectedGameVersion?: GameVersion;
     optionsMap?: Record<string, LuaOption & { section: string }>;
+} = reactive({
+    isInitialized: false,
+    isGameRunning: false,
 });
 
 async function refreshStore() {

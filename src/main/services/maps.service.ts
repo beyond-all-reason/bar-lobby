@@ -1,4 +1,4 @@
-import { MapData } from "@main/content/maps/map-data";
+import { MapData, MapDownloadData } from "@main/content/maps/map-data";
 import { mapContentAPI } from "@main/content/maps/map-content";
 import { ipcMain, BarIpcWebContents } from "@main/typed-ipc";
 import { MapMetadata } from "@main/content/maps/map-metadata";
@@ -8,17 +8,36 @@ async function init() {
     await mapContentAPI.init();
 }
 
-async function fetchAllMaps() {
+async function fetchAllMaps(): Promise<[MapData[], MapDownloadData[]]> {
     const maps = await fetch("https://maps-metadata.beyondallreason.dev/latest/lobby_maps.validated.json");
     const mapsAsObject = await maps.json();
     const mapsAsArray = Object.values(mapsAsObject) as MapMetadata[];
-    return mapsAsArray.map((map: MapMetadata) => {
+
+    const liveMaps = mapsAsArray.map((map: MapMetadata) => {
         // transform the map object to a MapData object
         return {
             ...map,
             isInstalled: mapContentAPI.isVersionInstalled(map.springName),
-        } as MapData;
+        } satisfies MapData;
     });
+
+    const liveMapsSet = new Set(liveMaps.map((m) => m.springName));
+
+    const nonLiveMaps = Object.entries(mapContentAPI.mapNameFileNameLookup)
+        .map(([springName]) => {
+            if (liveMapsSet.has(springName)) {
+                return;
+            }
+
+            return {
+                springName: springName,
+                isDownloading: false,
+                isInstalled: mapContentAPI.isVersionInstalled(springName),
+            } satisfies MapDownloadData;
+        })
+        .filter((v) => v != undefined);
+
+    return [liveMaps, nonLiveMaps];
 }
 
 function registerIpcHandlers(webContents: BarIpcWebContents) {

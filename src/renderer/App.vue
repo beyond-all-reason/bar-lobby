@@ -30,7 +30,7 @@
                     <template v-if="Component">
                         <Transition v-bind="route.meta.transition" mode="out-in">
                             <KeepAlive>
-                                <Suspense suspensible timeout="0">
+                                <Suspense timeout="0">
                                     <component :is="Component" />
                                     <template #fallback>
                                         <Loader />
@@ -44,10 +44,10 @@
         </Transition>
         <Settings v-model="settingsOpen" />
         <ServerSettings v-model="serverSettingsOpen" />
-        <Error />
         <ChatComponent v-if="state === 'default' && me.isAuthenticated && tachyonStore.isConnected" />
         <FullscreenGameModeSelector v-if="state === 'default'" :visible="battleStore.isSelectingGameMode" />
     </div>
+    <Error />
 </template>
 
 <script lang="ts" setup>

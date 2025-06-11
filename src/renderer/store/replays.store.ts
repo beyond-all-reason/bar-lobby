@@ -2,10 +2,10 @@ import { Replay } from "@main/content/replays/replay";
 import { db } from "@renderer/store/db";
 import { reactive } from "vue";
 
-export const replaysStore = reactive({
-    isInitialized: false,
-} as {
+export const replaysStore: {
     isInitialized: boolean;
+} = reactive({
+    isInitialized: false,
 });
 
 export async function initReplaysStore() {

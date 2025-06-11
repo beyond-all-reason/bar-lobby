@@ -4,7 +4,7 @@ export interface Game {
     myplayername?: string;
     gametype?: string;
     mapname?: string;
-    ishost: number;
+    ishost?: number;
     hostip?: string;
     hostport?: number;
     sourceport?: number;

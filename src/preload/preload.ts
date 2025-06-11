@@ -4,7 +4,7 @@ import { Replay } from "@main/content/replays/replay";
 import { Settings } from "@main/services/settings.service";
 import { EngineVersion } from "@main/content/engine/engine-version";
 import { GameVersion } from "@main/content/game/game-version";
-import { MapData } from "@main/content/maps/map-data";
+import { MapData, MapDownloadData } from "@main/content/maps/map-data";
 import { DownloadInfo } from "@main/content/downloads";
 import { Info } from "@main/services/info.service";
 import { BattleWithMetadata } from "@main/game/battle/battle-types";
@@ -37,8 +37,8 @@ export type MainWindowApi = typeof mainWindowApi;
 contextBridge.exposeInMainWorld("mainWindow", mainWindowApi);
 
 const shellApi = {
-    openConfigDir: (): Promise<string> => ipcRenderer.invoke("shell:openConfigDir"),
-    openContentDir: (): Promise<string> => ipcRenderer.invoke("shell:openContentDir"),
+    openStateDir: (): Promise<string> => ipcRenderer.invoke("shell:openStateDir"),
+    openAssetsDir: (): Promise<string> => ipcRenderer.invoke("shell:openAssetsDir"),
     openSettingsFile: (): Promise<string> => ipcRenderer.invoke("shell:openSettingsFile"),
     openStartScript: (): Promise<string> => ipcRenderer.invoke("shell:openStartScript"),
     openReplaysDir: (): Promise<string> => ipcRenderer.invoke("shell:openReplaysDir"),
@@ -118,7 +118,7 @@ const mapsApi = {
     isVersionInstalled: (springName: string): Promise<boolean> => ipcRenderer.invoke("maps:isVersionInstalled", springName),
 
     // Online features
-    fetchAllMaps: (): Promise<MapData[]> => ipcRenderer.invoke("maps:online:fetchAllMaps"),
+    fetchAllMaps: (): Promise<[MapData[], MapDownloadData[]]> => ipcRenderer.invoke("maps:online:fetchAllMaps"),
     fetchMapImages: (imageSource: string): Promise<ArrayBuffer | undefined> => ipcRenderer.invoke("maps:online:fetchMapImages", imageSource),
 
     // Events

@@ -5,7 +5,7 @@ import type { GameVersion } from "@main/content/game/game-version";
 import type { Info } from "@main/services/info.service";
 import type { IpcMain, IpcMainEvent, IpcMainInvokeEvent, IpcRenderer, IpcRendererEvent, WebContents } from "electron";
 import type { logLevels } from "@main/services/log.service";
-import type { MapData } from "@main/content/maps/map-data";
+import type { MapData, MapDownloadData } from "@main/content/maps/map-data";
 import type { MultiplayerLaunchSettings } from "@main/game/game";
 import type { NewsFeedData } from "@main/services/news.service";
 import type { Replay } from "@main/content/replays/replay";
@@ -73,7 +73,7 @@ export type IPCCommands = {
     "maps:downloadMaps": (springNames: string[]) => void[];
     "maps:getInstalledVersions": () => Map<string, MapData>;
     "maps:isVersionInstalled": (springName: string) => boolean;
-    "maps:online:fetchAllMaps": () => MapData[];
+    "maps:online:fetchAllMaps": () => [MapData[], MapDownloadData[]];
     "maps:online:fetchMapImages": (imageSource: string) => ArrayBuffer;
     "misc:getDevlogRssFeed": (numberOfNews: number) => NewsFeedData | null | undefined;
     "misc:getNewsRssFeed": (numberOfNews: number) => NewsFeedData | null | undefined;
@@ -82,8 +82,8 @@ export type IPCCommands = {
     "settings:get": () => Settings;
     "settings:toggleFullscreen": () => void;
     "settings:update": (settings: Partial<Settings>) => Partial<Settings>;
-    "shell:openConfigDir": () => string;
-    "shell:openContentDir": () => string;
+    "shell:openStateDir": () => string;
+    "shell:openAssetsDir": () => string;
     "shell:openInBrowser": (url: string) => void;
     "shell:openReplaysDir": () => string;
     "shell:openSettingsFile": () => string;

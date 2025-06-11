@@ -115,9 +115,13 @@ npm start
 - `npm run build:win`
     - Runs `npm run build` and `electron-builder`, building for Windows
     - Outputs NSIS installer in `dist`
+- `npm run buildall:win`
+    - Runs `npm run package` then runs `npm run build:win`.
 - `npm run build:linux`
     - Runs `npm run build` and `electron-builder`, building for Linux
     - Outputs AppImage executable in `dist`
+- `npm run buildall:linux`
+    - Runs `npm run package` then runs `npm run build:linux`.
 - `npm run build:unpack`
     - Runs `npm run build` and `electron-builder`, building an unpackaged directory
     - Outputs the unpacked contents in `dist`
@@ -129,10 +133,9 @@ npm start
 
 ### Tips
 
-You can start multiple separate instances using `APP_NAME_SUFFIX` env variable (e.g. to work on multiplayer features) :
+You can start multiple separate instances by overriding the assets and/or state location using env variables (e.g. to work on multiplayer features):
 
 ```
-APP_NAME_SUFFIX=1 npm start
-APP_NAME_SUFFIX=2 npm start
-APP_NAME_SUFFIX=3 npm start
+BAR_STATE_PATH=state-2 npm start
+BAR_ASSETS_PATH=assets-3 BAR_STATE_PATH=state-3 npm start
 ```

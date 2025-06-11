@@ -26,7 +26,8 @@ export function initUsersStore() {
                 clanId: user.clanId || null,
                 battleRoomState: {},
                 isMe: 1, // TODO unweirdify this after we have a proper protocol for users
-            } as User;
+                partyId: null,
+            } satisfies User;
         });
         db.users.bulkPut(users);
     });

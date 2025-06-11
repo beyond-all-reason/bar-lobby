@@ -7,7 +7,10 @@
         <div class="overview-container">
             <div class="columns">
                 <div class="left-column">
-                    <NewsFeed />
+                    <Suspense>
+                        <NewsFeed />
+                        <template #fallback><Loader class="column-loader" :absolutePosition="false" /></template>
+                    </Suspense>
                 </div>
                 <div class="center-column">
                     <img class="logo" src="/src/renderer/assets/images/BARLogoFull.png" />
@@ -21,7 +24,10 @@
                     </div>
                 </div>
                 <div class="right-column">
-                    <DevlogFeed />
+                    <Suspense>
+                        <DevlogFeed />
+                        <template #fallback><Loader class="column-loader" :absolutePosition="false" /></template>
+                    </Suspense>
                 </div>
             </div>
         </div>
@@ -29,6 +35,7 @@
 </template>
 
 <script lang="ts" setup>
+import Loader from "@renderer/components/common/Loader.vue";
 import DevlogFeed from "@renderer/components/misc/DevlogFeed.vue";
 import NewsFeed from "@renderer/components/misc/NewsFeed.vue";
 import { battleStore } from "@renderer/store/battle.store";
@@ -143,5 +150,10 @@ watch(
     display: flex;
     flex-grow: 1;
     flex-direction: column;
+}
+
+.column-loader {
+    position: relative;
+    top: 25%;
 }
 </style>
