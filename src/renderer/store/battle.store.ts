@@ -88,7 +88,7 @@ function removeTeam(teamId: number) {
 
     battleStore.teams.splice(teamId, 1);
 
-    const maxPlayersPerTeam = getMaxPlayersPerTeam()
+    const maxPlayersPerTeam = getMaxPlayersPerTeam();
 
     // first handle all players to not force spec when bots can be removed
     for (const team of battleStore.teams.values()) {
