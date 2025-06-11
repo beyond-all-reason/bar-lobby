@@ -88,24 +88,27 @@ function removeTeam(teamId: number) {
 
     battleStore.teams.splice(teamId, 1);
 
+    const maxPlayersPerTeam = getMaxPlayersPerTeam()
+
     // first handle all players to not force spec when bots can be removed
     for (const team of battleStore.teams.values()) {
-        if (team.participants.length < getMaxPlayersPerTeam()) {
-            const numberOfPlayersToAdd = getMaxPlayersPerTeam() - team.participants.length;
+        if (team.participants.length < maxPlayersPerTeam) {
+            const numberOfPlayersToAdd = maxPlayersPerTeam - team.participants.length;
             team.participants.push(...players.splice(0, numberOfPlayersToAdd));
         }
     }
 
     // handle regular bots the same as players
     for (const team of battleStore.teams.values()) {
-        if (team.participants.length < getMaxPlayersPerTeam()) {
-            const numberOfBotsToAdd = getMaxPlayersPerTeam() - team.participants.length;
+        if (team.participants.length < maxPlayersPerTeam) {
+            const numberOfBotsToAdd = maxPlayersPerTeam - team.participants.length;
             team.participants.push(...bots.splice(0, numberOfBotsToAdd));
         }
     }
 
     if (scavengersOrRaptors.length > 0) {
-        battleStore.teams.at(-1)?.participants.push(...scavengersOrRaptors.splice(0));
+        const lastTeam = battleStore.teams.at(-1);
+        if (lastTeam && lastTeam.participants.length < maxPlayersPerTeam) lastTeam.participants.push(...scavengersOrRaptors.splice(0));
     }
 
     const extraParticipants = [...players, ...bots, ...scavengersOrRaptors];
