@@ -43,7 +43,7 @@ import { ref, watch } from "vue";
 const gameModeListOptions: GameMode[] = [
     { label: GameModes.CLASSIC, options: {} },
     { label: GameModes.FFA, options: {} },
-    { label: GameModes.CLASSIC, options: {} },
+    { label: GameModes.RAPTORS, options: {} },
     { label: GameModes.SCAVENGERS, options: {} },
 ];
 
