@@ -68,9 +68,14 @@
                                 <Button v-else-if="map.isDownloading" class="green inline" disabled>Downloading map...</Button>
                                 <Button v-else class="red inline" @click="downloadMap(map.springName)">Download</Button>
                             </div>
-							<div class="padding-top-md padding-bottom-md">
-								<Progress :class="{ pulse: isDownloading }" :percent="downloadPercent" v-if="isDownloading" :text="(downloadPercent * 100).toFixed(0) + '%'"></Progress>
-							</div>
+                            <div class="padding-top-md padding-bottom-md">
+                                <Progress
+                                    :class="{ pulse: isDownloading }"
+                                    :percent="downloadPercent"
+                                    v-if="isDownloading"
+                                    :text="(downloadPercent * 100).toFixed(0) + '%'"
+                                ></Progress>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -110,8 +115,7 @@ import waves from "@iconify-icons/mdi/waves";
 import gridIcon from "@iconify-icons/mdi/grid";
 import windPower from "@iconify-icons/mdi/wind-power";
 import { downloadsStore } from "@renderer/store/downloads.store";
-import { ref, computed } from "vue";
-
+import { computed } from "vue";
 
 const router = useRouter();
 const { id } = defineProps<{

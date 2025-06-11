@@ -72,19 +72,31 @@
                     <Panel class="flex-grow">
                         <ReplayPreview v-if="selectedReplay" :replay="selectedReplay" :showSpoilers="showSpoilers">
                             <template #actions="{ replay }">
-                                <DownloadContentButton
-                                    v-if="map && replay"
-                                    :map="map"
-                                    @click="watchReplay(replay)"
-                                    :disabled="isLaunching || gameStore.isGameRunning"
-                                >
-                                    <template v-if="gameStore.isGameRunning"> Game Running </template>
-                                    <template v-else-if="isLaunching"> Launching... </template>
-                                    <template v-else> Watch </template>
-                                </DownloadContentButton>
-                                <Button v-else disabled style="flex-grow: 1">Watch</Button>
-                                <Button v-if="replay" @click="showReplayFile(replay)">Show File</Button>
-                                <Button v-else disabled>Show File</Button>
+                                <div class="fullwidth">
+                                    <div class="flex-row flex-bottom gap-md">
+                                        <DownloadContentButton
+                                            v-if="map && replay"
+                                            :map="map"
+                                            @click="watchReplay(replay)"
+                                            :disabled="isLaunching || gameStore.isGameRunning"
+                                        >
+                                            <template v-if="gameStore.isGameRunning"> Game Running </template>
+                                            <template v-else-if="isLaunching"> Launching... </template>
+                                            <template v-else> Watch </template>
+                                        </DownloadContentButton>
+                                        <Button v-else disabled style="flex-grow: 1">Watch</Button>
+                                        <Button v-if="replay" @click="showReplayFile(replay)">Show File</Button>
+                                        <Button v-else disabled>Show File</Button>
+                                    </div>
+                                    <div class="padding-top-md">
+                                        <Progress
+                                            :class="{ pulse: isDownloading }"
+                                            :percent="downloadPercent"
+                                            v-if="isDownloading"
+                                            :text="(downloadPercent * 100).toFixed(0) + '%'"
+                                        ></Progress>
+                                    </div>
+                                </div>
                             </template>
                         </ReplayPreview>
                     </Panel>
@@ -112,7 +124,7 @@
 
 import { format } from "date-fns";
 import Column from "primevue/column";
-import { Ref, ref, shallowRef } from "vue";
+import { Ref, ref, shallowRef, computed } from "vue";
 
 import Button from "@renderer/components/controls/Button.vue";
 import Checkbox from "@renderer/components/controls/Checkbox.vue";
@@ -126,6 +138,8 @@ import { useDexieLiveQueryWithDeps } from "@renderer/composables/useDexieLiveQue
 import ReplayPreview from "@renderer/components/battle/ReplayPreview.vue";
 import DownloadContentButton from "@renderer/components/controls/DownloadContentButton.vue";
 import { gameStore } from "@renderer/store/game.store";
+import { downloadsStore } from "@renderer/store/downloads.store";
+import Progress from "@renderer/components/common/Progress.vue";
 
 const endedNormally: Ref<boolean | null> = ref(true);
 const showSpoilers = ref(true);
@@ -194,6 +208,19 @@ function watchReplay(replay: Replay) {
 function showReplayFile(replay: Replay) {
     if (replay?.fileName) window.shell.showReplayInFolder(replay.fileName);
 }
+
+const isDownloading = computed(() => downloadsStore.mapDownloads.length > 0);
+
+const downloadPercent = computed(() => {
+    const downloads = downloadsStore.mapDownloads;
+    let currentBytes = 0;
+    let totalBytes = 0;
+    for (const download of downloads) {
+        currentBytes += download.currentBytes;
+        totalBytes += download.totalBytes;
+    }
+    return currentBytes / totalBytes || 0;
+});
 </script>
 
 <style lang="scss" scoped>
