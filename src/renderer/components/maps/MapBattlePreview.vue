@@ -42,8 +42,7 @@ import { useImageBlobUrlCache } from "@renderer/composables/useImageBlobUrlCache
 import vSetPlayerColor from "@renderer/directives/vSetPlayerColor";
 import vStartBox from "@renderer/directives/vStartBox";
 import vStartPos from "@renderer/directives/vStartPos";
-import { battleStore } from "@renderer/store/battle.store";
-import { spadsBoxToStartBox } from "@renderer/utils/start-boxes";
+import { battleActions, battleStore } from "@renderer/store/battle.store";
 import { StartBox } from "tachyon-protocol/types";
 import { computed, defineComponent, ref, watch } from "vue";
 import MapBattlePreviewStartBox from "@renderer/components/maps/MapBattlePreviewStartBox.vue";
@@ -78,15 +77,7 @@ watch(
     }
 );
 
-const boxes = computed<StartBox[]>(() => {
-    const startBoxIndex = battleStore.battleOptions.mapOptions.startBoxesIndex;
-
-    if (startBoxIndex != undefined) {
-        return startBoxes.value?.at(startBoxIndex)?.startboxes.map((box) => spadsBoxToStartBox(box.poly)) || [];
-    }
-
-    return battleStore.battleOptions.mapOptions.customStartBoxes || [];
-});
+const boxes = computed<StartBox[]>(() => battleActions.getCurrentStartBoxes());
 
 const aspectRatioDrivenStyle = computed(() => {
     if (!battleStore.battleOptions.map?.mapWidth || !battleStore.battleOptions.map?.mapHeight) {
