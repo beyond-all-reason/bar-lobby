@@ -82,46 +82,44 @@ function removeTeam(teamId: number) {
         return;
     }
 
-    const participants = [...battleStore.teams[teamId].participants];
-
-    let scavengersOrRaptors: Array<Bot> = [];
-
-    const scavengersOrRaptorsIndex = participants.findIndex((participant) => isBot(participant) && (isScavenger(participant) || isRaptor(participant)));
+    const players = battleStore.teams[teamId].participants.filter(isPlayer);
+    const bots = battleStore.teams[teamId].participants.filter((p) => isBot(p) && !isScavenger(p) && !isRaptor(p));
+    const scavengersOrRaptors = battleStore.teams[teamId].participants.filter((p) => isBot(p) && (isScavenger(p) || isRaptor(p)));
 
     battleStore.teams.splice(teamId, 1);
 
-    // If it is a special AI (scavengers or raptors),
-    // it should go in its own team
-    // so we separate it from the rest of the participants
-    if (scavengersOrRaptorsIndex >= 0) scavengersOrRaptors = participants.splice(scavengersOrRaptorsIndex, 1) as Array<Bot>;
-
-    const maxPlayersPerTeam = getMaxPlayersPerTeam();
-
+    // first handle all players to not force spec when bots can be removed
     for (const team of battleStore.teams.values()) {
-        if (team.participants.length < maxPlayersPerTeam) {
-            const numberOfPlayersToAdd = maxPlayersPerTeam - team.participants.length;
-            team.participants.push(...participants.splice(0, numberOfPlayersToAdd));
+        if (team.participants.length < getMaxPlayersPerTeam()) {
+            const numberOfPlayersToAdd = getMaxPlayersPerTeam() - team.participants.length;
+            team.participants.push(...players.splice(0, numberOfPlayersToAdd));
         }
     }
 
-    if (participants.length > 0) {
-        participants.forEach((participant) => (isPlayer(participant) ? movePlayerToSpectators(participant) : removeBot(participant)));
-    }
-
-    // if there is scavs/raptors add them back in their own team
-    if (scavengersOrRaptorsIndex >= 0) {
-        const emptyTeam = battleStore.teams.findIndex((team) => team.participants.length == 0);
-
-        if (emptyTeam >= 0) {
-            battleStore.teams[emptyTeam].participants.push(...scavengersOrRaptors);
-        } else {
-            battleStore.teams.push({ participants: scavengersOrRaptors } as Team);
+    // handle regular bots the same as players
+    for (const team of battleStore.teams.values()) {
+        if (team.participants.length < getMaxPlayersPerTeam()) {
+            const numberOfBotsToAdd = getMaxPlayersPerTeam() - team.participants.length;
+            team.participants.push(...bots.splice(0, numberOfBotsToAdd));
         }
     }
+
+    if (scavengersOrRaptors.length > 0) {
+        battleStore.teams.at(-1)?.participants.push(...scavengersOrRaptors.splice(0));
+    }
+
+    const extraParticipants = [...players, ...bots, ...scavengersOrRaptors];
+
+    if (extraParticipants.length > 0) {
+        extraParticipants.forEach((participant) => (isPlayer(participant) ? movePlayerToSpectators(participant) : removeBot(participant)));
+    }
+
+    removeCustomStartBox(teamId);
 }
 
 function addTeam() {
     battleStore.teams.push({ participants: [] } as Team);
+    addCustomStartBox();
 }
 
 function addBot(ai: EngineAI | GameAI, teamId: number) {
@@ -179,13 +177,11 @@ function moveBotToTeam(bot: Bot, teamId: number) {
 }
 
 function getNumberOfTeams(): number {
-    let numberOfTeams = 0;
+    let numberOfTeams = 2;
 
     const map = battleStore.battleOptions.map;
 
     if (!map) throw new Error("failed to access battle options map");
-
-    if (battleStore.battleOptions.gameMode.label == "Raptors" || battleStore.battleOptions.gameMode.label == "Scavengers") return 2;
 
     if (battleStore.battleOptions.mapOptions.startPosType === StartPosType.Boxes) {
         const startBoxIndex = battleStore.battleOptions.mapOptions.startBoxesIndex;
@@ -245,31 +241,6 @@ function updateTeams() {
         for (let i = 0; i <= numberOfTeams - battleStore.teams.length; i++) addTeam();
     } else if (battleStore.teams.length > numberOfTeams) {
         for (let i = battleStore.teams.length - 1; i + 1 > numberOfTeams; i--) removeTeam(i);
-    }
-
-    updateStartBoxes();
-}
-
-function updateStartBoxes() {
-    const startBoxesIndex = battleStore.battleOptions.mapOptions.startBoxesIndex;
-
-    const currentStartBoxes: Array<StartBox> = getCurrentStartBoxes();
-
-    if (currentStartBoxes.length == battleStore.teams.length) {
-        return;
-    }
-
-    if (startBoxesIndex != undefined) {
-        delete battleStore.battleOptions.mapOptions.startBoxesIndex;
-        delete battleStore.battleOptions.mapOptions.customStartBoxes;
-
-        battleStore.battleOptions.mapOptions.customStartBoxes = currentStartBoxes;
-    }
-
-    if (currentStartBoxes.length < battleStore.teams.length) {
-        for (let i = currentStartBoxes.length; i < battleStore.teams.length; i++) addCustomStartBox();
-    } else if (currentStartBoxes.length > battleStore.teams.length) {
-        for (let i = battleStore.teams.length; i < currentStartBoxes.length; i++) removeCustomStartBox(i);
     }
 }
 
