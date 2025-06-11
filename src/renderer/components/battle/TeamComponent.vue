@@ -46,13 +46,16 @@ import { computed } from "vue";
 import BotParticipant from "@renderer/components/battle/BotParticipant.vue";
 import PlayerParticipant from "@renderer/components/battle/PlayerParticipant.vue";
 import Button from "@renderer/components/controls/Button.vue";
-import { Bot, isBot, isPlayer, isRaptor, isScavenger, Player, StartPosType } from "@main/game/battle/battle-types";
+import { Bot, isBot, isPlayer, isRaptor, isScavenger, Player } from "@main/game/battle/battle-types";
 import { battleActions, battleWithMetadataStore } from "@renderer/store/battle.store";
 
 const props = defineProps<{
     teamId: number;
 }>();
-const title = isScavengerTeam(props.teamId) ? "Scavengers" : isRaptorTeam(props.teamId) ? "Raptors" : "Team " + (Number(props.teamId) + 1);
+
+const title = computed(() =>
+    isScavengerTeam(props.teamId) ? "Scavengers" : isRaptorTeam(props.teamId) ? "Raptors" : "Team " + (Number(props.teamId) + 1)
+);
 
 const memberCount = computed(() => {
     return battleWithMetadataStore.teams[props.teamId]?.participants.length || 0;
