@@ -10,7 +10,7 @@ SPDX-License-Identifier: MIT
             <div>Active Server</div>
             <Select v-model="settingsStore.lobbyServer" :options="serversList" optionGroupLabel="label" optionGroupChildren="items" />
             <div>Custom Server</div>
-            <Textbox type="text" v-model="serverInput" placeholder="Server URL or IP" @keyup.enter="addServerToList()" class="textbox" />
+            <Textbox type="text" v-model="serverInput" placeholder="e.g. ws://localhost:4000" @keyup.enter="addServerToList()" class="textbox" />
             <div></div>
             <div class="gridform">
                 <Button @click="addServerToList()">Add</Button>
@@ -41,10 +41,10 @@ const op = ref();
 const tooltipMessage = ref("");
 
 const defaultServers: string[] = [
-    "server4.beyondallreason.info",
-    "server5.beyondallreason.info",
-    "lobby-server-dev.beyondallreason.dev",
-    "localhost:8200",
+    "wss://server4.beyondallreason.info",
+    "wss://server5.beyondallreason.info",
+    "wss://lobby-server-dev.beyondallreason.dev",
+    "ws://localhost:8200",
 ];
 
 const disableRemoveButton = computed(() => {
