@@ -11,14 +11,6 @@ function getLobbyServer() {
     return settingsService.getSettings().lobbyServer;
 }
 
-function parseServerURL(server: string, defaultProtocol: string): URL {
-
-    if (!/^\w+:\/\//.test(server)) {
-        server = `${defaultProtocol}://${server}`;
-    }
-    return new URL(server);
-}
-
 function getOAuthAuthorizationServerURL() {
     const server = getLobbyServer();
     let url: URL;
@@ -39,7 +31,6 @@ function getOAuthWellKnownURL() {
 }
 
 function getWSServerURL() {
-
     const server = getLobbyServer();
     let url: URL;
     if (server.startsWith("http://")) {

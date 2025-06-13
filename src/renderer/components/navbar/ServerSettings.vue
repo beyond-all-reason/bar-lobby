@@ -10,7 +10,13 @@ SPDX-License-Identifier: MIT
             <div>Active Server</div>
             <Select v-model="settingsStore.lobbyServer" :options="serversList" optionGroupLabel="label" optionGroupChildren="items" />
             <div>Custom Server</div>
-            <Textbox type="text" v-model="serverInput" placeholder="e.g. ws://localhost:4000" @keyup.enter="addServerToList()" class="textbox" />
+            <Textbox
+                type="text"
+                v-model="serverInput"
+                placeholder="e.g. ws://localhost:4000"
+                @keyup.enter="addServerToList()"
+                class="textbox"
+            />
             <div></div>
             <div class="gridform">
                 <Button @click="addServerToList()">Add</Button>
