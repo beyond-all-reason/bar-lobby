@@ -118,6 +118,7 @@ function dragStart(event: DragEvent, participant: Player | Bot) {
     if (participantEl) {
         participantEl.classList.add("dragging");
     }
+    document.addEventListener("dragend", dragEnd);
 }
 
 function dragEnd() {
@@ -132,6 +133,7 @@ function dragEnd() {
         el.classList.remove("highlight");
         el.classList.remove("highlight-error");
     });
+    document.removeEventListener("dragend", dragEnd);
 }
 
 function onDropTeam(event: DragEvent, teamId: number) {
