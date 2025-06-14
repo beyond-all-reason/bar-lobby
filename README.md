@@ -148,4 +148,6 @@ BAR_ASSETS_PATH=assets-3 BAR_STATE_PATH=state-3 npm start
 
 ### License
 
+[![REUSE status](https://api.reuse.software/badge/github.com/beyond-all-reason/bar-lobby)](https://api.reuse.software/info/github.com/beyond-all-reason/bar-lobby)
+
 Please see the [LICENSE.md](LICENSE.md) file for details on the license of this project.
