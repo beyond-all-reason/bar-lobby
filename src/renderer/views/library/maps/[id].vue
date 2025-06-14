@@ -74,6 +74,14 @@ SPDX-License-Identifier: MIT
                                 <Button v-else-if="map.isDownloading" class="green inline" disabled>Downloading map...</Button>
                                 <Button v-else class="red inline" @click="downloadMap(map.springName)">Download</Button>
                             </div>
+                            <div class="padding-top-md padding-bottom-md">
+                                <Progress
+                                    :class="{ pulse: isDownloading }"
+                                    :percent="downloadPercent"
+                                    v-if="isDownloading"
+                                    :text="(downloadPercent * 100).toFixed(0) + '%'"
+                                ></Progress>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -101,6 +109,7 @@ import { gameStore } from "@renderer/store/game.store";
 import { downloadMap } from "@renderer/store/maps.store";
 import { useDexieLiveQueryWithDeps } from "@renderer/composables/useDexieLiveQuery";
 import Panel from "@renderer/components/common/Panel.vue";
+import Progress from "@renderer/components/common/Progress.vue";
 import MapSimplePreview from "@renderer/components/maps/MapSimplePreview.vue";
 import TerrainIcon from "@renderer/components/maps/filters/TerrainIcon.vue";
 import { Icon } from "@iconify/vue";
@@ -111,6 +120,8 @@ import personIcon from "@iconify-icons/mdi/person-multiple";
 import waves from "@iconify-icons/mdi/waves";
 import gridIcon from "@iconify-icons/mdi/grid";
 import windPower from "@iconify-icons/mdi/wind-power";
+import { downloadsStore } from "@renderer/store/downloads.store";
+import { computed } from "vue";
 
 const router = useRouter();
 const { id } = defineProps<{
@@ -132,6 +143,19 @@ function toggleMapFavorite() {
 function returnToMaps() {
     router.push("/library/maps/maps");
 }
+
+const isDownloading = computed(() => downloadsStore.mapDownloads.length > 0);
+
+const downloadPercent = computed(() => {
+    const downloads = downloadsStore.mapDownloads;
+    let currentBytes = 0;
+    let totalBytes = 0;
+    for (const download of downloads) {
+        currentBytes += download.currentBytes;
+        totalBytes += download.totalBytes;
+    }
+    return currentBytes / totalBytes || 0;
+});
 </script>
 
 <style lang="scss" scoped>
