@@ -20,8 +20,8 @@ import { initDb } from "@renderer/store/db";
 const emit = defineEmits(["complete"]);
 
 const thingsToPreload: [string, () => Promise<unknown>][] = [
-    ["Initializing IndexDB", initDb],
     ["Loading fonts", loadAllFonts],
+    ["Initializing IndexDB", initDb],
     ["Initializing maps", initMapsStore],
     ["Fetching missing map images", fetchMissingMapImages],
     ["Initializing replays", initReplaysStore],
@@ -49,9 +49,11 @@ onMounted(async () => {
 });
 
 async function loadAllFonts() {
+    const promises: Promise<unknown>[] = [];
     for (const fontFile of Object.values(fontFiles)) {
-        await loadFont(fontFile);
+        promises.push(loadFont(fontFile));
     }
+    await Promise.all(promises);
 }
 
 async function loadFont(url: string) {
