@@ -4,7 +4,7 @@
     "version": "0.15.0",
     "private": true,
     "description": "Lobby client for the RTS game Beyond All Reason",
-    "author": "The BAR Lobby Team",
+    "author": "The BAR Lobby Authors",
     "license": "SEE LICENSE IN LICENSE.md",
     "repository": {
         "type": "git",
