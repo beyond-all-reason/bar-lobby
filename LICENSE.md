@@ -7,6 +7,7 @@ This software uses https://reuse.software/ to manage its licensing information.
 
 All content is annotated with SPDX license identifiers. To find the precise
 license for any file, check the following locations:
+
 - The `SPDX-License-Identifier` header in source files.
 - The corresponding `.license` file for binary files.
 - The mappings in the `REUSE.toml` file for all other files.
