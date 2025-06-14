@@ -1,7 +1,22 @@
 import { EngineAI, EngineVersion } from "@main/content/engine/engine-version";
 import { GameAI, GameVersion } from "@main/content/game/game-version";
 import { MapData } from "@main/content/maps/map-data";
-import { Battle, BattleWithMetadata, Bot, Faction, GameModeID, GameModeType, isBot, isPlayer, isRaptor, isScavenger, Player, StartPosType, Team } from "@main/game/battle/battle-types";
+import {
+    Battle,
+    BattleWithMetadata,
+    Bot,
+    Faction,
+    GameMode,
+    GameModeLabel,
+    isBot,
+    isPlayer,
+    isRaptor,
+    isScavenger,
+    isScavengerOrRaptor,
+    Player,
+    StartPosType,
+    Team,
+} from "@main/game/battle/battle-types";
 import { enginesStore } from "@renderer/store/engine.store";
 import { gameStore } from "@renderer/store/game.store";
 import { getRandomMap } from "@renderer/store/maps.store";
@@ -10,14 +25,6 @@ import { deepToRaw } from "@renderer/utils/deep-toraw";
 import { spadsBoxToStartBox } from "@renderer/utils/start-boxes";
 import { StartBox } from "tachyon-protocol/types";
 import { reactive, readonly, watch } from "vue";
-
-export const GameModes: Record<GameModeID, GameModeType> = {
-    CLASSIC: "Classic",
-    SKIRMISH: "Skirmish",
-    RAPTORS: "Raptors",
-    SCAVENGERS: "Scavengers",
-    FFA: "FFA",
-};
 
 let participantId = 0;
 interface BattleLobby {
@@ -35,7 +42,7 @@ export const battleStore = reactive<Battle & BattleLobby>({
     isOnline: false,
     battleOptions: {
         gameMode: {
-            label: GameModes.CLASSIC,
+            label: GameMode.CLASSIC,
             options: {},
         },
         mapOptions: {
@@ -295,7 +302,7 @@ function defaultOfflineBattle(engine?: EngineVersion, game?: GameVersion, map?: 
             engineVersion: engine?.id || enginesStore.getEngineVersion()?.id,
             gameVersion: game?.gameVersion || gameStore.selectedGameVersion?.gameVersion,
             gameMode: {
-                label: GameModes.CLASSIC,
+                label: GameMode.CLASSIC,
                 options: game?.luaOptionSections || {},
             },
             map,
@@ -417,7 +424,7 @@ function leaveBattle() {
     resetToDefaultBattle();
 }
 
-async function loadGameMode(gameMode: GameModeType) {
+async function loadGameMode(gameMode: GameModeLabel) {
     if (!battleStore.battleOptions.engineVersion) {
         const engineVersion = enginesStore.getEngineVersion();
         if (!engineVersion) throw new Error("failed to access engine version");
@@ -435,13 +442,13 @@ async function loadGameMode(gameMode: GameModeType) {
     }
 
     switch (gameMode) {
-        case GameModes.CLASSIC:
+        case GameMode.CLASSIC:
             removeCoopAIs();
             battleStore.title = "Classic";
             battleStore.battleOptions = {
                 ...battleStore.battleOptions,
                 gameMode: {
-                    label: GameModes.CLASSIC,
+                    label: GameMode.CLASSIC,
                     options: {},
                 },
                 mapOptions: {
@@ -451,13 +458,13 @@ async function loadGameMode(gameMode: GameModeType) {
                 restrictions: [],
             };
             break;
-        case GameModes.RAPTORS:
+        case GameMode.RAPTORS:
             addCoopAI("RaptorsAI");
             battleStore.title = "Raptors";
             battleStore.battleOptions = {
                 ...battleStore.battleOptions,
                 gameMode: {
-                    label: GameModes.RAPTORS,
+                    label: GameMode.RAPTORS,
                     options: {},
                 },
                 mapOptions: {
@@ -467,13 +474,13 @@ async function loadGameMode(gameMode: GameModeType) {
                 restrictions: [],
             };
             break;
-        case GameModes.SCAVENGERS:
+        case GameMode.SCAVENGERS:
             addCoopAI("ScavengersAI");
             battleStore.title = "Scavengers";
             battleStore.battleOptions = {
                 ...battleStore.battleOptions,
                 gameMode: {
-                    label: GameModes.SCAVENGERS,
+                    label: GameMode.SCAVENGERS,
                     options: {},
                 },
                 mapOptions: {
@@ -483,13 +490,13 @@ async function loadGameMode(gameMode: GameModeType) {
                 restrictions: [],
             };
             break;
-        case GameModes.FFA:
+        case GameMode.FFA:
             removeCoopAIs();
             battleStore.title = "FFA";
             battleStore.battleOptions = {
                 ...battleStore.battleOptions,
                 gameMode: {
-                    label: GameModes.FFA,
+                    label: GameMode.FFA,
                     options: {},
                 },
                 mapOptions: {

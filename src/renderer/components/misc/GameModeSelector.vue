@@ -3,7 +3,7 @@
         <div
             class="mode-column classic"
             @click="
-                battleActions.loadGameMode(GameModes.CLASSIC);
+                battleActions.loadGameMode(GameMode.CLASSIC);
                 $emit('selected');
             "
         >
@@ -13,7 +13,7 @@
         <div
             class="mode-column raptors"
             @click="
-                battleActions.loadGameMode(GameModes.RAPTORS);
+                battleActions.loadGameMode(GameMode.RAPTORS);
                 $emit('selected');
             "
         >
@@ -23,7 +23,7 @@
         <div
             class="mode-column scavengers"
             @click="
-                battleActions.loadGameMode(GameModes.SCAVENGERS);
+                battleActions.loadGameMode(GameMode.SCAVENGERS);
                 $emit('selected');
             "
         >
@@ -33,7 +33,7 @@
         <div
             class="mode-column ffa"
             @click="
-                battleActions.loadGameMode(GameModes.FFA);
+                battleActions.loadGameMode(GameMode.FFA);
                 $emit('selected');
             "
         >
@@ -43,7 +43,8 @@
     </div>
 </template>
 <script lang="ts" setup>
-import { battleActions, GameModes } from "@renderer/store/battle.store";
+import { GameMode } from '@main/game/battle/battle-types';
+import { battleActions } from "@renderer/store/battle.store";
 
 defineEmits(["selected"]);
 </script>
