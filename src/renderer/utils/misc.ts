@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2025 The BAR Lobby Authors
+//
+// SPDX-License-Identifier: MIT
+
 import { intervalToDuration } from "date-fns";
 
 export function getFriendlyDuration(durationMs: number, withSeconds = true) {

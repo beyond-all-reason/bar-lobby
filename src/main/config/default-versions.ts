@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2025 The BAR Lobby Authors
+//
+// SPDX-License-Identifier: MIT
+
 /**
  * These hardcoded versions are only needed for singleplayer/offline games. Online battles simply fetch and use whichever version that autohosts are running.
  *

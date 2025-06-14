@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2025 The BAR Lobby Authors
+//
+// SPDX-License-Identifier: MIT
+
 const hideCmds = ["c.system.ping", "s.system.pong", "s.system.server_stats"];
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

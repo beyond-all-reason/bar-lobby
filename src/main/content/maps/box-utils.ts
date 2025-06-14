@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2025 The BAR Lobby Authors
+//
+// SPDX-License-Identifier: MIT
+
 //Boxes
 export function pointsToXYWH(points: { x: number; y: number }[]) {
     if (points.length !== 2) {

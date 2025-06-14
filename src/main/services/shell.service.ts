@@ -1,5 +1,8 @@
-import { STATE_PATH, CONFIG_PATH, WRITE_DATA_PATH, REPLAYS_PATH, ASSETS_PATH } from "@main/config/app";
+// SPDX-FileCopyrightText: 2025 The BAR Lobby Authors
+//
+// SPDX-License-Identifier: MIT
 
+import { STATE_PATH, CONFIG_PATH, WRITE_DATA_PATH, REPLAYS_PATH, ASSETS_PATH } from "@main/config/app";
 import { shell } from "electron";
 import { ipcMain } from "@main/typed-ipc";
 import path from "path";

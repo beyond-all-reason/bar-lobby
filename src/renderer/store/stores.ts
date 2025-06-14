@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2025 The BAR Lobby Authors
+//
+// SPDX-License-Identifier: MIT
+
 import { initDownloadsStore } from "@renderer/store/downloads.store";
 import { initEnginesStore } from "@renderer/store/engine.store";
 import { initGameStore } from "@renderer/store/game.store";

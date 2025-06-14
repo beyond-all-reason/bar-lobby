@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2025 The BAR Lobby Authors
+
+SPDX-License-Identifier: MIT
+-->
+
 <template>
     <div class="image-wrapper" v-tooltip.right="{ value: terrainInfo.tooltip }">
         <img :src="imageUrl" :alt="terrain" class="icon" />

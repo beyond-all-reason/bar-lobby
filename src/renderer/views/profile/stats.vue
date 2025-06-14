@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2025 The BAR Lobby Authors
+
+SPDX-License-Identifier: MIT
+-->
+
 <route lang="json5">
 { meta: { title: "Stats", order: 2, devOnly: true, transition: { name: "slide-left" } } }
 </route>

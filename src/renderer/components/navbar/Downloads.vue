@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2025 The BAR Lobby Authors
+
+SPDX-License-Identifier: MIT
+-->
+
 <template>
     <PopOutPanel :open="modelValue">
         <Transition name="fade" mode="out-in">

@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2025 The BAR Lobby Authors
+//
+// SPDX-License-Identifier: MIT
+
 import axios from "axios";
 import * as fs from "fs";
 import * as glob from "glob-promise";

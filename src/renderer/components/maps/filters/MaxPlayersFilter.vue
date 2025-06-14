@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2025 The BAR Lobby Authors
+
+SPDX-License-Identifier: MIT
+-->
+
 <template>
     <Range v-model="range" :min="2" :max="40" range />
 </template>

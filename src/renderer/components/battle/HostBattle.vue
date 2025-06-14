@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2025 The BAR Lobby Authors
+
+SPDX-License-Identifier: MIT
+-->
+
 <template>
     <Modal title="Host Battle" width="400px" @open="onOpen" @close="onClose">
         <div class="flex-col gap-md">

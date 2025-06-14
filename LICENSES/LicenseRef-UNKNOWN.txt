@@ -1,0 +1,15 @@
+This is not a license. We do not have a correct license for this asset.
+
+Files without a license need to be treated as All Rights Reserved, and
+effectively everything is prohibited.
+
+DO NOT DO ANYTHING WITH THOSE FILES WITHOUT CHECKING WITH COPYRIGHT HOLDER.
+
+Resolution of this issue is tracked in https://github.com/beyond-all-reason/bar-lobby/issues/398,
+all files that don't have a license are owned by somebody in the BAR
+organization, we assume their good intentions, and we checked they are fine
+to have those files still present here, but CONDITIONS ARE UNKNOWN.
+
+DO NOT DO ANYTHING WITH THOSE FILES WITHOUT CHECKING WITH COPYRIGHT HOLDER.
+
+YOU MUST NOT ANY NEW ASSETS LIKE THIS.

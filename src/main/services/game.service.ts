@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2025 The BAR Lobby Authors
+//
+// SPDX-License-Identifier: MIT
+
 import { gameContentAPI } from "@main/content/game/game-content";
 import { gameAPI, MultiplayerLaunchSettings } from "@main/game/game";
 import { ipcMain, BarIpcWebContents } from "@main/typed-ipc";

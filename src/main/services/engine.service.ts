@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2025 The BAR Lobby Authors
+//
+// SPDX-License-Identifier: MIT
+
 import { EngineVersion } from "@main/content/engine/engine-version";
 import { engineContentAPI } from "@main/content/engine/engine-content";
 import { ipcMain } from "@main/typed-ipc";

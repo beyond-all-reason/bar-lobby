@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2025 The BAR Lobby Authors
+//
+// SPDX-License-Identifier: MIT
+
 import { checkAccess } from "./checkAccess.js";
 
 function isConfigValid(newConfig: string, expectedConfigUrl: string): boolean {

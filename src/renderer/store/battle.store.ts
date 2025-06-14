@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2025 The BAR Lobby Authors
+//
+// SPDX-License-Identifier: MIT
+
 import { EngineAI, EngineVersion } from "@main/content/engine/engine-version";
 import { GameAI, GameVersion } from "@main/content/game/game-version";
 import { MapData } from "@main/content/maps/map-data";

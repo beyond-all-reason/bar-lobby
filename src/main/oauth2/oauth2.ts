@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2025 The BAR Lobby Authors
+//
+// SPDX-License-Identifier: MIT
+
 import { OAUTH_CLIENT_ID, OAUTH_SCOPE, getOAuthAuthorizationServerURL, getOAuthWellKnownURL } from "@main/config/server";
 import { generatePKCE } from "@main/oauth2/pkce";
 import RedirectHandler from "@main/oauth2/redirect-handler";

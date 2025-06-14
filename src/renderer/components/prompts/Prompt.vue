@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2025 The BAR Lobby Authors
+
+SPDX-License-Identifier: MIT
+-->
+
 <template>
     <form ref="form" @submit.prevent="submit" @keydown.enter="submit">
         <div class="flex-col gap-md">
