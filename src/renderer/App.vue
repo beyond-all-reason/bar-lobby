@@ -81,6 +81,7 @@ import FullscreenGameModeSelector from "@renderer/components/battle/FullscreenGa
 import { useGlobalKeybindings } from "@renderer/composables/useGlobalKeybindings";
 import { me } from "@renderer/store/me.store";
 import { tachyonStore } from "@renderer/store/tachyon.store";
+import { auth } from "@renderer/store/me.store";
 
 const router = useRouter();
 const videoVisible = toRef(!toValue(settingsStore.skipIntro));
@@ -137,6 +138,14 @@ async function onPreloadDone() {
 function onInitialSetupDone() {
     state.value = "default";
     console.debug("Initial setup done");
+}
+
+// Currently we support multiplayer only in dev mode, as it's very not finished.
+// We do it here and not in index.vue to avoid flashing login page for user before
+// continuing to overview.
+if (!settingsStore.devMode) {
+    auth.playOffline();
+    router.push("/home/overview");
 }
 </script>
 

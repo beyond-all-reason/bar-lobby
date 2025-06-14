@@ -62,10 +62,7 @@ async function playOffline() {
     router.push("/home/overview");
 }
 
-if (!settingsStore.devMode) {
-    // Currently we support multiplayer only in dev mode, as it's very not finished.
-    playOffline();
-} else if (hasCredentials && settingsStore.loginAutomatically) {
+if (hasCredentials && settingsStore.loginAutomatically) {
     console.log("Logging in automatically");
     login();
 }
