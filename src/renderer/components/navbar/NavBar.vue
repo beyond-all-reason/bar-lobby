@@ -18,6 +18,7 @@ SPDX-License-Identifier: MIT
                         {{ view.meta.title }}
                     </Button>
                 </div>
+                <div class="drag-window-area"></div>
                 <div class="primary-right">
                     <Button
                         v-if="false"
@@ -332,5 +333,10 @@ const messagesUnread = computed(() => {
     right: 17px;
     bottom: 17px;
     background: red;
+}
+
+.drag-window-area {
+    flex-grow: 1;
+    -webkit-app-region: drag !important;
 }
 </style>
