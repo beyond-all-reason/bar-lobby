@@ -31,7 +31,7 @@
 </template>
 <script lang="ts" setup>
 import { LuaOption, LuaOptionSection } from "@main/content/game/lua-options";
-import { GameMode } from "@main/game/battle/battle-types";
+import { type GameModeWithOptions, GameMode } from "@main/game/battle/battle-types";
 import LuaOptionsModal from "@renderer/components/battle/LuaOptionsModal.vue";
 import Button from "@renderer/components/controls/Button.vue";
 import Select from "@renderer/components/controls/Select.vue";
@@ -40,11 +40,11 @@ import { gameStore } from "@renderer/store/game.store";
 import { ref, watch } from "vue";
 
 //TODO have theses presets come from the game
-const gameModeListOptions: GameMode[] = [
-    { label: "Classic", options: {} },
-    { label: "FFA", options: {} },
-    { label: "Raptors", options: {} },
-    { label: "Scavengers", options: {} },
+const gameModeListOptions: GameModeWithOptions[] = [
+    { label: GameMode.CLASSIC, options: {} },
+    { label: GameMode.FFA, options: {} },
+    { label: GameMode.RAPTORS, options: {} },
+    { label: GameMode.SCAVENGERS, options: {} },
 ];
 
 const groupedBySection = ref(new Map<LuaOptionSection, (LuaOption & { value: boolean | string | number })[]>());
@@ -71,7 +71,7 @@ const gameOptionsOpen = ref(false);
 async function openGameOptions() {
     gameOptionsOpen.value = true;
 }
-async function onGameModeSelected(gameMode: GameMode) {
+async function onGameModeSelected(gameMode: GameModeWithOptions) {
     await battleActions.loadGameMode(gameMode.label);
 }
 

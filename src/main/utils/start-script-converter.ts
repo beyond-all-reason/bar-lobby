@@ -84,7 +84,7 @@ class StartScriptConverter {
                 }
             }
 
-            team.forEach((teamMember) => {
+            team.participants.forEach((teamMember) => {
                 const { id, advantage, handicap, incomeMultiplier, startPos } = teamMember;
                 const team: Team = {
                     id,

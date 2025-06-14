@@ -7,7 +7,7 @@ export interface Battle {
     isOnline: boolean;
     battleOptions: BattleOptions;
     me?: Player;
-    teams: Array<Array<Player | Bot>>;
+    teams: Array<Team>;
     spectators: Player[];
     started: boolean;
 }
@@ -19,10 +19,19 @@ export interface BattleWithMetadata extends Battle {
     players: Player[];
 }
 
-export type GameModeType = "Classic" | "Skirmish" | "Raptors" | "Scavengers" | "FFA";
+export type GameModeID = "CLASSIC" | "SKIRMISH" | "RAPTORS" | "SCAVENGERS" | "FFA";
+export type GameModeLabel = "Classic" | "Skirmish" | "Raptors" | "Scavengers" | "FFA";
 
-export type GameMode = {
-    label: GameModeType;
+export const GameMode: Record<GameModeID, GameModeLabel> = {
+    CLASSIC: "Classic",
+    SKIRMISH: "Skirmish",
+    RAPTORS: "Raptors",
+    SCAVENGERS: "Scavengers",
+    FFA: "FFA",
+};
+
+export type GameModeWithOptions = {
+    label: GameModeLabel;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     options: Record<string, any>;
 };
@@ -37,7 +46,7 @@ export enum StartBoxOrientation {
 export type BattleOptions = {
     engineVersion?: string;
     gameVersion?: string;
-    gameMode: GameMode;
+    gameMode: GameModeWithOptions;
     map?: MapData;
     mapOptions: {
         startPosType: StartPosType;
@@ -131,6 +140,10 @@ export type Bot = {
     color?: string;
 };
 
+export type Team = {
+    participants: Array<Player | Bot>;
+};
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function isBot(bot: any): bot is Bot {
     return "aiShortName" in bot;
@@ -142,6 +155,10 @@ export function isRaptor(bot: Bot): boolean {
 
 export function isScavenger(bot: Bot): boolean {
     return bot.aiShortName === "ScavengersAI";
+}
+
+export function isScavengerOrRaptor(p: Bot | Player): boolean {
+    return isBot(p) && (isScavenger(p) || isRaptor(p));
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

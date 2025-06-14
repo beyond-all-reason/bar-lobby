@@ -43,7 +43,8 @@
     </div>
 </template>
 <script lang="ts" setup>
-import { battleActions, GameMode } from "@renderer/store/battle.store";
+import { GameMode } from "@main/game/battle/battle-types";
+import { battleActions } from "@renderer/store/battle.store";
 
 defineEmits(["selected"]);
 </script>

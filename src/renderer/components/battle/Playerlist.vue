@@ -109,7 +109,6 @@ function dragEnterSpectators(event: DragEvent) {
 
 function dragStart(event: DragEvent, participant: Player | Bot) {
     if (isBot(participant)) {
-        if (isRaptor(participant) || isScavenger(participant)) return;
         draggedBot.value = participant;
     } else {
         draggedPlayer.value = participant;
@@ -144,7 +143,11 @@ function onDropTeam(event: DragEvent, teamId: number) {
         return;
     }
     if (draggedBot.value) {
-        battleActions.moveBotToTeam(draggedBot.value, teamId);
+        if ((isRaptor(draggedBot.value) || isScavenger(draggedBot.value)) && battleStore.teams[teamId].participants.length != 0) {
+            draggedBot.value = null;
+        } else {
+            battleActions.moveBotToTeam(draggedBot.value, teamId);
+        }
     }
     if (draggedPlayer.value) {
         battleActions.movePlayerToTeam(draggedPlayer.value, teamId);
@@ -154,6 +157,9 @@ function onDropTeam(event: DragEvent, teamId: number) {
 function onDropSpectators(event: DragEvent) {
     const target = event.target as Element;
     if (draggedBot.value || !draggedPlayer.value || target.getAttribute("data-type") !== "group") {
+        if (isBot(draggedBot.value) && (isRaptor(draggedBot.value) || isScavenger(draggedBot.value))) {
+            draggedBot.value = null;
+        }
         return;
     }
     battleActions.movePlayerToSpectators(draggedPlayer.value);
