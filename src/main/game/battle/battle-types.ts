@@ -149,6 +149,10 @@ export function isScavenger(bot: Bot): boolean {
     return bot.aiShortName === "ScavengersAI";
 }
 
+export function isScavengerOrRaptor(p: Bot | Player): boolean {
+    return isBot(p) && (isScavenger(p) || isRaptor(p));
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function isPlayer(player: any): player is Player {
     return "user" in player;
