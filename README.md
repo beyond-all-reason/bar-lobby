@@ -145,3 +145,7 @@ You can start multiple separate instances by overriding the assets and/or state 
 BAR_STATE_PATH=state-2 npm start
 BAR_ASSETS_PATH=assets-3 BAR_STATE_PATH=state-3 npm start
 ```
+
+### License
+
+Please see the [LICENSE.md](LICENSE.md) file for details on the license of this project.

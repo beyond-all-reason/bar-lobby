@@ -1,9 +1,0 @@
-This software uses https://reuse.software/ to manage its licensing information.
-All content is annotated with SPDX license identifiers. Use that for precise
-information about the license of each file. LICENSES directory contains list
-of all licenses used by files in this project.
-
-- The bulk of the code is licensed under MIT license, but some files are
-  licensed under different licenses.
-- Assets are licensed under a wide range of licenses, spanning from CC0
-  to **not open** CC-NC-BY-SA-4.0.
