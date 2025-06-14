@@ -1,5 +1,7 @@
 <template>
     <div class="fullsize flex-center">
+        <h1>Loading</h1>
+        <h4>{{ text }}</h4>
         <Progress :percent="loadedPercent" :height="40" style="width: 70%" />
     </div>
 </template>
@@ -17,9 +19,16 @@ import { initDb } from "@renderer/store/db";
 
 const emit = defineEmits(["complete"]);
 
-const thingsToPreload = [initDb, loadAllFonts, initMapsStore, fetchMissingMapImages, initReplaysStore];
+const thingsToPreload: [string, () => Promise<unknown>][] = [
+    ["Initializing IndexDB", initDb],
+    ["Loading fonts", loadAllFonts],
+    ["Initializing maps", initMapsStore],
+    ["Fetching missing map images", fetchMissingMapImages],
+    ["Initializing replays", initReplaysStore],
+];
 
 const total = Object.values(fontFiles).length + thingsToPreload.length;
+const text = ref("");
 const progress = ref(0);
 const loadedPercent = computed(() => progress.value / total);
 
@@ -30,13 +39,10 @@ console.debug("Setting background image:", randomBackgroundImage);
 document.documentElement.style.setProperty("--background", `url(${randomBackgroundImage})`);
 
 onMounted(async () => {
-    try {
-        for (const thing of thingsToPreload) {
-            await thing();
-            progress.value++;
-        }
-    } catch (error) {
-        console.error(`Failed to preload: `, error);
+    for (const [label, thing] of thingsToPreload) {
+        text.value = label;
+        await thing();
+        progress.value++;
     }
     audioApi.load();
     emit("complete");
