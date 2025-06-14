@@ -91,35 +91,44 @@ function removeTeam(teamId: number) {
 
     const players = battleStore.teams[teamId].participants.filter(isPlayer);
     const bots = battleStore.teams[teamId].participants.filter((p) => isBot(p) && !isScavenger(p) && !isRaptor(p));
-    const scavengersOrRaptors = battleStore.teams[teamId].participants.filter((p) => isBot(p) && (isScavenger(p) || isRaptor(p)));
+    const scavengersOrRaptors = battleStore.teams[teamId].participants.filter(isScavengerOrRaptor);
 
     battleStore.teams.splice(teamId, 1);
 
     const maxPlayersPerTeam = getMaxPlayersPerTeam();
 
-    // first handle all players to not force spec when bots can be removed
+    //  first handle scavs/raptors to ensure they are alone in the last team
+    if (scavengersOrRaptors.length > 0) {
+        const lastTeam = battleStore.teams.at(-1);
+        if (lastTeam && lastTeam.participants.length > 0) {
+            players.push(...lastTeam.participants.filter(isPlayer));
+            bots.push(...lastTeam.participants.filter(isBot));
+            lastTeam.participants = [...scavengersOrRaptors.splice(0)];
+        }
+    }
+
+    // then handle all players to not force spec when bots can be removed
     for (const team of battleStore.teams.values()) {
+        if (team.participants.filter(isScavengerOrRaptor).length > 0) continue;
+
         if (team.participants.length < maxPlayersPerTeam) {
             const numberOfPlayersToAdd = maxPlayersPerTeam - team.participants.length;
             team.participants.push(...players.splice(0, numberOfPlayersToAdd));
         }
     }
 
-    // handle regular bots the same as players
+    // finally handle regular bots the same as players
     for (const team of battleStore.teams.values()) {
+        if (team.participants.filter(isScavengerOrRaptor).length > 0) continue;
+
         if (team.participants.length < maxPlayersPerTeam) {
             const numberOfBotsToAdd = maxPlayersPerTeam - team.participants.length;
             team.participants.push(...bots.splice(0, numberOfBotsToAdd));
         }
     }
 
-    if (scavengersOrRaptors.length > 0) {
-        const lastTeam = battleStore.teams.at(-1);
-        if (lastTeam && lastTeam.participants.length < maxPlayersPerTeam) lastTeam.participants.push(...scavengersOrRaptors.splice(0));
-    }
-
+    // force spec or remove bots if any are left
     const extraParticipants = [...players, ...bots, ...scavengersOrRaptors];
-
     if (extraParticipants.length > 0) {
         extraParticipants.forEach((participant) => (isPlayer(participant) ? movePlayerToSpectators(participant) : removeBot(participant)));
     }
@@ -251,6 +260,19 @@ function updateTeams() {
         for (let i = 0; i <= numberOfTeams - battleStore.teams.length; i++) addTeam();
     } else if (battleStore.teams.length > numberOfTeams) {
         for (let i = battleStore.teams.length - 1; i + 1 > numberOfTeams; i--) removeTeam(i);
+    }
+
+    // Adjust number of participants per team
+    const maxPartipantsPerTeam = getMaxPlayersPerTeam();
+    const extraParticipants: Array<Player | Bot> = [];
+    for (const team of battleStore.teams.values()) {
+        if (team.participants.filter(isScavengerOrRaptor).length > 0) continue;
+
+        if (team.participants.length > maxPartipantsPerTeam) {
+            extraParticipants.push(...team.participants.splice(maxPartipantsPerTeam));
+        } else {
+            team.participants.push(...extraParticipants.splice(0, maxPartipantsPerTeam - team.participants.length));
+        }
     }
 }
 
