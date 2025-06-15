@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2025 The BAR Lobby Authors
+//
+// SPDX-License-Identifier: MIT
+
 import { Me } from "@main/model/user";
 import { db } from "@renderer/store/db";
 import { reactive } from "vue";
@@ -49,9 +53,15 @@ async function changeAccount() {
     me.isAuthenticated = false;
 }
 
+window.tachyon.onEvent("user/self", (event) => {
+    // console.log(`Received user/self event: ${JSON.stringify(event)}`);
+    if (event && event.user) {
+        Object.assign(me, event.user);
+    }
+});
+
 window.tachyon.onEvent("user/updated", (event) => {
     console.log(`Received user/updated event: ${JSON.stringify(event)}`);
-
     // TODO change this when we have a proper protocol for users
     // see https://github.com/beyond-all-reason/tachyon/blob/master/docs/schema/user.md
     const myData = event.users[0];

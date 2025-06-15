@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2025 The BAR Lobby Authors
+//
+// SPDX-License-Identifier: MIT
+
 /**
  * Alerts are for displaying informative messages to the user, but aren't directly tied to any expected action.
  * They should typically be displayed at times when the user is using the lobby, and will notice them naturally.

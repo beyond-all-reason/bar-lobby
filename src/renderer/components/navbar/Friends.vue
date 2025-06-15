@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2025 The BAR Lobby Authors
+
+SPDX-License-Identifier: MIT
+-->
+
 <template>
     <PopOutPanel :open="modelValue" class="flex-col flex-grow fullheight">
         <TabView v-model:activeIndex="activeIndex" class="flex-col flex-grow fullheight">

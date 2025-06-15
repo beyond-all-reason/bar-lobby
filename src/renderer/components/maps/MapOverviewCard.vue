@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2025 The BAR Lobby Authors
+
+SPDX-License-Identifier: MIT
+-->
+
 <template>
     <div class="map">
         <div class="background" :style="`background-image: url('${imageUrl}')`"></div>
@@ -140,6 +146,9 @@ const imageUrl = computed(() =>
     &.br {
         bottom: 10px;
         right: 10px;
+        flex-wrap: wrap-reverse;
+        justify-content: flex-end;
+        max-width: 55%;
     }
 }
 </style>

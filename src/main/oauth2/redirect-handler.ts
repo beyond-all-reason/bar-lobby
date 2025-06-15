@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2025 The BAR Lobby Authors
+//
+// SPDX-License-Identifier: MIT
+
 // Helper for handling OAuth2 redirects from the native application.
 
 // This is a very simple HTTP server that listens on a random port on localhost

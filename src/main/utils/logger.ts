@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2025 The BAR Lobby Authors
+//
+// SPDX-License-Identifier: MIT
+
 import pino from "pino";
 import PinoPretty from "pino-pretty";
 import { LOGS_PATH } from "@main/config/app";

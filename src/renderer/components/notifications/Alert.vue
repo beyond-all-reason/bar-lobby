@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2025 The BAR Lobby Authors
+
+SPDX-License-Identifier: MIT
+-->
+
 <template>
     <div :class="`alert ${alert.severity}`">
         <div class="icon"><Icon :icon="icon" height="21"></Icon></div>

@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2025 The BAR Lobby Authors
+//
+// SPDX-License-Identifier: MIT
+
 export interface LuaOption {
     type: "section" | "number" | "boolean" | "string" | "list";
     key: string;

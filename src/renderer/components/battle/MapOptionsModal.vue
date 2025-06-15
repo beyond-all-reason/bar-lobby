@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2025 The BAR Lobby Authors
+
+SPDX-License-Identifier: MIT
+-->
+
 <template>
     <Modal ref="modal" title="Map options">
         <div class="container">
@@ -11,13 +17,7 @@
                         <Button
                             v-for="(boxSet, i) in battleStore.battleOptions.map.startboxesSet"
                             :key="i"
-                            @click="
-                                () => {
-                                    delete battleStore.battleOptions.mapOptions.fixedPositionsIndex;
-                                    battleStore.battleOptions.mapOptions.startPosType = StartPosType.Boxes;
-                                    battleStore.battleOptions.mapOptions.startBoxesIndex = i;
-                                }
-                            "
+                            @click="() => setPresetStartBoxes(i)"
                             :disabled="battleStore.battleOptions.mapOptions.startBoxesIndex === i"
                         >
                             <span>{{ i + 1 }}</span>
@@ -27,16 +27,16 @@
                 <div class="flex-col gap-sm">
                     <h4>Custom boxes</h4>
                     <div class="box-buttons">
-                        <Button @click="() => setCustomBoxes(StartBoxOrientation.EastVsWest)">
+                        <Button @click="() => setCustomStartBoxes(StartBoxOrientation.EastVsWest)">
                             <img src="/src/renderer/assets/images/icons/east-vs-west.png" />
                         </Button>
-                        <Button @click="() => setCustomBoxes(StartBoxOrientation.NorthVsSouth)">
+                        <Button @click="() => setCustomStartBoxes(StartBoxOrientation.NorthVsSouth)">
                             <img src="/src/renderer/assets/images/icons/north-vs-south.png" />
                         </Button>
-                        <Button @click="() => setCustomBoxes(StartBoxOrientation.NortheastVsSouthwest)">
+                        <Button @click="() => setCustomStartBoxes(StartBoxOrientation.NortheastVsSouthwest)">
                             <img src="/src/renderer/assets/images/icons/northeast-vs-southwest.png" />
                         </Button>
-                        <Button @click="() => setCustomBoxes(StartBoxOrientation.NorthwestVsSoutheast)">
+                        <Button @click="() => setCustomStartBoxes(StartBoxOrientation.NorthwestVsSoutheast)">
                             <img src="/src/renderer/assets/images/icons/northwest-vs-southeast.png" />
                         </Button>
                     </div>
@@ -45,12 +45,38 @@
                     </div>
                 </div>
                 <div v-if="hasCustomStartBoxes">
-                    <div v-for="(box, boxId) in battleStore.battleOptions.mapOptions.customStartBoxes" :key="`delete-box-${boxId}`">
-                        <Button class="red fullwidth" @click="() => deleteCustomBox(boxId)">Delete Box {{ boxId + 1 }}</Button>
+                    <div v-for="(teamBox, teamBoxId) in teamBoxes" :key="`delete-box-${teamBoxId}`">
+                        <Button
+                            :disabled="!canDeleteTeamBox(teamBox)"
+                            :class="{ red: canDeleteTeamBox(teamBox) }"
+                            class="fullwidth"
+                            @click="() => battleActions.removeTeam(teamBoxId)"
+                        >
+                            <span v-if="canDeleteTeamBox(teamBox)">Delete Team {{ teamBoxId + 1 }}</span>
+                            <span v-else>
+                                <Icon :icon="lockOutlineIcon" :inline="true"></Icon>
+                                Team {{ teamBoxId + 1 }} (<template v-if="participantCounts[teamBoxId] != undefined">
+                                    <span v-if="participantCounts[teamBoxId].playerCount > 0">
+                                        {{ participantCounts[teamBoxId].playerCount }}
+                                        {{ pluralize("player", participantCounts[teamBoxId].playerCount || 0) }}
+                                    </span>
+                                    <span v-if="participantCounts[teamBoxId].botCount > 0 && participantCounts[teamBoxId].playerCount > 0"
+                                        >&nbsp;-&nbsp;</span
+                                    >
+                                    <span v-if="participantCounts[teamBoxId].botCount > 0">
+                                        {{ participantCounts[teamBoxId].botCount }}
+                                        {{ pluralize("AI", participantCounts[teamBoxId].botCount || 0) }}
+                                    </span> </template
+                                >)
+                            </span>
+                        </Button>
                     </div>
 
+                    <Button class="green fullwidth" @click="() => battleActions.addTeam()">Add Team</Button>
+                </div>
+                <div v-else>
                     <div>
-                        <Button class="green fullwidth" @click="addCustomBox">Add box</Button>
+                        <Button class="fullwidth" @click="setCustomBoxesFromPresetBoxes">Edit Preset Teams</Button>
                     </div>
                 </div>
                 <div v-if="battleStore.battleOptions.map?.startPos">
@@ -59,13 +85,13 @@
                         <Button
                             v-for="(teamSet, i) in battleStore.battleOptions.map.startPos?.team"
                             :key="`team${i}`"
-                            @click="() => setFixedPositions(i)"
+                            @click="() => setFixedStartBoxes(i)"
                             :disabled="battleStore.battleOptions.mapOptions.startPosType === StartPosType.Fixed"
                         >
                             <span>{{ i + 1 }}</span>
                         </Button>
                         <Button
-                            @click="setRandomPositions"
+                            @click="setRandomStartBoxes"
                             :disabled="battleStore.battleOptions.mapOptions.startPosType === StartPosType.Random"
                         >
                             <span>Random</span>
@@ -86,10 +112,14 @@ import { Ref, ref, watch, computed } from "vue";
 import Modal from "@renderer/components/common/Modal.vue";
 import Button from "@renderer/components/controls/Button.vue";
 import Range from "@renderer/components/controls/Range.vue";
-import { battleStore } from "@renderer/store/battle.store";
-import { StartBoxOrientation, StartPosType } from "@main/game/battle/battle-types";
+import { battleStore, battleActions } from "@renderer/store/battle.store";
+import { isPlayer, StartBoxOrientation, StartPosType, Team } from "@main/game/battle/battle-types";
 import MapBattlePreview from "@renderer/components/maps/MapBattlePreview.vue";
 import { getBoxes } from "@renderer/utils/start-boxes";
+import { StartBox } from "tachyon-protocol/types";
+import { pluralize } from "@renderer/utils/i18n";
+import { Icon } from "@iconify/vue";
+import lockOutlineIcon from "@iconify-icons/mdi/lock-outline";
 
 const modal: Ref<null | InstanceType<typeof Modal>> = ref(null);
 
@@ -102,6 +132,34 @@ watch(
     }
 );
 
+// merged boxes with teams for displaying team info
+// and team based logic for start boxes
+const teamBoxes = computed<Array<StartBox & Team>>(() => {
+    const teams = battleStore.teams;
+    const boxes = battleActions.getCurrentStartBoxes();
+
+    const teamBoxes: Array<StartBox & Team> = [];
+
+    for (let i = 0; i < teams.length; i++) {
+        teamBoxes.push({ ...teams[i], ...boxes[i] });
+    }
+
+    return teamBoxes;
+});
+
+// get player and bot counts for better ux
+const participantCounts = computed(() => {
+    return teamBoxes.value.map((teamBox) => {
+        const players = teamBox.participants.filter(isPlayer);
+        return {
+            playerCount: players.length,
+            botCount: teamBox.participants.length - players.length,
+        };
+    });
+});
+
+const canDeleteTeamBox = (teamBox: StartBox & Team) => teamBoxes.value.length >= 3 && teamBox.participants.length == 0;
+
 const hasCustomStartBoxes = computed(() => {
     const customStartBoxes = battleStore.battleOptions.mapOptions.customStartBoxes;
     const startBoxesIndex = battleStore.battleOptions.mapOptions.startBoxesIndex;
@@ -111,54 +169,43 @@ const hasCustomStartBoxes = computed(() => {
     return true;
 });
 
-function setCustomBoxes(orientation: StartBoxOrientation) {
+function setPresetStartBoxes(startBoxIndex: number) {
+    delete battleStore.battleOptions.mapOptions.fixedPositionsIndex;
+    battleStore.battleOptions.mapOptions.startPosType = StartPosType.Boxes;
+    battleStore.battleOptions.mapOptions.startBoxesIndex = startBoxIndex;
+}
+
+function setCustomStartBoxes(orientation: StartBoxOrientation) {
     const customStartBoxes = getBoxes(orientation, customBoxRange.value);
     delete battleStore.battleOptions.mapOptions.startBoxesIndex;
     battleStore.battleOptions.mapOptions.startPosType = StartPosType.Boxes;
     battleStore.battleOptions.mapOptions.customStartBoxes = customStartBoxes;
 }
 
-function addCustomBox() {
-    const customBoxes = battleStore.battleOptions.mapOptions.customStartBoxes;
-
-    if (customBoxes == undefined) return;
-
-    if (customBoxes.length == 0) {
-        // Add a default box with proper sizing at the top-left of the map
-        const defaultBox = {
-            top: 0.0,
-            bottom: 1,
-            left: 0.0,
-            right: customBoxRange.value / 100,
-        };
-        battleStore.battleOptions.mapOptions.customStartBoxes = [...customBoxes, defaultBox];
-    } else {
-        const lastBox = customBoxes.at(-1);
-        if (lastBox == undefined) return;
-        battleStore.battleOptions.mapOptions.customStartBoxes = [...customBoxes, lastBox];
-    }
-}
-
-function deleteCustomBox(boxId: number) {
-    const customBoxes = battleStore.battleOptions.mapOptions.customStartBoxes;
-
-    if (customBoxes == undefined || customBoxes.length == 0) return;
-
-    if (customBoxes[boxId]) {
-        const newBoxes = customBoxes.filter((_, index) => index !== boxId);
-        battleStore.battleOptions.mapOptions.customStartBoxes = newBoxes;
-    }
-}
-
-function setFixedPositions(index: number) {
+function setFixedStartBoxes(index: number) {
     delete battleStore.battleOptions.mapOptions.startBoxesIndex;
     battleStore.battleOptions.mapOptions.startPosType = StartPosType.Fixed;
     battleStore.battleOptions.mapOptions.fixedPositionsIndex = index;
 }
-function setRandomPositions() {
+function setRandomStartBoxes() {
     delete battleStore.battleOptions.mapOptions.startBoxesIndex;
     delete battleStore.battleOptions.mapOptions.fixedPositionsIndex;
     battleStore.battleOptions.mapOptions.startPosType = StartPosType.Random;
+}
+
+function setCustomBoxesFromPresetBoxes() {
+    const startBoxesIndex = battleStore.battleOptions.mapOptions.startBoxesIndex;
+
+    if (startBoxesIndex == undefined) {
+        return;
+    }
+
+    const currentStartBoxes = battleActions.getCurrentStartBoxes();
+
+    delete battleStore.battleOptions.mapOptions.startBoxesIndex;
+    delete battleStore.battleOptions.mapOptions.customStartBoxes;
+
+    battleStore.battleOptions.mapOptions.customStartBoxes = currentStartBoxes;
 }
 
 function close() {

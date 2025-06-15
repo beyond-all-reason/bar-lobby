@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2025 The BAR Lobby Authors
+//
+// SPDX-License-Identifier: MIT
+
 import { removeFromArray } from "$/jaz-ts-utils/object";
 import { reactive } from "vue";
 

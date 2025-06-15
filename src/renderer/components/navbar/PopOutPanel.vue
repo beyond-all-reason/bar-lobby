@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2025 The BAR Lobby Authors
+
+SPDX-License-Identifier: MIT
+-->
+
 <template>
     <Panel class="popout-panel" :class="{ hidden: !open }" no-padding>
         <slot></slot>

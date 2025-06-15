@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2025 The BAR Lobby Authors
+
+SPDX-License-Identifier: MIT
+-->
+
 <template>
     <div class="message" :class="[{ 'from-host': fromHost }, message.type]">
         <div v-if="user" class="user">
