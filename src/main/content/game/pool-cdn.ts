@@ -55,6 +55,7 @@ export class PoolCdnDownloader extends Downloader {
             name: "pool-data",
             currentBytes: 0,
             totalBytes: 1,
+            progress: 0,
         };
         this.currentDownloads.push(downloadInfo);
 
