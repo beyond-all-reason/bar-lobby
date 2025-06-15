@@ -104,8 +104,6 @@ app.whenReady().then(async () => {
         } catch (err) {
             log.error("Vue Devtools failed to install:", err?.toString());
         }
-    } else if (app.isPackaged && process.env.NODE_ENV === "production") {
-        autoUpdaterService.init();
     }
     // Define CSP for all webContents
     session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
@@ -118,7 +116,7 @@ app.whenReady().then(async () => {
     });
     // Initialize services
     await engineService.init();
-    await Promise.all([settingsService.init(), accountService.init(), replaysService.init(), gameService.init(), mapsService.init()]);
+    await Promise.all([settingsService.init(), accountService.init(), replaysService.init(), gameService.init(), mapsService.init(), autoUpdaterService.init()]);
     const mainWindow = createWindow();
     const webContents = typedWebContents(mainWindow.webContents);
     // Handlers may need the webContents to send events
