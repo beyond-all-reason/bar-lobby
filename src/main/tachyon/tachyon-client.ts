@@ -20,6 +20,11 @@ export type TachyonClientRequestHandlers = {
     ) => Promise<Omit<GetCommands<"user", "server", "response", CommandId>, "type" | "commandId" | "messageId">>;
 };
 
+type TachyonError = {
+    error: string;
+    error_description: string;
+};
+
 export class TachyonClient {
     public socket?: WebSocket;
 
@@ -49,6 +54,17 @@ export class TachyonClient {
             });
             this.socket.on("unexpected-response", async (req, res) => {
                 res.on("data", (chunk: Buffer) => {
+                    let details: TachyonError | undefined;
+                    try {
+                        details = JSON.parse(chunk.toString());
+                    } catch {
+                        //eat json parsing errors
+                    }
+                    if (details && details.error_description) {
+                        log.error(details);
+                        reject(details.error_description);
+                        return;
+                    }
                     const error = `HTTP Error ${res.statusCode}: ${chunk.toString()}`;
                     log.error(error);
                     reject(error);

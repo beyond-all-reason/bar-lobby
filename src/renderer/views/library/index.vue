@@ -9,7 +9,7 @@ SPDX-License-Identifier: MIT
     meta: {
         redirect: "/library/replays",
         title: "Library",
-        order: 2,
+        order: 1,
     },
 }
 </route>
