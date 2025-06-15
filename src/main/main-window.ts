@@ -56,7 +56,9 @@ export function createWindow() {
         const zoomFactor = mainWindow.getContentSize()[1] / ZOOM_FACTOR_BASELINE_HEIGHT;
         console.debug("Window size: ", mainWindow.getContentSize());
         console.debug("Zoom factor: ", zoomFactor);
-        webContents.zoomFactor = zoomFactor;
+        if (zoomFactor > 0) { // prevent breaking when minimizing
+            webContents.zoomFactor = zoomFactor;
+        }
     }
     setZoomFactor();
 
@@ -146,6 +148,9 @@ export function createWindow() {
     });
 
     ipcMain.handle("mainWindow:minimize", () => mainWindow.minimize());
+
+    ipcMain.handle("mainWindow:isFullscreen", () => mainWindow.isFullScreen());
+
     /////////////////////////////////////////////
     // Subscribe to game events
     webContents.ipc.on("game:launched", () => {

@@ -45,8 +45,9 @@
                     <Button v-tooltip.bottom="'Minimize'" class="icon" @click="minimizeWindow">
                         <Icon :icon="windowMinimize" :height="40"></Icon>
                     </Button>
-                    <Button v-tooltip.bottom="'Maximize'" class="icon" @click="toggleFullScreen">
-                        <Icon :icon="windowMaximize" :height="40"></Icon>
+                    <Button v-tooltip.bottom="isFullscreen ? 'Windowed' : 'Fullscreen'" class="icon" @click="toggleFullScreen">
+                        <Icon v-if="isFullscreen" :icon="fullscreenExit" :height="40"></Icon>
+                        <Icon v-else :icon="fullscreen" :height="40"></Icon>
                     </Button>
                     <Button v-tooltip.bottom="'Exit'" class="icon close" @click="exitOpen = true">
                         <Icon :icon="closeThick" :height="40" />
@@ -93,7 +94,9 @@ import accountMultiple from "@iconify-icons/mdi/account-multiple";
 import messageIcon from "@iconify-icons/mdi/chat";
 import closeThick from "@iconify-icons/mdi/close-thick";
 import windowMinimize from "@iconify-icons/mdi/window-minimize";
-import windowMaximize from "@iconify-icons/mdi/window-maximize";
+import fullscreen from "@iconify-icons/mdi/fullscreen";
+import fullscreenExit from "@iconify-icons/mdi/fullscreen-exit";
+
 import cog from "@iconify-icons/mdi/cog";
 import { computed, inject, Ref, ref } from "vue";
 
@@ -154,11 +157,14 @@ const messagesUnread = computed(() => {
     return false;
 });
 
+const isFullscreen = ref(false); // TODO: get settings from main process to set this variable
+
 async function minimizeWindow() {
     await window.mainWindow.minimize();
 }
 
 async function toggleFullScreen() {
+    isFullscreen.value = !await window.mainWindow.isFullscreen();
     await window.mainWindow.toggleFullscreen();
 }
 </script>
