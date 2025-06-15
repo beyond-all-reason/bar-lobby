@@ -48,7 +48,9 @@ async function setupI18n() {
     const messages: Record<string, Record<string, string>> = {};
     for (const filePath in localeFilePaths) {
         const localeCode = filePath.match(/([a-z]{2})\.json$/)![1];
-        messages[localeCode] = await fetch(`${localeFilePaths[filePath]}`).then(res => res.json()).then(jsonData => processTranslationData(jsonData)) as Record<string, string>;
+        messages[localeCode] = (await fetch(`${localeFilePaths[filePath]}`)
+            .then((res) => res.json())
+            .then((jsonData) => processTranslationData(jsonData))) as Record<string, string>;
     }
     return createI18n({
         locale: myLocale,

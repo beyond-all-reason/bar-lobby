@@ -19,7 +19,7 @@ SPDX-License-Identifier: MIT
     - Unit Definitions
     "
         />
-    {{ t('interface.ui.topbar.resources.incomeTooltip', { resource: '9000' }) }}
+        {{ t("interface.ui.topbar.resources.incomeTooltip", { resource: "9000" }) }}
     </div>
 </template>
 
