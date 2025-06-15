@@ -11,7 +11,7 @@ import icon from "@main/resources/icon.png";
 import { purgeLogFiles } from "@main/services/log.service";
 import { typedWebContents } from "@main/typed-ipc";
 
-declare const MAIN_WINDOW_VITE_DEV_SERVER_URL: string;
+declare const MAIN_WINDOW_VITE_DEV_SERVER_URL: string | undefined;
 declare const MAIN_WINDOW_VITE_NAME: string;
 
 const ZOOM_FACTOR_BASELINE_HEIGHT = 1080;
@@ -103,7 +103,7 @@ export function createWindow() {
     });
 
     // and load the index.html of the app.
-    if (app.isPackaged) {
+    if (!MAIN_WINDOW_VITE_DEV_SERVER_URL) {
         mainWindow.loadFile(path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`));
     } else {
         mainWindow.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL);
