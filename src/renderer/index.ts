@@ -19,6 +19,7 @@ import { elementInViewDirective } from "@renderer/utils/element-in-view-directiv
 import { audioApi } from "@renderer/audio/audio";
 import { router } from "@renderer/router";
 import { initPreMountStores } from "@renderer/store/stores";
+import { processTranslationData } from "@renderer/utils/i18n";
 
 setupVue();
 
@@ -47,7 +48,7 @@ async function setupI18n() {
     const messages: Record<string, Record<string, string>> = {};
     for (const filePath in localeFilePaths) {
         const localeCode = filePath.match(/([a-z]{2})\.json$/)![1];
-        messages[localeCode] = await fetch(`${localeFilePaths[filePath]}`).then(res => res.json()) as Record<string, string>;
+        messages[localeCode] = await fetch(`${localeFilePaths[filePath]}`).then(res => res.json()).then(jsonData => processTranslationData(jsonData)) as Record<string, string>;
     }
     return createI18n({
         locale: myLocale,
