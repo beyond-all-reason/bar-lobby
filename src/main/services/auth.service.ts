@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2025 The BAR Lobby Authors
+//
+// SPDX-License-Identifier: MIT
+
 import { authenticate, renewAccessToken, startTokenRenewer, stopTokenRenewer } from "@main/oauth2/oauth2";
 import { accountService } from "@main/services/account.service";
 import { logger } from "@main/utils/logger";

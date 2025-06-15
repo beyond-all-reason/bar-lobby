@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2025 The BAR Lobby Authors
+
+SPDX-License-Identifier: MIT
+-->
+
 <route lang="json5">
 { meta: { empty: true, blurBg: true, transition: { name: "fade" } } }
 </route>
@@ -62,10 +68,7 @@ async function playOffline() {
     router.push("/home/overview");
 }
 
-if (!settingsStore.devMode) {
-    // Currently we support multiplayer only in dev mode, as it's very not finished.
-    playOffline();
-} else if (hasCredentials && settingsStore.loginAutomatically) {
+if (hasCredentials && settingsStore.loginAutomatically) {
     console.log("Logging in automatically");
     login();
 }

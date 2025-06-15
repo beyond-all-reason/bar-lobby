@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2025 The BAR Lobby Authors
+//
+// SPDX-License-Identifier: MIT
+
 import { Static, TSchema } from "@sinclair/typebox";
 import Ajv, { ValidateFunction } from "ajv";
 

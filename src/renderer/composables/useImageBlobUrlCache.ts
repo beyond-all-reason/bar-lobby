@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2025 The BAR Lobby Authors
+//
+// SPDX-License-Identifier: MIT
+
 function base64ToBlobUrl(base64: string) {
     const byteString = atob(base64.split(",")[1]);
     const mimeString = base64.split(",")[0].split(":")[1].split(";")[0];

@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2025 The BAR Lobby Authors
+
+SPDX-License-Identifier: MIT
+-->
+
 <template>
     <!-- <div class="sticky-battle flex-row" v-if="battleStore" @click="openBattle">
         <div class="leave" @click.stop="leaveLobby">

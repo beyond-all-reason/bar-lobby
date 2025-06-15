@@ -1,3 +1,9 @@
+# SPDX-FileCopyrightText: 2020 gajop
+# SPDX-FileCopyrightText: 2025 The BAR Lobby Authors
+#
+# SPDX-License-Identifier: ISC
+# SPDX-FileAttributionText: Initial version copied from spring-launcher project
+
 !macro customRemoveFiles
     FindFirst $0 $1 "$INSTDIR\*"
     ;MessageBox MB_OK "$INSTDIR"

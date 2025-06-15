@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2025 The BAR Lobby Authors
+//
+// SPDX-License-Identifier: MIT
+
 import { MapData, MapDownloadData } from "@main/content/maps/map-data";
 import { mapContentAPI } from "@main/content/maps/map-content";
 import { ipcMain, BarIpcWebContents } from "@main/typed-ipc";

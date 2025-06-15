@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2025 The BAR Lobby Authors
+//
+// SPDX-License-Identifier: MIT
+
 // model for https://maps-metadata.beyondallreason.dev/latest/lobby_maps.validated.json
 
 export interface MapMetadata {

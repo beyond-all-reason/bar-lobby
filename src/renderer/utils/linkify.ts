@@ -1,4 +1,8 @@
-// https://stackoverflow.com/a/49634926/1864403
+// SPDX-FileCopyrightText: 2018 user9590073
+//
+// SPDX-License-Identifier: CC-BY-SA-3.0
+// SPDX-FileAttributionText: https://stackoverflow.com/a/49634926/1864403
+
 export function linkify(inputText: string) {
     let replacedText;
 

@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2025 The BAR Lobby Authors
+//
+// SPDX-License-Identifier: MIT
+
 import { ASSETS_PATH, POOL_PATH } from "@main/config/app";
 import * as fs from "fs";
 import path from "path";
