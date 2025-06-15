@@ -60,7 +60,8 @@ export function createWindow() {
         const zoomFactor = mainWindow.getContentSize()[1] / ZOOM_FACTOR_BASELINE_HEIGHT;
         console.debug("Window size: ", mainWindow.getContentSize());
         console.debug("Zoom factor: ", zoomFactor);
-        if (zoomFactor > 0) { // prevent breaking when minimizing
+        // prevent breaking when minimizing
+        if (zoomFactor > 0) {
             webContents.zoomFactor = zoomFactor;
         }
     }

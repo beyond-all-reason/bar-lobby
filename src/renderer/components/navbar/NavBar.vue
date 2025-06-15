@@ -163,15 +163,16 @@ const messagesUnread = computed(() => {
     return false;
 });
 
-const isFullscreen = ref(false); // TODO: get settings from main process to set this variable
+const isFullscreen = ref(false);
+(async () => (isFullscreen.value = await window.mainWindow.isFullscreen()))(); // a bit hacky but iife allows to set ref from async function
 
 async function minimizeWindow() {
     await window.mainWindow.minimize();
 }
 
 async function toggleFullScreen() {
-    isFullscreen.value = !await window.mainWindow.isFullscreen();
     await window.mainWindow.toggleFullscreen();
+    isFullscreen.value = await window.mainWindow.isFullscreen();
 }
 </script>
 
