@@ -21,23 +21,23 @@ async function init() {
         });
 
         autoUpdater.on("update-available", (info) => {
-            log.info("Update available");
+            log.info(`Update available: ${info.version}`);
         });
 
         autoUpdater.on("update-not-available", (info) => {
-            log.info("Update not available");
+            log.info(`Update not available: ${info.version}`);
         });
 
         autoUpdater.on("error", (err) => {
-            log.error("Error trying to update");
+            log.error(`Error trying to update: ${err.message}`);
         });
 
         autoUpdater.on("download-progress", (progressObj) => {
-            log.info("Download progress");
+            log.info(`Download progress: ${progressObj.percent}/100`);
         });
 
         autoUpdater.on("update-downloaded", (info) => {
-            log.info("Update downloaded");
+            log.info(`Update downloaded: ${info.version}`);
         });
 
         await autoUpdater.checkForUpdatesAndNotify(); // this will automatically install updates once the app quits
