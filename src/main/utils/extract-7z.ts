@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2025 The BAR Lobby Authors
+//
+// SPDX-License-Identifier: MIT
+
 import { unpack, cmd } from "$/7zip-min/7zip-min";
 
 export function extract7z(archivePath: string, outputPath: string) {

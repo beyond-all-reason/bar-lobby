@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2019 Delapouite (http://delapouite.com)
+
+SPDX-License-Identifier: CC-BY-3.0
+-->
+
 <script setup lang="ts">
 import { defineComponent } from "vue";
 

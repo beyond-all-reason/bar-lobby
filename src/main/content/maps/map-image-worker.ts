@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2025 The BAR Lobby Authors
+//
+// SPDX-License-Identifier: MIT
+
 import { isMainThread, parentPort } from "worker_threads";
 
 if (isMainThread) {

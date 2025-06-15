@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2025 The BAR Lobby Authors
+
+SPDX-License-Identifier: CC0-1.0
+-->
+
 # BAR Lobby
 
 BAR Lobby is a new WIP lobby for the RTS game [Beyond All Reason](https://www.beyondallreason.info/). It hopes to boldly go where no Spring client has gone before, providing a more streamlined experience, with good visuals and UX being high priority. The ultimate goal of BAR Lobby is to replace all other lobbies when it comes to playing BAR. If a significant amount of people don't wish to use it because of reasons such as functionality or speed, then this project is going very wrong.
@@ -139,3 +145,9 @@ You can start multiple separate instances by overriding the assets and/or state 
 BAR_STATE_PATH=state-2 npm start
 BAR_ASSETS_PATH=assets-3 BAR_STATE_PATH=state-3 npm start
 ```
+
+### License
+
+[![REUSE status](https://api.reuse.software/badge/github.com/beyond-all-reason/bar-lobby)](https://api.reuse.software/info/github.com/beyond-all-reason/bar-lobby)
+
+Please see the [LICENSE.md](LICENSE.md) file for details on the license of this project.

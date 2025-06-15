@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2025 The BAR Lobby Authors
+
+SPDX-License-Identifier: MIT
+-->
+
 <template>
     <div class="map">
         <div class="background" :style="`background-image: url('${imageUrl}')`"></div>

@@ -1,3 +1,8 @@
+// SPDX-FileCopyrightText: 2023 Sergei Ermakov
+//
+// SPDX-License-Identifier: MIT
+// SPDX-FileAttributionText: https://github.com/vuejs/core/issues/5303#issuecomment-1543596383
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { toRaw, isRef, isReactive, isProxy } from "vue";
 

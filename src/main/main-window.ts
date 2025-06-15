@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2025 The BAR Lobby Authors
+//
+// SPDX-License-Identifier: MIT
+
 import { app, BrowserWindow, ipcMain, nativeImage } from "electron";
 import path from "path";
 import { settingsService } from "./services/settings.service";

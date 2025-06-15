@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2025 The BAR Lobby Authors
+//
+// SPDX-License-Identifier: MIT
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { spadsPointsToLTRBPercent } from "@main/content/maps/box-utils";
 import { BattleWithMetadata, isPlayer, StartPosType } from "@main/game/battle/battle-types";

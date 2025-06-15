@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2025 The BAR Lobby Authors
+//
+// SPDX-License-Identifier: MIT
+
 /**
  * These hardcoded versions are only needed for singleplayer/offline games. Online battles simply fetch and use whichever version that autohosts are running.
  *
@@ -8,4 +12,4 @@
 
 export const LATEST = "LATEST";
 export const LATEST_GAME_VERSION = "byar:test";
-export const DEFAULT_ENGINE_VERSION = "2025.01.6";
+export const DEFAULT_ENGINE_VERSION = "2025.04.08";

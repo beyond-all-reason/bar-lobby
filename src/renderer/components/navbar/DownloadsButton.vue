@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2025 The BAR Lobby Authors
+
+SPDX-License-Identifier: MIT
+-->
+
 <template>
     <Button class="icon download-button" :style="`--downloadPercent: ${downloadPercent * 100}%`" :class="{ pulse: isDownloading }">
         <Icon :icon="download" :height="40" />

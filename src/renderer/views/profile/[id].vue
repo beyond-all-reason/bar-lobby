@@ -1,4 +1,10 @@
 <!--
+SPDX-FileCopyrightText: 2025 The BAR Lobby Authors
+
+SPDX-License-Identifier: MIT
+-->
+
+<!--
 TODO:
     - Player name
     - Avatar - Steam or choose from BAR selection?

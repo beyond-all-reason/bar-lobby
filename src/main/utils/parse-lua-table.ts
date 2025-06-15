@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2025 The BAR Lobby Authors
+//
+// SPDX-License-Identifier: MIT
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type { LocalStatement, ReturnStatement, TableConstructorExpression, Expression, UnaryExpression, BinaryExpression } from "luaparse";
 import luaparse from "luaparse";
