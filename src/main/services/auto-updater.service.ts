@@ -20,30 +20,30 @@ async function init() {
 
 // Examples: https://github.com/iffy/electron-updater-example/blob/master/main.js
 function registerEvents() {
-    autoUpdater.on('checking-for-update', () => {
+    autoUpdater.on("checking-for-update", () => {
         log.info("Checking for updates...");
     });
 
-    autoUpdater.on('update-available', (info) => {
+    autoUpdater.on("update-available", (info) => {
         log.info("Update available");
     });
-    
-    autoUpdater.on('update-not-available', (info) => {
+
+    autoUpdater.on("update-not-available", (info) => {
         log.info("Update not available");
     });
-    
-    autoUpdater.on('error', (err) => {
+
+    autoUpdater.on("error", (err) => {
         log.error("Error trying to update");
     });
-    
-    autoUpdater.on('download-progress', (progressObj) => {
+
+    autoUpdater.on("download-progress", (progressObj) => {
         log.info("Download progress");
-    })
-    
-    autoUpdater.on('update-downloaded', (info) => {
+    });
+
+    autoUpdater.on("update-downloaded", (info) => {
         log.info("Update downloaded");
-    //   autoUpdater.quitAndInstall();
-    })
+        //   autoUpdater.quitAndInstall();
+    });
 }
 
 export const autoUpdaterService = {
