@@ -89,12 +89,7 @@
                                         <Button v-else disabled>Show File</Button>
                                     </div>
                                     <div class="padding-top-md">
-                                        <Progress
-                                            :class="{ pulse: isDownloading }"
-                                            :percent="downloadPercent"
-                                            v-if="isDownloading"
-                                            :text="(downloadPercent * 100).toFixed(0) + '%'"
-                                        ></Progress>
+                                        <MapDownloadProgress :map-name="map?.springName"></MapDownloadProgress>
                                     </div>
                                 </div>
                             </template>
@@ -124,7 +119,7 @@
 
 import { format } from "date-fns";
 import Column from "primevue/column";
-import { Ref, ref, shallowRef, computed } from "vue";
+import { Ref, ref, shallowRef } from "vue";
 
 import Button from "@renderer/components/controls/Button.vue";
 import Checkbox from "@renderer/components/controls/Checkbox.vue";
@@ -138,8 +133,7 @@ import { useDexieLiveQueryWithDeps } from "@renderer/composables/useDexieLiveQue
 import ReplayPreview from "@renderer/components/battle/ReplayPreview.vue";
 import DownloadContentButton from "@renderer/components/controls/DownloadContentButton.vue";
 import { gameStore } from "@renderer/store/game.store";
-import { downloadsStore } from "@renderer/store/downloads.store";
-import Progress from "@renderer/components/common/Progress.vue";
+import MapDownloadProgress from "@renderer/components/common/MapDownloadProgress.vue";
 import { MapDownloadData } from "@main/content/maps/map-data";
 
 const endedNormally: Ref<boolean | null> = ref(true);
@@ -223,19 +217,6 @@ function watchReplay(replay: Replay) {
 function showReplayFile(replay: Replay) {
     if (replay?.fileName) window.shell.showReplayInFolder(replay.fileName);
 }
-
-const isDownloading = computed(() => downloadsStore.mapDownloads.length > 0);
-
-const downloadPercent = computed(() => {
-    const downloads = downloadsStore.mapDownloads;
-    let currentBytes = 0;
-    let totalBytes = 0;
-    for (const download of downloads) {
-        currentBytes += download.currentBytes;
-        totalBytes += download.totalBytes;
-    }
-    return currentBytes / totalBytes || 0;
-});
 </script>
 
 <style lang="scss" scoped>

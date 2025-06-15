@@ -59,6 +59,7 @@ export abstract class PrDownloaderAPI<ID, T> extends AbstractContentAPI<ID, T> {
                     name,
                     currentBytes: 0,
                     totalBytes: 0,
+                    progress: 0,
                 };
                 prdProcess.stdout?.on("data", (stdout: Buffer) => {
                     const messages = stdout.toString().trim().split(os.EOL).filter(Boolean);
@@ -74,11 +75,13 @@ export abstract class PrDownloaderAPI<ID, T> extends AbstractContentAPI<ID, T> {
                             if (progress.totalBytes > 1) {
                                 if (downloadInfo.totalBytes === 0) {
                                     downloadInfo.totalBytes = progress.totalBytes;
+                                    downloadInfo.progress = 0;
                                     this.currentDownloads.push(downloadInfo);
                                     this.downloadStarted(downloadInfo);
                                 } else {
                                     downloadInfo.currentBytes = progress.currentBytes;
                                     downloadInfo.totalBytes = progress.totalBytes;
+                                    downloadInfo.progress = progress.parsedPercent;
                                     this.downloadProgress(downloadInfo);
                                 }
                             }
@@ -113,10 +116,11 @@ export abstract class PrDownloaderAPI<ID, T> extends AbstractContentAPI<ID, T> {
 
     protected parseProgressMessage(message: string): Omit<PrdProgressMessage, "downloadType" | "content"> {
         const parts = message.split(" ");
-        const parsedPercent = parseInt(parts[1]) / 100;
         const bytes = parts[parts.length - 1].split("/");
         const currentBytes = parseInt(bytes[0]);
         const totalBytes = parseInt(bytes[1]);
+        //The message contains a percentage, but due to the message.split() it is safer to calculate it ourselves since we have the bytes
+        const parsedPercent = currentBytes / totalBytes || 0;
         return { currentBytes, totalBytes, parsedPercent };
     }
 }

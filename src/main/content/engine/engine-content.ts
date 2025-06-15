@@ -82,6 +82,7 @@ export class EngineContentAPI extends AbstractContentAPI<string, EngineVersion> 
                 name: engineVersion,
                 currentBytes: 0,
                 totalBytes: 1,
+                progress: 0,
             };
             this.currentDownloads.push(downloadInfo);
             this.downloadStarted(downloadInfo);
