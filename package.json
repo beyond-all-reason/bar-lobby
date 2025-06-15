@@ -14,7 +14,7 @@
     "scripts": {
         "start": "cross-env NODE_OPTIONS=--enable-source-maps electron-forge start",
         "package": "electron-forge package",
-        "preview": "electron-forge package && electron .",
+        "preview": "electron-forge package && cross-env NODE_OPTIONS=--enable-source-maps NODE_ENV=production electron .",
         "build:win": "electron-builder --config electron-builder.config.ts --win",
         "buildall:win": "npm run package && npm run build:win",
         "build:linux": "electron-builder --config electron-builder.config.ts --linux",
