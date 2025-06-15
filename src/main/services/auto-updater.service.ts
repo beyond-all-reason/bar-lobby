@@ -14,7 +14,7 @@ async function init() {
         log.info("Initializing Auto-Updater Service");
         registerEvents();
         autoUpdater.logger = log;
-        await autoUpdater.checkForUpdates();
+        await autoUpdater.checkForUpdatesAndNotify(); // this will automatically install updates once the app quits
     }
 }
 
@@ -42,7 +42,6 @@ function registerEvents() {
 
     autoUpdater.on("update-downloaded", (info) => {
         log.info("Update downloaded");
-        //   autoUpdater.quitAndInstall();
     });
 }
 
