@@ -60,7 +60,10 @@ export function createWindow() {
         const zoomFactor = mainWindow.getContentSize()[1] / ZOOM_FACTOR_BASELINE_HEIGHT;
         console.debug("Window size: ", mainWindow.getContentSize());
         console.debug("Zoom factor: ", zoomFactor);
-        webContents.zoomFactor = zoomFactor;
+        // prevent breaking when minimizing
+        if (zoomFactor > 0) {
+            webContents.zoomFactor = zoomFactor;
+        }
     }
     setZoomFactor();
 
@@ -148,6 +151,11 @@ export function createWindow() {
     ipcMain.handle("mainWindow:flashFrame", (_event, flag: boolean) => {
         mainWindow.flashFrame(flag);
     });
+
+    ipcMain.handle("mainWindow:minimize", () => mainWindow.minimize());
+
+    ipcMain.handle("mainWindow:isFullscreen", () => mainWindow.isFullScreen());
+
     /////////////////////////////////////////////
     // Subscribe to game events
     webContents.ipc.on("game:launched", () => {
