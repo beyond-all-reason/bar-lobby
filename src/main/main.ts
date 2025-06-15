@@ -20,7 +20,7 @@ import { shellService } from "@main/services/shell.service";
 import downloadsService from "@main/services/downloads.service";
 import replaysService from "@main/services/replays.service";
 import { miscService } from "@main/services/news.service";
-import { autoUpdaterService } from "@main/services/auto-updater.service";
+import autoUpdaterService from "@main/services/auto-updater.service";
 import { replayContentAPI } from "@main/content/replays/replay-content";
 import { authService } from "@main/services/auth.service";
 import { tachyonService } from "@main/services/tachyon.service";

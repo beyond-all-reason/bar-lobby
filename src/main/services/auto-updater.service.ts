@@ -44,6 +44,8 @@ async function init() {
     }
 }
 
-export const autoUpdaterService = {
+const autoUpdaterService = {
     init,
 };
+
+export default autoUpdaterService;
