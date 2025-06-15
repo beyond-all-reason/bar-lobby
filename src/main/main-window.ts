@@ -144,6 +144,8 @@ export function createWindow() {
     ipcMain.handle("mainWindow:flashFrame", (_event, flag: boolean) => {
         mainWindow.flashFrame(flag);
     });
+
+    ipcMain.handle("mainWindow:minimize", () => mainWindow.minimize());
     /////////////////////////////////////////////
     // Subscribe to game events
     webContents.ipc.on("game:launched", () => {

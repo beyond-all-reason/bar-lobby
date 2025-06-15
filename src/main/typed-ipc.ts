@@ -68,6 +68,7 @@ export type IPCCommands = {
     "mainWindow:setFullscreen": (flag: boolean) => void;
     "mainWindow:setSize": (size: number) => void;
     "mainWindow:toggleFullscreen": () => void;
+    "mainWindow:minimize": () => void;
     "maps:attemptCacheErrorMaps": () => void;
     "maps:downloadMap": (springName: string) => void;
     "maps:downloadMaps": (springNames: string[]) => void[];

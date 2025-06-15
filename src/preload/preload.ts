@@ -32,6 +32,7 @@ const mainWindowApi = {
     setSize: (size: number): Promise<void> => ipcRenderer.invoke("mainWindow:setSize", size),
     toggleFullscreen: (): Promise<void> => ipcRenderer.invoke("mainWindow:toggleFullscreen"),
     flashFrame: (flag: boolean): Promise<void> => ipcRenderer.invoke("mainWindow:flashFrame", flag),
+    minimize: (): Promise<void> => ipcRenderer.invoke("mainWindow:minimize"),
 };
 export type MainWindowApi = typeof mainWindowApi;
 contextBridge.exposeInMainWorld("mainWindow", mainWindowApi);

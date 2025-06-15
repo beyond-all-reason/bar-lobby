@@ -42,6 +42,12 @@
                     <Button v-tooltip.bottom="'Settings'" class="icon" @click="settingsOpen = true">
                         <Icon :icon="cog" :height="40" />
                     </Button>
+                    <Button v-tooltip.bottom="'Minimize'" class="icon" @click="minimizeWindow">
+                        <Icon :icon="windowMinimize" :height="40"></Icon>
+                    </Button>
+                    <Button v-tooltip.bottom="'Maximize'" class="icon" @click="toggleFullScreen">
+                        <Icon :icon="windowMaximize" :height="40"></Icon>
+                    </Button>
                     <Button v-tooltip.bottom="'Exit'" class="icon close" @click="exitOpen = true">
                         <Icon :icon="closeThick" :height="40" />
                     </Button>
@@ -86,6 +92,8 @@ import account from "@iconify-icons/mdi/account";
 import accountMultiple from "@iconify-icons/mdi/account-multiple";
 import messageIcon from "@iconify-icons/mdi/chat";
 import closeThick from "@iconify-icons/mdi/close-thick";
+import windowMinimize from "@iconify-icons/mdi/window-minimize";
+import windowMaximize from "@iconify-icons/mdi/window-maximize";
 import cog from "@iconify-icons/mdi/cog";
 import { computed, inject, Ref, ref } from "vue";
 
@@ -145,6 +153,14 @@ const messagesUnread = computed(() => {
     // }
     return false;
 });
+
+async function minimizeWindow() {
+    await window.mainWindow.minimize();
+}
+
+async function toggleFullScreen() {
+    await window.mainWindow.toggleFullscreen();
+}
 </script>
 
 <style lang="scss" scoped>
