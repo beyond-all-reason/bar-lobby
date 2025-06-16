@@ -14,6 +14,7 @@ path = [
 	".vscode/*",
 	"vendor/README.md",
 	"AUTHORS",
+	"PULL_REQUEST_TEMPLATE.md",
 ]
 precedence = "aggregate"
 SPDX-FileCopyrightText = "NONE"
