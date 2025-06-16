@@ -1,0 +1,377 @@
+./src/renderer/App.vue(21):                                            {{ infosStore.lobby.version }}
+./src/renderer/views/home/news.vue(13):                                <h1>{{ route.meta.title }}</h1>
+./src/renderer/views/home/donate.vue(13):                              <h1>{{ route.meta.title }}</h1>
+./src/renderer/views/home/changes.vue(13):                             <h1>{{ route.meta.title }}</h1>
+./src/renderer/views/home/overview.vue(23):                            <div class="new-lobby-alpha">A new lobby has landed</div>
+./src/renderer/views/home/overview.vue(29):                            <button class="quick-play-button" @click="battleStore.isSelectingGameMode = true">Quick play</button>
+./src/renderer/views/home/store.vue(13):                               <h1>{{ route.meta.title }}</h1>
+./src/renderer/views/library/commands.vue(15):                         <h1>{{ route.meta.title }}</h1>
+./src/renderer/views/library/commands.vue(21):                         <Select v-model="filterMethod" :options="filterMethods" label="Type" />
+./src/renderer/views/library/commands.vue(26):                         <div class="cmd">{{ command.cmd }}</div>
+./src/renderer/views/library/commands.vue(27):                         <div class="cmdDescription">{{ command.cmdDescription }}</div>
+./src/renderer/views/library/guides.vue(13):                           <h1>{{ route.meta.title }}</h1>
+./src/renderer/views/library/units.vue(13):                            <h1>{{ route.meta.title }}</h1>
+./src/renderer/views/library/replays.vue(15):                          <h1>Replays</h1>
+./src/renderer/views/library/replays.vue(22):                          <TriStateCheckbox v-model="endedNormally" label="Ended Normally" />
+./src/renderer/views/library/replays.vue(23):                          <Checkbox v-model="showSpoilers" label="Show Spoilers" />
+./src/renderer/views/library/replays.vue(25):                          <Button @click="openBrowserToReplayService">Browse Online Replays</Button>
+./src/renderer/views/library/replays.vue(26):                          <Button @click="openReplaysFolder">Open Replays Folder</Button>
+./src/renderer/views/library/replays.vue(45):                          <template #empty>No replays found</template>
+./src/renderer/views/library/replays.vue(49):                          {{ data.contenders?.[0]?.name ?? "Nobody" }} vs
+./src/renderer/views/library/replays.vue(50):                          {{ data.contenders?.[1]?.name ?? "Nobody" }}
+./src/renderer/views/library/replays.vue(53):                          {{ data.teams[0].playerCount }} vs {{ data.teams[1].playerCount }}
+./src/renderer/views/library/replays.vue(55):                          <template v-if="data.preset === 'ffa'"> {{ data.contenders.length }} Way FFA </template>
+./src/renderer/views/library/replays.vue(57):                          {{ data.teams[0].playerCount }} Way Team FFA
+./src/renderer/views/library/replays.vue(63):                          {{ format(data.startTime, "yyyy/MM/dd hh:mm a") }}
+./src/renderer/views/library/replays.vue(68):                          {{ getFriendlyDuration(data.gameDurationMs) }}
+./src/renderer/views/library/replays.vue(87):                          <template v-if="gameStore.isGameRunning"> Game Running </template>
+./src/renderer/views/library/replays.vue(88):                          <template v-else-if="isLaunching"> Launching... </template>
+./src/renderer/views/library/replays.vue(89):                          <template v-else> Watch </template>
+./src/renderer/views/library/replays.vue(91):                          <Button v-else disabled style="flex-grow: 1">Watch</Button>
+./src/renderer/views/library/replays.vue(92):                          <Button v-if="replay" @click="showReplayFile(replay)">Show File</Button>
+./src/renderer/views/library/replays.vue(93):                          <Button v-else disabled>Show File</Button>
+./src/renderer/views/library/maps/maps.vue(15):                        <h1>Maps</h1>
+./src/renderer/views/library/maps/[id].vue(17):                        <h1>{{ map.displayName }}</h1>
+./src/renderer/views/library/maps/[id].vue(19):                        <Button v-tooltip.bottom="'Back'" class="icon close flex-right" @click="returnToMaps">
+./src/renderer/views/library/maps/[id].vue(34):                        <div class="detail-text"><b>Description:</b> {{ map.description }}</div>
+./src/renderer/views/library/maps/[id].vue(35):                        <div v-if="map.author" class="detail-text"><b>Author:</b> {{ map.author }}</div>
+./src/renderer/views/library/maps/[id].vue(36):                        <h3>Map Properties</h3>
+./src/renderer/views/library/maps/[id].vue(38):                        <Icon :icon="windPower" width="25" height="25" />{{ map.windMin }} - {{ map.windMax }}
+./src/renderer/views/library/maps/[id].vue(41):                        <Icon :icon="waves" width="25" height="25" />{{ map.tidalStrength }}
+./src/renderer/views/library/maps/[id].vue(44):                        <Icon :icon="personIcon" width="25" height="25" />{{ map?.playerCountMin }} - {{ map?.playerCountMax }}
+./src/renderer/views/library/maps/[id].vue(47):                        <Icon :icon="gridIcon" width="25" height="25" />{{ map?.mapWidth }} x {{ map?.mapHeight }}
+./src/renderer/views/library/maps/[id].vue(61):                        v-tooltip.bottom="'Add to favorites'"
+./src/renderer/views/library/maps/[id].vue(69):                        v-tooltip.bottom="'Remove from favorites'"
+./src/renderer/views/library/maps/[id].vue(73):                        <Button v-if="map.isInstalled" class="green inline" @click="play">Play</Button>
+./src/renderer/views/library/maps/[id].vue(74):                        <Button v-else-if="map.isDownloading" class="green inline" disabled>Downloading map...</Button>
+./src/renderer/views/library/maps/[id].vue(75):                        <Button v-else class="red inline" @click="downloadMap(map.springName)">Download</Button>
+./src/renderer/views/index.vue(19):                                    <button class="login-button" @click="login">Login</button>
+./src/renderer/views/index.vue(20):                                    <div v-if="hasCredentials" class="play-offline" @click="changeAccount">Change account</div>
+./src/renderer/views/index.vue(21):                                    <div v-if="error" class="txt-error">{{ error }}</div>
+./src/renderer/views/index.vue(22):                                    <div class="play-offline" @click="playOffline">Play Offline</div>
+./src/renderer/views/development/map-dev.vue(13):                      <h1>{{ route.meta.title }}</h1>
+./src/renderer/views/development/server-dev.vue(13):                   <h1>{{ route.meta.title }}</h1>
+./src/renderer/views/development/game-dev.vue(13):                     <h1>{{ route.meta.title }}</h1>
+./src/renderer/views/development/lobby-dev.vue(13):                    <h1>{{ route.meta.title }}</h1>
+./src/renderer/views/development/website-dev.vue(13):                  <h1>{{ route.meta.title }}</h1>
+./src/renderer/views/multiplayer/custom.vue(16):                       <h1>Multiplayer Custom Battles</h1>
+./src/renderer/views/multiplayer/custom.vue(19):                       <Button class="blue" @click="hostBattleOpen = true">Host Battle</Button>
+./src/renderer/views/multiplayer/custom.vue(21):                       <Checkbox v-model="settingsStore.battlesHidePvE" label="Hide PvE" />
+./src/renderer/views/multiplayer/custom.vue(22):                       <Checkbox v-model="settingsStore.battlesHideLocked" label="Hide Locked" />
+./src/renderer/views/multiplayer/custom.vue(23):                       <Checkbox v-model="settingsStore.battlesHideEmpty" label="Hide Empty" />
+./src/renderer/views/multiplayer/custom.vue(24):                       <Checkbox v-model="settingsStore.battlesHideInProgress" label="Hide Running" />
+./src/renderer/views/multiplayer/custom.vue(45):                       {{ data.primaryFactor }}
+./src/renderer/views/multiplayer/custom.vue(49):                       {{ getFriendlyDuration(data.runtimeMs.value, false) }}
+./src/renderer/views/multiplayer/custom.vue(59):                       <Icon :icon="account" height="17" />{{ data.players.value.length }}
+./src/renderer/views/multiplayer/custom.vue(62):                       <Icon :icon="eye" height="17" />{{ data.spectators.value.length }}
+./src/renderer/views/multiplayer/custom.vue(65):                       <Icon :icon="robot" height="17" />{{ data.bots.length }}
+./src/renderer/views/multiplayer/custom.vue(84):                       <Button class="green flex-grow" @click="attemptJoinBattle(battle)">Join</Button>
+./src/renderer/views/multiplayer/tournaments.vue(13):                  <h1>{{ route.meta.title }}</h1>
+./src/renderer/views/multiplayer/ranked.vue(16):                       <h1>Ranked</h1>
+./src/renderer/views/multiplayer/ranked.vue(17):                       <p>Join a multiplayer ranked queue.</p>
+./src/renderer/views/multiplayer/ranked.vue(30):                       ><span>2 vs 2</span></Button
+./src/renderer/views/multiplayer/ranked.vue(39):                       ><span>DUEL</span></Button
+./src/renderer/views/multiplayer/ranked.vue(48):                       ><span>3 vs 3</span></Button
+./src/renderer/views/multiplayer/casual.vue(13):                       <h1>{{ route.meta.title }}</h1>
+./src/renderer/views/profile/stats.vue(13):                            <h1>{{ route.meta.title }}</h1>
+./src/renderer/views/profile/matches.vue(13):                          <h1>{{ route.meta.title }}</h1>
+./src/renderer/views/profile/achievements.vue(13):                     <h1>{{ route.meta.title }}</h1>
+./src/renderer/views/profile/[id].vue(24):                             <div class="warn-message">not a real profile stats, TODO replace with api</div>
+./src/renderer/views/profile/[id].vue(31):                             {{ user.username }}
+./src/renderer/views/profile/[id].vue(33):                             <p>User ID: {{ user.userId }}</p>
+./src/renderer/views/profile/[id].vue(35):                             <p>email@email.com</p>
+./src/renderer/views/profile/[id].vue(36):                             <Button class="slim" @click="onChangeEmailModalOpen()"> Change email </Button>
+./src/renderer/views/profile/[id].vue(43):                             <h5>Win Rate</h5>
+./src/renderer/views/profile/[id].vue(45):                             <p>960W - 540L</p>
+./src/renderer/views/profile/[id].vue(48):                             <h5>Favorite Faction</h5>
+./src/renderer/views/profile/[id].vue(49):                             <h6 class="armada">ARMADA</h6>
+./src/renderer/views/profile/[id].vue(50):                             <p>360W - 200L WR 64%</p>
+./src/renderer/views/profile/[id].vue(53):                             <h5>AVG APM</h5>
+./src/renderer/views/profile/[id].vue(59):                             <Select v-model="seasonMethod" class="season-select" :options="seasonsList" label="Season" />
+./src/renderer/views/profile/[id].vue(60):                             <Select v-model="gameType" class="game-type-select" :options="gameTypeOptions" label="" />
+./src/renderer/views/profile/[id].vue(67):                             <p>OPEN SKILL</p>
+./src/renderer/views/profile/[id].vue(68):                             <p>{{ selectedSeasonData?.openSkill }}</p>
+./src/renderer/views/profile/[id].vue(71):                             <p>WIN RATE</p>
+./src/renderer/views/profile/[id].vue(72):                             <p>{{ (selectedSeasonData.winRate * 100).toFixed(2) }}%</p>
+./src/renderer/views/profile/[id].vue(73):                             <p>{{ selectedSeasonData?.win }}W - {{ selectedSeasonData?.lost }}L</p>
+./src/renderer/views/profile/[id].vue(76):                             <p>AVG APM</p>
+./src/renderer/views/profile/[id].vue(77):                             <p>{{ selectedSeasonData?.averageAPM }}</p>
+./src/renderer/views/profile/[id].vue(81):                             <h6 :class="armyName">{{ armyName.toUpperCase() }}</h6>
+./src/renderer/views/profile/[id].vue(82):                             <p>{{ generateArmyStats(selectedSeasonData, armyName) }}</p>
+./src/renderer/views/profile/[id].vue(86):                             <h5>Most DMG</h5>
+./src/renderer/views/profile/[id].vue(97):                             <Modal v-model="changeEmailOpen" title="Change Email" @submit="changeEmail">
+./src/renderer/views/profile/[id].vue(99):                             <p>New email</p>
+./src/renderer/views/profile/[id].vue(101):                            <Button type="submit">Submit</Button>
+./src/renderer/views/profile/[id].vue(105):                            <div v-else>No user found with UserID: {{ props.id }}</div>
+./src/renderer/views/profile/overview.vue(15):                         <h1>{{ userId }}</h1>
+./src/renderer/views/debug/test2.vue(9):                               <Button @click="go">Go</Button>
+./src/renderer/views/debug/font.vue(9):                                <p class="a">aoufmrnliIL1</p>
+./src/renderer/views/debug/font.vue(10):                               <p class="b">The lazy fox jumped over the fat tired dog or some shit</p>
+./src/renderer/views/debug/font.vue(11):                               <p class="c">The lazy fox jumped over the fat tired dog or some shit</p>
+./src/renderer/views/debug/font.vue(12):                               <p class="d">The lazy fox jumped over the fat tired dog or some shit</p>
+./src/renderer/views/debug/font.vue(13):                               <p class="e">The lazy fox jumped over the fat tired dog or some shit</p>
+./src/renderer/views/debug/script-launcher.vue(14):                    <Button class="green" @click="launch">Launch</Button>
+./src/renderer/views/debug/controls.vue(16):                           <Button> Button </Button>
+./src/renderer/views/debug/controls.vue(17):                           <Button :disabled="true"> Disabled Button </Button>
+./src/renderer/views/debug/controls.vue(18):                           <Button v-tooltip="'Green button'" class="green"> Green Button </Button>
+./src/renderer/views/debug/controls.vue(19):                           <Button v-tooltip="'Red button'" class="red"> Red Button </Button>
+./src/renderer/views/debug/controls.vue(20):                           <Button v-tooltip.bottom="'Blue button'" class="blue"> Blue Button </Button>
+./src/renderer/views/debug/controls.vue(21):                           <Button v-tooltip="'Black button'" class="black"> Black Button </Button>
+./src/renderer/views/debug/controls.vue(22):                           <Button v-tooltip="'Grey button'" class="grey"> Grey Button </Button>
+./src/renderer/views/debug/controls.vue(26):                           <Textbox v-model="text" label="Label" />
+./src/renderer/views/debug/controls.vue(28):                           <div class="value">{{ text }}</div>
+./src/renderer/views/debug/controls.vue(35):                           <Number v-model="num" label="Label" showButtons />
+./src/renderer/views/debug/controls.vue(37):                           <div class="value">{{ num }}</div>
+./src/renderer/views/debug/controls.vue(51):                           label="Label"
+./src/renderer/views/debug/controls.vue(65):                           <div class="value">{{ selection }}</div>
+./src/renderer/views/debug/controls.vue(69):                           <Range v-model="range" label="Label" />
+./src/renderer/views/debug/controls.vue(71):                           <div class="value">{{ range }}</div>
+./src/renderer/views/debug/controls.vue(75):                           <Checkbox v-model="checked" label="Label" />
+./src/renderer/views/debug/controls.vue(77):                           <div class="value">{{ checked }}</div>
+./src/renderer/views/debug/controls.vue(81):                           <Options v-model="option" :options="options" label="Label" />
+./src/renderer/views/debug/test.vue(14):                               <Button @click="go">Go</Button>
+./src/renderer/views/debug/test.vue(18):                               <Textbox v-model="thing" label="yep" />
+./src/renderer/views/debug/test.vue(19):                               <Button @click="resolve(thing)">Ok</Button>
+./src/renderer/views/debug/test.vue(20):                               <Button @click="reject">Cancel</Button>
+./src/renderer/views/singleplayer/custom.vue(15):                      <h1>Custom game</h1>
+./src/renderer/views/singleplayer/custom.vue(16):                      <p>Play against the AI in a custom game mode.</p>
+./src/renderer/views/singleplayer/custom2.vue(15):                     <h1>Custom game</h1>
+./src/renderer/views/singleplayer/custom2.vue(16):                     <p>Play against the AI in a custom game mode.</p>
+./src/renderer/views/singleplayer/campaign.vue(13):                    <h1>{{ route.meta.title }}</h1>
+./src/renderer/views/singleplayer/tutorials.vue(13):                   <h1>{{ route.meta.title }}</h1>
+./src/renderer/views/singleplayer/scenarios.vue(15):                   <h1>Scenarios</h1>
+./src/renderer/views/singleplayer/scenarios.vue(16):                   <p>Test your skills in this set of challenging yet rewarding missions.</p>
+./src/renderer/views/singleplayer/scenarios.vue(34):                   <h4>{{ selectedScenario.title }}</h4>
+./src/renderer/views/singleplayer/scenarios.vue(40):                   <div>Victory condition</div>
+./src/renderer/views/singleplayer/scenarios.vue(41):                   <div>{{ selectedScenario.victorycondition }}</div>
+./src/renderer/views/singleplayer/scenarios.vue(43):                   <div>Lose condition</div>
+./src/renderer/views/singleplayer/scenarios.vue(44):                   <div>{{ selectedScenario.losscondition }}</div>
+./src/renderer/views/singleplayer/scenarios.vue(47):                   <Select v-model="selectedFaction" label="Faction" :options="factions" />
+./src/renderer/views/singleplayer/scenarios.vue(50):                   <Select v-model="selectedDifficulty" label="Difficulty" :options="difficulties" optionLabel="name" />
+./src/renderer/views/singleplayer/scenarios.vue(58):                   >Launch</DownloadContentButton
+./src/renderer/views/singleplayer/scenarios.vue(60):                   <Button v-else class="fullwidth green" disabled>Launch</Button>
+./src/renderer/components/navbar/NavBar.vue(18):                       {{ view.meta.title }}
+./src/renderer/components/navbar/NavBar.vue(24):                       v-tooltip.bottom="'Direct Messages'"
+./src/renderer/components/navbar/NavBar.vue(34):                       v-tooltip.bottom="'Friends'"
+./src/renderer/components/navbar/NavBar.vue(42):                       v-tooltip.bottom="'Downloads'"
+./src/renderer/components/navbar/NavBar.vue(47):                       <Button v-tooltip.bottom="'Settings'" class="icon" @click="settingsOpen = true">
+./src/renderer/components/navbar/NavBar.vue(50):                       <Button v-tooltip.bottom="'Exit'" class="icon close" @click="exitOpen = true">
+./src/renderer/components/navbar/NavBar.vue(58):                       {{ view.meta.title ?? view.name }}
+./src/renderer/components/navbar/NavBar.vue(66):                       <div>{{ me.username }}</div>
+./src/renderer/components/navbar/Exit.vue(8):                          <Modal ref="modal" title="Exit">
+./src/renderer/components/navbar/Exit.vue(10):                         <Button @click="login" v-if="!me.isAuthenticated && !onLoginPage && settingsStore.devMode">Login</Button>
+./src/renderer/components/navbar/Exit.vue(11):                         <Button @click="logout" v-if="me.isAuthenticated && !onLoginPage && settingsStore.devMode">Logout</Button>
+./src/renderer/components/navbar/Exit.vue(12):                         <Button @click="quitToDesktop">Quit to Desktop</Button>
+./src/renderer/components/navbar/ServerSettings.vue(8):                <Modal title="lobby server settings">
+./src/renderer/components/navbar/ServerSettings.vue(10):               <div>Active Server</div>
+./src/renderer/components/navbar/ServerSettings.vue(12):               <div>Custom Server</div>
+./src/renderer/components/navbar/ServerSettings.vue(16):               <Button @click="addServerToList()">Add</Button>
+./src/renderer/components/navbar/ServerSettings.vue(17):               <Button @click="removeServerFromList()" :disabled="disableRemoveButton">Remove</Button>
+./src/renderer/components/navbar/ServerSettings.vue(21):               {{ tooltipMessage }}
+./src/renderer/components/navbar/ServerSettings.vue(25):               <div class="margin-md">Changing the Active Server has immediate effect. Remember to log in after switching.</div>
+./src/renderer/components/navbar/Breadcrumbs.vue(11):                  <div>Back</div>
+./src/renderer/components/navbar/Breadcrumbs.vue(16):                  {{ item.meta.title ?? item.name }}
+./src/renderer/components/navbar/Downloads.vue(15):                    {{ download.name }}
+./src/renderer/components/navbar/Downloads.vue(18):                    {{ download.type }}
+./src/renderer/components/navbar/Downloads.vue(31):                    {{ `and ${downloadsStore.mapDownloads.length - limitedList.length} more...` }}
+./src/renderer/components/navbar/Downloads.vue(35):                    <div v-else class="flex-row flex-grow flex-center">No downloads active</div>
+./src/renderer/components/navbar/ServerStatus.vue(11):                 <div v-if="tachyonStore.isConnected">{{ tachyonStore.serverStats?.userCount || 0 }} Players Online</div>
+./src/renderer/components/navbar/ServerStatus.vue(12):                 <div v-else-if="tachyonStore.error">Error</div>
+./src/renderer/components/navbar/ServerStatus.vue(13):                 <div v-else>Reconnecting...</div>
+./src/renderer/components/navbar/Messages.vue(13):                     <div>{{ getUsername(userId) }}</div>
+./src/renderer/components/navbar/Messages.vue(39):                     <Button @click="sendDirectMessage(userId, text)">Send</Button>
+./src/renderer/components/navbar/Messages.vue(47):                     <Textbox v-model="newMessageUserId" v-in-view="focusTextbox" class="fullwidth" label="UserID" placeholder="32452" />
+./src/renderer/components/navbar/Messages.vue(55):                     <Button @click="sendDirectMessage(newMessageUserId, newMessage)">Send</Button>
+./src/renderer/components/navbar/Settings.vue(8):                      <Modal title="settings">
+./src/renderer/components/navbar/Settings.vue(10):                     <div>Fullscreen</div>
+./src/renderer/components/navbar/Settings.vue(13):                     <div>Window Size</div>
+./src/renderer/components/navbar/Settings.vue(16):                     <div>Display</div>
+./src/renderer/components/navbar/Settings.vue(19):                     <div>Skip Intro</div>
+./src/renderer/components/navbar/Settings.vue(23):                     <div>Login Automatically</div>
+./src/renderer/components/navbar/Settings.vue(27):                     <div>Sfx Volume</div>
+./src/renderer/components/navbar/Settings.vue(30):                     <div>Music Volume</div>
+./src/renderer/components/navbar/Settings.vue(33):                     <div>Dev Mode</div>
+./src/renderer/components/navbar/Settings.vue(38):                     {{ tooltipMessage }}
+./src/renderer/components/navbar/Settings.vue(41):                     <Button @click="uploadLogsCommand">Upload logs</Button>
+./src/renderer/components/navbar/Friends.vue(14):                      Your User ID is <strong>{{ myUserId }}</strong>
+./src/renderer/components/navbar/Friends.vue(16):                      <Button class="slim" @click="copyUserId">Copy</Button>
+./src/renderer/components/navbar/Friends.vue(31):                      <Button class="blue" :disabled="addFriendDisabled" @click="addFriend">Add Friend</Button>
+./src/renderer/components/navbar/Friends.vue(76):                      <TabPanel header="Blocked"> TODO </TabPanel>
+./src/renderer/components/navbar/Friend.vue(11):                       <div class="username">{{ user.username }}</div>
+./src/renderer/components/navbar/Friend.vue(16):                       <Button v-tooltip.left="`Cancel request`" class="slim red square" @click="cancelRequest">
+./src/renderer/components/navbar/Friend.vue(22):                       <Button v-tooltip.left="`Reject request`" class="slim red square" @click="rejectRequest">
+./src/renderer/components/navbar/Friend.vue(25):                       <Button v-tooltip.left="`Accept request`" class="slim green square" @click="acceptRequest">
+./src/renderer/components/navbar/Friend.vue(31):                       <Button v-tooltip.left="`View profile`" class="slim square" @click="viewProfile">
+./src/renderer/components/navbar/Friend.vue(36):                       v-tooltip.left="`Send message`"
+./src/renderer/components/navbar/Friend.vue(45):                       v-tooltip.left="`Join battle`"
+./src/renderer/components/navbar/Friend.vue(51):                       <Button v-if="user.isOnline" v-tooltip.left="`Invite to party (TODO)`" class="slim square" @click="inviteToParty">
+./src/renderer/components/navbar/Friend.vue(54):                       <Button v-tooltip.left="`Remove friend`" class="slim red square" @click="removeFriend">
+./src/renderer/components/prompts/Password.vue(9):                     <Textbox v-model="password" label="Password" type="password" />
+./src/renderer/components/prompts/Prompt.vue(12):                      <Button class="flex-grow red" @click="cancel">Cancel</Button>
+./src/renderer/components/prompts/Prompt.vue(13):                      <Button class="flex-grow green" type="submit">OK</Button>
+./src/renderer/components/prompts/PromptContainer.vue(13):             <slot name="title"> {{ promptRef.title }} </slot>
+./src/renderer/components/social/ChatComponent.vue(18):                {{ chatRoom.name }}
+./src/renderer/components/social/ChatComponent.vue(32):                <span class="username" :style="{ color: chatStore.selectedChatRoom?.color }">{{ message.userName }}:</span>
+./src/renderer/components/social/ChatComponent.vue(33):                <span class="text">{{ message.text }}</span>
+./src/renderer/components/social/ChatComponent.vue(39):                <div class="target" :style="{ color: chatStore.selectedChatRoom?.color }">To ({{ chatStore.selectedChatRoom?.name }}):</div>
+./src/renderer/components/misc/ScenarioTile.vue(10):                   {{ scenario.title }}
+./src/renderer/components/misc/NewsTile.vue(9):                        <div class="title">{{ news.title?.replace(" ⇀ News ★ Beyond All Reason RTS", "") }}</div>
+./src/renderer/components/misc/NewsTile.vue(11):                       {{ news.description }}
+./src/renderer/components/misc/NewsTile.vue(12):                       <div class="cta">Click to read more</div>
+./src/renderer/components/misc/DevlogFeed.vue(10):                     <div class="devlog-title">Latest changes</div>
+./src/renderer/components/misc/DebugSidebar.vue(16):                   label="View"
+./src/renderer/components/misc/DebugSidebar.vue(25):                   <Button to="/debug"> Debug Sandbox </Button>
+./src/renderer/components/misc/DebugSidebar.vue(26):                   <Button @click="openSettings"> Open Settings File </Button>
+./src/renderer/components/misc/DebugSidebar.vue(27):                   <Button @click="openAssetsDir"> Open Assets Dir </Button>
+./src/renderer/components/misc/DebugSidebar.vue(28):                   <Button @click="openStateDir"> Open State Dir </Button>
+./src/renderer/components/misc/DebugSidebar.vue(29):                   <Button @click="openStartScript"> Open Latest Start Script </Button>
+./src/renderer/components/misc/DebugSidebar.vue(30):                   <Button @click="openSyncLobbyContentTool"> Sync Lobby Content Tool </Button>
+./src/renderer/components/misc/DebugSidebar.vue(31):                   <Button @click="causeError"> Cause an error </Button>
+./src/renderer/components/misc/DebugSidebar.vue(37):                   label="Game"
+./src/renderer/components/misc/DebugSidebar.vue(46):                   option-label="id"
+./src/renderer/components/misc/DebugSidebar.vue(47):                   label="Engine"
+./src/renderer/components/misc/DebugSidebar.vue(52):                   <Button @click="serverSettingsOpen = true">Lobby Server Settings</Button>
+./src/renderer/components/misc/Preloader.vue(9):                       <h1>Loading</h1>
+./src/renderer/components/misc/Preloader.vue(10):                      <h4>{{ text }}</h4>
+./src/renderer/components/misc/Preloader.vue(28):                      const thingsToPreload: [string, () => Promise<unknown>][] = [
+./src/renderer/components/misc/SyncDataDirsDialog.vue(8):              <Modal ref="modal" title="Sync Data Directories">
+./src/renderer/components/misc/SyncDataDirsDialog.vue(20):             <Button @click="stuff">Test</Button>
+./src/renderer/components/misc/GameModeSelector.vue(16):               <span>Classic</span>
+./src/renderer/components/misc/GameModeSelector.vue(17):               <button class="quick-play-button">Defeat your opponent</button>
+./src/renderer/components/misc/GameModeSelector.vue(26):               <span>Raptors</span>
+./src/renderer/components/misc/GameModeSelector.vue(27):               <button class="quick-play-button">Stronger than flesh</button>
+./src/renderer/components/misc/GameModeSelector.vue(36):               <span>Scavengers</span>
+./src/renderer/components/misc/GameModeSelector.vue(37):               <button class="quick-play-button">Don't let them get you</button>
+./src/renderer/components/misc/GameModeSelector.vue(46):               <span>FFA</span>
+./src/renderer/components/misc/GameModeSelector.vue(47):               <button class="quick-play-button">Last com standing wins</button>
+./src/renderer/components/misc/Error.vue(11):                          <div class="title">Fatal Error</div>
+./src/renderer/components/misc/Error.vue(14):                          <div>A fatal error has occurred and BAR Lobby needs to reload.</div>
+./src/renderer/components/misc/Error.vue(15):                          <div v-if="error" class="error">{{ error.message }}</div>
+./src/renderer/components/misc/Error.vue(16):                          <div v-if="promiseError?.reason.stack" class="error">{{ promiseError.reason.stack }}</div>
+./src/renderer/components/misc/Error.vue(17):                          <Button @click="uploadLogsCommand">Upload logs</Button>
+./src/renderer/components/misc/Error.vue(18):                          <div v-if="uploadLogMsg">{{ uploadLogMsg }}</div>
+./src/renderer/components/misc/Error.vue(19):                          <Button @click="reload">Reload</Button>
+./src/renderer/components/misc/Error.vue(20):                          <Button @click="quitToDesktop">Quit to Desktop</Button>
+./src/renderer/components/misc/DevlogEntry.vue(10):                    {{ title }}
+./src/renderer/components/misc/DevlogEntry.vue(13):                    {{ formatDistanceToNow(entry.published, { addSuffix: true }) }}
+./src/renderer/components/misc/DevlogEntry.vue(15):                    <div class="dev-desc">{{ description }}</div>
+./src/renderer/components/misc/InitialSetup.vue(9):                    <h1>Initial Setup</h1>
+./src/renderer/components/misc/InitialSetup.vue(10):                   <h4>{{ text }}</h4>
+./src/renderer/components/misc/InitialSetup.vue(11):                   <h2 v-if="downloadPercent < 1">{{ (downloadPercent * 100).toFixed(0) }}%</h2>
+./src/renderer/components/notifications/Event.vue(9):                  <div class="text">{{ event.text }}</div>
+./src/renderer/components/notifications/Alert.vue(10):                 <div class="text">{{ alert.text }}</div>
+./src/renderer/components/battle/SpectatorParticipant.vue(12):         <div>{{ player.user.username }}</div>
+./src/renderer/components/battle/HostBattle.vue(8):                    <Modal title="Host Battle" width="400px" @open="onOpen" @close="onClose">
+./src/renderer/components/battle/HostBattle.vue(11):                   <div class="txt-center">Setting up a dedicated battle host, this usually takes around 30 seconds</div>
+./src/renderer/components/battle/HostBattle.vue(15):                   <Select v-model="selectedRegion" :options="regions" label="Region" optionLabel="name" optionValue="code" class="fullwidth">
+./src/renderer/components/battle/HostBattle.vue(19):                   <div>{{ selectedRegionName }}</div>
+./src/renderer/components/battle/HostBattle.vue(26):                   <div>{{ slotProps.option.name }}</div>
+./src/renderer/components/battle/HostBattle.vue(30):                   <Button class="blue" @click="hostBattle">Host Battle</Button>
+./src/renderer/components/battle/VotePanel.vue(12):                    <div class="title"><strong>Vote:</strong> {{ vote.command }}</div>
+./src/renderer/components/battle/VotePanel.vue(15):                    <Button class="vote-button green" @click="onYes" @keyup.f1="onYes">Yes (F1)</Button>
+./src/renderer/components/battle/VotePanel.vue(16):                    <Button class="vote-button red" @click="onNo">No (F2)</Button>
+./src/renderer/components/battle/VotePanel.vue(19):                    <div v-if="vote.callerName" class="caller">Called by {{ vote.callerName }}</div>
+./src/renderer/components/battle/BotParticipant.vue(15):               <div>{{ bot.name }}</div>
+./src/renderer/components/battle/BotParticipant.vue(19):               title="Configure Bot"
+./src/renderer/components/battle/TeamComponent.vue(21):                <div class="title">{{ title }}</div>
+./src/renderer/components/battle/TeamComponent.vue(23):                ({{ memberCount }}/{{ maxPlayersPerTeam }} players)
+./src/renderer/components/battle/TeamComponent.vue(43):                <button class="join-button" :class="{ first: i === 0 }" @click="onJoinClicked(teamId)">Join</button>
+./src/renderer/components/battle/ReplayPreview.vue(12):                <div class="team-title">Players</div>
+./src/renderer/components/battle/ReplayPreview.vue(29):                <div>Team {{ teamId + 1 }}</div>
+./src/renderer/components/battle/ReplayPreview.vue(41):                <div class="team-title">Spectators</div>
+./src/renderer/components/battle/StartPosControls.vue(8):              <div>Hello world</div>
+./src/renderer/components/battle/SpectatorsComponent.vue(10):          <div class="title">{{ title }}</div>
+./src/renderer/components/battle/SpectatorsComponent.vue(11):          <div v-if="memberCount > 0" class="member-count">({{ memberCount }} Member{{ memberCount > 1 ? "s" : "" }})</div>
+./src/renderer/components/battle/SpectatorsComponent.vue(12):          <Button v-if="showJoin" class="slim black" @click="onJoinClicked()"> Join </Button>
+./src/renderer/components/battle/BattlePreview.vue(12):                <div class="team-title">Players</div>
+./src/renderer/components/battle/BattlePreview.vue(23):                <div>Team {{ teamId + 1 }}</div>
+./src/renderer/components/battle/BattlePreview.vue(30):                <div class="team-title">Spectators</div>
+./src/renderer/components/battle/BattleChat.vue(11):                   v-tooltip="showHiddenMessages ? 'Hide junk messages' : 'Show junk messages'"
+./src/renderer/components/battle/Playerlist.vue(14):                   title="Add Bot"
+./src/renderer/components/battle/MapListModal.vue(8):                  <Modal :title="title" style="height: 80vh; width: 80vw; max-width: 1440px">
+./src/renderer/components/battle/LuaOptionsModal.vue(8):               <Modal ref="modal" :title="title" no-padding>
+./src/renderer/components/battle/LuaOptionsModal.vue(15):              v-tooltip.bottom="{ value: o.description || '' }"
+./src/renderer/components/battle/LuaOptionsModal.vue(20):              {{ o.name }}
+./src/renderer/components/battle/LuaOptionsModal.vue(30):              v-tooltip.bottom="{ value: o.description || '' }"
+./src/renderer/components/battle/LuaOptionsModal.vue(39):              v-tooltip.right="{ value: o.description || '' }"
+./src/renderer/components/battle/LuaOptionsModal.vue(49):              v-tooltip.bottom="{ value: o.description || '' }"
+./src/renderer/components/battle/LuaOptionsModal.vue(61):              v-tooltip.bottom="{ value: o.description || '' }"
+./src/renderer/components/battle/LuaOptionsModal.vue(72):              <Button class="fullwidth" @click="reset">Reset all to default</Button>
+./src/renderer/components/battle/LuaOptionsModal.vue(73):              <Button class="green fullwidth" @click="close">Close</Button>
+./src/renderer/components/battle/OfflineBattleComponent.vue(18):       <Icon :icon="personIcon" />{{ map?.playerCountMin }} - {{ map?.playerCountMax }}
+./src/renderer/components/battle/OfflineBattleComponent.vue(21):       <Icon :icon="gridIcon" />{{ map?.mapWidth }} x {{ map?.mapHeight }}
+./src/renderer/components/battle/OfflineBattleComponent.vue(35):       label="Map"
+./src/renderer/components/battle/OfflineBattleComponent.vue(41):       <Button v-tooltip.left="'Open map selector'" @click="openMapList">
+./src/renderer/components/battle/OfflineBattleComponent.vue(44):       <Button v-tooltip.left="'Configure map options'" @click="openMapOptions">
+./src/renderer/components/battle/OfflineBattleComponent.vue(47):       <MapListModal v-model="mapListOpen" title="Maps" @map-selected="onMapSelected" />
+./src/renderer/components/battle/OfflineBattleComponent.vue(57):       label="Game"
+./src/renderer/components/battle/OfflineBattleComponent.vue(70):       label="Engine"
+./src/renderer/components/battle/OfflineBattleComponent.vue(82):       >Start the game</DownloadContentButton
+./src/renderer/components/battle/OfflineBattleComponent.vue(84):       <Button v-else class="fullwidth green flex-grow" disabled>Start the game</Button>
+./src/renderer/components/battle/BattleMessage.vue(11):                <div>{{ user.username }}</div>
+./src/renderer/components/battle/GameModeComponent.vue(14):            label="Presets"
+./src/renderer/components/battle/GameModeComponent.vue(20):            <div class="overriden-section">{{ section.name }}</div>
+./src/renderer/components/battle/GameModeComponent.vue(22):            <div>{{ option.name }}</div>
+./src/renderer/components/battle/GameModeComponent.vue(23):            <div class="value">{{ option.value }}</div>
+./src/renderer/components/battle/GameModeComponent.vue(27):            <Button class="fullwidth" @click="openGameOptions">Configure Game Options</Button>
+./src/renderer/components/battle/GameModeComponent.vue(30):            title="Game Options"
+./src/renderer/components/battle/BattlePreviewParticipant.vue(11):     <div>{{ name }}</div>
+./src/renderer/components/battle/AddBotModal.vue(8):                   <Modal title="Add Bot">
+./src/renderer/components/battle/AddBotModal.vue(13):                  v-tooltip.bottom="{ value: ai.description }"
+./src/renderer/components/battle/AddBotModal.vue(17):                  {{ ai.name }}
+./src/renderer/components/battle/AddBotModal.vue(25):                  v-tooltip.bottom="{ value: ai.description }"
+./src/renderer/components/battle/AddBotModal.vue(29):                  {{ ai.name }}
+./src/renderer/components/battle/StickyBattle.vue(16):                 <div class="label">{{ battleStore?.title }}</div>
+./src/renderer/components/battle/StickyBattle.vue(20):                 <div>{{ playerCount }}</div>
+./src/renderer/components/battle/StickyBattle.vue(24):                 <div>{{ botCount }}</div>
+./src/renderer/components/battle/StickyBattle.vue(28):                 <div>{{ specCount }}</div>
+./src/renderer/components/battle/PlayerParticipant.vue(12):            <div>{{ player.user.username }}</div>
+./src/renderer/components/battle/MapOptionsModal.vue(8):               <Modal ref="modal" title="Map options">
+./src/renderer/components/battle/MapOptionsModal.vue(15):              <h4>Boxes presets</h4>
+./src/renderer/components/battle/MapOptionsModal.vue(23):              <span>{{ i + 1 }}</span>
+./src/renderer/components/battle/MapOptionsModal.vue(28):              <h4>Custom boxes</h4>
+./src/renderer/components/battle/MapOptionsModal.vue(55):              <span v-if="canDeleteTeamBox(teamBox)">Delete Team {{ teamBoxId + 1 }}</span>
+./src/renderer/components/battle/MapOptionsModal.vue(58):              Team {{ teamBoxId + 1 }} (<template v-if="participantCounts[teamBoxId] != undefined">
+./src/renderer/components/battle/MapOptionsModal.vue(60):              {{ participantCounts[teamBoxId].playerCount }}
+./src/renderer/components/battle/MapOptionsModal.vue(61):              {{ pluralize("player", participantCounts[teamBoxId].playerCount || 0) }}
+./src/renderer/components/battle/MapOptionsModal.vue(64):              >&nbsp;-&nbsp;</span
+./src/renderer/components/battle/MapOptionsModal.vue(67):              {{ participantCounts[teamBoxId].botCount }}
+./src/renderer/components/battle/MapOptionsModal.vue(68):              {{ pluralize("AI", participantCounts[teamBoxId].botCount || 0) }}
+./src/renderer/components/battle/MapOptionsModal.vue(75):              <Button class="green fullwidth" @click="() => battleActions.addTeam()">Add Team</Button>
+./src/renderer/components/battle/MapOptionsModal.vue(79):              <Button class="fullwidth" @click="setCustomBoxesFromPresetBoxes">Edit Preset Teams</Button>
+./src/renderer/components/battle/MapOptionsModal.vue(83):              <h4>Fixed positions</h4>
+./src/renderer/components/battle/MapOptionsModal.vue(91):              <span>{{ i + 1 }}</span>
+./src/renderer/components/battle/MapOptionsModal.vue(97):              <span>Random</span>
+./src/renderer/components/battle/MapOptionsModal.vue(102):             <Button class="green fullwidth" @click="close">Close</Button>
+./src/renderer/components/primevue/PrimeVueInputNumber.vue(29):        :aria-label="ariaLabel"
+./src/renderer/components/primevue/PrimeVueTabView.vue(25):            :aria-label="prevButtonAriaLabel"
+./src/renderer/components/primevue/PrimeVueTabView.vue(55):            <span v-if="tab.props && tab.props.header" class="p-tabview-title">{{ tab.props.header }}</span>
+./src/renderer/components/primevue/PrimeVueTabView.vue(70):            :aria-label="nextButtonAriaLabel"
+./src/renderer/components/common/Modal.vue(14):                        {{ title }}
+./src/renderer/components/common/Modal.vue(65):                        (event: "submit", data: Record<string, unknown>): Promise<boolean | string>;
+./src/renderer/components/common/Progress.vue(12):                     {{ text }}
+./src/renderer/components/maps/MapOverviewCard.vue(12):                {{ map?.displayName }}
+./src/renderer/components/maps/MapOverviewCard.vue(15):                <div class="flex-row flex-center-items gap-sm"><Icon :icon="gridIcon" />{{ mapSize }}</div>
+./src/renderer/components/maps/MapOverviewCard.vue(17):                <Icon :icon="personIcon" />{{ map?.playerCountMin }} - {{ map?.playerCountMax }}
+./src/renderer/components/maps/MapBattlePreview.vue(36):               <span>{{ spawnPoint.spawnPoint }}</span>
+./src/renderer/components/maps/ReplayPreviewMap.vue(26):               <span>{{ player.name }}</span>
+./src/renderer/components/maps/MapFiltersComponent.vue(11):            <h6>Max Players</h6>
+./src/renderer/components/maps/MapFiltersComponent.vue(15):            <h6>Filter By</h6>
+./src/renderer/components/maps/MapFiltersComponent.vue(20):            <h6>Terrain</h6>
+./src/renderer/components/maps/MapFiltersComponent.vue(24):            <h6>Game Type</h6>
+./src/renderer/components/maps/MapBattlePreviewStartBox.vue(18):       <span>{{ id + 1 }}</span>
+./src/renderer/components/maps/MapListComponent.vue(11):               <Select v-model="sortMethod" :options="sortMethods" label="Sort By" optionLabel="label" />
+./src/renderer/components/maps/MapListComponent.vue(21):               <h4>No maps found!</h4>
+./src/renderer/components/maps/MapListComponent.vue(22):               <span>Please try different keywords / filters</span>
+./src/renderer/components/maps/filters/DownloadedFilter.vue(8):        <Checkbox v-model="downloadedOnly" label="Downloaded"> </Checkbox>
+./src/renderer/components/maps/filters/TerrainIcon.vue(8):             <div class="image-wrapper" v-tooltip.right="{ value: terrainInfo.tooltip }">
+./src/renderer/components/maps/filters/GameTypeFilter.vue(15):         <div>{{ /^\D.*/.test(gameType) ? gameType.toUpperCase() : gameType }}</div>
+./src/renderer/components/maps/filters/FavoritesFilter.vue(8):         <Checkbox v-model="favoritesOnly" label="Favorites"> </Checkbox>
+./src/renderer/components/controls/Control.vue(9):                     <div v-if="label" class="label" @click="focus">{{ label }}</div>
+./src/renderer/components/controls/AutoSuggest.vue(16):                <b class="suggestion">{{ option.suggestion }}</b>
+./src/renderer/components/controls/AutoSuggest.vue(17):                <p v-if="option.description != null" class="description">{{ option.description }}</p>
+./src/renderer/components/controls/ToggleButton.vue(9):                <template v-if="modelValue">{{ onText }}</template>
+./src/renderer/components/controls/ToggleButton.vue(10):               <template v-else>{{ offText }}</template>
+./src/renderer/components/controls/SearchBox.vue(28):                  <button class="search-icon clear" aria-label="Clear" @mousedown="clear" @keydown.space.enter="clear"></button>
+./src/renderer/components/controls/DownloadContentButton.vue(17):      <Button v-else-if="map.isDownloading" class="quick-play-button fullwidth" disabled>Downloading map ...</Button>
+./src/renderer/components/controls/DownloadContentButton.vue(18):      <Button v-else class="red fullwidth" @click="downloadMap(map.springName)">Download map</Button>
