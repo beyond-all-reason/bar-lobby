@@ -74,6 +74,9 @@ SPDX-License-Identifier: MIT
                                 <Button v-else-if="map.isDownloading" class="green inline" disabled>Downloading map...</Button>
                                 <Button v-else class="red inline" @click="downloadMap(map.springName)">Download</Button>
                             </div>
+                            <div class="padding-top-md padding-bottom-md">
+                                <MapDownloadProgress :map-name="map.springName"></MapDownloadProgress>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -101,6 +104,7 @@ import { gameStore } from "@renderer/store/game.store";
 import { downloadMap } from "@renderer/store/maps.store";
 import { useDexieLiveQueryWithDeps } from "@renderer/composables/useDexieLiveQuery";
 import Panel from "@renderer/components/common/Panel.vue";
+import MapDownloadProgress from "@renderer/components/common/MapDownloadProgress.vue";
 import MapSimplePreview from "@renderer/components/maps/MapSimplePreview.vue";
 import TerrainIcon from "@renderer/components/maps/filters/TerrainIcon.vue";
 import { Icon } from "@iconify/vue";
