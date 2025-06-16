@@ -53,7 +53,7 @@ function registerIpcHandlers(webContents: BarIpcWebContents) {
     });
 
     autoUpdater.on("update-available", (info) => {
-        webContents.send("autoUpdater:updateAvailable")
+        webContents.send("autoUpdater:updateAvailable");
     });
 
     autoUpdater.on("update-not-available", (info) => {
@@ -69,7 +69,7 @@ function registerIpcHandlers(webContents: BarIpcWebContents) {
             type: "update",
             name: "client-update",
             currentBytes: progressObj.transferred,
-            totalBytes: progressObj.total
+            totalBytes: progressObj.total,
         });
     });
 
@@ -78,7 +78,7 @@ function registerIpcHandlers(webContents: BarIpcWebContents) {
     });
 
     ipcMain.handle("autoUpdater:checkForUpdates", async () => {
-        await autoUpdater.checkForUpdates()
+        await autoUpdater.checkForUpdates();
     });
 
     ipcMain.handle("autoUpdater:quitAndInstall", () => {
@@ -88,7 +88,7 @@ function registerIpcHandlers(webContents: BarIpcWebContents) {
 
 const autoUpdaterService = {
     init,
-    registerIpcHandlers
+    registerIpcHandlers,
 };
 
 export default autoUpdaterService;
