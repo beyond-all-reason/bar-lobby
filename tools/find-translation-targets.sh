@@ -2,23 +2,16 @@
 
 SCRIPT_DIR="$(dirname "$0")"
 
-# First pass - find translation targets
-#   This part of the script finds lines in Vue files
-#   that display text content to the user and writes
-#   the result into a temporary file. 
+# Find translation targets
+#   This script finds lines in Vue files that display text content 
+#   to the user and formats the output to be more readable. 
 grep -e '{{.*}}' -e 'v-tooltip'  -e '>[^<]*[a-zA-Z][^<]*<' \
     -e 'title=".*"' -e 'label=".*"' -e "^[a-zA-Z',\. ]+$" \
     --exclude-dir=node_modules --include="*.vue" -r -n -T . | \
     grep -v '{{[[:space:]]*t(' | \
     grep -v "\/\/" | \
     grep -v "<!--" | \
-    grep -v "if (" > "$SCRIPT_DIR/temp_results.txt"
-
-# Second pass - format and align the output
-#   Here an AWK script is used to format the results 
-#   from the previous step and the result is written
-#   into the final results file.
-cat "$SCRIPT_DIR/temp_results.txt" | \
+    grep -v "if (" | \
     expand | \
     awk -F: '{
         file_uri = $1;
@@ -39,10 +32,4 @@ cat "$SCRIPT_DIR/temp_results.txt" | \
 
         # Create padding with consistent width
         printf "%-70s %s\n", file_line, content;
-    }' > "$SCRIPT_DIR/translation-targets.txt"
-
-# Remove temporary results file
-rm "$SCRIPT_DIR/temp_results.txt"
-
-# Show the location the results file is written to
-echo "Translation targets written to $SCRIPT_DIR/translation-targets.txt"
+    }'
