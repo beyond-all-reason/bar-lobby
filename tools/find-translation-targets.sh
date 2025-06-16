@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2025 The BAR Lobby Authors
+# 
+# SPDX-License-Identifier: MIT
+
 #!/usr/bin/env bash
 
 SCRIPT_DIR="$(dirname "$0")"
