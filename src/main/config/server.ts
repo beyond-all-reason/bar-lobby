@@ -11,18 +11,20 @@ function getLobbyServer() {
     return settingsService.getSettings().lobbyServer;
 }
 
+function isSecure(url) {
+    return url.protocol == "https:" || url.protocol == "wss:";
+}
+
 function getOAuthAuthorizationServerURL() {
     const server = getLobbyServer();
-    let url: URL;
-    if (server.startsWith("ws://")) {
-        url = new URL("http://" + server.slice("ws://".length));
-    } else if (server.startsWith("wss://")) {
-        url = new URL("https://" + server.slice("wss://".length));
-    } else if (server.startsWith("http://") || server.startsWith("https://")) {
-        url = new URL(server);
+    const url = new URL(server.includes("://") ? server : `https://${server}`);
+
+    if (isSecure(url)) {
+        url.protocol = "https:";
     } else {
-        url = new URL("https://" + server);
+        url.protocol = "http:";
     }
+
     return url.origin;
 }
 
@@ -32,20 +34,16 @@ function getOAuthWellKnownURL() {
 
 function getWSServerURL() {
     const server = getLobbyServer();
-    let url: URL;
-    if (server.startsWith("http://")) {
-        url = new URL("ws://" + server.slice("http://".length));
-    } else if (server.startsWith("https://")) {
-        url = new URL("wss://" + server.slice("https://".length));
-    } else if (server.startsWith("ws://") || server.startsWith("wss://")) {
-        url = new URL(server);
+    const url = new URL(server.includes("://") ? server : `wss://${server}`);
+
+    if (isSecure(url)) {
+        url.protocol = "wss:";
     } else {
-        url = new URL("wss://" + server);
+        url.protocol = "ws:";
     }
 
-    if (!url.pathname.endsWith("/tachyon")) {
-        url.pathname = url.pathname.replace(/\/?$/, "/tachyon");
-    }
+    url.pathname = "/tachyon";
+
     return url.toString();
 }
 
