@@ -14,7 +14,7 @@ SPDX-License-Identifier: MIT
     >
         <slot />
     </button>
-    <Button v-else-if="map.isDownloading" class="quick-play-button fullwidth" style="font-size: 1vw;" disabled>Downloading map ...</Button>
+    <Button v-else-if="map.isDownloading" class="quick-play-button fullwidth" style="font-size: 1vw" disabled>Downloading map ...</Button>
     <Button v-else class="red fullwidth quick-download-button" @click="downloadMap(map.springName)">Download map</Button>
 </template>
 
@@ -36,7 +36,7 @@ const props = defineProps<Props>();
 
 <style lang="scss" scoped>
 .quick-download-button {
-	    align-self: center;
+    align-self: center;
     text-transform: uppercase;
     font-family: Rajdhani;
     font-weight: bold;
