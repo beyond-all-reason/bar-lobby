@@ -132,7 +132,7 @@ app.whenReady().then(async () => {
     shellService.registerIpcHandlers();
     downloadsService.registerIpcHandlers(webContents);
     miscService.registerIpcHandlers();
-    autoUpdaterService.registerIpcHandlers(webContents);
+    autoUpdaterService.registerIpcHandlers();
     const file = replayFileOpenedWithTheApp();
     if (file) {
         log.info(`Opening replay file: ${file}`);

@@ -98,7 +98,7 @@ watch(
         downloadPercent.value = calculateDownloadPercent(downloadsStore.updateDownloads);
     },
     { deep: true }
-)
+);
 
 function calculateDownloadPercent(downloads: DownloadInfo[]): number {
     if (downloads.length === 0) {

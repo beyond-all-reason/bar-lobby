@@ -16,7 +16,7 @@ export const downloadsStore: {
     mapDownloads: [],
     engineDownloads: [],
     gameDownloads: [],
-    updateDownloads: []
+    updateDownloads: [],
 });
 
 export function initDownloadsStore() {
