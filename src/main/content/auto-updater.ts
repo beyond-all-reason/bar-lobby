@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: MIT
 
-import { AbstractContentAPI } from "@main/content/abstract-content";
+import { Downloader } from "@main/content/abstract-content";
 import { DownloadInfo } from "@main/content/downloads";
 import { logger } from "@main/utils/logger";
 import { app } from "electron";
@@ -23,20 +23,12 @@ export type UpdateInfo = {
     releaseDate: string;
 };
 
-export class AutoUpdaterAPI extends AbstractContentAPI<string, UpdateInfo> {
-    public isVersionInstalled(id: string): boolean {
-        return id === this.updateInfo?.version;
-    }
-
-    public uninstallVersion(version: string | UpdateInfo): Promise<void> {
-        throw new Error("Method not implemented.");
-    }
-
+export class AutoUpdaterAPI extends Downloader {
     private updateInfo?: UpdateInfo;
     private intialized: boolean = false;
 
-    public override async init() {
-        log.info("Initializing Auto-Updater");
+    public async init() {
+        log.info("Initializing AutoUpdaterAPI");
         if (!app.isPackaged) {
             log.info("App is not packaged. Skipping initializaion");
             return this;
