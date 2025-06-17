@@ -75,7 +75,7 @@ SPDX-License-Identifier: MIT
                     </Panel>
                 </div>
                 <div class="right-section">
-                    <Panel class="flex-grow">
+                    <Panel class="flex-grow" no-padding>
                         <ReplayPreview v-if="selectedReplay" :replay="selectedReplay" :showSpoilers="showSpoilers">
                             <template #actions="{ replay }">
                                 <div class="fullwidth">
@@ -95,7 +95,7 @@ SPDX-License-Identifier: MIT
                                         <Button v-else disabled>Show File</Button>
                                     </div>
                                     <div class="padding-top-md">
-                                        <MapDownloadProgress :map-name="map?.springName"></MapDownloadProgress>
+                                        <MapDownloadProgress class="padding-bottom-md" :map-name="map?.springName"></MapDownloadProgress>
                                     </div>
                                 </div>
                             </template>

@@ -14,8 +14,8 @@ SPDX-License-Identifier: MIT
     >
         <slot />
     </button>
-    <Button v-else-if="map.isDownloading" class="quick-play-button fullwidth" disabled>Downloading map ...</Button>
-    <Button v-else class="red fullwidth" @click="downloadMap(map.springName)">Download map</Button>
+    <Button v-else-if="map.isDownloading" class="quick-play-button fullwidth" style="font-size: 1vw;" disabled>Downloading map ...</Button>
+    <Button v-else class="red fullwidth quick-download-button" @click="downloadMap(map.springName)">Download map</Button>
 </template>
 
 <script lang="ts" setup>
@@ -35,6 +35,25 @@ const props = defineProps<Props>();
 </script>
 
 <style lang="scss" scoped>
+.quick-download-button {
+	    align-self: center;
+    text-transform: uppercase;
+    font-family: Rajdhani;
+    font-weight: bold;
+    font-size: 1.8rem;
+    padding: 10px 40px;
+    color: #fff;
+    border: none;
+    border-radius: 2px;
+    text-align: center;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition:
+        transform 0.3s ease,
+        box-shadow 0.3s ease;
+}
+
 .quick-play-button {
     align-self: center;
     text-transform: uppercase;

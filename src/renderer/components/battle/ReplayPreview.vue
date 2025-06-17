@@ -6,51 +6,62 @@ SPDX-License-Identifier: MIT
 
 <template>
     <div class="flex-col gap-md fullheight">
-        <ReplayPreviewMap :replay="replay" />
-        <div class="teams scroll-container">
-            <div v-if="isFFA">
-                <div class="team-title">Players</div>
-                <div class="contenders">
-                    <template>
-                        <template v-for="(contender, i) in replay?.contenders" :key="`contender${i}`">
-                            <BattlePreviewParticipant :contender="contender" />
-                            <Icon
-                                v-if="replay?.winningTeamId === contender.allyTeamId && showSpoilers"
-                                class="trophy"
-                                :icon="trophyVariant"
-                                height="18"
-                            />
-                        </template>
-                    </template>
-                </div>
-            </div>
-            <div v-for="[teamId, contenders] in teams" v-else :key="`team${teamId}`">
-                <div class="team-title">
-                    <div>Team {{ teamId + 1 }}</div>
-                    <Icon v-if="replay?.winningTeamId === teamId && showSpoilers" class="trophy" :icon="trophyVariant" height="18" />
-                </div>
-                <div class="contenders">
-                    <BattlePreviewParticipant
-                        v-for="(contender, contenderIndex) in contenders"
-                        :key="`contender${contenderIndex}`"
-                        :contender="contender"
-                    />
-                </div>
-            </div>
-            <div v-if="replay?.spectators.length">
-                <div class="team-title">Spectators</div>
-                <div class="contenders">
-                    <BattlePreviewParticipant
-                        v-for="(spectator, spectatorIndex) in replay.spectators"
-                        :key="`spectator${spectatorIndex}`"
-                        :contender="spectator"
-                    />
-                </div>
-            </div>
-        </div>
-        <div class="flex-row flex-bottom gap-md">
-            <slot name="actions" :replay="replay"></slot>
-        </div>
+		<TabView>
+			<TabPanel header="Map">
+				<ReplayPreviewMap :replay="replay" />
+			</TabPanel>
+			<TabPanel header="Details">
+					<div class="padding-bottom-sm">
+						<p class="padding-vertical-sm">Engine Version: <b>{{ replay.engineVersion }}</b></p>
+						<p class="padding-vertical-sm">Game Version: <b>{{ replay.gameVersion }}</b></p>
+					</div>
+					<hr class="">
+					<div class="teams scroll-container padding-top-sm" >
+						<div v-if="isFFA">
+							<div class="team-title">Players</div>
+							<div class="contenders">
+								<template>
+									<template v-for="(contender, i) in replay?.contenders" :key="`contender${i}`">
+										<BattlePreviewParticipant :contender="contender" />
+										<Icon
+											v-if="replay?.winningTeamId === contender.allyTeamId && showSpoilers"
+											class="trophy"
+											:icon="trophyVariant"
+											height="18"
+										/>
+									</template>
+								</template>
+							</div>
+						</div>
+						<div v-for="[teamId, contenders] in teams" v-else :key="`team${teamId}`">
+							<div class="team-title">
+								<div>Team {{ teamId + 1 }}</div>
+								<Icon v-if="replay?.winningTeamId === teamId && showSpoilers" class="trophy" :icon="trophyVariant" height="18" />
+							</div>
+							<div class="contenders">
+								<BattlePreviewParticipant
+									v-for="(contender, contenderIndex) in contenders"
+									:key="`contender${contenderIndex}`"
+									:contender="contender"
+								/>
+							</div>
+						</div>
+						<div v-if="replay?.spectators.length">
+							<div class="team-title">Spectators</div>
+							<div class="contenders">
+								<BattlePreviewParticipant
+									v-for="(spectator, spectatorIndex) in replay.spectators"
+									:key="`spectator${spectatorIndex}`"
+									:contender="spectator"
+								/>
+							</div>
+						</div>
+					</div>
+			</TabPanel>
+		</TabView>
+		<div class="flex-bottom gap-md padding-left-md padding-right-md">
+			<slot name="actions" :replay="replay"></slot>
+		</div>
     </div>
 </template>
 
@@ -62,6 +73,8 @@ import BattlePreviewParticipant from "@renderer/components/battle/BattlePreviewP
 import { Replay } from "@main/content/replays/replay";
 import ReplayPreviewMap from "@renderer/components/maps/ReplayPreviewMap.vue";
 import { DemoModel } from "$/sdfz-demo-parser";
+import TabView from "@renderer/components/common/TabView.vue";
+import TabPanel from "primevue/tabpanel";
 
 const props = defineProps<{
     replay: Replay;
@@ -85,6 +98,7 @@ const teams = computed<Map<number, (DemoModel.Info.Player | DemoModel.Info.AI)[]
 <style lang="scss" scoped>
 .teams {
     gap: 5px;
+	height: auto;
 }
 .team-title {
     display: flex;
