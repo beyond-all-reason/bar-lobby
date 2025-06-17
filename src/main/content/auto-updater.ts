@@ -51,6 +51,10 @@ export class AutoUpdaterAPI extends Downloader {
         this.intialized = true;
         return this;
     }
+    
+    public get updateInformation() : UpdateInfo | null {
+        return this.updateInfo ?? null;
+    }
 
     public async checkForUpdates(): Promise<boolean> {
         if (!this.intialized) return false;
