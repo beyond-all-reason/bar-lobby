@@ -22,6 +22,10 @@ function registerIpcHandlers() {
     ipcMain.handle("autoUpdater:quitAndInstall", () => {
         autoUpdaterAPI.quitAndInstall();
     });
+
+    ipcMain.handle("autoUpdater:installUpdates", () => {
+        autoUpdaterAPI.installUpdates();
+    });
 }
 
 const autoUpdaterService = {

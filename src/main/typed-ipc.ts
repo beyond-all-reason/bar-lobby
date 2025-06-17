@@ -52,6 +52,7 @@ export type IPCCommands = {
     "auth:wipe": () => void;
     "autoUpdater:checkForUpdates": () => boolean;
     "autoUpdater:downloadUpdate": () => void;
+    "autoUpdater:installUpdates": () => void;
     "autoUpdater:quitAndInstall": () => void;
     "engine:downloadEngine": (version: string) => string | void;
     "engine:isVersionInstalled": (id: string) => boolean;

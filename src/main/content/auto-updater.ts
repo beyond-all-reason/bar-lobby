@@ -104,6 +104,10 @@ export class AutoUpdaterAPI extends Downloader {
         });
     }
 
+    public installUpdates(): void {
+        autoUpdater.quitAndInstall(true, true);
+    }
+
     public quitAndInstall(): void {
         autoUpdater.quitAndInstall();
     }

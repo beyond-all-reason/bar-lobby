@@ -59,7 +59,8 @@ onMounted(async () => {
         state.value = "update";
         text.value = "Downloading update";
         await window.autoUpdater.downloadUpdate();
-        text.value = "Updated downloaded";
+        text.value = "Installing update";
+        await window.autoUpdater.installUpdates();
     }
 
     await initBattleStore();
