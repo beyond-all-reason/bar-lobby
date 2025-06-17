@@ -68,7 +68,7 @@ async function setupI18n() {
                     .then((jsonData) => processTranslationData(jsonData))
                     .then((processedData) => {
                         if (!messages[locale]) messages[locale] = {};
-                        if (translationKey === 'interface') messages[locale][translationKey] = processedData
+                        if (translationKey === "interface") messages[locale][translationKey] = processedData;
                         else messages[locale][translationKey] = processedData[translationKey];
                     })
                     .catch(() => console.log(translationKey, locale));
