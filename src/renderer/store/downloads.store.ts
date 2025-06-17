@@ -10,11 +10,13 @@ export const downloadsStore: {
     mapDownloads: DownloadInfo[];
     engineDownloads: DownloadInfo[];
     gameDownloads: DownloadInfo[];
+    updateDownloads: DownloadInfo[];
 } = reactive({
     isInitialized: false,
     mapDownloads: [],
     engineDownloads: [],
     gameDownloads: [],
+    updateDownloads: []
 });
 
 export function initDownloadsStore() {
@@ -74,6 +76,10 @@ export function initDownloadsStore() {
     //     console.debug("Download failed", downloadInfo);
     //     downloadsStore.mapDownloads = downloadsStore.mapDownloads.filter((download) => download.name !== downloadInfo.name);
     // });
+
+    window.autoUpdater.onDownloadUpdateProgress((downloadInfo) => {
+        downloadsStore.updateDownloads = [downloadInfo];
+    });
 
     downloadsStore.isInitialized = true;
 }
