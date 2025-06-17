@@ -16,11 +16,22 @@ export type ReleaseNoteInfo = {
     readonly note: string | null;
 };
 
+export type UpdateFileInfo = {
+    blockMapSize: number | null;
+    readonly isAdminRightsRequired: boolean | null;
+    readonly sha512: string;
+    size: number | null;
+    url: string;
+};
+
 export type UpdateInfo = {
-    version: string;
+    readonly version: string;
     releaseName: string | null;
     releaseNotes: string | Array<ReleaseNoteInfo> | null;
     releaseDate: string;
+    readonly files: Array<UpdateFileInfo>;
+    readonly minimumSystemVersion: string | null;
+    readonly stagingPercentage: number;
 };
 
 export class AutoUpdaterAPI extends Downloader {
@@ -44,21 +55,17 @@ export class AutoUpdaterAPI extends Downloader {
         if (!this.intialized) return false;
         return await new Promise<boolean>((resolve) => {
             autoUpdater.on("update-available", (info) => {
-                this.updateInfo = {
-                    version: info.version,
-                    releaseName: info.releaseName,
-                    releaseNotes: info.releaseNotes,
-                    releaseDate: info.releaseDate,
-                } as UpdateInfo;
+                this.updateInfo = info as UpdateInfo;
                 resolve(true);
             });
 
-            autoUpdater.on("update-not-available", () => {
+            autoUpdater.on("update-not-available", (info) => {
+                this.updateInfo = info as UpdateInfo;
                 resolve(false);
             });
 
-            autoUpdater.on("error", () => {
-                log.error("Error downloading update");
+            autoUpdater.on("error", (error, message) => {
+                log.error(error, `Error downloading update. ${message}`);
                 resolve(false);
             });
 
@@ -78,12 +85,13 @@ export class AutoUpdaterAPI extends Downloader {
                 } as DownloadInfo);
             });
 
-            autoUpdater.on("update-downloaded", () => {
+            autoUpdater.on("update-downloaded", (info) => {
+                this.updateInfo = info as UpdateInfo;
                 resolve();
             });
 
-            autoUpdater.on("error", (error) => {
-                log.error(error, "Error downloading update");
+            autoUpdater.on("error", (error, message) => {
+                log.error(error, `Error downloading update. ${message}`);
                 resolve();
             });
 
