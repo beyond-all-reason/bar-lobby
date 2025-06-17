@@ -37,6 +37,7 @@ export type UpdateInfo = {
 export class AutoUpdaterAPI extends Downloader {
     private updateInfo?: UpdateInfo;
     private intialized: boolean = false;
+    public readonly currentVersion: string = autoUpdater.currentVersion;
 
     public async init() {
         log.info("Initializing AutoUpdaterAPI");
