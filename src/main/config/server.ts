@@ -11,19 +11,40 @@ function getLobbyServer() {
     return settingsService.getSettings().lobbyServer;
 }
 
+function isSecure(url) {
+    return url.protocol == "https:" || url.protocol == "wss:";
+}
+
 function getOAuthAuthorizationServerURL() {
-    const url = `https://${getLobbyServer()}`;
-    return url;
+    const server = getLobbyServer();
+    const url = new URL(server.includes("://") ? server : `https://${server}`);
+
+    if (isSecure(url)) {
+        url.protocol = "https:";
+    } else {
+        url.protocol = "http:";
+    }
+
+    return url.origin;
 }
 
 function getOAuthWellKnownURL() {
-    const url = `${getOAuthAuthorizationServerURL()}/.well-known/oauth-authorization-server`;
-    return url;
+    return `${getOAuthAuthorizationServerURL()}/.well-known/oauth-authorization-server`;
 }
 
 function getWSServerURL() {
-    const url = `wss://${getLobbyServer()}/tachyon`;
-    return url;
+    const server = getLobbyServer();
+    const url = new URL(server.includes("://") ? server : `wss://${server}`);
+
+    if (isSecure(url)) {
+        url.protocol = "wss:";
+    } else {
+        url.protocol = "ws:";
+    }
+
+    url.pathname = "/tachyon";
+
+    return url.toString();
 }
 
 export { getOAuthAuthorizationServerURL, getOAuthWellKnownURL, getWSServerURL };
