@@ -34,7 +34,7 @@ SPDX-License-Identifier = "OFL-1.1"
 
 [[annotations]]
 # Let's tread all the language translation files as a single aggregate with license (we apply MIT, alternative would be CC-BY-SA-4.0)
-path = ["src/renderer/assets/languages/*.json"]
+path = ["src/renderer/assets/languages/**/*.json"]
 precedence = "aggregate"
 SPDX-FileCopyrightText = "2025 The BAR Lobby Authors"
 SPDX-License-Identifier = "MIT"
