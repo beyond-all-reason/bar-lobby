@@ -3,7 +3,6 @@
 // SPDX-License-Identifier: MIT
 
 import { Downloader } from "@main/content/abstract-content";
-import { DownloadInfo } from "@main/content/downloads";
 import { logger } from "@main/utils/logger";
 import { app } from "electron";
 import electronUpdater from "electron-updater";
@@ -11,28 +10,7 @@ const { autoUpdater } = electronUpdater;
 
 const log = logger("auto-updater.ts");
 
-export type ReleaseNoteInfo = {
-    readonly version: string;
-    readonly note: string | null;
-};
-
-export type UpdateFileInfo = {
-    blockMapSize: number | null;
-    readonly isAdminRightsRequired: boolean | null;
-    readonly sha512: string;
-    size: number | null;
-    url: string;
-};
-
-export type UpdateInfo = {
-    readonly version: string;
-    releaseName: string | null;
-    releaseNotes: string | Array<ReleaseNoteInfo> | null;
-    releaseDate: string;
-    readonly files: Array<UpdateFileInfo>;
-    readonly minimumSystemVersion: string | null;
-    readonly stagingPercentage: number;
-};
+export type UpdateInfo = electronUpdater.UpdateInfo;
 
 export class AutoUpdaterAPI extends Downloader {
     private updateInfo?: UpdateInfo;
@@ -60,12 +38,12 @@ export class AutoUpdaterAPI extends Downloader {
         if (!this.intialized) return false;
         return await new Promise<boolean>((resolve) => {
             autoUpdater.on("update-available", (info) => {
-                this.updateInfo = info as UpdateInfo;
+                this.updateInfo = info;
                 resolve(true);
             });
 
             autoUpdater.on("update-not-available", (info) => {
-                this.updateInfo = info as UpdateInfo;
+                this.updateInfo = info;
                 resolve(false);
             });
 
@@ -80,18 +58,20 @@ export class AutoUpdaterAPI extends Downloader {
 
     public async downloadUpdate(): Promise<void> {
         if (!this.intialized) return;
+        if (this.updateInfo == undefined) throw Error("Tried to download unavailable update");
         return await new Promise<void>((resolve) => {
             autoUpdater.on("download-progress", (progressInfo) => {
                 this.downloadProgress({
                     type: "update",
-                    name: this.updateInfo?.version,
+                    name: this.updateInfo?.version ?? "unknown",
                     currentBytes: progressInfo.transferred,
                     totalBytes: progressInfo.total,
-                } as DownloadInfo);
+                    progress: progressInfo.percent,
+                });
             });
 
             autoUpdater.on("update-downloaded", (info) => {
-                this.updateInfo = info as UpdateInfo;
+                this.updateInfo = info;
                 resolve();
             });
 
