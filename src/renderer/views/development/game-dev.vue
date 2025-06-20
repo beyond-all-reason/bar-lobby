@@ -19,18 +19,15 @@ SPDX-License-Identifier: MIT
     - Unit Definitions
     "
         />
-        {{ t("interface.ui.topbar.resources.incomeTooltip", { resource: "9000" }) }}
     </div>
 </template>
 
 <script lang="ts" setup>
 import { useRouter } from "vue-router";
 import Markdown from "@renderer/components/misc/Markdown.vue";
-import { useI18n } from "vue-i18n";
 
 const router = useRouter();
 const route = router.currentRoute.value;
-const { t } = useI18n();
 </script>
 
 <style lang="scss" scoped></style>
