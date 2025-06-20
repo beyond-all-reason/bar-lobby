@@ -19,6 +19,7 @@ import type { TachyonEvent, TachyonResponse } from "tachyon-protocol";
 import { ipcRenderer as electronIpcRenderer, ipcMain as electronIpcMain } from "electron";
 
 export type IPCEvents = {
+    "downloads:update:progress": (downloadInfo: DownloadInfo) => void;
     "downloads:engine:complete": (downloadInfo: DownloadInfo) => void;
     "downloads:engine:fail": (downloadInfo: DownloadInfo) => void;
     "downloads:engine:progress": (downloadInfo: DownloadInfo) => void;
@@ -49,6 +50,10 @@ export type IPCCommands = {
     "auth:login": () => void;
     "auth:logout": () => void;
     "auth:wipe": () => void;
+    "autoUpdater:checkForUpdates": () => boolean;
+    "autoUpdater:downloadUpdate": () => void;
+    "autoUpdater:installUpdates": () => void;
+    "autoUpdater:quitAndInstall": () => void;
     "engine:downloadEngine": (version: string) => string | void;
     "engine:isVersionInstalled": (id: string) => boolean;
     "engine:listAvailableVersions": () => EngineVersion[];
