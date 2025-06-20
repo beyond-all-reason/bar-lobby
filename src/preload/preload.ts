@@ -198,3 +198,15 @@ const tachyonApi = {
 };
 export type TachyonApi = typeof tachyonApi;
 contextBridge.exposeInMainWorld("tachyon", tachyonApi);
+
+const autoUpdaterApi = {
+    checkForUpdates: (): Promise<boolean> => ipcRenderer.invoke("autoUpdater:checkForUpdates"),
+    downloadUpdate: (): Promise<void> => ipcRenderer.invoke("autoUpdater:downloadUpdate"),
+    quitAndInstall: (): Promise<void> => ipcRenderer.invoke("autoUpdater:quitAndInstall"),
+    installUpdates: (): Promise<void> => ipcRenderer.invoke("autoUpdater:installUpdates"),
+
+    // Events
+    onDownloadUpdateProgress: (callback: (downloadInfo: DownloadInfo) => void) => ipcRenderer.on("downloads:update:progress", (_event, downloadInfo: DownloadInfo) => callback(downloadInfo)),
+};
+export type AutoUpdaterApi = typeof autoUpdaterApi;
+contextBridge.exposeInMainWorld("autoUpdater", autoUpdaterApi);
