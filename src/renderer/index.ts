@@ -52,20 +52,18 @@ async function setupI18n() {
 
     for (const filePath in localeFilePaths) {
         const localeCode = filePath.match(/\/([a-z]{2})\/.+?\.json$/)![1];
-        const translationFileURI = `${localeFilePaths[filePath]}`;
+        const translationFileURI = localeFilePaths[filePath];
         if (Array.isArray(translationFiles[localeCode])) translationFiles[localeCode].push(translationFileURI);
         else translationFiles[localeCode] = [translationFileURI];
     }
 
     for (const locale in translationFiles) {
         // prevent unnecesary processing of translation files and load only client locale and fallback
-        if (locale != myLocale || locale != "en") continue;
+        if (locale != myLocale && locale != "en") continue;
         for (const translationFile of translationFiles[locale]) {
             try {
-                const processedData = await fetch(translationFile)
-                    .then((res) => res.json())
-                    .then((jsonData) => processTranslationData(jsonData))
-                    .catch(() => console.error(`Error processing translation file (${translationFile}) for locale (${locale})`));
+                const response = await fetch(translationFile);
+                const processedData = processTranslationData(await response.json());
                 if (!messages[locale]) messages[locale] = { ...processedData };
                 else messages[locale] = { ...messages[locale], ...processedData };
             } catch (err) {
