@@ -19,7 +19,6 @@ import { elementInViewDirective } from "@renderer/utils/element-in-view-directiv
 import { audioApi } from "@renderer/audio/audio";
 import { router } from "@renderer/router";
 import { initPreMountStores } from "@renderer/store/stores";
-import { processTranslationData } from "@renderer/utils/i18n";
 
 setupVue();
 
@@ -45,41 +44,11 @@ async function setupVue() {
 
 async function setupI18n() {
     const myLocale = Intl.DateTimeFormat().resolvedOptions().locale.split("-")[0];
-    // `any` required as these are loaded from json files with no defined format
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const messages: Record<string, Record<string, any>> = {};
-    const translationFiles: Record<string, Array<string>> = {};
-
+    const messages: Record<string, Record<string, string>> = {};
     for (const filePath in localeFilePaths) {
-        const localeCode = filePath.match(/\/([a-z]{2})\/.+?\.json$/)![1];
-        const translationFileURI = `${localeFilePaths[filePath]}`;
-        if (Array.isArray(translationFiles[localeCode])) translationFiles[localeCode].push(translationFileURI);
-        else translationFiles[localeCode] = [translationFileURI];
+        const localeCode = filePath.match(/([a-z]{2})\.json$/)![1];
+        messages[localeCode] = localeFilePaths[filePath];
     }
-
-    for (const locale in translationFiles) {
-        // prevent unnecesary processing of translation files and load only client locale and fallback
-        if (locale != myLocale || locale != "en") continue;
-        for (const translationFile of translationFiles[locale]) {
-            const translationKey = translationFile.match(/\/([a-z]+)\.json$/)![1];
-            try {
-                fetch(translationFile)
-                    .then((res) => res.json())
-                    .then((jsonData) => processTranslationData(jsonData))
-                    .then((processedData) => {
-                        if (!messages[locale]) messages[locale] = {};
-                        if (translationKey === "interface") messages[locale][translationKey] = processedData;
-                        else messages[locale][translationKey] = processedData[translationKey];
-                    })
-                    .catch(() => console.log(translationKey, locale));
-            } catch (err) {
-                console.error(`Error loading translation file ${translationFile} for locale ${locale}: `, err);
-            }
-        }
-    }
-
-    console.log(messages);
-
     return createI18n({
         locale: myLocale,
         fallbackLocale: "en",
