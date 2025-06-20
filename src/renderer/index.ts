@@ -61,17 +61,13 @@ async function setupI18n() {
         // prevent unnecesary processing of translation files and load only client locale and fallback
         if (locale != myLocale || locale != "en") continue;
         for (const translationFile of translationFiles[locale]) {
-            const translationKey = translationFile.match(/\/([a-z]+)\.json$/)![1];
             try {
-                fetch(translationFile)
+                const processedData = await fetch(translationFile)
                     .then((res) => res.json())
                     .then((jsonData) => processTranslationData(jsonData))
-                    .then((processedData) => {
-                        if (!messages[locale]) messages[locale] = {};
-                        if (translationKey === "interface") messages[locale][translationKey] = processedData;
-                        else messages[locale][translationKey] = processedData[translationKey];
-                    })
-                    .catch(() => console.log(translationKey, locale));
+                    .catch(() => console.error(`Error processing translation file (${translationFile}) for locale (${locale})`));
+                if (!messages[locale]) messages[locale] = {...processedData};
+                else messages[locale] = { ...messages[locale], ...processedData };
             } catch (err) {
                 console.error(`Error loading translation file ${translationFile} for locale ${locale}: `, err);
             }
