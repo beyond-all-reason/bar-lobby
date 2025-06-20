@@ -26,7 +26,9 @@ SPDX-License-Identifier: MIT
                         modes.
                     </div>
                     <div class="button-container">
-                        <button class="quick-play-button" @click="battleStore.isSelectingGameMode = true">{{ t("lobby.buttons.quickPlay") }}</button>
+                        <button class="quick-play-button" @click="battleStore.isSelectingGameMode = true">
+                            {{ t("lobby.buttons.quickPlay") }}
+                        </button>
                     </div>
                 </div>
                 <div class="right-column">

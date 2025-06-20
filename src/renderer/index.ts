@@ -66,7 +66,7 @@ async function setupI18n() {
                     .then((res) => res.json())
                     .then((jsonData) => processTranslationData(jsonData))
                     .catch(() => console.error(`Error processing translation file (${translationFile}) for locale (${locale})`));
-                if (!messages[locale]) messages[locale] = {...processedData};
+                if (!messages[locale]) messages[locale] = { ...processedData };
                 else messages[locale] = { ...messages[locale], ...processedData };
             } catch (err) {
                 console.error(`Error loading translation file ${translationFile} for locale ${locale}: `, err);
