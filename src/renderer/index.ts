@@ -78,8 +78,6 @@ async function setupI18n() {
         }
     }
 
-    console.log(messages);
-
     return createI18n({
         locale: myLocale,
         fallbackLocale: "en",
