@@ -20,4 +20,4 @@ export const backgroundImages = import.meta.glob<string>(["./images/backgrounds/
 export const fontFiles = import.meta.glob<string>(["./fonts/*", "!**/*.license"], { eager: true, import: "default", query: "?url" });
 
 // Languages
-export const localeFilePaths = import.meta.glob<Record<string, string>>(["./languages/*", "!**/*.license"], { eager: true, import: "default", query: "?url" });
+export const localeFilePaths = import.meta.glob<string>(["./languages/**/*", "!**/*.license"], { eager: true, import: "default", query: "?url" });

@@ -26,7 +26,9 @@ SPDX-License-Identifier: MIT
                         modes.
                     </div>
                     <div class="button-container">
-                        <button class="quick-play-button" @click="battleStore.isSelectingGameMode = true">Quick play</button>
+                        <button class="quick-play-button" @click="battleStore.isSelectingGameMode = true">
+                            {{ t("lobby.buttons.quickPlay") }}
+                        </button>
                     </div>
                 </div>
                 <div class="right-column">
@@ -46,6 +48,9 @@ import DevlogFeed from "@renderer/components/misc/DevlogFeed.vue";
 import NewsFeed from "@renderer/components/misc/NewsFeed.vue";
 import { battleStore } from "@renderer/store/battle.store";
 import { watch } from "vue";
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
 
 watch(
     () => battleStore.isSelectingGameMode,
