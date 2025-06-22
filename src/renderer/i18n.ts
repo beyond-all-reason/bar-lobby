@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2025 The BAR Lobby Authors
+//
+// SPDX-License-Identifier: MIT
+
 import { createI18n, useI18n } from "vue-i18n";
 import enTranslation from "@renderer/assets/languages/en.json";
 import csTranslation from "@renderer/assets/languages/cs.json";
@@ -11,7 +15,7 @@ type MessageSchema = typeof enTranslation | typeof csTranslation | typeof deTran
 
 export async function setupI18n() {
     const myLocale = Intl.DateTimeFormat().resolvedOptions().locale.split("-")[0]; // TODO: add override from user settings
- 
+
     return createI18n<[MessageSchema], Locale>({
         locale: myLocale,
         fallbackLocale: "en",
@@ -21,7 +25,7 @@ export async function setupI18n() {
             en: enTranslation,
             fr: frTranslation,
             ru: ruTranslation,
-            zh: zhTranslation
+            zh: zhTranslation,
         },
         legacy: false,
     });
