@@ -5,17 +5,22 @@ SPDX-License-Identifier: MIT
 -->
 
 <template>
-    <button
-        v-if="map.isInstalled"
-        class="quick-play-button fullwidth"
-        :class="props.class"
-        :disabled="props.disabled"
-        @click="props.onClick"
-    >
-        <slot />
-    </button>
-    <Button v-else-if="map.isDownloading" class="quick-play-button fullwidth" style="font-size: 1vw" disabled>Downloading map ...</Button>
-    <Button v-else class="red fullwidth quick-download-button" @click="downloadMap(map.springName)">Download map</Button>
+    <div class="fullwidth">
+        <div class="progress-bar-outer margin-left-md margin-right-md">
+            <MapDownloadProgress :map-name="map?.springName"></MapDownloadProgress>
+        </div>
+        <button
+            v-if="map.isInstalled"
+            class="quick-play-button fullwidth"
+            :class="props.class"
+            :disabled="props.disabled"
+            @click="props.onClick"
+        >
+            <slot />
+        </button>
+        <Button v-else-if="map.isDownloading" class="grey quick-download-button fullwidth anchor" @input.stop>Downloading...</Button>
+        <Button v-else class="red fullwidth quick-download-button" @click="downloadMap(map.springName)">Download map</Button>
+    </div>
 </template>
 
 <script lang="ts" setup>
@@ -23,6 +28,7 @@ import { MapDownloadData } from "@main/content/maps/map-data";
 import Button from "@renderer/components/controls/Button.vue";
 import { downloadMap } from "@renderer/store/maps.store";
 import { ButtonProps } from "primevue/button";
+import MapDownloadProgress from "@renderer/components/common/MapDownloadProgress.vue";
 
 export interface Props extends /* @vue-ignore */ ButtonProps {
     map: MapDownloadData;
@@ -37,7 +43,6 @@ const props = defineProps<Props>();
 <style lang="scss" scoped>
 .quick-download-button {
     align-self: center;
-    text-transform: uppercase;
     font-family: Rajdhani;
     font-weight: bold;
     font-size: 1.8rem;
@@ -56,7 +61,6 @@ const props = defineProps<Props>();
 
 .quick-play-button {
     align-self: center;
-    text-transform: uppercase;
     font-family: Rajdhani;
     font-weight: bold;
     font-size: 1.8rem;
@@ -93,5 +97,15 @@ const props = defineProps<Props>();
 
 .quick-play-button:hover::before {
     box-shadow: 0 8px 15px rgba(34, 197, 94, 0.4);
+}
+.anchor {
+    anchor-name: --anchor;
+}
+.progress-bar-outer {
+    position: fixed;
+    position-area: bottom span-all;
+    position-anchor: --anchor;
+    width: anchor-size(width);
+    transform: translateY(-100%);
 }
 </style>

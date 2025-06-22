@@ -11,58 +11,68 @@ SPDX-License-Identifier: MIT
                 <ReplayPreviewMap :replay="replay" />
             </TabPanel>
             <TabPanel header="Details">
-                <div class="padding-bottom-sm">
-                    <p class="padding-vertical-sm">
-                        Engine Version: <b>{{ replay.engineVersion }}</b>
-                    </p>
-                    <p class="padding-vertical-sm">
-                        Game Version: <b>{{ replay.gameVersion }}</b>
-                    </p>
-                </div>
-                <hr class="" />
-                <div class="teams scroll-container padding-top-sm">
-                    <div v-if="isFFA">
-                        <div class="team-title">Players</div>
-                        <div class="contenders">
-                            <template>
-                                <template v-for="(contender, i) in replay?.contenders" :key="`contender${i}`">
-                                    <BattlePreviewParticipant :contender="contender" />
-                                    <Icon
-                                        v-if="replay?.winningTeamId === contender.allyTeamId && showSpoilers"
-                                        class="trophy"
-                                        :icon="trophyVariant"
-                                        height="18"
-                                    />
+                <div class="halfbox">
+                    <div class="teams padding-bottom-sm scroll-container">
+                        <div v-if="isFFA">
+                            <div class="team-title">Players</div>
+                            <div class="contenders">
+                                <template>
+                                    <template v-for="(contender, i) in replay?.contenders" :key="`contender${i}`">
+                                        <BattlePreviewParticipant :contender="contender" />
+                                        <Icon
+                                            v-if="replay?.winningTeamId === contender.allyTeamId && showSpoilers"
+                                            class="trophy"
+                                            :icon="trophyVariant"
+                                            height="18"
+                                        />
+                                    </template>
                                 </template>
-                            </template>
+                            </div>
+                        </div>
+                        <div v-for="[teamId, contenders] in teams" v-else :key="`team${teamId}`">
+                            <div class="team-title">
+                                <div>Team {{ teamId + 1 }}</div>
+                                <Icon
+                                    v-if="replay?.winningTeamId === teamId && showSpoilers"
+                                    class="trophy"
+                                    :icon="trophyVariant"
+                                    height="18"
+                                />
+                            </div>
+                            <div class="contenders">
+                                <BattlePreviewParticipant
+                                    v-for="(contender, contenderIndex) in contenders"
+                                    :key="`contender${contenderIndex}`"
+                                    :contender="contender"
+                                />
+                            </div>
+                        </div>
+                        <div v-if="replay?.spectators.length">
+                            <div class="team-title">Spectators</div>
+                            <div class="contenders">
+                                <BattlePreviewParticipant
+                                    v-for="(spectator, spectatorIndex) in replay.spectators"
+                                    :key="`spectator${spectatorIndex}`"
+                                    :contender="spectator"
+                                />
+                            </div>
                         </div>
                     </div>
-                    <div v-for="[teamId, contenders] in teams" v-else :key="`team${teamId}`">
-                        <div class="team-title">
-                            <div>Team {{ teamId + 1 }}</div>
-                            <Icon
-                                v-if="replay?.winningTeamId === teamId && showSpoilers"
-                                class="trophy"
-                                :icon="trophyVariant"
-                                height="18"
-                            />
-                        </div>
-                        <div class="contenders">
-                            <BattlePreviewParticipant
-                                v-for="(contender, contenderIndex) in contenders"
-                                :key="`contender${contenderIndex}`"
-                                :contender="contender"
-                            />
-                        </div>
-                    </div>
-                    <div v-if="replay?.spectators.length">
-                        <div class="team-title">Spectators</div>
-                        <div class="contenders">
-                            <BattlePreviewParticipant
-                                v-for="(spectator, spectatorIndex) in replay.spectators"
-                                :key="`spectator${spectatorIndex}`"
-                                :contender="spectator"
-                            />
+                    <hr class="margin-top-md margin-bottom-md" />
+                    <div class="padding-top-sm scroll-container autoheight">
+                        <div v-for="(item, index) in replayData" :key="index">
+                            <div>
+                                <div :class="getStripeResult(index)">
+                                    <div class="margin-left-sm padding-top-sm padding-bottom-sm">
+                                        <p>
+                                            <b>{{ item.title }}</b>
+                                        </p>
+                                    </div>
+                                    <div class="margin-right-sm padding-top-sm padding-bottom-sm">
+                                        <p>{{ item.data }}</p>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -102,6 +112,24 @@ const teams = computed<Map<number, (DemoModel.Info.Player | DemoModel.Info.AI)[]
     const sortedTeams = new Map([...teams.entries()].sort());
     return sortedTeams;
 });
+
+// The space will scroll if enough items are added to this list.
+const replayData = computed(() => {
+    return [
+        {
+            title: "Engine Version:",
+            data: props.replay.engineVersion,
+        },
+        {
+            title: "Game Version:",
+            data: props.replay.gameVersion,
+        },
+    ];
+});
+
+function getStripeResult(index: number) {
+    return index & 1 ? "datagrid" : "datagrid datagridstripe";
+}
 </script>
 
 <style lang="scss" scoped>
@@ -136,5 +164,21 @@ const teams = computed<Map<number, (DemoModel.Info.Player | DemoModel.Info.AI)[]
 }
 .cross {
     color: rgb(223, 35, 35);
+}
+.datagrid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    height: auto;
+}
+.datagridstripe {
+    background-color: #00000033;
+}
+.halfbox {
+    display: grid;
+    grid-template-rows: 1fr min-content 1fr;
+    height: 50vh;
+}
+.autoheight {
+    height: auto;
 }
 </style>

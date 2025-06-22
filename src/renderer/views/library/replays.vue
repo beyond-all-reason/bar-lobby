@@ -79,23 +79,20 @@ SPDX-License-Identifier: MIT
                         <ReplayPreview v-if="selectedReplay" :replay="selectedReplay" :showSpoilers="showSpoilers">
                             <template #actions="{ replay }">
                                 <div class="fullwidth">
-                                    <div class="flex-row flex-bottom gap-md">
+                                    <div class="flex-row flex-bottom gap-md padding-bottom-md">
                                         <DownloadContentButton
                                             v-if="map && replay"
                                             :map="map"
                                             @click="watchReplay(replay)"
                                             :disabled="isLaunching || gameStore.isGameRunning"
                                         >
-                                            <template v-if="gameStore.isGameRunning"> Game Running </template>
+                                            <template v-if="gameStore.isGameRunning"> Game running </template>
                                             <template v-else-if="isLaunching"> Launching... </template>
                                             <template v-else> Watch </template>
                                         </DownloadContentButton>
                                         <Button v-else disabled style="flex-grow: 1">Watch</Button>
-                                        <Button v-if="replay" @click="showReplayFile(replay)">Show File</Button>
-                                        <Button v-else disabled>Show File</Button>
-                                    </div>
-                                    <div class="padding-top-md">
-                                        <MapDownloadProgress class="padding-bottom-md" :map-name="map?.springName"></MapDownloadProgress>
+                                        <Button v-if="replay" @click="showReplayFile(replay)">Show file</Button>
+                                        <Button v-else disabled>Show file</Button>
                                     </div>
                                 </div>
                             </template>
@@ -139,7 +136,6 @@ import { useDexieLiveQueryWithDeps } from "@renderer/composables/useDexieLiveQue
 import ReplayPreview from "@renderer/components/battle/ReplayPreview.vue";
 import DownloadContentButton from "@renderer/components/controls/DownloadContentButton.vue";
 import { gameStore } from "@renderer/store/game.store";
-import MapDownloadProgress from "@renderer/components/common/MapDownloadProgress.vue";
 import { MapDownloadData } from "@main/content/maps/map-data";
 
 const endedNormally: Ref<boolean | null> = ref(true);
