@@ -16,16 +16,14 @@ SPDX-License-Identifier: MIT
                         <div v-if="isFFA">
                             <div class="team-title">Players</div>
                             <div class="contenders">
-                                <template>
-                                    <template v-for="(contender, i) in replay?.contenders" :key="`contender${i}`">
-                                        <BattlePreviewParticipant :contender="contender" />
-                                        <Icon
-                                            v-if="replay?.winningTeamId === contender.allyTeamId && showSpoilers"
-                                            class="trophy"
-                                            :icon="trophyVariant"
-                                            height="18"
-                                        />
-                                    </template>
+                                <template v-for="(contender, i) in replay?.contenders" :key="`contender${i}`">
+                                    <BattlePreviewParticipant :contender="contender" />
+                                    <Icon
+                                        v-if="replay?.winningTeamId === contender.allyTeamId && showSpoilers"
+                                        class="trophy"
+                                        :icon="trophyVariant"
+                                        height="18"
+                                    />
                                 </template>
                             </div>
                         </div>
