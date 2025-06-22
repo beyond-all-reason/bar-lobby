@@ -12,7 +12,6 @@ const __dirname = path.dirname(__filename);
 const LANG_DIR = path.resolve(__dirname, "../lang");
 const OUTPUT_DIR = path.resolve(__dirname, "../src/renderer/assets/languages");
 
-// Function to get all directories in the LANG_DIR
 async function getLocalesFromLangDirectories() {
     try {
         const entries = await fs.promises.readdir(LANG_DIR, { withFileTypes: true });
@@ -41,7 +40,6 @@ async function getObjectFromLanguageFile(path: string) {
     });
 }
 
-// Example usage
 async function main() {
     const locales = await getLocalesFromLangDirectories();
 
