@@ -161,6 +161,15 @@ const miscApi = {
 export type MiscApi = typeof miscApi;
 contextBridge.exposeInMainWorld("misc", miscApi);
 
+const barNavigationApi = {
+    onNavigateTo: (callback: (target: string) => void) => ipcRenderer.on("navigation:navigateTo", (_event, target) => callback(target)),
+    signalReady: (): Promise<void> => ipcRenderer.invoke("renderer:ready"),
+};
+
+export type BarNavigationApi = typeof barNavigationApi;
+contextBridge.exposeInMainWorld("barNavigation", barNavigationApi);
+
+
 // Tachyon API
 function request<C extends GetCommandIds<"user", "server", "request">>(
     ...args: GetCommandData<GetCommands<"user", "server", "request", C>> extends never ? [commandId: C] : [commandId: C, data: GetCommandData<GetCommands<"user", "server", "request", C>>]
