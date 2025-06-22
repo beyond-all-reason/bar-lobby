@@ -52,33 +52,25 @@ async function setupI18n() {
 
     for (const filePath in localeFilePaths) {
         const localeCode = filePath.match(/\/([a-z]{2})\/.+?\.json$/)![1];
-        const translationFileURI = `${localeFilePaths[filePath]}`;
+        const translationFileURI = localeFilePaths[filePath];
         if (Array.isArray(translationFiles[localeCode])) translationFiles[localeCode].push(translationFileURI);
         else translationFiles[localeCode] = [translationFileURI];
     }
 
     for (const locale in translationFiles) {
         // prevent unnecesary processing of translation files and load only client locale and fallback
-        if (locale != myLocale || locale != "en") continue;
+        if (locale != myLocale && locale != "en") continue;
         for (const translationFile of translationFiles[locale]) {
-            const translationKey = translationFile.match(/\/([a-z]+)\.json$/)![1];
             try {
-                fetch(translationFile)
-                    .then((res) => res.json())
-                    .then((jsonData) => processTranslationData(jsonData))
-                    .then((processedData) => {
-                        if (!messages[locale]) messages[locale] = {};
-                        if (translationKey === "interface") messages[locale][translationKey] = processedData;
-                        else messages[locale][translationKey] = processedData[translationKey];
-                    })
-                    .catch(() => console.log(translationKey, locale));
+                const response = await fetch(translationFile);
+                const processedData = processTranslationData(await response.json());
+                if (!messages[locale]) messages[locale] = { ...processedData };
+                else messages[locale] = { ...messages[locale], ...processedData };
             } catch (err) {
                 console.error(`Error loading translation file ${translationFile} for locale ${locale}: `, err);
             }
         }
     }
-
-    console.log(messages);
 
     return createI18n({
         locale: myLocale,

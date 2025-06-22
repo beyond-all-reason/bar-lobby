@@ -28,7 +28,7 @@ const emit = defineEmits<{
 }>();
 
 const text = ref("");
-const state = ref<"engine" | "game" | "maps">("engine");
+const state = ref<"engine" | "game" | "maps" | "update">("engine");
 
 onMounted(async () => {
     console.debug("Initial setup");
@@ -52,6 +52,15 @@ onMounted(async () => {
         state.value = "maps";
         text.value = "Downloading maps";
         await window.maps.downloadMaps(defaultMaps);
+    }
+
+    const updateAvailable = await window.autoUpdater.checkForUpdates();
+    if (updateAvailable) {
+        state.value = "update";
+        text.value = "Downloading update";
+        await window.autoUpdater.downloadUpdate();
+        text.value = "Installing update";
+        await window.autoUpdater.installUpdates();
     }
 
     await initBattleStore();
@@ -80,6 +89,14 @@ watch(
     downloadsStore.mapDownloads,
     () => {
         downloadPercent.value = calculateDownloadPercent(downloadsStore.mapDownloads);
+    },
+    { deep: true }
+);
+
+watch(
+    () => downloadsStore.updateDownloads,
+    () => {
+        downloadPercent.value = calculateDownloadPercent(downloadsStore.updateDownloads);
     },
     { deep: true }
 );
