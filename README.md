@@ -136,6 +136,8 @@ npm start
     - Runs `electron-builder` to create a self-signed cert for Windows apps.
     - After selecting "None" in the pop-up, a cert file should be created called `BAR Team.pfx`
     - Then run `npm run build:win:dev-cert` to build a signed Windows installer
+- `npm run generate-i18n-assets` (run when modifying source translation files)
+    - Generates transformed asset files for translations in `src/renderer/assets/languages`
 
 ### Tips
 
