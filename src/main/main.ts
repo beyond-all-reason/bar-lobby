@@ -26,6 +26,7 @@ import { authService } from "@main/services/auth.service";
 import { tachyonService } from "@main/services/tachyon.service";
 import netFromNode from "node:net";
 import { typedWebContents } from "@main/typed-ipc";
+import { navigationService } from "@main/services/navigation.service";
 
 const log = logger("main/index.ts");
 log.info("Starting Electron main process");
@@ -133,6 +134,13 @@ app.whenReady().then(async () => {
     downloadsService.registerIpcHandlers(webContents);
     miscService.registerIpcHandlers();
     autoUpdaterService.registerIpcHandlers();
+    
+    // Register renderer ready handler
+    webContents.ipc.handle("renderer:ready", () => {
+        log.info("Renderer is ready! Testing navigation to /library/replays");
+        navigationService.navigateTo(webContents, "/library/replays");
+    });
+    
     const file = replayFileOpenedWithTheApp();
     if (file) {
         log.info(`Opening replay file: ${file}`);

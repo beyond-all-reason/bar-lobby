@@ -117,6 +117,10 @@ provide("toggleDownloads", toggleDownloads);
 
 playRandomMusic();
 
+window.barNavigation.onNavigateTo((target: string) => {
+    router.push(target);
+});
+
 const simpleRouterMemory = new Map<string, string>();
 router.beforeEach(async (to) => {
     if (to.meta?.redirect) {
@@ -144,6 +148,8 @@ async function onPreloadDone() {
 function onInitialSetupDone() {
     state.value = "default";
     console.debug("Initial setup done");
+
+    window.barNavigation.signalReady();
 }
 
 // Currently we support multiplayer only in dev mode, as it's very not finished.
