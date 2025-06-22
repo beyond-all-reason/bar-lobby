@@ -40,4 +40,3 @@ async function setupVue() {
 
     app.mount("#app");
 }
-
