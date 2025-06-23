@@ -27,7 +27,7 @@ async function setupVue() {
     // Plugins
     app.use(router);
     app.use(PrimeVue, { ripple: true });
-    app.use(await setupI18n());
+    app.use(setupI18n());
 
     // Directives
     app.directive("click-away", clickAwayDirective);

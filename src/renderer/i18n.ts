@@ -22,7 +22,7 @@ const messages = {
     zh: zhTranslation,
 };
 
-export async function setupI18n() {
+export function setupI18n() {
     const myLocale = Intl.DateTimeFormat().resolvedOptions().locale.split("-")[0]; // TODO: add override from user settings
 
     return createI18n<[MessageSchema], Locale>({
