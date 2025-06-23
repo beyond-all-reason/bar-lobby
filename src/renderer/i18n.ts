@@ -14,9 +14,9 @@ type Locale = "cs" | "de" | "en" | "fr" | "ru" | "zh";
 type MessageSchema = typeof enTranslation | typeof csTranslation | typeof deTranslation | typeof frTranslation | typeof ruTranslation | typeof zhTranslation;
 
 const messages = {
+    en: enTranslation,
     cs: csTranslation,
     de: deTranslation,
-    en: enTranslation,
     fr: frTranslation,
     ru: ruTranslation,
     zh: zhTranslation,
@@ -33,9 +33,8 @@ export function setupI18n() {
     });
 }
 
-export function useTypedI18n(): ReturnType<typeof useI18n<{ message: MessageSchema }, Locale>> {
-    return useI18n<{ message: MessageSchema }, Locale>({
-        messages,
+export function useTypedI18n() {
+    return useI18n<[MessageSchema], Locale>({
         useScope: "global",
     });
 }
