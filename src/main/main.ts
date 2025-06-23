@@ -2,147 +2,191 @@
 //
 // SPDX-License-Identifier: MIT
 
-import { app, net, protocol, session } from "electron";
+import { app, net, protocol, session, BrowserWindow } from "electron";
 import path from "path";
 import url from "url";
+import fs from "fs";
 
-import { createWindow } from "@main/main-window";
-import { settingsService } from "./services/settings.service";
-import { infoService } from "./services/info.service";
-import { accountService } from "./services/account.service";
-import { logService } from "@main/services/log.service";
-import engineService from "./services/engine.service";
-import mapsService from "./services/maps.service";
-import gameService from "./services/game.service";
-import { logger } from "./utils/logger";
 import { APP_NAME, SCENARIO_IMAGE_PATH } from "./config/app";
-import { shellService } from "@main/services/shell.service";
-import downloadsService from "@main/services/downloads.service";
-import replaysService from "@main/services/replays.service";
-import { miscService } from "@main/services/news.service";
-import autoUpdaterService from "@main/services/auto-updater.service";
-import { replayContentAPI } from "@main/content/replays/replay-content";
-import { authService } from "@main/services/auth.service";
-import { tachyonService } from "@main/services/tachyon.service";
 import netFromNode from "node:net";
-import { typedWebContents } from "@main/typed-ipc";
-import { navigationService } from "@main/services/navigation.service";
-
-const log = logger("main/index.ts");
-log.info("Starting Electron main process");
 
 // Enable happy eyeballs for IPv6/IPv4 dual stack.
 netFromNode.setDefaultAutoSelectFamily(true);
 
-if (process.env.NODE_ENV !== "production") {
-    if (process.platform === "win32") {
-        process.on("message", (data) => {
-            if (data === "graceful-exit") {
-                app.quit();
-            }
-        });
-    } else {
-        process.on("SIGTERM", () => {
-            app.quit();
-        });
-    }
-}
+const gotTheLock = app.requestSingleInstanceLock();
 
-if (process.env.NODE_ENV === "production" && !app.requestSingleInstanceLock()) {
+// if (process.env.NODE_ENV === "production" && !gotTheLock) {
+//     app.quit();
+// }
+
+if (!gotTheLock) {
     app.quit();
-}
+} else {
+    (async () => {
+        if (process.env.NODE_ENV !== "production") {
+            if (process.platform === "win32") {
+                process.on("message", (data) => {
+                    if (data === "graceful-exit") {
+                        app.quit();
+                    }
+                });
+            } else {
+                process.on("SIGTERM", () => {
+                    app.quit();
+                });
+            }
+        }
 
-protocol.registerSchemesAsPrivileged([
-    {
-        scheme: "bar",
-        privileges: {
-            bypassCSP: true,
+        // Import all services and utilities after acquiring the lock
+        const { createWindow } = await import("@main/main-window");
+        const { settingsService } = await import("./services/settings.service");
+        const { infoService } = await import("./services/info.service");
+        const { accountService } = await import("./services/account.service");
+        const { logService } = await import("@main/services/log.service");
+        const engineService = (await import("./services/engine.service")).default;
+        const mapsService = (await import("./services/maps.service")).default;
+        const gameService = (await import("./services/game.service")).default;
+        const { shellService } = await import("@main/services/shell.service");
+        const downloadsService = (await import("@main/services/downloads.service")).default;
+        const replaysService = (await import("@main/services/replays.service")).default;
+        const { miscService } = await import("@main/services/news.service");
+        const autoUpdaterService = (await import("@main/services/auto-updater.service")).default;
+        const { replayContentAPI } = await import("@main/content/replays/replay-content");
+        const { authService } = await import("@main/services/auth.service");
+        const { tachyonService } = await import("@main/services/tachyon.service");
+        const { typedWebContents } = await import("@main/typed-ipc");
+        const { navigationService } = await import("@main/services/navigation.service");
+        const { logger } = await import("./utils/logger");
+        
+        const log = logger("main/index.ts");
+        log.info("Starting Electron main process");
+        log.info("App instance lock acquired successfully.");
+
+    app.on("second-instance", (_event, argv) => {
+        log.info("Second instance detected. Focusing the main window.");
+        // If someone tries to open a second instance, focus the main window
+        const mainWindow = BrowserWindow.getAllWindows()[0];
+        if (mainWindow) {
+            if (mainWindow.isMinimized()) {
+                mainWindow.restore();
+            }
+            mainWindow.focus();
+        }
+
+        // Handle replay files opened with the app
+        const replayFiles = getReplayFiles(argv);
+        if (replayFiles.length > 0) {
+            log.info(`Replay files opened with the app: ${replayFiles}`);
+        }
+    });
+
+    protocol.registerSchemesAsPrivileged([
+        {
+            scheme: "bar",
+            privileges: {
+                bypassCSP: true,
+            },
         },
-    },
-]);
+    ]);
 
-function registerBarFileProtocol() {
-    protocol.handle("bar", (request) => {
-        try {
-            const decodedUrl = decodeURIComponent(request.url);
-            const filePath = decodedUrl.slice("bar://".length);
-            // Security Check: Ensure the file is within the content folder
-            const resolvedFilePath = path.resolve(filePath);
-            const whitelistedPaths = [SCENARIO_IMAGE_PATH];
-            if (!whitelistedPaths.some((p) => resolvedFilePath.startsWith(p + path.sep))) {
-                log.error(`Attempt to access file outside whitelisted paths: ${resolvedFilePath}`);
+    function registerBarFileProtocol() {
+        protocol.handle("bar", (request) => {
+            try {
+                const decodedUrl = decodeURIComponent(request.url);
+                const filePath = decodedUrl.slice("bar://".length);
+                // Security Check: Ensure the file is within the content folder
+                const resolvedFilePath = path.resolve(filePath);
+                const whitelistedPaths = [SCENARIO_IMAGE_PATH];
+                if (!whitelistedPaths.some((p) => resolvedFilePath.startsWith(p + path.sep))) {
+                    log.error(`Attempt to access file outside whitelisted paths: ${resolvedFilePath}`);
+                    return new Response();
+                }
+                return net.fetch(url.pathToFileURL(resolvedFilePath).toString());
+            } catch (err) {
+                log.error(err);
                 return new Response();
             }
-            return net.fetch(url.pathToFileURL(resolvedFilePath).toString());
-        } catch (err) {
-            log.error(err);
-            return new Response();
-        }
-    });
-}
-
-function replayFileOpenedWithTheApp() {
-    const args = process.argv.slice(1);
-    const replayArg = args.find(arg => arg.toLowerCase().endsWith(".sdfz"));
-    return replayArg;
-}
-
-app.setName(APP_NAME);
-app.on("window-all-closed", () => app.quit());
-
-// Security
-app.enableSandbox();
-
-// Command line switches
-app.commandLine.appendSwitch("disable-features", "HardwareMediaKeyHandling,MediaSessionService");
-app.commandLine.appendSwitch("disable-pinch", "1");
-
-app.whenReady().then(async () => {
-    registerBarFileProtocol();
-    if (process.env.NODE_ENV !== "production") {
-        try {
-            // await installExtension(VUEJS_DEVTOOLS);
-        } catch (err) {
-            log.error("Vue Devtools failed to install:", err?.toString());
-        }
+        });
     }
-    // Define CSP for all webContents
-    session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
-        callback({
-            responseHeaders: {
-                ...details.responseHeaders,
-                "Content-Security-Policy": ["default-src 'self' 'unsafe-inline' blob: data:"],
-            },
+
+    function getReplayFiles(argv: string[]): string[] {
+        return argv
+            .filter((arg) => arg.endsWith(".sdfz"))
+            .map((arg) => {
+                const filePath = path.resolve(arg);
+                if (fs.existsSync(filePath)) {
+                    return filePath;
+                } else {
+                    log.warn(`Replay file not found: ${filePath}`);
+                    return null;
+                }
+            })
+            .filter((file) => file !== null);
+    }
+    app.setName(APP_NAME);
+    app.on("window-all-closed", () => app.quit());
+
+    // Security
+    app.enableSandbox();
+
+    // Command line switches
+    app.commandLine.appendSwitch("disable-features", "HardwareMediaKeyHandling,MediaSessionService");
+    app.commandLine.appendSwitch("disable-pinch", "1");
+
+    app.whenReady().then(async () => {
+        registerBarFileProtocol();
+        if (process.env.NODE_ENV !== "production") {
+            try {
+                // await installExtension(VUEJS_DEVTOOLS);
+            } catch (err) {
+                log.error("Vue Devtools failed to install:", err?.toString());
+            }
+        }
+        // Define CSP for all webContents
+        session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
+            callback({
+                responseHeaders: {
+                    ...details.responseHeaders,
+                    "Content-Security-Policy": ["default-src 'self' 'unsafe-inline' blob: data:"],
+                },
+            });
+        });
+        // Initialize services
+        await engineService.init();
+        await Promise.all([settingsService.init(), accountService.init(), replaysService.init(), gameService.init(), mapsService.init(), autoUpdaterService.init()]);
+        const mainWindow = createWindow();
+        const webContents = typedWebContents(mainWindow.webContents);
+        // Handlers may need the webContents to send events
+        logService.registerIpcHandlers();
+        infoService.registerIpcHandlers();
+        settingsService.registerIpcHandlers();
+        authService.registerIpcHandlers();
+        tachyonService.registerIpcHandlers(webContents);
+        replaysService.registerIpcHandlers(webContents);
+        engineService.registerIpcHandlers();
+        gameService.registerIpcHandlers(webContents);
+        mapsService.registerIpcHandlers(webContents);
+        shellService.registerIpcHandlers();
+        downloadsService.registerIpcHandlers(webContents);
+        miscService.registerIpcHandlers();
+        autoUpdaterService.registerIpcHandlers();
+
+        // Register renderer ready handler
+        webContents.ipc.handle("renderer:ready", () => {
+            log.info("Renderer is ready!");
+
+            const replayFiles = getReplayFiles(process.argv);
+
+            log.info(`Replay files opened on startup: ${replayFiles}`);
+
+            // const file = replayFileOpenedWithTheApp();
+            // if (file) {
+            //     log.info(`Replay file opened with the app: ${file}`);
+            //     replayContentAPI.copyParseReplay(file);
+            // }
+
+            // navigationService.navigateTo(webContents, "/library/replays");
         });
     });
-    // Initialize services
-    await engineService.init();
-    await Promise.all([settingsService.init(), accountService.init(), replaysService.init(), gameService.init(), mapsService.init(), autoUpdaterService.init()]);
-    const mainWindow = createWindow();
-    const webContents = typedWebContents(mainWindow.webContents);
-    // Handlers may need the webContents to send events
-    logService.registerIpcHandlers();
-    infoService.registerIpcHandlers();
-    settingsService.registerIpcHandlers();
-    authService.registerIpcHandlers();
-    tachyonService.registerIpcHandlers(webContents);
-    replaysService.registerIpcHandlers(webContents);
-    engineService.registerIpcHandlers();
-    gameService.registerIpcHandlers(webContents);
-    mapsService.registerIpcHandlers(webContents);
-    shellService.registerIpcHandlers();
-    downloadsService.registerIpcHandlers(webContents);
-    miscService.registerIpcHandlers();
-    autoUpdaterService.registerIpcHandlers();
-    
-    // Register renderer ready handler
-    webContents.ipc.handle("renderer:ready", () => {
-        log.info("Renderer is ready! Testing navigation to /library/replays");
-        const file = replayFileOpenedWithTheApp();
-        if (file) {
-            log.info(`Replay file opened with the app: ${file}`);
-            replayContentAPI.copyParseReplay(file);
-        }
-        navigationService.navigateTo(webContents, "/library/replays");
-    });
-});
+    })();
+}
