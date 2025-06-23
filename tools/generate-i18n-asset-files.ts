@@ -84,6 +84,10 @@ function addMissingKeys(referenceObject: TranslationObject, targetObject: Transl
     return result;
 }
 
+function logAssetGeneration(assetPath: string) {
+    console.log("\x1b[2;32mTranslation asset file written to:\x1b[0m\x1b[36m", assetPath);
+}
+
 async function main() {
     const locales = await getLocalesFromLangDirectories();
 
@@ -101,7 +105,7 @@ async function main() {
 
     const referenceOutputPath = path.join(OUTPUT_DIR, `${REFERENCE_LOCALE}.json`);
     fs.writeFileSync(referenceOutputPath, JSON.stringify(referenceObject, null, 2));
-    console.log("\x1b[2;32mTranslation asset file written to:\x1b[0m\x1b[36m", referenceOutputPath);
+    logAssetGeneration(referenceOutputPath);
 
     for (const locale of locales) {
         if (locale === REFERENCE_LOCALE) continue;
@@ -113,7 +117,7 @@ async function main() {
 
         const outputFilePath = path.join(OUTPUT_DIR, `${locale}.json`);
         fs.writeFileSync(outputFilePath, JSON.stringify(completeLocaleObject, null, 2));
-        console.log("\x1b[2;32mTranslation asset file written to:\x1b[0m\x1b[36m", outputFilePath);
+        logAssetGeneration(outputFilePath);
     }
 }
 
