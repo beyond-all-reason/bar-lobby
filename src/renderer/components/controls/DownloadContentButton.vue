@@ -7,7 +7,7 @@ SPDX-License-Identifier: MIT
 <template>
     <div class="fullwidth">
         <div class="progress-bar-outer margin-left-md margin-right-md">
-            <MapDownloadProgress :map-name="map?.springName"></MapDownloadProgress>
+            <MapDownloadProgress :map-name="map?.springName" :height="75"></MapDownloadProgress>
         </div>
         <button
             v-if="map.isInstalled"
@@ -103,9 +103,11 @@ const props = defineProps<Props>();
 }
 .progress-bar-outer {
     position: fixed;
-    position-area: bottom span-all;
+    position-area: top span-all;
     position-anchor: --anchor;
     width: anchor-size(width);
-    transform: translateY(-100%);
+	height: anchor-size(height);
+    transform: translateY(100%);
+	overflow:hidden;
 }
 </style>
