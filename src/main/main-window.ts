@@ -121,7 +121,7 @@ export function createWindow() {
         if (!path.endsWith(".sdfz")) {
             return;
         }
-        replayContentAPI.copyParseAndLaunchReplay(path);
+        replayContentAPI.copyParseReplay(path);
     }
 
     //TODO add an IPC handler for changing display via the settings
