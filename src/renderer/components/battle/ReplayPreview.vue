@@ -11,8 +11,8 @@ SPDX-License-Identifier: MIT
                 <ReplayPreviewMap :replay="replay" />
             </TabPanel>
             <TabPanel header="Details">
-                <div class="halfbox">
-                    <div class="teams padding-bottom-sm scroll-container">
+                <div class="scroll-container autoheight">
+                    <div class="teams padding-bottom-sm">
                         <div v-if="isFFA">
                             <div class="team-title">Players</div>
                             <div class="contenders">
@@ -56,18 +56,18 @@ SPDX-License-Identifier: MIT
                             </div>
                         </div>
                     </div>
-                    <hr class="margin-top-md margin-bottom-md" />
-                    <div class="padding-top-sm scroll-container autoheight">
+                    <hr class="margin-top-md margin-bottom-md divider" />
+                    <div class="padding-top-sm">
                         <div v-for="(item, index) in replayData" :key="index">
                             <div>
                                 <div :class="getStripeResult(index)">
                                     <div class="margin-left-sm padding-top-sm padding-bottom-sm">
-                                        <p>
+                                        <p class="txt-xs">
                                             <b>{{ item.title }}</b>
                                         </p>
                                     </div>
-                                    <div class="margin-right-sm padding-top-sm padding-bottom-sm">
-                                        <p>{{ item.data }}</p>
+                                    <div class="margin-right-sm padding-top-sm padding-bottom-sm txt-right">
+                                        <p class="txt-xs">{{ item.data }}</p>
                                     </div>
                                 </div>
                             </div>
@@ -115,11 +115,43 @@ const teams = computed<Map<number, (DemoModel.Info.Player | DemoModel.Info.AI)[]
 const replayData = computed(() => {
     return [
         {
-            title: "Engine Version:",
+            title: "Engine Version",
             data: props.replay.engineVersion,
         },
         {
-            title: "Game Version:",
+            title: "Game Version",
+            data: props.replay.gameVersion,
+        },
+		        {
+            title: "Engine Version",
+            data: props.replay.engineVersion,
+        },
+        {
+            title: "Game Version",
+            data: props.replay.gameVersion,
+        },
+		        {
+            title: "Engine Version",
+            data: props.replay.engineVersion,
+        },
+        {
+            title: "Game Version",
+            data: props.replay.gameVersion,
+        },
+		        {
+            title: "Engine Version",
+            data: props.replay.engineVersion,
+        },
+        {
+            title: "Game Version",
+            data: props.replay.gameVersion,
+        },
+		        {
+            title: "Engine Version",
+            data: props.replay.engineVersion,
+        },
+        {
+            title: "Game Version",
             data: props.replay.gameVersion,
         },
     ];
@@ -171,12 +203,10 @@ function getStripeResult(index: number) {
 .datagridstripe {
     background-color: #00000033;
 }
-.halfbox {
-    display: grid;
-    grid-template-rows: 1fr min-content 1fr;
-    height: 50vh;
-}
 .autoheight {
     height: auto;
+}
+.divider {
+	background: rgba(255, 255, 255, 0.3);
 }
 </style>

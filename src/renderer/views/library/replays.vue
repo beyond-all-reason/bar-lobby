@@ -91,8 +91,7 @@ SPDX-License-Identifier: MIT
                                             <template v-else> Watch </template>
                                         </DownloadContentButton>
                                         <Button v-else disabled style="flex-grow: 1">Watch</Button>
-                                        <Button v-if="replay" @click="showReplayFile(replay)">Show file</Button>
-                                        <Button v-else disabled>Show file</Button>
+                                        <Button v-if="replay" @click="showReplayFile(replay)" class="icon" :height="32"><Icon :icon="folder" :height="32" /></Button>
                                     </div>
                                 </div>
                             </template>
@@ -137,6 +136,9 @@ import ReplayPreview from "@renderer/components/battle/ReplayPreview.vue";
 import DownloadContentButton from "@renderer/components/controls/DownloadContentButton.vue";
 import { gameStore } from "@renderer/store/game.store";
 import { MapDownloadData } from "@main/content/maps/map-data";
+import { Icon } from "@iconify/vue";
+import folder from "@iconify-icons/mdi/folder";
+
 
 const endedNormally: Ref<boolean | null> = ref(true);
 const showSpoilers = ref(true);
