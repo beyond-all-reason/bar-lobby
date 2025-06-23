@@ -6,7 +6,6 @@ import { app, BrowserWindow, ipcMain, nativeImage } from "electron";
 import path from "path";
 import { settingsService } from "./services/settings.service";
 import { logger } from "./utils/logger";
-import { replayContentAPI } from "@main/content/replays/replay-content";
 import icon from "@main/resources/icon.png";
 import { purgeLogFiles } from "@main/services/log.service";
 import { typedWebContents } from "@main/typed-ipc";
@@ -101,28 +100,6 @@ export function createWindow() {
     mainWindow.on("restore", () => mainWindow.flashFrame(false));
 
     app.on("browser-window-focus", () => mainWindow.flashFrame(false));
-    app.on("second-instance", (_event, commandLine) => {
-        log.info("Second Instance opening with command line: " + commandLine);
-        focusWindows();
-        openFile(commandLine[commandLine.length - 1]);
-    });
-    app.on("open-file", (_, path) => {
-        log.info("Mac OS opening file: " + path);
-        focusWindows();
-        openFile(path);
-    });
-
-    function focusWindows() {
-        if (mainWindow.isMinimized()) mainWindow.restore();
-        mainWindow.focus();
-    }
-
-    function openFile(path: string) {
-        if (!path.endsWith(".sdfz")) {
-            return;
-        }
-        replayContentAPI.copyParseReplay(path);
-    }
 
     //TODO add an IPC handler for changing display via the settings
 

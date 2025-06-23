@@ -169,7 +169,6 @@ const barNavigationApi = {
 export type BarNavigationApi = typeof barNavigationApi;
 contextBridge.exposeInMainWorld("barNavigation", barNavigationApi);
 
-
 // Tachyon API
 function request<C extends GetCommandIds<"user", "server", "request">>(
     ...args: GetCommandData<GetCommands<"user", "server", "request", C>> extends never ? [commandId: C] : [commandId: C, data: GetCommandData<GetCommands<"user", "server", "request", C>>]
