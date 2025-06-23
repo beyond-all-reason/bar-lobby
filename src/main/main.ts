@@ -82,9 +82,9 @@ function registerBarFileProtocol() {
 }
 
 function replayFileOpenedWithTheApp() {
-    if (process.argv.length == 0 || process.argv[process.argv.length - 1].endsWith(".sdfz")) {
-        return process.argv[process.argv.length - 1];
-    }
+    const args = process.argv.slice(1);
+    const replayArg = args.find(arg => arg.toLowerCase().endsWith(".sdfz"));
+    return replayArg;
 }
 
 app.setName(APP_NAME);
@@ -138,12 +138,11 @@ app.whenReady().then(async () => {
     // Register renderer ready handler
     webContents.ipc.handle("renderer:ready", () => {
         log.info("Renderer is ready! Testing navigation to /library/replays");
+        const file = replayFileOpenedWithTheApp();
+        if (file) {
+            log.info(`Replay file opened with the app: ${file}`);
+            replayContentAPI.copyParseReplay(file);
+        }
         navigationService.navigateTo(webContents, "/library/replays");
     });
-    
-    const file = replayFileOpenedWithTheApp();
-    if (file) {
-        log.info(`Opening replay file: ${file}`);
-        replayContentAPI.copyParseAndLaunchReplay(file);
-    }
 });

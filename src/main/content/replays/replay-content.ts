@@ -53,7 +53,7 @@ export class ReplayContentAPI {
             });
     }
 
-    public async copyParseAndLaunchReplay(filePath: string) {
+    public async copyParseReplay(filePath: string) {
         let replayPath = filePath;
         if (!replayPath.startsWith(REPLAYS_PATH)) {
             replayPath = path.join(REPLAYS_PATH, path.basename(replayPath));
@@ -61,7 +61,6 @@ export class ReplayContentAPI {
         }
         const replay = await asyncParseReplay(replayPath);
         await mapContentAPI.downloadMap(replay.mapSpringName);
-        gameAPI.launchReplay(await replay);
     }
 
     public async sync(replayFileNames: string[]) {
