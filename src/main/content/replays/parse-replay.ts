@@ -5,7 +5,9 @@
 import { Replay } from "@main/content/replays/replay";
 import path from "path";
 import { Worker } from "worker_threads";
+import { logger } from "@main/utils/logger";
 
+const log = logger("parse-replay.ts");
 const worker = new Worker(path.join(__dirname, "parse-replay-worker.cjs"));
 
 const jobs = new Map<
@@ -13,15 +15,20 @@ const jobs = new Map<
     {
         resolve: (replay: Replay) => void;
         reject: (reason?: string) => void;
+        timestamp: number;
     }
 >();
 
 worker.on("message", ({ replayFilePath, replay, error }) => {
     const promiseHandles = jobs.get(replayFilePath);
 
-    if (!promiseHandles) throw new Error("failed to access image source promise handlers");
+    if (!promiseHandles) {
+        log.warn(`No promise handlers found for replay: ${replayFilePath}`);
+        return; // Handle gracefully instead of crashing
+    }
 
     if (error) {
+        log.error(`Error parsing replay ${replayFilePath}:`, error);
         promiseHandles.reject(error);
     } else {
         promiseHandles.resolve(replay);
@@ -31,7 +38,16 @@ worker.on("message", ({ replayFilePath, replay, error }) => {
 
 export function asyncParseReplay(replayFilePath: string): Promise<Replay> {
     return new Promise<Replay>((resolve, reject) => {
-        jobs.set(replayFilePath, { resolve, reject });
-        worker.postMessage(replayFilePath);
+        // Normalize path to avoid mismatches
+        const normalizedPath = path.resolve(replayFilePath);
+        
+        // Check if already processing
+        if (jobs.has(normalizedPath)) {
+            reject(new Error(`Duplicate processing request for ${normalizedPath}`));
+            return;
+        }
+        
+        jobs.set(normalizedPath, { resolve, reject, timestamp: Date.now() });
+        worker.postMessage(normalizedPath);
     });
 }
