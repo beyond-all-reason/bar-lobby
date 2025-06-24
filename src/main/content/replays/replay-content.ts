@@ -42,14 +42,14 @@ export class ReplayContentAPI {
                 if (!filepath.endsWith("sdfz")) {
                     return;
                 }
-                
+
                 const fileName = path.basename(filepath);
-                
+
                 // Skip if this file is being copied by copyParseReplay
                 if (this.filesBeingCopied.has(fileName)) {
                     return;
                 }
-                
+
                 this.cacheReplay(filepath);
             })
             .on("unlink", (filepath) => {
@@ -64,11 +64,11 @@ export class ReplayContentAPI {
         let replayPath = filePath;
         if (!replayPath.startsWith(REPLAYS_PATH)) {
             replayPath = path.join(REPLAYS_PATH, path.basename(replayPath));
-            
+
             // Mark this file as being copied to prevent duplicate processing
             const fileName = path.basename(replayPath);
             this.filesBeingCopied.add(fileName);
-            
+
             try {
                 await fs.promises.copyFile(filePath, replayPath);
                 const replay = await asyncParseReplay(replayPath);

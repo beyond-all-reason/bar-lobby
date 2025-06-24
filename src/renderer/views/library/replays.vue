@@ -179,18 +179,25 @@ const replays = useDexieLiveQueryWithDeps([endedNormally, offset, limit, sortFie
 // Update total count whenever replays change
 const totalReplaysQuery = useDexieLiveQueryWithDeps([endedNormally], () => {
     if (endedNormally.value !== null) {
-        return db.replays.where("gameEndedNormally").equals(endedNormally.value ? 1 : 0).count();
+        return db.replays
+            .where("gameEndedNormally")
+            .equals(endedNormally.value ? 1 : 0)
+            .count();
     } else {
         return db.replays.count();
     }
 });
 
 // Watch for changes in total count and update the ref
-watch(totalReplaysQuery, (newCount) => {
-    if (newCount !== undefined) {
-        totalReplays.value = newCount;
-    }
-}, { immediate: true });
+watch(
+    totalReplaysQuery,
+    (newCount) => {
+        if (newCount !== undefined) {
+            totalReplays.value = newCount;
+        }
+    },
+    { immediate: true }
+);
 
 let map = useDexieLiveQueryWithDeps([() => selectedReplay.value?.mapSpringName], async () => {
     let selected = selectedReplay.value;
