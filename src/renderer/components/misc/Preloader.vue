@@ -51,6 +51,10 @@ onMounted(async () => {
         progress.value++;
     }
     audioApi.load();
+    
+    // Signal to main process that renderer is ready to receive events
+    window.barNavigation.signalReady();
+    
     emit("complete");
 });
 
