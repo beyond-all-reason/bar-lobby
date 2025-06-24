@@ -14,8 +14,9 @@ export const replaysStore: {
 
 export async function initReplaysStore() {
     window.replays.onReplayCached((replay: Replay) => {
-        console.debug("Received replay cached event", replay);
-        db.replays.add(replay);
+        db.replays.put(replay).catch((error) => {
+            console.error("Failed to store replay in database:", replay.fileName, error);
+        });
     });
     window.replays.onReplayDeleted((filename: string) => {
         console.debug("Received replay deleted event", filename);
