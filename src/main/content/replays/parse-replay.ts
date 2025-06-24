@@ -40,13 +40,13 @@ export function asyncParseReplay(replayFilePath: string): Promise<Replay> {
     return new Promise<Replay>((resolve, reject) => {
         // Normalize path to avoid mismatches
         const normalizedPath = path.resolve(replayFilePath);
-        
+
         // Check if already processing
         if (jobs.has(normalizedPath)) {
             reject(new Error(`Duplicate processing request for ${normalizedPath}`));
             return;
         }
-        
+
         jobs.set(normalizedPath, { resolve, reject, timestamp: Date.now() });
         worker.postMessage(normalizedPath);
     });
