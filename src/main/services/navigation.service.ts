@@ -11,17 +11,17 @@ function navigateTo(webContents: BarIpcWebContents, target: NavigationTarget) {
     webContents.send("navigation:navigateTo", target);
 }
 
-function registerIpcHandlers(webContents: BarIpcWebContents, customHandler?:() => void) {
+function registerIpcHandlers(webContents: BarIpcWebContents, customHandler?: () => void) {
     webContents.ipc.handle("renderer:ready", () => {
         log.info("Renderer is ready!");
     });
 
-    if(customHandler) {
+    if (customHandler) {
         customHandler();
     }
 }
 
 export const navigationService = {
     navigateTo: (webContents: BarIpcWebContents, target: NavigationTarget) => navigateTo(webContents, target),
-    registerIpcHandlers: (webContents: BarIpcWebContents, customHandler?: () => void) => registerIpcHandlers(webContents, customHandler)
+    registerIpcHandlers: (webContents: BarIpcWebContents, customHandler?: () => void) => registerIpcHandlers(webContents, customHandler),
 };
