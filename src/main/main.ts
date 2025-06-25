@@ -77,15 +77,13 @@ if (!gotTheLock) {
             const replayFiles = getReplayFiles(argv);
             if (replayFiles.length > 0) {
                 log.info(`Replay files opened with the app: ${replayFiles}`);
+                for (const filePath of replayFiles) {
+                    replayContentAPI.copyParseReplay(filePath).catch((err) => {
+                        log.error(`Failed to copy and parse replay file ${filePath}:`, err);
+                    });
+                }
+                navigationService.navigateTo(typedWebContents(mainWindow.webContents), "/library/replays");
             }
-
-            for (const filePath of replayFiles) {
-                replayContentAPI.copyParseReplay(filePath).catch((err) => {
-                    log.error(`Failed to copy and parse replay file ${filePath}:`, err);
-                });
-            }
-
-            navigationService.navigateTo(typedWebContents(mainWindow.webContents), "/library/replays");
         });
 
         protocol.registerSchemesAsPrivileged([
@@ -178,11 +176,7 @@ if (!gotTheLock) {
             downloadsService.registerIpcHandlers(webContents);
             miscService.registerIpcHandlers();
             autoUpdaterService.registerIpcHandlers();
-
-            // Register renderer ready handler
-            webContents.ipc.handle("renderer:ready", () => {
-                log.info("Renderer is ready!");
-
+            navigationService.registerIpcHandlers(webContents, () => {
                 const replayFiles = getReplayFiles(process.argv);
 
                 log.info(`Replay files opened on startup: ${replayFiles}`);
