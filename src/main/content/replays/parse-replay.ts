@@ -15,7 +15,6 @@ const jobs = new Map<
     {
         resolve: (replay: Replay) => void;
         reject: (reason?: string) => void;
-        timestamp: number;
     }
 >();
 
@@ -47,7 +46,7 @@ export function asyncParseReplay(replayFilePath: string): Promise<Replay> {
             return;
         }
 
-        jobs.set(normalizedPath, { resolve, reject, timestamp: Date.now() });
+        jobs.set(normalizedPath, { resolve, reject});
         worker.postMessage(normalizedPath);
     });
 }
