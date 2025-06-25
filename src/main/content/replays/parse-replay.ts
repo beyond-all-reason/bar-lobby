@@ -46,7 +46,7 @@ export function asyncParseReplay(replayFilePath: string): Promise<Replay> {
             return;
         }
 
-        jobs.set(normalizedPath, { resolve, reject});
+        jobs.set(normalizedPath, { resolve, reject });
         worker.postMessage(normalizedPath);
     });
 }
