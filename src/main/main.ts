@@ -2,10 +2,9 @@
 //
 // SPDX-License-Identifier: MIT
 
-import { app, net, protocol, session, BrowserWindow } from "electron";
+import { app, net, protocol, session } from "electron";
 import path from "path";
 import url from "url";
-import fs from "fs";
 
 import { APP_NAME, SCENARIO_IMAGE_PATH } from "./config/app";
 import netFromNode from "node:net";
@@ -51,7 +50,6 @@ if (!gotTheLock) {
         const replaysService = (await import("@main/services/replays.service")).default;
         const { miscService } = await import("@main/services/news.service");
         const autoUpdaterService = (await import("@main/services/auto-updater.service")).default;
-        const { replayContentAPI } = await import("@main/content/replays/replay-content");
         const { authService } = await import("@main/services/auth.service");
         const { tachyonService } = await import("@main/services/tachyon.service");
         const { typedWebContents } = await import("@main/typed-ipc");
@@ -61,30 +59,6 @@ if (!gotTheLock) {
         const log = logger("main/index.ts");
         log.info("Starting Electron main process");
         log.info("App instance lock acquired successfully.");
-
-        app.on("second-instance", (_event, argv) => {
-            log.info("Second instance detected. Focusing the main window.");
-            // If someone tries to open a second instance, focus the main window
-            const mainWindow = BrowserWindow.getAllWindows()[0];
-            if (mainWindow) {
-                if (mainWindow.isMinimized()) {
-                    mainWindow.restore();
-                }
-                mainWindow.focus();
-            }
-
-            // Handle replay files opened with the app
-            const replayFiles = getReplayFiles(argv);
-            if (replayFiles.length > 0) {
-                log.info(`Replay files opened with the app: ${replayFiles}`);
-                for (const filePath of replayFiles) {
-                    replayContentAPI.copyParseReplay(filePath).catch((err) => {
-                        log.error(`Failed to copy and parse replay file ${filePath}:`, err);
-                    });
-                }
-                navigationService.navigateTo(typedWebContents(mainWindow.webContents), "/library/replays");
-            }
-        });
 
         protocol.registerSchemesAsPrivileged([
             {
@@ -115,20 +89,6 @@ if (!gotTheLock) {
             });
         }
 
-        function getReplayFiles(argv: string[]): string[] {
-            return argv
-                .filter((arg) => arg.endsWith(".sdfz"))
-                .map((arg) => {
-                    const filePath = path.resolve(arg);
-                    if (fs.existsSync(filePath)) {
-                        return filePath;
-                    } else {
-                        log.warn(`Replay file not found: ${filePath}`);
-                        return null;
-                    }
-                })
-                .filter((file) => file !== null);
-        }
         app.setName(APP_NAME);
         app.on("window-all-closed", () => app.quit());
 
@@ -176,20 +136,7 @@ if (!gotTheLock) {
             downloadsService.registerIpcHandlers(webContents);
             miscService.registerIpcHandlers();
             autoUpdaterService.registerIpcHandlers();
-            navigationService.registerIpcHandlers(webContents, () => {
-                const replayFiles = getReplayFiles(process.argv);
-
-                log.info(`Replay files opened on startup: ${replayFiles}`);
-                for (const filePath of replayFiles) {
-                    replayContentAPI.copyParseReplay(filePath).catch((err) => {
-                        log.error(`Failed to copy and parse replay file ${filePath}:`, err);
-                    });
-                }
-
-                if (replayFiles.length > 0) {
-                    navigationService.navigateTo(webContents, "/library/replays");
-                }
-            });
+            navigationService.registerIpcHandlers(webContents);
         });
     })();
 }
