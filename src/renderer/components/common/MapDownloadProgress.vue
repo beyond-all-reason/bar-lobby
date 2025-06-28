@@ -10,7 +10,7 @@ SPDX-License-Identifier: MIT
         :percent="downloadPercent"
         v-if="isDownloading"
         :percentStr="downloadPercent"
-		:height="height"
+        :height="height"
     ></Progress>
 </template>
 
@@ -19,7 +19,7 @@ import { computed } from "vue";
 import { downloadsStore } from "@renderer/store/downloads.store";
 import Progress from "@renderer/components/common/Progress.vue";
 
-const props = defineProps(["mapName","height"]);
+const props = defineProps(["mapName", "height"]);
 
 const isDownloading = computed(() => {
     if (props.mapName == undefined) {

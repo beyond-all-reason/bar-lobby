@@ -18,8 +18,12 @@ SPDX-License-Identifier: MIT
         >
             <slot />
         </button>
-        <Button v-else-if="map.isDownloading" class="grey quick-download-button fullwidth anchor" @input.stop>Downloading...</Button>
-        <Button v-else class="red fullwidth quick-download-button" @click="downloadMap(map.springName)">Download map</Button>
+        <Button v-else-if="map.isDownloading" class="grey quick-download-button fullwidth anchor" @input.stop style="min-height: unset"
+            >Downloading...</Button
+        >
+        <Button v-else class="red fullwidth quick-download-button" @click="downloadMap(map.springName)" style="min-height: unset"
+            >Download map</Button
+        >
     </div>
 </template>
 
@@ -106,8 +110,8 @@ const props = defineProps<Props>();
     position-area: top span-all;
     position-anchor: --anchor;
     width: anchor-size(width);
-	height: anchor-size(height);
+    height: anchor-size(height);
     transform: translateY(100%);
-	overflow:hidden;
+    overflow: hidden;
 }
 </style>

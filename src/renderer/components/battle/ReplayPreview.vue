@@ -11,7 +11,7 @@ SPDX-License-Identifier: MIT
                 <ReplayPreviewMap :replay="replay" />
             </TabPanel>
             <TabPanel header="Details">
-                <div class="scroll-container autoheight">
+                <div class="scroll-container flex-col" style="height: 550px">
                     <div class="teams padding-bottom-sm">
                         <div v-if="isFFA">
                             <div class="team-title">Players</div>
@@ -58,7 +58,7 @@ SPDX-License-Identifier: MIT
                     </div>
                     <hr class="margin-top-md margin-bottom-md divider" />
                     <div class="padding-top-sm">
-                        <div v-for="(item, index) in replayData" :key="index">
+                        <div v-for="(item, index) in extraDetails" :key="index">
                             <div>
                                 <div :class="getStripeResult(index)">
                                     <div class="margin-left-sm padding-top-sm padding-bottom-sm">
@@ -112,41 +112,9 @@ const teams = computed<Map<number, (DemoModel.Info.Player | DemoModel.Info.AI)[]
 });
 
 // The space will scroll if enough items are added to this list.
-const replayData = computed(() => {
+const extraDetails = computed(() => {
     return [
         {
-            title: "Engine Version",
-            data: props.replay.engineVersion,
-        },
-        {
-            title: "Game Version",
-            data: props.replay.gameVersion,
-        },
-		        {
-            title: "Engine Version",
-            data: props.replay.engineVersion,
-        },
-        {
-            title: "Game Version",
-            data: props.replay.gameVersion,
-        },
-		        {
-            title: "Engine Version",
-            data: props.replay.engineVersion,
-        },
-        {
-            title: "Game Version",
-            data: props.replay.gameVersion,
-        },
-		        {
-            title: "Engine Version",
-            data: props.replay.engineVersion,
-        },
-        {
-            title: "Game Version",
-            data: props.replay.gameVersion,
-        },
-		        {
             title: "Engine Version",
             data: props.replay.engineVersion,
         },
@@ -207,6 +175,6 @@ function getStripeResult(index: number) {
     height: auto;
 }
 .divider {
-	background: rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.3);
 }
 </style>
