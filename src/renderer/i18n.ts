@@ -2,6 +2,8 @@
 //
 // SPDX-License-Identifier: MIT
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { createI18n, useI18n } from "vue-i18n";
 import enTranslation from "@renderer/assets/languages/en.json";
 import csTranslation from "@renderer/assets/languages/cs.json";
@@ -11,15 +13,15 @@ import ruTranslation from "@renderer/assets/languages/ru.json";
 import zhTranslation from "@renderer/assets/languages/zh.json";
 
 type Locale = "cs" | "de" | "en" | "fr" | "ru" | "zh";
-type MessageSchema = typeof enTranslation | typeof csTranslation | typeof deTranslation | typeof frTranslation | typeof ruTranslation | typeof zhTranslation;
+type MessageSchema = typeof enTranslation;
 
 const messages = {
     en: enTranslation,
-    cs: csTranslation,
-    de: deTranslation,
-    fr: frTranslation,
-    ru: ruTranslation,
-    zh: zhTranslation,
+    cs: csTranslation as any,
+    de: deTranslation as any,
+    fr: frTranslation as any,
+    ru: ruTranslation as any,
+    zh: zhTranslation as any,
 };
 
 export function setupI18n() {
