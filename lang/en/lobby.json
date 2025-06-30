@@ -1,7 +1,10 @@
 {
     "lobby": {
         "buttons": {
-            "quickPlay": "Quick play"
+            "quickPlay": "Quick play",
+            "login": "Login",
+            "changeAccount": "Change account",
+            "playOffline": "Play Offline"
         },
         "overview": {
             "newLobbyAlpha": "A new lobby has landed",

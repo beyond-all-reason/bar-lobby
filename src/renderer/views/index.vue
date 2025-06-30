@@ -16,10 +16,10 @@ SPDX-License-Identifier: MIT
                 <Loader></Loader>
             </div>
             <div v-else class="buttons-container">
-                <button class="login-button" @click="login">Login</button>
-                <div v-if="hasCredentials" class="play-offline" @click="changeAccount">Change account</div>
+                <button class="login-button" @click="login">{{ t("lobby.buttons.login") }}</button>
+                <div v-if="hasCredentials" class="play-offline" @click="changeAccount">{{ t("lobby.buttons.changeAccount") }}</div>
                 <div v-if="error" class="txt-error">{{ error }}</div>
-                <div class="play-offline" @click="playOffline">Play Offline</div>
+                <div class="play-offline" @click="playOffline">{{ t("lobby.buttons.playOffline") }}</div>
             </div>
         </Transition>
     </div>
@@ -33,6 +33,9 @@ import { useRouter } from "vue-router";
 import { auth } from "@renderer/store/me.store";
 import { settingsStore } from "@renderer/store/settings.store";
 import { tachyon } from "@renderer/store/tachyon.store";
+import { useTypedI18n } from "@renderer/i18n";
+
+const { t } = useTypedI18n();
 
 const router = useRouter();
 
