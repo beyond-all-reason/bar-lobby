@@ -19,11 +19,11 @@ SPDX-License-Identifier: MIT
                     <Panel class="flex-grow">
                         <div class="flex-col fullheight gap-md">
                             <div class="flex-row gap-md">
-                                <TriStateCheckbox v-model="endedNormally" label="Ended Normally" />
-                                <Checkbox v-model="showSpoilers" label="Show Spoilers" />
+                                <TriStateCheckbox v-model="endedNormally" :label="t('lobby.labels.replays.endedNormally')" />
+                                <Checkbox v-model="showSpoilers" :label="t('lobby.labels.replays.showSpoilers')" />
                                 <div class="flex-right flex-row gap-md" style="padding-right: 5px">
-                                    <Button @click="openBrowserToReplayService">Browse Online Replays</Button>
-                                    <Button @click="openReplaysFolder">Open Replays Folder</Button>
+                                    <Button @click="openBrowserToReplayService">{{ t("lobby.labels.replays.browseOnlineReplays") }}</Button>
+                                    <Button @click="openReplaysFolder">{{ t("lobby.labels.replays.openReplaysFolder") }}</Button>
                                 </div>
                             </div>
                             <div class="scroll-container padding-right-sm">
@@ -42,7 +42,7 @@ SPDX-License-Identifier: MIT
                                     @page="onPage"
                                     @sort="onSort"
                                 >
-                                    <template #empty>No replays found</template>
+                                    <template #empty>{{ t("lobby.labels.replays.noReplaysFound") }}</template>
                                     <Column header="Name">
                                         <template #body="{ data }">
                                             <template v-if="data.preset === 'duel'">
@@ -86,11 +86,11 @@ SPDX-License-Identifier: MIT
                                             @click="watchReplay(replay)"
                                             :disabled="isLaunching || gameStore.isGameRunning"
                                         >
-                                            <template v-if="gameStore.isGameRunning"> Game running </template>
-                                            <template v-else-if="isLaunching"> Launching... </template>
-                                            <template v-else> Watch </template>
+                                            <template v-if="gameStore.isGameRunning">{{ t("lobby.labels.replays.gameRunning") }}</template>
+                                            <template v-else-if="isLaunching">{{ t("lobby.labels.replays.launching") }}</template>
+                                            <template v-else>{{ t("lobby.labels.replays.watch") }}</template>
                                         </DownloadContentButton>
-                                        <Button v-else disabled style="flex-grow: 1">Watch</Button>
+                                        <Button v-else disabled style="flex-grow: 1">{{ t("lobby.labels.replays.watch") }}</Button>
                                         <Button v-if="replay" @click="showReplayFile(replay)" class="icon" :height="32"
                                             ><Icon :icon="folder" :height="32"
                                         /></Button>
@@ -140,6 +140,9 @@ import { gameStore } from "@renderer/store/game.store";
 import { MapDownloadData } from "@main/content/maps/map-data";
 import { Icon } from "@iconify/vue";
 import folder from "@iconify-icons/mdi/folder";
+import { useTypedI18n } from "@renderer/i18n";
+
+const { t } = useTypedI18n();
 
 const endedNormally: Ref<boolean | null> = ref(true);
 const showSpoilers = ref(true);

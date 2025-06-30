@@ -24,7 +24,7 @@ SPDX-License-Identifier: MIT
                     <div class="new-lobby-subtext txt-multiline">{{ t("lobby.overview.newLobbySubtext") }}</div>
                     <div class="button-container">
                         <button class="quick-play-button" @click="battleStore.isSelectingGameMode = true">
-                            {{ t("lobby.buttons.quickPlay") }}
+                            {{ t("lobby.labels.quickPlay") }}
                         </button>
                     </div>
                 </div>
