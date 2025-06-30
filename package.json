@@ -30,7 +30,8 @@
         "format:check": "prettier --check --cache .",
         "typecheck:node": "tsc --noEmit -p tsconfig.node.json --composite false",
         "typecheck:web": "vue-tsc --noEmit -p tsconfig.web.json --composite false",
-        "typecheck": "npm run typecheck:node && npm run typecheck:web"
+        "typecheck": "npm run typecheck:node && npm run typecheck:web",
+        "generate-i18n-assets": "node --import=tsx tools/generate-i18n-asset-files.ts"
     },
     "engines": {
         "node": "22.14.0"
@@ -85,6 +86,7 @@
         "globals": "^16.0.0",
         "prettier": "^3.5.3",
         "sass": "^1.85.1",
+        "tsx": "^4.20.3",
         "typescript": "^5.8.2",
         "typescript-eslint": "^8.26.1",
         "unplugin-vue-router": "^0.12.0",
