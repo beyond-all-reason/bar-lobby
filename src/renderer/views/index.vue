@@ -16,10 +16,10 @@ SPDX-License-Identifier: MIT
                 <Loader></Loader>
             </div>
             <div v-else class="buttons-container">
-                <button class="login-button" @click="login">{{ t("lobby.buttons.login") }}</button>
-                <div v-if="hasCredentials" class="play-offline" @click="changeAccount">{{ t("lobby.buttons.changeAccount") }}</div>
+                <button class="login-button" @click="login">{{ t("lobby.labels.login") }}</button>
+                <div v-if="hasCredentials" class="play-offline" @click="changeAccount">{{ t("lobby.labels.changeAccount") }}</div>
                 <div v-if="error" class="txt-error">{{ error }}</div>
-                <div class="play-offline" @click="playOffline">{{ t("lobby.buttons.playOffline") }}</div>
+                <div class="play-offline" @click="playOffline">{{ t("lobby.labels.playOffline") }}</div>
             </div>
         </Transition>
     </div>
