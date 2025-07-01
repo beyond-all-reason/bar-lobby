@@ -1,17 +1,38 @@
 {
     "extends": "./tsconfig.shared.json",
-    "include": ["src/main/", "src/renderer/env.d.ts", "src/renderer/typed-router.d.ts", "src/renderer/**/*", "src/renderer/**/*.vue", "src/preload/*.d.ts"],
+    "include": [
+        "src/main/",
+        "src/renderer/env.d.ts",
+        "src/renderer/typed-router.d.ts",
+        "src/renderer/**/*",
+        "src/renderer/**/*.vue",
+        "src/preload/*.d.ts",
+        "tests/**/*.ts",
+        "tests/**/*.mts",
+        "vitest.config.mts"
+    ],
     "compilerOptions": {
-        "lib": ["ESNext", "DOM", "DOM.Iterable"],
+        "lib": [
+            "ESNext",
+            "DOM",
+            "DOM.Iterable"
+        ],
         "composite": true,
         "baseUrl": ".",
         "paths": {
-            "@main/*": ["src/main/*"], // TODO: Remove direct references to main
-            "@preload/*": ["src/preload/*"],
-            "@renderer/*": ["src/renderer/*"],
-            "$/*": ["vendor/*"]
+            "@main/*": [
+                "src/main/*"
+            ], // TODO: Remove direct references to main
+            "@preload/*": [
+                "src/preload/*"
+            ],
+            "@renderer/*": [
+                "src/renderer/*"
+            ],
+            "$/*": [
+                "vendor/*"
+            ]
         },
-
         "strict": true,
         "strictNullChecks": true,
         // TODO: Enable these for better typechecking
