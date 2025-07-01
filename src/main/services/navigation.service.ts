@@ -35,7 +35,7 @@ function registerIpcHandlers(webContents: BarIpcWebContents) {
         }
     });
 
-    app.on("second-instance", (_event, argv) => {
+    app.on("second-instance", (_event, argv, workingDirectory) => {
         log.info("Second instance detected. Focusing the main window.");
         // If someone tries to open a second instance, focus the main window
         const mainWindow = BrowserWindow.getAllWindows()[0];
@@ -47,7 +47,7 @@ function registerIpcHandlers(webContents: BarIpcWebContents) {
         }
 
         // Handle replay files opened with the app
-        const replayFiles = getReplayFiles(argv);
+        const replayFiles = getReplayFiles(argv, workingDirectory);
         if (replayFiles.length > 0) {
             log.info(`Replay files opened with the app: ${replayFiles}`);
             for (const filePath of replayFiles) {
@@ -60,11 +60,11 @@ function registerIpcHandlers(webContents: BarIpcWebContents) {
     });
 }
 
-function getReplayFiles(argv: string[]): string[] {
+function getReplayFiles(argv: string[], workingDirectory?: string): string[] {
     return argv
         .filter((arg) => arg.endsWith(".sdfz"))
         .map((arg) => {
-            const filePath = path.resolve(arg);
+            const filePath = workingDirectory ? path.resolve(workingDirectory, arg) : path.resolve(arg);
             if (fs.existsSync(filePath)) {
                 return filePath;
             } else {
