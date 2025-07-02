@@ -38,6 +38,7 @@ declare global {
         log: LogApi;
         autoUpdater: AutoUpdaterApi;
         barNavigation: BarNavigationApi;
+        notifications: NotificationsApi;
     }
 }
 

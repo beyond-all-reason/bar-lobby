@@ -218,3 +218,11 @@ const autoUpdaterApi = {
 };
 export type AutoUpdaterApi = typeof autoUpdaterApi;
 contextBridge.exposeInMainWorld("autoUpdater", autoUpdaterApi);
+
+const notificationsApi = {
+    // Events
+    onShowAlert: (callback: (alertConfig: { text: string; severity?: "info" | "warning" | "error"; timeoutMs?: number }) => void) =>
+        ipcRenderer.on("notifications:showAlert", (_event, alertConfig) => callback(alertConfig)),
+};
+export type NotificationsApi = typeof notificationsApi;
+contextBridge.exposeInMainWorld("notifications", notificationsApi);
