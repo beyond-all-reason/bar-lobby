@@ -37,6 +37,7 @@ export type IPCEvents = {
     "maps:mapAdded": (filename: string) => void;
     "maps:mapDeleted": (filename: string) => void;
     "navigation:navigateTo": (target: string) => void;
+    "notifications:showAlert": (alertConfig: { text: string; severity?: "info" | "warning" | "error"; timeoutMs?: number }) => void;
     "replays:replayCached": (replay: Replay) => Replay;
     "replays:replayCachingStarted": (filename: string) => void;
     "replays:replayDeleted": (filename: string) => void;

@@ -27,6 +27,10 @@ function registerIpcHandlers(webContents: BarIpcWebContents) {
         for (const filePath of replayFiles) {
             replayContentAPI.copyParseReplay(filePath).catch((err) => {
                 log.error(`Failed to copy and parse replay file ${filePath}:`, err);
+                webContents.send("notifications:showAlert", {
+                    text: `Failed to open replay file: ${path.basename(filePath)}`,
+                    severity: "error",
+                });
             });
         }
 
@@ -53,6 +57,10 @@ function registerIpcHandlers(webContents: BarIpcWebContents) {
             for (const filePath of replayFiles) {
                 replayContentAPI.copyParseReplay(filePath).catch((err) => {
                     log.error(`Failed to copy and parse replay file ${filePath}:`, err);
+                    typedWebContents(mainWindow.webContents).send("notifications:showAlert", {
+                        text: `Failed to open replay file: ${path.basename(filePath)}`,
+                        severity: "error",
+                    });
                 });
             }
             navigationService.navigateTo(typedWebContents(mainWindow.webContents), "/library/replays");
