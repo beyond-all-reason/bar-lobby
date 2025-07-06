@@ -4,16 +4,19 @@
 
 import { GameVersion } from "@main/content/game/game-version";
 import { LuaOption } from "@main/content/game/lua-options";
+import { BattleWithMetadata } from "@main/game/battle/battle-types";
 import { db } from "@renderer/store/db";
 import { reactive, watch } from "vue";
 
 export const gameStore: {
     isInitialized: boolean;
+    isGameLoading: boolean;
     isGameRunning: boolean;
     selectedGameVersion?: GameVersion;
     optionsMap?: Record<string, LuaOption & { section: string }>;
 } = reactive({
     isInitialized: false,
+    isGameLoading: false,
     isGameRunning: false,
 });
 
@@ -45,6 +48,20 @@ watch(
 export async function downloadGame(version: string) {
     await window.game.downloadGame(version);
     await refreshStore();
+}
+
+export async function startBattle(battle: BattleWithMetadata) {
+    try {
+        gameStore.isGameLoading = true;
+        await window.game.launchBattle(battle);
+        gameStore.isGameLoading = false;
+        gameStore.isGameRunning = true;
+    } catch (error) {
+        console.error("Failed to start battle:", error);
+        gameStore.isGameLoading = false;
+        gameStore.isGameRunning = false;
+        throw error; // Re-throw the error to display it in the UI
+    }
 }
 
 export async function initGameStore() {

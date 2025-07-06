@@ -97,47 +97,54 @@ export class GameAPI {
             const binaryName = process.platform === "win32" ? "spring.exe" : "./spring";
             log.debug(`Running binary: ${path.join(enginePath, binaryName)}, args: ${args}`);
 
-            this.gameProcess = spawn(binaryName, args, {
-                cwd: enginePath,
-                stdio: "pipe",
-                detached: true,
-                env: {
-                    ...process.env,
-                    SPRING_DATADIR: ASSETS_PATH, // Engine will read from both the assets and write dir
-                },
-            });
-
-            if (!this.gameProcess.stdout || !this.gameProcess.stderr) throw new Error("failed to access game process stream");
-
-            this.gameProcess.stdout.on("data", (data) => {
-                engineLogger.debug(`${data}`);
-            });
-            this.gameProcess.stderr.on("data", (data) => {
-                engineLogger.error(`${data}`);
-            });
-
-            this.gameProcess.addListener("error", (err) => {
-                log.error(err);
-            });
-
-            this.gameProcess.addListener("exit", (code) => {
-                if (code !== 0) {
-                    log.error(`Game process exited with code: ${code}`);
-                } else {
-                    log.debug(`Game process exited with code: ${code}`);
+            return new Promise<void>((resolve, reject) => {
+                try {
+                    this.gameProcess = spawn(binaryName, args, {
+                        cwd: enginePath,
+                        stdio: "pipe",
+                        detached: true,
+                        env: {
+                            ...process.env,
+                            SPRING_DATADIR: ASSETS_PATH, // Engine will read from both the assets and write dir
+                        },
+                    });
+                    if (!this.gameProcess.stdout || !this.gameProcess.stderr) throw new Error("failed to access game process stream");
+                    let isGameLoading = false;
+                    this.gameProcess.stdout.on("data", (data) => {
+                        engineLogger.info(`${data}`);
+                        if (!isGameLoading && data.toString().includes("[Game::Load]")) {
+                            isGameLoading = true;
+                            this.onGameLaunched.dispatch();
+                            resolve();
+                        }
+                    });
+                    this.gameProcess.stderr.on("data", (data) => {
+                        engineLogger.error(`${data}`);
+                    });
+                    this.gameProcess.addListener("error", (err) => {
+                        log.error(err);
+                    });
+                    this.gameProcess.addListener("exit", (code) => {
+                        if (code !== 0) {
+                            log.error(`Game process exited with code: ${code}`);
+                            reject(new Error(`Game process exited with code: ${code}`));
+                        } else {
+                            log.info(`Game process exited with code: ${code}`);
+                        }
+                    });
+                    this.gameProcess.addListener("spawn", () => {
+                        log.debug(`Game process spawned successfully`);
+                    });
+                    this.gameProcess.addListener("close", (exitCode) => {
+                        this.gameProcess = null;
+                        this.onGameClosed.dispatch(exitCode);
+                    });
+                    log.debug(`Game process PID: ${this.gameProcess.pid}`);
+                } catch (err) {
+                    log.error(`Failed to launch game: ${err}`);
+                    reject(err);
                 }
             });
-
-            this.gameProcess.addListener("spawn", () => {
-                this.onGameLaunched.dispatch();
-                // this.updateLastLaunched(engineVersion, gameVersion, mapName);
-            });
-
-            this.gameProcess.addListener("close", (exitCode) => {
-                this.gameProcess = null;
-                this.onGameClosed.dispatch(exitCode);
-            });
-            log.debug(`Game process PID: ${this.gameProcess.pid}`);
         } catch (err) {
             log.error(err);
         }
