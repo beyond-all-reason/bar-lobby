@@ -109,13 +109,20 @@ export class GameAPI {
                         },
                     });
                     if (!this.gameProcess.stdout || !this.gameProcess.stderr) throw new Error("failed to access game process stream");
-                    let isGameLoading = false;
+                    let isGameRunning = false;
                     this.gameProcess.stdout.on("data", (data) => {
                         engineLogger.info(`${data}`);
-                        if (!isGameLoading && data.toString().includes("[Game::Load]")) {
-                            isGameLoading = true;
+                        //TODO replace with proper ipc communication for those events instead of parsing stdout
+                        if (!isGameRunning && data.toString().includes("[Game::Load]")) {
+                            isGameRunning = true;
                             this.onGameLaunched.dispatch();
                             resolve();
+                        }
+                        if (isGameRunning && data.toString().includes("[SpringApp::Kill][8]")) {
+                            log.info("Game process requested to close");
+                            this.gameProcess = null;
+                            isGameRunning = false;
+                            this.onGameClosed.dispatch(null);
                         }
                     });
                     this.gameProcess.stderr.on("data", (data) => {
@@ -131,13 +138,13 @@ export class GameAPI {
                         } else {
                             log.info(`Game process exited with code: ${code}`);
                         }
+                        if (isGameRunning) this.onGameClosed.dispatch(code); // Dispatch if the game closed unexpectedly
                     });
                     this.gameProcess.addListener("spawn", () => {
                         log.debug(`Game process spawned successfully`);
                     });
                     this.gameProcess.addListener("close", (exitCode) => {
-                        this.gameProcess = null;
-                        this.onGameClosed.dispatch(exitCode);
+                        log.debug(`Game process closed with exit code: ${exitCode}`);
                     });
                     log.debug(`Game process PID: ${this.gameProcess.pid}`);
                 } catch (err) {
