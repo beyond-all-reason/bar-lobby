@@ -112,12 +112,16 @@ export class GameAPI {
                     let isGameRunning = false;
                     this.gameProcess.stdout.on("data", (data) => {
                         engineLogger.info(`${data}`);
-                        //TODO replace with proper ipc communication for those events instead of parsing stdout
+                        // Check if the game has started
+                        // This is a heuristic based on the log output, as the engine does not provide a specific event for game launch
+                        //TODO replace this with some ipc event from the engine when it is available
                         if (!isGameRunning && data.toString().includes("[Game::Load]")) {
                             isGameRunning = true;
                             this.onGameLaunched.dispatch();
                             resolve();
                         }
+                        //TODO this is a workaround for the fact that the engine does not exit right away when the game is closed (can take a few seconds on Linux)
+                        // See https://github.com/beyond-all-reason/RecoilEngine/issues/2450
                         if (isGameRunning && data.toString().includes("[SpringApp::Kill][8]")) {
                             log.info("Game process requested to close");
                             this.gameProcess = null;
