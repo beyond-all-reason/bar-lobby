@@ -75,6 +75,7 @@ import { Scenario } from "@main/content/game/scenario";
 import { LATEST_GAME_VERSION, DEFAULT_ENGINE_VERSION } from "@main/config/default-versions";
 import Panel from "@renderer/components/common/Panel.vue";
 import { db } from "@renderer/store/db";
+import { MapDownloadData } from "@main/content/maps/map-data";
 import { useDexieLiveQueryWithDeps } from "@renderer/composables/useDexieLiveQuery";
 import Markdown from "@renderer/components/misc/Markdown.vue";
 import DownloadContentButton from "@renderer/components/controls/DownloadContentButton.vue";
@@ -85,7 +86,24 @@ const loadedScenarios = gameVersion ? await window.game.getScenarios(gameVersion
 const scenarios = ref<Scenario[]>(loadedScenarios);
 const selectedScenario = ref<Scenario>(scenarios.value[0]);
 
-const map = useDexieLiveQueryWithDeps([selectedScenario], () => db.maps.get(selectedScenario.value?.mapfilename));
+const map = useDexieLiveQueryWithDeps([selectedScenario], async () => {
+    let selected = selectedScenario.value;
+    if (!selected) return;
+
+    const [live, nonLive] = await Promise.all([db.maps.get(selected.mapfilename), db.nonLiveMaps.get(selected.mapfilename)]);
+
+    let map = live ?? nonLive;
+
+    if (!map) {
+        map = {
+            springName: selected.mapfilename,
+            isDownloading: false,
+            isInstalled: false,
+        } satisfies MapDownloadData;
+    }
+
+    return map;
+});
 
 const difficulties = computed(() => selectedScenario.value.difficulties);
 const selectedDifficulty = ref(difficulties.value.find((dif) => dif.name === selectedScenario.value.defaultdifficulty));
