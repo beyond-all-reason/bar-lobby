@@ -53,7 +53,7 @@ SPDX-License-Identifier: MIT
                             v-if="map"
                             :map="map"
                             class="fullwidth green"
-                            :disabled="gameStore.isGameRunning"
+                            :disabled="gameStore.status !== GameStatus.CLOSED"
                             @click="launch"
                             >Launch</DownloadContentButton
                         >
@@ -78,7 +78,7 @@ import { db } from "@renderer/store/db";
 import { useDexieLiveQueryWithDeps } from "@renderer/composables/useDexieLiveQuery";
 import Markdown from "@renderer/components/misc/Markdown.vue";
 import DownloadContentButton from "@renderer/components/controls/DownloadContentButton.vue";
-import { gameStore } from "@renderer/store/game.store";
+import { GameStatus, gameStore } from "@renderer/store/game.store";
 
 const gameVersion = gameStore?.selectedGameVersion?.gameVersion;
 const loadedScenarios = gameVersion ? await window.game.getScenarios(gameVersion) : [];

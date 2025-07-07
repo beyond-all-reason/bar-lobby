@@ -4,7 +4,7 @@
 
 import { Settings } from "@main/services/settings.service";
 import { musicFiles, sfxFiles } from "@renderer/assets/assetFiles";
-import { gameStore } from "@renderer/store/game.store";
+import { GameStatus, gameStore } from "@renderer/store/game.store";
 import { settingsStore } from "@renderer/store/settings.store";
 import type { HowlOptions } from "howler";
 import { Howl } from "howler";
@@ -87,9 +87,9 @@ class AudioAPI {
         );
 
         watch(
-            () => gameStore.isGameRunning,
+            () => gameStore.status,
             () => {
-                if (gameStore.isGameRunning) {
+                if (gameStore.status === GameStatus.RUNNING) {
                     this.muteMusic();
                 } else {
                     this.unmuteMusic();

@@ -84,11 +84,11 @@ SPDX-License-Identifier: MIT
                                             v-if="map && replay"
                                             :map="map"
                                             @click="watchReplay(replay)"
-                                            :disabled="isLaunching || gameStore.isGameRunning"
+                                            :disabled="gameStore.status !== GameStatus.CLOSED"
                                         >
-                                            <template v-if="gameStore.isGameRunning"> Game running </template>
-                                            <template v-else-if="isLaunching"> Launching... </template>
-                                            <template v-else> Watch </template>
+                                            <template v-if="gameStore.status === GameStatus.RUNNING">Game is running</template>
+                                            <template v-else-if="gameStore.status === GameStatus.LOADING">Launching...</template>
+                                            <template v-else>Watch</template>
                                         </DownloadContentButton>
                                         <Button v-else disabled style="flex-grow: 1">Watch</Button>
                                         <Button v-if="replay" @click="showReplayFile(replay)" class="icon" :height="32"
@@ -136,7 +136,7 @@ import { db } from "@renderer/store/db";
 import { useDexieLiveQueryWithDeps } from "@renderer/composables/useDexieLiveQuery";
 import ReplayPreview from "@renderer/components/battle/ReplayPreview.vue";
 import DownloadContentButton from "@renderer/components/controls/DownloadContentButton.vue";
-import { gameStore } from "@renderer/store/game.store";
+import { GameStatus, gameStore, watchReplay } from "@renderer/store/game.store";
 import { MapDownloadData } from "@main/content/maps/map-data";
 import { Icon } from "@iconify/vue";
 import folder from "@iconify-icons/mdi/folder";
@@ -149,7 +149,6 @@ const limit = ref(15);
 const sortField: Ref<keyof Replay> = ref("startTime");
 const sortOrder: Ref<"asc" | "desc"> = ref("desc");
 const selectedReplay: Ref<Replay | null> = shallowRef(null);
-const isLaunching = ref(false);
 
 onMounted(() => {
     window.replays.onReplayDeleted((filename: string) => {
@@ -211,21 +210,6 @@ function openBrowserToReplayService() {
 
 function openReplaysFolder() {
     window.shell.openReplaysDir();
-}
-
-function watchReplay(replay: Replay) {
-    // return early if isLaunching is true or game is running to not spam multiple launches
-    if (isLaunching.value || gameStore.isGameRunning) return;
-
-    isLaunching.value = true;
-    window.game
-        .launchReplay(replay)
-        .then(() => {
-            isLaunching.value = false;
-        })
-        .catch(() => {
-            isLaunching.value = false;
-        });
 }
 
 function showReplayFile(replay: Replay) {
