@@ -4,7 +4,7 @@
 
 import { Settings } from "@main/services/settings.service";
 import { musicFiles, sfxFiles } from "@renderer/assets/assetFiles";
-import { gameStore } from "@renderer/store/game.store";
+import { GameStatus, gameStore } from "@renderer/store/game.store";
 import { settingsStore } from "@renderer/store/settings.store";
 import type { HowlOptions } from "howler";
 import { Howl } from "howler";
@@ -87,12 +87,12 @@ class AudioAPI {
         );
 
         watch(
-            () => gameStore.isGameRunning,
+            () => gameStore.status,
             () => {
-                if (gameStore.isGameRunning) {
-                    this.muteMusic();
-                } else {
+                if (gameStore.status === GameStatus.CLOSED) {
                     this.unmuteMusic();
+                } else {
+                    this.muteMusic(1200);
                 }
             }
         );
@@ -130,9 +130,7 @@ class AudioAPI {
 
     public unmuteMusic(fadeTime = 4000) {
         const musicSounds = this.getAllSounds().filter((sound) => sound.isMusic);
-
         if (!this.settings) throw new Error("failed to access settings");
-
         for (const sound of musicSounds) {
             sound.fade(0, (this.settings.musicVolume || 0) / 100, fadeTime);
         }

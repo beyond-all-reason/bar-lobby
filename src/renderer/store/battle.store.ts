@@ -29,6 +29,7 @@ import { deepToRaw } from "@renderer/utils/deep-toraw";
 import { spadsBoxToStartBox } from "@renderer/utils/start-boxes";
 import { StartBox } from "tachyon-protocol/types";
 import { reactive, readonly, watch } from "vue";
+import { startBattle as startGame } from "@renderer/store/game.store";
 
 let participantId = 0;
 interface BattleLobby {
@@ -379,7 +380,7 @@ function resetToDefaultBattle(engine?: EngineVersion, game?: GameVersion, map?: 
 }
 
 async function startBattle() {
-    await window.game.launchBattle(deepToRaw(_battleWithMetadataStore));
+    await startGame(deepToRaw(_battleWithMetadataStore));
 }
 
 // Automatically compute my battle status given the changes in the battle

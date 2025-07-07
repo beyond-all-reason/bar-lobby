@@ -10,6 +10,7 @@ import { replayContentAPI } from "@main/content/replays/replay-content";
 import icon from "@main/resources/icon.png";
 import { purgeLogFiles } from "@main/services/log.service";
 import { typedWebContents } from "@main/typed-ipc";
+import { gameAPI } from "@main/game/game";
 
 declare const MAIN_WINDOW_VITE_DEV_SERVER_URL: string | undefined;
 declare const MAIN_WINDOW_VITE_NAME: string;
@@ -151,15 +152,21 @@ export function createWindow() {
     ipcMain.handle("mainWindow:flashFrame", (_event, flag: boolean) => {
         mainWindow.flashFrame(flag);
     });
-
     ipcMain.handle("mainWindow:minimize", () => mainWindow.minimize());
-
     ipcMain.handle("mainWindow:isFullscreen", () => mainWindow.isFullScreen());
 
     /////////////////////////////////////////////
     // Subscribe to game events
-    webContents.ipc.on("game:launched", () => {
-        log.info("Game launched");
+    /////////////////////////////////////////////
+    gameAPI.onGameLaunched.add(() => {
+        log.info("Game launched - hiding main window");
+        mainWindow.hide();
+    });
+
+    gameAPI.onGameClosed.add(() => {
+        log.info("Game closed - showing main window");
+        mainWindow.show();
+        mainWindow.focus();
     });
 
     // Purge old log files
