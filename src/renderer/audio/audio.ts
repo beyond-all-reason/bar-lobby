@@ -89,10 +89,10 @@ class AudioAPI {
         watch(
             () => gameStore.status,
             () => {
-                if (gameStore.status === GameStatus.RUNNING) {
-                    this.muteMusic();
-                } else {
+                if (gameStore.status === GameStatus.CLOSED) {
                     this.unmuteMusic();
+                } else {
+                    this.muteMusic(1200);
                 }
             }
         );
@@ -130,9 +130,7 @@ class AudioAPI {
 
     public unmuteMusic(fadeTime = 4000) {
         const musicSounds = this.getAllSounds().filter((sound) => sound.isMusic);
-
         if (!this.settings) throw new Error("failed to access settings");
-
         for (const sound of musicSounds) {
             sound.fade(0, (this.settings.musicVolume || 0) / 100, fadeTime);
         }
