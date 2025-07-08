@@ -69,6 +69,9 @@ const sizeOptions = [
     { label: "1920x1080", value: 1080 },
     { label: "1440x900", value: 900 },
     { label: "1280x720", value: 720 },
+    { label: "960x540", value: 540 },
+    { label: "800x450", value: 450 },
+    { label: "640x360", value: 360 },
 ];
 
 const displayOptions = asyncComputed(async () => {

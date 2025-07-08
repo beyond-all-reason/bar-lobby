@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: MIT
 
-import { app, BrowserWindow, ipcMain, nativeImage } from "electron";
+import { app, BrowserWindow, ipcMain, nativeImage, screen } from "electron";
 import path from "path";
 import { settingsService } from "./services/settings.service";
 import { logger } from "./utils/logger";
@@ -32,8 +32,8 @@ export function createWindow() {
         icon: nativeImage.createFromDataURL(icon),
         width: width,
         height: height,
-        minWidth: 1280,
-        minHeight: 720,
+        // minWidth: 1280,
+        // minHeight: 720,
         resizable: true,
         center: true,
         frame: false,
@@ -128,6 +128,7 @@ export function createWindow() {
 
     // Register IPC handlers for the main window
     ipcMain.handle("mainWindow:setFullscreen", (_event, flag: boolean, size: number) => {
+        console.debug("Primary display info:\n", getDisplayInfo());
         mainWindow.setFullScreen(flag);
         if (!flag) {
             mainWindow.setSize(Math.round((size * 16) / 9), size, true);
@@ -166,4 +167,18 @@ export function createWindow() {
     purgeLogFiles();
 
     return mainWindow;
+}
+
+function getDisplayInfo() {
+    const primaryDisplay = screen.getPrimaryDisplay();
+    const { width, height } = primaryDisplay.size;
+    const scaleFactor = primaryDisplay.scaleFactor;
+
+    return {
+        width,
+        height,
+        scaleFactor,
+        workAreaSize: primaryDisplay.workAreaSize,
+        bounds: primaryDisplay.bounds,
+    };
 }
