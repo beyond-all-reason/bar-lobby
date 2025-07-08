@@ -23,7 +23,7 @@ watch(
 
 watch(
     () => settingsStore.fullscreen,
-    () => window.mainWindow.setFullscreen(settingsStore.fullscreen)
+    () => window.mainWindow.setFullscreen(settingsStore.fullscreen, settingsStore.size)
 );
 
 watch(

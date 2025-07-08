@@ -23,8 +23,8 @@ export function createWindow() {
     const settings = settingsService.getSettings();
     log.info("Creating main window with settings: ", settings);
 
-    const width = 1440;
-    const height = 900;
+    const height = settings.size || 900;
+    const width = Math.round((height * 16) / 9);
 
     const mainWindow = new BrowserWindow({
         title: "Beyond All Reason",
@@ -67,21 +67,6 @@ export function createWindow() {
         }
     }
     setZoomFactor();
-
-    mainWindow.on("enter-full-screen", () => {
-        console.debug("Enter full screen event");
-        setZoomFactor();
-    });
-
-    mainWindow.on("leave-full-screen", () => {
-        console.debug("Leave full screen event");
-        setZoomFactor();
-    });
-
-    mainWindow.on("resize", () => {
-        console.debug("Resize event");
-        setZoomFactor();
-    });
 
     process.env.MAIN_WINDOW_ID = mainWindow.id.toString();
     log.debug("Settings: ", settings);
@@ -142,13 +127,21 @@ export function createWindow() {
     //TODO add an IPC handler for changing display via the settings
 
     // Register IPC handlers for the main window
-    ipcMain.handle("mainWindow:setFullscreen", (_event, flag: boolean) => {
+    ipcMain.handle("mainWindow:setFullscreen", (_event, flag: boolean, size: number) => {
         mainWindow.setFullScreen(flag);
+        if (!flag) {
+            mainWindow.setSize(Math.round((size * 16) / 9), size, true);
+            mainWindow.center();
+        }
+        setZoomFactor();
     });
     ipcMain.handle("mainWindow:setSize", (_event, size: number) => {
         mainWindow.setSize(Math.round((size * 16) / 9), size, true);
+        if (!mainWindow.isFullScreen()) {
+            mainWindow.center();
+            setZoomFactor();
+        }
     });
-    ipcMain.handle("mainWindow:toggleFullscreen", () => mainWindow.setFullScreen(!mainWindow.isFullScreen()));
     ipcMain.handle("mainWindow:flashFrame", (_event, flag: boolean) => {
         mainWindow.flashFrame(flag);
     });

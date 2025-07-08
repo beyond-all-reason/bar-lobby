@@ -32,9 +32,8 @@ export type InfoApi = typeof infoApi;
 contextBridge.exposeInMainWorld("info", infoApi);
 
 const mainWindowApi = {
-    setFullscreen: (flag: boolean): Promise<void> => ipcRenderer.invoke("mainWindow:setFullscreen", flag),
+    setFullscreen: (flag: boolean, size: number): Promise<void> => ipcRenderer.invoke("mainWindow:setFullscreen", flag, size),
     setSize: (size: number): Promise<void> => ipcRenderer.invoke("mainWindow:setSize", size),
-    toggleFullscreen: (): Promise<void> => ipcRenderer.invoke("mainWindow:toggleFullscreen"),
     flashFrame: (flag: boolean): Promise<void> => ipcRenderer.invoke("mainWindow:flashFrame", flag),
     minimize: (): Promise<void> => ipcRenderer.invoke("mainWindow:minimize"),
     isFullscreen: (): Promise<boolean> => ipcRenderer.invoke("mainWindow:isFullscreen"),

@@ -51,8 +51,8 @@ SPDX-License-Identifier: MIT
                     <Button v-tooltip.bottom="'Minimize'" class="icon" @click="minimizeWindow">
                         <Icon :icon="windowMinimize" :height="40"></Icon>
                     </Button>
-                    <Button v-tooltip.bottom="isFullscreen ? 'Windowed' : 'Fullscreen'" class="icon" @click="toggleFullScreen">
-                        <Icon v-if="isFullscreen" :icon="fullscreenExit" :height="40"></Icon>
+                    <Button v-tooltip.bottom="settingsStore.fullscreen ? 'Windowed' : 'Fullscreen'" class="icon" @click="toggleFullscreen">
+                        <Icon v-if="settingsStore.fullscreen" :icon="fullscreenExit" :height="40"></Icon>
                         <Icon v-else :icon="fullscreen" :height="40"></Icon>
                     </Button>
                     <Button v-tooltip.bottom="'Exit'" class="icon close" @click="exitOpen = true">
@@ -163,16 +163,12 @@ const messagesUnread = computed(() => {
     return false;
 });
 
-const isFullscreen = ref(false);
-(async () => (isFullscreen.value = await window.mainWindow.isFullscreen()))(); // a bit hacky but iife allows to set ref from async function
-
-async function minimizeWindow() {
-    await window.mainWindow.minimize();
+function minimizeWindow() {
+    window.mainWindow?.minimize();
 }
 
-async function toggleFullScreen() {
-    await window.mainWindow.toggleFullscreen();
-    isFullscreen.value = await window.mainWindow.isFullscreen();
+function toggleFullscreen() {
+    settingsStore.fullscreen = !settingsStore.fullscreen;
 }
 </script>
 
