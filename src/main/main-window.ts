@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: MIT
 
-import { app, BrowserWindow, ipcMain, nativeImage } from "electron";
+import { app, BrowserWindow, ipcMain, nativeImage, screen } from "electron";
 import path from "path";
 import { settingsService } from "./services/settings.service";
 import { logger } from "./utils/logger";
@@ -15,11 +15,14 @@ const ZOOM_FACTOR_BASELINE_HEIGHT = 1080;
 
 const log = logger("main-window");
 
+//TODO handle display changes, e.g. when the user changes the display in the settings,
+// moves the window to another display, or when the display is disconnected
+// be mindful of the scale factor for each display
 export function createWindow() {
     const settings = settingsService.getSettings();
     log.info("Creating main window with settings: ", settings);
 
-    const height = settings.size || 900;
+    const height = Math.round((settings.size || 900) / screen.getPrimaryDisplay().scaleFactor);
     const width = Math.round((height * 16) / 9);
 
     const mainWindow = new BrowserWindow({
@@ -102,6 +105,7 @@ export function createWindow() {
 
     // Register IPC handlers for the main window
     ipcMain.handle("mainWindow:setFullscreen", (_event, flag: boolean, size: number) => {
+        size = Math.round(size / screen.getPrimaryDisplay().scaleFactor);
         mainWindow.setFullScreen(flag);
         if (!flag) {
             mainWindow.setSize(Math.round((size * 16) / 9), size, true);
@@ -110,6 +114,7 @@ export function createWindow() {
         setZoomFactor();
     });
     ipcMain.handle("mainWindow:setSize", (_event, size: number) => {
+        size = Math.round(size / screen.getPrimaryDisplay().scaleFactor);
         mainWindow.setSize(Math.round((size * 16) / 9), size, true);
         if (!mainWindow.isFullScreen()) {
             mainWindow.center();
