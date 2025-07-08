@@ -11,7 +11,13 @@ SPDX-License-Identifier: MIT
             <Checkbox v-model="settingsStore.fullscreen" />
 
             <div>Window Size</div>
-            <Select v-model="settingsStore.size" :options="sizeOptions" optionLabel="label" optionValue="value" />
+            <Select
+                v-model="settingsStore.size"
+                :options="sizeOptions"
+                optionLabel="label"
+                optionValue="value"
+                :disabled="settingsStore.fullscreen"
+            />
 
             <div>Display</div>
             <Select v-model="settingsStore.displayIndex" :options="displayOptions" optionLabel="label" optionValue="value" />
