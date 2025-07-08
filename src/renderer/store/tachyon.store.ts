@@ -18,6 +18,8 @@ export const tachyonStore = reactive({
     isConnected: boolean;
     serverStats?: SystemServerStatsOkResponseData;
     error?: string;
+    fetchServerStatsInterval?: NodeJS.Timeout;
+    reconnectInterval?: NodeJS.Timeout;
 });
 
 async function connect() {
@@ -32,18 +34,56 @@ async function connect() {
     }
 }
 
+async function fetchServerStats() {
+    return window.tachyon.request("system/serverStats").then((response) => {
+        if (response.status === "success") {
+            tachyonStore.serverStats = response.data;
+        } else {
+            console.error("Failed to fetch server stats", response);
+        }
+    });
+}
+
 export async function initTachyonStore() {
     tachyonStore.isConnected = await window.tachyon.isConnected();
+    if (tachyonStore.isConnected) {
+        fetchServerStats();
+        tachyonStore.fetchServerStatsInterval = setInterval(fetchServerStats, 60000);
+    }
     console.debug(`Tachyon server is ${tachyonStore.isConnected ? "connected" : "disconnected"}`);
 
     window.tachyon.onConnected(() => {
         console.debug("Connected to Tachyon server");
         tachyonStore.isConnected = true;
+        fetchServerStats();
+        if (tachyonStore.fetchServerStatsInterval) {
+            clearInterval(tachyonStore.fetchServerStatsInterval);
+            tachyonStore.fetchServerStatsInterval = undefined;
+        }
+        if (tachyonStore.reconnectInterval) {
+            clearInterval(tachyonStore.reconnectInterval);
+            tachyonStore.reconnectInterval = undefined;
+        }
+        // Periodically fetch server stats
+        tachyonStore.fetchServerStatsInterval = setInterval(fetchServerStats, 60000);
     });
 
     window.tachyon.onDisconnected(() => {
         console.debug("Disconnected from Tachyon server");
         tachyonStore.isConnected = false;
+        if (tachyonStore.fetchServerStatsInterval) {
+            clearInterval(tachyonStore.fetchServerStatsInterval);
+            tachyonStore.fetchServerStatsInterval = undefined;
+        }
+        if (tachyonStore.reconnectInterval) {
+            clearInterval(tachyonStore.reconnectInterval);
+            tachyonStore.reconnectInterval = undefined;
+        }
+        // If the user is not in an offline session, try to reconnect
+        if (me.isAuthenticated) {
+            // Try to connect to Tachyon server periodically
+            tachyonStore.reconnectInterval = setInterval(connect, 10000);
+        }
     });
 
     window.tachyon.onBattleStart((springString) => {
@@ -63,28 +103,6 @@ export async function initTachyonStore() {
             springString,
         });
     });
-
-    // Periodically fetch server stats
-    setInterval(() => {
-        if (!tachyonStore.isConnected) return;
-        window.tachyon.request("system/serverStats").then((response) => {
-            if (response.status === "success") {
-                tachyonStore.serverStats = response.data;
-            } else {
-                console.error("Failed to fetch server stats", response);
-            }
-        });
-    }, 60000);
-
-    // Try to connect to Tachyon server periodically
-    setInterval(() => {
-        try {
-            if (me.isAuthenticated && !tachyonStore.isConnected) connect();
-        } catch (err) {
-            console.warn("Failed to re-connect to Tachyon server", err);
-        }
-    }, 10000);
-
     tachyonStore.isInitialized = true;
 }
 
