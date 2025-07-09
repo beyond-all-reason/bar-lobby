@@ -68,9 +68,9 @@ const op = ref();
 const tooltipMessage = ref("");
 
 const sizeOptions = [
-    { label: "Large", value: 1080 },
-    { label: "Medium", value: 900 },
-    { label: "Small", value: 720 },
+    { label: "Large", value: 900 },
+    { label: "Medium", value: 720 },
+    { label: "Small", value: 540 },
 ];
 
 const displayOptions = asyncComputed(async () => {

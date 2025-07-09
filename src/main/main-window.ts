@@ -22,20 +22,14 @@ export function createWindow() {
     const settings = settingsService.getSettings();
     log.info("Creating main window with settings: ", settings);
 
-    const height = Math.round((settings.size || 900) / screen.getPrimaryDisplay().scaleFactor);
-    const width = Math.round((height * 16) / 9);
-
     const mainWindow = new BrowserWindow({
         title: "Beyond All Reason",
         fullscreen: settings?.fullscreen || false,
         icon: nativeImage.createFromDataURL(icon),
-        width: width,
-        height: height,
-        minWidth: 1280,
-        minHeight: 720,
         resizable: true,
         center: true,
         frame: false,
+        show: false,
         autoHideMenuBar: true,
         webPreferences: {
             preload: path.join(__dirname, "../build/preload.js"),
@@ -46,26 +40,24 @@ export function createWindow() {
 
     const webContents = typedWebContents(mainWindow.webContents);
 
-    // Disable zoom shortcuts in production
-    if (process.env.NODE_ENV === "production") {
-        webContents.on("before-input-event", (event, input) => {
-            // Block Ctrl/Cmd + '+', '-', '0' (zoom shortcuts)
-            if (((input.control || input.meta) && (input.key === "+" || input.key === "-" || input.key === "=")) || (input.key === "0" && (input.control || input.meta))) {
-                event.preventDefault();
-            }
-        });
-    }
-
-    function setZoomFactor() {
-        const zoomFactor = mainWindow.getContentSize()[1] / ZOOM_FACTOR_BASELINE_HEIGHT;
-        console.debug("Window size: ", mainWindow.getContentSize());
-        console.debug("Zoom factor: ", zoomFactor);
-        // prevent breaking when minimizing
-        if (zoomFactor > 0) {
-            webContents.zoomFactor = zoomFactor;
+    // Disable zoom shortcuts
+    webContents.on("before-input-event", (event, input) => {
+        // Block Ctrl/Cmd + '+', '-', '0' (zoom shortcuts)
+        if (((input.control || input.meta) && (input.key === "+" || input.key === "-" || input.key === "=")) || (input.key === "0" && (input.control || input.meta))) {
+            event.preventDefault();
         }
+    });
+
+    function updateDimensionsAndScaling(size?: number) {
+        const primaryDisplay = screen.getPrimaryDisplay();
+        const deviceScaleFactor = ZOOM_FACTOR_BASELINE_HEIGHT / primaryDisplay.size.height;
+        const windowedHeight = size || settingsService.getSettings()?.size || 900;
+        const height = mainWindow.isFullScreen() ? primaryDisplay.size.height : Math.round(windowedHeight / deviceScaleFactor);
+        const width = Math.round((height * 16) / 9);
+        mainWindow.setSize(width, height);
+        mainWindow.center();
+        webContents.setZoomFactor(mainWindow.getContentSize()[1] / ZOOM_FACTOR_BASELINE_HEIGHT);
     }
-    setZoomFactor();
 
     process.env.MAIN_WINDOW_ID = mainWindow.id.toString();
     log.debug("Settings: ", settings);
@@ -76,9 +68,18 @@ export function createWindow() {
             log.debug(`NODE_ENV is development, opening dev tools`);
             webContents.openDevTools();
         }
+        updateDimensionsAndScaling();
         mainWindow.setMenuBarVisibility(false);
         mainWindow.show();
         mainWindow.focus();
+    });
+
+    // Display metrics changed (resolution, scale factor, etc.)
+    screen.on("display-metrics-changed", (event, display) => {
+        if (display.id === screen.getPrimaryDisplay().id) {
+            log.info("Primary display metrics changed, updating main window dimensions and scaling");
+            updateDimensionsAndScaling();
+        }
     });
 
     webContents.on("render-process-gone", (event, details) => {
@@ -105,21 +106,11 @@ export function createWindow() {
 
     // Register IPC handlers for the main window
     ipcMain.handle("mainWindow:setFullscreen", (_event, flag: boolean, size: number) => {
-        size = Math.round(size / screen.getPrimaryDisplay().scaleFactor);
         mainWindow.setFullScreen(flag);
-        if (!flag) {
-            mainWindow.setSize(Math.round((size * 16) / 9), size, true);
-            mainWindow.center();
-        }
-        setZoomFactor();
+        updateDimensionsAndScaling(size);
     });
     ipcMain.handle("mainWindow:setSize", (_event, size: number) => {
-        size = Math.round(size / screen.getPrimaryDisplay().scaleFactor);
-        mainWindow.setSize(Math.round((size * 16) / 9), size, true);
-        if (!mainWindow.isFullScreen()) {
-            mainWindow.center();
-            setZoomFactor();
-        }
+        updateDimensionsAndScaling(size);
     });
     ipcMain.handle("mainWindow:flashFrame", (_event, flag: boolean) => {
         mainWindow.flashFrame(flag);

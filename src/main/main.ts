@@ -95,6 +95,7 @@ app.enableSandbox();
 // Command line switches
 app.commandLine.appendSwitch("disable-features", "HardwareMediaKeyHandling,MediaSessionService");
 app.commandLine.appendSwitch("disable-pinch", "1");
+app.commandLine.appendSwitch("force-device-scale-factor", "1");
 
 app.whenReady().then(async () => {
     registerBarFileProtocol();
