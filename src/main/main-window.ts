@@ -54,9 +54,27 @@ export function createWindow() {
         const windowedHeight = size || settingsService.getSettings()?.size || 900;
         const height = mainWindow.isFullScreen() ? primaryDisplay.size.height : Math.round(windowedHeight / deviceScaleFactor);
         const width = mainWindow.isFullScreen() ? primaryDisplay.size.width : Math.round((height * 16) / 9);
+
         mainWindow.setSize(width, height);
         mainWindow.center();
-        webContents.setZoomFactor(mainWindow.getContentSize()[1] / ZOOM_FACTOR_BASELINE_HEIGHT);
+
+        // Insane workaround to resize the window
+        webContents.mainFrame.executeJavaScript(`window.resizeTo(${width}, ${height});`, true);
+
+        const zoomFactor = mainWindow.getContentSize()[1] / ZOOM_FACTOR_BASELINE_HEIGHT;
+        webContents.setZoomFactor(zoomFactor);
+        console.log({
+            width,
+            height,
+            zoomFactor,
+            deviceScaleFactor,
+            primaryDisplaySize: primaryDisplay.size,
+            contentSize: mainWindow.getContentSize(),
+            isFullScreen: mainWindow.isFullScreen(),
+            position: mainWindow.getPosition(),
+            bounds: mainWindow.getBounds(),
+            contentBounds: mainWindow.getContentBounds(),
+        });
     }
 
     process.env.MAIN_WINDOW_ID = mainWindow.id.toString();
