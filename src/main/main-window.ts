@@ -53,7 +53,7 @@ export function createWindow() {
         const deviceScaleFactor = ZOOM_FACTOR_BASELINE_HEIGHT / primaryDisplay.size.height;
         const windowedHeight = size || settingsService.getSettings()?.size || 900;
         const height = mainWindow.isFullScreen() ? primaryDisplay.size.height : Math.round(windowedHeight / deviceScaleFactor);
-        const width = Math.round((height * 16) / 9);
+        const width = mainWindow.isFullScreen() ? primaryDisplay.size.width : Math.round((height * 16) / 9);
         mainWindow.setSize(width, height);
         mainWindow.center();
         webContents.setZoomFactor(mainWindow.getContentSize()[1] / ZOOM_FACTOR_BASELINE_HEIGHT);
