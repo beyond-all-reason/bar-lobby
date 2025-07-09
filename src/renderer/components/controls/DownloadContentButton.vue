@@ -15,13 +15,14 @@ SPDX-License-Identifier: MIT
         <slot />
     </button>
     <Button v-else-if="map.isDownloading" class="quick-play-button fullwidth" disabled>Downloading map ...</Button>
-    <Button v-else class="red fullwidth" @click="downloadMap(map.springName)">Download map</Button>
+    <Button v-else-if="map.isQueued" class="quick-play-button fullwidth" disabled>Queued ...</Button>
+    <Button v-else class="red fullwidth" @click="enqueueMap(map.springName)">Download map</Button>
 </template>
 
 <script lang="ts" setup>
 import { MapDownloadData } from "@main/content/maps/map-data";
 import Button from "@renderer/components/controls/Button.vue";
-import { downloadMap } from "@renderer/store/maps.store";
+import { enqueueMap } from "@renderer/store/maps.store";
 import { ButtonProps } from "primevue/button";
 
 export interface Props extends /* @vue-ignore */ ButtonProps {

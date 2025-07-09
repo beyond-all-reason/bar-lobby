@@ -7,6 +7,7 @@ import type { MapData, MapDownloadData } from "@main/content/maps/map-data";
 import type { GameType, Terrain } from "@main/content/maps/map-metadata";
 import { db } from "@renderer/store/db";
 import { EntityTable } from "dexie";
+import PQueue from "p-queue";
 
 export const mapsStore: {
     isInitialized: boolean;
@@ -29,6 +30,7 @@ export const mapsStore: {
         downloadedOnly: false,
     },
 });
+const downloadQueue = new PQueue({ concurrency: 4 });
 
 export async function getRandomMap() {
     const mapCount = await db.maps.count();
@@ -114,9 +116,8 @@ async function fetchMapImages(map: MapData) {
     console.debug("Updated map images ", map.springName);
 }
 
-export async function downloadMap(springName: string) {
+export async function enqueueMap(springName: string) {
     let dbDelegate: EntityTable<MapData, "springName"> | EntityTable<MapDownloadData, "springName"> = db.maps;
-
     const mapIsLive = await db.maps.get(springName);
 
     if (!mapIsLive) {
@@ -127,11 +128,16 @@ export async function downloadMap(springName: string) {
                 springName: springName,
                 isDownloading: false,
                 isInstalled: false,
+                isQueued: false,
             } satisfies MapDownloadData);
         }
     }
+    dbDelegate.update(springName, { isQueued: true });
+    downloadQueue.add(() => downloadMap(dbDelegate, springName));
+}
 
-    dbDelegate.update(springName, { isDownloading: true });
+async function downloadMap(dbDelegate: EntityTable<MapData, "springName"> | EntityTable<MapDownloadData, "springName">, springName: string) {
+    dbDelegate.update(springName, { isQueued: false, isDownloading: true });
     await window.maps
         .downloadMap(springName)
         .then(() => {
