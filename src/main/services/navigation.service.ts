@@ -21,7 +21,7 @@ function registerIpcHandlers(webContents: BarIpcWebContents) {
     webContents.ipc.handle("renderer:ready", () => {
         log.info("Renderer is ready!");
 
-        const replayFiles = getReplayFiles(process.argv);
+        const replayFiles = getReplayFiles(process.argv, undefined, webContents);
 
         log.info(`Replay files opened on startup: ${replayFiles}`);
         for (const filePath of replayFiles) {
@@ -51,7 +51,7 @@ function registerIpcHandlers(webContents: BarIpcWebContents) {
         }
 
         // Handle replay files opened with the app
-        const replayFiles = getReplayFiles(argv, workingDirectory);
+        const replayFiles = getReplayFiles(argv, workingDirectory, typedWebContents(mainWindow.webContents));
         if (replayFiles.length > 0) {
             log.info(`Replay files opened with the app: ${replayFiles}`);
             for (const filePath of replayFiles) {
@@ -68,7 +68,7 @@ function registerIpcHandlers(webContents: BarIpcWebContents) {
     });
 }
 
-function getReplayFiles(argv: string[], workingDirectory?: string): string[] {
+function getReplayFiles(argv: string[], workingDirectory?: string, webContents?: BarIpcWebContents): string[] {
     return argv
         .filter((arg) => arg.endsWith(".sdfz"))
         .map((arg) => {
@@ -77,6 +77,12 @@ function getReplayFiles(argv: string[], workingDirectory?: string): string[] {
                 return filePath;
             } else {
                 log.warn(`Replay file not found: ${filePath}`);
+                if (webContents) {
+                    webContents.send("notifications:showAlert", {
+                        text: `Replay file not found: ${path.basename(filePath)}`,
+                        severity: "error",
+                    });
+                }
                 return null;
             }
         })
