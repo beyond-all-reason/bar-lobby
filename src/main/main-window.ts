@@ -19,6 +19,8 @@ const ZOOM_FACTOR_BASELINE_HEIGHT = 1080;
 
 const log = logger("main-window");
 
+const isWaylandNative = process.env.ELECTRON_OZONE_PLATFORM_HINT === "auto" || process.env.ELECTRON_OZONE_PLATFORM_HINT === "wayland";
+
 //TODO handle display changes, e.g. when the user changes the display in the settings,
 // moves the window to another display, or when the display is disconnected
 // be mindful of the scale factor for each display
@@ -53,6 +55,7 @@ export function createWindow() {
     });
 
     function updateDimensionsAndScaling(size?: number) {
+        log.debug(`Updating dimensions and scaling for main window with size: ${size}`);
         const primaryDisplay = screen.getPrimaryDisplay();
         const deviceScaleFactor = ZOOM_FACTOR_BASELINE_HEIGHT / primaryDisplay.size.height;
         const windowedHeight = size || settingsService.getSettings()?.size || 900;
@@ -62,23 +65,11 @@ export function createWindow() {
         mainWindow.setSize(width, height);
         mainWindow.center();
 
-        // Insane workaround to resize the window
-        webContents.mainFrame.executeJavaScript(`window.resizeTo(${width}, ${height});`, true);
+        // Workaround to resize the window on Wayland native.
+        if (isWaylandNative) webContents.mainFrame.executeJavaScript(`window.resizeTo(${width}, ${height});`, true);
 
         const zoomFactor = mainWindow.getContentSize()[1] / ZOOM_FACTOR_BASELINE_HEIGHT;
         webContents.setZoomFactor(zoomFactor);
-        console.log({
-            width,
-            height,
-            zoomFactor,
-            deviceScaleFactor,
-            primaryDisplaySize: primaryDisplay.size,
-            contentSize: mainWindow.getContentSize(),
-            isFullScreen: mainWindow.isFullScreen(),
-            position: mainWindow.getPosition(),
-            bounds: mainWindow.getBounds(),
-            contentBounds: mainWindow.getContentBounds(),
-        });
     }
 
     process.env.MAIN_WINDOW_ID = mainWindow.id.toString();
@@ -105,7 +96,7 @@ export function createWindow() {
     });
 
     webContents.on("render-process-gone", (event, details) => {
-        console.error(details);
+        log.error(details);
     });
 
     // Disable new window creation
