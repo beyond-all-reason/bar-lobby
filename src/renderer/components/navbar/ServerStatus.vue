@@ -9,7 +9,7 @@ SPDX-License-Identifier: MIT
         <div class="flex-row flex-center gap-sm">
             <div class="server-status-dot" :class="{ offline: !tachyonStore.isConnected }">⬤</div>
             <div v-if="tachyonStore.isConnected">{{ tachyonStore.serverStats?.userCount || 0 }} Players Online</div>
-            <div v-else-if="tachyonStore.error">Error</div>
+            <div v-else-if="tachyonStore.error">{{ tachyonStore.error }}</div>
             <div v-else>Reconnecting...</div>
         </div>
     </Button>
