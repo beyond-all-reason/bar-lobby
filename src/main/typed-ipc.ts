@@ -78,6 +78,7 @@ export type IPCCommands = {
     "log:upload": () => string;
     "mainWindow:flashFrame": (flag: boolean) => void;
     "mainWindow:setFullscreen": (flag: boolean, size: number) => void;
+    "mainWindow:resized": () => void;
     "mainWindow:setSize": (size: number) => void;
     "mainWindow:minimize": () => void;
     "mainWindow:isFullscreen": () => boolean;

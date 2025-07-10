@@ -2,21 +2,18 @@
 //
 // SPDX-License-Identifier: MIT
 
-import { app, BrowserWindow, ipcMain, nativeImage, screen } from "electron";
+import { app, BrowserWindow, nativeImage, screen } from "electron";
 import path from "path";
 import { settingsService } from "./services/settings.service";
 import { logger } from "./utils/logger";
 import icon from "@main/resources/icon.png";
 import { purgeLogFiles } from "@main/services/log.service";
-import { typedWebContents } from "@main/typed-ipc";
+import { typedWebContents, ipcMain } from "@main/typed-ipc";
 import { gameAPI } from "@main/game/game";
-import { nextTick } from "process";
 
 const ZOOM_FACTOR_BASELINE_HEIGHT = 1080;
 
 const log = logger("main-window");
-
-const isWaylandNative = process.env.ELECTRON_OZONE_PLATFORM_HINT === "auto" || process.env.ELECTRON_OZONE_PLATFORM_HINT === "wayland";
 
 //TODO handle display changes, e.g. when the user changes the display in the settings,
 // moves the window to another display, or when the display is disconnected
@@ -52,24 +49,16 @@ export function createWindow() {
     });
 
     function updateDimensionsAndScaling(size?: number) {
-        log.debug(`Updating dimensions and scaling for main window with size: ${size}`);
-        const primaryDisplay = screen.getPrimaryDisplay();
-        const deviceScaleFactor = ZOOM_FACTOR_BASELINE_HEIGHT / primaryDisplay.size.height;
-        const windowedHeight = size || settingsService.getSettings()?.size || 900;
-        const height = mainWindow.isFullScreen() || mainWindow.isMaximized() ? primaryDisplay.size.height : Math.round(windowedHeight / deviceScaleFactor);
-        const width = mainWindow.isFullScreen() || mainWindow.isMaximized() ? primaryDisplay.size.width : Math.round((height * 16) / 9);
-
         if (!mainWindow.isFullScreen() && !mainWindow.isMaximized()) {
-            mainWindow.setSize(width, height);
+            const windowedHeight = size || settingsService.getSettings()?.size || 900;
+            mainWindow.setSize((windowedHeight * 16) / 9, windowedHeight);
             mainWindow.center();
         }
 
-        // Workaround to resize the window on Wayland native.
-        if (isWaylandNative) webContents.mainFrame.executeJavaScript(`window.resizeTo(${width}, ${height});`, true);
-
-        const zoomFactor = height / ZOOM_FACTOR_BASELINE_HEIGHT;
-        webContents.setZoomFactor(zoomFactor);
-        log.info(`Main window dimensions set to ${width}x${height}, zoom factor: ${zoomFactor}`);
+        if (mainWindow.getContentSize()[1] > 0) {
+            const zoomFactor = mainWindow.getContentSize()[1] / ZOOM_FACTOR_BASELINE_HEIGHT;
+            webContents.setZoomFactor(zoomFactor);
+        }
     }
 
     process.env.MAIN_WINDOW_ID = mainWindow.id.toString();
@@ -86,9 +75,6 @@ export function createWindow() {
         mainWindow.show();
         mainWindow.focus();
     });
-
-    mainWindow.on("maximize", () => nextTick(() => updateDimensionsAndScaling()));
-    mainWindow.on("unmaximize", () => nextTick(() => updateDimensionsAndScaling()));
 
     // Display metrics changed (resolution, scale factor, etc.)
     screen.on("display-metrics-changed", (event, display) => {
@@ -133,6 +119,10 @@ export function createWindow() {
     });
     ipcMain.handle("mainWindow:minimize", () => mainWindow.minimize());
     ipcMain.handle("mainWindow:isFullscreen", () => mainWindow.isFullScreen());
+
+    ipcMain.handle("mainWindow:resized", () => {
+        updateDimensionsAndScaling();
+    });
 
     /////////////////////////////////////////////
     // Subscribe to game events
