@@ -24,11 +24,14 @@ function registerIpcHandlers(webContents: BarIpcWebContents) {
         const replayFiles = getReplayFiles(process.argv, undefined, webContents);
 
         log.info(`Replay files opened on startup: ${replayFiles}`);
+        const replayFileNames: string[] = [];
         for (const filePath of replayFiles) {
+            const fileName = path.basename(filePath);
+            replayFileNames.push(fileName);
             replayContentAPI.copyParseReplay(filePath).catch((err) => {
                 log.error(`Failed to copy and parse replay file ${filePath}:`, err);
                 webContents.send("notifications:showAlert", {
-                    text: `Failed to open replay file: ${path.basename(filePath)}`,
+                    text: `Failed to open replay file: ${fileName}`,
                     severity: "error",
                 });
             });
@@ -36,6 +39,8 @@ function registerIpcHandlers(webContents: BarIpcWebContents) {
 
         if (replayFiles.length > 0) {
             navigationService.navigateTo(webContents, "/library/replays");
+            // Send event to highlight the opened replays
+            webContents.send("replays:highlightOpened", replayFileNames);
         }
     });
 
@@ -54,16 +59,21 @@ function registerIpcHandlers(webContents: BarIpcWebContents) {
         const replayFiles = getReplayFiles(argv, workingDirectory, typedWebContents(mainWindow.webContents));
         if (replayFiles.length > 0) {
             log.info(`Replay files opened with the app: ${replayFiles}`);
+            const replayFileNames: string[] = [];
             for (const filePath of replayFiles) {
+                const fileName = path.basename(filePath);
+                replayFileNames.push(fileName);
                 replayContentAPI.copyParseReplay(filePath).catch((err) => {
                     log.error(`Failed to copy and parse replay file ${filePath}:`, err);
                     typedWebContents(mainWindow.webContents).send("notifications:showAlert", {
-                        text: `Failed to open replay file: ${path.basename(filePath)}`,
+                        text: `Failed to open replay file: ${fileName}`,
                         severity: "error",
                     });
                 });
             }
             navigationService.navigateTo(typedWebContents(mainWindow.webContents), "/library/replays");
+            // Send event to highlight the opened replays
+            typedWebContents(mainWindow.webContents).send("replays:highlightOpened", replayFileNames);
         }
     });
 }

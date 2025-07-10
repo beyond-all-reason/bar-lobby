@@ -39,6 +39,7 @@ SPDX-License-Identifier: MIT
                                     dataKey="fileName"
                                     :sortOrder="sortOrder === 'asc' ? 1 : -1"
                                     :sortField="sortField"
+                                    :rowClass="(data) => highlightedReplays.has(data.fileName) ? 'highlighted-replay' : ''"
                                     @page="onPage"
                                     @sort="onSort"
                                 >
@@ -140,6 +141,8 @@ import { GameStatus, gameStore, watchReplay } from "@renderer/store/game.store";
 import { MapDownloadData } from "@main/content/maps/map-data";
 import { Icon } from "@iconify/vue";
 import folder from "@iconify-icons/mdi/folder";
+import { replayHighlightStore } from "@renderer/store/replay-highlight.store";
+import { computed } from "vue";
 
 const endedNormally: Ref<boolean | null> = ref(true);
 const showSpoilers = ref(true);
@@ -150,6 +153,8 @@ const sortField: Ref<keyof Replay> = ref("startTime");
 const sortOrder: Ref<"asc" | "desc"> = ref("desc");
 const selectedReplay: Ref<Replay | null> = shallowRef(null);
 
+const highlightedReplays = computed(() => replayHighlightStore.state.highlightedReplays);
+
 onMounted(() => {
     window.replays.onReplayDeleted((filename: string) => {
         if (selectedReplay.value?.fileName == filename) {
@@ -157,8 +162,21 @@ onMounted(() => {
             triggerRef(selectedReplay);
         }
     });
+
+    const highlighted = Array.from(highlightedReplays.value);
+    if (highlighted.length > 0 && replays.value) {
+        const replayToSelect = replays.value.find(r => highlighted.includes(r.fileName));
+        if (replayToSelect) {
+            selectedReplay.value = replayToSelect;
+        }
+    }
 });
 
+watch(selectedReplay, (newReplay) => {
+    if (newReplay && highlightedReplays.value.has(newReplay.fileName)) {
+        replayHighlightStore.acknowledgeReplay(newReplay.fileName);
+    }
+});
 const replays = useDexieLiveQueryWithDeps([endedNormally, offset, limit, sortField, sortOrder], () => {
     let query;
     if (endedNormally.value !== null) {
@@ -267,5 +285,9 @@ function showReplayFile(replay: Replay) {
     height: 100%;
     position: relative;
     width: 400px;
+}
+
+:deep(.p-datatable-tbody tr.highlighted-replay td) {
+    background-color: rgba(255, 200, 0, 0.3) !important;
 }
 </style>

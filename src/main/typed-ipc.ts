@@ -41,6 +41,7 @@ export type IPCEvents = {
     "replays:replayCached": (replay: Replay) => Replay;
     "replays:replayCachingStarted": (filename: string) => void;
     "replays:replayDeleted": (filename: string) => void;
+    "replays:highlightOpened": (fileNames: string[]) => void;
     "tachyon:battleStart": (springString: string) => void;
     "tachyon:connected": () => void;
     "tachyon:disconnected": () => void;
