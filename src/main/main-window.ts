@@ -10,6 +10,7 @@ import icon from "@main/resources/icon.png";
 import { purgeLogFiles } from "@main/services/log.service";
 import { typedWebContents } from "@main/typed-ipc";
 import { gameAPI } from "@main/game/game";
+import { nextTick } from "process";
 
 const ZOOM_FACTOR_BASELINE_HEIGHT = 1080;
 
@@ -71,16 +72,6 @@ export function createWindow() {
         log.info(`Main window dimensions set to ${width}x${height}, zoom factor: ${zoomFactor}`);
     }
 
-    function updateScaling() {
-        const primaryDisplay = screen.getPrimaryDisplay();
-        const deviceScaleFactor = ZOOM_FACTOR_BASELINE_HEIGHT / primaryDisplay.size.height;
-        const windowedHeight = settingsService.getSettings()?.size || 900;
-        const height = mainWindow.isFullScreen() || mainWindow.isMaximized() ? primaryDisplay.size.height : Math.round(windowedHeight / deviceScaleFactor);
-        const zoomFactor = height / ZOOM_FACTOR_BASELINE_HEIGHT;
-        webContents.setZoomFactor(zoomFactor);
-        log.info(`Main window zoom factor set to ${zoomFactor}`);
-    }
-
     process.env.MAIN_WINDOW_ID = mainWindow.id.toString();
     log.debug("Settings: ", settings);
 
@@ -96,8 +87,8 @@ export function createWindow() {
         mainWindow.focus();
     });
 
-    mainWindow.on("maximize", () => updateScaling());
-    mainWindow.on("unmaximize", () => updateScaling());
+    mainWindow.on("maximize", () => nextTick(() => updateDimensionsAndScaling()));
+    mainWindow.on("unmaximize", () => nextTick(() => updateDimensionsAndScaling()));
 
     // Display metrics changed (resolution, scale factor, etc.)
     screen.on("display-metrics-changed", (event, display) => {
