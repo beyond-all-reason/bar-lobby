@@ -31,5 +31,5 @@ export const replayHighlightStore = {
 
     isHighlighted(fileName: string): boolean {
         return state.highlightedReplays.has(fileName);
-    }
+    },
 };

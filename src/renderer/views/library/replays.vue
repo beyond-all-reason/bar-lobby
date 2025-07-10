@@ -39,7 +39,7 @@ SPDX-License-Identifier: MIT
                                     dataKey="fileName"
                                     :sortOrder="sortOrder === 'asc' ? 1 : -1"
                                     :sortField="sortField"
-                                    :rowClass="(data) => highlightedReplays.has(data.fileName) ? 'highlighted-replay' : ''"
+                                    :rowClass="(data) => (highlightedReplays.has(data.fileName) ? 'highlighted-replay' : '')"
                                     @page="onPage"
                                     @sort="onSort"
                                 >
@@ -165,7 +165,7 @@ onMounted(() => {
 
     const highlighted = Array.from(highlightedReplays.value);
     if (highlighted.length > 0 && replays.value) {
-        const replayToSelect = replays.value.find(r => highlighted.includes(r.fileName));
+        const replayToSelect = replays.value.find((r) => highlighted.includes(r.fileName));
         if (replayToSelect) {
             selectedReplay.value = replayToSelect;
         }
