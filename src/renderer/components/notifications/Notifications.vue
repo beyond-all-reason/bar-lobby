@@ -16,17 +16,18 @@ SPDX-License-Identifier: MIT
 </template>
 
 <script lang="ts" setup>
+import { onMounted } from "vue";
 import AlertComponent from "@renderer/components/notifications/Alert.vue";
 import EventComponent from "@renderer/components/notifications/Event.vue";
-import { Alert, Event } from "@renderer/model/notifications";
+import { notificationsApi } from "@renderer/api/notifications";
 
-const notifications: {
-    alerts: Alert[];
-    events: Event[];
-} = {
-    alerts: [],
-    events: [],
-};
+const notifications = notificationsApi;
+
+onMounted(() => {
+    window.notifications.onShowAlert((alertConfig) => {
+        notificationsApi.alert(alertConfig);
+    });
+});
 </script>
 
 <style lang="scss" scoped>

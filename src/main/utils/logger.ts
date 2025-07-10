@@ -34,7 +34,7 @@ const logStream = PinoPretty({
     colorizeObjects: false,
     destination: pino.destination({
         dest: logFilePath,
-        sync: false,
+        sync: true,
     }),
 });
 

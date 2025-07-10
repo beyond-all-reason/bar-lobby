@@ -63,6 +63,7 @@ const replaysApi = {
     onReplayCachingStarted: (callback: (filename: string) => void) => ipcRenderer.on("replays:replayCachingStarted", (_event, filename) => callback(filename)),
     onReplayCached: (callback: (replay: Replay) => void) => ipcRenderer.on("replays:replayCached", (_event, replay) => callback(replay)),
     onReplayDeleted: (callback: (filename: string) => void) => ipcRenderer.on("replays:replayDeleted", (_event, filename) => callback(filename)),
+    onHighlightOpened: (callback: (fileNames: string[]) => void) => ipcRenderer.on("replays:highlightOpened", (_event, fileNames) => callback(fileNames)),
 };
 export type ReplaysApi = typeof replaysApi;
 contextBridge.exposeInMainWorld("replays", replaysApi);
@@ -161,6 +162,14 @@ const miscApi = {
 export type MiscApi = typeof miscApi;
 contextBridge.exposeInMainWorld("misc", miscApi);
 
+const barNavigationApi = {
+    onNavigateTo: (callback: (target: string) => void) => ipcRenderer.on("navigation:navigateTo", (_event, target) => callback(target)),
+    signalReady: (): Promise<void> => ipcRenderer.invoke("renderer:ready"),
+};
+
+export type BarNavigationApi = typeof barNavigationApi;
+contextBridge.exposeInMainWorld("barNavigation", barNavigationApi);
+
 // Tachyon API
 function request<C extends GetCommandIds<"user", "server", "request">>(
     ...args: GetCommandData<GetCommands<"user", "server", "request", C>> extends never ? [commandId: C] : [commandId: C, data: GetCommandData<GetCommands<"user", "server", "request", C>>]
@@ -209,3 +218,11 @@ const autoUpdaterApi = {
 };
 export type AutoUpdaterApi = typeof autoUpdaterApi;
 contextBridge.exposeInMainWorld("autoUpdater", autoUpdaterApi);
+
+const notificationsApi = {
+    // Events
+    onShowAlert: (callback: (alertConfig: { text: string; severity?: "info" | "warning" | "error"; timeoutMs?: number }) => void) =>
+        ipcRenderer.on("notifications:showAlert", (_event, alertConfig) => callback(alertConfig)),
+};
+export type NotificationsApi = typeof notificationsApi;
+contextBridge.exposeInMainWorld("notifications", notificationsApi);
