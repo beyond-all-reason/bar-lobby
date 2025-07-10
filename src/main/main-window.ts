@@ -57,8 +57,11 @@ export function createWindow() {
         const windowedHeight = size || settingsService.getSettings()?.size || 900;
         const height = mainWindow.isFullScreen() || mainWindow.isMaximized() ? primaryDisplay.size.height : Math.round(windowedHeight / deviceScaleFactor);
         const width = mainWindow.isFullScreen() || mainWindow.isMaximized() ? primaryDisplay.size.width : Math.round((height * 16) / 9);
-        mainWindow.setSize(width, height);
-        mainWindow.center();
+
+        if (!mainWindow.isFullScreen() && !mainWindow.isMaximized()) {
+            mainWindow.setSize(width, height);
+            mainWindow.center();
+        }
 
         // Workaround to resize the window on Wayland native.
         if (isWaylandNative) webContents.mainFrame.executeJavaScript(`window.resizeTo(${width}, ${height});`, true);
@@ -66,6 +69,16 @@ export function createWindow() {
         const zoomFactor = height / ZOOM_FACTOR_BASELINE_HEIGHT;
         webContents.setZoomFactor(zoomFactor);
         log.info(`Main window dimensions set to ${width}x${height}, zoom factor: ${zoomFactor}`);
+    }
+
+    function updateScaling() {
+        const primaryDisplay = screen.getPrimaryDisplay();
+        const deviceScaleFactor = ZOOM_FACTOR_BASELINE_HEIGHT / primaryDisplay.size.height;
+        const windowedHeight = settingsService.getSettings()?.size || 900;
+        const height = mainWindow.isFullScreen() || mainWindow.isMaximized() ? primaryDisplay.size.height : Math.round(windowedHeight / deviceScaleFactor);
+        const zoomFactor = height / ZOOM_FACTOR_BASELINE_HEIGHT;
+        webContents.setZoomFactor(zoomFactor);
+        log.info(`Main window zoom factor set to ${zoomFactor}`);
     }
 
     process.env.MAIN_WINDOW_ID = mainWindow.id.toString();
@@ -83,8 +96,8 @@ export function createWindow() {
         mainWindow.focus();
     });
 
-    mainWindow.on("maximize", () => updateDimensionsAndScaling());
-    mainWindow.on("unmaximize", () => updateDimensionsAndScaling());
+    mainWindow.on("maximize", () => updateScaling());
+    mainWindow.on("unmaximize", () => updateScaling());
 
     // Display metrics changed (resolution, scale factor, etc.)
     screen.on("display-metrics-changed", (event, display) => {
