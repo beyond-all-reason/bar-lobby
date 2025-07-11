@@ -21,6 +21,10 @@ import { setupI18n } from "@renderer/i18n";
 
 setupVue();
 
+new ResizeObserver(() => {
+    window.mainWindow.resized();
+}).observe(document.body);
+
 async function setupVue() {
     const app = createApp(App);
 
