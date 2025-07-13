@@ -7,9 +7,8 @@
 import { promises as fs } from "fs";
 import { glob } from "glob";
 import { LocalStatement, TableConstructorExpression, TableKey, TableKeyString, TableValue, parse } from "luaparse";
-import * as os from "os";
 import * as path from "path";
-import { extractSpecificFiles } from "@main/utils/extract-7z";
+import { readSpecificFile } from "@main/utils/extract-7z";
 import { MapInfo } from "$/map-parser/map-model";
 
 export class UltraSimpleMapParser {
@@ -21,49 +20,31 @@ export class UltraSimpleMapParser {
         const filePath = path.parse(mapFilePath);
         const fileName = filePath.name;
         const fileExt = filePath.ext;
-        const tempArchiveDir = path.join(os.tmpdir(), fileName);
         try {
             if (fileExt !== ".sd7") {
                 throw new Error(`${mapFilePath} - ${fileExt} extension is not supported, .sd7 and .sdz only.`);
             }
-            const archive = await this.extractSd7(mapFilePath, tempArchiveDir);
-            if(!archive.mapInfo) {
-                throw new Error(`${mapFilePath} - mapinfo.lua not found in the archive`);
-            }
-            const mapInfo = await this.parseMapInfo(archive.mapInfo);
+            const rawMapinfo = await readSpecificFile(mapFilePath, "mapinfo.lua")
+            const mapInfo = await this.parseMapInfo(rawMapinfo);
             let springName = "";
             if (mapInfo && mapInfo.name && mapInfo.version && mapInfo.name.includes(mapInfo.version!)) {
                 springName = mapInfo.name;
             } else if (mapInfo && mapInfo.name) {
                 springName = `${mapInfo.name} ${mapInfo.version}`;
-            } else if (archive.smfName) {
-                springName = archive.smfName;
+            } else if (mapInfo.smtFileName) {
+                springName = mapInfo.smtFileName;
+            } else {
+                springName = fileName;
             }
-            this.cleanup(tempArchiveDir);
             return {
                 fileName: filePath.name,
                 fileNameWithExt: filePath.base,
                 springName,
             };
         } catch (err: any) {
-            await this.cleanup(tempArchiveDir);
             console.error(err);
             throw err;
         }
-    }
-
-    protected async extractSd7(sd7Path: string, outPath: string) {
-        const isFileExists = await fs
-            .stat(sd7Path)
-            .then(() => true)
-            .catch(() => false);
-        if (!isFileExists) {
-            throw new Error(`File not found: ${sd7Path}`);
-        }
-        await fs.mkdir(outPath, { recursive: true });
-        await extractSpecificFiles(sd7Path, outPath, ["mapinfo.lua"]);
-        const archiveFiles = await this.extractArchiveFiles(outPath);
-        return archiveFiles;
     }
 
     protected async extractArchiveFiles(outPath: string) {
@@ -77,9 +58,8 @@ export class UltraSimpleMapParser {
         return { smfName, mapInfo };
     }
 
-    protected async parseMapInfo(buffer: Buffer): Promise<MapInfo> {
-        const mapInfoStr = buffer.toString();
-        const parsedMapInfo = parse(mapInfoStr, { encodingMode: "x-user-defined", comments: false });
+    protected async parseMapInfo(mapinfo: string): Promise<MapInfo> {
+        const parsedMapInfo = parse(mapinfo, { encodingMode: "x-user-defined", comments: false });
         const rootObj = parsedMapInfo.body[0] as LocalStatement;
         const rootTable = rootObj.init.find((block) => block.type === "TableConstructorExpression") as TableConstructorExpression;
         const obj = this.parseMapInfoFields(rootTable.fields);

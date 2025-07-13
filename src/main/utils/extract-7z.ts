@@ -30,3 +30,16 @@ export function extractSpecificFiles(archivePath: string, outputPath: string, fi
         });
     });
 }
+
+export function readSpecificFile(archivePath: string, fileName: string): Promise<string> {
+    return new Promise((resolve, reject) => {
+        cmd(["x", archivePath, "-so", fileName], (err, stdout) => {
+            if (err) {
+                console.error(err);
+                reject(err);
+            } else {
+                resolve(stdout.toString());
+            }
+        });
+    });
+}

@@ -61,9 +61,9 @@ export class MapContentAPI extends PrDownloaderAPI<string, MapData> {
         log.info(`Found ${Object.keys(this.mapNameFileNameLookup).length} maps`);
     }
 
+    ultraSimpleMapParser = new UltraSimpleMapParser();
     protected async getMapNameFromFile(filePath: string) {
-        const ultraSimpleMapParser = new UltraSimpleMapParser();
-        const parsedMap = await ultraSimpleMapParser.parseMap(filePath);
+        const parsedMap = await this.ultraSimpleMapParser.parseMap(filePath);
         return parsedMap.springName;
     }
 
