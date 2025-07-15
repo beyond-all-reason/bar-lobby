@@ -139,14 +139,18 @@ npm start
 - `npm run generate-i18n-assets` (run when modifying source translation files)
     - Generates transformed asset files for translations in `src/renderer/assets/languages`
 
-### Tips
+### Mutliplayer
 
-You can start multiple separate instances by overriding the assets and/or state location using env variables (e.g. to work on multiplayer features):
+You can start multiple separate instances by overriding the assets and/or state location using env variables:
 
 ```
 BAR_STATE_PATH=state-2 npm start
 BAR_ASSETS_PATH=assets-3 BAR_STATE_PATH=state-3 npm start
 ```
+
+At time of writing, the [production server (server4)](https://server4.beyondallreason.info/) isn't setup for the new client. You need
+to enable dev mode in the settings, and then, in the dev settings, choose [server5](https://server5.beyondallreason.info/) which is closer to the production
+server, or the [dev server](https://lobby-server-dev.beyondallreason.dev/) where you can create test accounts.
 
 ### License
 
