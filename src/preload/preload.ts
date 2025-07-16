@@ -32,10 +32,11 @@ export type InfoApi = typeof infoApi;
 contextBridge.exposeInMainWorld("info", infoApi);
 
 const mainWindowApi = {
-    setFullscreen: (flag: boolean): Promise<void> => ipcRenderer.invoke("mainWindow:setFullscreen", flag),
+    setFullscreen: (flag: boolean, size: number): Promise<void> => ipcRenderer.invoke("mainWindow:setFullscreen", flag, size),
     setSize: (size: number): Promise<void> => ipcRenderer.invoke("mainWindow:setSize", size),
-    toggleFullscreen: (): Promise<void> => ipcRenderer.invoke("mainWindow:toggleFullscreen"),
     flashFrame: (flag: boolean): Promise<void> => ipcRenderer.invoke("mainWindow:flashFrame", flag),
+    minimize: (): Promise<void> => ipcRenderer.invoke("mainWindow:minimize"),
+    isFullscreen: (): Promise<boolean> => ipcRenderer.invoke("mainWindow:isFullscreen"),
 };
 export type MainWindowApi = typeof mainWindowApi;
 contextBridge.exposeInMainWorld("mainWindow", mainWindowApi);
@@ -105,7 +106,7 @@ const gameApi = {
     launchMultiplayer: (settings: MultiplayerLaunchSettings): Promise<void> => ipcRenderer.invoke("game:launchMultiplayer", settings),
     launchScript: (script: string, gameVersion: string, engineVersion: string): Promise<void> => ipcRenderer.invoke("game:launchScript", script, gameVersion, engineVersion),
     launchReplay: (replay) => ipcRenderer.invoke("game:launchReplay", replay),
-    launchBattle: (battle: BattleWithMetadata): Promise<void> => ipcRenderer.invoke("game:launchBattle", battle),
+    launchBattle: (battle: BattleWithMetadata) => ipcRenderer.invoke("game:launchBattle", battle),
 
     // Events
     onGameLaunched: (callback: () => void) => ipcRenderer.on("game:launched", callback),
@@ -196,3 +197,15 @@ const tachyonApi = {
 };
 export type TachyonApi = typeof tachyonApi;
 contextBridge.exposeInMainWorld("tachyon", tachyonApi);
+
+const autoUpdaterApi = {
+    checkForUpdates: (): Promise<boolean> => ipcRenderer.invoke("autoUpdater:checkForUpdates"),
+    downloadUpdate: (): Promise<void> => ipcRenderer.invoke("autoUpdater:downloadUpdate"),
+    quitAndInstall: (): Promise<void> => ipcRenderer.invoke("autoUpdater:quitAndInstall"),
+    installUpdates: (): Promise<void> => ipcRenderer.invoke("autoUpdater:installUpdates"),
+
+    // Events
+    onDownloadUpdateProgress: (callback: (downloadInfo: DownloadInfo) => void) => ipcRenderer.on("downloads:update:progress", (_event, downloadInfo: DownloadInfo) => callback(downloadInfo)),
+};
+export type AutoUpdaterApi = typeof autoUpdaterApi;
+contextBridge.exposeInMainWorld("autoUpdater", autoUpdaterApi);

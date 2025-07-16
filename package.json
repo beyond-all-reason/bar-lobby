@@ -1,7 +1,7 @@
 {
     "name": "bar-lobby",
     "type": "module",
-    "version": "0.15.0",
+    "version": "0.15.1",
     "private": true,
     "description": "Lobby client for the RTS game Beyond All Reason",
     "author": "The BAR Lobby Authors",
@@ -14,7 +14,7 @@
     "scripts": {
         "start": "cross-env NODE_OPTIONS=--enable-source-maps electron-forge start",
         "package": "electron-forge package",
-        "preview": "electron-forge package && electron .",
+        "preview": "electron-forge package && cross-env NODE_OPTIONS=--enable-source-maps NODE_ENV=production electron .",
         "build:win": "electron-builder --config electron-builder.config.ts --win",
         "buildall:win": "npm run package && npm run build:win",
         "build:linux": "electron-builder --config electron-builder.config.ts --linux",
@@ -30,7 +30,9 @@
         "format:check": "prettier --check --cache .",
         "typecheck:node": "tsc --noEmit -p tsconfig.node.json --composite false",
         "typecheck:web": "vue-tsc --noEmit -p tsconfig.web.json --composite false",
-        "typecheck": "npm run typecheck:node && npm run typecheck:web"
+        "typecheck": "npm run typecheck:node && npm run typecheck:web",
+        "checks": "npm run typecheck && npm run lint && npm run format:check",
+        "generate-i18n-assets": "node --import=tsx tools/generate-i18n-asset-files.ts"
     },
     "engines": {
         "node": "22.14.0"
@@ -86,6 +88,7 @@
         "globals": "^16.0.0",
         "prettier": "^3.5.3",
         "sass": "^1.85.1",
+        "tsx": "^4.20.3",
         "typescript": "^5.8.2",
         "typescript-eslint": "^8.26.1",
         "unplugin-vue-router": "^0.12.0",

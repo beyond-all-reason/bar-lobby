@@ -75,22 +75,27 @@ SPDX-License-Identifier: MIT
                     </Panel>
                 </div>
                 <div class="right-section">
-                    <Panel class="flex-grow">
+                    <Panel class="flex-grow" no-padding>
                         <ReplayPreview v-if="selectedReplay" :replay="selectedReplay" :showSpoilers="showSpoilers">
                             <template #actions="{ replay }">
-                                <DownloadContentButton
-                                    v-if="map && replay"
-                                    :map="map"
-                                    @click="watchReplay(replay)"
-                                    :disabled="isLaunching || gameStore.isGameRunning"
-                                >
-                                    <template v-if="gameStore.isGameRunning"> Game Running </template>
-                                    <template v-else-if="isLaunching"> Launching... </template>
-                                    <template v-else> Watch </template>
-                                </DownloadContentButton>
-                                <Button v-else disabled style="flex-grow: 1">Watch</Button>
-                                <Button v-if="replay" @click="showReplayFile(replay)">Show File</Button>
-                                <Button v-else disabled>Show File</Button>
+                                <div class="fullwidth">
+                                    <div class="flex-row flex-bottom gap-md padding-bottom-md">
+                                        <DownloadContentButton
+                                            v-if="map && replay"
+                                            :map="map"
+                                            @click="watchReplay(replay)"
+                                            :disabled="gameStore.status !== GameStatus.CLOSED"
+                                        >
+                                            <template v-if="gameStore.status === GameStatus.RUNNING">Game is running</template>
+                                            <template v-else-if="gameStore.status === GameStatus.LOADING">Launching...</template>
+                                            <template v-else>Watch</template>
+                                        </DownloadContentButton>
+                                        <Button v-else disabled style="flex-grow: 1">Watch</Button>
+                                        <Button v-if="replay" @click="showReplayFile(replay)" class="icon" :height="32"
+                                            ><Icon :icon="folder" :height="32"
+                                        /></Button>
+                                    </div>
+                                </div>
                             </template>
                         </ReplayPreview>
                     </Panel>
@@ -118,7 +123,7 @@ SPDX-License-Identifier: MIT
 
 import { format } from "date-fns";
 import Column from "primevue/column";
-import { Ref, ref, shallowRef } from "vue";
+import { Ref, ref, shallowRef, onMounted, triggerRef } from "vue";
 
 import Button from "@renderer/components/controls/Button.vue";
 import Checkbox from "@renderer/components/controls/Checkbox.vue";
@@ -131,8 +136,10 @@ import { db } from "@renderer/store/db";
 import { useDexieLiveQueryWithDeps } from "@renderer/composables/useDexieLiveQuery";
 import ReplayPreview from "@renderer/components/battle/ReplayPreview.vue";
 import DownloadContentButton from "@renderer/components/controls/DownloadContentButton.vue";
-import { gameStore } from "@renderer/store/game.store";
+import { GameStatus, gameStore, watchReplay } from "@renderer/store/game.store";
 import { MapDownloadData } from "@main/content/maps/map-data";
+import { Icon } from "@iconify/vue";
+import folder from "@iconify-icons/mdi/folder";
 
 const endedNormally: Ref<boolean | null> = ref(true);
 const showSpoilers = ref(true);
@@ -142,7 +149,15 @@ const limit = ref(15);
 const sortField: Ref<keyof Replay> = ref("startTime");
 const sortOrder: Ref<"asc" | "desc"> = ref("desc");
 const selectedReplay: Ref<Replay | null> = shallowRef(null);
-const isLaunching = ref(false);
+
+onMounted(() => {
+    window.replays.onReplayDeleted((filename: string) => {
+        if (selectedReplay.value?.fileName == filename) {
+            selectedReplay.value = null;
+            triggerRef(selectedReplay);
+        }
+    });
+});
 
 const replays = useDexieLiveQueryWithDeps([endedNormally, offset, limit, sortField, sortOrder], () => {
     let query;
@@ -195,21 +210,6 @@ function openBrowserToReplayService() {
 
 function openReplaysFolder() {
     window.shell.openReplaysDir();
-}
-
-function watchReplay(replay: Replay) {
-    // return early if isLaunching is true or game is running to not spam multiple launches
-    if (isLaunching.value || gameStore.isGameRunning) return;
-
-    isLaunching.value = true;
-    window.game
-        .launchReplay(replay)
-        .then(() => {
-            isLaunching.value = false;
-        })
-        .catch(() => {
-            isLaunching.value = false;
-        });
 }
 
 function showReplayFile(replay: Replay) {

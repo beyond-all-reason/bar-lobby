@@ -20,7 +20,7 @@ import { shellService } from "@main/services/shell.service";
 import downloadsService from "@main/services/downloads.service";
 import replaysService from "@main/services/replays.service";
 import { miscService } from "@main/services/news.service";
-import { autoUpdaterService } from "@main/services/auto-updater.service";
+import autoUpdaterService from "@main/services/auto-updater.service";
 import { replayContentAPI } from "@main/content/replays/replay-content";
 import { authService } from "@main/services/auth.service";
 import { tachyonService } from "@main/services/tachyon.service";
@@ -104,8 +104,6 @@ app.whenReady().then(async () => {
         } catch (err) {
             log.error("Vue Devtools failed to install:", err?.toString());
         }
-    } else if (app.isPackaged && process.env.NODE_ENV === "production") {
-        autoUpdaterService.init();
     }
     // Define CSP for all webContents
     session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
@@ -118,7 +116,7 @@ app.whenReady().then(async () => {
     });
     // Initialize services
     await engineService.init();
-    await Promise.all([settingsService.init(), accountService.init(), replaysService.init(), gameService.init(), mapsService.init()]);
+    await Promise.all([settingsService.init(), accountService.init(), replaysService.init(), gameService.init(), mapsService.init(), autoUpdaterService.init()]);
     const mainWindow = createWindow();
     const webContents = typedWebContents(mainWindow.webContents);
     // Handlers may need the webContents to send events
@@ -134,6 +132,7 @@ app.whenReady().then(async () => {
     shellService.registerIpcHandlers();
     downloadsService.registerIpcHandlers(webContents);
     miscService.registerIpcHandlers();
+    autoUpdaterService.registerIpcHandlers();
     const file = replayFileOpenedWithTheApp();
     if (file) {
         log.info(`Opening replay file: ${file}`);

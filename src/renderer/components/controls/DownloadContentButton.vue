@@ -5,18 +5,29 @@ SPDX-License-Identifier: MIT
 -->
 
 <template>
-    <button
-        v-if="map.isInstalled"
-        class="quick-play-button fullwidth"
-        :class="props.class"
-        :disabled="props.disabled"
-        @click="props.onClick"
-    >
-        <slot />
-    </button>
-    <Button v-else-if="map.isDownloading" class="quick-play-button fullwidth" disabled>Downloading map ...</Button>
-    <Button v-else-if="map.isQueued" class="quick-play-button fullwidth" disabled>Queued ...</Button>
-    <Button v-else class="red fullwidth" @click="enqueueMap(map.springName)">Download map</Button>
+    <div class="fullwidth">
+        <div class="progress-bar-outer margin-left-md margin-right-md">
+            <MapDownloadProgress :map-name="map?.springName" :height="75"></MapDownloadProgress>
+        </div>
+        <button
+            v-if="map.isInstalled"
+            class="quick-play-button fullwidth"
+            :class="props.class"
+            :disabled="props.disabled"
+            @click="props.onClick"
+        >
+            <slot />
+        </button>
+        <Button v-else-if="map.isQueued" class="grey quick-download-button fullwidth anchor" @input.stop style="min-height: unset"
+            >Queued...</Button
+        >
+        <Button v-else-if="map.isDownloading" class="grey quick-download-button fullwidth anchor" @input.stop style="min-height: unset"
+            >Downloading...</Button
+        >
+        <Button v-else class="red fullwidth quick-download-button" @click="downloadMap(map.springName)" style="min-height: unset"
+            >Download map</Button
+        >
+    </div>
 </template>
 
 <script lang="ts" setup>
@@ -24,6 +35,7 @@ import { MapDownloadData } from "@main/content/maps/map-data";
 import Button from "@renderer/components/controls/Button.vue";
 import { enqueueMap } from "@renderer/store/maps.store";
 import { ButtonProps } from "primevue/button";
+import MapDownloadProgress from "@renderer/components/common/MapDownloadProgress.vue";
 
 export interface Props extends /* @vue-ignore */ ButtonProps {
     map: MapDownloadData;
@@ -36,12 +48,29 @@ const props = defineProps<Props>();
 </script>
 
 <style lang="scss" scoped>
-.quick-play-button {
+.quick-download-button {
     align-self: center;
-    text-transform: uppercase;
     font-family: Rajdhani;
     font-weight: bold;
-    font-size: 1.8rem;
+    font-size: 1.4rem;
+    padding: 10px 40px;
+    color: #fff;
+    border: none;
+    border-radius: 2px;
+    text-align: center;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition:
+        transform 0.3s ease,
+        box-shadow 0.3s ease;
+}
+
+.quick-play-button {
+    align-self: center;
+    font-family: Rajdhani;
+    font-weight: bold;
+    font-size: 1.4rem;
     padding: 10px 40px;
     color: #fff;
     background: linear-gradient(90deg, #22c55e, #16a34a);
@@ -75,5 +104,17 @@ const props = defineProps<Props>();
 
 .quick-play-button:hover::before {
     box-shadow: 0 8px 15px rgba(34, 197, 94, 0.4);
+}
+.anchor {
+    anchor-name: --anchor;
+}
+.progress-bar-outer {
+    position: fixed;
+    position-area: top span-all;
+    position-anchor: --anchor;
+    width: anchor-size(width);
+    height: anchor-size(height);
+    transform: translateY(100%);
+    overflow: hidden;
 }
 </style>

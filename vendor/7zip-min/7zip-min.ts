@@ -70,14 +70,14 @@ function run(bin, args, cb) {
         cb(err);
     });
     proc.on('exit', function (code) {
-        let result = null;
-        if (args[0] === 'l') {
-            result = parseListOutput(output);
-        }
         if (code) {
             runError.message = `7-zip exited with code ${code}\n${output}`;
         }
-        cb(code ? runError : null, result);
+        if (args[0] === 'l') {
+            cb(code ? runError : null, parseListOutput(output));
+        } else {
+            cb(code ? runError : null, output);
+        }
     });
     proc.stdout.on('data', (chunk) => {
         output += chunk.toString();

@@ -10,8 +10,9 @@ import { replayContentAPI } from "@main/content/replays/replay-content";
 import icon from "@main/resources/icon.png";
 import { purgeLogFiles } from "@main/services/log.service";
 import { typedWebContents } from "@main/typed-ipc";
+import { gameAPI } from "@main/game/game";
 
-declare const MAIN_WINDOW_VITE_DEV_SERVER_URL: string;
+declare const MAIN_WINDOW_VITE_DEV_SERVER_URL: string | undefined;
 declare const MAIN_WINDOW_VITE_NAME: string;
 
 const ZOOM_FACTOR_BASELINE_HEIGHT = 1080;
@@ -22,8 +23,8 @@ export function createWindow() {
     const settings = settingsService.getSettings();
     log.info("Creating main window with settings: ", settings);
 
-    const width = 1440;
-    const height = 900;
+    const height = settings.size || 900;
+    const width = Math.round((height * 16) / 9);
 
     const mainWindow = new BrowserWindow({
         title: "Beyond All Reason",
@@ -60,24 +61,12 @@ export function createWindow() {
         const zoomFactor = mainWindow.getContentSize()[1] / ZOOM_FACTOR_BASELINE_HEIGHT;
         console.debug("Window size: ", mainWindow.getContentSize());
         console.debug("Zoom factor: ", zoomFactor);
-        webContents.zoomFactor = zoomFactor;
+        // prevent breaking when minimizing
+        if (zoomFactor > 0) {
+            webContents.zoomFactor = zoomFactor;
+        }
     }
     setZoomFactor();
-
-    mainWindow.on("enter-full-screen", () => {
-        console.debug("Enter full screen event");
-        setZoomFactor();
-    });
-
-    mainWindow.on("leave-full-screen", () => {
-        console.debug("Leave full screen event");
-        setZoomFactor();
-    });
-
-    mainWindow.on("resize", () => {
-        console.debug("Resize event");
-        setZoomFactor();
-    });
 
     process.env.MAIN_WINDOW_ID = mainWindow.id.toString();
     log.debug("Settings: ", settings);
@@ -103,7 +92,7 @@ export function createWindow() {
     });
 
     // and load the index.html of the app.
-    if (app.isPackaged) {
+    if (!MAIN_WINDOW_VITE_DEV_SERVER_URL) {
         mainWindow.loadFile(path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`));
     } else {
         mainWindow.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL);
@@ -138,20 +127,39 @@ export function createWindow() {
     //TODO add an IPC handler for changing display via the settings
 
     // Register IPC handlers for the main window
-    ipcMain.handle("mainWindow:setFullscreen", (_event, flag: boolean) => {
+    ipcMain.handle("mainWindow:setFullscreen", (_event, flag: boolean, size: number) => {
         mainWindow.setFullScreen(flag);
+        if (!flag) {
+            mainWindow.setSize(Math.round((size * 16) / 9), size, true);
+            mainWindow.center();
+        }
+        setZoomFactor();
     });
     ipcMain.handle("mainWindow:setSize", (_event, size: number) => {
         mainWindow.setSize(Math.round((size * 16) / 9), size, true);
+        if (!mainWindow.isFullScreen()) {
+            mainWindow.center();
+            setZoomFactor();
+        }
     });
-    ipcMain.handle("mainWindow:toggleFullscreen", () => mainWindow.setFullScreen(!mainWindow.isFullScreen()));
     ipcMain.handle("mainWindow:flashFrame", (_event, flag: boolean) => {
         mainWindow.flashFrame(flag);
     });
+    ipcMain.handle("mainWindow:minimize", () => mainWindow.minimize());
+    ipcMain.handle("mainWindow:isFullscreen", () => mainWindow.isFullScreen());
+
     /////////////////////////////////////////////
     // Subscribe to game events
-    webContents.ipc.on("game:launched", () => {
-        log.info("Game launched");
+    /////////////////////////////////////////////
+    gameAPI.onGameLaunched.add(() => {
+        log.info("Game launched - hiding main window");
+        mainWindow.hide();
+    });
+
+    gameAPI.onGameClosed.add(() => {
+        log.info("Game closed - showing main window");
+        mainWindow.show();
+        mainWindow.focus();
     });
 
     // Purge old log files

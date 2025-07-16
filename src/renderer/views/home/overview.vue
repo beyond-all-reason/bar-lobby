@@ -20,13 +20,12 @@ SPDX-License-Identifier: MIT
                 </div>
                 <div class="center-column">
                     <img class="logo" src="/src/renderer/assets/images/BARLogoFull.png" />
-                    <div class="new-lobby-alpha">A new lobby has landed</div>
-                    <div class="new-lobby-subtext">
-                        Welcome to the new BAR lobby public testing alpha 1 commander !<br />This version only supports singleplayer game
-                        modes.
-                    </div>
+                    <div class="new-lobby-alpha">{{ t("lobby.overview.newLobbyAlpha") }}</div>
+                    <div class="new-lobby-subtext txt-multiline">{{ t("lobby.overview.newLobbySubtext") }}</div>
                     <div class="button-container">
-                        <button class="quick-play-button" @click="battleStore.isSelectingGameMode = true">Quick play</button>
+                        <button class="quick-play-button" @click="battleStore.isSelectingGameMode = true">
+                            {{ t("lobby.buttons.quickPlay") }}
+                        </button>
                     </div>
                 </div>
                 <div class="right-column">
@@ -44,8 +43,11 @@ SPDX-License-Identifier: MIT
 import Loader from "@renderer/components/common/Loader.vue";
 import DevlogFeed from "@renderer/components/misc/DevlogFeed.vue";
 import NewsFeed from "@renderer/components/misc/NewsFeed.vue";
+import { useTypedI18n } from "@renderer/i18n";
 import { battleStore } from "@renderer/store/battle.store";
 import { watch } from "vue";
+
+const { t } = useTypedI18n();
 
 watch(
     () => battleStore.isSelectingGameMode,

@@ -16,7 +16,6 @@ import { extract7z } from "@main/utils/extract-7z";
 import { getEngineReleaseInfo } from "@main/config/content-sources";
 import { AbstractContentAPI } from "@main/content/abstract-content";
 import { ENGINE_PATH } from "@main/config/app";
-import { DownloadEngine } from "@main/content/game/type";
 import { DEFAULT_ENGINE_VERSION } from "@main/config/default-versions";
 
 const log = logger("engine-content.ts");
@@ -69,23 +68,21 @@ export class EngineContentAPI extends AbstractContentAPI<string, EngineVersion> 
         }
     }
 
-    public downloadEngine: DownloadEngine = async (engineVersion) => {
+    public async downloadEngine(engineVersion: string) {
         if (!engineVersion) {
             throw new Error("Engine Version is not specified");
         }
-
         try {
             if (this.isVersionInstalled(engineVersion)) {
                 return;
             }
-
             const engineInfo = await getEngineReleaseInfo(engineVersion);
-
             const downloadInfo: DownloadInfo = {
                 type: "engine",
                 name: engineVersion,
                 currentBytes: 0,
                 totalBytes: 1,
+                progress: 0,
             };
             this.currentDownloads.push(downloadInfo);
             this.downloadStarted(downloadInfo);
@@ -116,8 +113,9 @@ export class EngineContentAPI extends AbstractContentAPI<string, EngineVersion> 
             return engineVersion;
         } catch (err) {
             log.error(err);
+            throw new Error(`Failed to download engine version ${engineVersion}: ${err instanceof Error ? err.message : String(err)}`);
         }
-    };
+    }
 
     public async uninstallVersion(version: EngineVersion | string) {
         if (typeof version === "object") {

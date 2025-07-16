@@ -18,6 +18,7 @@ SPDX-License-Identifier: MIT
                         {{ view.meta.title }}
                     </Button>
                 </div>
+                <div class="drag-window-area"></div>
                 <div class="primary-right">
                     <Button
                         v-if="false"
@@ -46,6 +47,13 @@ SPDX-License-Identifier: MIT
                     />
                     <Button v-tooltip.bottom="'Settings'" class="icon" @click="settingsOpen = true">
                         <Icon :icon="cog" :height="40" />
+                    </Button>
+                    <Button v-tooltip.bottom="'Minimize'" class="icon" @click="minimizeWindow">
+                        <Icon :icon="windowMinimize" :height="40"></Icon>
+                    </Button>
+                    <Button v-tooltip.bottom="settingsStore.fullscreen ? 'Windowed' : 'Fullscreen'" class="icon" @click="toggleFullscreen">
+                        <Icon v-if="settingsStore.fullscreen" :icon="fullscreenExit" :height="40"></Icon>
+                        <Icon v-else :icon="fullscreen" :height="40"></Icon>
                     </Button>
                     <Button v-tooltip.bottom="'Exit'" class="icon close" @click="exitOpen = true">
                         <Icon :icon="closeThick" :height="40" />
@@ -91,6 +99,10 @@ import account from "@iconify-icons/mdi/account";
 import accountMultiple from "@iconify-icons/mdi/account-multiple";
 import messageIcon from "@iconify-icons/mdi/chat";
 import closeThick from "@iconify-icons/mdi/close-thick";
+import windowMinimize from "@iconify-icons/mdi/window-minimize";
+import fullscreen from "@iconify-icons/mdi/fullscreen";
+import fullscreenExit from "@iconify-icons/mdi/fullscreen-exit";
+
 import cog from "@iconify-icons/mdi/cog";
 import { computed, inject, Ref, ref } from "vue";
 
@@ -150,6 +162,14 @@ const messagesUnread = computed(() => {
     // }
     return false;
 });
+
+function minimizeWindow() {
+    window.mainWindow?.minimize();
+}
+
+function toggleFullscreen() {
+    settingsStore.fullscreen = !settingsStore.fullscreen;
+}
 </script>
 
 <style lang="scss" scoped>
@@ -332,5 +352,10 @@ const messagesUnread = computed(() => {
     right: 17px;
     bottom: 17px;
     background: red;
+}
+
+.drag-window-area {
+    flex-grow: 1;
+    -webkit-app-region: drag !important;
 }
 </style>

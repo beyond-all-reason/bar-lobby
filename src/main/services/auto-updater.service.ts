@@ -2,35 +2,35 @@
 //
 // SPDX-License-Identifier: MIT
 
-import { app } from "electron";
-import electronUpdater from "electron-updater";
-const { autoUpdater } = electronUpdater;
+import { ipcMain } from "@main/typed-ipc";
+import { autoUpdaterAPI } from "@main/content/auto-updater";
 
-function init() {
-    app.on("ready", () => {
-        console.log("Checking for updates...");
-        autoUpdater.checkForUpdatesAndNotify();
+// Examples: https://github.com/iffy/electron-updater-example/blob/master/main.js
+async function init() {
+    autoUpdaterAPI.init();
+}
+
+function registerIpcHandlers() {
+    ipcMain.handle("autoUpdater:checkForUpdates", async () => {
+        return await autoUpdaterAPI.checkForUpdates();
+    });
+
+    ipcMain.handle("autoUpdater:downloadUpdate", async () => {
+        return await autoUpdaterAPI.downloadUpdate();
+    });
+
+    ipcMain.handle("autoUpdater:quitAndInstall", () => {
+        autoUpdaterAPI.quitAndInstall();
+    });
+
+    ipcMain.handle("autoUpdater:installUpdates", () => {
+        autoUpdaterAPI.installUpdates();
     });
 }
 
-// Examples: https://github.com/iffy/electron-updater-example/blob/master/main.js
-function registerEvents() {
-    // autoUpdater.on('checking-for-update', () => {
-    // })
-    // autoUpdater.on('update-available', (info) => {
-    // })
-    // autoUpdater.on('update-not-available', (info) => {
-    // })
-    // autoUpdater.on('error', (err) => {
-    // })
-    // autoUpdater.on('download-progress', (progressObj) => {
-    // })
-    // autoUpdater.on('update-downloaded', (info) => {
-    //   autoUpdater.quitAndInstall();
-    // })
-}
-
-export const autoUpdaterService = {
+const autoUpdaterService = {
     init,
-    registerEvents,
+    registerIpcHandlers,
 };
+
+export default autoUpdaterService;

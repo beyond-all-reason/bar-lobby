@@ -4,17 +4,25 @@
 
 import { GameVersion } from "@main/content/game/game-version";
 import { LuaOption } from "@main/content/game/lua-options";
+import { Replay } from "@main/content/replays/replay";
+import { BattleWithMetadata } from "@main/game/battle/battle-types";
 import { db } from "@renderer/store/db";
 import { reactive, watch } from "vue";
 
+export enum GameStatus {
+    LOADING,
+    RUNNING,
+    CLOSED,
+}
+
 export const gameStore: {
     isInitialized: boolean;
-    isGameRunning: boolean;
+    status: GameStatus;
     selectedGameVersion?: GameVersion;
     optionsMap?: Record<string, LuaOption & { section: string }>;
 } = reactive({
     isInitialized: false,
-    isGameRunning: false,
+    status: GameStatus.CLOSED,
 });
 
 async function refreshStore() {
@@ -47,6 +55,30 @@ export async function downloadGame(version: string) {
     await refreshStore();
 }
 
+export async function startBattle(battle: BattleWithMetadata) {
+    try {
+        gameStore.status = GameStatus.LOADING;
+        await window.game.launchBattle(battle);
+        gameStore.status = GameStatus.RUNNING;
+    } catch (error) {
+        console.error("Failed to start battle:", error);
+        gameStore.status = GameStatus.CLOSED;
+        throw error; // Re-throw the error to display it in the UI
+    }
+}
+
+export async function watchReplay(replay: Replay) {
+    try {
+        gameStore.status = GameStatus.LOADING;
+        await window.game.launchReplay(replay);
+        gameStore.status = GameStatus.RUNNING;
+    } catch (error) {
+        console.error("Failed to watch replay:", error);
+        gameStore.status = GameStatus.CLOSED;
+        throw error; // Re-throw the error to display it in the UI
+    }
+}
+
 export async function initGameStore() {
     if (gameStore.isInitialized) return;
     await refreshStore();
@@ -56,11 +88,11 @@ export async function initGameStore() {
     });
     window.game.onGameLaunched(() => {
         console.debug("Game loaded");
-        gameStore.isGameRunning = true;
+        gameStore.status = GameStatus.RUNNING;
     });
     window.game.onGameClosed(() => {
         console.debug("Game closed");
-        gameStore.isGameRunning = false;
+        gameStore.status = GameStatus.CLOSED;
     });
     gameStore.isInitialized = true;
 }

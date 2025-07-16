@@ -2,6 +2,7 @@
 //
 // SPDX-License-Identifier: MIT
 
+import { autoUpdaterAPI } from "@main/content/auto-updater";
 import { engineContentAPI } from "@main/content/engine/engine-content";
 import { gameContentAPI } from "@main/content/game/game-content";
 import { mapContentAPI } from "@main/content/maps/map-content";
@@ -45,6 +46,10 @@ function registerIpcHandlers(webContents: BarIpcWebContents) {
     });
     mapContentAPI.onDownloadFail.add((downloadInfo) => {
         webContents.send("downloads:map:fail", downloadInfo);
+    });
+
+    autoUpdaterAPI.onDownloadProgress.add((downloadInfo) => {
+        webContents.send("downloads:update:progress", downloadInfo);
     });
 }
 

@@ -1,0 +1,11 @@
+{
+    "lobby": {
+        "buttons": {
+            "quickPlay": "Quick play"
+        },
+        "overview": {
+            "newLobbyAlpha": "A new lobby has landed",
+            "newLobbySubtext": "Welcome to the new BAR lobby public testing alpha 1 commander !\nThis version only supports singleplayer game modes."
+        }
+    }
+}

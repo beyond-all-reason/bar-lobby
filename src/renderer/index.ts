@@ -10,8 +10,6 @@ import "@renderer/styles/styles.scss";
 import PrimeVue from "primevue/config";
 import Tooltip from "primevue/tooltip";
 import { createApp } from "vue";
-import { createI18n } from "vue-i18n";
-import { localeFilePaths } from "@renderer/assets/assetFiles";
 
 import App from "@renderer/App.vue";
 import { clickAwayDirective } from "@renderer/utils/click-away-directive";
@@ -19,6 +17,7 @@ import { elementInViewDirective } from "@renderer/utils/element-in-view-directiv
 import { audioApi } from "@renderer/audio/audio";
 import { router } from "@renderer/router";
 import { initPreMountStores } from "@renderer/store/stores";
+import { setupI18n } from "@renderer/i18n";
 
 setupVue();
 
@@ -28,7 +27,7 @@ async function setupVue() {
     // Plugins
     app.use(router);
     app.use(PrimeVue, { ripple: true });
-    app.use(await setupI18n());
+    app.use(setupI18n());
 
     // Directives
     app.directive("click-away", clickAwayDirective);
@@ -40,19 +39,4 @@ async function setupVue() {
     await audioApi.init();
 
     app.mount("#app");
-}
-
-async function setupI18n() {
-    const myLocale = Intl.DateTimeFormat().resolvedOptions().locale.split("-")[0];
-    const messages: Record<string, Record<string, string>> = {};
-    for (const filePath in localeFilePaths) {
-        const localeCode = filePath.match(/([a-z]{2})\.json$/)![1];
-        messages[localeCode] = localeFilePaths[filePath];
-    }
-    return createI18n({
-        locale: myLocale,
-        fallbackLocale: "en",
-        messages,
-        legacy: false,
-    });
 }

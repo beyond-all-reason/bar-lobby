@@ -73,14 +73,15 @@ SPDX-License-Identifier: MIT
                     />
                 </div>
                 <div class="flex-row flex-bottom gap-md flex-grow">
-                    <DownloadContentButton
-                        v-if="map"
-                        :map="map"
-                        class="fullwidth green"
-                        :disabled="gameStore.isGameRunning"
-                        @click="battleActions.startBattle"
-                        >Start the game</DownloadContentButton
-                    >
+                    <div class="fullwidth" v-if="map">
+                        <Button v-if="gameStore.status === GameStatus.LOADING" class="fullwidth grey flex-grow" disabled
+                            >Game is starting...</Button
+                        >
+                        <Button v-else-if="gameStore.status === GameStatus.RUNNING" class="fullwidth grey flex-grow" disabled
+                            >Game is running</Button
+                        >
+                        <DownloadContentButton v-else :map="map" @click="battleActions.startBattle">Start the game</DownloadContentButton>
+                    </div>
                     <Button v-else class="fullwidth green flex-grow" disabled>Start the game</Button>
                 </div>
             </div>
@@ -105,7 +106,7 @@ import MapBattlePreview from "@renderer/components/maps/MapBattlePreview.vue";
 import { MapData } from "@main/content/maps/map-data";
 import { settingsStore } from "@renderer/store/settings.store";
 import GameModeComponent from "@renderer/components/battle/GameModeComponent.vue";
-import { gameStore } from "@renderer/store/game.store";
+import { GameStatus, gameStore } from "@renderer/store/game.store";
 import DownloadContentButton from "@renderer/components/controls/DownloadContentButton.vue";
 import { enginesStore } from "@renderer/store/engine.store";
 import TerrainIcon from "@renderer/components/maps/filters/TerrainIcon.vue";
