@@ -64,7 +64,7 @@
         "primeicons": "^6.0.1",
         "primevue": "3.23.0",
         "tachyon-protocol": "^1.11.0",
-        "vue-i18n": "^11.1.2",
+        "vue-i18n": "^11.1.10",
         "vue-router": "^4.5.0",
         "ws": "^8.18.1"
     },
