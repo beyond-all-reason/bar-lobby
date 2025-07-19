@@ -88,7 +88,6 @@ import { useGlobalKeybindings } from "@renderer/composables/useGlobalKeybindings
 import { me } from "@renderer/store/me.store";
 import { tachyonStore } from "@renderer/store/tachyon.store";
 import { auth } from "@renderer/store/me.store";
-import { replayHighlightStore } from "@renderer/store/replay-highlight.store";
 
 const router = useRouter();
 const videoVisible = toRef(!toValue(settingsStore.skipIntro));
@@ -120,11 +119,6 @@ playRandomMusic();
 
 window.barNavigation.onNavigateTo((target: string) => {
     router.push(target);
-});
-
-// Global listener for replay highlighting
-window.replays.onHighlightOpened((fileNames: string[]) => {
-    replayHighlightStore.setHighlightedReplays(fileNames);
 });
 
 const simpleRouterMemory = new Map<string, string>();
