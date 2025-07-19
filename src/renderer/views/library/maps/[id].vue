@@ -72,7 +72,8 @@ SPDX-License-Identifier: MIT
                                 </Button>
                                 <Button v-if="map.isInstalled" class="green inline" @click="play">Play</Button>
                                 <Button v-else-if="map.isDownloading" class="green inline" disabled>Downloading map...</Button>
-                                <Button v-else class="red inline" @click="downloadMap(map.springName)">Download</Button>
+                                <Button v-else-if="map.isQueued" class="yellow inline" disabled>Queued...</Button>
+                                <Button v-else class="red inline" @click="enqueueMap(map.springName)">Download</Button>
                             </div>
                             <div class="padding-top-md padding-bottom-md">
                                 <MapDownloadProgress :map-name="map.springName"></MapDownloadProgress>
@@ -101,7 +102,7 @@ import { battleActions } from "@renderer/store/battle.store";
 import { useRouter } from "vue-router";
 import { enginesStore } from "@renderer/store/engine.store";
 import { gameStore } from "@renderer/store/game.store";
-import { downloadMap } from "@renderer/store/maps.store";
+import { enqueueMap } from "@renderer/store/maps.store";
 import { useDexieLiveQueryWithDeps } from "@renderer/composables/useDexieLiveQuery";
 import Panel from "@renderer/components/common/Panel.vue";
 import MapDownloadProgress from "@renderer/components/common/MapDownloadProgress.vue";

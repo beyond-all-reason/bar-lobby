@@ -18,6 +18,9 @@ SPDX-License-Identifier: MIT
         >
             <slot />
         </button>
+        <Button v-else-if="map.isQueued" class="grey quick-download-button fullwidth anchor" @input.stop style="min-height: unset"
+            >Queued...</Button
+        >
         <Button v-else-if="map.isDownloading" class="grey quick-download-button fullwidth anchor" @input.stop style="min-height: unset"
             >Downloading...</Button
         >
@@ -30,7 +33,7 @@ SPDX-License-Identifier: MIT
 <script lang="ts" setup>
 import { MapDownloadData } from "@main/content/maps/map-data";
 import Button from "@renderer/components/controls/Button.vue";
-import { downloadMap } from "@renderer/store/maps.store";
+import { enqueueMap } from "@renderer/store/maps.store";
 import { ButtonProps } from "primevue/button";
 import MapDownloadProgress from "@renderer/components/common/MapDownloadProgress.vue";
 

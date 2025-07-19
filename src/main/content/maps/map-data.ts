@@ -16,4 +16,5 @@ export type MapDownloadData = {
     springName: string;
     isInstalled?: boolean;
     isDownloading?: boolean;
+    isQueued?: boolean;
 };
