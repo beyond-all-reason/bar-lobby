@@ -8,7 +8,6 @@ const gotTheLock = app.requestSingleInstanceLock();
 
 if (!gotTheLock) {
     app.exit(0);
-    process.exit(0);
 }
 
 // Only import after we know we have the lock
