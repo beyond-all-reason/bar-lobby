@@ -39,6 +39,7 @@ SPDX-License-Identifier: MIT
                                     dataKey="fileName"
                                     :sortOrder="sortOrder === 'asc' ? 1 : -1"
                                     :sortField="sortField"
+                                    :rowClass="(data) => (highlightedReplays.has(data.fileName) ? 'highlighted-replay' : '')"
                                     @page="onPage"
                                     @sort="onSort"
                                 >
@@ -123,7 +124,7 @@ SPDX-License-Identifier: MIT
 
 import { format } from "date-fns";
 import Column from "primevue/column";
-import { Ref, ref, shallowRef, onMounted, triggerRef } from "vue";
+import { Ref, ref, shallowRef, onMounted, triggerRef, watch, computed } from "vue";
 
 import Button from "@renderer/components/controls/Button.vue";
 import Checkbox from "@renderer/components/controls/Checkbox.vue";
@@ -137,18 +138,20 @@ import { useDexieLiveQueryWithDeps } from "@renderer/composables/useDexieLiveQue
 import ReplayPreview from "@renderer/components/battle/ReplayPreview.vue";
 import DownloadContentButton from "@renderer/components/controls/DownloadContentButton.vue";
 import { GameStatus, gameStore, watchReplay } from "@renderer/store/game.store";
+import { replaysStore, acknowledgeReplay } from "@renderer/store/replays.store";
 import { MapDownloadData } from "@main/content/maps/map-data";
 import { Icon } from "@iconify/vue";
 import folder from "@iconify-icons/mdi/folder";
 
 const endedNormally: Ref<boolean | null> = ref(true);
 const showSpoilers = ref(true);
-const totalReplays = ref(0);
 const offset = ref(0);
 const limit = ref(15);
 const sortField: Ref<keyof Replay> = ref("startTime");
 const sortOrder: Ref<"asc" | "desc"> = ref("desc");
 const selectedReplay: Ref<Replay | null> = shallowRef(null);
+
+const highlightedReplays = computed(() => replaysStore.highlightedReplays);
 
 onMounted(() => {
     window.replays.onReplayDeleted((filename: string) => {
@@ -157,6 +160,12 @@ onMounted(() => {
             triggerRef(selectedReplay);
         }
     });
+});
+
+watch(selectedReplay, (newReplay) => {
+    if (newReplay && highlightedReplays.value.has(newReplay.fileName)) {
+        acknowledgeReplay(newReplay.fileName);
+    }
 });
 
 const replays = useDexieLiveQueryWithDeps([endedNormally, offset, limit, sortField, sortOrder], () => {
@@ -174,6 +183,17 @@ const replays = useDexieLiveQueryWithDeps([endedNormally, offset, limit, sortFie
         return query.sortBy(sortField.value);
     }
     return query.reverse().sortBy(sortField.value);
+});
+
+const totalReplays = useDexieLiveQueryWithDeps([endedNormally], () => {
+    if (endedNormally.value !== null) {
+        return db.replays
+            .where("gameEndedNormally")
+            .equals(endedNormally.value ? 1 : 0)
+            .count();
+    } else {
+        return db.replays.count();
+    }
 });
 
 let map = useDexieLiveQueryWithDeps([() => selectedReplay.value?.mapSpringName], async () => {
@@ -244,5 +264,9 @@ function showReplayFile(replay: Replay) {
     height: 100%;
     position: relative;
     width: 400px;
+}
+
+:deep(.p-datatable-tbody tr.highlighted-replay td) {
+    background-color: rgba(255, 200, 0, 0.3) !important;
 }
 </style>

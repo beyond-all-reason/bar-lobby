@@ -22,6 +22,7 @@ export class ReplayContentAPI {
     public readonly onReplayDeleted: Signal<string> = new Signal();
 
     protected readonly replayCacheQueue: Set<string> = new Set();
+    protected readonly filesBeingCopied: Set<string> = new Set(); // Track files being copied
     protected cachingReplays = false;
 
     public async init() {
@@ -41,27 +42,48 @@ export class ReplayContentAPI {
                 if (!filepath.endsWith("sdfz")) {
                     return;
                 }
-                log.debug(`Chokidar -=- Replay added: ${filepath}`);
+
+                const fileName = path.basename(filepath);
+
+                // Skip if this file is being copied by copyParseReplay
+                if (this.filesBeingCopied.has(fileName)) {
+                    return;
+                }
+
                 this.cacheReplay(filepath);
             })
             .on("unlink", (filepath) => {
                 if (!filepath.endsWith("sdfz")) {
                     return;
                 }
-                log.debug(`Chokidar -=- Replay removed: ${filepath}`);
                 this.onReplayDeleted.dispatch(path.basename(filepath));
             });
     }
 
-    public async copyParseAndLaunchReplay(filePath: string) {
+    public async copyParseReplay(filePath: string) {
         let replayPath = filePath;
         if (!replayPath.startsWith(REPLAYS_PATH)) {
             replayPath = path.join(REPLAYS_PATH, path.basename(replayPath));
-            await fs.promises.copyFile(filePath, replayPath);
+
+            // Mark this file as being copied to prevent duplicate processing
+            const fileName = path.basename(replayPath);
+            this.filesBeingCopied.add(fileName);
+
+            try {
+                await fs.promises.copyFile(filePath, replayPath);
+                const replay = await asyncParseReplay(replayPath);
+                await mapContentAPI.downloadMap(replay.mapSpringName);
+
+                this.onReplayCached.dispatch(replay);
+            } finally {
+                // Always remove from the set, even if there's an error
+                this.filesBeingCopied.delete(fileName);
+            }
+        } else {
+            // File is already in the replays folder, just parse it
+            const replay = await asyncParseReplay(replayPath);
+            await mapContentAPI.downloadMap(replay.mapSpringName);
         }
-        const replay = await asyncParseReplay(replayPath);
-        await mapContentAPI.downloadMap(replay.mapSpringName);
-        gameAPI.launchReplay(await replay);
     }
 
     public async sync(replayFileNames: string[]) {
@@ -90,16 +112,14 @@ export class ReplayContentAPI {
 
     protected async cacheReplay(replayFilePath: string) {
         if (gameAPI.isGameRunning()) {
-            log.debug(`Queuing replay to be cached: ${replayFilePath}`);
             this.replayCacheQueue.add(replayFilePath);
             return;
         }
 
-        log.debug(`Caching: ${replayFilePath}`);
         try {
             const replayData = await asyncParseReplay(replayFilePath);
             if (replayData.gameId === "00000000000000000000000000000000") {
-                throw new Error(`invalid gameId for replay: ${replayFilePath}`);
+                throw new Error(`Invalid gameId for replay: ${replayFilePath}`);
             }
             // TODO handle this use case
             // const conflictingReplay = await this.getReplayByGameId(replayData.gameId);
@@ -112,12 +132,10 @@ export class ReplayContentAPI {
             //         await fs.promises.rm(filePath);
             //     }
             // }
-            log.debug(`Cached replay: ${replayFilePath}`);
+            // Store the cached replay and dispatch the event
             this.onReplayCached.dispatch(replayData);
         } catch (err) {
             log.error(`Error caching replay: ${replayFilePath}`, err);
-            log.error(err);
-            //TODO emit error signal
         }
     }
 

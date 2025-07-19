@@ -4,25 +4,39 @@
 
 import { Replay } from "@main/content/replays/replay";
 import { db } from "@renderer/store/db";
-import { reactive } from "vue";
+import { reactive, readonly } from "vue";
 
-export const replaysStore: {
+const state: {
     isInitialized: boolean;
+    highlightedReplays: Set<string>;
 } = reactive({
     isInitialized: false,
+    highlightedReplays: new Set(),
 });
+
+export const replaysStore = readonly(state);
+
+export function acknowledgeReplay(fileName: string) {
+    state.highlightedReplays.delete(fileName);
+    // Force reactivity update
+    state.highlightedReplays = new Set(state.highlightedReplays);
+}
 
 export async function initReplaysStore() {
     window.replays.onReplayCached((replay: Replay) => {
-        console.debug("Received replay cached event", replay);
-        db.replays.add(replay);
+        db.replays.put(replay).catch((error) => {
+            console.error("Failed to store replay in database:", replay.fileName, error);
+        });
     });
     window.replays.onReplayDeleted((filename: string) => {
         console.debug("Received replay deleted event", filename);
         db.replays.where("fileName").equals(filename).delete();
     });
+    window.replays.onHighlightOpened((fileNames: string[]) => {
+        state.highlightedReplays = new Set(fileNames);
+    });
     await syncReplays();
-    replaysStore.isInitialized = true;
+    state.isInitialized = true;
 }
 
 async function syncReplays() {

@@ -117,6 +117,10 @@ provide("toggleDownloads", toggleDownloads);
 
 playRandomMusic();
 
+window.barNavigation.onNavigateTo((target: string) => {
+    router.push(target);
+});
+
 const simpleRouterMemory = new Map<string, string>();
 router.beforeEach(async (to) => {
     if (to.meta?.redirect) {
