@@ -21,26 +21,10 @@ function registerIpcHandlers(webContents: BarIpcWebContents) {
     webContents.ipc.handle("renderer:ready", () => {
         log.info("Renderer is ready!");
 
-        const replayFiles = getReplayFiles(process.argv, undefined, webContents);
-
-        log.info(`Replay files opened on startup: ${replayFiles}`);
-        const replayFileNames: string[] = [];
-        for (const filePath of replayFiles) {
-            const fileName = path.basename(filePath);
-            replayFileNames.push(fileName);
-            replayContentAPI.copyParseReplay(filePath).catch((err) => {
-                log.error(`Failed to copy and parse replay file ${filePath}:`, err);
-                webContents.send("notifications:showAlert", {
-                    text: `Failed to open replay file: ${fileName}`,
-                    severity: "error",
-                });
-            });
-        }
-
+        const replayFiles = getReplayFiles(process.argv, process.cwd(), webContents);
         if (replayFiles.length > 0) {
-            navigationService.navigateTo(webContents, "/library/replays");
-            // Send event to highlight the opened replays
-            webContents.send("replays:highlightOpened", replayFileNames);
+            log.info(`Replay files opened on startup: ${replayFiles}`);
+            openReplays(replayFiles, typedWebContents(webContents));
         }
     });
 
@@ -59,40 +43,42 @@ function registerIpcHandlers(webContents: BarIpcWebContents) {
         const replayFiles = getReplayFiles(argv, workingDirectory, typedWebContents(mainWindow.webContents));
         if (replayFiles.length > 0) {
             log.info(`Replay files opened with the app: ${replayFiles}`);
-            const replayFileNames: string[] = [];
-            for (const filePath of replayFiles) {
-                const fileName = path.basename(filePath);
-                replayFileNames.push(fileName);
-                replayContentAPI.copyParseReplay(filePath).catch((err) => {
-                    log.error(`Failed to copy and parse replay file ${filePath}:`, err);
-                    typedWebContents(mainWindow.webContents).send("notifications:showAlert", {
-                        text: `Failed to open replay file: ${fileName}`,
-                        severity: "error",
-                    });
-                });
-            }
-            navigationService.navigateTo(typedWebContents(mainWindow.webContents), "/library/replays");
-            // Send event to highlight the opened replays
-            typedWebContents(mainWindow.webContents).send("replays:highlightOpened", replayFileNames);
+            openReplays(replayFiles, typedWebContents(mainWindow.webContents));
         }
     });
 }
 
-function getReplayFiles(argv: string[], workingDirectory?: string, webContents?: BarIpcWebContents): string[] {
+function openReplays(replayFiles: string[], webContents: BarIpcWebContents) {
+    const replayFileNames: string[] = [];
+    for (const filePath of replayFiles) {
+        const fileName = path.basename(filePath);
+        replayFileNames.push(fileName);
+        replayContentAPI.copyParseReplay(filePath).catch((err) => {
+            log.error(`Failed to copy and parse replay file ${filePath}:`, err);
+            webContents.send("notifications:showAlert", {
+                text: `Failed to open replay file: ${fileName}`,
+                severity: "error",
+            });
+        });
+    }
+    navigationService.navigateTo(webContents, "/library/replays");
+    // Send event to highlight the opened replays
+    webContents.send("replays:highlightOpened", replayFileNames);
+}
+
+function getReplayFiles(argv: string[], workingDirectory: string, webContents: BarIpcWebContents): string[] {
     return argv
         .filter((arg) => arg.endsWith(".sdfz"))
         .map((arg) => {
-            const filePath = workingDirectory ? path.resolve(workingDirectory, arg) : path.resolve(arg);
+            const filePath = path.resolve(workingDirectory, arg);
             if (fs.existsSync(filePath)) {
                 return filePath;
             } else {
                 log.warn(`Replay file not found: ${filePath}`);
-                if (webContents) {
-                    webContents.send("notifications:showAlert", {
-                        text: `Replay file not found: ${path.basename(filePath)}`,
-                        severity: "error",
-                    });
-                }
+                webContents.send("notifications:showAlert", {
+                    text: `Replay file not found: ${path.basename(filePath)}`,
+                    severity: "error",
+                });
                 return null;
             }
         })
