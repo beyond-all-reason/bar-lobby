@@ -124,7 +124,7 @@ SPDX-License-Identifier: MIT
 
 import { format } from "date-fns";
 import Column from "primevue/column";
-import { Ref, ref, shallowRef, onMounted, triggerRef, watch } from "vue";
+import { Ref, ref, shallowRef, onMounted, triggerRef, watch, computed } from "vue";
 
 import Button from "@renderer/components/controls/Button.vue";
 import Checkbox from "@renderer/components/controls/Checkbox.vue";
@@ -142,11 +142,9 @@ import { replaysStore, acknowledgeReplay } from "@renderer/store/replays.store";
 import { MapDownloadData } from "@main/content/maps/map-data";
 import { Icon } from "@iconify/vue";
 import folder from "@iconify-icons/mdi/folder";
-import { computed } from "vue";
 
 const endedNormally: Ref<boolean | null> = ref(true);
 const showSpoilers = ref(true);
-const totalReplays = ref(0);
 const offset = ref(0);
 const limit = ref(15);
 const sortField: Ref<keyof Replay> = ref("startTime");
@@ -187,8 +185,7 @@ const replays = useDexieLiveQueryWithDeps([endedNormally, offset, limit, sortFie
     return query.reverse().sortBy(sortField.value);
 });
 
-// Update total count whenever replays change
-const totalReplaysQuery = useDexieLiveQueryWithDeps([endedNormally], () => {
+const totalReplays = useDexieLiveQueryWithDeps([endedNormally], () => {
     if (endedNormally.value !== null) {
         return db.replays
             .where("gameEndedNormally")
@@ -198,17 +195,6 @@ const totalReplaysQuery = useDexieLiveQueryWithDeps([endedNormally], () => {
         return db.replays.count();
     }
 });
-
-// Watch for changes in total count and update the ref
-watch(
-    totalReplaysQuery,
-    (newCount) => {
-        if (newCount !== undefined) {
-            totalReplays.value = newCount;
-        }
-    },
-    { immediate: true }
-);
 
 let map = useDexieLiveQueryWithDeps([() => selectedReplay.value?.mapSpringName], async () => {
     let selected = selectedReplay.value;
