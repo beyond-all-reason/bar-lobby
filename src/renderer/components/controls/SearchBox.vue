@@ -6,7 +6,7 @@ SPDX-License-Identifier: MIT
 -->
 
 <template>
-    <div v-bind="attrsStyles">
+    <div v-bind="attrsStyles" class="search-input-wrapper">
         <slot name="prepend"></slot>
         <slot v-if="searchIcon" name="search-icon">
             <i class="search-icon search"></i>
@@ -93,7 +93,9 @@ export default defineComponent({
             emit("update:modelValue", (e.target as HTMLInputElement).value);
         }
         function onKeydown(e: KeyboardEvent) {
+            if (e.defaultPrevented) return; // Some components might handle this already
             if (e.key === "Escape" && props.clearOnEsc) {
+                e.preventDefault();
                 clear();
                 if (props.blurOnEsc) {
                     const el = inputRef.value as HTMLInputElement;
@@ -131,7 +133,6 @@ $active-color: #ccc;
         padding: 6px 20px 6px 35px;
         font-size: 20px;
         color: $input-color;
-        max-width: 125px;
         background-color: $input-background;
         border: 1px solid rgba(255, 255, 255, 0.2);
         transition-property: border-color, padding, max-width;
@@ -140,9 +141,7 @@ $active-color: #ccc;
         &:focus {
             background-color: color.adjust($input-background, $lightness: 25%);
             border-color: $active-color;
-            outline: 0;
             box-shadow: none;
-            max-width: 50vw;
         }
     }
 
@@ -150,7 +149,7 @@ $active-color: #ccc;
         position: absolute;
         &.search {
             color: $icon-color;
-            left: 12px;
+            left: 14px;
             bottom: 14px;
             box-sizing: border-box;
             display: block;
@@ -176,8 +175,8 @@ $active-color: #ccc;
             left: 12px;
         }
         &.clear {
-            right: 5px;
-            bottom: 7px;
+            right: 8px;
+            bottom: 8px;
             cursor: pointer;
             z-index: 10;
             box-sizing: border-box;

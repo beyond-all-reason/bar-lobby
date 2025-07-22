@@ -18,6 +18,7 @@ export function useGlobalKeybindings({ exitOpen }: KeybindingProps) {
     });
 
     onKeyDown("Escape", (e) => {
+        if (e.defaultPrevented) return; // Some components might handle this already
         e.preventDefault();
         if (router.currentRoute.value.path.startsWith("/login") || router.currentRoute.value.path.startsWith("/home")) {
             exitOpen.value = !exitOpen.value;
