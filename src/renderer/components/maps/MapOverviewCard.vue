@@ -29,7 +29,7 @@ import { computed } from "vue";
 import { useImageBlobUrlCache } from "@renderer/composables/useImageBlobUrlCache";
 import { MapData } from "@main/content/maps/map-data";
 import TerrainIcon from "@renderer/components/maps/filters/TerrainIcon.vue";
-import { Icon } from "@iconify/vue/dist/iconify.js";
+import { Icon } from "@iconify/vue";
 import personIcon from "@iconify-icons/mdi/person-multiple";
 import gridIcon from "@iconify-icons/mdi/grid";
 import heartIcon from "@iconify-icons/mdi/heart";

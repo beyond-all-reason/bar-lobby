@@ -42,7 +42,7 @@ SPDX-License-Identifier: MIT
     </div>
 </template>
 <script lang="ts" setup>
-import { Icon } from "@iconify/vue/dist/iconify.js";
+import { Icon } from "@iconify/vue";
 import Button from "@renderer/components/controls/Button.vue";
 import { battleStore } from "@renderer/store/battle.store";
 import { chatActions, ChatRoom, chatStore } from "@renderer/store/chat.store";
