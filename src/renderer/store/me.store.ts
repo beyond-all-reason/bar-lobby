@@ -4,7 +4,7 @@
 
 import { Me } from "@main/model/user";
 import { db } from "@renderer/store/db";
-import { reactive } from "vue";
+import { reactive, toRaw } from "vue";
 
 export const me = reactive<
     Me & {
@@ -54,19 +54,27 @@ async function changeAccount() {
 }
 
 window.tachyon.onEvent("user/self", (event) => {
-    // console.log(`Received user/self event: ${JSON.stringify(event)}`);
+    console.debug(`Received user/self event: ${JSON.stringify(event)}`);
     if (event && event.user) {
         Object.assign(me, event.user);
+        db.users.put({
+            ...toRaw(me),
+            isMe: 1,
+        });
     }
 });
 
 window.tachyon.onEvent("user/updated", (event) => {
-    console.log(`Received user/updated event: ${JSON.stringify(event)}`);
+    console.debug(`Received user/updated event: ${JSON.stringify(event)}`);
     // TODO change this when we have a proper protocol for users
     // see https://github.com/beyond-all-reason/tachyon/blob/master/docs/schema/user.md
     const myData = event.users[0];
     if (myData) {
         Object.assign(me, myData);
+        db.users.put({
+            ...toRaw(me),
+            isMe: 1,
+        });
     }
 });
 
