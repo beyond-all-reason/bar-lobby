@@ -12,8 +12,13 @@ SPDX-License-Identifier: MIT
     <div class="container">
         <img ref="logo" class="logo" src="/src/renderer/assets/images/BARLogoFull.png" />
         <Transition mode="out-in" name="fade">
-            <div v-if="connecting" class="relative">
-                <Loader></Loader>
+            <div v-if="connecting">
+                <div class="relative">
+                    <Loader></Loader>
+                </div>
+                <Transition :appear="true" name="delayed-fade">
+                    <button class="go-back-button" @click="abort">Go Back</button>
+                </Transition>
             </div>
             <div v-else class="buttons-container">
                 <button class="login-button" @click="login">Login</button>
@@ -26,7 +31,7 @@ SPDX-License-Identifier: MIT
 </template>
 
 <script lang="ts" setup>
-import { ref } from "vue";
+import { onActivated, ref } from "vue";
 
 import Loader from "@renderer/components/common/Loader.vue";
 import { useRouter } from "vue-router";
@@ -39,10 +44,16 @@ const router = useRouter();
 const connecting = ref(false);
 const error = ref<string>();
 
-const hasCredentials = await window.auth.hasCredentials();
+const hasCredentials = ref(false);
+onActivated(() => {
+    window.auth.hasCredentials().then((result) => {
+        hasCredentials.value = result;
+    });
+});
 
 async function login() {
     try {
+        error.value = "";
         connecting.value = true;
         await auth.login();
         await tachyon.connect();
@@ -58,8 +69,16 @@ async function login() {
     }
 }
 
+async function abort() {
+    connecting.value = false;
+    error.value = "";
+    await auth.logout();
+    router.push("/");
+}
+
 async function changeAccount() {
     await auth.changeAccount();
+    hasCredentials.value = false;
     login();
 }
 
@@ -68,7 +87,7 @@ async function playOffline() {
     router.push("/home/overview");
 }
 
-if (hasCredentials && settingsStore.loginAutomatically) {
+if (hasCredentials.value && settingsStore.loginAutomatically) {
     console.log("Logging in automatically");
     login();
 }
@@ -96,6 +115,17 @@ if (hasCredentials && settingsStore.loginAutomatically) {
     display: flex;
     align-self: center;
     margin-top: 20px;
+    font-size: 32px;
+    opacity: 0.3;
+    &:hover {
+        opacity: 1;
+    }
+}
+
+.go-back-button {
+    display: flex;
+    align-self: center;
+    margin-top: 42px;
     font-size: 32px;
     opacity: 0.3;
     &:hover {
@@ -150,5 +180,20 @@ if (hasCredentials && settingsStore.loginAutomatically) {
     gap: 20px;
     flex-direction: column;
     align-items: center;
+}
+
+.delayed-fade-enter-active {
+    animation: fadeIn 0.5s ease-in-out;
+    animation-delay: 2s;
+    animation-fill-mode: both;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 0.3;
+    }
 }
 </style>
