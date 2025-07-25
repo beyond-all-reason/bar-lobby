@@ -31,9 +31,13 @@ SPDX-License-Identifier: MIT
                         </div>
                         <div class="info">
                             <div class="details">
-                                <div class="detail-text"><b>{{ t('lobby.library.maps.description') }}</b> {{ map.description }}</div>
-                                <div v-if="map.author" class="detail-text"><b>{{ t('lobby.library.maps.author') }}</b> {{ map.author }}</div>
-                                <h3>{{ t('lobby.library.maps.properties') }}</h3>
+                                <div class="detail-text">
+                                    <b>{{ t("lobby.library.maps.description") }}</b> {{ map.description }}
+                                </div>
+                                <div v-if="map.author" class="detail-text">
+                                    <b>{{ t("lobby.library.maps.author") }}</b> {{ map.author }}
+                                </div>
+                                <h3>{{ t("lobby.library.maps.properties") }}</h3>
                                 <div class="flex-row flex-center-items gap-sm">
                                     <Icon :icon="windPower" width="25" height="25" />{{ map.windMin }} - {{ map.windMax }}
                                 </div>
@@ -70,9 +74,15 @@ SPDX-License-Identifier: MIT
                                 >
                                     <Icon :icon="heart_minus" :height="33" />
                                 </Button>
-                                <Button v-if="map.isInstalled" class="green inline" @click="play">{{ t('lobby.library.maps.play') }}</Button>
-                                <Button v-else-if="map.isDownloading" class="green inline" disabled>{{ t('lobby.library.maps.downloading') }}</Button>
-                                <Button v-else class="red inline" @click="downloadMap(map.springName)">{{ t('lobby.library.maps.download') }}</Button>
+                                <Button v-if="map.isInstalled" class="green inline" @click="play">{{
+                                    t("lobby.library.maps.play")
+                                }}</Button>
+                                <Button v-else-if="map.isDownloading" class="green inline" disabled>{{
+                                    t("lobby.library.maps.downloading")
+                                }}</Button>
+                                <Button v-else class="red inline" @click="downloadMap(map.springName)">{{
+                                    t("lobby.library.maps.download")
+                                }}</Button>
                             </div>
                             <div class="padding-top-md padding-bottom-md">
                                 <MapDownloadProgress :map-name="map.springName"></MapDownloadProgress>
