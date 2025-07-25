@@ -13,15 +13,15 @@ SPDX-License-Identifier: MIT
         <Loader v-if="loading"></Loader>
         <div v-else class="flex-col flex-grow gap-md">
             <div class="flex-row gap-md">
-                <h1>Multiplayer Custom Battles</h1>
+                <h1>{{ $t("lobby.multiplayer.custom.title") }}</h1>
             </div>
             <div class="flex-row gap-md">
-                <Button class="blue" @click="hostBattleOpen = true">Host Battle</Button>
+                <Button class="blue" @click="hostBattleOpen = true">{{ $t("lobby.multiplayer.custom.hostBattle") }}</Button>
                 <HostBattle v-model="hostBattleOpen" />
-                <Checkbox v-model="settingsStore.battlesHidePvE" label="Hide PvE" />
-                <Checkbox v-model="settingsStore.battlesHideLocked" label="Hide Locked" />
-                <Checkbox v-model="settingsStore.battlesHideEmpty" label="Hide Empty" />
-                <Checkbox v-model="settingsStore.battlesHideInProgress" label="Hide Running" />
+                <Checkbox v-model="settingsStore.battlesHidePvE" :label="$t('lobby.multiplayer.custom.filters.hidePvE')" />
+                <Checkbox v-model="settingsStore.battlesHideLocked" :label="$t('lobby.multiplayer.custom.filters.hideLocked')" />
+                <Checkbox v-model="settingsStore.battlesHideEmpty" :label="$t('lobby.multiplayer.custom.filters.hideEmpty')" />
+                <Checkbox v-model="settingsStore.battlesHideInProgress" :label="$t('lobby.multiplayer.custom.filters.hideInProgress')" />
                 <SearchBox v-model="searchVal" />
             </div>
             <div class="scroll-container padding-right-sm">
@@ -39,20 +39,20 @@ SPDX-License-Identifier: MIT
                     @row-select="selectedBattle = $event.data"
                     @row-dblclick="attemptJoinBattle($event.data)"
                 >
-                    <Column header="Best Battle" sortable sortField="score">
+                    <Column :header="$t('lobby.multiplayer.custom.table.bestBattle')" sortable sortField="score">
                         <template #body="{ data }">
                             <div v-if="data.primaryFactor !== 'Running'" class="flex-row flex-center-items gap-md">
                                 {{ data.primaryFactor }}
                             </div>
                             <div v-if="data.primaryFactor === 'Running'" class="flex-row flex-center-items gap-md">
-                                Running for
+                                {{ $t("lobby.multiplayer.custom.table.runningFor") }}
                                 {{ getFriendlyDuration(data.runtimeMs.value, false) }}
                             </div>
                         </template>
                     </Column>
-                    <Column field="battleOptions.title" header="Title" sortable />
-                    <Column field="battleOptions.map" header="Map" sortable />
-                    <Column header="Players" sortable sortField="playerCount.value">
+                    <Column field="battleOptions.title" :header="$t('lobby.multiplayer.custom.table.title')" sortable />
+                    <Column field="battleOptions.map" :header="$t('lobby.multiplayer.custom.table.map')" sortable />
+                    <Column :header="$t('lobby.multiplayer.custom.table.players')" sortable sortField="playerCount.value">
                         <template #body="{ data }">
                             <div class="flex-row flex-center-items gap-md">
                                 <div v-if="data.players.value.length > 0" class="flex-row flex-center-items" style="gap: 2px">
@@ -81,7 +81,9 @@ SPDX-License-Identifier: MIT
         <div v-if="!loading" class="right">
             <BattlePreview v-if="selectedBattle" :battle="selectedBattle">
                 <template #actions="{ battle }">
-                    <Button class="green flex-grow" @click="attemptJoinBattle(battle)">Join</Button>
+                    <Button class="green flex-grow" @click="attemptJoinBattle(battle)">{{
+                        $t("lobby.multiplayer.custom.table.join")
+                    }}</Button>
                 </template>
             </BattlePreview>
         </div>
@@ -114,6 +116,9 @@ import SearchBox from "@renderer/components/controls/SearchBox.vue";
 import { getFriendlyDuration } from "@renderer/utils/misc";
 import { OngoingBattle } from "@main/content/replays/replay";
 import { settingsStore } from "@renderer/store/settings.store";
+import { useTypedI18n } from "@renderer/i18n";
+
+const { t } = useTypedI18n();
 
 const loading = ref(false);
 const hostBattleOpen = ref(false);

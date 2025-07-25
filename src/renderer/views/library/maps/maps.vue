@@ -12,7 +12,7 @@ SPDX-License-Identifier: MIT
     <div class="view">
         <div class="maps-container">
             <div class="view-title">
-                <h1>{{ t('lobby.library.maps.title') }}</h1>
+                <h1>{{ t("lobby.library.maps.title") }}</h1>
             </div>
             <div class="layout">
                 <Panel class="map-filters">

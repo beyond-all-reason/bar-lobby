@@ -20,6 +20,46 @@
                 "downloading": "Downloading map...",
                 "download": "Download"
             }
+        },
+        "multiplayer": {
+            "title": "Multiplayer",
+            "ranked": {
+                "title": "Ranked",
+                "description": "Join a multiplayer ranked queue.",
+                "modes": {
+                    "2v2": "2 vs 2",
+                    "1v1": "DUEL",
+                    "3v3": "3 vs 3"
+                },
+                "buttons": {
+                    "searchGame": "Search game",
+                    "searchingForOpponent": "Searching for opponent",
+                    "matchFound": "Match found",
+                    "accepted": "Accepted",
+                    "cancel": "Cancel"
+                }
+            },
+            "battle": {
+                "title": "Multiplayer Custom Battle"
+            },
+            "custom": {
+                "title": "Multiplayer Custom Battles",
+                "hostBattle": "Host Battle",
+                "filters": {
+                    "hidePvE": "Hide PvE",
+                    "hideLocked": "Hide Locked",
+                    "hideEmpty": "Hide Empty",
+                    "hideInProgress": "Hide Running"
+                },
+                "table": {
+                    "bestBattle": "Best Battle",
+                    "title": "Title",
+                    "map": "Map",
+                    "players": "Players",
+                    "runningFor": "Running for",
+                    "join": "Join"
+                }
+            }
         }
     }
 }
