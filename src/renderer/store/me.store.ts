@@ -36,6 +36,7 @@ async function login() {
     } catch (e) {
         console.error(e);
         me.isAuthenticated = false;
+        throw e;
     }
 }
 
@@ -44,7 +45,8 @@ function playOffline() {
 }
 
 async function logout() {
-    await window.auth.logout();
+    window.auth.logout();
+    window.tachyon.disconnect();
     me.isAuthenticated = false;
 }
 
