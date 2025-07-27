@@ -49,9 +49,10 @@ export class TachyonClient {
             });
             this.socket.on("unexpected-response", async (req, res) => {
                 res.on("data", (chunk: Buffer) => {
-                    const error = `HTTP Error ${res.statusCode}: ${chunk.toString()}`;
-                    log.error(error);
-                    reject(error);
+                    const error = chunk.toString();
+                    log.error(`HTTP Error ${res.statusCode}: ${error}`);
+                    const errorObject = JSON.parse(error);
+                    reject(errorObject.error_description || errorObject.error || "Unknown error");
                 });
             });
             this.socket.on("upgrade", (response) => {
@@ -216,8 +217,14 @@ export class TachyonClient {
         return this.socket.readyState === this.socket.OPEN;
     }
 
-    public disconnect() {
-        this.socket?.close();
+    public async disconnect() {
+        try {
+            await this.request("system/disconnect");
+        } catch (e) {
+            log.error(`Error sending disconnect command: ${e}`);
+        } finally {
+            this.socket?.close();
+        }
     }
 }
 

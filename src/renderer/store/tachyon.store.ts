@@ -31,6 +31,11 @@ async function connect() {
         console.error("Failed to connect to Tachyon server", err);
         tachyonStore.error = "Error";
         auth.logout();
+        if (err instanceof Error) {
+            throw new Error(err.message);
+        } else {
+            throw new Error(String(err));
+        }
     }
 }
 
