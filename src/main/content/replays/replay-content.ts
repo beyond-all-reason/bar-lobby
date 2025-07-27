@@ -35,8 +35,10 @@ export class ReplayContentAPI {
         //using chokidar to watch for changes in the replay folder
         chokidar
             .watch(REPLAYS_PATH, {
-                ignoreInitial: true, //ignore the initial scan
-                awaitWriteFinish: true, //wait for the file to be fully written before emitting the event
+                ignoreInitial: true,
+                awaitWriteFinish: {
+                    stabilityThreshold: 100, // Wait 100ms instead of default 2000ms
+                },
             })
             .on("add", (filepath) => {
                 if (!filepath.endsWith("sdfz")) {
@@ -136,6 +138,14 @@ export class ReplayContentAPI {
             this.onReplayCached.dispatch(replayData);
         } catch (err) {
             log.error(`Error caching replay: ${replayFilePath}`, err);
+            // rename the file to indicate it failed to parse, changing the extension to .sdfz.error
+            const errorFilePath = replayFilePath.replace(/\.sdfz$/, ".sdfz.error");
+            try {
+                await fs.promises.rename(replayFilePath, errorFilePath);
+            } catch (renameError) {
+                log.error(`Error renaming replay file to indicate error: ${replayFilePath}`, renameError);
+            }
+            //TODO emit error signal
         }
     }
 
