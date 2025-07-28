@@ -3856,6 +3856,46 @@
                 "downloading": null,
                 "download": null
             }
+        },
+        "multiplayer": {
+            "title": null,
+            "ranked": {
+                "title": null,
+                "description": null,
+                "modes": {
+                    "2v2": null,
+                    "1v1": null,
+                    "3v3": null
+                },
+                "buttons": {
+                    "searchGame": null,
+                    "searchingForOpponent": null,
+                    "matchFound": null,
+                    "accepted": null,
+                    "cancel": null
+                }
+            },
+            "battle": {
+                "title": null
+            },
+            "custom": {
+                "title": null,
+                "hostBattle": null,
+                "filters": {
+                    "hidePvE": null,
+                    "hideLocked": null,
+                    "hideEmpty": null,
+                    "hideInProgress": null
+                },
+                "table": {
+                    "bestBattle": null,
+                    "title": null,
+                    "map": null,
+                    "players": null,
+                    "runningFor": null,
+                    "join": null
+                }
+            }
         }
     }
 }

@@ -13,8 +13,8 @@ SPDX-License-Identifier: MIT
         <div class="ranked-background"></div>
         <div class="ranked-container">
             <div class="view-title">
-                <h1>Ranked</h1>
-                <p>Join a multiplayer ranked queue.</p>
+                <h1>{{ t("lobby.multiplayer.ranked.title") }}</h1>
+                <p>{{ t("lobby.multiplayer.ranked.description") }}</p>
             </div>
             <div class="my-rank">
                 <div></div>
@@ -27,7 +27,7 @@ SPDX-License-Identifier: MIT
                     }"
                     @click="() => (matchmakingStore.selectedQueue = '2v2')"
                     :disabled="matchmakingStore.status !== MatchmakingStatus.Idle"
-                    ><span>2 vs 2</span></Button
+                    ><span>{{ t("lobby.multiplayer.ranked.modes.2v2") }}</span></Button
                 >
                 <Button
                     class="mode-column classic"
@@ -36,7 +36,7 @@ SPDX-License-Identifier: MIT
                     }"
                     @click="() => (matchmakingStore.selectedQueue = '1v1')"
                     :disabled="matchmakingStore.status !== MatchmakingStatus.Idle"
-                    ><span>DUEL</span></Button
+                    ><span>{{ t("lobby.multiplayer.ranked.modes.1v1") }}</span></Button
                 >
                 <Button
                     class="mode-column classic"
@@ -45,7 +45,7 @@ SPDX-License-Identifier: MIT
                     }"
                     @click="() => (matchmakingStore.selectedQueue = '3v3')"
                     :disabled="matchmakingStore.status !== MatchmakingStatus.Idle"
-                    ><span>3 vs 3</span></Button
+                    ><span>{{ t("lobby.multiplayer.ranked.modes.3v3") }}</span></Button
                 >
             </div>
             <div class="button-container">
@@ -57,20 +57,20 @@ SPDX-License-Identifier: MIT
                     }"
                     @click="matchmaking.startSearch"
                 >
-                    Search game
+                    {{ t("lobby.multiplayer.ranked.buttons.searchGame") }}
                 </button>
                 <button v-else-if="matchmakingStore.status === MatchmakingStatus.Searching" class="quick-play-button searching" disabled>
-                    Searching for opponent
+                    {{ t("lobby.multiplayer.ranked.buttons.searchingForOpponent") }}
                 </button>
                 <button
                     v-else-if="matchmakingStore.status === MatchmakingStatus.MatchFound"
                     class="quick-play-button"
                     @click="matchmaking.acceptMatch"
                 >
-                    Match found
+                    {{ t("lobby.multiplayer.ranked.buttons.matchFound") }}
                 </button>
                 <button v-else-if="matchmakingStore.status === MatchmakingStatus.MatchAccepted" class="quick-play-button" disabled>
-                    Accepted
+                    {{ t("lobby.multiplayer.ranked.buttons.accepted") }}
                 </button>
                 <button
                     class="cancel-button"
@@ -79,7 +79,7 @@ SPDX-License-Identifier: MIT
                     }"
                     @click="matchmaking.stopSearch"
                 >
-                    Cancel
+                    {{ t("lobby.multiplayer.ranked.buttons.cancel") }}
                 </button>
             </div>
         </div>
@@ -89,6 +89,9 @@ SPDX-License-Identifier: MIT
 <script lang="ts" setup>
 import { matchmaking, MatchmakingStatus, matchmakingStore } from "@renderer/store/matchmaking.store";
 import Button from "primevue/button";
+import { useTypedI18n } from "@renderer/i18n";
+
+const { t } = useTypedI18n();
 </script>
 
 <style lang="scss" scoped>
