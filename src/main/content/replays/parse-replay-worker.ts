@@ -7,6 +7,7 @@ import path from "path";
 import { isMainThread, parentPort } from "worker_threads";
 import { readFile } from "fs/promises";
 import { WASI } from "wasi";
+import init from "./replay_parser.wasm?init";
 
 enum ParseMode {
     HEADER_ONLY = 0,
@@ -34,8 +35,7 @@ async function parse(replayPath: string, mode: ParseMode = ParseMode.FULL) {
             version: "preview1",
         });
 
-        const wasm = await WebAssembly.compile(await readFile("replay_parser.wasm"));
-        instance = await WebAssembly.instantiate(wasm, {
+        instance = await init({
             wasi_snapshot_preview1: wasi.wasiImport,
         });
         wasi.start(instance);
