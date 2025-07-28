@@ -60,6 +60,18 @@
                     "join": "Join"
                 }
             }
+        },
+        "singleplayer": {
+            "title": "Singleplayer",
+            "scenarios": {
+                "title": "Scenarios",
+                "description": "Test your skills in this set of challenging yet rewarding missions.",
+                "victoryCondition": "Victory condition",
+                "loseCondition": "Lose condition",
+                "faction": "Faction",
+                "difficulty": "Difficulty",
+                "launch": "Launch"
+            }
         }
     }
 }

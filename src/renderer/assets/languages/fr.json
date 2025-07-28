@@ -3896,6 +3896,18 @@
                     "join": null
                 }
             }
+        },
+        "singleplayer": {
+            "title": null,
+            "scenarios": {
+                "title": null,
+                "description": null,
+                "victoryCondition": null,
+                "loseCondition": null,
+                "faction": null,
+                "difficulty": null,
+                "launch": null
+            }
         }
     }
 }

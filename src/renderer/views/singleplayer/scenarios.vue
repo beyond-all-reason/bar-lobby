@@ -12,8 +12,8 @@ SPDX-License-Identifier: MIT
     <div class="view">
         <div class="scenarios-container">
             <div class="view-title">
-                <h1>Scenarios</h1>
-                <p>Test your skills in this set of challenging yet rewarding missions.</p>
+                <h1>{{ t("lobby.singleplayer.scenarios.title") }}</h1>
+                <p>{{ t("lobby.singleplayer.scenarios.description") }}</p>
             </div>
             <Panel class="scenarios-main-panel" noPadding>
                 <div class="flex-row gap-lg fullheight">
@@ -37,17 +37,22 @@ SPDX-License-Identifier: MIT
                             <Markdown :source="selectedScenario.briefing" />
                         </div>
                         <div class="gridform">
-                            <div>Victory condition</div>
+                            <div>{{ t("lobby.singleplayer.scenarios.victoryCondition") }}</div>
                             <div>{{ selectedScenario.victorycondition }}</div>
 
-                            <div>Lose condition</div>
+                            <div>{{ t("lobby.singleplayer.scenarios.loseCondition") }}</div>
                             <div>{{ selectedScenario.losscondition }}</div>
                         </div>
                         <div>
-                            <Select v-model="selectedFaction" label="Faction" :options="factions" />
+                            <Select v-model="selectedFaction" :label="t('lobby.singleplayer.scenarios.faction')" :options="factions" />
                         </div>
                         <div>
-                            <Select v-model="selectedDifficulty" label="Difficulty" :options="difficulties" optionLabel="name" />
+                            <Select
+                                v-model="selectedDifficulty"
+                                :label="t('lobby.singleplayer.scenarios.difficulty')"
+                                :options="difficulties"
+                                optionLabel="name"
+                            />
                         </div>
                         <DownloadContentButton
                             v-if="map"
@@ -55,9 +60,9 @@ SPDX-License-Identifier: MIT
                             class="fullwidth green"
                             :disabled="gameStore.status !== GameStatus.CLOSED"
                             @click="launch"
-                            >Launch</DownloadContentButton
+                            >{{ t("lobby.singleplayer.scenarios.launch") }}</DownloadContentButton
                         >
-                        <Button v-else class="fullwidth green" disabled>Launch</Button>
+                        <Button v-else class="fullwidth green" disabled>{{ t("lobby.singleplayer.scenarios.launch") }}</Button>
                     </div>
                 </div>
             </Panel>
@@ -80,6 +85,9 @@ import { useDexieLiveQueryWithDeps } from "@renderer/composables/useDexieLiveQue
 import Markdown from "@renderer/components/misc/Markdown.vue";
 import DownloadContentButton from "@renderer/components/controls/DownloadContentButton.vue";
 import { GameStatus, gameStore } from "@renderer/store/game.store";
+import { useTypedI18n } from "@renderer/i18n";
+
+const { t } = useTypedI18n();
 
 const gameVersion = gameStore?.selectedGameVersion?.gameVersion;
 const loadedScenarios = gameVersion ? await window.game.getScenarios(gameVersion) : [];
