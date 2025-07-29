@@ -72,7 +72,7 @@ import Button from "@renderer/components/controls/Button.vue";
 import Select from "@renderer/components/controls/Select.vue";
 import ScenarioTile from "@renderer/components/misc/ScenarioTile.vue";
 import { Scenario } from "@main/content/game/scenario";
-import { LATEST_GAME_VERSION, DEFAULT_ENGINE_VERSION } from "@main/config/default-versions";
+import { LATEST_GAME_VERSION } from "@main/config/default-versions";
 import Panel from "@renderer/components/common/Panel.vue";
 import { db } from "@renderer/store/db";
 import { MapDownloadData } from "@main/content/maps/map-data";
@@ -80,6 +80,7 @@ import { useDexieLiveQueryWithDeps } from "@renderer/composables/useDexieLiveQue
 import Markdown from "@renderer/components/misc/Markdown.vue";
 import DownloadContentButton from "@renderer/components/controls/DownloadContentButton.vue";
 import { GameStatus, gameStore } from "@renderer/store/game.store";
+import { enginesStore } from "@renderer/store/engine.store";
 
 const gameVersion = gameStore?.selectedGameVersion?.gameVersion;
 const loadedScenarios = gameVersion ? await window.game.getScenarios(gameVersion) : [];
@@ -152,7 +153,10 @@ async function launch() {
         .replaceAll("__RESTRICTEDUNITS__", restrictionsStr)
         .replaceAll("__NUMRESTRICTIONS__", restrictionCount.toString());
 
-    await window.game.launchScript(script, LATEST_GAME_VERSION, DEFAULT_ENGINE_VERSION);
+    if (!enginesStore.selectedEngineVersion) {
+        throw new Error("No engine version selected");
+    }
+    await window.game.launchScript(script, LATEST_GAME_VERSION, enginesStore.selectedEngineVersion.id);
 }
 </script>
 

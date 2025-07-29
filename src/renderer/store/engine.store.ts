@@ -2,59 +2,33 @@
 //
 // SPDX-License-Identifier: MIT
 
-import { reactive, watch } from "vue";
+import { DEFAULT_ENGINE_VERSION } from "@main/config/default-versions";
 import { EngineVersion } from "@main/content/engine/engine-version";
+import { reactive } from "vue";
 
-class EnginesStore {
+export const enginesStore: {
     isInitialized: boolean;
     availableEngineVersions: EngineVersion[];
     selectedEngineVersion?: EngineVersion;
-    defaultEngineVersion?: EngineVersion;
+} = reactive({
+    isInitialized: false,
+    availableEngineVersions: [],
+    selectedEngineVersion: undefined,
+});
 
-    constructor() {
-        this.isInitialized = false;
-        this.availableEngineVersions = [];
-        this.selectedEngineVersion = undefined;
-        this.defaultEngineVersion = undefined;
-    }
-
-    async refreshStore() {
-        this.availableEngineVersions = await window.engine.listAvailableVersions();
-    }
-
-    getEngineVersion() {
-        return this.selectedEngineVersion ?? this.defaultEngineVersion;
-    }
-
-    setEngineVersion(engine: EngineVersion) {
-        if (engine.id === this.defaultEngineVersion?.id) {
-            this.selectedEngineVersion = undefined;
-        } else {
-            this.selectedEngineVersion = engine;
-        }
+async function refreshStore() {
+    enginesStore.availableEngineVersions = await window.engine.listAvailableVersions();
+    enginesStore.selectedEngineVersion = enginesStore.availableEngineVersions.find((e) => e.id === DEFAULT_ENGINE_VERSION);
+    if (!enginesStore.selectedEngineVersion) {
+        throw new Error(`Default engine version ${DEFAULT_ENGINE_VERSION} not found in available versions.`);
     }
 }
-
-export const enginesStore = reactive(new EnginesStore());
-
-watch(
-    () => enginesStore.selectedEngineVersion,
-    async (engineVersion) => {
-        if (!engineVersion) {
-            return;
-        }
-
-        if (!engineVersion.installed) {
-            await window.engine.downloadEngine(engineVersion.id);
-        }
-    }
-);
 
 export async function initEnginesStore() {
     window.downloads.onDownloadEngineComplete(async (downloadInfo) => {
         console.debug("Received engine download completed event", downloadInfo);
-        await enginesStore.refreshStore();
+        await refreshStore();
     });
-    await enginesStore.refreshStore();
+    await refreshStore();
     enginesStore.isInitialized = true;
 }

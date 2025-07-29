@@ -40,14 +40,14 @@ SPDX-License-Identifier: MIT
         />
 
         <Select
-            :modelValue="enginesStore.getEngineVersion()"
+            :modelValue="enginesStore.selectedEngineVersion"
             :options="enginesStore.availableEngineVersions"
             data-key="id"
             option-label="id"
             label="Engine"
             :filter="true"
             class="fullwidth"
-            @update:model-value="(engine) => enginesStore.setEngineVersion(engine)"
+            @update:model-value="(engine) => (enginesStore.selectedEngineVersion = engine)"
         />
         <Button @click="serverSettingsOpen = true">Lobby Server Settings</Button>
         <SyncDataDirsDialog v-model="syncLobbyContentToolOpen" />

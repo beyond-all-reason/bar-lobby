@@ -68,10 +68,8 @@ export class EngineContentAPI extends AbstractContentAPI<string, EngineVersion> 
         }
     }
 
-    public async downloadEngine(engineVersion: string) {
-        if (!engineVersion) {
-            throw new Error("Engine Version is not specified");
-        }
+    public async downloadEngine(version?: string) {
+        const engineVersion = version || DEFAULT_ENGINE_VERSION;
         try {
             if (this.isVersionInstalled(engineVersion)) {
                 return;

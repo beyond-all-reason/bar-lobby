@@ -62,8 +62,8 @@ SPDX-License-Identifier: MIT
                 </div>
                 <div v-if="settingsStore.devMode">
                     <Select
-                        :modelValue="enginesStore.getEngineVersion()"
-                        @update:model-value="(engine) => enginesStore.setEngineVersion(engine)"
+                        :modelValue="enginesStore.selectedEngineVersion"
+                        @update:model-value="(engine) => (enginesStore.selectedEngineVersion = engine)"
                         :options="enginesStore.availableEngineVersions"
                         data-key="id"
                         optionLabel="id"

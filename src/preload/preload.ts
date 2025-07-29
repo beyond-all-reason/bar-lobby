@@ -87,7 +87,7 @@ contextBridge.exposeInMainWorld("auth", authApi);
 
 const engineApi = {
     listAvailableVersions: (): Promise<EngineVersion[]> => ipcRenderer.invoke("engine:listAvailableVersions"),
-    downloadEngine: (version: string): Promise<void | string> => ipcRenderer.invoke("engine:downloadEngine", version),
+    downloadEngine: (version?: string): Promise<void | string> => ipcRenderer.invoke("engine:downloadEngine", version),
     isVersionInstalled: (id: string): Promise<boolean> => ipcRenderer.invoke("engine:isVersionInstalled", id),
     uninstallVersion: (version: EngineVersion): Promise<void> => ipcRenderer.invoke("engine:uninstallVersion", version),
 };

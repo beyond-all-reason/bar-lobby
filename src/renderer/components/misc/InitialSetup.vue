@@ -14,7 +14,7 @@ SPDX-License-Identifier: MIT
 
 <script lang="ts" setup>
 import { defaultMaps } from "@main/config/default-maps";
-import { DEFAULT_ENGINE_VERSION, LATEST_GAME_VERSION } from "@main/config/default-versions";
+import { LATEST_GAME_VERSION } from "@main/config/default-versions";
 import { DownloadInfo } from "@main/content/downloads";
 import { initBattleStore } from "@renderer/store/battle.store";
 import { db } from "@renderer/store/db";
@@ -32,14 +32,12 @@ const state = ref<"engine" | "game" | "maps" | "update">("engine");
 
 onMounted(async () => {
     console.debug("Initial setup");
-    const defaultEngineVersion = enginesStore.availableEngineVersions.find((e) => e.id === DEFAULT_ENGINE_VERSION);
-    if (defaultEngineVersion?.installed === false) {
+    if (!enginesStore.selectedEngineVersion || enginesStore.selectedEngineVersion.installed === false) {
         state.value = "engine";
         text.value = "Downloading engine";
-        await window.engine.downloadEngine(defaultEngineVersion.id);
+        await window.engine.downloadEngine();
         text.value = "Installing engine";
     }
-    enginesStore.defaultEngineVersion = defaultEngineVersion;
 
     state.value = "game";
     text.value = "Downloading game";
