@@ -128,7 +128,8 @@ export class EngineContentAPI extends AbstractContentAPI<string, EngineVersion> 
 
     protected override async downloadComplete(downloadInfo: DownloadInfo) {
         log.debug(`Download complete: ${downloadInfo.name}`);
-        this.availableVersions.set(downloadInfo.name, { id: downloadInfo.name, ais: [], installed: true });
+        const ais = await this.parseAis(downloadInfo.name);
+        this.availableVersions.set(downloadInfo.name, { id: downloadInfo.name, ais, installed: true });
         super.downloadComplete(downloadInfo);
     }
 
