@@ -93,7 +93,7 @@ export async function initTachyonStore() {
 
     window.tachyon.onBattleStart((springString) => {
         console.debug("Received battle start event", springString);
-        const engineVersion = enginesStore.getEngineVersion();
+        const engineVersion = enginesStore.selectedEngineVersion;
         if (engineVersion === undefined) {
             console.error("No engine version selected");
             return;
