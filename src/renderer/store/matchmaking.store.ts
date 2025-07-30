@@ -3,7 +3,8 @@
 // SPDX-License-Identifier: MIT
 
 import { reactive } from "vue";
-import { MatchmakingListOkResponseData, MatchmakingListFailResponse } from "tachyon-protocol/types";
+import { MatchmakingListOkResponseData, MatchmakingListOkResponse } from "tachyon-protocol/types";
+import { tachyonStore } from "@renderer/store/tachyon.store";
 
 export enum MatchmakingStatus {
     Idle = "Idle",
@@ -32,7 +33,7 @@ export const matchmakingStore = reactive<{
     queueError: undefined,
 });
 
-export function initializeMatchmakingStore() {
+export async function initializeMatchmakingStore() {
     if (matchmakingStore.isInitialized) return;
 
     window.tachyon.onEvent("matchmaking/queueUpdate", (event) => {
@@ -58,38 +59,31 @@ export function initializeMatchmakingStore() {
         matchmakingStore.status = MatchmakingStatus.MatchFound;
     });
 
+    if (tachyonStore.isConnected) {
+        await fetchAvailableQueues();
+    }
+
     matchmakingStore.isInitialized = true;
 }
 
-export function fetchAvailableQueues() {
+export async function fetchAvailableQueues() {
     matchmakingStore.isLoadingQueues = true;
     matchmakingStore.queueError = undefined;
+    try {
+        const response = (await window.tachyon.request("matchmaking/list")) as MatchmakingListOkResponse;
+        matchmakingStore.playlists = response.data.playlists;
 
-    return window.tachyon
-        .request("matchmaking/list")
-        .then((response) => {
-            if (response.status === "success" && response.data) {
-                const data = response.data as MatchmakingListOkResponseData;
-                matchmakingStore.playlists = data.playlists;
-
-                // Set default selected queue if current selection is not available
-                const hasSelectedQueue = data.playlists.some((playlist) => playlist.id === matchmakingStore.selectedQueue);
-                if (data.playlists.length > 0 && !hasSelectedQueue) {
-                    matchmakingStore.selectedQueue = data.playlists[0].id;
-                }
-            } else {
-                console.error("Failed to fetch available queues", response);
-                const failedResponse = response as MatchmakingListFailResponse;
-                matchmakingStore.queueError = failedResponse.reason || "Failed to fetch queues";
-            }
-        })
-        .catch((error) => {
-            console.error("Error fetching available queues:", error);
-            matchmakingStore.queueError = "Network error";
-        })
-        .finally(() => {
-            matchmakingStore.isLoadingQueues = false;
-        });
+        // Set default selected queue if current selection is not available
+        const hasSelectedQueue = matchmakingStore.playlists.some((playlist) => playlist.id === matchmakingStore.selectedQueue);
+        if (matchmakingStore.playlists.length > 0 && !hasSelectedQueue) {
+            matchmakingStore.selectedQueue = matchmakingStore.playlists[0].id;
+        }
+    } catch (error) {
+        console.error("Failed to fetch available queues", error);
+        matchmakingStore.queueError = "Failed to fetch queues";
+    } finally {
+        matchmakingStore.isLoadingQueues = false;
+    }
 }
 
 export function getPlaylistName(id: string): string {
