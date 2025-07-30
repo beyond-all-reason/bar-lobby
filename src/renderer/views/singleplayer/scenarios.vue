@@ -92,7 +92,6 @@ const { t } = useTypedI18n();
 
 import { enginesStore } from "@renderer/store/engine.store";
 
-
 const gameVersion = gameStore?.selectedGameVersion?.gameVersion;
 const loadedScenarios = gameVersion ? await window.game.getScenarios(gameVersion) : [];
 const scenarios = ref<Scenario[]>(loadedScenarios);
