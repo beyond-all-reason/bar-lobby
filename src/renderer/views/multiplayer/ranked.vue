@@ -10,7 +10,6 @@ SPDX-License-Identifier: MIT
 
 <template>
     <div class="view">
-        <div class="ranked-background"></div>
         <div class="ranked-container">
             <div class="view-title">
                 <h1>{{ t("lobby.multiplayer.ranked.title") }}</h1>
@@ -65,6 +64,7 @@ SPDX-License-Identifier: MIT
                 </button>
                 <button
                     class="cancel-button"
+                    :disabled="matchmakingStore.status === MatchmakingStatus.Idle"
                     :class="{
                         disabled: matchmakingStore.status === MatchmakingStatus.Idle,
                     }"
@@ -72,6 +72,7 @@ SPDX-License-Identifier: MIT
                 >
                     {{ t("lobby.multiplayer.ranked.buttons.cancel") }}
                 </button>
+                <p class="txt-error" v-if="matchmakingStore.errorMessage">{{ matchmakingStore.errorMessage }}</p>
             </div>
         </div>
     </div>
@@ -91,29 +92,6 @@ const availableQueueIds = computed(() => {
 </script>
 
 <style lang="scss" scoped>
-.ranked-background {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: radial-gradient(circle, #000000ba, #000000fd);
-    transition: all 1s ease;
-    // animation: pulse 1s infinite ease-in-out;
-}
-
-@keyframes pulse {
-    0%,
-    100% {
-        background-size: 100% 100%;
-        filter: brightness(0.8);
-    }
-    50% {
-        background-size: 110% 110%;
-        filter: brightness(1);
-    }
-}
-
 .ranked-container {
     display: flex;
     flex-direction: column;
