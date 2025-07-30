@@ -5,22 +5,24 @@ SPDX-License-Identifier: MIT
 -->
 
 <template>
-    <Modal title="lobby server settings">
+    <Modal :title="t('lobby.navbar.serverSettings.title')">
         <div class="gridform">
-            <div>Active Server</div>
+            <div>{{ t("lobby.navbar.serverSettings.activeServer") }}</div>
             <Select v-model="settingsStore.lobbyServer" :options="serversList" optionGroupLabel="label" optionGroupChildren="items" />
-            <div>Custom Server</div>
+            <div>{{ t("lobby.navbar.serverSettings.customServer") }}</div>
             <Textbox
                 type="text"
                 v-model="serverInput"
-                placeholder="e.g. ws://localhost:4000"
+                :placeholder="t('lobby.navbar.serverSettings.placeholder')"
                 @keyup.enter="addServerToList()"
                 class="textbox"
             />
             <div></div>
             <div class="gridform">
-                <Button @click="addServerToList()">Add</Button>
-                <Button @click="removeServerFromList()" :disabled="disableRemoveButton">Remove</Button>
+                <Button @click="addServerToList()">{{ t("lobby.navbar.serverSettings.add") }}</Button>
+                <Button @click="removeServerFromList()" :disabled="disableRemoveButton">{{
+                    t("lobby.navbar.serverSettings.remove")
+                }}</Button>
             </div>
             <OverlayPanel ref="op">
                 <div class="container">
@@ -28,7 +30,7 @@ SPDX-License-Identifier: MIT
                 </div>
             </OverlayPanel>
         </div>
-        <div class="margin-md">Changing the Active Server has immediate effect. Remember to log in after switching.</div>
+        <div class="margin-md">{{ t("lobby.navbar.serverSettings.info") }}</div>
     </Modal>
 </template>
 
@@ -40,6 +42,8 @@ import Button from "@renderer/components/controls/Button.vue";
 import OverlayPanel from "primevue/overlaypanel";
 import { settingsStore } from "@renderer/store/settings.store";
 import Textbox from "@renderer/components/controls/Textbox.vue";
+import { useTypedI18n } from "@renderer/i18n";
+const { t } = useTypedI18n();
 
 const serverInput = ref("");
 

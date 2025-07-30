@@ -4019,6 +4019,84 @@
                 "difficulty": null,
                 "launch": null
             }
+        },
+        "navbar": {
+            "tooltips": {
+                "directMessages": null,
+                "friends": null,
+                "downloads": null,
+                "settings": null,
+                "minimize": null,
+                "windowed": null,
+                "fullscreen": null,
+                "exit": null,
+                "cancelRequest": null,
+                "rejectRequest": null,
+                "acceptRequest": null,
+                "viewProfile": null,
+                "sendMessage": null,
+                "joinBattle": null,
+                "inviteToParty": null,
+                "removeFriend": null
+            },
+            "exit": {
+                "title": null,
+                "login": null,
+                "logout": null,
+                "quitToDesktop": null
+            },
+            "serverSettings": {
+                "title": null,
+                "activeServer": null,
+                "customServer": null,
+                "placeholder": null,
+                "add": null,
+                "remove": null,
+                "info": null
+            },
+            "breadcrumbs": {
+                "back": null
+            },
+            "downloads": {
+                "noDownloads": null,
+                "moreDownloads": null,
+                "starting": null
+            },
+            "serverStatus": {
+                "playersOnline": null,
+                "error": null,
+                "reconnecting": null
+            },
+            "messages": {
+                "message": null,
+                "userID": null,
+                "userIDPlaceholder": null,
+                "send": null
+            },
+            "settings": {
+                "title": null,
+                "fullscreen": null,
+                "windowSize": null,
+                "display": null,
+                "skipIntro": null,
+                "loginAutomatically": null,
+                "sfxVolume": null,
+                "musicVolume": null,
+                "devMode": null,
+                "uploadLogs": null,
+                "logUrlCopied": null,
+                "couldNotUploadLog": null
+            },
+            "friends": {
+                "title": null,
+                "blocked": null,
+                "yourUserId": null,
+                "copy": null,
+                "friendId": null,
+                "addFriend": null,
+                "outgoingRequests": null,
+                "incomingRequests": null
+            }
         }
     }
 }

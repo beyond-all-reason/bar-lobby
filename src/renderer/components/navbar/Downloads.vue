@@ -28,11 +28,11 @@ SPDX-License-Identifier: MIT
                 </TransitionGroup>
                 <Transition tag="div" name="fade" mode="out-in">
                     <div class="flex-row flex-grow flex-center" v-if="downloadsStore.mapDownloads.length > limitedList.length">
-                        {{ `and ${downloadsStore.mapDownloads.length - limitedList.length} more...` }}
+                        {{ t("lobby.navbar.downloads.moreDownloads", { count: downloadsStore.mapDownloads.length - limitedList.length }) }}
                     </div>
                 </Transition>
             </div>
-            <div v-else class="flex-row flex-grow flex-center">No downloads active</div>
+            <div v-else class="flex-row flex-grow flex-center">{{ t("lobby.navbar.downloads.noDownloads") }}</div>
         </Transition>
     </PopOutPanel>
 </template>
@@ -43,6 +43,8 @@ import { computed, inject, Ref } from "vue";
 import Progress from "@renderer/components/common/Progress.vue";
 import PopOutPanel from "@renderer/components/navbar/PopOutPanel.vue";
 import { downloadsStore } from "@renderer/store/downloads.store";
+import { useTypedI18n } from "@renderer/i18n";
+const { t } = useTypedI18n();
 
 const props = defineProps<{
     modelValue: boolean;
@@ -70,7 +72,7 @@ toggleDownloads.value = async (open?: boolean) => {
 
 function progressText(currentBytes: number, totalBytes: number): string {
     if (currentBytes === 0) {
-        return "Starting...";
+        return t("lobby.navbar.downloads.starting");
     }
     const percent = currentBytes / totalBytes;
     const currentMB = currentBytes / Math.pow(1024, 2);

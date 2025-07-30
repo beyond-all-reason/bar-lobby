@@ -22,7 +22,7 @@ SPDX-License-Identifier: MIT
                 <div class="primary-right">
                     <Button
                         v-if="false"
-                        v-tooltip.bottom="'Direct Messages'"
+                        v-tooltip.bottom="t('lobby.navbar.tooltips.directMessages')"
                         v-click-away:messages="() => (messagesOpen = false)"
                         :class="['icon', { active: messagesOpen }]"
                         @click="messagesOpen = true"
@@ -32,7 +32,7 @@ SPDX-License-Identifier: MIT
                     </Button>
                     <Button
                         v-if="me.isAuthenticated"
-                        v-tooltip.bottom="'Friends'"
+                        v-tooltip.bottom="t('lobby.navbar.tooltips.friends')"
                         v-click-away:friends="() => (friendsOpen = false)"
                         :class="['icon', { active: friendsOpen }]"
                         @click="friendsOpen = true"
@@ -40,22 +40,28 @@ SPDX-License-Identifier: MIT
                         <Icon :icon="accountMultiple" :height="40" />
                     </Button>
                     <DownloadsButton
-                        v-tooltip.bottom="'Downloads'"
+                        v-tooltip.bottom="t('lobby.navbar.tooltips.downloads')"
                         v-click-away:downloads="() => (downloadsOpen = false)"
                         :class="['icon', { active: downloadsOpen }]"
                         @click="downloadsOpen = !downloadsOpen"
                     />
-                    <Button v-tooltip.bottom="'Settings'" class="icon" @click="settingsOpen = true">
+                    <Button v-tooltip.bottom="t('lobby.navbar.tooltips.settings')" class="icon" @click="settingsOpen = true">
                         <Icon :icon="cog" :height="40" />
                     </Button>
-                    <Button v-tooltip.bottom="'Minimize'" class="icon" @click="minimizeWindow">
+                    <Button v-tooltip.bottom="t('lobby.navbar.tooltips.minimize')" class="icon" @click="minimizeWindow">
                         <Icon :icon="windowMinimize" :height="40"></Icon>
                     </Button>
-                    <Button v-tooltip.bottom="settingsStore.fullscreen ? 'Windowed' : 'Fullscreen'" class="icon" @click="toggleFullscreen">
+                    <Button
+                        v-tooltip.bottom="
+                            settingsStore.fullscreen ? t('lobby.navbar.tooltips.windowed') : t('lobby.navbar.tooltips.fullscreen')
+                        "
+                        class="icon"
+                        @click="toggleFullscreen"
+                    >
                         <Icon v-if="settingsStore.fullscreen" :icon="fullscreenExit" :height="40"></Icon>
                         <Icon v-else :icon="fullscreen" :height="40"></Icon>
                     </Button>
-                    <Button v-tooltip.bottom="'Exit'" class="icon close" @click="exitOpen = true">
+                    <Button v-tooltip.bottom="t('lobby.navbar.tooltips.exit')" class="icon close" @click="exitOpen = true">
                         <Icon :icon="closeThick" :height="40" />
                     </Button>
                 </div>
@@ -105,6 +111,8 @@ import fullscreenExit from "@iconify-icons/mdi/fullscreen-exit";
 
 import cog from "@iconify-icons/mdi/cog";
 import { computed, inject, Ref, ref } from "vue";
+import { useTypedI18n } from "@renderer/i18n";
+const { t } = useTypedI18n();
 
 import Button from "@renderer/components/controls/Button.vue";
 import Downloads from "@renderer/components/navbar/Downloads.vue";

@@ -1903,6 +1903,84 @@
                 "difficulty": "Difficulty",
                 "launch": "Launch"
             }
+        },
+        "navbar": {
+            "tooltips": {
+                "directMessages": "Direct Messages",
+                "friends": "Friends",
+                "downloads": "Downloads",
+                "settings": "Settings",
+                "minimize": "Minimize",
+                "windowed": "Windowed",
+                "fullscreen": "Fullscreen",
+                "exit": "Exit",
+                "cancelRequest": "Cancel request",
+                "rejectRequest": "Reject request",
+                "acceptRequest": "Accept request",
+                "viewProfile": "View profile",
+                "sendMessage": "Send message",
+                "joinBattle": "Join battle",
+                "inviteToParty": "Invite to party (TODO)",
+                "removeFriend": "Remove friend"
+            },
+            "exit": {
+                "title": "Exit",
+                "login": "Login",
+                "logout": "Logout",
+                "quitToDesktop": "Quit to Desktop"
+            },
+            "serverSettings": {
+                "title": "lobby server settings",
+                "activeServer": "Active Server",
+                "customServer": "Custom Server",
+                "placeholder": "e.g. ws://localhost:4000",
+                "add": "Add",
+                "remove": "Remove",
+                "info": "Changing the Active Server has immediate effect. Remember to log in after switching."
+            },
+            "breadcrumbs": {
+                "back": "Back"
+            },
+            "downloads": {
+                "noDownloads": "No downloads active",
+                "moreDownloads": "and {count} more...",
+                "starting": "Starting..."
+            },
+            "serverStatus": {
+                "playersOnline": "Players Online",
+                "error": "Error",
+                "reconnecting": "Reconnecting..."
+            },
+            "messages": {
+                "message": "Message",
+                "userID": "UserID",
+                "userIDPlaceholder": "32452",
+                "send": "Send"
+            },
+            "settings": {
+                "title": "settings",
+                "fullscreen": "Fullscreen",
+                "windowSize": "Window Size",
+                "display": "Display",
+                "skipIntro": "Skip Intro",
+                "loginAutomatically": "Login Automatically",
+                "sfxVolume": "Sfx Volume",
+                "musicVolume": "Music Volume",
+                "devMode": "Dev Mode",
+                "uploadLogs": "Upload logs",
+                "logUrlCopied": "Log URL was copied to clipboard.",
+                "couldNotUploadLog": "Could not upload log."
+            },
+            "friends": {
+                "title": "Friends",
+                "blocked": "Blocked",
+                "yourUserId": "Your User ID is",
+                "copy": "Copy",
+                "friendId": "Friend ID",
+                "addFriend": "Add Friend",
+                "outgoingRequests": "Outgoing Friend Requests",
+                "incomingRequests": "Incoming Friend Requests"
+            }
         }
     },
     "tips": {
