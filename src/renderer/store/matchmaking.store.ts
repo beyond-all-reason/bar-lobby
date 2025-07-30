@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 import { reactive } from "vue";
-import { MatchmakingListOkResponseData } from "tachyon-protocol/types";
+import { MatchmakingListOkResponseData, MatchmakingListFailResponse } from "tachyon-protocol/types";
 
 export enum MatchmakingStatus {
     Idle = "Idle",
@@ -77,7 +77,7 @@ export function fetchAvailableQueues() {
                 }
             } else {
                 console.error("Failed to fetch available queues", response);
-                const failedResponse = response as any;
+                const failedResponse = response as MatchmakingListFailResponse;
                 matchmakingStore.queueError = failedResponse.reason || "Failed to fetch queues";
             }
         })
