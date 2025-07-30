@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 import { reactive } from "vue";
+import { MatchmakingListOkResponseData } from "tachyon-protocol/types";
 
 export enum MatchmakingStatus {
     Idle = "Idle",
@@ -16,14 +17,22 @@ export const matchmakingStore = reactive<{
     isDrawerOpen: boolean;
     status: MatchmakingStatus;
     selectedQueue: string;
+    playlists: MatchmakingListOkResponseData["playlists"];
+    isLoadingQueues: boolean;
+    queueError?: string;
 }>({
     isInitialized: false,
     isDrawerOpen: false,
     status: MatchmakingStatus.Idle,
     selectedQueue: "1v1",
+    playlists: [],
+    isLoadingQueues: false,
+    queueError: undefined,
 });
 
 export function initializeMatchmakingStore() {
+    if (matchmakingStore.isInitialized) return;
+
     window.tachyon.onEvent("matchmaking/queueUpdate", (event) => {
         console.debug(`matchmaking/queueUpdate: ${JSON.stringify(event)}`);
     });
@@ -48,6 +57,42 @@ export function initializeMatchmakingStore() {
     });
 
     matchmakingStore.isInitialized = true;
+}
+
+export function fetchAvailableQueues() {
+    matchmakingStore.isLoadingQueues = true;
+    matchmakingStore.queueError = undefined;
+
+    return window.tachyon
+        .request("matchmaking/list")
+        .then((response) => {
+            if (response.status === "success" && response.data) {
+                const data = response.data as MatchmakingListOkResponseData;
+                matchmakingStore.playlists = data.playlists;
+
+                // Set default selected queue if current selection is not available
+                const hasSelectedQueue = data.playlists.some((playlist) => playlist.id === matchmakingStore.selectedQueue);
+                if (data.playlists.length > 0 && !hasSelectedQueue) {
+                    matchmakingStore.selectedQueue = data.playlists[0].id;
+                }
+            } else {
+                console.error("Failed to fetch available queues", response);
+                const failedResponse = response as any;
+                matchmakingStore.queueError = failedResponse.reason || "Failed to fetch queues";
+            }
+        })
+        .catch((error) => {
+            console.error("Error fetching available queues:", error);
+            matchmakingStore.queueError = "Network error";
+        })
+        .finally(() => {
+            matchmakingStore.isLoadingQueues = false;
+        });
+}
+
+export function getPlaylistName(id: string): string {
+    const playlist = matchmakingStore.playlists.find((playlist) => playlist.id === id);
+    return playlist?.name || id;
 }
 
 export const matchmaking = {
