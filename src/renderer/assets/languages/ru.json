@@ -3831,11 +3831,8 @@
             "ranked": {
                 "title": null,
                 "description": null,
-                "modes": {
-                    "2v2": null,
-                    "1v1": null,
-                    "3v3": null
-                },
+                "loadingQueues": null,
+                "queueError": null,
                 "buttons": {
                     "searchGame": null,
                     "searchingForOpponent": null,

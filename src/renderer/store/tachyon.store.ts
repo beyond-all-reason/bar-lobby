@@ -7,6 +7,7 @@ import { gameStore } from "@renderer/store/game.store";
 import { auth, me } from "@renderer/store/me.store";
 import { SystemServerStatsOkResponse, SystemServerStatsOkResponseData } from "tachyon-protocol/types";
 import { reactive } from "vue";
+import { fetchAvailableQueues } from "@renderer/store/matchmaking.store";
 
 export const tachyonStore = reactive({
     isInitialized: false,
@@ -73,6 +74,9 @@ export async function initTachyonStore() {
         }
         // Periodically fetch server stats
         tachyonStore.fetchServerStatsInterval = setInterval(fetchServerStats, 60000);
+
+        // Fetch matchmaking queues when connected
+        fetchAvailableQueues();
     });
 
     window.tachyon.onDisconnected(() => {
