@@ -15,11 +15,13 @@ export const matchmakingStore = reactive<{
     isInitialized: boolean;
     isDrawerOpen: boolean;
     status: MatchmakingStatus;
+    errorMessage: string | null;
     selectedQueue: string;
 }>({
     isInitialized: false,
     isDrawerOpen: false,
     status: MatchmakingStatus.Idle,
+    errorMessage: null,
     selectedQueue: "1v1",
 });
 
@@ -52,9 +54,13 @@ export function initializeMatchmakingStore() {
 
 export const matchmaking = {
     async startSearch() {
-        matchmakingStore.status = MatchmakingStatus.Searching;
-        const response = await window.tachyon.request("matchmaking/queue", { queues: [matchmakingStore.selectedQueue] });
-        if (response.status === "failed") {
+        try {
+            matchmakingStore.errorMessage = null;
+            matchmakingStore.status = MatchmakingStatus.Searching;
+            await window.tachyon.request("matchmaking/queue", { queues: [matchmakingStore.selectedQueue] });
+        } catch (error) {
+            console.error("Error starting matchmaking:", error);
+            matchmakingStore.errorMessage = "Error: Failed to join the matchmaking queue.";
             matchmakingStore.status = MatchmakingStatus.Idle;
         }
     },
