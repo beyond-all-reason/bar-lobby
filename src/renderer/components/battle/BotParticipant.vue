@@ -84,7 +84,7 @@ function duplicateBot() {
 
 async function configureBot() {
     botOptions.value =
-        [...(enginesStore.getEngineVersion()?.ais || []), ...(gameStore.selectedGameVersion?.ais || [])].find(
+        [...(enginesStore.selectedEngineVersion?.ais || []), ...(gameStore.selectedGameVersion?.ais || [])].find(
             (ai) => ai.name === props.bot.name
         )?.options || [];
     botOptionsOpen.value = true;

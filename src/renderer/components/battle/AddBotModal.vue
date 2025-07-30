@@ -8,7 +8,7 @@ SPDX-License-Identifier: MIT
     <Modal title="Add Bot">
         <div class="flex-col gap-md container">
             <Button
-                v-for="(ai, i) in enginesStore.getEngineVersion()?.ais"
+                v-for="(ai, i) in enginesStore.selectedEngineVersion?.ais"
                 :key="i"
                 v-tooltip.bottom="{ value: ai.description }"
                 class="ai-button"
