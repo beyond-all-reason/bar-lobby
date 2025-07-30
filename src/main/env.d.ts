@@ -2,7 +2,4 @@
 //
 // SPDX-License-Identifier: MIT
 
-declare module "*.png" {
-    const src: string;
-    export default src;
-}
+/// <reference types="vite/client" />
