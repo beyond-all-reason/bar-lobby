@@ -11,9 +11,6 @@ import { purgeLogFiles } from "@main/services/log.service";
 import { typedWebContents } from "@main/typed-ipc";
 import { gameAPI } from "@main/game/game";
 
-declare const MAIN_WINDOW_VITE_DEV_SERVER_URL: string | undefined;
-declare const MAIN_WINDOW_VITE_NAME: string;
-
 const ZOOM_FACTOR_BASELINE_HEIGHT = 1080;
 
 const log = logger("main-window");
