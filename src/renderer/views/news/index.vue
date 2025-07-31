@@ -7,9 +7,9 @@ SPDX-License-Identifier: MIT
 <route lang="json5">
 {
     meta: {
-        redirect: "/singleplayer/scenarios",
-        title: "Singleplayer",
-        order: 0,
+        redirect: "/news/overview",
+        title: "News",
+        order: 2,
     },
 }
 </route>
