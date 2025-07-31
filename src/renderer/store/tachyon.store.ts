@@ -5,7 +5,7 @@
 import { enginesStore } from "@renderer/store/engine.store";
 import { gameStore } from "@renderer/store/game.store";
 import { auth, me } from "@renderer/store/me.store";
-import { SystemServerStatsOkResponse, SystemServerStatsOkResponseData } from "tachyon-protocol/types";
+import { SystemServerStatsOkResponseData } from "tachyon-protocol/types";
 import { reactive } from "vue";
 import { fetchAvailableQueues } from "@renderer/store/matchmaking.store";
 
@@ -43,7 +43,7 @@ async function connect() {
 async function fetchServerStats() {
     try {
         tachyonStore.error = undefined;
-        const response = (await window.tachyon.request("system/serverStats")) as SystemServerStatsOkResponse;
+        const response = await window.tachyon.request("system/serverStats");
         tachyonStore.serverStats = response.data;
     } catch (error) {
         console.error("Error fetching server stats:", error);

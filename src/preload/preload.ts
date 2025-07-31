@@ -173,10 +173,10 @@ contextBridge.exposeInMainWorld("barNavigation", barNavigationApi);
 // Tachyon API
 function request<C extends GetCommandIds<"user", "server", "request">>(
     ...args: GetCommandData<GetCommands<"user", "server", "request", C>> extends never ? [commandId: C] : [commandId: C, data: GetCommandData<GetCommands<"user", "server", "request", C>>]
-): Promise<GetCommands<"server", "user", "response", C>> {
+): Promise<Extract<GetCommands<"server", "user", "response", C>, { status: "success" }>> {
     // The return value is a generic TachyonResponse in the IPC interface.
     // For consumers we cast it to the correct type based on the commandId.
-    return ipcRenderer.invoke("tachyon:request", ...args) as Promise<GetCommands<"server", "user", "response", C>>;
+    return ipcRenderer.invoke("tachyon:request", ...args) as Promise<Extract<GetCommands<"server", "user", "response", C>, { status: "success" }>>;
 }
 
 function onEvent<C extends GetCommandIds<"server", "user", "event">>(eventID: C, callback: (event: GetCommandData<GetCommands<"server", "user", "event", C>>) => void) {

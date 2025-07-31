@@ -104,7 +104,7 @@ export class TachyonClient {
 
     public async request<C extends GetCommandIds<"user", "server", "request">>(
         ...args: GetCommandData<GetCommands<"user", "server", "request", C>> extends never ? [commandId: C] : [commandId: C, data: GetCommandData<GetCommands<"user", "server", "request", C>>]
-    ): Promise<GetCommands<"server", "user", "response", C>> {
+    ): Promise<Extract<GetCommands<"server", "user", "response", C>, { status: "success" }>> {
         if (!this.socket) {
             throw new Error("Not connected to server");
         }
@@ -128,7 +128,7 @@ export class TachyonClient {
                     reject(new Error(`${response.reason}` + (response.details ? ` (${response.details})` : "")));
                 }
                 if (response.messageId === messageId) {
-                    resolve(response as GetCommands<"server", "user", "response", C>);
+                    resolve(response as Extract<GetCommands<"server", "user", "response", C>, { status: "success" }>);
                 }
             });
         });

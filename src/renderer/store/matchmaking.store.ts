@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 import { reactive } from "vue";
-import { MatchmakingListOkResponseData, MatchmakingListOkResponse } from "tachyon-protocol/types";
+import { MatchmakingListOkResponseData } from "tachyon-protocol/types";
 import { tachyonStore } from "@renderer/store/tachyon.store";
 
 export enum MatchmakingStatus {
@@ -70,7 +70,7 @@ export async function fetchAvailableQueues() {
     matchmakingStore.isLoadingQueues = true;
     matchmakingStore.queueError = undefined;
     try {
-        const response = (await window.tachyon.request("matchmaking/list")) as MatchmakingListOkResponse;
+        const response = await window.tachyon.request("matchmaking/list");
         matchmakingStore.playlists = response.data.playlists;
 
         // Set default selected queue if current selection is not available
@@ -109,8 +109,9 @@ export const matchmaking = {
     },
     async acceptMatch() {
         matchmakingStore.status = MatchmakingStatus.MatchAccepted;
-        const response = await window.tachyon.request("matchmaking/ready");
-        if (response.status === "failed") {
+        try {
+            await window.tachyon.request("matchmaking/ready");
+        } catch {
             matchmakingStore.status = MatchmakingStatus.Idle;
         }
     },
