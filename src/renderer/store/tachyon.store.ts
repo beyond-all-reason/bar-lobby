@@ -7,6 +7,7 @@ import { gameStore } from "@renderer/store/game.store";
 import { auth, me } from "@renderer/store/me.store";
 import { SystemServerStatsOkResponseData } from "tachyon-protocol/types";
 import { reactive } from "vue";
+import { fetchAvailableQueues } from "@renderer/store/matchmaking.store";
 
 export const tachyonStore = reactive({
     isInitialized: false,
@@ -40,13 +41,15 @@ async function connect() {
 }
 
 async function fetchServerStats() {
-    return window.tachyon.request("system/serverStats").then((response) => {
-        if (response.status === "success") {
-            tachyonStore.serverStats = response.data;
-        } else {
-            console.error("Failed to fetch server stats", response);
-        }
-    });
+    try {
+        tachyonStore.error = undefined;
+        const response = await window.tachyon.request("system/serverStats");
+        tachyonStore.serverStats = response.data;
+    } catch (error) {
+        console.error("Error fetching server stats:", error);
+        tachyonStore.error = "Error fetching server stats";
+        tachyonStore.serverStats = undefined;
+    }
 }
 
 export async function initTachyonStore() {
@@ -71,6 +74,9 @@ export async function initTachyonStore() {
         }
         // Periodically fetch server stats
         tachyonStore.fetchServerStatsInterval = setInterval(fetchServerStats, 60000);
+
+        // Fetch matchmaking queues when connected
+        fetchAvailableQueues();
     });
 
     window.tachyon.onDisconnected(() => {

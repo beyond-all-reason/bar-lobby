@@ -10,7 +10,6 @@ SPDX-License-Identifier: MIT
 
 <template>
     <div class="view">
-        <div class="ranked-background"></div>
         <div class="ranked-container">
             <div class="view-title">
                 <h1>{{ t("lobby.multiplayer.ranked.title") }}</h1>
@@ -20,32 +19,23 @@ SPDX-License-Identifier: MIT
                 <div></div>
             </div>
             <div class="mode-select">
+                <div v-if="matchmakingStore.isLoadingQueues" class="loading-queues">
+                    {{ t("lobby.multiplayer.ranked.loadingQueues") }}
+                </div>
+                <div v-else-if="matchmakingStore.queueError" class="queue-error">
+                    {{ t("lobby.multiplayer.ranked.queueError") }}: {{ matchmakingStore.queueError }}
+                </div>
                 <Button
+                    v-else
+                    v-for="queue in availableQueueIds"
+                    :key="queue"
                     class="mode-column classic"
                     :class="{
-                        selected: matchmakingStore.selectedQueue === '2v2',
+                        selected: matchmakingStore.selectedQueue === queue,
                     }"
-                    @click="() => (matchmakingStore.selectedQueue = '2v2')"
+                    @click="() => (matchmakingStore.selectedQueue = queue)"
                     :disabled="matchmakingStore.status !== MatchmakingStatus.Idle"
-                    ><span>{{ t("lobby.multiplayer.ranked.modes.2v2") }}</span></Button
-                >
-                <Button
-                    class="mode-column classic"
-                    :class="{
-                        selected: matchmakingStore.selectedQueue === '1v1',
-                    }"
-                    @click="() => (matchmakingStore.selectedQueue = '1v1')"
-                    :disabled="matchmakingStore.status !== MatchmakingStatus.Idle"
-                    ><span>{{ t("lobby.multiplayer.ranked.modes.1v1") }}</span></Button
-                >
-                <Button
-                    class="mode-column classic"
-                    :class="{
-                        selected: matchmakingStore.selectedQueue === '3v3',
-                    }"
-                    @click="() => (matchmakingStore.selectedQueue = '3v3')"
-                    :disabled="matchmakingStore.status !== MatchmakingStatus.Idle"
-                    ><span>{{ t("lobby.multiplayer.ranked.modes.3v3") }}</span></Button
+                    ><span>{{ getPlaylistName(queue) }}</span></Button
                 >
             </div>
             <div class="button-container">
@@ -74,6 +64,7 @@ SPDX-License-Identifier: MIT
                 </button>
                 <button
                     class="cancel-button"
+                    :disabled="matchmakingStore.status === MatchmakingStatus.Idle"
                     :class="{
                         disabled: matchmakingStore.status === MatchmakingStatus.Idle,
                     }"
@@ -81,43 +72,26 @@ SPDX-License-Identifier: MIT
                 >
                     {{ t("lobby.multiplayer.ranked.buttons.cancel") }}
                 </button>
+                <p class="txt-error" v-if="matchmakingStore.errorMessage">{{ matchmakingStore.errorMessage }}</p>
             </div>
         </div>
     </div>
 </template>
 
 <script lang="ts" setup>
-import { matchmaking, MatchmakingStatus, matchmakingStore } from "@renderer/store/matchmaking.store";
+import { matchmaking, MatchmakingStatus, matchmakingStore, getPlaylistName } from "@renderer/store/matchmaking.store";
 import Button from "primevue/button";
 import { useTypedI18n } from "@renderer/i18n";
+import { computed } from "vue";
 
 const { t } = useTypedI18n();
+
+const availableQueueIds = computed(() => {
+    return matchmakingStore.playlists.sort((a, b) => a.teamSize * a.numOfTeams - b.teamSize * b.numOfTeams).map((playlist) => playlist.id);
+});
 </script>
 
 <style lang="scss" scoped>
-.ranked-background {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: radial-gradient(circle, #000000ba, #000000fd);
-    transition: all 1s ease;
-    // animation: pulse 1s infinite ease-in-out;
-}
-
-@keyframes pulse {
-    0%,
-    100% {
-        background-size: 100% 100%;
-        filter: brightness(0.8);
-    }
-    50% {
-        background-size: 110% 110%;
-        filter: brightness(1);
-    }
-}
-
 .ranked-container {
     display: flex;
     flex-direction: column;
@@ -139,6 +113,22 @@ const { t } = useTypedI18n();
     height: 100%;
     overflow: visible;
     gap: 50px;
+}
+
+.loading-queues,
+.queue-error {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 200px;
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 1.2rem;
+    text-align: center;
+}
+
+.queue-error {
+    color: #ff6b6b;
 }
 
 .mode-column {
