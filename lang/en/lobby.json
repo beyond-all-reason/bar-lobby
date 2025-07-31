@@ -148,9 +148,22 @@
 				"incomingRequests": "Incoming Friend Requests"
 			}
 		},
-		"controls": {
-			"select": {
-				"search": "Search"
+		"components": {
+			"controls": {
+				"downloadContentButton": {
+					"downloading": "Downloading...",
+					"download": "Download map"
+				},
+				"select": {
+					"search": "Search"
+				}
+			},
+			"maps": {
+				"filters": {
+					"favoritesFilter": {
+						"label": "Favorites"
+					}
+				}
 			}
 		}
 	}

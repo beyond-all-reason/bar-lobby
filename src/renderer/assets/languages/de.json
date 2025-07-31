@@ -2002,9 +2002,22 @@
         "incomingRequests": null
       }
     },
-    "controls": {
-      "select": {
-        "search": null
+    "components": {
+      "controls": {
+        "downloadContentButton": {
+          "downloading": null,
+          "download": null
+        },
+        "select": {
+          "search": null
+        }
+      },
+      "maps": {
+        "filters": {
+          "favoritesFilter": {
+            "label": null
+          }
+        }
       }
     }
   },

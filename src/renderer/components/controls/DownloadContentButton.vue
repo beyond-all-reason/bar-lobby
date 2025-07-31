@@ -18,12 +18,12 @@ SPDX-License-Identifier: MIT
         >
             <slot />
         </button>
-        <Button v-else-if="map.isDownloading" class="grey quick-download-button fullwidth anchor" @input.stop style="min-height: unset"
-            >{{ t("lobby.library.maps.downloading") }}</Button
-        >
-        <Button v-else class="red fullwidth quick-download-button" @click="downloadMap(map.springName)" style="min-height: unset"
-            >{{ t("lobby.library.maps.download") }}</Button
-        >
+        <Button v-else-if="map.isDownloading" class="grey quick-download-button fullwidth anchor" @input.stop style="min-height: unset">{{
+            t("lobby.components.controls.downloadContentButton.downloading")
+        }}</Button>
+        <Button v-else class="red fullwidth quick-download-button" @click="downloadMap(map.springName)" style="min-height: unset">{{
+            t("lobby.components.controls.downloadContentButton.download")
+        }}</Button>
     </div>
 </template>
 

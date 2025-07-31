@@ -8,7 +8,7 @@ SPDX-License-Identifier: MIT
     <Control class="select" v-bind="$props">
         <Dropdown
             v-bind="$props"
-            filterPlaceholder="t('lobby.controls.select.search')"
+            :filterPlaceholder="t('lobby.components.controls.select.search')"
             :autoFilterFocus="true"
             :autoOptionFocus="true"
             :resetFilterOnHide="true"
