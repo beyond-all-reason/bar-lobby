@@ -8,7 +8,7 @@ SPDX-License-Identifier: MIT
     <div class="breadcrumbs">
         <div class="item back" @click="onBack">
             <Icon :icon="chevronLeft" height="21" />
-            <div>Back</div>
+            <div>{{ t("lobby.navbar.breadcrumbs.back") }}</div>
         </div>
         <template v-for="item in currentRoute.matched" :key="item.path">
             <div v-if="item.children" class="separator">/</div>
@@ -23,6 +23,8 @@ SPDX-License-Identifier: MIT
 import { Icon } from "@iconify/vue";
 import chevronLeft from "@iconify-icons/mdi/chevron-left";
 import { useRouter } from "vue-router";
+import { useTypedI18n } from "@renderer/i18n";
+const { t } = useTypedI18n();
 
 const router = useRouter();
 const currentRoute = router.currentRoute;

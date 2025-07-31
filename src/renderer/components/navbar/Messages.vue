@@ -33,10 +33,10 @@ SPDX-License-Identifier: MIT
                         v-model="text"
                         v-in-view="focusTextbox"
                         class="reply"
-                        placeholder="Message"
+                        :placeholder="t('lobby.navbar.messages.message')"
                         @keyup.enter.stop="sendDirectMessage(userId, text)"
                     />
-                    <Button @click="sendDirectMessage(userId, text)">Send</Button>
+                    <Button @click="sendDirectMessage(userId, text)">{{ t("lobby.navbar.messages.send") }}</Button>
                 </div>
             </TabPanel>
             <TabPanel>
@@ -44,15 +44,21 @@ SPDX-License-Identifier: MIT
                     <Icon :icon="chatPlus" />
                 </template>
                 <div class="flex-col flex-grow padding-md">
-                    <Textbox v-model="newMessageUserId" v-in-view="focusTextbox" class="fullwidth" label="UserID" placeholder="32452" />
+                    <Textbox
+                        v-model="newMessageUserId"
+                        v-in-view="focusTextbox"
+                        class="fullwidth"
+                        :label="t('lobby.navbar.messages.userID')"
+                        :placeholder="t('lobby.navbar.messages.userIDPlaceholder')"
+                    />
                     <div class="flex-row gap-sm flex-bottom">
                         <Textbox
                             v-model="newMessage"
                             class="reply"
-                            placeholder="Message"
+                            :placeholder="t('lobby.navbar.messages.message')"
                             @keyup.enter.stop="sendDirectMessage(newMessageUserId, newMessage)"
                         />
-                        <Button @click="sendDirectMessage(newMessageUserId, newMessage)">Send</Button>
+                        <Button @click="sendDirectMessage(newMessageUserId, newMessage)">{{ t("lobby.navbar.messages.send") }}</Button>
                     </div>
                 </div>
             </TabPanel>
@@ -73,6 +79,9 @@ import Markdown from "@renderer/components/misc/Markdown.vue";
 import PopOutPanel from "@renderer/components/navbar/PopOutPanel.vue";
 import { Message } from "@renderer/model/messages";
 import { me } from "@renderer/store/me.store";
+import { useTypedI18n } from "@renderer/i18n";
+
+const { t } = useTypedI18n();
 
 const props = defineProps<{
     modelValue: boolean;
