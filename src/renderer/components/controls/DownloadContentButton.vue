@@ -19,10 +19,10 @@ SPDX-License-Identifier: MIT
             <slot />
         </button>
         <Button v-else-if="map.isDownloading" class="grey quick-download-button fullwidth anchor" @input.stop style="min-height: unset"
-            >Downloading...</Button
+            >{{ t("lobby.library.maps.downloading") }}</Button
         >
         <Button v-else class="red fullwidth quick-download-button" @click="downloadMap(map.springName)" style="min-height: unset"
-            >Download map</Button
+            >{{ t("lobby.library.maps.download") }}</Button
         >
     </div>
 </template>
@@ -33,6 +33,8 @@ import Button from "@renderer/components/controls/Button.vue";
 import { downloadMap } from "@renderer/store/maps.store";
 import { ButtonProps } from "primevue/button";
 import MapDownloadProgress from "@renderer/components/common/MapDownloadProgress.vue";
+import { useTypedI18n } from "@renderer/i18n";
+const { t } = useTypedI18n();
 
 export interface Props extends /* @vue-ignore */ ButtonProps {
     map: MapDownloadData;
