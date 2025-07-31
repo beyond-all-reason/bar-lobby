@@ -1845,7 +1845,10 @@
         "gameRunning": "Game running",
         "launching": "Launching ...",
         "watch": "Watch"
-      }
+      },
+      "downloading": "Downloading...",
+      "downloadMap": "Download map",
+      "search": "Search"
     },
     "overview": {
       "newLobbyAlpha": "A new lobby has landed",

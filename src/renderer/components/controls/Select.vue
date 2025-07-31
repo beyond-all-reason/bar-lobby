@@ -8,7 +8,7 @@ SPDX-License-Identifier: MIT
     <Control class="select" v-bind="$props">
         <Dropdown
             v-bind="$props"
-            filterPlaceholder="Search"
+            :filterPlaceholder="t('lobby.labels.search')"
             :autoFilterFocus="true"
             :autoOptionFocus="true"
             :resetFilterOnHide="true"
@@ -23,6 +23,9 @@ SPDX-License-Identifier: MIT
 import Dropdown, { DropdownProps } from "primevue/dropdown";
 
 import Control from "@renderer/components/controls/Control.vue";
+import { useTypedI18n } from "@renderer/i18n";
+
+const { t } = useTypedI18n();
 
 export interface Props extends DropdownProps {
     disabled?: boolean;

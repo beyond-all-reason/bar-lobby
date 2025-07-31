@@ -1,24 +1,27 @@
 {
-    "lobby": {
-        "labels": {
-            "quickPlay": "Quick play",
-            "login": "Login",
-            "changeAccount": "Change account",
-            "playOffline": "Play Offline",
-            "replays": {
-                "endedNormally": "Ended Normally",
-                "showSpoilers": "Show Spoilers",
-                "browseOnlineReplays": "Browse Online Replays",
-                "openReplaysFolder": "Open Replays Folder",
-                "noReplaysFound": "No replays found",
-                "gameRunning": "Game running",
-                "launching": "Launching ...",
-                "watch": "Watch"
-            }
-        },
-        "overview": {
-            "newLobbyAlpha": "A new lobby has landed",
-            "newLobbySubtext": "Welcome to the new BAR lobby public testing alpha 1 commander !\nThis version only supports singleplayer game modes."
-        }
-    }
+	"lobby": {
+		"labels": {
+			"quickPlay": "Quick play",
+			"login": "Login",
+			"changeAccount": "Change account",
+			"playOffline": "Play Offline",
+			"replays": {
+				"endedNormally": "Ended Normally",
+				"showSpoilers": "Show Spoilers",
+				"browseOnlineReplays": "Browse Online Replays",
+				"openReplaysFolder": "Open Replays Folder",
+				"noReplaysFound": "No replays found",
+				"gameRunning": "Game running",
+				"launching": "Launching ...",
+				"watch": "Watch"
+			},
+			"downloading": "Downloading...",
+			"downloadMap": "Download map",
+			"search": "Search"
+		},
+		"overview": {
+			"newLobbyAlpha": "A new lobby has landed",
+			"newLobbySubtext": "Welcome to the new BAR lobby public testing alpha 1 commander !\nThis version only supports singleplayer game modes."
+		}
+	}
 }

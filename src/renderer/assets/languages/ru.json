@@ -3819,7 +3819,10 @@
         "gameRunning": null,
         "launching": null,
         "watch": null
-      }
+      },
+      "downloading": null,
+      "downloadMap": null,
+      "search": null
     },
     "overview": {
       "newLobbyAlpha": null,
