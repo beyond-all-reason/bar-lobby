@@ -55,17 +55,10 @@ export function createWindow() {
         }
     });
 
-    // We cache previous zoom value to prevent repeating setZoomFactor calls with
-    // the same value as that seems to trigger event loops with the renderer.
-    let previousZoomFactor = -1;
-
     function updateZoom() {
         if (mainWindow.getContentSize()[1] > 0) {
             const zoomFactor = mainWindow.getContentSize()[1] / ZOOM_FACTOR_BASELINE_HEIGHT;
-            if (Math.abs(previousZoomFactor - zoomFactor) > 0.001) {
-                webContents.setZoomFactor(zoomFactor);
-                previousZoomFactor = zoomFactor;
-            }
+            webContents.setZoomFactor(zoomFactor);
         }
     }
 
