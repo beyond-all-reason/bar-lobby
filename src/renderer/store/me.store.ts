@@ -55,24 +55,11 @@ async function changeAccount() {
     me.isAuthenticated = false;
 }
 
-window.tachyon.onEvent("user/self", (event) => {
+window.tachyon.onEvent("user/self", async (event) => {
     console.debug(`Received user/self event: ${JSON.stringify(event)}`);
     if (event && event.user) {
+        await db.users.where({ isMe: 1 }).modify({ isMe: 0 });
         Object.assign(me, event.user);
-        db.users.put({
-            ...toRaw(me),
-            isMe: 1,
-        });
-    }
-});
-
-window.tachyon.onEvent("user/updated", (event) => {
-    console.debug(`Received user/updated event: ${JSON.stringify(event)}`);
-    // TODO change this when we have a proper protocol for users
-    // see https://github.com/beyond-all-reason/tachyon/blob/master/docs/schema/user.md
-    const myData = event.users[0];
-    if (myData) {
-        Object.assign(me, myData);
         db.users.put({
             ...toRaw(me),
             isMe: 1,

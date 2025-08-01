@@ -74,7 +74,7 @@ SPDX-License-Identifier: MIT
                 </div>
                 <div class="secondary-right flex-row flex-right">
                     <ServerStatus v-if="me.isAuthenticated" />
-                    <Button v-if="me.isAuthenticated" class="user" to="/profile">
+                    <Button v-if="me.isAuthenticated" class="user" :to="`/profile/${me.userId}`">
                         <div class="flex-row flex-center gap-sm">
                             <Icon :icon="account" :height="20" />
                             <div>{{ me.username }}</div>
