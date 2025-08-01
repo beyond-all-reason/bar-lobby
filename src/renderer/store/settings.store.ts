@@ -29,7 +29,7 @@ export async function initSettingsStore() {
     watch(
         () => settingsStore.fullscreen,
         () => {
-            window.mainWindow.setFullscreen(settingsStore.fullscreen, settingsStore.size);
+            window.mainWindow.setFullscreen(settingsStore.fullscreen);
         }
     );
     watch(

@@ -19,15 +19,25 @@ export function createWindow() {
     const settings = settingsService.getSettings();
     log.info("Creating main window with settings: ", settings);
 
+    function getWindowSize(windowedHeight: number) {
+        return {
+            width: (windowedHeight * 16) / 9,
+            height: windowedHeight,
+        };
+    }
+
     const mainWindow = new BrowserWindow({
         title: "Beyond All Reason",
-        fullscreen: settings?.fullscreen || false,
+        fullscreen: settings.fullscreen,
         icon: nativeImage.createFromDataURL(icon),
         resizable: true,
         center: true,
         frame: false,
         show: false,
         autoHideMenuBar: true,
+        ...getWindowSize(settings.size),
+        minWidth: 640,
+        minHeight: 360,
         webPreferences: {
             preload: path.join(__dirname, "../build/preload.js"),
             zoomFactor: 1,
@@ -45,21 +55,29 @@ export function createWindow() {
         }
     });
 
-    function updateDimensionsAndScaling(size?: number) {
-        if (!mainWindow.isFullScreen() && !mainWindow.isMaximized()) {
-            const windowedHeight = size || settingsService.getSettings()?.size || 900;
-            mainWindow.setSize((windowedHeight * 16) / 9, windowedHeight);
-            mainWindow.center();
-        }
+    // We cache previous zoom value to prevent repeating setZoomFactor calls with
+    // the same value as that seems to trigger event loops with the renderer.
+    let previousZoomFactor = -1;
 
+    function updateZoom() {
         if (mainWindow.getContentSize()[1] > 0) {
             const zoomFactor = mainWindow.getContentSize()[1] / ZOOM_FACTOR_BASELINE_HEIGHT;
-            webContents.setZoomFactor(zoomFactor);
+            if (Math.abs(previousZoomFactor - zoomFactor) > 0.001) {
+                webContents.setZoomFactor(zoomFactor);
+                previousZoomFactor = zoomFactor;
+            }
         }
     }
 
+    // We handle direct window `resize` event, not only `mainWindow:resized` from renderer as
+    // that offers much lower latency and offers more fluid experience when resizing. We can't
+    // use only `resize` event as looks like under some platforms not all window shape changes
+    // trigger this event.
+    mainWindow.on("resize", () => {
+        updateZoom();
+    });
+
     process.env.MAIN_WINDOW_ID = mainWindow.id.toString();
-    log.debug("Settings: ", settings);
 
     mainWindow.once("ready-to-show", () => {
         // Open the DevTools.
@@ -67,8 +85,9 @@ export function createWindow() {
             log.debug(`NODE_ENV is development, opening dev tools`);
             webContents.openDevTools();
         }
-        updateDimensionsAndScaling();
         mainWindow.setMenuBarVisibility(false);
+        updateZoom();
+        mainWindow.center();
         mainWindow.show();
         mainWindow.focus();
     });
@@ -96,12 +115,16 @@ export function createWindow() {
     //TODO add an IPC handler for changing display via the settings
 
     // Register IPC handlers for the main window
-    ipcMain.handle("mainWindow:setFullscreen", (_event, flag: boolean, size: number) => {
+    ipcMain.handle("mainWindow:setFullscreen", (_event, flag: boolean) => {
         mainWindow.setFullScreen(flag);
-        updateDimensionsAndScaling(size);
+        updateZoom();
     });
     ipcMain.handle("mainWindow:setSize", (_event, size: number) => {
-        updateDimensionsAndScaling(size);
+        if (!mainWindow.isFullScreen() && !mainWindow.isMaximized()) {
+            const { width, height } = getWindowSize(size);
+            mainWindow.setSize(width, height);
+        }
+        updateZoom();
     });
     ipcMain.handle("mainWindow:flashFrame", (_event, flag: boolean) => {
         mainWindow.flashFrame(flag);
@@ -110,7 +133,7 @@ export function createWindow() {
     ipcMain.handle("mainWindow:isFullscreen", () => mainWindow.isFullScreen());
 
     ipcMain.handle("mainWindow:resized", () => {
-        updateDimensionsAndScaling();
+        updateZoom();
     });
 
     /////////////////////////////////////////////
