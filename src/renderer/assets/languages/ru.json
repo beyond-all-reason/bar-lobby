@@ -3954,6 +3954,22 @@
             }
         },
         "components": {
+            "battle": {
+                "mapOptionsModal": {
+                    "mapOptionsTitle": null,
+                    "boxesPresets": null,
+                    "customBoxes": null,
+                    "deleteTeam": null,
+                    "team": null,
+                    "player": null,
+                    "ai": null,
+                    "addTeam": null,
+                    "editPresetTeams": null,
+                    "fixedPositions": null,
+                    "random": null,
+                    "close": null
+                }
+            },
             "controls": {
                 "downloadContentButton": {
                     "downloading": null,

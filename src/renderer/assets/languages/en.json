@@ -1980,6 +1980,22 @@
             }
         },
         "components": {
+            "battle": {
+                "mapOptionsModal": {
+                    "mapOptionsTitle": "Map Options",
+                    "boxesPresets": "Boxes presets",
+                    "customBoxes": "Custom boxes",
+                    "deleteTeam": "Delete Team",
+                    "team": "Team",
+                    "player": "player",
+                    "ai": "AI",
+                    "addTeam": "Add Team",
+                    "editPresetTeams": "Edit Preset Teams",
+                    "fixedPositions": "Fixed positions",
+                    "random": "Random",
+                    "close": "Close"
+                }
+            },
             "controls": {
                 "downloadContentButton": {
                     "downloading": "Downloading...",

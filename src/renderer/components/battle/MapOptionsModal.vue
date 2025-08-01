@@ -5,14 +5,14 @@ SPDX-License-Identifier: MIT
 -->
 
 <template>
-    <Modal ref="modal" title="Map options">
+    <Modal ref="modal" :title="t('lobby.components.battle.mapOptionsModal.mapOptionsTitle')">
         <div class="container">
             <div class="map-preview-container">
                 <MapBattlePreview />
             </div>
             <div class="options flex-col gap-md">
                 <div v-if="battleStore.battleOptions.map?.startboxesSet">
-                    <h4>Boxes presets</h4>
+                    <h4>{{ t("lobby.components.battle.mapOptionsModal.boxesPresets") }}</h4>
                     <div class="box-buttons">
                         <Button
                             v-for="(boxSet, i) in battleStore.battleOptions.map.startboxesSet"
@@ -25,7 +25,7 @@ SPDX-License-Identifier: MIT
                     </div>
                 </div>
                 <div class="flex-col gap-sm">
-                    <h4>Custom boxes</h4>
+                    <h4>{{ t("lobby.components.battle.mapOptionsModal.customBoxes") }}</h4>
                     <div class="box-buttons">
                         <Button @click="() => setCustomStartBoxes(StartBoxOrientation.EastVsWest)">
                             <img src="/src/renderer/assets/images/icons/east-vs-west.png" />
@@ -52,35 +52,53 @@ SPDX-License-Identifier: MIT
                             class="fullwidth"
                             @click="() => battleActions.removeTeam(teamBoxId)"
                         >
-                            <span v-if="canDeleteTeamBox(teamBox)">Delete Team {{ teamBoxId + 1 }}</span>
+                            <span v-if="canDeleteTeamBox(teamBox)"
+                                >{{ t("lobby.components.battle.mapOptionsModal.deleteTeam") }} {{ teamBoxId + 1 }}</span
+                            >
                             <span v-else>
                                 <Icon :icon="lockOutlineIcon" :inline="true"></Icon>
-                                Team {{ teamBoxId + 1 }} (<template v-if="participantCounts[teamBoxId] != undefined">
+                                {{ t("lobby.components.battle.mapOptionsModal.team") }} {{ teamBoxId + 1 }} (<template
+                                    v-if="participantCounts[teamBoxId] != undefined"
+                                >
                                     <span v-if="participantCounts[teamBoxId].playerCount > 0">
                                         {{ participantCounts[teamBoxId].playerCount }}
-                                        {{ pluralize("player", participantCounts[teamBoxId].playerCount || 0) }}
+                                        {{
+                                            pluralize(
+                                                t("lobby.components.battle.mapOptionsModal.player"),
+                                                participantCounts[teamBoxId].playerCount || 0
+                                            )
+                                        }}
                                     </span>
                                     <span v-if="participantCounts[teamBoxId].botCount > 0 && participantCounts[teamBoxId].playerCount > 0"
                                         >&nbsp;-&nbsp;</span
                                     >
                                     <span v-if="participantCounts[teamBoxId].botCount > 0">
                                         {{ participantCounts[teamBoxId].botCount }}
-                                        {{ pluralize("AI", participantCounts[teamBoxId].botCount || 0) }}
+                                        {{
+                                            pluralize(
+                                                t("lobby.components.battle.mapOptionsModal.ai"),
+                                                participantCounts[teamBoxId].botCount || 0
+                                            )
+                                        }}
                                     </span> </template
                                 >)
                             </span>
                         </Button>
                     </div>
 
-                    <Button class="green fullwidth" @click="() => battleActions.addTeam()">Add Team</Button>
+                    <Button class="green fullwidth" @click="() => battleActions.addTeam()">{{
+                        t("lobby.components.battle.mapOptionsModal.addTeam")
+                    }}</Button>
                 </div>
                 <div v-else>
                     <div>
-                        <Button class="fullwidth" @click="setCustomBoxesFromPresetBoxes">Edit Preset Teams</Button>
+                        <Button class="fullwidth" @click="setCustomBoxesFromPresetBoxes">{{
+                            t("lobby.components.battle.mapOptionsModal.editPresetTeams")
+                        }}</Button>
                     </div>
                 </div>
                 <div v-if="battleStore.battleOptions.map?.startPos">
-                    <h4>Fixed positions</h4>
+                    <h4>{{ t("lobby.components.battle.mapOptionsModal.fixedPositions") }}</h4>
                     <div class="box-buttons">
                         <Button
                             v-for="(teamSet, i) in battleStore.battleOptions.map.startPos?.team"
@@ -94,12 +112,12 @@ SPDX-License-Identifier: MIT
                             @click="setRandomStartBoxes"
                             :disabled="battleStore.battleOptions.mapOptions.startPosType === StartPosType.Random"
                         >
-                            <span>Random</span>
+                            <span>{{ t("lobby.components.battle.mapOptionsModal.random") }}</span>
                         </Button>
                     </div>
                 </div>
                 <div class="actions">
-                    <Button class="green fullwidth" @click="close">Close</Button>
+                    <Button class="green fullwidth" @click="close">{{ t("lobby.components.battle.mapOptionsModal.close") }}</Button>
                 </div>
             </div>
         </div>
@@ -120,6 +138,8 @@ import { StartBox } from "tachyon-protocol/types";
 import { pluralize } from "@renderer/utils/i18n";
 import { Icon } from "@iconify/vue";
 import lockOutlineIcon from "@iconify-icons/mdi/lock-outline";
+import { useTypedI18n } from "@renderer/i18n";
+const { t } = useTypedI18n();
 
 const modal: Ref<null | InstanceType<typeof Modal>> = ref(null);
 
