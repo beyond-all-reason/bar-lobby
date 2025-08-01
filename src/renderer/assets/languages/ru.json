@@ -3964,6 +3964,9 @@
                 }
             },
             "maps": {
+                "mapOverviewCard": {
+                    "sizeUnknown": null
+                },
                 "mapFiltersComponent": {
                     "maxPlayers": null,
                     "filterBy": null,

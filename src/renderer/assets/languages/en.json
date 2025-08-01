@@ -1990,6 +1990,9 @@
                 }
             },
             "maps": {
+                "mapOverviewCard": {
+                    "sizeUnknown": "Unknown"
+                },
                 "mapFiltersComponent": {
                     "maxPlayers": "Max Players",
                     "filterBy": "Filter By",
