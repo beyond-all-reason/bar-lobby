@@ -1991,8 +1991,9 @@
       },
       "maps": {
         "mapListComponents": {
-          "label": "Sort By",
-          "optionLabel": "label",
+          "sortBy": "Sort By",
+          "labelName": "Name",
+          "labelSize": "Size",
           "noMapsFound": "No maps found!",
           "pleaseTryDifferent": "Please try different keywords / filters"
         },

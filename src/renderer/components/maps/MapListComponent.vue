@@ -8,7 +8,7 @@ SPDX-License-Identifier: MIT
     <div class="flex-col gap-lg flex-grow fullheight">
         <div class="flex-row gap-md">
             <SearchBox v-model="searchVal" />
-            <Select v-model="sortMethod" :options="sortMethods" label="Sort By" optionLabel="label" />
+            <Select v-model="sortMethod" :options="sortMethods" :label="t('lobby.components.maps.mapListComponents.sortBy')" optionLabel="label" />
         </div>
 
         <div class="flex-col flex-grow fullheight">
@@ -18,8 +18,8 @@ SPDX-License-Identifier: MIT
                         <MapOverviewCard v-for="map in maps" :key="map.springName" :map="map" @click="mapSelected(map)" />
                     </TransitionGroup>
                     <div v-if="(maps?.length || 0) <= 0">
-                        <h4>No maps found!</h4>
-                        <span>Please try different keywords / filters</span>
+                        <h4>{{t("lobby.components.maps.mapListComponents.noMapsFound")}}</h4>
+                        <span>{{t("lobby.components.maps.mapListComponents.pleaseTryDifferent")}}</span>
                     </div>
                 </div>
             </div>
@@ -47,14 +47,16 @@ import { useDexieLiveQueryWithDeps } from "@renderer/composables/useDexieLiveQue
 import { mapsStore } from "@renderer/store/maps.store";
 
 import { useInfiniteScroll } from "@vueuse/core";
+import { useTypedI18n } from "@renderer/i18n";
+const { t } = useTypedI18n();
 
 const { filters } = mapsStore;
 
 type SortMethod = { label: string; dbKey: string };
 
 const sortMethods: SortMethod[] = [
-    { label: "Name", dbKey: "displayName" },
-    { label: "Size", dbKey: "width" },
+    { label: t("lobby.components.maps.mapListComponents.labelName"), dbKey: "displayName" },
+    { label: t("lobby.components.maps.mapListComponents.labelSize"), dbKey: "width" },
 ];
 const sortMethod: Ref<SortMethod | undefined> = ref(sortMethods.at(0));
 const searchVal = ref("");

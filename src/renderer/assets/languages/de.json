@@ -2014,8 +2014,9 @@
       },
       "maps": {
         "mapListComponents": {
-          "label": null,
-          "optionLabel": null,
+          "sortBy": null,
+          "labelName": null,
+          "labelSize": null,
           "noMapsFound": null,
           "pleaseTryDifferent": null
         },
