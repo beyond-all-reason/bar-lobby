@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: MIT
 
-import { app, BrowserWindow, nativeImage, screen } from "electron";
+import { app, BrowserWindow, nativeImage } from "electron";
 import path from "path";
 import { settingsService } from "./services/settings.service";
 import { logger } from "./utils/logger";
@@ -15,9 +15,6 @@ const ZOOM_FACTOR_BASELINE_HEIGHT = 1080;
 
 const log = logger("main-window");
 
-//TODO handle display changes, e.g. when the user changes the display in the settings,
-// moves the window to another display, or when the display is disconnected
-// be mindful of the scale factor for each display
 export function createWindow() {
     const settings = settingsService.getSettings();
     log.info("Creating main window with settings: ", settings);
@@ -74,14 +71,6 @@ export function createWindow() {
         mainWindow.setMenuBarVisibility(false);
         mainWindow.show();
         mainWindow.focus();
-    });
-
-    // Display metrics changed (resolution, scale factor, etc.)
-    screen.on("display-metrics-changed", (event, display) => {
-        if (display.id === screen.getPrimaryDisplay().id) {
-            log.info("Primary display metrics changed, updating main window dimensions and scaling");
-            updateDimensionsAndScaling();
-        }
     });
 
     webContents.on("render-process-gone", (event, details) => {
