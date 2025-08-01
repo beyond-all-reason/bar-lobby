@@ -27,6 +27,7 @@ SPDX-License-Identifier: MIT
 
 <script lang="ts" setup>
 import { computed } from "vue";
+import { useTypedI18n } from "@renderer/i18n";
 
 import SpectatorParticipant from "@renderer/components/battle/SpectatorParticipant.vue";
 import Button from "@renderer/components/controls/Button.vue";
@@ -34,7 +35,9 @@ import { battleWithMetadataStore } from "@renderer/store/battle.store";
 import { Player } from "@main/game/battle/battle-types";
 import { me } from "@renderer/store/me.store";
 
-const title = "Spectators";
+const { t } = useTypedI18n();
+
+const title = t("lobby.components.battle.spectatorsComponent.spectators");
 
 const showJoin = computed(() => {
     return me.battleRoomState.isSpectator === false;

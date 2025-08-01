@@ -9,7 +9,7 @@ SPDX-License-Identifier: MIT
         <MapOverviewCard :map="map" />
         <div class="teams scroll-container">
             <div v-if="isFFA">
-                <div class="team-title">Players</div>
+                <div class="team-title">{{ t("lobby.components.battle.battlePreview.players") }}</div>
                 <div class="contenders">
                     <template>
                         <template v-for="(contender, i) in battle.contenders" :key="`contender${i}`">
@@ -27,7 +27,7 @@ SPDX-License-Identifier: MIT
                 </div>
             </div> -->
             <div v-if="battle.spectators.length">
-                <div class="team-title">Spectators</div>
+                <div class="team-title">{{ t("lobby.components.battle.battlePreview.spectators") }}</div>
                 <div class="contenders">
                     <BattlePreviewParticipant
                         v-for="(spectator, spectatorIndex) in battle.spectators"
@@ -45,12 +45,15 @@ SPDX-License-Identifier: MIT
 
 <script lang="ts" setup>
 import { computed } from "vue";
+import { useTypedI18n } from "@renderer/i18n";
 
 import BattlePreviewParticipant from "@renderer/components/battle/BattlePreviewParticipant.vue";
 import MapOverviewCard from "@renderer/components/maps/MapOverviewCard.vue";
 import { OngoingBattle } from "@main/content/replays/replay";
 import { useDexieLiveQueryWithDeps } from "@renderer/composables/useDexieLiveQuery";
 import { db } from "@renderer/store/db";
+
+const { t } = useTypedI18n();
 
 const props = defineProps<{
     battle: OngoingBattle;

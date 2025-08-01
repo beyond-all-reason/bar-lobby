@@ -14,7 +14,7 @@ SPDX-License-Identifier: MIT
                 <div class="scroll-container flex-col" style="height: 550px">
                     <div class="teams padding-bottom-sm">
                         <div v-if="isFFA">
-                            <div class="team-title">Players</div>
+                            <div class="team-title">{{ t("lobby.components.battle.replayPreview.players") }}</div>
                             <div class="contenders">
                                 <template v-for="(contender, i) in replay?.contenders" :key="`contender${i}`">
                                     <BattlePreviewParticipant :contender="contender" />
@@ -46,7 +46,7 @@ SPDX-License-Identifier: MIT
                             </div>
                         </div>
                         <div v-if="replay?.spectators.length">
-                            <div class="team-title">Spectators</div>
+                            <div class="team-title">{{ t("lobby.components.battle.replayPreview.spectators") }}</div>
                             <div class="contenders">
                                 <BattlePreviewParticipant
                                     v-for="(spectator, spectatorIndex) in replay.spectators"
@@ -86,12 +86,15 @@ SPDX-License-Identifier: MIT
 import { Icon } from "@iconify/vue";
 import trophyVariant from "@iconify-icons/mdi/trophy-variant";
 import { computed } from "vue";
+import { useTypedI18n } from "@renderer/i18n";
 import BattlePreviewParticipant from "@renderer/components/battle/BattlePreviewParticipant.vue";
 import { Replay } from "@main/content/replays/replay";
 import ReplayPreviewMap from "@renderer/components/maps/ReplayPreviewMap.vue";
 import { DemoModel } from "$/sdfz-demo-parser";
 import TabView from "@renderer/components/common/TabView.vue";
 import TabPanel from "primevue/tabpanel";
+
+const { t } = useTypedI18n();
 
 const props = defineProps<{
     replay: Replay;
