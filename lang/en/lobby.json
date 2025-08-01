@@ -1,180 +1,180 @@
 {
-	"lobby": {
-		"buttons": {
-			"quickPlay": "Quick play"
-		},
-		"overview": {
-			"newLobbyAlpha": "A new lobby has landed",
-			"newLobbySubtext": "Welcome to the new BAR lobby public testing alpha 1 commander !\nThis version only supports singleplayer game modes."
-		},
-		"library": {
-			"maps": {
-				"title": "Maps",
-				"back": "Back",
-				"description": "Description:",
-				"author": "Author:",
-				"properties": "Map Properties",
-				"addToFavorites": "Add to favorites",
-				"removeFromFavorites": "Remove from favorites",
-				"play": "Play",
-				"downloading": "Downloading...",
-				"download": "Download map"
-			}
-		},
-		"multiplayer": {
-			"title": "Multiplayer",
-			"ranked": {
-				"title": "Ranked",
-				"description": "Join a multiplayer ranked queue.",
-				"loadingQueues": "Loading matchmaking queues...",
-				"queueError": "Error loading queues",
-				"buttons": {
-					"searchGame": "Search game",
-					"searchingForOpponent": "Searching for opponent",
-					"matchFound": "Match found",
-					"accepted": "Accepted",
-					"cancel": "Cancel"
-				}
-			},
-			"battle": {
-				"title": "Multiplayer Custom Battle"
-			},
-			"custom": {
-				"title": "Multiplayer Custom Battles",
-				"hostBattle": "Host Battle",
-				"filters": {
-					"hidePvE": "Hide PvE",
-					"hideLocked": "Hide Locked",
-					"hideEmpty": "Hide Empty",
-					"hideInProgress": "Hide Running"
-				},
-				"table": {
-					"bestBattle": "Best Battle",
-					"title": "Title",
-					"map": "Map",
-					"players": "Players",
-					"runningFor": "Running for",
-					"join": "Join"
-				}
-			}
-		},
-		"singleplayer": {
-			"title": "Singleplayer",
-			"scenarios": {
-				"title": "Scenarios",
-				"description": "Test your skills in this set of challenging yet rewarding missions.",
-				"victoryCondition": "Victory condition",
-				"loseCondition": "Lose condition",
-				"faction": "Faction",
-				"difficulty": "Difficulty",
-				"launch": "Launch"
-			}
-		},
-		"navbar": {
-			"tooltips": {
-				"directMessages": "Direct Messages",
-				"friends": "Friends",
-				"downloads": "Downloads",
-				"settings": "Settings",
-				"minimize": "Minimize",
-				"windowed": "Windowed",
-				"fullscreen": "Fullscreen",
-				"exit": "Exit",
-				"cancelRequest": "Cancel request",
-				"rejectRequest": "Reject request",
-				"acceptRequest": "Accept request",
-				"viewProfile": "View profile",
-				"sendMessage": "Send message",
-				"joinBattle": "Join battle",
-				"inviteToParty": "Invite to party (TODO)",
-				"removeFriend": "Remove friend"
-			},
-			"exit": {
-				"title": "Exit",
-				"login": "Login",
-				"logout": "Logout",
-				"quitToDesktop": "Quit to Desktop"
-			},
-			"serverSettings": {
-				"title": "lobby server settings",
-				"activeServer": "Active Server",
-				"customServer": "Custom Server",
-				"placeholder": "e.g. ws://localhost:4000",
-				"add": "Add",
-				"remove": "Remove",
-				"info": "Changing the Active Server has immediate effect. Remember to log in after switching."
-			},
-			"breadcrumbs": {
-				"back": "Back"
-			},
-			"downloads": {
-				"noDownloads": "No downloads active",
-				"moreDownloads": "and {count} more...",
-				"starting": "Starting..."
-			},
-			"serverStatus": {
-				"playersOnline": "Players Online",
-				"error": "Error",
-				"reconnecting": "Reconnecting..."
-			},
-			"messages": {
-				"message": "Message",
-				"userID": "UserID",
-				"userIDPlaceholder": "32452",
-				"send": "Send"
-			},
-			"settings": {
-				"title": "settings",
-				"fullscreen": "Fullscreen",
-				"windowSize": "Window Size",
-				"display": "Display",
-				"skipIntro": "Skip Intro",
-				"loginAutomatically": "Login Automatically",
-				"sfxVolume": "Sfx Volume",
-				"musicVolume": "Music Volume",
-				"devMode": "Dev Mode",
-				"uploadLogs": "Upload logs",
-				"logUrlCopied": "Log URL was copied to clipboard.",
-				"couldNotUploadLog": "Could not upload log."
-			},
-			"friends": {
-				"title": "Friends",
-				"blocked": "Blocked",
-				"yourUserId": "Your User ID is",
-				"copy": "Copy",
-				"friendId": "Friend ID",
-				"addFriend": "Add Friend",
-				"outgoingRequests": "Outgoing Friend Requests",
-				"incomingRequests": "Incoming Friend Requests"
-			}
-		},
-		"components": {
-			"controls": {
-				"downloadContentButton": {
-					"downloading": "Downloading...",
-					"download": "Download map"
-				},
-				"select": {
-					"search": "Search"
-				}
-			},
-			"maps": {
-				"mapListComponents": {
-					"sortBy": "Sort By",
-					"labelName": "Name",
-					"labelSize": "Size",
-					"noMapsFound": "No maps found!",
-					"pleaseTryDifferent": "Please try different keywords / filters"
-				},
-				"filters": {
-					"favoritesFilter": {
-						"label": "Favorites"
-					},
-					"downloadedFilter": {
-						"label": "Downloaded"
-					}
-				}
-			}
-		}
-	}
+    "lobby": {
+        "buttons": {
+            "quickPlay": "Quick play"
+        },
+        "overview": {
+            "newLobbyAlpha": "A new lobby has landed",
+            "newLobbySubtext": "Welcome to the new BAR lobby public testing alpha 1 commander !\nThis version only supports singleplayer game modes."
+        },
+        "library": {
+            "maps": {
+                "title": "Maps",
+                "back": "Back",
+                "description": "Description:",
+                "author": "Author:",
+                "properties": "Map Properties",
+                "addToFavorites": "Add to favorites",
+                "removeFromFavorites": "Remove from favorites",
+                "play": "Play",
+                "downloading": "Downloading...",
+                "download": "Download map"
+            }
+        },
+        "multiplayer": {
+            "title": "Multiplayer",
+            "ranked": {
+                "title": "Ranked",
+                "description": "Join a multiplayer ranked queue.",
+                "loadingQueues": "Loading matchmaking queues...",
+                "queueError": "Error loading queues",
+                "buttons": {
+                    "searchGame": "Search game",
+                    "searchingForOpponent": "Searching for opponent",
+                    "matchFound": "Match found",
+                    "accepted": "Accepted",
+                    "cancel": "Cancel"
+                }
+            },
+            "battle": {
+                "title": "Multiplayer Custom Battle"
+            },
+            "custom": {
+                "title": "Multiplayer Custom Battles",
+                "hostBattle": "Host Battle",
+                "filters": {
+                    "hidePvE": "Hide PvE",
+                    "hideLocked": "Hide Locked",
+                    "hideEmpty": "Hide Empty",
+                    "hideInProgress": "Hide Running"
+                },
+                "table": {
+                    "bestBattle": "Best Battle",
+                    "title": "Title",
+                    "map": "Map",
+                    "players": "Players",
+                    "runningFor": "Running for",
+                    "join": "Join"
+                }
+            }
+        },
+        "singleplayer": {
+            "title": "Singleplayer",
+            "scenarios": {
+                "title": "Scenarios",
+                "description": "Test your skills in this set of challenging yet rewarding missions.",
+                "victoryCondition": "Victory condition",
+                "loseCondition": "Lose condition",
+                "faction": "Faction",
+                "difficulty": "Difficulty",
+                "launch": "Launch"
+            }
+        },
+        "navbar": {
+            "tooltips": {
+                "directMessages": "Direct Messages",
+                "friends": "Friends",
+                "downloads": "Downloads",
+                "settings": "Settings",
+                "minimize": "Minimize",
+                "windowed": "Windowed",
+                "fullscreen": "Fullscreen",
+                "exit": "Exit",
+                "cancelRequest": "Cancel request",
+                "rejectRequest": "Reject request",
+                "acceptRequest": "Accept request",
+                "viewProfile": "View profile",
+                "sendMessage": "Send message",
+                "joinBattle": "Join battle",
+                "inviteToParty": "Invite to party (TODO)",
+                "removeFriend": "Remove friend"
+            },
+            "exit": {
+                "title": "Exit",
+                "login": "Login",
+                "logout": "Logout",
+                "quitToDesktop": "Quit to Desktop"
+            },
+            "serverSettings": {
+                "title": "lobby server settings",
+                "activeServer": "Active Server",
+                "customServer": "Custom Server",
+                "placeholder": "e.g. ws://localhost:4000",
+                "add": "Add",
+                "remove": "Remove",
+                "info": "Changing the Active Server has immediate effect. Remember to log in after switching."
+            },
+            "breadcrumbs": {
+                "back": "Back"
+            },
+            "downloads": {
+                "noDownloads": "No downloads active",
+                "moreDownloads": "and {count} more...",
+                "starting": "Starting..."
+            },
+            "serverStatus": {
+                "playersOnline": "Players Online",
+                "error": "Error",
+                "reconnecting": "Reconnecting..."
+            },
+            "messages": {
+                "message": "Message",
+                "userID": "UserID",
+                "userIDPlaceholder": "32452",
+                "send": "Send"
+            },
+            "settings": {
+                "title": "settings",
+                "fullscreen": "Fullscreen",
+                "windowSize": "Window Size",
+                "display": "Display",
+                "skipIntro": "Skip Intro",
+                "loginAutomatically": "Login Automatically",
+                "sfxVolume": "Sfx Volume",
+                "musicVolume": "Music Volume",
+                "devMode": "Dev Mode",
+                "uploadLogs": "Upload logs",
+                "logUrlCopied": "Log URL was copied to clipboard.",
+                "couldNotUploadLog": "Could not upload log."
+            },
+            "friends": {
+                "title": "Friends",
+                "blocked": "Blocked",
+                "yourUserId": "Your User ID is",
+                "copy": "Copy",
+                "friendId": "Friend ID",
+                "addFriend": "Add Friend",
+                "outgoingRequests": "Outgoing Friend Requests",
+                "incomingRequests": "Incoming Friend Requests"
+            }
+        },
+        "components": {
+            "controls": {
+                "downloadContentButton": {
+                    "downloading": "Downloading...",
+                    "download": "Download map"
+                },
+                "select": {
+                    "search": "Search"
+                }
+            },
+            "maps": {
+                "mapListComponents": {
+                    "sortBy": "Sort By",
+                    "labelName": "Name",
+                    "labelSize": "Size",
+                    "noMapsFound": "No maps found!",
+                    "pleaseTryDifferent": "Please try different keywords / filters"
+                },
+                "filters": {
+                    "favoritesFilter": {
+                        "label": "Favorites"
+                    },
+                    "downloadedFilter": {
+                        "label": "Downloaded"
+                    }
+                }
+            }
+        }
+    }
 }

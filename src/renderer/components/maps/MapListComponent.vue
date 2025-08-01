@@ -8,7 +8,12 @@ SPDX-License-Identifier: MIT
     <div class="flex-col gap-lg flex-grow fullheight">
         <div class="flex-row gap-md">
             <SearchBox v-model="searchVal" />
-            <Select v-model="sortMethod" :options="sortMethods" :label="t('lobby.components.maps.mapListComponents.sortBy')" optionLabel="label" />
+            <Select
+                v-model="sortMethod"
+                :options="sortMethods"
+                :label="t('lobby.components.maps.mapListComponents.sortBy')"
+                optionLabel="label"
+            />
         </div>
 
         <div class="flex-col flex-grow fullheight">
@@ -18,8 +23,8 @@ SPDX-License-Identifier: MIT
                         <MapOverviewCard v-for="map in maps" :key="map.springName" :map="map" @click="mapSelected(map)" />
                     </TransitionGroup>
                     <div v-if="(maps?.length || 0) <= 0">
-                        <h4>{{t("lobby.components.maps.mapListComponents.noMapsFound")}}</h4>
-                        <span>{{t("lobby.components.maps.mapListComponents.pleaseTryDifferent")}}</span>
+                        <h4>{{ t("lobby.components.maps.mapListComponents.noMapsFound") }}</h4>
+                        <span>{{ t("lobby.components.maps.mapListComponents.pleaseTryDifferent") }}</span>
                     </div>
                 </div>
             </div>
