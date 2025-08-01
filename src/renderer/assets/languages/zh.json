@@ -4106,6 +4106,12 @@
                 }
             },
             "maps": {
+                "mapFiltersComponent": {
+                    "maxPlayers": null,
+                    "filterBy": null,
+                    "terrain": null,
+                    "gameType": null
+                },
                 "mapListComponents": {
                     "sortBy": null,
                     "labelName": null,

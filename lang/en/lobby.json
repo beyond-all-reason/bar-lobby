@@ -159,6 +159,12 @@
                 }
             },
             "maps": {
+                "mapFiltersComponent": {
+                    "maxPlayers": "Max Players",
+                    "filterBy": "Filter By",
+                    "terrain": "Terrain",
+                    "gameType": "Game Type"
+                },
                 "mapListComponents": {
                     "sortBy": "Sort By",
                     "labelName": "Name",
