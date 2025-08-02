@@ -107,7 +107,7 @@ SPDX-License-Identifier: MIT
  */
 import Button from "@renderer/components/controls/Button.vue";
 import { db } from "@renderer/store/db";
-import { battleActions } from "@renderer/store/battle.store";
+import { battleActions, battleStore } from "@renderer/store/battle.store";
 import { useRouter } from "vue-router";
 import { enginesStore } from "@renderer/store/engine.store";
 import { gameStore } from "@renderer/store/game.store";
@@ -137,7 +137,7 @@ const map = useDexieLiveQueryWithDeps([() => id], () => db.maps.get(id));
 
 async function play() {
     battleActions.resetToDefaultBattle(enginesStore.selectedEngineVersion, gameStore.selectedGameVersion, map.value);
-    router.push("/singleplayer/custom");
+    battleStore.isSelectingGameMode = true;
 }
 
 function toggleMapFavorite() {

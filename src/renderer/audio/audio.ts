@@ -9,7 +9,7 @@ import type { HowlOptions } from "howler";
 import { Howl } from "howler";
 import { watch } from "vue";
 
-class Sound extends Howl {
+export class Sound extends Howl {
     public key: string;
     public isMusic: boolean;
 

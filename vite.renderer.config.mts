@@ -18,6 +18,7 @@ export default defineConfig({
         sourcemap: true,
     },
     optimizeDeps: {
+        entries: ["src/renderer/**/*.vue", "src/renderer/**/*.ts", "src/renderer/**/*.js"],
         esbuildOptions: {
             target: "esnext",
         },
@@ -26,7 +27,6 @@ export default defineConfig({
         modules: false,
         preprocessorOptions: {
             scss: {
-                api: "modern-compiler",
                 additionalData: `@use "@renderer/styles/_utils.scss";`,
             },
         },
