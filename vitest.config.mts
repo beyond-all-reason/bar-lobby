@@ -27,6 +27,7 @@ export default defineConfig({
                 test: {
                     name: "unit/renderer",
                     environment: "jsdom",
+                    setupFiles: ["tests/setup.renderer.mts"],
                     include: ["tests/unit/renderer/**/*.{test,spec}.{ts,mts}"],
                 },
                 resolve: { alias },
