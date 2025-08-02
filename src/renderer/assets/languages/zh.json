@@ -4094,6 +4094,59 @@
                 "outgoingRequests": null,
                 "incomingRequests": null
             }
+        },
+        "components": {
+            "battle": {
+                "mapOptionsModal": {
+                    "mapOptionsTitle": null,
+                    "boxesPresets": null,
+                    "customBoxes": null,
+                    "deleteTeam": null,
+                    "team": null,
+                    "player": null,
+                    "ai": null,
+                    "addTeam": null,
+                    "editPresetTeams": null,
+                    "fixedPositions": null,
+                    "random": null,
+                    "close": null
+                }
+            },
+            "controls": {
+                "downloadContentButton": {
+                    "downloading": null,
+                    "download": null
+                },
+                "select": {
+                    "search": null
+                }
+            },
+            "maps": {
+                "mapOverviewCard": {
+                    "sizeUnknown": null
+                },
+                "mapFiltersComponent": {
+                    "maxPlayers": null,
+                    "filterBy": null,
+                    "terrain": null,
+                    "gameType": null
+                },
+                "mapListComponents": {
+                    "sortBy": null,
+                    "labelName": null,
+                    "labelSize": null,
+                    "noMapsFound": null,
+                    "pleaseTryDifferent": null
+                },
+                "filters": {
+                    "favoritesFilter": {
+                        "label": null
+                    },
+                    "downloadedFilter": {
+                        "label": null
+                    }
+                }
+            }
         }
     }
 }
