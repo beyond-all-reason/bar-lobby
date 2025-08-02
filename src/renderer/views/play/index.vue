@@ -7,14 +7,13 @@ SPDX-License-Identifier: MIT
 <route lang="json5">
 {
     meta: {
-        redirect: "/development/game-dev",
-        title: "Development",
-        order: 5,
-        devOnly: true,
+        title: "Play",
+        order: 0,
+        redirect: "/play/menu",
     },
 }
 </route>
 
 <template>
-    <div></div>
+    <div>Main page content</div>
 </template>

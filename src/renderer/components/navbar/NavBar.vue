@@ -7,7 +7,7 @@ SPDX-License-Identifier: MIT
 <template>
     <div class="nav" :class="{ hidden }">
         <div class="logo">
-            <Button to="/home">
+            <Button to="/play/menu?">
                 <img src="/src/renderer/assets/images/logo.svg" />
             </Button>
         </div>
@@ -74,7 +74,7 @@ SPDX-License-Identifier: MIT
                 </div>
                 <div class="secondary-right flex-row flex-right">
                     <ServerStatus v-if="me.isAuthenticated" />
-                    <Button v-if="me.isAuthenticated" class="user" to="/profile">
+                    <Button v-if="me.isAuthenticated" class="user" :to="`/profile/${me.userId}`">
                         <div class="flex-row flex-center gap-sm">
                             <Icon :icon="account" :height="20" />
                             <div>{{ me.username }}</div>
@@ -133,7 +133,7 @@ const router = useRouter();
 const allRoutes = router.getRoutes();
 const primaryRoutes = computed(() => {
     return allRoutes
-        .filter((r) => ["/singleplayer", "/multiplayer", "/library", "/learn", "/store", "/development"].includes(r.path))
+        .filter((r) => ["/play", "/watch", "/news", "/library"].includes(r.path))
         .filter(
             (r) =>
                 (r.meta.hide === false || r.meta.hide === undefined) &&

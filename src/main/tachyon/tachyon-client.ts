@@ -51,8 +51,12 @@ export class TachyonClient {
                 res.on("data", (chunk: Buffer) => {
                     const error = chunk.toString();
                     log.error(`HTTP Error ${res.statusCode}: ${error}`);
-                    const errorObject = JSON.parse(error);
-                    reject(errorObject.error_description || errorObject.error || "Unknown error");
+                    try {
+                        const errorObject = JSON.parse(error);
+                        reject(new Error(errorObject.error_description || errorObject.error || "Unknown error"));
+                    } catch {
+                        reject(new Error("Unknown error"));
+                    }
                 });
             });
             this.socket.on("upgrade", (response) => {

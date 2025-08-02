@@ -20,13 +20,13 @@ export function useGlobalKeybindings({ exitOpen }: KeybindingProps) {
     onKeyDown("Escape", (e) => {
         if (e.defaultPrevented) return; // Some components might handle this already
         e.preventDefault();
-        if (router.currentRoute.value.path.startsWith("/login") || router.currentRoute.value.path.startsWith("/home")) {
+        if (router.currentRoute.value.path.startsWith("/login") || router.currentRoute.value.path.startsWith("/play")) {
             exitOpen.value = !exitOpen.value;
         } else {
             const routeSegments = router.currentRoute.value.path.split("/");
             // "/primary/secondary" => ["", "primary", "secondary", ...]
             if (routeSegments.length <= 3) {
-                router.push("/home");
+                router.push("/play");
             } else {
                 router.back();
             }

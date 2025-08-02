@@ -30,7 +30,6 @@ SPDX-License-Identifier: MIT
 import { Icon } from "@iconify/vue";
 import robot from "@iconify-icons/mdi/robot";
 import robotAngry from "@iconify-icons/mdi/robot-angry";
-import { MenuItem } from "primevue/menuitem";
 import { Ref, ref } from "vue";
 
 import LuaOptionsModal from "@renderer/components/battle/LuaOptionsModal.vue";
@@ -52,7 +51,7 @@ const botOptions: Ref<LuaOptionSection[]> = ref([]);
 const botOptionsOpen = ref(false);
 const menu = ref<InstanceType<typeof ContextMenu>>();
 
-const actions: MenuItem[] = [
+const actions = [
     {
         label: "Configure",
         command: configureBot,
