@@ -57,7 +57,7 @@ async function login() {
         connecting.value = true;
         await auth.login();
         await tachyon.connect();
-        router.push("/play");
+        router.push("/home/overview");
     } catch (e) {
         console.error(e);
         error.value = (e as Error).message;
@@ -84,7 +84,7 @@ async function changeAccount() {
 
 async function playOffline() {
     auth.playOffline();
-    router.push("/play");
+    router.push("/home/overview");
 }
 
 if (hasCredentials.value && settingsStore.loginAutomatically) {

@@ -5,7 +5,7 @@ SPDX-License-Identifier: MIT
 -->
 
 <route lang="json5">
-{ meta: { title: "Custom Lobbies", order: 5, devOnly: true, onlineOnly: true, transition: { name: "slide-left" } } }
+{ meta: { title: "Custom", order: 2, devOnly: true, onlineOnly: true, transition: { name: "slide-left" } } }
 </route>
 
 <template>

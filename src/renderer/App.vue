@@ -155,7 +155,7 @@ function onInitialSetupDone() {
 // continuing to overview.
 if (!settingsStore.devMode) {
     auth.playOffline();
-    router.push("/play");
+    router.push("/home/overview");
 }
 </script>
 

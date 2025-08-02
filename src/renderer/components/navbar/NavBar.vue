@@ -7,7 +7,7 @@ SPDX-License-Identifier: MIT
 <template>
     <div class="nav" :class="{ hidden }">
         <div class="logo">
-            <Button to="/play/menu?">
+            <Button to="/home">
                 <img src="/src/renderer/assets/images/logo.svg" />
             </Button>
         </div>
@@ -133,7 +133,7 @@ const router = useRouter();
 const allRoutes = router.getRoutes();
 const primaryRoutes = computed(() => {
     return allRoutes
-        .filter((r) => ["/play", "/watch", "/news", "/library"].includes(r.path))
+        .filter((r) => ["/singleplayer", "/multiplayer", "/library", "/learn", "/store", "/development"].includes(r.path))
         .filter(
             (r) =>
                 (r.meta.hide === false || r.meta.hide === undefined) &&

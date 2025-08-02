@@ -61,7 +61,7 @@ function openReplays(replayFiles: string[], webContents: BarIpcWebContents) {
             });
         });
     }
-    navigationService.navigateTo(webContents, "/watch/replays");
+    navigationService.navigateTo(webContents, "/library/replays");
     // Send event to highlight the opened replays
     webContents.send("replays:highlightOpened", replayFileNames);
 }

@@ -7,9 +7,9 @@ SPDX-License-Identifier: MIT
 <route lang="json5">
 {
     meta: {
-        redirect: "/watch/replays",
-        title: "Watch",
-        order: 1,
+        redirect: "/home/overview",
+        title: "Home",
+        order: 0,
     },
 }
 </route>

@@ -7,9 +7,10 @@ SPDX-License-Identifier: MIT
 <route lang="json5">
 {
     meta: {
-        redirect: "/library/replays",
-        title: "Library",
-        order: 2,
+        redirect: "/multiplayer/ranked",
+        title: "Multiplayer",
+        order: 1,
+        onlineOnly: true,
     },
 }
 </route>
