@@ -54,7 +54,7 @@ type SortMethod = { label: string; dbKey: string };
 
 const sortMethods: SortMethod[] = [
     { label: "Name", dbKey: "displayName" },
-    { label: "Size", dbKey: "width" },
+    { label: "Size", dbKey: "mapWidth" },
 ];
 const sortMethod: Ref<SortMethod | undefined> = ref(sortMethods.at(0));
 const searchVal = ref("");
