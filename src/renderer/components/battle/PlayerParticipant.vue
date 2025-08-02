@@ -32,7 +32,6 @@ import { Icon } from "@iconify/vue";
 import checkBold from "@iconify-icons/mdi/check-bold";
 import cloudDownload from "@iconify-icons/mdi/cloud-download";
 import { delay } from "$/jaz-ts-utils/delay";
-import { MenuItem } from "primevue/menuitem";
 import { computed, inject, Ref, ref } from "vue";
 import { useTypedI18n } from "@renderer/i18n";
 
@@ -58,7 +57,7 @@ const isSynced = computed(() => {
 
 const menu = ref<InstanceType<typeof ContextMenu>>();
 
-const actions: MenuItem[] =
+const actions =
     props.player.user.userId === me.userId
         ? [
               { label: t("lobby.components.battle.playerParticipant.viewProfile"), command: viewProfile },
