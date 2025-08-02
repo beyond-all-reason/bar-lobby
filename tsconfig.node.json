@@ -6,8 +6,8 @@
         "src/main/**/*",
         "src/preload/**/*",
         "vendor/**/*",
-        "tests/**/main/*.mts",
-        "tests/**/main/*.ts",
+        "tests/**/*.mts",
+        "tests/**/*.ts",
         "tests/setup.main.mts",
         "vitest.config.mts"
     ],

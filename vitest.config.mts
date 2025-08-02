@@ -13,8 +13,7 @@ const alias = {
 export default defineConfig({
     test: {
         globals: true,
-        exclude: ["**/e2e/**"],
-        workspace: [
+        projects: [
             {
                 test: {
                     name: "unit/main",
@@ -28,7 +27,6 @@ export default defineConfig({
                 test: {
                     name: "unit/renderer",
                     environment: "jsdom",
-                    setupFiles: ["tests/setup.renderer.mts"],
                     include: ["tests/unit/renderer/**/*.{test,spec}.{ts,mts}"],
                 },
                 resolve: { alias },
@@ -39,6 +37,23 @@ export default defineConfig({
                         dts: "src/renderer/typed-router.d.ts",
                     }),
                 ],
+            },
+            {
+                test: {
+                    name: "unit/shared",
+                    environment: "node",
+                    setupFiles: ["tests/setup.main.mts"],
+                    include: ["tests/unit/shared/**/*.{test,spec}.{ts,mts}"],
+                },
+                resolve: { alias },
+            },
+            {
+                test: {
+                    name: "integration/ipc",
+                    environment: "node",
+                    include: ["tests/integration/ipc/**/*.{test,spec}.{ts,mts}"],
+                },
+                resolve: { alias },
             },
         ],
     },
