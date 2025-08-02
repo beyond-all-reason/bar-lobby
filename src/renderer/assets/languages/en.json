@@ -1982,7 +1982,19 @@
     "components": {
       "battle": {
         "mapOptionsModal": {
-          "title": "Map Options"
+          "title": "Map Options",
+          "mapOptionsTitle": "Map Options",
+          "boxesPresets": "Boxes presets",
+          "customBoxes": "Custom boxes",
+          "deleteTeam": "Delete Team",
+          "team": "Team",
+          "player": "player",
+          "ai": "AI",
+          "addTeam": "Add Team",
+          "editPresetTeams": "Edit Preset Teams",
+          "fixedPositions": "Fixed positions",
+          "random": "Random",
+          "close": "Close"
         },
         "hostBattle": {
           "title": "Host Battle",

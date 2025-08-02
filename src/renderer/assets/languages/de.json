@@ -2005,7 +2005,19 @@
     "components": {
       "battle": {
         "mapOptionsModal": {
-          "title": null
+          "title": null,
+          "mapOptionsTitle": null,
+          "boxesPresets": null,
+          "customBoxes": null,
+          "deleteTeam": null,
+          "team": null,
+          "player": null,
+          "ai": null,
+          "addTeam": null,
+          "editPresetTeams": null,
+          "fixedPositions": null,
+          "random": null,
+          "close": null
         },
         "hostBattle": {
           "title": null,
