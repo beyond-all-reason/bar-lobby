@@ -12,26 +12,14 @@
         "vitest.config.mts"
     ],
     "compilerOptions": {
-        "lib": [
-            "ESNext",
-            "DOM",
-            "DOM.Iterable"
-        ],
+        "lib": ["ESNext", "DOM", "DOM.Iterable"],
         "composite": true,
         "baseUrl": ".",
         "paths": {
-            "@main/*": [
-                "src/main/*"
-            ], // TODO: Remove direct references to main
-            "@preload/*": [
-                "src/preload/*"
-            ],
-            "@renderer/*": [
-                "src/renderer/*"
-            ],
-            "$/*": [
-                "vendor/*"
-            ]
+            "@main/*": ["src/main/*"], // TODO: Remove direct references to main
+            "@preload/*": ["src/preload/*"],
+            "@renderer/*": ["src/renderer/*"],
+            "$/*": ["vendor/*"]
         },
         "strict": true,
         "strictNullChecks": true,
