@@ -126,14 +126,12 @@ export class TachyonClient {
         this.socket.send(JSON.stringify(request));
         log.debug(`OUTGOING REQUEST ${JSON.stringify(request)}`);
         return new Promise((resolve, reject) => {
-            this.onResponse(commandId).addOnce((response: TachyonResponse) => {
+            this.onResponse(messageId).addOnce((response: TachyonResponse) => {
                 if (response.status === "failed") {
                     log.error(`Error response received: ${JSON.stringify(response)}`);
                     reject(new Error(`${response.reason}` + (response.details ? ` (${response.details})` : "")));
                 }
-                if (response.messageId === messageId) {
-                    resolve(response as Extract<GetCommands<"server", "user", "response", C>, { status: "success" }>);
-                }
+                resolve(response as Extract<GetCommands<"server", "user", "response", C>, { status: "success" }>);
             });
         });
     }
@@ -160,11 +158,11 @@ export class TachyonClient {
     //     });
     // }
 
-    public onResponse(commandId: GetCommandIds<"server", "user", "response">) {
-        let signal = this.responseHandlers.get(commandId);
+    public onResponse(messageId: string) {
+        let signal = this.responseHandlers.get(messageId);
         if (!signal) {
             signal = new Signal();
-            this.responseHandlers.set(commandId, signal);
+            this.responseHandlers.set(messageId, signal);
         }
         return signal;
     }
@@ -207,7 +205,7 @@ export class TachyonClient {
 
     protected async handleResponse(response: TachyonResponse) {
         log.debug(`INCOMING RESPONSE ${JSON.stringify(response)}`);
-        const signal = this.responseHandlers.get(response.commandId);
+        const signal = this.responseHandlers.get(response.messageId);
         if (signal) {
             signal.dispatch(response as GetCommands<"server", "user", "response">);
         }
