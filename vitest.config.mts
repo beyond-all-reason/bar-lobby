@@ -17,19 +17,19 @@ export default defineConfig({
         workspace: [
             {
                 test: {
-                    name: "main",
+                    name: "unit/main",
                     environment: "node",
                     setupFiles: ["tests/setup.main.mts"],
-                    include: ["tests/main/**/*.{test,spec}.{ts,mts}"],
+                    include: ["tests/unit/main/**/*.{test,spec}.{ts,mts}"],
                 },
                 resolve: { alias },
             },
             {
                 test: {
-                    name: "renderer",
+                    name: "unit/renderer",
                     environment: "jsdom",
                     setupFiles: ["tests/setup.renderer.mts"],
-                    include: ["tests/renderer/**/*.{test,spec}.{ts,mts}"],
+                    include: ["tests/unit/renderer/**/*.{test,spec}.{ts,mts}"],
                 },
                 resolve: { alias },
                 plugins: [

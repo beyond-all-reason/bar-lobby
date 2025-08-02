@@ -7,9 +7,9 @@
         "src/renderer/**/*",
         "src/renderer/**/*.vue",
         "src/preload/*.d.ts",
-        "tests/**/*.ts",
-        "tests/**/*.mts",
-        "vitest.config.mts"
+        "tests/**/renderer/**/*.ts",
+        "tests/**/renderer/**/*.mts",
+        "tests/setup.renderer.mts"
     ],
     "compilerOptions": {
         "lib": ["ESNext", "DOM", "DOM.Iterable"],
