@@ -29,17 +29,21 @@ import { computed } from "vue";
 import { useImageBlobUrlCache } from "@renderer/composables/useImageBlobUrlCache";
 import { MapData } from "@main/content/maps/map-data";
 import TerrainIcon from "@renderer/components/maps/filters/TerrainIcon.vue";
-import { Icon } from "@iconify/vue/dist/iconify.js";
+import { Icon } from "@iconify/vue";
 import personIcon from "@iconify-icons/mdi/person-multiple";
 import gridIcon from "@iconify-icons/mdi/grid";
 import heartIcon from "@iconify-icons/mdi/heart";
+import { useTypedI18n } from "@renderer/i18n";
+const { t } = useTypedI18n();
 
 const props = defineProps<{
     map: MapData | undefined;
 }>();
 
 const cache = useImageBlobUrlCache();
-const mapSize = computed(() => (props.map ? props.map.mapWidth + "x" + props.map.mapHeight : "Unknown"));
+const mapSize = computed(() =>
+    props.map ? props.map.mapWidth + "x" + props.map.mapHeight : t("lobby.components.maps.mapOverviewCard.sizeUnknown")
+);
 const imageUrl = computed(() =>
     props.map?.imagesBlob?.preview ? cache.get(props.map?.springName, props.map?.imagesBlob?.preview) : defaultMiniMap
 );

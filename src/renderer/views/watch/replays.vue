@@ -15,62 +15,62 @@ SPDX-License-Identifier: MIT
                 <h1>Replays</h1>
             </div>
             <div class="flex-row flex-grow gap-md">
-                <div class="flex-col flex-grow gap-md">
-                    <Panel class="flex-grow">
+                <div class="middle-section">
+                    <Panel>
                         <div class="flex-col fullheight gap-md">
-                            <div class="flex-row gap-md">
+                            <div class="flex-row gap-md fullwidth">
                                 <TriStateCheckbox v-model="endedNormally" label="Ended Normally" />
                                 <Checkbox v-model="showSpoilers" label="Show Spoilers" />
-                                <div class="flex-right flex-row gap-md" style="padding-right: 5px">
+                                <div class="flex-grow">
+                                    <SearchBox v-model="fulltextSearch" placeholder="Search map, players..." />
+                                </div>
+                                <div class="flex-right flex-row gap-md" style="flex: none">
                                     <Button @click="openBrowserToReplayService">Browse Online Replays</Button>
                                     <Button @click="openReplaysFolder">Open Replays Folder</Button>
                                 </div>
                             </div>
-                            <div class="scroll-container padding-right-sm">
-                                <DataTable
-                                    v-model:first="offset"
-                                    v-model:selection="selectedReplay"
-                                    :lazy="true"
-                                    :value="replays"
-                                    :paginator="true"
-                                    :rows="limit"
-                                    :totalRecords="totalReplays"
-                                    selectionMode="single"
-                                    dataKey="fileName"
-                                    :sortOrder="sortOrder === 'asc' ? 1 : -1"
-                                    :sortField="sortField"
-                                    @page="onPage"
-                                    @sort="onSort"
-                                >
-                                    <template #empty>No replays found</template>
-                                    <Column header="Name">
-                                        <template #body="{ data }">
-                                            <template v-if="data.preset === 'duel'">
-                                                {{ data.contenders?.[0]?.name ?? "Nobody" }} vs
-                                                {{ data.contenders?.[1]?.name ?? "Nobody" }}
-                                            </template>
-                                            <template v-else-if="data.preset === 'team'">
-                                                {{ data.teams[0].playerCount }} vs {{ data.teams[1].playerCount }}
-                                            </template>
-                                            <template v-if="data.preset === 'ffa'"> {{ data.contenders.length }} Way FFA </template>
-                                            <template v-if="data.preset === 'teamffa'">
-                                                {{ data.teams[0].playerCount }} Way Team FFA
-                                            </template>
+                            <DataTable
+                                v-model:first="offset"
+                                v-model:selection="selectedReplay"
+                                :lazy="true"
+                                :value="replays"
+                                :paginator="true"
+                                :rows="limit"
+                                :totalRecords="replaysCount"
+                                selectionMode="single"
+                                dataKey="fileName"
+                                :sortOrder="sortOrder === 'asc' ? 1 : -1"
+                                :sortField="sortField"
+                                :rowClass="(data) => (highlightedReplays.has(data.fileName) ? 'highlighted-replay' : '')"
+                                @page="onPage"
+                                @sort="onSort"
+                            >
+                                <template #empty>No replays found</template>
+                                <Column header="Name">
+                                    <template #body="{ data }">
+                                        <template v-if="data.preset === 'duel'">
+                                            {{ data.contenders?.[0]?.name ?? "Nobody" }} vs
+                                            {{ data.contenders?.[1]?.name ?? "Nobody" }}
                                         </template>
-                                    </Column>
-                                    <Column header="Date" :sortable="true" sortField="startTime">
-                                        <template #body="{ data }">
-                                            {{ format(data.startTime, "yyyy/MM/dd hh:mm a") }}
+                                        <template v-else-if="data.preset === 'team'">
+                                            {{ data.teams[0].playerCount }} vs {{ data.teams[1].playerCount }}
                                         </template>
-                                    </Column>
-                                    <Column header="Duration" :sortable="true" sortField="gameDurationMs">
-                                        <template #body="{ data }">
-                                            {{ getFriendlyDuration(data.gameDurationMs) }}
-                                        </template>
-                                    </Column>
-                                    <Column field="mapSpringName" header="Map" :sortable="true" sortField="mapSpringName" />
-                                </DataTable>
-                            </div>
+                                        <template v-if="data.preset === 'ffa'">{{ data.contenders.length }} Way FFA</template>
+                                        <template v-if="data.preset === 'teamffa'">{{ data.teams[0].playerCount }} Way Team FFA</template>
+                                    </template>
+                                </Column>
+                                <Column header="Date" :sortable="true" sortField="startTime">
+                                    <template #body="{ data }">
+                                        {{ format(data.startTime, "yyyy/MM/dd hh:mm a") }}
+                                    </template>
+                                </Column>
+                                <Column header="Duration" :sortable="true" sortField="gameDurationMs">
+                                    <template #body="{ data }">
+                                        {{ getFriendlyDuration(data.gameDurationMs) }}
+                                    </template>
+                                </Column>
+                                <Column field="mapSpringName" header="Map" :sortable="true" sortField="mapSpringName" />
+                            </DataTable>
                         </div>
                     </Panel>
                 </div>
@@ -84,11 +84,11 @@ SPDX-License-Identifier: MIT
                                             v-if="map && replay"
                                             :map="map"
                                             @click="watchReplay(replay)"
-                                            :disabled="isLaunching || gameStore.isGameRunning"
+                                            :disabled="gameStore.status !== GameStatus.CLOSED"
                                         >
-                                            <template v-if="gameStore.isGameRunning"> Game running </template>
-                                            <template v-else-if="isLaunching"> Launching... </template>
-                                            <template v-else> Watch </template>
+                                            <template v-if="gameStore.status === GameStatus.RUNNING">Game is running</template>
+                                            <template v-else-if="gameStore.status === GameStatus.LOADING">Launching...</template>
+                                            <template v-else>Watch</template>
                                         </DownloadContentButton>
                                         <Button v-else disabled style="flex-grow: 1">Watch</Button>
                                         <Button v-if="replay" @click="showReplayFile(replay)" class="icon" :height="32"
@@ -123,7 +123,7 @@ SPDX-License-Identifier: MIT
 
 import { format } from "date-fns";
 import Column from "primevue/column";
-import { Ref, ref, shallowRef, onMounted, triggerRef } from "vue";
+import { Ref, ref, shallowRef, onMounted, triggerRef, computed, watch } from "vue";
 
 import Button from "@renderer/components/controls/Button.vue";
 import Checkbox from "@renderer/components/controls/Checkbox.vue";
@@ -136,20 +136,29 @@ import { db } from "@renderer/store/db";
 import { useDexieLiveQueryWithDeps } from "@renderer/composables/useDexieLiveQuery";
 import ReplayPreview from "@renderer/components/battle/ReplayPreview.vue";
 import DownloadContentButton from "@renderer/components/controls/DownloadContentButton.vue";
-import { gameStore } from "@renderer/store/game.store";
+import { GameStatus, gameStore, watchReplay } from "@renderer/store/game.store";
+import { replaysStore, acknowledgeReplay } from "@renderer/store/replays.store";
 import { MapDownloadData } from "@main/content/maps/map-data";
 import { Icon } from "@iconify/vue";
 import folder from "@iconify-icons/mdi/folder";
+import SearchBox from "@renderer/components/controls/SearchBox.vue";
 
 const endedNormally: Ref<boolean | null> = ref(true);
 const showSpoilers = ref(true);
-const totalReplays = ref(0);
 const offset = ref(0);
 const limit = ref(15);
+const fulltextSearch = ref("");
+const fulltextSearchWords = computed(() =>
+    fulltextSearch.value
+        .split(" ")
+        .filter((word) => word.trim() !== "")
+        .map((word) => word.toLocaleLowerCase())
+);
 const sortField: Ref<keyof Replay> = ref("startTime");
 const sortOrder: Ref<"asc" | "desc"> = ref("desc");
 const selectedReplay: Ref<Replay | null> = shallowRef(null);
-const isLaunching = ref(false);
+
+const highlightedReplays = computed(() => replaysStore.highlightedReplays);
 
 onMounted(() => {
     window.replays.onReplayDeleted((filename: string) => {
@@ -160,21 +169,46 @@ onMounted(() => {
     });
 });
 
-const replays = useDexieLiveQueryWithDeps([endedNormally, offset, limit, sortField, sortOrder], () => {
+watch(selectedReplay, (newReplay) => {
+    if (newReplay && highlightedReplays.value.has(newReplay.fileName)) {
+        acknowledgeReplay(newReplay.fileName);
+    }
+});
+
+function fulltextSearchFilter(replay) {
+    if (fulltextSearchWords.value.length === 0) return true;
+    return fulltextSearchWords.value.every((word) => {
+        return replay.mapSpringName.toLowerCase().includes(word) || replay.contenders.some((c) => c.name.toLowerCase().includes(word));
+    });
+}
+
+const replays = useDexieLiveQueryWithDeps([endedNormally, offset, limit, sortField, sortOrder, fulltextSearch], () => {
     let query;
     if (endedNormally.value !== null) {
         query = db.replays
             .where("gameEndedNormally")
             .equals(endedNormally.value ? 1 : 0)
+            .filter(fulltextSearchFilter)
             .offset(offset.value)
             .limit(limit.value);
     } else {
-        query = db.replays.offset(offset.value).limit(limit.value);
+        query = db.replays.filter(fulltextSearchFilter).offset(offset.value).limit(limit.value);
     }
     if (sortOrder.value === "asc") {
         return query.sortBy(sortField.value);
     }
     return query.reverse().sortBy(sortField.value);
+});
+
+const replaysCount = useDexieLiveQueryWithDeps([endedNormally, fulltextSearch], async () => {
+    if (endedNormally.value !== null) {
+        return db.replays
+            .where("gameEndedNormally")
+            .equals(endedNormally.value ? 1 : 0)
+            .filter(fulltextSearchFilter)
+            .count();
+    }
+    return db.replays.filter(fulltextSearchFilter).count();
 });
 
 let map = useDexieLiveQueryWithDeps([() => selectedReplay.value?.mapSpringName], async () => {
@@ -213,21 +247,6 @@ function openReplaysFolder() {
     window.shell.openReplaysDir();
 }
 
-function watchReplay(replay: Replay) {
-    // return early if isLaunching is true or game is running to not spam multiple launches
-    if (isLaunching.value || gameStore.isGameRunning) return;
-
-    isLaunching.value = true;
-    window.game
-        .launchReplay(replay)
-        .then(() => {
-            isLaunching.value = false;
-        })
-        .catch(() => {
-            isLaunching.value = false;
-        });
-}
-
 function showReplayFile(replay: Replay) {
     if (replay?.fileName) window.shell.showReplayInFolder(replay.fileName);
 }
@@ -252,13 +271,20 @@ function showReplayFile(replay: Replay) {
     flex-direction: column;
     height: 100%;
     align-self: center;
-    width: 1600px;
+}
+
+.middle-section {
+    width: 1200px;
+    height: 700px;
 }
 
 .right-section {
     display: flex;
-    height: 100%;
-    position: relative;
+    height: 700px;
     width: 400px;
+}
+
+:deep(.p-datatable-tbody tr.highlighted-replay td) {
+    background-color: rgba(255, 200, 0, 0.3) !important;
 }
 </style>

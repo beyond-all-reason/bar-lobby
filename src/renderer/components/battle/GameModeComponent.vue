@@ -11,7 +11,7 @@ SPDX-License-Identifier: MIT
             :modelValue="battleStore.battleOptions.gameMode"
             :options="gameModeListOptions"
             optionLabel="label"
-            label="Presets"
+            :label="t('lobby.components.battle.gameModeComponent.presets')"
             @update:model-value="onGameModeSelected"
             disabled
         />
@@ -24,10 +24,12 @@ SPDX-License-Identifier: MIT
                 </div>
             </div>
         </div>
-        <Button class="fullwidth" @click="openGameOptions">Configure Game Options</Button>
+        <Button class="fullwidth" @click="openGameOptions">{{
+            t("lobby.components.battle.gameModeComponent.configureGameOptions")
+        }}</Button>
         <LuaOptionsModal
             id="game-options"
-            title="Game Options"
+            :title="t('lobby.components.battle.gameModeComponent.gameOptions')"
             v-model="gameOptionsOpen"
             :options="battleStore.battleOptions.gameMode.options"
             :sections="gameStore.selectedGameVersion?.luaOptionSections || []"
@@ -44,6 +46,9 @@ import Select from "@renderer/components/controls/Select.vue";
 import { battleActions, battleStore } from "@renderer/store/battle.store";
 import { gameStore } from "@renderer/store/game.store";
 import { ref, watch } from "vue";
+import { useTypedI18n } from "@renderer/i18n";
+
+const { t } = useTypedI18n();
 
 //TODO have theses presets come from the game
 const gameModeListOptions: GameModeWithOptions[] = [

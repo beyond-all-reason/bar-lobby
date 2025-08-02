@@ -3,6 +3,8 @@
 // SPDX-License-Identifier: MIT
 
 import { reactive } from "vue";
+import { MatchmakingListOkResponseData } from "tachyon-protocol/types";
+import { tachyonStore } from "@renderer/store/tachyon.store";
 
 export enum MatchmakingStatus {
     Idle = "Idle",
@@ -15,15 +17,25 @@ export const matchmakingStore = reactive<{
     isInitialized: boolean;
     isDrawerOpen: boolean;
     status: MatchmakingStatus;
+    errorMessage: string | null;
     selectedQueue: string;
+    playlists: MatchmakingListOkResponseData["playlists"];
+    isLoadingQueues: boolean;
+    queueError?: string;
 }>({
     isInitialized: false,
     isDrawerOpen: false,
     status: MatchmakingStatus.Idle,
+    errorMessage: null,
     selectedQueue: "1v1",
+    playlists: [],
+    isLoadingQueues: false,
+    queueError: undefined,
 });
 
-export function initializeMatchmakingStore() {
+export async function initializeMatchmakingStore() {
+    if (matchmakingStore.isInitialized) return;
+
     window.tachyon.onEvent("matchmaking/queueUpdate", (event) => {
         console.debug(`matchmaking/queueUpdate: ${JSON.stringify(event)}`);
     });
@@ -47,14 +59,47 @@ export function initializeMatchmakingStore() {
         matchmakingStore.status = MatchmakingStatus.MatchFound;
     });
 
+    if (tachyonStore.isConnected) {
+        await fetchAvailableQueues();
+    }
+
     matchmakingStore.isInitialized = true;
+}
+
+export async function fetchAvailableQueues() {
+    matchmakingStore.isLoadingQueues = true;
+    matchmakingStore.queueError = undefined;
+    try {
+        const response = await window.tachyon.request("matchmaking/list");
+        matchmakingStore.playlists = response.data.playlists;
+
+        // Set default selected queue if current selection is not available
+        const hasSelectedQueue = matchmakingStore.playlists.some((playlist) => playlist.id === matchmakingStore.selectedQueue);
+        if (matchmakingStore.playlists.length > 0 && !hasSelectedQueue) {
+            matchmakingStore.selectedQueue = matchmakingStore.playlists[0].id;
+        }
+    } catch (error) {
+        console.error("Failed to fetch available queues", error);
+        matchmakingStore.queueError = "Failed to fetch queues";
+    } finally {
+        matchmakingStore.isLoadingQueues = false;
+    }
+}
+
+export function getPlaylistName(id: string): string {
+    const playlist = matchmakingStore.playlists.find((playlist) => playlist.id === id);
+    return playlist?.name || id;
 }
 
 export const matchmaking = {
     async startSearch() {
-        matchmakingStore.status = MatchmakingStatus.Searching;
-        const response = await window.tachyon.request("matchmaking/queue", { queues: [matchmakingStore.selectedQueue] });
-        if (response.status === "failed") {
+        try {
+            matchmakingStore.errorMessage = null;
+            matchmakingStore.status = MatchmakingStatus.Searching;
+            await window.tachyon.request("matchmaking/queue", { queues: [matchmakingStore.selectedQueue] });
+        } catch (error) {
+            console.error("Error starting matchmaking:", error);
+            matchmakingStore.errorMessage = "Error: Failed to join the matchmaking queue.";
             matchmakingStore.status = MatchmakingStatus.Idle;
         }
     },
@@ -64,8 +109,9 @@ export const matchmaking = {
     },
     async acceptMatch() {
         matchmakingStore.status = MatchmakingStatus.MatchAccepted;
-        const response = await window.tachyon.request("matchmaking/ready");
-        if (response.status === "failed") {
+        try {
+            await window.tachyon.request("matchmaking/ready");
+        } catch {
             matchmakingStore.status = MatchmakingStatus.Idle;
         }
     },

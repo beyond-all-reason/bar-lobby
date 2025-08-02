@@ -2,9 +2,19 @@
 //
 // SPDX-License-Identifier: MIT
 
-import { app, net, protocol, session } from "electron";
+import { app } from "electron";
+
+const gotTheLock = app.requestSingleInstanceLock();
+
+if (!gotTheLock) {
+    app.exit(0);
+}
+
+// Only import after we know we have the lock
+import { net, protocol, session } from "electron";
 import path from "path";
 import url from "url";
+import netFromNode from "node:net";
 
 import { createWindow } from "@main/main-window";
 import { settingsService } from "./services/settings.service";
@@ -21,17 +31,17 @@ import downloadsService from "@main/services/downloads.service";
 import replaysService from "@main/services/replays.service";
 import { miscService } from "@main/services/news.service";
 import autoUpdaterService from "@main/services/auto-updater.service";
-import { replayContentAPI } from "@main/content/replays/replay-content";
 import { authService } from "@main/services/auth.service";
 import { tachyonService } from "@main/services/tachyon.service";
-import netFromNode from "node:net";
 import { typedWebContents } from "@main/typed-ipc";
-
-const log = logger("main/index.ts");
-log.info("Starting Electron main process");
+import { navigationService } from "@main/services/navigation.service";
 
 // Enable happy eyeballs for IPv6/IPv4 dual stack.
 netFromNode.setDefaultAutoSelectFamily(true);
+
+const log = logger("main/index.ts");
+log.info("Starting Electron main process");
+log.info("App instance lock acquired successfully.");
 
 if (process.env.NODE_ENV !== "production") {
     if (process.platform === "win32") {
@@ -45,10 +55,6 @@ if (process.env.NODE_ENV !== "production") {
             app.quit();
         });
     }
-}
-
-if (process.env.NODE_ENV === "production" && !app.requestSingleInstanceLock()) {
-    app.quit();
 }
 
 protocol.registerSchemesAsPrivileged([
@@ -80,12 +86,6 @@ function registerBarFileProtocol() {
     });
 }
 
-function replayFileOpenedWithTheApp() {
-    if (process.argv.length == 0 || process.argv[process.argv.length - 1].endsWith(".sdfz")) {
-        return process.argv[process.argv.length - 1];
-    }
-}
-
 app.setName(APP_NAME);
 app.on("window-all-closed", () => app.quit());
 
@@ -107,10 +107,25 @@ app.whenReady().then(async () => {
     }
     // Define CSP for all webContents
     session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
+        const csp = {
+            "default-src": ["'self'"],
+            "style-src": ["'self'", "'unsafe-inline'"],
+            "img-src": ["'self'", "blob:", "data:"],
+            "media-src": ["'self'", "data:"],
+        };
+        // Those additional rules are needed when vue dev tools are injected.
+        if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
+            csp["img-src"].push("https://vue-i18n.intlify.dev/");
+            csp["script-src"] = ["'self'", "'unsafe-inline'"];
+            csp["font-src"] = ["'self'", "https://fonts.gstatic.com/"];
+        }
+        const cspHeader = Object.entries(csp)
+            .map(([k, v]) => [k, ...v].join(" "))
+            .join("; ");
         callback({
             responseHeaders: {
                 ...details.responseHeaders,
-                "Content-Security-Policy": ["default-src 'self' 'unsafe-inline' blob: data:"],
+                "Content-Security-Policy": [cspHeader],
             },
         });
     });
@@ -133,9 +148,5 @@ app.whenReady().then(async () => {
     downloadsService.registerIpcHandlers(webContents);
     miscService.registerIpcHandlers();
     autoUpdaterService.registerIpcHandlers();
-    const file = replayFileOpenedWithTheApp();
-    if (file) {
-        log.info(`Opening replay file: ${file}`);
-        replayContentAPI.copyParseAndLaunchReplay(file);
-    }
+    navigationService.registerIpcHandlers(webContents);
 });

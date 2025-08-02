@@ -2,7 +2,23 @@
 //
 // SPDX-License-Identifier: MIT
 
-import type { AuthApi, AutoUpdaterApi, DownloadsApi, EngineApi, GameApi, InfoApi, LogApi, MainWindowApi, MapsApi, MiscApi, ReplaysApi, SettingsApi, ShellApi, TachyonApi } from "@preload/preload";
+import type {
+    AuthApi,
+    AutoUpdaterApi,
+    BarNavigationApi,
+    DownloadsApi,
+    EngineApi,
+    GameApi,
+    InfoApi,
+    LogApi,
+    MainWindowApi,
+    MapsApi,
+    MiscApi,
+    ReplaysApi,
+    SettingsApi,
+    ShellApi,
+    TachyonApi,
+} from "@preload/preload";
 import type { TransitionProps } from "vue";
 
 declare global {
@@ -21,6 +37,8 @@ declare global {
         tachyon: TachyonApi;
         log: LogApi;
         autoUpdater: AutoUpdaterApi;
+        barNavigation: BarNavigationApi;
+        notifications: NotificationsApi;
     }
 }
 

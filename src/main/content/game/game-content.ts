@@ -21,7 +21,6 @@ import { Scenario } from "@main/content/game/scenario";
 import { SdpFileMeta, SdpFile } from "@main/content/game/sdp";
 import { PrDownloaderAPI } from "@main/content/pr-downloader";
 import { RAPID_INDEX_PATH, PACKAGE_PATH, GAME_PATHS, POOL_PATH, SCENARIO_IMAGE_PATH } from "@main/config/app";
-import { GetScenarios } from "@main/content/game/type";
 import { PoolCdnDownloader } from "@main/content/game/pool-cdn";
 import { fileExists } from "@main/utils/file";
 
@@ -158,7 +157,7 @@ export class GameContentAPI extends PrDownloaderAPI<string, GameVersion> {
         return this.parseAis(luaai);
     }
 
-    public getScenarios: GetScenarios = async (gameVersion) => {
+    public async getScenarios(gameVersion?: string) {
         try {
             const version = this.availableVersions.values().find((version) => version.gameVersion === gameVersion);
             assert(version, `No installed version found for game version: ${gameVersion}`);
@@ -204,15 +203,13 @@ export class GameContentAPI extends PrDownloaderAPI<string, GameVersion> {
             log.error(`Error getting scenarios: ${err}`);
             return [];
         }
-    };
+    }
 
     public async uninstallVersionById(gameVersion: string | undefined) {
         if (!gameVersion) {
             throw new Error("Game Version is not specified");
         }
-
         const version = this.availableVersions.values().find((version) => version.gameVersion === gameVersion);
-
         if (version) await this.uninstallVersion(version);
     }
 

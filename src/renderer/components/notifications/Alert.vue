@@ -22,6 +22,8 @@ import { computed } from "vue";
 
 import { Alert } from "@renderer/model/notifications";
 
+import { notificationsApi } from "@renderer/api/notifications";
+
 const props = defineProps<{
     alert: Alert;
 }>();
@@ -37,7 +39,13 @@ const icon = computed(() => {
 });
 
 function onClose() {
-    // api.notifications.closeNotification(props.alert);
+    notificationsApi.closeNotification(props.alert);
+}
+
+if (props.alert.timeoutMs) {
+    setTimeout(() => {
+        notificationsApi.closeNotification(props.alert);
+    }, props.alert.timeoutMs);
 }
 
 if (props.alert.timeoutMs) {

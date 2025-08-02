@@ -117,6 +117,10 @@ provide("toggleDownloads", toggleDownloads);
 
 playRandomMusic();
 
+window.barNavigation.onNavigateTo((target: string) => {
+    router.push(target);
+});
+
 const simpleRouterMemory = new Map<string, string>();
 router.beforeEach(async (to) => {
     if (to.meta?.redirect) {
@@ -151,7 +155,7 @@ function onInitialSetupDone() {
 // continuing to overview.
 if (!settingsStore.devMode) {
     auth.playOffline();
-    router.push("/home/overview");
+    router.push("/play");
 }
 </script>
 

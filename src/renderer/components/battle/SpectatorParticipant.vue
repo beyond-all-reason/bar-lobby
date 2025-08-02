@@ -18,6 +18,7 @@ SPDX-License-Identifier: MIT
 import { delay } from "$/jaz-ts-utils/delay";
 import { MenuItem } from "primevue/menuitem";
 import { inject, Ref, ref } from "vue";
+import { useTypedI18n } from "@renderer/i18n";
 
 import TeamParticipant from "@renderer/components/battle/TeamParticipant.vue";
 import ContextMenu from "@renderer/components/common/ContextMenu.vue";
@@ -25,6 +26,8 @@ import Flag from "@renderer/components/misc/Flag.vue";
 import { useRouter } from "vue-router";
 import { Player } from "@main/game/battle/battle-types";
 import { me } from "@renderer/store/me.store";
+
+const { t } = useTypedI18n();
 
 const router = useRouter();
 
@@ -37,19 +40,19 @@ const menu = ref<InstanceType<typeof ContextMenu>>();
 const actions: MenuItem[] =
     props.player.user.userId === me.userId
         ? [
-              { label: "View Profile", command: viewProfile },
-              { label: "Make Boss", command: makeBoss },
+              { label: t("lobby.components.battle.playerParticipant.viewProfile"), command: viewProfile },
+              { label: t("lobby.components.battle.playerParticipant.makeBoss"), command: makeBoss },
           ]
         : [
-              { label: "View Profile", command: viewProfile },
-              { label: "Message", command: messagePlayer },
+              { label: t("lobby.components.battle.playerParticipant.viewProfile"), command: viewProfile },
+              { label: t("lobby.components.battle.playerParticipant.message"), command: messagePlayer },
               //{ label: "Block", command: blockPlayer },
-              { label: "Add Friend", command: addFriend },
-              { label: "Kick", command: kickPlayer },
-              { label: "Ring", command: ringPlayer },
+              { label: t("lobby.components.battle.playerParticipant.addFriend"), command: addFriend },
+              { label: t("lobby.components.battle.playerParticipant.kick"), command: kickPlayer },
+              { label: t("lobby.components.battle.playerParticipant.ring"), command: ringPlayer },
               {
-                  label: "More",
-                  items: [{ label: "Make Boss", command: makeBoss }],
+                  label: t("lobby.components.battle.playerParticipant.more"),
+                  items: [{ label: t("lobby.components.battle.playerParticipant.makeBoss"), command: makeBoss }],
               },
               //{ label: "Report", command: reportPlayer },
           ];

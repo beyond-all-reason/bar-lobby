@@ -5,32 +5,38 @@ SPDX-License-Identifier: MIT
 -->
 
 <template>
-    <Modal title="settings">
+    <Modal :title="t('lobby.navbar.settings.title')">
         <div class="gridform">
-            <div>Fullscreen</div>
+            <div>{{ t("lobby.navbar.settings.fullscreen") }}</div>
             <Checkbox v-model="settingsStore.fullscreen" />
 
-            <div>Window Size</div>
-            <Select v-model="settingsStore.size" :options="sizeOptions" optionLabel="label" optionValue="value" />
+            <div>{{ t("lobby.navbar.settings.windowSize") }}</div>
+            <Select
+                v-model="settingsStore.size"
+                :options="sizeOptions"
+                optionLabel="label"
+                optionValue="value"
+                :disabled="settingsStore.fullscreen"
+            />
 
-            <div>Display</div>
+            <div>{{ t("lobby.navbar.settings.display") }}</div>
             <Select v-model="settingsStore.displayIndex" :options="displayOptions" optionLabel="label" optionValue="value" />
 
-            <div>Skip Intro</div>
+            <div>{{ t("lobby.navbar.settings.skipIntro") }}</div>
             <Checkbox v-model="settingsStore.skipIntro" />
 
             <template v-if="settingsStore.devMode">
-                <div>Login Automatically</div>
+                <div>{{ t("lobby.navbar.settings.loginAutomatically") }}</div>
                 <Checkbox v-model="settingsStore.loginAutomatically" />
             </template>
 
-            <div>Sfx Volume</div>
+            <div>{{ t("lobby.navbar.settings.sfxVolume") }}</div>
             <Range v-model="settingsStore.sfxVolume" :min="0" :max="100" :step="1" />
 
-            <div>Music Volume</div>
+            <div>{{ t("lobby.navbar.settings.musicVolume") }}</div>
             <Range v-model="settingsStore.musicVolume" :min="0" :max="100" :step="1" />
 
-            <div>Dev Mode</div>
+            <div>{{ t("lobby.navbar.settings.devMode") }}</div>
             <Checkbox v-model="settingsStore.devMode" />
 
             <OverlayPanel ref="op">
@@ -38,7 +44,7 @@ SPDX-License-Identifier: MIT
                     {{ tooltipMessage }}
                 </div>
             </OverlayPanel>
-            <Button @click="uploadLogsCommand">Upload logs</Button>
+            <Button @click="uploadLogsCommand">{{ t("lobby.navbar.settings.uploadLogs") }}</Button>
         </div>
     </Modal>
 </template>
@@ -55,14 +61,16 @@ import { asyncComputed } from "@vueuse/core";
 import { settingsStore } from "@renderer/store/settings.store";
 import { infosStore } from "@renderer/store/infos.store";
 import { uploadLogs } from "@renderer/utils/log";
+import { useTypedI18n } from "@renderer/i18n";
+const { t } = useTypedI18n();
 
 const op = ref();
 const tooltipMessage = ref("");
 
 const sizeOptions = [
-    { label: "1920x1080", value: 1080 },
-    { label: "1440x900", value: 900 },
-    { label: "1280x720", value: 720 },
+    { label: "Large", value: 900 },
+    { label: "Medium", value: 720 },
+    { label: "Small", value: 540 },
 ];
 
 const displayOptions = asyncComputed(async () => {
@@ -82,12 +90,12 @@ async function uploadLogsCommand(event) {
     try {
         const url = await uploadLogs();
         await navigator.clipboard.writeText(url);
-        tooltipMessage.value = "Log URL was copied to clipboard.";
+        tooltipMessage.value = t("lobby.navbar.settings.logUrlCopied");
     } catch (e) {
         if (typeof e === "string") {
             tooltipMessage.value = e;
         } else {
-            tooltipMessage.value = "Could not upload log.";
+            tooltipMessage.value = t("lobby.navbar.settings.couldNotUploadLog");
         }
     }
 

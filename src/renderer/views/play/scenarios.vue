@@ -12,8 +12,8 @@ SPDX-License-Identifier: MIT
     <div class="view">
         <div class="scenarios-container">
             <div class="view-title">
-                <h1>Scenarios</h1>
-                <p>Test your skills in this set of challenging yet rewarding missions.</p>
+                <h1>{{ t("lobby.singleplayer.scenarios.title") }}</h1>
+                <p>{{ t("lobby.singleplayer.scenarios.description") }}</p>
             </div>
             <Panel class="scenarios-main-panel" noPadding>
                 <div class="flex-row gap-lg fullheight">
@@ -37,27 +37,32 @@ SPDX-License-Identifier: MIT
                             <Markdown :source="selectedScenario.briefing" />
                         </div>
                         <div class="gridform">
-                            <div>Victory condition</div>
+                            <div>{{ t("lobby.singleplayer.scenarios.victoryCondition") }}</div>
                             <div>{{ selectedScenario.victorycondition }}</div>
 
-                            <div>Lose condition</div>
+                            <div>{{ t("lobby.singleplayer.scenarios.loseCondition") }}</div>
                             <div>{{ selectedScenario.losscondition }}</div>
                         </div>
                         <div>
-                            <Select v-model="selectedFaction" label="Faction" :options="factions" />
+                            <Select v-model="selectedFaction" :label="t('lobby.singleplayer.scenarios.faction')" :options="factions" />
                         </div>
                         <div>
-                            <Select v-model="selectedDifficulty" label="Difficulty" :options="difficulties" optionLabel="name" />
+                            <Select
+                                v-model="selectedDifficulty"
+                                :label="t('lobby.singleplayer.scenarios.difficulty')"
+                                :options="difficulties"
+                                optionLabel="name"
+                            />
                         </div>
                         <DownloadContentButton
                             v-if="map"
                             :map="map"
                             class="fullwidth green"
-                            :disabled="gameStore.isGameRunning"
+                            :disabled="gameStore.status !== GameStatus.CLOSED"
                             @click="launch"
-                            >Launch</DownloadContentButton
+                            >{{ t("lobby.singleplayer.scenarios.launch") }}</DownloadContentButton
                         >
-                        <Button v-else class="fullwidth green" disabled>Launch</Button>
+                        <Button v-else class="fullwidth green" disabled>{{ t("lobby.singleplayer.scenarios.launch") }}</Button>
                     </div>
                 </div>
             </Panel>
@@ -72,20 +77,44 @@ import Button from "@renderer/components/controls/Button.vue";
 import Select from "@renderer/components/controls/Select.vue";
 import ScenarioTile from "@renderer/components/misc/ScenarioTile.vue";
 import { Scenario } from "@main/content/game/scenario";
-import { LATEST_GAME_VERSION, DEFAULT_ENGINE_VERSION } from "@main/config/default-versions";
+import { LATEST_GAME_VERSION } from "@main/config/default-versions";
 import Panel from "@renderer/components/common/Panel.vue";
 import { db } from "@renderer/store/db";
+import { MapDownloadData } from "@main/content/maps/map-data";
 import { useDexieLiveQueryWithDeps } from "@renderer/composables/useDexieLiveQuery";
 import Markdown from "@renderer/components/misc/Markdown.vue";
 import DownloadContentButton from "@renderer/components/controls/DownloadContentButton.vue";
-import { gameStore } from "@renderer/store/game.store";
+import { GameStatus, gameStore } from "@renderer/store/game.store";
+
+import { useTypedI18n } from "@renderer/i18n";
+
+const { t } = useTypedI18n();
+
+import { enginesStore } from "@renderer/store/engine.store";
 
 const gameVersion = gameStore?.selectedGameVersion?.gameVersion;
 const loadedScenarios = gameVersion ? await window.game.getScenarios(gameVersion) : [];
 const scenarios = ref<Scenario[]>(loadedScenarios);
 const selectedScenario = ref<Scenario>(scenarios.value[0]);
 
-const map = useDexieLiveQueryWithDeps([selectedScenario], () => db.maps.get(selectedScenario.value?.mapfilename));
+const map = useDexieLiveQueryWithDeps([selectedScenario], async () => {
+    let selected = selectedScenario.value;
+    if (!selected) return;
+
+    const [live, nonLive] = await Promise.all([db.maps.get(selected.mapfilename), db.nonLiveMaps.get(selected.mapfilename)]);
+
+    let map = live ?? nonLive;
+
+    if (!map) {
+        map = {
+            springName: selected.mapfilename,
+            isDownloading: false,
+            isInstalled: false,
+        } satisfies MapDownloadData;
+    }
+
+    return map;
+});
 
 const difficulties = computed(() => selectedScenario.value.difficulties);
 const selectedDifficulty = ref(difficulties.value.find((dif) => dif.name === selectedScenario.value.defaultdifficulty));
@@ -134,7 +163,10 @@ async function launch() {
         .replaceAll("__RESTRICTEDUNITS__", restrictionsStr)
         .replaceAll("__NUMRESTRICTIONS__", restrictionCount.toString());
 
-    await window.game.launchScript(script, LATEST_GAME_VERSION, DEFAULT_ENGINE_VERSION);
+    if (!enginesStore.selectedEngineVersion) {
+        throw new Error("No engine version selected");
+    }
+    await window.game.launchScript(script, LATEST_GAME_VERSION, enginesStore.selectedEngineVersion.id);
 }
 </script>
 

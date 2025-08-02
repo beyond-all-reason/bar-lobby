@@ -49,9 +49,14 @@ export class TachyonClient {
             });
             this.socket.on("unexpected-response", async (req, res) => {
                 res.on("data", (chunk: Buffer) => {
-                    const error = `HTTP Error ${res.statusCode}: ${chunk.toString()}`;
-                    log.error(error);
-                    reject(error);
+                    const error = chunk.toString();
+                    log.error(`HTTP Error ${res.statusCode}: ${error}`);
+                    try {
+                        const errorObject = JSON.parse(error);
+                        reject(new Error(errorObject.error_description || errorObject.error || "Unknown error"));
+                    } catch {
+                        reject(new Error("Unknown error"));
+                    }
                 });
             });
             this.socket.on("upgrade", (response) => {
@@ -103,7 +108,7 @@ export class TachyonClient {
 
     public async request<C extends GetCommandIds<"user", "server", "request">>(
         ...args: GetCommandData<GetCommands<"user", "server", "request", C>> extends never ? [commandId: C] : [commandId: C, data: GetCommandData<GetCommands<"user", "server", "request", C>>]
-    ): Promise<GetCommands<"server", "user", "response", C>> {
+    ): Promise<Extract<GetCommands<"server", "user", "response", C>, { status: "success" }>> {
         if (!this.socket) {
             throw new Error("Not connected to server");
         }
@@ -120,10 +125,14 @@ export class TachyonClient {
         validateCommand(request);
         this.socket.send(JSON.stringify(request));
         log.debug(`OUTGOING REQUEST ${JSON.stringify(request)}`);
-        return new Promise((resolve) => {
+        return new Promise((resolve, reject) => {
             this.onResponse(commandId).addOnce((response: TachyonResponse) => {
+                if (response.status === "failed") {
+                    log.error(`Error response received: ${JSON.stringify(response)}`);
+                    reject(new Error(`${response.reason}` + (response.details ? ` (${response.details})` : "")));
+                }
                 if (response.messageId === messageId) {
-                    resolve(response as GetCommands<"server", "user", "response", C>);
+                    resolve(response as Extract<GetCommands<"server", "user", "response", C>, { status: "success" }>);
                 }
             });
         });
@@ -216,8 +225,14 @@ export class TachyonClient {
         return this.socket.readyState === this.socket.OPEN;
     }
 
-    public disconnect() {
-        this.socket?.close();
+    public async disconnect() {
+        try {
+            await this.request("system/disconnect");
+        } catch (e) {
+            log.error(`Error sending disconnect command: ${e}`);
+        } finally {
+            this.socket?.close();
+        }
     }
 }
 

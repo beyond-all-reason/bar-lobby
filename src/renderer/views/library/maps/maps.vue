@@ -12,7 +12,7 @@ SPDX-License-Identifier: MIT
     <div class="view">
         <div class="maps-container">
             <div class="view-title">
-                <h1>Maps</h1>
+                <h1>{{ t("lobby.library.maps.title") }}</h1>
             </div>
             <div class="layout">
                 <Panel class="map-filters">
@@ -34,6 +34,8 @@ import Panel from "@renderer/components/common/Panel.vue";
 import MapFiltersComponent from "@renderer/components/maps/MapFiltersComponent.vue";
 import MapListComponent from "@renderer/components/maps/MapListComponent.vue";
 import { useRouter } from "vue-router";
+import { useTypedI18n } from "@renderer/i18n";
+const { t } = useTypedI18n();
 
 const router = useRouter();
 

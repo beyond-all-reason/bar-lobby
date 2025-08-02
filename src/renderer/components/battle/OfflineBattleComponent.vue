@@ -44,7 +44,11 @@ SPDX-License-Identifier: MIT
                     <Button v-tooltip.left="'Configure map options'" @click="openMapOptions">
                         <Icon :icon="cogIcon" height="23" />
                     </Button>
-                    <MapListModal v-model="mapListOpen" title="Maps" @map-selected="onMapSelected" />
+                    <MapListModal
+                        v-model="mapListOpen"
+                        :title="t('lobby.components.battle.offlineBattleComponent.maps')"
+                        @map-selected="onMapSelected"
+                    />
                     <MapOptionsModal v-if="battleStore.battleOptions.map" v-model="mapOptionsOpen" />
                 </div>
                 <GameModeComponent />
@@ -62,8 +66,8 @@ SPDX-License-Identifier: MIT
                 </div>
                 <div v-if="settingsStore.devMode">
                     <Select
-                        :modelValue="enginesStore.getEngineVersion()"
-                        @update:model-value="(engine) => enginesStore.setEngineVersion(engine)"
+                        :modelValue="enginesStore.selectedEngineVersion"
+                        @update:model-value="(engine) => (enginesStore.selectedEngineVersion = engine)"
                         :options="enginesStore.availableEngineVersions"
                         data-key="id"
                         optionLabel="id"
@@ -73,14 +77,15 @@ SPDX-License-Identifier: MIT
                     />
                 </div>
                 <div class="flex-row flex-bottom gap-md flex-grow">
-                    <DownloadContentButton
-                        v-if="map"
-                        :map="map"
-                        class="fullwidth green"
-                        :disabled="gameStore.isGameRunning"
-                        @click="battleActions.startBattle"
-                        >Start the game</DownloadContentButton
-                    >
+                    <div class="fullwidth" v-if="map">
+                        <Button v-if="gameStore.status === GameStatus.LOADING" class="fullwidth grey flex-grow" disabled
+                            >Game is starting...</Button
+                        >
+                        <Button v-else-if="gameStore.status === GameStatus.RUNNING" class="fullwidth grey flex-grow" disabled
+                            >Game is running</Button
+                        >
+                        <DownloadContentButton v-else :map="map" @click="battleActions.startBattle">Start the game</DownloadContentButton>
+                    </div>
                     <Button v-else class="fullwidth green flex-grow" disabled>Start the game</Button>
                 </div>
             </div>
@@ -90,6 +95,7 @@ SPDX-License-Identifier: MIT
 
 <script lang="ts" setup>
 import { ref } from "vue";
+import { useTypedI18n } from "@renderer/i18n";
 import Playerlist from "@renderer/components/battle/Playerlist.vue";
 import Select from "@renderer/components/controls/Select.vue";
 import { Icon } from "@iconify/vue";
@@ -97,6 +103,8 @@ import MapListModal from "@renderer/components/battle/MapListModal.vue";
 import MapOptionsModal from "@renderer/components/battle/MapOptionsModal.vue";
 import { battleActions, battleStore } from "@renderer/store/battle.store";
 import Button from "@renderer/components/controls/Button.vue";
+
+const { t } = useTypedI18n();
 import { db } from "@renderer/store/db";
 import listIcon from "@iconify-icons/mdi/format-list-bulleted";
 import cogIcon from "@iconify-icons/mdi/cog";
@@ -105,7 +113,7 @@ import MapBattlePreview from "@renderer/components/maps/MapBattlePreview.vue";
 import { MapData } from "@main/content/maps/map-data";
 import { settingsStore } from "@renderer/store/settings.store";
 import GameModeComponent from "@renderer/components/battle/GameModeComponent.vue";
-import { gameStore } from "@renderer/store/game.store";
+import { GameStatus, gameStore } from "@renderer/store/game.store";
 import DownloadContentButton from "@renderer/components/controls/DownloadContentButton.vue";
 import { enginesStore } from "@renderer/store/engine.store";
 import TerrainIcon from "@renderer/components/maps/filters/TerrainIcon.vue";

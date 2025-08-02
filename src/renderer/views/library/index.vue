@@ -7,9 +7,9 @@ SPDX-License-Identifier: MIT
 <route lang="json5">
 {
     meta: {
-        redirect: "/library/replays",
+        redirect: "/library/maps/maps",
         title: "Library",
-        order: 2,
+        order: 3,
     },
 }
 </route>

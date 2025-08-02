@@ -13,27 +13,27 @@ SPDX-License-Identifier: MIT
         </div>
         <div class="flex-row gap-sm">
             <template v-if="type === 'outgoing_request'">
-                <Button v-tooltip.left="`Cancel request`" class="slim red square" @click="cancelRequest">
+                <Button v-tooltip.left="t('lobby.navbar.tooltips.cancelRequest')" class="slim red square" @click="cancelRequest">
                     <Icon :icon="closeThick" />
                 </Button>
             </template>
 
             <template v-else-if="type === 'incoming_request'">
-                <Button v-tooltip.left="`Reject request`" class="slim red square" @click="rejectRequest">
+                <Button v-tooltip.left="t('lobby.navbar.tooltips.rejectRequest')" class="slim red square" @click="rejectRequest">
                     <Icon :icon="closeThick" />
                 </Button>
-                <Button v-tooltip.left="`Accept request`" class="slim green square" @click="acceptRequest">
+                <Button v-tooltip.left="t('lobby.navbar.tooltips.acceptRequest')" class="slim green square" @click="acceptRequest">
                     <Icon :icon="checkThick" />
                 </Button>
             </template>
 
             <template v-else>
-                <Button v-tooltip.left="`View profile`" class="slim square" @click="viewProfile">
+                <Button v-tooltip.left="t('lobby.navbar.tooltips.viewProfile')" class="slim square" @click="viewProfile">
                     <Icon :icon="account" />
                 </Button>
                 <Button
                     v-if="user.isOnline"
-                    v-tooltip.left="`Send message`"
+                    v-tooltip.left="t('lobby.navbar.tooltips.sendMessage')"
                     v-click-away:messages="() => {}"
                     class="slim square"
                     @click="sendMessage"
@@ -42,16 +42,21 @@ SPDX-License-Identifier: MIT
                 </Button>
                 <Button
                     v-if="user.isOnline && user.battleStatus.battleId"
-                    v-tooltip.left="`Join battle`"
+                    v-tooltip.left="t('lobby.navbar.tooltips.joinBattle')"
                     class="slim square"
                     @click="joinBattle"
                 >
                     <Icon :icon="accountArrowRight" />
                 </Button>
-                <Button v-if="user.isOnline" v-tooltip.left="`Invite to party (TODO)`" class="slim square" @click="inviteToParty">
+                <Button
+                    v-if="user.isOnline"
+                    v-tooltip.left="t('lobby.navbar.tooltips.inviteToParty')"
+                    class="slim square"
+                    @click="inviteToParty"
+                >
                     <Icon :icon="accountMultiplePlus" />
                 </Button>
-                <Button v-tooltip.left="`Remove friend`" class="slim red square" @click="removeFriend">
+                <Button v-tooltip.left="t('lobby.navbar.tooltips.removeFriend')" class="slim red square" @click="removeFriend">
                     <Icon :icon="deleteIcon" />
                 </Button>
             </template>
@@ -73,6 +78,8 @@ import { computed, inject, Ref } from "vue";
 import Button from "@renderer/components/controls/Button.vue";
 import Flag from "@renderer/components/misc/Flag.vue";
 import { useRouter } from "vue-router";
+import { useTypedI18n } from "@renderer/i18n";
+const { t } = useTypedI18n();
 
 const router = useRouter();
 

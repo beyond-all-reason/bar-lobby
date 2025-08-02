@@ -149,10 +149,10 @@ function reset() {
 
 .overriden {
     color: #ffcc00;
-    ::v-deep .p-slider-handle {
+    :deep(.p-slider-handle) {
         background-color: #ffcc00;
     }
-    ::v-deep .p-slider-range {
+    :deep(.p-slider-range) {
         background-color: #ffcc00;
     }
 }

@@ -16,28 +16,27 @@ import http from "node:http";
 import { AddressInfo } from "node:net";
 
 const TIMEOUT = 60 * 1000; // 1 minute
+const PATH = "/oauth2callback";
 const log = logger("redirect-handler");
 
 export default class RedirectHandler {
-    private path: string;
-    private server: http.Server;
+    private server: http.Server | null = null;
     private callbackUrl?: URL;
 
-    constructor() {
-        this.path = "/oauth2callback";
+    public close() {
+        if (!this.server) return;
+        this.server.close();
+        this.server.closeAllConnections();
+        this.server.removeAllListeners();
+        this.server = null;
+    }
+
+    public async start(): Promise<string> {
         this.server = http.createServer((req, res) => this.handleRequest(req, res));
         this.server.on("error", (err) => {
             log.error("Error in redirect handler server", err);
             this.close();
         });
-    }
-
-    public close() {
-        this.server.close();
-        this.server.closeAllConnections();
-    }
-
-    public async start(): Promise<string> {
         // Times out after some time to prevent leaving a running server in case of
         // some error in the application, the user interrupting the flow etc...
         setTimeout(() => this.close(), TIMEOUT);
@@ -47,18 +46,19 @@ export default class RedirectHandler {
         });
         if (!this.server.listening) {
             await new Promise<void>((resolve, reject) => {
+                if (!this.server) return reject(new Error("Server is not running"));
                 this.server.once("listening", resolve);
                 this.server.once("error", reject);
                 this.server.once("close", () => reject(new Error("Server closed before listening")));
             });
         }
         const address = this.server.address() as AddressInfo;
-        return `http://${address.address}:${address.port}${this.path}`;
+        return `http://${address.address}:${address.port}${PATH}`;
     }
 
     private handleRequest(req: http.IncomingMessage, res: http.ServerResponse) {
         const url = new URL(req.url!, `http://${req.headers.host}`);
-        if (url.pathname !== this.path) {
+        if (url.pathname !== PATH) {
             res.writeHead(404);
             res.end();
             return;
@@ -69,16 +69,20 @@ export default class RedirectHandler {
     }
 
     public async waitForCallback(): Promise<URL> {
-        if (!this.server.listening) {
+        if (!this.server?.listening) {
             throw new Error("Server is not listening, how did you get redirect url?");
         }
         if (!this.callbackUrl) {
             await new Promise<void>((resolve, reject) => {
+                if (!this.server) {
+                    reject(new Error("Server is not running"));
+                    return;
+                }
                 const handler = () => {
                     // The callbackUrl is set in the handleRequest method and
                     // we depend on the event listeners order to check it here.
                     if (this.callbackUrl) {
-                        this.server.removeListener("request", handler);
+                        this.server?.removeListener("request", handler);
                         resolve();
                     }
                 };

@@ -7,13 +7,13 @@ SPDX-License-Identifier: MIT
 <template>
     <PopOutPanel :open="modelValue" class="flex-col flex-grow fullheight">
         <TabView v-model:activeIndex="activeIndex" class="flex-col flex-grow fullheight">
-            <TabPanel header="Friends">
+            <TabPanel :header="t('lobby.navbar.friends.title')">
                 <div class="flex-col gap-lg flex-grow fullheight">
                     <div class="flex-row gap-md">
                         <div>
-                            Your User ID is <strong>{{ myUserId }}</strong>
+                            {{ t("lobby.navbar.friends.yourUserId") }} <strong>{{ myUserId }}</strong>
                         </div>
-                        <Button class="slim" @click="copyUserId">Copy</Button>
+                        <Button class="slim" @click="copyUserId">{{ t("lobby.navbar.friends.copy") }}</Button>
                     </div>
 
                     <div class="flex-row gap-md">
@@ -25,10 +25,12 @@ SPDX-License-Identifier: MIT
                             :allowEmpty="true"
                             :min="1"
                             :useGrouping="false"
-                            placeholder="Friend ID"
+                            :placeholder="t('lobby.navbar.friends.friendId')"
                             @input="handleFriendIdInput"
                         />
-                        <Button class="blue" :disabled="addFriendDisabled" @click="addFriend">Add Friend</Button>
+                        <Button class="blue" :disabled="addFriendDisabled" @click="addFriend">{{
+                            t("lobby.navbar.friends.addFriend")
+                        }}</Button>
                     </div>
 
                     <div class="flex-col fullheight">
@@ -38,7 +40,7 @@ SPDX-License-Identifier: MIT
                                 :activeIndex="accordianActiveIndexes"
                                 multiple
                             >
-                                <AccordionTab v-if="outgoingFriendRequests.size" header="Outgoing Friend Requests">
+                                <AccordionTab v-if="outgoingFriendRequests.size" :header="t('lobby.navbar.friends.outgoingRequests')">
                                     <div class="user-list">
                                         <Friend
                                             v-for="userId in outgoingFriendRequests"
@@ -48,7 +50,7 @@ SPDX-License-Identifier: MIT
                                         />
                                     </div>
                                 </AccordionTab>
-                                <AccordionTab v-if="incomingFriendRequests.size" header="Incoming Friend Requests">
+                                <AccordionTab v-if="incomingFriendRequests.size" :header="t('lobby.navbar.friends.incomingRequests')">
                                     <div class="user-list">
                                         <Friend
                                             v-for="userId in incomingFriendRequests"
@@ -73,7 +75,7 @@ SPDX-License-Identifier: MIT
                     </div>
                 </div>
             </TabPanel>
-            <TabPanel header="Blocked"> TODO </TabPanel>
+            <TabPanel :header="t('lobby.navbar.friends.blocked')"> TODO </TabPanel>
         </TabView>
     </PopOutPanel>
 </template>
@@ -100,6 +102,8 @@ import Number from "@renderer/components/controls/Number.vue";
 import Friend from "@renderer/components/navbar/Friend.vue";
 import PopOutPanel from "@renderer/components/navbar/PopOutPanel.vue";
 import { me } from "@renderer/store/me.store";
+import { useTypedI18n } from "@renderer/i18n";
+const { t } = useTypedI18n();
 
 const props = defineProps<{
     modelValue: boolean;

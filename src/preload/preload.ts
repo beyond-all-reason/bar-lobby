@@ -34,10 +34,10 @@ contextBridge.exposeInMainWorld("info", infoApi);
 const mainWindowApi = {
     setFullscreen: (flag: boolean): Promise<void> => ipcRenderer.invoke("mainWindow:setFullscreen", flag),
     setSize: (size: number): Promise<void> => ipcRenderer.invoke("mainWindow:setSize", size),
-    toggleFullscreen: (): Promise<void> => ipcRenderer.invoke("mainWindow:toggleFullscreen"),
     flashFrame: (flag: boolean): Promise<void> => ipcRenderer.invoke("mainWindow:flashFrame", flag),
     minimize: (): Promise<void> => ipcRenderer.invoke("mainWindow:minimize"),
     isFullscreen: (): Promise<boolean> => ipcRenderer.invoke("mainWindow:isFullscreen"),
+    resized: (): Promise<void> => ipcRenderer.invoke("mainWindow:resized"),
 };
 export type MainWindowApi = typeof mainWindowApi;
 contextBridge.exposeInMainWorld("mainWindow", mainWindowApi);
@@ -64,6 +64,7 @@ const replaysApi = {
     onReplayCachingStarted: (callback: (filename: string) => void) => ipcRenderer.on("replays:replayCachingStarted", (_event, filename) => callback(filename)),
     onReplayCached: (callback: (replay: Replay) => void) => ipcRenderer.on("replays:replayCached", (_event, replay) => callback(replay)),
     onReplayDeleted: (callback: (filename: string) => void) => ipcRenderer.on("replays:replayDeleted", (_event, filename) => callback(filename)),
+    onHighlightOpened: (callback: (fileNames: string[]) => void) => ipcRenderer.on("replays:highlightOpened", (_event, fileNames) => callback(fileNames)),
 };
 export type ReplaysApi = typeof replaysApi;
 contextBridge.exposeInMainWorld("replays", replaysApi);
@@ -87,7 +88,7 @@ contextBridge.exposeInMainWorld("auth", authApi);
 
 const engineApi = {
     listAvailableVersions: (): Promise<EngineVersion[]> => ipcRenderer.invoke("engine:listAvailableVersions"),
-    downloadEngine: (version: string): Promise<void | string> => ipcRenderer.invoke("engine:downloadEngine", version),
+    downloadEngine: (version?: string): Promise<void | string> => ipcRenderer.invoke("engine:downloadEngine", version),
     isVersionInstalled: (id: string): Promise<boolean> => ipcRenderer.invoke("engine:isVersionInstalled", id),
     uninstallVersion: (version: EngineVersion): Promise<void> => ipcRenderer.invoke("engine:uninstallVersion", version),
 };
@@ -107,7 +108,7 @@ const gameApi = {
     launchMultiplayer: (settings: MultiplayerLaunchSettings): Promise<void> => ipcRenderer.invoke("game:launchMultiplayer", settings),
     launchScript: (script: string, gameVersion: string, engineVersion: string): Promise<void> => ipcRenderer.invoke("game:launchScript", script, gameVersion, engineVersion),
     launchReplay: (replay) => ipcRenderer.invoke("game:launchReplay", replay),
-    launchBattle: (battle: BattleWithMetadata): Promise<void> => ipcRenderer.invoke("game:launchBattle", battle),
+    launchBattle: (battle: BattleWithMetadata) => ipcRenderer.invoke("game:launchBattle", battle),
 
     // Events
     onGameLaunched: (callback: () => void) => ipcRenderer.on("game:launched", callback),
@@ -162,13 +163,21 @@ const miscApi = {
 export type MiscApi = typeof miscApi;
 contextBridge.exposeInMainWorld("misc", miscApi);
 
+const barNavigationApi = {
+    onNavigateTo: (callback: (target: string) => void) => ipcRenderer.on("navigation:navigateTo", (_event, target) => callback(target)),
+    signalReady: (): Promise<void> => ipcRenderer.invoke("renderer:ready"),
+};
+
+export type BarNavigationApi = typeof barNavigationApi;
+contextBridge.exposeInMainWorld("barNavigation", barNavigationApi);
+
 // Tachyon API
 function request<C extends GetCommandIds<"user", "server", "request">>(
     ...args: GetCommandData<GetCommands<"user", "server", "request", C>> extends never ? [commandId: C] : [commandId: C, data: GetCommandData<GetCommands<"user", "server", "request", C>>]
-): Promise<GetCommands<"server", "user", "response", C>> {
+): Promise<Extract<GetCommands<"server", "user", "response", C>, { status: "success" }>> {
     // The return value is a generic TachyonResponse in the IPC interface.
     // For consumers we cast it to the correct type based on the commandId.
-    return ipcRenderer.invoke("tachyon:request", ...args) as Promise<GetCommands<"server", "user", "response", C>>;
+    return ipcRenderer.invoke("tachyon:request", ...args) as Promise<Extract<GetCommands<"server", "user", "response", C>, { status: "success" }>>;
 }
 
 function onEvent<C extends GetCommandIds<"server", "user", "event">>(eventID: C, callback: (event: GetCommandData<GetCommands<"server", "user", "event", C>>) => void) {
@@ -210,3 +219,11 @@ const autoUpdaterApi = {
 };
 export type AutoUpdaterApi = typeof autoUpdaterApi;
 contextBridge.exposeInMainWorld("autoUpdater", autoUpdaterApi);
+
+const notificationsApi = {
+    // Events
+    onShowAlert: (callback: (alertConfig: { text: string; severity?: "info" | "warning" | "error"; timeoutMs?: number }) => void) =>
+        ipcRenderer.on("notifications:showAlert", (_event, alertConfig) => callback(alertConfig)),
+};
+export type NotificationsApi = typeof notificationsApi;
+contextBridge.exposeInMainWorld("notifications", notificationsApi);

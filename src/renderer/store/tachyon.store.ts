@@ -7,6 +7,7 @@ import { gameStore } from "@renderer/store/game.store";
 import { auth, me } from "@renderer/store/me.store";
 import { SystemServerStatsOkResponseData } from "tachyon-protocol/types";
 import { reactive } from "vue";
+import { fetchAvailableQueues } from "@renderer/store/matchmaking.store";
 
 export const tachyonStore = reactive({
     isInitialized: false,
@@ -18,6 +19,8 @@ export const tachyonStore = reactive({
     isConnected: boolean;
     serverStats?: SystemServerStatsOkResponseData;
     error?: string;
+    fetchServerStatsInterval?: NodeJS.Timeout;
+    reconnectInterval?: NodeJS.Timeout;
 });
 
 async function connect() {
@@ -29,26 +32,74 @@ async function connect() {
         console.error("Failed to connect to Tachyon server", err);
         tachyonStore.error = "Error";
         auth.logout();
+        if (err instanceof Error) {
+            throw new Error(err.message);
+        } else {
+            throw new Error(String(err));
+        }
+    }
+}
+
+async function fetchServerStats() {
+    try {
+        tachyonStore.error = undefined;
+        const response = await window.tachyon.request("system/serverStats");
+        tachyonStore.serverStats = response.data;
+    } catch (error) {
+        console.error("Error fetching server stats:", error);
+        tachyonStore.error = "Error fetching server stats";
+        tachyonStore.serverStats = undefined;
     }
 }
 
 export async function initTachyonStore() {
     tachyonStore.isConnected = await window.tachyon.isConnected();
+    if (tachyonStore.isConnected) {
+        fetchServerStats();
+        tachyonStore.fetchServerStatsInterval = setInterval(fetchServerStats, 60000);
+    }
     console.debug(`Tachyon server is ${tachyonStore.isConnected ? "connected" : "disconnected"}`);
 
     window.tachyon.onConnected(() => {
         console.debug("Connected to Tachyon server");
         tachyonStore.isConnected = true;
+        fetchServerStats();
+        if (tachyonStore.fetchServerStatsInterval) {
+            clearInterval(tachyonStore.fetchServerStatsInterval);
+            tachyonStore.fetchServerStatsInterval = undefined;
+        }
+        if (tachyonStore.reconnectInterval) {
+            clearInterval(tachyonStore.reconnectInterval);
+            tachyonStore.reconnectInterval = undefined;
+        }
+        // Periodically fetch server stats
+        tachyonStore.fetchServerStatsInterval = setInterval(fetchServerStats, 60000);
+
+        // Fetch matchmaking queues when connected
+        fetchAvailableQueues();
     });
 
     window.tachyon.onDisconnected(() => {
         console.debug("Disconnected from Tachyon server");
         tachyonStore.isConnected = false;
+        if (tachyonStore.fetchServerStatsInterval) {
+            clearInterval(tachyonStore.fetchServerStatsInterval);
+            tachyonStore.fetchServerStatsInterval = undefined;
+        }
+        if (tachyonStore.reconnectInterval) {
+            clearInterval(tachyonStore.reconnectInterval);
+            tachyonStore.reconnectInterval = undefined;
+        }
+        // If the user is not in an offline session, try to reconnect
+        if (me.isAuthenticated) {
+            // Try to connect to Tachyon server periodically
+            tachyonStore.reconnectInterval = setInterval(connect, 10000);
+        }
     });
 
     window.tachyon.onBattleStart((springString) => {
         console.debug("Received battle start event", springString);
-        const engineVersion = enginesStore.getEngineVersion();
+        const engineVersion = enginesStore.selectedEngineVersion;
         if (engineVersion === undefined) {
             console.error("No engine version selected");
             return;
@@ -63,28 +114,6 @@ export async function initTachyonStore() {
             springString,
         });
     });
-
-    // Periodically fetch server stats
-    setInterval(() => {
-        if (!tachyonStore.isConnected) return;
-        window.tachyon.request("system/serverStats").then((response) => {
-            if (response.status === "success") {
-                tachyonStore.serverStats = response.data;
-            } else {
-                console.error("Failed to fetch server stats", response);
-            }
-        });
-    }, 60000);
-
-    // Try to connect to Tachyon server periodically
-    setInterval(() => {
-        try {
-            if (me.isAuthenticated && !tachyonStore.isConnected) connect();
-        } catch (err) {
-            console.warn("Failed to re-connect to Tachyon server", err);
-        }
-    }, 10000);
-
     tachyonStore.isInitialized = true;
 }
 

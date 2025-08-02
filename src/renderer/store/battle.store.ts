@@ -29,6 +29,7 @@ import { deepToRaw } from "@renderer/utils/deep-toraw";
 import { spadsBoxToStartBox } from "@renderer/utils/start-boxes";
 import { StartBox } from "tachyon-protocol/types";
 import { reactive, readonly, watch } from "vue";
+import { startBattle as startGame } from "@renderer/store/game.store";
 
 let participantId = 0;
 interface BattleLobby {
@@ -325,7 +326,7 @@ function defaultOfflineBattle(engine?: EngineVersion, game?: GameVersion, map?: 
         title: "Offline Custom Battle",
         isOnline: false,
         battleOptions: {
-            engineVersion: engine?.id || enginesStore.getEngineVersion()?.id,
+            engineVersion: engine?.id || enginesStore.selectedEngineVersion?.id,
             gameVersion: game?.gameVersion || gameStore.selectedGameVersion?.gameVersion,
             gameMode: {
                 label: GameMode.CLASSIC,
@@ -379,7 +380,7 @@ function resetToDefaultBattle(engine?: EngineVersion, game?: GameVersion, map?: 
 }
 
 async function startBattle() {
-    await window.game.launchBattle(deepToRaw(_battleWithMetadataStore));
+    await startGame(deepToRaw(_battleWithMetadataStore));
 }
 
 // Automatically compute my battle status given the changes in the battle
@@ -429,7 +430,7 @@ watch(
 watch(
     () => enginesStore.selectedEngineVersion,
     () => {
-        const engineVersion = enginesStore.getEngineVersion();
+        const engineVersion = enginesStore.selectedEngineVersion;
         if (!engineVersion) throw new Error("failed to access engine version");
 
         battleStore.battleOptions.engineVersion = engineVersion.id;
@@ -452,7 +453,7 @@ function leaveBattle() {
 
 async function loadGameMode(gameMode: GameModeLabel) {
     if (!battleStore.battleOptions.engineVersion) {
-        const engineVersion = enginesStore.getEngineVersion();
+        const engineVersion = enginesStore.selectedEngineVersion;
         if (!engineVersion) throw new Error("failed to access engine version");
 
         battleStore.battleOptions.engineVersion = engineVersion.id;

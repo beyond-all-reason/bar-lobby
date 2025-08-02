@@ -28,7 +28,7 @@ function registerIpcHandlers(webContents: BarIpcWebContents) {
         gameAPI.launchScript({ script: scriptString, engineVersion: engineVersionString, gameVersion: gameVersionString })
     );
     ipcMain.handle("game:launchReplay", (_, replay: Replay) => gameAPI.launchReplay(replay));
-    ipcMain.handle("game:launchBattle", (_, battle: BattleWithMetadata) => gameAPI.launchBattle(battle));
+    ipcMain.handle("game:launchBattle", async (_, battle: BattleWithMetadata) => gameAPI.launchBattle(battle));
 
     // Events
     gameAPI.onGameLaunched.add(() => {

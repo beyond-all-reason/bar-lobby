@@ -7,7 +7,7 @@ SPDX-License-Identifier: MIT
 <template>
     <div class="nav" :class="{ hidden }">
         <div class="logo">
-            <Button to="/home">
+            <Button to="/play/menu?">
                 <img src="/src/renderer/assets/images/logo.svg" />
             </Button>
         </div>
@@ -22,7 +22,7 @@ SPDX-License-Identifier: MIT
                 <div class="primary-right">
                     <Button
                         v-if="false"
-                        v-tooltip.bottom="'Direct Messages'"
+                        v-tooltip.bottom="t('lobby.navbar.tooltips.directMessages')"
                         v-click-away:messages="() => (messagesOpen = false)"
                         :class="['icon', { active: messagesOpen }]"
                         @click="messagesOpen = true"
@@ -32,7 +32,7 @@ SPDX-License-Identifier: MIT
                     </Button>
                     <Button
                         v-if="me.isAuthenticated"
-                        v-tooltip.bottom="'Friends'"
+                        v-tooltip.bottom="t('lobby.navbar.tooltips.friends')"
                         v-click-away:friends="() => (friendsOpen = false)"
                         :class="['icon', { active: friendsOpen }]"
                         @click="friendsOpen = true"
@@ -40,22 +40,28 @@ SPDX-License-Identifier: MIT
                         <Icon :icon="accountMultiple" :height="40" />
                     </Button>
                     <DownloadsButton
-                        v-tooltip.bottom="'Downloads'"
+                        v-tooltip.bottom="t('lobby.navbar.tooltips.downloads')"
                         v-click-away:downloads="() => (downloadsOpen = false)"
                         :class="['icon', { active: downloadsOpen }]"
                         @click="downloadsOpen = !downloadsOpen"
                     />
-                    <Button v-tooltip.bottom="'Settings'" class="icon" @click="settingsOpen = true">
+                    <Button v-tooltip.bottom="t('lobby.navbar.tooltips.settings')" class="icon" @click="settingsOpen = true">
                         <Icon :icon="cog" :height="40" />
                     </Button>
-                    <Button v-tooltip.bottom="'Minimize'" class="icon" @click="minimizeWindow">
+                    <Button v-tooltip.bottom="t('lobby.navbar.tooltips.minimize')" class="icon" @click="minimizeWindow">
                         <Icon :icon="windowMinimize" :height="40"></Icon>
                     </Button>
-                    <Button v-tooltip.bottom="isFullscreen ? 'Windowed' : 'Fullscreen'" class="icon" @click="toggleFullScreen">
-                        <Icon v-if="isFullscreen" :icon="fullscreenExit" :height="40"></Icon>
+                    <Button
+                        v-tooltip.bottom="
+                            settingsStore.fullscreen ? t('lobby.navbar.tooltips.windowed') : t('lobby.navbar.tooltips.fullscreen')
+                        "
+                        class="icon"
+                        @click="toggleFullscreen"
+                    >
+                        <Icon v-if="settingsStore.fullscreen" :icon="fullscreenExit" :height="40"></Icon>
                         <Icon v-else :icon="fullscreen" :height="40"></Icon>
                     </Button>
-                    <Button v-tooltip.bottom="'Exit'" class="icon close" @click="exitOpen = true">
+                    <Button v-tooltip.bottom="t('lobby.navbar.tooltips.exit')" class="icon close" @click="exitOpen = true">
                         <Icon :icon="closeThick" :height="40" />
                     </Button>
                 </div>
@@ -68,7 +74,7 @@ SPDX-License-Identifier: MIT
                 </div>
                 <div class="secondary-right flex-row flex-right">
                     <ServerStatus v-if="me.isAuthenticated" />
-                    <Button v-if="me.isAuthenticated" class="user" to="/profile">
+                    <Button v-if="me.isAuthenticated" class="user" :to="`/profile/${me.userId}`">
                         <div class="flex-row flex-center gap-sm">
                             <Icon :icon="account" :height="20" />
                             <div>{{ me.username }}</div>
@@ -105,6 +111,8 @@ import fullscreenExit from "@iconify-icons/mdi/fullscreen-exit";
 
 import cog from "@iconify-icons/mdi/cog";
 import { computed, inject, Ref, ref } from "vue";
+import { useTypedI18n } from "@renderer/i18n";
+const { t } = useTypedI18n();
 
 import Button from "@renderer/components/controls/Button.vue";
 import Downloads from "@renderer/components/navbar/Downloads.vue";
@@ -125,7 +133,7 @@ const router = useRouter();
 const allRoutes = router.getRoutes();
 const primaryRoutes = computed(() => {
     return allRoutes
-        .filter((r) => ["/singleplayer", "/multiplayer", "/library", "/learn", "/store", "/development"].includes(r.path))
+        .filter((r) => ["/play", "/watch", "/news", "/library"].includes(r.path))
         .filter(
             (r) =>
                 (r.meta.hide === false || r.meta.hide === undefined) &&
@@ -163,16 +171,12 @@ const messagesUnread = computed(() => {
     return false;
 });
 
-const isFullscreen = ref(false);
-(async () => (isFullscreen.value = await window.mainWindow.isFullscreen()))(); // a bit hacky but iife allows to set ref from async function
-
-async function minimizeWindow() {
-    await window.mainWindow.minimize();
+function minimizeWindow() {
+    window.mainWindow?.minimize();
 }
 
-async function toggleFullScreen() {
-    await window.mainWindow.toggleFullscreen();
-    isFullscreen.value = await window.mainWindow.isFullscreen();
+function toggleFullscreen() {
+    settingsStore.fullscreen = !settingsStore.fullscreen;
 }
 </script>
 

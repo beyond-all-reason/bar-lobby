@@ -5,47 +5,37 @@ SPDX-License-Identifier: MIT
 -->
 
 <route lang="json5">
-{ meta: { title: "Ranked", order: 0, onlineOnly: true, transition: { name: "slide-left" } } }
+{ meta: { title: "Matchmaking", order: 3, onlineOnly: true, transition: { name: "slide-left" } } }
 </route>
 
 <template>
     <div class="view">
-        <div class="ranked-background"></div>
         <div class="ranked-container">
             <div class="view-title">
-                <h1>Ranked</h1>
-                <p>Join a multiplayer ranked queue.</p>
+                <h1>{{ t("lobby.multiplayer.ranked.title") }}</h1>
+                <p>{{ t("lobby.multiplayer.ranked.description") }}</p>
             </div>
             <div class="my-rank">
                 <div></div>
             </div>
             <div class="mode-select">
+                <div v-if="matchmakingStore.isLoadingQueues" class="loading-queues">
+                    {{ t("lobby.multiplayer.ranked.loadingQueues") }}
+                </div>
+                <div v-else-if="matchmakingStore.queueError" class="queue-error">
+                    {{ t("lobby.multiplayer.ranked.queueError") }}: {{ matchmakingStore.queueError }}
+                </div>
                 <Button
+                    v-else
+                    v-for="queue in availableQueueIds"
+                    :key="queue"
                     class="mode-column classic"
                     :class="{
-                        selected: matchmakingStore.selectedQueue === '2v2',
+                        selected: matchmakingStore.selectedQueue === queue,
                     }"
-                    @click="() => (matchmakingStore.selectedQueue = '2v2')"
+                    @click="() => (matchmakingStore.selectedQueue = queue)"
                     :disabled="matchmakingStore.status !== MatchmakingStatus.Idle"
-                    ><span>2 vs 2</span></Button
-                >
-                <Button
-                    class="mode-column classic"
-                    :class="{
-                        selected: matchmakingStore.selectedQueue === '1v1',
-                    }"
-                    @click="() => (matchmakingStore.selectedQueue = '1v1')"
-                    :disabled="matchmakingStore.status !== MatchmakingStatus.Idle"
-                    ><span>DUEL</span></Button
-                >
-                <Button
-                    class="mode-column classic"
-                    :class="{
-                        selected: matchmakingStore.selectedQueue === '3v3',
-                    }"
-                    @click="() => (matchmakingStore.selectedQueue = '3v3')"
-                    :disabled="matchmakingStore.status !== MatchmakingStatus.Idle"
-                    ><span>3 vs 3</span></Button
+                    ><span>{{ getPlaylistName(queue) }}</span></Button
                 >
             </div>
             <div class="button-container">
@@ -57,64 +47,51 @@ SPDX-License-Identifier: MIT
                     }"
                     @click="matchmaking.startSearch"
                 >
-                    Search game
+                    {{ t("lobby.multiplayer.ranked.buttons.searchGame") }}
                 </button>
                 <button v-else-if="matchmakingStore.status === MatchmakingStatus.Searching" class="quick-play-button searching" disabled>
-                    Searching for opponent
+                    {{ t("lobby.multiplayer.ranked.buttons.searchingForOpponent") }}
                 </button>
                 <button
                     v-else-if="matchmakingStore.status === MatchmakingStatus.MatchFound"
                     class="quick-play-button"
                     @click="matchmaking.acceptMatch"
                 >
-                    Match found
+                    {{ t("lobby.multiplayer.ranked.buttons.matchFound") }}
                 </button>
                 <button v-else-if="matchmakingStore.status === MatchmakingStatus.MatchAccepted" class="quick-play-button" disabled>
-                    Accepted
+                    {{ t("lobby.multiplayer.ranked.buttons.accepted") }}
                 </button>
                 <button
                     class="cancel-button"
+                    :disabled="matchmakingStore.status === MatchmakingStatus.Idle"
                     :class="{
                         disabled: matchmakingStore.status === MatchmakingStatus.Idle,
                     }"
                     @click="matchmaking.stopSearch"
                 >
-                    Cancel
+                    {{ t("lobby.multiplayer.ranked.buttons.cancel") }}
                 </button>
+                <p class="txt-error" v-if="matchmakingStore.errorMessage">{{ matchmakingStore.errorMessage }}</p>
             </div>
         </div>
     </div>
 </template>
 
 <script lang="ts" setup>
-import { matchmaking, MatchmakingStatus, matchmakingStore } from "@renderer/store/matchmaking.store";
+import { matchmaking, MatchmakingStatus, matchmakingStore, getPlaylistName } from "@renderer/store/matchmaking.store";
 import Button from "primevue/button";
+import { useTypedI18n } from "@renderer/i18n";
+import { computed } from "vue";
+
+const { t } = useTypedI18n();
+
+const availableQueueIds = computed(() => {
+    return matchmakingStore.playlists.sort((a, b) => a.teamSize * a.numOfTeams - b.teamSize * b.numOfTeams).map((playlist) => playlist.id);
+});
 </script>
 
 <style lang="scss" scoped>
-.ranked-background {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: radial-gradient(circle, #000000ba, #000000fd);
-    transition: all 1s ease;
-    // animation: pulse 1s infinite ease-in-out;
-}
-
-@keyframes pulse {
-    0%,
-    100% {
-        background-size: 100% 100%;
-        filter: brightness(0.8);
-    }
-    50% {
-        background-size: 110% 110%;
-        filter: brightness(1);
-    }
-}
-
 .ranked-container {
     display: flex;
     flex-direction: column;
@@ -136,6 +113,22 @@ import Button from "primevue/button";
     height: 100%;
     overflow: visible;
     gap: 50px;
+}
+
+.loading-queues,
+.queue-error {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 200px;
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 1.2rem;
+    text-align: center;
+}
+
+.queue-error {
+    color: #ff6b6b;
 }
 
 .mode-column {
