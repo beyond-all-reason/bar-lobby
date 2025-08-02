@@ -17,8 +17,8 @@
                 "addToFavorites": "Add to favorites",
                 "removeFromFavorites": "Remove from favorites",
                 "play": "Play",
-                "downloading": "Downloading map...",
-                "download": "Download"
+                "downloading": "Downloading...",
+                "download": "Download map"
             }
         },
         "multiplayer": {
@@ -150,6 +150,20 @@
         },
         "components": {
             "battle": {
+                "mapOptionsModal": {
+                    "mapOptionsTitle": "Map Options",
+                    "boxesPresets": "Boxes presets",
+                    "customBoxes": "Custom boxes",
+                    "deleteTeam": "Delete Team",
+                    "team": "Team",
+                    "player": "player",
+                    "ai": "AI",
+                    "addTeam": "Add Team",
+                    "editPresetTeams": "Edit Preset Teams",
+                    "fixedPositions": "Fixed positions",
+                    "random": "Random",
+                    "close": "Close"
+                },
                 "hostBattle": {
                     "title": "Host Battle",
                     "settingUp": "Setting up a dedicated battle host, this usually takes around 30 seconds",
@@ -217,6 +231,41 @@
                     "kick": "Kick",
                     "ring": "Ring",
                     "more": "More"
+                }
+            },
+            "controls": {
+                "downloadContentButton": {
+                    "downloading": "Downloading...",
+                    "download": "Download map"
+                },
+                "select": {
+                    "search": "Search"
+                }
+            },
+            "maps": {
+                "mapOverviewCard": {
+                    "sizeUnknown": "Unknown"
+                },
+                "mapFiltersComponent": {
+                    "maxPlayers": "Max Players",
+                    "filterBy": "Filter By",
+                    "terrain": "Terrain",
+                    "gameType": "Game Type"
+                },
+                "mapListComponents": {
+                    "sortBy": "Sort By",
+                    "labelName": "Name",
+                    "labelSize": "Size",
+                    "noMapsFound": "No maps found!",
+                    "pleaseTryDifferent": "Please try different keywords / filters"
+                },
+                "filters": {
+                    "favoritesFilter": {
+                        "label": "Favorites"
+                    },
+                    "downloadedFilter": {
+                        "label": "Downloaded"
+                    }
                 }
             }
         }
