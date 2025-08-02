@@ -11,28 +11,31 @@ export const settingsStore = reactive({
     isInitialized: boolean;
 } & Settings);
 
-watch(
-    settingsStore,
-    () => {
-        if (settingsStore.isInitialized) {
-            window.settings.updateSettings(toRaw(settingsStore));
-        }
-    },
-    { deep: true }
-);
-
-watch(
-    () => settingsStore.fullscreen,
-    () => window.mainWindow.setFullscreen(settingsStore.fullscreen, settingsStore.size)
-);
-
-watch(
-    () => settingsStore.size,
-    () => window.mainWindow.setSize(settingsStore.size)
-);
-
 export async function initSettingsStore() {
+    if (settingsStore.isInitialized) {
+        console.warn("Settings store is already initialized, skipping initialization.");
+        return;
+    }
     const currentSettings = await window.settings.getSettings();
     Object.assign(settingsStore, currentSettings);
     settingsStore.isInitialized = true;
+    watch(
+        settingsStore,
+        () => {
+            window.settings.updateSettings(toRaw(settingsStore));
+        },
+        { deep: true }
+    );
+    watch(
+        () => settingsStore.fullscreen,
+        () => {
+            window.mainWindow.setFullscreen(settingsStore.fullscreen);
+        }
+    );
+    watch(
+        () => settingsStore.size,
+        () => {
+            window.mainWindow.setSize(settingsStore.size);
+        }
+    );
 }

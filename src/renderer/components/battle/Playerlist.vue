@@ -11,7 +11,7 @@ SPDX-License-Identifier: MIT
         :engineVersion="battleStore.battleOptions.engineVersion"
         :gameVersion="battleStore.battleOptions.gameVersion"
         :teamId="botModalTeamId"
-        title="Add Bot"
+        :title="t('lobby.components.battle.addBotModal.title')"
         @bot-selected="onBotSelected"
     />
     <div class="scroll-container padding-right-sm">
@@ -44,6 +44,7 @@ SPDX-License-Identifier: MIT
 
 <script lang="ts" setup>
 import { Ref, ref } from "vue";
+import { useTypedI18n } from "@renderer/i18n";
 
 import AddBotModal from "@renderer/components/battle/AddBotModal.vue";
 import TeamComponent from "@renderer/components/battle/TeamComponent.vue";
@@ -52,6 +53,8 @@ import { Bot, isBot, isRaptor, isScavenger, Player } from "@main/game/battle/bat
 import { battleWithMetadataStore, battleStore, battleActions } from "@renderer/store/battle.store";
 import SpectatorsComponent from "@renderer/components/battle/SpectatorsComponent.vue";
 import { GameAI } from "@main/content/game/game-version";
+
+const { t } = useTypedI18n();
 
 const botListOpen = ref(false);
 const botModalTeamId = ref(0);

@@ -9,14 +9,16 @@ SPDX-License-Identifier: MIT
         <Panel class="voting-panel">
             <div :class="['remaining-time', { animating: showTimeRemaining }]"></div>
 
-            <div class="title"><strong>Vote:</strong> {{ vote.command }}</div>
-
-            <div class="actions">
-                <Button class="vote-button green" @click="onYes" @keyup.f1="onYes">Yes (F1)</Button>
-                <Button class="vote-button red" @click="onNo">No (F2)</Button>
+            <div class="title">
+                <strong>{{ t("lobby.components.battle.votePanel.vote") }}</strong> {{ vote.command }}
             </div>
 
-            <div v-if="vote.callerName" class="caller">Called by {{ vote.callerName }}</div>
+            <div class="actions">
+                <Button class="vote-button green" @click="onYes" @keyup.f1="onYes">{{ t("lobby.components.battle.votePanel.yes") }}</Button>
+                <Button class="vote-button red" @click="onNo">{{ t("lobby.components.battle.votePanel.no") }}</Button>
+            </div>
+
+            <div v-if="vote.callerName" class="caller">{{ t("lobby.components.battle.votePanel.calledBy") }} {{ vote.callerName }}</div>
 
             <div v-if="missingYesVotes" class="vote-display">
                 <div v-for="i in vote.yesVotes" :key="i" class="segment yes"></div>
@@ -31,10 +33,13 @@ SPDX-License-Identifier: MIT
 <script lang="ts" setup>
 import { onKeyUp } from "@vueuse/core";
 import { computed, ref, watch } from "vue";
+import { useTypedI18n } from "@renderer/i18n";
 
 import Panel from "@renderer/components/common/Panel.vue";
 import Button from "@renderer/components/controls/Button.vue";
 import { SpadsVote } from "@main/model/spads/spads-types";
+
+const { t } = useTypedI18n();
 
 const props = defineProps<{
     vote: SpadsVote;

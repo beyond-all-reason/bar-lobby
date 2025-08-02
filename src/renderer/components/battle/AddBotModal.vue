@@ -5,7 +5,7 @@ SPDX-License-Identifier: MIT
 -->
 
 <template>
-    <Modal title="Add Bot">
+    <Modal :title="t('lobby.components.battle.addBotModal.title')">
         <div class="flex-col gap-md container">
             <Button
                 v-for="(ai, i) in enginesStore.selectedEngineVersion?.ais"
@@ -33,12 +33,15 @@ SPDX-License-Identifier: MIT
 </template>
 
 <script lang="ts" setup>
+import { useTypedI18n } from "@renderer/i18n";
 import Modal from "@renderer/components/common/Modal.vue";
 import Button from "@renderer/components/controls/Button.vue";
 import { EngineAI } from "@main/content/engine/engine-version";
 import { GameAI } from "@main/content/game/game-version";
 import { enginesStore } from "@renderer/store/engine.store";
 import { gameStore } from "@renderer/store/game.store";
+
+const { t } = useTypedI18n();
 
 const props = defineProps<{
     engineVersion: string;

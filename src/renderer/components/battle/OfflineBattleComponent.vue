@@ -44,7 +44,11 @@ SPDX-License-Identifier: MIT
                     <Button v-tooltip.left="'Configure map options'" @click="openMapOptions">
                         <Icon :icon="cogIcon" height="23" />
                     </Button>
-                    <MapListModal v-model="mapListOpen" title="Maps" @map-selected="onMapSelected" />
+                    <MapListModal
+                        v-model="mapListOpen"
+                        :title="t('lobby.components.battle.offlineBattleComponent.maps')"
+                        @map-selected="onMapSelected"
+                    />
                     <MapOptionsModal v-if="battleStore.battleOptions.map" v-model="mapOptionsOpen" />
                 </div>
                 <GameModeComponent />
@@ -91,6 +95,7 @@ SPDX-License-Identifier: MIT
 
 <script lang="ts" setup>
 import { ref } from "vue";
+import { useTypedI18n } from "@renderer/i18n";
 import Playerlist from "@renderer/components/battle/Playerlist.vue";
 import Select from "@renderer/components/controls/Select.vue";
 import { Icon } from "@iconify/vue";
@@ -98,6 +103,8 @@ import MapListModal from "@renderer/components/battle/MapListModal.vue";
 import MapOptionsModal from "@renderer/components/battle/MapOptionsModal.vue";
 import { battleActions, battleStore } from "@renderer/store/battle.store";
 import Button from "@renderer/components/controls/Button.vue";
+
+const { t } = useTypedI18n();
 import { db } from "@renderer/store/db";
 import listIcon from "@iconify-icons/mdi/format-list-bulleted";
 import cogIcon from "@iconify-icons/mdi/cog";

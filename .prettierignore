@@ -7,3 +7,11 @@ dist
 .vite
 out
 buildResources
+*.ogg
+*.webp
+*.png
+*.jpg
+*.mp3
+*.license
+*.ttf
+LICENSES/

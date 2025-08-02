@@ -18,11 +18,7 @@ While Discord is our primary communication tool, it is an ephemeral medium. To k
 
 ## A Note on Reviews & Merging
 
-While BAR project is large, this repository is _currently_ maintained primarily by a single person, [Marek](https://github.com/p2004a/), who is also working on other part of [infrastructure](https://beyond-all-reason.github.io/infrastructure/). We are deeply grateful for every contribution, but this means our time is very limited.
-
-We will do our best to review and respond to pull requests within **7 days**. However, there may be times when we are unavailable, and responses might take longer. We appreciate your patience. You can check the maintainer's status on Discord or GitHub to see if an absence is noted in their profile.
-
-**We are actively seeking senior engineers interested in a leadership role.** If you have the experience and passion to help guide the project's architecture and mentor other contributors, please reach out on Discord. Your involvement would be instrumental in ensuring the long-term health and sustainability of this project.
+We will do our best to review and respond to pull requests within **7 days**. However, there may be times when we are unavailable, and responses might take longer. We appreciate your patience. You can check the maintainers' status on Discord or GitHub to see if an absence is noted in their profile.
 
 ## New Contributor Guide
 

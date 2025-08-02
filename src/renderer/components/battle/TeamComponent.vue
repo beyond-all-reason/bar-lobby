@@ -23,7 +23,7 @@ SPDX-License-Identifier: MIT
                 ({{ memberCount }}/{{ maxPlayersPerTeam }} players)
             </div>
             <Button class="slim black" @click="addBotClicked(teamId)" v-if="!isRaptorTeam(teamId) && !isScavengerTeam(teamId)">
-                Add bot
+                {{ t("lobby.components.battle.teamComponent.addBot") }}
             </Button>
             <!-- <Button v-if="showJoin" class="slim black" @click="onJoinClicked(teamId)">Join</Button> -->
         </div>
@@ -48,12 +48,15 @@ SPDX-License-Identifier: MIT
 
 <script lang="ts" setup>
 import { computed } from "vue";
+import { useTypedI18n } from "@renderer/i18n";
 
 import BotParticipant from "@renderer/components/battle/BotParticipant.vue";
 import PlayerParticipant from "@renderer/components/battle/PlayerParticipant.vue";
 import Button from "@renderer/components/controls/Button.vue";
 import { Bot, isBot, isPlayer, isRaptor, isScavenger, Player } from "@main/game/battle/battle-types";
 import { battleActions, battleWithMetadataStore } from "@renderer/store/battle.store";
+
+const { t } = useTypedI18n();
 
 const props = defineProps<{
     teamId: number;

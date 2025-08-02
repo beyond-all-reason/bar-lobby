@@ -16,7 +16,7 @@ SPDX-License-Identifier: MIT
         </TeamParticipant>
         <LuaOptionsModal
             :id="`configure-bot-${bot.name}`"
-            title="Configure Bot"
+            :title="t('lobby.components.battle.botParticipant.configureBot')"
             v-model="botOptionsOpen"
             :options="bot.aiOptions"
             :sections="botOptions"
@@ -30,8 +30,8 @@ SPDX-License-Identifier: MIT
 import { Icon } from "@iconify/vue";
 import robot from "@iconify-icons/mdi/robot";
 import robotAngry from "@iconify-icons/mdi/robot-angry";
-import { MenuItem } from "primevue/menuitem";
 import { Ref, ref } from "vue";
+import { useTypedI18n } from "@renderer/i18n";
 
 import LuaOptionsModal from "@renderer/components/battle/LuaOptionsModal.vue";
 import TeamParticipant from "@renderer/components/battle/TeamParticipant.vue";
@@ -43,6 +43,8 @@ import { enginesStore } from "@renderer/store/engine.store";
 import { gameStore } from "@renderer/store/game.store";
 import GameIconsVelociraptor from "@renderer/components/icons/GameIconsVelociraptor.vue";
 
+const { t } = useTypedI18n();
+
 const props = defineProps<{
     bot: Bot;
     teamId: number;
@@ -52,17 +54,17 @@ const botOptions: Ref<LuaOptionSection[]> = ref([]);
 const botOptionsOpen = ref(false);
 const menu = ref<InstanceType<typeof ContextMenu>>();
 
-const actions: MenuItem[] = [
+const actions = [
     {
-        label: "Configure",
+        label: t("lobby.components.battle.botParticipant.configure"),
         command: configureBot,
     },
     {
-        label: "Duplicate",
+        label: t("lobby.components.battle.botParticipant.duplicate"),
         command: duplicateBot,
     },
     {
-        label: "Kick",
+        label: t("lobby.components.battle.botParticipant.kick"),
         command: kickBot,
     },
 ];
