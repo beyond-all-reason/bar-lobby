@@ -4098,6 +4098,7 @@
         "components": {
             "battle": {
                 "mapOptionsModal": {
+                    "title": null,
                     "mapOptionsTitle": null,
                     "boxesPresets": null,
                     "customBoxes": null,
@@ -4110,6 +4111,71 @@
                     "fixedPositions": null,
                     "random": null,
                     "close": null
+                },
+                "hostBattle": {
+                    "title": null,
+                    "settingUp": null,
+                    "region": null,
+                    "hostButton": null
+                },
+                "votePanel": {
+                    "vote": null,
+                    "yes": null,
+                    "no": null,
+                    "calledBy": null
+                },
+                "botParticipant": {
+                    "configure": null,
+                    "duplicate": null,
+                    "kick": null,
+                    "configureBot": null
+                },
+                "addBotModal": {
+                    "title": null
+                },
+                "battleChat": {
+                    "placeholder": null
+                },
+                "playerlist": {
+                    "players": null,
+                    "spectators": null
+                },
+                "teamComponent": {
+                    "team": null,
+                    "addBot": null
+                },
+                "spectatorsComponent": {
+                    "spectators": null
+                },
+                "battlePreview": {
+                    "preview": null,
+                    "players": null,
+                    "spectators": null
+                },
+                "replayPreview": {
+                    "replay": null,
+                    "players": null,
+                    "spectators": null
+                },
+                "gameModeComponent": {
+                    "gameMode": null,
+                    "presets": null,
+                    "configureGameOptions": null,
+                    "gameOptions": null
+                },
+                "offlineBattleComponent": {
+                    "offlineBattle": null,
+                    "maps": null
+                },
+                "playerParticipant": {
+                    "player": null,
+                    "viewProfile": null,
+                    "makeBoss": null,
+                    "message": null,
+                    "addFriend": null,
+                    "kick": null,
+                    "ring": null,
+                    "more": null
                 }
             },
             "controls": {

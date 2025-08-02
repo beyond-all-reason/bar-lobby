@@ -151,6 +151,7 @@
         "components": {
             "battle": {
                 "mapOptionsModal": {
+                    "title": "Map Options",
                     "mapOptionsTitle": "Map Options",
                     "boxesPresets": "Boxes presets",
                     "customBoxes": "Custom boxes",
@@ -163,6 +164,71 @@
                     "fixedPositions": "Fixed positions",
                     "random": "Random",
                     "close": "Close"
+                },
+                "hostBattle": {
+                    "title": "Host Battle",
+                    "settingUp": "Setting up a dedicated battle host, this usually takes around 30 seconds",
+                    "region": "Region",
+                    "hostButton": "Host Battle"
+                },
+                "votePanel": {
+                    "vote": "Vote:",
+                    "yes": "Yes (F1)",
+                    "no": "No (F2)",
+                    "calledBy": "Called by"
+                },
+                "botParticipant": {
+                    "configure": "Configure",
+                    "duplicate": "Duplicate",
+                    "kick": "Kick",
+                    "configureBot": "Configure Bot"
+                },
+                "addBotModal": {
+                    "title": "Add Bot"
+                },
+                "battleChat": {
+                    "placeholder": "Type your message..."
+                },
+                "playerlist": {
+                    "players": "Players",
+                    "spectators": "Spectators"
+                },
+                "teamComponent": {
+                    "team": "Team",
+                    "addBot": "Add bot"
+                },
+                "spectatorsComponent": {
+                    "spectators": "Spectators"
+                },
+                "battlePreview": {
+                    "preview": "Preview",
+                    "players": "Players",
+                    "spectators": "Spectators"
+                },
+                "replayPreview": {
+                    "replay": "Replay",
+                    "players": "Players",
+                    "spectators": "Spectators"
+                },
+                "gameModeComponent": {
+                    "gameMode": "Game Mode",
+                    "presets": "Presets",
+                    "configureGameOptions": "Configure Game Options",
+                    "gameOptions": "Game Options"
+                },
+                "offlineBattleComponent": {
+                    "offlineBattle": "Offline Battle",
+                    "maps": "Maps"
+                },
+                "playerParticipant": {
+                    "player": "Player",
+                    "viewProfile": "View Profile",
+                    "makeBoss": "Make Boss",
+                    "message": "Message",
+                    "addFriend": "Add Friend",
+                    "kick": "Kick",
+                    "ring": "Ring",
+                    "more": "More"
                 }
             },
             "controls": {
