@@ -16,7 +16,6 @@ SPDX-License-Identifier: MIT
 
 <script lang="ts" setup>
 import { delay } from "$/jaz-ts-utils/delay";
-import { MenuItem } from "primevue/menuitem";
 import { inject, Ref, ref } from "vue";
 import { useTypedI18n } from "@renderer/i18n";
 
@@ -37,7 +36,7 @@ const props = defineProps<{
 
 const menu = ref<InstanceType<typeof ContextMenu>>();
 
-const actions: MenuItem[] =
+const actions =
     props.player.user.userId === me.userId
         ? [
               { label: t("lobby.components.battle.playerParticipant.viewProfile"), command: viewProfile },
