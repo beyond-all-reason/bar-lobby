@@ -21,9 +21,6 @@ describe("Preload API Context Bridge", () => {
     let mockExposeInMainWorld: any;
 
     beforeEach(() => {
-        vi.clearAllMocks();
-        vi.resetModules();
-
         mockWindow = {};
 
         mockExposeInMainWorld = vi.fn((name, api) => {

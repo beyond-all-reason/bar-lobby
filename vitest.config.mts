@@ -16,7 +16,7 @@ export default defineConfig({
         projects: [
             {
                 test: {
-                    name: "unit/main",
+                    name: "main",
                     environment: "node",
                     setupFiles: ["tests/setup.main.mts"],
                     include: ["tests/unit/main/**/*.{test,spec}.{ts,mts}"],
@@ -25,7 +25,7 @@ export default defineConfig({
             },
             {
                 test: {
-                    name: "unit/renderer",
+                    name: "renderer",
                     environment: "jsdom",
                     setupFiles: ["tests/setup.renderer.mts"],
                     include: ["tests/unit/renderer/**/*.{test,spec}.{ts,mts}"],
@@ -41,7 +41,7 @@ export default defineConfig({
             },
             {
                 test: {
-                    name: "unit/shared",
+                    name: "shared",
                     environment: "node",
                     setupFiles: ["tests/setup.main.mts"],
                     include: ["tests/unit/shared/**/*.{test,spec}.{ts,mts}"],
