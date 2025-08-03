@@ -112,19 +112,20 @@ describe("Main Process Lifecycle", () => {
         }));
 
         // Mock all services
-        vi.doMock("@main/services/settings.service", () => ({ settingsService: mockServices.settingsService }));
-        vi.doMock("@main/services/info.service", () => ({ infoService: mockServices.infoService }));
-        vi.doMock("@main/services/account.service", () => ({ accountService: mockServices.accountService }));
         vi.doMock("@main/services/replays.service", () => ({ default: mockServices.replaysService }));
         vi.doMock("@main/services/game.service", () => ({ default: mockServices.gameService }));
         vi.doMock("@main/services/maps.service", () => ({ default: mockServices.mapsService }));
         vi.doMock("@main/services/engine.service", () => ({ default: mockServices.engineService }));
         vi.doMock("@main/services/auto-updater.service", () => ({ default: mockServices.autoUpdaterService }));
+        vi.doMock("@main/services/downloads.service", () => ({ default: mockServices.downloadsService }));
+
+        vi.doMock("@main/services/settings.service", () => ({ settingsService: mockServices.settingsService }));
+        vi.doMock("@main/services/info.service", () => ({ infoService: mockServices.infoService }));
+        vi.doMock("@main/services/account.service", () => ({ accountService: mockServices.accountService }));
         vi.doMock("@main/services/log.service", () => ({ logService: mockServices.logService }));
         vi.doMock("@main/services/auth.service", () => ({ authService: mockServices.authService }));
         vi.doMock("@main/services/tachyon.service", () => ({ tachyonService: mockServices.tachyonService }));
         vi.doMock("@main/services/shell.service", () => ({ shellService: mockServices.shellService }));
-        vi.doMock("@main/services/downloads.service", () => ({ default: mockServices.downloadsService }));
         vi.doMock("@main/services/news.service", () => ({ miscService: mockServices.miscService }));
         vi.doMock("@main/services/navigation.service", () => ({ navigationService: mockServices.navigationService }));
 

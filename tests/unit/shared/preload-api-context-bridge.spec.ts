@@ -15,7 +15,6 @@ type MockIpcRenderer = {
 describe("Preload API Context Bridge", () => {
     // List of all APIs exposed in the preload script
     const apiNames = ["log", "info", "mainWindow", "shell", "replays", "settings", "auth", "engine", "game", "maps", "downloads", "misc", "barNavigation", "tachyon", "autoUpdater", "notifications"];
-    const preloadScriptPath = "../../../src/preload/preload.ts";
 
     let mockWindow: any;
     let mockIpcRenderer: MockIpcRenderer;
@@ -67,7 +66,7 @@ describe("Preload API Context Bridge", () => {
     });
 
     it("should expose all APIs in the main world via contextBridge", async () => {
-        await import(preloadScriptPath);
+        await import("@preload/preload");
 
         for (const api of apiNames) {
             expect(mockWindow[api]).toBeDefined();
@@ -75,7 +74,7 @@ describe("Preload API Context Bridge", () => {
     });
 
     it("should expose application logs API", async () => {
-        await import(preloadScriptPath);
+        await import("@preload/preload");
 
         mockWindow.log.purge();
         mockWindow.log.pack();
@@ -89,7 +88,7 @@ describe("Preload API Context Bridge", () => {
     });
 
     it("should expose info API", async () => {
-        await import(preloadScriptPath);
+        await import("@preload/preload");
 
         mockWindow.info.getInfo();
 
@@ -97,7 +96,7 @@ describe("Preload API Context Bridge", () => {
     });
 
     it("should expose main window API", async () => {
-        await import(preloadScriptPath);
+        await import("@preload/preload");
 
         mockWindow.mainWindow.setFullscreen(true);
         mockWindow.mainWindow.setSize(42);
@@ -115,7 +114,7 @@ describe("Preload API Context Bridge", () => {
     });
 
     it("should expose shell API", async () => {
-        await import(preloadScriptPath);
+        await import("@preload/preload");
 
         mockWindow.shell.openStateDir();
         mockWindow.shell.openAssetsDir();
@@ -135,7 +134,7 @@ describe("Preload API Context Bridge", () => {
     });
 
     it("should expose replays API", async () => {
-        await import(preloadScriptPath);
+        await import("@preload/preload");
 
         mockWindow.replays.sync(["replay1", "replay2"]);
         mockWindow.replays.delete("replay1");
@@ -145,7 +144,7 @@ describe("Preload API Context Bridge", () => {
     });
 
     it("should expose settings API", async () => {
-        await import(preloadScriptPath);
+        await import("@preload/preload");
 
         mockWindow.settings.getSettings();
         mockWindow.settings.updateSettings({ foo: "bar" });
@@ -157,7 +156,7 @@ describe("Preload API Context Bridge", () => {
     });
 
     it("should expose auth API", async () => {
-        await import(preloadScriptPath);
+        await import("@preload/preload");
 
         mockWindow.auth.login();
         mockWindow.auth.logout();
@@ -171,7 +170,7 @@ describe("Preload API Context Bridge", () => {
     });
 
     it("should expose engine API", async () => {
-        await import(preloadScriptPath);
+        await import("@preload/preload");
 
         mockWindow.engine.listAvailableVersions();
         mockWindow.engine.downloadEngine("v1");
@@ -185,7 +184,7 @@ describe("Preload API Context Bridge", () => {
     });
 
     it("should expose game API", async () => {
-        await import(preloadScriptPath);
+        await import("@preload/preload");
 
         mockWindow.game.downloadGame("v1");
         mockWindow.game.getScenarios("v1");
@@ -207,7 +206,7 @@ describe("Preload API Context Bridge", () => {
     });
 
     it("should expose maps API", async () => {
-        await import(preloadScriptPath);
+        await import("@preload/preload");
 
         mockWindow.maps.downloadMap("map1");
         mockWindow.maps.downloadMaps(["map1", "map2"]);
@@ -225,7 +224,7 @@ describe("Preload API Context Bridge", () => {
     });
 
     it("should expose downloads API event listeners", async () => {
-        await import(preloadScriptPath);
+        await import("@preload/preload");
 
         // Only test that the event listeners are functions
         expect(typeof mockWindow.downloads.onDownloadEngineStart).toBe("function");
@@ -243,7 +242,7 @@ describe("Preload API Context Bridge", () => {
     });
 
     it("should expose misc API", async () => {
-        await import(preloadScriptPath);
+        await import("@preload/preload");
 
         mockWindow.misc.getNewsRssFeed(5);
         mockWindow.misc.getDevlogRssFeed(3);
@@ -253,7 +252,7 @@ describe("Preload API Context Bridge", () => {
     });
 
     it("should expose barNavigation API", async () => {
-        await import(preloadScriptPath);
+        await import("@preload/preload");
 
         mockWindow.barNavigation.signalReady();
         expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("renderer:ready");
@@ -261,7 +260,7 @@ describe("Preload API Context Bridge", () => {
     });
 
     it("should expose tachyon API", async () => {
-        await import(preloadScriptPath);
+        await import("@preload/preload");
 
         mockWindow.tachyon.isConnected();
         mockWindow.tachyon.connect();
@@ -277,7 +276,7 @@ describe("Preload API Context Bridge", () => {
     });
 
     it("should expose autoUpdater API", async () => {
-        await import(preloadScriptPath);
+        await import("@preload/preload");
 
         mockWindow.autoUpdater.checkForUpdates();
         mockWindow.autoUpdater.downloadUpdate();
@@ -291,7 +290,7 @@ describe("Preload API Context Bridge", () => {
     });
 
     it("should expose notifications API", async () => {
-        await import(preloadScriptPath);
+        await import("@preload/preload");
         expect(typeof mockWindow.notifications.onShowAlert).toBe("function");
     });
 });
