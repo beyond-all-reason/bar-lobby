@@ -22,7 +22,6 @@ describe("Electron App", async () => {
 
     test("run app", async () => {
         const title = await firstWindow.title();
-        console.log(title);
         expect(title).toBeTruthy();
     });
 

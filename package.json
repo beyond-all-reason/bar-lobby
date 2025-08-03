@@ -25,7 +25,7 @@
         "postinstall": "electron-builder install-app-deps",
         "release": "electron-builder --config electron-builder.config.ts",
         "lint": "eslint --cache",
-        "test": "vitest tests",
+        "test": "vitest run tests",
         "test:e2e": "playwright test",
         "format": "prettier --experimental-cli --write .",
         "format:check": "prettier --experimental-cli --check .",
