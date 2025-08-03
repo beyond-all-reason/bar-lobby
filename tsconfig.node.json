@@ -6,7 +6,7 @@
         "src/main/**/*",
         "src/preload/**/*",
         "vendor/**/*",
-        "tests/**/main/*.ts",
+        "tests/**/main/**/*.ts",
         "tests/**/shared/**/*.ts",
         "tests/setup.main.mts",
         "vitest.config.mts"

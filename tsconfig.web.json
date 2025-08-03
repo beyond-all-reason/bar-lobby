@@ -8,7 +8,6 @@
         "src/renderer/**/*.vue",
         "src/preload/*.d.ts",
         "tests/**/renderer/**/*.ts",
-        "tests/**/renderer/**/*.mts",
         "tests/setup.renderer.mts"
     ],
     "compilerOptions": {

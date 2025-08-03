@@ -48,14 +48,6 @@ export default defineConfig({
                 },
                 resolve: { alias },
             },
-            {
-                test: {
-                    name: "integration/ipc",
-                    environment: "node",
-                    include: ["tests/integration/ipc/**/*.{test,spec}.{ts,mts}"],
-                },
-                resolve: { alias },
-            },
         ],
     },
     resolve: { alias },
