@@ -146,7 +146,7 @@ describe("Main Process Lifecycle", () => {
         expect(mockApp.exit).toHaveBeenCalledWith(0);
     });
 
-    it("should start the app successfully and initialize all services", async () => {
+    it("should start the app successfully and initialize basic configurations", async () => {
         await import("@main/main");
 
         expect(mockApp.requestSingleInstanceLock).toHaveBeenCalled();
