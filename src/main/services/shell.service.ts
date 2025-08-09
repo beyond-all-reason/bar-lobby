@@ -113,7 +113,7 @@ function registerIpcHandlers() {
                 detached: true,
                 stdio: 'ignore'
             });
-            child.unref();g
+            child.unref();
 
             setTimeout(() => {
                 focusTerminal();
