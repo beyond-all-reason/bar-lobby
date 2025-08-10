@@ -19,12 +19,18 @@ function openInBrowser(url: string) {
     shell.openExternal(url);
 }
 
+// Workaround for https://github.com/electron/electron/issues/47668
+async function openPath(path: string) {
+    await shell.openExternal(`file://${path}`);
+    return "";
+}
+
 function registerIpcHandlers() {
-    ipcMain.handle("shell:openStateDir", () => shell.openPath(STATE_PATH));
-    ipcMain.handle("shell:openAssetsDir", () => shell.openPath(ASSETS_PATH));
-    ipcMain.handle("shell:openSettingsFile", () => shell.openPath(path.join(CONFIG_PATH, "settings.json")));
-    ipcMain.handle("shell:openStartScript", () => shell.openPath(path.join(WRITE_DATA_PATH, "script.txt")));
-    ipcMain.handle("shell:openReplaysDir", () => shell.openPath(REPLAYS_PATH));
+    ipcMain.handle("shell:openStateDir", () => openPath(STATE_PATH));
+    ipcMain.handle("shell:openAssetsDir", () => openPath(ASSETS_PATH));
+    ipcMain.handle("shell:openSettingsFile", () => openPath(path.join(CONFIG_PATH, "settings.json")));
+    ipcMain.handle("shell:openStartScript", () => openPath(path.join(WRITE_DATA_PATH, "script.txt")));
+    ipcMain.handle("shell:openReplaysDir", () => openPath(REPLAYS_PATH));
     ipcMain.handle("shell:showReplayInFolder", (_event, fileName: string) => shell.showItemInFolder(path.join(REPLAYS_PATH, fileName)));
 
     // External
