@@ -17,14 +17,14 @@ SPDX-License-Identifier: MIT
                     <Loader></Loader>
                 </div>
                 <Transition :appear="true" name="delayed-fade">
-                    <button class="go-back-button" @click="abort">Go Back</button>
+                    <button class="go-back-button" @click="abort">{{ t("lobby.views.index.goBack") }}</button>
                 </Transition>
             </div>
             <div v-else class="buttons-container">
-                <button class="login-button" @click="login">Login</button>
-                <div v-if="hasCredentials" class="play-offline" @click="changeAccount">Change account</div>
+                <button class="login-button" @click="login">{{ t("lobby.views.index.login") }}</button>
+                <div v-if="hasCredentials" class="play-offline" @click="changeAccount">{{ t("lobby.views.index.changeAccount") }}</div>
                 <div v-if="error" class="txt-error">{{ error }}</div>
-                <div class="play-offline" @click="playOffline">Play Offline</div>
+                <div class="play-offline" @click="playOffline">{{ t("lobby.views.index.playOffline") }}</div>
             </div>
         </Transition>
     </div>
@@ -32,12 +32,15 @@ SPDX-License-Identifier: MIT
 
 <script lang="ts" setup>
 import { onActivated, ref } from "vue";
+import { useTypedI18n } from "@renderer/i18n";
 
 import Loader from "@renderer/components/common/Loader.vue";
 import { useRouter } from "vue-router";
 import { auth } from "@renderer/store/me.store";
 import { settingsStore } from "@renderer/store/settings.store";
 import { tachyon } from "@renderer/store/tachyon.store";
+
+const { t } = useTypedI18n();
 
 const router = useRouter();
 

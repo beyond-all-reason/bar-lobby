@@ -8,16 +8,16 @@ SPDX-License-Identifier: MIT
     <div v-if="isVisible" class="container">
         <Panel class="error-modal">
             <template #header>
-                <div class="title">Fatal Error</div>
+                <div class="title">{{ t("lobby.components.misc.error.fatalError") }}</div>
             </template>
             <div class="flex-col gap-md">
-                <div>A fatal error has occurred and BAR Lobby needs to reload.</div>
+                <div>{{ t("lobby.components.misc.error.fatalErrorDescription") }}</div>
                 <div v-if="error" class="error">{{ error.message }}</div>
                 <div v-if="promiseError?.reason.stack" class="error">{{ promiseError.reason.stack }}</div>
-                <Button @click="uploadLogsCommand">Upload logs</Button>
+                <Button @click="uploadLogsCommand">{{ t("lobby.components.misc.error.uploadLogs") }}</Button>
                 <div v-if="uploadLogMsg">{{ uploadLogMsg }}</div>
-                <Button @click="reload">Reload</Button>
-                <Button @click="quitToDesktop">Quit to Desktop</Button>
+                <Button @click="reload">{{ t("lobby.components.misc.error.reload") }}</Button>
+                <Button @click="quitToDesktop">{{ t("lobby.components.misc.error.quitToDesktop") }}</Button>
             </div>
         </Panel>
     </div>
@@ -25,9 +25,12 @@ SPDX-License-Identifier: MIT
 
 <script lang="ts" setup>
 import { Ref, ref } from "vue";
+import { useTypedI18n } from "@renderer/i18n";
 import Panel from "@renderer/components/common/Panel.vue";
 import Button from "@renderer/components/controls/Button.vue";
 import { Logger, uploadLogs } from "@renderer/utils/log";
+
+const { t } = useTypedI18n();
 
 const log = new Logger("Error.vue");
 
@@ -67,17 +70,17 @@ async function quitToDesktop() {
 
 async function uploadLogsCommand() {
     try {
-        uploadLogMsg.value = "Uploading...";
+        uploadLogMsg.value = t("lobby.components.misc.error.uploading");
         const url = await uploadLogs();
         await navigator.clipboard.writeText(url);
-        uploadLogMsg.value = "Log URL was copied to clipboard.";
+        uploadLogMsg.value = t("lobby.components.misc.error.logUrlCopied");
     } catch (e) {
         if (typeof e === "string") {
             uploadLogMsg.value = e;
         } else if (e instanceof Error) {
-            uploadLogMsg.value = `Could not upload log: ${e.message}`;
+            uploadLogMsg.value = `${t("lobby.components.misc.error.couldNotUploadLog")}: ${e.message}`;
         } else {
-            uploadLogMsg.value = "Could not upload log.";
+            uploadLogMsg.value = t("lobby.components.misc.error.couldNotUploadLog");
         }
         console.error(e);
     }

@@ -12,21 +12,23 @@ SPDX-License-Identifier: MIT
     <div class="view">
         <div class="replay-container">
             <div class="view-title">
-                <h1>Replays</h1>
+                <h1>{{ t("lobby.views.watch.replays.title") }}</h1>
             </div>
             <div class="flex-row flex-grow gap-md">
                 <div class="middle-section">
                     <Panel>
                         <div class="flex-col fullheight gap-md">
                             <div class="flex-row gap-md fullwidth">
-                                <TriStateCheckbox v-model="endedNormally" label="Ended Normally" />
-                                <Checkbox v-model="showSpoilers" label="Show Spoilers" />
+                                <TriStateCheckbox v-model="endedNormally" :label="t('lobby.views.watch.replays.endedNormally')" />
+                                <Checkbox v-model="showSpoilers" :label="t('lobby.views.watch.replays.showSpoilers')" />
                                 <div class="flex-grow">
-                                    <SearchBox v-model="fulltextSearch" placeholder="Search map, players..." />
+                                    <SearchBox v-model="fulltextSearch" :placeholder="t('lobby.views.watch.replays.searchPlaceholder')" />
                                 </div>
                                 <div class="flex-right flex-row gap-md" style="flex: none">
-                                    <Button @click="openBrowserToReplayService">Browse Online Replays</Button>
-                                    <Button @click="openReplaysFolder">Open Replays Folder</Button>
+                                    <Button @click="openBrowserToReplayService">{{
+                                        t("lobby.views.watch.replays.browseOnlineReplays")
+                                    }}</Button>
+                                    <Button @click="openReplaysFolder">{{ t("lobby.views.watch.replays.openReplaysFolder") }}</Button>
                                 </div>
                             </div>
                             <DataTable
@@ -45,31 +47,40 @@ SPDX-License-Identifier: MIT
                                 @page="onPage"
                                 @sort="onSort"
                             >
-                                <template #empty>No replays found</template>
-                                <Column header="Name">
+                                <template #empty>{{ t("lobby.views.watch.replays.noReplaysFound") }}</template>
+                                <Column :header="t('lobby.views.watch.replays.name')">
                                     <template #body="{ data }">
                                         <template v-if="data.preset === 'duel'">
-                                            {{ data.contenders?.[0]?.name ?? "Nobody" }} vs
-                                            {{ data.contenders?.[1]?.name ?? "Nobody" }}
+                                            {{ data.contenders?.[0]?.name ?? t("lobby.views.watch.replays.nobody") }} vs
+                                            {{ data.contenders?.[1]?.name ?? t("lobby.views.watch.replays.nobody") }}
                                         </template>
                                         <template v-else-if="data.preset === 'team'">
                                             {{ data.teams[0].playerCount }} vs {{ data.teams[1].playerCount }}
                                         </template>
-                                        <template v-if="data.preset === 'ffa'">{{ data.contenders.length }} Way FFA</template>
-                                        <template v-if="data.preset === 'teamffa'">{{ data.teams[0].playerCount }} Way Team FFA</template>
+                                        <template v-if="data.preset === 'ffa'"
+                                            >{{ data.contenders.length }} {{ t("lobby.views.watch.replays.wayFFA") }}</template
+                                        >
+                                        <template v-if="data.preset === 'teamffa'"
+                                            >{{ data.teams[0].playerCount }} {{ t("lobby.views.watch.replays.wayTeamFFA") }}</template
+                                        >
                                     </template>
                                 </Column>
-                                <Column header="Date" :sortable="true" sortField="startTime">
+                                <Column :header="t('lobby.views.watch.replays.date')" :sortable="true" sortField="startTime">
                                     <template #body="{ data }">
                                         {{ format(data.startTime, "yyyy/MM/dd hh:mm a") }}
                                     </template>
                                 </Column>
-                                <Column header="Duration" :sortable="true" sortField="gameDurationMs">
+                                <Column :header="t('lobby.views.watch.replays.duration')" :sortable="true" sortField="gameDurationMs">
                                     <template #body="{ data }">
                                         {{ getFriendlyDuration(data.gameDurationMs) }}
                                     </template>
                                 </Column>
-                                <Column field="mapSpringName" header="Map" :sortable="true" sortField="mapSpringName" />
+                                <Column
+                                    field="mapSpringName"
+                                    :header="t('lobby.views.watch.replays.map')"
+                                    :sortable="true"
+                                    sortField="mapSpringName"
+                                />
                             </DataTable>
                         </div>
                     </Panel>
@@ -86,11 +97,15 @@ SPDX-License-Identifier: MIT
                                             @click="watchReplay(replay)"
                                             :disabled="gameStore.status !== GameStatus.CLOSED"
                                         >
-                                            <template v-if="gameStore.status === GameStatus.RUNNING">Game is running</template>
-                                            <template v-else-if="gameStore.status === GameStatus.LOADING">Launching...</template>
-                                            <template v-else>Watch</template>
+                                            <template v-if="gameStore.status === GameStatus.RUNNING">{{
+                                                t("lobby.views.watch.replays.gameIsRunning")
+                                            }}</template>
+                                            <template v-else-if="gameStore.status === GameStatus.LOADING">{{
+                                                t("lobby.views.watch.replays.launching")
+                                            }}</template>
+                                            <template v-else>{{ t("lobby.views.watch.replays.watch") }}</template>
                                         </DownloadContentButton>
-                                        <Button v-else disabled style="flex-grow: 1">Watch</Button>
+                                        <Button v-else disabled style="flex-grow: 1">{{ t("lobby.views.watch.replays.watch") }}</Button>
                                         <Button v-if="replay" @click="showReplayFile(replay)" class="icon" :height="32"
                                             ><Icon :icon="folder" :height="32"
                                         /></Button>
@@ -124,6 +139,7 @@ SPDX-License-Identifier: MIT
 import { format } from "date-fns";
 import Column from "primevue/column";
 import { Ref, ref, shallowRef, onMounted, triggerRef, computed, watch } from "vue";
+import { useTypedI18n } from "@renderer/i18n";
 
 import Button from "@renderer/components/controls/Button.vue";
 import Checkbox from "@renderer/components/controls/Checkbox.vue";
@@ -142,6 +158,8 @@ import { MapDownloadData } from "@main/content/maps/map-data";
 import { Icon } from "@iconify/vue";
 import folder from "@iconify-icons/mdi/folder";
 import SearchBox from "@renderer/components/controls/SearchBox.vue";
+
+const { t } = useTypedI18n();
 
 const endedNormally: Ref<boolean | null> = ref(true);
 const showSpoilers = ref(true);

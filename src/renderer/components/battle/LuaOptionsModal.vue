@@ -69,8 +69,8 @@ SPDX-License-Identifier: MIT
         </TabView>
         <template #footer>
             <div class="actions">
-                <Button class="fullwidth" @click="reset">Reset all to default</Button>
-                <Button class="green fullwidth" @click="close">Close</Button>
+                <Button class="fullwidth" @click="reset">{{ t("lobby.components.battle.luaOptionsModal.resetAllToDefault") }}</Button>
+                <Button class="green fullwidth" @click="close">{{ t("lobby.components.battle.luaOptionsModal.close") }}</Button>
             </div>
         </template>
     </Modal>
@@ -79,6 +79,7 @@ SPDX-License-Identifier: MIT
 <script lang="ts" setup>
 import TabPanel from "primevue/tabpanel";
 import { Ref, ref } from "vue";
+import { useTypedI18n } from "@renderer/i18n";
 import Modal from "@renderer/components/common/Modal.vue";
 import TabView from "@renderer/components/common/TabView.vue";
 import Button from "@renderer/components/controls/Button.vue";
@@ -87,6 +88,8 @@ import Range from "@renderer/components/controls/Range.vue";
 import Select from "@renderer/components/controls/Select.vue";
 import { LuaOptionSection, LuaOptionNumber, LuaOptionBoolean, LuaOptionString, LuaOptionList } from "@main/content/game/lua-options";
 import Textarea from "@renderer/components/controls/Textarea.vue";
+
+const { t } = useTypedI18n();
 
 const props = defineProps<{
     id: string;

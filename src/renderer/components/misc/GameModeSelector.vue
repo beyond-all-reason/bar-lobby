@@ -13,8 +13,8 @@ SPDX-License-Identifier: MIT
                 $emit('selected');
             "
         >
-            <span>Classic</span>
-            <button class="quick-play-button">Defeat your opponent</button>
+            <span>{{ t("lobby.components.misc.gameModeSelector.classic") }}</span>
+            <button class="quick-play-button">{{ t("lobby.components.misc.gameModeSelector.classicDescription") }}</button>
         </div>
         <div
             class="mode-column raptors"
@@ -23,8 +23,8 @@ SPDX-License-Identifier: MIT
                 $emit('selected');
             "
         >
-            <span>Raptors</span>
-            <button class="quick-play-button">Stronger than flesh</button>
+            <span>{{ t("lobby.components.misc.gameModeSelector.raptors") }}</span>
+            <button class="quick-play-button">{{ t("lobby.components.misc.gameModeSelector.raptorsDescription") }}</button>
         </div>
         <div
             class="mode-column scavengers"
@@ -33,8 +33,8 @@ SPDX-License-Identifier: MIT
                 $emit('selected');
             "
         >
-            <span>Scavengers</span>
-            <button class="quick-play-button">Don't let them get you</button>
+            <span>{{ t("lobby.components.misc.gameModeSelector.scavengers") }}</span>
+            <button class="quick-play-button">{{ t("lobby.components.misc.gameModeSelector.scavengersDescription") }}</button>
         </div>
         <div
             class="mode-column ffa"
@@ -43,14 +43,17 @@ SPDX-License-Identifier: MIT
                 $emit('selected');
             "
         >
-            <span>FFA</span>
-            <button class="quick-play-button">Last com standing wins</button>
+            <span>{{ t("lobby.components.misc.gameModeSelector.ffa") }}</span>
+            <button class="quick-play-button">{{ t("lobby.components.misc.gameModeSelector.ffaDescription") }}</button>
         </div>
     </div>
 </template>
 <script lang="ts" setup>
 import { GameMode } from "@main/game/battle/battle-types";
 import { battleActions } from "@renderer/store/battle.store";
+import { useTypedI18n } from "@renderer/i18n";
+
+const { t } = useTypedI18n();
 
 defineEmits(["selected"]);
 </script>
