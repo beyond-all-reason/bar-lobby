@@ -9,8 +9,8 @@ SPDX-License-Identifier: MIT
         <div class="flex-col gap-md">
             <slot />
             <div class="flex-row gap-md flex-space-between">
-                <Button class="flex-grow red" @click="cancel">Cancel</Button>
-                <Button class="flex-grow green" type="submit">OK</Button>
+                <Button class="flex-grow red" @click="cancel">{{ t("lobby.components.prompts.cancel") }}</Button>
+                <Button class="flex-grow green" type="submit">{{ t("lobby.components.prompts.ok") }}</Button>
             </div>
         </div>
     </form>
@@ -18,8 +18,11 @@ SPDX-License-Identifier: MIT
 
 <script lang="ts" setup>
 import { ref } from "vue";
+import { useTypedI18n } from "@renderer/i18n";
 import Button from "@renderer/components/controls/Button.vue";
 import { usePrompt } from "@renderer/composables/usePrompt";
+
+const { t } = useTypedI18n();
 
 const form = ref<HTMLFormElement>();
 const { promptRef } = usePrompt();

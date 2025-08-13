@@ -7,7 +7,7 @@ SPDX-License-Identifier: MIT
 // a news feed component that displays the latest news from this rss feed https://www.beyondallreason.info/microblogs/rss.xml
 <template>
     <div class="fullheight fullwidth flex-col">
-        <div class="devlog-title">Latest changes</div>
+        <div class="devlog-title">{{ t("lobby.components.misc.devlogFeed.latestChanges") }}</div>
         <div class="devlog-entries scroll-container">
             <DevlogEntry v-for="entry in devlogRssFeed?.entries" :entry="entry" :key="entry.id" />
         </div>
@@ -15,6 +15,9 @@ SPDX-License-Identifier: MIT
 </template>
 <script lang="ts" setup>
 import DevlogEntry from "@renderer/components/misc/DevlogEntry.vue";
+import { useTypedI18n } from "@renderer/i18n";
+
+const { t } = useTypedI18n();
 
 const devlogRssFeed = await window.misc.getDevlogRssFeed(3);
 </script>

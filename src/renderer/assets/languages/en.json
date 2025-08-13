@@ -1838,6 +1838,35 @@
             "newLobbyAlpha": "A new lobby has landed",
             "newLobbySubtext": "Welcome to the new BAR lobby public testing alpha 1 commander !\nThis version only supports singleplayer game modes."
         },
+        "views": {
+            "watch": {
+                "replays": {
+                    "title": "Replays",
+                    "endedNormally": "Ended Normally",
+                    "showSpoilers": "Show Spoilers",
+                    "searchPlaceholder": "Search map, players...",
+                    "browseOnlineReplays": "Browse Online Replays",
+                    "openReplaysFolder": "Open Replays Folder",
+                    "noReplaysFound": "No replays found",
+                    "name": "Name",
+                    "date": "Date",
+                    "duration": "Duration",
+                    "map": "Map",
+                    "nobody": "Nobody",
+                    "wayFFA": "Way FFA",
+                    "wayTeamFFA": "Way Team FFA",
+                    "gameIsRunning": "Game is running",
+                    "launching": "Launching...",
+                    "watch": "Watch"
+                }
+            },
+            "index": {
+                "goBack": "Go Back",
+                "login": "Login",
+                "changeAccount": "Change account",
+                "playOffline": "Play Offline"
+            }
+        },
         "library": {
             "maps": {
                 "title": "Maps",
@@ -1980,6 +2009,76 @@
             }
         },
         "components": {
+            "prompts": {
+                "password": "Password",
+                "cancel": "Cancel",
+                "ok": "OK"
+            },
+            "social": {
+                "chat": {
+                    "to": "To",
+                    "typeHerePlaceholder": "Type here to chat. Use '/' for commands."
+                }
+            },
+            "misc": {
+                "scenarioTile": {
+                    "title": "Scenario Title"
+                },
+                "newsTile": {
+                    "clickToReadMore": "Click to read more"
+                },
+                "devlogFeed": {
+                    "latestChanges": "Latest changes"
+                },
+                "preloader": {
+                    "loading": "Loading",
+                    "loadingFonts": "Loading fonts",
+                    "initializingIndexDB": "Initializing IndexDB",
+                    "initializingMaps": "Initializing maps",
+                    "fetchingMissingMapImages": "Fetching missing map images",
+                    "initializingReplays": "Initializing replays"
+                },
+                "syncDataDirsDialog": {
+                    "title": "Sync Data Directories",
+                    "description": "This tool let's you synchronise multiple data directories if you use multiple lobby applications. Select the data directory for the other lobby application below, then check the content you wish to synchronise. Files not from this lobby's data dir will be kept, and folders will be merged.",
+                    "otherLobbyDataDir": "Other Lobby's Data Dir:",
+                    "test": "Test"
+                },
+                "gameModeSelector": {
+                    "classic": "Classic",
+                    "classicDescription": "Defeat your opponent",
+                    "raptors": "Raptors",
+                    "raptorsDescription": "Stronger than flesh",
+                    "scavengers": "Scavengers",
+                    "scavengersDescription": "Don't let them get you",
+                    "ffa": "FFA",
+                    "ffaDescription": "Last com standing wins"
+                },
+                "error": {
+                    "fatalError": "Fatal Error",
+                    "fatalErrorDescription": "A fatal error has occurred and BAR Lobby needs to reload.",
+                    "uploadLogs": "Upload logs",
+                    "uploading": "Uploading...",
+                    "logUrlCopied": "Log URL was copied to clipboard.",
+                    "couldNotUploadLog": "Could not upload log.",
+                    "reload": "Reload",
+                    "quitToDesktop": "Quit to Desktop"
+                },
+                "devlogEntry": {
+                    "title": "Devlog Title",
+                    "description": "Devlog Description"
+                },
+                "initialSetup": {
+                    "title": "Initial Setup",
+                    "downloadingEngine": "Downloading engine",
+                    "installingEngine": "Installing engine",
+                    "downloadingGame": "Downloading game",
+                    "installingGame": "Installing game",
+                    "downloadingMaps": "Downloading maps",
+                    "downloadingUpdate": "Downloading update",
+                    "installingUpdate": "Installing update"
+                }
+            },
             "battle": {
                 "mapOptionsModal": {
                     "title": "Map Options",
@@ -2018,7 +2117,9 @@
                     "title": "Add Bot"
                 },
                 "battleChat": {
-                    "placeholder": "Type your message..."
+                    "placeholder": "Type your message...",
+                    "hideJunkMessages": "Hide junk messages",
+                    "showJunkMessages": "Show junk messages"
                 },
                 "playerlist": {
                     "players": "Players",
@@ -2060,6 +2161,16 @@
                     "kick": "Kick",
                     "ring": "Ring",
                     "more": "More"
+                },
+                "battleTitleComponent": {
+                    "title": "Battle Title"
+                },
+                "spectatorParticipant": {
+                    "spectator": "Spectator"
+                },
+                "luaOptionsModal": {
+                    "resetAllToDefault": "Reset all to default",
+                    "close": "Close"
                 }
             },
             "controls": {

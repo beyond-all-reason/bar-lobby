@@ -8,7 +8,11 @@ SPDX-License-Identifier: MIT
     <div class="battle-chat">
         <div class="messages-container">
             <div
-                v-tooltip="showHiddenMessages ? 'Hide junk messages' : 'Show junk messages'"
+                v-tooltip="
+                    showHiddenMessages
+                        ? t('lobby.components.battle.battleChat.hideJunkMessages')
+                        : t('lobby.components.battle.battleChat.showJunkMessages')
+                "
                 class="toggle-hidden"
                 :class="{ enabled: showHiddenMessages }"
                 @click="showHiddenMessages = !showHiddenMessages"
@@ -35,12 +39,15 @@ import { Icon } from "@iconify/vue";
 import eyeIcon from "@iconify-icons/mdi/eye";
 import type { Ref } from "vue";
 import { onMounted, onUnmounted, reactive, ref, watch } from "vue";
+import { useTypedI18n } from "@renderer/i18n";
 
 import { Command, getAutoSuggestions, serverCommandList } from "@renderer/api/commands";
 import BattleMessage from "@renderer/components/battle/BattleMessage.vue";
 import AutoSuggest from "@renderer/components/controls/AutoSuggest.vue";
 import AutoSuggestionOption from "@renderer/utils/auto-suggestion-option";
 import { Message } from "@renderer/model/messages";
+
+const { t } = useTypedI18n();
 
 const optionList: Ref<AutoSuggestionOption[]> = ref([]);
 const commandList = reactive<Command[]>(structuredClone(serverCommandList));

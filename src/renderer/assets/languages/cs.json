@@ -1990,6 +1990,35 @@
             "newLobbyAlpha": null,
             "newLobbySubtext": null
         },
+        "views": {
+            "watch": {
+                "replays": {
+                    "title": null,
+                    "endedNormally": null,
+                    "showSpoilers": null,
+                    "searchPlaceholder": null,
+                    "browseOnlineReplays": null,
+                    "openReplaysFolder": null,
+                    "noReplaysFound": null,
+                    "name": null,
+                    "date": null,
+                    "duration": null,
+                    "map": null,
+                    "nobody": null,
+                    "wayFFA": null,
+                    "wayTeamFFA": null,
+                    "gameIsRunning": null,
+                    "launching": null,
+                    "watch": null
+                }
+            },
+            "index": {
+                "goBack": null,
+                "login": null,
+                "changeAccount": null,
+                "playOffline": null
+            }
+        },
         "library": {
             "maps": {
                 "title": null,
@@ -2132,6 +2161,76 @@
             }
         },
         "components": {
+            "prompts": {
+                "password": null,
+                "cancel": null,
+                "ok": null
+            },
+            "social": {
+                "chat": {
+                    "to": null,
+                    "typeHerePlaceholder": null
+                }
+            },
+            "misc": {
+                "scenarioTile": {
+                    "title": null
+                },
+                "newsTile": {
+                    "clickToReadMore": null
+                },
+                "devlogFeed": {
+                    "latestChanges": null
+                },
+                "preloader": {
+                    "loading": null,
+                    "loadingFonts": null,
+                    "initializingIndexDB": null,
+                    "initializingMaps": null,
+                    "fetchingMissingMapImages": null,
+                    "initializingReplays": null
+                },
+                "syncDataDirsDialog": {
+                    "title": null,
+                    "description": null,
+                    "otherLobbyDataDir": null,
+                    "test": null
+                },
+                "gameModeSelector": {
+                    "classic": null,
+                    "classicDescription": null,
+                    "raptors": null,
+                    "raptorsDescription": null,
+                    "scavengers": null,
+                    "scavengersDescription": null,
+                    "ffa": null,
+                    "ffaDescription": null
+                },
+                "error": {
+                    "fatalError": null,
+                    "fatalErrorDescription": null,
+                    "uploadLogs": null,
+                    "uploading": null,
+                    "logUrlCopied": null,
+                    "couldNotUploadLog": null,
+                    "reload": null,
+                    "quitToDesktop": null
+                },
+                "devlogEntry": {
+                    "title": null,
+                    "description": null
+                },
+                "initialSetup": {
+                    "title": null,
+                    "downloadingEngine": null,
+                    "installingEngine": null,
+                    "downloadingGame": null,
+                    "installingGame": null,
+                    "downloadingMaps": null,
+                    "downloadingUpdate": null,
+                    "installingUpdate": null
+                }
+            },
             "battle": {
                 "mapOptionsModal": {
                     "title": null,
@@ -2170,7 +2269,9 @@
                     "title": null
                 },
                 "battleChat": {
-                    "placeholder": null
+                    "placeholder": null,
+                    "hideJunkMessages": null,
+                    "showJunkMessages": null
                 },
                 "playerlist": {
                     "players": null,
@@ -2212,6 +2313,16 @@
                     "kick": null,
                     "ring": null,
                     "more": null
+                },
+                "battleTitleComponent": {
+                    "title": null
+                },
+                "spectatorParticipant": {
+                    "spectator": null
+                },
+                "luaOptionsModal": {
+                    "resetAllToDefault": null,
+                    "close": null
                 }
             },
             "controls": {

@@ -18,12 +18,12 @@ SPDX-License-Identifier: MIT
 <script lang="ts" setup>
 import { NewsFeedData } from "@main/services/news.service";
 import { formatDistanceToNow } from "date-fns";
+import { computed } from "vue";
 
 const { entry } = defineProps<{ entry: NewsFeedData | undefined }>();
 
-const title = entry?.title?.replace(" ⇀ Microblog ★ Beyond All Reason RTS", "");
-// const tags = entry.description.split("|")[0]?.trim();
-const description = entry?.description?.split("|")[1]?.trim();
+const title = computed(() => entry?.title?.replace(" ⇀ Microblog ★ Beyond All Reason RTS", ""));
+const description = computed(() => entry?.description?.split("|")[1]?.trim());
 </script>
 <style lang="css" scoped>
 .dev-title {

@@ -36,8 +36,15 @@ SPDX-License-Identifier: MIT
             </div>
         </div>
         <div class="chat-input">
-            <div class="target" :style="{ color: chatStore.selectedChatRoom?.color }">To ({{ chatStore.selectedChatRoom?.name }}):</div>
-            <input ref="textBox" v-model="newMessage" @keydown.enter="sendMessage" placeholder="Type here to chat. Use '/' for commands." />
+            <div class="target" :style="{ color: chatStore.selectedChatRoom?.color }">
+                {{ t("lobby.components.social.chat.to", { name: chatStore.selectedChatRoom?.name }) }}
+            </div>
+            <input
+                ref="textBox"
+                v-model="newMessage"
+                @keydown.enter="sendMessage"
+                :placeholder="t('lobby.components.social.chat.typeHerePlaceholder')"
+            />
         </div>
     </div>
 </template>
@@ -49,7 +56,10 @@ import { chatActions, ChatRoom, chatStore } from "@renderer/store/chat.store";
 import { me } from "@renderer/store/me.store";
 import { onKeyDown, useMagicKeys } from "@vueuse/core";
 import { ref, useTemplateRef, watch } from "vue";
+import { useTypedI18n } from "@renderer/i18n";
 import closeThick from "@iconify-icons/mdi/close-thick";
+
+const { t } = useTypedI18n();
 
 const keys = useMagicKeys();
 const shiftEnter = keys["Shift+Enter"];
