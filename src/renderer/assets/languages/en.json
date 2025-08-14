@@ -1976,7 +1976,24 @@
                 "friendId": "Friend ID",
                 "addFriend": "Add Friend",
                 "outgoingRequests": "Outgoing Friend Requests",
-                "incomingRequests": "Incoming Friend Requests"
+                "incomingRequests": "Incoming Friend Requests",
+                "notifications": {
+                    "errors": {
+                        "invalidUser": "Invalid user ID or user not found",
+                        "alreadyFriends": "Already friends with this user",
+                        "outgoingCapacityReached": "Too many outgoing friend requests",
+                        "incomingCapacityReached": "User has too many incoming requests",
+                        "internalError": "Server error occurred",
+                        "unauthorized": "Not authorized to send friend requests",
+                        "invalidRequest": "Invalid request format",
+                        "commandUnimplemented": "Friend requests not supported on this server",
+                        "generic": "Failed to send friend request",
+                        "failedToCancel": "Failed to cancel friend request",
+                        "failedToAccept": "Failed to accept friend request",
+                        "failedToReject": "Failed to reject friend request",
+                        "failedToRemove": "Failed to remove friend"
+                    }
+                }
             }
         },
         "components": {

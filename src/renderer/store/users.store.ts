@@ -4,6 +4,7 @@
 
 import { db } from "@renderer/store/db";
 import { reactive } from "vue";
+import type { User } from "@main/model/user";
 
 export const usersStore = reactive<{
     isInitialized: boolean;
@@ -21,9 +22,9 @@ export function initUsersStore() {
                 console.warn("Received user/updated event with no userId, skipping update.");
                 return;
             }
-            db.users.update(user.userId, {
+            db.users.put({
                 ...user,
-            });
+            } as User);
         });
     });
 
