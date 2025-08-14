@@ -6,7 +6,7 @@ SPDX-License-Identifier: MIT
 
 <template>
     <Control class="number">
-        <PrimeVueInputNumber v-bind="$attrs" />
+        <PrimeVueInputNumber v-bind="$attrs" @input="$emit('input', $event)" @update:modelValue="$emit('update:modelValue', $event)" />
     </Control>
 </template>
 
@@ -20,6 +20,7 @@ import PrimeVueInputNumber from "@renderer/components/primevue/PrimeVueInputNumb
 defineProps<InputNumberProps>();
 defineEmits<{
     (event: "update:modelValue", value: number): void;
+    (event: "input", value: { originalEvent: Event; value: number; formattedValue: string }): void;
 }>();
 
 const max = ref(100);
