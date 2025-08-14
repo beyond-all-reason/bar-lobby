@@ -5,7 +5,9 @@ SPDX-License-Identifier: MIT
 -->
 
 <template>
-    <Accordion v-bind="$attrs" />
+    <Accordion v-bind="$attrs">
+        <slot />
+    </Accordion>
 </template>
 
 <script lang="ts" setup>

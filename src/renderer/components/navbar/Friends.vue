@@ -36,24 +36,30 @@ SPDX-License-Identifier: MIT
                     <div class="flex-col fullheight">
                         <div class="scroll-container gap-md padding-right-sm">
                             <Accordion
-                                v-if="outgoingFriendRequests.size || incomingFriendRequests.size"
+                                v-if="me.outgoingFriendRequestUserIds.size || me.incomingFriendRequestUserIds.size"
                                 :activeIndex="accordianActiveIndexes"
                                 multiple
                             >
-                                <AccordionTab v-if="outgoingFriendRequests.size" :header="t('lobby.navbar.friends.outgoingRequests')">
+                                <AccordionTab
+                                    v-if="me.outgoingFriendRequestUserIds.size"
+                                    :header="t('lobby.navbar.friends.outgoingRequests')"
+                                >
                                     <div class="user-list">
                                         <Friend
-                                            v-for="userId in outgoingFriendRequests"
+                                            v-for="userId in Array.from(me.outgoingFriendRequestUserIds)"
                                             :key="`outgoingFriendRequest${userId}`"
                                             :userId="userId"
                                             :type="'outgoing_request'"
                                         />
                                     </div>
                                 </AccordionTab>
-                                <AccordionTab v-if="incomingFriendRequests.size" :header="t('lobby.navbar.friends.incomingRequests')">
+                                <AccordionTab
+                                    v-if="me.incomingFriendRequestUserIds.size"
+                                    :header="t('lobby.navbar.friends.incomingRequests')"
+                                >
                                     <div class="user-list">
                                         <Friend
-                                            v-for="userId in incomingFriendRequests"
+                                            v-for="userId in Array.from(me.incomingFriendRequestUserIds)"
                                             :key="`incomingFriendRequest${userId}`"
                                             :userId="userId"
                                             :type="'incoming_request'"
@@ -63,12 +69,12 @@ SPDX-License-Identifier: MIT
                             </Accordion>
 
                             <div class="user-list">
-                                <Friend v-for="userId in onlineFriends" :key="`onlineFriend${userId}`" :userId="userId" :type="'friend'" />
                                 <Friend
-                                    v-for="userId in offlineFriends"
-                                    :key="`offlineFriend${userId}`"
+                                    v-for="userId in sortedFriends"
+                                    :key="`friend${userId}`"
                                     :userId="userId"
                                     :type="'friend'"
+                                    @statusChange="handleStatusChange"
                                 />
                             </div>
                         </div>
@@ -83,17 +89,13 @@ SPDX-License-Identifier: MIT
 <script lang="ts" setup>
 /**
  * TODO:
- * list friends (online above, offline below)
- * friend shows: username, flag, ingame status (playing 4v4 on DSD / watching 4v4 on DSD / waiting for game to begin / watch)
- * add friend button
- * remove friend button
+ * friend shows: ingame status (playing 4v4 on DSD / watching 4v4 on DSD / waiting for game to begin / watch)
  * invite to battle button
  */
 
 import AccordionTab from "primevue/accordiontab";
-import { InputNumberBlurEvent } from "primevue/inputnumber";
 import TabPanel from "primevue/tabpanel";
-import { computed, inject, Ref, ref, watch } from "vue";
+import { computed, inject, ref, watch } from "vue";
 
 import Accordion from "@renderer/components/common/Accordion.vue";
 import TabView from "@renderer/components/common/TabView.vue";
@@ -101,8 +103,11 @@ import Button from "@renderer/components/controls/Button.vue";
 import Number from "@renderer/components/controls/Number.vue";
 import Friend from "@renderer/components/navbar/Friend.vue";
 import PopOutPanel from "@renderer/components/navbar/PopOutPanel.vue";
-import { me } from "@renderer/store/me.store";
+import { me, friends } from "@renderer/store/me.store";
 import { useTypedI18n } from "@renderer/i18n";
+import { notificationsApi } from "@renderer/api/notifications";
+import type { Ref } from "vue";
+
 const { t } = useTypedI18n();
 
 const props = defineProps<{
@@ -117,17 +122,37 @@ const activeIndex = ref(0);
 const accordianActiveIndexes = ref([0, 1, 2]);
 const friendId = ref<number>();
 const addFriendDisabled = ref(true);
-const onlineFriends = computed<number[]>(() => []);
-const offlineFriends = computed<number[]>(() => []);
-const outgoingFriendRequests = me.outgoingFriendRequestUserIds;
-const incomingFriendRequests = me.incomingFriendRequestUserIds;
+// Track online/offline status for sorting
+const onlineUsers = ref(new Set<number>());
+
+// Handle status changes from Friend components
+function handleStatusChange({ userId, status }: { userId: number; status: string }) {
+    if (status !== "offline") {
+        onlineUsers.value.add(userId);
+    } else {
+        onlineUsers.value.delete(userId);
+    }
+}
+
+// Sorted friends with online users at the top
+const sortedFriends = computed(() => {
+    const friendUserIds = Array.from(me.friendUserIds);
+
+    return friendUserIds.sort((a, b) => {
+        const aOnline = onlineUsers.value.has(a);
+        const bOnline = onlineUsers.value.has(b);
+        if (aOnline === bOnline) return 0;
+        return aOnline ? -1 : 1; // Online users first
+    });
+});
+
 const myUserId = computed(() => me.userId);
 
 const toggleMessages = inject<Ref<(open?: boolean, userId?: number) => void>>("toggleMessages")!;
 const toggleFriends = inject<Ref<(open?: boolean) => void>>("toggleFriends")!;
 const toggleDownloads = inject<Ref<(open?: boolean) => void>>("toggleDownloads")!;
 
-function handleFriendIdInput(event: InputNumberBlurEvent) {
+function handleFriendIdInput(event: { value: number | null }) {
     if (event && event.value !== null) {
         addFriendDisabled.value = false;
     } else {
@@ -157,7 +182,42 @@ function copyUserId() {
     navigator.clipboard.writeText(myUserId.value.toString());
 }
 
-async function addFriend() {}
+async function addFriend() {
+    if (!friendId.value) return;
+
+    const userIdToAdd = friendId.value.toString();
+
+    friendId.value = undefined;
+    addFriendDisabled.value = true;
+
+    try {
+        await friends.sendRequest(userIdToAdd);
+    } catch (error) {
+        console.error("Failed to send friend request:", error);
+        const errorMessage = error instanceof Error ? error.message : String(error);
+
+        const errorMessageMap: Record<string, string> = {
+            already_in_friendlist: "lobby.navbar.friends.notifications.errors.alreadyFriends",
+            invalid_user: "lobby.navbar.friends.notifications.errors.invalidUser",
+            outgoing_capacity_reached: "lobby.navbar.friends.notifications.errors.outgoingCapacityReached",
+            incoming_capacity_reached: "lobby.navbar.friends.notifications.errors.incomingCapacityReached",
+            internal_error: "lobby.navbar.friends.notifications.errors.internalError",
+            unauthorized: "lobby.navbar.friends.notifications.errors.unauthorized",
+            invalid_request: "lobby.navbar.friends.notifications.errors.invalidRequest",
+            command_unimplemented: "lobby.navbar.friends.notifications.errors.commandUnimplemented",
+        };
+
+        // Check if the error message matches any known reason
+        const matchedReason = Object.keys(errorMessageMap).find((reason) => errorMessage.includes(reason));
+
+        const notificationText = matchedReason ? t(errorMessageMap[matchedReason]) : t("lobby.navbar.friends.notifications.errors.generic");
+
+        notificationsApi.alert({
+            text: notificationText,
+            severity: "error",
+        });
+    }
+}
 </script>
 
 <style lang="scss" scoped>
