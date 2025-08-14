@@ -4,7 +4,7 @@
 
 import { enginesStore } from "@renderer/store/engine.store";
 import { gameStore } from "@renderer/store/game.store";
-import { auth, me } from "@renderer/store/me.store";
+import { auth, me, fetchFriendList } from "@renderer/store/me.store";
 import { SystemServerStatsOkResponseData } from "tachyon-protocol/types";
 import { reactive } from "vue";
 import { fetchAvailableQueues } from "@renderer/store/matchmaking.store";
@@ -77,6 +77,9 @@ export async function initTachyonStore() {
 
         // Fetch matchmaking queues when connected
         fetchAvailableQueues();
+
+        // Fetch friend list when connected
+        fetchFriendList();
     });
 
     window.tachyon.onDisconnected(() => {

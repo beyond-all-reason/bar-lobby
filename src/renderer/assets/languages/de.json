@@ -1999,7 +1999,24 @@
                 "friendId": null,
                 "addFriend": null,
                 "outgoingRequests": null,
-                "incomingRequests": null
+                "incomingRequests": null,
+                "notifications": {
+                    "errors": {
+                        "invalidUser": null,
+                        "alreadyFriends": null,
+                        "outgoingCapacityReached": null,
+                        "incomingCapacityReached": null,
+                        "internalError": null,
+                        "unauthorized": null,
+                        "invalidRequest": null,
+                        "commandUnimplemented": null,
+                        "generic": null,
+                        "failedToCancel": null,
+                        "failedToAccept": null,
+                        "failedToReject": null,
+                        "failedToRemove": null
+                    }
+                }
             }
         },
         "components": {
