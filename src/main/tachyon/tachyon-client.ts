@@ -28,7 +28,7 @@ export class TachyonClient {
     public onEvent: Signal<TachyonEvent> = new Signal();
 
     private requestHandlers: TachyonClientRequestHandlers;
-    private responseHandlers: Map<string, Signal<GetCommands<"server", "user", "response">>> = new Map();
+    private responseHandlers: Map<string, (response: TachyonResponse | { status: "socket_closed" }) => void> = new Map();
 
     constructor(requestHandlers: TachyonClientRequestHandlers) {
         this.requestHandlers = requestHandlers;
@@ -63,7 +63,6 @@ export class TachyonClient {
                 serverProtocol = response.headers["sec-websocket-protocol"];
             });
             this.socket.addEventListener("message", (message) => {
-                log.debug(`SOCKET INCOMING MESSAGE ${JSON.stringify(message)}`);
                 try {
                     this.handleMessage(message);
                 } catch (err) {
@@ -90,6 +89,13 @@ export class TachyonClient {
                     }
                 }
                 this.socket = undefined;
+                // Purge response handlers
+                this.responseHandlers.values().forEach((handler) =>
+                    handler({
+                        status: "socket_closed",
+                    })
+                );
+                this.responseHandlers.clear();
                 this.onSocketClose.dispatch();
                 log.info(`Disconnected: ${disconnectReason}`);
             });
@@ -124,16 +130,19 @@ export class TachyonClient {
         }
         validateCommand(request);
         this.socket.send(JSON.stringify(request));
-        log.debug(`OUTGOING REQUEST ${JSON.stringify(request)}`);
         return new Promise((resolve, reject) => {
-            this.onResponse(commandId).addOnce((response: TachyonResponse) => {
+            this.responseHandlers.set(messageId, (response: TachyonResponse | { status: "socket_closed" }) => {
+                if (response.status === "socket_closed") {
+                    log.error(`No response received for request ${commandId}`);
+                    reject(new Error(`No response received for request ${commandId}, socket closed.`));
+                    return;
+                }
                 if (response.status === "failed") {
                     log.error(`Error response received: ${JSON.stringify(response)}`);
                     reject(new Error(`${response.reason}` + (response.details ? ` (${response.details})` : "")));
+                    return;
                 }
-                if (response.messageId === messageId) {
-                    resolve(response as Extract<GetCommands<"server", "user", "response", C>, { status: "success" }>);
-                }
+                resolve(response as Extract<GetCommands<"server", "user", "response", C>, { status: "success" }>);
             });
         });
     }
@@ -144,29 +153,6 @@ export class TachyonClient {
         }
         validateCommand(event);
         this.socket.send(JSON.stringify(event));
-        log.debug(`OUTGOING EVENT ${JSON.stringify(event)}`);
-    }
-
-    // public nextEvent<C extends GetCommandIds<"server", "user", "event">>(commandId: C): Promise<GetCommandData<GetCommands<"server", "user", "event", C>>> {
-    //     return new Promise((resolve) => {
-    //         let signal = this.eventHandlers.get(commandId);
-    //         if (!signal) {
-    //             signal = new Signal();
-    //             this.eventHandlers.set(commandId, signal);
-    //         }
-    //         signal.addOnce((event) => {
-    //             resolve((event as { data: GetCommandData<GetCommands<"server", "user", "event", C>> }).data);
-    //         });
-    //     });
-    // }
-
-    public onResponse(commandId: GetCommandIds<"server", "user", "response">) {
-        let signal = this.responseHandlers.get(commandId);
-        if (!signal) {
-            signal = new Signal();
-            this.responseHandlers.set(commandId, signal);
-        }
-        return signal;
     }
 
     protected handleMessage(message: MessageEvent) {
@@ -185,8 +171,7 @@ export class TachyonClient {
         }
     }
 
-    protected async handleRequest(command: TachyonRequest) {
-        log.debug("INCOMING REQUEST", command);
+    private async handleRequest(command: TachyonRequest) {
         const handler = this.requestHandlers[command.commandId as keyof typeof this.requestHandlers] as unknown as (
             data?: unknown
         ) => Promise<Omit<TachyonResponse, "type" | "commandId" | "messageId">>;
@@ -202,19 +187,19 @@ export class TachyonClient {
         } as TachyonResponse;
         validateCommand(response);
         this.socket?.send(JSON.stringify(response));
-        log.debug(`OUTGOING RESPONSE ${JSON.stringify(response)}`);
     }
 
-    protected async handleResponse(response: TachyonResponse) {
-        log.debug(`INCOMING RESPONSE ${JSON.stringify(response)}`);
-        const signal = this.responseHandlers.get(response.commandId);
-        if (signal) {
-            signal.dispatch(response as GetCommands<"server", "user", "response">);
+    private async handleResponse(response: TachyonResponse) {
+        const handler = this.responseHandlers.get(response.messageId);
+        if (!handler) {
+            log.error(`No response handler found for request ${response.messageId}`);
+            return;
         }
+        this.responseHandlers.delete(response.messageId);
+        handler(response);
     }
 
-    protected async handleEvent(event: TachyonEvent) {
-        log.debug(`INCOMING EVENT ${JSON.stringify(event)}`);
+    private async handleEvent(event: TachyonEvent) {
         this.onEvent.dispatch(event);
     }
 
