@@ -28,7 +28,7 @@ export class TachyonClient {
     public onEvent: Signal<TachyonEvent> = new Signal();
 
     private requestHandlers: TachyonClientRequestHandlers;
-    private responseHandlers: Map<string, (response: TachyonResponse) => void> = new Map();
+    private responseHandlers: Map<string, (response: TachyonResponse | { status: "socket_closed" }) => void> = new Map();
 
     constructor(requestHandlers: TachyonClientRequestHandlers) {
         this.requestHandlers = requestHandlers;
@@ -89,6 +89,13 @@ export class TachyonClient {
                     }
                 }
                 this.socket = undefined;
+                // Purge response handlers
+                this.responseHandlers.values().forEach((handler) =>
+                    handler({
+                        status: "socket_closed",
+                    })
+                );
+                this.responseHandlers.clear();
                 this.onSocketClose.dispatch();
                 log.info(`Disconnected: ${disconnectReason}`);
             });
@@ -124,10 +131,16 @@ export class TachyonClient {
         validateCommand(request);
         this.socket.send(JSON.stringify(request));
         return new Promise((resolve, reject) => {
-            this.responseHandlers.set(messageId, (response: TachyonResponse) => {
+            this.responseHandlers.set(messageId, (response: TachyonResponse | { status: "socket_closed" }) => {
+                if (response.status === "socket_closed") {
+                    log.error(`No response received for request ${commandId}`);
+                    reject(new Error(`No response received for request ${commandId}, socket closed.`));
+                    return;
+                }
                 if (response.status === "failed") {
                     log.error(`Error response received: ${JSON.stringify(response)}`);
                     reject(new Error(`${response.reason}` + (response.details ? ` (${response.details})` : "")));
+                    return;
                 }
                 resolve(response as Extract<GetCommands<"server", "user", "response", C>, { status: "success" }>);
             });
