@@ -14,12 +14,12 @@ SPDX-License-Identifier: MIT
             <Panel class="flex-grow">
                 <div v-if="map" class="gap-md page">
                     <div class="gridform">
-                        <h1>{{ map.displayName }}</h1>
                         <div class="flex-right">
                             <Button v-tooltip.bottom="t('lobby.library.maps.back')" class="icon close flex-right" @click="returnToMaps">
                                 <Icon :icon="arrow_back" :height="40" />
                             </Button>
                         </div>
+                        <h1>{{ map.displayName }}</h1>
                     </div>
                     <div class="container">
                         <MapSimplePreview :map="map" />
@@ -31,13 +31,11 @@ SPDX-License-Identifier: MIT
                         </div>
                         <div class="info flex-col fullheight">
                             <div class="details">
-                                <div class="detail-text">
-                                    <b>{{ t("lobby.library.maps.description") }}</b> {{ map.description }}
-                                </div>
-                                <div v-if="map.author" class="detail-text">
-                                    <b>{{ t("lobby.library.maps.author") }}</b> {{ map.author }}
-                                </div>
                                 <h3>{{ t("lobby.library.maps.properties") }}</h3>
+                                <div class="detail-text">
+                                    {{ map.description }}
+                                </div>
+                                <div class="padding-lg"></div>
                                 <div class="flex-row flex-center-items gap-sm">
                                     <Icon :icon="windPower" width="25" height="25" />{{ map.windMin }} - {{ map.windMax }}
                                 </div>
@@ -54,6 +52,12 @@ SPDX-License-Identifier: MIT
                                     <div class="detail-text flex-row gap-sm">
                                         <TerrainIcon v-for="terrain in map?.terrain" :terrain="terrain" v-bind:key="terrain" />
                                     </div>
+                                </div>
+                                <div class="padding-lg"></div>
+                                <div v-if="map.author" class="item-title">
+                                    <p>
+                                        {{ t("lobby.library.maps.author") }} <b class="padding-md item">{{ map.author }}</b>
+                                    </p>
                                 </div>
                             </div>
                             <!-- <div v-if="map.startPositions" class="detail-text"><b>Start Positions:</b> {{ map.startPositions.length }}</div> -->
@@ -178,5 +182,12 @@ watch(
     width: 512px;
     font-size: 1.2em;
     margin-bottom: 15px;
+}
+
+.item-title {
+    color: #686868;
+}
+.item {
+    color: #929292;
 }
 </style>
