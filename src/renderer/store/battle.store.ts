@@ -345,7 +345,7 @@ function defaultOfflineBattle(engine?: EngineVersion, game?: GameVersion, map?: 
     };
 
     const mePlayer: Player = {
-        id: participantId++, //This seems to cause an error when the player is not id:0 because something seems to assume that team zero always has leader as id zero.
+        id: participantId++,
         user: me,
         name: me.username,
         contentSyncState: {
