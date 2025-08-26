@@ -1878,7 +1878,7 @@
                 "removeFromFavorites": "Remove from favorites",
                 "play": "Play",
                 "downloading": "Downloading...",
-                "download": "Download"
+                "download": "Download map"
             }
         },
         "multiplayer": {
@@ -2176,7 +2176,7 @@
             "controls": {
                 "downloadContentButton": {
                     "downloading": "Downloading...",
-                    "download": "Download map"
+                    "download": "Download"
                 },
                 "select": {
                     "search": "Search"
