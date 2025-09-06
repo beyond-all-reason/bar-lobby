@@ -54,7 +54,7 @@ const defaultServers: string[] = [
     "wss://server4.beyondallreason.info",
     "wss://server5.beyondallreason.info",
     "wss://lobby-server-dev.beyondallreason.dev",
-    "ws://localhost:8200",
+    "ws://localhost:4000",
 ];
 
 const disableRemoveButton = computed(() => {
