@@ -9,7 +9,7 @@ SPDX-License-Identifier: MIT
 </route>
 
 <template>
-    <Panel> <p>Placeholder text.</p> </Panel>>
+    <Panel> <p>Placeholder text.</p> </Panel>
 </template>
 
 <script lang="ts" setup>

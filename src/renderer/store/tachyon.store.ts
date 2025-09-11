@@ -12,12 +12,12 @@ import {
     LobbyJoinRequestData,
     LobbyLeftEventData,
     LobbyListUpdatedEventData,
-    LobbyOverview,
     LobbyUpdatedEventData,
     SystemServerStatsOkResponseData,
 } from "tachyon-protocol/types";
 import { reactive } from "vue";
 import { fetchAvailableQueues } from "@renderer/store/matchmaking.store";
+import { Lobby } from "@renderer/model/lobby";
 
 export const tachyonStore = reactive({
     isInitialized: false,
@@ -33,7 +33,7 @@ export const tachyonStore = reactive({
     error?: string;
     fetchServerStatsInterval?: NodeJS.Timeout;
     reconnectInterval?: NodeJS.Timeout;
-    lobbyList?: LobbyOverview[];
+    lobbyList?: Lobby[];
     activeLobby?: LobbyCreateOkResponseData | LobbyJoinOkResponseData;
 });
 

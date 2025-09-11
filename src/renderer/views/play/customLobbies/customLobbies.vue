@@ -16,8 +16,8 @@ SPDX-License-Identifier: MIT
                 <h1>{{ t("lobby.multiplayer.custom.title") }}</h1>
             </div>
             <div class="flex-row gap-md">
-                <Button class="blue" @click="hostBattleOpen = true">{{ t("lobby.multiplayer.custom.hostBattle") }}</Button>
-                <HostBattle v-model="hostBattleOpen" />
+                <Button class="blue" @click="createLobbyModalIsOpen = true">{{ t("lobby.multiplayer.custom.hostBattle") }}</Button>
+                <HostBattle v-model="createLobbyModalIsOpen" />
                 <Checkbox v-model="settingsStore.battlesHidePvE" :label="t('lobby.multiplayer.custom.filters.hidePvE')" />
                 <Checkbox v-model="settingsStore.battlesHideLocked" :label="t('lobby.multiplayer.custom.filters.hideLocked')" />
                 <Checkbox v-model="settingsStore.battlesHideEmpty" :label="t('lobby.multiplayer.custom.filters.hideEmpty')" />
@@ -26,8 +26,8 @@ SPDX-License-Identifier: MIT
             </div>
             <div class="scroll-container padding-right-sm">
                 <DataTable
-                    v-model:selection="selectedBattle"
-                    :value="battles"
+                    v-model:selection="selectedLobby"
+                    :value="tachyonStore.lobbyList"
                     autoLayout
                     class="p-datatable-sm"
                     selectionMode="single"
@@ -36,8 +36,8 @@ SPDX-License-Identifier: MIT
                     paginator
                     :rows="16"
                     :pageLinkSize="20"
-                    @row-select="selectedBattle = $event.data"
-                    @row-dblclick="attemptJoinBattle($event.data)"
+                    @row-select="selectedLobby = $event.data"
+                    @row-dblclick="sendLobbyJoinRequest($event.data)"
                 >
                     <Column :header="t('lobby.multiplayer.custom.table.bestBattle')" sortable sortField="score">
                         <template #body="{ data }">
@@ -79,13 +79,13 @@ SPDX-License-Identifier: MIT
             </div>
         </div>
         <div v-if="!loading" class="right">
-            <BattlePreview v-if="selectedBattle" :battle="selectedBattle">
-                <template #actions="{ battle }">
-                    <Button class="green flex-grow" @click="attemptJoinBattle(battle)">{{
+            <LobbyPreview v-if="selectedLobby" :lobby="selectedLobby">
+                <template #actions="{ lobby }">
+                    <Button class="green flex-grow" @click="sendLobbyJoinRequest(lobby.id)">{{
                         t("lobby.multiplayer.custom.table.join")
                     }}</Button>
                 </template>
-            </BattlePreview>
+            </LobbyPreview>
         </div>
     </div>
 </template>
@@ -106,8 +106,7 @@ import robot from "@iconify-icons/mdi/robot";
 import Column from "primevue/column";
 import DataTable from "primevue/datatable";
 import { Ref, ref, shallowRef, onMounted } from "vue";
-
-import BattlePreview from "@renderer/components/battle/BattlePreview.vue";
+//import BattlePreview from "@renderer/components/battle/BattlePreview.vue";
 import HostBattle from "@renderer/components/battle/HostBattle.vue";
 import Loader from "@renderer/components/common/Loader.vue";
 import Button from "@renderer/components/controls/Button.vue";
@@ -117,22 +116,40 @@ import { getFriendlyDuration } from "@renderer/utils/misc";
 import { OngoingBattle } from "@main/content/replays/replay";
 import { settingsStore } from "@renderer/store/settings.store";
 import { useTypedI18n } from "@renderer/i18n";
-import { tachyon } from "@renderer/store/tachyon.store";
-import { Lobby } from "@renderer/model/lobby";
+import { tachyon, tachyonStore } from "@renderer/store/tachyon.store";
+import { Lobby as LobbyType } from "@renderer/model/lobby";
+import LobbyPreview from "@renderer/components/battle/LobbyPreview.vue";
 
 const { t } = useTypedI18n();
 
 const loading = ref(false);
-const hostBattleOpen = ref(false);
+//const hostBattleOpen = ref(false);
+const createLobbyModalIsOpen = ref(false);
 const searchVal = ref("");
-const selectedBattle: Ref<OngoingBattle | null> = shallowRef(null);
+//const selectedBattle: Ref<OngoingBattle | null> = shallowRef(null);
+const selectedLobby: Ref<LobbyType | null> = shallowRef(null);
 
 //NOTE: the lobby list is now stored in tachyonStore.lobbies instead.
 //TODO uses dexie to retrieve known battles and to filter them, check how its done in the replays
-const battles = [] as OngoingBattle[];
+//const battles = [] as OngoingBattle[];
 
+/*
 function attemptJoinBattle(battle: OngoingBattle) {
     console.log("Joining battle", battle);
+}
+*/
+function sendLobbyJoinRequest(lobbyId: string) {
+    tachyon.joinLobby({ id: lobbyId });
+}
+
+// Just in case we need to manually request a subscribe event for some reason.
+function sendLobbyListSubscribeRequest() {
+    tachyon.subscribeList();
+}
+
+// Just in case we need to manually request an unsubscribe event for some reason.
+function sendLobbyListUnsubscribeRequest() {
+    tachyon.unsubscribeList();
 }
 
 onMounted(() => {
