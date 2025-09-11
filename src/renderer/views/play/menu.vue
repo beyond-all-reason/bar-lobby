@@ -79,7 +79,7 @@ const startMatchmaking = () => {
 };
 
 const startCustomLobbies = () => {
-    router.push("/play/customLobbies");
+    router.push("/play/customLobbies/customLobbies");
 };
 
 const openScenarios = () => {

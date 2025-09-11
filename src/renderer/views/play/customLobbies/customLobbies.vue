@@ -105,7 +105,7 @@ import lock from "@iconify-icons/mdi/lock";
 import robot from "@iconify-icons/mdi/robot";
 import Column from "primevue/column";
 import DataTable from "primevue/datatable";
-import { Ref, ref, shallowRef } from "vue";
+import { Ref, ref, shallowRef, onMounted } from "vue";
 
 import BattlePreview from "@renderer/components/battle/BattlePreview.vue";
 import HostBattle from "@renderer/components/battle/HostBattle.vue";
@@ -117,6 +117,8 @@ import { getFriendlyDuration } from "@renderer/utils/misc";
 import { OngoingBattle } from "@main/content/replays/replay";
 import { settingsStore } from "@renderer/store/settings.store";
 import { useTypedI18n } from "@renderer/i18n";
+import { tachyon } from "@renderer/store/tachyon.store";
+import { Lobby } from "@renderer/model/lobby";
 
 const { t } = useTypedI18n();
 
@@ -125,12 +127,18 @@ const hostBattleOpen = ref(false);
 const searchVal = ref("");
 const selectedBattle: Ref<OngoingBattle | null> = shallowRef(null);
 
+//NOTE: the lobby list is now stored in tachyonStore.lobbies instead.
 //TODO uses dexie to retrieve known battles and to filter them, check how its done in the replays
 const battles = [] as OngoingBattle[];
 
 function attemptJoinBattle(battle: OngoingBattle) {
     console.log("Joining battle", battle);
 }
+
+onMounted(() => {
+    //Subscribe to the lobby list when this page is loaded
+    tachyon.subscribeList();
+});
 </script>
 
 <style lang="scss" scoped>

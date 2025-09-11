@@ -5,7 +5,17 @@
 import { enginesStore } from "@renderer/store/engine.store";
 import { gameStore } from "@renderer/store/game.store";
 import { auth, me } from "@renderer/store/me.store";
-import { SystemServerStatsOkResponseData } from "tachyon-protocol/types";
+import {
+    LobbyCreateOkResponseData,
+    LobbyCreateRequestData,
+    LobbyJoinOkResponseData,
+    LobbyJoinRequestData,
+    LobbyLeftEventData,
+    LobbyListUpdatedEventData,
+    LobbyOverview,
+    LobbyUpdatedEventData,
+    SystemServerStatsOkResponseData,
+} from "tachyon-protocol/types";
 import { reactive } from "vue";
 import { fetchAvailableQueues } from "@renderer/store/matchmaking.store";
 
@@ -14,6 +24,8 @@ export const tachyonStore = reactive({
     isConnected: false,
     serverStats: undefined,
     error: undefined,
+    lobbyList: undefined,
+    activeLobby: undefined,
 } as {
     isInitialized: boolean;
     isConnected: boolean;
@@ -21,6 +33,8 @@ export const tachyonStore = reactive({
     error?: string;
     fetchServerStatsInterval?: NodeJS.Timeout;
     reconnectInterval?: NodeJS.Timeout;
+    lobbyList?: LobbyOverview[];
+    activeLobby?: LobbyCreateOkResponseData | LobbyJoinOkResponseData;
 });
 
 async function connect() {
@@ -40,6 +54,92 @@ async function connect() {
     }
 }
 
+async function subscribeList() {
+    try {
+        tachyonStore.error = undefined;
+        const response = await window.tachyon.request("lobby/subscribeList");
+        //Per Tachyon protocol, this subscribes us, but does not return an updated list, that happens in the ListUpdated event.
+        console.log("subscribeList:", response.status);
+    } catch (error) {
+        console.error("Error with request lobby/subscribeList:", error);
+        tachyonStore.error = "Error with request lobby/subscribeList";
+        tachyonStore.lobbyList = undefined;
+    }
+}
+
+async function unsubscribeList() {
+    try {
+        tachyonStore.error = undefined;
+        const response = await window.tachyon.request("lobby/unsubscribeList");
+        console.log("Tachyon: lobby/unsubscribeList:", response.status);
+    } catch (error) {
+        console.error("Error with request lobby/unsubscribeList:", error);
+        tachyonStore.error = "Error with request lobby/unsubscribeList";
+    }
+}
+
+async function createLobby(data: LobbyCreateRequestData) {
+    try {
+        tachyonStore.error = undefined;
+        const response = await window.tachyon.request("lobby/create", data);
+        tachyonStore.activeLobby = response.data;
+    } catch (error) {
+        console.error("Error with request lobby/create", error);
+        tachyonStore.error = "Error with request lobby/create";
+    }
+}
+
+async function joinLobby(id: LobbyJoinRequestData) {
+    try {
+        tachyonStore.error = undefined;
+        const response = await window.tachyon.request("lobby/join", id);
+        tachyonStore.activeLobby = response.data;
+        //TODO: Use the router to change to the lobby view
+    } catch (error) {
+        console.error("Error with request lobby/join", error);
+        tachyonStore.error = "Error with request lobby/join";
+    }
+}
+
+async function leaveLobby() {
+    try {
+        tachyonStore.error = undefined;
+        const response = await window.tachyon.request("lobby/leave");
+        console.log("Tachyon: lobby/leave:", response.status);
+        tachyonStore.activeLobby = undefined;
+        //TODO: Use the router to change back to the lobby list view
+    } catch (error) {
+        console.error("Error with request lobby/leave", error);
+        tachyonStore.error = "Error with request lobby/leave";
+    }
+}
+
+async function startBattle() {
+    try {
+        tachyonStore.error = undefined;
+        const response = await window.tachyon.request("lobby/startBattle");
+        console.log("Tachyon: lobby/startBattle:", response.status);
+    } catch (error) {
+        console.error("Error with request lobby/create", error);
+        tachyonStore.error = "Error with request lobby/start";
+    }
+}
+
+function onListUpdatedEvent(data: LobbyListUpdatedEventData) {
+    //TODO: update the tachyonStore.lobbies with the new data here
+    console.log("Tachyon event: lobby/listUpdated:", data);
+}
+
+function onLobbyUpdatedEvent(data: LobbyUpdatedEventData) {
+    //TODO: update the tachyonStore.activeLobby with the new data here
+    console.log("Tachyon event: lobby/updated:", data);
+}
+
+function onLobbyLeftEvent(data: LobbyLeftEventData) {
+    //TODO: Use the router to change back to the lobby list view and update tachyonStoore.activeLobby
+    tachyonStore.activeLobby = undefined;
+    console.log("Tachyon event: lobby/left:", data);
+}
 async function fetchServerStats() {
     try {
         tachyonStore.error = undefined;
@@ -97,6 +197,16 @@ export async function initTachyonStore() {
         }
     });
 
+    window.tachyon.onEvent("lobby/left", (data) => {
+        onLobbyLeftEvent(data);
+    });
+    window.tachyon.onEvent("lobby/listUpdated", (data) => {
+        onListUpdatedEvent(data);
+    });
+    window.tachyon.onEvent("lobby/updated", (data) => {
+        onLobbyUpdatedEvent(data);
+    });
+
     window.tachyon.onBattleStart((springString) => {
         console.debug("Received battle start event", springString);
         const engineVersion = enginesStore.selectedEngineVersion;
@@ -117,4 +227,4 @@ export async function initTachyonStore() {
     tachyonStore.isInitialized = true;
 }
 
-export const tachyon = { connect };
+export const tachyon = { connect, createLobby, joinLobby, leaveLobby, startBattle, subscribeList, unsubscribeList };
