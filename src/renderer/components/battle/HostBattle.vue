@@ -34,7 +34,7 @@ SPDX-License-Identifier: MIT
                         </div>
                     </template>
                 </Select>
-                <Button class="blue" @click="hostBattle">{{ t("lobby.components.battle.hostBattle.hostButton") }}</Button>
+                <Button class="blue" @click="hostBattle()">{{ t("lobby.components.battle.hostBattle.hostButton") }}</Button>
             </template>
         </div>
     </Modal>
@@ -49,6 +49,11 @@ import Modal from "@renderer/components/common/Modal.vue";
 import Button from "@renderer/components/controls/Button.vue";
 import Select from "@renderer/components/controls/Select.vue";
 import Flag from "@renderer/components/misc/Flag.vue";
+import { tachyon } from "@renderer/store/tachyon.store";
+import { LobbyCreateRequestData, StartBox } from "tachyon-protocol/types";
+import { rand } from "@vueuse/core";
+import { getRandomMap } from "@renderer/store/maps.store";
+import { MapData } from "@main/content/maps/map-data";
 
 const { t } = useTypedI18n();
 
@@ -64,7 +69,39 @@ const hostedBattleData: Ref<{ name: string; password: string } | undefined> = re
 
 const waitingForBattleCreation = ref(false);
 
-async function hostBattle() {}
+//FIXME: This is a lot of hardcoded options at the moment
+async function getGeneratedLobbyRequestData(): Promise<LobbyCreateRequestData> {
+    let mapName: string = "";
+    await getRandomMap().then((mapData) => {
+        //TODO: Check if this relies on *installed* maps or works with all maps in pool. Alternatively, just let the player pick initially.
+        if (mapData) {
+            mapName = mapData.springName;
+        }
+    });
+    const name = "My New Lobby Number " + rand(0, 1000).toString();
+    return {
+        name: name,
+        mapName: mapName,
+        allyTeamConfig: [
+            {
+                maxTeams: 2,
+                startBox: { top: 0, bottom: 1, left: 0, right: 1 },
+                teams: [{ maxPlayers: 1 }, { maxPlayers: 1 }],
+            },
+            {
+                maxTeams: 2,
+                startBox: { top: 0, bottom: 1, left: 0, right: 1 },
+                teams: [{ maxPlayers: 1 }, { maxPlayers: 1 }],
+            },
+        ],
+    };
+}
+
+async function hostBattle() {
+    getGeneratedLobbyRequestData().then((data) => {
+        tachyon.createLobby(data);
+    });
+}
 
 function onOpen() {
     waitingForBattleCreation.value = false;
