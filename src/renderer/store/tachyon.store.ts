@@ -12,6 +12,7 @@ import {
     LobbyJoinRequestData,
     LobbyLeftEventData,
     LobbyListUpdatedEventData,
+    LobbyOverview,
     LobbyUpdatedEventData,
     SystemServerStatsOkResponseData,
 } from "tachyon-protocol/types";
@@ -24,7 +25,7 @@ export const tachyonStore = reactive({
     isConnected: false,
     serverStats: undefined,
     error: undefined,
-    lobbyList: undefined,
+    lobbyList: {},
     activeLobby: undefined,
 } as {
     isInitialized: boolean;
@@ -33,7 +34,7 @@ export const tachyonStore = reactive({
     error?: string;
     fetchServerStatsInterval?: NodeJS.Timeout;
     reconnectInterval?: NodeJS.Timeout;
-    lobbyList?: Lobby[];
+    lobbyList: Record<string, Lobby>;
     activeLobby?: LobbyCreateOkResponseData | LobbyJoinOkResponseData;
 });
 
@@ -63,7 +64,7 @@ async function subscribeList() {
     } catch (error) {
         console.error("Error with request lobby/subscribeList:", error);
         tachyonStore.error = "Error with request lobby/subscribeList";
-        tachyonStore.lobbyList = undefined;
+        tachyonStore.lobbyList = {};
     }
 }
 
@@ -83,6 +84,7 @@ async function createLobby(data: LobbyCreateRequestData) {
         tachyonStore.error = undefined;
         const response = await window.tachyon.request("lobby/create", data);
         tachyonStore.activeLobby = response.data;
+		//TODO: Use the router to change to the lobby view
     } catch (error) {
         console.error("Error with request lobby/create", error);
         tachyonStore.error = "Error with request lobby/create";
@@ -126,8 +128,32 @@ async function startBattle() {
 }
 
 function onListUpdatedEvent(data: LobbyListUpdatedEventData) {
-    //TODO: update the tachyonStore.lobbies with the new data here
     console.log("Tachyon event: lobby/listUpdated:", data);
+	data.updates.forEach(function (item, index) {
+		if(item.type == "added") {
+			const lobbyToAdd:Lobby = {
+				id: item.overview.id,
+				name: item.overview.name,
+				mapName: item.overview.mapName,
+				engineVersion: item.overview.engineVersion,
+				gameVersion: item.overview.gameVersion,
+			};
+			tachyonStore.lobbyList[lobbyToAdd.id] = lobbyToAdd;
+		}
+		else if (item.type == "removed") {
+			delete tachyonStore.lobbyList[item.id];
+		}
+		else if (item.type == "updated") {
+			
+			tachyonStore.lobbyList[item.overview.id] = item.overview.name //use ?: operators to set if exists on the overview.
+			mapName: item.overview.mapName,
+			engineVersion: item.overview.engineVersion,
+			gameVersion: item.overview.gameVersion,
+		}
+		else { //type provided does not match protocol
+			console.error("onListUpdatedEvent: updates.type does not match protocol for:", item);
+		}
+	});
 }
 
 function onLobbyUpdatedEvent(data: LobbyUpdatedEventData) {
