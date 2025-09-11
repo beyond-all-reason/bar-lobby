@@ -2,26 +2,32 @@
 //
 // SPDX-License-Identifier: MIT
 
-import { Type } from "@sinclair/typebox";
-import { StartBox, Player } from "tachyon-protocol/types";
+import { UnixTime } from "tachyon-protocol/types";
+import { Startbox } from "@main/content/maps/map-metadata";
+import { lobbyPlayer } from "@renderer/model/lobbyPlayer";
 
-export const Lobby = Type.Object( {
-    id: Type.String({ default: "" }),
-    mapName: Type.String({ default: "" }),
-	engineVersion: Type.String({ default: "" }),
-	gameVersion: Type.String({ default: ""}),
-	allyTeamConfig: Type.Object({
-		startBox: {}, //not sure how to do this part?
-		maxTeams: Type.Integer({minimum:1}),
-		teams: Type.Object({
-			maxPlayers: Type.Integer({minimum:1}),
-		}),
-	}),
-	members: Type.Object({
-
-	}),
-	currentBattle: Type.Object({
-
-	}),
-
-});
+export type Lobby = {
+    id: string;
+    name: string;
+    mapName: string;
+    engineVersion: string;
+    gameVersion: string;
+    allyTeams?: {
+        [k: string]: {
+            startBox?: Startbox;
+            maxTeams?: number;
+            teams: {
+                [k: string]: {
+                    maxPlayers?: number;
+                } | null;
+            } | null;
+        };
+    };
+    members?: {
+        [k: string]: lobbyPlayer | null;
+    };
+    currentBattle?: {
+        id: string;
+        startedAt: UnixTime;
+    } | null;
+};
