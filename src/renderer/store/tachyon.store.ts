@@ -84,6 +84,7 @@ async function createLobby(data: LobbyCreateRequestData) {
     try {
         tachyonStore.error = undefined;
         const response = await window.tachyon.request("lobby/create", data);
+		console.log("Tachyon: lobby/create:", response.status);
         tachyonStore.activeLobby = parseLobbyResponseData(response.data);
         router.push("/play/customLobbies/lobby");
     } catch (error) {
@@ -96,6 +97,7 @@ async function joinLobby(id: LobbyJoinRequestData) {
     try {
         tachyonStore.error = undefined;
         const response = await window.tachyon.request("lobby/join", id);
+		console.log("Tachyon: lobby/join:", response.status);
         tachyonStore.activeLobby = parseLobbyResponseData(response.data);
         router.push("/play/customLobbies/lobby");
     } catch (error) {
