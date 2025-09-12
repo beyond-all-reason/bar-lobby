@@ -9,9 +9,11 @@ SPDX-License-Identifier: MIT
 </route>
 
 <template>
-    <Panel> <p>Placeholder text.</p> </Panel>
+    <Panel><Button @click="tachyon.leaveLobby()">Leave Lobby</Button> <p>{{tachyonStore.activeLobby}}</p> </Panel>
 </template>
 
 <script lang="ts" setup>
 import Panel from "@renderer/components/common/Panel.vue";
+import Button from "@renderer/components/controls/Button.vue";
+import { tachyonStore, tachyon } from "@renderer/store/tachyon.store";
 </script>

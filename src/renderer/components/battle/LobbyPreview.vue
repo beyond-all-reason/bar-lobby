@@ -12,6 +12,7 @@ SPDX-License-Identifier: MIT
 import BattlePreview from "@renderer/components/battle/BattlePreview.vue";
 import { Lobby as LobbyType } from "@renderer/model/lobby";
 import { OngoingBattle } from "@main/content/replays/replay";
+import { tachyonStore } from "@renderer/store/tachyon.store";
 
 const props = defineProps<{
     lobby: LobbyType;

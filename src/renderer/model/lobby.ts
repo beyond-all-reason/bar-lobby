@@ -12,6 +12,8 @@ export type Lobby = {
     mapName: string;
     engineVersion: string;
     gameVersion: string;
+    playerCount: number;
+    maxPlayerCount: number;
     allyTeams?: {
         [k: string]: {
             startBox?: Startbox;
@@ -27,7 +29,6 @@ export type Lobby = {
         [k: string]: lobbyPlayer | null;
     };
     currentBattle?: {
-        id: string;
         startedAt: UnixTime;
     } | null;
 };

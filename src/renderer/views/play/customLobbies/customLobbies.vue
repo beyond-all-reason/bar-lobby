@@ -27,7 +27,7 @@ SPDX-License-Identifier: MIT
             <div class="scroll-container padding-right-sm">
                 <DataTable
                     v-model:selection="selectedLobby"
-                    :value="tachyonStore.lobbyList"
+                    :value="lobbyList"
                     autoLayout
                     class="p-datatable-sm"
                     selectionMode="single"
@@ -46,23 +46,23 @@ SPDX-License-Identifier: MIT
                             </div>
                             <div v-if="data.primaryFactor === 'Running'" class="flex-row flex-center-items gap-md">
                                 {{ t("lobby.multiplayer.custom.table.runningFor") }}
-                                {{ getFriendlyDuration(data.runtimeMs.value, false) }}
+                                {{ getFriendlyDuration(1000, false) }}
                             </div>
                         </template>
                     </Column>
-                    <Column field="battleOptions.title" :header="t('lobby.multiplayer.custom.table.title')" sortable />
-                    <Column field="battleOptions.map" :header="t('lobby.multiplayer.custom.table.map')" sortable />
+                    <Column field="name" :header="t('lobby.multiplayer.custom.table.title')" sortable />
+                    <Column field="mapName" :header="t('lobby.multiplayer.custom.table.map')" sortable />
                     <Column :header="t('lobby.multiplayer.custom.table.players')" sortable sortField="playerCount.value">
                         <template #body="{ data }">
                             <div class="flex-row flex-center-items gap-md">
-                                <div v-if="data.players.value.length > 0" class="flex-row flex-center-items" style="gap: 2px">
-                                    <Icon :icon="account" height="17" />{{ data.players.value.length }}
+                                <div v-if="data.playerCount > 0" class="flex-row flex-center-items" style="gap: 2px">
+                                    <Icon :icon="account" height="17" />{{ data.playerCount }}
                                 </div>
-                                <div v-if="data.spectators.value.length > 0" class="flex-row flex-center-items gap-xs" style="gap: 4px">
-                                    <Icon :icon="eye" height="17" />{{ data.spectators.value.length }}
+                                <div v-if="true" class="flex-row flex-center-items gap-xs" style="gap: 4px">
+                                    <Icon :icon="eye" height="17" />{{ 0 }}
                                 </div>
-                                <div v-if="data.bots.length > 0" class="flex-row flex-center-items gap-xs" style="gap: 4px">
-                                    <Icon :icon="robot" height="17" />{{ data.bots.length }}
+                                <div v-if="true" class="flex-row flex-center-items gap-xs" style="gap: 4px">
+                                    <Icon :icon="robot" height="17" />{{ 0 }}
                                 </div>
                             </div>
                         </template>
@@ -72,7 +72,7 @@ SPDX-License-Identifier: MIT
                             <Icon :icon="lock" />
                         </template>
                         <template #body="{ data }">
-                            <Icon v-if="data.isLockedOrPassworded.value" :icon="lock" />
+                            <Icon v-if="true" :icon="lock" />
                         </template>
                     </Column>
                 </DataTable>
@@ -105,7 +105,7 @@ import lock from "@iconify-icons/mdi/lock";
 import robot from "@iconify-icons/mdi/robot";
 import Column from "primevue/column";
 import DataTable from "primevue/datatable";
-import { Ref, ref, shallowRef, onMounted } from "vue";
+import { Ref, ref, shallowRef, onMounted, computed } from "vue";
 //import BattlePreview from "@renderer/components/battle/BattlePreview.vue";
 import HostBattle from "@renderer/components/battle/HostBattle.vue";
 import Loader from "@renderer/components/common/Loader.vue";
@@ -128,6 +128,14 @@ const createLobbyModalIsOpen = ref(false);
 const searchVal = ref("");
 //const selectedBattle: Ref<OngoingBattle | null> = shallowRef(null);
 const selectedLobby: Ref<LobbyType | null> = shallowRef(null);
+const lobbyList = computed(() => {
+    const arr: LobbyType[] = [];
+    for (const key in tachyonStore.lobbyList) {
+        const item = tachyonStore.lobbyList[key];
+        arr.push(item);
+    }
+    return arr;
+});
 
 //NOTE: the lobby list is now stored in tachyonStore.lobbies instead.
 //TODO uses dexie to retrieve known battles and to filter them, check how its done in the replays
