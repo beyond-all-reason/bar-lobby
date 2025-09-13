@@ -193,40 +193,35 @@ watch(selectedReplay, (newReplay) => {
     }
 });
 
-function fulltextSearchFilter(replay) {
+function fulltextSearchFilter(replay: Replay) {
     if (fulltextSearchWords.value.length === 0) return true;
     return fulltextSearchWords.value.every((word) => {
         return replay.mapSpringName.toLowerCase().includes(word) || replay.contenders.some((c) => c.name.toLowerCase().includes(word));
     });
 }
 
+function endedNormallyFilter(replay: Replay, expected: boolean | null) {
+    if (expected === null) return true;
+    return replay.gameEndedNormally === (expected ? 1 : 0);
+}
+
 const replays = useDexieLiveQueryWithDeps([endedNormally, offset, limit, sortField, sortOrder, fulltextSearch], () => {
-    let query;
-    if (endedNormally.value !== null) {
-        query = db.replays
-            .where("gameEndedNormally")
-            .equals(endedNormally.value ? 1 : 0)
-            .filter(fulltextSearchFilter)
-            .offset(offset.value)
-            .limit(limit.value);
-    } else {
-        query = db.replays.filter(fulltextSearchFilter).offset(offset.value).limit(limit.value);
-    }
-    if (sortOrder.value === "asc") {
-        return query.sortBy(sortField.value);
-    }
-    return query.reverse().sortBy(sortField.value);
+    const allReplaysBySortField =
+        sortOrder.value === "asc" ? db.replays.orderBy(sortField.value) : db.replays.orderBy(sortField.value).reverse();
+
+    return allReplaysBySortField
+        .filter((replay: Replay) => endedNormallyFilter(replay, endedNormally.value))
+        .filter(fulltextSearchFilter)
+        .offset(offset.value)
+        .limit(limit.value)
+        .toArray();
 });
 
-const replaysCount = useDexieLiveQueryWithDeps([endedNormally, fulltextSearch], async () => {
-    if (endedNormally.value !== null) {
-        return db.replays
-            .where("gameEndedNormally")
-            .equals(endedNormally.value ? 1 : 0)
-            .filter(fulltextSearchFilter)
-            .count();
-    }
-    return db.replays.filter(fulltextSearchFilter).count();
+const replaysCount = useDexieLiveQueryWithDeps([endedNormally, fulltextSearch], () => {
+    return db.replays
+        .filter((replay: Replay) => endedNormallyFilter(replay, endedNormally.value))
+        .filter(fulltextSearchFilter)
+        .count();
 });
 
 let map = useDexieLiveQueryWithDeps([() => selectedReplay.value?.mapSpringName], async () => {
