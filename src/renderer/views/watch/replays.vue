@@ -205,7 +205,7 @@ function endedNormallyFilter(replay: Replay, expected: boolean | null) {
     return replay.gameEndedNormally === (expected ? 1 : 0);
 }
 
-const replays = useDexieLiveQueryWithDeps([endedNormally, offset, limit, sortField, sortOrder, fulltextSearch], async () => {
+const replays = useDexieLiveQueryWithDeps([endedNormally, offset, limit, sortField, sortOrder, fulltextSearch], () => {
     const allReplaysBySortField =
         sortOrder.value === "asc" ? db.replays.orderBy(sortField.value) : db.replays.orderBy(sortField.value).reverse();
 
@@ -217,7 +217,7 @@ const replays = useDexieLiveQueryWithDeps([endedNormally, offset, limit, sortFie
         .toArray();
 });
 
-const replaysCount = useDexieLiveQueryWithDeps([endedNormally, fulltextSearch], async () => {
+const replaysCount = useDexieLiveQueryWithDeps([endedNormally, fulltextSearch], () => {
     return db.replays
         .filter((replay: Replay) => endedNormallyFilter(replay, endedNormally.value))
         .filter(fulltextSearchFilter)
