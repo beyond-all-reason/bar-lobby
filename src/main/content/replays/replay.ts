@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: MIT
 
-import { DemoModel } from "sdfz-demo-parser";
+import { DemoModel } from "$/sdfz-demo-parser";
 
 export type Replay = {
     gameId: string;
