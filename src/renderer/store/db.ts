@@ -30,6 +30,7 @@ db.version(1).stores({
         gameVersion,
         springName,
         startTime,
+        mapSpringName,
         gameDurationMs,
         gameEndedNormally,
         hasBots,
