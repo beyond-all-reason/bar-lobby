@@ -1871,8 +1871,8 @@
             "maps": {
                 "title": "Maps",
                 "back": "Back",
-                "description": "Description:",
-                "author": "Author:",
+                "description": "Description",
+                "author": "Author",
                 "properties": "Map Properties",
                 "addToFavorites": "Add to favorites",
                 "removeFromFavorites": "Remove from favorites",
@@ -2176,7 +2176,7 @@
             "controls": {
                 "downloadContentButton": {
                     "downloading": "Downloading...",
-                    "download": "Download map"
+                    "download": "Download"
                 },
                 "select": {
                     "search": "Search"
