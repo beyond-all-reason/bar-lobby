@@ -93,7 +93,7 @@ class StartScriptConverter {
                 const team: Team = {
                     id,
                     allyteam: teamId,
-                    teamleader: 0,
+                    teamleader: teamMember.id,
                     advantage,
                     handicap,
                     incomemultiplier: incomeMultiplier,
@@ -111,6 +111,7 @@ class StartScriptConverter {
                     };
                     players.push(player);
                 } else {
+                    team.teamleader = teamMember.host;
                     const bot: Bot = {
                         id,
                         team: team.id,
