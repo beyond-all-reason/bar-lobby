@@ -2,10 +2,11 @@
 //
 // SPDX-License-Identifier: MIT
 
-import { UnixTime } from "tachyon-protocol/types";
-import { Startbox } from "@main/content/maps/map-metadata";
-import { lobbyPlayer } from "@renderer/model/lobbyPlayer";
+import { UnixTime, StartBox, UserId } from "tachyon-protocol/types";
+//import { Startbox } from "@main/content/maps/map-metadata";
+//import { lobbyPlayer } from "@renderer/model/lobbyPlayer";
 
+// With changes this is now just the same as the tachyon type for LobbyJoinOkResponseData | LobbyCreateOkResponseData
 export type Lobby = {
     id: string;
     name: string;
@@ -16,7 +17,7 @@ export type Lobby = {
     maxPlayerCount: number;
     allyTeams?: {
         [k: string]: {
-            startBox?: Startbox;
+            startBox?: StartBox;
             maxTeams?: number;
             teams: {
                 [k: string]: {
@@ -26,10 +27,15 @@ export type Lobby = {
         };
     };
     members?: {
-        [k: string]: lobbyPlayer | null;
+        [k: string]: {
+			type: "player";
+			id: UserId;
+			allyTeam: string;
+			team: string;
+			player: string;
+		} | null;
     };
     currentBattle?: {
-        id?: string;
         startedAt: UnixTime;
     } | null;
 };

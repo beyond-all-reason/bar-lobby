@@ -19,6 +19,7 @@ import { reactive } from "vue";
 import { fetchAvailableQueues } from "@renderer/store/matchmaking.store";
 import { Lobby } from "@renderer/model/lobby";
 import { router } from "@renderer/router";
+import { apply as applyPatch } from "json8-merge-patch";
 
 export const tachyonStore = reactive({
     isInitialized: false,
@@ -123,8 +124,12 @@ function parseLobbyResponseData(data: LobbyCreateOkResponseData | LobbyJoinOkRes
         const item = data.allyTeamConfig[allyKey];
         lobbyObject.allyTeams![allyKey] = {
             startBox: {
-                maxPlayersPerStartbox: 0,
-                startboxes: [], //TODO: figure out a good way to convert the startbox format, or just completely ditch our current model in favor of what the server uses
+				top:0,
+				bottom:1,
+				left: 0,
+				right: 1,
+                //maxPlayersPerStartbox: 0,
+                //startboxes: [], //TODO: figure out a good way to convert the startbox format, or just completely ditch our current model in favor of what the server uses
             },
             maxTeams: item.maxTeams,
             teams: {},
@@ -140,12 +145,12 @@ function parseLobbyResponseData(data: LobbyCreateOkResponseData | LobbyJoinOkRes
         const member = data.members[memberKey];
         //TODO: after we parse this list we will want to go back and get actual player info for each using the ``user/subscribeUpdates`` request.
         lobbyObject.members![memberKey] = {
-            userId: member.id,
-            name: "Unknown Player", //Later we can update this from obtaining user information, along with other stuff
+            id: member.id,
+            //name: "Unknown Player", //Later we can update this from obtaining user information, along with other stuff
             allyTeam: member.allyTeam,
             team: member.team,
-            playerNumber: member.player,
-            playerType: "player",
+            player: member.player,
+            type: "player",
         };
     }
     return lobbyObject;
@@ -176,6 +181,8 @@ async function startBattle() {
     }
 }
 
+// This may change to become a JSON patch event, with a separate event for setList. If so, the lobbyList will need to be <LobbyOverview>s so we can parse it that way.
+// It would not be a problem to change types, because we should never touch activeLobby from lobbyList data, or vice-versa.
 function onListUpdatedEvent(data: LobbyListUpdatedEventData) {
     console.log("Tachyon event: lobby/listUpdated:", data);
     data.updates.forEach(function (item, index) {
@@ -194,12 +201,6 @@ function onListUpdatedEvent(data: LobbyListUpdatedEventData) {
                 lobbyToAdd.currentBattle = { startedAt: item.overview.currentBattle.startedAt };
             }
             tachyonStore.lobbyList[lobbyToAdd.id] = lobbyToAdd;
-            //We have to set these values here because they're not coming over in the protocol right now if we create the lobby.
-            if (tachyonStore.activeLobby !== undefined && item.overview.id == tachyonStore.activeLobby.id) {
-                tachyonStore.activeLobby.name = item.overview.name;
-                tachyonStore.activeLobby.playerCount = item.overview.playerCount;
-                tachyonStore.activeLobby.maxPlayerCount = item.overview.maxPlayerCount;
-            }
         } else if (item.type == "removed") {
             //This response only contains the "id"
             delete tachyonStore.lobbyList[item.id];
@@ -251,82 +252,22 @@ function onListUpdatedEvent(data: LobbyListUpdatedEventData) {
 }
 
 function onLobbyUpdatedEvent(data: LobbyUpdatedEventData) {
-	console.log("Tachyon event received lobby/updated:", data);
-    //Except for id, every field is optional and may or may not be included by server depending on if it changed or not.
-    if (data.id !== tachyonStore.activeLobby!.id) {
-        console.error(`Tachyon: Expected 'lobby/updated' event for ID ${tachyonStore.activeLobby!.id} but received: `, data);
-    }
-    if (data.name) {
-        tachyonStore.activeLobby!.name = data.name;
-    }
-    if (data.mapName) {
-        tachyonStore.activeLobby!.mapName = data.mapName;
-    }
-    if (data.engineVersion) {
-        tachyonStore.activeLobby!.engineVersion = data.engineVersion;
-    }
-    if (data.gameVersion) {
-        tachyonStore.activeLobby!.gameVersion = data.gameVersion;
-    }
-    if (data.allyTeams) {
-        for (const allyKey in data.allyTeams) {
-            const item = data.allyTeams[allyKey];
-            tachyonStore.activeLobby!.allyTeams![allyKey] = {
-                //FIXME: this completely ignores the startbox data that could be sent to us
-                startBox: {
-                    maxPlayersPerStartbox: 0,
-                    startboxes: [], //TODO: figure out a good way to convert the startbox format, or just completely ditch our current model in favor of what the server uses
-                },
-                teams: {},
-            };
-            if (item!.maxTeams) {
-                tachyonStore.activeLobby!.allyTeams![allyKey].maxTeams = item!.maxTeams;
-            }
-            for (const teamKey in item!.teams) {
-                const team = item!.teams[teamKey];
-                if (team!.maxPlayers) {
-                    tachyonStore.activeLobby!.allyTeams![allyKey].teams![teamKey] = { maxPlayers: team!.maxPlayers };
-                }
-            }
-        }
-        //Because we can receive partial updates of the 'allyTeams' object, we need to calculate maxPlayers just in case it changed.
-        let maxPlayerCount: number = 0;
-        for (const allyKey in tachyonStore.activeLobby!.allyTeams) {
-            for (const teamKey in tachyonStore.activeLobby!.allyTeams[allyKey]!.teams) {
-                maxPlayerCount += tachyonStore.activeLobby!.allyTeams[allyKey]!.teams[teamKey]!.maxPlayers!;
-            }
-        }
-        tachyonStore.activeLobby!.maxPlayerCount = maxPlayerCount;
-    }
-    if (data.members) {
-        for (const memberKey in data.members) {
-            const member = data.members[memberKey];
-			if(member == null) {
-				//A null member on update is one that has left the lobby, so we delete them.
-				delete tachyonStore.activeLobby!.members![memberKey];
-				continue;
-			}
-            //TODO: after we parse this list we will want to go back and get actual player info for each using the ``user/subscribeUpdates`` request.
-            tachyonStore.activeLobby!.members![memberKey] = {
-                userId: member!.id,
-                name: "Unknown Player", //Later we can update this from obtaining user information, along with other stuff
-                allyTeam: member!.allyTeam,
-                team: member!.team,
-                playerNumber: member!.player,
-                playerType: "player",
-            };
-        }
-		//If `members` changed then we need to recalculate the current number of players
-		let playerCount: number = 0;
-		for(const members in tachyonStore.activeLobby!.members) {
-			playerCount++;
+	console.log("Tachyon event: lobby/updated:", data);
+	//Apply the patch
+	tachyonStore.activeLobby = applyPatch(tachyonStore.activeLobby, data);
+	//Recalculate player counts afterward.
+	let maxPlayerCount: number = 0;
+	for (const allyKey in tachyonStore.activeLobby!.allyTeams) {
+		for (const teamKey in tachyonStore.activeLobby!.allyTeams[allyKey]!.teams) {
+			maxPlayerCount += tachyonStore.activeLobby!.allyTeams[allyKey]!.teams[teamKey]!.maxPlayers!;
 		}
-        tachyonStore.activeLobby!.playerCount = playerCount;
-    }
-    if (data.currentBattle) {
-        tachyonStore.activeLobby!.currentBattle = { id: data.currentBattle.id, startedAt: data.currentBattle.startedAt };
-    }
-    console.log("Tachyon event: lobby/updated:", data);
+	}
+	tachyonStore.activeLobby!.maxPlayerCount = maxPlayerCount;
+	let playerCount: number = 0;
+	for(const members in tachyonStore.activeLobby!.members) {
+		playerCount++;
+	}
+	tachyonStore.activeLobby!.playerCount = playerCount;
 }
 
 function onLobbyLeftEvent(data: LobbyLeftEventData) {
