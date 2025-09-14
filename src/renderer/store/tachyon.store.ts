@@ -83,7 +83,7 @@ async function createLobby(data: LobbyCreateRequestData) {
     try {
         tachyonStore.error = undefined;
         const response = await window.tachyon.request("lobby/create", data);
-        console.log("Tachyon: lobby/create:", response.status);
+        console.log("Tachyon: lobby/create:", response.status, response.data);
         tachyonStore.activeLobby = parseLobbyResponseData(response.data); //Set the active lobby data first...
         router.push("/play/customLobbies/lobby"); //...then move the user to the lobby view that uses the active lobby data
     } catch (error) {
@@ -96,7 +96,7 @@ async function joinLobby(id: LobbyJoinRequestData) {
     try {
         tachyonStore.error = undefined;
         const response = await window.tachyon.request("lobby/join", id);
-        console.log("Tachyon: lobby/join:", response.status);
+        console.log("Tachyon: lobby/join:", response.status, response.data);
         tachyonStore.activeLobby = parseLobbyResponseData(response.data);
         router.push("/play/customLobbies/lobby");
     } catch (error) {
@@ -299,11 +299,13 @@ function onLobbyUpdatedEvent(data: LobbyUpdatedEventData) {
         tachyonStore.activeLobby!.maxPlayerCount = maxPlayerCount;
     }
     if (data.members) {
-        //If `members` changed then we need to recalculate the current number of players
-        let playerCount: number = 0;
         for (const memberKey in data.members) {
-            playerCount++;
             const member = data.members[memberKey];
+			if(member == null) {
+				//A null member on update is one that has left the lobby, so we delete them.
+				delete tachyonStore.activeLobby!.members![memberKey];
+				continue;
+			}
             //TODO: after we parse this list we will want to go back and get actual player info for each using the ``user/subscribeUpdates`` request.
             tachyonStore.activeLobby!.members![memberKey] = {
                 userId: member!.id,
@@ -314,6 +316,11 @@ function onLobbyUpdatedEvent(data: LobbyUpdatedEventData) {
                 playerType: "player",
             };
         }
+		//If `members` changed then we need to recalculate the current number of players
+		let playerCount: number = 0;
+		for(const members in tachyonStore.activeLobby!.members) {
+			playerCount++;
+		}
         tachyonStore.activeLobby!.playerCount = playerCount;
     }
     if (data.currentBattle) {

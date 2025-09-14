@@ -52,7 +52,7 @@ function getStripeResult(index: number) {
 <style>
 .datagrid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 15% 1fr;
     height: auto;
 }
 .datagridstripe {
