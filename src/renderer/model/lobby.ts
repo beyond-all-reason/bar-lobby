@@ -28,12 +28,12 @@ export type Lobby = {
     };
     members?: {
         [k: string]: {
-			type: "player";
-			id: UserId;
-			allyTeam: string;
-			team: string;
-			player: string;
-		} | null;
+            type: "player";
+            id: UserId;
+            allyTeam: string;
+            team: string;
+            player: string;
+        } | null;
     };
     currentBattle?: {
         startedAt: UnixTime;

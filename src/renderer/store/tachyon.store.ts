@@ -124,10 +124,10 @@ function parseLobbyResponseData(data: LobbyCreateOkResponseData | LobbyJoinOkRes
         const item = data.allyTeamConfig[allyKey];
         lobbyObject.allyTeams![allyKey] = {
             startBox: {
-				top:0,
-				bottom:1,
-				left: 0,
-				right: 1,
+                top: 0,
+                bottom: 1,
+                left: 0,
+                right: 1,
                 //maxPlayersPerStartbox: 0,
                 //startboxes: [], //TODO: figure out a good way to convert the startbox format, or just completely ditch our current model in favor of what the server uses
             },
@@ -169,15 +169,15 @@ async function leaveLobby() {
     }
 }
 
+// This send to the server to request the battle to start, but we have to wait for the 'battle/start' response to show up and respond to that.
 async function startBattle() {
     try {
         tachyonStore.error = undefined;
         const response = await window.tachyon.request("lobby/startBattle");
         console.log("Tachyon: lobby/startBattle:", response.status);
-        //TODO: trigger the battle start
     } catch (error) {
-        console.error("Error with request lobby/create", error);
-        tachyonStore.error = "Error with request lobby/start";
+        console.error("Error with request lobby/startBattle", error);
+        tachyonStore.error = "Error with request lobby/startBattle";
     }
 }
 
@@ -252,22 +252,22 @@ function onListUpdatedEvent(data: LobbyListUpdatedEventData) {
 }
 
 function onLobbyUpdatedEvent(data: LobbyUpdatedEventData) {
-	console.log("Tachyon event: lobby/updated:", data);
-	//Apply the patch
-	tachyonStore.activeLobby = applyPatch(tachyonStore.activeLobby, data);
-	//Recalculate player counts afterward.
-	let maxPlayerCount: number = 0;
-	for (const allyKey in tachyonStore.activeLobby!.allyTeams) {
-		for (const teamKey in tachyonStore.activeLobby!.allyTeams[allyKey]!.teams) {
-			maxPlayerCount += tachyonStore.activeLobby!.allyTeams[allyKey]!.teams[teamKey]!.maxPlayers!;
-		}
-	}
-	tachyonStore.activeLobby!.maxPlayerCount = maxPlayerCount;
-	let playerCount: number = 0;
-	for(const members in tachyonStore.activeLobby!.members) {
-		playerCount++;
-	}
-	tachyonStore.activeLobby!.playerCount = playerCount;
+    console.log("Tachyon event: lobby/updated:", data);
+    //Apply the patch
+    tachyonStore.activeLobby = applyPatch(tachyonStore.activeLobby, data);
+    //Recalculate player counts afterward.
+    let maxPlayerCount: number = 0;
+    for (const allyKey in tachyonStore.activeLobby!.allyTeams) {
+        for (const teamKey in tachyonStore.activeLobby!.allyTeams[allyKey]!.teams) {
+            maxPlayerCount += tachyonStore.activeLobby!.allyTeams[allyKey]!.teams[teamKey]!.maxPlayers!;
+        }
+    }
+    tachyonStore.activeLobby!.maxPlayerCount = maxPlayerCount;
+    let playerCount: number = 0;
+    for (const members in tachyonStore.activeLobby!.members) {
+        playerCount++;
+    }
+    tachyonStore.activeLobby!.playerCount = playerCount;
 }
 
 function onLobbyLeftEvent(data: LobbyLeftEventData) {

@@ -23,45 +23,45 @@ SPDX-License-Identifier: MIT
                 <Checkbox v-model="settingsStore.battlesHideEmpty" :label="t('lobby.multiplayer.custom.filters.hideEmpty')" />
                 <Checkbox v-model="settingsStore.battlesHideInProgress" :label="t('lobby.multiplayer.custom.filters.hideInProgress')" />
                 <SearchBox v-model="searchVal" />
-				<Button @click="router.push('/play/customLobbies/lobby');">Go To ActiveLobby</Button>
+                <Button @click="router.push('/play/customLobbies/lobby')">Go To ActiveLobby</Button>
             </div>
-			<div class="flex-col flex-grow fullheight flex-top">
-            <div class="scroll-container padding-right-sm">
-                <DataTable
-                    v-model:selection="selectedLobby"
-                    :value="lobbyList"
-					data-key="id"
-                    autoLayout
-                    class="p-datatable-sm"
-                    selectionMode="single"
-                    :sortOrder="-1"
-                    sortField="score"
-                    paginator
-                    :rows="16"
-                    :pageLinkSize="20"
-                    @row-select="selectedLobby = $event.data"
-                    @row-dblclick="sendLobbyJoinRequest($event.data)"
-                >
-                    <Column field="name" :header="t('lobby.multiplayer.custom.table.title')" sortable />
-                    <Column field="mapName" :header="t('lobby.multiplayer.custom.table.map')" sortable />
-                    <Column :header="t('lobby.multiplayer.custom.table.players')" sortable sortField="playerCount.value">
-                        <template #body="{ data }">
-                            <div class="flex-row flex-center-items gap-md">
-                                <div v-if="data.playerCount > 0" class="flex-row flex-center-items" style="gap: 2px">
-                                    <Icon :icon="account" height="17" />{{ data.playerCount }}
+            <div class="flex-col flex-grow fullheight flex-top">
+                <div class="scroll-container padding-right-sm">
+                    <DataTable
+                        v-model:selection="selectedLobby"
+                        :value="lobbyList"
+                        data-key="id"
+                        autoLayout
+                        class="p-datatable-sm"
+                        selectionMode="single"
+                        :sortOrder="-1"
+                        sortField="score"
+                        paginator
+                        :rows="16"
+                        :pageLinkSize="20"
+                        @row-select="selectedLobby = $event.data"
+                        @row-dblclick="sendLobbyJoinRequest($event.data)"
+                    >
+                        <Column field="name" :header="t('lobby.multiplayer.custom.table.title')" sortable />
+                        <Column field="mapName" :header="t('lobby.multiplayer.custom.table.map')" sortable />
+                        <Column :header="t('lobby.multiplayer.custom.table.players')" sortable sortField="playerCount.value">
+                            <template #body="{ data }">
+                                <div class="flex-row flex-center-items gap-md">
+                                    <div v-if="data.playerCount > 0" class="flex-row flex-center-items" style="gap: 2px">
+                                        <Icon :icon="account" height="17" />{{ data.playerCount }}/{{ data.maxPlayerCount }}
+                                    </div>
+                                    <div v-if="true" class="flex-row flex-center-items gap-xs" style="gap: 4px">
+                                        <Icon :icon="eye" height="17" />{{ 0 }}
+                                    </div>
+                                    <div v-if="true" class="flex-row flex-center-items gap-xs" style="gap: 4px">
+                                        <Icon :icon="robot" height="17" />{{ 0 }}
+                                    </div>
                                 </div>
-                                <div v-if="true" class="flex-row flex-center-items gap-xs" style="gap: 4px">
-                                    <Icon :icon="eye" height="17" />{{ 0 }}
-                                </div>
-                                <div v-if="true" class="flex-row flex-center-items gap-xs" style="gap: 4px">
-                                    <Icon :icon="robot" height="17" />{{ 0 }}
-                                </div>
-                            </div>
-                        </template>
-                    </Column>
-                </DataTable>
+                            </template>
+                        </Column>
+                    </DataTable>
+                </div>
             </div>
-		</div>
         </div>
         <div v-if="!loading" class="right">
             <LobbyPreview v-if="selectedLobby" :lobby="selectedLobby">
@@ -133,7 +133,7 @@ function attemptJoinBattle(battle: OngoingBattle) {
 }
 */
 function sendLobbyJoinRequest(data) {
-	//Data here is the entire selectedLobby object (e.g. one of the lobbyList[] items)
+    //Data here is the entire selectedLobby object (e.g. one of the lobbyList[] items)
     tachyon.joinLobby({ id: data.id });
 }
 
