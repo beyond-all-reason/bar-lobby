@@ -7,6 +7,7 @@ export type lobbyPlayer = {
     name: string;
     allyTeam?: string; //Unsure if this should be optional for spectators, or if they are assigned a specific team ID or something.
     team?: string;
+    playerNumber?: string; //This is the number used in the startscript. Probably not relevant to us but we will hold it for now.
     rank?: number;
     countryCode?: string;
     playerType: "self" | "friend" | "player" | "AI" | "spectator";

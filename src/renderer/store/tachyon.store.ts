@@ -12,7 +12,6 @@ import {
     LobbyJoinRequestData,
     LobbyLeftEventData,
     LobbyListUpdatedEventData,
-    LobbyOverview,
     LobbyUpdatedEventData,
     SystemServerStatsOkResponseData,
 } from "tachyon-protocol/types";
@@ -26,8 +25,8 @@ export const tachyonStore = reactive({
     isConnected: false,
     serverStats: undefined,
     error: undefined,
-    lobbyList: {},
-    activeLobby: undefined,
+    lobbyList: {}, //This will hold changes from ``lobby/listUpdated`` events
+    activeLobby: undefined, //This will hold changes from ``lobby/updated`` events
 } as {
     isInitialized: boolean;
     isConnected: boolean;
@@ -84,9 +83,9 @@ async function createLobby(data: LobbyCreateRequestData) {
     try {
         tachyonStore.error = undefined;
         const response = await window.tachyon.request("lobby/create", data);
-		console.log("Tachyon: lobby/create:", response.status);
-        tachyonStore.activeLobby = parseLobbyResponseData(response.data);
-        router.push("/play/customLobbies/lobby");
+        console.log("Tachyon: lobby/create:", response.status);
+        tachyonStore.activeLobby = parseLobbyResponseData(response.data); //Set the active lobby data first...
+        router.push("/play/customLobbies/lobby"); //...then move the user to the lobby view that uses the active lobby data
     } catch (error) {
         console.error("Error with request lobby/create", error);
         tachyonStore.error = "Error with request lobby/create";
@@ -97,7 +96,7 @@ async function joinLobby(id: LobbyJoinRequestData) {
     try {
         tachyonStore.error = undefined;
         const response = await window.tachyon.request("lobby/join", id);
-		console.log("Tachyon: lobby/join:", response.status);
+        console.log("Tachyon: lobby/join:", response.status);
         tachyonStore.activeLobby = parseLobbyResponseData(response.data);
         router.push("/play/customLobbies/lobby");
     } catch (error) {
@@ -108,25 +107,21 @@ async function joinLobby(id: LobbyJoinRequestData) {
 
 // We use this function to normalize both LobbyCreateRequestData and LobbyJoinRequestData into the Lobby type for use in the renderer
 function parseLobbyResponseData(data: LobbyCreateOkResponseData | LobbyJoinOkResponseData) {
+    //Set up a basic object to hold the data
     const lobbyObject: Lobby = {
         id: data.id,
-		//FIXME: this can cause an error below because the Create response arrives before the lobby list update does!
-        //name: tachyonStore.lobbyList[data.id].name,
-        //playerCount: tachyonStore.lobbyList[data.id].playerCount,
-        //maxPlayerCount: tachyonStore.lobbyList[data.id].maxPlayerCount,
-		//Instead we just throw some temporary values. If all goes well, this will update immediately afterward. Maybe.
-		name: "New Lobby",
-		playerCount: 1,
-		maxPlayerCount: 16,
+        name: data.name,
+        playerCount: 0, //Placeholder value; We can count this from the entries below in the team config
+        maxPlayerCount: 0, //Placeholder value; Ditto for calculating max players
         mapName: data.mapName,
         engineVersion: data.engineVersion,
         gameVersion: data.gameVersion,
         allyTeams: {},
         members: {},
     };
-    for (const key in data.allyTeamConfig) {
-        const item = data.allyTeamConfig[key];
-        lobbyObject.allyTeams![key] = {
+    for (const allyKey in data.allyTeamConfig) {
+        const item = data.allyTeamConfig[allyKey];
+        lobbyObject.allyTeams![allyKey] = {
             startBox: {
                 maxPlayersPerStartbox: 0,
                 startboxes: [], //TODO: figure out a good way to convert the startbox format, or just completely ditch our current model in favor of what the server uses
@@ -136,21 +131,21 @@ function parseLobbyResponseData(data: LobbyCreateOkResponseData | LobbyJoinOkRes
         };
         for (const teamKey in item.teams) {
             const team = item.teams[teamKey];
-            lobbyObject.allyTeams![key].teams![teamKey] = { maxPlayers: team.maxPlayers };
+            lobbyObject.allyTeams![allyKey].teams![teamKey] = { maxPlayers: team.maxPlayers };
+            lobbyObject.maxPlayerCount += team.maxPlayers; //Lobby maximum is sum of all AllyTeams>Teams>MaxPlayers
         }
     }
-    for (const key in data.members) {
-        const member = data.members[key];
-        lobbyObject.members![key] = {
+    for (const memberKey in data.members) {
+        lobbyObject.playerCount++; //Increment 1 for each player already in the lobby when created/joined.
+        const member = data.members[memberKey];
+        //TODO: after we parse this list we will want to go back and get actual player info for each using the ``user/subscribeUpdates`` request.
+        lobbyObject.members![memberKey] = {
             userId: member.id,
-            name: member.player, //TODO: waiting for confirmation that this is the player name field or not
+            name: "Unknown Player", //Later we can update this from obtaining user information, along with other stuff
             allyTeam: member.allyTeam,
             team: member.team,
-            playerType: "player", //TODO: check if this should be self, friend, etc...
-            rank: 0, //TODO: pull these next few from somewhere?
-            countryCode: "BAR",
-            roles: [],
-            partyId: "",
+            playerNumber: member.player,
+            playerType: "player",
         };
     }
     return lobbyObject;
@@ -161,7 +156,7 @@ async function leaveLobby() {
         tachyonStore.error = undefined;
         const response = await window.tachyon.request("lobby/leave");
         console.log("Tachyon: lobby/leave:", response.status);
-		router.push("/play/customLobbies/customLobbies");
+        router.push("/play/customLobbies/customLobbies");
         tachyonStore.activeLobby = undefined;
     } catch (error) {
         console.error("Error with request lobby/leave", error);
@@ -174,6 +169,7 @@ async function startBattle() {
         tachyonStore.error = undefined;
         const response = await window.tachyon.request("lobby/startBattle");
         console.log("Tachyon: lobby/startBattle:", response.status);
+        //TODO: trigger the battle start
     } catch (error) {
         console.error("Error with request lobby/create", error);
         tachyonStore.error = "Error with request lobby/start";
@@ -194,52 +190,41 @@ function onListUpdatedEvent(data: LobbyListUpdatedEventData) {
                 engineVersion: item.overview.engineVersion,
                 gameVersion: item.overview.gameVersion,
             };
-            if (item.overview.currentBattle !== undefined && item.overview.currentBattle?.startedAt !== undefined) {
+            if (item.overview.currentBattle && item.overview.currentBattle?.startedAt) {
                 lobbyToAdd.currentBattle = { startedAt: item.overview.currentBattle.startedAt };
             }
             tachyonStore.lobbyList[lobbyToAdd.id] = lobbyToAdd;
-			//We have to set these values here because they're not coming over in the protocol right now if we create the lobby.
-			if ((tachyonStore.activeLobby !== undefined) && (item.overview.id == tachyonStore.activeLobby.id)) {
-				tachyonStore.activeLobby.name = item.overview.name;
-				tachyonStore.activeLobby.playerCount = item.overview.playerCount;
-				tachyonStore.activeLobby.maxPlayerCount = item.overview.maxPlayerCount;
-			}
+            //We have to set these values here because they're not coming over in the protocol right now if we create the lobby.
+            if (tachyonStore.activeLobby !== undefined && item.overview.id == tachyonStore.activeLobby.id) {
+                tachyonStore.activeLobby.name = item.overview.name;
+                tachyonStore.activeLobby.playerCount = item.overview.playerCount;
+                tachyonStore.activeLobby.maxPlayerCount = item.overview.maxPlayerCount;
+            }
         } else if (item.type == "removed") {
             //This response only contains the "id"
             delete tachyonStore.lobbyList[item.id];
         } else if (item.type == "updated") {
             //This response contains "overview: {}" with optional properties for everything except "id"
-			let updateActiveLobby:boolean = false;
-			if ((tachyonStore.activeLobby !== undefined) && (item.overview.id == tachyonStore.activeLobby.id)) {
-				updateActiveLobby = true;
-			}
-            if (item.overview.name !== undefined) {
+            if (item.overview.name) {
                 tachyonStore.lobbyList[item.overview.id].name = item.overview.name;
-				if (updateActiveLobby) { tachyonStore.activeLobby!.name = item.overview.name; }
             }
-            if (item.overview.mapName !== undefined) {
+            if (item.overview.mapName) {
                 tachyonStore.lobbyList[item.overview.id].mapName = item.overview.mapName;
-				if (updateActiveLobby) { tachyonStore.activeLobby!.mapName = item.overview.mapName; }
             }
-            if (item.overview.playerCount !== undefined) {
+            if (item.overview.playerCount) {
                 tachyonStore.lobbyList[item.overview.id].playerCount = item.overview.playerCount;
-				if (updateActiveLobby) { tachyonStore.activeLobby!.playerCount = item.overview.playerCount; }
             }
-            if (item.overview.maxPlayerCount !== undefined) {
+            if (item.overview.maxPlayerCount) {
                 tachyonStore.lobbyList[item.overview.id].maxPlayerCount = item.overview.maxPlayerCount;
-				if (updateActiveLobby) { tachyonStore.activeLobby!.maxPlayerCount = item.overview.maxPlayerCount; }
             }
-            if (item.overview.engineVersion !== undefined) {
+            if (item.overview.engineVersion) {
                 tachyonStore.lobbyList[item.overview.id].engineVersion = item.overview.engineVersion;
-				if (updateActiveLobby) { tachyonStore.activeLobby!.engineVersion = item.overview.engineVersion; }
             }
-            if (item.overview.gameVersion !== undefined) {
+            if (item.overview.gameVersion) {
                 tachyonStore.lobbyList[item.overview.id].gameVersion = item.overview.gameVersion;
-				if (updateActiveLobby) { tachyonStore.activeLobby!.gameVersion = item.overview.gameVersion; }
             }
-            if (item.overview.currentBattle !== undefined && item.overview.currentBattle?.startedAt !== undefined) {
+            if (item.overview.currentBattle && item.overview.currentBattle?.startedAt) {
                 tachyonStore.lobbyList[item.overview.id].currentBattle = { startedAt: item.overview.currentBattle?.startedAt };
-				if (updateActiveLobby) { tachyonStore.activeLobby!.currentBattle = { startedAt: item.overview.currentBattle?.startedAt }; }
             }
         } else if (item.type == "setList") {
             //This response contains "overviews: LobbyOverview[]"
@@ -253,7 +238,7 @@ function onListUpdatedEvent(data: LobbyListUpdatedEventData) {
                     engineVersion: overview.engineVersion,
                     gameVersion: overview.gameVersion,
                 };
-                if (overview.currentBattle !== undefined && overview.currentBattle?.startedAt !== undefined) {
+                if (overview.currentBattle && overview.currentBattle?.startedAt) {
                     lobbyToAdd.currentBattle = { startedAt: overview.currentBattle.startedAt };
                 }
                 tachyonStore.lobbyList[lobbyToAdd.id] = lobbyToAdd;
@@ -266,7 +251,73 @@ function onListUpdatedEvent(data: LobbyListUpdatedEventData) {
 }
 
 function onLobbyUpdatedEvent(data: LobbyUpdatedEventData) {
-    //TODO: update the tachyonStore.activeLobby with the new data here
+    //Except for id, every field is optional and may or may not be included by server depending on if it changed or not.
+    if (data.id !== tachyonStore.activeLobby!.id) {
+        console.error(`Tachyon: Expected 'lobby/updated' event for ID ${tachyonStore.activeLobby!.id} but received: `, data);
+    }
+    if (data.name) {
+        tachyonStore.activeLobby!.name = data.name;
+    }
+    if (data.mapName) {
+        tachyonStore.activeLobby!.mapName = data.mapName;
+    }
+    if (data.engineVersion) {
+        tachyonStore.activeLobby!.engineVersion = data.engineVersion;
+    }
+    if (data.gameVersion) {
+        tachyonStore.activeLobby!.gameVersion = data.gameVersion;
+    }
+    if (data.allyTeams) {
+        for (const allyKey in data.allyTeams) {
+            const item = data.allyTeams[allyKey];
+            tachyonStore.activeLobby!.allyTeams![allyKey] = {
+                //FIXME: this completely ignores the startbox data that could be sent to us
+                startBox: {
+                    maxPlayersPerStartbox: 0,
+                    startboxes: [], //TODO: figure out a good way to convert the startbox format, or just completely ditch our current model in favor of what the server uses
+                },
+                teams: {},
+            };
+            if (item!.maxTeams) {
+                tachyonStore.activeLobby!.allyTeams![allyKey].maxTeams = item!.maxTeams;
+            }
+            for (const teamKey in item!.teams) {
+                const team = item!.teams[teamKey];
+                if (team!.maxPlayers) {
+                    tachyonStore.activeLobby!.allyTeams![allyKey].teams![teamKey] = { maxPlayers: team!.maxPlayers };
+                }
+            }
+        }
+        //Because we can receive partial updates of the 'allyTeams' object, we need to calculate maxPlayers just in case it changed.
+        let maxPlayerCount: number = 0;
+        for (const allyKey in tachyonStore.activeLobby!.allyTeams) {
+            for (const teamKey in tachyonStore.activeLobby!.allyTeams[allyKey]!.teams) {
+                maxPlayerCount += tachyonStore.activeLobby!.allyTeams[allyKey]!.teams[teamKey]!.maxPlayers!;
+            }
+        }
+        tachyonStore.activeLobby!.maxPlayerCount = maxPlayerCount;
+    }
+    if (data.members) {
+        //If `members` changed then we need to recalculate the current number of players
+        let playerCount: number = 0;
+        for (const memberKey in data.members) {
+            playerCount++;
+            const member = data.members[memberKey];
+            //TODO: after we parse this list we will want to go back and get actual player info for each using the ``user/subscribeUpdates`` request.
+            tachyonStore.activeLobby!.members![memberKey] = {
+                userId: member!.id,
+                name: "Unknown Player", //Later we can update this from obtaining user information, along with other stuff
+                allyTeam: member!.allyTeam,
+                team: member!.team,
+                playerNumber: member!.player,
+                playerType: "player",
+            };
+        }
+        tachyonStore.activeLobby!.playerCount = playerCount;
+    }
+    if (data.currentBattle) {
+        tachyonStore.activeLobby!.currentBattle = { id: data.currentBattle.id, startedAt: data.currentBattle.startedAt };
+    }
     console.log("Tachyon event: lobby/updated:", data);
 }
 
@@ -274,6 +325,7 @@ function onLobbyLeftEvent(data: LobbyLeftEventData) {
     tachyonStore.activeLobby = undefined;
     console.log("Tachyon event: lobby/left:", data);
     router.push("/play/customLobbies/customLobbies");
+    //TODO: Probably want some kind of message displayed to the user, explaining they were removed from the lobby for reason [kicked | lobby crash | etc?]
 }
 async function fetchServerStats() {
     try {

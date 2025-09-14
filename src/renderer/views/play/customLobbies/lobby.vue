@@ -9,7 +9,10 @@ SPDX-License-Identifier: MIT
 </route>
 
 <template>
-    <Panel><Button @click="tachyon.leaveLobby()">Leave Lobby</Button> <p>{{tachyonStore.activeLobby}}</p> </Panel>
+    <Panel
+        ><Button @click="tachyon.leaveLobby()">Leave Lobby</Button>
+        <p>{{ tachyonStore.activeLobby }}</p>
+    </Panel>
 </template>
 
 <script lang="ts" setup>

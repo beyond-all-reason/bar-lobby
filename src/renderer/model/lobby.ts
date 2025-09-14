@@ -29,6 +29,7 @@ export type Lobby = {
         [k: string]: lobbyPlayer | null;
     };
     currentBattle?: {
+        id?: string;
         startedAt: UnixTime;
     } | null;
 };
