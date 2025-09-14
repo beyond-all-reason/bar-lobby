@@ -16,6 +16,7 @@ async function init() {
 function registerIpcHandlers(webContents: BarIpcWebContents) {
     // Content
     ipcMain.handle("game:downloadGame", (_, version: string) => gameContentAPI.downloadGame(version));
+    ipcMain.handle("game:obtainContent", (_, engineVersion: string, gameVersion: string) => gameAPI.obtainEngineGameContent(engineVersion, gameVersion));
     ipcMain.handle("game:getScenarios", (_, version: string) => gameContentAPI.getScenarios(version));
     ipcMain.handle("game:getInstalledVersions", () => gameContentAPI.availableVersions.values().toArray());
     ipcMain.handle("game:isVersionInstalled", (_, id: string) => gameContentAPI.isVersionInstalled(id));

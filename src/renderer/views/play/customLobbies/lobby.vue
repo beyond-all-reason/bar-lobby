@@ -12,7 +12,8 @@ SPDX-License-Identifier: MIT
     <Panel>
         <div class="flex flex-row">
             <Button @click="router.push('/play/customLobbies/customLobbies')" class="flex-left">Back</Button>
-            <Button @click="tachyon.startBattle()" class="red">Start Battle</Button>
+            <Button @click="tachyon.startBattle()" class="blue flex-left">Start Battle</Button>
+            <Button @click="getStuff()" class="red flex-right">Download Map/Engine/Game Content</Button>
             <Button @click="tachyon.leaveLobby()" class="flex-right">Leave Lobby</Button>
         </div>
         <div v-if="tachyonStore.activeLobby">
@@ -49,6 +50,12 @@ import { router } from "@renderer/router";
 
 function getStripeResult(index: number) {
     return index & 1 ? "datagrid" : "datagrid datagridstripe";
+}
+
+function getStuff() {
+    //FIXME: this is a really hacky way to just ensure we do get the engine/game versions needed for this lobby (if they exist).
+    window.game.obtainContent(tachyonStore.activeLobby!.engineVersion, "Beyond All Reason " + tachyonStore.activeLobby!.gameVersion);
+    window.maps.downloadMap(tachyonStore.activeLobby!.mapName);
 }
 </script>
 

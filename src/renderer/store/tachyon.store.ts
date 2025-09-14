@@ -123,14 +123,7 @@ function parseLobbyResponseData(data: LobbyCreateOkResponseData | LobbyJoinOkRes
     for (const allyKey in data.allyTeamConfig) {
         const item = data.allyTeamConfig[allyKey];
         lobbyObject.allyTeams![allyKey] = {
-            startBox: {
-                top: 0,
-                bottom: 1,
-                left: 0,
-                right: 1,
-                //maxPlayersPerStartbox: 0,
-                //startboxes: [], //TODO: figure out a good way to convert the startbox format, or just completely ditch our current model in favor of what the server uses
-            },
+            startBox: data.allyTeamConfig[allyKey].startBox,
             maxTeams: item.maxTeams,
             teams: {},
         };
