@@ -251,6 +251,7 @@ function onListUpdatedEvent(data: LobbyListUpdatedEventData) {
 }
 
 function onLobbyUpdatedEvent(data: LobbyUpdatedEventData) {
+	console.log("Tachyon event received lobby/updated:", data);
     //Except for id, every field is optional and may or may not be included by server depending on if it changed or not.
     if (data.id !== tachyonStore.activeLobby!.id) {
         console.error(`Tachyon: Expected 'lobby/updated' event for ID ${tachyonStore.activeLobby!.id} but received: `, data);

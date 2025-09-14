@@ -9,13 +9,13 @@ SPDX-License-Identifier: MIT
 </route>
 
 <template>
-    <div class="flex-row flex-grow gap-md hide-overflow">
+    <div class="flex-row flex-grow gap-md hide-overflow fullheight">
         <Loader v-if="loading"></Loader>
-        <div v-else class="flex-col flex-grow gap-md">
+        <div v-else class="flex-col flex-grow gap-md fullheight margin-left-md margin-right-md">
             <div class="flex-row gap-md">
                 <h1>{{ t("lobby.multiplayer.custom.title") }}</h1>
             </div>
-            <div class="flex-row gap-md">
+            <div class="flex-row gap-md flex-top">
                 <Button class="blue" @click="createLobbyModalIsOpen = true">{{ t("lobby.multiplayer.custom.hostBattle") }}</Button>
                 <HostBattle v-model="createLobbyModalIsOpen" />
                 <Checkbox v-model="settingsStore.battlesHidePvE" :label="t('lobby.multiplayer.custom.filters.hidePvE')" />
@@ -23,11 +23,14 @@ SPDX-License-Identifier: MIT
                 <Checkbox v-model="settingsStore.battlesHideEmpty" :label="t('lobby.multiplayer.custom.filters.hideEmpty')" />
                 <Checkbox v-model="settingsStore.battlesHideInProgress" :label="t('lobby.multiplayer.custom.filters.hideInProgress')" />
                 <SearchBox v-model="searchVal" />
+				<Button @click="router.push('/play/customLobbies/lobby');">Go To ActiveLobby</Button>
             </div>
+			<div class="flex-col flex-grow fullheight flex-top">
             <div class="scroll-container padding-right-sm">
                 <DataTable
                     v-model:selection="selectedLobby"
                     :value="lobbyList"
+					data-key="id"
                     autoLayout
                     class="p-datatable-sm"
                     selectionMode="single"
@@ -39,17 +42,6 @@ SPDX-License-Identifier: MIT
                     @row-select="selectedLobby = $event.data"
                     @row-dblclick="sendLobbyJoinRequest($event.data)"
                 >
-                    <Column :header="t('lobby.multiplayer.custom.table.bestBattle')" sortable sortField="score">
-                        <template #body="{ data }">
-                            <div v-if="data.primaryFactor !== 'Running'" class="flex-row flex-center-items gap-md">
-                                {{ data.primaryFactor }}
-                            </div>
-                            <div v-if="data.primaryFactor === 'Running'" class="flex-row flex-center-items gap-md">
-                                {{ t("lobby.multiplayer.custom.table.runningFor") }}
-                                {{ getFriendlyDuration(1000, false) }}
-                            </div>
-                        </template>
-                    </Column>
                     <Column field="name" :header="t('lobby.multiplayer.custom.table.title')" sortable />
                     <Column field="mapName" :header="t('lobby.multiplayer.custom.table.map')" sortable />
                     <Column :header="t('lobby.multiplayer.custom.table.players')" sortable sortField="playerCount.value">
@@ -67,16 +59,9 @@ SPDX-License-Identifier: MIT
                             </div>
                         </template>
                     </Column>
-                    <Column headerStyle="width: 0" sortable sortField="isLockedOrPassworded.value">
-                        <template #header>
-                            <Icon :icon="lock" />
-                        </template>
-                        <template #body="{ data }">
-                            <Icon v-if="true" :icon="lock" />
-                        </template>
-                    </Column>
                 </DataTable>
             </div>
+		</div>
         </div>
         <div v-if="!loading" class="right">
             <LobbyPreview v-if="selectedLobby" :lobby="selectedLobby">
@@ -119,6 +104,7 @@ import { useTypedI18n } from "@renderer/i18n";
 import { tachyon, tachyonStore } from "@renderer/store/tachyon.store";
 import { Lobby as LobbyType } from "@renderer/model/lobby";
 import LobbyPreview from "@renderer/components/battle/LobbyPreview.vue";
+import { router } from "@renderer/router";
 
 const { t } = useTypedI18n();
 
@@ -130,8 +116,8 @@ const searchVal = ref("");
 const selectedLobby: Ref<LobbyType | null> = shallowRef(null);
 const lobbyList = computed(() => {
     const arr: LobbyType[] = [];
-    for (const key in tachyonStore.lobbyList) {
-        const item = tachyonStore.lobbyList[key];
+    for (const lobbyKey in tachyonStore.lobbyList) {
+        const item = tachyonStore.lobbyList[lobbyKey];
         arr.push(item);
     }
     return arr;
@@ -146,8 +132,9 @@ function attemptJoinBattle(battle: OngoingBattle) {
     console.log("Joining battle", battle);
 }
 */
-function sendLobbyJoinRequest(lobbyId: string) {
-    tachyon.joinLobby({ id: lobbyId });
+function sendLobbyJoinRequest(data) {
+	//Data here is the entire selectedLobby object (e.g. one of the lobbyList[] items)
+    tachyon.joinLobby({ id: data.id });
 }
 
 // Just in case we need to manually request a subscribe event for some reason.
