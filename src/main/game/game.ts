@@ -160,7 +160,9 @@ export class GameAPI {
     }
     //FIXME: This is temporary until server has current versions regularly.
     public obtainEngineGameContent(engineVersion?: string, gameVersion?: string) {
-        this.fetchMissingContent(engineVersion, gameVersion);
+        this.fetchMissingContent(engineVersion, gameVersion).then(() => {
+            console.log("Did stuff.");
+        });
     }
     //TODO not handling maps, not sure if needed if we always come from the lobby's UI
     protected async fetchMissingContent(engineVersion?: string, gameVersion?: string) {

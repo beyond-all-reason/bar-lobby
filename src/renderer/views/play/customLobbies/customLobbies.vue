@@ -90,7 +90,7 @@ import lock from "@iconify-icons/mdi/lock";
 import robot from "@iconify-icons/mdi/robot";
 import Column from "primevue/column";
 import DataTable from "primevue/datatable";
-import { Ref, ref, shallowRef, onMounted, computed } from "vue";
+import { Ref, ref, shallowRef, onMounted, computed, onActivated } from "vue";
 //import BattlePreview from "@renderer/components/battle/BattlePreview.vue";
 import HostBattle from "@renderer/components/battle/HostBattle.vue";
 import Loader from "@renderer/components/common/Loader.vue";
@@ -147,7 +147,8 @@ function sendLobbyListUnsubscribeRequest() {
     tachyon.unsubscribeList();
 }
 
-onMounted(() => {
+// Because this page is part of <KeepAlive>, we use this instead of onMounted() to trigger anytime the page is loaded.
+onActivated(() => {
     //Subscribe to the lobby list when this page is loaded
     tachyon.subscribeList();
 });

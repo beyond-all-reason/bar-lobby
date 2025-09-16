@@ -37,7 +37,7 @@ SPDX-License-Identifier: MIT
                     <p>AllyTeams without one are full-map startboxes.</p>
                     <div class="flex-row gap-sm margin-sm">
                         <p><b>AllyTeam Count: </b></p>
-                        <input type="number" v-model="maxTeams" inputId="maxTeams" />
+                        <input type="number" v-model="allyTeamCount" inputId="maxTeams" />
                     </div>
                     <div class="flex-row gap-sm margin-sm">
                         <p><b>Teams per AllyTeam: </b></p>
@@ -132,7 +132,7 @@ const regions = ref([
     { name: "Australia", code: "AU" },
 ]);
 const lobbyName = ref("New Lobby " + rand(0, 1000).toString());
-const maxTeams = ref(2);
+const allyTeamCount = ref(2);
 const playersPerAllyTeam = ref(1);
 const map = ref();
 const selectedRegion = ref(regions.value[0].code);
@@ -145,26 +145,24 @@ const mapListOpen = ref(false);
 const mapOptionsOpen = ref(false);
 
 async function getGeneratedLobbyRequestData(): Promise<LobbyCreateRequestData> {
-    const boxes = battleActions.getCurrentStartBoxes(); //FIXME: We can have the wrong number of boxes.
-    const temp: any[] = [];
-    let config = {
+    const boxes: StartBox[] = battleActions.getCurrentStartBoxes(); //FIXME: We can have the wrong number of boxes.
+    let config: LobbyCreateRequestData = {
         name: lobbyName.value,
         mapName: map.value.springName,
-        allyTeamConfig: Array.from(temp),
+        allyTeamConfig: [],
     };
-    for (let i = 0; i < maxTeams.value; i++) {
+    for (let i = 0; i < allyTeamCount.value; i++) {
         if (!boxes[i]) {
-            //Insufficient startboxes provided, so we just add a full-size one as a hack.
+            //Insufficient startboxes provided, so we just add a full-size one as a hack for now.
             boxes.push({ top: 0, bottom: 1, left: 0, right: 1 });
         }
-        let allyConfig = {
+        config.allyTeamConfig.push({
             maxTeams: playersPerAllyTeam.value,
             startBox: boxes[i],
-            teams: Array.from(temp),
-        };
-        config.allyTeamConfig.push(allyConfig);
+            teams: [],
+        });
         for (let j = 0; j < playersPerAllyTeam.value; j++) {
-            config.allyTeamConfig[i]["teams"].push({ maxPlayers: 1 }); //One player by team by default.
+            config.allyTeamConfig[i].teams.push({ maxPlayers: 1 }); //One player by team by default.
         }
     }
     console.log(config);
