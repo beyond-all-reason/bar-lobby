@@ -20,6 +20,7 @@ import { fetchAvailableQueues } from "@renderer/store/matchmaking.store";
 import { Lobby } from "@renderer/model/lobby";
 import { router } from "@renderer/router";
 import { apply as applyPatch } from "json8-merge-patch";
+import { battleStore } from "@renderer/store/battle.store";
 
 export const tachyonStore = reactive({
     isInitialized: false,
@@ -87,6 +88,8 @@ async function createLobby(data: LobbyCreateRequestData) {
         console.log("Tachyon: lobby/create:", response.status, response.data);
         tachyonStore.activeLobby = parseLobbyResponseData(response.data); //Set the active lobby data first...
         router.push("/play/customLobbies/lobby"); //...then move the user to the lobby view that uses the active lobby data
+        battleStore.isOnline = true;
+        battleStore.isLobbyOpened = true;
     } catch (error) {
         console.error("Error with request lobby/create", error);
         tachyonStore.error = "Error with request lobby/create";
@@ -100,6 +103,8 @@ async function joinLobby(id: LobbyJoinRequestData) {
         console.log("Tachyon: lobby/join:", response.status, response.data);
         tachyonStore.activeLobby = parseLobbyResponseData(response.data);
         router.push("/play/customLobbies/lobby");
+        battleStore.isOnline = true;
+        battleStore.isLobbyOpened = true;
     } catch (error) {
         console.error("Error with request lobby/join", error);
         tachyonStore.error = "Error with request lobby/join";
@@ -222,6 +227,7 @@ function onListUpdatedEvent(data: LobbyListUpdatedEventData) {
             }
         } else if (item.type == "setList") {
             //This response contains "overviews: LobbyOverview[]"
+            tachyonStore.lobbyList = {}; //Have to reset the list to blank because setList contains everything.
             item.overviews.forEach(function (overview, index) {
                 const lobbyToAdd: Lobby = {
                     id: overview.id,

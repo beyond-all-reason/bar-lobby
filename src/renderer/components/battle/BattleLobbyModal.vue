@@ -11,7 +11,7 @@ SPDX-License-Identifier: MIT
 </template>
 
 <script lang="ts" setup>
-import OfflineBattleComponent from "@renderer/components/battle/OfflineBattleComponent.vue";
+import OfflineBattleComponent from "@renderer/components/battle/BattleComponent.vue";
 import Modal from "@renderer/components/common/Modal.vue";
 </script>
 

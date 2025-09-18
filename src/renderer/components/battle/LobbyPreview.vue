@@ -19,7 +19,7 @@ const props = defineProps<{
 }>();
 
 function convertLobbyToBattle(lobby: LobbyType): OngoingBattle {
-    const toMilliseconds = lobby.currentBattle ? lobby.currentBattle.startedAt * 1000 : 0; //zero timestamp will be wrong
+    const toMilliseconds = lobby.currentBattle ? lobby.currentBattle.startedAt * 1000 : 0; //FIXME: zero timestamp will be wrong
     const timestamp: Date = new Date(toMilliseconds);
     const battle: OngoingBattle = {
         title: lobby.name,

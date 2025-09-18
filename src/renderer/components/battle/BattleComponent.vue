@@ -37,6 +37,7 @@ SPDX-License-Identifier: MIT
                         :filter="true"
                         class="fullwidth"
                         @update:model-value="onMapSelected"
+                        :disabled="online"
                     />
                     <Button v-tooltip.left="'Open map selector'" @click="openMapList">
                         <Icon :icon="listIcon" height="23" />
@@ -62,6 +63,7 @@ SPDX-License-Identifier: MIT
                         :filter="true"
                         :placeholder="battleStore.battleOptions.gameVersion"
                         @update:model-value="onGameSelected"
+                        :disabled="online"
                     />
                 </div>
                 <div v-if="settingsStore.devMode">
@@ -74,6 +76,7 @@ SPDX-License-Identifier: MIT
                         label="Engine"
                         :filter="true"
                         class="fullwidth"
+                        :disabled="online"
                     />
                 </div>
                 <div class="flex-row flex-bottom gap-md flex-grow">
@@ -84,7 +87,9 @@ SPDX-License-Identifier: MIT
                         <Button v-else-if="gameStore.status === GameStatus.RUNNING" class="fullwidth grey flex-grow" disabled
                             >Game is running</Button
                         >
-                        <DownloadContentButton v-else :map="map" @click="battleActions.startBattle">Start the game</DownloadContentButton>
+                        <DownloadContentButton v-else :map="map" @click="online ? tachyon.startBattle() : battleActions.startBattle()"
+                            >Start the game</DownloadContentButton
+                        >
                     </div>
                     <Button v-else class="fullwidth green flex-grow" disabled>Start the game</Button>
                 </div>
@@ -94,7 +99,13 @@ SPDX-License-Identifier: MIT
 </template>
 
 <script lang="ts" setup>
-import { ref } from "vue";
+/*TODO: As part of converting this to work for online lobbies, we need to check any assumptions present in sub-components
+ * If they assume an offline battle, we need to make them aware of the online status
+ * A few are mitigated right now by simply disabling (since there is changes to certain things in Tachyon right now) when online.
+ * The PlayerList component, however, needs to send Tachyon team request updates, adding AI, etc, once that exists in the protocol.
+ * And it also needs to receive updates to the organization directly from the activeLobby details.
+ */
+import { ref, defineProps } from "vue";
 import { useTypedI18n } from "@renderer/i18n";
 import Playerlist from "@renderer/components/battle/Playerlist.vue";
 import Select from "@renderer/components/controls/Select.vue";
@@ -119,11 +130,15 @@ import { enginesStore } from "@renderer/store/engine.store";
 import TerrainIcon from "@renderer/components/maps/filters/TerrainIcon.vue";
 import personIcon from "@iconify-icons/mdi/person-multiple";
 import gridIcon from "@iconify-icons/mdi/grid";
+import { tachyon, tachyonStore } from "@renderer/store/tachyon.store";
 
 const mapListOpen = ref(false);
 const mapOptionsOpen = ref(false);
 const mapListOptions = useDexieLiveQuery(() => db.maps.toArray());
 const gameListOptions = useDexieLiveQuery(() => db.gameVersions.toArray());
+const props = defineProps<{
+    online: boolean;
+}>();
 
 const map = useDexieLiveQueryWithDeps([() => battleStore.battleOptions.map], () => {
     if (!battleStore.battleOptions.map) return;

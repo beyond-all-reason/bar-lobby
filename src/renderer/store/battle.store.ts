@@ -467,7 +467,10 @@ async function loadGameMode(gameMode: GameModeLabel) {
         const randomMap = await getRandomMap();
         battleStore.battleOptions.map = randomMap;
     }
-
+    //Now that we are sharing the drawer with the game-mode selector, we need to reset to offline battle.
+    //FIXME: Could be a problem if someone tries to launch a gamemode while also in lobby?
+    //Will probably need some checks and to warn the user that they're in a lobby before they can select.
+    battleStore.isOnline = false;
     switch (gameMode) {
         case GameMode.CLASSIC:
             removeCoopAIs();
