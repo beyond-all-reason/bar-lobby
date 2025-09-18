@@ -320,10 +320,10 @@ function removeCustomStartBox(boxId: number) {
     }
 }
 
-function defaultOfflineBattle(engine?: EngineVersion, game?: GameVersion, map?: MapData) {
+function defaultOfflineBattle(engine?: EngineVersion, game?: GameVersion, map?: MapData, online?: boolean) {
     const barbAi = engine?.ais.find((ai) => ai.shortName === "BARb");
     const battle: Battle = {
-        title: "Offline Custom Battle",
+        title: online ? "Online Custom Battle" : "Offline Custom Battle",
         isOnline: false,
         battleOptions: {
             engineVersion: engine?.id || enginesStore.selectedEngineVersion?.id,
@@ -369,13 +369,14 @@ function defaultOfflineBattle(engine?: EngineVersion, game?: GameVersion, map?: 
         aiShortName: barbAi?.shortName || "BARb",
     } satisfies Bot;
 
-    battle.teams[1].participants.push(defaultBot);
-
+    if (!online) {
+        battle.teams[1].participants.push(defaultBot);
+    }
     return battle;
 }
 
-function resetToDefaultBattle(engine?: EngineVersion, game?: GameVersion, map?: MapData) {
-    const battle = defaultOfflineBattle(engine, game, map);
+function resetToDefaultBattle(engine?: EngineVersion, game?: GameVersion, map?: MapData, online?: boolean) {
+    const battle = defaultOfflineBattle(engine, game, map, online);
     Object.assign(battleStore, battle);
 }
 

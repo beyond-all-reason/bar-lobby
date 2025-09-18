@@ -39,10 +39,10 @@ SPDX-License-Identifier: MIT
                         @update:model-value="onMapSelected"
                         :disabled="online"
                     />
-                    <Button v-tooltip.left="'Open map selector'" @click="openMapList">
+                    <Button v-tooltip.left="'Open map selector'" @click="online ? null : openMapList()">
                         <Icon :icon="listIcon" height="23" />
                     </Button>
-                    <Button v-tooltip.left="'Configure map options'" @click="openMapOptions">
+                    <Button v-tooltip.left="'Configure map options'" @click="online ? null : openMapOptions()">
                         <Icon :icon="cogIcon" height="23" />
                     </Button>
                     <MapListModal
@@ -154,6 +154,9 @@ function openMapOptions() {
 }
 
 async function onGameSelected(gameVersion: string) {
+    if (battleStore.isOnline) return; //This should be disabled unless we can change versions later, but just in case we also disable it.
+    //FIXME: why do we have both 'gameStore.selectedGameVersion' as well as 'battleStore.battleOptions.gameVersion'??
+    //It looks like it's because in offline battles we select from available versions?
     gameStore.selectedGameVersion = await db.gameVersions.get(gameVersion);
     battleStore.battleOptions.gameVersion = gameVersion;
 }

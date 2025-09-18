@@ -20,7 +20,8 @@ import { fetchAvailableQueues } from "@renderer/store/matchmaking.store";
 import { Lobby } from "@renderer/model/lobby";
 import { router } from "@renderer/router";
 import { apply as applyPatch } from "json8-merge-patch";
-import { battleStore } from "@renderer/store/battle.store";
+import { battleStore, battleActions } from "@renderer/store/battle.store";
+import { db } from "@renderer/store/db";
 
 export const tachyonStore = reactive({
     isInitialized: false,
@@ -83,13 +84,14 @@ async function unsubscribeList() {
 
 async function createLobby(data: LobbyCreateRequestData) {
     try {
+        battleActions.resetToDefaultBattle(undefined, undefined, undefined, true);
+        battleStore.isOnline = true;
+        battleStore.isLobbyOpened = true;
         tachyonStore.error = undefined;
         const response = await window.tachyon.request("lobby/create", data);
         console.log("Tachyon: lobby/create:", response.status, response.data);
         tachyonStore.activeLobby = parseLobbyResponseData(response.data); //Set the active lobby data first...
         router.push("/play/customLobbies/lobby"); //...then move the user to the lobby view that uses the active lobby data
-        battleStore.isOnline = true;
-        battleStore.isLobbyOpened = true;
     } catch (error) {
         console.error("Error with request lobby/create", error);
         tachyonStore.error = "Error with request lobby/create";
@@ -98,13 +100,14 @@ async function createLobby(data: LobbyCreateRequestData) {
 
 async function joinLobby(id: LobbyJoinRequestData) {
     try {
+        battleActions.resetToDefaultBattle(undefined, undefined, undefined, true);
+        battleStore.isOnline = true;
+        battleStore.isLobbyOpened = true;
         tachyonStore.error = undefined;
         const response = await window.tachyon.request("lobby/join", id);
         console.log("Tachyon: lobby/join:", response.status, response.data);
         tachyonStore.activeLobby = parseLobbyResponseData(response.data);
         router.push("/play/customLobbies/lobby");
-        battleStore.isOnline = true;
-        battleStore.isLobbyOpened = true;
     } catch (error) {
         console.error("Error with request lobby/join", error);
         tachyonStore.error = "Error with request lobby/join";
@@ -125,6 +128,11 @@ function parseLobbyResponseData(data: LobbyCreateOkResponseData | LobbyJoinOkRes
         allyTeams: {},
         members: {},
     };
+    battleStore.battleOptions.engineVersion = data.engineVersion;
+    battleStore.battleOptions.gameVersion = data.gameVersion;
+    db.maps.get(data.mapName).then((map) => {
+        battleStore.battleOptions.map = map;
+    });
     for (const allyKey in data.allyTeamConfig) {
         const item = data.allyTeamConfig[allyKey];
         lobbyObject.allyTeams![allyKey] = {

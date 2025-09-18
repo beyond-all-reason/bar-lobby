@@ -62,6 +62,8 @@ const boxStyles = computed(() => {
 
 // Main box drag handler
 function startDrag(event: MouseEvent) {
+	// Ignore if online for now
+	if (battleStore.isOnline) return;
     // Ignore if clicked on resize handles
     if (
         (event.target as HTMLElement).classList.contains("box-tooltip-side") ||
@@ -94,6 +96,8 @@ function startDrag(event: MouseEvent) {
 }
 
 function handleDrag(event: MouseEvent) {
+	// Ignore if online for now
+	if (battleStore.isOnline) return;
     if (!isDragging.value || !startBox.value || !parentRect.value || !boxElement.value) return;
 
     // Calculate the drag delta in normalized coordinates (0-1)
@@ -114,6 +118,8 @@ function handleDrag(event: MouseEvent) {
 }
 
 function endDrag() {
+	// Ignore if online for now
+	if (battleStore.isOnline) return;
     if (!isDragging.value || !startBox.value || !parentRect.value || !boxElement.value) {
         resetDrag();
         return;
@@ -151,6 +157,8 @@ function resetDrag() {
 
 // Resize handlers
 function startResize(vertical: "n" | "s" | null, horizontal: "e" | "w" | null, event: MouseEvent) {
+	// Ignore if online for now
+	if (battleStore.isOnline) return;
     event.preventDefault();
     event.stopPropagation();
     isResizing.value = true;
@@ -201,6 +209,8 @@ function startResize(vertical: "n" | "s" | null, horizontal: "e" | "w" | null, e
 }
 
 function handleResize(event: MouseEvent) {
+	// Ignore if online for now
+	if (battleStore.isOnline) return;
     if (!isResizing.value || !startBox.value || !parentRect.value || !activeHandle.value || !boxElement.value) return;
 
     // Calculate the movement in normalized coordinates (0-1)
@@ -246,6 +256,8 @@ function handleResize(event: MouseEvent) {
 }
 
 function endResize() {
+	// Ignore if online for now
+	if (battleStore.isOnline) return;
     if (!isResizing.value || !boxElement.value) {
         resetResize();
         return;

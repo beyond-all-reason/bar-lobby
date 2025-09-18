@@ -27,16 +27,24 @@ SPDX-License-Identifier: MIT
             </Button>
             <!-- <Button v-if="showJoin" class="slim black" @click="onJoinClicked(teamId)">Join</Button> -->
         </div>
-        <div
-            v-for="member in battleWithMetadataStore.teams[teamId].participants"
-            :key="member.id"
-            :draggable="!isRaptorTeam(teamId) && !isScavengerTeam(teamId)"
-            @dragstart="onDragStart($event, member)"
-            @dragend="onDragEnd()"
-            class="participant"
-        >
-            <PlayerParticipant v-if="isPlayer(member)" :player="member" />
-            <BotParticipant v-else-if="isBot(member)" :bot="member" :team-id="teamId" />
+        <div v-if="battleStore.isOnline">
+            <div v-for="(member, key, index) in tachyonStore.activeLobby?.allyTeams" :key="key" class="participant">
+                <PlayerParticipant v-if="isPlayer(member)" :player="member" />
+                <BotParticipant v-else-if="isBot(member)" :bot="member" :team-id="teamId" />
+            </div>
+        </div>
+        <div v-else>
+            <div
+                v-for="member in battleWithMetadataStore.teams[teamId].participants"
+                :key="member.id"
+                :draggable="!isRaptorTeam(teamId) && !isScavengerTeam(teamId)"
+                @dragstart="onDragStart($event, member)"
+                @dragend="onDragEnd()"
+                class="participant"
+            >
+                <PlayerParticipant v-if="isPlayer(member)" :player="member" />
+                <BotParticipant v-else-if="isBot(member)" :bot="member" :team-id="teamId" />
+            </div>
         </div>
         <div v-if="!isRaptorTeam(teamId) && !isScavengerTeam(teamId)">
             <div v-for="(_, i) in getAmountOfJoinButtons(maxPlayersPerTeam, memberCount)" :key="i">
@@ -54,7 +62,9 @@ import BotParticipant from "@renderer/components/battle/BotParticipant.vue";
 import PlayerParticipant from "@renderer/components/battle/PlayerParticipant.vue";
 import Button from "@renderer/components/controls/Button.vue";
 import { Bot, isBot, isPlayer, isRaptor, isScavenger, Player } from "@main/game/battle/battle-types";
-import { battleActions, battleWithMetadataStore } from "@renderer/store/battle.store";
+import { battleActions, battleStore, battleWithMetadataStore } from "@renderer/store/battle.store";
+import { tachyonService } from "@main/services/tachyon.service";
+import { tachyonStore } from "@renderer/store/tachyon.store";
 
 const { t } = useTypedI18n();
 
@@ -67,7 +77,15 @@ const title = computed(() =>
 );
 
 const memberCount = computed(() => {
-    return battleWithMetadataStore.teams[props.teamId]?.participants.length || 0;
+    if (battleStore.isOnline) {
+        //This looks really ugly lol. What is happening is we want to count the number of allyTeam keys, so first if the activeLobby is undefined it's zero
+        //But if it's not undefined, we get the number of allyTeam keys - except TS is not happy that they can be null so we have to return an empty object instead if it is.
+        return tachyonStore.activeLobby
+            ? Object.keys(tachyonStore.activeLobby!.allyTeams ? tachyonStore.activeLobby!.allyTeams : {}).length
+            : 0;
+    } else {
+        return battleWithMetadataStore.teams[props.teamId]?.participants.length || 0;
+    }
 });
 
 const maxPlayersPerTeam = computed(() => {
@@ -76,9 +94,12 @@ const maxPlayersPerTeam = computed(() => {
 });
 
 function isRaptorTeam(teamId: number) {
+    //FIXME: later this will be needed again
+    if (battleStore.isOnline) return false;
     return battleWithMetadataStore.teams[teamId].participants.some((member) => isBot(member) && isRaptor(member));
 }
 function isScavengerTeam(teamId: number) {
+    if (battleStore.isOnline) return false;
     return battleWithMetadataStore.teams[teamId]?.participants.some((member) => isBot(member) && isScavenger(member));
 }
 

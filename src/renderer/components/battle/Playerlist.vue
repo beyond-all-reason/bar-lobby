@@ -14,7 +14,22 @@ SPDX-License-Identifier: MIT
         :title="t('lobby.components.battle.addBotModal.title')"
         @bot-selected="onBotSelected"
     />
-    <div class="scroll-container padding-right-sm">
+    <div v-if="battleStore.isOnline" class="scroll-container padding-right-sm">
+        <div class="playerlist" :class="{ dragging: draggedBot || draggedPlayer }">
+            <TeamComponent
+                v-for="(team, key, index) in tachyonStore.activeLobby != undefined ? tachyonStore.activeLobby!.allyTeams : {}"
+                :key="key"
+                :teamId="index"
+                @add-bot-clicked="openBotList"
+                @on-join-clicked="joinTeam"
+            />
+        </div>
+        <hr class="margin-top-sm margin-bottom-sm" />
+        <div class="playerlist" :class="{ dragging: draggedBot || draggedPlayer }">
+            <SpectatorsComponent class="spectators" @on-join-clicked="joinSpectators" />
+        </div>
+    </div>
+    <div class="scroll-container padding-right-sm" v-else>
         <div class="playerlist" :class="{ dragging: draggedBot || draggedPlayer }">
             <TeamComponent
                 v-for="(team, teamId) in battleWithMetadataStore.teams"
@@ -53,6 +68,7 @@ import { Bot, isBot, isRaptor, isScavenger, Player } from "@main/game/battle/bat
 import { battleWithMetadataStore, battleStore, battleActions } from "@renderer/store/battle.store";
 import SpectatorsComponent from "@renderer/components/battle/SpectatorsComponent.vue";
 import { GameAI } from "@main/content/game/game-version";
+import { tachyonStore } from "@renderer/store/tachyon.store";
 
 const { t } = useTypedI18n();
 
@@ -70,11 +86,21 @@ function onBotSelected(bot: EngineAI | GameAI, teamId: number) {
 }
 
 function joinTeam(teamId: number) {
-    if (battleStore.me) battleActions.movePlayerToTeam(battleStore.me, teamId);
+    if (battleStore.isOnline) {
+        //FIXME: once tachyon officially supports joining an AllyTeam
+        console.log("Unable to send 'lobby/joinAllyTeam' because protocol does not yet implement it.");
+    } else {
+        if (battleStore.me) battleActions.movePlayerToTeam(battleStore.me, teamId);
+    }
 }
 
 function joinSpectators() {
-    if (battleStore.me) battleActions.movePlayerToSpectators(battleStore.me);
+    if (battleStore.isOnline) {
+        //FIXME: Add once tachyon support exists
+        console.log("Unable to send 'lobby/spectate' because protocol does not yet implement it.");
+    } else {
+        if (battleStore.me) battleActions.movePlayerToSpectators(battleStore.me);
+    }
 }
 
 const draggedPlayer: Ref<Player | null> = ref(null);
@@ -82,6 +108,8 @@ const draggedBot: Ref<Bot | null> = ref(null);
 let draggedEl: Element | null = null;
 
 function dragEnterTeam(event: DragEvent) {
+    //FIXME: temporary hack for online lobbies
+    if (battleStore.isOnline == true) return;
     if (!draggedPlayer.value && !draggedBot.value) {
         return;
     }
@@ -97,6 +125,8 @@ function dragEnterTeam(event: DragEvent) {
 }
 
 function dragEnterSpectators(event: DragEvent) {
+    //FIXME: temporary hack for online lobbies
+    if (battleStore.isOnline == true) return;
     if (!draggedPlayer.value && !draggedBot.value) {
         return;
     }
@@ -117,6 +147,8 @@ function dragEnterSpectators(event: DragEvent) {
 }
 
 function dragStart(event: DragEvent, participant: Player | Bot) {
+    //FIXME: temporary hack for online lobbies
+    if (battleStore.isOnline == true) return;
     if (isBot(participant)) {
         draggedBot.value = participant;
     } else {
@@ -131,6 +163,8 @@ function dragStart(event: DragEvent, participant: Player | Bot) {
 }
 
 function dragEnd() {
+    //FIXME: temporary hack for online lobbies
+    if (battleStore.isOnline == true) return;
     const participantEl = draggedEl?.querySelector("[data-type=participant]");
     if (participantEl) {
         participantEl.classList.remove("dragging");
@@ -146,6 +180,8 @@ function dragEnd() {
 }
 
 function onDropTeam(event: DragEvent, teamId: number) {
+    //FIXME: temporary hack for online lobbies
+    if (battleStore.isOnline == true) return;
     const target = event.target as Element;
     if (!draggedBot.value && !draggedPlayer.value) {
         return;
@@ -166,6 +202,8 @@ function onDropTeam(event: DragEvent, teamId: number) {
 }
 
 function onDropSpectators(event: DragEvent) {
+    //FIXME: temporary hack for online lobbies
+    if (battleStore.isOnline == true) return;
     const target = event.target as Element;
     if (draggedBot.value || !draggedPlayer.value || target.getAttribute("data-type") !== "group") {
         if (isBot(draggedBot.value) && (isRaptor(draggedBot.value) || isScavenger(draggedBot.value))) {
