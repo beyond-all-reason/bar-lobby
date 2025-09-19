@@ -116,6 +116,9 @@ async function joinLobby(id: LobbyJoinRequestData) {
 
 // We use this function to normalize both LobbyCreateRequestData and LobbyJoinRequestData into the Lobby type for use in the renderer
 function parseLobbyResponseData(data: LobbyCreateOkResponseData | LobbyJoinOkResponseData) {
+    //Do some cleanup in case there's old data in the stores.
+    battleStore.battleOptions.mapOptions.customStartBoxes = [];
+
     //Set up a basic object to hold the data
     const lobbyObject: Lobby = {
         id: data.id,
@@ -145,6 +148,8 @@ function parseLobbyResponseData(data: LobbyCreateOkResponseData | LobbyJoinOkRes
             lobbyObject.allyTeams![allyKey].teams![teamKey] = { maxPlayers: team.maxPlayers };
             lobbyObject.maxPlayerCount += team.maxPlayers; //Lobby maximum is sum of all AllyTeams>Teams>MaxPlayers
         }
+        //Here we assign the startbox for the AllyTeam to the battlestore so they match what we set when the lobby was created.
+        battleStore.battleOptions.mapOptions.customStartBoxes.push(data.allyTeamConfig[allyKey].startBox);
     }
     for (const memberKey in data.members) {
         lobbyObject.playerCount++; //Increment 1 for each player already in the lobby when created/joined.

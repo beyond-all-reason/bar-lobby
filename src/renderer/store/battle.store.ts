@@ -288,6 +288,10 @@ function getCurrentStartBoxes(): Array<StartBox> {
         : (battleStore.battleOptions.mapOptions.customStartBoxes as Array<StartBox>);
 }
 
+function getCustomStartBoxes(): Array<StartBox> {
+    return battleStore.battleOptions.mapOptions.customStartBoxes != undefined ? battleStore.battleOptions.mapOptions.customStartBoxes : [];
+}
+
 function addCustomStartBox() {
     const customBoxes = battleStore.battleOptions.mapOptions.customStartBoxes;
 
@@ -591,6 +595,7 @@ export const battleActions = {
     loadGameMode,
     getMaxPlayersPerTeam,
     getCurrentStartBoxes,
+    getCustomStartBoxes,
 };
 
 // Needs game files to exists.

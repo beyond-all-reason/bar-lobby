@@ -97,7 +97,7 @@ SPDX-License-Identifier: MIT
 </template>
 
 <script lang="ts" setup>
-import { computed, Ref, ref, useTemplateRef } from "vue";
+import { computed, Ref, ref, useTemplateRef, toRaw } from "vue";
 import { useTypedI18n } from "@renderer/i18n";
 
 import Loader from "@renderer/components/common/Loader.vue";
@@ -144,8 +144,17 @@ const waitingForBattleCreation = ref(false);
 const mapListOpen = ref(false);
 const mapOptionsOpen = ref(false);
 
-async function getGeneratedLobbyRequestData(): Promise<LobbyCreateRequestData> {
-    const boxes: StartBox[] = battleActions.getCurrentStartBoxes(); //FIXME: We can have the wrong number of boxes.
+function getGeneratedLobbyRequestData(): LobbyCreateRequestData {
+    const arr = battleActions.getCurrentStartBoxes(); //Proxy objects causing issues with arrays here, so we just get the boxes manually
+    const boxes: Array<StartBox> = []; //FIXME: We can have the wrong number of boxes.
+    arr.forEach((item) => {
+        boxes.push({
+            left: item.left,
+            right: item.right,
+            top: item.top,
+            bottom: item.bottom,
+        });
+    });
     let config: LobbyCreateRequestData = {
         name: lobbyName.value,
         mapName: map.value.springName,
@@ -165,17 +174,16 @@ async function getGeneratedLobbyRequestData(): Promise<LobbyCreateRequestData> {
             config.allyTeamConfig[i].teams.push({ maxPlayers: 1 }); //One player by team by default.
         }
     }
-    console.log(config);
+    console.log("Generated new lobby config: ", config);
     return config;
 }
 
 async function hostBattle() {
-    getGeneratedLobbyRequestData().then((data) => {
-        //waitingForBattleCreation.value = true;
-        hostLobbyModal.value!.close();
-        tachyon.createLobby(data);
-        //Need some kind of response here to handle errors in the modal and also to close it once successful.
-    });
+    const data = getGeneratedLobbyRequestData();
+    //waitingForBattleCreation.value = true;
+    hostLobbyModal.value!.close();
+    tachyon.createLobby(data);
+    //Need some kind of response here to handle errors in the modal and also to close it once successful.
 }
 
 async function onOpen() {

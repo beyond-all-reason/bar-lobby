@@ -83,7 +83,9 @@ watch(
     }
 );
 
-const boxes = computed<StartBox[]>(() => battleActions.getCurrentStartBoxes());
+const boxes = computed<StartBox[]>(() =>
+    battleStore.isOnline ? battleActions.getCustomStartBoxes() : battleActions.getCurrentStartBoxes()
+);
 
 const aspectRatioDrivenStyle = computed(() => {
     if (!battleStore.battleOptions.map?.mapWidth || !battleStore.battleOptions.map?.mapHeight) {
