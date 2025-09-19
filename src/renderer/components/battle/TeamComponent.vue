@@ -20,7 +20,8 @@ SPDX-License-Identifier: MIT
         <div class="group-header flex-row flex-center-items gap-md">
             <div class="title">{{ title }}</div>
             <div class="member-count" v-if="!isRaptorTeam(teamId) && !isScavengerTeam(teamId)">
-                ({{ memberCount }}/{{ maxPlayersPerTeam }} players)
+                <div v-if="!battleStore.isOnline">({{ memberCount }}/{{ maxPlayersPerTeam }} players)</div>
+                <div v-else>({{ memberCount }}/{{ maxMembersPerAllyTeam }} players)</div>
             </div>
             <Button class="slim black" @click="addBotClicked(teamId)" v-if="!isRaptorTeam(teamId) && !isScavengerTeam(teamId)">
                 {{ t("lobby.components.battle.teamComponent.addBot") }}
@@ -28,9 +29,8 @@ SPDX-License-Identifier: MIT
             <!-- <Button v-if="showJoin" class="slim black" @click="onJoinClicked(teamId)">Join</Button> -->
         </div>
         <div v-if="battleStore.isOnline">
-            <div v-for="(member, key, index) in tachyonStore.activeLobby?.allyTeams" :key="key" class="participant">
-                <PlayerParticipant v-if="isPlayer(member)" :player="member" />
-                <BotParticipant v-else-if="isBot(member)" :bot="member" :team-id="teamId" />
+            <div v-for="(member, key, index) in allyMembers" :key="key" class="participant">
+                <LobbyParticipant :player="member as Member" />
             </div>
         </div>
         <div v-else>
@@ -63,35 +63,72 @@ import PlayerParticipant from "@renderer/components/battle/PlayerParticipant.vue
 import Button from "@renderer/components/controls/Button.vue";
 import { Bot, isBot, isPlayer, isRaptor, isScavenger, Player } from "@main/game/battle/battle-types";
 import { battleActions, battleStore, battleWithMetadataStore } from "@renderer/store/battle.store";
-import { tachyonService } from "@main/services/tachyon.service";
 import { tachyonStore } from "@renderer/store/tachyon.store";
+import { UserId } from "tachyon-protocol/types";
+import LobbyParticipant from "@renderer/components/battle/LobbyParticipant.vue";
 
 const { t } = useTypedI18n();
 
 const props = defineProps<{
     teamId: number;
+    teamKey: string;
 }>();
 
 const title = computed(() =>
     isScavengerTeam(props.teamId) ? "Scavengers" : isRaptorTeam(props.teamId) ? "Raptors" : "Team " + (Number(props.teamId) + 1)
 );
 
+const allyMembers = computed(() => {
+    let arr: Member[] = [];
+    if (battleStore.isOnline && tachyonStore.activeLobby && tachyonStore.activeLobby.allyTeams) {
+        if (tachyonStore.activeLobby.members) {
+            for (const memberKey in tachyonStore.activeLobby.members) {
+                const member = tachyonStore.activeLobby.members[memberKey];
+                if (parseInt(member!.allyTeam) == props.teamId) arr.push(member as Member);
+            }
+            return arr;
+        }
+    }
+    return arr;
+});
+
 const memberCount = computed(() => {
-    if (battleStore.isOnline) {
-        //This looks really ugly lol. What is happening is we want to count the number of allyTeam keys, so first if the activeLobby is undefined it's zero
-        //But if it's not undefined, we get the number of allyTeam keys - except TS is not happy that they can be null so we have to return an empty object instead if it is.
-        return tachyonStore.activeLobby
-            ? Object.keys(tachyonStore.activeLobby!.allyTeams ? tachyonStore.activeLobby!.allyTeams : {}).length
-            : 0;
+    if (battleStore.isOnline && tachyonStore.activeLobby && tachyonStore.activeLobby.allyTeams) {
+        if (tachyonStore.activeLobby.members) {
+            let count = 0;
+            for (const memberKey in tachyonStore.activeLobby.members) {
+                const member = tachyonStore.activeLobby.members[memberKey];
+                if (parseInt(member!.allyTeam) == props.teamId) count++;
+            }
+            return count;
+        } else return 0;
     } else {
         return battleWithMetadataStore.teams[props.teamId]?.participants.length || 0;
     }
 });
 
+const maxMembersPerAllyTeam = computed(() => {
+    if (battleStore.isOnline && tachyonStore.activeLobby && tachyonStore.activeLobby.allyTeams) {
+        // Server always gives us team "000" as the first one, and the players per team is currently always the same
+        return tachyonStore.activeLobby.allyTeams[props.teamKey].maxTeams;
+    } else return 1;
+});
+
 const maxPlayersPerTeam = computed(() => {
+    if (battleStore.isOnline && tachyonStore.activeLobby && tachyonStore.activeLobby.allyTeams) {
+        return tachyonStore.activeLobby.allyTeams[props.teamKey].maxTeams;
+    }
     if (!battleWithMetadataStore.battleOptions.map) return 1;
     return battleActions.getMaxPlayersPerTeam();
 });
+
+interface Member {
+    type: string;
+    id: UserId;
+    allyTeam: string;
+    team: string;
+    player: string;
+}
 
 function isRaptorTeam(teamId: number) {
     //FIXME: later this will be needed again
@@ -105,7 +142,6 @@ function isScavengerTeam(teamId: number) {
 
 function getAmountOfJoinButtons(maxPlayersPerTeam: number | undefined, memberCount: number) {
     if (!maxPlayersPerTeam) return 1;
-
     // notice that we can have more members than the max players so that it can be negative
     const amount = maxPlayersPerTeam - memberCount;
 

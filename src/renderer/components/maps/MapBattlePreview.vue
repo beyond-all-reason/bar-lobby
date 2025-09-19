@@ -52,6 +52,7 @@ import { battleActions, battleStore } from "@renderer/store/battle.store";
 import { StartBox } from "tachyon-protocol/types";
 import { computed, defineComponent, ref, watch } from "vue";
 import MapBattlePreviewStartBox from "@renderer/components/maps/MapBattlePreviewStartBox.vue";
+import { tachyonStore } from "@renderer/store/tachyon.store";
 
 defineComponent({
     directives: {
@@ -83,9 +84,25 @@ watch(
     }
 );
 
-const boxes = computed<StartBox[]>(() =>
-    battleStore.isOnline ? battleActions.getCustomStartBoxes() : battleActions.getCurrentStartBoxes()
-);
+//FIXME: For some reason we are still getting too many boxes to render when the number returned by the server is less than the default map count.
+//const boxes = computed<StartBox[]>(() =>
+//    battleStore.isOnline ? battleActions.getCustomStartBoxes() : battleActions.getCurrentStartBoxes()
+//);
+//const boxes = computed<StartBox[]>(() => battleActions.getCurrentStartBoxes() );
+const boxes = computed<StartBox[]>(() => {
+    let arr: StartBox[] = [];
+    if (battleStore.isOnline && tachyonStore.activeLobby) {
+        for (const key in tachyonStore.activeLobby.allyTeams) {
+            const allyTeam = tachyonStore.activeLobby.allyTeams[key];
+            if (allyTeam.startBox) {
+                arr.push(allyTeam.startBox);
+            }
+        }
+    } else {
+        arr = battleActions.getCurrentStartBoxes();
+    }
+    return arr;
+});
 
 const aspectRatioDrivenStyle = computed(() => {
     if (!battleStore.battleOptions.map?.mapWidth || !battleStore.battleOptions.map?.mapHeight) {

@@ -12,9 +12,10 @@ SPDX-License-Identifier: MIT
     <Panel>
         <div class="flex flex-row">
             <Button @click="router.push('/play/customLobbies/customLobbies')" class="flex-left">Back</Button>
-            <Button @click="tachyon.startBattle()" class="blue flex-left">Start Battle</Button>
+            <Button @click="tachyon.startBattle()" class="blue flex-left">Tachyon:Start Battle</Button>
             <Button @click="getStuff()" class="red flex-right">Download Map/Engine/Game Content</Button>
-            <Button @click="tachyon.leaveLobby()" class="flex-right">Leave Lobby</Button>
+            <Button @click="battleStore.isLobbyOpened = true" class="flex-right">Open BattleDrawer</Button>
+            <Button @click="tachyon.leaveLobby()" class="flex-right">Tachyon:Leave Lobby</Button>
         </div>
         <div v-if="tachyonStore.activeLobby">
             <div>
@@ -47,6 +48,7 @@ import Panel from "@renderer/components/common/Panel.vue";
 import Button from "@renderer/components/controls/Button.vue";
 import { tachyonStore, tachyon } from "@renderer/store/tachyon.store";
 import { router } from "@renderer/router";
+import { battleStore } from "@renderer/store/battle.store";
 
 function getStripeResult(index: number) {
     return index & 1 ? "datagrid" : "datagrid datagridstripe";

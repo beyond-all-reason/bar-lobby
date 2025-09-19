@@ -203,6 +203,7 @@ function onClose() {
 function onMapSelected(mapData: MapData) {
     //We will hijack the "battlestore" so the map stuff works easier
     battleStore.battleOptions.map = mapData;
+    battleActions.getCurrentStartBoxes();
     map.value = mapData;
     mapListOpen.value = false;
 }

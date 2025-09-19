@@ -20,6 +20,7 @@ SPDX-License-Identifier: MIT
                 v-for="(team, key, index) in tachyonStore.activeLobby != undefined ? tachyonStore.activeLobby!.allyTeams : {}"
                 :key="key"
                 :teamId="index"
+                :teamKey="key as string"
                 @add-bot-clicked="openBotList"
                 @on-join-clicked="joinTeam"
             />
@@ -29,12 +30,13 @@ SPDX-License-Identifier: MIT
             <SpectatorsComponent class="spectators" @on-join-clicked="joinSpectators" />
         </div>
     </div>
-    <div class="scroll-container padding-right-sm" v-else>
+    <div v-else class="scroll-container padding-right-sm">
         <div class="playerlist" :class="{ dragging: draggedBot || draggedPlayer }">
             <TeamComponent
                 v-for="(team, teamId) in battleWithMetadataStore.teams"
                 :key="teamId"
                 :teamId="teamId"
+                teamKey=""
                 @add-bot-clicked="openBotList"
                 @on-join-clicked="joinTeam"
                 @on-drag-start="dragStart"
@@ -58,7 +60,7 @@ SPDX-License-Identifier: MIT
 </template>
 
 <script lang="ts" setup>
-import { Ref, ref } from "vue";
+import { Ref, ref, computed } from "vue";
 import { useTypedI18n } from "@renderer/i18n";
 
 import AddBotModal from "@renderer/components/battle/AddBotModal.vue";
