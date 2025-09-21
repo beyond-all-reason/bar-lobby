@@ -6,7 +6,7 @@ SPDX-License-Identifier: MIT
 
 <template>
     <TeamParticipant @contextmenu="onRightClick">
-        <div>Unknown Player</div>
+        <div>Player ID {{ player.id }}</div>
         <div class="flex-row flex-right flex-center">
             <div class="flex-row flex-center gap-sm">
                 <!-- <div
