@@ -14,6 +14,7 @@ import {
     LobbyListUpdatedEventData,
     LobbyUpdatedEventData,
     SystemServerStatsOkResponseData,
+    UserId,
 } from "tachyon-protocol/types";
 import { reactive } from "vue";
 import { fetchAvailableQueues } from "@renderer/store/matchmaking.store";
@@ -92,6 +93,8 @@ async function createLobby(data: LobbyCreateRequestData) {
         console.log("Tachyon: lobby/create:", response.status, response.data);
         tachyonStore.activeLobby = parseLobbyResponseData(response.data); //Set the active lobby data first...
         router.push("/play/customLobbies/lobby"); //...then move the user to the lobby view that uses the active lobby data
+        //Note, we don't do any 'user/subscribeUpdates' here because when we create it there is only ourselves on initial join.
+        //If that ever changes, if a whole party joins instantly for example, then we need to revisit this.
     } catch (error) {
         console.error("Error with request lobby/create", error);
         tachyonStore.error = "Error with request lobby/create";
@@ -108,6 +111,14 @@ async function joinLobby(id: LobbyJoinRequestData) {
         console.log("Tachyon: lobby/join:", response.status, response.data);
         tachyonStore.activeLobby = parseLobbyResponseData(response.data);
         router.push("/play/customLobbies/lobby");
+        //Subscribe to obtain user data
+        const userSubList: UserId[] = [];
+        for (const memberKey in tachyonStore.activeLobby.members) {
+            if (tachyonStore.activeLobby.members[memberKey]) {
+                userSubList.push(tachyonStore.activeLobby.members[memberKey].id);
+            }
+        }
+        window.tachyon.request("user/subscribeUpdates", { userIds: userSubList });
     } catch (error) {
         console.error("Error with request lobby/join", error);
         tachyonStore.error = "Error with request lobby/join";
@@ -157,7 +168,6 @@ function parseLobbyResponseData(data: LobbyCreateOkResponseData | LobbyJoinOkRes
         //TODO: after we parse this list we will want to go back and get actual player info for each using the ``user/subscribeUpdates`` request.
         lobbyObject.members![memberKey] = {
             id: member.id,
-            //name: "Unknown Player", //Later we can update this from obtaining user information, along with other stuff
             allyTeam: member.allyTeam,
             team: member.team,
             player: member.player,
@@ -173,6 +183,7 @@ async function leaveLobby() {
         const response = await window.tachyon.request("lobby/leave");
         console.log("Tachyon: lobby/leave:", response.status);
         router.push("/play/customLobbies/customLobbies");
+        clearUserSubscriptions();
         tachyonStore.activeLobby = undefined;
     } catch (error) {
         console.error("Error with request lobby/leave", error);
@@ -280,14 +291,38 @@ function onLobbyUpdatedEvent(data: LobbyUpdatedEventData) {
         playerCount++;
     }
     tachyonStore.activeLobby!.playerCount = playerCount;
+    // We need to sub to new members, but if members go away we unsub isntead. Ugh we need to maintain a list and diff it also lol
+    if (data.members) {
+        const userSubList: UserId[] = [];
+        for (const memberKey in data.members) {
+            if (data.members[memberKey]) {
+                userSubList.push(data.members[memberKey].id);
+            }
+        }
+        if (userSubList.length > 0) {
+            window.tachyon.request("user/subscribeUpdates", { userIds: userSubList });
+        }
+    }
 }
 
 function onLobbyLeftEvent(data: LobbyLeftEventData) {
+    clearUserSubscriptions();
     tachyonStore.activeLobby = undefined;
     console.log("Tachyon event: lobby/left:", data);
     router.push("/play/customLobbies/customLobbies");
     //TODO: Probably want some kind of message displayed to the user, explaining they were removed from the lobby for reason [kicked | lobby crash | etc?]
 }
+
+function clearUserSubscriptions() {
+    const userUnsubList: UserId[] = [];
+    if (tachyonStore.activeLobby?.members) {
+        for (const memberKey in tachyonStore.activeLobby!.members) {
+            userUnsubList.push(tachyonStore.activeLobby!.members[memberKey]!.id);
+        }
+        window.tachyon.request("user/unsubscribeUpdates", { userIds: userUnsubList });
+    }
+}
+
 async function fetchServerStats() {
     try {
         tachyonStore.error = undefined;

@@ -6,16 +6,17 @@ SPDX-License-Identifier: MIT
 
 <template>
     <div class="battle-container">
-		<div v-if="online" :title="tachyonStore.activeLobby?.name" class="flex flex-row">
-			<p class="title flex-left">{{ tachyonStore.activeLobby?.name }}</p>
-			<div><Button disabled title="Edit Lobby Name"><Icon :icon="pencilIcon" class="flex-right" width="24px" height="24px"/></Button></div>
-		</div>
+        <div v-if="online" :title="tachyonStore.activeLobby?.name" class="flex flex-row">
+            <p class="title flex-left">{{ tachyonStore.activeLobby?.name }}</p>
+            <div>
+                <Button disabled title="Edit Lobby Name"><Icon :icon="pencilIcon" class="flex-right" width="24px" height="24px" /></Button>
+            </div>
+        </div>
         <div class="main-content">
             <div class="player-list">
                 <Playerlist />
             </div>
             <div class="options">
-				
                 <MapBattlePreview />
                 <div class="flex-row flex-space-between">
                     <div class="flex-row gap-lg flex-center-items">
@@ -124,7 +125,7 @@ const { t } = useTypedI18n();
 import { db } from "@renderer/store/db";
 import listIcon from "@iconify-icons/mdi/format-list-bulleted";
 import cogIcon from "@iconify-icons/mdi/cog";
-import pencilIcon from "@iconify-icons/mdi/pencil"
+import pencilIcon from "@iconify-icons/mdi/pencil";
 import { useDexieLiveQuery, useDexieLiveQueryWithDeps } from "@renderer/composables/useDexieLiveQuery";
 import MapBattlePreview from "@renderer/components/maps/MapBattlePreview.vue";
 import { MapData } from "@main/content/maps/map-data";
@@ -184,11 +185,11 @@ function onMapSelected(map: MapData) {
 .title {
     font-size: 24px;
     line-height: 1.2em;
-	white-space: nowrap;
-	text-overflow: ellipsis;
-	overflow-x: hidden;
-	overflow-y: visible;
-	scrollbar-width: none;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow-x: hidden;
+    overflow-y: visible;
+    scrollbar-width: none;
 }
 .player-list {
     display: flex;

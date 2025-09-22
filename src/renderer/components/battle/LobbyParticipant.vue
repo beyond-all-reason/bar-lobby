@@ -6,7 +6,7 @@ SPDX-License-Identifier: MIT
 
 <template>
     <TeamParticipant @contextmenu="onRightClick">
-        <div>Player ID {{ player.id }}</div>
+        <div>{{ displayName }}</div>
         <div class="flex-row flex-right flex-center">
             <div class="flex-row flex-center gap-sm">
                 <!-- <div
@@ -39,6 +39,9 @@ import { useRouter } from "vue-router";
 import { me } from "@renderer/store/me.store";
 import { lobbyPlayer } from "@renderer/model/lobbyPlayer";
 import { UserId } from "tachyon-protocol/types";
+import { getUserByID } from "@renderer/store/users.store";
+import { computedAsync } from "@vueuse/core";
+import { User } from "@main/model/user";
 
 const { t } = useTypedI18n();
 const router = useRouter();
@@ -54,6 +57,17 @@ interface PlayerThing {
     team: string;
     player: string;
 }
+
+const displayName = computedAsync(async () => {
+    const name = "User " + props.player.id; //TODO: Use a translation string here
+    if (props.player.id) {
+        const cached: User = (await getUserByID(props.player.id)) as User;
+        if (cached != undefined) {
+            return await cached.username;
+        }
+    }
+    return name;
+});
 
 const isSynced = computed(() => {
     return true;
