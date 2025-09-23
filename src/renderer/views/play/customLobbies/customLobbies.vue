@@ -90,7 +90,7 @@ import lock from "@iconify-icons/mdi/lock";
 import robot from "@iconify-icons/mdi/robot";
 import Column from "primevue/column";
 import DataTable from "primevue/datatable";
-import { Ref, ref, shallowRef, onMounted, computed, onActivated } from "vue";
+import { Ref, ref, shallowRef, computed, onActivated } from "vue";
 //import BattlePreview from "@renderer/components/battle/BattlePreview.vue";
 import HostBattle from "@renderer/components/battle/HostBattle.vue";
 import Loader from "@renderer/components/common/Loader.vue";
@@ -113,7 +113,7 @@ const loading = ref(false);
 const createLobbyModalIsOpen = ref(false);
 const searchVal = ref("");
 //const selectedBattle: Ref<OngoingBattle | null> = shallowRef(null);
-const selectedLobby: Ref<LobbyType | null> = shallowRef(null);
+const selectedLobby: Ref<LobbyType | null> = shallowRef(null); //FIXME: There are cases where we want to clear this value back to null. Especially if the lobby is removed from the list by the server.
 const lobbyList = computed(() => {
     const arr: LobbyType[] = [];
     for (const lobbyKey in tachyonStore.lobbyList) {

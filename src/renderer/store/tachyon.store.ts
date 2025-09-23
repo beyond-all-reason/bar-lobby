@@ -15,6 +15,7 @@ import {
     LobbyUpdatedEventData,
     SystemServerStatsOkResponseData,
     UserId,
+    LobbyOverview,
 } from "tachyon-protocol/types";
 import { reactive } from "vue";
 import { fetchAvailableQueues } from "@renderer/store/matchmaking.store";
@@ -38,7 +39,7 @@ export const tachyonStore = reactive({
     error?: string;
     fetchServerStatsInterval?: NodeJS.Timeout;
     reconnectInterval?: NodeJS.Timeout;
-    lobbyList: Record<string, Lobby>;
+    lobbyList: Record<string, LobbyOverview>;
     activeLobby?: Lobby;
 });
 
@@ -162,6 +163,7 @@ function parseLobbyResponseData(data: LobbyCreateOkResponseData | LobbyJoinOkRes
         //Here we assign the startbox for the AllyTeam to the battlestore so they match what we set when the lobby was created.
         battleStore.battleOptions.mapOptions.customStartBoxes.push(data.allyTeamConfig[allyKey].startBox);
     }
+    //FIXME: Spectators need to be separated once implemented
     for (const memberKey in data.members) {
         lobbyObject.playerCount++; //Increment 1 for each player already in the lobby when created/joined.
         const member = data.members[memberKey];
@@ -203,14 +205,14 @@ async function startBattle() {
     }
 }
 
-// This may change to become a JSON patch event, with a separate event for setList. If so, the lobbyList will need to be <LobbyOverview>s so we can parse it that way.
-// It would not be a problem to change types, because we should never touch activeLobby from lobbyList data, or vice-versa.
 function onListUpdatedEvent(data: LobbyListUpdatedEventData) {
     console.log("Tachyon event: lobby/listUpdated:", data);
+    tachyonStore.lobbyList = applyPatch(tachyonStore.lobbyList, data.lobbies); //Error here until tachyon-protocol package updates
+    /*
     data.updates.forEach(function (item, index) {
         if (item.type == "added") {
             //This response contains "overview: LobbyOverview"
-            const lobbyToAdd: Lobby = {
+            const lobbyToAdd: LobbyOverview = {
                 id: item.overview.id,
                 name: item.overview.name,
                 mapName: item.overview.mapName,
@@ -218,6 +220,7 @@ function onListUpdatedEvent(data: LobbyListUpdatedEventData) {
                 maxPlayerCount: item.overview.maxPlayerCount,
                 engineVersion: item.overview.engineVersion,
                 gameVersion: item.overview.gameVersion,
+				currentBattle: null,
             };
             if (item.overview.currentBattle && item.overview.currentBattle?.startedAt) {
                 lobbyToAdd.currentBattle = { startedAt: item.overview.currentBattle.startedAt };
@@ -253,7 +256,7 @@ function onListUpdatedEvent(data: LobbyListUpdatedEventData) {
             //This response contains "overviews: LobbyOverview[]"
             tachyonStore.lobbyList = {}; //Have to reset the list to blank because setList contains everything.
             item.overviews.forEach(function (overview, index) {
-                const lobbyToAdd: Lobby = {
+                const lobbyToAdd: LobbyOverview = {
                     id: overview.id,
                     name: overview.name,
                     mapName: overview.mapName,
@@ -261,6 +264,7 @@ function onListUpdatedEvent(data: LobbyListUpdatedEventData) {
                     maxPlayerCount: overview.maxPlayerCount,
                     engineVersion: overview.engineVersion,
                     gameVersion: overview.gameVersion,
+					currentBattle: null,
                 };
                 if (overview.currentBattle && overview.currentBattle?.startedAt) {
                     lobbyToAdd.currentBattle = { startedAt: overview.currentBattle.startedAt };
@@ -272,6 +276,23 @@ function onListUpdatedEvent(data: LobbyListUpdatedEventData) {
             console.error("onListUpdatedEvent: response type does not match protocol:", item);
         }
     });
+	*/
+}
+// !! Below is temporary until the npm package updates. Remove after.
+export interface LobbyListResetEvent {
+    type: "event";
+    messageId: string;
+    commandId: "lobby/listReset";
+    data: LobbyListResetEventData;
+}
+export interface LobbyListResetEventData {
+    lobbies: {
+        [k: string]: LobbyOverview;
+    };
+}
+
+function onLobbyListResetEvent(data: LobbyListResetEventData) {
+    tachyonStore.lobbyList = data.lobbies;
 }
 
 function onLobbyUpdatedEvent(data: LobbyUpdatedEventData) {
@@ -388,6 +409,9 @@ export async function initTachyonStore() {
     });
     window.tachyon.onEvent("lobby/updated", (data) => {
         onLobbyUpdatedEvent(data);
+    });
+    window.tachyon.onEvent("lobby/listReset", (data) => {
+        onLobbyListResetEvent(data);
     });
 
     window.tachyon.onBattleStart((springString) => {
