@@ -69,8 +69,8 @@ function onSlide(input: number | number[]) {
 }
 
 function onInput(input: number | number[]) {
-    const clamp = (v: number) => Math.max(props.min ?? 0, Math.min(props.max ?? 100, v));
-    emits("update:modelValue", typeof input === "number" ? clamp(input) : input.map(clamp).sort((a, b) => a - b));
+    const clamp = (v: number) => Math.max(props.min ?? 0, Math.min(props.max ?? 100, v || 0));
+    emits("update:modelValue", Array.isArray(input) ? input.map(clamp).sort((a, b) => a - b) : clamp(input));
 }
 </script>
 
