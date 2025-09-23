@@ -5,20 +5,28 @@ SPDX-License-Identifier: MIT
 -->
 
 <template>
-    <Control class="range">
+    <Control class="range" :disabled="disabled">
+        <!-- Fixed: Added .select() on focus to make it easier to type new numbers -->
         <InputNumber
             v-if="range"
             v-bind="$attrs"
             :modelValue="low"
             @update:modelValue="(input: number) => onInput([input, high || 0])"
+            @focus="(event: FocusEvent) => (event.target as HTMLInputElement)?.select()"
             class="min"
+            :disabled="disabled"
         />
         <Slider v-bind="$props" :modelValue="modelValue" @update:modelValue="onSlide" />
+
+        <!-- Fixed: Added .select() on focus to make it easier to type new numbers -->
+        <!-- Fixed: Wrap conditional in function to properly pass input value - second input now correctly changes the range -->
         <InputNumber
             v-bind="$attrs"
             :modelValue="typeof modelValue === 'number' ? modelValue : high"
-            @update:modelValue="typeof modelValue === 'number' ? onInput : (input: number) => onInput([low || 0, input])"
+            @update:modelValue="(input: number) => (typeof modelValue === 'number' ? onInput(input) : onInput([low || 0, input]))"
+            @focus="(event: FocusEvent) => (event.target as HTMLInputElement)?.select()"
             class="max"
+            :disabled="disabled"
         />
         <!-- <InputNumber
             v-if="!range && typeof modelValue === 'number'"
@@ -65,7 +73,10 @@ function onSlide(input: number | number[]) {
 }
 
 function onInput(input: number | number[]) {
-    emits("update:modelValue", input);
+    // Clamp values to min/max range to prevent slider from breaking when typing out-of-bounds numbers
+    // Also ensures that lowest number is always on left
+    const clamp = (v: number) => Math.max(props.min ?? 0, Math.min(props.max ?? 100, v));
+    emits("update:modelValue", typeof input === "number" ? clamp(input) : input.map(clamp).sort((a, b) => a - b));
 }
 </script>
 
@@ -73,6 +84,10 @@ function onInput(input: number | number[]) {
 .range {
     width: 100%;
     align-self: center;
+    // Global style was not effecting it
+    .disabled {
+        opacity: 0.4;
+    }
 }
 :deep(.p-slider) {
     width: 100%;
