@@ -89,7 +89,6 @@ const maps = useDexieLiveQueryWithDeps([searchVal, sortMethod, limit, filters], 
             const downloaded = !filters.downloadedOnly || map.isInstalled;
             return Boolean(
                 map.displayName.toLocaleLowerCase().includes(searchVal.value.toLocaleLowerCase()) &&
-                    // fixed map team size comparison
                     filters.minPlayers <= map.playerCountMax &&
                     filters.maxPlayers >= map.playerCountMax &&
                     (terrainFilters.size === 0 || terrainFilters.isSubsetOf(new Set([...map.terrain]))) &&

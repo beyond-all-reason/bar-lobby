@@ -6,7 +6,6 @@ SPDX-License-Identifier: MIT
 
 <template>
     <Control class="range" :disabled="disabled">
-        <!-- Fixed: Added .select() on focus to make it easier to type new numbers -->
         <InputNumber
             v-if="range"
             v-bind="$attrs"
@@ -17,9 +16,6 @@ SPDX-License-Identifier: MIT
             :disabled="disabled"
         />
         <Slider v-bind="$props" :modelValue="modelValue" @update:modelValue="onSlide" />
-
-        <!-- Fixed: Added .select() on focus to make it easier to type new numbers -->
-        <!-- Fixed: Wrap conditional in function to properly pass input value - second input now correctly changes the range -->
         <InputNumber
             v-bind="$attrs"
             :modelValue="typeof modelValue === 'number' ? modelValue : high"
@@ -73,8 +69,6 @@ function onSlide(input: number | number[]) {
 }
 
 function onInput(input: number | number[]) {
-    // Clamp values to min/max range to prevent slider from breaking when typing out-of-bounds numbers
-    // Also ensures that lowest number is always on left
     const clamp = (v: number) => Math.max(props.min ?? 0, Math.min(props.max ?? 100, v));
     emits("update:modelValue", typeof input === "number" ? clamp(input) : input.map(clamp).sort((a, b) => a - b));
 }
@@ -84,7 +78,6 @@ function onInput(input: number | number[]) {
 .range {
     width: 100%;
     align-self: center;
-    // Global style was not effecting it
     .disabled {
         opacity: 0.4;
     }

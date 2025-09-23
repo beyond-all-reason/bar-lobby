@@ -70,7 +70,6 @@ SPDX-License-Identifier: MIT
                     <Range v-model="range" :disabled="true" />
                     <div class="value">{{ range }}</div>
                 </div>
-                <!-- Added row of range Range sliders -->
                 <div class="flex-row gap-md flex-center-items">
                     <Range :modelValue="rangeLowHigh" @update:model-value="onUpdateRangeLowHigh" :min="2" :max="40" range />
                     <Range v-model="rangeLowHigh" label="Label" :min="2" :max="40" range />
@@ -146,7 +145,6 @@ function onUpdateRange(newRange: number | number[]) {
     range.value = newRange;
 }
 
-// Added new range variable and update function for the range Range slider
 const rangeLowHigh: Ref<number | number[]> = ref([2, 32]);
 function onUpdateRangeLowHigh(newRange: number | number[]) {
     console.log(typeof newRange);
