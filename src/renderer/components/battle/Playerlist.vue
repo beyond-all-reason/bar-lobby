@@ -26,6 +26,9 @@ SPDX-License-Identifier: MIT
             />
         </div>
         <hr class="margin-top-sm margin-bottom-sm" />
+        <div v-if="displayQueue" class="playerlist" :class="{ dragging: draggedBot || draggedPlayer }">
+            <SpectatorsComponent class="queue" :queue="true" @on-join-clicked="joinQueue" />
+        </div>
         <div class="playerlist" :class="{ dragging: draggedBot || draggedPlayer }">
             <SpectatorsComponent class="spectators" @on-join-clicked="joinSpectators" />
         </div>
@@ -82,11 +85,24 @@ function openBotList(teamId: number) {
     botListOpen.value = true;
 }
 
+const displayQueue = computed(() => {
+    if (!battleStore.isOnline) {
+        return false;
+    }
+    // Once the concept of a queue exists in the lobby, we will only display it if all AllyTeams are full.
+    // Join Queue would replace Join AllyTeam in these cases, since players can't request a specific team in those cases.
+    return true; //For now we will display the empty queue if online to test the appearance.
+});
+
 function onBotSelected(bot: EngineAI | GameAI, teamId: number) {
     botListOpen.value = false;
     battleActions.addBot(bot, teamId);
 }
 
+function joinQueue() {
+    //This only shows up if online already.
+    console.log("Unable to set 'lobby/joinQueue' because protocol does not implement it yet.");
+}
 function joinTeam(teamId: number) {
     if (battleStore.isOnline) {
         //FIXME: once tachyon officially supports joining an AllyTeam

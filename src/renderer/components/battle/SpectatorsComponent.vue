@@ -37,7 +37,11 @@ import { me } from "@renderer/store/me.store";
 
 const { t } = useTypedI18n();
 
-const title = t("lobby.components.battle.spectatorsComponent.spectators");
+const props = defineProps<{
+    queue?: boolean;
+}>();
+
+const title = props.queue ? "Player Queue" : t("lobby.components.battle.spectatorsComponent.spectators");
 
 const showJoin = computed(() => {
     return me.battleRoomState.isSpectator === false;
