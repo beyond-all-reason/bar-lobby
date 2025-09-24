@@ -54,6 +54,7 @@ SPDX-License-Identifier: MIT
                                 optionLabel="name"
                             />
                         </div>
+                        <ModSelection :mod-selection="modSelection" />
                         <DownloadContentButton
                             v-if="map"
                             :map="map"
@@ -71,7 +72,7 @@ SPDX-License-Identifier: MIT
 </template>
 
 <script lang="ts" setup>
-import { computed, ref, watch } from "vue";
+import { computed, ref, watch, onMounted } from "vue";
 
 import Button from "@renderer/components/controls/Button.vue";
 import Select from "@renderer/components/controls/Select.vue";
@@ -87,6 +88,9 @@ import DownloadContentButton from "@renderer/components/controls/DownloadContent
 import { GameStatus, gameStore } from "@renderer/store/game.store";
 
 import { useTypedI18n } from "@renderer/i18n";
+import ModSelection from "@renderer/components/mods/ModSelection.vue";
+import { useModSelection } from "@renderer/composables/useModSelection";
+import { useModIntegration } from "@renderer/composables/useModIntegration";
 
 const { t } = useTypedI18n();
 
@@ -122,6 +126,12 @@ const selectedDifficulty = ref(difficulties.value.find((dif) => dif.name === sel
 const factions = computed(() => selectedScenario.value.allowedsides);
 const selectedFaction = ref(factions.value[0]);
 
+// Mod selection using composables
+const modSelection = useModSelection();
+const modIntegration = useModIntegration({
+    selectedMods: modSelection.selectedMods,
+});
+
 watch(
     () => gameStore.selectedGameVersion?.gameVersion,
     async (selectedVersion) => {
@@ -134,6 +144,15 @@ watch(
 watch(selectedScenario, (newScenario) => {
     selectedDifficulty.value = difficulties.value.find((dif) => dif.name === newScenario.defaultdifficulty);
     selectedFaction.value = factions.value[0] ?? "Armada";
+});
+
+// Load mods when component mounts
+onMounted(async () => {
+    try {
+        await modSelection.loadInstalledMods();
+    } catch (error) {
+        console.error("Failed to load mods on mount:", error);
+    }
 });
 
 async function launch() {
@@ -151,7 +170,8 @@ async function launch() {
         restrictionCount++;
     }
 
-    const script = selectedScenario.value.startscript
+    // First, replace all the standard placeholders
+    let script = selectedScenario.value.startscript
         .replaceAll("__SCENARIOOPTIONS__", scenarioOptionsStr)
         //TODO replace with online name when implemented
         .replaceAll("__PLAYERNAME__", "Player")
@@ -163,10 +183,24 @@ async function launch() {
         .replaceAll("__RESTRICTEDUNITS__", restrictionsStr)
         .replaceAll("__NUMRESTRICTIONS__", restrictionCount.toString());
 
+    // Then inject mod content directly into the script
+    script = modIntegration.injectModsIntoScript(script);
+
     if (!enginesStore.selectedEngineVersion) {
         throw new Error("No engine version selected");
     }
-    await window.game.launchScript(script, LATEST_GAME_VERSION, enginesStore.selectedEngineVersion.id);
+    
+    // Get mod paths and log launch information
+    const modPaths = modIntegration.modPaths.value;
+    
+    console.log(`=== LAUNCHING SCENARIO WITH MODS ===`);
+    console.log(`Selected mods:`, modSelection.selectedMods.value.map(mod => `${mod.name} (${mod.id})`));
+    console.log(`Mod paths:`, modPaths);
+    console.log(`Original startscript:`, selectedScenario.value.startscript);
+    console.log(`Mod script content:`, modIntegration.modScriptContent.value);
+    console.log(`Final script with mods:`, script);
+    
+    await window.game.launchScript(script, LATEST_GAME_VERSION, enginesStore.selectedEngineVersion.id, modPaths);
 }
 </script>
 
@@ -206,4 +240,5 @@ async function launch() {
 .launch-button {
     flex-grow: 0;
 }
+
 </style>

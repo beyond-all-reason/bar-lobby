@@ -23,6 +23,7 @@ SPDX-License-Identifier: MIT
             @update:model-value="onRouteSelect"
         />
         <Button to="/debug"> Debug Sandbox </Button>
+        <Button to="/debug/mod-tester"> Mod Tester </Button>
         <Button @click="openSettings"> Open Settings File </Button>
         <Button @click="openAssetsDir"> Open Assets Dir </Button>
         <Button @click="openStateDir"> Open State Dir </Button>

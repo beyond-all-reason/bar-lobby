@@ -24,8 +24,8 @@ function registerIpcHandlers(webContents: BarIpcWebContents) {
 
     // Game
     ipcMain.handle("game:launchMultiplayer", (_, settings: MultiplayerLaunchSettings) => gameAPI.launchMultiplayer(settings));
-    ipcMain.handle("game:launchScript", (_, scriptString: string, gameVersionString: string, engineVersionString: string) =>
-        gameAPI.launchScript({ script: scriptString, engineVersion: engineVersionString, gameVersion: gameVersionString })
+    ipcMain.handle("game:launchScript", (_, scriptString: string, gameVersionString: string, engineVersionString: string, modPaths?: string[]) =>
+        gameAPI.launchScript({ script: scriptString, engineVersion: engineVersionString, gameVersion: gameVersionString, modPaths })
     );
     ipcMain.handle("game:launchReplay", (_, replay: Replay) => gameAPI.launchReplay(replay));
     ipcMain.handle("game:launchBattle", async (_, battle: BattleWithMetadata) => gameAPI.launchBattle(battle));

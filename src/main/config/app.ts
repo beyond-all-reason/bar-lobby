@@ -105,6 +105,15 @@ export const ENGINE_PATH = path.join(ASSETS_PATH, "engine");
 export const REPLAYS_PATH = path.join(WRITE_DATA_PATH, "demos");
 export const MAPS_PATHS: readonly string[] = [path.join(WRITE_DATA_PATH, "maps"), path.join(ASSETS_PATH, "maps")];
 export const GAME_PATHS: readonly string[] = [path.join(WRITE_DATA_PATH, "games"), path.join(ASSETS_PATH, "games")];
+export const MOD_PATHS: readonly string[] = [path.join(WRITE_DATA_PATH, "games"), path.join(ASSETS_PATH, "games")];
+
+/**
+ * Get mod paths for a specific engine version.
+ * Mods are stored in the engine-specific games directory to ensure compatibility.
+ */
+export function getEngineModPaths(engineVersion: string): readonly string[] {
+    return [path.join(WRITE_DATA_PATH, "games"), path.join(ENGINE_PATH, engineVersion, "games")];
+}
 // Everything rapid lives under assets.
 export const PACKAGE_PATH = path.join(ASSETS_PATH, "packages");
 export const POOL_PATH = path.join(ASSETS_PATH, "pool");

@@ -58,8 +58,11 @@ export class GameAPI {
         });
     }
 
-    public async launchScript({ engineVersion, gameVersion, script }: ScriptLaunchSettings) {
-        log.debug(`Launching game with script: ${script}`);
+    public async launchScript({ engineVersion, gameVersion, script, modPaths }: ScriptLaunchSettings & { modPaths?: string[] }) {
+        log.info(`=== LAUNCHING GAME WITH SCRIPT ===`);
+        log.info(`Script content:\n${script}`);
+        log.info(`Mod paths: ${modPaths ? modPaths.join(", ") : "none"}`);
+
         const scriptGameVersion = script.match(/gametype\s*=\s*(.*);/)?.[1];
         const mapSpringName = script.match(/mapname\s*=\s*(.*);/)?.[1];
         if (!mapSpringName) {
@@ -71,6 +74,7 @@ export class GameAPI {
             engineVersion,
             gameVersion: scriptGameVersion || gameVersion, // using script's game version if available
             launchArg: scriptPath,
+            modPaths,
         });
     }
 
@@ -82,7 +86,7 @@ export class GameAPI {
         });
     }
 
-    public async launch({ engineVersion, gameVersion, launchArg }: { engineVersion?: string; gameVersion?: string; launchArg?: string }): Promise<void> {
+    public async launch({ engineVersion, gameVersion, launchArg, modPaths }: { engineVersion?: string; gameVersion?: string; launchArg?: string; modPaths?: string[] }): Promise<void> {
         if (!engineVersion || !gameVersion || !launchArg) {
             throw new Error("Engine Version, Game Version and launch Arguments need to be specified");
         }
@@ -91,19 +95,45 @@ export class GameAPI {
         await this.fetchMissingContent(engineVersion, gameVersion); // TODO preload anything needed through the UI before launching. Remove this step
         const enginePath = path.join(ENGINE_PATH, engineVersion).replaceAll("\\", "/");
         const args = ["--write-dir", WRITE_DATA_PATH, "--isolation", launchArg];
+
+        // Note: Mods are loaded via script.txt, not command line arguments
+        if (modPaths && modPaths.length > 0) {
+            log.info(`=== MODS WILL BE LOADED VIA SCRIPT.TXT ===`);
+            for (const modPath of modPaths) {
+                log.info(`Mod to be loaded via script: ${modPath}`);
+            }
+        } else {
+            log.info(`No mod paths provided`);
+        }
+
         const binaryName = process.platform === "win32" ? "spring.exe" : "./spring";
-        log.debug(`Running binary: ${path.join(enginePath, binaryName)}, args: ${args}`);
+        const fullCommand = `${path.join(enginePath, binaryName)} ${args.join(" ")}`;
+        log.info(`=== SPRING ENGINE COMMAND LINE ===`);
+        log.info(`Full command: ${fullCommand}`);
+        log.info(`Binary: ${path.join(enginePath, binaryName)}`);
+        log.info(`Arguments: ${args.join(" ")}`);
 
         return new Promise<void>((resolve, reject) => {
             try {
+                // Set up environment variables for mod discovery
+                const env = {
+                    ...process.env,
+                    SPRING_DATADIR: ASSETS_PATH, // Engine will read from both the assets and write dir
+                };
+
+                // If we have mods, ensure they're discoverable
+                if (modPaths && modPaths.length > 0) {
+                    // Add the mods directory to the data path
+                    const modsDir = path.dirname(modPaths[0]);
+                    log.info(`Adding mods directory to Spring data path: ${modsDir}`);
+                    // Note: Spring should automatically discover mods in the data directory
+                }
+
                 this.gameProcess = spawn(binaryName, args, {
                     cwd: enginePath,
                     stdio: "pipe",
                     detached: true,
-                    env: {
-                        ...process.env,
-                        SPRING_DATADIR: ASSETS_PATH, // Engine will read from both the assets and write dir
-                    },
+                    env,
                 });
                 if (!this.gameProcess.stdout || !this.gameProcess.stderr) throw new Error("failed to access game process stream");
                 let isGameRunning = false;

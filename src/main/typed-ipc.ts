@@ -16,6 +16,7 @@ import type { Replay } from "@main/content/replays/replay";
 import type { Scenario } from "@main/content/game/scenario";
 import type { Settings } from "@main/services/settings.service";
 import type { TachyonEvent, TachyonResponse } from "tachyon-protocol";
+import type { ModMetadata, ModInstallOptions, ModType, ModInfo, ModConflict } from "@main/content/mods/mod-types";
 import { ipcRenderer as electronIpcRenderer, ipcMain as electronIpcMain } from "electron";
 
 export type IPCEvents = {
@@ -46,6 +47,9 @@ export type IPCEvents = {
     "tachyon:connected": () => void;
     "tachyon:disconnected": () => void;
     "tachyon:event": (event: TachyonEvent) => void;
+    "mod:installed": (modId: string) => void;
+    "mod:uninstalled": (modId: string) => void;
+    "mod:conflict": (conflict: ModConflict) => void;
 };
 
 export type IPCCommands = {
@@ -68,9 +72,20 @@ export type IPCCommands = {
     "game:launchBattle": (battle: BattleWithMetadata) => Promise<void>;
     "game:launchMultiplayer": (settings: MultiplayerLaunchSettings) => void;
     "game:launchReplay": (replay: Replay) => Promise<void>;
-    "game:launchScript": (script: string, gameVersion: string, engineVersion: string) => void;
+    "game:launchScript": (script: string, gameVersion: string, engineVersion: string, modPaths?: string[]) => void;
     "game:preloadPoolData": () => void;
     "game:uninstallVersion": (version: string) => void;
+    "mod:getInstalledMods": () => ModMetadata[];
+    "mod:getModsByType": (modType: ModType) => ModMetadata[];
+    "mod:getModsByGame": (gameShortName: string) => ModMetadata[];
+    "mod:getMod": (modId: string) => ModMetadata | undefined;
+    "mod:isModInstalled": (modId: string) => boolean;
+    "mod:installFromGitHub": (options: ModInstallOptions) => Promise<ModMetadata>;
+    "mod:uninstallMod": (modId: string) => Promise<void>;
+    "mod:updateMod": (modId: string) => Promise<ModMetadata>;
+    "mod:checkModExists": (repository: string, branch: string) => Promise<boolean>;
+    "mod:getModInfo": (repository: string, branch: string) => Promise<ModInfo>;
+    "mod:getModPaths": () => string[];
     "info:get": () => Info;
     "log:log": (fileName: string, level: logLevels, msg: string) => void;
     "log:pack": () => string;
