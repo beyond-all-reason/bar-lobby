@@ -7,9 +7,16 @@ SPDX-License-Identifier: MIT
 <template>
     <div class="battle-container">
         <div v-if="online" :title="tachyonStore.activeLobby?.name" class="flex flex-row">
-            <p class="title flex-left">{{ tachyonStore.activeLobby?.name }}</p>
-            <div>
-                <Button disabled title="Edit Lobby Name"><Icon :icon="pencilIcon" class="flex-right" width="24px" height="24px" /></Button>
+            <div class="flex flex-row fullwidth">
+                <Button v-tooltip.bottom="t('lobby.library.maps.back')" class="icon red close flex-left" @click="tachyon.leaveLobby()">
+                    <Icon :icon="arrow_back" :height="24" />Exit Lobby
+                </Button>
+                <p class="title flex-left padding-left-md padding-right-md">{{ tachyonStore.activeLobby?.name }}</p>
+                <div>
+                    <Button disabled title="Edit Lobby Name"
+                        ><Icon :icon="pencilIcon" class="flex-right" width="24px" height="24px"
+                    /></Button>
+                </div>
             </div>
         </div>
         <div class="main-content">
@@ -126,6 +133,7 @@ import { db } from "@renderer/store/db";
 import listIcon from "@iconify-icons/mdi/format-list-bulleted";
 import cogIcon from "@iconify-icons/mdi/cog";
 import pencilIcon from "@iconify-icons/mdi/pencil";
+import arrow_back from "@iconify-icons/mdi/arrow-back";
 import { useDexieLiveQuery, useDexieLiveQueryWithDeps } from "@renderer/composables/useDexieLiveQuery";
 import MapBattlePreview from "@renderer/components/maps/MapBattlePreview.vue";
 import { MapData } from "@main/content/maps/map-data";

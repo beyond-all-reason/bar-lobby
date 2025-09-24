@@ -23,7 +23,7 @@ SPDX-License-Identifier: MIT
                 <Checkbox v-model="settingsStore.battlesHideEmpty" :label="t('lobby.multiplayer.custom.filters.hideEmpty')" />
                 <Checkbox v-model="settingsStore.battlesHideInProgress" :label="t('lobby.multiplayer.custom.filters.hideInProgress')" />
                 <SearchBox v-model="searchVal" />
-                <Button @click="router.push('/play/customLobbies/lobby')">Go To ActiveLobby</Button>
+                <Button v-if="settingsStore.devMode" @click="router.push('/play/customLobbies/lobby')">Dev Lobby View</Button>
             </div>
             <div class="flex-col flex-grow fullheight flex-top">
                 <div class="scroll-container padding-right-sm">
@@ -65,9 +65,16 @@ SPDX-License-Identifier: MIT
         </div>
         <div v-if="!loading" class="right">
             <div class="flex flex-col">
-                <Button class="green flex-grow margin-top-lg margin-bottom-lg" @click="sendLobbyJoinRequest(selectedLobby)">{{
-                    t("lobby.multiplayer.custom.table.join")
-                }}</Button>
+                <Button
+                    v-if="tachyonStore.activeLobby == undefined"
+                    class="green flex-grow margin-top-lg margin-bottom-lg"
+                    @click="sendLobbyJoinRequest(selectedLobby)"
+                    :disabled="selectedLobby == undefined"
+                    >{{ t("lobby.multiplayer.custom.table.join") }}</Button
+                >
+                <Button v-else class="green flex-grow margin-top-lg margin-bottom-lg" @click="battleStore.isLobbyOpened = true">
+                    Open Current Lobby
+                </Button>
                 <LobbyPreview v-if="selectedLobby" :lobby="selectedLobby"></LobbyPreview>
             </div>
         </div>
@@ -104,6 +111,7 @@ import { tachyon, tachyonStore } from "@renderer/store/tachyon.store";
 import { Lobby as LobbyType } from "@renderer/model/lobby";
 import LobbyPreview from "@renderer/components/battle/LobbyPreview.vue";
 import { router } from "@renderer/router";
+import { battleStore } from "@renderer/store/battle.store";
 
 const { t } = useTypedI18n();
 

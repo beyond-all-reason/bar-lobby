@@ -95,7 +95,6 @@ async function createLobby(data: LobbyCreateRequestData) {
         console.log("Tachyon: lobby/create:", response.status, response.data);
         tachyonStore.activeLobby = parseLobbyResponseData(response.data); //Set the active lobby data first...
         battleStore.isLobbyOpened = true;
-        router.push("/play/customLobbies/lobby"); //TODO: Hide this in dev mode only
         //Note, we don't do any 'user/subscribeUpdates' here because when we create it there is only ourselves on initial join.
         //If that ever changes, if a whole party joins instantly for example, then we need to revisit this.
     } catch (error) {
@@ -113,7 +112,6 @@ async function joinLobby(id: LobbyJoinRequestData) {
         console.log("Tachyon: lobby/join:", response.status, response.data);
         tachyonStore.activeLobby = parseLobbyResponseData(response.data);
         battleStore.isLobbyOpened = true;
-        router.push("/play/customLobbies/lobby"); //TODO: Hide this in dev mode only
         //Subscribe to obtain user data
         const userSubList: UserId[] = [];
         for (const memberKey in tachyonStore.activeLobby.members) {
