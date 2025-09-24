@@ -64,13 +64,12 @@ SPDX-License-Identifier: MIT
             </div>
         </div>
         <div v-if="!loading" class="right">
-            <LobbyPreview v-if="selectedLobby" :lobby="selectedLobby">
-                <template #actions="{ lobby }">
-                    <Button class="green flex-grow" @click="sendLobbyJoinRequest(lobby.id)">{{
-                        t("lobby.multiplayer.custom.table.join")
-                    }}</Button>
-                </template>
-            </LobbyPreview>
+            <div class="flex flex-col">
+                <Button class="green flex-grow margin-top-lg margin-bottom-lg" @click="sendLobbyJoinRequest(selectedLobby)">{{
+                    t("lobby.multiplayer.custom.table.join")
+                }}</Button>
+                <LobbyPreview v-if="selectedLobby" :lobby="selectedLobby"></LobbyPreview>
+            </div>
         </div>
     </div>
 </template>

@@ -16,6 +16,7 @@ import {
     SystemServerStatsOkResponseData,
     UserId,
     LobbyOverview,
+    LobbyListResetEventData,
 } from "tachyon-protocol/types";
 import { reactive } from "vue";
 import { fetchAvailableQueues } from "@renderer/store/matchmaking.store";
@@ -64,7 +65,7 @@ async function subscribeList() {
     try {
         tachyonStore.error = undefined;
         const response = await window.tachyon.request("lobby/subscribeList");
-        //Per Tachyon protocol, this subscribes us, but does not return an updated list, that happens in the ListUpdated event.
+        //Per Tachyon protocol, this subscribes us, but does not return an updated list, that happens in the ListUpdated or ListReset events.
         console.log("subscribeList:", response.status);
     } catch (error) {
         console.error("Error with request lobby/subscribeList:", error);
@@ -93,7 +94,8 @@ async function createLobby(data: LobbyCreateRequestData) {
         const response = await window.tachyon.request("lobby/create", data);
         console.log("Tachyon: lobby/create:", response.status, response.data);
         tachyonStore.activeLobby = parseLobbyResponseData(response.data); //Set the active lobby data first...
-        router.push("/play/customLobbies/lobby"); //...then move the user to the lobby view that uses the active lobby data
+        battleStore.isLobbyOpened = true;
+        router.push("/play/customLobbies/lobby"); //TODO: Hide this in dev mode only
         //Note, we don't do any 'user/subscribeUpdates' here because when we create it there is only ourselves on initial join.
         //If that ever changes, if a whole party joins instantly for example, then we need to revisit this.
     } catch (error) {
@@ -106,12 +108,12 @@ async function joinLobby(id: LobbyJoinRequestData) {
     try {
         battleActions.resetToDefaultBattle(undefined, undefined, undefined, true);
         battleStore.isOnline = true;
-        battleStore.isLobbyOpened = true;
         tachyonStore.error = undefined;
         const response = await window.tachyon.request("lobby/join", id);
         console.log("Tachyon: lobby/join:", response.status, response.data);
         tachyonStore.activeLobby = parseLobbyResponseData(response.data);
-        router.push("/play/customLobbies/lobby");
+        battleStore.isLobbyOpened = true;
+        router.push("/play/customLobbies/lobby"); //TODO: Hide this in dev mode only
         //Subscribe to obtain user data
         const userSubList: UserId[] = [];
         for (const memberKey in tachyonStore.activeLobby.members) {
@@ -126,7 +128,7 @@ async function joinLobby(id: LobbyJoinRequestData) {
     }
 }
 
-// We use this function to normalize both LobbyCreateRequestData and LobbyJoinRequestData into the Lobby type for use in the renderer
+// We use this function to normalize both LobbyCreateRequestData and LobbyJoinRequestData into the LobbyOverview type for use in the renderer
 function parseLobbyResponseData(data: LobbyCreateOkResponseData | LobbyJoinOkResponseData) {
     //Do some cleanup in case there's old data in the stores.
     battleStore.battleOptions.mapOptions.customStartBoxes = [];
@@ -187,6 +189,7 @@ async function leaveLobby() {
         router.push("/play/customLobbies/customLobbies");
         clearUserSubscriptions();
         tachyonStore.activeLobby = undefined;
+        battleStore.isLobbyOpened = false;
     } catch (error) {
         console.error("Error with request lobby/leave", error);
         tachyonStore.error = "Error with request lobby/leave";
@@ -278,18 +281,6 @@ function onListUpdatedEvent(data: LobbyListUpdatedEventData) {
     });
 	*/
 }
-// !! Below is temporary until the npm package updates. Remove after.
-export interface LobbyListResetEvent {
-    type: "event";
-    messageId: string;
-    commandId: "lobby/listReset";
-    data: LobbyListResetEventData;
-}
-export interface LobbyListResetEventData {
-    lobbies: {
-        [k: string]: LobbyOverview;
-    };
-}
 
 function onLobbyListResetEvent(data: LobbyListResetEventData) {
     tachyonStore.lobbyList = data.lobbies;
@@ -312,7 +303,7 @@ function onLobbyUpdatedEvent(data: LobbyUpdatedEventData) {
         playerCount++;
     }
     tachyonStore.activeLobby!.playerCount = playerCount;
-    // We need to sub to new members, but if members go away we unsub isntead. Ugh we need to maintain a list and diff it also lol
+    // We need to sub to new members, but if members go away we unsub instead. Ugh we need to maintain a list and diff it also lol
     if (data.members) {
         const userSubList: UserId[] = [];
         for (const memberKey in data.members) {
@@ -331,6 +322,7 @@ function onLobbyLeftEvent(data: LobbyLeftEventData) {
     tachyonStore.activeLobby = undefined;
     console.log("Tachyon event: lobby/left:", data);
     router.push("/play/customLobbies/customLobbies");
+    battleStore.isLobbyOpened = false;
     //TODO: Probably want some kind of message displayed to the user, explaining they were removed from the lobby for reason [kicked | lobby crash | etc?]
 }
 
@@ -338,9 +330,13 @@ function clearUserSubscriptions() {
     const userUnsubList: UserId[] = [];
     if (tachyonStore.activeLobby?.members) {
         for (const memberKey in tachyonStore.activeLobby!.members) {
-            userUnsubList.push(tachyonStore.activeLobby!.members[memberKey]!.id);
+            if (tachyonStore.activeLobby!.members[memberKey]!.id != me.userId)
+                //Skip unsubbing from ourselves.
+                userUnsubList.push(tachyonStore.activeLobby!.members[memberKey]!.id);
         }
-        window.tachyon.request("user/unsubscribeUpdates", { userIds: userUnsubList });
+        if (userUnsubList.length > 0) {
+            window.tachyon.request("user/unsubscribeUpdates", { userIds: userUnsubList });
+        }
     }
 }
 
