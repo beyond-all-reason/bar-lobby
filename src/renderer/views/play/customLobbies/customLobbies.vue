@@ -18,6 +18,11 @@ SPDX-License-Identifier: MIT
             <div class="flex-row gap-md flex-top">
                 <Button class="blue" @click="createLobbyModalIsOpen = true">{{ t("lobby.multiplayer.custom.hostBattle") }}</Button>
                 <HostBattle v-model="createLobbyModalIsOpen" />
+                <LeaveConfirmModal
+                    v-model="leaveConfirmModalIsOpen"
+                    @cancel-leave="leaveConfirmModalIsOpen = false"
+                    @confirm-leave="leaveLobby()"
+                />
                 <Checkbox v-model="settingsStore.battlesHidePvE" :label="t('lobby.multiplayer.custom.filters.hidePvE')" />
                 <Checkbox v-model="settingsStore.battlesHideLocked" :label="t('lobby.multiplayer.custom.filters.hideLocked')" />
                 <Checkbox v-model="settingsStore.battlesHideEmpty" :label="t('lobby.multiplayer.custom.filters.hideEmpty')" />
@@ -112,12 +117,14 @@ import { Lobby as LobbyType } from "@renderer/model/lobby";
 import LobbyPreview from "@renderer/components/battle/LobbyPreview.vue";
 import { router } from "@renderer/router";
 import { battleStore } from "@renderer/store/battle.store";
+import LeaveConfirmModal from "@renderer/components/battle/LeaveConfirmModal.vue";
 
 const { t } = useTypedI18n();
 
 const loading = ref(false);
 //const hostBattleOpen = ref(false);
 const createLobbyModalIsOpen = ref(false);
+const leaveConfirmModalIsOpen = ref(false);
 const searchVal = ref("");
 //const selectedBattle: Ref<OngoingBattle | null> = shallowRef(null);
 const selectedLobby: Ref<LobbyType | null> = shallowRef(null); //FIXME: There are cases where we want to clear this value back to null. Especially if the lobby is removed from the list by the server.
@@ -139,9 +146,16 @@ function attemptJoinBattle(battle: OngoingBattle) {
     console.log("Joining battle", battle);
 }
 */
+function leaveLobby() {
+    leaveConfirmModalIsOpen.value = false;
+    tachyon.leaveLobby();
+}
 function sendLobbyJoinRequest(data) {
     //Data here is the entire selectedLobby object (e.g. one of the lobbyList[] items)
-    tachyon.joinLobby({ id: data.id });
+    if (tachyonStore.activeLobby) {
+        leaveConfirmModalIsOpen.value = true;
+        //TODO: Pass the new ID through so we can try to auto-join after confirming.
+    } else tachyon.joinLobby({ id: data.id });
 }
 
 // Just in case we need to manually request a subscribe event for some reason.
