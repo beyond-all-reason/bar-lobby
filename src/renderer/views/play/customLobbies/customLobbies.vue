@@ -33,7 +33,7 @@ SPDX-License-Identifier: MIT
             <div class="flex-col flex-grow fullheight flex-top">
                 <div class="scroll-container padding-right-sm">
                     <DataTable
-                        v-model:selection="selectedLobby"
+                        v-model:selection="tachyonStore.selectedLobby"
                         :value="lobbyList"
                         data-key="id"
                         autoLayout
@@ -44,7 +44,7 @@ SPDX-License-Identifier: MIT
                         paginator
                         :rows="16"
                         :pageLinkSize="20"
-                        @row-select="selectedLobby = $event.data"
+                        @row-select="tachyonStore.selectedLobby = $event.data"
                         @row-dblclick="sendLobbyJoinRequest($event.data)"
                     >
                         <Column field="name" :header="t('lobby.multiplayer.custom.table.title')" sortable />
@@ -73,14 +73,14 @@ SPDX-License-Identifier: MIT
                 <Button
                     v-if="tachyonStore.activeLobby == undefined"
                     class="green flex-grow margin-top-lg margin-bottom-lg"
-                    @click="sendLobbyJoinRequest(selectedLobby)"
-                    :disabled="selectedLobby == undefined"
+                    @click="sendLobbyJoinRequest(tachyonStore.selectedLobby)"
+                    :disabled="tachyonStore.selectedLobby == undefined"
                     >{{ t("lobby.multiplayer.custom.table.join") }}</Button
                 >
                 <Button v-else class="green flex-grow margin-top-lg margin-bottom-lg" @click="battleStore.isLobbyOpened = true">
                     Open Current Lobby
                 </Button>
-                <LobbyPreview v-if="selectedLobby" :lobby="selectedLobby"></LobbyPreview>
+                <LobbyPreview v-if="tachyonStore.selectedLobby" :lobby="tachyonStore.selectedLobby"></LobbyPreview>
             </div>
         </div>
     </div>
@@ -127,7 +127,7 @@ const createLobbyModalIsOpen = ref(false);
 const leaveConfirmModalIsOpen = ref(false);
 const searchVal = ref("");
 //const selectedBattle: Ref<OngoingBattle | null> = shallowRef(null);
-const selectedLobby: Ref<LobbyType | null> = shallowRef(null); //FIXME: There are cases where we want to clear this value back to null. Especially if the lobby is removed from the list by the server.
+//const selectedLobby: Ref<LobbyType | null> = shallowRef(null); //FIXME: There are cases where we want to clear this value back to null. Especially if the lobby is removed from the list by the server.
 const lobbyList = computed(() => {
     const arr: LobbyType[] = [];
     for (const lobbyKey in tachyonStore.lobbyList) {

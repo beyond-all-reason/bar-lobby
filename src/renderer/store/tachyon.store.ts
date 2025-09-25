@@ -32,6 +32,7 @@ export const tachyonStore = reactive({
     serverStats: undefined,
     error: undefined,
     lobbyList: {}, //This will hold changes from ``lobby/listUpdated`` events
+    selectedLobby: {}, //This is the lobby we select from the datatable showing the lobbylist
     activeLobby: undefined, //This will hold changes from ``lobby/updated`` events
 } as {
     isInitialized: boolean;
@@ -41,6 +42,7 @@ export const tachyonStore = reactive({
     fetchServerStatsInterval?: NodeJS.Timeout;
     reconnectInterval?: NodeJS.Timeout;
     lobbyList: Record<string, LobbyOverview>;
+    selectedLobby: Lobby | null;
     activeLobby?: Lobby;
 });
 
@@ -206,9 +208,16 @@ async function startBattle() {
     }
 }
 
+function checkSelectedLobbyForNull() {
+    if (tachyonStore.selectedLobby && tachyonStore.lobbyList[tachyonStore.selectedLobby.id] == null) {
+        tachyonStore.selectedLobby = null;
+    }
+}
+
 function onListUpdatedEvent(data: LobbyListUpdatedEventData) {
     console.log("Tachyon event: lobby/listUpdated:", data);
     tachyonStore.lobbyList = applyPatch(tachyonStore.lobbyList, data.lobbies); //Error here until tachyon-protocol package updates
+    checkSelectedLobbyForNull();
     /*
     data.updates.forEach(function (item, index) {
         if (item.type == "added") {
@@ -282,6 +291,7 @@ function onListUpdatedEvent(data: LobbyListUpdatedEventData) {
 
 function onLobbyListResetEvent(data: LobbyListResetEventData) {
     tachyonStore.lobbyList = data.lobbies;
+    checkSelectedLobbyForNull();
 }
 
 function onLobbyUpdatedEvent(data: LobbyUpdatedEventData) {
