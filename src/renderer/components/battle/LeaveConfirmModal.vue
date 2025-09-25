@@ -5,14 +5,18 @@ SPDX-License-Identifier: MIT
 -->
 
 <template>
-    <Modal title="Leave Lobby?" style="height: 80vh; width: 80vw; max-width: 1440px">
-        <div class="layout">
-            <Icon :icon="warningIcon"></Icon>
+    <Modal title="Leave Lobby?" style="max-width: 1440px">
+        <div class="layout padding-bottom-xl">
+            <div><Icon :icon="warningIcon" height="64" width="64"></Icon></div>
             <h1>Warning:</h1>
+        </div>
+        <div class="padding-bottom-xl">
             <p>You will lose your current place in this lobby. Are you sure?</p>
         </div>
-        <Button class="red" @click="confirmLeave"> Confirm </Button>
-        <Button class="blue" @click="cancelLeave"> Cancel </Button>
+        <div class="layout">
+            <Button class="red flex-left" @click="confirmLeave"> Confirm Leave Lobby</Button>
+            <Button class="blue flex-right" @click="cancelLeave"> Cancel </Button>
+        </div>
     </Modal>
 </template>
 
@@ -41,6 +45,5 @@ function cancelLeave() {
     display: flex;
     flex-direction: row;
     gap: 20px;
-    height: 100%;
 }
 </style>

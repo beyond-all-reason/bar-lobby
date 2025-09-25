@@ -16,13 +16,20 @@ SPDX-License-Identifier: MIT
                 <h1>{{ t("lobby.multiplayer.custom.title") }}</h1>
             </div>
             <div class="flex-row gap-md flex-top">
-                <Button class="blue" @click="createLobbyModalIsOpen = true" :disabled="tachyonStore.activeLobby != undefined">{{
-                    t("lobby.multiplayer.custom.hostBattle")
-                }}</Button>
+                <Button
+                    v-if="tachyonStore.activeLobby == undefined"
+                    class="blue"
+                    @click="createLobbyModalIsOpen = true"
+                    :disabled="tachyonStore.activeLobby != undefined"
+                    >{{ t("lobby.multiplayer.custom.hostBattle") }}</Button
+                >
+                <Button v-else class="red" @click="leaveConfirmModalIsOpen = true" :disabled="tachyonStore.activeLobby == undefined"
+                    >Leave Lobby</Button
+                >
                 <HostBattle v-model="createLobbyModalIsOpen" />
                 <LeaveConfirmModal
                     v-model="leaveConfirmModalIsOpen"
-                    @cancel-leave="leaveConfirmModalIsOpen = false"
+                    @cancel-leave="cancelLeaveLobby"
                     @confirm-leave="(n) => leaveLobby(n)"
                     :lobby-id="autojoinLobbyId"
                 />
@@ -155,12 +162,16 @@ function leaveLobby(id?: string) {
     tachyon.leaveLobby();
     if (id != undefined) {
         tachyon.joinLobby({ id: id });
+        autojoinLobbyId.value = undefined;
     }
+}
+function cancelLeaveLobby() {
+    leaveConfirmModalIsOpen.value = false;
+    autojoinLobbyId.value = undefined;
 }
 
 function sendLobbyJoinRequest(data) {
     //Data here is the entire selectedLobby object (e.g. one of the lobbyList[] items)
-    console.log(`Comparing ${tachyonStore.activeLobby} to data.id ${data.id}`);
     if (tachyonStore.activeLobby == undefined) {
         // No active lobby so we can freely join without worrying about a leave needed first.
         tachyon.joinLobby({ id: data.id });

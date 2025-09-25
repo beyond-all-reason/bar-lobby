@@ -8,9 +8,14 @@ SPDX-License-Identifier: MIT
     <div class="battle-container">
         <div v-if="online" :title="tachyonStore.activeLobby?.name" class="flex flex-row">
             <div class="flex flex-row fullwidth">
-                <Button v-tooltip.bottom="t('lobby.library.maps.back')" class="icon red close flex-left" @click="tachyon.leaveLobby()">
+                <Button
+                    v-tooltip.bottom="t('lobby.library.maps.back')"
+                    class="icon red close flex-left"
+                    @click="leaveConfirmModalIsOpen = true"
+                >
                     <Icon :icon="arrow_back" :height="24" />Exit Lobby
                 </Button>
+                <LeaveConfirmModal v-model="leaveConfirmModalIsOpen" @cancel-leave="cancelLeaveLobby" @confirm-leave="leaveLobby" />
                 <p class="title flex-left padding-left-md padding-right-md">{{ tachyonStore.activeLobby?.name }}</p>
                 <div>
                     <Button disabled title="Edit Lobby Name"
@@ -146,11 +151,14 @@ import TerrainIcon from "@renderer/components/maps/filters/TerrainIcon.vue";
 import personIcon from "@iconify-icons/mdi/person-multiple";
 import gridIcon from "@iconify-icons/mdi/grid";
 import { tachyon, tachyonStore } from "@renderer/store/tachyon.store";
+import LeaveConfirmModal from "@renderer/components/battle/LeaveConfirmModal.vue";
 
 const mapListOpen = ref(false);
 const mapOptionsOpen = ref(false);
 const mapListOptions = useDexieLiveQuery(() => db.maps.toArray());
 const gameListOptions = useDexieLiveQuery(() => db.gameVersions.toArray());
+const leaveConfirmModalIsOpen = ref(false);
+
 const props = defineProps<{
     online: boolean;
 }>();
@@ -166,6 +174,14 @@ function openMapList() {
 
 function openMapOptions() {
     mapOptionsOpen.value = true;
+}
+
+function leaveLobby() {
+    leaveConfirmModalIsOpen.value = false;
+    tachyon.leaveLobby();
+}
+function cancelLeaveLobby() {
+    leaveConfirmModalIsOpen.value = false;
 }
 
 async function onGameSelected(gameVersion: string) {
