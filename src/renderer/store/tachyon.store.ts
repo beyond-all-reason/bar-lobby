@@ -25,6 +25,7 @@ import { router } from "@renderer/router";
 import { apply as applyPatch } from "json8-merge-patch";
 import { battleStore, battleActions } from "@renderer/store/battle.store";
 import { db } from "@renderer/store/db";
+import { notificationsApi } from "@renderer/api/notifications";
 
 export const tachyonStore = reactive({
     isInitialized: false,
@@ -218,75 +219,6 @@ function onListUpdatedEvent(data: LobbyListUpdatedEventData) {
     console.log("Tachyon event: lobby/listUpdated:", data);
     tachyonStore.lobbyList = applyPatch(tachyonStore.lobbyList, data.lobbies); //Error here until tachyon-protocol package updates
     checkSelectedLobbyForNull();
-    /*
-    data.updates.forEach(function (item, index) {
-        if (item.type == "added") {
-            //This response contains "overview: LobbyOverview"
-            const lobbyToAdd: LobbyOverview = {
-                id: item.overview.id,
-                name: item.overview.name,
-                mapName: item.overview.mapName,
-                playerCount: item.overview.playerCount,
-                maxPlayerCount: item.overview.maxPlayerCount,
-                engineVersion: item.overview.engineVersion,
-                gameVersion: item.overview.gameVersion,
-				currentBattle: null,
-            };
-            if (item.overview.currentBattle && item.overview.currentBattle?.startedAt) {
-                lobbyToAdd.currentBattle = { startedAt: item.overview.currentBattle.startedAt };
-            }
-            tachyonStore.lobbyList[lobbyToAdd.id] = lobbyToAdd;
-        } else if (item.type == "removed") {
-            //This response only contains the "id"
-            delete tachyonStore.lobbyList[item.id];
-        } else if (item.type == "updated") {
-            //This response contains "overview: {}" with optional properties for everything except "id"
-            if (item.overview.name) {
-                tachyonStore.lobbyList[item.overview.id].name = item.overview.name;
-            }
-            if (item.overview.mapName) {
-                tachyonStore.lobbyList[item.overview.id].mapName = item.overview.mapName;
-            }
-            if (item.overview.playerCount) {
-                tachyonStore.lobbyList[item.overview.id].playerCount = item.overview.playerCount;
-            }
-            if (item.overview.maxPlayerCount) {
-                tachyonStore.lobbyList[item.overview.id].maxPlayerCount = item.overview.maxPlayerCount;
-            }
-            if (item.overview.engineVersion) {
-                tachyonStore.lobbyList[item.overview.id].engineVersion = item.overview.engineVersion;
-            }
-            if (item.overview.gameVersion) {
-                tachyonStore.lobbyList[item.overview.id].gameVersion = item.overview.gameVersion;
-            }
-            if (item.overview.currentBattle && item.overview.currentBattle?.startedAt) {
-                tachyonStore.lobbyList[item.overview.id].currentBattle = { startedAt: item.overview.currentBattle?.startedAt };
-            }
-        } else if (item.type == "setList") {
-            //This response contains "overviews: LobbyOverview[]"
-            tachyonStore.lobbyList = {}; //Have to reset the list to blank because setList contains everything.
-            item.overviews.forEach(function (overview, index) {
-                const lobbyToAdd: LobbyOverview = {
-                    id: overview.id,
-                    name: overview.name,
-                    mapName: overview.mapName,
-                    playerCount: overview.playerCount,
-                    maxPlayerCount: overview.maxPlayerCount,
-                    engineVersion: overview.engineVersion,
-                    gameVersion: overview.gameVersion,
-					currentBattle: null,
-                };
-                if (overview.currentBattle && overview.currentBattle?.startedAt) {
-                    lobbyToAdd.currentBattle = { startedAt: overview.currentBattle.startedAt };
-                }
-                tachyonStore.lobbyList[lobbyToAdd.id] = lobbyToAdd;
-            });
-        } else {
-            //If we reach this, the type of response does not match protocol
-            console.error("onListUpdatedEvent: response type does not match protocol:", item);
-        }
-    });
-	*/
 }
 
 function onLobbyListResetEvent(data: LobbyListResetEventData) {
@@ -332,6 +264,10 @@ function onLobbyLeftEvent(data: LobbyLeftEventData) {
     router.push("/play/customLobbies/customLobbies");
     battleStore.isLobbyOpened = false;
     //TODO: Probably want some kind of message displayed to the user, explaining they were removed from the lobby for reason [kicked | lobby crash | etc?]
+    notificationsApi.alert({
+        text: "You have been removed from the lobby.",
+        severity: "info",
+    });
 }
 
 function clearUserSubscriptions() {
