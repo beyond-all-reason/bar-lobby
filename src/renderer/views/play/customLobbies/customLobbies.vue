@@ -16,12 +16,15 @@ SPDX-License-Identifier: MIT
                 <h1>{{ t("lobby.multiplayer.custom.title") }}</h1>
             </div>
             <div class="flex-row gap-md flex-top">
-                <Button class="blue" @click="createLobbyModalIsOpen = true">{{ t("lobby.multiplayer.custom.hostBattle") }}</Button>
+                <Button class="blue" @click="createLobbyModalIsOpen = true" :disabled="tachyonStore.activeLobby != undefined">{{
+                    t("lobby.multiplayer.custom.hostBattle")
+                }}</Button>
                 <HostBattle v-model="createLobbyModalIsOpen" />
                 <LeaveConfirmModal
                     v-model="leaveConfirmModalIsOpen"
                     @cancel-leave="leaveConfirmModalIsOpen = false"
-                    @confirm-leave="leaveLobby()"
+                    @confirm-leave="(n) => leaveLobby(n)"
+                    :lobby-id="autojoinLobbyId"
                 />
                 <Checkbox v-model="settingsStore.battlesHidePvE" :label="t('lobby.multiplayer.custom.filters.hidePvE')" />
                 <Checkbox v-model="settingsStore.battlesHideLocked" :label="t('lobby.multiplayer.custom.filters.hideLocked')" />
@@ -126,6 +129,7 @@ const loading = ref(false);
 const createLobbyModalIsOpen = ref(false);
 const leaveConfirmModalIsOpen = ref(false);
 const searchVal = ref("");
+const autojoinLobbyId = ref();
 //const selectedBattle: Ref<OngoingBattle | null> = shallowRef(null);
 //const selectedLobby: Ref<LobbyType | null> = shallowRef(null); //FIXME: There are cases where we want to clear this value back to null. Especially if the lobby is removed from the list by the server.
 const lobbyList = computed(() => {
@@ -146,16 +150,30 @@ function attemptJoinBattle(battle: OngoingBattle) {
     console.log("Joining battle", battle);
 }
 */
-function leaveLobby() {
+function leaveLobby(id?: string) {
     leaveConfirmModalIsOpen.value = false;
     tachyon.leaveLobby();
+    if (id != undefined) {
+        tachyon.joinLobby({ id: id });
+    }
 }
+
 function sendLobbyJoinRequest(data) {
     //Data here is the entire selectedLobby object (e.g. one of the lobbyList[] items)
-    if (tachyonStore.activeLobby) {
-        leaveConfirmModalIsOpen.value = true;
-        //TODO: Pass the new ID through so we can try to auto-join after confirming.
-    } else tachyon.joinLobby({ id: data.id });
+    console.log(`Comparing ${tachyonStore.activeLobby} to data.id ${data.id}`);
+    if (tachyonStore.activeLobby == undefined) {
+        // No active lobby so we can freely join without worrying about a leave needed first.
+        tachyon.joinLobby({ id: data.id });
+        return;
+    } else if (tachyonStore.activeLobby.id == data.id) {
+        //We are trying to join a lobby we are already in, just open the view, no request needed.
+        battleStore.isLobbyOpened = true;
+        return;
+    }
+    //We will need to leave this lobby first, so warn the user.
+    //TODO: figure out how we can leave and auto-join the lobby upon confirmation of this modal.
+    autojoinLobbyId.value = data.id;
+    leaveConfirmModalIsOpen.value = true;
 }
 
 // Just in case we need to manually request a subscribe event for some reason.

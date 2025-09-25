@@ -24,8 +24,12 @@ import warningIcon from "@iconify-icons/mdi/warning";
 
 const emit = defineEmits(["confirmLeave", "cancelLeave"]);
 
+const props = defineProps<{
+    lobbyId?: string;
+}>();
+
 function confirmLeave() {
-    emit("confirmLeave");
+    emit("confirmLeave", props.lobbyId);
 }
 function cancelLeave() {
     emit("cancelLeave");
