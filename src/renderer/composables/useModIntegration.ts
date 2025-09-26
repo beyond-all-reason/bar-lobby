@@ -48,17 +48,15 @@ export function useModIntegration(options: ModIntegrationOptions): ModIntegratio
 
         let scriptContent = "";
 
-        // Add MUTATOR sections for each mod
+        // Add MUTATOR entries for each mod
+        // Based on RecoilEngine source: GAME\MUTATOR{0..9} should be values inside the [Game] section
         selectedMods.value.forEach((mod, index) => {
             // Extract the archive name from the install path
             const pathParts = mod.installPath.split(/[/\\]/);
             const archiveName = pathParts[pathParts.length - 1];
 
-            scriptContent += `\n[MUTATOR${index}]\n`;
-            scriptContent += `{\n`;
-            scriptContent += `    Name=${mod.shortname};\n`;
-            scriptContent += `    Archive=${archiveName};\n`;
-            scriptContent += `}\n`;
+            // The correct syntax is MUTATOR0=archiveName; inside the [Game] section
+            scriptContent += `    MUTATOR${index}=${archiveName};\n`;
         });
 
         return scriptContent;

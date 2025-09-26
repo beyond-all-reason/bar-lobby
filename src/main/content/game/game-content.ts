@@ -105,6 +105,17 @@ export class GameContentAPI extends PrDownloaderAPI<string, GameVersion> {
         for await (const [gamesDir, gameDirName] of findLocalGames()) {
             log.info(`-- Game ${gameDirName}`);
             try {
+                // Check if this is a mutator mod by reading modinfo.lua
+                const modInfoPath = path.join(gamesDir, gameDirName, "modinfo.lua");
+                if (await fileExists(modInfoPath)) {
+                    const modInfoContent = await fs.promises.readFile(modInfoPath, "utf-8");
+                    // Check if this is a mutator mod (mutator='1')
+                    if (modInfoContent.includes("mutator='1'") || modInfoContent.includes('mutator="1"')) {
+                        log.info(`Skipping mutator mod: ${gameDirName}`);
+                        continue;
+                    }
+                }
+
                 const modOptionsLua = await fs.promises.readFile(path.join(gamesDir, gameDirName, "modoptions.lua"));
                 const luaOptionSections = parseLuaOptions(modOptionsLua);
                 const aiInfoLua = await fs.promises.readFile(path.join(gamesDir, gameDirName, "luaai.lua"));
