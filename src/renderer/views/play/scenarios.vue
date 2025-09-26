@@ -190,15 +190,8 @@ async function launch() {
         throw new Error("No engine version selected");
     }
     
-    // Get mod paths and log launch information
+    // Get mod paths
     const modPaths = modIntegration.modPaths.value;
-    
-    console.log(`=== LAUNCHING SCENARIO WITH MODS ===`);
-    console.log(`Selected mods:`, modSelection.selectedMods.value.map(mod => `${mod.name} (${mod.id})`));
-    console.log(`Mod paths:`, modPaths);
-    console.log(`Original startscript:`, selectedScenario.value.startscript);
-    console.log(`Mod script content:`, modIntegration.modScriptContent.value);
-    console.log(`Final script with mods:`, script);
     
     await window.game.launchScript(script, LATEST_GAME_VERSION, enginesStore.selectedEngineVersion.id, modPaths);
 }

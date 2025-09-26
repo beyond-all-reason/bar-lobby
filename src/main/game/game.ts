@@ -59,10 +59,6 @@ export class GameAPI {
     }
 
     public async launchScript({ engineVersion, gameVersion, script, modPaths }: ScriptLaunchSettings & { modPaths?: string[] }) {
-        log.info(`=== LAUNCHING GAME WITH SCRIPT ===`);
-        log.info(`Script content:\n${script}`);
-        log.info(`Mod paths: ${modPaths ? modPaths.join(", ") : "none"}`);
-
         const scriptGameVersion = script.match(/gametype\s*=\s*(.*);/)?.[1];
         const mapSpringName = script.match(/mapname\s*=\s*(.*);/)?.[1];
         if (!mapSpringName) {
@@ -96,22 +92,7 @@ export class GameAPI {
         const enginePath = path.join(ENGINE_PATH, engineVersion).replaceAll("\\", "/");
         const args = ["--write-dir", WRITE_DATA_PATH, "--isolation", launchArg];
 
-        // Note: Mods are loaded via script.txt, not command line arguments
-        if (modPaths && modPaths.length > 0) {
-            log.info(`=== MODS WILL BE LOADED VIA SCRIPT.TXT ===`);
-            for (const modPath of modPaths) {
-                log.info(`Mod to be loaded via script: ${modPath}`);
-            }
-        } else {
-            log.info(`No mod paths provided`);
-        }
-
         const binaryName = process.platform === "win32" ? "spring.exe" : "./spring";
-        const fullCommand = `${path.join(enginePath, binaryName)} ${args.join(" ")}`;
-        log.info(`=== SPRING ENGINE COMMAND LINE ===`);
-        log.info(`Full command: ${fullCommand}`);
-        log.info(`Binary: ${path.join(enginePath, binaryName)}`);
-        log.info(`Arguments: ${args.join(" ")}`);
 
         return new Promise<void>((resolve, reject) => {
             try {
@@ -125,7 +106,6 @@ export class GameAPI {
                 if (modPaths && modPaths.length > 0) {
                     // Add the mods directory to the data path
                     const modsDir = path.dirname(modPaths[0]);
-                    log.info(`Adding mods directory to Spring data path: ${modsDir}`);
                     // Note: Spring should automatically discover mods in the data directory
                 }
 
