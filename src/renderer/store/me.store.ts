@@ -6,6 +6,7 @@ import { Me } from "@main/model/user";
 import { db } from "@renderer/store/db";
 import { reactive, toRaw } from "vue";
 import { tachyonStore } from "@renderer/store/tachyon.store";
+import { PrivateUser } from "tachyon-protocol/types";
 
 export const me = reactive<
     Me & {
@@ -23,10 +24,10 @@ export const me = reactive<
     isAuthenticated: false,
     username: "Player",
     battleRoomState: {},
-    outgoingFriendRequestUserIds: new Set<number>(),
-    incomingFriendRequestUserIds: new Set<number>(),
-    friendUserIds: new Set<number>(),
-    ignoreUserIds: new Set<number>(),
+    outgoingFriendRequestUserIds: new Set<string>(),
+    incomingFriendRequestUserIds: new Set<string>(),
+    friendUserIds: new Set<string>(),
+    ignoreUserIds: new Set<string>(),
     permissions: new Set<string>(),
 });
 
@@ -101,36 +102,15 @@ window.tachyon.onEvent("user/self", async (event) => {
 });
 
 // Process friend data and manage subscriptions
-async function processFriendData(userData: { friendIds?: string[]; outgoingFriendRequest?: { to: string }[]; incomingFriendRequest?: { from: string }[] }) {
+async function processFriendData(userData: PrivateUser) {
     try {
-        // Clear existing friend data
-        me.friendUserIds.clear();
-        me.outgoingFriendRequestUserIds.clear();
-        me.incomingFriendRequestUserIds.clear();
-
-        // Populate friend data from userData
-        if (userData.friendIds) {
-            userData.friendIds.forEach((friendId: string) => {
-                me.friendUserIds.add(parseInt(friendId));
-            });
-        }
-        if (userData.outgoingFriendRequest) {
-            userData.outgoingFriendRequest.forEach((req) => {
-                me.outgoingFriendRequestUserIds.add(parseInt(req.to));
-            });
-        }
-        if (userData.incomingFriendRequest) {
-            userData.incomingFriendRequest.forEach((req) => {
-                me.incomingFriendRequestUserIds.add(parseInt(req.from));
-            });
-        }
+        // Clear existing friend data and populate with new data
+        me.friendUserIds = new Set(userData.friendIds);
+        me.outgoingFriendRequestUserIds = new Set(userData.outgoingFriendRequest.map((r) => r.to));
+        me.incomingFriendRequestUserIds = new Set(userData.incomingFriendRequest.map((r) => r.from));
 
         // Get all user IDs to subscribe to
-        const allUserIds = [
-            ...(userData.friendIds || []),
-            ...(userData.outgoingFriendRequest || []).map((req: { to: string }) => req.to),
-            ...(userData.incomingFriendRequest || []).map((req: { from: string }) => req.from),
-        ];
+        const allUserIds = Array.from(me.friendUserIds.union(me.outgoingFriendRequestUserIds).union(me.incomingFriendRequestUserIds));
 
         if (allUserIds.length > 0) {
             await subscribeToUsers(allUserIds);
@@ -141,38 +121,28 @@ async function processFriendData(userData: { friendIds?: string[]; outgoingFrien
 }
 
 window.tachyon.onEvent("friend/requestReceived", async (event) => {
-    if (event?.from) {
-        me.incomingFriendRequestUserIds.add(parseInt(event.from));
-        await subscribeToUsers([event.from]);
-    }
+    me.incomingFriendRequestUserIds.add(event.from);
+    await subscribeToUsers([event.from]);
 });
 
 window.tachyon.onEvent("friend/requestAccepted", async (event) => {
-    if (event?.from) {
-        me.outgoingFriendRequestUserIds.delete(parseInt(event.from));
-        me.friendUserIds.add(parseInt(event.from));
-    }
+    me.outgoingFriendRequestUserIds.delete(event.from);
+    me.friendUserIds.add(event.from);
 });
 
 window.tachyon.onEvent("friend/requestRejected", async (event) => {
-    if (event?.from) {
-        me.outgoingFriendRequestUserIds.delete(parseInt(event.from));
-        await unsubscribeFromUsers([event.from]);
-    }
+    me.outgoingFriendRequestUserIds.delete(event.from);
+    await unsubscribeFromUsers([event.from]);
 });
 
 window.tachyon.onEvent("friend/requestCancelled", async (event) => {
-    if (event?.from) {
-        me.incomingFriendRequestUserIds.delete(parseInt(event.from));
-        await unsubscribeFromUsers([event.from]);
-    }
+    me.incomingFriendRequestUserIds.delete(event.from);
+    await unsubscribeFromUsers([event.from]);
 });
 
 window.tachyon.onEvent("friend/removed", async (event) => {
-    if (event?.from) {
-        me.friendUserIds.delete(parseInt(event.from));
-        await unsubscribeFromUsers([event.from]);
-    }
+    me.friendUserIds.delete(event.from);
+    await unsubscribeFromUsers([event.from]);
 });
 
 // export const me = readonly(_me);
@@ -182,106 +152,75 @@ export const auth = { login, playOffline, logout, changeAccount };
 export const friends = {
     async sendRequest(to: string) {
         const response = await window.tachyon.request("friend/sendRequest", { to });
-        if (response.status === "success") {
-            me.outgoingFriendRequestUserIds.add(parseInt(to));
-            await subscribeToUsers([to]);
-        }
+        me.outgoingFriendRequestUserIds.add(to);
+        await subscribeToUsers([to]);
         return response;
     },
 
     async acceptRequest(from: string) {
-        const response = await window.tachyon.request("friend/acceptRequest", { from });
-        if (response.status === "success") {
-            me.incomingFriendRequestUserIds.delete(parseInt(from));
-            me.friendUserIds.add(parseInt(from));
-        } else {
+        try {
+            const response = await window.tachyon.request("friend/acceptRequest", { from });
+            me.incomingFriendRequestUserIds.delete(from);
+            me.friendUserIds.add(from);
+            return response;
+        } catch (error) {
             // Remove from UI even on error since request is invalid
-            me.incomingFriendRequestUserIds.delete(parseInt(from));
+            me.incomingFriendRequestUserIds.delete(from);
+            throw error;
         }
-        return response;
     },
 
     async rejectRequest(from: string) {
-        const response = await window.tachyon.request("friend/rejectRequest", { from });
-        if (response.status === "success") {
-            me.incomingFriendRequestUserIds.delete(parseInt(from));
+        try {
+            const response = await window.tachyon.request("friend/rejectRequest", { from });
+            me.incomingFriendRequestUserIds.delete(from);
             await unsubscribeFromUsers([from]);
-        } else {
+            return response;
+        } catch (error) {
             // Remove from UI even on error since request is invalid
-            me.incomingFriendRequestUserIds.delete(parseInt(from));
+            me.incomingFriendRequestUserIds.delete(from);
             await unsubscribeFromUsers([from]);
+            throw error;
         }
-        return response;
     },
 
     async cancelRequest(to: string) {
-        const response = await window.tachyon.request("friend/cancelRequest", { to });
-        if (response.status === "success") {
-            me.outgoingFriendRequestUserIds.delete(parseInt(to));
+        try {
+            const response = await window.tachyon.request("friend/cancelRequest", { to });
+            me.outgoingFriendRequestUserIds.delete(to);
             await unsubscribeFromUsers([to]);
-        } else {
+            return response;
+        } catch (error) {
             // Remove from UI even on error since request is invalid
-            me.outgoingFriendRequestUserIds.delete(parseInt(to));
+            me.outgoingFriendRequestUserIds.delete(to);
             await unsubscribeFromUsers([to]);
+            throw error;
         }
-        return response;
     },
 
     async remove(userId: string) {
         const response = await window.tachyon.request("friend/remove", { userId });
-        if (response.status === "success") {
-            me.friendUserIds.delete(parseInt(userId));
-            await unsubscribeFromUsers([userId]);
-        }
+        me.friendUserIds.delete(userId);
+        await unsubscribeFromUsers([userId]);
         return response;
     },
 
     async fetchFriendList() {
         const response = await window.tachyon.request("friend/list");
-        if (response.status === "success") {
-            try {
-                // Clear existing friend data
-                me.friendUserIds.clear();
-                me.outgoingFriendRequestUserIds.clear();
-                me.incomingFriendRequestUserIds.clear();
+        console.debug(`Received friend/list event: ${JSON.stringify(response)}`);
 
-                // Populate friend data from response
-                if (response.data.friends) {
-                    response.data.friends.forEach((friend) => {
-                        me.friendUserIds.add(parseInt(friend.userId));
-                    });
-                }
-                if (response.data.outgoingPendingRequests) {
-                    response.data.outgoingPendingRequests.forEach((req) => {
-                        me.outgoingFriendRequestUserIds.add(parseInt(req.to));
-                    });
-                }
-                if (response.data.incomingPendingRequests) {
-                    response.data.incomingPendingRequests.forEach((req) => {
-                        me.incomingFriendRequestUserIds.add(parseInt(req.from));
-                    });
-                }
+        // Clear existing friend data and populate with new data
+        me.friendUserIds = new Set(response.data.friends.map((friend) => friend.userId));
+        me.outgoingFriendRequestUserIds = new Set(response.data.outgoingPendingRequests.map((req) => req.to));
+        me.incomingFriendRequestUserIds = new Set(response.data.incomingPendingRequests.map((req) => req.from));
 
-                // Get all user IDs to subscribe to
-                const allUserIds = [
-                    ...(response.data.friends || []).map((friend) => friend.userId),
-                    ...(response.data.outgoingPendingRequests || []).map((req) => req.to),
-                    ...(response.data.incomingPendingRequests || []).map((req) => req.from),
-                ];
+        // Get all user IDs to subscribe to
+        const allUserIds = Array.from(me.friendUserIds.union(me.outgoingFriendRequestUserIds).union(me.incomingFriendRequestUserIds));
 
-                if (allUserIds.length > 0) {
-                    await subscribeToUsers(allUserIds);
-                }
-            } catch (error) {
-                console.error("Failed to process friend list data:", error);
-                throw error;
-            }
-        } else {
-            // Handle failed response - response is now FriendListFailResponse
-            const failedResponse = response as unknown as { status: "failed"; reason?: string; details?: string };
-            const errorMessage = failedResponse.reason || failedResponse.details || "Unknown error";
-            throw new Error(`Failed to fetch friend list: ${errorMessage}`);
+        if (allUserIds.length > 0) {
+            await subscribeToUsers(allUserIds);
         }
+
         return response;
     },
 };

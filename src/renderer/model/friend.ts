@@ -3,5 +3,5 @@
 // SPDX-License-Identifier: MIT
 
 export type Friend = {
-    userId: number;
+    userId: string;
 };

@@ -89,16 +89,18 @@ const { t } = useTypedI18n();
 const router = useRouter();
 
 const props = defineProps<{
-    userId: number;
+    userId: string;
     type: "outgoing_request" | "incoming_request" | "friend";
 }>();
 
 const emit = defineEmits<{
-    (event: "statusChange", data: { userId: number; status: string }): void;
+    (event: "statusChange", data: { userId: string; status: string }): void;
 }>();
 
 // Use Dexie Live Query for reactive user data
-const user = useDexieLiveQuery(() => db.users.get(props.userId.toString()));
+const user = useDexieLiveQuery(async () => {
+    return await db.users.get(props.userId.toString());
+});
 
 // Watch for user changes and emit status updates for parent component ordering
 watch(
@@ -151,7 +153,7 @@ async function viewProfile() {
     await router.push(`/profile/${props.userId}`);
 }
 
-const toggleMessages = inject<Ref<((open?: boolean, userId?: number) => void) | undefined>>("toggleMessages")!;
+const toggleMessages = inject<Ref<((open?: boolean, userId?: string) => void) | undefined>>("toggleMessages")!;
 function sendMessage() {
     // if (!api.session.directMessages.has(props.user.userId)) {
     //     api.session.directMessages.set(props.user.userId, []);
