@@ -35,7 +35,7 @@ SPDX-License-Identifier: MIT
                         v-tooltip.bottom="t('lobby.navbar.tooltips.friends')"
                         v-click-away:friends="() => (friendsOpen = false)"
                         :class="['icon', { active: friendsOpen }]"
-                        @click="friendsOpen = true"
+                        @click="friendsOpen = !friendsOpen"
                     >
                         <Icon :icon="accountMultiple" :height="40" />
                     </Button>

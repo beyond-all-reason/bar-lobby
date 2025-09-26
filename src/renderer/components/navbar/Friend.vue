@@ -7,9 +7,9 @@ SPDX-License-Identifier: MIT
 <template>
     <div class="friend">
         <div class="flex-row gap-md flex-center-items">
-            <Flag :countryCode="user.countryCode" class="flag" />
-            <div class="username">{{ user.username }}</div>
-            <div :class="['online-dot', { offline: !user.isOnline }]">⬤</div>
+            <Flag :countryCode="user?.countryCode || '??'" class="flag" />
+            <div class="username">{{ user?.username || "Unknown User" }}</div>
+            <div :class="['online-dot', { offline: user?.status === 'offline' }]">⬤</div>
         </div>
         <div class="flex-row gap-sm">
             <template v-if="type === 'outgoing_request'">
@@ -32,7 +32,7 @@ SPDX-License-Identifier: MIT
                     <Icon :icon="account" />
                 </Button>
                 <Button
-                    v-if="user.isOnline"
+                    v-if="user && user.status !== 'offline'"
                     v-tooltip.left="t('lobby.navbar.tooltips.sendMessage')"
                     v-click-away:messages="() => {}"
                     class="slim square"
@@ -41,7 +41,7 @@ SPDX-License-Identifier: MIT
                     <Icon :icon="messageReplyText" />
                 </Button>
                 <Button
-                    v-if="user.isOnline && user.battleStatus.battleId"
+                    v-if="user && user.status !== 'offline' && user.battleRoomState"
                     v-tooltip.left="t('lobby.navbar.tooltips.joinBattle')"
                     class="slim square"
                     @click="joinBattle"
@@ -49,7 +49,7 @@ SPDX-License-Identifier: MIT
                     <Icon :icon="accountArrowRight" />
                 </Button>
                 <Button
-                    v-if="user.isOnline"
+                    v-if="user && user.status !== 'offline'"
                     v-tooltip.left="t('lobby.navbar.tooltips.inviteToParty')"
                     class="slim square"
                     @click="inviteToParty"
@@ -73,12 +73,17 @@ import checkThick from "@iconify-icons/mdi/check-thick";
 import closeThick from "@iconify-icons/mdi/close-thick";
 import deleteIcon from "@iconify-icons/mdi/delete";
 import messageReplyText from "@iconify-icons/mdi/message-reply-text";
-import { computed, inject, Ref } from "vue";
+import { inject, Ref, watch } from "vue";
 
 import Button from "@renderer/components/controls/Button.vue";
 import Flag from "@renderer/components/misc/Flag.vue";
 import { useRouter } from "vue-router";
 import { useTypedI18n } from "@renderer/i18n";
+import { friends } from "@renderer/store/me.store";
+import { notificationsApi } from "@renderer/api/notifications";
+import { db } from "@renderer/store/db";
+import { useDexieLiveQuery } from "@renderer/composables/useDexieLiveQuery";
+
 const { t } = useTypedI18n();
 
 const router = useRouter();
@@ -88,42 +93,58 @@ const props = defineProps<{
     type: "outgoing_request" | "incoming_request" | "friend";
 }>();
 
-// TODO fetch from store of users
-const user = computed(() => {
-    return {
-        userId: props.userId,
-        username: "User Name",
-        countryCode: "US",
-        isOnline: true,
-        battleStatus: {
-            battleId: 0,
-        },
-    };
-});
+const emit = defineEmits<{
+    (event: "statusChange", data: { userId: number; status: string }): void;
+}>();
+
+// Use Dexie Live Query for reactive user data
+const user = useDexieLiveQuery(() => db.users.get(props.userId.toString()));
+
+// Watch for user changes and emit status updates for parent component ordering
+watch(
+    user,
+    (newUser) => {
+        if (newUser && props.type === "friend") {
+            emit("statusChange", { userId: props.userId, status: newUser.status });
+        }
+    },
+    { immediate: true }
+);
 
 async function cancelRequest() {
-    // await api.comms.request("c.user.rescind_friend_request", {
-    //     user_id: props.user.userId,
-    // });
-    // api.session.onlineUser.incomingFriendRequestUserIds.delete(props.user.userId);
-    // api.session.onlineUser.outgoingFriendRequestUserIds.delete(props.user.userId);
+    try {
+        await friends.cancelRequest(props.userId.toString());
+    } catch (error) {
+        console.error("Failed to cancel friend request:", error);
+        notificationsApi.alert({
+            text: t("lobby.navbar.friends.notifications.errors.failedToCancel"),
+            severity: "error",
+        });
+    }
 }
 
 async function acceptRequest() {
-    // await api.comms.request("c.user.accept_friend_request", {
-    //     user_id: props.user.userId,
-    // });
-    // api.session.onlineUser.incomingFriendRequestUserIds.delete(props.user.userId);
-    // api.session.onlineUser.outgoingFriendRequestUserIds.delete(props.user.userId);
-    // api.session.onlineUser.friendUserIds.add(props.user.userId);
+    try {
+        await friends.acceptRequest(props.userId.toString());
+    } catch (error) {
+        console.error("Failed to accept friend request:", error);
+        notificationsApi.alert({
+            text: t("lobby.navbar.friends.notifications.errors.failedToAccept"),
+            severity: "error",
+        });
+    }
 }
 
 async function rejectRequest() {
-    // await api.comms.request("c.user.reject_friend_request", {
-    //     user_id: props.user.userId,
-    // });
-    // api.session.onlineUser.incomingFriendRequestUserIds.delete(props.user.userId);
-    // api.session.onlineUser.outgoingFriendRequestUserIds.delete(props.user.userId);
+    try {
+        await friends.rejectRequest(props.userId.toString());
+    } catch (error) {
+        console.error("Failed to reject friend request:", error);
+        notificationsApi.alert({
+            text: t("lobby.navbar.friends.notifications.errors.failedToReject"),
+            severity: "error",
+        });
+    }
 }
 
 async function viewProfile() {
@@ -160,9 +181,15 @@ async function inviteToParty() {
 }
 
 async function removeFriend() {
-    // await api.comms.request("c.user.remove_friend", {
-    //     user_id: props.user.userId,
-    // });
+    try {
+        await friends.remove(props.userId.toString());
+    } catch (error) {
+        console.error("Failed to remove friend:", error);
+        notificationsApi.alert({
+            text: t("lobby.navbar.friends.notifications.errors.failedToRemove"),
+            severity: "error",
+        });
+    }
 }
 </script>
 
