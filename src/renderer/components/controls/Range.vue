@@ -13,7 +13,11 @@ SPDX-License-Identifier: MIT
             @update:modelValue="(input: number) => onInput([input, high || 0])"
             @focus="(event: FocusEvent) => (event.target as HTMLInputElement)?.select()"
             class="min"
-            :disabled="disabled"
+            :minFractionDigits="0"
+            :maxFractionDigits="maxFractionDigits"
+            :step="stepValue"
+            mode="decimal"
+            :useGrouping="false"
         />
         <Slider v-bind="$props" :modelValue="modelValue" @update:modelValue="onSlide" />
         <InputNumber
@@ -22,22 +26,12 @@ SPDX-License-Identifier: MIT
             @update:modelValue="(input: number) => (typeof modelValue === 'number' ? onInput(input) : onInput([low || 0, input]))"
             @focus="(event: FocusEvent) => (event.target as HTMLInputElement)?.select()"
             class="max"
-            :disabled="disabled"
+            :minFractionDigits="0"
+            :maxFractionDigits="maxFractionDigits"
+            :step="stepValue"
+            mode="decimal"
+            :useGrouping="false"
         />
-        <!-- <InputNumber
-            v-if="!range && typeof modelValue === 'number'"
-            v-bind="$attrs"
-            :modelValue="typeof modelValue === 'number' ? modelValue : high"
-            @update:modelValue="onInput"
-            class="max"
-        />
-        <InputNumber
-            v-if="range"
-            v-bind="$attrs"
-            :modelValue="high"
-            @update:modelValue="(input: number) => onInput([low, input])"
-            class="max"
-        /> -->
     </Control>
 </template>
 
@@ -63,6 +57,13 @@ const min = computed<number>(() => props?.min ?? 0);
 const minInputWidth = computed(() => `${min.value.toString().length + 1}ch`);
 const max = computed<number>(() => props?.max ?? 100);
 const maxInputWidth = computed(() => `${max.value.toString().length + 1}ch`);
+
+const stepValue = computed(() => props.step ?? 1);
+const maxFractionDigits = computed(() => {
+    const step = stepValue.value.toString();
+    const decimalIndex = step.indexOf(".");
+    return decimalIndex === -1 ? 0 : step.length - decimalIndex - 1;
+});
 
 function onSlide(input: number | number[]) {
     emits("update:modelValue", input);
