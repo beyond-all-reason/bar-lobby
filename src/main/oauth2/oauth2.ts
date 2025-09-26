@@ -178,7 +178,7 @@ export function startTokenRenewer(interval: number) {
         renewAccessToken().then((value) => {
             accountService.saveRefreshToken(value.refreshToken);
             accountService.saveToken(value.token);
-			log.info("Saved new tokens.");
+            log.info("Saved new tokens.");
         });
     }, interval);
 }
