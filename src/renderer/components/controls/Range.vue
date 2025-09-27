@@ -3,7 +3,6 @@ SPDX-FileCopyrightText: 2025 The BAR Lobby Authors
 
 SPDX-License-Identifier: MIT
 -->
-<!-- comment -->
 <template>
     <Control class="range" :disabled="disabled">
         <InputNumber
