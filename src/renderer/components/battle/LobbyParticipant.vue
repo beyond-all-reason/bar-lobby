@@ -34,10 +34,8 @@ import { useTypedI18n } from "@renderer/i18n";
 
 import TeamParticipant from "@renderer/components/battle/TeamParticipant.vue";
 import ContextMenu from "@renderer/components/common/ContextMenu.vue";
-import Flag from "@renderer/components/misc/Flag.vue";
 import { useRouter } from "vue-router";
 import { me } from "@renderer/store/me.store";
-import { lobbyPlayer } from "@renderer/model/lobbyPlayer";
 import { UserId } from "tachyon-protocol/types";
 import { getUserByID } from "@renderer/store/users.store";
 import { computedAsync } from "@vueuse/core";
@@ -59,6 +57,7 @@ interface PlayerThing {
 }
 
 const displayName = computedAsync(async () => {
+    // User and number is only shown as a placeholder if we have a delay in getting the user's name from the server
     const name = "User " + props.player.id; //TODO: Use a translation string here
     if (props.player.id) {
         const cached: User = (await getUserByID(props.player.id)) as User;
@@ -69,6 +68,7 @@ const displayName = computedAsync(async () => {
     return name;
 });
 
+// Right now we are just pretending everyone is synced because we don't have that info yet.
 const isSynced = computed(() => {
     return true;
     //const syncStatus = props.player.contentSyncState;

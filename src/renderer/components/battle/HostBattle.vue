@@ -97,7 +97,7 @@ SPDX-License-Identifier: MIT
 </template>
 
 <script lang="ts" setup>
-import { computed, Ref, ref, useTemplateRef, toRaw } from "vue";
+import { computed, Ref, ref, useTemplateRef } from "vue";
 import { useTypedI18n } from "@renderer/i18n";
 
 import Loader from "@renderer/components/common/Loader.vue";
@@ -105,14 +105,14 @@ import Modal from "@renderer/components/common/Modal.vue";
 import Button from "@renderer/components/controls/Button.vue";
 import Select from "@renderer/components/controls/Select.vue";
 import Flag from "@renderer/components/misc/Flag.vue";
-import { tachyon, tachyonStore } from "@renderer/store/tachyon.store";
+import { tachyon } from "@renderer/store/tachyon.store";
 import { LobbyCreateRequestData, StartBox } from "tachyon-protocol/types";
 import { rand } from "@vueuse/core";
-import { getRandomMap, mapsStore } from "@renderer/store/maps.store";
+import { getRandomMap } from "@renderer/store/maps.store";
 import { MapData } from "@main/content/maps/map-data";
 import Textbox from "@renderer/components/controls/Textbox.vue";
 import { db } from "@renderer/store/db";
-import { useDexieLiveQuery, useDexieLiveQueryWithDeps } from "@renderer/composables/useDexieLiveQuery";
+import { useDexieLiveQuery } from "@renderer/composables/useDexieLiveQuery";
 import MapListModal from "@renderer/components/battle/MapListModal.vue";
 import MapOptionsModal from "@renderer/components/battle/MapOptionsModal.vue";
 import { Icon } from "@iconify/vue";

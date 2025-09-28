@@ -29,7 +29,7 @@ SPDX-License-Identifier: MIT
             <!-- <Button v-if="showJoin" class="slim black" @click="onJoinClicked(teamId)">Join</Button> -->
         </div>
         <div v-if="battleStore.isOnline">
-            <div v-for="(member, key, index) in allyMembers" :key="key" class="participant">
+            <div v-for="(member, key) in allyMembers" :key="key" class="participant">
                 <LobbyParticipant :player="member as Member" />
             </div>
         </div>

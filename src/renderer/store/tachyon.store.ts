@@ -43,7 +43,7 @@ export const tachyonStore = reactive({
     fetchServerStatsInterval?: NodeJS.Timeout;
     reconnectInterval?: NodeJS.Timeout;
     lobbyList: Record<string, LobbyOverview>;
-    selectedLobby: Lobby | null;
+    selectedLobby: LobbyOverview | null;
     activeLobby?: Lobby;
 });
 
@@ -170,7 +170,6 @@ function parseLobbyResponseData(data: LobbyCreateOkResponseData | LobbyJoinOkRes
     for (const memberKey in data.members) {
         lobbyObject.playerCount++; //Increment 1 for each player already in the lobby when created/joined.
         const member = data.members[memberKey];
-        //TODO: after we parse this list we will want to go back and get actual player info for each using the ``user/subscribeUpdates`` request.
         lobbyObject.members![memberKey] = {
             id: member.id,
             allyTeam: member.allyTeam,
@@ -209,7 +208,7 @@ async function startBattle() {
     }
 }
 
-function checkSelectedLobbyForNull() {
+function clearSelectedLobbyIfNull() {
     if (tachyonStore.selectedLobby && tachyonStore.lobbyList[tachyonStore.selectedLobby.id] == null) {
         tachyonStore.selectedLobby = null;
     }
@@ -218,12 +217,12 @@ function checkSelectedLobbyForNull() {
 function onListUpdatedEvent(data: LobbyListUpdatedEventData) {
     console.log("Tachyon event: lobby/listUpdated:", data);
     tachyonStore.lobbyList = applyPatch(tachyonStore.lobbyList, data.lobbies); //Error here until tachyon-protocol package updates
-    checkSelectedLobbyForNull();
+    clearSelectedLobbyIfNull();
 }
 
 function onLobbyListResetEvent(data: LobbyListResetEventData) {
     tachyonStore.lobbyList = data.lobbies;
-    checkSelectedLobbyForNull();
+    clearSelectedLobbyIfNull();
 }
 
 function onLobbyUpdatedEvent(data: LobbyUpdatedEventData) {
@@ -238,10 +237,7 @@ function onLobbyUpdatedEvent(data: LobbyUpdatedEventData) {
         }
     }
     tachyonStore.activeLobby!.maxPlayerCount = maxPlayerCount;
-    let playerCount: number = 0;
-    for (const members in tachyonStore.activeLobby!.members) {
-        playerCount++;
-    }
+    const playerCount: number = Object.keys(tachyonStore.activeLobby!.members!).length;
     tachyonStore.activeLobby!.playerCount = playerCount;
     // We need to sub to new members, but if members go away we unsub instead. Ugh we need to maintain a list and diff it also lol
     if (data.members) {
@@ -296,6 +292,12 @@ async function fetchServerStats() {
     }
 }
 
+function clearLobbyInfo() {
+    tachyonStore.lobbyList = {};
+    tachyonStore.selectedLobby = null;
+    tachyonStore.activeLobby = undefined;
+}
+
 export async function initTachyonStore() {
     tachyonStore.isConnected = await window.tachyon.isConnected();
     if (tachyonStore.isConnected) {
@@ -321,6 +323,11 @@ export async function initTachyonStore() {
 
         // Fetch matchmaking queues when connected
         fetchAvailableQueues();
+
+        //TODO: Recheck if we are currently assigned to a Lobby still upon (re)connection
+        // This can be done by getting the 'currentLobby` value from the `user/self` response we get upon connection.
+        // Unfortunately said value is not stored properly yet so we can't access it at this time. This is currently
+        // WIP along with Friends. Once resolved in master, we will get back into this.
     });
 
     window.tachyon.onDisconnected(() => {
@@ -338,6 +345,8 @@ export async function initTachyonStore() {
         if (me.isAuthenticated) {
             // Try to connect to Tachyon server periodically
             tachyonStore.reconnectInterval = setInterval(connect, 10000);
+            // We also want to clear the lobby list, etc
+            clearLobbyInfo();
         }
     });
 

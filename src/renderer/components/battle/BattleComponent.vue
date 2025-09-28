@@ -123,7 +123,7 @@ SPDX-License-Identifier: MIT
  * The PlayerList component, however, needs to send Tachyon team request updates, adding AI, etc, once that exists in the protocol.
  * And it also needs to receive updates to the organization directly from the activeLobby details.
  */
-import { ref, defineProps } from "vue";
+import { ref } from "vue";
 import { useTypedI18n } from "@renderer/i18n";
 import Playerlist from "@renderer/components/battle/Playerlist.vue";
 import Select from "@renderer/components/controls/Select.vue";
@@ -159,7 +159,7 @@ const mapListOptions = useDexieLiveQuery(() => db.maps.toArray());
 const gameListOptions = useDexieLiveQuery(() => db.gameVersions.toArray());
 const leaveConfirmModalIsOpen = ref(false);
 
-const props = defineProps<{
+defineProps<{
     online: boolean;
 }>();
 

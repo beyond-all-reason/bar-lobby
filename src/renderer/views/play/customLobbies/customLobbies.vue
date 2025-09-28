@@ -80,6 +80,14 @@ SPDX-License-Identifier: MIT
         </div>
         <div v-if="!loading" class="right">
             <div class="flex flex-col">
+                <div v-if="settingsStore.devMode" class="flex flex-row">
+                    <Button class="green margin-top-sm margin-bottom-sm" @click="sendLobbyListSubscribeRequest"
+                        >Subscribe to list updates</Button
+                    >
+                    <Button class="green margin-top-sm margin-bottom-sm" @click="sendLobbyListUnsubscribeRequest"
+                        >Unsubscribe to list updates</Button
+                    >
+                </div>
                 <Button
                     v-if="tachyonStore.activeLobby == undefined"
                     class="green flex-grow margin-top-lg margin-bottom-lg"
@@ -107,19 +115,17 @@ SPDX-License-Identifier: MIT
 import { Icon } from "@iconify/vue";
 import account from "@iconify-icons/mdi/account";
 import eye from "@iconify-icons/mdi/eye";
-import lock from "@iconify-icons/mdi/lock";
 import robot from "@iconify-icons/mdi/robot";
 import Column from "primevue/column";
 import DataTable from "primevue/datatable";
-import { Ref, ref, shallowRef, computed, onActivated } from "vue";
+import { ref, computed, onActivated } from "vue";
 //import BattlePreview from "@renderer/components/battle/BattlePreview.vue";
 import HostBattle from "@renderer/components/battle/HostBattle.vue";
 import Loader from "@renderer/components/common/Loader.vue";
 import Button from "@renderer/components/controls/Button.vue";
 import Checkbox from "@renderer/components/controls/Checkbox.vue";
 import SearchBox from "@renderer/components/controls/SearchBox.vue";
-import { getFriendlyDuration } from "@renderer/utils/misc";
-import { OngoingBattle } from "@main/content/replays/replay";
+
 import { settingsStore } from "@renderer/store/settings.store";
 import { useTypedI18n } from "@renderer/i18n";
 import { tachyon, tachyonStore } from "@renderer/store/tachyon.store";

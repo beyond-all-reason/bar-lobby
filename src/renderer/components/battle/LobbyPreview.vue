@@ -10,15 +10,14 @@ SPDX-License-Identifier: MIT
 
 <script setup lang="ts">
 import BattlePreview from "@renderer/components/battle/BattlePreview.vue";
-import { Lobby as LobbyType } from "@renderer/model/lobby";
 import { OngoingBattle } from "@main/content/replays/replay";
-import { tachyonStore } from "@renderer/store/tachyon.store";
+import { LobbyOverview } from "tachyon-protocol/types";
 
-const props = defineProps<{
-    lobby: LobbyType;
+defineProps<{
+    lobby: LobbyOverview;
 }>();
 
-function convertLobbyToBattle(lobby: LobbyType): OngoingBattle {
+function convertLobbyToBattle(lobby: LobbyOverview): OngoingBattle {
     const toMilliseconds = lobby.currentBattle ? lobby.currentBattle.startedAt * 1000 : 0; //FIXME: zero timestamp will be wrong
     const timestamp: Date = new Date(toMilliseconds);
     const battle: OngoingBattle = {
