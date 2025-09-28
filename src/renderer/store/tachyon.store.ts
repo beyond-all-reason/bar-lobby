@@ -26,9 +26,9 @@ import { apply as applyPatch } from "json8-merge-patch";
 import { battleStore, battleActions } from "@renderer/store/battle.store";
 import { db } from "@renderer/store/db";
 import { notificationsApi } from "@renderer/api/notifications";
-import { useTypedI18n } from "@renderer/i18n";
+import { setupI18n } from "@renderer/i18n";
 
-const { t } = useTypedI18n();
+const i18n = setupI18n();
 
 export const tachyonStore = reactive({
     isInitialized: false,
@@ -263,7 +263,7 @@ function onLobbyLeftEvent(data: LobbyLeftEventData) {
     //router.push("/play/customLobbies/customLobbies");
     battleStore.isLobbyOpened = false;
     notificationsApi.alert({
-        text: t("lobby.multiplayer.custom.removedFromLobby"),
+        text: i18n.global.t("lobby.multiplayer.custom.removedFromLobby"),
         severity: "info",
     });
 }

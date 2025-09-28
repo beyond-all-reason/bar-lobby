@@ -5,7 +5,7 @@ SPDX-License-Identifier: MIT
 -->
 
 <route lang="json5">
-{ meta: { title: "Custom Lobbies", order: 5, devOnly: true, onlineOnly: true, transition: { name: "slide-left" } } }
+{ meta: { title: "Custom Lobbies", order: 5, devOnly: false, onlineOnly: true, transition: { name: "slide-left" } } }
 </route>
 
 <template>
@@ -129,13 +129,13 @@ import Checkbox from "@renderer/components/controls/Checkbox.vue";
 import SearchBox from "@renderer/components/controls/SearchBox.vue";
 
 import { settingsStore } from "@renderer/store/settings.store";
-import { useTypedI18n } from "@renderer/i18n";
 import { tachyon, tachyonStore } from "@renderer/store/tachyon.store";
 import { Lobby as LobbyType } from "@renderer/model/lobby";
 import LobbyPreview from "@renderer/components/battle/LobbyPreview.vue";
 import { router } from "@renderer/router";
 import { battleStore } from "@renderer/store/battle.store";
 import LeaveConfirmModal from "@renderer/components/battle/LeaveConfirmModal.vue";
+import { useTypedI18n } from "@renderer/i18n";
 
 const { t } = useTypedI18n();
 

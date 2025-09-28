@@ -30,9 +30,9 @@ import { spadsBoxToStartBox } from "@renderer/utils/start-boxes";
 import { StartBox } from "tachyon-protocol/types";
 import { reactive, readonly, watch } from "vue";
 import { startBattle as startGame } from "@renderer/store/game.store";
-import { useTypedI18n } from "@renderer/i18n";
+import { setupI18n } from "@renderer/i18n";
 
-const { t } = useTypedI18n();
+const i18n = setupI18n();
 
 let participantId = 0;
 interface BattleLobby {
@@ -330,7 +330,7 @@ function removeCustomStartBox(boxId: number) {
 function defaultOfflineBattle(engine?: EngineVersion, game?: GameVersion, map?: MapData, online?: boolean) {
     const barbAi = engine?.ais.find((ai) => ai.shortName === "BARb");
     const battle: Battle = {
-        title: online ? t("lobby.multiplayer.battle.onlineTitle") : t("lobby.multiplayer.battle.offlineTitle"),
+        title: online ? i18n.global.t("lobby.multiplayer.battle.onlineTitle") : i18n.global.t("lobby.multiplayer.battle.offlineTitle"),
         isOnline: false,
         battleOptions: {
             engineVersion: engine?.id || enginesStore.selectedEngineVersion?.id,
