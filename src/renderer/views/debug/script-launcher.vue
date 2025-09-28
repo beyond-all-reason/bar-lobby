@@ -10,7 +10,22 @@ SPDX-License-Identifier: MIT
 
 <template>
     <div class="flex-col gap-md fullheight">
-        <Textarea class="fullheight" v-model="script" spellcheck="false" />
+        <div class="flex-row gap-md">
+            <div class="flex-col flex-grow">
+                <h3>Script Editor</h3>
+                <Textarea class="script-editor" v-model="script" spellcheck="false" />
+            </div>
+            <div class="mod-panel">
+                <ModSelector
+                    :mod-selection="modSelection"
+                    title="Mods"
+                    variant="compact"
+                    selection-mode="checkbox"
+                    :show-installation="true"
+                    :show-selected-summary="true"
+                />
+            </div>
+        </div>
         <Button class="green" @click="launch">Launch</Button>
     </div>
 </template>
@@ -20,6 +35,9 @@ import { ref } from "vue";
 
 import Button from "@renderer/components/controls/Button.vue";
 import Textarea from "@renderer/components/controls/Textarea.vue";
+import ModSelector from "@renderer/components/mods/ModSelector.vue";
+import { useModSelection } from "@renderer/composables/useModSelection";
+import { useModIntegration } from "@renderer/composables/useModIntegration";
 import { DEFAULT_ENGINE_VERSION, LATEST_GAME_VERSION } from "@main/config/default-versions";
 
 const script = ref(`[game] {
@@ -42,7 +60,35 @@ const script = ref(`[game] {
     gametype=${LATEST_GAME_VERSION};
 }`);
 
-function launch() {
-    window.game.launchScript(script.value, LATEST_GAME_VERSION, DEFAULT_ENGINE_VERSION);
+// Initialize mod selection and integration
+const modSelection = useModSelection();
+const modIntegration = useModIntegration({ selectedMods: modSelection.selectedMods });
+
+async function launch() {
+    // Get mod paths and integrate with script
+    const modPaths = modIntegration.modPaths.value;
+    const scriptWithMods = modIntegration.injectModsIntoScript(script.value);
+
+    window.game.launchScript(scriptWithMods, LATEST_GAME_VERSION, DEFAULT_ENGINE_VERSION, modPaths);
 }
 </script>
+
+<style lang="scss" scoped>
+.script-editor {
+    height: 400px;
+    font-family: "Courier New", monospace;
+    font-size: 0.875rem;
+}
+
+.mod-panel {
+    min-width: 300px;
+    max-width: 400px;
+}
+
+h3 {
+    margin: 0 0 0.5rem 0;
+    color: #ffffff;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+</style>

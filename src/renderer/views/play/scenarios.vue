@@ -54,7 +54,12 @@ SPDX-License-Identifier: MIT
                                 optionLabel="name"
                             />
                         </div>
-                        <ModSelection :mod-selection="modSelection" />
+                        <ModSelector 
+                            :mod-selection="modSelection" 
+                            title="Mods"
+                            variant="default"
+                            selection-mode="checkbox"
+                        />
                         <DownloadContentButton
                             v-if="map"
                             :map="map"
@@ -88,7 +93,7 @@ import DownloadContentButton from "@renderer/components/controls/DownloadContent
 import { GameStatus, gameStore } from "@renderer/store/game.store";
 
 import { useTypedI18n } from "@renderer/i18n";
-import ModSelection from "@renderer/components/mods/ModSelection.vue";
+import ModSelector from "@renderer/components/mods/ModSelector.vue";
 import { useModSelection } from "@renderer/composables/useModSelection";
 import { useModIntegration } from "@renderer/composables/useModIntegration";
 

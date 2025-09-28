@@ -33,7 +33,7 @@ SPDX-License-Identifier: MIT
                 <input
                     v-model="modSelection.githubRepoInput.value"
                     type="text"
-                    placeholder="Enter GitHub repo (e.g., tetrisface/modtest3)"
+                    placeholder="Add GitHub repo (e.g., tetrisface/modtest3)"
                     class="mod-input"
                     @keyup.enter="handleInstallMod"
                 />
@@ -48,7 +48,6 @@ SPDX-License-Identifier: MIT
             </div>
 
             <div v-if="modSelection.hasInstalledMods.value" class="installed-mods">
-                <h5>Installed Mods:</h5>
                 <div v-for="mod in modSelection.installedMods.value" :key="mod.id" class="installed-mod-item">
                     <div class="mod-info">
                         <input
@@ -62,6 +61,22 @@ SPDX-License-Identifier: MIT
                             <span class="mod-name">{{ mod.name }}</span>
                             <span class="mod-version">{{ mod.version }}</span>
                         </label>
+                        <div class="mod-actions">
+                            <button
+                                @click="handleOpenModFolder(mod.installPath)"
+                                class="mod-action-button"
+                                title="Open mod folder"
+                            >
+                                <Icon :icon="folderIcon" width="16" height="16" />
+                            </button>
+                            <button
+                                @click="handleOpenModRepository(mod.repository)"
+                                class="mod-action-button"
+                                title="Open repository in browser"
+                            >
+                                <Icon :icon="externalLinkIcon" width="16" height="16" />
+                            </button>
+                        </div>
                     </div>
                     <Button size="small" variant="danger" @click="handleUninstallMod(mod.id)">Remove</Button>
                 </div>
@@ -72,7 +87,6 @@ SPDX-License-Identifier: MIT
             </div>
 
             <div v-if="modSelection.hasSelectedMods.value" class="selected-mods">
-                <h5>Selected for Launch:</h5>
                 <div v-for="mod in modSelection.selectedMods.value" :key="mod.id" class="selected-mod-item">
                     <span>{{ mod.name }} {{ mod.version }}</span>
                     <Button size="small" variant="secondary" @click="modSelection.toggleModSelection(mod.id)">Deselect</Button>
@@ -84,6 +98,9 @@ SPDX-License-Identifier: MIT
 
 <script lang="ts" setup>
 import { onMounted } from "vue";
+import { Icon } from "@iconify/vue";
+import folderIcon from "@iconify-icons/mdi/folder";
+import externalLinkIcon from "@iconify-icons/mdi/open-in-new";
 import { type UseModSelectionReturn } from "@renderer/composables/useModSelection";
 import Button from "@renderer/components/controls/Button.vue";
 
@@ -117,6 +134,24 @@ async function handleUninstallMod(modId: string) {
     }
 }
 
+async function handleOpenModFolder(modPath: string) {
+    try {
+        await window.shell.openModFolder(modPath);
+    } catch (error) {
+        console.error("Failed to open mod folder:", error);
+        alert("Failed to open mod folder");
+    }
+}
+
+async function handleOpenModRepository(repository: string) {
+    try {
+        await window.shell.openModRepository(repository);
+    } catch (error) {
+        console.error("Failed to open mod repository:", error);
+        alert("Failed to open mod repository");
+    }
+}
+
 // Load mods when component mounts
 onMounted(async () => {
     try {
@@ -136,7 +171,8 @@ onMounted(async () => {
 
     h4 {
         margin: 0 0 1rem 0;
-        color: #ffcc00;
+        color: #ffffff;
+        font-weight: 600;
     }
 }
 
@@ -188,14 +224,6 @@ onMounted(async () => {
     }
 }
 
-.installed-mods {
-    h5 {
-        margin: 0 0 0.5rem 0;
-        color: #ffcc00;
-        font-size: 0.875rem;
-    }
-}
-
 .installed-mod-item {
     display: flex;
     justify-content: space-between;
@@ -223,6 +251,7 @@ onMounted(async () => {
         cursor: pointer;
         color: #ffffff;
         font-size: 0.875rem;
+        flex: 1;
 
         .mod-name {
             font-weight: 500;
@@ -233,6 +262,34 @@ onMounted(async () => {
             font-size: 0.75rem;
         }
     }
+
+    .mod-actions {
+        display: flex;
+        gap: 0.25rem;
+        margin-left: auto;
+    }
+
+    .mod-action-button {
+        background: none;
+        border: none;
+        color: rgba(255, 255, 255, 0.7);
+        cursor: pointer;
+        padding: 0.25rem;
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s ease;
+
+        &:hover {
+            color: #ffffff;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        &:active {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+    }
 }
 
 .no-mods {
@@ -240,14 +297,6 @@ onMounted(async () => {
         margin: 0;
         color: rgba(255, 255, 255, 0.7);
         font-style: italic;
-        font-size: 0.875rem;
-    }
-}
-
-.selected-mods {
-    h5 {
-        margin: 0 0 0.5rem 0;
-        color: #00ff88;
         font-size: 0.875rem;
     }
 }

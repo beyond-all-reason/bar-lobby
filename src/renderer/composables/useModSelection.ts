@@ -68,7 +68,7 @@ export function useModSelection(): UseModSelectionReturn {
             // Get the correct mod paths from the main process
             const modPaths = await window.mod.getModPaths();
             const repoName = githubRepoInput.value.split("/").pop() || "mod";
-            const targetPath = `${modPaths[0]}/${repoName}-scenario.sdd`;
+            const targetPath = `${modPaths[0]}/${repoName}.sdd`;
 
             const mod = await window.mod.installFromGitHub({
                 repository: githubRepoInput.value,

@@ -51,6 +51,10 @@ const shellApi = {
     openReplaysDir: (): Promise<string> => ipcRenderer.invoke("shell:openReplaysDir"),
     showReplayInFolder: (fileName: string): Promise<void> => ipcRenderer.invoke("shell:showReplayInFolder", fileName),
 
+    // Mod-related
+    openModFolder: (modPath: string): Promise<string> => ipcRenderer.invoke("shell:openModFolder", modPath),
+    openModRepository: (repository: string): Promise<void> => ipcRenderer.invoke("shell:openModRepository", repository),
+
     // External
     openInBrowser: (url: string): Promise<void> => ipcRenderer.invoke("shell:openInBrowser", url),
 };
