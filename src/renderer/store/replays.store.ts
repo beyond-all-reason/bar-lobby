@@ -4,7 +4,7 @@
 
 import { Replay } from "@main/content/replays/replay";
 import { db } from "@renderer/store/db";
-import { reactive, readonly } from "vue";
+import { reactive } from "vue";
 
 const state: {
     isInitialized: boolean;
