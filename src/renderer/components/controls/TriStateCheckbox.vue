@@ -7,8 +7,8 @@ SPDX-License-Identifier: MIT
 <template>
     <Control class="checkbox">
         <div class="check-wrapper" @click="onClick">
-            <Icon v-if="modelValue" :icon="checkBold" height="22px" />
-            <Icon v-else-if="modelValue === false" :icon="closeThick" height="22px" />
+            <Icon v-if="modelValue === 'true'" :icon="checkBold" height="22px" />
+            <Icon v-else-if="modelValue === 'false'" :icon="closeThick" height="22px" />
         </div>
     </Control>
 </template>
@@ -22,19 +22,22 @@ import Control from "@renderer/components/controls/Control.vue";
 
 const props = withDefaults(
     defineProps<{
-        modelValue?: boolean | null;
+        modelValue?: string;
     }>(),
     {
-        modelValue: null,
+        modelValue: "null",
     }
 );
 
 const emits = defineEmits<{
-    (event: "update:modelValue", checked: boolean | null): void;
+    (event: "update:modelValue", checked: string): void;
 }>();
 
 function onClick() {
-    emits("update:modelValue", props.modelValue === true ? false : props.modelValue === false ? null : true);
+    //emits("update:modelValue", props.modelValue === true ? false : props.modelValue === false ? null : true);
+    const next = props.modelValue === "true" ? "false" : props.modelValue === "false" ? "null" : "true";
+    console.log("TriStateCheckbox emit:", next);
+    emits("update:modelValue", next);
 }
 </script>
 

@@ -19,7 +19,10 @@ SPDX-License-Identifier: MIT
                     <Panel>
                         <div class="flex-col fullheight gap-md">
                             <div class="flex-row gap-md fullwidth">
-                                <TriStateCheckbox v-model="endedNormally" :label="t('lobby.views.watch.replays.endedNormally')" />
+                                <TriStateCheckbox
+                                    v-model="settingsStore.endedNormallyFilter"
+                                    :label="t('lobby.views.watch.replays.endedNormally')"
+                                />
                                 <Checkbox v-model="showSpoilers" :label="t('lobby.views.watch.replays.showSpoilers')" />
                                 <div class="flex-grow">
                                     <SearchBox v-model="fulltextSearch" :placeholder="t('lobby.views.watch.replays.searchPlaceholder')" />
@@ -158,10 +161,11 @@ import { MapDownloadData } from "@main/content/maps/map-data";
 import { Icon } from "@iconify/vue";
 import folder from "@iconify-icons/mdi/folder";
 import SearchBox from "@renderer/components/controls/SearchBox.vue";
+import { settingsStore } from "@renderer/store/settings.store";
 
 const { t } = useTypedI18n();
 
-const endedNormally: Ref<boolean | null> = toRef(replaysStore as typeof replaysStore, "endedNormallyFilter");
+const endedNormally = toRef(settingsStore, "endedNormallyFilter");
 
 const showSpoilers = ref(true);
 const offset = ref(0);
