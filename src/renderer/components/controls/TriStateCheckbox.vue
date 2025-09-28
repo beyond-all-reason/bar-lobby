@@ -22,7 +22,7 @@ import Control from "@renderer/components/controls/Control.vue";
 
 const props = withDefaults(
     defineProps<{
-        modelValue?: string;
+        modelValue?: "true" | "false" | "null";
     }>(),
     {
         modelValue: "null",
@@ -30,13 +30,12 @@ const props = withDefaults(
 );
 
 const emits = defineEmits<{
-    (event: "update:modelValue", checked: string): void;
+    (event: "update:modelValue", checked: "true" | "false" | "null"): void;
 }>();
 
 function onClick() {
     //emits("update:modelValue", props.modelValue === true ? false : props.modelValue === false ? null : true);
     const next = props.modelValue === "true" ? "false" : props.modelValue === "false" ? "null" : "true";
-    console.log("TriStateCheckbox emit:", next);
     emits("update:modelValue", next);
 }
 </script>
