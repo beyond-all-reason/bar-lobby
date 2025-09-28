@@ -2,6 +2,7 @@
 //
 // SPDX-License-Identifier: MIT
 
+// TODO: Do we need this file? Better to make the lobby users match the protocol users.
 export type lobbyPlayer = {
     userId: string;
     name: string;

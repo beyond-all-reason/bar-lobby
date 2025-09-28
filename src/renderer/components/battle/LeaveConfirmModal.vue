@@ -5,17 +5,17 @@ SPDX-License-Identifier: MIT
 -->
 
 <template>
-    <Modal title="Leave Lobby?" style="max-width: 1440px">
+    <Modal :title="t('lobby.components.battle.leaveConfirmModal.title')" style="max-width: 1440px">
         <div class="layout padding-bottom-xl">
             <div><Icon :icon="warningIcon" height="64" width="64"></Icon></div>
-            <h1>Warning:</h1>
+            <h1>{{ t("lobby.components.battle.leaveConfirmModal.warning") }}</h1>
         </div>
         <div class="padding-bottom-xl">
-            <p>You will lose your current place in this lobby. Are you sure?</p>
+            <p>{{ t("lobby.components.battle.leaveConfirmModal.content") }}</p>
         </div>
         <div class="layout">
-            <Button class="red flex-left" @click="confirmLeave"> Confirm Leave Lobby</Button>
-            <Button class="blue flex-right" @click="cancelLeave"> Cancel </Button>
+            <Button class="red flex-left" @click="confirmLeave">{{ t("lobby.components.battle.leaveConfirmModal.confirm") }}</Button>
+            <Button class="blue flex-right" @click="cancelLeave">{{ t("lobby.components.battle.leaveConfirmModal.cancel") }}</Button>
         </div>
     </Modal>
 </template>
@@ -25,6 +25,9 @@ import Modal from "@renderer/components/common/Modal.vue";
 import Button from "@renderer/components/controls/Button.vue";
 import { Icon } from "@iconify/vue";
 import warningIcon from "@iconify-icons/mdi/warning";
+import { useTypedI18n } from "@renderer/i18n";
+
+const { t } = useTypedI18n();
 
 const emit = defineEmits(["confirmLeave", "cancelLeave"]);
 

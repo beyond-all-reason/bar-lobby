@@ -6,12 +6,12 @@ SPDX-License-Identifier: MIT
 
 <template>
     <Modal style="height: 80vh; width: 90vw; max-width: 1400px">
-        <OfflineBattleComponent :online="false" />
+        <BattleComponent :online="false" />
     </Modal>
 </template>
 
 <script lang="ts" setup>
-import OfflineBattleComponent from "@renderer/components/battle/BattleComponent.vue";
+import BattleComponent from "@renderer/components/battle/BattleComponent.vue";
 import Modal from "@renderer/components/common/Modal.vue";
 </script>
 

@@ -23,9 +23,9 @@ SPDX-License-Identifier: MIT
                     :disabled="tachyonStore.activeLobby != undefined"
                     >{{ t("lobby.multiplayer.custom.hostBattle") }}</Button
                 >
-                <Button v-else class="red" @click="leaveConfirmModalIsOpen = true" :disabled="tachyonStore.activeLobby == undefined"
-                    >Leave Lobby</Button
-                >
+                <Button v-else class="red" @click="leaveConfirmModalIsOpen = true" :disabled="tachyonStore.activeLobby == undefined">{{
+                    t("lobby.multiplayer.custom.leaveLobby")
+                }}</Button>
                 <HostBattle v-model="createLobbyModalIsOpen" />
                 <LeaveConfirmModal
                     v-model="leaveConfirmModalIsOpen"
@@ -38,7 +38,9 @@ SPDX-License-Identifier: MIT
                 <Checkbox v-model="settingsStore.battlesHideEmpty" :label="t('lobby.multiplayer.custom.filters.hideEmpty')" />
                 <Checkbox v-model="settingsStore.battlesHideInProgress" :label="t('lobby.multiplayer.custom.filters.hideInProgress')" />
                 <SearchBox v-model="searchVal" />
-                <Button v-if="settingsStore.devMode" @click="router.push('/play/customLobbies/lobby')">Dev Lobby View</Button>
+                <Button v-if="settingsStore.devMode" @click="router.push('/play/customLobbies/lobby')">{{
+                    t("lobby.multiplayer.custom.devLobbyView")
+                }}</Button>
             </div>
             <div class="flex-col flex-grow fullheight flex-top">
                 <div class="scroll-container padding-right-sm">
@@ -81,12 +83,12 @@ SPDX-License-Identifier: MIT
         <div v-if="!loading" class="right">
             <div class="flex flex-col">
                 <div v-if="settingsStore.devMode" class="flex flex-row">
-                    <Button class="green margin-top-sm margin-bottom-sm" @click="sendLobbyListSubscribeRequest"
-                        >Subscribe to list updates</Button
-                    >
-                    <Button class="green margin-top-sm margin-bottom-sm" @click="sendLobbyListUnsubscribeRequest"
-                        >Unsubscribe to list updates</Button
-                    >
+                    <Button class="green margin-top-sm margin-bottom-sm" @click="sendLobbyListSubscribeRequest">{{
+                        t("lobby.multiplayer.custom.subscribeRequest")
+                    }}</Button>
+                    <Button class="green margin-top-sm margin-bottom-sm" @click="sendLobbyListUnsubscribeRequest">{{
+                        t("lobby.multiplayer.custom.unsubscribeRequest")
+                    }}</Button>
                 </div>
                 <Button
                     v-if="tachyonStore.activeLobby == undefined"
@@ -96,7 +98,7 @@ SPDX-License-Identifier: MIT
                     >{{ t("lobby.multiplayer.custom.table.join") }}</Button
                 >
                 <Button v-else class="green flex-grow margin-top-lg margin-bottom-lg" @click="battleStore.isLobbyOpened = true">
-                    Open Current Lobby
+                    {{ t("lobby.multiplayer.custom.openCurrentLobby") }}
                 </Button>
                 <LobbyPreview v-if="tachyonStore.selectedLobby" :lobby="tachyonStore.selectedLobby"></LobbyPreview>
             </div>
@@ -138,13 +140,10 @@ import LeaveConfirmModal from "@renderer/components/battle/LeaveConfirmModal.vue
 const { t } = useTypedI18n();
 
 const loading = ref(false);
-//const hostBattleOpen = ref(false);
 const createLobbyModalIsOpen = ref(false);
 const leaveConfirmModalIsOpen = ref(false);
 const searchVal = ref("");
 const autojoinLobbyId = ref();
-//const selectedBattle: Ref<OngoingBattle | null> = shallowRef(null);
-//const selectedLobby: Ref<LobbyType | null> = shallowRef(null); //FIXME: There are cases where we want to clear this value back to null. Especially if the lobby is removed from the list by the server.
 const lobbyList = computed(() => {
     const arr: LobbyType[] = [];
     for (const lobbyKey in tachyonStore.lobbyList) {
@@ -154,15 +153,6 @@ const lobbyList = computed(() => {
     return arr;
 });
 
-//NOTE: the lobby list is now stored in tachyonStore.lobbies instead.
-//TODO uses dexie to retrieve known battles and to filter them, check how its done in the replays
-//const battles = [] as OngoingBattle[];
-
-/*
-function attemptJoinBattle(battle: OngoingBattle) {
-    console.log("Joining battle", battle);
-}
-*/
 function leaveLobby(id?: string) {
     leaveConfirmModalIsOpen.value = false;
     tachyon.leaveLobby();
@@ -188,24 +178,20 @@ function sendLobbyJoinRequest(data) {
         return;
     }
     //We will need to leave this lobby first, so warn the user.
-    //TODO: figure out how we can leave and auto-join the lobby upon confirmation of this modal.
     autojoinLobbyId.value = data.id;
     leaveConfirmModalIsOpen.value = true;
 }
 
-// Just in case we need to manually request a subscribe event for some reason.
 function sendLobbyListSubscribeRequest() {
     tachyon.subscribeList();
 }
 
-// Just in case we need to manually request an unsubscribe event for some reason.
 function sendLobbyListUnsubscribeRequest() {
     tachyon.unsubscribeList();
 }
 
 // Because this page is part of <KeepAlive>, we use this instead of onMounted() to trigger anytime the page is loaded.
 onActivated(() => {
-    //Subscribe to the lobby list when this page is loaded
     tachyon.subscribeList();
 });
 </script>

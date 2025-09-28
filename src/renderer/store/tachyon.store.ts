@@ -26,6 +26,9 @@ import { apply as applyPatch } from "json8-merge-patch";
 import { battleStore, battleActions } from "@renderer/store/battle.store";
 import { db } from "@renderer/store/db";
 import { notificationsApi } from "@renderer/api/notifications";
+import { useTypedI18n } from "@renderer/i18n";
+
+const { t } = useTypedI18n();
 
 export const tachyonStore = reactive({
     isInitialized: false,
@@ -129,7 +132,7 @@ async function joinLobby(id: LobbyJoinRequestData) {
     }
 }
 
-// We use this function to normalize both LobbyCreateRequestData and LobbyJoinRequestData into the LobbyOverview type for use in the renderer
+// We use this function to normalize both LobbyCreateRequestData and LobbyJoinRequestData into the Lobby type for use in the renderer
 function parseLobbyResponseData(data: LobbyCreateOkResponseData | LobbyJoinOkResponseData) {
     //Do some cleanup in case there's old data in the stores.
     battleStore.battleOptions.mapOptions.customStartBoxes = [];
@@ -196,8 +199,8 @@ async function leaveLobby() {
     }
 }
 
-// This send to the server to request the battle to start, but we have to wait for the 'battle/start' response to show up and respond to that.
-async function startBattle() {
+// This is a *request* for the battle to start, but 'battle/start' event received will actually trigger the client to launch the game.
+async function requestStartBattle() {
     try {
         tachyonStore.error = undefined;
         const response = await window.tachyon.request("lobby/startBattle");
@@ -216,7 +219,7 @@ function clearSelectedLobbyIfNull() {
 
 function onListUpdatedEvent(data: LobbyListUpdatedEventData) {
     console.log("Tachyon event: lobby/listUpdated:", data);
-    tachyonStore.lobbyList = applyPatch(tachyonStore.lobbyList, data.lobbies); //Error here until tachyon-protocol package updates
+    tachyonStore.lobbyList = applyPatch(tachyonStore.lobbyList, data.lobbies);
     clearSelectedLobbyIfNull();
 }
 
@@ -257,11 +260,10 @@ function onLobbyLeftEvent(data: LobbyLeftEventData) {
     clearUserSubscriptions();
     tachyonStore.activeLobby = undefined;
     console.log("Tachyon event: lobby/left:", data);
-    router.push("/play/customLobbies/customLobbies");
+    //router.push("/play/customLobbies/customLobbies");
     battleStore.isLobbyOpened = false;
-    //TODO: Probably want some kind of message displayed to the user, explaining they were removed from the lobby for reason [kicked | lobby crash | etc?]
     notificationsApi.alert({
-        text: "You have been removed from the lobby.",
+        text: t("lobby.multiplayer.custom.removedFromLobby"),
         severity: "info",
     });
 }
@@ -326,8 +328,7 @@ export async function initTachyonStore() {
 
         //TODO: Recheck if we are currently assigned to a Lobby still upon (re)connection
         // This can be done by getting the 'currentLobby` value from the `user/self` response we get upon connection.
-        // Unfortunately said value is not stored properly yet so we can't access it at this time. This is currently
-        // WIP along with Friends. Once resolved in master, we will get back into this.
+        // Unfortunately said value is not stored properly yet so we can't access it at this time.
     });
 
     window.tachyon.onDisconnected(() => {
@@ -383,4 +384,4 @@ export async function initTachyonStore() {
     tachyonStore.isInitialized = true;
 }
 
-export const tachyon = { connect, createLobby, joinLobby, leaveLobby, startBattle, subscribeList, unsubscribeList };
+export const tachyon = { connect, createLobby, joinLobby, leaveLobby, requestStartBattle, subscribeList, unsubscribeList };

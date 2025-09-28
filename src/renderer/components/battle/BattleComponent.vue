@@ -13,12 +13,12 @@ SPDX-License-Identifier: MIT
                     class="icon red close flex-left"
                     @click="leaveConfirmModalIsOpen = true"
                 >
-                    <Icon :icon="arrow_back" :height="24" />Exit Lobby
+                    <Icon :icon="arrow_back" :height="24" />{{ t("lobby.components.battle.offlineBattleComponent.exitLobby") }}
                 </Button>
                 <LeaveConfirmModal v-model="leaveConfirmModalIsOpen" @cancel-leave="cancelLeaveLobby" @confirm-leave="leaveLobby" />
                 <p class="title flex-left padding-left-md padding-right-md">{{ tachyonStore.activeLobby?.name }}</p>
                 <div>
-                    <Button disabled title="Edit Lobby Name"
+                    <Button disabled :title="t('lobby.components.battle.offlineBattleComponent.editLobbyName')"
                         ><Icon :icon="pencilIcon" class="flex-right" width="24px" height="24px"
                     /></Button>
                 </div>
@@ -50,17 +50,23 @@ SPDX-License-Identifier: MIT
                         :modelValue="battleStore.battleOptions.map"
                         :options="mapListOptions"
                         data-key="springName"
-                        label="Map"
+                        :label="t('lobby.views.watch.replays.map')"
                         optionLabel="springName"
                         :filter="true"
                         class="fullwidth"
                         @update:model-value="onMapSelected"
                         :disabled="online"
                     />
-                    <Button v-tooltip.left="'Open map selector'" @click="online ? null : openMapList()">
+                    <Button
+                        v-tooltip.left="t('lobby.components.battle.mapOptionsModal.openMapSelector')"
+                        @click="online ? null : openMapList()"
+                    >
                         <Icon :icon="listIcon" height="23" />
                     </Button>
-                    <Button v-tooltip.left="'Configure map options'" @click="online ? null : openMapOptions()">
+                    <Button
+                        v-tooltip.left="t('lobby.components.battle.mapOptionsModal.mapOptionsTitle')"
+                        @click="online ? null : openMapOptions()"
+                    >
                         <Icon :icon="cogIcon" height="23" />
                     </Button>
                     <MapListModal
@@ -77,7 +83,7 @@ SPDX-License-Identifier: MIT
                         :options="gameListOptions"
                         optionLabel="gameVersion"
                         optionValue="gameVersion"
-                        label="Game"
+                        :label="t('lobby.components.battle.offlineBattleComponent.gameVersion')"
                         :filter="true"
                         :placeholder="battleStore.battleOptions.gameVersion"
                         @update:model-value="onGameSelected"
@@ -91,7 +97,7 @@ SPDX-License-Identifier: MIT
                         :options="enginesStore.availableEngineVersions"
                         data-key="id"
                         optionLabel="id"
-                        label="Engine"
+                        :label="t('lobby.components.battle.offlineBattleComponent.engineVersion')"
                         :filter="true"
                         class="fullwidth"
                         :disabled="online"
@@ -99,17 +105,22 @@ SPDX-License-Identifier: MIT
                 </div>
                 <div class="flex-row flex-bottom gap-md flex-grow">
                     <div class="fullwidth" v-if="map">
-                        <Button v-if="gameStore.status === GameStatus.LOADING" class="fullwidth grey flex-grow" disabled
-                            >Game is starting...</Button
-                        >
-                        <Button v-else-if="gameStore.status === GameStatus.RUNNING" class="fullwidth grey flex-grow" disabled
-                            >Game is running</Button
-                        >
-                        <DownloadContentButton v-else :map="map" @click="online ? tachyon.startBattle() : battleActions.startBattle()"
-                            >Start the game</DownloadContentButton
+                        <Button v-if="gameStore.status === GameStatus.LOADING" class="fullwidth grey flex-grow" disabled>{{
+                            t("lobby.views.watch.replays.launching")
+                        }}</Button>
+                        <Button v-else-if="gameStore.status === GameStatus.RUNNING" class="fullwidth grey flex-grow" disabled>{{
+                            t("lobby.views.watch.replays.gameIsRunning")
+                        }}</Button>
+                        <DownloadContentButton
+                            v-else
+                            :map="map"
+                            @click="online ? tachyon.requestStartBattle() : battleActions.startBattle()"
+                            >{{ t("lobby.components.battle.offlineBattleComponent.startTheGame") }}</DownloadContentButton
                         >
                     </div>
-                    <Button v-else class="fullwidth green flex-grow" disabled>Start the game</Button>
+                    <Button v-else class="fullwidth green flex-grow" disabled>{{
+                        t("lobby.components.battle.offlineBattleComponent.startTheGame")
+                    }}</Button>
                 </div>
             </div>
         </div>

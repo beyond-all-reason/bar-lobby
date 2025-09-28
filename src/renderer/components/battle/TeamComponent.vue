@@ -122,6 +122,7 @@ const maxPlayersPerTeam = computed(() => {
     return battleActions.getMaxPlayersPerTeam();
 });
 
+// This is not defined in the protocol as type/interface, but it's consistent so we are just going to define it ourselves.
 interface Member {
     type: string;
     id: UserId;

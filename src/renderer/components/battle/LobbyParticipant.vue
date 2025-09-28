@@ -58,7 +58,7 @@ interface PlayerThing {
 
 const displayName = computedAsync(async () => {
     // User and number is only shown as a placeholder if we have a delay in getting the user's name from the server
-    const name = "User " + props.player.id; //TODO: Use a translation string here
+    const name = t("lobby.navbar.messages.userID") + " " + props.player.id;
     if (props.player.id) {
         const cached: User = (await getUserByID(props.player.id)) as User;
         if (cached != undefined) {

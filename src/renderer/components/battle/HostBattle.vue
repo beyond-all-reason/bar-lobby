@@ -31,16 +31,20 @@ SPDX-License-Identifier: MIT
                     </div>
                 </div>
                 <div>
-                    <Textbox v-model="lobbyName" label="Name"></Textbox>
-                    <p>Startboxes are assigned sequentially to teams.</p>
-                    <p>Extra startboxes will be dropped.</p>
-                    <p>AllyTeams without one are full-map startboxes.</p>
+                    <Textbox v-model="lobbyName" :label="t('lobby.components.battle.hostBattle.name')"></Textbox>
+                    <p>{{ t("lobby.components.battle.hostBattle.startBoxes1") }}</p>
+                    <p>{{ t("lobby.components.battle.hostBattle.startBoxes2") }}</p>
+                    <p>{{ t("lobby.components.battle.hostBattle.startBoxes3") }}</p>
                     <div class="flex-row gap-sm margin-sm">
-                        <p><b>AllyTeam Count: </b></p>
+                        <p>
+                            <b>{{ t("lobby.components.battle.hostBattle.allyTeamCount") }}</b>
+                        </p>
                         <input type="number" v-model="allyTeamCount" inputId="maxTeams" />
                     </div>
                     <div class="flex-row gap-sm margin-sm">
-                        <p><b>Teams per AllyTeam: </b></p>
+                        <p>
+                            <b>{{ t("lobby.components.battle.hostBattle.teamsPerAllyTeam") }}</b>
+                        </p>
                         <input type="number" v-model="playersPerAllyTeam" inputId="playerPerTeam" />
                     </div>
                     <div class="flex-row gap-md">
@@ -48,16 +52,16 @@ SPDX-License-Identifier: MIT
                             v-model="map"
                             :options="mapListOptions"
                             data-key="springName"
-                            label="Map"
+                            :label="t('lobby.views.watch.replays.map')"
                             optionLabel="springName"
                             :filter="true"
                             class="fullwidth"
                             @update:model-value="onMapSelected"
                         ></Select>
-                        <Button v-tooltip.left="'Open map selector'" @click="openMapList">
+                        <Button v-tooltip.left="t('lobby.components.battle.mapOptionsModal.openMapSelector')" @click="openMapList">
                             <Icon :icon="listIcon" height="23" />
                         </Button>
-                        <Button v-tooltip.left="'Configure map options'" @click="openMapOptions">
+                        <Button v-tooltip.left="t('lobby.components.battle.mapOptionsModal.mapOptionsTitle')" @click="openMapOptions">
                             <Icon :icon="cogIcon" height="23" />
                         </Button>
                         <MapListModal
