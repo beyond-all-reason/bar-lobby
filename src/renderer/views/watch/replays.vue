@@ -138,7 +138,7 @@ SPDX-License-Identifier: MIT
 
 import { format } from "date-fns";
 import Column from "primevue/column";
-import { Ref, ref, shallowRef, onMounted, triggerRef, computed, watch } from "vue";
+import { Ref, ref, shallowRef, onMounted, triggerRef, computed, watch, toRef } from "vue";
 import { useTypedI18n } from "@renderer/i18n";
 
 import Button from "@renderer/components/controls/Button.vue";
@@ -161,7 +161,8 @@ import SearchBox from "@renderer/components/controls/SearchBox.vue";
 
 const { t } = useTypedI18n();
 
-const endedNormally: Ref<boolean | null> = ref(false);
+const endedNormally: Ref<boolean | null> = toRef(replaysStore as typeof replaysStore, "endedNormallyFilter");
+
 const showSpoilers = ref(true);
 const offset = ref(0);
 const limit = ref(15);
