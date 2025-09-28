@@ -117,12 +117,6 @@ SPDX-License-Identifier: MIT
 </template>
 
 <script lang="ts" setup>
-/*TODO: As part of converting this to work for online lobbies, we need to check any assumptions present in sub-components
- * If they assume an offline battle, we need to make them aware of the online status
- * A few are mitigated right now by simply disabling (since there are no changes to certain things in Tachyon right now) when online.
- * The PlayerList component, however, needs to send Tachyon team request updates, adding AI, etc, once that exists in the protocol.
- * And it also needs to receive updates to the organization directly from the activeLobby details.
- */
 import { ref } from "vue";
 import { useTypedI18n } from "@renderer/i18n";
 import Playerlist from "@renderer/components/battle/Playerlist.vue";

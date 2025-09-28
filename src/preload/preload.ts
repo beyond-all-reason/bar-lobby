@@ -98,7 +98,6 @@ contextBridge.exposeInMainWorld("engine", engineApi);
 const gameApi = {
     // Content
     downloadGame: (version: string): Promise<void> => ipcRenderer.invoke("game:downloadGame", version),
-    obtainContent: (engineVersion: string, gameVersion: string): Promise<void> => ipcRenderer.invoke("game:obtainContent", engineVersion, gameVersion),
     getScenarios: (version: string) => ipcRenderer.invoke("game:getScenarios", version),
     getInstalledVersions: (): Promise<GameVersion[]> => ipcRenderer.invoke("game:getInstalledVersions"),
     isVersionInstalled: (version: string): Promise<boolean> => ipcRenderer.invoke("game:isVersionInstalled", version),
