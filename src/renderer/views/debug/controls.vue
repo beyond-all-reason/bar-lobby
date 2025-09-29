@@ -147,7 +147,6 @@ function onUpdateRange(newRange: number | number[]) {
 
 const rangeLowHigh: Ref<number | number[]> = ref([2, 32]);
 function onUpdateRangeLowHigh(newRange: number | number[]) {
-    console.log(typeof newRange);
     rangeLowHigh.value = newRange;
 }
 
