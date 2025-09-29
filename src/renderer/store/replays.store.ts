@@ -9,14 +9,12 @@ import { reactive } from "vue";
 const state: {
     isInitialized: boolean;
     highlightedReplays: Set<string>;
-    endedNormallyFilter: boolean | null;
 } = reactive({
     isInitialized: false,
     highlightedReplays: new Set(),
-    endedNormallyFilter: null,
 });
 
-export const replaysStore = state;
+export const replaysStore = readonly(state);
 
 export function acknowledgeReplay(fileName: string) {
     state.highlightedReplays.delete(fileName);
