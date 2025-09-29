@@ -4,7 +4,7 @@
 
 import { Replay } from "@main/content/replays/replay";
 import { db } from "@renderer/store/db";
-import { reactive } from "vue";
+import { reactive, readonly } from "vue";
 
 const state: {
     isInitialized: boolean;
@@ -14,7 +14,7 @@ const state: {
     highlightedReplays: new Set(),
 });
 
-export const replaysStore = state;
+export const replaysStore = readonly(state);
 
 export function acknowledgeReplay(fileName: string) {
     state.highlightedReplays.delete(fileName);
