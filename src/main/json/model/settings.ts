@@ -20,5 +20,5 @@ export const settingsSchema = Type.Object({
     logUploadUrl: Type.String({ default: "https://log.beyondallreason.dev/" }),
     lobbyServer: Type.String({ default: "wss://server4.beyondallreason.info" }),
     customServerList: Type.Array(Type.String(), { default: [] }),
-    endedNormallyFilter: Type.String({ default: "null" }),
+    endedNormallyFilter: Type.Union([Type.Literal("true"), Type.Literal("false"), Type.Literal("null")]),
 });

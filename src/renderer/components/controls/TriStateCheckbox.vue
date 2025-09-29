@@ -20,23 +20,23 @@ import closeThick from "@iconify-icons/mdi/close-thick";
 
 import Control from "@renderer/components/controls/Control.vue";
 
+// Note; due to the triple state of this checkbox, the value is a string of 3 possible choices.
+// If you use this, you may have to convert the string 'false' to a false boolean and `null` to a null value!
 const props = withDefaults(
     defineProps<{
-        modelValue?: "true" | "false" | "null";
+        modelValue: "true" | "false" | "null";
     }>(),
     {
         modelValue: "null",
     }
 );
 
-const emits = defineEmits<{
+const emit = defineEmits<{
     (event: "update:modelValue", checked: "true" | "false" | "null"): void;
 }>();
 
 function onClick() {
-    //emits("update:modelValue", props.modelValue === true ? false : props.modelValue === false ? null : true);
-    const next = props.modelValue === "true" ? "false" : props.modelValue === "false" ? "null" : "true";
-    emits("update:modelValue", next);
+    emit("update:modelValue", props.modelValue === "true" ? "false" : props.modelValue === "false" ? "null" : "true");
 }
 </script>
 
