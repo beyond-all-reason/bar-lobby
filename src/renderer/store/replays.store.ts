@@ -14,7 +14,7 @@ const state: {
     highlightedReplays: new Set(),
 });
 
-export const replaysStore = readonly(state);
+export const replaysStore = state;
 
 export function acknowledgeReplay(fileName: string) {
     state.highlightedReplays.delete(fileName);
