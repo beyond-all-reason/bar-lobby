@@ -9,7 +9,7 @@ SPDX-License-Identifier: MIT
             v-if="range"
             v-bind="$attrs"
             :modelValue="low"
-            @update:modelValue="(input: number) => onInput([input, high || 0])"
+            @update:modelValue="(input: number) => onInput([input, high ?? min])"
             @focus="(event: Event) => (event.target as HTMLInputElement)?.select()"
             class="min"
             :minFractionDigits="0"
@@ -22,7 +22,7 @@ SPDX-License-Identifier: MIT
         <InputNumber
             v-bind="$attrs"
             :modelValue="typeof modelValue === 'number' ? modelValue : high"
-            @update:modelValue="(input: number) => (typeof modelValue === 'number' ? onInput(input) : onInput([low || 0, input]))"
+            @update:modelValue="(input: number) => (typeof modelValue === 'number' ? onInput(input) : onInput([low ?? min, input]))"
             @focus="(event: Event) => (event.target as HTMLInputElement)?.select()"
             class="max"
             :minFractionDigits="0"
@@ -69,7 +69,7 @@ function onSlide(input: number | number[]) {
 }
 
 function onInput(input: number | number[]) {
-    const clamp = (v: number) => Math.max(props.min ?? 0, Math.min(props.max ?? 100, v || 0));
+    const clamp = (v: number) => Math.max(props.min ?? 0, Math.min(props.max ?? 100, v));
     emits("update:modelValue", Array.isArray(input) ? input.map(clamp).sort((a, b) => a - b) : clamp(input));
 }
 </script>
