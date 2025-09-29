@@ -22,6 +22,7 @@ SPDX-License-Identifier: MIT
                                 <TriStateCheckbox
                                     v-model="settingsStore.endedNormallyFilter"
                                     :label="t('lobby.views.watch.replays.endedNormally')"
+                                    @update:model-value="(value) => onTriStateClick(value)"
                                 />
                                 <Checkbox v-model="showSpoilers" :label="t('lobby.views.watch.replays.showSpoilers')" />
                                 <div class="flex-grow">
@@ -141,7 +142,7 @@ SPDX-License-Identifier: MIT
 
 import { format } from "date-fns";
 import Column from "primevue/column";
-import { Ref, ref, shallowRef, onMounted, triggerRef, computed, watch } from "vue";
+import { Ref, ref, shallowRef, onMounted, triggerRef, computed, watch, toRef } from "vue";
 import { useTypedI18n } from "@renderer/i18n";
 
 import Button from "@renderer/components/controls/Button.vue";
@@ -165,7 +166,7 @@ import { settingsStore } from "@renderer/store/settings.store";
 
 const { t } = useTypedI18n();
 
-const endedNormally = ref(settingsStore.endedNormallyFilter);
+const endedNormally = toRef(() => settingsStore.endedNormallyFilter);
 
 const showSpoilers = ref(true);
 const offset = ref(0);
@@ -205,9 +206,16 @@ function fulltextSearchFilter(replay: Replay) {
     });
 }
 
-function endedNormallyFilter(replay: Replay, expected: boolean | null) {
-    if (expected === null) return true;
-    return replay.gameEndedNormally === (expected ? 1 : 0);
+function endedNormallyFilter(replay: Replay, expected: "true" | "false" | "null") {
+    if (expected === "null") return true;
+    if (expected === "true" && replay.gameEndedNormally === 1) return true;
+    if (expected === "false" && replay.gameEndedNormally === 0) return true;
+    return false;
+}
+
+// We have to pass the value upstream, the checkbox itself does not know/care about the setting store, nor should it.
+function onTriStateClick(value: "true" | "false" | "null") {
+    settingsStore.endedNormallyFilter = value;
 }
 
 const replays = useDexieLiveQueryWithDeps([endedNormally, offset, limit, sortField, sortOrder, fulltextSearch], () => {
