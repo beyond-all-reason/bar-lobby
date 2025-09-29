@@ -24,10 +24,6 @@ export function acknowledgeReplay(fileName: string) {
     state.highlightedReplays = new Set(state.highlightedReplays);
 }
 
-export function setEndedNormallyFilter(value: boolean | null) {
-    state.endedNormallyFilter = value;
-}
-
 export async function initReplaysStore() {
     window.replays.onReplayCached((replay: Replay) => {
         db.replays.put(replay).catch((error) => {
