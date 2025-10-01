@@ -21,7 +21,6 @@ import {
 import { reactive } from "vue";
 import { fetchAvailableQueues } from "@renderer/store/matchmaking.store";
 import { Lobby } from "@renderer/model/lobby";
-import { router } from "@renderer/router";
 import { apply as applyPatch } from "json8-merge-patch";
 import { battleStore, battleActions } from "@renderer/store/battle.store";
 import { db } from "@renderer/store/db";
@@ -95,7 +94,6 @@ async function createLobby(data: LobbyCreateRequestData) {
     try {
         battleActions.resetToDefaultBattle(undefined, undefined, undefined, true);
         battleStore.isOnline = true;
-        battleStore.isLobbyOpened = true;
         tachyonStore.error = undefined;
         const response = await window.tachyon.request("lobby/create", data);
         console.log("Tachyon: lobby/create:", response.status, response.data);
@@ -155,19 +153,19 @@ function parseLobbyResponseData(data: LobbyCreateOkResponseData | LobbyJoinOkRes
         battleStore.battleOptions.map = map;
     });
     for (const allyKey in data.allyTeamConfig) {
-        const item = data.allyTeamConfig[allyKey];
+        const allyTeam = data.allyTeamConfig[allyKey];
         lobbyObject.allyTeams![allyKey] = {
-            startBox: data.allyTeamConfig[allyKey].startBox,
-            maxTeams: item.maxTeams,
+            startBox: allyTeam.startBox,
+            maxTeams: allyTeam.maxTeams,
             teams: {},
         };
-        for (const teamKey in item.teams) {
-            const team = item.teams[teamKey];
+        for (const teamKey in allyTeam.teams) {
+            const team = allyTeam.teams[teamKey];
             lobbyObject.allyTeams![allyKey].teams![teamKey] = { maxPlayers: team.maxPlayers };
             lobbyObject.maxPlayerCount += team.maxPlayers; //Lobby maximum is sum of all AllyTeams>Teams>MaxPlayers
         }
         //Here we assign the startbox for the AllyTeam to the battlestore so they match what we set when the lobby was created.
-        battleStore.battleOptions.mapOptions.customStartBoxes.push(data.allyTeamConfig[allyKey].startBox);
+        battleStore.battleOptions.mapOptions.customStartBoxes.push(allyTeam.startBox);
     }
     //FIXME: Spectators need to be separated once implemented
     for (const memberKey in data.members) {
@@ -189,14 +187,14 @@ async function leaveLobby() {
         tachyonStore.error = undefined;
         const response = await window.tachyon.request("lobby/leave");
         console.log("Tachyon: lobby/leave:", response.status);
-        router.push("/play/customLobbies/customLobbies");
-        clearUserSubscriptions();
-        tachyonStore.activeLobby = undefined;
-        battleStore.isLobbyOpened = false;
     } catch (error) {
         console.error("Error with request lobby/leave", error);
         tachyonStore.error = "Error with request lobby/leave";
     }
+    // If we ever use a specific view for a lobby instead of BattleDrawer, we need to push a route here
+    clearUserSubscriptions();
+    tachyonStore.activeLobby = undefined;
+    battleStore.isLobbyOpened = false;
 }
 
 // This is a *request* for the battle to start, but 'battle/start' event received will actually trigger the client to launch the game.
@@ -240,18 +238,26 @@ function onLobbyUpdatedEvent(data: LobbyUpdatedEventData) {
         }
     }
     tachyonStore.activeLobby!.maxPlayerCount = maxPlayerCount;
+    // TODO: Once spectator type is added, this will not work how we want it to (probably). We will likely have to iterate instead while checking type, queue, etc.
     const playerCount: number = Object.keys(tachyonStore.activeLobby!.members!).length;
     tachyonStore.activeLobby!.playerCount = playerCount;
     // We need to sub to new members, but if members go away we unsub instead. Ugh we need to maintain a list and diff it also lol
     if (data.members) {
         const userSubList: UserId[] = [];
+        const userUnsubList: UserId[] = [];
         for (const memberKey in data.members) {
-            if (data.members[memberKey]) {
-                userSubList.push(data.members[memberKey].id);
+            const member = data.members[memberKey];
+            if (member != null) {
+                userSubList.push(member.id);
+            } else {
+                userUnsubList.push(memberKey);
             }
         }
         if (userSubList.length > 0) {
             window.tachyon.request("user/subscribeUpdates", { userIds: userSubList });
+        }
+        if (userUnsubList.length > 0) {
+            window.tachyon.request("user/unsubscribeUpdates", { userIds: userUnsubList });
         }
     }
 }
@@ -260,7 +266,7 @@ function onLobbyLeftEvent(data: LobbyLeftEventData) {
     clearUserSubscriptions();
     tachyonStore.activeLobby = undefined;
     console.log("Tachyon event: lobby/left:", data);
-    //router.push("/play/customLobbies/customLobbies");
+    // If we ever use a specific view for a lobby instead of BattleDrawer, we need to push a route here
     battleStore.isLobbyOpened = false;
     notificationsApi.alert({
         text: i18n.global.t("lobby.multiplayer.custom.removedFromLobby"),
@@ -273,7 +279,8 @@ function clearUserSubscriptions() {
     if (tachyonStore.activeLobby?.members) {
         for (const memberKey in tachyonStore.activeLobby!.members) {
             if (tachyonStore.activeLobby!.members[memberKey]!.id != me.userId)
-                //Skip unsubbing from ourselves.
+                // Skip unsubbing from ourselves.
+                // TODO: avoid unsubbing from anyone we have subscribe to elsewhere (party, friends?)
                 userUnsubList.push(tachyonStore.activeLobby!.members[memberKey]!.id);
         }
         if (userUnsubList.length > 0) {
@@ -294,7 +301,7 @@ async function fetchServerStats() {
     }
 }
 
-function clearLobbyInfo() {
+function clearLobbyAndListInfo() {
     tachyonStore.lobbyList = {};
     tachyonStore.selectedLobby = null;
     tachyonStore.activeLobby = undefined;
@@ -347,7 +354,7 @@ export async function initTachyonStore() {
             // Try to connect to Tachyon server periodically
             tachyonStore.reconnectInterval = setInterval(connect, 10000);
             // We also want to clear the lobby list, etc
-            clearLobbyInfo();
+            clearLobbyAndListInfo();
         }
     });
 

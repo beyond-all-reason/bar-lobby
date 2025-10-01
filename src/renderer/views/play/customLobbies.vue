@@ -38,7 +38,7 @@ SPDX-License-Identifier: MIT
                 <Checkbox v-model="settingsStore.battlesHideEmpty" :label="t('lobby.multiplayer.custom.filters.hideEmpty')" />
                 <Checkbox v-model="settingsStore.battlesHideInProgress" :label="t('lobby.multiplayer.custom.filters.hideInProgress')" />
                 <SearchBox v-model="searchVal" />
-                <Button v-if="settingsStore.devMode" @click="router.push('/play/customLobbies/lobby')">{{
+                <Button v-if="settingsStore.devMode" @click="router.push('/play/lobby')">{{
                     t("lobby.multiplayer.custom.devLobbyView")
                 }}</Button>
             </div>
@@ -121,13 +121,11 @@ import robot from "@iconify-icons/mdi/robot";
 import Column from "primevue/column";
 import DataTable from "primevue/datatable";
 import { ref, computed, onActivated } from "vue";
-//import BattlePreview from "@renderer/components/battle/BattlePreview.vue";
 import HostBattle from "@renderer/components/battle/HostBattle.vue";
 import Loader from "@renderer/components/common/Loader.vue";
 import Button from "@renderer/components/controls/Button.vue";
 import Checkbox from "@renderer/components/controls/Checkbox.vue";
 import SearchBox from "@renderer/components/controls/SearchBox.vue";
-
 import { settingsStore } from "@renderer/store/settings.store";
 import { tachyon, tachyonStore } from "@renderer/store/tachyon.store";
 import { Lobby as LobbyType } from "@renderer/model/lobby";

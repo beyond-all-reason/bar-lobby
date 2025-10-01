@@ -327,7 +327,7 @@ function removeCustomStartBox(boxId: number) {
     }
 }
 
-function defaultOfflineBattle(engine?: EngineVersion, game?: GameVersion, map?: MapData, online?: boolean) {
+function defaultBattle(engine?: EngineVersion, game?: GameVersion, map?: MapData, online?: boolean) {
     const barbAi = engine?.ais.find((ai) => ai.shortName === "BARb");
     const battle: Battle = {
         title: online ? i18n.global.t("lobby.multiplayer.battle.onlineTitle") : i18n.global.t("lobby.multiplayer.battle.offlineTitle"),
@@ -383,7 +383,7 @@ function defaultOfflineBattle(engine?: EngineVersion, game?: GameVersion, map?: 
 }
 
 function resetToDefaultBattle(engine?: EngineVersion, game?: GameVersion, map?: MapData, online?: boolean) {
-    const battle = defaultOfflineBattle(engine, game, map, online);
+    const battle = defaultBattle(engine, game, map, online);
     Object.assign(battleStore, battle);
 }
 

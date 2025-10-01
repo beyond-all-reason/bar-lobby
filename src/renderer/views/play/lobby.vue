@@ -11,7 +11,7 @@ SPDX-License-Identifier: MIT
 <template>
     <Panel>
         <div class="flex flex-row">
-            <Button @click="router.push('/play/customLobbies/customLobbies')" class="flex-left">Back</Button>
+            <Button @click="router.push('/play/customLobbies')" class="flex-left">Back</Button>
             <Button @click="tachyon.requestStartBattle()" class="blue flex-left">Tachyon:Start Battle</Button>
             <Button @click="downloadMap()" class="red flex-right">Download Map</Button>
             <Button @click="battleStore.isLobbyOpened = true" class="flex-right">Open BattleDrawer</Button>
@@ -49,8 +49,6 @@ import Button from "@renderer/components/controls/Button.vue";
 import { tachyonStore, tachyon } from "@renderer/store/tachyon.store";
 import { router } from "@renderer/router";
 import { battleStore } from "@renderer/store/battle.store";
-
-//TODO: This is a dev-only page, but if we are going to keep it we should still apply translation strings
 
 function getStripeResult(index: number) {
     return index & 1 ? "datagrid" : "datagrid datagridstripe";

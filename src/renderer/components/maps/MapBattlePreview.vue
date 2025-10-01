@@ -84,11 +84,6 @@ watch(
     }
 );
 
-//FIXME: For some reason we are still getting too many boxes to render when the number returned by the server is less than the default map count.
-//const boxes = computed<StartBox[]>(() =>
-//    battleStore.isOnline ? battleActions.getCustomStartBoxes() : battleActions.getCurrentStartBoxes()
-//);
-//const boxes = computed<StartBox[]>(() => battleActions.getCurrentStartBoxes() );
 const boxes = computed<StartBox[]>(() => {
     let arr: StartBox[] = [];
     if (battleStore.isOnline && tachyonStore.activeLobby) {
