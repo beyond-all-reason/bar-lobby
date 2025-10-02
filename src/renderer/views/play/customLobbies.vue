@@ -107,13 +107,6 @@ SPDX-License-Identifier: MIT
 </template>
 
 <script lang="ts" setup>
-/**
- * TODO:
- * - Filters
- * - Host custom battle button (should request spawning a dedicated instance instead of being self-hosted)
- * - Host battle modal that includes options such as public/passworded/friends-only/invite-only, title, map, mode etc
- */
-
 import { Icon } from "@iconify/vue";
 import account from "@iconify-icons/mdi/account";
 import eye from "@iconify-icons/mdi/eye";
@@ -137,11 +130,11 @@ import { useTypedI18n } from "@renderer/i18n";
 
 const { t } = useTypedI18n();
 
-const loading = ref(false);
-const createLobbyModalIsOpen = ref(false);
-const leaveConfirmModalIsOpen = ref(false);
-const searchVal = ref("");
-const autojoinLobbyId = ref();
+const loading = ref<boolean>(false);
+const createLobbyModalIsOpen = ref<boolean>(false);
+const leaveConfirmModalIsOpen = ref<boolean>(false);
+const searchVal = ref<string>("");
+const autojoinLobbyId = ref<string>();
 const lobbyList = computed(() => {
     const arr: LobbyType[] = [];
     for (const lobbyKey in tachyonStore.lobbyList) {
