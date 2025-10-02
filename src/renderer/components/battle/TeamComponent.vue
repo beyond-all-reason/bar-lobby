@@ -84,7 +84,6 @@ const allyMembers = computed(() => {
         if (tachyonStore.activeLobby.members) {
             for (const memberKey in tachyonStore.activeLobby.members) {
                 const member = tachyonStore.activeLobby.members[memberKey];
-                //if (parseInt(member!.allyTeam) == props.teamId) arr.push(member as Member);
                 if (member!.allyTeam == props.teamKey) arr.push(member as Member);
             }
             return arr;
