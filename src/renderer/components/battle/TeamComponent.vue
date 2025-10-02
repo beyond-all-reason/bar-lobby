@@ -98,7 +98,7 @@ const memberCount = computed(() => {
             let count = 0;
             for (const memberKey in tachyonStore.activeLobby.members) {
                 const member = tachyonStore.activeLobby.members[memberKey];
-                if (parseInt(member!.allyTeam) == props.teamId) count++;
+                if (member!.allyTeam == props.teamKey) count++;
             }
             return count;
         } else return 0;
