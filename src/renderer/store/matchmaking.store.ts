@@ -3,7 +3,14 @@
 // SPDX-License-Identifier: MIT
 
 import { reactive } from "vue";
-import { MatchmakingListOkResponseData } from "tachyon-protocol/types";
+import {
+    MatchmakingCancelledEventData,
+    MatchmakingFoundEventData,
+    MatchmakingFoundUpdateEventData,
+    MatchmakingListOkResponseData,
+    MatchmakingQueuesJoinedEventData,
+    MatchmakingQueueUpdateEventData,
+} from "tachyon-protocol/types";
 import { tachyonStore } from "@renderer/store/tachyon.store";
 
 export enum MatchmakingStatus {
@@ -33,40 +40,38 @@ export const matchmakingStore = reactive<{
     queueError: undefined,
 });
 
-export async function initializeMatchmakingStore() {
-    if (matchmakingStore.isInitialized) return;
-
-    window.tachyon.onEvent("matchmaking/queueUpdate", (event) => {
-        console.debug(`matchmaking/queueUpdate: ${JSON.stringify(event)}`);
-    });
-
-    window.tachyon.onEvent("matchmaking/lost", (event) => {
-        console.debug(`matchmaking/lost: ${JSON.stringify(event)}`);
-        matchmakingStore.status = MatchmakingStatus.Searching;
-    });
-
-    window.tachyon.onEvent("matchmaking/foundUpdate", (event) => {
-        console.debug(`matchmaking/foundUpdate: ${JSON.stringify(event)}`);
-    });
-
-    window.tachyon.onEvent("matchmaking/cancelled", (event) => {
-        console.debug(`matchmaking/cancelled: ${JSON.stringify(event)}`);
-        matchmakingStore.status = MatchmakingStatus.Idle;
-    });
-
-    window.tachyon.onEvent("matchmaking/found", (event) => {
-        console.debug(`matchmaking/found: ${JSON.stringify(event)}`);
-        matchmakingStore.status = MatchmakingStatus.MatchFound;
-    });
-
-    if (tachyonStore.isConnected) {
-        await fetchAvailableQueues();
-    }
-
-    matchmakingStore.isInitialized = true;
+function onQueueUpdateEvent(data: MatchmakingQueueUpdateEventData) {
+    console.log("Tachyhon event: matchmaking/queueUpdate:", data);
 }
 
-export async function fetchAvailableQueues() {
+function onLostEvent() {
+    console.log("Tachyon event: matchmaking/lost: no data");
+    matchmakingStore.status = MatchmakingStatus.Searching;
+}
+
+function onFoundUpdateEvent(data: MatchmakingFoundUpdateEventData) {
+    console.log("Tachyon event: matchmaking/foundUpdate", data);
+}
+
+function onCancelledEvent(data: MatchmakingCancelledEventData) {
+    console.log("Tachyon event: matchmaking/cancelled:", data);
+    matchmakingStore.status = MatchmakingStatus.Idle;
+}
+
+function onFoundEvent(data: MatchmakingFoundEventData) {
+    console.log("Tachyon event: matchmaking/found:", data);
+    matchmakingStore.status = MatchmakingStatus.MatchFound;
+    // Per spec, we have 10 seconds to send the ``matchmaking/ready`` request or we get cancelled from queue.
+    // Probably better to track this timer on the UI side because the user will either need to 'ready' or 'cancel'
+    // and they need to know this. Plus the UI has to "pop up" because they need to respond to it.
+}
+
+function onQueuesJoinedEvent(data: MatchmakingQueuesJoinedEventData) {
+    console.log("Tachyon event: matchmaking/queuesJoined:", data);
+    matchmakingStore.status = MatchmakingStatus.Searching;
+}
+
+export async function sendListRequest() {
     matchmakingStore.isLoadingQueues = true;
     matchmakingStore.queueError = undefined;
     try {
@@ -79,8 +84,8 @@ export async function fetchAvailableQueues() {
             matchmakingStore.selectedQueue = matchmakingStore.playlists[0].id;
         }
     } catch (error) {
-        console.error("Failed to fetch available queues", error);
-        matchmakingStore.queueError = "Failed to fetch queues";
+        console.error("Tachyon error: matchmaking/list:", error);
+        matchmakingStore.queueError = "Failed to retrieve available queues";
     } finally {
         matchmakingStore.isLoadingQueues = false;
     }
@@ -91,28 +96,74 @@ export function getPlaylistName(id: string): string {
     return playlist?.name || id;
 }
 
-export const matchmaking = {
-    async startSearch() {
-        try {
-            matchmakingStore.errorMessage = null;
-            matchmakingStore.status = MatchmakingStatus.Searching;
-            await window.tachyon.request("matchmaking/queue", { queues: [matchmakingStore.selectedQueue] });
-        } catch (error) {
-            console.error("Error starting matchmaking:", error);
-            matchmakingStore.errorMessage = "Error: Failed to join the matchmaking queue.";
-            matchmakingStore.status = MatchmakingStatus.Idle;
-        }
-    },
-    stopSearch() {
+async function sendQueueRequest() {
+    try {
+        matchmakingStore.errorMessage = null;
+        matchmakingStore.status = MatchmakingStatus.Searching;
+        await window.tachyon.request("matchmaking/queue", { queues: [matchmakingStore.selectedQueue] });
+    } catch (error) {
+        console.error("Tachyon error: matchmaking/queue:", error);
+        matchmakingStore.errorMessage = "Error with matchmaking/queue";
         matchmakingStore.status = MatchmakingStatus.Idle;
-        window.tachyon.request("matchmaking/cancel");
-    },
-    async acceptMatch() {
-        matchmakingStore.status = MatchmakingStatus.MatchAccepted;
-        try {
-            await window.tachyon.request("matchmaking/ready");
-        } catch {
-            matchmakingStore.status = MatchmakingStatus.Idle;
-        }
-    },
-};
+    }
+}
+
+async function sendCancelRequest() {
+    matchmakingStore.status = MatchmakingStatus.Idle;
+	try {
+		const response = await window.tachyon.request("matchmaking/cancel");
+		console.log("Tachyon: matchmaking/cancel:", response.status);
+	}
+	catch (error) {
+		console.error("Tachyon: matchmaking/cancel:", error);
+		matchmakingStore.errorMessage = "Error with matchmaking/cancel";
+	}
+}
+
+async function sendReadyRequest() {
+    matchmakingStore.status = MatchmakingStatus.MatchAccepted;
+    try {
+        const response = await window.tachyon.request("matchmaking/ready");
+		console.log("Tachyon: matchmaking/ready:", response.status);
+    } catch (error) {
+        matchmakingStore.status = MatchmakingStatus.Idle;
+		console.error("Tachyon error: matchmaking/ready:", error);
+		matchmakingStore.errorMessage = "Error with matchmaking/ready";
+    }
+}
+
+export async function initializeMatchmakingStore() {
+    if (matchmakingStore.isInitialized) return;
+
+    window.tachyon.onEvent("matchmaking/queueUpdate", (data) => {
+        onQueueUpdateEvent(data);
+    });
+
+    window.tachyon.onEvent("matchmaking/lost", () => {
+        onLostEvent();
+    });
+
+    window.tachyon.onEvent("matchmaking/foundUpdate", (data) => {
+        onFoundUpdateEvent(data);
+    });
+
+    window.tachyon.onEvent("matchmaking/cancelled", (data) => {
+        onCancelledEvent(data);
+    });
+
+    window.tachyon.onEvent("matchmaking/found", (data) => {
+        onFoundEvent(data);
+    });
+
+    window.tachyon.onEvent("matchmaking/queuesJoined", (data) => {
+        onQueuesJoinedEvent(data);
+    });
+
+    if (tachyonStore.isConnected) {
+        await sendListRequest();
+    }
+
+    matchmakingStore.isInitialized = true;
+}
+
+export const matchmaking = { sendCancelRequest, sendQueueRequest, sendReadyRequest };
