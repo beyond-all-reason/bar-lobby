@@ -29,6 +29,8 @@ export const matchmakingStore = reactive<{
     playlists: MatchmakingListOkResponseData["playlists"];
     isLoadingQueues: boolean;
     queueError?: string;
+    playersReady?: number;
+    playersQueued?: number;
 }>({
     isInitialized: false,
     isDrawerOpen: false,
@@ -38,10 +40,13 @@ export const matchmakingStore = reactive<{
     playlists: [],
     isLoadingQueues: false,
     queueError: undefined,
+    playersReady: 0,
+    playersQueued: 0,
 });
 
 function onQueueUpdateEvent(data: MatchmakingQueueUpdateEventData) {
     console.log("Tachyhon event: matchmaking/queueUpdate:", data);
+    matchmakingStore.playersQueued = parseInt(data.playersQueued); //See https://github.com/beyond-all-reason/tachyon/issues/73
 }
 
 function onLostEvent() {
@@ -51,6 +56,7 @@ function onLostEvent() {
 
 function onFoundUpdateEvent(data: MatchmakingFoundUpdateEventData) {
     console.log("Tachyon event: matchmaking/foundUpdate", data);
+    matchmakingStore.playersReady = data.readyCount;
 }
 
 function onCancelledEvent(data: MatchmakingCancelledEventData) {
@@ -100,7 +106,8 @@ async function sendQueueRequest() {
     try {
         matchmakingStore.errorMessage = null;
         matchmakingStore.status = MatchmakingStatus.Searching;
-        await window.tachyon.request("matchmaking/queue", { queues: [matchmakingStore.selectedQueue] });
+        const response = await window.tachyon.request("matchmaking/queue", { queues: [matchmakingStore.selectedQueue] });
+        console.log("Tachyon: matchmaking/queue:", response.status);
     } catch (error) {
         console.error("Tachyon error: matchmaking/queue:", error);
         matchmakingStore.errorMessage = "Error with matchmaking/queue";
