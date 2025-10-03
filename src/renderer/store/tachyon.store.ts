@@ -77,8 +77,8 @@ export async function initTachyonStore() {
 
         // Fetch matchmaking queues when connected
         if (matchmakingStore.isInitialized) {
-			sendListRequest();
-		}
+            sendListRequest();
+        }
     });
 
     window.tachyon.onDisconnected(() => {

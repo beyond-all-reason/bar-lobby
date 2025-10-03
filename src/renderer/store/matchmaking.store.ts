@@ -110,25 +110,24 @@ async function sendQueueRequest() {
 
 async function sendCancelRequest() {
     matchmakingStore.status = MatchmakingStatus.Idle;
-	try {
-		const response = await window.tachyon.request("matchmaking/cancel");
-		console.log("Tachyon: matchmaking/cancel:", response.status);
-	}
-	catch (error) {
-		console.error("Tachyon: matchmaking/cancel:", error);
-		matchmakingStore.errorMessage = "Error with matchmaking/cancel";
-	}
+    try {
+        const response = await window.tachyon.request("matchmaking/cancel");
+        console.log("Tachyon: matchmaking/cancel:", response.status);
+    } catch (error) {
+        console.error("Tachyon: matchmaking/cancel:", error);
+        matchmakingStore.errorMessage = "Error with matchmaking/cancel";
+    }
 }
 
 async function sendReadyRequest() {
     matchmakingStore.status = MatchmakingStatus.MatchAccepted;
     try {
         const response = await window.tachyon.request("matchmaking/ready");
-		console.log("Tachyon: matchmaking/ready:", response.status);
+        console.log("Tachyon: matchmaking/ready:", response.status);
     } catch (error) {
         matchmakingStore.status = MatchmakingStatus.Idle;
-		console.error("Tachyon error: matchmaking/ready:", error);
-		matchmakingStore.errorMessage = "Error with matchmaking/ready";
+        console.error("Tachyon error: matchmaking/ready:", error);
+        matchmakingStore.errorMessage = "Error with matchmaking/ready";
     }
 }
 

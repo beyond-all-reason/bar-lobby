@@ -45,7 +45,7 @@ SPDX-License-Identifier: MIT
                     :class="{
                         disabled: !matchmakingStore.selectedQueue,
                     }"
-                    @click="matchmaking.startSearch"
+                    @click="matchmaking.sendQueueRequest"
                 >
                     {{ t("lobby.multiplayer.ranked.buttons.searchGame") }}
                 </button>
@@ -55,7 +55,7 @@ SPDX-License-Identifier: MIT
                 <button
                     v-else-if="matchmakingStore.status === MatchmakingStatus.MatchFound"
                     class="quick-play-button"
-                    @click="matchmaking.acceptMatch"
+                    @click="matchmaking.sendReadyRequest"
                 >
                     {{ t("lobby.multiplayer.ranked.buttons.matchFound") }}
                 </button>
@@ -68,7 +68,7 @@ SPDX-License-Identifier: MIT
                     :class="{
                         disabled: matchmakingStore.status === MatchmakingStatus.Idle,
                     }"
-                    @click="matchmaking.stopSearch"
+                    @click="matchmaking.sendCancelRequest"
                 >
                     {{ t("lobby.multiplayer.ranked.buttons.cancel") }}
                 </button>
