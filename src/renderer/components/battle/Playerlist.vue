@@ -17,7 +17,7 @@ SPDX-License-Identifier: MIT
     <div v-if="battleStore.isOnline" class="scroll-container padding-right-sm">
         <div class="playerlist" :class="{ dragging: draggedBot || draggedPlayer }">
             <TeamComponent
-                v-for="(team, key, index) in tachyonStore.activeLobby != undefined ? tachyonStore.activeLobby!.allyTeams : {}"
+                v-for="(team, key, index) in lobbyStore.activeLobby != undefined ? lobbyStore.activeLobby!.allyTeams : {}"
                 :key="key"
                 :teamId="index"
                 :teamKey="key as string"
@@ -73,7 +73,7 @@ import { Bot, isBot, isRaptor, isScavenger, Player } from "@main/game/battle/bat
 import { battleWithMetadataStore, battleStore, battleActions } from "@renderer/store/battle.store";
 import SpectatorsComponent from "@renderer/components/battle/SpectatorsComponent.vue";
 import { GameAI } from "@main/content/game/game-version";
-import { tachyonStore } from "@renderer/store/tachyon.store";
+import { lobbyStore } from "@renderer/store/lobby.store";
 
 const { t } = useTypedI18n();
 

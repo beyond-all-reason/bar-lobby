@@ -52,7 +52,7 @@ import { battleActions, battleStore } from "@renderer/store/battle.store";
 import { StartBox } from "tachyon-protocol/types";
 import { computed, defineComponent, ref, watch } from "vue";
 import MapBattlePreviewStartBox from "@renderer/components/maps/MapBattlePreviewStartBox.vue";
-import { tachyonStore } from "@renderer/store/tachyon.store";
+import { lobbyStore } from "@renderer/store/lobby.store";
 
 defineComponent({
     directives: {
@@ -86,9 +86,9 @@ watch(
 
 const boxes = computed<StartBox[]>(() => {
     let arr: StartBox[] = [];
-    if (battleStore.isOnline && tachyonStore.activeLobby) {
-        for (const key in tachyonStore.activeLobby.allyTeams) {
-            const allyTeam = tachyonStore.activeLobby.allyTeams[key];
+    if (battleStore.isOnline && lobbyStore.activeLobby) {
+        for (const key in lobbyStore.activeLobby.allyTeams) {
+            const allyTeam = lobbyStore.activeLobby.allyTeams[key];
             if (allyTeam.startBox) {
                 arr.push(allyTeam.startBox);
             }

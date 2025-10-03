@@ -17,13 +17,13 @@ SPDX-License-Identifier: MIT
             </div>
             <div class="flex-row gap-md flex-top">
                 <Button
-                    v-if="tachyonStore.activeLobby == undefined"
+                    v-if="lobbyStore.activeLobby == undefined"
                     class="blue"
                     @click="createLobbyModalIsOpen = true"
-                    :disabled="tachyonStore.activeLobby != undefined"
+                    :disabled="lobbyStore.activeLobby != undefined"
                     >{{ t("lobby.multiplayer.custom.hostBattle") }}</Button
                 >
-                <Button v-else class="red" @click="leaveConfirmModalIsOpen = true" :disabled="tachyonStore.activeLobby == undefined">{{
+                <Button v-else class="red" @click="leaveConfirmModalIsOpen = true" :disabled="lobbyStore.activeLobby == undefined">{{
                     t("lobby.multiplayer.custom.leaveLobby")
                 }}</Button>
                 <HostBattle v-model="createLobbyModalIsOpen" />
@@ -45,7 +45,7 @@ SPDX-License-Identifier: MIT
             <div class="flex-col flex-grow fullheight flex-top">
                 <div class="scroll-container padding-right-sm">
                     <DataTable
-                        v-model:selection="tachyonStore.selectedLobby"
+                        v-model:selection="lobbyStore.selectedLobby"
                         :value="lobbyList"
                         data-key="id"
                         autoLayout
@@ -56,7 +56,7 @@ SPDX-License-Identifier: MIT
                         paginator
                         :rows="16"
                         :pageLinkSize="20"
-                        @row-select="tachyonStore.selectedLobby = $event.data"
+                        @row-select="lobbyStore.selectedLobby = $event.data"
                         @row-dblclick="sendLobbyJoinRequest($event.data)"
                     >
                         <Column field="name" :header="t('lobby.multiplayer.custom.table.title')" sortable />
@@ -91,16 +91,16 @@ SPDX-License-Identifier: MIT
                     }}</Button>
                 </div>
                 <Button
-                    v-if="tachyonStore.activeLobby == undefined"
+                    v-if="lobbyStore.activeLobby == undefined"
                     class="green flex-grow margin-top-lg margin-bottom-lg"
-                    @click="sendLobbyJoinRequest(tachyonStore.selectedLobby)"
-                    :disabled="tachyonStore.selectedLobby == undefined"
+                    @click="sendLobbyJoinRequest(lobbyStore.selectedLobby)"
+                    :disabled="lobbyStore.selectedLobby == undefined"
                     >{{ t("lobby.multiplayer.custom.table.join") }}</Button
                 >
                 <Button v-else class="green flex-grow margin-top-lg margin-bottom-lg" @click="battleStore.isLobbyOpened = true">
                     {{ t("lobby.multiplayer.custom.openCurrentLobby") }}
                 </Button>
-                <LobbyPreview v-if="tachyonStore.selectedLobby" :lobby="tachyonStore.selectedLobby"></LobbyPreview>
+                <LobbyPreview v-if="lobbyStore.selectedLobby" :lobby="lobbyStore.selectedLobby"></LobbyPreview>
             </div>
         </div>
     </div>
@@ -120,7 +120,7 @@ import Button from "@renderer/components/controls/Button.vue";
 import Checkbox from "@renderer/components/controls/Checkbox.vue";
 import SearchBox from "@renderer/components/controls/SearchBox.vue";
 import { settingsStore } from "@renderer/store/settings.store";
-import { tachyon, tachyonStore } from "@renderer/store/tachyon.store";
+import { lobby, lobbyStore } from "@renderer/store/lobby.store";
 import { Lobby as LobbyType } from "@renderer/model/lobby";
 import LobbyPreview from "@renderer/components/battle/LobbyPreview.vue";
 import { router } from "@renderer/router";
@@ -137,8 +137,8 @@ const searchVal = ref<string>("");
 const autojoinLobbyId = ref<string>();
 const lobbyList = computed(() => {
     const arr: LobbyType[] = [];
-    for (const lobbyKey in tachyonStore.lobbyList) {
-        const item = tachyonStore.lobbyList[lobbyKey];
+    for (const lobbyKey in lobbyStore.lobbyList) {
+        const item = lobbyStore.lobbyList[lobbyKey];
         arr.push(item);
     }
     return arr;
@@ -146,9 +146,9 @@ const lobbyList = computed(() => {
 
 function leaveLobby(id?: string) {
     leaveConfirmModalIsOpen.value = false;
-    tachyon.leaveLobby();
+    lobby.leaveLobby();
     if (id != undefined) {
-        tachyon.joinLobby({ id: id });
+        lobby.joinLobby({ id: id });
         autojoinLobbyId.value = undefined;
     }
 }
@@ -159,11 +159,11 @@ function cancelLeaveLobby() {
 
 function sendLobbyJoinRequest(data) {
     //Data here is the entire selectedLobby object (e.g. one of the lobbyList[] items)
-    if (tachyonStore.activeLobby == undefined) {
+    if (lobbyStore.activeLobby == undefined) {
         // No active lobby so we can freely join without worrying about a leave needed first.
-        tachyon.joinLobby({ id: data.id });
+        lobby.joinLobby({ id: data.id });
         return;
-    } else if (tachyonStore.activeLobby.id == data.id) {
+    } else if (lobbyStore.activeLobby.id == data.id) {
         //We are trying to join a lobby we are already in, just open the view, no request needed.
         battleStore.isLobbyOpened = true;
         return;
@@ -174,16 +174,16 @@ function sendLobbyJoinRequest(data) {
 }
 
 function sendLobbyListSubscribeRequest() {
-    tachyon.subscribeList();
+    lobby.subscribeList();
 }
 
 function sendLobbyListUnsubscribeRequest() {
-    tachyon.unsubscribeList();
+    lobby.unsubscribeList();
 }
 
 // Because this page is part of <KeepAlive>, we use this instead of onMounted() to trigger anytime the page is loaded.
 onActivated(() => {
-    tachyon.subscribeList();
+    lobby.subscribeList();
 });
 </script>
 

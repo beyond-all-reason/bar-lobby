@@ -12,14 +12,14 @@ SPDX-License-Identifier: MIT
     <Panel>
         <div class="flex flex-row">
             <Button @click="router.push('/play/customLobbies')" class="flex-left">Back</Button>
-            <Button @click="tachyon.requestStartBattle()" class="blue flex-left">Tachyon:Start Battle</Button>
+            <Button @click="lobby.requestStartBattle()" class="blue flex-left">Tachyon:Start Battle</Button>
             <Button @click="downloadMap()" class="red flex-right">Download Map</Button>
             <Button @click="battleStore.isLobbyOpened = true" class="flex-right">Open BattleDrawer</Button>
-            <Button @click="tachyon.leaveLobby()" class="flex-right">Tachyon:Leave Lobby</Button>
+            <Button @click="lobby.leaveLobby()" class="flex-right">Tachyon:Leave Lobby</Button>
         </div>
-        <div v-if="tachyonStore.activeLobby">
+        <div v-if="lobbyStore.activeLobby">
             <div>
-                <div v-for="(item, name, index) in tachyonStore.activeLobby" :key="index" :class="getStripeResult(index)">
+                <div v-for="(item, name, index) in lobbyStore.activeLobby" :key="index" :class="getStripeResult(index)">
                     <div class="margin-left-sm padding-top-sm padding-bottom-sm">
                         <p class="txt-md">
                             <b>{{ name }}</b>
@@ -46,7 +46,7 @@ SPDX-License-Identifier: MIT
 <script lang="ts" setup>
 import Panel from "@renderer/components/common/Panel.vue";
 import Button from "@renderer/components/controls/Button.vue";
-import { tachyonStore, tachyon } from "@renderer/store/tachyon.store";
+import { lobby, lobbyStore } from "@renderer/store/lobby.store";
 import { router } from "@renderer/router";
 import { battleStore } from "@renderer/store/battle.store";
 
@@ -55,7 +55,7 @@ function getStripeResult(index: number) {
 }
 
 function downloadMap() {
-    window.maps.downloadMap(tachyonStore.activeLobby!.mapName);
+    window.maps.downloadMap(lobbyStore.activeLobby!.mapName);
 }
 </script>
 

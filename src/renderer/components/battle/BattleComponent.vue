@@ -6,7 +6,7 @@ SPDX-License-Identifier: MIT
 
 <template>
     <div class="battle-container">
-        <div v-if="online" :title="tachyonStore.activeLobby?.name" class="flex flex-row">
+        <div v-if="online" :title="lobbyStore.activeLobby?.name" class="flex flex-row">
             <div class="flex flex-row fullwidth">
                 <Button
                     v-tooltip.bottom="t('lobby.library.maps.back')"
@@ -16,7 +16,7 @@ SPDX-License-Identifier: MIT
                     <Icon :icon="arrow_back" :height="24" />{{ t("lobby.components.battle.offlineBattleComponent.exitLobby") }}
                 </Button>
                 <LeaveConfirmModal v-model="leaveConfirmModalIsOpen" @cancel-leave="cancelLeaveLobby" @confirm-leave="leaveLobby" />
-                <p class="title flex-left padding-left-md padding-right-md">{{ tachyonStore.activeLobby?.name }}</p>
+                <p class="title flex-left padding-left-md padding-right-md">{{ lobbyStore.activeLobby?.name }}</p>
                 <div>
                     <Button disabled :title="t('lobby.components.battle.offlineBattleComponent.editLobbyName')"
                         ><Icon :icon="pencilIcon" class="flex-right" width="24px" height="24px"
@@ -114,7 +114,7 @@ SPDX-License-Identifier: MIT
                         <DownloadContentButton
                             v-else
                             :map="map"
-                            @click="online ? tachyon.requestStartBattle() : battleActions.startBattle()"
+                            @click="online ? lobby.requestStartBattle() : battleActions.startBattle()"
                             >{{ t("lobby.components.battle.offlineBattleComponent.startTheGame") }}</DownloadContentButton
                         >
                     </div>
@@ -137,8 +137,6 @@ import MapListModal from "@renderer/components/battle/MapListModal.vue";
 import MapOptionsModal from "@renderer/components/battle/MapOptionsModal.vue";
 import { battleActions, battleStore } from "@renderer/store/battle.store";
 import Button from "@renderer/components/controls/Button.vue";
-
-const { t } = useTypedI18n();
 import { db } from "@renderer/store/db";
 import listIcon from "@iconify-icons/mdi/format-list-bulleted";
 import cogIcon from "@iconify-icons/mdi/cog";
@@ -155,8 +153,10 @@ import { enginesStore } from "@renderer/store/engine.store";
 import TerrainIcon from "@renderer/components/maps/filters/TerrainIcon.vue";
 import personIcon from "@iconify-icons/mdi/person-multiple";
 import gridIcon from "@iconify-icons/mdi/grid";
-import { tachyon, tachyonStore } from "@renderer/store/tachyon.store";
 import LeaveConfirmModal from "@renderer/components/battle/LeaveConfirmModal.vue";
+import { lobbyStore, lobby } from "@renderer/store/lobby.store";
+
+const { t } = useTypedI18n();
 
 const mapListOpen = ref(false);
 const mapOptionsOpen = ref(false);
@@ -183,7 +183,7 @@ function openMapOptions() {
 
 function leaveLobby() {
     leaveConfirmModalIsOpen.value = false;
-    tachyon.leaveLobby();
+    lobby.leaveLobby();
 }
 function cancelLeaveLobby() {
     leaveConfirmModalIsOpen.value = false;

@@ -109,7 +109,7 @@ import Modal from "@renderer/components/common/Modal.vue";
 import Button from "@renderer/components/controls/Button.vue";
 import Select from "@renderer/components/controls/Select.vue";
 import Flag from "@renderer/components/misc/Flag.vue";
-import { tachyon } from "@renderer/store/tachyon.store";
+import { lobby } from "@renderer/store/lobby.store";
 import { LobbyCreateRequestData, StartBox } from "tachyon-protocol/types";
 import { rand } from "@vueuse/core";
 import { getRandomMap } from "@renderer/store/maps.store";
@@ -186,7 +186,7 @@ async function hostBattle() {
     const data = getGeneratedLobbyRequestData();
     //waitingForBattleCreation.value = true;
     hostLobbyModal.value!.close();
-    tachyon.createLobby(data);
+    lobby.createLobby(data);
     //Need some kind of response here to handle errors in the modal and also to close it once successful.
 }
 

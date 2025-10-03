@@ -63,7 +63,7 @@ import PlayerParticipant from "@renderer/components/battle/PlayerParticipant.vue
 import Button from "@renderer/components/controls/Button.vue";
 import { Bot, isBot, isPlayer, isRaptor, isScavenger, Player } from "@main/game/battle/battle-types";
 import { battleActions, battleStore, battleWithMetadataStore } from "@renderer/store/battle.store";
-import { tachyonStore } from "@renderer/store/tachyon.store";
+import { lobbyStore } from "@renderer/store/lobby.store";
 import { UserId } from "tachyon-protocol/types";
 import LobbyParticipant from "@renderer/components/battle/LobbyParticipant.vue";
 
@@ -80,10 +80,10 @@ const title = computed(() =>
 
 const allyMembers = computed(() => {
     let arr: Member[] = [];
-    if (battleStore.isOnline && tachyonStore.activeLobby && tachyonStore.activeLobby.allyTeams) {
-        if (tachyonStore.activeLobby.members) {
-            for (const memberKey in tachyonStore.activeLobby.members) {
-                const member = tachyonStore.activeLobby.members[memberKey];
+    if (battleStore.isOnline && lobbyStore.activeLobby && lobbyStore.activeLobby.allyTeams) {
+        if (lobbyStore.activeLobby.members) {
+            for (const memberKey in lobbyStore.activeLobby.members) {
+                const member = lobbyStore.activeLobby.members[memberKey];
                 if (member!.allyTeam == props.teamKey) arr.push(member as Member);
             }
             return arr;
@@ -93,11 +93,11 @@ const allyMembers = computed(() => {
 });
 
 const memberCount = computed(() => {
-    if (battleStore.isOnline && tachyonStore.activeLobby && tachyonStore.activeLobby.allyTeams) {
-        if (tachyonStore.activeLobby.members) {
+    if (battleStore.isOnline && lobbyStore.activeLobby && lobbyStore.activeLobby.allyTeams) {
+        if (lobbyStore.activeLobby.members) {
             let count = 0;
-            for (const memberKey in tachyonStore.activeLobby.members) {
-                const member = tachyonStore.activeLobby.members[memberKey];
+            for (const memberKey in lobbyStore.activeLobby.members) {
+                const member = lobbyStore.activeLobby.members[memberKey];
                 if (member!.allyTeam == props.teamKey) count++;
             }
             return count;
@@ -108,15 +108,15 @@ const memberCount = computed(() => {
 });
 
 const maxMembersPerAllyTeam = computed(() => {
-    if (battleStore.isOnline && tachyonStore.activeLobby && tachyonStore.activeLobby.allyTeams) {
+    if (battleStore.isOnline && lobbyStore.activeLobby && lobbyStore.activeLobby.allyTeams) {
         // Server always gives us team "000" as the first one, and the players per team is currently always the same
-        return tachyonStore.activeLobby.allyTeams[props.teamKey].maxTeams;
+        return lobbyStore.activeLobby.allyTeams[props.teamKey].maxTeams;
     } else return 1;
 });
 
 const maxPlayersPerTeam = computed(() => {
-    if (battleStore.isOnline && tachyonStore.activeLobby && tachyonStore.activeLobby.allyTeams) {
-        return tachyonStore.activeLobby.allyTeams[props.teamKey].maxTeams;
+    if (battleStore.isOnline && lobbyStore.activeLobby && lobbyStore.activeLobby.allyTeams) {
+        return lobbyStore.activeLobby.allyTeams[props.teamKey].maxTeams;
     }
     if (!battleWithMetadataStore.battleOptions.map) return 1;
     return battleActions.getMaxPlayersPerTeam();
