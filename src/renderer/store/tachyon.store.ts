@@ -7,7 +7,7 @@ import { gameStore } from "@renderer/store/game.store";
 import { auth, me } from "@renderer/store/me.store";
 import { SystemServerStatsOkResponseData } from "tachyon-protocol/types";
 import { reactive } from "vue";
-import { matchmakingStore, sendListRequest } from "@renderer/store/matchmaking.store";
+import { matchmakingStore, matchmaking } from "@renderer/store/matchmaking.store";
 
 export const tachyonStore = reactive({
     isInitialized: false,
@@ -77,7 +77,7 @@ export async function initTachyonStore() {
 
         // Fetch matchmaking queues when connected
         if (matchmakingStore.isInitialized) {
-            sendListRequest();
+            matchmaking.sendListRequest();
         }
     });
 

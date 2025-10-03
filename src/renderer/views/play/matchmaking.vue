@@ -82,12 +82,16 @@ SPDX-License-Identifier: MIT
 import { matchmaking, MatchmakingStatus, matchmakingStore, getPlaylistName } from "@renderer/store/matchmaking.store";
 import Button from "primevue/button";
 import { useTypedI18n } from "@renderer/i18n";
-import { computed } from "vue";
+import { computed, onActivated } from "vue";
 
 const { t } = useTypedI18n();
 
 const availableQueueIds = computed(() => {
     return matchmakingStore.playlists.sort((a, b) => a.teamSize * a.numOfTeams - b.teamSize * b.numOfTeams).map((playlist) => playlist.id);
+});
+
+onActivated(() => {
+    matchmaking.sendListRequest();
 });
 </script>
 

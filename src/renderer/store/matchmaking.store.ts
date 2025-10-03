@@ -12,8 +12,8 @@ import {
     MatchmakingQueueUpdateEventData,
 } from "tachyon-protocol/types";
 import { tachyonStore } from "@renderer/store/tachyon.store";
-import { downloadMap } from "@renderer/store/maps.store";
 import { db } from "@renderer/store/db";
+import { useDexieLiveQueryWithDeps } from "@renderer/composables/useDexieLiveQuery";
 
 export enum MatchmakingStatus {
     Idle = "Idle",
@@ -33,6 +33,12 @@ export const matchmakingStore = reactive<{
     queueError?: string;
     playersReady?: number;
     playersQueued?: number;
+    // Each playlist will have it's own boolean, as the 'needed' property of an object keyed to the playlist's names
+    downloadsRequired: {
+        [k: string]: {
+            needed: boolean;
+        };
+    };
 }>({
     isInitialized: false,
     isDrawerOpen: false,
@@ -44,10 +50,11 @@ export const matchmakingStore = reactive<{
     queueError: undefined,
     playersReady: 0,
     playersQueued: 0,
+    downloadsRequired: {},
 });
 
 function onQueueUpdateEvent(data: MatchmakingQueueUpdateEventData) {
-    console.log("Tachyhon event: matchmaking/queueUpdate:", data);
+    console.log("Tachyon event: matchmaking/queueUpdate:", data);
     matchmakingStore.playersQueued = parseInt(data.playersQueued); //See https://github.com/beyond-all-reason/tachyon/issues/73
 }
 
@@ -81,7 +88,7 @@ function onQueuesJoinedEvent(data: MatchmakingQueuesJoinedEventData) {
     matchmakingStore.status = MatchmakingStatus.Searching;
 }
 
-export async function sendListRequest() {
+async function sendListRequest() {
     matchmakingStore.isLoadingQueues = true;
     matchmakingStore.queueError = undefined;
     try {
@@ -94,12 +101,35 @@ export async function sendListRequest() {
         if (matchmakingStore.playlists.length > 0 && !hasSelectedQueue) {
             matchmakingStore.selectedQueue = matchmakingStore.playlists[0].id;
         }
+        // Find out of we have the necessary maps for each queue we've been given.
+        matchmakingStore.playlists.forEach((queue) => {
+            if (queue.maps.length > 0) {
+                matchmakingStore.downloadsRequired[queue.id] = { needed: checkIfAnyMapsAreNeeded(queue.maps) };
+            } else {
+                matchmakingStore.downloadsRequired[queue.id] = { needed: true };
+            }
+        });
     } catch (error) {
         console.error("Tachyon error: matchmaking/list:", error);
         matchmakingStore.queueError = "Failed to retrieve available queues";
     } finally {
         matchmakingStore.isLoadingQueues = false;
     }
+}
+
+// This is just to get is a quick idea if any maps will be needed to be downloaded
+function checkIfAnyMapsAreNeeded(maps: { springName: string }[]): boolean {
+    for (const item of maps) {
+        const need = useDexieLiveQueryWithDeps([() => item.springName], () =>
+            db.maps.get(item.springName).then((map) => {
+                if (!map?.isInstalled) {
+                    return true;
+                }
+            })
+        );
+        if (need) return true;
+    }
+    return false;
 }
 
 export function getPlaylistName(id: string): string {
@@ -111,10 +141,10 @@ async function sendQueueRequest() {
     try {
         matchmakingStore.errorMessage = null;
         matchmakingStore.status = MatchmakingStatus.Searching;
-		//TODO: Before we can actually queue up, we have to ensure all needed maps are downloaded.
-		//We will need a modal of maps required, each with an indicator if they're already stored, or a button to trigger download.
-		//A "download all" button is also a nice idea, maybe with a "concurrent downloads" number in the UI.
-		//Each will need an individual progress bar too.
+        //TODO: Before we can actually queue up, we have to ensure all needed maps are downloaded.
+        //We will need a modal of maps required, each with an indicator if they're already stored, or a button to trigger download.
+        //A "download all" button is also a nice idea, maybe with a "concurrent downloads" number in the UI.
+        //Each will need an individual progress bar too.
         const response = await window.tachyon.request("matchmaking/queue", { queues: [matchmakingStore.selectedQueue] });
         console.log("Tachyon: matchmaking/queue:", response.status);
     } catch (error) {
@@ -181,4 +211,4 @@ export async function initializeMatchmakingStore() {
     matchmakingStore.isInitialized = true;
 }
 
-export const matchmaking = { sendCancelRequest, sendQueueRequest, sendReadyRequest };
+export const matchmaking = { sendCancelRequest, sendQueueRequest, sendReadyRequest, sendListRequest };
