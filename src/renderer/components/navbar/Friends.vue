@@ -123,10 +123,10 @@ const accordianActiveIndexes = ref([0, 1, 2]);
 const friendId = ref<number>();
 const addFriendDisabled = ref(true);
 // Track online/offline status for sorting
-const onlineUsers = ref(new Set<number>());
+const onlineUsers = ref(new Set<string>());
 
 // Handle status changes from Friend components
-function handleStatusChange({ userId, status }: { userId: number; status: string }) {
+function handleStatusChange({ userId, status }: { userId: string; status: string }) {
     if (status !== "offline") {
         onlineUsers.value.add(userId);
     } else {
@@ -148,7 +148,7 @@ const sortedFriends = computed(() => {
 
 const myUserId = computed(() => me.userId);
 
-const toggleMessages = inject<Ref<(open?: boolean, userId?: number) => void>>("toggleMessages")!;
+const toggleMessages = inject<Ref<(open?: boolean, userId?: string) => void>>("toggleMessages")!;
 const toggleFriends = inject<Ref<(open?: boolean) => void>>("toggleFriends")!;
 const toggleDownloads = inject<Ref<(open?: boolean) => void>>("toggleDownloads")!;
 
@@ -207,10 +207,8 @@ async function addFriend() {
             command_unimplemented: "lobby.navbar.friends.notifications.errors.commandUnimplemented",
         };
 
-        // Check if the error message matches any known reason
-        const matchedReason = Object.keys(errorMessageMap).find((reason) => errorMessage.includes(reason));
-
-        const notificationText = matchedReason ? t(errorMessageMap[matchedReason]) : t("lobby.navbar.friends.notifications.errors.generic");
+        const notificationText =
+            errorMessage in errorMessageMap ? t(errorMessageMap[errorMessage]) : t("lobby.navbar.friends.notifications.errors.generic");
 
         notificationsApi.alert({
             text: notificationText,
