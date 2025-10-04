@@ -60,6 +60,13 @@ export type BattleOptions = {
         fixedPositionsIndex?: number;
     };
     restrictions: Restriction[];
+    mods?: ModSelection[];
+};
+
+export type ModSelection = {
+    modId: string;
+    enabled: boolean;
+    options?: Record<string, any>;
 };
 
 export type SpadsBattleOptions = {
