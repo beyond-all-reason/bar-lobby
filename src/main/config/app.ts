@@ -91,6 +91,9 @@ export const STATE_PATH = path.resolve(process.env.BAR_STATE_PATH || defaultLoca
 // locations, not only our own code.
 app.setPath("userData", STATE_PATH);
 
+console.log(`ASSETS_PATH: ${ASSETS_PATH}`);
+console.log(`STATE_PATH: ${STATE_PATH}`);
+
 export const CONFIG_PATH = path.join(STATE_PATH, "config");
 export const LOGS_PATH = path.join(STATE_PATH, "logs");
 
@@ -103,14 +106,6 @@ export const REPLAYS_PATH = path.join(WRITE_DATA_PATH, "demos");
 export const MAPS_PATHS: readonly string[] = [path.join(WRITE_DATA_PATH, "maps"), path.join(ASSETS_PATH, "maps")];
 export const GAME_PATHS: readonly string[] = [path.join(WRITE_DATA_PATH, "games"), path.join(ASSETS_PATH, "games")];
 export const MOD_PATHS: readonly string[] = [path.join(WRITE_DATA_PATH, "games"), path.join(ASSETS_PATH, "games")];
-
-/**
- * Get mod paths for a specific engine version.
- * Mods are stored in the engine-specific games directory to ensure compatibility.
- */
-export function getEngineModPaths(engineVersion: string): readonly string[] {
-    return [path.join(WRITE_DATA_PATH, "games"), path.join(ENGINE_PATH, engineVersion, "games")];
-}
 // Everything rapid lives under assets.
 export const PACKAGE_PATH = path.join(ASSETS_PATH, "packages");
 export const POOL_PATH = path.join(ASSETS_PATH, "pool");

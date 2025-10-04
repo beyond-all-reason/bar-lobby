@@ -4,7 +4,6 @@
 
 import { ref, computed, type Ref } from "vue";
 import { ModMetadata } from "@main/content/mods/mod-types";
-import { enginesStore } from "@renderer/store/engine.store";
 
 export interface ModSelectionState {
     installedMods: Ref<ModMetadata[]>;
@@ -72,15 +71,19 @@ export function useModSelection(): UseModSelectionReturn {
 
             const mod = await window.mod.installFromGitHub({
                 repository: githubRepoInput.value,
-                branch: "main",
+                gitRef: "main",
                 targetPath: targetPath,
                 overwrite: true,
-                engineVersion: enginesStore.selectedEngineVersion?.id,
             });
 
             // Clear input and reload mods
             githubRepoInput.value = "";
             await loadInstalledMods();
+
+            // Enable the newly installed mod by default
+            if (!selectedModIds.value.includes(mod.id)) {
+                selectedModIds.value.push(mod.id);
+            }
 
             console.log(`Successfully installed mod: ${mod.name} ${mod.version}`);
         } catch (error) {

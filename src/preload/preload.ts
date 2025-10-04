@@ -111,8 +111,7 @@ const gameApi = {
 
     // Game
     launchMultiplayer: (settings: MultiplayerLaunchSettings): Promise<void> => ipcRenderer.invoke("game:launchMultiplayer", settings),
-    launchScript: (script: string, gameVersion: string, engineVersion: string, modPaths?: string[]): Promise<void> =>
-        ipcRenderer.invoke("game:launchScript", script, gameVersion, engineVersion, modPaths),
+    launchScript: (script: string, gameVersion: string, engineVersion: string): Promise<void> => ipcRenderer.invoke("game:launchScript", script, gameVersion, engineVersion),
     launchReplay: (replay) => ipcRenderer.invoke("game:launchReplay", replay),
     launchBattle: (battle: BattleWithMetadata) => ipcRenderer.invoke("game:launchBattle", battle),
 
@@ -137,8 +136,8 @@ const modApi = {
     updateMod: (modId: string): Promise<ModMetadata> => ipcRenderer.invoke("mod:updateMod", modId) as unknown as Promise<ModMetadata>,
 
     // Mod validation
-    checkModExists: (repository: string, branch: string): Promise<boolean> => ipcRenderer.invoke("mod:checkModExists", repository, branch) as unknown as Promise<boolean>,
-    getModInfo: (repository: string, branch: string): Promise<ModInfo> => ipcRenderer.invoke("mod:getModInfo", repository, branch) as unknown as Promise<ModInfo>,
+    checkModExists: (repository: string, gitRef: string): Promise<boolean> => ipcRenderer.invoke("mod:checkModExists", repository, gitRef) as unknown as Promise<boolean>,
+    getModInfo: (repository: string, gitRef: string): Promise<ModInfo> => ipcRenderer.invoke("mod:getModInfo", repository, gitRef) as unknown as Promise<ModInfo>,
     getModPaths: (): Promise<string[]> => ipcRenderer.invoke("mod:getModPaths"),
 
     // Events

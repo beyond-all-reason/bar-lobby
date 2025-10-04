@@ -34,11 +34,11 @@ function registerIpcHandlers(webContents: BarIpcWebContents) {
     });
 
     // Mod validation
-    ipcMain.handle("mod:checkModExists", async (_, repository: string, branch: string) => {
-        return await modContentAPI.githubDownloader.checkModExists(repository, branch);
+    ipcMain.handle("mod:checkModExists", async (_, repository: string, gitRef: string) => {
+        return await modContentAPI.githubDownloader.checkModExists(repository, gitRef);
     });
-    ipcMain.handle("mod:getModInfo", async (_, repository: string, branch: string) => {
-        return await modContentAPI.githubDownloader.getModInfo(repository, branch);
+    ipcMain.handle("mod:getModInfo", async (_, repository: string, gitRef: string) => {
+        return await modContentAPI.githubDownloader.getModInfo(repository, gitRef);
     });
     ipcMain.handle("mod:getModPaths", () => [...MOD_PATHS]);
 

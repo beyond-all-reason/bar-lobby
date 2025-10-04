@@ -10,7 +10,6 @@ export interface ModIntegrationOptions {
 }
 
 export interface ModIntegrationReturn {
-    modPaths: Ref<string[]>;
     modScriptContent: Ref<string>;
     hasMods: Ref<boolean>;
     generateModScriptContent: () => string;
@@ -25,10 +24,6 @@ export function useModIntegration(options: ModIntegrationOptions): ModIntegratio
     const { selectedMods } = options;
 
     // Computed properties
-    const modPaths = computed(() => {
-        return selectedMods.value.map((mod) => mod.installPath);
-    });
-
     const hasMods = computed(() => {
         return selectedMods.value.length > 0;
     });
@@ -51,7 +46,7 @@ export function useModIntegration(options: ModIntegrationOptions): ModIntegratio
         // Add MUTATOR entries for each mod
         // Based on RecoilEngine source: GAME\MUTATOR{0..9} should be values inside the [Game] section
         selectedMods.value.forEach((mod, index) => {
-            // Extract the archive name from the install path
+            // Extract the .sdd archive name from the install path
             const pathParts = mod.installPath.split(/[/\\]/);
             const archiveName = pathParts[pathParts.length - 1];
 
@@ -106,7 +101,6 @@ export function useModIntegration(options: ModIntegrationOptions): ModIntegratio
     }
 
     return {
-        modPaths,
         modScriptContent,
         hasMods,
         generateModScriptContent,

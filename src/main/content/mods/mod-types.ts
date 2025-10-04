@@ -22,7 +22,7 @@ export interface ModMetadata {
     shortname: string;
     author: string;
     repository: string;
-    branch: string;
+    gitRef: string;
     modtype: ModType;
     dependencies: ModDependency[];
     isInstalled: boolean;
@@ -38,7 +38,7 @@ export interface ModDependency {
     identifier: string;
     version?: string;
     repository?: string;
-    branch?: string;
+    gitRef?: string;
 }
 
 export enum ModType {
@@ -50,17 +50,16 @@ export enum ModType {
 
 export interface ModInstallOptions {
     repository: string;
-    branch?: string;
+    gitRef?: string;
     targetPath: string;
     overwrite?: boolean;
-    engineVersion?: string;
 }
 
 export interface ModSource {
     type: "github" | "rapid" | "local";
     identifier: string;
     repository?: string;
-    branch?: string;
+    gitRef?: string;
     version?: string;
 }
 

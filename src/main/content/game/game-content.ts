@@ -109,8 +109,8 @@ export class GameContentAPI extends PrDownloaderAPI<string, GameVersion> {
                 const modInfoPath = path.join(gamesDir, gameDirName, "modinfo.lua");
                 if (await fileExists(modInfoPath)) {
                     const modInfoContent = await fs.promises.readFile(modInfoPath, "utf-8");
-                    // Check if this is a mutator mod (mutator='1')
-                    if (modInfoContent.includes("mutator='1'") || modInfoContent.includes('mutator="1"')) {
+                    // Check if this is a mutator mod (mutator='1' or mutator="1")
+                    if (/mutator\s*=\s*['"]*1['"]*/.test(modInfoContent)) {
                         log.info(`Skipping mutator mod: ${gameDirName}`);
                         continue;
                     }

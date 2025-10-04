@@ -162,14 +162,14 @@ class StartScriptConverter {
 
         // Add mod information if mods are selected
         if (battle.battleOptions.mods && battle.battleOptions.mods.length > 0) {
-            const enabledMods = battle.battleOptions.mods.filter(mod => mod.enabled);
+            const enabledMods = battle.battleOptions.mods.filter((mod) => mod.enabled);
             if (enabledMods.length > 0) {
                 // Add mod paths to the game object
-                game.mods = enabledMods.map(mod => mod.modId);
+                game.mods = enabledMods.map((mod) => mod.modId);
                 // Add mod-specific options
                 game.modoptions = {
                     ...game.modoptions,
-                    ...this.mergeModOptions(enabledMods)
+                    ...this.mergeModOptions(enabledMods),
                 };
             }
         }
@@ -315,7 +315,7 @@ class StartScriptConverter {
 
     protected mergeModOptions(enabledMods: Array<{ modId: string; options?: Record<string, any> }>): Record<string, any> {
         const mergedOptions: Record<string, any> = {};
-        
+
         for (const mod of enabledMods) {
             if (mod.options) {
                 // Prefix mod options with mod ID to avoid conflicts
@@ -324,7 +324,7 @@ class StartScriptConverter {
                 }
             }
         }
-        
+
         return mergedOptions;
     }
 

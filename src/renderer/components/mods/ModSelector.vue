@@ -35,40 +35,39 @@ SPDX-License-Identifier: MIT
             <!-- Installed mods list -->
             <div v-if="modSelection.hasInstalledMods.value" class="installed-mods">
                 <div
-                    v-for="mod in modSelection.installedMods.value"
+                    v-for="(mod, index) in modSelection.installedMods.value"
                     :key="mod.id"
                     class="installed-mod-item"
                     :class="{ selected: modSelection.isModSelected(mod.id) }"
                 >
                     <div class="mod-info">
-                        <div v-if="modSelection.isModSelected(mod.id)" class="selected-indicator">
-                            <Icon :icon="check" width="16" height="16" class="checkmark-icon" />
+                        <div class="mod-order-wrapper">
+                            <span class="mod-order">{{ index + 1 }}</span>
                         </div>
-                        <input
-                            v-if="selectionMode === 'checkbox'"
-                            type="checkbox"
-                            :id="`mod-${mod.id}`"
-                            :checked="modSelection.isModSelected(mod.id)"
-                            @change="modSelection.toggleModSelection(mod.id)"
-                            class="mod-checkbox"
-                        />
-                        <Select
-                            v-else-if="selectionMode === 'dropdown'"
-                            :modelValue="modSelection.isModSelected(mod.id) ? mod.id : null"
-                            :options="[
-                                { label: 'Not Selected', value: null },
-                                { label: 'Selected', value: mod.id },
-                            ]"
-                            @update:modelValue="(value) => handleDropdownSelection(mod.id, value)"
-                            class="mod-dropdown"
-                        />
-                        <label :for="`mod-${mod.id}`" class="mod-label">
-                            <span class="mod-name">{{ mod.name }}</span>
-                            <span class="mod-version">{{ mod.version }}</span>
-                        </label>
+                        <div class="mod-checkbox-wrapper" @click="modSelection.toggleModSelection(mod.id)">
+                            <div class="selected-indicator">
+                                <Icon
+                                    :icon="modSelection.isModSelected(mod.id) ? checkboxChecked : checkboxUnchecked"
+                                    width="16"
+                                    height="16"
+                                    class="checkmark-icon"
+                                />
+                            </div>
+                            <input
+                                type="checkbox"
+                                :id="`mod-${mod.id}`"
+                                :checked="modSelection.isModSelected(mod.id)"
+                                @change="modSelection.toggleModSelection(mod.id)"
+                                class="mod-checkbox"
+                            />
+                            <label :for="`mod-${mod.id}`" class="mod-label">
+                                <span class="mod-name">{{ mod.name }}</span>
+                                <span class="mod-version">{{ mod.version }}</span>
+                            </label>
+                        </div>
                         <div class="mod-actions">
                             <button @click="handleOpenModFolder(mod.installPath)" class="mod-action-button" title="Open mod folder">
-                                <Icon :icon="folderIcon" width="16" height="16" />
+                                <Icon :icon="folder" width="16" height="16" />
                             </button>
                             <button
                                 @click="handleOpenModRepository(mod.repository)"
@@ -77,11 +76,11 @@ SPDX-License-Identifier: MIT
                             >
                                 <Icon :icon="externalLinkIcon" width="16" height="16" />
                             </button>
+                            <button v-if="showUninstall" @click="handleUninstallMod(mod.id)" class="remove-button">
+                                <Icon :icon="folderOff" width="18" height="18" />
+                            </button>
                         </div>
                     </div>
-                    <Button v-if="showUninstall" size="small" variant="danger" @click="handleUninstallMod(mod.id)" class="remove-button">
-                        <Icon :icon="deleteIcon" width="14" height="14" />
-                    </Button>
                 </div>
             </div>
 
@@ -96,20 +95,19 @@ SPDX-License-Identifier: MIT
 <script lang="ts" setup>
 import { onMounted } from "vue";
 import { Icon } from "@iconify/vue";
-import check from "@iconify-icons/mdi/check";
-import deleteIcon from "@iconify-icons/mdi/delete";
-import folderIcon from "@iconify-icons/mdi/folder";
+import checkboxChecked from "@iconify-icons/mdi/checkbox-marked-outline";
+import checkboxUnchecked from "@iconify-icons/mdi/checkbox-blank-outline";
+import folderOff from "@iconify-icons/mdi/folder-off-outline";
+import folder from "@iconify-icons/mdi/folder";
 import externalLinkIcon from "@iconify-icons/mdi/open-in-new";
 import { type UseModSelectionReturn } from "@renderer/composables/useModSelection";
 import Button from "@renderer/components/controls/Button.vue";
-import Select from "@renderer/components/controls/Select.vue";
 
 // Define props to configure the component behavior
 interface Props {
     modSelection: UseModSelectionReturn;
     title?: string;
     variant?: "default" | "compact" | "minimal";
-    selectionMode?: "checkbox" | "dropdown";
     showHeader?: boolean;
     showInstallation?: boolean;
     showUninstall?: boolean;
@@ -145,20 +143,10 @@ async function handleInstallMod() {
 }
 
 async function handleUninstallMod(modId: string) {
-    if (confirm("Are you sure you want to uninstall this mod?")) {
-        try {
-            await modSelection.uninstallMod(modId);
-        } catch (error) {
-            alert(error instanceof Error ? error.message : String(error));
-        }
-    }
-}
-
-function handleDropdownSelection(modId: string, value: string | null) {
-    if (value === modId) {
-        modSelection.toggleModSelection(modId);
-    } else if (modSelection.isModSelected(modId)) {
-        modSelection.toggleModSelection(modId);
+    try {
+        await modSelection.uninstallMod(modId);
+    } catch (error) {
+        alert(error instanceof Error ? error.message : String(error));
     }
 }
 
@@ -293,12 +281,15 @@ onMounted(async () => {
             gap: 0.5rem;
             flex: 1;
 
-            .mod-checkbox {
-                margin: 0;
+            .mod-checkbox-wrapper {
+                gap: 0.5rem;
+                display: flex;
+                align-items: center;
+                justify-content: center;
             }
 
-            .mod-dropdown {
-                min-width: 120px;
+            .mod-checkbox {
+                margin: 0;
             }
 
             .mod-label {
@@ -369,8 +360,9 @@ onMounted(async () => {
             justify-content: center;
 
             svg {
-                width: 14px;
-                height: 14px;
+                color: rgb(165, 30, 30);
+                width: 16px;
+                height: 16px;
             }
         }
     }

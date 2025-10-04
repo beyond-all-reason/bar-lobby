@@ -8,7 +8,7 @@ import { parseLuaTable } from "@main/utils/parse-lua-table";
 import { logger } from "@main/utils/logger";
 import { Signal } from "$/jaz-ts-utils/signal";
 import { AbstractContentAPI } from "@main/content/abstract-content";
-import { MOD_PATHS, getEngineModPaths } from "@main/config/app";
+import { MOD_PATHS } from "@main/config/app";
 import { fileExists } from "@main/utils/file";
 import { ModMetadata, ModInfo, ModType, ModDependency, ModInstallOptions, ModConflict } from "./mod-types";
 import { GitHubModDownloader } from "./github-mod-downloader";
@@ -78,12 +78,12 @@ export class ModContentAPI extends AbstractContentAPI<string, ModMetadata> {
                         version: version || "stable",
                     };
                 } else if (dep.startsWith("github://")) {
-                    const [, owner, repo, branch] = dep.split("://")[1].split("/");
+                    const [, owner, repo, gitRef] = dep.split("://")[1].split("/");
                     return {
                         type: "github",
                         identifier: `${owner}/${repo}`,
                         repository: `${owner}/${repo}`,
-                        branch: branch || "main",
+                        gitRef: gitRef || "main",
                     };
                 } else {
                     return {
@@ -101,7 +101,7 @@ export class ModContentAPI extends AbstractContentAPI<string, ModMetadata> {
             shortname: modInfo.shortname,
             author: this.extractAuthorFromPath(modPath),
             repository: this.extractRepositoryFromPath(modPath),
-            branch: "main", // Default, could be stored in metadata
+            gitRef: "main", // Default, could be stored in metadata
             modtype: modInfo.modtype as ModType,
             dependencies,
             isInstalled: true,
@@ -134,31 +134,20 @@ export class ModContentAPI extends AbstractContentAPI<string, ModMetadata> {
     }
 
     public async installModFromGitHub(options: ModInstallOptions): Promise<ModMetadata> {
-        const { repository, branch = "main", targetPath, overwrite = false } = options;
+        const { repository, gitRef = "main", targetPath, overwrite = false } = options;
 
         if (!overwrite && (await fileExists(targetPath))) {
             throw new Error(`Mod already exists at ${targetPath}`);
         }
 
-        log.info(`Installing mod from GitHub: ${repository}@${branch}`);
+        log.info(`Installing mod from GitHub: ${repository}@${gitRef}`);
 
         try {
             // Download mod from GitHub
-            const modPath = await this.githubDownloader.downloadMod(repository, branch, targetPath);
+            const modPath = await this.githubDownloader.downloadMod(repository, gitRef, targetPath);
 
             // Parse mod metadata
             const modMetadata = await this.parseModMetadata(modPath);
-
-            // Also copy to engine-specific assets directory for Spring engine discovery
-            if (options.engineVersion) {
-                const engineModPaths = getEngineModPaths(options.engineVersion);
-                const engineModPath = path.join(engineModPaths[1], path.basename(targetPath));
-                if (engineModPath !== targetPath) {
-                    log.info(`Copying mod to engine-specific directory: ${engineModPath}`);
-                    await fs.promises.mkdir(path.dirname(engineModPath), { recursive: true });
-                    await fs.promises.cp(modPath, engineModPath, { recursive: true });
-                }
-            }
 
             // Add to available versions
             this.availableVersions.set(modMetadata.id, modMetadata);
@@ -214,7 +203,7 @@ export class ModContentAPI extends AbstractContentAPI<string, ModMetadata> {
         // Reinstall from GitHub
         const updatedMod = await this.installModFromGitHub({
             repository: mod.repository,
-            branch: mod.branch,
+            gitRef: mod.gitRef,
             targetPath: mod.installPath,
             overwrite: true,
         });

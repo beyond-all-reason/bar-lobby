@@ -54,12 +54,7 @@ SPDX-License-Identifier: MIT
                                 optionLabel="name"
                             />
                         </div>
-                        <ModSelector 
-                            :mod-selection="modSelection" 
-                            title="Mods"
-                            variant="default"
-                            selection-mode="checkbox"
-                        />
+                        <ModSelector :mod-selection="modSelection" title="Mods" variant="default" selection-mode="checkbox" />
                         <DownloadContentButton
                             v-if="map"
                             :map="map"
@@ -77,7 +72,7 @@ SPDX-License-Identifier: MIT
 </template>
 
 <script lang="ts" setup>
-import { computed, ref, watch, onMounted } from "vue";
+import { computed, ref, watch } from "vue";
 
 import Button from "@renderer/components/controls/Button.vue";
 import Select from "@renderer/components/controls/Select.vue";
@@ -151,15 +146,6 @@ watch(selectedScenario, (newScenario) => {
     selectedFaction.value = factions.value[0] ?? "Armada";
 });
 
-// Load mods when component mounts
-onMounted(async () => {
-    try {
-        await modSelection.loadInstalledMods();
-    } catch (error) {
-        console.error("Failed to load mods on mount:", error);
-    }
-});
-
 async function launch() {
     const scenarioOptions = {
         ...selectedScenario.value.scenariooptions,
@@ -194,11 +180,8 @@ async function launch() {
     if (!enginesStore.selectedEngineVersion) {
         throw new Error("No engine version selected");
     }
-    
-    // Get mod paths
-    const modPaths = modIntegration.modPaths.value;
-    
-    await window.game.launchScript(script, LATEST_GAME_VERSION, enginesStore.selectedEngineVersion.id, modPaths);
+
+    await window.game.launchScript(script, LATEST_GAME_VERSION, enginesStore.selectedEngineVersion.id);
 }
 </script>
 
@@ -238,5 +221,4 @@ async function launch() {
 .launch-button {
     flex-grow: 0;
 }
-
 </style>

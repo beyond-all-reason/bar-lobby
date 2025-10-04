@@ -7,7 +7,7 @@ import * as path from "path";
 import { logger } from "@main/utils/logger";
 import { fileExists } from "@main/utils/file";
 import { ModInfo } from "./mod-types";
-import AdmZip from "adm-zip";
+import { list, cmd } from "$/7zip-min/7zip-min";
 
 const log = logger("github-mod-downloader.ts");
 
@@ -15,32 +15,32 @@ export class GitHubModDownloader {
     private readonly githubApiBase = "https://api.github.com";
     private readonly githubRawBase = "https://raw.githubusercontent.com";
 
-    public async downloadMod(repository: string, branch: string, targetPath: string): Promise<string> {
+    public async downloadMod(repository: string, gitRef: string, targetPath: string): Promise<string> {
         const [owner, repo] = repository.split("/");
         if (!owner || !repo) {
             throw new Error(`Invalid repository format: ${repository}`);
         }
 
-        log.info(`Downloading mod from GitHub: ${owner}/${repo}@${branch}`);
+        log.info(`Downloading mod from GitHub: ${owner}/${repo}@${gitRef}`);
 
         // Create target directory
         await fs.promises.mkdir(targetPath, { recursive: true });
 
         try {
             // Download repo as ZIP
-            const zipPath = await this.downloadRepositoryZip(owner, repo, branch, targetPath);
+            const zipPath = await this.downloadRepositoryZip(owner, repo, gitRef, targetPath);
 
-            // Extract ZIP and filter mod files
-            await this.extractModFiles(zipPath, targetPath);
+            // Extract ZIP - returns the actual mod path (includes GitHub root folder)
+            const modPath = await this.extractModFiles(zipPath, targetPath);
 
             // Clean up ZIP file
             await fs.promises.unlink(zipPath);
 
             // Validate mod structure
-            await this.validateModStructure(targetPath);
+            await this.validateModStructure(modPath);
 
-            log.info(`Successfully downloaded mod to: ${targetPath}`);
-            return targetPath;
+            log.info(`Successfully downloaded mod to: ${modPath}`);
+            return modPath;
         } catch (error) {
             // Cleanup on failure
             await fs.promises.rm(targetPath, { recursive: true, force: true });
@@ -48,9 +48,9 @@ export class GitHubModDownloader {
         }
     }
 
-    private async downloadRepositoryZip(owner: string, repo: string, branch: string, targetPath: string): Promise<string> {
-        const zipUrl = `${this.githubApiBase}/repos/${owner}/${repo}/zipball/${branch}`;
-        const zipPath = path.join(targetPath, `${repo}-${branch}.zip`);
+    private async downloadRepositoryZip(owner: string, repo: string, gitRef: string, targetPath: string): Promise<string> {
+        const zipUrl = `${this.githubApiBase}/repos/${owner}/${repo}/zipball/${gitRef}`;
+        const zipPath = path.join(targetPath, `${repo}-${gitRef}.zip`);
 
         log.info(`Downloading ZIP from: ${zipUrl}`);
 
@@ -65,56 +65,73 @@ export class GitHubModDownloader {
         return zipPath;
     }
 
-    private async extractModFiles(zipPath: string, targetPath: string): Promise<void> {
-        const zip = new AdmZip(zipPath);
-        const entries = zip.getEntries();
+    private async extractModFiles(zipPath: string, targetPath: string): Promise<string> {
+        const entries = await this.listArchiveContents(zipPath);
 
         // Find the root directory (usually named like "owner-repo-commitHash")
-        const rootDir = entries[0]?.entryName.split("/")[0];
+        const rootDir = entries[0]?.name.split("/")[0];
         if (!rootDir) {
             throw new Error("Could not determine root directory in ZIP");
         }
 
-        // Extract only mod-relevant files
+        // Extract directly to targetPath (creates targetPath/github-root-folder/)
+        await this.extractArchive(zipPath, targetPath);
+
+        // Move files from nested GitHub folder up to targetPath
+        const githubRootPath = path.join(targetPath, rootDir);
+        await this.flattenDirectory(githubRootPath, targetPath);
+
+        // Remove the now-empty GitHub root folder
+        await fs.promises.rm(githubRootPath, { recursive: true, force: true });
+
+        // Return the target path (Spring engine expects files here)
+        return targetPath;
+    }
+
+    private async flattenDirectory(sourceDir: string, targetDir: string): Promise<void> {
+        log.debug(`Flattening ${sourceDir} -> ${targetDir}`);
+        const entries = await fs.promises.readdir(sourceDir, { withFileTypes: true });
+
         for (const entry of entries) {
-            if (entry.isDirectory) continue;
+            const sourcePath = path.join(sourceDir, entry.name);
+            const targetPath = path.join(targetDir, entry.name);
 
-            const relativePath = entry.entryName.replace(`${rootDir}/`, "");
-
-            // Skip non-mod files
-            if (this.shouldSkipFile(relativePath)) continue;
-
-            const filePath = path.join(targetPath, relativePath);
-            const fileDir = path.dirname(filePath);
-
-            // Create directory if it doesn't exist
-            await fs.promises.mkdir(fileDir, { recursive: true });
-
-            // Extract file
-            const fileContent = entry.getData();
-            await fs.promises.writeFile(filePath, fileContent);
-
-            log.debug(`Extracted: ${relativePath}`);
+            if (entry.isDirectory()) {
+                // Create target directory and recursively copy contents
+                await fs.promises.mkdir(targetPath, { recursive: true });
+                await this.flattenDirectory(sourcePath, targetPath);
+                // Remove source directory after moving contents
+                await fs.promises.rmdir(sourcePath);
+            } else {
+                // Move file up to target directory
+                log.debug(`Moving file: ${sourcePath} -> ${targetPath}`);
+                await fs.promises.rename(sourcePath, targetPath);
+            }
         }
     }
 
-    private shouldSkipFile(relativePath: string): boolean {
-        const skipPatterns = [
-            /^\.git\//,
-            /^\.github\//,
-            /^\.gitignore$/,
-            /^README\.md$/i,
-            /^LICENSE$/i,
-            /^\.editorconfig$/,
-            /^\.gitattributes$/,
-            /^\.vscode\//,
-            /^\.idea\//,
-            /^node_modules\//,
-            /^\.DS_Store$/,
-            /^Thumbs\.db$/,
-        ];
+    private async listArchiveContents(archivePath: string): Promise<Array<{ name: string; attr?: string }>> {
+        return new Promise((resolve, reject) => {
+            list(archivePath, (err, result) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(result);
+                }
+            });
+        });
+    }
 
-        return skipPatterns.some((pattern) => pattern.test(relativePath));
+    private async extractArchive(archivePath: string, outputPath: string): Promise<void> {
+        return new Promise((resolve, reject) => {
+            cmd(["x", archivePath, "-y", `-o${outputPath}`], (err) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve();
+                }
+            });
+        });
     }
 
     private async validateModStructure(modPath: string): Promise<void> {
@@ -131,7 +148,7 @@ export class GitHubModDownloader {
 
             // Validate required fields
             if (!modInfo.name || !modInfo.shortname || !modInfo.version) {
-                throw new Error("Invalid modinfo.lua - missing required fields");
+                throw new Error(`Invalid modinfo.lua - missing required fields: name='${modInfo.name}', shortname='${modInfo.shortname}', version='${modInfo.version}'`);
             }
 
             log.info(`Validated mod: ${modInfo.name} ${modInfo.version}`);
@@ -176,13 +193,13 @@ export class GitHubModDownloader {
         return modInfo as ModInfo;
     }
 
-    public async getModInfo(repository: string, branch: string): Promise<ModInfo> {
+    public async getModInfo(repository: string, gitRef: string): Promise<ModInfo> {
         const [owner, repo] = repository.split("/");
         if (!owner || !repo) {
             throw new Error(`Invalid repository format: ${repository}`);
         }
 
-        const modinfoUrl = `${this.githubRawBase}/${owner}/${repo}/${branch}/modinfo.lua`;
+        const modinfoUrl = `${this.githubRawBase}/${owner}/${repo}/${gitRef}/modinfo.lua`;
         const response = await fetch(modinfoUrl);
 
         if (!response.ok) {
@@ -193,22 +210,12 @@ export class GitHubModDownloader {
         return this.parseModInfo(content);
     }
 
-    public async checkModExists(repository: string, branch: string): Promise<boolean> {
+    public async checkModExists(repository: string, gitRef: string): Promise<boolean> {
         try {
-            await this.getModInfo(repository, branch);
+            await this.getModInfo(repository, gitRef);
             return true;
         } catch {
             return false;
         }
     }
 }
-
-// Interface for GitHub API tree items (currently unused but kept for future use)
-// interface GitHubTreeItem {
-//     path: string;
-//     mode: string;
-//     type: "blob" | "tree";
-//     sha: string;
-//     size?: number;
-//     url?: string;
-// }
