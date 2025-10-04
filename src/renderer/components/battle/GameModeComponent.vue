@@ -24,7 +24,7 @@ SPDX-License-Identifier: MIT
                 </div>
             </div>
         </div>
-        <Button class="fullwidth" @click="openGameOptions">{{
+        <Button class="fullwidth" @click="openGameOptions" :disabled="battleStore.isOnline">{{
             t("lobby.components.battle.gameModeComponent.configureGameOptions")
         }}</Button>
         <LuaOptionsModal

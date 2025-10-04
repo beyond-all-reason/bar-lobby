@@ -8,6 +8,7 @@ import { auth, me } from "@renderer/store/me.store";
 import { SystemServerStatsOkResponseData } from "tachyon-protocol/types";
 import { reactive } from "vue";
 import { fetchAvailableQueues } from "@renderer/store/matchmaking.store";
+import { lobby } from "@renderer/store/lobby.store";
 
 export const tachyonStore = reactive({
     isInitialized: false,
@@ -77,6 +78,10 @@ export async function initTachyonStore() {
 
         // Fetch matchmaking queues when connected
         fetchAvailableQueues();
+
+        //TODO: Recheck if we are currently assigned to a Lobby still upon (re)connection
+        // This can be done by getting the 'currentLobby` value from the `user/self` response we get upon connection.
+        // Unfortunately said value is not stored properly yet so we can't access it at this time.
     });
 
     window.tachyon.onDisconnected(() => {
@@ -94,6 +99,8 @@ export async function initTachyonStore() {
         if (me.isAuthenticated) {
             // Try to connect to Tachyon server periodically
             tachyonStore.reconnectInterval = setInterval(connect, 10000);
+            // We also want to clear the lobby list, etc
+            lobby.clearLobbyAndListInfo();
         }
     });
 
