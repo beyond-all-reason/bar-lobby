@@ -7,11 +7,11 @@ SPDX-License-Identifier: MIT
 <template>
     <TeamParticipant @contextmenu="onRightClick">
         <div>
-            <Flag class="flag" :countryCode="player!.user.countryCode" />
+            <Flag class="flag" :countryCode="player.user.countryCode" />
         </div>
-        <div>{{ player!.user.username }}</div>
+        <div>{{ player.user.username }}</div>
     </TeamParticipant>
-    <ContextMenu ref="menu" :model="offlineActions" />
+    <ContextMenu ref="menu" :model="actions" />
 </template>
 
 <script lang="ts" setup>
@@ -36,7 +36,7 @@ const props = defineProps<{
 
 const menu = ref<InstanceType<typeof ContextMenu>>();
 
-const offlineActions =
+const actions =
     props.player!.user.userId === me.userId
         ? [
               { label: t("lobby.components.battle.playerParticipant.viewProfile"), command: viewProfile },
@@ -62,9 +62,8 @@ function onRightClick(event: MouseEvent) {
     }
 }
 
-// TODO: Do a lookup from server data if this is an online user
 async function viewProfile() {
-    await router.push(`/profile/${props.player!.user.userId}`);
+    await router.push(`/profile/${props.player.user.userId}`);
 }
 
 async function kickPlayer() {
@@ -87,7 +86,7 @@ async function messagePlayer() {
     // }
     if (toggleMessages.value) {
         await delay(10); // needed because the v-click-away directive tells the messages popout to close on the same frame as this would otherwise tell it to open
-        toggleMessages.value(true, props.player!.user.userId);
+        toggleMessages.value(true, props.player.user.userId);
     }
 }
 
