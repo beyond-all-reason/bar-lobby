@@ -25,18 +25,18 @@ import { setupI18n } from "@renderer/i18n";
 
 const i18n = setupI18n();
 
-export const lobbyStore = reactive({
-    isInitialized: false,
-    error: undefined,
-    lobbyList: {}, //This will hold changes from ``lobby/listUpdated`` events
-    selectedLobby: {}, //This is the lobby we select from the datatable showing the lobbylist
-    activeLobby: undefined, //This will hold changes from ``lobby/updated`` events
-} as {
+export const lobbyStore: {
     isInitialized: boolean;
     error?: string;
     lobbyList: Record<string, LobbyOverview>;
     selectedLobby: LobbyOverview | null;
-    activeLobby?: Lobby;
+    activeLobby?: Lobby | null;
+} = reactive({
+    isInitialized: false,
+    error: undefined,
+    lobbyList: {}, //This will hold changes from ``lobby/listUpdated`` events
+    selectedLobby: null, //This is the lobby we select from the datatable showing the lobbylist
+    activeLobby: null, //This will hold changes from ``lobby/updated`` events
 });
 
 async function subscribeList() {
@@ -47,7 +47,10 @@ async function subscribeList() {
         console.log("subscribeList:", response.status);
     } catch (error) {
         console.error("Error with request lobby/subscribeList:", error);
-        lobbyStore.error = "Error with request lobby/subscribeList";
+        notificationsApi.alert({
+            text: "Error with request lobby/subscribeList",
+            severity: "error",
+        });
         lobbyStore.lobbyList = {};
     }
 }
@@ -59,7 +62,10 @@ async function unsubscribeList() {
         console.log("Tachyon: lobby/unsubscribeList:", response.status);
     } catch (error) {
         console.error("Error with request lobby/unsubscribeList:", error);
-        lobbyStore.error = "Error with request lobby/unsubscribeList";
+        notificationsApi.alert({
+            text: "Error with request lobby/unsubscribeList",
+            severity: "error",
+        });
     }
 }
 
@@ -76,7 +82,10 @@ async function createLobby(data: LobbyCreateRequestData) {
         //If that ever changes, if a whole party joins instantly for example, then we need to revisit this.
     } catch (error) {
         console.error("Error with request lobby/create", error);
-        lobbyStore.error = "Error with request lobby/create";
+        notificationsApi.alert({
+            text: "Error with request lobby/create",
+            severity: "error",
+        });
     }
 }
 
@@ -100,6 +109,44 @@ async function joinLobby(id: LobbyJoinRequestData) {
     } catch (error) {
         console.error("Error with request lobby/join", error);
         lobbyStore.error = "Error with request lobby/join";
+        notificationsApi.alert({
+            text: "Error with request lobby/join",
+            severity: "error",
+        });
+    }
+}
+
+async function joinAllyTeam(allyTeam: string) {
+    try {
+        window.tachyon.request("lobby/joinAllyTeam", { allyTeam: allyTeam });
+    } catch (error) {
+        console.error("Tachyon error: lobby/joinAllyTeam:", error);
+        notificationsApi.alert({
+            text: "Error with request lobby/joinAllyTeam",
+            severity: "error",
+        });
+    }
+}
+async function joinQueue() {
+    try {
+        window.tachyon.request("lobby/joinQueue");
+    } catch (error) {
+        console.error("Tachyon error: lobby/joinQueue:", error);
+        notificationsApi.alert({
+            text: "Error with request lobby/joinQueue",
+            severity: "error",
+        });
+    }
+}
+async function spectate() {
+    try {
+        window.tachyon.request("lobby/spectate");
+    } catch (error) {
+        console.error("Tachyon error: lobby/spectate:", error);
+        notificationsApi.alert({
+            text: "Error with request lobby/spectate",
+            severity: "error",
+        });
     }
 }
 
@@ -114,6 +161,8 @@ function parseLobbyResponseData(data: LobbyCreateOkResponseData | LobbyJoinOkRes
         name: data.name,
         playerCount: 0, //Placeholder value; We can count this from the entries below in the team config
         maxPlayerCount: 0, //Placeholder value; Ditto for calculating max players
+        spectatorCount: 0,
+        playerQueue: [],
         mapName: data.mapName,
         engineVersion: data.engineVersion,
         gameVersion: data.gameVersion,
@@ -140,17 +189,28 @@ function parseLobbyResponseData(data: LobbyCreateOkResponseData | LobbyJoinOkRes
         //Here we assign the startbox for the AllyTeam to the battlestore so they match what we set when the lobby was created.
         battleStore.battleOptions.mapOptions.customStartBoxes.push(allyTeam.startBox);
     }
-    //FIXME: Spectators need to be separated once implemented
+
     for (const memberKey in data.members) {
-        lobbyObject.playerCount++; //Increment 1 for each player already in the lobby when created/joined.
         const member = data.members[memberKey];
-        lobbyObject.members![memberKey] = {
-            id: member.id,
-            allyTeam: member.allyTeam,
-            team: member.team,
-            player: member.player,
-            type: "player",
-        };
+        if (member.type == "player") {
+            lobbyObject.playerCount++;
+            lobbyObject.members![memberKey] = {
+                id: member.id,
+                allyTeam: member.allyTeam,
+                team: member.team,
+                player: member.player,
+                type: member.type,
+            };
+        } else {
+            lobbyObject.spectatorCount++;
+            lobbyObject.members![memberKey] = {
+                id: member.id,
+                type: member.type,
+            };
+            if (member.joinQueuePosition) {
+                lobbyObject.playerQueue[member.joinQueuePosition] = member.id;
+            }
+        }
     }
     return lobbyObject;
 }
@@ -162,7 +222,10 @@ async function leaveLobby() {
         console.log("Tachyon: lobby/leave:", response.status);
     } catch (error) {
         console.error("Error with request lobby/leave", error);
-        lobbyStore.error = "Error with request lobby/leave";
+        notificationsApi.alert({
+            text: "Error with request lobby/leave",
+            severity: "error",
+        });
     }
     // If we ever use a specific view for a lobby instead of BattleDrawer, we need to push a route here
     clearUserSubscriptions();
@@ -178,12 +241,15 @@ async function requestStartBattle() {
         console.log("Tachyon: lobby/startBattle:", response.status);
     } catch (error) {
         console.error("Error with request lobby/startBattle", error);
-        lobbyStore.error = "Error with request lobby/startBattle";
+        notificationsApi.alert({
+            text: "Error with request lobby/startBattle",
+            severity: "error",
+        });
     }
 }
 
 function clearSelectedLobbyIfNull() {
-    if (lobbyStore.selectedLobby && lobbyStore.lobbyList[lobbyStore.selectedLobby.id] == null) {
+    if (lobbyStore.selectedLobby && lobbyStore.selectedLobby.id && lobbyStore.lobbyList[lobbyStore.selectedLobby.id] == null) {
         lobbyStore.selectedLobby = null;
     }
 }
@@ -211,9 +277,22 @@ function onLobbyUpdatedEvent(data: LobbyUpdatedEventData) {
         }
     }
     lobbyStore.activeLobby!.maxPlayerCount = maxPlayerCount;
-    // TODO: Once spectator type is added, this will not work how we want it to (probably). We will likely have to iterate instead while checking type, queue, etc.
-    const playerCount: number = Object.keys(lobbyStore.activeLobby!.members!).length;
+    let playerCount: number = 0;
+    let spectatorCount: number = 0;
+    lobbyStore.activeLobby!.playerQueue = [];
+    for (const memberKey in lobbyStore.activeLobby?.members) {
+        const member = lobbyStore.activeLobby.members[memberKey];
+        if (member.type == "player") {
+            playerCount++;
+        } else {
+            spectatorCount++;
+            if (member.joinQueuePosition) {
+                lobbyStore.activeLobby!.playerQueue[member.joinQueuePosition] = member.id;
+            }
+        }
+    }
     lobbyStore.activeLobby!.playerCount = playerCount;
+    lobbyStore.activeLobby!.spectatorCount = spectatorCount;
     // We need to sub to new members, but if members go away we unsub instead. Ugh we need to maintain a list and diff it also lol
     if (data.members) {
         const userSubList: UserId[] = [];
@@ -269,20 +348,11 @@ function clearLobbyAndListInfo() {
 }
 
 export async function initLobbyStore() {
-    window.tachyon.onEvent("lobby/left", (data) => {
-        onLobbyLeftEvent(data);
-    });
-    window.tachyon.onEvent("lobby/listUpdated", (data) => {
-        onListUpdatedEvent(data);
-    });
-    window.tachyon.onEvent("lobby/updated", (data) => {
-        onLobbyUpdatedEvent(data);
-    });
-    window.tachyon.onEvent("lobby/listReset", (data) => {
-        onLobbyListResetEvent(data);
-    });
-
+    window.tachyon.onEvent("lobby/left", onLobbyLeftEvent);
+    window.tachyon.onEvent("lobby/listUpdated", onListUpdatedEvent);
+    window.tachyon.onEvent("lobby/updated", onLobbyUpdatedEvent);
+    window.tachyon.onEvent("lobby/listReset", onLobbyListResetEvent);
     lobbyStore.isInitialized = true;
 }
 
-export const lobby = { createLobby, joinLobby, leaveLobby, requestStartBattle, subscribeList, unsubscribeList, clearLobbyAndListInfo };
+export const lobby = { createLobby, joinLobby, leaveLobby, requestStartBattle, subscribeList, unsubscribeList, clearLobbyAndListInfo, joinAllyTeam, joinQueue, spectate };

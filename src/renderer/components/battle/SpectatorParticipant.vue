@@ -6,10 +6,15 @@ SPDX-License-Identifier: MIT
 
 <template>
     <TeamParticipant @contextmenu="onRightClick">
-        <div>
-            <Flag class="flag" :countryCode="player.user.countryCode" />
+        <div v-if="battleStore.isOnline">
+            <div>{{ displayName }}</div>
         </div>
-        <div>{{ player.user.username }}</div>
+        <div v-else>
+            <div>
+                <Flag class="flag" :countryCode="player!.user.countryCode" />
+            </div>
+            <div>{{ player!.user.username }}</div>
+        </div>
     </TeamParticipant>
     <ContextMenu ref="menu" :model="actions" />
 </template>
@@ -25,19 +30,46 @@ import Flag from "@renderer/components/misc/Flag.vue";
 import { useRouter } from "vue-router";
 import { Player } from "@main/game/battle/battle-types";
 import { me } from "@renderer/store/me.store";
+import { battleStore } from "@renderer/store/battle.store";
+import { computedAsync } from "@vueuse/core";
+import { User } from "@main/model/user";
+import { getUserByID } from "@renderer/store/users.store";
+import { UserId } from "tachyon-protocol/types";
 
 const { t } = useTypedI18n();
 
 const router = useRouter();
 
 const props = defineProps<{
-    player: Player;
+    player?: Player;
+    member?: Member;
 }>();
+
+interface Member {
+    type: "player" | "spec";
+    id: UserId;
+    joinQueuePostion?: number;
+}
+
+const displayName = computedAsync(async () => {
+    // User and number is only shown as a placeholder if we have a delay in getting the user's name from the server
+    const name = t("lobby.navbar.messages.userID") + " " + props.member ? props.member!.id : "";
+    if (!props.member) return name;
+    if (props.member.id) {
+        const cached: User = (await getUserByID(props.member.id)) as User;
+        if (cached != undefined) {
+            return await cached.username;
+        }
+    }
+    return name;
+});
 
 const menu = ref<InstanceType<typeof ContextMenu>>();
 
+// We can say that props.player will exist because we don't allow these menus in online mode.
+// However, when that changes, we need to do more stuff to check the values, etc.
 const actions =
-    props.player.user.userId === me.userId
+    props.player!.user.userId === me.userId
         ? [
               { label: t("lobby.components.battle.playerParticipant.viewProfile"), command: viewProfile },
               { label: t("lobby.components.battle.playerParticipant.makeBoss"), command: makeBoss },
@@ -62,8 +94,9 @@ function onRightClick(event: MouseEvent) {
     }
 }
 
+// TODO: Do a lookup from server data if this is an online user
 async function viewProfile() {
-    await router.push(`/profile/${props.player.user.userId}`);
+    await router.push(`/profile/${props.player!.user.userId}`);
 }
 
 async function kickPlayer() {
@@ -86,7 +119,7 @@ async function messagePlayer() {
     // }
     if (toggleMessages.value) {
         await delay(10); // needed because the v-click-away directive tells the messages popout to close on the same frame as this would otherwise tell it to open
-        toggleMessages.value(true, props.player.user.userId);
+        toggleMessages.value(true, props.player!.user.userId);
     }
 }
 

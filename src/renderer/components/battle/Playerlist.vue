@@ -22,15 +22,31 @@ SPDX-License-Identifier: MIT
                 :teamId="index"
                 :teamKey="key as string"
                 @add-bot-clicked="openBotList"
-                @on-join-clicked="joinTeam"
+                @on-join-clicked="joinAllyTeam(key as string)"
             />
         </div>
         <hr class="margin-top-sm margin-bottom-sm" />
         <div v-if="displayQueue" class="playerlist" :class="{ dragging: draggedBot || draggedPlayer }">
-            <SpectatorsComponent class="queue" :queue="true" @on-join-clicked="joinQueue" />
+            <SpectatorsComponent
+                class="queue"
+                :queue="true"
+                @on-join-clicked="joinQueue"
+                @on-drag-start="dragStart"
+                @on-drag-end="dragEnd"
+                @on-drag-enter="dragEnterSpectators"
+                @on-drop="onDropSpectators"
+            />
         </div>
         <div class="playerlist" :class="{ dragging: draggedBot || draggedPlayer }">
-            <SpectatorsComponent class="spectators" @on-join-clicked="joinSpectators" />
+            <SpectatorsComponent
+                class="spectators"
+                :queue="false"
+                @on-join-clicked="joinSpectators"
+                @on-drag-start="dragStart"
+                @on-drag-end="dragEnd"
+                @on-drag-enter="dragEnterSpectators"
+                @on-drop="onDropSpectators"
+            />
         </div>
     </div>
     <div v-else class="scroll-container padding-right-sm">
@@ -73,7 +89,7 @@ import { Bot, isBot, isRaptor, isScavenger, Player } from "@main/game/battle/bat
 import { battleWithMetadataStore, battleStore, battleActions } from "@renderer/store/battle.store";
 import SpectatorsComponent from "@renderer/components/battle/SpectatorsComponent.vue";
 import { GameAI } from "@main/content/game/game-version";
-import { lobbyStore } from "@renderer/store/lobby.store";
+import { lobbyStore, lobby } from "@renderer/store/lobby.store";
 
 const { t } = useTypedI18n();
 
@@ -100,22 +116,23 @@ function onBotSelected(bot: EngineAI | GameAI, teamId: number) {
 }
 
 function joinQueue() {
-    //This only shows up if online already.
-    console.log("Unable to set 'lobby/joinQueue' because protocol does not implement it yet.");
+    //This only shows up if online
+    lobby.joinQueue();
 }
+
+// This is online only version
+function joinAllyTeam(teamId: string) {
+    lobby.joinAllyTeam(teamId);
+}
+
+// This is offline only version
 function joinTeam(teamId: number) {
-    if (battleStore.isOnline) {
-        //FIXME: once tachyon officially supports joining an AllyTeam
-        console.log("Unable to send 'lobby/joinAllyTeam' because protocol does not yet implement it.");
-    } else {
-        if (battleStore.me) battleActions.movePlayerToTeam(battleStore.me, teamId);
-    }
+    if (battleStore.me) battleActions.movePlayerToTeam(battleStore.me, teamId as number);
 }
 
 function joinSpectators() {
     if (battleStore.isOnline) {
-        //FIXME: Add once tachyon support exists
-        console.log("Unable to send 'lobby/spectate' because protocol does not yet implement it.");
+        lobby.spectate();
     } else {
         if (battleStore.me) battleActions.movePlayerToSpectators(battleStore.me);
     }

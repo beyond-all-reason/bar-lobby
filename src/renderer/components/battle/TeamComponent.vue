@@ -84,7 +84,7 @@ const allyMembers = computed(() => {
         if (lobbyStore.activeLobby.members) {
             for (const memberKey in lobbyStore.activeLobby.members) {
                 const member = lobbyStore.activeLobby.members[memberKey];
-                if (member!.allyTeam == props.teamKey) arr.push(member as Member);
+                if (member.type == "player" && member.allyTeam == props.teamKey) arr.push(member as Member);
             }
             return arr;
         }
@@ -98,7 +98,7 @@ const memberCount = computed(() => {
             let count = 0;
             for (const memberKey in lobbyStore.activeLobby.members) {
                 const member = lobbyStore.activeLobby.members[memberKey];
-                if (member!.allyTeam == props.teamKey) count++;
+                if (member.type == "player" && member.allyTeam == props.teamKey) count++;
             }
             return count;
         } else return 0;
@@ -114,6 +114,7 @@ const maxMembersPerAllyTeam = computed(() => {
     } else return 1;
 });
 
+// For online battles, this is technically maxTeamsPerAllyTeam, but there's only 1 player per Team anyway.
 const maxPlayersPerTeam = computed(() => {
     if (battleStore.isOnline && lobbyStore.activeLobby && lobbyStore.activeLobby.allyTeams) {
         return lobbyStore.activeLobby.allyTeams[props.teamKey].maxTeams;

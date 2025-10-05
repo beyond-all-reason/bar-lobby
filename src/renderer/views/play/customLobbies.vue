@@ -121,12 +121,12 @@ import Checkbox from "@renderer/components/controls/Checkbox.vue";
 import SearchBox from "@renderer/components/controls/SearchBox.vue";
 import { settingsStore } from "@renderer/store/settings.store";
 import { lobby, lobbyStore } from "@renderer/store/lobby.store";
-import { Lobby as LobbyType } from "@renderer/model/lobby";
 import LobbyPreview from "@renderer/components/battle/LobbyPreview.vue";
 import { router } from "@renderer/router";
 import { battleStore } from "@renderer/store/battle.store";
 import LeaveConfirmModal from "@renderer/components/battle/LeaveConfirmModal.vue";
 import { useTypedI18n } from "@renderer/i18n";
+import { LobbyOverview } from "tachyon-protocol/types";
 
 const { t } = useTypedI18n();
 
@@ -136,7 +136,7 @@ const leaveConfirmModalIsOpen = ref<boolean>(false);
 const searchVal = ref<string>("");
 const autojoinLobbyId = ref<string>();
 const lobbyList = computed(() => {
-    const arr: LobbyType[] = [];
+    const arr: LobbyOverview[] = [];
     for (const lobbyKey in lobbyStore.lobbyList) {
         const item = lobbyStore.lobbyList[lobbyKey];
         arr.push(item);
