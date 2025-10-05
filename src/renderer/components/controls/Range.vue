@@ -3,37 +3,34 @@ SPDX-FileCopyrightText: 2025 The BAR Lobby Authors
 
 SPDX-License-Identifier: MIT
 -->
-
 <template>
-    <Control class="range">
+    <Control class="range" :disabled="disabled">
         <InputNumber
             v-if="range"
             v-bind="$attrs"
             :modelValue="low"
-            @update:modelValue="(input: number) => onInput([input, high || 0])"
+            @update:modelValue="(input: number) => onInput([input, high ?? min])"
+            @focus="(event: Event) => (event.target as HTMLInputElement)?.select()"
             class="min"
+            :minFractionDigits="0"
+            :maxFractionDigits="maxFractionDigits"
+            :step="stepValue"
+            mode="decimal"
+            :useGrouping="false"
         />
         <Slider v-bind="$props" :modelValue="modelValue" @update:modelValue="onSlide" />
         <InputNumber
             v-bind="$attrs"
             :modelValue="typeof modelValue === 'number' ? modelValue : high"
-            @update:modelValue="typeof modelValue === 'number' ? onInput : (input: number) => onInput([low || 0, input])"
+            @update:modelValue="(input: number) => (typeof modelValue === 'number' ? onInput(input) : onInput([low ?? min, input]))"
+            @focus="(event: Event) => (event.target as HTMLInputElement)?.select()"
             class="max"
+            :minFractionDigits="0"
+            :maxFractionDigits="maxFractionDigits"
+            :step="stepValue"
+            mode="decimal"
+            :useGrouping="false"
         />
-        <!-- <InputNumber
-            v-if="!range && typeof modelValue === 'number'"
-            v-bind="$attrs"
-            :modelValue="typeof modelValue === 'number' ? modelValue : high"
-            @update:modelValue="onInput"
-            class="max"
-        />
-        <InputNumber
-            v-if="range"
-            v-bind="$attrs"
-            :modelValue="high"
-            @update:modelValue="(input: number) => onInput([low, input])"
-            class="max"
-        /> -->
     </Control>
 </template>
 
@@ -60,12 +57,20 @@ const minInputWidth = computed(() => `${min.value.toString().length + 1}ch`);
 const max = computed<number>(() => props?.max ?? 100);
 const maxInputWidth = computed(() => `${max.value.toString().length + 1}ch`);
 
+const stepValue = computed(() => props.step ?? 1);
+const maxFractionDigits = computed(() => {
+    const step = stepValue.value.toString();
+    const decimalIndex = step.indexOf(".");
+    return decimalIndex === -1 ? 0 : step.length - decimalIndex - 1;
+});
+
 function onSlide(input: number | number[]) {
     emits("update:modelValue", input);
 }
 
 function onInput(input: number | number[]) {
-    emits("update:modelValue", input);
+    const clamp = (v: number) => Math.max(props.min ?? 0, Math.min(props.max ?? 100, v));
+    emits("update:modelValue", Array.isArray(input) ? input.map(clamp).sort((a, b) => a - b) : clamp(input));
 }
 </script>
 
@@ -73,6 +78,9 @@ function onInput(input: number | number[]) {
 .range {
     width: 100%;
     align-self: center;
+    .disabled {
+        opacity: 0.4;
+    }
 }
 :deep(.p-slider) {
     width: 100%;

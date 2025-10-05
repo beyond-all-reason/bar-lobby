@@ -29,8 +29,8 @@ export function isUser(user: any): user is User {
 
 export type Me = User & {
     permissions: Set<string>;
-    friendUserIds: Set<number>;
-    outgoingFriendRequestUserIds: Set<number>;
-    incomingFriendRequestUserIds: Set<number>;
-    ignoreUserIds: Set<number>;
+    friendUserIds: Set<string>;
+    outgoingFriendRequestUserIds: Set<string>;
+    incomingFriendRequestUserIds: Set<string>;
+    ignoreUserIds: Set<string>;
 };
