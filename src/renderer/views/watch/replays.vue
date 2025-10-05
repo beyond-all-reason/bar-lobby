@@ -22,7 +22,6 @@ SPDX-License-Identifier: MIT
                                 <TriStateCheckbox
                                     v-model="settingsStore.endedNormallyFilter"
                                     :label="t('lobby.views.watch.replays.endedNormally')"
-                                    @update:model-value="(value) => onTriStateClick(value)"
                                 />
                                 <Checkbox v-model="showSpoilers" :label="t('lobby.views.watch.replays.showSpoilers')" />
                                 <div class="flex-grow">
@@ -166,8 +165,6 @@ import { settingsStore } from "@renderer/store/settings.store";
 
 const { t } = useTypedI18n();
 
-const endedNormally = toRef(() => settingsStore.endedNormallyFilter);
-
 const showSpoilers = ref(true);
 const offset = ref(0);
 const limit = ref(15);
@@ -213,26 +210,24 @@ function endedNormallyFilter(replay: Replay, expected: "true" | "false" | "null"
     return false;
 }
 
-// We have to pass the value upstream, the checkbox itself does not know/care about the setting store, nor should it.
-function onTriStateClick(value: "true" | "false" | "null") {
-    settingsStore.endedNormallyFilter = value;
-}
+const replays = useDexieLiveQueryWithDeps(
+    [() => settingsStore.endedNormallyFilter, offset, limit, sortField, sortOrder, fulltextSearch],
+    () => {
+        const allReplaysBySortField =
+            sortOrder.value === "asc" ? db.replays.orderBy(sortField.value) : db.replays.orderBy(sortField.value).reverse();
 
-const replays = useDexieLiveQueryWithDeps([endedNormally, offset, limit, sortField, sortOrder, fulltextSearch], () => {
-    const allReplaysBySortField =
-        sortOrder.value === "asc" ? db.replays.orderBy(sortField.value) : db.replays.orderBy(sortField.value).reverse();
+        return allReplaysBySortField
+            .filter((replay: Replay) => endedNormallyFilter(replay, settingsStore.endedNormallyFilter))
+            .filter(fulltextSearchFilter)
+            .offset(offset.value)
+            .limit(limit.value)
+            .toArray();
+    }
+);
 
-    return allReplaysBySortField
-        .filter((replay: Replay) => endedNormallyFilter(replay, endedNormally.value))
-        .filter(fulltextSearchFilter)
-        .offset(offset.value)
-        .limit(limit.value)
-        .toArray();
-});
-
-const replaysCount = useDexieLiveQueryWithDeps([endedNormally, fulltextSearch], () => {
+const replaysCount = useDexieLiveQueryWithDeps([() => settingsStore.endedNormallyFilter, fulltextSearch], () => {
     return db.replays
-        .filter((replay: Replay) => endedNormallyFilter(replay, endedNormally.value))
+        .filter((replay: Replay) => endedNormallyFilter(replay, settingsStore.endedNormallyFilter))
         .filter(fulltextSearchFilter)
         .count();
 });
