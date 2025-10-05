@@ -105,10 +105,18 @@ async function joinLobby(id: LobbyJoinRequestData) {
                 userSubList.push(lobbyStore.activeLobby.members[memberKey].id);
             }
         }
-        window.tachyon.request("user/subscribeUpdates", { userIds: userSubList });
+        try {
+            const response = await window.tachyon.request("user/subscribeUpdates", { userIds: userSubList });
+            console.log("Tachyon joinLobby() requesting user/subscribeUpdates:", response);
+        } catch (error) {
+            console.error("Error with joinLobby() requesting user/subscribeUpdates:", error);
+            notificationsApi.alert({
+                text: "Error with request user/subscribeUpdates",
+                severity: "error",
+            });
+        }
     } catch (error) {
         console.error("Error with request lobby/join", error);
-        lobbyStore.error = "Error with request lobby/join";
         notificationsApi.alert({
             text: "Error with request lobby/join",
             severity: "error",
@@ -118,7 +126,8 @@ async function joinLobby(id: LobbyJoinRequestData) {
 
 async function joinAllyTeam(allyTeam: string) {
     try {
-        window.tachyon.request("lobby/joinAllyTeam", { allyTeam: allyTeam });
+        const response = await window.tachyon.request("lobby/joinAllyTeam", { allyTeam: allyTeam });
+        console.log("Tachyon: lobby/joinAllyTeam", response);
     } catch (error) {
         console.error("Tachyon error: lobby/joinAllyTeam:", error);
         notificationsApi.alert({
@@ -129,7 +138,8 @@ async function joinAllyTeam(allyTeam: string) {
 }
 async function joinQueue() {
     try {
-        window.tachyon.request("lobby/joinQueue");
+        const response = await window.tachyon.request("lobby/joinQueue");
+        console.log("Tachyon: lobby/joinQueue:", response);
     } catch (error) {
         console.error("Tachyon error: lobby/joinQueue:", error);
         notificationsApi.alert({
@@ -140,7 +150,8 @@ async function joinQueue() {
 }
 async function spectate() {
     try {
-        window.tachyon.request("lobby/spectate");
+        const response = await window.tachyon.request("lobby/spectate");
+        console.log("Tachyon: lobby/spectate", response);
     } catch (error) {
         console.error("Tachyon error: lobby/spectate:", error);
         notificationsApi.alert({
@@ -261,11 +272,12 @@ function onListUpdatedEvent(data: LobbyListUpdatedEventData) {
 }
 
 function onLobbyListResetEvent(data: LobbyListResetEventData) {
+    console.log("Tachyon event: lobby/listReset", data);
     lobbyStore.lobbyList = data.lobbies;
     clearSelectedLobbyIfNull();
 }
 
-function onLobbyUpdatedEvent(data: LobbyUpdatedEventData) {
+async function onLobbyUpdatedEvent(data: LobbyUpdatedEventData) {
     console.log("Tachyon event: lobby/updated:", data);
     //Apply the patch
     lobbyStore.activeLobby = applyPatch(lobbyStore.activeLobby, data);
@@ -307,18 +319,26 @@ function onLobbyUpdatedEvent(data: LobbyUpdatedEventData) {
         }
         if (userSubList.length > 0) {
             try {
-                const response = window.tachyon.request("user/subscribeUpdates", { userIds: userSubList });
-                console.log("Lobby subscribe:", response);
+                const response = await window.tachyon.request("user/subscribeUpdates", { userIds: userSubList });
+                console.log("Tachyon onLobbyUpdatedEvent() user/subscribeUpdates:", response);
             } catch (error) {
-                console.log("Lobby subscribe error:", error);
+                console.log("Tachyon error: onLobbyUpdatedEvent() user/subscribeUpdates:", error);
+                notificationsApi.alert({
+                    text: "Tachyon error with user/subscribeUpdates",
+                    severity: "error",
+                });
             }
         }
         if (userUnsubList.length > 0) {
             try {
-                const response = window.tachyon.request("user/unsubscribeUpdates", { userIds: userUnsubList });
-                console.log("lobby unsub:", response);
+                const response = await window.tachyon.request("user/unsubscribeUpdates", { userIds: userUnsubList });
+                console.log("Tachyon onLobbyUpdatedEvent() user/unsubscribeUpdates:", response);
             } catch (error) {
-                console.log("Lobby unsub error:", error);
+                console.log("Tachyon error: onLobbyUpdatedEvent() user/unsubscribeUpdates:", error);
+                notificationsApi.alert({
+                    text: "Tachyon error with user/unsubscribeUpdates",
+                    severity: "error",
+                });
             }
         }
     }
@@ -336,7 +356,7 @@ function onLobbyLeftEvent(data: LobbyLeftEventData) {
     });
 }
 
-function clearUserSubscriptions() {
+async function clearUserSubscriptions() {
     const userUnsubList: UserId[] = [];
     if (lobbyStore.activeLobby?.members) {
         for (const memberKey in lobbyStore.activeLobby!.members) {
@@ -346,7 +366,16 @@ function clearUserSubscriptions() {
                 userUnsubList.push(lobbyStore.activeLobby!.members[memberKey]!.id);
         }
         if (userUnsubList.length > 0) {
-            window.tachyon.request("user/unsubscribeUpdates", { userIds: userUnsubList });
+            try {
+                const response = await window.tachyon.request("user/unsubscribeUpdates", { userIds: userUnsubList });
+                console.log("Tachyon clearUserSubscriptions() user/unsubscribeUpdates:", response);
+            } catch (error) {
+                console.log("Tachyon error: clearUserSubscriptions() user/unsubscribeUpdates:", error);
+                notificationsApi.alert({
+                    text: "Tachyon error with user/unsubscribeUpdates",
+                    severity: "error",
+                });
+            }
         }
     }
 }
