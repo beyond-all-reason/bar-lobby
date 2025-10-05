@@ -13,7 +13,7 @@ export const usersStore = reactive<{
 });
 
 export async function getUserByID(id: string) {
-    return db.users.get(id);
+    return await db.users.get(id);
 }
 
 export function initUsersStore() {

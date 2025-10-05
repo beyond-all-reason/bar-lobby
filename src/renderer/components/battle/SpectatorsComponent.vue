@@ -14,12 +14,12 @@ SPDX-License-Identifier: MIT
         <div v-if="battleStore.isOnline" class="participants">
             <div v-if="queue">
                 <div v-for="member in queueArray" :key="member.id" draggable="false">
-                    <SpectatorParticipant :member="member" />
+                    <OnlineSpecParticipant :member="member" />
                 </div>
             </div>
             <div v-else>
                 <div v-for="member in spectatorArray" :key="member.id" draggable="false">
-                    <SpectatorParticipant :member="member" />
+                    <OnlineSpecParticipant :member="member" />
                 </div>
             </div>
         </div>
@@ -42,6 +42,7 @@ import { computed } from "vue";
 import { useTypedI18n } from "@renderer/i18n";
 
 import SpectatorParticipant from "@renderer/components/battle/SpectatorParticipant.vue";
+import OnlineSpecParticipant from "@renderer/components/battle/OnlineSpecParticipant.vue";
 import Button from "@renderer/components/controls/Button.vue";
 import { battleWithMetadataStore, battleStore } from "@renderer/store/battle.store";
 import { Player } from "@main/game/battle/battle-types";

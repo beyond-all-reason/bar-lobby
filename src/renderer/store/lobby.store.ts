@@ -306,10 +306,20 @@ function onLobbyUpdatedEvent(data: LobbyUpdatedEventData) {
             }
         }
         if (userSubList.length > 0) {
-            window.tachyon.request("user/subscribeUpdates", { userIds: userSubList });
+            try {
+                const response = window.tachyon.request("user/subscribeUpdates", { userIds: userSubList });
+                console.log("Lobby subscribe:", response);
+            } catch (error) {
+                console.log("Lobby subscribe error:", error);
+            }
         }
         if (userUnsubList.length > 0) {
-            window.tachyon.request("user/unsubscribeUpdates", { userIds: userUnsubList });
+            try {
+                const response = window.tachyon.request("user/unsubscribeUpdates", { userIds: userUnsubList });
+                console.log("lobby unsub:", response);
+            } catch (error) {
+                console.log("Lobby unsub error:", error);
+            }
         }
     }
 }
