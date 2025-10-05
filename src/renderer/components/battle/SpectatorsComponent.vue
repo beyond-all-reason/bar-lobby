@@ -73,8 +73,8 @@ interface Member {
 const spectatorArray = computed(() => {
     const arr: Member[] = [];
     if (!lobbyStore.activeLobby) return arr;
-    for (const memberKey in lobbyStore.activeLobby!.members) {
-        const member = lobbyStore.activeLobby!.members[memberKey];
+    for (const memberKey in lobbyStore.activeLobby.members) {
+        const member = lobbyStore.activeLobby.members[memberKey];
         // Collect spectators without a queue position
         if (member.type == "spec" && !member.joinQueuePosition) {
             arr.push(member);
@@ -89,7 +89,7 @@ const queueArray = computed(() => {
     if (!lobbyStore.activeLobby) return arr;
     if (!lobbyStore.activeLobby.playerQueue || lobbyStore.activeLobby.playerQueue.length == 0) return arr;
     for (const userId of lobbyStore.activeLobby.playerQueue) {
-        arr.push(lobbyStore.activeLobby!.members[userId]);
+        arr.push(lobbyStore.activeLobby.members[userId]);
     }
     return arr;
 });
@@ -97,12 +97,10 @@ const queueArray = computed(() => {
 const memberCount = computed(() => {
     if (battleStore.isOnline) {
         if (props.queue) {
-            if (!lobbyStore.activeLobby) return 0;
-            if (!lobbyStore.activeLobby.playerQueue) return 0;
+            if (!lobbyStore.activeLobby?.playerQueue) return 0;
             return lobbyStore.activeLobby.playerQueue.length;
         } else {
-            if (!lobbyStore.activeLobby) return 0;
-            if (!lobbyStore.activeLobby.spectatorCount) return 0;
+            if (!lobbyStore.activeLobby?.spectatorCount) return 0;
             if (!lobbyStore.activeLobby.playerQueue) return lobbyStore.activeLobby.spectatorCount;
             return (
                 lobbyStore.activeLobby.spectatorCount - (lobbyStore.activeLobby.playerQueue ? lobbyStore.activeLobby.playerQueue.length : 0)

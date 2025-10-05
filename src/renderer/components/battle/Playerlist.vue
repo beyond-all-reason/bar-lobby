@@ -17,7 +17,7 @@ SPDX-License-Identifier: MIT
     <div v-if="battleStore.isOnline" class="scroll-container padding-right-sm">
         <div class="playerlist" :class="{ dragging: draggedBot || draggedPlayer }">
             <TeamComponent
-                v-for="(team, key, index) in lobbyStore.activeLobby != undefined ? lobbyStore.activeLobby!.allyTeams : {}"
+                v-for="(team, key, index) in lobbyStore.activeLobby != undefined ? lobbyStore.activeLobby.allyTeams : {}"
                 :key="key"
                 :teamId="index"
                 :teamKey="key as string"
@@ -107,6 +107,7 @@ const displayQueue = computed(() => {
     }
     // Once the concept of a queue exists in the lobby, we will only display it if all AllyTeams are full.
     // Join Queue would replace Join AllyTeam in these cases, since players can't request a specific team in those cases.
+    // TODO: This can now be implemented.
     return true; //For now we will display the empty queue if online to test the appearance.
 });
 

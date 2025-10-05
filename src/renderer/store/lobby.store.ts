@@ -285,17 +285,18 @@ async function onLobbyUpdatedEvent(data: LobbyUpdatedEventData) {
     console.log("Tachyon event: lobby/updated:", data);
     //Apply the patch
     lobbyStore.activeLobby = applyPatch(lobbyStore.activeLobby, data);
+    if (!lobbyStore.activeLobby) return;
     //Recalculate player counts afterward.
     let maxPlayerCount: number = 0;
-    for (const allyKey in lobbyStore.activeLobby!.allyTeams) {
-        for (const teamKey in lobbyStore.activeLobby!.allyTeams[allyKey]!.teams) {
-            maxPlayerCount += lobbyStore.activeLobby!.allyTeams[allyKey]!.teams[teamKey]!.maxPlayers!;
+    for (const allyKey in lobbyStore.activeLobby.allyTeams) {
+        for (const teamKey in lobbyStore.activeLobby.allyTeams[allyKey].teams) {
+            maxPlayerCount += lobbyStore.activeLobby.allyTeams[allyKey].teams[teamKey].maxPlayers!;
         }
     }
-    lobbyStore.activeLobby!.maxPlayerCount = maxPlayerCount;
+    lobbyStore.activeLobby.maxPlayerCount = maxPlayerCount;
     let playerCount: number = 0;
     let spectatorCount: number = 0;
-    lobbyStore.activeLobby!.playerQueue = [];
+    lobbyStore.activeLobby.playerQueue = [];
     for (const memberKey in lobbyStore.activeLobby?.members) {
         const member = lobbyStore.activeLobby.members[memberKey];
         if (member.type == "player") {
@@ -303,12 +304,12 @@ async function onLobbyUpdatedEvent(data: LobbyUpdatedEventData) {
         } else {
             spectatorCount++;
             if (member.joinQueuePosition) {
-                lobbyStore.activeLobby!.playerQueue[member.joinQueuePosition] = member.id;
+                lobbyStore.activeLobby.playerQueue[member.joinQueuePosition] = member.id;
             }
         }
     }
-    lobbyStore.activeLobby!.playerCount = playerCount;
-    lobbyStore.activeLobby!.spectatorCount = spectatorCount;
+    lobbyStore.activeLobby.playerCount = playerCount;
+    lobbyStore.activeLobby.spectatorCount = spectatorCount;
     // We need to sub to new members, but if members go away we unsub instead. Ugh we need to maintain a list and diff it also lol
     if (data.members) {
         const userSubList: UserId[] = [];
@@ -363,11 +364,11 @@ function onLobbyLeftEvent(data: LobbyLeftEventData) {
 async function clearUserSubscriptions() {
     const userUnsubList: UserId[] = [];
     if (lobbyStore.activeLobby?.members) {
-        for (const memberKey in lobbyStore.activeLobby!.members) {
-            if (lobbyStore.activeLobby!.members[memberKey]!.id != me.userId)
+        for (const memberKey in lobbyStore.activeLobby.members) {
+            if (lobbyStore.activeLobby.members[memberKey].id != me.userId)
                 // Skip unsubbing from ourselves.
                 // TODO: avoid unsubbing from anyone we have subscribe to elsewhere (party, friends?)
-                userUnsubList.push(lobbyStore.activeLobby!.members[memberKey]!.id);
+                userUnsubList.push(lobbyStore.activeLobby.members[memberKey].id);
         }
         if (userUnsubList.length > 0) {
             try {

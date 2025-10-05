@@ -185,9 +185,8 @@ function getGeneratedLobbyRequestData(): LobbyCreateRequestData {
 async function hostBattle() {
     const data = getGeneratedLobbyRequestData();
     //waitingForBattleCreation.value = true;
-    hostLobbyModal.value!.close();
+    if (hostLobbyModal.value) hostLobbyModal.value.close();
     lobby.createLobby(data);
-    //Need some kind of response here to handle errors in the modal and also to close it once successful.
 }
 
 async function onOpen() {
@@ -205,7 +204,6 @@ function onClose() {
 }
 
 function onMapSelected(mapData: MapData) {
-    //We will hijack the "battlestore" so the map stuff works easier
     battleStore.battleOptions.map = mapData;
     battleActions.getCurrentStartBoxes();
     map.value = mapData;

@@ -80,7 +80,7 @@ const title = computed(() =>
 
 const allyMembers = computed(() => {
     let arr: Member[] = [];
-    if (battleStore.isOnline && lobbyStore.activeLobby && lobbyStore.activeLobby.allyTeams) {
+    if (battleStore.isOnline && lobbyStore.activeLobby?.allyTeams) {
         if (lobbyStore.activeLobby.members) {
             for (const memberKey in lobbyStore.activeLobby.members) {
                 const member = lobbyStore.activeLobby.members[memberKey];
@@ -93,7 +93,7 @@ const allyMembers = computed(() => {
 });
 
 const memberCount = computed(() => {
-    if (battleStore.isOnline && lobbyStore.activeLobby && lobbyStore.activeLobby.allyTeams) {
+    if (battleStore.isOnline && lobbyStore.activeLobby?.allyTeams) {
         if (lobbyStore.activeLobby.members) {
             let count = 0;
             for (const memberKey in lobbyStore.activeLobby.members) {
@@ -103,12 +103,12 @@ const memberCount = computed(() => {
             return count;
         } else return 0;
     } else {
-        return battleWithMetadataStore.teams[props.teamId]?.participants.length || 0;
+        return battleWithMetadataStore.teams[props.teamId].participants.length || 0;
     }
 });
 
 const maxMembersPerAllyTeam = computed(() => {
-    if (battleStore.isOnline && lobbyStore.activeLobby && lobbyStore.activeLobby.allyTeams) {
+    if (battleStore.isOnline && lobbyStore.activeLobby?.allyTeams) {
         // Server always gives us team "000" as the first one, and the players per team is currently always the same
         return lobbyStore.activeLobby.allyTeams[props.teamKey].maxTeams;
     } else return 1;
@@ -116,14 +116,14 @@ const maxMembersPerAllyTeam = computed(() => {
 
 // For online battles, this is technically maxTeamsPerAllyTeam, but there's only 1 player per Team anyway.
 const maxPlayersPerTeam = computed(() => {
-    if (battleStore.isOnline && lobbyStore.activeLobby && lobbyStore.activeLobby.allyTeams) {
+    if (battleStore.isOnline && lobbyStore.activeLobby?.allyTeams) {
         return lobbyStore.activeLobby.allyTeams[props.teamKey].maxTeams;
     }
     if (!battleWithMetadataStore.battleOptions.map) return 1;
     return battleActions.getMaxPlayersPerTeam();
 });
 
-// This is not defined in the protocol as type/interface, but it's consistent so we are just going to define it ourselves.
+// This is not defined in the protocol as type/interface, but it's consistent for type "player" so we are just going to define it ourselves.
 interface Member {
     type: string;
     id: UserId;
