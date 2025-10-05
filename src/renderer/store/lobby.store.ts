@@ -183,6 +183,10 @@ function parseLobbyResponseData(data: LobbyCreateOkResponseData | LobbyJoinOkRes
     battleStore.battleOptions.engineVersion = data.engineVersion;
     battleStore.battleOptions.gameVersion = data.gameVersion;
     db.maps.get(data.mapName).then((map) => {
+        if (map == undefined) {
+            console.error(`Error in parseLobbyResponseData(), ${data.mapName} is undefined in database.`);
+            notificationsApi.alert({ text: `Error in lobby data, ${data.mapName} not found.`, severity: "error" });
+        }
         battleStore.battleOptions.map = map;
     });
     for (const allyKey in data.allyTeamConfig) {
