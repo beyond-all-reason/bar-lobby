@@ -23,7 +23,7 @@ import { computedAsync } from "@vueuse/core";
 import { User } from "@main/model/user";
 import { getUserByID } from "@renderer/store/users.store";
 import { UserId } from "tachyon-protocol/types";
-
+import { me } from "@renderer/store/me.store";
 
 const { t } = useTypedI18n();
 
@@ -40,7 +40,7 @@ interface Member {
 }
 
 const displayName = computedAsync(async () => {
-    // User and number is only shown as a placeholder if we have a delay in getting the user's name from the server
+    // User and number is only shown as a placeholder if we have a delay in getting the user's name
     const name = t("lobby.navbar.messages.userID") + " " + props.member.id;
     if (props.member.id) {
         const cached: User = (await getUserByID(props.member.id)) as User;
@@ -54,7 +54,25 @@ const displayName = computedAsync(async () => {
 const menu = ref<InstanceType<typeof ContextMenu>>();
 
 // We can add these later when they exist.
-const onlineActions = [];
+const onlineActions =
+    props.member.id == me.userId
+        ? [
+              { label: t("lobby.components.battle.playerParticipant.viewProfile"), command: viewProfile },
+              { label: t("lobby.components.battle.playerParticipant.makeBoss"), command: makeBoss },
+          ]
+        : [
+              { label: t("lobby.components.battle.playerParticipant.viewProfile"), command: viewProfile },
+              { label: t("lobby.components.battle.playerParticipant.message"), command: messagePlayer },
+              //{ label: "Block", command: blockPlayer },
+              { label: t("lobby.components.battle.playerParticipant.addFriend"), command: addFriend },
+              { label: t("lobby.components.battle.playerParticipant.kick"), command: kickPlayer },
+              { label: t("lobby.components.battle.playerParticipant.ring"), command: ringPlayer },
+              {
+                  label: t("lobby.components.battle.playerParticipant.more"),
+                  items: [{ label: t("lobby.components.battle.playerParticipant.makeBoss"), command: makeBoss }],
+              },
+              //{ label: "Report", command: reportPlayer },
+          ];
 
 function onRightClick(event: MouseEvent) {
     if (menu.value) {
