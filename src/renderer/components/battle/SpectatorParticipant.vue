@@ -37,7 +37,7 @@ const props = defineProps<{
 const menu = ref<InstanceType<typeof ContextMenu>>();
 
 const actions =
-    props.player!.user.userId === me.userId
+    props.player.user.userId === me.userId
         ? [
               { label: t("lobby.components.battle.playerParticipant.viewProfile"), command: viewProfile },
               { label: t("lobby.components.battle.playerParticipant.makeBoss"), command: makeBoss },
