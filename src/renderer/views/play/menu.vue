@@ -31,6 +31,7 @@ SPDX-License-Identifier: MIT
                     <div class="card-content">
                         <h2>Matchmaking</h2>
                         <p>Ranked battles with skill-based matching</p>
+                        <div v-if="!me.isAuthenticated" class="login-required-badge">Login</div>
                     </div>
                 </Panel>
 
@@ -38,6 +39,7 @@ SPDX-License-Identifier: MIT
                     <div class="card-content">
                         <h2>Custom Lobbies</h2>
                         <p>Join community-hosted battle rooms</p>
+                        <div v-if="!me.isAuthenticated" class="login-required-badge">Login</div>
                     </div>
                 </Panel>
 
@@ -52,6 +54,7 @@ SPDX-License-Identifier: MIT
                     <div class="card-content">
                         <h2>Tournaments</h2>
                         <p>Competitive events and community competitions</p>
+                        <div v-if="!me.isAuthenticated" class="login-required-badge">Login</div>
                     </div>
                 </Panel>
             </div>
@@ -62,6 +65,7 @@ SPDX-License-Identifier: MIT
 <script lang="ts" setup>
 import { useRouter } from "vue-router";
 import Panel from "@renderer/components/common/Panel.vue";
+import { me } from "@renderer/store/me.store";
 
 const router = useRouter();
 
@@ -75,11 +79,15 @@ const startCampaign = () => {
 };
 
 const startMatchmaking = () => {
-    router.push("/play/matchmaking");
+    if (me.isAuthenticated) {
+        router.push("/play/matchmaking");
+    } else router.push("/");
 };
 
 const startCustomLobbies = () => {
-    router.push("/play/customLobbies");
+    if (me.isAuthenticated) {
+        router.push("/play/customLobbies");
+    } else router.push("/");
 };
 
 const openScenarios = () => {
@@ -87,7 +95,9 @@ const openScenarios = () => {
 };
 
 const openTournaments = () => {
-    router.push("/play/tournaments");
+    if (me.isAuthenticated) {
+        router.push("/play/tournaments");
+    } else router.push("/");
 };
 </script>
 
@@ -156,6 +166,21 @@ const openTournaments = () => {
     }
 
     .coming-soon-badge {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        background: linear-gradient(45deg, #ff6b35, #ff9500);
+        color: white;
+        padding: 5px 12px;
+        border-radius: 15px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        z-index: 2;
+    }
+
+    .login-required-badge {
         position: absolute;
         top: 15px;
         right: 15px;
