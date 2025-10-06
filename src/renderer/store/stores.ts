@@ -6,6 +6,7 @@ import { initDownloadsStore } from "@renderer/store/downloads.store";
 import { initEnginesStore } from "@renderer/store/engine.store";
 import { initGameStore } from "@renderer/store/game.store";
 import { initInfosStore } from "@renderer/store/infos.store";
+import { initLobbyStore } from "@renderer/store/lobby.store";
 import { initializeMatchmakingStore } from "@renderer/store/matchmaking.store";
 import { initMeStore } from "@renderer/store/me.store";
 
@@ -20,7 +21,10 @@ export async function initPreMountStores() {
         initGameStore(),
         initDownloadsStore(),
         initEnginesStore(),
-        initTachyonStore().then(initializeMatchmakingStore),
+        initTachyonStore().then(() => {
+            initializeMatchmakingStore();
+            initLobbyStore();
+        }),
         initUsersStore(),
         initMeStore(),
     ]);

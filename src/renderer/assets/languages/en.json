@@ -1918,6 +1918,16 @@
                 }
             }
         },
+        "customLobby": {
+            "leave": "Leave",
+            "start": "Start",
+            "boss": "Boss",
+            "allyTeam": "Team {number}",
+            "addMod": "Add Mod",
+            "noMods": "No mods",
+            "modOrderMatters": "Drag to reorder mods",
+            "selectMod": "Select Mod"
+        },
         "singleplayer": {
             "title": "Singleplayer",
             "scenarios": {
@@ -2097,8 +2107,9 @@
                 },
                 "hostBattle": {
                     "title": "Host Battle",
-                    "settingUp": "Setting up a dedicated battle host, this usually takes around 30 seconds",
-                    "region": "Region",
+                    "settingUp": "Creating lobby...",
+                    "lobbyName": "Lobby Name",
+                    "map": "Map",
                     "hostButton": "Host Battle"
                 },
                 "votePanel": {
@@ -2136,7 +2147,9 @@
                     "preview": "Preview",
                     "players": "Players",
                     "spectators": "Spectators"
-                },
+                }
+            },
+            "modals": {
                 "replayPreview": {
                     "replay": "Replay",
                     "players": "Players",

@@ -12,7 +12,7 @@ import { MapData, MapDownloadData } from "@main/content/maps/map-data";
 import { DownloadInfo } from "@main/content/downloads";
 import { Info } from "@main/services/info.service";
 import { BattleWithMetadata } from "@main/game/battle/battle-types";
-import { GetCommandData, GetCommandIds, GetCommands } from "tachyon-protocol";
+import { GetCommandData, GetCommandIds, GetCommands, TachyonEvent } from "tachyon-protocol";
 import { MultiplayerLaunchSettings } from "@main/game/game";
 import { logLevels } from "@main/services/log.service";
 import { ModMetadata, ModInstallOptions, ModType, ModInfo, ModConflict } from "@main/content/mods/mod-types";
@@ -212,13 +212,20 @@ function request<C extends GetCommandIds<"user", "server", "request">>(
 }
 
 function onEvent<C extends GetCommandIds<"server", "user", "event">>(eventID: C, callback: (event: GetCommandData<GetCommands<"server", "user", "event", C>>) => void) {
-    return ipcRenderer.on("tachyon:event", (_event, event) => {
+    const listener = (_event: unknown, event: TachyonEvent) => {
         if (event.commandId === eventID && "data" in event) {
             // event is a generic TachyonEvent in the IPC interface.
             // For consumers we cast it to the correct type based on the eventID.
             callback(event.data as GetCommandData<GetCommands<"server", "user", "event", C>>);
         }
-    });
+    };
+
+    ipcRenderer.on("tachyon:event", listener);
+
+    // Return cleanup function to prevent memory leaks
+    return () => {
+        ipcRenderer.removeListener("tachyon:event", listener);
+    };
 }
 
 const tachyonApi = {
@@ -231,10 +238,20 @@ const tachyonApi = {
     request,
 
     // Events
-    onConnected: (callback: () => void) => ipcRenderer.on("tachyon:connected", callback),
-    onDisconnected: (callback: () => void) => ipcRenderer.on("tachyon:disconnected", callback),
+    onConnected: (callback: () => void) => {
+        ipcRenderer.on("tachyon:connected", callback);
+        return () => ipcRenderer.removeListener("tachyon:connected", callback);
+    },
+    onDisconnected: (callback: () => void) => {
+        ipcRenderer.on("tachyon:disconnected", callback);
+        return () => ipcRenderer.removeListener("tachyon:disconnected", callback);
+    },
     onEvent,
-    onBattleStart: (callback: (springString: string) => void) => ipcRenderer.on("tachyon:battleStart", (_event, springString) => callback(springString)),
+    onBattleStart: (callback: (springString: string) => void) => {
+        const listener = (_event: unknown, springString: string) => callback(springString);
+        ipcRenderer.on("tachyon:battleStart", listener);
+        return () => ipcRenderer.removeListener("tachyon:battleStart", listener);
+    },
 };
 export type TachyonApi = typeof tachyonApi;
 contextBridge.exposeInMainWorld("tachyon", tachyonApi);

@@ -16,8 +16,9 @@ SPDX-License-Identifier: MIT
                 <h1>{{ t("lobby.multiplayer.custom.title") }}</h1>
             </div>
             <div class="flex-row gap-md">
-                <Button class="blue" @click="hostBattleOpen = true">{{ t("lobby.multiplayer.custom.hostBattle") }}</Button>
-                <HostBattle v-model="hostBattleOpen" />
+                <Button class="blue" @click="createLobby" :disabled="isCreating">
+                    {{ isCreating ? "Creating..." : t("lobby.multiplayer.custom.hostBattle") }}
+                </Button>
                 <Checkbox v-model="settingsStore.battlesHidePvE" :label="t('lobby.multiplayer.custom.filters.hidePvE')" />
                 <Checkbox v-model="settingsStore.battlesHideLocked" :label="t('lobby.multiplayer.custom.filters.hideLocked')" />
                 <Checkbox v-model="settingsStore.battlesHideEmpty" :label="t('lobby.multiplayer.custom.filters.hideEmpty')" />
@@ -91,13 +92,6 @@ SPDX-License-Identifier: MIT
 </template>
 
 <script lang="ts" setup>
-/**
- * TODO:
- * - Filters
- * - Host custom battle button (should request spawning a dedicated instance instead of being self-hosted)
- * - Host battle modal that includes options such as public/passworded/friends-only/invite-only, title, map, mode etc
- */
-
 import { Icon } from "@iconify/vue";
 import account from "@iconify-icons/mdi/account";
 import eye from "@iconify-icons/mdi/eye";
@@ -106,9 +100,9 @@ import robot from "@iconify-icons/mdi/robot";
 import Column from "primevue/column";
 import DataTable from "primevue/datatable";
 import { Ref, ref, shallowRef } from "vue";
+import { useRouter } from "vue-router";
 
 import BattlePreview from "@renderer/components/battle/BattlePreview.vue";
-import HostBattle from "@renderer/components/battle/HostBattle.vue";
 import Loader from "@renderer/components/common/Loader.vue";
 import Button from "@renderer/components/controls/Button.vue";
 import Checkbox from "@renderer/components/controls/Checkbox.vue";
@@ -117,16 +111,54 @@ import { getFriendlyDuration } from "@renderer/utils/misc";
 import { OngoingBattle } from "@main/content/replays/replay";
 import { settingsStore } from "@renderer/store/settings.store";
 import { useTypedI18n } from "@renderer/i18n";
+import { lobbyActions } from "@renderer/store/lobby.store";
 
 const { t } = useTypedI18n();
+const router = useRouter();
 
 const loading = ref(false);
-const hostBattleOpen = ref(false);
+const isCreating = ref(false);
 const searchVal = ref("");
 const selectedBattle: Ref<OngoingBattle | null> = shallowRef(null);
 
 //TODO uses dexie to retrieve known battles and to filter them, check how its done in the replays
 const battles = [] as OngoingBattle[];
+
+let lobbyCounter = 1;
+
+async function createLobby() {
+    isCreating.value = true;
+    
+    try {
+        // Create lobby with simple defaults
+        const response = await window.tachyon.request("lobby/create", {
+            name: `Lobby #${lobbyCounter++}`,
+            mapName: "Supreme Crossing V1",
+            gameVersion: "byar:test",
+            allyTeamConfig: [
+                {
+                    maxTeams: 1,
+                    startBox: { top: 0, bottom: 1, left: 0, right: 0.4 },
+                    teams: [{ maxPlayers: 8 }],
+                },
+                {
+                    maxTeams: 1,
+                    startBox: { top: 0, bottom: 1, left: 0.6, right: 1 },
+                    teams: [{ maxPlayers: 8 }],
+                },
+            ],
+        });
+
+        if (response.status === "success") {
+            await lobbyActions.joinLobby(response.data.id);
+            await router.push(`/play/custom-lobby/${response.data.id}`);
+        }
+    } catch (error) {
+        console.error("Failed to create lobby:", error);
+    } finally {
+        isCreating.value = false;
+    }
+}
 
 function attemptJoinBattle(battle: OngoingBattle) {
     console.log("Joining battle", battle);
