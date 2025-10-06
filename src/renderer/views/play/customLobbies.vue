@@ -10,7 +10,7 @@ SPDX-License-Identifier: MIT
 
 <template>
     <div class="flex-row flex-grow gap-md hide-overflow fullheight">
-        <Loader v-if="loading"></Loader>
+        <Loader v-if="loading || !tachyonStore.isConnected"></Loader>
         <div v-else class="flex-col flex-grow gap-md fullheight margin-left-md margin-right-md">
             <div class="flex-row gap-md">
                 <h1>{{ t("lobby.multiplayer.custom.title") }}</h1>
@@ -80,7 +80,7 @@ SPDX-License-Identifier: MIT
                 </div>
             </div>
         </div>
-        <div v-if="!loading" class="right">
+        <div v-if="!loading && tachyonStore.isConnected" class="right">
             <div class="flex flex-col">
                 <div v-if="settingsStore.devMode" class="flex flex-row">
                     <Button class="green margin-top-sm margin-bottom-sm" @click="sendLobbyListSubscribeRequest">{{
@@ -127,9 +127,9 @@ import { battleStore } from "@renderer/store/battle.store";
 import LeaveConfirmModal from "@renderer/components/battle/LeaveConfirmModal.vue";
 import { useTypedI18n } from "@renderer/i18n";
 import { LobbyOverview } from "tachyon-protocol/types";
+import { tachyonStore } from "@renderer/store/tachyon.store";
 
 const { t } = useTypedI18n();
-
 const loading = ref<boolean>(false);
 const createLobbyModalIsOpen = ref<boolean>(false);
 const leaveConfirmModalIsOpen = ref<boolean>(false);
