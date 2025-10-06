@@ -6,6 +6,24 @@ SPDX-License-Identifier: MIT
 
 <template>
     <div class="battle-container">
+        <div v-if="online" :title="lobbyStore.activeLobby?.name" class="flex flex-row">
+            <div class="flex flex-row fullwidth">
+                <Button
+                    v-tooltip.bottom="t('lobby.library.maps.back')"
+                    class="icon red close flex-left"
+                    @click="leaveConfirmModalIsOpen = true"
+                >
+                    <Icon :icon="arrow_back" :height="24" />{{ t("lobby.components.battle.offlineBattleComponent.exitLobby") }}
+                </Button>
+                <LeaveConfirmModal v-model="leaveConfirmModalIsOpen" @cancel-leave="cancelLeaveLobby" @confirm-leave="leaveLobby" />
+                <p class="title flex-left padding-left-md padding-right-md">{{ lobbyStore.activeLobby?.name }}</p>
+                <div>
+                    <Button disabled :title="t('lobby.components.battle.offlineBattleComponent.editLobbyName')"
+                        ><Icon :icon="pencilIcon" class="flex-right" width="24px" height="24px"
+                    /></Button>
+                </div>
+            </div>
+        </div>
         <div class="main-content">
             <div class="player-list">
                 <Playerlist />
@@ -32,16 +50,23 @@ SPDX-License-Identifier: MIT
                         :modelValue="battleStore.battleOptions.map"
                         :options="mapListOptions"
                         data-key="springName"
-                        label="Map"
+                        :label="t('lobby.views.watch.replays.map')"
                         optionLabel="springName"
                         :filter="true"
                         class="fullwidth"
                         @update:model-value="onMapSelected"
+                        :disabled="online"
                     />
-                    <Button v-tooltip.left="'Open map selector'" @click="openMapList">
+                    <Button
+                        v-tooltip.left="t('lobby.components.battle.mapOptionsModal.openMapSelector')"
+                        @click="online ? null : openMapList()"
+                    >
                         <Icon :icon="listIcon" height="23" />
                     </Button>
-                    <Button v-tooltip.left="'Configure map options'" @click="openMapOptions">
+                    <Button
+                        v-tooltip.left="t('lobby.components.battle.mapOptionsModal.mapOptionsTitle')"
+                        @click="online ? null : openMapOptions()"
+                    >
                         <Icon :icon="cogIcon" height="23" />
                     </Button>
                     <MapListModal
@@ -58,10 +83,11 @@ SPDX-License-Identifier: MIT
                         :options="gameListOptions"
                         optionLabel="gameVersion"
                         optionValue="gameVersion"
-                        label="Game"
+                        :label="t('lobby.components.battle.offlineBattleComponent.gameVersion')"
                         :filter="true"
                         :placeholder="battleStore.battleOptions.gameVersion"
                         @update:model-value="onGameSelected"
+                        :disabled="online"
                     />
                 </div>
                 <div v-if="settingsStore.devMode">
@@ -71,22 +97,30 @@ SPDX-License-Identifier: MIT
                         :options="enginesStore.availableEngineVersions"
                         data-key="id"
                         optionLabel="id"
-                        label="Engine"
+                        :label="t('lobby.components.battle.offlineBattleComponent.engineVersion')"
                         :filter="true"
                         class="fullwidth"
+                        :disabled="online"
                     />
                 </div>
                 <div class="flex-row flex-bottom gap-md flex-grow">
                     <div class="fullwidth" v-if="map">
-                        <Button v-if="gameStore.status === GameStatus.LOADING" class="fullwidth grey flex-grow" disabled
-                            >Game is starting...</Button
+                        <Button v-if="gameStore.status === GameStatus.LOADING" class="fullwidth grey flex-grow" disabled>{{
+                            t("lobby.views.watch.replays.launching")
+                        }}</Button>
+                        <Button v-else-if="gameStore.status === GameStatus.RUNNING" class="fullwidth grey flex-grow" disabled>{{
+                            t("lobby.views.watch.replays.gameIsRunning")
+                        }}</Button>
+                        <DownloadContentButton
+                            v-else
+                            :map="map"
+                            @click="online ? lobby.requestStartBattle() : battleActions.startBattle()"
+                            >{{ t("lobby.components.battle.offlineBattleComponent.startTheGame") }}</DownloadContentButton
                         >
-                        <Button v-else-if="gameStore.status === GameStatus.RUNNING" class="fullwidth grey flex-grow" disabled
-                            >Game is running</Button
-                        >
-                        <DownloadContentButton v-else :map="map" @click="battleActions.startBattle">Start the game</DownloadContentButton>
                     </div>
-                    <Button v-else class="fullwidth green flex-grow" disabled>Start the game</Button>
+                    <Button v-else class="fullwidth green flex-grow" disabled>{{
+                        t("lobby.components.battle.offlineBattleComponent.startTheGame")
+                    }}</Button>
                 </div>
             </div>
         </div>
@@ -103,11 +137,11 @@ import MapListModal from "@renderer/components/battle/MapListModal.vue";
 import MapOptionsModal from "@renderer/components/battle/MapOptionsModal.vue";
 import { battleActions, battleStore } from "@renderer/store/battle.store";
 import Button from "@renderer/components/controls/Button.vue";
-
-const { t } = useTypedI18n();
 import { db } from "@renderer/store/db";
 import listIcon from "@iconify-icons/mdi/format-list-bulleted";
 import cogIcon from "@iconify-icons/mdi/cog";
+import pencilIcon from "@iconify-icons/mdi/pencil";
+import arrow_back from "@iconify-icons/mdi/arrow-back";
 import { useDexieLiveQuery, useDexieLiveQueryWithDeps } from "@renderer/composables/useDexieLiveQuery";
 import MapBattlePreview from "@renderer/components/maps/MapBattlePreview.vue";
 import { MapData } from "@main/content/maps/map-data";
@@ -119,11 +153,20 @@ import { enginesStore } from "@renderer/store/engine.store";
 import TerrainIcon from "@renderer/components/maps/filters/TerrainIcon.vue";
 import personIcon from "@iconify-icons/mdi/person-multiple";
 import gridIcon from "@iconify-icons/mdi/grid";
+import LeaveConfirmModal from "@renderer/components/battle/LeaveConfirmModal.vue";
+import { lobbyStore, lobby } from "@renderer/store/lobby.store";
+
+const { t } = useTypedI18n();
 
 const mapListOpen = ref(false);
 const mapOptionsOpen = ref(false);
 const mapListOptions = useDexieLiveQuery(() => db.maps.toArray());
 const gameListOptions = useDexieLiveQuery(() => db.gameVersions.toArray());
+const leaveConfirmModalIsOpen = ref(false);
+
+defineProps<{
+    online: boolean;
+}>();
 
 const map = useDexieLiveQueryWithDeps([() => battleStore.battleOptions.map], () => {
     if (!battleStore.battleOptions.map) return;
@@ -138,7 +181,18 @@ function openMapOptions() {
     mapOptionsOpen.value = true;
 }
 
+function leaveLobby() {
+    leaveConfirmModalIsOpen.value = false;
+    lobby.leaveLobby();
+}
+function cancelLeaveLobby() {
+    leaveConfirmModalIsOpen.value = false;
+}
+
 async function onGameSelected(gameVersion: string) {
+    if (battleStore.isOnline) return; //This should be disabled unless we can change versions later, but just in case we also disable it.
+    //FIXME: why do we have both 'gameStore.selectedGameVersion' as well as 'battleStore.battleOptions.gameVersion'??
+    //It looks like it's because in offline battles we select from available versions?
     gameStore.selectedGameVersion = await db.gameVersions.get(gameVersion);
     battleStore.battleOptions.gameVersion = gameVersion;
 }
@@ -158,8 +212,13 @@ function onMapSelected(map: MapData) {
 }
 
 .title {
-    font-size: 30px;
-    line-height: 1.2;
+    font-size: 24px;
+    line-height: 1.2em;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow-x: hidden;
+    overflow-y: visible;
+    scrollbar-width: none;
 }
 .player-list {
     display: flex;

@@ -11,7 +11,19 @@ SPDX-License-Identifier: MIT
             <div v-if="memberCount > 0" class="member-count">({{ memberCount }} Member{{ memberCount > 1 ? "s" : "" }})</div>
             <Button v-if="showJoin" class="slim black" @click="onJoinClicked()"> Join </Button>
         </div>
-        <div class="participants">
+        <div v-if="battleStore.isOnline" class="participants">
+            <div v-if="queue">
+                <div v-for="member in queueArray" :key="member.id" draggable="false">
+                    <OnlineSpecParticipant :member="member" />
+                </div>
+            </div>
+            <div v-else>
+                <div v-for="member in spectatorArray" :key="member.id" draggable="false">
+                    <OnlineSpecParticipant :member="member" />
+                </div>
+            </div>
+        </div>
+        <div v-else class="participants">
             <div
                 v-for="player in battleWithMetadataStore.spectators"
                 :key="player.id"
@@ -30,21 +42,71 @@ import { computed } from "vue";
 import { useTypedI18n } from "@renderer/i18n";
 
 import SpectatorParticipant from "@renderer/components/battle/SpectatorParticipant.vue";
+import OnlineSpecParticipant from "@renderer/components/battle/OnlineSpecParticipant.vue";
 import Button from "@renderer/components/controls/Button.vue";
-import { battleWithMetadataStore } from "@renderer/store/battle.store";
+import { battleWithMetadataStore, battleStore } from "@renderer/store/battle.store";
 import { Player } from "@main/game/battle/battle-types";
 import { me } from "@renderer/store/me.store";
+import { lobbyStore } from "@renderer/store/lobby.store";
+import { UserId } from "tachyon-protocol/types";
 
 const { t } = useTypedI18n();
 
-const title = t("lobby.components.battle.spectatorsComponent.spectators");
+const props = defineProps<{
+    queue?: boolean;
+}>();
+
+const title = props.queue
+    ? t("lobby.components.battle.spectatorsComponent.queue")
+    : t("lobby.components.battle.spectatorsComponent.spectators");
 
 const showJoin = computed(() => {
     return me.battleRoomState.isSpectator === false;
 });
 
+interface Member {
+    type: "player" | "spec";
+    id: UserId;
+    joinQueuePostion?: number;
+}
+
+const spectatorArray = computed(() => {
+    const arr: Member[] = [];
+    if (!lobbyStore.activeLobby) return arr;
+    for (const memberKey in lobbyStore.activeLobby.members) {
+        const member = lobbyStore.activeLobby.members[memberKey];
+        // Collect spectators without a queue position
+        if (member.type == "spec" && !member.joinQueuePosition) {
+            arr.push(member);
+        }
+    }
+    return arr;
+});
+
+// We already have a sorted array of UserIds, so we just make an array of the actual member data.
+const queueArray = computed(() => {
+    const arr: Member[] = [];
+    if (!lobbyStore.activeLobby) return arr;
+    if (!lobbyStore.activeLobby.playerQueue || lobbyStore.activeLobby.playerQueue.length == 0) return arr;
+    for (const userId of lobbyStore.activeLobby.playerQueue) {
+        arr.push(lobbyStore.activeLobby.members[userId]);
+    }
+    return arr;
+});
+
 const memberCount = computed(() => {
-    return battleWithMetadataStore.spectators.length;
+    if (battleStore.isOnline) {
+        if (props.queue) {
+            if (!lobbyStore.activeLobby?.playerQueue) return 0;
+            return lobbyStore.activeLobby.playerQueue.length;
+        } else {
+            if (!lobbyStore.activeLobby?.spectatorCount) return 0;
+            if (!lobbyStore.activeLobby.playerQueue) return lobbyStore.activeLobby.spectatorCount;
+            return (
+                lobbyStore.activeLobby.spectatorCount - (lobbyStore.activeLobby.playerQueue ? lobbyStore.activeLobby.playerQueue.length : 0)
+            );
+        }
+    } else return battleWithMetadataStore.spectators.length;
 });
 
 const emit = defineEmits(["onJoinClicked", "onDragStart", "onDragEnd", "onDragEnter", "onDrop"]);

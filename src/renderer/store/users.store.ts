@@ -11,6 +11,10 @@ export const usersStore = reactive<{
     isInitialized: false,
 });
 
+export async function getUserByID(id: string) {
+    return await db.users.get(id);
+}
+
 export function initUsersStore() {
     if (usersStore.isInitialized) return;
 

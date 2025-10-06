@@ -20,23 +20,31 @@ SPDX-License-Identifier: MIT
         <div class="group-header flex-row flex-center-items gap-md">
             <div class="title">{{ title }}</div>
             <div class="member-count" v-if="!isRaptorTeam(teamId) && !isScavengerTeam(teamId)">
-                ({{ memberCount }}/{{ maxPlayersPerTeam }} players)
+                <div v-if="!battleStore.isOnline">({{ memberCount }}/{{ maxPlayersPerTeam }} players)</div>
+                <div v-else>({{ memberCount }}/{{ maxMembersPerAllyTeam }} players)</div>
             </div>
             <Button class="slim black" @click="addBotClicked(teamId)" v-if="!isRaptorTeam(teamId) && !isScavengerTeam(teamId)">
                 {{ t("lobby.components.battle.teamComponent.addBot") }}
             </Button>
             <!-- <Button v-if="showJoin" class="slim black" @click="onJoinClicked(teamId)">Join</Button> -->
         </div>
-        <div
-            v-for="member in battleWithMetadataStore.teams[teamId].participants"
-            :key="member.id"
-            :draggable="!isRaptorTeam(teamId) && !isScavengerTeam(teamId)"
-            @dragstart="onDragStart($event, member)"
-            @dragend="onDragEnd()"
-            class="participant"
-        >
-            <PlayerParticipant v-if="isPlayer(member)" :player="member" />
-            <BotParticipant v-else-if="isBot(member)" :bot="member" :team-id="teamId" />
+        <div v-if="battleStore.isOnline">
+            <div v-for="(member, key) in allyMembers" :key="key" class="participant">
+                <LobbyParticipant :player="member as Member" />
+            </div>
+        </div>
+        <div v-else>
+            <div
+                v-for="member in battleWithMetadataStore.teams[teamId].participants"
+                :key="member.id"
+                :draggable="!isRaptorTeam(teamId) && !isScavengerTeam(teamId)"
+                @dragstart="onDragStart($event, member)"
+                @dragend="onDragEnd()"
+                class="participant"
+            >
+                <PlayerParticipant v-if="isPlayer(member)" :player="member" />
+                <BotParticipant v-else-if="isBot(member)" :bot="member" :team-id="teamId" />
+            </div>
         </div>
         <div v-if="!isRaptorTeam(teamId) && !isScavengerTeam(teamId)">
             <div v-for="(_, i) in getAmountOfJoinButtons(maxPlayersPerTeam, memberCount)" :key="i">
@@ -54,37 +62,88 @@ import BotParticipant from "@renderer/components/battle/BotParticipant.vue";
 import PlayerParticipant from "@renderer/components/battle/PlayerParticipant.vue";
 import Button from "@renderer/components/controls/Button.vue";
 import { Bot, isBot, isPlayer, isRaptor, isScavenger, Player } from "@main/game/battle/battle-types";
-import { battleActions, battleWithMetadataStore } from "@renderer/store/battle.store";
+import { battleActions, battleStore, battleWithMetadataStore } from "@renderer/store/battle.store";
+import { lobbyStore } from "@renderer/store/lobby.store";
+import { UserId } from "tachyon-protocol/types";
+import LobbyParticipant from "@renderer/components/battle/LobbyParticipant.vue";
 
 const { t } = useTypedI18n();
 
 const props = defineProps<{
     teamId: number;
+    teamKey: string;
 }>();
 
 const title = computed(() =>
     isScavengerTeam(props.teamId) ? "Scavengers" : isRaptorTeam(props.teamId) ? "Raptors" : "Team " + (Number(props.teamId) + 1)
 );
 
-const memberCount = computed(() => {
-    return battleWithMetadataStore.teams[props.teamId]?.participants.length || 0;
+const allyMembers = computed(() => {
+    let arr: Member[] = [];
+    if (battleStore.isOnline && lobbyStore.activeLobby?.allyTeams) {
+        if (lobbyStore.activeLobby.members) {
+            for (const memberKey in lobbyStore.activeLobby.members) {
+                const member = lobbyStore.activeLobby.members[memberKey];
+                if (member.type == "player" && member.allyTeam == props.teamKey) arr.push(member as Member);
+            }
+            return arr;
+        }
+    }
+    return arr;
 });
 
+const memberCount = computed(() => {
+    if (battleStore.isOnline && lobbyStore.activeLobby?.allyTeams) {
+        if (lobbyStore.activeLobby.members) {
+            let count = 0;
+            for (const memberKey in lobbyStore.activeLobby.members) {
+                const member = lobbyStore.activeLobby.members[memberKey];
+                if (member.type == "player" && member.allyTeam == props.teamKey) count++;
+            }
+            return count;
+        } else return 0;
+    } else {
+        return battleWithMetadataStore.teams[props.teamId].participants.length || 0;
+    }
+});
+
+const maxMembersPerAllyTeam = computed(() => {
+    if (battleStore.isOnline && lobbyStore.activeLobby?.allyTeams) {
+        // Server always gives us team "000" as the first one, and the players per team is currently always the same
+        return lobbyStore.activeLobby.allyTeams[props.teamKey].maxTeams;
+    } else return 1;
+});
+
+// For online battles, this is technically maxTeamsPerAllyTeam, but there's only 1 player per Team anyway.
 const maxPlayersPerTeam = computed(() => {
+    if (battleStore.isOnline && lobbyStore.activeLobby?.allyTeams) {
+        return lobbyStore.activeLobby.allyTeams[props.teamKey].maxTeams;
+    }
     if (!battleWithMetadataStore.battleOptions.map) return 1;
     return battleActions.getMaxPlayersPerTeam();
 });
 
+// This is not defined in the protocol as type/interface, but it's consistent for type "player" so we are just going to define it ourselves.
+interface Member {
+    type: string;
+    id: UserId;
+    allyTeam: string;
+    team: string;
+    player: string;
+}
+
 function isRaptorTeam(teamId: number) {
+    //FIXME: later this will be needed again
+    if (battleStore.isOnline) return false;
     return battleWithMetadataStore.teams[teamId].participants.some((member) => isBot(member) && isRaptor(member));
 }
 function isScavengerTeam(teamId: number) {
+    if (battleStore.isOnline) return false;
     return battleWithMetadataStore.teams[teamId]?.participants.some((member) => isBot(member) && isScavenger(member));
 }
 
 function getAmountOfJoinButtons(maxPlayersPerTeam: number | undefined, memberCount: number) {
     if (!maxPlayersPerTeam) return 1;
-
     // notice that we can have more members than the max players so that it can be negative
     const amount = maxPlayersPerTeam - memberCount;
 
