@@ -132,6 +132,14 @@ async function processFriendData(userData: PrivateUser) {
     }
 }
 
+// We should keep track of all desired subscriptions and return there here.
+// Anywhere else in the client that we need to know what users we are actively subbed to, we get from here.
+// This excludes temporary subscriptions from party, matchmaking, or lobbies. Those will be internally tracked
+// by their own store, and the should check against this list before un-subbing from any user.
+export function getAllUserSubscriptions() {
+    return Array.from(toRaw(me.friendUserIds).union(me.outgoingFriendRequestUserIds).union(me.incomingFriendRequestUserIds));
+}
+
 window.tachyon.onEvent("friend/requestReceived", async (event) => {
     me.incomingFriendRequestUserIds.add(event.from);
     await subscribeToUsers([event.from]);

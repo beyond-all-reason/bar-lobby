@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: MIT
 
-import { me } from "@renderer/store/me.store";
+import { me, getAllUserSubscriptions } from "@renderer/store/me.store";
 import {
     LobbyCreateOkResponseData,
     LobbyCreateRequestData,
@@ -310,15 +310,15 @@ async function onLobbyUpdatedEvent(data: LobbyUpdatedEventData) {
     }
     lobbyStore.activeLobby.playerCount = playerCount;
     lobbyStore.activeLobby.spectatorCount = spectatorCount;
-    // We need to sub to new members, but if members go away we unsub instead. Ugh we need to maintain a list and diff it also lol
     if (data.members) {
         const userSubList: UserId[] = [];
         const userUnsubList: UserId[] = [];
+        const keepList = getAllUserSubscriptions();
         for (const memberKey in data.members) {
             const member = data.members[memberKey];
             if (member != null) {
                 userSubList.push(member.id);
-            } else {
+            } else if (!keepList.includes(memberKey)) {
                 userUnsubList.push(memberKey);
             }
         }
@@ -363,12 +363,16 @@ function onLobbyLeftEvent(data: LobbyLeftEventData) {
 
 async function clearUserSubscriptions() {
     const userUnsubList: UserId[] = [];
+    const keepList = getAllUserSubscriptions();
     if (lobbyStore.activeLobby?.members) {
         for (const memberKey in lobbyStore.activeLobby.members) {
-            if (lobbyStore.activeLobby.members[memberKey].id != me.userId)
-                // Skip unsubbing from ourselves.
-                // TODO: avoid unsubbing from anyone we have subscribe to elsewhere (party, friends?)
-                userUnsubList.push(lobbyStore.activeLobby.members[memberKey].id);
+            // Skip unsubbing from ourselves.
+            if (lobbyStore.activeLobby.members[memberKey].id != me.userId) {
+                // Skip any users that are subscribed from the me.store
+                if (!keepList.includes(memberKey)) {
+                    userUnsubList.push(lobbyStore.activeLobby.members[memberKey].id);
+                }
+            }
         }
         if (userUnsubList.length > 0) {
             try {
