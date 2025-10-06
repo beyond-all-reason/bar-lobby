@@ -16,14 +16,27 @@ export function initUsersStore() {
 
     window.tachyon.onEvent("user/updated", (event) => {
         console.debug(`Received user/updated event: ${JSON.stringify(event)}`);
-        event.users.forEach((user) => {
+        event.users.forEach(async (user) => {
             if (!user.userId) {
                 console.warn("Received user/updated event with no userId, skipping update.");
                 return;
             }
-            db.users.update(user.userId, {
-                ...user,
-            });
+            const updated = await db.users.update(user.userId, { ...user });
+
+            if (updated === 0) {
+                // No records updated, so user doesn't exist - create new user
+                db.users.add({
+                    userId: user.userId,
+                    username: "Unknown User",
+                    displayName: "Unknown User",
+                    clanId: null,
+                    partyId: null,
+                    countryCode: "??",
+                    status: "offline",
+                    battleRoomState: {},
+                    ...user, // Override defaults with actual data
+                });
+            }
         });
     });
 

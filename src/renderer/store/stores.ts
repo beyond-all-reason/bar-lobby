@@ -22,12 +22,6 @@ export async function initPreMountStores() {
         initGameStore(),
         initDownloadsStore(),
         initEnginesStore(),
-        initTachyonStore().then(() => {
-            initializeMatchmakingStore();
-            initLobbyStore();
-            initLobbyListStore();
-        }),
-        initUsersStore(),
-        initMeStore(),
+        initTachyonStore().then(() => Promise.all([initializeMatchmakingStore(), initUsersStore(), initMeStore(), initLobbyStore(), initLobbyListStore()])),
     ]);
 }

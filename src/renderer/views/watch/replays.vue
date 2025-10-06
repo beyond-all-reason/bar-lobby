@@ -19,7 +19,10 @@ SPDX-License-Identifier: MIT
                     <Panel>
                         <div class="flex-col fullheight gap-md">
                             <div class="flex-row gap-md fullwidth">
-                                <TriStateCheckbox v-model="endedNormally" :label="t('lobby.views.watch.replays.endedNormally')" />
+                                <TriStateCheckbox
+                                    v-model="settingsStore.endedNormallyFilter"
+                                    :label="t('lobby.views.watch.replays.endedNormally')"
+                                />
                                 <Checkbox v-model="showSpoilers" :label="t('lobby.views.watch.replays.showSpoilers')" />
                                 <div class="flex-grow">
                                     <SearchBox v-model="fulltextSearch" :placeholder="t('lobby.views.watch.replays.searchPlaceholder')" />
@@ -158,10 +161,10 @@ import { MapDownloadData } from "@main/content/maps/map-data";
 import { Icon } from "@iconify/vue";
 import folder from "@iconify-icons/mdi/folder";
 import SearchBox from "@renderer/components/controls/SearchBox.vue";
+import { settingsStore } from "@renderer/store/settings.store";
 
 const { t } = useTypedI18n();
 
-const endedNormally: Ref<boolean | null> = ref(true);
 const showSpoilers = ref(true);
 const offset = ref(0);
 const limit = ref(15);
@@ -200,26 +203,31 @@ function fulltextSearchFilter(replay: Replay) {
     });
 }
 
-function endedNormallyFilter(replay: Replay, expected: boolean | null) {
-    if (expected === null) return true;
-    return replay.gameEndedNormally === (expected ? 1 : 0);
+function endedNormallyFilter(replay: Replay, expected: "true" | "false" | "null") {
+    if (expected === "null") return true;
+    if (expected === "true" && replay.gameEndedNormally === 1) return true;
+    if (expected === "false" && replay.gameEndedNormally === 0) return true;
+    return false;
 }
 
-const replays = useDexieLiveQueryWithDeps([endedNormally, offset, limit, sortField, sortOrder, fulltextSearch], () => {
-    const allReplaysBySortField =
-        sortOrder.value === "asc" ? db.replays.orderBy(sortField.value) : db.replays.orderBy(sortField.value).reverse();
+const replays = useDexieLiveQueryWithDeps(
+    [() => settingsStore.endedNormallyFilter, offset, limit, sortField, sortOrder, fulltextSearch],
+    () => {
+        const allReplaysBySortField =
+            sortOrder.value === "asc" ? db.replays.orderBy(sortField.value) : db.replays.orderBy(sortField.value).reverse();
 
-    return allReplaysBySortField
-        .filter((replay: Replay) => endedNormallyFilter(replay, endedNormally.value))
-        .filter(fulltextSearchFilter)
-        .offset(offset.value)
-        .limit(limit.value)
-        .toArray();
-});
+        return allReplaysBySortField
+            .filter((replay: Replay) => endedNormallyFilter(replay, settingsStore.endedNormallyFilter))
+            .filter(fulltextSearchFilter)
+            .offset(offset.value)
+            .limit(limit.value)
+            .toArray();
+    }
+);
 
-const replaysCount = useDexieLiveQueryWithDeps([endedNormally, fulltextSearch], () => {
+const replaysCount = useDexieLiveQueryWithDeps([() => settingsStore.endedNormallyFilter, fulltextSearch], () => {
     return db.replays
-        .filter((replay: Replay) => endedNormallyFilter(replay, endedNormally.value))
+        .filter((replay: Replay) => endedNormallyFilter(replay, settingsStore.endedNormallyFilter))
         .filter(fulltextSearchFilter)
         .count();
 });
