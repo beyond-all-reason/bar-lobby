@@ -5,8 +5,8 @@
 import { computed, watch, onUnmounted, ref } from "vue";
 import { lobbyStore, lobbyActions } from "@renderer/store/lobby.store";
 import { enginesStore } from "@renderer/store/engine.store";
-import { gameStore } from "@renderer/store/game.store";
 import { db } from "@renderer/store/db";
+import { useDexieLiveQuery } from "@renderer/composables/useDexieLiveQuery";
 import type { MemberSyncStatus } from "tachyon-protocol/types";
 
 /**
@@ -37,6 +37,9 @@ export function useLobbySync() {
     // Track map installation status reactively
     const mapInstalled = ref<boolean>(false);
 
+    // Get installed game versions reactively
+    const installedGameVersions = useDexieLiveQuery(() => db.gameVersions.toArray());
+
     // Update map status when lobby changes
     watch(
         () => lobbyStore.currentLobby?.mapName,
@@ -62,10 +65,10 @@ export function useLobbySync() {
 
         return {
             map: mapInstalled.value,
-            engine: enginesStore.availableEngineVersions.some((v) => v.id === lobby.engineVersion),
-            game: gameStore.installedGameVersions.some((v) => v.gameVersion === lobby.gameVersion),
+            engine: (enginesStore.availableEngineVersions || []).some((v) => v.id === lobby.engineVersion),
+            game: (installedGameVersions.value || []).some((v) => v.gameVersion === lobby.gameVersion),
             mods: lobby.mods
-                .filter((mod) => {
+                .filter(() => {
                     // Check if mod is installed
                     // TODO: Implement proper mod tracking by gitRef
                     // For now, just return the gitRef for mods we "have"

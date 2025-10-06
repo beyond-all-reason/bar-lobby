@@ -41,22 +41,32 @@ SPDX-License-Identifier: MIT
 
                         <!-- Sync status for players (not AIs) -->
                         <div v-if="member.type === 'player' && member.sync" class="sync-status flex-row gap-xs">
-                            <Icon
-                                :icon="member.sync.map ? checkIcon : closeIcon"
-                                :class="member.sync.map ? 'synced' : 'not-synced'"
-                                title="Map"
-                            />
-                            <Icon
-                                :icon="member.sync.engine ? checkIcon : closeIcon"
-                                :class="member.sync.engine ? 'synced' : 'not-synced'"
-                                title="Engine"
-                            />
-                            <Icon
-                                :icon="member.sync.game ? checkIcon : closeIcon"
-                                :class="member.sync.game ? 'synced' : 'not-synced'"
-                                title="Game"
-                            />
-                            <Icon :icon="getModSyncIcon(member.sync)" :class="getModSyncClass(member.sync)" title="Mods" />
+                            <div class="sync-item" :title="`Map: ${member.sync.map ? 'Synced' : 'Not synced'}`">
+                                <Icon
+                                    :icon="member.sync.map ? checkIcon : closeIcon"
+                                    :class="member.sync.map ? 'synced' : 'not-synced'"
+                                />
+                                <span class="sync-label">Map</span>
+                            </div>
+                            <div class="sync-item" :title="`Engine: ${member.sync.engine ? 'Synced' : 'Not synced'}`">
+                                <Icon
+                                    :icon="member.sync.engine ? checkIcon : closeIcon"
+                                    :class="member.sync.engine ? 'synced' : 'not-synced'"
+                                />
+                                <span class="sync-label">Engine</span>
+                            </div>
+                            <div class="sync-item" :title="`Game: ${member.sync.game ? 'Synced' : 'Not synced'}`">
+                                <Icon
+                                    :icon="member.sync.game ? checkIcon : closeIcon"
+                                    :class="member.sync.game ? 'synced' : 'not-synced'"
+                                />
+                                <span class="sync-label">Game</span>
+                            </div>
+                            <div class="sync-item" :title="getModSyncTooltip(member.sync)">
+                                <Icon :icon="getModSyncIcon(member.sync)" :class="getModSyncClass(member.sync)" />
+                                <span class="sync-label">Mods</span>
+                                <span v-if="member.sync.mods" class="mod-count">({{ member.sync.mods.length }}/{{ (lobbyStore.currentLobby?.mods || []).length }})</span>
+                            </div>
                         </div>
 
                         <!-- Spectator indication -->
@@ -162,6 +172,15 @@ function getModSyncClass(sync: MemberSyncStatus) {
     const hasMods = sync.mods && sync.mods.length === requiredMods.length;
     return hasMods ? "synced" : "not-synced";
 }
+
+function getModSyncTooltip(sync: MemberSyncStatus) {
+    const requiredMods = lobbyStore.currentLobby?.mods || [];
+    if (requiredMods.length === 0) return "No mods required";
+    
+    const hasMods = sync.mods && sync.mods.length === requiredMods.length;
+    if (hasMods) return `Mods: Synced (${sync.mods?.length || 0}/${requiredMods.length})`;
+    return `Mods: Not synced (${sync.mods?.length || 0}/${requiredMods.length})`;
+}
 </script>
 
 <style lang="scss" scoped>
@@ -252,19 +271,42 @@ function getModSyncClass(sync: MemberSyncStatus) {
 }
 
 .sync-status {
+    display: flex;
     align-items: center;
+    gap: 12px;
+}
 
-    :deep(svg) {
-        width: 18px;
-        height: 18px;
+.sync-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 8px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 4px;
+    font-size: 0.8em;
+}
 
-        &.synced {
-            color: var(--color-success);
-        }
+.sync-label {
+    font-size: 0.75em;
+    color: var(--color-text-secondary);
+}
 
-        &.not-synced {
-            color: var(--color-error);
-        }
+.mod-count {
+    font-size: 0.7em;
+    color: var(--color-text-secondary);
+    margin-left: 2px;
+}
+
+:deep(svg) {
+    width: 16px;
+    height: 16px;
+
+    &.synced {
+        color: var(--color-success);
+    }
+
+    &.not-synced {
+        color: var(--color-error);
     }
 }
 

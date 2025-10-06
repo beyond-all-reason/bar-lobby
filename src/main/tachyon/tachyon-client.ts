@@ -224,7 +224,7 @@ export class TachyonClient {
 function validateCommand(command: TachyonCommand) {
     const commandId = command.commandId;
     const validatorId = `${commandId}/${command.type}`.replaceAll("/", "_") as Exclude<keyof typeof validators, "validator">;
-    const validator = validators[validatorId];
+    const validator = (validators as any)[validatorId];
     if (!validator) {
         throw new Error(`No validator found with id: ${validatorId}`);
     }
