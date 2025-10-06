@@ -5,12 +5,12 @@ SPDX-License-Identifier: MIT
 -->
 
 <template>
-    <div class="lobby-drawer" :class="{ 'is-open': battleStore.isLobbyOpened }">
+    <div class="lobby-drawer" :class="{ 'is-open': battleStore.isLobbyOpened && tachyonStore.isConnected }">
         <Panel class="panel" no-padding>
             <BattleComponent :online="battleStore.isOnline" />
         </Panel>
     </div>
-    <div class="backdrop" @click="battleStore.isLobbyOpened = false" v-if="battleStore.isLobbyOpened"></div>
+    <div class="backdrop" @click="battleStore.isLobbyOpened = false" v-if="battleStore.isLobbyOpened && tachyonStore.isConnected"></div>
 </template>
 
 <script lang="ts" setup>
@@ -18,6 +18,7 @@ import BattleComponent from "@renderer/components/battle/BattleComponent.vue";
 import Panel from "@renderer/components/common/Panel.vue";
 import { battleStore } from "@renderer/store/battle.store";
 import { onKeyDown } from "@vueuse/core";
+import { tachyonStore } from "@renderer/store/tachyon.store";
 
 onKeyDown(
     "Escape",

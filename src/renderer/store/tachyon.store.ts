@@ -8,6 +8,9 @@ import { auth, me } from "@renderer/store/me.store";
 import { SystemServerStatsOkResponseData } from "tachyon-protocol/types";
 import { reactive } from "vue";
 import { fetchAvailableQueues } from "@renderer/store/matchmaking.store";
+import { notificationsApi } from "@renderer/api/notifications";
+import { router } from "@renderer/router";
+import { battleStore } from "@renderer/store/battle.store";
 
 export const tachyonStore = reactive({
     isInitialized: false,
@@ -24,7 +27,19 @@ export const tachyonStore = reactive({
 });
 
 async function connect() {
-    if (!me.isAuthenticated) throw new Error("Not authenticated");
+    if (!me.isAuthenticated) {
+        //throw new Error("Not authenticated");
+        notificationsApi.alert({
+            text: "Tachyon: not authenticated",
+            severity: "info",
+        });
+        // Eject the user from any online-only views
+        if (router.currentRoute.value.meta.onlineOnly) {
+            router.push("/");
+            battleStore.isLobbyOpened = false;
+        }
+        return;
+    }
     try {
         await window.tachyon.connect();
         tachyonStore.error = undefined;
@@ -32,11 +47,22 @@ async function connect() {
         console.error("Failed to connect to Tachyon server", err);
         tachyonStore.error = "Error";
         auth.logout();
+        // Eject the user from any online-only views
+        if (router.currentRoute.value.meta.onlineOnly) {
+            router.push("/");
+            battleStore.isLobbyOpened = false;
+        }
+        notificationsApi.alert({
+            text: "Tachyon: failed to connect",
+            severity: "info",
+        });
+        /*
         if (err instanceof Error) {
             throw new Error(err.message);
         } else {
             throw new Error(String(err));
         }
+			*/
     }
 }
 
@@ -94,8 +120,6 @@ export async function initTachyonStore() {
         if (me.isAuthenticated) {
             // Try to connect to Tachyon server periodically
             tachyonStore.reconnectInterval = setInterval(connect, 10000);
-            // We also want to clear the lobby list, etc
-            //lobby.clearLobbyAndListInfo();
         }
     });
 
