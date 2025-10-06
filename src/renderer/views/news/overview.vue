@@ -11,6 +11,7 @@ SPDX-License-Identifier: MIT
 <template>
     <div class="view">
         <div class="overview-container">
+            <LeaveConfirmModal v-model="leaveConfirmModalIsOpen" @cancel-leave="cancelLeaveLobby" @confirm-leave="leaveLobby" />
             <div class="columns">
                 <div class="left-column">
                     <Suspense>
@@ -23,7 +24,7 @@ SPDX-License-Identifier: MIT
                     <div class="new-lobby-alpha">{{ t("lobby.overview.newLobbyAlpha") }}</div>
                     <div class="new-lobby-subtext txt-multiline">{{ t("lobby.overview.newLobbySubtext") }}</div>
                     <div class="button-container">
-                        <button class="quick-play-button" @click="battleStore.isSelectingGameMode = true">
+                        <button class="quick-play-button" @click="requestSelectorOpen">
                             {{ t("lobby.buttons.quickPlay") }}
                         </button>
                     </div>
@@ -46,6 +47,9 @@ import NewsFeed from "@renderer/components/misc/NewsFeed.vue";
 import { useTypedI18n } from "@renderer/i18n";
 import { battleStore } from "@renderer/store/battle.store";
 import { watch } from "vue";
+import LeaveConfirmModal from "@renderer/components/battle/LeaveConfirmModal.vue";
+import { lobby, lobbyStore } from "@renderer/store/lobby.store";
+import { ref } from "vue";
 
 const { t } = useTypedI18n();
 
@@ -55,6 +59,23 @@ watch(
         battleStore.isLobbyOpened = !newValue;
     }
 );
+
+const leaveConfirmModalIsOpen = ref<boolean>(false);
+
+function leaveLobby() {
+    leaveConfirmModalIsOpen.value = false;
+    lobby.leaveLobby();
+}
+function cancelLeaveLobby() {
+    leaveConfirmModalIsOpen.value = false;
+}
+function requestSelectorOpen() {
+    if (battleStore.isOnline && lobbyStore.activeLobby) {
+        leaveConfirmModalIsOpen.value = true;
+    } else {
+        battleStore.isSelectingGameMode = true;
+    }
+}
 </script>
 
 <style lang="scss" scoped>
