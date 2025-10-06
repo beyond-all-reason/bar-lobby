@@ -59,7 +59,6 @@ export class GameAPI {
     }
 
     public async launchScript({ engineVersion, gameVersion, script }: ScriptLaunchSettings) {
-        log.debug(`Launching game with script: ${script}`);
         const scriptGameVersion = script.match(/gametype\s*=\s*(.*);/)?.[1];
         const mapSpringName = script.match(/mapname\s*=\s*(.*);/)?.[1];
         if (!mapSpringName) {
@@ -92,7 +91,6 @@ export class GameAPI {
         const enginePath = path.join(ENGINE_PATH, engineVersion).replaceAll("\\", "/");
         const args = ["--write-dir", WRITE_DATA_PATH, "--isolation", launchArg];
         const binaryName = process.platform === "win32" ? "spring.exe" : "./spring";
-        log.debug(`Running binary: ${path.join(enginePath, binaryName)}, args: ${args}`);
 
         return new Promise<void>((resolve, reject) => {
             try {
