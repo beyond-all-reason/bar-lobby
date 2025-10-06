@@ -110,7 +110,7 @@ async function processFriendData(userData: PrivateUser) {
         me.incomingFriendRequestUserIds = new Set(userData.incomingFriendRequest.map((r) => r.from));
 
         // Get all user IDs to subscribe to
-        const allUserIds = Array.from(me.friendUserIds.union(me.outgoingFriendRequestUserIds).union(me.incomingFriendRequestUserIds));
+        const allUserIds = Array.from(toRaw(me.friendUserIds).union(me.outgoingFriendRequestUserIds).union(me.incomingFriendRequestUserIds));
 
         if (allUserIds.length > 0) {
             await subscribeToUsers(allUserIds);
@@ -215,7 +215,7 @@ export const friends = {
         me.incomingFriendRequestUserIds = new Set(response.data.incomingPendingRequests.map((req) => req.from));
 
         // Get all user IDs to subscribe to
-        const allUserIds = Array.from(me.friendUserIds.union(me.outgoingFriendRequestUserIds).union(me.incomingFriendRequestUserIds));
+        const allUserIds = Array.from(toRaw(me.friendUserIds).union(me.outgoingFriendRequestUserIds).union(me.incomingFriendRequestUserIds));
 
         if (allUserIds.length > 0) {
             await subscribeToUsers(allUserIds);
