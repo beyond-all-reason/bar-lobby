@@ -7,7 +7,7 @@ import { db } from "@renderer/store/db";
 import { reactive, toRaw } from "vue";
 import { tachyonStore } from "@renderer/store/tachyon.store";
 import { PrivateUser, UserId } from "tachyon-protocol/types";
-import { lobby } from "@renderer/store/lobby.store";
+import { notificationsApi } from "@renderer/api/notifications";
 
 export const me = reactive<
     Me & {
@@ -122,10 +122,6 @@ async function processFriendData(userData: PrivateUser) {
     } catch (error) {
         console.error("Failed to process friend data:", error);
     }
-}
-
-export function getAllUserSubscriptions() {
-    return Array.from(toRaw(me.friendUserIds).union(me.outgoingFriendRequestUserIds).union(me.incomingFriendRequestUserIds));
 }
 
 window.tachyon.onEvent("friend/requestReceived", async (event) => {
@@ -257,13 +253,13 @@ export async function initMeStore() {
 export enum SubLists {
     OUTGOINGFRIEND,
     INCOMINGFRIEND,
-    CURRENTFRIEND,
-    IGNOREUSER,
-    LOBBYUSER,
-    PARTYUSER,
-    MATCHUSER,
+    FRIEND,
+    LOBBY,
+    PARTY,
+    MATCH,
 }
-export const subscriptions = { attach, detach, getUsersInSubList, getSubListsFromUsers };
+
+const meSets = [me.outgoingFriendRequestUserIds, me.incomingFriendRequestUserIds, me.friendUserIds, me.lobbyUserIds, me.partyUserIds, me.matchmakingUserIds];
 
 /**
  * Attach the UserId(s) to the selected subscription list. A subscription request will be automatically sent to the Tachyon server if required.
@@ -273,10 +269,29 @@ export const subscriptions = { attach, detach, getUsersInSubList, getSubListsFro
 function attach(users: UserId, list: SubLists): void;
 function attach(users: UserId[], list: SubLists): void;
 function attach(users: UserId | UserId[], list: SubLists): void {
+    const fullList = getAllUsersSubscribed();
+    const newSubs: UserId[] = [];
     if (typeof users === "string") {
-        console.log("Attaching single user to ", list);
+        if (!fullList.includes(users)) {
+            newSubs.push(users);
+        }
+        meSets[list].add(users);
     } else {
-        console.log("Adding multple users to ", list);
+        for (const user in users) {
+            if (!fullList.includes(user)) {
+                newSubs.push(user);
+            }
+            meSets[list].add(user);
+        }
+    }
+    if (newSubs.length > 0) {
+        try {
+            const response = window.tachyon.request("user/subscribeUpdates", { userIds: newSubs });
+            console.log("Tachyon user/subscribeUpdates request", response);
+        } catch (error) {
+            console.error("Tachyon error:", error);
+            notificationsApi.alert({ text: "Tachyon error: user/subscribeUpdates request", severity: "error" });
+        }
     }
 }
 
@@ -287,24 +302,66 @@ function attach(users: UserId | UserId[], list: SubLists): void {
  */
 function detach(users: UserId, list: SubLists): void;
 function detach(users: UserId[], list: SubLists): void;
-function detach(users: UserId | UserId[], list: SubLists): void {}
+function detach(users: UserId | UserId[], list: SubLists): void {
+    const oldSubs: UserId[] = [];
+    if (typeof users === "string") {
+        meSets[list].delete(users);
+        if (getSubListsFromUsers(users).length == 0) {
+            oldSubs.push(users);
+        }
+    } else {
+        for (const user in users) {
+            meSets[list].delete(user);
+            if (getSubListsFromUsers(user).length == 0) {
+                oldSubs.push(user);
+            }
+        }
+    }
+    if (oldSubs.length > 0) {
+        try {
+            const response = window.tachyon.request("user/unsubscribeUpdates", { userIds: oldSubs });
+            console.log("Tachyon user/unsubscribeUpdates request", response);
+        } catch (error) {
+            console.error("Tachyon error:", error);
+            notificationsApi.alert({ text: "Tachyon error: user/unsubscribeUpdates request", severity: "error" });
+        }
+    }
+}
 
 /**
  * Provides all UserId(s) currently part of the subscription list.
  * @param list Enum indicating which subscription list to get the UserIds for.
  * @returns An Array of UserId, or an empty Array if the list has none.
  */
-function getUsersInSubList(list: SubLists): UserId[] {}
+function getUsersInSubList(list: SubLists): UserId[] {
+    return Array.from(toRaw(meSets[list]));
+}
 
 /**
  * Provides all Sublists the identified UserId(s) are currently attached to.
  * @param users UserId, or Array of UserId
- * @returns An Array of Enums, or an empty Array if the UserId(s) are in none of the lists.
+ * @returns An Array of ints, or an empty Array if the UserId(s) are in none of the lists.
  */
 function getSubListsFromUsers(users: UserId): SubLists[];
 function getSubListsFromUsers(users: UserId[]): SubLists[];
-function getSubListsFromUsers(users: UserId | UserId[]): SubLists[] {}
-
-if (getSubListsFromUsers("123").includes(SubLists.CURRENTFRIEND)) {
-    console.log("User 123 is a friend.");
+function getSubListsFromUsers(users: UserId | UserId[]): SubLists[] {
+    const arr: SubLists[] = [];
+    if (typeof users === "string") {
+        for (let i = 0; i < meSets.length; i++) {
+            if (meSets[i].has(users)) arr.push(i);
+        }
+    } else {
+        for (const user in users) {
+            for (let i = 0; i < meSets.length; i++) {
+                if (meSets[i].has(user)) arr.push(i);
+            }
+        }
+    }
+    return arr;
 }
+
+function getAllUsersSubscribed() {
+    return Array.from(toRaw(me.friendUserIds).union(me.outgoingFriendRequestUserIds).union(me.incomingFriendRequestUserIds).union(me.lobbyUserIds).union(me.partyUserIds).union(me.matchmakingUserIds));
+}
+
+export const subscriptions = { attach, detach, getUsersInSubList, getSubListsFromUsers, getAllUsersSubscribed };
