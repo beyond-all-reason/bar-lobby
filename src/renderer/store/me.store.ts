@@ -6,7 +6,8 @@ import { Me } from "@main/model/user";
 import { db } from "@renderer/store/db";
 import { reactive, toRaw } from "vue";
 import { tachyonStore } from "@renderer/store/tachyon.store";
-import { PrivateUser } from "tachyon-protocol/types";
+import { PrivateUser, UserId } from "tachyon-protocol/types";
+import { lobby } from "@renderer/store/lobby.store";
 
 export const me = reactive<
     Me & {
@@ -28,6 +29,9 @@ export const me = reactive<
     incomingFriendRequestUserIds: new Set<string>(),
     friendUserIds: new Set<string>(),
     ignoreUserIds: new Set<string>(),
+    lobbyUserIds: new Set<string>(),
+    partyUserIds: new Set<string>(),
+    matchmakingUserIds: new Set<string>(),
     permissions: new Set<string>(),
 });
 
@@ -118,6 +122,10 @@ async function processFriendData(userData: PrivateUser) {
     } catch (error) {
         console.error("Failed to process friend data:", error);
     }
+}
+
+export function getAllUserSubscriptions() {
+    return Array.from(toRaw(me.friendUserIds).union(me.outgoingFriendRequestUserIds).union(me.incomingFriendRequestUserIds));
 }
 
 window.tachyon.onEvent("friend/requestReceived", async (event) => {
@@ -244,4 +252,59 @@ export async function initMeStore() {
     }
 
     me.isInitialized = true;
+}
+
+export enum SubLists {
+    OUTGOINGFRIEND,
+    INCOMINGFRIEND,
+    CURRENTFRIEND,
+    IGNOREUSER,
+    LOBBYUSER,
+    PARTYUSER,
+    MATCHUSER,
+}
+export const subscriptions = { attach, detach, getUsersInSubList, getSubListsFromUsers };
+
+/**
+ * Attach the UserId(s) to the selected subscription list. A subscription request will be automatically sent to the Tachyon server if required.
+ * @param users UserId, or Array of UserId, that will be attached
+ * @param list SubLists Enum indicating which subscription list to attach them to.
+ */
+function attach(users: UserId, list: SubLists): void;
+function attach(users: UserId[], list: SubLists): void;
+function attach(users: UserId | UserId[], list: SubLists): void {
+    if (typeof users === "string") {
+        console.log("Attaching single user to ", list);
+    } else {
+        console.log("Adding multple users to ", list);
+    }
+}
+
+/**
+ * Detach the UserId(s) from the selected subscription list. An unsubscribe request will be automatically sent to the Tachyon Server if required.
+ * @param users UserId, or Array of UserId, that will be detached
+ * @param list SubLists Enum indicating which subscription list to detach them from
+ */
+function detach(users: UserId, list: SubLists): void;
+function detach(users: UserId[], list: SubLists): void;
+function detach(users: UserId | UserId[], list: SubLists): void {}
+
+/**
+ * Provides all UserId(s) currently part of the subscription list.
+ * @param list Enum indicating which subscription list to get the UserIds for.
+ * @returns An Array of UserId, or an empty Array if the list has none.
+ */
+function getUsersInSubList(list: SubLists): UserId[] {}
+
+/**
+ * Provides all Sublists the identified UserId(s) are currently attached to.
+ * @param users UserId, or Array of UserId
+ * @returns An Array of Enums, or an empty Array if the UserId(s) are in none of the lists.
+ */
+function getSubListsFromUsers(users: UserId): SubLists[];
+function getSubListsFromUsers(users: UserId[]): SubLists[];
+function getSubListsFromUsers(users: UserId | UserId[]): SubLists[] {}
+
+if (getSubListsFromUsers("123").includes(SubLists.CURRENTFRIEND)) {
+    console.log("User 123 is a friend.");
 }
