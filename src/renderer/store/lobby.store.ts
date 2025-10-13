@@ -328,7 +328,7 @@ async function onLobbyUpdatedEvent(data: LobbyUpdatedEventData) {
     const userSubList: UserId[] = [];
     const userUnsubList: UserId[] = [];
     const keepList = getAllUserSubscriptions();
-	//FIXME: this repeatedly subscribes to a lobby member when they move around in the list. We need to finalize the user store changes to do this properly.
+    //FIXME: this repeatedly subscribes to a lobby member when they move around in the list. We need to finalize the user store changes to do this properly.
     if (data.players) {
         for (const memberKey in data.players) {
             const member = data.players[memberKey];

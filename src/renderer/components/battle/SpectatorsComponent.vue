@@ -106,9 +106,7 @@ const memberCount = computed(() => {
         else {
             if (!lobbyStore.activeLobby?.spectatorCount) return 0;
             if (lobbyStore.activeLobby.playerQueue.size == 0) return lobbyStore.activeLobby.spectatorCount;
-            return (
-                lobbyStore.activeLobby.spectatorCount - (lobbyStore.activeLobby.playerQueue.size)
-            );
+            return lobbyStore.activeLobby.spectatorCount - lobbyStore.activeLobby.playerQueue.size;
         }
     } else return battleWithMetadataStore.spectators.length;
 });
