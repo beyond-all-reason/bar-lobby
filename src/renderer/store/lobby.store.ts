@@ -166,6 +166,19 @@ async function spectate() {
     }
 }
 
+// Sorts the playerQueue based on the indices because we cannot assume they will be exclusively positive or consecutive integers
+function sortPlayerQueue(map: Map<number, string>): Map<number, string> {
+    const mapEntries = Array.from(map.entries());
+    mapEntries.sort((a, b) => {
+        const keyA = a[0];
+        const keyB = b[0];
+        if (keyA < keyB) return -1;
+        if (keyA > keyB) return 1;
+        return 0;
+    });
+    return new Map(mapEntries);
+}
+
 // We use this function to normalize both LobbyCreateRequestData and LobbyJoinRequestData into the Lobby type for use in the renderer
 function parseLobbyResponseData(data: LobbyCreateOkResponseData | LobbyJoinOkResponseData) {
     //Do some cleanup in case there's old data in the stores.
@@ -178,7 +191,7 @@ function parseLobbyResponseData(data: LobbyCreateOkResponseData | LobbyJoinOkRes
         playerCount: 0, //Placeholder value; We can count this from the entries below in the team config
         maxPlayerCount: 0, //Placeholder value; Ditto for calculating max players
         spectatorCount: 0,
-        playerQueue: [],
+        playerQueue: new Map(),
         mapName: data.mapName,
         engineVersion: data.engineVersion,
         gameVersion: data.gameVersion,
@@ -210,7 +223,7 @@ function parseLobbyResponseData(data: LobbyCreateOkResponseData | LobbyJoinOkRes
         //Here we assign the startbox for the AllyTeam to the battlestore so they match what we set when the lobby was created.
         battleStore.battleOptions.mapOptions.customStartBoxes.push(allyTeam.startBox);
     }
-
+    // TODO: For playerCount and SpectatorCount we could just set via a length property, but this will remain until we know how AI "players" are listed
     for (const memberKey in data.players) {
         const member = data.players[memberKey];
         lobbyObject.playerCount++;
@@ -221,16 +234,18 @@ function parseLobbyResponseData(data: LobbyCreateOkResponseData | LobbyJoinOkRes
             player: member.player,
         };
     }
+    const tempMap: Map<number, string> = new Map();
     for (const memberKey in data.spectators) {
         const member = data.spectators[memberKey];
         lobbyObject.spectatorCount++;
         lobbyObject.spectators![memberKey] = {
             id: member.id,
         };
-        if (member.joinQueuePosition) {
-            lobbyObject.playerQueue[member.joinQueuePosition] = member.id;
+        if (member.joinQueuePosition != null) {
+            tempMap.set(member.joinQueuePosition, member.id);
         }
     }
+    lobbyObject.playerQueue = new Map(sortPlayerQueue(tempMap));
     return lobbyObject;
 }
 
@@ -300,21 +315,20 @@ async function onLobbyUpdatedEvent(data: LobbyUpdatedEventData) {
     lobbyStore.activeLobby.maxPlayerCount = maxPlayerCount;
     const playerCount: number = Object.keys(lobbyStore.activeLobby?.players).length;
     const spectatorCount: number = Object.keys(lobbyStore.activeLobby?.spectators).length;
-    const arr: string[] = [];
+    const tempMap: Map<number, string> = new Map();
     for (const memberKey in lobbyStore.activeLobby?.spectators) {
         const member = lobbyStore.activeLobby.spectators[memberKey];
-        if (member.joinQueuePosition) {
-            arr[member.joinQueuePosition - 1] = member.id; //server indexes start at 1
+        if (member.joinQueuePosition != null) {
+            tempMap.set(member.joinQueuePosition, member.id);
         }
     }
-    console.log("JoinQueue is:", lobbyStore.activeLobby.playerQueue);
-    lobbyStore.activeLobby.playerQueue = arr.filter(Boolean);
-    console.log("JoinQueue is filtered:", lobbyStore.activeLobby.playerQueue);
+    lobbyStore.activeLobby.playerQueue = new Map(sortPlayerQueue(tempMap));
     lobbyStore.activeLobby.playerCount = playerCount;
     lobbyStore.activeLobby.spectatorCount = spectatorCount;
     const userSubList: UserId[] = [];
     const userUnsubList: UserId[] = [];
     const keepList = getAllUserSubscriptions();
+	//FIXME: this repeatedly subscribes to a lobby member when they move around in the list. We need to finalize the user store changes to do this properly.
     if (data.players) {
         for (const memberKey in data.players) {
             const member = data.players[memberKey];

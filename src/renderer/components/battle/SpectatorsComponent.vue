@@ -86,23 +86,28 @@ const spectatorArray = computed(() => {
 const queueArray = computed(() => {
     const arr: Member[] = [];
     if (!lobbyStore.activeLobby) return arr;
-    if (!lobbyStore.activeLobby.playerQueue || lobbyStore.activeLobby.playerQueue.length == 0) return arr;
-    for (const userId of lobbyStore.activeLobby.playerQueue) {
-        arr.push(lobbyStore.activeLobby.spectators[userId]);
+    if (!lobbyStore.activeLobby.playerQueue) return arr;
+    //for (const userId of lobbyStore.activeLobby.playerQueue) {
+    //    arr.push(lobbyStore.activeLobby.spectators[userId]);
+    //}
+    for (const value of lobbyStore.activeLobby.playerQueue.values()) {
+        arr.push(lobbyStore.activeLobby.spectators[value]);
     }
     return arr;
 });
 
 const memberCount = computed(() => {
     if (battleStore.isOnline) {
+        // We are returning the queued player count here
         if (props.queue) {
-            if (!lobbyStore.activeLobby?.playerQueue) return 0;
-            return lobbyStore.activeLobby.playerQueue.length;
-        } else {
+            return lobbyStore.activeLobby ? lobbyStore.activeLobby.playerQueue.size : 0;
+        }
+        // We are returning the unqueued spectator count here
+        else {
             if (!lobbyStore.activeLobby?.spectatorCount) return 0;
-            if (!lobbyStore.activeLobby.playerQueue) return lobbyStore.activeLobby.spectatorCount;
+            if (lobbyStore.activeLobby.playerQueue.size == 0) return lobbyStore.activeLobby.spectatorCount;
             return (
-                lobbyStore.activeLobby.spectatorCount - (lobbyStore.activeLobby.playerQueue ? lobbyStore.activeLobby.playerQueue.length : 0)
+                lobbyStore.activeLobby.spectatorCount - (lobbyStore.activeLobby.playerQueue.size)
             );
         }
     } else return battleWithMetadataStore.spectators.length;

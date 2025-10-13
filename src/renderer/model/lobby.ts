@@ -13,7 +13,7 @@ export type Lobby = {
     playerCount: number;
     maxPlayerCount: number;
     spectatorCount: number;
-    playerQueue: UserId[];
+    playerQueue: Map<number, string>;
     allyTeams: {
         [k: string]: {
             startBox: StartBox;
