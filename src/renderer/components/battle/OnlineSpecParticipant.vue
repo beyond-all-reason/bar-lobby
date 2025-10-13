@@ -34,12 +34,12 @@ const props = defineProps<{
 }>();
 
 interface Member {
-    type: "player" | "spec";
     id: UserId;
     joinQueuePostion?: number;
 }
 
 const displayName = computedAsync(async () => {
+    if (!props.member || !props.member.id) return ""; //It's possible that the server can send us empty positions!
     // User and number is only shown as a placeholder if we have a delay in getting the user's name
     const name = t("lobby.navbar.messages.userID") + " " + props.member.id;
     if (props.member.id) {

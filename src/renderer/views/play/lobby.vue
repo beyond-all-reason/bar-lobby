@@ -26,7 +26,7 @@ SPDX-License-Identifier: MIT
                         </p>
                     </div>
                     <div class="margin-right-sm padding-top-sm padding-bottom-sm txt-right">
-                        <div v-if="name == 'allyTeams' || name == 'members' || name == 'currentBattle'">
+                        <div v-if="name == 'allyTeams' || name == 'players' || name == 'spectators' || name == 'currentBattle'">
                             <ul>
                                 <div v-for="(i, n, x) in item" :key="x">
                                     <li>{{ n }} - {{ i }}</li>

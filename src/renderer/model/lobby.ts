@@ -25,20 +25,19 @@ export type Lobby = {
             };
         };
     };
-    members: {
-        [k: string]:
-            | {
-                  type: "player";
-                  id: UserId;
-                  allyTeam: string;
-                  team: string;
-                  player: string;
-              }
-            | {
-                  type: "spec";
-                  id: UserId;
-                  joinQueuePosition?: number;
-              };
+    players: {
+        [k: string]: {
+            id: UserId;
+            allyTeam: string;
+            team: string;
+            player: string;
+        };
+    };
+    spectators: {
+        [k: string]: {
+            id: UserId;
+            joinQueuePosition?: number;
+        };
     };
     currentBattle?: {
         startedAt: UnixTime;

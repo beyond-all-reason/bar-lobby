@@ -81,10 +81,10 @@ const title = computed(() =>
 const allyMembers = computed(() => {
     let arr: Member[] = [];
     if (battleStore.isOnline && lobbyStore.activeLobby?.allyTeams) {
-        if (lobbyStore.activeLobby.members) {
-            for (const memberKey in lobbyStore.activeLobby.members) {
-                const member = lobbyStore.activeLobby.members[memberKey];
-                if (member.type == "player" && member.allyTeam == props.teamKey) arr.push(member as Member);
+        if (lobbyStore.activeLobby.players) {
+            for (const memberKey in lobbyStore.activeLobby.players) {
+                const member = lobbyStore.activeLobby.players[memberKey];
+                if (member.allyTeam == props.teamKey) arr.push(member as Member);
             }
             return arr;
         }
@@ -94,11 +94,11 @@ const allyMembers = computed(() => {
 
 const memberCount = computed(() => {
     if (battleStore.isOnline && lobbyStore.activeLobby?.allyTeams) {
-        if (lobbyStore.activeLobby.members) {
+        if (lobbyStore.activeLobby.players) {
             let count = 0;
-            for (const memberKey in lobbyStore.activeLobby.members) {
-                const member = lobbyStore.activeLobby.members[memberKey];
-                if (member.type == "player" && member.allyTeam == props.teamKey) count++;
+            for (const memberKey in lobbyStore.activeLobby.players) {
+                const member = lobbyStore.activeLobby.players[memberKey];
+                if (member.allyTeam == props.teamKey) count++;
             }
             return count;
         } else return 0;
@@ -125,7 +125,6 @@ const maxPlayersPerTeam = computed(() => {
 
 // This is not defined in the protocol as type/interface, but it's consistent for type "player" so we are just going to define it ourselves.
 interface Member {
-    type: string;
     id: UserId;
     allyTeam: string;
     team: string;

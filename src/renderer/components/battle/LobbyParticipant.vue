@@ -49,7 +49,6 @@ const props = defineProps<{
 }>();
 
 interface PlayerThing {
-    type: string;
     id: UserId;
     allyTeam: string;
     team: string;
