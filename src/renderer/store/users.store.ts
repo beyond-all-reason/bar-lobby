@@ -4,16 +4,20 @@
 
 import { db } from "@renderer/store/db";
 import { reactive } from "vue";
+import { UserId } from "tachyon-protocol/types";
+import { SubsManager } from "@renderer/utils/subscriptions-manager";
 
-export const usersStore = reactive<{
+export const usersStore: {
     isInitialized: boolean;
-}>({
+    subsManager?: SubsManager;
+} = reactive({
     isInitialized: false,
+    subscriptions: new Map<UserId, Set<symbol>>(),
 });
 
 export function initUsersStore() {
     if (usersStore.isInitialized) return;
-
+    usersStore.subsManager = new SubsManager();
     window.tachyon.onEvent("user/updated", (event) => {
         console.debug(`Received user/updated event: ${JSON.stringify(event)}`);
         event.users.forEach(async (user) => {
@@ -38,6 +42,12 @@ export function initUsersStore() {
                 });
             }
         });
+    });
+    usersStore.subsManager.onUsersAttached.add((users: UserId[]) => {
+        console.log(users);
+    });
+    usersStore.subsManager.onUsersDetached.add((users: UserId[]) => {
+        console.log(users);
     });
 
     usersStore.isInitialized = true;
