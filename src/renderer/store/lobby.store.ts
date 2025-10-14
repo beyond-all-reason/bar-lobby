@@ -238,7 +238,7 @@ function parseLobbyResponseData(data: LobbyCreateOkResponseData | LobbyJoinOkRes
     for (const memberKey in data.spectators) {
         const member = data.spectators[memberKey];
         lobbyObject.spectatorCount++;
-        lobbyObject.spectators![memberKey] = {
+        lobbyObject.spectators[memberKey] = {
             id: member.id,
         };
         if (member.joinQueuePosition != null) {
@@ -277,6 +277,68 @@ async function requestStartBattle() {
         console.error("Error with request lobby/startBattle", error);
         notificationsApi.alert({
             text: "Error with request lobby/startBattle",
+            severity: "error",
+        });
+    }
+}
+
+//temporary interfaces until the protocol change for this is final
+interface LobbyAddBotRequestData {
+    allyTeam: string;
+    name?: string;
+    shortName: string;
+    version?: string;
+    options?: {
+        [k: string]: string;
+    };
+}
+
+async function requestAddBot(data: LobbyAddBotRequestData) {
+    try {
+        console.log("Unsupported request:", data);
+    } catch (error) {
+        console.error("Error with request lobby/addBot", error);
+        notificationsApi.alert({
+            text: "Error with request lobby/addBot",
+            severity: "error",
+        });
+    }
+}
+
+interface LobbyRemoveBotRequestData {
+    id: string;
+}
+async function requestRemoveBot(data: LobbyRemoveBotRequestData) {
+    try {
+        console.log("Unsupported request:", data);
+    } catch (error) {
+        console.error("Error with request lobby/removeBot", error);
+        notificationsApi.alert({
+            text: "Error with request lobby/removeBot",
+            severity: "error",
+        });
+    }
+}
+
+interface LobbyUpdateBotRequestData {
+    id: string;
+    name?: string;
+    shortName?: string;
+    version?: string | null;
+    options?: {
+        [k: string]: string | null;
+    };
+    customProperties?: {
+        [k: string]: string | null;
+    };
+}
+async function requestUpdateBot(data: LobbyUpdateBotRequestData) {
+    try {
+        console.log("Unsupported request:", data);
+    } catch (error) {
+        console.error("Error with request lobby/updateBot", error);
+        notificationsApi.alert({
+            text: "Error with request lobby/updateBot",
             severity: "error",
         });
     }
@@ -438,4 +500,18 @@ export async function initLobbyStore() {
     lobbyStore.isInitialized = true;
 }
 
-export const lobby = { createLobby, joinLobby, leaveLobby, requestStartBattle, subscribeList, unsubscribeList, clearLobbyAndListInfo, joinAllyTeam, joinQueue, spectate };
+export const lobby = {
+    createLobby,
+    joinLobby,
+    leaveLobby,
+    requestStartBattle,
+    subscribeList,
+    unsubscribeList,
+    clearLobbyAndListInfo,
+    joinAllyTeam,
+    joinQueue,
+    spectate,
+    requestAddBot,
+    requestRemoveBot,
+    requestUpdateBot,
+};
