@@ -7,8 +7,8 @@ SPDX-License-Identifier: MIT
 <template>
     <Control class="checkbox">
         <div class="check-wrapper" @click="onClick">
-            <Icon v-if="modelValue" :icon="checkBold" height="22px" />
-            <Icon v-else-if="modelValue === false" :icon="closeThick" height="22px" />
+            <Icon v-if="modelValue === 'true'" :icon="checkBold" height="22px" />
+            <Icon v-else-if="modelValue === 'false'" :icon="closeThick" height="22px" />
         </div>
     </Control>
 </template>
@@ -20,21 +20,23 @@ import closeThick from "@iconify-icons/mdi/close-thick";
 
 import Control from "@renderer/components/controls/Control.vue";
 
+// Note; due to the triple state of this checkbox, the value is a string of 3 possible choices.
+// If you use this, you may have to convert the string 'false' to a false boolean and `null` to a null value!
 const props = withDefaults(
     defineProps<{
-        modelValue?: boolean | null;
+        modelValue: "true" | "false" | "null";
     }>(),
     {
-        modelValue: null,
+        modelValue: "null",
     }
 );
 
-const emits = defineEmits<{
-    (event: "update:modelValue", checked: boolean | null): void;
+const emit = defineEmits<{
+    (event: "update:modelValue", checked: "true" | "false" | "null"): void;
 }>();
 
 function onClick() {
-    emits("update:modelValue", props.modelValue === true ? false : props.modelValue === false ? null : true);
+    emit("update:modelValue", props.modelValue === "true" ? "false" : props.modelValue === "false" ? "null" : "true");
 }
 </script>
 
