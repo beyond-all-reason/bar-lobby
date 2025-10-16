@@ -55,7 +55,7 @@ export const matchmakingStore = reactive<{
 
 function onQueueUpdateEvent(data: MatchmakingQueueUpdateEventData) {
     console.log("Tachyon event: matchmaking/queueUpdate:", data);
-    matchmakingStore.playersQueued = parseInt(data.playersQueued); //See https://github.com/beyond-all-reason/tachyon/issues/73
+    matchmakingStore.playersQueued = data.playersQueued;
 }
 
 function onLostEvent() {
