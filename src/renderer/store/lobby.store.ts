@@ -229,7 +229,7 @@ function parseLobbyResponseData(data: LobbyCreateOkResponseData | LobbyJoinOkRes
         //Here we assign the startbox for the AllyTeam to the battlestore so they match what we set when the lobby was created.
         battleStore.battleOptions.mapOptions.customStartBoxes.push(allyTeam.startBox);
     }
-    // TODO: For playerCount and SpectatorCount we could just set via a length property, but this will remain until we know how AI "players" are listed
+    // We have to loop through anyway, so playerCount, spectatorCount, and botCount will be calculated by incrementing.
     for (const memberKey in data.players) {
         const member = data.players[memberKey];
         lobbyObject.playerCount++;
