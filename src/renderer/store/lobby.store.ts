@@ -304,7 +304,7 @@ async function requestStartBattle() {
 
 async function requestAddBot(data: LobbyAddBotRequestData) {
     try {
-        const response = window.tachyon.request("lobby/addBot", data);
+        const response = await window.tachyon.request("lobby/addBot", data);
         console.log("Tachyon lobby/addBot", response);
     } catch (error) {
         console.error("Error with request lobby/addBot", error);
@@ -317,7 +317,7 @@ async function requestAddBot(data: LobbyAddBotRequestData) {
 
 async function requestRemoveBot(data: LobbyRemoveBotRequestData) {
     try {
-        const response = window.tachyon.request("lobby/removeBot", data);
+        const response = await window.tachyon.request("lobby/removeBot", data);
         console.log("Tachyon lobby/removeBot:", response);
     } catch (error) {
         console.error("Error with request lobby/removeBot", error);
@@ -330,7 +330,7 @@ async function requestRemoveBot(data: LobbyRemoveBotRequestData) {
 
 async function requestUpdateBot(data: LobbyUpdateBotRequestData) {
     try {
-        const response = window.tachyon.request("lobby/removeBot", data);
+        const response = await window.tachyon.request("lobby/removeBot", data);
         console.log("Tachyon lobby/updateBot:", response);
     } catch (error) {
         console.error("Error with request lobby/updateBot", error);

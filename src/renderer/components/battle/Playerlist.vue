@@ -21,7 +21,7 @@ SPDX-License-Identifier: MIT
                 :key="key"
                 :teamId="index"
                 :teamKey="key as string"
-                @add-bot-clicked="openBotList"
+                @add-bot-clicked="openBotList(key as string)"
                 @on-join-clicked="joinAllyTeam(key as string)"
             />
         </div>
@@ -94,9 +94,9 @@ import { lobbyStore, lobby } from "@renderer/store/lobby.store";
 const { t } = useTypedI18n();
 
 const botListOpen = ref(false);
-const botModalTeamId = ref(0);
+const botModalTeamId = ref<number | string>(0);
 
-function openBotList(teamId: number) {
+function openBotList(teamId: number | string) {
     botModalTeamId.value = teamId;
     botListOpen.value = true;
 }
@@ -105,15 +105,22 @@ const displayQueue = computed(() => {
     if (!battleStore.isOnline) {
         return false;
     }
-    // Once the concept of a queue exists in the lobby, we will only display it if all AllyTeams are full.
-    // Join Queue would replace Join AllyTeam in these cases, since players can't request a specific team in those cases.
-    // TODO: This can now be implemented.
-    return true; //For now we will display the empty queue if online to test the appearance.
+    // We always display the queue when online because the "join queue" button exists there.
+    // Once final lobby appearance is determined, this logic may be different.
+    return true;
 });
 
-function onBotSelected(bot: EngineAI | GameAI, teamId: number) {
-    botListOpen.value = false;
-    battleActions.addBot(bot, teamId);
+function onBotSelected(bot: EngineAI | GameAI, teamId: number | string) {
+    if (typeof teamId == "string") {
+        lobby.requestAddBot({
+            allyTeam: teamId,
+            name: bot.name,
+            shortName: bot.shortName,
+        });
+    } else {
+        botListOpen.value = false;
+        battleActions.addBot(bot, teamId);
+    }
 }
 
 function joinQueue() {

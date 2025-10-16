@@ -46,11 +46,11 @@ const { t } = useTypedI18n();
 const props = defineProps<{
     engineVersion: string;
     gameVersion: string;
-    teamId: number;
+    teamId: number | string;
 }>();
 
 const emit = defineEmits<{
-    (event: "bot-selected", ai: EngineAI | GameAI, teamId: number): void;
+    (event: "bot-selected", ai: EngineAI | GameAI, teamId: number | string): void;
 }>();
 
 function addBot(ai: EngineAI | GameAI) {
