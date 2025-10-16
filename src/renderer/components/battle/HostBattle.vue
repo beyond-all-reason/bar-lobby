@@ -19,7 +19,9 @@ SPDX-License-Identifier: MIT
                     class="fullwidth"
                 />
                 <div v-if="error" class="error-message">{{ error }}</div>
-                <Button class="blue" @click="hostBattle" :disabled="!canHost">{{ t("lobby.components.battle.hostBattle.hostButton") }}</Button>
+                <Button class="blue" @click="hostBattle" :disabled="!canHost">{{
+                    t("lobby.components.battle.hostBattle.hostButton")
+                }}</Button>
             </template>
         </div>
     </Modal>
@@ -40,7 +42,7 @@ const { t } = useTypedI18n();
 const router = useRouter();
 
 const lobbyName = ref("My Custom Battle");
-const selectedMap = ref("Supreme Crossing V1");  // Default to a common map
+const selectedMap = ref("Supreme Crossing V1"); // Default to a common map
 const waitingForBattleCreation = ref(false);
 const error = ref("");
 

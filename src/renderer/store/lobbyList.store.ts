@@ -32,10 +32,10 @@ export function initLobbyListStore() {
         let lobbiesArray = [];
         if (data.lobbies) {
             if (Array.isArray(data.lobbies)) {
-                lobbiesArray = data.lobbies.filter(lobby => lobby !== null && lobby !== undefined);
+                lobbiesArray = data.lobbies.filter((lobby) => lobby !== null && lobby !== undefined);
             } else {
                 // Convert object to array and filter out null values
-                lobbiesArray = Object.values(data.lobbies).filter(lobby => lobby !== null && lobby !== undefined);
+                lobbiesArray = Object.values(data.lobbies).filter((lobby) => lobby !== null && lobby !== undefined);
             }
         }
 

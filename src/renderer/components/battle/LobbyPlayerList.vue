@@ -42,10 +42,7 @@ SPDX-License-Identifier: MIT
                         <!-- Sync status for players (not AIs) -->
                         <div v-if="member.type === 'player' && member.sync" class="sync-status flex-row gap-xs">
                             <div class="sync-item" :title="`Map: ${member.sync.map ? 'Synced' : 'Not synced'}`">
-                                <Icon
-                                    :icon="member.sync.map ? checkIcon : closeIcon"
-                                    :class="member.sync.map ? 'synced' : 'not-synced'"
-                                />
+                                <Icon :icon="member.sync.map ? checkIcon : closeIcon" :class="member.sync.map ? 'synced' : 'not-synced'" />
                                 <span class="sync-label">Map</span>
                             </div>
                             <div class="sync-item" :title="`Engine: ${member.sync.engine ? 'Synced' : 'Not synced'}`">
@@ -65,7 +62,9 @@ SPDX-License-Identifier: MIT
                             <div class="sync-item" :title="getModSyncTooltip(member.sync)">
                                 <Icon :icon="getModSyncIcon(member.sync)" :class="getModSyncClass(member.sync)" />
                                 <span class="sync-label">Mods</span>
-                                <span v-if="member.sync.mods" class="mod-count">({{ member.sync.mods.length }}/{{ (lobbyStore.currentLobby?.mods || []).length }})</span>
+                                <span v-if="member.sync.mods" class="mod-count"
+                                    >({{ member.sync.mods.length }}/{{ (lobbyStore.currentLobby?.mods || []).length }})</span
+                                >
                             </div>
                         </div>
 
@@ -176,7 +175,7 @@ function getModSyncClass(sync: MemberSyncStatus) {
 function getModSyncTooltip(sync: MemberSyncStatus) {
     const requiredMods = lobbyStore.currentLobby?.mods || [];
     if (requiredMods.length === 0) return "No mods required";
-    
+
     const hasMods = sync.mods && sync.mods.length === requiredMods.length;
     if (hasMods) return `Mods: Synced (${sync.mods?.length || 0}/${requiredMods.length})`;
     return `Mods: Not synced (${sync.mods?.length || 0}/${requiredMods.length})`;

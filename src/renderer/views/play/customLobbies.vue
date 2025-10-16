@@ -11,10 +11,10 @@ SPDX-License-Identifier: MIT
 <template>
     <div class="flex-row flex-grow gap-md hide-overflow">
         <!-- ULTRA SIMPLE TEST -->
-        <div style="position: fixed; top: 0; left: 0; background: yellow; color: black; padding: 20px; z-index: 9999; font-size: 24px;">
+        <div style="position: fixed; top: 0; left: 0; background: yellow; color: black; padding: 20px; z-index: 9999; font-size: 24px">
             TEMPLATE IS RENDERING! Battles: {{ battles.length }}
         </div>
-        
+
         <Loader v-if="loading"></Loader>
         <div v-else class="flex-col flex-grow gap-md">
             <div class="flex-row gap-md">
@@ -31,20 +31,21 @@ SPDX-License-Identifier: MIT
                 <SearchBox v-model="searchVal" />
             </div>
             <!-- SIMPLE TEST - NO SCROLL CONTAINER -->
-            <div style="background: red; color: white; padding: 20px; margin: 20px; font-size: 18px;">
+            <div style="background: red; color: white; padding: 20px; margin: 20px; font-size: 18px">
                 <p>🔴 RED BOX: Battles length: {{ battles.length }}</p>
                 <p v-for="(battle, index) in battles" :key="index">
-                    Lobby {{ index }}: {{ battle?.name || 'Unknown' }} ({{ battle?.playerCount || 0 }}/{{ battle?.maxPlayerCount || 0 }})
+                    Lobby {{ index }}: {{ battle?.name || "Unknown" }} ({{ battle?.playerCount || 0 }}/{{ battle?.maxPlayerCount || 0 }})
                 </p>
             </div>
-            
-            <div style="background: blue; color: white; padding: 20px; margin: 20px; font-size: 18px;">
+
+            <div style="background: blue; color: white; padding: 20px; margin: 20px; font-size: 18px">
                 <p>🔵 BLUE BOX: Simple v-for test</p>
-                <div v-for="(battle, index) in battles" :key="index" style="border: 1px solid white; padding: 10px; margin: 5px;">
-                    <strong>{{ battle?.name || 'Unknown' }}</strong><br>
-                    Map: {{ battle?.mapName || 'Unknown' }}<br>
-                    Players: {{ battle?.playerCount || 0 }}/{{ battle?.maxPlayerCount || 0 }}<br>
-                    ID: {{ battle?.id || 'Unknown' }}
+                <div v-for="(battle, index) in battles" :key="index" style="border: 1px solid white; padding: 10px; margin: 5px">
+                    <strong>{{ battle?.name || "Unknown" }}</strong
+                    ><br />
+                    Map: {{ battle?.mapName || "Unknown" }}<br />
+                    Players: {{ battle?.playerCount || 0 }}/{{ battle?.maxPlayerCount || 0 }}<br />
+                    ID: {{ battle?.id || "Unknown" }}
                 </div>
             </div>
         </div>
@@ -52,10 +53,20 @@ SPDX-License-Identifier: MIT
             <div class="lobby-preview flex-col gap-md">
                 <h3>{{ selectedBattle.name }}</h3>
                 <div class="lobby-details">
-                    <p><strong>{{ t("lobby.multiplayer.custom.table.map") }}:</strong> {{ selectedBattle.mapName }}</p>
-                    <p><strong>{{ t("lobby.multiplayer.custom.table.players") }}:</strong> {{ selectedBattle.playerCount }}/{{ selectedBattle.maxPlayerCount }}</p>
-                    <p><strong>{{ t("lobby.multiplayer.custom.table.engine") }}:</strong> {{ selectedBattle.engineVersion }}</p>
-                    <p><strong>{{ t("lobby.multiplayer.custom.table.game") }}:</strong> {{ selectedBattle.gameVersion }}</p>
+                    <p>
+                        <strong>{{ t("lobby.multiplayer.custom.table.map") }}:</strong> {{ selectedBattle.mapName }}
+                    </p>
+                    <p>
+                        <strong>{{ t("lobby.multiplayer.custom.table.players") }}:</strong> {{ selectedBattle.playerCount }}/{{
+                            selectedBattle.maxPlayerCount
+                        }}
+                    </p>
+                    <p>
+                        <strong>{{ t("lobby.multiplayer.custom.table.engine") }}:</strong> {{ selectedBattle.engineVersion }}
+                    </p>
+                    <p>
+                        <strong>{{ t("lobby.multiplayer.custom.table.game") }}:</strong> {{ selectedBattle.gameVersion }}
+                    </p>
                 </div>
                 <Button class="green flex-grow" @click="attemptJoinBattle(selectedBattle)">{{
                     t("lobby.multiplayer.custom.table.join")
@@ -188,7 +199,7 @@ async function attemptJoinBattle(battle: LobbyOverview) {
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
-    
+
     p {
         margin: 0;
         font-size: 0.9rem;
@@ -201,23 +212,24 @@ async function attemptJoinBattle(battle: LobbyOverview) {
     background: rgba(0, 0, 0, 0.3);
     border-radius: 8px;
     overflow: hidden;
-    
-    th, td {
+
+    th,
+    td {
         padding: 12px;
         text-align: left;
         border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     }
-    
+
     th {
         background: rgba(255, 255, 255, 0.1);
         font-weight: 600;
         color: var(--color-text);
     }
-    
+
     .lobby-row {
         cursor: pointer;
         transition: background 0.2s;
-        
+
         &:hover {
             background: rgba(255, 255, 255, 0.05);
         }
