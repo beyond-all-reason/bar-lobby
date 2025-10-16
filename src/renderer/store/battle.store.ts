@@ -30,6 +30,9 @@ import { spadsBoxToStartBox } from "@renderer/utils/start-boxes";
 import { StartBox } from "tachyon-protocol/types";
 import { reactive, readonly, watch } from "vue";
 import { startBattle as startGame } from "@renderer/store/game.store";
+import { setupI18n } from "@renderer/i18n";
+
+const i18n = setupI18n();
 
 let participantId = 0;
 interface BattleLobby {
@@ -288,6 +291,10 @@ function getCurrentStartBoxes(): Array<StartBox> {
         : (battleStore.battleOptions.mapOptions.customStartBoxes as Array<StartBox>);
 }
 
+function getCustomStartBoxes(): Array<StartBox> {
+    return battleStore.battleOptions.mapOptions.customStartBoxes != undefined ? battleStore.battleOptions.mapOptions.customStartBoxes : [];
+}
+
 function addCustomStartBox() {
     const customBoxes = battleStore.battleOptions.mapOptions.customStartBoxes;
 
@@ -320,10 +327,10 @@ function removeCustomStartBox(boxId: number) {
     }
 }
 
-function defaultOfflineBattle(engine?: EngineVersion, game?: GameVersion, map?: MapData) {
+function defaultBattle(engine?: EngineVersion, game?: GameVersion, map?: MapData, online?: boolean) {
     const barbAi = engine?.ais.find((ai) => ai.shortName === "BARb");
     const battle: Battle = {
-        title: "Offline Custom Battle",
+        title: online ? i18n.global.t("lobby.multiplayer.battle.onlineTitle") : i18n.global.t("lobby.multiplayer.battle.offlineTitle"),
         isOnline: false,
         battleOptions: {
             engineVersion: engine?.id || enginesStore.selectedEngineVersion?.id,
@@ -369,13 +376,14 @@ function defaultOfflineBattle(engine?: EngineVersion, game?: GameVersion, map?: 
         aiShortName: barbAi?.shortName || "BARb",
     } satisfies Bot;
 
-    battle.teams[1].participants.push(defaultBot);
-
+    if (!online) {
+        battle.teams[1].participants.push(defaultBot);
+    }
     return battle;
 }
 
-function resetToDefaultBattle(engine?: EngineVersion, game?: GameVersion, map?: MapData) {
-    const battle = defaultOfflineBattle(engine, game, map);
+function resetToDefaultBattle(engine?: EngineVersion, game?: GameVersion, map?: MapData, online?: boolean) {
+    const battle = defaultBattle(engine, game, map, online);
     Object.assign(battleStore, battle);
 }
 
@@ -452,6 +460,8 @@ function leaveBattle() {
 }
 
 async function loadGameMode(gameMode: GameModeLabel) {
+    battleStore.isOnline = false;
+    resetToDefaultBattle();
     if (!battleStore.battleOptions.engineVersion) {
         const engineVersion = enginesStore.selectedEngineVersion;
         if (!engineVersion) throw new Error("failed to access engine version");
@@ -467,7 +477,9 @@ async function loadGameMode(gameMode: GameModeLabel) {
         const randomMap = await getRandomMap();
         battleStore.battleOptions.map = randomMap;
     }
-
+    //Now that we are sharing the drawer with the game-mode selector, we need to reset to offline battle.
+    //FIXME: Could be a problem if someone tries to launch a gamemode while also in lobby?
+    //Will probably need some checks and to warn the user that they're in a lobby before they can select.
     switch (gameMode) {
         case GameMode.CLASSIC:
             removeCoopAIs();
@@ -587,6 +599,7 @@ export const battleActions = {
     loadGameMode,
     getMaxPlayersPerTeam,
     getCurrentStartBoxes,
+    getCustomStartBoxes,
 };
 
 // Needs game files to exists.

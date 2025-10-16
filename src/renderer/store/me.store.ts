@@ -7,6 +7,7 @@ import { db } from "@renderer/store/db";
 import { reactive, toRaw } from "vue";
 import { tachyonStore } from "@renderer/store/tachyon.store";
 import { PrivateUser } from "tachyon-protocol/types";
+import { lobby } from "@renderer/store/lobby.store";
 
 export const me = reactive<
     Me & {
@@ -98,6 +99,17 @@ window.tachyon.onEvent("user/self", async (event) => {
         });
 
         await processFriendData(event.user);
+        // If we get the user/self event on reconnection, and are in a lobby, doing a join will refresh all the data for us automatically and reopen it.
+        // FIXME: server is not sending back the currentLobby even if it thinks we are in one. This code does not work yet as a result.
+        if (event.user.currentLobby !== null) {
+            lobby.joinLobby({ id: event.user.currentLobby });
+        } else {
+            // If we don't have lobby, we will clear our info and then subscribe to get a listReset event.
+            // NOTE: we *currently* get a listReset on subscribe - if that changes then this will not work.
+            // It seems reasonable that we will need a listReset whenever first subbing so we will leave as-is.
+            lobby.clearLobbyAndListInfo();
+            lobby.subscribeList();
+        }
     }
 });
 
@@ -118,6 +130,14 @@ async function processFriendData(userData: PrivateUser) {
     } catch (error) {
         console.error("Failed to process friend data:", error);
     }
+}
+
+// We should keep track of all desired subscriptions and return there here.
+// Anywhere else in the client that we need to know what users we are actively subbed to, we get from here.
+// This excludes temporary subscriptions from party, matchmaking, or lobbies. Those will be internally tracked
+// by their own store, and the should check against this list before un-subbing from any user.
+export function getAllUserSubscriptions() {
+    return Array.from(toRaw(me.friendUserIds).union(me.outgoingFriendRequestUserIds).union(me.incomingFriendRequestUserIds));
 }
 
 window.tachyon.onEvent("friend/requestReceived", async (event) => {
