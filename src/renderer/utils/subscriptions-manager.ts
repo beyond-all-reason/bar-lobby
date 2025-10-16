@@ -6,15 +6,12 @@ import { UserId } from "tachyon-protocol/types";
 import { Signal } from "$/jaz-ts-utils/signal";
 
 export class SubsManager {
-    public readonly onUsersAttached: Signal<UserId[]> = new Signal();
-    public readonly onUsersDetached: Signal<UserId[]> = new Signal();
+    public readonly onNewUsersAttached: Signal<UserId[]> = new Signal();
+    public readonly onOldUsersDetached: Signal<UserId[]> = new Signal();
+    private userList: Map<UserId, Set<symbol>> = new Map<UserId, Set<symbol>>();
 
-    private userList: Map<UserId, Set<symbol>>;
-    constructor() {
-        this.userList = new Map<UserId, Set<symbol>>();
-    }
     /**
-     * Attach the UserId(s) to the selected subscription list. An onUsersAttached Signal will be dispatched if needed.
+     * Attach the UserId(s) to the selected subscription list. An onNewUsersAttached Signal will be dispatched if needed.
      * @param users UserId, or Array of UserId, that will be attached
      * @param list Symbol indicating which subscription list to attach them to.
      */
@@ -30,12 +27,12 @@ export class SubsManager {
             uLists.add(list);
         }
         if (userSubs.length > 0) {
-            this.onUsersAttached.dispatch(userSubs);
+            this.onNewUsersAttached.dispatch(userSubs);
         }
     }
 
     /**
-     * Detach the UserId(s) from the selected subscription list. An onUsersDetached Signal will be dispatched if needed.
+     * Detach the UserId(s) from the selected subscription list. An onOldUsersDetached Signal will be dispatched if needed.
      * @param users UserId, or Array of UserId, that will be detached
      * @param list Symbol indicating which subscription list to detach them from
      */
@@ -52,7 +49,7 @@ export class SubsManager {
             }
         }
         if (userUnsubs.length > 0) {
-            this.onUsersDetached.dispatch(userUnsubs);
+            this.onOldUsersDetached.dispatch(userUnsubs);
         }
     }
 
@@ -96,7 +93,7 @@ export class SubsManager {
     }
 
     /**
-     * Removes all users from a specific subscription list. An onUsersDetached Signal will be dispatched if needed.
+     * Removes all users from a specific subscription list. An onOldUsersDetached Signal will be dispatched if needed.
      * @param list Symbol for the relevant subscription list
      */
     clearAllFromList(list: symbol): void {
@@ -104,7 +101,7 @@ export class SubsManager {
     }
 
     /**
-     * Replace a subscription list with an entirely new one as provided. An onUsersAttached or onUsersDetached Signal will be dispatched if needed.
+     * Replace a subscription list with an entirely new one as provided. An onNewUsersAttached or onOldUsersDetached Signal will be dispatched if needed.
      * @param list Symbol for the relevant subscription list
      * @param users UserId, or Array of UserId, that will replace the current list
      */

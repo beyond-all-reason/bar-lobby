@@ -33,7 +33,4 @@ export type Me = User & {
     outgoingFriendRequestUserIds: Set<string>;
     incomingFriendRequestUserIds: Set<string>;
     ignoreUserIds: Set<string>;
-    lobbyUserIds: Set<string>;
-    partyUserIds: Set<string>;
-    matchmakingUserIds: Set<string>;
 };

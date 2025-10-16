@@ -12,7 +12,7 @@ const symb3 = Symbol();
 test("check attach single new user", () => {
     const subsManager = new SubsManager();
     const users: string = "123";
-    subsManager.onUsersAttached.add((users) => {
+    subsManager.onNewUsersAttached.add((users) => {
         expect(users).toStrictEqual(["123"]);
     });
     subsManager.attach(users, symb1);
@@ -21,7 +21,7 @@ test("check attach single new user", () => {
 test("check attach multiple new users", () => {
     const subsManager = new SubsManager();
     const users: string[] = ["123", "456"];
-    subsManager.onUsersAttached.add((users) => {
+    subsManager.onNewUsersAttached.add((users) => {
         expect(users).toStrictEqual(["123", "456"]);
     });
     subsManager.attach(users, symb1);
@@ -31,7 +31,7 @@ test("check detach single user fully detached", () => {
     const subsManager = new SubsManager();
     const user: string = "123";
     const users: string[] = ["123", "456", "789"];
-    subsManager.onUsersDetached.add((users) => {
+    subsManager.onOldUsersDetached.add((users) => {
         expect(users).toStrictEqual(["123"]);
     });
     subsManager.attach(users, symb1);
@@ -43,7 +43,7 @@ test("check detach multiple users fully detached", () => {
     const subsManager = new SubsManager();
     const startUsers: string[] = ["123", "456", "789"];
     const usersToDetach: string[] = ["123", "456"];
-    subsManager.onUsersDetached.add((users) => {
+    subsManager.onOldUsersDetached.add((users) => {
         expect(users).toStrictEqual(["123", "456"]);
     });
     subsManager.attach(startUsers, symb1);
@@ -108,7 +108,7 @@ test("check getAllUsersSubscribed", () => {
 
 test("check clearAllFromList", () => {
     const subsManager = new SubsManager();
-    subsManager.onUsersDetached.add((users) => {
+    subsManager.onOldUsersDetached.add((users) => {
         expect(users).toStrictEqual(["123", "456"]);
     });
     const user1: string = "123";
@@ -122,7 +122,7 @@ test("check clearAllFromList", () => {
 
 test("check multi-user setList", () => {
     const subsManager = new SubsManager();
-    subsManager.onUsersAttached.add((users) => {
+    subsManager.onNewUsersAttached.add((users) => {
         expect(users).toStrictEqual(["123", "456", "789"]);
     });
     const startUsers: string[] = ["123", "456", "789"];
