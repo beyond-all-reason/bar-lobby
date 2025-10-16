@@ -14,6 +14,7 @@ export type Lobby = {
     maxPlayerCount: number;
     spectatorCount: number;
     playerQueue: Map<number, string>;
+    botCount: number;
     allyTeams: {
         [k: string]: {
             startBox: StartBox;
@@ -37,6 +38,20 @@ export type Lobby = {
         [k: string]: {
             id: UserId;
             joinQueuePosition?: number;
+        };
+    };
+    bots: {
+        [k: string]: {
+            id: string;
+            allyTeam: string;
+            team: string;
+            player: UserId;
+            name: string;
+            shortName: string;
+            version: string;
+            options: {
+                [k: string]: string;
+            };
         };
     };
     currentBattle?: {

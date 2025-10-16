@@ -14,6 +14,9 @@ import {
     UserId,
     LobbyOverview,
     LobbyListResetEventData,
+    LobbyAddBotRequestData,
+    LobbyRemoveBotRequestData,
+    LobbyUpdateBotRequestData,
 } from "tachyon-protocol/types";
 import { reactive } from "vue";
 import { Lobby } from "@renderer/model/lobby";
@@ -39,6 +42,7 @@ export const lobbyStore: {
     activeLobby: null, //This will hold changes from ``lobby/updated`` events
 });
 
+//TODO: Switch this to subsManager once merged
 async function subscribeList() {
     try {
         lobbyStore.error = undefined;
@@ -54,7 +58,7 @@ async function subscribeList() {
         lobbyStore.lobbyList = {};
     }
 }
-
+//TODO: Switch this to subsManager once merged
 async function unsubscribeList() {
     try {
         lobbyStore.error = undefined;
@@ -98,7 +102,7 @@ async function joinLobby(id: LobbyJoinRequestData) {
         console.log("Tachyon: lobby/join:", response.status, response.data);
         lobbyStore.activeLobby = parseLobbyResponseData(response.data);
         battleStore.isLobbyOpened = true;
-        //Subscribe to obtain user data
+        //TODO: Switch this to subsManager once merged
         const userSubList: UserId[] = [];
         for (const memberKey in lobbyStore.activeLobby.players) {
             if (lobbyStore.activeLobby.players[memberKey]) {
@@ -192,12 +196,14 @@ function parseLobbyResponseData(data: LobbyCreateOkResponseData | LobbyJoinOkRes
         maxPlayerCount: 0, //Placeholder value; Ditto for calculating max players
         spectatorCount: 0,
         playerQueue: new Map(),
+        botCount: 0,
         mapName: data.mapName,
         engineVersion: data.engineVersion,
         gameVersion: data.gameVersion,
         allyTeams: {},
         players: {},
         spectators: {},
+        bots: {},
     };
     battleStore.battleOptions.engineVersion = data.engineVersion;
     battleStore.battleOptions.gameVersion = data.gameVersion;
@@ -246,6 +252,20 @@ function parseLobbyResponseData(data: LobbyCreateOkResponseData | LobbyJoinOkRes
         }
     }
     lobbyObject.playerQueue = new Map(sortPlayerQueue(tempMap));
+    for (const botKey in data.bots) {
+        const bot = data.bots[botKey];
+        lobbyObject.botCount++;
+        lobbyObject.bots![botKey] = {
+            id: bot.id,
+            allyTeam: bot.allyTeam,
+            team: bot.team,
+            player: bot.player,
+            name: bot.name ? bot.name : "Unknown",
+            shortName: bot.shortName,
+            version: bot.version ? bot.version : "",
+            options: bot.options ? bot.options : {},
+        };
+    }
     return lobbyObject;
 }
 
@@ -282,20 +302,10 @@ async function requestStartBattle() {
     }
 }
 
-//temporary interfaces until the protocol change for this is final
-interface LobbyAddBotRequestData {
-    allyTeam: string;
-    name?: string;
-    shortName: string;
-    version?: string;
-    options?: {
-        [k: string]: string;
-    };
-}
-
 async function requestAddBot(data: LobbyAddBotRequestData) {
     try {
-        console.log("Unsupported request:", data);
+        const response = window.tachyon.request("lobby/addBot", data);
+        console.log("Tachyon lobby/addBot", response);
     } catch (error) {
         console.error("Error with request lobby/addBot", error);
         notificationsApi.alert({
@@ -305,12 +315,10 @@ async function requestAddBot(data: LobbyAddBotRequestData) {
     }
 }
 
-interface LobbyRemoveBotRequestData {
-    id: string;
-}
 async function requestRemoveBot(data: LobbyRemoveBotRequestData) {
     try {
-        console.log("Unsupported request:", data);
+        const response = window.tachyon.request("lobby/removeBot", data);
+        console.log("Tachyon lobby/removeBot:", response);
     } catch (error) {
         console.error("Error with request lobby/removeBot", error);
         notificationsApi.alert({
@@ -320,21 +328,10 @@ async function requestRemoveBot(data: LobbyRemoveBotRequestData) {
     }
 }
 
-interface LobbyUpdateBotRequestData {
-    id: string;
-    name?: string;
-    shortName?: string;
-    version?: string | null;
-    options?: {
-        [k: string]: string | null;
-    };
-    customProperties?: {
-        [k: string]: string | null;
-    };
-}
 async function requestUpdateBot(data: LobbyUpdateBotRequestData) {
     try {
-        console.log("Unsupported request:", data);
+        const response = window.tachyon.request("lobby/removeBot", data);
+        console.log("Tachyon lobby/updateBot:", response);
     } catch (error) {
         console.error("Error with request lobby/updateBot", error);
         notificationsApi.alert({
@@ -375,8 +372,9 @@ async function onLobbyUpdatedEvent(data: LobbyUpdatedEventData) {
         }
     }
     lobbyStore.activeLobby.maxPlayerCount = maxPlayerCount;
-    const playerCount: number = Object.keys(lobbyStore.activeLobby?.players).length;
-    const spectatorCount: number = Object.keys(lobbyStore.activeLobby?.spectators).length;
+    const playerCount: number = Object.keys(lobbyStore.activeLobby.players).length;
+    const spectatorCount: number = Object.keys(lobbyStore.activeLobby.spectators).length;
+    const botCount: number = Object.keys(lobbyStore.activeLobby.bots).length;
     const tempMap: Map<number, string> = new Map();
     for (const memberKey in lobbyStore.activeLobby?.spectators) {
         const member = lobbyStore.activeLobby.spectators[memberKey];
@@ -387,10 +385,11 @@ async function onLobbyUpdatedEvent(data: LobbyUpdatedEventData) {
     lobbyStore.activeLobby.playerQueue = new Map(sortPlayerQueue(tempMap));
     lobbyStore.activeLobby.playerCount = playerCount;
     lobbyStore.activeLobby.spectatorCount = spectatorCount;
+    lobbyStore.activeLobby.botCount = botCount;
     const userSubList: UserId[] = [];
     const userUnsubList: UserId[] = [];
     const keepList = getAllUserSubscriptions();
-    //FIXME: this repeatedly subscribes to a lobby member when they move around in the list. We need to finalize the user store changes to do this properly.
+    //TODO: Switch this to subsManager once merged
     if (data.players) {
         for (const memberKey in data.players) {
             const member = data.players[memberKey];
@@ -449,6 +448,7 @@ function onLobbyLeftEvent(data: LobbyLeftEventData) {
     });
 }
 
+//TODO: Switch this to subsManager once merged
 async function clearUserSubscriptions() {
     const userUnsubList: UserId[] = [];
     const keepList = getAllUserSubscriptions();
