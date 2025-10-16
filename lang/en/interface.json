@@ -1756,6 +1756,23 @@
         "quickShareToTarget": {
             "noTarget": "No target selected",
             "shareTo": "Share to: %{playerColor}%{player}"
+        },
+        "components": {
+            "battle": {
+                "modSelectionComponent": {
+                    "title": "Mod Selection",
+                    "description": "Select mods to enhance your battle experience"
+                },
+                "modsManagement": {
+                    "manageMods": "Manage Mods",
+                    "description": "Install, update, and manage your mods"
+                }
+            },
+            "modManager": {
+                "noModsAvailable": "No mods available",
+                "installMods": "Install Mods",
+                "openModManager": "Open Mod Manager"
+            }
         }
     }
 }
