@@ -45,7 +45,7 @@ SPDX-License-Identifier: MIT
                     :class="{
                         disabled: !matchmakingStore.selectedQueue,
                     }"
-                    @click="matchmaking.startSearch"
+                    @click="matchmaking.sendQueueRequest"
                 >
                     {{ t("lobby.multiplayer.ranked.buttons.searchGame") }}
                 </button>
@@ -55,7 +55,7 @@ SPDX-License-Identifier: MIT
                 <button
                     v-else-if="matchmakingStore.status === MatchmakingStatus.MatchFound"
                     class="quick-play-button"
-                    @click="matchmaking.acceptMatch"
+                    @click="matchmaking.sendReadyRequest"
                 >
                     {{ t("lobby.multiplayer.ranked.buttons.matchFound") }}
                 </button>
@@ -68,7 +68,7 @@ SPDX-License-Identifier: MIT
                     :class="{
                         disabled: matchmakingStore.status === MatchmakingStatus.Idle,
                     }"
-                    @click="matchmaking.stopSearch"
+                    @click="matchmaking.sendCancelRequest"
                 >
                     {{ t("lobby.multiplayer.ranked.buttons.cancel") }}
                 </button>
@@ -82,12 +82,16 @@ SPDX-License-Identifier: MIT
 import { matchmaking, MatchmakingStatus, matchmakingStore, getPlaylistName } from "@renderer/store/matchmaking.store";
 import Button from "primevue/button";
 import { useTypedI18n } from "@renderer/i18n";
-import { computed } from "vue";
+import { computed, onActivated } from "vue";
 
 const { t } = useTypedI18n();
 
 const availableQueueIds = computed(() => {
     return matchmakingStore.playlists.sort((a, b) => a.teamSize * a.numOfTeams - b.teamSize * b.numOfTeams).map((playlist) => playlist.id);
+});
+
+onActivated(() => {
+    matchmaking.sendListRequest();
 });
 </script>
 
