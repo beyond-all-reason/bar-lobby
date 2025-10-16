@@ -118,18 +118,18 @@ export async function initTachyonStore() {
         });
     });
 
-    subsManager.onNewUsersAttached.add((users: UserId[]) => {
+    subsManager.onNewUsersAttached.add(async (users: UserId[]) => {
         try {
-            const response = window.tachyon.request("user/subscribeUpdates", { userIds: users });
+            const response = await window.tachyon.request("user/subscribeUpdates", { userIds: users });
             console.log("Tachyon: user/subscribeUpdates", response);
         } catch (error) {
             console.error("Tachyon error: 'user/subscribeUpdates'", error);
             notificationsApi.alert({ text: "Tachyon error with user/subscribeUpdates", severity: "error" });
         }
     });
-    subsManager.onOldUsersDetached.add((users: UserId[]) => {
+    subsManager.onOldUsersDetached.add(async (users: UserId[]) => {
         try {
-            const response = window.tachyon.request("user/unsubscribeUpdates", { userIds: users });
+            const response = await window.tachyon.request("user/unsubscribeUpdates", { userIds: users });
             console.log("Tachyon: user/unsubscribeUpdates", response);
         } catch (error) {
             console.error("Tachyon error: 'user/unsubscribeUpdates'", error);
