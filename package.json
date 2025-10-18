@@ -64,7 +64,7 @@
         "pino-pretty": "^13.0.0",
         "primeicons": "^6.0.1",
         "primevue": "3.23.0",
-        "tachyon-protocol": "^1.15.0",
+        "tachyon-protocol": "^1.15.1",
         "vue-i18n": "^11.1.11",
         "vue-router": "^4.5.1",
         "ws": "^8.18.3"

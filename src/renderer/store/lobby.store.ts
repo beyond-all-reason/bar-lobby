@@ -257,6 +257,7 @@ function parseLobbyResponseData(data: LobbyCreateOkResponseData | LobbyJoinOkRes
         lobbyObject.botCount++;
         lobbyObject.bots![botKey] = {
             id: bot.id,
+            hostUserId: bot.hostUserId,
             allyTeam: bot.allyTeam,
             team: bot.team,
             player: bot.player,

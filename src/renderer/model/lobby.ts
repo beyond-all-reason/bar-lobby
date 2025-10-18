@@ -43,6 +43,7 @@ export type Lobby = {
     bots: {
         [k: string]: {
             id: string;
+            hostUserId: string;
             allyTeam: string;
             team: string;
             player: UserId;

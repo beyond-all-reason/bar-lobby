@@ -23,14 +23,19 @@ SPDX-License-Identifier: MIT
                 <div v-if="!battleStore.isOnline">({{ memberCount }}/{{ maxPlayersPerTeam }} players)</div>
                 <div v-else>({{ memberCount }}/{{ maxMembersPerAllyTeam }} players)</div>
             </div>
-            <Button class="slim black" @click="addBotClicked(teamId)" v-if="!isRaptorTeam(teamId) && !isScavengerTeam(teamId)">
-                {{ t("lobby.components.battle.teamComponent.addBot") }}
-            </Button>
+            <div v-if="getAmountOfJoinButtons(maxPlayersPerTeam, memberCount) > 0">
+                <Button class="slim black" @click="addBotClicked(teamId)" v-if="!isRaptorTeam(teamId) && !isScavengerTeam(teamId)">
+                    {{ t("lobby.components.battle.teamComponent.addBot") }}
+                </Button>
+            </div>
             <!-- <Button v-if="showJoin" class="slim black" @click="onJoinClicked(teamId)">Join</Button> -->
         </div>
         <div v-if="battleStore.isOnline">
             <div v-for="(member, key) in allyMembers" :key="key" class="participant">
                 <LobbyParticipant :player="member as Member" />
+            </div>
+            <div v-for="(bot, key) in allyBots" :key="key" class="participant">
+                <LobbyBotParticipant :bot="bot as LobbyBot" :team-id="bot.allyTeam" :host-id="bot.hostUserId" :bot-id="bot.id" />
             </div>
         </div>
         <div v-else>
@@ -66,6 +71,7 @@ import { battleActions, battleStore, battleWithMetadataStore } from "@renderer/s
 import { lobbyStore } from "@renderer/store/lobby.store";
 import { UserId } from "tachyon-protocol/types";
 import LobbyParticipant from "@renderer/components/battle/LobbyParticipant.vue";
+import LobbyBotParticipant from "@renderer/components/battle/LobbyBotParticipant.vue";
 
 const { t } = useTypedI18n();
 
@@ -92,16 +98,36 @@ const allyMembers = computed(() => {
     return arr;
 });
 
+const allyBots = computed(() => {
+    let arr: LobbyBot[] = [];
+    if (battleStore.isOnline && lobbyStore.activeLobby?.allyTeams) {
+        if (lobbyStore.activeLobby.bots) {
+            for (const botKey in lobbyStore.activeLobby.bots) {
+                const bot = lobbyStore.activeLobby.bots[botKey];
+                if (bot.allyTeam == props.teamKey) arr.push(bot);
+            }
+            return arr;
+        }
+    }
+    return arr;
+});
+
 const memberCount = computed(() => {
     if (battleStore.isOnline && lobbyStore.activeLobby?.allyTeams) {
+        let count = 0;
         if (lobbyStore.activeLobby.players) {
-            let count = 0;
             for (const memberKey in lobbyStore.activeLobby.players) {
                 const member = lobbyStore.activeLobby.players[memberKey];
                 if (member.allyTeam == props.teamKey) count++;
             }
-            return count;
-        } else return 0;
+        }
+        if (lobbyStore.activeLobby.bots) {
+            for (const botKey in lobbyStore.activeLobby.bots) {
+                const bot = lobbyStore.activeLobby.bots[botKey];
+                if (bot.allyTeam == props.teamKey) count++;
+            }
+        }
+        return count;
     } else {
         return battleWithMetadataStore.teams[props.teamId].participants.length || 0;
     }
@@ -129,6 +155,19 @@ interface Member {
     allyTeam: string;
     team: string;
     player: string;
+}
+interface LobbyBot {
+    id: string;
+    hostUserId: string;
+    allyTeam: string;
+    team: string;
+    player: string;
+    name?: string;
+    shortName?: string;
+    version: string | null;
+    options: {
+        [k: string]: string | null;
+    } | null;
 }
 
 function isRaptorTeam(teamId: number) {

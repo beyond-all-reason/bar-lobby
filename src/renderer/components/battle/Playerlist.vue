@@ -118,9 +118,9 @@ function onBotSelected(bot: EngineAI | GameAI, teamId: number | string) {
             shortName: bot.shortName,
         });
     } else {
-        botListOpen.value = false;
         battleActions.addBot(bot, teamId);
     }
+    botListOpen.value = false;
 }
 
 function joinQueue() {
