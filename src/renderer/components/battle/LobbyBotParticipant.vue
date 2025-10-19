@@ -93,7 +93,7 @@ const actions = [
 
 // Fill it with options as known to the server.
 const convertedOptions = computed(() => {
-	/* eslint-disable-next-line */
+    /* eslint-disable-next-line */
     const record: Record<string, any> = {};
     for (const key in props.bot.options) {
         record[key] = props.bot.options[key];
