@@ -75,8 +75,8 @@ const canStartBattle = computed(() => {
     // Check that all players are synced
     const allPlayersSynced = Object.values(lobbyStore.currentLobby.players).every((player) => {
         const typedPlayer = player as LobbyPlayer;
-        if ('type' in typedPlayer && typedPlayer.type === "spec") return true; // Spectators don't need to be synced
-        if ('allyTeam' in typedPlayer) {
+        if ("type" in typedPlayer && typedPlayer.type === "spec") return true; // Spectators don't need to be synced
+        if ("allyTeam" in typedPlayer) {
             const playerMember = typedPlayer as PlayerMember;
             if (!playerMember.sync) return false;
             return playerMember.sync.map && playerMember.sync.engine && playerMember.sync.game;

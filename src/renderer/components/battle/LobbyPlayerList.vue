@@ -125,7 +125,7 @@ const allyTeams = computed(() => {
 
     Object.values(lobbyStore.currentLobby.players).forEach((player) => {
         const typedPlayer = player as LobbyPlayer;
-        if ('allyTeam' in typedPlayer) {
+        if ("allyTeam" in typedPlayer) {
             const playerMember = typedPlayer as PlayerMember;
             const allyTeam = playerMember.allyTeam || "0";
             if (!teams[allyTeam]) {
@@ -147,7 +147,7 @@ const spectators = computed(() => {
     return Object.values(lobbyStore.currentLobby.players)
         .filter((player) => {
             const typedPlayer = player as LobbyPlayer;
-            return 'type' in typedPlayer && typedPlayer.type === "spec";
+            return "type" in typedPlayer && typedPlayer.type === "spec";
         })
         .map((player) => player as SpecMember);
 });
