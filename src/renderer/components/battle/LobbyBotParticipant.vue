@@ -22,9 +22,10 @@ SPDX-License-Identifier: MIT
             :id="`configure-bot-${bot.name}`"
             :title="t('lobby.components.battle.botParticipant.configureBot')"
             v-model="botOptionsOpen"
-            :options="{}"
+            :options="convertedOptions"
             :sections="botOptions"
             @set-options="setBotOptions"
+            @close="submitBotOptions"
         />
         <ContextMenu ref="menu" :model="actions" />
     </div>
@@ -35,9 +36,8 @@ import { Icon } from "@iconify/vue";
 import robot from "@iconify-icons/mdi/robot";
 import robotAngry from "@iconify-icons/mdi/robot-angry";
 import desktopTower from "@iconify-icons/mdi/desktop-tower";
-import { Ref, ref } from "vue";
+import { Ref, ref, computed } from "vue";
 import { useTypedI18n } from "@renderer/i18n";
-
 import LuaOptionsModal from "@renderer/components/battle/LuaOptionsModal.vue";
 import TeamParticipant from "@renderer/components/battle/TeamParticipant.vue";
 import { LuaOptionSection } from "@main/content/game/lua-options";
@@ -47,7 +47,7 @@ import { gameStore } from "@renderer/store/game.store";
 import GameIconsVelociraptor from "@renderer/components/icons/GameIconsVelociraptor.vue";
 import { computedAsync } from "@vueuse/core";
 import { getUserByID } from "@renderer/store/users.store";
-//import { LobbyUpdateBotRequestData } from "tachyon-protocol/types";
+import { LobbyUpdateBotRequestData } from "tachyon-protocol/types";
 import { User } from "@main/model/user";
 import { lobby } from "@renderer/store/lobby.store";
 
@@ -62,6 +62,7 @@ const props = defineProps<{
 
 interface LobbyBot {
     id: string;
+    hostUserId: string;
     allyTeam: string;
     team: string;
     player: string;
@@ -69,13 +70,15 @@ interface LobbyBot {
     shortName?: string;
     version: string | null;
     options: {
-        [k: string]: string | null;
-    } | null;
+        [k: string]: string;
+    };
 }
 
 const botOptions: Ref<LuaOptionSection[]> = ref([]);
 const botOptionsOpen = ref(false);
 const menu = ref<InstanceType<typeof ContextMenu>>();
+
+let optionsToSubmit: { [k: string]: string | null } = {};
 
 const actions = [
     {
@@ -88,7 +91,17 @@ const actions = [
     },
 ];
 
-// FIXME: This is missing from the update information, so we do not get a host name. This is currently wrong.
+// Fill it with options as known to the server.
+const convertedOptions = computed(() => {
+	/* eslint-disable-next-line */
+    const record: Record<string, any> = {};
+    for (const key in props.bot.options) {
+        record[key] = props.bot.options[key];
+    }
+    console.log("convertedOptions:", record);
+    return record;
+});
+
 const hostName = computedAsync(async () => {
     // User and number is only shown as a placeholder if we have a delay in getting the user's name from the server
     const name = t("lobby.navbar.messages.userID") + " " + props.hostId;
@@ -119,11 +132,33 @@ async function configureBot() {
     botOptionsOpen.value = true;
 }
 
+// We don't want to change settings until we get done with altering them.
+// As a result, we simply collect changes elsewhere and then once the modal is
+// closed, we submit if there are any changes.
 function setBotOptions(options: Record<string, unknown>) {
-    console.log("bot options:", options);
-    //const botOptions:LobbyUpdateBotRequestData = { id: props.botId, options:options}
-    //lobby.requestUpdateBot(botOptions);
-    //battleActions.updateBotOptions(props.bot, options);
+    optionsToSubmit = {};
+    for (const optionKey in options) {
+        let option = options[optionKey];
+        optionsToSubmit[optionKey] = String(option);
+    }
+    // The LuaOptionsModal will delete keys that match their default setting.
+    // Tachyon requires us to send 'null' if we are clearing the value.
+    // So we have to check for now-missing properties and send them as null.
+    for (const optionKey in props.bot.options) {
+        // for every bot property from server
+        if (options[optionKey] == undefined) {
+            // if modal options is missing the matching key from properties...
+            optionsToSubmit[optionKey] = null; //we set it to null explicitly.
+        }
+    }
+    console.log("bot options: ", optionsToSubmit);
+}
+
+function submitBotOptions() {
+    if (Object.keys(optionsToSubmit).length != 0) {
+        const botOptions: LobbyUpdateBotRequestData = { id: props.botId, options: optionsToSubmit };
+        lobby.requestUpdateBot(botOptions);
+    }
 }
 
 function isRaptor(bot: LobbyBot): boolean {

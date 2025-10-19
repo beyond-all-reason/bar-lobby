@@ -103,6 +103,7 @@ const options = ref(props.options);
 
 const emit = defineEmits<{
     (event: "set-options", options: Record<string, boolean | string | number>): void;
+    (event: "close"): void;
 }>();
 
 const modal: Ref<null | InstanceType<typeof Modal>> = ref(null);
@@ -118,6 +119,7 @@ function setOptionValue(option: LuaOptionNumber | LuaOptionBoolean | LuaOptionSt
 
 function close() {
     modal.value?.close();
+    emit("close");
 }
 
 function reset() {

@@ -166,8 +166,8 @@ interface LobbyBot {
     shortName?: string;
     version: string | null;
     options: {
-        [k: string]: string | null;
-    } | null;
+        [k: string]: string;
+    };
 }
 
 function isRaptorTeam(teamId: number) {

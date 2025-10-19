@@ -331,7 +331,7 @@ async function requestRemoveBot(data: LobbyRemoveBotRequestData) {
 
 async function requestUpdateBot(data: LobbyUpdateBotRequestData) {
     try {
-        const response = await window.tachyon.request("lobby/removeBot", data);
+        const response = await window.tachyon.request("lobby/updateBot", data);
         console.log("Tachyon lobby/updateBot:", response);
     } catch (error) {
         console.error("Error with request lobby/updateBot", error);
