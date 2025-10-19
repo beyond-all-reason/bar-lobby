@@ -174,7 +174,6 @@ const openTournaments = () => {
         transform: translateY(-3px);
         transition: background-color 0.1s linear 0s;
         background-color: rgba(255, 255, 255, 0.4);
-        //background-color: #22c55e;
         :deep(.panel) {
             border-color: rgba(255, 255, 255, 0.4);
             box-shadow:
@@ -188,7 +187,6 @@ const openTournaments = () => {
         }
 
         .card-content h2 {
-            //color: #22c55e;
             text-shadow: 0 0 10px rgba(34, 197, 94, 0.5);
         }
     }
@@ -218,7 +216,6 @@ const openTournaments = () => {
 
         .content {
             height: 100%;
-            padding: 30px; //Panel component has Vue overriding this, this is useless in current design.
         }
     }
 }
