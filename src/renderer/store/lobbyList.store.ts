@@ -29,13 +29,13 @@ export function initLobbyListStore() {
         console.log("Received lobby list reset:", data);
 
         // Convert object to array if needed
-        let lobbiesArray = [];
+        let lobbiesArray: LobbyOverview[] = [];
         if (data.lobbies) {
             if (Array.isArray(data.lobbies)) {
-                lobbiesArray = data.lobbies.filter((lobby) => lobby !== null && lobby !== undefined);
+                lobbiesArray = data.lobbies.filter((lobby): lobby is LobbyOverview => lobby !== null && lobby !== undefined);
             } else {
                 // Convert object to array and filter out null values
-                lobbiesArray = Object.values(data.lobbies).filter((lobby) => lobby !== null && lobby !== undefined);
+                lobbiesArray = Object.values(data.lobbies).filter((lobby): lobby is LobbyOverview => lobby !== null && lobby !== undefined);
             }
         }
 
@@ -50,35 +50,13 @@ export function initLobbyListStore() {
         // Handle the case where data.lobbies is an object (like the server sends)
         if (data.lobbies && typeof data.lobbies === "object" && !Array.isArray(data.lobbies)) {
             // Convert object to array and filter out null values
-            const lobbiesArray = Object.values(data.lobbies).filter((lobby) => lobby !== null && lobby !== undefined);
+            const lobbiesArray = Object.values(data.lobbies).filter((lobby): lobby is LobbyOverview => lobby !== null && lobby !== undefined);
             console.log("Converting lobbies object to array:", lobbiesArray);
             lobbyListStore.lobbies = lobbiesArray;
             return;
         }
 
-        // Handle the case where data.event is specified (legacy format)
-        if (data.event === "add") {
-            // Add new lobby
-            if (data.lobby) {
-                lobbyListStore.lobbies.push(data.lobby);
-            }
-        } else if (data.event === "remove") {
-            // Remove lobby
-            if (data.lobbyId) {
-                const index = lobbyListStore.lobbies.findIndex((l) => l.id === data.lobbyId);
-                if (index !== -1) {
-                    lobbyListStore.lobbies.splice(index, 1);
-                }
-            }
-        } else if (data.event === "update") {
-            // Update existing lobby
-            if (data.lobby) {
-                const index = lobbyListStore.lobbies.findIndex((l) => l.id === data.lobby.id);
-                if (index !== -1) {
-                    lobbyListStore.lobbies[index] = data.lobby;
-                }
-            }
-        }
+        // The LobbyListUpdatedEventData only contains lobbies object, no legacy event handling needed
     });
 
     // Store cleanup functions if available

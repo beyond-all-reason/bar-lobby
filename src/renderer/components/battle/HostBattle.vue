@@ -63,12 +63,12 @@ async function hostBattle() {
             allyTeamConfig: [
                 {
                     maxTeams: 1,
-                    startBox: { xMin: 0, yMin: 0, xMax: 0.4, yMax: 1 },
+                    startBox: { left: 0, top: 0, right: 0.4, bottom: 1 },
                     teams: [{ maxPlayers: 8 }],
                 },
                 {
                     maxTeams: 1,
-                    startBox: { xMin: 0.6, yMin: 0, xMax: 1, yMax: 1 },
+                    startBox: { left: 0.6, top: 0, right: 1, bottom: 1 },
                     teams: [{ maxPlayers: 8 }],
                 },
             ],

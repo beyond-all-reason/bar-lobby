@@ -15,7 +15,11 @@ import type { NewsFeedData } from "@main/services/news.service";
 import type { Replay } from "@main/content/replays/replay";
 import type { Scenario } from "@main/content/game/scenario";
 import type { Settings } from "@main/services/settings.service";
-import type { TachyonEvent, TachyonResponse } from "tachyon-protocol";
+import type { TachyonCommand } from "tachyon-protocol/types";
+
+// Define the tachyon command types based on the protocol
+type TachyonEvent = Extract<TachyonCommand, { type: "event" }>;
+type TachyonResponse = Extract<TachyonCommand, { type: "response" }>;
 import type { ModMetadata, ModInstallOptions, ModType, ModInfo, ModConflict } from "@main/content/mods/mod-types";
 import { ipcRenderer as electronIpcRenderer, ipcMain as electronIpcMain } from "electron";
 

@@ -7,15 +7,41 @@ import { getWSServerURL } from "@main/config/server";
 import { logger } from "@main/utils/logger";
 import { randomUUID } from "node:crypto";
 
-import { GetCommandData, GetCommandIds, GetCommands, TachyonEvent, tachyonMeta, TachyonRequest, TachyonResponse } from "tachyon-protocol";
+import { tachyonMeta } from "tachyon-protocol";
 import { TachyonCommand } from "tachyon-protocol/types";
+
+// Define the tachyon command types based on the protocol
+type TachyonRequest = Extract<TachyonCommand, { type: "request" }>;
+type TachyonResponse = Extract<TachyonCommand, { type: "response" }>;
+type TachyonEvent = Extract<TachyonCommand, { type: "event" }>;
+
+// Type helpers for tachyon commands
+type TachyonActor = "server" | "user" | "autohost";
+type TachyonCommandType = "request" | "response" | "event";
+
+// Extract command IDs for a specific actor and type
+type GetCommandIds<Sender extends TachyonActor = TachyonActor, Receiver extends TachyonActor = TachyonActor, Type extends TachyonCommandType = TachyonCommandType> = Extract<
+    TachyonCommand,
+    { type: Type }
+>["commandId"];
+
+// Extract commands for a specific actor, type, and command ID
+type GetCommands<
+    Sender extends TachyonActor = TachyonActor,
+    Receiver extends TachyonActor = TachyonActor,
+    Type extends TachyonCommandType = TachyonCommandType,
+    CommandId extends string = string,
+> = Extract<TachyonCommand, { type: Type; commandId: CommandId }>;
+
+// Extract data from a command
+type GetCommandData<C extends TachyonCommand> = C extends { data: infer D } ? D : never;
 import * as validators from "tachyon-protocol/validators";
 import { MessageEvent, WebSocket } from "ws";
 
 const log = logger("tachyon-client");
 
 export type TachyonClientRequestHandlers = {
-    [CommandId in GetCommandIds<"server", "user", "request">]: (
+    [CommandId in GetCommandIds<"server", "user", "request">]?: (
         data: GetCommandData<GetCommands<"server", "user", "request", CommandId>>
     ) => Promise<Omit<GetCommands<"user", "server", "response", CommandId>, "type" | "commandId" | "messageId">>;
 };

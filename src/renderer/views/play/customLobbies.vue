@@ -144,7 +144,6 @@ async function createLobby() {
         const response = await window.tachyon.request("lobby/create", {
             name: `Lobby #${lobbyCounter++}`,
             mapName: "Supreme Crossing V1",
-            gameVersion: "byar:test",
             allyTeamConfig: [
                 {
                     maxTeams: 1,

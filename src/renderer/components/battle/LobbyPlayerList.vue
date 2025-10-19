@@ -27,7 +27,7 @@ SPDX-License-Identifier: MIT
                         :class="{ 'is-boss': member.id === lobbyStore.currentLobby.bossId }"
                     >
                         <div class="player-info flex-row gap-md">
-                            <Icon v-if="member.type === 'ai'" :icon="robotIcon" />
+                            <Icon v-if="member.player?.includes('AI')" :icon="robotIcon" />
                             <Icon v-else :icon="accountIcon" />
 
                             <span class="player-name">{{ member.player || member.id }}</span>
@@ -36,11 +36,11 @@ SPDX-License-Identifier: MIT
                                 {{ t("lobby.customLobby.boss") }}
                             </span>
 
-                            <span v-if="member.type === 'player'" class="team-badge"> Team {{ member.team }} </span>
+                            <span class="team-badge"> Team {{ member.team }} </span>
                         </div>
 
-                        <!-- Sync status for players (not AIs) -->
-                        <div v-if="member.type === 'player' && member.sync" class="sync-status flex-row gap-xs">
+                        <!-- Sync status for players -->
+                        <div v-if="member.sync" class="sync-status flex-row gap-xs">
                             <div class="sync-item" :title="`Map: ${member.sync.map ? 'Synced' : 'Not synced'}`">
                                 <Icon :icon="member.sync.map ? checkIcon : closeIcon" :class="member.sync.map ? 'synced' : 'not-synced'" />
                                 <span class="sync-label">Map</span>
@@ -68,8 +68,8 @@ SPDX-License-Identifier: MIT
                             </div>
                         </div>
 
-                        <!-- Spectator indication -->
-                        <div v-else-if="member.type === 'spec'" class="spectator-badge">Spectator</div>
+                        <!-- Spectator indication for players without ally team -->
+                        <div v-else-if="!member.allyTeam" class="spectator-badge">Spectator</div>
                     </div>
                 </div>
             </div>
@@ -85,26 +85,10 @@ SPDX-License-Identifier: MIT
                     <div v-for="spec in spectators" :key="spec.id" class="player-item flex-row gap-md flex-space-between">
                         <div class="player-info flex-row gap-md">
                             <Icon :icon="eyeIcon" />
-                            <span class="player-name">{{ spec.player || spec.id }}</span>
+                            <span class="player-name">{{ spec.id }}</span>
                         </div>
 
-                        <div v-if="spec.sync" class="sync-status flex-row gap-xs">
-                            <Icon
-                                :icon="spec.sync.map ? checkIcon : closeIcon"
-                                :class="spec.sync.map ? 'synced' : 'not-synced'"
-                                title="Map"
-                            />
-                            <Icon
-                                :icon="spec.sync.engine ? checkIcon : closeIcon"
-                                :class="spec.sync.engine ? 'synced' : 'not-synced'"
-                                title="Engine"
-                            />
-                            <Icon
-                                :icon="spec.sync.game ? checkIcon : closeIcon"
-                                :class="spec.sync.game ? 'synced' : 'not-synced'"
-                                title="Game"
-                            />
-                        </div>
+                        <div class="spectator-badge">Spectator</div>
                     </div>
                 </div>
             </div>
@@ -124,7 +108,12 @@ import closeIcon from "@iconify-icons/mdi/close-circle";
 import { useTypedI18n } from "@renderer/i18n";
 
 import { lobbyStore } from "@renderer/store/lobby.store";
-import type { MemberSyncStatus } from "tachyon-protocol/types";
+import type { MemberSyncStatus, LobbyCreateOkResponseData } from "tachyon-protocol/types";
+
+// Define the member types based on the tachyon protocol
+type LobbyPlayer = LobbyCreateOkResponseData["players"][string];
+type PlayerMember = Extract<LobbyPlayer, { allyTeam: string }>;
+type SpecMember = Extract<LobbyPlayer, { type: "spec" }>;
 
 const { t } = useTypedI18n();
 
@@ -132,15 +121,17 @@ const { t } = useTypedI18n();
 const allyTeams = computed(() => {
     if (!lobbyStore.currentLobby) return [];
 
-    const teams: Record<string, any[]> = {};
+    const teams: Record<string, PlayerMember[]> = {};
 
-    Object.values(lobbyStore.currentLobby.members).forEach((member) => {
-        if (member.type !== "spec") {
-            const allyTeam = member.ally || "0";
+    Object.values(lobbyStore.currentLobby.players).forEach((player) => {
+        const typedPlayer = player as LobbyPlayer;
+        if ('allyTeam' in typedPlayer) {
+            const playerMember = typedPlayer as PlayerMember;
+            const allyTeam = playerMember.allyTeam || "0";
             if (!teams[allyTeam]) {
                 teams[allyTeam] = [];
             }
-            teams[allyTeam].push(member);
+            teams[allyTeam].push(playerMember);
         }
     });
 
@@ -153,7 +144,12 @@ const allyTeams = computed(() => {
 const spectators = computed(() => {
     if (!lobbyStore.currentLobby) return [];
 
-    return Object.values(lobbyStore.currentLobby.members).filter((member) => member.type === "spec");
+    return Object.values(lobbyStore.currentLobby.players)
+        .filter((player) => {
+            const typedPlayer = player as LobbyPlayer;
+            return 'type' in typedPlayer && typedPlayer.type === "spec";
+        })
+        .map((player) => player as SpecMember);
 });
 
 function getModSyncIcon(sync: MemberSyncStatus) {

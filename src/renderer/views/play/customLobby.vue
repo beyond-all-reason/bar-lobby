@@ -56,6 +56,11 @@ import LobbyPlayerList from "@renderer/components/battle/LobbyPlayerList.vue";
 import LobbyModList from "@renderer/components/battle/LobbyModList.vue";
 import { lobbyStore, lobbyActions } from "@renderer/store/lobby.store";
 import { useLobbySync } from "@renderer/composables/useLobbySync";
+import type { LobbyCreateOkResponseData } from "tachyon-protocol/types";
+
+// Define the member types based on the tachyon protocol
+type LobbyPlayer = LobbyCreateOkResponseData["players"][string];
+type PlayerMember = Extract<LobbyPlayer, { allyTeam: string }>;
 
 const { t } = useTypedI18n();
 const router = useRouter();
@@ -68,10 +73,15 @@ const canStartBattle = computed(() => {
     if (!lobbyStore.currentLobby) return false;
 
     // Check that all players are synced
-    const allPlayersSynced = Object.values(lobbyStore.currentLobby.members).every((member) => {
-        if (member.type === "spec") return true; // Spectators don't need to be synced
-        if (!member.sync) return false;
-        return member.sync.map && member.sync.engine && member.sync.game;
+    const allPlayersSynced = Object.values(lobbyStore.currentLobby.players).every((player) => {
+        const typedPlayer = player as LobbyPlayer;
+        if ('type' in typedPlayer && typedPlayer.type === "spec") return true; // Spectators don't need to be synced
+        if ('allyTeam' in typedPlayer) {
+            const playerMember = typedPlayer as PlayerMember;
+            if (!playerMember.sync) return false;
+            return playerMember.sync.map && playerMember.sync.engine && playerMember.sync.game;
+        }
+        return true; // Handle other cases
     });
 
     return allPlayersSynced && isFullySynced.value;
@@ -86,16 +96,14 @@ async function startBattle() {
     if (!lobbyStore.currentLobby || !lobbyStore.isBoss) return;
 
     try {
-        await window.tachyon.request("lobby/startBattle", {
-            lobbyId: lobbyStore.currentLobby.id,
-        });
+        await window.tachyon.request("lobby/startBattle");
     } catch (error) {
         console.error("Failed to start battle:", error);
     }
 }
 
 onMounted(async () => {
-    const lobbyId = route.params.id as string;
+    const lobbyId = (route.params as { id: string }).id;
 
     // If we're not in this lobby yet, join it
     if (!lobbyStore.currentLobby || lobbyStore.currentLobby.id !== lobbyId) {

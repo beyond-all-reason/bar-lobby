@@ -12,7 +12,31 @@ import { MapData, MapDownloadData } from "@main/content/maps/map-data";
 import { DownloadInfo } from "@main/content/downloads";
 import { Info } from "@main/services/info.service";
 import { BattleWithMetadata } from "@main/game/battle/battle-types";
-import { GetCommandData, GetCommandIds, GetCommands, TachyonEvent } from "tachyon-protocol";
+import { TachyonCommand } from "tachyon-protocol/types";
+
+// Define the tachyon command types based on the protocol
+type TachyonEvent = Extract<TachyonCommand, { type: "event" }>;
+
+// Type helpers for tachyon commands
+type TachyonActor = "server" | "user" | "autohost";
+type TachyonCommandType = "request" | "response" | "event";
+
+// Extract command IDs for a specific actor and type
+type GetCommandIds<Sender extends TachyonActor = TachyonActor, Receiver extends TachyonActor = TachyonActor, Type extends TachyonCommandType = TachyonCommandType> = Extract<
+    TachyonCommand,
+    { type: Type }
+>["commandId"];
+
+// Extract commands for a specific actor, type, and command ID
+type GetCommands<
+    Sender extends TachyonActor = TachyonActor,
+    Receiver extends TachyonActor = TachyonActor,
+    Type extends TachyonCommandType = TachyonCommandType,
+    CommandId extends string = string,
+> = Extract<TachyonCommand, { type: Type; commandId: CommandId }>;
+
+// Extract data from a command
+type GetCommandData<C extends TachyonCommand> = C extends { data: infer D } ? D : never;
 import { MultiplayerLaunchSettings } from "@main/game/game";
 import { logLevels } from "@main/services/log.service";
 import { ModMetadata, ModInstallOptions, ModType, ModInfo, ModConflict } from "@main/content/mods/mod-types";
