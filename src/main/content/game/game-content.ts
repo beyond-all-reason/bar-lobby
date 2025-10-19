@@ -293,7 +293,7 @@ export class GameContentAPI extends PrDownloaderAPI<string, GameVersion> {
             globPattern = new glob.Glob(filePattern, {});
         }
         while (bufferStream.readStream.readableLength > 0) {
-            const fileNameLength = bufferStream.readInt(1);
+            const fileNameLength = bufferStream.readInt(1, true);
             const fileName = bufferStream.readString(fileNameLength);
             const md5 = bufferStream.read(16).toString("hex");
             const crc32 = bufferStream.read(4).toString("hex");
