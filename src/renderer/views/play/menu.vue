@@ -119,7 +119,7 @@ const openTournaments = () => {
     display: flex;
     flex-direction: column;
     min-height: 64px;
-
+    transition: background-color 0.3s linear 0s;
     &.large {
         grid-column: span 1;
     }
@@ -170,10 +170,11 @@ const openTournaments = () => {
         letter-spacing: 0.5px;
         z-index: 2;
     }
-
     &:hover {
         transform: translateY(-3px);
-
+        transition: background-color 0.1s linear 0s;
+        background-color: rgba(255, 255, 255, 0.4);
+        //background-color: #22c55e;
         :deep(.panel) {
             border-color: rgba(255, 255, 255, 0.4);
             box-shadow:
@@ -187,7 +188,7 @@ const openTournaments = () => {
         }
 
         .card-content h2 {
-            color: #22c55e;
+            //color: #22c55e;
             text-shadow: 0 0 10px rgba(34, 197, 94, 0.5);
         }
     }
