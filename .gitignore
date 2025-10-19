@@ -48,3 +48,4 @@ thumbs.db
 debug.log
 bun.lockb
 *.pfx
+*.ps1
