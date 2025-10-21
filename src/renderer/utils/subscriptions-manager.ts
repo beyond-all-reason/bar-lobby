@@ -40,12 +40,9 @@ export class SubsManager {
         const userUnsubs: UserId[] = [];
         for (const user of typeof users === "string" ? [users] : users) {
             const uLists: Set<symbol> | undefined = this.userList.get(user);
-            if (uLists != undefined) {
-                uLists.delete(list);
-                if (uLists.size == 0) {
-                    userUnsubs.push(user);
-                    this.userList.delete(user);
-                }
+            if (uLists?.delete(list) && uLists.size === 0) {
+                userUnsubs.push(user);
+                this.userList.delete(user);
             }
         }
         if (userUnsubs.length > 0) {

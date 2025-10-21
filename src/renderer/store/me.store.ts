@@ -32,7 +32,7 @@ export const me = reactive<
     permissions: new Set<string>(),
 });
 
-const friendsSymbol = Symbol();
+const friendsSymbol = Symbol("me.store");
 
 async function subscribeToUsers(userIds: string[]) {
     if (userIds.length === 0) return;
