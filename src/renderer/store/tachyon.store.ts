@@ -8,7 +8,6 @@ import { auth, me } from "@renderer/store/me.store";
 import { SystemServerStatsOkResponseData } from "tachyon-protocol/types";
 import { reactive } from "vue";
 import { fetchAvailableQueues } from "@renderer/store/matchmaking.store";
-import { notificationsApi } from "@renderer/api/notifications";
 import { router } from "@renderer/router";
 import { battleStore } from "@renderer/store/battle.store";
 import { subsManager } from "@renderer/store/users.store";

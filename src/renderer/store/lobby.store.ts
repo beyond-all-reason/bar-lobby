@@ -2,7 +2,6 @@
 //
 // SPDX-License-Identifier: MIT
 
-import { me, getAllUserSubscriptions } from "@renderer/store/me.store";
 import {
     LobbyCreateOkResponseData,
     LobbyCreateRequestData,
@@ -25,8 +24,11 @@ import { battleStore, battleActions } from "@renderer/store/battle.store";
 import { db } from "@renderer/store/db";
 import { notificationsApi } from "@renderer/api/notifications";
 import { setupI18n } from "@renderer/i18n";
+import { subsManager } from "@renderer/store/users.store";
 
 const i18n = setupI18n();
+
+const lobbySymbol = Symbol("lobby.store");
 
 export const lobbyStore: {
     isInitialized: boolean;
@@ -42,7 +44,6 @@ export const lobbyStore: {
     activeLobby: null, //This will hold changes from ``lobby/updated`` events
 });
 
-//TODO: Switch this to subsManager once merged
 async function subscribeList() {
     try {
         lobbyStore.error = undefined;
@@ -58,7 +59,7 @@ async function subscribeList() {
         lobbyStore.lobbyList = {};
     }
 }
-//TODO: Switch this to subsManager once merged
+
 async function unsubscribeList() {
     try {
         lobbyStore.error = undefined;
@@ -102,28 +103,20 @@ async function joinLobby(id: LobbyJoinRequestData) {
         console.log("Tachyon: lobby/join:", response.status, response.data);
         lobbyStore.activeLobby = parseLobbyResponseData(response.data);
         battleStore.isLobbyOpened = true;
-        //TODO: Switch this to subsManager once merged
         const userSubList: UserId[] = [];
         for (const memberKey in lobbyStore.activeLobby.players) {
-            if (lobbyStore.activeLobby.players[memberKey]) {
-                userSubList.push(lobbyStore.activeLobby.players[memberKey].id);
-            }
+            // if (lobbyStore.activeLobby.players[memberKey]) {
+            //     userSubList.push(lobbyStore.activeLobby.players[memberKey].id);
+            // }
+            userSubList.push(lobbyStore.activeLobby.players[memberKey].id);
         }
         for (const memberKey in lobbyStore.activeLobby.spectators) {
-            if (lobbyStore.activeLobby.spectators[memberKey]) {
-                userSubList.push(lobbyStore.activeLobby.spectators[memberKey].id);
-            }
+            // if (lobbyStore.activeLobby.spectators[memberKey]) {
+            //     userSubList.push(lobbyStore.activeLobby.spectators[memberKey].id);
+            // }
+            userSubList.push(lobbyStore.activeLobby.spectators[memberKey].id);
         }
-        try {
-            const response = await window.tachyon.request("user/subscribeUpdates", { userIds: userSubList });
-            console.log("Tachyon joinLobby() requesting user/subscribeUpdates:", response);
-        } catch (error) {
-            console.error("Error with joinLobby() requesting user/subscribeUpdates:", error);
-            notificationsApi.alert({
-                text: "Error with request user/subscribeUpdates",
-                severity: "error",
-            });
-        }
+        subsManager.attach(userSubList, lobbySymbol);
     } catch (error) {
         console.error("Error with request lobby/join", error);
         notificationsApi.alert({
@@ -387,17 +380,15 @@ async function onLobbyUpdatedEvent(data: LobbyUpdatedEventData) {
     lobbyStore.activeLobby.playerCount = playerCount;
     lobbyStore.activeLobby.spectatorCount = spectatorCount;
     lobbyStore.activeLobby.botCount = botCount;
-    const userSubList: UserId[] = [];
-    const userUnsubList: UserId[] = [];
-    const keepList = getAllUserSubscriptions();
-    //TODO: Switch this to subsManager once merged
+    const userAttachList: UserId[] = [];
+    const userDetachList: UserId[] = [];
     if (data.players) {
         for (const memberKey in data.players) {
             const member = data.players[memberKey];
             if (member != null) {
-                userSubList.push(member.id);
-            } else if (!keepList.includes(memberKey)) {
-                userUnsubList.push(memberKey);
+                userAttachList.push(member.id);
+            } else {
+                userDetachList.push(memberKey);
             }
         }
     }
@@ -405,35 +396,17 @@ async function onLobbyUpdatedEvent(data: LobbyUpdatedEventData) {
         for (const memberKey in data.spectators) {
             const member = data.spectators[memberKey];
             if (member != null) {
-                userSubList.push(member.id);
-            } else if (!keepList.includes(memberKey)) {
-                userUnsubList.push(memberKey);
+                userAttachList.push(member.id);
+            } else {
+                userDetachList.push(memberKey);
             }
         }
     }
-    if (userSubList.length > 0) {
-        try {
-            const response = await window.tachyon.request("user/subscribeUpdates", { userIds: userSubList });
-            console.log("Tachyon onLobbyUpdatedEvent() user/subscribeUpdates:", response);
-        } catch (error) {
-            console.log("Tachyon error: onLobbyUpdatedEvent() user/subscribeUpdates:", error);
-            notificationsApi.alert({
-                text: "Tachyon error with user/subscribeUpdates",
-                severity: "error",
-            });
-        }
+    if (userAttachList.length > 0) {
+        subsManager.attach(userAttachList, lobbySymbol);
     }
-    if (userUnsubList.length > 0) {
-        try {
-            const response = await window.tachyon.request("user/unsubscribeUpdates", { userIds: userUnsubList });
-            console.log("Tachyon onLobbyUpdatedEvent() user/unsubscribeUpdates:", response);
-        } catch (error) {
-            console.log("Tachyon error: onLobbyUpdatedEvent() user/unsubscribeUpdates:", error);
-            notificationsApi.alert({
-                text: "Tachyon error with user/unsubscribeUpdates",
-                severity: "error",
-            });
-        }
+    if (userDetachList.length > 0) {
+        subsManager.detach(userDetachList, lobbySymbol);
     }
 }
 
@@ -449,48 +422,15 @@ function onLobbyLeftEvent(data: LobbyLeftEventData) {
     });
 }
 
-//TODO: Switch this to subsManager once merged
 async function clearUserSubscriptions() {
-    const userUnsubList: UserId[] = [];
-    const keepList = getAllUserSubscriptions();
-    if (lobbyStore.activeLobby?.players) {
-        for (const memberKey in lobbyStore.activeLobby.players) {
-            // Skip unsubbing from ourselves.
-            if (lobbyStore.activeLobby.players[memberKey].id != me.userId) {
-                // Skip any users that are subscribed from the me.store
-                if (!keepList.includes(memberKey)) {
-                    userUnsubList.push(lobbyStore.activeLobby.players[memberKey].id);
-                }
-            }
-        }
-    }
-    if (lobbyStore.activeLobby?.spectators) {
-        for (const memberKey in lobbyStore.activeLobby.spectators) {
-            if (lobbyStore.activeLobby.spectators[memberKey].id != me.userId) {
-                if (!keepList.includes(memberKey)) {
-                    userUnsubList.push(lobbyStore.activeLobby.spectators[memberKey].id);
-                }
-            }
-        }
-    }
-    if (userUnsubList.length > 0) {
-        try {
-            const response = await window.tachyon.request("user/unsubscribeUpdates", { userIds: userUnsubList });
-            console.log("Tachyon clearUserSubscriptions() user/unsubscribeUpdates:", response);
-        } catch (error) {
-            console.log("Tachyon error: clearUserSubscriptions() user/unsubscribeUpdates:", error);
-            notificationsApi.alert({
-                text: "Tachyon error with user/unsubscribeUpdates",
-                severity: "error",
-            });
-        }
-    }
+    subsManager.clearAllFromList(lobbySymbol);
 }
 
 function clearLobbyAndListInfo() {
     lobbyStore.lobbyList = {};
     lobbyStore.selectedLobby = null;
     lobbyStore.activeLobby = undefined;
+    clearUserSubscriptions();
 }
 
 export async function initLobbyStore() {
