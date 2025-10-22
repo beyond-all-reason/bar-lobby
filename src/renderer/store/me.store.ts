@@ -8,6 +8,7 @@ import { reactive, toRaw } from "vue";
 import { tachyonStore } from "@renderer/store/tachyon.store";
 import { PrivateUser } from "tachyon-protocol/types";
 import { lobby } from "@renderer/store/lobby.store";
+import { subsManager } from "@renderer/store/users.store";
 
 export const me = reactive<
     Me & {
@@ -32,30 +33,16 @@ export const me = reactive<
     permissions: new Set<string>(),
 });
 
-const subscribedUserIds = new Set<string>();
+const friendsSymbol = Symbol("me.store");
 
 async function subscribeToUsers(userIds: string[]) {
     if (userIds.length === 0) return;
-
-    try {
-        const userIdsTuple = userIds as [string, ...string[]];
-        await window.tachyon.request("user/subscribeUpdates", { userIds: userIdsTuple });
-        userIds.forEach((id) => subscribedUserIds.add(id));
-    } catch (error) {
-        console.error("Failed to subscribe to users:", error);
-    }
+    subsManager.attach(userIds, friendsSymbol);
 }
 
 async function unsubscribeFromUsers(userIds: string[]) {
     if (userIds.length === 0) return;
-
-    try {
-        const userIdsTuple = userIds as [string, ...string[]];
-        await window.tachyon.request("user/unsubscribeUpdates", { userIds: userIdsTuple });
-        userIds.forEach((id) => subscribedUserIds.delete(id));
-    } catch (error) {
-        console.error("Failed to unsubscribe from users:", error);
-    }
+    subsManager.detach(userIds, friendsSymbol);
 }
 
 async function login() {
@@ -74,10 +61,7 @@ function playOffline() {
 }
 
 async function logout() {
-    if (subscribedUserIds.size > 0) {
-        await unsubscribeFromUsers(Array.from(subscribedUserIds));
-    }
-
+    subsManager.clearAllFromList(friendsSymbol);
     window.auth.logout();
     window.tachyon.disconnect();
     me.isAuthenticated = false;
