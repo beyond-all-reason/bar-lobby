@@ -85,6 +85,7 @@ window.tachyon.onEvent("user/self", async (event) => {
         await processFriendData(event.user);
         // If we get the user/self event on reconnection, and are in a lobby, doing a join will refresh all the data for us automatically and reopen it.
         // FIXME: server is not sending back the currentLobby even if it thinks we are in one. This code does not work yet as a result.
+        // https://github.com/beyond-all-reason/teiserver/issues/817
         if (event.user.currentLobby !== null) {
             lobby.joinLobby({ id: event.user.currentLobby });
         } else {
@@ -114,14 +115,6 @@ async function processFriendData(userData: PrivateUser) {
     } catch (error) {
         console.error("Failed to process friend data:", error);
     }
-}
-
-// We should keep track of all desired subscriptions and return there here.
-// Anywhere else in the client that we need to know what users we are actively subbed to, we get from here.
-// This excludes temporary subscriptions from party, matchmaking, or lobbies. Those will be internally tracked
-// by their own store, and the should check against this list before un-subbing from any user.
-export function getAllUserSubscriptions() {
-    return Array.from(toRaw(me.friendUserIds).union(me.outgoingFriendRequestUserIds).union(me.incomingFriendRequestUserIds));
 }
 
 window.tachyon.onEvent("friend/requestReceived", async (event) => {
