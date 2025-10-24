@@ -4,16 +4,18 @@
 
 import { db } from "@renderer/store/db";
 import { reactive } from "vue";
+import { SubsManager } from "@renderer/utils/subscriptions-manager";
 
-export const usersStore = reactive<{
+export const usersStore: {
     isInitialized: boolean;
-}>({
+} = reactive({
     isInitialized: false,
 });
 
+export const subsManager = new SubsManager();
+
 export function initUsersStore() {
     if (usersStore.isInitialized) return;
-
     window.tachyon.onEvent("user/updated", (event) => {
         console.debug(`Received user/updated event: ${JSON.stringify(event)}`);
         event.users.forEach(async (user) => {
