@@ -22,7 +22,7 @@ export enum MatchmakingStatus {
     MatchAccepted = "MatchAccepted",
 }
 
-export const matchmakingStore = reactive<{
+export const matchmakingStore: {
     isInitialized: boolean;
     isDrawerOpen: boolean;
     status: MatchmakingStatus;
@@ -39,7 +39,7 @@ export const matchmakingStore = reactive<{
             needed: boolean;
         };
     };
-}>({
+} = reactive({
     isInitialized: false,
     isDrawerOpen: false,
     status: MatchmakingStatus.Idle,
@@ -180,29 +180,17 @@ async function sendReadyRequest() {
 export async function initializeMatchmakingStore() {
     if (matchmakingStore.isInitialized) return;
 
-    window.tachyon.onEvent("matchmaking/queueUpdate", (data) => {
-        onQueueUpdateEvent(data);
-    });
+    window.tachyon.onEvent("matchmaking/queueUpdate", onQueueUpdateEvent);
 
-    window.tachyon.onEvent("matchmaking/lost", () => {
-        onLostEvent();
-    });
+    window.tachyon.onEvent("matchmaking/lost", onLostEvent);
 
-    window.tachyon.onEvent("matchmaking/foundUpdate", (data) => {
-        onFoundUpdateEvent(data);
-    });
+    window.tachyon.onEvent("matchmaking/foundUpdate", onFoundUpdateEvent);
 
-    window.tachyon.onEvent("matchmaking/cancelled", (data) => {
-        onCancelledEvent(data);
-    });
+    window.tachyon.onEvent("matchmaking/cancelled", onCancelledEvent);
 
-    window.tachyon.onEvent("matchmaking/found", (data) => {
-        onFoundEvent(data);
-    });
+    window.tachyon.onEvent("matchmaking/found", onFoundEvent);
 
-    window.tachyon.onEvent("matchmaking/queuesJoined", (data) => {
-        onQueuesJoinedEvent(data);
-    });
+    window.tachyon.onEvent("matchmaking/queuesJoined", onQueuesJoinedEvent);
 
     if (tachyonStore.isConnected) {
         await sendListRequest();
