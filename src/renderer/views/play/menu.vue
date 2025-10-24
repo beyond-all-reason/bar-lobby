@@ -9,77 +9,89 @@ SPDX-License-Identifier: MIT
 </route>
 
 <template>
-    <div class="view">
-        <div class="game-menu-container">
-            <div class="game-modes-grid">
-                <Panel class="game-mode-card large" @click="startSkirmish">
-                    <div class="card-content">
-                        <h2>Skirmish vs AI</h2>
-                        <p>Battle against AI opponents on custom maps</p>
-                    </div>
-                </Panel>
+    <div class="view view-adjust-bottom">
+        <div class="move-right">
+            <div class="game-menu-container">
+                <div class="game-modes-grid">
+                    <Panel :no-padding="true" class="game-mode-card" @click="startSkirmish">
+                        <div class="card-content">
+                            <h2>Skirmish vs AI</h2>
+                        </div>
+                    </Panel>
 
-                <Panel class="game-mode-card large coming-soon" @click="startCampaign">
-                    <div class="card-content">
-                        <h2>Campaign</h2>
-                        <p>Experience epic single-player missions</p>
-                        <div class="coming-soon-badge">Coming Soon</div>
-                    </div>
-                </Panel>
+                    <Panel :no-padding="true" class="game-mode-card disabled" @click="startCampaign">
+                        <div class="card-content">
+                            <h2>Campaign<span class="small-text margin-left-md">(Coming Soon)</span></h2>
+                        </div>
+                    </Panel>
 
-                <Panel class="game-mode-card large" @click="startMatchmaking">
-                    <div class="card-content">
-                        <h2>Matchmaking</h2>
-                        <p>Ranked battles with skill-based matching</p>
-                    </div>
-                </Panel>
+                    <Panel :no-padding="true" class="game-mode-card disabled" @click="startMatchmaking">
+                        <div class="card-content">
+                            <h2>Matchmaking<span class="small-text margin-left-md">(Coming Soon)</span></h2>
+                        </div>
+                    </Panel>
 
-                <Panel class="game-mode-card large" @click="startCustomLobbies">
-                    <div class="card-content">
-                        <h2>Custom Lobbies</h2>
-                        <p>Join community-hosted battle rooms</p>
-                    </div>
-                </Panel>
+                    <Panel :no-padding="true" class="game-mode-card" @click="openScenarios">
+                        <div class="card-content">
+                            <h2>Scenarios</h2>
+                        </div>
+                    </Panel>
 
-                <Panel class="game-mode-card wide" @click="openScenarios">
-                    <div class="card-content">
-                        <h2>Scenarios</h2>
-                        <p>Special challenge missions and cooperative battles</p>
-                    </div>
-                </Panel>
+                    <Panel :no-padding="true" class="game-mode-card disabled" @click="startCustomLobbies">
+                        <div class="card-content">
+                            <h2>Custom Lobbies<span class="small-text margin-left-md">(Coming Soon)</span></h2>
+                        </div>
+                    </Panel>
 
-                <Panel class="game-mode-card wide" @click="openTournaments">
-                    <div class="card-content">
-                        <h2>Tournaments</h2>
-                        <p>Competitive events and community competitions</p>
-                    </div>
-                </Panel>
+                    <Panel :no-padding="true" class="game-mode-card disabled" @click="openTournaments">
+                        <div class="card-content">
+                            <h2>Tournaments<span class="small-text margin-left-md">(Coming Soon)</span></h2>
+                        </div>
+                    </Panel>
+                </div>
             </div>
         </div>
     </div>
 </template>
 
 <script lang="ts" setup>
+import { watch } from "vue";
 import { useRouter } from "vue-router";
 import Panel from "@renderer/components/common/Panel.vue";
+import { settingsStore } from "@renderer/store/settings.store";
+import { battleStore } from "@renderer/store/battle.store";
 
 const router = useRouter();
 
+watch(
+    () => battleStore.isSelectingGameMode,
+    (newValue) => {
+        battleStore.isLobbyOpened = !newValue;
+    }
+);
+
 // Game mode handlers
 const startSkirmish = () => {
-    router.push("/play/skirmishVsAi");
+    //router.push("/play/skirmishVsAi");
+    battleStore.isSelectingGameMode = true;
 };
 
 const startCampaign = () => {
-    router.push("/play/campaign");
+    if (settingsStore.devMode) {
+        router.push("/play/campaign");
+    }
 };
 
 const startMatchmaking = () => {
-    router.push("/play/matchmaking");
+    if (settingsStore.devMode) {
+        router.push("/play/matchmaking");
+    }
 };
 
 const startCustomLobbies = () => {
-    router.push("/play/customLobbies");
+    if (settingsStore.devMode) {
+        router.push("/play/customLobbies");
+    }
 };
 
 const openScenarios = () => {
@@ -87,28 +99,41 @@ const openScenarios = () => {
 };
 
 const openTournaments = () => {
-    router.push("/play/tournaments");
+    if (settingsStore.devMode) {
+        router.push("/play/tournaments");
+    }
 };
 </script>
 
 <style lang="scss" scoped>
+.disabled {
+    opacity: 60%;
+}
+.small-text {
+    font-size: 60%;
+}
+.view-adjust-bottom {
+    padding-bottom: 30px;
+    display: flex;
+    flex-direction: column-reverse;
+}
+.move-right {
+    display: flex;
+    flex-direction: row-reverse;
+}
 .game-menu-container {
     display: flex;
     flex-direction: column;
-    align-self: center;
-    width: 100%;
+    width: 28%;
     height: 100%;
-    padding: 40px 60px;
+    padding: 40px 40px;
 }
 
 .game-modes-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    grid-template-rows: repeat(2, 1fr);
+    grid-template-columns: repeat(1, 1fr);
     gap: 20px;
-    height: 100%;
-    max-width: 1400px;
-    margin: 0 auto;
+    margin: 0 0;
     flex: 1;
 }
 
@@ -118,8 +143,8 @@ const openTournaments = () => {
     transition: all 0.3s ease;
     display: flex;
     flex-direction: column;
-    min-height: 200px;
-
+    min-height: 64px;
+    transition: background-color 0.3s linear 0s;
     &.large {
         grid-column: span 1;
     }
@@ -139,11 +164,12 @@ const openTournaments = () => {
         h2 {
             font-size: 1.8rem;
             font-weight: 600;
-            margin: 0 0 10px 0;
+            margin: 0 0 0 0;
             color: white;
             font-family: Rajdhani, sans-serif;
             text-transform: uppercase;
             letter-spacing: 1px;
+            margin: 15px 30px;
         }
 
         p {
@@ -169,10 +195,10 @@ const openTournaments = () => {
         letter-spacing: 0.5px;
         z-index: 2;
     }
-
     &:hover {
         transform: translateY(-3px);
-
+        transition: background-color 0.1s linear 0s;
+        background-color: rgba(255, 255, 255, 0.4);
         :deep(.panel) {
             border-color: rgba(255, 255, 255, 0.4);
             box-shadow:
@@ -186,7 +212,6 @@ const openTournaments = () => {
         }
 
         .card-content h2 {
-            color: #22c55e;
             text-shadow: 0 0 10px rgba(34, 197, 94, 0.5);
         }
     }
@@ -216,7 +241,6 @@ const openTournaments = () => {
 
         .content {
             height: 100%;
-            padding: 30px;
         }
     }
 }
