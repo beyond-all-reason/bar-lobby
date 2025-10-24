@@ -19,21 +19,15 @@ SPDX-License-Identifier: MIT
                         </div>
                     </Panel>
 
-                    <Panel :no-padding="true" class="game-mode-card" @click="startCampaign">
+                    <Panel :no-padding="true" class="game-mode-card disabled" @click="startCampaign">
                         <div class="card-content">
-                            <h2>Campaign</h2>
+                            <h2>Campaign<span class="small-text margin-left-md">(Coming Soon)</span></h2>
                         </div>
                     </Panel>
 
-                    <Panel :no-padding="true" class="game-mode-card" @click="startMatchmaking">
+                    <Panel :no-padding="true" class="game-mode-card disabled" @click="startMatchmaking">
                         <div class="card-content">
-                            <h2>Matchmaking</h2>
-                        </div>
-                    </Panel>
-
-                    <Panel :no-padding="true" class="game-mode-card" @click="startCustomLobbies">
-                        <div class="card-content">
-                            <h2>Custom Lobbies</h2>
+                            <h2>Matchmaking<span class="small-text margin-left-md">(Coming Soon)</span></h2>
                         </div>
                     </Panel>
 
@@ -43,9 +37,15 @@ SPDX-License-Identifier: MIT
                         </div>
                     </Panel>
 
-                    <Panel :no-padding="true" class="game-mode-card" @click="openTournaments">
+                    <Panel :no-padding="true" class="game-mode-card disabled" @click="startCustomLobbies">
                         <div class="card-content">
-                            <h2>Tournaments</h2>
+                            <h2>Custom Lobbies<span class="small-text margin-left-md">(Coming Soon)</span></h2>
+                        </div>
+                    </Panel>
+
+                    <Panel :no-padding="true" class="game-mode-card disabled" @click="openTournaments">
+                        <div class="card-content">
+                            <h2>Tournaments<span class="small-text margin-left-md">(Coming Soon)</span></h2>
                         </div>
                     </Panel>
                 </div>
@@ -55,26 +55,43 @@ SPDX-License-Identifier: MIT
 </template>
 
 <script lang="ts" setup>
+import { watch } from "vue";
 import { useRouter } from "vue-router";
 import Panel from "@renderer/components/common/Panel.vue";
+import { settingsStore } from "@renderer/store/settings.store";
+import { battleStore } from "@renderer/store/battle.store";
 
 const router = useRouter();
 
+watch(
+    () => battleStore.isSelectingGameMode,
+    (newValue) => {
+        battleStore.isLobbyOpened = !newValue;
+    }
+);
+
 // Game mode handlers
 const startSkirmish = () => {
-    router.push("/play/skirmishVsAi");
+    //router.push("/play/skirmishVsAi");
+    battleStore.isSelectingGameMode = true;
 };
 
 const startCampaign = () => {
-    router.push("/play/campaign");
+    if (settingsStore.devMode) {
+        router.push("/play/campaign");
+    }
 };
 
 const startMatchmaking = () => {
-    router.push("/play/matchmaking");
+    if (settingsStore.devMode) {
+        router.push("/play/matchmaking");
+    }
 };
 
 const startCustomLobbies = () => {
-    router.push("/play/customLobbies");
+    if (settingsStore.devMode) {
+        router.push("/play/customLobbies");
+    }
 };
 
 const openScenarios = () => {
@@ -82,11 +99,19 @@ const openScenarios = () => {
 };
 
 const openTournaments = () => {
-    router.push("/play/tournaments");
+    if (settingsStore.devMode) {
+        router.push("/play/tournaments");
+    }
 };
 </script>
 
 <style lang="scss" scoped>
+.disabled {
+    opacity: 60%;
+}
+.small-text {
+    font-size: 60%;
+}
 .view-adjust-bottom {
     padding-bottom: 30px;
     display: flex;
@@ -99,7 +124,7 @@ const openTournaments = () => {
 .game-menu-container {
     display: flex;
     flex-direction: column;
-    width: 25%;
+    width: 28%;
     height: 100%;
     padding: 40px 40px;
 }
