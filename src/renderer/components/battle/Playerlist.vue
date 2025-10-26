@@ -105,8 +105,6 @@ const displayQueue = computed(() => {
     if (!battleStore.isOnline) {
         return false;
     }
-    // We always display the queue when online because the "join queue" button exists there.
-    // Once final lobby appearance is determined, this logic may be different.
     return true;
 });
 

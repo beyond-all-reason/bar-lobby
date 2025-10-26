@@ -59,6 +59,15 @@ SPDX-License-Identifier: MIT
                         @row-select="lobbyStore.selectedLobby = $event.data"
                         @row-dblclick="sendLobbyJoinRequest($event.data)"
                     >
+                        <Column field="currentBattle" sortable>
+                            <template #body="{ data }">
+                                <div class="flex-row flex-center-items gap-md">
+                                    <div v-if="data.currentBattle" class="flex-row flex-center-items">
+                                        <Icon :icon="swordcross" height="17" />
+                                    </div>
+                                </div>
+                            </template>
+                        </Column>
                         <Column field="name" :header="t('lobby.multiplayer.custom.table.title')" sortable />
                         <Column field="mapName" :header="t('lobby.multiplayer.custom.table.map')" sortable />
                         <Column :header="t('lobby.multiplayer.custom.table.players')" sortable sortField="playerCount.value">
@@ -111,6 +120,7 @@ import { Icon } from "@iconify/vue";
 import account from "@iconify-icons/mdi/account";
 import eye from "@iconify-icons/mdi/eye";
 import robot from "@iconify-icons/mdi/robot";
+import swordcross from "@iconify-icons/mdi/sword-cross";
 import Column from "primevue/column";
 import DataTable from "primevue/datatable";
 import { ref, computed, onActivated } from "vue";

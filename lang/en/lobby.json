@@ -292,11 +292,16 @@
                     "close": "Close",
                     "openMapSelector": "Open map selector"
                 },
+                "updateBattle": {
+                    "title": "Update Lobby"
+                },
                 "hostBattle": {
                     "title": "Host Battle",
+                    "updateTitle": "Update Battle",
                     "settingUp": "Setting up a dedicated battle host, this usually takes around 30 seconds",
                     "region": "Region",
                     "hostButton": "Host Battle",
+                    "updateButton": "Update Battle",
                     "name": "Name",
                     "startBoxes1": "Startboxes are assigned sequentially to AllyTeams.",
                     "startBoxes2": "Extra startboxes will be dropped.",

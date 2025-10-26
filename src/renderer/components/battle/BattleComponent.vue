@@ -18,10 +18,13 @@ SPDX-License-Identifier: MIT
                 <LeaveConfirmModal v-model="leaveConfirmModalIsOpen" @cancel-leave="cancelLeaveLobby" @confirm-leave="leaveLobby" />
                 <p class="title flex-left padding-left-md padding-right-md">{{ lobbyStore.activeLobby?.name }}</p>
                 <div>
-                    <Button disabled :title="t('lobby.components.battle.offlineBattleComponent.editLobbyName')"
+                    <Button
+                        @click="updateLobbyModalIsOpen = true"
+                        :title="t('lobby.components.battle.offlineBattleComponent.editLobbyName')"
                         ><Icon :icon="pencilIcon" class="flex-right" width="24px" height="24px"
                     /></Button>
                 </div>
+                <UpdateBattle v-model="updateLobbyModalIsOpen" />
             </div>
         </div>
         <div class="main-content">
@@ -155,6 +158,7 @@ import personIcon from "@iconify-icons/mdi/person-multiple";
 import gridIcon from "@iconify-icons/mdi/grid";
 import LeaveConfirmModal from "@renderer/components/battle/LeaveConfirmModal.vue";
 import { lobbyStore, lobby } from "@renderer/store/lobby.store";
+import UpdateBattle from "@renderer/components/battle/UpdateBattle.vue";
 
 const { t } = useTypedI18n();
 
@@ -163,6 +167,7 @@ const mapOptionsOpen = ref(false);
 const mapListOptions = useDexieLiveQuery(() => db.maps.toArray());
 const gameListOptions = useDexieLiveQuery(() => db.gameVersions.toArray());
 const leaveConfirmModalIsOpen = ref(false);
+const updateLobbyModalIsOpen = ref<boolean>(false);
 
 defineProps<{
     online: boolean;

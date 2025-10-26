@@ -16,6 +16,7 @@ import {
     LobbyAddBotRequestData,
     LobbyRemoveBotRequestData,
     LobbyUpdateBotRequestData,
+    LobbyUpdateRequestData,
 } from "tachyon-protocol/types";
 import { reactive } from "vue";
 import { Lobby } from "@renderer/model/lobby";
@@ -335,6 +336,16 @@ async function requestUpdateBot(data: LobbyUpdateBotRequestData) {
     }
 }
 
+async function requestLobbyUpdate(data: LobbyUpdateRequestData) {
+    try {
+        const response = await window.tachyon.request("lobby/update", data);
+        console.log("Tachyon lobby/update:", response);
+    } catch (error) {
+        console.error("Error with request lobby/update", error);
+        notificationsApi.alert({ text: "Error with request lobby/update", severity: "error" });
+    }
+}
+
 function clearSelectedLobbyIfNull() {
     if (lobbyStore.selectedLobby && lobbyStore.selectedLobby.id && lobbyStore.lobbyList[lobbyStore.selectedLobby.id] == null) {
         lobbyStore.selectedLobby = null;
@@ -358,6 +369,15 @@ async function onLobbyUpdatedEvent(data: LobbyUpdatedEventData) {
     //Apply the patch
     lobbyStore.activeLobby = applyPatch(lobbyStore.activeLobby, data);
     if (!lobbyStore.activeLobby) return;
+    if (data.mapName) {
+        db.maps.get(data.mapName).then((map) => {
+            if (map == undefined) {
+                console.error(`Error in parseLobbyResponseData(), ${data.mapName} is undefined in database.`);
+                notificationsApi.alert({ text: `Error in lobby data, ${data.mapName} not found.`, severity: "error" });
+            }
+            battleStore.battleOptions.map = map;
+        });
+    }
     //Recalculate player counts afterward.
     let maxPlayerCount: number = 0;
     for (const allyKey in lobbyStore.activeLobby.allyTeams) {
@@ -408,6 +428,7 @@ async function onLobbyUpdatedEvent(data: LobbyUpdatedEventData) {
     if (userDetachList.length > 0) {
         subsManager.detach(userDetachList, lobbySymbol);
     }
+    console.log("activeLobby is:", lobbyStore.activeLobby);
 }
 
 function onLobbyLeftEvent(data: LobbyLeftEventData) {
@@ -455,4 +476,5 @@ export const lobby = {
     requestAddBot,
     requestRemoveBot,
     requestUpdateBot,
+    requestLobbyUpdate,
 };

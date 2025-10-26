@@ -4097,11 +4097,16 @@
                     "close": null,
                     "openMapSelector": null
                 },
+                "updateBattle": {
+                    "title": null
+                },
                 "hostBattle": {
                     "title": null,
+                    "updateTitle": null,
                     "settingUp": null,
                     "region": null,
                     "hostButton": null,
+                    "updateButton": null,
                     "name": null,
                     "startBoxes1": null,
                     "startBoxes2": null,
