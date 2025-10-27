@@ -24,6 +24,17 @@ async function refreshStore() {
     }
 }
 
+export async function downloadEngine(engineString: string) {
+    await window.engine
+        .downloadEngine(engineString)
+        .then(async () => {
+            await refreshStore();
+        })
+        .catch((error) => {
+            console.error("Failed to download engine", error);
+        });
+}
+
 export async function initEnginesStore() {
     window.downloads.onDownloadEngineComplete(async (downloadInfo) => {
         console.debug("Received engine download completed event", downloadInfo);
