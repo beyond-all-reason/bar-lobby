@@ -7,7 +7,7 @@ SPDX-License-Identifier: MIT
 <route lang="json5">
 {
     meta: {
-        redirect: "/news/overview",
+        redirect: "/news/announcements",
         title: "News",
         order: 2,
     },

@@ -5,7 +5,7 @@ SPDX-License-Identifier: MIT
 -->
 
 <route lang="json5">
-{ meta: { title: "Overview", order: 0, transition: { name: "slide-left" } } }
+{ meta: { title: "Announcements", order: 0, transition: { name: "slide-left" } } }
 </route>
 
 <template>

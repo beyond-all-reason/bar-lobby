@@ -5,7 +5,7 @@ SPDX-License-Identifier: MIT
 -->
 
 <route lang="json5">
-{ meta: { title: "Matchmaking", order: 3, onlineOnly: true, transition: { name: "slide-left" } } }
+{ meta: { title: "Matchmaking", order: 3, onlineOnly: true transition: { name: "slide-left" } } }
 </route>
 
 <template>

@@ -33,7 +33,9 @@ declare module 'vue-router/auto-routes' {
     '/library/maps/maps': RouteRecordInfo<'/library/maps/maps', '/library/maps/maps', Record<never, never>, Record<never, never>>,
     '/library/units': RouteRecordInfo<'/library/units', '/library/units', Record<never, never>, Record<never, never>>,
     '/news/': RouteRecordInfo<'/news/', '/news', Record<never, never>, Record<never, never>>,
-    '/news/overview': RouteRecordInfo<'/news/overview', '/news/overview', Record<never, never>, Record<never, never>>,
+    '/news/announcements': RouteRecordInfo<'/news/announcements', '/news/announcements', Record<never, never>, Record<never, never>>,
+    '/news/developerLog': RouteRecordInfo<'/news/developerLog', '/news/developerLog', Record<never, never>, Record<never, never>>,
+    '/news/donate': RouteRecordInfo<'/news/donate', '/news/donate', Record<never, never>, Record<never, never>>,
     '/play/': RouteRecordInfo<'/play/', '/play', Record<never, never>, Record<never, never>>,
     '/play/campaign': RouteRecordInfo<'/play/campaign', '/play/campaign', Record<never, never>, Record<never, never>>,
     '/play/customLobbies': RouteRecordInfo<'/play/customLobbies', '/play/customLobbies', Record<never, never>, Record<never, never>>,
@@ -45,5 +47,7 @@ declare module 'vue-router/auto-routes' {
     '/profile/[userId]': RouteRecordInfo<'/profile/[userId]', '/profile/:userId', { userId: ParamValue<true> }, { userId: ParamValue<false> }>,
     '/watch/': RouteRecordInfo<'/watch/', '/watch', Record<never, never>, Record<never, never>>,
     '/watch/replays': RouteRecordInfo<'/watch/replays', '/watch/replays', Record<never, never>, Record<never, never>>,
+    '/watch/tbd1': RouteRecordInfo<'/watch/tbd1', '/watch/tbd1', Record<never, never>, Record<never, never>>,
+    '/watch/tbd2': RouteRecordInfo<'/watch/tbd2', '/watch/tbd2', Record<never, never>, Record<never, never>>,
   }
 }
