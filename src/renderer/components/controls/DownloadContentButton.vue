@@ -70,7 +70,6 @@ window.downloads.onDownloadMapFail(() => {
 });
 
 const ready = computedAsync(async () => {
-    console.log(refreshToken.value);
     const bools = {
         map: false,
         engine: false,
