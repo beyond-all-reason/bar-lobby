@@ -52,24 +52,26 @@ export interface Props extends /* @vue-ignore */ ButtonProps {
 const props = defineProps<Props>();
 
 // Just some side effect to force computedAsync to recompute
-const refreshToken = ref(0);
+const refresh = ref(0);
 window.downloads.onDownloadGameComplete(() => {
-    refreshToken.value += 1;
+    refresh.value += 1;
 });
 window.downloads.onDownloadEngineComplete(() => {
-    refreshToken.value += 1;
+    refresh.value += 1;
 });
 window.downloads.onDownloadEngineFail(() => {
-    refreshToken.value += 1;
+    refresh.value += 1;
 });
 window.downloads.onDownloadGameFail(() => {
-    refreshToken.value += 1;
+    refresh.value += 1;
 });
 window.downloads.onDownloadMapFail(() => {
-    refreshToken.value += 1;
+    refresh.value += 1;
 });
 
 const ready = computedAsync(async () => {
+    //We have to "use" the refreshToken variable in this function to force it to recompute.
+    refresh.value.toString();
     const bools = {
         map: false,
         engine: false,
@@ -146,7 +148,7 @@ async function beginDownload(map?: string, engine?: string, game?: string) {
         } catch (error) {
             console.error(`DownloadMap for ${map} failed:`, error);
             notificationsApi.alert({ text: "Map download failed.", severity: "error" });
-            refreshToken.value += 1;
+            refresh.value += 1;
         }
     }
     if (engine && !(await window.engine.isVersionInstalled(engine))) {
@@ -155,7 +157,7 @@ async function beginDownload(map?: string, engine?: string, game?: string) {
         } catch (error) {
             console.error(`DownloadEngine for ${engine} failed:`, error);
             notificationsApi.alert({ text: "Engine download failed.", severity: "error" });
-            refreshToken.value += 1;
+            refresh.value += 1;
         }
     }
     if (game && !(await window.game.isVersionInstalled(game))) {
@@ -164,7 +166,7 @@ async function beginDownload(map?: string, engine?: string, game?: string) {
         } catch (error) {
             console.error(`DownloadGame for ${game} failed:`, error);
             notificationsApi.alert({ text: "Game download failed.", severity: "error" });
-            refreshToken.value += 1;
+            refresh.value += 1;
         }
     }
 }
