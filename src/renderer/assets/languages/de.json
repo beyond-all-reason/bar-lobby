@@ -2239,7 +2239,10 @@
         },
         "offlineBattleComponent": {
           "offlineBattle": null,
-          "maps": null
+          "maps": null,
+          "game-is-starting": null,
+          "game-is-running": null,
+          "start-the-game": null
         },
         "playerParticipant": {
           "player": null,

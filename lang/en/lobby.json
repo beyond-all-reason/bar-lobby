@@ -385,7 +385,10 @@
 				},
 				"offlineBattleComponent": {
 					"offlineBattle": "Offline Battle",
-					"maps": "Maps"
+					"maps": "Maps",
+					"game-is-starting": "Game is starting...",
+					"game-is-running": "Game is running",
+					"start-the-game": "tart the game"
 				},
 				"playerParticipant": {
 					"player": "Player",
