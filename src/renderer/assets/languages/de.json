@@ -2062,7 +2062,11 @@
         "devMode": null,
         "uploadLogs": null,
         "logUrlCopied": null,
-        "couldNotUploadLog": null
+        "couldNotUploadLog": null,
+        "label-sm": null,
+        "label-md": null,
+        "label-lg": null,
+        "label-display": null
       },
       "friends": {
         "unknown-user": null,

@@ -208,7 +208,11 @@
 				"devMode": "Dev Mode",
 				"uploadLogs": "Upload logs",
 				"logUrlCopied": "Log URL was copied to clipboard.",
-				"couldNotUploadLog": "Could not upload log."
+				"couldNotUploadLog": "Could not upload log.",
+				"label-sm": "Small",
+				"label-md": "Medium",
+				"label-lg": "Large",
+				"label-display": "Display {id}"
 			},
 			"friends": {
 				"unknown-user": "Unknown User",
