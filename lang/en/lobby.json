@@ -370,7 +370,9 @@
 				"replayPreview": {
 					"replay": "Replay",
 					"players": "Players",
-					"spectators": "Spectators"
+					"spectators": "Spectators",
+					"engine-version": "Engine Version",
+					"game-version": "Game Version"
 				},
 				"gameModeComponent": {
 					"gameMode": "Game Mode",

@@ -118,11 +118,11 @@ const teams = computed<Map<number, (DemoModel.Info.Player | DemoModel.Info.AI)[]
 const extraDetails = computed(() => {
     return [
         {
-            title: "Engine Version",
+            title: t('lobby.components.battle.replayPreview.game-version'),
             data: props.replay.engineVersion,
         },
         {
-            title: "Game Version",
+            title: t('lobby.components.battle.replayPreview.game-version'),
             data: props.replay.gameVersion,
         },
     ];

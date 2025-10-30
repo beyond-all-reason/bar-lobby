@@ -4175,7 +4175,9 @@
         "replayPreview": {
           "replay": null,
           "players": null,
-          "spectators": null
+          "spectators": null,
+          "engine-version": null,
+          "game-version": null
         },
         "gameModeComponent": {
           "gameMode": null,
