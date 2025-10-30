@@ -376,7 +376,12 @@
 					"gameMode": "Game Mode",
 					"presets": "Presets",
 					"configureGameOptions": "Configure Game Options",
-					"gameOptions": "Game Options"
+					"gameOptions": "Game Options",
+					"gamemode-classic": "Classic",
+					"gamemode-ffa": "FFA",
+					"gamemode-raptors": "Raptors",
+					"gamemode-scavengers": "Scavengers",
+					"gamemode-skirmish": "Skirmish"
 				},
 				"offlineBattleComponent": {
 					"offlineBattle": "Offline Battle",

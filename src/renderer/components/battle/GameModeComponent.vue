@@ -39,7 +39,7 @@ SPDX-License-Identifier: MIT
 </template>
 <script lang="ts" setup>
 import { LuaOption, LuaOptionSection } from "@main/content/game/lua-options";
-import { type GameModeWithOptions, GameMode } from "@main/game/battle/battle-types";
+import { type GameModeWithOptions, GameMode, GameModeID } from "@main/game/battle/battle-types";
 import LuaOptionsModal from "@renderer/components/battle/LuaOptionsModal.vue";
 import Button from "@renderer/components/controls/Button.vue";
 import Select from "@renderer/components/controls/Select.vue";
@@ -52,11 +52,30 @@ const { t } = useTypedI18n();
 
 //TODO have theses presets come from the game
 const gameModeListOptions: GameModeWithOptions[] = [
-    { label: GameMode.CLASSIC, options: {} },
-    { label: GameMode.FFA, options: {} },
-    { label: GameMode.RAPTORS, options: {} },
-    { label: GameMode.SCAVENGERS, options: {} },
+    { label: getI18nLabel(GameMode.CLASSIC), options: {} },
+    { label: getI18nLabel(GameMode.FFA), options: {} },
+    { label: getI18nLabel(GameMode.RAPTORS), options: {} },
+    { label: getI18nLabel(GameMode.SCAVENGERS), options: {} },
 ];
+
+function getI18nLabel(game:string):string {
+	if(game == GameMode.CLASSIC) {
+		return t('lobby.components.battle.gameModeComponent.gamemode-classic');
+	}
+	if(game == GameMode.SKIRMISH) {
+		return t('lobby.components.battle.gameModeComponent.gamemode-skirmish');
+	}
+	if(game == GameMode.FFA) {
+		return t('lobby.components.battle.gameModeComponent.gamemode-ffa');
+	}
+	if(game == GameMode.SCAVENGERS) {
+		return t('lobby.components.battle.gameModeComponent.gamemode-scavengers');
+	}
+	if(game == GameMode.RAPTORS) {
+		return t('lobby.components.battle.gameModeComponent.gamemode-raptors');
+	}
+	return "Unknown Game Mode";
+};
 
 const groupedBySection = ref(new Map<LuaOptionSection, (LuaOption & { value: boolean | string | number })[]>());
 watch(

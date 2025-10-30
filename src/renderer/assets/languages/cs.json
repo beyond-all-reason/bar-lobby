@@ -2359,7 +2359,12 @@
           "gameMode": null,
           "presets": null,
           "configureGameOptions": null,
-          "gameOptions": null
+          "gameOptions": null,
+          "gamemode-classic": null,
+          "gamemode-ffa": null,
+          "gamemode-raptors": null,
+          "gamemode-scavengers": null,
+          "gamemode-skirmish": null
         },
         "offlineBattleComponent": {
           "offlineBattle": null,

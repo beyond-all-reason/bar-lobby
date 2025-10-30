@@ -23,10 +23,11 @@ export interface BattleWithMetadata extends Battle {
     players: Player[];
 }
 
-export type GameModeID = "CLASSIC" | "SKIRMISH" | "RAPTORS" | "SCAVENGERS" | "FFA";
-export type GameModeLabel = "Classic" | "Skirmish" | "Raptors" | "Scavengers" | "FFA";
 
-export const GameMode: Record<GameModeID, GameModeLabel> = {
+export type GameModeID = "CLASSIC" | "SKIRMISH" | "RAPTORS" | "SCAVENGERS" | "FFA";
+
+// For i18n purposes, these are no longer a "GameModeLabel" type.
+export const GameMode: Record<GameModeID, string> = {
     CLASSIC: "Classic",
     SKIRMISH: "Skirmish",
     RAPTORS: "Raptors",
@@ -35,7 +36,7 @@ export const GameMode: Record<GameModeID, GameModeLabel> = {
 };
 
 export type GameModeWithOptions = {
-    label: GameModeLabel;
+    label: string;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     options: Record<string, any>;
 };
