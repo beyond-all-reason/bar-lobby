@@ -4165,7 +4165,9 @@
           "addBot": null
         },
         "spectatorsComponent": {
-          "spectators": null
+          "spectators": null,
+          "member": null,
+          "join": null
         },
         "battlePreview": {
           "preview": null,

@@ -2191,7 +2191,9 @@
           "addBot": "Add bot"
         },
         "spectatorsComponent": {
-          "spectators": "Spectators"
+          "spectators": "Spectators",
+          "member": "Member",
+          "join": "Join"
         },
         "battlePreview": {
           "preview": "Preview",
