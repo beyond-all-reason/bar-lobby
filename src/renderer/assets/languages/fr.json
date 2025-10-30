@@ -3872,6 +3872,11 @@
       "newLobbySubtext": null
     },
     "views": {
+      "profile": {
+        "status": null,
+        "clan": null,
+        "user-not-found": null
+      },
       "play": {
         "coming-soon": null,
         "skirmish": null,
