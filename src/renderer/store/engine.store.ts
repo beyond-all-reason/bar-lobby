@@ -40,6 +40,10 @@ export async function initEnginesStore() {
         console.debug("Received engine download completed event", downloadInfo);
         await refreshStore();
     });
+    window.downloads.onDownloadEngineFail(async (downloadInfo) => {
+        console.error("Engine download failed", downloadInfo);
+        await refreshStore();
+    });
     await refreshStore();
     enginesStore.isInitialized = true;
 }

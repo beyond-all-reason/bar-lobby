@@ -54,7 +54,9 @@ async function init() {
         db.maps.where("springName").equals(springName).modify({ isInstalled: false });
         db.nonLiveMaps.where("springName").equals(springName).modify({ isInstalled: false });
     });
-
+    window.downloads.onDownloadMapFail((downlaodInfo) => {
+        console.error("Map download failed", downlaodInfo);
+    });
     const [liveMaps, nonLiveMaps] = await window.maps.fetchAllMaps();
 
     console.debug("Received maps", [liveMaps, nonLiveMaps]);

@@ -26,7 +26,7 @@ SPDX-License-Identifier: MIT
 </template>
 
 <script lang="ts" setup>
-import { computed, triggerRef } from "vue";
+import { computed, ref } from "vue";
 import { MapDownloadData } from "@main/content/maps/map-data";
 import Button from "@renderer/components/controls/Button.vue";
 import { downloadMap } from "@renderer/store/maps.store";
@@ -37,6 +37,8 @@ import { downloadEngine } from "@renderer/store/engine.store";
 import { downloadGame } from "@renderer/store/game.store";
 import { computedAsync } from "@vueuse/core";
 import { downloadsStore } from "@renderer/store/downloads.store";
+import { notificationsApi } from "@renderer/api/notifications";
+
 const { t } = useTypedI18n();
 
 export interface Props extends /* @vue-ignore */ ButtonProps {
@@ -49,26 +51,26 @@ export interface Props extends /* @vue-ignore */ ButtonProps {
 }
 const props = defineProps<Props>();
 
-//FIXME: After a download, these don't automatically update to show that we have the content. Maps work, but not these two.
-//Vue doesn't seem to be able to see changes in the return from isVersionInstalled.
-//Nor is there a way to just trigger it to recompute? Need to research.
-const engineInstalled = computedAsync(async () => {
-    // if (props.engineVersion == undefined) {
-    //     return true;
-    // } else
-    return await window.engine.isVersionInstalled(props.engineVersion!);
-}, false);
-const gameInstalled = computedAsync(async () => {
-    // if (props.gameVersion == undefined) {
-    //     return true;
-    // } else
-    return window.game.isVersionInstalled(props.gameVersion!);
-}, false);
+// Just some side effect to force computedAsync to recompute
+const refreshToken = ref(0);
+window.downloads.onDownloadGameComplete(() => {
+    refreshToken.value += 1;
+});
+window.downloads.onDownloadEngineComplete(() => {
+    refreshToken.value += 1;
+});
+window.downloads.onDownloadEngineFail(() => {
+    refreshToken.value += 1;
+});
+window.downloads.onDownloadGameFail(() => {
+    refreshToken.value += 1;
+});
+window.downloads.onDownloadMapFail(() => {
+    refreshToken.value += 1;
+});
 
-window.downloads.onDownloadGameComplete(() => {});
-window.downloads.onDownloadEngineComplete(() => {});
-
-const ready = computed(() => {
+const ready = computedAsync(async () => {
+    console.log(refreshToken.value);
     const bools = {
         map: false,
         engine: false,
@@ -82,12 +84,12 @@ const ready = computed(() => {
         bools.map = true;
     }
     if (props.engineVersion != undefined) {
-        bools.engine = engineInstalled.value;
+        bools.engine = await window.engine.isVersionInstalled(props.engineVersion);
     } else {
         bools.engine = true;
     }
     if (props.gameVersion != undefined) {
-        bools.game = gameInstalled.value;
+        bools.game = await window.game.isVersionInstalled(props.gameVersion);
     } else {
         bools.game = true;
     }
@@ -107,6 +109,7 @@ const isMapDownloading = computed(() => {
     }
     return false;
 });
+
 const isEngineDownloading = computed(() => {
     if (props.engineVersion == undefined) {
         return false;
@@ -119,6 +122,7 @@ const isEngineDownloading = computed(() => {
     }
     return false;
 });
+
 const isGameDownloading = computed(() => {
     if (props.gameVersion == undefined) {
         return false;
@@ -139,13 +143,31 @@ const isDownloading = computed(() => {
 // Note; we have to await each download because pr-downloader will crash if we do two/three at once.
 async function beginDownload(map?: string, engine?: string, game?: string) {
     if (map && !props.map?.isInstalled) {
-        await downloadMap(map);
+        try {
+            await downloadMap(map);
+        } catch (error) {
+            console.error(`DownloadMap for ${map} failed:`, error);
+            notificationsApi.alert({ text: "Map download failed.", severity: "error" });
+            refreshToken.value += 1;
+        }
     }
     if (engine && !(await window.engine.isVersionInstalled(engine))) {
-        await downloadEngine(engine);
+        try {
+            await downloadEngine(engine);
+        } catch (error) {
+            console.error(`DownloadEngine for ${engine} failed:`, error);
+            notificationsApi.alert({ text: "Engine download failed.", severity: "error" });
+            refreshToken.value += 1;
+        }
     }
     if (game && !(await window.game.isVersionInstalled(game))) {
-        await downloadGame(game);
+        try {
+            await downloadGame(game);
+        } catch (error) {
+            console.error(`DownloadGame for ${game} failed:`, error);
+            notificationsApi.alert({ text: "Game download failed.", severity: "error" });
+            refreshToken.value += 1;
+        }
     }
 }
 </script>

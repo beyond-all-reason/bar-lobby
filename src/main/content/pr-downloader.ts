@@ -99,6 +99,7 @@ export abstract class PrDownloaderAPI<ID, T> extends AbstractContentAPI<ID, T> {
 
                 prdProcess.on("error", (err) => {
                     log.error(err);
+                    this.downloadFailed(downloadInfo);
                     reject(err);
                 });
 
@@ -108,6 +109,7 @@ export abstract class PrDownloaderAPI<ID, T> extends AbstractContentAPI<ID, T> {
 
                 prdProcess.on("exit", (code, signal) => {
                     if (code !== 0) {
+                        this.downloadFailed(downloadInfo);
                         reject(new Error(`pr-downloader exited with code ${code}, signal ${signal}`));
                     } else {
                         resolve(downloadInfo);

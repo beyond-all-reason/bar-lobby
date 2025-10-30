@@ -57,8 +57,8 @@ SPDX-License-Identifier: MIT
                         <DownloadContentButton
                             v-if="map"
                             :map="map"
-                            :gameVersion="gameVersion"
-                            :engineVersion="enginesStore.selectedEngineVersion?.id"
+                            :game-version="gameVersion"
+                            :engine-version="enginesStore.selectedEngineVersion?.id"
                             class="fullwidth green"
                             :disabled="gameStore.status !== GameStatus.CLOSED"
                             @click="launch"

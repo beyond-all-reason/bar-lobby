@@ -84,7 +84,14 @@ SPDX-License-Identifier: MIT
                         <Button v-else-if="gameStore.status === GameStatus.RUNNING" class="fullwidth grey flex-grow" disabled
                             >Game is running</Button
                         >
-                        <DownloadContentButton v-else :map="map" @click="battleActions.startBattle">Start the game</DownloadContentButton>
+                        <DownloadContentButton
+                            v-else
+                            :map="map"
+                            :engine-version="battleStore.battleOptions.engineVersion"
+                            :game-version="battleStore.battleOptions.gameVersion"
+                            @click="battleActions.startBattle"
+                            >Start the game</DownloadContentButton
+                        >
                     </div>
                     <Button v-else class="fullwidth green flex-grow" disabled>Start the game</Button>
                 </div>

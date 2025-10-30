@@ -97,6 +97,8 @@ SPDX-License-Identifier: MIT
                                         <DownloadContentButton
                                             v-if="map && replay"
                                             :map="map"
+                                            :game-version="replay.gameVersion"
+                                            :engine-version="replay.engineVersion"
                                             @click="watchReplay(replay)"
                                             :disabled="gameStore.status !== GameStatus.CLOSED"
                                         >

@@ -86,6 +86,10 @@ export async function initGameStore() {
         console.debug("Received game download completed event", downloadInfo);
         await refreshStore();
     });
+    window.downloads.onDownloadGameFail(async (downloadInfo) => {
+        console.error("Game download failed", downloadInfo);
+        await refreshStore();
+    });
     window.game.onGameLaunched(() => {
         console.debug("Game loaded");
         gameStore.status = GameStatus.RUNNING;
