@@ -209,6 +209,7 @@
 				"couldNotUploadLog": "Could not upload log."
 			},
 			"friends": {
+				"unknown-user": "Unknown User",
 				"title": "Friends",
 				"blocked": "Blocked",
 				"yourUserId": "Your User ID is",

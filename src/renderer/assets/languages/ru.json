@@ -4014,6 +4014,7 @@
         "couldNotUploadLog": null
       },
       "friends": {
+        "unknown-user": null,
         "title": null,
         "blocked": null,
         "yourUserId": null,
