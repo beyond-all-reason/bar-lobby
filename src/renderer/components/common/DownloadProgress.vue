@@ -67,7 +67,6 @@ const isDownloading = computed(() => {
     return isMapDownloading.value || isEngineDownloading.value || isGameDownloading.value;
 });
 
-// Note; pr-downloader does not like launching three at once, so this will usually just be one download at a time.
 const downloadPercent = computed(() => {
     const downloads = [...downloadsStore.mapDownloads, ...downloadsStore.engineDownloads, ...downloadsStore.gameDownloads];
     const count = downloads.length;

@@ -93,7 +93,6 @@ const ready = computedAsync(async () => {
     } else {
         bools.game = true;
     }
-    console.log("computed booleans:", bools);
     return bools.engine && bools.game && bools.map;
 });
 

@@ -76,7 +76,6 @@ export abstract class PrDownloaderAPI<ID, T> extends AbstractContentAPI<ID, T> {
                                 content: name,
                                 ...progressData,
                             };
-                            console.log(progress);
                             if (progress.totalBytes > 1) {
                                 if (downloadInfo.totalBytes === 0) {
                                     downloadInfo.totalBytes = progress.totalBytes;
@@ -123,12 +122,10 @@ export abstract class PrDownloaderAPI<ID, T> extends AbstractContentAPI<ID, T> {
     }
 
     protected parseProgressMessage(message: string): Omit<PrdProgressMessage, "downloadType" | "content"> {
-        console.log(message);
         const parts = message.split(" ");
         const bytes = parts[parts.length - 1].split("/");
         const currentBytes = parseInt(bytes[0]);
         const totalBytes = parseInt(bytes[1]);
-        console.log(`currentBytes: ${currentBytes} totalBytes:${totalBytes}`);
         //The message contains a percentage, but due to the message.split() it is safer to calculate it ourselves since we have the bytes
         const parsedPercent = currentBytes / totalBytes || 0;
         return { currentBytes, totalBytes, parsedPercent };
