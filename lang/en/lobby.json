@@ -173,7 +173,9 @@
 				"placeholder": "e.g. ws://localhost:4000",
 				"add": "Add",
 				"remove": "Remove",
-				"info": "Changing the Active Server has immediate effect. Remember to log in after switching."
+				"info": "Changing the Active Server has immediate effect. Remember to log in after switching.",
+				"label-default": " - Default Servers",
+				"label-custom": " - Custom Servers"
 			},
 			"breadcrumbs": {
 				"back": "Back"

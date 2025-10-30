@@ -2156,7 +2156,9 @@
         "placeholder": null,
         "add": null,
         "remove": null,
-        "info": null
+        "info": null,
+        "label-default": null,
+        "label-custom": null
       },
       "breadcrumbs": {
         "back": null
