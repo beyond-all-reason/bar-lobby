@@ -3872,6 +3872,15 @@
       "newLobbySubtext": null
     },
     "views": {
+      "play": {
+        "coming-soon": null,
+        "skirmish": null,
+        "campaign": null,
+        "matchmaking": null,
+        "scenarios": null,
+        "custom-lobbies": null,
+        "tournaments": null
+      },
       "watch": {
         "replays": {
           "title": null,

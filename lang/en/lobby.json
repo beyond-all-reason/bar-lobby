@@ -36,6 +36,15 @@
 			"newLobbySubtext": "Welcome to the new BAR lobby public testing alpha 1 commander !\nThis version only supports singleplayer game modes."
 		},
 		"views": {
+			"play": {
+				"coming-soon": "(Coming Soon)",
+				"skirmish": "Skirmish vs AI",
+				"campaign": "Campaign",
+				"matchmaking": "Matchmaking",
+				"scenarios": "Scenarios",
+				"custom-lobbies": "Custom Lobbies",
+				"tournaments": "Tournaments"
+			},
 			"watch": {
 				"replays": {
 					"title": "Replays",
