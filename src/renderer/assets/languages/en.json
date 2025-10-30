@@ -2082,6 +2082,19 @@
         }
       },
       "misc": {
+        "debugsidebar": {
+          "debug-sandbox": "Debug Sandbox",
+          "open-settings-file": "Open Settings File",
+          "open-assets-dir": "Open Assets Dir",
+          "open-state-dir": "Open State Dir",
+          "open-start-script": "Open Latest Start Script",
+          "sync-lobby-content": "Sync Lobby Content Tool",
+          "cause-error": "Cause an error",
+          "game": "Game",
+          "engine": "Engine",
+          "view": "View",
+          "lobby-server-settings": "Lobby Server Settings"
+        },
         "scenarioTile": {
           "title": "Scenario Title"
         },

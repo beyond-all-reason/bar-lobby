@@ -2234,6 +2234,19 @@
         }
       },
       "misc": {
+        "debugsidebar": {
+          "debug-sandbox": null,
+          "open-settings-file": null,
+          "open-assets-dir": null,
+          "open-state-dir": null,
+          "open-start-script": null,
+          "sync-lobby-content": null,
+          "cause-error": null,
+          "game": null,
+          "engine": null,
+          "view": null,
+          "lobby-server-settings": null
+        },
         "scenarioTile": {
           "title": null
         },
