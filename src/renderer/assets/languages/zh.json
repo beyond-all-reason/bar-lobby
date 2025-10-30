@@ -4304,7 +4304,12 @@
         },
         "teamComponent": {
           "team": null,
-          "addBot": null
+          "addBot": null,
+          "join": null,
+          "players": null,
+          "scavengers": null,
+          "raptors": null,
+          "team-id": null
         },
         "spectatorsComponent": {
           "spectators": null,

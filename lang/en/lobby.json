@@ -357,7 +357,12 @@
 				},
 				"teamComponent": {
 					"team": "Team",
-					"addBot": "Add bot"
+					"addBot": "Add bot",
+					"join": "Join",
+					"players": "({count} / {maxCount} players)",
+					"scavengers": "Scavengers",
+					"raptors": "Raptors",
+					"team-id": "Team {id}"
 				},
 				"spectatorsComponent": {
 					"spectators": "Spectators",
