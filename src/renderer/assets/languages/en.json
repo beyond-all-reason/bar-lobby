@@ -1862,6 +1862,34 @@
     "buttons": {
       "quickPlay": "Quick play"
     },
+    "composables": {
+      "use-terrain-icon": {
+        "tooltip-acidic": "Acidic and dangerous waters",
+        "tooltip-alien": "Exotic alient biomes",
+        "tooltip-asteroid": "Lunar landscape, with low gravity and (no) wind",
+        "tooltip-asymmetrical": "Asymmetrical map",
+        "tooltip-chokepoints": "Narrow passages",
+        "tooltip-desert": "Rocky or sandy, barren desert",
+        "tooltip-flat": "Contains large flat areas",
+        "tooltip-forests": "Lots of trees",
+        "tooltip-grassy": "Lots of crispy green grass",
+        "tooltip-hills": "Hilly or mountainous terrain",
+        "tooltip-ice": "A cold place",
+        "tooltip-industrial": "Industrial map with ancient constructions",
+        "tooltip-island": "Island map, land fully surrounded by water",
+        "tooltip-jungle": "Dense foliage and forests",
+        "tooltip-lava": "Dangerous lava pools",
+        "tooltip-metal": "Metal map, where (most of) the surface is made of extractable metal",
+        "tooltip-ruins": "Structures or ruins",
+        "tooltip-sea": "Large bodies of water or Sea",
+        "tooltip-shallows": "Passable shallow water like creeks, rivers and beaches",
+        "tooltip-space": "In outerspace, usually without wind",
+        "tooltip-swamp": "Swampy, wet terrain with lots of ponds and foliage",
+        "tooltip-tropical": "Tropical biome with beaches, palms and tropical fish",
+        "tooltip-wasteland": "Forgotten wasteland that hasn't seen life in a long time",
+        "tooltip-water": "Smaller bodies of water like lakes, ponds or rivers"
+      }
+    },
     "overview": {
       "newLobbyAlpha": "A new lobby has landed",
       "newLobbySubtext": "Welcome to the new BAR lobby public testing alpha 1 commander !\nThis version only supports singleplayer game modes."

@@ -3836,6 +3836,34 @@
     "buttons": {
       "quickPlay": null
     },
+    "composables": {
+      "use-terrain-icon": {
+        "tooltip-acidic": null,
+        "tooltip-alien": null,
+        "tooltip-asteroid": null,
+        "tooltip-asymmetrical": null,
+        "tooltip-chokepoints": null,
+        "tooltip-desert": null,
+        "tooltip-flat": null,
+        "tooltip-forests": null,
+        "tooltip-grassy": null,
+        "tooltip-hills": null,
+        "tooltip-ice": null,
+        "tooltip-industrial": null,
+        "tooltip-island": null,
+        "tooltip-jungle": null,
+        "tooltip-lava": null,
+        "tooltip-metal": null,
+        "tooltip-ruins": null,
+        "tooltip-sea": null,
+        "tooltip-shallows": null,
+        "tooltip-space": null,
+        "tooltip-swamp": null,
+        "tooltip-tropical": null,
+        "tooltip-wasteland": null,
+        "tooltip-water": null
+      }
+    },
     "overview": {
       "newLobbyAlpha": null,
       "newLobbySubtext": null
