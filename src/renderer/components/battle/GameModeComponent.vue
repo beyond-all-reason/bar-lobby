@@ -52,30 +52,11 @@ const { t } = useTypedI18n();
 
 //TODO have theses presets come from the game
 const gameModeListOptions: GameModeWithOptions[] = [
-    { label: getI18nLabel(GameMode.CLASSIC), options: {} },
-    { label: getI18nLabel(GameMode.FFA), options: {} },
-    { label: getI18nLabel(GameMode.RAPTORS), options: {} },
-    { label: getI18nLabel(GameMode.SCAVENGERS), options: {} },
+    { label: t("lobby.components.battle.gameModeComponent.gamemode-classic"), options: {} },
+    { label: t("lobby.components.battle.gameModeComponent.gamemode-ffa"), options: {} },
+    { label: t("lobby.components.battle.gameModeComponent.gamemode-raptors"), options: {} },
+    { label: t("lobby.components.battle.gameModeComponent.gamemode-scavengers"), options: {} },
 ];
-
-function getI18nLabel(game: string): string {
-    if (game == GameMode.CLASSIC) {
-        return t("lobby.components.battle.gameModeComponent.gamemode-classic");
-    }
-    if (game == GameMode.SKIRMISH) {
-        return t("lobby.components.battle.gameModeComponent.gamemode-skirmish");
-    }
-    if (game == GameMode.FFA) {
-        return t("lobby.components.battle.gameModeComponent.gamemode-ffa");
-    }
-    if (game == GameMode.SCAVENGERS) {
-        return t("lobby.components.battle.gameModeComponent.gamemode-scavengers");
-    }
-    if (game == GameMode.RAPTORS) {
-        return t("lobby.components.battle.gameModeComponent.gamemode-raptors");
-    }
-    return "Unknown Game Mode";
-}
 
 const groupedBySection = ref(new Map<LuaOptionSection, (LuaOption & { value: boolean | string | number })[]>());
 watch(
