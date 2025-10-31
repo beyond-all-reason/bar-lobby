@@ -11,7 +11,6 @@ import {
     Bot,
     Faction,
     GameMode,
-    GameModeLabel,
     isBot,
     isPlayer,
     isRaptor,
@@ -451,7 +450,7 @@ function leaveBattle() {
     resetToDefaultBattle();
 }
 
-async function loadGameMode(gameMode: GameModeLabel) {
+async function loadGameMode(gameMode: string) {
     if (!battleStore.battleOptions.engineVersion) {
         const engineVersion = enginesStore.selectedEngineVersion;
         if (!engineVersion) throw new Error("failed to access engine version");
