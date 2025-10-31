@@ -1,508 +1,508 @@
 {
-	"lobby": {
-		"api": {
-			"commands": {
-				"help": "Displays this help text.",
-				"whoami": "Sends back information about who you are.",
-				"whois": "[user] Sends back information about the user specified.",
-				"discord": "Allows linking of your discord account to your BAR account.",
-				"mute": "[username] Mutes that user and prevents you seeing their messages.",
-				"unmute": "[username] Un-mutes that user and allows you to see their messages.",
-				"coc": "[term] Searches the code of conduct and returns items with a textual match in them.",
-				"joinq": "Adds you to the queue to join when a space opens up, you will be automatically added to the game as a player. If already a member it has no effect.",
-				"leaveq": "Removes you from the join queue.",
-				"status": "Status info about the battle lobby.",
-				"afks": "Lists possible afk players.",
-				"password": "Tells you the room password",
-				"splitlobby": "[minimum players] Causes a vote to start where other players can elect to join you in splitting the lobby, follow someone of their choosing or remain in place. After 30 seconds, if at least the minimum number of players agreed to split, you are moved to a new (empty) lobby and those that voted yes or are following someone that voted yes are also moved to that lobby.",
-				"roll": "[range] Rolls a random number based on the range format.\n- Dice format: nDs, where n is number of dice and s is sides of die. E.g. 4D6 - 4 dice with 6 sides are rolled\n- Max format: N, where N is a number and an integer between 1 and N is returned\n- Min/Max format: MN MX, where each is a number and an integer between them (inclusive) is returned",
-				"explain": "Lists a log of the steps taken to calculate balance for the lobby",
-				"reset-approval": "Resets the list of approved players to just the ones present at the moment (approved players are able to join even if it is locked and without needing a password). Requires boss privileges.",
-				"meme": "[meme] A predefined bunch of settings for meme games. It's all Rikerss' fault. Requires boss privileges. ticks: Ticks only!, nodefence: No defences, greenfields: No metal extractors, rich: Infinite money, poor: No money generation, hardt1: T1 but no seaplanes or hovers either, crazy: Random combination of several settings, undo: Removes all meme effects",
-				"welcome-message": "[message] Sets the welcome message sent to anybody joining the lobby. Run this command without a message to clear the existing message. Requires boss privileges. Use $$ to add a line return.",
-				"gatekeeper": "[(default | friends | friendsplay | clan)] sets the gatekeeper for this battle. Requires boss privileges. > default: no limitations. > friends allows only friends of existing members to join the lobby. > friendsplay: allows only friends of existing players to become players (but anybody can join to spectate)",
-				"rename": "[new name] Renames the lobby to the name given. Requires boss privileges.",
-				"resetratinglevels": "Resets the rating level limits to not exist. Player limiting commands are designed to be used with $rename, please be careful not to abuse them. Requires boss privileges.",
-				"minratinglevel": "[min-level] Sets the minimum level for players, you must be at least this rating to be a player. Requires boss privileges.",
-				"maxratinglevel": "[max-level] Sets the maximum level for players, you must be at below this rating to be a player. Requires boss privileges.",
-				"setratinglevels": "[min-level] [max-level] Sets the minimum and maximum rating levels for players. Requires boss privileges."
-			}
-		},
-		"buttons": {
-			"quickPlay": "Quick play"
-		},
-		"composables": {
-			"use-terrain-icon": {
-				"tooltip-acidic": "Acidic and dangerous waters",
-				"tooltip-alien": "Exotic alient biomes",
-				"tooltip-asteroid": "Lunar landscape, with low gravity and (no) wind",
-				"tooltip-asymmetrical": "Asymmetrical map",
-				"tooltip-chokepoints": "Narrow passages",
-				"tooltip-desert": "Rocky or sandy, barren desert",
-				"tooltip-flat": "Contains large flat areas",
-				"tooltip-forests": "Lots of trees",
-				"tooltip-grassy": "Lots of crispy green grass",
-				"tooltip-hills": "Hilly or mountainous terrain",
-				"tooltip-ice": "A cold place",
-				"tooltip-industrial": "Industrial map with ancient constructions",
-				"tooltip-island": "Island map, land fully surrounded by water",
-				"tooltip-jungle": "Dense foliage and forests",
-				"tooltip-lava": "Dangerous lava pools",
-				"tooltip-metal": "Metal map, where (most of) the surface is made of extractable metal",
-				"tooltip-ruins": "Structures or ruins",
-				"tooltip-sea": "Large bodies of water or Sea",
-				"tooltip-shallows": "Passable shallow water like creeks, rivers and beaches",
-				"tooltip-space": "In outerspace, usually without wind",
-				"tooltip-swamp": "Swampy, wet terrain with lots of ponds and foliage",
-				"tooltip-tropical": "Tropical biome with beaches, palms and tropical fish",
-				"tooltip-wasteland": "Forgotten wasteland that hasn't seen life in a long time",
-				"tooltip-water": "Smaller bodies of water like lakes, ponds or rivers"
-			}
-		},
-		"overview": {
-			"newLobbyAlpha": "A new lobby has landed",
-			"newLobbySubtext": "Welcome to the new BAR lobby public testing alpha 1 commander !\nThis version only supports singleplayer game modes."
-		},
-		"views": {
-			"profile": {
-				"status": "Status: ",
-				"clan": "Clan: ",
-				"user-not-found": "User not found"
-			},
-			"play": {
-				"coming-soon": "(Coming Soon)",
-				"skirmish": "Skirmish vs AI",
-				"campaign": "Campaign",
-				"matchmaking": "Matchmaking",
-				"scenarios": "Scenarios",
-				"custom-lobbies": "Custom Lobbies",
-				"tournaments": "Tournaments"
-			},
-			"watch": {
-				"replays": {
-					"title": "Replays",
-					"endedNormally": "Ended Normally",
-					"showSpoilers": "Show Spoilers",
-					"searchPlaceholder": "Search map, players...",
-					"browseOnlineReplays": "Browse Online Replays",
-					"openReplaysFolder": "Open Replays Folder",
-					"noReplaysFound": "No replays found",
-					"name": "Name",
-					"date": "Date",
-					"duration": "Duration",
-					"map": "Map",
-					"nobody": "Nobody",
-					"wayFFA": "Way FFA",
-					"wayTeamFFA": "Way Team FFA",
-					"gameIsRunning": "Game is running",
-					"launching": "Launching...",
-					"watch": "Watch"
-				}
-			},
-			"index": {
-				"goBack": "Go Back",
-				"login": "Login",
-				"changeAccount": "Change account",
-				"playOffline": "Play Offline"
-			}
-		},
-		"library": {
-			"maps": {
-				"title": "Maps",
-				"back": "Back",
-				"description": "Description",
-				"author": "Author",
-				"properties": "Map Properties",
-				"addToFavorites": "Add to favorites",
-				"removeFromFavorites": "Remove from favorites",
-				"play": "Play",
-				"downloading": "Downloading...",
-				"download": "Download map"
-			}
-		},
-		"multiplayer": {
-			"title": "Multiplayer",
-			"ranked": {
-				"title": "Ranked",
-				"description": "Join a multiplayer ranked queue.",
-				"loadingQueues": "Loading matchmaking queues...",
-				"queueError": "Error loading queues",
-				"buttons": {
-					"searchGame": "Search game",
-					"searchingForOpponent": "Searching for opponent",
-					"matchFound": "Match found",
-					"accepted": "Accepted",
-					"cancel": "Cancel"
-				}
-			},
-			"battle": {
-				"title": "Multiplayer Custom Battle"
-			},
-			"custom": {
-				"title": "Multiplayer Custom Battles",
-				"hostBattle": "Host Battle",
-				"filters": {
-					"hidePvE": "Hide PvE",
-					"hideLocked": "Hide Locked",
-					"hideEmpty": "Hide Empty",
-					"hideInProgress": "Hide Running"
-				},
-				"table": {
-					"bestBattle": "Best Battle",
-					"title": "Title",
-					"map": "Map",
-					"players": "Players",
-					"runningFor": "Running for",
-					"join": "Join"
-				}
-			}
-		},
-		"singleplayer": {
-			"title": "Singleplayer",
-			"scenarios": {
-				"title": "Scenarios",
-				"description": "Test your skills in this set of challenging yet rewarding missions.",
-				"victoryCondition": "Victory condition",
-				"loseCondition": "Lose condition",
-				"faction": "Faction",
-				"difficulty": "Difficulty",
-				"launch": "Launch"
-			}
-		},
-		"navbar": {
-			"tooltips": {
-				"directMessages": "Direct Messages",
-				"friends": "Friends",
-				"downloads": "Downloads",
-				"settings": "Settings",
-				"minimize": "Minimize",
-				"windowed": "Windowed",
-				"fullscreen": "Fullscreen",
-				"exit": "Exit",
-				"cancelRequest": "Cancel request",
-				"rejectRequest": "Reject request",
-				"acceptRequest": "Accept request",
-				"viewProfile": "View profile",
-				"sendMessage": "Send message",
-				"joinBattle": "Join battle",
-				"inviteToParty": "Invite to party (TODO)",
-				"removeFriend": "Remove friend"
-			},
-			"exit": {
-				"title": "Exit",
-				"login": "Login",
-				"logout": "Logout",
-				"quitToDesktop": "Quit to Desktop"
-			},
-			"serverSettings": {
-				"title": "lobby server settings",
-				"activeServer": "Active Server",
-				"customServer": "Custom Server",
-				"placeholder": "e.g. ws://localhost:4000",
-				"add": "Add",
-				"remove": "Remove",
-				"info": "Changing the Active Server has immediate effect. Remember to log in after switching.",
-				"label-default": " - Default Servers",
-				"label-custom": " - Custom Servers"
-			},
-			"breadcrumbs": {
-				"back": "Back"
-			},
-			"downloads": {
-				"noDownloads": "No downloads active",
-				"moreDownloads": "and {count} more...",
-				"starting": "Starting..."
-			},
-			"serverStatus": {
-				"playersOnline": "Players Online",
-				"error": "Error",
-				"reconnecting": "Reconnecting..."
-			},
-			"messages": {
-				"message": "Message",
-				"userID": "UserID",
-				"userIDPlaceholder": "32452",
-				"send": "Send"
-			},
-			"settings": {
-				"title": "settings",
-				"fullscreen": "Fullscreen",
-				"windowSize": "Window Size",
-				"display": "Display",
-				"skipIntro": "Skip Intro",
-				"loginAutomatically": "Login Automatically",
-				"sfxVolume": "Sfx Volume",
-				"musicVolume": "Music Volume",
-				"devMode": "Dev Mode",
-				"uploadLogs": "Upload logs",
-				"logUrlCopied": "Log URL was copied to clipboard.",
-				"couldNotUploadLog": "Could not upload log.",
-				"label-sm": "Small",
-				"label-md": "Medium",
-				"label-lg": "Large",
-				"label-display": "Display {id}"
-			},
-			"friends": {
-				"unknown-user": "Unknown User",
-				"title": "Friends",
-				"blocked": "Blocked",
-				"yourUserId": "Your User ID is",
-				"copy": "Copy",
-				"friendId": "Friend ID",
-				"addFriend": "Add Friend",
-				"outgoingRequests": "Outgoing Friend Requests",
-				"incomingRequests": "Incoming Friend Requests",
-				"notifications": {
-					"errors": {
-						"invalidUser": "Invalid user ID or user not found",
-						"alreadyFriends": "Already friends with this user",
-						"outgoingCapacityReached": "Too many outgoing friend requests",
-						"incomingCapacityReached": "User has too many incoming requests",
-						"internalError": "Server error occurred",
-						"unauthorized": "Not authorized to send friend requests",
-						"invalidRequest": "Invalid request format",
-						"commandUnimplemented": "Friend requests not supported on this server",
-						"generic": "Failed to send friend request",
-						"failedToCancel": "Failed to cancel friend request",
-						"failedToAccept": "Failed to accept friend request",
-						"failedToReject": "Failed to reject friend request",
-						"failedToRemove": "Failed to remove friend",
-						"outgoingRequestExists": "Friend request already sent to this user",
-						"incomingRequestExists": "This user has already sent you a friend request"
-					}
-				}
-			}
-		},
-		"components": {
-			"prompts": {
-				"password": "Password",
-				"cancel": "Cancel",
-				"ok": "OK"
-			},
-			"social": {
-				"chat": {
-					"to": "To",
-					"typeHerePlaceholder": "Type here to chat. Use '/' for commands."
-				}
-			},
-			"misc": {
-				"debugsidebar": {
-					"debug-sandbox": "Debug Sandbox",
-					"open-settings-file": "Open Settings File",
-					"open-assets-dir": "Open Assets Dir",
-					"open-state-dir": "Open State Dir",
-					"open-start-script": "Open Latest Start Script",
-					"sync-lobby-content": "Sync Lobby Content Tool",
-					"cause-error": "Cause an error",
-					"game": "Game",
-					"engine": "Engine",
-					"view": "View",
-					"lobby-server-settings": "Lobby Server Settings"
-				},
-				"scenarioTile": {
-					"title": "Scenario Title"
-				},
-				"newsTile": {
-					"clickToReadMore": "Click to read more"
-				},
-				"devlogFeed": {
-					"latestChanges": "Latest changes"
-				},
-				"preloader": {
-					"loading": "Loading",
-					"loadingFonts": "Loading fonts",
-					"initializingIndexDB": "Initializing IndexDB",
-					"initializingMaps": "Initializing maps",
-					"fetchingMissingMapImages": "Fetching missing map images",
-					"initializingReplays": "Initializing replays"
-				},
-				"syncDataDirsDialog": {
-					"title": "Sync Data Directories",
-					"description": "This tool let's you synchronise multiple data directories if you use multiple lobby applications. Select the data directory for the other lobby application below, then check the content you wish to synchronise. Files not from this lobby's data dir will be kept, and folders will be merged.",
-					"otherLobbyDataDir": "Other Lobby's Data Dir:",
-					"test": "Test"
-				},
-				"gameModeSelector": {
-					"classic": "Classic",
-					"classicDescription": "Defeat your opponent",
-					"raptors": "Raptors",
-					"raptorsDescription": "Stronger than flesh",
-					"scavengers": "Scavengers",
-					"scavengersDescription": "Don't let them get you",
-					"ffa": "FFA",
-					"ffaDescription": "Last com standing wins"
-				},
-				"error": {
-					"fatalError": "Fatal Error",
-					"fatalErrorDescription": "A fatal error has occurred and BAR Lobby needs to reload.",
-					"uploadLogs": "Upload logs",
-					"uploading": "Uploading...",
-					"logUrlCopied": "Log URL was copied to clipboard.",
-					"couldNotUploadLog": "Could not upload log.",
-					"reload": "Reload",
-					"quitToDesktop": "Quit to Desktop"
-				},
-				"devlogEntry": {
-					"title": "Devlog Title",
-					"description": "Devlog Description"
-				},
-				"initialSetup": {
-					"title": "Initial Setup",
-					"downloadingEngine": "Downloading engine",
-					"installingEngine": "Installing engine",
-					"downloadingGame": "Downloading game",
-					"installingGame": "Installing game",
-					"downloadingMaps": "Downloading maps",
-					"downloadingUpdate": "Downloading update",
-					"installingUpdate": "Installing update"
-				}
-			},
-			"battle": {
-				"mapOptionsModal": {
-					"title": "Map Options",
-					"mapOptionsTitle": "Map Options",
-					"boxesPresets": "Boxes presets",
-					"customBoxes": "Custom boxes",
-					"deleteTeam": "Delete Team",
-					"team": "Team",
-					"player": "player",
-					"ai": "AI",
-					"addTeam": "Add Team",
-					"editPresetTeams": "Edit Preset Teams",
-					"fixedPositions": "Fixed positions",
-					"random": "Random",
-					"close": "Close"
-				},
-				"hostBattle": {
-					"title": "Host Battle",
-					"settingUp": "Setting up a dedicated battle host, this usually takes around 30 seconds",
-					"region": "Region",
-					"hostButton": "Host Battle"
-				},
-				"votePanel": {
-					"vote": "Vote:",
-					"yes": "Yes (F1)",
-					"no": "No (F2)",
-					"calledBy": "Called by"
-				},
-				"botParticipant": {
-					"configure": "Configure",
-					"duplicate": "Duplicate",
-					"kick": "Kick",
-					"configureBot": "Configure Bot"
-				},
-				"addBotModal": {
-					"title": "Add Bot"
-				},
-				"battleChat": {
-					"placeholder": "Type your message...",
-					"hideJunkMessages": "Hide junk messages",
-					"showJunkMessages": "Show junk messages"
-				},
-				"playerlist": {
-					"players": "Players",
-					"spectators": "Spectators"
-				},
-				"teamComponent": {
-					"team": "Team",
-					"addBot": "Add bot",
-					"join": "Join",
-					"players": "({count} / {maxCount} players)",
-					"scavengers": "Scavengers",
-					"raptors": "Raptors",
-					"team-id": "Team {id}"
-				},
-				"spectatorsComponent": {
-					"spectators": "Spectators",
-					"member": "Member",
-					"join": "Join"
-				},
-				"battlePreview": {
-					"preview": "Preview",
-					"players": "Players",
-					"spectators": "Spectators"
-				},
-				"replayPreview": {
-					"replay": "Replay",
-					"players": "Players",
-					"spectators": "Spectators",
-					"engine-version": "Engine Version",
-					"game-version": "Game Version"
-				},
-				"gameModeComponent": {
-					"gameMode": "Game Mode",
-					"presets": "Presets",
-					"configureGameOptions": "Configure Game Options",
-					"gameOptions": "Game Options",
-					"gamemode-classic": "Classic",
-					"gamemode-ffa": "FFA",
-					"gamemode-raptors": "Raptors",
-					"gamemode-scavengers": "Scavengers",
-					"gamemode-skirmish": "Skirmish"
-				},
-				"offlineBattleComponent": {
-					"offlineBattle": "Offline Battle",
-					"maps": "Maps",
-					"game-is-starting": "Game is starting...",
-					"game-is-running": "Game is running",
-					"start-the-game": "tart the game"
-				},
-				"playerParticipant": {
-					"player": "Player",
-					"viewProfile": "View Profile",
-					"makeBoss": "Make Boss",
-					"message": "Message",
-					"addFriend": "Add Friend",
-					"kick": "Kick",
-					"ring": "Ring",
-					"more": "More"
-				},
-				"battleTitleComponent": {
-					"title": "Battle Title"
-				},
-				"spectatorParticipant": {
-					"spectator": "Spectator"
-				},
-				"luaOptionsModal": {
-					"resetAllToDefault": "Reset all to default",
-					"close": "Close"
-				}
-			},
-			"controls": {
-				"downloadContentButton": {
-					"downloading": "Downloading...",
-					"download": "Download"
-				},
-				"select": {
-					"search": "Search"
-				}
-			},
-			"maps": {
-				"mapOverviewCard": {
-					"sizeUnknown": "Unknown"
-				},
-				"mapFiltersComponent": {
-					"maxPlayers": "Max Players",
-					"filterBy": "Filter By",
-					"terrain": "Terrain",
-					"gameType": "Game Type"
-				},
-				"mapListComponents": {
-					"sortBy": "Sort By",
-					"labelName": "Name",
-					"labelSize": "Size",
-					"noMapsFound": "No maps found!",
-					"pleaseTryDifferent": "Please try different keywords / filters"
-				},
-				"filters": {
-					"favoritesFilter": {
-						"label": "Favorites"
-					},
-					"downloadedFilter": {
-						"label": "Downloaded"
-					}
-				}
-			}
-		}
-	}
+    "lobby": {
+        "api": {
+            "commands": {
+                "help": "Displays this help text.",
+                "whoami": "Sends back information about who you are.",
+                "whois": "[user] Sends back information about the user specified.",
+                "discord": "Allows linking of your discord account to your BAR account.",
+                "mute": "[username] Mutes that user and prevents you seeing their messages.",
+                "unmute": "[username] Un-mutes that user and allows you to see their messages.",
+                "coc": "[term] Searches the code of conduct and returns items with a textual match in them.",
+                "joinq": "Adds you to the queue to join when a space opens up, you will be automatically added to the game as a player. If already a member it has no effect.",
+                "leaveq": "Removes you from the join queue.",
+                "status": "Status info about the battle lobby.",
+                "afks": "Lists possible afk players.",
+                "password": "Tells you the room password",
+                "splitlobby": "[minimum players] Causes a vote to start where other players can elect to join you in splitting the lobby, follow someone of their choosing or remain in place. After 30 seconds, if at least the minimum number of players agreed to split, you are moved to a new (empty) lobby and those that voted yes or are following someone that voted yes are also moved to that lobby.",
+                "roll": "[range] Rolls a random number based on the range format.\n- Dice format: nDs, where n is number of dice and s is sides of die. E.g. 4D6 - 4 dice with 6 sides are rolled\n- Max format: N, where N is a number and an integer between 1 and N is returned\n- Min/Max format: MN MX, where each is a number and an integer between them (inclusive) is returned",
+                "explain": "Lists a log of the steps taken to calculate balance for the lobby",
+                "reset-approval": "Resets the list of approved players to just the ones present at the moment (approved players are able to join even if it is locked and without needing a password). Requires boss privileges.",
+                "meme": "[meme] A predefined bunch of settings for meme games. It's all Rikerss' fault. Requires boss privileges. ticks: Ticks only!, nodefence: No defences, greenfields: No metal extractors, rich: Infinite money, poor: No money generation, hardt1: T1 but no seaplanes or hovers either, crazy: Random combination of several settings, undo: Removes all meme effects",
+                "welcome-message": "[message] Sets the welcome message sent to anybody joining the lobby. Run this command without a message to clear the existing message. Requires boss privileges. Use $$ to add a line return.",
+                "gatekeeper": "[(default | friends | friendsplay | clan)] sets the gatekeeper for this battle. Requires boss privileges. > default: no limitations. > friends allows only friends of existing members to join the lobby. > friendsplay: allows only friends of existing players to become players (but anybody can join to spectate)",
+                "rename": "[new name] Renames the lobby to the name given. Requires boss privileges.",
+                "resetratinglevels": "Resets the rating level limits to not exist. Player limiting commands are designed to be used with $rename, please be careful not to abuse them. Requires boss privileges.",
+                "minratinglevel": "[min-level] Sets the minimum level for players, you must be at least this rating to be a player. Requires boss privileges.",
+                "maxratinglevel": "[max-level] Sets the maximum level for players, you must be at below this rating to be a player. Requires boss privileges.",
+                "setratinglevels": "[min-level] [max-level] Sets the minimum and maximum rating levels for players. Requires boss privileges."
+            }
+        },
+        "buttons": {
+            "quickPlay": "Quick play"
+        },
+        "composables": {
+            "use-terrain-icon": {
+                "tooltip-acidic": "Acidic and dangerous waters",
+                "tooltip-alien": "Exotic alient biomes",
+                "tooltip-asteroid": "Lunar landscape, with low gravity and (no) wind",
+                "tooltip-asymmetrical": "Asymmetrical map",
+                "tooltip-chokepoints": "Narrow passages",
+                "tooltip-desert": "Rocky or sandy, barren desert",
+                "tooltip-flat": "Contains large flat areas",
+                "tooltip-forests": "Lots of trees",
+                "tooltip-grassy": "Lots of crispy green grass",
+                "tooltip-hills": "Hilly or mountainous terrain",
+                "tooltip-ice": "A cold place",
+                "tooltip-industrial": "Industrial map with ancient constructions",
+                "tooltip-island": "Island map, land fully surrounded by water",
+                "tooltip-jungle": "Dense foliage and forests",
+                "tooltip-lava": "Dangerous lava pools",
+                "tooltip-metal": "Metal map, where (most of) the surface is made of extractable metal",
+                "tooltip-ruins": "Structures or ruins",
+                "tooltip-sea": "Large bodies of water or Sea",
+                "tooltip-shallows": "Passable shallow water like creeks, rivers and beaches",
+                "tooltip-space": "In outerspace, usually without wind",
+                "tooltip-swamp": "Swampy, wet terrain with lots of ponds and foliage",
+                "tooltip-tropical": "Tropical biome with beaches, palms and tropical fish",
+                "tooltip-wasteland": "Forgotten wasteland that hasn't seen life in a long time",
+                "tooltip-water": "Smaller bodies of water like lakes, ponds or rivers"
+            }
+        },
+        "overview": {
+            "newLobbyAlpha": "A new lobby has landed",
+            "newLobbySubtext": "Welcome to the new BAR lobby public testing alpha 1 commander !\nThis version only supports singleplayer game modes."
+        },
+        "views": {
+            "profile": {
+                "status": "Status: ",
+                "clan": "Clan: ",
+                "user-not-found": "User not found"
+            },
+            "play": {
+                "coming-soon": "(Coming Soon)",
+                "skirmish": "Skirmish vs AI",
+                "campaign": "Campaign",
+                "matchmaking": "Matchmaking",
+                "scenarios": "Scenarios",
+                "custom-lobbies": "Custom Lobbies",
+                "tournaments": "Tournaments"
+            },
+            "watch": {
+                "replays": {
+                    "title": "Replays",
+                    "endedNormally": "Ended Normally",
+                    "showSpoilers": "Show Spoilers",
+                    "searchPlaceholder": "Search map, players...",
+                    "browseOnlineReplays": "Browse Online Replays",
+                    "openReplaysFolder": "Open Replays Folder",
+                    "noReplaysFound": "No replays found",
+                    "name": "Name",
+                    "date": "Date",
+                    "duration": "Duration",
+                    "map": "Map",
+                    "nobody": "Nobody",
+                    "wayFFA": "Way FFA",
+                    "wayTeamFFA": "Way Team FFA",
+                    "gameIsRunning": "Game is running",
+                    "launching": "Launching...",
+                    "watch": "Watch"
+                }
+            },
+            "index": {
+                "goBack": "Go Back",
+                "login": "Login",
+                "changeAccount": "Change account",
+                "playOffline": "Play Offline"
+            }
+        },
+        "library": {
+            "maps": {
+                "title": "Maps",
+                "back": "Back",
+                "description": "Description",
+                "author": "Author",
+                "properties": "Map Properties",
+                "addToFavorites": "Add to favorites",
+                "removeFromFavorites": "Remove from favorites",
+                "play": "Play",
+                "downloading": "Downloading...",
+                "download": "Download map"
+            }
+        },
+        "multiplayer": {
+            "title": "Multiplayer",
+            "ranked": {
+                "title": "Ranked",
+                "description": "Join a multiplayer ranked queue.",
+                "loadingQueues": "Loading matchmaking queues...",
+                "queueError": "Error loading queues",
+                "buttons": {
+                    "searchGame": "Search game",
+                    "searchingForOpponent": "Searching for opponent",
+                    "matchFound": "Match found",
+                    "accepted": "Accepted",
+                    "cancel": "Cancel"
+                }
+            },
+            "battle": {
+                "title": "Multiplayer Custom Battle"
+            },
+            "custom": {
+                "title": "Multiplayer Custom Battles",
+                "hostBattle": "Host Battle",
+                "filters": {
+                    "hidePvE": "Hide PvE",
+                    "hideLocked": "Hide Locked",
+                    "hideEmpty": "Hide Empty",
+                    "hideInProgress": "Hide Running"
+                },
+                "table": {
+                    "bestBattle": "Best Battle",
+                    "title": "Title",
+                    "map": "Map",
+                    "players": "Players",
+                    "runningFor": "Running for",
+                    "join": "Join"
+                }
+            }
+        },
+        "singleplayer": {
+            "title": "Singleplayer",
+            "scenarios": {
+                "title": "Scenarios",
+                "description": "Test your skills in this set of challenging yet rewarding missions.",
+                "victoryCondition": "Victory condition",
+                "loseCondition": "Lose condition",
+                "faction": "Faction",
+                "difficulty": "Difficulty",
+                "launch": "Launch"
+            }
+        },
+        "navbar": {
+            "tooltips": {
+                "directMessages": "Direct Messages",
+                "friends": "Friends",
+                "downloads": "Downloads",
+                "settings": "Settings",
+                "minimize": "Minimize",
+                "windowed": "Windowed",
+                "fullscreen": "Fullscreen",
+                "exit": "Exit",
+                "cancelRequest": "Cancel request",
+                "rejectRequest": "Reject request",
+                "acceptRequest": "Accept request",
+                "viewProfile": "View profile",
+                "sendMessage": "Send message",
+                "joinBattle": "Join battle",
+                "inviteToParty": "Invite to party (TODO)",
+                "removeFriend": "Remove friend"
+            },
+            "exit": {
+                "title": "Exit",
+                "login": "Login",
+                "logout": "Logout",
+                "quitToDesktop": "Quit to Desktop"
+            },
+            "serverSettings": {
+                "title": "lobby server settings",
+                "activeServer": "Active Server",
+                "customServer": "Custom Server",
+                "placeholder": "e.g. ws://localhost:4000",
+                "add": "Add",
+                "remove": "Remove",
+                "info": "Changing the Active Server has immediate effect. Remember to log in after switching.",
+                "label-default": " - Default Servers",
+                "label-custom": " - Custom Servers"
+            },
+            "breadcrumbs": {
+                "back": "Back"
+            },
+            "downloads": {
+                "noDownloads": "No downloads active",
+                "moreDownloads": "and {count} more...",
+                "starting": "Starting..."
+            },
+            "serverStatus": {
+                "playersOnline": "Players Online",
+                "error": "Error",
+                "reconnecting": "Reconnecting..."
+            },
+            "messages": {
+                "message": "Message",
+                "userID": "UserID",
+                "userIDPlaceholder": "32452",
+                "send": "Send"
+            },
+            "settings": {
+                "title": "settings",
+                "fullscreen": "Fullscreen",
+                "windowSize": "Window Size",
+                "display": "Display",
+                "skipIntro": "Skip Intro",
+                "loginAutomatically": "Login Automatically",
+                "sfxVolume": "Sfx Volume",
+                "musicVolume": "Music Volume",
+                "devMode": "Dev Mode",
+                "uploadLogs": "Upload logs",
+                "logUrlCopied": "Log URL was copied to clipboard.",
+                "couldNotUploadLog": "Could not upload log.",
+                "label-sm": "Small",
+                "label-md": "Medium",
+                "label-lg": "Large",
+                "label-display": "Display {id}"
+            },
+            "friends": {
+                "unknown-user": "Unknown User",
+                "title": "Friends",
+                "blocked": "Blocked",
+                "yourUserId": "Your User ID is",
+                "copy": "Copy",
+                "friendId": "Friend ID",
+                "addFriend": "Add Friend",
+                "outgoingRequests": "Outgoing Friend Requests",
+                "incomingRequests": "Incoming Friend Requests",
+                "notifications": {
+                    "errors": {
+                        "invalidUser": "Invalid user ID or user not found",
+                        "alreadyFriends": "Already friends with this user",
+                        "outgoingCapacityReached": "Too many outgoing friend requests",
+                        "incomingCapacityReached": "User has too many incoming requests",
+                        "internalError": "Server error occurred",
+                        "unauthorized": "Not authorized to send friend requests",
+                        "invalidRequest": "Invalid request format",
+                        "commandUnimplemented": "Friend requests not supported on this server",
+                        "generic": "Failed to send friend request",
+                        "failedToCancel": "Failed to cancel friend request",
+                        "failedToAccept": "Failed to accept friend request",
+                        "failedToReject": "Failed to reject friend request",
+                        "failedToRemove": "Failed to remove friend",
+                        "outgoingRequestExists": "Friend request already sent to this user",
+                        "incomingRequestExists": "This user has already sent you a friend request"
+                    }
+                }
+            }
+        },
+        "components": {
+            "prompts": {
+                "password": "Password",
+                "cancel": "Cancel",
+                "ok": "OK"
+            },
+            "social": {
+                "chat": {
+                    "to": "To",
+                    "typeHerePlaceholder": "Type here to chat. Use '/' for commands."
+                }
+            },
+            "misc": {
+                "debugsidebar": {
+                    "debug-sandbox": "Debug Sandbox",
+                    "open-settings-file": "Open Settings File",
+                    "open-assets-dir": "Open Assets Dir",
+                    "open-state-dir": "Open State Dir",
+                    "open-start-script": "Open Latest Start Script",
+                    "sync-lobby-content": "Sync Lobby Content Tool",
+                    "cause-error": "Cause an error",
+                    "game": "Game",
+                    "engine": "Engine",
+                    "view": "View",
+                    "lobby-server-settings": "Lobby Server Settings"
+                },
+                "scenarioTile": {
+                    "title": "Scenario Title"
+                },
+                "newsTile": {
+                    "clickToReadMore": "Click to read more"
+                },
+                "devlogFeed": {
+                    "latestChanges": "Latest changes"
+                },
+                "preloader": {
+                    "loading": "Loading",
+                    "loadingFonts": "Loading fonts",
+                    "initializingIndexDB": "Initializing IndexDB",
+                    "initializingMaps": "Initializing maps",
+                    "fetchingMissingMapImages": "Fetching missing map images",
+                    "initializingReplays": "Initializing replays"
+                },
+                "syncDataDirsDialog": {
+                    "title": "Sync Data Directories",
+                    "description": "This tool let's you synchronise multiple data directories if you use multiple lobby applications. Select the data directory for the other lobby application below, then check the content you wish to synchronise. Files not from this lobby's data dir will be kept, and folders will be merged.",
+                    "otherLobbyDataDir": "Other Lobby's Data Dir:",
+                    "test": "Test"
+                },
+                "gameModeSelector": {
+                    "classic": "Classic",
+                    "classicDescription": "Defeat your opponent",
+                    "raptors": "Raptors",
+                    "raptorsDescription": "Stronger than flesh",
+                    "scavengers": "Scavengers",
+                    "scavengersDescription": "Don't let them get you",
+                    "ffa": "FFA",
+                    "ffaDescription": "Last com standing wins"
+                },
+                "error": {
+                    "fatalError": "Fatal Error",
+                    "fatalErrorDescription": "A fatal error has occurred and BAR Lobby needs to reload.",
+                    "uploadLogs": "Upload logs",
+                    "uploading": "Uploading...",
+                    "logUrlCopied": "Log URL was copied to clipboard.",
+                    "couldNotUploadLog": "Could not upload log.",
+                    "reload": "Reload",
+                    "quitToDesktop": "Quit to Desktop"
+                },
+                "devlogEntry": {
+                    "title": "Devlog Title",
+                    "description": "Devlog Description"
+                },
+                "initialSetup": {
+                    "title": "Initial Setup",
+                    "downloadingEngine": "Downloading engine",
+                    "installingEngine": "Installing engine",
+                    "downloadingGame": "Downloading game",
+                    "installingGame": "Installing game",
+                    "downloadingMaps": "Downloading maps",
+                    "downloadingUpdate": "Downloading update",
+                    "installingUpdate": "Installing update"
+                }
+            },
+            "battle": {
+                "mapOptionsModal": {
+                    "title": "Map Options",
+                    "mapOptionsTitle": "Map Options",
+                    "boxesPresets": "Boxes presets",
+                    "customBoxes": "Custom boxes",
+                    "deleteTeam": "Delete Team",
+                    "team": "Team",
+                    "player": "player",
+                    "ai": "AI",
+                    "addTeam": "Add Team",
+                    "editPresetTeams": "Edit Preset Teams",
+                    "fixedPositions": "Fixed positions",
+                    "random": "Random",
+                    "close": "Close"
+                },
+                "hostBattle": {
+                    "title": "Host Battle",
+                    "settingUp": "Setting up a dedicated battle host, this usually takes around 30 seconds",
+                    "region": "Region",
+                    "hostButton": "Host Battle"
+                },
+                "votePanel": {
+                    "vote": "Vote:",
+                    "yes": "Yes (F1)",
+                    "no": "No (F2)",
+                    "calledBy": "Called by"
+                },
+                "botParticipant": {
+                    "configure": "Configure",
+                    "duplicate": "Duplicate",
+                    "kick": "Kick",
+                    "configureBot": "Configure Bot"
+                },
+                "addBotModal": {
+                    "title": "Add Bot"
+                },
+                "battleChat": {
+                    "placeholder": "Type your message...",
+                    "hideJunkMessages": "Hide junk messages",
+                    "showJunkMessages": "Show junk messages"
+                },
+                "playerlist": {
+                    "players": "Players",
+                    "spectators": "Spectators"
+                },
+                "teamComponent": {
+                    "team": "Team",
+                    "addBot": "Add bot",
+                    "join": "Join",
+                    "players": "({count} / {maxCount} players)",
+                    "scavengers": "Scavengers",
+                    "raptors": "Raptors",
+                    "team-id": "Team {id}"
+                },
+                "spectatorsComponent": {
+                    "spectators": "Spectators",
+                    "member": "Member",
+                    "join": "Join"
+                },
+                "battlePreview": {
+                    "preview": "Preview",
+                    "players": "Players",
+                    "spectators": "Spectators"
+                },
+                "replayPreview": {
+                    "replay": "Replay",
+                    "players": "Players",
+                    "spectators": "Spectators",
+                    "engine-version": "Engine Version",
+                    "game-version": "Game Version"
+                },
+                "gameModeComponent": {
+                    "gameMode": "Game Mode",
+                    "presets": "Presets",
+                    "configureGameOptions": "Configure Game Options",
+                    "gameOptions": "Game Options",
+                    "gamemode-classic": "Classic",
+                    "gamemode-ffa": "FFA",
+                    "gamemode-raptors": "Raptors",
+                    "gamemode-scavengers": "Scavengers",
+                    "gamemode-skirmish": "Skirmish"
+                },
+                "offlineBattleComponent": {
+                    "offlineBattle": "Offline Battle",
+                    "maps": "Maps",
+                    "game-is-starting": "Game is starting...",
+                    "game-is-running": "Game is running",
+                    "start-the-game": "tart the game"
+                },
+                "playerParticipant": {
+                    "player": "Player",
+                    "viewProfile": "View Profile",
+                    "makeBoss": "Make Boss",
+                    "message": "Message",
+                    "addFriend": "Add Friend",
+                    "kick": "Kick",
+                    "ring": "Ring",
+                    "more": "More"
+                },
+                "battleTitleComponent": {
+                    "title": "Battle Title"
+                },
+                "spectatorParticipant": {
+                    "spectator": "Spectator"
+                },
+                "luaOptionsModal": {
+                    "resetAllToDefault": "Reset all to default",
+                    "close": "Close"
+                }
+            },
+            "controls": {
+                "downloadContentButton": {
+                    "downloading": "Downloading...",
+                    "download": "Download"
+                },
+                "select": {
+                    "search": "Search"
+                }
+            },
+            "maps": {
+                "mapOverviewCard": {
+                    "sizeUnknown": "Unknown"
+                },
+                "mapFiltersComponent": {
+                    "maxPlayers": "Max Players",
+                    "filterBy": "Filter By",
+                    "terrain": "Terrain",
+                    "gameType": "Game Type"
+                },
+                "mapListComponents": {
+                    "sortBy": "Sort By",
+                    "labelName": "Name",
+                    "labelSize": "Size",
+                    "noMapsFound": "No maps found!",
+                    "pleaseTryDifferent": "Please try different keywords / filters"
+                },
+                "filters": {
+                    "favoritesFilter": {
+                        "label": "Favorites"
+                    },
+                    "downloadedFilter": {
+                        "label": "Downloaded"
+                    }
+                }
+            }
+        }
+    }
 }

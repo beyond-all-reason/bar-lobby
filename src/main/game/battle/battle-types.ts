@@ -23,7 +23,6 @@ export interface BattleWithMetadata extends Battle {
     players: Player[];
 }
 
-
 export type GameModeID = "CLASSIC" | "SKIRMISH" | "RAPTORS" | "SCAVENGERS" | "FFA";
 
 // For i18n purposes, these are no longer a "GameModeLabel" type.

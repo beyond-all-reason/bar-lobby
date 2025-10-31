@@ -20,7 +20,7 @@ SPDX-License-Identifier: MIT
         <div class="group-header flex-row flex-center-items gap-md">
             <div class="title">{{ title }}</div>
             <div class="member-count" v-if="!isRaptorTeam(teamId) && !isScavengerTeam(teamId)">
-                {{t('lobby.components.battle.teamComponent.players',{count:memberCount, maxCount:maxPlayersPerTeam})}}
+                {{ t("lobby.components.battle.teamComponent.players", { count: memberCount, maxCount: maxPlayersPerTeam }) }}
             </div>
             <Button class="slim black" @click="addBotClicked(teamId)" v-if="!isRaptorTeam(teamId) && !isScavengerTeam(teamId)">
                 {{ t("lobby.components.battle.teamComponent.addBot") }}
@@ -40,7 +40,9 @@ SPDX-License-Identifier: MIT
         </div>
         <div v-if="!isRaptorTeam(teamId) && !isScavengerTeam(teamId)">
             <div v-for="(_, i) in getAmountOfJoinButtons(maxPlayersPerTeam, memberCount)" :key="i">
-                <button class="join-button" :class="{ first: i === 0 }" @click="onJoinClicked(teamId)">{{t('lobby.components.battle.teamComponent.join')}}</button>
+                <button class="join-button" :class="{ first: i === 0 }" @click="onJoinClicked(teamId)">
+                    {{ t("lobby.components.battle.teamComponent.join") }}
+                </button>
             </div>
         </div>
     </div>
@@ -63,9 +65,11 @@ const props = defineProps<{
 }>();
 
 const title = computed(() =>
-    isScavengerTeam(props.teamId) ?	t('lobby.components.battle.teamComponent.scavengers')
-	: isRaptorTeam(props.teamId) ? t('lobby.components.battle.teamComponent.raptors')
-	: t('lobby.components.battle.teamComponent.team-id', {id:(Number(props.teamId) + 1)})
+    isScavengerTeam(props.teamId)
+        ? t("lobby.components.battle.teamComponent.scavengers")
+        : isRaptorTeam(props.teamId)
+          ? t("lobby.components.battle.teamComponent.raptors")
+          : t("lobby.components.battle.teamComponent.team-id", { id: Number(props.teamId) + 1 })
 );
 
 const memberCount = computed(() => {

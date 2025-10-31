@@ -78,15 +78,19 @@ SPDX-License-Identifier: MIT
                 </div>
                 <div class="flex-row flex-bottom gap-md flex-grow">
                     <div class="fullwidth" v-if="map">
-                        <Button v-if="gameStore.status === GameStatus.LOADING" class="fullwidth grey flex-grow" disabled
-                            >{{t('lobby.components.battle.offlineBattleComponent.game-is-starting')}}</Button
-                        >
-                        <Button v-else-if="gameStore.status === GameStatus.RUNNING" class="fullwidth grey flex-grow" disabled
-                            >{{ t('lobby.components.battle.offlineBattleComponent.game-is-running') }}</Button
-                        >
-                        <DownloadContentButton v-else :map="map" @click="battleActions.startBattle">{{t('lobby.components.battle.offlineBattleComponent.start-the-game')}}</DownloadContentButton>
+                        <Button v-if="gameStore.status === GameStatus.LOADING" class="fullwidth grey flex-grow" disabled>{{
+                            t("lobby.components.battle.offlineBattleComponent.game-is-starting")
+                        }}</Button>
+                        <Button v-else-if="gameStore.status === GameStatus.RUNNING" class="fullwidth grey flex-grow" disabled>{{
+                            t("lobby.components.battle.offlineBattleComponent.game-is-running")
+                        }}</Button>
+                        <DownloadContentButton v-else :map="map" @click="battleActions.startBattle">{{
+                            t("lobby.components.battle.offlineBattleComponent.start-the-game")
+                        }}</DownloadContentButton>
                     </div>
-                    <Button v-else class="fullwidth green flex-grow" disabled>{{t('lobby.components.battle.offlineBattleComponent.start-the-game')}}</Button>
+                    <Button v-else class="fullwidth green flex-grow" disabled>{{
+                        t("lobby.components.battle.offlineBattleComponent.start-the-game")
+                    }}</Button>
                 </div>
             </div>
         </div>

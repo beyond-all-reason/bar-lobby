@@ -15,37 +15,49 @@ SPDX-License-Identifier: MIT
                 <div class="game-modes-grid">
                     <Panel :no-padding="true" class="game-mode-card" @click="startSkirmish">
                         <div class="card-content">
-                            <h2>{{t('lobby.views.play.skirmish')}}</h2>
+                            <h2>{{ t("lobby.views.play.skirmish") }}</h2>
                         </div>
                     </Panel>
 
                     <Panel :no-padding="true" class="game-mode-card disabled" @click="startCampaign">
                         <div class="card-content">
-                            <h2>{{t('lobby.views.play.campaign')}}<span class="small-text margin-left-md">{{ t('lobby.views.play.coming-soon') }}</span></h2>
+                            <h2>
+                                {{ t("lobby.views.play.campaign")
+                                }}<span class="small-text margin-left-md">{{ t("lobby.views.play.coming-soon") }}</span>
+                            </h2>
                         </div>
                     </Panel>
 
                     <Panel :no-padding="true" class="game-mode-card disabled" @click="startMatchmaking">
                         <div class="card-content">
-                            <h2>{{ t('lobby.views.play.matchmaking') }}<span class="small-text margin-left-md">{{ t('lobby.views.play.coming-soon') }}</span></h2>
+                            <h2>
+                                {{ t("lobby.views.play.matchmaking")
+                                }}<span class="small-text margin-left-md">{{ t("lobby.views.play.coming-soon") }}</span>
+                            </h2>
                         </div>
                     </Panel>
 
                     <Panel :no-padding="true" class="game-mode-card" @click="openScenarios">
                         <div class="card-content">
-                            <h2>{{t('lobby.views.play.scenarios')}}</h2>
+                            <h2>{{ t("lobby.views.play.scenarios") }}</h2>
                         </div>
                     </Panel>
 
                     <Panel :no-padding="true" class="game-mode-card disabled" @click="startCustomLobbies">
                         <div class="card-content">
-                            <h2>{{ t('lobby.views.play.custom-lobbies') }}<span class="small-text margin-left-md">{{ t('lobby.views.play.coming-soon') }}</span></h2>
+                            <h2>
+                                {{ t("lobby.views.play.custom-lobbies")
+                                }}<span class="small-text margin-left-md">{{ t("lobby.views.play.coming-soon") }}</span>
+                            </h2>
                         </div>
                     </Panel>
 
                     <Panel :no-padding="true" class="game-mode-card disabled" @click="openTournaments">
                         <div class="card-content">
-                            <h2>{{t('lobby.views.play.tournaments')}}<span class="small-text margin-left-md">{{ t('lobby.views.play.coming-soon') }}</span></h2>
+                            <h2>
+                                {{ t("lobby.views.play.tournaments")
+                                }}<span class="small-text margin-left-md">{{ t("lobby.views.play.coming-soon") }}</span>
+                            </h2>
                         </div>
                     </Panel>
                 </div>

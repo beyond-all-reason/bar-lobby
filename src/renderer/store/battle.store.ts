@@ -5,21 +5,7 @@
 import { EngineAI, EngineVersion } from "@main/content/engine/engine-version";
 import { GameAI, GameVersion } from "@main/content/game/game-version";
 import { MapData } from "@main/content/maps/map-data";
-import {
-    Battle,
-    BattleWithMetadata,
-    Bot,
-    Faction,
-    GameMode,
-    isBot,
-    isPlayer,
-    isRaptor,
-    isScavenger,
-    isScavengerOrRaptor,
-    Player,
-    StartPosType,
-    Team,
-} from "@main/game/battle/battle-types";
+import { Battle, BattleWithMetadata, Bot, Faction, GameMode, isBot, isPlayer, isRaptor, isScavenger, isScavengerOrRaptor, Player, StartPosType, Team } from "@main/game/battle/battle-types";
 import { enginesStore } from "@renderer/store/engine.store";
 import { gameStore } from "@renderer/store/game.store";
 import { getRandomMap } from "@renderer/store/maps.store";

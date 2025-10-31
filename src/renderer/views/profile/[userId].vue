@@ -17,13 +17,13 @@ SPDX-License-Identifier: MIT
                         <Flag :countryCode="user.countryCode" style="width: 50px" />
                         {{ user.displayName }}
                     </h2>
-                    <p>{{t('lobby.views.profile.status')}}{{ user.status }}</p>
-                    <p>{{t('lobby.views.profile.clan')}}{{ user.clanId }}</p>
+                    <p>{{ t("lobby.views.profile.status") }}{{ user.status }}</p>
+                    <p>{{ t("lobby.views.profile.clan") }}{{ user.clanId }}</p>
                 </div>
             </div>
         </Panel>
         <Panel class="profile-container" v-else>
-            <p>{{ t('lobby.views.profile.user-not-found') }}</p>
+            <p>{{ t("lobby.views.profile.user-not-found") }}</p>
         </Panel>
     </div>
 </template>
