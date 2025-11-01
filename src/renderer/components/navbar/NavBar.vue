@@ -31,11 +31,10 @@ SPDX-License-Identifier: MIT
                         <div v-if="messagesUnread" class="unread-dot"></div>
                     </Button>
                     <Button
-                        v-if="me.isAuthenticated"
                         v-tooltip.bottom="t('lobby.navbar.tooltips.friends')"
                         v-click-away:friends="() => (friendsOpen = false)"
                         :class="['icon', { active: friendsOpen }]"
-                        @click="friendsOpen = !friendsOpen"
+                        @click="handleFriendsClick"
                     >
                         <Icon :icon="accountMultiple" :height="40" />
                     </Button>
@@ -124,6 +123,7 @@ import { useRouter } from "vue-router";
 import { settingsStore } from "@renderer/store/settings.store";
 import { me } from "@renderer/store/me.store";
 import ServerStatus from "@renderer/components/navbar/ServerStatus.vue";
+import { useLogInConfirmation } from "@renderer/composables/useLogInConfirmation";
 
 defineProps<{
     hidden?: boolean;
@@ -152,6 +152,15 @@ const friendsOpen = ref(false);
 const downloadsOpen = ref(false);
 const settingsOpen = inject<Ref<boolean>>("settingsOpen")!;
 const exitOpen = inject<Ref<boolean>>("exitOpen")!;
+
+const { openLogInConfirmation } = useLogInConfirmation();
+function handleFriendsClick() {
+    if (!me.isAuthenticated) {
+        openLogInConfirmation(router.currentRoute.value);
+        return;
+    }
+    friendsOpen.value = !friendsOpen.value;
+}
 
 const messagesUnread = computed(() => {
     //TODO dmStores
