@@ -4122,7 +4122,7 @@
                 }
             },
             "misc": {
-                "debugsidebar": {
+                "debugSidebar": {
                     "debugSandbox": null,
                     "openSettingsFile": null,
                     "openAssetsDir": null,
@@ -4270,11 +4270,11 @@
                     "presets": null,
                     "configureGameOptions": null,
                     "gameOptions": null,
-                    "gamemodeClassic": null,
-                    "gamemodeFFA": null,
-                    "gamemodeRaptors": null,
-                    "gamemodeScavengers": null,
-                    "gamemodeSkirmish": null
+                    "gameModeClassic": null,
+                    "gameModeFFA": null,
+                    "gameModeRaptors": null,
+                    "gameModeScavengers": null,
+                    "gameModeSkirmish": null
                 },
                 "offlineBattleComponent": {
                     "offlineBattle": null,

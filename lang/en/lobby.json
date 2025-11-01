@@ -286,7 +286,7 @@
                 }
             },
             "misc": {
-                "debugsidebar": {
+                "debugSidebar": {
                     "debugSandbox": "Debug Sandbox",
                     "openSettingsFile": "Open Settings File",
                     "openAssetsDir": "Open Assets Dir",

@@ -13,7 +13,7 @@ SPDX-License-Identifier: MIT
         </div>
         <Select
             :modelValue="currentRoute"
-            :label="t('lobby.components.misc.debugsidebar.view')"
+            :label="t('lobby.components.misc.debugSidebar.view')"
             :options="routes"
             :filter="true"
             optionLabel="path"
@@ -23,18 +23,18 @@ SPDX-License-Identifier: MIT
             @update:model-value="onRouteSelect"
         />
         <Button to="/debug"> Debug Sandbox </Button>
-        <Button @click="openSettings"> {{ t("lobby.components.misc.debugsidebar.openSettingsFile") }} </Button>
-        <Button @click="openAssetsDir"> {{ t("lobby.components.misc.debugsidebar.openAssetsDir") }} </Button>
-        <Button @click="openStateDir"> {{ t("lobby.components.misc.debugsidebar.openStateDir") }} </Button>
-        <Button @click="openStartScript"> {{ t("lobby.components.misc.debugsidebar.openStartScript") }} </Button>
-        <Button @click="openSyncLobbyContentTool"> {{ t("lobby.components.misc.debugsidebar.syncLobbyContent") }} </Button>
-        <Button @click="causeError"> {{ t("lobby.components.misc.debugsidebar.causeError") }} </Button>
+        <Button @click="openSettings"> {{ t("lobby.components.misc.debugSidebar.openSettingsFile") }} </Button>
+        <Button @click="openAssetsDir"> {{ t("lobby.components.misc.debugSidebar.openAssetsDir") }} </Button>
+        <Button @click="openStateDir"> {{ t("lobby.components.misc.debugSidebar.openStateDir") }} </Button>
+        <Button @click="openStartScript"> {{ t("lobby.components.misc.debugSidebar.openStartScript") }} </Button>
+        <Button @click="openSyncLobbyContentTool"> {{ t("lobby.components.misc.debugSidebar.syncLobbyContent") }} </Button>
+        <Button @click="causeError"> {{ t("lobby.components.misc.debugSidebar.causeError") }} </Button>
 
         <Select
             :modelValue="gameStore.selectedGameVersion"
             :options="gameListOptions"
             optionLabel="gameVersion"
-            :label="t('lobby.components.misc.debugsidebar.game')"
+            :label="t('lobby.components.misc.debugSidebar.game')"
             :filter="true"
             @update:model-value="onGameSelected"
         />
@@ -44,12 +44,12 @@ SPDX-License-Identifier: MIT
             :options="enginesStore.availableEngineVersions"
             data-key="id"
             option-label="id"
-            :label="t('lobby.components.misc.debugsidebar.engine')"
+            :label="t('lobby.components.misc.debugSidebar.engine')"
             :filter="true"
             class="fullwidth"
             @update:model-value="(engine) => (enginesStore.selectedEngineVersion = engine)"
         />
-        <Button @click="serverSettingsOpen = true">{{ t("lobby.components.misc.debugsidebar.lobbyServerSettings") }}</Button>
+        <Button @click="serverSettingsOpen = true">{{ t("lobby.components.misc.debugSidebar.lobbyServerSettings") }}</Button>
         <SyncDataDirsDialog v-model="syncLobbyContentToolOpen" />
     </div>
 </template>
