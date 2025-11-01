@@ -146,7 +146,8 @@
             "serverStatus": {
                 "playersOnline": "Players Online",
                 "error": "Error",
-                "reconnecting": "Reconnecting..."
+                "reconnecting": "Reconnecting...",
+                "offline": "Offline"
             },
             "messages": {
                 "message": "Message",
