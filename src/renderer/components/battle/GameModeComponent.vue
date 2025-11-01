@@ -52,10 +52,10 @@ const { t } = useTypedI18n();
 
 //TODO have theses presets come from the game
 const gameModeListOptions: GameModeWithOptions[] = [
-    { label: t("lobby.components.battle.gameModeComponent.gamemodeClassic"), options: {} },
-    { label: t("lobby.components.battle.gameModeComponent.gamemodeFFA"), options: {} },
-    { label: t("lobby.components.battle.gameModeComponent.gamemodeRaptors"), options: {} },
-    { label: t("lobby.components.battle.gameModeComponent.gamemodeScavengers"), options: {} },
+    { label: t("lobby.components.battle.gameModeComponent.gameModeClassic"), options: {} },
+    { label: t("lobby.components.battle.gameModeComponent.gameModeFFA"), options: {} },
+    { label: t("lobby.components.battle.gameModeComponent.gameModeRaptors"), options: {} },
+    { label: t("lobby.components.battle.gameModeComponent.gameModeScavengers"), options: {} },
 ];
 
 const groupedBySection = ref(new Map<LuaOptionSection, (LuaOption & { value: boolean | string | number })[]>());
