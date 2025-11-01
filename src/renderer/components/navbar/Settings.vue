@@ -68,9 +68,9 @@ const op = ref();
 const tooltipMessage = ref("");
 
 const sizeOptions = [
-    { label: t("lobby.navbar.settings.label-lg"), value: 900 },
-    { label: t("lobby.navbar.settings.label-md"), value: 720 },
-    { label: t("lobby.navbar.settings.label-sm"), value: 540 },
+    { label: t("lobby.navbar.settings.labelLg"), value: 900 },
+    { label: t("lobby.navbar.settings.labelMd"), value: 720 },
+    { label: t("lobby.navbar.settings.labelSm"), value: 540 },
 ];
 
 const displayOptions = asyncComputed(async () => {
@@ -78,7 +78,7 @@ const displayOptions = asyncComputed(async () => {
         .fill(0)
         .map((_, i) => {
             //return { label: `Display ${i + 1}`, value: i };
-            return { label: t("lobby.navbar.settings.label-display", { id: i + 1 }), value: i };
+            return { label: t("lobby.navbar.settings.labelDisplay", { id: i + 1 }), value: i };
         });
 });
 

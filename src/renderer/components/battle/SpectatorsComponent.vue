@@ -9,7 +9,7 @@ SPDX-License-Identifier: MIT
         <div class="flex-row flex-center-items gap-md">
             <div class="title">{{ title }}</div>
             <div v-if="memberCount > 0" class="member-count">
-                ({{ memberCount }} {{ t("lobby.components.battle.spectatorsComponent.member") }}{{ memberCount > 1 ? "s" : "" }})
+                {{ t("lobby.components.battle.spectatorsComponent.memberCount", memberCount) }}
             </div>
             <Button v-if="showJoin" class="slim black" @click="onJoinClicked()">
                 {{ t("lobby.components.battle.spectatorsComponent.join") }}

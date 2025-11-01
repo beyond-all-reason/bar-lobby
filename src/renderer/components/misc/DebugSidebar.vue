@@ -23,12 +23,12 @@ SPDX-License-Identifier: MIT
             @update:model-value="onRouteSelect"
         />
         <Button to="/debug"> Debug Sandbox </Button>
-        <Button @click="openSettings"> {{ t("lobby.components.misc.debugsidebar.open-settings-file") }} </Button>
-        <Button @click="openAssetsDir"> {{ t("lobby.components.misc.debugsidebar.open-assets-dir") }} </Button>
-        <Button @click="openStateDir"> {{ t("lobby.components.misc.debugsidebar.open-state-dir") }} </Button>
-        <Button @click="openStartScript"> {{ t("lobby.components.misc.debugsidebar.open-start-script") }} </Button>
-        <Button @click="openSyncLobbyContentTool"> {{ t("lobby.components.misc.debugsidebar.sync-lobby-content") }} </Button>
-        <Button @click="causeError"> {{ t("lobby.components.misc.debugsidebar.cause-error") }} </Button>
+        <Button @click="openSettings"> {{ t("lobby.components.misc.debugsidebar.openSettingsFile") }} </Button>
+        <Button @click="openAssetsDir"> {{ t("lobby.components.misc.debugsidebar.openAssetsDir") }} </Button>
+        <Button @click="openStateDir"> {{ t("lobby.components.misc.debugsidebar.openStateDir") }} </Button>
+        <Button @click="openStartScript"> {{ t("lobby.components.misc.debugsidebar.openStartScript") }} </Button>
+        <Button @click="openSyncLobbyContentTool"> {{ t("lobby.components.misc.debugsidebar.syncLobbyContent") }} </Button>
+        <Button @click="causeError"> {{ t("lobby.components.misc.debugsidebar.causeError") }} </Button>
 
         <Select
             :modelValue="gameStore.selectedGameVersion"
@@ -49,7 +49,7 @@ SPDX-License-Identifier: MIT
             class="fullwidth"
             @update:model-value="(engine) => (enginesStore.selectedEngineVersion = engine)"
         />
-        <Button @click="serverSettingsOpen = true">{{ t("lobby.components.misc.debugsidebar.lobby-server-settings") }}</Button>
+        <Button @click="serverSettingsOpen = true">{{ t("lobby.components.misc.debugsidebar.lobbyServerSettings") }}</Button>
         <SyncDataDirsDialog v-model="syncLobbyContentToolOpen" />
     </div>
 </template>

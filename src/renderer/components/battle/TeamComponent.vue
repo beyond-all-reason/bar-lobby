@@ -69,7 +69,7 @@ const title = computed(() =>
         ? t("lobby.components.battle.teamComponent.scavengers")
         : isRaptorTeam(props.teamId)
           ? t("lobby.components.battle.teamComponent.raptors")
-          : t("lobby.components.battle.teamComponent.team-id", { id: Number(props.teamId) + 1 })
+          : t("lobby.components.battle.teamComponent.teamId", { id: Number(props.teamId) + 1 })
 );
 
 const memberCount = computed(() => {

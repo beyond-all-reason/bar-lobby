@@ -63,11 +63,11 @@ const disableRemoveButton = computed(() => {
 
 const serversList = ref([
     {
-        label: t("lobby.navbar.serverSettings.label-default"),
+        label: t("lobby.navbar.serverSettings.labelDefault"),
         items: defaultServers,
     },
     {
-        label: t("lobby.navbar.serverSettings.label-custom"),
+        label: t("lobby.navbar.serverSettings.labelCustom"),
         items: settingsStore.customServerList,
     },
 ]);
@@ -84,11 +84,11 @@ function addServerToList() {
     settingsStore.customServerList.push(serverInput.value);
     serversList.value = [
         {
-            label: t("lobby.navbar.serverSettings.label-default"),
+            label: t("lobby.navbar.serverSettings.labelDefault"),
             items: defaultServers,
         },
         {
-            label: t("lobby.navbar.serverSettings.label-custom"),
+            label: t("lobby.navbar.serverSettings.labelCustom"),
             items: settingsStore.customServerList,
         },
     ];

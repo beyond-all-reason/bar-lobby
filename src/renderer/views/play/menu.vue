@@ -23,7 +23,7 @@ SPDX-License-Identifier: MIT
                         <div class="card-content">
                             <h2>
                                 {{ t("lobby.views.play.campaign")
-                                }}<span class="small-text margin-left-md">{{ t("lobby.views.play.coming-soon") }}</span>
+                                }}<span class="small-text margin-left-md">{{ t("lobby.views.play.comingSoon") }}</span>
                             </h2>
                         </div>
                     </Panel>
@@ -32,7 +32,7 @@ SPDX-License-Identifier: MIT
                         <div class="card-content">
                             <h2>
                                 {{ t("lobby.views.play.matchmaking")
-                                }}<span class="small-text margin-left-md">{{ t("lobby.views.play.coming-soon") }}</span>
+                                }}<span class="small-text margin-left-md">{{ t("lobby.views.play.comingSoon") }}</span>
                             </h2>
                         </div>
                     </Panel>
@@ -46,8 +46,8 @@ SPDX-License-Identifier: MIT
                     <Panel :no-padding="true" class="game-mode-card disabled" @click="startCustomLobbies">
                         <div class="card-content">
                             <h2>
-                                {{ t("lobby.views.play.custom-lobbies")
-                                }}<span class="small-text margin-left-md">{{ t("lobby.views.play.coming-soon") }}</span>
+                                {{ t("lobby.views.play.customLobbies")
+                                }}<span class="small-text margin-left-md">{{ t("lobby.views.play.comingSoon") }}</span>
                             </h2>
                         </div>
                     </Panel>
@@ -56,7 +56,7 @@ SPDX-License-Identifier: MIT
                         <div class="card-content">
                             <h2>
                                 {{ t("lobby.views.play.tournaments")
-                                }}<span class="small-text margin-left-md">{{ t("lobby.views.play.coming-soon") }}</span>
+                                }}<span class="small-text margin-left-md">{{ t("lobby.views.play.comingSoon") }}</span>
                             </h2>
                         </div>
                     </Panel>

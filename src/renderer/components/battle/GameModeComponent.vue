@@ -39,7 +39,7 @@ SPDX-License-Identifier: MIT
 </template>
 <script lang="ts" setup>
 import { LuaOption, LuaOptionSection } from "@main/content/game/lua-options";
-import { type GameModeWithOptions, GameMode } from "@main/game/battle/battle-types";
+import { type GameModeWithOptions } from "@main/game/battle/battle-types";
 import LuaOptionsModal from "@renderer/components/battle/LuaOptionsModal.vue";
 import Button from "@renderer/components/controls/Button.vue";
 import Select from "@renderer/components/controls/Select.vue";
@@ -52,10 +52,10 @@ const { t } = useTypedI18n();
 
 //TODO have theses presets come from the game
 const gameModeListOptions: GameModeWithOptions[] = [
-    { label: t("lobby.components.battle.gameModeComponent.gamemode-classic"), options: {} },
-    { label: t("lobby.components.battle.gameModeComponent.gamemode-ffa"), options: {} },
-    { label: t("lobby.components.battle.gameModeComponent.gamemode-raptors"), options: {} },
-    { label: t("lobby.components.battle.gameModeComponent.gamemode-scavengers"), options: {} },
+    { label: t("lobby.components.battle.gameModeComponent.gamemodeClassic"), options: {} },
+    { label: t("lobby.components.battle.gameModeComponent.gamemodeFFA"), options: {} },
+    { label: t("lobby.components.battle.gameModeComponent.gamemodeRaptors"), options: {} },
+    { label: t("lobby.components.battle.gameModeComponent.gamemodeScavengers"), options: {} },
 ];
 
 const groupedBySection = ref(new Map<LuaOptionSection, (LuaOption & { value: boolean | string | number })[]>());

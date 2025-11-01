@@ -79,7 +79,7 @@ export const serverCommandList = [
     },
     {
         cmd: "$splitlobby",
-        cmdDescription: i18n.global.t("lobby.api.commands.splitlobby"),
+        cmdDescription: i18n.global.t("lobby.api.commands.splitLobby"),
     },
     {
         cmd: "$roll",
@@ -91,7 +91,7 @@ export const serverCommandList = [
     },
     {
         cmd: "$reset-approval",
-        cmdDescription: i18n.global.t("lobby.api.commands.reset-approval"),
+        cmdDescription: i18n.global.t("lobby.api.commands.resetApproval"),
     },
     {
         cmd: "$meme",
@@ -99,7 +99,7 @@ export const serverCommandList = [
     },
     {
         cmd: "$welcome-message",
-        cmdDescription: i18n.global.t("lobby.api.commands.welcome-message"),
+        cmdDescription: i18n.global.t("lobby.api.commands.welcomeMessage"),
     },
     {
         cmd: "$gatekeeper",
@@ -111,18 +111,18 @@ export const serverCommandList = [
     },
     {
         cmd: "$resetratinglevels",
-        cmdDescription: i18n.global.t("lobby.api.commands.resetratinglevels"),
+        cmdDescription: i18n.global.t("lobby.api.commands.resetRatingLevels"),
     },
     {
         cmd: "$minratinglevel",
-        cmdDescription: i18n.global.t("lobby.api.commands.minratinglevel"),
+        cmdDescription: i18n.global.t("lobby.api.commands.minRatingLevel"),
     },
     {
         cmd: "$maxratinglevel ",
-        cmdDescription: i18n.global.t("lobby.api.commands.maxratinglevel"),
+        cmdDescription: i18n.global.t("lobby.api.commands.maxRatingLevel"),
     },
     {
         cmd: "$setratinglevels",
-        cmdDescription: i18n.global.t("lobby.api.commands.setratinglevels"),
+        cmdDescription: i18n.global.t("lobby.api.commands.setRatingLevels"),
     },
 ];

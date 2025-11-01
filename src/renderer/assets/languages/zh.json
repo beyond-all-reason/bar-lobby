@@ -3961,49 +3961,49 @@
                 "status": null,
                 "afks": null,
                 "password": null,
-                "splitlobby": null,
+                "splitLobby": null,
                 "roll": null,
                 "explain": null,
-                "reset-approval": null,
+                "resetApproval": null,
                 "meme": null,
-                "welcome-message": null,
+                "welcomeMessage": null,
                 "gatekeeper": null,
                 "rename": null,
-                "resetratinglevels": null,
-                "minratinglevel": null,
-                "maxratinglevel": null,
-                "setratinglevels": null
+                "resetRatingLevels": null,
+                "minRatingLevel": null,
+                "maxRatingLevel": null,
+                "setRatingLevels": null
             }
         },
         "buttons": {
             "quickPlay": null
         },
         "composables": {
-            "use-terrain-icon": {
-                "tooltip-acidic": null,
-                "tooltip-alien": null,
-                "tooltip-asteroid": null,
-                "tooltip-asymmetrical": null,
-                "tooltip-chokepoints": null,
-                "tooltip-desert": null,
-                "tooltip-flat": null,
-                "tooltip-forests": null,
-                "tooltip-grassy": null,
-                "tooltip-hills": null,
-                "tooltip-ice": null,
-                "tooltip-industrial": null,
-                "tooltip-island": null,
-                "tooltip-jungle": null,
-                "tooltip-lava": null,
-                "tooltip-metal": null,
-                "tooltip-ruins": null,
-                "tooltip-sea": null,
-                "tooltip-shallows": null,
-                "tooltip-space": null,
-                "tooltip-swamp": null,
-                "tooltip-tropical": null,
-                "tooltip-wasteland": null,
-                "tooltip-water": null
+            "useTerrainIcon": {
+                "tooltipAcidic": null,
+                "tooltipAlien": null,
+                "tooltipAsteroid": null,
+                "tooltipAsymmetrical": null,
+                "tooltipChokepoints": null,
+                "tooltipDesert": null,
+                "tooltipFlat": null,
+                "tooltipForests": null,
+                "tooltipGrassy": null,
+                "tooltipHills": null,
+                "tooltipIce": null,
+                "tooltipIndustrial": null,
+                "tooltipIsland": null,
+                "tooltipJungle": null,
+                "tooltipLava": null,
+                "tooltipMetal": null,
+                "tooltipRuins": null,
+                "tooltipSea": null,
+                "tooltipShallows": null,
+                "tooltipSpace": null,
+                "tooltipSwamp": null,
+                "tooltipTropical": null,
+                "tooltipWasteland": null,
+                "tooltipWater": null
             }
         },
         "overview": {
@@ -4014,15 +4014,15 @@
             "profile": {
                 "status": null,
                 "clan": null,
-                "user-not-found": null
+                "userNotFound": null
             },
             "play": {
-                "coming-soon": null,
+                "comingSoon": null,
                 "skirmish": null,
                 "campaign": null,
                 "matchmaking": null,
                 "scenarios": null,
-                "custom-lobbies": null,
+                "customLobbies": null,
                 "tournaments": null
             },
             "watch": {
@@ -4149,8 +4149,8 @@
                 "add": null,
                 "remove": null,
                 "info": null,
-                "label-default": null,
-                "label-custom": null
+                "labelDefault": null,
+                "labelCustom": null
             },
             "breadcrumbs": {
                 "back": null
@@ -4184,13 +4184,13 @@
                 "uploadLogs": null,
                 "logUrlCopied": null,
                 "couldNotUploadLog": null,
-                "label-sm": null,
-                "label-md": null,
-                "label-lg": null,
-                "label-display": null
+                "labelSm": null,
+                "labelMd": null,
+                "labelLg": null,
+                "labelDisplay": null
             },
             "friends": {
-                "unknown-user": null,
+                "unknownUser": null,
                 "title": null,
                 "blocked": null,
                 "yourUserId": null,
@@ -4234,17 +4234,17 @@
             },
             "misc": {
                 "debugsidebar": {
-                    "debug-sandbox": null,
-                    "open-settings-file": null,
-                    "open-assets-dir": null,
-                    "open-state-dir": null,
-                    "open-start-script": null,
-                    "sync-lobby-content": null,
-                    "cause-error": null,
+                    "debugSandbox": null,
+                    "openSettingsFile": null,
+                    "openAssetsDir": null,
+                    "openStateDir": null,
+                    "openStartScript": null,
+                    "syncLobbyContent": null,
+                    "causeError": null,
                     "game": null,
                     "engine": null,
                     "view": null,
-                    "lobby-server-settings": null
+                    "lobbyServerSettings": null
                 },
                 "scenarioTile": {
                     "title": null
@@ -4357,11 +4357,11 @@
                     "players": null,
                     "scavengers": null,
                     "raptors": null,
-                    "team-id": null
+                    "teamId": null
                 },
                 "spectatorsComponent": {
                     "spectators": null,
-                    "member": null,
+                    "memberCount": null,
                     "join": null
                 },
                 "battlePreview": {
@@ -4373,26 +4373,26 @@
                     "replay": null,
                     "players": null,
                     "spectators": null,
-                    "engine-version": null,
-                    "game-version": null
+                    "engineVersion": null,
+                    "gameVersion": null
                 },
                 "gameModeComponent": {
                     "gameMode": null,
                     "presets": null,
                     "configureGameOptions": null,
                     "gameOptions": null,
-                    "gamemode-classic": null,
-                    "gamemode-ffa": null,
-                    "gamemode-raptors": null,
-                    "gamemode-scavengers": null,
-                    "gamemode-skirmish": null
+                    "gamemodeClassic": null,
+                    "gamemodeFFA": null,
+                    "gamemodeRaptors": null,
+                    "gamemodeScavengers": null,
+                    "gamemodeSkirmish": null
                 },
                 "offlineBattleComponent": {
                     "offlineBattle": null,
                     "maps": null,
-                    "game-is-starting": null,
-                    "game-is-running": null,
-                    "start-the-game": null
+                    "gameIsStarting": null,
+                    "gameIsRunning": null,
+                    "startTheGame": null
                 },
                 "playerParticipant": {
                     "player": null,

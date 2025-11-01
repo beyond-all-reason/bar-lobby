@@ -23,7 +23,7 @@ SPDX-License-Identifier: MIT
             </div>
         </Panel>
         <Panel class="profile-container" v-else>
-            <p>{{ t("lobby.views.profile.user-not-found") }}</p>
+            <p>{{ t("lobby.views.profile.userNotFound") }}</p>
         </Panel>
     </div>
 </template>
