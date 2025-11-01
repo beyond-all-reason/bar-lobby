@@ -34,8 +34,8 @@
                 "login": "Login",
                 "changeAccount": "Change account",
                 "playOffline": "Play Offline",
-                "needToLogIn":"log in?",
-                "needToLogInToAccess":"You need to log in to access online features."
+                "needToLogIn": "log in?",
+                "needToLogInToAccess": "You need to log in to access online features."
             }
         },
         "library": {

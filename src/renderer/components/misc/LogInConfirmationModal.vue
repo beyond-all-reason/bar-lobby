@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2025 The BAR Lobby Authors
+
+SPDX-License-Identifier: MIT
+-->
+
 <template>
     <Modal v-model="isOpen" :title="t('lobby.views.index.needToLogIn')">
         <div class="container flex-col gap-lg">

@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2025 The BAR Lobby Authors
+//
+// SPDX-License-Identifier: MIT
+
 import { ref, type Ref } from "vue";
 import type { RouteLocationNormalized } from "vue-router";
 
