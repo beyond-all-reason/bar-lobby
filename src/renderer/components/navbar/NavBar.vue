@@ -21,7 +21,7 @@ SPDX-License-Identifier: MIT
                 <div class="drag-window-area"></div>
                 <div class="primary-right">
                     <Button
-                        v-if="false"
+                        v-if="me.isAuthenticated"
                         v-tooltip.bottom="t('lobby.navbar.tooltips.directMessages')"
                         v-click-away:messages="() => (messagesOpen = false)"
                         :class="['icon', { active: messagesOpen }]"
