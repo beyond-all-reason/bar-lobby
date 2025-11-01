@@ -87,8 +87,8 @@ watch(
 const boxes = computed<StartBox[]>(() => {
     let arr: StartBox[] = [];
     if (battleStore.isOnline && lobbyStore.activeLobby) {
-        for (const key in lobbyStore.activeLobby.allyTeams) {
-            const allyTeam = lobbyStore.activeLobby.allyTeams[key];
+        for (const key in lobbyStore.activeLobby.allyTeamConfig) {
+            const allyTeam = lobbyStore.activeLobby.allyTeamConfig[key];
             if (allyTeam.startBox) {
                 arr.push(allyTeam.startBox);
             }

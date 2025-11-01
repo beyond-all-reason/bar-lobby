@@ -15,7 +15,7 @@ export type Lobby = {
     spectatorCount: number;
     playerQueue: Map<number, string>;
     botCount: number;
-    allyTeams: {
+    allyTeamConfig: {
         [k: string]: {
             startBox: StartBox;
             maxTeams: number;

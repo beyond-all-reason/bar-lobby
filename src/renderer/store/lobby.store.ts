@@ -194,7 +194,7 @@ function parseLobbyResponseData(data: LobbyCreateOkResponseData | LobbyJoinOkRes
         mapName: data.mapName,
         engineVersion: data.engineVersion,
         gameVersion: data.gameVersion,
-        allyTeams: {},
+        allyTeamConfig: {},
         players: {},
         spectators: {},
         bots: {},
@@ -210,14 +210,14 @@ function parseLobbyResponseData(data: LobbyCreateOkResponseData | LobbyJoinOkRes
     });
     for (const allyKey in data.allyTeamConfig) {
         const allyTeam = data.allyTeamConfig[allyKey];
-        lobbyObject.allyTeams![allyKey] = {
+        lobbyObject.allyTeamConfig[allyKey] = {
             startBox: allyTeam.startBox,
             maxTeams: allyTeam.maxTeams,
             teams: {},
         };
         for (const teamKey in allyTeam.teams) {
             const team = allyTeam.teams[teamKey];
-            lobbyObject.allyTeams![allyKey].teams![teamKey] = { maxPlayers: team.maxPlayers };
+            lobbyObject.allyTeamConfig[allyKey].teams![teamKey] = { maxPlayers: team.maxPlayers };
             lobbyObject.maxPlayerCount += team.maxPlayers; //Lobby maximum is sum of all AllyTeams>Teams>MaxPlayers
         }
         //Here we assign the startbox for the AllyTeam to the battlestore so they match what we set when the lobby was created.
@@ -380,9 +380,9 @@ async function onLobbyUpdatedEvent(data: LobbyUpdatedEventData) {
     }
     //Recalculate player counts afterward.
     let maxPlayerCount: number = 0;
-    for (const allyKey in lobbyStore.activeLobby.allyTeams) {
-        for (const teamKey in lobbyStore.activeLobby.allyTeams[allyKey].teams) {
-            maxPlayerCount += lobbyStore.activeLobby.allyTeams[allyKey].teams[teamKey].maxPlayers!;
+    for (const allyKey in lobbyStore.activeLobby.allyTeamConfig) {
+        for (const teamKey in lobbyStore.activeLobby.allyTeamConfig[allyKey].teams) {
+            maxPlayerCount += lobbyStore.activeLobby.allyTeamConfig[allyKey].teams[teamKey].maxPlayers!;
         }
     }
     lobbyStore.activeLobby.maxPlayerCount = maxPlayerCount;

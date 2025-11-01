@@ -86,7 +86,7 @@ const title = computed(() =>
 
 const allyMembers = computed(() => {
     let arr: Member[] = [];
-    if (battleStore.isOnline && lobbyStore.activeLobby?.allyTeams) {
+    if (battleStore.isOnline && lobbyStore.activeLobby?.allyTeamConfig) {
         if (lobbyStore.activeLobby.players) {
             for (const memberKey in lobbyStore.activeLobby.players) {
                 const member = lobbyStore.activeLobby.players[memberKey];
@@ -100,7 +100,7 @@ const allyMembers = computed(() => {
 
 const allyBots = computed(() => {
     let arr: LobbyBot[] = [];
-    if (battleStore.isOnline && lobbyStore.activeLobby?.allyTeams) {
+    if (battleStore.isOnline && lobbyStore.activeLobby?.allyTeamConfig) {
         if (lobbyStore.activeLobby.bots) {
             for (const botKey in lobbyStore.activeLobby.bots) {
                 const bot = lobbyStore.activeLobby.bots[botKey];
@@ -113,7 +113,7 @@ const allyBots = computed(() => {
 });
 
 const memberCount = computed(() => {
-    if (battleStore.isOnline && lobbyStore.activeLobby?.allyTeams) {
+    if (battleStore.isOnline && lobbyStore.activeLobby?.allyTeamConfig) {
         let count = 0;
         if (lobbyStore.activeLobby.players) {
             for (const memberKey in lobbyStore.activeLobby.players) {
@@ -134,16 +134,16 @@ const memberCount = computed(() => {
 });
 
 const maxMembersPerAllyTeam = computed(() => {
-    if (battleStore.isOnline && lobbyStore.activeLobby?.allyTeams) {
+    if (battleStore.isOnline && lobbyStore.activeLobby?.allyTeamConfig) {
         // Server always gives us team "000" as the first one, and the players per team is currently always the same
-        return lobbyStore.activeLobby.allyTeams[props.teamKey].maxTeams;
+        return lobbyStore.activeLobby.allyTeamConfig[props.teamKey].maxTeams;
     } else return 1;
 });
 
 // For online battles, this is technically maxTeamsPerAllyTeam, but there's only 1 player per Team anyway.
 const maxPlayersPerTeam = computed(() => {
-    if (battleStore.isOnline && lobbyStore.activeLobby?.allyTeams) {
-        return lobbyStore.activeLobby.allyTeams[props.teamKey].maxTeams;
+    if (battleStore.isOnline && lobbyStore.activeLobby?.allyTeamConfig) {
+        return lobbyStore.activeLobby.allyTeamConfig[props.teamKey].maxTeams;
     }
     if (!battleWithMetadataStore.battleOptions.map) return 1;
     return battleActions.getMaxPlayersPerTeam();

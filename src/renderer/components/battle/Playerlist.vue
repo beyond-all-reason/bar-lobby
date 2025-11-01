@@ -17,7 +17,7 @@ SPDX-License-Identifier: MIT
     <div v-if="battleStore.isOnline" class="scroll-container padding-right-sm">
         <div class="playerlist" :class="{ dragging: draggedBot || draggedPlayer }">
             <TeamComponent
-                v-for="(team, key, index) in lobbyStore.activeLobby != undefined ? lobbyStore.activeLobby.allyTeams : {}"
+                v-for="(team, key, index) in lobbyStore.activeLobby != undefined ? lobbyStore.activeLobby.allyTeamConfig : {}"
                 :key="key"
                 :teamId="index"
                 :teamKey="key as string"

@@ -160,9 +160,9 @@ async function onOpen() {
     waitingForBattleCreation.value = false;
     map.value = await db.maps.get(lobbyStore.activeLobby!.mapName);
     lobbyName = lobbyStore.activeLobby ? lobbyStore.activeLobby?.name : "";
-    allyTeamCount = lobbyStore.activeLobby?.allyTeams ? Object.keys(lobbyStore.activeLobby?.allyTeams).length : 2;
+    allyTeamCount = lobbyStore.activeLobby?.allyTeamConfig ? Object.keys(lobbyStore.activeLobby?.allyTeamConfig).length : 2;
     playersPerAllyTeam = lobbyStore.activeLobby
-        ? lobbyStore.activeLobby!.allyTeams[Object.keys(lobbyStore.activeLobby.allyTeams)[0]].maxTeams
+        ? lobbyStore.activeLobby!.allyTeamConfig[Object.keys(lobbyStore.activeLobby.allyTeamConfig)[0]].maxTeams
         : 1; //currently always same for all teams.
     return;
 }
