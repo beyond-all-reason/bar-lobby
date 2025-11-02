@@ -86,9 +86,9 @@ SPDX-License-Identifier: MIT
                         >
                         <DownloadContentButton
                             v-else
-                            :map="map"
-                            :engine-version="battleStore.battleOptions.engineVersion"
-                            :game-version="battleStore.battleOptions.gameVersion"
+                            :maps="[map.springName]"
+                            :engines="battleStore.battleOptions.engineVersion ? [battleStore.battleOptions.engineVersion] : []"
+                            :games="battleStore.battleOptions.gameVersion ? [battleStore.battleOptions.gameVersion] : []"
                             @click="battleActions.startBattle"
                             >Start the game</DownloadContentButton
                         >

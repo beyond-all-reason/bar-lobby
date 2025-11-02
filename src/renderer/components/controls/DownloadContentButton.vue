@@ -7,27 +7,34 @@ SPDX-License-Identifier: MIT
 <template>
     <div class="fullwidth">
         <div class="progress-bar-outer margin-left-md margin-right-md">
-            <DownloadProgress :map-name="map?.springName" :engine="engineVersion" :game="gameVersion" :height="75"></DownloadProgress>
+            <DownloadProgress
+                :maps="maps"
+                :engines="engines"
+                :games="games"
+                :height="75"
+                @status-change="updateDownloadStatus"
+            ></DownloadProgress>
         </div>
-        <button v-if="ready" class="quick-play-button fullwidth" :class="props.class" :disabled="props.disabled" @click="props.onClick">
+        <button
+            v-if="ready"
+            class="quick-play-button fullwidth"
+            :class="$props.class != undefined ? $props.class : ''"
+            :disabled="disabled"
+            @click="onClick"
+        >
             <slot />
         </button>
         <Button v-else-if="isDownloading" class="grey quick-download-button fullwidth anchor" @input.stop style="min-height: unset">{{
             t("lobby.components.controls.downloadContentButton.downloading")
         }}</Button>
-        <Button
-            v-else
-            class="red quick-download-button fullwidth"
-            @click="beginDownload(map?.springName, engineVersion, gameVersion)"
-            style="min-height: unset"
-            >{{ t("lobby.components.controls.downloadContentButton.download") }}</Button
-        >
+        <Button v-else class="red quick-download-button fullwidth" @click="beginDownload(maps, engines, games)" style="min-height: unset">{{
+            t("lobby.components.controls.downloadContentButton.download")
+        }}</Button>
     </div>
 </template>
 
 <script lang="ts" setup>
 import { computed, ref } from "vue";
-import { MapDownloadData } from "@main/content/maps/map-data";
 import Button from "@renderer/components/controls/Button.vue";
 import { downloadMap } from "@renderer/store/maps.store";
 import { ButtonProps } from "primevue/button";
@@ -35,138 +42,59 @@ import DownloadProgress from "@renderer/components/common/DownloadProgress.vue";
 import { useTypedI18n } from "@renderer/i18n";
 import { downloadEngine } from "@renderer/store/engine.store";
 import { downloadGame } from "@renderer/store/game.store";
-import { computedAsync } from "@vueuse/core";
-import { downloadsStore } from "@renderer/store/downloads.store";
-import { notificationsApi } from "@renderer/api/notifications";
+import { enginesStore } from "@renderer/store/engine.store";
+import { mapsStore } from "@renderer/store/maps.store";
+import { gameStore } from "@renderer/store/game.store";
 
 const { t } = useTypedI18n();
 
 export interface Props extends /* @vue-ignore */ ButtonProps {
-    map?: MapDownloadData;
     disabled?: boolean;
     class?: string;
     onClick?: (event: MouseEvent) => void;
-    engineVersion?: string;
-    gameVersion?: string;
+    maps?: string[];
+    engines?: string[];
+    games?: string[];
 }
-const props = defineProps<Props>();
+const { maps = [], engines = [], games = [] } = defineProps<Props>();
 
-// Just some side effect to force computedAsync to recompute
-const refresh = ref(0);
-window.downloads.onDownloadGameComplete(() => {
-    refresh.value += 1;
-});
-window.downloads.onDownloadEngineComplete(() => {
-    refresh.value += 1;
-});
-window.downloads.onDownloadEngineFail(() => {
-    refresh.value += 1;
-});
-window.downloads.onDownloadGameFail(() => {
-    refresh.value += 1;
-});
-window.downloads.onDownloadMapFail(() => {
-    refresh.value += 1;
-});
+const isDownloading = ref(false);
 
-const ready = computedAsync(async () => {
-    //We have to "use" the refreshToken variable in this function to force it to recompute.
-    refresh.value.toString();
-    const bools = {
-        map: false,
-        engine: false,
-        game: false,
-    };
-    if (props.map != undefined) {
-        if (props.map.isInstalled) {
-            bools.map = true;
-        }
-    } else {
-        bools.map = true;
+const ready = computed(() => {
+    const targetList = new Set([...maps, ...games, ...engines]);
+    if (targetList.size == 0) return true;
+    const availableContent = new Set(mapsStore.availableMapNames);
+    const availableEngines = enginesStore.availableEngineVersions;
+    const availableGames = gameStore.availableGameVersions;
+    for (const engine of availableEngines) {
+        availableContent.add(engine.id);
     }
-    if (props.engineVersion != undefined) {
-        bools.engine = await window.engine.isVersionInstalled(props.engineVersion);
-    } else {
-        bools.engine = true;
+    for (const game of availableGames) {
+        availableContent.add(game.gameVersion);
     }
-    if (props.gameVersion != undefined) {
-        bools.game = await window.game.isVersionInstalled(props.gameVersion);
-    } else {
-        bools.game = true;
-    }
-    return bools.engine && bools.game && bools.map;
+    if (targetList.difference(availableContent).size > 0) return false;
+    else return true;
 });
 
-const isMapDownloading = computed(() => {
-    if (props.map?.springName == undefined) {
-        return false;
-    }
-    const downloads = downloadsStore.mapDownloads;
-    for (const download of downloads) {
-        if (download.name === props.map.springName) {
-            return true;
-        }
-    }
-    return false;
-});
+function updateDownloadStatus(value: boolean) {
+    isDownloading.value = value;
+}
 
-const isEngineDownloading = computed(() => {
-    if (props.engineVersion == undefined) {
-        return false;
-    }
-    const downloads = downloadsStore.engineDownloads;
-    for (const download of downloads) {
-        if (download.name === props.engineVersion) {
-            return true;
-        }
-    }
-    return false;
-});
-
-const isGameDownloading = computed(() => {
-    if (props.gameVersion == undefined) {
-        return false;
-    }
-    const downloads = downloadsStore.gameDownloads;
-    for (const download of downloads) {
-        if (download.name === props.gameVersion) {
-            return true;
-        }
-    }
-    return false;
-});
-
-const isDownloading = computed(() => {
-    return isMapDownloading.value || isEngineDownloading.value || isGameDownloading.value;
-});
-
-// Note; we have to await each download because pr-downloader will crash if we do two/three at once.
-async function beginDownload(map?: string, engine?: string, game?: string) {
-    if (map && !props.map?.isInstalled) {
-        try {
+// Note; we have to await each download because we need to update pr-downloader to accept concurrent downloads
+async function beginDownload(maps?: string[], engines?: string[], games?: string[]) {
+    if (maps) {
+        for (const map of maps) {
             await downloadMap(map);
-        } catch (error) {
-            console.error(`DownloadMap for ${map} failed:`, error);
-            notificationsApi.alert({ text: "Map download failed.", severity: "error" });
-            refresh.value += 1;
         }
     }
-    if (engine && !(await window.engine.isVersionInstalled(engine))) {
-        try {
+    if (engines) {
+        for (const engine of engines) {
             await downloadEngine(engine);
-        } catch (error) {
-            console.error(`DownloadEngine for ${engine} failed:`, error);
-            notificationsApi.alert({ text: "Engine download failed.", severity: "error" });
-            refresh.value += 1;
         }
     }
-    if (game && !(await window.game.isVersionInstalled(game))) {
-        try {
+    if (games) {
+        for (const game of games) {
             await downloadGame(game);
-        } catch (error) {
-            console.error(`DownloadGame for ${game} failed:`, error);
-            notificationsApi.alert({ text: "Game download failed.", severity: "error" });
-            refresh.value += 1;
         }
     }
 }

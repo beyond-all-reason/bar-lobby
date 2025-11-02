@@ -8,71 +8,55 @@ SPDX-License-Identifier: MIT
     <Progress
         :class="{ pulse: isDownloading }"
         :percent="downloadPercent"
-        v-if="true"
+        v-if="isDownloading"
         :percentStr="downloadPercent"
         :height="height"
     ></Progress>
 </template>
 
 <script lang="ts" setup>
-import { computed } from "vue";
+import { computed, watch } from "vue";
 import { downloadsStore } from "@renderer/store/downloads.store";
 import Progress from "@renderer/components/common/Progress.vue";
 
-const props = defineProps<{
-    mapName?: string;
+interface Props {
+    maps?: string[];
     height: number;
-    game?: string;
-    engine?: string;
+    games?: string[];
+    engines?: string[];
+}
+
+const { maps = [], height = 100, games = [], engines = [] } = defineProps<Props>();
+
+const emit = defineEmits<{
+    statusChange: [value: boolean];
 }>();
 
-const isMapDownloading = computed(() => {
-    if (props.mapName == undefined) {
-        return false;
-    }
-    const downloads = downloadsStore.mapDownloads;
+const isDownloading = computed(() => {
+    const targetList = new Set([...maps, ...games, ...engines]);
+    if (targetList.size == 0) return false;
+    const downloads = [...downloadsStore.mapDownloads, ...downloadsStore.engineDownloads, ...downloadsStore.gameDownloads];
+    const downloadingNames = new Set();
     for (const download of downloads) {
-        if (download.name === props.mapName) {
-            return true;
-        }
+        downloadingNames.add(download.name);
     }
-    return false;
-});
-const isEngineDownloading = computed(() => {
-    if (props.engine == undefined) {
-        return false;
-    }
-    const downloads = downloadsStore.engineDownloads;
-    for (const download of downloads) {
-        if (download.name === props.engine) {
-            return true;
-        }
-    }
-    return false;
-});
-const isGameDownloading = computed(() => {
-    if (props.game == undefined) {
-        return false;
-    }
-    const downloads = downloadsStore.gameDownloads;
-    for (const download of downloads) {
-        if (download.name === props.game) {
-            return true;
-        }
+    if (downloadingNames.intersection(targetList).size > 0) {
+        return true;
     }
     return false;
 });
 
-const isDownloading = computed(() => {
-    return isMapDownloading.value || isEngineDownloading.value || isGameDownloading.value;
+watch(isDownloading, (value) => {
+    emit("statusChange", value);
 });
 
 const downloadPercent = computed(() => {
+    const targetList = new Set([...maps, ...games, ...engines]);
     const downloads = [...downloadsStore.mapDownloads, ...downloadsStore.engineDownloads, ...downloadsStore.gameDownloads];
     const count = downloads.length;
     let progress: number = 0;
     for (const download of downloads) {
-        if (download.name === props.mapName || download.name === props.engine || download.name === props.game) {
+        if (targetList.has(download.name)) {
             progress += download.progress;
         }
     }

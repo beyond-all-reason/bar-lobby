@@ -6,6 +6,7 @@ import { GameVersion } from "@main/content/game/game-version";
 import { LuaOption } from "@main/content/game/lua-options";
 import { Replay } from "@main/content/replays/replay";
 import { BattleWithMetadata } from "@main/game/battle/battle-types";
+import { notificationsApi } from "@renderer/api/notifications";
 import { db } from "@renderer/store/db";
 import { reactive, watch } from "vue";
 
@@ -20,15 +21,18 @@ export const gameStore: {
     status: GameStatus;
     selectedGameVersion?: GameVersion;
     optionsMap?: Record<string, LuaOption & { section: string }>;
+    availableGameVersions: GameVersion[];
 } = reactive({
     isInitialized: false,
     status: GameStatus.CLOSED,
+    availableGameVersions: [],
 });
 
 async function refreshStore() {
     await db.gameVersions.clear();
     const installedVersions = await window.game.getInstalledVersions();
     await db.gameVersions.bulkPut(installedVersions);
+    gameStore.availableGameVersions = Array.from(installedVersions);
     const latestGameVersion = await db.gameVersions.orderBy("gameVersion").last();
     gameStore.selectedGameVersion = latestGameVersion;
 }
@@ -51,8 +55,13 @@ watch(
 );
 
 export async function downloadGame(version: string) {
-    await window.game.downloadGame(version);
-    await refreshStore();
+    try {
+        await window.game.downloadGame(version);
+        await refreshStore();
+    } catch (error) {
+        console.error(`DownloadGame for ${version} failed:`, error);
+        notificationsApi.alert({ text: "Game download failed.", severity: "error" });
+    }
 }
 
 export async function startBattle(battle: BattleWithMetadata) {
@@ -63,7 +72,7 @@ export async function startBattle(battle: BattleWithMetadata) {
     } catch (error) {
         console.error("Failed to start battle:", error);
         gameStore.status = GameStatus.CLOSED;
-        throw error; // Re-throw the error to display it in the UI
+        notificationsApi.alert({ text: "startBattle failed", severity: "error" });
     }
 }
 
@@ -75,7 +84,7 @@ export async function watchReplay(replay: Replay) {
     } catch (error) {
         console.error("Failed to watch replay:", error);
         gameStore.status = GameStatus.CLOSED;
-        throw error; // Re-throw the error to display it in the UI
+        notificationsApi.alert({ text: "watchReplay failed", severity: "error" });
     }
 }
 

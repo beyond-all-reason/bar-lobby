@@ -27,9 +27,9 @@ SPDX-License-Identifier: MIT
                     <DownloadContentButton
                         class="green fullwidth"
                         @click="play"
-                        :engine-version="engineVersion"
-                        :game-version="gameVersion"
-                        :map="map"
+                        :engines="engineVersion ? [engineVersion] : []"
+                        :games="gameVersion ? [gameVersion] : []"
+                        :maps="mapName ? [mapName] : []"
                         >I do nothing now!</DownloadContentButton
                     >
                 </div>
@@ -45,19 +45,12 @@ import Password from "@renderer/components/prompts/Password.vue";
 import { usePrompt } from "@renderer/composables/usePrompt";
 import DownloadContentButton from "@renderer/components/controls/DownloadContentButton.vue";
 import Textbox from "@renderer/components/controls/Textbox.vue";
-import { db } from "@renderer/store/db";
-import { useDexieLiveQueryWithDeps } from "@renderer/composables/useDexieLiveQuery";
 import Panel from "@renderer/components/common/Panel.vue";
 
 const { prompt } = usePrompt();
 const mapName = ref<string | undefined>(undefined);
 const engineVersion = ref<string | undefined>(undefined);
 const gameVersion = ref<string | undefined>(undefined);
-
-const map = useDexieLiveQueryWithDeps([() => mapName.value], () => {
-    if (mapName.value == undefined) return undefined;
-    return db.maps.get(mapName.value);
-});
 
 function play() {
     console.log("clicked play");
