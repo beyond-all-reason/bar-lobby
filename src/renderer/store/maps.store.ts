@@ -49,18 +49,19 @@ export async function initMapsStore() {
 async function init() {
     window.maps.onMapAdded((springName: string) => {
         console.debug("Received map added event", springName);
+        mapsStore.availableMapNames.add(springName);
         db.maps.where("springName").equals(springName).modify({ isInstalled: true });
         db.nonLiveMaps.where("springName").equals(springName).modify({ isInstalled: true });
-        mapsStore.availableMapNames.add(springName);
     });
     window.maps.onMapDeleted((springName: string) => {
         console.debug("Received map deleted event", springName);
+        mapsStore.availableMapNames.delete(springName);
         db.maps.where("springName").equals(springName).modify({ isInstalled: false });
         db.nonLiveMaps.where("springName").equals(springName).modify({ isInstalled: false });
-        mapsStore.availableMapNames.delete(springName);
     });
-    window.downloads.onDownloadMapFail((downlaodInfo) => {
-        console.error("Map download failed", downlaodInfo);
+    // Chokadir takes 1-2 seconds longer after this to notice the file, so we do both for a faster response after a downloaded map
+    window.downloads.onDownloadMapComplete((download) => {
+        mapsStore.availableMapNames.add(download.name);
     });
     const [liveMaps, nonLiveMaps] = await window.maps.fetchAllMaps();
 
