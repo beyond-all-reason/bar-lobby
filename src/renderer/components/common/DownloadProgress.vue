@@ -36,10 +36,8 @@ const isDownloading = computed(() => {
     const targetList = new Set([...maps, ...games, ...engines]);
     if (targetList.size == 0) return false;
     const downloads = [...downloadsStore.mapDownloads, ...downloadsStore.engineDownloads, ...downloadsStore.gameDownloads];
-    const downloadingNames = new Set();
-    for (const download of downloads) {
-        downloadingNames.add(download.name);
-    }
+    if (downloads.length == 0) return false;
+    const downloadingNames = new Set(downloads.map((d) => d.name));
     if (downloadingNames.intersection(targetList).size > 0) {
         return true;
     }

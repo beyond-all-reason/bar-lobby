@@ -63,15 +63,9 @@ const isDownloading = ref(false);
 const ready = computed(() => {
     const targetList = new Set([...maps, ...games, ...engines]);
     if (targetList.size == 0) return true;
-    const availableContent = new Set(mapsStore.availableMapNames);
-    const availableEngines = enginesStore.availableEngineVersions;
-    const availableGames = gameStore.availableGameVersions;
-    for (const engine of availableEngines) {
-        availableContent.add(engine.id);
-    }
-    for (const game of availableGames) {
-        availableContent.add(game.gameVersion);
-    }
+    let availableContent = new Set(mapsStore.availableMapNames);
+    availableContent = availableContent.union(new Set(enginesStore.availableEngineVersions.map((e) => e.id)));
+    availableContent = availableContent.union(new Set(gameStore.availableGameVersions.map((g) => g.gameVersion)));
     if (targetList.difference(availableContent).size > 0) return false;
     else return true;
 });
