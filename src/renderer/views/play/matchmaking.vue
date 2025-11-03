@@ -49,6 +49,13 @@ SPDX-License-Identifier: MIT
                 >
                     {{ t("lobby.multiplayer.ranked.buttons.searchGame") }}
                 </button>
+                <button
+                    v-else-if="matchmakingStore.status === MatchmakingStatus.JoinRequested"
+                    class="quick-play-button searching"
+                    disabled
+                >
+                    {{ t("lobby.multiplayer.ranked.buttons.joinRequested") }}
+                </button>
                 <button v-else-if="matchmakingStore.status === MatchmakingStatus.Searching" class="quick-play-button searching" disabled>
                     {{ t("lobby.multiplayer.ranked.buttons.searchingForOpponent") }}
                 </button>

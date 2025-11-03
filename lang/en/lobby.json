@@ -59,6 +59,7 @@
                 "queueError": "Error loading queues",
                 "buttons": {
                     "searchGame": "Search game",
+                    "joinRequested": "Joining queue",
                     "searchingForOpponent": "Searching for opponent",
                     "matchFound": "Match found",
                     "accepted": "Accepted",

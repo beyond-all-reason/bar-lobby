@@ -3895,6 +3895,7 @@
                 "queueError": null,
                 "buttons": {
                     "searchGame": null,
+                    "joinRequested": null,
                     "searchingForOpponent": null,
                     "matchFound": null,
                     "accepted": null,
@@ -4025,7 +4026,9 @@
                         "failedToCancel": null,
                         "failedToAccept": null,
                         "failedToReject": null,
-                        "failedToRemove": null
+                        "failedToRemove": null,
+                        "outgoingRequestExists": null,
+                        "incomingRequestExists": null
                     }
                 }
             }

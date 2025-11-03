@@ -1890,6 +1890,7 @@
                 "queueError": "Error loading queues",
                 "buttons": {
                     "searchGame": "Search game",
+                    "joinRequested": "Joining queue",
                     "searchingForOpponent": "Searching for opponent",
                     "matchFound": "Match found",
                     "accepted": "Accepted",
@@ -2020,7 +2021,9 @@
                         "failedToCancel": "Failed to cancel friend request",
                         "failedToAccept": "Failed to accept friend request",
                         "failedToReject": "Failed to reject friend request",
-                        "failedToRemove": "Failed to remove friend"
+                        "failedToRemove": "Failed to remove friend",
+                        "outgoingRequestExists": "Friend request already sent to this user",
+                        "incomingRequestExists": "This user has already sent you a friend request"
                     }
                 }
             }
