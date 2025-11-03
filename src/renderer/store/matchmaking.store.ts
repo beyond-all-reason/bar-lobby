@@ -13,10 +13,11 @@ import {
 } from "tachyon-protocol/types";
 import { tachyonStore } from "@renderer/store/tachyon.store";
 import { db } from "@renderer/store/db";
-import { useDexieLiveQueryWithDeps } from "@renderer/composables/useDexieLiveQuery";
+import { notificationsApi } from "@renderer/api/notifications";
 
 export enum MatchmakingStatus {
     Idle = "Idle",
+	JoinRequested = "JoinRequested",
     Searching = "Searching",
     MatchFound = "MatchFound",
     MatchAccepted = "MatchAccepted",
@@ -102,33 +103,25 @@ async function sendListRequest() {
             matchmakingStore.selectedQueue = matchmakingStore.playlists[0].id;
         }
         // Find out of we have the necessary maps for each queue we've been given.
-        matchmakingStore.playlists.forEach((queue) => {
-            if (queue.maps.length > 0) {
-                matchmakingStore.downloadsRequired[queue.id] = { needed: checkIfAnyMapsAreNeeded(queue.maps) };
-            } else {
-                matchmakingStore.downloadsRequired[queue.id] = { needed: true };
-            }
+        matchmakingStore.playlists.forEach(async(queue) => {
+			matchmakingStore.downloadsRequired[queue.id] = { needed: await checkIfAnyMapsAreNeeded(queue.maps) };
         });
     } catch (error) {
         console.error("Tachyon error: matchmaking/list:", error);
+		notificationsApi.alert({text:"Tachyon error: matchmaking/list", severity:'error'});
         matchmakingStore.queueError = "Failed to retrieve available queues";
     } finally {
         matchmakingStore.isLoadingQueues = false;
     }
 }
 
-// This is just to get is a quick idea if any maps will be needed to be downloaded
-function checkIfAnyMapsAreNeeded(maps: { springName: string }[]): boolean {
-    for (const item of maps) {
-        const need = useDexieLiveQueryWithDeps([() => item.springName], () =>
-            db.maps.get(item.springName).then((map) => {
-                if (!map?.isInstalled) {
-                    return true;
-                }
-            })
-        );
-        if (need) return true;
-    }
+async function checkIfAnyMapsAreNeeded(maps: { springName: string }[]): Promise<boolean> {
+	if (maps.length == 0 ) return false;
+	const queueMaps = maps.map(m => m.springName);
+	const dbMaps = await db.maps.bulkGet(queueMaps);
+	for(const map of dbMaps) {
+		if(map == undefined || !map.isInstalled) return true;
+	}
     return false;
 }
 
@@ -138,17 +131,18 @@ export function getPlaylistName(id: string): string {
 }
 
 async function sendQueueRequest() {
+	if(matchmakingStore.downloadsRequired[matchmakingStore.selectedQueue].needed) {
+		notificationsApi.alert({text:"You have downloads required to join this queue.", severity:'info'});
+		return;
+	}
     try {
         matchmakingStore.errorMessage = null;
-        matchmakingStore.status = MatchmakingStatus.Searching;
-        //TODO: Before we can actually queue up, we have to ensure all needed maps are downloaded.
-        //We will need a modal of maps required, each with an indicator if they're already stored, or a button to trigger download.
-        //A "download all" button is also a nice idea, maybe with a "concurrent downloads" number in the UI.
-        //Each will need an individual progress bar too.
+        matchmakingStore.status = MatchmakingStatus.JoinRequested;
         const response = await window.tachyon.request("matchmaking/queue", { queues: [matchmakingStore.selectedQueue] });
         console.log("Tachyon: matchmaking/queue:", response.status);
     } catch (error) {
         console.error("Tachyon error: matchmaking/queue:", error);
+		notificationsApi.alert({text:"Tachyon error: matchmaking/queue", severity:'error'});
         matchmakingStore.errorMessage = "Error with matchmaking/queue";
         matchmakingStore.status = MatchmakingStatus.Idle;
     }
@@ -161,6 +155,7 @@ async function sendCancelRequest() {
         console.log("Tachyon: matchmaking/cancel:", response.status);
     } catch (error) {
         console.error("Tachyon: matchmaking/cancel:", error);
+		notificationsApi.alert({text:"Tachyon error: matchmaking/cancel", severity:"error"});
         matchmakingStore.errorMessage = "Error with matchmaking/cancel";
     }
 }
@@ -173,6 +168,7 @@ async function sendReadyRequest() {
     } catch (error) {
         matchmakingStore.status = MatchmakingStatus.Idle;
         console.error("Tachyon error: matchmaking/ready:", error);
+		notificationsApi.alert({text:"Tachyon error: matchmaking/ready", severity:'error'});
         matchmakingStore.errorMessage = "Error with matchmaking/ready";
     }
 }
