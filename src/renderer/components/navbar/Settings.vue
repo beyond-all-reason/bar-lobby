@@ -77,7 +77,6 @@ const displayOptions = asyncComputed(async () => {
     return Array(infosStore.hardware.numOfDisplays)
         .fill(0)
         .map((_, i) => {
-            //return { label: `Display ${i + 1}`, value: i };
             return { label: t("lobby.navbar.settings.labelDisplay", { id: i + 1 }), value: i };
         });
 });
