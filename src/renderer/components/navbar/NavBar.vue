@@ -21,7 +21,7 @@ SPDX-License-Identifier: MIT
                 <div class="drag-window-area"></div>
                 <div class="primary-right">
                     <Button
-                        v-if="me.isAuthenticated"
+                        v-if="me.isAuthenticated && settingsStore.devMode"
                         v-tooltip.bottom="t('lobby.navbar.tooltips.directMessages')"
                         v-click-away:messages="() => (messagesOpen = false)"
                         :class="['icon', { active: messagesOpen }]"
@@ -31,6 +31,7 @@ SPDX-License-Identifier: MIT
                         <div v-if="messagesUnread" class="unread-dot"></div>
                     </Button>
                     <Button
+                        v-if="settingsStore.devMode"
                         v-tooltip.bottom="t('lobby.navbar.tooltips.friends')"
                         v-click-away:friends="() => (friendsOpen = false)"
                         :class="['icon', { active: friendsOpen }]"
@@ -72,7 +73,7 @@ SPDX-License-Identifier: MIT
                     </Button>
                 </div>
                 <div class="secondary-right flex-row flex-right">
-                    <ServerStatus />
+                    <ServerStatus v-if="settingsStore.devMode" />
                     <Button v-if="me.isAuthenticated" class="user" :to="`/profile/${me.userId}`">
                         <div class="flex-row flex-center gap-sm">
                             <Icon :icon="account" :height="20" />
