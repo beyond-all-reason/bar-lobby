@@ -76,20 +76,14 @@ function updateDownloadStatus(value: boolean) {
 
 // Note; we have to await each download because we need to update pr-downloader to accept concurrent downloads
 async function beginDownload(maps?: string[], engines?: string[], games?: string[]) {
-    if (maps) {
-        for (const map of maps) {
-            await downloadMap(map);
-        }
+    for (const map of maps ?? []) {
+        await downloadMap(map);
     }
-    if (engines) {
-        for (const engine of engines) {
-            await downloadEngine(engine);
-        }
+    for (const engine of engines ?? []) {
+        await downloadEngine(engine);
     }
-    if (games) {
-        for (const game of games) {
-            await downloadGame(game);
-        }
+    for (const game of games ?? []) {
+        await downloadGame(game);
     }
 }
 </script>
