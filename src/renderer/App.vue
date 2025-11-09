@@ -135,18 +135,16 @@ router.beforeEach(async (to) => {
     const defaultRedirect = to.meta.redirect;
 
     if (!rememberedPath) {
-        const defaultPath = typeof defaultRedirect === "string" ? defaultRedirect : router.resolve(defaultRedirect).fullPath;
-        return { path: defaultPath };
+        return { path: router.resolve(defaultRedirect).fullPath };
     }
 
     const isAuthed = Boolean(toValue(me.isAuthenticated));
     if (!isAuthed) {
         const resolved = router.resolve(rememberedPath);
-        const requiresAuth = resolved.matched?.some((r) => Boolean(r.meta?.onlineOnly)) ?? Boolean(resolved.meta?.onlineOnly);
+        const requiresAuth = router.getRoutes().find((r) => r.name === resolved.name)?.meta?.onlineOnly;
 
         if (requiresAuth) {
-            const defaultPath = typeof defaultRedirect === "string" ? defaultRedirect : router.resolve(defaultRedirect).fullPath;
-            return { path: defaultPath };
+            return { path: router.resolve(defaultRedirect).fullPath };
         }
     }
 
