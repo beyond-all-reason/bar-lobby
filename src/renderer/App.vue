@@ -52,6 +52,7 @@ SPDX-License-Identifier: MIT
         <ServerSettings v-model="serverSettingsOpen" />
         <ChatComponent v-if="state === 'default' && me.isAuthenticated && tachyonStore.isConnected" />
         <FullscreenGameModeSelector v-if="state === 'default'" :visible="battleStore.isSelectingGameMode" />
+        <LogInConfirmationModal v-model="logInConfirmationIsOpen" :intendedRoute="logInConfirmationIntendedRoute" />
     </div>
     <Error />
 </template>
@@ -77,6 +78,7 @@ import Settings from "@renderer/components/navbar/Settings.vue";
 import ServerSettings from "@renderer/components/navbar/ServerSettings.vue";
 import Notifications from "@renderer/components/notifications/Notifications.vue";
 import PromptContainer from "@renderer/components/prompts/PromptContainer.vue";
+import LogInConfirmationModal from "@renderer/components/misc/LogInConfirmationModal.vue";
 
 import { playRandomMusic } from "@renderer/utils/play-random-music";
 import { settingsStore } from "./store/settings.store";
@@ -88,6 +90,7 @@ import { useGlobalKeybindings } from "@renderer/composables/useGlobalKeybindings
 import { me } from "@renderer/store/me.store";
 import { tachyonStore } from "@renderer/store/tachyon.store";
 import { auth } from "@renderer/store/me.store";
+import { useLogInConfirmation } from "@renderer/composables/useLogInConfirmation";
 
 const router = useRouter();
 const videoVisible = toRef(!toValue(settingsStore.skipIntro));
@@ -99,6 +102,8 @@ const blurBg = ref(router.currentRoute.value?.meta?.blurBg ?? false);
 const settingsOpen = ref(false);
 const serverSettingsOpen = ref(false);
 const exitOpen = ref(false);
+
+const { isOpen: logInConfirmationIsOpen, intendedRoute: logInConfirmationIntendedRoute } = useLogInConfirmation();
 
 provide("settingsOpen", settingsOpen);
 provide("serverSettingsOpen", serverSettingsOpen);
@@ -123,12 +128,27 @@ window.barNavigation.onNavigateTo((target: string) => {
 
 const simpleRouterMemory = new Map<string, string>();
 router.beforeEach(async (to) => {
-    if (to.meta?.redirect) {
-        const redirection = simpleRouterMemory.get(to.fullPath.split("/")[1]) ?? to.meta.redirect;
-        return {
-            path: redirection,
-        };
+    if (!to.meta?.redirect) return;
+
+    const section = to.fullPath.split("/")[1];
+    const rememberedPath = simpleRouterMemory.get(section);
+    const defaultRedirect = to.meta.redirect;
+
+    if (!rememberedPath) {
+        return { path: router.resolve(defaultRedirect).fullPath };
     }
+
+    const isAuthed = Boolean(toValue(me.isAuthenticated));
+    if (!isAuthed) {
+        const resolved = router.resolve(rememberedPath);
+        const requiresAuth = router.getRoutes().find((r) => r.name === resolved.name)?.meta?.onlineOnly;
+
+        if (requiresAuth) {
+            return { path: router.resolve(defaultRedirect).fullPath };
+        }
+    }
+
+    return { path: rememberedPath };
 });
 
 router.afterEach(async (to) => {
