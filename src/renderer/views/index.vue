@@ -60,7 +60,8 @@ async function login() {
         connecting.value = true;
         await auth.login();
         await tachyon.connect();
-        router.push("/play");
+        const redirect = router.currentRoute.value.query.redirect as string | undefined;
+        router.push(redirect || "/play");
     } catch (e) {
         console.error(e);
         error.value = (e as Error).message;
