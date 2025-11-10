@@ -102,6 +102,8 @@ async function sendListRequest() {
         if (matchmakingStore.playlists.length > 0 && !hasSelectedQueue) {
             matchmakingStore.selectedQueue = matchmakingStore.playlists[0].id;
         }
+        // Clear the "downloadsRequired" list because we have all-new playlist response
+        matchmakingStore.downloadsRequired = {};
         // Find out of we have the necessary maps for each queue we've been given.
         matchmakingStore.playlists.forEach(async (queue) => {
             matchmakingStore.downloadsRequired[queue.id] = { needed: await checkIfAnyMapsAreNeeded(queue.maps) };
@@ -131,15 +133,21 @@ export function getPlaylistName(id: string): string {
 }
 
 async function sendQueueRequest() {
+    if (matchmakingStore.downloadsRequired[matchmakingStore.selectedQueue] == undefined) {
+        notificationsApi.alert({ text: "Bad queue data; refreshing list.", severity: "error" });
+        await sendListRequest();
+        return;
+    }
     if (matchmakingStore.downloadsRequired[matchmakingStore.selectedQueue].needed) {
         notificationsApi.alert({ text: "You have downloads required to join this queue.", severity: "info" });
         return;
     }
+    matchmakingStore.status = MatchmakingStatus.JoinRequested; // Initial state, likely short-lived.
     try {
         matchmakingStore.errorMessage = null;
-        matchmakingStore.status = MatchmakingStatus.JoinRequested;
         const response = await window.tachyon.request("matchmaking/queue", { queues: [matchmakingStore.selectedQueue] });
         console.log("Tachyon: matchmaking/queue:", response.status);
+        matchmakingStore.status = MatchmakingStatus.Searching;
     } catch (error) {
         console.error("Tachyon error: matchmaking/queue:", error);
         notificationsApi.alert({ text: "Tachyon error: matchmaking/queue", severity: "error" });
