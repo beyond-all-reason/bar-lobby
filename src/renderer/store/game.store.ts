@@ -7,7 +7,6 @@ import { LuaOption } from "@main/content/game/lua-options";
 import { Replay } from "@main/content/replays/replay";
 import { BattleWithMetadata } from "@main/game/battle/battle-types";
 import { notificationsApi } from "@renderer/api/notifications";
-import { db } from "@renderer/store/db";
 import { reactive, watch } from "vue";
 
 export enum GameStatus {
@@ -21,20 +20,20 @@ export const gameStore: {
     status: GameStatus;
     selectedGameVersion?: GameVersion;
     optionsMap?: Record<string, LuaOption & { section: string }>;
-    availableGameVersions: GameVersion[];
+    availableGameVersions: Map<string, GameVersion>;
 } = reactive({
     isInitialized: false,
     status: GameStatus.CLOSED,
-    availableGameVersions: [],
+    availableGameVersions: new Map(),
 });
 
 async function refreshStore() {
-    await db.gameVersions.clear();
     const installedVersions = await window.game.getInstalledVersions();
-    await db.gameVersions.bulkPut(installedVersions);
-    gameStore.availableGameVersions = Array.from(installedVersions);
-    const latestGameVersion = await db.gameVersions.orderBy("gameVersion").last();
-    gameStore.selectedGameVersion = latestGameVersion;
+    for (const version of installedVersions) {
+        gameStore.availableGameVersions.set(version.gameVersion, version);
+        // The last version provided is always the default "selected" version.
+        gameStore.selectedGameVersion = version;
+    }
 }
 
 watch(

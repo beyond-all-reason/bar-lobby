@@ -130,7 +130,7 @@ import gridIcon from "@iconify-icons/mdi/grid";
 const mapListOpen = ref(false);
 const mapOptionsOpen = ref(false);
 const mapListOptions = useDexieLiveQuery(() => db.maps.toArray());
-const gameListOptions = useDexieLiveQuery(() => db.gameVersions.toArray());
+const gameListOptions = Array.from(gameStore.availableGameVersions.values());
 
 const map = useDexieLiveQueryWithDeps([() => battleStore.battleOptions.map], () => {
     if (!battleStore.battleOptions.map) return;
@@ -145,8 +145,8 @@ function openMapOptions() {
     mapOptionsOpen.value = true;
 }
 
-async function onGameSelected(gameVersion: string) {
-    gameStore.selectedGameVersion = await db.gameVersions.get(gameVersion);
+function onGameSelected(gameVersion: string) {
+    gameStore.selectedGameVersion = gameStore.availableGameVersions.get(gameVersion);
     battleStore.battleOptions.gameVersion = gameVersion;
 }
 
