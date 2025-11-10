@@ -2421,7 +2421,8 @@
                     "gameModeFFA": null,
                     "gameModeRaptors": null,
                     "gameModeScavengers": null,
-                    "gameModeSkirmish": null
+                    "gameModeSkirmish": null,
+                    "gameModeUnknown": null
                 },
                 "offlineBattleComponent": {
                     "offlineBattle": null,

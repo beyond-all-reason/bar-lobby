@@ -438,7 +438,8 @@
                     "gameModeFFA": "FFA",
                     "gameModeRaptors": "Raptors",
                     "gameModeScavengers": "Scavengers",
-                    "gameModeSkirmish": "Skirmish"
+                    "gameModeSkirmish": "Skirmish",
+                    "gameModeUnknown": "Unknown"
                 },
                 "offlineBattleComponent": {
                     "offlineBattle": "Offline Battle",
