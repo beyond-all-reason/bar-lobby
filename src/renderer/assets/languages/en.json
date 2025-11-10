@@ -1864,7 +1864,9 @@
                 "goBack": "Go Back",
                 "login": "Login",
                 "changeAccount": "Change account",
-                "playOffline": "Play Offline"
+                "playOffline": "Play Offline",
+                "needToLogIn": "log in?",
+                "needToLogInToAccess": "You need to log in to access online features."
             }
         },
         "library": {
@@ -1975,7 +1977,8 @@
             "serverStatus": {
                 "playersOnline": "Players Online",
                 "error": "Error",
-                "reconnecting": "Reconnecting..."
+                "reconnecting": "Reconnecting...",
+                "offline": "Offline"
             },
             "messages": {
                 "message": "Message",
