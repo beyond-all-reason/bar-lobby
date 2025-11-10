@@ -20,11 +20,11 @@ function openInBrowser(url: string) {
 }
 
 function registerIpcHandlers() {
-    ipcMain.handle("shell:openStateDir", () => shell.openPath(STATE_PATH));
-    ipcMain.handle("shell:openAssetsDir", () => shell.openPath(ASSETS_PATH));
-    ipcMain.handle("shell:openSettingsFile", () => shell.openPath(path.join(CONFIG_PATH, "settings.json")));
-    ipcMain.handle("shell:openStartScript", () => shell.openPath(path.join(WRITE_DATA_PATH, "script.txt")));
-    ipcMain.handle("shell:openReplaysDir", () => shell.openPath(REPLAYS_PATH));
+    ipcMain.handle("shell:openStateDir", () => openPath(STATE_PATH));
+    ipcMain.handle("shell:openAssetsDir", () => openPath(ASSETS_PATH));
+    ipcMain.handle("shell:openSettingsFile", () => openPath(path.join(CONFIG_PATH, "settings.json")));
+    ipcMain.handle("shell:openStartScript", () => openPath(path.join(WRITE_DATA_PATH, "script.txt")));
+    ipcMain.handle("shell:openReplaysDir", () => openPath(REPLAYS_PATH));
     ipcMain.handle("shell:showReplayInFolder", (_event, fileName: string) => shell.showItemInFolder(path.join(REPLAYS_PATH, fileName)));
 
     // External
@@ -34,3 +34,13 @@ function registerIpcHandlers() {
 export const shellService = {
     registerIpcHandlers,
 };
+
+// Allows us to return an empty string even if shell.openPath has an error string.
+function openPath(path: string): string {
+    try {
+        shell.openPath(path);
+    } catch (error) {
+        console.error(error);
+    }
+    return "";
+}
