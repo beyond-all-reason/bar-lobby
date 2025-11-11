@@ -1,13 +1,83 @@
 {
     "lobby": {
+        "api": {
+            "commands": {
+                "help": "Displays this help text.",
+                "whoami": "Sends back information about who you are.",
+                "whois": "[user] Sends back information about the user specified.",
+                "discord": "Allows linking of your discord account to your BAR account.",
+                "mute": "[username] Mutes that user and prevents you seeing their messages.",
+                "unmute": "[username] Un-mutes that user and allows you to see their messages.",
+                "coc": "[term] Searches the code of conduct and returns items with a textual match in them.",
+                "joinq": "Adds you to the queue to join when a space opens up, you will be automatically added to the game as a player. If already a member it has no effect.",
+                "leaveq": "Removes you from the join queue.",
+                "status": "Status info about the battle lobby.",
+                "afks": "Lists possible afk players.",
+                "password": "Tells you the room password",
+                "splitLobby": "[minimum players] Causes a vote to start where other players can elect to join you in splitting the lobby, follow someone of their choosing or remain in place. After 30 seconds, if at least the minimum number of players agreed to split, you are moved to a new (empty) lobby and those that voted yes or are following someone that voted yes are also moved to that lobby.",
+                "roll": "[range] Rolls a random number based on the range format.\n- Dice format: nDs, where n is number of dice and s is sides of die. E.g. 4D6 - 4 dice with 6 sides are rolled\n- Max format: N, where N is a number and an integer between 1 and N is returned\n- Min/Max format: MN MX, where each is a number and an integer between them (inclusive) is returned",
+                "explain": "Lists a log of the steps taken to calculate balance for the lobby",
+                "resetApproval": "Resets the list of approved players to just the ones present at the moment (approved players are able to join even if it is locked and without needing a password). Requires boss privileges.",
+                "meme": "[meme] A predefined bunch of settings for meme games. It's all Rikerss' fault. Requires boss privileges. ticks: Ticks only!, nodefence: No defences, greenfields: No metal extractors, rich: Infinite money, poor: No money generation, hardt1: T1 but no seaplanes or hovers either, crazy: Random combination of several settings, undo: Removes all meme effects",
+                "welcomeMessage": "[message] Sets the welcome message sent to anybody joining the lobby. Run this command without a message to clear the existing message. Requires boss privileges. Use $$ to add a line return.",
+                "gatekeeper": "[default - friends - friendsplay - clan] sets the gatekeeper for this battle. Requires boss privileges. > default: no limitations. > friends allows only friends of existing members to join the lobby. > friendsplay: allows only friends of existing players to become players (but anybody can join to spectate)",
+                "rename": "[new name] Renames the lobby to the name given. Requires boss privileges.",
+                "resetRatingLevels": "Resets the rating level limits to not exist. Player limiting commands are designed to be used with $rename, please be careful not to abuse them. Requires boss privileges.",
+                "minRatingLevel": "[min-level] Sets the minimum level for players, you must be at least this rating to be a player. Requires boss privileges.",
+                "maxRatingLevel": "[max-level] Sets the maximum level for players, you must be at below this rating to be a player. Requires boss privileges.",
+                "setRatingLevels": "[min-level] [max-level] Sets the minimum and maximum rating levels for players. Requires boss privileges."
+            }
+        },
         "buttons": {
             "quickPlay": "Quick play"
+        },
+        "composables": {
+            "useTerrainIcon": {
+                "tooltipAcidic": "Acidic and dangerous waters",
+                "tooltipAlien": "Exotic alient biomes",
+                "tooltipAsteroid": "Lunar landscape, with low gravity and (no) wind",
+                "tooltipAsymmetrical": "Asymmetrical map",
+                "tooltipChokepoints": "Narrow passages",
+                "tooltipDesert": "Rocky or sandy, barren desert",
+                "tooltipFlat": "Contains large flat areas",
+                "tooltipForests": "Lots of trees",
+                "tooltipGrassy": "Lots of crispy green grass",
+                "tooltipHills": "Hilly or mountainous terrain",
+                "tooltipIce": "A cold place",
+                "tooltipIndustrial": "Industrial map with ancient constructions",
+                "tooltipIsland": "Island map, land fully surrounded by water",
+                "tooltipJungle": "Dense foliage and forests",
+                "tooltipLava": "Dangerous lava pools",
+                "tooltipMetal": "Metal map, where (most of) the surface is made of extractable metal",
+                "tooltipRuins": "Structures or ruins",
+                "tooltipSea": "Large bodies of water or Sea",
+                "tooltipShallows": "Passable shallow water like creeks, rivers and beaches",
+                "tooltipSpace": "In outerspace, usually without wind",
+                "tooltipSwamp": "Swampy, wet terrain with lots of ponds and foliage",
+                "tooltipTropical": "Tropical biome with beaches, palms and tropical fish",
+                "tooltipWasteland": "Forgotten wasteland that hasn't seen life in a long time",
+                "tooltipWater": "Smaller bodies of water like lakes, ponds or rivers"
+            }
         },
         "overview": {
             "newLobbyAlpha": "A new lobby has landed",
             "newLobbySubtext": "Welcome to the new BAR lobby public testing alpha 1 commander !\nThis version only supports singleplayer game modes."
         },
         "views": {
+            "profile": {
+                "status": "Status: ",
+                "clan": "Clan: ",
+                "userNotFound": "User not found"
+            },
+            "play": {
+                "comingSoon": "(Coming Soon)",
+                "skirmish": "Skirmish vs AI",
+                "campaign": "Campaign",
+                "matchmaking": "Matchmaking",
+                "scenarios": "Scenarios",
+                "customLobbies": "Custom Lobbies",
+                "tournaments": "Tournaments"
+            },
             "watch": {
                 "replays": {
                     "title": "Replays",
@@ -133,7 +203,9 @@
                 "placeholder": "e.g. ws://localhost:4000",
                 "add": "Add",
                 "remove": "Remove",
-                "info": "Changing the Active Server has immediate effect. Remember to log in after switching."
+                "info": "Changing the Active Server has immediate effect. Remember to log in after switching.",
+                "labelDefault": " - Default Servers",
+                "labelCustom": " - Custom Servers"
             },
             "breadcrumbs": {
                 "back": "Back"
@@ -167,9 +239,14 @@
                 "devMode": "Dev Mode",
                 "uploadLogs": "Upload logs",
                 "logUrlCopied": "Log URL was copied to clipboard.",
-                "couldNotUploadLog": "Could not upload log."
+                "couldNotUploadLog": "Could not upload log.",
+                "labelSm": "Small",
+                "labelMd": "Medium",
+                "labelLg": "Large",
+                "labelDisplay": "Display {id}"
             },
             "friends": {
+                "unknownUser": "Unknown User",
                 "title": "Friends",
                 "blocked": "Blocked",
                 "yourUserId": "Your User ID is",
@@ -212,6 +289,19 @@
                 }
             },
             "misc": {
+                "debugSidebar": {
+                    "debugSandbox": "Debug Sandbox",
+                    "openSettingsFile": "Open Settings File",
+                    "openAssetsDir": "Open Assets Dir",
+                    "openStateDir": "Open State Dir",
+                    "openStartScript": "Open Latest Start Script",
+                    "syncLobbyContent": "Sync Lobby Content Tool",
+                    "causeError": "Cause an error",
+                    "game": "Game",
+                    "engine": "Engine",
+                    "view": "View",
+                    "lobbyServerSettings": "Lobby Server Settings"
+                },
                 "scenarioTile": {
                     "title": "Scenario Title"
                 },
@@ -318,10 +408,17 @@
                 },
                 "teamComponent": {
                     "team": "Team",
-                    "addBot": "Add bot"
+                    "addBot": "Add bot",
+                    "join": "Join",
+                    "players": "({count} / {maxCount} players)",
+                    "scavengers": "Scavengers",
+                    "raptors": "Raptors",
+                    "teamId": "Team {id}"
                 },
                 "spectatorsComponent": {
-                    "spectators": "Spectators"
+                    "spectators": "Spectators",
+                    "memberCount": "0 Members | 1 Member | {n} Members",
+                    "join": "Join"
                 },
                 "battlePreview": {
                     "preview": "Preview",
@@ -331,17 +428,28 @@
                 "replayPreview": {
                     "replay": "Replay",
                     "players": "Players",
-                    "spectators": "Spectators"
+                    "spectators": "Spectators",
+                    "engineVersion": "Engine Version",
+                    "gameVersion": "Game Version"
                 },
                 "gameModeComponent": {
                     "gameMode": "Game Mode",
                     "presets": "Presets",
                     "configureGameOptions": "Configure Game Options",
-                    "gameOptions": "Game Options"
+                    "gameOptions": "Game Options",
+                    "gameModeClassic": "Classic",
+                    "gameModeFFA": "FFA",
+                    "gameModeRaptors": "Raptors",
+                    "gameModeScavengers": "Scavengers",
+                    "gameModeSkirmish": "Skirmish",
+                    "gameModeUnknown": "Unknown"
                 },
                 "offlineBattleComponent": {
                     "offlineBattle": "Offline Battle",
-                    "maps": "Maps"
+                    "maps": "Maps",
+                    "gameIsStarting": "Game is starting...",
+                    "gameIsRunning": "Game is running",
+                    "startTheGame": "tart the game"
                 },
                 "playerParticipant": {
                     "player": "Player",

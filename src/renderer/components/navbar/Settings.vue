@@ -68,16 +68,16 @@ const op = ref();
 const tooltipMessage = ref("");
 
 const sizeOptions = [
-    { label: "Large", value: 900 },
-    { label: "Medium", value: 720 },
-    { label: "Small", value: 540 },
+    { label: t("lobby.navbar.settings.labelLg"), value: 900 },
+    { label: t("lobby.navbar.settings.labelMd"), value: 720 },
+    { label: t("lobby.navbar.settings.labelSm"), value: 540 },
 ];
 
 const displayOptions = asyncComputed(async () => {
     return Array(infosStore.hardware.numOfDisplays)
         .fill(0)
         .map((_, i) => {
-            return { label: `Display ${i + 1}`, value: i };
+            return { label: t("lobby.navbar.settings.labelDisplay", { id: i + 1 }), value: i };
         });
 });
 
