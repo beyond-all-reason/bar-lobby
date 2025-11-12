@@ -8,7 +8,7 @@ SPDX-License-Identifier: MIT
     <div class="friend">
         <div class="flex-row gap-md flex-center-items">
             <Flag :countryCode="user?.countryCode || '??'" class="flag" />
-            <div class="username">{{ user?.username || "Unknown User" }}</div>
+            <div class="username">{{ user?.username || t("lobby.navbar.friends.unknownUser") }}</div>
             <div :class="['online-dot', { offline: user?.status === 'offline' }]">⬤</div>
         </div>
         <div class="flex-row gap-sm">

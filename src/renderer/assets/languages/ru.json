@@ -3805,14 +3805,84 @@
         }
     },
     "lobby": {
+        "api": {
+            "commands": {
+                "help": null,
+                "whoami": null,
+                "whois": null,
+                "discord": null,
+                "mute": null,
+                "unmute": null,
+                "coc": null,
+                "joinq": null,
+                "leaveq": null,
+                "status": null,
+                "afks": null,
+                "password": null,
+                "splitLobby": null,
+                "roll": null,
+                "explain": null,
+                "resetApproval": null,
+                "meme": null,
+                "welcomeMessage": null,
+                "gatekeeper": null,
+                "rename": null,
+                "resetRatingLevels": null,
+                "minRatingLevel": null,
+                "maxRatingLevel": null,
+                "setRatingLevels": null
+            }
+        },
         "buttons": {
             "quickPlay": null
+        },
+        "composables": {
+            "useTerrainIcon": {
+                "tooltipAcidic": null,
+                "tooltipAlien": null,
+                "tooltipAsteroid": null,
+                "tooltipAsymmetrical": null,
+                "tooltipChokepoints": null,
+                "tooltipDesert": null,
+                "tooltipFlat": null,
+                "tooltipForests": null,
+                "tooltipGrassy": null,
+                "tooltipHills": null,
+                "tooltipIce": null,
+                "tooltipIndustrial": null,
+                "tooltipIsland": null,
+                "tooltipJungle": null,
+                "tooltipLava": null,
+                "tooltipMetal": null,
+                "tooltipRuins": null,
+                "tooltipSea": null,
+                "tooltipShallows": null,
+                "tooltipSpace": null,
+                "tooltipSwamp": null,
+                "tooltipTropical": null,
+                "tooltipWasteland": null,
+                "tooltipWater": null
+            }
         },
         "overview": {
             "newLobbyAlpha": null,
             "newLobbySubtext": null
         },
         "views": {
+            "profile": {
+                "status": null,
+                "clan": null,
+                "userNotFound": null
+            },
+            "play": {
+                "comingSoon": null,
+                "skirmish": null,
+                "campaign": null,
+                "matchmaking": null,
+                "scenarios": null,
+                "customLobbies": null,
+                "tournaments": null
+            },
             "watch": {
                 "replays": {
                     "title": null,
@@ -3937,7 +4007,9 @@
                 "placeholder": null,
                 "add": null,
                 "remove": null,
-                "info": null
+                "info": null,
+                "labelDefault": null,
+                "labelCustom": null
             },
             "breadcrumbs": {
                 "back": null
@@ -3970,9 +4042,14 @@
                 "devMode": null,
                 "uploadLogs": null,
                 "logUrlCopied": null,
-                "couldNotUploadLog": null
+                "couldNotUploadLog": null,
+                "labelSm": null,
+                "labelMd": null,
+                "labelLg": null,
+                "labelDisplay": null
             },
             "friends": {
+                "unknownUser": null,
                 "title": null,
                 "blocked": null,
                 "yourUserId": null,
@@ -4015,6 +4092,19 @@
                 }
             },
             "misc": {
+                "debugSidebar": {
+                    "debugSandbox": null,
+                    "openSettingsFile": null,
+                    "openAssetsDir": null,
+                    "openStateDir": null,
+                    "openStartScript": null,
+                    "syncLobbyContent": null,
+                    "causeError": null,
+                    "game": null,
+                    "engine": null,
+                    "view": null,
+                    "lobbyServerSettings": null
+                },
                 "scenarioTile": {
                     "title": null
                 },
@@ -4121,10 +4211,17 @@
                 },
                 "teamComponent": {
                     "team": null,
-                    "addBot": null
+                    "addBot": null,
+                    "join": null,
+                    "players": null,
+                    "scavengers": null,
+                    "raptors": null,
+                    "teamId": null
                 },
                 "spectatorsComponent": {
-                    "spectators": null
+                    "spectators": null,
+                    "memberCount": null,
+                    "join": null
                 },
                 "battlePreview": {
                     "preview": null,
@@ -4134,17 +4231,28 @@
                 "replayPreview": {
                     "replay": null,
                     "players": null,
-                    "spectators": null
+                    "spectators": null,
+                    "engineVersion": null,
+                    "gameVersion": null
                 },
                 "gameModeComponent": {
                     "gameMode": null,
                     "presets": null,
                     "configureGameOptions": null,
-                    "gameOptions": null
+                    "gameOptions": null,
+                    "gameModeClassic": null,
+                    "gameModeFFA": null,
+                    "gameModeRaptors": null,
+                    "gameModeScavengers": null,
+                    "gameModeSkirmish": null,
+                    "gameModeUnknown": null
                 },
                 "offlineBattleComponent": {
                     "offlineBattle": null,
-                    "maps": null
+                    "maps": null,
+                    "gameIsStarting": null,
+                    "gameIsRunning": null,
+                    "startTheGame": null
                 },
                 "playerParticipant": {
                     "player": null,
