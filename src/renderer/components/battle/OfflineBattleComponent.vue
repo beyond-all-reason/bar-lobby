@@ -90,9 +90,7 @@ SPDX-License-Identifier: MIT
                             :engines="battleStore.battleOptions.engineVersion ? [battleStore.battleOptions.engineVersion] : []"
                             :games="battleStore.battleOptions.gameVersion ? [battleStore.battleOptions.gameVersion] : []"
                             @click="battleActions.startBattle"
-                            >{{
-                            t("lobby.components.battle.offlineBattleComponent.startTheGame")
-                        }}</DownloadContentButton
+                            >{{ t("lobby.components.battle.offlineBattleComponent.startTheGame") }}</DownloadContentButton
                         >
                     </div>
                     <Button v-else class="fullwidth green flex-grow" disabled>{{
