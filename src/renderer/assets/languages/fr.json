@@ -3939,7 +3939,9 @@
                 "goBack": null,
                 "login": null,
                 "changeAccount": null,
-                "playOffline": null
+                "playOffline": null,
+                "needToLogIn": null,
+                "needToLogInToAccess": null
             }
         },
         "library": {
@@ -3972,11 +3974,18 @@
                 }
             },
             "battle": {
-                "title": null
+                "title": null,
+                "onlineTitle": null,
+                "offlineTitle": null
             },
             "custom": {
                 "title": null,
                 "hostBattle": null,
+                "leaveLobby": null,
+                "devLobbyView": null,
+                "subscribeRequest": null,
+                "unsubscribeRequest": null,
+                "openCurrentLobby": null,
                 "filters": {
                     "hidePvE": null,
                     "hideLocked": null,
@@ -3990,7 +3999,8 @@
                     "players": null,
                     "runningFor": null,
                     "join": null
-                }
+                },
+                "removedFromLobby": null
             }
         },
         "singleplayer": {
@@ -4052,7 +4062,8 @@
             "serverStatus": {
                 "playersOnline": null,
                 "error": null,
-                "reconnecting": null
+                "reconnecting": null,
+                "offline": null
             },
             "messages": {
                 "message": null,
@@ -4207,13 +4218,25 @@
                     "editPresetTeams": null,
                     "fixedPositions": null,
                     "random": null,
-                    "close": null
+                    "close": null,
+                    "openMapSelector": null
+                },
+                "updateBattle": {
+                    "title": null
                 },
                 "hostBattle": {
                     "title": null,
+                    "updateTitle": null,
                     "settingUp": null,
                     "region": null,
-                    "hostButton": null
+                    "hostButton": null,
+                    "updateButton": null,
+                    "name": null,
+                    "startBoxes1": null,
+                    "startBoxes2": null,
+                    "startBoxes3": null,
+                    "allyTeamCount": null,
+                    "teamsPerAllyTeam": null
                 },
                 "votePanel": {
                     "vote": null,
@@ -4250,6 +4273,7 @@
                 },
                 "spectatorsComponent": {
                     "spectators": null,
+                    "queue": null,
                     "memberCount": null,
                     "join": null
                 },
@@ -4280,9 +4304,13 @@
                 "offlineBattleComponent": {
                     "offlineBattle": null,
                     "maps": null,
+                    "exitLobby": null,
+                    "editLobbyName": null,
+                    "gameVersion": null,
+                    "engineVersion": null,
+                    "startTheGame": null,
                     "gameIsStarting": null,
-                    "gameIsRunning": null,
-                    "startTheGame": null
+                    "gameIsRunning": null
                 },
                 "playerParticipant": {
                     "player": null,
@@ -4303,6 +4331,13 @@
                 "luaOptionsModal": {
                     "resetAllToDefault": null,
                     "close": null
+                },
+                "leaveConfirmModal": {
+                    "title": null,
+                    "warning": null,
+                    "content": null,
+                    "confirm": null,
+                    "cancel": null
                 }
             },
             "controls": {

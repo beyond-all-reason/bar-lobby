@@ -20,8 +20,12 @@ SPDX-License-Identifier: MIT
         <div class="group-header flex-row flex-center-items gap-md">
             <div class="title">{{ title }}</div>
             <div class="member-count" v-if="!isRaptorTeam(teamId) && !isScavengerTeam(teamId)">
-                <div v-if="!battleStore.isOnline">({{ memberCount }}/{{ maxPlayersPerTeam }} players)</div> !!!! FIX ME !!! 
-                <div v-else>{{ t("lobby.components.battle.teamComponent.players", { count: memberCount, maxCount: maxPlayersPerTeam }) }}</div>
+                <div v-if="!battleStore.isOnline">
+                    {{ t("lobby.components.battle.teamComponent.players", { count: memberCount, maxCount: maxPlayersPerTeam }) }}
+                </div>
+                <div v-else>
+                    {{ t("lobby.components.battle.teamComponent.players", { count: memberCount, maxCount: maxMembersPerAllyTeam }) }}
+                </div>
             </div>
             <div v-if="getAmountOfJoinButtons(maxPlayersPerTeam, memberCount) > 0">
                 <Button class="slim black" @click="addBotClicked(teamId)" v-if="!isRaptorTeam(teamId) && !isScavengerTeam(teamId)">

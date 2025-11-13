@@ -1969,11 +1969,18 @@
                 }
             },
             "battle": {
-                "title": "Multiplayer Custom Battle"
+                "title": "Multiplayer Custom Battle",
+                "onlineTitle": "Online Custom Battle",
+                "offlineTitle": "Offline Custom Battle"
             },
             "custom": {
                 "title": "Multiplayer Custom Battles",
                 "hostBattle": "Host Battle",
+                "leaveLobby": "Leave Lobby",
+                "devLobbyView": "Dev Lobby View",
+                "subscribeRequest": "Subscribe to list updates",
+                "unsubscribeRequest": "Unsubscribe to list updates",
+                "openCurrentLobby": "Open Current Lobby",
                 "filters": {
                     "hidePvE": "Hide PvE",
                     "hideLocked": "Hide Locked",
@@ -1987,7 +1994,8 @@
                     "players": "Players",
                     "runningFor": "Running for",
                     "join": "Join"
-                }
+                },
+                "removedFromLobby": "You have been removed from the online lobby."
             }
         },
         "singleplayer": {
@@ -2205,13 +2213,25 @@
                     "editPresetTeams": "Edit Preset Teams",
                     "fixedPositions": "Fixed positions",
                     "random": "Random",
-                    "close": "Close"
+                    "close": "Close",
+                    "openMapSelector": "Open map selector"
+                },
+                "updateBattle": {
+                    "title": "Update Lobby"
                 },
                 "hostBattle": {
                     "title": "Host Battle",
+                    "updateTitle": "Update Battle",
                     "settingUp": "Setting up a dedicated battle host, this usually takes around 30 seconds",
                     "region": "Region",
-                    "hostButton": "Host Battle"
+                    "hostButton": "Host Battle",
+                    "updateButton": "Update Battle",
+                    "name": "Name",
+                    "startBoxes1": "Startboxes are assigned sequentially to AllyTeams.",
+                    "startBoxes2": "Extra startboxes will be dropped.",
+                    "startBoxes3": "AllyTeams without one are full-map startboxes.",
+                    "allyTeamCount": "AllyTeam Count: ",
+                    "teamsPerAllyTeam": "Teams per AllyTeam: "
                 },
                 "votePanel": {
                     "vote": "Vote:",
@@ -2248,6 +2268,7 @@
                 },
                 "spectatorsComponent": {
                     "spectators": "Spectators",
+                    "queue": "Player Queue",
                     "memberCount": "0 Members | 1 Member | {n} Members",
                     "join": "Join"
                 },
@@ -2278,9 +2299,13 @@
                 "offlineBattleComponent": {
                     "offlineBattle": "Offline Battle",
                     "maps": "Maps",
+                    "exitLobby": "Exit Lobby",
+                    "editLobbyName": "Edit Lobby Name",
+                    "gameVersion": "Game",
+                    "engineVersion": "Engine",
+                    "startTheGame": "Start the game",
                     "gameIsStarting": "Game is starting...",
-                    "gameIsRunning": "Game is running",
-                    "startTheGame": "tart the game"
+                    "gameIsRunning": "Game is running"
                 },
                 "playerParticipant": {
                     "player": "Player",
@@ -2301,6 +2326,13 @@
                 "luaOptionsModal": {
                     "resetAllToDefault": "Reset all to default",
                     "close": "Close"
+                },
+                "leaveConfirmModal": {
+                    "title": "Leave Lobby?",
+                    "warning": "Warning:",
+                    "content": "You will lose your current place in this lobby. Are you sure?",
+                    "confirm": "Confirm Leave Lobby",
+                    "cancel": "Cancel"
                 }
             },
             "controls": {
