@@ -91,19 +91,19 @@ async function onRouteSelect(newRoute: string) {
 }
 
 function openSettings() {
-    window.shell.openSettingsFile();
+    window.shell.openSettingsFile().catch((error) => console.error(error));
 }
 
 async function openAssetsDir() {
-    window.shell.openAssetsDir();
+    window.shell.openAssetsDir().catch((error) => console.error(error));
 }
 
 async function openStateDir() {
-    window.shell.openStateDir();
+    window.shell.openStateDir().catch((error) => console.error(error));
 }
 
 async function openStartScript() {
-    window.shell.openStartScript();
+    window.shell.openStartScript().catch((error) => console.error(error));
 }
 
 function openSyncLobbyContentTool() {

@@ -54,7 +54,7 @@ function openInBrowser(url: string) {
     if (!["https:", "http:"].includes(new URL(url).protocol)) return;
     // Additional checks to prevent opening arbitrary URLs
     if (!url.startsWith(getOAuthAuthorizationServerURL())) return;
-    shell.openExternal(url);
+    shell.openExternal(url).catch((error) => console.error(error));
 }
 
 function createUrlWithQuerystring(baseUrl: string, params: Record<string, string | number | boolean>): string {
