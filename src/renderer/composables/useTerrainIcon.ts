@@ -2,7 +2,10 @@
 //
 // SPDX-License-Identifier: MIT
 
+import { setupI18n } from "@renderer/i18n";
 import { computed } from "vue";
+
+const i18n = setupI18n();
 
 export function useTerrain(terrain: string) {
     return computed(() => terrains[terrain]);
@@ -15,99 +18,99 @@ export type TerrainData = {
 
 const terrains: Record<string, TerrainData> = {
     acidic: {
-        tooltip: "Acidic and dangerous waters",
+        tooltip: i18n.global.t("lobby.composables.useTerrainIcon.tooltipAcidic"),
         icon: "map_acidic.png",
     },
     alien: {
-        tooltip: "Exotic alient biomes",
+        tooltip: i18n.global.t("lobby.composables.useTerrainIcon.tooltipAlien"),
         icon: "map_alien.png",
     },
     asteroid: {
-        tooltip: "Lunar landscape, with low gravity and (no) wind",
+        tooltip: i18n.global.t("lobby.composables.useTerrainIcon.tooltipAsteroid"),
         icon: "map_asteroid.png",
     },
     asymmetrical: {
-        tooltip: "Asymmetrical map",
+        tooltip: i18n.global.t("lobby.composables.useTerrainIcon.tooltipAsymmetrical"),
         icon: "map_asymmetrical.png",
     },
     chokepoints: {
-        tooltip: "Narrow passages",
+        tooltip: i18n.global.t("lobby.composables.useTerrainIcon.tooltipChokepoints"),
         icon: "map_chokepoints.png",
     },
     desert: {
-        tooltip: "Rocky or sandy, barren desert",
+        tooltip: i18n.global.t("lobby.composables.useTerrainIcon.tooltipDesert"),
         icon: "map_desert.png",
     },
     flat: {
-        tooltip: "Contains large flat areas",
+        tooltip: i18n.global.t("lobby.composables.useTerrainIcon.tooltipFlat"),
         icon: "map_flat.png",
     },
     forests: {
-        tooltip: "Lots of trees",
+        tooltip: i18n.global.t("lobby.composables.useTerrainIcon.tooltipForests"),
         icon: "map_forests.png",
     },
     grassy: {
-        tooltip: "Lots of crispy green grass",
+        tooltip: i18n.global.t("lobby.composables.useTerrainIcon.tooltipGrassy"),
         icon: "map_grassy.png",
     },
     hills: {
-        tooltip: "Hilly or mountainous terrain",
+        tooltip: i18n.global.t("lobby.composables.useTerrainIcon.tooltipHills"),
         icon: "map_hills.png",
     },
     ice: {
-        tooltip: "A cold place",
+        tooltip: i18n.global.t("lobby.composables.useTerrainIcon.tooltipIce"),
         icon: "map_ice.png",
     },
     industrial: {
-        tooltip: "Industrial map with ancient constructions",
+        tooltip: i18n.global.t("lobby.composables.useTerrainIcon.tooltipIndustrial"),
         icon: "map_industrial.png",
     },
     island: {
-        tooltip: "Island map, land fully surrounded by water",
+        tooltip: i18n.global.t("lobby.composables.useTerrainIcon.tooltipIsland"),
         icon: "map_island.png",
     },
     jungle: {
-        tooltip: "Dense foliage and forests",
+        tooltip: i18n.global.t("lobby.composables.useTerrainIcon.tooltipJungle"),
         icon: "map_jungle.png",
     },
     lava: {
-        tooltip: "Dangerous lava pools",
+        tooltip: i18n.global.t("lobby.composables.useTerrainIcon.tooltipLava"),
         icon: "map_lava.png",
     },
     metal: {
-        tooltip: "Metal map, where (most of) the surface is made of extractable metal",
+        tooltip: i18n.global.t("lobby.composables.useTerrainIcon.tooltipMetal"),
         icon: "map_metal.png",
     },
     ruins: {
-        tooltip: "Structures or ruins",
+        tooltip: i18n.global.t("lobby.composables.useTerrainIcon.tooltipRuins"),
         icon: "map_ruins.png",
     },
     sea: {
-        tooltip: "Large bodies of water or Sea",
+        tooltip: i18n.global.t("lobby.composables.useTerrainIcon.tooltipSea"),
         icon: "map_sea.png",
     },
     shallows: {
-        tooltip: "Passable shallow water like creeks, rivers and beaches",
+        tooltip: i18n.global.t("lobby.composables.useTerrainIcon.tooltipShallows"),
         icon: "map_shallows.png",
     },
     space: {
-        tooltip: "In outerspace, usually without wind",
+        tooltip: i18n.global.t("lobby.composables.useTerrainIcon.tooltipSpace"),
         icon: "map_space.png",
     },
     swamp: {
-        tooltip: "Swampy, wet terrain with lots of ponds and foliage",
+        tooltip: i18n.global.t("lobby.composables.useTerrainIcon.tooltipSwamp"),
         icon: "map_swamp.png",
     },
     tropical: {
-        tooltip: "Tropical biome with beaches, palms and tropical fish",
+        tooltip: i18n.global.t("lobby.composables.useTerrainIcon.tooltipTropical"),
         icon: "map_tropical.png",
     },
     wasteland: {
-        tooltip: "Forgotten wasteland that hasn't seen life in a long time",
+        tooltip: i18n.global.t("lobby.composables.useTerrainIcon.tooltipWasteland"),
         icon: "map_wasteland.png",
     },
     water: {
-        tooltip: "Smaller bodies of water like lakes, ponds or rivers",
+        tooltip: i18n.global.t("lobby.composables.useTerrainIcon.tooltipWater"),
         icon: "map_water.png",
     },
 };

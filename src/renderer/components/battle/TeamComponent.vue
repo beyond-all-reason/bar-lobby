@@ -20,8 +20,8 @@ SPDX-License-Identifier: MIT
         <div class="group-header flex-row flex-center-items gap-md">
             <div class="title">{{ title }}</div>
             <div class="member-count" v-if="!isRaptorTeam(teamId) && !isScavengerTeam(teamId)">
-                <div v-if="!battleStore.isOnline">({{ memberCount }}/{{ maxPlayersPerTeam }} players)</div>
-                <div v-else>({{ memberCount }}/{{ maxMembersPerAllyTeam }} players)</div>
+                <div v-if="!battleStore.isOnline">({{ memberCount }}/{{ maxPlayersPerTeam }} players)</div> !!!! FIX ME !!! 
+                <div v-else>{{ t("lobby.components.battle.teamComponent.players", { count: memberCount, maxCount: maxPlayersPerTeam }) }}</div>
             </div>
             <div v-if="getAmountOfJoinButtons(maxPlayersPerTeam, memberCount) > 0">
                 <Button class="slim black" @click="addBotClicked(teamId)" v-if="!isRaptorTeam(teamId) && !isScavengerTeam(teamId)">
@@ -53,7 +53,9 @@ SPDX-License-Identifier: MIT
         </div>
         <div v-if="!isRaptorTeam(teamId) && !isScavengerTeam(teamId)">
             <div v-for="(_, i) in getAmountOfJoinButtons(maxPlayersPerTeam, memberCount)" :key="i">
-                <button class="join-button" :class="{ first: i === 0 }" @click="onJoinClicked(teamId)">Join</button>
+                <button class="join-button" :class="{ first: i === 0 }" @click="onJoinClicked(teamId)">
+                    {{ t("lobby.components.battle.teamComponent.join") }}
+                </button>
             </div>
         </div>
     </div>
@@ -81,7 +83,11 @@ const props = defineProps<{
 }>();
 
 const title = computed(() =>
-    isScavengerTeam(props.teamId) ? "Scavengers" : isRaptorTeam(props.teamId) ? "Raptors" : "Team " + (Number(props.teamId) + 1)
+    isScavengerTeam(props.teamId)
+        ? t("lobby.components.battle.teamComponent.scavengers")
+        : isRaptorTeam(props.teamId)
+          ? t("lobby.components.battle.teamComponent.raptors")
+          : t("lobby.components.battle.teamComponent.teamId", { id: Number(props.teamId) + 1 })
 );
 
 const allyMembers = computed(() => {

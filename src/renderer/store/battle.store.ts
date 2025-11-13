@@ -5,22 +5,7 @@
 import { EngineAI, EngineVersion } from "@main/content/engine/engine-version";
 import { GameAI, GameVersion } from "@main/content/game/game-version";
 import { MapData } from "@main/content/maps/map-data";
-import {
-    Battle,
-    BattleWithMetadata,
-    Bot,
-    Faction,
-    GameMode,
-    GameModeLabel,
-    isBot,
-    isPlayer,
-    isRaptor,
-    isScavenger,
-    isScavengerOrRaptor,
-    Player,
-    StartPosType,
-    Team,
-} from "@main/game/battle/battle-types";
+import { Battle, BattleWithMetadata, Bot, Faction, isBot, isPlayer, isRaptor, isScavenger, isScavengerOrRaptor, Player, StartPosType, Team, GameModeID } from "@main/game/battle/battle-types";
 import { enginesStore } from "@renderer/store/engine.store";
 import { gameStore } from "@renderer/store/game.store";
 import { getRandomMap } from "@renderer/store/maps.store";
@@ -50,7 +35,8 @@ export const battleStore = reactive<Battle & BattleLobby>({
     isOnline: false,
     battleOptions: {
         gameMode: {
-            label: GameMode.CLASSIC,
+            id: GameModeID.CLASSIC,
+            label: getTranslatedGameMode(GameModeID.CLASSIC),
             options: {},
         },
         mapOptions: {
@@ -63,6 +49,23 @@ export const battleStore = reactive<Battle & BattleLobby>({
     spectators: [],
     started: false,
 });
+
+export function getTranslatedGameMode(gameMode: GameModeID): string {
+    switch (gameMode) {
+        case GameModeID.CLASSIC:
+            return i18n.global.t("lobby.components.battle.gameModeComponent.gameModeClassic");
+        case GameModeID.FFA:
+            return i18n.global.t("lobby.components.battle.gameModeComponent.gameModeFFA");
+        case GameModeID.RAPTORS:
+            return i18n.global.t("lobby.components.battle.gameModeComponent.gameModeRaptors");
+        case GameModeID.SCAVENGERS:
+            return i18n.global.t("lobby.components.battle.gameModeComponent.gameModeScavengers");
+        case GameModeID.SKIRMISH:
+            return i18n.global.t("lobby.components.battle.gameModeComponent.gameModeSkirmish");
+        default:
+            return i18n.global.t("lobby.components.battle.gameModeComponent.gameModeUnknown");
+    }
+}
 
 // Automatically computing metadata for the battle
 const _battleWithMetadataStore = reactive({} as BattleWithMetadata);
@@ -336,7 +339,8 @@ function defaultBattle(engine?: EngineVersion, game?: GameVersion, map?: MapData
             engineVersion: engine?.id || enginesStore.selectedEngineVersion?.id,
             gameVersion: game?.gameVersion || gameStore.selectedGameVersion?.gameVersion,
             gameMode: {
-                label: GameMode.CLASSIC,
+                id: GameModeID.CLASSIC,
+                label: getTranslatedGameMode(GameModeID.CLASSIC),
                 options: game?.luaOptionSections || {},
             },
             map,
@@ -459,7 +463,7 @@ function leaveBattle() {
     resetToDefaultBattle();
 }
 
-async function loadGameMode(gameMode: GameModeLabel) {
+async function loadGameMode(gameMode: GameModeID) {
     battleStore.isOnline = false;
     resetToDefaultBattle();
     if (!battleStore.battleOptions.engineVersion) {
@@ -481,13 +485,14 @@ async function loadGameMode(gameMode: GameModeLabel) {
     //FIXME: Could be a problem if someone tries to launch a gamemode while also in lobby?
     //Will probably need some checks and to warn the user that they're in a lobby before they can select.
     switch (gameMode) {
-        case GameMode.CLASSIC:
+        case GameModeID.CLASSIC:
             removeCoopAIs();
-            battleStore.title = "Classic";
+            battleStore.title = getTranslatedGameMode(GameModeID.CLASSIC);
             battleStore.battleOptions = {
                 ...battleStore.battleOptions,
                 gameMode: {
-                    label: GameMode.CLASSIC,
+                    id: GameModeID.CLASSIC,
+                    label: getTranslatedGameMode(GameModeID.CLASSIC),
                     options: {},
                 },
                 mapOptions: {
@@ -497,13 +502,14 @@ async function loadGameMode(gameMode: GameModeLabel) {
                 restrictions: [],
             };
             break;
-        case GameMode.RAPTORS:
+        case GameModeID.RAPTORS:
             addCoopAI("RaptorsAI");
-            battleStore.title = "Raptors";
+            battleStore.title = getTranslatedGameMode(GameModeID.RAPTORS);
             battleStore.battleOptions = {
                 ...battleStore.battleOptions,
                 gameMode: {
-                    label: GameMode.RAPTORS,
+                    id: GameModeID.RAPTORS,
+                    label: getTranslatedGameMode(GameModeID.RAPTORS),
                     options: {},
                 },
                 mapOptions: {
@@ -513,13 +519,14 @@ async function loadGameMode(gameMode: GameModeLabel) {
                 restrictions: [],
             };
             break;
-        case GameMode.SCAVENGERS:
+        case GameModeID.SCAVENGERS:
             addCoopAI("ScavengersAI");
-            battleStore.title = "Scavengers";
+            battleStore.title = getTranslatedGameMode(GameModeID.SCAVENGERS);
             battleStore.battleOptions = {
                 ...battleStore.battleOptions,
                 gameMode: {
-                    label: GameMode.SCAVENGERS,
+                    id: GameModeID.SCAVENGERS,
+                    label: getTranslatedGameMode(GameModeID.SCAVENGERS),
                     options: {},
                 },
                 mapOptions: {
@@ -529,13 +536,14 @@ async function loadGameMode(gameMode: GameModeLabel) {
                 restrictions: [],
             };
             break;
-        case GameMode.FFA:
+        case GameModeID.FFA:
             removeCoopAIs();
-            battleStore.title = "FFA";
+            battleStore.title = getTranslatedGameMode(GameModeID.FFA);
             battleStore.battleOptions = {
                 ...battleStore.battleOptions,
                 gameMode: {
-                    label: GameMode.FFA,
+                    id: GameModeID.FFA,
+                    label: getTranslatedGameMode(GameModeID.FFA),
                     options: {},
                 },
                 mapOptions: {
