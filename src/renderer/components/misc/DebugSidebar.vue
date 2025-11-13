@@ -90,20 +90,20 @@ async function onRouteSelect(newRoute: string) {
     await router.replace(newRoute);
 }
 
-function openSettings() {
-    window.shell.openSettingsFile().catch((error) => console.error(error));
+async function openSettings() {
+    await window.shell.openSettingsFile().catch((error) => console.error(error));
 }
 
 async function openAssetsDir() {
-    window.shell.openAssetsDir().catch((error) => console.error(error));
+    await window.shell.openAssetsDir().catch((error) => console.error(error));
 }
 
 async function openStateDir() {
-    window.shell.openStateDir().catch((error) => console.error(error));
+    await window.shell.openStateDir().catch((error) => console.error(error));
 }
 
 async function openStartScript() {
-    window.shell.openStartScript().catch((error) => console.error(error));
+    await window.shell.openStartScript().catch((error) => console.error(error));
 }
 
 function openSyncLobbyContentTool() {

@@ -268,8 +268,8 @@ function openReplaysFolder() {
     window.shell.openReplaysDir().catch((error) => console.error(error));
 }
 
-function showReplayFile(replay: Replay) {
-    if (replay?.fileName) window.shell.showReplayInFolder(replay.fileName).catch((error) => console.error(error));
+async function showReplayFile(replay: Replay) {
+    if (replay?.fileName) await window.shell.showReplayInFolder(replay.fileName).catch((error) => console.error(error));
 }
 </script>
 

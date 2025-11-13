@@ -31,8 +31,8 @@ const { base64 } = useImageBlobUrlCache();
 const newsThumbnail = props.news.thumbnailUrl;
 const backgroundImageCss = newsThumbnail ? ref(`url('${base64(newsThumbnail, props.news.thumbnail || "")}')`) : ref();
 
-const openNews = () => {
-    if (props.news.link) window.shell.openInBrowser(props.news.link).catch((error) => console.error(error));
+const openNews = async () => {
+    if (props.news.link) await window.shell.openInBrowser(props.news.link).catch((error) => console.error(error));
 };
 </script>
 
