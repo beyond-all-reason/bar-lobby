@@ -84,7 +84,16 @@ SPDX-License-Identifier: MIT
                                             </template>
                                         </Column>
                                         <Column field="name" :header="t('lobby.multiplayer.custom.table.title')" sortable />
-                                        <Column field="mapName" :header="t('lobby.multiplayer.custom.table.map')" sortable />
+                                        <Column field="mapImage">
+                                            <template #body="{ data }">
+                                                <MapTinyPreview :mapName="data.mapName" />
+                                            </template>
+                                        </Column>
+                                        <Column field="mapName" :header="t('lobby.multiplayer.custom.table.map')" sortable>
+                                            <template #body="{ data }">
+                                                <p>{{ data.mapName }}</p>
+                                            </template>
+                                        </Column>
                                         <Column
                                             :header="t('lobby.multiplayer.custom.table.players')"
                                             sortable
@@ -159,6 +168,7 @@ import { useTypedI18n } from "@renderer/i18n";
 import { LobbyOverview } from "tachyon-protocol/types";
 import { tachyonStore } from "@renderer/store/tachyon.store";
 import Panel from "@renderer/components/common/Panel.vue";
+import MapTinyPreview from "@renderer/components/maps/MapTinyPreview.vue";
 
 const { t } = useTypedI18n();
 const loading = ref<boolean>(false);
