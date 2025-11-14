@@ -6,7 +6,7 @@ SPDX-License-Identifier: MIT
 
 <template>
     <div class="map-container">
-        <div class="map" :style="`background-image: url(${imageUrl})`" />
+        <div class="map" :style="{ 'background-image': `url(${imageUrl})`, 'background-position': alignment }" />
     </div>
 </template>
 
@@ -16,12 +16,9 @@ import { db } from "@renderer/store/db";
 import defaultMiniMap from "/src/renderer/assets/images/default-minimap.png?url";
 import { computedAsync } from "@vueuse/core";
 
-// TODO: Make the alignment configurable - we may want this element to be right, left, or center aligned.
-// But because the maps are non-square, they are not guaranteed to visually fill the space.
-// Therefore, different uses may have different preferences for the "background-position" css property
-
 const props = defineProps<{
     mapName: string;
+    alignment: "left" | "right" | "center";
 }>();
 
 function getMapDataFromName(mapName: string) {
@@ -36,7 +33,7 @@ const imageUrl = computedAsync(async () => {
     if (map == undefined) {
         return defaultMiniMap;
     } else {
-        return map.imagesBlob?.preview ? cache.get(map.springName) : defaultMiniMap;
+        return map.imagesBlob?.preview ? cache.get(map.springName, map.imagesBlob?.preview) : defaultMiniMap;
     }
 });
 </script>
@@ -54,7 +51,6 @@ const imageUrl = computedAsync(async () => {
 .map {
     background-size: contain;
     background-repeat: no-repeat;
-    background-position: right;
     height: 48px;
     width: 100%;
     min-width: 48px;

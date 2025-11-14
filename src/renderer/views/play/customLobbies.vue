@@ -86,7 +86,7 @@ SPDX-License-Identifier: MIT
                                         <Column field="name" :header="t('lobby.multiplayer.custom.table.title')" sortable />
                                         <Column field="mapImage">
                                             <template #body="{ data }">
-                                                <MapTinyPreview :mapName="data.mapName" />
+                                                <MapTinyPreview :mapName="data.mapName" :alignment="'right'" />
                                             </template>
                                         </Column>
                                         <Column field="mapName" :header="t('lobby.multiplayer.custom.table.map')" sortable>
@@ -122,7 +122,7 @@ SPDX-License-Identifier: MIT
                 <div v-if="!loading && tachyonStore.isConnected" class="right margin-left-md margin-right-lg">
                     <Panel class="fullheight flex-col">
                         <div class="flex flex-col">
-                            <p>{{ lobbyStore.activeLobby?.name }}</p>
+                            <p>{{ lobbyStore.selectedLobby?.name }}</p>
 
                             <LobbyPreview v-if="lobbyStore.selectedLobby" :lobby="lobbyStore.selectedLobby"></LobbyPreview>
                             <div class="flex flex-col">

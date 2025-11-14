@@ -7,7 +7,7 @@ SPDX-License-Identifier: MIT
 <template>
     <div>
         <div class="flex-row padding-left-sm padding-right-xs">
-            <MapTinyPreview :map-name="lobbyStore.activeLobby?.mapName" />
+            <MapTinyPreview :map-name="lobbyStore.activeLobby?.mapName" :alignment="'center'" />
             <div class="flex-col inner-size padding-left-sm">
                 <p class="lobby-title inner-size txt-md padding-left-xs padding-top-sm padding-bottom-sm">
                     {{ lobbyStore.activeLobby.name }}
