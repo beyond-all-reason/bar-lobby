@@ -83,7 +83,7 @@ let optionsToSubmit: { [k: string]: string | null } = {};
 const actions = [
     {
         label: t("lobby.components.battle.botParticipant.configure"),
-        command: configureBot,
+        command: openConfigureModal,
     },
     {
         label: t("lobby.components.battle.botParticipant.kick"),
@@ -93,12 +93,12 @@ const actions = [
 
 // Fill it with options as known to the server.
 const convertedOptions = computed(() => {
+    configureBot();
     /* eslint-disable-next-line */
     const record: Record<string, any> = {};
     for (const key in props.bot.options) {
         record[key] = props.bot.options[key];
     }
-    console.log("convertedOptions:", record);
     return record;
 });
 
@@ -129,12 +129,16 @@ async function configureBot() {
         [...(enginesStore.selectedEngineVersion?.ais || []), ...(gameStore.selectedGameVersion?.ais || [])].find(
             (ai) => ai.name === props.bot.name
         )?.options || [];
+}
+function openConfigureModal() {
     botOptionsOpen.value = true;
 }
 
 // We don't want to change settings until we get done with altering them.
 // As a result, we simply collect changes elsewhere and then once the modal is
 // closed, we submit if there are any changes.
+// Note that these are reset to match the server if an update is received from the server.
+// This forces the user to lose any pending changes, but ensures synchronization between the two.
 function setBotOptions(options: Record<string, unknown>) {
     optionsToSubmit = {};
     for (const optionKey in options) {
@@ -151,13 +155,21 @@ function setBotOptions(options: Record<string, unknown>) {
             optionsToSubmit[optionKey] = null; //we set it to null explicitly.
         }
     }
-    console.log("bot options: ", optionsToSubmit);
 }
 
 function submitBotOptions() {
+    const changedOptions = {};
     if (Object.keys(optionsToSubmit).length != 0) {
-        const botOptions: LobbyUpdateBotRequestData = { id: props.botId, options: optionsToSubmit };
-        lobby.requestUpdateBot(botOptions);
+        for (const optionKey in optionsToSubmit) {
+            const option = optionsToSubmit[optionKey];
+            if (props.bot.options[optionKey] != optionsToSubmit[optionKey]) {
+                changedOptions[optionKey] = option;
+            }
+        }
+        if (Object.keys(changedOptions).length != 0) {
+            const botOptions: LobbyUpdateBotRequestData = { id: props.botId, options: changedOptions };
+            lobby.requestUpdateBot(botOptions);
+        }
     }
 }
 

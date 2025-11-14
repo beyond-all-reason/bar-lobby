@@ -78,7 +78,7 @@ SPDX-License-Identifier: MIT
 
 <script lang="ts" setup>
 import TabPanel from "primevue/tabpanel";
-import { Ref, ref } from "vue";
+import { Ref, ref, watch } from "vue";
 import { useTypedI18n } from "@renderer/i18n";
 import Modal from "@renderer/components/common/Modal.vue";
 import TabView from "@renderer/components/common/TabView.vue";
@@ -100,6 +100,17 @@ const props = defineProps<{
 }>();
 
 const options = ref(props.options);
+
+// Required for this to update when props is updated from serverside changes.
+watch(
+    () => props.options,
+    (newOptions) => {
+        options.value = newOptions;
+        // Required to clear our local choices if we have serverside changes arrive before we submit ours.
+        // If we don't do this, then leaving the modal will submit the pre-update changes *back* to the server as a new change!
+        emit("set-options", options.value);
+    }
+);
 
 const emit = defineEmits<{
     (event: "set-options", options: Record<string, boolean | string | number>): void;
