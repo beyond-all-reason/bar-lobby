@@ -20,6 +20,9 @@ SPDX-License-Identifier: MIT
                 </div>
                 <div class="drag-window-area"></div>
                 <div class="primary-right">
+                    <Button v-if="lobbyStore.activeLobby" style="padding: 0" @click="battleStore.isLobbyOpened = true">
+                        <ActiveLobbyNav />
+                    </Button>
                     <Button
                         v-if="me.isAuthenticated && settingsStore.devMode"
                         v-tooltip.bottom="t('lobby.navbar.tooltips.directMessages')"
@@ -125,6 +128,9 @@ import { settingsStore } from "@renderer/store/settings.store";
 import { me } from "@renderer/store/me.store";
 import ServerStatus from "@renderer/components/navbar/ServerStatus.vue";
 import { useLogInConfirmation } from "@renderer/composables/useLogInConfirmation";
+import ActiveLobbyNav from "@renderer/components/navbar/ActiveLobbyNav.vue";
+import { lobbyStore } from "@renderer/store/lobby.store";
+import { battleStore } from "@renderer/store/battle.store";
 
 defineProps<{
     hidden?: boolean;

@@ -16,6 +16,10 @@ import { db } from "@renderer/store/db";
 import defaultMiniMap from "/src/renderer/assets/images/default-minimap.png?url";
 import { computedAsync } from "@vueuse/core";
 
+// TODO: Make the alignment configurable - we may want this element to be right, left, or center aligned.
+// But because the maps are non-square, they are not guaranteed to visually fill the space.
+// Therefore, different uses may have different preferences for the "background-position" css property
+
 const props = defineProps<{
     mapName: string;
 }>();
