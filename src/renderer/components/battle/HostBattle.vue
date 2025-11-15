@@ -39,13 +39,13 @@ SPDX-License-Identifier: MIT
                         <p>
                             <b>{{ t("lobby.components.battle.hostBattle.allyTeamCount") }}</b>
                         </p>
-                        <input type="number" v-model="allyTeamCount" inputId="maxTeams" />
+                        <input type="number" v-model="allyTeamCount" inputId="maxTeams" class="input-number" />
                     </div>
                     <div class="flex-row gap-sm margin-sm">
                         <p>
                             <b>{{ t("lobby.components.battle.hostBattle.teamsPerAllyTeam") }}</b>
                         </p>
-                        <input type="number" v-model="playersPerAllyTeam" inputId="playerPerTeam" />
+                        <input type="number" v-model="playersPerAllyTeam" inputId="playerPerTeam" class="input-number" />
                     </div>
                     <div class="flex-row gap-md">
                         <Select
@@ -226,5 +226,14 @@ function openMapOptions() {
     gap: 10px;
     height: 100%;
     width: 400px;
+}
+
+.input-number {
+    background-color: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    &:hover {
+        background-color: rgba(255, 255, 255, 0.2);
+        border-color: rgba(255, 255, 255, 0.2);
+    }
 }
 </style>
