@@ -103,7 +103,7 @@ SPDX-License-Identifier: MIT
 </template>
 
 <script lang="ts" setup>
-import { ref } from "vue";
+import { ref, computed } from "vue";
 import { useTypedI18n } from "@renderer/i18n";
 import Playerlist from "@renderer/components/battle/Playerlist.vue";
 import Select from "@renderer/components/controls/Select.vue";
@@ -132,7 +132,9 @@ import gridIcon from "@iconify-icons/mdi/grid";
 const mapListOpen = ref(false);
 const mapOptionsOpen = ref(false);
 const mapListOptions = useDexieLiveQuery(() => db.maps.toArray());
-const gameListOptions = Array.from(gameStore.availableGameVersions.values());
+const gameListOptions = computed(() => {
+    return Array.from(gameStore.availableGameVersions.values());
+});
 
 const map = useDexieLiveQueryWithDeps([() => battleStore.battleOptions.map], () => {
     if (!battleStore.battleOptions.map) return;

@@ -57,7 +57,7 @@ SPDX-License-Identifier: MIT
 <script lang="ts" setup>
 import { Icon } from "@iconify/vue";
 import tools from "@iconify-icons/mdi/tools";
-import { ref } from "vue";
+import { ref, computed } from "vue";
 import { useRouter } from "vue-router";
 
 import Button from "@renderer/components/controls/Button.vue";
@@ -79,7 +79,9 @@ const router = useRouter();
 const routes = router.getRoutes().sort((a, b) => a.path.localeCompare(b.path));
 const currentRoute = router.currentRoute;
 
-const gameListOptions = Array.from(gameStore.availableGameVersions.values());
+const gameListOptions = computed(() => {
+    return Array.from(gameStore.availableGameVersions.values());
+});
 
 async function onGameSelected(gameVersion: GameVersion) {
     gameStore.selectedGameVersion = gameVersion;
