@@ -7,7 +7,7 @@ import { gameStore } from "@renderer/store/game.store";
 import { auth, me } from "@renderer/store/me.store";
 import { SystemServerStatsOkResponseData } from "tachyon-protocol/types";
 import { reactive } from "vue";
-import { fetchAvailableQueues } from "@renderer/store/matchmaking.store";
+import { matchmakingStore, matchmaking } from "@renderer/store/matchmaking.store";
 import { subsManager } from "@renderer/store/users.store";
 import { UserId } from "tachyon-protocol/types";
 import { notificationsApi } from "@renderer/api/notifications";
@@ -79,7 +79,9 @@ export async function initTachyonStore() {
         tachyonStore.fetchServerStatsInterval = setInterval(fetchServerStats, 60000);
 
         // Fetch matchmaking queues when connected
-        fetchAvailableQueues();
+        if (matchmakingStore.isInitialized) {
+            matchmaking.sendListRequest();
+        }
     });
 
     window.tachyon.onDisconnected(() => {
