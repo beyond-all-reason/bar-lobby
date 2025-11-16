@@ -84,9 +84,14 @@ SPDX-License-Identifier: MIT
                         <Button v-else-if="gameStore.status === GameStatus.RUNNING" class="fullwidth grey flex-grow" disabled>{{
                             t("lobby.components.battle.offlineBattleComponent.gameIsRunning")
                         }}</Button>
-                        <DownloadContentButton v-else :map="map" @click="battleActions.startBattle">{{
-                            t("lobby.components.battle.offlineBattleComponent.startTheGame")
-                        }}</DownloadContentButton>
+                        <DownloadContentButton
+                            v-else
+                            :maps="[map.springName]"
+                            :engines="battleStore.battleOptions.engineVersion ? [battleStore.battleOptions.engineVersion] : []"
+                            :games="battleStore.battleOptions.gameVersion ? [battleStore.battleOptions.gameVersion] : []"
+                            @click="battleActions.startBattle"
+                            >{{ t("lobby.components.battle.offlineBattleComponent.startTheGame") }}</DownloadContentButton
+                        >
                     </div>
                     <Button v-else class="fullwidth green flex-grow" disabled>{{
                         t("lobby.components.battle.offlineBattleComponent.startTheGame")
@@ -98,7 +103,7 @@ SPDX-License-Identifier: MIT
 </template>
 
 <script lang="ts" setup>
-import { ref } from "vue";
+import { ref, computed } from "vue";
 import { useTypedI18n } from "@renderer/i18n";
 import Playerlist from "@renderer/components/battle/Playerlist.vue";
 import Select from "@renderer/components/controls/Select.vue";
@@ -127,7 +132,9 @@ import gridIcon from "@iconify-icons/mdi/grid";
 const mapListOpen = ref(false);
 const mapOptionsOpen = ref(false);
 const mapListOptions = useDexieLiveQuery(() => db.maps.toArray());
-const gameListOptions = useDexieLiveQuery(() => db.gameVersions.toArray());
+const gameListOptions = computed(() => {
+    return Array.from(gameStore.availableGameVersions.values());
+});
 
 const map = useDexieLiveQueryWithDeps([() => battleStore.battleOptions.map], () => {
     if (!battleStore.battleOptions.map) return;
@@ -142,8 +149,8 @@ function openMapOptions() {
     mapOptionsOpen.value = true;
 }
 
-async function onGameSelected(gameVersion: string) {
-    gameStore.selectedGameVersion = await db.gameVersions.get(gameVersion);
+function onGameSelected(gameVersion: string) {
+    gameStore.selectedGameVersion = gameStore.availableGameVersions.get(gameVersion);
     battleStore.battleOptions.gameVersion = gameVersion;
 }
 

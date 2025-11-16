@@ -4,6 +4,7 @@
 
 import { DEFAULT_ENGINE_VERSION } from "@main/config/default-versions";
 import { EngineVersion } from "@main/content/engine/engine-version";
+import { notificationsApi } from "@renderer/api/notifications";
 import { reactive } from "vue";
 
 export const enginesStore: {
@@ -24,9 +25,25 @@ async function refreshStore() {
     }
 }
 
+export async function downloadEngine(engineString: string) {
+    await window.engine
+        .downloadEngine(engineString)
+        .then(async () => {
+            await refreshStore();
+        })
+        .catch((error) => {
+            console.error("Failed to download engine:", engineString, error);
+            notificationsApi.alert({ text: "Engine download failed.", severity: "error" });
+        });
+}
+
 export async function initEnginesStore() {
     window.downloads.onDownloadEngineComplete(async (downloadInfo) => {
         console.debug("Received engine download completed event", downloadInfo);
+        await refreshStore();
+    });
+    window.downloads.onDownloadEngineFail(async (downloadInfo) => {
+        console.error("Engine download failed", downloadInfo);
         await refreshStore();
     });
     await refreshStore();
