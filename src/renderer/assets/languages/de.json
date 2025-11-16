@@ -1985,6 +1985,7 @@
                 "queueError": null,
                 "buttons": {
                     "searchGame": null,
+                    "joinRequested": null,
                     "searchingForOpponent": null,
                     "matchFound": null,
                     "accepted": null,
