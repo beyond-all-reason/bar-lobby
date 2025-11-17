@@ -116,7 +116,9 @@ SPDX-License-Identifier: MIT
                         }}</Button>
                         <DownloadContentButton
                             v-else
-                            :map="map"
+                            :maps="[map.springName]"
+                            :engines="battleStore.battleOptions.engineVersion ? [battleStore.battleOptions.engineVersion] : []"
+                            :games="battleStore.battleOptions.gameVersion ? [battleStore.battleOptions.gameVersion] : []"
                             @click="online ? lobby.requestStartBattle() : battleActions.startBattle()"
                             >{{ t("lobby.components.battle.offlineBattleComponent.startTheGame") }}</DownloadContentButton
                         >
@@ -131,7 +133,7 @@ SPDX-License-Identifier: MIT
 </template>
 
 <script lang="ts" setup>
-import { ref } from "vue";
+import { ref, computed } from "vue";
 import { useTypedI18n } from "@renderer/i18n";
 import Playerlist from "@renderer/components/battle/Playerlist.vue";
 import Select from "@renderer/components/controls/Select.vue";
@@ -165,13 +167,17 @@ const { t } = useTypedI18n();
 const mapListOpen = ref(false);
 const mapOptionsOpen = ref(false);
 const mapListOptions = useDexieLiveQuery(() => db.maps.toArray());
-const gameListOptions = useDexieLiveQuery(() => db.gameVersions.toArray());
 const leaveConfirmModalIsOpen = ref(false);
 const updateLobbyModalIsOpen = ref<boolean>(false);
 
 defineProps<{
     online: boolean;
 }>();
+
+const gameListOptions = computed(() => {
+    return Array.from(gameStore.availableGameVersions.values());
+});
+
 
 const map = useDexieLiveQueryWithDeps([() => battleStore.battleOptions.map], () => {
     if (!battleStore.battleOptions.map) return;
@@ -198,7 +204,8 @@ async function onGameSelected(gameVersion: string) {
     if (battleStore.isOnline) return; //This should be disabled unless we can change versions later, but just in case we also disable it.
     //FIXME: why do we have both 'gameStore.selectedGameVersion' as well as 'battleStore.battleOptions.gameVersion'??
     //It looks like it's because in offline battles we select from available versions?
-    gameStore.selectedGameVersion = await db.gameVersions.get(gameVersion);
+    //gameStore.selectedGameVersion = await db.gameVersions.get(gameVersion);
+	gameStore.selectedGameVersion = gameStore.availableGameVersions.get(gameVersion);
     battleStore.battleOptions.gameVersion = gameVersion;
 }
 

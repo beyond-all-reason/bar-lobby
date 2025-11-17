@@ -57,14 +57,12 @@ SPDX-License-Identifier: MIT
 <script lang="ts" setup>
 import { Icon } from "@iconify/vue";
 import tools from "@iconify-icons/mdi/tools";
-import { ref } from "vue";
+import { ref, computed } from "vue";
 import { useRouter } from "vue-router";
 
 import Button from "@renderer/components/controls/Button.vue";
 import Select from "@renderer/components/controls/Select.vue";
 import SyncDataDirsDialog from "@renderer/components/misc/SyncDataDirsDialog.vue";
-import { useDexieLiveQuery } from "@renderer/composables/useDexieLiveQuery";
-import { db } from "@renderer/store/db";
 import { gameStore } from "@renderer/store/game.store";
 import { enginesStore } from "@renderer/store/engine.store";
 import { GameVersion } from "@main/content/game/game-version";
@@ -81,7 +79,9 @@ const router = useRouter();
 const routes = router.getRoutes().sort((a, b) => a.path.localeCompare(b.path));
 const currentRoute = router.currentRoute;
 
-const gameListOptions = useDexieLiveQuery(() => db.gameVersions.toArray());
+const gameListOptions = computed(() => {
+    return Array.from(gameStore.availableGameVersions.values());
+});
 
 async function onGameSelected(gameVersion: GameVersion) {
     gameStore.selectedGameVersion = gameVersion;
