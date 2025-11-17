@@ -178,7 +178,6 @@ const gameListOptions = computed(() => {
     return Array.from(gameStore.availableGameVersions.values());
 });
 
-
 const map = useDexieLiveQueryWithDeps([() => battleStore.battleOptions.map], () => {
     if (!battleStore.battleOptions.map) return;
     return db.maps.get(battleStore.battleOptions.map.springName);
@@ -205,7 +204,7 @@ async function onGameSelected(gameVersion: string) {
     //FIXME: why do we have both 'gameStore.selectedGameVersion' as well as 'battleStore.battleOptions.gameVersion'??
     //It looks like it's because in offline battles we select from available versions?
     //gameStore.selectedGameVersion = await db.gameVersions.get(gameVersion);
-	gameStore.selectedGameVersion = gameStore.availableGameVersions.get(gameVersion);
+    gameStore.selectedGameVersion = gameStore.availableGameVersions.get(gameVersion);
     battleStore.battleOptions.gameVersion = gameVersion;
 }
 
