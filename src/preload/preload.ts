@@ -12,9 +12,34 @@ import { MapData, MapDownloadData } from "@main/content/maps/map-data";
 import { DownloadInfo } from "@main/content/downloads";
 import { Info } from "@main/services/info.service";
 import { BattleWithMetadata } from "@main/game/battle/battle-types";
-import { GetCommandData, GetCommandIds, GetCommands } from "tachyon-protocol";
+import { TachyonCommand } from "tachyon-protocol/types";
+
+// Define the tachyon command types based on the protocol
+type TachyonEvent = Extract<TachyonCommand, { type: "event" }>;
+
+// Type helpers for tachyon commands
+type TachyonActor = "server" | "user" | "autohost";
+type TachyonCommandType = "request" | "response" | "event";
+
+// Extract command IDs for a specific actor and type
+type GetCommandIds<Sender extends TachyonActor = TachyonActor, Receiver extends TachyonActor = TachyonActor, Type extends TachyonCommandType = TachyonCommandType> = Extract<
+    TachyonCommand,
+    { type: Type }
+>["commandId"];
+
+// Extract commands for a specific actor, type, and command ID
+type GetCommands<
+    Sender extends TachyonActor = TachyonActor,
+    Receiver extends TachyonActor = TachyonActor,
+    Type extends TachyonCommandType = TachyonCommandType,
+    CommandId extends string = string,
+> = Extract<TachyonCommand, { type: Type; commandId: CommandId }>;
+
+// Extract data from a command
+type GetCommandData<C extends TachyonCommand> = C extends { data: infer D } ? D : never;
 import { MultiplayerLaunchSettings } from "@main/game/game";
 import { logLevels } from "@main/services/log.service";
+import { ModMetadata, ModInstallOptions, ModType, ModInfo, ModConflict } from "@main/content/mods/mod-types";
 
 const logApi = {
     purge: (): Promise<string[]> => ipcRenderer.invoke("log:purge"),
@@ -49,6 +74,10 @@ const shellApi = {
     openStartScript: (): Promise<string> => ipcRenderer.invoke("shell:openStartScript"),
     openReplaysDir: (): Promise<string> => ipcRenderer.invoke("shell:openReplaysDir"),
     showReplayInFolder: (fileName: string): Promise<void> => ipcRenderer.invoke("shell:showReplayInFolder", fileName),
+
+    // Mod-related
+    openModFolder: (modPath: string): Promise<string> => ipcRenderer.invoke("shell:openModFolder", modPath),
+    openModRepository: (repository: string): Promise<void> => ipcRenderer.invoke("shell:openModRepository", repository),
 
     // External
     openInBrowser: (url: string): Promise<void> => ipcRenderer.invoke("shell:openInBrowser", url),
@@ -117,6 +146,32 @@ const gameApi = {
 export type GameApi = typeof gameApi;
 contextBridge.exposeInMainWorld("game", gameApi);
 
+const modApi = {
+    // Mod management
+    getInstalledMods: (): Promise<ModMetadata[]> => ipcRenderer.invoke("mod:getInstalledMods"),
+    getModsByType: (modType: ModType): Promise<ModMetadata[]> => ipcRenderer.invoke("mod:getModsByType", modType),
+    getModsByGame: (gameShortName: string): Promise<ModMetadata[]> => ipcRenderer.invoke("mod:getModsByGame", gameShortName),
+    getMod: (modId: string): Promise<ModMetadata | undefined> => ipcRenderer.invoke("mod:getMod", modId),
+    isModInstalled: (modId: string): Promise<boolean> => ipcRenderer.invoke("mod:isModInstalled", modId),
+
+    // Mod installation
+    installFromGitHub: (options: ModInstallOptions): Promise<ModMetadata> => ipcRenderer.invoke("mod:installFromGitHub", options) as unknown as Promise<ModMetadata>,
+    uninstallMod: (modId: string): Promise<void> => ipcRenderer.invoke("mod:uninstallMod", modId) as unknown as Promise<void>,
+    updateMod: (modId: string): Promise<ModMetadata> => ipcRenderer.invoke("mod:updateMod", modId) as unknown as Promise<ModMetadata>,
+
+    // Mod validation
+    checkModExists: (repository: string, gitRef: string): Promise<boolean> => ipcRenderer.invoke("mod:checkModExists", repository, gitRef) as unknown as Promise<boolean>,
+    getModInfo: (repository: string, gitRef: string): Promise<ModInfo> => ipcRenderer.invoke("mod:getModInfo", repository, gitRef) as unknown as Promise<ModInfo>,
+    getModPaths: (): Promise<string[]> => ipcRenderer.invoke("mod:getModPaths"),
+
+    // Events
+    onModInstalled: (callback: (modId: string) => void) => ipcRenderer.on("mod:installed", (_, modId) => callback(modId)),
+    onModUninstalled: (callback: (modId: string) => void) => ipcRenderer.on("mod:uninstalled", (_, modId) => callback(modId)),
+    onModConflict: (callback: (conflict: ModConflict) => void) => ipcRenderer.on("mod:conflict", (_, conflict) => callback(conflict)),
+};
+export type ModApi = typeof modApi;
+contextBridge.exposeInMainWorld("mod", modApi);
+
 const mapsApi = {
     // Content
     downloadMap: (springName: string): Promise<void> => ipcRenderer.invoke("maps:downloadMap", springName),
@@ -183,13 +238,20 @@ function request<C extends GetCommandIds<"user", "server", "request">>(
 function onEvent<C extends GetCommandIds<"server", "user", "event">>(eventID: C, callback: (event: GetCommandData<GetCommands<"server", "user", "event", C>>) => void) {
     ipcRenderer.setMaxListeners(20);
 
-    return ipcRenderer.on("tachyon:event", (_event, event) => {
+    const listener = (_event: unknown, event: TachyonEvent) => {
         if (event.commandId === eventID && "data" in event) {
             // event is a generic TachyonEvent in the IPC interface.
             // For consumers we cast it to the correct type based on the eventID.
             callback(event.data as GetCommandData<GetCommands<"server", "user", "event", C>>);
         }
-    });
+    };
+
+    ipcRenderer.on("tachyon:event", listener);
+
+    // Return cleanup function to prevent memory leaks
+    return () => {
+        ipcRenderer.removeListener("tachyon:event", listener);
+    };
 }
 
 const tachyonApi = {
@@ -202,10 +264,20 @@ const tachyonApi = {
     request,
 
     // Events
-    onConnected: (callback: () => void) => ipcRenderer.on("tachyon:connected", callback),
-    onDisconnected: (callback: () => void) => ipcRenderer.on("tachyon:disconnected", callback),
+    onConnected: (callback: () => void) => {
+        ipcRenderer.on("tachyon:connected", callback);
+        return () => ipcRenderer.removeListener("tachyon:connected", callback);
+    },
+    onDisconnected: (callback: () => void) => {
+        ipcRenderer.on("tachyon:disconnected", callback);
+        return () => ipcRenderer.removeListener("tachyon:disconnected", callback);
+    },
     onEvent,
-    onBattleStart: (callback: (springString: string) => void) => ipcRenderer.on("tachyon:battleStart", (_event, springString) => callback(springString)),
+    onBattleStart: (callback: (springString: string) => void) => {
+        const listener = (_event: unknown, springString: string) => callback(springString);
+        ipcRenderer.on("tachyon:battleStart", listener);
+        return () => ipcRenderer.removeListener("tachyon:battleStart", listener);
+    },
 };
 export type TachyonApi = typeof tachyonApi;
 contextBridge.exposeInMainWorld("tachyon", tachyonApi);

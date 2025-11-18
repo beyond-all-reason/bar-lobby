@@ -12,67 +12,106 @@ SPDX-License-Identifier: MIT
                 <Loader :absolutePosition="false"></Loader>
             </template>
             <template v-else>
-                <Select
-                    v-model="selectedRegion"
-                    :options="regions"
-                    :label="t('lobby.components.battle.hostBattle.region')"
-                    optionLabel="name"
-                    optionValue="code"
+                <Textbox
+                    v-model="lobbyName"
+                    :label="t('lobby.components.battle.hostBattle.lobbyName')"
+                    placeholder="My Custom Battle"
                     class="fullwidth"
-                >
-                    <template #value>
-                        <div class="flex-row gap-md">
-                            <Flag :countryCode="selectedRegion" />
-                            <div>{{ selectedRegionName }}</div>
-                        </div>
-                    </template>
-
-                    <template #option="slotProps">
-                        <div class="flex-row gap-md">
-                            <Flag :countryCode="slotProps.option.code" />
-                            <div>{{ slotProps.option.name }}</div>
-                        </div>
-                    </template>
-                </Select>
-                <Button class="blue" @click="hostBattle">{{ t("lobby.components.battle.hostBattle.hostButton") }}</Button>
+                />
+                <div v-if="error" class="error-message">{{ error }}</div>
+                <Button class="blue" @click="hostBattle" :disabled="!canHost">{{
+                    t("lobby.components.battle.hostBattle.hostButton")
+                }}</Button>
             </template>
         </div>
     </Modal>
 </template>
 
 <script lang="ts" setup>
-import { computed, Ref, ref } from "vue";
+import { computed, ref } from "vue";
+import { useRouter } from "vue-router";
 import { useTypedI18n } from "@renderer/i18n";
 
 import Loader from "@renderer/components/common/Loader.vue";
 import Modal from "@renderer/components/common/Modal.vue";
 import Button from "@renderer/components/controls/Button.vue";
-import Select from "@renderer/components/controls/Select.vue";
-import Flag from "@renderer/components/misc/Flag.vue";
+import Textbox from "@renderer/components/controls/Textbox.vue";
+import { lobbyActions } from "@renderer/store/lobby.store";
 
 const { t } = useTypedI18n();
+const router = useRouter();
 
-const regions = ref([
-    { name: "Europe", code: "EU" },
-    { name: "United States", code: "US" },
-    { name: "Australia", code: "AU" },
-]);
-const selectedRegion = ref(regions.value[0].code);
-const selectedRegionName = computed(() => regions.value.find((r) => r.code === selectedRegion.value)?.name);
-
-const hostedBattleData: Ref<{ name: string; password: string } | undefined> = ref();
-
+const lobbyName = ref("My Custom Battle");
+const selectedMap = ref("Supreme Crossing V1"); // Default to a common map
 const waitingForBattleCreation = ref(false);
+const error = ref("");
 
-async function hostBattle() {}
+const canHost = computed(() => lobbyName.value.trim().length > 0);
+
+async function hostBattle() {
+    if (!canHost.value) return;
+
+    waitingForBattleCreation.value = true;
+    error.value = "";
+
+    try {
+        // Create a simple 2-team setup (Team 1 vs Team 2)
+        // Each ally team has 1 team with max 8 players
+        const response = await window.tachyon.request("lobby/create", {
+            name: lobbyName.value,
+            mapName: selectedMap.value,
+            allyTeamConfig: [
+                {
+                    maxTeams: 1,
+                    startBox: { left: 0, top: 0, right: 0.4, bottom: 1 },
+                    teams: [{ maxPlayers: 8 }],
+                },
+                {
+                    maxTeams: 1,
+                    startBox: { left: 0.6, top: 0, right: 1, bottom: 1 },
+                    teams: [{ maxPlayers: 8 }],
+                },
+            ],
+        });
+
+        if (response.status === "success") {
+            // Store the lobby details
+            await lobbyActions.joinLobby(response.data.id);
+
+            // Navigate to the lobby view
+            await router.push(`/play/custom-lobby/${response.data.id}`);
+
+            // Close the modal
+            emit("update:modelValue", false);
+        }
+    } catch (err) {
+        console.error("Failed to create lobby:", err);
+        error.value = err instanceof Error ? err.message : String(err);
+    } finally {
+        waitingForBattleCreation.value = false;
+    }
+}
 
 function onOpen() {
     waitingForBattleCreation.value = false;
+    error.value = "";
 }
 
 function onClose() {
-    hostedBattleData.value = undefined;
+    error.value = "";
 }
+
+const emit = defineEmits<{
+    (e: "update:modelValue", value: boolean): void;
+}>();
 </script>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+.error-message {
+    color: var(--color-error);
+    font-size: 0.9em;
+    padding: 8px;
+    background: rgba(255, 0, 0, 0.1);
+    border-radius: 4px;
+}
+</style>

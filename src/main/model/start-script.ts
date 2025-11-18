@@ -30,6 +30,7 @@ export interface Game {
     modoptions?: ModOptions;
     mapoptions?: MapOptions;
     restrict?: Restriction[];
+    mods?: string[];
     allyTeams: AllyTeam[];
     teams: Team[];
     players: Player[];

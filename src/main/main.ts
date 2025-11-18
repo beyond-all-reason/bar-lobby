@@ -35,6 +35,7 @@ import { authService } from "@main/services/auth.service";
 import { tachyonService } from "@main/services/tachyon.service";
 import { typedWebContents } from "@main/typed-ipc";
 import { navigationService } from "@main/services/navigation.service";
+import modService from "@main/services/mod.service";
 
 // Enable happy eyeballs for IPv6/IPv4 dual stack.
 netFromNode.setDefaultAutoSelectFamily(true);
@@ -131,7 +132,7 @@ app.whenReady().then(async () => {
     });
     // Initialize services
     await engineService.init();
-    await Promise.all([settingsService.init(), accountService.init(), replaysService.init(), gameService.init(), mapsService.init(), autoUpdaterService.init()]);
+    await Promise.all([settingsService.init(), accountService.init(), replaysService.init(), gameService.init(), mapsService.init(), modService.init(), autoUpdaterService.init()]);
     const mainWindow = createWindow();
     const webContents = typedWebContents(mainWindow.webContents);
     // Handlers may need the webContents to send events
@@ -144,6 +145,7 @@ app.whenReady().then(async () => {
     engineService.registerIpcHandlers();
     gameService.registerIpcHandlers(webContents);
     mapsService.registerIpcHandlers(webContents);
+    modService.registerIpcHandlers(webContents);
     shellService.registerIpcHandlers();
     downloadsService.registerIpcHandlers(webContents);
     miscService.registerIpcHandlers();

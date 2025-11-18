@@ -23,24 +23,24 @@ import Textarea from "@renderer/components/controls/Textarea.vue";
 import { DEFAULT_ENGINE_VERSION, LATEST_GAME_VERSION } from "@main/config/default-versions";
 
 const script = ref(`[game] {
-    [ais] {
-    }
-    [allyteam0] {
-        numallies=0;
-    }
-    [team0] {
-        teamleader=0;
-        allyteam=0;
-    }
-    [player0] {
-        team=0;
-        name=player;
-    }
-    mapname=Red Comet Remake 1.8;
-    myplayername=player;
-    ishost=1;
-    gametype=${LATEST_GAME_VERSION};
-}`);
+        [ais] {
+        }
+        [allyteam0] {
+            numallies=0;
+        }
+        [team0] {
+            teamleader=0;
+            allyteam=0;
+        }
+        [player0] {
+            team=0;
+            name=player;
+        }
+        mapname=Red Comet Remake 1.8;
+        myplayername=player;
+        ishost=1;
+        gametype=${LATEST_GAME_VERSION};
+    }`);
 
 function launch() {
     window.game.launchScript(script.value, LATEST_GAME_VERSION, DEFAULT_ENGINE_VERSION);
