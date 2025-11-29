@@ -211,7 +211,7 @@
             "wait": "Wait",
             "wait_tooltip": "Pause a unit/factory on processing command/build queues",
             "repair": "Repair",
-            "repair_tooltip": "Repair a damaged unit",
+            "repair_tooltip": "Repair a damaged unit or structure (click-drag for area)",
             "reclaim": "Reclaim",
             "reclaim_tooltip": "Suck metal/energy from wrecks or features (trees/stones)",
             "restore": "Restore",
