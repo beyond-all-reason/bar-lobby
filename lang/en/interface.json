@@ -73,7 +73,7 @@
             "notEnoughMetal": "Not enough metal!",
             "offeringThisUnitForSale": "You are offering this unit for sale, allies can buy it with a Double-Click! Price %{price}m.",
             "youCanBuyThisTooltip": "You can buy this unit with a Double-Click! Price %{price}m.",
-            "youCantBuyThisTooltip": "This unit is for sale, it costs %{price}m, you do not enough metal.",
+            "youCantBuyThisTooltip": "This unit is for sale, it costs %{price}m, you do not have enough metal.",
             "youCanAffordIt": "This unit costs %{price} metal. You have enough.",
             "youCantAffordIt": "This unit costs %{price} metal. Can't afford it yet.\nBut if you click it - your metal expenses will be paused automatically in order to buy the unit.",
             "t2conShop": "Buy T2cons here!",
@@ -242,7 +242,6 @@
             "sellunit_tooltip": "Toggle currently selected units for sale, allies will be able to buy them",
             "For Sale": "For Sale",
             "Not For Sale": "Not For Sale",
-
             "Fire at will": "Fire at will",
             "Hold fire": "Hold fire",
             "Return fire": "Return fire",
