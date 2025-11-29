@@ -162,9 +162,21 @@
             "tooltipctrl": "CTRL-Klicken um fortlaufend zu löschen"
         },
         "buildMenu": {
+            "category_econ": "Wirtschaft",
+            "category_combat": "Kampf",
+            "category_utility": "Infrastruktur",
+            "category_production": "Bauen",
+            "category_econ_descr": "Zeige Wirtschaftsgebäude",
+            "category_combat_descr": "Zeige Angriffs- und Verteidigungsstrukturen",
+            "category_utility_descr": "Zeige Infrastrukturgebäude",
+            "category_production_descr": "Zeige Bau- und Produktionsgebäude",
+            "buildmode_descr": "Einheiten Produktions-Tastenkombinationen einschalten",
+            "homePage": "Zurück zur Startseite",
             "nextPage": "Nächste Seite",
             "previousPage": "Vorherige Seite",
-            "disabled": "%{textColor}%{unit}%{warnColor} (deaktiviert)"
+            "disabled": "%{textColor}%{unit}%{warnColor} (deaktiviert)",
+            "nextBuilder": "Nexter Arbeiter",
+            "areamex_tooltip": "Tipp: Selektiere diesen Extraktor zweimal für Gebiets-Metallextraktion"
         },
         "orderMenu": {
             "hotkeyTooltip": "%{highlightColor}%{hotkey}%{textColor} - %{tooltip}",
@@ -249,7 +261,7 @@
             "Low traj": "Direktes Feuer",
             "High traj": "Indirektes Feuer",
             "trajectory_tooltip": "Setzt den Feuermodus im Artilleriezustand (Flache/Steile Flugbahn)",
-            "hound_weapon_plasma": "Schwere Plasmakanonea",
+            "hound_weapon_plasma": "Schwere Plasmakanone",
             "hound_weapon_gauss": "Gauß-Kanone",
             "hound_weapon_toggle_tooltip": "Wechselt zwischen Gauss-Kanone und schwerer Plasmakanone",
             "customOnOff": {
@@ -843,7 +855,7 @@
                 "label_soundtrack": "Soundtrack",
                 "label_playlist": "Playlist",
                 "label_messages": "Nachrichten",
-                "label_hotkeys": "Hotkey",
+                "label_hotkeys": "Tastenkombinationen",
                 "label_camera": "Kamera",
                 "label_cloak": "Tarneinheiten",
                 "label_water": "Wasser",
