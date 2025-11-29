@@ -52,7 +52,7 @@
                 "shareMetalTooltip": "Teile überschüssiges Metall ab diesem Punkt mit deinem Team",
                 "shareEnergyTooltipTitle": "Energieteilungsschieber",
                 "shareEnergyTooltip": "Teile überschüssige Energie ab diesem Punkt mit deinem Team",
-                "pullTooltip": "Die zurzeit auftretende Nachfrage für %{resource} (pro Sekunde), vorausgesetzt es gibt ausreichend Versorgung und Lagerkapazität",
+                "pullTooltip": "Die zurzeit auftretende Nachfrage für %{resource} (pro Sekunde), vorausgesetzt es gibt ausreichend Versorgung und Lagerkapazität\nArbeiter auf niedriger Priorität nutzen nur überschüssige Ressourcen, daher wird ihr Verbrauch hier nicht mit einkalkuliert.",
                 "incomeTooltip": "%{resource}einkommen (pro Sekunde)",
                 "expenseTooltip": "%{resource}ausgaben (pro Sekunde)",
                 "storageTooltip": "%{resource}kapazität",
