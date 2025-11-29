@@ -66,6 +66,25 @@
                 "tooManyConverters2Tooltip": "Hör auf Energieumwandler zu bauen und verbessere deine Energieproduktion."
             }
         },
+        "unitMarket": {
+            "sellingUnit": "%{name} verkauft %{unitName} für %{price} Metall.",
+            "unitSold": "%{name} hat %{unitName} von %{oldName} für %{price} Metal gekauft.",
+            "notEnoughMetal": "Nicht genügend Metall!",
+            "offeringThisUnitForSale": "Du bietest diese Einheit zum Verkauf an, Verbündete können sie mit einem Doppelklick kaufen! Preis %{price}M.",
+            "youCanBuyThisTooltip": "Du kannst diese Einheit mit einem Doppelklick kaufen! Price %{price}M.",
+            "youCantBuyThisTooltip": "Einheit steht zum Verkauf für %{price}M, du hast nicht genügend Metall.",
+            "youCanAffordIt": "Diese Einheit kostet %{price} Metall. Du hast genügend Metall",
+            "youCantAffordIt": "Diese Einheit kostet %{price} Metall. Du hast nicht genug.\nAber wenn du sie anklickst, werden automatisch alle anderen Metallausgaben pausiert, bis du sie dir leisten kannst.",
+            "t2conShop": "Kaufe Tier-2 Arbeiter hier!",
+            "shopTitle": "Einheitenmarkt",
+            "shopInfo": "Du kannst hier Tier-2 Arbeiter erwerben.",
+            "youAreSellingText": "Du hast Tier-2 Arbeiter im Angebot, andere können sie jetzt kaufen!",
+            "failedToFindNewOffers": "Ausverkauft! Warte auf neue Angebote! %{sec}s.",
+            "autoClosing": "Dieses Fenster schließt sich automatisch in %{sec}s.",
+            "purchasing": "Kaufe %{name} (%{price}M)",
+            "buy": "Kaufe",
+            "abort": "Abbrechen"
+        },
         "playersList": {
             "spectators": "Zuschauer %{amount}",
             "enemies": "Feinde %{amount}",
