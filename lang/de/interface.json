@@ -133,7 +133,11 @@
             "warlow": "Konflikt",
             "warhigh": "Krieg",
             "bossfight": "Bosskampf",
-            "gameover": "Spiel beendet"
+            "gameover": "Spiel beendet",
+            "bonus": "Bonus",
+            "scavengers": "Plünderer",
+            "raptors": "Raptoren",
+            "interludes": "Zwischenspiele"
         },
         "playerTV": {
             "playerTV": "TV",
