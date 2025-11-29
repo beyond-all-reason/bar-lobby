@@ -113,6 +113,7 @@
             "gpuMemory": "GPU-Speicher: %{gpuUsage}%%",
             "pointClickTooltip": "Klicke, um zum letzten vom Spieler gesetzten Punkt zu gehen",
             "aiName": "%{name} (KI)",
+            "desynced": "desynchronisiert",
             "chat": {
                 "needSupport": "Ich benötige Einheiten als Unterstützung!",
                 "needMetal": "Ich benötige Metall!",
