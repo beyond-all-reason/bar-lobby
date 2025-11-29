@@ -5,6 +5,10 @@
             "catchingUp": "Aufholen zu"
         },
         "topbar": {
+            "hint": {
+                "resign": "Selbs Aufgeben.",
+                "teamResign": "Fordere, dass das Team aufgibt."
+            },
             "button": {
                 "quit": "Verlassen",
                 "resign": "Aufgeben",
@@ -188,7 +192,6 @@
             "stopproduction_tooltip": "Leert die Warteschlange für alle Einheiten in den ausgewählten Fabriken",
             "morph": "Verbessern",
             "morph_tooltip": "Auf die nächste Technologiestufe aufwerten (zweiter Klick bricht ab)",
-
             "Fire at will": "Feuer frei",
             "Hold fire": "Feuer einstellen",
             "Return fire": "Zurückschießen",
@@ -225,7 +228,6 @@
             "hound_weapon_plasma": "Schwere Plasmakanonea",
             "hound_weapon_gauss": "Gauß-Kanone",
             "hound_weapon_toggle_tooltip": "Wechselt zwischen Gauss-Kanone und schwerer Plasmakanone",
-
             "customOnOff": {
                 "lowTrajectory": "Direktes Feuer",
                 "highTrajectory": "Indirektes Feuer",
