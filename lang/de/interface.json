@@ -114,6 +114,7 @@
             "resincome": "Ressourceneinkommen",
             "commandDelay": "%{labelColor}Gesamte Befehlsverzögerung: %{delayColor}%{delay}",
             "cpu": "CPU: %{cpuUsage}%%",
+            "apm": "APM: %{apm} (Aktionen pro Minute)",
             "framerate": "FPS: %{fps}",
             "gpuMemory": "GPU-Speicher: %{gpuUsage}%%",
             "pointClickTooltip": "Klicke, um zum letzten vom Spieler gesetzten Punkt zu gehen",
