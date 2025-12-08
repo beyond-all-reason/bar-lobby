@@ -17,19 +17,11 @@ export const enginesStore: {
     selectedEngineVersion: undefined,
 });
 
-async function refreshStore() {
-    enginesStore.availableEngineVersions = await window.engine.listAvailableVersions();
-    enginesStore.selectedEngineVersion = enginesStore.availableEngineVersions.find((e) => e.id === DEFAULT_ENGINE_VERSION);
-    if (!enginesStore.selectedEngineVersion) {
-        throw new Error(`Default engine version ${DEFAULT_ENGINE_VERSION} not found in available versions.`);
-    }
-}
-
 export async function downloadEngine(engineString: string) {
     await window.engine
         .downloadEngine(engineString)
         .then(async () => {
-            await refreshStore();
+            enginesStore.availableEngineVersions = await window.engine.listAvailableVersions();
         })
         .catch((error) => {
             console.error("Failed to download engine:", engineString, error);
@@ -40,12 +32,18 @@ export async function downloadEngine(engineString: string) {
 export async function initEnginesStore() {
     window.downloads.onDownloadEngineComplete(async (downloadInfo) => {
         console.debug("Received engine download completed event", downloadInfo);
-        await refreshStore();
+        enginesStore.availableEngineVersions = await window.engine.listAvailableVersions();
     });
     window.downloads.onDownloadEngineFail(async (downloadInfo) => {
         console.error("Engine download failed", downloadInfo);
-        await refreshStore();
+        enginesStore.availableEngineVersions = await window.engine.listAvailableVersions();
     });
-    await refreshStore();
+
+    enginesStore.availableEngineVersions = await window.engine.listAvailableVersions();
+    enginesStore.selectedEngineVersion = enginesStore.availableEngineVersions.find((e) => e.id === DEFAULT_ENGINE_VERSION);
+    if (!enginesStore.selectedEngineVersion) {
+        throw new Error(`Default engine version ${DEFAULT_ENGINE_VERSION} not found in available versions.`);
+    }
+
     enginesStore.isInitialized = true;
 }

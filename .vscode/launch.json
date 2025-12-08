@@ -22,7 +22,7 @@
             "request": "attach",
             "port": 9223,
             "webRoot": "${workspaceFolder}/src/renderer",
-            "timeout": 60000
+            "timeout": 90000
         }
     ],
     "compounds": [
