@@ -2241,6 +2241,7 @@
                 "teamComponent": {
                     "team": "Team",
                     "addBot": "Add bot",
+                    "chooseBot": "Choose Bot",
                     "join": "Join",
                     "players": "({count} / {maxCount} players)",
                     "scavengers": "Scavengers",
