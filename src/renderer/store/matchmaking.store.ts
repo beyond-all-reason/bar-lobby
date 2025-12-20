@@ -145,7 +145,15 @@ async function sendQueueRequest() {
     matchmakingStore.status = MatchmakingStatus.JoinRequested; // Initial state, likely short-lived.
     try {
         matchmakingStore.errorMessage = null;
-        const response = await window.tachyon.request("matchmaking/queue", { queues: [matchmakingStore.selectedQueue] });
+
+        const response = await window.tachyon.request("matchmaking/queue", {
+            queues: [
+                {
+                    id: matchmakingStore.selectedQueue,
+                    version: matchmakingStore.playlists.find((playlist) => playlist.id === matchmakingStore.selectedQueue)!.version,
+                },
+            ],
+        });
         console.log("Tachyon: matchmaking/queue:", response.status);
         matchmakingStore.status = MatchmakingStatus.Searching;
     } catch (error) {
