@@ -89,6 +89,12 @@ function onQueuesJoinedEvent(data: MatchmakingQueuesJoinedEventData) {
     matchmakingStore.status = MatchmakingStatus.Searching;
 }
 
+async function updateDownloadsRequired() {
+    for (const playlist of matchmakingStore.playlists) {
+        matchmakingStore.downloadsRequired[playlist.id] = { needed: await checkIfAnyMapsAreNeeded(playlist.maps) };
+    }
+}
+
 async function sendListRequest() {
     matchmakingStore.isLoadingQueues = true;
     matchmakingStore.queueError = undefined;
@@ -102,12 +108,11 @@ async function sendListRequest() {
         if (matchmakingStore.playlists.length > 0 && !hasSelectedQueue) {
             matchmakingStore.selectedQueue = matchmakingStore.playlists[0].id;
         }
+
         // Clear the "downloadsRequired" list because we have all-new playlist response
         matchmakingStore.downloadsRequired = {};
-        // Find out of we have the necessary maps for each queue we've been given.
-        matchmakingStore.playlists.forEach(async (queue) => {
-            matchmakingStore.downloadsRequired[queue.id] = { needed: await checkIfAnyMapsAreNeeded(queue.maps) };
-        });
+
+        await updateDownloadsRequired();
     } catch (error) {
         console.error("Tachyon error: matchmaking/list:", error);
         notificationsApi.alert({ text: "Tachyon error: matchmaking/list", severity: "error" });
@@ -138,11 +143,16 @@ async function sendQueueRequest() {
         await sendListRequest();
         return;
     }
+
+    await updateDownloadsRequired();
+
     if (matchmakingStore.downloadsRequired[matchmakingStore.selectedQueue].needed) {
         notificationsApi.alert({ text: "You have downloads required to join this queue.", severity: "info" });
         return;
     }
+
     matchmakingStore.status = MatchmakingStatus.JoinRequested; // Initial state, likely short-lived.
+
     try {
         matchmakingStore.errorMessage = null;
 

@@ -5,7 +5,7 @@ SPDX-License-Identifier: MIT
 -->
 
 <template>
-    <div class="fullwidth">
+    <div :class="size === 'small' ? 'fullwidth' : 'large'">
         <div class="progress-bar-outer margin-left-md margin-right-md">
             <DownloadProgress
                 :maps="maps"
@@ -15,27 +15,41 @@ SPDX-License-Identifier: MIT
                 @status-change="updateDownloadStatus"
             ></DownloadProgress>
         </div>
+
         <button
             v-if="ready"
-            class="quick-play-button fullwidth"
-            :class="$props.class != undefined ? $props.class : ''"
+            class="fullwidth"
+            :class="size === 'small' ? 'quick-play-button' : 'quick-play-button-large'"
             :disabled="disabled"
             @click="onClick"
         >
             <slot />
         </button>
-        <Button v-else-if="isDownloading" class="grey quick-download-button fullwidth anchor" @input.stop style="min-height: unset">{{
-            t("lobby.components.controls.downloadContentButton.downloading")
-        }}</Button>
-        <Button v-else class="red quick-download-button fullwidth" @click="beginDownload(maps, engines, games)" style="min-height: unset">{{
-            t("lobby.components.controls.downloadContentButton.download")
-        }}</Button>
+
+        <button
+            v-else-if="isDownloading"
+            class="grey fullwidth anchor"
+            :class="size === 'small' ? 'quick-download-button' : 'quick-play-button-large'"
+            @input.stop
+            style="min-height: unset"
+        >
+            {{ t("lobby.components.controls.downloadContentButton.downloading") }}
+        </button>
+
+        <button
+            v-else
+            class="red quick-download-button fullwidth"
+            :class="size === 'small' ? 'quick-download-button' : 'quick-play-button-large'"
+            @click="beginDownload(maps, engines, games)"
+            style="min-height: unset"
+        >
+            {{ t("lobby.components.controls.downloadContentButton.download") }}
+        </button>
     </div>
 </template>
 
 <script lang="ts" setup>
 import { computed, ref } from "vue";
-import Button from "@renderer/components/controls/Button.vue";
 import { downloadMap } from "@renderer/store/maps.store";
 import { ButtonProps } from "primevue/button";
 import DownloadProgress from "@renderer/components/common/DownloadProgress.vue";
@@ -50,13 +64,13 @@ const { t } = useTypedI18n();
 
 export interface Props extends /* @vue-ignore */ ButtonProps {
     disabled?: boolean;
-    class?: string;
     onClick?: (event: MouseEvent) => void;
     maps?: string[];
     engines?: string[];
     games?: string[];
+    size?: "small" | "large";
 }
-const { maps = [], engines = [], games = [] } = defineProps<Props>();
+const { maps = [], engines = [], games = [], size = "small" } = defineProps<Props>();
 
 const isDownloading = ref(false);
 
@@ -146,6 +160,53 @@ async function beginDownload(maps?: string[], engines?: string[], games?: string
 .quick-play-button:hover::before {
     box-shadow: 0 8px 15px rgba(34, 197, 94, 0.4);
 }
+
+.large {
+    align-self: center;
+    width: 500px;
+}
+
+.quick-play-button-large {
+    width: 500px;
+    text-transform: uppercase;
+    font-family: Rajdhani;
+    font-weight: bold;
+    font-size: 2rem;
+    padding: 20px 40px;
+    color: #fff;
+    background: linear-gradient(90deg, #22c55e, #16a34a);
+    border: none;
+    border-radius: 2px;
+    box-shadow: 0 0 15px rgba(34, 197, 94, 0.4);
+    text-align: center;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition:
+        transform 0.3s ease,
+        box-shadow 0.3s ease;
+}
+
+.quick-play-button-large:hover {
+    box-shadow: 0 0 25px rgba(34, 197, 94, 0.6);
+}
+
+.quick-play-button-large::before {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 200%;
+    height: 200%;
+    background: rgba(255, 255, 255, 0.2);
+    transform: translate(-50%, -50%) scale(0);
+    border-radius: 50%;
+    transition: transform 0.4s ease;
+}
+
+.quick-play-button-large:hover::before {
+    box-shadow: 0 0 15px rgba(34, 197, 94, 0.4);
+}
+
 .anchor {
     anchor-name: --anchor;
 }
