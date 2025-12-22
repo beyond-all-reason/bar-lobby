@@ -5,7 +5,7 @@ SPDX-License-Identifier: MIT
 -->
 
 <template>
-    <div :class="size === 'small' ? 'fullwidth' : 'large'">
+    <div class="fullwidth" v-if="size === 'small'">
         <div class="progress-bar-outer margin-left-md margin-right-md">
             <DownloadProgress
                 :maps="maps"
@@ -15,34 +15,43 @@ SPDX-License-Identifier: MIT
                 @status-change="updateDownloadStatus"
             ></DownloadProgress>
         </div>
-
         <button
             v-if="ready"
-            class="fullwidth"
-            :class="size === 'small' ? 'quick-play-button' : 'quick-play-button-large'"
+            class="quick-play-button fullwidth"
+            :class="$props.class != undefined ? $props.class : ''"
             :disabled="disabled"
             @click="onClick"
         >
             <slot />
         </button>
+        <Button v-else-if="isDownloading" class="grey quick-download-button fullwidth anchor" @input.stop style="min-height: unset">{{
+            t("lobby.components.controls.downloadContentButton.downloading")
+        }}</Button>
+        <Button v-else class="red quick-download-button fullwidth" @click="beginDownload(maps, engines, games)" style="min-height: unset">{{
+            t("lobby.components.controls.downloadContentButton.download")
+        }}</Button>
+    </div>
 
-        <button
-            v-else-if="isDownloading"
-            class="grey fullwidth anchor"
-            :class="size === 'small' ? 'quick-download-button' : 'quick-play-button-large'"
-            @input.stop
-            style="min-height: unset"
-        >
+    <div v-else class="large">
+        <div class="progress-bar-outer">
+            <DownloadProgress
+                :maps="maps"
+                :engines="engines"
+                :games="games"
+                :height="80"
+                @status-change="updateDownloadStatus"
+            ></DownloadProgress>
+        </div>
+
+        <button v-if="ready" class="fullwidth quick-play-button-large" :disabled="disabled" @click="onClick">
+            <slot />
+        </button>
+
+        <button v-else-if="isDownloading" class="fullwidth quick-play-button-large anchor" style="min-height: unset">
             {{ t("lobby.components.controls.downloadContentButton.downloading") }}
         </button>
 
-        <button
-            v-else
-            class="red quick-download-button fullwidth"
-            :class="size === 'small' ? 'quick-download-button' : 'quick-play-button-large'"
-            @click="beginDownload(maps, engines, games)"
-            style="min-height: unset"
-        >
+        <button v-else class="red fullwidth quick-play-button-large" @click="beginDownload(maps, engines, games)" style="min-height: unset">
             {{ t("lobby.components.controls.downloadContentButton.download") }}
         </button>
     </div>
@@ -53,6 +62,7 @@ import { computed, ref } from "vue";
 import { downloadMap } from "@renderer/store/maps.store";
 import { ButtonProps } from "primevue/button";
 import DownloadProgress from "@renderer/components/common/DownloadProgress.vue";
+import Button from "@renderer/components/controls/Button.vue";
 import { useTypedI18n } from "@renderer/i18n";
 import { downloadEngine } from "@renderer/store/engine.store";
 import { downloadGame } from "@renderer/store/game.store";
@@ -164,6 +174,7 @@ async function beginDownload(maps?: string[], engines?: string[], games?: string
 .large {
     align-self: center;
     width: 500px;
+    position: relative;
 }
 
 .quick-play-button-large {
@@ -210,13 +221,17 @@ async function beginDownload(maps?: string[], engines?: string[], games?: string
 .anchor {
     anchor-name: --anchor;
 }
+
 .progress-bar-outer {
-    position: fixed;
-    position-area: top span-all;
-    position-anchor: --anchor;
-    width: anchor-size(width);
-    height: anchor-size(height);
-    transform: translateY(100%);
-    overflow: hidden;
+    width: 100%;
+    height: 80px;
+
+    position: absolute;
+
+    pointer-events: none;
+
+    z-index: 10;
+
+    top: 0;
 }
 </style>
