@@ -327,7 +327,6 @@ function removeCustomStartBox(boxId: number) {
 }
 
 function defaultOfflineBattle(engine?: EngineVersion, game?: GameVersion, map?: MapData) {
-    const barbAi = engine?.ais.find((ai) => ai.shortName === "BARb");
     const battle: Battle = {
         title: i18n.global.t("lobby.components.battle.offlineBattleComponent.offlineBattle"),
         isOnline: false,
@@ -366,17 +365,6 @@ function defaultOfflineBattle(engine?: EngineVersion, game?: GameVersion, map?: 
     battle.me = mePlayer;
 
     battle.teams[0].participants.push(mePlayer);
-
-    const defaultBot = {
-        id: participantId++,
-        host: mePlayer.id,
-        aiOptions: {},
-        faction: Faction.Armada,
-        name: "AI 1",
-        aiShortName: barbAi?.shortName || "BARb",
-    } satisfies Bot;
-
-    battle.teams[1].participants.push(defaultBot);
 
     return battle;
 }
