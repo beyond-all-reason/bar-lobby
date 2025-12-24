@@ -35,7 +35,7 @@
         "generate-i18n-assets": "node --import=tsx tools/generate-i18n-asset-files.ts"
     },
     "engines": {
-        "node": "22.16.0"
+        "node": "22.18.0"
     },
     "dependencies": {
         "@extractus/feed-extractor": "^7.1.6",
@@ -73,7 +73,7 @@
         "@electron-forge/plugin-vite": "^7.8.1",
         "@types/howler": "^2.2.12",
         "@types/luaparse": "^0.2.12",
-        "@types/node": "^22.16.5",
+        "@types/node": "^22.18.13",
         "@types/ws": "^8.18.1",
         "@vitejs/plugin-vue": "^6.0.0",
         "concurrently": "^9.2.0",
