@@ -78,7 +78,7 @@ SPDX-License-Identifier: MIT
                                 >
                                     <Icon :icon="heart_minus" :height="33" />
                                 </Button>
-                                <DownloadContentButton v-if="map" :maps="[map.springName]" class="fullwidth green" @click="play">{{
+                                <DownloadContentButton v-if="map" :maps="[map.springName]" @click="play">{{
                                     t("lobby.buttons.quickPlay")
                                 }}</DownloadContentButton>
                                 <Button v-else class="fullwidth green" disabled>{{ t("lobby.buttons.quickPlay") }}</Button>
