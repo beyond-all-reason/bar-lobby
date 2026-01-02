@@ -56,6 +56,18 @@ npm install
 npm start
 ```
 
+#### Linux (Electron sandbox)
+
+On some Linux systems, Electron may fail to start with an error about `chrome-sandbox` permissions.
+
+If you see a message mentioning `The SUID sandbox helper binary was found, but is not configured correctly`, run:
+
+```bash
+sudo chown root:root node_modules/electron/dist/chrome-sandbox
+sudo chmod 4755 node_modules/electron/dist/chrome-sandbox
+```
+
+
 ### Project Structure
 
 ```

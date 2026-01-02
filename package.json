@@ -48,6 +48,7 @@
         "ajv": "^8.17.1",
         "ajv-formats": "^3.0.1",
         "axios": "^1.12.0",
+        "bufferutil": "^4.1.0",
         "chokidar": "^4.0.3",
         "date-fns": "^4.1.0",
         "dexie": "^4.0.11",
@@ -64,6 +65,7 @@
         "primeicons": "^6.0.1",
         "primevue": "3.23.0",
         "tachyon-protocol": "^1.15.1",
+        "utf-8-validate": "^5.0.10",
         "vue-i18n": "^11.1.11",
         "vue-router": "^4.5.1",
         "ws": "^8.18.3"
@@ -97,5 +99,6 @@
         "vite-plugin-vue-devtools": "^8.0.0",
         "vitest": "^3.2.4",
         "vue-tsc": "^3.0.3"
-    }
+    },
+    "packageManager": "pnpm@9.15.4+sha512.b2dc20e2fc72b3e18848459b37359a32064663e5627a51e4c74b2c29dd8e8e0491483c3abb40789cfd578bf362fb6ba8261b05f0387d76792ed6e23ea3b1b6a0"
 }
