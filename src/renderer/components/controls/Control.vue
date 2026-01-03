@@ -45,10 +45,13 @@ function onMouseEnter() {
     justify-self: flex-start;
     background-color: rgba(255, 255, 255, 0.1);
     border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: inset 0 0 0 0 rgba(255, 255, 255, 0.2);
+
     &:hover {
         background-color: rgba(255, 255, 255, 0.2);
-        border-color: rgba(255, 255, 255, 0.2);
+        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.2);
     }
+
     .label {
         padding: 5px 10px;
         border-radius: 0px;
@@ -59,13 +62,16 @@ function onMouseEnter() {
         display: flex;
         white-space: nowrap;
     }
+
     &.disabled {
         opacity: 0.5;
         pointer-events: none;
     }
+
     &.dark {
         background-color: rgba(0, 0, 0, 0.1);
         border: 1px solid rgba(255, 255, 255, 0.1);
+
         &:hover {
             background-color: rgba(0, 0, 0, 0.3);
             border-color: rgba(255, 255, 255, 0.1);
