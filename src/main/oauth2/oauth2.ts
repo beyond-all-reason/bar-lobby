@@ -50,11 +50,11 @@ export async function fetchAuthorizationServerMetadata(): Promise<{
 }
 
 // Careful with shell.openExternal. https://benjamin-altpeter.de/shell-openexternal-dangers/
-function openInBrowser(url: string) {
+async function openInBrowser(url: string) {
     if (!["https:", "http:"].includes(new URL(url).protocol)) return;
     // Additional checks to prevent opening arbitrary URLs
     if (!url.startsWith(getOAuthAuthorizationServerURL())) return;
-    shell.openExternal(url);
+    await shell.openExternal(url).catch((error) => console.error(error));
 }
 
 function createUrlWithQuerystring(baseUrl: string, params: Record<string, string | number | boolean>): string {

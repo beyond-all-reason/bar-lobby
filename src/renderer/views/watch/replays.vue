@@ -263,15 +263,15 @@ function onSort(event: DataTableSortEvent) {
 }
 
 function openBrowserToReplayService() {
-    window.shell.openInBrowser("https://bar-rts.com/replays");
+    window.shell.openInBrowser("https://bar-rts.com/replays").catch((error) => console.error(error));
 }
 
 function openReplaysFolder() {
-    window.shell.openReplaysDir();
+    window.shell.openReplaysDir().catch((error) => console.error(error));
 }
 
-function showReplayFile(replay: Replay) {
-    if (replay?.fileName) window.shell.showReplayInFolder(replay.fileName);
+async function showReplayFile(replay: Replay) {
+    if (replay?.fileName) await window.shell.showReplayInFolder(replay.fileName).catch((error) => console.error(error));
 }
 </script>
 
