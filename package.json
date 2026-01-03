@@ -13,6 +13,8 @@
     "main": ".vite/build/main.cjs",
     "scripts": {
         "start": "cross-env NODE_OPTIONS=--enable-source-maps electron-forge start",
+        "start:user1": "cross-env BAR_STATE_PATH=state-1 BAR_ASSETS_PATH=assets-1 npm start",
+        "start:user2": "cross-env BAR_STATE_PATH=state-2 BAR_ASSETS_PATH=assets-2 npm start",
         "package": "electron-forge package",
         "preview": "electron-forge package && cross-env NODE_OPTIONS=--enable-source-maps NODE_ENV=production electron .",
         "build:win": "electron-builder --config electron-builder.config.ts --win",
@@ -66,6 +68,7 @@
         "tachyon-protocol": "^1.15.1",
         "vue-i18n": "^11.1.11",
         "vue-router": "^4.5.1",
+        "vuedraggable": "^4.1.0",
         "ws": "^8.18.3"
     },
     "devDependencies": {

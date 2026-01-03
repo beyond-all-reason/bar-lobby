@@ -146,7 +146,7 @@ class StartScriptConverter {
         if (!battle.battleOptions.map) throw new Error("failed to access battle options map");
         if (!battle.me) throw new Error("failed to access current player");
 
-        return {
+        const game: Game = {
             gametype: battle.battleOptions.gameVersion,
             mapname: battle.battleOptions.map.springName,
             modoptions: battle.battleOptions.gameMode.options,
@@ -159,6 +159,22 @@ class StartScriptConverter {
             players,
             ais: bots,
         };
+
+        // Add mod information if mods are selected
+        if (battle.battleOptions.mods && battle.battleOptions.mods.length > 0) {
+            const enabledMods = battle.battleOptions.mods.filter((mod) => mod.enabled);
+            if (enabledMods.length > 0) {
+                // Add mod paths to the game object
+                game.mods = enabledMods.map((mod) => mod.modId);
+                // Add mod-specific options
+                game.modoptions = {
+                    ...game.modoptions,
+                    ...this.mergeModOptions(enabledMods),
+                };
+            }
+        }
+
+        return game;
     }
 
     protected generateScriptString(script: Game): string {
@@ -295,6 +311,21 @@ class StartScriptConverter {
             }
         }
         return str;
+    }
+
+    protected mergeModOptions(enabledMods: Array<{ modId: string; options?: Record<string, any> }>): Record<string, any> {
+        const mergedOptions: Record<string, any> = {};
+
+        for (const mod of enabledMods) {
+            if (mod.options) {
+                // Prefix mod options with mod ID to avoid conflicts
+                for (const [key, value] of Object.entries(mod.options)) {
+                    mergedOptions[`${mod.modId}_${key}`] = value;
+                }
+            }
+        }
+
+        return mergedOptions;
     }
 
     //TODO implement online script generation

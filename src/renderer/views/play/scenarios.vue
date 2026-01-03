@@ -54,6 +54,7 @@ SPDX-License-Identifier: MIT
                                 optionLabel="name"
                             />
                         </div>
+                        <ModSelector :mod-selection="modSelection" title="Mods" variant="default" selection-mode="checkbox" />
                         <DownloadContentButton
                             v-if="map"
                             :maps="[map.springName]"
@@ -89,6 +90,9 @@ import DownloadContentButton from "@renderer/components/controls/DownloadContent
 import { GameStatus, gameStore } from "@renderer/store/game.store";
 
 import { useTypedI18n } from "@renderer/i18n";
+import ModSelector from "@renderer/components/mods/ModSelector.vue";
+import { useModSelection } from "@renderer/composables/useModSelection";
+import { useModIntegration } from "@renderer/composables/useModIntegration";
 
 const { t } = useTypedI18n();
 
@@ -124,6 +128,12 @@ const selectedDifficulty = ref(difficulties.value.find((dif) => dif.name === sel
 const factions = computed(() => selectedScenario.value.allowedsides);
 const selectedFaction = ref(factions.value[0]);
 
+// Mod selection using composables
+const modSelection = useModSelection();
+const modIntegration = useModIntegration({
+    selectedMods: modSelection.selectedMods,
+});
+
 watch(
     () => gameStore.selectedGameVersion?.gameVersion,
     async (selectedVersion) => {
@@ -153,7 +163,8 @@ async function launch() {
         restrictionCount++;
     }
 
-    const script = selectedScenario.value.startscript
+    // First, replace all the standard placeholders
+    let script = selectedScenario.value.startscript
         .replaceAll("__SCENARIOOPTIONS__", scenarioOptionsStr)
         //TODO replace with online name when implemented
         .replaceAll("__PLAYERNAME__", "Player")
@@ -165,9 +176,13 @@ async function launch() {
         .replaceAll("__RESTRICTEDUNITS__", restrictionsStr)
         .replaceAll("__NUMRESTRICTIONS__", restrictionCount.toString());
 
+    // Then inject mod content directly into the script
+    script = modIntegration.injectModsIntoScript(script);
+
     if (!enginesStore.selectedEngineVersion) {
         throw new Error("No engine version selected");
     }
+
     await window.game.launchScript(script, LATEST_GAME_VERSION, enginesStore.selectedEngineVersion.id);
 }
 </script>

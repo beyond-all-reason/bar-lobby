@@ -27,6 +27,16 @@ function registerIpcHandlers() {
     ipcMain.handle("shell:openReplaysDir", () => shell.openPath(REPLAYS_PATH));
     ipcMain.handle("shell:showReplayInFolder", (_event, fileName: string) => shell.showItemInFolder(path.join(REPLAYS_PATH, fileName)));
 
+    // Mod-related
+    ipcMain.handle("shell:openModFolder", (_event, modPath: string) => {
+        console.log("Opening mod folder:", modPath);
+        return shell.openPath(modPath);
+    });
+    ipcMain.handle("shell:openModRepository", (_event, repository: string) => {
+        const url = `https://github.com/${repository}`;
+        shell.openExternal(url);
+    });
+
     // External
     ipcMain.handle("shell:openInBrowser", (_event, url) => openInBrowser(url));
 }

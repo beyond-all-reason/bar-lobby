@@ -14,6 +14,7 @@ import type {
     MainWindowApi,
     MapsApi,
     MiscApi,
+    ModApi,
     ReplaysApi,
     SettingsApi,
     ShellApi,
@@ -32,6 +33,7 @@ declare global {
         engine: EngineApi;
         game: GameApi;
         maps: MapsApi;
+        mod: ModApi;
         downloads: DownloadsApi;
         misc: MiscApi;
         tachyon: TachyonApi;

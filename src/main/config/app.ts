@@ -105,6 +105,7 @@ export const ENGINE_PATH = path.join(ASSETS_PATH, "engine");
 export const REPLAYS_PATH = path.join(WRITE_DATA_PATH, "demos");
 export const MAPS_PATHS: readonly string[] = [path.join(WRITE_DATA_PATH, "maps"), path.join(ASSETS_PATH, "maps")];
 export const GAME_PATHS: readonly string[] = [path.join(WRITE_DATA_PATH, "games"), path.join(ASSETS_PATH, "games")];
+export const MOD_PATHS: readonly string[] = [path.join(WRITE_DATA_PATH, "games"), path.join(ASSETS_PATH, "games")];
 // Everything rapid lives under assets.
 export const PACKAGE_PATH = path.join(ASSETS_PATH, "packages");
 export const POOL_PATH = path.join(ASSETS_PATH, "pool");
