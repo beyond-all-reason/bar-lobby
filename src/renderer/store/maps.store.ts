@@ -47,9 +47,14 @@ export async function initMapsStore() {
 }
 
 async function init() {
+    // Perform initial scan of local maps
+    await window.maps.scanMaps();
+
     window.maps.onMapAdded((springName: string) => {
-        console.debug("Received map added event", springName);
+        console.debug(`[DEBUG] Map added event: ${springName}`);
+        console.debug(`[DEBUG] Before add - available:`, [...mapsStore.availableMapNames]);
         mapsStore.availableMapNames.add(springName);
+        console.debug(`[DEBUG] After add - available:`, [...mapsStore.availableMapNames]);
         db.maps.where("springName").equals(springName).modify({ isInstalled: true });
         db.nonLiveMaps.where("springName").equals(springName).modify({ isInstalled: true });
     });
@@ -65,7 +70,12 @@ async function init() {
     });
     const [liveMaps, nonLiveMaps] = await window.maps.fetchAllMaps();
 
-    console.debug("Received maps", [liveMaps, nonLiveMaps]);
+    console.debug("[DEBUG] Received maps", [liveMaps, nonLiveMaps]);
+    console.debug(
+        "[DEBUG] Live maps isInstalled status:",
+        liveMaps.map((m) => `${m.springName}: ${m.isInstalled}`)
+    );
+    console.debug("[DEBUG] Initial availableMapNames before processing:", [...mapsStore.availableMapNames]);
 
     await Promise.allSettled(
         liveMaps
@@ -107,6 +117,7 @@ async function init() {
             db.nonLiveMaps.update(map.springName, { ...map, isInstalled: false });
         });
 
+    console.debug("[DEBUG] Final availableMapNames after init:", [...mapsStore.availableMapNames]);
     mapsStore.isInitialized = true;
 }
 

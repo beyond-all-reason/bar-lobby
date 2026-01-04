@@ -9,11 +9,10 @@ import { MapData } from "@main/content/maps/map-data";
 import { logger } from "@main/utils/logger";
 import { Signal } from "$/jaz-ts-utils/signal";
 import { PrDownloaderAPI } from "@main/content/pr-downloader";
-import { MAPS_PATHS } from "@main/config/app";
+import { MAPS_PATHS, ASSETS_PATH, WRITE_DATA_PATH } from "@main/config/app";
 import chokidar from "chokidar";
 import { UltraSimpleMapParser } from "$/map-parser/ultrasimple-map-parser";
 import { removeFromArray } from "$/jaz-ts-utils/object";
-
 const log = logger("map-content.ts");
 
 /**
@@ -29,7 +28,24 @@ export class MapContentAPI extends PrDownloaderAPI<string, MapData> {
     protected readonly mapCacheQueue: Set<string> = new Set();
     protected cachingMaps = false;
 
+    /**
+     * Check if a file path is in the assets directory (read-only)
+     */
+    private isInAssetsDirectory(filePath: string): boolean {
+        const assetsMapsPath = path.join(ASSETS_PATH, "maps");
+        return filePath.includes(assetsMapsPath);
+    }
+
+    /**
+     * Check if a file path is in the writable data directory
+     */
+    private isInWritableDirectory(filePath: string): boolean {
+        const writableMapsPath = path.join(WRITE_DATA_PATH, "maps");
+        return filePath.includes(writableMapsPath);
+    }
+
     public override async init() {
+        console.log(`MAP PATHS: ${MAPS_PATHS}`);
         for (const mapsDir of MAPS_PATHS) {
             await fs.promises.mkdir(mapsDir, { recursive: true });
         }
@@ -40,13 +56,16 @@ export class MapContentAPI extends PrDownloaderAPI<string, MapData> {
 
     protected async initLookupMaps() {
         async function* findMaps() {
+            console.log(`FIND MAPS`);
             // We apply toReversed to keep the precedence order: higher precedence visited later.
             for (const mapsDir of MAPS_PATHS.toReversed()) {
                 yield* (await fs.promises.readdir(mapsDir)).filter((f) => f.endsWith(".sd7")).map((f) => path.join(mapsDir, f));
             }
         }
+        console.log(`FIND MAPS AFTER`);
         log.debug("Scanning for maps");
         for await (const filePath of findMaps()) {
+            console.log(`MAP FILE PATH: ${filePath}`);
             try {
                 const mapName = await this.getMapNameFromFile(filePath);
                 const fileName = path.basename(filePath);
@@ -54,17 +73,69 @@ export class MapContentAPI extends PrDownloaderAPI<string, MapData> {
                 this.mapNameFileNameLookup[mapName] = fileName;
                 this.fileNameMapNameLookup[fileName] = mapName;
             } catch (err) {
-                log.error(`File may be corrupted, removing ${filePath}: ${err}`);
-                fs.promises.rm(filePath);
+                console.log(`MAP PARSING ERROR for ${filePath}: ${err}`);
+
+                // Only delete from writable directories
+                if (this.isInWritableDirectory(filePath)) {
+                    console.log(`File may be corrupted, removing from writable directory ${filePath}: ${err}`);
+                    fs.promises.rm(filePath);
+                } else if (this.isInAssetsDirectory(filePath)) {
+                    console.log(`File in assets directory failed parsing, skipping ${filePath}: ${err}`);
+                    // Don't delete from assets directory - it's read-only
+                } else {
+                    console.log(`Unknown directory, skipping deletion for ${filePath}: ${err}`);
+                }
             }
         }
         log.info(`Found ${Object.keys(this.mapNameFileNameLookup).length} maps`);
     }
 
     ultraSimpleMapParser = new UltraSimpleMapParser();
+
+    /**
+     * Validate that a file exists and is readable before attempting to parse it
+     */
+    private async validateMapFile(filePath: string): Promise<boolean> {
+        try {
+            const stats = await fs.promises.stat(filePath);
+            if (!stats.isFile()) {
+                log.warn(`Path is not a file: ${filePath}`);
+                return false;
+            }
+            if (stats.size === 0) {
+                log.warn(`File is empty: ${filePath}`);
+                return false;
+            }
+            // Try to read first few bytes to check if file is accessible
+            await fs.promises.access(filePath, fs.constants.R_OK);
+            return true;
+        } catch (err) {
+            log.warn(`File validation failed for ${filePath}: ${err}`);
+            return false;
+        }
+    }
+
     protected async getMapNameFromFile(filePath: string) {
-        const parsedMap = await this.ultraSimpleMapParser.parseMap(filePath);
-        return parsedMap.springName;
+        // First validate the file
+        if (!(await this.validateMapFile(filePath))) {
+            throw new Error(`Map file validation failed: ${filePath}`);
+        }
+
+        try {
+            const parsedMap = await this.ultraSimpleMapParser.parseMap(filePath);
+            if (!parsedMap.springName || parsedMap.springName.trim() === "") {
+                throw new Error(`Parsed map has empty or invalid springName: ${filePath}`);
+            }
+            return parsedMap.springName;
+        } catch (err) {
+            // Add more context to the error
+            const errorMessage = err instanceof Error ? err.message : String(err);
+            const enhancedError = new Error(`Failed to parse map file ${filePath}: ${errorMessage}`);
+            if (err instanceof Error) {
+                enhancedError.cause = err;
+            }
+            throw enhancedError;
+        }
     }
 
     protected startWatchingMapFolder() {
@@ -107,7 +178,9 @@ export class MapContentAPI extends PrDownloaderAPI<string, MapData> {
     }
 
     public isVersionInstalled(springName: string): boolean {
-        return this.mapNameFileNameLookup[springName] !== undefined;
+        const isInstalled = this.mapNameFileNameLookup[springName] !== undefined;
+        console.log(`[DEBUG] isVersionInstalled(${springName}): ${isInstalled}, lookup:`, this.mapNameFileNameLookup[springName]);
+        return isInstalled;
     }
 
     public async downloadMaps(springNames: string[]) {
@@ -134,12 +207,29 @@ export class MapContentAPI extends PrDownloaderAPI<string, MapData> {
         throw new Error("Method not implemented.");
     }
 
+    public async scanMaps(): Promise<void> {
+        await this.initLookupMaps();
+
+        // Emit events for all installed maps
+        Object.keys(this.mapNameFileNameLookup).forEach((mapName) => {
+            if (this.mapNameFileNameLookup[mapName]) {
+                this.onMapAdded.dispatch(mapName);
+            }
+        });
+    }
+
     public async uninstallVersion(version: MapData) {
         for (const mapsDir of MAPS_PATHS) {
             const mapFile = path.join(mapsDir, version.filename);
-            await fs.promises.rm(mapFile, { force: true });
+            // Only delete from writable directories
+            if (this.isInWritableDirectory(mapFile)) {
+                await fs.promises.rm(mapFile, { force: true });
+                log.debug(`Map removed from writable directory: ${version.springName}`);
+            } else if (this.isInAssetsDirectory(mapFile)) {
+                log.warn(`Attempted to delete map from assets directory, skipping: ${version.springName}`);
+                // Don't delete from assets directory - it's read-only
+            }
         }
-        log.debug(`Map removed: ${version.springName}`);
     }
 }
 

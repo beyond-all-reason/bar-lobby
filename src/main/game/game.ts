@@ -40,7 +40,24 @@ export class GameAPI {
     protected gameProcess: ChildProcess | null = null;
 
     public async launchBattle(battle: BattleWithMetadata): Promise<void> {
-        const script = startScriptConverter.generateScriptStr(battle);
+        let script = startScriptConverter.generateScriptStr(battle);
+        const isOnline = await this.isOnline();
+
+        if (!isOnline) {
+            console.log("OFFLINE MODE: Adding hostip configuration");
+            // Add hostip=127.0.0.1 to the [game] section
+            script = script.replace(
+                /\[game\]\s*\{/,
+                `[game] {
+    hostip=127.0.0.1;`
+            );
+            // Also replace hostnames with IP addresses
+            script = script.replace(/\blocalhost\b/g, "127.0.0.1").replace(/\blobby\.springrts\.com\b/g, "127.0.0.1");
+            console.log(`MODIFIED SCRIPT CONTENT:\n${script}`);
+        } else {
+            console.log("ONLINE MODE: No hostname replacement needed");
+        }
+
         const scriptPath = path.join(WRITE_DATA_PATH, this.startScriptName);
         await fs.promises.writeFile(scriptPath, script);
         await this.launch({
@@ -74,11 +91,27 @@ export class GameAPI {
         });
     }
 
+    private async isOnline(): Promise<boolean> {
+        return new Promise((resolve) => {
+            require("dns").resolve("www.google.com", (err: NodeJS.ErrnoException | null) => {
+                resolve(!err);
+            });
+        });
+    }
+
     public async launchMultiplayer({ engineVersion, gameVersion, springString }: MultiplayerLaunchSettings) {
+        const isOnline = await this.isOnline();
+        let fixedSpringString = springString;
+
+        if (!isOnline) {
+            // Replace hostnames with IP addresses to avoid DNS resolution issues
+            fixedSpringString = springString.replace(/\blocalhost\b/g, "127.0.0.1").replace(/\blobby\.springrts\.com\b/g, "127.0.0.1");
+        }
+
         return this.launch({
             engineVersion,
             gameVersion,
-            launchArg: springString,
+            launchArg: fixedSpringString,
         });
     }
 
@@ -89,8 +122,16 @@ export class GameAPI {
 
         log.info(`Launching game with engine: ${engineVersion}, game: ${gameVersion}`);
         await this.fetchMissingContent(engineVersion, gameVersion); // TODO preload anything needed through the UI before launching. Remove this step
+        const isOnline = await this.isOnline(); // Check connectivity status
         const enginePath = path.join(ENGINE_PATH, engineVersion).replaceAll("\\", "/");
-        const args = ["--write-dir", WRITE_DATA_PATH, "--isolation", launchArg];
+        let args = ["--write-dir", WRITE_DATA_PATH, "--isolation", launchArg];
+
+        // Add offline configuration for host and port
+        if (!isOnline) {
+            args.push("--config", "HostIPDefault=127.0.0.1");
+            args.push("--config", "SourcePort=8452");
+        }
+
         const binaryName = process.platform === "win32" ? "spring.exe" : "./spring";
         log.debug(`Running binary: ${path.join(enginePath, binaryName)}, args: ${args}`);
 

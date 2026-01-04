@@ -26,6 +26,7 @@ import Button from "@renderer/components/controls/Button.vue";
 import { computed } from "vue";
 import { useRouter } from "vue-router";
 import type { RouteLocationNormalized } from "vue-router";
+import { auth } from "@renderer/store/me.store";
 
 const { t } = useTypedI18n();
 
@@ -52,6 +53,7 @@ function onlogIn() {
 }
 function onCancel() {
     isOpen.value = false;
+    auth.playOffline();
 }
 </script>
 

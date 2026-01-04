@@ -11,6 +11,7 @@ import { AbstractContentAPI } from "./abstract-content";
 import { engineContentAPI } from "./engine/engine-content";
 import { logger } from "@main/utils/logger";
 import { ASSETS_PATH, ENGINE_PATH } from "@main/config/app";
+import { accountService } from "@main/services/account.service";
 
 const log = logger("pr-downloader.ts");
 
@@ -36,11 +37,17 @@ export type RapidVersion = {
  * https://springrts.com/wiki/Rapid
  */
 export abstract class PrDownloaderAPI<ID, T> extends AbstractContentAPI<ID, T> {
-    protected downloadContent(type: "game" | "map", name: string) {
-        return new Promise<DownloadInfo>((resolve, reject) => {
+    protected async downloadContent(type: "game" | "map", name: string) {
+        return new Promise<DownloadInfo>(async (resolve, reject) => {
             try {
-                log.debug(`Downloading ${name}...`);
+                // Check if user is offline before attempting download
+                if (!(await accountService.isUserOnline())) {
+                    console.log("User is offline - skipping download");
+                    reject(new Error("User is offline - cannot download content"));
+                    return;
+                }
 
+                log.debug(`Downloading ${name}...`);
                 const defaultEngine = engineContentAPI.getDefaultEngine();
 
                 // These two errors should in theory never happen...
