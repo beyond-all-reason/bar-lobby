@@ -28,20 +28,17 @@ export class MapContentAPI extends PrDownloaderAPI<string, MapData> {
     protected readonly mapCacheQueue: Set<string> = new Set();
     protected cachingMaps = false;
 
-    // Check if file is in assets directory
     private isInAssetsDirectory(filePath: string): boolean {
         const assetsMapsPath = path.join(ASSETS_PATH, "maps");
         return filePath.includes(assetsMapsPath);
     }
 
-    // Check if file is in writable directory
     private isInWritableDirectory(filePath: string): boolean {
         const writableMapsPath = path.join(WRITE_DATA_PATH, "maps");
         return filePath.includes(writableMapsPath);
     }
 
     public override async init() {
-        console.log(`MAP PATHS: ${MAPS_PATHS}`);
         for (const mapsDir of MAPS_PATHS) {
             await fs.promises.mkdir(mapsDir, { recursive: true });
         }
@@ -52,16 +49,13 @@ export class MapContentAPI extends PrDownloaderAPI<string, MapData> {
 
     protected async initLookupMaps() {
         async function* findMaps() {
-            console.log(`FIND MAPS`);
             // We apply toReversed to keep the precedence order: higher precedence visited later.
             for (const mapsDir of MAPS_PATHS.toReversed()) {
                 yield* (await fs.promises.readdir(mapsDir)).filter((f) => f.endsWith(".sd7")).map((f) => path.join(mapsDir, f));
             }
         }
-        console.log(`FIND MAPS AFTER`);
         log.debug("Scanning for maps");
         for await (const filePath of findMaps()) {
-            console.log(`MAP FILE PATH: ${filePath}`);
             try {
                 const mapName = await this.getMapNameFromFile(filePath);
                 const fileName = path.basename(filePath);
@@ -69,17 +63,15 @@ export class MapContentAPI extends PrDownloaderAPI<string, MapData> {
                 this.mapNameFileNameLookup[mapName] = fileName;
                 this.fileNameMapNameLookup[fileName] = mapName;
             } catch (err) {
-                console.log(`MAP PARSING ERROR for ${filePath}: ${err}`);
-
                 // Only delete from writable directories
                 if (this.isInWritableDirectory(filePath)) {
-                    console.log(`File may be corrupted, removing from writable directory ${filePath}: ${err}`);
+                    log.warn(`File may be corrupted, removing from writable directory ${filePath}: ${err}`);
                     fs.promises.rm(filePath);
                 } else if (this.isInAssetsDirectory(filePath)) {
-                    console.log(`File in assets directory failed parsing, skipping ${filePath}: ${err}`);
+                    log.warn(`File in assets directory failed parsing, skipping ${filePath}: ${err}`);
                     // Don't delete from assets directory - it's read-only
                 } else {
-                    console.log(`Unknown directory, skipping deletion for ${filePath}: ${err}`);
+                    log.warn(`Unknown directory, skipping deletion for ${filePath}: ${err}`);
                 }
             }
         }
@@ -88,9 +80,7 @@ export class MapContentAPI extends PrDownloaderAPI<string, MapData> {
 
     ultraSimpleMapParser = new UltraSimpleMapParser();
 
-    /**
-     * Validate that a file exists and is readable before attempting to parse it
-     */
+    // Validate that the map file exists, is a file, and is not empty
     private async validateMapFile(filePath: string): Promise<boolean> {
         try {
             const stats = await fs.promises.stat(filePath);
@@ -112,7 +102,6 @@ export class MapContentAPI extends PrDownloaderAPI<string, MapData> {
     }
 
     protected async getMapNameFromFile(filePath: string) {
-        // First validate the file
         if (!(await this.validateMapFile(filePath))) {
             throw new Error(`Map file validation failed: ${filePath}`);
         }
@@ -124,7 +113,6 @@ export class MapContentAPI extends PrDownloaderAPI<string, MapData> {
             }
             return parsedMap.springName;
         } catch (err) {
-            // Add more context to the error
             const errorMessage = err instanceof Error ? err.message : String(err);
             const enhancedError = new Error(`Failed to parse map file ${filePath}: ${errorMessage}`);
             if (err instanceof Error) {
@@ -174,9 +162,7 @@ export class MapContentAPI extends PrDownloaderAPI<string, MapData> {
     }
 
     public isVersionInstalled(springName: string): boolean {
-        const isInstalled = this.mapNameFileNameLookup[springName] !== undefined;
-        console.log(`[DEBUG] isVersionInstalled(${springName}): ${isInstalled}, lookup:`, this.mapNameFileNameLookup[springName]);
-        return isInstalled;
+        return this.mapNameFileNameLookup[springName] !== undefined;
     }
 
     public async downloadMaps(springNames: string[]) {

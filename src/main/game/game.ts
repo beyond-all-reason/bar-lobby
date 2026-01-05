@@ -44,18 +44,17 @@ export class GameAPI {
         const isOnline = await this.isOnline();
 
         if (!isOnline) {
-            console.log("OFFLINE MODE: Adding hostip configuration");
-            // Add hostip=127.0.0.1 to the [game] section
-            script = script.replace(
-                /\[game\]\s*\{/,
-                `[game] {
+            log.info("OFFLINE MODE: Adding hostip configuration");
+            script = script
+                .replace(
+                    /\[game\]\s*\{/,
+                    `[game] {
     hostip=127.0.0.1;`
-            );
-            // Also replace hostnames with IP addresses
-            script = script.replace(/\blocalhost\b/g, "127.0.0.1").replace(/\blobby\.springrts\.com\b/g, "127.0.0.1");
-            console.log(`MODIFIED SCRIPT CONTENT:\n${script}`);
+                )
+                .replace(/\blocalhost\b/g, "127.0.0.1")
+                .replace(/\blobby\.springrts\.com\b/g, "127.0.0.1");
         } else {
-            console.log("ONLINE MODE: No hostname replacement needed");
+            log.info("ONLINE MODE: No hostname replacement needed");
         }
 
         const scriptPath = path.join(WRITE_DATA_PATH, this.startScriptName);
