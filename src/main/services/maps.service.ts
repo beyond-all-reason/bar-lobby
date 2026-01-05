@@ -10,13 +10,11 @@ import { fetchMapImages } from "@main/content/maps/map-image";
 import { accountService } from "@main/services/account.service";
 
 async function init() {
-    console.log(`MAP SERVICES INIT`);
     await mapContentAPI.init();
 }
 
 async function fetchAllMaps(): Promise<[MapData[], MapDownloadData[]]> {
     if (!(await accountService.isUserOnline())) {
-        console.log("User is offline - returning empty map data");
         return [[], []];
     }
 

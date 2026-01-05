@@ -57,8 +57,17 @@ if (isMainThread) {
             const replay = await parseReplay(replayFilePath);
             narrowedParentPort.postMessage({ replayFilePath, replay });
         } catch (error) {
-            narrowedParentPort.postMessage({ replayFilePath, undefined, error });
-            console.error(error);
+            // Z_BUF_ERROR is not a fatal error in zlib - it just means inflate() had nothing to do
+            const err = error as any;
+            if (err.code === "Z_BUF_ERROR") {
+                // Log at debug level instead of error
+                console.debug(`Z_BUF_ERROR parsing replay ${replayFilePath} (non-fatal): ${err.message}`);
+                // Still send error to main thread but with special handling
+                narrowedParentPort.postMessage({ replayFilePath, undefined, error: new Error(`Replay file may be corrupted or incomplete: ${err.message}`) });
+            } else {
+                narrowedParentPort.postMessage({ replayFilePath, undefined, error });
+                console.error(error);
+            }
         }
     });
 }

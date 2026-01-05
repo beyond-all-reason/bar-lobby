@@ -91,9 +91,6 @@ export const STATE_PATH = path.resolve(process.env.BAR_STATE_PATH || defaultLoca
 // locations, not only our own code.
 app.setPath("userData", STATE_PATH);
 
-console.log(`ASSETS_PATH: ${ASSETS_PATH}`);
-console.log(`STATE_PATH: ${STATE_PATH}`);
-
 export const CONFIG_PATH = path.join(STATE_PATH, "config");
 export const LOGS_PATH = path.join(STATE_PATH, "logs");
 

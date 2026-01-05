@@ -42,8 +42,16 @@ export abstract class PrDownloaderAPI<ID, T> extends AbstractContentAPI<ID, T> {
             try {
                 // Check if user is offline before attempting download
                 if (!(await accountService.isUserOnline())) {
-                    console.log("User is offline - skipping download");
-                    reject(new Error("User is offline - cannot download content"));
+                    console.warn("User is offline - cannot download content");
+                    const downloadInfo: DownloadInfo = {
+                        type,
+                        name,
+                        currentBytes: 0,
+                        totalBytes: 0,
+                        progress: 0,
+                    };
+                    this.downloadFailed(downloadInfo);
+                    resolve(downloadInfo);
                     return;
                 }
 
