@@ -62,31 +62,14 @@ const isDownloading = ref(false);
 
 const ready = computed(() => {
     const targetList = new Set([...maps, ...games, ...engines]);
-    console.log("[DEBUG] Download button ready check:", {
-        targetMaps: maps,
-        targetGames: games,
-        targetEngines: engines,
-        targetList: [...targetList],
-        availableMaps: [...mapsStore.availableMapNames],
-        availableEngines: enginesStore.availableEngineVersions.map((e) => e.id),
-        availableGames: [...gameStore.availableGameVersions.keys()],
-    });
 
     if (targetList.size == 0) return true;
-
-    // Check each map individually for better debugging
-    for (const mapName of maps ?? []) {
-        const isAvailable = mapsStore.availableMapNames.has(mapName);
-        console.log(`[DEBUG] Map ${mapName}: available=${isAvailable}`);
-        if (!isAvailable) return false;
-    }
 
     let availableContent = new Set(mapsStore.availableMapNames);
     availableContent = availableContent.union(new Set(enginesStore.availableEngineVersions.map((e) => e.id)));
     availableContent = availableContent.union(new Set(gameStore.availableGameVersions.keys()));
 
     const missing = targetList.difference(availableContent);
-    console.log(`[DEBUG] Missing content:`, [...missing]);
 
     if (missing.size > 0) return false;
     else return true;

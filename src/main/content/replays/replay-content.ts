@@ -9,7 +9,6 @@ import { asyncParseReplay } from "@main/content/replays/parse-replay";
 import { Replay } from "@main/content/replays/replay";
 import { gameAPI } from "@main/game/game";
 import { logger } from "@main/utils/logger";
-import { accountService } from "@main/services/account.service";
 import chokidar from "chokidar";
 import fs from "fs";
 

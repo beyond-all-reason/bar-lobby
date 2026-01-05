@@ -22,23 +22,3 @@ export async function fileExists(filePath: string): Promise<boolean> {
         return false;
     }
 }
-
-export async function get(key: string, cachePath: string): Promise<any | null> {
-    if (await fileExists(cachePath)) {
-        const data = await fs.promises.readFile(cachePath, "utf-8");
-        const cache = JSON.parse(data);
-        return key in cache ? cache[key] : null;
-    }
-    return null;
-}
-
-export async function set(key: string, value: any, cachePath: string): Promise<void> {
-    let cache: { [key: string]: any } = {};
-    if (await fileExists(cachePath)) {
-        const data = await fs.promises.readFile(cachePath, "utf-8");
-        cache = JSON.parse(data);
-    }
-
-    cache[key] = value;
-    await fs.promises.writeFile(cachePath, JSON.stringify(cache), "utf-8");
-}

@@ -15,7 +15,6 @@ async function init() {
 }
 
 async function fetchAllMaps(): Promise<[MapData[], MapDownloadData[]]> {
-    // Check if user has a refresh token (means they're authenticated)
     if (!(await accountService.isUserOnline())) {
         console.log("User is offline - returning empty map data");
         return [[], []];

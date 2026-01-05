@@ -28,17 +28,13 @@ export class MapContentAPI extends PrDownloaderAPI<string, MapData> {
     protected readonly mapCacheQueue: Set<string> = new Set();
     protected cachingMaps = false;
 
-    /**
-     * Check if a file path is in the assets directory (read-only)
-     */
+    // Check if file is in assets directory
     private isInAssetsDirectory(filePath: string): boolean {
         const assetsMapsPath = path.join(ASSETS_PATH, "maps");
         return filePath.includes(assetsMapsPath);
     }
 
-    /**
-     * Check if a file path is in the writable data directory
-     */
+    // Check if file is in writable directory
     private isInWritableDirectory(filePath: string): boolean {
         const writableMapsPath = path.join(WRITE_DATA_PATH, "maps");
         return filePath.includes(writableMapsPath);

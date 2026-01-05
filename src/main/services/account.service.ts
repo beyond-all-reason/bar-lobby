@@ -74,9 +74,7 @@ async function wipe() {
     });
 }
 
-/**
- * Check if user is online/authenticated by checking if they have a refresh token
- */
+// Check if user is online/authenticated by checking if they have a refresh token
 async function isUserOnline(): Promise<boolean> {
     const refreshToken = await getRefreshToken();
     return !!refreshToken;
