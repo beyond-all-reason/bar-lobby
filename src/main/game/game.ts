@@ -99,18 +99,10 @@ export class GameAPI {
     }
 
     public async launchMultiplayer({ engineVersion, gameVersion, springString }: MultiplayerLaunchSettings) {
-        const isOnline = await this.isOnline();
-        let fixedSpringString = springString;
-
-        if (!isOnline) {
-            // Replace hostnames with IP addresses to avoid DNS resolution issues
-            fixedSpringString = springString.replace(/\blocalhost\b/g, "127.0.0.1").replace(/\blobby\.springrts\.com\b/g, "127.0.0.1");
-        }
-
         return this.launch({
             engineVersion,
             gameVersion,
-            launchArg: fixedSpringString,
+            launchArg: springString,
         });
     }
 
@@ -121,16 +113,8 @@ export class GameAPI {
 
         log.info(`Launching game with engine: ${engineVersion}, game: ${gameVersion}`);
         await this.fetchMissingContent(engineVersion, gameVersion); // TODO preload anything needed through the UI before launching. Remove this step
-        const isOnline = await this.isOnline(); // Check connectivity status
         const enginePath = path.join(ENGINE_PATH, engineVersion).replaceAll("\\", "/");
-        let args = ["--write-dir", WRITE_DATA_PATH, "--isolation", launchArg];
-
-        // Add offline configuration for host and port
-        if (!isOnline) {
-            args.push("--config", "HostIPDefault=127.0.0.1");
-            args.push("--config", "SourcePort=8452");
-        }
-
+        const args = ["--write-dir", WRITE_DATA_PATH, "--isolation", launchArg];
         const binaryName = process.platform === "win32" ? "spring.exe" : "./spring";
         log.debug(`Running binary: ${path.join(enginePath, binaryName)}, args: ${args}`);
 
