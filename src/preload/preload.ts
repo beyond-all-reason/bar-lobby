@@ -120,9 +120,12 @@ contextBridge.exposeInMainWorld("game", gameApi);
 const mapsApi = {
     // Content
     downloadMap: (springName: string): Promise<void> => ipcRenderer.invoke("maps:downloadMap", springName),
+
     downloadMaps: (springNames: string[]): Promise<void[]> => ipcRenderer.invoke("maps:downloadMaps", springNames),
+
     getInstalledVersions: (): Promise<Map<string, MapData>> => ipcRenderer.invoke("maps:getInstalledVersions"),
     isVersionInstalled: (springName: string): Promise<boolean> => ipcRenderer.invoke("maps:isVersionInstalled", springName),
+    scanMaps: (): Promise<void> => ipcRenderer.invoke("maps:scanMaps"),
 
     // Online features
     fetchAllMaps: (): Promise<[MapData[], MapDownloadData[]]> => ipcRenderer.invoke("maps:online:fetchAllMaps"),

@@ -89,6 +89,7 @@ export type IPCCommands = {
     "maps:isVersionInstalled": (springName: string) => boolean;
     "maps:online:fetchAllMaps": () => [MapData[], MapDownloadData[]];
     "maps:online:fetchMapImages": (imageSource: string) => ArrayBuffer;
+    "maps:scanMaps": () => void;
     "misc:getDevlogRssFeed": (numberOfNews: number) => NewsFeedData | null | undefined;
     "misc:getNewsRssFeed": (numberOfNews: number) => NewsFeedData | null | undefined;
     "renderer:ready": () => void;
