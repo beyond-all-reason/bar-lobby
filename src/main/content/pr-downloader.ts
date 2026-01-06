@@ -11,7 +11,7 @@ import { AbstractContentAPI } from "./abstract-content";
 import { engineContentAPI } from "./engine/engine-content";
 import { logger } from "@main/utils/logger";
 import { ASSETS_PATH, ENGINE_PATH } from "@main/config/app";
-import { accountService } from "@main/services/account.service";
+import { network } from "@main/utils/network";
 
 const log = logger("pr-downloader.ts");
 
@@ -41,8 +41,8 @@ export abstract class PrDownloaderAPI<ID, T> extends AbstractContentAPI<ID, T> {
         return new Promise<DownloadInfo>(async (resolve, reject) => {
             try {
                 // Check if user is offline before attempting download
-                if (!(await accountService.isUserOnline())) {
-                    console.warn("User is offline - cannot download content");
+                if (!network.isOnline()) {
+                    console.warn("No internet connection - cannot download content");
                     const downloadInfo: DownloadInfo = {
                         type,
                         name,

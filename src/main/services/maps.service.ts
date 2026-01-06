@@ -7,14 +7,14 @@ import { mapContentAPI } from "@main/content/maps/map-content";
 import { ipcMain, BarIpcWebContents } from "@main/typed-ipc";
 import { MapMetadata } from "@main/content/maps/map-metadata";
 import { fetchMapImages } from "@main/content/maps/map-image";
-import { accountService } from "@main/services/account.service";
+import { network } from "@main/utils/network";
 
 async function init() {
     await mapContentAPI.init();
 }
 
 async function fetchAllMaps(): Promise<[MapData[], MapDownloadData[]]> {
-    if (!(await accountService.isUserOnline())) {
+    if (!network.isOnline()) {
         return [[], []];
     }
 

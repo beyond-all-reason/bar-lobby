@@ -23,7 +23,7 @@ import { PrDownloaderAPI } from "@main/content/pr-downloader";
 import { RAPID_INDEX_PATH, PACKAGE_PATH, GAME_PATHS, POOL_PATH, SCENARIO_IMAGE_PATH } from "@main/config/app";
 import { PoolCdnDownloader } from "@main/content/game/pool-cdn";
 import { fileExists } from "@main/utils/file";
-import { accountService } from "@main/services/account.service";
+import { network } from "@main/utils/network";
 
 const log = logger("game-content.ts");
 const gunzip = util.promisify(zlib.gunzip);
@@ -310,7 +310,7 @@ export class GameContentAPI extends PrDownloaderAPI<string, GameVersion> {
     }
 
     protected override async downloadComplete(downloadInfo: DownloadInfo) {
-        if (!(await accountService.isUserOnline())) {
+        if (!network.isOnline()) {
             return;
         }
         const gameVersion = downloadInfo.name;
