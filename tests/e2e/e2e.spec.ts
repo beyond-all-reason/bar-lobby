@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 import { _electron as electron, ElectronApplication, Page } from "playwright";
+import { fileURLToPath } from "node:url";
 import { test, expect } from "@playwright/test";
 import path from "node:path";
 
@@ -13,6 +14,8 @@ describe("Electron App", async () => {
     let firstWindow: Page;
 
     beforeAll(async () => {
+        const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
         const appDir = path.resolve(__dirname, "../../");
         const args = [appDir];
 
