@@ -14,11 +14,11 @@ If you haven't already, join our Discord at https://discord.gg/beyond-all-reason
 
 Please feel free to ask questions and seek help from the community in the channel. Often, a fellow contributor can provide a quick answer!
 
-While Discord is our primary communication tool, it is an ephemeral medium. To keep the project organized, all binding discussions, decisions, and code contributions must be recorded on GitHub. This allows us to track changes and decisions in a structured way that can be referenced later. If you see a discussion on Discord that should be preserved, please help us by creating an issue or pull request to document it.
+While Discord is our primary communication tool, it is an ephemeral medium. To keep the project organized, all binding discussions, decisions, and code contributions must be recorded on GitHub. This allows us to track changes and decisions in a structured way that can be referenced later. If you see a discussion on Discord that should be preserved, please help us by creating an issue or pull request to document it. If there is already an open discussion on GitHub, prefer it to Discord.
 
 ## A Note on Reviews & Merging
 
-We will do our best to review and respond to pull requests within **7 days**. However, there may be times when we are unavailable, and responses might take longer. We appreciate your patience. You can check the maintainers' status on Discord or GitHub to see if an absence is noted in their profile.
+While you can often get _an_ answer to a question on Discord quickly, we are _very_ short on maintainers able to review pull requests and respond to questions _authoritatively_ in a timely manner: it's effectively less than one person. Please be patient.
 
 ## New Contributor Guide
 
