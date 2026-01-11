@@ -4,6 +4,7 @@
 
 import { _electron as electron, ElectronApplication, Page } from "playwright";
 import { test, expect } from "@playwright/test";
+import path from "path";
 
 const { describe, beforeAll, afterAll } = test;
 
@@ -12,7 +13,14 @@ describe("Electron App", async () => {
     let firstWindow: Page;
 
     beforeAll(async () => {
-        electronApp = await electron.launch({ args: ["."] });
+        const appDir = path.resolve(__dirname, "../../");
+        const args = [appDir];
+
+        if (process.env.CI) {
+            args.unshift("--no-sandbox");
+        }
+
+        electronApp = await electron.launch({ args });
         firstWindow = await electronApp.firstWindow();
     });
 
