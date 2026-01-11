@@ -38,3 +38,9 @@ jobs:
 
             - name: Test Vite Build
               run: npm run package
+
+            - name: Run Unit Tests
+              run: npm run test
+
+            - name: Run e2e Tests
+              run: npm run test:e2e
