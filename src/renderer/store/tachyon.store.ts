@@ -7,7 +7,10 @@ import { gameStore } from "@renderer/store/game.store";
 import { auth, me } from "@renderer/store/me.store";
 import { SystemServerStatsOkResponseData } from "tachyon-protocol/types";
 import { reactive } from "vue";
-import { fetchAvailableQueues } from "@renderer/store/matchmaking.store";
+import { matchmakingStore, matchmaking } from "@renderer/store/matchmaking.store";
+import { subsManager } from "@renderer/store/users.store";
+import { UserId } from "tachyon-protocol/types";
+import { notificationsApi } from "@renderer/api/notifications";
 
 export const tachyonStore = reactive({
     isInitialized: false,
@@ -76,7 +79,9 @@ export async function initTachyonStore() {
         tachyonStore.fetchServerStatsInterval = setInterval(fetchServerStats, 60000);
 
         // Fetch matchmaking queues when connected
-        fetchAvailableQueues();
+        if (matchmakingStore.isInitialized) {
+            matchmaking.sendListRequest();
+        }
     });
 
     window.tachyon.onDisconnected(() => {
@@ -114,6 +119,26 @@ export async function initTachyonStore() {
             springString,
         });
     });
+
+    subsManager.onNewUsersAttached.add(async (users: UserId[]) => {
+        try {
+            const response = await window.tachyon.request("user/subscribeUpdates", { userIds: users });
+            console.log("Tachyon: user/subscribeUpdates", response);
+        } catch (error) {
+            console.error("Tachyon error: 'user/subscribeUpdates'", error);
+            notificationsApi.alert({ text: "Tachyon error with user/subscribeUpdates", severity: "error" });
+        }
+    });
+    subsManager.onOldUsersDetached.add(async (users: UserId[]) => {
+        try {
+            const response = await window.tachyon.request("user/unsubscribeUpdates", { userIds: users });
+            console.log("Tachyon: user/unsubscribeUpdates", response);
+        } catch (error) {
+            console.error("Tachyon error: 'user/unsubscribeUpdates'", error);
+            notificationsApi.alert({ text: "Tachyon error with user/unsubscribeUpdates", severity: "error" });
+        }
+    });
+
     tachyonStore.isInitialized = true;
 }
 

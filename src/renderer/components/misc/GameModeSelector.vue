@@ -9,48 +9,51 @@ SPDX-License-Identifier: MIT
         <div
             class="mode-column classic"
             @click="
-                battleActions.loadGameMode(GameMode.CLASSIC);
+                battleActions.loadGameMode(GameModeID.CLASSIC);
                 $emit('selected');
             "
         >
-            <span>Classic</span>
-            <button class="quick-play-button">Defeat your opponent</button>
+            <span>{{ t("lobby.components.misc.gameModeSelector.classic") }}</span>
+            <button class="quick-play-button">{{ t("lobby.components.misc.gameModeSelector.classicDescription") }}</button>
         </div>
         <div
             class="mode-column raptors"
             @click="
-                battleActions.loadGameMode(GameMode.RAPTORS);
+                battleActions.loadGameMode(GameModeID.RAPTORS);
                 $emit('selected');
             "
         >
-            <span>Raptors</span>
-            <button class="quick-play-button">Stronger than flesh</button>
+            <span>{{ t("lobby.components.misc.gameModeSelector.raptors") }}</span>
+            <button class="quick-play-button">{{ t("lobby.components.misc.gameModeSelector.raptorsDescription") }}</button>
         </div>
         <div
             class="mode-column scavengers"
             @click="
-                battleActions.loadGameMode(GameMode.SCAVENGERS);
+                battleActions.loadGameMode(GameModeID.SCAVENGERS);
                 $emit('selected');
             "
         >
-            <span>Scavengers</span>
-            <button class="quick-play-button">Don't let them get you</button>
+            <span>{{ t("lobby.components.misc.gameModeSelector.scavengers") }}</span>
+            <button class="quick-play-button">{{ t("lobby.components.misc.gameModeSelector.scavengersDescription") }}</button>
         </div>
         <div
             class="mode-column ffa"
             @click="
-                battleActions.loadGameMode(GameMode.FFA);
+                battleActions.loadGameMode(GameModeID.FFA);
                 $emit('selected');
             "
         >
-            <span>FFA</span>
-            <button class="quick-play-button">Last com standing wins</button>
+            <span>{{ t("lobby.components.misc.gameModeSelector.ffa") }}</span>
+            <button class="quick-play-button">{{ t("lobby.components.misc.gameModeSelector.ffaDescription") }}</button>
         </div>
     </div>
 </template>
 <script lang="ts" setup>
-import { GameMode } from "@main/game/battle/battle-types";
+import { GameModeID } from "@main/game/battle/battle-types";
 import { battleActions } from "@renderer/store/battle.store";
+import { useTypedI18n } from "@renderer/i18n";
+
+const { t } = useTypedI18n();
 
 defineEmits(["selected"]);
 </script>

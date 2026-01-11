@@ -6,7 +6,7 @@ SPDX-License-Identifier: MIT
 
 <template>
     <div class="initial-setup fullsize flex-center">
-        <h1>Initial Setup</h1>
+        <h1>{{ t("lobby.components.misc.initialSetup.title") }}</h1>
         <h4>{{ text }}</h4>
         <h2 v-if="downloadPercent < 1">{{ (downloadPercent * 100).toFixed(0) }}%</h2>
     </div>
@@ -22,6 +22,9 @@ import { downloadsStore } from "@renderer/store/downloads.store";
 import { enginesStore } from "@renderer/store/engine.store";
 import { downloadGame } from "@renderer/store/game.store";
 import { onMounted, ref, watch } from "vue";
+import { useTypedI18n } from "@renderer/i18n";
+
+const { t } = useTypedI18n();
 
 const emit = defineEmits<{
     (event: "complete"): void;
@@ -34,30 +37,30 @@ onMounted(async () => {
     console.debug("Initial setup");
     if (!enginesStore.selectedEngineVersion || enginesStore.selectedEngineVersion.installed === false) {
         state.value = "engine";
-        text.value = "Downloading engine";
+        text.value = t("lobby.components.misc.initialSetup.downloadingEngine");
         await window.engine.downloadEngine();
-        text.value = "Installing engine";
+        text.value = t("lobby.components.misc.initialSetup.installingEngine");
     }
 
     state.value = "game";
-    text.value = "Downloading game";
+    text.value = t("lobby.components.misc.initialSetup.downloadingGame");
     await window.game.preloadPoolData();
     await downloadGame(LATEST_GAME_VERSION);
-    text.value = "Installing game";
+    text.value = t("lobby.components.misc.initialSetup.installingGame");
 
     const installedMaps = await db.maps.count();
     if (installedMaps === 0) {
         state.value = "maps";
-        text.value = "Downloading maps";
+        text.value = t("lobby.components.misc.initialSetup.downloadingMaps");
         await window.maps.downloadMaps(defaultMaps);
     }
 
     const updateAvailable = await window.autoUpdater.checkForUpdates();
     if (updateAvailable) {
         state.value = "update";
-        text.value = "Downloading update";
+        text.value = t("lobby.components.misc.initialSetup.downloadingUpdate");
         await window.autoUpdater.downloadUpdate();
-        text.value = "Installing update";
+        text.value = t("lobby.components.misc.initialSetup.installingUpdate");
         await window.autoUpdater.installUpdates();
     }
 

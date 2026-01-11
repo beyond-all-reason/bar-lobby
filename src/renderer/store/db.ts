@@ -2,7 +2,6 @@
 //
 // SPDX-License-Identifier: MIT
 
-import { GameVersion } from "@main/content/game/game-version";
 import { MapData, MapDownloadData } from "@main/content/maps/map-data";
 import { Replay } from "@main/content/replays/replay";
 import { User } from "@main/model/user";
@@ -17,7 +16,6 @@ export const db = new Dexie("BarLobby") as Dexie & {
     replays: EntityTable<Replay, "fileName">;
     maps: EntityTable<MapData, "springName">;
     nonLiveMaps: EntityTable<MapDownloadData, "springName">;
-    gameVersions: EntityTable<GameVersion, "gameVersion">;
     users: EntityTable<User, "userId">;
 };
 
@@ -30,6 +28,7 @@ db.version(1).stores({
         gameVersion,
         springName,
         startTime,
+        mapSpringName,
         gameDurationMs,
         gameEndedNormally,
         hasBots,

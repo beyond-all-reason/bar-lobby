@@ -13,7 +13,7 @@ SPDX-License-Identifier: MIT
         </div>
         <Select
             :modelValue="currentRoute"
-            label="View"
+            :label="t('lobby.components.misc.debugSidebar.view')"
             :options="routes"
             :filter="true"
             optionLabel="path"
@@ -23,18 +23,18 @@ SPDX-License-Identifier: MIT
             @update:model-value="onRouteSelect"
         />
         <Button to="/debug"> Debug Sandbox </Button>
-        <Button @click="openSettings"> Open Settings File </Button>
-        <Button @click="openAssetsDir"> Open Assets Dir </Button>
-        <Button @click="openStateDir"> Open State Dir </Button>
-        <Button @click="openStartScript"> Open Latest Start Script </Button>
-        <Button @click="openSyncLobbyContentTool"> Sync Lobby Content Tool </Button>
-        <Button @click="causeError"> Cause an error </Button>
+        <Button @click="openSettings"> {{ t("lobby.components.misc.debugSidebar.openSettingsFile") }} </Button>
+        <Button @click="openAssetsDir"> {{ t("lobby.components.misc.debugSidebar.openAssetsDir") }} </Button>
+        <Button @click="openStateDir"> {{ t("lobby.components.misc.debugSidebar.openStateDir") }} </Button>
+        <Button @click="openStartScript"> {{ t("lobby.components.misc.debugSidebar.openStartScript") }} </Button>
+        <Button @click="openSyncLobbyContentTool"> {{ t("lobby.components.misc.debugSidebar.syncLobbyContent") }} </Button>
+        <Button @click="causeError"> {{ t("lobby.components.misc.debugSidebar.causeError") }} </Button>
 
         <Select
             :modelValue="gameStore.selectedGameVersion"
             :options="gameListOptions"
             optionLabel="gameVersion"
-            label="Game"
+            :label="t('lobby.components.misc.debugSidebar.game')"
             :filter="true"
             @update:model-value="onGameSelected"
         />
@@ -44,12 +44,12 @@ SPDX-License-Identifier: MIT
             :options="enginesStore.availableEngineVersions"
             data-key="id"
             option-label="id"
-            label="Engine"
+            :label="t('lobby.components.misc.debugSidebar.engine')"
             :filter="true"
             class="fullwidth"
             @update:model-value="(engine) => (enginesStore.selectedEngineVersion = engine)"
         />
-        <Button @click="serverSettingsOpen = true">Lobby Server Settings</Button>
+        <Button @click="serverSettingsOpen = true">{{ t("lobby.components.misc.debugSidebar.lobbyServerSettings") }}</Button>
         <SyncDataDirsDialog v-model="syncLobbyContentToolOpen" />
     </div>
 </template>
@@ -57,18 +57,18 @@ SPDX-License-Identifier: MIT
 <script lang="ts" setup>
 import { Icon } from "@iconify/vue";
 import tools from "@iconify-icons/mdi/tools";
-import { ref } from "vue";
+import { ref, computed } from "vue";
 import { useRouter } from "vue-router";
 
 import Button from "@renderer/components/controls/Button.vue";
 import Select from "@renderer/components/controls/Select.vue";
 import SyncDataDirsDialog from "@renderer/components/misc/SyncDataDirsDialog.vue";
-import { useDexieLiveQuery } from "@renderer/composables/useDexieLiveQuery";
-import { db } from "@renderer/store/db";
 import { gameStore } from "@renderer/store/game.store";
 import { enginesStore } from "@renderer/store/engine.store";
 import { GameVersion } from "@main/content/game/game-version";
 import { inject, Ref } from "vue";
+import { useTypedI18n } from "@renderer/i18n";
+const { t } = useTypedI18n();
 
 const active = ref(false);
 const syncLobbyContentToolOpen = ref(false);
@@ -79,7 +79,9 @@ const router = useRouter();
 const routes = router.getRoutes().sort((a, b) => a.path.localeCompare(b.path));
 const currentRoute = router.currentRoute;
 
-const gameListOptions = useDexieLiveQuery(() => db.gameVersions.toArray());
+const gameListOptions = computed(() => {
+    return Array.from(gameStore.availableGameVersions.values());
+});
 
 async function onGameSelected(gameVersion: GameVersion) {
     gameStore.selectedGameVersion = gameVersion;

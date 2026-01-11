@@ -20,13 +20,18 @@ SPDX-License-Identifier: MIT
         <div class="group-header flex-row flex-center-items gap-md">
             <div class="title">{{ title }}</div>
             <div class="member-count" v-if="!isRaptorTeam(teamId) && !isScavengerTeam(teamId)">
-                ({{ memberCount }}/{{ maxPlayersPerTeam }} players)
+                {{ t("lobby.components.battle.teamComponent.players", { count: memberCount, maxCount: maxPlayersPerTeam }) }}
             </div>
             <Button class="slim black" @click="addBotClicked(teamId)" v-if="!isRaptorTeam(teamId) && !isScavengerTeam(teamId)">
                 {{ t("lobby.components.battle.teamComponent.addBot") }}
             </Button>
             <!-- <Button v-if="showJoin" class="slim black" @click="onJoinClicked(teamId)">Join</Button> -->
         </div>
+
+        <button v-if="memberCount === 0" class="add-bot-button" @click="addBotClicked(teamId)">
+            {{ t("lobby.components.battle.teamComponent.chooseBot") }}
+        </button>
+
         <div
             v-for="member in battleWithMetadataStore.teams[teamId].participants"
             :key="member.id"
@@ -40,7 +45,9 @@ SPDX-License-Identifier: MIT
         </div>
         <div v-if="!isRaptorTeam(teamId) && !isScavengerTeam(teamId)">
             <div v-for="(_, i) in getAmountOfJoinButtons(maxPlayersPerTeam, memberCount)" :key="i">
-                <button class="join-button" :class="{ first: i === 0 }" @click="onJoinClicked(teamId)">Join</button>
+                <button class="join-button" :class="{ first: i === 0 }" @click="onJoinClicked(teamId)">
+                    {{ t("lobby.components.battle.teamComponent.join") }}
+                </button>
             </div>
         </div>
     </div>
@@ -63,7 +70,11 @@ const props = defineProps<{
 }>();
 
 const title = computed(() =>
-    isScavengerTeam(props.teamId) ? "Scavengers" : isRaptorTeam(props.teamId) ? "Raptors" : "Team " + (Number(props.teamId) + 1)
+    isScavengerTeam(props.teamId)
+        ? t("lobby.components.battle.teamComponent.scavengers")
+        : isRaptorTeam(props.teamId)
+          ? t("lobby.components.battle.teamComponent.raptors")
+          : t("lobby.components.battle.teamComponent.teamId", { id: Number(props.teamId) + 1 })
 );
 
 const memberCount = computed(() => {
@@ -212,6 +223,32 @@ function onDrop(event: DragEvent, teamId: number) {
     &:hover {
         color: rgba(255, 255, 255, 0.9);
         background-color: rgba(255, 255, 255, 0.05);
+    }
+}
+
+.add-bot-button {
+    height: 46px;
+    width: 100%;
+
+    border: 1px solid rgba(255, 55, 95, 0.4);
+
+    padding: 8px;
+    margin-bottom: 4px;
+
+    text-align: center;
+    text-transform: uppercase;
+    text-shadow: inset 0 0 10px rgba(0, 0, 0, 1);
+    font-size: 1.2em;
+
+    color: rgba(255, 55, 95, 0.7);
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 1);
+
+    &:hover {
+        color: rgba(255, 255, 255, 0.9);
+        background-color: rgba(255, 255, 255, 0.05);
+        border-color: rgba(255, 255, 255, 0.2);
     }
 }
 </style>

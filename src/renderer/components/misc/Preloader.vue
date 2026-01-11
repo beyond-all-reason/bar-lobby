@@ -6,7 +6,7 @@ SPDX-License-Identifier: MIT
 
 <template>
     <div class="fullsize flex-center">
-        <h1>Loading</h1>
+        <h1>{{ t("lobby.components.misc.preloader.loading") }}</h1>
         <h4>{{ text }}</h4>
         <Progress :percent="loadedPercent" :height="40" style="width: 70%" />
     </div>
@@ -15,6 +15,7 @@ SPDX-License-Identifier: MIT
 <script lang="ts" setup>
 import { randomFromArray } from "$/jaz-ts-utils/object";
 import { computed, onMounted, ref } from "vue";
+import { useTypedI18n } from "@renderer/i18n";
 
 import Progress from "@renderer/components/common/Progress.vue";
 import { audioApi } from "@renderer/audio/audio";
@@ -23,14 +24,16 @@ import { fetchMissingMapImages, initMapsStore } from "@renderer/store/maps.store
 import { initReplaysStore } from "@renderer/store/replays.store";
 import { initDb } from "@renderer/store/db";
 
+const { t } = useTypedI18n();
+
 const emit = defineEmits(["complete"]);
 
 const thingsToPreload: [string, () => Promise<unknown>][] = [
-    ["Loading fonts", loadAllFonts],
-    ["Initializing IndexDB", initDb],
-    ["Initializing maps", initMapsStore],
-    ["Fetching missing map images", fetchMissingMapImages],
-    ["Initializing replays", initReplaysStore],
+    [t("lobby.components.misc.preloader.loadingFonts"), loadAllFonts],
+    [t("lobby.components.misc.preloader.initializingIndexDB"), initDb],
+    [t("lobby.components.misc.preloader.initializingMaps"), initMapsStore],
+    [t("lobby.components.misc.preloader.fetchingMissingMapImages"), fetchMissingMapImages],
+    [t("lobby.components.misc.preloader.initializingReplays"), initReplaysStore],
 ];
 
 const total = Object.values(fontFiles).length + thingsToPreload.length;

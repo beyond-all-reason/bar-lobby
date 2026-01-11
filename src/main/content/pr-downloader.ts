@@ -79,7 +79,8 @@ export abstract class PrDownloaderAPI<ID, T> extends AbstractContentAPI<ID, T> {
                             if (progress.totalBytes > 1) {
                                 if (downloadInfo.totalBytes === 0) {
                                     downloadInfo.totalBytes = progress.totalBytes;
-                                    downloadInfo.progress = 0;
+                                    downloadInfo.currentBytes = progress.currentBytes;
+                                    downloadInfo.progress = progress.parsedPercent;
                                     this.currentDownloads.push(downloadInfo);
                                     this.downloadStarted(downloadInfo);
                                 } else {
@@ -97,6 +98,7 @@ export abstract class PrDownloaderAPI<ID, T> extends AbstractContentAPI<ID, T> {
 
                 prdProcess.on("error", (err) => {
                     log.error(err);
+                    this.downloadFailed(downloadInfo);
                     reject(err);
                 });
 
@@ -106,6 +108,7 @@ export abstract class PrDownloaderAPI<ID, T> extends AbstractContentAPI<ID, T> {
 
                 prdProcess.on("exit", (code, signal) => {
                     if (code !== 0) {
+                        this.downloadFailed(downloadInfo);
                         reject(new Error(`pr-downloader exited with code ${code}, signal ${signal}`));
                     } else {
                         resolve(downloadInfo);

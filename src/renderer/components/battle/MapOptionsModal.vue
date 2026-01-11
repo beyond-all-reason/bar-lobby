@@ -40,8 +40,9 @@ SPDX-License-Identifier: MIT
                             <img src="/src/renderer/assets/images/icons/northwest-vs-southeast.png" />
                         </Button>
                     </div>
+
                     <div class="box-buttons">
-                        <Range v-model="customBoxRange" :min="5" :max="100" :step="5" />
+                        <Range v-model="customBoxRange" :min="5" :max="100" :step="5" :disabled="lastSelectedCustomPresetBoxes === null" />
                     </div>
                 </div>
                 <div v-if="hasCustomStartBoxes">
@@ -189,13 +190,25 @@ const hasCustomStartBoxes = computed(() => {
     return true;
 });
 
+const lastSelectedCustomPresetBoxes: Ref<StartBoxOrientation | null> = ref(null);
+
+watch(customBoxRange, () => {
+    if (lastSelectedCustomPresetBoxes.value === null) return;
+
+    setCustomStartBoxes(lastSelectedCustomPresetBoxes.value);
+});
+
 function setPresetStartBoxes(startBoxIndex: number) {
+    lastSelectedCustomPresetBoxes.value = null;
+
     delete battleStore.battleOptions.mapOptions.fixedPositionsIndex;
     battleStore.battleOptions.mapOptions.startPosType = StartPosType.Boxes;
     battleStore.battleOptions.mapOptions.startBoxesIndex = startBoxIndex;
 }
 
 function setCustomStartBoxes(orientation: StartBoxOrientation) {
+    lastSelectedCustomPresetBoxes.value = orientation;
+
     const customStartBoxes = getBoxes(orientation, customBoxRange.value);
     delete battleStore.battleOptions.mapOptions.startBoxesIndex;
     battleStore.battleOptions.mapOptions.startPosType = StartPosType.Boxes;
@@ -203,17 +216,23 @@ function setCustomStartBoxes(orientation: StartBoxOrientation) {
 }
 
 function setFixedStartBoxes(index: number) {
+    lastSelectedCustomPresetBoxes.value = null;
+
     delete battleStore.battleOptions.mapOptions.startBoxesIndex;
     battleStore.battleOptions.mapOptions.startPosType = StartPosType.Fixed;
     battleStore.battleOptions.mapOptions.fixedPositionsIndex = index;
 }
 function setRandomStartBoxes() {
+    lastSelectedCustomPresetBoxes.value = null;
+
     delete battleStore.battleOptions.mapOptions.startBoxesIndex;
     delete battleStore.battleOptions.mapOptions.fixedPositionsIndex;
     battleStore.battleOptions.mapOptions.startPosType = StartPosType.Random;
 }
 
 function setCustomBoxesFromPresetBoxes() {
+    lastSelectedCustomPresetBoxes.value = null;
+
     const startBoxesIndex = battleStore.battleOptions.mapOptions.startBoxesIndex;
 
     if (startBoxesIndex == undefined) {

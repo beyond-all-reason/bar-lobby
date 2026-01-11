@@ -17,13 +17,13 @@ SPDX-License-Identifier: MIT
                         <Flag :countryCode="user.countryCode" style="width: 50px" />
                         {{ user.displayName }}
                     </h2>
-                    <p>Status: {{ user.status }}</p>
-                    <p>Clan: {{ user.clanId }}</p>
+                    <p>{{ t("lobby.views.profile.status") }}{{ user.status }}</p>
+                    <p>{{ t("lobby.views.profile.clan") }}{{ user.clanId }}</p>
                 </div>
             </div>
         </Panel>
         <Panel class="profile-container" v-else>
-            <p>User not found</p>
+            <p>{{ t("lobby.views.profile.userNotFound") }}</p>
         </Panel>
     </div>
 </template>
@@ -33,6 +33,8 @@ import Flag from "@renderer/components/misc/Flag.vue";
 import Panel from "@renderer/components/common/Panel.vue";
 import { useDexieLiveQueryWithDeps } from "@renderer/composables/useDexieLiveQuery";
 import { db } from "@renderer/store/db";
+import { useTypedI18n } from "@renderer/i18n";
+const { t } = useTypedI18n();
 
 const props = defineProps<{
     userId: string;

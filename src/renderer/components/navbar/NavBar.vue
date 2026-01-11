@@ -21,7 +21,7 @@ SPDX-License-Identifier: MIT
                 <div class="drag-window-area"></div>
                 <div class="primary-right">
                     <Button
-                        v-if="false"
+                        v-if="me.isAuthenticated && settingsStore.devMode"
                         v-tooltip.bottom="t('lobby.navbar.tooltips.directMessages')"
                         v-click-away:messages="() => (messagesOpen = false)"
                         :class="['icon', { active: messagesOpen }]"
@@ -31,11 +31,11 @@ SPDX-License-Identifier: MIT
                         <div v-if="messagesUnread" class="unread-dot"></div>
                     </Button>
                     <Button
-                        v-if="me.isAuthenticated"
+                        v-if="settingsStore.devMode"
                         v-tooltip.bottom="t('lobby.navbar.tooltips.friends')"
                         v-click-away:friends="() => (friendsOpen = false)"
                         :class="['icon', { active: friendsOpen }]"
-                        @click="friendsOpen = true"
+                        @click="handleFriendsClick"
                     >
                         <Icon :icon="accountMultiple" :height="40" />
                     </Button>
@@ -73,7 +73,7 @@ SPDX-License-Identifier: MIT
                     </Button>
                 </div>
                 <div class="secondary-right flex-row flex-right">
-                    <ServerStatus v-if="me.isAuthenticated" />
+                    <ServerStatus v-if="settingsStore.devMode" />
                     <Button v-if="me.isAuthenticated" class="user" :to="`/profile/${me.userId}`">
                         <div class="flex-row flex-center gap-sm">
                             <Icon :icon="account" :height="20" />
@@ -124,6 +124,7 @@ import { useRouter } from "vue-router";
 import { settingsStore } from "@renderer/store/settings.store";
 import { me } from "@renderer/store/me.store";
 import ServerStatus from "@renderer/components/navbar/ServerStatus.vue";
+import { useLogInConfirmation } from "@renderer/composables/useLogInConfirmation";
 
 defineProps<{
     hidden?: boolean;
@@ -135,10 +136,7 @@ const primaryRoutes = computed(() => {
     return allRoutes
         .filter((r) => ["/play", "/watch", "/news", "/library"].includes(r.path))
         .filter(
-            (r) =>
-                (r.meta.hide === false || r.meta.hide === undefined) &&
-                ((r.meta.devOnly && settingsStore.devMode) || !r.meta.devOnly) &&
-                ((r.meta.onlineOnly && me.isAuthenticated) || !r.meta.onlineOnly)
+            (r) => (r.meta.hide === false || r.meta.hide === undefined) && ((r.meta.devOnly && settingsStore.devMode) || !r.meta.devOnly)
         )
         .sort((a, b) => (a.meta.order ?? 99) - (b.meta.order ?? 99));
 });
@@ -146,10 +144,7 @@ const secondaryRoutes = computed(() => {
     return allRoutes
         .filter((r) => r.path.startsWith(`/${router.currentRoute.value.path.split("/")[1]}/`))
         .filter(
-            (r) =>
-                (r.meta.hide === false || r.meta.hide === undefined) &&
-                ((r.meta.devOnly && settingsStore.devMode) || !r.meta.devOnly) &&
-                ((r.meta.onlineOnly && me.isAuthenticated) || !r.meta.onlineOnly)
+            (r) => (r.meta.hide === false || r.meta.hide === undefined) && ((r.meta.devOnly && settingsStore.devMode) || !r.meta.devOnly)
         )
         .sort((a, b) => (a.meta.order ?? 99) - (b.meta.order ?? 99));
 });
@@ -158,6 +153,15 @@ const friendsOpen = ref(false);
 const downloadsOpen = ref(false);
 const settingsOpen = inject<Ref<boolean>>("settingsOpen")!;
 const exitOpen = inject<Ref<boolean>>("exitOpen")!;
+
+const { openLogInConfirmation } = useLogInConfirmation();
+function handleFriendsClick() {
+    if (!me.isAuthenticated) {
+        openLogInConfirmation(router.currentRoute.value);
+        return;
+    }
+    friendsOpen.value = !friendsOpen.value;
+}
 
 const messagesUnread = computed(() => {
     //TODO dmStores

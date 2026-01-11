@@ -9,7 +9,7 @@ SPDX-License-Identifier: MIT
         <div class="title">{{ news.title?.replace(" ⇀ News ★ Beyond All Reason RTS", "") }}</div>
         <div class="description">
             {{ news.description }}
-            <div class="cta">Click to read more</div>
+            <div class="cta">{{ t("lobby.components.misc.newsTile.clickToReadMore") }}</div>
         </div>
     </div>
 </template>
@@ -18,6 +18,9 @@ SPDX-License-Identifier: MIT
 import { NewsFeedEntry } from "@main/services/news.service";
 import { useImageBlobUrlCache } from "@renderer/composables/useImageBlobUrlCache";
 import { ref } from "vue";
+import { useTypedI18n } from "@renderer/i18n";
+
+const { t } = useTypedI18n();
 
 const props = defineProps<{
     news: NewsFeedEntry;

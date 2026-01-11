@@ -12,21 +12,26 @@ SPDX-License-Identifier: MIT
     <div class="view">
         <div class="replay-container">
             <div class="view-title">
-                <h1>Replays</h1>
+                <h1>{{ t("lobby.views.watch.replays.title") }}</h1>
             </div>
             <div class="flex-row flex-grow gap-md">
                 <div class="middle-section">
                     <Panel>
                         <div class="flex-col fullheight gap-md">
                             <div class="flex-row gap-md fullwidth">
-                                <TriStateCheckbox v-model="endedNormally" label="Ended Normally" />
-                                <Checkbox v-model="showSpoilers" label="Show Spoilers" />
+                                <TriStateCheckbox
+                                    v-model="settingsStore.endedNormallyFilter"
+                                    :label="t('lobby.views.watch.replays.endedNormally')"
+                                />
+                                <Checkbox v-model="showSpoilers" :label="t('lobby.views.watch.replays.showSpoilers')" />
                                 <div class="flex-grow">
-                                    <SearchBox v-model="fulltextSearch" placeholder="Search map, players..." />
+                                    <SearchBox v-model="fulltextSearch" :placeholder="t('lobby.views.watch.replays.searchPlaceholder')" />
                                 </div>
                                 <div class="flex-right flex-row gap-md" style="flex: none">
-                                    <Button @click="openBrowserToReplayService">Browse Online Replays</Button>
-                                    <Button @click="openReplaysFolder">Open Replays Folder</Button>
+                                    <Button @click="openBrowserToReplayService">{{
+                                        t("lobby.views.watch.replays.browseOnlineReplays")
+                                    }}</Button>
+                                    <Button @click="openReplaysFolder">{{ t("lobby.views.watch.replays.openReplaysFolder") }}</Button>
                                 </div>
                             </div>
                             <DataTable
@@ -45,31 +50,40 @@ SPDX-License-Identifier: MIT
                                 @page="onPage"
                                 @sort="onSort"
                             >
-                                <template #empty>No replays found</template>
-                                <Column header="Name">
+                                <template #empty>{{ t("lobby.views.watch.replays.noReplaysFound") }}</template>
+                                <Column :header="t('lobby.views.watch.replays.name')">
                                     <template #body="{ data }">
                                         <template v-if="data.preset === 'duel'">
-                                            {{ data.contenders?.[0]?.name ?? "Nobody" }} vs
-                                            {{ data.contenders?.[1]?.name ?? "Nobody" }}
+                                            {{ data.contenders?.[0]?.name ?? t("lobby.views.watch.replays.nobody") }} vs
+                                            {{ data.contenders?.[1]?.name ?? t("lobby.views.watch.replays.nobody") }}
                                         </template>
                                         <template v-else-if="data.preset === 'team'">
                                             {{ data.teams[0].playerCount }} vs {{ data.teams[1].playerCount }}
                                         </template>
-                                        <template v-if="data.preset === 'ffa'">{{ data.contenders.length }} Way FFA</template>
-                                        <template v-if="data.preset === 'teamffa'">{{ data.teams[0].playerCount }} Way Team FFA</template>
+                                        <template v-if="data.preset === 'ffa'"
+                                            >{{ data.contenders.length }} {{ t("lobby.views.watch.replays.wayFFA") }}</template
+                                        >
+                                        <template v-if="data.preset === 'teamffa'"
+                                            >{{ data.teams[0].playerCount }} {{ t("lobby.views.watch.replays.wayTeamFFA") }}</template
+                                        >
                                     </template>
                                 </Column>
-                                <Column header="Date" :sortable="true" sortField="startTime">
+                                <Column :header="t('lobby.views.watch.replays.date')" :sortable="true" sortField="startTime">
                                     <template #body="{ data }">
                                         {{ format(data.startTime, "yyyy/MM/dd hh:mm a") }}
                                     </template>
                                 </Column>
-                                <Column header="Duration" :sortable="true" sortField="gameDurationMs">
+                                <Column :header="t('lobby.views.watch.replays.duration')" :sortable="true" sortField="gameDurationMs">
                                     <template #body="{ data }">
                                         {{ getFriendlyDuration(data.gameDurationMs) }}
                                     </template>
                                 </Column>
-                                <Column field="mapSpringName" header="Map" :sortable="true" sortField="mapSpringName" />
+                                <Column
+                                    field="mapSpringName"
+                                    :header="t('lobby.views.watch.replays.map')"
+                                    :sortable="true"
+                                    sortField="mapSpringName"
+                                />
                             </DataTable>
                         </div>
                     </Panel>
@@ -82,15 +96,21 @@ SPDX-License-Identifier: MIT
                                     <div class="flex-row flex-bottom gap-md padding-bottom-md">
                                         <DownloadContentButton
                                             v-if="map && replay"
-                                            :map="map"
+                                            :maps="[map.springName]"
+                                            :games="[replay.gameVersion]"
+                                            :engines="[replay.engineVersion]"
                                             @click="watchReplay(replay)"
                                             :disabled="gameStore.status !== GameStatus.CLOSED"
                                         >
-                                            <template v-if="gameStore.status === GameStatus.RUNNING">Game is running</template>
-                                            <template v-else-if="gameStore.status === GameStatus.LOADING">Launching...</template>
-                                            <template v-else>Watch</template>
+                                            <template v-if="gameStore.status === GameStatus.RUNNING">{{
+                                                t("lobby.views.watch.replays.gameIsRunning")
+                                            }}</template>
+                                            <template v-else-if="gameStore.status === GameStatus.LOADING">{{
+                                                t("lobby.views.watch.replays.launching")
+                                            }}</template>
+                                            <template v-else>{{ t("lobby.views.watch.replays.watch") }}</template>
                                         </DownloadContentButton>
-                                        <Button v-else disabled style="flex-grow: 1">Watch</Button>
+                                        <Button v-else disabled style="flex-grow: 1">{{ t("lobby.views.watch.replays.watch") }}</Button>
                                         <Button v-if="replay" @click="showReplayFile(replay)" class="icon" :height="32"
                                             ><Icon :icon="folder" :height="32"
                                         /></Button>
@@ -124,6 +144,7 @@ SPDX-License-Identifier: MIT
 import { format } from "date-fns";
 import Column from "primevue/column";
 import { Ref, ref, shallowRef, onMounted, triggerRef, computed, watch } from "vue";
+import { useTypedI18n } from "@renderer/i18n";
 
 import Button from "@renderer/components/controls/Button.vue";
 import Checkbox from "@renderer/components/controls/Checkbox.vue";
@@ -142,8 +163,10 @@ import { MapDownloadData } from "@main/content/maps/map-data";
 import { Icon } from "@iconify/vue";
 import folder from "@iconify-icons/mdi/folder";
 import SearchBox from "@renderer/components/controls/SearchBox.vue";
+import { settingsStore } from "@renderer/store/settings.store";
 
-const endedNormally: Ref<boolean | null> = ref(true);
+const { t } = useTypedI18n();
+
 const showSpoilers = ref(true);
 const offset = ref(0);
 const limit = ref(15);
@@ -175,40 +198,40 @@ watch(selectedReplay, (newReplay) => {
     }
 });
 
-function fulltextSearchFilter(replay) {
+function fulltextSearchFilter(replay: Replay) {
     if (fulltextSearchWords.value.length === 0) return true;
     return fulltextSearchWords.value.every((word) => {
         return replay.mapSpringName.toLowerCase().includes(word) || replay.contenders.some((c) => c.name.toLowerCase().includes(word));
     });
 }
 
-const replays = useDexieLiveQueryWithDeps([endedNormally, offset, limit, sortField, sortOrder, fulltextSearch], () => {
-    let query;
-    if (endedNormally.value !== null) {
-        query = db.replays
-            .where("gameEndedNormally")
-            .equals(endedNormally.value ? 1 : 0)
+function endedNormallyFilter(replay: Replay, expected: "true" | "false" | "null") {
+    if (expected === "null") return true;
+    if (expected === "true" && replay.gameEndedNormally === 1) return true;
+    if (expected === "false" && replay.gameEndedNormally === 0) return true;
+    return false;
+}
+
+const replays = useDexieLiveQueryWithDeps(
+    [() => settingsStore.endedNormallyFilter, offset, limit, sortField, sortOrder, fulltextSearch],
+    () => {
+        const allReplaysBySortField =
+            sortOrder.value === "asc" ? db.replays.orderBy(sortField.value) : db.replays.orderBy(sortField.value).reverse();
+
+        return allReplaysBySortField
+            .filter((replay: Replay) => endedNormallyFilter(replay, settingsStore.endedNormallyFilter))
             .filter(fulltextSearchFilter)
             .offset(offset.value)
-            .limit(limit.value);
-    } else {
-        query = db.replays.filter(fulltextSearchFilter).offset(offset.value).limit(limit.value);
+            .limit(limit.value)
+            .toArray();
     }
-    if (sortOrder.value === "asc") {
-        return query.sortBy(sortField.value);
-    }
-    return query.reverse().sortBy(sortField.value);
-});
+);
 
-const replaysCount = useDexieLiveQueryWithDeps([endedNormally, fulltextSearch], async () => {
-    if (endedNormally.value !== null) {
-        return db.replays
-            .where("gameEndedNormally")
-            .equals(endedNormally.value ? 1 : 0)
-            .filter(fulltextSearchFilter)
-            .count();
-    }
-    return db.replays.filter(fulltextSearchFilter).count();
+const replaysCount = useDexieLiveQueryWithDeps([() => settingsStore.endedNormallyFilter, fulltextSearch], () => {
+    return db.replays
+        .filter((replay: Replay) => endedNormallyFilter(replay, settingsStore.endedNormallyFilter))
+        .filter(fulltextSearchFilter)
+        .count();
 });
 
 let map = useDexieLiveQueryWithDeps([() => selectedReplay.value?.mapSpringName], async () => {
