@@ -36,6 +36,17 @@ If you are new to contributing to open source projects on GitHub, we recommend f
 5.  If you have any questions, need help, find something ambiguous, or want to work on something not well scoped yet or without an issue, **please, please discuss it with us**! We want to ensure that we are aligned, you aren't wasting your time, and you have a good experience!
 6.  Develop the change we all agreed on, and send it for review following the [GitHub Flow](https://docs.github.com/en/get-started/using-github/github-flow) process.
 
+## Testing
+
+We have automated tests, but we do not currently have a strict project-wide policy around test coverage thresholds or exactly what kinds of tests must exist for every change.
+
+That said:
+
+- **Do not break existing tests.** If CI is failing due to your change, please fix it before requesting review.
+- **Adding tests is strongly encouraged.** PRs that include test coverage for the behavior they change (unit tests and/or E2E where appropriate) are typically easier to review and merge.
+- For details on how to run and write tests in this repo (Vitest + Playwright/Electron E2E, CI notes, etc.), see **[TESTING.md](TESTING.md)**.
+
+
 ## Other Ways to Contribute
 
 Code is just one part of the project. We are always in need of other skills! If you're interested in helping with design, documentation, testing, UI design, art or community management, please talk to us on Discord. We will try to find something for you to do. ☺️
