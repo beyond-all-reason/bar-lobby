@@ -81,7 +81,7 @@ SPDX-License-Identifier: MIT
 import Column from "primevue/column";
 import { useTypedI18n } from "@renderer/i18n";
 import Panel from "@renderer/components/common/Panel.vue";
-import { Ref, ref, computed, shallowRef } from "vue";
+import { Ref, ref, computed, shallowRef, watch } from "vue";
 import SearchBox from "@renderer/components/controls/SearchBox.vue";
 import DataTable, { DataTablePageEvent } from "primevue/datatable";
 import { clansStore } from "@renderer/store/clans.store";
@@ -107,7 +107,11 @@ function onRowSelect(clan: { data: ClanBaseData }) {
 
 // Computes the filtered clans based on the fulltext search
 const filteredClans = computed(() => {
-    return clansStore.clansBaseData?.filter((clan: ClanBaseData) => fulltextSearchFilter(clan)) || [];
+    return (
+        clansStore.clansBaseData
+            ?.filter((clan): clan is ClanBaseData => clan !== null && clan !== undefined)
+            .filter((clan: ClanBaseData) => fulltextSearchFilter(clan)) || []
+    );
 });
 
 // Filters a clan based on the fulltext search words
@@ -131,14 +135,19 @@ const clans = useDexieLiveQueryWithDeps([() => clansStore.clansBaseData, fulltex
 
 // Reactive query for clans count with dependencies on clansBaseData and fulltextSearch
 const clansCount = useDexieLiveQueryWithDeps([() => clansStore.clansBaseData, fulltextSearch], () => {
-    console.log("Clans Count updated:", clansCount.value);
-    return clansStore.clansBaseData?.length || 0;
+    console.log("Clans Count updated:", filteredClans.value.length);
+    return filteredClans.value.length;
 });
 
 // Handles pagination event to update the offset
 function onPage(event: DataTablePageEvent) {
     offset.value = event.first;
 }
+
+// Watcher to reset pagination to the first page when the fulltext search changes
+watch(fulltextSearch, () => {
+    offset.value = 0;
+});
 </script>
 
 <style lang="scss" scoped>
