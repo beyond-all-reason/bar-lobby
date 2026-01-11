@@ -43,4 +43,7 @@ jobs:
               run: npm run test
 
             - name: Run e2e Tests
-              run: npm run test:e2e
+              uses: coactions/setup-xvfb@v1
+              with:
+                run: npm run test:e2e
+
