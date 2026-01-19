@@ -21,22 +21,22 @@ const HOST = "127.0.0.1";
 const URL = `http://${HOST}:${PORT}`;
 
 export default defineConfig({
-  testDir: "./tests/e2e",
-  timeout: 30_000,
+    testDir: "./tests/e2e",
+    timeout: 30_000,
 
-  use: {
-    baseURL: URL,
-    headless: !!process.env.CI,
-  },
+    use: {
+        baseURL: URL,
+        headless: !!process.env.CI,
+    },
 
-  webServer: {
-    command: `vite --config vite.playwright.config.mts --host ${HOST} --port ${PORT} --strictPort`,
-    url: URL,
-    reuseExistingServer: !process.env.CI,
-    timeout: 120_000,
-    stdout: "pipe",
-    stderr: "pipe",
-  },
+    webServer: {
+        command: `vite --config vite.playwright.config.mts --host ${HOST} --port ${PORT} --strictPort`,
+        url: URL,
+        reuseExistingServer: !process.env.CI,
+        timeout: 120_000,
+        stdout: "pipe",
+        stderr: "pipe",
+    },
 
-  projects: [{ name: "electron", testMatch: /.*\.spec\.ts/ }],
+    projects: [{ name: "electron", testMatch: /.*\.spec\.ts/ }],
 });
