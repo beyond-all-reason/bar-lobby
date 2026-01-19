@@ -15,27 +15,28 @@ import { defineConfig } from "@playwright/test";
 /**
  * See https://playwright.dev/docs/test-configuration.
  */
-// playwright.config.ts
+
+const PORT = 5173;
+const HOST = "127.0.0.1";
+const URL = `http://${HOST}:${PORT}`;
 
 export default defineConfig({
-    testDir: "./tests/e2e",
-    timeout: 30000,
-    use: {
-        baseURL: "http://127.0.0.1:5173",
-        headless: false,
-    },
-    webServer: {
-        command: "vite --config vite.playwright.config.mts --logLevel silent",
-        url: "http://127.0.0.1:5173",
-        reuseExistingServer: !process.env.CI,
-        timeout: 30_000,
-        stdout: "ignore",
-        stderr: "pipe",
-    },
-    projects: [
-        {
-            name: "electron",
-            testMatch: /.*\.spec\.ts/,
-        },
-    ],
+  testDir: "./tests/e2e",
+  timeout: 30_000,
+
+  use: {
+    baseURL: URL,
+    headless: !!process.env.CI,
+  },
+
+  webServer: {
+    command: `vite --config vite.playwright.config.mts --host ${HOST} --port ${PORT} --strictPort`,
+    url: URL,
+    reuseExistingServer: !process.env.CI,
+    timeout: 120_000,
+    stdout: "pipe",
+    stderr: "pipe",
+  },
+
+  projects: [{ name: "electron", testMatch: /.*\.spec\.ts/ }],
 });
