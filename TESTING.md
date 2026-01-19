@@ -77,7 +77,6 @@ So E2E runs must have that output available. If invoked with `npm run test:e2e` 
 npm run package
 ```
 
-
 ### Running E2E locally
 
 Install Playwright browsers (first time / after upgrading Playwright):
