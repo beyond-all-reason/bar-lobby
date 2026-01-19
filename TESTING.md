@@ -1,3 +1,8 @@
+<!--
+SPDX-FileCopyrightText: 2025 The BAR Lobby Authors
+
+SPDX-License-Identifier: CC0-1.0
+-->
 
 # Testing (BAR Lobby)
 
@@ -21,7 +26,9 @@ npm run test:e2e
 ## Unit tests (Vitest)
 
 ### What these tests are for
+
 Use unit tests for:
+
 - Pure functions and business logic
 - Modules with well-defined boundaries (mock IO/network as needed)
 - Renderer logic that can be exercised without a full Electron runtime
@@ -43,12 +50,15 @@ npx vitest run tests/some.test.ts
 ## E2E tests (Playwright + Electron)
 
 ### What these tests do
+
 E2E tests launch the Electron app and interact with the real browser window(s) via Playwright. This exercises:
+
 - Electron **main process** startup
 - Window creation / BrowserWindow lifecycle
 - Renderer load + DOM availability
 
 E2E is a good place for:
+
 - “App boots” / “critical views render” checks
 - High-value workflows that cross main/renderer boundaries
 - Regression coverage for production-only issues (packaging, preload wiring, navigation, etc.)
@@ -63,9 +73,7 @@ This repo’s `package.json` points Electron’s entrypoint at the Vite/Forge bu
 
 So E2E runs must have that output available. Run:
 
-
 To get this to happen automatically, we add a `pretest:e2e` script:
-
 
 ### Running E2E locally
 
@@ -93,14 +101,12 @@ This repo is ESM (`"type": "module"`), so `__dirname` and `__filename` are not d
 
 To resolve paths relative to the current test file, use `import.meta.url`:
 
-
 ## Linux / CI specifics
 
 Electron tests create real windows. On Linux CI you typically need:
 
-1) A display server (virtual is fine)  
-2) A sandbox configuration that works in CI
-
+1. A display server (virtual is fine)
+2. A sandbox configuration that works in CI
 
 ### Chromium sandbox in CI (`chrome-sandbox`)
 
@@ -123,15 +129,19 @@ This avoids needing `sudo` to change permissions inside CI jobs.
 ## Troubleshooting
 
 ### Electron launch failures
+
 If Electron fails immediately, check:
+
 - Is `.vite/build/main.cjs` present? If not, run `npm run package`.
 - Are you hitting Linux sandbox errors? In CI, add `--no-sandbox` for Electron.
 - Are you missing a display? On Linux, run via `xvfb-run -a`.
 
 ### `__dirname is not defined`
+
 You’re running tests as ESM. Use `import.meta.url` + `fileURLToPath` (see above).
 
 ### “Cannot open display” / X server errors (Linux)
+
 Run E2E with Xvfb:
 
 ```bash
@@ -139,6 +149,7 @@ xvfb-run -a npm run test:e2e
 ```
 
 ### Playwright browser dependencies (Linux)
+
 If Playwright complains about missing system libraries, install with:
 
 ```bash
