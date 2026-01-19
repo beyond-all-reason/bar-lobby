@@ -108,15 +108,6 @@ To resolve paths relative to the current test file, use `import.meta.url`:
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 ```
 
-
-## Linux / CI specifics
-
-Electron tests create real windows. On Linux CI you typically need:
-
-1. A display server (virtual is fine)
-2. A sandbox configuration that works in CI
-
-
 ## Troubleshooting
 
 ### Electron launch failures
