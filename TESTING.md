@@ -71,9 +71,12 @@ This repo’s `package.json` points Electron’s entrypoint at the Vite/Forge bu
 "main": ".vite/build/main.cjs"
 ```
 
-So E2E runs must have that output available. Run:
+So E2E runs must have that output available. If invoked with `npm run test:e2e` this should happen automatically, otherwise run:
 
-To get this to happen automatically, we add a `pretest:e2e` script:
+```ts
+npm run package
+```
+
 
 ### Running E2E locally
 
@@ -101,6 +104,11 @@ This repo is ESM (`"type": "module"`), so `__dirname` and `__filename` are not d
 
 To resolve paths relative to the current test file, use `import.meta.url`:
 
+```ts
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+```
+
+
 ## Linux / CI specifics
 
 Electron tests create real windows. On Linux CI you typically need:
@@ -108,23 +116,6 @@ Electron tests create real windows. On Linux CI you typically need:
 1. A display server (virtual is fine)
 2. A sandbox configuration that works in CI
 
-### Chromium sandbox in CI (`chrome-sandbox`)
-
-Some Linux environments (especially CI and containers) cannot use Chromium’s sandbox unless
-`chrome-sandbox` has elevated permissions. In CI, the typical approach is to disable the sandbox for tests
-by passing Electron flags:
-
-- `--no-sandbox`
-- optionally also `--disable-setuid-sandbox`
-
-A common pattern is to enable those flags only on CI:
-
-```ts
-const args = [repoRoot];
-if (process.env.CI) args.unshift("--no-sandbox");
-```
-
-This avoids needing `sudo` to change permissions inside CI jobs.
 
 ## Troubleshooting
 
