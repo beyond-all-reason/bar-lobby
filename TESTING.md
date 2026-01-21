@@ -63,9 +63,7 @@ E2E is a good place for:
 - High-value workflows that cross main/renderer boundaries
 - Regression coverage for production-only issues (packaging, preload wiring, navigation, etc.)
 
-
 ### Running E2E locally
-
 
 ```bash
 npm run test:e2e
@@ -77,15 +75,13 @@ Debug mode:
 PWDEBUG=1 npm run test:e2e
 ```
 
-
-
 ## Troubleshooting
 
 ### Electron launch failures
 
 If Electron fails immediately, check:
 
-- Are you hitting Linux sandbox errors? In CI, add `--no-sandbox` for Electron.
+m- Are you hitting Linux sandbox errors? In CI, add `--no-sandbox` for Electron.
 
 ### `__dirname is not defined`
 
