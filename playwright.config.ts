@@ -5,17 +5,8 @@
 import { defineConfig } from "@playwright/test";
 
 /**
- * Read environment variables from file.
- * https://github.com/motdotla/dotenv
- */
-// import dotenv from 'dotenv';
-// import path from 'path';
-// dotenv.config({ path: path.resolve(__dirname, '.env') });
-
-/**
  * See https://playwright.dev/docs/test-configuration.
  */
-
 const PORT = 5173;
 const HOST = "127.0.0.1";
 const URL = `http://${HOST}:${PORT}`;
