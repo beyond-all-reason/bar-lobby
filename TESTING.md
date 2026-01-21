@@ -85,7 +85,6 @@ PWDEBUG=1 npm run test:e2e
 
 If Electron fails immediately, check:
 
-- Is `.vite/build/main.cjs` present? If not, run `npm run package`.
 - Are you hitting Linux sandbox errors? In CI, add `--no-sandbox` for Electron.
 
 ### `__dirname is not defined`
