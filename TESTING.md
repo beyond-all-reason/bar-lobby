@@ -81,7 +81,7 @@ PWDEBUG=1 npm run test:e2e
 
 If Electron fails immediately, check:
 
-m- Are you hitting Linux sandbox errors? In CI, add `--no-sandbox` for Electron.
+- Are you hitting Linux sandbox errors? In CI, add `--no-sandbox` for Electron.
 
 ### `__dirname is not defined`
 
