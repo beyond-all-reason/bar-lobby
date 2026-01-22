@@ -40,7 +40,23 @@ export class GameAPI {
     protected gameProcess: ChildProcess | null = null;
 
     public async launchBattle(battle: BattleWithMetadata): Promise<void> {
-        const script = startScriptConverter.generateScriptStr(battle);
+        let script = startScriptConverter.generateScriptStr(battle);
+        const isOnline = await this.isOnline();
+
+        if (!isOnline) {
+            log.info("OFFLINE MODE: Adding hostip configuration");
+            script = script
+                .replace(
+                    /\[game\]\s*\{/,
+                    `[game] {
+    hostip=127.0.0.1;`
+                )
+                .replace(/\blocalhost\b/g, "127.0.0.1")
+                .replace(/\blobby\.springrts\.com\b/g, "127.0.0.1");
+        } else {
+            log.info("ONLINE MODE: No hostname replacement needed");
+        }
+
         const scriptPath = path.join(WRITE_DATA_PATH, this.startScriptName);
         await fs.promises.writeFile(scriptPath, script);
         await this.launch({
@@ -71,6 +87,14 @@ export class GameAPI {
             engineVersion,
             gameVersion: scriptGameVersion || gameVersion, // using script's game version if available
             launchArg: scriptPath,
+        });
+    }
+
+    private async isOnline(): Promise<boolean> {
+        return new Promise((resolve) => {
+            require("dns").resolve("www.google.com", (err: NodeJS.ErrnoException | null) => {
+                resolve(!err);
+            });
         });
     }
 

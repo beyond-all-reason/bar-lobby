@@ -47,8 +47,9 @@ export async function initMapsStore() {
 }
 
 async function init() {
+    await window.maps.scanMaps();
+
     window.maps.onMapAdded((springName: string) => {
-        console.debug("Received map added event", springName);
         mapsStore.availableMapNames.add(springName);
         db.maps.where("springName").equals(springName).modify({ isInstalled: true });
         db.nonLiveMaps.where("springName").equals(springName).modify({ isInstalled: true });
@@ -64,8 +65,6 @@ async function init() {
         mapsStore.availableMapNames.add(download.name);
     });
     const [liveMaps, nonLiveMaps] = await window.maps.fetchAllMaps();
-
-    console.debug("Received maps", [liveMaps, nonLiveMaps]);
 
     await Promise.allSettled(
         liveMaps

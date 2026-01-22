@@ -60,8 +60,26 @@ export class UltraSimpleMapParser {
 
     protected async parseMapInfo(mapinfo: string): Promise<MapInfo> {
         const parsedMapInfo = parse(mapinfo, { encodingMode: "x-user-defined", comments: false });
-        const rootObj = parsedMapInfo.body[0] as LocalStatement;
-        const rootTable = rootObj.init.find((block) => block.type === "TableConstructorExpression") as TableConstructorExpression;
+
+        if (!parsedMapInfo.body || parsedMapInfo.body.length === 0) {
+            console.warn("Map info is empty or malformed.");
+            return {} as MapInfo;
+        }
+
+        const rootObj = parsedMapInfo.body[0];
+
+        if (rootObj.type !== "LocalStatement" || !rootObj.init || rootObj.init.length === 0) {
+            console.warn("Map info root object is not a LocalStatement or is missing init property.");
+            return {} as MapInfo;
+        }
+
+        const rootTable = rootObj.init.find((block) => block.type === "TableConstructorExpression");
+
+        if (!rootTable || rootTable.type !== "TableConstructorExpression") {
+            console.warn("Map info root table is not a TableConstructorExpression.");
+            return {} as MapInfo;
+        }
+
         const obj = this.parseMapInfoFields(rootTable.fields);
         return obj as MapInfo;
     }
