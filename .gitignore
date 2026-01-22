@@ -49,3 +49,9 @@ debug.log
 bun.lockb
 *.pfx
 *.ps1
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/

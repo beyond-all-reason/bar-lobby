@@ -38,3 +38,13 @@ jobs:
 
             - name: Test Vite Build
               run: npm run package
+
+            - name: Run Unit Tests
+              run: npm run test
+
+            - name: Run e2e Tests
+              uses: coactions/setup-xvfb@v1
+              with:
+                  run: npm run test:e2e
+              env:
+                  CI: true

@@ -25,7 +25,9 @@
         "postinstall": "electron-builder install-app-deps",
         "release": "electron-builder --config electron-builder.config.ts",
         "lint": "eslint --cache",
-        "test": "vitest tests",
+        "test": "vitest run tests",
+        "pretest:e2e": "electron-forge package",
+        "test:e2e": "cross-env playwright test",
         "format": "prettier --experimental-cli --write .",
         "format:check": "prettier --experimental-cli --check .",
         "typecheck:node": "tsc --noEmit -p tsconfig.node.json --composite false",
@@ -61,6 +63,7 @@
         "node-downloader-helper": "^2.1.9",
         "pino": "^9.7.0",
         "pino-pretty": "^13.0.0",
+        "playwright": "^1.54.2",
         "primeicons": "^6.0.1",
         "primevue": "3.23.0",
         "tachyon-protocol": "^1.15.1",
@@ -71,11 +74,14 @@
     "devDependencies": {
         "@electron-forge/cli": "^7.8.1",
         "@electron-forge/plugin-vite": "^7.8.1",
+        "@playwright/test": "^1.54.2",
         "@types/howler": "^2.2.12",
         "@types/luaparse": "^0.2.12",
         "@types/node": "^22.18.13",
+        "@types/wait-on": "^5.3.4",
         "@types/ws": "^8.18.1",
         "@vitejs/plugin-vue": "^6.0.0",
+        "@vue/test-utils": "^2.4.6",
         "concurrently": "^9.2.0",
         "cross-env": "^7.0.3",
         "electron": "37.3.1",
@@ -86,6 +92,7 @@
         "eslint-plugin-unused-imports": "^4.1.4",
         "eslint-plugin-vue": "^10.3.0",
         "globals": "^16.3.0",
+        "jsdom": "^26.1.0",
         "prettier": "^3.6.2",
         "sass": "^1.89.2",
         "tsx": "^4.20.3",
@@ -96,6 +103,7 @@
         "vite-plugin-static-copy": "^3.1.2",
         "vite-plugin-vue-devtools": "^8.0.0",
         "vitest": "^3.2.4",
-        "vue-tsc": "^3.0.3"
+        "vue-tsc": "^3.0.3",
+        "wait-on": "^8.0.4"
     }
 }
