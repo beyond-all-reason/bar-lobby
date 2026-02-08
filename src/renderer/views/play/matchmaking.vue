@@ -39,16 +39,17 @@ SPDX-License-Identifier: MIT
                 >
             </div>
             <div class="button-container">
-                <button
+                <DownloadContentButton
                     v-if="matchmakingStore.status === MatchmakingStatus.Idle"
-                    class="quick-play-button"
-                    :class="{
-                        disabled: !matchmakingStore.selectedQueue,
-                    }"
+                    :maps="selectedPlaylist?.maps.map((map) => map.springName) ?? []"
+                    :engines="selectedPlaylist?.engines.map((map) => map.version) ?? []"
+                    :games="selectedPlaylist?.games.map((map) => map.springName) ?? []"
+                    size="large"
                     @click="matchmaking.sendQueueRequest"
                 >
                     {{ t("lobby.multiplayer.ranked.buttons.searchGame") }}
-                </button>
+                </DownloadContentButton>
+
                 <button
                     v-else-if="matchmakingStore.status === MatchmakingStatus.JoinRequested"
                     class="quick-play-button searching"
@@ -56,9 +57,11 @@ SPDX-License-Identifier: MIT
                 >
                     {{ t("lobby.multiplayer.ranked.buttons.joinRequested") }}
                 </button>
+
                 <button v-else-if="matchmakingStore.status === MatchmakingStatus.Searching" class="quick-play-button searching" disabled>
                     {{ t("lobby.multiplayer.ranked.buttons.searchingForOpponent") }}
                 </button>
+
                 <button
                     v-else-if="matchmakingStore.status === MatchmakingStatus.MatchFound"
                     class="quick-play-button"
@@ -66,9 +69,11 @@ SPDX-License-Identifier: MIT
                 >
                     {{ t("lobby.multiplayer.ranked.buttons.matchFound") }}
                 </button>
+
                 <button v-else-if="matchmakingStore.status === MatchmakingStatus.MatchAccepted" class="quick-play-button" disabled>
                     {{ t("lobby.multiplayer.ranked.buttons.accepted") }}
                 </button>
+
                 <button
                     class="cancel-button"
                     :disabled="matchmakingStore.status === MatchmakingStatus.Idle"
@@ -79,6 +84,7 @@ SPDX-License-Identifier: MIT
                 >
                     {{ t("lobby.multiplayer.ranked.buttons.cancel") }}
                 </button>
+
                 <p class="txt-error" v-if="matchmakingStore.errorMessage">{{ matchmakingStore.errorMessage }}</p>
             </div>
         </div>
@@ -90,11 +96,16 @@ import { matchmaking, MatchmakingStatus, matchmakingStore, getPlaylistName } fro
 import Button from "primevue/button";
 import { useTypedI18n } from "@renderer/i18n";
 import { computed, onActivated } from "vue";
+import DownloadContentButton from "@renderer/components/controls/DownloadContentButton.vue";
 
 const { t } = useTypedI18n();
 
 const availableQueueIds = computed(() => {
     return matchmakingStore.playlists.sort((a, b) => a.teamSize * a.numOfTeams - b.teamSize * b.numOfTeams).map((playlist) => playlist.id);
+});
+
+const selectedPlaylist = computed(() => {
+    return matchmakingStore.playlists.find((playlist) => playlist.id === matchmakingStore.selectedQueue);
 });
 
 onActivated(() => {
@@ -205,6 +216,10 @@ onActivated(() => {
     flex-grow: 1;
 }
 
+.searching {
+    animation: pulse 3s infinite ease-in-out;
+}
+
 .quick-play-button {
     align-self: center;
     width: 500px;
@@ -225,10 +240,6 @@ onActivated(() => {
     transition:
         transform 0.3s ease,
         box-shadow 0.3s ease;
-}
-
-.searching {
-    animation: pulse 3s infinite ease-in-out;
 }
 
 .quick-play-button:hover {

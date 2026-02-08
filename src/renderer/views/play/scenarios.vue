@@ -59,7 +59,6 @@ SPDX-License-Identifier: MIT
                             :maps="[map.springName]"
                             :games="gameVersion ? [gameVersion] : []"
                             :engines="enginesStore.selectedEngineVersion ? [enginesStore.selectedEngineVersion.id] : []"
-                            class="fullwidth green"
                             :disabled="gameStore.status !== GameStatus.CLOSED"
                             @click="launch"
                             >{{ t("lobby.singleplayer.scenarios.launch") }}</DownloadContentButton
