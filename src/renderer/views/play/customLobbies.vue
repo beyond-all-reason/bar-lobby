@@ -81,20 +81,29 @@ import { Icon } from "@iconify/vue";
 import account from "@iconify-icons/mdi/account";
 import Column from "primevue/column";
 import DataTable from "primevue/datatable";
-import { computed, ComputedRef, ref } from "vue";
+import { computed, ComputedRef, onActivated, onDeactivated, ref } from "vue";
 import Panel from "@renderer/components/common/Panel.vue";
 
 import Checkbox from "@renderer/components/controls/Checkbox.vue";
 import SearchBox from "@renderer/components/controls/SearchBox.vue";
 import { settingsStore } from "@renderer/store/settings.store";
 import { useTypedI18n } from "@renderer/i18n";
-import { lobbyStore } from "@renderer/store/lobby.store";
+import { lobby, lobbyStore } from "@renderer/store/lobby.store";
 import { LobbyOverview } from "tachyon-protocol/types";
 
 const { t } = useTypedI18n();
 const searchVal = ref<string>("");
 
 const lobbyList: ComputedRef<LobbyOverview[]> = computed(() => Object.values(lobbyStore.lobbies));
+
+// Because this page is part of <KeepAlive>, we use this instead of onMounted() to trigger anytime the page is loaded.
+onActivated(() => {
+    lobby.subscribeList();
+});
+
+onDeactivated(() => {
+    lobby.unsubscribeList();
+});
 </script>
 
 <style lang="scss" scoped>

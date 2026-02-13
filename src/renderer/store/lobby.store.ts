@@ -2,33 +2,73 @@
 //
 // SPDX-License-Identifier: MIT
 
-import {
-    LobbyOverview,
-} from "tachyon-protocol/types";
+import { LobbyListResetEventData, LobbyListUpdatedEventData, LobbyOverview } from "tachyon-protocol/types";
 import { reactive } from "vue";
+import { apply as applyPatch } from "json8-merge-patch";
+import { notificationsApi } from "@renderer/api/notifications";
 
 type LobbyId = string;
 
 export const lobbyStore: {
     isInitialized: boolean;
     lobbies: Record<LobbyId, LobbyOverview>;
+    isSubscribedToList: boolean;
 } = reactive({
     isInitialized: false,
     lobbies: {}, //This will hold changes from ``lobby/listUpdated`` events
+    isSubscribedToList: false,
 });
 
 export async function initLobbyStore() {
+    window.tachyon.onEvent("lobby/listUpdated", onListUpdatedEvent);
+    window.tachyon.onEvent("lobby/listReset", onLobbyListResetEvent);
     lobbyStore.isInitialized = true;
-    lobbyStore.lobbies = {
-        "abac5e8b-72e2-4238-8cd0-5abf42df9dac": {
-            id: "abac5e8b-72e2-4238-8cd0-5abf42df9dac",
-            name: "hardcoded lobby",
-            playerCount: 1,
-            maxPlayerCount: 7,
-            mapName: "Avalanche 3.4",
-            engineVersion: "2025.04.04",
-            gameVersion: "Beyond All Reason test-28379-33ba377",
-            currentBattle: null
-        }
+}
+
+function onListUpdatedEvent(data: LobbyListUpdatedEventData) {
+    if (!lobbyStore.isSubscribedToList) return;
+    console.log("Tachyon event: lobby/listUpdated:", data);
+    lobbyStore.lobbies = applyPatch(lobbyStore.lobbies, data.lobbies);
+}
+
+function onLobbyListResetEvent(data: LobbyListResetEventData) {
+    if (!lobbyStore.isSubscribedToList) return;
+    console.log("Tachyon event: lobby/listReset", data);
+    lobbyStore.lobbies = data.lobbies;
+}
+
+async function subscribeList() {
+    try {
+        const response = await window.tachyon.request("lobby/subscribeList");
+        //Per Tachyon protocol, this subscribes us, but does not return an updated list, that happens in the ListUpdated or ListReset events.
+        console.log("subscribeList:", response.status);
+        lobbyStore.isSubscribedToList = true;
+    } catch (error) {
+        console.error("Error with request lobby/subscribeList:", error);
+        notificationsApi.alert({
+            text: "Error with request lobby/subscribeList",
+            severity: "error",
+        });
+        lobbyStore.isSubscribedToList = false;
+        lobbyStore.lobbies = {};
     }
 }
+
+async function unsubscribeList() {
+    try {
+        await window.tachyon.request("lobby/unsubscribeList");
+        lobbyStore.isSubscribedToList = false;
+        lobbyStore.lobbies = {};
+    } catch (error) {
+        console.error("Error with request lobby/unsubscribeList:", error);
+        notificationsApi.alert({
+            text: "Error with request lobby/subscribeList",
+            severity: "error",
+        });
+    }
+}
+
+export const lobby = {
+    subscribeList,
+    unsubscribeList,
+};
