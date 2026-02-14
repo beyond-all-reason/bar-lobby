@@ -10,7 +10,7 @@ import { DownloadInfo } from "./downloads";
 import { AbstractContentAPI } from "./abstract-content";
 import { engineContentAPI } from "./engine/engine-content";
 import { logger } from "@main/utils/logger";
-import { ASSETS_PATH, ENGINE_PATH } from "@main/config/app";
+import { ASSETS_PATH, ENGINE_PATH, getCaCertPath } from "@main/config/app";
 
 const log = logger("pr-downloader.ts");
 
@@ -50,12 +50,16 @@ export abstract class PrDownloaderAPI<ID, T> extends AbstractContentAPI<ID, T> {
                 const binaryName = process.platform === "win32" ? "pr-downloader.exe" : "pr-downloader";
                 const prBinaryPath = path.join(ENGINE_PATH, defaultEngine.id, binaryName);
                 const downloadArg = type === "game" ? "--download-game" : "--download-map";
+                const caCertPath = getCaCertPath();
                 const prdProcess = spawn(`${prBinaryPath}`, ["--filesystem-writepath", ASSETS_PATH, downloadArg, name], {
                     env: {
                         ...process.env,
                         PRD_RAPID_USE_STREAMER: "false",
                         PRD_RAPID_REPO_MASTER: "https://repos-cdn.beyondallreason.dev/repos.gz",
                         PRD_HTTP_SEARCH_URL: "https://files-cdn.beyondallreason.dev/find",
+                        // Set CA certificate path for TLS verification on Windows
+                        // See: https://github.com/beyond-all-reason/pr-downloader/issues/48
+                        ...(caCertPath && { PRD_SSL_CERT_FILE: caCertPath }),
                     },
                 });
                 const downloadInfo: DownloadInfo = {
