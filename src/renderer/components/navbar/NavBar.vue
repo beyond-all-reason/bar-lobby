@@ -25,7 +25,7 @@ SPDX-License-Identifier: MIT
                         v-tooltip.bottom="t('lobby.navbar.tooltips.directMessages')"
                         v-click-away:messages="() => (messagesOpen = false)"
                         :class="['icon', { active: messagesOpen }]"
-                        @click="messagesOpen = true"
+                        @click="messagesOpen = !messagesOpen"
                     >
                         <Icon :icon="messageIcon" :height="40" />
                         <div v-if="messagesUnread" class="unread-dot"></div>
