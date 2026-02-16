@@ -86,12 +86,13 @@ import SearchBox from "@renderer/components/controls/SearchBox.vue";
 import DataTable, { DataTablePageEvent } from "primevue/datatable";
 import { clansStore } from "@renderer/store/clans.store";
 import { useDexieLiveQueryWithDeps } from "@renderer/composables/useDexieLiveQuery";
-import { ClanBaseData } from "tachyon-protocol/types";
+import { ClanBaseData, Clan } from "tachyon-protocol/types";
+import { clanfuncs } from "@renderer/store/clans.store";
 
 const { t } = useTypedI18n();
 const limit = ref(14);
 const offset = ref(0);
-const selectedClan: Ref<ClanBaseData | null> = shallowRef(null);
+const selectedClan: Ref<Clan | null> = shallowRef(null);
 const fulltextSearch = ref("");
 const fulltextSearchWords = computed(() =>
     fulltextSearch.value
@@ -102,7 +103,11 @@ const fulltextSearchWords = computed(() =>
 
 // Saves the selected clan when a row is selected
 function onRowSelect(clan: { data: ClanBaseData }) {
-    selectedClan.value = clan.data;
+    // Request full clan data via protocol based on the selected clan's ID
+    clanfuncs.readClanFromServer(clan.data.clanId).then((fullClanData) => {
+        selectedClan.value = fullClanData;
+    });
+    selectedClan.value = null;
 }
 
 // Computes the filtered clans based on the fulltext search

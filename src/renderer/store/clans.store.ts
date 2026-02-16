@@ -33,5 +33,17 @@ async function readAllClansFromServer() {
     }
 }
 
+// Function to read one full clan data from the server by clan ID
+async function readClanFromServer(clanId: string) {
+    console.log(`readClanFromServer called for clanId: ${clanId}`);
+    try {
+        const response = await window.tachyon.request("clan/view", { clanId: String(clanId) });
+        return response.data;
+    } catch {
+        console.log(`Reading clan ${clanId} from server failed.`);
+        return null;
+    }
+}
+
 // Exporting clan-related functions
-export const clanfuncs = { readAllClansFromServer: readAllClansFromServer };
+export const clanfuncs = { readAllClansFromServer: readAllClansFromServer, readClanFromServer: readClanFromServer };
