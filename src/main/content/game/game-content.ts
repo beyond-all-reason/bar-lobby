@@ -3,7 +3,8 @@
 // SPDX-License-Identifier: MIT
 
 import * as fs from "fs";
-import * as glob from "glob-promise";
+import { glob } from "glob";
+import { Minimatch } from "minimatch";
 import { removeFromArray } from "$/jaz-ts-utils/object";
 import * as path from "path";
 import util, { promisify } from "util";
@@ -245,7 +246,7 @@ export class GameContentAPI extends PrDownloaderAPI<string, GameVersion> {
                 }
                 throw new Error(`Custom game directory not found for: ${gameDirName}`);
             })();
-            const files = await glob.promise(path.join(customGameDir, filePattern), { windowsPathsNoEscape: true });
+            const files = await glob(path.join(customGameDir, filePattern), { windowsPathsNoEscape: true });
             for (const file of files) {
                 const sdpData = {
                     archivePath: file,
@@ -288,9 +289,9 @@ export class GameContentAPI extends PrDownloaderAPI<string, GameVersion> {
         const sdpFile = zlib.gunzipSync(sdpFileZipped);
         const bufferStream = new BufferStream(sdpFile, true);
         const fileData: SdpFileMeta[] = [];
-        let globPattern: InstanceType<typeof glob.Glob> | undefined;
+        let matcher: Minimatch | undefined;
         if (filePattern) {
-            globPattern = new glob.Glob(filePattern, {});
+            matcher = new Minimatch(filePattern);
         }
         while (bufferStream.readStream.readableLength > 0) {
             const fileNameLength = bufferStream.readInt(1, true);
@@ -299,9 +300,9 @@ export class GameContentAPI extends PrDownloaderAPI<string, GameVersion> {
             const crc32 = bufferStream.read(4).toString("hex");
             const filesizeBytes = bufferStream.readInt(4, true);
             const archivePath = path.join(POOL_PATH, md5.slice(0, 2), `${md5.slice(2)}.gz`);
-            if (globPattern && globPattern.minimatch.match(fileName)) {
+            if (matcher && matcher.match(fileName)) {
                 fileData.push({ fileName, md5, crc32, filesizeBytes, archivePath });
-            } else if (!globPattern) {
+            } else if (!matcher) {
                 fileData.push({ fileName, md5, crc32, filesizeBytes, archivePath });
             }
         }

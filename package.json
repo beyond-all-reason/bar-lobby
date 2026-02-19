@@ -37,7 +37,7 @@
         "generate-i18n-assets": "node --import=tsx tools/generate-i18n-asset-files.ts"
     },
     "engines": {
-        "node": "22.18.0"
+        "node": ">=22.16.0"
     },
     "dependencies": {
         "@extractus/feed-extractor": "^7.1.6",
@@ -55,7 +55,7 @@
         "dexie": "^4.0.11",
         "dompurify": "^3.2.6",
         "flag-icons": "^7.5.0",
-        "glob-promise": "^6.0.7",
+        "glob": "^11.0.2",
         "howler": "^2.2.4",
         "json8-merge-patch": "^1.0.5",
         "luaparse": "^0.3.1",
@@ -73,8 +73,8 @@
         "ws": "^8.18.3"
     },
     "devDependencies": {
-        "@electron-forge/cli": "^7.8.1",
-        "@electron-forge/plugin-vite": "^7.8.1",
+        "@electron-forge/cli": "^7.11.1",
+        "@electron-forge/plugin-vite": "^7.11.1",
         "@playwright/test": "^1.54.2",
         "@types/howler": "^2.2.12",
         "@types/luaparse": "^0.2.12",
@@ -86,8 +86,8 @@
         "concurrently": "^9.2.0",
         "cross-env": "^7.0.3",
         "electron": "37.3.1",
-        "electron-builder": "^26.0.12",
-        "electron-updater": "^6.6.2",
+        "electron-builder": "^26.8.1",
+        "electron-updater": "^6.8.3",
         "eslint": "^9.31.0",
         "eslint-config-prettier": "^10.1.8",
         "eslint-plugin-unused-imports": "^4.1.4",
