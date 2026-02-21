@@ -7,12 +7,17 @@ import { mapContentAPI } from "@main/content/maps/map-content";
 import { ipcMain, BarIpcWebContents } from "@main/typed-ipc";
 import { MapMetadata } from "@main/content/maps/map-metadata";
 import { fetchMapImages } from "@main/content/maps/map-image";
+import { network } from "@main/utils/network";
 
 async function init() {
     await mapContentAPI.init();
 }
 
 async function fetchAllMaps(): Promise<[MapData[], MapDownloadData[]]> {
+    if (!network.isOnline()) {
+        return [[], []];
+    }
+
     const maps = await fetch("https://maps-metadata.beyondallreason.dev/latest/lobby_maps.validated.json");
     const mapsAsObject = await maps.json();
     const mapsAsArray = Object.values(mapsAsObject) as MapMetadata[];
@@ -45,14 +50,21 @@ async function fetchAllMaps(): Promise<[MapData[], MapDownloadData[]]> {
 }
 
 function registerIpcHandlers(webContents: BarIpcWebContents) {
-    ipcMain.handle("maps:downloadMap", (_, springName: string) => mapContentAPI.downloadMap(springName));
-    ipcMain.handle("maps:downloadMaps", (_, springNames: string[]) => mapContentAPI.downloadMaps(springNames));
+    ipcMain.handle("maps:downloadMap", async (_, springName: string) => {
+        return mapContentAPI.downloadMap(springName);
+    });
+
+    ipcMain.handle("maps:downloadMaps", async (_, springNames: string[]) => {
+        return mapContentAPI.downloadMaps(springNames);
+    });
+
     ipcMain.handle("maps:getInstalledVersions", () => mapContentAPI.availableVersions);
     ipcMain.handle("maps:isVersionInstalled", (_, id: string) => mapContentAPI.isVersionInstalled(id));
     ipcMain.handle("maps:attemptCacheErrorMaps", () => mapContentAPI.attemptCacheErrorMaps());
 
     ipcMain.handle("maps:online:fetchAllMaps", () => fetchAllMaps());
     ipcMain.handle("maps:online:fetchMapImages", (_, imageSource: string) => fetchMapImages(imageSource));
+    ipcMain.handle("maps:scanMaps", () => mapContentAPI.scanMaps());
 
     // Events
     mapContentAPI.onMapAdded.add((filename: string) => {

@@ -135,7 +135,13 @@ export class ReplayContentAPI {
             // Store the cached replay and dispatch the event
             this.onReplayCached.dispatch(replayData);
         } catch (err) {
-            log.error(`Error caching replay: ${replayFilePath}`, err);
+            // Z_BUF_ERROR is not a fatal error in zlib - it just means inflate() had nothing to do
+            const error = err as any;
+            if (error.code === "Z_BUF_ERROR") {
+                log.debug(`Z_BUF_ERROR parsing replay ${replayFilePath} (non-fatal): ${error.message}`);
+            } else {
+                log.error(`Error caching replay: ${replayFilePath}`, err);
+            }
         }
     }
 
