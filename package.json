@@ -106,5 +106,9 @@
         "vitest": "^3.2.4",
         "vue-tsc": "^3.0.3",
         "wait-on": "^8.0.4"
+    },
+    "optionalDependencies": {
+        "bufferutil": "^4.1.0",
+        "utf-8-validate": "^5.0.10"
     }
 }
