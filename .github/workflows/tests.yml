@@ -8,7 +8,11 @@ on: [push, pull_request]
 
 jobs:
     checks:
-        runs-on: ubuntu-latest
+        strategy:
+            matrix:
+                os: [windows-latest, ubuntu-latest]
+                node-version: [22.18.0]
+        runs-on: ${{ matrix.os }}
         steps:
             - name: Check out Git repository
               uses: actions/checkout@v4
@@ -16,7 +20,7 @@ jobs:
             - name: Install Node.js, NPM and Yarn
               uses: actions/setup-node@v4
               with:
-                  node-version: 22.18.0
+                  node-version: ${{ matrix.node-version }}
                   cache: npm
 
             - name: Build Env Information
@@ -43,6 +47,10 @@ jobs:
               run: npm run test
 
             - name: Run e2e Tests
+              # TODO: Figure out why e2e tests don't work reliably on Windows.
+              # They work on some Windows machines but not on others failing with
+              # Error: electronApplication.firstWindow: Target page, context or browser has been closed
+              if: matrix.os == 'ubuntu-latest'
               uses: coactions/setup-xvfb@v1
               with:
                   run: npm run test:e2e
