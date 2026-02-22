@@ -57,9 +57,7 @@ export abstract class PrDownloaderAPI<ID, T> extends AbstractContentAPI<ID, T> {
                         PRD_RAPID_USE_STREAMER: "false",
                         PRD_RAPID_REPO_MASTER: "https://repos-cdn.beyondallreason.dev/repos.gz",
                         PRD_HTTP_SEARCH_URL: "https://files-cdn.beyondallreason.dev/find",
-                        // Set CA certificate path for TLS verification on Windows
-                        // See: https://github.com/beyond-all-reason/pr-downloader/issues/48
-                        ...(caCertPath && { PRD_SSL_CERT_FILE: caCertPath }),
+                        ...(caCertPath && !process.env.PRD_SSL_CERT_FILE && { PRD_SSL_CERT_FILE: caCertPath }),
                     },
                 });
                 const downloadInfo: DownloadInfo = {

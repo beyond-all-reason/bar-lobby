@@ -14,12 +14,6 @@ const config: Configuration = {
     files: ["./.vite/**", "!node_modules", "./node_modules/7zip-bin/**"],
     directories: { buildResources: "buildResources" },
     asarUnpack: ["resources/**"],
-    extraResources: [
-        {
-            from: "buildResources/cacert.pem",
-            to: "cacert.pem",
-        },
-    ],
 
     publish: { provider: "github" },
     fileAssociations: [
@@ -35,6 +29,12 @@ const config: Configuration = {
     // Windows
     win: {
         target: ["nsis"],
+        extraResources: [
+            {
+                from: "buildResources/cacert.pem",
+                to: "cacert.pem",
+            },
+        ],
     },
     nsis: {
         artifactName: "${productName}-${version}-setup.${ext}",
