@@ -8,7 +8,14 @@ on: [push, pull_request]
 
 jobs:
     checks:
-        runs-on: ubuntu-latest
+        strategy:
+            matrix:
+                os: [windows-latest, ubuntu-latest]
+                node-version: [22.18.0]
+        runs-on: ${{ matrix.os }}
+        env:
+            # For node-gyp-build to disable compilation
+            PREBUILDS_ONLY: true
         steps:
             - name: Check out Git repository
               uses: actions/checkout@v4
@@ -16,7 +23,7 @@ jobs:
             - name: Install Node.js, NPM and Yarn
               uses: actions/setup-node@v4
               with:
-                  node-version: 22.18.0
+                  node-version: ${{ matrix.node-version }}
                   cache: npm
 
             - name: Build Env Information
