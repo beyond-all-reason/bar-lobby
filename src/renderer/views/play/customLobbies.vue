@@ -20,12 +20,21 @@ SPDX-License-Identifier: MIT
                 <Checkbox v-model="settingsStore.battlesHideEmpty" :label="t('lobby.multiplayer.custom.filters.hideEmpty')" />
                 <Checkbox v-model="settingsStore.battlesHideInProgress" :label="t('lobby.multiplayer.custom.filters.hideInProgress')" />
                 <SearchBox v-model="searchVal" />
+                <Button
+                    v-if="lobbyStore.activeLobby == undefined"
+                    class="blue"
+                    @click="createLobbyModalIsOpen = true"
+                    :disabled="lobbyStore.activeLobby != undefined"
+                    >{{ t("lobby.multiplayer.custom.hostBattle") }}</Button
+                >
             </div>
             <Panel class="flex-col fullheight" :no-padding="true">
                 <div class="margin-md fullheight">
                     <div class="flex-col flex-grow fullheight flex-top">
+                        <HostBattle v-model="createLobbyModalIsOpen" />
                         <div class="scroll-container">
                             <DataTable
+                                v-model:selection="lobbyStore.selectedLobby"
                                 :value="lobbyList"
                                 data-key="id"
                                 autoLayout
@@ -34,6 +43,8 @@ SPDX-License-Identifier: MIT
                                 paginator
                                 :rows="16"
                                 :pageLinkSize="20"
+                                @row-select="lobbyStore.selectedLobby = $event.data"
+                                @row-dblclick="sendLobbyJoinRequest($event.data)"
                             >
                                 <template #empty>
                                     <p>No lobbies /o\</p>
@@ -90,19 +101,43 @@ import { settingsStore } from "@renderer/store/settings.store";
 import { useTypedI18n } from "@renderer/i18n";
 import { lobby, lobbyStore } from "@renderer/store/lobby.store";
 import { LobbyOverview } from "tachyon-protocol/types";
+import HostBattle from "@renderer/components/battle/HostBattle.vue";
+import { useRouter } from "vue-router";
+import Button from "@renderer/components/controls/Button.vue";
+
+const router = useRouter();
 
 const { t } = useTypedI18n();
 const searchVal = ref<string>("");
 
 const lobbyList: ComputedRef<LobbyOverview[]> = computed(() => Object.values(lobbyStore.lobbies));
 
+const createLobbyModalIsOpen = ref<boolean>(false);
+
+function sendLobbyJoinRequest(data) {
+    //Data here is the entire selectedLobby object (e.g. one of the lobbyList[] items)
+    if (lobbyStore.activeLobby == undefined) {
+        // No active lobby so we can freely join without worrying about a leave needed first.
+        lobby.requestJoinLobby({ id: data.id });
+        return;
+    } else if (lobbyStore.activeLobby.id == data.id) {
+        //We are trying to join a lobby we are already in, just open the view, no request needed.
+        //battleStore.isLobbyOpened = true;
+        router.push("play/lobby");
+        return;
+    }
+    //We will need to leave this lobby first, so warn the user.
+    //autojoinLobbyId.value = data.id;
+    //leaveConfirmModalIsOpen.value = true;
+}
+
 // Because this page is part of <KeepAlive>, we use this instead of onMounted() to trigger anytime the page is loaded.
 onActivated(() => {
-    lobby.subscribeList();
+    lobby.requestSubscribeList();
 });
 
 onDeactivated(() => {
-    lobby.unsubscribeList();
+    lobby.requestUnsubscribeList();
 });
 </script>
 

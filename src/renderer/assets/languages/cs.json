@@ -2086,7 +2086,9 @@
                 "goBack": null,
                 "login": null,
                 "changeAccount": null,
-                "playOffline": null
+                "playOffline": null,
+                "needToLogIn": null,
+                "needToLogInToAccess": null
             }
         },
         "library": {
@@ -2200,7 +2202,8 @@
             "serverStatus": {
                 "playersOnline": null,
                 "error": null,
-                "reconnecting": null
+                "reconnecting": null,
+                "offline": null
             },
             "messages": {
                 "message": null,
@@ -2361,7 +2364,14 @@
                     "title": null,
                     "settingUp": null,
                     "region": null,
-                    "hostButton": null
+                    "hostButton": null,
+                    "updateButton": null,
+                    "name": null,
+                    "startBoxes1": null,
+                    "startBoxes2": null,
+                    "startBoxes3": null,
+                    "allyTeamCount": null,
+                    "teamsPerAllyTeam": null
                 },
                 "votePanel": {
                     "vote": null,
