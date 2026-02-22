@@ -375,7 +375,8 @@
                     "editPresetTeams": "Edit Preset Teams",
                     "fixedPositions": "Fixed positions",
                     "random": "Random",
-                    "close": "Close"
+                    "close": "Close",
+                    "openMapSelector": "Open map selector"
                 },
                 "hostBattle": {
                     "title": "Host Battle",

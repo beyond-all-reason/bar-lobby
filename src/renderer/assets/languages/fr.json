@@ -4211,7 +4211,8 @@
                     "editPresetTeams": null,
                     "fixedPositions": null,
                     "random": null,
-                    "close": null
+                    "close": null,
+                    "openMapSelector": null
                 },
                 "hostBattle": {
                     "title": null,

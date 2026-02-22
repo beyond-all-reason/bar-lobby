@@ -9,73 +9,75 @@ SPDX-License-Identifier: MIT
 </route>
 
 <template>
-    <div class="flex-row flex-grow gap-md hide-overflow fullheight">
-        <div class="flex-col flex-grow gap-md">
-            <div class="flex-row gap-md">
-                <h1>{{ t("lobby.multiplayer.custom.title") }}</h1>
-            </div>
-            <div class="flex-row gap-md">
-                <Checkbox v-model="settingsStore.battlesHidePvE" :label="t('lobby.multiplayer.custom.filters.hidePvE')" />
-                <Checkbox v-model="settingsStore.battlesHideLocked" :label="t('lobby.multiplayer.custom.filters.hideLocked')" />
-                <Checkbox v-model="settingsStore.battlesHideEmpty" :label="t('lobby.multiplayer.custom.filters.hideEmpty')" />
-                <Checkbox v-model="settingsStore.battlesHideInProgress" :label="t('lobby.multiplayer.custom.filters.hideInProgress')" />
-                <SearchBox v-model="searchVal" />
-                <Button
-                    v-if="lobbyStore.activeLobby == undefined"
-                    class="blue"
-                    @click="createLobbyModalIsOpen = true"
-                    :disabled="lobbyStore.activeLobby != undefined"
-                    >{{ t("lobby.multiplayer.custom.hostBattle") }}</Button
-                >
-            </div>
-            <Panel class="flex-col fullheight" :no-padding="true">
-                <div class="margin-md fullheight">
-                    <div class="flex-col flex-grow fullheight flex-top">
-                        <HostBattle v-model="createLobbyModalIsOpen" />
-                        <div class="scroll-container">
-                            <DataTable
-                                v-model:selection="lobbyStore.selectedLobby"
-                                :value="lobbyList"
-                                data-key="id"
-                                autoLayout
-                                class="p-datatable-sm"
-                                selectionMode="single"
-                                paginator
-                                :rows="16"
-                                :pageLinkSize="20"
-                                @row-select="lobbyStore.selectedLobby = $event.data"
-                                @row-dblclick="sendLobbyJoinRequest($event.data)"
-                            >
-                                <template #empty>
-                                    <p>No lobbies /o\</p>
-                                </template>
-                                <Column field="name" :header="t('lobby.multiplayer.custom.table.title')" sortable />
-                                <Column field="mapName" :header="t('lobby.multiplayer.custom.table.map')" sortable>
-                                    <template #body="{ data }">
-                                        <p>{{ data.mapName }}</p>
+    <div class="view">
+        <div class="flex-row flex-grow gap-md hide-overflow fullheight">
+            <div class="flex-col flex-grow gap-md">
+                <div class="flex-row gap-md">
+                    <h1>{{ t("lobby.multiplayer.custom.title") }}</h1>
+                </div>
+                <div class="flex-row gap-md">
+                    <Checkbox v-model="settingsStore.battlesHidePvE" :label="t('lobby.multiplayer.custom.filters.hidePvE')" />
+                    <Checkbox v-model="settingsStore.battlesHideLocked" :label="t('lobby.multiplayer.custom.filters.hideLocked')" />
+                    <Checkbox v-model="settingsStore.battlesHideEmpty" :label="t('lobby.multiplayer.custom.filters.hideEmpty')" />
+                    <Checkbox v-model="settingsStore.battlesHideInProgress" :label="t('lobby.multiplayer.custom.filters.hideInProgress')" />
+                    <SearchBox v-model="searchVal" />
+                    <Button
+                        v-if="lobbyStore.activeLobby == undefined"
+                        class="blue"
+                        @click="createLobbyModalIsOpen = true"
+                        :disabled="lobbyStore.activeLobby != undefined"
+                        >{{ t("lobby.multiplayer.custom.hostBattle") }}</Button
+                    >
+                </div>
+                <Panel class="flex-col fullheight" :no-padding="true">
+                    <div class="margin-md fullheight">
+                        <div class="flex-col flex-grow fullheight flex-top">
+                            <HostBattle v-model="createLobbyModalIsOpen" />
+                            <div class="scroll-container">
+                                <DataTable
+                                    v-model:selection="lobbyStore.selectedLobby"
+                                    :value="lobbyList"
+                                    data-key="id"
+                                    autoLayout
+                                    class="p-datatable-sm"
+                                    selectionMode="single"
+                                    paginator
+                                    :rows="16"
+                                    :pageLinkSize="20"
+                                    @row-select="lobbyStore.selectedLobby = $event.data"
+                                    @row-dblclick="sendLobbyJoinRequest($event.data)"
+                                >
+                                    <template #empty>
+                                        <p>No lobbies /o\</p>
                                     </template>
-                                </Column>
-                                <Column :header="t('lobby.multiplayer.custom.table.players')" sortable sortField="playerCount.value">
-                                    <template #body="{ data }">
-                                        <div class="flex-row flex-center-items gap-md">
-                                            <div v-if="data.playerCount > 0" class="flex-row flex-center-items" style="gap: 2px">
-                                                <Icon :icon="account" height="17" />{{ data.playerCount }}/{{ data.maxPlayerCount }}
+                                    <Column field="name" :header="t('lobby.multiplayer.custom.table.title')" sortable />
+                                    <Column field="mapName" :header="t('lobby.multiplayer.custom.table.map')" sortable>
+                                        <template #body="{ data }">
+                                            <p>{{ data.mapName }}</p>
+                                        </template>
+                                    </Column>
+                                    <Column :header="t('lobby.multiplayer.custom.table.players')" sortable sortField="playerCount.value">
+                                        <template #body="{ data }">
+                                            <div class="flex-row flex-center-items gap-md">
+                                                <div v-if="data.playerCount > 0" class="flex-row flex-center-items" style="gap: 2px">
+                                                    <Icon :icon="account" height="17" />{{ data.playerCount }}/{{ data.maxPlayerCount }}
+                                                </div>
+                                                <!-- no protocol support for bot and spec count in the listing. If required, need to add it to tachyon first -->
+                                                <!-- <div v-if="true" class="flex-row flex-center-items gap-xs" style="gap: 4px"> -->
+                                                <!--     <Icon :icon="eye" height="17" />{{ 0 }} -->
+                                                <!-- </div> -->
+                                                <!-- <div v-if="true" class="flex-row flex-center-items gap-xs" style="gap: 4px"> -->
+                                                <!--     <Icon :icon="robot" height="17" />{{ 0 }} -->
+                                                <!-- </div> -->
                                             </div>
-                                            <!-- no protocol support for bot and spec count in the listing. If required, need to add it to tachyon first -->
-                                            <!-- <div v-if="true" class="flex-row flex-center-items gap-xs" style="gap: 4px"> -->
-                                            <!--     <Icon :icon="eye" height="17" />{{ 0 }} -->
-                                            <!-- </div> -->
-                                            <!-- <div v-if="true" class="flex-row flex-center-items gap-xs" style="gap: 4px"> -->
-                                            <!--     <Icon :icon="robot" height="17" />{{ 0 }} -->
-                                            <!-- </div> -->
-                                        </div>
-                                    </template>
-                                </Column>
-                            </DataTable>
+                                        </template>
+                                    </Column>
+                                </DataTable>
+                            </div>
                         </div>
                     </div>
-                </div>
-            </Panel>
+                </Panel>
+            </div>
         </div>
     </div>
 </template>
