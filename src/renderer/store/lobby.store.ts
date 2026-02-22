@@ -57,14 +57,14 @@ export async function initLobbyStore() {
 }
 
 function onListUpdatedEvent(data: LobbyListUpdatedEventData) {
-    if (!lobbyStore.isSubscribedToList) return;
+    //if (!lobbyStore.isSubscribedToList) return;
     console.log("Tachyon event: lobby/listUpdated:", data);
     lobbyStore.lobbies = applyPatch(lobbyStore.lobbies, data.lobbies);
     clearSelectedLobbyIfNull();
 }
 
 function onLobbyListResetEvent(data: LobbyListResetEventData) {
-    if (!lobbyStore.isSubscribedToList) return;
+    //if (!lobbyStore.isSubscribedToList) return;
     console.log("Tachyon event: lobby/listReset", data);
     lobbyStore.lobbies = data.lobbies;
     clearSelectedLobbyIfNull();

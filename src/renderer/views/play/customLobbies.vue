@@ -11,7 +11,7 @@ SPDX-License-Identifier: MIT
 <template>
     <div class="view">
         <div class="flex-row flex-grow gap-md hide-overflow fullheight">
-            <div class="flex-col flex-grow gap-md">
+            <div class="flex-col flex-grow fullheight margin-left-lg margin-right-lg">
                 <div class="flex-row gap-md">
                     <h1>{{ t("lobby.multiplayer.custom.title") }}</h1>
                 </div>
