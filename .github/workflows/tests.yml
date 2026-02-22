@@ -13,9 +13,6 @@ jobs:
                 os: [windows-latest, ubuntu-latest]
                 node-version: [22.18.0]
         runs-on: ${{ matrix.os }}
-        env:
-            # For node-gyp-build to disable compilation
-            PREBUILDS_ONLY: true
         steps:
             - name: Check out Git repository
               uses: actions/checkout@v4
