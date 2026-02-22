@@ -32,8 +32,8 @@
         "format:check": "prettier --experimental-cli --check .",
         "typecheck:node": "tsc --noEmit -p tsconfig.node.json --composite false",
         "typecheck:web": "vue-tsc --noEmit -p tsconfig.web.json --composite false",
-        "typecheck": "concurrently 'npm run typecheck:node' 'npm run typecheck:web'",
-        "checks": "concurrently 'npm run typecheck:web' 'npm run typecheck:node' 'npm run lint' 'npm run format:check'",
+        "typecheck": "concurrently \"npm run typecheck:node\" \"npm run typecheck:web\"",
+        "checks": "concurrently \"npm run typecheck:web\" \"npm run typecheck:node\" \"npm run lint\" \"npm run format:check\"",
         "generate-i18n-assets": "node --import=tsx tools/generate-i18n-asset-files.ts"
     },
     "engines": {
