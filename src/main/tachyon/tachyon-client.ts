@@ -20,6 +20,9 @@ export type TachyonClientRequestHandlers = {
     ) => Promise<Omit<GetCommands<"user", "server", "response", CommandId>, "type" | "commandId" | "messageId">>;
 };
 
+type RequestArgs<C extends GetCommandIds<"user", "server", "request">> =
+    GetCommandData<GetCommands<"user", "server", "request", C>> extends never ? [commandId: C] : [commandId: C, data: GetCommandData<GetCommands<"user", "server", "request", C>>];
+
 export class TachyonClient {
     public socket?: WebSocket;
 
@@ -112,9 +115,19 @@ export class TachyonClient {
         });
     }
 
-    public async request<C extends GetCommandIds<"user", "server", "request">>(
-        ...args: GetCommandData<GetCommands<"user", "server", "request", C>> extends never ? [commandId: C] : [commandId: C, data: GetCommandData<GetCommands<"user", "server", "request", C>>]
-    ): Promise<Extract<GetCommands<"server", "user", "response", C>, { status: "success" }>> {
+    public async request<C extends GetCommandIds<"user", "server", "request">>(...args: RequestArgs<C>): Promise<Extract<GetCommands<"server", "user", "response", C>, { status: "success" }>> {
+        const response = await this.doRequest(true, args);
+        return response as Extract<GetCommands<"server", "user", "response", C>, { status: "success" }>;
+    }
+
+    public async requestStructured<C extends GetCommandIds<"user", "server", "request">>(...args: RequestArgs<C>): Promise<Extract<GetCommands<"server", "user", "response", C>, { commandId: C }>> {
+        return this.doRequest(false, args);
+    }
+
+    private async doRequest<C extends GetCommandIds<"user", "server", "request">>(
+        throwOnFailed: boolean,
+        args: RequestArgs<C>
+    ): Promise<Extract<GetCommands<"server", "user", "response", C>, { commandId: C }>> {
         if (!this.socket) {
             throw new Error("Not connected to server");
         }
@@ -139,10 +152,14 @@ export class TachyonClient {
                 }
                 if (response.status === "failed") {
                     log.error(`Error response received: ${JSON.stringify(response)}`);
-                    reject(new Error(`${response.reason}` + (response.details ? ` (${response.details})` : "")));
+                    if (throwOnFailed) {
+                        reject(new Error(`${response.reason}` + (response.details ? ` (${response.details})` : "")));
+                        return;
+                    }
+                    resolve(response as Extract<GetCommands<"server", "user", "response", C>, { commandId: C }>);
                     return;
                 }
-                resolve(response as Extract<GetCommands<"server", "user", "response", C>, { status: "success" }>);
+                resolve(response as Extract<GetCommands<"server", "user", "response", C>, { commandId: C }>);
             });
         });
     }

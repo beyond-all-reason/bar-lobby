@@ -39,7 +39,23 @@ export default [
     ...pluginVue.configs["flat/essential"],
     { files: ["**/*.vue"], languageOptions: { parserOptions: { parser: tseslint.parser } } },
     {
+        // Allow the wrapper itself to call window.tachyon.requestStructured directly.
+        // All other renderer code must go through tachyonRequest() from @renderer/api/tachyon.
+        files: ["src/renderer/api/tachyon.ts"],
         rules: {
+            "no-restricted-syntax": "off",
+        },
+    },
+    {
+        rules: {
+            "no-restricted-syntax": [
+                "error",
+                {
+                    selector:
+                        "CallExpression[callee.type='MemberExpression'][callee.object.type='MemberExpression'][callee.object.object.name='window'][callee.object.property.name='tachyon'][callee.property.name='requestStructured']",
+                    message: "Do not call window.tachyon.requestStructured directly. Use tachyonRequest() from @renderer/api/tachyon instead.",
+                },
+            ],
             "vue/multi-word-component-names": "off",
             "@typescript-eslint/no-unused-vars": "warn",
             "@typescript-eslint/no-unused-expressions": [

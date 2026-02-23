@@ -109,6 +109,7 @@ export type IPCCommands = {
     "tachyon:isConnected": () => boolean;
     "tachyon:sendEvent": (event: TachyonEvent) => void;
     "tachyon:request": (...args: unknown[]) => Promise<TachyonResponse>;
+    "tachyon:requestStructured": (...args: unknown[]) => Promise<TachyonResponse>;
 };
 
 type Awaitable<T> = T | Promise<T>;
