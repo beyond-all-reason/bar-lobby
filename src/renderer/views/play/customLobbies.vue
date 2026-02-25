@@ -125,7 +125,7 @@ function sendLobbyJoinRequest(data) {
     } else if (lobbyStore.activeLobby.id == data.id) {
         //We are trying to join a lobby we are already in, just open the view, no request needed.
         //battleStore.isLobbyOpened = true;
-        router.push("play/lobby");
+        router.push("/play/lobby");
         return;
     }
     //We will need to leave this lobby first, so warn the user.

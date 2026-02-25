@@ -2220,7 +2220,8 @@
                     "startBoxes2": "Extra startboxes will be dropped.",
                     "startBoxes3": "AllyTeams without one are full-map startboxes.",
                     "allyTeamCount": "AllyTeam Count: ",
-                    "teamsPerAllyTeam": "Teams per AllyTeam: "
+                    "teamsPerAllyTeam": "Teams per AllyTeam: ",
+                    "map": "Map"
                 },
                 "votePanel": {
                     "vote": "Vote:",

@@ -4194,7 +4194,8 @@
                     "startBoxes2": null,
                     "startBoxes3": null,
                     "allyTeamCount": null,
-                    "teamsPerAllyTeam": null
+                    "teamsPerAllyTeam": null,
+                    "map": null
                 },
                 "votePanel": {
                     "vote": null,

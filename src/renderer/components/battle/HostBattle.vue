@@ -52,7 +52,7 @@ SPDX-License-Identifier: MIT
                             v-model="map"
                             :options="mapListOptions"
                             data-key="springName"
-                            :label="t('lobby.views.watch.replays.map')"
+                            :label="t('lobby.components.battle.hostBattle.map')"
                             optionLabel="springName"
                             :filter="true"
                             class="fullwidth"
@@ -65,11 +65,11 @@ SPDX-License-Identifier: MIT
                             <Icon :icon="cogIcon" height="23" />
                         </Button>
                         <MapListModal
-                            v-model="mapListOpen"
+                            v-model="isMapListOpen"
                             :title="t('lobby.components.battle.offlineBattleComponent.maps')"
                             @map-selected="onMapSelected"
                         />
-                        <MapOptionsModal v-if="map" v-model="mapOptionsOpen" />
+                        <MapOptionsModal v-if="map" v-model="isMapOptionsOpen" />
                     </div>
                 </div>
                 <Select
@@ -145,8 +145,8 @@ const hostLobbyModal = useTemplateRef("hostLobbyModal");
 const hostedBattleData: Ref<{ name: string; password: string } | undefined> = ref();
 const mapListOptions = useDexieLiveQuery(() => db.maps.toArray());
 const waitingForBattleCreation = ref(false);
-const mapListOpen = ref(false);
-const mapOptionsOpen = ref(false);
+const isMapListOpen = ref(false);
+const isMapOptionsOpen = ref(false);
 
 function getGeneratedLobbyRequestData(): LobbyCreateRequestData {
     const arr = battleActions.getCurrentStartBoxes(); //Proxy objects causing issues with arrays here, so we just get the boxes manually
@@ -168,6 +168,7 @@ function getGeneratedLobbyRequestData(): LobbyCreateRequestData {
         if (!boxes[i]) {
             //Insufficient startboxes provided, so we just add a full-size one as a hack for now.
             boxes.push({ top: 0, bottom: 1, left: 0, right: 1 });
+            console.warn(`Insufficient number of startboxes provided for number of Allyteams, adding a full-map startbox!`);
         }
         config.allyTeamConfig.push({
             maxTeams: playersPerAllyTeam.value,
@@ -206,15 +207,15 @@ function onMapSelected(mapData: MapData) {
     battleStore.battleOptions.map = mapData;
     battleActions.getCurrentStartBoxes();
     map.value = mapData;
-    mapListOpen.value = false;
+    isMapListOpen.value = false;
 }
 
 function openMapList() {
-    mapListOpen.value = true;
+    isMapListOpen.value = true;
 }
 
 function openMapOptions() {
-    mapOptionsOpen.value = true;
+    isMapOptionsOpen.value = true;
 }
 </script>
 

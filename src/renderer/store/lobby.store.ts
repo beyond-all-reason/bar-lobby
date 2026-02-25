@@ -187,15 +187,16 @@ async function requestSpectate() {
 
 // Sorts the playerQueue based on the indices because we cannot assume they will be exclusively positive or consecutive integers
 function sortPlayerQueue(map: Map<number, string>): Map<number, string> {
-    const mapEntries = Array.from(map.entries());
-    mapEntries.sort((a, b) => {
-        const keyA = a[0];
-        const keyB = b[0];
-        if (keyA < keyB) return -1;
-        if (keyA > keyB) return 1;
-        return 0;
-    });
-    return new Map(mapEntries);
+    return new Map(Array.from(map.entries()).toSorted(([a], [b]) => a - b));
+    // const mapEntries = Array.from(map.entries());
+    // mapEntries.sort((a, b) => {
+    //     const keyA = a[0];
+    //     const keyB = b[0];
+    //     if (keyA < keyB) return -1;
+    //     if (keyA > keyB) return 1;
+    //     return 0;
+    // });
+    // return new Map(mapEntries);
 }
 
 // We use this function to normalize both LobbyCreateOkResponseData and LobbyJoinOkResponseData into the Lobby type for use in the renderer
@@ -266,7 +267,7 @@ function parseLobbyResponseData(data: LobbyCreateOkResponseData | LobbyJoinOkRes
             tempMap.set(member.joinQueuePosition, member.id);
         }
     }
-    lobbyObject.playerQueue = new Map(sortPlayerQueue(tempMap));
+    lobbyObject.playerQueue = sortPlayerQueue(tempMap);
     for (const botKey in data.bots) {
         const bot = data.bots[botKey];
         lobbyObject.botCount++;
@@ -379,9 +380,20 @@ function clearSelectedLobbyIfNull() {
 
 async function onLobbyUpdatedEvent(data: LobbyUpdatedEventData) {
     console.log("Tachyon event: lobby/updated:", data);
+    if (!lobbyStore.activeLobby) {
+        console.warn("Lobby update received but we have no active lobby. Skipping update.");
+        return;
+    }
+    if (lobbyStore.activeLobby.id != data.id) {
+        console.warn("Lobby update did not match active lobby ID. Skipping update.");
+        return;
+    }
     //Apply the patch
     lobbyStore.activeLobby = applyPatch(lobbyStore.activeLobby, data);
-    if (!lobbyStore.activeLobby) return;
+    if (!lobbyStore.activeLobby) {
+        console.error("Active Lobby is null or undefined after applyPatch. This should never happen!");
+        return;
+    }
     if (data.mapName) {
         db.maps.get(data.mapName).then((map) => {
             if (map == undefined) {
@@ -409,7 +421,7 @@ async function onLobbyUpdatedEvent(data: LobbyUpdatedEventData) {
             tempMap.set(member.joinQueuePosition, member.id);
         }
     }
-    lobbyStore.activeLobby.playerQueue = new Map(sortPlayerQueue(tempMap));
+    lobbyStore.activeLobby.playerQueue = sortPlayerQueue(tempMap);
     lobbyStore.activeLobby.playerCount = playerCount;
     lobbyStore.activeLobby.spectatorCount = spectatorCount;
     lobbyStore.activeLobby.botCount = botCount;
@@ -445,6 +457,7 @@ async function onLobbyUpdatedEvent(data: LobbyUpdatedEventData) {
 }
 
 function onLobbyLeftEvent(data: LobbyLeftEventData) {
+    if (!lobbyStore.activeLobby || lobbyStore.activeLobby.id != data.id) return;
     clearUserSubscriptions();
     lobbyStore.activeLobby = undefined;
     console.log("Tachyon event: lobby/left:", data);
