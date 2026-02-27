@@ -94,7 +94,7 @@ import { Icon } from "@iconify/vue";
 import account from "@iconify-icons/mdi/account";
 import Column from "primevue/column";
 import DataTable from "primevue/datatable";
-import { computed, ComputedRef, onActivated, onDeactivated, ref } from "vue";
+import { computed, ComputedRef, onActivated, ref } from "vue";
 import Panel from "@renderer/components/common/Panel.vue";
 
 import Checkbox from "@renderer/components/controls/Checkbox.vue";
@@ -136,10 +136,6 @@ function sendLobbyJoinRequest(data) {
 // Because this page is part of <KeepAlive>, we use this instead of onMounted() to trigger anytime the page is loaded.
 onActivated(() => {
     lobby.requestSubscribeList();
-});
-
-onDeactivated(() => {
-    lobby.requestUnsubscribeList();
 });
 </script>
 

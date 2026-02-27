@@ -188,15 +188,6 @@ async function requestSpectate() {
 // Sorts the playerQueue based on the indices because we cannot assume they will be exclusively positive or consecutive integers
 function sortPlayerQueue(map: Map<number, string>): Map<number, string> {
     return new Map(Array.from(map.entries()).toSorted(([a], [b]) => a - b));
-    // const mapEntries = Array.from(map.entries());
-    // mapEntries.sort((a, b) => {
-    //     const keyA = a[0];
-    //     const keyB = b[0];
-    //     if (keyA < keyB) return -1;
-    //     if (keyA > keyB) return 1;
-    //     return 0;
-    // });
-    // return new Map(mapEntries);
 }
 
 // We use this function to normalize both LobbyCreateOkResponseData and LobbyJoinOkResponseData into the Lobby type for use in the renderer
@@ -404,13 +395,7 @@ async function onLobbyUpdatedEvent(data: LobbyUpdatedEventData) {
         });
     }
     //Recalculate player counts afterward.
-    let maxPlayerCount: number = 0;
-    for (const allyKey in lobbyStore.activeLobby.allyTeamConfig) {
-        for (const teamKey in lobbyStore.activeLobby.allyTeamConfig[allyKey].teams) {
-            maxPlayerCount += lobbyStore.activeLobby.allyTeamConfig[allyKey].teams[teamKey].maxPlayers!;
-        }
-    }
-    lobbyStore.activeLobby.maxPlayerCount = maxPlayerCount;
+    lobbyStore.activeLobby.maxPlayerCount = getMaxPlayerCountFromAllyTeamConfig(lobbyStore.activeLobby.allyTeamConfig);
     const playerCount: number = Object.keys(lobbyStore.activeLobby.players).length;
     const spectatorCount: number = Object.keys(lobbyStore.activeLobby.spectators).length;
     const botCount: number = Object.keys(lobbyStore.activeLobby.bots).length;
@@ -467,6 +452,16 @@ function onLobbyLeftEvent(data: LobbyLeftEventData) {
         text: i18n.global.t("lobby.multiplayer.custom.removedFromLobby"),
         severity: "info",
     });
+}
+
+function getMaxPlayerCountFromAllyTeamConfig(config: object): number {
+    let maxPlayerCount: number = 0;
+    for (const allyKey in config) {
+        for (const teamKey in config[allyKey].teams) {
+            maxPlayerCount += config[allyKey].teams[teamKey].maxPlayers!;
+        }
+    }
+    return maxPlayerCount;
 }
 
 async function clearUserSubscriptions() {
