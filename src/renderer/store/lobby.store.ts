@@ -186,7 +186,7 @@ async function requestSpectate() {
 }
 
 // Sorts the playerQueue based on the indices because we cannot assume they will be exclusively positive or consecutive integers
-function sortPlayerQueue(map: Map<number, string>): Map<number, string> {
+function toSortedPlayerQueue(map: Map<number, string>): Map<number, string> {
     return new Map(Array.from(map.entries()).toSorted(([a], [b]) => a - b));
 }
 
@@ -258,7 +258,7 @@ function parseLobbyResponseData(data: LobbyCreateOkResponseData | LobbyJoinOkRes
             tempMap.set(member.joinQueuePosition, member.id);
         }
     }
-    lobbyObject.playerQueue = sortPlayerQueue(tempMap);
+    lobbyObject.playerQueue = toSortedPlayerQueue(tempMap);
     for (const botKey in data.bots) {
         const bot = data.bots[botKey];
         lobbyObject.botCount++;
@@ -364,7 +364,7 @@ async function requestLobbyUpdate(data: LobbyUpdateRequestData) {
 }
 
 function clearSelectedLobbyIfNull() {
-    if (lobbyStore.selectedLobby && lobbyStore.selectedLobby.id && lobbyStore.lobbies[lobbyStore.selectedLobby.id] == null) {
+    if (lobbyStore.selectedLobby && lobbyStore.lobbies[lobbyStore.selectedLobby.id] == null) {
         lobbyStore.selectedLobby = null;
     }
 }
@@ -406,7 +406,7 @@ async function onLobbyUpdatedEvent(data: LobbyUpdatedEventData) {
             tempMap.set(member.joinQueuePosition, member.id);
         }
     }
-    lobbyStore.activeLobby.playerQueue = sortPlayerQueue(tempMap);
+    lobbyStore.activeLobby.playerQueue = toSortedPlayerQueue(tempMap);
     lobbyStore.activeLobby.playerCount = playerCount;
     lobbyStore.activeLobby.spectatorCount = spectatorCount;
     lobbyStore.activeLobby.botCount = botCount;
