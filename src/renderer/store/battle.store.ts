@@ -216,7 +216,7 @@ function getNumberOfTeams(): number {
     if (battleStore.battleOptions.mapOptions.startPosType === StartPosType.Boxes) {
         const startBoxIndex = battleStore.battleOptions.mapOptions.startBoxesIndex;
 
-        if (startBoxIndex != undefined) {
+        if (startBoxIndex != undefined && map.startboxesSet[startBoxIndex] != undefined) {
             const startBoxes = map.startboxesSet[startBoxIndex];
             numberOfTeams = startBoxes.startboxes.length;
         } else if (battleStore.battleOptions.mapOptions.customStartBoxes) {
@@ -244,11 +244,13 @@ function getMaxPlayersPerTeam() {
     if (battleStore.battleOptions.mapOptions.startPosType === StartPosType.Boxes) {
         const startBoxIndex = battleStore.battleOptions.mapOptions.startBoxesIndex;
 
-        if (startBoxIndex != undefined) {
+        if (startBoxIndex != undefined && map.startboxesSet[startBoxIndex] != undefined) {
             const startBoxes = map.startboxesSet[startBoxIndex];
             maxPlayersPerTeam = startBoxes.maxPlayersPerStartbox;
         } else if (battleStore.battleOptions.mapOptions.customStartBoxes) {
             maxPlayersPerTeam = Math.round(map.playerCountMax / battleStore.battleOptions.mapOptions.customStartBoxes.length);
+        } else {
+            maxPlayersPerTeam = 1;
         }
     }
 
@@ -289,9 +291,33 @@ function updateTeams() {
 
 function getCurrentStartBoxes(): Array<StartBox> {
     const startBoxesIndex = battleStore.battleOptions.mapOptions.startBoxesIndex;
-    return startBoxesIndex != undefined
-        ? battleStore.battleOptions.map?.startboxesSet.at(startBoxesIndex)?.startboxes.map((box) => spadsBoxToStartBox(box.poly)) || []
-        : (battleStore.battleOptions.mapOptions.customStartBoxes as Array<StartBox>);
+    if (startBoxesIndex != undefined) {
+        if (battleStore.battleOptions.map?.startboxesSet[startBoxesIndex] != undefined) {
+            return battleStore.battleOptions.map?.startboxesSet.at(startBoxesIndex)?.startboxes.map((box) => spadsBoxToStartBox(box.poly)) || [];
+        } else {
+            // In this case the map has no startboxes at all, which will crash the client unless we set some.
+            const defaultBoxes = [
+                {
+                    top: 0,
+                    bottom: 1,
+                    left: 0,
+                    right: 0.25,
+                },
+                {
+                    top: 0,
+                    bottom: 1,
+                    left: 0.75,
+                    right: 1,
+                },
+            ];
+            // Clearing the index means we set to custom boxes, which is best since we have zero presets anyway.
+            battleStore.battleOptions.mapOptions.customStartBoxes = defaultBoxes;
+            battleStore.battleOptions.mapOptions.startBoxesIndex = undefined;
+            return defaultBoxes;
+        }
+    } else {
+        return battleStore.battleOptions.mapOptions.customStartBoxes as Array<StartBox>;
+    }
 }
 
 function addCustomStartBox() {
