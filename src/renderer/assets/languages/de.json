@@ -1957,7 +1957,9 @@
                 "goBack": null,
                 "login": null,
                 "changeAccount": null,
-                "playOffline": null
+                "playOffline": null,
+                "needToLogIn": null,
+                "needToLogInToAccess": null
             }
         },
         "library": {
@@ -2071,7 +2073,8 @@
             "serverStatus": {
                 "playersOnline": null,
                 "error": null,
-                "reconnecting": null
+                "reconnecting": null,
+                "offline": null
             },
             "messages": {
                 "message": null,
@@ -2226,13 +2229,22 @@
                     "editPresetTeams": null,
                     "fixedPositions": null,
                     "random": null,
-                    "close": null
+                    "close": null,
+                    "openMapSelector": null
                 },
                 "hostBattle": {
                     "title": null,
                     "settingUp": null,
                     "region": null,
-                    "hostButton": null
+                    "hostButton": null,
+                    "updateButton": null,
+                    "name": null,
+                    "startBoxes1": null,
+                    "startBoxes2": null,
+                    "startBoxes3": null,
+                    "allyTeamCount": null,
+                    "teamsPerAllyTeam": null,
+                    "map": null
                 },
                 "votePanel": {
                     "vote": null,

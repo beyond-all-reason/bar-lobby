@@ -29,7 +29,7 @@ SPDX-License-Identifier: MIT
         </div>
 
         <button v-if="memberCount === 0" class="add-bot-button" @click="addBotClicked(teamId)">
-            {{ t("lobby.components.battle.teamComponent.chooseBot") }}
+            {{ t("lobby.components.battle.teamComponent.addBot") }}
         </button>
 
         <div

@@ -2206,13 +2206,22 @@
                     "editPresetTeams": "Edit Preset Teams",
                     "fixedPositions": "Fixed positions",
                     "random": "Random",
-                    "close": "Close"
+                    "close": "Close",
+                    "openMapSelector": "Open map selector"
                 },
                 "hostBattle": {
                     "title": "Host Battle",
                     "settingUp": "Setting up a dedicated battle host, this usually takes around 30 seconds",
                     "region": "Region",
-                    "hostButton": "Host Battle"
+                    "hostButton": "Host Battle",
+                    "updateButton": "Update Battle",
+                    "name": "Name",
+                    "startBoxes1": "Startboxes are assigned sequentially to AllyTeams.",
+                    "startBoxes2": "Extra startboxes will be dropped.",
+                    "startBoxes3": "AllyTeams without one are full-map startboxes.",
+                    "allyTeamCount": "AllyTeam Count: ",
+                    "teamsPerAllyTeam": "Teams per AllyTeam: ",
+                    "map": "Map"
                 },
                 "votePanel": {
                     "vote": "Vote:",
@@ -2241,7 +2250,6 @@
                 "teamComponent": {
                     "team": "Team",
                     "addBot": "Add bot",
-                    "chooseBot": "Choose Bot",
                     "join": "Join",
                     "players": "({count} / {maxCount} players)",
                     "scavengers": "Scavengers",
