@@ -180,6 +180,16 @@ function request<C extends GetCommandIds<"user", "server", "request">>(
     return ipcRenderer.invoke("tachyon:request", ...args) as Promise<Extract<GetCommands<"server", "user", "response", C>, { status: "success" }>>;
 }
 
+/**
+ * Returns response if successful or failed, therefore the caller needs to check for response.status and act accordingly.
+ * @param args
+ */
+function requestStructured<C extends GetCommandIds<"user", "server", "request">>(
+    ...args: GetCommandData<GetCommands<"user", "server", "request", C>> extends never ? [commandId: C] : [commandId: C, data: GetCommandData<GetCommands<"user", "server", "request", C>>]
+): Promise<Extract<GetCommands<"server", "user", "response", C>, { commandId: C }>> {
+    return ipcRenderer.invoke("tachyon:requestStructured", ...args) as Promise<Extract<GetCommands<"server", "user", "response", C>, { commandId: C }>>;
+}
+
 function onEvent<C extends GetCommandIds<"server", "user", "event">>(eventID: C, callback: (event: GetCommandData<GetCommands<"server", "user", "event", C>>) => void) {
     ipcRenderer.setMaxListeners(20);
 
@@ -200,6 +210,7 @@ const tachyonApi = {
     // Requests
     // sendEvent: (event: TachyonEvent) => ipcRenderer.invoke("tachyon:sendEvent", event),
     request,
+    requestStructured,
 
     // Events
     onConnected: (callback: () => void) => ipcRenderer.on("tachyon:connected", callback),

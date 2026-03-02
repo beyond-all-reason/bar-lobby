@@ -11,9 +11,13 @@ import {
     MatchmakingQueuesJoinedEventData,
     MatchmakingQueueUpdateEventData,
 } from "tachyon-protocol/types";
+import { isTachyonErrorForCommand, tachyonRequest } from "@renderer/api/tachyon";
+import { setupI18n } from "@renderer/i18n";
 import { tachyonStore } from "@renderer/store/tachyon.store";
 import { db } from "@renderer/store/db";
 import { notificationsApi } from "@renderer/api/notifications";
+
+const i18n = setupI18n();
 
 export enum MatchmakingStatus {
     Idle = "Idle",
@@ -28,7 +32,7 @@ export const matchmakingStore: {
     isDrawerOpen: boolean;
     status: MatchmakingStatus;
     errorMessage: string | null;
-    selectedQueue: string;
+    selectedQueue: { id: string; version: string } | null;
     playlists: MatchmakingListOkResponseData["playlists"];
     isLoadingQueues: boolean;
     queueError?: string;
@@ -45,7 +49,7 @@ export const matchmakingStore: {
     isDrawerOpen: false,
     status: MatchmakingStatus.Idle,
     errorMessage: null,
-    selectedQueue: "1v1",
+    selectedQueue: null,
     playlists: [],
     isLoadingQueues: false,
     queueError: undefined,
@@ -97,10 +101,17 @@ async function sendListRequest() {
         console.log("Tachyon: matchmaking/list:", response.data);
         matchmakingStore.playlists = response.data.playlists;
 
-        // Set default selected queue if current selection is not available
-        const hasSelectedQueue = matchmakingStore.playlists.some((playlist) => playlist.id === matchmakingStore.selectedQueue);
-        if (matchmakingStore.playlists.length > 0 && !hasSelectedQueue) {
-            matchmakingStore.selectedQueue = matchmakingStore.playlists[0].id;
+        // Keep selected queue in sync with latest playlist versions
+        const selectedPlaylist = matchmakingStore.selectedQueue ? matchmakingStore.playlists.find((playlist) => playlist.id === matchmakingStore.selectedQueue?.id) : undefined;
+        if (selectedPlaylist) {
+            matchmakingStore.selectedQueue = { id: selectedPlaylist.id, version: selectedPlaylist.version };
+        } else if (matchmakingStore.playlists.length > 0) {
+            matchmakingStore.selectedQueue = {
+                id: matchmakingStore.playlists[0].id,
+                version: matchmakingStore.playlists[0].version,
+            };
+        } else {
+            matchmakingStore.selectedQueue = null;
         }
         // Clear the "downloadsRequired" list because we have all-new playlist response
         matchmakingStore.downloadsRequired = {};
@@ -110,8 +121,8 @@ async function sendListRequest() {
         });
     } catch (error) {
         console.error("Tachyon error: matchmaking/list:", error);
-        notificationsApi.alert({ text: "Tachyon error: matchmaking/list", severity: "error" });
-        matchmakingStore.queueError = "Failed to retrieve available queues";
+        notificationsApi.alert({ text: i18n.global.t("lobby.multiplayer.ranked.errors.listRequest"), severity: "error" });
+        matchmakingStore.queueError = i18n.global.t("lobby.multiplayer.ranked.errors.queueListUnavailable");
     } finally {
         matchmakingStore.isLoadingQueues = false;
     }
@@ -133,31 +144,53 @@ export function getPlaylistName(id: string): string {
 }
 
 async function sendQueueRequest() {
-    if (matchmakingStore.downloadsRequired[matchmakingStore.selectedQueue] == undefined) {
-        notificationsApi.alert({ text: "Bad queue data; refreshing list.", severity: "error" });
+    const selectedQueue = matchmakingStore.selectedQueue;
+    if (!selectedQueue) {
+        notificationsApi.alert({ text: i18n.global.t("lobby.multiplayer.ranked.errors.badQueueData"), severity: "error" });
         await sendListRequest();
         return;
     }
-    if (matchmakingStore.downloadsRequired[matchmakingStore.selectedQueue].needed) {
-        notificationsApi.alert({ text: "You have downloads required to join this queue.", severity: "info" });
+    if (matchmakingStore.downloadsRequired[selectedQueue.id] == undefined) {
+        notificationsApi.alert({ text: i18n.global.t("lobby.multiplayer.ranked.errors.badQueueData"), severity: "error" });
+        await sendListRequest();
+        return;
+    }
+    if (matchmakingStore.downloadsRequired[selectedQueue.id].needed) {
+        notificationsApi.alert({ text: i18n.global.t("lobby.multiplayer.ranked.errors.downloadsRequired"), severity: "info" });
         return;
     }
     matchmakingStore.status = MatchmakingStatus.JoinRequested; // Initial state, likely short-lived.
     try {
         matchmakingStore.errorMessage = null;
-        // TODO: fix matchmaking that broke with the tachyon update: https://github.com/beyond-all-reason/bar-lobby/issues/545
-        const response = await window.tachyon.request("matchmaking/queue", {
-            queues: [
-                /* matchmakingStore.selectedQueue */
-            ],
+        await tachyonRequest("matchmaking/queue", {
+            queues: [{ id: selectedQueue.id, version: selectedQueue.version }],
         });
-        console.log("Tachyon: matchmaking/queue:", response.status);
+        console.log("Tachyon: matchmaking/queue: success");
         matchmakingStore.status = MatchmakingStatus.Searching;
     } catch (error) {
-        console.error("Tachyon error: matchmaking/queue:", error);
-        notificationsApi.alert({ text: "Tachyon error: matchmaking/queue", severity: "error" });
-        matchmakingStore.errorMessage = "Error with matchmaking/queue";
-        matchmakingStore.status = MatchmakingStatus.Idle;
+        if (isTachyonErrorForCommand(error, "matchmaking/queue")) {
+            switch (error.response.reason) {
+                case "version_mismatch":
+                    notificationsApi.alert({
+                        text: i18n.global.t("lobby.multiplayer.ranked.errors.versionMismatch"),
+                        severity: "warning",
+                    });
+                    await sendListRequest();
+                    matchmakingStore.errorMessage = i18n.global.t("lobby.multiplayer.ranked.errors.queueChangedRetry");
+                    matchmakingStore.status = MatchmakingStatus.Idle;
+                    break;
+                default:
+                    notificationsApi.alert({ text: i18n.global.t("lobby.multiplayer.ranked.errors.queueRequest"), severity: "error" });
+                    matchmakingStore.errorMessage = i18n.global.t("lobby.multiplayer.ranked.errors.queueRequestFailed");
+                    matchmakingStore.status = MatchmakingStatus.Idle;
+                    break;
+            }
+        } else {
+            console.error("Tachyon error: matchmaking/queue:", error);
+            notificationsApi.alert({ text: i18n.global.t("lobby.multiplayer.ranked.errors.queueRequest"), severity: "error" });
+            matchmakingStore.errorMessage = i18n.global.t("lobby.multiplayer.ranked.errors.queueRequestFailed");
+            matchmakingStore.status = MatchmakingStatus.Idle;
+        }
     }
 }
 
@@ -168,8 +201,8 @@ async function sendCancelRequest() {
         console.log("Tachyon: matchmaking/cancel:", response.status);
     } catch (error) {
         console.error("Tachyon: matchmaking/cancel:", error);
-        notificationsApi.alert({ text: "Tachyon error: matchmaking/cancel", severity: "error" });
-        matchmakingStore.errorMessage = "Error with matchmaking/cancel";
+        notificationsApi.alert({ text: i18n.global.t("lobby.multiplayer.ranked.errors.cancelRequest"), severity: "error" });
+        matchmakingStore.errorMessage = i18n.global.t("lobby.multiplayer.ranked.errors.cancelRequestFailed");
     }
 }
 
@@ -181,8 +214,8 @@ async function sendReadyRequest() {
     } catch (error) {
         matchmakingStore.status = MatchmakingStatus.Idle;
         console.error("Tachyon error: matchmaking/ready:", error);
-        notificationsApi.alert({ text: "Tachyon error: matchmaking/ready", severity: "error" });
-        matchmakingStore.errorMessage = "Error with matchmaking/ready";
+        notificationsApi.alert({ text: i18n.global.t("lobby.multiplayer.ranked.errors.readyRequest"), severity: "error" });
+        matchmakingStore.errorMessage = i18n.global.t("lobby.multiplayer.ranked.errors.readyRequestFailed");
     }
 }
 
