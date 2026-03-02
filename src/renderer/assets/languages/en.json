@@ -1940,7 +1940,8 @@
                     "name": "Name",
                     "tag": "Tag",
                     "noClanSelected": "No clan selected",
-                    "noDescription": "No description provided."
+                    "noDescription": "No description provided.",
+                    "openClanArea": "Open clan details area"
                 }
             },
             "index": {
