@@ -12,6 +12,7 @@ const noClanEntry: ClanBaseData[] = [
         name: "No Clan",
         tag: "NC",
         clanId: "0",
+        language: "en",
     },
 ];
 // Reactive store for clans data
@@ -49,6 +50,7 @@ async function readClanFromServer(clanId: string) {
         console.log(`Response.data.name=${response.data.name}`);
         console.log(`Response.data.tag=${response.data.tag}`);
         console.log(`Response.data.description=${response.data.description}`);
+        console.log(`Response.data.language=${response.data.language}`);
         console.log(`Response.data.members=${response.data.members}`);
         return response.data;
     } catch {

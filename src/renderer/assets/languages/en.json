@@ -1941,7 +1941,8 @@
                     "tag": "Tag",
                     "noClanSelected": "No clan selected",
                     "noDescription": "No description provided.",
-                    "openClanArea": "Open clan details area"
+                    "openClanArea": "Open clan details area",
+                    "clanLanguage": "Language"
                 }
             },
             "index": {

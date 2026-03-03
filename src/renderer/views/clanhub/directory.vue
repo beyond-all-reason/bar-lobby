@@ -46,6 +46,11 @@ SPDX-License-Identifier: MIT
                                 <Column :header="t('lobby.views.clanhub.directory.name')">
                                     <template #body="{ data }">{{ data.name }}</template>
                                 </Column>
+                                <Column :header="t('lobby.views.clanhub.directory.clanLanguage')">
+                                    <template #body="{ data }"
+                                        ><img :src="`/src/renderer/assets/images/flags/${data.language}.png`"
+                                    /></template>
+                                </Column>
                             </DataTable>
                         </div>
                     </Panel>
@@ -53,23 +58,28 @@ SPDX-License-Identifier: MIT
                 <div class="clan-dir-right-section">
                     <Panel>
                         <div class="flex-col fullheight fullwidth gap-md">
-                            <img
+                            <!--<img
                                 class="clan-dir-clan-logo"
                                 :alt="t('lobby.views.clanhub.directory.clanlogo')"
                                 src="/src/renderer/assets/images/defaultClanLogo.png"
-                            />
-                            <h2>
+                            />-->
+                            <div style="font-size: 72px; font-weight: bold; text-align: right; margin-right: 20px">
+                                {{ selectedClan?.tag }}
+                            </div>
+                            <h2 style="margin-bottom: 0px; padding-bottom: 0px">
                                 {{ selectedClan?.name }}
                             </h2>
-                            <div class="scroll-container clan-dir-description-field">
+                            <div style="font-size: medium; color: gray; margin-top: 0px; padding-top: 0px">
+                                Member: 0 | Language:
+                                <img :src="`/src/renderer/assets/images/flags/${selectedClan?.language ?? 'en'}.png`" />
+                            </div>
+                            <div class="scroll-container clan-dir-description-field" style="margin-top: 20px">
                                 {{ selectedClanDetails?.description }}
                                 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et
                                 dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet
                                 clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet,
                                 consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat,
-                                sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no
-                                sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing
-                                elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam
+                                sed diam voluptua. At vero eos et accusam et justo duo dolores et e
                             </div>
                             <Button class="fullwidth clan-dir-details-button">{{ t("lobby.views.clanhub.directory.openClanArea") }}</Button>
                         </div>
