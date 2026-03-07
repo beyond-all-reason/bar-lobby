@@ -48,7 +48,7 @@ SPDX-License-Identifier: MIT
                                     @row-dblclick="sendLobbyJoinRequest($event.data)"
                                 >
                                     <template #empty>
-                                        <p>No lobbies /o\</p>
+                                        <p>{{ t("lobby.multiplayer.custom.noLobbiesAvailable") }}</p>
                                     </template>
                                     <Column field="name" :header="t('lobby.multiplayer.custom.table.title')" sortable />
                                     <Column field="mapName" :header="t('lobby.multiplayer.custom.table.map')" sortable>

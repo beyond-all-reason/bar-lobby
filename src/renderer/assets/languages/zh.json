@@ -4091,6 +4091,8 @@
             "custom": {
                 "title": null,
                 "hostBattle": null,
+                "removedFromLobby": null,
+                "noLobbiesAvailable": null,
                 "filters": {
                     "hidePvE": null,
                     "hideLocked": null,

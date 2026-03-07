@@ -144,6 +144,8 @@
             "custom": {
                 "title": "Multiplayer Custom Battles",
                 "hostBattle": "Host Battle",
+                "removedFromLobby": "You have been removed from the lobby.",
+                "noLobbiesAvailable": "No games found.",
                 "filters": {
                     "hidePvE": "Hide PvE",
                     "hideLocked": "Hide Locked",

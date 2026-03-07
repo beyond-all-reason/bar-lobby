@@ -37,13 +37,11 @@ type LobbyId = string;
 export const lobbyStore: {
     isInitialized: boolean;
     lobbies: Record<LobbyId, LobbyOverview>;
-    isSubscribedToList: boolean;
     selectedLobby: LobbyOverview | null;
     activeLobby?: Lobby | null;
 } = reactive({
     isInitialized: false,
     lobbies: {}, //This will hold changes from ``lobby/listUpdated`` events
-    isSubscribedToList: false,
     selectedLobby: null,
     activeLobby: null,
 });
@@ -57,14 +55,12 @@ export async function initLobbyStore() {
 }
 
 function onListUpdatedEvent(data: LobbyListUpdatedEventData) {
-    //if (!lobbyStore.isSubscribedToList) return;
     console.log("Tachyon event: lobby/listUpdated:", data);
     lobbyStore.lobbies = applyPatch(lobbyStore.lobbies, data.lobbies);
     clearSelectedLobbyIfNull();
 }
 
 function onLobbyListResetEvent(data: LobbyListResetEventData) {
-    //if (!lobbyStore.isSubscribedToList) return;
     console.log("Tachyon event: lobby/listReset", data);
     lobbyStore.lobbies = data.lobbies;
     clearSelectedLobbyIfNull();
@@ -75,14 +71,12 @@ async function requestSubscribeList() {
         const response = await window.tachyon.request("lobby/subscribeList");
         //Per Tachyon protocol, this subscribes us, but does not return an updated list, that happens in the ListUpdated or ListReset events.
         console.log("subscribeList:", response.status);
-        lobbyStore.isSubscribedToList = true;
     } catch (error) {
         console.error("Error with request lobby/subscribeList:", error);
         notificationsApi.alert({
             text: "Error with request lobby/subscribeList",
             severity: "error",
         });
-        lobbyStore.isSubscribedToList = false;
         lobbyStore.lobbies = {};
     }
 }
@@ -90,12 +84,11 @@ async function requestSubscribeList() {
 async function requestUnsubscribeList() {
     try {
         await window.tachyon.request("lobby/unsubscribeList");
-        lobbyStore.isSubscribedToList = false;
         lobbyStore.lobbies = {};
     } catch (error) {
         console.error("Error with request lobby/unsubscribeList:", error);
         notificationsApi.alert({
-            text: "Error with request lobby/subscribeList",
+            text: "Error with request lobby/unsubscribeList",
             severity: "error",
         });
     }

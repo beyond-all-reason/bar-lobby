@@ -39,13 +39,13 @@ SPDX-License-Identifier: MIT
                         <p>
                             <b>{{ t("lobby.components.battle.hostBattle.allyTeamCount") }}</b>
                         </p>
-                        <input type="number" v-model="allyTeamCount" inputId="maxTeams" class="input-number" />
+                        <input type="number" v-model="allyTeamCount" inputId="maxTeams" class="input-number" min="1" />
                     </div>
                     <div class="flex-row gap-sm margin-sm">
                         <p>
                             <b>{{ t("lobby.components.battle.hostBattle.teamsPerAllyTeam") }}</b>
                         </p>
-                        <input type="number" v-model="playersPerAllyTeam" inputId="playerPerTeam" class="input-number" />
+                        <input type="number" v-model="playersPerAllyTeam" inputId="playerPerTeam" class="input-number" min="1" />
                     </div>
                     <div class="flex-row gap-md">
                         <Select
@@ -94,7 +94,9 @@ SPDX-License-Identifier: MIT
                         </div>
                     </template>
                 </Select>
-                <Button class="blue" @click="hostBattle()">{{ t("lobby.components.battle.hostBattle.hostButton") }}</Button>
+                <Button class="blue" @click="hostBattle()" :disabled="!canSendHostRequest">{{
+                    t("lobby.components.battle.hostBattle.hostButton")
+                }}</Button>
             </template>
         </div>
     </Modal>
@@ -147,6 +149,7 @@ const mapListOptions = useDexieLiveQuery(() => db.maps.toArray());
 const waitingForBattleCreation = ref(false);
 const isMapListOpen = ref(false);
 const isMapOptionsOpen = ref(false);
+const canSendHostRequest = ref(false);
 
 function getGeneratedLobbyRequestData(): LobbyCreateRequestData {
     const arr = battleActions.getCurrentStartBoxes(); //Proxy objects causing issues with arrays here, so we just get the boxes manually
@@ -195,6 +198,7 @@ async function onOpen() {
         if (mapData) {
             map.value = mapData;
             battleStore.battleOptions.map = mapData;
+            canSendHostRequest.value = true;
         }
     });
 }
@@ -208,6 +212,7 @@ function onMapSelected(mapData: MapData) {
     battleActions.getCurrentStartBoxes();
     map.value = mapData;
     isMapListOpen.value = false;
+    canSendHostRequest.value = true;
 }
 
 function openMapList() {
