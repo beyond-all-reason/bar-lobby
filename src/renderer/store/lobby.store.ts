@@ -362,7 +362,7 @@ function clearSelectedLobbyIfNull() {
     }
 }
 
-async function onLobbyUpdatedEvent(data: LobbyUpdatedEventData) {
+function onLobbyUpdatedEvent(data: LobbyUpdatedEventData) {
     console.log("Tachyon event: lobby/updated:", data);
     if (!lobbyStore.activeLobby) {
         console.warn("Lobby update received but we have no active lobby. Skipping update.");
@@ -389,9 +389,6 @@ async function onLobbyUpdatedEvent(data: LobbyUpdatedEventData) {
     }
     //Recalculate player counts afterward.
     lobbyStore.activeLobby.maxPlayerCount = getMaxPlayerCountFromAllyTeamConfig(lobbyStore.activeLobby.allyTeamConfig);
-    const playerCount: number = Object.keys(lobbyStore.activeLobby.players).length;
-    const spectatorCount: number = Object.keys(lobbyStore.activeLobby.spectators).length;
-    const botCount: number = Object.keys(lobbyStore.activeLobby.bots).length;
     const tempMap: Map<number, string> = new Map();
     for (const memberKey in lobbyStore.activeLobby?.spectators) {
         const member = lobbyStore.activeLobby.spectators[memberKey];
@@ -400,9 +397,9 @@ async function onLobbyUpdatedEvent(data: LobbyUpdatedEventData) {
         }
     }
     lobbyStore.activeLobby.playerQueue = toSortedPlayerQueue(tempMap);
-    lobbyStore.activeLobby.playerCount = playerCount;
-    lobbyStore.activeLobby.spectatorCount = spectatorCount;
-    lobbyStore.activeLobby.botCount = botCount;
+    lobbyStore.activeLobby.playerCount = Object.keys(lobbyStore.activeLobby.players).length;
+    lobbyStore.activeLobby.spectatorCount = Object.keys(lobbyStore.activeLobby.spectators).length;
+    lobbyStore.activeLobby.botCount = Object.keys(lobbyStore.activeLobby.bots).length;
     const userAttachList: UserId[] = [];
     const userDetachList: UserId[] = [];
     if (data.players) {
@@ -447,11 +444,11 @@ function onLobbyLeftEvent(data: LobbyLeftEventData) {
     });
 }
 
-function getMaxPlayerCountFromAllyTeamConfig(config: object): number {
+function getMaxPlayerCountFromAllyTeamConfig(config: Lobby["allyTeamConfig"]): number {
     let maxPlayerCount: number = 0;
-    for (const allyKey in config) {
-        for (const teamKey in config[allyKey].teams) {
-            maxPlayerCount += config[allyKey].teams[teamKey].maxPlayers!;
+    for (const allyTeam of Object.values(config)) {
+        for (const team of Object.values(allyTeam.teams)) {
+            maxPlayerCount += team.maxPlayers;
         }
     }
     return maxPlayerCount;
@@ -461,13 +458,6 @@ async function clearUserSubscriptions() {
     subsManager.clearAllFromList(lobbySymbol);
 }
 
-function clearLobbyAndListInfo() {
-    lobbyStore.lobbies = {};
-    lobbyStore.selectedLobby = null;
-    lobbyStore.activeLobby = undefined;
-    clearUserSubscriptions();
-}
-
 export const lobby = {
     requestSubscribeList,
     requestUnsubscribeList,
@@ -475,7 +465,6 @@ export const lobby = {
     requestJoinLobby,
     requestLeaveLobby,
     requestStartBattle,
-    clearLobbyAndListInfo,
     requestJoinAllyTeam,
     requestJoinQueue,
     requestSpectate,

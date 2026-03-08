@@ -152,30 +152,20 @@ const isMapOptionsOpen = ref(false);
 const canSendHostRequest = ref(false);
 
 function getGeneratedLobbyRequestData(): LobbyCreateRequestData {
-    const arr = battleActions.getCurrentStartBoxes(); //Proxy objects causing issues with arrays here, so we just get the boxes manually
-    const boxes: Array<StartBox> = []; //FIXME: We can have the wrong number of boxes.
-    arr.forEach((item) => {
-        boxes.push({
-            left: item.left,
-            right: item.right,
-            top: item.top,
-            bottom: item.bottom,
-        });
-    });
+    const boxes: Array<StartBox> = battleActions.getCurrentStartBoxes().map((box) => ({ ...box }));
+    console.log(boxes);
     let config: LobbyCreateRequestData = {
         name: lobbyName.value,
         mapName: map.value.springName,
         allyTeamConfig: [],
     };
+    if (boxes.length < allyTeamCount.value) {
+        console.warn(`Insufficient number of startboxes provided for number of Allyteams, this will add full-map startbox!`);
+    }
     for (let i = 0; i < allyTeamCount.value; i++) {
-        if (!boxes[i]) {
-            //Insufficient startboxes provided, so we just add a full-size one as a hack for now.
-            boxes.push({ top: 0, bottom: 1, left: 0, right: 1 });
-            console.warn(`Insufficient number of startboxes provided for number of Allyteams, adding a full-map startbox!`);
-        }
         config.allyTeamConfig.push({
             maxTeams: playersPerAllyTeam.value,
-            startBox: boxes[i],
+            startBox: boxes[i] ?? { top: 0, bottom: 1, left: 0, right: 1 },
             teams: [],
         });
         for (let j = 0; j < playersPerAllyTeam.value; j++) {
@@ -194,13 +184,12 @@ async function hostBattle() {
 
 async function onOpen() {
     waitingForBattleCreation.value = false;
-    await getRandomMap().then((mapData) => {
-        if (mapData) {
-            map.value = mapData;
-            battleStore.battleOptions.map = mapData;
-            canSendHostRequest.value = true;
-        }
-    });
+    const mapData = await getRandomMap();
+    if (mapData) {
+        map.value = mapData;
+        battleStore.battleOptions.map = mapData;
+        canSendHostRequest.value = true;
+    }
 }
 
 function onClose() {
