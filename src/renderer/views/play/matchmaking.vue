@@ -27,15 +27,15 @@ SPDX-License-Identifier: MIT
                 </div>
                 <Button
                     v-else
-                    v-for="queue in availableQueueIds"
-                    :key="queue"
+                    v-for="queue in availableQueues"
+                    :key="queue.id"
                     class="mode-column classic"
                     :class="{
-                        selected: matchmakingStore.selectedQueue === queue,
+                        selected: matchmakingStore.selectedQueue?.id === queue.id,
                     }"
-                    @click="() => (matchmakingStore.selectedQueue = queue)"
+                    @click="() => (matchmakingStore.selectedQueue = { id: queue.id, version: queue.version })"
                     :disabled="matchmakingStore.status !== MatchmakingStatus.Idle"
-                    ><span>{{ getPlaylistName(queue) }}</span></Button
+                    ><span>{{ getPlaylistName(queue.id) }}</span></Button
                 >
             </div>
             <div class="button-container">
@@ -93,8 +93,8 @@ import { computed, onActivated } from "vue";
 
 const { t } = useTypedI18n();
 
-const availableQueueIds = computed(() => {
-    return matchmakingStore.playlists.sort((a, b) => a.teamSize * a.numOfTeams - b.teamSize * b.numOfTeams).map((playlist) => playlist.id);
+const availableQueues = computed(() => {
+    return [...matchmakingStore.playlists].sort((a, b) => a.teamSize * a.numOfTeams - b.teamSize * b.numOfTeams);
 });
 
 onActivated(() => {
