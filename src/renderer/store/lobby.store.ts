@@ -337,8 +337,10 @@ function onLobbyLeftEvent(data: LobbyLeftEventData) {
     clearUserSubscriptions();
     lobbyStore.activeLobby = undefined;
     console.log("Tachyon event: lobby/left:", data);
-    // If we ever use a specific view for a lobby instead of BattleDrawer, we need to push a route here
-    //battleStore.isLobbyOpened = false;
+    if (router.currentRoute.value.path == "/play/lobby") {
+        // We use replace instead of push so the user can't use "back".
+        router.replace("/play/customLobbies");
+    }
     notificationsApi.alert({
         text: i18n.global.t("lobby.multiplayer.custom.removedFromLobby"),
         severity: "info",
