@@ -16,7 +16,6 @@ import {
     LobbyUpdateRequestData,
     LobbyUpdatedEventData,
     LobbyLeftEventData,
-    UserId,
 } from "tachyon-protocol/types";
 import { reactive } from "vue";
 import { apply as applyPatch } from "json8-merge-patch";
@@ -99,11 +98,8 @@ async function requestCreateLobby(data: LobbyCreateRequestData) {
         battleActions.resetToDefaultBattle(undefined, undefined, undefined, true);
         const response = await window.tachyon.request("lobby/create", data);
         console.log("Tachyon: lobby/create:", response.status, response.data);
-        lobbyStore.activeLobby = parseLobbyResponseData(response.data); //Set the active lobby data first...
-        //battleStore.isLobbyOpened = true;
+        parseLobbyResponseData(response.data, false);
         router.push("/play/lobby");
-        //Note, we don't do any 'user/subscribeUpdates' here because when we create it there is only ourselves on initial join.
-        //If that ever changes, if a whole party joins instantly for example, then we need to revisit this.
     } catch (error) {
         console.error("Error with request lobby/create", error);
         notificationsApi.alert({
@@ -118,18 +114,8 @@ async function requestJoinLobby(id: LobbyJoinRequestData) {
         battleActions.resetToDefaultBattle(undefined, undefined, undefined, true);
         const response = await window.tachyon.request("lobby/join", id);
         console.log("Tachyon: lobby/join:", response.status, response.data);
-        lobbyStore.activeLobby = parseLobbyResponseData(response.data);
-        //battleStore.isLobbyOpened = true;
+        parseLobbyResponseData(response.data, false);
         router.push("/play/lobby");
-
-        const userSubList: UserId[] = [];
-        for (const memberKey in lobbyStore.activeLobby.players) {
-            userSubList.push(lobbyStore.activeLobby.players[memberKey].id);
-        }
-        for (const memberKey in lobbyStore.activeLobby.spectators) {
-            userSubList.push(lobbyStore.activeLobby.spectators[memberKey].id);
-        }
-        subsManager.attach(userSubList, lobbySymbol);
     } catch (error) {
         console.error("Error with request lobby/join", error);
         notificationsApi.alert({
@@ -183,97 +169,75 @@ function toSortedPlayerQueue(map: Map<number, string>): Map<number, string> {
     return new Map(Array.from(map.entries()).toSorted(([a], [b]) => a - b));
 }
 
-// We use this function to normalize both LobbyCreateOkResponseData and LobbyJoinOkResponseData into the Lobby type for use in the renderer
-function parseLobbyResponseData(data: LobbyCreateOkResponseData | LobbyJoinOkResponseData) {
-    //Do some cleanup in case there's old data in the stores.
-    battleStore.battleOptions.mapOptions.customStartBoxes = [];
+// This will normalize different event/response data(s) and apply them to the lobbyStore.activeLobby object.
+function parseLobbyResponseData(data: LobbyCreateOkResponseData | LobbyJoinOkResponseData | LobbyUpdatedEventData, isUpdate: boolean) {
+    // Check if we are getting an updated event or a join/create response
+    if (isUpdate) {
+        if (!lobbyStore.activeLobby) {
+            console.warn("Lobby update received but we have no active lobby. Skipping update.");
+            return;
+        }
+        if (lobbyStore.activeLobby.id != data.id) {
+            console.warn("Lobby update did not match active lobby ID. Skipping update.");
+            return;
+        }
+        //Apply the patch for an updated event
+        lobbyStore.activeLobby = applyPatch(lobbyStore.activeLobby, data);
+    } else {
+        //Apply the patch for a join/create response
+        lobbyStore.activeLobby = applyPatch({}, data);
+    }
+    if (!lobbyStore.activeLobby) {
+        console.error("Active Lobby is null or undefined after applyPatch. This should never happen!");
+        return;
+    }
+    //Updates are not guaranteed to change all things, so we check if each property was part of the update before working with it on the stores.
+    if (data.engineVersion) {
+        battleStore.battleOptions.engineVersion = lobbyStore.activeLobby.engineVersion;
+    }
+    if (data.gameVersion) {
+        battleStore.battleOptions.gameVersion = lobbyStore.activeLobby.gameVersion;
+    }
+    if (data.mapName) {
+        db.maps.get(data.mapName).then((map) => {
+            if (map == undefined) {
+                console.error(`Error in parseLobbyResponseData(), ${data.mapName} is undefined in database.`);
+                notificationsApi.alert({ text: `Error in lobby data, ${data.mapName} not found.`, severity: "error" });
+            }
+            battleStore.battleOptions.map = map;
+        });
+    }
+    if (data.allyTeamConfig) {
+        // TODO: we shouldn't have to reset the startboxes like this, but since the player can go into a skirmish
+        // setup, and mess with battleStore/Options, we're going to do this here anyway. Later, we want to make
+        // a better solution to prevent this issue. Most likely, we just will deny the player access to any
+        // single-player setup screens unless they quit the online lobby first.
+        battleStore.battleOptions.mapOptions.customStartBoxes = [];
+        for (const allyKey in lobbyStore.activeLobby.allyTeamConfig) {
+            battleStore.battleOptions.mapOptions.customStartBoxes.push(lobbyStore.activeLobby.allyTeamConfig[allyKey].startBox);
+        }
+        // It's only possible to change max player count if the team config changed, so we run that here too.
+        lobbyStore.activeLobby.maxPlayerCount = getMaxPlayerCountFromAllyTeamConfig(lobbyStore.activeLobby.allyTeamConfig);
+    }
+    if (data.spectators) {
+        // Build the spectator queue list
+        const tempMap: Map<number, string> = new Map();
+        for (const memberKey in lobbyStore.activeLobby.spectators) {
+            const member = lobbyStore.activeLobby.spectators[memberKey];
+            if (member.joinQueuePosition != null) {
+                tempMap.set(member.joinQueuePosition, member.id);
+            }
+        }
+        lobbyStore.activeLobby.playerQueue = toSortedPlayerQueue(tempMap);
+    }
 
-    //Set up a basic object to hold the data
-    const lobbyObject: Lobby = {
-        id: data.id,
-        name: data.name,
-        playerCount: 0, //Needs to be calculated below
-        maxPlayerCount: 0, //Ditto
-        spectatorCount: 0, //Ditto
-        playerQueue: new Map(),
-        botCount: 0,
-        mapName: data.mapName,
-        engineVersion: data.engineVersion,
-        gameVersion: data.gameVersion,
-        allyTeamConfig: {},
-        players: {},
-        spectators: {},
-        bots: {},
-    };
-    battleStore.battleOptions.engineVersion = data.engineVersion;
-    battleStore.battleOptions.gameVersion = data.gameVersion;
-    db.maps.get(data.mapName).then((map) => {
-        if (map == undefined) {
-            console.error(`Error in parseLobbyResponseData(), ${data.mapName} is undefined in database.`);
-            notificationsApi.alert({ text: `Error in lobby data, ${data.mapName} not found.`, severity: "error" });
-        }
-        battleStore.battleOptions.map = map;
-    });
-    for (const allyKey in data.allyTeamConfig) {
-        const allyTeam = data.allyTeamConfig[allyKey];
-        lobbyObject.allyTeamConfig[allyKey] = {
-            startBox: allyTeam.startBox,
-            maxTeams: allyTeam.maxTeams,
-            teams: {},
-        };
-        for (const teamKey in allyTeam.teams) {
-            const team = allyTeam.teams[teamKey];
-            lobbyObject.allyTeamConfig[allyKey].teams![teamKey] = { maxPlayers: team.maxPlayers };
-            lobbyObject.maxPlayerCount += team.maxPlayers; //Lobby maximum is sum of all AllyTeams>Teams>MaxPlayers
-        }
-        //Here we assign the startbox for the AllyTeam to the battlestore so they match what we set when the lobby was created.
-        battleStore.battleOptions.mapOptions.customStartBoxes.push(allyTeam.startBox);
-    }
-    // We have to loop through anyway, so playerCount, spectatorCount, and botCount will be calculated by incrementing.
-    for (const memberKey in data.players) {
-        const member = data.players[memberKey];
-        lobbyObject.playerCount++;
-        lobbyObject.players![memberKey] = {
-            id: member.id,
-            allyTeam: member.allyTeam,
-            team: member.team,
-            player: member.player,
-        };
-    }
-    const tempMap: Map<number, string> = new Map();
-    for (const memberKey in data.spectators) {
-        const member = data.spectators[memberKey];
-        lobbyObject.spectatorCount++;
-        lobbyObject.spectators[memberKey] = {
-            id: member.id,
-        };
-        if (member.joinQueuePosition != null) {
-            tempMap.set(member.joinQueuePosition, member.id);
-        }
-    }
-    lobbyObject.playerQueue = toSortedPlayerQueue(tempMap);
-    for (const botKey in data.bots) {
-        const bot = data.bots[botKey];
-        lobbyObject.botCount++;
-        lobbyObject.bots![botKey] = {
-            id: bot.id,
-            hostUserId: bot.hostUserId,
-            allyTeam: bot.allyTeam,
-            team: bot.team,
-            player: bot.player,
-            name: bot.name ? bot.name : "Unknown",
-            shortName: bot.shortName,
-            version: bot.version ? bot.version : "",
-            options: bot.options ? bot.options : {},
-        };
-    }
-    if (data.currentBattle) {
-        lobbyObject.currentBattle = data.currentBattle;
-    }
-    if (data.currentVote) {
-        lobbyObject.currentVote = data.currentVote;
-    }
-    return lobbyObject;
+    lobbyStore.activeLobby.playerCount = Object.keys(lobbyStore.activeLobby.players).length;
+    lobbyStore.activeLobby.spectatorCount = Object.keys(lobbyStore.activeLobby.spectators).length;
+    lobbyStore.activeLobby.botCount = Object.keys(lobbyStore.activeLobby.bots).length;
+
+    // Manage our User subscriptions after updated/joined/created
+    subsManager.setList([...Object.keys(lobbyStore.activeLobby.players), ...Object.keys(lobbyStore.activeLobby.spectators)], lobbySymbol);
+    return;
 }
 
 async function requestLeaveLobby() {
@@ -364,70 +328,7 @@ function clearSelectedLobbyIfNull() {
 
 function onLobbyUpdatedEvent(data: LobbyUpdatedEventData) {
     console.log("Tachyon event: lobby/updated:", data);
-    if (!lobbyStore.activeLobby) {
-        console.warn("Lobby update received but we have no active lobby. Skipping update.");
-        return;
-    }
-    if (lobbyStore.activeLobby.id != data.id) {
-        console.warn("Lobby update did not match active lobby ID. Skipping update.");
-        return;
-    }
-    //Apply the patch
-    lobbyStore.activeLobby = applyPatch(lobbyStore.activeLobby, data);
-    if (!lobbyStore.activeLobby) {
-        console.error("Active Lobby is null or undefined after applyPatch. This should never happen!");
-        return;
-    }
-    if (data.mapName) {
-        db.maps.get(data.mapName).then((map) => {
-            if (map == undefined) {
-                console.error(`Error in onLobbyUpdatedEvent(), ${data.mapName} is undefined in database.`);
-                notificationsApi.alert({ text: `Error in lobby data, ${data.mapName} not found.`, severity: "error" });
-            }
-            battleStore.battleOptions.map = map;
-        });
-    }
-    //Recalculate player counts afterward.
-    lobbyStore.activeLobby.maxPlayerCount = getMaxPlayerCountFromAllyTeamConfig(lobbyStore.activeLobby.allyTeamConfig);
-    const tempMap: Map<number, string> = new Map();
-    for (const memberKey in lobbyStore.activeLobby?.spectators) {
-        const member = lobbyStore.activeLobby.spectators[memberKey];
-        if (member.joinQueuePosition != null) {
-            tempMap.set(member.joinQueuePosition, member.id);
-        }
-    }
-    lobbyStore.activeLobby.playerQueue = toSortedPlayerQueue(tempMap);
-    lobbyStore.activeLobby.playerCount = Object.keys(lobbyStore.activeLobby.players).length;
-    lobbyStore.activeLobby.spectatorCount = Object.keys(lobbyStore.activeLobby.spectators).length;
-    lobbyStore.activeLobby.botCount = Object.keys(lobbyStore.activeLobby.bots).length;
-    const userAttachList: UserId[] = [];
-    const userDetachList: UserId[] = [];
-    if (data.players) {
-        for (const memberKey in data.players) {
-            const member = data.players[memberKey];
-            if (member != null) {
-                userAttachList.push(member.id);
-            } else {
-                userDetachList.push(memberKey);
-            }
-        }
-    }
-    if (data.spectators) {
-        for (const memberKey in data.spectators) {
-            const member = data.spectators[memberKey];
-            if (member != null) {
-                userAttachList.push(member.id);
-            } else {
-                userDetachList.push(memberKey);
-            }
-        }
-    }
-    if (userAttachList.length > 0) {
-        subsManager.attach(userAttachList, lobbySymbol);
-    }
-    if (userDetachList.length > 0) {
-        subsManager.detach(userDetachList, lobbySymbol);
-    }
+    parseLobbyResponseData(data, true);
     console.log("activeLobby is:", lobbyStore.activeLobby);
 }
 
