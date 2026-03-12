@@ -135,7 +135,7 @@ const router = useRouter();
 const allRoutes = router.getRoutes();
 const primaryRoutes = computed(() => {
     return allRoutes
-        .filter((r) => ["/play", "/watch", "/news", "/library", "/clanhub"].includes(r.path))
+        .filter((r) => ["/play", "/watch", "/news", "/library"].includes(r.path))
         .filter(
             (r) => (r.meta.hide === false || r.meta.hide === undefined) && ((r.meta.devOnly && settingsStore.devMode) || !r.meta.devOnly)
         )
@@ -189,7 +189,7 @@ watch(
     () => router.currentRoute.value.path,
     (newPath) => {
         console.log("Route changed to:", newPath);
-        if (newPath === "/clanhub/directory") {
+        if (newPath === "/profile/clanDirectory") {
             console.log("ClanHub is loading...");
             clanfuncs.readAllClansFromServer();
         }

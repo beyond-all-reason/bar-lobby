@@ -3,9 +3,8 @@ SPDX-FileCopyrightText: 2025 The BAR Lobby Authors
 
 SPDX-License-Identifier: MIT
 -->
-
 <route lang="json5">
-{ meta: { title: "Directory", order: 0, transition: { name: "slide-left" } } }
+{ meta: { title: "Clan directory", order: 0, transition: { name: "slide-left" } } }
 </route>
 <template>
     <div class="view">
@@ -69,19 +68,19 @@ SPDX-License-Identifier: MIT
                             <h2 style="margin-bottom: 0px; padding-bottom: 0px">
                                 {{ selectedClan?.name }}
                             </h2>
-                            <div style="font-size: medium; color: gray; margin-top: 0px; padding-top: 0px">
-                                Member: 0 | Language:
+                            <div v-if="clanSeleted == true" style="font-size: medium; color: gray; margin-top: 0px; padding-top: 0px">
+                                Member: {{ selectedClanDetails?.members.length }} | Language:
                                 <img :src="`/src/renderer/assets/images/flags/${selectedClan?.language ?? 'en'}.png`" />
                             </div>
-                            <div class="scroll-container clan-dir-description-field" style="margin-top: 20px">
+                            <div v-if="clanSeleted == true" class="scroll-container clan-dir-description-field" style="margin-top: 20px">
                                 {{ selectedClanDetails?.description }}
-                                Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et
-                                dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet
-                                clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet,
-                                consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat,
-                                sed diam voluptua. At vero eos et accusam et justo duo dolores et e
                             </div>
-                            <Button class="fullwidth clan-dir-details-button">{{ t("lobby.views.clanhub.directory.openClanArea") }}</Button>
+                            <Button v-if="clanSeleted == true" class="fullwidth clan-dir-details-button">{{
+                                t("lobby.views.clanhub.directory.openClanArea")
+                            }}</Button>
+                            <Button v-if="clanSeleted == true" class="fullwidth clan-dir-accept-button">{{
+                                t("lobby.views.clanhub.directory.acceptInvitation")
+                            }}</Button>
                         </div>
                     </Panel>
                 </div>
@@ -98,6 +97,7 @@ import SearchBox from "@renderer/components/controls/SearchBox.vue";
 import DataTable from "primevue/datatable";
 import setup from "./directory.script";
 
-const { t, limit, offset, selectedClan, selectedClanDetails, fulltextSearch, onRowSelect, clans, clansCount, onPage } = setup();
+const { t, limit, offset, selectedClan, selectedClanDetails, fulltextSearch, onRowSelect, clans, clansCount, onPage, clanSeleted } =
+    setup();
 </script>
 <style lang="scss" src="./directory.scss" scoped></style>

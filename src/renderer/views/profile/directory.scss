@@ -36,17 +36,15 @@
     margin-left: auto; /* Aligns the logo to the right */
     margin-top: -20px; /* Raises the logo slightly */
 }
-.clan-dir-details-button {
+.clan-dir-details-button,
+.clan-dir-accept-button {
     align-self: center;
     font-family: Rajdhani;
     font-weight: bold;
     font-size: 1.4rem;
     padding: 10px 40px;
-    color: #fff;
-    background: linear-gradient(90deg, #22c55e, #16a34a);
     border: none;
     border-radius: 2px;
-    box-shadow: 0 0 15px rgba(34, 197, 94, 0.4);
     text-align: center;
     cursor: pointer;
     position: relative;
@@ -55,9 +53,23 @@
         transform 0.3s ease,
         box-shadow 0.3s ease;
 }
+.clan-dir-details-button {
+    color: #fff;
+    background: linear-gradient(90deg, #22c55e, #16a34a);
+    box-shadow: 0 0 15px rgba(34, 197, 94, 0.4);
+}
 .clan-dir-details-button:hover {
     box-shadow: 0 0 25px rgba(34, 197, 94, 0.6);
 }
+.clan-dir-accept-button {
+    color: #fff;
+    background: linear-gradient(90deg, #c5b522, #a39516);
+    box-shadow: 0 0 15px rgba(197, 186, 34, 0.4);
+}
+.clan-dir-accept-button:hover {
+    box-shadow: 0 0 25px rgba(194, 197, 34, 0.6);
+}
+
 :deep(.p-datatable-tbody tr.clan-dir-highlighted-clan td) {
     background: rgba(255, 255, 255, 0.3) !important;
 }

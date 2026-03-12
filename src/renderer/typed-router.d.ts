@@ -19,9 +19,6 @@ declare module 'vue-router/auto-routes' {
    */
   export interface RouteNamedMap {
     '/': RouteRecordInfo<'/', '/', Record<never, never>, Record<never, never>>,
-    '/clanhub/': RouteRecordInfo<'/clanhub/', '/clanhub', Record<never, never>, Record<never, never>>,
-    '/clanhub/directory': RouteRecordInfo<'/clanhub/directory', '/clanhub/directory', Record<never, never>, Record<never, never>>,
-    '/clanhub/manage': RouteRecordInfo<'/clanhub/manage', '/clanhub/manage', Record<never, never>, Record<never, never>>,
     '/debug/': RouteRecordInfo<'/debug/', '/debug', Record<never, never>, Record<never, never>>,
     '/debug/b': RouteRecordInfo<'/debug/b', '/debug/b', Record<never, never>, Record<never, never>>,
     '/debug/controls': RouteRecordInfo<'/debug/controls', '/debug/controls', Record<never, never>, Record<never, never>>,
@@ -46,6 +43,9 @@ declare module 'vue-router/auto-routes' {
     '/play/skirmishVsAi': RouteRecordInfo<'/play/skirmishVsAi', '/play/skirmishVsAi', Record<never, never>, Record<never, never>>,
     '/play/tournaments': RouteRecordInfo<'/play/tournaments', '/play/tournaments', Record<never, never>, Record<never, never>>,
     '/profile/[userId]': RouteRecordInfo<'/profile/[userId]', '/profile/:userId', { userId: ParamValue<true> }, { userId: ParamValue<false> }>,
+    '/profile/clanCreate': RouteRecordInfo<'/profile/clanCreate', '/profile/clanCreate', Record<never, never>, Record<never, never>>,
+    '/profile/clanDirectory': RouteRecordInfo<'/profile/clanDirectory', '/profile/clanDirectory', Record<never, never>, Record<never, never>>,
+    '/profile/clanManage': RouteRecordInfo<'/profile/clanManage', '/profile/clanManage', Record<never, never>, Record<never, never>>,
     '/watch/': RouteRecordInfo<'/watch/', '/watch', Record<never, never>, Record<never, never>>,
     '/watch/replays': RouteRecordInfo<'/watch/replays', '/watch/replays', Record<never, never>, Record<never, never>>,
   }

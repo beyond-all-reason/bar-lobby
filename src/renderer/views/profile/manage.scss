@@ -1,0 +1,21 @@
+.clan-mng-container {
+    display: flex;
+    flex-direction: column;
+    width: 80%;
+    height: 100%;
+    align-self: center;
+}
+.clan-mng-left-section {
+    width: 100%;
+    height: 100%;
+}
+.clan-mng-left-section .panel {
+    min-height: 100%;
+}
+.clan-mng-right-section {
+    width: 100%;
+    height: 100%;
+}
+.clan-mng-right-section .panel {
+    min-height: 100%;
+}

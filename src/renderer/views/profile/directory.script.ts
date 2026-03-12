@@ -18,6 +18,7 @@ const fulltextSearchWords = computed(() =>
         .filter((word) => word.trim() !== "")
         .map((word) => word.toLocaleLowerCase())
 );
+const clanSeleted = ref(false);
 
 // Saves the selected clan when a row is selected (Function is an event. This parameter needed...)
 function onRowSelect(clan: { data: ClanBaseData }) {
@@ -29,6 +30,7 @@ function onRowSelect(clan: { data: ClanBaseData }) {
     });
     selectedClan.value = null;
     selectedClanDetails.value = null;
+    clanSeleted.value = true;
 }
 
 // Computes the filtered clans based on the fulltext search
@@ -88,5 +90,6 @@ export default function setup() {
         clans,
         clansCount,
         onPage,
+        clanSeleted,
     };
 }
