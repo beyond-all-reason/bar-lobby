@@ -76,14 +76,12 @@ async function requestSubscribeList() {
             text: "Error with request lobby/subscribeList",
             severity: "error",
         });
-        lobbyStore.lobbies = {};
     }
 }
 
 async function requestUnsubscribeList() {
     try {
         await window.tachyon.request("lobby/unsubscribeList");
-        lobbyStore.lobbies = {};
     } catch (error) {
         console.error("Error with request lobby/unsubscribeList:", error);
         notificationsApi.alert({
