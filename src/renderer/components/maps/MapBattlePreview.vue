@@ -39,6 +39,9 @@ SPDX-License-Identifier: MIT
                 </div>
             </div>
         </div>
+        <div v-else class="background">
+            <div class="background" :style="`background-image: url('${mapTextureUrl}')`"></div>
+        </div>
     </div>
 </template>
 
@@ -52,6 +55,7 @@ import { battleActions, battleStore } from "@renderer/store/battle.store";
 import { StartBox } from "tachyon-protocol/types";
 import { computed, defineComponent, ref, watch } from "vue";
 import MapBattlePreviewStartBox from "@renderer/components/maps/MapBattlePreviewStartBox.vue";
+import defaultMiniMap from "/src/renderer/assets/images/default-minimap.png?url";
 
 defineComponent({
     directives: {
@@ -64,7 +68,7 @@ defineComponent({
 const { get } = useImageBlobUrlCache();
 const mapTextureUrl = computed(() => {
     if (!battleStore.battleOptions.map?.images) {
-        return;
+        return defaultMiniMap;
     }
     return get(battleStore.battleOptions.map?.springName, battleStore.battleOptions.map?.imagesBlob?.preview);
 });
@@ -125,6 +129,13 @@ const rgbColors = [
         max-height: 100%;
         width: 100%;
     }
+}
+.background {
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
 }
 
 .boxes {
