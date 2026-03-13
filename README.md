@@ -22,7 +22,7 @@ BAR Lobby is an important part of [BAR's Steam Roadmap](https://www.beyondallrea
 - Simple and intutive codebase, lots of documenation for contributing
 - Steam integration, automatic account creation and login
 - Smooth, seemless, fully integrated downloads. Content should be preloaded when sensible
-- Communicate entirely via Teiserver's new protocol, [Tachyon](https://github.com/beyond-all-reason/teiserver/tree/master/documents/tachyon). No support for the legacy SpringLobbyProtocol
+- Communicate entirely via Teiserver's new protocol, [Tachyon](https://github.com/beyond-all-reason/tachyon). No support for the legacy SpringLobbyProtocol
 - TLS only, no unencypted comms
 
 ## Contributing
