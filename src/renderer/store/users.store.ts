@@ -23,6 +23,7 @@ export function initUsersStore() {
                 console.warn("Received user/updated event with no userId, skipping update.");
                 return;
             }
+
             const updated = await db.users.update(user.userId, { ...user });
 
             if (updated === 0) {
@@ -31,16 +32,28 @@ export function initUsersStore() {
                     userId: user.userId,
                     username: "Unknown User",
                     displayName: "Unknown User",
-                    clanId: null,
+                    clanBaseData: null,
                     partyId: null,
                     countryCode: "??",
                     status: "offline",
+                    roles: [],
+                    rating: undefined,
                     battleRoomState: {},
-                    ...user, // Override defaults with actual data
+                    ...user,
                 });
             }
         });
     });
 
     usersStore.isInitialized = true;
+}
+
+export async function fetchUserInfo(userId: string) {
+    try {
+        const response = await window.tachyon.request("user/info", { userId: userId });
+        return response.data;
+    } catch (error) {
+        console.error("Error fetching user info:", error);
+        return null;
+    }
 }
