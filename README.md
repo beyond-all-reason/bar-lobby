@@ -48,6 +48,7 @@ It is highly recommended to use [VSCode](https://code.visualstudio.com/) for dev
 - [Node.js 22.18.0](https://nodejs.org/en/download/)
 
 We recommend tools management software like [NVM](https://github.com/nvm-sh/nvm) or [mise-en-place](https://mise.jdx.dev/) for installation of the correct node version.
+Make sure you use **the right node.js version**, check `engines.node` in [`package.json`](./package.json) for the source of truth.
 
 ### Local Development
 
@@ -55,6 +56,8 @@ We recommend tools management software like [NVM](https://github.com/nvm-sh/nvm)
 npm install
 npm start
 ```
+
+If you change node.js version, you **need** to re-run `npm install`.
 
 ### Project Structure
 
