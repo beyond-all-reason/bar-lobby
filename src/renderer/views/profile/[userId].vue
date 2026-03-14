@@ -63,6 +63,7 @@ import Panel from "@renderer/components/common/Panel.vue";
 import { useDexieLiveQueryWithDeps } from "@renderer/composables/useDexieLiveQuery";
 import { db } from "@renderer/store/db";
 import { useTypedI18n } from "@renderer/i18n";
+import { fetchUserInfo } from "@renderer/store/users.store";
 const { t } = useTypedI18n();
 
 type UserRole = "contributor" | "admin" | "moderator" | "tournament_winner" | "tournament_caster";
@@ -92,8 +93,14 @@ const props = defineProps<{
     userId: string;
 }>();
 
-const user = useDexieLiveQueryWithDeps([() => props.userId], () => {
-    return db.users.get(props.userId);
+const user = useDexieLiveQueryWithDeps([() => props.userId], async () => {
+    const retval = await db.users.get(props.userId);
+
+    if (!retval || retval.displayName === "Unknown User") {
+        return await fetchUserInfo(props.userId);
+    }
+
+    return retval;
 });
 </script>
 

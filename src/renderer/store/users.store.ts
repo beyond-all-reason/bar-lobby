@@ -47,3 +47,13 @@ export function initUsersStore() {
 
     usersStore.isInitialized = true;
 }
+
+export async function fetchUserInfo(userId: string) {
+    try {
+        const response = await window.tachyon.request("user/info", { userId: userId });
+        return response.data;
+    } catch (error) {
+        console.error("Error fetching user info:", error);
+        return null;
+    }
+}
