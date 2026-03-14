@@ -1896,9 +1896,23 @@
         },
         "views": {
             "profile": {
-                "status": "Status: ",
-                "clan": "Clan: ",
-                "userNotFound": "User not found"
+                "status": "Status",
+                "userId":"User ID",
+                "clan": "Clan",
+                "userNotFound": "User not found",
+                "myProfile": "My profile",
+                "findAClan": "Find a clan",
+                "statusOffline": "Offline",
+                "statusMenu": "Menu",
+                "statusPlaying": "Playing",
+                "statusLobby": "Lobby",
+                "rating": "Rating",
+                "roles": "Roles",
+                "roleContributor": "Contributor",
+                "roleAdmin": "Admin",
+                "roleModerator": "Moderator",
+                "roleTournamentWinner": "Tournament Winner",
+                "roleTournamentCaster": "Tournament Caster"
             },
             "play": {
                 "comingSoon": "(Coming Soon)",
