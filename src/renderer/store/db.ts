@@ -72,6 +72,10 @@ db.version(1).stores({
     users: "userId, username, countryCode, status, displayName, clanId, partyId, scopes, isMe",
 });
 
+db.version(2).stores({
+    users: "userId, username, countryCode, status, displayName, partyId, scopes, isMe",
+});
+
 db.on("ready", function () {
     console.debug("Database is ready");
 });

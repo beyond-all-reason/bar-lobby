@@ -2,14 +2,23 @@
 //
 // SPDX-License-Identifier: MIT
 
+export type ClanBaseData = {
+    clanId: string;
+    name: string;
+    tag: string;
+    language: string;
+};
+
 export type User = {
     userId: string;
     username: string;
     displayName: string;
-    clanId: string | null;
+    clanBaseData?: ClanBaseData | null;
     partyId: string | null;
     countryCode: string;
     status: "offline" | "menu" | "playing" | "lobby";
+    rating?: { value: number };
+    roles?: ("contributor" | "admin" | "moderator" | "tournament_winner" | "tournament_caster")[];
 
     // Is the user me?
     isMe?: 0 | 1;
