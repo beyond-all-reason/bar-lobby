@@ -110,7 +110,7 @@ import fullscreen from "@iconify-icons/mdi/fullscreen";
 import fullscreenExit from "@iconify-icons/mdi/fullscreen-exit";
 
 import cog from "@iconify-icons/mdi/cog";
-import { computed, inject, Ref, ref } from "vue";
+import { computed, inject, Ref, ref, watch } from "vue";
 import { useTypedI18n } from "@renderer/i18n";
 const { t } = useTypedI18n();
 
@@ -125,6 +125,7 @@ import { settingsStore } from "@renderer/store/settings.store";
 import { me } from "@renderer/store/me.store";
 import ServerStatus from "@renderer/components/navbar/ServerStatus.vue";
 import { useLogInConfirmation } from "@renderer/composables/useLogInConfirmation";
+import { clanfuncs } from "@renderer/store/clans.store";
 
 defineProps<{
     hidden?: boolean;
@@ -182,6 +183,18 @@ function minimizeWindow() {
 function toggleFullscreen() {
     settingsStore.fullscreen = !settingsStore.fullscreen;
 }
+
+// Watch for route changes to detect ClanHub loading
+watch(
+    () => router.currentRoute.value.path,
+    (newPath) => {
+        console.log("Route changed to:", newPath);
+        if (newPath === "/profile/clanDirectory") {
+            console.log("ClanHub is loading...");
+            clanfuncs.readAllClansFromServer();
+        }
+    }
+);
 </script>
 
 <style lang="scss" scoped>

@@ -1930,6 +1930,22 @@
                     "watch": "Watch"
                 }
             },
+            "clanhub":{
+                "directory": {
+                    "title": "Clan directory",
+                    "description": "Browse and search for clans to join.",
+                    "clanlogo": "Clan Logo",
+                    "searchPlaceholder": "Search clan...",
+                    "noClansFound": "No clans found",
+                    "name": "Name",
+                    "tag": "Tag",
+                    "noClanSelected": "No clan selected",
+                    "noDescription": "No description provided.",
+                    "openClanArea": "Open clan details area",
+                    "acceptInvitation": "Accept invitation",
+                    "clanLanguage": "Language"
+                }
+            },
             "index": {
                 "goBack": "Go Back",
                 "login": "Login",

@@ -1,0 +1,84 @@
+.clan-dir-container {
+    display: flex;
+    flex-direction: column;
+    width: 80%;
+    height: 100%;
+    align-self: center;
+}
+
+.clan-dir-left-section {
+    width: 100%;
+    height: 100%;
+}
+.clan-dir-left-section .panel {
+    min-height: 100%;
+}
+.clan-dir-right-section {
+    width: 100%;
+    height: 100%;
+}
+.clan-dir-right-section .panel {
+    min-height: 100%;
+}
+.clan-dir-description-field {
+    /*background: rgba(0, 0, 0, 0.2);*/
+    background: linear-gradient(0deg, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.1));
+    border-radius: 2px;
+    padding: 5px 0px 10px 0px;
+    min-height: 90%;
+    height: 90%;
+}
+
+.clan-dir-clan-logo {
+    display: block;
+    width: 250px;
+    height: 250px;
+    margin-left: auto; /* Aligns the logo to the right */
+    margin-top: -20px; /* Raises the logo slightly */
+}
+.clan-dir-details-button,
+.clan-dir-accept-button,
+.clan-dir-leave-button {
+    align-self: center;
+    font-family: Rajdhani;
+    font-weight: bold;
+    font-size: 1.4rem;
+    padding: 10px 40px;
+    border: none;
+    border-radius: 2px;
+    text-align: center;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition:
+        transform 0.3s ease,
+        box-shadow 0.3s ease;
+}
+.clan-dir-details-button {
+    color: #fff;
+    background: linear-gradient(90deg, #22c55e, #16a34a);
+    box-shadow: 0 0 15px rgba(34, 197, 94, 0.4);
+}
+.clan-dir-details-button:hover {
+    box-shadow: 0 0 25px rgba(34, 197, 94, 0.6);
+}
+.clan-dir-accept-button {
+    color: #fff;
+    background: linear-gradient(90deg, #c5b522, #a39516);
+    box-shadow: 0 0 15px rgba(197, 186, 34, 0.4);
+}
+.clan-dir-accept-button:hover {
+    box-shadow: 0 0 25px rgba(194, 197, 34, 0.6);
+}
+.clan-dir-leave-button {
+    color: #fff;
+    background: linear-gradient(90deg, #c52222, #a31616);
+    box-shadow: 0 0 15px rgba(197, 34, 34, 0.4);
+}
+.clan-dir-leave-button:hover {
+    box-shadow: 0 0 25px rgba(197, 34, 34, 0.6);
+}
+
+:deep(.p-datatable-tbody tr.clan-dir-highlighted-clan td) {
+    background: rgba(255, 255, 255, 0.3) !important;
+}
