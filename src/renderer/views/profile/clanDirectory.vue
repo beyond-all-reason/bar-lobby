@@ -81,6 +81,9 @@ SPDX-License-Identifier: MIT
                             <Button v-if="clanSeleted == true" class="fullwidth clan-dir-accept-button">{{
                                 t("lobby.views.clanhub.directory.acceptInvitation")
                             }}</Button>
+                            <Button v-if="clanSeleted == true" @click="leaveClan" class="fullwidth clan-dir-leave-button">{{
+                                t("lobby.views.clanhub.directory.leaveClan")
+                            }}</Button>
                         </div>
                     </Panel>
                 </div>
@@ -97,7 +100,19 @@ import SearchBox from "@renderer/components/controls/SearchBox.vue";
 import DataTable from "primevue/datatable";
 import setup from "./directory.script";
 
-const { t, limit, offset, selectedClan, selectedClanDetails, fulltextSearch, onRowSelect, clans, clansCount, onPage, clanSeleted } =
-    setup();
+const {
+    t,
+    limit,
+    offset,
+    selectedClan,
+    selectedClanDetails,
+    fulltextSearch,
+    onRowSelect,
+    clans,
+    clansCount,
+    onPage,
+    clanSeleted,
+    leaveClan,
+} = setup();
 </script>
 <style lang="scss" src="./directory.scss" scoped></style>

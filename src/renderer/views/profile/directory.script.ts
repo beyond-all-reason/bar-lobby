@@ -68,6 +68,12 @@ function onPage(event: DataTablePageEvent) {
     offset.value = event.first;
 }
 
+function leaveClan() {
+    if (selectedClan.value?.clanId) {
+        clanfuncs.leaveClan(selectedClan.value.clanId);
+    }
+}
+
 // Watcher to reset pagination to the first page when the fulltext search changes
 watch(fulltextSearch, () => {
     offset.value = 0;
@@ -91,5 +97,6 @@ export default function setup() {
         clansCount,
         onPage,
         clanSeleted,
+        leaveClan,
     };
 }

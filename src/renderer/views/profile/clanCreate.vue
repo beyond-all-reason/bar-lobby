@@ -79,8 +79,11 @@ const maxClanName = 30;
 const maxClanTag = 10;
 const maxClanDescription = 500;
 
-function clickCreate() {
-    clanfuncs.createClan(newClanData.value);
+async function clickCreate() {
+    const success = await clanfuncs.createClan(newClanData.value);
+    if (success) {
+        newClanData.value = { name: "", tag: "", language: "", description: "" };
+    }
 }
 </script>
 

@@ -37,7 +37,8 @@
     margin-top: -20px; /* Raises the logo slightly */
 }
 .clan-dir-details-button,
-.clan-dir-accept-button {
+.clan-dir-accept-button,
+.clan-dir-leave-button {
     align-self: center;
     font-family: Rajdhani;
     font-weight: bold;
@@ -68,6 +69,14 @@
 }
 .clan-dir-accept-button:hover {
     box-shadow: 0 0 25px rgba(194, 197, 34, 0.6);
+}
+.clan-dir-leave-button {
+    color: #fff;
+    background: linear-gradient(90deg, #c52222, #a31616);
+    box-shadow: 0 0 15px rgba(197, 34, 34, 0.4);
+}
+.clan-dir-leave-button:hover {
+    box-shadow: 0 0 25px rgba(197, 34, 34, 0.6);
 }
 
 :deep(.p-datatable-tbody tr.clan-dir-highlighted-clan td) {

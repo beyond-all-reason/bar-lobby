@@ -31,14 +31,16 @@ export const oneClanStore = reactive<{
     members: ClanMember;
 }>;
 
-async function createClan(data: ClanCreateRequestData) {
+async function createClan(data: ClanCreateRequestData): Promise<boolean> {
     console.log("Create clan...", JSON.stringify(data, null, 2));
     try {
         const response = await window.tachyon.request("clan/create", toRaw(data));
         console.log("Tachyon: clan/create", response);
+        return true;
     } catch (error) {
         console.log("Creating clan failed.", error);
         notificationsApi.alert({ text: "Tachyon error with clan/create", severity: "error" });
+        return false;
     }
 }
 
@@ -71,5 +73,17 @@ async function readClanFromServer(clanId: string) {
     }
 }
 
+async function leaveClan(clanId: string) {
+    console.log("Leave clan with clanId:", clanId);
+    try {
+        const response = await window.tachyon.request("clan/leave");
+        console.log("Tachyon: clan/leave", response);
+        return true;
+    } catch (error) {
+        console.log(`Leaving clan ${clanId} failed:`, error);
+        return false;
+    }
+}
+
 // Exporting clan-related functions
-export const clanfuncs = { readAllClansFromServer: readAllClansFromServer, readClanFromServer: readClanFromServer, createClan: createClan };
+export const clanfuncs = { readAllClansFromServer: readAllClansFromServer, readClanFromServer: readClanFromServer, createClan: createClan, leaveClan: leaveClan };
