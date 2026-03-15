@@ -71,9 +71,7 @@ import { useTypedI18n } from "@renderer/i18n";
 import { fetchUserInfo } from "@renderer/store/users.store";
 const { t } = useTypedI18n();
 
-type UserRole = "contributor" | "admin" | "moderator" | "tournament_winner" | "tournament_caster";
-
-const roleTranslationKeys: Record<UserRole, string> = {
+const roleTranslationKeys: Record<string, string> = {
     contributor: "lobby.views.profile.roleContributor",
     admin: "lobby.views.profile.roleAdmin",
     moderator: "lobby.views.profile.roleModerator",
@@ -87,7 +85,7 @@ function formatRoles(roles: string[] | undefined) {
     return roles
         .map((role) => {
             if (role in roleTranslationKeys) {
-                return t(roleTranslationKeys[role as UserRole]);
+                return t(roleTranslationKeys[role]);
             }
             return role;
         })
