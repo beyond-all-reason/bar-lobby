@@ -30,14 +30,14 @@ export function initUsersStore() {
                 // No records updated, so user doesn't exist - create new user
                 db.users.add({
                     userId: user.userId,
-                    username: "Unknown User",
-                    displayName: "Unknown User",
-                    clanBaseData: null,
+                    username: user.username ?? "Unknown User",
+                    displayName: user.displayName ?? "Unknown User",
+                    clanBaseData: user.clanBaseData ?? null,
                     partyId: null,
-                    countryCode: "??",
-                    status: "offline",
-                    roles: [],
-                    rating: undefined,
+                    countryCode: user.countryCode ?? "??",
+                    status: user.status ?? "offline",
+                    roles: user.roles ?? [],
+                    rating: user.rating ?? undefined,
                     battleRoomState: {},
                     ...user,
                 });

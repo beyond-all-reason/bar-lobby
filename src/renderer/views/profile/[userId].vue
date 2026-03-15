@@ -102,13 +102,7 @@ const props = defineProps<{
 }>();
 
 const user = useDexieLiveQueryWithDeps([() => props.userId], async () => {
-    const retval = await db.users.get(props.userId);
-
-    if (!retval || retval.displayName === "Unknown User") {
-        return await fetchUserInfo(props.userId);
-    }
-
-    return retval;
+    return await db.users.get(props.userId);
 });
 </script>
 
