@@ -11,7 +11,6 @@ SPDX-License-Identifier: MIT
     <div class="view">
         <Panel class="profile-container" v-if="user">
             <div class="profile-header">
-                <!--<img ref="logo" class="avatar" src="/src/renderer/assets/images/BARLogoFull.png" />-->
                 <div class="profile-user-info">
                     <h2 class="flex-row gap-lg">
                         <Flag :countryCode="user.countryCode" style="width: 50px" />
