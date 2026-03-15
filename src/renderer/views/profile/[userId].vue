@@ -26,15 +26,7 @@ SPDX-License-Identifier: MIT
                         <dt>{{ t("lobby.views.profile.status") }}:</dt>
                         <dd>
                             <span class="status-dot" :class="`status-dot--${user.status}`"></span>
-                            {{
-                                user.status === "offline"
-                                    ? t("lobby.views.profile.statusOffline")
-                                    : user.status === "menu"
-                                      ? t("lobby.views.profile.statusMenu")
-                                      : user.status === "playing"
-                                        ? t("lobby.views.profile.statusPlaying")
-                                        : t("lobby.views.profile.statusLobby")
-                            }}
+                            {{ formatStatusLabel(user.status) }}
                         </dd>
 
                         <dt>{{ t("lobby.views.profile.clan") }}:</dt>
@@ -89,6 +81,20 @@ function formatRoles(roles: string[] | undefined) {
             return role;
         })
         .join(", ");
+}
+
+const statusTranslationKeys: Record<string, string> = {
+    offline: "lobby.views.profile.statusOffline",
+    menu: "lobby.views.profile.statusMenu",
+    playing: "lobby.views.profile.statusPlaying",
+    lobby: "lobby.views.profile.statusLobby",
+};
+
+function formatStatusLabel(status: string) {
+    if (status in statusTranslationKeys) {
+        return t(statusTranslationKeys[status]);
+    }
+    return status;
 }
 
 const props = defineProps<{
