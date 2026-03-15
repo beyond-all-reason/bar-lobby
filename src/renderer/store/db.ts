@@ -76,6 +76,21 @@ db.version(2).stores({
     users: "userId, username, countryCode, status, displayName, partyId, scopes, isMe",
 });
 
+db.version(3)
+    .stores({
+        users: "userId, username, countryCode, status, displayName, partyId, scopes, isMe",
+    })
+    .upgrade(async (tx) => {
+        await tx
+            .table("users")
+            .toCollection()
+            .modify((user) => {
+                if (typeof user.isMe === "undefined") {
+                    user.isMe = 0;
+                }
+            });
+    });
+
 db.on("ready", function () {
     console.debug("Database is ready");
 });

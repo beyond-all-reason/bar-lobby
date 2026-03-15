@@ -24,6 +24,7 @@ export const me = reactive<
     status: "offline",
     rating: { value: 0 },
     roles: [],
+    isMe: 1,
     isAuthenticated: false,
     username: "Player",
     battleRoomState: {},
