@@ -1897,7 +1897,7 @@
         "views": {
             "profile": {
                 "status": "Status",
-                "userId":"User ID",
+                "userId": "User ID",
                 "clan": "Clan",
                 "userNotFound": "User not found",
                 "myProfile": "My profile",
