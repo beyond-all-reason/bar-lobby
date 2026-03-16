@@ -72,11 +72,7 @@ db.version(1).stores({
     users: "userId, username, countryCode, status, displayName, clanId, partyId, scopes, isMe",
 });
 
-db.version(2).stores({
-    users: "userId, username, countryCode, status, displayName, partyId, scopes, isMe",
-});
-
-db.version(3)
+db.version(2)
     .stores({
         users: "userId, username, countryCode, status, displayName, partyId, scopes, isMe",
     })
