@@ -67,7 +67,7 @@ const roleTranslationKeys: Record<string, string> = {
     tournament_caster: "lobby.views.profile.roleTournamentCaster",
 };
 
-function formatRoles(roles: string[] | undefined) {
+function formatRoles(roles: ReadonlyArray<string> | undefined) {
     if (!roles?.length) return "—";
 
     return roles

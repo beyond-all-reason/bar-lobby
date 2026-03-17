@@ -17,8 +17,8 @@ export type User = {
     partyId: string | null;
     countryCode: string;
     status: "offline" | "menu" | "playing" | "lobby";
-    rating?: { value: number };
-    roles?: ("contributor" | "admin" | "moderator" | "tournament_winner" | "tournament_caster")[];
+    rating?: { value: number } | null;
+    roles?: ReadonlyArray<"contributor" | "admin" | "moderator" | "tournament_winner" | "tournament_caster">;
 
     // Is the user me?
     isMe: 0 | 1;

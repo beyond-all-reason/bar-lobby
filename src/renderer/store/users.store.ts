@@ -37,7 +37,7 @@ export function initUsersStore() {
                     countryCode: user.countryCode ?? "??",
                     status: user.status ?? "offline",
                     roles: user.roles ?? [],
-                    rating: user.rating ?? undefined,
+                    rating: user.rating ?? null,
                     battleRoomState: {},
                     isMe: 0,
                     ...user,
