@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: MIT
 
-import { MissionModel } from "@renderer/model/mission";
+import { MissionModel } from "@main/content/game/mission";
 
 //TODO: the logo and backgroundImage properties could end up being different types as stored images in memory?
 //TODO: will we have branching/parallel mission paths?

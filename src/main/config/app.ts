@@ -4,9 +4,9 @@
 
 import path from "path";
 import fs from "fs";
-import { env } from "process";
+
 import { app } from "electron";
-import { homedir } from "os";
+import os from "os";
 
 // Should be the same as `productName` in electron-builder.config.ts
 // and in workaround in installer.nsh.
@@ -62,15 +62,15 @@ function getDefaultLocations(): { state: string; assets: string } {
         // We don't build the path ourselves but depend on the location of
         // main executable.
         const appplicationBinaryDir = path.dirname(app.getPath("exe"));
-        const appData = env.APPDATA || path.join(homedir(), "AppData", "Roaming");
+        const appData = process.env.APPDATA || path.join(os.homedir(), "AppData", "Roaming");
         return {
             assets: path.join(appplicationBinaryDir, "assets"),
             state: path.join(appData, APP_NAME),
         };
     }
     if (process.platform === "linux") {
-        const xdgStateHome = process.env.XDG_STATE_HOME || path.join(homedir(), ".local/state");
-        const xdgDataHome = process.env.XDG_DATA_HOME || path.join(homedir(), ".local/share");
+        const xdgStateHome = process.env.XDG_STATE_HOME || path.join(os.homedir(), ".local/state");
+        const xdgDataHome = process.env.XDG_DATA_HOME || path.join(os.homedir(), ".local/share");
         return {
             // The `assets` prefix isn't really needed under Linux, but we add
             // it for consistency.
@@ -113,6 +113,7 @@ export const RAPID_INDEX_PATH = path.join(ASSETS_PATH, "rapid");
 
 // Lobby specific cache path for scenario images. Maybe remove from here?
 export const SCENARIO_IMAGE_PATH = path.join(STATE_PATH, "scenario-images");
+export const CAMPAIGN_IMAGE_PATH = path.join(STATE_PATH, "campaign-images");
 
 /**
  * Get the path to the bundled CA certificate file for pr-downloader.

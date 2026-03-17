@@ -18,9 +18,11 @@ import { contentSources } from "@main/config/content-sources";
 import { DownloadInfo } from "@main/content/downloads";
 import { LuaOptionSection } from "@main/content/game/lua-options";
 import { Scenario } from "@main/content/game/scenario";
-import { SdpFileMeta, SdpFile } from "@main/content/game/sdp";
+import { CampaignModel } from "@main/content/game/campaign";
+import { MissionModel } from "@main/content/game/mission";
+import { SdpFile, SdpFileMeta } from "@main/content/game/sdp";
 import { PrDownloaderAPI } from "@main/content/pr-downloader";
-import { RAPID_INDEX_PATH, PACKAGE_PATH, GAME_PATHS, POOL_PATH, SCENARIO_IMAGE_PATH } from "@main/config/app";
+import { CAMPAIGN_IMAGE_PATH, GAME_PATHS, PACKAGE_PATH, POOL_PATH, RAPID_INDEX_PATH, SCENARIO_IMAGE_PATH } from "@main/config/app";
 import { PoolCdnDownloader } from "@main/content/game/pool-cdn";
 import { fileExists } from "@main/utils/file";
 
@@ -341,6 +343,118 @@ export class GameContentAPI extends PrDownloaderAPI<string, GameVersion> {
             await poolCdn.preloadPoolData();
         } catch (error) {
             log.warn(error, "Failed preloading pool data, ignoring");
+        }
+    }
+
+    public async getCampaigns(gameVersion?: string): Promise<CampaignModel[]> {
+        try {
+            const version = this.availableVersions.values().find((v) => v.gameVersion === gameVersion);
+            assert(version, `No installed version found for game version: ${gameVersion}`);
+
+            const campaignLuaFiles = await this.getGameFiles(version.packageMd5, "missions/campaigns/*/campaign.lua", true);
+
+            const cacheDir = CAMPAIGN_IMAGE_PATH;
+            await fs.promises.mkdir(cacheDir, { recursive: true });
+
+            const campaigns: CampaignModel[] = [];
+
+            for (const campaignFile of campaignLuaFiles) {
+                try {
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    const rawCampaign = parseLuaTable(campaignFile.data) as any;
+
+                    // Derive the campaign folder name from the file path.
+                    // For .sdp, fileName is the full archive-relative path; for .sdd, use archivePath.
+                    const campaignDirName = campaignFile.fileName.includes("/")
+                        ? campaignFile.fileName.split("/").at(-2) ?? ""
+                        : campaignFile.archivePath.split(path.sep).at(-2) ?? "";
+
+                    const logo = await this.extractCampaignAsset(
+                        version.packageMd5,
+                        `missions/campaigns/${campaignDirName}/${rawCampaign.logo}`,
+                        cacheDir,
+                        campaignDirName
+                    );
+
+                    const backgroundImage = await this.extractCampaignAsset(
+                        version.packageMd5,
+                        `missions/campaigns/${campaignDirName}/${rawCampaign.backgroundImage}`,
+                        cacheDir,
+                        campaignDirName
+                    );
+
+                    const missionFolders: string[] = Array.isArray(rawCampaign.missions) ? rawCampaign.missions : [];
+                    const missions = new Map<string, MissionModel>();
+
+                    for (const missionFolder of missionFolders) {
+                        const missionFiles = await this.getGameFiles(
+                            version.packageMd5,
+                            `missions/campaigns/${campaignDirName}/${missionFolder}/mission.lua`,
+                            true
+                        );
+                        if (missionFiles.length === 0) {
+                            log.warn(`Mission lua not found: ${campaignDirName}/${missionFolder}`);
+                            continue;
+                        }
+                        try {
+                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                            const rawMission = parseLuaTable(missionFiles[0].data) as any;
+                            const mission: MissionModel = {
+                                campaignId: rawCampaign.campaignId,
+                                missionId: rawMission.missionId ?? missionFolder,
+                                title: rawMission.title,
+                                description: rawMission.description,
+                                images: [],
+                                mapName: rawMission.map ?? "",
+                                startPos: rawMission.startPos ?? { x: 0.25, y: 0.25 },
+                                unlocked: rawMission.unlocked ?? false,
+                            };
+                            missions.set(mission.missionId, mission);
+                        } catch (err) {
+                            log.error(`Error parsing mission ${missionFolder} in ${campaignDirName}: ${err}`);
+                        }
+                    }
+
+                    campaigns.push({
+                        campaignId: rawCampaign.campaignId,
+                        title: rawCampaign.title,
+                        description: rawCampaign.description,
+                        unlocked: rawCampaign.unlocked ?? true,
+                        logo,
+                        backgroundImage,
+                        missions,
+                    });
+                } catch (err) {
+                    log.error(`Error parsing campaign ${campaignFile.fileName}: ${err}`);
+                }
+            }
+
+            return campaigns;
+        } catch (err) {
+            log.error(`Error getting campaigns: ${err}`);
+            return [];
+        }
+    }
+
+    private async extractCampaignAsset(packageMd5: string, gameFilePath: string, cacheDir: string, campaignDirName: string): Promise<string | null> {
+        try {
+            const files = await this.getGameFiles(packageMd5, gameFilePath, false);
+            if (files.length === 0) return null;
+            const file = files[0];
+            let buffer: Buffer;
+            if (file.archivePath.endsWith(".gz")) {
+                const data = await fs.promises.readFile(file.archivePath);
+                buffer = await gunzip(data);
+            } else {
+                buffer = await fs.promises.readFile(file.archivePath);
+            }
+            // Prefix with campaign dir name to avoid filename collisions across campaigns.
+            const cacheFileName = `${campaignDirName}_${path.basename(gameFilePath)}`;
+            const cachePath = path.join(cacheDir, cacheFileName);
+            await fs.promises.writeFile(cachePath, buffer);
+            return cachePath;
+        } catch {
+            return null;
         }
     }
 

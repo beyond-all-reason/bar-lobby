@@ -20,7 +20,7 @@ SPDX-License-Identifier: MIT
         </div>
         <p>{{ campaign?.description }}</p>
         <div v-for="[missionId, mission] in campaign?.missions" :key="missionId">
-            <Button @click="router.push(`/play/campaign/${campaignId}-${missionId}`)" :disabled="!mission.unlocked"
+            <Button @click="router.push(`/play/campaign/${campaignId}/${missionId}`)" :disabled="!mission.unlocked"
                 ><h2>{{ mission.title }}</h2></Button
             >
         </div>
@@ -28,18 +28,26 @@ SPDX-License-Identifier: MIT
 </template>
 
 <script lang="ts" setup>
+import { computed } from "vue";
 import { useRouter } from "vue-router";
-import { campaignStore } from "@renderer/store/campaign.store";
 import Button from "@renderer/components/controls/Button.vue";
 import { Icon } from "@iconify/vue";
 import arrow_back from "@iconify-icons/mdi/arrow-back";
+import { gameStore } from "@renderer/store/game.store";
+import { campaignCache } from "@renderer/store/campaign-cache";
 
 const router = useRouter();
 
 const props = defineProps<{
     campaignId: string;
 }>();
-const campaign = campaignStore.campaignsList.get(props.campaignId);
+
+if (campaignCache.value.length === 0) {
+    const gameVersion = gameStore?.selectedGameVersion?.gameVersion;
+    campaignCache.value = gameVersion ? await window.game.getCampaigns(gameVersion) : [];
+}
+
+const campaign = computed(() => campaignCache.value.find((c) => c.campaignId === props.campaignId));
 
 function goBack() {
     router.back();

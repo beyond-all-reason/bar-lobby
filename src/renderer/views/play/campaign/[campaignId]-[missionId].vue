@@ -5,7 +5,11 @@ SPDX-License-Identifier: MIT
 -->
 
 <route lang="json5">
-{ props: true, meta: { title: "Mission Details", hide: true, transition: { name: "slide-left" } } }
+{
+    path: "/play/campaign/:campaignId/:missionId",
+    props: true,
+    meta: { title: "Mission Details", hide: true, transition: { name: "slide-left" } },
+}
 </route>
 
 <template>
@@ -28,7 +32,6 @@ SPDX-License-Identifier: MIT
 
 <script lang="ts" setup>
 import { computed } from "vue";
-import { campaignStore } from "@renderer/store/campaign.store";
 import { useRouter } from "vue-router";
 import Button from "@renderer/components/controls/Button.vue";
 import { Icon } from "@iconify/vue";
@@ -36,6 +39,8 @@ import arrow_back from "@iconify-icons/mdi/arrow-back";
 import MapSimplePreview from "@renderer/components/maps/MapSimplePreview.vue";
 import { db } from "@renderer/store/db";
 import { useDexieLiveQueryWithDeps } from "@renderer/composables/useDexieLiveQuery";
+import { gameStore } from "@renderer/store/game.store";
+import { campaignCache } from "@renderer/store/campaign-cache";
 
 const router = useRouter();
 
@@ -44,12 +49,13 @@ const props = defineProps<{
     campaignId: string;
 }>();
 
-const campaign = computed(() => {
-    return campaignStore.campaignsList.get(props.campaignId);
-});
-const mission = computed(() => {
-    return campaignStore.campaignsList.get(props.campaignId)?.missions.get(props.missionId);
-});
+if (campaignCache.value.length === 0) {
+    const gameVersion = gameStore?.selectedGameVersion?.gameVersion;
+    campaignCache.value = gameVersion ? await window.game.getCampaigns(gameVersion) : [];
+}
+
+const campaign = computed(() => campaignCache.value.find((c) => c.campaignId === props.campaignId));
+const mission = computed(() => campaign.value?.missions.get(props.missionId));
 
 const map = useDexieLiveQueryWithDeps([() => mission.value?.mapName], () =>
     db.maps.get(mission.value?.mapName ? mission.value?.mapName : "")
