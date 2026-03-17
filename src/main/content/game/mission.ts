@@ -2,18 +2,69 @@
 //
 // SPDX-License-Identifier: MIT
 
-//TODO: the images could end up being different types as stored images in memory?
-//TODO: find out what startscript options need to be included in here or not
+export type MissionDifficulty = {
+    name: string;
+    playerhandicap: number;
+    enemyhandicap: number;
+};
+
+export type ModOptions = {
+    deathMode?: string;
+    maxunits?: number;
+    map_waterlevel?: number;
+    startenergy?: number;
+    startmetal?: number;
+    ruins?: string;
+};
+
+export type MapOptions = {
+    roads?: number;
+    waterlevel?: number;
+    waterdamage?: number;
+};
+
+export type TeamModel = {
+    /** In-game display name for this team. */
+    name?: string;
+    Side?: string;
+    StartPosX?: number;
+    StartPosZ?: number;
+    IncomeMultiplier?: number;
+    /** AI short-name, or null/undefined when the slot is a human player. */
+    ai?: string | null;
+};
+
+export type AllyTeamModel = {
+    /** Only needed when startPosType is "chooseInGame". */
+    startRectTop?: number;
+    startRectLeft?: number;
+    startRectBottom?: number;
+    startRectRight?: number;
+    /** Teams keyed by arbitrary custom team name defined in mission.lua. */
+    teams: Map<string, TeamModel>;
+};
+
+// Fields sourced from LobbyData and StartScript tables in mission.lua.
+// Triggers and Actions are intentionally ignored.
 export type MissionModel = {
-    campaignId: string; // campaigns have an array of missions, is this redundant?
+    // from context / LobbyData
+    campaignId: string;
     missionId: string;
     title: string;
     description: string;
-    images: string[];
-    mapName: string;
-    startPos: {
-        x: number;
-        y: number;
-    };
+    image: string | null; // cached local path
+    startPos: { x: number; y: number };
     unlocked: boolean;
+    // from StartScript
+    mapName: string;
+    startPosType: string;
+    players: { min: number; max: number };
+    difficulties: MissionDifficulty[];
+    defaultDifficulty: string;
+    modOptions: ModOptions;
+    mapOptions: MapOptions;
+    /** Unit def name → maximum allowed count. */
+    unitLimits: Map<string, number>;
+    /** Ally team name → AllyTeamModel. */
+    allyTeams: Map<string, AllyTeamModel>;
 };

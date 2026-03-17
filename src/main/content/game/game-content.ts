@@ -22,7 +22,14 @@ import { CampaignModel } from "@main/content/game/campaign";
 import { MissionModel } from "@main/content/game/mission";
 import { SdpFile, SdpFileMeta } from "@main/content/game/sdp";
 import { PrDownloaderAPI } from "@main/content/pr-downloader";
-import { CAMPAIGN_IMAGE_PATH, GAME_PATHS, PACKAGE_PATH, POOL_PATH, RAPID_INDEX_PATH, SCENARIO_IMAGE_PATH } from "@main/config/app";
+import {
+    CAMPAIGN_IMAGE_PATH,
+    GAME_PATHS,
+    PACKAGE_PATH,
+    POOL_PATH,
+    RAPID_INDEX_PATH,
+    SCENARIO_IMAGE_PATH
+} from "@main/config/app";
 import { PoolCdnDownloader } from "@main/content/game/pool-cdn";
 import { fileExists } from "@main/utils/file";
 
@@ -397,17 +404,48 @@ export class GameContentAPI extends PrDownloaderAPI<string, GameVersion> {
                             continue;
                         }
                         try {
+                            const missionData = missionFiles[0].data;
+                            // Parse only LobbyData and StartScript; Triggers and Actions are ignored.
+                            // tableVariableName is required because mission.lua starts with GG['MissionAPI']
+                            // references that would confuse the default (no-option) table finder.
                             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                            const rawMission = parseLuaTable(missionFiles[0].data) as any;
+                            const lobbyData = parseLuaTable(missionData, { tableVariableName: "lobbyData" }) as any;
+                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                            const startScript = parseLuaTable(missionData, { tableVariableName: "startScript" }) as any;
+
+                            const imageFileName = lobbyData.image as string | undefined;
+                            const image = imageFileName
+                                ? await this.extractCampaignAsset(
+                                      version.packageMd5,
+                                      `missions/campaigns/${campaignDirName}/${missionFolder}/${imageFileName}`,
+                                      cacheDir,
+                                      `${campaignDirName}_${missionFolder}`
+                                  )
+                                : null;
+
                             const mission: MissionModel = {
                                 campaignId: rawCampaign.campaignId,
-                                missionId: rawMission.missionId ?? missionFolder,
-                                title: rawMission.title,
-                                description: rawMission.description,
-                                images: [],
-                                mapName: rawMission.map ?? "",
-                                startPos: rawMission.startPos ?? { x: 0.25, y: 0.25 },
-                                unlocked: rawMission.unlocked ?? false,
+                                missionId: String(lobbyData.missionId ?? missionFolder),
+                                title: lobbyData.title ?? "",
+                                description: lobbyData.description ?? "",
+                                image,
+                                startPos: lobbyData.startPos ?? { x: 0.25, y: 0.25 },
+                                unlocked: lobbyData.unlocked ?? false,
+                                mapName: startScript.mapName ?? "",
+                                startPosType: startScript.startPosType ?? "chooseBeforeGame",
+                                players: startScript.players ?? { min: 1, max: 4 },
+                                difficulties: Array.isArray(startScript.difficulties) ? startScript.difficulties : [],
+                                defaultDifficulty: startScript.defaultDifficulty ?? "",
+                                modOptions: startScript.modOptions ?? {},
+                                mapOptions: startScript.mapOptions ?? {},
+                                unitLimits: new Map<string, number>(Object.entries(startScript.unitLimits ?? {})),
+                                allyTeams: new Map(
+                                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                                    Object.entries(startScript.allyTeams ?? {}).map(([name, at]: [string, any]) => [
+                                        name,
+                                        { ...at, teams: new Map(Object.entries(at.teams ?? {})) },
+                                    ])
+                                ),
                             };
                             missions.set(mission.missionId, mission);
                         } catch (err) {
