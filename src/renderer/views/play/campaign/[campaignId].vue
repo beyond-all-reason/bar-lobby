@@ -19,10 +19,32 @@ SPDX-License-Identifier: MIT
             <h1>{{ campaign?.title }}</h1>
         </div>
         <p>{{ campaign?.description }}</p>
-        <div v-for="[missionId, mission] in campaign?.missions" :key="missionId">
-            <Button @click="router.push(`/play/campaign/${campaignId}/${missionId}`)" :disabled="!mission.unlocked"
-                ><h2>{{ mission.title }}</h2></Button
-            >
+        <div class="mission-list">
+            <div v-for="[missionId, mission] in campaign?.missions" :key="missionId" class="mission-card">
+                <Panel :no-padding="true">
+                    <div
+                        class="background_image"
+                        :style="{
+                            'background-image': mission.image ? `url('bar://${encodeURIComponent(mission.image)}')` : undefined,
+                        }"
+                    >
+                        <div class="flex-row padding-md">
+                            <div class="flex-start flex-grow">
+                                <h2>{{ mission.title }}</h2>
+                            </div>
+                            <div class="flex-end">
+                                <Button
+                                    :disabled="!mission.unlocked"
+                                    @click="mission.unlocked && router.push(`/play/campaign/${campaignId}/${missionId}`)"
+                                    :class="mission.unlocked ? 'green' : 'red'"
+                                >
+                                    <h1>{{ mission.unlocked ? "Play" : "Locked" }}</h1>
+                                </Button>
+                            </div>
+                        </div>
+                    </div>
+                </Panel>
+            </div>
         </div>
     </div>
 </template>
@@ -33,6 +55,7 @@ import { useRouter } from "vue-router";
 import Button from "@renderer/components/controls/Button.vue";
 import { Icon } from "@iconify/vue";
 import arrow_back from "@iconify-icons/mdi/arrow-back";
+import Panel from "@renderer/components/common/Panel.vue";
 import { gameStore } from "@renderer/store/game.store";
 import { campaignCache } from "@renderer/store/campaign-cache";
 
@@ -54,4 +77,17 @@ function goBack() {
 }
 </script>
 
-<style></style>
+<style lang="scss" scoped>
+.mission-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    overflow-y: auto;
+}
+
+.background_image {
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+</style>
