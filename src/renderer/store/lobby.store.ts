@@ -36,13 +36,13 @@ type LobbyId = string;
 export const lobbyStore: {
     isInitialized: boolean;
     lobbies: Record<LobbyId, LobbyOverview>;
-    selectedLobby: LobbyOverview | null;
-    activeLobby?: Lobby | null;
+    selectedLobby?: LobbyOverview;
+    activeLobby?: Lobby;
 } = reactive({
     isInitialized: false,
     lobbies: {}, //This will hold changes from ``lobby/listUpdated`` events
-    selectedLobby: null,
-    activeLobby: null,
+    selectedLobby: undefined,
+    activeLobby: undefined,
 });
 
 export async function initLobbyStore() {
@@ -56,13 +56,13 @@ export async function initLobbyStore() {
 function onListUpdatedEvent(data: LobbyListUpdatedEventData) {
     console.log("Tachyon event: lobby/listUpdated:", data);
     lobbyStore.lobbies = applyPatch(lobbyStore.lobbies, data.lobbies);
-    clearSelectedLobbyIfNull();
+    clearSelectedLobbyIfUndefined();
 }
 
 function onLobbyListResetEvent(data: LobbyListResetEventData) {
     console.log("Tachyon event: lobby/listReset", data);
     lobbyStore.lobbies = data.lobbies;
-    clearSelectedLobbyIfNull();
+    clearSelectedLobbyIfUndefined();
 }
 
 async function requestSubscribeList() {
@@ -210,19 +210,15 @@ function parseLobbyResponseData(data: LobbyCreateOkResponseData | LobbyJoinOkRes
         // setup, and mess with battleStore/Options, we're going to do this here anyway. Later, we want to make
         // a better solution to prevent this issue. Most likely, we just will deny the player access to any
         // single-player setup screens unless they quit the online lobby first.
-        battleStore.battleOptions.mapOptions.customStartBoxes = [];
-        for (const allyKey in lobbyStore.activeLobby.allyTeamConfig) {
-            battleStore.battleOptions.mapOptions.customStartBoxes.push(lobbyStore.activeLobby.allyTeamConfig[allyKey].startBox);
-        }
+        battleStore.battleOptions.mapOptions.customStartBoxes = Object.values(lobbyStore.activeLobby.allyTeamConfig).map((c) => c.startBox);
         // It's only possible to change max player count if the team config changed, so we run that here too.
         lobbyStore.activeLobby.maxPlayerCount = getMaxPlayerCountFromAllyTeamConfig(lobbyStore.activeLobby.allyTeamConfig);
     }
     if (data.spectators) {
         // Build the spectator queue list
         const tempMap: Map<number, string> = new Map();
-        for (const memberKey in lobbyStore.activeLobby.spectators) {
-            const member = lobbyStore.activeLobby.spectators[memberKey];
-            if (member.joinQueuePosition != null) {
+        for (const member of Object.values(lobbyStore.activeLobby.spectators)) {
+            if (member.joinQueuePosition !== undefined) {
                 tempMap.set(member.joinQueuePosition, member.id);
             }
         }
@@ -252,7 +248,6 @@ async function requestLeaveLobby() {
     // If we ever use a specific view for a lobby instead of BattleDrawer, we need to push a route here
     clearUserSubscriptions();
     lobbyStore.activeLobby = undefined;
-    //battleStore.isLobbyOpened = false;
 }
 
 // This is a *request* for the battle to start, but 'battle/start' event received will actually trigger the client to launch the game.
@@ -318,9 +313,9 @@ async function requestLobbyUpdate(data: LobbyUpdateRequestData) {
     }
 }
 
-function clearSelectedLobbyIfNull() {
-    if (lobbyStore.selectedLobby && lobbyStore.lobbies[lobbyStore.selectedLobby.id] == null) {
-        lobbyStore.selectedLobby = null;
+function clearSelectedLobbyIfUndefined() {
+    if (lobbyStore.selectedLobby && !(lobbyStore.selectedLobby.id in lobbyStore.lobbies)) {
+        lobbyStore.selectedLobby = undefined;
     }
 }
 

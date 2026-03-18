@@ -124,13 +124,9 @@ function sendLobbyJoinRequest(data) {
         return;
     } else if (lobbyStore.activeLobby.id == data.id) {
         //We are trying to join a lobby we are already in, just open the view, no request needed.
-        //battleStore.isLobbyOpened = true;
         router.push("/play/lobby");
         return;
     }
-    //We will need to leave this lobby first, so warn the user.
-    //autojoinLobbyId.value = data.id;
-    //leaveConfirmModalIsOpen.value = true;
 }
 
 // Because this page is part of <KeepAlive>, we use this instead of onMounted() to trigger anytime the page is loaded.

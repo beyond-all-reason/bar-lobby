@@ -355,7 +355,7 @@ function removeCustomStartBox(boxId: number) {
 function defaultBattle(engine?: EngineVersion, game?: GameVersion, map?: MapData, isOnline?: boolean) {
     const battle: Battle = {
         title: i18n.global.t("lobby.components.battle.offlineBattleComponent.offlineBattle"),
-        isOnline: isOnline ? isOnline : false,
+        isOnline: !!isOnline,
         battleOptions: {
             engineVersion: engine?.id || enginesStore.selectedEngineVersion?.id,
             gameVersion: game?.gameVersion || gameStore.selectedGameVersion?.gameVersion,
