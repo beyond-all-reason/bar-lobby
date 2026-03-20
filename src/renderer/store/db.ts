@@ -81,8 +81,9 @@ db.version(2)
             .table("users")
             .toCollection()
             .modify((user) => {
+                // TODO: For backward compatibility, I've left it in for now to support older database entries if necessary. But it can be removed later!
                 if (typeof user.isMe === "undefined") {
-                    user.isMe = 0;
+                    user.isMe = false;
                 }
             });
     });

@@ -39,7 +39,7 @@ export function initUsersStore() {
                     roles: user.roles ?? [],
                     rating: user.rating ?? null,
                     battleRoomState: {},
-                    isMe: 0,
+                    isMe: false,
                     ...user,
                 });
             }

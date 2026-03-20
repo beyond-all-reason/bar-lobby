@@ -15,7 +15,7 @@ SPDX-License-Identifier: MIT
                     <h2 class="flex-row gap-lg">
                         <Flag :countryCode="user.countryCode" style="width: 50px" />
                         {{ user.displayName }}
-                        <span v-if="user.isMe === 1" class="my-profile-note">[{{ t("lobby.views.profile.myProfile") }}]</span>
+                        <span v-if="user.isMe" class="my-profile-note">[{{ t("lobby.views.profile.myProfile") }}]</span>
                     </h2>
                     <dl class="profile-info">
                         <dt>{{ t("lobby.views.profile.userId") }}:</dt>
@@ -30,7 +30,7 @@ SPDX-License-Identifier: MIT
                         <dt>{{ t("lobby.views.profile.clan") }}:</dt>
                         <dd>
                             <template v-if="user.clanBaseData"> [{{ user.clanBaseData.tag }}] {{ user.clanBaseData.name }} </template>
-                            <template v-else-if="user.isMe === 1">
+                            <template v-else-if="user.isMe">
                                 <RouterLink to="/profile/clan-directory">
                                     <button class="btn-find-clan">{{ t("lobby.views.profile.findAClan") }}</button>
                                 </RouterLink>

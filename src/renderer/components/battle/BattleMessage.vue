@@ -34,7 +34,7 @@ const user: User = {
     displayName: "Test User",
     partyId: "123",
     status: "lobby",
-    isMe: 0,
+    isMe: false,
 };
 
 // const user = api.session.getUserById(props.message.senderUserId);

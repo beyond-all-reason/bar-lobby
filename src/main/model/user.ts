@@ -21,7 +21,7 @@ export type User = {
     roles?: ReadonlyArray<"contributor" | "admin" | "moderator" | "tournament_winner" | "tournament_caster">;
 
     // Is the user me?
-    isMe: 0 | 1;
+    isMe: boolean;
 
     // When user is a contender in a battle
     battleRoomState: {
