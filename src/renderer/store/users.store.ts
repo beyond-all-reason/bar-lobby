@@ -29,7 +29,7 @@ export function initUsersStore() {
                 clanBaseData: user.clanBaseData
                     ? {
                           ...user.clanBaseData,
-                          language: user.clanBaseData.language ?? "unknown",
+                          language: user.clanBaseData.language || "unknown",
                       }
                     : null,
             });
@@ -43,7 +43,7 @@ export function initUsersStore() {
                     clanBaseData: user.clanBaseData
                         ? {
                               ...user.clanBaseData,
-                              language: user.clanBaseData.language ?? "unknown",
+                              language: user.clanBaseData.language || "unknown",
                           }
                         : null,
                     partyId: null,
