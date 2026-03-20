@@ -28,10 +28,10 @@ SPDX-License-Identifier: MIT
         <p>{{ mission?.description }}</p>
         <MapSimplePreview :map="map"></MapSimplePreview>
         <Select
-            v-if="mission && mission.difficulties.length > 0"
+            v-if="effectiveDifficulties.length > 0"
             v-model="selectedDifficulty"
             label="Difficulty"
-            :options="mission.difficulties"
+            :options="effectiveDifficulties"
             optionLabel="name"
         />
         <DownloadContentButton
@@ -49,21 +49,21 @@ SPDX-License-Identifier: MIT
 </template>
 
 <script lang="ts" setup>
-import { computed, ref } from "vue";
-import { useRouter } from "vue-router";
+import {computed, ref} from "vue";
+import {useRouter} from "vue-router";
 import Button from "@renderer/components/controls/Button.vue";
 import Select from "@renderer/components/controls/Select.vue";
 import DownloadContentButton from "@renderer/components/controls/DownloadContentButton.vue";
-import { Icon } from "@iconify/vue";
+import {Icon} from "@iconify/vue";
 import arrow_back from "@iconify-icons/mdi/arrow-back";
 import MapSimplePreview from "@renderer/components/maps/MapSimplePreview.vue";
-import { db } from "@renderer/store/db";
-import { useDexieLiveQueryWithDeps } from "@renderer/composables/useDexieLiveQuery";
-import { GameStatus, gameStore } from "@renderer/store/game.store";
-import { enginesStore } from "@renderer/store/engine.store";
-import { campaignCache } from "@renderer/store/campaign-cache";
-import { MissionDifficulty, MissionModel } from "@main/content/game/mission";
-import { Logger } from "@renderer/utils/log";
+import {db} from "@renderer/store/db";
+import {useDexieLiveQueryWithDeps} from "@renderer/composables/useDexieLiveQuery";
+import {GameStatus, gameStore} from "@renderer/store/game.store";
+import {enginesStore} from "@renderer/store/engine.store";
+import {campaignCache} from "@renderer/store/campaign-cache";
+import {MissionDifficulty, MissionModel} from "@main/content/game/mission";
+import {Logger} from "@renderer/utils/log";
 
 const log = new Logger("[campaignId]-[missionId].vue");
 
@@ -83,8 +83,11 @@ if (campaignCache.value.length === 0) {
 const campaign = computed(() => campaignCache.value.find((c) => c.campaignId === props.campaignId));
 const mission = computed(() => campaign.value?.missions.get(props.missionId));
 
+const effectiveDifficulties = computed(() => mission.value?.difficulties ?? campaign.value?.difficulties ?? []);
+const effectiveDefaultDifficulty = computed(() => mission.value?.defaultDifficulty ?? campaign.value?.defaultDifficulty ?? "");
+
 const selectedDifficulty = ref<MissionDifficulty | undefined>(
-    mission.value?.difficulties.find((d) => d.name === mission.value?.defaultDifficulty)
+    effectiveDifficulties.value.find((d) => d.name === effectiveDefaultDifficulty.value)
 );
 
 // The Lua comment says: "Lobby to replace spaces with underscores" for the map spring name.

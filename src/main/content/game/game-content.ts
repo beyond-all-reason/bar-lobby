@@ -428,8 +428,10 @@ export class GameContentAPI extends PrDownloaderAPI<string, GameVersion> {
                                 mapName: startScript.mapName ?? "",
                                 startPosType: startScript.startPosType ?? "chooseBeforeGame",
                                 players: startScript.players ?? { min: 1, max: 4 },
-                                difficulties: Array.isArray(startScript.difficulties) ? startScript.difficulties : [],
-                                defaultDifficulty: startScript.defaultDifficulty ?? "",
+                                ...(Array.isArray(startScript.difficulties) && {
+                                    difficulties: startScript.difficulties,
+                                    defaultDifficulty: startScript.defaultDifficulty ?? "",
+                                }),
                                 modOptions: startScript.modOptions ?? {},
                                 mapOptions: startScript.mapOptions ?? {},
                                 unitLimits: new Map<string, number>(Object.entries(startScript.unitLimits ?? {})),
@@ -454,6 +456,8 @@ export class GameContentAPI extends PrDownloaderAPI<string, GameVersion> {
                         unlocked: rawCampaign.unlocked ?? true,
                         logo,
                         backgroundImage,
+                        difficulties: Array.isArray(rawCampaign.difficulties) ? rawCampaign.difficulties : [],
+                        defaultDifficulty: rawCampaign.defaultDifficulty ?? "",
                         missions,
                     });
                 } catch (err) {

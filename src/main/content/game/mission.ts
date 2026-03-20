@@ -61,8 +61,9 @@ export type MissionModel = {
     mapName: string;
     startPosType: string;
     players: { min: number; max: number };
-    difficulties: MissionDifficulty[];
-    defaultDifficulty: string;
+    /** Overrides the campaign-level difficulties when present. */
+    difficulties?: MissionDifficulty[];
+    defaultDifficulty?: string;
     modOptions: ModOptions;
     mapOptions: MapOptions;
     /** Unit def name → maximum allowed count. */
