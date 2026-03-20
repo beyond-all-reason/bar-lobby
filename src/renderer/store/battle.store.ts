@@ -352,10 +352,10 @@ function removeCustomStartBox(boxId: number) {
     }
 }
 
-function defaultOfflineBattle(engine?: EngineVersion, game?: GameVersion, map?: MapData) {
+function defaultBattle(engine?: EngineVersion, game?: GameVersion, map?: MapData, isOnline?: boolean) {
     const battle: Battle = {
         title: i18n.global.t("lobby.components.battle.offlineBattleComponent.offlineBattle"),
-        isOnline: false,
+        isOnline: !!isOnline,
         battleOptions: {
             engineVersion: engine?.id || enginesStore.selectedEngineVersion?.id,
             gameVersion: game?.gameVersion || gameStore.selectedGameVersion?.gameVersion,
@@ -395,8 +395,8 @@ function defaultOfflineBattle(engine?: EngineVersion, game?: GameVersion, map?: 
     return battle;
 }
 
-function resetToDefaultBattle(engine?: EngineVersion, game?: GameVersion, map?: MapData) {
-    const battle = defaultOfflineBattle(engine, game, map);
+function resetToDefaultBattle(engine?: EngineVersion, game?: GameVersion, map?: MapData, isOnline?: boolean) {
+    const battle = defaultBattle(engine, game, map, isOnline);
     Object.assign(battleStore, battle);
 }
 
