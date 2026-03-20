@@ -432,6 +432,8 @@ export class GameContentAPI extends PrDownloaderAPI<string, GameVersion> {
                                     difficulties: startScript.difficulties,
                                     defaultDifficulty: startScript.defaultDifficulty ?? "",
                                 }),
+                                disableFactionPicker: startScript.disableFactionPicker !== undefined ? !!startScript.disableFactionPicker : undefined,
+                                disableInitialCommanderSpawn: startScript.disableInitialCommanderSpawn !== undefined ? !!startScript.disableInitialCommanderSpawn : undefined,
                                 modOptions: startScript.modOptions ?? {},
                                 mapOptions: startScript.mapOptions ?? {},
                                 unitLimits: new Map<string, number>(Object.entries(startScript.unitLimits ?? {})),
@@ -458,6 +460,7 @@ export class GameContentAPI extends PrDownloaderAPI<string, GameVersion> {
                         backgroundImage,
                         difficulties: Array.isArray(rawCampaign.difficulties) ? rawCampaign.difficulties : [],
                         defaultDifficulty: rawCampaign.defaultDifficulty ?? "",
+                        disableFactionPicker: !!rawCampaign.disableFactionPicker,
                         missions,
                     });
                 } catch (err) {

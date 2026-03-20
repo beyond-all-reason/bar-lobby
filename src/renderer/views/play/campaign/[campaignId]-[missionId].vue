@@ -85,6 +85,7 @@ const mission = computed(() => campaign.value?.missions.get(props.missionId));
 
 const effectiveDifficulties = computed(() => mission.value?.difficulties ?? campaign.value?.difficulties ?? []);
 const effectiveDefaultDifficulty = computed(() => mission.value?.defaultDifficulty ?? campaign.value?.defaultDifficulty ?? "");
+const effectiveDisableFactionPicker = computed(() => mission.value?.disableFactionPicker ?? campaign.value?.disableFactionPicker ?? false);
 
 const selectedDifficulty = ref<MissionDifficulty | undefined>(
     effectiveDifficulties.value.find((d) => d.name === effectiveDefaultDifficulty.value)
@@ -180,6 +181,8 @@ function buildScript(m: MissionModel): string {
     const missionOptions = {
         missionScriptPath: m.missionScriptPath,
         difficulty: selectedDifficulty.value?.name ?? "",
+        disableFactionPicker: effectiveDisableFactionPicker.value,
+        disableInitialCommanderSpawn: m.disableInitialCommanderSpawn ?? false,
         allyTeams: allyTeamsMap,
         teams: teamsMap,
         ais: aisMap,

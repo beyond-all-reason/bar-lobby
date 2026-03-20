@@ -13,8 +13,11 @@ export type CampaignModel = {
     unlocked: boolean;
     logo: string | null;
     backgroundImage: string | null;
-    /** can be overridden in missions **/
+
+    /** properties that can be overridden in missions **/
     difficulties: MissionDifficulty[];
     defaultDifficulty: string;
+    disableFactionPicker: boolean;
+
     missions: Map<string, MissionModel>;
 };

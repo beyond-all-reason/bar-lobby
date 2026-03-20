@@ -64,6 +64,10 @@ export type MissionModel = {
     /** Overrides the campaign-level difficulties when present. */
     difficulties?: MissionDifficulty[];
     defaultDifficulty?: string;
+    /** Overrides the campaign-level disableFactionPicker when present. */
+    disableFactionPicker?: boolean;
+    /** Overrides the campaign-level disableInitialCommanderSpawn when present. */
+    disableInitialCommanderSpawn?: boolean;
     modOptions: ModOptions;
     mapOptions: MapOptions;
     /** Unit def name → maximum allowed count. */
