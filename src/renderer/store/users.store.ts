@@ -24,7 +24,15 @@ export function initUsersStore() {
                 return;
             }
 
-            const updated = await db.users.update(user.userId, { ...user });
+            const updated = await db.users.update(user.userId, {
+                ...user,
+                clanBaseData: user.clanBaseData
+                    ? {
+                          ...user.clanBaseData,
+                          language: user.clanBaseData.language ?? "unknown",
+                      }
+                    : null,
+            });
 
             if (updated === 0) {
                 // No records updated, so user doesn't exist - create new user
@@ -32,7 +40,12 @@ export function initUsersStore() {
                     userId: user.userId,
                     username: user.username ?? "Unknown User",
                     displayName: user.displayName ?? "Unknown User",
-                    clanBaseData: user.clanBaseData ?? null,
+                    clanBaseData: user.clanBaseData
+                        ? {
+                              ...user.clanBaseData,
+                              language: user.clanBaseData.language ?? "unknown",
+                          }
+                        : null,
                     partyId: null,
                     countryCode: user.countryCode ?? "??",
                     status: user.status ?? "offline",
