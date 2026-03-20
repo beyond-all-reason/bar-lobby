@@ -63,6 +63,9 @@ import { GameStatus, gameStore } from "@renderer/store/game.store";
 import { enginesStore } from "@renderer/store/engine.store";
 import { campaignCache } from "@renderer/store/campaign-cache";
 import { MissionDifficulty, MissionModel } from "@main/content/game/mission";
+import { Logger } from "@renderer/utils/log";
+
+const log = new Logger("[campaignId]-[missionId].vue");
 
 const router = useRouter();
 
@@ -106,7 +109,6 @@ function startPosTypeToInt(type: string): number {
 }
 
 function buildScript(m: MissionModel): string {
-    const playerName = "Player";
     const difficulty = selectedDifficulty.value;
     const playerHandicap = difficulty?.playerhandicap ?? 0;
     const enemyHandicap = difficulty?.enemyhandicap ?? 0;
@@ -115,12 +117,20 @@ function buildScript(m: MissionModel): string {
     const teamSections: string[] = [];
     const playerSections: string[] = [];
     const aiSections: string[] = [];
+
+    let playerName = "Player";
     let teamIdx = 0;
     let aiIdx = 0;
     let playerIdx = 0;
 
-    for (const [, allyTeam] of m.allyTeams) {
+    const allyTeamsMap: Record<string, number> = {};
+    const teamsMap: Record<string, number> = {};
+    const aisMap: Record<number, string> = {};
+    const playersMap: Record<number, string> = {};
+
+    for (const [allyTeamName, allyTeam] of m.allyTeams) {
         const atIdx = allyTeamSections.length;
+        allyTeamsMap[allyTeamName] = atIdx;
         let s = `\n    [allyteam${atIdx}] {\n        numallies=0;`;
         if (allyTeam.startRectLeft !== undefined) s += `\n        startrectleft=${allyTeam.startRectLeft};`;
         if (allyTeam.startRectTop !== undefined) s += `\n        startrecttop=${allyTeam.startRectTop};`;
@@ -129,10 +139,13 @@ function buildScript(m: MissionModel): string {
         s += `\n    }`;
         allyTeamSections.push(s);
 
-        for (const [, team] of allyTeam.teams) {
+        const allyTeamHasPlayer = [...allyTeam.teams.values()].some((t) => !t.ai);
+
+        for (const [teamName, team] of allyTeam.teams) {
             const thisTeamIdx = teamIdx++;
+            teamsMap[teamName] = thisTeamIdx;
             const isAi = !!team.ai;
-            const handicap = isAi ? enemyHandicap : playerHandicap;
+            const handicap = allyTeamHasPlayer ? playerHandicap : enemyHandicap;
 
             let ts = `\n    [team${thisTeamIdx}] {\n        teamleader=0;\n        allyteam=${atIdx};`;
             if (team.Side) ts += `\n        side=${team.Side};`;
@@ -144,22 +157,42 @@ function buildScript(m: MissionModel): string {
             teamSections.push(ts);
 
             if (isAi) {
-                let as = `\n    [ai${aiIdx++}] {\n        shortname=${team.ai};`;
+                const thisAiIdx = aiIdx++;
+                aisMap[thisTeamIdx] = team.name ?? teamName;
+                let as = `\n    [ai${thisAiIdx}] {\n        shortname=${team.ai};`;
                 if (team.name) as += `\n        name=${team.name};`;
                 as += `\n        team=${thisTeamIdx};\n        host=0;\n    }`;
                 aiSections.push(as);
             } else {
-                playerSections.push(`\n    [player${playerIdx++}] {\n        name=${playerName};\n        team=${thisTeamIdx};\n    }`);
+                const thisPlayerIdx = playerIdx++;
+                playersMap[thisPlayerIdx] = team.name ?? teamName;
+                playerName = team.name ?? teamName;
+                playerSections.push(
+                    `\n    [player${thisPlayerIdx}] {\n        name=${team.name ?? teamName};\n        team=${thisTeamIdx};\n    }`
+                );
             }
         }
     }
 
-    const modSection = Object.entries(m.modOptions).length
-        ? `\n    [modoptions] {${Object.entries(m.modOptions).map(([k, v]) => `\n        ${k}=${v};`).join("")}\n    }`
-        : "";
+    const missionOptions = {
+        missionScriptPath: m.missionScriptPath,
+        difficulty: selectedDifficulty.value?.name ?? "",
+        allyTeams: allyTeamsMap,
+        teams: teamsMap,
+        ais: aisMap,
+        players: playersMap,
+    };
+    log.info(`Mission options: ${JSON.stringify(missionOptions, null, 2)}`);
+    const missionOptionsStr = btoa(JSON.stringify(missionOptions));
+
+    const modSection = `\n    [modoptions] {${Object.entries(m.modOptions)
+        .map(([k, v]) => `\n        ${k}=${v};`)
+        .join("")}\n        missionoptions=${missionOptionsStr};\n    }`;
 
     const mapSection = Object.entries(m.mapOptions).length
-        ? `\n    [mapoptions] {${Object.entries(m.mapOptions).map(([k, v]) => `\n        ${k}=${v};`).join("")}\n    }`
+        ? `\n    [mapoptions] {${Object.entries(m.mapOptions)
+              .map(([k, v]) => `\n        ${k}=${v};`)
+              .join("")}\n    }`
         : "";
 
     let restrictSection = "";

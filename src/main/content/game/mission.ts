@@ -50,6 +50,8 @@ export type MissionModel = {
     // from context / LobbyData
     campaignId: string;
     missionId: string;
+    /** Path to the mission.lua file, relative to the root of the game archive. */
+    missionScriptPath: string;
     title: string;
     description: string;
     image: string | null; // cached local path

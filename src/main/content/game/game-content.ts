@@ -22,14 +22,7 @@ import { CampaignModel } from "@main/content/game/campaign";
 import { MissionModel } from "@main/content/game/mission";
 import { SdpFile, SdpFileMeta } from "@main/content/game/sdp";
 import { PrDownloaderAPI } from "@main/content/pr-downloader";
-import {
-    CAMPAIGN_IMAGE_PATH,
-    GAME_PATHS,
-    PACKAGE_PATH,
-    POOL_PATH,
-    RAPID_INDEX_PATH,
-    SCENARIO_IMAGE_PATH
-} from "@main/config/app";
+import { CAMPAIGN_IMAGE_PATH, GAME_PATHS, PACKAGE_PATH, POOL_PATH, RAPID_INDEX_PATH, SCENARIO_IMAGE_PATH } from "@main/config/app";
 import { PoolCdnDownloader } from "@main/content/game/pool-cdn";
 import { fileExists } from "@main/utils/file";
 
@@ -426,6 +419,7 @@ export class GameContentAPI extends PrDownloaderAPI<string, GameVersion> {
                             const mission: MissionModel = {
                                 campaignId: rawCampaign.campaignId,
                                 missionId: String(lobbyData.missionId ?? missionFolder),
+                                missionScriptPath: `missions/campaigns/${campaignDirName}/${missionFolder}/mission.lua`,
                                 title: lobbyData.title ?? "",
                                 description: lobbyData.description ?? "",
                                 image,
