@@ -39,7 +39,6 @@ async function createClan(data: ClanCreateRequestData): Promise<boolean> {
         return true;
     } catch (error) {
         console.log("Creating clan failed.", error);
-        notificationsApi.alert({ text: "Tachyon error with clan/create", severity: "error" });
         return false;
     }
 }

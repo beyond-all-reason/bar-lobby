@@ -43,7 +43,6 @@ declare module 'vue-router/auto-routes' {
     '/play/skirmishVsAi': RouteRecordInfo<'/play/skirmishVsAi', '/play/skirmishVsAi', Record<never, never>, Record<never, never>>,
     '/play/tournaments': RouteRecordInfo<'/play/tournaments', '/play/tournaments', Record<never, never>, Record<never, never>>,
     '/profile/[userId]': RouteRecordInfo<'/profile/[userId]', '/profile/:userId', { userId: ParamValue<true> }, { userId: ParamValue<false> }>,
-    '/profile/clanCreate': RouteRecordInfo<'/profile/clanCreate', '/profile/clanCreate', Record<never, never>, Record<never, never>>,
     '/profile/clanDirectory': RouteRecordInfo<'/profile/clanDirectory', '/profile/clanDirectory', Record<never, never>, Record<never, never>>,
     '/profile/clanManage': RouteRecordInfo<'/profile/clanManage', '/profile/clanManage', Record<never, never>, Record<never, never>>,
     '/watch/': RouteRecordInfo<'/watch/', '/watch', Record<never, never>, Record<never, never>>,

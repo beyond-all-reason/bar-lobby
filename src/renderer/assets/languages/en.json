@@ -2122,6 +2122,11 @@
                         "incomingRequestExists": "This user has already sent you a friend request"
                     }
                 }
+            },
+            "clan":{
+                "create":{
+                    "title": "Create new clan"
+                }
             }
         },
         "components": {

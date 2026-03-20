@@ -21,10 +21,12 @@ SPDX-License-Identifier: MIT
                     <p>{{ t("lobby.views.profile.clan") }}{{ user.clanId }}</p>
                 </div>
             </div>
+            <Button @click="clanCreateModalOpen = true">Create Clan</Button>
         </Panel>
         <Panel class="profile-container" v-else>
             <p>{{ t("lobby.views.profile.userNotFound") }}</p>
         </Panel>
+        <ClanCreateModal v-model="clanCreateModalOpen" />
     </div>
 </template>
 
@@ -34,7 +36,14 @@ import Panel from "@renderer/components/common/Panel.vue";
 import { useDexieLiveQueryWithDeps } from "@renderer/composables/useDexieLiveQuery";
 import { db } from "@renderer/store/db";
 import { useTypedI18n } from "@renderer/i18n";
+import Button from "@renderer/components/controls/Button.vue";
 const { t } = useTypedI18n();
+import { provide, ref } from "vue";
+
+const clanCreateModalOpen = ref(false);
+
+import ClanCreateModal from "@renderer/components/navbar/clanCreate.vue";
+provide("clanCreateModalOpen", clanCreateModalOpen);
 
 const props = defineProps<{
     userId: string;
