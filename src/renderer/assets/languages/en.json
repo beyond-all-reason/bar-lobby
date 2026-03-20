@@ -2125,7 +2125,14 @@
             },
             "clan":{
                 "create":{
-                    "title": "Create new clan"
+                    "title": "Create new clan",
+                    "formPlaceholderClanName": "3 up to 30 characters...",
+                    "formPlaceholderClanTag": "3 up to 10 characters...",
+                    "formPlaceholderClanDescription": "Write here with up to 500 characters the most importent infos of your clan...",
+                    "clanCreateSuccessMessage": "Clan successfully created.",
+                    "clanCreateErrorMessage": "Error creating the clan.<br/>(Name or tag has already been taken!)",
+                    "clanNameLengthError": "Clan name must be at least {min} characters long.",
+                    "clanTagLengthError": "Clan tag must be at least {min} characters long."
                 }
             }
         },
