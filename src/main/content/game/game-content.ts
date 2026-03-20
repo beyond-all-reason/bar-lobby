@@ -22,7 +22,14 @@ import { CampaignModel } from "@main/content/game/campaign";
 import { MissionModel } from "@main/content/game/mission";
 import { SdpFile, SdpFileMeta } from "@main/content/game/sdp";
 import { PrDownloaderAPI } from "@main/content/pr-downloader";
-import { CAMPAIGN_IMAGE_PATH, GAME_PATHS, PACKAGE_PATH, POOL_PATH, RAPID_INDEX_PATH, SCENARIO_IMAGE_PATH } from "@main/config/app";
+import {
+    CAMPAIGN_IMAGE_PATH,
+    GAME_PATHS,
+    PACKAGE_PATH,
+    POOL_PATH,
+    RAPID_INDEX_PATH,
+    SCENARIO_IMAGE_PATH
+} from "@main/config/app";
 import { PoolCdnDownloader } from "@main/content/game/pool-cdn";
 import { fileExists } from "@main/utils/file";
 
@@ -351,7 +358,8 @@ export class GameContentAPI extends PrDownloaderAPI<string, GameVersion> {
             const version = this.availableVersions.values().find((v) => v.gameVersion === gameVersion);
             assert(version, `No installed version found for game version: ${gameVersion}`);
 
-            const campaignLuaFiles = await this.getGameFiles(version.packageMd5, "missions/campaigns/*/campaign.lua", true);
+            // Campaign lua files sit at missions/campaigns/{name}.lua, sibling to their dir.
+            const campaignLuaFiles = await this.getGameFiles(version.packageMd5, "missions/campaigns/*.lua", true);
 
             const cacheDir = CAMPAIGN_IMAGE_PATH;
             await fs.promises.mkdir(cacheDir, { recursive: true });
@@ -363,11 +371,11 @@ export class GameContentAPI extends PrDownloaderAPI<string, GameVersion> {
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     const rawCampaign = parseLuaTable(campaignFile.data) as any;
 
-                    // Derive the campaign folder name from the file path.
-                    // For .sdp, fileName is the full archive-relative path; for .sdd, use archivePath.
-                    const campaignDirName = campaignFile.fileName.includes("/")
-                        ? campaignFile.fileName.split("/").at(-2) ?? ""
-                        : campaignFile.archivePath.split(path.sep).at(-2) ?? "";
+                    // The campaign dir name is the stem of the lua file (sibling relationship).
+                    // For .sdp, fileName is the full relative path; for .sdd, use archivePath.
+                    const campaignDirName = path.parse(
+                        campaignFile.fileName.includes("/") ? campaignFile.fileName : campaignFile.archivePath
+                    ).name;
 
                     const logo = await this.extractCampaignAsset(
                         version.packageMd5,
@@ -383,13 +391,16 @@ export class GameContentAPI extends PrDownloaderAPI<string, GameVersion> {
                         campaignDirName
                     );
 
-                    const missionFolders: string[] = Array.isArray(rawCampaign.missions) ? rawCampaign.missions : [];
+                    const missionLuaMeta = await this.getGameFiles(version.packageMd5, `missions/campaigns/${campaignDirName}/*.lua`, false);
+                    const missionFolders = missionLuaMeta.map((f) =>
+                        path.parse(f.fileName.includes("/") ? f.fileName : f.archivePath).name
+                    );
                     const missions = new Map<string, MissionModel>();
 
                     for (const missionFolder of missionFolders) {
                         const missionFiles = await this.getGameFiles(
                             version.packageMd5,
-                            `missions/campaigns/${campaignDirName}/${missionFolder}/mission.lua`,
+                            `missions/campaigns/${campaignDirName}/${missionFolder}.lua`,
                             true
                         );
                         if (missionFiles.length === 0) {
@@ -419,7 +430,7 @@ export class GameContentAPI extends PrDownloaderAPI<string, GameVersion> {
                             const mission: MissionModel = {
                                 campaignId: rawCampaign.campaignId,
                                 missionId: String(lobbyData.missionId ?? missionFolder),
-                                missionScriptPath: `missions/campaigns/${campaignDirName}/${missionFolder}/mission.lua`,
+                                missionScriptPath: `missions/campaigns/${campaignDirName}/${missionFolder}.lua`,
                                 title: lobbyData.title ?? "",
                                 description: lobbyData.description ?? "",
                                 image,
