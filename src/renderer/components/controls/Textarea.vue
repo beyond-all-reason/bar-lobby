@@ -24,6 +24,10 @@ import Control from "@renderer/components/controls/Control.vue";
         width: 100%;
         max-width: 100%;
         padding: 5px;
+        box-sizing: border-box;
+        word-wrap: break-word;
+        white-space: pre-wrap;
+        resize: none;
     }
 }
 </style>
