@@ -5,10 +5,10 @@ SPDX-License-Identifier: MIT
 -->
 
 <template>
-    <Modal :title="t('lobby.navbar.clan.create.title')">
+    <Modal :title="t('lobby.navbar.clan.create.title')" @open="openModal">
         <div class="gridform">
             <div>Name:</div>
-            <Textbox v-model="newClanData.name" maxlength="30" style="width: 100%" />
+            <Textbox v-model="newClanData.name" placeholder="3 up to 30 characters..." maxlength="30" style="width: 100%" />
             <div></div>
             <div
                 :style="{
@@ -17,10 +17,10 @@ SPDX-License-Identifier: MIT
                     marginTop: '4px',
                 }"
             >
-                {{ (newClanData.name ?? "").length }} / {{ minClanName }}-{{ maxClanName }}
+                {{ (newClanData.name ?? "").length }}/{{ maxClanName }}
             </div>
             <div>Tag:</div>
-            <Textbox v-model="newClanData.tag" maxlength="10" style="width: 100%" />
+            <Textbox v-model="newClanData.tag" placeholder="3 up to 10 characters..." maxlength="10" style="width: 100%" />
             <div></div>
             <div
                 :style="{
@@ -29,7 +29,7 @@ SPDX-License-Identifier: MIT
                     marginTop: '4px',
                 }"
             >
-                {{ (newClanData.tag ?? "").length }} / {{ minClanTag }}-{{ maxClanTag }}
+                {{ (newClanData.tag ?? "").length }}/{{ maxClanTag }}
             </div>
             <div>Language: <Flag :countryCode="newClanData.language" style="width: 20px" /></div>
             <Select
@@ -43,7 +43,12 @@ SPDX-License-Identifier: MIT
                 style="width: 100%"
             />
             <div>Descrition:</div>
-            <Textarea v-model="newClanData.description" maxlength="500" style="width: 100%; min-height: 100%; height: 250px" />
+            <Textarea
+                v-model="newClanData.description"
+                placeholder="Write here with up to 500 characters the most importent infos of your clan..."
+                maxlength="500"
+                style="width: 100%; min-height: 100%; height: 250px"
+            />
             <div></div>
             <div style="font-size: 0.9em; color: #999; margin-top: 4px">
                 {{ (newClanData.description ?? "").length }}/{{ maxClanDescription }}
@@ -57,7 +62,7 @@ SPDX-License-Identifier: MIT
 </template>
 
 <script lang="ts" setup>
-import { ref, watch } from "vue";
+import { ref } from "vue";
 import Modal from "@renderer/components/common/Modal.vue";
 import Flag from "@renderer/components/misc/Flag.vue";
 import { useTypedI18n } from "@renderer/i18n";
@@ -95,14 +100,6 @@ const maxClanDescription = 500;
 
 const clanCreateSuccess = ref(false);
 
-//RALA Hier muss noch irgendwie implementiert werden das die Werte beim schließen zurückgesetzt werden.
-/* watch(isOpen, (newVal) => {
-    if (!newVal) {
-        newClanData.value = { name: "", tag: "", language: "??", description: "" };
-        message.value = "";
-    }
-}); */
-
 async function clickCreate() {
     if (newClanData.value.name.length < minClanName) {
         message.value = `Clan name must be at least ${minClanName} characters long.`;
@@ -121,5 +118,11 @@ async function clickCreate() {
     } else {
         message.value = "Error creating the clan.<br/>(Name or tag has already been taken!)";
     }
+}
+
+function openModal() {
+    newClanData.value = { name: "", tag: "", language: "??", description: "" };
+    message.value = "";
+    clanCreateSuccess.value = false; // Reset success state
 }
 </script>
