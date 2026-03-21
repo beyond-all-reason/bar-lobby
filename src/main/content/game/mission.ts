@@ -8,7 +8,8 @@ export type MissionDifficulty = {
     enemyhandicap: number;
 };
 
-export type ModOptions = {
+/** Mission-specific mod options, distinct from the multiplayer {@link ModOptions} in start-script.ts. */
+export type MissionModOptions = {
     deathMode?: string;
     maxunits?: number;
     map_waterlevel?: number;
@@ -48,7 +49,8 @@ export type AllyTeamModel = {
 // Triggers and Actions are intentionally ignored.
 export type MissionModel = {
     // from context / LobbyData
-    campaignId: string;
+    /** Undefined for standalone missions (e.g. future scenarios migrated to MissionModel). */
+    campaignId?: string;
     missionId: string;
     /** Path to the mission.lua file, relative to the root of the game archive. */
     missionScriptPath: string;
@@ -68,7 +70,7 @@ export type MissionModel = {
     disableFactionPicker?: boolean;
     /** Overrides the campaign-level disableInitialCommanderSpawn when present. */
     disableInitialCommanderSpawn?: boolean;
-    modOptions: ModOptions;
+    modOptions: MissionModOptions;
     mapOptions: MapOptions;
     /** Unit def name → maximum allowed count. */
     unitLimits: Map<string, number>;

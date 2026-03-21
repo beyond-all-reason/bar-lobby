@@ -17,19 +17,11 @@ import assert from "assert";
 import { contentSources } from "@main/config/content-sources";
 import { DownloadInfo } from "@main/content/downloads";
 import { LuaOptionSection } from "@main/content/game/lua-options";
-import { Scenario } from "@main/content/game/scenario";
 import { CampaignModel } from "@main/content/game/campaign";
-import { MissionModel } from "@main/content/game/mission";
 import { SdpFile, SdpFileMeta } from "@main/content/game/sdp";
+import { getCampaigns, getScenarios } from "@main/content/game/campaign-content";
 import { PrDownloaderAPI } from "@main/content/pr-downloader";
-import {
-    CAMPAIGN_IMAGE_PATH,
-    GAME_PATHS,
-    PACKAGE_PATH,
-    POOL_PATH,
-    RAPID_INDEX_PATH,
-    SCENARIO_IMAGE_PATH
-} from "@main/config/app";
+import { CAMPAIGN_IMAGE_PATH, GAME_PATHS, PACKAGE_PATH, POOL_PATH, RAPID_INDEX_PATH, SCENARIO_IMAGE_PATH } from "@main/config/app";
 import { PoolCdnDownloader } from "@main/content/game/pool-cdn";
 import { fileExists } from "@main/utils/file";
 
@@ -170,44 +162,10 @@ export class GameContentAPI extends PrDownloaderAPI<string, GameVersion> {
         try {
             const version = this.availableVersions.values().find((version) => version.gameVersion === gameVersion);
             assert(version, `No installed version found for game version: ${gameVersion}`);
-
-            const scenarioImages = await this.getGameFiles(version.packageMd5, "singleplayer/scenarios/*.{jpg,png}", false);
-            const scenarioDefinitions = (await this.getGameFiles(version.packageMd5, "singleplayer/scenarios/*.lua", true)).filter(({ fileName }) => /[^/]*scenario[^/]*$/.test(fileName));
-            const cacheDir = SCENARIO_IMAGE_PATH;
-
-            await fs.promises.mkdir(cacheDir, { recursive: true });
-            for (const scenarioImage of scenarioImages) {
-                let buffer: Buffer;
-                if (scenarioImage.archivePath.endsWith(".gz")) {
-                    const data = await fs.promises.readFile(scenarioImage.archivePath);
-                    buffer = await gunzip(data);
-                } else {
-                    buffer = await fs.promises.readFile(scenarioImage.archivePath);
-                }
-                const fileName = path.parse(scenarioImage.fileName).base;
-                await fs.promises.writeFile(path.join(cacheDir, fileName), buffer);
-            }
-            const scenarios: Scenario[] = [];
-            for (const scenarioDefinition of scenarioDefinitions) {
-                try {
-                    const scenario = parseLuaTable(scenarioDefinition.data) as Scenario;
-                    if (scenario.imagepath) {
-                        log.debug(`Imagepath: ${scenario.imagepath}`);
-                        scenario.imagepath = path.join(cacheDir, scenario.imagepath).replaceAll("\\", "/");
-                    } else {
-                        log.warn(`No imagepath for scenario: ${scenario.title}`);
-                    }
-                    scenario.summary = scenario.summary.replace(/\[|\]/g, "");
-                    scenario.briefing = scenario.briefing.replace(/\[|\]/g, "");
-                    scenario.allowedsides = Array.isArray(scenario.allowedsides) && scenario.allowedsides[0] !== "" ? scenario.allowedsides : ["Armada", "Cortext", "Random"];
-                    scenario.startscript = scenario.startscript.slice(1, -1);
-                    scenarios.push(scenario);
-                } catch (err) {
-                    console.error(`error parsing scenario lua file: ${scenarioDefinition.fileName}`, err);
-                }
-            }
-            scenarios.sort((a, b) => a.index - b.index);
-            return scenarios;
+            return getScenarios(version, {
+                getMeta: (md5, pattern) => this.getGameFiles(md5, pattern, false),
+                getData: (md5, pattern) => this.getGameFiles(md5, pattern, true),
+            }, SCENARIO_IMAGE_PATH);
         } catch (err) {
             log.error(`Error getting scenarios: ${err}`);
             return [];
@@ -357,156 +315,16 @@ export class GameContentAPI extends PrDownloaderAPI<string, GameVersion> {
         try {
             const version = this.availableVersions.values().find((v) => v.gameVersion === gameVersion);
             assert(version, `No installed version found for game version: ${gameVersion}`);
-
-            // Campaign lua files sit at missions/campaigns/{name}.lua, sibling to their dir.
-            const campaignLuaFiles = await this.getGameFiles(version.packageMd5, "missions/campaigns/*.lua", true);
-
-            const cacheDir = CAMPAIGN_IMAGE_PATH;
-            await fs.promises.mkdir(cacheDir, { recursive: true });
-
-            const campaigns: CampaignModel[] = [];
-
-            for (const campaignFile of campaignLuaFiles) {
-                try {
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    const rawCampaign = parseLuaTable(campaignFile.data) as any;
-
-                    // The campaign dir name is the stem of the lua file (sibling relationship).
-                    // For .sdp, fileName is the full relative path; for .sdd, use archivePath.
-                    const campaignDirName = path.parse(
-                        campaignFile.fileName.includes("/") ? campaignFile.fileName : campaignFile.archivePath
-                    ).name;
-
-                    const logo = await this.extractCampaignAsset(
-                        version.packageMd5,
-                        `missions/campaigns/${campaignDirName}/${rawCampaign.logo}`,
-                        cacheDir,
-                        campaignDirName
-                    );
-
-                    const backgroundImage = await this.extractCampaignAsset(
-                        version.packageMd5,
-                        `missions/campaigns/${campaignDirName}/${rawCampaign.backgroundImage}`,
-                        cacheDir,
-                        campaignDirName
-                    );
-
-                    const missionLuaMeta = await this.getGameFiles(version.packageMd5, `missions/campaigns/${campaignDirName}/*.lua`, false);
-                    const missionFolders = missionLuaMeta.map((f) =>
-                        path.parse(f.fileName.includes("/") ? f.fileName : f.archivePath).name
-                    );
-                    const missions = new Map<string, MissionModel>();
-
-                    for (const missionFolder of missionFolders) {
-                        const missionFiles = await this.getGameFiles(
-                            version.packageMd5,
-                            `missions/campaigns/${campaignDirName}/${missionFolder}.lua`,
-                            true
-                        );
-                        if (missionFiles.length === 0) {
-                            log.warn(`Mission lua not found: ${campaignDirName}/${missionFolder}`);
-                            continue;
-                        }
-                        try {
-                            const missionData = missionFiles[0].data;
-                            // Parse only LobbyData and StartScript; Triggers and Actions are ignored.
-                            // tableVariableName is required because mission.lua starts with GG['MissionAPI']
-                            // references that would confuse the default (no-option) table finder.
-                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                            const lobbyData = parseLuaTable(missionData, { tableVariableName: "lobbyData" }) as any;
-                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                            const startScript = parseLuaTable(missionData, { tableVariableName: "startScript" }) as any;
-
-                            const imageFileName = lobbyData.image as string | undefined;
-                            const image = imageFileName
-                                ? await this.extractCampaignAsset(
-                                      version.packageMd5,
-                                      `missions/campaigns/${campaignDirName}/${missionFolder}/${imageFileName}`,
-                                      cacheDir,
-                                      `${campaignDirName}_${missionFolder}`
-                                  )
-                                : null;
-
-                            const mission: MissionModel = {
-                                campaignId: rawCampaign.campaignId,
-                                missionId: String(lobbyData.missionId ?? missionFolder),
-                                missionScriptPath: `missions/campaigns/${campaignDirName}/${missionFolder}.lua`,
-                                title: lobbyData.title ?? "",
-                                description: lobbyData.description ?? "",
-                                image,
-                                startPos: lobbyData.startPos ?? { x: 0.25, y: 0.25 },
-                                unlocked: lobbyData.unlocked ?? false,
-                                mapName: startScript.mapName ?? "",
-                                startPosType: startScript.startPosType ?? "chooseBeforeGame",
-                                players: startScript.players ?? { min: 1, max: 4 },
-                                ...(Array.isArray(startScript.difficulties) && {
-                                    difficulties: startScript.difficulties,
-                                    defaultDifficulty: startScript.defaultDifficulty ?? "",
-                                }),
-                                disableFactionPicker: startScript.disableFactionPicker !== undefined ? !!startScript.disableFactionPicker : undefined,
-                                disableInitialCommanderSpawn: startScript.disableInitialCommanderSpawn !== undefined ? !!startScript.disableInitialCommanderSpawn : undefined,
-                                modOptions: startScript.modOptions ?? {},
-                                mapOptions: startScript.mapOptions ?? {},
-                                unitLimits: new Map<string, number>(Object.entries(startScript.unitLimits ?? {})),
-                                allyTeams: new Map(
-                                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                                    Object.entries(startScript.allyTeams ?? {}).map(([name, at]: [string, any]) => [
-                                        name,
-                                        { ...at, teams: new Map(Object.entries(at.teams ?? {})) },
-                                    ])
-                                ),
-                            };
-                            missions.set(mission.missionId, mission);
-                        } catch (err) {
-                            log.error(`Error parsing mission ${missionFolder} in ${campaignDirName}: ${err}`);
-                        }
-                    }
-
-                    campaigns.push({
-                        campaignId: rawCampaign.campaignId,
-                        title: rawCampaign.title,
-                        description: rawCampaign.description,
-                        unlocked: rawCampaign.unlocked ?? true,
-                        logo,
-                        backgroundImage,
-                        difficulties: Array.isArray(rawCampaign.difficulties) ? rawCampaign.difficulties : [],
-                        defaultDifficulty: rawCampaign.defaultDifficulty ?? "",
-                        disableFactionPicker: !!rawCampaign.disableFactionPicker,
-                        missions,
-                    });
-                } catch (err) {
-                    log.error(`Error parsing campaign ${campaignFile.fileName}: ${err}`);
-                }
-            }
-
-            return campaigns;
+            return getCampaigns(version, {
+                getMeta: (md5, pattern) => this.getGameFiles(md5, pattern, false),
+                getData: (md5, pattern) => this.getGameFiles(md5, pattern, true),
+            }, CAMPAIGN_IMAGE_PATH);
         } catch (err) {
             log.error(`Error getting campaigns: ${err}`);
             return [];
         }
     }
 
-    private async extractCampaignAsset(packageMd5: string, gameFilePath: string, cacheDir: string, campaignDirName: string): Promise<string | null> {
-        try {
-            const files = await this.getGameFiles(packageMd5, gameFilePath, false);
-            if (files.length === 0) return null;
-            const file = files[0];
-            let buffer: Buffer;
-            if (file.archivePath.endsWith(".gz")) {
-                const data = await fs.promises.readFile(file.archivePath);
-                buffer = await gunzip(data);
-            } else {
-                buffer = await fs.promises.readFile(file.archivePath);
-            }
-            // Prefix with campaign dir name to avoid filename collisions across campaigns.
-            const cacheFileName = `${campaignDirName}_${path.basename(gameFilePath)}`;
-            const cachePath = path.join(cacheDir, cacheFileName);
-            await fs.promises.writeFile(cachePath, buffer);
-            return cachePath;
-        } catch {
-            return null;
-        }
-    }
 
     // TODO reimplement a cleanup function
     // protected async cleanupOldVersions() {
