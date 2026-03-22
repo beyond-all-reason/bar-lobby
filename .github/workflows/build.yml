@@ -6,27 +6,30 @@ name: Build
 
 on:
     push:
-        tags:
-            - "*"
+        branches:
+            - master
     workflow_dispatch:
 
 jobs:
     build:
-        runs-on: ${{ matrix.os }}
+        runs-on: ${{ matrix.system.runs-on }}
         strategy:
             fail-fast: false
             matrix:
-                os: [windows-latest, ubuntu-latest]
-                node-version: [22.18.0]
+                system:
+                    - runs-on: windows-latest
+                      target: windows-amd64
+                    - runs-on: ubuntu-latest
+                      target: linux-amd64
 
         steps:
             - name: Check out Git repository
-              uses: actions/checkout@v4
+              uses: actions/checkout@v6
 
             - name: Install Node.js, NPM and Yarn
-              uses: actions/setup-node@v4
+              uses: actions/setup-node@v6
               with:
-                  node-version: ${{ matrix.node-version }}
+                  node-version-file: .nvmrc
                   cache: npm
 
             - name: Build Env Information
@@ -37,10 +40,22 @@ jobs:
             - name: Install dependencies
               run: npm ci
 
-            - name: Electron Build & Publish
+            - name: Electron Build
               run: |
                   npm run package
-                  npm run release
+                  VERSION="$(jq -r .version package.json)-dev.${{ github.run_number }}+$(git rev-parse --short=8 HEAD)"
+                  npx electron-builder build -c.extraMetadata.version=$VERSION
+                  echo "VERSION=$VERSION" >> $GITHUB_ENV
+              shell: bash
               env:
-                  NODE_OPTIONS: "--max-old-space-size=8192"
                   GITHUB_TOKEN: ${{ secrets.github_token }}
+
+            - name: Upload binary
+              uses: actions/upload-artifact@v7
+              with:
+                  name: bar-lobby-${{ env.VERSION }}-${{ matrix.system.target }}
+                  path: |
+                      dist/*.AppImage
+                      dist/*.exe
+                  retention-days: 30
+                  compression-level: 0 # already compressed
