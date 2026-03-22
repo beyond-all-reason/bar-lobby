@@ -26,7 +26,7 @@ import {
 import { reactive } from "vue";
 import { apply as applyPatch } from "json8-merge-patch";
 import { notificationsApi } from "@renderer/api/notifications";
-import { Lobby } from "@renderer/model/lobby";
+import { Lobby, VoteEntry } from "@renderer/model/lobby";
 import { setupI18n } from "@renderer/i18n";
 import { subsManager } from "@renderer/store/users.store";
 import { db } from "@renderer/store/db";
@@ -246,6 +246,9 @@ function parseLobbyResponseData(data: LobbyCreateOkResponseData | LobbyJoinOkRes
     // Manage our User subscriptions after updated/joined/created
     subsManager.setList([...Object.keys(lobbyStore.activeLobby.players), ...Object.keys(lobbyStore.activeLobby.spectators)], lobbySymbol);
 
+    if (!lobbyStore.activeLobby.voteHistory) {
+        lobbyStore.activeLobby.voteHistory = new Map<string, VoteEntry>();
+    }
     // If there is a vote, we add/update it in the voteHistory for the lobby
     if (lobbyStore.activeLobby.currentVote) {
         lobbyStore.activeLobby.voteHistory.set(lobbyStore.activeLobby.currentVote.id, {
