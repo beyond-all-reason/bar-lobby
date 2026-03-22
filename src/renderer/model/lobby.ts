@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: MIT
 
-import { LobbyCreateOkResponse, LobbyVoteEndedEventData, VoteActions } from "tachyon-protocol/types";
+import { LobbyCreateOkResponse } from "tachyon-protocol/types";
 
 export type Lobby = LobbyCreateOkResponse["data"] & {
     maxPlayerCount: number;
@@ -10,7 +10,4 @@ export type Lobby = LobbyCreateOkResponse["data"] & {
     spectatorCount: number;
     playerQueue: Map<number, string>;
     botCount: number;
-    voteHistory: Map<string, VoteEntry>;
 };
-
-export type VoteEntry = VoteActions & { outcome: LobbyVoteEndedEventData["outcome"] | "pending" };
