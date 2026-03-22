@@ -19,5 +19,5 @@ export type CampaignModel = {
     defaultDifficulty: string;
     disableFactionPicker: boolean;
 
-    missions: Map<string, MissionModel>;
+    missions: Record<string, MissionModel>;
 };

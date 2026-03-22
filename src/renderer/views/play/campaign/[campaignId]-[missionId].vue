@@ -63,7 +63,12 @@ import { GameStatus, gameStore } from "@renderer/store/game.store";
 import { enginesStore } from "@renderer/store/engine.store";
 import { useCampaignLoader } from "@renderer/composables/useCampaignLoader";
 import { MissionDifficulty } from "@main/content/game/mission";
-import { missionEffectiveSettings, missionHumanTeamNames, missionToScriptStr } from "@main/utils/mission-script-converter";
+import {
+    missionEffectiveSettings,
+    missionHumanTeamNames,
+    missionToScriptStr
+} from "@main/utils/mission-script-converter";
+import { mapsStore } from "@renderer/store/maps.store";
 
 const router = useRouter();
 
@@ -90,19 +95,32 @@ const selectedDifficulty = ref<MissionDifficulty | undefined>(
     effective.value.difficulties.find((d) => d.name === effective.value.defaultDifficulty)
 );
 
-// Original map name from the mission Lua — used for the CDN download lookup,
-// the installed-map check, the Dexie preview lookup, and the start script mapname field.
-// Spring matches archives by their actual Spring name, which may contain spaces.
-const mapName = computed(() => mission.value?.mapName ?? "");
+// Handle underscores in map names
+const mapName = computed(() => {
+    const missionMapName = mission.value?.mapName ?? "";
+    if (!missionMapName) return "";
+    const normalize = (s: string) => s.toLowerCase().replaceAll(/[\s_]/g, "");
+    const normalizedMission = normalize(missionMapName);
+    return [...mapsStore.availableMapNames].find((n) => normalize(n) === normalizedMission) ?? missionMapName;
+});
 
 const map = useDexieLiveQueryWithDeps([mapName], async () => (mapName.value ? await db.maps.get(mapName.value) : undefined));
 
 async function launch() {
     if (!mission.value || !enginesStore.selectedEngineVersion) return;
     // For single-player, the local player occupies the sole human slot.
-    // Future co-op: pass the server-assigned team name here instead.
+    // TODO: for co-op, handle multiple names
     const localPlayerTeamName = missionHumanTeamNames(mission.value)[0] ?? "Player";
-    const script = missionToScriptStr(mission.value, selectedDifficulty.value, effective.value, localPlayerTeamName, gameVersion ?? "");
+    // Use the resolved installed-map name (spaces↔underscores normalised)
+    const resolvedMapName = mapName.value || undefined;
+    const script = missionToScriptStr(
+        mission.value,
+        selectedDifficulty.value,
+        effective.value,
+        localPlayerTeamName,
+        gameVersion ?? "",
+        resolvedMapName
+    );
     await window.game.launchScript(script, gameVersion ?? "", enginesStore.selectedEngineVersion.id);
 }
 

@@ -47,13 +47,9 @@ type GameBuildContext = {
 };
 
 function humanTeamNamesForAllyTeam(allyTeam: AllyTeamModel): string[] {
-    const names: string[] = [];
-    for (const [teamKey, teamDef] of allyTeam.teams) {
-        if (!teamDef.ai) {
-            names.push(teamDef.name ?? teamKey);
-        }
-    }
-    return names;
+    return Object.entries(allyTeam.teams)
+        .filter(([, teamDef]) => !teamDef.ai)
+        .map(([teamKey, teamDef]) => teamDef.name ?? teamKey);
 }
 
 function processTeam(
@@ -121,9 +117,9 @@ function processAllyTeam(
     if (allyTeam.startRectBottom !== undefined) entry.startrectbottom = allyTeam.startRectBottom;
     ctx.allyTeams.push(entry);
 
-    const allyTeamHasHuman = [...allyTeam.teams.values()].some((t) => !t.ai);
+    const allyTeamHasHuman = Object.values(allyTeam.teams).some((t) => !t.ai);
 
-    for (const [teamKey, teamDef] of allyTeam.teams) {
+    for (const [teamKey, teamDef] of Object.entries(allyTeam.teams)) {
         processTeam(ctx, atIdx, allyTeamHasHuman, teamKey, teamDef, playerHandicap, enemyHandicap);
     }
 }
@@ -137,7 +133,7 @@ function processAllyTeam(
  */
 export function missionHumanTeamNames(mission: MissionModel): string[] {
     const names: string[] = [];
-    for (const [, allyTeam] of mission.allyTeams) {
+    for (const allyTeam of Object.values(mission.allyTeams)) {
         names.push(...humanTeamNamesForAllyTeam(allyTeam));
     }
     return names;
@@ -161,7 +157,8 @@ export function missionToGame(
     difficulty: MissionDifficulty | undefined,
     effectiveSettings: MissionEffectiveSettings,
     localPlayerTeamName: string,
-    gameVersion: string
+    gameVersion: string,
+    mapNameOverride?: string
 ): Game {
     const ctx: GameBuildContext = {
         allyTeams: [],
@@ -181,7 +178,7 @@ export function missionToGame(
     const playerHandicap = difficulty?.playerhandicap ?? 0;
     const enemyHandicap = difficulty?.enemyhandicap ?? 0;
 
-    for (const [allyTeamName, allyTeam] of mission.allyTeams) {
+    for (const [allyTeamName, allyTeam] of Object.entries(mission.allyTeams)) {
         processAllyTeam(ctx, allyTeamName, allyTeam, playerHandicap, enemyHandicap);
     }
 
@@ -196,13 +193,16 @@ export function missionToGame(
         players: ctx.playersMap,
     };
 
+    console.log("[mission-script-converter] missionOptions:", JSON.stringify(missionOptions, null, 2));
+
     // Restrictions must be serialised as a flat indexed object so that
     // stringifyScriptObj produces the [restrict] { unit0=...; limit0=...; } format.
+    const unitLimitEntries = Object.entries(mission.unitLimits);
     const restrict =
-        mission.unitLimits.size > 0
+        unitLimitEntries.length > 0
             ? Object.fromEntries([
-                  ["numrestrictions", mission.unitLimits.size],
-                  ...[...mission.unitLimits].flatMap(([unitid, limit], i) => [
+                  ["numrestrictions", unitLimitEntries.length],
+                  ...unitLimitEntries.flatMap(([unitid, limit], i) => [
                       [`unit${i}`, unitid],
                       [`limit${i}`, limit],
                   ]),
@@ -211,7 +211,7 @@ export function missionToGame(
 
     return {
         gametype: gameVersion,
-        mapname: mission.mapName,
+        mapname: mapNameOverride ?? mission.mapName,
         startpostype: startPosTypeToInt(mission.startPosType),
         ishost: 1,
         myplayername: localPlayerTeamName,
@@ -230,19 +230,16 @@ export function missionToGame(
 
 /**
  * Builds a complete Spring start-script string for the given mission.
- *
- * @param localPlayerTeamName - The mission-defined team name for the local player's slot.
- *   For single-player use `missionHumanTeamNames(mission)[0]`.
- *   Future co-op callers pass the server-assigned slot name.
  */
 export function missionToScriptStr(
     mission: MissionModel,
     difficulty: MissionDifficulty | undefined,
     effectiveSettings: MissionEffectiveSettings,
     localPlayerTeamName: string,
-    gameVersion: string
+    gameVersion: string,
+    mapNameOverride?: string
 ): string {
-    return startScriptConverter.generateScriptString(missionToGame(mission, difficulty, effectiveSettings, localPlayerTeamName, gameVersion));
+    return startScriptConverter.generateScriptString(missionToGame(mission, difficulty, effectiveSettings, localPlayerTeamName, gameVersion, mapNameOverride));
 }
 
 function startPosTypeToInt(type: string): number {

@@ -42,7 +42,7 @@ export type AllyTeamModel = {
     startRectBottom?: number;
     startRectRight?: number;
     /** Teams keyed by arbitrary custom team name defined in mission.lua. */
-    teams: Map<string, TeamModel>;
+    teams: Record<string, TeamModel>;
 };
 
 // Fields sourced from LobbyData and StartScript tables in mission.lua.
@@ -73,7 +73,7 @@ export type MissionModel = {
     modOptions: MissionModOptions;
     mapOptions: MapOptions;
     /** Unit def name → maximum allowed count. */
-    unitLimits: Map<string, number>;
+    unitLimits: Record<string, number>;
     /** Ally team name → AllyTeamModel. */
-    allyTeams: Map<string, AllyTeamModel>;
+    allyTeams: Record<string, AllyTeamModel>;
 };

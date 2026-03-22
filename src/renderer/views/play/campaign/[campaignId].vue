@@ -20,7 +20,7 @@ SPDX-License-Identifier: MIT
         </div>
         <p>{{ campaign?.description }}</p>
         <div class="mission-list">
-            <div v-for="[missionId, mission] in campaign?.missions" :key="missionId" class="mission-card">
+            <div v-for="[missionId, mission] in Object.entries(campaign?.missions ?? {})" :key="missionId" class="mission-card">
                 <Panel :no-padding="true">
                     <div
                         class="background_image"

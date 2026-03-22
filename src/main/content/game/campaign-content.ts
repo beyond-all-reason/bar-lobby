@@ -2,7 +2,6 @@
 //
 // SPDX-License-Identifier: MIT
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import * as fs from "node:fs";
 import * as path from "node:path";
 import util from "node:util";
@@ -10,7 +9,7 @@ import zlib from "node:zlib";
 import { logger } from "@main/utils/logger";
 import { parseLuaTable } from "@main/utils/parse-lua-table";
 import { CampaignModel } from "@main/content/game/campaign";
-import { MissionModel } from "@main/content/game/mission";
+import { AllyTeamModel, MapOptions, MissionDifficulty, MissionModel, MissionModOptions } from "@main/content/game/mission";
 import { Scenario } from "@main/content/game/scenario";
 import { GameVersion } from "@main/content/game/game-version";
 import { SdpFile, SdpFileMeta } from "@main/content/game/sdp";
@@ -18,18 +17,52 @@ import { SdpFile, SdpFileMeta } from "@main/content/game/sdp";
 const log = logger("campaign-content.ts");
 const gunzip = util.promisify(zlib.gunzip);
 
+/** Raw shape of a campaign Lua file as returned by {@link parseLuaTable}. */
+type RawCampaignLua = {
+    campaignId: string;
+    title: string;
+    description: string;
+    unlocked?: boolean;
+    logo?: string;
+    backgroundImage?: string;
+    difficulties?: MissionDifficulty[];
+    defaultDifficulty?: string;
+    disableFactionPicker?: boolean;
+};
+
+/** Raw shape of the `lobbyData` table in a mission Lua file. */
+type RawLobbyData = {
+    missionId?: string | number;
+    title?: string;
+    description?: string;
+    image?: string;
+    startPos?: { x: number; y: number };
+    unlocked?: boolean;
+};
+
+/**
+ * Raw shape of the `startScript` table in a mission Lua file.
+ */
+type RawStartScript = {
+    mapName?: string;
+    startPosType?: string;
+    players?: { min: number; max: number };
+    difficulties?: MissionDifficulty[];
+    defaultDifficulty?: string;
+    disableFactionPicker?: boolean;
+    disableInitialCommanderSpawn?: boolean;
+    modOptions?: MissionModOptions;
+    mapOptions?: MapOptions;
+    unitLimits?: Record<string, number>;
+    allyTeams?: Record<string, AllyTeamModel>;
+};
+
 /** Callbacks injected by {@link GameContentAPI} to avoid circular dependency. */
 export type GameFilesDeps = {
     getMeta(md5: string, pattern: string): Promise<SdpFileMeta[]>;
     getData(md5: string, pattern: string): Promise<SdpFile[]>;
 };
 
-/**
- * Returns a path usable for extracting the file's stem, handling both
- * packaged (.sdp) and local (.sdd) game archives:
- * - .sdp: `fileName` is the full relative path, e.g. `missions/campaigns/foo.lua`
- * - .sdd: `fileName` is just the basename `foo.lua`; `archivePath` is the absolute path
- */
 function sdpRelativePath(file: SdpFileMeta): string {
     return file.fileName.includes("/") ? file.fileName : file.archivePath;
 }
@@ -71,15 +104,14 @@ async function parseMissionFile(
     cacheDir: string
 ): Promise<MissionModel> {
     const missionFolder = path.parse(sdpRelativePath(missionFile)).name;
-    const lobbyData = parseLuaTable(missionFile.data, { tableVariableName: "lobbyData" }) as any;
-    const startScript = parseLuaTable(missionFile.data, { tableVariableName: "startScript" }) as any;
+    const lobbyData = parseLuaTable(missionFile.data, { tableVariableName: "lobbyData" }) as RawLobbyData;
+    const startScript = parseLuaTable(missionFile.data, { tableVariableName: "startScript" }) as RawStartScript;
 
-    const imageFileName = lobbyData.image as string | undefined;
-    const image = imageFileName
+    const image = lobbyData.image
         ? await extractAsset(
               deps,
               md5,
-              `missions/campaigns/${campaignDirName}/${missionFolder}/${imageFileName}`,
+              `missions/campaigns/${campaignDirName}/${missionFolder}/${lobbyData.image}`,
               cacheDir,
               `${campaignDirName}_${missionFolder}`
           )
@@ -101,21 +133,12 @@ async function parseMissionFile(
             difficulties: startScript.difficulties,
             defaultDifficulty: startScript.defaultDifficulty ?? "",
         }),
-        disableFactionPicker:
-            startScript.disableFactionPicker === undefined ? undefined : !!startScript.disableFactionPicker,
-        disableInitialCommanderSpawn:
-            startScript.disableInitialCommanderSpawn === undefined
-                ? undefined
-                : !!startScript.disableInitialCommanderSpawn,
+        disableFactionPicker: startScript.disableFactionPicker,
+        disableInitialCommanderSpawn: startScript.disableInitialCommanderSpawn,
         modOptions: startScript.modOptions ?? {},
         mapOptions: startScript.mapOptions ?? {},
-        unitLimits: new Map<string, number>(Object.entries(startScript.unitLimits ?? {})),
-        allyTeams: new Map(
-            Object.entries(startScript.allyTeams ?? {}).map(([name, at]: [string, any]) => [
-                name,
-                { ...at, teams: new Map(Object.entries(at.teams ?? {})) },
-            ])
-        ),
+        unitLimits: startScript.unitLimits ?? {},
+        allyTeams: startScript.allyTeams ?? {},
     };
 }
 
@@ -125,7 +148,7 @@ async function parseCampaignFile(
     version: GameVersion,
     cacheDir: string
 ): Promise<CampaignModel> {
-    const rawCampaign = parseLuaTable(campaignFile.data) as any;
+    const rawCampaign = parseLuaTable(campaignFile.data) as RawCampaignLua;
     const campaignDirName = path.parse(sdpRelativePath(campaignFile)).name;
 
     const logo = await extractAsset(
@@ -144,13 +167,13 @@ async function parseCampaignFile(
     );
 
     const missionLuaFiles = await deps.getData(version.packageMd5, `missions/campaigns/${campaignDirName}/*.lua`);
-    const missions = new Map<string, MissionModel>();
+    const missions: Record<string, MissionModel> = {};
 
     for (const missionFile of missionLuaFiles) {
         const missionFolder = path.parse(sdpRelativePath(missionFile)).name;
         try {
             const mission = await parseMissionFile(missionFile, deps, version.packageMd5, rawCampaign.campaignId, campaignDirName, cacheDir);
-            missions.set(mission.missionId, mission);
+            missions[mission.missionId] = mission;
         } catch (err) {
             log.error(`Error parsing mission ${missionFolder} in ${campaignDirName}: ${err}`);
         }
@@ -195,8 +218,6 @@ function parseScenarioDefinition(scenarioDefinition: SdpFile, cacheDir: string):
  * directory `missions/campaigns/<name>/`. Each mission inside a campaign is a
  * Lua file `missions/campaigns/<name>/<missionFolder>.lua`, sibling to the
  * mission's own subdirectory.
- *
- * Mission Lua files are fetched once with their data (no double-fetch).
  */
 export async function getCampaigns(version: GameVersion, deps: GameFilesDeps, cacheDir: string): Promise<CampaignModel[]> {
     try {
@@ -222,10 +243,6 @@ export async function getCampaigns(version: GameVersion, deps: GameFilesDeps, ca
 
 /**
  * Reads all scenarios for the given game version.
- *
- * NOTE: In a future migration, scenarios will be converted to {@link MissionModel}
- * instances with no `campaignId` and served via a `getStandaloneMissions()` function
- * in this module. The {@link Scenario} type will then be retired.
  */
 export async function getScenarios(version: GameVersion, deps: GameFilesDeps, cacheDir: string): Promise<Scenario[]> {
     try {

@@ -33,7 +33,7 @@ export function useCampaignLoader() {
     }
 
     function getMission(campaignId: string, missionId: string): MissionModel | undefined {
-        return getCampaign(campaignId)?.missions.get(missionId);
+        return getCampaign(campaignId)?.missions[missionId];
     }
 
     return {
