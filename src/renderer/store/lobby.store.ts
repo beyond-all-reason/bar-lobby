@@ -2,6 +2,9 @@
 //
 // SPDX-License-Identifier: MIT
 
+// TODO: We need to handle error responses with translated strings for the notifications.
+// We will need to use the failure reasons (e.g. "unauthorized") to pick a i18n string.
+
 import {
     LobbyListResetEventData,
     LobbyListUpdatedEventData,
@@ -16,6 +19,9 @@ import {
     LobbyUpdateRequestData,
     LobbyUpdatedEventData,
     LobbyLeftEventData,
+    LobbyVoteEndedEventData,
+    LobbyVoteSubmitRequestData,
+    LobbyUpdateClientStatusRequestData,
 } from "tachyon-protocol/types";
 import { reactive } from "vue";
 import { apply as applyPatch } from "json8-merge-patch";
@@ -40,7 +46,7 @@ export const lobbyStore: {
     activeLobby?: Lobby;
 } = reactive({
     isInitialized: false,
-    lobbies: {}, //This will hold changes from ``lobby/listUpdated`` events
+    lobbies: {},
     selectedLobby: undefined,
     activeLobby: undefined,
 });
@@ -50,6 +56,7 @@ export async function initLobbyStore() {
     window.tachyon.onEvent("lobby/listReset", onLobbyListResetEvent);
     window.tachyon.onEvent("lobby/updated", onLobbyUpdatedEvent);
     window.tachyon.onEvent("lobby/left", onLobbyLeftEvent);
+    window.tachyon.onEvent("lobby/voteEnded", onLobbyVoteEndedEvent);
     lobbyStore.isInitialized = true;
 }
 
@@ -63,6 +70,13 @@ function onLobbyListResetEvent(data: LobbyListResetEventData) {
     console.log("Tachyon event: lobby/listReset", data);
     lobbyStore.lobbies = data.lobbies;
     clearSelectedLobbyIfUndefined();
+}
+
+function onLobbyVoteEndedEvent(data: LobbyVoteEndedEventData) {
+    console.log("Tachyon event: lobby/voteEnded", data);
+    if (lobbyStore.activeLobby && lobbyStore.activeLobby.voteHistory.has(data.id)) {
+        lobbyStore.activeLobby.voteHistory.get(data.id)!.outcome = data.outcome;
+    }
 }
 
 async function requestSubscribeList() {
@@ -231,6 +245,14 @@ function parseLobbyResponseData(data: LobbyCreateOkResponseData | LobbyJoinOkRes
 
     // Manage our User subscriptions after updated/joined/created
     subsManager.setList([...Object.keys(lobbyStore.activeLobby.players), ...Object.keys(lobbyStore.activeLobby.spectators)], lobbySymbol);
+
+    // If there is a vote, we add/update it in the voteHistory for the lobby
+    if (lobbyStore.activeLobby.currentVote) {
+        lobbyStore.activeLobby.voteHistory.set(lobbyStore.activeLobby.currentVote.id, {
+            ...lobbyStore.activeLobby.currentVote.action,
+            outcome: "pending",
+        });
+    }
     return;
 }
 
@@ -354,6 +376,36 @@ async function clearUserSubscriptions() {
     subsManager.clearAllFromList(lobbySymbol);
 }
 
+function requestUpdateClientStatus(data: LobbyUpdateClientStatusRequestData) {
+    try {
+        const response = window.tachyon.request("lobby/updateClientStatus", data);
+        console.log("Tachyon lobby/updateClientStatus:", response);
+    } catch (error) {
+        console.error("Error with request lobby/updateClientStatus", error);
+        notificationsApi.alert({ text: "Error with request lobby/updateClientStatus", severity: "error" });
+    }
+}
+
+function requestJoinBattle() {
+    try {
+        const response = window.tachyon.request("lobby/joinBattle");
+        console.log("Tachyon lobby/joinBattle:", response);
+    } catch (error) {
+        console.error("Error with request lobby/joinBattle", error);
+        notificationsApi.alert({ text: "Error with request lobby/joinBattle", severity: "error" });
+    }
+}
+
+function requestVoteSubmit(data: LobbyVoteSubmitRequestData) {
+    try {
+        const response = window.tachyon.request("lobby/voteSubmit", data);
+        console.log("Tachyon lobby/voteSubmit:", response);
+    } catch (error) {
+        console.error("Error with request lobby/voteSubmit", error);
+        notificationsApi.alert({ text: "Error with request lobby/voteSubmit", severity: "error" });
+    }
+}
+
 export const lobby = {
     requestSubscribeList,
     requestUnsubscribeList,
@@ -368,4 +420,7 @@ export const lobby = {
     requestRemoveBot,
     requestUpdateBot,
     requestLobbyUpdate,
+    requestUpdateClientStatus,
+    requestJoinBattle,
+    requestVoteSubmit,
 };
