@@ -63,11 +63,7 @@ import { GameStatus, gameStore } from "@renderer/store/game.store";
 import { enginesStore } from "@renderer/store/engine.store";
 import { useCampaignLoader } from "@renderer/composables/useCampaignLoader";
 import { MissionDifficulty } from "@main/content/game/mission";
-import {
-    missionEffectiveSettings,
-    missionHumanTeamNames,
-    missionToScriptStr
-} from "@main/utils/mission-script-converter";
+import { missionEffectiveSettings, missionHumanTeamNames, missionToScriptStr } from "@main/utils/mission-script-converter";
 import { mapsStore } from "@renderer/store/maps.store";
 
 const router = useRouter();
