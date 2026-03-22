@@ -76,7 +76,7 @@ If you change node.js version, you **need** to re-run `npm install`.
 │     ├──index.ts
 │     ├──index.html
 │     └──...
-├──electron-builder.config.ts
+├──electron-builder.ts
 ├──electron.vite.config.ts
 ├──package.json
 └──...
