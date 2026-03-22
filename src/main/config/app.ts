@@ -8,7 +8,7 @@ import { env } from "process";
 import { app } from "electron";
 import { homedir } from "os";
 
-// Should be the same as `productName` in electron-builder.config.ts
+// Should be the same as `productName` in electron-builder.ts
 // and in workaround in installer.nsh.
 export const APP_NAME = "BeyondAllReason";
 

@@ -1,0 +1,44 @@
+# SPDX-FileCopyrightText: 2025 The BAR Lobby Authors
+#
+# SPDX-License-Identifier: CC0-1.0
+
+name: Release
+
+on:
+    push:
+        tags:
+            - "v*"
+    workflow_dispatch:
+
+jobs:
+    release:
+        runs-on: ${{ matrix.os }}
+        strategy:
+            fail-fast: false
+            matrix:
+                os: [windows-latest, ubuntu-latest]
+
+        steps:
+            - name: Check out Git repository
+              uses: actions/checkout@v6
+
+            - name: Install Node.js, NPM and Yarn
+              uses: actions/setup-node@v6
+              with:
+                  node-version-file: .nvmrc
+                  cache: npm
+
+            - name: Build Env Information
+              run: |
+                  node -v
+                  npm -v
+
+            - name: Install dependencies
+              run: npm ci
+
+            - name: Electron Build & Publish
+              run: |
+                  npm run package
+                  npm run release
+              env:
+                  GITHUB_TOKEN: ${{ secrets.github_token }}
