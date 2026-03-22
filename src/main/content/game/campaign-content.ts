@@ -95,27 +95,12 @@ async function extractAsset(
     }
 }
 
-async function parseMissionFile(
-    missionFile: SdpFile,
-    deps: GameFilesDeps,
-    md5: string,
-    campaignId: string,
-    campaignDirName: string,
-    cacheDir: string
-): Promise<MissionModel> {
+async function parseMissionFile(missionFile: SdpFile, deps: GameFilesDeps, md5: string, campaignId: string, campaignDirName: string, cacheDir: string): Promise<MissionModel> {
     const missionFolder = path.parse(sdpRelativePath(missionFile)).name;
     const lobbyData = parseLuaTable(missionFile.data, { tableVariableName: "lobbyData" }) as RawLobbyData;
     const startScript = parseLuaTable(missionFile.data, { tableVariableName: "startScript" }) as RawStartScript;
 
-    const image = lobbyData.image
-        ? await extractAsset(
-              deps,
-              md5,
-              `missions/campaigns/${campaignDirName}/${missionFolder}/${lobbyData.image}`,
-              cacheDir,
-              `${campaignDirName}_${missionFolder}`
-          )
-        : null;
+    const image = lobbyData.image ? await extractAsset(deps, md5, `missions/campaigns/${campaignDirName}/${missionFolder}/${lobbyData.image}`, cacheDir, `${campaignDirName}_${missionFolder}`) : null;
 
     return {
         campaignId,
@@ -142,29 +127,12 @@ async function parseMissionFile(
     };
 }
 
-async function parseCampaignFile(
-    campaignFile: SdpFile,
-    deps: GameFilesDeps,
-    version: GameVersion,
-    cacheDir: string
-): Promise<CampaignModel> {
+async function parseCampaignFile(campaignFile: SdpFile, deps: GameFilesDeps, version: GameVersion, cacheDir: string): Promise<CampaignModel> {
     const rawCampaign = parseLuaTable(campaignFile.data) as RawCampaignLua;
     const campaignDirName = path.parse(sdpRelativePath(campaignFile)).name;
 
-    const logo = await extractAsset(
-        deps,
-        version.packageMd5,
-        `missions/campaigns/${campaignDirName}/${rawCampaign.logo}`,
-        cacheDir,
-        campaignDirName
-    );
-    const backgroundImage = await extractAsset(
-        deps,
-        version.packageMd5,
-        `missions/campaigns/${campaignDirName}/${rawCampaign.backgroundImage}`,
-        cacheDir,
-        campaignDirName
-    );
+    const logo = await extractAsset(deps, version.packageMd5, `missions/campaigns/${campaignDirName}/${rawCampaign.logo}`, cacheDir, campaignDirName);
+    const backgroundImage = await extractAsset(deps, version.packageMd5, `missions/campaigns/${campaignDirName}/${rawCampaign.backgroundImage}`, cacheDir, campaignDirName);
 
     const missionLuaFiles = await deps.getData(version.packageMd5, `missions/campaigns/${campaignDirName}/*.lua`);
     const missions: Record<string, MissionModel> = {};
@@ -203,10 +171,7 @@ function parseScenarioDefinition(scenarioDefinition: SdpFile, cacheDir: string):
     }
     scenario.summary = scenario.summary.replaceAll(/[[\]]/g, "");
     scenario.briefing = scenario.briefing.replaceAll(/[[\]]/g, "");
-    scenario.allowedsides =
-        Array.isArray(scenario.allowedsides) && scenario.allowedsides[0] !== ""
-            ? scenario.allowedsides
-            : ["Armada", "Cortext", "Random"];
+    scenario.allowedsides = Array.isArray(scenario.allowedsides) && scenario.allowedsides[0] !== "" ? scenario.allowedsides : ["Armada", "Cortext", "Random"];
     scenario.startscript = scenario.startscript.slice(1, -1);
     return scenario;
 }
@@ -247,9 +212,7 @@ export async function getCampaigns(version: GameVersion, deps: GameFilesDeps, ca
 export async function getScenarios(version: GameVersion, deps: GameFilesDeps, cacheDir: string): Promise<Scenario[]> {
     try {
         const scenarioImages = await deps.getMeta(version.packageMd5, "singleplayer/scenarios/*.{jpg,png}");
-        const scenarioDefinitions = (await deps.getData(version.packageMd5, "singleplayer/scenarios/*.lua")).filter(
-            ({ fileName }) => /[^/]*scenario[^/]*$/.test(fileName)
-        );
+        const scenarioDefinitions = (await deps.getData(version.packageMd5, "singleplayer/scenarios/*.lua")).filter(({ fileName }) => /[^/]*scenario[^/]*$/.test(fileName));
 
         await fs.promises.mkdir(cacheDir, { recursive: true });
 

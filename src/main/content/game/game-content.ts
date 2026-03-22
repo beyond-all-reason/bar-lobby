@@ -162,10 +162,14 @@ export class GameContentAPI extends PrDownloaderAPI<string, GameVersion> {
         try {
             const version = this.availableVersions.values().find((version) => version.gameVersion === gameVersion);
             assert(version, `No installed version found for game version: ${gameVersion}`);
-            return getScenarios(version, {
-                getMeta: (md5, pattern) => this.getGameFiles(md5, pattern, false),
-                getData: (md5, pattern) => this.getGameFiles(md5, pattern, true),
-            }, SCENARIO_IMAGE_PATH);
+            return getScenarios(
+                version,
+                {
+                    getMeta: (md5, pattern) => this.getGameFiles(md5, pattern, false),
+                    getData: (md5, pattern) => this.getGameFiles(md5, pattern, true),
+                },
+                SCENARIO_IMAGE_PATH
+            );
         } catch (err) {
             log.error(`Error getting scenarios: ${err}`);
             return [];
@@ -315,16 +319,19 @@ export class GameContentAPI extends PrDownloaderAPI<string, GameVersion> {
         try {
             const version = this.availableVersions.values().find((v) => v.gameVersion === gameVersion);
             assert(version, `No installed version found for game version: ${gameVersion}`);
-            return getCampaigns(version, {
-                getMeta: (md5, pattern) => this.getGameFiles(md5, pattern, false),
-                getData: (md5, pattern) => this.getGameFiles(md5, pattern, true),
-            }, CAMPAIGN_IMAGE_PATH);
+            return getCampaigns(
+                version,
+                {
+                    getMeta: (md5, pattern) => this.getGameFiles(md5, pattern, false),
+                    getData: (md5, pattern) => this.getGameFiles(md5, pattern, true),
+                },
+                CAMPAIGN_IMAGE_PATH
+            );
         } catch (err) {
             log.error(`Error getting campaigns: ${err}`);
             return [];
         }
     }
-
 
     // TODO reimplement a cleanup function
     // protected async cleanupOldVersions() {

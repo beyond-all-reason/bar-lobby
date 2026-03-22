@@ -52,15 +52,7 @@ function humanTeamNamesForAllyTeam(allyTeam: AllyTeamModel): string[] {
         .map(([teamKey, teamDef]) => teamDef.name ?? teamKey);
 }
 
-function processTeam(
-    ctx: GameBuildContext,
-    atIdx: number,
-    allyTeamHasHuman: boolean,
-    teamKey: string,
-    teamDef: TeamModel,
-    playerHandicap: number,
-    enemyHandicap: number
-): void {
+function processTeam(ctx: GameBuildContext, atIdx: number, allyTeamHasHuman: boolean, teamKey: string, teamDef: TeamModel, playerHandicap: number, enemyHandicap: number): void {
     const thisTeamIdx = ctx.teamIdx++;
     ctx.teamsMap[teamKey] = thisTeamIdx;
 
@@ -100,13 +92,7 @@ function processTeam(
     }
 }
 
-function processAllyTeam(
-    ctx: GameBuildContext,
-    allyTeamName: string,
-    allyTeam: AllyTeamModel,
-    playerHandicap: number,
-    enemyHandicap: number
-): void {
+function processAllyTeam(ctx: GameBuildContext, allyTeamName: string, allyTeam: AllyTeamModel, playerHandicap: number, enemyHandicap: number): void {
     const atIdx = ctx.allyTeamIdx++;
     ctx.allyTeamsMap[allyTeamName] = atIdx;
 
