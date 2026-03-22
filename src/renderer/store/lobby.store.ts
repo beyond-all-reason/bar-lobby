@@ -74,7 +74,7 @@ function onLobbyListResetEvent(data: LobbyListResetEventData) {
 
 function onLobbyVoteEndedEvent(data: LobbyVoteEndedEventData) {
     console.log("Tachyon event: lobby/voteEnded", data);
-    if (lobbyStore.activeLobby && lobbyStore.activeLobby.voteHistory.has(data.id)) {
+    if (lobbyStore.activeLobby?.voteHistory?.has(data.id)) {
         lobbyStore.activeLobby.voteHistory.get(data.id)!.outcome = data.outcome;
     }
 }
