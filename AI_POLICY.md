@@ -1,23 +1,33 @@
+# SPDX-FileCopyrightText: 2026 The BAR Lobby Authors
+
+# SPDX-License-Identifier: CC0-1.0
+
 # AI Usage Policy
 
 ## Disclosure requirements
 
-**AI usage in generating code must be explicitly disclosed in the associated Pull Request.**  
+**AI usage in generating code must be explicitly disclosed in the associated Pull Request.**
+
 Contributors must clearly state:
+
 - which AI tool(s) were used (for example: Claude Code, Cursor, Copilot)
 - the extent to which the contribution was AI-assisted
 
-**Undisclosed AI usage will result in closure.**  
+**Undisclosed AI usage will result in closure.**
+
 If maintainers reasonably suspect undisclosed AI use, the pull request will be closed.
 
-**Non-direct AI usage does not require disclosure.**  
-The above requirements apply to cases where AI is used to write production code.  
+**Non-direct AI usage does not require disclosure.**
+
+The above requirements apply to cases where AI is used to write production code.
 If AI is used solely as an advisory or educational tool, disclosure is not required.
 
 ## Verification and testing
 
-**All AI-assisted code must be fully verified by a human contributor.**  
+**All AI-assisted code must be fully verified by a human contributor.**
+
 Contributors are responsible for ensuring that:
+
 - the code has been run and tested
 - the code behaves correctly in practice, not just in theory
 
@@ -35,13 +45,15 @@ AI may assist with explanations, summaries, or drafting, but must not replace un
 
 ## Prohibited content
 
-**AI-generated media is not permitted.**  
-This includes, but is not limited to: art, images, videos, and audio.  
+**AI-generated media is not permitted.**
+
+This includes, but is not limited to: art, images, videos, and audio.
 Only text and code are eligible for AI assistance, subject to the rules above.
 
 ## Enforcement
 
-**Repeated or intentional misuse of AI tools may result in contributor bans.**  
+**Repeated or intentional misuse of AI tools may result in contributor bans.**
+
 Maintainers may enforce this policy at their discretion.
 
 ## Why is this important?
@@ -56,7 +68,7 @@ This policy exists to protect maintainers, preserve code quality, and ensure tha
 
 ## Responsible AI usage is welcome
 
-Maintainers actively use AI tools as part of their workflow.  
+Maintainers actively use AI tools as part of their workflow.
 This policy does not represent an anti-AI position.
 
 The restrictions outlined above exist due to repeated misuse of AI by contributors who submit unverified, low-quality, or poorly understood work. The issue is not the tools themselves, but how they are applied.
@@ -65,5 +77,5 @@ When used responsibly, transparently, and with proper human oversight, AI can be
 
 ## Attribution
 
-This policy is adapted from the original AI usage policy published by the [Ghostty](https://github.com/ghostty-org/ghostty/blob/main/AI_POLICY.md) organization.  
+This policy is adapted from the original AI usage policy published by the [Ghostty](https://github.com/ghostty-org/ghostty/blob/main/AI_POLICY.md) organization.
 The maintainers acknowledge and appreciate the clarity and intent of the original text.

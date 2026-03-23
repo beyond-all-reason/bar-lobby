@@ -1,3 +1,8 @@
+<!--
+SPDX-FileCopyrightText: 2026 The BAR Lobby Authors
+SPDX-License-Identifier: CC0-1.0
+-->
+
 Please describe your changes clearly and concisely. Focus on the "what" and "why" rather than the "how." If your changes are related to an existing issue, please reference it by number (e.g., "Fixes #123").
 
 ### Contributor Checklist (**remove after completing**)
