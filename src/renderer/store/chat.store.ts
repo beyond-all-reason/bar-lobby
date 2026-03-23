@@ -3,131 +3,116 @@
 // SPDX-License-Identifier: MIT
 
 import { reactive } from "vue";
+import { subsManager } from "@renderer/store/users.store";
+import { MessagingReceivedEventData, MessagingSendRequestData, MessagingSubscribeReceivedRequestData, UserId } from "tachyon-protocol/types";
+import { notificationsApi } from "@renderer/api/notifications";
+import { Message } from "@renderer/model/message";
+import { me } from "@renderer/store/me.store";
+// import { setupI18n } from "@renderer/i18n";
 
-export interface ChatRoom {
-    id: string;
-    name: string;
-    color: string;
-    messages: ChatMessage[];
-    unreadMessages: number;
-    closeable: boolean;
-}
+// const i18n = setupI18n();
 
-export interface ChatMessage {
-    userId: string;
-    userName: string;
-    text: string;
-    timestamp: number;
-}
+const chatSymbol = Symbol("chat.store");
 
-export enum WellKnownChatRooms {
-    General = "general",
-    Lobby = "lobby",
-}
-
-const defaultChatRooms: ChatRoom[] = [
-    {
-        id: WellKnownChatRooms.General,
-        name: "General",
-        color: "#87ceeb",
-        messages: [
-            {
-                userId: "System",
-                userName: "System",
-                text: "Welcome to the chat!",
-                timestamp: Date.now(),
-            },
-        ],
-        unreadMessages: 0,
-        closeable: false,
-    },
-    {
-        id: WellKnownChatRooms.Lobby,
-        name: "Lobby",
-        color: "#87ceeb",
-        messages: [
-            {
-                userId: "System",
-                userName: "System",
-                text: "Welcome to the lobby!",
-                timestamp: Date.now(),
-            },
-            {
-                userId: "System",
-                userName: "System",
-                text: "This is a place to chat with other players.",
-                timestamp: Date.now(),
-            },
-            {
-                userId: "System",
-                userName: "System",
-                text: "Please be respectful and follow the rules.",
-                timestamp: Date.now(),
-            },
-            {
-                userId: "System",
-                userName: "System",
-                text: "Enjoy your stay!",
-                timestamp: Date.now(),
-            },
-        ],
-        unreadMessages: 4,
-        closeable: false,
-    },
-    {
-        id: "101",
-        name: "Melon",
-        color: "#ff6347",
-        messages: [
-            {
-                userId: "101",
-                userName: "Melon",
-                text: "Welcome to the Melon chat!",
-                timestamp: Date.now(),
-            },
-        ],
-        unreadMessages: 1,
-        closeable: true,
-    },
-];
-
-export const chatStore = reactive<{
-    chatRooms: ChatRoom[];
-    selectedChatRoom: ChatRoom | undefined;
-}>({
-    chatRooms: defaultChatRooms,
-    selectedChatRoom: defaultChatRooms.at(0),
+export const chatStore: {
+    isInitialized: boolean;
+    lobbyChat: Message[];
+    partyChat: Message[];
+    userChats: Map<UserId, Message[]>;
+} = reactive({
+    isInitialized: false,
+    lobbyChat: [],
+    partyChat: [],
+    userChats: new Map<UserId, Message[]>(),
 });
 
-export const chatActions = {
-    selectChatRoom(id: string) {
-        const selectedChatRoom = chatStore.chatRooms.find((room) => room.id === id);
+export async function initChatStore() {
+    window.tachyon.onEvent("messaging/received", onMessagingReceivedEvent);
+    chatStore.isInitialized = true;
+}
 
-        if (selectedChatRoom) {
-            chatStore.selectedChatRoom = selectedChatRoom;
-            chatStore.selectedChatRoom.unreadMessages = 0;
+function requestSend(data: MessagingSendRequestData) {
+    try {
+        const response = window.tachyon.request("messaging/send", data);
+        console.log("Tachyon messaging/send:", response);
+        // Upon success, we add our own message to the body if it's a "player" type
+        if (data.target.type === "player") {
+            insertSelfMessage(data.target.userId, data.message);
         }
-    },
-    sendMessage(message: ChatMessage) {
-        if (!chatStore.selectedChatRoom) throw new Error("failed to access chat room");
+    } catch (error) {
+        console.error("Error with messaging/send", error);
+        notificationsApi.alert({ text: "Error with request messaging/send", severity: "error" });
+    }
+}
 
-        chatStore.selectedChatRoom.messages.push(message);
-    },
-    addMessage(roomId: string, message: ChatMessage) {
-        const room = chatStore.chatRooms.find((room) => room.id === roomId);
-        if (room) {
-            room.messages.push(message);
-            if (!chatStore.selectedChatRoom) throw new Error("failed to access chat room");
+function requestSubscribeReceived(data?: MessagingSubscribeReceivedRequestData) {
+    try {
+        const response = window.tachyon.request("messaging/subscribeReceived", data ?? {});
+        console.log("Tachyon messaging/subscribeReceived:", response);
+    } catch (error) {
+        console.error("Error with messaging/subscribeReceived", error);
+        notificationsApi.alert({ text: "Error with request messaging/subscribeReceived", severity: "error" });
+    }
+}
 
-            if (chatStore.selectedChatRoom.id !== roomId) {
-                room.unreadMessages++;
-            }
+function onMessagingReceivedEvent(data: MessagingReceivedEventData) {
+    console.log("Tachyon event: messaging/received:", data);
+    // Note, we don't need to attach for sources "lobby" or "party" because those stores will manage
+    // their own attach/detach decisions.
+    if (data.source.type === "player") {
+        subsManager.attach(data.source.userId, chatSymbol);
+        if (chatStore.userChats.get(data.source.userId)) {
+            chatStore.userChats.get(data.source.userId)!.push({ ...data, seen: false, isMe: false });
+        } else {
+            chatStore.userChats.set(data.source.userId, [{ ...data, seen: false, isMe: false }]);
         }
-    },
-    closeChatRoom(id: string) {
-        chatStore.chatRooms = chatStore.chatRooms.filter((room) => room.id !== id);
-    },
-    openChatRoom(room: ChatRoom) {
-        chatStore.chatRooms.push(room);
-    },
+    }
+    if (data.source.type === "lobby") {
+        chatStore.lobbyChat.push({ ...data, seen: false, isMe: false });
+    }
+    if (data.source.type === "party") {
+        chatStore.partyChat.push({ ...data, seen: false, isMe: false });
+    }
+}
+
+export function insertSelfMessage(targetUserId: UserId, message: string) {
+    subsManager.attach(targetUserId, chatSymbol);
+    const data: MessagingReceivedEventData = {
+        message: message,
+        source: { type: "player", userId: me.userId },
+        timestamp: Date.now(),
+        marker: "",
+    };
+    if (chatStore.userChats.get(targetUserId)) {
+        chatStore.userChats.get(targetUserId)!.push({
+            ...data,
+            seen: false,
+            isMe: true,
+        });
+    } else {
+        chatStore.userChats.set(targetUserId, [
+            {
+                ...data,
+                seen: false,
+                isMe: true,
+            },
+        ]);
+    }
+}
+// We want to start with an empty chat array if we join a new lobby/party chat,
+// so we give the UI a simple way to purge the old data just before joining.
+export function clearLobbyChat() {
+    chatStore.lobbyChat.length = 0;
+}
+
+export function clearPartyChat() {
+    chatStore.partyChat.length = 0;
+}
+
+export const chat = {
+    requestSend,
+    requestSubscribeReceived,
+    clearLobbyChat,
+    clearPartyChat,
+    insertSelfMessage,
 };

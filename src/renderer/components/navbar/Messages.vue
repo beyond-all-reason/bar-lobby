@@ -7,10 +7,10 @@ SPDX-License-Identifier: MIT
 <template>
     <PopOutPanel :open="modelValue">
         <TabView v-model:activeIndex="activeTabIndex" class="messages-tabview">
-            <TabPanel v-for="[userId, messages] in directMessages" :key="userId">
+            <TabPanel v-for="[userId, messages] in chatStore.userChats" :key="userId">
                 <template #header>
                     <div class="tab-header">
-                        <div>{{ getUsername(userId) }}</div>
+                        <div>{{ getUser(userId).value?.displayName }}</div>
                         <div class="flex-row close" @click="close(userId)">
                             <Icon :icon="closeThick" />
                         </div>
@@ -21,10 +21,10 @@ SPDX-License-Identifier: MIT
                         <div
                             v-for="(message, i) in messages"
                             :key="i"
-                            v-in-view.once="() => (message.read = true)"
-                            :class="['message', { fromMe: message.senderUserId === me.userId }]"
+                            v-in-view.once="() => (message.seen = true)"
+                            :class="['message', { fromMe: message.isMe }]"
                         >
-                            <Markdown :source="message.text" />
+                            <Markdown :source="message.message" />
                         </div>
                     </div>
                 </div>
@@ -77,9 +77,10 @@ import Button from "@renderer/components/controls/Button.vue";
 import Textbox from "@renderer/components/controls/Textbox.vue";
 import Markdown from "@renderer/components/misc/Markdown.vue";
 import PopOutPanel from "@renderer/components/navbar/PopOutPanel.vue";
-import { Message } from "@renderer/model/messages";
-import { me } from "@renderer/store/me.store";
 import { useTypedI18n } from "@renderer/i18n";
+import { chatStore, chat } from "@renderer/store/chat.store";
+import { db } from "@renderer/store/db";
+import { useDexieLiveQueryWithDeps } from "@renderer/composables/useDexieLiveQuery";
 
 const { t } = useTypedI18n();
 
@@ -91,10 +92,17 @@ const emits = defineEmits<{
     (event: "update:modelValue", open: boolean): void;
 }>();
 
+// FIXME: Username is not being populated in the tab header as it should be?
+function getUser(userId: string) {
+    const user = useDexieLiveQueryWithDeps([() => userId], () => {
+        return db.users.get(userId);
+    });
+    return user;
+}
+
 const text = ref("");
 const newMessage = ref("");
 const newMessageUserId = ref("");
-const directMessages: Map<number, Message[]> = new Map();
 const activeTabIndex = ref(0);
 
 const toggleMessages = inject<Ref<(open?: boolean, userId?: number) => void>>("toggleMessages")!;
@@ -118,41 +126,21 @@ function focusTextbox(el: HTMLElement) {
     }
 }
 
-function getUsername(userId: number) {
-    console.log("getUsername", userId);
-    // return api.session.getUserById(userId)?.username ?? "??";
-}
-
-async function sendDirectMessage(userIdInput: number | string, messageText: string) {
-    console.log("sendDirectMessage", userIdInput, messageText);
-    // const userId = typeof userIdInput === "string" ? parseInt(userIdInput) : userIdInput;
+async function sendDirectMessage(destinationUserId: string, messageText: string) {
+    chat.requestSend({
+        target: {
+            type: "player",
+            userId: destinationUserId,
+        },
+        message: messageText,
+    });
     newMessageUserId.value = "";
     newMessage.value = "";
     text.value = "";
-    // const response = await api.comms.request("c.communication.send_direct_message", {
-    //     recipient_id: userId,
-    //     message: messageText,
-    // });
-
-    // if (response.result === "success") {
-    //     const chatlog = api.session.directMessages.get(userId);
-    //     const message: Message = {
-    //         senderUserId: api.session.onlineUser.userId,
-    //         text: messageText,
-    //         type: "direct-message",
-    //         read: true,
-    //     };
-    //     if (chatlog) {
-    //         chatlog.push(message);
-    //     } else {
-    //         api.session.directMessages.set(userId, [message]);
-    //     }
-    // }
 }
 
-function close(userId: number) {
+function close(userId: string) {
     console.log("close", userId);
-    // api.session.directMessages.delete(userId);
 }
 </script>
 

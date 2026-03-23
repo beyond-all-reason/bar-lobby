@@ -5,12 +5,12 @@ SPDX-License-Identifier: MIT
 -->
 
 <template>
-    <div class="message" :class="[{ 'from-host': fromHost }, message.type]">
+    <div class="message" :class="[{ 'from-host': fromHost }]">
         <div v-if="user" class="user">
             <Flag :countryCode="user.countryCode" style="width: 16px" />
             <div>{{ user.username }}</div>
         </div>
-        <Markdown :source="message.text" />
+        <Markdown :source="message.message" />
     </div>
 </template>
 
@@ -18,7 +18,7 @@ SPDX-License-Identifier: MIT
 import { User } from "@main/model/user";
 import Flag from "@renderer/components/misc/Flag.vue";
 import Markdown from "@renderer/components/misc/Markdown.vue";
-import { Message } from "@renderer/model/messages";
+import { Message } from "@renderer/model/message";
 import { me } from "@renderer/store/me.store";
 
 defineProps<{
@@ -36,7 +36,6 @@ const user: User = {
     status: "lobby",
 };
 
-// const user = api.session.getUserById(props.message.senderUserId);
 const fromHost = user.userId === me.userId;
 </script>
 
