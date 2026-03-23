@@ -1,6 +1,9 @@
-# SPDX-FileCopyrightText: 2026 The BAR Lobby Authors
-
-# SPDX-License-Identifier: CC0-1.0
+<!--
+SPDX-FileCopyrightText: 2026 The BAR Lobby Authors
+SPDX-FileCopyrightText: 2023 Ghostty Authors
+SPDX-License-Identifier: CC0-1.0
+SPDX-License-Identifier: MIT
+-->
 
 # AI Usage Policy
 
