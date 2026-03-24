@@ -179,7 +179,8 @@ export function missionToGame(
         players: ctx.playersMap,
     };
 
-    console.log("[mission-script-converter] missionOptions:", JSON.stringify(missionOptions, null, 2));
+    // Spring.GetModOptions() lowercases the outer modoption key ("missionoptions") but the decoded JSON retains its original casing
+    console.log("[mission-script-converter] missionoptions:", JSON.stringify(missionOptions, null, 2));
 
     // Restrictions must be serialised as a flat indexed object so that
     // stringifyScriptObj produces the [restrict] { unit0=...; limit0=...; } format.
