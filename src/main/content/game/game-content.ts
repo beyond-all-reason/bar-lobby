@@ -158,18 +158,22 @@ export class GameContentAPI extends PrDownloaderAPI<string, GameVersion> {
         return this.parseAis(luaai);
     }
 
+    private resolveVersion(gameVersion: string | undefined): GameVersion {
+        const version = this.availableVersions.values().find((v) => v.gameVersion === gameVersion);
+        assert(version, `No installed version found for game version: ${gameVersion}`);
+        return version;
+    }
+
+    private buildDeps() {
+        return {
+            getMeta: (md5: string, pattern: string) => this.getGameFiles(md5, pattern, false),
+            getData: (md5: string, pattern: string) => this.getGameFiles(md5, pattern, true),
+        };
+    }
+
     public async getScenarios(gameVersion?: string) {
         try {
-            const version = this.availableVersions.values().find((version) => version.gameVersion === gameVersion);
-            assert(version, `No installed version found for game version: ${gameVersion}`);
-            return getScenarios(
-                version,
-                {
-                    getMeta: (md5, pattern) => this.getGameFiles(md5, pattern, false),
-                    getData: (md5, pattern) => this.getGameFiles(md5, pattern, true),
-                },
-                SCENARIO_IMAGE_PATH
-            );
+            return getScenarios(this.resolveVersion(gameVersion), this.buildDeps(), SCENARIO_IMAGE_PATH);
         } catch (err) {
             log.error(`Error getting scenarios: ${err}`);
             return [];
@@ -317,16 +321,7 @@ export class GameContentAPI extends PrDownloaderAPI<string, GameVersion> {
 
     public async getCampaigns(gameVersion?: string): Promise<CampaignModel[]> {
         try {
-            const version = this.availableVersions.values().find((v) => v.gameVersion === gameVersion);
-            assert(version, `No installed version found for game version: ${gameVersion}`);
-            return getCampaigns(
-                version,
-                {
-                    getMeta: (md5, pattern) => this.getGameFiles(md5, pattern, false),
-                    getData: (md5, pattern) => this.getGameFiles(md5, pattern, true),
-                },
-                CAMPAIGN_IMAGE_PATH
-            );
+            return getCampaigns(this.resolveVersion(gameVersion), this.buildDeps(), CAMPAIGN_IMAGE_PATH);
         } catch (err) {
             log.error(`Error getting campaigns: ${err}`);
             return [];

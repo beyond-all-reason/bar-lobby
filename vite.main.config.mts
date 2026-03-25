@@ -14,7 +14,6 @@ export default defineConfig({
     },
     build: {
         rollupOptions: {
-            external: ["electron", ...builtinModules, ...builtinModules.map((m) => `node:${m}`)],
             input: {
                 main: path.resolve(__dirname, "src/main/main.ts"),
                 "parse-replay-worker": path.resolve(__dirname, "src/main/content/replays/parse-replay-worker.ts"),

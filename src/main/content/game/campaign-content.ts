@@ -17,6 +17,12 @@ import { SdpFile, SdpFileMeta } from "@main/content/game/sdp";
 const log = logger("campaign-content.ts");
 const gunzip = util.promisify(zlib.gunzip);
 
+/** Reads a file, decompressing it if the path ends in `.gz`. */
+async function readFileDecompressed(archivePath: string): Promise<Buffer> {
+    const data = await fs.promises.readFile(archivePath);
+    return archivePath.endsWith(".gz") ? gunzip(data) : data;
+}
+
 /** Raw shape of a campaign Lua file as returned by {@link parseLuaTable}. */
 type RawCampaignLua = {
     campaignId: string;
@@ -79,13 +85,7 @@ async function extractAsset(
         const files = await deps.getMeta(md5, filePath);
         if (files.length === 0) return null;
         const file = files[0];
-        let buffer: Buffer;
-        if (file.archivePath.endsWith(".gz")) {
-            const data = await fs.promises.readFile(file.archivePath);
-            buffer = await gunzip(data);
-        } else {
-            buffer = await fs.promises.readFile(file.archivePath);
-        }
+        const buffer = await readFileDecompressed(file.archivePath);
         const cacheFileName = `${prefix}_${path.basename(filePath)}`;
         const cachePath = path.join(cacheDir, cacheFileName);
         await fs.promises.writeFile(cachePath, buffer);
@@ -217,13 +217,7 @@ export async function getScenarios(version: GameVersion, deps: GameFilesDeps, ca
         await fs.promises.mkdir(cacheDir, { recursive: true });
 
         for (const scenarioImage of scenarioImages) {
-            let buffer: Buffer;
-            if (scenarioImage.archivePath.endsWith(".gz")) {
-                const data = await fs.promises.readFile(scenarioImage.archivePath);
-                buffer = await gunzip(data);
-            } else {
-                buffer = await fs.promises.readFile(scenarioImage.archivePath);
-            }
+            const buffer = await readFileDecompressed(scenarioImage.archivePath);
             const fileName = path.parse(scenarioImage.fileName).base;
             await fs.promises.writeFile(path.join(cacheDir, fileName), buffer);
         }
