@@ -23,24 +23,51 @@ export function initUsersStore() {
                 console.warn("Received user/updated event with no userId, skipping update.");
                 return;
             }
-            const updated = await db.users.update(user.userId, { ...user });
+
+            const updated = await db.users.update(user.userId, {
+                ...user,
+                clanBaseData: user.clanBaseData
+                    ? {
+                          ...user.clanBaseData,
+                          language: user.clanBaseData.language || "unknown",
+                      }
+                    : null,
+            });
 
             if (updated === 0) {
                 // No records updated, so user doesn't exist - create new user
                 db.users.add({
                     userId: user.userId,
-                    username: "Unknown User",
-                    displayName: "Unknown User",
-                    clanId: null,
+                    username: user.username ?? "Unknown User",
+                    displayName: user.displayName ?? "Unknown User",
+                    clanBaseData: user.clanBaseData
+                        ? {
+                              ...user.clanBaseData,
+                              language: user.clanBaseData.language || "unknown",
+                          }
+                        : null,
                     partyId: null,
-                    countryCode: "??",
-                    status: "offline",
+                    countryCode: user.countryCode ?? "??",
+                    status: user.status ?? "offline",
+                    roles: user.roles ?? [],
+                    rating: user.rating ?? null,
                     battleRoomState: {},
-                    ...user, // Override defaults with actual data
+                    isMe: false,
+                    ...user,
                 });
             }
         });
     });
 
     usersStore.isInitialized = true;
+}
+
+export async function fetchUserInfo(userId: string) {
+    try {
+        const response = await window.tachyon.request("user/info", { userId: userId });
+        return response.data;
+    } catch (error) {
+        console.error("Error fetching user info:", error);
+        return null;
+    }
 }

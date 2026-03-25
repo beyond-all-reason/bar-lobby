@@ -29,11 +29,12 @@ const user: User = {
     battleRoomState: {},
     countryCode: "US",
     userId: "123",
-    clanId: "123",
+    clanBaseData: null,
     username: "Test User",
     displayName: "Test User",
     partyId: "123",
     status: "lobby",
+    isMe: false,
 };
 
 // const user = api.session.getUserById(props.message.senderUserId);

@@ -72,6 +72,22 @@ db.version(1).stores({
     users: "userId, username, countryCode, status, displayName, clanId, partyId, scopes, isMe",
 });
 
+db.version(2)
+    .stores({
+        users: "userId, username, countryCode, status, displayName, partyId, scopes, isMe",
+    })
+    .upgrade(async (tx) => {
+        await tx
+            .table("users")
+            .toCollection()
+            .modify((user) => {
+                // TODO: For backward compatibility, I've left it in for now to support older database entries if necessary. But it can be removed later!
+                if (typeof user.isMe === "undefined") {
+                    user.isMe = false;
+                }
+            });
+    });
+
 db.on("ready", function () {
     console.debug("Database is ready");
 });
