@@ -12,6 +12,10 @@ export const usersStore: {
     isInitialized: false,
 });
 
+export async function getUserByID(id: string) {
+    return await db.users.get(id);
+}
+
 export const subsManager = new SubsManager();
 
 export function initUsersStore() {

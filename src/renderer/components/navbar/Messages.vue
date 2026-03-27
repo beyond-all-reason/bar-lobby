@@ -10,7 +10,7 @@ SPDX-License-Identifier: MIT
             <TabPanel v-for="[userId, messages] in chatStore.userChats" :key="userId">
                 <template #header>
                     <div class="tab-header">
-                        <div>{{ getUser(userId).value?.displayName }}</div>
+                        <div>{{ displayNames?.get(userId) }}</div>
                         <div class="flex-row close" @click="close(userId)">
                             <Icon :icon="closeThick" />
                         </div>
@@ -79,8 +79,9 @@ import Markdown from "@renderer/components/misc/Markdown.vue";
 import PopOutPanel from "@renderer/components/navbar/PopOutPanel.vue";
 import { useTypedI18n } from "@renderer/i18n";
 import { chatStore, chat } from "@renderer/store/chat.store";
-import { db } from "@renderer/store/db";
-import { useDexieLiveQueryWithDeps } from "@renderer/composables/useDexieLiveQuery";
+import { getUserByID } from "@renderer/store/users.store";
+import { UserId } from "tachyon-protocol/types";
+import { computedAsync } from "@vueuse/core";
 
 const { t } = useTypedI18n();
 
@@ -92,13 +93,18 @@ const emits = defineEmits<{
     (event: "update:modelValue", open: boolean): void;
 }>();
 
-// FIXME: Username is not being populated in the tab header as it should be?
-function getUser(userId: string) {
-    const user = useDexieLiveQueryWithDeps([() => userId], () => {
-        return db.users.get(userId);
-    });
-    return user;
-}
+const displayNames = computedAsync(async () => {
+    const users: Map<UserId, string> = new Map();
+    for (const id of chatStore.userChats.keys()) {
+        const cached = await getUserByID(id);
+        if (cached != undefined) {
+            users.set(id, cached.displayName);
+        } else {
+            users.set(id, t("lobby.navbar.messages.userID") + " " + id);
+        }
+    }
+    return users;
+});
 
 const text = ref("");
 const newMessage = ref("");
