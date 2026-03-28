@@ -18,8 +18,9 @@ import { contentSources } from "@main/config/content-sources";
 import { DownloadInfo } from "@main/content/downloads";
 import { LuaOptionSection } from "@main/content/game/lua-options";
 import { CampaignModel } from "@main/content/game/campaign";
+import { AllyTeamModel, MapOptions, MissionDifficulty, MissionModel, MissionModOptions } from "@main/content/game/mission";
+import { Scenario } from "@main/content/game/scenario";
 import { SdpFile, SdpFileMeta } from "@main/content/game/sdp";
-import { getCampaigns, getScenarios } from "@main/content/game/campaign-content";
 import { PrDownloaderAPI } from "@main/content/pr-downloader";
 import { CAMPAIGN_IMAGE_PATH, GAME_PATHS, PACKAGE_PATH, POOL_PATH, RAPID_INDEX_PATH, SCENARIO_IMAGE_PATH } from "@main/config/app";
 import { PoolCdnDownloader } from "@main/content/game/pool-cdn";
@@ -27,6 +28,44 @@ import { fileExists } from "@main/utils/file";
 
 const log = logger("game-content.ts");
 const gunzip = util.promisify(zlib.gunzip);
+
+/** Raw shape of a campaign Lua file as returned by {@link parseLuaTable}. */
+type RawCampaignLua = {
+    campaignId: string;
+    title: string;
+    description: string;
+    unlocked?: boolean;
+    logo?: string;
+    backgroundImage?: string;
+    difficulties?: MissionDifficulty[];
+    defaultDifficulty?: string;
+    disableFactionPicker?: boolean;
+};
+
+/** Raw shape of the `lobbyData` table in a mission Lua file. */
+type RawLobbyData = {
+    missionId?: string | number;
+    title?: string;
+    description?: string;
+    image?: string;
+    startPos?: { x: number; y: number };
+    unlocked?: boolean;
+};
+
+/** Raw shape of the `startScript` table in a mission Lua file. */
+type RawStartScript = {
+    mapName?: string;
+    startPosType?: string;
+    players?: { min: number; max: number };
+    difficulties?: MissionDifficulty[];
+    defaultDifficulty?: string;
+    disableFactionPicker?: boolean;
+    disableInitialCommanderSpawn?: boolean;
+    modOptions?: MissionModOptions;
+    mapOptions?: MapOptions;
+    unitLimits?: Record<string, number>;
+    allyTeams?: Record<string, AllyTeamModel>;
+};
 
 export class GameContentAPI extends PrDownloaderAPI<string, GameVersion> {
     public packageGameVersionLookup: { [md5: string]: string | undefined } = {};
@@ -158,26 +197,170 @@ export class GameContentAPI extends PrDownloaderAPI<string, GameVersion> {
         return this.parseAis(luaai);
     }
 
-    private resolveVersion(gameVersion: string | undefined): GameVersion {
-        const version = this.availableVersions.values().find((v) => v.gameVersion === gameVersion);
-        assert(version, `No installed version found for game version: ${gameVersion}`);
-        return version;
+    public async getCampaigns(gameVersion?: string): Promise<CampaignModel[]> {
+        try {
+            const md5 = this.getPackageMd5ForGameVersion(gameVersion);
+            const campaignLuaFiles = await this.getGameFiles(md5, "missions/campaigns/*.lua", true);
+            await fs.promises.mkdir(CAMPAIGN_IMAGE_PATH, { recursive: true });
+
+            const campaigns: CampaignModel[] = [];
+            for (const campaignFile of campaignLuaFiles) {
+                try {
+                    campaigns.push(await this.parseCampaignFile(campaignFile, md5, CAMPAIGN_IMAGE_PATH));
+                } catch (err) {
+                    log.error(`Error parsing campaign ${campaignFile.fileName}: ${err}`);
+                }
+            }
+            return campaigns;
+        } catch (err) {
+            log.error(`Error getting campaigns: ${err}`);
+            return [];
+        }
     }
 
-    private buildDeps() {
+    private async parseCampaignFile(campaignFile: SdpFile, md5: string, cacheDir: string): Promise<CampaignModel> {
+        const rawCampaign = parseLuaTable(campaignFile.data) as RawCampaignLua;
+        const campaignDirName = path.parse(this.sdpRelativePath(campaignFile)).name;
+
+        const logo = await this.extractAsset(md5, `missions/campaigns/${campaignDirName}/${rawCampaign.logo}`, cacheDir, campaignDirName);
+        const backgroundImage = await this.extractAsset(md5, `missions/campaigns/${campaignDirName}/${rawCampaign.backgroundImage}`, cacheDir, campaignDirName);
+
+        const missionLuaFiles = await this.getGameFiles(md5, `missions/campaigns/${campaignDirName}/*.lua`, true);
+        const missions: Record<string, MissionModel> = {};
+
+        for (const missionFile of missionLuaFiles) {
+            const missionFolder = path.parse(this.sdpRelativePath(missionFile)).name;
+            try {
+                const mission = await this.parseMissionFile(missionFile, md5, rawCampaign.campaignId, campaignDirName, cacheDir);
+                missions[mission.missionId] = mission;
+            } catch (err) {
+                log.error(`Error parsing mission ${missionFolder} in ${campaignDirName}: ${err}`);
+            }
+        }
+
         return {
-            getMeta: (md5: string, pattern: string) => this.getGameFiles(md5, pattern, false),
-            getData: (md5: string, pattern: string) => this.getGameFiles(md5, pattern, true),
+            campaignId: rawCampaign.campaignId,
+            title: rawCampaign.title,
+            description: rawCampaign.description,
+            unlocked: rawCampaign.unlocked ?? true,
+            logo,
+            backgroundImage,
+            difficulties: Array.isArray(rawCampaign.difficulties) ? rawCampaign.difficulties : [],
+            defaultDifficulty: rawCampaign.defaultDifficulty ?? "",
+            disableFactionPicker: !!rawCampaign.disableFactionPicker,
+            missions,
         };
     }
 
-    public async getScenarios(gameVersion?: string) {
+    private async parseMissionFile(missionFile: SdpFile, md5: string, campaignId: string, campaignDirName: string, cacheDir: string): Promise<MissionModel> {
+        const missionFolder = path.parse(this.sdpRelativePath(missionFile)).name;
+        const lobbyData = parseLuaTable(missionFile.data, { tableVariableName: "lobbyData" }) as RawLobbyData;
+        const startScript = parseLuaTable(missionFile.data, { tableVariableName: "startScript" }) as RawStartScript;
+
+        const image = lobbyData.image
+            ? await this.extractAsset(md5, `missions/campaigns/${campaignDirName}/${missionFolder}/${lobbyData.image}`, cacheDir, `${campaignDirName}_${missionFolder}`)
+            : null;
+
+        return {
+            campaignId,
+            missionId: String(lobbyData.missionId ?? missionFolder),
+            missionScriptPath: `missions/campaigns/${campaignDirName}/${missionFolder}.lua`,
+            title: lobbyData.title ?? "",
+            description: lobbyData.description ?? "",
+            image,
+            startPos: lobbyData.startPos ?? { x: 0.25, y: 0.25 },
+            unlocked: lobbyData.unlocked ?? false,
+            mapName: startScript.mapName ?? "",
+            startPosType: startScript.startPosType ?? "chooseBeforeGame",
+            players: startScript.players ?? { min: 1, max: 4 },
+            ...(Array.isArray(startScript.difficulties) && {
+                difficulties: startScript.difficulties,
+                defaultDifficulty: startScript.defaultDifficulty ?? "",
+            }),
+            disableFactionPicker: startScript.disableFactionPicker,
+            disableInitialCommanderSpawn: startScript.disableInitialCommanderSpawn,
+            modOptions: startScript.modOptions ?? {},
+            mapOptions: startScript.mapOptions ?? {},
+            unitLimits: startScript.unitLimits ?? {},
+            allyTeams: startScript.allyTeams ?? {},
+        };
+    }
+
+    public async getScenarios(gameVersion?: string): Promise<Scenario[]> {
         try {
-            return getScenarios(this.resolveVersion(gameVersion), this.buildDeps(), SCENARIO_IMAGE_PATH);
+            const md5 = this.getPackageMd5ForGameVersion(gameVersion);
+            const scenarioImages = await this.getGameFiles(md5, "singleplayer/scenarios/*.{jpg,png}", false);
+            const scenarioDefinitions = (await this.getGameFiles(md5, "singleplayer/scenarios/*.lua", true)).filter(({ fileName }) => /[^/]*scenario[^/]*$/.test(fileName));
+
+            await fs.promises.mkdir(SCENARIO_IMAGE_PATH, { recursive: true });
+
+            for (const scenarioImage of scenarioImages) {
+                const buffer = await this.readFileDecompressed(scenarioImage.archivePath);
+                const fileName = path.parse(scenarioImage.fileName).base;
+                await fs.promises.writeFile(path.join(SCENARIO_IMAGE_PATH, fileName), buffer);
+            }
+
+            const scenarios: Scenario[] = [];
+            for (const scenarioDefinition of scenarioDefinitions) {
+                try {
+                    scenarios.push(this.parseScenarioDefinition(scenarioDefinition, SCENARIO_IMAGE_PATH));
+                } catch (err) {
+                    log.error(`Error parsing scenario lua file: ${scenarioDefinition.fileName}: ${err}`);
+                }
+            }
+
+            scenarios.sort((a, b) => a.index - b.index);
+            return scenarios;
         } catch (err) {
             log.error(`Error getting scenarios: ${err}`);
             return [];
         }
+    }
+
+    private parseScenarioDefinition(scenarioDefinition: SdpFile, cacheDir: string): Scenario {
+        const scenario = parseLuaTable(scenarioDefinition.data) as Scenario;
+        if (scenario.imagepath) {
+            log.debug(`Imagepath: ${scenario.imagepath}`);
+            scenario.imagepath = path.join(cacheDir, scenario.imagepath).replaceAll("\\", "/");
+        } else {
+            log.warn(`No imagepath for scenario: ${scenario.title}`);
+        }
+        scenario.summary = scenario.summary.replaceAll(/[[\]]/g, "");
+        scenario.briefing = scenario.briefing.replaceAll(/[[\]]/g, "");
+        scenario.allowedsides = Array.isArray(scenario.allowedsides) && scenario.allowedsides[0] !== "" ? scenario.allowedsides : ["Armada", "Cortext", "Random"];
+        scenario.startscript = scenario.startscript.slice(1, -1);
+        return scenario;
+    }
+
+    private getPackageMd5ForGameVersion(gameVersion: string | undefined): string {
+        const version = this.availableVersions.values().find((v) => v.gameVersion === gameVersion);
+        assert(version, `No installed version found for game version: ${gameVersion}`);
+        return version.packageMd5;
+    }
+
+    private sdpRelativePath(file: SdpFileMeta): string {
+        return file.fileName.includes("/") ? file.fileName : file.archivePath;
+    }
+
+    private async extractAsset(md5: string, filePath: string, cacheDir: string, prefix: string): Promise<string | null> {
+        try {
+            const files = await this.getGameFiles(md5, filePath, false);
+            if (files.length === 0) return null;
+            const file = files[0];
+            const buffer = await this.readFileDecompressed(file.archivePath);
+            const cacheFileName = `${prefix}_${path.basename(filePath)}`;
+            const cachePath = path.join(cacheDir, cacheFileName);
+            await fs.promises.writeFile(cachePath, buffer);
+            return cachePath;
+        } catch {
+            return null;
+        }
+    }
+
+    /** Reads a file, decompressing it if the path ends in `.gz`. */
+    private async readFileDecompressed(archivePath: string): Promise<Buffer> {
+        const data = await fs.promises.readFile(archivePath);
+        return archivePath.endsWith(".gz") ? gunzip(data) : data;
     }
 
     public async uninstallVersionById(gameVersion: string | undefined) {
@@ -244,11 +427,11 @@ export class GameContentAPI extends PrDownloaderAPI<string, GameVersion> {
         const sdpEntries = await this.parseSdpFile(filePath, filePattern);
         const sdpFiles: Array<SdpFileMeta & { data?: Buffer }> = [];
         for (const sdpEntry of sdpEntries) {
-            const poolDir = sdpEntry.md5.slice(0, 2);
-            const archiveFileName = `${sdpEntry.md5.slice(2)}.gz`;
-            const archiveFilePath = path.join(POOL_PATH, poolDir, archiveFileName);
-            const archiveFile = await fs.promises.readFile(archiveFilePath);
             if (parseData) {
+                const poolDir = sdpEntry.md5.slice(0, 2);
+                const archiveFileName = `${sdpEntry.md5.slice(2)}.gz`;
+                const archiveFilePath = path.join(POOL_PATH, poolDir, archiveFileName);
+                const archiveFile = await fs.promises.readFile(archiveFilePath);
                 const data = await gunzip(archiveFile);
                 sdpFiles.push({ ...sdpEntry, data });
             } else {
@@ -316,15 +499,6 @@ export class GameContentAPI extends PrDownloaderAPI<string, GameVersion> {
             await poolCdn.preloadPoolData();
         } catch (error) {
             log.warn(error, "Failed preloading pool data, ignoring");
-        }
-    }
-
-    public async getCampaigns(gameVersion?: string): Promise<CampaignModel[]> {
-        try {
-            return getCampaigns(this.resolveVersion(gameVersion), this.buildDeps(), CAMPAIGN_IMAGE_PATH);
-        } catch (err) {
-            log.error(`Error getting campaigns: ${err}`);
-            return [];
         }
     }
 
