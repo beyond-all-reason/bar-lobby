@@ -4,7 +4,7 @@
 
 import { gameContentAPI } from "@main/content/game/game-content";
 import { gameAPI, MultiplayerLaunchSettings } from "@main/game/game";
-import { ipcMain, BarIpcWebContents } from "@main/typed-ipc";
+import { BarIpcWebContents, ipcMain } from "@main/typed-ipc";
 import { Replay } from "@main/content/replays/replay";
 import { BattleWithMetadata } from "@main/game/battle/battle-types";
 import { replayContentAPI } from "@main/content/replays/replay-content";
@@ -17,6 +17,7 @@ function registerIpcHandlers(webContents: BarIpcWebContents) {
     // Content
     ipcMain.handle("game:downloadGame", (_, version: string) => gameContentAPI.downloadGame(version));
     ipcMain.handle("game:getScenarios", (_, version: string) => gameContentAPI.getScenarios(version));
+    ipcMain.handle("game:getCampaigns", (_, version: string) => gameContentAPI.getCampaigns(version));
     ipcMain.handle("game:getInstalledVersions", () => gameContentAPI.availableVersions.values().toArray());
     ipcMain.handle("game:isVersionInstalled", (_, id: string) => gameContentAPI.isVersionInstalled(id));
     ipcMain.handle("game:uninstallVersion", (_, version: string) => gameContentAPI.uninstallVersionById(version));
