@@ -115,19 +115,23 @@ export class TachyonClient {
         });
     }
 
+    /**
+     * Sends a request and throws when the server responds with `status: "failed"`.
+     */
     public async request<C extends GetCommandIds<"user", "server", "request">>(...args: RequestArgs<C>): Promise<Extract<GetCommands<"server", "user", "response", C>, { status: "success" }>> {
-        const response = await this.doRequest(true, args);
+        const response = await (this.requestStructured as (...a: typeof args) => Promise<TachyonResponse>)(...args);
+        if (response.status === "failed") {
+            log.error(`Error response received: ${JSON.stringify(response)}`);
+            throw new Error(`${response.reason}` + (response.details ? ` (${response.details})` : ""));
+        }
         return response as Extract<GetCommands<"server", "user", "response", C>, { status: "success" }>;
     }
 
+    /**
+     * Sends a request and returns the structured Tachyon response without converting
+     * failed responses into thrown errors.
+     */
     public async requestStructured<C extends GetCommandIds<"user", "server", "request">>(...args: RequestArgs<C>): Promise<Extract<GetCommands<"server", "user", "response", C>, { commandId: C }>> {
-        return this.doRequest(false, args);
-    }
-
-    private async doRequest<C extends GetCommandIds<"user", "server", "request">>(
-        throwOnFailed: boolean,
-        args: RequestArgs<C>
-    ): Promise<Extract<GetCommands<"server", "user", "response", C>, { commandId: C }>> {
         if (!this.socket) {
             throw new Error("Not connected to server");
         }
@@ -151,11 +155,6 @@ export class TachyonClient {
                     return;
                 }
                 if (response.status === "failed") {
-                    log.error(`Error response received: ${JSON.stringify(response)}`);
-                    if (throwOnFailed) {
-                        reject(new Error(`${response.reason}` + (response.details ? ` (${response.details})` : "")));
-                        return;
-                    }
                     resolve(response as Extract<GetCommands<"server", "user", "response", C>, { commandId: C }>);
                     return;
                 }

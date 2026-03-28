@@ -2,6 +2,7 @@
 //
 // SPDX-License-Identifier: MIT
 
+import { ipcRenderer } from "@main/typed-ipc";
 import { GetCommandData, GetCommandIds, GetCommands, TachyonResponse } from "tachyon-protocol";
 
 export type TachyonFailedResponse = Extract<TachyonResponse, { status: "failed" }>;
@@ -32,13 +33,13 @@ export class TachyonRequestError extends Error {
  *
  * @example
  * } catch (error) {
- *   if (error instanceof TachyonRequestError) {
- *     // generic protocol failure handling
- *   }
  *   if (isTachyonErrorForCommand(error, "matchmaking/queue")) {
  *     switch (error.response.reason) { // "version_mismatch" | "already_queued" | ...
  *       case "version_mismatch": ...
  *     }
+ *   }
+ *  if (error instanceof TachyonRequestError) {
+ *     // generic protocol failure handling
  *   }
  * }
  */
@@ -50,20 +51,19 @@ export function isTachyonErrorForCommand<C extends GetCommandIds<"user", "server
 }
 
 /**
- * Renderer-side wrapper around `window.tachyon.requestStructured`.
+ * Renderer-side wrapper around the Tachyon request IPC.
  *
  * - Resolves with the typed success response on `status: "success"`.
  * - Rejects with {@link TachyonRequestError} when the server responds with `status: "failed"`.
  * - Lets IPC/network errors propagate as-is (not wrapped), so callers can
  *   distinguish protocol failures from infrastructure failures.
  *
- * Stores should always use this function instead of calling
- * `window.tachyon.requestStructured` directly.
+ * Stores should always use this function instead of invoking the Tachyon IPC directly.
  */
 export async function tachyonRequest<C extends GetCommandIds<"user", "server", "request">>(
     ...args: GetCommandData<GetCommands<"user", "server", "request", C>> extends never ? [commandId: C] : [commandId: C, data: GetCommandData<GetCommands<"user", "server", "request", C>>]
 ): Promise<Extract<GetCommands<"server", "user", "response", C>, { status: "success" }>> {
-    const response = await (window.tachyon.requestStructured as (...a: typeof args) => Promise<TachyonResponse>)(...args);
+    const response = await (ipcRenderer.invoke as (channel: "tachyon:requestStructured", ...a: typeof args) => Promise<TachyonResponse>)("tachyon:requestStructured", ...args);
     if (response.status === "failed") {
         throw new TachyonRequestError(response);
     }
