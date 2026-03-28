@@ -6,3 +6,8 @@ Please describe your changes clearly and concisely. Focus on the "what" and "why
 - [ ] I've scoped pull request to a single change or feature.
 - [ ] I have tested my changes locally.
 - [ ] I have updated the documentation, if necessary.
+
+<!-- If relevant
+### AI / LLM usage statement:
+Tell us if you used an AI or LLM in the creation of this code, which AI tool was used, and to what extent.
+-->
