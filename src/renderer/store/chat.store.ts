@@ -35,9 +35,15 @@ function requestSend(data: MessagingSendRequestData) {
     try {
         const response = window.tachyon.request("messaging/send", data);
         console.log("Tachyon messaging/send:", response);
-        // Upon success, we add our own message to the body if it's a "player" type
+        // Upon success, we add our own message to the history because we do not get it from the server.
         if (data.target.type === "player") {
-            insertSelfMessage(data.target.userId, data.message);
+            insertSelfMessage({ type: "player", userId: data.target.userId }, data.message);
+        }
+        if (data.target.type === "party") {
+            insertSelfMessage({ type: "party", partyId: "", userId: me.userId }, data.message);
+        }
+        if (data.target.type === "lobby") {
+            insertSelfMessage({ type: "lobby", lobbyId: "", userId: me.userId }, data.message);
         }
     } catch (error) {
         console.error("Error with messaging/send", error);
@@ -55,50 +61,38 @@ function requestSubscribeReceived(data?: MessagingSubscribeReceivedRequestData) 
     }
 }
 
-function onMessagingReceivedEvent(data: MessagingReceivedEventData) {
-    console.log("Tachyon event: messaging/received:", data);
+function onMessagingReceivedEvent(data: MessagingReceivedEventData, self?: boolean) {
+    if (!self) {
+        console.log("Tachyon event: messaging/received:", data);
+    }
     // Note, we don't need to attach for sources "lobby" or "party" because those stores will manage
     // their own attach/detach decisions.
     if (data.source.type === "player") {
         subsManager.attach(data.source.userId, chatSymbol);
         if (chatStore.userChats.get(data.source.userId)) {
-            chatStore.userChats.get(data.source.userId)!.push({ ...data, seen: false, isMe: false });
+            chatStore.userChats.get(data.source.userId)!.push({ ...data, seen: false, isMe: self ?? false });
         } else {
-            chatStore.userChats.set(data.source.userId, [{ ...data, seen: false, isMe: false }]);
+            chatStore.userChats.set(data.source.userId, [{ ...data, seen: false, isMe: self ?? false }]);
         }
     }
     if (data.source.type === "lobby") {
-        chatStore.lobbyChat.push({ ...data, seen: false, isMe: false });
+        chatStore.lobbyChat.push({ ...data, seen: false, isMe: self ?? false });
     }
     if (data.source.type === "party") {
-        chatStore.partyChat.push({ ...data, seen: false, isMe: false });
+        chatStore.partyChat.push({ ...data, seen: false, isMe: self ?? false });
     }
 }
 
-export function insertSelfMessage(targetUserId: UserId, message: string) {
-    subsManager.attach(targetUserId, chatSymbol);
+function insertSelfMessage(source: MessagingReceivedEventData["source"], message: string) {
     const data: MessagingReceivedEventData = {
         message: message,
-        source: { type: "player", userId: me.userId },
-        timestamp: Date.now(),
+        source: source,
+        timestamp: Date.now() * 1000,
         marker: "",
     };
-    if (chatStore.userChats.get(targetUserId)) {
-        chatStore.userChats.get(targetUserId)!.push({
-            ...data,
-            seen: false,
-            isMe: true,
-        });
-    } else {
-        chatStore.userChats.set(targetUserId, [
-            {
-                ...data,
-                seen: false,
-                isMe: true,
-            },
-        ]);
-    }
+    onMessagingReceivedEvent(data, true);
 }
+
 // We want to start with an empty chat array if we join a new lobby/party chat,
 // so we give the UI a simple way to purge the old data just before joining.
 export function clearLobbyChat() {
@@ -114,5 +108,4 @@ export const chat = {
     requestSubscribeReceived,
     clearLobbyChat,
     clearPartyChat,
-    insertSelfMessage,
 };
