@@ -1960,6 +1960,20 @@
                 "description": "Join a multiplayer ranked queue.",
                 "loadingQueues": "Loading matchmaking queues...",
                 "queueError": "Error loading queues",
+                "errors": {
+                    "listRequest": "Tachyon error: matchmaking/list",
+                    "queueListUnavailable": "Failed to retrieve available queues",
+                    "badQueueData": "Bad queue data; refreshing list.",
+                    "downloadsRequired": "You have downloads required to join this queue.",
+                    "versionMismatch": "Queue version changed. Refreshing available queues.",
+                    "queueChangedRetry": "Queue changed, please try joining again",
+                    "queueRequest": "Tachyon error: matchmaking/queue",
+                    "queueRequestFailed": "Error with matchmaking/queue",
+                    "cancelRequest": "Tachyon error: matchmaking/cancel",
+                    "cancelRequestFailed": "Error with matchmaking/cancel",
+                    "readyRequest": "Tachyon error: matchmaking/ready",
+                    "readyRequestFailed": "Error with matchmaking/ready"
+                },
                 "buttons": {
                     "searchGame": "Search game",
                     "joinRequested": "Joining queue",

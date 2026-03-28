@@ -3965,6 +3965,20 @@
                 "description": null,
                 "loadingQueues": null,
                 "queueError": null,
+                "errors": {
+                    "listRequest": null,
+                    "queueListUnavailable": null,
+                    "badQueueData": null,
+                    "downloadsRequired": null,
+                    "versionMismatch": null,
+                    "queueChangedRetry": null,
+                    "queueRequest": null,
+                    "queueRequestFailed": null,
+                    "cancelRequest": null,
+                    "cancelRequestFailed": null,
+                    "readyRequest": null,
+                    "readyRequestFailed": null
+                },
                 "buttons": {
                     "searchGame": null,
                     "joinRequested": null,
