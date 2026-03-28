@@ -4,7 +4,7 @@
 
 import { AllyTeam, Bot, Game, Player, Team } from "@main/model/start-script";
 import { AllyTeamModel, MissionDifficulty, MissionModel, TeamModel } from "@main/content/game/mission";
-import { CampaignModel } from "@main/content/game/campaign";
+import { CampaignDifficulty, CampaignModel } from "@main/content/game/campaign";
 import { startScriptConverter } from "@main/utils/start-script-converter";
 
 export type MissionEffectiveSettings = {
@@ -22,12 +22,21 @@ export type MissionEffectiveSettings = {
  * (e.g. future scenarios migrated to MissionModel) that belong to no campaign.
  */
 export function missionEffectiveSettings(campaign: CampaignModel | null | undefined, mission: MissionModel): MissionEffectiveSettings {
+    const campaignDifficulties = campaign ? campaignDifficultiesToArray(campaign.difficulties) : [];
     return {
-        difficulties: mission.difficulties ?? campaign?.difficulties ?? [],
+        difficulties: mission.difficulties ?? campaignDifficulties,
         defaultDifficulty: mission.defaultDifficulty ?? campaign?.defaultDifficulty ?? "",
-        disableFactionPicker: mission.disableFactionPicker ?? campaign?.disableFactionPicker ?? false,
+        disableFactionPicker: mission.disableFactionPicker ?? false,
         disableInitialCommanderSpawn: mission.disableInitialCommanderSpawn ?? false,
     };
+}
+
+function campaignDifficultiesToArray(difficulties: Record<string, CampaignDifficulty>): MissionDifficulty[] {
+    return Object.entries(difficulties).map(([name, d]) => ({
+        name,
+        playerhandicap: d.playerHandicap ?? 0,
+        enemyhandicap: d.enemyHandicap ?? 0,
+    }));
 }
 
 /** Mutable accumulator threaded through the ally-team and team loops in {@link missionToGame}. */

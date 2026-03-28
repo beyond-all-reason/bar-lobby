@@ -2,22 +2,38 @@
 //
 // SPDX-License-Identifier: MIT
 
-import { MissionDifficulty, MissionModel } from "@main/content/game/mission";
+import { MissionModel } from "@main/content/game/mission";
 
-//TODO: the logo and backgroundImage properties could end up being different types as stored images in memory?
-//TODO: will we have branching/parallel mission paths?
+// TODO: use MissionDifficulty instead once missions are json too
+export type CampaignDifficulty = {
+    playerHandicap?: number;
+    enemyHandicap?: number;
+};
+
 export type CampaignModel = {
     campaignId: string;
     title: string;
     description: string;
-    unlocked: boolean;
-    logo: string | null;
-    backgroundImage: string | null;
 
-    /** properties that can be overridden in missions **/
-    difficulties: MissionDifficulty[];
+    // Paths to cached images:
+    logo?: string | null;
+    backgroundImage?: string | null;
+
+    // Campaigns to complete for this one to unlock:
+    prerequisites?: string[];
+    // From state, not from campaign file:
+    unlocked?: boolean;
+
+    // Supported player counts:
+    players: number[];
+
+    // Difficulty names mapped to their handicap settings:
+    difficulties: Record<string, CampaignDifficulty>;
     defaultDifficulty: string;
-    disableFactionPicker: boolean;
 
-    missions: Record<string, MissionModel>;
+    // missionId → list of missionIds that must be completed first:
+    unlocks?: Record<string, string[]>;
+
+    // Runtime populated:
+    missions?: Record<string, MissionModel>;
 };
