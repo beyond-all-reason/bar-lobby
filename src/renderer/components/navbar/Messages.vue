@@ -138,7 +138,7 @@ function focusTextbox(el: HTMLElement) {
     }
 }
 
-async function sendDirectMessage(destinationUserId: string, messageText: string) {
+function sendDirectMessage(destinationUserId: string, messageText: string) {
     chat.requestSend({
         target: {
             type: "player",
