@@ -61,26 +61,9 @@ function requestSubscribeReceived(data?: MessagingSubscribeReceivedRequestData) 
     }
 }
 
-function onMessagingReceivedEvent(data: MessagingReceivedEventData, self?: boolean) {
-    if (!self) {
-        console.log("Tachyon event: messaging/received:", data);
-    }
-    // Note, we don't need to attach for sources "lobby" or "party" because those stores will manage
-    // their own attach/detach decisions.
-    if (data.source.type === "player") {
-        subsManager.attach(data.source.userId, chatSymbol);
-        if (chatStore.userChats.get(data.source.userId)) {
-            chatStore.userChats.get(data.source.userId)!.push({ ...data, seen: false, isMe: self ?? false });
-        } else {
-            chatStore.userChats.set(data.source.userId, [{ ...data, seen: false, isMe: self ?? false }]);
-        }
-    }
-    if (data.source.type === "lobby") {
-        chatStore.lobbyChat.push({ ...data, seen: false, isMe: self ?? false });
-    }
-    if (data.source.type === "party") {
-        chatStore.partyChat.push({ ...data, seen: false, isMe: self ?? false });
-    }
+function onMessagingReceivedEvent(data: MessagingReceivedEventData) {
+    console.log("Tachyon event: messaging/received:", data);
+    insertMessage(data);
 }
 
 function insertSelfMessage(source: MessagingReceivedEventData["source"], message: string) {
@@ -90,17 +73,44 @@ function insertSelfMessage(source: MessagingReceivedEventData["source"], message
         timestamp: Date.now() * 1000,
         marker: "",
     };
-    onMessagingReceivedEvent(data, true);
+    insertMessage(data, true);
+}
+
+function insertMessage(data: MessagingReceivedEventData, self?: boolean) {
+    // Note, we don't need to attach for sources "lobby" or "party" because those stores will manage
+    // their own attach/detach decisions.
+    const targetUser: UserId = data.source.userId;
+    if (self) {
+        data.source.userId = me.userId;
+    }
+    if (data.source.type === "player") {
+        subsManager.attach(targetUser, chatSymbol);
+        if (chatStore.userChats.get(targetUser)) {
+            chatStore.userChats.get(targetUser)!.push({ ...data, seen: false });
+        } else {
+            chatStore.userChats.set(targetUser, [{ ...data, seen: false }]);
+        }
+    }
+    if (data.source.type === "lobby") {
+        chatStore.lobbyChat.push({ ...data, seen: false });
+    }
+    if (data.source.type === "party") {
+        chatStore.partyChat.push({ ...data, seen: false });
+    }
 }
 
 // We want to start with an empty chat array if we join a new lobby/party chat,
 // so we give the UI a simple way to purge the old data just before joining.
-export function clearLobbyChat() {
+function clearLobbyChat() {
     chatStore.lobbyChat.length = 0;
 }
 
-export function clearPartyChat() {
+function clearPartyChat() {
     chatStore.partyChat.length = 0;
+}
+
+function clearUserChat(userId: UserId) {
+    chatStore.userChats.delete(userId);
 }
 
 export const chat = {
@@ -108,4 +118,5 @@ export const chat = {
     requestSubscribeReceived,
     clearLobbyChat,
     clearPartyChat,
+    clearUserChat,
 };

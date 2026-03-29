@@ -22,7 +22,7 @@ SPDX-License-Identifier: MIT
                             v-for="(message, i) in messages"
                             :key="i"
                             v-in-view.once="() => (message.seen = true)"
-                            :class="['message', { fromMe: message.isMe }]"
+                            :class="['message', { fromMe: message.source.userId === me.userId }]"
                         >
                             <Markdown :source="message.message" />
                         </div>
@@ -82,6 +82,7 @@ import { chatStore, chat } from "@renderer/store/chat.store";
 import { getUserByID } from "@renderer/store/users.store";
 import { UserId } from "tachyon-protocol/types";
 import { computedAsync } from "@vueuse/core";
+import { me } from "@renderer/store/me.store";
 
 const { t } = useTypedI18n();
 
@@ -149,7 +150,7 @@ function close(userId: string) {
     // If we want user chat history to persist, then the interface will need to be changed.
     // Until that time, we simply purge the chat entirely. It would not persists on restart
     // of the client anyway, so we do not need to extend that at this time.
-    chatStore.userChats.delete(userId);
+    chat.clearUserChat(userId);
 }
 </script>
 
