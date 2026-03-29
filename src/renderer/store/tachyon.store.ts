@@ -84,7 +84,7 @@ export async function initTachyonStore() {
             matchmaking.sendListRequest();
         }
 
-        // Subscribe to direct messages when connected
+        // Subscribe to messages (all sources) when connected
         if (chatStore.isInitialized) {
             chat.requestSubscribeReceived();
         }

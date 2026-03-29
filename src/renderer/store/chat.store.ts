@@ -31,6 +31,12 @@ export async function initChatStore() {
     chatStore.isInitialized = true;
 }
 
+const chatDestinations = {
+    lobby: chatStore.lobbyChat,
+    party: chatStore.partyChat,
+    player: chatStore.userChats,
+};
+
 function requestSend(data: MessagingSendRequestData) {
     try {
         const response = window.tachyon.request("messaging/send", data);
@@ -66,36 +72,38 @@ function requestSubscribeReceived(data?: MessagingSubscribeReceivedRequestData) 
 function onMessagingReceivedEvent(data: MessagingReceivedEventData) {
     console.log("Tachyon event: messaging/received:", data);
     subsManager.attach(data.source.userId, chatSymbol);
-    insertMessage(data);
+    if (data.source.type === "player") {
+        setupMessageArray(data.source.userId);
+        insertMessage(data, chatDestinations["player"].get(data.source.userId)!);
+    } else {
+        insertMessage(data, chatDestinations[data.source.type]);
+    }
 }
 
 function insertSelfMessage(source: MessagingReceivedEventData["source"], message: string) {
+    const targetUser: string = source.userId;
     const data: MessagingReceivedEventData = {
         message: message,
         source: source,
         timestamp: Date.now() * 1000,
         marker: "",
     };
-    insertMessage(data, true);
+    if (source.type === "player") {
+        source.userId = me.userId;
+        setupMessageArray(targetUser);
+        insertMessage(data, chatDestinations["player"].get(targetUser)!);
+    } else {
+        insertMessage(data, chatDestinations[source.type]);
+    }
 }
 
-function insertMessage(data: MessagingReceivedEventData, self?: boolean) {
-    const targetUser: UserId = data.source.userId;
-    if (self) {
-        data.source.userId = me.userId;
-    }
-    if (data.source.type === "player") {
-        if (chatStore.userChats.get(targetUser)) {
-            chatStore.userChats.get(targetUser)!.push({ ...data, seen: false });
-        } else {
-            chatStore.userChats.set(targetUser, [{ ...data, seen: false }]);
-        }
-    }
-    if (data.source.type === "lobby") {
-        chatStore.lobbyChat.push({ ...data, seen: false });
-    }
-    if (data.source.type === "party") {
-        chatStore.partyChat.push({ ...data, seen: false });
+function insertMessage(data: MessagingReceivedEventData, destination: Message[]) {
+    destination.push({ ...data, seen: false });
+}
+
+function setupMessageArray(userId: UserId) {
+    if (!chatDestinations["player"].get(userId)) {
+        chatDestinations["player"].set(userId, []);
     }
 }
 
