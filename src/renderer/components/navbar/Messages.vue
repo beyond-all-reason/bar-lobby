@@ -110,7 +110,6 @@ watch(chatStore.userChats, async () => {
             displayNames.value.set(idArray[i], t("lobby.navbar.messages.userID", { id: idArray[i] }));
         }
     }
-    console.log("Display names:", displayNames);
 });
 
 const text = ref("");
@@ -118,18 +117,18 @@ const newMessage = ref("");
 const newMessageUserId = ref("");
 const activeTabIndex = ref(0);
 
-const toggleMessages = inject<Ref<(open?: boolean, userId?: number) => void>>("toggleMessages")!;
+const toggleMessages = inject<Ref<(open?: boolean, userId?: string) => void>>("toggleMessages")!;
 const toggleFriends = inject<Ref<(open?: boolean) => void>>("toggleFriends")!;
 const toggleDownloads = inject<Ref<(open?: boolean) => void>>("toggleDownloads")!;
 
-toggleMessages.value = async (open?: boolean, userIdToActivate?: number) => {
+toggleMessages.value = (open?: boolean, userIdToActivate?: string) => {
     if (open) {
         toggleFriends.value(false);
         toggleDownloads.value(false);
     }
     emits("update:modelValue", open ?? !props.modelValue);
     if (userIdToActivate) {
-        activeTabIndex.value = userIdToActivate;
+        activeTabIndex.value = [...chatStore.userChats.keys()].indexOf(userIdToActivate);
     }
 };
 
