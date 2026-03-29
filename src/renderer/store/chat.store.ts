@@ -35,7 +35,7 @@ function requestSend(data: MessagingSendRequestData) {
     try {
         const response = window.tachyon.request("messaging/send", data);
         console.log("Tachyon messaging/send:", response);
-        // Upon success, we add our own message to the history because we do not get it from the server unless it is targeted at ourselves.
+        // We add our own message to the history because we do not get it from the server, unless it is targeted at ourselves.
         if (data.target.type === "player" && data.target.userId !== me.userId) {
             // We attach for DMs only, because lobby/party will handle their own.
             subsManager.attach(data.target.userId, chatSymbol);

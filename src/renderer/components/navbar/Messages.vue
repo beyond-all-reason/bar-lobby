@@ -10,7 +10,10 @@ SPDX-License-Identifier: MIT
             <TabPanel v-for="[userId, messages] in chatStore.userChats" :key="userId">
                 <template #header>
                     <div class="tab-header">
-                        <div>{{ displayNames?.get(userId) }}</div>
+                        <div>
+                            {{ displayNames?.get(userId) }}
+                            <Icon :icon="messageProcessing" :class="hasUnseenMessage(messages) ? 'icon-alert' : ''" />
+                        </div>
                         <div class="flex-row close" @click="close(userId)">
                             <Icon :icon="closeThick" />
                         </div>
@@ -70,6 +73,7 @@ SPDX-License-Identifier: MIT
 import { Icon } from "@iconify/vue";
 import chatPlus from "@iconify-icons/mdi/chat-plus";
 import closeThick from "@iconify-icons/mdi/close-thick";
+import messageProcessing from "@iconify-icons/mdi/message-processing";
 import TabPanel from "primevue/tabpanel";
 import { inject, Ref, ref, watch } from "vue";
 import TabView from "@renderer/components/common/TabView.vue";
@@ -82,6 +86,7 @@ import { chatStore, chat } from "@renderer/store/chat.store";
 import { getUsersByIds } from "@renderer/store/users.store";
 import { UserId } from "tachyon-protocol/types";
 import { me } from "@renderer/store/me.store";
+import { Message } from "@renderer/model/message";
 
 const { t } = useTypedI18n();
 
@@ -153,6 +158,13 @@ function close(userId: string) {
     // of the client anyway, so we do not need to extend that at this time.
     chat.clearUserChat(userId);
 }
+
+function hasUnseenMessage(messages: Message[]) {
+    // The most recent message should always be !seen when new
+    // So there's no need to loop, we just check the final message in the array
+    if (messages.length === 0) return false;
+    return !messages.at(-1)!.seen;
+}
 </script>
 
 <style lang="scss" scoped>
@@ -223,5 +235,9 @@ function close(userId: string) {
 }
 .tab-header {
     min-width: 100px;
+    align-items: center;
+}
+.icon-alert {
+    color: red;
 }
 </style>
