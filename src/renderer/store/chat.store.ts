@@ -37,6 +37,8 @@ function requestSend(data: MessagingSendRequestData) {
         console.log("Tachyon messaging/send:", response);
         // Upon success, we add our own message to the history because we do not get it from the server.
         if (data.target.type === "player") {
+            // We attach for DMs only, because lobby/party will handle their own.
+            subsManager.attach(data.target.userId, chatSymbol);
             insertSelfMessage({ type: "player", userId: data.target.userId }, data.message);
         }
         if (data.target.type === "party") {
@@ -63,6 +65,7 @@ function requestSubscribeReceived(data?: MessagingSubscribeReceivedRequestData) 
 
 function onMessagingReceivedEvent(data: MessagingReceivedEventData) {
     console.log("Tachyon event: messaging/received:", data);
+    subsManager.attach(data.source.userId, chatSymbol);
     insertMessage(data);
 }
 
@@ -77,14 +80,11 @@ function insertSelfMessage(source: MessagingReceivedEventData["source"], message
 }
 
 function insertMessage(data: MessagingReceivedEventData, self?: boolean) {
-    // Note, we don't need to attach for sources "lobby" or "party" because those stores will manage
-    // their own attach/detach decisions.
     const targetUser: UserId = data.source.userId;
     if (self) {
         data.source.userId = me.userId;
     }
     if (data.source.type === "player") {
-        subsManager.attach(targetUser, chatSymbol);
         if (chatStore.userChats.get(targetUser)) {
             chatStore.userChats.get(targetUser)!.push({ ...data, seen: false });
         } else {
@@ -111,6 +111,7 @@ function clearPartyChat() {
 
 function clearUserChat(userId: UserId) {
     chatStore.userChats.delete(userId);
+    subsManager.detach(userId, chatSymbol);
 }
 
 export const chat = {
