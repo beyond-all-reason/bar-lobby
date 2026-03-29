@@ -125,6 +125,7 @@ import { settingsStore } from "@renderer/store/settings.store";
 import { me } from "@renderer/store/me.store";
 import ServerStatus from "@renderer/components/navbar/ServerStatus.vue";
 import { useLogInConfirmation } from "@renderer/composables/useLogInConfirmation";
+import { chatStore } from "@renderer/store/chat.store";
 
 defineProps<{
     hidden?: boolean;
@@ -164,14 +165,12 @@ function handleFriendsClick() {
 }
 
 const messagesUnread = computed(() => {
-    //TODO dmStores
-    // for (const [, messages] of api.session.directMessages) {
-    //     for (const message of messages) {
-    //         if (!message.read) {
-    //             return true;
-    //         }
-    //     }
-    // }
+    for (const messages of chatStore.userChats.values()) {
+        // We only need to check the most recent message, and then exit the overall loop as early as possible
+        if (messages.length > 0) {
+            if (!messages.at(-1)!.seen) return true;
+        }
+    }
     return false;
 });
 
