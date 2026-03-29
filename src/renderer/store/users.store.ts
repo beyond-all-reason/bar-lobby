@@ -12,8 +12,12 @@ export const usersStore: {
     isInitialized: false,
 });
 
-export async function getUserByID(id: string) {
+export async function getUserById(id: string) {
     return await db.users.get(id);
+}
+
+export async function getUsersByIds(users: string[]) {
+    return await db.users.bulkGet(users);
 }
 
 export const subsManager = new SubsManager();

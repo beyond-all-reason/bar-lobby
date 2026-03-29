@@ -71,7 +71,7 @@ import { Icon } from "@iconify/vue";
 import chatPlus from "@iconify-icons/mdi/chat-plus";
 import closeThick from "@iconify-icons/mdi/close-thick";
 import TabPanel from "primevue/tabpanel";
-import { inject, Ref, ref } from "vue";
+import { inject, Ref, ref, watch } from "vue";
 import TabView from "@renderer/components/common/TabView.vue";
 import Button from "@renderer/components/controls/Button.vue";
 import Textbox from "@renderer/components/controls/Textbox.vue";
@@ -79,9 +79,8 @@ import Markdown from "@renderer/components/misc/Markdown.vue";
 import PopOutPanel from "@renderer/components/navbar/PopOutPanel.vue";
 import { useTypedI18n } from "@renderer/i18n";
 import { chatStore, chat } from "@renderer/store/chat.store";
-import { getUserByID } from "@renderer/store/users.store";
+import { getUsersByIds } from "@renderer/store/users.store";
 import { UserId } from "tachyon-protocol/types";
-import { computedAsync } from "@vueuse/core";
 import { me } from "@renderer/store/me.store";
 
 const { t } = useTypedI18n();
@@ -94,17 +93,19 @@ const emits = defineEmits<{
     (event: "update:modelValue", open: boolean): void;
 }>();
 
-const displayNames = computedAsync(async () => {
-    const users: Map<UserId, string> = new Map();
-    for (const id of chatStore.userChats.keys()) {
-        const cached = await getUserByID(id);
-        if (cached != undefined) {
-            users.set(id, cached.displayName);
+const displayNames = ref(new Map<UserId, string>());
+
+watch(chatStore.userChats, async () => {
+    const idArray: string[] = [...chatStore.userChats.keys()];
+    const cached = await getUsersByIds(idArray);
+    for (let i = 0; i < cached.length; i++) {
+        if (cached[i] != undefined) {
+            displayNames.value.set(idArray[i], cached[i]!.displayName);
         } else {
-            users.set(id, t("lobby.navbar.messages.userID") + " " + id);
+            displayNames.value.set(idArray[i], t("lobby.navbar.messages.userID", { id: idArray[i] }));
         }
     }
-    return users;
+    console.log("Display names:", displayNames);
 });
 
 const text = ref("");
