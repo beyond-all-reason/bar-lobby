@@ -26,6 +26,7 @@ export class AutoUpdaterAPI extends Downloader {
         autoUpdater.autoDownload = false;
         autoUpdater.logger = log;
         autoUpdater.autoInstallOnAppQuit = true;
+        autoUpdater.allowPrerelease = false;
         this.intialized = true;
         return this;
     }

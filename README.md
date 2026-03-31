@@ -16,6 +16,16 @@ BAR Lobby is a work-in-progress and actively developed project. We are currently
 
 BAR Lobby is an important part of [BAR's Steam Roadmap](https://www.beyondallreason.info/development/steam-release), and there is a lot of other work in other places that support this development. Please take a look at the [infrastructure documentation](https://beyond-all-reason.github.io/infrastructure/new_client/) for details on how BAR Lobby fits into the rest of the system.
 
+## Releases
+
+Pre-release builds are available on the [GitHub releases page](https://github.com/beyond-all-reason/bar-lobby/releases). The lobby auto-updates when a new version is published.
+
+Every commit on the `master` branch is also built. To download an installer of this development version:
+
+1. Sign in to GitHub.
+2. Go to the [Build workflow on `master`](https://github.com/beyond-all-reason/bar-lobby/actions/workflows/build.yml?query=branch%3Amaster) and pick the latest run.
+3. Download from the "Artifacts" section at the bottom of the run page.
+
 ## Functionality and Goals
 
 - Provide functionality for everything related to BAR. Campaigns, Missions, Multiplayer, Replays etc
@@ -48,6 +58,7 @@ It is highly recommended to use [VSCode](https://code.visualstudio.com/) for dev
 - [Node.js 22.18.0](https://nodejs.org/en/download/)
 
 We recommend tools management software like [NVM](https://github.com/nvm-sh/nvm) or [mise-en-place](https://mise.jdx.dev/) for installation of the correct node version.
+Make sure you use **the right node.js version**, check `engines.node` in [`package.json`](./package.json) for the source of truth.
 
 ### Local Development
 
@@ -55,6 +66,8 @@ We recommend tools management software like [NVM](https://github.com/nvm-sh/nvm)
 npm install
 npm start
 ```
+
+If you change node.js version, you **need** to re-run `npm install`.
 
 ### Project Structure
 
@@ -73,7 +86,7 @@ npm start
 │     ├──index.ts
 │     ├──index.html
 │     └──...
-├──electron-builder.config.ts
+├──electron-builder.ts
 ├──electron.vite.config.ts
 ├──package.json
 └──...

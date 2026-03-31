@@ -39,6 +39,7 @@ declare module 'vue-router/auto-routes' {
     '/play/campaign/[campaignId]-[missionId]': RouteRecordInfo<'/play/campaign/[campaignId]-[missionId]', '/play/campaign/:campaignId/:missionId', { campaignId: ParamValue<true>, missionId: ParamValue<true> }, { campaignId: ParamValue<false>, missionId: ParamValue<false> }>,
     '/play/campaign/campaign': RouteRecordInfo<'/play/campaign/campaign', '/play/campaign/campaign', Record<never, never>, Record<never, never>>,
     '/play/customLobbies': RouteRecordInfo<'/play/customLobbies', '/play/customLobbies', Record<never, never>, Record<never, never>>,
+    '/play/lobby': RouteRecordInfo<'/play/lobby', '/play/lobby', Record<never, never>, Record<never, never>>,
     '/play/matchmaking': RouteRecordInfo<'/play/matchmaking', '/play/matchmaking', Record<never, never>, Record<never, never>>,
     '/play/menu': RouteRecordInfo<'/play/menu', '/play/menu', Record<never, never>, Record<never, never>>,
     '/play/scenarios': RouteRecordInfo<'/play/scenarios', '/play/scenarios', Record<never, never>, Record<never, never>>,

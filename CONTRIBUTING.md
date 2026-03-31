@@ -46,6 +46,10 @@ That said:
 - **Adding tests is strongly encouraged.** PRs that include test coverage for the behavior they change (unit tests and/or E2E where appropriate) are typically easier to review and merge.
 - For details on how to run and write tests in this repo (Vitest + Playwright/Electron E2E, CI notes, etc.), see **[TESTING.md](TESTING.md)**.
 
+## AI-Assisted Contributions
+
+If you use AI tools to assist with code or text contributions, you must follow our [AI Usage Policy](AI_POLICY.md). This includes clear disclosure of AI involvement in pull requests, human verification of all AI-generated code, and other important requirements. Please review the policy before submitting AI-assisted work.
+
 ## Other Ways to Contribute
 
 Code is just one part of the project. We are always in need of other skills! If you're interested in helping with design, documentation, testing, UI design, art or community management, please talk to us on Discord. We will try to find something for you to do. ☺️
