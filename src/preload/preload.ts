@@ -8,7 +8,7 @@ import { Replay } from "@main/content/replays/replay";
 import { Settings } from "@main/services/settings.service";
 import { EngineVersion } from "@main/content/engine/engine-version";
 import { GameVersion } from "@main/content/game/game-version";
-import type { CampaignModel } from "@main/content/game/campaign";
+import type { CampaignModel } from "@main/content/game/campaign-model";
 import { MapData, MapDownloadData } from "@main/content/maps/map-data";
 import { DownloadInfo } from "@main/content/downloads";
 import { Info } from "@main/services/info.service";

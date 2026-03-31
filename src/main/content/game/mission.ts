@@ -56,7 +56,7 @@ export type MissionModel = {
     missionScriptPath: string;
     title: string;
     description: string;
-    image: string | null; // cached local path
+    image?: string; // cached local path
     startPos: { x: number; y: number };
     unlocked: boolean;
     // from StartScript

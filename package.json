@@ -12,8 +12,11 @@
     },
     "main": ".vite/build/main.cjs",
     "scripts": {
-        "start": "cross-env NODE_OPTIONS=--enable-source-maps electron-forge start",
-        "package": "electron-forge package",
+        "generate:campaign": "node --import=tsx tools/generate-campaign-types.ts",
+        "generate:i18n": "node --import=tsx tools/generate-i18n-asset-files.ts",
+        "generate": "npm run generate:campaign",
+        "start": "npm run generate && cross-env NODE_OPTIONS=--enable-source-maps electron-forge start",
+        "package": "npm run generate && electron-forge package",
         "preview": "electron-forge package && cross-env NODE_OPTIONS=--enable-source-maps NODE_ENV=production electron .",
         "build:win": "electron-builder --config electron-builder.config.ts --win",
         "buildall:win": "npm run package && npm run build:win",
@@ -33,8 +36,7 @@
         "typecheck:node": "tsc --noEmit -p tsconfig.node.json --composite false",
         "typecheck:web": "vue-tsc --noEmit -p tsconfig.web.json --composite false",
         "typecheck": "concurrently \"npm run typecheck:node\" \"npm run typecheck:web\"",
-        "checks": "concurrently \"npm run typecheck:web\" \"npm run typecheck:node\" \"npm run lint\" \"npm run format:check\"",
-        "generate-i18n-assets": "node --import=tsx tools/generate-i18n-asset-files.ts"
+        "checks": "npm run generate && concurrently \"npm run typecheck:web\" \"npm run typecheck:node\" \"npm run lint\" \"npm run format:check\""
     },
     "engines": {
         "node": "22.18.0"
@@ -94,6 +96,7 @@
         "eslint-plugin-vue": "^10.3.0",
         "globals": "^16.3.0",
         "jsdom": "^26.1.0",
+        "json-schema-to-typescript": "^15.0.4",
         "prettier": "^3.6.2",
         "sass": "^1.89.2",
         "tsx": "^4.20.3",

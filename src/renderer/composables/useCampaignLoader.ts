@@ -4,7 +4,7 @@
 
 import { campaignCache } from "@renderer/store/campaign-cache";
 import { gameStore } from "@renderer/store/game.store";
-import { CampaignModel } from "@main/content/game/campaign";
+import { CampaignModel } from "@main/content/game/campaign-model";
 import { MissionModel } from "@main/content/game/mission";
 
 async function loadCampaigns(gameVersion: string | undefined) {

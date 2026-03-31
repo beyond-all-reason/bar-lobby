@@ -56,8 +56,7 @@ import Button from "@renderer/components/controls/Button.vue";
 import { Icon } from "@iconify/vue";
 import arrow_back from "@iconify-icons/mdi/arrow-back";
 import Panel from "@renderer/components/common/Panel.vue";
-import { gameStore } from "@renderer/store/game.store";
-import { campaignCache } from "@renderer/store/campaign-cache";
+import { useCampaignLoader } from "@renderer/composables/useCampaignLoader";
 
 const router = useRouter();
 
@@ -65,12 +64,10 @@ const props = defineProps<{
     campaignId: string;
 }>();
 
-if (campaignCache.value.length === 0) {
-    const gameVersion = gameStore?.selectedGameVersion?.gameVersion;
-    campaignCache.value = gameVersion ? await window.game.getCampaigns(gameVersion) : [];
-}
+const { campaigns, ensureLoaded } = useCampaignLoader();
+await ensureLoaded();
 
-const campaign = computed(() => campaignCache.value.find((c) => c.campaignId === props.campaignId));
+const campaign = computed(() => campaigns.value.find((c) => c.campaignId === props.campaignId));
 
 function goBack() {
     router.back();

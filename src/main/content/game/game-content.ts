@@ -17,8 +17,10 @@ import assert from "assert";
 import { contentSources } from "@main/config/content-sources";
 import { DownloadInfo } from "@main/content/downloads";
 import { LuaOptionSection } from "@main/content/game/lua-options";
-import Ajv, { ValidateFunction } from "ajv";
-import { CampaignModel } from "@main/content/game/campaign";
+import Ajv, { JSONSchemaType } from "ajv";
+import type { CampaignDefinition } from "@main/content/game/generated/campaign";
+import type { CampaignModel } from "@main/content/game/campaign-model";
+import campaignSchema from "@main/content/game/schemas/campaign.schema.json";
 import { AllyTeamModel, MapOptions, MissionDifficulty, MissionModel, MissionModOptions } from "@main/content/game/mission";
 import { Scenario } from "@main/content/game/scenario";
 import { SdpFile, SdpFileMeta } from "@main/content/game/sdp";
@@ -31,6 +33,8 @@ const log = logger("game-content.ts");
 const gunzip = util.promisify(zlib.gunzip);
 
 const ajv = new Ajv();
+
+const validateCampaignFile = ajv.compile<CampaignDefinition>(campaignSchema as unknown as JSONSchemaType<CampaignDefinition>);
 
 /** Raw shape of the `lobbyData` table in a mission Lua file. */
 type RawLobbyData = {
@@ -189,20 +193,14 @@ export class GameContentAPI extends PrDownloaderAPI<string, GameVersion> {
 
     public async getCampaigns(gameVersion?: string): Promise<CampaignModel[]> {
         try {
-            const md5 = this.getPackageMd5ForGameVersion(gameVersion);
-
-            const schemaFiles = await this.getGameFiles(md5, "missions/schemata/campaign.schema.json", true);
-            if (schemaFiles.length === 0) throw new Error("campaign.schema.json not found in game files");
-            const campaignSchema = JSON.parse(schemaFiles[0].data.toString("utf8")) as object;
-            const validateCampaignJson = ajv.compile(campaignSchema);
-
-            const campaignJsonFiles = await this.getGameFiles(md5, "missions/campaigns/*.json", true);
+            const packageMd5 = this.getPackageMd5ForGameVersion(gameVersion);
+            const campaignJsonFiles = await this.getGameFiles(packageMd5, "missions/campaigns/*.json", true);
             await fs.promises.mkdir(CAMPAIGN_IMAGE_PATH, { recursive: true });
 
             const campaigns: CampaignModel[] = [];
             for (const campaignFile of campaignJsonFiles) {
                 try {
-                    campaigns.push(await this.parseCampaignFile(campaignFile, md5, CAMPAIGN_IMAGE_PATH, validateCampaignJson));
+                    campaigns.push(await this.parseCampaignFile(campaignFile, packageMd5, CAMPAIGN_IMAGE_PATH));
                 } catch (err) {
                     log.error(`Error parsing campaign ${campaignFile.fileName}: ${err}`);
                 }
@@ -215,16 +213,16 @@ export class GameContentAPI extends PrDownloaderAPI<string, GameVersion> {
         }
     }
 
-    private async parseCampaignFile(campaignFile: SdpFile, md5: string, cacheDir: string, validateCampaignJson: ValidateFunction): Promise<CampaignModel> {
-        const raw = JSON.parse(campaignFile.data.toString("utf8")) as unknown;
-        if (!validateCampaignJson(raw)) {
-            throw new Error(`Invalid campaign JSON (${campaignFile.fileName}): ${ajv.errorsText(validateCampaignJson.errors)}`);
+    private async parseCampaignFile(campaignFile: SdpFile, md5: string, cacheDir: string): Promise<CampaignModel> {
+        const campaignJson = JSON.parse(campaignFile.data.toString("utf8")) as unknown;
+        if (!validateCampaignFile(campaignJson)) {
+            throw new Error(`Invalid campaign JSON (${campaignFile.fileName}): ${ajv.errorsText(validateCampaignFile.errors)}`);
         }
-        const rawCampaign = raw as CampaignModel;
+        // raw is narrowed to Campaign by AJV's type guard — no cast needed
         const campaignDirName = path.parse(this.sdpRelativePath(campaignFile)).name;
 
-        const logo = await this.extractAsset(md5, `missions/campaigns/${campaignDirName}/${rawCampaign.logo}`, cacheDir, campaignDirName);
-        const backgroundImage = await this.extractAsset(md5, `missions/campaigns/${campaignDirName}/${rawCampaign.backgroundImage}`, cacheDir, campaignDirName);
+        const logo = campaignJson.logo ? await this.extractAsset(md5, `missions/campaigns/${campaignDirName}/${campaignJson.logo}`, cacheDir, campaignDirName) : undefined;
+        const backgroundImage = campaignJson.backgroundImage ? await this.extractAsset(md5, `missions/campaigns/${campaignDirName}/${campaignJson.backgroundImage}`, cacheDir, campaignDirName) : undefined;
 
         const missionLuaFiles = await this.getGameFiles(md5, `missions/campaigns/${campaignDirName}/*.lua`, true);
         const missions: Record<string, MissionModel> = {};
@@ -232,14 +230,14 @@ export class GameContentAPI extends PrDownloaderAPI<string, GameVersion> {
         for (const missionFile of missionLuaFiles) {
             const missionFolder = path.parse(this.sdpRelativePath(missionFile)).name;
             try {
-                const mission = await this.parseMissionFile(missionFile, md5, rawCampaign.campaignId, campaignDirName, cacheDir);
+                const mission = await this.parseMissionFile(missionFile, md5, campaignJson.campaignId, campaignDirName, cacheDir);
                 missions[mission.missionId] = mission;
             } catch (err) {
                 log.error(`Error parsing mission ${missionFolder} in ${campaignDirName}: ${err}`);
             }
         }
 
-        return { ...rawCampaign, logo, backgroundImage, missions };
+        return { ...campaignJson, logo, backgroundImage, missions };
     }
 
     private async parseMissionFile(missionFile: SdpFile, md5: string, campaignId: string, campaignDirName: string, cacheDir: string): Promise<MissionModel> {
@@ -249,7 +247,7 @@ export class GameContentAPI extends PrDownloaderAPI<string, GameVersion> {
 
         const image = lobbyData.image
             ? await this.extractAsset(md5, `missions/campaigns/${campaignDirName}/${missionFolder}/${lobbyData.image}`, cacheDir, `${campaignDirName}_${missionFolder}`)
-            : null;
+            : undefined;
 
         return {
             campaignId,
@@ -332,10 +330,10 @@ export class GameContentAPI extends PrDownloaderAPI<string, GameVersion> {
         return file.fileName.includes("/") ? file.fileName : file.archivePath;
     }
 
-    private async extractAsset(md5: string, filePath: string, cacheDir: string, prefix: string): Promise<string | null> {
+    private async extractAsset(md5: string, filePath: string, cacheDir: string, prefix: string): Promise<string | undefined> {
         try {
             const files = await this.getGameFiles(md5, filePath, false);
-            if (files.length === 0) return null;
+            if (files.length === 0) return undefined;
             const file = files[0];
             const buffer = await this.readFileDecompressed(file.archivePath);
             const cacheFileName = `${prefix}_${path.basename(filePath)}`;
@@ -343,7 +341,7 @@ export class GameContentAPI extends PrDownloaderAPI<string, GameVersion> {
             await fs.promises.writeFile(cachePath, buffer);
             return cachePath;
         } catch {
-            return null;
+            return undefined;
         }
     }
 

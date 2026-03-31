@@ -4,7 +4,7 @@
 
 import { AllyTeam, Bot, Game, Player, Team } from "@main/model/start-script";
 import { AllyTeamModel, MissionDifficulty, MissionModel, TeamModel } from "@main/content/game/mission";
-import { CampaignDifficulty, CampaignModel } from "@main/content/game/campaign";
+import { CampaignDifficulty, CampaignModel } from "@main/content/game/campaign-model";
 import { startScriptConverter } from "@main/utils/start-script-converter";
 
 export type MissionEffectiveSettings = {
@@ -18,10 +18,10 @@ export type MissionEffectiveSettings = {
  * Resolves the effective settings for a mission, falling back to campaign-level
  * defaults where the mission does not override them.
  *
- * Accepts `null`/`undefined` for campaign to support standalone missions
+ * Accepts `undefined` for campaign to support standalone missions
  * (e.g. future scenarios migrated to MissionModel) that belong to no campaign.
  */
-export function missionEffectiveSettings(campaign: CampaignModel | null | undefined, mission: MissionModel): MissionEffectiveSettings {
+export function missionEffectiveSettings(campaign: CampaignModel | undefined, mission: MissionModel): MissionEffectiveSettings {
     const campaignDifficulties = campaign ? campaignDifficultiesToArray(campaign.difficulties) : [];
     return {
         difficulties: mission.difficulties ?? campaignDifficulties,
