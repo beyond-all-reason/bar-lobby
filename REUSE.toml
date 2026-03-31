@@ -39,3 +39,10 @@ path = ["lang/**/*.json", "src/renderer/assets/languages/*.json"]
 precedence = "aggregate"
 SPDX-FileCopyrightText = "2025 The BAR Lobby Authors"
 SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+# JSON does not support comments so SPDX headers are declared here instead
+path = ["src/main/content/game/schemas/*.json"]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2025 The BAR Lobby Authors"
+SPDX-License-Identifier = "MIT"

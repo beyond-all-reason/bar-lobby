@@ -222,7 +222,9 @@ export class GameContentAPI extends PrDownloaderAPI<string, GameVersion> {
         const campaignDirName = path.parse(this.sdpRelativePath(campaignFile)).name;
 
         const logo = campaignJson.logo ? await this.extractAsset(md5, `missions/campaigns/${campaignDirName}/${campaignJson.logo}`, cacheDir, campaignDirName) : undefined;
-        const backgroundImage = campaignJson.backgroundImage ? await this.extractAsset(md5, `missions/campaigns/${campaignDirName}/${campaignJson.backgroundImage}`, cacheDir, campaignDirName) : undefined;
+        const backgroundImage = campaignJson.backgroundImage
+            ? await this.extractAsset(md5, `missions/campaigns/${campaignDirName}/${campaignJson.backgroundImage}`, cacheDir, campaignDirName)
+            : undefined;
 
         const missionLuaFiles = await this.getGameFiles(md5, `missions/campaigns/${campaignDirName}/*.lua`, true);
         const missions: Record<string, MissionModel> = {};
