@@ -17,8 +17,8 @@ async function loadCampaigns(gameVersion: string | undefined) {
  * Call `await ensureLoaded()` at the top of `<script setup>` to guarantee
  * the cache is populated before the component renders. Child views (campaign
  * detail, mission detail) use `ensureLoaded()` as a guard for direct
- * navigation; only the root campaign list view should also call `loadCampaigns`
- * inside a game-version watcher to handle version changes.
+ * navigation. To force a reload (e.g. when the game version changes), clear
+ * the cache with `campaignCache.value = []` and then call `ensureLoaded()`.
  */
 export function useCampaignLoader() {
     /** Ensures campaigns are loaded, fetching via IPC if the cache is empty. */
@@ -38,7 +38,6 @@ export function useCampaignLoader() {
 
     return {
         campaigns: campaignCache,
-        loadCampaigns,
         ensureLoaded,
         getCampaign,
         getMission,

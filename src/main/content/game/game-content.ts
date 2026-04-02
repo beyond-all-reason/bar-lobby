@@ -205,7 +205,9 @@ export class GameContentAPI extends PrDownloaderAPI<string, GameVersion> {
                     log.error(`Error parsing campaign ${campaignFile.fileName}: ${err}`);
                 }
             }
-            campaigns[0].unlocked = true; // TODO: replace with state once it's ready
+            if (campaigns.length > 0) {
+                campaigns[0].unlocked = true; // TODO: replace with state once it's ready
+            }
             return campaigns;
         } catch (err) {
             log.error(`Error getting campaigns: ${err}`);
@@ -244,6 +246,7 @@ export class GameContentAPI extends PrDownloaderAPI<string, GameVersion> {
 
     private async parseMissionFile(missionFile: SdpFile, md5: string, campaignId: string, campaignDirName: string, cacheDir: string): Promise<MissionModel> {
         const missionFolder = path.parse(this.sdpRelativePath(missionFile)).name;
+        // TODO: update when mission files are json too
         const lobbyData = parseLuaTable(missionFile.data, { tableVariableName: "lobbyData" }) as RawLobbyData;
         const startScript = parseLuaTable(missionFile.data, { tableVariableName: "startScript" }) as RawStartScript;
 

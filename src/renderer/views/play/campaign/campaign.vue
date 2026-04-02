@@ -65,16 +65,20 @@ import Panel from "@renderer/components/common/Panel.vue";
 import { settingsStore } from "@renderer/store/settings.store";
 import { gameStore } from "@renderer/store/game.store";
 import { useCampaignLoader } from "@renderer/composables/useCampaignLoader";
+import { campaignCache } from "@renderer/store/campaign-cache";
 
 const router = useRouter();
 const route = router.currentRoute.value;
 
-const { campaigns, loadCampaigns, ensureLoaded } = useCampaignLoader();
+const { campaigns, ensureLoaded } = useCampaignLoader();
 await ensureLoaded();
 
 watch(
     () => gameStore.selectedGameVersion?.gameVersion,
-    (newVersion) => loadCampaigns(newVersion)
+    async () => {
+        campaignCache.value = [];
+        await ensureLoaded();
+    }
 );
 </script>
 

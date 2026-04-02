@@ -64,10 +64,10 @@ const props = defineProps<{
     campaignId: string;
 }>();
 
-const { campaigns, ensureLoaded } = useCampaignLoader();
+const { getCampaign, ensureLoaded } = useCampaignLoader();
 await ensureLoaded();
 
-const campaign = computed(() => campaigns.value.find((c) => c.campaignId === props.campaignId));
+const campaign = computed(() => getCampaign(props.campaignId));
 
 function goBack() {
     router.back();

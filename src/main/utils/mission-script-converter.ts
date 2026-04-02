@@ -6,6 +6,9 @@ import { AllyTeam, Bot, Game, Player, Team } from "@main/model/start-script";
 import { AllyTeamModel, MissionDifficulty, MissionModel, TeamModel } from "@main/content/game/mission";
 import { CampaignDifficulty, CampaignModel } from "@main/content/game/campaign-model";
 import { startScriptConverter } from "@main/utils/start-script-converter";
+import { logger } from "@main/utils/logger";
+
+const log = logger("mission-script-converter");
 
 export type MissionEffectiveSettings = {
     difficulties: MissionDifficulty[];
@@ -189,7 +192,7 @@ export function missionToGame(
     };
 
     // Spring.GetModOptions() lowercases the outer modoption key ("missionoptions") but the decoded JSON retains its original casing
-    console.log("[mission-script-converter] missionoptions:", JSON.stringify(missionOptions, null, 2));
+    log.info("missionoptions:", JSON.stringify(missionOptions, null, 2));
 
     // Restrictions must be serialised as a flat indexed object so that
     // stringifyScriptObj produces the [restrict] { unit0=...; limit0=...; } format.
