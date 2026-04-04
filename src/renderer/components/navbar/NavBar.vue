@@ -164,15 +164,16 @@ function handleFriendsClick() {
     friendsOpen.value = !friendsOpen.value;
 }
 
-const messagesUnread = computed(() => {
-    for (const messages of chatStore.userChats.values()) {
-        // We only need to check the most recent message, and then exit the overall loop as early as possible
-        if (messages.length > 0) {
-            if (!messages.at(-1)!.seen) return true;
-        }
-    }
-    return false;
-});
+const messagesUnread = computed(() => chatStore.userChats.values().some((m) => m.at(-1)?.seen === false));
+// const messagesUnread = computed(() => {
+//     for (const messages of chatStore.userChats.values()) {
+//         // We only need to check the most recent message, and then exit the overall loop as early as possible
+//         if (messages.length > 0) {
+//             if (!messages.at(-1)!.seen) return true;
+//         }
+//     }
+//     return false;
+// });
 
 function minimizeWindow() {
     window.mainWindow?.minimize();

@@ -159,10 +159,11 @@ function close(userId: string) {
 }
 
 function hasUnseenMessage(messages: Message[]) {
+    return messages.at(-1)?.seen === false;
     // The most recent message should always be !seen when new
     // So there's no need to loop, we just check the final message in the array
-    if (messages.length === 0) return false;
-    return !messages.at(-1)!.seen;
+    // if (messages.length === 0) return false;
+    // return !messages.at(-1)!.seen;
 }
 </script>
 

@@ -37,9 +37,9 @@ const chatDestinations = {
     player: chatStore.userChats,
 };
 
-function requestSend(data: MessagingSendRequestData) {
+async function requestSend(data: MessagingSendRequestData) {
     try {
-        const response = window.tachyon.request("messaging/send", data);
+        const response = await window.tachyon.request("messaging/send", data);
         console.log("Tachyon messaging/send:", response);
         // We add our own message to the history because we do not get it from the server, unless it is targeted at ourselves.
         if (data.target.type === "player" && data.target.userId !== me.userId) {
@@ -59,9 +59,9 @@ function requestSend(data: MessagingSendRequestData) {
     }
 }
 
-function requestSubscribeReceived(data?: MessagingSubscribeReceivedRequestData) {
+async function requestSubscribeReceived(data?: MessagingSubscribeReceivedRequestData) {
     try {
-        const response = window.tachyon.request("messaging/subscribeReceived", data ?? {});
+        const response = await window.tachyon.request("messaging/subscribeReceived", data ?? {});
         console.log("Tachyon messaging/subscribeReceived:", response);
     } catch (error) {
         console.error("Error with messaging/subscribeReceived", error);
