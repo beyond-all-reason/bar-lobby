@@ -37,7 +37,7 @@
         "generate-i18n-assets": "node --import=tsx tools/generate-i18n-asset-files.ts"
     },
     "engines": {
-        "node": ">=22.18.0"
+        "node": ">=22.18.0 <23"
     },
     "dependencies": {
         "@extractus/feed-extractor": "^7.1.6",
