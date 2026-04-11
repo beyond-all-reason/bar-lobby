@@ -5,6 +5,8 @@
 import { db } from "@renderer/store/db";
 import { reactive } from "vue";
 import { SubsManager } from "@renderer/utils/subscriptions-manager";
+import { UserInfoOkResponseData } from "tachyon-protocol/types";
+import { apply as applyPatch } from "json8-merge-patch";
 
 export const usersStore: {
     isInitialized: boolean;
@@ -24,15 +26,18 @@ export function initUsersStore() {
                 return;
             }
 
-            const updated = await db.users.update(user.userId, {
+            const existingUser = await db.users.get(user.userId);
+            const updatedUser = applyPatch(existingUser || {}, {
                 ...user,
                 clanBaseData: user.clanBaseData
                     ? {
                           ...user.clanBaseData,
                           language: user.clanBaseData.language || "unknown",
                       }
-                    : null,
+                    : undefined,
             });
+
+            const updated = await db.users.update(user.userId, updatedUser);
 
             if (updated === 0) {
                 // No records updated, so user doesn't exist - create new user
@@ -62,7 +67,7 @@ export function initUsersStore() {
     usersStore.isInitialized = true;
 }
 
-export async function fetchUserInfo(userId: string) {
+export async function fetchUserInfo(userId: string): Promise<UserInfoOkResponseData | null> {
     try {
         const response = await window.tachyon.request("user/info", { userId: userId });
         return response.data;
