@@ -83,7 +83,7 @@ import { friends } from "@renderer/store/me.store";
 import { notificationsApi } from "@renderer/api/notifications";
 import { db } from "@renderer/store/db";
 import { useDexieLiveQuery } from "@renderer/composables/useDexieLiveQuery";
-import { chatStore } from "@renderer/store/chat.store";
+import { chat } from "@renderer/store/chat.store";
 
 const { t } = useTypedI18n();
 
@@ -156,10 +156,7 @@ async function viewProfile() {
 
 const toggleMessages = inject<Ref<((open?: boolean, userId?: string) => void) | undefined>>("toggleMessages")!;
 function sendMessage() {
-    // If the userChat Map does not have this user yet, we populate it empty so it can open to that tab
-    if (!chatStore.userChats.get(props.userId)) {
-        chatStore.userChats.set(props.userId, []);
-    }
+    chat.addNewUserChat(props.userId);
     if (toggleMessages.value) {
         toggleMessages.value(true, props.userId);
     }

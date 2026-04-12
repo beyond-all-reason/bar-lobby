@@ -23,7 +23,7 @@ export const chatStore: {
     isInitialized: false,
     lobbyChat: [],
     partyChat: [],
-    userChats: new Map<UserId, Message[]>(),
+    userChats: new Map<UserId, Message[]>(), // Messages.vue will turn each of these Map elements into a TabPanel for the chat history with that user
 });
 
 export async function initChatStore() {
@@ -37,6 +37,10 @@ const chatDestinations = {
     player: chatStore.userChats,
 };
 
+/**
+ * Send a Tachyon request to send a message (all types and destinations)
+ * @param data Payload of the data required for this request via Tachyon
+ */
 async function requestSend(data: MessagingSendRequestData) {
     try {
         const response = await window.tachyon.request("messaging/send", data);
@@ -56,6 +60,10 @@ async function requestSend(data: MessagingSendRequestData) {
     }
 }
 
+/**
+ * Send a Tachyon request to subscribe to incoming messages (all types and sources).
+ * @param data Payload of the data required for this request via Tachyon
+ */
 async function requestSubscribeReceived(data?: MessagingSubscribeReceivedRequestData) {
     try {
         const response = await window.tachyon.request("messaging/subscribeReceived", data ?? {});
@@ -66,12 +74,21 @@ async function requestSubscribeReceived(data?: MessagingSubscribeReceivedRequest
     }
 }
 
+/**
+ * Handles incoming message events from Tachyon
+ * This should never be called directly outside of the store.
+ * @param data Payload of the data from the event
+ */
 function onMessagingReceivedEvent(data: MessagingReceivedEventData) {
     console.log("Tachyon event: messaging/received:", data);
     subsManager.attach(data.source.userId, chatSymbol);
     insertMessage(data, data.source.type === "player" ? data.source.userId : chatDestinations[data.source.type]);
 }
 
+/**
+ * Inserts a message into a chat history that this client sent, because the server will not provide it back to us as an event
+ * @param requestData Payload of data already sent to the Tachyon server for this client's message request
+ */
 function insertSelfMessage(requestData: MessagingSendRequestData) {
     insertMessage(
         // data:
@@ -91,6 +108,11 @@ function insertSelfMessage(requestData: MessagingSendRequestData) {
     );
 }
 
+/**
+ * Inserts a message into a chat history
+ * @param data Payload of message data
+ * @param destination The chat history that will store the message event, either a UserId or a Message array
+ */
 function insertMessage(data: MessagingReceivedEventData, destination: UserId | Message[]) {
     if (typeof destination == "string") {
         const userChat = chatDestinations["player"].get(destination);
@@ -104,19 +126,39 @@ function insertMessage(data: MessagingReceivedEventData, destination: UserId | M
     }
 }
 
-// We want to start with an empty chat array if we join a new lobby/party chat,
-// so we give the UI a simple way to purge the old data just before joining.
+/**
+ * Deletes all stored history in chatStore.lobbyChat
+ */
 function clearLobbyChat() {
     chatStore.lobbyChat.length = 0;
 }
 
+/**
+ * Deletes all stored history in chatStore.partyChat
+ */
 function clearPartyChat() {
     chatStore.partyChat.length = 0;
 }
 
+/**
+ * Deletes all stored history of a specific user by removing it entirely from the chatStore.userChats Map.
+ * Also removes the user from the chat store subscriptions
+ * @param userId ID of user to be deleted
+ */
 function clearUserChat(userId: UserId) {
     chatStore.userChats.delete(userId);
     subsManager.detach(userId, chatSymbol);
+}
+
+/** Creates an empty chat history for the identified user ID, if one does not exist yet.
+ * @param {UserId} userId ID of user to create a history for
+ * @returns {boolean} If a new chat was needed returns true; otherwise false.
+ **/
+function addNewUserChat(userId: UserId): boolean {
+    if (!chatDestinations["player"].get(userId)) {
+        chatDestinations["player"].set(userId, []);
+        return true;
+    } else return false;
 }
 
 export const chat = {
@@ -125,4 +167,5 @@ export const chat = {
     clearLobbyChat,
     clearPartyChat,
     clearUserChat,
+    addNewUserChat,
 };
