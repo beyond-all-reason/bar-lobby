@@ -75,7 +75,7 @@ import chatPlus from "@iconify-icons/mdi/chat-plus";
 import closeThick from "@iconify-icons/mdi/close-thick";
 import messageProcessing from "@iconify-icons/mdi/message-processing";
 import TabPanel from "primevue/tabpanel";
-import { inject, Ref, ref, watch } from "vue";
+import { inject, Ref, ref } from "vue";
 import TabView from "@renderer/components/common/TabView.vue";
 import Button from "@renderer/components/controls/Button.vue";
 import Textbox from "@renderer/components/controls/Textbox.vue";
@@ -84,9 +84,11 @@ import PopOutPanel from "@renderer/components/navbar/PopOutPanel.vue";
 import { useTypedI18n } from "@renderer/i18n";
 import { chatStore, chat } from "@renderer/store/chat.store";
 import { UserId } from "tachyon-protocol/types";
+import { User } from "@main/model/user";
 import { me } from "@renderer/store/me.store";
 import { Message } from "@renderer/model/message";
 import { db } from "@renderer/store/db";
+import { useDexieLiveQueryWithDeps } from "@renderer/composables/useDexieLiveQuery";
 
 const { t } = useTypedI18n();
 
@@ -98,19 +100,22 @@ const emits = defineEmits<{
     (event: "update:modelValue", open: boolean): void;
 }>();
 
-const displayNames = ref(new Map<UserId, string>());
-
-watch(chatStore.userChats, async () => {
-    const idArray: string[] = [...chatStore.userChats.keys()];
-    const cached = await db.users.bulkGet(idArray);
-    for (let i = 0; i < cached.length; i++) {
-        if (cached[i] != undefined) {
-            displayNames.value.set(idArray[i], cached[i]!.displayName);
-        } else {
-            displayNames.value.set(idArray[i], t("lobby.navbar.messages.userID", { id: idArray[i] }));
-        }
-    }
+const displayNames = useDexieLiveQueryWithDeps(chatStore.userChats, async () => {
+    const map = new Map<UserId, string>();
+    await db.users
+        .filter((user: User) => displayUsersFilter(user))
+        .each(function (user) {
+            map.set(user.userId, user.username);
+        });
+    console.log("updated displaynames:", map);
+    return map;
 });
+
+function displayUsersFilter(user: User) {
+    if (!user) return false;
+    if (chatStore.userChats.get(user.userId)) return true;
+    else return false;
+}
 
 const text = ref("");
 const newMessage = ref("");
