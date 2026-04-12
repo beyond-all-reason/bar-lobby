@@ -13,6 +13,7 @@ import { initSettingsStore } from "@renderer/store/settings.store";
 import { initTachyonStore } from "@renderer/store/tachyon.store";
 import { initUsersStore } from "@renderer/store/users.store";
 import { initLobbyStore } from "./lobby.store";
+import { initChatStore } from "@renderer/store/chat.store";
 
 export async function initPreMountStores() {
     await Promise.all([
@@ -21,6 +22,6 @@ export async function initPreMountStores() {
         initGameStore(),
         initDownloadsStore(),
         initEnginesStore(),
-        initTachyonStore().then(() => Promise.all([initializeMatchmakingStore(), initUsersStore(), initMeStore(), initLobbyStore()])),
+        initTachyonStore().then(() => Promise.all([initializeMatchmakingStore(), initUsersStore(), initMeStore(), initLobbyStore(), initChatStore()])),
     ]);
 }
