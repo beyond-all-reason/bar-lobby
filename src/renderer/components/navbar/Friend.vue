@@ -166,18 +166,7 @@ function sendMessage() {
 }
 
 async function joinBattle() {
-    // const battleIdToJoin = props.user.battleStatus.battleId;
-    // await api.session.updateBattleList();
-    // if (!battleIdToJoin) {
-    //     console.warn("Joining battle but battle is null");
-    //     return;
-    // }
-    // let battle = api.session.battles.get(battleIdToJoin);
-    // if (!battle) {
-    //     console.warn(`Battle with id ${battleIdToJoin} not found, hence can not join.`);
-    //     return;
-    // }
-    // await attemptJoinBattle(battle);
+    // TODO
 }
 
 async function inviteToParty() {

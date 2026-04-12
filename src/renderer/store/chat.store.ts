@@ -41,18 +41,15 @@ async function requestSend(data: MessagingSendRequestData) {
     try {
         const response = await window.tachyon.request("messaging/send", data);
         console.log("Tachyon messaging/send:", response);
-        // We add our own message to the history because we do not get it from the server, unless it is targeted at ourselves.
-        if (data.target.type === "player" && data.target.userId !== me.userId) {
-            // We attach for DMs only, because lobby/party will handle their own.
-            subsManager.attach(data.target.userId, chatSymbol);
-            insertSelfMessage({ type: "player", userId: data.target.userId }, data.message);
+        if (data.target.type === "player") {
+            if (data.target.userId !== me.userId) {
+                // We attach for DMs only, because lobby/party will handle their own.
+                subsManager.attach(data.target.userId, chatSymbol);
+            } else {
+                return; // Message is to our own userId, so we don't bother w/ a self message b/c we will receive it from the server.
+            }
         }
-        if (data.target.type === "party") {
-            insertSelfMessage({ type: "party", partyId: "", userId: me.userId }, data.message);
-        }
-        if (data.target.type === "lobby") {
-            insertSelfMessage({ type: "lobby", lobbyId: "", userId: me.userId }, data.message);
-        }
+        insertSelfMessage(data);
     } catch (error) {
         console.error("Error with messaging/send", error);
         notificationsApi.alert({ text: "Error with request messaging/send", severity: "error" });
@@ -72,38 +69,38 @@ async function requestSubscribeReceived(data?: MessagingSubscribeReceivedRequest
 function onMessagingReceivedEvent(data: MessagingReceivedEventData) {
     console.log("Tachyon event: messaging/received:", data);
     subsManager.attach(data.source.userId, chatSymbol);
-    if (data.source.type === "player") {
-        setupMessageArray(data.source.userId);
-        insertMessage(data, chatDestinations["player"].get(data.source.userId)!);
+    insertMessage(data, data.source.type === "player" ? data.source.userId : chatDestinations[data.source.type]);
+}
+
+function insertSelfMessage(requestData: MessagingSendRequestData) {
+    insertMessage(
+        // data:
+        {
+            message: requestData.message,
+            source: {
+                type: requestData.target.type,
+                userId: me.userId,
+                lobbyId: "", // We are not preserving lobby/party chat based on an ID, so these are irrelevant and can be empty strings
+                partyId: "",
+            },
+            timestamp: Date.now() * 1000,
+            marker: "",
+        },
+        // destination:
+        requestData.target.type === "player" ? requestData.target.userId : chatDestinations[requestData.target.type]
+    );
+}
+
+function insertMessage(data: MessagingReceivedEventData, destination: UserId | Message[]) {
+    if (typeof destination == "string") {
+        const userChat = chatDestinations["player"].get(destination);
+        if (!userChat) {
+            chatDestinations["player"].set(destination, [{ ...data, seen: false }]);
+        } else {
+            userChat.push({ ...data, seen: false });
+        }
     } else {
-        insertMessage(data, chatDestinations[data.source.type]);
-    }
-}
-
-function insertSelfMessage(source: MessagingReceivedEventData["source"], message: string) {
-    const targetUser: string = source.userId;
-    const data: MessagingReceivedEventData = {
-        message: message,
-        source: source,
-        timestamp: Date.now() * 1000,
-        marker: "",
-    };
-    if (source.type === "player") {
-        source.userId = me.userId;
-        setupMessageArray(targetUser);
-        insertMessage(data, chatDestinations["player"].get(targetUser)!);
-    } else {
-        insertMessage(data, chatDestinations[source.type]);
-    }
-}
-
-function insertMessage(data: MessagingReceivedEventData, destination: Message[]) {
-    destination.push({ ...data, seen: false });
-}
-
-function setupMessageArray(userId: UserId) {
-    if (!chatDestinations["player"].get(userId)) {
-        chatDestinations["player"].set(userId, []);
+        destination.push({ ...data, seen: false });
     }
 }
 

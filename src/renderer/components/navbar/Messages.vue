@@ -83,10 +83,10 @@ import Markdown from "@renderer/components/misc/Markdown.vue";
 import PopOutPanel from "@renderer/components/navbar/PopOutPanel.vue";
 import { useTypedI18n } from "@renderer/i18n";
 import { chatStore, chat } from "@renderer/store/chat.store";
-import { getUsersByIds } from "@renderer/store/users.store";
 import { UserId } from "tachyon-protocol/types";
 import { me } from "@renderer/store/me.store";
 import { Message } from "@renderer/model/message";
+import { db } from "@renderer/store/db";
 
 const { t } = useTypedI18n();
 
@@ -102,7 +102,7 @@ const displayNames = ref(new Map<UserId, string>());
 
 watch(chatStore.userChats, async () => {
     const idArray: string[] = [...chatStore.userChats.keys()];
-    const cached = await getUsersByIds(idArray);
+    const cached = await db.users.bulkGet(idArray);
     for (let i = 0; i < cached.length; i++) {
         if (cached[i] != undefined) {
             displayNames.value.set(idArray[i], cached[i]!.displayName);
@@ -160,10 +160,6 @@ function close(userId: string) {
 
 function hasUnseenMessage(messages: Message[]) {
     return messages.at(-1)?.seen === false;
-    // The most recent message should always be !seen when new
-    // So there's no need to loop, we just check the final message in the array
-    // if (messages.length === 0) return false;
-    // return !messages.at(-1)!.seen;
 }
 </script>
 
