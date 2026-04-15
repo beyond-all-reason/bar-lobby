@@ -14,7 +14,7 @@ SPDX-License-Identifier: MIT
                             {{ displayNames?.get(userId) }}
                             <Icon :icon="messageProcessing" :class="hasUnseenMessage(messages) ? 'icon-alert' : ''" />
                         </div>
-                        <div class="flex-row close" @click="close(userId)">
+                        <div class="flex-row close" @click="closeUserTab(userId)">
                             <Icon :icon="closeThick" />
                         </div>
                     </div>
@@ -107,7 +107,6 @@ const displayNames = useDexieLiveQueryWithDeps(chatStore.userChats, async () => 
         .each(function (user) {
             map.set(user.userId, user.username);
         });
-    console.log("updated displaynames:", map);
     return map;
 });
 
@@ -156,10 +155,7 @@ function sendDirectMessage(destinationUserId: string, messageText: string) {
     text.value = "";
 }
 
-function close(userId: string) {
-    // If we want user chat history to persist, then the interface will need to be changed.
-    // Until that time, we simply purge the chat entirely. It would not persists on restart
-    // of the client anyway, so we do not need to extend that at this time.
+function closeUserTab(userId: string) {
     chat.clearUserChat(userId);
 }
 
