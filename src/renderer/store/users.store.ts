@@ -29,8 +29,8 @@ export function initUsersStore() {
                 // No records updated, so user doesn't exist - create new user
                 db.users.add({
                     userId: user.userId,
-                    username: "Unknown User",
-                    displayName: "Unknown User",
+                    username: user.username ?? "Unknown User",
+                    displayName: user.displayName ?? "Unknown User",
                     clanId: null,
                     partyId: null,
                     countryCode: "??",
