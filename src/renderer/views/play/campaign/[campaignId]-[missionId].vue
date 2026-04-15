@@ -28,10 +28,10 @@ SPDX-License-Identifier: MIT
         <p>{{ mission?.description }}</p>
         <MapSimplePreview :map="map"></MapSimplePreview>
         <Select
-            v-if="effective.difficulties.length > 0"
+            v-if="effectiveSettings.difficulties.length > 0"
             v-model="selectedDifficulty"
             label="Difficulty"
-            :options="effective.difficulties"
+            :options="effectiveSettings.difficulties"
             optionLabel="name"
         />
         <DownloadContentButton
@@ -81,14 +81,14 @@ await ensureLoaded();
 const campaign = computed(() => getCampaign(props.campaignId));
 const mission = computed(() => getMission(props.campaignId, props.missionId));
 
-const effective = computed(() =>
+const effectiveSettings = computed(() =>
     mission.value
         ? missionEffectiveSettings(campaign.value, mission.value)
         : { difficulties: [], defaultDifficulty: "", disableFactionPicker: false, disableInitialCommanderSpawn: false }
 );
 
 const selectedDifficulty = ref<MissionDifficulty | undefined>(
-    effective.value.difficulties.find((d) => d.name === effective.value.defaultDifficulty)
+    effectiveSettings.value.difficulties.find((d) => d.name === effectiveSettings.value.defaultDifficulty)
 );
 
 // Handle underscores in map names
@@ -112,7 +112,7 @@ async function launch() {
     const script = missionToScriptStr(
         mission.value,
         selectedDifficulty.value,
-        effective.value,
+        effectiveSettings.value,
         localPlayerTeamName,
         gameVersion ?? "",
         resolvedMapName

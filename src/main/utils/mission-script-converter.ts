@@ -10,7 +10,7 @@ import { logger } from "@main/utils/logger";
 
 const log = logger("mission-script-converter");
 
-export type MissionEffectiveSettings = {
+type MissionEffectiveSettings = {
     difficulties: MissionDifficulty[];
     defaultDifficulty: string;
     disableFactionPicker: boolean;
@@ -150,7 +150,7 @@ export function missionHumanTeamNames(mission: MissionModel): string[] {
  * into `modoptions.missionoptions` (base64 JSON) for consumption by the
  * game's Lua mission API.
  */
-export function missionToGame(
+function missionToGame(
     mission: MissionModel,
     difficulty: MissionDifficulty | undefined,
     effectiveSettings: MissionEffectiveSettings,
