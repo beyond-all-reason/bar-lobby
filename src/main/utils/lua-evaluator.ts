@@ -3,9 +3,6 @@
 // SPDX-License-Identifier: MIT
 
 import { lua, lauxlib, lualib, to_luastring, to_jsstring } from "fengari";
-import { logger } from "@main/utils/logger";
-
-const log = logger("lua-evaluator.ts");
 
 export type LuaValue = number | string | boolean | null | { [key: string]: LuaValue };
 
