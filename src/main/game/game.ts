@@ -40,7 +40,7 @@ export class GameAPI {
     protected gameProcess: ChildProcess | null = null;
 
     public async launchBattle(battle: BattleWithMetadata): Promise<void> {
-        const script = startScriptConverter.generateScriptStr(battle);
+        const script = await startScriptConverter.generateScriptStr(battle);
         const scriptPath = path.join(WRITE_DATA_PATH, this.startScriptName);
         await fs.promises.writeFile(scriptPath, script);
         await this.launch({

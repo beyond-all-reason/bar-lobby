@@ -45,16 +45,22 @@ export function parseLuaTable(luaFile: Buffer, options?: ParseLuaTableOptions): 
 function luaTableToObj(table: TableConstructorExpression): any {
     const blocks: any[] = [];
     const obj: Record<string, unknown> = {};
+    let hasKeyedFields = false;
     for (const field of table.fields) {
         if (field.type === "TableKeyString") {
             const key = field.key.name;
             const value = field.value;
             obj[key] = parseLuaAst(value);
+            hasKeyedFields = true;
+        } else if (field.type === "TableKey") {
+            const key = parseLuaAst(field.key);
+            obj[key] = parseLuaAst(field.value);
+            hasKeyedFields = true;
         } else if (field.type === "TableValue") {
             blocks.push(parseLuaAst(field.value));
         }
     }
-    return blocks.length > 0 ? blocks : obj;
+    return blocks.length > 0 && !hasKeyedFields ? blocks : blocks.length > 0 ? [...blocks, ...Object.values(obj)] : obj;
 }
 
 function parseLuaAst(value: Expression) {

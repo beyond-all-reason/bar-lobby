@@ -8,9 +8,33 @@ SPDX-License-Identifier: MIT
     <div class="map-container">
         <div v-if="battleStore.battleOptions.map" class="map" :style="aspectRatioDrivenStyle">
             <img loading="lazy" :src="mapTextureUrl" />
-            <div v-if="battleStore.battleOptions.mapOptions.startPosType === StartPosType.Boxes && boxes" class="boxes">
+            <div v-if="battleStore.battleOptions.mapOptions.startPosType === StartPosType.Boxes && boxes && !polygonPresetActive" class="boxes">
                 <MapBattlePreviewStartBox v-for="(box, i) in boxes" v-startBox="box" :key="`box${i}`" :id="i" :box="box" />
             </div>
+            <svg
+                v-if="battleStore.battleOptions.mapOptions.startPosType === StartPosType.Boxes && polygonPresetActive && polygonStartBoxConfig"
+                class="polygon-overlay"
+                viewBox="0 0 1 1"
+                preserveAspectRatio="none"
+            >
+                <template v-for="entry in polygonStartBoxConfig.entries" :key="`team-${entry.teamId}`">
+                    <polygon
+                        v-for="(poly, polyIdx) in entry.polygons"
+                        :key="`poly-${entry.teamId}-${polyIdx}`"
+                        :points="polygonPointsToSvg(poly)"
+                        class="startbox-polygon"
+                    />
+                    <text
+                        v-for="(poly, polyIdx) in entry.polygons"
+                        :key="`label-${entry.teamId}-${polyIdx}`"
+                        :x="polygonCentroid(poly).x"
+                        :y="polygonCentroid(poly).y"
+                        class="startbox-label"
+                    >
+                        {{ entry.teamId + 1 }}
+                    </text>
+                </template>
+            </svg>
             <div
                 v-if="battleStore.battleOptions.mapOptions.startPosType in [StartPosType.Fixed, StartPosType.Random]"
                 class="start-positions"
@@ -51,7 +75,8 @@ import { useImageBlobUrlCache } from "@renderer/composables/useImageBlobUrlCache
 import vSetPlayerColor from "@renderer/directives/vSetPlayerColor";
 import vStartBox from "@renderer/directives/vStartBox";
 import vStartPos from "@renderer/directives/vStartPos";
-import { battleActions, battleStore } from "@renderer/store/battle.store";
+import { battleActions, battleStore, polygonStartBoxConfig, polygonPresetActive } from "@renderer/store/battle.store";
+import { polygonCentroid, polygonPointsToSvg } from "@renderer/utils/polygon-start-boxes";
 import { StartBox } from "tachyon-protocol/types";
 import { computed, defineComponent, ref, watch } from "vue";
 import MapBattlePreviewStartBox from "@renderer/components/maps/MapBattlePreviewStartBox.vue";
@@ -142,6 +167,34 @@ const rgbColors = [
     position: absolute;
     width: 100%;
     height: 100%;
+}
+
+.polygon-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    overflow: visible;
+}
+
+.startbox-polygon {
+    fill: rgba(200, 200, 200, 0.15);
+    stroke: rgba(255, 255, 255, 1);
+    stroke-width: 0.004;
+    stroke-dasharray: 0.01 0.006;
+}
+
+.startbox-label {
+    fill: rgba(255, 255, 255, 0.9);
+    font-size: 0.07px;
+    text-anchor: middle;
+    dominant-baseline: central;
+    font-weight: bold;
+    paint-order: stroke;
+    stroke: rgba(0, 0, 0, 0.5);
+    stroke-width: 0.005px;
 }
 
 .start-positions {

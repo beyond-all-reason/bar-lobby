@@ -2,6 +2,7 @@
 //
 // SPDX-License-Identifier: MIT
 
+import type { PolygonStartBoxConfig } from "@main/content/maps/polygon-startbox-config";
 import type { BattleWithMetadata } from "@main/game/battle/battle-types";
 import type { DownloadInfo } from "@main/content/downloads";
 import type { EngineVersion } from "@main/content/engine/engine-version";
@@ -63,6 +64,7 @@ export type IPCCommands = {
     "engine:uninstallVersion": (version: EngineVersion) => void;
     "game:downloadGame": (version: string) => void;
     "game:getInstalledVersions": () => GameVersion[];
+    "game:getPolygonStartBoxes": (mapName: string, gameVersion: string, mapWidth: number, mapHeight: number) => PolygonStartBoxConfig | null;
     "game:getScenarios": (version: string) => Scenario[];
     "game:isVersionInstalled": (version: string) => boolean;
     "game:launchBattle": (battle: BattleWithMetadata) => Promise<void>;

@@ -4,6 +4,7 @@
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { spadsPointsToLTRBPercent } from "@main/content/maps/box-utils";
+import { loadPolygonStartBoxConfig } from "@main/content/maps/polygon-startbox-config";
 import { BattleWithMetadata, isPlayer, StartPosType } from "@main/game/battle/battle-types";
 import { AllyTeam, Bot, Game, Player, Team } from "@main/model/start-script";
 
@@ -15,10 +16,10 @@ import { AllyTeam, Bot, Game, Player, Team } from "@main/model/start-script";
  * - parse and convert restrictions
  */
 class StartScriptConverter {
-    public generateScriptStr(battle: BattleWithMetadata): string {
+    public async generateScriptStr(battle: BattleWithMetadata): Promise<string> {
         let scriptStr = "";
         if (!battle.isOnline) {
-            const script = this.offlineBattleToStartScript(battle);
+            const script = await this.offlineBattleToStartScript(battle);
             scriptStr = this.generateScriptString(script);
         } else {
             throw new Error("Online battles are not supported yet");
@@ -35,11 +36,27 @@ class StartScriptConverter {
         return obj;
     }
 
-    protected offlineBattleToStartScript(battle: BattleWithMetadata): Game {
+    protected async offlineBattleToStartScript(battle: BattleWithMetadata): Promise<Game> {
         const allyTeams: AllyTeam[] = [];
         const teams: Team[] = [];
         const players: Player[] = [];
         const bots: Bot[] = [];
+
+        // Pre-load polygon config for this map/game if available
+        let polygonConfig = null;
+        if (battle.battleOptions.map && battle.battleOptions.mapOptions.startPosType === StartPosType.Boxes) {
+            const mapName = battle.battleOptions.map.springName;
+            const gameVersion = battle.battleOptions.gameVersion;
+            const mapWidth = battle.battleOptions.map.mapWidth ?? 0;
+            const mapHeight = battle.battleOptions.map.mapHeight ?? 0;
+            if (mapWidth > 0 && mapHeight > 0) {
+                try {
+                    polygonConfig = await loadPolygonStartBoxConfig(mapName, gameVersion, mapWidth, mapHeight);
+                } catch (e) {
+                    console.warn("Failed to load polygon config for start script:", e);
+                }
+            }
+        }
 
         Object.entries(battle.teams).forEach((entry) => {
             const teamId = Number(entry[0]);
@@ -54,7 +71,20 @@ class StartScriptConverter {
                 const startBoxesIndex = battle.battleOptions.mapOptions.startBoxesIndex;
                 const customStartBoxes = battle.battleOptions.mapOptions.customStartBoxes;
 
-                if (typeof startBoxesIndex === "number" && !Number.isNaN(startBoxesIndex) && Number(startBoxesIndex) >= 0) {
+                // Use polygon bounding boxes when on default preset and polygon config is available
+                if (polygonConfig && typeof startBoxesIndex === "number" && startBoxesIndex === 0) {
+                    const polyEntry = polygonConfig.entries.find((e) => e.teamId === allyTeam.id);
+                    if (polyEntry?.boundingBox) {
+                        Object.assign(allyTeam, {
+                            startrectleft: polyEntry.boundingBox.left,
+                            startrecttop: polyEntry.boundingBox.top,
+                            startrectright: polyEntry.boundingBox.right,
+                            startrectbottom: polyEntry.boundingBox.bottom,
+                        });
+                    } else {
+                        console.warn(`Ally team ${allyTeam.id} has no polygon startbox entry`);
+                    }
+                } else if (typeof startBoxesIndex === "number" && !Number.isNaN(startBoxesIndex) && Number(startBoxesIndex) >= 0) {
                     if (!battle.battleOptions.map) throw new Error("failed to access battle options map");
 
                     const startBoxes = battle.battleOptions.map.startboxesSet[startBoxesIndex].startboxes;

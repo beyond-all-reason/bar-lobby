@@ -12,8 +12,10 @@ import { getRandomMap } from "@renderer/store/maps.store";
 import { me } from "@renderer/store/me.store";
 import { deepToRaw } from "@renderer/utils/deep-toraw";
 import { spadsBoxToStartBox } from "@renderer/utils/start-boxes";
+import { polygonConfigToStartBoxes } from "@renderer/utils/polygon-start-boxes";
+import type { PolygonStartBoxConfig } from "@renderer/utils/polygon-start-boxes";
 import { StartBox } from "tachyon-protocol/types";
-import { reactive, readonly, watch } from "vue";
+import { reactive, readonly, ref, watch } from "vue";
 import { startBattle as startGame } from "@renderer/store/game.store";
 import { setupI18n } from "@renderer/i18n";
 
@@ -24,6 +26,47 @@ interface BattleLobby {
     isJoined: boolean;
     isLobbyOpened: boolean;
     isSelectingGameMode: boolean;
+}
+
+// Polygon startbox state — separate from battle store to avoid deep-watch churn
+export const polygonStartBoxConfig = ref<PolygonStartBoxConfig | null>(null);
+export const polygonPresetActive = ref(false);
+let polygonLoadGeneration = 0;
+
+async function loadPolygonConfig() {
+    const map = battleStore.battleOptions.map;
+    const gameVersion = battleStore.battleOptions.gameVersion;
+    if (!map?.springName || !gameVersion || !map.mapWidth || !map.mapHeight) {
+        polygonStartBoxConfig.value = null;
+        polygonPresetActive.value = false;
+        return;
+    }
+
+    const generation = ++polygonLoadGeneration;
+
+    try {
+        const config = await window.game.getPolygonStartBoxes(map.springName, gameVersion, map.mapWidth, map.mapHeight);
+        // Guard against stale responses
+        if (generation !== polygonLoadGeneration) return;
+
+        polygonStartBoxConfig.value = config;
+        // Auto-activate polygon mode when config is found and we're on the default preset
+        if (config && battleStore.battleOptions.mapOptions.startBoxesIndex === 0) {
+            polygonPresetActive.value = true;
+        } else {
+            polygonPresetActive.value = false;
+        }
+    } catch {
+        if (generation !== polygonLoadGeneration) return;
+        polygonStartBoxConfig.value = null;
+        polygonPresetActive.value = false;
+    }
+}
+
+function clearPolygonState() {
+    polygonStartBoxConfig.value = null;
+    polygonPresetActive.value = false;
+    polygonLoadGeneration++;
 }
 
 // Store
@@ -209,6 +252,11 @@ function moveBotToTeam(bot: Bot, teamId: number) {
 function getNumberOfTeams(): number {
     let numberOfTeams = 2;
 
+    // Polygon mode: derive team count from polygon config
+    if (polygonPresetActive.value && polygonStartBoxConfig.value) {
+        return polygonStartBoxConfig.value.entries.length;
+    }
+
     const map = battleStore.battleOptions.map;
 
     if (!map) throw new Error("failed to access battle options map");
@@ -290,6 +338,11 @@ function updateTeams() {
 }
 
 function getCurrentStartBoxes(): Array<StartBox> {
+    // When polygon mode is active, return bounding boxes for compatibility
+    if (polygonPresetActive.value && polygonStartBoxConfig.value) {
+        return polygonConfigToStartBoxes(polygonStartBoxConfig.value);
+    }
+
     const startBoxesIndex = battleStore.battleOptions.mapOptions.startBoxesIndex;
     if (startBoxesIndex != undefined) {
         if (battleStore.battleOptions.map?.startboxesSet[startBoxesIndex] != undefined) {
@@ -443,6 +496,7 @@ watch(
         battleStore.battleOptions.mapOptions.startPosType = StartPosType.Boxes;
         battleStore.battleOptions.mapOptions.startBoxesIndex = 0;
         if (battleStore.me) battleStore.me.contentSyncState.map = battleStore.battleOptions.map?.isInstalled ? 1 : 0;
+        loadPolygonConfig();
         updateTeams();
     },
     { deep: true }
@@ -469,6 +523,7 @@ watch(
 
 function leaveBattle() {
     battleStore.isJoined = false;
+    clearPolygonState();
     resetToDefaultBattle();
 }
 
@@ -612,6 +667,8 @@ export const battleActions = {
     loadGameMode,
     getMaxPlayersPerTeam,
     getCurrentStartBoxes,
+    loadPolygonConfig,
+    clearPolygonState,
 };
 
 // Needs game files to exists.

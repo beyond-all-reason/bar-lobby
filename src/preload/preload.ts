@@ -8,6 +8,7 @@ import { Replay } from "@main/content/replays/replay";
 import { Settings } from "@main/services/settings.service";
 import { EngineVersion } from "@main/content/engine/engine-version";
 import { GameVersion } from "@main/content/game/game-version";
+import { PolygonStartBoxConfig } from "@main/content/maps/polygon-startbox-config";
 import { MapData, MapDownloadData } from "@main/content/maps/map-data";
 import { DownloadInfo } from "@main/content/downloads";
 import { Info } from "@main/services/info.service";
@@ -98,6 +99,8 @@ contextBridge.exposeInMainWorld("engine", engineApi);
 const gameApi = {
     // Content
     downloadGame: (version: string): Promise<void> => ipcRenderer.invoke("game:downloadGame", version),
+    getPolygonStartBoxes: (mapName: string, gameVersion: string, mapWidth: number, mapHeight: number): Promise<PolygonStartBoxConfig | null> =>
+        ipcRenderer.invoke("game:getPolygonStartBoxes", mapName, gameVersion, mapWidth, mapHeight),
     getScenarios: (version: string) => ipcRenderer.invoke("game:getScenarios", version),
     getInstalledVersions: (): Promise<GameVersion[]> => ipcRenderer.invoke("game:getInstalledVersions"),
     isVersionInstalled: (version: string): Promise<boolean> => ipcRenderer.invoke("game:isVersionInstalled", version),

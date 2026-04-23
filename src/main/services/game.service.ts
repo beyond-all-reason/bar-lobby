@@ -8,6 +8,7 @@ import { ipcMain, BarIpcWebContents } from "@main/typed-ipc";
 import { Replay } from "@main/content/replays/replay";
 import { BattleWithMetadata } from "@main/game/battle/battle-types";
 import { replayContentAPI } from "@main/content/replays/replay-content";
+import { loadPolygonStartBoxConfig } from "@main/content/maps/polygon-startbox-config";
 
 async function init() {
     await gameContentAPI.init();
@@ -16,6 +17,9 @@ async function init() {
 function registerIpcHandlers(webContents: BarIpcWebContents) {
     // Content
     ipcMain.handle("game:downloadGame", (_, version: string) => gameContentAPI.downloadGame(version));
+    ipcMain.handle("game:getPolygonStartBoxes", (_, mapName: string, gameVersion: string, mapWidth: number, mapHeight: number) =>
+        loadPolygonStartBoxConfig(mapName, gameVersion, mapWidth, mapHeight)
+    );
     ipcMain.handle("game:getScenarios", (_, version: string) => gameContentAPI.getScenarios(version));
     ipcMain.handle("game:getInstalledVersions", () => gameContentAPI.availableVersions.values().toArray());
     ipcMain.handle("game:isVersionInstalled", (_, id: string) => gameContentAPI.isVersionInstalled(id));

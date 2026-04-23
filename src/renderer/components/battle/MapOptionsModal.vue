@@ -131,7 +131,7 @@ import { Ref, ref, watch, computed } from "vue";
 import Modal from "@renderer/components/common/Modal.vue";
 import Button from "@renderer/components/controls/Button.vue";
 import Range from "@renderer/components/controls/Range.vue";
-import { battleStore, battleActions } from "@renderer/store/battle.store";
+import { battleStore, battleActions, polygonStartBoxConfig, polygonPresetActive } from "@renderer/store/battle.store";
 import { isPlayer, StartBoxOrientation, StartPosType, Team } from "@main/game/battle/battle-types";
 import MapBattlePreview from "@renderer/components/maps/MapBattlePreview.vue";
 import { getBoxes } from "@renderer/utils/start-boxes";
@@ -204,10 +204,18 @@ function setPresetStartBoxes(startBoxIndex: number) {
     delete battleStore.battleOptions.mapOptions.fixedPositionsIndex;
     battleStore.battleOptions.mapOptions.startPosType = StartPosType.Boxes;
     battleStore.battleOptions.mapOptions.startBoxesIndex = startBoxIndex;
+
+    // Activate polygon mode if polygon config exists and we're selecting the default preset (index 0)
+    if (startBoxIndex === 0 && polygonStartBoxConfig.value) {
+        polygonPresetActive.value = true;
+    } else {
+        polygonPresetActive.value = false;
+    }
 }
 
 function setCustomStartBoxes(orientation: StartBoxOrientation) {
     lastSelectedCustomPresetBoxes.value = orientation;
+    polygonPresetActive.value = false;
 
     const customStartBoxes = getBoxes(orientation, customBoxRange.value);
     delete battleStore.battleOptions.mapOptions.startBoxesIndex;
