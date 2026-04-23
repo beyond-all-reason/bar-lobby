@@ -4,7 +4,7 @@
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { spadsPointsToLTRBPercent } from "@main/content/maps/box-utils";
-import { loadPolygonStartBoxConfig } from "@main/content/maps/polygon-startbox-config";
+import { loadPolygonStartBoxConfig, PolygonStartBoxConfig } from "@main/content/maps/polygon-startbox-config";
 import { BattleWithMetadata, isPlayer, StartPosType } from "@main/game/battle/battle-types";
 import { AllyTeam, Bot, Game, Player, Team } from "@main/model/start-script";
 
@@ -43,8 +43,8 @@ class StartScriptConverter {
         const bots: Bot[] = [];
 
         // Pre-load polygon config for this map/game if available
-        let polygonConfig = null;
-        if (battle.battleOptions.map && battle.battleOptions.mapOptions.startPosType === StartPosType.Boxes) {
+        let polygonConfig: PolygonStartBoxConfig | null = null;
+        if (battle.battleOptions.map && battle.battleOptions.gameVersion && battle.battleOptions.mapOptions.startPosType === StartPosType.Boxes) {
             const mapName = battle.battleOptions.map.springName;
             const gameVersion = battle.battleOptions.gameVersion;
             const mapWidth = battle.battleOptions.map.mapWidth ?? 0;

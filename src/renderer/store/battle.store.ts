@@ -518,6 +518,7 @@ watch(
         if (!gameVersion) throw new Error("failed to access game version");
 
         battleStore.battleOptions.gameVersion = gameVersion.gameVersion;
+        loadPolygonConfig();
     }
 );
 

@@ -7,6 +7,7 @@ import { mapContentAPI } from "@main/content/maps/map-content";
 import { ipcMain, BarIpcWebContents } from "@main/typed-ipc";
 import { MapMetadata } from "@main/content/maps/map-metadata";
 import { fetchMapImages } from "@main/content/maps/map-image";
+import { invalidatePolygonConfigForMap } from "@main/content/maps/polygon-startbox-config";
 
 async function init() {
     await mapContentAPI.init();
@@ -56,9 +57,13 @@ function registerIpcHandlers(webContents: BarIpcWebContents) {
 
     // Events
     mapContentAPI.onMapAdded.add((filename: string) => {
+        const springName = mapContentAPI.fileNameMapNameLookup[filename];
+        if (springName) invalidatePolygonConfigForMap(springName);
         webContents.send("maps:mapAdded", filename);
     });
     mapContentAPI.onMapDeleted.add((filename: string) => {
+        const springName = mapContentAPI.fileNameMapNameLookup[filename];
+        if (springName) invalidatePolygonConfigForMap(springName);
         webContents.send("maps:mapDeleted", filename);
     });
 }

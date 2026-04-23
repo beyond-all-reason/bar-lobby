@@ -8,11 +8,16 @@ SPDX-License-Identifier: MIT
     <div class="map-container">
         <div v-if="battleStore.battleOptions.map" class="map" :style="aspectRatioDrivenStyle">
             <img loading="lazy" :src="mapTextureUrl" />
-            <div v-if="battleStore.battleOptions.mapOptions.startPosType === StartPosType.Boxes && boxes && !polygonPresetActive" class="boxes">
+            <div
+                v-if="battleStore.battleOptions.mapOptions.startPosType === StartPosType.Boxes && boxes && !polygonPresetActive"
+                class="boxes"
+            >
                 <MapBattlePreviewStartBox v-for="(box, i) in boxes" v-startBox="box" :key="`box${i}`" :id="i" :box="box" />
             </div>
             <svg
-                v-if="battleStore.battleOptions.mapOptions.startPosType === StartPosType.Boxes && polygonPresetActive && polygonStartBoxConfig"
+                v-if="
+                    battleStore.battleOptions.mapOptions.startPosType === StartPosType.Boxes && polygonPresetActive && polygonStartBoxConfig
+                "
                 class="polygon-overlay"
                 viewBox="0 0 1 1"
                 preserveAspectRatio="none"
