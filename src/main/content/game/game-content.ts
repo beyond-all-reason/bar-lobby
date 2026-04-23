@@ -225,21 +225,6 @@ export class GameContentAPI extends PrDownloaderAPI<string, GameVersion> {
     }
 
     /**
-     * Read files from a game archive by game version name and file pattern.
-     * Resolves the game version to its packageMd5 and delegates to getGameFiles.
-     * Returns parsed file data or null if the game version is not found.
-     */
-    public async readGameFiles(gameVersion: string, filePattern: string): Promise<SdpFile[] | null> {
-        const version = this.availableVersions.values().find((v) => v.gameVersion === gameVersion);
-        if (!version) return null;
-        try {
-            return await this.getGameFiles(version.packageMd5, filePattern, true);
-        } catch {
-            return null;
-        }
-    }
-
-    /**
      * @param filePatterns glob pattern for which files to retrieve
      * @example getGameFiles("Beyond All Reason test-16289-b154c3d", ["units/CorAircraft/T2/*.lua"])
      * @todo make this work for custom .sdd versions

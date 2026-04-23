@@ -5,10 +5,8 @@
 import * as fs from "fs";
 import * as path from "path";
 
-import { gameContentAPI } from "@main/content/game/game-content";
 import { mapContentAPI } from "@main/content/maps/map-content";
 import { MAPS_PATHS } from "@main/config/app";
-import { parseLuaTable } from "@main/utils/parse-lua-table";
 import { evaluateLuaStartBoxScript, LuaValue } from "@main/utils/lua-evaluator";
 import { readSpecificFile } from "@main/utils/extract-7z";
 import { logger } from "@main/utils/logger";
@@ -54,11 +52,10 @@ export function invalidatePolygonConfigForMap(mapName: string): void {
 }
 
 /**
- * Load polygon startbox config for a map.
- * Priority: modside (game archive) first, then mapside (.sd7 archive).
+ * Load polygon startbox config for a map from its .sd7 archive.
  *
  * @param mapName - The map's springName (e.g., "Onyx Cauldron 2.2.2")
- * @param gameVersion - The game version string
+ * @param gameVersion - The game version string (used for cache keying)
  * @param mapWidthSpringUnits - Map width in Spring map units (multiply by 512 for elmos)
  * @param mapHeightSpringUnits - Map height in Spring map units (multiply by 512 for elmos)
  */
@@ -72,53 +69,12 @@ export async function loadPolygonStartBoxConfig(mapName: string, gameVersion: st
     const mapWidthElmos = mapWidthSpringUnits * 512;
     const mapHeightElmos = mapHeightSpringUnits * 512;
 
-    // 1) Try modside config (game archive): luarules/configs/StartBoxes/<mapName>.lua
-    const modsideResult = await tryModsideConfig(mapName, gameVersion, mapWidthElmos, mapHeightElmos);
-    if (modsideResult.found) {
-        configCache.set(key, modsideResult.config);
-        return modsideResult.config;
-    }
-
-    // 2) Try mapside config (.sd7 archive): mapconfig/map_startboxes.lua
-    const mapsideConfig = await tryMapsideConfig(mapName, mapWidthElmos, mapHeightElmos);
-    if (mapsideConfig) {
+    const config = await tryMapsideConfig(mapName, mapWidthElmos, mapHeightElmos);
+    if (config) {
         log.info(`Loaded polygon startbox config for "${mapName}" from map archive`);
-        configCache.set(key, mapsideConfig);
-        return mapsideConfig;
     }
-
-    // No config found — negative-cache
-    configCache.set(key, null);
-    return null;
-}
-
-interface ModsideResult {
-    found: boolean;
-    config: PolygonStartBoxConfig | null;
-}
-
-/** Try loading from game archive. Returns { found: true } if modside file exists (even if parsing fails). */
-async function tryModsideConfig(mapName: string, gameVersion: string, mapWidthElmos: number, mapHeightElmos: number): Promise<ModsideResult> {
-    const configPath = `luarules/configs/StartBoxes/${mapName}.lua`;
-    try {
-        const files = await gameContentAPI.readGameFiles(gameVersion, configPath);
-        if (!files || files.length === 0) {
-            return { found: false, config: null };
-        }
-        // File exists in game archive — parse it
-        const luaData = files[0].data;
-        const parsed = parseLuaTable(luaData);
-        const config = convertParsedConfig(parsed, mapWidthElmos, mapHeightElmos);
-        if (config) {
-            log.info(`Loaded polygon startbox config for "${mapName}" from game archive`);
-        } else {
-            log.warn(`Modside config for "${mapName}" found but could not be parsed`);
-        }
-        return { found: true, config };
-    } catch (err) {
-        log.debug(`No modside polygon config for "${mapName}": ${err}`);
-        return { found: false, config: null };
-    }
+    configCache.set(key, config);
+    return config;
 }
 
 /** Try loading from map .sd7 archive using fengari Lua evaluation. */
@@ -271,87 +227,6 @@ function extractPointsFromLuaObj(pointsValue: LuaValue, mapWidthElmos: number, m
     }
 
     return points;
-}
-
-/**
- * Convert parsed Lua startbox config (from parseLuaTable) to PolygonStartBoxConfig.
- * Used for modside configs where parseLuaTable returns JS arrays and numeric keys.
- */
-function convertParsedConfig(parsed: unknown, mapWidthElmos: number, mapHeightElmos: number): PolygonStartBoxConfig | null {
-    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return null;
-    const parsedObj = parsed as Record<string, unknown>;
-    const entries: PolygonStartBoxEntry[] = [];
-
-    const teamIds = Object.keys(parsedObj)
-        .map(Number)
-        .filter((k) => !isNaN(k))
-        .sort((a, b) => a - b);
-
-    if (teamIds.length === 0) return null;
-
-    for (const teamId of teamIds) {
-        const teamData = parsedObj[teamId];
-        if (!teamData || typeof teamData !== "object" || Array.isArray(teamData)) continue;
-        const team = teamData as Record<string, unknown>;
-        if (!Array.isArray(team.boxes)) continue;
-
-        const polygons: PolygonVertex[][] = [];
-        for (const box of team.boxes) {
-            if (!Array.isArray(box)) continue;
-            const vertices: PolygonVertex[] = [];
-            for (const point of box) {
-                if (Array.isArray(point) && point.length >= 2 && typeof point[0] === "number" && typeof point[1] === "number") {
-                    vertices.push({
-                        x: point[0] / mapWidthElmos,
-                        y: point[1] / mapHeightElmos,
-                    });
-                }
-            }
-            if (vertices.length >= 3) {
-                polygons.push(vertices);
-            }
-        }
-
-        if (polygons.length === 0) continue;
-
-        const startpoints: PolygonVertex[] = [];
-        if (Array.isArray(team.startpoints)) {
-            for (const sp of team.startpoints) {
-                if (Array.isArray(sp) && sp.length >= 2 && typeof sp[0] === "number" && typeof sp[1] === "number") {
-                    startpoints.push({
-                        x: sp[0] / mapWidthElmos,
-                        y: sp[1] / mapHeightElmos,
-                    });
-                }
-            }
-        }
-
-        entries.push({
-            teamId,
-            nameLong: extractStringValue(team.nameLong),
-            nameShort: extractStringValue(team.nameShort),
-            polygons,
-            startpoints,
-            boundingBox: computeBoundingBox(polygons),
-        });
-    }
-
-    return entries.length > 0 ? { entries } : null;
-}
-
-/** Extract string from parseLuaTable output, which may be a plain string or a StringLiteral AST node. */
-function extractStringValue(val: unknown): string | undefined {
-    if (typeof val === "string") return val;
-    if (val && typeof val === "object" && "value" in val && typeof (val as { value: unknown }).value === "string") {
-        return (val as { value: string }).value;
-    }
-    if (val && typeof val === "object" && "raw" in val && typeof (val as { raw: unknown }).raw === "string") {
-        const raw = (val as { raw: string }).raw;
-        if ((raw.startsWith("'") && raw.endsWith("'")) || (raw.startsWith('"') && raw.endsWith('"'))) {
-            return raw.slice(1, -1);
-        }
-    }
-    return undefined;
 }
 
 function computeBoundingBox(polygons: PolygonVertex[][]): { left: number; top: number; right: number; bottom: number } {
