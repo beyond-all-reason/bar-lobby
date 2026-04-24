@@ -75,11 +75,20 @@ function goBack() {
 </script>
 
 <style lang="scss" scoped>
+// Override the global .view padding-bottom (140px) so the list fills all available space.
+.view {
+    padding-bottom: 15px;
+}
+
 .mission-list {
     display: flex;
     flex-direction: column;
     gap: 10px;
     overflow-y: auto;
+    flex-grow: 1;
+    flex-shrink: 1;
+    flex-basis: auto;
+    height: 0px;
 }
 
 .background_image {
