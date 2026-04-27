@@ -1,0 +1,68 @@
+# SPDX-FileCopyrightText: 2025 The BAR Lobby Authors
+#
+# SPDX-License-Identifier: CC0-1.0
+
+name: I18n Sync
+
+on:
+    push:
+        branches:
+            - master
+        paths:
+            - "lang/en/**"
+    schedule:
+        - cron: "0 6 * * *"
+    workflow_dispatch:
+
+jobs:
+    push-source:
+        name: Push source strings to Transifex
+        if: github.event_name == 'push'
+        runs-on: ubuntu-latest
+        steps:
+            - name: Check out Git repository
+              uses: actions/checkout@v6
+
+            - name: Push source files to Transifex
+              uses: transifex/cli-action@v2
+              with:
+                  token: ${{ secrets.TX_TOKEN }}
+                  args: push --source
+
+    pull-translations:
+        name: Pull translations from Transifex
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+        runs-on: ubuntu-latest
+        steps:
+            - name: Check out Git repository
+              uses: actions/checkout@v6
+
+            - name: Install Node.js
+              uses: actions/setup-node@v6
+              with:
+                  node-version-file: .nvmrc
+                  cache: npm
+
+            - name: Install dependencies
+              run: npm ci
+
+            - name: Pull translations from Transifex
+              uses: transifex/cli-action@v2
+              with:
+                  token: ${{ secrets.TX_TOKEN }}
+                  args: pull --all --force
+
+            - name: Regenerate i18n asset files
+              run: npm run generate-i18n-assets
+
+            - name: Create pull request
+              uses: peter-evans/create-pull-request@v7
+              with:
+                  commit-message: "Update translations from Transifex"
+                  title: "Update translations from Transifex"
+                  body: |
+                      Automated pull of latest translations from Transifex.
+
+                      This PR updates `lang/` source files and regenerates `src/renderer/assets/languages/`.
+                  branch: i18n/update-translations
+                  delete-branch: true

@@ -32,7 +32,7 @@ async function getLanguageFiles(locale: string) {
     return new Promise<Array<string>>((resolve, reject) => {
         fs.glob(path.join(LANG_DIR, locale, "**/*.json"), (err, matches) => {
             if (err) reject(err);
-            else resolve(matches);
+            else resolve(matches.sort());
         });
     });
 }
@@ -104,7 +104,7 @@ async function main() {
     const referenceObject = await processLocale(REFERENCE_LOCALE);
 
     const referenceOutputPath = path.join(OUTPUT_DIR, `${REFERENCE_LOCALE}.json`);
-    fs.writeFileSync(referenceOutputPath, JSON.stringify(referenceObject, null, 2));
+    fs.writeFileSync(referenceOutputPath, JSON.stringify(referenceObject, null, 4) + "\n");
     logAssetGeneration(referenceOutputPath);
 
     for (const locale of locales) {
@@ -116,7 +116,7 @@ async function main() {
         const completeLocaleObject = addMissingKeys(referenceObject, localeObject);
 
         const outputFilePath = path.join(OUTPUT_DIR, `${locale}.json`);
-        fs.writeFileSync(outputFilePath, JSON.stringify(completeLocaleObject, null, 2));
+        fs.writeFileSync(outputFilePath, JSON.stringify(completeLocaleObject, null, 4) + "\n");
         logAssetGeneration(outputFilePath);
     }
 }
