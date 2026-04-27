@@ -2191,7 +2191,11 @@
                     "installingGame": "Installing game",
                     "downloadingMaps": "Downloading maps",
                     "downloadingUpdate": "Downloading update",
-                    "installingUpdate": "Installing update"
+                    "installingUpdate": "Installing update",
+                    "retry": "Retry",
+                    "skip": "Skip",
+                    "playOffline": "Play Offline",
+                    "stepFailed": "Something went wrong"
                 }
             },
             "battle": {

@@ -63,7 +63,15 @@ async function init() {
     window.downloads.onDownloadMapComplete((download) => {
         mapsStore.availableMapNames.add(download.name);
     });
-    const [liveMaps, nonLiveMaps] = await window.maps.fetchAllMaps();
+    let liveMaps: MapData[];
+    let nonLiveMaps: MapDownloadData[];
+    try {
+        [liveMaps, nonLiveMaps] = await window.maps.fetchAllMaps();
+    } catch (error) {
+        console.warn("Failed to fetch maps metadata, using cached data", error);
+        liveMaps = await db.maps.toArray();
+        nonLiveMaps = await db.nonLiveMaps.toArray();
+    }
 
     console.debug("Received maps", [liveMaps, nonLiveMaps]);
 

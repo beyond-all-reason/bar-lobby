@@ -11,15 +11,25 @@ if (isMainThread) {
 
     const narrowedParentPort = parentPort;
 
+    const FETCH_IMAGE_TIMEOUT_MS = 10_000;
+
     // listen to messages from the main thread
     narrowedParentPort.on("message", async (imageSource: string) => {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), FETCH_IMAGE_TIMEOUT_MS);
         try {
-            const response = await fetch(imageSource);
+            const response = await fetch(imageSource, { signal: controller.signal });
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status} ${response.statusText}`);
+            }
             const arrayBuffer = await response.arrayBuffer();
 
             narrowedParentPort.postMessage({ imageSource, arrayBuffer });
         } catch (error) {
             console.error(error);
+            narrowedParentPort.postMessage({ imageSource, error: String(error) });
+        } finally {
+            clearTimeout(timeout);
         }
     });
 }

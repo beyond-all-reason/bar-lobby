@@ -19,7 +19,13 @@ function registerIpcHandlers() {
             startTokenRenewer((expiresIn / 2) * 1000);
         } catch (error) {
             log.error("Error during login");
-            accountService.wipe();
+            // TypeError indicates a network-level failure (fetch failed, DNS, timeout).
+            // Preserve the refresh token so it can be used once connectivity returns.
+            // Auth/protocol errors (invalid token, bad response) are regular Errors
+            // and should still wipe credentials.
+            if (!(error instanceof TypeError)) {
+                accountService.wipe();
+            }
             throw error;
         }
     });

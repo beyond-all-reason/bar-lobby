@@ -220,10 +220,17 @@ export async function initMeStore() {
         });
     const hasCredentials = await window.auth.hasCredentials();
     if (hasCredentials) {
-        await login();
+        try {
+            await login();
 
-        if (tachyonStore.isConnected) {
-            await friends.fetchFriendList();
+            if (tachyonStore.isConnected) {
+                await friends.fetchFriendList();
+            }
+        } catch (error) {
+            // Auth renewal runs before the UI mounts, so there's no way to show
+            // a retry dialog here. Log the failure and continue — the user will
+            // see they're not logged in and can retry from the UI.
+            console.warn("Auth failed during startup, continuing offline", error);
         }
     }
 
