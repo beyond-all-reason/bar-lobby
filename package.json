@@ -34,7 +34,8 @@
         "typecheck:web": "vue-tsc --noEmit -p tsconfig.web.json --composite false",
         "typecheck": "concurrently \"npm run typecheck:node\" \"npm run typecheck:web\"",
         "checks": "concurrently \"npm run typecheck:web\" \"npm run typecheck:node\" \"npm run lint\" \"npm run format:check\"",
-        "generate-i18n-assets": "node --import=tsx tools/generate-i18n-asset-files.ts"
+        "generate-i18n-assets": "node --import=tsx tools/generate-i18n-asset-files.ts",
+        "i18n:validate": "node --import=tsx tools/validate-i18n.ts"
     },
     "engines": {
         "node": "22.18.0"
