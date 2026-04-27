@@ -30,6 +30,12 @@ jobs:
             - name: Install dependencies
               run: npm ci
 
+            - name: Validate i18n assets
+              run: |
+                  npm run generate-i18n-assets
+                  git diff --exit-code src/renderer/assets/languages/
+                  npm run i18n:validate
+
             - name: Format check
               run: npm run format:check
 
