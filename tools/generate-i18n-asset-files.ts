@@ -32,7 +32,7 @@ async function getLanguageFiles(locale: string) {
     return new Promise<Array<string>>((resolve, reject) => {
         fs.glob(path.join(LANG_DIR, locale, "**/*.json"), (err, matches) => {
             if (err) reject(err);
-            else resolve(matches);
+            else resolve(matches.sort());
         });
     });
 }
