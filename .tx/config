@@ -1,0 +1,31 @@
+[main]
+host = https://app.transifex.com
+
+# NOTE: Replace <org> and <project> with the actual Transifex organization
+# and project slugs before activating the sync workflow.
+# Resource type is KEYVALUEJSON for nested JSON translation files.
+
+[o:<org>:p:<project>:r:lobby]
+source_file = lang/en/lobby.json
+file_filter = lang/<lang>/lobby.json
+type = KEYVALUEJSON
+
+[o:<org>:p:<project>:r:interface]
+source_file = lang/en/interface.json
+file_filter = lang/<lang>/interface.json
+type = KEYVALUEJSON
+
+[o:<org>:p:<project>:r:features]
+source_file = lang/en/features.json
+file_filter = lang/<lang>/features.json
+type = KEYVALUEJSON
+
+[o:<org>:p:<project>:r:tips]
+source_file = lang/en/tips.json
+file_filter = lang/<lang>/tips.json
+type = KEYVALUEJSON
+
+[o:<org>:p:<project>:r:units]
+source_file = lang/en/units.json
+file_filter = lang/<lang>/units.json
+type = KEYVALUEJSON
