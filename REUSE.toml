@@ -4,6 +4,7 @@ version = 1
 # We don't consider the top level configuration files copyrightable in any way
 path = [
     ".*",
+    ".tx/config",
     "package*.json",
     "tsconfig.*",
     "eslint.config.mjs",
