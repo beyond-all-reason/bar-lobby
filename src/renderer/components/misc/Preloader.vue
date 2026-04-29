@@ -50,7 +50,11 @@ document.documentElement.style.setProperty("--background", `url(${randomBackgrou
 onMounted(async () => {
     for (const [label, thing] of thingsToPreload) {
         text.value = label;
-        await thing();
+        try {
+            await thing();
+        } catch (error) {
+            console.error(`Preloader step "${label}" failed:`, error);
+        }
         progress.value++;
     }
     audioApi.load();
