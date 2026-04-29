@@ -161,7 +161,7 @@ class StartScriptConverter {
         };
     }
 
-    protected generateScriptString(script: Game): string {
+    public generateScriptString(script: Game): string {
         let scriptObj: Record<string, any> = JSON.parse(JSON.stringify(script));
         scriptObj = this.convertGroups(scriptObj);
         const scriptStr = this.stringifyScriptObj(scriptObj);

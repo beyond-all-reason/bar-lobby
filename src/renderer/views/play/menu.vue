@@ -92,7 +92,7 @@ const startSkirmish = () => {
 
 const startCampaign = () => {
     if (settingsStore.devMode) {
-        router.push("/play/campaign");
+        router.push("/play/campaign/campaign");
     }
 };
 

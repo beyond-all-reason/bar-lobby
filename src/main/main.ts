@@ -2,16 +2,8 @@
 //
 // SPDX-License-Identifier: MIT
 
-import { app } from "electron";
-
-const gotTheLock = app.requestSingleInstanceLock();
-
-if (!gotTheLock) {
-    app.exit(0);
-}
-
 // Only import after we know we have the lock
-import { net, protocol, session } from "electron";
+import { app, net, protocol, session } from "electron";
 import path from "path";
 import url from "url";
 import netFromNode from "node:net";
@@ -25,7 +17,7 @@ import engineService from "./services/engine.service";
 import mapsService from "./services/maps.service";
 import gameService from "./services/game.service";
 import { logger } from "./utils/logger";
-import { APP_NAME, SCENARIO_IMAGE_PATH } from "./config/app";
+import { APP_NAME, CAMPAIGN_IMAGE_PATH, SCENARIO_IMAGE_PATH } from "./config/app";
 import { shellService } from "@main/services/shell.service";
 import downloadsService from "@main/services/downloads.service";
 import replaysService from "@main/services/replays.service";
@@ -35,6 +27,12 @@ import { authService } from "@main/services/auth.service";
 import { tachyonService } from "@main/services/tachyon.service";
 import { typedWebContents } from "@main/typed-ipc";
 import { navigationService } from "@main/services/navigation.service";
+
+const gotTheLock = app.requestSingleInstanceLock();
+
+if (!gotTheLock) {
+    app.exit(0);
+}
 
 // Enable happy eyeballs for IPv6/IPv4 dual stack.
 netFromNode.setDefaultAutoSelectFamily(true);
@@ -73,7 +71,7 @@ function registerBarFileProtocol() {
             const filePath = decodedUrl.slice("bar://".length);
             // Security Check: Ensure the file is within the content folder
             const resolvedFilePath = path.resolve(filePath);
-            const whitelistedPaths = [SCENARIO_IMAGE_PATH];
+            const whitelistedPaths = [SCENARIO_IMAGE_PATH, CAMPAIGN_IMAGE_PATH];
             if (!whitelistedPaths.some((p) => resolvedFilePath.startsWith(p + path.sep))) {
                 log.error(`Attempt to access file outside whitelisted paths: ${resolvedFilePath}`);
                 return new Response();

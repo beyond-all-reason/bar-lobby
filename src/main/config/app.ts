@@ -6,7 +6,7 @@ import path from "path";
 import fs from "fs";
 import { env } from "process";
 import { app } from "electron";
-import { homedir } from "os";
+import { homedir } from "node:os";
 
 // Should be the same as `productName` in electron-builder.ts
 // and in workaround in installer.nsh.
@@ -113,6 +113,7 @@ export const RAPID_INDEX_PATH = path.join(ASSETS_PATH, "rapid");
 
 // Lobby specific cache path for scenario images. Maybe remove from here?
 export const SCENARIO_IMAGE_PATH = path.join(STATE_PATH, "scenario-images");
+export const CAMPAIGN_IMAGE_PATH = path.join(STATE_PATH, "campaign-images");
 
 /**
  * Get the path to the bundled CA certificate file for pr-downloader.

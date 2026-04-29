@@ -34,6 +34,12 @@ async function refreshStore() {
         // The last version provided is always the default "selected" version.
         gameStore.selectedGameVersion = version;
     }
+    // Prefer a local .sdd game version over downloaded packages
+    // so that devs who have a local build don't have to manually switch every time.
+    const localVersion = installedVersions.findLast((v) => v.gameVersion.endsWith(".sdd"));
+    if (localVersion) {
+        gameStore.selectedGameVersion = localVersion;
+    }
 }
 
 watch(

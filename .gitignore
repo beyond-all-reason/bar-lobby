@@ -40,6 +40,9 @@ todo.txt
 *.local
 thumbs.db
 
+# Auto-generated files (run `npm run generate` to recreate)
+/src/main/content/game/generated/
+
 .eslintcache
 .browserslistrc
 .electron-vendors.cache.json

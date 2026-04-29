@@ -8,15 +8,14 @@ import type { EngineVersion } from "@main/content/engine/engine-version";
 import type { GameVersion } from "@main/content/game/game-version";
 import type { Info } from "@main/services/info.service";
 import type { IpcMain, IpcMainEvent, IpcMainInvokeEvent, IpcRenderer, IpcRendererEvent, WebContents } from "electron";
+import { ipcMain as electronIpcMain, ipcRenderer as electronIpcRenderer } from "electron";
 import type { logLevels } from "@main/services/log.service";
 import type { MapData, MapDownloadData } from "@main/content/maps/map-data";
 import type { MultiplayerLaunchSettings } from "@main/game/game";
 import type { NewsFeedData } from "@main/services/news.service";
 import type { Replay } from "@main/content/replays/replay";
-import type { Scenario } from "@main/content/game/scenario";
 import type { Settings } from "@main/services/settings.service";
 import type { TachyonEvent, TachyonResponse } from "tachyon-protocol";
-import { ipcRenderer as electronIpcRenderer, ipcMain as electronIpcMain } from "electron";
 
 export type IPCEvents = {
     "downloads:update:progress": (downloadInfo: DownloadInfo) => void;
@@ -63,7 +62,8 @@ export type IPCCommands = {
     "engine:uninstallVersion": (version: EngineVersion) => void;
     "game:downloadGame": (version: string) => void;
     "game:getInstalledVersions": () => GameVersion[];
-    "game:getScenarios": (version: string) => Scenario[];
+    "game:getCampaigns": (version: string) => import("@main/content/game/campaign-model").CampaignModel[];
+    "game:getScenarios": (version: string) => import("@main/content/game/scenario").Scenario[];
     "game:isVersionInstalled": (version: string) => boolean;
     "game:launchBattle": (battle: BattleWithMetadata) => Promise<void>;
     "game:launchMultiplayer": (settings: MultiplayerLaunchSettings) => void;
