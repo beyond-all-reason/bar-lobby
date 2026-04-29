@@ -7,16 +7,15 @@ SPDX-License-Identifier: MIT
 <template>
     <div class="initial-setup fullsize flex-center">
         <h1>{{ t("lobby.components.misc.initialSetup.title") }}</h1>
-        <h4>{{ text }}</h4>
-        <h2 v-if="downloadPercent < 1 && !stepError">{{ (downloadPercent * 100).toFixed(0) }}%</h2>
-        <div v-if="stepError" class="step-error">
-            <p class="error-message">{{ stepError }}</p>
-            <div class="step-actions">
+        <h4 :class="{ 'status-error': stepError, 'status-warning': stepRetrying }">{{ text }}</h4>
+        <div class="action-slot">
+            <template v-if="stepError">
                 <Button class="green" @click="retryCurrentStep">{{ t("lobby.components.misc.initialSetup.retry") }}</Button>
                 <Button v-if="canSkipCurrentStep" class="red" @click="skipCurrentStep">{{
                     t("lobby.components.misc.initialSetup.skip")
                 }}</Button>
-            </div>
+            </template>
+            <h2 v-else-if="downloadPercent < 1">{{ (downloadPercent * 100).toFixed(0) }}%</h2>
         </div>
         <div class="play-offline-action">
             <Button class="blue" @click="skipAllSteps">{{ t("lobby.components.misc.initialSetup.playOffline") }}</Button>
@@ -34,7 +33,7 @@ import { downloadsStore } from "@renderer/store/downloads.store";
 import { enginesStore } from "@renderer/store/engine.store";
 import { downloadGame } from "@renderer/store/game.store";
 import { gameStore } from "@renderer/store/game.store";
-import { onMounted, ref, watch } from "vue";
+import { onMounted, onUnmounted, ref, watch } from "vue";
 import { useTypedI18n } from "@renderer/i18n";
 import Button from "@renderer/components/controls/Button.vue";
 
@@ -46,6 +45,7 @@ const emit = defineEmits<{
 
 const text = ref("");
 const stepError = ref("");
+const stepRetrying = ref(false);
 const canSkipCurrentStep = ref(false);
 const downloadPercent = ref(0);
 
@@ -72,10 +72,13 @@ function buildSteps(): SetupStep[] {
         },
         {
             label: t("lobby.components.misc.initialSetup.downloadingGame"),
-            canSkip: () => gameStore.availableGameVersions.has(LATEST_GAME_VERSION),
+            canSkip: () => gameStore.availableGameVersions.size > 0,
             async action() {
                 await window.game.preloadPoolData();
                 await downloadGame(LATEST_GAME_VERSION);
+                if (gameStore.selectedGameVersion === undefined) {
+                    throw new Error("Game download did not complete successfully");
+                }
             },
         },
         {
@@ -83,6 +86,7 @@ function buildSteps(): SetupStep[] {
             canSkip: () => true,
             async action() {
                 const installedMaps = await db.maps.filter((m) => m.isInstalled === true).count();
+                console.log(installedMaps);
                 if (installedMaps === 0) {
                     await window.maps.downloadMaps(defaultMaps);
                 }
@@ -138,27 +142,135 @@ function skipAllSteps() {
     }
 }
 
-async function runStep(step: SetupStep): Promise<boolean> {
-    while (!abortSetup) {
-        text.value = step.label;
-        try {
-            const abortPromise = new Promise<void>((resolve) => {
-                resolveAbort = resolve;
-            });
-            const result = await Promise.race([step.action().then(() => "done" as const), abortPromise.then(() => "aborted" as const)]);
-            if (result === "aborted") return false;
-            return true;
-        } catch (error) {
-            if (abortSetup) return false;
-            console.error(`Setup step "${step.label}" failed:`, error);
-            stepError.value = t("lobby.components.misc.initialSetup.stepFailed");
-            canSkipCurrentStep.value = step.canSkip();
-            const action = await waitForUserAction();
-            if (action === "skip") {
-                return false;
-            }
-            // retry loops back
+const AUTO_RETRY_ATTEMPTS = 3;
+const AUTO_RETRY_DELAY_MS = 2000;
+const STALL_THRESHOLD_MS = 10_000;
+
+function delay(ms: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+// Track the current step label for UI updates from watchers
+let currentStepLabel = "";
+
+// Stall detection for engine downloads (axios — no built-in retry signals)
+let lastProgressTime = Date.now();
+let stallCheckInterval: ReturnType<typeof setInterval> | null = null;
+
+function startStallDetection(step: SetupStep) {
+    currentStepLabel = step.label;
+    lastProgressTime = Date.now();
+    stallCheckInterval = setInterval(() => {
+        const stalled = Date.now() - lastProgressTime > STALL_THRESHOLD_MS;
+        if (stalled && !stepError.value && !stepRetrying.value) {
+            stepRetrying.value = true;
+            text.value = t("lobby.components.misc.initialSetup.stepRetrying", { step: currentStepLabel });
         }
+    }, 1000);
+}
+
+function stopStallDetection() {
+    if (stallCheckInterval) {
+        clearInterval(stallCheckInterval);
+        stallCheckInterval = null;
+    }
+}
+
+// When download progress resumes, clear stall-based warning (engine downloads)
+watch(downloadPercent, () => {
+    lastProgressTime = Date.now();
+    if (stepRetrying.value && !stepError.value && stallCheckInterval) {
+        stepRetrying.value = false;
+        text.value = currentStepLabel;
+    }
+});
+
+// pr-downloader retry signals (game and map downloads)
+watch(
+    () => downloadsStore.gameRetrying || downloadsStore.mapRetrying,
+    (retrying) => {
+        if (stepError.value) return;
+        if (retrying) {
+            stepRetrying.value = true;
+            text.value = t("lobby.components.misc.initialSetup.stepRetrying", { step: currentStepLabel });
+        } else if (stepRetrying.value) {
+            stepRetrying.value = false;
+            text.value = currentStepLabel;
+        }
+    }
+);
+
+onUnmounted(() => {
+    stopStallDetection();
+});
+
+async function attemptStep(step: SetupStep): Promise<"done" | "aborted" | "failed"> {
+    try {
+        const abortPromise = new Promise<void>((resolve) => {
+            resolveAbort = resolve;
+        });
+        const result = await Promise.race([step.action().then(() => "done" as const), abortPromise.then(() => "aborted" as const)]);
+        return result;
+    } catch (error) {
+        if (abortSetup) return "aborted";
+        console.error(`Setup step "${step.label}" failed:`, error);
+        return "failed";
+    }
+}
+
+async function runStep(step: SetupStep): Promise<boolean> {
+    let cameFromRetry = false;
+    while (!abortSetup) {
+        if (cameFromRetry) {
+            // Keep warning state after manual retry to avoid white→yellow flash
+            stepRetrying.value = true;
+            text.value = t("lobby.components.misc.initialSetup.stepRetrying", { step: step.label });
+        } else {
+            text.value = step.label;
+            stepRetrying.value = false;
+        }
+        startStallDetection(step);
+
+        const firstResult = await attemptStep(step);
+        stopStallDetection();
+        if (firstResult === "done") return true;
+        if (firstResult === "aborted") return false;
+
+        // Auto-retry: attempt up to AUTO_RETRY_ATTEMPTS-1 more times with delay
+        let succeeded = false;
+        for (let attempt = 1; attempt < AUTO_RETRY_ATTEMPTS; attempt++) {
+            if (abortSetup) return false;
+            stepRetrying.value = true;
+            text.value = t("lobby.components.misc.initialSetup.stepRetrying", { step: step.label });
+            await delay(AUTO_RETRY_DELAY_MS);
+            if (abortSetup) return false;
+
+            startStallDetection(step);
+            const retryResult = await attemptStep(step);
+            stopStallDetection();
+            if (retryResult === "done") {
+                succeeded = true;
+                break;
+            }
+            if (retryResult === "aborted") return false;
+        }
+
+        if (succeeded) {
+            stepRetrying.value = false;
+            return true;
+        }
+
+        // All auto-retries exhausted — show manual Retry/Skip
+        stepRetrying.value = false;
+        text.value = t("lobby.components.misc.initialSetup.stepFailed", { step: step.label });
+        stepError.value = "failed";
+        canSkipCurrentStep.value = step.canSkip();
+        const action = await waitForUserAction();
+        if (action === "skip") {
+            return false;
+        }
+        cameFromRetry = true;
+        // Manual retry loops back to top
     }
     return false;
 }
@@ -228,20 +340,24 @@ function calculateDownloadPercent(downloads: DownloadInfo[]): number {
     gap: 12px;
 }
 
-.step-error {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 12px;
-}
-
-.error-message {
+.status-error {
     color: rgb(239, 83, 80);
 }
 
-.step-actions {
+.status-warning {
+    color: rgb(255, 183, 77);
+}
+
+.action-slot {
     display: flex;
     gap: 12px;
+    height: 64px;
+    align-items: center;
+    justify-content: center;
+
+    h2 {
+        margin: 0;
+    }
 }
 
 .play-offline-action {

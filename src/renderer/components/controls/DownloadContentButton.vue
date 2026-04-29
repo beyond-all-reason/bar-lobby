@@ -64,7 +64,7 @@ const ready = computed(() => {
     const targetList = new Set([...maps, ...games, ...engines]);
     if (targetList.size == 0) return true;
     let availableContent = new Set(mapsStore.availableMapNames);
-    availableContent = availableContent.union(new Set(enginesStore.availableEngineVersions.map((e) => e.id)));
+    availableContent = availableContent.union(new Set(enginesStore.availableEngineVersions.filter((e) => e.installed).map((e) => e.id)));
     availableContent = availableContent.union(new Set(gameStore.availableGameVersions.keys()));
     if (targetList.difference(availableContent).size > 0) return false;
     else return true;

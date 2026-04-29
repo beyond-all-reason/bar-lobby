@@ -364,7 +364,9 @@
                     "retry": "Retry",
                     "skip": "Skip",
                     "playOffline": "Play Offline",
-                    "stepFailed": "Something went wrong"
+                    "stepFailed": "{step} — Failed",
+                    "stepRetrying": "{step} — Retrying…",
+                    "contentRequired": "Engine and game must be downloaded before starting a battle."
                 }
             },
             "battle": {

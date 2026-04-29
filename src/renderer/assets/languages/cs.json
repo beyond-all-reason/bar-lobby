@@ -2343,7 +2343,13 @@
                     "installingGame": null,
                     "downloadingMaps": null,
                     "downloadingUpdate": null,
-                    "installingUpdate": null
+                    "installingUpdate": null,
+                    "retry": null,
+                    "skip": null,
+                    "playOffline": null,
+                    "stepFailed": null,
+                    "stepRetrying": null,
+                    "contentRequired": null
                 }
             },
             "battle": {
