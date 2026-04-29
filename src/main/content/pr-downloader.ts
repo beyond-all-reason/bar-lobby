@@ -105,7 +105,11 @@ export abstract class PrDownloaderAPI<ID, T> extends AbstractContentAPI<ID, T> {
                 });
 
                 prdProcess.stderr?.on("data", (data: Buffer) => {
-                    log.error(data.toString());
+                    const output = data.toString();
+                    log.error(output);
+                    if (output.includes("will retry")) {
+                        this.downloadRetrying(downloadInfo);
+                    }
                 });
 
                 prdProcess.on("exit", (code, signal) => {
