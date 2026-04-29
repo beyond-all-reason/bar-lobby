@@ -82,7 +82,7 @@ async function requestSubscribeReceived(data?: MessagingSubscribeReceivedRequest
 function onMessagingReceivedEvent(data: MessagingReceivedEventData) {
     console.log("Tachyon event: messaging/received:", data);
     subsManager.attach(data.source.userId, chatSymbol);
-    insertMessage(data, data.source.type === "player" ? data.source.userId : chatDestinations[data.source.type]);
+    insertMessage(data, data.source);
 }
 
 /**
@@ -104,25 +104,26 @@ function insertSelfMessage(requestData: MessagingSendRequestData) {
             marker: "",
         },
         // destination:
-        requestData.target.type === "player" ? requestData.target.userId : chatDestinations[requestData.target.type]
+        requestData.target
     );
 }
 
 /**
  * Inserts a message into a chat history
  * @param data Payload of message data
- * @param destination The chat history that will store the message event, either a UserId or a Message array
+ * @param destination The targets chat that will store the message event
  */
-function insertMessage(data: MessagingReceivedEventData, destination: UserId | Message[]) {
-    if (typeof destination == "string") {
-        const userChat = chatDestinations["player"].get(destination);
+function insertMessage(data: MessagingReceivedEventData, destination: MessagingSendRequestData["target"]) {
+    const msg = { ...data, seen: false };
+    if (destination.type === "player") {
+        const userChat = chatDestinations["player"].get(destination.userId);
         if (!userChat) {
-            chatDestinations["player"].set(destination, [{ ...data, seen: false }]);
+            chatDestinations["player"].set(destination.userId, [msg]);
         } else {
-            userChat.push({ ...data, seen: false });
+            userChat.push(msg);
         }
     } else {
-        destination.push({ ...data, seen: false });
+        chatDestinations[destination.type].push(msg);
     }
 }
 
