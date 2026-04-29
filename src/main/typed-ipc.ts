@@ -87,6 +87,7 @@ export type IPCCommands = {
     "maps:attemptCacheErrorMaps": () => void;
     "maps:downloadMap": (springName: string) => void;
     "maps:downloadMaps": (springNames: string[]) => void[];
+    "maps:getInstalledMapNames": () => string[];
     "maps:getInstalledVersions": () => Map<string, MapData>;
     "maps:isVersionInstalled": (springName: string) => boolean;
     "maps:online:fetchAllMaps": () => [MapData[], MapDownloadData[]];

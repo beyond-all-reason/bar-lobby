@@ -115,6 +115,17 @@ async function init() {
             db.nonLiveMaps.update(map.springName, { ...map, isInstalled: false });
         });
 
+    // Reconcile IndexedDB isInstalled flags against actual files on disk
+    const installedOnDisk = new Set(await window.maps.getInstalledMapNames());
+    mapsStore.availableMapNames = installedOnDisk;
+
+    await db.maps.toCollection().modify((map) => {
+        map.isInstalled = installedOnDisk.has(map.springName);
+    });
+    await db.nonLiveMaps.toCollection().modify((map) => {
+        map.isInstalled = installedOnDisk.has(map.springName);
+    });
+
     mapsStore.isInitialized = true;
 }
 
