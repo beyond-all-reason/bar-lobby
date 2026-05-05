@@ -43,32 +43,15 @@ function clamp01(v: number): number {
  * Anchor points lie on the curve regardless of tension because at t=0 and t=1
  * both linear and Catmull-Rom outputs coincide with p1 and p2.
  */
-function sampleSegment(
-    p0: AnchorPoint,
-    p1: AnchorPoint,
-    p2: AnchorPoint,
-    p3: AnchorPoint,
-    t: number,
-    tension: number
-): TessellatedPoint {
+function sampleSegment(p0: AnchorPoint, p1: AnchorPoint, p2: AnchorPoint, p3: AnchorPoint, t: number, tension: number): TessellatedPoint {
     const lx = p1.x + (p2.x - p1.x) * t;
     const ly = p1.y + (p2.y - p1.y) * t;
     if (tension <= 0) return { x: lx, y: ly };
 
     const t2 = t * t;
     const t3 = t2 * t;
-    const crX =
-        0.5 *
-        (2 * p1.x +
-            (-p0.x + p2.x) * t +
-            (2 * p0.x - 5 * p1.x + 4 * p2.x - p3.x) * t2 +
-            (-p0.x + 3 * p1.x - 3 * p2.x + p3.x) * t3);
-    const crY =
-        0.5 *
-        (2 * p1.y +
-            (-p0.y + p2.y) * t +
-            (2 * p0.y - 5 * p1.y + 4 * p2.y - p3.y) * t2 +
-            (-p0.y + 3 * p1.y - 3 * p2.y + p3.y) * t3);
+    const crX = 0.5 * (2 * p1.x + (-p0.x + p2.x) * t + (2 * p0.x - 5 * p1.x + 4 * p2.x - p3.x) * t2 + (-p0.x + 3 * p1.x - 3 * p2.x + p3.x) * t3);
+    const crY = 0.5 * (2 * p1.y + (-p0.y + p2.y) * t + (2 * p0.y - 5 * p1.y + 4 * p2.y - p3.y) * t2 + (-p0.y + 3 * p1.y - 3 * p2.y + p3.y) * t3);
 
     if (tension >= 1) return { x: crX, y: crY };
     return {
