@@ -18,13 +18,19 @@ import { computed } from "vue";
 import Button from "@renderer/components/controls/Button.vue";
 import { downloadsStore } from "@renderer/store/downloads.store";
 
-const isDownloading = computed(() => downloadsStore.mapDownloads.length > 0);
+const allDownloads = computed(() => [
+    ...downloadsStore.mapDownloads,
+    ...downloadsStore.engineDownloads,
+    ...downloadsStore.gameDownloads,
+    ...downloadsStore.updateDownloads,
+]);
+
+const isDownloading = computed(() => allDownloads.value.length > 0);
 
 const downloadPercent = computed(() => {
-    const downloads = downloadsStore.mapDownloads;
     let currentBytes = 0;
     let totalBytes = 0;
-    for (const download of downloads) {
+    for (const download of allDownloads.value) {
         currentBytes += download.currentBytes;
         totalBytes += download.totalBytes;
     }

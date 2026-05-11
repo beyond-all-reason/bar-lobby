@@ -2047,7 +2047,8 @@
             "downloads": {
                 "noDownloads": "No downloads active",
                 "moreDownloads": "and {count} more...",
-                "starting": "Starting..."
+                "starting": "Starting...",
+                "extracting": "Extracting..."
             },
             "serverStatus": {
                 "playersOnline": "Players Online",
