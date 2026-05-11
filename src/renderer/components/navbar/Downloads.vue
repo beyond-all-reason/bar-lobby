@@ -19,13 +19,7 @@ SPDX-License-Identifier: MIT
                             <span>{{ t("lobby.navbar.downloads.extracting") }}</span>
                         </div>
                         <template v-else>
-                            <Progress
-                                :percent="downloadPercent(download)"
-                                :text="barText(download)"
-                                :height="20"
-                                themed
-                                pulsating
-                            />
+                            <Progress :percent="downloadPercent(download)" :text="barText(download)" :height="20" themed pulsating />
                             <div class="downloads__detail">{{ detailText(download) }}</div>
                         </template>
                     </div>
