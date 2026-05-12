@@ -13,7 +13,7 @@ import { MAPS_PATHS } from "@main/config/app";
 import chokidar from "chokidar";
 import { UltraSimpleMapParser } from "$/map-parser/ultrasimple-map-parser";
 import { removeFromArray } from "$/jaz-ts-utils/object";
-
+import { engineContentAPI } from "@main/content/engine/engine-content";
 const log = logger("map-content.ts");
 
 /**
@@ -35,6 +35,15 @@ export class MapContentAPI extends PrDownloaderAPI<string, MapData> {
         }
         this.initLookupMaps();
         this.startWatchingMapFolder();
+
+        engineContentAPI.onDownloadComplete.add((downloadInfo) => {
+            for (const [mapName, fileName] of Object.entries(this.mapNameFileNameLookup)) {
+                if (fileName) {
+                    engineContentAPI.calcChecksum(downloadInfo.name, mapName).catch(() => {});
+                }
+            }
+        });
+
         return super.init();
     }
 
@@ -85,6 +94,11 @@ export class MapContentAPI extends PrDownloaderAPI<string, MapData> {
                     this.mapNameFileNameLookup[mapName] = filename;
                     this.fileNameMapNameLookup[filename] = mapName;
                     this.onMapAdded.dispatch(mapName);
+
+                    const defaultEngine = engineContentAPI.getDefaultEngine();
+                    if (defaultEngine?.installed) {
+                        engineContentAPI.calcChecksum(defaultEngine.id, mapName).catch(() => {});
+                    }
                 });
             })
             .on("unlink", (filepath) => {
