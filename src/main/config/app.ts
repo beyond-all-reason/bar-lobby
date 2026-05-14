@@ -93,9 +93,7 @@ export function getAssetsPath() {
 
 const defaultLocations = getDefaultLocations();
 // Allow overriding the paths using env variables.
-let ASSETS_PATH: string = path.resolve(
-    process.env.BAR_ASSETS_PATH || defaultLocations.assets
-);
+let ASSETS_PATH: string = path.resolve(process.env.BAR_ASSETS_PATH || defaultLocations.assets);
 export const STATE_PATH = path.resolve(process.env.BAR_STATE_PATH || defaultLocations.state);
 
 // We set the `userData` property for Electron to also create files in correct
@@ -116,10 +114,8 @@ export const getEnginePath = () => path.join(ASSETS_PATH, "engine");
 export const getPackagePath = () => path.join(ASSETS_PATH, "packages");
 export const getPoolPath = () => path.join(ASSETS_PATH, "pool");
 export const getRapidIndexPath = () => path.join(ASSETS_PATH, "rapid");
-export const getMapsPaths = (): readonly string[] =>
-    [path.join(WRITE_DATA_PATH, "maps"), path.join(ASSETS_PATH, "maps")];
-export const getGamePaths = (): readonly string[] =>
-    [path.join(WRITE_DATA_PATH, "games"), path.join(ASSETS_PATH, "games")];
+export const getMapsPaths = (): readonly string[] => [path.join(WRITE_DATA_PATH, "maps"), path.join(ASSETS_PATH, "maps")];
+export const getGamePaths = (): readonly string[] => [path.join(WRITE_DATA_PATH, "games"), path.join(ASSETS_PATH, "games")];
 export const REPLAYS_PATH = path.join(WRITE_DATA_PATH, "demos");
 
 // Lobby specific cache path for scenario images. Maybe remove from here?

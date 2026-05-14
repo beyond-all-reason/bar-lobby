@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 The BAR Lobby Authors
+//
+// SPDX-License-Identifier: MIT
+
 import { dialog } from "electron";
 import { setAssetsPath, getAssetsPath, STATE_PATH } from "@main/config/app";
 import { settingsService } from "./settings.service";

@@ -25,7 +25,9 @@ const log = logger("engine-content.ts");
 const compatibleVersionRegex = /^\d{4}\.\d{2}\.\d{1,2}(-rc\d+)?$/;
 
 export class EngineContentAPI extends AbstractContentAPI<string, EngineVersion> {
-    protected get engineDirs() { return getEnginePath(); }
+    protected get engineDirs() {
+        return getEnginePath();
+    }
 
     public override async init() {
         log.info("Initializing engine content API");

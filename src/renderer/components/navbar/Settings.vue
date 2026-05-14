@@ -87,7 +87,9 @@ SPDX-License-Identifier: MIT
                             </div>
                         </label>
                         <small v-if="pathError" class="path-error">{{ pathError }}</small>
-                        <Button class="green slim" :disabled="isBusy" @click="applyPathChange">{{ t("lobby.navbar.settings.apply") }}</Button>
+                        <Button class="green slim" :disabled="isBusy" @click="applyPathChange">{{
+                            t("lobby.navbar.settings.apply")
+                        }}</Button>
                     </div>
                 </div>
             </template>

@@ -83,42 +83,41 @@ export class MapContentAPI extends PrDownloaderAPI<string, MapData> {
     protected async startWatchingMapFolder() {
         //using chokidar to watch for changes in the maps folder
         await this.watcher?.close();
-        this.watcher =
-            chokidar
-                .watch(getMapsPaths().slice(), {
-                    ignoreInitial: true, //ignore the initial scan
-                    awaitWriteFinish: true, //wait for the file to be fully written before emitting the event
-                })
-                .on("add", (filepath) => {
-                    if (!filepath.endsWith("sd7")) {
-                        return;
-                    }
-                    log.debug(`Chokidar -=- Map added: ${filepath}`);
-                    const filename = path.basename(filepath);
-                    // Update the lookup maps
-                    this.getMapNameFromFile(filepath).then((mapName) => {
-                        this.mapNameFileNameLookup[mapName] = filename;
-                        this.fileNameMapNameLookup[filename] = mapName;
-                        this.onMapAdded.dispatch(mapName);
-                    });
-                })
-                .on("unlink", (filepath) => {
-                    if (!filepath.endsWith("sd7")) {
-                        return;
-                    }
-                    log.debug(`Chokidar -=- Map removed: ${filepath}`);
-
-                    const pathBaseName = path.basename(filepath);
-
-                    if (pathBaseName) {
-                        const springName = this.fileNameMapNameLookup[pathBaseName];
-                        this.fileNameMapNameLookup[pathBaseName] = undefined;
-                        if (springName) {
-                            this.mapNameFileNameLookup[springName] = undefined;
-                            this.onMapDeleted.dispatch(springName);
-                        }
-                    }
+        this.watcher = chokidar
+            .watch(getMapsPaths().slice(), {
+                ignoreInitial: true, //ignore the initial scan
+                awaitWriteFinish: true, //wait for the file to be fully written before emitting the event
+            })
+            .on("add", (filepath) => {
+                if (!filepath.endsWith("sd7")) {
+                    return;
+                }
+                log.debug(`Chokidar -=- Map added: ${filepath}`);
+                const filename = path.basename(filepath);
+                // Update the lookup maps
+                this.getMapNameFromFile(filepath).then((mapName) => {
+                    this.mapNameFileNameLookup[mapName] = filename;
+                    this.fileNameMapNameLookup[filename] = mapName;
+                    this.onMapAdded.dispatch(mapName);
                 });
+            })
+            .on("unlink", (filepath) => {
+                if (!filepath.endsWith("sd7")) {
+                    return;
+                }
+                log.debug(`Chokidar -=- Map removed: ${filepath}`);
+
+                const pathBaseName = path.basename(filepath);
+
+                if (pathBaseName) {
+                    const springName = this.fileNameMapNameLookup[pathBaseName];
+                    this.fileNameMapNameLookup[pathBaseName] = undefined;
+                    if (springName) {
+                        this.mapNameFileNameLookup[springName] = undefined;
+                        this.onMapDeleted.dispatch(springName);
+                    }
+                }
+            });
     }
 
     public isVersionInstalled(springName: string): boolean {

@@ -172,20 +172,17 @@ export type BarNavigationApi = typeof barNavigationApi;
 contextBridge.exposeInMainWorld("barNavigation", barNavigationApi);
 
 const pathsApi = {
-    selectFolder: (): Promise<string | null> =>
-        ipcRenderer.invoke("paths:selectFolder"),
-    moveAndChangePath: (newPath: string): Promise<void> =>
-        ipcRenderer.invoke("paths:moveAndChangePath", newPath),
-    copyAndChangePath: (newPath: string): Promise<void> =>
-        ipcRenderer.invoke("paths:copyAndChangePath", newPath),
-    changePath: (newPath: string): Promise<void> =>
-        ipcRenderer.invoke("paths:changePath", newPath),
-    getCurrentAssetsPath: (): Promise<string> =>
-        ipcRenderer.invoke("paths:getCurrentAssetsPath"),
+    selectFolder: (): Promise<string | null> => ipcRenderer.invoke("paths:selectFolder"),
+    moveAndChangePath: (newPath: string): Promise<void> => ipcRenderer.invoke("paths:moveAndChangePath", newPath),
+    copyAndChangePath: (newPath: string): Promise<void> => ipcRenderer.invoke("paths:copyAndChangePath", newPath),
+    changePath: (newPath: string): Promise<void> => ipcRenderer.invoke("paths:changePath", newPath),
+    getCurrentAssetsPath: (): Promise<string> => ipcRenderer.invoke("paths:getCurrentAssetsPath"),
     onCopyProgress: (callback: (progress: { copied: number; total: number }) => void): (() => void) => {
         const handler = (_event: Electron.IpcRendererEvent, progress: { copied: number; total: number }) => callback(progress);
         ipcRenderer.on("paths:copyProgress", handler);
-        return () => { ipcRenderer.removeListener("paths:copyProgress", handler); };
+        return () => {
+            ipcRenderer.removeListener("paths:copyProgress", handler);
+        };
     },
 };
 export type PathsApi = typeof pathsApi;
