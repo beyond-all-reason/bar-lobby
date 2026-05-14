@@ -26,7 +26,7 @@ function registerIpcHandlers() {
     ipcMain.handle("engine:uninstallVersion", (_, version: EngineVersion) => engineContentAPI.uninstallVersion(version));
 }
 
-export const engineService = {
+const engineService = {
     init,
     reinit,
     registerIpcHandlers,

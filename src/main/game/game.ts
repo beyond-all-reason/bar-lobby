@@ -13,7 +13,7 @@ import { engineContentAPI } from "@main/content/engine/engine-content";
 import { startScriptConverter } from "@main/utils/start-script-converter";
 import { logger } from "@main/utils/logger";
 import { gameContentAPI } from "@main/content/game/game-content";
-import { WRITE_DATA_PATH, REPLAYS_PATH, getEnginePath, ASSETS_PATH } from "@main/config/app";
+import { WRITE_DATA_PATH, REPLAYS_PATH, getEnginePath, getAssetsPath } from "@main/config/app";
 import { BattleWithMetadata } from "@main/game/battle/battle-types";
 import { Replay } from "@main/content/replays/replay";
 
@@ -102,7 +102,7 @@ export class GameAPI {
                     detached: true,
                     env: {
                         ...process.env,
-                        SPRING_DATADIR: ASSETS_PATH, // Engine will read from both the assets and write dir
+                        SPRING_DATADIR: getAssetsPath(), // Engine will read from both the assets and write dir
                     },
                 });
                 if (!this.gameProcess.stdout || !this.gameProcess.stderr) throw new Error("failed to access game process stream");

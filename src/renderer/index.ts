@@ -38,18 +38,9 @@ async function setupVue() {
     app.directive("in-view", elementInViewDirective);
     app.directive("tooltip", Tooltip);
 
-    try {
-        // Init stores before mounting app
-        await initPreMountStores();
-        await audioApi.init();
-    } catch (err) {
-        console.error("Failed to initialize stores:", err);
-        const root = document.getElementById("app");
-        if (root) {
-            root.innerHTML = `<div style="color:white;padding:32px;font-family:sans-serif"><b>Failed to start</b><br><pre style="margin-top:12px;font-size:12px;opacity:0.7">${err}</pre></div>`;
-        }
-        return;
-    }
+    // Init stores before mounting app
+    await initPreMountStores();
+    await audioApi.init();
 
     app.mount("#app");
 }

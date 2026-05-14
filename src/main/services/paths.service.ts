@@ -1,5 +1,5 @@
 import { dialog } from "electron";
-import { setAssetsPath, ASSETS_PATH } from "@main/config/app";
+import { setAssetsPath, getAssetsPath, STATE_PATH } from "@main/config/app";
 import { settingsService } from "./settings.service";
 import engineService from "./engine.service";
 import mapsService from "./maps.service";
@@ -48,15 +48,28 @@ async function copyWithProgress(src: string, dest: string, onProgress: (copied: 
     await copyDir(src, dest);
 }
 
-function registerIpcHandlers(webContents: BarIpcWebContents) {
-    ipcMain.handle("paths:reinit", async (_, newAssetsPath: string) => {
-        await settingsService.updateSettings({ assetsPath: newAssetsPath });
-        setAssetsPath(newAssetsPath);
-        await engineService.reinit();
-        await mapsService.reinit();
-        await gameService.reinit();
-    });
+function validateAssetsPath(newPath: string): string | null {
+    const resolved = path.resolve(newPath);
+    const resolvedState = path.resolve(STATE_PATH);
+    if (resolved.startsWith(resolvedState + path.sep) || resolved === resolvedState) {
+        return "Assets path cannot be inside the state directory.";
+    }
+    return null;
+}
 
+async function applyNewPath(newAssetsPath: string) {
+    const error = validateAssetsPath(newAssetsPath);
+    if (error) {
+        throw new Error(error);
+    }
+    await settingsService.updateSettings({ assetsPath: newAssetsPath });
+    setAssetsPath(newAssetsPath);
+    await engineService.reinit();
+    await mapsService.reinit();
+    await gameService.reinit();
+}
+
+function registerIpcHandlers(webContents: BarIpcWebContents) {
     ipcMain.handle("paths:selectFolder", async () => {
         const { canceled, filePaths } = await dialog.showOpenDialog({
             properties: ["openDirectory"],
@@ -64,26 +77,27 @@ function registerIpcHandlers(webContents: BarIpcWebContents) {
         return canceled ? null : filePaths[0];
     });
 
-    ipcMain.handle("paths:moveAndRestart", async (_, newAssetsPath: string) => {
-        await copyWithProgress(ASSETS_PATH, newAssetsPath, (copied, total) => {
+    ipcMain.handle("paths:moveAndChangePath", async (_, newAssetsPath: string) => {
+        const oldAssetsPath = getAssetsPath();
+        await copyWithProgress(oldAssetsPath, newAssetsPath, (copied, total) => {
             webContents.send("paths:copyProgress", { copied, total });
         });
-        await settingsService.updateSettings({ assetsPath: newAssetsPath });
-        setAssetsPath(newAssetsPath);
-        await engineService.reinit();
-        await mapsService.reinit();
-        await gameService.reinit();
+        await applyNewPath(newAssetsPath);
+        await fs.promises.rm(oldAssetsPath, { recursive: true, force: true });
     });
 
-    ipcMain.handle("paths:changeAndRestart", async (_, newAssetsPath: string) => {
-        await settingsService.updateSettings({ assetsPath: newAssetsPath });
-        setAssetsPath(newAssetsPath);
-        await engineService.reinit();
-        await mapsService.reinit();
-        await gameService.reinit();
+    ipcMain.handle("paths:copyAndChangePath", async (_, newAssetsPath: string) => {
+        await copyWithProgress(getAssetsPath(), newAssetsPath, (copied, total) => {
+            webContents.send("paths:copyProgress", { copied, total });
+        });
+        await applyNewPath(newAssetsPath);
     });
 
-    ipcMain.handle("paths:getCurrentAssetsPath", () => ASSETS_PATH);
+    ipcMain.handle("paths:changePath", async (_, newAssetsPath: string) => {
+        await applyNewPath(newAssetsPath);
+    });
+
+    ipcMain.handle("paths:getCurrentAssetsPath", () => getAssetsPath());
 }
 
 export const pathsService = { registerIpcHandlers };

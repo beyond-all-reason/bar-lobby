@@ -41,6 +41,9 @@ export async function initEnginesStore() {
 
     enginesStore.availableEngineVersions = await window.engine.listAvailableVersions();
     enginesStore.selectedEngineVersion = enginesStore.availableEngineVersions.find((e) => e.id === DEFAULT_ENGINE_VERSION);
+    if (!enginesStore.selectedEngineVersion) {
+        console.warn(`Default engine version ${DEFAULT_ENGINE_VERSION} not found in available versions.`);
+    }
 
     enginesStore.isInitialized = true;
 }

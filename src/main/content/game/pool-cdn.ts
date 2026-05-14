@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: MIT
 
-import { ASSETS_PATH, getPoolPath } from "@main/config/app";
+import { getAssetsPath, getPoolPath } from "@main/config/app";
 import * as fs from "fs";
 import path from "path";
 import { DownloaderHelper } from "node-downloader-helper";
@@ -59,8 +59,8 @@ export class PoolCdnDownloader extends Downloader {
         };
         this.currentDownloads.push(downloadInfo);
 
-        const dlFilePath = path.join(ASSETS_PATH, "data.7z");
-        const dl = new DownloaderHelper(this.poolDataUrl, ASSETS_PATH, {
+        const dlFilePath = path.join(getAssetsPath(), "data.7z");
+        const dl = new DownloaderHelper(this.poolDataUrl, getAssetsPath(), {
             fileName: "data.7z",
             timeout: 10000,
             retry: { maxRetries: 3, delay: 1000 },

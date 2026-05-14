@@ -10,7 +10,7 @@ import { DownloadInfo } from "./downloads";
 import { AbstractContentAPI } from "./abstract-content";
 import { engineContentAPI } from "./engine/engine-content";
 import { logger } from "@main/utils/logger";
-import { ASSETS_PATH, getEnginePath, getCaCertPath } from "@main/config/app";
+import { getAssetsPath, getEnginePath, getCaCertPath } from "@main/config/app";
 
 const log = logger("pr-downloader.ts");
 
@@ -51,7 +51,7 @@ export abstract class PrDownloaderAPI<ID, T> extends AbstractContentAPI<ID, T> {
                 const prBinaryPath = path.join(getEnginePath(), defaultEngine.id, binaryName);
                 const downloadArg = type === "game" ? "--download-game" : "--download-map";
                 const caCertPath = getCaCertPath();
-                const prdProcess = spawn(`${prBinaryPath}`, ["--filesystem-writepath", ASSETS_PATH, downloadArg, name], {
+                const prdProcess = spawn(`${prBinaryPath}`, ["--filesystem-writepath", getAssetsPath(), downloadArg, name], {
                     env: {
                         ...process.env,
                         PRD_RAPID_USE_STREAMER: "false",

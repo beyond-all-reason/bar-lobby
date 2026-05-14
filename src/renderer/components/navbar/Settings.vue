@@ -58,16 +58,35 @@ SPDX-License-Identifier: MIT
                 <div></div>
                 <div class="pending-section">
                     <Textbox :model-value="pendingAssetsPath" readonly class="path-input" />
-                    <div v-if="isCopying" class="copy-progress">
+                    <div v-if="isTransferring" class="copy-progress">
                         <div class="progress-bar">
                             <div class="progress-fill" :style="{ width: copyProgressPercent + '%' }"></div>
                         </div>
-                        <small>{{ t("lobby.navbar.settings.copyingFiles") }} {{ copyProgressPercent }}%</small>
+                        <small>{{ t("lobby.navbar.settings.transferringFiles") }} {{ copyProgressPercent }}%</small>
                     </div>
-                    <div v-else class="restart-actions">
-                        <small>{{ t("lobby.navbar.settings.restartRequired") }}</small>
-                        <Button class="green slim" :disabled="isBusy" @click="changeAndCopy">{{ t("lobby.navbar.settings.changeAndCopy") }}</Button>
-                        <Button class="slim" :disabled="isBusy" @click="changeWithoutCopy">{{ t("lobby.navbar.settings.changeWithoutCopy") }}</Button>
+                    <div v-else class="change-mode-section">
+                        <label class="radio-option" :class="{ selected: changeMode === 'move' }">
+                            <input v-model="changeMode" type="radio" value="move" name="changeMode" />
+                            <div>
+                                <span>{{ t("lobby.navbar.settings.moveToNewLocation") }}</span>
+                                <small>{{ t("lobby.navbar.settings.moveToNewLocationDesc") }}</small>
+                            </div>
+                        </label>
+                        <label class="radio-option" :class="{ selected: changeMode === 'copy' }">
+                            <input v-model="changeMode" type="radio" value="copy" name="changeMode" />
+                            <div>
+                                <span>{{ t("lobby.navbar.settings.copyToNewLocation") }}</span>
+                                <small>{{ t("lobby.navbar.settings.copyToNewLocationDesc") }}</small>
+                            </div>
+                        </label>
+                        <label class="radio-option" :class="{ selected: changeMode === 'change-only' }">
+                            <input v-model="changeMode" type="radio" value="change-only" name="changeMode" />
+                            <div>
+                                <span>{{ t("lobby.navbar.settings.useNewLocationOnly") }}</span>
+                                <small>{{ t("lobby.navbar.settings.useNewLocationOnlyDesc") }}</small>
+                            </div>
+                        </label>
+                        <Button class="green slim" :disabled="isBusy" @click="applyPathChange">{{ t("lobby.navbar.settings.apply") }}</Button>
                     </div>
                 </div>
             </template>
@@ -76,7 +95,7 @@ SPDX-License-Identifier: MIT
 </template>
 
 <script lang="ts" setup>
-import { computed, onMounted, ref } from "vue";
+import { computed, onMounted, onUnmounted, ref } from "vue";
 import Modal from "@renderer/components/common/Modal.vue";
 import Checkbox from "@renderer/components/controls/Checkbox.vue";
 import Range from "@renderer/components/controls/Range.vue";
@@ -93,20 +112,27 @@ const { t } = useTypedI18n();
 
 const currentAssetsPath = ref("");
 const pendingAssetsPath = ref<string | null>(null);
-const isCopying = ref(false);
+const changeMode = ref<"move" | "copy" | "change-only">("move");
+const isTransferring = ref(false);
 const isChanging = ref(false);
 const copyProgress = ref({ copied: 0, total: 0 });
 const copyProgressPercent = computed(() => {
     if (copyProgress.value.total === 0) return 0;
     return Math.round((copyProgress.value.copied / copyProgress.value.total) * 100);
 });
-const isBusy = computed(() => isCopying.value || isChanging.value);
+const isBusy = computed(() => isTransferring.value || isChanging.value);
+
+let cleanupCopyProgress: (() => void) | undefined;
 
 onMounted(async () => {
     currentAssetsPath.value = await window.paths.getCurrentAssetsPath();
-    window.paths.onCopyProgress((progress) => {
+    cleanupCopyProgress = window.paths.onCopyProgress((progress) => {
         copyProgress.value = progress;
     });
+});
+
+onUnmounted(() => {
+    cleanupCopyProgress?.();
 });
 
 async function browseForNewAssetsPath() {
@@ -116,18 +142,20 @@ async function browseForNewAssetsPath() {
     }
 }
 
-async function changeAndCopy() {
+async function applyPathChange() {
     if (!pendingAssetsPath.value) return;
-    isCopying.value = true;
-    copyProgress.value = { copied: 0, total: 0 };
-    await window.paths.moveAndRestart(pendingAssetsPath.value);
-    location.reload();
-}
-
-async function changeWithoutCopy() {
-    if (!pendingAssetsPath.value) return;
-    isChanging.value = true;
-    await window.paths.changeAndRestart(pendingAssetsPath.value);
+    if (changeMode.value === "change-only") {
+        isChanging.value = true;
+        await window.paths.changePath(pendingAssetsPath.value);
+    } else {
+        isTransferring.value = true;
+        copyProgress.value = { copied: 0, total: 0 };
+        if (changeMode.value === "move") {
+            await window.paths.moveAndChangePath(pendingAssetsPath.value);
+        } else {
+            await window.paths.copyAndChangePath(pendingAssetsPath.value);
+        }
+    }
     location.reload();
 }
 
@@ -209,14 +237,48 @@ async function uploadLogsCommand(event) {
     }
 }
 
-.restart-actions {
+.change-mode-section {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 6px;
+}
+
+.radio-option {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 6px 8px;
+    border-radius: 4px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    cursor: pointer;
+    transition: border-color 0.15s;
+
+    &:hover {
+        border-color: rgba(255, 255, 255, 0.25);
+    }
+
+    &.selected {
+        border-color: rgba(100, 200, 100, 0.6);
+    }
+
+    input[type="radio"] {
+        margin-top: 3px;
+        accent-color: rgba(100, 200, 100, 0.8);
+    }
+
+    div {
+        display: flex;
+        flex-direction: column;
+        gap: 1px;
+    }
+
+    span {
+        font-size: 12px;
+    }
 
     small {
-        opacity: 0.6;
-        font-size: 11px;
+        opacity: 0.5;
+        font-size: 10px;
     }
 }
 

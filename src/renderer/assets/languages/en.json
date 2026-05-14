@@ -2081,10 +2081,15 @@
                 "storage": "Storage",
                 "assetsPath": "Assets Location",
                 "browse": "Browse",
-                "changeAndCopy": "Change & Copy Files",
-                "changeWithoutCopy": "Change Without Copying",
+                "moveToNewLocation": "Move to new location",
+                "moveToNewLocationDesc": "Moves assets to the new folder and removes them from the current one.",
+                "copyToNewLocation": "Copy to new location",
+                "copyToNewLocationDesc": "Copies assets to the new folder. The current folder is kept as a backup.",
+                "useNewLocationOnly": "Use new location without transferring",
+                "useNewLocationOnlyDesc": "Points the game at the new folder. No files are moved or copied — you will need to re-download.",
+                "apply": "Apply",
                 "restartRequired": "The application will reload after changing the location.",
-                "copyingFiles": "Copying files..."
+                "transferringFiles": "Transferring files..."
             },
             "friends": {
                 "unknownUser": "Unknown User",

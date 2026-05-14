@@ -47,10 +47,7 @@ const text = ref("");
 const state = ref<"path-selection" | "engine" | "game" | "maps" | "update">("engine");
 const selectedPath = ref("");
 
-let resolvePathConfirm!: () => void;
-const pathConfirmPromise = new Promise<void>((resolve) => {
-    resolvePathConfirm = resolve;
-});
+let resolvePathConfirm: (() => void) | undefined;
 
 async function browseForFolder() {
     const chosen = await window.paths.selectFolder();
@@ -60,8 +57,8 @@ async function browseForFolder() {
 }
 
 async function confirmPath() {
-    await window.paths.reinit(selectedPath.value);
-    resolvePathConfirm();
+    await window.paths.changePath(selectedPath.value);
+    resolvePathConfirm?.();
 }
 
 onMounted(async () => {
@@ -69,7 +66,9 @@ onMounted(async () => {
     if (!enginesStore.selectedEngineVersion || enginesStore.selectedEngineVersion.installed === false) {
         selectedPath.value = await window.paths.getCurrentAssetsPath();
         state.value = "path-selection";
-        await pathConfirmPromise;
+        await new Promise<void>((resolve) => {
+            resolvePathConfirm = resolve;
+        });
 
         state.value = "engine";
         text.value = t("lobby.components.misc.initialSetup.downloadingEngine");

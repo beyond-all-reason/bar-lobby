@@ -87,6 +87,10 @@ export function setAssetsPath(p: string) {
     ASSETS_PATH = path.resolve(p);
 }
 
+export function getAssetsPath() {
+    return ASSETS_PATH;
+}
+
 const defaultLocations = getDefaultLocations();
 // Allow overriding the paths using env variables.
 export let ASSETS_PATH: string = path.resolve(
