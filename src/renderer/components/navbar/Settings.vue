@@ -86,6 +86,7 @@ SPDX-License-Identifier: MIT
                                 <small>{{ t("lobby.navbar.settings.useNewLocationOnlyDesc") }}</small>
                             </div>
                         </label>
+                        <small v-if="pathError" class="path-error">{{ pathError }}</small>
                         <Button class="green slim" :disabled="isBusy" @click="applyPathChange">{{ t("lobby.navbar.settings.apply") }}</Button>
                     </div>
                 </div>
@@ -120,6 +121,7 @@ const copyProgressPercent = computed(() => {
     if (copyProgress.value.total === 0) return 0;
     return Math.round((copyProgress.value.copied / copyProgress.value.total) * 100);
 });
+const pathError = ref("");
 const isBusy = computed(() => isTransferring.value || isChanging.value);
 
 let cleanupCopyProgress: (() => void) | undefined;
@@ -144,19 +146,27 @@ async function browseForNewAssetsPath() {
 
 async function applyPathChange() {
     if (!pendingAssetsPath.value) return;
-    if (changeMode.value === "change-only") {
-        isChanging.value = true;
-        await window.paths.changePath(pendingAssetsPath.value);
-    } else {
-        isTransferring.value = true;
-        copyProgress.value = { copied: 0, total: 0 };
-        if (changeMode.value === "move") {
-            await window.paths.moveAndChangePath(pendingAssetsPath.value);
+    pathError.value = "";
+    try {
+        if (changeMode.value === "change-only") {
+            isChanging.value = true;
+            await window.paths.changePath(pendingAssetsPath.value);
         } else {
-            await window.paths.copyAndChangePath(pendingAssetsPath.value);
+            isTransferring.value = true;
+            copyProgress.value = { copied: 0, total: 0 };
+            if (changeMode.value === "move") {
+                await window.paths.moveAndChangePath(pendingAssetsPath.value);
+            } else {
+                await window.paths.copyAndChangePath(pendingAssetsPath.value);
+            }
         }
+        location.reload();
+    } catch (err) {
+        pathError.value = err instanceof Error ? err.message : String(err);
+    } finally {
+        isTransferring.value = false;
+        isChanging.value = false;
     }
-    location.reload();
 }
 
 const op = ref();
@@ -241,6 +251,11 @@ async function uploadLogsCommand(event) {
     display: flex;
     flex-direction: column;
     gap: 6px;
+}
+
+.path-error {
+    color: #ff6b6b;
+    font-size: 11px;
 }
 
 .radio-option {

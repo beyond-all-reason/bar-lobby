@@ -93,7 +93,7 @@ export function getAssetsPath() {
 
 const defaultLocations = getDefaultLocations();
 // Allow overriding the paths using env variables.
-export let ASSETS_PATH: string = path.resolve(
+let ASSETS_PATH: string = path.resolve(
     process.env.BAR_ASSETS_PATH || defaultLocations.assets
 );
 export const STATE_PATH = path.resolve(process.env.BAR_STATE_PATH || defaultLocations.state);

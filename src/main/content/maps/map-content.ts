@@ -46,6 +46,7 @@ export class MapContentAPI extends PrDownloaderAPI<string, MapData> {
         this.availableVersions.clear();
         await this.init();
     }
+
     protected async initLookupMaps() {
         async function* findMaps() {
             // We apply toReversed to keep the precedence order: higher precedence visited later.
@@ -79,9 +80,9 @@ export class MapContentAPI extends PrDownloaderAPI<string, MapData> {
         return parsedMap.springName;
     }
 
-    protected startWatchingMapFolder() {
+    protected async startWatchingMapFolder() {
         //using chokidar to watch for changes in the maps folder
-        this.watcher?.close()
+        await this.watcher?.close();
         this.watcher =
             chokidar
                 .watch(getMapsPaths().slice(), {

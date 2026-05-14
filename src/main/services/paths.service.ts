@@ -7,27 +7,28 @@ import gameService from "./game.service";
 import { ipcMain, BarIpcWebContents } from "@main/typed-ipc";
 import fs from "fs";
 import path from "path";
+import { logger } from "@main/utils/logger";
 
-async function countFiles(dir: string): Promise<number> {
-    let count = 0;
-    try {
-        const entries = await fs.promises.readdir(dir, { withFileTypes: true });
-        for (const entry of entries) {
-            if (entry.isDirectory()) {
-                count += await countFiles(path.join(dir, entry.name));
-            } else {
-                count++;
-            }
-        }
-    } catch {
-        // skip unreadable entries
-    }
-    return count;
-}
+const log = logger("paths.service.ts");
 
 async function copyWithProgress(src: string, dest: string, onProgress: (copied: number, total: number) => void): Promise<void> {
-    const total = await countFiles(src);
     let copied = 0;
+    let total = 0;
+
+    async function discover(dir: string) {
+        try {
+            const entries = await fs.promises.readdir(dir, { withFileTypes: true });
+            for (const entry of entries) {
+                if (entry.isDirectory() && !entry.isSymbolicLink()) {
+                    await discover(path.join(dir, entry.name));
+                } else {
+                    total++;
+                }
+            }
+        } catch {
+            // skip unreadable entries
+        }
+    }
 
     async function copyDir(srcDir: string, destDir: string) {
         await fs.promises.mkdir(destDir, { recursive: true });
@@ -35,7 +36,12 @@ async function copyWithProgress(src: string, dest: string, onProgress: (copied: 
         for (const entry of entries) {
             const srcPath = path.join(srcDir, entry.name);
             const destPath = path.join(destDir, entry.name);
-            if (entry.isDirectory()) {
+            if (entry.isSymbolicLink()) {
+                const linkTarget = await fs.promises.readlink(srcPath);
+                await fs.promises.symlink(linkTarget, destPath);
+                copied++;
+                onProgress(copied, total);
+            } else if (entry.isDirectory()) {
                 await copyDir(srcPath, destPath);
             } else {
                 await fs.promises.copyFile(srcPath, destPath);
@@ -45,14 +51,25 @@ async function copyWithProgress(src: string, dest: string, onProgress: (copied: 
         }
     }
 
+    await discover(src);
     await copyDir(src, dest);
 }
 
 function validateAssetsPath(newPath: string): string | null {
+    if (!newPath || newPath.trim() === "") {
+        return "Path must not be empty.";
+    }
     const resolved = path.resolve(newPath);
     const resolvedState = path.resolve(STATE_PATH);
-    if (resolved.startsWith(resolvedState + path.sep) || resolved === resolvedState) {
+    if (resolved === resolvedState || resolved.startsWith(resolvedState + path.sep)) {
         return "Assets path cannot be inside the state directory.";
+    }
+    const resolvedCurrent = path.resolve(getAssetsPath());
+    if (resolved.startsWith(resolvedCurrent + path.sep)) {
+        return "New path cannot be inside the current assets directory.";
+    }
+    if (resolvedCurrent.startsWith(resolved + path.sep)) {
+        return "Current assets path cannot be inside the new path.";
     }
     return null;
 }
@@ -83,6 +100,11 @@ function registerIpcHandlers(webContents: BarIpcWebContents) {
             webContents.send("paths:copyProgress", { copied, total });
         });
         await applyNewPath(newAssetsPath);
+        const rootDir = path.parse(oldAssetsPath).root;
+        if (oldAssetsPath === rootDir || oldAssetsPath === path.dirname(rootDir)) {
+            log.warn(`Refusing to delete suspicious path: ${oldAssetsPath}`);
+            return;
+        }
         await fs.promises.rm(oldAssetsPath, { recursive: true, force: true });
     });
 
