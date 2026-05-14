@@ -83,9 +83,15 @@ function getDefaultLocations(): { state: string; assets: string } {
     process.exit(1);
 }
 
+export function setAssetsPath(p: string) {
+    ASSETS_PATH = path.resolve(p);
+}
+
 const defaultLocations = getDefaultLocations();
 // Allow overriding the paths using env variables.
-export const ASSETS_PATH = path.resolve(process.env.BAR_ASSETS_PATH || defaultLocations.assets);
+export let ASSETS_PATH: string = path.resolve(
+    process.env.BAR_ASSETS_PATH || defaultLocations.assets
+);
 export const STATE_PATH = path.resolve(process.env.BAR_STATE_PATH || defaultLocations.state);
 
 // We set the `userData` property for Electron to also create files in correct
@@ -102,14 +108,15 @@ export const LOGS_PATH = path.join(STATE_PATH, "logs");
 // data from, and at WRITE_DATA_PATH as data directory it can write to.
 export const WRITE_DATA_PATH = path.join(STATE_PATH, "data");
 
-export const ENGINE_PATH = path.join(ASSETS_PATH, "engine");
+export const getEnginePath = () => path.join(ASSETS_PATH, "engine");
+export const getPackagePath = () => path.join(ASSETS_PATH, "packages");
+export const getPoolPath = () => path.join(ASSETS_PATH, "pool");
+export const getRapidIndexPath = () => path.join(ASSETS_PATH, "rapid");
+export const getMapsPaths = (): readonly string[] =>
+    [path.join(WRITE_DATA_PATH, "maps"), path.join(ASSETS_PATH, "maps")];
+export const getGamePaths = (): readonly string[] =>
+    [path.join(WRITE_DATA_PATH, "games"), path.join(ASSETS_PATH, "games")];
 export const REPLAYS_PATH = path.join(WRITE_DATA_PATH, "demos");
-export const MAPS_PATHS: readonly string[] = [path.join(WRITE_DATA_PATH, "maps"), path.join(ASSETS_PATH, "maps")];
-export const GAME_PATHS: readonly string[] = [path.join(WRITE_DATA_PATH, "games"), path.join(ASSETS_PATH, "games")];
-// Everything rapid lives under assets.
-export const PACKAGE_PATH = path.join(ASSETS_PATH, "packages");
-export const POOL_PATH = path.join(ASSETS_PATH, "pool");
-export const RAPID_INDEX_PATH = path.join(ASSETS_PATH, "rapid");
 
 // Lobby specific cache path for scenario images. Maybe remove from here?
 export const SCENARIO_IMAGE_PATH = path.join(STATE_PATH, "scenario-images");

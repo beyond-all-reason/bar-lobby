@@ -2077,7 +2077,13 @@
                 "labelSm": "Small",
                 "labelMd": "Medium",
                 "labelLg": "Large",
-                "labelDisplay": "Display {id}"
+                "labelDisplay": "Display {id}",
+                "storage": "Storage",
+                "assetsPath": "Assets Location",
+                "browse": "Browse",
+                "changeAndCopy": "Change & Copy Files",
+                "changeWithoutCopy": "Change Without Copying",
+                "restartRequired": "The application will restart after changing the location."
             },
             "friends": {
                 "unknownUser": "Unknown User",
@@ -2191,7 +2197,10 @@
                     "installingGame": "Installing game",
                     "downloadingMaps": "Downloading maps",
                     "downloadingUpdate": "Downloading update",
-                    "installingUpdate": "Installing update"
+                    "installingUpdate": "Installing update",
+                    "selectAssetsPathDescription": "Choose where game files (engine, maps, game) will be downloaded.",
+                    "browse": "Browse",
+                    "continue": "Continue"
                 }
             },
             "battle": {

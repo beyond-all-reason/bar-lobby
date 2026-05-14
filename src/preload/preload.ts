@@ -171,6 +171,21 @@ const barNavigationApi = {
 export type BarNavigationApi = typeof barNavigationApi;
 contextBridge.exposeInMainWorld("barNavigation", barNavigationApi);
 
+const pathsApi = {
+    reinit: (assetsPath: string): Promise<void> =>
+        ipcRenderer.invoke("paths:reinit", assetsPath),
+    selectFolder: (): Promise<string | null> =>
+        ipcRenderer.invoke("paths:selectFolder"),
+    moveAndRestart: (newPath: string): Promise<void> =>
+        ipcRenderer.invoke("paths:moveAndRestart", newPath),
+    changeAndRestart: (newPath: string): Promise<void> =>
+        ipcRenderer.invoke("paths:changeAndRestart", newPath),
+    getCurrentAssetsPath: (): Promise<string> =>
+        ipcRenderer.invoke("paths:getCurrentAssetsPath"),
+};
+export type PathsApi = typeof pathsApi;
+contextBridge.exposeInMainWorld("paths", pathsApi);
+
 // Tachyon API
 function request<C extends GetCommandIds<"user", "server", "request">>(
     ...args: GetCommandData<GetCommands<"user", "server", "request", C>> extends never ? [commandId: C] : [commandId: C, data: GetCommandData<GetCommands<"user", "server", "request", C>>]

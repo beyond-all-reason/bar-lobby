@@ -12,6 +12,10 @@ async function init() {
     await mapContentAPI.init();
 }
 
+async function reinit() {
+    await mapContentAPI.reinit();
+}
+
 async function fetchAllMaps(): Promise<[MapData[], MapDownloadData[]]> {
     const maps = await fetch("https://maps-metadata.beyondallreason.dev/latest/lobby_maps.validated.json");
     const mapsAsObject = await maps.json();
@@ -65,6 +69,7 @@ function registerIpcHandlers(webContents: BarIpcWebContents) {
 
 const mapsService = {
     init,
+    reinit,
     registerIpcHandlers,
 };
 

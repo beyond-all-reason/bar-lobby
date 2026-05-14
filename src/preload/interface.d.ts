@@ -18,6 +18,7 @@ import type {
     SettingsApi,
     ShellApi,
     TachyonApi,
+    PathsApi,
 } from "@preload/preload";
 import type { TransitionProps } from "vue";
 
@@ -39,6 +40,7 @@ declare global {
         autoUpdater: AutoUpdaterApi;
         barNavigation: BarNavigationApi;
         notifications: NotificationsApi;
+        paths: PathsApi;
     }
 }
 

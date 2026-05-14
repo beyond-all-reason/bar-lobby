@@ -6,9 +6,20 @@ SPDX-License-Identifier: MIT
 
 <template>
     <div class="initial-setup fullsize flex-center">
-        <h1>{{ t("lobby.components.misc.initialSetup.title") }}</h1>
-        <h4>{{ text }}</h4>
-        <h2 v-if="downloadPercent < 1">{{ (downloadPercent * 100).toFixed(0) }}%</h2>
+        <template v-if="state === 'path-selection'">
+            <h1>{{ t("lobby.components.misc.initialSetup.title") }}</h1>
+            <h4>{{ t("lobby.components.misc.initialSetup.selectAssetsPathDescription") }}</h4>
+            <div class="path-selector">
+                <Textbox :model-value="selectedPath" readonly />
+                <Button @click="browseForFolder">{{ t("lobby.components.misc.initialSetup.browse") }}</Button>
+            </div>
+            <Button class="green" @click="confirmPath">{{ t("lobby.components.misc.initialSetup.continue") }}</Button>
+        </template>
+        <template v-else>
+            <h1>{{ t("lobby.components.misc.initialSetup.title") }}</h1>
+            <h4>{{ text }}</h4>
+            <h2 v-if="downloadPercent < 1">{{ (downloadPercent * 100).toFixed(0) }}%</h2>
+        </template>
     </div>
 </template>
 
@@ -23,6 +34,8 @@ import { enginesStore } from "@renderer/store/engine.store";
 import { downloadGame } from "@renderer/store/game.store";
 import { onMounted, ref, watch } from "vue";
 import { useTypedI18n } from "@renderer/i18n";
+import Button from "@renderer/components/controls/Button.vue";
+import Textbox from "@renderer/components/controls/Textbox.vue";
 
 const { t } = useTypedI18n();
 
@@ -31,11 +44,36 @@ const emit = defineEmits<{
 }>();
 
 const text = ref("");
-const state = ref<"engine" | "game" | "maps" | "update">("engine");
+const state = ref<"path-selection" | "engine" | "game" | "maps" | "update">("engine");
+const selectedPath = ref("");
+
+let resolvePathConfirm!: () => void;
+const pathConfirmPromise = new Promise<void>((resolve) => {
+    resolvePathConfirm = resolve;
+});
+
+async function browseForFolder() {
+    const chosen = await window.paths.selectFolder();
+    if (chosen) {
+        selectedPath.value = chosen;
+    }
+}
+
+async function confirmPath() {
+    const currentPath = await window.paths.getCurrentAssetsPath();
+    if (selectedPath.value !== currentPath) {
+        await window.paths.reinit(selectedPath.value);
+    }
+    resolvePathConfirm();
+}
 
 onMounted(async () => {
     console.debug("Initial setup");
     if (!enginesStore.selectedEngineVersion || enginesStore.selectedEngineVersion.installed === false) {
+        selectedPath.value = await window.paths.getCurrentAssetsPath();
+        state.value = "path-selection";
+        await pathConfirmPromise;
+
         state.value = "engine";
         text.value = t("lobby.components.misc.initialSetup.downloadingEngine");
         await window.engine.downloadEngine();
@@ -119,5 +157,18 @@ function calculateDownloadPercent(downloads: DownloadInfo[]): number {
 <style lang="scss" scoped>
 .initial-setup {
     text-shadow: 0 0 6px rgba(255, 255, 255, 0.4);
+}
+
+.path-selector {
+    display: flex;
+    flex-direction: row;
+    gap: 8px;
+    align-items: center;
+    width: 500px;
+    margin-bottom: 16px;
+
+    .textbox {
+        flex: 1;
+    }
 }
 </style>

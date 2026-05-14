@@ -13,6 +13,10 @@ async function init() {
     await gameContentAPI.init();
 }
 
+async function reinit() {
+    await gameContentAPI.reinit();
+}
+
 function registerIpcHandlers(webContents: BarIpcWebContents) {
     // Content
     ipcMain.handle("game:downloadGame", (_, version: string) => gameContentAPI.downloadGame(version));
@@ -42,6 +46,7 @@ function registerIpcHandlers(webContents: BarIpcWebContents) {
 
 const gameService = {
     init,
+    reinit,
     registerIpcHandlers,
 };
 

@@ -15,7 +15,7 @@ import { logger } from "@main/utils/logger";
 import { extract7z } from "@main/utils/extract-7z";
 import { getEngineReleaseInfo } from "@main/config/content-sources";
 import { AbstractContentAPI } from "@main/content/abstract-content";
-import { ENGINE_PATH } from "@main/config/app";
+import { getEnginePath } from "@main/config/app";
 import { DEFAULT_ENGINE_VERSION } from "@main/config/default-versions";
 
 const log = logger("engine-content.ts");
@@ -25,7 +25,7 @@ const log = logger("engine-content.ts");
 const compatibleVersionRegex = /^\d{4}\.\d{2}\.\d{1,2}(-rc\d+)?$/;
 
 export class EngineContentAPI extends AbstractContentAPI<string, EngineVersion> {
-    protected readonly engineDirs = ENGINE_PATH;
+    protected get engineDirs() { return getEnginePath(); }
 
     public override async init() {
         try {
@@ -48,6 +48,11 @@ export class EngineContentAPI extends AbstractContentAPI<string, EngineVersion> 
             log.error(err);
         }
         return this;
+    }
+
+    public async reinit() {
+        this.availableVersions.clear()
+        await this.init();
     }
 
     public isVersionInstalled(id: string): boolean {

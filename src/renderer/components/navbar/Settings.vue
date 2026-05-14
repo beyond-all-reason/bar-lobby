@@ -45,12 +45,33 @@ SPDX-License-Identifier: MIT
                 </div>
             </OverlayPanel>
             <Button @click="uploadLogsCommand">{{ t("lobby.navbar.settings.uploadLogs") }}</Button>
+
+            <div class="section-header">{{ t("lobby.navbar.settings.storage") }}</div>
+            <div></div>
+
+            <div>{{ t("lobby.navbar.settings.assetsPath") }}</div>
+            <div class="path-row">
+                <span class="path-text">{{ currentAssetsPath }}</span>
+                <Button class="slim" @click="browseForNewAssetsPath">{{ t("lobby.navbar.settings.browse") }}</Button>
+            </div>
+
+            <template v-if="pendingAssetsPath && pendingAssetsPath !== currentAssetsPath">
+                <div></div>
+                <div class="pending-path">
+                    <span class="path-text dimmed">{{ pendingAssetsPath }}</span>
+                    <div class="restart-actions">
+                        <small>{{ t("lobby.navbar.settings.restartRequired") }}</small>
+                        <Button class="green slim" @click="changeAndCopy">{{ t("lobby.navbar.settings.changeAndCopy") }}</Button>
+                        <Button class="slim" @click="changeWithoutCopy">{{ t("lobby.navbar.settings.changeWithoutCopy") }}</Button>
+                    </div>
+                </div>
+            </template>
         </div>
     </Modal>
 </template>
 
 <script lang="ts" setup>
-import { ref } from "vue";
+import { onMounted, ref } from "vue";
 import Modal from "@renderer/components/common/Modal.vue";
 import Checkbox from "@renderer/components/controls/Checkbox.vue";
 import Range from "@renderer/components/controls/Range.vue";
@@ -63,6 +84,32 @@ import { infosStore } from "@renderer/store/infos.store";
 import { uploadLogs } from "@renderer/utils/log";
 import { useTypedI18n } from "@renderer/i18n";
 const { t } = useTypedI18n();
+
+const currentAssetsPath = ref("");
+const pendingAssetsPath = ref<string | null>(null);
+
+onMounted(async () => {
+    currentAssetsPath.value = await window.paths.getCurrentAssetsPath();
+});
+
+async function browseForNewAssetsPath() {
+    const chosen = await window.paths.selectFolder();
+    if (chosen) {
+        pendingAssetsPath.value = chosen;
+    }
+}
+
+async function changeAndCopy() {
+    if (pendingAssetsPath.value) {
+        await window.paths.moveAndRestart(pendingAssetsPath.value);
+    }
+}
+
+async function changeWithoutCopy() {
+    if (pendingAssetsPath.value) {
+        await window.paths.changeAndRestart(pendingAssetsPath.value);
+    }
+}
 
 const op = ref();
 const tooltipMessage = ref("");
@@ -108,5 +155,49 @@ async function uploadLogsCommand(event) {
 .container {
     background-color: rgba(0, 0, 0, 0.3);
     backdrop-filter: blur(5px);
+}
+
+.section-header {
+    grid-column: 1 / -1;
+    margin-top: 8px;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    opacity: 0.5;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+    padding-bottom: 4px;
+}
+
+.path-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.path-text {
+    font-size: 12px;
+    opacity: 0.85;
+    word-break: break-all;
+
+    &.dimmed {
+        opacity: 0.55;
+    }
+}
+
+.pending-path {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.restart-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+
+    small {
+        opacity: 0.6;
+        font-size: 11px;
+    }
 }
 </style>

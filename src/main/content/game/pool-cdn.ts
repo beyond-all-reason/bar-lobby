@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: MIT
 
-import { ASSETS_PATH, POOL_PATH } from "@main/config/app";
+import { ASSETS_PATH, getPoolPath } from "@main/config/app";
 import * as fs from "fs";
 import path from "path";
 import { DownloaderHelper } from "node-downloader-helper";
@@ -43,12 +43,12 @@ export class PoolCdnDownloader extends Downloader {
      * Will try to reuse existing download if it exists (DownloadHelper will resume download).
      */
     public async preloadPoolData() {
-        if (await fileExists(POOL_PATH)) {
+        if (await fileExists(getPoolPath())) {
             log.debug("Pool folder already exists, skipping download");
             return;
         }
         log.info("Pool folder does not exist, downloading pool data");
-        await fs.promises.mkdir(POOL_PATH);
+        await fs.promises.mkdir(getPoolPath());
 
         const downloadInfo: DownloadInfo = {
             type: "game",
@@ -97,7 +97,7 @@ export class PoolCdnDownloader extends Downloader {
             removeFromArray(this.currentDownloads, downloadInfo);
         }
 
-        await extract7z(dlFilePath, POOL_PATH);
+        await extract7z(dlFilePath, getPoolPath());
         log.info("Pool data extracted");
 
         await fs.promises.rm(dlFilePath);

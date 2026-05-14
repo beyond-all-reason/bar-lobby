@@ -9,8 +9,8 @@ import { MapData } from "@main/content/maps/map-data";
 import { logger } from "@main/utils/logger";
 import { Signal } from "$/jaz-ts-utils/signal";
 import { PrDownloaderAPI } from "@main/content/pr-downloader";
-import { MAPS_PATHS } from "@main/config/app";
-import chokidar from "chokidar";
+import { getMapsPaths } from "@main/config/app";
+import chokidar, { FSWatcher } from "chokidar";
 import { UltraSimpleMapParser } from "$/map-parser/ultrasimple-map-parser";
 import { removeFromArray } from "$/jaz-ts-utils/object";
 
@@ -26,11 +26,13 @@ export class MapContentAPI extends PrDownloaderAPI<string, MapData> {
     public readonly onMapAdded: Signal<string> = new Signal();
     public readonly onMapDeleted: Signal<string> = new Signal();
 
-    protected readonly mapCacheQueue: Set<string> = new Set();
+    private watcher?: FSWatcher;
+
     protected cachingMaps = false;
+    protected readonly mapCacheQueue: Set<string> = new Set();
 
     public override async init() {
-        for (const mapsDir of MAPS_PATHS) {
+        for (const mapsDir of getMapsPaths()) {
             await fs.promises.mkdir(mapsDir, { recursive: true });
         }
         this.initLookupMaps();
@@ -38,10 +40,16 @@ export class MapContentAPI extends PrDownloaderAPI<string, MapData> {
         return super.init();
     }
 
+    public async reinit() {
+        this.mapNameFileNameLookup = {};
+        this.fileNameMapNameLookup = {};
+        this.availableVersions.clear();
+        await this.init();
+    }
     protected async initLookupMaps() {
         async function* findMaps() {
             // We apply toReversed to keep the precedence order: higher precedence visited later.
-            for (const mapsDir of MAPS_PATHS.toReversed()) {
+            for (const mapsDir of getMapsPaths().toReversed()) {
                 yield* (await fs.promises.readdir(mapsDir)).filter((f) => f.endsWith(".sd7")).map((f) => path.join(mapsDir, f));
             }
         }
@@ -69,41 +77,43 @@ export class MapContentAPI extends PrDownloaderAPI<string, MapData> {
 
     protected startWatchingMapFolder() {
         //using chokidar to watch for changes in the maps folder
-        chokidar
-            .watch(MAPS_PATHS.slice(), {
-                ignoreInitial: true, //ignore the initial scan
-                awaitWriteFinish: true, //wait for the file to be fully written before emitting the event
-            })
-            .on("add", (filepath) => {
-                if (!filepath.endsWith("sd7")) {
-                    return;
-                }
-                log.debug(`Chokidar -=- Map added: ${filepath}`);
-                const filename = path.basename(filepath);
-                // Update the lookup maps
-                this.getMapNameFromFile(filepath).then((mapName) => {
-                    this.mapNameFileNameLookup[mapName] = filename;
-                    this.fileNameMapNameLookup[filename] = mapName;
-                    this.onMapAdded.dispatch(mapName);
-                });
-            })
-            .on("unlink", (filepath) => {
-                if (!filepath.endsWith("sd7")) {
-                    return;
-                }
-                log.debug(`Chokidar -=- Map removed: ${filepath}`);
-
-                const pathBaseName = path.basename(filepath);
-
-                if (pathBaseName) {
-                    const springName = this.fileNameMapNameLookup[pathBaseName];
-                    this.fileNameMapNameLookup[pathBaseName] = undefined;
-                    if (springName) {
-                        this.mapNameFileNameLookup[springName] = undefined;
-                        this.onMapDeleted.dispatch(springName);
+        this.watcher?.close()
+        this.watcher =
+            chokidar
+                .watch(getMapsPaths().slice(), {
+                    ignoreInitial: true, //ignore the initial scan
+                    awaitWriteFinish: true, //wait for the file to be fully written before emitting the event
+                })
+                .on("add", (filepath) => {
+                    if (!filepath.endsWith("sd7")) {
+                        return;
                     }
-                }
-            });
+                    log.debug(`Chokidar -=- Map added: ${filepath}`);
+                    const filename = path.basename(filepath);
+                    // Update the lookup maps
+                    this.getMapNameFromFile(filepath).then((mapName) => {
+                        this.mapNameFileNameLookup[mapName] = filename;
+                        this.fileNameMapNameLookup[filename] = mapName;
+                        this.onMapAdded.dispatch(mapName);
+                    });
+                })
+                .on("unlink", (filepath) => {
+                    if (!filepath.endsWith("sd7")) {
+                        return;
+                    }
+                    log.debug(`Chokidar -=- Map removed: ${filepath}`);
+
+                    const pathBaseName = path.basename(filepath);
+
+                    if (pathBaseName) {
+                        const springName = this.fileNameMapNameLookup[pathBaseName];
+                        this.fileNameMapNameLookup[pathBaseName] = undefined;
+                        if (springName) {
+                            this.mapNameFileNameLookup[springName] = undefined;
+                            this.onMapDeleted.dispatch(springName);
+                        }
+                    }
+                });
     }
 
     public isVersionInstalled(springName: string): boolean {
@@ -135,7 +145,7 @@ export class MapContentAPI extends PrDownloaderAPI<string, MapData> {
     }
 
     public async uninstallVersion(version: MapData) {
-        for (const mapsDir of MAPS_PATHS) {
+        for (const mapsDir of getMapsPaths()) {
             const mapFile = path.join(mapsDir, version.filename);
             await fs.promises.rm(mapFile, { force: true });
         }

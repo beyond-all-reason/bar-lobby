@@ -10,6 +10,10 @@ async function init() {
     await engineContentAPI.init();
 }
 
+async function reinit() {
+    await engineContentAPI.reinit();
+}
+
 function registerIpcHandlers() {
     ipcMain.handle("engine:listAvailableVersions", () =>
         engineContentAPI.availableVersions
@@ -22,8 +26,9 @@ function registerIpcHandlers() {
     ipcMain.handle("engine:uninstallVersion", (_, version: EngineVersion) => engineContentAPI.uninstallVersion(version));
 }
 
-const engineService = {
+export const engineService = {
     init,
+    reinit,
     registerIpcHandlers,
 };
 
