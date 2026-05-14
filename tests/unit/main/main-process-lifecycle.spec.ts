@@ -16,7 +16,7 @@ describe("Main Process Lifecycle", () => {
     // Mock all services
     const mockServices = {
         engineService: { init: vi.fn().mockResolvedValue(undefined), registerIpcHandlers: vi.fn() },
-        settingsService: { init: vi.fn().mockResolvedValue(undefined), registerIpcHandlers: vi.fn() },
+        settingsService: { init: vi.fn().mockResolvedValue(undefined), registerIpcHandlers: vi.fn(), getSettings: vi.fn().mockReturnValue({ assetsPath: "" }) },
         accountService: { init: vi.fn().mockResolvedValue(undefined) },
         replaysService: { init: vi.fn().mockResolvedValue(undefined), registerIpcHandlers: vi.fn() },
         gameService: { init: vi.fn().mockResolvedValue(undefined), registerIpcHandlers: vi.fn() },
@@ -30,6 +30,7 @@ describe("Main Process Lifecycle", () => {
         downloadsService: { registerIpcHandlers: vi.fn() },
         miscService: { registerIpcHandlers: vi.fn() },
         navigationService: { registerIpcHandlers: vi.fn() },
+        pathsService: { registerIpcHandlers: vi.fn() },
     };
 
     beforeEach(() => {
@@ -109,6 +110,7 @@ describe("Main Process Lifecycle", () => {
         vi.doMock("@main/config/app", () => ({
             APP_NAME: "Test App",
             SCENARIO_IMAGE_PATH: "/test/path",
+            setAssetsPath: vi.fn(),
         }));
 
         // Mock all services
@@ -128,6 +130,7 @@ describe("Main Process Lifecycle", () => {
         vi.doMock("@main/services/shell.service", () => ({ shellService: mockServices.shellService }));
         vi.doMock("@main/services/news.service", () => ({ miscService: mockServices.miscService }));
         vi.doMock("@main/services/navigation.service", () => ({ navigationService: mockServices.navigationService }));
+        vi.doMock("@main/services/paths.service", () => ({ pathsService: mockServices.pathsService }));
 
         vi.stubGlobal("process", mockProcess);
     });
