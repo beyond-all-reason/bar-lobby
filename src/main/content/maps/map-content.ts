@@ -32,15 +32,15 @@ export class MapContentAPI extends PrDownloaderAPI<string, MapData> {
     protected readonly mapCacheQueue: Set<string> = new Set();
 
     public override async init() {
-        for (const mapsDir of getMapsPaths()) {
-            await fs.promises.mkdir(mapsDir, { recursive: true });
-        }
         this.initLookupMaps();
         this.startWatchingMapFolder();
         return super.init();
     }
 
     public async reinit() {
+        for (const mapsDir of getMapsPaths()) {
+            await fs.promises.mkdir(mapsDir, { recursive: true });
+        }
         this.mapNameFileNameLookup = {};
         this.fileNameMapNameLookup = {};
         this.availableVersions.clear();
@@ -50,7 +50,11 @@ export class MapContentAPI extends PrDownloaderAPI<string, MapData> {
         async function* findMaps() {
             // We apply toReversed to keep the precedence order: higher precedence visited later.
             for (const mapsDir of getMapsPaths().toReversed()) {
-                yield* (await fs.promises.readdir(mapsDir)).filter((f) => f.endsWith(".sd7")).map((f) => path.join(mapsDir, f));
+                try {
+                    yield* (await fs.promises.readdir(mapsDir)).filter((f) => f.endsWith(".sd7")).map((f) => path.join(mapsDir, f));
+                } catch {
+                    // dir may not exist yet (e.g. before first path confirmation)
+                }
             }
         }
         log.debug("Scanning for maps");

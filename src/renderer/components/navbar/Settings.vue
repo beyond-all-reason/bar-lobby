@@ -47,22 +47,27 @@ SPDX-License-Identifier: MIT
             <Button @click="uploadLogsCommand">{{ t("lobby.navbar.settings.uploadLogs") }}</Button>
 
             <div class="section-header">{{ t("lobby.navbar.settings.storage") }}</div>
-            <div></div>
 
             <div>{{ t("lobby.navbar.settings.assetsPath") }}</div>
             <div class="path-row">
-                <span class="path-text">{{ currentAssetsPath }}</span>
-                <Button class="slim" @click="browseForNewAssetsPath">{{ t("lobby.navbar.settings.browse") }}</Button>
+                <Textbox :model-value="currentAssetsPath" readonly class="path-input" />
+                <Button class="slim" :disabled="isBusy" @click="browseForNewAssetsPath">{{ t("lobby.navbar.settings.browse") }}</Button>
             </div>
 
             <template v-if="pendingAssetsPath && pendingAssetsPath !== currentAssetsPath">
                 <div></div>
-                <div class="pending-path">
-                    <span class="path-text dimmed">{{ pendingAssetsPath }}</span>
-                    <div class="restart-actions">
+                <div class="pending-section">
+                    <Textbox :model-value="pendingAssetsPath" readonly class="path-input" />
+                    <div v-if="isCopying" class="copy-progress">
+                        <div class="progress-bar">
+                            <div class="progress-fill" :style="{ width: copyProgressPercent + '%' }"></div>
+                        </div>
+                        <small>{{ t("lobby.navbar.settings.copyingFiles") }} {{ copyProgressPercent }}%</small>
+                    </div>
+                    <div v-else class="restart-actions">
                         <small>{{ t("lobby.navbar.settings.restartRequired") }}</small>
-                        <Button class="green slim" @click="changeAndCopy">{{ t("lobby.navbar.settings.changeAndCopy") }}</Button>
-                        <Button class="slim" @click="changeWithoutCopy">{{ t("lobby.navbar.settings.changeWithoutCopy") }}</Button>
+                        <Button class="green slim" :disabled="isBusy" @click="changeAndCopy">{{ t("lobby.navbar.settings.changeAndCopy") }}</Button>
+                        <Button class="slim" :disabled="isBusy" @click="changeWithoutCopy">{{ t("lobby.navbar.settings.changeWithoutCopy") }}</Button>
                     </div>
                 </div>
             </template>
@@ -71,12 +76,13 @@ SPDX-License-Identifier: MIT
 </template>
 
 <script lang="ts" setup>
-import { onMounted, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import Modal from "@renderer/components/common/Modal.vue";
 import Checkbox from "@renderer/components/controls/Checkbox.vue";
 import Range from "@renderer/components/controls/Range.vue";
 import Select from "@renderer/components/controls/Select.vue";
 import Button from "@renderer/components/controls/Button.vue";
+import Textbox from "@renderer/components/controls/Textbox.vue";
 import OverlayPanel from "primevue/overlaypanel";
 import { asyncComputed } from "@vueuse/core";
 import { settingsStore } from "@renderer/store/settings.store";
@@ -87,9 +93,20 @@ const { t } = useTypedI18n();
 
 const currentAssetsPath = ref("");
 const pendingAssetsPath = ref<string | null>(null);
+const isCopying = ref(false);
+const isChanging = ref(false);
+const copyProgress = ref({ copied: 0, total: 0 });
+const copyProgressPercent = computed(() => {
+    if (copyProgress.value.total === 0) return 0;
+    return Math.round((copyProgress.value.copied / copyProgress.value.total) * 100);
+});
+const isBusy = computed(() => isCopying.value || isChanging.value);
 
 onMounted(async () => {
     currentAssetsPath.value = await window.paths.getCurrentAssetsPath();
+    window.paths.onCopyProgress((progress) => {
+        copyProgress.value = progress;
+    });
 });
 
 async function browseForNewAssetsPath() {
@@ -100,15 +117,18 @@ async function browseForNewAssetsPath() {
 }
 
 async function changeAndCopy() {
-    if (pendingAssetsPath.value) {
-        await window.paths.moveAndRestart(pendingAssetsPath.value);
-    }
+    if (!pendingAssetsPath.value) return;
+    isCopying.value = true;
+    copyProgress.value = { copied: 0, total: 0 };
+    await window.paths.moveAndRestart(pendingAssetsPath.value);
+    location.reload();
 }
 
 async function changeWithoutCopy() {
-    if (pendingAssetsPath.value) {
-        await window.paths.changeAndRestart(pendingAssetsPath.value);
-    }
+    if (!pendingAssetsPath.value) return;
+    isChanging.value = true;
+    await window.paths.changeAndRestart(pendingAssetsPath.value);
+    location.reload();
 }
 
 const op = ref();
@@ -172,22 +192,21 @@ async function uploadLogsCommand(event) {
     display: flex;
     align-items: center;
     gap: 6px;
-}
 
-.path-text {
-    font-size: 12px;
-    opacity: 0.85;
-    word-break: break-all;
-
-    &.dimmed {
-        opacity: 0.55;
+    .path-input {
+        flex: 1;
+        min-width: 0;
     }
 }
 
-.pending-path {
+.pending-section {
     display: flex;
     flex-direction: column;
     gap: 6px;
+
+    .path-input {
+        width: 100%;
+    }
 }
 
 .restart-actions {
@@ -199,5 +218,30 @@ async function uploadLogsCommand(event) {
         opacity: 0.6;
         font-size: 11px;
     }
+}
+
+.copy-progress {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+
+    small {
+        opacity: 0.7;
+        font-size: 11px;
+    }
+}
+
+.progress-bar {
+    height: 6px;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: rgba(100, 200, 100, 0.8);
+    border-radius: 3px;
+    transition: width 0.2s ease;
 }
 </style>

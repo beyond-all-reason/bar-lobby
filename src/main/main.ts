@@ -156,5 +156,5 @@ app.whenReady().then(async () => {
     miscService.registerIpcHandlers();
     autoUpdaterService.registerIpcHandlers();
     navigationService.registerIpcHandlers(webContents);
-    pathsService.registerIpcHandlers();
+    pathsService.registerIpcHandlers(webContents);
 });

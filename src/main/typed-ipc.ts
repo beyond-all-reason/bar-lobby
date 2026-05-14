@@ -38,6 +38,7 @@ export type IPCEvents = {
     "maps:mapDeleted": (filename: string) => void;
     "navigation:navigateTo": (target: string) => void;
     "notifications:showAlert": (alertConfig: { text: string; severity?: "info" | "warning" | "error"; timeoutMs?: number }) => void;
+    "paths:copyProgress": (progress: { copied: number; total: number }) => void;
     "replays:replayCached": (replay: Replay) => Replay;
     "replays:replayCachingStarted": (filename: string) => void;
     "replays:replayDeleted": (filename: string) => void;

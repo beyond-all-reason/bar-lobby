@@ -60,10 +60,7 @@ async function browseForFolder() {
 }
 
 async function confirmPath() {
-    const currentPath = await window.paths.getCurrentAssetsPath();
-    if (selectedPath.value !== currentPath) {
-        await window.paths.reinit(selectedPath.value);
-    }
+    await window.paths.reinit(selectedPath.value);
     resolvePathConfirm();
 }
 

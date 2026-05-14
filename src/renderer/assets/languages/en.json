@@ -2083,7 +2083,8 @@
                 "browse": "Browse",
                 "changeAndCopy": "Change & Copy Files",
                 "changeWithoutCopy": "Change Without Copying",
-                "restartRequired": "The application will restart after changing the location."
+                "restartRequired": "The application will reload after changing the location.",
+                "copyingFiles": "Copying files..."
             },
             "friends": {
                 "unknownUser": "Unknown User",

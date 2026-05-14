@@ -182,6 +182,8 @@ const pathsApi = {
         ipcRenderer.invoke("paths:changeAndRestart", newPath),
     getCurrentAssetsPath: (): Promise<string> =>
         ipcRenderer.invoke("paths:getCurrentAssetsPath"),
+    onCopyProgress: (callback: (progress: { copied: number; total: number }) => void) =>
+        ipcRenderer.on("paths:copyProgress", (_event, progress) => callback(progress)),
 };
 export type PathsApi = typeof pathsApi;
 contextBridge.exposeInMainWorld("paths", pathsApi);

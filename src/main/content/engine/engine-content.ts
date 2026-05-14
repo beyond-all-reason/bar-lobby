@@ -28,9 +28,8 @@ export class EngineContentAPI extends AbstractContentAPI<string, EngineVersion> 
     protected get engineDirs() { return getEnginePath(); }
 
     public override async init() {
+        log.info("Initializing engine content API");
         try {
-            log.info("Initializing engine content API");
-            await fs.promises.mkdir(this.engineDirs, { recursive: true });
             const files = await fs.promises.readdir(this.engineDirs, { withFileTypes: true });
             const dirs = files
                 .filter((file) => file.isDirectory() || file.isSymbolicLink())
@@ -42,16 +41,19 @@ export class EngineContentAPI extends AbstractContentAPI<string, EngineVersion> 
                 const ais = await this.parseAis(dir);
                 this.availableVersions.set(dir, { id: dir, ais, installed: true });
             }
-            this.checkIfDefaultIsNew();
-            log.info(`Found ${this.availableVersions.size} engine versions total.`);
         } catch (err) {
-            log.error(err);
+            if ((err as NodeJS.ErrnoException).code !== "ENOENT") {
+                log.error(err);
+            }
         }
+        this.checkIfDefaultIsNew();
+        log.info(`Found ${this.availableVersions.size} engine versions total.`);
         return this;
     }
 
     public async reinit() {
-        this.availableVersions.clear()
+        await fs.promises.mkdir(this.engineDirs, { recursive: true });
+        this.availableVersions.clear();
         await this.init();
     }
 

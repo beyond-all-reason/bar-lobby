@@ -39,6 +39,9 @@ export class GameContentAPI extends PrDownloaderAPI<string, GameVersion> {
     }
 
     public async reinit() {
+        for (const dir of [getPackagePath(), getPoolPath(), getRapidIndexPath()]) {
+            await fs.promises.mkdir(dir, { recursive: true });
+        }
         this.availableVersions.clear();
         this.packageGameVersionLookup = {};
         this.gameVersionPackageLookup = {};
@@ -66,8 +69,12 @@ export class GameContentAPI extends PrDownloaderAPI<string, GameVersion> {
 
     protected async scanPackagesDir() {
         const packagesDir = getPackagePath();
-        await fs.promises.mkdir(packagesDir, { recursive: true });
-        const packages = await fs.promises.readdir(packagesDir);
+        let packages: string[];
+        try {
+            packages = await fs.promises.readdir(packagesDir);
+        } catch {
+            return;
+        }
         // Refersh lookup tables in case new versions.gz file was downloaded.
         await this.initLookupTables();
         for (const packageFile of packages) {
