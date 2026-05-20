@@ -39,7 +39,8 @@ SPDX-License-Identifier: MIT
                     :d="shape.path"
                     fill="rgba(255, 255, 255, 0.08)"
                     stroke="rgba(255, 255, 255, 0.9)"
-                    stroke-width="0.6"
+                    stroke-dasharray="6, 6"
+                    stroke-width="1.5"
                     vector-effect="non-scaling-stroke"
                 />
             </svg>
