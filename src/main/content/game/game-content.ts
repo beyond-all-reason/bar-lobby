@@ -24,6 +24,7 @@ import { RAPID_INDEX_PATH, PACKAGE_PATH, GAME_PATHS, POOL_PATH, SCENARIO_IMAGE_P
 import { PoolCdnDownloader } from "@main/content/game/pool-cdn";
 import { fileExists } from "@main/utils/file";
 import { engineContentAPI } from "@main/content/engine/engine-content";
+import { calcChecksum } from "@main/utils/checksums";
 
 const log = logger("game-content.ts");
 const gunzip = util.promisify(zlib.gunzip);
@@ -39,7 +40,7 @@ export class GameContentAPI extends PrDownloaderAPI<string, GameVersion> {
 
         engineContentAPI.onDownloadComplete.add((downloadInfo) => {
             for (const gameVersion of this.availableVersions.keys()) {
-                engineContentAPI.calcChecksum(downloadInfo.name, gameVersion).catch(() => {});
+                calcChecksum(downloadInfo.name, gameVersion).catch(() => {});
             }
         });
 
@@ -330,7 +331,7 @@ export class GameContentAPI extends PrDownloaderAPI<string, GameVersion> {
 
         const defaultEngine = engineContentAPI.getDefaultEngine();
         if (defaultEngine?.installed) {
-            engineContentAPI.calcChecksum(defaultEngine.id, gameVersion).catch(() => {});
+            calcChecksum(defaultEngine.id, gameVersion).catch(() => {});
         }
     }
 

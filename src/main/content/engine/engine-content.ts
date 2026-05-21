@@ -15,9 +15,8 @@ import { logger } from "@main/utils/logger";
 import { extract7z } from "@main/utils/extract-7z";
 import { getEngineReleaseInfo } from "@main/config/content-sources";
 import { AbstractContentAPI } from "@main/content/abstract-content";
-import { ENGINE_PATH, WRITE_DATA_PATH, ASSETS_PATH } from "@main/config/app";
+import { ENGINE_PATH } from "@main/config/app";
 import { DEFAULT_ENGINE_VERSION } from "@main/config/default-versions";
-import { spawn } from "child_process";
 
 const log = logger("engine-content.ts");
 
@@ -123,36 +122,6 @@ export class EngineContentAPI extends AbstractContentAPI<string, EngineVersion> 
         const engineDir = path.join(this.engineDirs, version);
         await fs.promises.rm(engineDir, { force: true, recursive: true });
         this.availableVersions.delete(version);
-    }
-
-    private checksumQueue: Promise<void> = Promise.resolve();
-
-    public calcChecksum(engineVersion: string, archiveName: string): Promise<void> {
-        this.checksumQueue = this.checksumQueue.then(() => this.runChecksumProcess(engineVersion, archiveName));
-        return this.checksumQueue;
-    }
-
-    private runChecksumProcess(engineVersion: string, archiveName: string): Promise<void> {
-        const enginePath = path.join(this.engineDirs, engineVersion).replaceAll("\\", "/");
-        const binaryName = process.platform === "win32" ? "spring-headless.exe" : "./spring-headless";
-        const args = ["--write-dir", WRITE_DATA_PATH, "--isolation", "--calc-checksum", archiveName];
-
-        log.debug(`Calculating checksum for: ${archiveName}`);
-        return new Promise<void>((resolve) => {
-            const proc = spawn(binaryName, args, {
-                cwd: enginePath,
-                stdio: "pipe",
-                env: { ...process.env, SPRING_DATADIR: ASSETS_PATH },
-            });
-            proc.on("exit", (code) => {
-                if (code !== 0) log.warn(`calcChecksum exited with code ${code} for: ${archiveName}`);
-                resolve();
-            });
-            proc.on("error", (err) => {
-                log.warn(`calcChecksum failed for ${archiveName}: ${err}`);
-                resolve();
-            });
-        });
     }
 
     protected override async downloadComplete(downloadInfo: DownloadInfo) {

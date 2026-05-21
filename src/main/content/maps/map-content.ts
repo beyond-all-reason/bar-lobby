@@ -14,6 +14,7 @@ import chokidar from "chokidar";
 import { UltraSimpleMapParser } from "$/map-parser/ultrasimple-map-parser";
 import { removeFromArray } from "$/jaz-ts-utils/object";
 import { engineContentAPI } from "@main/content/engine/engine-content";
+import { calcChecksum } from "@main/utils/checksums";
 const log = logger("map-content.ts");
 
 /**
@@ -39,7 +40,7 @@ export class MapContentAPI extends PrDownloaderAPI<string, MapData> {
         engineContentAPI.onDownloadComplete.add((downloadInfo) => {
             for (const [mapName, fileName] of Object.entries(this.mapNameFileNameLookup)) {
                 if (fileName) {
-                    engineContentAPI.calcChecksum(downloadInfo.name, mapName).catch(() => {});
+                    calcChecksum(downloadInfo.name, mapName).catch(() => {});
                 }
             }
         });
@@ -97,7 +98,7 @@ export class MapContentAPI extends PrDownloaderAPI<string, MapData> {
 
                     const defaultEngine = engineContentAPI.getDefaultEngine();
                     if (defaultEngine?.installed) {
-                        engineContentAPI.calcChecksum(defaultEngine.id, mapName).catch(() => {});
+                        calcChecksum(defaultEngine.id, mapName).catch(() => {});
                     }
                 });
             })
