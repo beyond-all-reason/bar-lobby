@@ -41,11 +41,11 @@ import { computed, inject, Ref } from "vue";
 import Loader from "@renderer/components/common/Loader.vue";
 import Progress from "@renderer/components/common/Progress.vue";
 import PopOutPanel from "@renderer/components/navbar/PopOutPanel.vue";
-import { downloadsStore } from "@renderer/store/downloads.store";
 import { useTypedI18n } from "@renderer/i18n";
-import type { DownloadInfo } from "@main/content/downloads";
+import { useDownloadProgress } from "@renderer/composables/useDownloadProgress";
 
 const { t } = useTypedI18n();
+const { allDownloads, downloadPercent, progressText } = useDownloadProgress();
 
 const props = defineProps<{
     modelValue: boolean;
@@ -60,13 +60,6 @@ const toggleMessages = inject<Ref<(open?: boolean, userId?: number) => void>>("t
 const toggleFriends = inject<Ref<(open?: boolean) => void>>("toggleFriends")!;
 const toggleDownloads = inject<Ref<(open?: boolean) => void>>("toggleDownloads")!;
 
-const allDownloads = computed(() => [
-    ...downloadsStore.mapDownloads,
-    ...downloadsStore.engineDownloads,
-    ...downloadsStore.gameDownloads,
-    ...downloadsStore.updateDownloads,
-]);
-
 const limitedList = computed(() => allDownloads.value.slice(0, 5));
 
 toggleDownloads.value = async (open?: boolean) => {
@@ -76,64 +69,6 @@ toggleDownloads.value = async (open?: boolean) => {
     }
     emits("update:modelValue", open ?? !props.modelValue);
 };
-
-interface SpeedEntry {
-    prevBytes: number;
-    prevTime: number;
-    speed: number;
-}
-const speedTracker = new Map<string, SpeedEntry>();
-
-function downloadPercent(download: DownloadInfo): number {
-    if (download.totalBytes <= 0) return 0;
-    return download.currentBytes / download.totalBytes;
-}
-
-function barText(download: DownloadInfo): string {
-    if (download.currentBytes === 0) return t("lobby.navbar.downloads.starting");
-    return `${(downloadPercent(download) * 100).toFixed(1)}%`;
-}
-
-function detailText(download: DownloadInfo): string {
-    if (download.currentBytes === 0) return "";
-    const now = Date.now();
-    const key = download.name;
-    const prev = speedTracker.get(key);
-    let speed = 0;
-    if (prev) {
-        const dt = (now - prev.prevTime) / 1000;
-        if (dt > 0.25) {
-            const raw = (download.currentBytes - prev.prevBytes) / dt;
-            speed = raw > 0 ? prev.speed * 0.7 + raw * 0.3 : prev.speed * 0.9;
-            speedTracker.set(key, { prevBytes: download.currentBytes, prevTime: now, speed });
-        } else {
-            speed = prev.speed;
-        }
-    } else {
-        speedTracker.set(key, { prevBytes: download.currentBytes, prevTime: now, speed: 0 });
-    }
-    const cur = (download.currentBytes / (1024 * 1024)).toFixed(1);
-    const tot = (download.totalBytes / (1024 * 1024)).toFixed(1);
-    let text = `${cur} / ${tot} MB`;
-    if (speed > 0) {
-        text += ` · ${formatSpeed(speed)}`;
-        const remaining = download.totalBytes - download.currentBytes;
-        if (remaining > 0) text += ` · ${formatEta(remaining / speed)}`;
-    }
-    return text;
-}
-
-function formatSpeed(bps: number): string {
-    if (bps >= 1024 * 1024) return `${(bps / (1024 * 1024)).toFixed(1)} MB/s`;
-    if (bps >= 1024) return `${(bps / 1024).toFixed(1)} KB/s`;
-    return `${bps.toFixed(0)} B/s`;
-}
-
-function formatEta(seconds: number): string {
-    if (seconds >= 3600) return `${Math.floor(seconds / 3600)}h ${Math.floor((seconds % 3600) / 60)}m`;
-    if (seconds >= 60) return `${Math.floor(seconds / 60)}m ${Math.floor(seconds % 60)}s`;
-    return `${Math.floor(seconds)}s`;
-}
 </script>
 
 <style lang="scss" scoped>
