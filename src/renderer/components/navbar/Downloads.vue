@@ -38,6 +38,7 @@ SPDX-License-Identifier: MIT
 <script lang="ts" setup>
 import { computed, inject, Ref } from "vue";
 
+import type { DownloadInfo } from "@main/content/downloads";
 import Loader from "@renderer/components/common/Loader.vue";
 import Progress from "@renderer/components/common/Progress.vue";
 import PopOutPanel from "@renderer/components/navbar/PopOutPanel.vue";
@@ -46,6 +47,16 @@ import { useDownloadProgress } from "@renderer/composables/useDownloadProgress";
 
 const { t } = useTypedI18n();
 const { allDownloads, downloadPercent, progressText } = useDownloadProgress();
+
+function barText(download: DownloadInfo): string {
+    if (download.currentBytes === 0) return t("lobby.navbar.downloads.starting");
+    return `${(downloadPercent(download) * 100).toFixed(1)}%`;
+}
+
+function detailText(download: DownloadInfo): string {
+    if (download.currentBytes === 0) return "";
+    return progressText(download);
+}
 
 const props = defineProps<{
     modelValue: boolean;
