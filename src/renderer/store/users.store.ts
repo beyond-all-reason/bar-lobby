@@ -5,7 +5,7 @@
 import { db } from "@renderer/store/db";
 import { reactive } from "vue";
 import { SubsManager } from "@renderer/utils/subscriptions-manager";
-import { UserId, UserReportRequestData } from "tachyon-protocol/types";
+import { UserReportRequestData } from "tachyon-protocol/types";
 import { notificationsApi } from "@renderer/api/notifications";
 
 export const usersStore: {
@@ -49,17 +49,10 @@ export function initUsersStore() {
 
 /**
  * Request reporting of one or more users to moderators for violation of rules.
- * @param userIds Array of UserIds that are the subject of this report
- * @param reason String for the type of report, typically 'action' (actions in game) or 'chat' (words in chat)
- * @param message String for any additional context or information for this report.
+ * @param data Required data for submission of this request to the server.
  */
-async function requestReportUsers(userIds: UserId[], reason: string, message: string) {
+async function requestReportUsers(data: UserReportRequestData) {
     try {
-        const data: UserReportRequestData = {
-            userIds: userIds,
-            reason: { type: reason },
-            message: message,
-        };
         const response = await window.tachyon.request("user/report", data);
         console.log("Tachyon user/report:", response);
     } catch (error) {
