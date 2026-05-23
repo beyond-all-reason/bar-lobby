@@ -102,6 +102,8 @@ export class EngineContentAPI extends AbstractContentAPI<string, EngineVersion> 
             log.info(`Extracting <${engineInfo.filename}> to ${engineDestinationPath}`);
             await fs.promises.mkdir(this.engineDirs, { recursive: true });
             await fs.promises.writeFile(downloadedFilePath, Buffer.from(engine7z), { encoding: "binary" });
+            downloadInfo.phase = "extracting";
+            this.downloadProgress(downloadInfo);
             await extract7z(downloadedFilePath, engineDestinationPath);
             await fs.promises.unlink(downloadedFilePath);
             removeFromArray(this.currentDownloads, downloadInfo);
