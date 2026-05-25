@@ -76,7 +76,6 @@ export class PoolCdnDownloader extends Downloader {
         });
         dl.on("end", () => {
             log.info("Pool data download complete");
-            this.downloadComplete(downloadInfo);
         });
         dl.on("error", (error) => {
             console.error("Pool data download failed", error);
@@ -97,10 +96,15 @@ export class PoolCdnDownloader extends Downloader {
             removeFromArray(this.currentDownloads, downloadInfo);
         }
 
+        downloadInfo.phase = "extracting";
+        this.downloadProgress(downloadInfo);
+
         await extract7z(dlFilePath, getPoolPath());
         log.info("Pool data extracted");
 
         await fs.promises.rm(dlFilePath);
         log.debug(dlFilePath, "Deleted downloaded pool cdn file");
+
+        this.downloadComplete(downloadInfo);
     }
 }

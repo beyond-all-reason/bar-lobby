@@ -16,7 +16,7 @@ SPDX-License-Identifier: MIT
         <Background :blur="blurBg" />
         <Notifications v-if="state === 'default'" />
         <PromptContainer v-if="state === 'default'" />
-        <NavBar :class="{ hidden: empty || state === 'preloader' || state === 'initial-setup' }" />
+        <NavBar :class="{ hidden: empty || state === 'initial-setup' }" />
         <div class="lobby-version">
             {{ infosStore.lobby.version }}
         </div>
@@ -29,8 +29,7 @@ SPDX-License-Identifier: MIT
             </div>
         </div>
         <Transition mode="out-in" name="fade">
-            <Preloader v-if="state === 'preloader'" @complete="onPreloadDone" />
-            <InitialSetup v-else-if="state === 'initial-setup'" @complete="onInitialSetupDone" />
+            <InitialSetup v-if="state === 'initial-setup'" @complete="onInitialSetupDone" />
             <div class="view-container" :class="{ 'translated-right': battleStore.isLobbyOpened }" v-else>
                 <RouterView v-slot="{ Component, route }">
                     <template v-if="Component">
@@ -69,9 +68,8 @@ import Loader from "@renderer/components/common/Loader.vue";
 import Background from "@renderer/components/misc/Background.vue";
 import DebugSidebar from "@renderer/components/misc/DebugSidebar.vue";
 import Error from "@renderer/components/misc/Error.vue";
-import InitialSetup from "@renderer/components/misc/InitialSetup.vue";
 import IntroVideo from "@renderer/components/misc/IntroVideo.vue";
-import Preloader from "@renderer/components/misc/Preloader.vue";
+import InitialSetup from "@renderer/components/misc/InitialSetup.vue";
 import NavBar from "@renderer/components/navbar/NavBar.vue";
 import Settings from "@renderer/components/navbar/Settings.vue";
 import ServerSettings from "@renderer/components/navbar/ServerSettings.vue";
@@ -92,7 +90,7 @@ import { useLogInConfirmation } from "@renderer/composables/useLogInConfirmation
 const router = useRouter();
 const videoVisible = toRef(!toValue(settingsStore.skipIntro));
 
-const state: Ref<"preloader" | "initial-setup" | "default"> = ref("preloader");
+const state: Ref<"initial-setup" | "default"> = ref("initial-setup");
 const empty = ref(router.currentRoute.value?.meta?.empty ?? false);
 const blurBg = ref(router.currentRoute.value?.meta?.blurBg ?? false);
 
@@ -156,10 +154,6 @@ router.afterEach(async (to) => {
 
 function onIntroEnd() {
     videoVisible.value = false;
-}
-
-async function onPreloadDone() {
-    state.value = "initial-setup";
 }
 
 function onInitialSetupDone() {

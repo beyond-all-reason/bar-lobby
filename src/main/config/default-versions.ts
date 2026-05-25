@@ -8,8 +8,10 @@
  * We need to define and change these manually because the latest engine and game version may be incompatible with each other, or could be untested and containing bugs.
  *
  * In the future these values should probably be set and fetched from the master server, so we don't need to deploy a new lobby release every time.
+ *
+ * Edit 5/20/2026: Bumped default engine version because it was not compatible with latest game versions, as was foretold. - Hectate
  */
 
 export const LATEST = "LATEST";
 export const LATEST_GAME_VERSION = "byar:test";
-export const DEFAULT_ENGINE_VERSION = "2025.04.08";
+export const DEFAULT_ENGINE_VERSION = "2025.06.21";

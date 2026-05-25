@@ -5,7 +5,7 @@ SPDX-License-Identifier: MIT
 -->
 
 <template>
-    <Button class="icon download-button" :style="`--downloadPercent: ${downloadPercent * 100}%`" :class="{ pulse: isDownloading }">
+    <Button class="icon download-button" :style="`--downloadPercent: ${totalDownloadPercent * 100}%`" :class="{ pulse: isDownloading }">
         <Icon :icon="download" :height="40" />
     </Button>
 </template>
@@ -16,20 +16,11 @@ import download from "@iconify-icons/mdi/download";
 import { computed } from "vue";
 
 import Button from "@renderer/components/controls/Button.vue";
-import { downloadsStore } from "@renderer/store/downloads.store";
+import { useDownloadProgress } from "@renderer/composables/useDownloadProgress";
 
-const isDownloading = computed(() => downloadsStore.mapDownloads.length > 0);
+const { allDownloads, totalDownloadPercent } = useDownloadProgress();
 
-const downloadPercent = computed(() => {
-    const downloads = downloadsStore.mapDownloads;
-    let currentBytes = 0;
-    let totalBytes = 0;
-    for (const download of downloads) {
-        currentBytes += download.currentBytes;
-        totalBytes += download.totalBytes;
-    }
-    return currentBytes / totalBytes || 0;
-});
+const isDownloading = computed(() => allDownloads.value.length > 0);
 </script>
 
 <style lang="scss" scoped>
