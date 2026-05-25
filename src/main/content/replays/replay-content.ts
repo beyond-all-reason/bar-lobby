@@ -8,6 +8,7 @@ import { mapContentAPI } from "@main/content/maps/map-content";
 import { asyncParseReplay } from "@main/content/replays/parse-replay";
 import { Replay } from "@main/content/replays/replay";
 import { gameAPI } from "@main/game/game";
+import { isReplayFile } from "@main/config/replay-extensions";
 import { logger } from "@main/utils/logger";
 import chokidar from "chokidar";
 import fs from "fs";
@@ -39,7 +40,7 @@ export class ReplayContentAPI {
                 awaitWriteFinish: true, //wait for the file to be fully written before emitting the event
             })
             .on("add", (filepath) => {
-                if (!filepath.endsWith("sdfz")) {
+                if (!isReplayFile(filepath)) {
                     return;
                 }
 
@@ -53,7 +54,7 @@ export class ReplayContentAPI {
                 this.cacheReplay(filepath);
             })
             .on("unlink", (filepath) => {
-                if (!filepath.endsWith("sdfz")) {
+                if (!isReplayFile(filepath)) {
                     return;
                 }
                 this.onReplayDeleted.dispatch(path.basename(filepath));
@@ -98,7 +99,7 @@ export class ReplayContentAPI {
 
     protected async scanFolderForReplays() {
         let replayFiles = await fs.promises.readdir(REPLAYS_PATH);
-        replayFiles = replayFiles.filter((replayFile) => replayFile.endsWith("sdfz"));
+        replayFiles = replayFiles.filter((replayFile) => isReplayFile(replayFile));
         return replayFiles;
     }
 
