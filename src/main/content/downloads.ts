@@ -8,6 +8,7 @@ export type DownloadInfo = {
     currentBytes: number;
     totalBytes: number;
     progress: number;
+    phase?: "downloading" | "extracting";
 };
 
 export type SpringFilesMapMeta = {
