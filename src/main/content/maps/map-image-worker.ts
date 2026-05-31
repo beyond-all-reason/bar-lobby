@@ -15,10 +15,8 @@ if (isMainThread) {
 
     // listen to messages from the main thread
     narrowedParentPort.on("message", async (imageSource: string) => {
-        const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), FETCH_IMAGE_TIMEOUT_MS);
         try {
-            const response = await fetch(imageSource, { signal: controller.signal });
+            const response = await fetch(imageSource, { signal: AbortSignal.timeout(FETCH_IMAGE_TIMEOUT_MS) });
             if (!response.ok) {
                 throw new Error(`HTTP ${response.status} ${response.statusText}`);
             }
@@ -28,8 +26,6 @@ if (isMainThread) {
         } catch (error) {
             console.error(error);
             narrowedParentPort.postMessage({ imageSource, error: String(error) });
-        } finally {
-            clearTimeout(timeout);
         }
     });
 }

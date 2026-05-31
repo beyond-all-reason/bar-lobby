@@ -15,16 +15,9 @@ async function init() {
 const FETCH_MAPS_TIMEOUT_MS = 15_000;
 
 async function fetchAllMaps(): Promise<[MapData[], MapDownloadData[]]> {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), FETCH_MAPS_TIMEOUT_MS);
-    let maps: Response;
-    try {
-        maps = await fetch("https://maps-metadata.beyondallreason.dev/latest/lobby_maps.validated.json", {
-            signal: controller.signal,
-        });
-    } finally {
-        clearTimeout(timeout);
-    }
+    const maps = await fetch("https://maps-metadata.beyondallreason.dev/latest/lobby_maps.validated.json", {
+        signal: AbortSignal.timeout(FETCH_MAPS_TIMEOUT_MS),
+    });
     const mapsAsObject = await maps.json();
     const mapsAsArray = Object.values(mapsAsObject) as MapMetadata[];
 
