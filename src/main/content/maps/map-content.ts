@@ -46,9 +46,6 @@ export class MapContentAPI extends PrDownloaderAPI<string, MapData> {
             }
         }
         log.debug("Scanning for maps");
-        // TODO: Verify file checksums (md5 from CDN /find API or maps-metadata) before considering
-        // a map installed. Partially downloaded or corrupted .sd7 files currently pass this scan
-        // if their header is parseable, leading to broken maps appearing as installed.
         for await (const filePath of findMaps()) {
             try {
                 const mapName = await this.getMapNameFromFile(filePath);
