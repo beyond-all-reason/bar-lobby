@@ -19,12 +19,7 @@ function registerIpcHandlers() {
             startTokenRenewer((expiresIn / 2) * 1000);
         } catch (error) {
             log.error("Error during login");
-            // fetch() rejects with TypeError on network failure (per the Fetch spec).
-            // Keep the refresh token so the user can retry once connectivity returns;
-            // auth/protocol errors come through as regular Errors and still wipe.
-            if (!(error instanceof TypeError)) {
-                accountService.wipe();
-            }
+            accountService.wipe();
             throw error;
         }
     });
