@@ -11,6 +11,7 @@ import { matchmakingStore, matchmaking } from "@renderer/store/matchmaking.store
 import { subsManager } from "@renderer/store/users.store";
 import { UserId } from "tachyon-protocol/types";
 import { notificationsApi } from "@renderer/api/notifications";
+import { chat, chatStore } from "@renderer/store/chat.store";
 
 export const tachyonStore = reactive({
     isInitialized: false,
@@ -81,6 +82,11 @@ export async function initTachyonStore() {
         // Fetch matchmaking queues when connected
         if (matchmakingStore.isInitialized) {
             matchmaking.sendListRequest();
+        }
+
+        // Subscribe to messages (all sources) when connected
+        if (chatStore.isInitialized) {
+            chat.requestSubscribeReceived();
         }
     });
 

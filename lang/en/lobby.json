@@ -226,7 +226,7 @@
             },
             "messages": {
                 "message": "Message",
-                "userID": "UserID",
+                "userID": "User {id}",
                 "userIDPlaceholder": "32452",
                 "send": "Send"
             },

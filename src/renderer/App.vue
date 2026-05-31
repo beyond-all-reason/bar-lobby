@@ -50,7 +50,6 @@ SPDX-License-Identifier: MIT
         </Transition>
         <Settings v-model="settingsOpen" />
         <ServerSettings v-model="serverSettingsOpen" />
-        <ChatComponent v-if="state === 'default' && me.isAuthenticated && tachyonStore.isConnected" />
         <FullscreenGameModeSelector v-if="state === 'default'" :visible="battleStore.isSelectingGameMode" />
         <LogInConfirmationModal v-model="logInConfirmationIsOpen" :intendedRoute="logInConfirmationIntendedRoute" />
     </div>
@@ -83,12 +82,10 @@ import LogInConfirmationModal from "@renderer/components/misc/LogInConfirmationM
 import { playRandomMusic } from "@renderer/utils/play-random-music";
 import { settingsStore } from "./store/settings.store";
 import { infosStore } from "@renderer/store/infos.store";
-import ChatComponent from "@renderer/components/social/ChatComponent.vue";
 import { battleStore } from "@renderer/store/battle.store";
 import FullscreenGameModeSelector from "@renderer/components/battle/FullscreenGameModeSelector.vue";
 import { useGlobalKeybindings } from "@renderer/composables/useGlobalKeybindings";
 import { me } from "@renderer/store/me.store";
-import { tachyonStore } from "@renderer/store/tachyon.store";
 import { auth } from "@renderer/store/me.store";
 import { useLogInConfirmation } from "@renderer/composables/useLogInConfirmation";
 
