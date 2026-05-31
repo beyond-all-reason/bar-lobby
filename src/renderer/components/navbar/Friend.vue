@@ -83,6 +83,7 @@ import { friends } from "@renderer/store/me.store";
 import { notificationsApi } from "@renderer/api/notifications";
 import { db } from "@renderer/store/db";
 import { useDexieLiveQuery } from "@renderer/composables/useDexieLiveQuery";
+import { chat } from "@renderer/store/chat.store";
 
 const { t } = useTypedI18n();
 
@@ -155,27 +156,14 @@ async function viewProfile() {
 
 const toggleMessages = inject<Ref<((open?: boolean, userId?: string) => void) | undefined>>("toggleMessages")!;
 function sendMessage() {
-    // if (!api.session.directMessages.has(props.user.userId)) {
-    //     api.session.directMessages.set(props.user.userId, []);
-    // }
+    chat.addNewUserChat(props.userId);
     if (toggleMessages.value) {
         toggleMessages.value(true, props.userId);
     }
 }
 
 async function joinBattle() {
-    // const battleIdToJoin = props.user.battleStatus.battleId;
-    // await api.session.updateBattleList();
-    // if (!battleIdToJoin) {
-    //     console.warn("Joining battle but battle is null");
-    //     return;
-    // }
-    // let battle = api.session.battles.get(battleIdToJoin);
-    // if (!battle) {
-    //     console.warn(`Battle with id ${battleIdToJoin} not found, hence can not join.`);
-    //     return;
-    // }
-    // await attemptJoinBattle(battle);
+    // TODO
 }
 
 async function inviteToParty() {

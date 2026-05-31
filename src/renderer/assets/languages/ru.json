@@ -4021,7 +4021,15 @@
             "downloads": {
                 "noDownloads": null,
                 "moreDownloads": null,
-                "starting": null
+                "starting": null,
+                "extracting": null,
+                "progressMB": null,
+                "speedMBps": null,
+                "speedKBps": null,
+                "speedBps": null,
+                "etaHoursMinutes": null,
+                "etaMinutesSeconds": null,
+                "etaSeconds": null
             },
             "serverStatus": {
                 "playersOnline": null,

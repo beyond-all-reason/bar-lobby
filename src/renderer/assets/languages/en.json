@@ -2047,7 +2047,15 @@
             "downloads": {
                 "noDownloads": "No downloads active",
                 "moreDownloads": "and {count} more...",
-                "starting": "Starting..."
+                "starting": "Starting...",
+                "extracting": "Extracting...",
+                "progressMB": "{current} / {total} MB ({percent}%)",
+                "speedMBps": "{speed} MB/s",
+                "speedKBps": "{speed} KB/s",
+                "speedBps": "{speed} B/s",
+                "etaHoursMinutes": "{hours}h {minutes}m left",
+                "etaMinutesSeconds": "{minutes}m {seconds}s left",
+                "etaSeconds": "{seconds}s left"
             },
             "serverStatus": {
                 "playersOnline": "Players Online",
@@ -2057,7 +2065,7 @@
             },
             "messages": {
                 "message": "Message",
-                "userID": "UserID",
+                "userID": "User {id}",
                 "userIDPlaceholder": "32452",
                 "send": "Send"
             },

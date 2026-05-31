@@ -8,9 +8,42 @@ SPDX-License-Identifier: MIT
     <div class="map-container">
         <div v-if="battleStore.battleOptions.map" class="map" :style="aspectRatioDrivenStyle">
             <img loading="lazy" :src="mapTextureUrl" />
-            <div v-if="battleStore.battleOptions.mapOptions.startPosType === StartPosType.Boxes && boxes" class="boxes">
+            <!--
+            When the active preset has polygon-shaped startboxes (3+ vertex
+            ring), render a read-only SVG overlay only — the rect-div drag
+            handles are suppressed. The user "breaks free" into custom rect
+            edit mode by picking a different preset in the map options modal.
+            This matches the BYAR-Chobby#1184 behaviour reviewers approved.
+            For pure-rectangle presets (or custom mode), the existing rect
+            divs render with full drag/resize affordance unchanged.
+            -->
+            <div
+                v-if="battleStore.battleOptions.mapOptions.startPosType === StartPosType.Boxes && boxes && !polygonPresetActive"
+                class="boxes"
+            >
                 <MapBattlePreviewStartBox v-for="(box, i) in boxes" v-startBox="box" :key="`box${i}`" :id="i" :box="box" />
             </div>
+            <svg
+                v-if="
+                    battleStore.battleOptions.mapOptions.startPosType === StartPosType.Boxes &&
+                    polygonPresetActive &&
+                    polygonOverlays.length > 0
+                "
+                class="polygon-overlay"
+                viewBox="0 0 200 200"
+                preserveAspectRatio="none"
+            >
+                <path
+                    v-for="shape in polygonOverlays"
+                    :key="`poly${shape.index}`"
+                    :d="shape.path"
+                    fill="rgba(255, 255, 255, 0.08)"
+                    stroke="rgba(255, 255, 255, 0.9)"
+                    stroke-dasharray="6, 6"
+                    stroke-width="1.5"
+                    vector-effect="non-scaling-stroke"
+                />
+            </svg>
             <div
                 v-if="battleStore.battleOptions.mapOptions.startPosType in [StartPosType.Fixed, StartPosType.Random]"
                 class="start-positions"
@@ -56,6 +89,7 @@ import { StartBox } from "tachyon-protocol/types";
 import { computed, defineComponent, ref, watch } from "vue";
 import MapBattlePreviewStartBox from "@renderer/components/maps/MapBattlePreviewStartBox.vue";
 import defaultMiniMap from "/src/renderer/assets/images/default-minimap.png?url";
+import { isPolygonShape, tessellateRing } from "@renderer/utils/spline-tessellation";
 
 defineComponent({
     directives: {
@@ -88,6 +122,41 @@ watch(
 );
 
 const boxes = computed<StartBox[]>(() => battleActions.getCurrentStartBoxes());
+
+// Active preset is "polygon mode" when the currently-selected map preset
+// (startBoxesIndex) contains at least one 3+ vertex ring. In that mode, the
+// rect divs are hidden and only the SVG overlay renders — no drag/resize
+// affordance, since the polygon shape is intrinsic to the map and not
+// user-editable from the lobby. Switching to a custom preset clears
+// startBoxesIndex and turns this off.
+const polygonPresetActive = computed<boolean>(() => {
+    const startBoxesIndex = battleStore.battleOptions.mapOptions.startBoxesIndex;
+    if (startBoxesIndex === undefined) return false;
+    const set = battleStore.battleOptions.map?.startboxesSet?.[startBoxesIndex];
+    if (!set) return false;
+    return set.startboxes.some((box) => isPolygonShape(box.poly));
+});
+
+// SVG `<path>` strings for the active polygon preset's startboxes. Reads
+// directly from startboxesSet (rather than the rect-flattened `boxes`
+// computed above) so the polygon vertex data — including any per-anchor
+// Catmull-Rom strength — is preserved through the render. The path uses
+// the [0, 200] coordinate space directly via the parent SVG's viewBox.
+const polygonOverlays = computed<{ index: number; path: string }[]>(() => {
+    const startBoxesIndex = battleStore.battleOptions.mapOptions.startBoxesIndex;
+    if (startBoxesIndex === undefined) return [];
+    const set = battleStore.battleOptions.map?.startboxesSet?.[startBoxesIndex];
+    if (!set) return [];
+    const out: { index: number; path: string }[] = [];
+    set.startboxes.forEach((box, index) => {
+        if (!isPolygonShape(box.poly)) return;
+        const tess = tessellateRing(box.poly);
+        if (tess.length === 0) return;
+        const path = `M ${tess.map((p) => `${p.x} ${p.y}`).join(" L ")} Z`;
+        out.push({ index, path });
+    });
+    return out;
+});
 
 const aspectRatioDrivenStyle = computed(() => {
     if (!battleStore.battleOptions.map?.mapWidth || !battleStore.battleOptions.map?.mapHeight) {
@@ -142,6 +211,15 @@ const rgbColors = [
     position: absolute;
     width: 100%;
     height: 100%;
+}
+
+.polygon-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
 }
 
 .start-positions {

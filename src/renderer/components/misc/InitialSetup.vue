@@ -6,105 +6,111 @@ SPDX-License-Identifier: MIT
 
 <template>
     <div class="initial-setup fullsize flex-center">
-        <h1>{{ t("lobby.components.misc.initialSetup.title") }}</h1>
+        <h1>{{ title }}</h1>
         <h4 :class="{ 'status-error': stepError, 'status-warning': stepRetrying }">{{ text }}</h4>
-        <div class="action-slot">
-            <template v-if="stepError">
-                <Button class="green" @click="retryCurrentStep">{{ t("lobby.components.misc.initialSetup.retry") }}</Button>
-                <Button v-if="canSkipCurrentStep" class="red" @click="skipCurrentStep">{{
-                    t("lobby.components.misc.initialSetup.skip")
-                }}</Button>
-            </template>
-            <h2 v-else-if="downloadPercent < 1">{{ (downloadPercent * 100).toFixed(0) }}%</h2>
-        </div>
-        <div class="play-offline-action">
-            <Button class="blue" @click="skipAllSteps">{{ t("lobby.components.misc.initialSetup.playOffline") }}</Button>
-        </div>
+        <Progress :percent="overallProgress" :height="40" style="width: 70%" themed pulsating />
+        <template v-if="isDownloadPhase">
+            <div class="action-slot">
+                <template v-if="stepError">
+                    <Button class="green" @click="retryCurrentStep">{{ t("lobby.components.misc.initialSetup.retry") }}</Button>
+                    <Button v-if="canSkipCurrentStep" class="red" @click="skipCurrentStep">{{
+                        t("lobby.components.misc.initialSetup.skip")
+                    }}</Button>
+                </template>
+                <template v-else>
+                    <div v-if="isExtracting" class="initial-setup__detail">
+                        <Icon :icon="loadingIcon" class="initial-setup__spinner" />
+                        <span>{{ t("lobby.navbar.downloads.extracting") }}</span>
+                    </div>
+                    <div v-else-if="currentDownload" class="initial-setup__detail initial-setup__detail--text">
+                        {{ progressDetail }}
+                    </div>
+                    <div v-else class="initial-setup__detail">
+                        <Icon :icon="loadingIcon" class="initial-setup__spinner" />
+                    </div>
+                </template>
+            </div>
+            <div class="play-offline-action">
+                <Button class="blue" @click="skipAllSteps">{{ t("lobby.components.misc.initialSetup.playOffline") }}</Button>
+            </div>
+        </template>
     </div>
 </template>
 
 <script lang="ts" setup>
-import { defaultMaps } from "@main/config/default-maps";
-import { LATEST_GAME_VERSION } from "@main/config/default-versions";
-import { DownloadInfo } from "@main/content/downloads";
-import { initBattleStore } from "@renderer/store/battle.store";
-import { db } from "@renderer/store/db";
-import { downloadsStore } from "@renderer/store/downloads.store";
-import { enginesStore } from "@renderer/store/engine.store";
-import { downloadGame } from "@renderer/store/game.store";
-import { gameStore } from "@renderer/store/game.store";
-import { onMounted, onUnmounted, ref, watch } from "vue";
+import { delay } from "$/jaz-ts-utils/delay";
+import { randomFromArray } from "$/jaz-ts-utils/object";
+import { computed, onMounted, onUnmounted, ref, watch } from "vue";
+import { Icon } from "@iconify/vue";
+import loadingIcon from "@iconify-icons/mdi/loading";
 import { useTypedI18n } from "@renderer/i18n";
 import Button from "@renderer/components/controls/Button.vue";
+import Progress from "@renderer/components/common/Progress.vue";
+import { audioApi } from "@renderer/audio/audio";
+import { backgroundImages, fontFiles } from "@renderer/assets/assetFiles";
+import { fetchMissingMapImages, initMapsStore } from "@renderer/store/maps.store";
+import { initReplaysStore } from "@renderer/store/replays.store";
+import { db, initDb } from "@renderer/store/db";
+import { defaultMaps } from "@main/config/default-maps";
+import { LATEST_GAME_VERSION } from "@main/config/default-versions";
+import { initBattleStore } from "@renderer/store/battle.store";
+import { enginesStore } from "@renderer/store/engine.store";
+import { downloadGame, gameStore } from "@renderer/store/game.store";
+import { downloadsStore } from "@renderer/store/downloads.store";
+import { useDownloadProgress } from "@renderer/composables/useDownloadProgress";
+
+const PRELOAD_WEIGHT = 0.05;
+const DOWNLOAD_FILL = 0.8;
+const AUTO_RETRY_ATTEMPTS = 3;
+const AUTO_RETRY_DELAY_MS = 2000;
 
 const { t } = useTypedI18n();
+const { allDownloads, totalDownloadPercent, progressText } = useDownloadProgress();
 
-const emit = defineEmits<{
-    (event: "complete"): void;
-}>();
+const emit = defineEmits(["complete"]);
 
+interface DownloadStage {
+    id: "engine" | "game" | "maps" | "update";
+    label: string;
+    weight: number;
+    canSkip: () => boolean;
+    run: () => Promise<void>;
+}
+
+const title = ref(t("lobby.components.misc.preloader.loading"));
 const text = ref("");
+const isDownloadPhase = ref(false);
 const stepError = ref("");
 const stepRetrying = ref(false);
 const canSkipCurrentStep = ref(false);
-const downloadPercent = ref(0);
+
+const overallProgress = ref(0);
+let stageStart = 0;
+let stageEnd = 0;
+let currentStage: DownloadStage | null = null;
+
+const currentDownload = computed(() => allDownloads.value[0] ?? null);
+const isExtracting = computed(() => currentDownload.value?.phase === "extracting");
+
+const progressDetail = computed(() => {
+    const download = currentDownload.value;
+    if (!download || download.currentBytes === 0) return t("lobby.navbar.downloads.starting");
+    return progressText(download);
+});
+
+// Single source of truth for "stop". Play Offline aborts; steps race against the signal.
+const abortController = new AbortController();
+const { signal: abortSignal } = abortController;
+
+function abortPromise(): Promise<never> {
+    return new Promise((_, reject) => {
+        const err = () => reject(new DOMException("Setup aborted", "AbortError"));
+        if (abortSignal.aborted) return err();
+        abortSignal.addEventListener("abort", err, { once: true });
+    });
+}
 
 let resolveStepError: ((action: "retry" | "skip") => void) | null = null;
-let abortSetup = false;
-let resolveAbort: (() => void) | null = null;
-
-interface SetupStep {
-    label: string;
-    canSkip: () => boolean;
-    action: () => Promise<void>;
-}
-
-function buildSteps(): SetupStep[] {
-    return [
-        {
-            label: t("lobby.components.misc.initialSetup.downloadingEngine"),
-            canSkip: () => enginesStore.selectedEngineVersion?.installed === true,
-            async action() {
-                if (!enginesStore.selectedEngineVersion || enginesStore.selectedEngineVersion.installed === false) {
-                    await window.engine.downloadEngine();
-                }
-            },
-        },
-        {
-            label: t("lobby.components.misc.initialSetup.downloadingGame"),
-            canSkip: () => gameStore.availableGameVersions.size > 0,
-            async action() {
-                await window.game.preloadPoolData();
-                await downloadGame(LATEST_GAME_VERSION);
-                if (gameStore.selectedGameVersion === undefined) {
-                    throw new Error("Game download did not complete successfully");
-                }
-            },
-        },
-        {
-            label: t("lobby.components.misc.initialSetup.downloadingMaps"),
-            canSkip: () => true,
-            async action() {
-                const installedMaps = await db.maps.filter((m) => m.isInstalled === true).count();
-                console.log(installedMaps);
-                if (installedMaps === 0) {
-                    await window.maps.downloadMaps(defaultMaps);
-                }
-            },
-        },
-        {
-            label: t("lobby.components.misc.initialSetup.downloadingUpdate"),
-            canSkip: () => true,
-            async action() {
-                const updateAvailable = await window.autoUpdater.checkForUpdates();
-                if (updateAvailable) {
-                    await window.autoUpdater.downloadUpdate();
-                    await window.autoUpdater.installUpdates();
-                }
-            },
-        },
-    ];
-}
 
 function waitForUserAction(): Promise<"retry" | "skip"> {
     return new Promise((resolve) => {
@@ -129,12 +135,7 @@ function skipCurrentStep() {
 }
 
 function skipAllSteps() {
-    abortSetup = true;
-    // Wake up any in-flight step via the abort promise
-    if (resolveAbort) {
-        resolveAbort();
-        resolveAbort = null;
-    }
+    abortController.abort();
     if (resolveStepError) {
         stepError.value = "";
         resolveStepError("skip");
@@ -142,112 +143,118 @@ function skipAllSteps() {
     }
 }
 
-const AUTO_RETRY_ATTEMPTS = 3;
-const AUTO_RETRY_DELAY_MS = 2000;
-const STALL_THRESHOLD_MS = 10_000;
+let extractionTimer: ReturnType<typeof setInterval> | null = null;
 
-function delay(ms: number): Promise<void> {
-    return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-// Track the current step label for UI updates from watchers
-let currentStepLabel = "";
-
-// Stall detection for engine downloads (axios — no built-in retry signals)
-let lastProgressTime = Date.now();
-let stallCheckInterval: ReturnType<typeof setInterval> | null = null;
-
-function startStallDetection(step: SetupStep) {
-    currentStepLabel = step.label;
-    lastProgressTime = Date.now();
-    stallCheckInterval = setInterval(() => {
-        const stalled = Date.now() - lastProgressTime > STALL_THRESHOLD_MS;
-        if (stalled && !stepError.value && !stepRetrying.value) {
-            stepRetrying.value = true;
-            text.value = t("lobby.components.misc.initialSetup.stepRetrying", { step: currentStepLabel });
+watch(isExtracting, (nowExtracting) => {
+    if (nowExtracting) {
+        if (currentStage?.id === "engine") {
+            text.value = t("lobby.components.misc.initialSetup.installingEngine");
+        } else if (currentStage?.id === "game") {
+            text.value = t("lobby.components.misc.initialSetup.installingGame");
         }
-    }, 1000);
-}
-
-function stopStallDetection() {
-    if (stallCheckInterval) {
-        clearInterval(stallCheckInterval);
-        stallCheckInterval = null;
-    }
-}
-
-// When download progress resumes, clear stall-based warning (engine downloads)
-watch(downloadPercent, () => {
-    lastProgressTime = Date.now();
-    if (stepRetrying.value && !stepError.value && stallCheckInterval) {
-        stepRetrying.value = false;
-        text.value = currentStepLabel;
+        const extractionEnd = stageEnd;
+        extractionTimer = setInterval(() => {
+            const remaining = extractionEnd - overallProgress.value;
+            if (remaining > 0.005) {
+                overallProgress.value += remaining * 0.03;
+            }
+        }, 200);
+    } else if (extractionTimer) {
+        clearInterval(extractionTimer);
+        extractionTimer = null;
     }
 });
 
-// pr-downloader retry signals (game and map downloads)
+// Surface pr-downloader retry signals (game/map) as "retrying" status text.
 watch(
     () => downloadsStore.gameRetrying || downloadsStore.mapRetrying,
     (retrying) => {
-        if (stepError.value) return;
+        if (stepError.value || !currentStage) return;
         if (retrying) {
             stepRetrying.value = true;
-            text.value = t("lobby.components.misc.initialSetup.stepRetrying", { step: currentStepLabel });
+            text.value = t("lobby.components.misc.initialSetup.stepRetrying", { step: currentStage.label });
         } else if (stepRetrying.value) {
             stepRetrying.value = false;
-            text.value = currentStepLabel;
+            text.value = currentStage.label;
         }
     }
 );
 
-onUnmounted(() => {
-    stopStallDetection();
+watch(totalDownloadPercent, (pct) => {
+    const newVal = stageStart + (stageEnd - stageStart) * DOWNLOAD_FILL * pct;
+    if (newVal > overallProgress.value) {
+        overallProgress.value = newVal;
+    }
 });
 
-async function attemptStep(step: SetupStep): Promise<"done" | "aborted" | "failed"> {
+onUnmounted(() => {
+    if (extractionTimer) clearInterval(extractionTimer);
+});
+
+function beginStage(start: number, end: number) {
+    stageStart = start;
+    stageEnd = end;
+}
+
+function completeStage() {
+    overallProgress.value = stageEnd;
+}
+
+const randomBackgroundImage = randomFromArray(Object.values(backgroundImages));
+document.documentElement.style.setProperty("--background", `url(${randomBackgroundImage})`);
+
+const preloadSteps: [string, () => Promise<unknown>][] = [
+    [t("lobby.components.misc.preloader.loadingFonts"), loadAllFonts],
+    [t("lobby.components.misc.preloader.initializingIndexDB"), initDb],
+    [t("lobby.components.misc.preloader.initializingMaps"), initMapsStore],
+    [t("lobby.components.misc.preloader.fetchingMissingMapImages"), fetchMissingMapImages],
+    [t("lobby.components.misc.preloader.initializingReplays"), initReplaysStore],
+];
+
+const preloadStepWeight = PRELOAD_WEIGHT / preloadSteps.length;
+
+async function attemptStage(stage: DownloadStage): Promise<"done" | "aborted" | "failed"> {
     try {
-        const abortPromise = new Promise<void>((resolve) => {
-            resolveAbort = resolve;
-        });
-        const result = await Promise.race([step.action().then(() => "done" as const), abortPromise.then(() => "aborted" as const)]);
-        return result;
+        await Promise.race([stage.run(), abortPromise()]);
+        return "done";
     } catch (error) {
-        if (abortSetup) return "aborted";
-        console.error(`Setup step "${step.label}" failed:`, error);
+        if (abortSignal.aborted) return "aborted";
+        console.error(`Setup step "${stage.label}" failed:`, error);
         return "failed";
     }
 }
 
-async function runStep(step: SetupStep): Promise<boolean> {
+async function runStage(stage: DownloadStage): Promise<boolean> {
+    currentStage = stage;
     let cameFromRetry = false;
-    while (!abortSetup) {
+    while (!abortSignal.aborted) {
         if (cameFromRetry) {
-            // Keep warning state after manual retry to avoid white→yellow flash
             stepRetrying.value = true;
-            text.value = t("lobby.components.misc.initialSetup.stepRetrying", { step: step.label });
+            text.value = t("lobby.components.misc.initialSetup.stepRetrying", { step: stage.label });
         } else {
-            text.value = step.label;
             stepRetrying.value = false;
+            text.value = stage.label;
         }
-        startStallDetection(step);
 
-        const firstResult = await attemptStep(step);
-        stopStallDetection();
-        if (firstResult === "done") return true;
+        const firstResult = await attemptStage(stage);
+        if (firstResult === "done") {
+            stepRetrying.value = false;
+            return true;
+        }
         if (firstResult === "aborted") return false;
 
-        // Auto-retry: attempt up to AUTO_RETRY_ATTEMPTS-1 more times with delay
         let succeeded = false;
         for (let attempt = 1; attempt < AUTO_RETRY_ATTEMPTS; attempt++) {
-            if (abortSetup) return false;
+            if (abortSignal.aborted) return false;
             stepRetrying.value = true;
-            text.value = t("lobby.components.misc.initialSetup.stepRetrying", { step: step.label });
-            await delay(AUTO_RETRY_DELAY_MS);
-            if (abortSetup) return false;
+            text.value = t("lobby.components.misc.initialSetup.stepRetrying", { step: stage.label });
+            try {
+                await delay(AUTO_RETRY_DELAY_MS, abortSignal);
+            } catch {
+                return false;
+            }
 
-            startStallDetection(step);
-            const retryResult = await attemptStep(step);
-            stopStallDetection();
+            const retryResult = await attemptStage(stage);
             if (retryResult === "done") {
                 succeeded = true;
                 break;
@@ -260,84 +267,144 @@ async function runStep(step: SetupStep): Promise<boolean> {
             return true;
         }
 
-        // All auto-retries exhausted — show manual Retry/Skip
         stepRetrying.value = false;
-        text.value = t("lobby.components.misc.initialSetup.stepFailed", { step: step.label });
+        text.value = t("lobby.components.misc.initialSetup.stepFailed", { step: stage.label });
         stepError.value = "failed";
-        canSkipCurrentStep.value = step.canSkip();
+        canSkipCurrentStep.value = stage.canSkip();
         const action = await waitForUserAction();
-        if (action === "skip") {
-            return false;
-        }
+        if (action === "skip") return false;
         cameFromRetry = true;
-        // Manual retry loops back to top
     }
     return false;
 }
 
 onMounted(async () => {
     console.debug("Initial setup");
-    const steps = buildSteps();
-    for (let i = 0; i < steps.length; i++) {
-        if (abortSetup) break;
-        await runStep(steps[i]);
+
+    // Phase 1: Preload (local-first; failures degrade gracefully inside each step)
+    for (const [label, thing] of preloadSteps) {
+        if (abortSignal.aborted) break;
+        text.value = label;
+        try {
+            await thing();
+        } catch (error) {
+            console.warn(`Preload step "${label}" failed`, error);
+        }
+        overallProgress.value += preloadStepWeight;
     }
+    audioApi.load();
+    window.barNavigation.signalReady();
+    overallProgress.value = PRELOAD_WEIGHT;
+
+    // Phase 2: Downloads
+    isDownloadPhase.value = true;
+    title.value = t("lobby.components.misc.initialSetup.title");
+
+    const stages: DownloadStage[] = [
+        {
+            id: "engine",
+            label: t("lobby.components.misc.initialSetup.downloadingEngine"),
+            weight: 1,
+            canSkip: () => enginesStore.selectedEngineVersion?.installed === true,
+            async run() {
+                if (!enginesStore.selectedEngineVersion || enginesStore.selectedEngineVersion.installed === false) {
+                    await window.engine.downloadEngine();
+                }
+            },
+        },
+        {
+            id: "game",
+            label: t("lobby.components.misc.initialSetup.downloadingGame"),
+            weight: 8,
+            canSkip: () => gameStore.availableGameVersions.size > 0,
+            async run() {
+                await window.game.preloadPoolData();
+                await downloadGame(LATEST_GAME_VERSION);
+                if (gameStore.selectedGameVersion === undefined) {
+                    throw new Error("Game download did not complete successfully");
+                }
+            },
+        },
+        {
+            id: "maps",
+            label: t("lobby.components.misc.initialSetup.downloadingMaps"),
+            weight: 2,
+            canSkip: () => true,
+            async run() {
+                const installedMaps = await db.maps.filter((m) => m.isInstalled === true).count();
+                if (installedMaps === 0) {
+                    await window.maps.downloadMaps(defaultMaps);
+                }
+            },
+        },
+        {
+            id: "update",
+            label: t("lobby.components.misc.initialSetup.downloadingUpdate"),
+            weight: 1,
+            canSkip: () => true,
+            async run() {
+                const updateAvailable = await window.autoUpdater.checkForUpdates();
+                if (updateAvailable) {
+                    await window.autoUpdater.downloadUpdate();
+                    await window.autoUpdater.installUpdates();
+                }
+            },
+        },
+    ];
+
+    const totalWeight = stages.reduce((sum, s) => sum + s.weight, 0);
+    let cursor = PRELOAD_WEIGHT;
+
+    for (const stage of stages) {
+        if (abortSignal.aborted) break;
+        const stageSize = (1 - PRELOAD_WEIGHT) * (stage.weight / totalWeight);
+        beginStage(cursor, cursor + stageSize);
+        await runStage(stage);
+        completeStage();
+        cursor += stageSize;
+    }
+
+    overallProgress.value = 1;
 
     await initBattleStore();
     emit("complete");
 });
 
-watch(
-    downloadsStore.engineDownloads,
-    () => {
-        downloadPercent.value = calculateDownloadPercent(downloadsStore.engineDownloads);
-    },
-    { deep: true }
-);
-
-watch(
-    downloadsStore.gameDownloads,
-    () => {
-        downloadPercent.value = calculateDownloadPercent(downloadsStore.gameDownloads);
-    },
-    { deep: true }
-);
-
-watch(
-    downloadsStore.mapDownloads,
-    () => {
-        downloadPercent.value = calculateDownloadPercent(downloadsStore.mapDownloads);
-    },
-    { deep: true }
-);
-
-watch(
-    () => downloadsStore.updateDownloads,
-    () => {
-        downloadPercent.value = calculateDownloadPercent(downloadsStore.updateDownloads);
-    },
-    { deep: true }
-);
-
-function calculateDownloadPercent(downloads: DownloadInfo[]): number {
-    if (downloads.length === 0) {
-        return 1;
+async function loadAllFonts() {
+    const promises: Promise<unknown>[] = [];
+    for (const fontFile of Object.values(fontFiles)) {
+        promises.push(loadFont(fontFile));
     }
-    let currentBytes = 0;
-    let totalBytes = 0;
-    for (const download of downloads) {
-        currentBytes += download.currentBytes;
-        totalBytes += download.totalBytes;
-    }
-    return currentBytes / totalBytes || 0;
+    await Promise.all(promises);
+}
+
+async function loadFont(url: string) {
+    const fileName = url.split("/").pop()!.split(".")[0];
+    const [family, weight, style] = fileName.split("-");
+    const font = new FontFace(family, `url(${url})`, { weight, style });
+    document.fonts.add(font);
+    return font.load();
 }
 </script>
 
 <style lang="scss" scoped>
 .initial-setup {
-    text-shadow: 0 0 6px rgba(255, 255, 255, 0.4);
     flex-direction: column;
-    gap: 12px;
+    gap: 8px;
+    text-shadow: 0 0 6px rgba(255, 255, 255, 0.4);
+
+    &__detail {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 15px;
+        color: rgba(255, 255, 255, 0.7);
+        margin-top: 4px;
+
+        &--text {
+            font-size: 14px;
+        }
+    }
 }
 
 .status-error {
@@ -351,16 +418,12 @@ function calculateDownloadPercent(downloads: DownloadInfo[]): number {
 .action-slot {
     display: flex;
     gap: 12px;
-    height: 64px;
+    min-height: 32px;
     align-items: center;
     justify-content: center;
-
-    h2 {
-        margin: 0;
-    }
 }
 
 .play-offline-action {
-    margin-top: 20px;
+    margin-top: 16px;
 }
 </style>

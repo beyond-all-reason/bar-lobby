@@ -34,6 +34,15 @@ export interface MapMetadata {
 export interface StartBoxPoly {
     x: number;
     y: number;
+    /**
+     * Optional Catmull-Rom spline strength in [0, 1]. Present only on
+     * 3+ point polygon startboxes (never on 2-point legacy rectangles).
+     *   0 (or omitted) = sharp polygon corner
+     *   1             = full smooth curve
+     * Per-edge tension is the average of the two endpoint anchor strengths.
+     * Mirrors the schema in beyond-all-reason/maps-metadata#615.
+     */
+    strength?: number;
 }
 
 export interface Startbox {
