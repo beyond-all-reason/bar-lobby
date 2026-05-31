@@ -17,11 +17,14 @@ export const me = reactive<
 >({
     isInitialized: false,
     userId: "0",
-    clanId: null,
+    clanBaseData: null,
     partyId: null,
     countryCode: "",
     displayName: "",
     status: "offline",
+    rating: { value: 0 },
+    roles: [],
+    isMe: true,
     isAuthenticated: false,
     username: "Player",
     battleRoomState: {},
@@ -74,11 +77,11 @@ async function changeAccount() {
 window.tachyon.onEvent("user/self", async (event) => {
     console.debug(`Received user/self event: ${JSON.stringify(event)}`);
     if (event && event.user) {
-        await db.users.where({ isMe: 1 }).modify({ isMe: 0 });
+        await db.users.where({ isMe: true }).modify({ isMe: false });
         Object.assign(me, event.user);
         db.users.put({
             ...toRaw(me),
-            isMe: 1,
+            isMe: true,
         });
 
         await processFriendData(event.user);
@@ -211,7 +214,7 @@ export const friends = {
 
 export async function initMeStore() {
     await db.users
-        .where({ isMe: 1 })
+        .where({ isMe: true })
         .first()
         .then((user) => {
             if (user) {
