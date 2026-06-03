@@ -226,54 +226,48 @@ async function attemptStage(stage: DownloadStage): Promise<"done" | "aborted" | 
 
 async function runStage(stage: DownloadStage): Promise<boolean> {
     currentStage = stage;
-    let cameFromRetry = false;
+
+    // First pass: one attempt plus AUTO_RETRY_ATTEMPTS-1 auto-retries.
+    // After that, hand control to the user via Retry/Skip; each manual Retry
+    // runs a SINGLE attempt before re-prompting, so the button comes back fast.
+    let isManualRetry = false;
     while (!abortSignal.aborted) {
-        if (cameFromRetry) {
-            stepRetrying.value = true;
-            text.value = t("lobby.components.misc.initialSetup.stepRetrying", { step: stage.label });
-        } else {
-            stepRetrying.value = false;
-            text.value = stage.label;
-        }
+        const maxAttempts = isManualRetry ? 1 : AUTO_RETRY_ATTEMPTS;
 
-        const firstResult = await attemptStage(stage);
-        if (firstResult === "done") {
-            stepRetrying.value = false;
-            return true;
-        }
-        if (firstResult === "aborted") return false;
-
-        let succeeded = false;
-        for (let attempt = 1; attempt < AUTO_RETRY_ATTEMPTS; attempt++) {
+        let result: "done" | "aborted" | "failed" = "failed";
+        for (let attempt = 0; attempt < maxAttempts; attempt++) {
             if (abortSignal.aborted) return false;
-            stepRetrying.value = true;
-            text.value = t("lobby.components.misc.initialSetup.stepRetrying", { step: stage.label });
-            try {
-                await delay(AUTO_RETRY_DELAY_MS, abortSignal);
-            } catch {
-                return false;
+
+            const retrying = isManualRetry || attempt > 0;
+            stepRetrying.value = retrying;
+            text.value = retrying ? t("lobby.components.misc.initialSetup.stepRetrying", { step: stage.label }) : stage.label;
+
+            if (attempt > 0) {
+                try {
+                    await delay(AUTO_RETRY_DELAY_MS, abortSignal);
+                } catch {
+                    return false;
+                }
             }
 
-            const retryResult = await attemptStage(stage);
-            if (retryResult === "done") {
-                succeeded = true;
-                break;
-            }
-            if (retryResult === "aborted") return false;
+            result = await attemptStage(stage);
+            if (result !== "failed") break;
         }
 
-        if (succeeded) {
+        if (result === "done") {
             stepRetrying.value = false;
             return true;
         }
+        if (result === "aborted") return false;
 
         stepRetrying.value = false;
         text.value = t("lobby.components.misc.initialSetup.stepFailed", { step: stage.label });
         stepError.value = "failed";
         canSkipCurrentStep.value = stage.canSkip();
+
         const action = await waitForUserAction();
         if (action === "skip") return false;
-        cameFromRetry = true;
+        isManualRetry = true;
     }
     return false;
 }
