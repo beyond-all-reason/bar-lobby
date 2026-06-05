@@ -9,7 +9,7 @@ SPDX-License-Identifier: MIT
         <div
             class="mode-column classic"
             @click="
-                battleActions.loadGameMode(GameMode.CLASSIC);
+                battleActions.loadGameMode(GameModeID.CLASSIC);
                 $emit('selected');
             "
         >
@@ -19,7 +19,7 @@ SPDX-License-Identifier: MIT
         <div
             class="mode-column raptors"
             @click="
-                battleActions.loadGameMode(GameMode.RAPTORS);
+                battleActions.loadGameMode(GameModeID.RAPTORS);
                 $emit('selected');
             "
         >
@@ -29,7 +29,7 @@ SPDX-License-Identifier: MIT
         <div
             class="mode-column scavengers"
             @click="
-                battleActions.loadGameMode(GameMode.SCAVENGERS);
+                battleActions.loadGameMode(GameModeID.SCAVENGERS);
                 $emit('selected');
             "
         >
@@ -39,7 +39,7 @@ SPDX-License-Identifier: MIT
         <div
             class="mode-column ffa"
             @click="
-                battleActions.loadGameMode(GameMode.FFA);
+                battleActions.loadGameMode(GameModeID.FFA);
                 $emit('selected');
             "
         >
@@ -49,7 +49,7 @@ SPDX-License-Identifier: MIT
     </div>
 </template>
 <script lang="ts" setup>
-import { GameMode } from "@main/game/battle/battle-types";
+import { GameModeID } from "@main/game/battle/battle-types";
 import { battleActions } from "@renderer/store/battle.store";
 import { useTypedI18n } from "@renderer/i18n";
 

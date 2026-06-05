@@ -1,6 +1,15 @@
 {
     "extends": "./tsconfig.shared.json",
-    "include": ["src/main/", "src/renderer/env.d.ts", "src/renderer/typed-router.d.ts", "src/renderer/**/*", "src/renderer/**/*.vue", "src/preload/*.d.ts"],
+    "include": [
+        "src/main/",
+        "src/renderer/env.d.ts",
+        "src/renderer/typed-router.d.ts",
+        "src/renderer/**/*",
+        "src/renderer/**/*.vue",
+        "src/preload/*.d.ts",
+        "tests/**/renderer/**/*.ts",
+        "tests/setup.renderer.mts"
+    ],
     "compilerOptions": {
         "lib": ["ESNext", "DOM", "DOM.Iterable"],
         "composite": true,
@@ -11,7 +20,6 @@
             "@renderer/*": ["src/renderer/*"],
             "$/*": ["vendor/*"]
         },
-
         "strict": true,
         "strictNullChecks": true,
         // TODO: Enable these for better typechecking

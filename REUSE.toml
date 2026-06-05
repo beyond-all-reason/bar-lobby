@@ -3,18 +3,19 @@ version = 1
 [[annotations]]
 # We don't consider the top level configuration files copyrightable in any way
 path = [
-	".*",
-	"package*.json",
-	"tsconfig.*",
-	"eslint.config.mjs",
-	"forge.*",
-	"vite*",
-	"prettier*",
-	"electron-builder*",
-	".vscode/*",
-	"vendor/README.md",
-	"AUTHORS",
-	"PULL_REQUEST_TEMPLATE.md",
+    ".*",
+    "package*.json",
+    "tsconfig.*",
+    "eslint.config.mjs",
+    "forge.*",
+    "vite*",
+    "prettier*",
+    "electron-builder*",
+    ".vscode/*",
+    "vendor/README.md",
+    "AUTHORS",
+    "PULL_REQUEST_TEMPLATE.md",
+    "playwright.config.ts",
 ]
 precedence = "aggregate"
 SPDX-FileCopyrightText = "NONE"

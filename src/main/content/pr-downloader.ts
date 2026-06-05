@@ -10,7 +10,7 @@ import { DownloadInfo } from "./downloads";
 import { AbstractContentAPI } from "./abstract-content";
 import { engineContentAPI } from "./engine/engine-content";
 import { logger } from "@main/utils/logger";
-import { ASSETS_PATH, ENGINE_PATH } from "@main/config/app";
+import { ASSETS_PATH, ENGINE_PATH, getCaCertPath } from "@main/config/app";
 
 const log = logger("pr-downloader.ts");
 
@@ -50,12 +50,14 @@ export abstract class PrDownloaderAPI<ID, T> extends AbstractContentAPI<ID, T> {
                 const binaryName = process.platform === "win32" ? "pr-downloader.exe" : "pr-downloader";
                 const prBinaryPath = path.join(ENGINE_PATH, defaultEngine.id, binaryName);
                 const downloadArg = type === "game" ? "--download-game" : "--download-map";
+                const caCertPath = getCaCertPath();
                 const prdProcess = spawn(`${prBinaryPath}`, ["--filesystem-writepath", ASSETS_PATH, downloadArg, name], {
                     env: {
                         ...process.env,
                         PRD_RAPID_USE_STREAMER: "false",
                         PRD_RAPID_REPO_MASTER: "https://repos-cdn.beyondallreason.dev/repos.gz",
                         PRD_HTTP_SEARCH_URL: "https://files-cdn.beyondallreason.dev/find",
+                        ...(caCertPath && !process.env.PRD_SSL_CERT_FILE && { PRD_SSL_CERT_FILE: caCertPath }),
                     },
                 });
                 const downloadInfo: DownloadInfo = {
@@ -79,7 +81,8 @@ export abstract class PrDownloaderAPI<ID, T> extends AbstractContentAPI<ID, T> {
                             if (progress.totalBytes > 1) {
                                 if (downloadInfo.totalBytes === 0) {
                                     downloadInfo.totalBytes = progress.totalBytes;
-                                    downloadInfo.progress = 0;
+                                    downloadInfo.currentBytes = progress.currentBytes;
+                                    downloadInfo.progress = progress.parsedPercent;
                                     this.currentDownloads.push(downloadInfo);
                                     this.downloadStarted(downloadInfo);
                                 } else {
@@ -97,15 +100,21 @@ export abstract class PrDownloaderAPI<ID, T> extends AbstractContentAPI<ID, T> {
 
                 prdProcess.on("error", (err) => {
                     log.error(err);
+                    this.downloadFailed(downloadInfo);
                     reject(err);
                 });
 
                 prdProcess.stderr?.on("data", (data: Buffer) => {
-                    log.error(data.toString());
+                    const output = data.toString();
+                    log.error(output);
+                    if (output.includes("will retry")) {
+                        this.downloadRetrying(downloadInfo);
+                    }
                 });
 
                 prdProcess.on("exit", (code, signal) => {
                     if (code !== 0) {
+                        this.downloadFailed(downloadInfo);
                         reject(new Error(`pr-downloader exited with code ${code}, signal ${signal}`));
                     } else {
                         resolve(downloadInfo);

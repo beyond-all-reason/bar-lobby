@@ -16,7 +16,7 @@ SPDX-License-Identifier: MIT
         <Background :blur="blurBg" />
         <Notifications v-if="state === 'default'" />
         <PromptContainer v-if="state === 'default'" />
-        <NavBar :class="{ hidden: empty || state === 'preloader' || state === 'initial-setup' }" />
+        <NavBar :class="{ hidden: empty || state === 'initial-setup' }" />
         <div class="lobby-version">
             {{ infosStore.lobby.version }}
         </div>
@@ -29,8 +29,7 @@ SPDX-License-Identifier: MIT
             </div>
         </div>
         <Transition mode="out-in" name="fade">
-            <Preloader v-if="state === 'preloader'" @complete="onPreloadDone" />
-            <InitialSetup v-else-if="state === 'initial-setup'" @complete="onInitialSetupDone" />
+            <InitialSetup v-if="state === 'initial-setup'" @complete="onInitialSetupDone" />
             <div class="view-container" :class="{ 'translated-right': battleStore.isLobbyOpened }" v-else>
                 <RouterView v-slot="{ Component, route }">
                     <template v-if="Component">
@@ -50,8 +49,8 @@ SPDX-License-Identifier: MIT
         </Transition>
         <Settings v-model="settingsOpen" />
         <ServerSettings v-model="serverSettingsOpen" />
-        <ChatComponent v-if="state === 'default' && me.isAuthenticated && tachyonStore.isConnected" />
         <FullscreenGameModeSelector v-if="state === 'default'" :visible="battleStore.isSelectingGameMode" />
+        <LogInConfirmationModal v-model="logInConfirmationIsOpen" :intendedRoute="logInConfirmationIntendedRoute" />
     </div>
     <Error />
 </template>
@@ -69,36 +68,37 @@ import Loader from "@renderer/components/common/Loader.vue";
 import Background from "@renderer/components/misc/Background.vue";
 import DebugSidebar from "@renderer/components/misc/DebugSidebar.vue";
 import Error from "@renderer/components/misc/Error.vue";
-import InitialSetup from "@renderer/components/misc/InitialSetup.vue";
 import IntroVideo from "@renderer/components/misc/IntroVideo.vue";
-import Preloader from "@renderer/components/misc/Preloader.vue";
+import InitialSetup from "@renderer/components/misc/InitialSetup.vue";
 import NavBar from "@renderer/components/navbar/NavBar.vue";
 import Settings from "@renderer/components/navbar/Settings.vue";
 import ServerSettings from "@renderer/components/navbar/ServerSettings.vue";
 import Notifications from "@renderer/components/notifications/Notifications.vue";
 import PromptContainer from "@renderer/components/prompts/PromptContainer.vue";
+import LogInConfirmationModal from "@renderer/components/misc/LogInConfirmationModal.vue";
 
 import { playRandomMusic } from "@renderer/utils/play-random-music";
 import { settingsStore } from "./store/settings.store";
 import { infosStore } from "@renderer/store/infos.store";
-import ChatComponent from "@renderer/components/social/ChatComponent.vue";
 import { battleStore } from "@renderer/store/battle.store";
 import FullscreenGameModeSelector from "@renderer/components/battle/FullscreenGameModeSelector.vue";
 import { useGlobalKeybindings } from "@renderer/composables/useGlobalKeybindings";
 import { me } from "@renderer/store/me.store";
-import { tachyonStore } from "@renderer/store/tachyon.store";
 import { auth } from "@renderer/store/me.store";
+import { useLogInConfirmation } from "@renderer/composables/useLogInConfirmation";
 
 const router = useRouter();
 const videoVisible = toRef(!toValue(settingsStore.skipIntro));
 
-const state: Ref<"preloader" | "initial-setup" | "default"> = ref("preloader");
+const state: Ref<"initial-setup" | "default"> = ref("initial-setup");
 const empty = ref(router.currentRoute.value?.meta?.empty ?? false);
 const blurBg = ref(router.currentRoute.value?.meta?.blurBg ?? false);
 
 const settingsOpen = ref(false);
 const serverSettingsOpen = ref(false);
 const exitOpen = ref(false);
+
+const { isOpen: logInConfirmationIsOpen, intendedRoute: logInConfirmationIntendedRoute } = useLogInConfirmation();
 
 provide("settingsOpen", settingsOpen);
 provide("serverSettingsOpen", serverSettingsOpen);
@@ -123,12 +123,27 @@ window.barNavigation.onNavigateTo((target: string) => {
 
 const simpleRouterMemory = new Map<string, string>();
 router.beforeEach(async (to) => {
-    if (to.meta?.redirect) {
-        const redirection = simpleRouterMemory.get(to.fullPath.split("/")[1]) ?? to.meta.redirect;
-        return {
-            path: redirection,
-        };
+    if (!to.meta?.redirect) return;
+
+    const section = to.fullPath.split("/")[1];
+    const rememberedPath = simpleRouterMemory.get(section);
+    const defaultRedirect = to.meta.redirect;
+
+    if (!rememberedPath) {
+        return { path: router.resolve(defaultRedirect).fullPath };
     }
+
+    const isAuthed = Boolean(toValue(me.isAuthenticated));
+    if (!isAuthed) {
+        const resolved = router.resolve(rememberedPath);
+        const requiresAuth = router.getRoutes().find((r) => r.name === resolved.name)?.meta?.onlineOnly;
+
+        if (requiresAuth) {
+            return { path: router.resolve(defaultRedirect).fullPath };
+        }
+    }
+
+    return { path: rememberedPath };
 });
 
 router.afterEach(async (to) => {
@@ -139,10 +154,6 @@ router.afterEach(async (to) => {
 
 function onIntroEnd() {
     videoVisible.value = false;
-}
-
-async function onPreloadDone() {
-    state.value = "initial-setup";
 }
 
 function onInitialSetupDone() {

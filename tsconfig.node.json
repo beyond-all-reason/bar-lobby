@@ -1,6 +1,16 @@
 {
     "extends": "./tsconfig.shared.json",
-    "include": ["electron.vite.config.*", "electron-builder.config.*", "src/main/**/*", "src/preload/**/*", "vendor/**/*"],
+    "include": [
+        "electron.vite.config.*",
+        "electron-builder.config.*",
+        "src/main/**/*",
+        "src/preload/**/*",
+        "vendor/**/*",
+        "tests/**/main/**/*.ts",
+        "tests/**/shared/**/*.ts",
+        "tests/setup.main.mts",
+        "vitest.config.mts"
+    ],
     "compilerOptions": {
         "composite": true,
         "types": ["node"],
@@ -8,9 +18,9 @@
         "paths": {
             "@main/*": ["src/main/*"],
             "@preload/*": ["src/preload/*"],
+            "@renderer/*": ["src/renderer/*"],
             "$/*": ["vendor/*"]
         },
-
         "strict": true,
         "strictNullChecks": true,
         // TODO: Enable these for better typechecking

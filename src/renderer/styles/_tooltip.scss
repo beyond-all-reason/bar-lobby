@@ -9,11 +9,16 @@ $color: #222;
 .p-tooltip {
     z-index: 10;
     max-width: 400px;
+    pointer-events: none;
     &-text {
         background: $color;
         padding: 2px 7px;
         box-shadow: 0 2px 12px 0 rgb(0 0 0 / 10%);
         border-radius: 3px;
         border: 1px solid rgba(255, 255, 255, 0.08);
+        pointer-events: none;
+    }
+    &-arrow {
+        pointer-events: none;
     }
 }

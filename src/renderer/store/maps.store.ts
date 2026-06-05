@@ -7,6 +7,7 @@ import type { MapData, MapDownloadData } from "@main/content/maps/map-data";
 import type { GameType, Terrain } from "@main/content/maps/map-metadata";
 import { db } from "@renderer/store/db";
 import { EntityTable } from "dexie";
+import { notificationsApi } from "@renderer/api/notifications";
 
 export const mapsStore: {
     isInitialized: boolean;
@@ -18,6 +19,7 @@ export const mapsStore: {
         favoritesOnly: boolean;
         downloadedOnly: boolean;
     };
+    availableMapNames: Set<string>;
 } = reactive({
     isInitialized: false,
     filters: {
@@ -28,6 +30,7 @@ export const mapsStore: {
         favoritesOnly: false,
         downloadedOnly: false,
     },
+    availableMapNames: new Set(),
 });
 
 export async function getRandomMap() {
@@ -46,16 +49,29 @@ export async function initMapsStore() {
 async function init() {
     window.maps.onMapAdded((springName: string) => {
         console.debug("Received map added event", springName);
+        mapsStore.availableMapNames.add(springName);
         db.maps.where("springName").equals(springName).modify({ isInstalled: true });
         db.nonLiveMaps.where("springName").equals(springName).modify({ isInstalled: true });
     });
     window.maps.onMapDeleted((springName: string) => {
         console.debug("Received map deleted event", springName);
+        mapsStore.availableMapNames.delete(springName);
         db.maps.where("springName").equals(springName).modify({ isInstalled: false });
         db.nonLiveMaps.where("springName").equals(springName).modify({ isInstalled: false });
     });
-
-    const [liveMaps, nonLiveMaps] = await window.maps.fetchAllMaps();
+    // Chokadir takes 1-2 seconds longer after this to notice the file, so we do both for a faster response after a downloaded map
+    window.downloads.onDownloadMapComplete((download) => {
+        mapsStore.availableMapNames.add(download.name);
+    });
+    let liveMaps: MapData[];
+    let nonLiveMaps: MapDownloadData[];
+    try {
+        [liveMaps, nonLiveMaps] = await window.maps.fetchAllMaps();
+    } catch (error) {
+        console.warn("Failed to fetch maps metadata, using cached data", error);
+        liveMaps = await db.maps.toArray();
+        nonLiveMaps = await db.nonLiveMaps.toArray();
+    }
 
     console.debug("Received maps", [liveMaps, nonLiveMaps]);
 
@@ -70,6 +86,9 @@ async function init() {
                         return db.maps.update(map.springName, { ...map, isDownloading: false }) as Promise<unknown>;
                     }
                 });
+                if (map.isInstalled) {
+                    mapsStore.availableMapNames.add(map.springName);
+                }
             })
             .concat(
                 nonLiveMaps.map((map) => {
@@ -80,6 +99,9 @@ async function init() {
                             return db.nonLiveMaps.update(map.springName, { ...map, isDownloading: false }) as Promise<unknown>;
                         }
                     });
+                    if (map.isInstalled) {
+                        mapsStore.availableMapNames.add(map.springName);
+                    }
                 })
             )
     );
@@ -92,6 +114,21 @@ async function init() {
         .forEach((map) => {
             db.nonLiveMaps.update(map.springName, { ...map, isInstalled: false });
         });
+
+    // Reconcile IndexedDB isInstalled flags against actual files on disk
+    try {
+        const installedOnDisk = new Set(await window.maps.getInstalledMapNames());
+        mapsStore.availableMapNames = installedOnDisk;
+
+        await db.maps.toCollection().modify((map) => {
+            map.isInstalled = installedOnDisk.has(map.springName);
+        });
+        await db.nonLiveMaps.toCollection().modify((map) => {
+            map.isInstalled = installedOnDisk.has(map.springName);
+        });
+    } catch (error) {
+        console.warn("Failed to reconcile map install state from disk", error);
+    }
 
     mapsStore.isInitialized = true;
 }
@@ -114,6 +151,7 @@ async function fetchMapImages(map: MapData) {
     console.debug("Updated map images ", map.springName);
 }
 
+//TODO: the MapsAPI already includes a multiple-map version request we can use to extend this
 export async function downloadMap(springName: string) {
     let dbDelegate: EntityTable<MapData, "springName"> | EntityTable<MapDownloadData, "springName"> = db.maps;
 
@@ -138,7 +176,8 @@ export async function downloadMap(springName: string) {
             dbDelegate.update(springName, { isInstalled: true, isDownloading: false });
         })
         .catch((error) => {
-            console.error("Failed to download map", error);
+            console.error("Failed to download map:", springName, error);
+            notificationsApi.alert({ text: "Map download failed.", severity: "error" });
             dbDelegate.update(springName, { isDownloading: false });
         });
 }

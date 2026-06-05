@@ -3,11 +3,12 @@
 // SPDX-License-Identifier: MIT
 
 import path from "path";
+import fs from "fs";
 import { env } from "process";
 import { app } from "electron";
 import { homedir } from "os";
 
-// Should be the same as `productName` in electron-builder.config.ts
+// Should be the same as `productName` in electron-builder.ts
 // and in workaround in installer.nsh.
 export const APP_NAME = "BeyondAllReason";
 
@@ -112,3 +113,23 @@ export const RAPID_INDEX_PATH = path.join(ASSETS_PATH, "rapid");
 
 // Lobby specific cache path for scenario images. Maybe remove from here?
 export const SCENARIO_IMAGE_PATH = path.join(STATE_PATH, "scenario-images");
+
+/**
+ * Get the path to the bundled CA certificate file for pr-downloader.
+ * This is a workaround for a bug where pr-downloader's OpenSSL/curl doesn't
+ * properly resolve certificates from the Windows certificate store on fresh
+ * installations. On Linux, system certificates work fine and should be
+ * preferred (they also support system-level MITM proxies).
+ * See: https://github.com/beyond-all-reason/pr-downloader/issues/48
+ */
+export function getCaCertPath(): string | undefined {
+    if (process.platform !== "win32") {
+        return undefined;
+    }
+    if (!app.isPackaged) {
+        const devPath = path.join(process.cwd(), "buildResources", "cacert.pem");
+        return fs.existsSync(devPath) ? devPath : undefined;
+    }
+    const prodPath = path.join(process.resourcesPath, "cacert.pem");
+    return fs.existsSync(prodPath) ? prodPath : undefined;
+}

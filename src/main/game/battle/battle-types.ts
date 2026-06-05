@@ -23,19 +23,17 @@ export interface BattleWithMetadata extends Battle {
     players: Player[];
 }
 
-export type GameModeID = "CLASSIC" | "SKIRMISH" | "RAPTORS" | "SCAVENGERS" | "FFA";
-export type GameModeLabel = "Classic" | "Skirmish" | "Raptors" | "Scavengers" | "FFA";
-
-export const GameMode: Record<GameModeID, GameModeLabel> = {
-    CLASSIC: "Classic",
-    SKIRMISH: "Skirmish",
-    RAPTORS: "Raptors",
-    SCAVENGERS: "Scavengers",
-    FFA: "FFA",
-};
+export enum GameModeID {
+    CLASSIC = "CLASSIC",
+    SKIRMISH = "SKIRMISH",
+    RAPTORS = "RAPTORS",
+    SCAVENGERS = "SCAVENGERS",
+    FFA = "FFA",
+}
 
 export type GameModeWithOptions = {
-    label: GameModeLabel;
+    id: GameModeID;
+    label: string;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     options: Record<string, any>;
 };

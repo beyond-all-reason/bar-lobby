@@ -5,6 +5,8 @@
 import { db } from "@renderer/store/db";
 import { reactive } from "vue";
 import { SubsManager } from "@renderer/utils/subscriptions-manager";
+import { UserReportRequestData } from "tachyon-protocol/types";
+import { notificationsApi } from "@renderer/api/notifications";
 
 export const usersStore: {
     isInitialized: boolean;
@@ -29,8 +31,8 @@ export function initUsersStore() {
                 // No records updated, so user doesn't exist - create new user
                 db.users.add({
                     userId: user.userId,
-                    username: "Unknown User",
-                    displayName: "Unknown User",
+                    username: user.username ?? "Unknown User",
+                    displayName: user.displayName ?? "Unknown User",
                     clanId: null,
                     partyId: null,
                     countryCode: "??",
@@ -44,3 +46,21 @@ export function initUsersStore() {
 
     usersStore.isInitialized = true;
 }
+
+/**
+ * Request reporting of one or more users to moderators for violation of rules.
+ * @param data Required data for submission of this request to the server.
+ */
+async function requestReportUsers(data: UserReportRequestData) {
+    try {
+        const response = await window.tachyon.request("user/report", data);
+        console.log("Tachyon user/report:", response);
+    } catch (error) {
+        console.error("Error with request user/report", error);
+        notificationsApi.alert({ text: "Error with request user/report", severity: "error" });
+    }
+}
+
+export const users = {
+    requestReportUsers,
+};

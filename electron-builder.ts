@@ -29,6 +29,12 @@ const config: Configuration = {
     // Windows
     win: {
         target: ["nsis"],
+        extraResources: [
+            {
+                from: "buildResources/cacert.pem",
+                to: "cacert.pem",
+            },
+        ],
     },
     nsis: {
         artifactName: "${productName}-${version}-setup.${ext}",

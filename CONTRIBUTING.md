@@ -14,11 +14,11 @@ If you haven't already, join our Discord at https://discord.gg/beyond-all-reason
 
 Please feel free to ask questions and seek help from the community in the channel. Often, a fellow contributor can provide a quick answer!
 
-While Discord is our primary communication tool, it is an ephemeral medium. To keep the project organized, all binding discussions, decisions, and code contributions must be recorded on GitHub. This allows us to track changes and decisions in a structured way that can be referenced later. If you see a discussion on Discord that should be preserved, please help us by creating an issue or pull request to document it.
+While Discord is our primary communication tool, it is an ephemeral medium. To keep the project organized, all binding discussions, decisions, and code contributions must be recorded on GitHub. This allows us to track changes and decisions in a structured way that can be referenced later. If you see a discussion on Discord that should be preserved, please help us by creating an issue or pull request to document it. If there is already an open discussion on GitHub, prefer it to Discord.
 
 ## A Note on Reviews & Merging
 
-We will do our best to review and respond to pull requests within **7 days**. However, there may be times when we are unavailable, and responses might take longer. We appreciate your patience. You can check the maintainers' status on Discord or GitHub to see if an absence is noted in their profile.
+While you can often get _an_ answer to a question on Discord quickly, we are _very_ short on maintainers able to review pull requests and respond to questions _authoritatively_ in a timely manner: it's effectively less than one person. Please be patient.
 
 ## New Contributor Guide
 
@@ -35,6 +35,20 @@ If you are new to contributing to open source projects on GitHub, we recommend f
 4.  Take a look at [issues tagged with the "good first issue" tag](https://github.com/beyond-all-reason/bar-lobby/contribute).
 5.  If you have any questions, need help, find something ambiguous, or want to work on something not well scoped yet or without an issue, **please, please discuss it with us**! We want to ensure that we are aligned, you aren't wasting your time, and you have a good experience!
 6.  Develop the change we all agreed on, and send it for review following the [GitHub Flow](https://docs.github.com/en/get-started/using-github/github-flow) process.
+
+## Testing
+
+We have automated tests, but we do not currently have a strict project-wide policy around test coverage thresholds or exactly what kinds of tests must exist for every change.
+
+That said:
+
+- **Do not break existing tests.** If CI is failing due to your change, please fix it before requesting review.
+- **Adding tests is strongly encouraged.** PRs that include test coverage for the behavior they change (unit tests and/or E2E where appropriate) are typically easier to review and merge.
+- For details on how to run and write tests in this repo (Vitest + Playwright/Electron E2E, CI notes, etc.), see **[TESTING.md](TESTING.md)**.
+
+## AI-Assisted Contributions
+
+If you use AI tools to assist with code or text contributions, you must follow our [AI Usage Policy](AI_POLICY.md). This includes clear disclosure of AI involvement in pull requests, human verification of all AI-generated code, and other important requirements. Please review the policy before submitting AI-assisted work.
 
 ## Other Ways to Contribute
 

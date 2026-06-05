@@ -5,31 +5,20 @@
 import { EngineAI, EngineVersion } from "@main/content/engine/engine-version";
 import { GameAI, GameVersion } from "@main/content/game/game-version";
 import { MapData } from "@main/content/maps/map-data";
-import {
-    Battle,
-    BattleWithMetadata,
-    Bot,
-    Faction,
-    GameMode,
-    GameModeLabel,
-    isBot,
-    isPlayer,
-    isRaptor,
-    isScavenger,
-    isScavengerOrRaptor,
-    Player,
-    StartPosType,
-    Team,
-} from "@main/game/battle/battle-types";
+import { Battle, BattleWithMetadata, Bot, isBot, isPlayer, isRaptor, isScavenger, isScavengerOrRaptor, Player, StartPosType, Team, GameModeID } from "@main/game/battle/battle-types";
 import { enginesStore } from "@renderer/store/engine.store";
 import { gameStore } from "@renderer/store/game.store";
 import { getRandomMap } from "@renderer/store/maps.store";
 import { me } from "@renderer/store/me.store";
 import { deepToRaw } from "@renderer/utils/deep-toraw";
 import { spadsBoxToStartBox } from "@renderer/utils/start-boxes";
+import { notificationsApi } from "@renderer/api/notifications";
 import { StartBox } from "tachyon-protocol/types";
 import { reactive, readonly, watch } from "vue";
 import { startBattle as startGame } from "@renderer/store/game.store";
+import { setupI18n } from "@renderer/i18n";
+
+const i18n = setupI18n();
 
 let participantId = 0;
 interface BattleLobby {
@@ -47,7 +36,8 @@ export const battleStore = reactive<Battle & BattleLobby>({
     isOnline: false,
     battleOptions: {
         gameMode: {
-            label: GameMode.CLASSIC,
+            id: GameModeID.CLASSIC,
+            label: getTranslatedGameMode(GameModeID.CLASSIC),
             options: {},
         },
         mapOptions: {
@@ -60,6 +50,23 @@ export const battleStore = reactive<Battle & BattleLobby>({
     spectators: [],
     started: false,
 });
+
+export function getTranslatedGameMode(gameMode: GameModeID): string {
+    switch (gameMode) {
+        case GameModeID.CLASSIC:
+            return i18n.global.t("lobby.components.battle.gameModeComponent.gameModeClassic");
+        case GameModeID.FFA:
+            return i18n.global.t("lobby.components.battle.gameModeComponent.gameModeFFA");
+        case GameModeID.RAPTORS:
+            return i18n.global.t("lobby.components.battle.gameModeComponent.gameModeRaptors");
+        case GameModeID.SCAVENGERS:
+            return i18n.global.t("lobby.components.battle.gameModeComponent.gameModeScavengers");
+        case GameModeID.SKIRMISH:
+            return i18n.global.t("lobby.components.battle.gameModeComponent.gameModeSkirmish");
+        default:
+            return i18n.global.t("lobby.components.battle.gameModeComponent.gameModeUnknown");
+    }
+}
 
 // Automatically computing metadata for the battle
 const _battleWithMetadataStore = reactive({} as BattleWithMetadata);
@@ -210,7 +217,7 @@ function getNumberOfTeams(): number {
     if (battleStore.battleOptions.mapOptions.startPosType === StartPosType.Boxes) {
         const startBoxIndex = battleStore.battleOptions.mapOptions.startBoxesIndex;
 
-        if (startBoxIndex != undefined) {
+        if (startBoxIndex != undefined && map.startboxesSet[startBoxIndex] != undefined) {
             const startBoxes = map.startboxesSet[startBoxIndex];
             numberOfTeams = startBoxes.startboxes.length;
         } else if (battleStore.battleOptions.mapOptions.customStartBoxes) {
@@ -238,11 +245,13 @@ function getMaxPlayersPerTeam() {
     if (battleStore.battleOptions.mapOptions.startPosType === StartPosType.Boxes) {
         const startBoxIndex = battleStore.battleOptions.mapOptions.startBoxesIndex;
 
-        if (startBoxIndex != undefined) {
+        if (startBoxIndex != undefined && map.startboxesSet[startBoxIndex] != undefined) {
             const startBoxes = map.startboxesSet[startBoxIndex];
             maxPlayersPerTeam = startBoxes.maxPlayersPerStartbox;
         } else if (battleStore.battleOptions.mapOptions.customStartBoxes) {
             maxPlayersPerTeam = Math.round(map.playerCountMax / battleStore.battleOptions.mapOptions.customStartBoxes.length);
+        } else {
+            maxPlayersPerTeam = 1;
         }
     }
 
@@ -283,9 +292,33 @@ function updateTeams() {
 
 function getCurrentStartBoxes(): Array<StartBox> {
     const startBoxesIndex = battleStore.battleOptions.mapOptions.startBoxesIndex;
-    return startBoxesIndex != undefined
-        ? battleStore.battleOptions.map?.startboxesSet.at(startBoxesIndex)?.startboxes.map((box) => spadsBoxToStartBox(box.poly)) || []
-        : (battleStore.battleOptions.mapOptions.customStartBoxes as Array<StartBox>);
+    if (startBoxesIndex != undefined) {
+        if (battleStore.battleOptions.map?.startboxesSet[startBoxesIndex] != undefined) {
+            return battleStore.battleOptions.map?.startboxesSet.at(startBoxesIndex)?.startboxes.map((box) => spadsBoxToStartBox(box.poly)) || [];
+        } else {
+            // In this case the map has no startboxes at all, which will crash the client unless we set some.
+            const defaultBoxes = [
+                {
+                    top: 0,
+                    bottom: 1,
+                    left: 0,
+                    right: 0.25,
+                },
+                {
+                    top: 0,
+                    bottom: 1,
+                    left: 0.75,
+                    right: 1,
+                },
+            ];
+            // Clearing the index means we set to custom boxes, which is best since we have zero presets anyway.
+            battleStore.battleOptions.mapOptions.customStartBoxes = defaultBoxes;
+            battleStore.battleOptions.mapOptions.startBoxesIndex = undefined;
+            return defaultBoxes;
+        }
+    } else {
+        return battleStore.battleOptions.mapOptions.customStartBoxes as Array<StartBox>;
+    }
 }
 
 function addCustomStartBox() {
@@ -320,16 +353,16 @@ function removeCustomStartBox(boxId: number) {
     }
 }
 
-function defaultOfflineBattle(engine?: EngineVersion, game?: GameVersion, map?: MapData) {
-    const barbAi = engine?.ais.find((ai) => ai.shortName === "BARb");
+function defaultBattle(engine?: EngineVersion, game?: GameVersion, map?: MapData, isOnline?: boolean) {
     const battle: Battle = {
-        title: "Offline Custom Battle",
-        isOnline: false,
+        title: i18n.global.t("lobby.components.battle.offlineBattleComponent.offlineBattle"),
+        isOnline: !!isOnline,
         battleOptions: {
             engineVersion: engine?.id || enginesStore.selectedEngineVersion?.id,
             gameVersion: game?.gameVersion || gameStore.selectedGameVersion?.gameVersion,
             gameMode: {
-                label: GameMode.CLASSIC,
+                id: GameModeID.CLASSIC,
+                label: getTranslatedGameMode(GameModeID.CLASSIC),
                 options: game?.luaOptionSections || {},
             },
             map,
@@ -360,26 +393,19 @@ function defaultOfflineBattle(engine?: EngineVersion, game?: GameVersion, map?: 
 
     battle.teams[0].participants.push(mePlayer);
 
-    const defaultBot = {
-        id: participantId++,
-        host: mePlayer.id,
-        aiOptions: {},
-        faction: Faction.Armada,
-        name: "AI 1",
-        aiShortName: barbAi?.shortName || "BARb",
-    } satisfies Bot;
-
-    battle.teams[1].participants.push(defaultBot);
-
     return battle;
 }
 
-function resetToDefaultBattle(engine?: EngineVersion, game?: GameVersion, map?: MapData) {
-    const battle = defaultOfflineBattle(engine, game, map);
+function resetToDefaultBattle(engine?: EngineVersion, game?: GameVersion, map?: MapData, isOnline?: boolean) {
+    const battle = defaultBattle(engine, game, map, isOnline);
     Object.assign(battleStore, battle);
 }
 
 async function startBattle() {
+    if (!battleStore.battleOptions.engineVersion || !battleStore.battleOptions.gameVersion) {
+        notificationsApi.alert({ text: i18n.global.t("lobby.components.misc.initialSetup.contentRequired"), severity: "error" });
+        return;
+    }
     await startGame(deepToRaw(_battleWithMetadataStore));
 }
 
@@ -431,7 +457,7 @@ watch(
     () => enginesStore.selectedEngineVersion,
     () => {
         const engineVersion = enginesStore.selectedEngineVersion;
-        if (!engineVersion) throw new Error("failed to access engine version");
+        if (!engineVersion) return;
 
         battleStore.battleOptions.engineVersion = engineVersion.id;
     }
@@ -440,7 +466,7 @@ watch(
 watch(
     () => gameStore.selectedGameVersion,
     (gameVersion) => {
-        if (!gameVersion) throw new Error("failed to access game version");
+        if (!gameVersion) return;
 
         battleStore.battleOptions.gameVersion = gameVersion.gameVersion;
     }
@@ -451,15 +477,21 @@ function leaveBattle() {
     resetToDefaultBattle();
 }
 
-async function loadGameMode(gameMode: GameModeLabel) {
+async function loadGameMode(gameMode: GameModeID) {
     if (!battleStore.battleOptions.engineVersion) {
         const engineVersion = enginesStore.selectedEngineVersion;
-        if (!engineVersion) throw new Error("failed to access engine version");
+        if (!engineVersion) {
+            notificationsApi.alert({ text: i18n.global.t("lobby.components.misc.initialSetup.contentRequired"), severity: "error" });
+            return;
+        }
 
         battleStore.battleOptions.engineVersion = engineVersion.id;
     }
     if (!battleStore.battleOptions.gameVersion) {
-        if (!gameStore.selectedGameVersion) throw new Error("failed to access game version");
+        if (!gameStore.selectedGameVersion) {
+            notificationsApi.alert({ text: i18n.global.t("lobby.components.misc.initialSetup.contentRequired"), severity: "error" });
+            return;
+        }
 
         battleStore.battleOptions.gameVersion = gameStore.selectedGameVersion.gameVersion;
     }
@@ -469,13 +501,14 @@ async function loadGameMode(gameMode: GameModeLabel) {
     }
 
     switch (gameMode) {
-        case GameMode.CLASSIC:
+        case GameModeID.CLASSIC:
             removeCoopAIs();
-            battleStore.title = "Classic";
+            battleStore.title = getTranslatedGameMode(GameModeID.CLASSIC);
             battleStore.battleOptions = {
                 ...battleStore.battleOptions,
                 gameMode: {
-                    label: GameMode.CLASSIC,
+                    id: GameModeID.CLASSIC,
+                    label: getTranslatedGameMode(GameModeID.CLASSIC),
                     options: {},
                 },
                 mapOptions: {
@@ -485,13 +518,14 @@ async function loadGameMode(gameMode: GameModeLabel) {
                 restrictions: [],
             };
             break;
-        case GameMode.RAPTORS:
+        case GameModeID.RAPTORS:
             addCoopAI("RaptorsAI");
-            battleStore.title = "Raptors";
+            battleStore.title = getTranslatedGameMode(GameModeID.RAPTORS);
             battleStore.battleOptions = {
                 ...battleStore.battleOptions,
                 gameMode: {
-                    label: GameMode.RAPTORS,
+                    id: GameModeID.RAPTORS,
+                    label: getTranslatedGameMode(GameModeID.RAPTORS),
                     options: {},
                 },
                 mapOptions: {
@@ -501,13 +535,14 @@ async function loadGameMode(gameMode: GameModeLabel) {
                 restrictions: [],
             };
             break;
-        case GameMode.SCAVENGERS:
+        case GameModeID.SCAVENGERS:
             addCoopAI("ScavengersAI");
-            battleStore.title = "Scavengers";
+            battleStore.title = getTranslatedGameMode(GameModeID.SCAVENGERS);
             battleStore.battleOptions = {
                 ...battleStore.battleOptions,
                 gameMode: {
-                    label: GameMode.SCAVENGERS,
+                    id: GameModeID.SCAVENGERS,
+                    label: getTranslatedGameMode(GameModeID.SCAVENGERS),
                     options: {},
                 },
                 mapOptions: {
@@ -517,13 +552,14 @@ async function loadGameMode(gameMode: GameModeLabel) {
                 restrictions: [],
             };
             break;
-        case GameMode.FFA:
+        case GameModeID.FFA:
             removeCoopAIs();
-            battleStore.title = "FFA";
+            battleStore.title = getTranslatedGameMode(GameModeID.FFA);
             battleStore.battleOptions = {
                 ...battleStore.battleOptions,
                 gameMode: {
-                    label: GameMode.FFA,
+                    id: GameModeID.FFA,
+                    label: getTranslatedGameMode(GameModeID.FFA),
                     options: {},
                 },
                 mapOptions: {
@@ -543,7 +579,7 @@ function removeCoopAIs() {
 }
 
 function addCoopAI(coopAI: "RaptorsAI" | "ScavengersAI") {
-    if (!gameStore.selectedGameVersion) throw new Error("failed to retrieve game version");
+    if (!gameStore.selectedGameVersion) return;
 
     removeCoopAIs();
 

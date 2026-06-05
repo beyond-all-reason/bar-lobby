@@ -34,6 +34,9 @@ function registerIpcHandlers(webContents: BarIpcWebContents) {
     gameContentAPI.onDownloadFail.add((downloadInfo) => {
         webContents.send("downloads:game:fail", downloadInfo);
     });
+    gameContentAPI.onDownloadRetry.add((downloadInfo) => {
+        webContents.send("downloads:game:retry", downloadInfo);
+    });
 
     mapContentAPI.onDownloadStart.add((downloadInfo) => {
         webContents.send("downloads:map:start", downloadInfo);
@@ -46,6 +49,9 @@ function registerIpcHandlers(webContents: BarIpcWebContents) {
     });
     mapContentAPI.onDownloadFail.add((downloadInfo) => {
         webContents.send("downloads:map:fail", downloadInfo);
+    });
+    mapContentAPI.onDownloadRetry.add((downloadInfo) => {
+        webContents.send("downloads:map:retry", downloadInfo);
     });
 
     autoUpdaterAPI.onDownloadProgress.add((downloadInfo) => {

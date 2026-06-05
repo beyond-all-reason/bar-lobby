@@ -121,6 +121,7 @@ const mapsApi = {
     // Content
     downloadMap: (springName: string): Promise<void> => ipcRenderer.invoke("maps:downloadMap", springName),
     downloadMaps: (springNames: string[]): Promise<void[]> => ipcRenderer.invoke("maps:downloadMaps", springNames),
+    getInstalledMapNames: (): Promise<string[]> => ipcRenderer.invoke("maps:getInstalledMapNames"),
     getInstalledVersions: (): Promise<Map<string, MapData>> => ipcRenderer.invoke("maps:getInstalledVersions"),
     isVersionInstalled: (springName: string): Promise<boolean> => ipcRenderer.invoke("maps:isVersionInstalled", springName),
 
@@ -147,11 +148,13 @@ const downloadsApi = {
     onDownloadGameComplete: (callback: (downloadInfo: DownloadInfo) => void) => ipcRenderer.on("downloads:game:complete", (_event, downloadInfo) => callback(downloadInfo)),
     onDownloadGameProgress: (callback: (downloadInfo: DownloadInfo) => void) => ipcRenderer.on("downloads:game:progress", (_event, downloadInfo) => callback(downloadInfo)),
     onDownloadGameFail: (callback: (downloadInfo: DownloadInfo) => void) => ipcRenderer.on("downloads:game:fail", (_event, downloadInfo) => callback(downloadInfo)),
+    onDownloadGameRetry: (callback: (downloadInfo: DownloadInfo) => void) => ipcRenderer.on("downloads:game:retry", (_event, downloadInfo) => callback(downloadInfo)),
     // Maps
     onDownloadMapStart: (callback: (downloadInfo: DownloadInfo) => void) => ipcRenderer.on("downloads:map:start", (_event, downloadInfo) => callback(downloadInfo)),
     onDownloadMapComplete: (callback: (downloadInfo: DownloadInfo) => void) => ipcRenderer.on("downloads:map:complete", (_event, downloadInfo) => callback(downloadInfo)),
     onDownloadMapProgress: (callback: (downloadInfo: DownloadInfo) => void) => ipcRenderer.on("downloads:map:progress", (_event, downloadInfo) => callback(downloadInfo)),
     onDownloadMapFail: (callback: (downloadInfo: DownloadInfo) => void) => ipcRenderer.on("downloads:map:fail", (_event, downloadInfo) => callback(downloadInfo)),
+    onDownloadMapRetry: (callback: (downloadInfo: DownloadInfo) => void) => ipcRenderer.on("downloads:map:retry", (_event, downloadInfo) => callback(downloadInfo)),
 };
 export type DownloadsApi = typeof downloadsApi;
 contextBridge.exposeInMainWorld("downloads", downloadsApi);
