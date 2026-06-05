@@ -23,6 +23,8 @@ import { PrDownloaderAPI } from "@main/content/pr-downloader";
 import { RAPID_INDEX_PATH, PACKAGE_PATH, GAME_PATHS, POOL_PATH, SCENARIO_IMAGE_PATH } from "@main/config/app";
 import { PoolCdnDownloader } from "@main/content/game/pool-cdn";
 import { fileExists } from "@main/utils/file";
+import { engineContentAPI } from "@main/content/engine/engine-content";
+import { calcChecksum } from "@main/utils/checksums";
 
 const log = logger("game-content.ts");
 const gunzip = util.promisify(zlib.gunzip);
@@ -35,6 +37,13 @@ export class GameContentAPI extends PrDownloaderAPI<string, GameVersion> {
         await this.initLookupTables();
         await this.scanPackagesDir();
         await this.scanLocalGames();
+
+        engineContentAPI.onDownloadComplete.add((downloadInfo) => {
+            for (const gameVersion of this.availableVersions.keys()) {
+                calcChecksum(downloadInfo.name, gameVersion);
+            }
+        });
+
         return this;
     }
 
@@ -319,6 +328,11 @@ export class GameContentAPI extends PrDownloaderAPI<string, GameVersion> {
         const ais = await this.getAis(packageMd5);
         this.availableVersions.set(gameVersion, { gameVersion, packageMd5, luaOptionSections, ais });
         super.downloadComplete(downloadInfo);
+
+        const defaultEngine = engineContentAPI.getDefaultEngine();
+        if (defaultEngine?.installed) {
+            calcChecksum(defaultEngine.id, gameVersion);
+        }
     }
 
     protected async parseAis(aiInfo: Buffer): Promise<GameAI[]> {
