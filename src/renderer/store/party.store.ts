@@ -78,7 +78,7 @@ async function requestCreate() {
         const response = await window.tachyon.request("party/create");
         console.log("Tachyon: party/create:", response);
         // This requires changes to Tachyon in PR 142
-        partyStore.parties.set(response.data.partyId, response.data);
+        partyStore.parties.set(response.data.partyId, { ...response.data, seen: false });
         parsePartyData();
     } catch (error) {
         console.error("Tachyon error: party/create:", error);
@@ -147,10 +147,8 @@ async function requestLeave() {
 
 function onInvitedEvent(data: PartyInvitedEventData) {
     console.log("Tachyon: party/invited:", data);
-    partyStore.parties.set(data.party.id, data.party);
+    partyStore.parties.set(data.party.id, { ...data.party, seen: false });
     parsePartyData();
-    // UI should probably watch for changes to the partyStore.parties size to notify the user when new invitations arrive.
-    // We could also extend Party model to include "invitation seen" similar to new chat messages.
 }
 
 function onRemovedEvent(data: PartyRemovedEventData) {
@@ -165,7 +163,7 @@ function onRemovedEvent(data: PartyRemovedEventData) {
 
 function onUpdatedEvent(data: PartyUpdatedEventData) {
     console.log("Tachyon: party/updated:", data);
-    partyStore.parties.set(data.id, data);
+    partyStore.parties.set(data.id, { ...data, seen: false });
     parsePartyData();
 }
 

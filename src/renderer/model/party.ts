@@ -4,5 +4,7 @@
 
 import { PartyState } from "tachyon-protocol/types";
 
-// This is created under the assumption that we may want to extend it in the future.
-export type Party = PartyState & {};
+export type Party = PartyState & {
+    // Allows us to easily filter down changes to invite/party state or alert in the UI
+    seen: boolean;
+};
