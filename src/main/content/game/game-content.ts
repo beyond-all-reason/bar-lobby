@@ -40,7 +40,7 @@ export class GameContentAPI extends PrDownloaderAPI<string, GameVersion> {
 
         engineContentAPI.onDownloadComplete.add((downloadInfo) => {
             for (const gameVersion of this.availableVersions.keys()) {
-                calcChecksum(downloadInfo.name, gameVersion).catch(() => {});
+                calcChecksum(downloadInfo.name, gameVersion);
             }
         });
 
@@ -331,7 +331,7 @@ export class GameContentAPI extends PrDownloaderAPI<string, GameVersion> {
 
         const defaultEngine = engineContentAPI.getDefaultEngine();
         if (defaultEngine?.installed) {
-            calcChecksum(defaultEngine.id, gameVersion).catch(() => {});
+            calcChecksum(defaultEngine.id, gameVersion);
         }
     }
 

@@ -19,6 +19,8 @@ export function calcChecksum(engineVersion: string, archiveName: string): Promis
 function runChecksumProcess(engineVersion: string, archiveName: string): Promise<void> {
     const enginePath = path.join(ENGINE_PATH, engineVersion).replaceAll("\\", "/");
     const binaryName = process.platform === "win32" ? "spring-headless.exe" : "./spring-headless";
+    // --calc-checksum does not return a value to us; it causes the engine to write a checksum cache
+    // file to disk that speeds up subsequent archive loading (avoids re-scanning on next launch).
     const args = ["--write-dir", WRITE_DATA_PATH, "--isolation", "--calc-checksum", archiveName];
 
     log.debug(`Calculating checksum for: ${archiveName}`);
