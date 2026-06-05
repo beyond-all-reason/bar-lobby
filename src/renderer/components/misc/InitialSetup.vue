@@ -19,14 +19,14 @@ SPDX-License-Identifier: MIT
                 </template>
                 <template v-else>
                     <div v-if="isExtracting" class="initial-setup__detail">
-                        <Icon :icon="loadingIcon" class="initial-setup__spinner" />
+                        <Loader class="initial-setup__spinner" :absolute-position="false" />
                         <span>{{ t("lobby.navbar.downloads.extracting") }}</span>
                     </div>
                     <div v-else-if="currentDownload" class="initial-setup__detail initial-setup__detail--text">
                         {{ progressDetail }}
                     </div>
                     <div v-else class="initial-setup__detail">
-                        <Icon :icon="loadingIcon" class="initial-setup__spinner" />
+                        <Loader class="initial-setup__spinner" :absolute-position="false" />
                     </div>
                 </template>
             </div>
@@ -41,10 +41,9 @@ SPDX-License-Identifier: MIT
 import { delay } from "$/jaz-ts-utils/delay";
 import { randomFromArray } from "$/jaz-ts-utils/object";
 import { computed, onMounted, onUnmounted, ref, watch } from "vue";
-import { Icon } from "@iconify/vue";
-import loadingIcon from "@iconify-icons/mdi/loading";
 import { useTypedI18n } from "@renderer/i18n";
 import Button from "@renderer/components/controls/Button.vue";
+import Loader from "@renderer/components/common/Loader.vue";
 import Progress from "@renderer/components/common/Progress.vue";
 import { audioApi } from "@renderer/audio/audio";
 import { backgroundImages, fontFiles } from "@renderer/assets/assetFiles";
@@ -397,6 +396,23 @@ async function loadFont(url: string) {
 
         &--text {
             font-size: 14px;
+        }
+    }
+
+    &__spinner {
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        :deep(.loader) {
+            padding: 0;
+        }
+
+        :deep(.la-ball-clip-rotate-multiple) {
+            width: 32px;
+            height: 32px;
         }
     }
 }
