@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: MIT
 
-// import { me } from "@renderer/store/me.store";
+import { me } from "@renderer/store/me.store";
 import {
     PartyInvitedEventData,
     PartyRemovedEventData,
@@ -13,7 +13,6 @@ import {
     PartyDeclineInviteRequestData,
     PartyInviteRequestData,
     PartyKickMemberRequestData,
-    PartyState,
     UserId,
 } from "tachyon-protocol/types";
 import { reactive } from "vue";
@@ -78,7 +77,9 @@ async function requestCreate() {
     try {
         const response = await window.tachyon.request("party/create");
         console.log("Tachyon: party/create:", response);
-        // TODO: Response includes the new party ID, but do also get party/updated event also? Event is preferrable
+        // This requires changes to Tachyon in PR 142
+        partyStore.parties.set(response.data.partyId, response.data);
+        parsePartyData();
     } catch (error) {
         console.error("Tachyon error: party/create:", error);
         notificationsApi.alert({ text: "Error with request party/create", severity: "error" });
@@ -135,7 +136,9 @@ async function requestLeave() {
     try {
         const response = await window.tachyon.request("party/leave");
         console.log("Tachyon: party/leave:", response);
-        //TODO: Do we get a party/removed event or do we handle it here upon success?
+        if (partyStore.activeParty) partyStore.parties.delete(partyStore.activeParty?.id);
+        partyStore.activeParty = null;
+        parsePartyData();
     } catch (error) {
         console.error("Tachyon error: party/leave:", error);
         notificationsApi.alert({ text: "Error with request party/leave", severity: "error" });
@@ -145,14 +148,16 @@ async function requestLeave() {
 function onInvitedEvent(data: PartyInvitedEventData) {
     console.log("Tachyon: party/invited:", data);
     partyStore.parties.set(data.party.id, data.party);
-    // We don't know if we were the invitee or the member getting updates?
-    parsePartyData(data.party);
+    parsePartyData();
+    // UI should probably watch for changes to the partyStore.parties size to notify the user when new invitations arrive.
+    // We could also extend Party model to include "invitation seen" similar to new chat messages.
 }
 
 function onRemovedEvent(data: PartyRemovedEventData) {
     console.log("Tachyon: party/removed:", data);
-    // Note that "party/removed" includes cancelled or expired invitations also
+    // Note that "party/removed" includes cancelled or expired invitations in addition to being kicked/leaving.
     partyStore.parties.delete(data.partyId);
+    parsePartyData();
     if (partyStore.activeParty?.id == data.partyId) {
         partyStore.activeParty = null;
     }
@@ -160,24 +165,38 @@ function onRemovedEvent(data: PartyRemovedEventData) {
 
 function onUpdatedEvent(data: PartyUpdatedEventData) {
     console.log("Tachyon: party/updated:", data);
-    // Because "party/updated" includes invitees, we have to check if we are a member or just an invitee
     partyStore.parties.set(data.id, data);
-    parsePartyData(data);
+    parsePartyData();
 }
 
-function parsePartyData(data: PartyState) {
-    // TODO: Need to find out if we are going to remove party/invited to prefer party/updated only.
-    // This is where we will find out if we are a member, or invitee
-    // So we will need to set the partyStore.state appropriately here.
+// We might be invited, or member, have to check to know.
+function parsePartyData() {
+    const bools = {
+        joined: false,
+        invited: false,
+    };
     const users: Array<UserId> = [];
-    for (const members of data.members) {
-        users.push(members.userId);
-    }
-    for (const invitees of data.invited) {
-        users.push(invitees.userId);
-    }
-    //TODO: I suspect we will need to keep a set of party-related UserIds so we can know when to detach also.
-    subsManager.attach(users, partySymbol);
+    partyStore.parties.forEach((party) => {
+        for (const member of party.members) {
+            if (member.userId === me.userId) {
+                bools.joined = true;
+                partyStore.activeParty = party;
+            } else users.push(member.userId);
+        }
+        for (const invitee of party.invited) {
+            if (invitee.userId === me.userId) {
+                bools.invited = true;
+            } else users.push(invitee.userId);
+        }
+    });
+    subsManager.setList(users, partySymbol);
+    if (bools.joined) {
+        if (bools.invited) {
+            partyStore.state = PlayersPartyState.JoinedAndInvited;
+        } else partyStore.state = PlayersPartyState.JoinedOnly;
+    } else if (bools.invited) {
+        partyStore.state = PlayersPartyState.InvitedOnly;
+    } else partyStore.state = PlayersPartyState.None;
 }
 
 export async function initPartyStore() {
