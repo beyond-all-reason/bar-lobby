@@ -13,6 +13,8 @@ import { getMapsPaths } from "@main/config/app";
 import chokidar, { FSWatcher } from "chokidar";
 import { UltraSimpleMapParser } from "$/map-parser/ultrasimple-map-parser";
 import { removeFromArray } from "$/jaz-ts-utils/object";
+import { engineContentAPI } from "@main/content/engine/engine-content";
+import { calcChecksum } from "@main/utils/checksums";
 
 const log = logger("map-content.ts");
 
@@ -34,6 +36,15 @@ export class MapContentAPI extends PrDownloaderAPI<string, MapData> {
     public override async init() {
         this.initLookupMaps();
         this.startWatchingMapFolder();
+
+        engineContentAPI.onDownloadComplete.add((downloadInfo) => {
+            for (const [mapName, fileName] of Object.entries(this.mapNameFileNameLookup)) {
+                if (fileName) {
+                    calcChecksum(downloadInfo.name, mapName);
+                }
+            }
+        });
+
         return super.init();
     }
 
@@ -99,6 +110,11 @@ export class MapContentAPI extends PrDownloaderAPI<string, MapData> {
                     this.mapNameFileNameLookup[mapName] = filename;
                     this.fileNameMapNameLookup[filename] = mapName;
                     this.onMapAdded.dispatch(mapName);
+
+                    const defaultEngine = engineContentAPI.getDefaultEngine();
+                    if (defaultEngine?.installed) {
+                        calcChecksum(defaultEngine.id, mapName);
+                    }
                 });
             })
             .on("unlink", (filepath) => {

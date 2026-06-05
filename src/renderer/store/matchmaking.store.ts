@@ -72,6 +72,9 @@ function onFoundUpdateEvent(data: MatchmakingFoundUpdateEventData) {
 function onCancelledEvent(data: MatchmakingCancelledEventData) {
     console.log("Tachyon event: matchmaking/cancelled:", data);
     matchmakingStore.status = MatchmakingStatus.Idle;
+    if (data.reason === "version_changed") {
+        sendListRequest();
+    }
 }
 
 function onFoundEvent(data: MatchmakingFoundEventData) {
@@ -145,18 +148,27 @@ async function sendQueueRequest() {
     matchmakingStore.status = MatchmakingStatus.JoinRequested; // Initial state, likely short-lived.
     try {
         matchmakingStore.errorMessage = null;
-        // TODO: fix matchmaking that broke with the tachyon update: https://github.com/beyond-all-reason/bar-lobby/issues/545
+        const playlist = matchmakingStore.playlists.find((p) => p.id === matchmakingStore.selectedQueue);
+        if (!playlist) {
+            notificationsApi.alert({ text: "Selected queue not found. Refreshing list.", severity: "error" });
+            await sendListRequest();
+            matchmakingStore.status = MatchmakingStatus.Idle;
+            return;
+        }
         const response = await window.tachyon.request("matchmaking/queue", {
-            queues: [
-                /* matchmakingStore.selectedQueue */
-            ],
+            queues: [{ id: playlist.id, version: playlist.version }],
         });
         console.log("Tachyon: matchmaking/queue:", response.status);
         matchmakingStore.status = MatchmakingStatus.Searching;
     } catch (error) {
-        console.error("Tachyon error: matchmaking/queue:", error);
-        notificationsApi.alert({ text: "Tachyon error: matchmaking/queue", severity: "error" });
-        matchmakingStore.errorMessage = "Error with matchmaking/queue";
+        if (error instanceof Error && error.message.includes("version_mismatch")) {
+            notificationsApi.alert({ text: "Queue version changed; refreshing list.", severity: "info" });
+            await sendListRequest();
+        } else {
+            console.error("Tachyon error: matchmaking/queue:", error);
+            notificationsApi.alert({ text: "Tachyon error: matchmaking/queue", severity: "error" });
+            matchmakingStore.errorMessage = "Error with matchmaking/queue";
+        }
         matchmakingStore.status = MatchmakingStatus.Idle;
     }
 }
