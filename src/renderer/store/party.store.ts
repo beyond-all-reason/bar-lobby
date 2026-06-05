@@ -3,8 +3,20 @@
 // SPDX-License-Identifier: MIT
 
 import { me } from "@renderer/store/me.store";
-import { PartyInvitedEventData, PartyRemovedEventData, PartyUpdatedEventData, PartyId, UserId, PartyState } from "tachyon-protocol/types";
+import {
+    PartyInvitedEventData,
+    PartyRemovedEventData,
+    PartyUpdatedEventData,
+    PartyId,
+    PartyState,
+    PartyAcceptInviteRequestData,
+    PartyCancelInviteRequestData,
+    PartyDeclineInviteRequestData,
+    PartyInviteRequestData,
+    PartyKickMemberRequestData,
+} from "tachyon-protocol/types";
 import { reactive } from "vue";
+import { notificationsApi } from "@renderer/api/notifications";
 
 export enum PartyStatus {
     None = "None",
@@ -13,90 +25,87 @@ export enum PartyStatus {
     JoinedAndInvited = "JoinedAndInvited",
 }
 
-export const partyStore = reactive<{
+export const partyStore: {
     isInitialized: boolean;
-    errorMessage: string | null;
     partyId: PartyId | null; //Our active party
     parties: PartyState[]; //All parties (all invited, and up to one joined)
-    // Some reactive booleans for the UI to use
     state: PartyStatus;
-}>({
+} = reactive({
     isInitialized: false,
-    errorMessage: null,
     partyId: null,
     parties: [],
     state: PartyStatus.None,
 });
 
-async function sendAcceptInviteRequest(partyId: PartyId) {
+async function requestAcceptInvite(data: PartyAcceptInviteRequestData) {
     try {
-        const response = await window.tachyon.request("party/acceptInvite", { partyId: partyId });
+        const response = await window.tachyon.request("party/acceptInvite", data);
         console.log("Tachyon: party/acceptInvite response:", response);
-        me.partyId = partyStore.partyId = partyId; //TODO: Likely better the have the me.store.ts access the party ID here instead of in there.
+        me.partyId = partyStore.partyId = data.partyId;
     } catch (error) {
         console.error("Tachyon error: party/acceptInvite:", error);
-        partyStore.errorMessage = "Error: party/acceptInvite failed";
+        notificationsApi.alert({ text: "Error with request party/acceptInvite", severity: "error" });
     }
 }
 
-async function sendCancelInviteRequest(userId: UserId) {
+async function requestCancelInvite(data: PartyCancelInviteRequestData) {
     try {
-        const response = await window.tachyon.request("party/cancelInvite", { userId: userId });
+        const response = await window.tachyon.request("party/cancelInvite", data);
         console.log("Tachyon: party/cancelInvite:", response);
     } catch (error) {
         console.error("Tachyon error: party/cancelInvite:", error);
-        partyStore.errorMessage = "Error: party/cancelInvite failed";
+        notificationsApi.alert({ text: "Error with request party/cancelInvite", severity: "error" });
     }
 }
 
-async function sendCreateRequest() {
+async function requestCreate() {
     try {
         const response = await window.tachyon.request("party/create");
         console.log("Tachyon: party/create:", response);
         partyStore.partyId = response.data.partyId;
     } catch (error) {
         console.error("Tachyon error: party/create:", error);
-        partyStore.errorMessage = "Error: party/create failed";
+        notificationsApi.alert({ text: "Error with request party/create", severity: "error" });
     }
 }
 
-async function sendDeclineInviteRequest(partyId: PartyId) {
+async function requestDeclineInvite(data: PartyDeclineInviteRequestData) {
     try {
-        const response = await window.tachyon.request("party/declineInvite", { partyId: partyId });
+        const response = await window.tachyon.request("party/declineInvite", data);
         console.log("Tachyon: party/declineInvite:", response);
     } catch (error) {
         console.error("Tachyon error: party/declineInvite:", error);
-        partyStore.errorMessage = "Error: party/declineInvite failed";
+        notificationsApi.alert({ text: "Error with request party/declineInvite", severity: "error" });
     }
 }
 
-async function sendInviteRequest(userId: UserId) {
+async function requestInvite(data: PartyInviteRequestData) {
     try {
-        const response = await window.tachyon.request("party/invite", { userId: userId });
+        const response = await window.tachyon.request("party/invite", data);
         console.log("Tachyon: party/invite:", response);
     } catch (error) {
         console.error("Tachyon error: party/invite:", error);
-        partyStore.errorMessage = "Error: party/invite failed";
+        notificationsApi.alert({ text: "Error with request party/invite", severity: "error" });
     }
 }
 
-async function sendKickMemberRequest(userId: UserId) {
+async function requestKickMember(data: PartyKickMemberRequestData) {
     try {
-        const response = window.tachyon.request("party/kickMember", { userId: userId });
+        const response = await window.tachyon.request("party/kickMember", data);
         console.log("Tachyon: party/kickMember:", response);
     } catch (error) {
         console.error("Tachyon error: party/kickMember:", error);
-        partyStore.errorMessage = "Error: party/kickMember failed";
+        notificationsApi.alert({ text: "Error with request party/kickMember", severity: "error" });
     }
 }
 
-async function sendLeaveRequest() {
+async function requestLeave() {
     try {
-        const response = window.tachyon.request("party/leave");
+        const response = await window.tachyon.request("party/leave");
         console.log("Tachyon: party/leave:", response);
     } catch (error) {
         console.error("Tachyon error: party/leave:", error);
-        partyStore.errorMessage = "Error: party/leave failed";
+        notificationsApi.alert({ text: "Error with request party/leave", severity: "error" });
     }
 }
 
@@ -129,4 +138,4 @@ export async function initPartyStore() {
     partyStore.isInitialized = true;
 }
 
-export const party = { sendAcceptInviteRequest, sendCancelInviteRequest, sendCreateRequest, sendDeclineInviteRequest, sendInviteRequest, sendKickMemberRequest, sendLeaveRequest };
+export const party = { requestAcceptInvite, requestCancelInvite, requestCreate, requestDeclineInvite, requestInvite, requestKickMember, requestLeave };
