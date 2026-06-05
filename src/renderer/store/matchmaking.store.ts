@@ -161,7 +161,7 @@ async function sendQueueRequest() {
         console.log("Tachyon: matchmaking/queue:", response.status);
         matchmakingStore.status = MatchmakingStatus.Searching;
     } catch (error) {
-        if (error instanceof Error && error.message.startsWith("version_mismatch")) {
+        if (error instanceof Error && error.message.includes("version_mismatch")) {
             notificationsApi.alert({ text: "Queue version changed; refreshing list.", severity: "info" });
             await sendListRequest();
         } else {
