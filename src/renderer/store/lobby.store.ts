@@ -366,9 +366,9 @@ async function clearUserSubscriptions() {
     subsManager.clearAllFromList(lobbySymbol);
 }
 
-function requestUpdateClientStatus(data: LobbyUpdateClientStatusRequestData) {
+async function requestUpdateClientStatus(data: LobbyUpdateClientStatusRequestData) {
     try {
-        const response = window.tachyon.request("lobby/updateClientStatus", data);
+        const response = await window.tachyon.request("lobby/updateClientStatus", data);
         console.log("Tachyon lobby/updateClientStatus:", response);
     } catch (error) {
         console.error("Error with request lobby/updateClientStatus", error);
@@ -376,9 +376,9 @@ function requestUpdateClientStatus(data: LobbyUpdateClientStatusRequestData) {
     }
 }
 
-function requestJoinBattle() {
+async function requestJoinBattle() {
     try {
-        const response = window.tachyon.request("lobby/joinBattle");
+        const response = await window.tachyon.request("lobby/joinBattle");
         console.log("Tachyon lobby/joinBattle:", response);
     } catch (error) {
         console.error("Error with request lobby/joinBattle", error);
@@ -386,9 +386,9 @@ function requestJoinBattle() {
     }
 }
 
-function requestVoteSubmit(data: LobbyVoteSubmitRequestData) {
+async function requestVoteSubmit(data: LobbyVoteSubmitRequestData) {
     try {
-        const response = window.tachyon.request("lobby/voteSubmit", data);
+        const response = await window.tachyon.request("lobby/voteSubmit", data);
         console.log("Tachyon lobby/voteSubmit:", response);
     } catch (error) {
         console.error("Error with request lobby/voteSubmit", error);

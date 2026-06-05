@@ -78,7 +78,7 @@ const actions =
                       //   { label: "Add Bonus", command: addBonus },
                   ],
               },
-              //{ label: "Report", command: reportPlayer },
+              { label: "Report", command: reportPlayer },
           ];
 
 function onRightClick(event: MouseEvent) {
@@ -124,6 +124,13 @@ async function addFriend() {
     // await api.comms.request("c.user.add_friend", {
     //     user_id: props.player.user.userId,
     // });
+}
+
+function reportPlayer() {
+    // Player.id is number, which is incompatible with Tachyon UserId <string> values.
+    // Need to fix more broadly when implementing lobbies.
+    // This should pop up some modal that then implements users.requestReportUsers()
+    // because both reason.type and message content are expected for the report.
 }
 </script>
 
