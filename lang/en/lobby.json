@@ -383,7 +383,7 @@
                     "installingUpdate": "Installing update",
                     "selectAssetsPathDescription": "Choose where game files (engine, maps, game) will be downloaded.",
                     "browse": "Browse",
-                    "continue": "Continue"
+                    "continue": "Continue",
                     "retry": "Retry",
                     "skip": "Skip",
                     "playOffline": "Play Offline",
