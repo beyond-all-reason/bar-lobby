@@ -4188,7 +4188,13 @@
                     "installingUpdate": null,
                     "selectAssetsPathDescription": null,
                     "browse": null,
-                    "continue": null
+                    "continue": null,
+                    "retry": null,
+                    "skip": null,
+                    "playOffline": null,
+                    "stepFailed": null,
+                    "stepRetrying": null,
+                    "contentRequired": null
                 }
             },
             "battle": {

@@ -384,6 +384,12 @@
                     "selectAssetsPathDescription": "Choose where game files (engine, maps, game) will be downloaded.",
                     "browse": "Browse",
                     "continue": "Continue"
+                    "retry": "Retry",
+                    "skip": "Skip",
+                    "playOffline": "Play Offline",
+                    "stepFailed": "{step} — Failed",
+                    "stepRetrying": "{step} — Retrying…",
+                    "contentRequired": "Engine and game must be downloaded before starting a battle."
                 }
             },
             "battle": {

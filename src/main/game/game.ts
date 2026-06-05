@@ -9,7 +9,7 @@ import { Signal } from "$/jaz-ts-utils/signal";
 import * as path from "path";
 
 import { engineContentAPI } from "@main/content/engine/engine-content";
-
+import { applyDefaultSpringsettings } from "@main/game/springsettings";
 import { startScriptConverter } from "@main/utils/start-script-converter";
 import { logger } from "@main/utils/logger";
 import { gameContentAPI } from "@main/content/game/game-content";
@@ -89,6 +89,8 @@ export class GameAPI {
 
         log.info(`Launching game with engine: ${engineVersion}, game: ${gameVersion}`);
         await this.fetchMissingContent(engineVersion, gameVersion); // TODO preload anything needed through the UI before launching. Remove this step
+
+        applyDefaultSpringsettings();
         const enginePath = path.join(getEnginePath(), engineVersion).replaceAll("\\", "/");
         const args = ["--write-dir", WRITE_DATA_PATH, "--isolation", launchArg];
         const binaryName = process.platform === "win32" ? "spring.exe" : "./spring";
