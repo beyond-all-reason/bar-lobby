@@ -8,7 +8,6 @@ import {
     PartyRemovedEventData,
     PartyUpdatedEventData,
     PartyId,
-    PartyState,
     PartyAcceptInviteRequestData,
     PartyCancelInviteRequestData,
     PartyDeclineInviteRequestData,
@@ -17,8 +16,9 @@ import {
 } from "tachyon-protocol/types";
 import { reactive } from "vue";
 import { notificationsApi } from "@renderer/api/notifications";
+import { Party } from "@renderer/model/party";
 
-export enum PartyStatus {
+export enum PlayersPartyState {
     None = "None",
     InvitedOnly = "InvitedOnly",
     JoinedOnly = "Joined",
@@ -28,13 +28,13 @@ export enum PartyStatus {
 export const partyStore: {
     isInitialized: boolean;
     partyId: PartyId | null; //Our active party
-    parties: PartyState[]; //All parties (all invited, and up to one joined)
-    state: PartyStatus;
+    parties: Party[]; //All parties (all invited, and up to one joined)
+    state: PlayersPartyState;
 } = reactive({
     isInitialized: false,
     partyId: null,
     parties: [],
-    state: PartyStatus.None,
+    state: PlayersPartyState.None,
 });
 
 async function requestAcceptInvite(data: PartyAcceptInviteRequestData) {
