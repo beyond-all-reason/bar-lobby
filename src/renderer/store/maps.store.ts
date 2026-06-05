@@ -63,7 +63,15 @@ async function init() {
     window.downloads.onDownloadMapComplete((download) => {
         mapsStore.availableMapNames.add(download.name);
     });
-    const [liveMaps, nonLiveMaps] = await window.maps.fetchAllMaps();
+    let liveMaps: MapData[];
+    let nonLiveMaps: MapDownloadData[];
+    try {
+        [liveMaps, nonLiveMaps] = await window.maps.fetchAllMaps();
+    } catch (error) {
+        console.warn("Failed to fetch maps metadata, using cached data", error);
+        liveMaps = await db.maps.toArray();
+        nonLiveMaps = await db.nonLiveMaps.toArray();
+    }
 
     console.debug("Received maps", [liveMaps, nonLiveMaps]);
 
@@ -106,6 +114,21 @@ async function init() {
         .forEach((map) => {
             db.nonLiveMaps.update(map.springName, { ...map, isInstalled: false });
         });
+
+    // Reconcile IndexedDB isInstalled flags against actual files on disk
+    try {
+        const installedOnDisk = new Set(await window.maps.getInstalledMapNames());
+        mapsStore.availableMapNames = installedOnDisk;
+
+        await db.maps.toCollection().modify((map) => {
+            map.isInstalled = installedOnDisk.has(map.springName);
+        });
+        await db.nonLiveMaps.toCollection().modify((map) => {
+            map.isInstalled = installedOnDisk.has(map.springName);
+        });
+    } catch (error) {
+        console.warn("Failed to reconcile map install state from disk", error);
+    }
 
     mapsStore.isInitialized = true;
 }

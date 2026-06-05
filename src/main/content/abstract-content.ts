@@ -12,6 +12,7 @@ export class Downloader {
     public onDownloadComplete: Signal<DownloadInfo> = new Signal();
     public onDownloadProgress: Signal<DownloadInfo> = new Signal();
     public onDownloadFail: Signal<DownloadInfo> = new Signal();
+    public onDownloadRetry: Signal<DownloadInfo> = new Signal();
 
     protected async downloadStarted(downloadInfo: DownloadInfo) {
         this.onDownloadStart.dispatch(downloadInfo);
@@ -27,6 +28,10 @@ export class Downloader {
 
     protected async downloadFailed(downloadInfo: DownloadInfo) {
         this.onDownloadFail.dispatch(downloadInfo);
+    }
+
+    protected async downloadRetrying(downloadInfo: DownloadInfo) {
+        this.onDownloadRetry.dispatch(downloadInfo);
     }
 }
 

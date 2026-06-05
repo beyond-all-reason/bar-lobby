@@ -368,7 +368,13 @@
                     "installingGame": "Installing game",
                     "downloadingMaps": "Downloading maps",
                     "downloadingUpdate": "Downloading update",
-                    "installingUpdate": "Installing update"
+                    "installingUpdate": "Installing update",
+                    "retry": "Retry",
+                    "skip": "Skip",
+                    "playOffline": "Play Offline",
+                    "stepFailed": "{step} — Failed",
+                    "stepRetrying": "{step} — Retrying…",
+                    "contentRequired": "Engine and game must be downloaded before starting a battle."
                 }
             },
             "battle": {

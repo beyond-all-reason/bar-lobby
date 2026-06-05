@@ -58,14 +58,12 @@ vi.mock("@/renderer/components/misc/DebugSidebar.vue", () => ({ default: { name:
 vi.mock("@/renderer/components/misc/Error.vue", () => ({ default: { name: "Error", template: "<div />" } }));
 vi.mock("@/renderer/components/misc/InitialSetup.vue", () => ({ default: { name: "InitialSetup", template: "<div />" } }));
 vi.mock("@/renderer/components/misc/IntroVideo.vue", () => ({ default: { name: "IntroVideo", template: "<div />" } }));
-vi.mock("@/renderer/components/misc/Preloader.vue", () => ({ default: { name: "Preloader", template: "<div />" } }));
 vi.mock("@/renderer/components/navbar/NavBar.vue", () => ({ default: { name: "NavBar", template: "<div />" } }));
 vi.mock("@/renderer/components/navbar/Settings.vue", () => ({ default: { name: "Settings", template: "<div />" } }));
 vi.mock("@/renderer/components/navbar/ServerSettings.vue", () => ({ default: { name: "ServerSettings", template: "<div />" } }));
 vi.mock("@/renderer/components/notifications/Notifications.vue", () => ({ default: { name: "Notifications", template: "<div />" } }));
 vi.mock("@/renderer/components/prompts/PromptContainer.vue", () => ({ default: { name: "PromptContainer", template: "<div />" } }));
 vi.mock("@/renderer/components/common/Loader.vue", () => ({ default: { name: "Loader", template: "<div />" } }));
-vi.mock("@/renderer/components/social/ChatComponent.vue", () => ({ default: { name: "ChatComponent", template: "<div />" } }));
 vi.mock("@/renderer/components/battle/FullscreenGameModeSelector.vue", () => ({ default: { name: "FullscreenGameModeSelector", template: "<div />" } }));
 
 // Router mock
