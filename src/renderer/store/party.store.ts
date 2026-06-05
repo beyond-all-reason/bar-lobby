@@ -77,8 +77,15 @@ async function requestCreate() {
     try {
         const response = await window.tachyon.request("party/create");
         console.log("Tachyon: party/create:", response);
-        // This requires changes to Tachyon in PR 142
-        partyStore.parties.set(response.data.partyId, { ...response.data, seen: false });
+        //partyStore.parties.set(response.data.partyId, { ...response.data, seen: false });
+        // The line above is the right way, but requires changes to Tachyon in PR 142 to switch this over.
+        partyStore.parties.set(response.data.partyId, {
+            id: response.data.partyId,
+            members: [{ userId: me.userId, joinedAt: 0 }],
+            maxMembers: 3,
+            invited: [],
+            seen: false,
+        });
         parsePartyData();
     } catch (error) {
         console.error("Tachyon error: party/create:", error);
