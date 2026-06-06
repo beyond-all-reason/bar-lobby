@@ -14,6 +14,7 @@ permissions:
 
 jobs:
     deploy-config:
+        if: github.repository == 'beyond-all-reason/bar-lobby'
         runs-on: ubuntu-latest
         steps:
             - name: Push config
