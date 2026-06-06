@@ -13,6 +13,7 @@ export const downloadsStore: {
     updateDownloads: DownloadInfo[];
     gameRetrying: boolean;
     mapRetrying: boolean;
+    isPathChanging: boolean;
 } = reactive({
     isInitialized: false,
     mapDownloads: [],
@@ -21,6 +22,7 @@ export const downloadsStore: {
     updateDownloads: [],
     gameRetrying: false,
     mapRetrying: false,
+    isPathChanging: false,
 });
 
 export function initDownloadsStore() {

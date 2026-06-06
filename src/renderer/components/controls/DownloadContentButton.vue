@@ -27,7 +27,7 @@ SPDX-License-Identifier: MIT
         <Button v-else-if="isDownloading" class="grey quick-download-button fullwidth anchor" @input.stop style="min-height: unset">{{
             t("lobby.components.controls.downloadContentButton.downloading")
         }}</Button>
-        <Button v-else class="red quick-download-button fullwidth" @click="beginDownload(maps, engines, games)" style="min-height: unset">{{
+        <Button v-else class="red quick-download-button fullwidth" :disabled="downloadsStore.isPathChanging" @click="beginDownload(maps, engines, games)" style="min-height: unset">{{
             t("lobby.components.controls.downloadContentButton.download")
         }}</Button>
     </div>
@@ -45,6 +45,7 @@ import { downloadGame } from "@renderer/store/game.store";
 import { enginesStore } from "@renderer/store/engine.store";
 import { mapsStore } from "@renderer/store/maps.store";
 import { gameStore } from "@renderer/store/game.store";
+import { downloadsStore } from "@renderer/store/downloads.store";
 
 const { t } = useTypedI18n();
 
