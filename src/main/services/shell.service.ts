@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: MIT
 
-import { STATE_PATH, CONFIG_PATH, WRITE_DATA_PATH, REPLAYS_PATH, ASSETS_PATH } from "@main/config/app";
+import { STATE_PATH, CONFIG_PATH, WRITE_DATA_PATH, REPLAYS_PATH, getAssetsPath } from "@main/config/app";
 import { shell } from "electron";
 import { ipcMain } from "@main/typed-ipc";
 import path from "path";
@@ -21,7 +21,7 @@ function openInBrowser(url: string) {
 
 function registerIpcHandlers() {
     ipcMain.handle("shell:openStateDir", () => shell.openPath(STATE_PATH));
-    ipcMain.handle("shell:openAssetsDir", () => shell.openPath(ASSETS_PATH));
+    ipcMain.handle("shell:openAssetsDir", () => shell.openPath(getAssetsPath()));
     ipcMain.handle("shell:openSettingsFile", () => shell.openPath(path.join(CONFIG_PATH, "settings.json")));
     ipcMain.handle("shell:openStartScript", () => shell.openPath(path.join(WRITE_DATA_PATH, "script.txt")));
     ipcMain.handle("shell:openReplaysDir", () => shell.openPath(REPLAYS_PATH));

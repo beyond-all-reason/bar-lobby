@@ -25,7 +25,7 @@ import engineService from "./services/engine.service";
 import mapsService from "./services/maps.service";
 import gameService from "./services/game.service";
 import { logger } from "./utils/logger";
-import { APP_NAME, SCENARIO_IMAGE_PATH } from "./config/app";
+import { APP_NAME, SCENARIO_IMAGE_PATH, setAssetsPath } from "./config/app";
 import { shellService } from "@main/services/shell.service";
 import downloadsService from "@main/services/downloads.service";
 import replaysService from "@main/services/replays.service";
@@ -35,6 +35,7 @@ import { authService } from "@main/services/auth.service";
 import { tachyonService } from "@main/services/tachyon.service";
 import { typedWebContents } from "@main/typed-ipc";
 import { navigationService } from "@main/services/navigation.service";
+import { pathsService } from "./services/paths.service";
 
 // Enable happy eyeballs for IPv6/IPv4 dual stack.
 netFromNode.setDefaultAutoSelectFamily(true);
@@ -130,8 +131,14 @@ app.whenReady().then(async () => {
         });
     });
     // Initialize services
+    await settingsService.init();
+    const savedAssetsPath = settingsService.getSettings().assetsPath;
+    if (savedAssetsPath && !process.env.BAR_ASSETS_PATH) {
+        setAssetsPath(savedAssetsPath);
+    }
     await engineService.init();
-    await Promise.all([settingsService.init(), accountService.init(), replaysService.init(), gameService.init(), mapsService.init(), autoUpdaterService.init()]);
+    await Promise.all([accountService.init(), replaysService.init(), gameService.init(), mapsService.init(), autoUpdaterService.init()]);
+
     const mainWindow = createWindow();
     const webContents = typedWebContents(mainWindow.webContents);
     // Handlers may need the webContents to send events
@@ -149,4 +156,5 @@ app.whenReady().then(async () => {
     miscService.registerIpcHandlers();
     autoUpdaterService.registerIpcHandlers();
     navigationService.registerIpcHandlers(webContents);
+    pathsService.registerIpcHandlers(webContents);
 });

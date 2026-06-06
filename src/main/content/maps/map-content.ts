@@ -9,8 +9,8 @@ import { MapData } from "@main/content/maps/map-data";
 import { logger } from "@main/utils/logger";
 import { Signal } from "$/jaz-ts-utils/signal";
 import { PrDownloaderAPI } from "@main/content/pr-downloader";
-import { MAPS_PATHS } from "@main/config/app";
-import chokidar from "chokidar";
+import { getMapsPaths } from "@main/config/app";
+import chokidar, { FSWatcher } from "chokidar";
 import { UltraSimpleMapParser } from "$/map-parser/ultrasimple-map-parser";
 import { removeFromArray } from "$/jaz-ts-utils/object";
 import { engineContentAPI } from "@main/content/engine/engine-content";
@@ -28,13 +28,12 @@ export class MapContentAPI extends PrDownloaderAPI<string, MapData> {
     public readonly onMapAdded: Signal<string> = new Signal();
     public readonly onMapDeleted: Signal<string> = new Signal();
 
-    protected readonly mapCacheQueue: Set<string> = new Set();
+    private watcher?: FSWatcher;
+
     protected cachingMaps = false;
+    protected readonly mapCacheQueue: Set<string> = new Set();
 
     public override async init() {
-        for (const mapsDir of MAPS_PATHS) {
-            await fs.promises.mkdir(mapsDir, { recursive: true });
-        }
         this.initLookupMaps();
         this.startWatchingMapFolder();
 
@@ -49,11 +48,25 @@ export class MapContentAPI extends PrDownloaderAPI<string, MapData> {
         return super.init();
     }
 
+    public async reinit() {
+        for (const mapsDir of getMapsPaths()) {
+            await fs.promises.mkdir(mapsDir, { recursive: true });
+        }
+        this.mapNameFileNameLookup = {};
+        this.fileNameMapNameLookup = {};
+        this.availableVersions.clear();
+        await this.init();
+    }
+
     protected async initLookupMaps() {
         async function* findMaps() {
             // We apply toReversed to keep the precedence order: higher precedence visited later.
-            for (const mapsDir of MAPS_PATHS.toReversed()) {
-                yield* (await fs.promises.readdir(mapsDir)).filter((f) => f.endsWith(".sd7")).map((f) => path.join(mapsDir, f));
+            for (const mapsDir of getMapsPaths().toReversed()) {
+                try {
+                    yield* (await fs.promises.readdir(mapsDir)).filter((f) => f.endsWith(".sd7")).map((f) => path.join(mapsDir, f));
+                } catch {
+                    // dir may not exist yet (e.g. before first path confirmation)
+                }
             }
         }
         log.debug("Scanning for maps");
@@ -78,10 +91,11 @@ export class MapContentAPI extends PrDownloaderAPI<string, MapData> {
         return parsedMap.springName;
     }
 
-    protected startWatchingMapFolder() {
+    protected async startWatchingMapFolder() {
         //using chokidar to watch for changes in the maps folder
-        chokidar
-            .watch(MAPS_PATHS.slice(), {
+        await this.watcher?.close();
+        this.watcher = chokidar
+            .watch(getMapsPaths().slice(), {
                 ignoreInitial: true, //ignore the initial scan
                 awaitWriteFinish: true, //wait for the file to be fully written before emitting the event
             })
@@ -151,7 +165,7 @@ export class MapContentAPI extends PrDownloaderAPI<string, MapData> {
     }
 
     public async uninstallVersion(version: MapData) {
-        for (const mapsDir of MAPS_PATHS) {
+        for (const mapsDir of getMapsPaths()) {
             const mapFile = path.join(mapsDir, version.filename);
             await fs.promises.rm(mapFile, { force: true });
         }

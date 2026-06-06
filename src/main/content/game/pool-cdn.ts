@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: MIT
 
-import { ASSETS_PATH, POOL_PATH } from "@main/config/app";
+import { getAssetsPath, getPoolPath } from "@main/config/app";
 import * as fs from "fs";
 import path from "path";
 import { DownloaderHelper } from "node-downloader-helper";
@@ -43,12 +43,12 @@ export class PoolCdnDownloader extends Downloader {
      * Will try to reuse existing download if it exists (DownloadHelper will resume download).
      */
     public async preloadPoolData() {
-        if (await fileExists(POOL_PATH)) {
+        if (await fileExists(getPoolPath())) {
             log.debug("Pool folder already exists, skipping download");
             return;
         }
         log.info("Pool folder does not exist, downloading pool data");
-        await fs.promises.mkdir(POOL_PATH);
+        await fs.promises.mkdir(getPoolPath());
 
         const downloadInfo: DownloadInfo = {
             type: "game",
@@ -59,8 +59,8 @@ export class PoolCdnDownloader extends Downloader {
         };
         this.currentDownloads.push(downloadInfo);
 
-        const dlFilePath = path.join(ASSETS_PATH, "data.7z");
-        const dl = new DownloaderHelper(this.poolDataUrl, ASSETS_PATH, {
+        const dlFilePath = path.join(getAssetsPath(), "data.7z");
+        const dl = new DownloaderHelper(this.poolDataUrl, getAssetsPath(), {
             fileName: "data.7z",
             timeout: 10000,
             retry: { maxRetries: 3, delay: 1000 },
@@ -99,7 +99,7 @@ export class PoolCdnDownloader extends Downloader {
         downloadInfo.phase = "extracting";
         this.downloadProgress(downloadInfo);
 
-        await extract7z(dlFilePath, POOL_PATH);
+        await extract7z(dlFilePath, getPoolPath());
         log.info("Pool data extracted");
 
         await fs.promises.rm(dlFilePath);

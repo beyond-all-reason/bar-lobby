@@ -15,7 +15,7 @@ import { logger } from "@main/utils/logger";
 import { extract7z } from "@main/utils/extract-7z";
 import { getEngineReleaseInfo } from "@main/config/content-sources";
 import { AbstractContentAPI } from "@main/content/abstract-content";
-import { ENGINE_PATH } from "@main/config/app";
+import { getEnginePath } from "@main/config/app";
 import { DEFAULT_ENGINE_VERSION } from "@main/config/default-versions";
 
 const log = logger("engine-content.ts");
@@ -25,12 +25,13 @@ const log = logger("engine-content.ts");
 const compatibleVersionRegex = /^\d{4}\.\d{2}\.\d{1,2}(-rc\d+)?$/;
 
 export class EngineContentAPI extends AbstractContentAPI<string, EngineVersion> {
-    protected readonly engineDirs = ENGINE_PATH;
+    protected get engineDirs() {
+        return getEnginePath();
+    }
 
     public override async init() {
+        log.info("Initializing engine content API");
         try {
-            log.info("Initializing engine content API");
-            await fs.promises.mkdir(this.engineDirs, { recursive: true });
             const files = await fs.promises.readdir(this.engineDirs, { withFileTypes: true });
             const dirs = files
                 .filter((file) => file.isDirectory() || file.isSymbolicLink())
@@ -42,12 +43,20 @@ export class EngineContentAPI extends AbstractContentAPI<string, EngineVersion> 
                 const ais = await this.parseAis(dir);
                 this.availableVersions.set(dir, { id: dir, ais, installed: true });
             }
-            this.checkIfDefaultIsNew();
-            log.info(`Found ${this.availableVersions.size} engine versions total.`);
         } catch (err) {
-            log.error(err);
+            if ((err as NodeJS.ErrnoException).code !== "ENOENT") {
+                log.error(err);
+            }
         }
+        this.checkIfDefaultIsNew();
+        log.info(`Found ${this.availableVersions.size} engine versions total.`);
         return this;
+    }
+
+    public async reinit() {
+        await fs.promises.mkdir(this.engineDirs, { recursive: true });
+        this.availableVersions.clear();
+        await this.init();
     }
 
     public isVersionInstalled(id: string): boolean {
