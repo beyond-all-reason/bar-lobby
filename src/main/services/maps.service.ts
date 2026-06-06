@@ -12,6 +12,9 @@ async function init() {
     await mapContentAPI.init();
 }
 
+async function reinit() {
+    await mapContentAPI.reinit();
+}
 const FETCH_MAPS_TIMEOUT_MS = 15_000;
 
 async function fetchAllMaps(): Promise<[MapData[], MapDownloadData[]]> {
@@ -70,6 +73,7 @@ function registerIpcHandlers(webContents: BarIpcWebContents) {
 
 const mapsService = {
     init,
+    reinit,
     registerIpcHandlers,
 };
 

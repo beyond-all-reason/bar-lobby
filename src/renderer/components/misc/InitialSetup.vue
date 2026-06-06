@@ -6,33 +6,44 @@ SPDX-License-Identifier: MIT
 
 <template>
     <div class="initial-setup fullsize flex-center">
-        <h1>{{ title }}</h1>
-        <h4 :class="{ 'status-error': stepError, 'status-warning': stepRetrying }">{{ text }}</h4>
-        <Progress :percent="overallProgress" :height="40" style="width: 70%" themed pulsating />
-        <template v-if="isDownloadPhase">
-            <div class="action-slot">
-                <template v-if="stepError">
-                    <Button class="green" @click="retryCurrentStep">{{ t("lobby.components.misc.initialSetup.retry") }}</Button>
-                    <Button v-if="canSkipCurrentStep" class="red" @click="skipCurrentStep">{{
-                        t("lobby.components.misc.initialSetup.skip")
-                    }}</Button>
-                </template>
-                <template v-else>
-                    <div v-if="isExtracting" class="initial-setup__detail">
-                        <Loader class="initial-setup__spinner" :absolute-position="false" />
-                        <span>{{ t("lobby.navbar.downloads.extracting") }}</span>
-                    </div>
-                    <div v-else-if="currentDownload" class="initial-setup__detail initial-setup__detail--text">
-                        {{ progressDetail }}
-                    </div>
-                    <div v-else class="initial-setup__detail">
-                        <Loader class="initial-setup__spinner" :absolute-position="false" />
-                    </div>
-                </template>
+        <template v-if="state === 'path-selection'">
+            <h1>{{ t("lobby.components.misc.initialSetup.title") }}</h1>
+            <h4>{{ t("lobby.components.misc.initialSetup.selectAssetsPathDescription") }}</h4>
+            <div class="path-selector">
+                <Textbox :model-value="selectedPath" readonly />
+                <Button @click="browseForFolder">{{ t("lobby.components.misc.initialSetup.browse") }}</Button>
             </div>
-            <div class="play-offline-action">
-                <Button class="blue" @click="skipAllSteps">{{ t("lobby.components.misc.initialSetup.playOffline") }}</Button>
-            </div>
+            <Button class="green" @click="confirmPath">{{ t("lobby.components.misc.initialSetup.continue") }}</Button>
+        </template>
+        <template v-else>
+            <h1>{{ title }}</h1>
+            <h4 :class="{ 'status-error': stepError, 'status-warning': stepRetrying }">{{ text }}</h4>
+            <Progress :percent="overallProgress" :height="40" style="width: 70%" themed pulsating />
+            <template v-if="isDownloadPhase">
+                <div class="action-slot">
+                    <template v-if="stepError">
+                        <Button class="green" @click="retryCurrentStep">{{ t("lobby.components.misc.initialSetup.retry") }}</Button>
+                        <Button v-if="canSkipCurrentStep" class="red" @click="skipCurrentStep">{{
+                            t("lobby.components.misc.initialSetup.skip")
+                        }}</Button>
+                    </template>
+                    <template v-else>
+                        <div v-if="isExtracting" class="initial-setup__detail">
+                            <Loader class="initial-setup__spinner" :absolute-position="false" />
+                            <span>{{ t("lobby.navbar.downloads.extracting") }}</span>
+                        </div>
+                        <div v-else-if="currentDownload" class="initial-setup__detail initial-setup__detail--text">
+                            {{ progressDetail }}
+                        </div>
+                        <div v-else class="initial-setup__detail">
+                            <Loader class="initial-setup__spinner" :absolute-position="false" />
+                        </div>
+                    </template>
+                </div>
+                <div class="play-offline-action">
+                    <Button class="blue" @click="skipAllSteps">{{ t("lobby.components.misc.initialSetup.playOffline") }}</Button>
+                </div>
+            </template>
         </template>
     </div>
 </template>
@@ -43,6 +54,7 @@ import { randomFromArray } from "$/jaz-ts-utils/object";
 import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import { useTypedI18n } from "@renderer/i18n";
 import Button from "@renderer/components/controls/Button.vue";
+import Textbox from "@renderer/components/controls/Textbox.vue";
 import Loader from "@renderer/components/common/Loader.vue";
 import Progress from "@renderer/components/common/Progress.vue";
 import { audioApi } from "@renderer/audio/audio";
@@ -78,6 +90,8 @@ interface DownloadStage {
 
 const title = ref(t("lobby.components.misc.preloader.loading"));
 const text = ref("");
+const state = ref<"path-selection" | "engine" | "game" | "maps" | "update">("engine");
+const selectedPath = ref("");
 const isDownloadPhase = ref(false);
 const stepError = ref("");
 const stepRetrying = ref(false);
@@ -87,6 +101,8 @@ const overallProgress = ref(0);
 let stageStart = 0;
 let stageEnd = 0;
 let currentStage: DownloadStage | null = null;
+
+let resolvePathConfirm: (() => void) | undefined;
 
 const currentDownload = computed(() => allDownloads.value[0] ?? null);
 const isExtracting = computed(() => currentDownload.value?.phase === "extracting");
@@ -271,6 +287,18 @@ async function runStage(stage: DownloadStage): Promise<boolean> {
     return false;
 }
 
+async function browseForFolder() {
+    const chosen = await window.paths.selectFolder();
+    if (chosen) {
+        selectedPath.value = chosen;
+    }
+}
+
+async function confirmPath() {
+    await window.paths.changePath(selectedPath.value);
+    resolvePathConfirm?.();
+}
+
 onMounted(async () => {
     console.debug("Initial setup");
 
@@ -292,6 +320,17 @@ onMounted(async () => {
     // Phase 2: Downloads
     isDownloadPhase.value = true;
     title.value = t("lobby.components.misc.initialSetup.title");
+
+    const needsEngine = !enginesStore.selectedEngineVersion || enginesStore.selectedEngineVersion.installed === false;
+
+    if (needsEngine) {
+        selectedPath.value = await window.paths.getCurrentAssetsPath();
+        state.value = "path-selection";
+        await new Promise<void>((resolve) => {
+            resolvePathConfirm = resolve;
+        });
+        state.value = "engine";
+    }
 
     const stages: DownloadStage[] = [
         {
@@ -435,5 +474,18 @@ async function loadFont(url: string) {
 
 .play-offline-action {
     margin-top: 16px;
+}
+
+.path-selector {
+    display: flex;
+    flex-direction: row;
+    gap: 8px;
+    align-items: center;
+    width: 500px;
+    margin-bottom: 16px;
+
+    .textbox {
+        flex: 1;
+    }
 }
 </style>

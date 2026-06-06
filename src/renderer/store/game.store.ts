@@ -53,6 +53,12 @@ watch(
     }
 );
 
+export async function refreshGameStore() {
+    gameStore.availableGameVersions.clear();
+    gameStore.selectedGameVersion = undefined;
+    await refreshStore();
+}
+
 export async function downloadGame(version: string) {
     try {
         await window.game.downloadGame(version);

@@ -5,7 +5,7 @@
 import * as path from "path";
 import { spawn } from "child_process";
 import { logger } from "@main/utils/logger";
-import { ENGINE_PATH, WRITE_DATA_PATH, ASSETS_PATH } from "@main/config/app";
+import { getEnginePath, WRITE_DATA_PATH, getAssetsPath } from "@main/config/app";
 
 const log = logger("checksums.ts");
 
@@ -17,7 +17,7 @@ export function calcChecksum(engineVersion: string, archiveName: string): Promis
 }
 
 function runChecksumProcess(engineVersion: string, archiveName: string): Promise<void> {
-    const enginePath = path.join(ENGINE_PATH, engineVersion).replaceAll("\\", "/");
+    const enginePath = path.join(getEnginePath(), engineVersion).replaceAll("\\", "/");
     const binaryName = process.platform === "win32" ? "spring-headless.exe" : "./spring-headless";
     // --calc-checksum does not return a value to us; it causes the engine to write a checksum cache
     // file to disk that speeds up subsequent archive loading (avoids re-scanning on next launch).
@@ -28,7 +28,7 @@ function runChecksumProcess(engineVersion: string, archiveName: string): Promise
         const proc = spawn(binaryName, args, {
             cwd: enginePath,
             stdio: "pipe",
-            env: { ...process.env, SPRING_DATADIR: ASSETS_PATH },
+            env: { ...process.env, SPRING_DATADIR: getAssetsPath() },
         });
         proc.on("exit", (code) => {
             if (code !== 0) log.warn(`calcChecksum exited with code ${code} for: ${archiveName}`);
