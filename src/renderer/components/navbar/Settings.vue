@@ -109,6 +109,9 @@ import OverlayPanel from "primevue/overlaypanel";
 import { asyncComputed } from "@vueuse/core";
 import { settingsStore } from "@renderer/store/settings.store";
 import { infosStore } from "@renderer/store/infos.store";
+import { refreshEnginesStore } from "@renderer/store/engine.store";
+import { refreshGameStore } from "@renderer/store/game.store";
+import { refreshMapsStore } from "@renderer/store/maps.store";
 import { uploadLogs } from "@renderer/utils/log";
 import { useTypedI18n } from "@renderer/i18n";
 const { t } = useTypedI18n();
@@ -172,7 +175,9 @@ async function applyPathChange() {
                 await window.paths.copyAndChangePath(pendingAssetsPath.value);
             }
         }
-        location.reload();
+        await Promise.all([refreshEnginesStore(), refreshGameStore(), refreshMapsStore()]);
+        currentAssetsPath.value = await window.paths.getCurrentAssetsPath();
+        pendingAssetsPath.value = null;
     } catch (err) {
         pathError.value = err instanceof Error ? err.message : String(err);
     } finally {

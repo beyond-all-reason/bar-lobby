@@ -19,6 +19,11 @@ export const enginesStore: {
 
 export const installedEngineVersions = computed(() => enginesStore.availableEngineVersions.filter((e) => e.installed));
 
+export async function refreshEnginesStore() {
+    enginesStore.availableEngineVersions = await window.engine.listAvailableVersions();
+    enginesStore.selectedEngineVersion = enginesStore.availableEngineVersions.find((e) => e.id === DEFAULT_ENGINE_VERSION);
+}
+
 export async function downloadEngine(engineString: string) {
     await window.engine
         .downloadEngine(engineString)

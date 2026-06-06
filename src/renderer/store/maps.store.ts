@@ -133,6 +133,17 @@ async function init() {
     mapsStore.isInitialized = true;
 }
 
+export async function refreshMapsStore() {
+    const installedOnDisk = new Set(await window.maps.getInstalledMapNames());
+    mapsStore.availableMapNames = installedOnDisk;
+    await db.maps.toCollection().modify((map) => {
+        map.isInstalled = installedOnDisk.has(map.springName);
+    });
+    await db.nonLiveMaps.toCollection().modify((map) => {
+        map.isInstalled = installedOnDisk.has(map.springName);
+    });
+}
+
 //TODO We need to support updating map images when reference in map metadata changes.
 export async function fetchMissingMapImages() {
     const maps = await db.maps.toArray();
