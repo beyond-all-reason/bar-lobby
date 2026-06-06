@@ -36,10 +36,12 @@ export const matchmakingStore: {
     queueError?: string;
     playersReady?: number;
     playersQueued?: number;
-    // Each playlist will have it's own boolean, as the 'needed' property of an object keyed to the playlist's names
+    // Each playlist is keyed by its name, and any array elements in the value object are required downloads for the corresponding type
     downloadsRequired: {
         [k: string]: {
-            needed: boolean;
+            engines: string[];
+            games: string[];
+            maps: string[];
         };
     };
 } = reactive({
@@ -107,11 +109,9 @@ async function sendListRequest() {
         if (matchmakingStore.playlists.length > 0 && !hasSelectedQueue) {
             matchmakingStore.selectedQueue = matchmakingStore.playlists[0].id;
         }
-        // Clear the "downloadsRequired" list because we have all-new playlist response
-        matchmakingStore.downloadsRequired = {};
-        // Find out of we have the necessary maps for each queue we've been given.
+        // Find out what missing assets are for each queue
         matchmakingStore.playlists.forEach(async (queue) => {
-            matchmakingStore.downloadsRequired[queue.id] = { needed: await checkIfAnyAssetsAreNeeded(queue.engines, queue.games, queue.maps) };
+            await setRequiredAssetsArrays(queue.id, queue.engines, queue.games, queue.maps);
         });
     } catch (error) {
         console.error("Tachyon error: matchmaking/list:", error);
@@ -122,30 +122,33 @@ async function sendListRequest() {
     }
 }
 
-//TODO: save the needed items to a list of "downloads required"
-async function checkIfAnyAssetsAreNeeded(engines: { version: string }[], games: { springName: string }[], maps: { springName: string }[]): Promise<boolean> {
-    if (engines.length + games.length + maps.length === 0) {
-        return false;
-    }
+async function setRequiredAssetsArrays(queue: string, engines: { version: string }[], games: { springName: string }[], maps: { springName: string }[]): Promise<void> {
+    matchmakingStore.downloadsRequired[queue] = { engines: [], games: [], maps: [] };
     const queueMaps = maps.map((m) => m.springName);
     const dbMaps = await db.maps.bulkGet(queueMaps);
     for (const map of dbMaps) {
-        if (map == undefined || !map.isInstalled) return true;
-        console.log(`Matchmaking queue; map ${map.displayName} download required`);
+        if (map != undefined && !map.isInstalled) {
+            console.log(`Matchmaking queue; map ${map.displayName} download required`);
+            matchmakingStore.downloadsRequired[queue].maps.push(map.springName);
+        }
     }
     const queueEngines = new Set(engines.map((e) => e.version));
     const installedEngines = new Set(enginesStore.availableEngineVersions.filter((e) => e.installed).map((e) => e.id));
-    if (queueEngines.difference(installedEngines).size > 0) {
-        console.log(`Matchmaking queue; ${queueEngines.difference(installedEngines).size} engine asset downloads required`);
-        return true;
+    const diffEngines = queueEngines.difference(installedEngines);
+    if (diffEngines.size > 0) {
+        console.log(`Matchmaking queue; ${diffEngines.size} engine asset downloads required`);
+        console.log(diffEngines);
+        matchmakingStore.downloadsRequired[queue].engines.push(...diffEngines);
     }
     const queueGames = new Set(games.map((g) => g.springName));
     const installedGames = new Set(gameStore.availableGameVersions.keys());
-    if (queueGames.difference(installedGames).size > 0) {
-        console.log(`Matchmaking queue; ${queueGames.difference(installedGames).size > 0} game asset downloads required`);
-        return true;
+    const diffGames = queueGames.difference(installedGames);
+    if (diffGames.size > 0) {
+        console.log(`Matchmaking queue; ${diffGames.size} game asset downloads required`);
+        console.log(diffGames);
+        matchmakingStore.downloadsRequired[queue].games.push(...diffGames);
     }
-    return false;
+    return;
 }
 
 export function getPlaylistName(id: string): string {
@@ -159,7 +162,11 @@ async function sendQueueRequest() {
         await sendListRequest();
         return;
     }
-    if (matchmakingStore.downloadsRequired[matchmakingStore.selectedQueue].needed) {
+    if (
+        matchmakingStore.downloadsRequired[matchmakingStore.selectedQueue].maps.length > 0 ||
+        matchmakingStore.downloadsRequired[matchmakingStore.selectedQueue].engines.length > 0 ||
+        matchmakingStore.downloadsRequired[matchmakingStore.selectedQueue].games.length > 0
+    ) {
         notificationsApi.alert({ text: "You have downloads required to join this queue.", severity: "info" });
         return;
     }
