@@ -93,6 +93,7 @@ async function applyNewPath(newAssetsPath: string) {
 function registerIpcHandlers(webContents: BarIpcWebContents) {
     ipcMain.handle("paths:selectFolder", async () => {
         const { canceled, filePaths } = await dialog.showOpenDialog({
+            defaultPath: getAssetsPath(),
             properties: ["openDirectory"],
         });
         return canceled ? null : filePaths[0];

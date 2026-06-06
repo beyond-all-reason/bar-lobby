@@ -266,7 +266,7 @@
                 "useNewLocationOnlyDesc": "Points the game at the new folder. No files are moved or copied — you will need to re-download.",
                 "apply": "Apply",
                 "restartRequired": "The application will reload after changing the location.",
-                "transferringFiles": "Transferring files..."
+                "transferringFiles": "Transferring files... {percent}%"
             },
             "friends": {
                 "unknownUser": "Unknown User",
