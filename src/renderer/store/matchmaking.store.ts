@@ -14,6 +14,8 @@ import {
 import { tachyonStore } from "@renderer/store/tachyon.store";
 import { db } from "@renderer/store/db";
 import { notificationsApi } from "@renderer/api/notifications";
+import { enginesStore } from "@renderer/store/engine.store";
+import { gameStore } from "@renderer/store/game.store";
 
 export enum MatchmakingStatus {
     Idle = "Idle",
@@ -109,7 +111,7 @@ async function sendListRequest() {
         matchmakingStore.downloadsRequired = {};
         // Find out of we have the necessary maps for each queue we've been given.
         matchmakingStore.playlists.forEach(async (queue) => {
-            matchmakingStore.downloadsRequired[queue.id] = { needed: await checkIfAnyMapsAreNeeded(queue.maps) };
+            matchmakingStore.downloadsRequired[queue.id] = { needed: await checkIfAnyAssetsAreNeeded(queue.engines, queue.games, queue.maps) };
         });
     } catch (error) {
         console.error("Tachyon error: matchmaking/list:", error);
@@ -120,12 +122,28 @@ async function sendListRequest() {
     }
 }
 
-async function checkIfAnyMapsAreNeeded(maps: { springName: string }[]): Promise<boolean> {
-    if (maps.length == 0) return false;
+//TODO: save the needed items to a list of "downloads required"
+async function checkIfAnyAssetsAreNeeded(engines: { version: string }[], games: { springName: string }[], maps: { springName: string }[]): Promise<boolean> {
+    if (engines.length + games.length + maps.length === 0) {
+        return false;
+    }
     const queueMaps = maps.map((m) => m.springName);
     const dbMaps = await db.maps.bulkGet(queueMaps);
     for (const map of dbMaps) {
         if (map == undefined || !map.isInstalled) return true;
+        console.log(`Matchmaking queue; map ${map.displayName} download required`);
+    }
+    const queueEngines = new Set(engines.map((e) => e.version));
+    const installedEngines = new Set(enginesStore.availableEngineVersions.filter((e) => e.installed).map((e) => e.id));
+    if (queueEngines.difference(installedEngines).size > 0) {
+        console.log(`Matchmaking queue; ${queueEngines.difference(installedEngines).size} engine asset downloads required`);
+        return true;
+    }
+    const queueGames = new Set(games.map((g) => g.springName));
+    const installedGames = new Set(gameStore.availableGameVersions.keys());
+    if (queueGames.difference(installedGames).size > 0) {
+        console.log(`Matchmaking queue; ${queueGames.difference(installedGames).size > 0} game asset downloads required`);
+        return true;
     }
     return false;
 }
