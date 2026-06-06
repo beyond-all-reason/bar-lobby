@@ -1,0 +1,35 @@
+# SPDX-FileCopyrightText: 2025 The BAR Lobby Authors
+#
+# SPDX-License-Identifier: CC0-1.0
+
+name: Config Serving Deploy
+on:
+    push:
+        branches:
+            - master
+    workflow_dispatch:
+
+permissions:
+    id-token: write
+
+jobs:
+    deploy-config:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Push config
+              env:
+                  CONFIG_URL: https://lobby-config.beyondallreason.dev/config.json
+              run: |
+                  # TODO: Just an empty config for now, to show that workflow works,
+                  # replace with real path from validated config.json.
+                  cat > config.json <<EOF
+                  {
+                      "configUrl": "$CONFIG_URL"
+                  }
+                  EOF
+                  CURL_OPTS=(-sS --fail-with-body --connect-timeout 10 --max-time 30 --retry 3 --retry-connrefused)
+                  IDTOKEN="$(curl "${CURL_OPTS[@]}" -H "Authorization: Bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+                      "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=$CONFIG_URL" | jq -r '.value')"
+                  curl "${CURL_OPTS[@]}" -X PUT "$CONFIG_URL" \
+                      -H "Authorization: Bearer $IDTOKEN" \
+                      --data @config.json
