@@ -62,7 +62,7 @@ SPDX-License-Identifier: MIT
                         <div class="progress-bar">
                             <div class="progress-fill" :style="{ width: copyProgressPercent + '%' }"></div>
                         </div>
-                        <small>{{ t("lobby.navbar.settings.transferringFiles") }} {{ copyProgressPercent }}%</small>
+                        <small>{{ t("lobby.navbar.settings.transferringFiles", { percent: copyProgressPercent }) }}</small>
                     </div>
                     <div v-else class="change-mode-section">
                         <label class="radio-option" :class="{ selected: changeMode === 'move' }">
@@ -98,7 +98,7 @@ SPDX-License-Identifier: MIT
 </template>
 
 <script lang="ts" setup>
-import { computed, onMounted, onUnmounted, ref } from "vue";
+import { computed, onMounted, onUnmounted, ref, useAttrs, watch } from "vue";
 import Modal from "@renderer/components/common/Modal.vue";
 import Checkbox from "@renderer/components/controls/Checkbox.vue";
 import Range from "@renderer/components/controls/Range.vue";
@@ -127,6 +127,16 @@ const pathError = ref("");
 const isBusy = computed(() => isTransferring.value || isChanging.value);
 
 let cleanupCopyProgress: (() => void) | undefined;
+
+const attrs = useAttrs();
+watch(
+    () => attrs.modelValue as boolean,
+    async (isOpen) => {
+        if (isOpen) {
+            currentAssetsPath.value = await window.paths.getCurrentAssetsPath();
+        }
+    }
+);
 
 onMounted(async () => {
     currentAssetsPath.value = await window.paths.getCurrentAssetsPath();
