@@ -143,15 +143,11 @@ async function setRequiredAssetsArrays(queue: string, engines: { version: string
     const queueEngines = new Set(engines.map((e) => e.version));
     const installedEngines = new Set(enginesStore.availableEngineVersions.filter((e) => e.installed).map((e) => e.id));
     const diffEngines = queueEngines.difference(installedEngines);
-    if (diffEngines.size > 0) {
-        matchmakingStore.downloadsRequired[queue].engines.push(...diffEngines);
-    }
+    matchmakingStore.downloadsRequired[queue].engines.push(...diffEngines);
     const queueGames = new Set(games.map((g) => g.springName));
     const installedGames = new Set(gameStore.availableGameVersions.keys());
     const diffGames = queueGames.difference(installedGames);
-    if (diffGames.size > 0) {
-        matchmakingStore.downloadsRequired[queue].games.push(...diffGames);
-    }
+    matchmakingStore.downloadsRequired[queue].games.push(...diffGames);
     return;
 }
 
