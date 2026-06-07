@@ -36,7 +36,7 @@ export const matchmakingStore: {
     queueError?: string;
     playersReady?: number;
     playersQueued?: number;
-    // Each playlist is keyed by its name, and any array elements in the value object are required downloads for the corresponding type
+    // Each playlist is keyed by its id, and any array elements in the value object are required downloads for the corresponding type
     downloadsRequired: {
         [k: string]: {
             engines: string[];
@@ -96,6 +96,9 @@ function onQueuesJoinedEvent(data: MatchmakingQueuesJoinedEventData) {
     matchmakingStore.status = MatchmakingStatus.Searching;
 }
 
+/**
+ * Sends a Tachyon 'matchmaking/list' request to get the latest matchmaking queues
+ */
 async function sendListRequest() {
     matchmakingStore.isLoadingQueues = true;
     matchmakingStore.queueError = undefined;
@@ -141,7 +144,6 @@ async function setRequiredAssetsArrays(queue: string, engines: { version: string
     const dbMaps = await db.maps.bulkGet(queueMaps);
     for (const map of dbMaps) {
         if (map != undefined && !map.isInstalled) {
-            console.log(`Matchmaking queue; map ${map.displayName} download required`);
             matchmakingStore.downloadsRequired[queue].maps.push(map.springName);
         }
     }
@@ -149,26 +151,30 @@ async function setRequiredAssetsArrays(queue: string, engines: { version: string
     const installedEngines = new Set(enginesStore.availableEngineVersions.filter((e) => e.installed).map((e) => e.id));
     const diffEngines = queueEngines.difference(installedEngines);
     if (diffEngines.size > 0) {
-        console.log(`Matchmaking queue; ${diffEngines.size} engine asset downloads required`);
-        console.log(diffEngines);
         matchmakingStore.downloadsRequired[queue].engines.push(...diffEngines);
     }
     const queueGames = new Set(games.map((g) => g.springName));
     const installedGames = new Set(gameStore.availableGameVersions.keys());
     const diffGames = queueGames.difference(installedGames);
     if (diffGames.size > 0) {
-        console.log(`Matchmaking queue; ${diffGames.size} game asset downloads required`);
-        console.log(diffGames);
         matchmakingStore.downloadsRequired[queue].games.push(...diffGames);
     }
     return;
 }
 
+/**
+ * Get the display name for a specific queue/playlist
+ * @param id The ID for the requested queue/playlist
+ * @returns The display name for the requested queue/playlist
+ */
 export function getPlaylistName(id: string): string {
     const playlist = matchmakingStore.playlists.find((playlist) => playlist.id === id);
     return playlist?.name || id;
 }
 
+/**
+ * Sends a Tachyon 'matchmaking/queue' request, specifically using the matchmakingStore.selectedQueue
+ */
 async function sendQueueRequest() {
     if (matchmakingStore.downloadsRequired[matchmakingStore.selectedQueue] == undefined) {
         notificationsApi.alert({ text: "Bad queue data; refreshing list.", severity: "error" });
@@ -211,6 +217,9 @@ async function sendQueueRequest() {
     }
 }
 
+/**
+ * Sends a Tachyon 'matchmaking/cancel' request.
+ */
 async function sendCancelRequest() {
     matchmakingStore.status = MatchmakingStatus.Idle;
     try {
@@ -223,6 +232,9 @@ async function sendCancelRequest() {
     }
 }
 
+/**
+ * Sends a Tachyon 'matchmaking/ready' request.
+ */
 async function sendReadyRequest() {
     matchmakingStore.status = MatchmakingStatus.MatchAccepted;
     try {
