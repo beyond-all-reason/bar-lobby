@@ -122,6 +122,19 @@ async function sendListRequest() {
     }
 }
 
+/**
+ * This refreshes the downloadsRequired arrays upon demand, if we expect that things have changed.
+ * @param queue The queue to be refreshed.
+ */
+function triggerAssetsRefresh(queue: string) {
+    const queueIndex = matchmakingStore.playlists.findIndex((p) => p.id === queue);
+    if (queueIndex < 0) {
+        console.warn(`Invalid queueIndex ${queueIndex} for queue ${queue}`);
+        return;
+    }
+    setRequiredAssetsArrays(queue, matchmakingStore.playlists[queueIndex].engines, matchmakingStore.playlists[queueIndex].games, matchmakingStore.playlists[queueIndex].maps);
+}
+
 async function setRequiredAssetsArrays(queue: string, engines: { version: string }[], games: { springName: string }[], maps: { springName: string }[]): Promise<void> {
     matchmakingStore.downloadsRequired[queue] = { engines: [], games: [], maps: [] };
     const queueMaps = maps.map((m) => m.springName);
@@ -245,4 +258,4 @@ export async function initializeMatchmakingStore() {
     matchmakingStore.isInitialized = true;
 }
 
-export const matchmaking = { sendCancelRequest, sendQueueRequest, sendReadyRequest, sendListRequest };
+export const matchmaking = { sendCancelRequest, sendQueueRequest, sendReadyRequest, sendListRequest, triggerAssetsRefresh };

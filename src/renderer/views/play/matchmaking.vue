@@ -33,14 +33,25 @@ SPDX-License-Identifier: MIT
                     :class="{
                         selected: matchmakingStore.selectedQueue === queue,
                     }"
-                    @click="() => (matchmakingStore.selectedQueue = queue)"
+                    @click="queueSelected(queue)"
                     :disabled="matchmakingStore.status !== MatchmakingStatus.Idle"
                     ><span>{{ getPlaylistName(queue) }}</span></Button
                 >
             </div>
             <div class="button-container">
+                <div v-if="anyDownloadsAreRequired" class="download-button-container">
+                    <DownloadContentButton
+                        :maps="downloadsRequired.maps"
+                        :engines="downloadsRequired.engines"
+                        :games="downloadsRequired.games"
+                        @downloads-complete="handleDownloadsComplete"
+                        @downloads-started="handleDownloadsStarted"
+                        :class="'large'"
+                        >This string should never be visible.</DownloadContentButton
+                    >
+                </div>
                 <button
-                    v-if="matchmakingStore.status === MatchmakingStatus.Idle"
+                    v-else-if="matchmakingStore.status === MatchmakingStatus.Idle"
                     class="quick-play-button"
                     :class="{
                         disabled: !matchmakingStore.selectedQueue,
@@ -89,13 +100,45 @@ SPDX-License-Identifier: MIT
 import { matchmaking, MatchmakingStatus, matchmakingStore, getPlaylistName } from "@renderer/store/matchmaking.store";
 import Button from "primevue/button";
 import { useTypedI18n } from "@renderer/i18n";
-import { computed, onActivated } from "vue";
+import { computed, onActivated, ref } from "vue";
+import DownloadContentButton from "@renderer/components/controls/DownloadContentButton.vue";
 
 const { t } = useTypedI18n();
 
 const availableQueueIds = computed(() => {
     return matchmakingStore.playlists.sort((a, b) => a.teamSize * a.numOfTeams - b.teamSize * b.numOfTeams).map((playlist) => playlist.id);
 });
+
+const downloadsRequired = computed(() => {
+    return matchmakingStore.downloadsRequired[matchmakingStore.selectedQueue];
+});
+
+const anyDownloadsAreRequired = computed(() => {
+    if (
+        matchmakingStore.downloadsRequired[matchmakingStore.selectedQueue].maps.length > 0 ||
+        matchmakingStore.downloadsRequired[matchmakingStore.selectedQueue].engines.length > 0 ||
+        matchmakingStore.downloadsRequired[matchmakingStore.selectedQueue].games.length > 0
+    )
+        return true;
+    else return false;
+});
+
+const downloading = ref(false);
+
+// Switching the active queue during a download cannot be allowed because it messes with state.
+function queueSelected(queue: string) {
+    if (downloading.value) {
+        return;
+    } else matchmakingStore.selectedQueue = queue;
+}
+
+function handleDownloadsStarted() {
+    downloading.value = true;
+}
+function handleDownloadsComplete() {
+    matchmaking.triggerAssetsRefresh(matchmakingStore.selectedQueue);
+    downloading.value = false;
+}
 
 onActivated(() => {
     matchmaking.sendListRequest();
@@ -293,5 +336,15 @@ onActivated(() => {
 .disabled {
     cursor: not-allowed;
     opacity: 0.1;
+}
+
+.download-button-container {
+    align-self: center;
+    width: 500px;
+    //padding: 20px 40px;
+    text-align: center;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
 }
 </style>
