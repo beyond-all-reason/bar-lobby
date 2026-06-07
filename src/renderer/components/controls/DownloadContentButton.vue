@@ -7,16 +7,18 @@ SPDX-License-Identifier: MIT
 <template>
     <div class="fullwidth anchor">
         <div class="progress-bar-outer">
-            <DownloadProgress
-                :maps="maps"
-                :engines="engines"
-                :games="games"
-                :height="600"
-                @status-change="updateDownloadStatus"
-            ></DownloadProgress>
+            <DownloadProgress :maps="maps" :engines="engines" :games="games" :height="600"></DownloadProgress>
         </div>
+        <Button
+            v-if="isDownloading"
+            class="grey quick-download-button fullwidth"
+            :class="$props.class != undefined ? $props.class : ''"
+            @input.stop
+            style="min-height: unset"
+            >{{ t("lobby.components.controls.downloadContentButton.downloading") }}</Button
+        >
         <button
-            v-if="ready"
+            v-else-if="ready"
             class="quick-play-button fullwidth"
             :class="$props.class != undefined ? $props.class : ''"
             :disabled="disabled"
@@ -24,14 +26,6 @@ SPDX-License-Identifier: MIT
         >
             <slot />
         </button>
-        <Button
-            v-else-if="isDownloading"
-            class="grey quick-download-button fullwidth"
-            :class="$props.class != undefined ? $props.class : ''"
-            @input.stop
-            style="min-height: unset"
-            >{{ t("lobby.components.controls.downloadContentButton.downloading") }}</Button
-        >
         <Button
             v-else
             class="red quick-download-button fullwidth"
@@ -84,13 +78,16 @@ const ready = computed(() => {
     else return true;
 });
 
-function updateDownloadStatus(value: boolean) {
-    isDownloading.value = value;
-}
+// DownloadProgress used this to update status, but since we currently only queue individual downloads at the moment,
+// // it was flickering between each download. If we get concurrent downloads, then we can put this back in.
+// function updateDownloadStatus(value: boolean) {
+//     isDownloading.value = value;
+// }
 
 // Note; we have to await each download because we need to update pr-downloader to accept concurrent downloads
 async function beginDownload(maps?: string[], engines?: string[], games?: string[]) {
     emit("downloads-started");
+    isDownloading.value = true;
     for (const map of maps ?? []) {
         await downloadMap(map);
     }
@@ -101,6 +98,7 @@ async function beginDownload(maps?: string[], engines?: string[], games?: string
         await downloadGame(game);
     }
     emit("downloads-complete");
+    isDownloading.value = false;
 }
 </script>
 
