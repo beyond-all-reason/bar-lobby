@@ -112,10 +112,7 @@ async function sendListRequest() {
         if (matchmakingStore.playlists.length > 0 && !hasSelectedQueue) {
             matchmakingStore.selectedQueue = matchmakingStore.playlists[0].id;
         }
-        // Find out what missing assets are for each queue
-        matchmakingStore.playlists.forEach(async (queue) => {
-            await setRequiredAssetsArrays(queue.id, queue.engines, queue.games, queue.maps);
-        });
+        triggerAssetsRefresh();
     } catch (error) {
         console.error("Tachyon error: matchmaking/list:", error);
         notificationsApi.alert({ text: "Tachyon error: matchmaking/list", severity: "error" });
@@ -126,12 +123,11 @@ async function sendListRequest() {
 }
 
 /**
- * This refreshes the downloadsRequired arrays upon demand, if we expect that things have changed.
- * @param queue The queue to be refreshed.
+ * Refreshes the downloadsRequired arrays upon demand, if we expect that things have changed.
  */
 function triggerAssetsRefresh() {
-    for (const [index, queue] of matchmakingStore.playlists.entries()) {
-        setRequiredAssetsArrays(queue.id, matchmakingStore.playlists[index].engines, matchmakingStore.playlists[index].games, matchmakingStore.playlists[index].maps);
+    for (const queue of matchmakingStore.playlists) {
+        setRequiredAssetsArrays(queue.id, queue.engines, queue.games, queue.maps);
     }
 }
 

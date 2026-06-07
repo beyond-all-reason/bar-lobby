@@ -149,6 +149,7 @@ function queueSelected(queue: string) {
 function handleDownloadsStarted() {
     downloading.value = true;
 }
+// After downloads are done, we need to refresh the required list.
 function handleDownloadsComplete() {
     matchmaking.triggerAssetsRefresh();
     downloading.value = false;
