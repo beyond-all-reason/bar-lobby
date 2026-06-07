@@ -35,8 +35,11 @@ SPDX-License-Identifier: MIT
                     }"
                     @click="queueSelected(queue)"
                     :disabled="matchmakingStore.status !== MatchmakingStatus.Idle"
-                    ><span>{{ getPlaylistName(queue) }}</span></Button
-                >
+                    ><span>{{ getPlaylistName(queue) }}</span>
+                    <div class="info bl" v-if="matchmakingStore.selectedQueue === queue" @click.stop="onInfoClick">
+                        <Icon :icon="informationIcon"></Icon>
+                    </div>
+                </Button>
             </div>
             <div class="button-container">
                 <div v-if="anyDownloadsAreRequired" class="download-button-container">
@@ -93,6 +96,12 @@ SPDX-License-Identifier: MIT
                 <p class="txt-error" v-if="matchmakingStore.errorMessage">{{ matchmakingStore.errorMessage }}</p>
             </div>
         </div>
+        <QueueDownloadsModal
+            v-model="isQueueDownloadsModalOpen"
+            :title="t('lobby.multiplayer.ranked.modalTitle')"
+            :queue="matchmakingStore.selectedQueue"
+            @close-modal="isQueueDownloadsModalOpen = false"
+        />
     </div>
 </template>
 
@@ -102,8 +111,13 @@ import Button from "primevue/button";
 import { useTypedI18n } from "@renderer/i18n";
 import { computed, onActivated, ref } from "vue";
 import DownloadContentButton from "@renderer/components/controls/DownloadContentButton.vue";
+import QueueDownloadsModal from "@renderer/components/misc/QueueDownloadsModal.vue";
+import informationIcon from "@iconify-icons/mdi/information";
+import { Icon } from "@iconify/vue";
 
 const { t } = useTypedI18n();
+
+const isQueueDownloadsModalOpen = ref(false);
 
 const availableQueueIds = computed(() => {
     return matchmakingStore.playlists.sort((a, b) => a.teamSize * a.numOfTeams - b.teamSize * b.numOfTeams).map((playlist) => playlist.id);
@@ -136,13 +150,17 @@ function handleDownloadsStarted() {
     downloading.value = true;
 }
 function handleDownloadsComplete() {
-    matchmaking.triggerAssetsRefresh(matchmakingStore.selectedQueue);
+    matchmaking.triggerAssetsRefresh();
     downloading.value = false;
 }
 
 onActivated(() => {
     matchmaking.sendListRequest();
 });
+
+function onInfoClick() {
+    isQueueDownloadsModalOpen.value = true;
+}
 </script>
 
 <style lang="scss" scoped>
@@ -346,5 +364,29 @@ onActivated(() => {
     cursor: pointer;
     position: relative;
     overflow: hidden;
+}
+
+.info {
+    position: absolute;
+    font-size: 24px;
+    font-weight: 600;
+    padding: 2px 5px;
+    transition: 0.2s opacity;
+    opacity: 0.6;
+    &.bl {
+        bottom: 10px;
+        left: 10px;
+    }
+    &.br {
+        bottom: 10px;
+        right: 10px;
+        flex-wrap: wrap-reverse;
+        justify-content: flex-end;
+        max-width: 55%;
+    }
+}
+.info:hover {
+    font-size: 32px;
+    opacity: 1;
 }
 </style>

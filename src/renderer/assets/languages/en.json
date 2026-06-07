@@ -1967,6 +1967,16 @@
                     "matchFound": "Match found",
                     "accepted": "Accepted",
                     "cancel": "Cancel"
+                },
+                "modalTitle": "Matchmaking Queue Details",
+                "modal": {
+                    "labelName": "Queue Name: {name}",
+                    "labelTeamConfig": "Teams: {numOfTeams} teams of 1 player each. | Teams: {numOfTeams} teams of {teamSize} players each.",
+                    "labelRanked": "Ranked Game",
+                    "labelUnranked": "Unranked Game",
+                    "labelEngines": "Engine Versions Required: {count}",
+                    "labelGames": "Game Versions Required: {count}",
+                    "labelMaps": "Maps required: {count}"
                 }
             },
             "battle": {

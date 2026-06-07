@@ -15,7 +15,7 @@ SPDX-License-Identifier: MIT
                 <div v-if="map" class="gap-md page">
                     <div class="gridform">
                         <div class="flex-right">
-                            <Button v-tooltip.bottom="t('lobby.library.maps.back')" class="icon close flex-right" @click="returnToMaps">
+                            <Button v-tooltip.bottom="t('lobby.library.maps.back')" class="icon close flex-right" @click="routerBack">
                                 <Icon :icon="arrow_back" :height="40" />
                             </Button>
                         </div>
@@ -142,8 +142,8 @@ function toggleMapFavorite() {
     if (map.value) map.value.isFavorite = !map.value.isFavorite;
 }
 
-function returnToMaps() {
-    router.push("/library/maps/maps");
+function routerBack() {
+    router.back();
 }
 
 watch(
