@@ -160,7 +160,7 @@ onActivated(() => {
 });
 
 function onInfoClick() {
-    isQueueDownloadsModalOpen.value = true;
+    if (!downloading.value) isQueueDownloadsModalOpen.value = true;
 }
 </script>
 
