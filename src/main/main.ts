@@ -36,6 +36,8 @@ import { tachyonService } from "@main/services/tachyon.service";
 import { typedWebContents } from "@main/typed-ipc";
 import { navigationService } from "@main/services/navigation.service";
 import { pathsService } from "./services/paths.service";
+import { PROTOCOL_SCHEME } from "@main/protocol";
+import { protocolService } from "@main/services/protocol.service";
 
 // Enable happy eyeballs for IPv6/IPv4 dual stack.
 netFromNode.setDefaultAutoSelectFamily(true);
@@ -66,6 +68,20 @@ protocol.registerSchemesAsPrivileged([
         },
     },
 ]);
+
+function registerBarProtocol() {
+    let success: boolean;
+    if (process.platform === "linux" && !app.isPackaged) {
+        success = app.setAsDefaultProtocolClient(PROTOCOL_SCHEME, process.execPath, [process.argv[1]]);
+    } else {
+        success = app.setAsDefaultProtocolClient(PROTOCOL_SCHEME);
+    }
+    if (success) {
+        log.info(`Protocol ${PROTOCOL_SCHEME}:// registered successfully`);
+    } else {
+        log.warn(`Failed to register protocol ${PROTOCOL_SCHEME}://`);
+    }
+}
 
 function registerBarFileProtocol() {
     protocol.handle("bar", (request) => {
@@ -99,6 +115,7 @@ app.commandLine.appendSwitch("disable-pinch", "1");
 
 app.whenReady().then(async () => {
     registerBarFileProtocol();
+    registerBarProtocol();
     if (process.env.NODE_ENV !== "production") {
         try {
             // await installExtension(VUEJS_DEVTOOLS);
@@ -156,5 +173,6 @@ app.whenReady().then(async () => {
     miscService.registerIpcHandlers();
     autoUpdaterService.registerIpcHandlers();
     navigationService.registerIpcHandlers(webContents);
+    protocolService.registerIpcHandlers(webContents);
     pathsService.registerIpcHandlers(webContents);
 });

@@ -16,6 +16,7 @@ const config: Configuration = {
     asarUnpack: ["resources/**"],
 
     publish: { provider: "github" },
+    protocols: [{ name: "barrts", schemes: ["barrts"] }],
     fileAssociations: [
         {
             ext: "sdfz",

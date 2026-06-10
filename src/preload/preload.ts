@@ -249,3 +249,9 @@ const notificationsApi = {
 };
 export type NotificationsApi = typeof notificationsApi;
 contextBridge.exposeInMainWorld("notifications", notificationsApi);
+
+const protocolApi = {
+    handlePending: (): Promise<void> => ipcRenderer.invoke("protocol:handlePending"),
+};
+export type BarProtocolApi = typeof protocolApi;
+contextBridge.exposeInMainWorld("barProtocol", protocolApi);
