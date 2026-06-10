@@ -250,8 +250,12 @@ const notificationsApi = {
 export type NotificationsApi = typeof notificationsApi;
 contextBridge.exposeInMainWorld("notifications", notificationsApi);
 
+import { PROTOCOL_SCHEME } from "@main/protocol/scheme";
+
 const protocolApi = {
+    scheme: PROTOCOL_SCHEME,
     handlePending: (): Promise<void> => ipcRenderer.invoke("protocol:handlePending"),
+    handleUrl: (url: string): Promise<void> => ipcRenderer.invoke("protocol:handleUrl", url),
 };
 export type BarProtocolApi = typeof protocolApi;
 contextBridge.exposeInMainWorld("barProtocol", protocolApi);

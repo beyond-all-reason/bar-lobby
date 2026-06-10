@@ -12,6 +12,11 @@ const log = logger("protocol.service.ts");
 let pendingProtocolUrl: string | null = null;
 
 function registerIpcHandlers(webContents: BarIpcWebContents) {
+    webContents.ipc.handle("protocol:handleUrl", (_event, url: string) => {
+        log.info(`Protocol URL from renderer: ${url}`);
+        routeProtocolUrl(url, webContents);
+    });
+
     webContents.ipc.handle("protocol:handlePending", () => {
         if (pendingProtocolUrl) {
             log.info(`Dispatching pending protocol URL: ${pendingProtocolUrl}`);

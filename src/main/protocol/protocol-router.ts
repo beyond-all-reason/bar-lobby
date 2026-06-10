@@ -7,7 +7,8 @@ import { logger } from "@main/utils/logger";
 
 const log = logger("protocol/router.ts");
 
-export const PROTOCOL_SCHEME = "barrts";
+import { PROTOCOL_SCHEME } from "./scheme";
+
 const PROTOCOL = `${PROTOCOL_SCHEME}:`;
 
 type ProtocolActionHandler = (url: URL, webContents: BarIpcWebContents) => void | Promise<void>;
