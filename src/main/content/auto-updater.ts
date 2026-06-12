@@ -60,6 +60,8 @@ export class AutoUpdaterAPI extends Downloader {
     public async downloadUpdate(): Promise<void> {
         if (!this.intialized) return;
         if (this.updateInfo == undefined) throw Error("Tried to download unavailable update");
+        // Note, there is no this.downloadStarted but downloadProgress handles it well enough
+        // If we ever need to track that it actually started, we would add that here.
         return await new Promise<void>((resolve) => {
             autoUpdater.on("download-progress", (progressInfo) => {
                 this.downloadProgress({
@@ -72,11 +74,27 @@ export class AutoUpdaterAPI extends Downloader {
             });
 
             autoUpdater.on("update-downloaded", (info) => {
+                // 'info' does not have download details, so we just falsify the values since it's complete anyway.
+                this.downloadComplete({
+                    type: "update",
+                    name: this.updateInfo?.version ?? "unknown",
+                    currentBytes: 1,
+                    totalBytes: 1,
+                    progress: 1,
+                });
                 this.updateInfo = info;
                 resolve();
             });
 
             autoUpdater.on("error", (error, message) => {
+                // As above, 'info' does not have download details, so we just falsify the values since it's stopped already
+                this.downloadFailed({
+                    type: "update",
+                    name: this.updateInfo?.version ?? "unknown",
+                    currentBytes: 0,
+                    totalBytes: 0,
+                    progress: 0,
+                });
                 log.error(error, `Error downloading update. ${message}`);
                 resolve();
             });
