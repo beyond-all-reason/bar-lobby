@@ -28,3 +28,12 @@ registerProtocolAction(
     },
     { label: "Ping!" }
 );
+
+registerProtocolAction(
+    "internal",
+    "replays",
+    (_url, webContents) => {
+        webContents.send("navigation:navigateTo", "/watch/replays");
+    },
+    { label: "Go to Replays" }
+);

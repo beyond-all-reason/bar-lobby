@@ -15,7 +15,7 @@ import type {
     MapsApi,
     MiscApi,
     NotificationsApi,
-    BarProtocolApi,
+    LobbyProtocolApi,
     ReplaysApi,
     SettingsApi,
     ShellApi,
@@ -42,7 +42,7 @@ declare global {
         autoUpdater: AutoUpdaterApi;
         barNavigation: BarNavigationApi;
         notifications: NotificationsApi;
-        barProtocol: BarProtocolApi;
+        lobbyProtocol: LobbyProtocolApi;
         paths: PathsApi;
     }
 }

@@ -20,8 +20,8 @@ const props = defineProps<{
     allowProtocolLinks?: boolean;
 }>();
 
-const protocolPrefix = `${window.barProtocol.scheme}://`;
-const protocolUrlPattern = new RegExp(`(?<![([])${window.barProtocol.scheme}://[^\\s)\\]>]+`, "g");
+const protocolPrefix = `${window.lobbyProtocol.scheme}://`;
+const protocolUrlPattern = new RegExp(`(?<![([])${window.lobbyProtocol.scheme}://[^\\s)\\]>]+`, "g");
 
 let cachedLabels: Record<string, string> | null = null;
 
@@ -40,7 +40,7 @@ function resolveLabel(rawUrl: string, labels: Record<string, string>): string | 
 
 async function linkifyProtocolUrls(text: string): Promise<string> {
     if (!cachedLabels) {
-        cachedLabels = await window.barProtocol.getLabels();
+        cachedLabels = await window.lobbyProtocol.getLabels();
     }
     return text.replace(protocolUrlPattern, (match) => {
         const label = resolveLabel(match, cachedLabels!) ?? match;
@@ -76,7 +76,9 @@ const processedText = computedAsync(async () => {
         ALLOWED_ATTR: allowedAttributes,
         ALLOWED_TAGS: allowedTags,
         ...(props.allowProtocolLinks && {
-            ALLOWED_URI_REGEXP: new RegExp(`^(?:(?:(?:f|ht)tps?|mailto|tel|callto|sms|cid|xmpp|${window.barProtocol.scheme}):|[^a-z]|[a-z+.\\-]+(?:[^a-z+.\\-:]|$))`, "i"),
+            ALLOWED_URI_REGEXP: props.allowLinks
+                ? new RegExp(`^(?:(?:(?:f|ht)tps?|mailto|tel|callto|sms|cid|xmpp|${window.lobbyProtocol.scheme}):|[^a-z]|[a-z+.\\-]+(?:[^a-z+.\\-:]|$))`, "i")
+                : new RegExp(`^${window.lobbyProtocol.scheme}:`, "i"),
         }),
     });
 });
@@ -87,7 +89,7 @@ function handleClick(event: MouseEvent) {
         event.preventDefault();
         const href = target.getAttribute("href");
         if (href?.startsWith(protocolPrefix)) {
-            window.barProtocol.handleUrl(href);
+            window.lobbyProtocol.handleUrl(href);
         }
     }
 }

@@ -69,7 +69,7 @@ protocol.registerSchemesAsPrivileged([
     },
 ]);
 
-function registerBarProtocol() {
+function registerLobbyProtocol() {
     let success: boolean;
     if (process.platform === "linux" && !app.isPackaged) {
         success = app.setAsDefaultProtocolClient(PROTOCOL_SCHEME, process.execPath, [process.argv[1]]);
@@ -115,7 +115,7 @@ app.commandLine.appendSwitch("disable-pinch", "1");
 
 app.whenReady().then(async () => {
     registerBarFileProtocol();
-    registerBarProtocol();
+    registerLobbyProtocol();
     if (process.env.NODE_ENV !== "production") {
         try {
             // await installExtension(VUEJS_DEVTOOLS);

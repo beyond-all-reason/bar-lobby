@@ -252,11 +252,11 @@ contextBridge.exposeInMainWorld("notifications", notificationsApi);
 
 import { PROTOCOL_SCHEME } from "@main/protocol/scheme";
 
-const protocolApi = {
+const lobbyProtocolApi = {
     scheme: PROTOCOL_SCHEME,
     getLabels: (): Promise<Record<string, string>> => ipcRenderer.invoke("protocol:getLabels"),
     handlePending: (): Promise<void> => ipcRenderer.invoke("protocol:handlePending"),
     handleUrl: (url: string): Promise<void> => ipcRenderer.invoke("protocol:handleUrl", url),
 };
-export type BarProtocolApi = typeof protocolApi;
-contextBridge.exposeInMainWorld("barProtocol", protocolApi);
+export type LobbyProtocolApi = typeof lobbyProtocolApi;
+contextBridge.exposeInMainWorld("lobbyProtocol", lobbyProtocolApi);
