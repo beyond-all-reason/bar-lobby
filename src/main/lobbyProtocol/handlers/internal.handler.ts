@@ -2,9 +2,9 @@
 //
 // SPDX-License-Identifier: MIT
 
-import { registerProtocolAction } from "../protocol-router";
+import { registerLobbyProtocolAction } from "../lobby-protocol-router";
 
-registerProtocolAction(
+registerLobbyProtocolAction(
     "internal",
     "test",
     (_url, webContents) => {
@@ -17,7 +17,7 @@ registerProtocolAction(
     { label: "Test notification" }
 );
 
-registerProtocolAction(
+registerLobbyProtocolAction(
     "internal",
     "ping",
     (_url, webContents) => {
@@ -29,7 +29,7 @@ registerProtocolAction(
     { label: "Ping!" }
 );
 
-registerProtocolAction(
+registerLobbyProtocolAction(
     "internal",
     "replays",
     (_url, webContents) => {

@@ -36,8 +36,8 @@ import { tachyonService } from "@main/services/tachyon.service";
 import { typedWebContents } from "@main/typed-ipc";
 import { navigationService } from "@main/services/navigation.service";
 import { pathsService } from "./services/paths.service";
-import { PROTOCOL_SCHEME } from "@main/protocol";
-import { protocolService } from "@main/services/protocol.service";
+import { LOBBY_PROTOCOL_SCHEME } from "@main/lobbyProtocol";
+import { lobbyProtocolService } from "@main/services/lobby-protocol.service";
 
 // Enable happy eyeballs for IPv6/IPv4 dual stack.
 netFromNode.setDefaultAutoSelectFamily(true);
@@ -72,14 +72,14 @@ protocol.registerSchemesAsPrivileged([
 function registerLobbyProtocol() {
     let success: boolean;
     if (process.platform === "linux" && !app.isPackaged) {
-        success = app.setAsDefaultProtocolClient(PROTOCOL_SCHEME, process.execPath, [process.argv[1]]);
+        success = app.setAsDefaultProtocolClient(LOBBY_PROTOCOL_SCHEME, process.execPath, [process.argv[1]]);
     } else {
-        success = app.setAsDefaultProtocolClient(PROTOCOL_SCHEME);
+        success = app.setAsDefaultProtocolClient(LOBBY_PROTOCOL_SCHEME);
     }
     if (success) {
-        log.info(`Protocol ${PROTOCOL_SCHEME}:// registered successfully`);
+        log.info(`Protocol ${LOBBY_PROTOCOL_SCHEME}:// registered successfully`);
     } else {
-        log.warn(`Failed to register protocol ${PROTOCOL_SCHEME}://`);
+        log.warn(`Failed to register protocol ${LOBBY_PROTOCOL_SCHEME}://`);
     }
 }
 
@@ -173,6 +173,6 @@ app.whenReady().then(async () => {
     miscService.registerIpcHandlers();
     autoUpdaterService.registerIpcHandlers();
     navigationService.registerIpcHandlers(webContents);
-    protocolService.registerIpcHandlers(webContents);
+    lobbyProtocolService.registerIpcHandlers(webContents);
     pathsService.registerIpcHandlers(webContents);
 });

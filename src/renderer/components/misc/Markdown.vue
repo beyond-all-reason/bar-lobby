@@ -20,8 +20,8 @@ const props = defineProps<{
     allowProtocolLinks?: boolean;
 }>();
 
-const protocolPrefix = `${window.lobbyProtocol.scheme}://`;
-const protocolUrlPattern = new RegExp(`(?<![([])${window.lobbyProtocol.scheme}://[^\\s)\\]>]+`, "g");
+const lobbyProtocolPrefix = `${window.lobbyProtocol.scheme}://`;
+const lobbyProtocolUrlPattern = new RegExp(`(?<![([])${window.lobbyProtocol.scheme}://[^\\s)\\]>]+`, "g");
 
 let cachedLabels: Record<string, string> | null = null;
 
@@ -38,11 +38,11 @@ function resolveLabel(rawUrl: string, labels: Record<string, string>): string | 
     return template.replace(/\{(\w+)\}/g, (_m, param) => url.searchParams.get(param) ?? param);
 }
 
-async function linkifyProtocolUrls(text: string): Promise<string> {
+async function linkifyLobbyProtocolUrls(text: string): Promise<string> {
     if (!cachedLabels) {
         cachedLabels = await window.lobbyProtocol.getLabels();
     }
-    return text.replace(protocolUrlPattern, (match) => {
+    return text.replace(lobbyProtocolUrlPattern, (match) => {
         const label = resolveLabel(match, cachedLabels!) ?? match;
         return `[${label}](${match})`;
     });
@@ -61,7 +61,7 @@ if (props.allowProtocolLinks && !props.allowLinks) {
     purify.addHook("afterSanitizeAttributes", (node) => {
         if (node.tagName === "A") {
             const href = node.getAttribute("href");
-            if (!href || !href.startsWith(protocolPrefix)) {
+            if (!href || !href.startsWith(lobbyProtocolPrefix)) {
                 const text = document.createTextNode(node.textContent || "");
                 node.replaceWith(text);
             }
@@ -70,7 +70,7 @@ if (props.allowProtocolLinks && !props.allowLinks) {
 }
 
 const processedText = computedAsync(async () => {
-    const source = props.allowProtocolLinks ? await linkifyProtocolUrls(props.source) : props.source;
+    const source = props.allowProtocolLinks ? await linkifyLobbyProtocolUrls(props.source) : props.source;
     const markdown = await marked.parse(source, { renderer: markdownRenderer });
     return purify.sanitize(markdown, {
         ALLOWED_ATTR: allowedAttributes,
@@ -88,7 +88,7 @@ function handleClick(event: MouseEvent) {
     if (target.tagName === "A") {
         event.preventDefault();
         const href = target.getAttribute("href");
-        if (href?.startsWith(protocolPrefix)) {
+        if (href?.startsWith(lobbyProtocolPrefix)) {
             window.lobbyProtocol.handleUrl(href);
         }
     }

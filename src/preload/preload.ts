@@ -250,13 +250,13 @@ const notificationsApi = {
 export type NotificationsApi = typeof notificationsApi;
 contextBridge.exposeInMainWorld("notifications", notificationsApi);
 
-import { PROTOCOL_SCHEME } from "@main/protocol/scheme";
+import { LOBBY_PROTOCOL_SCHEME } from "@main/lobbyProtocol/scheme";
 
 const lobbyProtocolApi = {
-    scheme: PROTOCOL_SCHEME,
-    getLabels: (): Promise<Record<string, string>> => ipcRenderer.invoke("protocol:getLabels"),
-    handlePending: (): Promise<void> => ipcRenderer.invoke("protocol:handlePending"),
-    handleUrl: (url: string): Promise<void> => ipcRenderer.invoke("protocol:handleUrl", url),
+    scheme: LOBBY_PROTOCOL_SCHEME,
+    getLabels: (): Promise<Record<string, string>> => ipcRenderer.invoke("lobbyProtocol:getLabels"),
+    handlePending: (): Promise<void> => ipcRenderer.invoke("lobbyProtocol:handlePending"),
+    handleUrl: (url: string): Promise<void> => ipcRenderer.invoke("lobbyProtocol:handleUrl", url),
 };
 export type LobbyProtocolApi = typeof lobbyProtocolApi;
 contextBridge.exposeInMainWorld("lobbyProtocol", lobbyProtocolApi);

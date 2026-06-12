@@ -2,4 +2,4 @@
 //
 // SPDX-License-Identifier: MIT
 
-export const PROTOCOL_SCHEME = "barrts";
+export const LOBBY_PROTOCOL_SCHEME = "barrts";

@@ -7,17 +7,17 @@ import { logger } from "@main/utils/logger";
 
 const log = logger("protocol/router.ts");
 
-import { PROTOCOL_SCHEME } from "./scheme";
+import { LOBBY_PROTOCOL_SCHEME } from "./scheme";
 
-const PROTOCOL = `${PROTOCOL_SCHEME}:`;
+const LOBBY_PROTOCOL = `${LOBBY_PROTOCOL_SCHEME}:`;
 
-type ProtocolActionHandler = (url: URL, webContents: BarIpcWebContents) => void | Promise<void>;
+type LobbyProtocolActionHandler = (url: URL, webContents: BarIpcWebContents) => void | Promise<void>;
 
-interface ProtocolActionOptions {
+interface LobbyProtocolActionOptions {
     label?: string;
 }
 
-const actionHandlerMap = new Map<string, ProtocolActionHandler>();
+const actionHandlerMap = new Map<string, LobbyProtocolActionHandler>();
 const labelMap = new Map<string, string>();
 
 function parseProtocolParts(url: URL): { handler: string; action: string } | null {
@@ -27,7 +27,7 @@ function parseProtocolParts(url: URL): { handler: string; action: string } | nul
     return { handler, action };
 }
 
-export function registerProtocolAction(handler: string, action: string, fn: ProtocolActionHandler, options?: ProtocolActionOptions): void {
+export function registerLobbyProtocolAction(handler: string, action: string, fn: LobbyProtocolActionHandler, options?: LobbyProtocolActionOptions): void {
     const key = `${handler}/${action}`;
     actionHandlerMap.set(key, fn);
     if (options?.label) {
@@ -35,15 +35,15 @@ export function registerProtocolAction(handler: string, action: string, fn: Prot
     }
 }
 
-export function getProtocolLabels(): Record<string, string> {
+export function getLobbyProtocolLabels(): Record<string, string> {
     return Object.fromEntries(labelMap);
 }
 
-export function extractProtocolUrl(argv: string[]): string | undefined {
-    return argv.find((arg) => arg.startsWith(PROTOCOL + "//"));
+export function extractLobbyProtocolUrl(argv: string[]): string | undefined {
+    return argv.find((arg) => arg.startsWith(LOBBY_PROTOCOL + "//"));
 }
 
-export function routeProtocolUrl(rawUrl: string, webContents: BarIpcWebContents): void {
+export function routeLobbyProtocolUrl(rawUrl: string, webContents: BarIpcWebContents): void {
     let parsedUrl: URL;
     try {
         parsedUrl = new URL(rawUrl);
@@ -52,7 +52,7 @@ export function routeProtocolUrl(rawUrl: string, webContents: BarIpcWebContents)
         return;
     }
 
-    if (parsedUrl.protocol !== PROTOCOL) return;
+    if (parsedUrl.protocol !== LOBBY_PROTOCOL) return;
 
     const parts = parseProtocolParts(parsedUrl);
     if (!parts) {
@@ -64,7 +64,7 @@ export function routeProtocolUrl(rawUrl: string, webContents: BarIpcWebContents)
     const fn = actionHandlerMap.get(key);
 
     if (!fn) {
-        log.warn(`No action registered for ${PROTOCOL_SCHEME}://${key}`);
+        log.warn(`No action registered for ${LOBBY_PROTOCOL_SCHEME}://${key}`);
         return;
     }
 
