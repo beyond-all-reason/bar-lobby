@@ -77,7 +77,10 @@ const processedText = computedAsync(async () => {
         ALLOWED_TAGS: allowedTags,
         ...(props.allowProtocolLinks && {
             ALLOWED_URI_REGEXP: props.allowLinks
-                ? new RegExp(`^(?:(?:(?:f|ht)tps?|mailto|tel|callto|sms|cid|xmpp|${window.lobbyProtocol.scheme}):|[^a-z]|[a-z+.\\-]+(?:[^a-z+.\\-:]|$))`, "i")
+                ? new RegExp(
+                      `^(?:(?:(?:f|ht)tps?|mailto|tel|callto|sms|cid|xmpp|${window.lobbyProtocol.scheme}):|[^a-z]|[a-z+.\\-]+(?:[^a-z+.\\-:]|$))`,
+                      "i"
+                  )
                 : new RegExp(`^${window.lobbyProtocol.scheme}:`, "i"),
         }),
     });
