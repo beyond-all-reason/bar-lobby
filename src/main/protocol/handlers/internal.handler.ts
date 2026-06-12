@@ -4,17 +4,27 @@
 
 import { registerProtocolAction } from "../protocol-router";
 
-registerProtocolAction("internal", "test", (_url, webContents) => {
-    webContents.send("notifications:showAlert", {
-        text: "Great, protocol works",
-        severity: "info",
-        timeoutMs: 8000,
-    });
-});
+registerProtocolAction(
+    "internal",
+    "test",
+    (_url, webContents) => {
+        webContents.send("notifications:showAlert", {
+            text: "Great, protocol works",
+            severity: "info",
+            timeoutMs: 8000,
+        });
+    },
+    { label: "Test notification" }
+);
 
-registerProtocolAction("internal", "ping", (_url, webContents) => {
-    webContents.send("notifications:showAlert", {
-        text: "Pong!",
-        severity: "info",
-    });
-});
+registerProtocolAction(
+    "internal",
+    "ping",
+    (_url, webContents) => {
+        webContents.send("notifications:showAlert", {
+            text: "Pong!",
+            severity: "info",
+        });
+    },
+    { label: "Ping!" }
+);

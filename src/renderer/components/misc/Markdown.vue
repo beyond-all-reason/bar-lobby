@@ -21,6 +21,32 @@ const props = defineProps<{
 }>();
 
 const protocolPrefix = `${window.barProtocol.scheme}://`;
+const protocolUrlPattern = new RegExp(`(?<![([])${window.barProtocol.scheme}://[^\\s)\\]>]+`, "g");
+
+let cachedLabels: Record<string, string> | null = null;
+
+function resolveLabel(rawUrl: string, labels: Record<string, string>): string | null {
+    let url: URL;
+    try {
+        url = new URL(rawUrl);
+    } catch {
+        return null;
+    }
+    const key = `${url.hostname}/${url.pathname.slice(1)}`;
+    const template = labels[key];
+    if (!template) return null;
+    return template.replace(/\{(\w+)\}/g, (_m, param) => url.searchParams.get(param) ?? param);
+}
+
+async function linkifyProtocolUrls(text: string): Promise<string> {
+    if (!cachedLabels) {
+        cachedLabels = await window.barProtocol.getLabels();
+    }
+    return text.replace(protocolUrlPattern, (match) => {
+        const label = resolveLabel(match, cachedLabels!) ?? match;
+        return `[${label}](${match})`;
+    });
+}
 
 const allowedTags = ["p", "em", "b", "strong", "ul", "ol", "li", "code", "pre", "blockquote", "span", "del", "body"];
 const allowedAttributes: string[] = [];
@@ -44,10 +70,14 @@ if (props.allowProtocolLinks && !props.allowLinks) {
 }
 
 const processedText = computedAsync(async () => {
-    const markdown = await marked.parse(props.source, { renderer: markdownRenderer });
+    const source = props.allowProtocolLinks ? await linkifyProtocolUrls(props.source) : props.source;
+    const markdown = await marked.parse(source, { renderer: markdownRenderer });
     return purify.sanitize(markdown, {
         ALLOWED_ATTR: allowedAttributes,
         ALLOWED_TAGS: allowedTags,
+        ...(props.allowProtocolLinks && {
+            ALLOWED_URI_REGEXP: new RegExp(`^(?:(?:(?:f|ht)tps?|mailto|tel|callto|sms|cid|xmpp|${window.barProtocol.scheme}):|[^a-z]|[a-z+.\\-]+(?:[^a-z+.\\-:]|$))`, "i"),
+        }),
     });
 });
 

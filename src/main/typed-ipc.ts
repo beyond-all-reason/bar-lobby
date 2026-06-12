@@ -96,6 +96,7 @@ export type IPCCommands = {
     "misc:getDevlogRssFeed": (numberOfNews: number) => NewsFeedData | null | undefined;
     "misc:getNewsRssFeed": (numberOfNews: number) => NewsFeedData | null | undefined;
     "paths:selectFolder": () => string | null;
+    "protocol:getLabels": () => Record<string, string>;
     "protocol:handlePending": () => void;
     "protocol:handleUrl": (url: string) => void;
     "paths:moveAndChangePath": (newPath: string) => void;

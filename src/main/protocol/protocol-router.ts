@@ -13,7 +13,12 @@ const PROTOCOL = `${PROTOCOL_SCHEME}:`;
 
 type ProtocolActionHandler = (url: URL, webContents: BarIpcWebContents) => void | Promise<void>;
 
+interface ProtocolActionOptions {
+    label?: string;
+}
+
 const actionHandlerMap = new Map<string, ProtocolActionHandler>();
+const labelMap = new Map<string, string>();
 
 function parseProtocolParts(url: URL): { handler: string; action: string } | null {
     const handler = url.hostname;
@@ -22,8 +27,16 @@ function parseProtocolParts(url: URL): { handler: string; action: string } | nul
     return { handler, action };
 }
 
-export function registerProtocolAction(handler: string, action: string, fn: ProtocolActionHandler): void {
-    actionHandlerMap.set(`${handler}/${action}`, fn);
+export function registerProtocolAction(handler: string, action: string, fn: ProtocolActionHandler, options?: ProtocolActionOptions): void {
+    const key = `${handler}/${action}`;
+    actionHandlerMap.set(key, fn);
+    if (options?.label) {
+        labelMap.set(key, options.label);
+    }
+}
+
+export function getProtocolLabels(): Record<string, string> {
+    return Object.fromEntries(labelMap);
 }
 
 export function extractProtocolUrl(argv: string[]): string | undefined {

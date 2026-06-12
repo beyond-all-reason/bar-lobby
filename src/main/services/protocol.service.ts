@@ -4,7 +4,7 @@
 import { app, BrowserWindow } from "electron";
 import { BarIpcWebContents } from "@main/typed-ipc";
 import { logger } from "@main/utils/logger";
-import { extractProtocolUrl, routeProtocolUrl } from "@main/protocol";
+import { extractProtocolUrl, getProtocolLabels, routeProtocolUrl } from "@main/protocol";
 import { typedWebContents } from "@main/typed-ipc";
 
 const log = logger("protocol.service.ts");
@@ -12,6 +12,8 @@ const log = logger("protocol.service.ts");
 let pendingProtocolUrl: string | null = null;
 
 function registerIpcHandlers(webContents: BarIpcWebContents) {
+    webContents.ipc.handle("protocol:getLabels", () => getProtocolLabels());
+
     webContents.ipc.handle("protocol:handleUrl", (_event, url: string) => {
         log.info(`Protocol URL from renderer: ${url}`);
         routeProtocolUrl(url, webContents);

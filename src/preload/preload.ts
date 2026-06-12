@@ -254,6 +254,7 @@ import { PROTOCOL_SCHEME } from "@main/protocol/scheme";
 
 const protocolApi = {
     scheme: PROTOCOL_SCHEME,
+    getLabels: (): Promise<Record<string, string>> => ipcRenderer.invoke("protocol:getLabels"),
     handlePending: (): Promise<void> => ipcRenderer.invoke("protocol:handlePending"),
     handleUrl: (url: string): Promise<void> => ipcRenderer.invoke("protocol:handleUrl", url),
 };

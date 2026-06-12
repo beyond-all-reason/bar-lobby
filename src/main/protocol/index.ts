@@ -4,5 +4,5 @@
 
 import "./handlers/internal.handler";
 
-export { routeProtocolUrl, extractProtocolUrl } from "./protocol-router";
+export { routeProtocolUrl, extractProtocolUrl, getProtocolLabels } from "./protocol-router";
 export { PROTOCOL_SCHEME } from "./scheme";
