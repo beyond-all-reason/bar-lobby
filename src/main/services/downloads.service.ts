@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 import { autoUpdaterAPI } from "@main/content/auto-updater";
+import { DownloadInfo } from "@main/content/downloads";
 import { engineContentAPI } from "@main/content/engine/engine-content";
 import { gameContentAPI } from "@main/content/game/game-content";
 import { mapContentAPI } from "@main/content/maps/map-content";
@@ -59,8 +60,48 @@ function registerIpcHandlers(webContents: BarIpcWebContents) {
     });
 }
 
+const downloads: Map<string, DownloadInfo> = new Map();
+
+function registerProgressHandler(mainWindow: Electron.CrossProcessExports.BrowserWindow) {
+    const apiList = [engineContentAPI, gameContentAPI, mapContentAPI, autoUpdaterAPI];
+    apiList.forEach((api) => {
+        api.onDownloadStart.add((downloadInfo) => {
+            downloads.set(downloadInfo.name, downloadInfo);
+            updateProgressBar(mainWindow);
+        });
+        api.onDownloadComplete.add((downloadInfo) => {
+            downloads.delete(downloadInfo.name);
+            updateProgressBar(mainWindow);
+        });
+        api.onDownloadProgress.add((downloadInfo) => {
+            downloads.set(downloadInfo.name, downloadInfo);
+            updateProgressBar(mainWindow);
+        });
+        api.onDownloadFail.add((downloadInfo) => {
+            downloads.delete(downloadInfo.name);
+            updateProgressBar(mainWindow);
+        });
+    });
+}
+
+function updateProgressBar(mainWindow: Electron.CrossProcessExports.BrowserWindow) {
+    // If we have no active downloads, clear the progress bar.
+    if (downloads.size == 0) {
+        mainWindow.setProgressBar(-1);
+        return;
+    }
+    // Get the total progress of all downloads and the number of downloads.
+    let totalProgress = 0;
+    downloads.forEach((d) => {
+        totalProgress += d.progress;
+    });
+    // Set the progress percent to the average progress of all downloads.
+    mainWindow.setProgressBar(totalProgress / downloads.size);
+}
+
 const downloadsService = {
     registerIpcHandlers,
+    registerProgressHandler,
 };
 
 export default downloadsService;
