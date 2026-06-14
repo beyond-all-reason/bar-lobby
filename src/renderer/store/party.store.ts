@@ -25,7 +25,7 @@ const partySymbol = Symbol("party.store");
 export enum PlayersPartyState {
     None = "None",
     InvitedOnly = "InvitedOnly",
-    JoinedOnly = "Joined",
+    JoinedOnly = "JoinedOnly",
     JoinedAndInvited = "JoinedAndInvited",
 }
 
@@ -163,7 +163,7 @@ function onRemovedEvent(data: PartyRemovedEventData) {
     // Note that "party/removed" includes cancelled or expired invitations in addition to being kicked/leaving.
     partyStore.parties.delete(data.partyId);
     parsePartyData();
-    if (partyStore.activeParty?.id == data.partyId) {
+    if (partyStore.activeParty?.id === data.partyId) {
         partyStore.activeParty = null;
     }
 }
