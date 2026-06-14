@@ -5,6 +5,8 @@
 import { Type } from "@sinclair/typebox";
 
 export const configSchema = Type.Object({
+    // source of config file
+    configUrl: Type.String({ default: "https://lobby-config.beyondallreason.dev/config.json" }),
     // replaces src\main\config\content-sources.ts
     rapid: Type.Object({
         host: Type.String({ default: "repos-cdn.beyondallreason.dev" }),
