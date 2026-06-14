@@ -3941,6 +3941,16 @@
                     "matchFound": null,
                     "accepted": null,
                     "cancel": null
+                },
+                "modalTitle": null,
+                "modal": {
+                    "labelName": null,
+                    "labelTeamConfig": null,
+                    "labelRanked": null,
+                    "labelUnranked": null,
+                    "labelEngines": null,
+                    "labelGames": null,
+                    "labelMaps": null
                 }
             },
             "battle": {

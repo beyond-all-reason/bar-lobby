@@ -5,18 +5,20 @@ SPDX-License-Identifier: MIT
 -->
 
 <template>
-    <div class="fullwidth">
-        <div class="progress-bar-outer margin-left-md margin-right-md">
-            <DownloadProgress
-                :maps="maps"
-                :engines="engines"
-                :games="games"
-                :height="75"
-                @status-change="updateDownloadStatus"
-            ></DownloadProgress>
+    <div class="fullwidth anchor">
+        <div class="progress-bar-outer">
+            <DownloadProgress :maps="maps" :engines="engines" :games="games" :height="600"></DownloadProgress>
         </div>
+        <Button
+            v-if="isDownloading"
+            class="grey quick-download-button fullwidth"
+            :class="$props.class != undefined ? $props.class : ''"
+            @input.stop
+            style="min-height: unset"
+            >{{ t("lobby.components.controls.downloadContentButton.downloading") }}</Button
+        >
         <button
-            v-if="ready"
+            v-else-if="ready"
             class="quick-play-button fullwidth"
             :class="$props.class != undefined ? $props.class : ''"
             :disabled="disabled"
@@ -24,12 +26,10 @@ SPDX-License-Identifier: MIT
         >
             <slot />
         </button>
-        <Button v-else-if="isDownloading" class="grey quick-download-button fullwidth anchor" @input.stop style="min-height: unset">{{
-            t("lobby.components.controls.downloadContentButton.downloading")
-        }}</Button>
         <Button
             v-else
             class="red quick-download-button fullwidth"
+            :class="$props.class != undefined ? $props.class : ''"
             :disabled="downloadsStore.isPathChanging"
             @click="beginDownload(maps, engines, games)"
             style="min-height: unset"
@@ -66,6 +66,8 @@ const { maps = [], engines = [], games = [] } = defineProps<Props>();
 
 const isDownloading = ref(false);
 
+const emit = defineEmits(["downloads-started", "downloads-complete"]);
+
 const ready = computed(() => {
     const targetList = new Set([...maps, ...games, ...engines]);
     if (targetList.size == 0) return true;
@@ -76,12 +78,16 @@ const ready = computed(() => {
     else return true;
 });
 
-function updateDownloadStatus(value: boolean) {
-    isDownloading.value = value;
-}
+// DownloadProgress used this to update status, but since we currently only queue individual downloads at the moment,
+// // it was flickering between each download. If we get concurrent downloads, then we can put this back in.
+// function updateDownloadStatus(value: boolean) {
+//     isDownloading.value = value;
+// }
 
 // Note; we have to await each download because we need to update pr-downloader to accept concurrent downloads
 async function beginDownload(maps?: string[], engines?: string[], games?: string[]) {
+    emit("downloads-started");
+    isDownloading.value = true;
     for (const map of maps ?? []) {
         await downloadMap(map);
     }
@@ -91,6 +97,8 @@ async function beginDownload(maps?: string[], engines?: string[], games?: string
     for (const game of games ?? []) {
         await downloadGame(game);
     }
+    emit("downloads-complete");
+    isDownloading.value = false;
 }
 </script>
 
@@ -163,5 +171,16 @@ async function beginDownload(maps?: string[], engines?: string[], games?: string
     height: anchor-size(height);
     transform: translateY(100%);
     overflow: hidden;
+}
+
+.large {
+    align-self: center;
+    //width: 500px;
+    text-transform: uppercase;
+    font-family: Rajdhani;
+    font-weight: bold;
+    font-size: 2rem;
+    padding: 20px 40px;
+    text-align: center;
 }
 </style>
