@@ -112,7 +112,7 @@ async function sendListRequest() {
         if (matchmakingStore.playlists.length > 0 && !hasSelectedQueue) {
             matchmakingStore.selectedQueue = matchmakingStore.playlists[0].id;
         }
-        triggerAssetsRefresh();
+        await triggerAssetsRefresh();
     } catch (error) {
         console.error("Tachyon error: matchmaking/list:", error);
         notificationsApi.alert({ text: "Tachyon error: matchmaking/list", severity: "error" });
@@ -125,9 +125,9 @@ async function sendListRequest() {
 /**
  * Refreshes the downloadsRequired arrays upon demand, if we expect that things have changed.
  */
-function triggerAssetsRefresh() {
+async function triggerAssetsRefresh() {
     for (const queue of matchmakingStore.playlists) {
-        setRequiredAssetsArrays(queue.id, queue.engines, queue.games, queue.maps);
+        await setRequiredAssetsArrays(queue.id, queue.engines, queue.games, queue.maps);
     }
 }
 
@@ -148,7 +148,6 @@ async function setRequiredAssetsArrays(queue: string, engines: { version: string
     const installedGames = new Set(gameStore.availableGameVersions.keys());
     const diffGames = queueGames.difference(installedGames);
     matchmakingStore.downloadsRequired[queue].games.push(...diffGames);
-    return;
 }
 
 /**

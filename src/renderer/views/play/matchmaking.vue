@@ -42,7 +42,7 @@ SPDX-License-Identifier: MIT
                 </Button>
             </div>
             <div class="button-container">
-                <div v-if="anyDownloadsAreRequired" class="download-button-container">
+                <div v-if="downloadsAreRequiredForSelected" class="download-button-container">
                     <DownloadContentButton
                         :maps="downloadsRequired.maps"
                         :engines="downloadsRequired.engines"
@@ -127,14 +127,13 @@ const downloadsRequired = computed(() => {
     return matchmakingStore.downloadsRequired[matchmakingStore.selectedQueue];
 });
 
-const anyDownloadsAreRequired = computed(() => {
-    if (
-        matchmakingStore.downloadsRequired[matchmakingStore.selectedQueue].maps.length > 0 ||
-        matchmakingStore.downloadsRequired[matchmakingStore.selectedQueue].engines.length > 0 ||
-        matchmakingStore.downloadsRequired[matchmakingStore.selectedQueue].games.length > 0
-    )
-        return true;
-    else return false;
+const downloadsAreRequiredForSelected = computed(() => {
+    // 0 returns falsy, anything else returns truthy, so this works to determine if there are any downloads required.
+    return (
+        matchmakingStore.downloadsRequired[matchmakingStore.selectedQueue].maps.length +
+        matchmakingStore.downloadsRequired[matchmakingStore.selectedQueue].engines.length +
+        matchmakingStore.downloadsRequired[matchmakingStore.selectedQueue].games.length
+    );
 });
 
 const downloading = ref(false);
