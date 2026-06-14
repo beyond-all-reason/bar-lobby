@@ -36,6 +36,7 @@ import { tachyonService } from "@main/services/tachyon.service";
 import { typedWebContents } from "@main/typed-ipc";
 import { navigationService } from "@main/services/navigation.service";
 import { pathsService } from "./services/paths.service";
+import { configService } from "./services/config.service";
 
 // Enable happy eyeballs for IPv6/IPv4 dual stack.
 netFromNode.setDefaultAutoSelectFamily(true);
@@ -131,6 +132,7 @@ app.whenReady().then(async () => {
         });
     });
     // Initialize services
+    await configService.init();
     await settingsService.init();
     const savedAssetsPath = settingsService.getSettings().assetsPath;
     if (savedAssetsPath && !process.env.BAR_ASSETS_PATH) {
