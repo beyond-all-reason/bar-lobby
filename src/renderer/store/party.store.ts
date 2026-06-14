@@ -176,6 +176,8 @@ function onUpdatedEvent(data: PartyUpdatedEventData) {
 
 // We might be invited, or member, have to check to know.
 function parsePartyData() {
+    // Reset active party in case we are no longer in a party.
+    partyStore.activeParty = null;
     const bools = {
         joined: false,
         invited: false,
