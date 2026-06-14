@@ -8,18 +8,12 @@ export const configSchema = Type.Object({
     // source of config file
     configUrl: Type.String({ default: "https://lobby-config.beyondallreason.dev/config.json" }),
     // replaces src\main\config\content-sources.ts
-    rapid: Type.Object({
-        host: Type.String({ default: "repos-cdn.beyondallreason.dev" }),
-        game: Type.String({ default: "byar" }),
-    }),
-    gameGithub: Type.Object({
-        owner: Type.String({ default: "beyond-all-reason" }),
-        repo: Type.String({ default: "Beyond-All-Reason" }),
-    }),
-    engineGitHub: Type.Object({
-        owner: Type.String({ default: "beyond-all-reason" }),
-        repo: Type.String({ default: "spring" }),
-    }),
+    rapidHost: Type.String({ default: "repos-cdn.beyondallreason.dev" }),
+    rapidGame: Type.String({ default: "byar" }),
+    gameGithubOwner: Type.String({ default: "beyond-all-reason" }),
+    gameGithubRepo: Type.String({ default: "Beyond-All-Reason" }),
+    engineGitHubOwner: Type.String({ default: "beyond-all-reason" }),
+    engineGithubRepo: Type.String({ default: "spring" }),
     engineReleaseUrl: Type.String({ default: "https://files-cdn.beyondallreason.dev/find" }),
     // replaces src\main\config\default-maps.ts
     defaultMaps: Type.Array(Type.String(), { default: ["Quicksilver Remake 1.24", "Red Comet Remake 1.8"] }),

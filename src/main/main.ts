@@ -132,6 +132,7 @@ app.whenReady().then(async () => {
         });
     });
     // Initialize services
+    // Config is fetched first because it contains URLs and other values that other services may depend on.
     await configService.init();
     await settingsService.init();
     const savedAssetsPath = settingsService.getSettings().assetsPath;
