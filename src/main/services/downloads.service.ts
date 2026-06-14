@@ -9,8 +9,6 @@ import { gameContentAPI } from "@main/content/game/game-content";
 import { mapContentAPI } from "@main/content/maps/map-content";
 import { BarIpcWebContents } from "@main/typed-ipc";
 
-const downloads: Map<string, DownloadInfo> = new Map();
-
 function registerIpcHandlers(webContents: BarIpcWebContents) {
     engineContentAPI.onDownloadStart.add((downloadInfo) => {
         webContents.send("downloads:engine:start", downloadInfo);
@@ -62,73 +60,27 @@ function registerIpcHandlers(webContents: BarIpcWebContents) {
     });
 }
 
+const downloads: Map<string, DownloadInfo> = new Map();
+
 function registerProgressHandler(mainWindow: Electron.CrossProcessExports.BrowserWindow) {
-    engineContentAPI.onDownloadStart.add((downloadInfo) => {
-        downloads.set(downloadInfo.name, downloadInfo);
-        updateProgressBar(mainWindow);
-    });
-    engineContentAPI.onDownloadComplete.add((downloadInfo) => {
-        downloads.delete(downloadInfo.name);
-        updateProgressBar(mainWindow);
-    });
-    engineContentAPI.onDownloadProgress.add((downloadInfo) => {
-        downloads.set(downloadInfo.name, downloadInfo);
-        updateProgressBar(mainWindow);
-    });
-    engineContentAPI.onDownloadFail.add((downloadInfo) => {
-        downloads.delete(downloadInfo.name);
-        updateProgressBar(mainWindow);
-    });
-
-    gameContentAPI.onDownloadStart.add((downloadInfo) => {
-        downloads.set(downloadInfo.name, downloadInfo);
-        updateProgressBar(mainWindow);
-    });
-    gameContentAPI.onDownloadComplete.add((downloadInfo) => {
-        downloads.delete(downloadInfo.name);
-        updateProgressBar(mainWindow);
-    });
-    gameContentAPI.onDownloadProgress.add((downloadInfo) => {
-        downloads.set(downloadInfo.name, downloadInfo);
-        updateProgressBar(mainWindow);
-    });
-    gameContentAPI.onDownloadFail.add((downloadInfo) => {
-        downloads.delete(downloadInfo.name);
-        updateProgressBar(mainWindow);
-    });
-
-    mapContentAPI.onDownloadStart.add((downloadInfo) => {
-        downloads.set(downloadInfo.name, downloadInfo);
-        updateProgressBar(mainWindow);
-    });
-    mapContentAPI.onDownloadComplete.add((downloadInfo) => {
-        downloads.delete(downloadInfo.name);
-        updateProgressBar(mainWindow);
-    });
-    mapContentAPI.onDownloadProgress.add((downloadInfo) => {
-        downloads.set(downloadInfo.name, downloadInfo);
-        updateProgressBar(mainWindow);
-    });
-    mapContentAPI.onDownloadFail.add((downloadInfo) => {
-        downloads.delete(downloadInfo.name);
-        updateProgressBar(mainWindow);
-    });
-
-    autoUpdaterAPI.onDownloadStart.add((downloadInfo) => {
-        downloads.set(downloadInfo.name, downloadInfo);
-        updateProgressBar(mainWindow);
-    });
-    autoUpdaterAPI.onDownloadComplete.add((downloadInfo) => {
-        downloads.delete(downloadInfo.name);
-        updateProgressBar(mainWindow);
-    });
-    autoUpdaterAPI.onDownloadProgress.add((downloadInfo) => {
-        downloads.set(downloadInfo.name, downloadInfo);
-        updateProgressBar(mainWindow);
-    });
-    autoUpdaterAPI.onDownloadFail.add((downloadInfo) => {
-        downloads.delete(downloadInfo.name);
-        updateProgressBar(mainWindow);
+    const apiList = [engineContentAPI, gameContentAPI, mapContentAPI, autoUpdaterAPI];
+    apiList.forEach((api) => {
+        api.onDownloadStart.add((downloadInfo) => {
+            downloads.set(downloadInfo.name, downloadInfo);
+            updateProgressBar(mainWindow);
+        });
+        api.onDownloadComplete.add((downloadInfo) => {
+            downloads.delete(downloadInfo.name);
+            updateProgressBar(mainWindow);
+        });
+        api.onDownloadProgress.add((downloadInfo) => {
+            downloads.set(downloadInfo.name, downloadInfo);
+            updateProgressBar(mainWindow);
+        });
+        api.onDownloadFail.add((downloadInfo) => {
+            downloads.delete(downloadInfo.name);
+            updateProgressBar(mainWindow);
+        });
     });
 }
 
@@ -140,13 +92,11 @@ function updateProgressBar(mainWindow: Electron.CrossProcessExports.BrowserWindo
     }
     // Get the total progress of all downloads and the number of downloads.
     let totalProgress = 0;
-    let downloadCount = 0;
     downloads.forEach((d) => {
         totalProgress += d.progress;
-        downloadCount += 1;
     });
     // Set the progress percent to the average progress of all downloads.
-    mainWindow.setProgressBar(totalProgress / downloadCount);
+    mainWindow.setProgressBar(totalProgress / downloads.size);
 }
 
 const downloadsService = {
