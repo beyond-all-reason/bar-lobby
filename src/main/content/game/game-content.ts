@@ -14,7 +14,6 @@ import { parseLuaOptions } from "@main/utils/parse-lua-options";
 import { BufferStream } from "@main/utils/buffer-stream";
 import { logger } from "@main/utils/logger";
 import assert from "assert";
-import { contentSources } from "@main/config/content-sources";
 import { DownloadInfo } from "@main/content/downloads";
 import { LuaOptionSection } from "@main/content/game/lua-options";
 import { Scenario } from "@main/content/game/scenario";
@@ -25,6 +24,7 @@ import { PoolCdnDownloader } from "@main/content/game/pool-cdn";
 import { fileExists } from "@main/utils/file";
 import { engineContentAPI } from "@main/content/engine/engine-content";
 import { calcChecksum } from "@main/utils/checksums";
+import { configService } from "@main/services/config.service";
 
 const log = logger("game-content.ts");
 const gunzip = util.promisify(zlib.gunzip);
@@ -61,7 +61,7 @@ export class GameContentAPI extends PrDownloaderAPI<string, GameVersion> {
     // we can easily check if a version is installed from its md5
     protected async initLookupTables() {
         try {
-            const versionsGzPath = path.join(getRapidIndexPath(), contentSources.rapid.host, contentSources.rapid.game, "versions.gz");
+            const versionsGzPath = path.join(getRapidIndexPath(), configService.getConfig().rapidHost, configService.getConfig().rapidGame, "versions.gz");
             const versionsGz = await fs.promises.readFile(versionsGzPath);
             const versions = await promisify(zlib.gunzip)(versionsGz);
             const versionsStr = versions.toString().trim();
@@ -156,7 +156,7 @@ export class GameContentAPI extends PrDownloaderAPI<string, GameVersion> {
      * Downloads the actual game files, will update to latest if no specific gameVersion is specified
      * @param gameVersion e.g. "Beyond All Reason test-16289-b154c3d"
      */
-    public async downloadGame(gameVersion = `${contentSources.rapid.game}:test`) {
+    public async downloadGame(gameVersion = `${configService.getConfig().rapidGame}:test`) {
         // skip download if already installed
         if (this.isVersionInstalled(gameVersion)) {
             return;
