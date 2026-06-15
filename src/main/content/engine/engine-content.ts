@@ -16,7 +16,7 @@ import { extract7z } from "@main/utils/extract-7z";
 import { getEngineReleaseInfo } from "@main/config/content-sources";
 import { AbstractContentAPI } from "@main/content/abstract-content";
 import { getEnginePath } from "@main/config/app";
-import { DEFAULT_ENGINE_VERSION } from "@main/config/default-versions";
+import { configService } from "@main/services/config.service";
 
 const log = logger("engine-content.ts");
 
@@ -64,13 +64,16 @@ export class EngineContentAPI extends AbstractContentAPI<string, EngineVersion> 
     }
 
     public getDefaultEngine() {
-        return this.availableVersions.get(DEFAULT_ENGINE_VERSION);
+        console.log(`Getting default engine version: ${configService.getConfig().defaultEngineVersion}`); // Debug log
+        return this.availableVersions.get(configService.getConfig().defaultEngineVersion);
     }
 
     protected checkIfDefaultIsNew() {
-        if (!this.availableVersions.has(DEFAULT_ENGINE_VERSION)) {
-            this.availableVersions.set(DEFAULT_ENGINE_VERSION, {
-                id: DEFAULT_ENGINE_VERSION,
+        console.log(`Checking if default engine version ${configService.getConfig().defaultEngineVersion} is already in available versions`); // Debug log
+        if (!this.availableVersions.has(configService.getConfig().defaultEngineVersion)) {
+            console.log(`Default engine version ${configService.getConfig().defaultEngineVersion} not found in available versions, adding it as not installed`); // Debug log
+            this.availableVersions.set(configService.getConfig().defaultEngineVersion, {
+                id: configService.getConfig().defaultEngineVersion,
                 ais: [],
                 installed: false,
             });
@@ -78,7 +81,8 @@ export class EngineContentAPI extends AbstractContentAPI<string, EngineVersion> 
     }
 
     public async downloadEngine(version?: string) {
-        const engineVersion = version || DEFAULT_ENGINE_VERSION;
+        console.log(`Downloading engine version: ${version || configService.getConfig().defaultEngineVersion}`); // Debug log
+        const engineVersion = version || configService.getConfig().defaultEngineVersion;
         try {
             if (this.isVersionInstalled(engineVersion)) {
                 return;
