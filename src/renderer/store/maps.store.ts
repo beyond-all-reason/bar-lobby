@@ -63,8 +63,8 @@ async function init() {
     window.downloads.onDownloadMapComplete((download) => {
         mapsStore.availableMapNames.add(download.name);
     });
-    let liveMaps = await db.maps.toArray();
-    let nonLiveMaps = await db.nonLiveMaps.toArray();
+    const liveMaps = await db.maps.toArray();
+    const nonLiveMaps = await db.nonLiveMaps.toArray();
 
     for (const map of liveMaps) {
         if (map.isInstalled) mapsStore.availableMapNames.add(map.springName);
