@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 import { Type } from "@sinclair/typebox";
+import { configService } from "@main/services/config.service";
 
 export const settingsSchema = Type.Object({
     fullscreen: Type.Boolean({ default: true }),
@@ -17,8 +18,8 @@ export const settingsSchema = Type.Object({
     battlesHidePvE: Type.Boolean({ default: false }),
     battlesHideLocked: Type.Boolean({ default: false }),
     battlesHideEmpty: Type.Boolean({ default: true }),
-    logUploadUrl: Type.String({ default: "https://log.beyondallreason.dev/" }),
-    lobbyServer: Type.String({ default: "wss://server4.beyondallreason.info" }),
+    logUploadUrl: Type.String({ default: configService.getConfig().logUploadUrl }),
+    lobbyServer: Type.String({ default: configService.getConfig().lobbyServer }),
     customServerList: Type.Array(Type.String(), { default: [] }),
     endedNormallyFilter: Type.Union([Type.Literal("true"), Type.Literal("false"), Type.Literal("null")], { default: "null" }),
     assetsPath: Type.String({ default: "" }),
