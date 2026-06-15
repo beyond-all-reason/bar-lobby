@@ -64,14 +64,11 @@ export class EngineContentAPI extends AbstractContentAPI<string, EngineVersion> 
     }
 
     public getDefaultEngine() {
-        console.log(`Getting default engine version: ${configService.getConfig().defaultEngineVersion}`); // Debug log
         return this.availableVersions.get(configService.getConfig().defaultEngineVersion);
     }
 
     protected checkIfDefaultIsNew() {
-        console.log(`Checking if default engine version ${configService.getConfig().defaultEngineVersion} is already in available versions`); // Debug log
         if (!this.availableVersions.has(configService.getConfig().defaultEngineVersion)) {
-            console.log(`Default engine version ${configService.getConfig().defaultEngineVersion} not found in available versions, adding it as not installed`); // Debug log
             this.availableVersions.set(configService.getConfig().defaultEngineVersion, {
                 id: configService.getConfig().defaultEngineVersion,
                 ais: [],
@@ -81,7 +78,6 @@ export class EngineContentAPI extends AbstractContentAPI<string, EngineVersion> 
     }
 
     public async downloadEngine(version?: string) {
-        console.log(`Downloading engine version: ${version || configService.getConfig().defaultEngineVersion}`); // Debug log
         const engineVersion = version || configService.getConfig().defaultEngineVersion;
         try {
             if (this.isVersionInstalled(engineVersion)) {

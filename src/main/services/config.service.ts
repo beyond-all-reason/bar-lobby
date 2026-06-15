@@ -33,15 +33,18 @@ async function updateConfig(data: Partial<typeof configSchema>) {
 
 async function fetchConfig() {
     try {
-        log.info("Fetching config from URL:", getConfig().configUrl);
         const response = await fetch(getConfig().configUrl);
         const data = await response.json();
         if (!Value.Check(configSchema, data)) {
-            throw Error("Fetched config does not match configSchema");
+            throw Error("Fetched config does not match schema");
         }
         await configStore.update(data);
-    } catch (error) {
-        log.error(error, "Error fetching config:");
+    } catch (err) {
+        if (err instanceof Error) {
+            log.error(`Error fetching config: ${err.message}`);
+        } else {
+            log.error(err);
+        }
     }
 }
 
