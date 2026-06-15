@@ -6,16 +6,14 @@ import { STATE_PATH, CONFIG_PATH, WRITE_DATA_PATH, REPLAYS_PATH, getAssetsPath }
 import { shell } from "electron";
 import { ipcMain } from "@main/typed-ipc";
 import path from "path";
-
-const REPLAY_SERVICE_URL = "https://bar-rts.com/replays";
-const NEWS_SERVICE_URL = "https://www.beyondallreason.info/news";
+import { configService } from "@main/services/config.service";
 
 // Careful with shell.openExternal. https://benjamin-altpeter.de/shell-openexternal-dangers/
 function openInBrowser(url: string) {
     if (!["https:", "http:"].includes(new URL(url).protocol)) return;
 
     // Additional checks to prevent opening arbitrary URLs
-    if (![REPLAY_SERVICE_URL, NEWS_SERVICE_URL].some((serviceUrl) => url.startsWith(serviceUrl))) return;
+    if (![configService.getConfig().replayServiceUrl, configService.getConfig().newsServiceUrl].some((serviceUrl) => url.startsWith(serviceUrl))) return;
     shell.openExternal(url);
 }
 
