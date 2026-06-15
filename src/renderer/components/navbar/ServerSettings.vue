@@ -35,12 +35,13 @@ SPDX-License-Identifier: MIT
 </template>
 
 <script lang="ts" setup>
-import { ref, computed } from "vue";
+import { ref, computed, toRaw } from "vue";
 import Modal from "@renderer/components/common/Modal.vue";
 import Select from "@renderer/components/controls/Select.vue";
 import Button from "@renderer/components/controls/Button.vue";
 import OverlayPanel from "primevue/overlaypanel";
 import { settingsStore } from "@renderer/store/settings.store";
+import { configStore } from "@renderer/store/config.store";
 import Textbox from "@renderer/components/controls/Textbox.vue";
 import { useTypedI18n } from "@renderer/i18n";
 const { t } = useTypedI18n();
@@ -50,12 +51,7 @@ const serverInput = ref("");
 const op = ref();
 const tooltipMessage = ref("");
 
-const defaultServers: string[] = [
-    "wss://server4.beyondallreason.info",
-    "wss://server5.beyondallreason.info",
-    "wss://lobby-server-dev.beyondallreason.dev",
-    "ws://localhost:4000",
-];
+const defaultServers: string[] = toRaw(configStore.defaultServers);
 
 const disableRemoveButton = computed(() => {
     return defaultServers.includes(settingsStore.lobbyServer);
