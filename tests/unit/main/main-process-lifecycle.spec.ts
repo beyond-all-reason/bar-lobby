@@ -17,7 +17,7 @@ describe("Main Process Lifecycle", () => {
     const mockServices = {
         engineService: { init: vi.fn().mockResolvedValue(undefined), registerIpcHandlers: vi.fn() },
         settingsService: { init: vi.fn().mockResolvedValue(undefined), registerIpcHandlers: vi.fn(), getSettings: vi.fn().mockReturnValue({ assetsPath: "" }) },
-        configService: { init: vi.fn().mockResolvedValue(undefined) },
+        configService: { init: vi.fn().mockResolvedValue(undefined), registerIpcHandlers: vi.fn(), getConfig: vi.fn().mockReturnValue({ configUrl: "" }) },
         accountService: { init: vi.fn().mockResolvedValue(undefined) },
         replaysService: { init: vi.fn().mockResolvedValue(undefined), registerIpcHandlers: vi.fn() },
         gameService: { init: vi.fn().mockResolvedValue(undefined), registerIpcHandlers: vi.fn() },
@@ -222,6 +222,7 @@ describe("Main Process Lifecycle", () => {
     it("should register IPC handlers when app is ready", async () => {
         await import("@main/main");
 
+        expect(mockServices.configService.registerIpcHandlers).toHaveBeenCalled();
         expect(mockServices.logService.registerIpcHandlers).toHaveBeenCalled();
         expect(mockServices.infoService.registerIpcHandlers).toHaveBeenCalled();
         expect(mockServices.settingsService.registerIpcHandlers).toHaveBeenCalled();
