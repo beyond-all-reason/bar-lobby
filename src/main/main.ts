@@ -145,6 +145,7 @@ app.whenReady().then(async () => {
     const mainWindow = createWindow();
     const webContents = typedWebContents(mainWindow.webContents);
     // Handlers may need the webContents to send events
+    configService.registerIpcHandlers();
     logService.registerIpcHandlers();
     infoService.registerIpcHandlers();
     settingsService.registerIpcHandlers();

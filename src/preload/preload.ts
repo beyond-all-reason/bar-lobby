@@ -15,6 +15,7 @@ import { BattleWithMetadata } from "@main/game/battle/battle-types";
 import { GetCommandData, GetCommandIds, GetCommands } from "tachyon-protocol";
 import { MultiplayerLaunchSettings } from "@main/game/game";
 import { logLevels } from "@main/services/log.service";
+import { Config } from "@main/services/config.service";
 
 const logApi = {
     purge: (): Promise<string[]> => ipcRenderer.invoke("log:purge"),
@@ -76,6 +77,14 @@ const settingsApi = {
 };
 export type SettingsApi = typeof settingsApi;
 contextBridge.exposeInMainWorld("settings", settingsApi);
+
+const configApi = {
+    getConfig: (): Promise<Config> => ipcRenderer.invoke("config:get"),
+    updateConfig: (config: Partial<Config>): Promise<Partial<Config>> => ipcRenderer.invoke("config:update", config),
+    fetchConfig: (): Promise<void> => ipcRenderer.invoke("config:fetch"),
+};
+export type ConfigApi = typeof configApi;
+contextBridge.exposeInMainWorld("config", configApi);
 
 const authApi = {
     login: (): Promise<void> => ipcRenderer.invoke("auth:login"),

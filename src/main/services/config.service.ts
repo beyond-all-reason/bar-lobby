@@ -8,6 +8,7 @@ import { configSchema } from "@main/json/model/config";
 import { Value } from "@sinclair/typebox/value";
 import path from "path";
 import { logger } from "@main/utils/logger";
+import { ipcMain } from "@main/typed-ipc";
 
 const log = logger("config.service.ts");
 
@@ -18,6 +19,10 @@ async function init() {
     await fetchConfig();
 }
 
+/**
+ * Get the current config values. Note that in Vue arrays have to be wrapped in toRaw() or else access will fail.
+ * @returns The current configuration values as properties
+ */
 function getConfig() {
     return configStore.model;
 }
@@ -40,9 +45,16 @@ async function fetchConfig() {
     }
 }
 
+function registerIpcHandlers() {
+    ipcMain.handle("config:get", () => getConfig());
+    ipcMain.handle("config:update", (_, data: Partial<Config>) => updateConfig(data));
+    ipcMain.handle("config:fetch", () => fetchConfig());
+}
+
 export type Config = typeof configStore.model;
 export const configService = {
     init,
+    registerIpcHandlers,
     getConfig,
     updateConfig,
     fetchConfig,

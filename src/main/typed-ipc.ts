@@ -17,6 +17,7 @@ import type { Scenario } from "@main/content/game/scenario";
 import type { Settings } from "@main/services/settings.service";
 import type { TachyonEvent, TachyonResponse } from "tachyon-protocol";
 import { ipcRenderer as electronIpcRenderer, ipcMain as electronIpcMain } from "electron";
+import { Config } from "@main/services/config.service";
 
 export type IPCEvents = {
     "downloads:update:progress": (downloadInfo: DownloadInfo) => void;
@@ -106,6 +107,9 @@ export type IPCCommands = {
     "settings:get": () => Settings;
     "settings:toggleFullscreen": () => void;
     "settings:update": (settings: Partial<Settings>) => Partial<Settings>;
+    "config:get": () => Config;
+    "config:update": (config: Partial<Config>) => Config;
+    "config:fetch": () => void;
     "shell:openStateDir": () => string;
     "shell:openAssetsDir": () => string;
     "shell:openInBrowser": (url: string) => void;
