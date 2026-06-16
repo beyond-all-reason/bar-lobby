@@ -36,9 +36,9 @@ import { tachyonService } from "@main/services/tachyon.service";
 import { typedWebContents } from "@main/typed-ipc";
 import { navigationService } from "@main/services/navigation.service";
 import { pathsService } from "./services/paths.service";
-import { LOBBY_PROTOCOL_SCHEME } from "@main/lobbyProtocol";
 import { lobbyProtocolService } from "@main/services/lobby-protocol.service";
 import { lobbyHttpBridgeService } from "@main/services/lobby-http-bridge.service";
+import { registerLobbyProtocol } from "@main/lobbyProtocol/lobby-protocol-utils";
 
 // Enable happy eyeballs for IPv6/IPv4 dual stack.
 netFromNode.setDefaultAutoSelectFamily(true);
@@ -70,25 +70,6 @@ protocol.registerSchemesAsPrivileged([
     },
 ]);
 
-function registerLobbyProtocol() {
-    let success: boolean;
-    if (!app.isPackaged) {
-        if (process.platform === "linux") {
-            success = app.setAsDefaultProtocolClient(LOBBY_PROTOCOL_SCHEME, process.execPath, [process.argv[1]]);
-        } else {
-            // Windows dev: needs explicit app path and -- separator so electron.exe
-            // knows which app to load when launched from the registry handler
-            success = app.setAsDefaultProtocolClient(LOBBY_PROTOCOL_SCHEME, process.execPath, [app.getAppPath(), "--"]);
-        }
-    } else {
-        success = app.setAsDefaultProtocolClient(LOBBY_PROTOCOL_SCHEME);
-    }
-    if (success) {
-        log.info(`Protocol ${LOBBY_PROTOCOL_SCHEME}:// registered successfully`);
-    } else {
-        log.warn(`Failed to register protocol ${LOBBY_PROTOCOL_SCHEME}://`);
-    }
-}
 
 function registerBarFileProtocol() {
     protocol.handle("bar", (request) => {
