@@ -52,8 +52,8 @@ function getDefaultLocations(): { state: string; assets: string } {
     // in the system.
     if (!app.isPackaged) {
         return {
-            assets: path.join(process.cwd(), "assets"),
-            state: path.join(process.cwd(), "state"),
+            assets: path.join(app.getAppPath(), "assets"),
+            state: path.join(app.getAppPath(), "state"),
         };
     }
     if (process.platform === "win32") {
