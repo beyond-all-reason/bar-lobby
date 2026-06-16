@@ -73,7 +73,7 @@ protocol.registerSchemesAsPrivileged([
 function registerLobbyProtocol() {
     let success: boolean;
     if (!app.isPackaged) {
-        success = app.setAsDefaultProtocolClient(LOBBY_PROTOCOL_SCHEME, process.execPath, [process.argv[1]]);
+        success = app.setAsDefaultProtocolClient(LOBBY_PROTOCOL_SCHEME, process.execPath, [app.getAppPath(), "--"]);
     } else {
         success = app.setAsDefaultProtocolClient(LOBBY_PROTOCOL_SCHEME);
     }
