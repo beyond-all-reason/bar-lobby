@@ -119,9 +119,7 @@ app.on("before-quit", () => lobbyHttpBridgeService.close());
 app.whenReady().then(async () => {
     registerBarFileProtocol();
     registerLobbyProtocol();
-    if (!app.isPackaged) {
-        await lobbyHttpBridgeService.init();
-    }
+    await lobbyHttpBridgeService.init();
     if (process.env.NODE_ENV !== "production") {
         try {
             // await installExtension(VUEJS_DEVTOOLS);
