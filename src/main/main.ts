@@ -38,6 +38,7 @@ import { navigationService } from "@main/services/navigation.service";
 import { pathsService } from "./services/paths.service";
 import { LOBBY_PROTOCOL_SCHEME } from "@main/lobbyProtocol";
 import { lobbyProtocolService } from "@main/services/lobby-protocol.service";
+import { lobbyHttpBridgeService } from "@main/services/lobby-http-bridge.service";
 
 // Enable happy eyeballs for IPv6/IPv4 dual stack.
 netFromNode.setDefaultAutoSelectFamily(true);
@@ -71,7 +72,7 @@ protocol.registerSchemesAsPrivileged([
 
 function registerLobbyProtocol() {
     let success: boolean;
-    if (process.platform === "linux" && !app.isPackaged) {
+    if (!app.isPackaged) {
         success = app.setAsDefaultProtocolClient(LOBBY_PROTOCOL_SCHEME, process.execPath, [process.argv[1]]);
     } else {
         success = app.setAsDefaultProtocolClient(LOBBY_PROTOCOL_SCHEME);
@@ -113,9 +114,14 @@ app.enableSandbox();
 app.commandLine.appendSwitch("disable-features", "HardwareMediaKeyHandling,MediaSessionService");
 app.commandLine.appendSwitch("disable-pinch", "1");
 
+app.on("before-quit", () => lobbyHttpBridgeService.close());
+
 app.whenReady().then(async () => {
     registerBarFileProtocol();
     registerLobbyProtocol();
+    if (!app.isPackaged) {
+        await lobbyHttpBridgeService.init();
+    }
     if (process.env.NODE_ENV !== "production") {
         try {
             // await installExtension(VUEJS_DEVTOOLS);
