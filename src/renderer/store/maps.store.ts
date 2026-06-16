@@ -75,14 +75,7 @@ async function init() {
     }
 
     try {
-        const installedOnDisk = new Set(await window.maps.getInstalledMapNames());
-        mapsStore.availableMapNames = installedOnDisk;
-        await db.maps.toCollection().modify((map) => {
-            map.isInstalled = installedOnDisk.has(map.springName);
-        });
-        await db.nonLiveMaps.toCollection().modify((map) => {
-            map.isInstalled = installedOnDisk.has(map.springName);
-        });
+        await refreshMapsStore();
     } catch (error) {
         console.warn("Failed to reconcile map install state from disk", error);
     }
