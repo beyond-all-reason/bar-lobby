@@ -26,15 +26,16 @@ function registerLinux(): boolean {
         const desktopFileName = `${LOBBY_PROTOCOL_SCHEME}-bar-lobby.desktop`;
         const desktopFilePath = path.join(appsDir, desktopFileName);
 
-        const content = [
-            "[Desktop Entry]",
-            `Name=${APP_NAME}`,
-            // Quotes handle spaces in paths; %u is the URI placeholder per freedesktop spec
-            `Exec="${process.execPath}" "${app.getAppPath()}" %u`,
-            "Type=Application",
-            "NoDisplay=true",
-            `MimeType=x-scheme-handler/${LOBBY_PROTOCOL_SCHEME};`,
-        ].join("\n") + "\n";
+        const content =
+            [
+                "[Desktop Entry]",
+                `Name=${APP_NAME}`,
+                // Quotes handle spaces in paths; %u is the URI placeholder per freedesktop spec
+                `Exec="${process.execPath}" "${app.getAppPath()}" %u`,
+                "Type=Application",
+                "NoDisplay=true",
+                `MimeType=x-scheme-handler/${LOBBY_PROTOCOL_SCHEME};`,
+            ].join("\n") + "\n";
 
         fs.mkdirSync(appsDir, { recursive: true });
         fs.writeFileSync(desktopFilePath, content, "utf8");

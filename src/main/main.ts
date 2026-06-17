@@ -70,7 +70,6 @@ protocol.registerSchemesAsPrivileged([
     },
 ]);
 
-
 function registerBarFileProtocol() {
     protocol.handle("bar", (request) => {
         try {
