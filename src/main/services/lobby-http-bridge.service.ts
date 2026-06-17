@@ -3,9 +3,9 @@
 // SPDX-License-Identifier: MIT
 
 import http from "node:http";
-import { shell } from "electron";
-import { LOBBY_PROTOCOL_SCHEME } from "@main/lobbyProtocol/scheme";
+import { buildLobbyProtocolUrl } from "@main/lobbyProtocol/lobby-protocol-router";
 import { logger } from "@main/utils/logger";
+import { lobbyProtocolLaunchService } from "./lobby-protocol-launch.service";
 
 const log = logger("lobby-http-bridge.service.ts");
 
@@ -50,11 +50,8 @@ function init(): Promise<void> {
             }
 
             const [, handler, action] = segments;
-            const protocolUrl = `${LOBBY_PROTOCOL_SCHEME}://${handler}/${action}${parsedUrl.search}`;
-
-            void shell.openExternal(protocolUrl).catch((err) => {
-                log.warn(`Failed to open protocol URL ${protocolUrl}: ${err}`);
-            });
+            const protocolUrl = buildLobbyProtocolUrl(handler, action, parsedUrl.search);
+            void lobbyProtocolLaunchService.openExternal(protocolUrl);
 
             res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
             res.end(buildOpenHtml(protocolUrl));

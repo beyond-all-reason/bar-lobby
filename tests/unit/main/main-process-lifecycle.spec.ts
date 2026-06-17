@@ -46,6 +46,7 @@ describe("Main Process Lifecycle", () => {
             on: vi.fn(),
             setName: vi.fn(),
             enableSandbox: vi.fn(),
+            getAppPath: vi.fn().mockReturnValue("/test/app"),
             commandLine: {
                 appendSwitch: vi.fn(),
             },
@@ -108,6 +109,7 @@ describe("Main Process Lifecycle", () => {
         vi.doMock("@main/utils/logger", () => ({
             logger: vi.fn().mockReturnValue({
                 info: vi.fn(),
+                warn: vi.fn(),
                 error: vi.fn(),
             }),
         }));

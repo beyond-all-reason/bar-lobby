@@ -6,7 +6,7 @@ import { app } from "electron";
 import path from "node:path";
 import fs from "node:fs";
 import os from "node:os";
-import { execFileSync } from "node:child_process";
+import { spawnSync } from "node:child_process";
 import { logger } from "@main/utils/logger";
 import { APP_NAME } from "@main/config/app";
 import { LOBBY_PROTOCOL_SCHEME } from "./scheme";
@@ -38,9 +38,25 @@ function registerLinux(): boolean {
 
         fs.mkdirSync(appsDir, { recursive: true });
         fs.writeFileSync(desktopFilePath, content, "utf8");
-        execFileSync("update-desktop-database", [appsDir]);
-        execFileSync("xdg-mime", ["default", desktopFileName, `x-scheme-handler/${LOBBY_PROTOCOL_SCHEME}`]);
-        return true;
+
+        const updateDesktopDatabase = spawnSync("update-desktop-database", [appsDir], { stdio: "ignore" });
+        if (updateDesktopDatabase.error && (updateDesktopDatabase.error as NodeJS.ErrnoException).code !== "ENOENT") {
+            log.warn(`update-desktop-database failed: ${updateDesktopDatabase.error}`);
+        }
+
+        const xdgMime = spawnSync("xdg-mime", ["default", desktopFileName, `x-scheme-handler/${LOBBY_PROTOCOL_SCHEME}`], { stdio: "ignore" });
+        if (xdgMime.status === 0) {
+            return true;
+        }
+
+        if (xdgMime.error) {
+            log.warn(`xdg-mime failed: ${xdgMime.error}`);
+        } else {
+            log.warn(`xdg-mime exited with status ${xdgMime.status ?? "unknown"}`);
+        }
+
+        log.warn("Falling back to Electron protocol registration on Linux.");
+        return app.setAsDefaultProtocolClient(LOBBY_PROTOCOL_SCHEME);
     } catch (err) {
         log.warn(`Linux protocol registration failed: ${err}`);
         return false;
