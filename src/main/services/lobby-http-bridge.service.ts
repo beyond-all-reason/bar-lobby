@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 import http from "node:http";
+import { shell } from "electron";
 import { LOBBY_PROTOCOL_SCHEME } from "@main/lobbyProtocol/scheme";
 import { logger } from "@main/utils/logger";
 
@@ -10,18 +11,16 @@ const log = logger("lobby-http-bridge.service.ts");
 
 const PORT = 47777;
 
-function buildRedirectHtml(protocolUrl: string): string {
-    const escaped = protocolUrl.replace(/"/g, "&quot;").replace(/</g, "&lt;");
+function buildOpenHtml(protocolUrl: string): string {
+    const escaped = protocolUrl.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
     return `<!DOCTYPE html>
 <html>
 <head>
-  <meta http-equiv="refresh" content="0; url=${escaped}">
-  <script>window.location.replace(${JSON.stringify(protocolUrl)});</script>
   <title>Opening BAR Lobby...</title>
 </head>
 <body>
   <p>Opening BAR Lobby...</p>
-  <p>If the app didn't open, <a href="${escaped}">click here</a>.</p>
+  <p>If the app did not open, <a href="${escaped}">click here</a>.</p>
 </body>
 </html>`;
 }
@@ -53,8 +52,12 @@ function init(): Promise<void> {
             const [, handler, action] = segments;
             const protocolUrl = `${LOBBY_PROTOCOL_SCHEME}://${handler}/${action}${parsedUrl.search}`;
 
+            void shell.openExternal(protocolUrl).catch((err) => {
+                log.warn(`Failed to open protocol URL ${protocolUrl}: ${err}`);
+            });
+
             res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
-            res.end(buildRedirectHtml(protocolUrl));
+            res.end(buildOpenHtml(protocolUrl));
         });
 
         server.on("error", (err) => {
