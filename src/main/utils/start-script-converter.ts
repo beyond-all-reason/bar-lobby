@@ -3,9 +3,24 @@
 // SPDX-License-Identifier: MIT
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import zlib from "node:zlib";
+
 import { spadsPointsToLTRBPercent } from "@main/content/maps/box-utils";
+import { Startbox } from "@main/content/maps/map-metadata";
 import { BattleWithMetadata, isPlayer, StartPosType } from "@main/game/battle/battle-types";
 import { AllyTeam, Bot, Game, Player, Team } from "@main/model/start-script";
+
+// JSON -> zlib deflate -> base64url, padding stripped. Mirrors the maps-metadata
+// gen_map_modoptions encoder and the game-side decoder; the modoption value
+// pattern (^[a-zA-Z0-9_.-]+$) forbids '=' padding. Keyed by team count so the
+// game resolves set[numTeams] back to the arrangement the lobby selected.
+function encodeStartboxesSet(set: Startbox[]): string {
+    const byTeamCount: Record<string, Startbox> = {};
+    for (const arrangement of set) {
+        byTeamCount[String(arrangement.startboxes.length)] = arrangement;
+    }
+    return zlib.deflateSync(JSON.stringify(byTeamCount)).toString("base64url").replace(/=+$/, "");
+}
 
 /**
  * https://springrts.com/wiki/Script.txt
@@ -146,10 +161,23 @@ class StartScriptConverter {
         if (!battle.battleOptions.map) throw new Error("failed to access battle options map");
         if (!battle.me) throw new Error("failed to access current player");
 
+        const modoptions: Record<string, any> = { ...battle.battleOptions.gameMode.options };
+
+        // Engine startboxes are rectangles only, so the polygon shape rides to the
+        // game as a modoption. Only for a selected preset - custom drag-edited boxes
+        // stay engine-native rectangles and need no modoption.
+        if (
+            battle.battleOptions.mapOptions.startPosType === StartPosType.Boxes &&
+            battle.battleOptions.mapOptions.startBoxesIndex != undefined &&
+            battle.battleOptions.map.startboxesSet.length > 0
+        ) {
+            modoptions.mapmetadata_startboxes_set = encodeStartboxesSet(battle.battleOptions.map.startboxesSet);
+        }
+
         return {
             gametype: battle.battleOptions.gameVersion,
             mapname: battle.battleOptions.map.springName,
-            modoptions: battle.battleOptions.gameMode.options,
+            modoptions,
             // mapoptions: battle.battleOptions.???,
             ishost: 1,
             myplayername: battle.me.user.username,
