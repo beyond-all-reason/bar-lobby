@@ -4,14 +4,14 @@
 
 import { app } from "electron";
 import path from "node:path";
-import fs from "node:fs";
-import os from "node:os";
-import { spawnSync } from "node:child_process";
+import { mkdir, writeFile } from "node:fs/promises";
+import { execFile } from "node:child_process";
 import { logger } from "@main/utils/logger";
-import { APP_NAME } from "@main/config/app";
-import { LOBBY_PROTOCOL_SCHEME } from "./scheme";
+import { APP_NAME, getLinuxApplicationsDir } from "@main/config/app";
+import { LOBBY_PROTOCOL_PREFIX, LOBBY_PROTOCOL_SCHEME } from "./scheme";
 
 const log = logger("lobbyProtocol/lobby-protocol-utils.ts");
+const REGISTRATION_COMMAND_TIMEOUT_MS = 5000;
 
 /**
  * Linux: app.setAsDefaultProtocolClient relies on xdg-settings which is broken
@@ -20,9 +20,21 @@ const log = logger("lobbyProtocol/lobby-protocol-utils.ts");
  * and packaged AppImage. For .deb/.rpm this is redundant (electron-builder + package
  * manager handle it), but harmless.
  */
-function registerLinux(): boolean {
+async function execFileAsync(file: string, args: string[]): Promise<void> {
+    await new Promise<void>((resolve, reject) => {
+        execFile(file, args, { timeout: REGISTRATION_COMMAND_TIMEOUT_MS, windowsHide: true }, (err) => {
+            if (err) {
+                reject(err);
+                return;
+            }
+            resolve();
+        });
+    });
+}
+
+async function registerLinux(): Promise<boolean> {
     try {
-        const appsDir = path.join(os.homedir(), ".local", "share", "applications");
+        const appsDir = getLinuxApplicationsDir();
         const desktopFileName = `${LOBBY_PROTOCOL_SCHEME}-bar-lobby.desktop`;
         const desktopFilePath = path.join(appsDir, desktopFileName);
 
@@ -37,23 +49,26 @@ function registerLinux(): boolean {
                 `MimeType=x-scheme-handler/${LOBBY_PROTOCOL_SCHEME};`,
             ].join("\n") + "\n";
 
-        fs.mkdirSync(appsDir, { recursive: true });
-        fs.writeFileSync(desktopFilePath, content, "utf8");
+        await mkdir(appsDir, { recursive: true });
+        await writeFile(desktopFilePath, content, "utf8");
 
-        const updateDesktopDatabase = spawnSync("update-desktop-database", [appsDir], { stdio: "ignore" });
-        if (updateDesktopDatabase.error && (updateDesktopDatabase.error as NodeJS.ErrnoException).code !== "ENOENT") {
-            log.warn(`update-desktop-database failed: ${updateDesktopDatabase.error}`);
+        try {
+            await execFileAsync("update-desktop-database", [appsDir]);
+        } catch (err) {
+            if ((err as NodeJS.ErrnoException).code !== "ENOENT") {
+                log.warn(`update-desktop-database failed: ${err}`);
+            }
         }
 
-        const xdgMime = spawnSync("xdg-mime", ["default", desktopFileName, `x-scheme-handler/${LOBBY_PROTOCOL_SCHEME}`], { stdio: "ignore" });
-        if (xdgMime.status === 0) {
+        try {
+            await execFileAsync("xdg-mime", ["default", desktopFileName, `x-scheme-handler/${LOBBY_PROTOCOL_SCHEME}`]);
             return true;
-        }
-
-        if (xdgMime.error) {
-            log.warn(`xdg-mime failed: ${xdgMime.error}`);
-        } else {
-            log.warn(`xdg-mime exited with status ${xdgMime.status ?? "unknown"}`);
+        } catch (err) {
+            if ((err as NodeJS.ErrnoException).code === "ENOENT") {
+                log.warn("xdg-mime is not available on this system.");
+            } else {
+                log.warn(`xdg-mime failed: ${err}`);
+            }
         }
 
         log.warn("Falling back to Electron protocol registration on Linux.");
@@ -85,17 +100,20 @@ function registerWindows(): boolean {
 }
 
 export function registerLobbyProtocol(): void {
-    let success: boolean;
-
     if (process.platform === "linux") {
-        success = registerLinux();
+        void registerLinux().then((success) => {
+            if (success) {
+                log.info(`Protocol ${LOBBY_PROTOCOL_PREFIX} registered successfully`);
+            } else {
+                log.warn(`Failed to register protocol ${LOBBY_PROTOCOL_PREFIX}`);
+            }
+        });
     } else {
-        success = registerWindows();
-    }
-
-    if (success) {
-        log.info(`Protocol ${LOBBY_PROTOCOL_SCHEME}:// registered successfully`);
-    } else {
-        log.warn(`Failed to register protocol ${LOBBY_PROTOCOL_SCHEME}://`);
+        const success = registerWindows();
+        if (success) {
+            log.info(`Protocol ${LOBBY_PROTOCOL_PREFIX} registered successfully`);
+        } else {
+            log.warn(`Failed to register protocol ${LOBBY_PROTOCOL_PREFIX}`);
+        }
     }
 }

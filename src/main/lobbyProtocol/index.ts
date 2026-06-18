@@ -5,4 +5,3 @@
 import "./handlers/internal.handler";
 
 export { routeLobbyProtocolUrl, extractLobbyProtocolUrl, getLobbyProtocolLabels } from "./lobby-protocol-router";
-export { LOBBY_PROTOCOL_SCHEME } from "./scheme";

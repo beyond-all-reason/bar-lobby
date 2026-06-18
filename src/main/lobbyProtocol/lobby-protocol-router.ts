@@ -7,9 +7,7 @@ import { logger } from "@main/utils/logger";
 
 const log = logger("protocol/router.ts");
 
-import { LOBBY_PROTOCOL_SCHEME } from "./scheme";
-
-const LOBBY_PROTOCOL = `${LOBBY_PROTOCOL_SCHEME}:`;
+import { LOBBY_PROTOCOL, LOBBY_PROTOCOL_PREFIX } from "./scheme";
 
 type LobbyProtocolActionHandler = (url: URL, webContents: BarIpcWebContents) => void | Promise<void>;
 
@@ -40,11 +38,11 @@ export function getLobbyProtocolLabels(): Record<string, string> {
 }
 
 export function buildLobbyProtocolUrl(handler: string, action: string, queryString = ""): string {
-    return `${LOBBY_PROTOCOL_SCHEME}://${handler}/${action}${queryString}`;
+    return `${LOBBY_PROTOCOL_PREFIX}${handler}/${action}${queryString}`;
 }
 
 export function extractLobbyProtocolUrl(argv: string[]): string | undefined {
-    return argv.find((arg) => arg.startsWith(LOBBY_PROTOCOL + "//"));
+    return argv.find((arg) => arg.startsWith(LOBBY_PROTOCOL_PREFIX));
 }
 
 export function routeLobbyProtocolUrl(rawUrl: string, webContents: BarIpcWebContents): void {
@@ -68,7 +66,7 @@ export function routeLobbyProtocolUrl(rawUrl: string, webContents: BarIpcWebCont
     const fn = actionHandlerMap.get(key);
 
     if (!fn) {
-        log.warn(`No action registered for ${LOBBY_PROTOCOL_SCHEME}://${key}`);
+        log.warn(`No action registered for ${LOBBY_PROTOCOL_PREFIX}${key}`);
         return;
     }
 
