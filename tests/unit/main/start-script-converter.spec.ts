@@ -8,6 +8,11 @@ import { describe, expect, it } from "vitest";
 import { BattleWithMetadata, GameModeID, StartPosType } from "@main/game/battle/battle-types";
 import { startScriptConverter } from "@main/utils/start-script-converter";
 
+type Arrangement = {
+    startboxes: { poly: { x: number; y: number; strength?: number }[] }[];
+    maxPlayersPerStartbox?: number;
+};
+
 const polygonSet = [
     {
         maxPlayersPerStartbox: 8,
@@ -39,32 +44,36 @@ function twoTeamBattle(mapOptions: Record<string, unknown>): BattleWithMetadata 
         battleOptions: {
             gameVersion: "test",
             gameMode: { id: GameModeID.CLASSIC, label: "Classic", options: {} },
-            map: { springName: "Test Map", startboxesSet: polygonSet },
+            map: { springName: "Test Map", startboxesSet: polygonSet, playerCountMax: 16 },
             mapOptions,
             restrictions: [],
         },
     } as unknown as BattleWithMetadata;
 }
 
-function extractSet(script: string): Record<string, { startboxes: { poly: { x: number; y: number; strength?: number }[] }[] }> {
-    const match = script.match(/mapmetadata_startboxes_set\s*=\s*([^;\s}]+)/);
-    if (!match) throw new Error("modoption not found in start script");
+function decodeModoption(script: string, pattern: RegExp): unknown {
+    const match = script.match(pattern);
+    if (!match) throw new Error(`modoption not found in start script: ${pattern}`);
     return JSON.parse(zlib.inflateSync(Buffer.from(match[1], "base64url")).toString());
 }
 
-describe("start script polygon startbox modoption", () => {
+const SET = /mapmetadata_startboxes_set\s*=\s*([^;\s}]+)/;
+const OVERRIDE = /mapmetadata_startbox_override\s*=\s*([^;\s}]+)/;
+
+describe("start script polygon startbox modoptions", () => {
     it("injects the set keyed by team count when a preset is selected", () => {
         const script = startScriptConverter.generateScriptStr(twoTeamBattle({ startPosType: StartPosType.Boxes, startBoxesIndex: 0 }));
 
         expect(script).toContain("mapmetadata_startboxes_set");
+        expect(script).not.toContain("mapmetadata_startbox_override");
 
-        const set = extractSet(script);
+        const set = decodeModoption(script, SET) as Record<string, Arrangement>;
         expect(Object.keys(set)).toEqual(["2"]);
         expect(set["2"].startboxes).toHaveLength(2);
         expect(set["2"].startboxes[0].poly[2].strength).toBe(1);
     });
 
-    it("omits the modoption for custom drag-edited boxes", () => {
+    it("injects an override (not a set) for custom drag-edited boxes", () => {
         const script = startScriptConverter.generateScriptStr(
             twoTeamBattle({
                 startPosType: StartPosType.Boxes,
@@ -76,5 +85,15 @@ describe("start script polygon startbox modoption", () => {
         );
 
         expect(script).not.toContain("mapmetadata_startboxes_set");
+        expect(script).toContain("mapmetadata_startbox_override");
+
+        const override = decodeModoption(script, OVERRIDE) as Arrangement;
+        // single arrangement, not keyed by team count; matchOverride checks startboxes.length == numTeams
+        expect(override.startboxes).toHaveLength(2);
+        // a 2-point poly is opposite corners on the 0-200 grid
+        expect(override.startboxes[0].poly).toEqual([
+            { x: 0, y: 0 },
+            { x: 50, y: 200 },
+        ]);
     });
 });
