@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import zlib from "node:zlib";
+import zlib from "zlib";
 
 import { spadsPointsToLTRBPercent } from "@main/content/maps/box-utils";
 import { Startbox } from "@main/content/maps/map-metadata";
