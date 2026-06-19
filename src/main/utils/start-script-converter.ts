@@ -166,11 +166,7 @@ class StartScriptConverter {
         // Engine startboxes are rectangles only, so the polygon shape rides to the
         // game as a modoption. Only for a selected preset - custom drag-edited boxes
         // stay engine-native rectangles and need no modoption.
-        if (
-            battle.battleOptions.mapOptions.startPosType === StartPosType.Boxes &&
-            battle.battleOptions.mapOptions.startBoxesIndex != undefined &&
-            battle.battleOptions.map.startboxesSet.length > 0
-        ) {
+        if (battle.battleOptions.mapOptions.startPosType === StartPosType.Boxes && battle.battleOptions.mapOptions.startBoxesIndex != undefined && battle.battleOptions.map.startboxesSet.length > 0) {
             modoptions.mapmetadata_startboxes_set = encodeStartboxesSet(battle.battleOptions.map.startboxesSet);
         }
 
