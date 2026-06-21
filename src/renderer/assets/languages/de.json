@@ -2055,7 +2055,10 @@
                 "sendMessage": null,
                 "joinBattle": null,
                 "inviteToParty": null,
-                "removeFriend": null
+                "partyFull": null,
+                "removeFriend": null,
+                "userInParty": null,
+                "userInvited": null
             },
             "exit": {
                 "title": null,
