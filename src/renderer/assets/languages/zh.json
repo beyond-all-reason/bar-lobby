@@ -4173,6 +4173,10 @@
             "breadcrumbs": {
                 "back": null
             },
+            "partyPopout": {
+                "party": null,
+                "invited": null
+            },
             "downloads": {
                 "noDownloads": null,
                 "moreDownloads": null,

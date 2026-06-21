@@ -2057,6 +2057,10 @@
             "breadcrumbs": {
                 "back": "Back"
             },
+            "partyPopout": {
+                "party": "View Party",
+                "invited": "Party Invite"
+            },
             "downloads": {
                 "noDownloads": "No downloads active",
                 "moreDownloads": "and {count} more...",
