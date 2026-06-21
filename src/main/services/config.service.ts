@@ -1,10 +1,10 @@
-// SPDX-FileCopyrightText: 2025 The BAR Lobby Authors
+// SPDX-FileCopyrightText: 2026 The BAR Lobby Authors
 //
 // SPDX-License-Identifier: MIT
 
 import { CONFIG_PATH } from "@main/config/app";
 import { FileStore } from "@main/json/file-store";
-import { configSchema } from "@main/json/model/config";
+import { configSchema, envVarsMap } from "@main/json/model/config";
 import { Value } from "@sinclair/typebox/value";
 import path from "path";
 import { logger } from "@main/utils/logger";
@@ -17,6 +17,17 @@ const configStore = new FileStore<typeof configSchema>(path.join(CONFIG_PATH, "c
 async function init() {
     await configStore.init();
     await fetchConfig();
+    await assignEnvVars();
+}
+
+async function assignEnvVars() {
+    const env = process.env;
+    for (const [key, value] of Object.entries(envVarsMap)) {
+        if (env[value] !== undefined) {
+            await configStore.update({ [key]: env[value] });
+            log.info(`Config ${key} set to ${value} = ${env[value]}`);
+        }
+    }
 }
 
 /**
@@ -31,6 +42,10 @@ async function updateConfig(data: Partial<typeof configSchema>) {
     return await configStore.update(data);
 }
 
+/**
+ * Fetch the latest configuration from the remote URL and update the local config store.
+ * Note that env vars will be used to override the config values if they are set, including remote config values.
+ */
 async function fetchConfig() {
     try {
         const response = await fetch(getConfig().configUrl);
