@@ -86,6 +86,19 @@ async function requestCreate() {
 }
 
 /**
+ * Send a Tachyon request to create a new party and then invite a specific user to it immediately afterward.
+ * @param userId The user to request the invite for
+ */
+async function requestCreateAndInvite(userId: UserId) {
+    try {
+        await requestCreate().then(async () => await requestInvite({ userId: userId }));
+    } catch (error) {
+        console.error("Tachyon error: party/createAndInvite:", error);
+        notificationsApi.alert({ text: "Error with request party/createAndInvite", severity: "error" });
+    }
+}
+
+/**
  * Send a Tachyon request to decline a specific pending party invite.
  * @param data Required data payload for this request
  */
@@ -208,4 +221,4 @@ export async function initPartyStore() {
     partyStore.isInitialized = true;
 }
 
-export const party = { requestAcceptInvite, requestCancelInvite, requestCreate, requestDeclineInvite, requestInvite, requestKickMember, requestLeave };
+export const party = { requestAcceptInvite, requestCancelInvite, requestCreate, requestCreateAndInvite, requestDeclineInvite, requestInvite, requestKickMember, requestLeave };

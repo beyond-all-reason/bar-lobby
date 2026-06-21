@@ -84,6 +84,8 @@ import { notificationsApi } from "@renderer/api/notifications";
 import { db } from "@renderer/store/db";
 import { useDexieLiveQuery } from "@renderer/composables/useDexieLiveQuery";
 import { chat } from "@renderer/store/chat.store";
+import { partyStore, party, PlayersPartyState } from "@renderer/store/party.store";
+import { PartyInviteRequestData } from "tachyon-protocol/types";
 
 const { t } = useTypedI18n();
 
@@ -167,7 +169,12 @@ async function joinBattle() {
 }
 
 async function inviteToParty() {
-    // TODO
+    if (partyStore.state === PlayersPartyState.JoinedOnly || partyStore.state === PlayersPartyState.JoinedAndInvited) {
+        const data: PartyInviteRequestData = { userId: props.userId };
+        party.requestInvite(data);
+    } else {
+        party.requestCreateAndInvite(props.userId);
+    }
 }
 
 async function removeFriend() {
