@@ -2,6 +2,9 @@
 //
 // SPDX-License-Identifier: MIT
 
+// Changes to this config schema's defaults will require a new config version to be deployed.
+// You can generate a new one from defaults with the command: npm run generate-default-config
+
 import { Type } from "@sinclair/typebox";
 
 export const configSchema = Type.Object({
