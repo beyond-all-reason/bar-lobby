@@ -47,6 +47,7 @@ const shellApi = {
     openStateDir: (): Promise<string> => ipcRenderer.invoke("shell:openStateDir"),
     openAssetsDir: (): Promise<string> => ipcRenderer.invoke("shell:openAssetsDir"),
     openSettingsFile: (): Promise<string> => ipcRenderer.invoke("shell:openSettingsFile"),
+    openConfigFile: (): Promise<string> => ipcRenderer.invoke("shell:openConfigFile"),
     openStartScript: (): Promise<string> => ipcRenderer.invoke("shell:openStartScript"),
     openReplaysDir: (): Promise<string> => ipcRenderer.invoke("shell:openReplaysDir"),
     showReplayInFolder: (fileName: string): Promise<void> => ipcRenderer.invoke("shell:showReplayInFolder", fileName),

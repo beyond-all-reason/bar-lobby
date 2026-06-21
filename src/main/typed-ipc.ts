@@ -115,6 +115,7 @@ export type IPCCommands = {
     "shell:openInBrowser": (url: string) => void;
     "shell:openReplaysDir": () => string;
     "shell:openSettingsFile": () => string;
+    "shell:openConfigFile": () => string;
     "shell:openStartScript": () => string;
     "shell:showReplayInFolder": (fileName: string) => void;
     "tachyon:connect": () => void;

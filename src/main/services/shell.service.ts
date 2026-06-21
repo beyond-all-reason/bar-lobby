@@ -21,6 +21,7 @@ function registerIpcHandlers() {
     ipcMain.handle("shell:openStateDir", () => shell.openPath(STATE_PATH));
     ipcMain.handle("shell:openAssetsDir", () => shell.openPath(getAssetsPath()));
     ipcMain.handle("shell:openSettingsFile", () => shell.openPath(path.join(CONFIG_PATH, "settings.json")));
+    ipcMain.handle("shell:openConfigFile", () => shell.openPath(path.join(CONFIG_PATH, "config.json")));
     ipcMain.handle("shell:openStartScript", () => shell.openPath(path.join(WRITE_DATA_PATH, "script.txt")));
     ipcMain.handle("shell:openReplaysDir", () => shell.openPath(REPLAYS_PATH));
     ipcMain.handle("shell:showReplayInFolder", (_event, fileName: string) => shell.showItemInFolder(path.join(REPLAYS_PATH, fileName)));
