@@ -69,7 +69,7 @@ function run(bin, args, cb) {
     proc.on('error', function (err) {
         cb(err);
     });
-    proc.on('exit', function (code) {
+    proc.on('close', function (code) {
         if (code) {
             runError.message = `7-zip exited with code ${code}\n${output}`;
         }
