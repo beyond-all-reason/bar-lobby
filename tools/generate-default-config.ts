@@ -1,6 +1,7 @@
-// SPDX-FileCopyrightText: 2025 The BAR Lobby Authors
+// SPDX-FileCopyrightText: 2026 The BAR Lobby Authors
 //
 // SPDX-License-Identifier: MIT
+// Run this script to generate a default config file.
 
 import * as fs from "node:fs";
 import * as path from "node:path";
@@ -8,7 +9,7 @@ import { fileURLToPath } from "url";
 import { Value } from "@sinclair/typebox/value";
 import { configSchema } from "../src/main/json/model/config";
 
-function generateDefaultConfig() {
+export function generateDefaultConfig() {
     const filename = fileURLToPath(import.meta.url);
     const dirname = path.dirname(filename);
     const OUTPUT_PATH = path.resolve(dirname, "../auxiliary/config-serving/dist/config.json");
@@ -20,6 +21,7 @@ function generateDefaultConfig() {
     const json = JSON.stringify(DEFAULT_CONFIG, null, 2);
     fs.writeFileSync(OUTPUT_PATH, json, "utf-8");
     console.log(`Default config written to ${OUTPUT_PATH}`);
+    return OUTPUT_PATH;
 }
 
 generateDefaultConfig();
