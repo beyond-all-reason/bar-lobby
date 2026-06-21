@@ -2180,7 +2180,6 @@
                     "loadingFonts": "Loading fonts",
                     "initializingIndexDB": "Initializing IndexDB",
                     "initializingMaps": "Initializing maps",
-                    "fetchingMissingMapImages": "Fetching missing map images",
                     "initializingReplays": "Initializing replays"
                 },
                 "syncDataDirsDialog": {
