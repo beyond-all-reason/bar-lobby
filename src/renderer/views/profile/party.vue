@@ -9,49 +9,80 @@ SPDX-License-Identifier: MIT
 </route>
 <template>
     <div class="view">
-        <Panel class="profile-container" v-if="partyStore.activeParty || true">
-            <div class="profile-header">Party Time!</div>
-        </Panel>
+        <div class="party-container">
+            <div class="view-title">
+                <h1>Party Central</h1>
+            </div>
+            <Panel class="flex-col flex-grow fullheight">
+                <div v-if="showParty">
+                    <div class="flex-row gap-md">
+                        <div>
+                            <h2>Party Information</h2>
+                            <p>
+                                Current members: {{ partyStore.activeParty?.members.length || 0 }} /
+                                {{ partyStore.activeParty?.maxMembers || 0 }}
+                            </p>
+                            <p>Active invitations: {{ partyStore.activeParty?.invited.length || 0 }}</p>
+                            <Button @click="leaveParty">Leave Party</Button>
+                        </div>
+                        <PartyChat />
+                    </div>
+                </div>
+                <div v-else-if="showInvites">
+                    <div v-for="[partyId, party] of partyStore.parties" :key="partyId">
+                        <span>{{ party.id }} with {{ party.members.length }} members</span>
+                        <Button @click="acceptInvite(partyId)">Accept</Button>
+                        <Button @click="declineInvite(partyId)">Decline</Button>
+                    </div>
+                </div>
+            </Panel>
+        </div>
     </div>
 </template>
 
 <script lang="ts" setup>
+// import { useTypedI18n } from "@renderer/i18n";
+import { partyStore, PlayersPartyState, party } from "@renderer/store/party.store";
+import { computed } from "vue";
+import PartyChat from "@renderer/components/party/PartyChat.vue";
 import Panel from "@renderer/components/common/Panel.vue";
-//import { useTypedI18n } from "@renderer/i18n";
-import { partyStore } from "@renderer/store/party.store";
-//const { t } = useTypedI18n();
+import { PartyId } from "tachyon-protocol/types";
+import Button from "@renderer/components/controls/Button.vue";
+import { useRouter } from "vue-router";
+const router = useRouter();
+// const { t } = useTypedI18n();
+
+const showInvites = computed(() => {
+    if (partyStore.state === PlayersPartyState.InvitedOnly || partyStore.state === PlayersPartyState.JoinedAndInvited) return true;
+    return false;
+});
+const showParty = computed(() => {
+    if (partyStore.state === PlayersPartyState.JoinedOnly || partyStore.state === PlayersPartyState.JoinedAndInvited) return true;
+    return false;
+});
+
+function acceptInvite(partyId: PartyId) {
+    const data = { partyId: partyId };
+    party.requestAcceptInvite(data);
+}
+function declineInvite(partyId: PartyId) {
+    const data = { partyId: partyId };
+    party.requestDeclineInvite(data);
+}
+async function leaveParty() {
+    await party.requestLeave();
+    if (partyStore.state === PlayersPartyState.None) {
+        router.push("/play/menu");
+    }
+}
 </script>
 
 <style lang="scss" scoped>
-.profile-container {
+.party-container {
     display: flex;
+    flex-direction: column;
     height: 100%;
     width: 1600px;
     align-self: center;
-}
-
-.profile-header {
-    display: flex;
-    align-items: center;
-    margin-bottom: 15px;
-    margin-top: 25px;
-    div {
-        margin-right: auto;
-    }
-}
-
-.avatar {
-    width: 184px;
-    height: 184px;
-    border-radius: 1%;
-    margin-right: 20px;
-    border: 1px solid #5e5757;
-    backdrop-filter: blur(2px);
-}
-
-.profile-user-info {
-    display: flex;
-    flex-direction: column;
-    gap: 3px;
 }
 </style>

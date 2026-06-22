@@ -21,7 +21,7 @@ SPDX-License-Identifier: MIT
             {{ infosStore.lobby.version }}
         </div>
         <div
-            v-if="partyStore.state !== PlayersPartyState.None || router.currentRoute.value.name !== '/profile/party'"
+            v-if="partyStore.state !== PlayersPartyState.None && router.currentRoute.value.name !== '/profile/party'"
             class="floating-wrapper"
         >
             <div class="party-notification">
