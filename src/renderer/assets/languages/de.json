@@ -2204,7 +2204,6 @@
                     "loadingFonts": null,
                     "initializingIndexDB": null,
                     "initializingMaps": null,
-                    "fetchingMissingMapImages": null,
                     "initializingReplays": null
                 },
                 "syncDataDirsDialog": {

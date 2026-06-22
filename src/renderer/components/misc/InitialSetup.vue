@@ -59,7 +59,7 @@ import Loader from "@renderer/components/common/Loader.vue";
 import Progress from "@renderer/components/common/Progress.vue";
 import { audioApi } from "@renderer/audio/audio";
 import { backgroundImages, fontFiles } from "@renderer/assets/assetFiles";
-import { fetchMissingMapImages, initMapsStore } from "@renderer/store/maps.store";
+import { fetchMissingMapImages, initMapsStore, syncMapsMetadata } from "@renderer/store/maps.store";
 import { initReplaysStore } from "@renderer/store/replays.store";
 import { db, initDb } from "@renderer/store/db";
 import { configStore } from "@renderer/store/config.store";
@@ -221,7 +221,6 @@ const preloadSteps: [string, () => Promise<unknown>][] = [
     [t("lobby.components.misc.preloader.loadingFonts"), loadAllFonts],
     [t("lobby.components.misc.preloader.initializingIndexDB"), initDb],
     [t("lobby.components.misc.preloader.initializingMaps"), initMapsStore],
-    [t("lobby.components.misc.preloader.fetchingMissingMapImages"), fetchMissingMapImages],
     [t("lobby.components.misc.preloader.initializingReplays"), initReplaysStore],
 ];
 
@@ -362,9 +361,19 @@ onMounted(async () => {
             weight: 2,
             canSkip: () => true,
             async run() {
+                try {
+                    await syncMapsMetadata();
+                } catch (error) {
+                    console.warn("Failed to sync maps metadata, continuing with cached data", error);
+                }
                 const installedMaps = await db.maps.filter((m) => m.isInstalled === true).count();
                 if (installedMaps === 0) {
                     await window.maps.downloadMaps(toRaw(configStore.defaultMaps));
+                }
+                try {
+                    await fetchMissingMapImages();
+                } catch (error) {
+                    console.warn("Failed to fetch missing map images", error);
                 }
             },
         },
