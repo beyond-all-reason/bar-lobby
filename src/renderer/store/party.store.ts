@@ -19,6 +19,7 @@ import { reactive } from "vue";
 import { notificationsApi } from "@renderer/api/notifications";
 import { Party } from "@renderer/model/party";
 import { subsManager } from "@renderer/store/users.store";
+import { chat } from "@renderer/store/chat.store";
 
 const partySymbol = Symbol("party.store");
 
@@ -106,6 +107,8 @@ async function requestDeclineInvite(data: PartyDeclineInviteRequestData) {
     try {
         const response = await window.tachyon.request("party/declineInvite", data);
         console.log("Tachyon: party/declineInvite:", response);
+        // Note; we do not get a party/updated event for the declined party, so we have to clear it ourselves.
+        partyStore.parties.delete(data.partyId);
     } catch (error) {
         console.error("Tachyon error: party/declineInvite:", error);
         notificationsApi.alert({ text: "Error with request party/declineInvite", severity: "error" });
@@ -151,6 +154,7 @@ async function requestLeave() {
         if (partyStore.activeParty) partyStore.parties.delete(partyStore.activeParty?.id);
         partyStore.activeParty = null;
         parsePartyData();
+        chat.clearPartyChat();
     } catch (error) {
         console.error("Tachyon error: party/leave:", error);
         notificationsApi.alert({ text: "Error with request party/leave", severity: "error" });
@@ -171,6 +175,7 @@ function onRemovedEvent(data: PartyRemovedEventData) {
     if (partyStore.activeParty?.id === data.partyId) {
         partyStore.activeParty = null;
     }
+    chat.clearPartyChat();
 }
 
 function onUpdatedEvent(data: PartyUpdatedEventData) {
