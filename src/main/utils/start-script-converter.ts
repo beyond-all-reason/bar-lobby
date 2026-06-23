@@ -31,7 +31,7 @@ function encodeStartboxesSet(set: Startbox[]): string {
 // Lobby-owned custom areas: a single arrangement the game prefers over the set
 // (matchOverride matches when startboxes.length == numTeams). Boxes are 0-1 rects;
 // a 2-point poly is read as opposite corners on the 0-200 grid.
-function encodeStartboxOverride(boxes: StartBox[], playerCountMax: number): string {
+function encodeStartboxOverride(boxes: StartBox[]): string {
     return encodeModoptionValue({
         startboxes: boxes.map((b) => ({
             poly: [
@@ -39,7 +39,6 @@ function encodeStartboxOverride(boxes: StartBox[], playerCountMax: number): stri
                 { x: Math.round(b.right * 200), y: Math.round(b.bottom * 200) },
             ],
         })),
-        maxPlayersPerStartbox: Math.max(1, Math.round(playerCountMax / boxes.length)),
     });
 }
 
@@ -193,7 +192,7 @@ class StartScriptConverter {
             if (mapOptions.startBoxesIndex != undefined && battle.battleOptions.map.startboxesSet.length > 0) {
                 modoptions.mapmetadata_startboxes_set = encodeStartboxesSet(battle.battleOptions.map.startboxesSet);
             } else if (mapOptions.customStartBoxes && mapOptions.customStartBoxes.length > 0) {
-                modoptions.mapmetadata_startbox_override = encodeStartboxOverride(mapOptions.customStartBoxes, battle.battleOptions.map.playerCountMax);
+                modoptions.mapmetadata_startbox_override = encodeStartboxOverride(mapOptions.customStartBoxes);
             }
         }
 
