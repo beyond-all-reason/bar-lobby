@@ -13,43 +13,45 @@ SPDX-License-Identifier: MIT
             <div class="view-title">
                 <h1>Party Central</h1>
             </div>
-            <Panel class="flex-col flex-grow fullheight">
-                <div v-if="showParty">
-                    <div class="flex-row gap-md">
-                        <div>
-                            <Button @click="leaveParty" class="red">Leave Party</Button>
-                            <h3>Party Members</h3>
-                            <div v-for="member in partyStore.activeParty?.members" :key="member.userId">
-                                <PartyMember :userId="member.userId" />
-                            </div>
-                            <h3>Party Invitations</h3>
-                            <div v-for="invite in partyStore.activeParty?.invited" :key="invite.userId">
-                                <PartyInvitee :userId="invite.userId" />
-                            </div>
-                        </div>
-                        <PartyChat />
-                    </div>
-                </div>
-                <div v-else-if="showInvites">
-                    <div v-for="[partyId] of partyStore.parties" :key="partyId">
-                        <div class="flex-col">
+            <TabView v-model:activeIndex="tabIndex">
+                <TabPanel header="Party" :disabled="!showParty">
+                    <div>
+                        <div class="flex-row gap-md">
                             <div>
-                                Party invite received from:
-                                <span v-for="name in getPartyMemberNames(partyId)" :key="name" class="margin-right-sm">{{ name }}</span>
+                                <Button @click="leaveParty" class="red">Leave Party</Button>
+                                <h3>Party Members</h3>
+                                <div v-for="member in partyStore.activeParty?.members" :key="member.userId">
+                                    <PartyMember :userId="member.userId" />
+                                </div>
+                                <h3>Pending Invitations</h3>
+                                <div v-for="invite in partyStore.activeParty?.invited" :key="invite.userId">
+                                    <PartyInvitee :userId="invite.userId" />
+                                </div>
                             </div>
-                            <div class="flex-row padding-md">
-                                <Button @click="acceptInvite(partyId)" class="margin-right-md green">Accept</Button>
-                                <Button @click="declineInvite(partyId)" class="margin-left-md red">Decline</Button>
+                            <div>
+                                <h3>Matchmaking Queues</h3>
+                            </div>
+                            <PartyChat />
+                        </div>
+                    </div>
+                </TabPanel>
+                <TabPanel header="Invites" :disabled="!showInvites">
+                    <div>
+                        <div v-for="[partyId, party] of partyStore.parties" :key="partyId">
+                            <div class="flex-col" v-if="party.invited.some((invitee) => invitee.userId === me.userId)">
+                                <div>
+                                    Party invite received from:
+                                    <span v-for="name in getPartyMemberNames(partyId)" :key="name" class="margin-right-sm">{{ name }}</span>
+                                </div>
+                                <div class="flex-row padding-md">
+                                    <Button @click="acceptInvite(partyId)" class="margin-right-md green">Accept</Button>
+                                    <Button @click="declineInvite(partyId)" class="margin-left-md red">Decline</Button>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-                <div v-else>
-                    <div class="flex-col">
-                        <div>No active parties or invites.</div>
-                    </div>
-                </div>
-            </Panel>
+                </TabPanel>
+            </TabView>
         </div>
     </div>
 </template>
@@ -57,9 +59,9 @@ SPDX-License-Identifier: MIT
 <script lang="ts" setup>
 // import { useTypedI18n } from "@renderer/i18n";
 import { partyStore, PlayersPartyState, party } from "@renderer/store/party.store";
-import { computed } from "vue";
+import { computed, ref, watch, toRaw } from "vue";
 import PartyChat from "@renderer/components/party/PartyChat.vue";
-import Panel from "@renderer/components/common/Panel.vue";
+// import Panel from "@renderer/components/common/Panel.vue";
 import { PartyId } from "tachyon-protocol/types";
 import Button from "@renderer/components/controls/Button.vue";
 import { useRouter } from "vue-router";
@@ -70,6 +72,9 @@ import { db } from "@renderer/store/db";
 import { useDexieLiveQueryWithDeps } from "@renderer/composables/useDexieLiveQuery";
 import { UserId } from "tachyon-protocol/types";
 import { User } from "@main/model/user";
+import TabPanel from "primevue/tabpanel";
+import TabView from "@renderer/components/common/TabView.vue";
+import { me } from "@renderer/store/me.store";
 // const { t } = useTypedI18n();
 
 const showInvites = computed(() => {
@@ -80,6 +85,29 @@ const showParty = computed(() => {
     if (partyStore.state === PlayersPartyState.JoinedOnly || partyStore.state === PlayersPartyState.JoinedAndInvited) return true;
     return false;
 });
+
+const tabIndex = ref(0);
+
+watch(
+    () => toRaw(partyStore.state),
+    (newState) => {
+        console.log("Party state changed:", newState);
+        if (newState === PlayersPartyState.InvitedOnly) {
+            console.log("Invited only");
+            tabIndex.value = 1;
+        } else if (newState === PlayersPartyState.JoinedOnly) {
+            console.log("Joined only");
+            tabIndex.value = 0;
+        } else if (newState === PlayersPartyState.JoinedAndInvited) {
+            console.log("Joined and invited");
+            tabIndex.value = 0;
+        } else if (newState === PlayersPartyState.None) {
+            console.log("None");
+            tabIndex.value = 1;
+        }
+    },
+    { deep: true, immediate: true }
+);
 
 function acceptInvite(partyId: PartyId) {
     const data = { partyId: partyId };
