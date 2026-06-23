@@ -13,45 +13,49 @@ SPDX-License-Identifier: MIT
             <div class="view-title">
                 <h1>Party Central</h1>
             </div>
-            <TabView v-model:activeIndex="tabIndex">
-                <TabPanel header="Party" :disabled="!showParty">
-                    <div>
-                        <div class="flex-row gap-md">
-                            <div>
-                                <Button @click="leaveParty" class="red">Leave Party</Button>
-                                <h3>Party Members</h3>
-                                <div v-for="member in partyStore.activeParty?.members" :key="member.userId">
-                                    <PartyMember :userId="member.userId" />
-                                </div>
-                                <h3>Pending Invitations</h3>
-                                <div v-for="invite in partyStore.activeParty?.invited" :key="invite.userId">
-                                    <PartyInvitee :userId="invite.userId" />
-                                </div>
-                            </div>
-                            <div>
-                                <h3>Matchmaking Queues</h3>
-                            </div>
-                            <PartyChat />
-                        </div>
-                    </div>
-                </TabPanel>
-                <TabPanel header="Invites" :disabled="!showInvites">
-                    <div>
-                        <div v-for="[partyId, party] of partyStore.parties" :key="partyId">
-                            <div class="flex-col" v-if="party.invited.some((invitee) => invitee.userId === me.userId)">
+            <Panel no-padding>
+                <TabView v-model:activeIndex="tabIndex">
+                    <TabPanel header="Party" :disabled="!showParty">
+                        <div>
+                            <div class="flex-row gap-md">
                                 <div>
-                                    Party invite received from:
-                                    <span v-for="name in getPartyMemberNames(partyId)" :key="name" class="margin-right-sm">{{ name }}</span>
+                                    <Button @click="leaveParty" class="red">Leave Party</Button>
+                                    <h3>Party Members</h3>
+                                    <div v-for="member in partyStore.activeParty?.members" :key="member.userId">
+                                        <PartyMember :userId="member.userId" />
+                                    </div>
+                                    <h3>Pending Invitations</h3>
+                                    <div v-for="invite in partyStore.activeParty?.invited" :key="invite.userId">
+                                        <PartyInvitee :userId="invite.userId" />
+                                    </div>
                                 </div>
-                                <div class="flex-row padding-md">
-                                    <Button @click="acceptInvite(partyId)" class="margin-right-md green">Accept</Button>
-                                    <Button @click="declineInvite(partyId)" class="margin-left-md red">Decline</Button>
+                                <div>
+                                    <h3>Matchmaking Queues</h3>
+                                </div>
+                                <PartyChat />
+                            </div>
+                        </div>
+                    </TabPanel>
+                    <TabPanel header="Invites" :disabled="!showInvites">
+                        <div>
+                            <div v-for="[partyId, party] of partyStore.parties" :key="partyId">
+                                <div class="flex-col" v-if="party.invited.some((invitee) => invitee.userId === me.userId)">
+                                    <div>
+                                        Party invite received from:
+                                        <span v-for="name in getPartyMemberNames(partyId)" :key="name" class="margin-right-sm">{{
+                                            name
+                                        }}</span>
+                                    </div>
+                                    <div class="flex-row padding-md">
+                                        <Button @click="acceptInvite(partyId)" class="margin-right-md green">Accept</Button>
+                                        <Button @click="declineInvite(partyId)" class="margin-left-md red">Decline</Button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                </TabPanel>
-            </TabView>
+                    </TabPanel>
+                </TabView>
+            </Panel>
         </div>
     </div>
 </template>
@@ -61,7 +65,7 @@ SPDX-License-Identifier: MIT
 import { partyStore, PlayersPartyState, party } from "@renderer/store/party.store";
 import { computed, ref, watch, toRaw } from "vue";
 import PartyChat from "@renderer/components/party/PartyChat.vue";
-// import Panel from "@renderer/components/common/Panel.vue";
+import Panel from "@renderer/components/common/Panel.vue";
 import { PartyId } from "tachyon-protocol/types";
 import Button from "@renderer/components/controls/Button.vue";
 import { useRouter } from "vue-router";
