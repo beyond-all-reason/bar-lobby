@@ -276,7 +276,11 @@ export function getNativeEngineProcessEnvDiagnostics(env: NodeJS.ProcessEnv): Re
     return Object.fromEntries(keys.map((key) => [key, env[key] ?? "<unset>"]));
 }
 
-export function getNativeEngineDataDirDiagnostics(env: NodeJS.ProcessEnv, pathExists: PathExists = fs.existsSync): Array<Record<string, string | number | boolean>> {
+export function getNativeEngineDataDirDiagnostics(
+    env: NodeJS.ProcessEnv,
+    pathExists: PathExists = fs.existsSync,
+    platform: NodeJS.Platform = process.platform
+): Array<Record<string, string | number | boolean>> {
     const springDataDir = env.SPRING_DATADIR ?? "";
     return springDataDir
         .split(path.delimiter)
@@ -288,7 +292,7 @@ export function getNativeEngineDataDirDiagnostics(env: NodeJS.ProcessEnv, pathEx
             hasLuaUI: pathExists(path.join(entry, "LuaUI")),
             hasLuaRules: pathExists(path.join(entry, "LuaRules")),
             hasEngineFonts: pathExists(path.join(entry, "fonts")) || pathExists(path.join(entry, "engine-fonts")),
-            hasEngineBinary: pathExists(path.join(entry, getEngineBinaryFileName())),
+            hasEngineBinary: pathExists(path.join(entry, getEngineBinaryFileName(platform))),
         }));
 }
 

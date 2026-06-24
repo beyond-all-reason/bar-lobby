@@ -427,7 +427,8 @@ describe("native engine runner contract", () => {
                 {
                     SPRING_DATADIR: springDataDir,
                 },
-                (filePath) => [overlayPath, path.join(overlayPath, "LuaUI"), assetsPath, bundledEnginePath, path.join(bundledEnginePath, "spring")].includes(filePath)
+                (filePath) => [overlayPath, path.join(overlayPath, "LuaUI"), assetsPath, bundledEnginePath, path.join(bundledEnginePath, "spring")].includes(filePath),
+                "darwin"
             )
         ).toEqual([
             expect.objectContaining({
