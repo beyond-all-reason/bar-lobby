@@ -131,6 +131,10 @@ describe("Main Process Lifecycle", () => {
         vi.doMock("@main/services/news.service", () => ({ miscService: mockServices.miscService }));
         vi.doMock("@main/services/navigation.service", () => ({ navigationService: mockServices.navigationService }));
         vi.doMock("@main/services/paths.service", () => ({ pathsService: mockServices.pathsService }));
+        vi.doMock("@main/game/chobby-loopback-helper", () => ({
+            isChobbyLoopbackHelperProcess: vi.fn().mockReturnValue(false),
+            runChobbyLoopbackHelper: vi.fn(),
+        }));
 
         vi.stubGlobal("process", mockProcess);
     });

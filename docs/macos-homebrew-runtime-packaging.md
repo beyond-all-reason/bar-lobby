@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2026 The BAR Lobby Authors
+
+SPDX-License-Identifier: MIT
+-->
+
 # macOS Homebrew Runtime Packaging
 
 The macOS port should stay lean enough for Homebrew and GitHub release delivery.
