@@ -34,7 +34,9 @@
         "typecheck:web": "vue-tsc --noEmit -p tsconfig.web.json --composite false",
         "typecheck": "concurrently \"npm run typecheck:node\" \"npm run typecheck:web\"",
         "checks": "concurrently \"npm run typecheck:web\" \"npm run typecheck:node\" \"npm run lint\" \"npm run format:check\"",
-        "generate-i18n-assets": "node --import=tsx tools/generate-i18n-asset-files.ts"
+        "generate-i18n-assets": "node --import=tsx tools/generate-i18n-asset-files.ts",
+        "i18n:validate": "node --import=tsx tools/validate-i18n.ts",
+        "i18n:report": "vue-i18n-extract report --vueFiles \"src/renderer/**/*.{vue,ts}\" --languageFiles \"src/renderer/assets/languages/en.json\""
     },
     "engines": {
         "node": "22.18.0"
@@ -104,6 +106,7 @@
         "vite-plugin-static-copy": "^3.1.2",
         "vite-plugin-vue-devtools": "^8.0.0",
         "vitest": "^3.2.4",
+        "vue-i18n-extract": "^2.0.7",
         "vue-tsc": "^3.0.3",
         "wait-on": "^8.0.4"
     }
