@@ -15,6 +15,9 @@ open dist/mac-arm64/BAR.app
 
 The accepted launch path is `BAR.app`. This smoke only verifies that the lobby opens through the app bundle.
 
+For a full clean-machine app-path checklist, see
+[`macos-clean-machine-validation.md`](./macos-clean-machine-validation.md).
+
 Native game launch still requires a real macOS engine artifact at one of these paths:
 
 ```text
