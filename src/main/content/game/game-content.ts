@@ -6,7 +6,7 @@ import * as fs from "fs";
 import * as glob from "glob-promise";
 import { removeFromArray } from "$/jaz-ts-utils/object";
 import * as path from "path";
-import util, { promisify } from "util";
+import util from "util";
 import zlib from "zlib";
 import { GameAI, GameVersion } from "@main/content/game/game-version";
 import { parseLuaTable } from "@main/utils/parse-lua-table";
@@ -25,6 +25,7 @@ import { PoolCdnDownloader } from "@main/content/game/pool-cdn";
 import { fileExists } from "@main/utils/file";
 import { engineContentAPI } from "@main/content/engine/engine-content";
 import { calcChecksum } from "@main/utils/checksums";
+import axios from "axios";
 
 const log = logger("game-content.ts");
 const gunzip = util.promisify(zlib.gunzip);
@@ -32,6 +33,7 @@ const gunzip = util.promisify(zlib.gunzip);
 export class GameContentAPI extends PrDownloaderAPI<string, GameVersion> {
     public packageGameVersionLookup: { [md5: string]: string | undefined } = {};
     public gameVersionPackageLookup: { [gameVersion: string]: string | undefined } = {};
+    public rapidAliasGameVersionLookup: { [rapidAlias: string]: string | undefined } = {};
 
     public override async init() {
         await this.initLookupTables();
@@ -63,17 +65,65 @@ export class GameContentAPI extends PrDownloaderAPI<string, GameVersion> {
         try {
             const versionsGzPath = path.join(getRapidIndexPath(), contentSources.rapid.host, contentSources.rapid.game, "versions.gz");
             const versionsGz = await fs.promises.readFile(versionsGzPath);
-            const versions = await promisify(zlib.gunzip)(versionsGz);
-            const versionsStr = versions.toString().trim();
-            const versionsParts = versionsStr.split("\n");
-            for (const versionLine of versionsParts) {
-                const [, packageMd5, , version] = versionLine.split(",");
-                this.packageGameVersionLookup[packageMd5] = version;
-                this.gameVersionPackageLookup[version] = packageMd5;
-            }
+            const versions = await gunzip(versionsGz);
+            this.indexRapidVersions(versions.toString().trim());
         } catch (err) {
             log.warn(`Couldn't initialize lookup tables (is this the first startup ?): ${err}`);
         }
+    }
+
+    protected indexRapidVersions(versionsStr: string) {
+        const versionsParts = versionsStr.split("\n");
+        for (const versionLine of versionsParts) {
+            const [rapidAlias, packageMd5, , version] = versionLine.split(",");
+            if (!rapidAlias || !packageMd5 || !version) continue;
+            this.packageGameVersionLookup[packageMd5] = version;
+            this.gameVersionPackageLookup[version] = packageMd5;
+            this.rapidAliasGameVersionLookup[rapidAlias] = version;
+        }
+    }
+
+    protected async refreshRapidLookupTablesFromRemote() {
+        try {
+            const versionsUrl = `https://${contentSources.rapid.host}/${contentSources.rapid.game}/versions.gz`;
+            const response = await axios({
+                url: versionsUrl,
+                method: "get",
+                responseType: "arraybuffer",
+            });
+            const versionsGz = Buffer.from(response.data);
+            const versions = await gunzip(versionsGz);
+            this.indexRapidVersions(versions.toString().trim());
+
+            const versionsGzPath = path.join(getRapidIndexPath(), contentSources.rapid.host, contentSources.rapid.game, "versions.gz");
+            await fs.promises.mkdir(path.dirname(versionsGzPath), { recursive: true });
+            await fs.promises.writeFile(versionsGzPath, versionsGz);
+        } catch (err) {
+            log.warn(`Couldn't refresh rapid lookup tables from remote: ${err}`);
+        }
+    }
+
+    public getRapidAliasVersion(rapidAlias = `${contentSources.rapid.game}:test`): GameVersion | undefined {
+        const gameVersion = this.rapidAliasGameVersionLookup[rapidAlias];
+        if (!gameVersion) return;
+
+        const installedVersion = this.availableVersions.get(gameVersion);
+        if (installedVersion) return installedVersion;
+
+        const packageMd5 = this.gameVersionPackageLookup[gameVersion];
+        if (!packageMd5) return;
+
+        return {
+            gameVersion,
+            packageMd5,
+            luaOptionSections: [],
+            ais: [],
+        };
+    }
+
+    public async getLatestTestVersion(): Promise<GameVersion | undefined> {
+        await this.refreshRapidLookupTablesFromRemote();
+        return this.getRapidAliasVersion();
     }
 
     protected async scanPackagesDir() {
@@ -95,13 +145,13 @@ export class GameContentAPI extends PrDownloaderAPI<string, GameVersion> {
             }
             const packageMd5 = packageFile.split(".")[0];
             const gameVersion = this.packageGameVersionLookup[packageMd5];
+            if (!gameVersion) {
+                log.warn(`Not found matching game version for ${packageFile}`);
+                continue;
+            }
             const luaOptionSections = await this.getGameOptions(packageMd5);
             const ais = await this.getAis(packageMd5);
-            if (gameVersion) {
-                this.availableVersions.set(gameVersion, { gameVersion, packageMd5, luaOptionSections, ais });
-            } else {
-                log.warn(`Not found matching game version for ${packageFile}`);
-            }
+            this.availableVersions.set(gameVersion, { gameVersion, packageMd5, luaOptionSections, ais });
         }
         log.info(`Found ${this.availableVersions.size} installed game versions`);
         this.availableVersions.forEach((version) => {

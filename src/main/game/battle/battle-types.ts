@@ -91,6 +91,7 @@ export enum StartPosType {
 export enum Faction {
     Armada = "Armada",
     Cortex = "Cortex",
+    Random = "Random",
     Legion = "Legion",
     Raptors = "Raptors",
     Scavengers = "Scavengers",

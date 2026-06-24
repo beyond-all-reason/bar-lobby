@@ -40,6 +40,7 @@ import { computed, defineComponent, ref, watch } from "vue";
 import vStartBox from "@renderer/directives/vStartBox";
 import vStartPos from "@renderer/directives/vStartPos";
 import vSetPlayerColor from "@renderer/directives/vSetPlayerColor";
+import defaultMiniMap from "/src/renderer/assets/images/default-minimap.png?url";
 
 const props = defineProps<{
     replay: Replay | null;
@@ -71,8 +72,9 @@ const mapWidthElmos = computed(() => (map.value?.mapWidth ? map.value.mapWidth *
 const mapHeightElmos = computed(() => (map.value?.mapHeight ? map.value.mapHeight * 512 : null));
 const cache = useImageBlobUrlCache();
 const mapTextureUrl = computed(() => {
-    if (!map.value?.imagesBlob?.preview) return null;
-    return cache.get(map.value.springName, map.value.imagesBlob?.preview);
+    if (!map.value) return null;
+    const blobUrl = map.value.imagesBlob?.preview ? cache.get(map.value.springName, map.value.imagesBlob.preview) : undefined;
+    return blobUrl ?? map.value.images?.preview ?? defaultMiniMap;
 });
 </script>
 

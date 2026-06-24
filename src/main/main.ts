@@ -4,13 +4,6 @@
 
 import { app } from "electron";
 
-const gotTheLock = app.requestSingleInstanceLock();
-
-if (!gotTheLock) {
-    app.exit(0);
-}
-
-// Only import after we know we have the lock
 import { net, protocol, session } from "electron";
 import path from "path";
 import url from "url";
@@ -36,27 +29,9 @@ import { tachyonService } from "@main/services/tachyon.service";
 import { typedWebContents } from "@main/typed-ipc";
 import { navigationService } from "@main/services/navigation.service";
 import { pathsService } from "./services/paths.service";
-
-// Enable happy eyeballs for IPv6/IPv4 dual stack.
-netFromNode.setDefaultAutoSelectFamily(true);
+import { isChobbyLoopbackHelperProcess, runChobbyLoopbackHelper } from "@main/game/chobby-loopback-helper";
 
 const log = logger("main/index.ts");
-log.info("Starting Electron main process");
-log.info("App instance lock acquired successfully.");
-
-if (process.env.NODE_ENV !== "production") {
-    if (process.platform === "win32") {
-        process.on("message", (data) => {
-            if (data === "graceful-exit") {
-                app.quit();
-            }
-        });
-    } else {
-        process.on("SIGTERM", () => {
-            app.quit();
-        });
-    }
-}
 
 protocol.registerSchemesAsPrivileged([
     {
@@ -87,74 +62,112 @@ function registerBarFileProtocol() {
     });
 }
 
-app.setName(APP_NAME);
-app.on("window-all-closed", () => app.quit());
+function startMainApp() {
+    const gotTheLock = app.requestSingleInstanceLock();
 
-// Security
-app.enableSandbox();
+    if (!gotTheLock) {
+        app.exit(0);
+        return;
+    }
 
-// Command line switches
-app.commandLine.appendSwitch("disable-features", "HardwareMediaKeyHandling,MediaSessionService");
-app.commandLine.appendSwitch("disable-pinch", "1");
+    // Enable happy eyeballs for IPv6/IPv4 dual stack.
+    netFromNode.setDefaultAutoSelectFamily(true);
 
-app.whenReady().then(async () => {
-    registerBarFileProtocol();
+    log.info("Starting Electron main process");
+    log.info("App instance lock acquired successfully.");
+
     if (process.env.NODE_ENV !== "production") {
-        try {
-            // await installExtension(VUEJS_DEVTOOLS);
-        } catch (err) {
-            log.error("Vue Devtools failed to install:", err?.toString());
+        if (process.platform === "win32") {
+            process.on("message", (data) => {
+                if (data === "graceful-exit") {
+                    app.quit();
+                }
+            });
+        } else {
+            process.on("SIGTERM", () => {
+                app.quit();
+            });
         }
     }
-    // Define CSP for all webContents
-    session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
-        const csp = {
-            "default-src": ["'self'"],
-            "style-src": ["'self'", "'unsafe-inline'"],
-            "img-src": ["'self'", "blob:", "data:"],
-            "media-src": ["'self'", "data:"],
-        };
-        // Those additional rules are needed when vue dev tools are injected.
-        if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
-            csp["img-src"].push("https://vue-i18n.intlify.dev/");
-            csp["script-src"] = ["'self'", "'unsafe-inline'"];
-            csp["font-src"] = ["'self'", "https://fonts.gstatic.com/"];
-        }
-        const cspHeader = Object.entries(csp)
-            .map(([k, v]) => [k, ...v].join(" "))
-            .join("; ");
-        callback({
-            responseHeaders: {
-                ...details.responseHeaders,
-                "Content-Security-Policy": [cspHeader],
-            },
-        });
-    });
-    // Initialize services
-    await settingsService.init();
-    const savedAssetsPath = settingsService.getSettings().assetsPath;
-    if (savedAssetsPath && !process.env.BAR_ASSETS_PATH) {
-        setAssetsPath(savedAssetsPath);
-    }
-    await engineService.init();
-    await Promise.all([accountService.init(), replaysService.init(), gameService.init(), mapsService.init(), autoUpdaterService.init()]);
 
-    const mainWindow = createWindow();
-    const webContents = typedWebContents(mainWindow.webContents);
-    // Handlers may need the webContents to send events
-    logService.registerIpcHandlers();
-    infoService.registerIpcHandlers();
-    settingsService.registerIpcHandlers();
-    authService.registerIpcHandlers();
-    tachyonService.registerIpcHandlers(webContents);
-    replaysService.registerIpcHandlers(webContents);
-    engineService.registerIpcHandlers();
-    gameService.registerIpcHandlers(webContents);
-    mapsService.registerIpcHandlers(webContents);
-    shellService.registerIpcHandlers();
-    downloadsService.registerIpcHandlers(webContents);
-    miscService.registerIpcHandlers();
-    autoUpdaterService.registerIpcHandlers();
-    navigationService.registerIpcHandlers(webContents);
-    pathsService.registerIpcHandlers(webContents);
-});
+    app.setName(APP_NAME);
+    app.on("window-all-closed", () => app.quit());
+
+    // Security
+    app.enableSandbox();
+
+    // Command line switches
+    app.commandLine.appendSwitch("disable-features", "HardwareMediaKeyHandling,MediaSessionService");
+    app.commandLine.appendSwitch("disable-pinch", "1");
+
+    app.whenReady().then(async () => {
+        registerBarFileProtocol();
+        if (process.env.NODE_ENV !== "production") {
+            try {
+                // await installExtension(VUEJS_DEVTOOLS);
+            } catch (err) {
+                log.error("Vue Devtools failed to install:", err?.toString());
+            }
+        }
+        // Define CSP for all webContents
+        session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
+            const csp = {
+                "default-src": ["'self'"],
+                "style-src": ["'self'", "'unsafe-inline'"],
+                "img-src": ["'self'", "blob:", "data:"],
+                "media-src": ["'self'", "data:"],
+            };
+            // Those additional rules are needed when vue dev tools are injected.
+            if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
+                csp["img-src"].push("https://vue-i18n.intlify.dev/");
+                csp["script-src"] = ["'self'", "'unsafe-inline'"];
+                csp["font-src"] = ["'self'", "https://fonts.gstatic.com/"];
+            }
+            const cspHeader = Object.entries(csp)
+                .map(([k, v]) => [k, ...v].join(" "))
+                .join("; ");
+            callback({
+                responseHeaders: {
+                    ...details.responseHeaders,
+                    "Content-Security-Policy": [cspHeader],
+                },
+            });
+        });
+        // Initialize services
+        await settingsService.init();
+        const savedAssetsPath = settingsService.getSettings().assetsPath;
+        if (savedAssetsPath && !process.env.BAR_ASSETS_PATH) {
+            setAssetsPath(savedAssetsPath);
+        }
+        await engineService.init();
+        await Promise.all([accountService.init(), replaysService.init(), gameService.init(), mapsService.init(), autoUpdaterService.init()]);
+
+        const mainWindow = createWindow();
+        const webContents = typedWebContents(mainWindow.webContents);
+        // Handlers may need the webContents to send events
+        logService.registerIpcHandlers();
+        infoService.registerIpcHandlers();
+        settingsService.registerIpcHandlers();
+        authService.registerIpcHandlers();
+        tachyonService.registerIpcHandlers(webContents);
+        replaysService.registerIpcHandlers(webContents);
+        engineService.registerIpcHandlers();
+        gameService.registerIpcHandlers(webContents);
+        mapsService.registerIpcHandlers(webContents);
+        shellService.registerIpcHandlers();
+        downloadsService.registerIpcHandlers(webContents);
+        miscService.registerIpcHandlers();
+        autoUpdaterService.registerIpcHandlers();
+        navigationService.registerIpcHandlers(webContents);
+        pathsService.registerIpcHandlers(webContents);
+    });
+}
+
+if (isChobbyLoopbackHelperProcess()) {
+    runChobbyLoopbackHelper().catch((err: unknown) => {
+        log.error(`Chobby loopback helper failed: ${err instanceof Error ? err.message : String(err)}`);
+        app.exit(1);
+    });
+} else {
+    startMainApp();
+}

@@ -12,7 +12,8 @@ SPDX-License-Identifier: MIT
                 <Icon v-else-if="isScavenger(bot)" :icon="robotAngry" />
                 <Icon v-else :icon="robot" />
             </div>
-            <div>{{ bot.name }}</div>
+            <div class="bot-name">{{ bot.name }}</div>
+            <FactionSelect v-if="canChooseFaction" :modelValue="bot.faction" :allowGamePicker="false" @update:modelValue="setFaction" />
         </TeamParticipant>
         <LuaOptionsModal
             :id="`configure-bot-${bot.name}`"
@@ -36,12 +37,13 @@ import { useTypedI18n } from "@renderer/i18n";
 import LuaOptionsModal from "@renderer/components/battle/LuaOptionsModal.vue";
 import TeamParticipant from "@renderer/components/battle/TeamParticipant.vue";
 import { LuaOptionSection } from "@main/content/game/lua-options";
-import { Bot, isRaptor, isScavenger } from "@main/game/battle/battle-types";
+import { Bot, Faction, isRaptor, isScavenger } from "@main/game/battle/battle-types";
 import ContextMenu from "primevue/contextmenu";
 import { battleActions } from "@renderer/store/battle.store";
 import { enginesStore } from "@renderer/store/engine.store";
 import { gameStore } from "@renderer/store/game.store";
 import GameIconsVelociraptor from "@renderer/components/icons/GameIconsVelociraptor.vue";
+import FactionSelect from "@renderer/components/battle/FactionSelect.vue";
 
 const { t } = useTypedI18n();
 
@@ -53,6 +55,7 @@ const props = defineProps<{
 const botOptions: Ref<LuaOptionSection[]> = ref([]);
 const botOptionsOpen = ref(false);
 const menu = ref<InstanceType<typeof ContextMenu>>();
+const canChooseFaction = !isRaptor(props.bot) && !isScavenger(props.bot);
 
 const actions = [
     {
@@ -79,6 +82,10 @@ function kickBot() {
     battleActions.removeBot(props.bot);
 }
 
+function setFaction(faction?: Faction) {
+    battleActions.updateParticipantFaction(props.bot, faction);
+}
+
 // Duplicates this bot and its settings and gives it a new player id.
 function duplicateBot() {
     battleActions.duplicateBot(props.bot, props.teamId);
@@ -98,6 +105,12 @@ function setBotOptions(options: Record<string, unknown>) {
 </script>
 
 <style lang="scss" scoped>
+.bot-name {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
 .bot-type {
     opacity: 0.5;
 }

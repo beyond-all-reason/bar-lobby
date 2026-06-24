@@ -9,6 +9,9 @@ import { db } from "@renderer/store/db";
 import { EntityTable } from "dexie";
 import { notificationsApi } from "@renderer/api/notifications";
 
+const MAP_IMAGE_FETCH_CONCURRENCY = 6;
+const PRELOAD_MAP_IMAGE_LIMIT = 32;
+
 export const mapsStore: {
     isInitialized: boolean;
     filters: {
@@ -140,12 +143,57 @@ export async function syncMapsMetadata() {
 export async function fetchMissingMapImages() {
     const maps = await db.maps.toArray();
     const missingImages = maps.filter((map) => !map.imagesBlob?.preview);
-    return await Promise.allSettled(missingImages.map(fetchMapImages));
+
+    const installedMaps = missingImages.filter((map) => map.isInstalled);
+    const priorityMaps = uniqueMaps(installedMaps.concat(missingImages)).slice(0, PRELOAD_MAP_IMAGE_LIMIT);
+    const priorityMapNames = new Set(priorityMaps.map((map) => map.springName));
+    const backgroundMaps = missingImages.filter((map) => !priorityMapNames.has(map.springName));
+
+    const priorityResults = await fetchMapImagesLimited(priorityMaps);
+
+    if (backgroundMaps.length > 0) {
+        fetchMapImagesLimited(backgroundMaps).catch((error) => console.error("Failed to fetch background map images", error));
+    }
+
+    return priorityResults;
+}
+
+function uniqueMaps(maps: MapData[]) {
+    const seen = new Set<string>();
+    return maps.filter((map) => {
+        if (seen.has(map.springName)) return false;
+        seen.add(map.springName);
+        return true;
+    });
+}
+
+async function fetchMapImagesLimited(maps: MapData[]) {
+    const results: PromiseSettledResult<void>[] = [];
+    let nextIndex = 0;
+    const workerCount = Math.min(MAP_IMAGE_FETCH_CONCURRENCY, maps.length);
+
+    async function worker() {
+        while (nextIndex < maps.length) {
+            const currentIndex = nextIndex++;
+            try {
+                results[currentIndex] = { status: "fulfilled", value: await fetchMapImages(maps[currentIndex]) };
+            } catch (reason) {
+                results[currentIndex] = { status: "rejected", reason };
+            }
+        }
+    }
+
+    await Promise.all(Array.from({ length: workerCount }, worker));
+    return results;
 }
 
 async function fetchMapImages(map: MapData) {
     if (map.imagesBlob?.preview) return;
-    const arrayBuffer = await window.maps.fetchMapImages(map.images?.preview);
+    if (!map.images?.preview) {
+        console.error("No preview image source for map", map.springName);
+        return;
+    }
+    const arrayBuffer = await window.maps.fetchMapImages(map.images.preview);
     if (!arrayBuffer) {
         console.error("Failed to fetch map images", map.springName);
         return;

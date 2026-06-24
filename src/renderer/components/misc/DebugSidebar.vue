@@ -28,6 +28,7 @@ SPDX-License-Identifier: MIT
         <Button @click="openStateDir"> {{ t("lobby.components.misc.debugSidebar.openStateDir") }} </Button>
         <Button @click="openStartScript"> {{ t("lobby.components.misc.debugSidebar.openStartScript") }} </Button>
         <Button @click="openSyncLobbyContentTool"> {{ t("lobby.components.misc.debugSidebar.syncLobbyContent") }} </Button>
+        <Button @click="launchChobby"> Launch Chobby </Button>
         <Button @click="causeError"> {{ t("lobby.components.misc.debugSidebar.causeError") }} </Button>
 
         <Select
@@ -66,8 +67,10 @@ import SyncDataDirsDialog from "@renderer/components/misc/SyncDataDirsDialog.vue
 import { gameStore } from "@renderer/store/game.store";
 import { enginesStore, installedEngineVersions } from "@renderer/store/engine.store";
 import { GameVersion } from "@main/content/game/game-version";
+import { notificationsApi } from "@renderer/api/notifications";
 import { inject, Ref } from "vue";
 import { useTypedI18n } from "@renderer/i18n";
+import { sortGameVersionsByVersionDesc } from "@renderer/utils/game-version-sort";
 const { t } = useTypedI18n();
 
 const active = ref(false);
@@ -80,7 +83,7 @@ const routes = router.getRoutes().sort((a, b) => a.path.localeCompare(b.path));
 const currentRoute = router.currentRoute;
 
 const gameListOptions = computed(() => {
-    return Array.from(gameStore.availableGameVersions.values());
+    return sortGameVersionsByVersionDesc(Array.from(gameStore.availableGameVersions.values()));
 });
 
 async function onGameSelected(gameVersion: GameVersion) {
@@ -110,6 +113,15 @@ async function openStartScript() {
 
 function openSyncLobbyContentTool() {
     syncLobbyContentToolOpen.value = true;
+}
+
+async function launchChobby() {
+    try {
+        await window.game.launchChobby({});
+    } catch (error) {
+        const text = error instanceof Error ? error.message : "Chobby launch failed.";
+        notificationsApi.alert({ text, severity: "error" });
+    }
 }
 
 function causeError() {

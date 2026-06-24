@@ -14,4 +14,5 @@
 
 export const LATEST = "LATEST";
 export const LATEST_GAME_VERSION = "byar:test";
-export const DEFAULT_ENGINE_VERSION = "2025.06.21";
+export const DEFAULT_ENGINE_VERSION = "2026.06.08";
+export const CHOBBY_MULTIPLAYER_ENGINE_FALLBACK_VERSION = "2025.06.24";

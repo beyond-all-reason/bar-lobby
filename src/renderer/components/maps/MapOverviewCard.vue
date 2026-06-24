@@ -40,13 +40,16 @@ const props = defineProps<{
     map: MapData | undefined;
 }>();
 
-const cache = useImageBlobUrlCache();
+const { get } = useImageBlobUrlCache();
 const mapSize = computed(() =>
     props.map ? props.map.mapWidth + "x" + props.map.mapHeight : t("lobby.components.maps.mapOverviewCard.sizeUnknown")
 );
-const imageUrl = computed(() =>
-    props.map?.imagesBlob?.preview ? cache.get(props.map?.springName, props.map?.imagesBlob?.preview) : defaultMiniMap
-);
+const imageUrl = computed(() => {
+    const map = props.map;
+    if (!map) return defaultMiniMap;
+    const blobUrl = map.imagesBlob?.preview ? get(map.springName, map.imagesBlob.preview) : undefined;
+    return blobUrl ?? map.images?.preview ?? defaultMiniMap;
+});
 </script>
 
 <style lang="scss" scoped>

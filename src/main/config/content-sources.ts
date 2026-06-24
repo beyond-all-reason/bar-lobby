@@ -32,8 +32,17 @@ export interface EngineReleaseInfo {
     mirrors: string[];
 }
 
-const findEngineReleaseUrl = (engineVersion: string) => {
-    const archStr = process.platform === "win32" ? "engine_windows64" : "engine_linux64";
+export function getEngineReleaseCategory(platform: NodeJS.Platform = process.platform): string {
+    if (platform === "win32") return "engine_windows64";
+    if (platform === "linux") return "engine_linux64";
+    if (platform === "darwin") {
+        throw new Error("Native macOS engine downloads are not available yet; refusing to use engine_linux64 on macOS.");
+    }
+    throw new Error(`Unsupported engine download platform: ${platform}`);
+}
+
+export const findEngineReleaseUrl = (engineVersion: string) => {
+    const archStr = getEngineReleaseCategory();
     const url = new URL("https://files-cdn.beyondallreason.dev/find");
     url.searchParams.set("category", archStr);
     url.searchParams.set("springname", engineVersion);

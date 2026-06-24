@@ -6,7 +6,7 @@ SPDX-License-Identifier: MIT
 
 <template>
     <div class="map-container">
-        <div class="map" :style="`background-image: url(${mapTextureUrl})`" />
+        <div class="map" :style="{ backgroundImage: `url('${mapTextureUrl}')` }" />
     </div>
 </template>
 
@@ -16,6 +16,7 @@ import { useImageBlobUrlCache } from "@renderer/composables/useImageBlobUrlCache
 import vStartBox from "@renderer/directives/vStartBox";
 import vStartPos from "@renderer/directives/vStartPos";
 import { computed, defineComponent } from "vue";
+import defaultMiniMap from "/src/renderer/assets/images/default-minimap.png?url";
 
 defineComponent({
     directives: {
@@ -31,10 +32,8 @@ const props = defineProps<{
 const { get } = useImageBlobUrlCache();
 
 const mapTextureUrl = computed(() => {
-    if (!props.map?.images) {
-        return;
-    }
-    return get(props.map?.springName, props.map?.imagesBlob?.preview);
+    const blobUrl = props.map.imagesBlob?.preview ? get(props.map.springName, props.map.imagesBlob.preview) : undefined;
+    return blobUrl ?? props.map.images?.preview ?? defaultMiniMap;
 });
 </script>
 

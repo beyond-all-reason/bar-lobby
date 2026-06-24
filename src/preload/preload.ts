@@ -13,7 +13,7 @@ import { DownloadInfo } from "@main/content/downloads";
 import { Info } from "@main/services/info.service";
 import { BattleWithMetadata } from "@main/game/battle/battle-types";
 import { GetCommandData, GetCommandIds, GetCommands } from "tachyon-protocol";
-import { MultiplayerLaunchSettings } from "@main/game/game";
+import type { ChobbyLaunchSettings, MultiplayerLaunchSettings } from "@main/game/game";
 import { logLevels } from "@main/services/log.service";
 
 const logApi = {
@@ -98,6 +98,7 @@ contextBridge.exposeInMainWorld("engine", engineApi);
 const gameApi = {
     // Content
     downloadGame: (version: string): Promise<void> => ipcRenderer.invoke("game:downloadGame", version),
+    getLatestTestVersion: (): Promise<GameVersion | undefined> => ipcRenderer.invoke("game:getLatestTestVersion"),
     getScenarios: (version: string) => ipcRenderer.invoke("game:getScenarios", version),
     getInstalledVersions: (): Promise<GameVersion[]> => ipcRenderer.invoke("game:getInstalledVersions"),
     isVersionInstalled: (version: string): Promise<boolean> => ipcRenderer.invoke("game:isVersionInstalled", version),
@@ -106,6 +107,7 @@ const gameApi = {
 
     // Game
     launchMultiplayer: (settings: MultiplayerLaunchSettings): Promise<void> => ipcRenderer.invoke("game:launchMultiplayer", settings),
+    launchChobby: (settings: ChobbyLaunchSettings): Promise<void> => ipcRenderer.invoke("game:launchChobby", settings),
     launchScript: (script: string, gameVersion: string, engineVersion: string): Promise<void> => ipcRenderer.invoke("game:launchScript", script, gameVersion, engineVersion),
     launchReplay: (replay) => ipcRenderer.invoke("game:launchReplay", replay),
     launchBattle: (battle: BattleWithMetadata) => ipcRenderer.invoke("game:launchBattle", battle),

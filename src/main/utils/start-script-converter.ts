@@ -4,8 +4,21 @@
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { spadsPointsToLTRBPercent } from "@main/content/maps/box-utils";
-import { BattleWithMetadata, isPlayer, StartPosType } from "@main/game/battle/battle-types";
+import { BattleWithMetadata, Faction, isPlayer, StartPosType } from "@main/game/battle/battle-types";
 import { AllyTeam, Bot, Game, Player, Team } from "@main/model/start-script";
+
+const LEGION_FACTION_MODOPTION = "experimentallegionfaction";
+const FACTION_TO_SIDE: Partial<Record<Faction, string>> = {
+    [Faction.Armada]: "Armada",
+    [Faction.Cortex]: "Cortex",
+    [Faction.Random]: "Random",
+    [Faction.Legion]: "Legion",
+};
+
+function getSideForFaction(faction?: Faction): string | undefined {
+    if (!faction) return undefined;
+    return FACTION_TO_SIDE[faction];
+}
 
 /**
  * https://springrts.com/wiki/Script.txt
@@ -40,6 +53,8 @@ class StartScriptConverter {
         const teams: Team[] = [];
         const players: Player[] = [];
         const bots: Bot[] = [];
+        let hasLegionFaction = false;
+        let hasPlayerUsingGameFactionPicker = false;
 
         Object.entries(battle.teams).forEach((entry) => {
             const teamId = Number(entry[0]);
@@ -90,7 +105,8 @@ class StartScriptConverter {
 
             team.participants.forEach((teamMember) => {
                 const { id, advantage, handicap, incomeMultiplier, startPos } = teamMember;
-                const team: Team = {
+                const side = getSideForFaction(teamMember.faction);
+                const scriptTeam: Team = {
                     id,
                     allyteam: teamId,
                     teamleader: teamMember.id,
@@ -100,21 +116,30 @@ class StartScriptConverter {
                     startposx: startPos?.x,
                     startposz: startPos?.z,
                 };
-                teams.push(team);
+                if (side) {
+                    scriptTeam.side = side;
+                }
+                if (teamMember.faction === Faction.Legion) {
+                    hasLegionFaction = true;
+                }
+                teams.push(scriptTeam);
 
                 if (isPlayer(teamMember)) {
+                    if (!teamMember.faction) {
+                        hasPlayerUsingGameFactionPicker = true;
+                    }
                     const player: Player = {
                         id,
-                        team: team.id,
+                        team: scriptTeam.id,
                         name: teamMember.user.username,
                         userId: teamMember.user.userId,
                     };
                     players.push(player);
                 } else {
-                    team.teamleader = teamMember.host;
+                    scriptTeam.teamleader = teamMember.host;
                     const bot: Bot = {
                         id,
-                        team: team.id,
+                        team: scriptTeam.id,
                         shortname: teamMember.aiShortName,
                         name: teamMember.name,
                         host: teamMember.host,
@@ -146,10 +171,16 @@ class StartScriptConverter {
         if (!battle.battleOptions.map) throw new Error("failed to access battle options map");
         if (!battle.me) throw new Error("failed to access current player");
 
+        const modoptions = { ...(battle.battleOptions.gameMode.options ?? {}) };
+        const hasExplicitLegionOption = Object.prototype.hasOwnProperty.call(modoptions, LEGION_FACTION_MODOPTION);
+        if (hasLegionFaction || (hasPlayerUsingGameFactionPicker && !hasExplicitLegionOption)) {
+            modoptions[LEGION_FACTION_MODOPTION] = 1;
+        }
+
         return {
             gametype: battle.battleOptions.gameVersion,
             mapname: battle.battleOptions.map.springName,
-            modoptions: battle.battleOptions.gameMode.options,
+            modoptions,
             // mapoptions: battle.battleOptions.???,
             ishost: 1,
             myplayername: battle.me.user.username,

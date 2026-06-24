@@ -19,6 +19,8 @@
         "buildall:win": "npm run package && npm run build:win",
         "build:linux": "electron-builder --linux",
         "buildall:linux": "npm run package && npm run build:linux",
+        "build:mac": "electron-builder --mac --arm64 -c.productName=BAR",
+        "buildall:mac": "npm run package && npm run build:mac",
         "build:unpack": "electron-builder --dir",
         "dev-cert": "electron-builder create-self-signed-cert -p \"BAR Team\"",
         "build:win:dev-cert": "cross-env CSC_LINK=\"./BAR Team.pfx\" npm run build:win",

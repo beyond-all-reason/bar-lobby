@@ -16,10 +16,7 @@ async function reinit() {
 
 function registerIpcHandlers() {
     ipcMain.handle("engine:listAvailableVersions", () =>
-        engineContentAPI.availableVersions
-            .values()
-            .toArray()
-            .sort((a, b) => a.id.localeCompare(b.id))
+        engineContentAPI.getLobbySelectableVersions().sort((a, b) => a.id.localeCompare(b.id))
     );
     ipcMain.handle("engine:downloadEngine", (_, version?: string) => engineContentAPI.downloadEngine(version));
     ipcMain.handle("engine:isVersionInstalled", (_, id: string) => engineContentAPI.isVersionInstalled(id));

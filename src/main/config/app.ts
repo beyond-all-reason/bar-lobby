@@ -7,10 +7,14 @@ import fs from "fs";
 import { env } from "process";
 import { app } from "electron";
 import { homedir } from "os";
+import { getBundledAssetsPath } from "@main/config/native-engine-runner";
+import { getMacOSPortableStateMarkerPath, MACOS_PORTABLE_STATE_MARKER_FILE_NAME } from "@main/config/macos-portable";
 
-// Should be the same as `productName` in electron-builder.ts
-// and in workaround in installer.nsh.
-export const APP_NAME = "BeyondAllReason";
+export { MACOS_PORTABLE_STATE_MARKER_FILE_NAME };
+
+// macOS is packaged with `-c.productName=BAR` so the accepted artifact path is
+// BAR.app. Windows and Linux keep the existing product/state identity.
+export const APP_NAME = process.platform === "darwin" ? "BAR" : "BeyondAllReason";
 
 /**
  * The function returns default base directories for the application data.
@@ -46,6 +50,11 @@ export const APP_NAME = "BeyondAllReason";
  * - Linux:
  *   - Assets: ~/.local/share/BeyondAllReason
  *   - State: ~/.local/state/BeyondAllReason
+ * - macOS:
+ *   - Assets: ~/Library/Application Support/BAR/assets
+ *   - State: ~/Library/Application Support/BAR
+ *   - Thread/local portable builds can opt into BAR.app-adjacent state by
+ *     placing `bar-portable-state` in Contents/Resources.
  */
 function getDefaultLocations(): { state: string; assets: string } {
     // We separate the developlment installation from production installation
@@ -78,10 +87,46 @@ function getDefaultLocations(): { state: string; assets: string } {
             state: path.join(xdgStateHome, APP_NAME),
         };
     }
+    if (process.platform === "darwin") {
+        const portableLocations = getMacOSPortableLocations();
+        if (portableLocations) {
+            return portableLocations;
+        }
+
+        const applicationSupport = path.join(homedir(), "Library", "Application Support");
+        return {
+            assets: path.join(applicationSupport, APP_NAME, "assets"),
+            state: path.join(applicationSupport, APP_NAME),
+        };
+    }
 
     console.error("Unsupported platform");
     process.exit(1);
 }
+
+function getMacOSPortableLocations(): { state: string; assets: string } | undefined {
+    if (!app.isPackaged) {
+        return undefined;
+    }
+
+    const markerPath = getMacOSPortableStateMarkerPath(process.resourcesPath);
+    if (!fs.existsSync(markerPath)) {
+        return undefined;
+    }
+
+    const appParentPath = path.resolve(process.resourcesPath, "..", "..", "..");
+    const state = path.join(appParentPath, `${APP_NAME}-data`);
+    return {
+        assets: path.join(state, "assets"),
+        state,
+    };
+}
+
+const defaultLocations = getDefaultLocations();
+// Allow overriding the paths using env variables.
+let ASSETS_PATH: string = path.resolve(process.env.BAR_ASSETS_PATH || defaultLocations.assets);
+export const STATE_PATH = path.resolve(process.env.BAR_STATE_PATH || defaultLocations.state);
+export const BUNDLED_ASSETS_PATH = app.isPackaged && process.platform === "darwin" ? getBundledAssetsPath(process.resourcesPath) : undefined;
 
 export function setAssetsPath(p: string) {
     ASSETS_PATH = path.resolve(p);
@@ -90,11 +135,6 @@ export function setAssetsPath(p: string) {
 export function getAssetsPath() {
     return ASSETS_PATH;
 }
-
-const defaultLocations = getDefaultLocations();
-// Allow overriding the paths using env variables.
-let ASSETS_PATH: string = path.resolve(process.env.BAR_ASSETS_PATH || defaultLocations.assets);
-export const STATE_PATH = path.resolve(process.env.BAR_STATE_PATH || defaultLocations.state);
 
 // We set the `userData` property for Electron to also create files in correct
 // locations, not only our own code.

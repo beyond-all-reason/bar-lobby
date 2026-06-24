@@ -15,14 +15,15 @@ import { logger } from "@main/utils/logger";
 import { extract7z } from "@main/utils/extract-7z";
 import { getEngineReleaseInfo } from "@main/config/content-sources";
 import { AbstractContentAPI } from "@main/content/abstract-content";
-import { getEnginePath } from "@main/config/app";
+import { BUNDLED_ASSETS_PATH, getAssetsPath, getEnginePath } from "@main/config/app";
 import { DEFAULT_ENGINE_VERSION } from "@main/config/default-versions";
+import { getEngineRootSearchPaths, resolveEngineVersionPath } from "@main/config/native-engine-runner";
 
 const log = logger("engine-content.ts");
 
-// TODO: add support for old engine version tag naming scheme, careful it is not string sortable (!)
-// Regex matching new engine version tags (e.g. "2025.01.3", "2025.01.3-rc1")
-const compatibleVersionRegex = /^\d{4}\.\d{2}\.\d{1,2}(-rc\d+)?$/;
+// Regex matching Recoil engine ids used by BAR, for example:
+// "2025.06.21", "2025.01.3-rc1", "2026.06.06-63-g3dc7044".
+const compatibleVersionRegex = /^\d{4}\.\d{2}\.\d{1,2}(?:-\d+-g[0-9a-f]+|-rc\d+)?$/;
 
 export class EngineContentAPI extends AbstractContentAPI<string, EngineVersion> {
     protected get engineDirs() {
@@ -32,16 +33,29 @@ export class EngineContentAPI extends AbstractContentAPI<string, EngineVersion> 
     public override async init() {
         log.info("Initializing engine content API");
         try {
-            const files = await fs.promises.readdir(this.engineDirs, { withFileTypes: true });
-            const dirs = files
-                .filter((file) => file.isDirectory() || file.isSymbolicLink())
-                .map((dir) => dir.name)
-                .filter((dir) => compatibleVersionRegex.test(dir) || dir.includes("local"));
-            log.info(`Found ${dirs.length} installed engine versions`);
-            for (const dir of dirs) {
-                log.info(`-- Engine ${dir}`);
-                const ais = await this.parseAis(dir);
-                this.availableVersions.set(dir, { id: dir, ais, installed: true });
+            await fs.promises.mkdir(this.engineDirs, { recursive: true });
+            const dirs = new Map<string, string>();
+            const engineRoots = getEngineRootSearchPaths({ assetsPath: getAssetsPath(), bundledAssetsPath: BUNDLED_ASSETS_PATH });
+            for (const engineRoot of engineRoots) {
+                if (!fs.existsSync(engineRoot)) continue;
+                const files = await fs.promises.readdir(engineRoot, { withFileTypes: true });
+                for (const dir of files
+                    .filter((file) => file.isDirectory() || file.isSymbolicLink())
+                    .map((dir) => dir.name)
+                    .filter((dir) => compatibleVersionRegex.test(dir) || dir.includes("local"))) {
+                    if (!dirs.has(dir)) dirs.set(dir, path.join(engineRoot, dir));
+                }
+            }
+            log.info(`Found ${dirs.size} installed engine versions`);
+            for (const [engineVersion, enginePath] of dirs) {
+                log.info(`-- Engine ${engineVersion} at ${enginePath}`);
+                let ais: EngineAI[] = [];
+                try {
+                    ais = await this.parseAis(engineVersion);
+                } catch (err) {
+                    log.error(`Failed to parse engine AI definitions for ${engineVersion}: ${err instanceof Error ? err.message : String(err)}`);
+                }
+                this.availableVersions.set(engineVersion, { id: engineVersion, ais, installed: true });
             }
         } catch (err) {
             if ((err as NodeJS.ErrnoException).code !== "ENOENT") {
@@ -65,6 +79,15 @@ export class EngineContentAPI extends AbstractContentAPI<string, EngineVersion> 
 
     public getDefaultEngine() {
         return this.availableVersions.get(DEFAULT_ENGINE_VERSION);
+    }
+
+    public getLobbySelectableVersions(platform: NodeJS.Platform = process.platform) {
+        if (platform === "darwin") {
+            const defaultEngine = this.getDefaultEngine();
+            return defaultEngine ? [defaultEngine] : [];
+        }
+
+        return this.availableVersions.values().toArray();
     }
 
     protected checkIfDefaultIsNew() {
@@ -144,8 +167,18 @@ export class EngineContentAPI extends AbstractContentAPI<string, EngineVersion> 
 
     protected async parseAis(engineVersion: string): Promise<EngineAI[]> {
         const ais: EngineAI[] = [];
-        const aisPath = path.join(this.engineDirs, engineVersion, "AI", "Skirmish");
-        const aiDirs = await fs.promises.readdir(aisPath);
+        const enginePath = resolveEngineVersionPath({ engineVersion, assetsPath: getAssetsPath(), bundledAssetsPath: BUNDLED_ASSETS_PATH });
+        const aisPath = path.join(enginePath, "AI", "Skirmish");
+        let aiDirs: string[];
+        try {
+            aiDirs = await fs.promises.readdir(aisPath);
+        } catch (err) {
+            if (typeof err === "object" && err !== null && "code" in err && err.code === "ENOENT") {
+                log.warn(`No engine AI definitions found for ${engineVersion}: ${aisPath}`);
+                return ais;
+            }
+            throw err;
+        }
         for (const aiDir of aiDirs) {
             try {
                 const ai = await this.parseAi(path.join(aisPath, aiDir));

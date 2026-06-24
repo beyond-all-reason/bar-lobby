@@ -1,8 +1,22 @@
 import { Configuration } from "electron-builder";
+import { existsSync } from "node:fs";
+import { resolve } from "node:path";
 
 /**
  * @see https://www.electron.build/configuration
  */
+const defaultBundledAssetsPath = resolve("../../artifacts/thread-03-native-engine-candidate");
+const bundledAssetsPath = process.env.BAR_BUNDLED_ASSETS_PATH || (existsSync(defaultBundledAssetsPath) ? defaultBundledAssetsPath : undefined);
+
+const bundledAssetsExtraResources: Configuration["extraResources"] = bundledAssetsPath
+    ? [
+          {
+              from: bundledAssetsPath,
+              to: "bundled-assets",
+          },
+      ]
+    : [];
+
 const config: Configuration = {
     appId: "info.beyondallreason.lobby",
     // Should be the same as APP_NAME in src/main/config/app.ts and in
@@ -14,6 +28,7 @@ const config: Configuration = {
     files: ["./.vite/**", "!node_modules", "./node_modules/7zip-bin/**"],
     directories: { buildResources: "buildResources" },
     asarUnpack: ["resources/**"],
+    extraResources: bundledAssetsExtraResources,
 
     publish: { provider: "github" },
     fileAssociations: [
@@ -52,6 +67,14 @@ const config: Configuration = {
         category: "Game",
     },
     appImage: {},
+
+    // macOS
+    mac: {
+        target: ["dir"],
+        category: "public.app-category.games",
+        icon: "buildResources/icon.icns",
+        minimumSystemVersion: "26.5",
+    },
 };
 
 export default config;

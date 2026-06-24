@@ -103,7 +103,7 @@ SPDX-License-Identifier: MIT
 </template>
 
 <script lang="ts" setup>
-import { ref, computed } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { useTypedI18n } from "@renderer/i18n";
 import Playerlist from "@renderer/components/battle/Playerlist.vue";
 import Select from "@renderer/components/controls/Select.vue";
@@ -128,12 +128,19 @@ import { enginesStore, installedEngineVersions } from "@renderer/store/engine.st
 import TerrainIcon from "@renderer/components/maps/filters/TerrainIcon.vue";
 import personIcon from "@iconify-icons/mdi/person-multiple";
 import gridIcon from "@iconify-icons/mdi/grid";
+import type { GameVersion } from "@main/content/game/game-version";
+import { sortGameVersionsByVersionDesc } from "@renderer/utils/game-version-sort";
 
 const mapListOpen = ref(false);
 const mapOptionsOpen = ref(false);
 const mapListOptions = useDexieLiveQuery(() => db.maps.toArray());
+const latestTestGameVersion = ref<GameVersion>();
 const gameListOptions = computed(() => {
-    return Array.from(gameStore.availableGameVersions.values());
+    const versions = Array.from(gameStore.availableGameVersions.values());
+    if (latestTestGameVersion.value && !versions.some((version) => version.gameVersion === latestTestGameVersion.value?.gameVersion)) {
+        versions.push(latestTestGameVersion.value);
+    }
+    return sortGameVersionsByVersionDesc(versions);
 });
 
 const map = useDexieLiveQueryWithDeps([() => battleStore.battleOptions.map], () => {
@@ -150,7 +157,9 @@ function openMapOptions() {
 }
 
 function onGameSelected(gameVersion: string) {
-    gameStore.selectedGameVersion = gameStore.availableGameVersions.get(gameVersion);
+    gameStore.selectedGameVersion =
+        gameStore.availableGameVersions.get(gameVersion) ??
+        (latestTestGameVersion.value?.gameVersion === gameVersion ? latestTestGameVersion.value : undefined);
     battleStore.battleOptions.gameVersion = gameVersion;
 }
 
@@ -158,6 +167,10 @@ function onMapSelected(map: MapData) {
     battleStore.battleOptions.map = map;
     mapListOpen.value = false;
 }
+
+onMounted(async () => {
+    latestTestGameVersion.value = await window.game.getLatestTestVersion();
+});
 </script>
 
 <style lang="scss" scoped>

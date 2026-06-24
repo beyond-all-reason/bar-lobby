@@ -3,9 +3,11 @@
 // SPDX-License-Identifier: MIT
 
 import { Downloader } from "@main/content/abstract-content";
+import { getAutoUpdaterInitializationSkipReason } from "@main/config/auto-updater";
 import { logger } from "@main/utils/logger";
 import { app } from "electron";
 import electronUpdater from "electron-updater";
+import fs from "fs";
 const { autoUpdater } = electronUpdater;
 
 const log = logger("auto-updater.ts");
@@ -19,8 +21,14 @@ export class AutoUpdaterAPI extends Downloader {
 
     public async init() {
         log.info("Initializing AutoUpdaterAPI");
-        if (!app.isPackaged) {
-            log.info("App is not packaged. Skipping initializaion");
+        const skipReason = getAutoUpdaterInitializationSkipReason({
+            isPackaged: app.isPackaged,
+            platform: process.platform,
+            resourcesPath: process.resourcesPath,
+            pathExists: fs.existsSync,
+        });
+        if (skipReason) {
+            log.info(`${skipReason}. Skipping initialization`);
             return this;
         }
         autoUpdater.autoDownload = false;

@@ -7,6 +7,10 @@ import { EngineVersion } from "@main/content/engine/engine-version";
 import { notificationsApi } from "@renderer/api/notifications";
 import { computed, reactive } from "vue";
 
+function getErrorMessage(error: unknown): string {
+    return error instanceof Error ? error.message : "Engine download failed.";
+}
+
 export const enginesStore: {
     isInitialized: boolean;
     availableEngineVersions: EngineVersion[];
@@ -32,7 +36,7 @@ export async function downloadEngine(engineString: string) {
         })
         .catch((error) => {
             console.error("Failed to download engine:", engineString, error);
-            notificationsApi.alert({ text: "Engine download failed.", severity: "error" });
+            notificationsApi.alert({ text: getErrorMessage(error), severity: "error" });
         });
 }
 

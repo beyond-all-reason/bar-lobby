@@ -10,11 +10,11 @@ const worker = new Worker(path.join(__dirname, "map-image-worker.cjs"));
 const jobs = new Map<
     string,
     {
-        resolve: (value: ArrayBuffer) => void;
+        resolve: (value: ArrayBuffer | undefined) => void;
         reject: (reason?: unknown) => void;
     }
 >();
-const promises = new Map<string, Promise<ArrayBuffer>>();
+const promises = new Map<string, Promise<ArrayBuffer | undefined>>();
 
 worker.on("message", ({ imageSource, arrayBuffer, error }) => {
     const promiseHandles = jobs.get(imageSource);
@@ -22,7 +22,8 @@ worker.on("message", ({ imageSource, arrayBuffer, error }) => {
     if (!promiseHandles) throw new Error("failed to access image source promise handlers");
 
     if (error) {
-        promiseHandles.reject(new Error(error));
+        console.error(`Failed to fetch map image ${imageSource}: ${error}`);
+        promiseHandles.resolve(undefined);
     } else {
         promiseHandles.resolve(arrayBuffer);
     }
@@ -49,11 +50,11 @@ worker.on("exit", (code) => {
     }
 });
 
-export function fetchMapImages(imageSource: string): Promise<ArrayBuffer> {
+export function fetchMapImages(imageSource: string): Promise<ArrayBuffer | undefined> {
     const existingPromise = promises.get(imageSource);
     if (existingPromise) return existingPromise;
 
-    const promise = new Promise<ArrayBuffer>((resolve, reject) => {
+    const promise = new Promise<ArrayBuffer | undefined>((resolve, reject) => {
         jobs.set(imageSource, { resolve, reject });
         worker.postMessage(imageSource);
     });

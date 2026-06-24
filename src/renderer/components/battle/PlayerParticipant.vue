@@ -9,8 +9,9 @@ SPDX-License-Identifier: MIT
         <div>
             <Flag class="flag" :countryCode="player.user.countryCode" />
         </div>
-        <div>{{ player.user.username }}</div>
-        <div class="flex-row flex-right flex-center">
+        <div class="player-name">{{ player.user.username }}</div>
+        <div class="participant-actions flex-row flex-right flex-center">
+            <FactionSelect :modelValue="player.faction" @update:modelValue="setFaction" />
             <div class="flex-row flex-center gap-sm">
                 <!-- <div
                     v-if="player.battleStatus.teamId > 0 && isSpadsBattle(battle)"
@@ -37,10 +38,12 @@ import { useTypedI18n } from "@renderer/i18n";
 
 import TeamParticipant from "@renderer/components/battle/TeamParticipant.vue";
 import ContextMenu from "@renderer/components/common/ContextMenu.vue";
+import FactionSelect from "@renderer/components/battle/FactionSelect.vue";
 import Flag from "@renderer/components/misc/Flag.vue";
 import { useRouter } from "vue-router";
-import { Player } from "@main/game/battle/battle-types";
+import { Faction, Player } from "@main/game/battle/battle-types";
 import { me } from "@renderer/store/me.store";
+import { battleActions } from "@renderer/store/battle.store";
 
 const { t } = useTypedI18n();
 const router = useRouter();
@@ -85,6 +88,10 @@ function onRightClick(event: MouseEvent) {
     if (menu.value) {
         menu.value.show(event);
     }
+}
+
+function setFaction(faction?: Faction) {
+    battleActions.updateParticipantFaction(props.player, faction);
 }
 
 async function viewProfile() {
@@ -137,6 +144,16 @@ function reportPlayer() {
 <style lang="scss" scoped>
 .flag {
     width: 20px;
+}
+.player-name {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.participant-actions {
+    gap: 8px;
+    margin-left: auto;
 }
 .ready {
     font-size: 12px;

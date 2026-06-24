@@ -3,7 +3,8 @@
 // SPDX-License-Identifier: MIT
 
 import { gameContentAPI } from "@main/content/game/game-content";
-import { gameAPI, MultiplayerLaunchSettings } from "@main/game/game";
+import { gameAPI } from "@main/game/game";
+import type { ChobbyLaunchSettings, MultiplayerLaunchSettings } from "@main/game/game";
 import { ipcMain, BarIpcWebContents } from "@main/typed-ipc";
 import { Replay } from "@main/content/replays/replay";
 import { BattleWithMetadata } from "@main/game/battle/battle-types";
@@ -20,6 +21,7 @@ async function reinit() {
 function registerIpcHandlers(webContents: BarIpcWebContents) {
     // Content
     ipcMain.handle("game:downloadGame", (_, version: string) => gameContentAPI.downloadGame(version));
+    ipcMain.handle("game:getLatestTestVersion", () => gameContentAPI.getLatestTestVersion());
     ipcMain.handle("game:getScenarios", (_, version: string) => gameContentAPI.getScenarios(version));
     ipcMain.handle("game:getInstalledVersions", () => gameContentAPI.availableVersions.values().toArray());
     ipcMain.handle("game:isVersionInstalled", (_, id: string) => gameContentAPI.isVersionInstalled(id));
@@ -28,6 +30,7 @@ function registerIpcHandlers(webContents: BarIpcWebContents) {
 
     // Game
     ipcMain.handle("game:launchMultiplayer", (_, settings: MultiplayerLaunchSettings) => gameAPI.launchMultiplayer(settings));
+    ipcMain.handle("game:launchChobby", (_, settings: ChobbyLaunchSettings) => gameAPI.launchChobby(settings));
     ipcMain.handle("game:launchScript", (_, scriptString: string, gameVersionString: string, engineVersionString: string) =>
         gameAPI.launchScript({ script: scriptString, engineVersion: engineVersionString, gameVersion: gameVersionString })
     );

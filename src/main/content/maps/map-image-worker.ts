@@ -25,7 +25,7 @@ if (isMainThread) {
             narrowedParentPort.postMessage({ imageSource, arrayBuffer });
         } catch (error) {
             console.error(error);
-            narrowedParentPort.postMessage({ imageSource, error: String(error) });
+            narrowedParentPort.postMessage({ imageSource, error: error instanceof Error ? error.message : String(error) });
         }
     });
 }

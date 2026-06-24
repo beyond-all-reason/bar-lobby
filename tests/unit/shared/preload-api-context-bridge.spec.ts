@@ -190,6 +190,7 @@ describe("Preload API Context Bridge", () => {
         mockWindow.game.uninstallVersion("v1");
         mockWindow.game.preloadPoolData();
         mockWindow.game.launchMultiplayer({});
+        mockWindow.game.launchChobby({});
         mockWindow.game.launchScript("script", "gameV", "engineV");
 
         expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("game:downloadGame", "v1");
@@ -199,6 +200,7 @@ describe("Preload API Context Bridge", () => {
         expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("game:uninstallVersion", "v1");
         expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("game:preloadPoolData");
         expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("game:launchMultiplayer", {});
+        expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("game:launchChobby", {});
         expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("game:launchScript", "script", "gameV", "engineV");
     });
 
