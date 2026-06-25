@@ -37,7 +37,6 @@ import { typedWebContents } from "@main/typed-ipc";
 import { navigationService } from "@main/services/navigation.service";
 import { pathsService } from "./services/paths.service";
 import { lobbyProtocolService } from "@main/services/lobby-protocol.service";
-import { lobbyHttpBridgeService } from "@main/services/lobby-http-bridge.service";
 import { registerLobbyProtocol } from "@main/lobbyProtocol/lobby-protocol-utils";
 
 // Enable happy eyeballs for IPv6/IPv4 dual stack.
@@ -100,12 +99,9 @@ app.enableSandbox();
 app.commandLine.appendSwitch("disable-features", "HardwareMediaKeyHandling,MediaSessionService");
 app.commandLine.appendSwitch("disable-pinch", "1");
 
-app.on("before-quit", () => lobbyHttpBridgeService.close());
-
 app.whenReady().then(async () => {
     registerBarFileProtocol();
     registerLobbyProtocol();
-    await lobbyHttpBridgeService.init();
     if (process.env.NODE_ENV !== "production") {
         try {
             // await installExtension(VUEJS_DEVTOOLS);

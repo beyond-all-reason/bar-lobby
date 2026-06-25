@@ -6,9 +6,6 @@ export const LOBBY_PROTOCOL_SCHEME = "barrts";
 export const LOBBY_PROTOCOL = `${LOBBY_PROTOCOL_SCHEME}:`;
 export const LOBBY_PROTOCOL_PREFIX = `${LOBBY_PROTOCOL}//`;
 
-// TODO: When an external redirect service is available (e.g. bar.gg):
-//   1. Replace this URL with the external service base URL
-//   2. Remove lobbyHttpBridgeService registration from main.ts
-//   3. Delete src/main/services/lobby-http-bridge.service.ts
-//   The external service must redirect GET /<handler>/<action>?params to barrts://<handler>/<action>?params
-export const LOBBY_SHAREABLE_BASE_URL = "http://localhost:47777";
+// The external service must hand off GET /<handler>/<action>?params
+// to barrts://<handler>/<action>?params.
+export const LOBBY_SHAREABLE_BASE_URL = "https://bar.gg";
