@@ -110,7 +110,7 @@ describe("Preload API Context Bridge", () => {
         mockWindow.lobbyProtocol.handleUrl("barrts://internal/ping");
 
         expect(mockWindow.lobbyProtocol.scheme).toBe("barrts");
-        expect(mockWindow.lobbyProtocol.getShareableUrl("internal", "ping", { id: "555" })).toBe("https://bar.gg/internal/ping?id=555");
+        expect(mockWindow.lobbyProtocol.getShareableUrl("internal", "ping", { id: "555" })).toBe("https://bar.devopsowy.pl/internal/ping?id=555");
         expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("lobbyProtocol:getLabels");
         expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("lobbyProtocol:handlePending");
         expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("lobbyProtocol:handleUrl", "barrts://internal/ping");
