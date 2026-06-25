@@ -29,6 +29,7 @@ SPDX-License-Identifier: MIT
         <Button @click="openStartScript"> {{ t("lobby.components.misc.debugSidebar.openStartScript") }} </Button>
         <Button @click="openSyncLobbyContentTool"> {{ t("lobby.components.misc.debugSidebar.syncLobbyContent") }} </Button>
         <Button @click="causeError"> {{ t("lobby.components.misc.debugSidebar.causeError") }} </Button>
+        <Button @click="party.requestCreate"> Create Party </Button>
 
         <Select
             :modelValue="gameStore.selectedGameVersion"
@@ -68,6 +69,7 @@ import { enginesStore, installedEngineVersions } from "@renderer/store/engine.st
 import { GameVersion } from "@main/content/game/game-version";
 import { inject, Ref } from "vue";
 import { useTypedI18n } from "@renderer/i18n";
+import { party } from "@renderer/store/party.store";
 const { t } = useTypedI18n();
 
 const active = ref(false);

@@ -31,6 +31,23 @@ SPDX-License-Identifier: MIT
                                 </div>
                                 <div>
                                     <h3>Matchmaking Queues</h3>
+                                    <div>
+                                        <Button
+                                            v-for="queue in availableQueueIds"
+                                            :key="queue"
+                                            @click="queueSelected(queue)"
+                                            class="mm-queue-button classic"
+                                            :class="{
+                                                selected: matchmakingStore.selectedQueue === queue,
+                                            }"
+                                            :disabled="matchmakingStore.status !== MatchmakingStatus.Idle"
+                                        >
+                                            <span>{{ getPlaylistName(queue) }}</span>
+                                            <div class="info br" v-if="matchmakingStore.selectedQueue === queue" @click.stop="onInfoClick">
+                                                <Icon :icon="informationIcon"></Icon>
+                                            </div>
+                                        </Button>
+                                    </div>
                                 </div>
                                 <PartyChat />
                             </div>
@@ -57,11 +74,17 @@ SPDX-License-Identifier: MIT
                 </TabView>
             </Panel>
         </div>
+        <QueueDownloadsModal
+            v-model="isQueueDownloadsModalOpen"
+            :title="t('lobby.multiplayer.ranked.modalTitle')"
+            :queue="matchmakingStore.selectedQueue"
+            @close-modal="isQueueDownloadsModalOpen = false"
+        />
     </div>
 </template>
 
 <script lang="ts" setup>
-// import { useTypedI18n } from "@renderer/i18n";
+import { useTypedI18n } from "@renderer/i18n";
 import { partyStore, PlayersPartyState, party } from "@renderer/store/party.store";
 import { computed, ref, watch, toRaw } from "vue";
 import PartyChat from "@renderer/components/party/PartyChat.vue";
@@ -79,7 +102,12 @@ import { User } from "@main/model/user";
 import TabPanel from "primevue/tabpanel";
 import TabView from "@renderer/components/common/TabView.vue";
 import { me } from "@renderer/store/me.store";
-// const { t } = useTypedI18n();
+import { matchmakingStore, matchmaking, MatchmakingStatus, getPlaylistName } from "@renderer/store/matchmaking.store";
+import DownloadContentButton from "@renderer/components/controls/DownloadContentButton.vue";
+import QueueDownloadsModal from "@renderer/components/misc/QueueDownloadsModal.vue";
+import informationIcon from "@iconify-icons/mdi/information";
+import { Icon } from "@iconify/vue";
+const { t } = useTypedI18n();
 
 const showInvites = computed(() => {
     if (partyStore.state === PlayersPartyState.InvitedOnly || partyStore.state === PlayersPartyState.JoinedAndInvited) return true;
@@ -153,6 +181,51 @@ function displayUsersFilter(user: User) {
     }
     return false;
 }
+
+const isQueueDownloadsModalOpen = ref(false);
+
+const availableQueueIds = computed(() => {
+    return matchmakingStore.playlists.sort((a, b) => a.teamSize * a.numOfTeams - b.teamSize * b.numOfTeams).map((playlist) => playlist.id);
+});
+
+const downloadsRequired = computed(() => {
+    return matchmakingStore.downloadsRequired[matchmakingStore.selectedQueue];
+});
+
+const downloadsAreRequiredForSelected = computed(() => {
+    // 0 returns falsy, anything else returns truthy, so this works to determine if there are any downloads required.
+    return (
+        matchmakingStore.downloadsRequired[matchmakingStore.selectedQueue].maps.length +
+        matchmakingStore.downloadsRequired[matchmakingStore.selectedQueue].engines.length +
+        matchmakingStore.downloadsRequired[matchmakingStore.selectedQueue].games.length
+    );
+});
+
+const downloading = ref(false);
+
+// Switching the active queue during a download cannot be allowed because it messes with state.
+function queueSelected(queue: string) {
+    if (downloading.value) {
+        return;
+    } else matchmakingStore.selectedQueue = queue;
+}
+
+function handleDownloadsStarted() {
+    downloading.value = true;
+}
+// After downloads are done, we need to refresh the required list.
+function handleDownloadsComplete() {
+    matchmaking.triggerAssetsRefresh();
+    downloading.value = false;
+}
+
+function requestMatchmakingQueues() {
+    matchmaking.sendListRequest();
+}
+
+function onInfoClick() {
+    if (!downloading.value) isQueueDownloadsModalOpen.value = true;
+}
 </script>
 
 <style lang="scss" scoped>
@@ -162,5 +235,81 @@ function displayUsersFilter(user: User) {
     height: 100%;
     width: 1600px;
     align-self: center;
+}
+.mm-queue-button {
+    min-height: 100px;
+    min-width: 400px;
+    margin-top: 20px;
+    margin-bottom: 20px;
+    flex: 1;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    text-align: center;
+    font-size: 2rem;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    transition: all 0.3s ease;
+    filter: brightness(0.7) saturate(0.1);
+    span {
+        font-size: 2rem;
+        text-transform: uppercase;
+        font-weight: bold;
+        filter: drop-shadow(3px 3px 5px rgba(0, 0, 0, 0.8));
+    }
+    &.classic {
+        background-image: url("/src/renderer/assets/images/backgrounds/5.jpg");
+    }
+}
+/* On hover/active */
+.mm-queue-button:hover {
+    z-index: 1;
+    filter: brightness(1);
+    box-shadow: 0 0 10px 5px rgba(0, 0, 0, 0.5);
+}
+.mm-queue-button.selected {
+    flex: 1.5;
+    z-index: 1;
+    filter: brightness(1);
+    transform: scale(1.05);
+    box-shadow: 0 0 10px 5px rgba(0, 0, 0, 0.5);
+    border-color: white;
+}
+
+.download-button-container {
+    align-self: center;
+    width: 500px;
+    //padding: 20px 40px;
+    text-align: center;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+}
+.disabled {
+    cursor: not-allowed;
+    opacity: 0.1;
+}
+.info {
+    position: absolute;
+    font-size: 24px;
+    font-weight: 600;
+    padding: 2px 5px;
+    transition: 0.2s opacity;
+    opacity: 0.6;
+    &.bl {
+        bottom: 0px;
+        left: 0px;
+    }
+    &.br {
+        bottom: 10px;
+        right: 0px;
+        flex-wrap: wrap-reverse;
+        justify-content: flex-end;
+        max-width: 55%;
+    }
+}
+.info:hover {
+    opacity: 1;
 }
 </style>
