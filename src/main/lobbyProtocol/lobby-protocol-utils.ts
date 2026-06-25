@@ -41,7 +41,9 @@ function quoteDesktopExecArg(arg: string): string {
 
 function buildLinuxDesktopExec(): string {
     if (app.isPackaged) {
-        return `${quoteDesktopExecArg(process.execPath)} %u`;
+        // In AppImage, process.execPath points to the temporary mounted runtime
+        // under /tmp/.mount_*. APPIMAGE points to the real file the OS can reopen.
+        return `${quoteDesktopExecArg(process.env.APPIMAGE || process.execPath)} %u`;
     }
 
     // Electron dev installs often do not have node_modules/electron/dist/chrome-sandbox
