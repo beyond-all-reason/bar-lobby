@@ -16,22 +16,28 @@ SPDX-License-Identifier: MIT
             <Panel no-padding>
                 <TabView v-model:activeIndex="tabIndex">
                     <TabPanel header="Party" :disabled="!showParty">
-                        <div>
-                            <div class="flex-row gap-md">
-                                <div>
-                                    <Button @click="leaveParty" class="red">Leave Party</Button>
-                                    <h3>Party Members</h3>
-                                    <div v-for="member in partyStore.activeParty?.members" :key="member.userId">
-                                        <PartyMember :userId="member.userId" />
+                        <div class="flex-column gap-md">
+                            <div class="flex-row members-header margin-bottom-lg">
+                                <div class="flex-row members-list">
+                                    <div class="flex-row gap-md">
+                                        <h3>Members</h3>
+                                        <div v-for="member in partyStore.activeParty?.members" :key="member.userId">
+                                            <PartyMember :userId="member.userId" />
+                                        </div>
                                     </div>
-                                    <h3>Pending Invitations</h3>
-                                    <div v-for="invite in partyStore.activeParty?.invited" :key="invite.userId">
-                                        <PartyInvitee :userId="invite.userId" />
+                                    <div class="flex-row gap-md" v-if="displayInvites()">
+                                        <h3>Invites</h3>
+                                        <div v-for="invite in partyStore.activeParty?.invited" :key="invite.userId">
+                                            <PartyInvitee :userId="invite.userId" />
+                                        </div>
                                     </div>
                                 </div>
+                                <Button @click="leaveParty" class="red margin-left-lg margin-right-lg">Leave Party</Button>
+                            </div>
+                            <div class="flex-row gap-md">
                                 <div>
                                     <h3>Matchmaking Queues</h3>
-                                    <div>
+                                    <div v-if="matchmakingStore.playlists.length > 0">
                                         <Button
                                             v-for="queue in availableQueueIds"
                                             :key="queue"
@@ -47,6 +53,72 @@ SPDX-License-Identifier: MIT
                                                 <Icon :icon="informationIcon"></Icon>
                                             </div>
                                         </Button>
+                                    </div>
+                                    <div v-else>
+                                        <p>No known queues available.</p>
+                                        <Button @click="requestMatchmakingQueues" class="blue">Request Queues</Button>
+                                    </div>
+                                    <div class="button-container">
+                                        <div v-if="downloadsAreRequiredForSelected" class="download-button-container">
+                                            <DownloadContentButton
+                                                :maps="downloadsRequired.maps"
+                                                :engines="downloadsRequired.engines"
+                                                :games="downloadsRequired.games"
+                                                @downloads-complete="handleDownloadsComplete"
+                                                @downloads-started="handleDownloadsStarted"
+                                                :class="'large'"
+                                                >This string should never be visible.</DownloadContentButton
+                                            >
+                                        </div>
+                                        <button
+                                            v-else-if="matchmakingStore.status === MatchmakingStatus.Idle"
+                                            class="quick-play-button"
+                                            :class="{
+                                                disabled: !matchmakingStore.selectedQueue,
+                                            }"
+                                            @click="matchmaking.sendQueueRequest"
+                                        >
+                                            {{ t("lobby.multiplayer.ranked.buttons.searchGame") }}
+                                        </button>
+                                        <button
+                                            v-else-if="matchmakingStore.status === MatchmakingStatus.JoinRequested"
+                                            class="quick-play-button searching"
+                                            disabled
+                                        >
+                                            {{ t("lobby.multiplayer.ranked.buttons.joinRequested") }}
+                                        </button>
+                                        <button
+                                            v-else-if="matchmakingStore.status === MatchmakingStatus.Searching"
+                                            class="quick-play-button searching"
+                                            disabled
+                                        >
+                                            {{ t("lobby.multiplayer.ranked.buttons.searchingForOpponent") }}
+                                        </button>
+                                        <button
+                                            v-else-if="matchmakingStore.status === MatchmakingStatus.MatchFound"
+                                            class="quick-play-button"
+                                            @click="matchmaking.sendReadyRequest"
+                                        >
+                                            {{ t("lobby.multiplayer.ranked.buttons.matchFound") }}
+                                        </button>
+                                        <button
+                                            v-else-if="matchmakingStore.status === MatchmakingStatus.MatchAccepted"
+                                            class="quick-play-button"
+                                            disabled
+                                        >
+                                            {{ t("lobby.multiplayer.ranked.buttons.accepted") }}
+                                        </button>
+                                        <button
+                                            class="cancel-button"
+                                            :disabled="matchmakingStore.status === MatchmakingStatus.Idle"
+                                            :class="{
+                                                disabled: matchmakingStore.status === MatchmakingStatus.Idle,
+                                            }"
+                                            @click="matchmaking.sendCancelRequest"
+                                        >
+                                            {{ t("lobby.multiplayer.ranked.buttons.cancel") }}
+                                        </button>
+                                        <p class="txt-error" v-if="matchmakingStore.errorMessage">{{ matchmakingStore.errorMessage }}</p>
                                     </div>
                                 </div>
                                 <PartyChat />
@@ -226,6 +298,10 @@ function requestMatchmakingQueues() {
 function onInfoClick() {
     if (!downloading.value) isQueueDownloadsModalOpen.value = true;
 }
+function displayInvites() {
+    if (!partyStore.activeParty) return false;
+    return partyStore.activeParty.invited.length > 0;
+}
 </script>
 
 <style lang="scss" scoped>
@@ -311,5 +387,115 @@ function onInfoClick() {
 }
 .info:hover {
     opacity: 1;
+}
+
+.button-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    margin-top: 40px;
+    margin-bottom: 40px;
+    flex-grow: 1;
+}
+
+.quick-play-button {
+    align-self: center;
+    width: 500px;
+    text-transform: uppercase;
+    font-family: Rajdhani;
+    font-weight: bold;
+    font-size: 2rem;
+    padding: 20px 40px;
+    color: #fff;
+    background: linear-gradient(90deg, #22c55e, #16a34a);
+    border: none;
+    border-radius: 2px;
+    box-shadow: 0 0 15px rgba(34, 197, 94, 0.4);
+    text-align: center;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition:
+        transform 0.3s ease,
+        box-shadow 0.3s ease;
+}
+
+.searching {
+    animation: pulse 3s infinite ease-in-out;
+}
+
+.quick-play-button:hover {
+    box-shadow: 0 0 25px rgba(34, 197, 94, 0.6);
+}
+
+.quick-play-button::before {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 200%;
+    height: 200%;
+    background: rgba(255, 255, 255, 0.2);
+    transform: translate(-50%, -50%) scale(0);
+    border-radius: 50%;
+    transition: transform 0.4s ease;
+}
+
+.quick-play-button:hover::before {
+    box-shadow: 0 0 15px rgba(34, 197, 94, 0.4);
+}
+
+.cancel-button {
+    align-self: center;
+    width: 200px;
+    text-transform: uppercase;
+    font-family: Rajdhani;
+    font-weight: bold;
+    font-size: 1.5rem;
+    padding: 20px 40px;
+    color: #fff;
+    // background: linear-gradient(90deg, #c52222, #a31616);
+    border: none;
+    border-radius: 2px;
+    // box-shadow: 0 0 15px rgba(197, 34, 34, 0.4);
+    text-align: center;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.cancel-button:hover {
+    // box-shadow: 0 0 25px rgba(197, 34, 34, 0.6);
+    color: #eee;
+    // transform: scale(0.99);
+    text-shadow: 0 0 25px rgba(255, 255, 255, 0.6);
+}
+
+.cancel-button::before {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 200%;
+    height: 200%;
+    background: rgba(105, 105, 105, 0.2);
+    transform: translate(-50%, -50%) scale(0);
+    border-radius: 50%;
+    transition: transform 0.4s ease;
+}
+.download-button-container {
+    align-self: center;
+    width: 500px;
+    //padding: 20px 40px;
+    text-align: center;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+}
+.members-header {
+    justify-content: space-between;
+}
+.members-list {
+    justify-content: space-evenly;
+    flex-grow: 4;
 }
 </style>
