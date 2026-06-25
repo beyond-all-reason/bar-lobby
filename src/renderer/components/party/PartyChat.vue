@@ -15,6 +15,7 @@ SPDX-License-Identifier: MIT
                         v-in-view.once="() => (message.seen = true)"
                         :class="['message', { fromMe: message.source.userId === me.userId }]"
                     >
+                        <span class="user-name"> {{ displayNames?.get(message.source.userId) ?? message.source.userId }} </span>
                         <Markdown :source="message.message" />
                     </div>
                 </div>
@@ -36,13 +37,12 @@ SPDX-License-Identifier: MIT
 <script lang="ts" setup>
 import { ref } from "vue";
 import { chatStore, chat } from "@renderer/store/chat.store";
-// import { useDexieLiveQueryWithDeps } from "@renderer/composables/useDexieLiveQuery";
-// import { User } from "@main/model/user";
-// import { UserId } from "tachyon-protocol/types";
-// import { Message } from "@renderer/model/message";
+import { useDexieLiveQueryWithDeps } from "@renderer/composables/useDexieLiveQuery";
+import { User } from "@main/model/user";
+import { UserId } from "tachyon-protocol/types";
 import { me } from "@renderer/store/me.store";
-// import { partyStore } from "@renderer/store/party.store";
-// import { db } from "@renderer/store/db";
+import { partyStore } from "@renderer/store/party.store";
+import { db } from "@renderer/store/db";
 import { useTypedI18n } from "@renderer/i18n";
 import Button from "@renderer/components/controls/Button.vue";
 import Textbox from "@renderer/components/controls/Textbox.vue";
@@ -55,15 +55,15 @@ function focusTextbox(el: HTMLElement) {
         el.firstElementChild.focus();
     }
 }
-// const displayNames = useDexieLiveQueryWithDeps(partyStore.activeParty?.members, async () => {
-//     const map = new Map<UserId, string>();
-//     await db.users
-//         .filter((user: User) => displayUsersFilter(user))
-//         .each(function (user) {
-//             map.set(user.userId, user.username);
-//         });
-//     return map;
-// });
+const displayNames = useDexieLiveQueryWithDeps(partyStore.activeParty?.members, async () => {
+    const map = new Map<UserId, string>();
+    await db.users
+        .filter((user: User) => displayUsersFilter(user))
+        .each(function (user) {
+            map.set(user.userId, user.username);
+        });
+    return map;
+});
 
 const text = ref("");
 const newMessage = ref("");
@@ -79,11 +79,11 @@ function sendPartyMessage(messageText: string) {
     text.value = "";
 }
 
-// function displayUsersFilter(user: User) {
-//     if (!user) return false;
-//     if (partyStore.activeParty?.members.find((member) => member.userId === user.userId)) return true;
-//     return false;
-// }
+function displayUsersFilter(user: User) {
+    if (!user) return false;
+    if (partyStore.activeParty?.members.find((member) => member.userId === user.userId)) return true;
+    return false;
+}
 </script>
 
 <style lang="scss" scoped>
@@ -109,6 +109,13 @@ function sendPartyMessage(messageText: string) {
         align-self: flex-end;
         background: rgba(240, 240, 240, 0.247);
     }
+}
+.user-name {
+    margin-right: 10px;
+    padding: 4px 8px;
+    overflow-wrap: normal;
+    word-break: normal;
+    font-weight: bold;
 }
 .reply-container {
     padding: 10px;
