@@ -20,16 +20,53 @@ const REGISTRATION_COMMAND_TIMEOUT_MS = 5000;
  * and packaged AppImage. For .deb/.rpm this is redundant (electron-builder + package
  * manager handle it), but harmless.
  */
-async function execFileAsync(file: string, args: string[]): Promise<void> {
-    await new Promise<void>((resolve, reject) => {
-        execFile(file, args, { timeout: REGISTRATION_COMMAND_TIMEOUT_MS, windowsHide: true }, (err) => {
+async function execFileAsync(file: string, args: string[]): Promise<string> {
+    return new Promise<string>((resolve, reject) => {
+        execFile(file, args, { timeout: REGISTRATION_COMMAND_TIMEOUT_MS, windowsHide: true }, (err, stdout, stderr) => {
             if (err) {
+                if (stderr) {
+                    log.warn(`${file} stderr: ${stderr}`);
+                }
                 reject(err);
                 return;
             }
-            resolve();
+            resolve(stdout);
         });
     });
+}
+
+function quoteDesktopExecArg(arg: string): string {
+    return `"${arg.replace(/["\\`$]/g, "\\$&")}"`;
+}
+
+function buildLinuxDesktopExec(): string {
+    if (app.isPackaged) {
+        return `${quoteDesktopExecArg(process.execPath)} %u`;
+    }
+
+    // Electron dev installs often do not have node_modules/electron/dist/chrome-sandbox
+    // configured as root:root 4755. Without this switch, protocol launches via .desktop
+    // can abort before the app receives the URL.
+    return `${quoteDesktopExecArg(process.execPath)} --no-sandbox ${quoteDesktopExecArg(app.getAppPath())} %u`;
+}
+
+async function queryLinuxDefaultProtocolHandler(): Promise<string | null> {
+    try {
+        const stdout = await execFileAsync("xdg-mime", ["query", "default", `x-scheme-handler/${LOBBY_PROTOCOL_SCHEME}`]);
+        return stdout.trim() || null;
+    } catch (err) {
+        log.warn(`xdg-mime query failed: ${err}`);
+    }
+
+    try {
+        const stdout = await execFileAsync("gio", ["mime", `x-scheme-handler/${LOBBY_PROTOCOL_SCHEME}`]);
+        const match = stdout.match(/Default application for .*?:\s*(.+)/);
+        return match?.[1]?.trim() || null;
+    } catch (err) {
+        log.warn(`gio mime query failed: ${err}`);
+    }
+
+    return null;
 }
 
 async function registerLinux(): Promise<boolean> {
@@ -43,14 +80,16 @@ async function registerLinux(): Promise<boolean> {
                 "[Desktop Entry]",
                 `Name=${APP_NAME}`,
                 // Quotes handle spaces in paths; %u is the URI placeholder per freedesktop spec
-                `Exec="${process.execPath}" "${app.getAppPath()}" %u`,
+                `Exec=${buildLinuxDesktopExec()}`,
                 "Type=Application",
                 "NoDisplay=true",
+                "Terminal=false",
                 `MimeType=x-scheme-handler/${LOBBY_PROTOCOL_SCHEME};`,
             ].join("\n") + "\n";
 
         await mkdir(appsDir, { recursive: true });
         await writeFile(desktopFilePath, content, "utf8");
+        log.info(`Wrote Linux protocol desktop entry: ${desktopFilePath}`);
 
         try {
             await execFileAsync("update-desktop-database", [appsDir]);
@@ -60,15 +99,37 @@ async function registerLinux(): Promise<boolean> {
             }
         }
 
+        let registered = false;
         try {
             await execFileAsync("xdg-mime", ["default", desktopFileName, `x-scheme-handler/${LOBBY_PROTOCOL_SCHEME}`]);
-            return true;
+            registered = true;
         } catch (err) {
             if ((err as NodeJS.ErrnoException).code === "ENOENT") {
                 log.warn("xdg-mime is not available on this system.");
             } else {
                 log.warn(`xdg-mime failed: ${err}`);
             }
+        }
+
+        if (!registered) {
+            try {
+                await execFileAsync("gio", ["mime", `x-scheme-handler/${LOBBY_PROTOCOL_SCHEME}`, desktopFileName]);
+                registered = true;
+            } catch (err) {
+                if ((err as NodeJS.ErrnoException).code === "ENOENT") {
+                    log.warn("gio is not available on this system.");
+                } else {
+                    log.warn(`gio mime failed: ${err}`);
+                }
+            }
+        }
+
+        if (registered) {
+            const currentHandler = await queryLinuxDefaultProtocolHandler();
+            if (currentHandler === desktopFileName) {
+                return true;
+            }
+            log.warn(`Protocol handler registration did not verify. Current handler: ${currentHandler ?? "<none>"}`);
         }
 
         log.warn("Falling back to Electron protocol registration on Linux.");
