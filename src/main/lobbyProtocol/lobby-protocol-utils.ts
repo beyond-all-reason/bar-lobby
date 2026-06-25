@@ -40,10 +40,16 @@ function quoteDesktopExecArg(arg: string): string {
 }
 
 function buildLinuxDesktopExec(): string {
-    if (app.isPackaged) {
+    if (app.isPackaged && process.env.APPIMAGE) {
         // In AppImage, process.execPath points to the temporary mounted runtime
         // under /tmp/.mount_*. APPIMAGE points to the real file the OS can reopen.
-        return `${quoteDesktopExecArg(process.env.APPIMAGE || process.execPath)} %u`;
+        // The mounted chrome-sandbox cannot be root:root 4755, so protocol launches
+        // from .desktop need --no-sandbox to avoid aborting before URL handling.
+        return `${quoteDesktopExecArg(process.env.APPIMAGE)} --no-sandbox %u`;
+    }
+
+    if (app.isPackaged) {
+        return `${quoteDesktopExecArg(process.execPath)} %u`;
     }
 
     // Electron dev installs often do not have node_modules/electron/dist/chrome-sandbox
