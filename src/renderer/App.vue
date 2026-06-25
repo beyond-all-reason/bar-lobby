@@ -26,7 +26,7 @@ SPDX-License-Identifier: MIT
         >
             <div class="party-notification">
                 <Button class="slim green" @click="openPartyView">
-                    <Icon :icon="accountGroup" />
+                    <Icon :icon="getPartyIcon()" />
                     <span class="margin-sm">{{ partyText }}</span>
                 </Button>
             </div>
@@ -100,7 +100,9 @@ import { auth } from "@renderer/store/me.store";
 import { useLogInConfirmation } from "@renderer/composables/useLogInConfirmation";
 import { partyStore, PlayersPartyState } from "@renderer/store/party.store";
 import accountGroup from "@iconify-icons/mdi/account-group";
+import bellAlert from "@iconify-icons/mdi/bell-alert";
 import Button from "@renderer/components/controls/Button.vue";
+import { chatStore } from "@renderer/store/chat.store";
 import { useTypedI18n } from "@renderer/i18n";
 
 const router = useRouter();
@@ -195,6 +197,19 @@ function onInitialSetupDone() {
 if (!settingsStore.devMode) {
     auth.playOffline();
     router.push("/play");
+}
+
+function unseenPartyMessages() {
+    if (!partyStore.activeParty) return false;
+    if (chatStore.partyChat.length <= 0) return false;
+    return !chatStore.partyChat.at(-1)?.seen;
+}
+function getPartyIcon() {
+    if (unseenPartyMessages()) return bellAlert;
+    for (const party of partyStore.parties.values()) {
+        if (!party.seen) return bellAlert;
+    }
+    return accountGroup;
 }
 </script>
 

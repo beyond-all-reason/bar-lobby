@@ -55,7 +55,7 @@ function focusTextbox(el: HTMLElement) {
         el.firstElementChild.focus();
     }
 }
-const displayNames = useDexieLiveQueryWithDeps(partyStore.activeParty?.members, async () => {
+const displayNames = useDexieLiveQueryWithDeps(partyStore.activeParty, async () => {
     const map = new Map<UserId, string>();
     await db.users
         .filter((user: User) => displayUsersFilter(user))

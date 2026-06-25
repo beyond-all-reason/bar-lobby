@@ -15,8 +15,14 @@ SPDX-License-Identifier: MIT
             </div>
             <Panel no-padding>
                 <TabView v-model:activeIndex="tabIndex">
-                    <TabPanel header="Party" :disabled="!showParty">
-                        <div class="flex-column gap-md">
+                    <TabPanel :disabled="!showParty">
+                        <template #header>
+                            <div class="tab-header">
+                                <span>Party</span>
+                                <div class="unread-dot" v-if="hasUnseenMessage() || hasUnseenUpdates()"></div>
+                            </div>
+                        </template>
+                        <div class="flex-column gap-md" v-in-view.once="setPartyUpdateSeen">
                             <div class="flex-row members-header margin-bottom-lg">
                                 <div class="flex-row members-list">
                                     <div class="flex-row gap-md">
@@ -125,10 +131,20 @@ SPDX-License-Identifier: MIT
                             </div>
                         </div>
                     </TabPanel>
-                    <TabPanel header="Invites" :disabled="!showInvites">
+                    <TabPanel :disabled="!showInvites">
+                        <template #header>
+                            <div class="tab-header">
+                                <span>Invites</span>
+                                <div class="unread-dot" v-if="hasUnseenInvites()"></div>
+                            </div>
+                        </template>
                         <div>
                             <div v-for="[partyId, party] of partyStore.parties" :key="partyId">
-                                <div class="flex-col" v-if="party.invited.some((invitee) => invitee.userId === me.userId)">
+                                <div
+                                    class="flex-col"
+                                    v-if="party.invited.some((invitee) => invitee.userId === me.userId)"
+                                    v-in-view.once="() => (party.seen = true)"
+                                >
                                     <div>
                                         Party invite received from:
                                         <span v-for="name in getPartyMemberNames(partyId)" :key="name" class="margin-right-sm">{{
@@ -179,6 +195,8 @@ import DownloadContentButton from "@renderer/components/controls/DownloadContent
 import QueueDownloadsModal from "@renderer/components/misc/QueueDownloadsModal.vue";
 import informationIcon from "@iconify-icons/mdi/information";
 import { Icon } from "@iconify/vue";
+import { chatStore } from "@renderer/store/chat.store";
+
 const { t } = useTypedI18n();
 
 const showInvites = computed(() => {
@@ -301,6 +319,33 @@ function onInfoClick() {
 function displayInvites() {
     if (!partyStore.activeParty) return false;
     return partyStore.activeParty.invited.length > 0;
+}
+
+function hasUnseenMessage() {
+    return chatStore.partyChat.at(-1)?.seen === false;
+}
+
+function hasUnseenInvites() {
+    for (const party of partyStore.parties.values()) {
+        if (party.seen === false && party.invited.some((invitee) => invitee.userId === me.userId)) {
+            return true;
+        }
+    }
+    return false;
+}
+function hasUnseenUpdates() {
+    for (const party of partyStore.parties.values()) {
+        if (party.seen === false && party.members.some((member) => member.userId === me.userId)) {
+            return true;
+        }
+    }
+    return false;
+}
+function setPartyUpdateSeen() {
+    console.log("Setting party update as seen");
+    if (!partyStore.activeParty) return;
+    partyStore.activeParty.seen = true;
+    partyStore.parties.get(partyStore.activeParty.id)!.seen = true;
 }
 </script>
 
@@ -497,5 +542,21 @@ function displayInvites() {
 .members-list {
     justify-content: space-evenly;
     flex-grow: 4;
+}
+.unread-dot {
+    // position: absolute;
+    width: 10px;
+    height: 10px;
+    border-radius: 100%;
+    // right: 17px;
+    // bottom: 17px;
+    background: red;
+    margin-left: 10px;
+}
+.tab-header {
+    font-size: 1.2rem;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
 }
 </style>
