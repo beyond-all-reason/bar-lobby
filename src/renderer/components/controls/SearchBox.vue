@@ -88,7 +88,7 @@ export default defineComponent({
             return res;
         });
         const showClearIcon = computed(() => !!(props.clearIcon && props.modelValue.length > 0));
-        const debouncedEmit = useDebounceFn((value: string) => emit("update:modelValue", value), 200);
+        const debouncedEmit = useDebounceFn((value: string) => emit("update:modelValue", value), 200) as ReturnType<typeof useDebounceFn> & { cancel: () => void };
 
         function clear() {
             debouncedEmit.cancel();
