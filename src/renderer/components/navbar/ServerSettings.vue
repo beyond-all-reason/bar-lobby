@@ -8,7 +8,7 @@ SPDX-License-Identifier: MIT
     <Modal :title="t('lobby.navbar.serverSettings.title')">
         <div class="gridform">
             <div>{{ t("lobby.navbar.serverSettings.activeServer") }}</div>
-            <Select v-model="settingsStore.lobbyServer" :options="serversList" optionGroupLabel="label" optionGroupChildren="items" />
+            <Select v-model="configStore.lobbyServer" :options="serversList" optionGroupLabel="label" optionGroupChildren="items" />
             <div>{{ t("lobby.navbar.serverSettings.customServer") }}</div>
             <Textbox
                 type="text"
@@ -35,12 +35,13 @@ SPDX-License-Identifier: MIT
 </template>
 
 <script lang="ts" setup>
-import { ref, computed } from "vue";
+import { ref, computed, toRaw } from "vue";
 import Modal from "@renderer/components/common/Modal.vue";
 import Select from "@renderer/components/controls/Select.vue";
 import Button from "@renderer/components/controls/Button.vue";
 import OverlayPanel from "primevue/overlaypanel";
 import { settingsStore } from "@renderer/store/settings.store";
+import { configStore } from "@renderer/store/config.store";
 import Textbox from "@renderer/components/controls/Textbox.vue";
 import { useTypedI18n } from "@renderer/i18n";
 const { t } = useTypedI18n();
@@ -50,15 +51,10 @@ const serverInput = ref("");
 const op = ref();
 const tooltipMessage = ref("");
 
-const defaultServers: string[] = [
-    "wss://server4.beyondallreason.info",
-    "wss://server5.beyondallreason.info",
-    "wss://lobby-server-dev.beyondallreason.dev",
-    "ws://localhost:4000",
-];
+const defaultServers: string[] = toRaw(configStore.defaultServers);
 
 const disableRemoveButton = computed(() => {
-    return defaultServers.includes(settingsStore.lobbyServer);
+    return defaultServers.includes(configStore.lobbyServer);
 });
 
 const serversList = ref([
@@ -96,10 +92,10 @@ function addServerToList() {
 }
 
 function removeServerFromList() {
-    const index = settingsStore.customServerList.indexOf(settingsStore.lobbyServer);
+    const index = settingsStore.customServerList.indexOf(configStore.lobbyServer);
     settingsStore.customServerList.splice(index, 1);
     //Bounce back to the primary default when an entry is deleted
-    settingsStore.lobbyServer = defaultServers[0];
+    configStore.lobbyServer = defaultServers[0];
 }
 </script>
 

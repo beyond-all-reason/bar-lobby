@@ -17,10 +17,9 @@ SPDX-License-Identifier: MIT
 
 <script lang="ts" setup>
 import { ref } from "vue";
-
+import { configStore } from "@renderer/store/config.store";
 import Button from "@renderer/components/controls/Button.vue";
 import Textarea from "@renderer/components/controls/Textarea.vue";
-import { DEFAULT_ENGINE_VERSION, LATEST_GAME_VERSION } from "@main/config/default-versions";
 
 const script = ref(`[game] {
     [ais] {
@@ -39,10 +38,10 @@ const script = ref(`[game] {
     mapname=Red Comet Remake 1.8;
     myplayername=player;
     ishost=1;
-    gametype=${LATEST_GAME_VERSION};
+    gametype=${configStore.latestGameVersion}};
 }`);
 
-function launch() {
-    window.game.launchScript(script.value, LATEST_GAME_VERSION, DEFAULT_ENGINE_VERSION);
+async function launch() {
+    window.game.launchScript(script.value, configStore.latestGameVersion, configStore.defaultEngineVersion);
 }
 </script>

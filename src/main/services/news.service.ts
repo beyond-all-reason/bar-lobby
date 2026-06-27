@@ -6,6 +6,7 @@ import { extract, FeedData, FeedEntry } from "@extractus/feed-extractor";
 import { FetchDevlogRssFeed, FetchNewsRssFeed } from "@main/services/type";
 import { logger } from "@main/utils/logger";
 import { ipcMain } from "@main/typed-ipc";
+import { configService } from "@main/services/config.service";
 
 export interface NewsFeedData extends FeedData {
     entries?: Array<NewsFeedEntry>;
@@ -17,9 +18,6 @@ export interface NewsFeedEntry extends FeedEntry {
 }
 
 const log = logger("news.service.ts");
-
-const NEWS_RSS_URL = "https://www.beyondallreason.info/news/rss.xml";
-const DEVLOG_RSS_URL = "https://www.beyondallreason.info/microblogs/rss.xml";
 
 export async function fetchImageToBase64(url: string) {
     try {
@@ -44,7 +42,7 @@ const fetchNewsRssFeed: FetchNewsRssFeed = async (numberOfNews) => {
             return newsFeed;
         }
         newsFeed = await extract(
-            NEWS_RSS_URL,
+            configService.getConfig().newsRssUrl,
             {
                 getExtraEntryFields: (entry) => {
                     const thumbnail = entry["media:thumbnail"];
@@ -83,7 +81,7 @@ const fetchDevlogRssFeed: FetchDevlogRssFeed = async () => {
         if (devlogFeed) {
             return devlogFeed;
         }
-        devlogFeed = (await extract(DEVLOG_RSS_URL, {}, {})) as NewsFeedData;
+        devlogFeed = (await extract(configService.getConfig().devlogRssUrl, {}, {})) as NewsFeedData;
         return devlogFeed;
     } catch (error) {
         log.error("Error fetching devlog feed:", error);

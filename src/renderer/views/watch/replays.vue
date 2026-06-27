@@ -164,6 +164,7 @@ import { Icon } from "@iconify/vue";
 import folder from "@iconify-icons/mdi/folder";
 import SearchBox from "@renderer/components/controls/SearchBox.vue";
 import { settingsStore } from "@renderer/store/settings.store";
+import { configStore } from "@renderer/store/config.store";
 
 const { t } = useTypedI18n();
 
@@ -263,7 +264,7 @@ function onSort(event: DataTableSortEvent) {
 }
 
 function openBrowserToReplayService() {
-    window.shell.openInBrowser("https://bar-rts.com/replays");
+    window.shell.openInBrowser(configStore.replayServiceUrl);
 }
 
 function openReplaysFolder() {

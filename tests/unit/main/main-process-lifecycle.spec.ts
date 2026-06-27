@@ -17,6 +17,7 @@ describe("Main Process Lifecycle", () => {
     const mockServices = {
         engineService: { init: vi.fn().mockResolvedValue(undefined), registerIpcHandlers: vi.fn() },
         settingsService: { init: vi.fn().mockResolvedValue(undefined), registerIpcHandlers: vi.fn(), getSettings: vi.fn().mockReturnValue({ assetsPath: "" }) },
+        configService: { init: vi.fn().mockResolvedValue(undefined), registerIpcHandlers: vi.fn(), getConfig: vi.fn().mockReturnValue({ configUrl: "" }) },
         accountService: { init: vi.fn().mockResolvedValue(undefined) },
         replaysService: { init: vi.fn().mockResolvedValue(undefined), registerIpcHandlers: vi.fn() },
         gameService: { init: vi.fn().mockResolvedValue(undefined), registerIpcHandlers: vi.fn() },
@@ -120,7 +121,7 @@ describe("Main Process Lifecycle", () => {
         vi.doMock("@main/services/engine.service", () => ({ default: mockServices.engineService }));
         vi.doMock("@main/services/auto-updater.service", () => ({ default: mockServices.autoUpdaterService }));
         vi.doMock("@main/services/downloads.service", () => ({ default: mockServices.downloadsService }));
-
+        vi.doMock("@main/services/config.service", () => ({ configService: mockServices.configService }));
         vi.doMock("@main/services/settings.service", () => ({ settingsService: mockServices.settingsService }));
         vi.doMock("@main/services/info.service", () => ({ infoService: mockServices.infoService }));
         vi.doMock("@main/services/account.service", () => ({ accountService: mockServices.accountService }));
@@ -208,6 +209,7 @@ describe("Main Process Lifecycle", () => {
     it("should initialize services when app is ready", async () => {
         await import("@main/main");
 
+        expect(mockServices.configService.init).toHaveBeenCalled();
         expect(mockServices.engineService.init).toHaveBeenCalled();
         expect(mockServices.settingsService.init).toHaveBeenCalled();
         expect(mockServices.accountService.init).toHaveBeenCalled();
@@ -220,6 +222,7 @@ describe("Main Process Lifecycle", () => {
     it("should register IPC handlers when app is ready", async () => {
         await import("@main/main");
 
+        expect(mockServices.configService.registerIpcHandlers).toHaveBeenCalled();
         expect(mockServices.logService.registerIpcHandlers).toHaveBeenCalled();
         expect(mockServices.infoService.registerIpcHandlers).toHaveBeenCalled();
         expect(mockServices.settingsService.registerIpcHandlers).toHaveBeenCalled();

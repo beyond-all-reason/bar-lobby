@@ -10,7 +10,7 @@ import { packSpecificFiles } from "@main/utils/pack-7z";
 import { randomBytes } from "crypto";
 import axios from "axios";
 import { logger } from "@main/utils/logger";
-import { settingsService } from "@main/services/settings.service";
+import { configService } from "@main/services/config.service";
 
 async function getSortedLogFiles() {
     type logData = {
@@ -104,7 +104,7 @@ async function uploadLogFiles() {
     });
 
     const archiveFile = path.basename(archivePath);
-    const uploadUrl = settingsService.getSettings().logUploadUrl + archiveFile;
+    const uploadUrl = configService.getConfig().logUploadUrl + archiveFile;
     const dataToUpload = await readFile(archivePath);
 
     await axios({

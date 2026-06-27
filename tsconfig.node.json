@@ -9,7 +9,8 @@
         "tests/**/main/**/*.ts",
         "tests/**/shared/**/*.ts",
         "tests/setup.main.mts",
-        "vitest.config.mts"
+        "vitest.config.mts",
+        "tools/generate-default-config.ts"
     ],
     "compilerOptions": {
         "composite": true,
