@@ -30,6 +30,7 @@ describe("Main Process Lifecycle", () => {
         downloadsService: { registerIpcHandlers: vi.fn() },
         miscService: { registerIpcHandlers: vi.fn() },
         navigationService: { registerIpcHandlers: vi.fn() },
+        lobbyProtocolService: { registerIpcHandlers: vi.fn() },
         pathsService: { registerIpcHandlers: vi.fn() },
     };
 
@@ -45,9 +46,12 @@ describe("Main Process Lifecycle", () => {
             on: vi.fn(),
             setName: vi.fn(),
             enableSandbox: vi.fn(),
+            getAppPath: vi.fn().mockReturnValue("/test/app"),
             commandLine: {
                 appendSwitch: vi.fn(),
             },
+            isPackaged: false,
+            setAsDefaultProtocolClient: vi.fn().mockReturnValue(true),
         };
 
         mockProtocol = {
@@ -70,6 +74,8 @@ describe("Main Process Lifecycle", () => {
         mockProcess = {
             env: { NODE_ENV: "development" },
             platform: "linux",
+            argv: ["electron", "."],
+            execPath: "/usr/bin/electron",
             on: vi.fn(),
             listeners: vi.fn().mockResolvedValue([]),
         };
@@ -103,6 +109,7 @@ describe("Main Process Lifecycle", () => {
         vi.doMock("@main/utils/logger", () => ({
             logger: vi.fn().mockReturnValue({
                 info: vi.fn(),
+                warn: vi.fn(),
                 error: vi.fn(),
             }),
         }));
@@ -130,6 +137,7 @@ describe("Main Process Lifecycle", () => {
         vi.doMock("@main/services/shell.service", () => ({ shellService: mockServices.shellService }));
         vi.doMock("@main/services/news.service", () => ({ miscService: mockServices.miscService }));
         vi.doMock("@main/services/navigation.service", () => ({ navigationService: mockServices.navigationService }));
+        vi.doMock("@main/services/lobby-protocol.service", () => ({ lobbyProtocolService: mockServices.lobbyProtocolService }));
         vi.doMock("@main/services/paths.service", () => ({ pathsService: mockServices.pathsService }));
 
         vi.stubGlobal("process", mockProcess);
@@ -234,5 +242,6 @@ describe("Main Process Lifecycle", () => {
         expect(mockServices.miscService.registerIpcHandlers).toHaveBeenCalled();
         expect(mockServices.autoUpdaterService.registerIpcHandlers).toHaveBeenCalled();
         expect(mockServices.navigationService.registerIpcHandlers).toHaveBeenCalled();
+        expect(mockServices.lobbyProtocolService.registerIpcHandlers).toHaveBeenCalled();
     });
 });
