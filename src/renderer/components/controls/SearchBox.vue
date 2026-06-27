@@ -90,9 +90,10 @@ export default defineComponent({
         const showClearIcon = computed(() => !!(props.clearIcon && props.modelValue.length > 0));
         const debouncedEmit = useDebounceFn((value: string) => emit("update:modelValue", value), 200);
 
-        function clear() {
-            emit("update:modelValue", "");
-        }
+function clear() {
+    debouncedEmit.cancel();
+    emit("update:modelValue", "");
+}
 
         function onInput(e: Event) {
             debouncedEmit((e.target as HTMLInputElement).value);
