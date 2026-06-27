@@ -105,6 +105,7 @@ console.log(`STATE_PATH: ${STATE_PATH}`);
 
 export const CONFIG_PATH = path.join(STATE_PATH, "config");
 export const LOGS_PATH = path.join(STATE_PATH, "logs");
+export const LOG_LEVEL = process.env.BAR_LOG_LEVEL || "info";
 
 // We will point engine at ASSETS_PATH as a base data directory to only read
 // data from, and at WRITE_DATA_PATH as data directory it can write to.
