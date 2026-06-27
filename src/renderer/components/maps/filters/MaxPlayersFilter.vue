@@ -26,7 +26,7 @@ watchThrottled(
     {
         throttle: 200,
         trailing: true,
-    },
+    }
 );
 </script>
 
