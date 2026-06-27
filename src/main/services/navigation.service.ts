@@ -7,6 +7,7 @@ import { logger } from "@main/utils/logger";
 import { replayContentAPI } from "@main/content/replays/replay-content";
 import { typedWebContents } from "@main/typed-ipc";
 
+import { isReplayFile } from "@main/config/replay-extensions";
 import fs from "fs";
 import path from "path";
 
@@ -68,7 +69,7 @@ function openReplays(replayFiles: string[], webContents: BarIpcWebContents) {
 
 function getReplayFiles(argv: string[], workingDirectory: string, webContents: BarIpcWebContents): string[] {
     return argv
-        .filter((arg) => arg.endsWith(".sdfz"))
+        .filter((arg) => isReplayFile(arg))
         .map((arg) => {
             const filePath = path.resolve(workingDirectory, arg);
             if (fs.existsSync(filePath)) {
