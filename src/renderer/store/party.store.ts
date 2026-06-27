@@ -19,6 +19,7 @@ import { reactive } from "vue";
 import { notificationsApi } from "@renderer/api/notifications";
 import { Party } from "@renderer/model/party";
 import { subsManager } from "@renderer/store/users.store";
+import { chat } from "@renderer/store/chat.store";
 
 const partySymbol = Symbol("party.store");
 
@@ -86,6 +87,19 @@ async function requestCreate() {
 }
 
 /**
+ * Send a Tachyon request to create a new party and then invite a specific user to it immediately afterward.
+ * @param userId The user to request the invite for
+ */
+async function requestCreateAndInvite(userId: UserId) {
+    try {
+        await requestCreate().then(async () => await requestInvite({ userId: userId }));
+    } catch (error) {
+        console.error("Tachyon error: party/createAndInvite:", error);
+        notificationsApi.alert({ text: "Error with request party/createAndInvite", severity: "error" });
+    }
+}
+
+/**
  * Send a Tachyon request to decline a specific pending party invite.
  * @param data Required data payload for this request
  */
@@ -93,6 +107,8 @@ async function requestDeclineInvite(data: PartyDeclineInviteRequestData) {
     try {
         const response = await window.tachyon.request("party/declineInvite", data);
         console.log("Tachyon: party/declineInvite:", response);
+        // Note; we do not get a party/updated event for the declined party, so we have to clear it ourselves.
+        partyStore.parties.delete(data.partyId);
     } catch (error) {
         console.error("Tachyon error: party/declineInvite:", error);
         notificationsApi.alert({ text: "Error with request party/declineInvite", severity: "error" });
@@ -138,6 +154,7 @@ async function requestLeave() {
         if (partyStore.activeParty) partyStore.parties.delete(partyStore.activeParty?.id);
         partyStore.activeParty = null;
         parsePartyData();
+        chat.clearPartyChat();
     } catch (error) {
         console.error("Tachyon error: party/leave:", error);
         notificationsApi.alert({ text: "Error with request party/leave", severity: "error" });
@@ -158,6 +175,7 @@ function onRemovedEvent(data: PartyRemovedEventData) {
     if (partyStore.activeParty?.id === data.partyId) {
         partyStore.activeParty = null;
     }
+    chat.clearPartyChat();
 }
 
 function onUpdatedEvent(data: PartyUpdatedEventData) {
@@ -208,4 +226,4 @@ export async function initPartyStore() {
     partyStore.isInitialized = true;
 }
 
-export const party = { requestAcceptInvite, requestCancelInvite, requestCreate, requestDeclineInvite, requestInvite, requestKickMember, requestLeave };
+export const party = { requestAcceptInvite, requestCancelInvite, requestCreate, requestCreateAndInvite, requestDeclineInvite, requestInvite, requestKickMember, requestLeave };
