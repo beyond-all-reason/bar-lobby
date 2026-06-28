@@ -19,7 +19,7 @@ import { configService } from "@main/services/config.service";
 const log = logger("pool-cdn.ts");
 
 export class PoolCdnDownloader extends Downloader {
-    cdnUrl = configService.getConfig().cdnUrl;
+    cdnUrl = configService.getConfig().initialPoolDataUrl;
     poolDataUrl = `${this.cdnUrl}/data.7z`;
 
     constructor(gameApi: GameContentAPI) {

@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: MIT
 
-import { Config } from "@main/services/config.service";
+import type { Config } from "@main/services/config.service";
 import { reactive, watch, toRaw } from "vue";
 
 export const configStore = reactive({

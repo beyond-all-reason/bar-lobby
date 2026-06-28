@@ -13,7 +13,7 @@ function openInBrowser(url: string) {
     if (!["https:", "http:"].includes(new URL(url).protocol)) return;
 
     // Additional checks to prevent opening arbitrary URLs
-    if (![configService.getConfig().replayServiceUrl, configService.getConfig().newsServiceUrl].some((serviceUrl) => url.startsWith(serviceUrl))) return;
+    if (!configService.getConfig().allowedUrlLinks.some((serviceUrl) => url.startsWith(serviceUrl))) return;
     shell.openExternal(url);
 }
 
