@@ -51,7 +51,7 @@ import PopOutPanel from "@renderer/components/navbar/PopOutPanel.vue";
 import { useTypedI18n } from "@renderer/i18n";
 import { useDownloadProgress } from "@renderer/composables/useDownloadProgress";
 
-const MIN_DOWNLOAD_BYTES = 5000; // 5 KB
+const MIN_DOWNLOAD_BYTES = 5 * 1024; // 5 KB
 
 const { t } = useTypedI18n();
 const { allDownloads, downloadPercent, progressText } = useDownloadProgress();
