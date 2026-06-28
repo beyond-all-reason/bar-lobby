@@ -16,9 +16,6 @@ const configStore = new FileStore<typeof configSchema>(path.join(CONFIG_PATH, "c
 
 async function init() {
     await configStore.init();
-    log.info(`Initializing delay of 10,000ms`);
-    await delay(10000);
-    log.info(`Initializing delay complete`);
     await fetchConfig();
     await assignEnvVars();
 }
@@ -85,12 +82,4 @@ export const configService = {
     getConfig,
     updateConfig,
     fetchConfig,
-};
-
-/**
- * Artificially delays execution for a specified duration.
- * @param ms Time to delay in milliseconds
- */
-const delay = (ms: number): Promise<void> => {
-    return new Promise((resolve) => setTimeout(resolve, ms));
 };

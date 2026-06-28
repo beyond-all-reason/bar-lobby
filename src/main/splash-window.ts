@@ -10,7 +10,7 @@ export function createSplashWindow(): BrowserWindow {
     const splashWindow = new BrowserWindow({
         title: "Beyond All Reason",
         width: 400,
-        height: 400,
+        height: 350,
         resizable: false,
         center: true,
         frame: false,
