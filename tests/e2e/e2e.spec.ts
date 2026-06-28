@@ -11,7 +11,8 @@ const { describe, beforeAll, afterAll } = test;
 
 describe("Electron App", async () => {
     let electronApp: ElectronApplication;
-    let firstWindow: Page;
+    let splashWindow: Page;
+    let mainWindow: Page;
 
     beforeAll(async () => {
         const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -24,7 +25,8 @@ describe("Electron App", async () => {
         }
 
         electronApp = await electron.launch({ args });
-        firstWindow = await electronApp.firstWindow();
+        splashWindow = await electronApp.firstWindow();
+        mainWindow = await electronApp.waitForEvent("window", { predicate: (window) => window !== splashWindow });
     });
 
     afterAll(async () => {
@@ -32,7 +34,7 @@ describe("Electron App", async () => {
     });
 
     test("run app", async () => {
-        const title = await firstWindow.title();
+        const title = await mainWindow.title();
         expect(title).toBeTruthy();
     });
 
