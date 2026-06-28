@@ -17,6 +17,7 @@ import url from "url";
 import netFromNode from "node:net";
 
 import { createWindow } from "@main/main-window";
+import { createSplashWindow } from "@main/splash-window";
 import { settingsService } from "./services/settings.service";
 import { infoService } from "./services/info.service";
 import { accountService } from "./services/account.service";
@@ -99,6 +100,7 @@ app.commandLine.appendSwitch("disable-features", "HardwareMediaKeyHandling,Media
 app.commandLine.appendSwitch("disable-pinch", "1");
 
 app.whenReady().then(async () => {
+    const splashWindow = createSplashWindow();
     registerBarFileProtocol();
     if (process.env.NODE_ENV !== "production") {
         try {
@@ -143,6 +145,9 @@ app.whenReady().then(async () => {
     await Promise.all([accountService.init(), replaysService.init(), gameService.init(), mapsService.init(), autoUpdaterService.init()]);
 
     const mainWindow = createWindow();
+    mainWindow.on("show", () => {
+        splashWindow.close();
+    });
     const webContents = typedWebContents(mainWindow.webContents);
     // Handlers may need the webContents to send events
     configService.registerIpcHandlers();

@@ -16,6 +16,9 @@ const configStore = new FileStore<typeof configSchema>(path.join(CONFIG_PATH, "c
 
 async function init() {
     await configStore.init();
+    log.info(`Initializing delay of 10,000ms`);
+    await delay(10000);
+    log.info(`Initializing delay complete`);
     await fetchConfig();
     await assignEnvVars();
 }
@@ -49,8 +52,14 @@ async function updateConfig(data: Partial<typeof configSchema>) {
 async function fetchConfig() {
     try {
         const response = await fetch(getConfig().configUrl);
+        if (!response.ok) {
+            throw Error(`${response.status} ${response.statusText}`);
+        }
         const data = await response.json();
         if (!Value.Check(configSchema, data)) {
+            for (const err of Value.Errors(configSchema, data)) {
+                log.error(`Config error: ${err.path} ${err.message} but received ${err.value}`);
+            }
             throw Error("Fetched config does not match schema");
         }
         await configStore.update(data);
@@ -76,4 +85,12 @@ export const configService = {
     getConfig,
     updateConfig,
     fetchConfig,
+};
+
+/**
+ * Artificially delays execution for a specified duration.
+ * @param ms Time to delay in milliseconds
+ */
+const delay = (ms: number): Promise<void> => {
+    return new Promise((resolve) => setTimeout(resolve, ms));
 };
