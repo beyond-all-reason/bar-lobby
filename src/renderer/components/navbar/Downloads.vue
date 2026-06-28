@@ -20,7 +20,7 @@ SPDX-License-Identifier: MIT
                         </div>
                         <template v-else>
                             <Progress
-                                :percent="download.totalBytes < 5000 ? 0 : downloadPercent(download)"
+                                :percent="download.totalBytes < MIN_DOWNLOAD_BYTES ? 0 : downloadPercent(download)"
                                 :text="barText(download)"
                                 :height="20"
                                 themed
@@ -50,6 +50,8 @@ import Progress from "@renderer/components/common/Progress.vue";
 import PopOutPanel from "@renderer/components/navbar/PopOutPanel.vue";
 import { useTypedI18n } from "@renderer/i18n";
 import { useDownloadProgress } from "@renderer/composables/useDownloadProgress";
+
+const MIN_DOWNLOAD_BYTES = 5000; // 5 KB
 
 const { t } = useTypedI18n();
 const { allDownloads, downloadPercent, progressText } = useDownloadProgress();
