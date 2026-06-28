@@ -27,6 +27,7 @@ const runId = new Date()
     .replace(/[^0-9T]/g, "")
     .substring(0, 15);
 const logFilePath = path.join(LOGS_PATH, `lobby-${runId}.log`);
+export const ACTIVE_LOG_FILE_PATH = logFilePath;
 
 const logStream = PinoPretty({
     ...messageFormatting,

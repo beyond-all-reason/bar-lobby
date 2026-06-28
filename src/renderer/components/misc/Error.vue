@@ -14,7 +14,7 @@ SPDX-License-Identifier: MIT
                 <div>{{ t("lobby.components.misc.error.fatalErrorDescription") }}</div>
                 <div v-if="error" class="error">{{ error.message }}</div>
                 <div v-if="promiseError?.reason.stack" class="error">{{ promiseError.reason.stack }}</div>
-                <Button @click="uploadLogsCommand">{{ t("lobby.components.misc.error.uploadLogs") }}</Button>
+                <Button :disabled="isUploadingLogs" @click="uploadLogsCommand">{{ t("lobby.components.misc.error.uploadLogs") }}</Button>
                 <div v-if="uploadLogMsg">{{ uploadLogMsg }}</div>
                 <Button @click="reload">{{ t("lobby.components.misc.error.reload") }}</Button>
                 <Button @click="quitToDesktop">{{ t("lobby.components.misc.error.quitToDesktop") }}</Button>
@@ -33,6 +33,7 @@ import { Logger, uploadLogs } from "@renderer/utils/log";
 const { t } = useTypedI18n();
 
 const log = new Logger("Error.vue");
+const isUploadingLogs = ref(false);
 
 const isVisible = ref(false);
 const error: Ref<ErrorEvent | undefined> = ref();
@@ -69,6 +70,9 @@ async function quitToDesktop() {
 }
 
 async function uploadLogsCommand() {
+    if (isUploadingLogs.value) return;
+
+    isUploadingLogs.value = true;
     try {
         uploadLogMsg.value = t("lobby.components.misc.error.uploading");
         const url = await uploadLogs();
@@ -83,6 +87,8 @@ async function uploadLogsCommand() {
             uploadLogMsg.value = t("lobby.components.misc.error.couldNotUploadLog");
         }
         console.error(e);
+    } finally {
+        isUploadingLogs.value = false;
     }
 }
 </script>
