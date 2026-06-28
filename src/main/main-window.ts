@@ -79,12 +79,12 @@ export function createWindow() {
             webContents.openDevTools();
         }
         mainWindow.setMenuBarVisibility(false);
-        updateZoom();
         mainWindow.center();
         // Note: `fullscreen: true` conflicts with `show: false`, so we apply fullscreen here.
         if (settings.fullscreen) {
             mainWindow.setFullScreen(true);
         }
+        updateZoom();
         mainWindow.show();
         mainWindow.focus();
     });
