@@ -34,9 +34,12 @@ describe("Main Process Lifecycle", () => {
         pathsService: { registerIpcHandlers: vi.fn() },
     };
 
-    beforeEach(() => {
+    beforeEach(async () => {
         vi.clearAllMocks();
         vi.resetModules();
+
+        vi.stubGlobal("SPLASH_WINDOW_VITE_DEV_SERVER_URL", "http://localhost:5173/splash.html");
+        vi.stubGlobal("MAIN_WINDOW_VITE_DEV_SERVER_URL", "http://localhost:5173/index.html");
 
         mockApp = {
             requestSingleInstanceLock: vi.fn().mockReturnValue(true),
@@ -80,6 +83,23 @@ describe("Main Process Lifecycle", () => {
             protocol: mockProtocol,
             session: mockSession,
             net: mockNet,
+
+            BrowserWindow: vi.fn().mockImplementation(() => ({
+                loadURL: vi.fn(),
+                show: vi.fn(),
+                on: vi.fn(),
+                destroy: vi.fn(),
+                webContents: {
+                    on: vi.fn(),
+                    send: vi.fn(),
+                },
+            })),
+            nativeImage: {
+                createEmpty: vi.fn().mockReturnValue({}),
+                createFromPath: vi.fn().mockReturnValue({}),
+                createFromBuffer: vi.fn().mockReturnValue({}),
+                createFromDataURL: vi.fn().mockReturnValue({}),
+            },
         }));
 
         vi.doMock("node:net", () => ({
@@ -88,9 +108,19 @@ describe("Main Process Lifecycle", () => {
             },
         }));
 
+        vi.doMock("@main/splash-window", () => ({
+            createSplashWindow: vi.fn().mockReturnValue({
+                webContents: {},
+                once: vi.fn(),
+                destroy: vi.fn(),
+                close: vi.fn(),
+            }),
+        }));
+
         vi.doMock("@main/main-window", () => ({
             createWindow: vi.fn().mockReturnValue({
                 webContents: {},
+                on: vi.fn(),
             }),
         }));
 
