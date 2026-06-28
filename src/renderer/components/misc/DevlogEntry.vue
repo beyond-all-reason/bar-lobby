@@ -40,9 +40,11 @@ const description = computed(() => entry?.description?.split("|")[1]?.trim());
 }
 
 .dev-desc {
+    color: rgba(255, 255, 255, 0.8);
+    filter: drop-shadow(3px 3px 5px rgba(0, 0, 0, 0.8));
     font-size: 1em;
     margin-bottom: 15px;
-    filter: drop-shadow(3px 3px 5px rgba(0, 0, 0, 0.8));
-    color: rgba(255, 255, 255, 0.8);
+    overflow-x: hidden;
+    text-overflow: ellipsis;
 }
 </style>
