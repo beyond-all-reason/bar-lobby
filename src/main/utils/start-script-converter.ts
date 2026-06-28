@@ -3,9 +3,44 @@
 // SPDX-License-Identifier: MIT
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import zlib from "zlib";
+import { StartBox } from "tachyon-protocol/types";
+
 import { spadsPointsToLTRBPercent } from "@main/content/maps/box-utils";
+import { Startbox } from "@main/content/maps/map-metadata";
 import { BattleWithMetadata, isPlayer, StartPosType } from "@main/game/battle/battle-types";
 import { AllyTeam, Bot, Game, Player, Team } from "@main/model/start-script";
+
+// JSON -> zlib deflate -> base64url, padding stripped. Matches the maps-metadata
+// modoption transport and the game-side decoder; the modoption value pattern
+// (^[a-zA-Z0-9_.-]+$) forbids '=' padding.
+function encodeModoptionValue(value: unknown): string {
+    return zlib.deflateSync(JSON.stringify(value)).toString("base64url").replace(/=+$/, "");
+}
+
+// Server-owned default: the whole set keyed by team count, so the game resolves
+// set[numTeams] back to the arrangement the lobby selected.
+function encodeStartboxesSet(set: Startbox[]): string {
+    const byTeamCount: Record<string, Startbox> = {};
+    for (const arrangement of set) {
+        byTeamCount[String(arrangement.startboxes.length)] = arrangement;
+    }
+    return encodeModoptionValue(byTeamCount);
+}
+
+// Lobby-owned custom areas: a single arrangement the game prefers over the set
+// (matchOverride matches when startboxes.length == numTeams). Boxes are 0-1 rects;
+// a 2-point poly is read as opposite corners on the 0-200 grid.
+function encodeStartboxOverride(boxes: StartBox[]): string {
+    return encodeModoptionValue({
+        startboxes: boxes.map((b) => ({
+            poly: [
+                { x: Math.round(b.left * 200), y: Math.round(b.top * 200) },
+                { x: Math.round(b.right * 200), y: Math.round(b.bottom * 200) },
+            ],
+        })),
+    });
+}
 
 /**
  * https://springrts.com/wiki/Script.txt
@@ -146,10 +181,25 @@ class StartScriptConverter {
         if (!battle.battleOptions.map) throw new Error("failed to access battle options map");
         if (!battle.me) throw new Error("failed to access current player");
 
+        const modoptions: Record<string, any> = { ...battle.battleOptions.gameMode.options };
+
+        // Engine startboxes are rectangles only, so start areas ride to the game as
+        // modoptions. A selected preset becomes the set; custom drag-edited boxes
+        // become the override, which the game prefers over the set. The engine-native
+        // startrects set above remain a baseline for game builds without the decoder.
+        const mapOptions = battle.battleOptions.mapOptions;
+        if (mapOptions.startPosType === StartPosType.Boxes) {
+            if (mapOptions.startBoxesIndex != undefined && battle.battleOptions.map.startboxesSet.length > 0) {
+                modoptions.mapmetadata_startboxes_set = encodeStartboxesSet(battle.battleOptions.map.startboxesSet);
+            } else if (mapOptions.customStartBoxes && mapOptions.customStartBoxes.length > 0) {
+                modoptions.mapmetadata_startbox_override = encodeStartboxOverride(mapOptions.customStartBoxes);
+            }
+        }
+
         return {
             gametype: battle.battleOptions.gameVersion,
             mapname: battle.battleOptions.map.springName,
-            modoptions: battle.battleOptions.gameMode.options,
+            modoptions,
             // mapoptions: battle.battleOptions.???,
             ishost: 1,
             myplayername: battle.me.user.username,

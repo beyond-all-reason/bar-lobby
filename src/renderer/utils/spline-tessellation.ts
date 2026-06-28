@@ -35,23 +35,53 @@ function clamp01(v: number): number {
     return v;
 }
 
+/** Centripetal knot spacing: |delta|^0.5 (alpha = 0.5). */
+function knotDelta(a: { x: number; y: number }, b: { x: number; y: number }): number {
+    const dx = b.x - a.x;
+    const dy = b.y - a.y;
+    return Math.pow(dx * dx + dy * dy, 0.25);
+}
+
+/** Barry-Goldman lerp of a->b over knot span [ta, tb], evaluated at tt. */
+function bgLerp(tt: number, a: { x: number; y: number }, b: { x: number; y: number }, ta: number, tb: number): { x: number; y: number } {
+    const w = (tb - tt) / (tb - ta);
+    return { x: w * a.x + (1 - w) * b.x, y: w * a.y + (1 - w) * b.y };
+}
+
 /**
- * Sample a Catmull-Rom curve segment between p1 and p2 (with neighbours p0, p3),
- * blended toward the linear interpolation by `tension` in [0, 1].
- * tension == 0 returns the exact linear interpolation between p1 and p2.
- * tension == 1 returns the full uniform Catmull-Rom sample.
- * Anchor points lie on the curve regardless of tension because at t=0 and t=1
- * both linear and Catmull-Rom outputs coincide with p1 and p2.
+ * Sample a centripetal Catmull-Rom curve segment between p1 and p2 (neighbours
+ * p0, p3), blended toward the straight chord by `tension` in [0, 1].
+ * Centripetal parameterization (alpha = 0.5) avoids the cusps/self-intersections
+ * (the "curly-q" overshoot) that uniform Catmull-Rom produces at sharp corners.
+ * tension == 0 returns the exact linear interpolation; tension == 1 the full
+ * centripetal sample. Anchors lie on the curve (t=0 -> p1, t=1 -> p2).
  */
 function sampleSegment(p0: AnchorPoint, p1: AnchorPoint, p2: AnchorPoint, p3: AnchorPoint, t: number, tension: number): TessellatedPoint {
     const lx = p1.x + (p2.x - p1.x) * t;
     const ly = p1.y + (p2.y - p1.y) * t;
     if (tension <= 0) return { x: lx, y: ly };
 
-    const t2 = t * t;
-    const t3 = t2 * t;
-    const crX = 0.5 * (2 * p1.x + (-p0.x + p2.x) * t + (2 * p0.x - 5 * p1.x + 4 * p2.x - p3.x) * t2 + (-p0.x + 3 * p1.x - 3 * p2.x + p3.x) * t3);
-    const crY = 0.5 * (2 * p1.y + (-p0.y + p2.y) * t + (2 * p0.y - 5 * p1.y + 4 * p2.y - p3.y) * t2 + (-p0.y + 3 * p1.y - 3 * p2.y + p3.y) * t3);
+    const t0 = 0;
+    const t1 = t0 + knotDelta(p0, p1);
+    const t2 = t1 + knotDelta(p1, p2);
+    const t3 = t2 + knotDelta(p2, p3);
+
+    let crX: number;
+    let crY: number;
+    if (t2 - t1 <= 1e-9) {
+        crX = p1.x;
+        crY = p1.y;
+    } else {
+        const tt = t1 + (t2 - t1) * t;
+        const A1 = t1 - t0 > 1e-9 ? bgLerp(tt, p0, p1, t0, t1) : { x: p1.x, y: p1.y };
+        const A2 = bgLerp(tt, p1, p2, t1, t2);
+        const A3 = t3 - t2 > 1e-9 ? bgLerp(tt, p2, p3, t2, t3) : { x: p2.x, y: p2.y };
+        const B1 = bgLerp(tt, A1, A2, t0, t2);
+        const B2 = bgLerp(tt, A2, A3, t1, t3);
+        const C = bgLerp(tt, B1, B2, t1, t2);
+        crX = C.x;
+        crY = C.y;
+    }
 
     if (tension >= 1) return { x: crX, y: crY };
     return {
