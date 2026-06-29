@@ -2,13 +2,13 @@
 //
 // SPDX-License-Identifier: MIT
 
-import { configService } from "@main/services/config.service";
+import { settingsService } from "@main/services/settings.service";
 
 export const OAUTH_CLIENT_ID = "generic_lobby";
 export const OAUTH_SCOPE = "tachyon.lobby";
 
 function getLobbyServer() {
-    return configService.getConfig().lobbyServer;
+    return settingsService.getSettings().lobbyServer;
 }
 
 function isSecure(url) {

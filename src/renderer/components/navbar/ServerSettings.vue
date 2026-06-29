@@ -8,7 +8,7 @@ SPDX-License-Identifier: MIT
     <Modal :title="t('lobby.navbar.serverSettings.title')">
         <div class="gridform">
             <div>{{ t("lobby.navbar.serverSettings.activeServer") }}</div>
-            <Select v-model="configStore.lobbyServer" :options="serversList" optionGroupLabel="label" optionGroupChildren="items" />
+            <Select v-model="settingsStore.lobbyServer" :options="serversList" optionGroupLabel="label" optionGroupChildren="items" />
             <div>{{ t("lobby.navbar.serverSettings.customServer") }}</div>
             <Textbox
                 type="text"
@@ -54,7 +54,7 @@ const tooltipMessage = ref("");
 const defaultServers: string[] = toRaw(configStore.defaultServers);
 
 const disableRemoveButton = computed(() => {
-    return defaultServers.includes(configStore.lobbyServer);
+    return defaultServers.includes(settingsStore.lobbyServer);
 });
 
 const serversList = ref([
@@ -92,10 +92,10 @@ function addServerToList() {
 }
 
 function removeServerFromList() {
-    const index = settingsStore.customServerList.indexOf(configStore.lobbyServer);
+    const index = settingsStore.customServerList.indexOf(settingsStore.lobbyServer);
     settingsStore.customServerList.splice(index, 1);
     //Bounce back to the primary default when an entry is deleted
-    configStore.lobbyServer = defaultServers[0];
+    settingsStore.lobbyServer = defaultServers[0];
 }
 </script>
 

@@ -18,6 +18,7 @@ export default defineConfig({
         sourcemap: true,
     },
     optimizeDeps: {
+        force: true,
         entries: ["src/renderer/**/*.vue", "src/renderer/**/*.ts", "src/renderer/**/*.js"],
         esbuildOptions: {
             target: "esnext",

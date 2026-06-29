@@ -2,9 +2,10 @@
 //
 // SPDX-License-Identifier: MIT
 
+import fs from "node:fs/promises";
 import { CONFIG_PATH } from "@main/config/app";
 import { FileStore } from "@main/json/file-store";
-import { configSchema, envVarsMap } from "@main/json/model/config";
+import { configSchema, updateConfigSchema, TUpdateConfigSchema } from "@main/json/model/config";
 import { Value } from "@sinclair/typebox/value";
 import path from "path";
 import { logger } from "@main/utils/logger";
@@ -17,19 +18,30 @@ const configStore = new FileStore<typeof configSchema>(path.join(CONFIG_PATH, "c
 async function init() {
     await configStore.init();
     await fetchConfig();
-    await assignEnvVars();
+    await checkForConfigOverride();
 }
 
-async function assignEnvVars() {
-    const env = process.env;
-    for (const [key, value] of Object.entries(envVarsMap)) {
-        if (env[value] !== undefined) {
-            await configStore.update({ [key]: env[value] });
-            log.info(`Config ${key} set to ${value} = ${env[value]}`);
+async function checkForConfigOverride() {
+    // Load the config file from the argument provided during launch, if there was one provided.
+    const configArg = process.argv.find((arg) => arg.startsWith("--config="));
+    let configPath = "";
+
+    if (configArg) {
+        const rawPath = configArg.slice(configArg.indexOf("=") + 1);
+        configPath = path.resolve(process.cwd(), rawPath);
+        log.info(`Using config file: ${configPath}`);
+        const data = JSON.parse(await fs.readFile(configPath, "utf-8"));
+        if (!Value.Check(configSchema, data)) {
+            for (const err of Value.Errors(configSchema, data)) {
+                log.error(`Config error: ${err.path} ${err.message} : ${err.value}`);
+            }
+            throw Error("Provided config file does not match schema");
         }
+        await configStore.update(data);
+    } else {
+        return;
     }
 }
-
 /**
  * Get the current config values. Note that in Vue arrays have to be wrapped in toRaw() or else access will fail.
  * @returns The current configuration values as properties
@@ -38,7 +50,7 @@ function getConfig() {
     return configStore.model;
 }
 
-async function updateConfig(data: Partial<typeof configSchema>) {
+async function updateConfig(data: TUpdateConfigSchema) {
     return await configStore.update(data);
 }
 
@@ -53,13 +65,15 @@ async function fetchConfig() {
             throw Error(`${response.status} ${response.statusText}`);
         }
         const data = await response.json();
-        if (!Value.Check(configSchema, data)) {
-            for (const err of Value.Errors(configSchema, data)) {
-                log.error(`Config error: ${err.path} ${err.message} but received ${err.value}`);
+        if (!Value.Check(updateConfigSchema, data)) {
+            for (const err of Value.Errors(updateConfigSchema, data)) {
+                log.error(`Config error: ${err.path} ${err.message} : ${err.value}`);
             }
             throw Error("Fetched config does not match schema");
         }
-        await configStore.update(data);
+        log.info(`Fetched config successfully from ${getConfig().configUrl}`);
+        const mergedConfig = Value.Cast(configSchema, data);
+        await configStore.update(mergedConfig);
     } catch (err) {
         if (err instanceof Error) {
             log.error(`Error fetching config: ${err.message}`);
