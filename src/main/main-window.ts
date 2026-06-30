@@ -39,6 +39,7 @@ export function createWindow() {
         ...getWindowSize(settings.size),
         minWidth: 640,
         minHeight: 360,
+        backgroundColor: "#000000",
         webPreferences: {
             preload: path.join(__dirname, "../build/preload.js"),
             zoomFactor: 1,

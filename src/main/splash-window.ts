@@ -16,6 +16,7 @@ export function createSplashWindow(): BrowserWindow {
         frame: false,
         autoHideMenuBar: true,
         icon: nativeImage.createFromDataURL(icon),
+        backgroundColor: "#000000",
     });
 
     if (!SPLASH_WINDOW_VITE_DEV_SERVER_URL) {
