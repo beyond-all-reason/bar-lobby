@@ -38,6 +38,8 @@ SPDX-License-Identifier: MIT
  * easiest to just copy and clean up. MIT license, so safe to do.
  */
 import { computed, defineComponent, PropType, ref } from "vue";
+import { useDebounceFn } from "@vueuse/core";
+
 export const fieldType = ["search", "text"];
 export type FieldType = (typeof fieldType)[number];
 function filterObject(obj: { [key: string]: unknown }, properties: (string | number)[], remove = true) {
@@ -86,12 +88,18 @@ export default defineComponent({
             return res;
         });
         const showClearIcon = computed(() => !!(props.clearIcon && props.modelValue.length > 0));
+        const debouncedEmit = useDebounceFn((value: string) => emit("update:modelValue", value), 200) as ReturnType<typeof useDebounceFn>;
+
         function clear() {
+            // TODO: Not supported until we upgrade to @vueuse/core v14
+            // debouncedEmit.cancel();
             emit("update:modelValue", "");
         }
+
         function onInput(e: Event) {
-            emit("update:modelValue", (e.target as HTMLInputElement).value);
+            debouncedEmit((e.target as HTMLInputElement).value);
         }
+
         function onKeydown(e: KeyboardEvent) {
             if (e.defaultPrevented) return; // Some components might handle this already
             if (e.key === "Escape" && props.clearOnEsc) {
