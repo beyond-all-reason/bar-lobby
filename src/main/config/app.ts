@@ -109,14 +109,11 @@ export const CONFIG_PATH = path.join(STATE_PATH, "config");
 
 // Logging configuration
 export const LOGS_PATH = path.join(STATE_PATH, "logs");
-const LogLevelSchema = Type.Union([Type.String({ pattern: "^(fatal|error|warn|info|debug|trace|silent)$" }), Type.Integer({ minimum: 10, maximum: 60, multipleOf: 10 })]);
-const isNumberLogLevel = process.env.BAR_LOG_LEVEL !== undefined && process.env.BAR_LOG_LEVEL.trim() !== "" && !Number.isNaN(Number(process.env.BAR_LOG_LEVEL));
-const formattedLogLevel: Static<typeof LogLevelSchema> = isNumberLogLevel ? Number(process.env.BAR_LOG_LEVEL) : (process.env.BAR_LOG_LEVEL ?? "info").toLowerCase();
+const LogLevelSchema = Type.String({ pattern: "^(fatal|error|warn|info|debug|trace|silent)$" });
+const formattedLogLevel: Static<typeof LogLevelSchema> = (process.env.BAR_LOG_LEVEL ?? "info").toLowerCase();
 const isValidLogLevel = Value.Check(LogLevelSchema, formattedLogLevel);
 if (!isValidLogLevel) {
-    console.warn(
-        `Invalid BAR_LOG_LEVEL: ${process.env.BAR_LOG_LEVEL}. Using default log level: info. Valid values are: fatal, error, warn, info, debug, trace, silent, or one of the pino level numbers (10, 20, 30, 40, 50, 60).`
-    );
+    console.warn(`Invalid BAR_LOG_LEVEL: ${process.env.BAR_LOG_LEVEL}. Using default log level: info. Valid values are: fatal, error, warn, info, debug, trace, silent.`);
 }
 export const LOG_LEVEL = isValidLogLevel ? formattedLogLevel : "info";
 
