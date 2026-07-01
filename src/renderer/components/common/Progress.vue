@@ -68,7 +68,7 @@ watch(
     &.themed .progress__current {
         background: linear-gradient(rgba(217, 255, 0, 0.5) 0%, rgba(217, 255, 0, 0.5) 50%, rgba(194, 228, 0, 0.5) 51%);
         border-top: 1px solid rgba(255, 255, 255, 0.3);
-        transition: width 1s ease;
+        transition: width 300ms cubic-bezier(0.23, 0.29, 0.04, 1);
     }
     &.pulse .progress__current {
         animation: pulse 1s infinite;
