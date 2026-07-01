@@ -200,8 +200,11 @@
                 "viewProfile": "View profile",
                 "sendMessage": "Send message",
                 "joinBattle": "Join battle",
-                "inviteToParty": "Invite to party (TODO)",
-                "removeFriend": "Remove friend"
+                "inviteToParty": "Invite to party",
+                "partyFull": "Max members and invites reached",
+                "removeFriend": "Remove friend",
+                "userInParty": "In party",
+                "userInvited": "Invited"
             },
             "exit": {
                 "title": "Exit",
@@ -222,6 +225,10 @@
             },
             "breadcrumbs": {
                 "back": "Back"
+            },
+            "partyPopout": {
+                "party": "View Party",
+                "invited": "Party Invite"
             },
             "downloads": {
                 "noDownloads": "No downloads active",
