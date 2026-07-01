@@ -19,7 +19,13 @@ SPDX-License-Identifier: MIT
                             <span>{{ t("lobby.navbar.downloads.extracting") }}</span>
                         </div>
                         <template v-else>
-                            <Progress :percent="downloadPercent(download)" :text="barText(download)" :height="20" themed pulsating />
+                            <Progress
+                                :percent="download.totalBytes < MIN_DOWNLOAD_BYTES ? 0 : downloadPercent(download)"
+                                :text="barText(download)"
+                                :height="20"
+                                themed
+                                pulsating
+                            />
                             <div class="downloads__detail">{{ detailText(download) }}</div>
                         </template>
                     </div>
@@ -43,7 +49,7 @@ import Loader from "@renderer/components/common/Loader.vue";
 import Progress from "@renderer/components/common/Progress.vue";
 import PopOutPanel from "@renderer/components/navbar/PopOutPanel.vue";
 import { useTypedI18n } from "@renderer/i18n";
-import { useDownloadProgress } from "@renderer/composables/useDownloadProgress";
+import { MIN_DOWNLOAD_BYTES, useDownloadProgress } from "@renderer/composables/useDownloadProgress";
 
 const { t } = useTypedI18n();
 const { allDownloads, downloadPercent, progressText } = useDownloadProgress();
