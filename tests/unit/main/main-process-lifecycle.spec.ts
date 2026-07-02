@@ -17,6 +17,7 @@ describe("Main Process Lifecycle", () => {
     const mockServices = {
         engineService: { init: vi.fn().mockResolvedValue(undefined), registerIpcHandlers: vi.fn() },
         settingsService: { init: vi.fn().mockResolvedValue(undefined), registerIpcHandlers: vi.fn(), getSettings: vi.fn().mockReturnValue({ assetsPath: "" }) },
+        configService: { init: vi.fn().mockResolvedValue(undefined), registerIpcHandlers: vi.fn(), getConfig: vi.fn().mockReturnValue({ configUrl: "" }) },
         accountService: { init: vi.fn().mockResolvedValue(undefined) },
         replaysService: { init: vi.fn().mockResolvedValue(undefined), registerIpcHandlers: vi.fn() },
         gameService: { init: vi.fn().mockResolvedValue(undefined), registerIpcHandlers: vi.fn() },
@@ -33,9 +34,12 @@ describe("Main Process Lifecycle", () => {
         pathsService: { registerIpcHandlers: vi.fn() },
     };
 
-    beforeEach(() => {
+    beforeEach(async () => {
         vi.clearAllMocks();
         vi.resetModules();
+
+        vi.stubGlobal("SPLASH_WINDOW_VITE_DEV_SERVER_URL", "http://localhost:5173/splash.html");
+        vi.stubGlobal("MAIN_WINDOW_VITE_DEV_SERVER_URL", "http://localhost:5173/index.html");
 
         mockApp = {
             requestSingleInstanceLock: vi.fn().mockReturnValue(true),
@@ -79,6 +83,23 @@ describe("Main Process Lifecycle", () => {
             protocol: mockProtocol,
             session: mockSession,
             net: mockNet,
+
+            BrowserWindow: vi.fn().mockImplementation(() => ({
+                loadURL: vi.fn(),
+                show: vi.fn(),
+                on: vi.fn(),
+                destroy: vi.fn(),
+                webContents: {
+                    on: vi.fn(),
+                    send: vi.fn(),
+                },
+            })),
+            nativeImage: {
+                createEmpty: vi.fn().mockReturnValue({}),
+                createFromPath: vi.fn().mockReturnValue({}),
+                createFromBuffer: vi.fn().mockReturnValue({}),
+                createFromDataURL: vi.fn().mockReturnValue({}),
+            },
         }));
 
         vi.doMock("node:net", () => ({
@@ -87,9 +108,19 @@ describe("Main Process Lifecycle", () => {
             },
         }));
 
+        vi.doMock("@main/splash-window", () => ({
+            createSplashWindow: vi.fn().mockReturnValue({
+                webContents: {},
+                once: vi.fn(),
+                destroy: vi.fn(),
+                close: vi.fn(),
+            }),
+        }));
+
         vi.doMock("@main/main-window", () => ({
             createWindow: vi.fn().mockReturnValue({
                 webContents: {},
+                on: vi.fn(),
             }),
         }));
 
@@ -120,7 +151,7 @@ describe("Main Process Lifecycle", () => {
         vi.doMock("@main/services/engine.service", () => ({ default: mockServices.engineService }));
         vi.doMock("@main/services/auto-updater.service", () => ({ default: mockServices.autoUpdaterService }));
         vi.doMock("@main/services/downloads.service", () => ({ default: mockServices.downloadsService }));
-
+        vi.doMock("@main/services/config.service", () => ({ configService: mockServices.configService }));
         vi.doMock("@main/services/settings.service", () => ({ settingsService: mockServices.settingsService }));
         vi.doMock("@main/services/info.service", () => ({ infoService: mockServices.infoService }));
         vi.doMock("@main/services/account.service", () => ({ accountService: mockServices.accountService }));
@@ -208,6 +239,7 @@ describe("Main Process Lifecycle", () => {
     it("should initialize services when app is ready", async () => {
         await import("@main/main");
 
+        expect(mockServices.configService.init).toHaveBeenCalled();
         expect(mockServices.engineService.init).toHaveBeenCalled();
         expect(mockServices.settingsService.init).toHaveBeenCalled();
         expect(mockServices.accountService.init).toHaveBeenCalled();
@@ -220,6 +252,7 @@ describe("Main Process Lifecycle", () => {
     it("should register IPC handlers when app is ready", async () => {
         await import("@main/main");
 
+        expect(mockServices.configService.registerIpcHandlers).toHaveBeenCalled();
         expect(mockServices.logService.registerIpcHandlers).toHaveBeenCalled();
         expect(mockServices.infoService.registerIpcHandlers).toHaveBeenCalled();
         expect(mockServices.settingsService.registerIpcHandlers).toHaveBeenCalled();

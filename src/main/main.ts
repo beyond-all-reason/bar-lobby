@@ -17,6 +17,7 @@ import url from "url";
 import netFromNode from "node:net";
 
 import { createWindow } from "@main/main-window";
+import { createSplashWindow } from "@main/splash-window";
 import { settingsService } from "./services/settings.service";
 import { infoService } from "./services/info.service";
 import { accountService } from "./services/account.service";
@@ -36,6 +37,7 @@ import { tachyonService } from "@main/services/tachyon.service";
 import { typedWebContents } from "@main/typed-ipc";
 import { navigationService } from "@main/services/navigation.service";
 import { pathsService } from "./services/paths.service";
+import { configService } from "./services/config.service";
 
 // Enable happy eyeballs for IPv6/IPv4 dual stack.
 netFromNode.setDefaultAutoSelectFamily(true);
@@ -98,6 +100,7 @@ app.commandLine.appendSwitch("disable-features", "HardwareMediaKeyHandling,Media
 app.commandLine.appendSwitch("disable-pinch", "1");
 
 app.whenReady().then(async () => {
+    const splashWindow = createSplashWindow();
     registerBarFileProtocol();
     if (process.env.NODE_ENV !== "production") {
         try {
@@ -131,6 +134,8 @@ app.whenReady().then(async () => {
         });
     });
     // Initialize services
+    // Config is fetched first because it contains URLs and other values that other services may depend on.
+    await configService.init();
     await settingsService.init();
     const savedAssetsPath = settingsService.getSettings().assetsPath;
     if (savedAssetsPath && !process.env.BAR_ASSETS_PATH) {
@@ -140,8 +145,12 @@ app.whenReady().then(async () => {
     await Promise.all([accountService.init(), replaysService.init(), gameService.init(), mapsService.init(), autoUpdaterService.init()]);
 
     const mainWindow = createWindow();
+    mainWindow.on("show", () => {
+        splashWindow.close();
+    });
     const webContents = typedWebContents(mainWindow.webContents);
     // Handlers may need the webContents to send events
+    configService.registerIpcHandlers();
     logService.registerIpcHandlers();
     infoService.registerIpcHandlers();
     settingsService.registerIpcHandlers();

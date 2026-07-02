@@ -14,11 +14,12 @@ import { removeFromArray } from "$/jaz-ts-utils/object";
 import { GameContentAPI } from "@main/content/game/game-content";
 import { extract7z } from "@main/utils/extract-7z";
 import { fileExists } from "@main/utils/file";
+import { configService } from "@main/services/config.service";
 
 const log = logger("pool-cdn.ts");
 
 export class PoolCdnDownloader extends Downloader {
-    cdnUrl = "https://pool-init.beyondallreason.dev";
+    cdnUrl = configService.getConfig().initialPoolDataUrl;
     poolDataUrl = `${this.cdnUrl}/data.7z`;
 
     constructor(gameApi: GameContentAPI) {
