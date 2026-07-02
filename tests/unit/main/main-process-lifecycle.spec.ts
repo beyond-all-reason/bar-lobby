@@ -29,7 +29,11 @@ describe("Main Process Lifecycle", () => {
         shellService: { registerIpcHandlers: vi.fn() },
         downloadsService: { registerIpcHandlers: vi.fn() },
         miscService: { registerIpcHandlers: vi.fn() },
-        navigationService: { registerIpcHandlers: vi.fn() },
+        navigationService: {
+            registerIpcHandlers: vi.fn(),
+            enqueueReplayRequest: vi.fn(),
+            handleSecondInstance: vi.fn(),
+        },
         pathsService: { registerIpcHandlers: vi.fn() },
     };
 
@@ -70,6 +74,8 @@ describe("Main Process Lifecycle", () => {
         mockProcess = {
             env: { NODE_ENV: "development" },
             platform: "linux",
+            argv: ["electron", "app"],
+            cwd: vi.fn().mockReturnValue("/test"),
             on: vi.fn(),
             listeners: vi.fn().mockResolvedValue([]),
         };
@@ -140,6 +146,11 @@ describe("Main Process Lifecycle", () => {
         vi.resetModules();
     });
 
+    async function startApplication() {
+        const { startApp } = await import("@main/start-app");
+        await startApp({ setSecondInstanceHandler: vi.fn() });
+    }
+
     it("should exit if single instance lock is not acquired", async () => {
         mockApp.requestSingleInstanceLock.mockReturnValue(false);
 
@@ -149,10 +160,36 @@ describe("Main Process Lifecycle", () => {
         expect(mockApp.exit).toHaveBeenCalledWith(0);
     });
 
-    it("should start the app successfully and initialize basic configurations", async () => {
-        await import("@main/main");
+    it("should queue second-instance events until the application handler is registered", async () => {
+        let secondInstanceListener: ((event: unknown, argv: string[], workingDirectory: string) => void) | undefined;
+        let startContext: { setSecondInstanceHandler: (handler: (argv: string[], workingDirectory: string) => void) => void } | undefined;
+        const startApp = vi.fn((context) => {
+            startContext = context;
+            return Promise.resolve();
+        });
 
-        expect(mockApp.requestSingleInstanceLock).toHaveBeenCalled();
+        mockApp.on.mockImplementation((event: string, handler: any) => {
+            if (event === "second-instance") {
+                secondInstanceListener = handler;
+            }
+        });
+        vi.doMock("@main/start-app", () => ({ startApp }));
+
+        await import("@main/main");
+        await vi.waitFor(() => expect(startApp).toHaveBeenCalled());
+
+        secondInstanceListener?.({}, ["electron", "match.sdfz"], "C:/replays");
+
+        const handler = vi.fn();
+        startContext?.setSecondInstanceHandler(handler);
+
+        expect(handler).toHaveBeenCalledWith(["electron", "match.sdfz"], "C:/replays");
+        vi.doUnmock("@main/start-app");
+    });
+
+    it("should start the app successfully and initialize basic configurations", async () => {
+        await startApplication();
+
         expect(mockApp.setName).toHaveBeenCalledWith("Test App");
         expect(mockApp.on).toHaveBeenCalledWith("window-all-closed", expect.any(Function));
         expect(mockApp.enableSandbox).toHaveBeenCalled();
@@ -170,7 +207,7 @@ describe("Main Process Lifecycle", () => {
             }
         });
 
-        await import("@main/main");
+        await startApplication();
 
         expect(mockProcess.on).toHaveBeenCalledWith("SIGTERM", expect.any(Function));
 
@@ -188,7 +225,7 @@ describe("Main Process Lifecycle", () => {
             }
         });
 
-        await import("@main/main");
+        await startApplication();
 
         expect(mockProcess.on).toHaveBeenCalledWith("message", expect.any(Function));
 
@@ -200,13 +237,13 @@ describe("Main Process Lifecycle", () => {
     it("should not handle graceful exit in production environment", async () => {
         mockProcess.env.NODE_ENV = "production";
 
-        await import("@main/main");
+        await startApplication();
 
         expect(mockProcess.on).not.toHaveBeenCalled();
     });
 
     it("should initialize services when app is ready", async () => {
-        await import("@main/main");
+        await startApplication();
 
         expect(mockServices.engineService.init).toHaveBeenCalled();
         expect(mockServices.settingsService.init).toHaveBeenCalled();
@@ -218,7 +255,7 @@ describe("Main Process Lifecycle", () => {
     });
 
     it("should register IPC handlers when app is ready", async () => {
-        await import("@main/main");
+        await startApplication();
 
         expect(mockServices.logService.registerIpcHandlers).toHaveBeenCalled();
         expect(mockServices.infoService.registerIpcHandlers).toHaveBeenCalled();
@@ -234,5 +271,22 @@ describe("Main Process Lifecycle", () => {
         expect(mockServices.miscService.registerIpcHandlers).toHaveBeenCalled();
         expect(mockServices.autoUpdaterService.registerIpcHandlers).toHaveBeenCalled();
         expect(mockServices.navigationService.registerIpcHandlers).toHaveBeenCalled();
+    });
+
+    it("should connect startup and second-instance replay requests to navigation", async () => {
+        let secondInstanceHandler: ((argv: string[], workingDirectory: string) => void) | undefined;
+        const { startApp } = await import("@main/start-app");
+
+        await startApp({
+            setSecondInstanceHandler(handler) {
+                secondInstanceHandler = handler;
+            },
+        });
+
+        expect(mockServices.navigationService.enqueueReplayRequest).toHaveBeenCalledWith(mockProcess.argv, "/test");
+
+        secondInstanceHandler?.(["electron", "match.sdfz"], "C:/replays");
+
+        expect(mockServices.navigationService.handleSecondInstance).toHaveBeenCalledWith(["electron", "match.sdfz"], "C:/replays");
     });
 });

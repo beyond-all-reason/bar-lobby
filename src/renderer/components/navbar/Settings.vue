@@ -44,7 +44,7 @@ SPDX-License-Identifier: MIT
                     {{ tooltipMessage }}
                 </div>
             </OverlayPanel>
-            <Button @click="uploadLogsCommand">{{ t("lobby.navbar.settings.uploadLogs") }}</Button>
+            <Button :disabled="isUploadingLogs" @click="uploadLogsCommand">{{ t("lobby.navbar.settings.uploadLogs") }}</Button>
 
             <div class="section-header">{{ t("lobby.navbar.settings.storage") }}</div>
 
@@ -194,6 +194,7 @@ async function applyPathChange() {
 
 const op = ref();
 const tooltipMessage = ref("");
+const isUploadingLogs = ref(false);
 
 const sizeOptions = [
     { label: t("lobby.navbar.settings.labelLg"), value: 900 },
@@ -210,9 +211,12 @@ const displayOptions = asyncComputed(async () => {
 });
 
 async function uploadLogsCommand(event) {
+    if (isUploadingLogs.value) return;
+
     // Store off event and target to avoid async issue
     const curE = event;
     const curTarget = curE.currentTarget;
+    isUploadingLogs.value = true;
 
     // Do the operations
     try {
@@ -225,6 +229,8 @@ async function uploadLogsCommand(event) {
         } else {
             tooltipMessage.value = t("lobby.navbar.settings.couldNotUploadLog");
         }
+    } finally {
+        isUploadingLogs.value = false;
     }
 
     // Display feedback
