@@ -156,7 +156,7 @@ export class GameContentAPI extends PrDownloaderAPI<string, GameVersion> {
      * Downloads the actual game files, will update to latest if no specific gameVersion is specified
      * @param gameVersion e.g. "Beyond All Reason test-16289-b154c3d"
      */
-    public async downloadGame(gameVersion = `${configService.getConfig().rapidGame}:test`) {
+    public async downloadGame(gameVersion: string) {
         // skip download if already installed
         if (this.isVersionInstalled(gameVersion)) {
             return;
