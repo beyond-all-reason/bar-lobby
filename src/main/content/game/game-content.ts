@@ -153,7 +153,8 @@ export class GameContentAPI extends PrDownloaderAPI<string, GameVersion> {
     }
 
     /**
-     * Downloads the actual game files, will update to latest if no specific gameVersion is specified
+     * Downloads the actual game files for the specified game version.
+     * If the game version is already installed, this function will do nothing.
      * @param gameVersion e.g. "Beyond All Reason test-16289-b154c3d"
      */
     public async downloadGame(gameVersion: string) {

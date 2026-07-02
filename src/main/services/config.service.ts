@@ -38,8 +38,6 @@ async function checkForConfigOverride() {
             throw Error("Provided config file does not match schema");
         }
         await configStore.update(data);
-    } else {
-        return;
     }
 }
 /**
