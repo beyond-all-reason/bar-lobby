@@ -4025,6 +4025,22 @@
                 "customLobbies": null,
                 "tournaments": null
             },
+            "party": {
+                "title": null,
+                "partyTab": null,
+                "inviteTab": null,
+                "members": null,
+                "invites": null,
+                "leaveParty": null,
+                "matchmakingQueues": null,
+                "noQueues": null,
+                "requestQueues": null,
+                "receivedInvite": null,
+                "acceptInvite": null,
+                "declineInvite": null,
+                "kickMember": null,
+                "cancelInvite": null
+            },
             "watch": {
                 "replays": {
                     "title": null,
@@ -4287,7 +4303,8 @@
                     "game": null,
                     "engine": null,
                     "view": null,
-                    "lobbyServerSettings": null
+                    "lobbyServerSettings": null,
+                    "createParty": null
                 },
                 "scenarioTile": {
                     "title": null

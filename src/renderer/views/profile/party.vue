@@ -11,14 +11,14 @@ SPDX-License-Identifier: MIT
     <div class="view">
         <div class="party-container">
             <div class="view-title">
-                <h1>Party Central</h1>
+                <h1>{{ t("lobby.views.party.title") }}</h1>
             </div>
             <Panel no-padding>
                 <TabView v-model:activeIndex="tabIndex">
                     <TabPanel :disabled="!showParty">
                         <template #header>
                             <div class="tab-header">
-                                <span>Party</span>
+                                <span>{{ t("lobby.views.party.partyTab") }}</span>
                                 <div class="unread-dot" v-if="hasUnseenMessage() || hasUnseenUpdates()"></div>
                             </div>
                         </template>
@@ -26,23 +26,25 @@ SPDX-License-Identifier: MIT
                             <div class="flex-row members-header margin-bottom-lg">
                                 <div class="flex-row members-list">
                                     <div class="flex-row gap-md">
-                                        <h3>Members</h3>
+                                        <h3>{{ t("lobby.views.party.members") }}</h3>
                                         <div v-for="member in partyStore.activeParty?.members" :key="member.userId">
                                             <PartyMember :userId="member.userId" />
                                         </div>
                                     </div>
                                     <div class="flex-row gap-md" v-if="displayInvites()">
-                                        <h3>Invites</h3>
+                                        <h3>{{ t("lobby.views.party.invites") }}</h3>
                                         <div v-for="invite in partyStore.activeParty?.invited" :key="invite.userId">
                                             <PartyInvitee :userId="invite.userId" />
                                         </div>
                                     </div>
                                 </div>
-                                <Button @click="leaveParty" class="red margin-left-lg margin-right-lg">Leave Party</Button>
+                                <Button @click="leaveParty" class="red margin-left-lg margin-right-lg">{{
+                                    t("lobby.views.party.leaveParty")
+                                }}</Button>
                             </div>
                             <div class="flex-row gap-md">
                                 <div>
-                                    <h3>Matchmaking Queues</h3>
+                                    <h3>{{ t("lobby.views.party.matchmakingQueues") }}</h3>
                                     <div v-if="matchmakingStore.playlists.length > 0">
                                         <Button
                                             v-for="queue in availableQueueIds"
@@ -61,8 +63,10 @@ SPDX-License-Identifier: MIT
                                         </Button>
                                     </div>
                                     <div v-else>
-                                        <p>No known queues available.</p>
-                                        <Button @click="requestMatchmakingQueues" class="blue">Request Queues</Button>
+                                        <p>{{ t("lobby.views.party.noQueues") }}</p>
+                                        <Button @click="requestMatchmakingQueues" class="blue">{{
+                                            t("lobby.views.party.requestQueues")
+                                        }}</Button>
                                     </div>
                                     <div class="button-container">
                                         <div v-if="downloadsAreRequiredForSelected" class="download-button-container">
@@ -134,7 +138,7 @@ SPDX-License-Identifier: MIT
                     <TabPanel :disabled="!showInvites">
                         <template #header>
                             <div class="tab-header">
-                                <span>Invites</span>
+                                <span>{{ t("lobby.views.party.inviteTab") }}</span>
                                 <div class="unread-dot" v-if="hasUnseenInvites()"></div>
                             </div>
                         </template>
@@ -146,14 +150,15 @@ SPDX-License-Identifier: MIT
                                     v-in-view.once="() => (party.seen = true)"
                                 >
                                     <div>
-                                        Party invite received from:
-                                        <span v-for="name in getPartyMemberNames(partyId)" :key="name" class="margin-right-sm">{{
-                                            name
-                                        }}</span>
+                                        {{ t("lobby.views.party.receivedInvite", { users: getPartyMemberNames(partyId).join(", ") }) }}
                                     </div>
                                     <div class="flex-row padding-md">
-                                        <Button @click="acceptInvite(partyId)" class="margin-right-md green">Accept</Button>
-                                        <Button @click="declineInvite(partyId)" class="margin-left-md red">Decline</Button>
+                                        <Button @click="acceptInvite(partyId)" class="margin-right-md green">{{
+                                            t("lobby.views.party.acceptInvite")
+                                        }}</Button>
+                                        <Button @click="declineInvite(partyId)" class="margin-left-md red">{{
+                                            t("lobby.views.party.declineInvite")
+                                        }}</Button>
                                     </div>
                                 </div>
                             </div>

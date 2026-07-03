@@ -78,6 +78,23 @@
                 "customLobbies": "Custom Lobbies",
                 "tournaments": "Tournaments"
             },
+
+            "party": {
+                "title": "Party",
+                "partyTab": "Active Party",
+                "inviteTab": "Available Invites",
+                "members": "Members",
+                "invites": "Invites",
+                "leaveParty": "Leave Party",
+                "matchmakingQueues": "Matchmaking Queues",
+                "noQueues": "No matchmaking queues available",
+                "requestQueues": "Request Queues",
+                "receivedInvite": "You have received a party invitation from {users}.",
+                "acceptInvite": "Accept",
+                "declineInvite": "Decline",
+                "kickMember": "Kick Member",
+                "cancelInvite": "Cancel Invite"
+            },
             "watch": {
                 "replays": {
                     "title": "Replays",
@@ -340,7 +357,8 @@
                     "game": "Game",
                     "engine": "Engine",
                     "view": "View",
-                    "lobbyServerSettings": "Lobby Server Settings"
+                    "lobbyServerSettings": "Lobby Server Settings",
+                    "createParty": "Create Party"
                 },
                 "scenarioTile": {
                     "title": "Scenario Title"

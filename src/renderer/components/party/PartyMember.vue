@@ -7,7 +7,7 @@ SPDX-License-Identifier: MIT
     <div class="party-member">
         <div class="flex-row">
             <span class="margin-right-md">{{ user?.username ?? userId }}</span>
-            <Button @click="kickUser" class="red"><Icon :icon="accountOff" /></Button>
+            <Button @click="kickUser" class="red" v-tooltip.left="t('lobby.views.party.kickMember')"><Icon :icon="accountOff" /></Button>
         </div>
     </div>
 </template>
@@ -18,6 +18,9 @@ import { db } from "@renderer/store/db";
 import Button from "@renderer/components/controls/Button.vue";
 import { Icon } from "@iconify/vue";
 import accountOff from "@iconify-icons/mdi/account-off";
+import { useTypedI18n } from "@renderer/i18n";
+
+const { t } = useTypedI18n();
 
 const props = defineProps<{
     userId: string;
