@@ -331,7 +331,6 @@ function hasUnseenUpdates() {
     return false;
 }
 function setPartyUpdateSeen() {
-    console.log("Setting party update as seen");
     if (!partyStore.activeParty) return;
     partyStore.activeParty.seen = true;
     partyStore.parties.get(partyStore.activeParty.id)!.seen = true;
