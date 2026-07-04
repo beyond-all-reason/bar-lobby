@@ -43,7 +43,7 @@ SPDX-License-Identifier: MIT
                                 }}</Button>
                             </div>
                             <div class="flex-row gap-md">
-                                <div>
+                                <div class="mode-select">
                                     <h3>{{ t("lobby.views.party.matchmakingQueues") }}</h3>
                                     <div v-if="matchmakingStore.playlists.length > 0">
                                         <Button
@@ -57,7 +57,7 @@ SPDX-License-Identifier: MIT
                                             :disabled="matchmakingStore.status !== MatchmakingStatus.Idle"
                                         >
                                             <span>{{ getPlaylistName(queue) }}</span>
-                                            <div class="info br" v-if="matchmakingStore.selectedQueue === queue" @click.stop="onInfoClick">
+                                            <div class="info bl" v-if="matchmakingStore.selectedQueue === queue" @click.stop="onInfoClick">
                                                 <Icon :icon="informationIcon"></Icon>
                                             </div>
                                         </Button>
@@ -153,10 +153,10 @@ SPDX-License-Identifier: MIT
                                         {{ t("lobby.views.party.receivedInvite", { users: getPartyMemberNames(partyId).join(", ") }) }}
                                     </div>
                                     <div class="flex-row padding-md">
-                                        <Button @click="acceptInvite(partyId)" class="margin-right-md green">{{
+                                        <Button @click="acceptInvite(partyId)" class="margin-right-md margin-left-md green">{{
                                             t("lobby.views.party.acceptInvite")
                                         }}</Button>
-                                        <Button @click="declineInvite(partyId)" class="margin-left-md red">{{
+                                        <Button @click="declineInvite(partyId)" class="margin-right-md margin-left-md red">{{
                                             t("lobby.views.party.declineInvite")
                                         }}</Button>
                                     </div>
@@ -191,7 +191,6 @@ import PartyInvitee from "@renderer/components/party/PartyInvitee.vue";
 import { db } from "@renderer/store/db";
 import { useDexieLiveQueryWithDeps } from "@renderer/composables/useDexieLiveQuery";
 import { UserId } from "tachyon-protocol/types";
-import { User } from "@main/model/user";
 import TabPanel from "primevue/tabpanel";
 import TabView from "@renderer/components/common/TabView.vue";
 import { me } from "@renderer/store/me.store";
@@ -218,18 +217,13 @@ const tabIndex = ref(0);
 watch(
     () => toRaw(partyStore.state),
     (newState) => {
-        console.log("Party state changed:", newState);
         if (newState === PlayersPartyState.InvitedOnly) {
-            console.log("Invited only");
             tabIndex.value = 1;
         } else if (newState === PlayersPartyState.JoinedOnly) {
-            console.log("Joined only");
             tabIndex.value = 0;
         } else if (newState === PlayersPartyState.JoinedAndInvited) {
-            console.log("Joined and invited");
             tabIndex.value = 0;
         } else if (newState === PlayersPartyState.None) {
-            console.log("None");
             tabIndex.value = 1;
         }
     },
@@ -261,21 +255,11 @@ function getPartyMemberNames(partyId: PartyId) {
 }
 const displayNames = useDexieLiveQueryWithDeps(partyStore.parties, async () => {
     const map = new Map<UserId, string>();
-    await db.users
-        .filter((user: User) => displayUsersFilter(user))
-        .each(function (user) {
-            map.set(user.userId, user.username);
-        });
+    await db.users.each(function (user) {
+        map.set(user.userId, user.username);
+    });
     return map;
 });
-
-function displayUsersFilter(user: User) {
-    if (!user) return false;
-    for (const party of partyStore.parties.values()) {
-        if (party.members.some((member) => member.userId === user.userId)) return true;
-    }
-    return false;
-}
 
 const isQueueDownloadsModalOpen = ref(false);
 
@@ -362,32 +346,39 @@ function setPartyUpdateSeen() {
     width: 1600px;
     align-self: center;
 }
-.mm-queue-button {
-    min-height: 100px;
-    min-width: 400px;
-    margin-top: 20px;
-    margin-bottom: 20px;
-    flex: 1;
+.mode-select {
+    display: flex;
     flex-direction: column;
+    height: 100%;
+    overflow: visible;
     align-items: center;
-    justify-content: space-between;
-    text-align: center;
-    font-size: 2rem;
+}
+.mm-queue-button {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
+    font-size: 2rem;
+    text-align: center;
+    margin-top: 20px;
     transition: all 0.3s ease;
     filter: brightness(0.7) saturate(0.1);
     span {
+        height: 100px;
+        width: 484px;
         font-size: 2rem;
         text-transform: uppercase;
         font-weight: bold;
+        align-content: center;
         filter: drop-shadow(3px 3px 5px rgba(0, 0, 0, 0.8));
     }
     &.classic {
         background-image: url("/src/renderer/assets/images/backgrounds/5.jpg");
     }
 }
+
 /* On hover/active */
 .mm-queue-button:hover {
     z-index: 1;
@@ -398,15 +389,14 @@ function setPartyUpdateSeen() {
     flex: 1.5;
     z-index: 1;
     filter: brightness(1);
-    transform: scale(1.05);
+    // transform: scale(1.05);
     box-shadow: 0 0 10px 5px rgba(0, 0, 0, 0.5);
     border-color: white;
 }
 
 .download-button-container {
     align-self: center;
-    width: 500px;
-    //padding: 20px 40px;
+    width: 400px;
     text-align: center;
     cursor: pointer;
     position: relative;
@@ -426,13 +416,6 @@ function setPartyUpdateSeen() {
     &.bl {
         bottom: 0px;
         left: 0px;
-    }
-    &.br {
-        bottom: 10px;
-        right: 0px;
-        flex-wrap: wrap-reverse;
-        justify-content: flex-end;
-        max-width: 55%;
     }
 }
 .info:hover {

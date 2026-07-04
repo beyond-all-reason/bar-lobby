@@ -38,10 +38,8 @@ SPDX-License-Identifier: MIT
 import { ref } from "vue";
 import { chatStore, chat } from "@renderer/store/chat.store";
 import { useDexieLiveQueryWithDeps } from "@renderer/composables/useDexieLiveQuery";
-import { User } from "@main/model/user";
 import { UserId } from "tachyon-protocol/types";
 import { me } from "@renderer/store/me.store";
-import { partyStore } from "@renderer/store/party.store";
 import { db } from "@renderer/store/db";
 import { useTypedI18n } from "@renderer/i18n";
 import Button from "@renderer/components/controls/Button.vue";
@@ -55,13 +53,11 @@ function focusTextbox(el: HTMLElement) {
         el.firstElementChild.focus();
     }
 }
-const displayNames = useDexieLiveQueryWithDeps(partyStore.activeParty, async () => {
+const displayNames = useDexieLiveQueryWithDeps(chatStore.partyChat, async () => {
     const map = new Map<UserId, string>();
-    await db.users
-        .filter((user: User) => displayUsersFilter(user))
-        .each(function (user) {
-            map.set(user.userId, user.username);
-        });
+    await db.users.each(function (user) {
+        map.set(user.userId, user.username);
+    });
     return map;
 });
 
@@ -77,12 +73,6 @@ function sendPartyMessage(messageText: string) {
     });
     newMessage.value = "";
     text.value = "";
-}
-
-function displayUsersFilter(user: User) {
-    if (!user) return false;
-    if (partyStore.activeParty?.members.find((member) => member.userId === user.userId)) return true;
-    return false;
 }
 </script>
 
