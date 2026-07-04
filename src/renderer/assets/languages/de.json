@@ -1946,7 +1946,8 @@
                 "acceptInvite": null,
                 "declineInvite": null,
                 "kickMember": null,
-                "cancelInvite": null
+                "cancelInvite": null,
+                "noInvites": null
             },
             "watch": {
                 "replays": {

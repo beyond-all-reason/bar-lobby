@@ -44,13 +44,24 @@ export const partyStore: {
 
 /**
  * Send a Tachyon request to accept a specific pending party invite.
+ * Note that if the user is currently in a party, this will also remove them from that first party (on success).
  * @param data Required data payload for this request
  */
 async function requestAcceptInvite(data: PartyAcceptInviteRequestData) {
+    let currentParty: PartyId | undefined = undefined;
+    if (partyStore.activeParty) {
+        currentParty = partyStore.activeParty;
+    }
     try {
         const response = await window.tachyon.request("party/acceptInvite", data);
         console.log("Tachyon: party/acceptInvite response:", response);
-        // Nothing further required here; client should receive a party/updated event upon joining.
+        // Client should receive a party/updated event upon joining, but if we were in a party before, we have to manually handle the removal of that one.
+        // We don't do this before success, because we might not actually leave the other party on the serverside if the join fails!
+        if (currentParty) {
+            partyStore.parties.delete(currentParty);
+            // And unfortunately, because this could arrive *after* the new party/updated event, we have to parse the party data again, just in case.
+            parseAllPartyData();
+        }
     } catch (error) {
         console.error("Tachyon error: party/acceptInvite:", error);
         notificationsApi.alert({ text: "Error with request party/acceptInvite", severity: "error" });
@@ -213,6 +224,17 @@ function parseAllPartyData() {
     } else partyStore.state = PlayersPartyState.None;
 }
 
+export function onLogout() {
+    if (partyStore.activeParty) {
+        // We don't await this request because it's just a polite notification to the server, and we don't want to block the logout process.
+        requestLeave();
+    }
+    subsManager.clearAllFromList(partySymbol);
+    partyStore.activeParty = undefined;
+    partyStore.parties.clear();
+    partyStore.state = PlayersPartyState.None;
+}
+
 export async function initPartyStore() {
     if (partyStore.isInitialized) return;
 
@@ -223,4 +245,4 @@ export async function initPartyStore() {
     partyStore.isInitialized = true;
 }
 
-export const party = { requestAcceptInvite, requestCancelInvite, requestCreate, requestCreateAndInvite, requestDeclineInvite, requestInvite, requestKickMember, requestLeave };
+export const party = { requestAcceptInvite, requestCancelInvite, requestCreate, requestCreateAndInvite, requestDeclineInvite, requestInvite, requestKickMember, requestLeave, onLogout };

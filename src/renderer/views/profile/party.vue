@@ -22,8 +22,8 @@ SPDX-License-Identifier: MIT
                                 <div class="unread-dot" v-if="hasUnseenMessage() || hasUnseenUpdates()"></div>
                             </div>
                         </template>
-                        <div class="flex-column gap-md" v-in-view.once="setPartyUpdateSeen">
-                            <div class="flex-row members-header margin-bottom-lg">
+                        <div class="flex-column gap-md">
+                            <div class="flex-row members-header margin-bottom-lg" v-in-view.once="() => setPartyUpdateSeen()">
                                 <div class="flex-row members-list">
                                     <div class="flex-row gap-md">
                                         <h3>{{ t("lobby.views.party.members") }}</h3>
@@ -143,6 +143,9 @@ SPDX-License-Identifier: MIT
                             </div>
                         </template>
                         <div>
+                            <div v-if="!showInvites">
+                                <p>{{ t("lobby.views.party.noInvites") }}</p>
+                            </div>
                             <div v-for="[partyId, party] of partyStore.parties" :key="partyId">
                                 <div
                                     class="flex-col"
@@ -323,13 +326,10 @@ function hasUnseenInvites() {
     return false;
 }
 function hasUnseenUpdates() {
-    for (const party of partyStore.parties.values()) {
-        if (party.seen === false && party.members.some((member) => member.userId === me.userId)) {
-            return true;
-        }
-    }
-    return false;
+    if (!partyStore.activeParty || !partyStore.parties.get(partyStore.activeParty)) return false;
+    return !partyStore.parties.get(partyStore.activeParty)!.seen;
 }
+
 function setPartyUpdateSeen() {
     if (!partyStore.activeParty || !partyStore.parties.get(partyStore.activeParty)) return;
     partyStore.parties.get(partyStore.activeParty)!.seen = true;
