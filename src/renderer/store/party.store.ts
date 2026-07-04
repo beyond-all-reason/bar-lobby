@@ -32,12 +32,12 @@ export enum PlayersPartyState {
 
 export const partyStore: {
     isInitialized: boolean;
-    activeParty: Party | null;
+    activeParty: PartyId | undefined;
     parties: Map<PartyId, Party>; //All parties (all invited, and up to one joined)
     state: PlayersPartyState;
 } = reactive({
     isInitialized: false,
-    activeParty: null,
+    activeParty: undefined,
     parties: new Map(),
     state: PlayersPartyState.None,
 });
@@ -79,7 +79,7 @@ async function requestCreate() {
         const response = await window.tachyon.request("party/create");
         console.log("Tachyon: party/create:", response);
         partyStore.parties.set(response.data.party.id, { ...response.data.party, seen: false });
-        parsePartyData();
+        parseAllPartyData();
     } catch (error) {
         console.error("Tachyon error: party/create:", error);
         notificationsApi.alert({ text: "Error with request party/create", severity: "error" });
@@ -109,6 +109,7 @@ async function requestDeclineInvite(data: PartyDeclineInviteRequestData) {
         console.log("Tachyon: party/declineInvite:", response);
         // Note; we do not get a party/updated event for the declined party, so we have to clear it ourselves.
         partyStore.parties.delete(data.partyId);
+        parseAllPartyData();
     } catch (error) {
         console.error("Tachyon error: party/declineInvite:", error);
         notificationsApi.alert({ text: "Error with request party/declineInvite", severity: "error" });
@@ -151,9 +152,8 @@ async function requestLeave() {
     try {
         const response = await window.tachyon.request("party/leave");
         console.log("Tachyon: party/leave:", response);
-        if (partyStore.activeParty) partyStore.parties.delete(partyStore.activeParty?.id);
-        partyStore.activeParty = null;
-        parsePartyData();
+        partyStore.parties.delete(partyStore.activeParty ?? "");
+        parseAllPartyData();
         chat.clearPartyChat();
     } catch (error) {
         console.error("Tachyon error: party/leave:", error);
@@ -164,30 +164,27 @@ async function requestLeave() {
 function onInvitedEvent(data: PartyInvitedEventData) {
     console.log("Tachyon: party/invited:", data);
     partyStore.parties.set(data.party.id, { ...data.party, seen: false });
-    parsePartyData();
+    parseAllPartyData();
 }
 
 function onRemovedEvent(data: PartyRemovedEventData) {
     console.log("Tachyon: party/removed:", data);
     // Note that "party/removed" includes cancelled or expired invitations in addition to being kicked/leaving.
     partyStore.parties.delete(data.partyId);
-    parsePartyData();
-    if (partyStore.activeParty?.id === data.partyId) {
-        partyStore.activeParty = null;
-    }
+    parseAllPartyData();
     chat.clearPartyChat();
 }
 
 function onUpdatedEvent(data: PartyUpdatedEventData) {
     console.log("Tachyon: party/updated:", data);
     partyStore.parties.set(data.id, { ...data, seen: false });
-    parsePartyData();
+    parseAllPartyData();
 }
 
 // We might be invited, or member, have to check to know.
-function parsePartyData() {
+function parseAllPartyData() {
     // Reset active party in case we are no longer in a party.
-    partyStore.activeParty = null;
+    partyStore.activeParty = undefined;
     const bools = {
         joined: false,
         invited: false,
@@ -197,7 +194,7 @@ function parsePartyData() {
         for (const member of party.members) {
             if (member.userId === me.userId) {
                 bools.joined = true;
-                partyStore.activeParty = party;
+                partyStore.activeParty = party.id;
             } else users.push(member.userId);
         }
         for (const invitee of party.invited) {

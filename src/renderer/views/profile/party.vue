@@ -27,13 +27,13 @@ SPDX-License-Identifier: MIT
                                 <div class="flex-row members-list">
                                     <div class="flex-row gap-md">
                                         <h3>{{ t("lobby.views.party.members") }}</h3>
-                                        <div v-for="member in partyStore.activeParty?.members" :key="member.userId">
+                                        <div v-for="member in getActivePartyMembers()" :key="member.userId">
                                             <PartyMember :userId="member.userId" />
                                         </div>
                                     </div>
                                     <div class="flex-row gap-md" v-if="displayInvites()">
                                         <h3>{{ t("lobby.views.party.invites") }}</h3>
-                                        <div v-for="invite in partyStore.activeParty?.invited" :key="invite.userId">
+                                        <div v-for="invite in getActivePartyInvites()" :key="invite.userId">
                                             <PartyInvitee :userId="invite.userId" />
                                         </div>
                                     </div>
@@ -306,8 +306,8 @@ function onInfoClick() {
     if (!downloading.value) isQueueDownloadsModalOpen.value = true;
 }
 function displayInvites() {
-    if (!partyStore.activeParty) return false;
-    return partyStore.activeParty.invited.length > 0;
+    if (!partyStore.activeParty || !partyStore.parties.get(partyStore.activeParty)) return false;
+    return partyStore.parties.get(partyStore.activeParty)!.invited.length > 0;
 }
 
 function hasUnseenMessage() {
@@ -331,9 +331,16 @@ function hasUnseenUpdates() {
     return false;
 }
 function setPartyUpdateSeen() {
-    if (!partyStore.activeParty) return;
-    partyStore.activeParty.seen = true;
-    partyStore.parties.get(partyStore.activeParty.id)!.seen = true;
+    if (!partyStore.activeParty || !partyStore.parties.get(partyStore.activeParty)) return;
+    partyStore.parties.get(partyStore.activeParty)!.seen = true;
+}
+function getActivePartyMembers() {
+    if (!partyStore.activeParty || !partyStore.parties.get(partyStore.activeParty)) return [];
+    return partyStore.parties.get(partyStore.activeParty)!.members;
+}
+function getActivePartyInvites() {
+    if (!partyStore.activeParty || !partyStore.parties.get(partyStore.activeParty)) return [];
+    return partyStore.parties.get(partyStore.activeParty)!.invited;
 }
 </script>
 

@@ -132,20 +132,22 @@ watch(
 );
 
 const maxMembersReached = computed(() => {
-    if (!partyStore.activeParty) return false;
+    if (!partyStore.activeParty || !partyStore.parties.get(partyStore.activeParty)) return false;
     return (
-        (partyStore.activeParty.members?.length || 0) + (partyStore.activeParty.invited?.length || 0) >= partyStore.activeParty.maxMembers
+        (partyStore.parties.get(partyStore.activeParty)!.members?.length || 0) +
+            (partyStore.parties.get(partyStore.activeParty)!.invited?.length || 0) >=
+        partyStore.parties.get(partyStore.activeParty)!.maxMembers
     );
 });
 
 const userInParty = computed(() => {
-    if (!partyStore.activeParty) return false;
-    return partyStore.activeParty.members?.some((member) => member.userId === props.userId) || false;
+    if (!partyStore.activeParty || !partyStore.parties.get(partyStore.activeParty)) return false;
+    return partyStore.parties.get(partyStore.activeParty)!.members?.some((member) => member.userId === props.userId) || false;
 });
 
 const userInvited = computed(() => {
-    if (!partyStore.activeParty) return false;
-    return partyStore.activeParty.invited?.some((invited) => invited.userId === props.userId) || false;
+    if (!partyStore.activeParty || !partyStore.parties.get(partyStore.activeParty)) return false;
+    return partyStore.parties.get(partyStore.activeParty)!.invited?.some((invited) => invited.userId === props.userId) || false;
 });
 
 async function cancelRequest() {
