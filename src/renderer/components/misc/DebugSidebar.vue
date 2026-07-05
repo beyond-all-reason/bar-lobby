@@ -22,14 +22,14 @@ SPDX-License-Identifier: MIT
             class="fullwidth"
             @update:model-value="onRouteSelect"
         />
-        <Button to="/debug"> Debug Sandbox </Button>
+        <Button to="/debug"> {{ t("lobby.components.misc.debugSidebar.debugSandbox") }} </Button>
         <Button @click="openSettings"> {{ t("lobby.components.misc.debugSidebar.openSettingsFile") }} </Button>
         <Button @click="openAssetsDir"> {{ t("lobby.components.misc.debugSidebar.openAssetsDir") }} </Button>
         <Button @click="openStateDir"> {{ t("lobby.components.misc.debugSidebar.openStateDir") }} </Button>
         <Button @click="openStartScript"> {{ t("lobby.components.misc.debugSidebar.openStartScript") }} </Button>
         <Button @click="openSyncLobbyContentTool"> {{ t("lobby.components.misc.debugSidebar.syncLobbyContent") }} </Button>
         <Button @click="causeError"> {{ t("lobby.components.misc.debugSidebar.causeError") }} </Button>
-        <Button @click="party.requestCreate"> Create Party </Button>
+        <Button @click="party.requestCreate"> {{ t("lobby.components.misc.debugSidebar.createParty") }} </Button>
 
         <Select
             :modelValue="gameStore.selectedGameVersion"
