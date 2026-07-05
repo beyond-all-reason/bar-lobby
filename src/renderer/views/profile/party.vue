@@ -23,7 +23,7 @@ SPDX-License-Identifier: MIT
                             </div>
                         </template>
                         <div class="flex-column gap-md">
-                            <div class="flex-row members-header margin-bottom-lg" v-in-view.once="() => setPartyUpdateSeen()">
+                            <div class="flex-row members-header margin-bottom-lg" v-in-view="() => setPartyUpdateSeen()">
                                 <div class="flex-row members-list">
                                     <div class="flex-row gap-md">
                                         <h3>{{ t("lobby.views.party.members") }}</h3>
@@ -326,6 +326,7 @@ function hasUnseenInvites() {
     return false;
 }
 function hasUnseenUpdates() {
+    if (tabIndex.value === 0) return false;
     if (!partyStore.activeParty || !partyStore.parties.get(partyStore.activeParty)) return false;
     return !partyStore.parties.get(partyStore.activeParty)!.seen;
 }
