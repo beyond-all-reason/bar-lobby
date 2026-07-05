@@ -4,6 +4,7 @@
 
 // This script is used to launch multiple instances of the BAR Lobby client with separate terminal windows for logging.
 // It uses electron-forge to compile and bundle it once, then spawns the requested number of clients into individual terminals with unique environment variables for state and assets paths.
+// This has been tested on Win11 and Linux Mint Cinnamon.
 
 import { spawn, execSync } from "child_process";
 import os from "os";
@@ -42,8 +43,6 @@ build.on("close", (code: number | null) => {
 
         console.log(`Spawning Client Shell #${i} -> STATE: ${statePath} | ASSETS: ${assetsPath}`);
         if (isWin) {
-            // Wrapping the title string in \" ensures Windows reads the client number dynamically
-            // /k keeps the terminal open to preserve log outputs if the application closes
             const windowTitle = `"Client #${i} Log Stream"`;
 
             spawn("cmd.exe", ["/c", "start", windowTitle, "cmd", "/c", "npx", "electron", "."], {
@@ -55,16 +54,12 @@ build.on("close", (code: number | null) => {
             // Linux Mint Cinnamon native terminal check using an ESM-safe execution check
             let hasGnomeTerminal = false;
             try {
-                // Using execSync since it is always available via the child_process ecosystem
-                // const { execSync } = await import("child_process");
                 execSync("which gnome-terminal", { stdio: "ignore" });
                 hasGnomeTerminal = true;
-            } catch (e) {
+            } catch {
                 hasGnomeTerminal = false;
             }
 
-            // Command to execute your electron client.
-            // The bash 'exec' replaces the shell process with electron to save resources.
             const runCmd = "npx electron .";
 
             if (hasGnomeTerminal) {
