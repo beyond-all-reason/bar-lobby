@@ -8,6 +8,7 @@ import { Replay } from "@main/content/replays/replay";
 import { BattleWithMetadata } from "@main/game/battle/battle-types";
 import { notificationsApi } from "@renderer/api/notifications";
 import { reactive, watch } from "vue";
+import { matchmakingStore, MatchmakingStatus } from "./matchmaking.store";
 
 export enum GameStatus {
     LOADING,
@@ -111,6 +112,9 @@ export async function initGameStore() {
     window.game.onGameClosed(() => {
         console.debug("Game closed");
         gameStore.status = GameStatus.CLOSED;
+        if (matchmakingStore.status !== MatchmakingStatus.Idle) {
+            matchmakingStore.status = MatchmakingStatus.Idle;
+        }
     });
     gameStore.isInitialized = true;
 }
