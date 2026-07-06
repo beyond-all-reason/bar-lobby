@@ -7,6 +7,8 @@ import fs from "fs";
 import { env } from "process";
 import { app } from "electron";
 import { homedir } from "os";
+import { Type, Static } from "@sinclair/typebox";
+import { Value } from "@sinclair/typebox/value";
 
 // Should be the same as `productName` in electron-builder.ts
 // and in workaround in installer.nsh.
@@ -104,7 +106,16 @@ console.log(`ASSETS_PATH: ${ASSETS_PATH}`);
 console.log(`STATE_PATH: ${STATE_PATH}`);
 
 export const CONFIG_PATH = path.join(STATE_PATH, "config");
+
+// Logging configuration
 export const LOGS_PATH = path.join(STATE_PATH, "logs");
+const LogLevelSchema = Type.String({ pattern: "^(fatal|error|warn|info|debug|trace|silent)$" });
+const formattedLogLevel: Static<typeof LogLevelSchema> = (process.env.BAR_LOG_LEVEL ?? "info").toLowerCase();
+const isValidLogLevel = Value.Check(LogLevelSchema, formattedLogLevel);
+if (!isValidLogLevel) {
+    console.warn(`Invalid BAR_LOG_LEVEL: ${process.env.BAR_LOG_LEVEL}. Using default log level: info. Valid values are: fatal, error, warn, info, debug, trace, silent.`);
+}
+export const LOG_LEVEL = isValidLogLevel ? formattedLogLevel : "info";
 
 // We will point engine at ASSETS_PATH as a base data directory to only read
 // data from, and at WRITE_DATA_PATH as data directory it can write to.

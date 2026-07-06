@@ -1981,7 +1981,7 @@
                     "searchGame": "Search game",
                     "joinRequested": "Joining queue",
                     "searchingForOpponent": "Searching for opponent",
-                    "matchFound": "Match found",
+                    "matchFound": "Matched - Click to Ready",
                     "accepted": "Accepted",
                     "cancel": "Cancel"
                 },
