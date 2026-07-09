@@ -120,7 +120,7 @@ function sendLobbyJoinRequest(data) {
     //Data here is the entire selectedLobby object (e.g. one of the lobbyList[] items)
     if (lobbyStore.activeLobby == undefined) {
         // No active lobby so we can freely join without worrying about a leave needed first.
-        lobby.requestJoinLobby({ id: data.id });
+        lobby.requestJoinLobby(data.id);
         return;
     } else if (lobbyStore.activeLobby.id == data.id) {
         //We are trying to join a lobby we are already in, just open the view, no request needed.
