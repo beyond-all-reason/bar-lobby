@@ -18,11 +18,11 @@ const config: Configuration = {
     publish: { provider: "github" },
     fileAssociations: [
         {
-            ext: "sdfz",
+            ext: "barreplay",
             description: "BAR Replay File",
             role: "Viewer",
             icon: "icon.ico",
-            name: "SDFZ NAME HERE",
+            name: "BAR Replay",
         },
     ],
 
@@ -50,6 +50,7 @@ const config: Configuration = {
     linux: {
         target: ["AppImage"],
         category: "Game",
+        mimeTypes: ["application/x-barreplay"],
     },
     appImage: {},
 };
