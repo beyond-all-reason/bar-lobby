@@ -127,6 +127,45 @@ export abstract class PrDownloaderAPI<ID, T> extends AbstractContentAPI<ID, T> {
         });
     }
 
+    /**
+     * Validates every object referenced by an SDP using pr-downloader's local
+     * integrity checks. This intentionally performs no download or deletion;
+     * the caller decides how to recover after a failed validation.
+     */
+    public validateSdp(sdpPath: string): Promise<boolean> {
+        return new Promise((resolve, reject) => {
+            try {
+                const defaultEngine = engineContentAPI.getDefaultEngine();
+                if (!defaultEngine) throw new Error("No default engine version.");
+                if (defaultEngine.installed === false) throw new Error("Default engine is not installed.");
+
+                const binaryName = process.platform === "win32" ? "pr-downloader.exe" : "pr-downloader";
+                const prBinaryPath = path.join(getEnginePath(), defaultEngine.id, binaryName);
+                const caCertPath = getCaCertPath();
+                const prdProcess = spawn(prBinaryPath, ["--filesystem-writepath", getAssetsPath(), "--validate-sdp", sdpPath], {
+                    env: {
+                        ...process.env,
+                        ...(caCertPath && !process.env.PRD_SSL_CERT_FILE && { PRD_SSL_CERT_FILE: caCertPath }),
+                    },
+                });
+
+                prdProcess.stdout?.on("data", (output: Buffer) => log.debug(output.toString()));
+                prdProcess.stderr?.on("data", (output: Buffer) => log.warn(output.toString()));
+                prdProcess.on("error", reject);
+                prdProcess.on("exit", (code, signal) => {
+                    if (code === 0) {
+                        resolve(true);
+                    } else {
+                        log.warn(`SDP validation exited with code ${code}, signal ${signal}`);
+                        resolve(false);
+                    }
+                });
+            } catch (error) {
+                reject(error);
+            }
+        });
+    }
+
     protected parseProgressMessage(message: string): Omit<PrdProgressMessage, "downloadType" | "content"> {
         const parts = message.split(" ");
         const bytes = parts[parts.length - 1].split("/");

@@ -20,6 +20,7 @@ async function reinit() {
 function registerIpcHandlers(webContents: BarIpcWebContents) {
     // Content
     ipcMain.handle("game:downloadGame", (_, version: string) => gameContentAPI.downloadGame(version));
+    ipcMain.handle("game:ensureValidatedGameContent", (_, version: string) => gameContentAPI.ensureValidatedGameContent(version));
     ipcMain.handle("game:getScenarios", (_, version: string) => gameContentAPI.getScenarios(version));
     ipcMain.handle("game:getInstalledVersions", () => gameContentAPI.availableVersions.values().toArray());
     ipcMain.handle("game:isVersionInstalled", (_, id: string) => gameContentAPI.isVersionInstalled(id));

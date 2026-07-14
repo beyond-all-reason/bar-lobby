@@ -22,6 +22,7 @@ import { SdpFileMeta, SdpFile } from "@main/content/game/sdp";
 import { PrDownloaderAPI } from "@main/content/pr-downloader";
 import { getRapidIndexPath, getPackagePath, getPoolPath, getGamePaths, SCENARIO_IMAGE_PATH } from "@main/config/app";
 import { PoolCdnDownloader } from "@main/content/game/pool-cdn";
+import { resetPool } from "@main/content/game/pool-state";
 import { fileExists } from "@main/utils/file";
 import { engineContentAPI } from "@main/content/engine/engine-content";
 import { calcChecksum } from "@main/utils/checksums";
@@ -95,12 +96,21 @@ export class GameContentAPI extends PrDownloaderAPI<string, GameVersion> {
             }
             const packageMd5 = packageFile.split(".")[0];
             const gameVersion = this.packageGameVersionLookup[packageMd5];
-            const luaOptionSections = await this.getGameOptions(packageMd5);
-            const ais = await this.getAis(packageMd5);
-            if (gameVersion) {
-                this.availableVersions.set(gameVersion, { gameVersion, packageMd5, luaOptionSections, ais });
-            } else {
+            if (!gameVersion) {
                 log.warn(`Not found matching game version for ${packageFile}`);
+                continue;
+            }
+
+            try {
+                const luaOptionSections = await this.getGameOptions(packageMd5);
+                const ais = await this.getAis(packageMd5);
+                this.availableVersions.set(gameVersion, { gameVersion, packageMd5, luaOptionSections, ais });
+            } catch (error) {
+                // Pool validation runs before the renderer enters the normal Lobby.
+                // Keep the package discoverable even when its objects are missing or
+                // corrupt so that validation can trigger clean recovery.
+                log.warn(`Couldn't read content for ${packageFile}; it will be validated before use: ${error}`);
+                this.availableVersions.set(gameVersion, { gameVersion, packageMd5, luaOptionSections: [], ais: [] });
             }
         }
         log.info(`Found ${this.availableVersions.size} installed game versions`);
@@ -362,14 +372,60 @@ export class GameContentAPI extends PrDownloaderAPI<string, GameVersion> {
         return ais;
     }
 
+    /**
+     * Ensures the latest installed Rapid game package is valid before Lobby
+     * enters its normal UI. Missing or invalid pool data is discarded rather
+     * than repaired
+     */
+    public async ensureValidatedGameContent(gameVersion: string): Promise<void> {
+        const installedVersion = this.getLatestRapidGameVersion();
+
+        if (installedVersion && (await this.validateGameVersion(installedVersion))) {
+            log.info(`Validated installed game ${installedVersion.gameVersion}`);
+        } else {
+            if (installedVersion) {
+                log.warn(`Installed game ${installedVersion.gameVersion} failed pool validation; reseeding pool data`);
+            } else {
+                log.info("No installed Rapid game found; seeding pool data");
+            }
+            await resetPool(getPoolPath());
+            await this.preloadPoolData();
+        }
+
+        await this.downloadGame(gameVersion);
+
+        // Locate the newest *locally* indexed Rapid package after reconciliation
+        // and validate its complete SDP against the pool. This catches a
+        // missing/corrupt object left after archive extraction or pr-downloader work.
+        //
+        // it proves the selected installed package on THIS machine (not the latest remote)
+        // is usable, but does not itself prove a remote tag still resolves to that package.
+        const reconciledVersion = this.getLatestRapidGameVersion();
+        if (!reconciledVersion || !(await this.validateGameVersion(reconciledVersion))) {
+            throw new Error("Game content validation failed after pool prefetch and pr-downloader reconciliation");
+        }
+        log.info(`Validated reconciled game ${reconciledVersion.gameVersion}`);
+    }
+
+    private getLatestRapidGameVersion(): GameVersion | undefined {
+        const versions = Array.from(this.availableVersions.values());
+        for (let index = versions.length - 1; index >= 0; index--) {
+            const version = versions[index];
+            if (!version.packageMd5.endsWith(".sdd")) return version;
+        }
+        return undefined;
+    }
+
+    private async validateGameVersion(version: GameVersion): Promise<boolean> {
+        const sdpPath = path.join(getPackagePath(), `${version.packageMd5}.sdp`);
+        if (!(await fileExists(sdpPath))) return false;
+        return this.validateSdp(sdpPath);
+    }
+
     public async preloadPoolData() {
         log.debug("Preloading pool data");
         const poolCdn = new PoolCdnDownloader(this);
-        try {
-            await poolCdn.preloadPoolData();
-        } catch (error) {
-            log.warn(error, "Failed preloading pool data, ignoring");
-        }
+        await poolCdn.preloadPoolData();
     }
 
     // TODO reimplement a cleanup function
