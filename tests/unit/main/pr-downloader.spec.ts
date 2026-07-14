@@ -3,6 +3,8 @@
 // SPDX-License-Identifier: MIT
 
 import { EventEmitter } from "events";
+import path from "path";
+import { platform } from "process";
 import { describe, expect, it, vi } from "vitest";
 
 const { mockSpawn } = vi.hoisted(() => ({ mockSpawn: vi.fn() }));
@@ -45,7 +47,12 @@ describe("PrDownloaderAPI.validateSdp", () => {
         process.emit("exit", 0, null);
 
         await expect(validation).resolves.toBe(true);
-        expect(mockSpawn).toHaveBeenCalledWith("/assets/engine/engine-version/pr-downloader", ["--filesystem-writepath", "/assets", "--validate-sdp", "/assets/packages/game.sdp"], expect.any(Object));
+        const binaryName = platform === "win32" ? "pr-downloader.exe" : "pr-downloader";
+        expect(mockSpawn).toHaveBeenCalledWith(
+            path.join("/assets/engine", "engine-version", binaryName),
+            ["--filesystem-writepath", "/assets", "--validate-sdp", "/assets/packages/game.sdp"],
+            expect.any(Object)
+        );
     });
 
     it("returns false when pr-downloader reports a missing or invalid pool object", async () => {
