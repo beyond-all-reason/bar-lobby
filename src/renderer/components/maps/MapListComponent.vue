@@ -51,7 +51,7 @@ SPDX-License-Identifier: MIT
  * - Easy one click install button
  * - Demo map button that launches a simple offline game on the map
  */
-import { computed, Ref, ref } from "vue";
+import { Ref, ref } from "vue";
 
 import Button from "@renderer/components/controls/Button.vue";
 import Checkbox from "@renderer/components/controls/Checkbox.vue";
@@ -63,8 +63,8 @@ import { type MapData } from "@main/content/maps/map-data";
 import type { GameType, Terrain } from "@main/content/maps/map-metadata";
 import { db } from "@renderer/store/db";
 import { useDexieLiveQueryWithDeps } from "@renderer/composables/useDexieLiveQuery";
-import { mapsStore, queueMapDownloads } from "@renderer/store/maps.store";
-import { downloadsStore } from "@renderer/store/downloads.store";
+import { useMapDownloadSelection } from "@renderer/composables/useMapDownloadSelection";
+import { mapsStore } from "@renderer/store/maps.store";
 
 import { useInfiniteScroll } from "@vueuse/core";
 import { useTypedI18n } from "@renderer/i18n";
@@ -117,33 +117,8 @@ const maps = useDexieLiveQueryWithDeps([searchVal, sortMethod, limit, filters], 
         .sortBy(sortMethod.value?.dbKey || "");
 });
 
-const selectedMapNames = ref(new Set<string>());
-const queuedMapNames = computed(() => new Set(downloadsStore.mapDownloadQueue.map((entry) => entry.springName)));
-const selectedDownloadMapNames = computed(() =>
-    (maps.value ?? [])
-        .filter((map) => selectedMapNames.value.has(map.springName) && isMapDownloadEligible(map))
-        .map((map) => map.springName)
-);
-
-function isMapDownloadEligible(map: MapData) {
-    return !map.isInstalled && !mapsStore.availableMapNames.has(map.springName) && !queuedMapNames.value.has(map.springName);
-}
-
-function toggleMapSelection(springName: string) {
-    const nextSelection = new Set(selectedMapNames.value);
-    if (nextSelection.has(springName)) {
-        nextSelection.delete(springName);
-    } else {
-        nextSelection.add(springName);
-    }
-    selectedMapNames.value = nextSelection;
-}
-
-function downloadSelectedMaps() {
-    const springNames = selectedDownloadMapNames.value;
-    queueMapDownloads(springNames);
-    selectedMapNames.value = new Set();
-}
+const { selectedMapNames, selectedDownloadMapNames, isEligible: isMapDownloadEligible, submit: downloadSelectedMaps, toggle: toggleMapSelection } =
+    useMapDownloadSelection(maps);
 
 function mapSelected(map: MapData) {
     emit("map-selected", map);

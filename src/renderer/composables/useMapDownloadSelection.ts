@@ -1,0 +1,51 @@
+// SPDX-FileCopyrightText: 2026 The BAR Lobby Authors
+//
+// SPDX-License-Identifier: MIT
+
+import { computed, ref, type Ref } from "vue";
+
+import type { MapData } from "@main/content/maps/map-data";
+import { downloadsStore } from "@renderer/store/downloads.store";
+import { mapsStore, queueMapDownloads } from "@renderer/store/maps.store";
+
+type MapCatalog = readonly MapData[] | undefined;
+
+/**
+ * Owns map-catalog download selection while retaining the catalog's visible order for batch submission.
+ */
+export function useMapDownloadSelection(maps: Ref<MapCatalog>) {
+    const selectedMapNames = ref(new Set<string>());
+    const queuedMapNames = computed(() => new Set(downloadsStore.mapDownloadQueue.map((entry) => entry.springName)));
+    const selectedDownloadMapNames = computed(() =>
+        (maps.value ?? [])
+            .filter((map) => selectedMapNames.value.has(map.springName) && isEligible(map))
+            .map((map) => map.springName)
+    );
+
+    function isEligible(map: MapData) {
+        return !map.isInstalled && !mapsStore.availableMapNames.has(map.springName) && !queuedMapNames.value.has(map.springName);
+    }
+
+    function toggle(springName: string) {
+        const nextSelection = new Set(selectedMapNames.value);
+        if (nextSelection.has(springName)) {
+            nextSelection.delete(springName);
+        } else {
+            nextSelection.add(springName);
+        }
+        selectedMapNames.value = nextSelection;
+    }
+
+    function submit() {
+        queueMapDownloads(selectedDownloadMapNames.value);
+        selectedMapNames.value = new Set();
+    }
+
+    return {
+        selectedMapNames,
+        selectedDownloadMapNames,
+        isEligible,
+        toggle,
+        submit,
+    };
+}
