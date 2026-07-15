@@ -18,6 +18,7 @@ export function useMapDownloadSelection(maps: Ref<MapCatalog>) {
     const selectedMapNames = ref(new Set<string>());
     const queuedMapNames = computed(() => new Set(downloadsStore.mapDownloadQueue.map((entry) => entry.springName)));
     const selectedDownloadMapNames = computed(() => (maps.value ?? []).filter((map) => selectedMapNames.value.has(map.springName) && isEligible(map)).map((map) => map.springName));
+    const eligibleMapNames = computed(() => (maps.value ?? []).filter(isEligible).map((map) => map.springName));
 
     function isEligible(map: DownloadableMap) {
         return !map.isInstalled && !mapsStore.availableMapNames.has(map.springName) && !queuedMapNames.value.has(map.springName);
@@ -33,6 +34,14 @@ export function useMapDownloadSelection(maps: Ref<MapCatalog>) {
         selectedMapNames.value = nextSelection;
     }
 
+    function selectAll() {
+        selectedMapNames.value = new Set(eligibleMapNames.value);
+    }
+
+    function clearSelection() {
+        selectedMapNames.value = new Set();
+    }
+
     function submit() {
         queueMapDownloads(selectedDownloadMapNames.value);
         selectedMapNames.value = new Set();
@@ -43,6 +52,8 @@ export function useMapDownloadSelection(maps: Ref<MapCatalog>) {
         selectedDownloadMapNames,
         isEligible,
         toggle,
+        selectAll,
+        clearSelection,
         submit,
     };
 }

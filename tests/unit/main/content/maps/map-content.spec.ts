@@ -2,23 +2,13 @@
 //
 // SPDX-License-Identifier: MIT
 
-import { beforeEach, describe, expect, it, vi } from "vitest";
-
-const { settings } = vi.hoisted(() => ({
-    settings: { devMode: false },
-}));
+import { describe, expect, it, vi } from "vitest";
 
 vi.mock("@main/config/app", () => ({
     getAssetsPath: () => "/tmp/bar-lobby-assets",
     getCaCertPath: () => undefined,
     getEnginePath: () => "/tmp/bar-lobby-engines",
     getMapsPaths: () => ["/tmp/bar-lobby-maps"],
-}));
-
-vi.mock("@main/services/settings.service", () => ({
-    settingsService: {
-        getSettings: () => settings,
-    },
 }));
 
 import { MapContentAPI } from "@main/content/maps/map-content";
@@ -59,33 +49,6 @@ async function flushQueue() {
 }
 
 describe("MapContentAPI download queue", () => {
-    beforeEach(() => {
-        settings.devMode = false;
-    });
-
-    it("holds a dev-mode map as downloading before starting pr-downloader", async () => {
-        vi.useFakeTimers();
-        settings.devMode = true;
-        try {
-            const maps = new ControlledMapContentAPI();
-            const download = maps.downloadMap("map-a");
-
-            expect(maps.getMapDownloadQueue()).toEqual([{ springName: "map-a", status: "downloading" }]);
-            expect(maps.started).toEqual([]);
-
-            await vi.advanceTimersByTimeAsync(2999);
-            expect(maps.started).toEqual([]);
-
-            await vi.advanceTimersByTimeAsync(1);
-            expect(maps.started).toEqual(["map-a"]);
-
-            maps.complete("map-a");
-            await expect(download).resolves.toBeUndefined();
-        } finally {
-            vi.useRealTimers();
-        }
-    });
-
     it("reports the active map first and preserves waiting queue order", async () => {
         const maps = new ControlledMapContentAPI();
         const queueChanges: unknown[] = [];

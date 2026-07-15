@@ -14,7 +14,13 @@ SPDX-License-Identifier: MIT
                 :label="t('lobby.components.maps.mapListComponents.sortBy')"
                 optionLabel="label"
             />
-            <Button class="green" :disabled="selectedDownloadMapNames.length === 0" @click="downloadSelectedMaps">
+            <Button class="gray select-all-maps" @click="selectAllMapSelections">
+                {{ t("lobby.components.maps.mapListComponents.selectAll") }}
+            </Button>
+            <Button class="gray clear-all-maps" :disabled="selectedDownloadMapNames.length === 0" @click="clearMapSelections">
+                {{ t("lobby.components.maps.mapListComponents.clearSelection") }}
+            </Button>
+            <Button class="green download-selected" :disabled="selectedDownloadMapNames.length === 0" @click="downloadSelectedMaps">
                 {{ t("lobby.components.maps.mapListComponents.downloadSelected", { count: selectedDownloadMapNames.length }) }}
             </Button>
         </div>
@@ -123,6 +129,8 @@ const {
     isEligible: isMapDownloadEligible,
     submit: downloadSelectedMaps,
     toggle: toggleMapSelection,
+    selectAll: selectAllMapSelections,
+    clearSelection: clearMapSelections,
 } = useMapDownloadSelection(maps);
 
 function mapSelected(map: MapData) {

@@ -55,8 +55,9 @@ describe("MapListComponent", () => {
             global: {
                 stubs: {
                     Button: {
+                        props: ["disabled"],
                         emits: ["click"],
-                        template: '<button :class="$attrs.class" @click="$emit(\'click\')"><slot /></button>',
+                        template: '<button :class="$attrs.class" :disabled="disabled" @click="$emit(\'click\')"><slot /></button>',
                     },
                     Checkbox: {
                         props: ["modelValue"],
@@ -86,8 +87,9 @@ describe("MapListComponent", () => {
             global: {
                 stubs: {
                     Button: {
+                        props: ["disabled"],
                         emits: ["click"],
-                        template: '<button :class="$attrs.class" @click="$emit(\'click\')"><slot /></button>',
+                        template: '<button :class="$attrs.class" :disabled="disabled" @click="$emit(\'click\')"><slot /></button>',
                     },
                     Checkbox: {
                         props: ["modelValue"],
@@ -105,5 +107,35 @@ describe("MapListComponent", () => {
         await wrapper.find(".download-selected").trigger("click");
 
         expect(queueMapDownloads).toHaveBeenCalledWith(["map-b", "map-a"]);
+    });
+
+    it("clears an all-map selection without submitting any downloads", async () => {
+        const wrapper = mount(MapListComponent, {
+            global: {
+                stubs: {
+                    Button: {
+                        props: ["disabled"],
+                        emits: ["click"],
+                        template: '<button :class="$attrs.class" :disabled="disabled" @click="$emit(\'click\')"><slot /></button>',
+                    },
+                    Checkbox: {
+                        props: ["modelValue"],
+                        emits: ["update:modelValue"],
+                        template: '<button class="map-checkbox" @click="$emit(\'update:modelValue\', !modelValue)"></button>',
+                    },
+                    MapOverviewCard: { template: "<div />" },
+                    SearchBox: { template: "<div />" },
+                    Select: { template: "<div />" },
+                },
+            },
+        });
+
+        await wrapper.find(".select-all-maps").trigger("click");
+        expect(wrapper.find(".download-selected").attributes("disabled")).toBeUndefined();
+
+        await wrapper.find(".clear-all-maps").trigger("click");
+
+        expect(wrapper.find(".download-selected").attributes("disabled")).toBeDefined();
+        expect(queueMapDownloads).not.toHaveBeenCalled();
     });
 });

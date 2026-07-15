@@ -15,7 +15,6 @@ import chokidar, { FSWatcher } from "chokidar";
 import { UltraSimpleMapParser } from "$/map-parser/ultrasimple-map-parser";
 import { removeFromArray } from "$/jaz-ts-utils/object";
 import { engineContentAPI } from "@main/content/engine/engine-content";
-import { settingsService } from "@main/services/settings.service";
 import { calcChecksum } from "@main/utils/checksums";
 
 const log = logger("map-content.ts");
