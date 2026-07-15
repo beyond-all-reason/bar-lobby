@@ -9,6 +9,7 @@ import { Settings } from "@main/services/settings.service";
 import { EngineVersion } from "@main/content/engine/engine-version";
 import { GameVersion } from "@main/content/game/game-version";
 import { MapData, MapDownloadData } from "@main/content/maps/map-data";
+import type { MapDownloadQueueEntry } from "@main/content/maps/map-content";
 import { DownloadInfo } from "@main/content/downloads";
 import { Info } from "@main/services/info.service";
 import { BattleWithMetadata } from "@main/game/battle/battle-types";
@@ -121,6 +122,7 @@ const mapsApi = {
     // Content
     downloadMap: (springName: string): Promise<void> => ipcRenderer.invoke("maps:downloadMap", springName),
     downloadMaps: (springNames: string[]): Promise<void[]> => ipcRenderer.invoke("maps:downloadMaps", springNames),
+    getDownloadQueue: () => ipcRenderer.invoke("maps:getDownloadQueue"),
     getInstalledMapNames: (): Promise<string[]> => ipcRenderer.invoke("maps:getInstalledMapNames"),
     getInstalledVersions: (): Promise<Map<string, MapData>> => ipcRenderer.invoke("maps:getInstalledVersions"),
     isVersionInstalled: (springName: string): Promise<boolean> => ipcRenderer.invoke("maps:isVersionInstalled", springName),
@@ -130,6 +132,7 @@ const mapsApi = {
     fetchMapImages: (imageSource: string): Promise<ArrayBuffer | undefined> => ipcRenderer.invoke("maps:online:fetchMapImages", imageSource),
 
     // Events
+    onDownloadQueueChanged: (callback: (queue: MapDownloadQueueEntry[]) => void) => ipcRenderer.on("maps:downloadQueueChanged", (_event, queue) => callback(queue)),
     onMapAdded: (callback: (filename: string) => void) => ipcRenderer.on("maps:mapAdded", (_event, filename) => callback(filename)),
     onMapDeleted: (callback: (filename: string) => void) => ipcRenderer.on("maps:mapDeleted", (_event, filename) => callback(filename)),
 };
