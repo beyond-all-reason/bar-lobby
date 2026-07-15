@@ -50,9 +50,9 @@ describe("UltraSimpleMapParser", () => {
         expect(result.springName).toBe("Some Map 1.2");
     });
 
-    // Regression test: a missing "version" field used to fall through to the 
-    // "append version" branch, producing "<name> undefined"/"<name> " which 
-    // never matched the expected spring name, so the map was re-downloaded 
+    // Regression test: a missing "version" field used to fall through to the
+    // "append version" branch, producing "<name> undefined"/"<name> " which
+    // never matched the expected spring name, so the map was re-downloaded
     // on every launch instead of being recognized as already installed.
     it("does not append a trailing space/undefined when version is missing (issue #629)", async () => {
         mockReadSpecificFile.mockResolvedValue(mapinfoLua({ name: "Paradise Lost V4" }));
