@@ -17,11 +17,7 @@ type MapCatalog = readonly DownloadableMap[] | undefined;
 export function useMapDownloadSelection(maps: Ref<MapCatalog>) {
     const selectedMapNames = ref(new Set<string>());
     const queuedMapNames = computed(() => new Set(downloadsStore.mapDownloadQueue.map((entry) => entry.springName)));
-    const selectedDownloadMapNames = computed(() =>
-        (maps.value ?? [])
-            .filter((map) => selectedMapNames.value.has(map.springName) && isEligible(map))
-            .map((map) => map.springName)
-    );
+    const selectedDownloadMapNames = computed(() => (maps.value ?? []).filter((map) => selectedMapNames.value.has(map.springName) && isEligible(map)).map((map) => map.springName));
 
     function isEligible(map: DownloadableMap) {
         return !map.isInstalled && !mapsStore.availableMapNames.has(map.springName) && !queuedMapNames.value.has(map.springName);

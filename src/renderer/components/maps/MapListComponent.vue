@@ -117,8 +117,13 @@ const maps = useDexieLiveQueryWithDeps([searchVal, sortMethod, limit, filters], 
         .sortBy(sortMethod.value?.dbKey || "");
 });
 
-const { selectedMapNames, selectedDownloadMapNames, isEligible: isMapDownloadEligible, submit: downloadSelectedMaps, toggle: toggleMapSelection } =
-    useMapDownloadSelection(maps);
+const {
+    selectedMapNames,
+    selectedDownloadMapNames,
+    isEligible: isMapDownloadEligible,
+    submit: downloadSelectedMaps,
+    toggle: toggleMapSelection,
+} = useMapDownloadSelection(maps);
 
 function mapSelected(map: MapData) {
     emit("map-selected", map);

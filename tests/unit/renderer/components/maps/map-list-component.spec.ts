@@ -56,7 +56,7 @@ describe("MapListComponent", () => {
                 stubs: {
                     Button: {
                         emits: ["click"],
-                        template: '<button class="download-selected" @click="$emit(\'click\')"><slot /></button>',
+                        template: '<button :class="$attrs.class" @click="$emit(\'click\')"><slot /></button>',
                     },
                     Checkbox: {
                         props: ["modelValue"],
@@ -76,6 +76,32 @@ describe("MapListComponent", () => {
         await checkboxes[1].trigger("click");
         await checkboxes[0].trigger("click");
         await nextTick();
+        await wrapper.find(".download-selected").trigger("click");
+
+        expect(queueMapDownloads).toHaveBeenCalledWith(["map-b", "map-a"]);
+    });
+
+    it("selects every displayed eligible map before submitting the batch", async () => {
+        const wrapper = mount(MapListComponent, {
+            global: {
+                stubs: {
+                    Button: {
+                        emits: ["click"],
+                        template: '<button :class="$attrs.class" @click="$emit(\'click\')"><slot /></button>',
+                    },
+                    Checkbox: {
+                        props: ["modelValue"],
+                        emits: ["update:modelValue"],
+                        template: '<button class="map-checkbox" @click="$emit(\'update:modelValue\', !modelValue)"></button>',
+                    },
+                    MapOverviewCard: { template: "<div />" },
+                    SearchBox: { template: "<div />" },
+                    Select: { template: "<div />" },
+                },
+            },
+        });
+
+        await wrapper.find(".select-all-maps").trigger("click");
         await wrapper.find(".download-selected").trigger("click");
 
         expect(queueMapDownloads).toHaveBeenCalledWith(["map-b", "map-a"]);
