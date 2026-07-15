@@ -8,7 +8,8 @@ import type { MapData } from "@main/content/maps/map-data";
 import { downloadsStore } from "@renderer/store/downloads.store";
 import { mapsStore, queueMapDownloads } from "@renderer/store/maps.store";
 
-type MapCatalog = readonly MapData[] | undefined;
+type DownloadableMap = Pick<MapData, "springName" | "isInstalled">;
+type MapCatalog = readonly DownloadableMap[] | undefined;
 
 /**
  * Owns map-catalog download selection while retaining the catalog's visible order for batch submission.
@@ -22,7 +23,7 @@ export function useMapDownloadSelection(maps: Ref<MapCatalog>) {
             .map((map) => map.springName)
     );
 
-    function isEligible(map: MapData) {
+    function isEligible(map: DownloadableMap) {
         return !map.isInstalled && !mapsStore.availableMapNames.has(map.springName) && !queuedMapNames.value.has(map.springName);
     }
 
