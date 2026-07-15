@@ -54,7 +54,7 @@ describe("UltraSimpleMapParser", () => {
     // "append version" branch, producing "<name> undefined"/"<name> " which
     // never matched the expected spring name, so the map was re-downloaded
     // on every launch instead of being recognized as already installed.
-    it("does not append a trailing space/undefined when version is missing (issue #629)", async () => {
+    it("does not append a trailing space/undefined when version is missing", async () => {
         mockReadSpecificFile.mockResolvedValue(mapinfoLua({ name: "Paradise Lost V4" }));
 
         const result = await parser.parseMap("/maps/paradise_lost_v4.sd7");
