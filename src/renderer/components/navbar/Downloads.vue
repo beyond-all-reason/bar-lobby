@@ -7,9 +7,21 @@ SPDX-License-Identifier: MIT
 <template>
     <PopOutPanel :open="modelValue">
         <Transition name="fade" mode="out-in">
-            <div v-if="allDownloads.length" class="downloads">
+            <div v-if="hasDownloads" class="downloads">
                 <TransitionGroup tag="div" name="downloads-list">
-                    <div v-for="download in limitedList" :key="download.name" class="downloads__download">
+                    <div v-for="download in mapDownloadQueue" :key="download.springName" class="downloads__download">
+                        <div class="downloads__info">
+                            <div class="downloads__name">{{ download.springName }}</div>
+                            <div class="downloads__status">
+                                {{
+                                    download.status === "downloading"
+                                        ? t("lobby.navbar.downloads.downloading")
+                                        : t("lobby.navbar.downloads.queued")
+                                }}
+                            </div>
+                        </div>
+                    </div>
+                    <div v-for="download in nonMapDownloads" :key="`${download.type}:${download.name}`" class="downloads__download">
                         <div class="downloads__info">
                             <div class="downloads__name">{{ download.name }}</div>
                             <div class="downloads__type">{{ download.type }}</div>
@@ -30,13 +42,8 @@ SPDX-License-Identifier: MIT
                         </template>
                     </div>
                 </TransitionGroup>
-                <Transition tag="div" name="fade" mode="out-in">
-                    <div class="flex-row flex-grow flex-center" v-if="allDownloads.length > limitedList.length">
-                        {{ t("lobby.navbar.downloads.moreDownloads", { count: allDownloads.length - limitedList.length }) }}
-                    </div>
-                </Transition>
             </div>
-            <div v-else class="flex-row flex-grow flex-center">{{ t("lobby.navbar.downloads.noDownloads") }}</div>
+            <div v-else class="downloads__empty">{{ t("lobby.navbar.downloads.noDownloads") }}</div>
         </Transition>
     </PopOutPanel>
 </template>
@@ -50,6 +57,7 @@ import Progress from "@renderer/components/common/Progress.vue";
 import PopOutPanel from "@renderer/components/navbar/PopOutPanel.vue";
 import { useTypedI18n } from "@renderer/i18n";
 import { MIN_DOWNLOAD_BYTES, useDownloadProgress } from "@renderer/composables/useDownloadProgress";
+import { downloadsStore } from "@renderer/store/downloads.store";
 
 const { t } = useTypedI18n();
 const { allDownloads, downloadPercent, progressText } = useDownloadProgress();
@@ -77,7 +85,9 @@ const toggleMessages = inject<Ref<(open?: boolean, userId?: number) => void>>("t
 const toggleFriends = inject<Ref<(open?: boolean) => void>>("toggleFriends")!;
 const toggleDownloads = inject<Ref<(open?: boolean) => void>>("toggleDownloads")!;
 
-const limitedList = computed(() => allDownloads.value.slice(0, 5));
+const mapDownloadQueue = computed(() => downloadsStore.mapDownloadQueue);
+const nonMapDownloads = computed(() => allDownloads.value.filter((download) => download.type !== "map"));
+const hasDownloads = computed(() => mapDownloadQueue.value.length > 0 || nonMapDownloads.value.length > 0);
 
 toggleDownloads.value = async (open?: boolean) => {
     if (open) {
@@ -90,15 +100,18 @@ toggleDownloads.value = async (open?: boolean) => {
 
 <style lang="scss" scoped>
 .downloads {
-    display: flex;
-    flex-direction: column;
+    height: 400px;
+    overflow-y: auto;
+
     &__info {
         display: flex;
         flex-direction: row;
         justify-content: space-between;
+        gap: 15px;
     }
+
     &__download {
-        height: 85px;
+        min-height: 68px;
         width: 100%;
         display: flex;
         flex-direction: column;
@@ -107,16 +120,27 @@ toggleDownloads.value = async (open?: boolean) => {
         background: rgba(255, 255, 255, 0.03);
         gap: 5px;
     }
-    &__type {
+
+    &__name {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    &__type,
+    &__status {
+        flex: none;
         text-transform: uppercase;
         font-size: 12px;
         font-weight: 700;
         color: rgba(255, 255, 255, 0.7);
     }
+
     &__detail {
         font-size: 11px;
         color: rgba(255, 255, 255, 0.6);
     }
+
     &__extracting {
         display: flex;
         align-items: center;
@@ -125,12 +149,17 @@ toggleDownloads.value = async (open?: boolean) => {
         color: rgba(255, 255, 255, 0.7);
         flex: 1;
     }
+
+    &__empty {
+        display: flex;
+        min-height: 160px;
+        align-items: center;
+        justify-content: center;
+    }
 }
 
-// Transition
 .downloads-list-move {
-    transition: all 0.2s ease;
-    transition-delay: 0.2s;
+    transition: transform 0.2s ease;
 }
 .downloads-list-enter-active,
 .downloads-list-leave-active {

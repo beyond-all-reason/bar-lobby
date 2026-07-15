@@ -14,13 +14,24 @@ SPDX-License-Identifier: MIT
                 :label="t('lobby.components.maps.mapListComponents.sortBy')"
                 optionLabel="label"
             />
+            <Button class="green" :disabled="selectedDownloadMapNames.length === 0" @click="downloadSelectedMaps">
+                {{ t("lobby.components.maps.mapListComponents.downloadSelected", { count: selectedDownloadMapNames.length }) }}
+            </Button>
         </div>
 
         <div class="flex-col flex-grow fullheight">
             <div class="scroll-container" style="overflow-y: scroll" ref="el">
                 <div class="maps">
                     <TransitionGroup name="maps-list">
-                        <MapOverviewCard v-for="map in maps" :key="map.springName" :map="map" @click="mapSelected(map)" />
+                        <div v-for="map in maps" :key="map.springName" class="map-card">
+                            <MapOverviewCard :map="map" @click="mapSelected(map)" />
+                            <div v-if="isMapDownloadEligible(map)" class="map-card__selection" @click.stop>
+                                <Checkbox
+                                    :modelValue="selectedMapNames.has(map.springName)"
+                                    @update:modelValue="toggleMapSelection(map.springName)"
+                                />
+                            </div>
+                        </div>
                     </TransitionGroup>
                     <div v-if="(maps?.length || 0) <= 0">
                         <h4>{{ t("lobby.components.maps.mapListComponents.noMapsFound") }}</h4>
@@ -40,7 +51,10 @@ SPDX-License-Identifier: MIT
  * - Easy one click install button
  * - Demo map button that launches a simple offline game on the map
  */
-import { Ref, ref } from "vue";
+import { computed, Ref, ref } from "vue";
+
+import Button from "@renderer/components/controls/Button.vue";
+import Checkbox from "@renderer/components/controls/Checkbox.vue";
 
 import SearchBox from "@renderer/components/controls/SearchBox.vue";
 import Select from "@renderer/components/controls/Select.vue";
@@ -49,7 +63,8 @@ import { type MapData } from "@main/content/maps/map-data";
 import type { GameType, Terrain } from "@main/content/maps/map-metadata";
 import { db } from "@renderer/store/db";
 import { useDexieLiveQueryWithDeps } from "@renderer/composables/useDexieLiveQuery";
-import { mapsStore } from "@renderer/store/maps.store";
+import { mapsStore, queueMapDownloads } from "@renderer/store/maps.store";
+import { downloadsStore } from "@renderer/store/downloads.store";
 
 import { useInfiniteScroll } from "@vueuse/core";
 import { useTypedI18n } from "@renderer/i18n";
@@ -102,6 +117,34 @@ const maps = useDexieLiveQueryWithDeps([searchVal, sortMethod, limit, filters], 
         .sortBy(sortMethod.value?.dbKey || "");
 });
 
+const selectedMapNames = ref(new Set<string>());
+const queuedMapNames = computed(() => new Set(downloadsStore.mapDownloadQueue.map((entry) => entry.springName)));
+const selectedDownloadMapNames = computed(() =>
+    (maps.value ?? [])
+        .filter((map) => selectedMapNames.value.has(map.springName) && isMapDownloadEligible(map))
+        .map((map) => map.springName)
+);
+
+function isMapDownloadEligible(map: MapData) {
+    return !map.isInstalled && !mapsStore.availableMapNames.has(map.springName) && !queuedMapNames.value.has(map.springName);
+}
+
+function toggleMapSelection(springName: string) {
+    const nextSelection = new Set(selectedMapNames.value);
+    if (nextSelection.has(springName)) {
+        nextSelection.delete(springName);
+    } else {
+        nextSelection.add(springName);
+    }
+    selectedMapNames.value = nextSelection;
+}
+
+function downloadSelectedMaps() {
+    const springNames = selectedDownloadMapNames.value;
+    queueMapDownloads(springNames);
+    selectedMapNames.value = new Set();
+}
+
 function mapSelected(map: MapData) {
     emit("map-selected", map);
 }
@@ -113,6 +156,18 @@ function mapSelected(map: MapData) {
     grid-gap: 15px;
     grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
     padding-right: 10px;
+}
+
+.map-card {
+    position: relative;
+    cursor: pointer;
+
+    &__selection {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        z-index: 6;
+    }
 }
 
 // Transition
