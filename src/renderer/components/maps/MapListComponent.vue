@@ -100,28 +100,29 @@ useInfiniteScroll(
     { distance: 300, interval: 550 }
 );
 
-const maps = useDexieLiveQueryWithDeps([searchVal, sortMethod, limit, filters], () => {
+function getFilteredMaps(mapLimit?: number) {
     const { terrain, gameType } = filters;
     const terrainFilters = new Set([...(<Terrain[]>Object.keys(terrain)).filter((key) => !!terrain[key]).map((k) => k)]);
     const gameTypeFilters = new Set([...(<GameType[]>Object.keys(gameType)).filter((key) => gameType[key]).map((k) => k)]);
+    const filteredMaps = db.maps.filter((map) => {
+        const favorites = !filters.favoritesOnly || map.isFavorite;
+        const downloaded = !filters.downloadedOnly || map.isInstalled;
+        return Boolean(
+            map.displayName.toLocaleLowerCase().includes(searchVal.value.toLocaleLowerCase()) &&
+                filters.minPlayers <= map.playerCountMax &&
+                filters.maxPlayers >= map.playerCountMax &&
+                (terrainFilters.size === 0 || terrainFilters.isSubsetOf(new Set([...map.terrain]))) &&
+                (gameTypeFilters.size === 0 || !gameTypeFilters.isDisjointFrom(new Set([...map.tags]))) &&
+                favorites &&
+                downloaded
+        );
+    });
 
-    return db.maps
-        .filter((map) => {
-            const favorites = !filters.favoritesOnly || map.isFavorite;
-            const downloaded = !filters.downloadedOnly || map.isInstalled;
-            return Boolean(
-                map.displayName.toLocaleLowerCase().includes(searchVal.value.toLocaleLowerCase()) &&
-                    filters.minPlayers <= map.playerCountMax &&
-                    filters.maxPlayers >= map.playerCountMax &&
-                    (terrainFilters.size === 0 || terrainFilters.isSubsetOf(new Set([...map.terrain]))) &&
-                    (gameTypeFilters.size === 0 || !gameTypeFilters.isDisjointFrom(new Set([...map.tags]))) &&
-                    favorites &&
-                    downloaded
-            );
-        })
-        .limit(limit.value)
-        .sortBy(sortMethod.value?.dbKey || "");
-});
+    return (mapLimit === undefined ? filteredMaps : filteredMaps.limit(mapLimit)).sortBy(sortMethod.value?.dbKey || "");
+}
+
+const maps = useDexieLiveQueryWithDeps([searchVal, sortMethod, limit, filters], () => getFilteredMaps(limit.value));
+const allFilteredMaps = useDexieLiveQueryWithDeps([searchVal, sortMethod, filters], () => getFilteredMaps());
 
 const {
     selectedMapNames,
@@ -131,7 +132,7 @@ const {
     toggle: toggleMapSelection,
     selectAll: selectAllMapSelections,
     clearSelection: clearMapSelections,
-} = useMapDownloadSelection(maps);
+} = useMapDownloadSelection(allFilteredMaps);
 
 function mapSelected(map: MapData) {
     emit("map-selected", map);

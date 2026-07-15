@@ -8,18 +8,15 @@ import { nextTick } from "vue";
 
 import MapListComponent from "@renderer/components/maps/MapListComponent.vue";
 
-const { queueMapDownloads } = vi.hoisted(() => ({ queueMapDownloads: vi.fn() }));
+const { queueMapDownloads, queryResults } = vi.hoisted(() => ({
+    queueMapDownloads: vi.fn(),
+    queryResults: [] as { springName: string; isInstalled: boolean }[][],
+}));
 
 vi.mock("@renderer/composables/useDexieLiveQuery", async () => {
     const { ref } = await import("vue");
     return {
-        useDexieLiveQueryWithDeps: () =>
-            ref([
-                { springName: "map-b", isInstalled: false },
-                { springName: "map-installed", isInstalled: true },
-                { springName: "map-a", isInstalled: false },
-                { springName: "map-queued", isInstalled: false },
-            ]),
+        useDexieLiveQueryWithDeps: () => ref(queryResults.shift() ?? []),
     };
 });
 
@@ -48,6 +45,23 @@ vi.mock("@vueuse/core", () => ({ useInfiniteScroll: vi.fn() }));
 describe("MapListComponent", () => {
     beforeEach(() => {
         queueMapDownloads.mockReset();
+        queryResults.splice(
+            0,
+            queryResults.length,
+            [
+                { springName: "map-b", isInstalled: false },
+                { springName: "map-installed", isInstalled: true },
+                { springName: "map-a", isInstalled: false },
+                { springName: "map-queued", isInstalled: false },
+            ],
+            [
+                { springName: "map-b", isInstalled: false },
+                { springName: "map-installed", isInstalled: true },
+                { springName: "map-a", isInstalled: false },
+                { springName: "map-queued", isInstalled: false },
+                { springName: "map-not-loaded", isInstalled: false },
+            ]
+        );
     });
 
     it("submits selected eligible maps in their displayed catalog order", async () => {
@@ -82,7 +96,7 @@ describe("MapListComponent", () => {
         expect(queueMapDownloads).toHaveBeenCalledWith(["map-b", "map-a"]);
     });
 
-    it("selects every displayed eligible map before submitting the batch", async () => {
+    it("selects every eligible map in the filtered catalog, including maps outside the rendered page", async () => {
         const wrapper = mount(MapListComponent, {
             global: {
                 stubs: {
@@ -106,7 +120,7 @@ describe("MapListComponent", () => {
         await wrapper.find(".select-all-maps").trigger("click");
         await wrapper.find(".download-selected").trigger("click");
 
-        expect(queueMapDownloads).toHaveBeenCalledWith(["map-b", "map-a"]);
+        expect(queueMapDownloads).toHaveBeenCalledWith(["map-b", "map-a", "map-not-loaded"]);
     });
 
     it("clears an all-map selection without submitting any downloads", async () => {
