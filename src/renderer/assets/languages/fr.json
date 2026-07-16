@@ -4278,7 +4278,8 @@
                     "configure": null,
                     "duplicate": null,
                     "kick": null,
-                    "configureBot": null
+                    "configureBot": null,
+                    "faction": null
                 },
                 "addBotModal": {
                     "title": null

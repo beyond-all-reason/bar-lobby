@@ -12,7 +12,31 @@ SPDX-License-Identifier: MIT
                 <Icon v-else-if="isScavenger(bot)" :icon="robotAngry" />
                 <Icon v-else :icon="robot" />
             </div>
-            <div>{{ bot.name }}</div>
+            <div class="bot-name">{{ bot.name }}</div>
+            <div v-if="hasInlineControls" class="bot-controls">
+                <label class="bot-control">
+                    <span>{{ t("lobby.components.battle.botParticipant.faction") }}</span>
+                    <Select
+                        data-test="bot-faction"
+                        :modelValue="bot.faction"
+                        :options="factionOptions"
+                        optionLabel="name"
+                        optionValue="value"
+                        @update:model-value="setBotFaction"
+                    />
+                </label>
+                <label v-if="difficultyOption" class="bot-control">
+                    <span>{{ difficultyOption.name }}</span>
+                    <Select
+                        data-test="bot-difficulty"
+                        :modelValue="bot.aiOptions[difficultyOption.key] ?? difficultyOption.default"
+                        :options="difficultyOption.options"
+                        optionLabel="name"
+                        optionValue="key"
+                        @update:model-value="setDifficulty"
+                    />
+                </label>
+            </div>
         </TeamParticipant>
         <LuaOptionsModal
             :id="`configure-bot-${bot.name}`"
