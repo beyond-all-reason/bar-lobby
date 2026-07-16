@@ -27,10 +27,13 @@ export class UltraSimpleMapParser {
             const rawMapinfo = await readSpecificFile(mapFilePath, "mapinfo.lua")
             const mapInfo = await this.parseMapInfo(rawMapinfo);
             let springName = "";
-            if (mapInfo && mapInfo.name && mapInfo.version && mapInfo.name.includes(mapInfo.version!)) {
-                springName = mapInfo.name;
-            } else if (mapInfo && mapInfo.name) {
+            if (mapInfo && mapInfo?.name && mapInfo.version && !mapInfo.name.includes(mapInfo.version)) {
                 springName = `${mapInfo.name} ${mapInfo.version}`;
+            } else if (mapInfo?.name) {
+                // missing/empty "version" field in mapinfo.lua. Don't append an
+                // empty/undefined version here, or springName ends up with a trailing space
+                // that never matches the expected spring name (map re-downloads every launch).
+                springName = mapInfo.name;
             } else if (mapInfo.smtFileName) {
                 springName = mapInfo.smtFileName;
             } else {
