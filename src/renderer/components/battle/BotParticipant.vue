@@ -133,7 +133,7 @@ function setBotOptions(options: Record<string, unknown>) {
     }
 }
 
-function setBotFaction(faction: Faction | undefined) {
+function setBotFaction(faction: Faction) {
     battleActions.updateBotFaction(props.bot, faction);
 }
 
