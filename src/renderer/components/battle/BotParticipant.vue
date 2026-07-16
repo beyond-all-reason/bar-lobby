@@ -22,7 +22,6 @@ SPDX-License-Identifier: MIT
                         :options="factionOptions"
                         optionLabel="name"
                         optionValue="value"
-                        :placeholder="t('lobby.components.battle.botParticipant.defaultFaction')"
                         @update:model-value="setBotFaction"
                     />
                 </label>

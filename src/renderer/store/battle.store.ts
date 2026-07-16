@@ -161,6 +161,7 @@ function addBot(ai: EngineAI | GameAI, teamId: number) {
         name: ai.name,
         aiOptions: {},
         aiShortName: ai.shortName,
+        faction: Faction.Armada,
         host: battleStore.me.id,
     } satisfies Bot);
 }
@@ -178,10 +179,7 @@ function duplicateBot(bot: Bot, teamId: number) {
 }
 
 function findBot(bot: Bot) {
-    return battleStore.teams
-        .flat()
-        .filter((participant) => isBot(participant))
-        .find((participant) => participant.id === bot.id);
+    return battleStore.teams.flatMap((team) => team.participants).find((participant): participant is Bot => isBot(participant) && participant.id === bot.id);
 }
 
 function updateBotOptions(bot: Bot, options: Record<string, unknown>) {
@@ -194,7 +192,7 @@ function updateBotOptions(bot: Bot, options: Record<string, unknown>) {
     return true;
 }
 
-function updateBotFaction(bot: Bot, faction: Faction | undefined) {
+function updateBotFaction(bot: Bot, faction: Faction) {
     const foundBot = findBot(bot);
     if (!foundBot) {
         return false;
