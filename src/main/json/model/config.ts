@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 // Changes to this config schema's defaults will require a new config version to be deployed.
-// You can generate a new one from defaults with the command: npm run generate-default-config
+// CI should use tools/generate-diff-config.ts to create a config diff for this purpose.
 
 import { Type, Static } from "@sinclair/typebox";
 
