@@ -5,7 +5,7 @@
 import { EngineAI, EngineVersion } from "@main/content/engine/engine-version";
 import { GameAI, GameVersion } from "@main/content/game/game-version";
 import { MapData } from "@main/content/maps/map-data";
-import { Battle, BattleWithMetadata, Bot, isBot, isPlayer, isRaptor, isScavenger, isScavengerOrRaptor, Player, StartPosType, Team, GameModeID } from "@main/game/battle/battle-types";
+import { Faction, Battle, BattleWithMetadata, Bot, isBot, isPlayer, isRaptor, isScavenger, isScavengerOrRaptor, Player, StartPosType, Team, GameModeID } from "@main/game/battle/battle-types";
 import { enginesStore } from "@renderer/store/engine.store";
 import { gameStore } from "@renderer/store/game.store";
 import { getRandomMap } from "@renderer/store/maps.store";
@@ -177,16 +177,30 @@ function duplicateBot(bot: Bot, teamId: number) {
     battleStore.teams[teamId].participants.push(newBot);
 }
 
-function updateBotOptions(bot: Bot, options: Record<string, unknown>) {
-    const foundBot = battleStore.teams
+function findBot(bot: Bot) {
+    return battleStore.teams
         .flat()
-        .filter((p) => isBot(p))
-        .find((p) => p.id === bot.id);
+        .filter((participant) => isBot(participant))
+        .find((participant) => participant.id === bot.id);
+}
+
+function updateBotOptions(bot: Bot, options: Record<string, unknown>) {
+    const foundBot = findBot(bot);
     if (!foundBot) {
         return false;
     }
 
     foundBot.aiOptions = options;
+    return true;
+}
+
+function updateBotFaction(bot: Bot, faction: Faction | undefined) {
+    const foundBot = findBot(bot);
+    if (!foundBot) {
+        return false;
+    }
+
+    foundBot.faction = faction;
     return true;
 }
 
