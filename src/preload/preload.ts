@@ -214,10 +214,14 @@ function onEvent<C extends GetCommandIds<"server", "user", "event">>(eventID: C,
     ipcRenderer.setMaxListeners(30);
 
     return ipcRenderer.on("tachyon:event", (_event, event) => {
-        if (event.commandId === eventID && "data" in event) {
+        if (event.commandId === eventID) {
             // event is a generic TachyonEvent in the IPC interface.
             // For consumers we cast it to the correct type based on the eventID.
-            callback(event.data as GetCommandData<GetCommands<"server", "user", "event", C>>);
+            if ("data" in event) {
+                callback(event.data as GetCommandData<GetCommands<"server", "user", "event", C>>);
+            } else {
+                callback(event as GetCommandData<GetCommands<"server", "user", "event", C>>);
+            }
         }
     });
 }
