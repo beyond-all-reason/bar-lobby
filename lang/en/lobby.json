@@ -442,7 +442,8 @@
                     "configure": "Configure",
                     "duplicate": "Duplicate",
                     "kick": "Kick",
-                    "configureBot": "Configure Bot"
+                    "configureBot": "Configure Bot",
+                    "optionsNotApplied": "This bot was removed while you were configuring its options. Your changes were not applied."
                 },
                 "addBotModal": {
                     "title": "Add Bot"

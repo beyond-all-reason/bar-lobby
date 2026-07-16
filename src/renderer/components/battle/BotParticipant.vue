@@ -38,6 +38,7 @@ import TeamParticipant from "@renderer/components/battle/TeamParticipant.vue";
 import { LuaOptionSection } from "@main/content/game/lua-options";
 import { Bot, isRaptor, isScavenger } from "@main/game/battle/battle-types";
 import ContextMenu from "primevue/contextmenu";
+import { notificationsApi } from "@renderer/api/notifications";
 import { battleActions } from "@renderer/store/battle.store";
 import { enginesStore } from "@renderer/store/engine.store";
 import { gameStore } from "@renderer/store/game.store";
@@ -94,6 +95,10 @@ async function configureBot() {
 
 function setBotOptions(options: Record<string, unknown>) {
     if (!battleActions.updateBotOptions(props.bot, options)) {
+        notificationsApi.alert({
+            text: t("lobby.components.battle.botParticipant.optionsNotApplied"),
+            severity: "warning",
+        });
         botOptionsOpen.value = false;
     }
 }
