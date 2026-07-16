@@ -183,9 +183,11 @@ function updateBotOptions(bot: Bot, options: Record<string, unknown>) {
         .filter((p) => isBot(p))
         .find((p) => p.id === bot.id);
     if (!foundBot) {
-        throw Error(`Failed to find bot ${bot.name} (${bot.id})`);
+        return false;
     }
-    bot.aiOptions = options;
+
+    foundBot.aiOptions = options;
+    return true;
 }
 
 function movePlayerToTeam(player: Player, teamId: number) {
