@@ -2273,8 +2273,7 @@
                     "configure": "Configure",
                     "duplicate": "Duplicate",
                     "kick": "Kick",
-                    "configureBot": "Configure Bot",
-                    "faction": "Faction"
+                    "configureBot": "Configure Bot"
                 },
                 "addBotModal": {
                     "title": "Add Bot"

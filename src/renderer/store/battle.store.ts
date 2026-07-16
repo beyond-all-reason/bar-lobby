@@ -5,7 +5,7 @@
 import { EngineAI, EngineVersion } from "@main/content/engine/engine-version";
 import { GameAI, GameVersion } from "@main/content/game/game-version";
 import { MapData } from "@main/content/maps/map-data";
-import { Faction, Battle, BattleWithMetadata, Bot, isBot, isPlayer, isRaptor, isScavenger, isScavengerOrRaptor, Player, StartPosType, Team, GameModeID } from "@main/game/battle/battle-types";
+import { Battle, BattleWithMetadata, Bot, isBot, isPlayer, isRaptor, isScavenger, isScavengerOrRaptor, Player, StartPosType, Team, GameModeID } from "@main/game/battle/battle-types";
 import { enginesStore } from "@renderer/store/engine.store";
 import { gameStore } from "@renderer/store/game.store";
 import { getRandomMap } from "@renderer/store/maps.store";
@@ -161,7 +161,6 @@ function addBot(ai: EngineAI | GameAI, teamId: number) {
         name: ai.name,
         aiOptions: {},
         aiShortName: ai.shortName,
-        faction: Faction.Armada,
         host: battleStore.me.id,
     } satisfies Bot);
 }
@@ -189,16 +188,6 @@ function updateBotOptions(bot: Bot, options: Record<string, unknown>) {
     }
 
     foundBot.aiOptions = options;
-    return true;
-}
-
-function updateBotFaction(bot: Bot, faction: Faction | undefined) {
-    const foundBot = findBot(bot);
-    if (!foundBot) {
-        return false;
-    }
-
-    foundBot.faction = faction;
     return true;
 }
 
