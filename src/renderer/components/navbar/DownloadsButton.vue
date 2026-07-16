@@ -11,6 +11,7 @@ SPDX-License-Identifier: MIT
         :class="{ pulse: isDownloading }"
     >
         <Icon :icon="download" :height="40" />
+        <span v-if="mapDownloadCount > 0" class="download-button__badge">{{ mapDownloadCount }}</span>
     </Button>
 </template>
 
@@ -21,14 +22,34 @@ import { computed } from "vue";
 
 import Button from "@renderer/components/controls/Button.vue";
 import { MIN_DOWNLOAD_BYTES, useDownloadProgress } from "@renderer/composables/useDownloadProgress";
+import { downloadsStore } from "@renderer/store/downloads.store";
 
 const { allDownloads, totalDownloadBytes } = useDownloadProgress();
 const isDownloading = computed(() => allDownloads.value.length > 0);
+const mapDownloadCount = computed(() => downloadsStore.mapDownloadQueue.length);
 </script>
 
 <style lang="scss" scoped>
 .download-button {
     position: relative;
+    &__badge {
+        position: absolute;
+        top: 1px;
+        right: 1px;
+        min-width: 16px;
+        height: 16px;
+        padding: 0 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 999px;
+        background: #e85d04;
+        color: white;
+        font-size: 10px;
+        font-weight: 700;
+        line-height: 1;
+    }
+
     &:before {
         @extend .fullsize;
         width: calc(100% - 2px);

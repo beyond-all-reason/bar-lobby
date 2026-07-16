@@ -154,6 +154,15 @@ async function fetchMapImages(map: MapData) {
     console.debug("Updated map images ", map.springName);
 }
 
+export function queueMapDownloads(springNames: string[]) {
+    if (springNames.length === 0) return;
+
+    void window.maps.downloadMaps(springNames).catch((error) => {
+        console.error("Failed to download selected maps", error);
+        notificationsApi.alert({ text: "Map download failed.", severity: "error" });
+    });
+}
+
 //TODO: the MapsAPI already includes a multiple-map version request we can use to extend this
 export async function downloadMap(springName: string) {
     let dbDelegate: EntityTable<MapData, "springName"> | EntityTable<MapDownloadData, "springName"> = db.maps;
