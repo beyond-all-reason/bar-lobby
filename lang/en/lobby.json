@@ -442,7 +442,9 @@
                     "configure": "Configure",
                     "duplicate": "Duplicate",
                     "kick": "Kick",
-                    "configureBot": "Configure Bot"
+                    "configureBot": "Configure Bot",
+                    "faction": "Faction",
+                    "defaultFaction": "Default"
                 },
                 "addBotModal": {
                     "title": "Add Bot"
