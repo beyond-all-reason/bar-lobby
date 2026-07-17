@@ -18,7 +18,7 @@ SPDX-License-Identifier: MIT
                     <Select
                         data-test="bot-faction"
                         :modelValue="bot.faction"
-                        :options="factionOptions"
+                        :options="botFactionOptions"
                         optionLabel="name"
                         optionValue="value"
                         @update:model-value="setBotFaction"
@@ -58,6 +58,7 @@ import { useTypedI18n } from "@renderer/i18n";
 import LuaOptionsModal from "@renderer/components/battle/LuaOptionsModal.vue";
 import TeamParticipant from "@renderer/components/battle/TeamParticipant.vue";
 import { LuaOptionList, LuaOptionSection } from "@main/content/game/lua-options";
+import { barbProfileOptions, botFactionOptions } from "@main/game/battle/bot-options";
 import { Bot, Faction, isRaptor, isScavenger } from "@main/game/battle/battle-types";
 import ContextMenu from "primevue/contextmenu";
 import { battleActions } from "@renderer/store/battle.store";
@@ -76,19 +77,6 @@ const props = defineProps<{
 const botOptions: Ref<LuaOptionSection[]> = ref([]);
 const botOptionsOpen = ref(false);
 const menu = ref<InstanceType<typeof ContextMenu>>();
-
-const factionOptions = [
-    { name: Faction.Armada, value: Faction.Armada },
-    { name: Faction.Cortex, value: Faction.Cortex },
-];
-
-const barbProfileOptions: LuaOptionList["options"] = [
-    { key: "hard_aggressive", name: "Hard | Aggressive", type: "list" },
-    { key: "hard", name: "Hard | Balanced", type: "list" },
-    { key: "medium", name: "Medium | Lazy", type: "list" },
-    { key: "easy", name: "Easy | Slow", type: "list" },
-    { key: "dev", name: "Testing AI", type: "list" },
-];
 
 const hasInlineControls = computed(() => !isRaptor(props.bot) && !isScavenger(props.bot));
 const difficultyOption = computed(() => {
