@@ -178,28 +178,15 @@ function duplicateBot(bot: Bot, teamId: number) {
     battleStore.teams[teamId].participants.push(newBot);
 }
 
-function findBot(bot: Bot) {
-    return battleStore.teams.flatMap((team) => team.participants).find((participant): participant is Bot => isBot(participant) && participant.id === bot.id);
-}
-
 function updateBotOptions(bot: Bot, options: Record<string, unknown>) {
-    const foundBot = findBot(bot);
+    const foundBot = battleStore.teams
+        .flat()
+        .filter((p) => isBot(p))
+        .find((p) => p.id === bot.id);
     if (!foundBot) {
-        return false;
+        throw Error(`Failed to find bot ${bot.name} (${bot.id})`);
     }
-
-    foundBot.aiOptions = options;
-    return true;
-}
-
-function updateBotFaction(bot: Bot, faction: Faction) {
-    const foundBot = findBot(bot);
-    if (!foundBot) {
-        return false;
-    }
-
-    foundBot.faction = faction;
-    return true;
+    bot.aiOptions = options;
 }
 
 function movePlayerToTeam(player: Player, teamId: number) {
@@ -629,7 +616,6 @@ export const battleActions = {
     addBot,
     removeBot,
     duplicateBot,
-    updateBotFaction,
     updateBotOptions,
     startBattle,
     updateTeams,
