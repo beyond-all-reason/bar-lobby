@@ -127,9 +127,7 @@ async function configureBot() {
 }
 
 function setBotOptions(options: Record<string, unknown>) {
-    if (!battleActions.updateBotOptions(props.bot, options)) {
-        botOptionsOpen.value = false;
-    }
+    battleActions.updateBotOptions(props.bot, options);
 }
 
 function setBotFaction(faction: Faction) {

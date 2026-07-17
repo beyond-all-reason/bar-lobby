@@ -189,6 +189,17 @@ function updateBotOptions(bot: Bot, options: Record<string, unknown>) {
     bot.aiOptions = options;
 }
 
+function updateBotFaction(bot: Bot, faction: Faction) {
+    const foundBot = battleStore.teams
+        .flat()
+        .filter((p) => isBot(p))
+        .find((p) => p.id === bot.id);
+    if (!foundBot) {
+        throw Error(`Failed to find bot ${bot.name} (${bot.id})`);
+    }
+    foundBot.faction = faction;
+}
+
 function movePlayerToTeam(player: Player, teamId: number) {
     removeFromTeams(player);
     removeFromSpectators(player);
@@ -616,6 +627,7 @@ export const battleActions = {
     addBot,
     removeBot,
     duplicateBot,
+    updateBotFaction,
     updateBotOptions,
     startBattle,
     updateTeams,
