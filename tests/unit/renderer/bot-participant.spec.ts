@@ -25,7 +25,28 @@ vi.mock("@renderer/store/battle.store", () => ({
 vi.mock("@renderer/store/engine.store", () => ({
     enginesStore: {
         selectedEngineVersion: {
-            ais: [],
+            ais: [
+                {
+                    name: "BARbarIAn",
+                    shortName: "BARb",
+                    options: [
+                        {
+                            key: "performance",
+                            name: "Performance Relevant Settings",
+                            type: "section",
+                            options: [
+                                {
+                                    key: "profile",
+                                    name: "Difficulty profile",
+                                    type: "list",
+                                    default: "hard",
+                                    options: [{ key: "dev", name: "Testing AI", type: "string" }],
+                                },
+                            ],
+                        },
+                    ],
+                },
+            ],
         },
     },
 }));
@@ -33,30 +54,7 @@ vi.mock("@renderer/store/engine.store", () => ({
 vi.mock("@renderer/store/game.store", () => ({
     gameStore: {
         selectedGameVersion: {
-            ais: [
-                {
-                    name: "BARb",
-                    options: [
-                        {
-                            key: "general",
-                            name: "General",
-                            type: "section",
-                            options: [
-                                {
-                                    key: "difficulty",
-                                    name: "Difficulty",
-                                    type: "list",
-                                    default: "beginner",
-                                    options: [
-                                        { key: "beginner", name: "Beginner", type: "string" },
-                                        { key: "normal", name: "Normal", type: "string" },
-                                    ],
-                                },
-                            ],
-                        },
-                    ],
-                },
-            ],
+            ais: [],
         },
     },
 }));
@@ -113,21 +111,21 @@ describe("BotParticipant", () => {
         updateBotOptions.mockReset();
     });
 
-    it("shows direct faction and effective default difficulty controls for a bot", () => {
+    it("shows direct faction and BARb's effective default difficulty profile", () => {
         const wrapper = mountBotParticipant();
 
         expect(wrapper.find('[data-test="bot-faction"]').text()).toBe(Faction.Armada);
-        expect(wrapper.find('[data-test="bot-difficulty"]').text()).toBe("Beginner");
+        expect(wrapper.find('[data-test="bot-difficulty"]').text()).toBe("Hard | Balanced");
     });
 
-    it("updates the bot faction and difficulty directly from the row", async () => {
-        const wrapper = mountBotParticipant({ difficulty: "beginner" });
+    it("updates the bot faction and difficulty profile directly from the row", async () => {
+        const wrapper = mountBotParticipant({ profile: "hard" });
         const [factionControl, difficultyControl] = wrapper.findAllComponents(SelectStub);
 
         await factionControl.vm.$emit("update:modelValue", Faction.Cortex);
-        await difficultyControl.vm.$emit("update:modelValue", "normal");
+        await difficultyControl.vm.$emit("update:modelValue", "easy");
 
         expect(updateBotFaction).toHaveBeenCalledWith(expect.objectContaining({ id: 1 }), Faction.Cortex);
-        expect(updateBotOptions).toHaveBeenCalledWith(expect.objectContaining({ id: 1 }), { difficulty: "normal" });
+        expect(updateBotOptions).toHaveBeenCalledWith(expect.objectContaining({ id: 1 }), { profile: "easy" });
     });
 });

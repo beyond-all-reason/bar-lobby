@@ -25,7 +25,6 @@ SPDX-License-Identifier: MIT
                     />
                 </label>
                 <label v-if="difficultyOption" class="bot-control">
-                    <span>{{ difficultyOption.name }}</span>
                     <Select
                         data-test="bot-difficulty"
                         :modelValue="bot.aiOptions[difficultyOption.key] ?? difficultyOption.default"
@@ -83,11 +82,25 @@ const factionOptions = [
     { name: Faction.Cortex, value: Faction.Cortex },
 ];
 
+const barbProfileOptions: LuaOptionList["options"] = [
+    { key: "hard_aggressive", name: "Hard | Aggressive", type: "list" },
+    { key: "hard", name: "Hard | Balanced", type: "list" },
+    { key: "medium", name: "Medium | Lazy", type: "list" },
+    { key: "easy", name: "Easy | Slow", type: "list" },
+    { key: "dev", name: "Testing AI", type: "list" },
+];
+
 const hasInlineControls = computed(() => !isRaptor(props.bot) && !isScavenger(props.bot));
 const difficultyOption = computed(() => {
-    return getBotOptions()
+    const option = getBotOptions()
         .flatMap((section) => section.options)
-        .find((option): option is LuaOptionList => option.key === "difficulty" && option.type === "list" && !option.hidden);
+        .find((option): option is LuaOptionList => option.key === "profile" && option.type === "list" && !option.hidden);
+
+    if (option && props.bot.aiShortName === "BARb") {
+        return { ...option, options: barbProfileOptions };
+    }
+
+    return option;
 });
 
 const actions = [
@@ -148,7 +161,7 @@ function setDifficulty(difficulty: string) {
 function getBotOptions() {
     return (
         [...(enginesStore.selectedEngineVersion?.ais || []), ...(gameStore.selectedGameVersion?.ais || [])].find(
-            (ai) => ai.name === props.bot.name
+            (ai) => ai.shortName === props.bot.aiShortName
         )?.options || []
     );
 }
@@ -160,22 +173,29 @@ function getBotOptions() {
 }
 
 .bot-name {
-    flex: 1;
+    flex: 0 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .bot-controls {
     display: grid;
-    grid-template-columns: repeat(2, minmax(120px, 1fr));
+    flex: 1;
+    min-width: 0;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 8px;
-    margin-left: auto;
+    margin-left: 8px;
 }
 
 .bot-control {
-    display: grid;
-    grid-template-columns: auto minmax(100px, 1fr);
-    align-items: center;
-    gap: 5px;
+    min-width: 0;
     font-size: 12px;
+}
+
+.bot-control :deep(.select) {
+    width: 100%;
 }
 
 .bot-type {
