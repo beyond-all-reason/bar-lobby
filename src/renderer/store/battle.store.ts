@@ -5,7 +5,7 @@
 import { EngineAI, EngineVersion } from "@main/content/engine/engine-version";
 import { GameAI, GameVersion } from "@main/content/game/game-version";
 import { MapData } from "@main/content/maps/map-data";
-import { Battle, BattleWithMetadata, Bot, isBot, isPlayer, isRaptor, isScavenger, isScavengerOrRaptor, Player, StartPosType, Team, GameModeID, Faction } from "@main/game/battle/battle-types";
+import { Faction, Battle, BattleWithMetadata, Bot, isBot, isPlayer, isRaptor, isScavenger, isScavengerOrRaptor, Player, StartPosType, Team, GameModeID } from "@main/game/battle/battle-types";
 import { enginesStore } from "@renderer/store/engine.store";
 import { gameStore } from "@renderer/store/game.store";
 import { getRandomMap } from "@renderer/store/maps.store";
@@ -178,15 +178,28 @@ function duplicateBot(bot: Bot, teamId: number) {
     battleStore.teams[teamId].participants.push(newBot);
 }
 
+function findBot(bot: Bot) {
+    return battleStore.teams.flatMap((team) => team.participants).find((participant): participant is Bot => isBot(participant) && participant.id === bot.id);
+}
+
 function updateBotOptions(bot: Bot, options: Record<string, unknown>) {
-    const foundBot = battleStore.teams
-        .flat()
-        .filter((p) => isBot(p))
-        .find((p) => p.id === bot.id);
+    const foundBot = findBot(bot);
     if (!foundBot) {
-        throw Error(`Failed to find bot ${bot.name} (${bot.id})`);
+        return false;
     }
-    bot.aiOptions = options;
+
+    foundBot.aiOptions = options;
+    return true;
+}
+
+function updateBotFaction(bot: Bot, faction: Faction) {
+    const foundBot = findBot(bot);
+    if (!foundBot) {
+        return false;
+    }
+
+    foundBot.faction = faction;
+    return true;
 }
 
 function movePlayerToTeam(player: Player, teamId: number) {
@@ -616,6 +629,7 @@ export const battleActions = {
     addBot,
     removeBot,
     duplicateBot,
+    updateBotFaction,
     updateBotOptions,
     startBattle,
     updateTeams,
