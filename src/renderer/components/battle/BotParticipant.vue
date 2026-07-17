@@ -15,7 +15,6 @@ SPDX-License-Identifier: MIT
             <div class="bot-name">{{ bot.name }}</div>
             <div v-if="hasInlineControls" class="bot-controls">
                 <label class="bot-control">
-                    <span>{{ t("lobby.components.battle.botParticipant.faction") }}</span>
                     <Select
                         data-test="bot-faction"
                         :modelValue="bot.faction"
@@ -82,7 +81,6 @@ const menu = ref<InstanceType<typeof ContextMenu>>();
 const factionOptions = [
     { name: Faction.Armada, value: Faction.Armada },
     { name: Faction.Cortex, value: Faction.Cortex },
-    { name: Faction.Legion, value: Faction.Legion },
 ];
 
 const hasInlineControls = computed(() => !isRaptor(props.bot) && !isScavenger(props.bot));
