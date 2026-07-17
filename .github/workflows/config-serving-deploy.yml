@@ -8,6 +8,12 @@ on:
         branches:
             - master
     workflow_dispatch:
+        inputs:
+            dry_run:
+                description: "Dry Run (validate workflow and config.json without uploading file)"
+                required: true
+                type: boolean
+                default: false
 
 permissions:
     id-token: write
@@ -16,18 +22,47 @@ jobs:
     deploy-config:
         if: github.repository == 'beyond-all-reason/bar-lobby'
         runs-on: ubuntu-latest
+        env:
+            CONFIG_URL: https://lobby-config.beyondallreason.dev/config.json
+            IS_DRY_RUN: ${{ github.event.inputs.dry_run == 'true' }}
         steps:
-            - name: Push config
-              env:
-                  CONFIG_URL: https://lobby-config.beyondallreason.dev/config.json
+            - name: Checkout Git repository
+              uses: actions/checkout@v6
+
+            - name: Setup node
+              uses: actions/setup-node@v6
+              with:
+                  node-version: 20
+            - name: Install deps
+              run: npm ci
+
+            - name: Fetch Live Config
               run: |
-                  # TODO: Just an empty config for now, to show that workflow works,
-                  # replace with real path from validated config.json.
-                  cat > config.json <<EOF
-                  {
-                      "configUrl": "$CONFIG_URL"
-                  }
-                  EOF
+                  CURL_OPTS=(-sS --fail-with-body --connect-timeout 10 --max-time 30 --retry 3 --retry-connrefused)
+                  curl "${CURL_OPTS[@]}" -X GET "$CONFIG_URL" -o /tmp/old_config.json
+
+            - name: Generate New Config
+              run: npx tsx tools/generate-default-config.ts
+              env:
+                  BAR_CONFIG_OUTPUT_PATH: "/tmp/new_config.json"
+
+            - name: Generate Diff Config
+              run: npx tsx tools/generate-diff-config.ts
+              env:
+                  BAR_OLD_CONFIG_PATH: "/tmp/old_config.json"
+                  BAR_NEW_CONFIG_PATH: "/tmp/new_config.json"
+                  BAR_CONFIG_OUTPUT_PATH: "config.json"
+
+            - name: Log Config Difference (Dry Run only)
+              if: env.IS_DRY_RUN == 'true'
+              run: |
+                  echo "Dry Run results:"
+                  cat config.json
+
+            - name: Push config
+              if: env.IS_DRY_RUN == 'false'
+              run: |
+                  # Diff provides us with the config.json for this upload.
                   CURL_OPTS=(-sS --fail-with-body --connect-timeout 10 --max-time 30 --retry 3 --retry-connrefused)
                   IDTOKEN="$(curl "${CURL_OPTS[@]}" -H "Authorization: Bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
                       "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=$CONFIG_URL" | jq -r '.value')"
