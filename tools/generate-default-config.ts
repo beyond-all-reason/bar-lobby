@@ -12,7 +12,7 @@ import { configSchema } from "../src/main/json/model/config";
 export function generateDefaultConfig(targetPath?: string) {
     const filename = fileURLToPath(import.meta.url);
     const dirname = path.dirname(filename);
-    const OUTPUT_PATH = targetPath ? targetPath : path.resolve(dirname, "../auxiliary/config-serving/json/config.json");
+    const OUTPUT_PATH = targetPath ? targetPath : path.resolve(dirname, "../config.json");
     const targetDir = path.dirname(OUTPUT_PATH);
 
     if (!fs.existsSync(targetDir)) {
