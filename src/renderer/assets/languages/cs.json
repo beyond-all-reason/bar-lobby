@@ -2350,6 +2350,27 @@
                     "ffa": null,
                     "ffaDescription": null
                 },
+                "skirmishEntryChooser": {
+                    "recommended": null,
+                    "quickStart": null,
+                    "quickStartDescription": null,
+                    "quickStartSummary": null,
+                    "createQuickMatch": null,
+                    "preparingQuickStart": null,
+                    "quickStartFailed": null,
+                    "retryQuickStart": null,
+                    "contentRequired": null,
+                    "playerRequired": null,
+                    "aiUnavailable": null,
+                    "noEligibleMap": null,
+                    "unexpectedFailure": null,
+                    "fullControl": null,
+                    "customSkirmish": null,
+                    "customSkirmishDescription": null,
+                    "customSkirmishSummary": null,
+                    "setUpCustom": null,
+                    "back": null
+                },
                 "error": {
                     "fatalError": null,
                     "fatalErrorDescription": null,
