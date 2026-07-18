@@ -22,6 +22,16 @@ describe("GameModeSelector", () => {
         loadGameMode.mockReset();
     });
 
+    it("renders all four game modes with their artwork", () => {
+        const wrapper = mount(GameModeSelector);
+
+        expect(wrapper.findAll("[data-choice-id]")).toHaveLength(4);
+        expect(wrapper.get('[data-choice-id="classic"] .art').attributes("style")).toContain("/src/renderer/assets/images/backgrounds/5.jpg");
+        expect(wrapper.get('[data-choice-id="raptors"] .art').attributes("style")).toContain("/src/renderer/assets/images/modes/raptors.jpg");
+        expect(wrapper.get('[data-choice-id="scavengers"] .art').attributes("style")).toContain("/src/renderer/assets/images/modes/scavengers.webp");
+        expect(wrapper.get('[data-choice-id="ffa"] .art').attributes("style")).toContain("/src/renderer/assets/images/modes/ffa.jpg");
+    });
+
     it("waits for Classic initialization before reporting selection", async () => {
         let resolveLoad: () => void;
         loadGameMode.mockImplementationOnce(

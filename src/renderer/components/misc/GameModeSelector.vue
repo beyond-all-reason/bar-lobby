@@ -23,27 +23,27 @@ const emit = defineEmits<{
 const choices: DiagonalChoice[] = [
     {
         id: "classic",
-        label: t("lobby.components.misc.gameModeSelector.classic"),
+        title: t("lobby.components.misc.gameModeSelector.classic"),
         description: t("lobby.components.misc.gameModeSelector.classicDescription"),
-        backgroundImage: "/src/renderer/assets/images/backgrounds/5.jpg",
+        artwork: "/src/renderer/assets/images/backgrounds/5.jpg",
     },
     {
         id: "raptors",
-        label: t("lobby.components.misc.gameModeSelector.raptors"),
+        title: t("lobby.components.misc.gameModeSelector.raptors"),
         description: t("lobby.components.misc.gameModeSelector.raptorsDescription"),
-        backgroundImage: "/src/renderer/assets/images/modes/raptors.jpg",
+        artwork: "/src/renderer/assets/images/modes/raptors.jpg",
     },
     {
         id: "scavengers",
-        label: t("lobby.components.misc.gameModeSelector.scavengers"),
+        title: t("lobby.components.misc.gameModeSelector.scavengers"),
         description: t("lobby.components.misc.gameModeSelector.scavengersDescription"),
-        backgroundImage: "/src/renderer/assets/images/modes/scavengers.webp",
+        artwork: "/src/renderer/assets/images/modes/scavengers.webp",
     },
     {
         id: "ffa",
-        label: t("lobby.components.misc.gameModeSelector.ffa"),
+        title: t("lobby.components.misc.gameModeSelector.ffa"),
         description: t("lobby.components.misc.gameModeSelector.ffaDescription"),
-        backgroundImage: "/src/renderer/assets/images/modes/ffa.jpg",
+        artwork: "/src/renderer/assets/images/modes/ffa.jpg",
     },
 ];
 

@@ -4,8 +4,11 @@
 
 export interface DiagonalChoice {
     id: string;
-    label: string;
+    title: string;
+    artwork: string;
+    eyebrow?: string;
     description?: string;
-    backgroundImage: string;
+    summary?: string;
+    actionLabel?: string;
     disabled?: boolean;
 }
