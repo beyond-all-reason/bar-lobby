@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 import type { MapData } from "@main/content/maps/map-data";
-import { Faction, GameModeID, isBot } from "@main/game/battle/battle-types";
+import { Faction, GameModeID, isBot, StartPosType } from "@main/game/battle/battle-types";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 type MockEngineStore = {
@@ -96,6 +96,15 @@ describe("battleActions.createBeginnerSkirmish", () => {
     });
 
     it("uses Classic initialization before applying a complete beginner 3v3 preset", async () => {
+        db.maps.toArray.mockResolvedValue([
+            {
+                ...mapFixture(),
+                startboxesSet: [
+                    { maxPlayersPerStartbox: 6, startboxes: [{ poly: [] }] },
+                    { maxPlayersPerStartbox: 3, startboxes: [{ poly: [] }, { poly: [] }] },
+                ],
+            },
+        ]);
         const result = await battleActions.createBeginnerSkirmish();
 
         expect(result).toEqual({ ok: true });
@@ -104,7 +113,7 @@ describe("battleActions.createBeginnerSkirmish", () => {
             gameVersion: "game-1",
             gameMode: { id: GameModeID.CLASSIC },
             map: { springName: "Eligible map" },
-            mapOptions: { startPosType: 2, startBoxesIndex: 0 },
+            mapOptions: { startPosType: StartPosType.Boxes, startBoxesIndex: 1 },
             restrictions: [],
         });
         expect(battleStore.teams.map((team) => team.participants.length)).toEqual([3, 3]);
@@ -120,19 +129,25 @@ describe("battleActions.createBeginnerSkirmish", () => {
 
     it("uses BARb from the game when the engine does not provide it", async () => {
         engineStore.selectedEngineVersion!.ais = [] as never;
-        gameStore.selectedGameVersion!.ais = [{ name: "BARb", shortName: "BARb", description: "Beginner AI" }] as never;
+        gameStore.selectedGameVersion!.ais = [{ name: "Game BARb", shortName: "BARb", description: "Game-provided beginner AI" }] as never;
 
         const result = await battleActions.createBeginnerSkirmish();
 
         expect(result).toEqual({ ok: true });
+        expect(
+            battleStore.teams
+                .flatMap((team) => team.participants)
+                .filter(isBot)
+                .every((bot) => bot.name.startsWith("Game BARb"))
+        ).toBe(true);
     });
 
     it.each([
-        ["content-required", () => (engineStore.selectedEngineVersion = undefined as never)],
-        ["content-required", () => (gameStore.selectedGameVersion = undefined as never)],
-        ["player-required", () => (battleStore.me = undefined as never)],
-        ["ai-unavailable", () => (engineStore.selectedEngineVersion!.ais = [] as never)],
-    ] as const)("returns %s without creating a partial preset", async (reason, invalidate) => {
+        ["missing engine", "content-required", () => (engineStore.selectedEngineVersion = undefined as never)],
+        ["missing game", "content-required", () => (gameStore.selectedGameVersion = undefined as never)],
+        ["missing player", "player-required", () => (battleStore.me = undefined as never)],
+        ["missing BARb", "ai-unavailable", () => (engineStore.selectedEngineVersion!.ais = [] as never)],
+    ] as const)("returns %s without creating a partial preset", async (_caseName, reason, invalidate) => {
         invalidate();
 
         const result = await battleActions.createBeginnerSkirmish();
@@ -155,11 +170,13 @@ describe("battleActions.createBeginnerSkirmish", () => {
     });
 
     it("returns unexpected when map retrieval fails", async () => {
+        const error = vi.spyOn(console, "error").mockImplementation(() => undefined);
         db.maps.toArray.mockRejectedValue(new Error("database unavailable"));
 
         const result = await battleActions.createBeginnerSkirmish();
 
         expect(result).toEqual({ ok: false, reason: "unexpected" });
-        expect(launchBattle).not.toHaveBeenCalled();
+        expect(error).toHaveBeenCalledWith("Failed to create beginner skirmish", expect.any(Error));
+        error.mockRestore();
     });
 });

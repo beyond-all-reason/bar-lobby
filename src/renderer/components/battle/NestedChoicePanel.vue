@@ -24,7 +24,7 @@ SPDX-License-Identifier: MIT
             <template v-else>
                 <p>{{ failureLabel }}</p>
                 <p data-testid="choice-panel-error">{{ operation.message }}</p>
-                <button data-testid="choice-panel-retry" type="button" @click="runActiveAction">{{ retryLabel }}</button>
+                <button data-testid="choice-panel-retry" type="button" @click="retryOperation">{{ retryLabel }}</button>
                 <button data-testid="choice-panel-back-error" type="button" @click="clearOperation">{{ backLabel }}</button>
             </template>
         </div>
@@ -64,8 +64,10 @@ const emit = defineEmits<{
 
 const path = ref<ChoicePanelBranch[]>([]);
 const activeAction = ref<ChoicePanelAction>();
+const activeBranch = ref<ChoicePanelBranch>();
 const branchPending = ref(false);
 const operation = reactive<{ status: "idle" | "pending" | "error"; message?: string }>({ status: "idle" });
+const operationGeneration = ref(0);
 
 const currentItems = computed<ChoicePanelItem[]>(() => path.value.at(-1)?.children ?? props.choices);
 const isLocked = computed(() => branchPending.value || operation.status === "pending");
@@ -77,10 +79,11 @@ async function selectItem(id: string) {
     if (!item) return;
 
     if (item.type === "branch") {
+        activeBranch.value = item;
         branchPending.value = true;
         try {
             await item.beforeEnter?.();
-            path.value.push(item);
+            if (activeBranch.value?.id === item.id) path.value.push(item);
         } catch (error) {
             operation.status = "error";
             operation.message = error instanceof Error ? error.message : String(error);
@@ -98,10 +101,12 @@ async function runActiveAction() {
     const action = activeAction.value;
     if (!action || operation.status === "pending") return;
 
+    const generation = operationGeneration.value;
     operation.status = "pending";
     operation.message = undefined;
     try {
         const result: ChoiceActionResult = await action.run();
+        if (generation !== operationGeneration.value || activeAction.value !== action) return;
         if (result.ok) {
             emit("completed", action.id);
         } else {
@@ -109,13 +114,26 @@ async function runActiveAction() {
             operation.message = result.message;
         }
     } catch (error) {
+        if (generation !== operationGeneration.value || activeAction.value !== action) return;
         operation.status = "error";
         operation.message = error instanceof Error ? error.message : String(error);
     }
 }
 
+async function retryOperation() {
+    if (activeBranch.value) {
+        const branch = activeBranch.value;
+        operation.status = "idle";
+        operation.message = undefined;
+        await selectItem(branch.id);
+        return;
+    }
+    await runActiveAction();
+}
+
 function clearOperation() {
     activeAction.value = undefined;
+    activeBranch.value = undefined;
     operation.status = "idle";
     operation.message = undefined;
 }
@@ -126,6 +144,7 @@ function goBack() {
 }
 
 function reset() {
+    operationGeneration.value += 1;
     path.value = [];
     branchPending.value = false;
     clearOperation();

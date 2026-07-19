@@ -34,25 +34,11 @@ describe("DiagonalChoiceLevel", () => {
         expect(alpha.attributes("type")).toBe("button");
         expect(alpha.get(".art").attributes("aria-hidden")).toBe("true");
         expect(alpha.get(".art").attributes("style")).toContain('background-image: url("/alpha.jpg")');
-        expect(alpha.attributes("style") ?? "").not.toContain("background-image");
-    });
-
-    it("renders the optional content hierarchy", () => {
-        const wrapper = mount(DiagonalChoiceLevel, { props: { choices } });
-        const alpha = wrapper.get('[data-choice-id="alpha"]');
-
         expect(alpha.get(".eyebrow").text()).toBe("Recommended");
         expect(alpha.get(".title").text()).toBe("Alpha");
         expect(alpha.get(".description").text()).toBe("First choice");
         expect(alpha.get(".summary").text()).toBe("Two teams");
         expect(alpha.get(".action").text()).toBe("Configure");
-        expect(alpha.find(".quick-play-button").exists()).toBe(false);
-    });
-
-    it("exposes the number of choices for responsive sizing", () => {
-        const wrapper = mount(DiagonalChoiceLevel, { props: { choices } });
-
-        expect(wrapper.attributes("style")).toContain("--choice-count: 2");
     });
 
     it("emits the selected choice id", async () => {

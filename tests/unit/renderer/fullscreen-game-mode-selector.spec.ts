@@ -109,16 +109,18 @@ describe("FullscreenGameModeSelector", () => {
         expect(battleStore.isLobbyOpened).toBe(true);
     });
 
-    it("returns from Custom Skirmish to the root choices", async () => {
+    it("keeps the chooser open when custom mode initialization rejects", async () => {
+        loadGameMode.mockRejectedValueOnce(new Error("Mode unavailable"));
         const wrapper = mount(FullscreenGameModeSelector, { props: { visible: true } });
 
         await wrapper.get('[data-choice-id="custom-skirmish"]').trigger("click");
-        await wrapper.get('[data-testid="choice-panel-back"]').trigger("click");
+        await wrapper.get('[data-choice-id="classic"]').trigger("click");
+        await flushPromises();
 
-        expect(wrapper.findAll('[data-choice-id="quick-start"]').length > 0).toBe(true);
-        expect(wrapper.findAll('[data-choice-id="custom-skirmish"]').length > 0).toBe(true);
-        expect(wrapper.findAll('[data-choice-id="classic"]').length > 0).toBe(false);
+        expect(wrapper.get('[data-testid="choice-panel-error"]').text()).toContain("Mode unavailable");
+        expect(battleStore.isSelectingGameMode).toBe(true);
         expect(battleStore.isLobbyOpened).toBe(false);
+        expect(wrapper.emitted("closed")).toBeUndefined();
     });
 
     it("dismisses without opening the battle room", async () => {

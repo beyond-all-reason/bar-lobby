@@ -54,7 +54,7 @@ describe("NestedChoicePanel", () => {
         expect(wrapper.findAll('[data-testid="choice-panel-back"]').length > 0).toBe(false);
     });
 
-    it("resets nested navigation and operation state to the root", async () => {
+    it("resets nested navigation to the root when resetKey changes", async () => {
         const choices: ChoicePanelItem[] = [{ type: "branch", id: "branch", title: "Branch", artwork: "branch.png", children: [action("leaf")] }];
         const wrapper = mount(NestedChoicePanel, { props: { choices, backLabel: "Back", resetKey: 0 } });
 
@@ -65,6 +65,39 @@ describe("NestedChoicePanel", () => {
 
         expect(wrapper.findAll('[data-choice-id="branch"]').length > 0).toBe(true);
         expect(wrapper.findAll('[data-choice-id="leaf"]').length > 0).toBe(false);
+    });
+
+    it("does not complete an action after the panel resets", async () => {
+        let resolveAction!: (result: { ok: true }) => void;
+        const run = vi.fn(() => new Promise<{ ok: true }>((resolve) => (resolveAction = resolve)));
+        const wrapper = mount(NestedChoicePanel, {
+            props: { choices: [action("launch", run)], backLabel: "Back", resetKey: 0 },
+        });
+
+        await wrapper.get('[data-choice-id="launch"]').trigger("click");
+        await wrapper.setProps({ resetKey: 1 });
+        resolveAction({ ok: true });
+        await flushPromises();
+
+        expect(wrapper.emitted("completed")).toBeUndefined();
+    });
+
+    it("retries a failed branch entry before navigating", async () => {
+        const beforeEnter = vi.fn().mockRejectedValueOnce(new Error("Unavailable")).mockResolvedValueOnce(undefined);
+        const wrapper = mount(NestedChoicePanel, {
+            props: {
+                choices: [{ type: "branch", id: "branch", title: "Branch", artwork: "branch.png", beforeEnter, children: [action("leaf")] }],
+                backLabel: "Back",
+                retryLabel: "Retry",
+            },
+        });
+
+        await wrapper.get('[data-choice-id="branch"]').trigger("click");
+        expect(wrapper.get('[data-testid="choice-panel-error"]').text()).toContain("Unavailable");
+
+        await wrapper.get('[data-testid="choice-panel-retry"]').trigger("click");
+        expect(beforeEnter).toHaveBeenCalledTimes(2);
+        expect(wrapper.findAll('[data-choice-id="leaf"]').length > 0).toBe(true);
     });
 
     it("keeps an async action pending and emits completion only after success", async () => {
