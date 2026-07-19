@@ -13,7 +13,6 @@ import { Downloader } from "@main/content/abstract-content";
 import { removeFromArray } from "$/jaz-ts-utils/object";
 import { GameContentAPI } from "@main/content/game/game-content";
 import { extract7z } from "@main/utils/extract-7z";
-import { fileExists } from "@main/utils/file";
 
 const log = logger("pool-cdn.ts");
 
@@ -38,17 +37,13 @@ export class PoolCdnDownloader extends Downloader {
     }
 
     /**
-     * Download and extract pool data from the pool CDN, if pool directory does not exist in content folder.
+     * Download and extract pool data from the pool CDN.
      *
-     * Will try to reuse existing download if it exists (DownloadHelper will resume download).
+     * Will try to reuse an existing archive download if it exists (DownloadHelper will resume download).
      */
     public async preloadPoolData() {
-        if (await fileExists(getPoolPath())) {
-            log.debug("Pool folder already exists, skipping download");
-            return;
-        }
-        log.info("Pool folder does not exist, downloading pool data");
-        await fs.promises.mkdir(getPoolPath());
+        log.info("Downloading pool data");
+        await fs.promises.mkdir(getPoolPath(), { recursive: true });
 
         const downloadInfo: DownloadInfo = {
             type: "game",
