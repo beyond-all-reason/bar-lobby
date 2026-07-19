@@ -5,7 +5,7 @@
 import zlib from "zlib";
 import { describe, expect, it } from "vitest";
 
-import { BattleWithMetadata, GameModeID, StartPosType } from "@main/game/battle/battle-types";
+import { BattleWithMetadata, Faction, GameModeID, StartPosType } from "@main/game/battle/battle-types";
 import { startScriptConverter } from "@main/utils/start-script-converter";
 
 type Arrangement = {
@@ -59,6 +59,43 @@ function decodeModoption(script: string, pattern: RegExp): unknown {
 
 const SET = /mapmetadata_startboxes_set\s*=\s*([^;\s}]+)/;
 const OVERRIDE = /mapmetadata_startbox_override\s*=\s*([^;\s}]+)/;
+
+describe("start script bot factions", () => {
+    it("passes a bot's selected faction to the engine team side", () => {
+        const battle = twoTeamBattle({ startPosType: StartPosType.Fixed });
+        battle.teams[1].participants = [
+            {
+                id: 1,
+                host: 0,
+                aiShortName: "BARb",
+                name: "Armada bot",
+                aiOptions: {},
+                faction: Faction.Armada,
+            },
+        ];
+
+        const script = startScriptConverter.generateScriptStr(battle);
+
+        expect(script).toMatch(/\[team1\]\s*\{[^}]*side=Armada;/);
+    });
+
+    it("leaves the engine side unset when a bot has no selected faction", () => {
+        const battle = twoTeamBattle({ startPosType: StartPosType.Fixed });
+        battle.teams[1].participants = [
+            {
+                id: 1,
+                host: 0,
+                aiShortName: "BARb",
+                name: "Default bot",
+                aiOptions: {},
+            },
+        ];
+
+        const script = startScriptConverter.generateScriptStr(battle);
+
+        expect(script).not.toMatch(/\[team1\]\s*\{[^}]*side=/);
+    });
+});
 
 describe("start script polygon startbox modoptions", () => {
     it("injects the set keyed by team count when a preset is selected", () => {
