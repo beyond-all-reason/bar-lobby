@@ -108,12 +108,15 @@ describe("NestedChoicePanel", () => {
         });
 
         await wrapper.get('[data-choice-id="branch"]').trigger("click");
-        const shell = wrapper.get(".choice-level-shell");
-        expect(shell.attributes("data-transition-phase")).toBe("forward");
+        const shell = wrapper.get('[data-testid="choice-level-branch-expanding"]');
+        expect(shell.attributes("data-testid")).toBe("choice-level-branch-expanding");
         expect(wrapper.get('[data-choice-id="branch"]').attributes("disabled")).toBeDefined();
 
         await shell.trigger("animationend");
-        expect(shell.attributes("data-transition-phase")).toBe("idle");
+        expect(wrapper.findAll('[data-testid="choice-level-child-entering"]')).toHaveLength(1);
+        expect(wrapper.get('[data-choice-id="leaf"]').attributes("disabled")).toBeDefined();
+        await wrapper.get('[data-testid="choice-level-child-entering"]').trigger("animationend");
+        expect(wrapper.find('[data-choice-id="leaf"]').exists()).toBe(true);
         expect(wrapper.get('[data-testid="choice-panel-back"]').attributes("disabled")).toBeUndefined();
         window.matchMedia = originalMatchMedia;
     });

@@ -5,26 +5,58 @@ SPDX-License-Identifier: MIT
 -->
 
 <template>
-    <div class="nested-choice-panel" :class="{ 'is-transitioning': transitionLocked }">
+    <div class="nested-choice-panel">
         <template v-if="operation.status === 'idle'">
-            <button
-                v-if="path.length"
-                class="back-button"
-                data-testid="choice-panel-back"
-                type="button"
-                :disabled="isLocked"
-                @click="goBack"
-            >
+            <button v-if="path.length && !transition" class="back-button" data-testid="choice-panel-back" type="button" @click="goBack">
                 {{ backLabel }}
             </button>
-            <div
-                class="choice-level-shell"
-                :class="`transition-${transitionPhase}`"
-                :data-transition-phase="transitionPhase"
-                @animationend="completeTransition"
-            >
-                <DiagonalChoiceLevel :choices="currentChoices" :selected-id="selectedId" @selected="selectItem" />
+            <div v-if="transition" class="transition-stack choice-level-shell" :data-transition-phase="transition.phase">
+                <DiagonalChoiceLevel
+                    v-if="transition.phase === 'branch-expanding'"
+                    :choices="transition.parentItems"
+                    :selected-id="transition.branch.id"
+                    transition-role="branch-expanding"
+                    :interactive="false"
+                    @transition-complete="advanceTransition"
+                />
+                <template v-else-if="transition.phase === 'child-entering'">
+                    <DiagonalChoiceLevel
+                        :choices="transition.parentItems"
+                        :selected-id="transition.branch.id"
+                        transition-role="branch-expanded"
+                        :interactive="false"
+                    />
+                    <DiagonalChoiceLevel
+                        :choices="transition.childItems"
+                        transition-role="child-entering"
+                        :interactive="false"
+                        @transition-complete="advanceTransition"
+                    />
+                </template>
+                <template v-else-if="transition.phase === 'child-exiting'">
+                    <DiagonalChoiceLevel
+                        :choices="transition.parentItems"
+                        :selected-id="transition.branch.id"
+                        transition-role="branch-expanded"
+                        :interactive="false"
+                    />
+                    <DiagonalChoiceLevel
+                        :choices="transition.childItems"
+                        transition-role="child-exiting"
+                        :interactive="false"
+                        @transition-complete="advanceTransition"
+                    />
+                </template>
+                <DiagonalChoiceLevel
+                    v-else
+                    :choices="transition.parentItems"
+                    :selected-id="transition.branch.id"
+                    transition-role="branch-collapsing"
+                    :interactive="false"
+                    @transition-complete="advanceTransition"
+                />
             </div>
+            <DiagonalChoiceLevel v-else :choices="currentChoices" @selected="selectItem" />
         </template>
         <div v-else class="operation-status">
             <p v-if="operation.status === 'pending'" data-testid="choice-panel-pending">{{ pendingLabel }}</p>
@@ -39,14 +71,9 @@ SPDX-License-Identifier: MIT
 </template>
 
 <script lang="ts" setup>
-import { computed, onMounted, reactive, ref, watch } from "vue";
 import DiagonalChoiceLevel from "@renderer/components/battle/DiagonalChoiceLevel.vue";
-import type {
-    ChoiceActionResult,
-    ChoicePanelAction,
-    ChoicePanelBranch,
-    ChoicePanelItem,
-} from "@renderer/components/battle/nested-choice-panel.types";
+import type { ChoicePanelAction, ChoicePanelBranch, ChoicePanelItem } from "@renderer/components/battle/nested-choice-panel.types";
+import { computed, onMounted, reactive, ref, watch } from "vue";
 
 const props = withDefaults(
     defineProps<{
@@ -69,37 +96,48 @@ const emit = defineEmits<{
     completed: [id: string];
 }>();
 
+type TransitionPhase = "branch-expanding" | "child-entering" | "child-exiting" | "branch-collapsing";
+
+type PanelTransition = {
+    phase: TransitionPhase;
+    branch: ChoicePanelBranch;
+    parentItems: ChoicePanelItem[];
+    childItems: ChoicePanelItem[];
+};
+
 const path = ref<ChoicePanelBranch[]>([]);
+const transition = ref<PanelTransition>();
 const activeAction = ref<ChoicePanelAction>();
 const activeBranch = ref<ChoicePanelBranch>();
 const branchPending = ref(false);
 const operation = reactive<{ status: "idle" | "pending" | "error"; message?: string }>({ status: "idle" });
 const operationGeneration = ref(0);
-const transitionPhase = ref<"idle" | "forward" | "back">("idle");
-const transitionLocked = ref(false);
-const selectedId = ref<string>();
 const pendingBranch = ref<ChoicePanelBranch>();
 const reducedMotion = ref(false);
 
-const currentItems = computed<ChoicePanelItem[]>(() => path.value.at(-1)?.children ?? props.choices);
-const isLocked = computed(() => transitionLocked.value || branchPending.value || operation.status === "pending");
-const currentChoices = computed(() => currentItems.value.map((item) => ({ ...item, disabled: isLocked.value })));
+const currentChoices = computed(() => path.value.at(-1)?.children ?? props.choices);
+const isLocked = computed(() => Boolean(transition.value) || branchPending.value || operation.status === "pending");
 
 async function selectItem(id: string) {
     if (isLocked.value) return;
-    const item = currentItems.value.find((candidate) => candidate.id === id);
+    const item = currentChoices.value.find((candidate) => candidate.id === id);
     if (!item) return;
 
     if (item.type === "branch") {
         activeBranch.value = item;
         branchPending.value = true;
+        const generation = operationGeneration.value;
         try {
             await item.beforeEnter?.();
-            if (activeBranch.value?.id === item.id) {
-                selectedId.value = item.id;
-                pendingBranch.value = item;
-                beginTransition("forward");
-            }
+            if (generation !== operationGeneration.value || activeBranch.value?.id !== item.id) return;
+            pendingBranch.value = item;
+            transition.value = {
+                phase: "branch-expanding",
+                branch: item,
+                parentItems: currentChoices.value,
+                childItems: item.children,
+            };
+            if (reducedMotion.value) completeForwardTransition();
         } catch (error) {
             operation.status = "error";
             operation.message = error instanceof Error ? error.message : String(error);
@@ -121,44 +159,20 @@ async function runActiveAction() {
     operation.status = "pending";
     operation.message = undefined;
     try {
-        const result: ChoiceActionResult = await action.run();
+        const result = await action.run();
         if (generation !== operationGeneration.value || activeAction.value !== action) return;
         if (result.ok) {
             emit("completed", action.id);
-        } else {
-            operation.status = "error";
-            operation.message = result.message;
+            return;
         }
+
+        operation.status = "error";
+        operation.message = result.message;
     } catch (error) {
         if (generation !== operationGeneration.value || activeAction.value !== action) return;
         operation.status = "error";
         operation.message = error instanceof Error ? error.message : String(error);
     }
-}
-
-function beginTransition(phase: "forward" | "back") {
-    transitionPhase.value = phase;
-    if (reducedMotion.value) {
-        if (phase === "forward" && pendingBranch.value) {
-            path.value.push(pendingBranch.value);
-            pendingBranch.value = undefined;
-        }
-        transitionLocked.value = false;
-        transitionPhase.value = "idle";
-        return;
-    }
-    transitionLocked.value = true;
-}
-
-function completeTransition(event: AnimationEvent) {
-    if (event.target !== event.currentTarget) return;
-    if (transitionPhase.value === "forward" && pendingBranch.value) {
-        path.value.push(pendingBranch.value);
-        pendingBranch.value = undefined;
-    }
-    transitionLocked.value = false;
-    transitionPhase.value = "idle";
-    selectedId.value = undefined;
 }
 
 async function retryOperation() {
@@ -181,28 +195,68 @@ function clearOperation() {
 
 function goBack() {
     if (isLocked.value) return;
-    if (path.value.length) {
-        beginTransition("back");
+    const branch = path.value.at(-1);
+    if (!branch) return;
+
+    if (reducedMotion.value) {
         path.value.pop();
+        return;
     }
+
+    transition.value = {
+        phase: "child-exiting",
+        branch,
+        parentItems: path.value.at(-2)?.children ?? props.choices,
+        childItems: currentChoices.value,
+    };
+}
+
+function advanceTransition() {
+    const activeTransition = transition.value;
+    if (!activeTransition) return;
+
+    switch (activeTransition.phase) {
+        case "branch-expanding":
+            activeTransition.phase = "child-entering";
+            break;
+        case "child-entering":
+            path.value.push(activeTransition.branch);
+            transition.value = undefined;
+            break;
+        case "child-exiting":
+            activeTransition.phase = "branch-collapsing";
+            break;
+        case "branch-collapsing":
+            path.value.pop();
+            transition.value = undefined;
+            break;
+    }
+}
+
+function completeForwardTransition() {
+    const activeTransition = transition.value;
+    if (!activeTransition) return;
+    path.value.push(activeTransition.branch);
+    pendingBranch.value = undefined;
+    transition.value = undefined;
 }
 
 function reset() {
     operationGeneration.value += 1;
     pendingBranch.value = undefined;
-    transitionLocked.value = false;
-    transitionPhase.value = "idle";
-    path.value = [];
+    activeBranch.value = undefined;
     branchPending.value = false;
+    transition.value = undefined;
+    path.value = [];
     clearOperation();
 }
 
+watch(() => props.resetKey, reset);
+
 onMounted(() => {
-    const mediaQuery = window.matchMedia?.("(prefers-reduced-motion: reduce)");
-    reducedMotion.value = !mediaQuery || mediaQuery.matches;
+    reducedMotion.value = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ?? true;
 });
 
-watch(() => props.resetKey, reset);
 defineExpose({ reset });
 </script>
 
@@ -211,6 +265,13 @@ defineExpose({ reset });
     position: relative;
     height: 100%;
     overflow: hidden;
+}
+
+.transition-stack {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
 }
 
 .back-button {
@@ -226,52 +287,8 @@ defineExpose({ reset });
     font: inherit;
     font-weight: 700;
     text-transform: uppercase;
-
-    &:disabled {
-        cursor: not-allowed;
-        opacity: 0.55;
-    }
 }
 
-.choice-level-shell {
-    height: 100%;
-
-    &.transition-forward {
-        animation: choice-level-forward 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
-    }
-
-    &.transition-back {
-        animation: choice-level-back 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
-    }
-}
-
-@keyframes choice-level-forward {
-    from {
-        opacity: 0.35;
-        transform: translateX(18%) scale(0.94);
-    }
-    to {
-        opacity: 1;
-        transform: translateX(0) scale(1);
-    }
-}
-
-@keyframes choice-level-back {
-    from {
-        opacity: 0.35;
-        transform: translateX(-18%) scale(0.94);
-    }
-    to {
-        opacity: 1;
-        transform: translateX(0) scale(1);
-    }
-}
-
-@media (prefers-reduced-motion: reduce) {
-    .choice-level-shell {
-        animation: none !important;
-    }
-}
 .operation-status {
     display: flex;
     height: 100%;
