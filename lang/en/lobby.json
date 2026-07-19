@@ -325,6 +325,7 @@
                 "debugSidebar": {
                     "debugSandbox": "Debug Sandbox",
                     "openSettingsFile": "Open Settings File",
+                    "openConfigFile": "Open Config File",
                     "openAssetsDir": "Open Assets Dir",
                     "openStateDir": "Open State Dir",
                     "openStartScript": "Open Latest Start Script",

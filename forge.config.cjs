@@ -20,6 +20,10 @@ const config = {
                     name: "main_window",
                     config: "vite.renderer.config.mts",
                 },
+                {
+                    name: "splash_window",
+                    config: "vite.splash.config.mts",
+                },
             ],
         }),
     ],

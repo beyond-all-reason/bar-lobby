@@ -52,6 +52,13 @@ export default defineConfig({
                 },
                 resolve: { alias },
             },
+            {
+                test: {
+                    name: "tools",
+                    environment: "node",
+                    include: ["tests/unit/tools/**/*.{test,spec}.{ts,mts}"],
+                },
+            },
         ],
     },
     resolve: { alias },

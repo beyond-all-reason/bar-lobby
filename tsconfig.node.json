@@ -8,8 +8,10 @@
         "vendor/**/*",
         "tests/**/main/**/*.ts",
         "tests/**/shared/**/*.ts",
+        "tests/**/tools/**/*.ts",
         "tests/setup.main.mts",
-        "vitest.config.mts"
+        "vitest.config.mts",
+        "tools/*.ts"
     ],
     "compilerOptions": {
         "composite": true,
@@ -19,7 +21,7 @@
             "@main/*": ["src/main/*"],
             "@preload/*": ["src/preload/*"],
             "@renderer/*": ["src/renderer/*"],
-            "$/*": ["vendor/*"]
+            "$/*": ["vendor/*", "tools/*"]
         },
         "strict": true,
         "strictNullChecks": true,

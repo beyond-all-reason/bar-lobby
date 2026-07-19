@@ -79,7 +79,7 @@ import Button from "@renderer/components/controls/Button.vue";
 import Select from "@renderer/components/controls/Select.vue";
 import ScenarioTile from "@renderer/components/misc/ScenarioTile.vue";
 import { Scenario } from "@main/content/game/scenario";
-import { LATEST_GAME_VERSION } from "@main/config/default-versions";
+
 import Panel from "@renderer/components/common/Panel.vue";
 import { db } from "@renderer/store/db";
 import { MapDownloadData } from "@main/content/maps/map-data";
@@ -87,7 +87,7 @@ import { useDexieLiveQueryWithDeps } from "@renderer/composables/useDexieLiveQue
 import Markdown from "@renderer/components/misc/Markdown.vue";
 import DownloadContentButton from "@renderer/components/controls/DownloadContentButton.vue";
 import { GameStatus, gameStore } from "@renderer/store/game.store";
-
+import { configStore } from "@renderer/store/config.store";
 import { useTypedI18n } from "@renderer/i18n";
 
 const { t } = useTypedI18n();
@@ -157,7 +157,7 @@ async function launch() {
         .replaceAll("__SCENARIOOPTIONS__", scenarioOptionsStr)
         //TODO replace with online name when implemented
         .replaceAll("__PLAYERNAME__", "Player")
-        .replaceAll("__BARVERSION__", LATEST_GAME_VERSION)
+        .replaceAll("__BARVERSION__", configStore.latestGameVersion)
         .replaceAll("__MAPNAME__", selectedScenario.value.mapfilename)
         .replaceAll("__PLAYERSIDE__", selectedFaction.value)
         .replaceAll("__ENEMYHANDICAP__", selectedDifficulty.value?.enemyhandicap?.toString() ?? "0")
@@ -168,7 +168,7 @@ async function launch() {
     if (!enginesStore.selectedEngineVersion) {
         throw new Error("No engine version selected");
     }
-    await window.game.launchScript(script, LATEST_GAME_VERSION, enginesStore.selectedEngineVersion.id);
+    await window.game.launchScript(script, configStore.latestGameVersion, enginesStore.selectedEngineVersion.id);
 }
 </script>
 
