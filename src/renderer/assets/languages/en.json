@@ -2198,6 +2198,27 @@
                     "ffa": "FFA",
                     "ffaDescription": "Last com standing wins"
                 },
+                "skirmishEntryChooser": {
+                    "recommended": "Recommended",
+                    "quickStart": "Quick Start",
+                    "quickStartDescription": "Start a recommended beginner 3v3 battle against AI.",
+                    "quickStartSummary": "You and two AI allies face three AI opponents on a suitable map.",
+                    "createQuickMatch": "Create quick match",
+                    "preparingQuickStart": "Preparing your recommended skirmish…",
+                    "quickStartFailed": "Quick Start could not be prepared.",
+                    "retryQuickStart": "Retry Quick Start",
+                    "contentRequired": "Install or select the required game content before using Quick Start.",
+                    "playerRequired": "Your player could not be added to the recommended skirmish.",
+                    "aiUnavailable": "BARb is not available in the selected engine or game version.",
+                    "noEligibleMap": "No suitable 3v3 map is available.",
+                    "unexpectedFailure": "The recommended skirmish could not be prepared. Please try again.",
+                    "fullControl": "Full control",
+                    "customSkirmish": "Custom Skirmish",
+                    "customSkirmishDescription": "Choose the game mode, map, teams, factions, and AI settings.",
+                    "customSkirmishSummary": "Continue into the existing custom battle setup.",
+                    "setUpCustom": "Set up custom game",
+                    "back": "Back to Skirmish choices"
+                },
                 "error": {
                     "fatalError": "Fatal Error",
                     "fatalErrorDescription": "A fatal error has occurred and BAR Lobby needs to reload.",

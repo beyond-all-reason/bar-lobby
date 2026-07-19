@@ -121,7 +121,6 @@ import gridIcon from "@iconify-icons/mdi/grid";
 import windPower from "@iconify-icons/mdi/wind-power";
 import { useTypedI18n } from "@renderer/i18n";
 import DownloadContentButton from "@renderer/components/controls/DownloadContentButton.vue";
-import { watch } from "vue";
 
 const { t } = useTypedI18n();
 
@@ -145,13 +144,6 @@ function toggleMapFavorite() {
 function routerBack() {
     router.back();
 }
-
-watch(
-    () => battleStore.isSelectingGameMode,
-    (newValue) => {
-        battleStore.isLobbyOpened = !newValue;
-    }
-);
 </script>
 
 <style lang="scss" scoped>

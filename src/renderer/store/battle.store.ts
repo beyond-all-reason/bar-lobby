@@ -10,11 +10,13 @@ import { enginesStore } from "@renderer/store/engine.store";
 import { gameStore } from "@renderer/store/game.store";
 import { getRandomMap } from "@renderer/store/maps.store";
 import { me } from "@renderer/store/me.store";
+import { db } from "@renderer/store/db";
+import { BEGINNER_SKIRMISH_AI_SHORT_NAME, createBeginnerSkirmishTeams, selectBeginnerSkirmishMap } from "@renderer/utils/beginner-skirmish";
 import { deepToRaw } from "@renderer/utils/deep-toraw";
 import { spadsBoxToStartBox } from "@renderer/utils/start-boxes";
 import { notificationsApi } from "@renderer/api/notifications";
 import { StartBox } from "tachyon-protocol/types";
-import { reactive, readonly, watch } from "vue";
+import { reactive, readonly, watch, nextTick } from "vue";
 import { startBattle as startGame } from "@renderer/store/game.store";
 import { setupI18n } from "@renderer/i18n";
 
@@ -26,6 +28,13 @@ interface BattleLobby {
     isLobbyOpened: boolean;
     isSelectingGameMode: boolean;
 }
+
+export type CreateBeginnerSkirmishResult =
+    | { ok: true }
+    | {
+          ok: false;
+          reason: "content-required" | "player-required" | "ai-unavailable" | "no-eligible-map" | "unexpected";
+      };
 
 // Store
 export const battleStore = reactive<Battle & BattleLobby>({
@@ -401,6 +410,48 @@ function resetToDefaultBattle(engine?: EngineVersion, game?: GameVersion, map?: 
     Object.assign(battleStore, battle);
 }
 
+async function createBeginnerSkirmish(): Promise<CreateBeginnerSkirmishResult> {
+    const engine = enginesStore.selectedEngineVersion;
+    const game = gameStore.selectedGameVersion;
+
+    if (!engine || !game) return { ok: false, reason: "content-required" };
+    if (!battleStore.me) return { ok: false, reason: "player-required" };
+
+    const ai = engine.ais.find((candidate) => candidate.shortName === BEGINNER_SKIRMISH_AI_SHORT_NAME) ?? game.ais.find((candidate) => candidate.shortName === BEGINNER_SKIRMISH_AI_SHORT_NAME);
+    if (!ai) return { ok: false, reason: "ai-unavailable" };
+
+    try {
+        const selectedMap = selectBeginnerSkirmishMap(await db.maps.toArray());
+        if (!selectedMap) return { ok: false, reason: "no-eligible-map" };
+
+        resetToDefaultBattle(engine, game, selectedMap.map);
+        await nextTick();
+        await loadGameMode(GameModeID.CLASSIC);
+
+        battleStore.battleOptions.mapOptions = {
+            startPosType: StartPosType.Boxes,
+            startBoxesIndex: selectedMap.startBoxesIndex,
+        };
+        await nextTick();
+
+        if (!battleStore.me) return { ok: false, reason: "player-required" };
+        const teams = createBeginnerSkirmishTeams({
+            player: battleStore.me,
+            ai,
+            nextParticipantId: () => participantId++,
+        });
+        battleStore.me = teams[0].participants[0] as Player;
+        battleStore.teams = teams;
+        battleStore.spectators = [];
+
+        return { ok: true };
+    } catch (error) {
+        console.error("Failed to create beginner skirmish", error);
+        resetToDefaultBattle(engine, game);
+        return { ok: false, reason: "unexpected" };
+    }
+}
+
 async function startBattle() {
     if (!battleStore.battleOptions.engineVersion || !battleStore.battleOptions.gameVersion) {
         notificationsApi.alert({ text: i18n.global.t("lobby.components.misc.initialSetup.contentRequired"), severity: "error" });
@@ -619,6 +670,7 @@ export const battleActions = {
     startBattle,
     updateTeams,
     resetToDefaultBattle,
+    createBeginnerSkirmish,
     leaveLobby: leaveBattle,
     loadGameMode,
     getMaxPlayersPerTeam,
