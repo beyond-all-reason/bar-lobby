@@ -2,6 +2,9 @@
 SPDX-FileCopyrightText: 2026 The BAR Lobby Authors
 
 SPDX-License-Identifier: MIT
+
+This fullscreen chooser presents Quick Start and Custom Skirmish entry points,
+then delegates nested navigation and async selection state to NestedChoicePanel.
 -->
 
 <template>
