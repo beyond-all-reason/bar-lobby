@@ -66,7 +66,7 @@ import { defaultMaps } from "@main/config/default-maps";
 import { LATEST_GAME_VERSION } from "@main/config/default-versions";
 import { initBattleStore } from "@renderer/store/battle.store";
 import { enginesStore } from "@renderer/store/engine.store";
-import { gameStore } from "@renderer/store/game.store";
+import { downloadGame, gameStore } from "@renderer/store/game.store";
 import { downloadsStore } from "@renderer/store/downloads.store";
 import { useDownloadProgress } from "@renderer/composables/useDownloadProgress";
 
@@ -349,7 +349,8 @@ onMounted(async () => {
             weight: 8,
             canSkip: () => gameStore.availableGameVersions.size > 0,
             async run() {
-                await window.game.ensureValidatedGameContent(LATEST_GAME_VERSION);
+                await window.game.preloadPoolData();
+                await downloadGame(LATEST_GAME_VERSION);
                 if (gameStore.selectedGameVersion === undefined) {
                     throw new Error("Game download did not complete successfully");
                 }
