@@ -5,141 +5,63 @@ SPDX-License-Identifier: MIT
 -->
 
 <template>
-    <div class="mode-select">
-        <div
-            class="mode-column classic"
-            @click="
-                battleActions.loadGameMode(GameModeID.CLASSIC);
-                $emit('selected');
-            "
-        >
-            <span>{{ t("lobby.components.misc.gameModeSelector.classic") }}</span>
-            <button class="quick-play-button">{{ t("lobby.components.misc.gameModeSelector.classicDescription") }}</button>
-        </div>
-        <div
-            class="mode-column raptors"
-            @click="
-                battleActions.loadGameMode(GameModeID.RAPTORS);
-                $emit('selected');
-            "
-        >
-            <span>{{ t("lobby.components.misc.gameModeSelector.raptors") }}</span>
-            <button class="quick-play-button">{{ t("lobby.components.misc.gameModeSelector.raptorsDescription") }}</button>
-        </div>
-        <div
-            class="mode-column scavengers"
-            @click="
-                battleActions.loadGameMode(GameModeID.SCAVENGERS);
-                $emit('selected');
-            "
-        >
-            <span>{{ t("lobby.components.misc.gameModeSelector.scavengers") }}</span>
-            <button class="quick-play-button">{{ t("lobby.components.misc.gameModeSelector.scavengersDescription") }}</button>
-        </div>
-        <div
-            class="mode-column ffa"
-            @click="
-                battleActions.loadGameMode(GameModeID.FFA);
-                $emit('selected');
-            "
-        >
-            <span>{{ t("lobby.components.misc.gameModeSelector.ffa") }}</span>
-            <button class="quick-play-button">{{ t("lobby.components.misc.gameModeSelector.ffaDescription") }}</button>
-        </div>
-    </div>
+    <DiagonalChoiceLevel :choices="choices" @selected="selectGameMode" />
 </template>
+
 <script lang="ts" setup>
 import { GameModeID } from "@main/game/battle/battle-types";
-import { battleActions } from "@renderer/store/battle.store";
+import DiagonalChoiceLevel from "@renderer/components/battle/DiagonalChoiceLevel.vue";
+import type { DiagonalChoice } from "@renderer/components/battle/diagonal-choice.types";
 import { useTypedI18n } from "@renderer/i18n";
+import { battleActions } from "@renderer/store/battle.store";
 
 const { t } = useTypedI18n();
+const emit = defineEmits<{
+    selected: [];
+}>();
 
-defineEmits(["selected"]);
+const choices: DiagonalChoice[] = [
+    {
+        id: "classic",
+        title: t("lobby.components.misc.gameModeSelector.classic"),
+        description: t("lobby.components.misc.gameModeSelector.classicDescription"),
+        artwork: "/src/renderer/assets/images/backgrounds/5.jpg",
+    },
+    {
+        id: "raptors",
+        title: t("lobby.components.misc.gameModeSelector.raptors"),
+        description: t("lobby.components.misc.gameModeSelector.raptorsDescription"),
+        artwork: "/src/renderer/assets/images/modes/raptors.jpg",
+    },
+    {
+        id: "scavengers",
+        title: t("lobby.components.misc.gameModeSelector.scavengers"),
+        description: t("lobby.components.misc.gameModeSelector.scavengersDescription"),
+        artwork: "/src/renderer/assets/images/modes/scavengers.webp",
+    },
+    {
+        id: "ffa",
+        title: t("lobby.components.misc.gameModeSelector.ffa"),
+        description: t("lobby.components.misc.gameModeSelector.ffaDescription"),
+        artwork: "/src/renderer/assets/images/modes/ffa.jpg",
+    },
+];
+
+const gameModeByChoiceId: Record<string, GameModeID> = {
+    classic: GameModeID.CLASSIC,
+    raptors: GameModeID.RAPTORS,
+    scavengers: GameModeID.SCAVENGERS,
+    ffa: GameModeID.FFA,
+};
+
+async function selectGameMode(choiceId: string) {
+    const gameMode = gameModeByChoiceId[choiceId];
+
+    if (gameMode === undefined) {
+        return;
+    }
+
+    await battleActions.loadGameMode(gameMode);
+    emit("selected");
+}
 </script>
-
-<style lang="scss" scoped>
-.mode-select {
-    display: flex;
-    height: 100%;
-    overflow: visible;
-}
-
-.mode-column {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: space-between;
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-    color: white;
-    font-size: 2rem;
-    text-align: center;
-    transition: all 0.3s ease;
-    filter: brightness(0.7);
-    transform: skewX(-5deg);
-    padding-top: 30px;
-    span {
-        font-size: 2rem;
-        text-transform: uppercase;
-        font-weight: bold;
-        filter: drop-shadow(3px 3px 5px rgba(0, 0, 0, 0.8));
-    }
-    &.classic {
-        background-image: url("/src/renderer/assets/images/backgrounds/5.jpg");
-    }
-    &.raptors {
-        background-image: url("/src/renderer/assets/images/modes/raptors.jpg");
-    }
-    &.scavengers {
-        background-image: url("/src/renderer/assets/images/modes/scavengers.webp");
-    }
-    &.ffa {
-        background-image: url("/src/renderer/assets/images/modes/ffa.jpg");
-    }
-}
-
-.mode-column:last-child {
-    border-right: none;
-}
-
-/* On hover/active */
-.mode-column:hover {
-    flex: 1.5;
-    z-index: 1;
-    filter: brightness(1);
-    transform: scale(1.05) skewX(0deg);
-    box-shadow: 0 0 10px 5px rgba(0, 0, 0, 0.5);
-}
-
-.quick-play-button {
-    height: 120px;
-    width: 100%;
-    align-self: center;
-    text-transform: uppercase;
-    font-family: Rajdhani;
-    font-weight: bold;
-    font-size: 2rem;
-    padding: 20px calc(50% - 122px);
-    color: #fff;
-    background: linear-gradient(90deg, #22c55e, #16a34a);
-    border: none;
-    border-radius: 2px;
-    box-shadow: 0 8px 15px rgba(34, 197, 94, 0.4);
-    text-align: center;
-    cursor: pointer;
-    position: relative;
-    overflow: hidden;
-    transition: all 0.3s ease;
-}
-
-.quick-play-button:hover {
-    box-shadow: 0 12px 25px rgba(34, 197, 94, 0.6);
-}
-
-.quick-play-button:hover::before {
-    box-shadow: 0 8px 15px rgba(34, 197, 94, 0.4);
-}
-</style>

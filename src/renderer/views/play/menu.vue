@@ -67,7 +67,6 @@ SPDX-License-Identifier: MIT
 </template>
 
 <script lang="ts" setup>
-import { watch } from "vue";
 import { useRouter } from "vue-router";
 import Panel from "@renderer/components/common/Panel.vue";
 import { settingsStore } from "@renderer/store/settings.store";
@@ -76,13 +75,6 @@ import { useTypedI18n } from "@renderer/i18n";
 const { t } = useTypedI18n();
 
 const router = useRouter();
-
-watch(
-    () => battleStore.isSelectingGameMode,
-    (newValue) => {
-        battleStore.isLobbyOpened = !newValue;
-    }
-);
 
 // Game mode handlers
 const startSkirmish = () => {
