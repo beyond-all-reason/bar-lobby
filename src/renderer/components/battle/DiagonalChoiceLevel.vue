@@ -10,7 +10,7 @@ SPDX-License-Identifier: MIT
             v-for="choice in choices"
             :key="choice.id"
             class="choice-item"
-            :class="choice.id"
+            :class="[choice.id, { selected: choice.id === selectedId, sibling: Boolean(selectedId) && choice.id !== selectedId }]"
             :data-choice-id="choice.id"
             :disabled="choice.disabled"
             type="button"
@@ -35,6 +35,7 @@ import type { DiagonalChoice } from "@renderer/components/battle/diagonal-choice
 
 defineProps<{
     choices: DiagonalChoice[];
+    selectedId?: string;
 }>();
 
 const emit = defineEmits<{
@@ -87,6 +88,18 @@ const emit = defineEmits<{
         filter: brightness(1.15);
         outline: none;
         transform: scale(1.025) skewX(-5deg);
+    }
+
+    &.selected {
+        z-index: 2;
+        flex: 2.4;
+        filter: brightness(1.18);
+        transform: scale(1.04) skewX(-5deg);
+    }
+
+    &.sibling {
+        flex: 0.55;
+        filter: brightness(0.45);
     }
 }
 

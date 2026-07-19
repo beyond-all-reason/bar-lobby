@@ -5,7 +5,7 @@ SPDX-License-Identifier: MIT
 -->
 
 <template>
-    <div class="nested-choice-panel">
+    <div class="nested-choice-panel" :class="{ 'is-transitioning': transitionLocked }">
         <template v-if="operation.status === 'idle'">
             <button
                 v-if="path.length"
@@ -17,7 +17,14 @@ SPDX-License-Identifier: MIT
             >
                 {{ backLabel }}
             </button>
-            <DiagonalChoiceLevel :choices="currentChoices" @selected="selectItem" />
+            <div
+                class="choice-level-shell"
+                :class="`transition-${transitionPhase}`"
+                :data-transition-phase="transitionPhase"
+                @animationend="completeTransition"
+            >
+                <DiagonalChoiceLevel :choices="currentChoices" :selected-id="selectedId" @selected="selectItem" />
+            </div>
         </template>
         <div v-else class="operation-status">
             <p v-if="operation.status === 'pending'" data-testid="choice-panel-pending">{{ pendingLabel }}</p>
@@ -32,7 +39,7 @@ SPDX-License-Identifier: MIT
 </template>
 
 <script lang="ts" setup>
-import { computed, reactive, ref, watch } from "vue";
+import { computed, onMounted, reactive, ref, watch } from "vue";
 import DiagonalChoiceLevel from "@renderer/components/battle/DiagonalChoiceLevel.vue";
 import type {
     ChoiceActionResult,
@@ -68,9 +75,14 @@ const activeBranch = ref<ChoicePanelBranch>();
 const branchPending = ref(false);
 const operation = reactive<{ status: "idle" | "pending" | "error"; message?: string }>({ status: "idle" });
 const operationGeneration = ref(0);
+const transitionPhase = ref<"idle" | "forward" | "back">("idle");
+const transitionLocked = ref(false);
+const selectedId = ref<string>();
+const pendingBranch = ref<ChoicePanelBranch>();
+const reducedMotion = ref(false);
 
 const currentItems = computed<ChoicePanelItem[]>(() => path.value.at(-1)?.children ?? props.choices);
-const isLocked = computed(() => branchPending.value || operation.status === "pending");
+const isLocked = computed(() => transitionLocked.value || branchPending.value || operation.status === "pending");
 const currentChoices = computed(() => currentItems.value.map((item) => ({ ...item, disabled: isLocked.value })));
 
 async function selectItem(id: string) {
@@ -83,7 +95,11 @@ async function selectItem(id: string) {
         branchPending.value = true;
         try {
             await item.beforeEnter?.();
-            if (activeBranch.value?.id === item.id) path.value.push(item);
+            if (activeBranch.value?.id === item.id) {
+                selectedId.value = item.id;
+                pendingBranch.value = item;
+                beginTransition("forward");
+            }
         } catch (error) {
             operation.status = "error";
             operation.message = error instanceof Error ? error.message : String(error);
@@ -120,6 +136,31 @@ async function runActiveAction() {
     }
 }
 
+function beginTransition(phase: "forward" | "back") {
+    transitionPhase.value = phase;
+    if (reducedMotion.value) {
+        if (phase === "forward" && pendingBranch.value) {
+            path.value.push(pendingBranch.value);
+            pendingBranch.value = undefined;
+        }
+        transitionLocked.value = false;
+        transitionPhase.value = "idle";
+        return;
+    }
+    transitionLocked.value = true;
+}
+
+function completeTransition(event: AnimationEvent) {
+    if (event.target !== event.currentTarget) return;
+    if (transitionPhase.value === "forward" && pendingBranch.value) {
+        path.value.push(pendingBranch.value);
+        pendingBranch.value = undefined;
+    }
+    transitionLocked.value = false;
+    transitionPhase.value = "idle";
+    selectedId.value = undefined;
+}
+
 async function retryOperation() {
     if (activeBranch.value) {
         const branch = activeBranch.value;
@@ -140,15 +181,26 @@ function clearOperation() {
 
 function goBack() {
     if (isLocked.value) return;
-    path.value.pop();
+    if (path.value.length) {
+        beginTransition("back");
+        path.value.pop();
+    }
 }
 
 function reset() {
     operationGeneration.value += 1;
+    pendingBranch.value = undefined;
+    transitionLocked.value = false;
+    transitionPhase.value = "idle";
     path.value = [];
     branchPending.value = false;
     clearOperation();
 }
+
+onMounted(() => {
+    const mediaQuery = window.matchMedia?.("(prefers-reduced-motion: reduce)");
+    reducedMotion.value = !mediaQuery || mediaQuery.matches;
+});
 
 watch(() => props.resetKey, reset);
 defineExpose({ reset });
@@ -181,6 +233,45 @@ defineExpose({ reset });
     }
 }
 
+.choice-level-shell {
+    height: 100%;
+
+    &.transition-forward {
+        animation: choice-level-forward 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
+    }
+
+    &.transition-back {
+        animation: choice-level-back 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
+    }
+}
+
+@keyframes choice-level-forward {
+    from {
+        opacity: 0.35;
+        transform: translateX(18%) scale(0.94);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0) scale(1);
+    }
+}
+
+@keyframes choice-level-back {
+    from {
+        opacity: 0.35;
+        transform: translateX(-18%) scale(0.94);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0) scale(1);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .choice-level-shell {
+        animation: none !important;
+    }
+}
 .operation-status {
     display: flex;
     height: 100%;

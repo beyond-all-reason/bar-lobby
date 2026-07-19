@@ -100,6 +100,23 @@ describe("NestedChoicePanel", () => {
         expect(wrapper.findAll('[data-choice-id="leaf"]').length > 0).toBe(true);
     });
 
+    it("locks navigation until the forward animation ends", async () => {
+        const originalMatchMedia = window.matchMedia;
+        window.matchMedia = vi.fn().mockReturnValue({ matches: false }) as typeof window.matchMedia;
+        const wrapper = mount(NestedChoicePanel, {
+            props: { choices: [{ type: "branch", id: "branch", title: "Branch", artwork: "branch.png", children: [action("leaf")] }], backLabel: "Back" },
+        });
+
+        await wrapper.get('[data-choice-id="branch"]').trigger("click");
+        const shell = wrapper.get(".choice-level-shell");
+        expect(shell.attributes("data-transition-phase")).toBe("forward");
+        expect(wrapper.get('[data-choice-id="branch"]').attributes("disabled")).toBeDefined();
+
+        await shell.trigger("animationend");
+        expect(shell.attributes("data-transition-phase")).toBe("idle");
+        expect(wrapper.get('[data-testid="choice-panel-back"]').attributes("disabled")).toBeUndefined();
+        window.matchMedia = originalMatchMedia;
+    });
     it("keeps an async action pending and emits completion only after success", async () => {
         let resolveAction!: (result: { ok: true }) => void;
         const run = vi.fn(() => new Promise<{ ok: true }>((resolve) => (resolveAction = resolve)));
