@@ -45,16 +45,8 @@ import DevlogFeed from "@renderer/components/misc/DevlogFeed.vue";
 import NewsFeed from "@renderer/components/misc/NewsFeed.vue";
 import { useTypedI18n } from "@renderer/i18n";
 import { battleStore } from "@renderer/store/battle.store";
-import { watch } from "vue";
 
 const { t } = useTypedI18n();
-
-watch(
-    () => battleStore.isSelectingGameMode,
-    (newValue) => {
-        battleStore.isLobbyOpened = !newValue;
-    }
-);
 </script>
 
 <style lang="scss" scoped>
