@@ -159,6 +159,7 @@ function onIntroEnd() {
 function onInitialSetupDone() {
     state.value = "default";
     console.debug("Initial setup done");
+    window.lobbyProtocol.handlePending();
 }
 
 // Currently we support multiplayer only in dev mode, as it's very not finished.

@@ -253,3 +253,21 @@ const notificationsApi = {
 };
 export type NotificationsApi = typeof notificationsApi;
 contextBridge.exposeInMainWorld("notifications", notificationsApi);
+
+import { LOBBY_PROTOCOL_SCHEME, LOBBY_SHAREABLE_BASE_URL } from "@main/lobbyProtocol/scheme";
+
+const lobbyProtocolApi = {
+    scheme: LOBBY_PROTOCOL_SCHEME,
+    getLabels: (): Promise<Record<string, string>> => ipcRenderer.invoke("lobbyProtocol:getLabels"),
+    handlePending: (): Promise<void> => ipcRenderer.invoke("lobbyProtocol:handlePending"),
+    handleUrl: (url: string): Promise<void> => ipcRenderer.invoke("lobbyProtocol:handleUrl", url),
+    getShareableUrl: (handler: string, action: string, params?: Record<string, string>): string => {
+        const shareableUrl = new URL(`${LOBBY_SHAREABLE_BASE_URL}/${handler}/${action}`);
+        if (params) {
+            Object.entries(params).forEach(([k, v]) => shareableUrl.searchParams.set(k, v));
+        }
+        return shareableUrl.toString();
+    },
+};
+export type LobbyProtocolApi = typeof lobbyProtocolApi;
+contextBridge.exposeInMainWorld("lobbyProtocol", lobbyProtocolApi);
