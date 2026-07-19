@@ -13,6 +13,7 @@
 import * as fs from "node:fs";
 import { Value, ValuePointer } from "@sinclair/typebox/value";
 import { configSchema, updateConfigSchema, TUpdateConfigSchema } from "../src/main/json/model/config";
+import { fileURLToPath } from "node:url";
 
 export function generateDiffConfig(oldPath?: string, newPath?: string) {
     if (!oldPath) {
@@ -64,7 +65,9 @@ function writeConfig(config: TUpdateConfigSchema) {
     const json = JSON.stringify(config, null, 2);
     const OUTPUT_PATH = process.env.BAR_OUTPUT_CONFIG_PATH ?? "config.json";
     fs.writeFileSync(OUTPUT_PATH, json, "utf-8");
-    console.log(`Diff config written to ${OUTPUT_PATH}`);
 }
 
-generateDiffConfig(process.env.BAR_OLD_CONFIG_PATH, process.env.BAR_NEW_CONFIG_PATH);
+const isMain = process.argv[1] === fileURLToPath(import.meta.url);
+if (isMain) {
+    generateDiffConfig(process.env.BAR_OLD_CONFIG_PATH, process.env.BAR_NEW_CONFIG_PATH);
+}
