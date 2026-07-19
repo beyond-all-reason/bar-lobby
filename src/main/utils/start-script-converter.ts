@@ -147,6 +147,7 @@ class StartScriptConverter {
                     players.push(player);
                 } else {
                     team.teamleader = teamMember.host;
+                    team.side = teamMember.faction;
                     const bot: Bot = {
                         id,
                         team: team.id,
