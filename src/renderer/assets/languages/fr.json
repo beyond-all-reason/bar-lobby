@@ -3914,6 +3914,23 @@
                 "customLobbies": null,
                 "tournaments": null
             },
+            "party": {
+                "title": null,
+                "partyTab": null,
+                "inviteTab": null,
+                "members": null,
+                "invites": null,
+                "leaveParty": null,
+                "matchmakingQueues": null,
+                "noQueues": null,
+                "requestQueues": null,
+                "receivedInvite": null,
+                "acceptInvite": null,
+                "declineInvite": null,
+                "kickMember": null,
+                "cancelInvite": null,
+                "noInvites": null
+            },
             "watch": {
                 "replays": {
                     "title": null,
@@ -4037,7 +4054,10 @@
                 "sendMessage": null,
                 "joinBattle": null,
                 "inviteToParty": null,
-                "removeFriend": null
+                "partyFull": null,
+                "removeFriend": null,
+                "userInParty": null,
+                "userInvited": null
             },
             "exit": {
                 "title": null,
@@ -4058,6 +4078,10 @@
             },
             "breadcrumbs": {
                 "back": null
+            },
+            "partyPopout": {
+                "party": null,
+                "invited": null
             },
             "downloads": {
                 "noDownloads": null,
@@ -4169,7 +4193,8 @@
                     "game": null,
                     "engine": null,
                     "view": null,
-                    "lobbyServerSettings": null
+                    "lobbyServerSettings": null,
+                    "createParty": null
                 },
                 "scenarioTile": {
                     "title": null

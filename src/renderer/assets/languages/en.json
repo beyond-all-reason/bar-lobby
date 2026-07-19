@@ -1909,6 +1909,23 @@
                 "customLobbies": "Custom Lobbies",
                 "tournaments": "Tournaments"
             },
+            "party": {
+                "title": "Party",
+                "partyTab": "Active Party",
+                "inviteTab": "Available Invites",
+                "members": "Members",
+                "invites": "Invites",
+                "leaveParty": "Leave Party",
+                "matchmakingQueues": "Matchmaking Queues",
+                "noQueues": "No matchmaking queues available",
+                "requestQueues": "Request Queues",
+                "receivedInvite": "You have received a party invitation from {users}.",
+                "acceptInvite": "Accept",
+                "declineInvite": "Decline",
+                "kickMember": "Kick Member",
+                "cancelInvite": "Cancel Invite",
+                "noInvites": "No current invitations."
+            },
             "watch": {
                 "replays": {
                     "title": "Replays",
@@ -2031,8 +2048,11 @@
                 "viewProfile": "View profile",
                 "sendMessage": "Send message",
                 "joinBattle": "Join battle",
-                "inviteToParty": "Invite to party (TODO)",
-                "removeFriend": "Remove friend"
+                "inviteToParty": "Invite to party",
+                "partyFull": "Max members and invites reached",
+                "removeFriend": "Remove friend",
+                "userInParty": "In party",
+                "userInvited": "Invited"
             },
             "exit": {
                 "title": "Exit",
@@ -2053,6 +2073,10 @@
             },
             "breadcrumbs": {
                 "back": "Back"
+            },
+            "partyPopout": {
+                "party": "View Party",
+                "invited": "Party Invite"
             },
             "downloads": {
                 "noDownloads": "No downloads active",
@@ -2164,7 +2188,8 @@
                     "game": "Game",
                     "engine": "Engine",
                     "view": "View",
-                    "lobbyServerSettings": "Lobby Server Settings"
+                    "lobbyServerSettings": "Lobby Server Settings",
+                    "createParty": "Create Party"
                 },
                 "scenarioTile": {
                     "title": "Scenario Title"
