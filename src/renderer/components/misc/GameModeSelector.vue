@@ -6,43 +6,19 @@ SPDX-License-Identifier: MIT
 
 <template>
     <div class="mode-select">
-        <div
-            class="mode-column classic"
-            @click="
-                battleActions.loadGameMode(GameModeID.CLASSIC);
-                $emit('selected');
-            "
-        >
+        <div class="mode-column classic" @click="selectGameMode(GameModeID.CLASSIC)">
             <span>{{ t("lobby.components.misc.gameModeSelector.classic") }}</span>
             <button class="quick-play-button">{{ t("lobby.components.misc.gameModeSelector.classicDescription") }}</button>
         </div>
-        <div
-            class="mode-column raptors"
-            @click="
-                battleActions.loadGameMode(GameModeID.RAPTORS);
-                $emit('selected');
-            "
-        >
+        <div class="mode-column raptors" @click="selectGameMode(GameModeID.RAPTORS)">
             <span>{{ t("lobby.components.misc.gameModeSelector.raptors") }}</span>
             <button class="quick-play-button">{{ t("lobby.components.misc.gameModeSelector.raptorsDescription") }}</button>
         </div>
-        <div
-            class="mode-column scavengers"
-            @click="
-                battleActions.loadGameMode(GameModeID.SCAVENGERS);
-                $emit('selected');
-            "
-        >
+        <div class="mode-column scavengers" @click="selectGameMode(GameModeID.SCAVENGERS)">
             <span>{{ t("lobby.components.misc.gameModeSelector.scavengers") }}</span>
             <button class="quick-play-button">{{ t("lobby.components.misc.gameModeSelector.scavengersDescription") }}</button>
         </div>
-        <div
-            class="mode-column ffa"
-            @click="
-                battleActions.loadGameMode(GameModeID.FFA);
-                $emit('selected');
-            "
-        >
+        <div class="mode-column ffa" @click="selectGameMode(GameModeID.FFA)">
             <span>{{ t("lobby.components.misc.gameModeSelector.ffa") }}</span>
             <button class="quick-play-button">{{ t("lobby.components.misc.gameModeSelector.ffaDescription") }}</button>
         </div>
@@ -54,8 +30,14 @@ import { battleActions } from "@renderer/store/battle.store";
 import { useTypedI18n } from "@renderer/i18n";
 
 const { t } = useTypedI18n();
+const emit = defineEmits<{
+    selected: [];
+}>();
 
-defineEmits(["selected"]);
+async function selectGameMode(gameMode: GameModeID) {
+    await battleActions.loadGameMode(gameMode);
+    emit("selected");
+}
 </script>
 
 <style lang="scss" scoped>
