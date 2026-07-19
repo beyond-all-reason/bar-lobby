@@ -365,11 +365,7 @@ export class GameContentAPI extends PrDownloaderAPI<string, GameVersion> {
     public async preloadPoolData() {
         log.debug("Preloading pool data");
         const poolCdn = new PoolCdnDownloader(this);
-        try {
-            await poolCdn.preloadPoolData();
-        } catch (error) {
-            log.warn(error, "Failed preloading pool data, ignoring");
-        }
+        await poolCdn.preloadPoolData();
     }
 
     // TODO reimplement a cleanup function
