@@ -134,7 +134,7 @@ export type Bot = {
     name: string;
     aiOptions: Record<string, unknown>;
 
-    faction?: Faction;
+    faction: Faction;
     startPos?: { x: number; z: number };
     handicap?: number;
     advantage?: number;
