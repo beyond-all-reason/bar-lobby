@@ -4303,7 +4303,8 @@
                     "configure": null,
                     "duplicate": null,
                     "kick": null,
-                    "configureBot": null
+                    "configureBot": null,
+                    "optionsNotApplied": null
                 },
                 "addBotModal": {
                     "title": null
