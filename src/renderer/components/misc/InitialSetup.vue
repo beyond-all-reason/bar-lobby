@@ -348,6 +348,9 @@ onMounted(async () => {
             weight: 8,
             canSkip: () => gameStore.availableGameVersions.size > 0,
             async run() {
+                if (gameStore.availableGameVersions.size > 0) {
+                    return;
+                }
                 await window.game.preloadPoolData();
                 await downloadGame(configStore.latestGameVersion);
                 if (gameStore.selectedGameVersion === undefined) {

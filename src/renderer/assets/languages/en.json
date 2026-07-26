@@ -546,7 +546,7 @@
             "console": {
                 "title": "Console commands",
                 "eraseKey": "/clearmapmarks",
-                "erase": "Erase all drawings and markes",
+                "erase": "Erase all drawings and marks",
                 "pauseKey": "/pause",
                 "pause": "Pause"
             }
@@ -1237,7 +1237,7 @@
                 "snowmap": "enabled on this map",
                 "snowmap_descr": "It will remember what you toggled for every map\n\n(by default: maps with wintery names have this toggled)",
                 "snowautoreduce": "auto reduce",
-                "snowautoreduce_descr": "Automaticly reduce snow when average FPS gets lower\n\n(re-enabling this needs time to readjust  to average fps again",
+                "snowautoreduce_descr": "Automatically reduce snow when average FPS gets lower\n\n(re-enabling this needs time to readjust  to average fps again",
                 "snowamount": "amount",
                 "snowamount_descr": "disable \"auto reduce\" option to see the max snow amount you have set",
                 "resurrectionhalos": "Resurrected unit halos",
@@ -1299,7 +1299,7 @@
                 "cursorsize": "Cursor size",
                 "cursorsize_descr": "Note that cursor already auto-scales according to screen resolution\n\nFurther adjust size and snap to a smaller/larger size",
                 "doubleclicktime": "Double-click time",
-                "doubleclicktime_descr": "Time in ms between two consectutive left clicks to be considered a doubleclick",
+                "doubleclicktime_descr": "Time in ms between two consecutive left clicks to be considered a double-click",
                 "dragthreshold": "Drag Threshold",
                 "dragthreshold_descr": "Number of pixels of mouse movement for a click to be considered a drag",
                 "crossalpha": "Cursor 'cross' alpha",
@@ -1519,7 +1519,7 @@
                 "teamplatter_opacity": "opacity",
                 "teamplatter_opacity_descr": "Set the opacity of the team spotters",
                 "teamplatter_skipownteam": "skip own units",
-                "teamplatter_skipownteam_descr": "Doesnt draw platters for yourself",
+                "teamplatter_skipownteam_descr": "Doesn't draw platters for yourself",
                 "enemyspotter": "Enemy spotters",
                 "enemyspotter_descr": "Draws smoothed circles under enemy units\n\nDisables when enemy is single colored or alone",
                 "enemyspotter_opacity": "opacity",
@@ -1586,7 +1586,7 @@
                 "showbuilderqueue": "Show builder queue",
                 "showbuilderqueue_descr": "Shows ghosted buildings about to be built on the map",
                 "unitenergyicons": "Unit insufficient energy icons",
-                "unitenergyicons_descr": "Shows a red power bolt above units that cant fire their most e consuming weapon\nwhen you haven't enough energy available.",
+                "unitenergyicons_descr": "Shows a red power bolt above units that can't fire their most e consuming weapon\nwhen you haven't enough energy available.",
                 "unitidlebuildericons": "Unit idle builder icons",
                 "unitidlebuildericons_descr": "Shows a sleep icon above builder units that are idle.",
                 "nametags_rank": "Commander name tag rank icon",
@@ -1734,7 +1734,7 @@
                 "storedefaultsettings": "Store default settings",
                 "storedefaultsettings_descr": "Do not remove engine defaults from springsettings.cfg",
                 "startboxeditor": "Startbox editor",
-                "startboxeditor_descr": "LMB to draw (either clicks or drag), RMB to accept a polygon, D to remove last polygon\nS to add a team startbox to startboxes_mapname.txt\n(S overwites the export file for the first team)",
+                "startboxeditor_descr": "LMB to draw (either clicks or drag), RMB to accept a polygon, D to remove last polygon\nS to add a team startbox to startboxes_mapname.txt\n(S overwrites the export file for the first team)",
                 "tonemap": "Unit tonemapping",
                 "envAmbient": "ambient %",
                 "unitSunMult": "sun mult",
@@ -1909,6 +1909,23 @@
                 "customLobbies": "Custom Lobbies",
                 "tournaments": "Tournaments"
             },
+            "party": {
+                "title": "Party",
+                "partyTab": "Active Party",
+                "inviteTab": "Available Invites",
+                "members": "Members",
+                "invites": "Invites",
+                "leaveParty": "Leave Party",
+                "matchmakingQueues": "Matchmaking Queues",
+                "noQueues": "No matchmaking queues available",
+                "requestQueues": "Request Queues",
+                "receivedInvite": "You have received a party invitation from {users}.",
+                "acceptInvite": "Accept",
+                "declineInvite": "Decline",
+                "kickMember": "Kick Member",
+                "cancelInvite": "Cancel Invite",
+                "noInvites": "No current invitations."
+            },
             "watch": {
                 "replays": {
                     "title": "Replays",
@@ -2031,8 +2048,11 @@
                 "viewProfile": "View profile",
                 "sendMessage": "Send message",
                 "joinBattle": "Join battle",
-                "inviteToParty": "Invite to party (TODO)",
-                "removeFriend": "Remove friend"
+                "inviteToParty": "Invite to party",
+                "partyFull": "Max members and invites reached",
+                "removeFriend": "Remove friend",
+                "userInParty": "In party",
+                "userInvited": "Invited"
             },
             "exit": {
                 "title": "Exit",
@@ -2053,6 +2073,10 @@
             },
             "breadcrumbs": {
                 "back": "Back"
+            },
+            "partyPopout": {
+                "party": "View Party",
+                "invited": "Party Invite"
             },
             "downloads": {
                 "noDownloads": "No downloads active",
@@ -2165,7 +2189,8 @@
                     "game": "Game",
                     "engine": "Engine",
                     "view": "View",
-                    "lobbyServerSettings": "Lobby Server Settings"
+                    "lobbyServerSettings": "Lobby Server Settings",
+                    "createParty": "Create Party"
                 },
                 "scenarioTile": {
                     "title": "Scenario Title"
@@ -2516,7 +2541,7 @@
             "factoryShips": "You can now produce ships. The heaviest unit class with the most armor and weapon range. Be aware of submarines and torpedo aircraft that make ship graveyards.",
             "readyForTech2": "Your economy is now strong enough to build a Tech 2 Factory and units. Or you can maximize t1 unit production and try to win in numbers.",
             "duplicateFactory": "It is more efficient to assist the existing factory than to make multiple factories of the same kind.",
-            "paralyzer": "You are being attacked by paralyzer units. Units that have been paralyzed cannot function and wont be able to shoot or move until they have been restored.",
+            "paralyzer": "You are being attacked by paralyzer units. Units that have been paralyzed cannot function and won't be able to shoot or move until they have been restored.",
             "lavaRising": "Lava level is rising!",
             "lavaDropping": "Lava level is dropping!"
         },
@@ -3562,7 +3587,7 @@
             "armfhp": "Builds Hovercraft",
             "armfido": "Mortar / Skirmish Bot",
             "armfig": "Fighter",
-            "armfify": "Stealthy Rez / Repair / Reclaim Aicraft",
+            "armfify": "Stealthy Rez / Repair / Reclaim Aircraft",
             "armflak": "Anti-Air Flak Gun",
             "armflash": "Fast Assault Tank",
             "armflea": "Fast Scout Bot",

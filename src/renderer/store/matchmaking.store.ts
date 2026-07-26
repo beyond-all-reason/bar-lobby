@@ -93,6 +93,7 @@ function onFoundEvent(data: MatchmakingFoundEventData) {
 
 function onQueuesJoinedEvent(data: MatchmakingQueuesJoinedEventData) {
     console.log("Tachyon event: matchmaking/queuesJoined:", data);
+    notificationsApi.alert({ text: "Successfully joined matchmaking queue(s)", severity: "info" });
     matchmakingStore.status = MatchmakingStatus.Searching;
 }
 

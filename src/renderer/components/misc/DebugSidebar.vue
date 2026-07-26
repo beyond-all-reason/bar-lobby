@@ -22,7 +22,7 @@ SPDX-License-Identifier: MIT
             class="fullwidth"
             @update:model-value="onRouteSelect"
         />
-        <Button to="/debug"> Debug Sandbox </Button>
+        <Button to="/debug"> {{ t("lobby.components.misc.debugSidebar.debugSandbox") }} </Button>
         <Button @click="openSettings"> {{ t("lobby.components.misc.debugSidebar.openSettingsFile") }} </Button>
         <Button @click="openConfigFile"> {{ t("lobby.components.misc.debugSidebar.openConfigFile") }} </Button>
         <Button @click="openAssetsDir"> {{ t("lobby.components.misc.debugSidebar.openAssetsDir") }} </Button>
@@ -30,6 +30,7 @@ SPDX-License-Identifier: MIT
         <Button @click="openStartScript"> {{ t("lobby.components.misc.debugSidebar.openStartScript") }} </Button>
         <Button @click="openSyncLobbyContentTool"> {{ t("lobby.components.misc.debugSidebar.syncLobbyContent") }} </Button>
         <Button @click="causeError"> {{ t("lobby.components.misc.debugSidebar.causeError") }} </Button>
+        <Button @click="party.requestCreate"> {{ t("lobby.components.misc.debugSidebar.createParty") }} </Button>
 
         <Select
             :modelValue="gameStore.selectedGameVersion"
@@ -69,6 +70,7 @@ import { enginesStore, installedEngineVersions } from "@renderer/store/engine.st
 import { GameVersion } from "@main/content/game/game-version";
 import { inject, Ref } from "vue";
 import { useTypedI18n } from "@renderer/i18n";
+import { party } from "@renderer/store/party.store";
 const { t } = useTypedI18n();
 
 const active = ref(false);

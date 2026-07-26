@@ -20,6 +20,18 @@ SPDX-License-Identifier: MIT
         <div class="lobby-version">
             {{ infosStore.lobby.version }}
         </div>
+        <div
+            v-if="partyStore.state !== PlayersPartyState.None && router.currentRoute.value.name !== '/profile/party'"
+            class="floating-wrapper"
+        >
+            <div class="party-notification">
+                <Button class="slim green" @click="openPartyView">
+                    <Icon :icon="getPartyIcon()" />
+                    <span class="margin-sm">{{ partyText }}</span>
+                </Button>
+            </div>
+        </div>
+
         <div v-if="empty" class="splash-options">
             <div class="option" @click="settingsOpen = true">
                 <Icon :icon="cog" height="21" />
@@ -60,7 +72,7 @@ import { Icon } from "@iconify/vue";
 import closeThick from "@iconify-icons/mdi/close-thick";
 import cog from "@iconify-icons/mdi/cog";
 import { provide, Ref, toRef, toValue } from "vue";
-import { ref } from "vue";
+import { ref, computed } from "vue";
 import { useRouter } from "vue-router";
 
 import StickyBattle from "@renderer/components/battle/StickyBattle.vue";
@@ -86,6 +98,12 @@ import { useGlobalKeybindings } from "@renderer/composables/useGlobalKeybindings
 import { me } from "@renderer/store/me.store";
 import { auth } from "@renderer/store/me.store";
 import { useLogInConfirmation } from "@renderer/composables/useLogInConfirmation";
+import { partyStore, PlayersPartyState } from "@renderer/store/party.store";
+import accountGroup from "@iconify-icons/mdi/account-group";
+import bellAlert from "@iconify-icons/mdi/bell-alert";
+import Button from "@renderer/components/controls/Button.vue";
+import { chatStore } from "@renderer/store/chat.store";
+import { useTypedI18n } from "@renderer/i18n";
 
 const router = useRouter();
 const videoVisible = toRef(!toValue(settingsStore.skipIntro));
@@ -97,7 +115,7 @@ const blurBg = ref(router.currentRoute.value?.meta?.blurBg ?? false);
 const settingsOpen = ref(false);
 const serverSettingsOpen = ref(false);
 const exitOpen = ref(false);
-
+const { t } = useTypedI18n();
 const { isOpen: logInConfirmationIsOpen, intendedRoute: logInConfirmationIntendedRoute } = useLogInConfirmation();
 
 provide("settingsOpen", settingsOpen);
@@ -119,6 +137,18 @@ playRandomMusic();
 
 window.barNavigation.onNavigateTo((target: string) => {
     router.push(target);
+});
+
+function openPartyView() {
+    router.push("/profile/party");
+}
+
+const partyText = computed(() => {
+    if (partyStore.state === PlayersPartyState.InvitedOnly || partyStore.state === PlayersPartyState.JoinedAndInvited) {
+        return t("lobby.navbar.partyPopout.invited");
+    } else {
+        return t("lobby.navbar.partyPopout.party");
+    }
 });
 
 const simpleRouterMemory = new Map<string, string>();
@@ -168,6 +198,19 @@ if (!settingsStore.devMode) {
     auth.playOffline();
     router.push("/play");
 }
+
+function unseenPartyMessages() {
+    if (!partyStore.activeParty) return false;
+    if (chatStore.partyChat.length <= 0) return false;
+    return !chatStore.partyChat.at(-1)?.seen;
+}
+function getPartyIcon() {
+    if (unseenPartyMessages()) return bellAlert;
+    for (const party of partyStore.parties.values()) {
+        if (!party.seen) return bellAlert;
+    }
+    return accountGroup;
+}
 </script>
 
 <style lang="scss" scoped>
@@ -206,5 +249,16 @@ if (!settingsStore.devMode) {
             opacity: 1;
         }
     }
+}
+.floating-wrapper {
+    position: relative;
+}
+
+.party-notification {
+    position: absolute;
+    right: 0;
+    display: flex;
+    flex-direction: row;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 </style>

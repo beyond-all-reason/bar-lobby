@@ -19,6 +19,7 @@ import { reactive } from "vue";
 import { notificationsApi } from "@renderer/api/notifications";
 import { Party } from "@renderer/model/party";
 import { subsManager } from "@renderer/store/users.store";
+import { chat } from "@renderer/store/chat.store";
 
 const partySymbol = Symbol("party.store");
 
@@ -31,25 +32,36 @@ export enum PlayersPartyState {
 
 export const partyStore: {
     isInitialized: boolean;
-    activeParty: Party | null;
+    activeParty: PartyId | undefined;
     parties: Map<PartyId, Party>; //All parties (all invited, and up to one joined)
     state: PlayersPartyState;
 } = reactive({
     isInitialized: false,
-    activeParty: null,
+    activeParty: undefined,
     parties: new Map(),
     state: PlayersPartyState.None,
 });
 
 /**
  * Send a Tachyon request to accept a specific pending party invite.
+ * Note that if the user is currently in a party, this will also remove them from that first party (on success).
  * @param data Required data payload for this request
  */
 async function requestAcceptInvite(data: PartyAcceptInviteRequestData) {
+    let currentParty: PartyId | undefined = undefined;
+    if (partyStore.activeParty) {
+        currentParty = partyStore.activeParty;
+    }
     try {
         const response = await window.tachyon.request("party/acceptInvite", data);
         console.log("Tachyon: party/acceptInvite response:", response);
-        // Nothing further required here; client should receive a party/updated event upon joining.
+        // Client should receive a party/updated event upon joining, but if we were in a party before, we have to manually handle the removal of that one.
+        // We don't do this before success, because we might not actually leave the other party on the serverside if the join fails!
+        if (currentParty) {
+            partyStore.parties.delete(currentParty);
+            // And unfortunately, because this could arrive *after* the new party/updated event, we have to parse the party data again, just in case.
+            parseAllPartyData();
+        }
     } catch (error) {
         console.error("Tachyon error: party/acceptInvite:", error);
         notificationsApi.alert({ text: "Error with request party/acceptInvite", severity: "error" });
@@ -78,10 +90,23 @@ async function requestCreate() {
         const response = await window.tachyon.request("party/create");
         console.log("Tachyon: party/create:", response);
         partyStore.parties.set(response.data.party.id, { ...response.data.party, seen: false });
-        parsePartyData();
+        parseAllPartyData();
     } catch (error) {
         console.error("Tachyon error: party/create:", error);
         notificationsApi.alert({ text: "Error with request party/create", severity: "error" });
+    }
+}
+
+/**
+ * Send a Tachyon request to create a new party and then invite a specific user to it immediately afterward.
+ * @param userId The user to request the invite for
+ */
+async function requestCreateAndInvite(userId: UserId) {
+    try {
+        await requestCreate().then(async () => await requestInvite({ userId: userId }));
+    } catch (error) {
+        console.error("Tachyon error: party/createAndInvite:", error);
+        notificationsApi.alert({ text: "Error with request party/createAndInvite", severity: "error" });
     }
 }
 
@@ -93,6 +118,9 @@ async function requestDeclineInvite(data: PartyDeclineInviteRequestData) {
     try {
         const response = await window.tachyon.request("party/declineInvite", data);
         console.log("Tachyon: party/declineInvite:", response);
+        // Note; we do not get a party/updated event for the declined party, so we have to clear it ourselves.
+        partyStore.parties.delete(data.partyId);
+        parseAllPartyData();
     } catch (error) {
         console.error("Tachyon error: party/declineInvite:", error);
         notificationsApi.alert({ text: "Error with request party/declineInvite", severity: "error" });
@@ -135,9 +163,9 @@ async function requestLeave() {
     try {
         const response = await window.tachyon.request("party/leave");
         console.log("Tachyon: party/leave:", response);
-        if (partyStore.activeParty) partyStore.parties.delete(partyStore.activeParty?.id);
-        partyStore.activeParty = null;
-        parsePartyData();
+        partyStore.parties.delete(partyStore.activeParty ?? "");
+        parseAllPartyData();
+        chat.clearPartyChat();
     } catch (error) {
         console.error("Tachyon error: party/leave:", error);
         notificationsApi.alert({ text: "Error with request party/leave", severity: "error" });
@@ -147,29 +175,27 @@ async function requestLeave() {
 function onInvitedEvent(data: PartyInvitedEventData) {
     console.log("Tachyon: party/invited:", data);
     partyStore.parties.set(data.party.id, { ...data.party, seen: false });
-    parsePartyData();
+    parseAllPartyData();
 }
 
 function onRemovedEvent(data: PartyRemovedEventData) {
     console.log("Tachyon: party/removed:", data);
     // Note that "party/removed" includes cancelled or expired invitations in addition to being kicked/leaving.
     partyStore.parties.delete(data.partyId);
-    parsePartyData();
-    if (partyStore.activeParty?.id === data.partyId) {
-        partyStore.activeParty = null;
-    }
+    parseAllPartyData();
+    chat.clearPartyChat();
 }
 
 function onUpdatedEvent(data: PartyUpdatedEventData) {
     console.log("Tachyon: party/updated:", data);
     partyStore.parties.set(data.id, { ...data, seen: false });
-    parsePartyData();
+    parseAllPartyData();
 }
 
 // We might be invited, or member, have to check to know.
-function parsePartyData() {
+function parseAllPartyData() {
     // Reset active party in case we are no longer in a party.
-    partyStore.activeParty = null;
+    partyStore.activeParty = undefined;
     const bools = {
         joined: false,
         invited: false,
@@ -179,7 +205,7 @@ function parsePartyData() {
         for (const member of party.members) {
             if (member.userId === me.userId) {
                 bools.joined = true;
-                partyStore.activeParty = party;
+                partyStore.activeParty = party.id;
             } else users.push(member.userId);
         }
         for (const invitee of party.invited) {
@@ -198,6 +224,17 @@ function parsePartyData() {
     } else partyStore.state = PlayersPartyState.None;
 }
 
+export function onLogout() {
+    if (partyStore.activeParty) {
+        // We don't await this request because it's just a polite notification to the server, and we don't want to block the logout process.
+        requestLeave();
+    }
+    subsManager.clearAllFromList(partySymbol);
+    partyStore.activeParty = undefined;
+    partyStore.parties.clear();
+    partyStore.state = PlayersPartyState.None;
+}
+
 export async function initPartyStore() {
     if (partyStore.isInitialized) return;
 
@@ -208,4 +245,4 @@ export async function initPartyStore() {
     partyStore.isInitialized = true;
 }
 
-export const party = { requestAcceptInvite, requestCancelInvite, requestCreate, requestDeclineInvite, requestInvite, requestKickMember, requestLeave };
+export const party = { requestAcceptInvite, requestCancelInvite, requestCreate, requestCreateAndInvite, requestDeclineInvite, requestInvite, requestKickMember, requestLeave, onLogout };
