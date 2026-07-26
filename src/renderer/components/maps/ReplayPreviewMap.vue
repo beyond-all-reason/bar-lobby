@@ -63,7 +63,7 @@ defineComponent({
 });
 
 const map = useDexieLiveQueryWithDeps([() => props.replay?.mapSpringName], () => {
-    if (!props.replay) throw new Error("unable to acces replay");
+    if (!props.replay) throw new Error("unable to access replay");
 
     return db.maps.get(props.replay.mapSpringName);
 });

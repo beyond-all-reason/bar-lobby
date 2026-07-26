@@ -29,9 +29,9 @@ Every commit on the `master` branch is also built. To download an installer of t
 ## Functionality and Goals
 
 - Provide functionality for everything related to BAR. Campaigns, Missions, Multiplayer, Replays etc
-- Simple and intutive codebase, lots of documenation for contributing
+- Simple and intuitive codebase, lots of documentation for contributing
 - Steam integration, automatic account creation and login
-- Smooth, seemless, fully integrated downloads. Content should be preloaded when sensible
+- Smooth, seamless, fully integrated downloads. Content should be preloaded when sensible
 - Communicate entirely via Teiserver's new protocol, [Tachyon](https://github.com/beyond-all-reason/tachyon). No support for the legacy SpringLobbyProtocol
 - TLS only, no unencypted comms
 
@@ -152,7 +152,7 @@ If you change node.js version, you **need** to re-run `npm install`.
 - `npm run generate-i18n-assets` (run when modifying source translation files)
     - Generates transformed asset files for translations in `src/renderer/assets/languages`
 
-### Mutliplayer
+### Multiplayer
 
 You can start multiple separate instances by overriding the assets and/or state location using env variables:
 
