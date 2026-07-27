@@ -224,15 +224,19 @@ function parseAllPartyData() {
     } else partyStore.state = PlayersPartyState.None;
 }
 
+export function clearOnlineState() {
+    subsManager.clearAllFromList(partySymbol);
+    partyStore.activeParty = undefined;
+    partyStore.parties.clear();
+    partyStore.state = PlayersPartyState.None;
+}
+
 export function onLogout() {
     if (partyStore.activeParty) {
         // We don't await this request because it's just a polite notification to the server, and we don't want to block the logout process.
         requestLeave();
     }
-    subsManager.clearAllFromList(partySymbol);
-    partyStore.activeParty = undefined;
-    partyStore.parties.clear();
-    partyStore.state = PlayersPartyState.None;
+    clearOnlineState();
 }
 
 export async function initPartyStore() {
@@ -241,8 +245,20 @@ export async function initPartyStore() {
     window.tachyon.onEvent("party/invited", onInvitedEvent);
     window.tachyon.onEvent("party/removed", onRemovedEvent);
     window.tachyon.onEvent("party/updated", onUpdatedEvent);
+    window.tachyon.onDisconnected(clearOnlineState);
 
     partyStore.isInitialized = true;
 }
 
-export const party = { requestAcceptInvite, requestCancelInvite, requestCreate, requestCreateAndInvite, requestDeclineInvite, requestInvite, requestKickMember, requestLeave, onLogout };
+export const party = {
+    requestAcceptInvite,
+    requestCancelInvite,
+    requestCreate,
+    requestCreateAndInvite,
+    requestDeclineInvite,
+    requestInvite,
+    requestKickMember,
+    requestLeave,
+    onLogout,
+    clearOnlineState,
+};

@@ -129,8 +129,13 @@ window.tachyon.onEvent("friend/removed", async (event) => {
     await unsubscribeFromUsers([event.from]);
 });
 
+// Identity fields survive; they're persisted in db and used while offline.
+function clearOnlineState() {
+    subsManager.clearAllFromList(friendsSymbol);
+}
+
 // export const me = readonly(_me);
-export const auth = { login, playOffline, logout, changeAccount };
+export const auth = { login, playOffline, logout, changeAccount, clearOnlineState };
 
 // Friend methods
 export const friends = {
@@ -210,6 +215,15 @@ export const friends = {
 };
 
 export async function initMeStore() {
+    window.tachyon.onDisconnected(clearOnlineState);
+    window.tachyon.onConnected(() => {
+        // Subscriptions don't survive the socket, so rebuild them from the server's friend list
+        // rather than trusting what subsManager held before the drop.
+        if (me.isAuthenticated) {
+            friends.fetchFriendList();
+        }
+    });
+
     await db.users
         .where({ isMe: 1 })
         .first()

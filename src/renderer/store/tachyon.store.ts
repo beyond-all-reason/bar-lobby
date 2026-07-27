@@ -4,7 +4,7 @@
 
 import { enginesStore } from "@renderer/store/engine.store";
 import { gameStore } from "@renderer/store/game.store";
-import { auth, me } from "@renderer/store/me.store";
+import { me } from "@renderer/store/me.store";
 import { SystemServerStatsOkResponseData } from "tachyon-protocol/types";
 import { reactive } from "vue";
 import { matchmakingStore, matchmaking } from "@renderer/store/matchmaking.store";
@@ -12,6 +12,9 @@ import { subsManager } from "@renderer/store/users.store";
 import { UserId } from "tachyon-protocol/types";
 import { notificationsApi } from "@renderer/api/notifications";
 import { chat, chatStore } from "@renderer/store/chat.store";
+import { setupI18n } from "@renderer/i18n";
+
+const i18n = setupI18n();
 
 export const tachyonStore = reactive({
     isInitialized: false,
@@ -35,13 +38,39 @@ async function connect() {
     } catch (err) {
         console.error("Failed to connect to Tachyon server", err);
         tachyonStore.error = "Error";
-        auth.logout();
         if (err instanceof Error) {
             throw new Error(err.message);
         } else {
             throw new Error(String(err));
         }
     }
+}
+
+function stopReconnecting() {
+    if (tachyonStore.reconnectInterval) {
+        clearInterval(tachyonStore.reconnectInterval);
+        tachyonStore.reconnectInterval = undefined;
+    }
+}
+
+function stopFetchingServerStats() {
+    if (tachyonStore.fetchServerStatsInterval) {
+        clearInterval(tachyonStore.fetchServerStatsInterval);
+        tachyonStore.fetchServerStatsInterval = undefined;
+    }
+}
+
+function startReconnecting() {
+    stopReconnecting();
+    tachyonStore.reconnectInterval = setInterval(() => {
+        if (!me.isAuthenticated) {
+            stopReconnecting();
+            return;
+        }
+        connect().catch(() => {
+            // Already logged and surfaced via tachyonStore.error; keep retrying.
+        });
+    }, 10000);
 }
 
 async function fetchServerStats() {
@@ -68,14 +97,8 @@ export async function initTachyonStore() {
         console.debug("Connected to Tachyon server");
         tachyonStore.isConnected = true;
         fetchServerStats();
-        if (tachyonStore.fetchServerStatsInterval) {
-            clearInterval(tachyonStore.fetchServerStatsInterval);
-            tachyonStore.fetchServerStatsInterval = undefined;
-        }
-        if (tachyonStore.reconnectInterval) {
-            clearInterval(tachyonStore.reconnectInterval);
-            tachyonStore.reconnectInterval = undefined;
-        }
+        stopFetchingServerStats();
+        stopReconnecting();
         // Periodically fetch server stats
         tachyonStore.fetchServerStatsInterval = setInterval(fetchServerStats, 60000);
 
@@ -93,18 +116,12 @@ export async function initTachyonStore() {
     window.tachyon.onDisconnected(() => {
         console.debug("Disconnected from Tachyon server");
         tachyonStore.isConnected = false;
-        if (tachyonStore.fetchServerStatsInterval) {
-            clearInterval(tachyonStore.fetchServerStatsInterval);
-            tachyonStore.fetchServerStatsInterval = undefined;
-        }
-        if (tachyonStore.reconnectInterval) {
-            clearInterval(tachyonStore.reconnectInterval);
-            tachyonStore.reconnectInterval = undefined;
-        }
+        stopFetchingServerStats();
+        stopReconnecting();
         // If the user is not in an offline session, try to reconnect
         if (me.isAuthenticated) {
-            // Try to connect to Tachyon server periodically
-            tachyonStore.reconnectInterval = setInterval(connect, 10000);
+            notificationsApi.alert({ text: i18n.global.t("lobby.navbar.serverStatus.connectionLost"), severity: "warning" });
+            startReconnecting();
         }
     });
 

@@ -2095,7 +2095,8 @@
                 "playersOnline": "Players Online",
                 "error": "Error",
                 "reconnecting": "Reconnecting...",
-                "offline": "Offline"
+                "offline": "Offline",
+                "connectionLost": "Lost connection to the server. Reconnecting..."
             },
             "messages": {
                 "message": "Message",

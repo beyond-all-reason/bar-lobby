@@ -253,6 +253,8 @@ export async function initializeMatchmakingStore() {
 
     window.tachyon.onEvent("matchmaking/queuesJoined", onQueuesJoinedEvent);
 
+    window.tachyon.onDisconnected(clearOnlineState);
+
     if (tachyonStore.isConnected) {
         await sendListRequest();
     }
@@ -260,4 +262,16 @@ export async function initializeMatchmakingStore() {
     matchmakingStore.isInitialized = true;
 }
 
-export const matchmaking = { sendCancelRequest, sendQueueRequest, sendReadyRequest, sendListRequest, triggerAssetsRefresh };
+// selectedQueue is deliberately left alone; it's the user's pick, not server state.
+export function clearOnlineState() {
+    matchmakingStore.status = MatchmakingStatus.Idle;
+    matchmakingStore.playlists = [];
+    matchmakingStore.isLoadingQueues = false;
+    matchmakingStore.errorMessage = null;
+    matchmakingStore.queueError = undefined;
+    matchmakingStore.playersQueued = 0;
+    matchmakingStore.playersReady = 0;
+    matchmakingStore.downloadsRequired = {};
+}
+
+export const matchmaking = { sendCancelRequest, sendQueueRequest, sendReadyRequest, sendListRequest, triggerAssetsRefresh, clearOnlineState };

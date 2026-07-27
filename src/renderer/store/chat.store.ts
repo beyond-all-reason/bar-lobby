@@ -28,6 +28,7 @@ export const chatStore: {
 
 export async function initChatStore() {
     window.tachyon.onEvent("messaging/received", onMessagingReceivedEvent);
+    window.tachyon.onDisconnected(clearOnlineState);
     chatStore.isInitialized = true;
 }
 
@@ -162,6 +163,12 @@ function addNewUserChat(userId: UserId): boolean {
     } else return false;
 }
 
+// userChats survives; DM history isn't tied to a lobby or party the server just dropped us from.
+function clearOnlineState() {
+    clearLobbyChat();
+    clearPartyChat();
+}
+
 export const chat = {
     requestSend,
     requestSubscribeReceived,
@@ -169,4 +176,5 @@ export const chat = {
     clearPartyChat,
     clearUserChat,
     addNewUserChat,
+    clearOnlineState,
 };
