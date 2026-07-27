@@ -115,9 +115,13 @@ export async function initTachyonStore() {
 
     window.tachyon.onDisconnected(() => {
         console.debug("Disconnected from Tachyon server");
+        // Every failed reconnect attempt builds a socket that closes, so this fires again on each
+        // retry. Only the first one is a real transition worth reacting to.
+        const wasConnected = tachyonStore.isConnected;
         tachyonStore.isConnected = false;
+        if (!wasConnected) return;
+
         stopFetchingServerStats();
-        stopReconnecting();
         // If the user is not in an offline session, try to reconnect
         if (me.isAuthenticated) {
             notificationsApi.alert({ text: i18n.global.t("lobby.navbar.serverStatus.connectionLost"), severity: "warning" });
