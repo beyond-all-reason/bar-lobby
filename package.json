@@ -38,7 +38,7 @@
         "start:multi": "node --import=tsx tools/launch-clients.ts"
     },
     "engines": {
-        "node": ">=22.16.0"
+        "node": "^22.16.0"
     },
     "dependencies": {
         "@extractus/feed-extractor": "^7.1.6",
