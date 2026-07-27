@@ -6,7 +6,7 @@ import { accountService } from "@main/services/account.service";
 import { TachyonClient, TachyonClientRequestHandlers } from "@main/tachyon/tachyon-client";
 import { logger } from "@main/utils/logger";
 import { ipcMain } from "electron";
-import { BattleStartRequestData } from "tachyon-protocol/types";
+import { BattleStartRequestData, MatchmakingCheckAssetsRequestData } from "tachyon-protocol/types";
 import { BarIpcWebContents } from "@main/typed-ipc";
 
 const log = logger("tachyon-service");
@@ -20,6 +20,16 @@ function registerIpcHandlers(webContents: BarIpcWebContents) {
             webContents.send("tachyon:battleStart", springString);
             return {
                 status: "success",
+            };
+        },
+        "matchmaking/checkAssets": async (data: MatchmakingCheckAssetsRequestData) => {
+            log.info(`Received matchmaking check assets request: ${JSON.stringify(data)}`);
+            // Seding Failed response just for now to get the request/response working correctly at a base level
+            // Note to self; rebuild tachyon with the latest checkAssets request and then relink
+            return {
+                status: "failed",
+                reason: "command_unimplemented",
+                details: "This client does not yet check assets, and instead auto-fails.",
             };
         },
     };
