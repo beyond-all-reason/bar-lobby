@@ -40,7 +40,6 @@ describe("online state cleanup on disconnect", () => {
         matchmakingStore.status = MatchmakingStatus.MatchFound;
         matchmakingStore.playlists = [{ id: "1v1", name: "Duel", version: "3" }] as typeof matchmakingStore.playlists;
         matchmakingStore.playersQueued = 12;
-        matchmakingStore.downloadsRequired = { "1v1": { engines: [], games: [], maps: ["somemap"] } };
         matchmakingStore.selectedQueue = "2v2";
 
         simulateDisconnect();
@@ -48,8 +47,17 @@ describe("online state cleanup on disconnect", () => {
         expect(matchmakingStore.status).toBe(MatchmakingStatus.Idle);
         expect(matchmakingStore.playlists).toEqual([]);
         expect(matchmakingStore.playersQueued).toBe(0);
-        expect(matchmakingStore.downloadsRequired).toEqual({});
         expect(matchmakingStore.selectedQueue).toBe("2v2");
+    });
+
+    // Views index downloadsRequired by queue id, so emptying it crashed the matchmaking page.
+    it("keeps the derived download requirements the views index into", () => {
+        matchmakingStore.downloadsRequired = { "2v2": { engines: [], games: [], maps: ["somemap"] } };
+        matchmakingStore.selectedQueue = "2v2";
+
+        simulateDisconnect();
+
+        expect(matchmakingStore.downloadsRequired["2v2"]).toEqual({ engines: [], games: [], maps: ["somemap"] });
     });
 
     it("drops party state without asking the dead socket to leave", () => {

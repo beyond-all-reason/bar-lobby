@@ -262,7 +262,8 @@ export async function initializeMatchmakingStore() {
     matchmakingStore.isInitialized = true;
 }
 
-// selectedQueue is deliberately left alone; it's the user's pick, not server state.
+// selectedQueue is the user's pick, not server state, and downloadsRequired is derived from
+// installed content rather than the session - the next list response recomputes it.
 export function clearOnlineState() {
     matchmakingStore.status = MatchmakingStatus.Idle;
     matchmakingStore.playlists = [];
@@ -271,7 +272,6 @@ export function clearOnlineState() {
     matchmakingStore.queueError = undefined;
     matchmakingStore.playersQueued = 0;
     matchmakingStore.playersReady = 0;
-    matchmakingStore.downloadsRequired = {};
 }
 
 export const matchmaking = { sendCancelRequest, sendQueueRequest, sendReadyRequest, sendListRequest, triggerAssetsRefresh, clearOnlineState };
