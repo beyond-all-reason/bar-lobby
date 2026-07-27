@@ -4,12 +4,15 @@
 
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { openPath, openExternal, showItemInFolder, handlers } = vi.hoisted(() => ({
+const { openPath, openExternal, showItemInFolder, access, handlers } = vi.hoisted(() => ({
     openPath: vi.fn(),
     openExternal: vi.fn(),
     showItemInFolder: vi.fn(),
+    access: vi.fn(),
     handlers: new Map<string, (event: unknown, ...args: unknown[]) => Promise<unknown>>(),
 }));
+
+vi.mock("fs", () => ({ default: { promises: { access } } }));
 
 vi.mock("electron", () => ({
     shell: { openPath, openExternal, showItemInFolder },
@@ -45,6 +48,8 @@ describe("shellService", () => {
         openPath.mockReset();
         openExternal.mockReset();
         showItemInFolder.mockReset();
+        access.mockReset();
+        access.mockResolvedValue(undefined);
     });
 
     it("reports success when the path opens", async () => {
@@ -86,8 +91,22 @@ describe("shellService", () => {
         });
     });
 
+    // showItemInFolder reports nothing, so without the existence check a missing replay looks fine.
+    it("reports a missing replay rather than silently doing nothing", async () => {
+        access.mockRejectedValue(new Error("ENOENT: no such file or directory"));
+
+        await expect(invoke("shell:showReplayInFolder", "gone.sdfz")).resolves.toMatchObject({ status: "failed", reason: "open_failed" });
+        expect(showItemInFolder).not.toHaveBeenCalled();
+    });
+
     it("refuses a url outside the allowed services without calling out", async () => {
         await expect(invoke("shell:openInBrowser", "https://example.com/evil")).resolves.toMatchObject({ status: "failed", reason: "url_not_allowed" });
+        expect(openExternal).not.toHaveBeenCalled();
+    });
+
+    // new URL throws on anything without a scheme, which used to escape as an IPC rejection.
+    it("refuses a malformed url without throwing", async () => {
+        await expect(invoke("shell:openInBrowser", "bar-rts.com/replays")).resolves.toMatchObject({ status: "failed", reason: "url_not_allowed" });
         expect(openExternal).not.toHaveBeenCalled();
     });
 

@@ -6,6 +6,7 @@ import { STATE_PATH, CONFIG_PATH, WRITE_DATA_PATH, REPLAYS_PATH, getAssetsPath }
 import { shell } from "electron";
 import { ipcMain, IpcResult } from "@main/typed-ipc";
 import { logger } from "@main/utils/logger";
+import fs from "fs";
 import path from "path";
 
 const REPLAY_SERVICE_URL = "https://bar-rts.com/replays";
@@ -41,12 +42,31 @@ async function openPath(target: string): Promise<IpcResult> {
     });
 }
 
+// shell.showItemInFolder reports nothing at all, so check what we can before calling it - otherwise
+// a missing file is indistinguishable from success. An absent file manager still isn't detectable.
+async function showInFolder(target: string): Promise<IpcResult> {
+    return attempt("open_failed", async () => {
+        await fs.promises.access(target);
+        shell.showItemInFolder(target);
+    });
+}
+
 // Careful with shell.openExternal. https://benjamin-altpeter.de/shell-openexternal-dangers/
-async function openInBrowser(url: string): Promise<IpcResult> {
-    if (!["https:", "http:"].includes(new URL(url).protocol)) return failed("url_not_allowed", url);
+function isAllowedUrl(url: string): boolean {
+    let parsed: URL;
+    try {
+        parsed = new URL(url);
+    } catch {
+        return false;
+    }
+    if (!["https:", "http:"].includes(parsed.protocol)) return false;
 
     // Additional checks to prevent opening arbitrary URLs
-    if (![REPLAY_SERVICE_URL, NEWS_SERVICE_URL].some((serviceUrl) => url.startsWith(serviceUrl))) return failed("url_not_allowed", url);
+    return [REPLAY_SERVICE_URL, NEWS_SERVICE_URL].some((serviceUrl) => url.startsWith(serviceUrl));
+}
+
+async function openInBrowser(url: string): Promise<IpcResult> {
+    if (!isAllowedUrl(url)) return failed("url_not_allowed", url);
 
     return attempt("open_failed", () => shell.openExternal(url));
 }
@@ -57,7 +77,7 @@ function registerIpcHandlers() {
     ipcMain.handle("shell:openSettingsFile", () => openPath(path.join(CONFIG_PATH, "settings.json")));
     ipcMain.handle("shell:openStartScript", () => openPath(path.join(WRITE_DATA_PATH, "script.txt")));
     ipcMain.handle("shell:openReplaysDir", () => openPath(REPLAYS_PATH));
-    ipcMain.handle("shell:showReplayInFolder", (_event, fileName: string) => attempt("open_failed", () => shell.showItemInFolder(path.join(REPLAYS_PATH, fileName))));
+    ipcMain.handle("shell:showReplayInFolder", (_event, fileName: string) => showInFolder(path.join(REPLAYS_PATH, fileName)));
 
     // External
     ipcMain.handle("shell:openInBrowser", (_event, url) => openInBrowser(url));
