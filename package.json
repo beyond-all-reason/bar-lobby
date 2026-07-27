@@ -109,5 +109,8 @@
         "vitest": "^3.2.4",
         "vue-tsc": "^3.0.3",
         "wait-on": "^8.0.4"
+    },
+    "overrides": {
+        "@electron/rebuild": "^4.2.0"
     }
 }
