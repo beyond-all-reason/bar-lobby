@@ -164,6 +164,7 @@ import { Icon } from "@iconify/vue";
 import folder from "@iconify-icons/mdi/folder";
 import SearchBox from "@renderer/components/controls/SearchBox.vue";
 import { settingsStore } from "@renderer/store/settings.store";
+import { openAndReport } from "@renderer/api/shell";
 
 const { t } = useTypedI18n();
 
@@ -263,15 +264,15 @@ function onSort(event: DataTableSortEvent) {
 }
 
 function openBrowserToReplayService() {
-    window.shell.openInBrowser("https://bar-rts.com/replays");
+    openAndReport(() => window.shell.openInBrowser("https://bar-rts.com/replays"));
 }
 
 function openReplaysFolder() {
-    window.shell.openReplaysDir();
+    openAndReport(() => window.shell.openReplaysDir());
 }
 
 function showReplayFile(replay: Replay) {
-    if (replay?.fileName) window.shell.showReplayInFolder(replay.fileName);
+    if (replay?.fileName) openAndReport(() => window.shell.showReplayInFolder(replay.fileName));
 }
 </script>
 

@@ -70,6 +70,7 @@ import { GameVersion } from "@main/content/game/game-version";
 import { inject, Ref } from "vue";
 import { useTypedI18n } from "@renderer/i18n";
 import { party } from "@renderer/store/party.store";
+import { openAndReport } from "@renderer/api/shell";
 const { t } = useTypedI18n();
 
 const active = ref(false);
@@ -95,19 +96,19 @@ async function onRouteSelect(newRoute: string) {
 }
 
 function openSettings() {
-    window.shell.openSettingsFile();
+    openAndReport(() => window.shell.openSettingsFile());
 }
 
-async function openAssetsDir() {
-    window.shell.openAssetsDir();
+function openAssetsDir() {
+    openAndReport(() => window.shell.openAssetsDir());
 }
 
-async function openStateDir() {
-    window.shell.openStateDir();
+function openStateDir() {
+    openAndReport(() => window.shell.openStateDir());
 }
 
-async function openStartScript() {
-    window.shell.openStartScript();
+function openStartScript() {
+    openAndReport(() => window.shell.openStartScript());
 }
 
 function openSyncLobbyContentTool() {
