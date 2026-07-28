@@ -50,28 +50,47 @@ describe("searchOnlineReplaysByPlayer", () => {
     it("queries the replay API for that player and summarises the matches", async () => {
         const fetchMock = mockFetch({ ok: true, body: { data: [apiReplay] } });
 
-        const replays = await searchOnlineReplaysByPlayer("Naughty", 10);
+        const result = await searchOnlineReplaysByPlayer("Naughty", 10);
 
         const [url] = fetchMock.mock.calls[0];
         expect(url).toContain("https://api.bar-rts.com/replays?");
         expect(url).toContain("players=Naughty");
         expect(url).toContain("limit=10");
-        expect(replays).toEqual([
-            {
-                id: "abcdef",
-                startTime: "2026-07-27T22:06:02.000Z",
-                durationMs: 1351267,
-                mapName: "All That Glitters v2.2.3",
-                allyTeamSizes: [1, 2],
-                hasBots: true,
-            },
-        ]);
+        expect(result).toEqual({
+            status: "success",
+            data: [
+                {
+                    id: "abcdef",
+                    startTime: "2026-07-27T22:06:02.000Z",
+                    durationMs: 1351267,
+                    mapName: "All That Glitters v2.2.3",
+                    allyTeamSizes: [1, 2],
+                    hasBots: true,
+                },
+            ],
+        });
     });
 
-    it("returns nothing when the replay API fails", async () => {
+    // A failure has to be distinguishable from a player with no recent games, otherwise the modal
+    // tells the reporter something about the player that it does not actually know.
+    it("reports a failure rather than an empty result when the replay API fails", async () => {
         mockFetch({ ok: false });
 
-        expect(await searchOnlineReplaysByPlayer("Naughty", 10)).toEqual([]);
+        expect(await searchOnlineReplaysByPlayer("Naughty", 10)).toMatchObject({
+            status: "failed",
+            reason: "replay_search_failed",
+            details: "500 Internal Server Error",
+        });
+    });
+
+    it("does not let a rejection escape to the renderer", async () => {
+        vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("getaddrinfo ENOTFOUND api.bar-rts.com")));
+
+        expect(await searchOnlineReplaysByPlayer("Naughty", 10)).toMatchObject({
+            status: "failed",
+            reason: "replay_search_failed",
+            details: "getaddrinfo ENOTFOUND api.bar-rts.com",
+        });
     });
 });
 
@@ -79,21 +98,24 @@ describe("getOnlineReplay", () => {
     it("keeps the teams, the spectators and the server match id", async () => {
         mockFetch({ ok: true, body: apiReplay });
 
-        const replay = await getOnlineReplay("abcdef");
+        const result = await getOnlineReplay("abcdef");
 
-        expect(replay?.serverMatchId).toBe("10453109");
-        expect(replay?.preset).toBe("team");
-        expect(replay?.players).toEqual([
+        expect(result.status).toBe("success");
+        if (result.status !== "success") return;
+
+        expect(result.data.serverMatchId).toBe("10453109");
+        expect(result.data.preset).toBe("team");
+        expect(result.data.players).toEqual([
             { name: "Naughty", userId: 1234, allyTeamId: 0, winningTeam: true },
             { name: "SomeoneElse", userId: 5678, allyTeamId: 1, winningTeam: false },
             { name: "NoAccount", userId: null, allyTeamId: 1, winningTeam: false },
         ]);
-        expect(replay?.spectators).toEqual([{ name: "Watcher", userId: 9012 }]);
+        expect(result.data.spectators).toEqual([{ name: "Watcher", userId: 9012 }]);
     });
 
-    it("returns nothing when the replay API fails", async () => {
+    it("reports a failure when the replay API fails", async () => {
         mockFetch({ ok: false });
 
-        expect(await getOnlineReplay("abcdef")).toBeNull();
+        expect(await getOnlineReplay("abcdef")).toMatchObject({ status: "failed", reason: "replay_fetch_failed" });
     });
 });

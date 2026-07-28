@@ -2,6 +2,7 @@
 //
 // SPDX-License-Identifier: MIT
 
+import { IpcResult } from "@main/typed-ipc";
 import { logger } from "@main/utils/logger";
 
 const log = logger("online-replays.ts");
@@ -80,37 +81,40 @@ function toDetails(replay: ApiReplay): OnlineReplayDetails {
     };
 }
 
-export async function searchOnlineReplaysByPlayer(username: string, limit: number): Promise<OnlineReplayOverview[]> {
+function failed(reason: string, error: unknown) {
+    const details = error instanceof Error ? error.message : String(error);
+    log.error(`${reason}: ${details}`);
+
+    return { status: "failed", reason, details } as const;
+}
+
+async function fetchJson(url: string) {
+    const response = await fetch(url, { headers: { accept: "application/json" } });
+    if (!response.ok) {
+        throw new Error(`${response.status} ${response.statusText}`);
+    }
+
+    return await response.json();
+}
+
+export async function searchOnlineReplaysByPlayer(username: string, limit: number): Promise<IpcResult<OnlineReplayOverview[]>> {
     const url = `${ONLINE_REPLAYS_API_URL}?${new URLSearchParams({ players: username, limit: limit.toString(), page: "1" })}`;
 
     try {
-        const response = await fetch(url, { headers: { accept: "application/json" } });
-        if (!response.ok) {
-            throw new Error(`${response.status} ${response.statusText}`);
-        }
-        const body = (await response.json()) as { data?: ApiReplay[] };
+        const body = (await fetchJson(url)) as { data?: ApiReplay[] };
 
-        return (body.data ?? []).map(toOverview).filter((replay) => replay.id);
+        return { status: "success", data: (body.data ?? []).map(toOverview).filter((replay) => replay.id) };
     } catch (error) {
-        log.error(`Failed to search replays for ${username}:`, error);
-
-        return [];
+        return failed("replay_search_failed", error);
     }
 }
 
-export async function getOnlineReplay(replayId: string): Promise<OnlineReplayDetails | null> {
+export async function getOnlineReplay(replayId: string): Promise<IpcResult<OnlineReplayDetails>> {
     try {
-        const response = await fetch(`${ONLINE_REPLAYS_API_URL}/${encodeURIComponent(replayId)}`, {
-            headers: { accept: "application/json" },
-        });
-        if (!response.ok) {
-            throw new Error(`${response.status} ${response.statusText}`);
-        }
+        const body = (await fetchJson(`${ONLINE_REPLAYS_API_URL}/${encodeURIComponent(replayId)}`)) as ApiReplay;
 
-        return toDetails((await response.json()) as ApiReplay);
+        return { status: "success", data: toDetails(body) };
     } catch (error) {
-        log.error(`Failed to fetch replay ${replayId}:`, error);
-
-        return null;
+        return failed("replay_fetch_failed", error);
     }
 }

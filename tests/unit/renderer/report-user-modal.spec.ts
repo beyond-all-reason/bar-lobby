@@ -10,6 +10,7 @@ import ReportUserModal from "@renderer/components/user/ReportUserModal.vue";
 import { useReportUser } from "@renderer/composables/useReportUser";
 import type { User } from "@main/model/user";
 import type { OnlineReplayDetails, OnlineReplayOverview } from "@main/content/replays/online-replays";
+import type { IpcResult } from "@main/typed-ipc";
 
 const requestReportUsers = vi.hoisted(() => vi.fn());
 const alert = vi.hoisted(() => vi.fn());
@@ -98,9 +99,9 @@ describe("ReportUserModal", () => {
         requestReportUsers.mockResolvedValue(true);
         alert.mockReset();
         searchOnlineByPlayer.mockReset();
-        searchOnlineByPlayer.mockResolvedValue([match]);
+        searchOnlineByPlayer.mockResolvedValue({ status: "success", data: [match] });
         getOnline.mockReset();
-        getOnline.mockResolvedValue(matchDetails);
+        getOnline.mockResolvedValue({ status: "success", data: matchDetails });
         isOpen.value = false;
     });
 
@@ -186,7 +187,7 @@ describe("ReportUserModal", () => {
     });
 
     it("drops a match search that lands after the modal was reopened on someone else", async () => {
-        let resolveFirstSearch: (matches: OnlineReplayOverview[]) => void;
+        let resolveFirstSearch: (result: IpcResult<OnlineReplayOverview[]>) => void;
         searchOnlineByPlayer.mockImplementationOnce(() => new Promise((resolve) => (resolveFirstSearch = resolve)));
 
         const wrapper = mountModal();
@@ -201,7 +202,7 @@ describe("ReportUserModal", () => {
         await flushPromises();
         await clickCard(wrapper, "Spam");
 
-        resolveFirstSearch!([{ ...match, id: "stale", mapName: "Stale Map" }]);
+        resolveFirstSearch!({ status: "success", data: [{ ...match, id: "stale", mapName: "Stale Map" }] });
         await flushPromises();
 
         expect(wrapper.text()).not.toContain("Stale Map");
@@ -209,7 +210,7 @@ describe("ReportUserModal", () => {
     });
 
     it("drops replay details that land after another match was picked", async () => {
-        let resolveFirstDetails: (details: OnlineReplayDetails) => void;
+        let resolveFirstDetails: (result: IpcResult<OnlineReplayDetails>) => void;
         getOnline.mockImplementationOnce(() => new Promise((resolve) => (resolveFirstDetails = resolve)));
 
         const wrapper = mountModal();
@@ -224,7 +225,10 @@ describe("ReportUserModal", () => {
         await wrapper.find(".match").trigger("click");
         await flushPromises();
 
-        resolveFirstDetails!({ ...matchDetails, players: [{ name: "StalePlayer", userId: 1, allyTeamId: 0, winningTeam: false }] });
+        resolveFirstDetails!({
+            status: "success",
+            data: { ...matchDetails, players: [{ name: "StalePlayer", userId: 1, allyTeamId: 0, winningTeam: false }] },
+        });
         await flushPromises();
 
         expect(wrapper.text()).not.toContain("StalePlayer");
@@ -232,7 +236,7 @@ describe("ReportUserModal", () => {
     });
 
     it("renders a match with an unusable start time instead of throwing", async () => {
-        searchOnlineByPlayer.mockResolvedValue([{ ...match, startTime: "" }]);
+        searchOnlineByPlayer.mockResolvedValue({ status: "success", data: [{ ...match, startTime: "" }] });
 
         const wrapper = mountModal();
         openReportUser(reportedUser);
@@ -240,6 +244,54 @@ describe("ReportUserModal", () => {
         await clickCard(wrapper, "Spam");
 
         expect(wrapper.find(".match").text()).toContain("Unknown");
+    });
+
+    // What a stale main process does: the channel has no handler, so the invoke itself rejects and
+    // no handler-side error handling ever runs.
+    it("clears the spinner and says so when the match search cannot be reached", async () => {
+        searchOnlineByPlayer.mockRejectedValue(new Error("No handler registered for 'replays:searchOnlineByPlayer'"));
+
+        const wrapper = mountModal();
+        openReportUser(reportedUser);
+        await flushPromises();
+        await clickCard(wrapper, "Spam");
+
+        expect(wrapper.find(".match-list-message").text()).toContain("Could not load recent matches");
+        expect(wrapper.find(".fullwidth button").exists()).toBe(true);
+    });
+
+    it("keeps the details step usable when the replay lookup cannot be reached", async () => {
+        getOnline.mockRejectedValue(new Error("No handler registered for 'replays:getOnline'"));
+
+        const wrapper = mountModal();
+        openReportUser(reportedUser);
+        await flushPromises();
+        await clickCard(wrapper, "Cheating");
+
+        await wrapper.find(".match").trigger("click");
+        await flushPromises();
+
+        await wrapper.find("textarea").setValue("Full map vision from minute 3");
+        await wrapper.find(".green button").trigger("click");
+        await flushPromises();
+
+        expect(requestReportUsers).toHaveBeenCalledWith({
+            userIds: ["1234"],
+            reason: { type: "actions/cheating" },
+            message: "Full map vision from minute 3\nReplay: https://bar-rts.com/replays/abcdef",
+        });
+    });
+
+    it("separates a failed search from a player with no recent matches", async () => {
+        searchOnlineByPlayer.mockResolvedValue({ status: "failed", reason: "replay_search_failed", details: "500" });
+
+        const wrapper = mountModal();
+        openReportUser(reportedUser);
+        await flushPromises();
+        await clickCard(wrapper, "Spam");
+
+        expect(wrapper.find(".match-list-message").text()).toContain("Could not load recent matches");
+        expect(wrapper.text()).not.toContain("No recent matches found");
     });
 
     it("offers the no match fallback while the search is still running", async () => {

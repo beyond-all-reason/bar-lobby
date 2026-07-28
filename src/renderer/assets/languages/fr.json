@@ -4431,6 +4431,7 @@
                     "lobbyActionsHint": null,
                     "fetchingMatches": null,
                     "noMatch": null,
+                    "matchesFailed": null,
                     "noMatchesFound": null,
                     "matchTeams": null,
                     "matchFfa": null,

@@ -19,6 +19,12 @@ import type { Settings } from "@main/services/settings.service";
 import type { TachyonEvent, TachyonResponse } from "tachyon-protocol";
 import { ipcRenderer as electronIpcRenderer, ipcMain as electronIpcMain } from "electron";
 
+// Errors thrown in main arrive in the renderer stripped of everything but a message, so failures a
+// caller needs to act on have to travel as data instead. Mirrors the shape tachyon-protocol uses for
+// its own responses, which can't be reused here because it's keyed on tachyon command ids.
+// `reason` is a stable code to branch on or translate; `details` carries any raw text behind it.
+export type IpcResult<T = void> = { status: "success"; data: T } | { status: "failed"; reason: string; details?: string };
+
 export type IPCEvents = {
     "downloads:update:progress": (downloadInfo: DownloadInfo) => void;
     "downloads:engine:complete": (downloadInfo: DownloadInfo) => void;
@@ -103,8 +109,8 @@ export type IPCCommands = {
     "paths:getCurrentAssetsPath": () => string;
     "renderer:ready": () => void;
     "replays:delete": (fileName: string) => void;
-    "replays:getOnline": (replayId: string) => OnlineReplayDetails | null;
-    "replays:searchOnlineByPlayer": (username: string, limit: number) => OnlineReplayOverview[];
+    "replays:getOnline": (replayId: string) => IpcResult<OnlineReplayDetails>;
+    "replays:searchOnlineByPlayer": (username: string, limit: number) => IpcResult<OnlineReplayOverview[]>;
     "replays:sync": (replays: string[]) => void;
     "settings:get": () => Settings;
     "settings:toggleFullscreen": () => void;

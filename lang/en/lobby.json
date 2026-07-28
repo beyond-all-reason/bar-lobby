@@ -596,6 +596,7 @@
                     "lobbyActionsHint": "If it happened in the lobby, pick the match it happened before.",
                     "fetchingMatches": "Fetching Matches",
                     "noMatch": "I cannot find the match",
+                    "matchesFailed": "Could not load recent matches. You can still send the report without one.",
                     "noMatchesFound": "No recent matches found for this player. You can still send the report, but without a match we may not be able to find the evidence.",
                     "matchTeams": "{left} vs {right}",
                     "matchFfa": "{teams} way FFA",

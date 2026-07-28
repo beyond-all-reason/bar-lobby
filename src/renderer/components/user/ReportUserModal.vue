@@ -65,6 +65,9 @@ SPDX-License-Identifier: MIT
                         <Loader :absolutePosition="false" />
                         <div class="note">{{ t("lobby.components.user.reportUser.fetchingMatches") }}</div>
                     </div>
+                    <div v-else-if="searchFailed" class="match-list-message note">
+                        {{ t("lobby.components.user.reportUser.matchesFailed") }}
+                    </div>
                     <div v-else-if="!matches.length" class="match-list-message note">
                         {{ t("lobby.components.user.reportUser.noMatchesFound") }}
                     </div>
@@ -163,6 +166,7 @@ import Loader from "@renderer/components/common/Loader.vue";
 import Button from "@renderer/components/controls/Button.vue";
 import Textarea from "@renderer/components/controls/Textarea.vue";
 import ReportUserIcon from "@renderer/components/user/ReportUserIcon.vue";
+import { catchIpcFailure } from "@renderer/api/ipc-result";
 import { notificationsApi } from "@renderer/api/notifications";
 import { useTypedI18n } from "@renderer/i18n";
 import { useReportUser } from "@renderer/composables/useReportUser";
@@ -234,6 +238,7 @@ const sectionId = ref<ReportSection["id"] | null>(null);
 const subTypeId = ref<string | null>(null);
 const matches = ref<OnlineReplayOverview[]>([]);
 const isLoadingMatches = ref(false);
+const searchFailed = ref(false);
 const selectedMatch = ref<OnlineReplayOverview | null>(null);
 const matchDetails = ref<OnlineReplayDetails | null>(null);
 const message = ref("");
@@ -273,6 +278,7 @@ watch(isOpen, (open) => {
     sectionId.value = null;
     subTypeId.value = null;
     matches.value = [];
+    searchFailed.value = false;
     selectedMatch.value = null;
     matchDetails.value = null;
     message.value = "";
@@ -291,13 +297,20 @@ async function selectReason(section: ReportSection["id"], subType: string) {
     if (!reportedUser.value) return;
 
     const requestId = ++searchRequestId;
+    searchFailed.value = false;
     isLoadingMatches.value = true;
-    const found = await window.replays.searchOnlineByPlayer(reportedUser.value.username, matchesToList);
+    const found = await catchIpcFailure(() => window.replays.searchOnlineByPlayer(reportedUser.value!.username, matchesToList));
 
     if (requestId !== searchRequestId) return;
 
-    matches.value = found;
     isLoadingMatches.value = false;
+
+    if (found.status === "failed") {
+        searchFailed.value = true;
+        return;
+    }
+
+    matches.value = found.data;
 }
 
 async function selectMatch(match: OnlineReplayOverview | null) {
@@ -308,11 +321,11 @@ async function selectMatch(match: OnlineReplayOverview | null) {
 
     if (!match) return;
 
-    const details = await window.replays.getOnline(match.id);
+    const details = await catchIpcFailure(() => window.replays.getOnline(match.id));
 
     if (requestId !== detailsRequestId) return;
 
-    matchDetails.value = details;
+    matchDetails.value = details.status === "success" ? details.data : null;
 }
 
 function goBack() {
