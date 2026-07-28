@@ -19,6 +19,10 @@ SPDX-License-Identifier: MIT
                     </h2>
                     <p>{{ t("lobby.views.profile.status") }}{{ user.status }}</p>
                     <p>{{ t("lobby.views.profile.clan") }}{{ user.clanId }}</p>
+                    <Button v-if="user.userId !== me.userId" class="slim inline" @click="openReportUser(user)">
+                        <ReportUserIcon />
+                        <span class="margin-left-sm">{{ t("lobby.components.user.reportUser.menuLabel") }}</span>
+                    </Button>
                 </div>
             </div>
         </Panel>
@@ -31,10 +35,15 @@ SPDX-License-Identifier: MIT
 <script lang="ts" setup>
 import Flag from "@renderer/components/misc/Flag.vue";
 import Panel from "@renderer/components/common/Panel.vue";
+import Button from "@renderer/components/controls/Button.vue";
+import ReportUserIcon from "@renderer/components/user/ReportUserIcon.vue";
 import { useDexieLiveQueryWithDeps } from "@renderer/composables/useDexieLiveQuery";
+import { useReportUser } from "@renderer/composables/useReportUser";
 import { db } from "@renderer/store/db";
+import { me } from "@renderer/store/me.store";
 import { useTypedI18n } from "@renderer/i18n";
 const { t } = useTypedI18n();
+const { openReportUser } = useReportUser();
 
 const props = defineProps<{
     userId: string;
