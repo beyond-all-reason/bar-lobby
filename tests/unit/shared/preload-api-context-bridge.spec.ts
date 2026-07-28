@@ -266,6 +266,7 @@ describe("Preload API Context Bridge", () => {
         expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("tachyon:connect");
         expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("tachyon:disconnect");
         expect(typeof mockWindow.tachyon.request).toBe("function");
+        expect(typeof mockWindow.tachyon.requestStructured).toBe("function");
         expect(typeof mockWindow.tachyon.onConnected).toBe("function");
         expect(typeof mockWindow.tachyon.onDisconnected).toBe("function");
         expect(typeof mockWindow.tachyon.onEvent).toBe("function");

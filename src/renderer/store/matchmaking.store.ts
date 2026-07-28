@@ -14,6 +14,7 @@ import {
 import { tachyonStore } from "@renderer/store/tachyon.store";
 import { db } from "@renderer/store/db";
 import { notificationsApi } from "@renderer/api/notifications";
+import { isTachyonErrorForCommand, tachyonRequest } from "@renderer/api/tachyon";
 import { enginesStore } from "@renderer/store/engine.store";
 import { gameStore } from "@renderer/store/game.store";
 
@@ -188,13 +189,13 @@ async function sendQueueRequest() {
             matchmakingStore.status = MatchmakingStatus.Idle;
             return;
         }
-        const response = await window.tachyon.request("matchmaking/queue", {
+        const response = await tachyonRequest("matchmaking/queue", {
             queues: [{ id: playlist.id, version: playlist.version }],
         });
         console.log("Tachyon: matchmaking/queue:", response.status);
         matchmakingStore.status = MatchmakingStatus.Searching;
     } catch (error) {
-        if (error instanceof Error && error.message.includes("version_mismatch")) {
+        if (isTachyonErrorForCommand(error, "matchmaking/queue") && error.reason === "version_mismatch") {
             notificationsApi.alert({ text: "Queue version changed; refreshing list.", severity: "info" });
             await sendListRequest();
         } else {
