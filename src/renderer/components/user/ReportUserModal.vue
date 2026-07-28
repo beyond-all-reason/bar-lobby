@@ -14,7 +14,7 @@ SPDX-License-Identifier: MIT
         </template>
         <div class="container flex-col gap-md">
             <div v-if="stage !== 'reason'" class="flex-row flex-center-items gap-sm">
-                <Button class="slim square" @click="goBack">
+                <Button class="square" @click="goBack">
                     <Icon :icon="arrowLeft" />
                 </Button>
                 <div class="summary">{{ summary }}</div>
@@ -46,17 +46,22 @@ SPDX-License-Identifier: MIT
             <template v-else-if="stage === 'match'">
                 <h4>{{ t("lobby.components.user.reportUser.whichMatch") }}</h4>
                 <div>{{ t("lobby.components.user.reportUser.lobbyActionsHint") }}</div>
-                <Loader v-if="isLoadingMatches" />
-                <div v-else-if="!matches.length" class="note">{{ t("lobby.components.user.reportUser.noMatchesFound") }}</div>
-                <div v-else class="matches">
-                    <div v-for="match in matches" :key="match.id" class="match" @click="selectMatch(match)">
-                        <div class="match-title">{{ matchLabel(match) }}</div>
-                        <div class="note">{{ matchWhen(match) }} &middot; {{ getFriendlyDuration(match.durationMs) }}</div>
-                    </div>
+                <div v-if="isLoadingMatches" class="loading">
+                    <Loader :absolutePosition="false" />
+                    <div class="note">{{ t("lobby.components.user.reportUser.fetchingMatches") }}</div>
                 </div>
-                <Button class="fullwidth" @click="selectMatch(null)">
-                    {{ t("lobby.components.user.reportUser.noMatch") }}
-                </Button>
+                <template v-else>
+                    <div v-if="!matches.length" class="note">{{ t("lobby.components.user.reportUser.noMatchesFound") }}</div>
+                    <div v-else class="matches">
+                        <div v-for="match in matches" :key="match.id" class="match" @click="selectMatch(match)">
+                            <div class="match-title">{{ matchLabel(match) }}</div>
+                            <div class="note">{{ matchWhen(match) }} &middot; {{ getFriendlyDuration(match.durationMs) }}</div>
+                        </div>
+                    </div>
+                    <Button class="fullwidth" @click="selectMatch(null)">
+                        {{ t("lobby.components.user.reportUser.noMatch") }}
+                    </Button>
+                </template>
             </template>
 
             <template v-else>
@@ -109,6 +114,19 @@ SPDX-License-Identifier: MIT
                 </Button>
             </template>
         </div>
+        <template #footer>
+            <div class="relationship-actions">
+                <div class="note">{{ t("lobby.components.user.reportUser.relationshipsBlurb") }}</div>
+                <div class="flex-row gap-sm">
+                    <span v-for="action in relationshipActions" :key="action.id" v-tooltip.top="t(action.tooltipKey)">
+                        <Button class="slim" :disabled="true">
+                            <Icon :icon="action.icon" />
+                            <span class="margin-left-sm">{{ t(action.labelKey) }}</span>
+                        </Button>
+                    </span>
+                </div>
+            </div>
+        </template>
     </Modal>
 </template>
 
@@ -123,8 +141,11 @@ import chevronDoubleUp from "@iconify-icons/mdi/chevron-double-up";
 import dotsHorizontal from "@iconify-icons/mdi/dots-horizontal";
 import emoticonAngry from "@iconify-icons/mdi/emoticon-angry-outline";
 import emailMultiple from "@iconify-icons/mdi/email-multiple";
+import handBackRight from "@iconify-icons/mdi/hand-back-right";
 import messageText from "@iconify-icons/mdi/message-text";
+import microphoneOff from "@iconify-icons/mdi/microphone-off";
 import swordCross from "@iconify-icons/mdi/sword-cross";
+import cancel from "@iconify-icons/mdi/cancel";
 import { formatDistanceToNow } from "date-fns";
 
 import Modal from "@renderer/components/common/Modal.vue";
@@ -169,6 +190,29 @@ const reportSections = [
     },
 ] as const;
 
+// Ignore, avoid and block exist on the website report page, but tachyon has no command for any of
+// them, so they stay disabled until the protocol grows one.
+const relationshipActions = [
+    {
+        id: "ignore",
+        labelKey: "lobby.components.user.reportUser.relationships.ignore",
+        tooltipKey: "lobby.components.user.reportUser.relationships.ignoreTooltip",
+        icon: microphoneOff,
+    },
+    {
+        id: "avoid",
+        labelKey: "lobby.components.user.reportUser.relationships.avoid",
+        tooltipKey: "lobby.components.user.reportUser.relationships.avoidTooltip",
+        icon: cancel,
+    },
+    {
+        id: "block",
+        labelKey: "lobby.components.user.reportUser.relationships.block",
+        tooltipKey: "lobby.components.user.reportUser.relationships.blockTooltip",
+        icon: handBackRight,
+    },
+] as const;
+
 type ReportSection = (typeof reportSections)[number];
 type Stage = "reason" | "match" | "details";
 
@@ -189,12 +233,7 @@ const selectedSection = computed(() => reportSections.find((section) => section.
 
 const selectedSubType = computed(() => selectedSection.value?.subTypes.find((subType) => subType.id === subTypeId.value));
 
-const summary = computed(() => {
-    if (!selectedSection.value) return "";
-    if (!selectedSubType.value) return t(selectedSection.value.labelKey);
-
-    return `${t(selectedSection.value.labelKey)} / ${t(selectedSubType.value.labelKey)}`;
-});
+const summary = computed(() => (selectedSubType.value ? t(selectedSubType.value.labelKey) : ""));
 
 const matchTeams = computed(() => Map.groupBy(matchDetails.value?.players ?? [], (player) => player.allyTeamId));
 
@@ -284,7 +323,7 @@ async function submit() {
 .container {
     width: 620px;
     height: 460px;
-    gap: 20px;
+    gap: 25px;
     overflow-y: auto;
     padding: 10px;
 }
@@ -331,6 +370,11 @@ async function submit() {
         background: rgba(255, 255, 255, 0.2);
     }
 }
+.loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
 .matches {
     display: flex;
     flex-direction: column;
@@ -371,6 +415,14 @@ async function submit() {
 }
 .summary {
     font-weight: 600;
+}
+.relationship-actions {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+    padding: 10px;
 }
 ul {
     padding-left: 20px;

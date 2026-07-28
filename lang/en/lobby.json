@@ -594,6 +594,7 @@
                     "reasonForReport": "Reason for Report",
                     "whichMatch": "Which Match?",
                     "lobbyActionsHint": "If it happened in the lobby, pick the match it happened before.",
+                    "fetchingMatches": "Fetching Matches",
                     "noMatch": "I cannot find the match",
                     "noMatchesFound": "No recent matches found for this player. You can still send the report, but without a match we may not be able to find the evidence.",
                     "matchTeams": "{left} vs {right} on {map}",
@@ -623,7 +624,16 @@
                     },
                     "messagePlaceholder": "Describe what happened",
                     "submit": "Send Report",
-                    "submitted": "Report sent to the moderation team."
+                    "submitted": "Report sent to the moderation team.",
+                    "relationshipsBlurb": "Not ready yet, use the website for these:",
+                    "relationships": {
+                        "ignore": "Ignore",
+                        "ignoreTooltip": "Stop seeing their messages. Not available in the lobby yet, do it on the website.",
+                        "avoid": "Avoid",
+                        "avoidTooltip": "Ask not to be put in a game with them. Not available in the lobby yet, do it on the website.",
+                        "block": "Block",
+                        "blockTooltip": "Stop seeing them at all. Not available in the lobby yet, do it on the website."
+                    }
                 }
             }
         }

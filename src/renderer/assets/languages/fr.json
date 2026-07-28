@@ -4429,6 +4429,7 @@
                     "reasonForReport": null,
                     "whichMatch": null,
                     "lobbyActionsHint": null,
+                    "fetchingMatches": null,
                     "noMatch": null,
                     "noMatchesFound": null,
                     "matchTeams": null,
@@ -4458,7 +4459,16 @@
                     },
                     "messagePlaceholder": null,
                     "submit": null,
-                    "submitted": null
+                    "submitted": null,
+                    "relationshipsBlurb": null,
+                    "relationships": {
+                        "ignore": null,
+                        "ignoreTooltip": null,
+                        "avoid": null,
+                        "avoidTooltip": null,
+                        "block": null,
+                        "blockTooltip": null
+                    }
                 }
             }
         }
