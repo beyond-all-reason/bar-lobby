@@ -135,6 +135,8 @@ describe("ReportUserModal", () => {
 
         expect(getOnline).toHaveBeenCalledWith("abcdef");
         expect(wrapper.text()).toContain("SomeoneElse");
+        // The replay line is appended to the message, so it has to come out of the 255 character budget.
+        expect(wrapper.find("textarea").attributes("maxlength")).toBe("212");
 
         await wrapper.find("textarea").setValue("  Full map vision from minute 3  ");
         await wrapper.find(".green button").trigger("click");

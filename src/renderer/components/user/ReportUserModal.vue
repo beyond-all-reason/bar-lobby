@@ -97,7 +97,7 @@ SPDX-License-Identifier: MIT
                     v-model="message"
                     :placeholder="t('lobby.components.user.reportUser.messagePlaceholder')"
                     :rows="4"
-                    :maxlength="maxMessageLength"
+                    :maxlength="maxDescriptionLength"
                     @keydown.enter.stop
                 />
                 <div class="note">{{ t("lobby.components.user.reportUser.specCheatingNote") }}</div>
@@ -200,6 +200,8 @@ const reportedUserSpectated = computed(() =>
 );
 
 const messageSuffix = computed(() => (selectedMatch.value ? `\nReplay: https://bar-rts.com/replays/${selectedMatch.value.id}` : ""));
+
+const maxDescriptionLength = computed(() => maxMessageLength - messageSuffix.value.length);
 
 const canSubmit = computed(() => Boolean(reportedUser.value && selectedSubType.value && message.value.trim() && !isSubmitting.value));
 
