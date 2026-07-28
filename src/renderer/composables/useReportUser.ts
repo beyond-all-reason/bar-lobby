@@ -6,7 +6,7 @@ import { ref, type Ref } from "vue";
 import type { User } from "@main/model/user";
 
 // Context menus take icons as a class name, so this can't be an icon component.
-export const reportUserIconClass = "pi pi-flag report-user-icon";
+export const reportUserIconClass = "pi pi-flag-fill report-user-icon";
 
 const isOpen = ref(false);
 const reportedUser = ref<User | null>(null);

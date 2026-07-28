@@ -5,6 +5,7 @@
 import { contextBridge } from "electron";
 import { ipcRenderer } from "@main/typed-ipc";
 import { Replay } from "@main/content/replays/replay";
+import { OnlineReplayDetails, OnlineReplayOverview } from "@main/content/replays/online-replays";
 import { Settings } from "@main/services/settings.service";
 import { EngineVersion } from "@main/content/engine/engine-version";
 import { GameVersion } from "@main/content/game/game-version";
@@ -59,6 +60,8 @@ contextBridge.exposeInMainWorld("shell", shellApi);
 const replaysApi = {
     sync: (replays: string[]): Promise<void> => ipcRenderer.invoke("replays:sync", replays),
     delete: (fileName: string): Promise<void> => ipcRenderer.invoke("replays:delete", fileName),
+    searchOnlineByPlayer: (username: string, limit: number): Promise<OnlineReplayOverview[]> => ipcRenderer.invoke("replays:searchOnlineByPlayer", username, limit),
+    getOnline: (replayId: string): Promise<OnlineReplayDetails | null> => ipcRenderer.invoke("replays:getOnline", replayId),
 
     // Events
     onReplayCachingStarted: (callback: (filename: string) => void) => ipcRenderer.on("replays:replayCachingStarted", (_event, filename) => callback(filename)),

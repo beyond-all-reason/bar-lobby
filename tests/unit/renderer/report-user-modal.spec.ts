@@ -3,13 +3,13 @@
 // SPDX-License-Identifier: MIT
 
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { flushPromises, mount } from "@vue/test-utils";
+import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
 import PrimeVue from "primevue/config";
 
 import ReportUserModal from "@renderer/components/user/ReportUserModal.vue";
-import Select from "@renderer/components/controls/Select.vue";
 import { useReportUser } from "@renderer/composables/useReportUser";
 import type { User } from "@main/model/user";
+import type { OnlineReplayDetails, OnlineReplayOverview } from "@main/content/replays/online-replays";
 
 const requestReportUsers = vi.hoisted(() => vi.fn());
 const alert = vi.hoisted(() => vi.fn());
@@ -30,6 +30,14 @@ vi.mock("vue-router", () => ({
     useRouter: () => ({ currentRoute: { value: { path: "/" } }, push: vi.fn() }),
 }));
 
+const searchOnlineByPlayer = vi.fn();
+const getOnline = vi.fn();
+
+Object.defineProperty(window, "replays", {
+    value: { searchOnlineByPlayer, getOnline },
+    writable: true,
+});
+
 const reportedUser = {
     userId: "1234",
     username: "Naughty",
@@ -41,6 +49,26 @@ const reportedUser = {
     battleRoomState: {},
 } satisfies User;
 
+const match = {
+    id: "abcdef",
+    startTime: "2026-07-27T22:06:02.000Z",
+    durationMs: 1351267,
+    mapName: "All That Glitters v2.2.3",
+    allyTeamSizes: [8, 8],
+    hasBots: false,
+} satisfies OnlineReplayOverview;
+
+const matchDetails = {
+    ...match,
+    preset: "team",
+    serverMatchId: "10453109",
+    players: [
+        { name: "Naughty", userId: 1234, allyTeamId: 0, winningTeam: true },
+        { name: "SomeoneElse", userId: 5678, allyTeamId: 1, winningTeam: false },
+    ],
+    spectators: [],
+} satisfies OnlineReplayDetails;
+
 function mountModal() {
     return mount(ReportUserModal, {
         global: {
@@ -50,6 +78,17 @@ function mountModal() {
     });
 }
 
+function cardLabels(wrapper: VueWrapper) {
+    return wrapper.findAll(".card").map((card) => card.text());
+}
+
+async function clickCard(wrapper: VueWrapper, label: string) {
+    const card = wrapper.findAll(".card").find((candidate) => candidate.text() === label);
+    if (!card) throw new Error(`No card labelled "${label}"`);
+    await card.trigger("click");
+    await flushPromises();
+}
+
 describe("ReportUserModal", () => {
     const { openReportUser, isOpen } = useReportUser();
 
@@ -57,56 +96,94 @@ describe("ReportUserModal", () => {
         requestReportUsers.mockReset();
         requestReportUsers.mockResolvedValue(true);
         alert.mockReset();
+        searchOnlineByPlayer.mockReset();
+        searchOnlineByPlayer.mockResolvedValue([match]);
+        getOnline.mockReset();
+        getOnline.mockResolvedValue(matchDetails);
         isOpen.value = false;
     });
 
-    it("sends the selected reason and message for the reported user", async () => {
+    it("offers the same reasons as the website report form", async () => {
         const wrapper = mountModal();
         openReportUser(reportedUser);
         await flushPromises();
 
         expect(wrapper.text()).toContain("Report Naughty");
+        expect(cardLabels(wrapper)).toEqual(["Chat / Communication", "In game actions"]);
 
-        wrapper.findComponent(Select).vm.$emit("update:modelValue", "actions/cheating");
-        await wrapper.find("textarea").setValue("  Was flying over my base with full map vision  ");
-        await wrapper.find(".p-button").trigger("click");
+        await clickCard(wrapper, "Chat / Communication");
+        expect(cardLabels(wrapper)).toEqual(["Spam", "Bullying", "Hate speech", "Other"]);
+
+        await wrapper.find(".square button").trigger("click");
+        await clickCard(wrapper, "In game actions");
+        expect(cardLabels(wrapper)).toEqual(["Noob", "Griefing", "Cheating", "Other"]);
+    });
+
+    it("sends the reason, the message and the chosen match", async () => {
+        const wrapper = mountModal();
+        openReportUser(reportedUser);
+        await flushPromises();
+
+        await clickCard(wrapper, "In game actions");
+        await clickCard(wrapper, "Cheating");
+
+        expect(searchOnlineByPlayer).toHaveBeenCalledWith("Naughty", 10);
+        expect(wrapper.text()).toContain("8 vs 8 on All That Glitters v2.2.3");
+
+        await wrapper.find(".match").trigger("click");
+        await flushPromises();
+
+        expect(getOnline).toHaveBeenCalledWith("abcdef");
+        expect(wrapper.text()).toContain("SomeoneElse");
+
+        await wrapper.find("textarea").setValue("  Full map vision from minute 3  ");
+        await wrapper.find(".green button").trigger("click");
         await flushPromises();
 
         expect(requestReportUsers).toHaveBeenCalledWith({
             userIds: ["1234"],
             reason: { type: "actions/cheating" },
-            message: "Was flying over my base with full map vision",
+            message: "Full map vision from minute 3\nReplay: https://bar-rts.com/replays/abcdef",
         });
         expect(isOpen.value).toBe(false);
     });
 
-    it("offers the same reasons and message limit as the website report form", async () => {
+    it("sends a report without a match when none is picked", async () => {
         const wrapper = mountModal();
         openReportUser(reportedUser);
         await flushPromises();
 
-        const groups = wrapper.findComponent(Select).props("options") as Array<{ label: string; reasons: Array<{ value: string }> }>;
+        await clickCard(wrapper, "Chat / Communication");
+        await clickCard(wrapper, "Spam");
+        await wrapper.find(".fullwidth button").trigger("click");
+        await flushPromises();
 
-        expect(groups.map((group) => group.label)).toEqual(["Chat / Communication", "In game actions"]);
-        expect(groups.flatMap((group) => group.reasons.map((reason) => reason.value))).toEqual([
-            "chat/spam",
-            "chat/bullying",
-            "chat/hate",
-            "chat/other",
-            "actions/noob",
-            "actions/griefing",
-            "actions/cheating",
-            "actions/other",
-        ]);
-        expect(wrapper.find("textarea").attributes("maxlength")).toBe("255");
+        expect(getOnline).not.toHaveBeenCalled();
+
+        await wrapper.find("textarea").setValue("Kept repeating the same line in lobby chat");
+        await wrapper.find(".green button").trigger("click");
+        await flushPromises();
+
+        expect(requestReportUsers).toHaveBeenCalledWith({
+            userIds: ["1234"],
+            reason: { type: "chat/spam" },
+            message: "Kept repeating the same line in lobby chat",
+        });
     });
 
-    it("does not send a report without a reason and a message", async () => {
+    it("does not send a report without a message", async () => {
         const wrapper = mountModal();
         openReportUser(reportedUser);
         await flushPromises();
 
-        await wrapper.find(".p-button").trigger("click");
+        await clickCard(wrapper, "Chat / Communication");
+        await clickCard(wrapper, "Bullying");
+        await wrapper.find(".fullwidth button").trigger("click");
+        await flushPromises();
+
+        expect(wrapper.find("textarea").attributes("maxlength")).toBe("255");
+
+        await wrapper.find(".green button").trigger("click");
         await flushPromises();
 
         expect(requestReportUsers).not.toHaveBeenCalled();
@@ -120,9 +197,13 @@ describe("ReportUserModal", () => {
         openReportUser(reportedUser);
         await flushPromises();
 
-        wrapper.findComponent(Select).vm.$emit("update:modelValue", "actions/griefing");
+        await clickCard(wrapper, "In game actions");
+        await clickCard(wrapper, "Griefing");
+        await wrapper.find(".fullwidth button").trigger("click");
+        await flushPromises();
+
         await wrapper.find("textarea").setValue("Kept shooting our own factory");
-        await wrapper.find(".p-button").trigger("click");
+        await wrapper.find(".green button").trigger("click");
         await flushPromises();
 
         expect(alert).not.toHaveBeenCalled();
