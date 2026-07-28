@@ -8,7 +8,12 @@ SPDX-License-Identifier: MIT
         <div class="flex-row">
             <span class="margin-right-md">{{ user?.username ?? userId }}</span>
             <Button @click="kickUser" class="red" v-tooltip.left="t('lobby.views.party.kickMember')"><Icon :icon="accountOff" /></Button>
-            <Button v-if="user" @click="reportUser" class="margin-left-sm" v-tooltip.left="t('lobby.components.user.reportUser.menuLabel')">
+            <Button
+                v-if="user && userId !== me.userId"
+                @click="reportUser"
+                class="margin-left-sm"
+                v-tooltip.left="t('lobby.components.user.reportUser.menuLabel')"
+            >
                 <ReportUserIcon />
             </Button>
         </div>
@@ -24,6 +29,7 @@ import accountOff from "@iconify-icons/mdi/account-off";
 import ReportUserIcon from "@renderer/components/user/ReportUserIcon.vue";
 import { useTypedI18n } from "@renderer/i18n";
 import { useReportUser } from "@renderer/composables/useReportUser";
+import { me } from "@renderer/store/me.store";
 
 const { t } = useTypedI18n();
 const { openReportUser } = useReportUser();
