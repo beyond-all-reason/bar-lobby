@@ -4551,6 +4551,7 @@
                     "columnWhen": null,
                     "columnLength": null,
                     "matchWhen": null,
+                    "matchWhenUnknown": null,
                     "team": null,
                     "winner": null,
                     "wasSpectating": null,

@@ -2435,6 +2435,7 @@
                     "columnWhen": "When",
                     "columnLength": "Length",
                     "matchWhen": "{ago} ago",
+                    "matchWhenUnknown": "Unknown",
                     "team": "Team {team}",
                     "winner": "won",
                     "wasSpectating": "This player was spectating this match.",

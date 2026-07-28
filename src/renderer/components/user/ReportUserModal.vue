@@ -75,7 +75,7 @@ SPDX-License-Identifier: MIT
                         <div class="note">{{ getFriendlyDuration(match.durationMs) }}</div>
                     </div>
                 </div>
-                <Button v-if="!isLoadingMatches" class="fullwidth" @click="selectMatch(null)">
+                <Button class="fullwidth" @click="selectMatch(null)">
                     {{ t("lobby.components.user.reportUser.noMatch") }}
                 </Button>
             </template>
@@ -239,6 +239,11 @@ const matchDetails = ref<OnlineReplayDetails | null>(null);
 const message = ref("");
 const isSubmitting = ref(false);
 
+// Responses that arrive after the user has moved on, or after the modal was reopened on someone
+// else, must not overwrite what is on screen now.
+let searchRequestId = 0;
+let detailsRequestId = 0;
+
 const selectedSection = computed(() => reportSections.find((section) => section.id === sectionId.value));
 
 const selectedSubType = computed(() => selectedSection.value?.subTypes.find((subType) => subType.id === subTypeId.value));
@@ -257,7 +262,13 @@ const maxDescriptionLength = computed(() => maxMessageLength - messageSuffix.val
 
 const canSubmit = computed(() => Boolean(reportedUser.value && selectedSubType.value && message.value.trim() && !isSubmitting.value));
 
+watch(maxDescriptionLength, (limit) => {
+    message.value = message.value.slice(0, limit);
+});
+
 watch(isOpen, (open) => {
+    searchRequestId++;
+    detailsRequestId++;
     stage.value = "reason";
     sectionId.value = null;
     subTypeId.value = null;
@@ -279,19 +290,29 @@ async function selectReason(section: ReportSection["id"], subType: string) {
 
     if (!reportedUser.value) return;
 
+    const requestId = ++searchRequestId;
     isLoadingMatches.value = true;
-    matches.value = await window.replays.searchOnlineByPlayer(reportedUser.value.username, matchesToList);
+    const found = await window.replays.searchOnlineByPlayer(reportedUser.value.username, matchesToList);
+
+    if (requestId !== searchRequestId) return;
+
+    matches.value = found;
     isLoadingMatches.value = false;
 }
 
 async function selectMatch(match: OnlineReplayOverview | null) {
+    const requestId = ++detailsRequestId;
     selectedMatch.value = match;
     matchDetails.value = null;
     stage.value = "details";
 
     if (!match) return;
 
-    matchDetails.value = await window.replays.getOnline(match.id);
+    const details = await window.replays.getOnline(match.id);
+
+    if (requestId !== detailsRequestId) return;
+
+    matchDetails.value = details;
 }
 
 function goBack() {
@@ -308,7 +329,12 @@ function matchSize(match: OnlineReplayOverview) {
 }
 
 function matchWhen(match: OnlineReplayOverview) {
-    return t("lobby.components.user.reportUser.matchWhen", { ago: formatDistanceToNow(new Date(match.startTime)) });
+    const startTime = new Date(match.startTime);
+    if (Number.isNaN(startTime.getTime())) {
+        return t("lobby.components.user.reportUser.matchWhenUnknown");
+    }
+
+    return t("lobby.components.user.reportUser.matchWhen", { ago: formatDistanceToNow(startTime) });
 }
 
 async function submit() {

@@ -185,6 +185,96 @@ describe("ReportUserModal", () => {
         expect(isOpen.value).toBe(true);
     });
 
+    it("drops a match search that lands after the modal was reopened on someone else", async () => {
+        let resolveFirstSearch: (matches: OnlineReplayOverview[]) => void;
+        searchOnlineByPlayer.mockImplementationOnce(() => new Promise((resolve) => (resolveFirstSearch = resolve)));
+
+        const wrapper = mountModal();
+        openReportUser(reportedUser);
+        await flushPromises();
+        await clickCard(wrapper, "Spam");
+
+        isOpen.value = false;
+        await flushPromises();
+
+        openReportUser({ ...reportedUser, userId: "5678", username: "SomeoneElse" });
+        await flushPromises();
+        await clickCard(wrapper, "Spam");
+
+        resolveFirstSearch!([{ ...match, id: "stale", mapName: "Stale Map" }]);
+        await flushPromises();
+
+        expect(wrapper.text()).not.toContain("Stale Map");
+        expect(wrapper.find(".match").text()).toContain("All That Glitters v2.2.3");
+    });
+
+    it("drops replay details that land after another match was picked", async () => {
+        let resolveFirstDetails: (details: OnlineReplayDetails) => void;
+        getOnline.mockImplementationOnce(() => new Promise((resolve) => (resolveFirstDetails = resolve)));
+
+        const wrapper = mountModal();
+        openReportUser(reportedUser);
+        await flushPromises();
+        await clickCard(wrapper, "Cheating");
+
+        await wrapper.find(".match").trigger("click");
+        await flushPromises();
+
+        await wrapper.find(".square button").trigger("click");
+        await wrapper.find(".match").trigger("click");
+        await flushPromises();
+
+        resolveFirstDetails!({ ...matchDetails, players: [{ name: "StalePlayer", userId: 1, allyTeamId: 0, winningTeam: false }] });
+        await flushPromises();
+
+        expect(wrapper.text()).not.toContain("StalePlayer");
+        expect(wrapper.text()).toContain("SomeoneElse");
+    });
+
+    it("renders a match with an unusable start time instead of throwing", async () => {
+        searchOnlineByPlayer.mockResolvedValue([{ ...match, startTime: "" }]);
+
+        const wrapper = mountModal();
+        openReportUser(reportedUser);
+        await flushPromises();
+        await clickCard(wrapper, "Spam");
+
+        expect(wrapper.find(".match").text()).toContain("Unknown");
+    });
+
+    it("offers the no match fallback while the search is still running", async () => {
+        searchOnlineByPlayer.mockImplementationOnce(() => new Promise(() => undefined));
+
+        const wrapper = mountModal();
+        openReportUser(reportedUser);
+        await flushPromises();
+        await clickCard(wrapper, "Spam");
+
+        expect(wrapper.find(".fullwidth button").exists()).toBe(true);
+    });
+
+    it("trims the description when a match is attached after it was written", async () => {
+        const wrapper = mountModal();
+        openReportUser(reportedUser);
+        await flushPromises();
+
+        await clickCard(wrapper, "Spam");
+        await wrapper.find(".fullwidth button").trigger("click");
+        await flushPromises();
+
+        await wrapper.find("textarea").setValue("x".repeat(255));
+        await wrapper.find(".square button").trigger("click");
+        await wrapper.find(".match").trigger("click");
+        await flushPromises();
+
+        await wrapper.find(".green button").trigger("click");
+        await flushPromises();
+
+        const sent = requestReportUsers.mock.calls[0][0] as { message: string };
+        expect(sent.message.length).toBe(255);
+        expect(sent.message.endsWith("\nReplay: https://bar-rts.com/replays/abcdef")).toBe(true);
+    });
+
     it("stays open when the request fails", async () => {
         requestReportUsers.mockResolvedValue(false);
 
