@@ -284,6 +284,7 @@ async function submit() {
 .container {
     width: 620px;
     height: 460px;
+    justify-content: space-between;
     overflow-y: auto;
     padding: 10px;
 }
