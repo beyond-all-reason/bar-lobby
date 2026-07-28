@@ -2,126 +2,131 @@
 //
 // SPDX-License-Identifier: MIT
 
-import { ipcMain } from "@main/typed-ipc";
-import { LOGS_PATH } from "@main/config/app";
 import path from "path";
-import { glob, stat, rm, cp, readFile } from "fs/promises";
-import { packSpecificFiles } from "@main/utils/pack-7z";
 import { randomBytes } from "crypto";
+import { cp, glob, readFile, rm, stat } from "fs/promises";
 import axios from "axios";
-import { logger } from "@main/utils/logger";
+
 import { settingsService } from "@main/services/settings.service";
+import { ipcMain } from "@main/typed-ipc";
+import { packSpecificFiles } from "@main/utils/pack-7z";
+import { ACTIVE_LOG_FILE_PATH, logger } from "@main/utils/logger";
+import { LOGS_PATH } from "@main/config/app";
+
+const CANONICAL_LOG_FILE_PATTERN = /^lobby-\d{8}T\d{6}\.log$/;
+const RETAINED_LOG_COUNT = 14;
+const UPLOADED_LOG_COUNT = 7;
+
+let uploadInProgress = false;
 
 async function getSortedLogFiles() {
-    type logData = {
-        createTime: number;
-        logPath: string;
-    };
+    const logFiles: Array<{ createTime: number; logPath: string }> = [];
 
-    // Get the log files from the log directory.
-    const fileList: string[] = [];
-    for await (const entry of glob("*.log", { cwd: LOGS_PATH })) {
+    for await (const entry of glob("lobby-*.log", { cwd: LOGS_PATH })) {
+        if (!CANONICAL_LOG_FILE_PATTERN.test(entry)) {
+            continue;
+        }
+
         const logPath = path.join(LOGS_PATH, entry);
-        fileList.push(logPath);
+        const statData = await stat(logPath);
+        logFiles.push({ createTime: statData.birthtimeMs, logPath });
     }
 
-    // Sort them based on descending file creation time.
-    const fileDataList: logData[] = await Promise.all(
-        fileList.map(async (logPath) => {
-            const statData = await stat(logPath);
-            return {
-                createTime: statData.birthtimeMs,
-                logPath: logPath,
-            };
-        })
-    );
-    fileDataList.sort((a, b) => {
-        return b.createTime - a.createTime;
-    });
+    logFiles.sort((a, b) => b.createTime - a.createTime);
+    return logFiles.map(({ logPath }) => logPath);
+}
 
-    return fileDataList.map((logFile) => logFile.logPath);
+async function removeMatchingFiles(pattern: string) {
+    for await (const entry of glob(pattern, { cwd: LOGS_PATH })) {
+        await rm(path.join(LOGS_PATH, entry), { force: true });
+    }
+}
+
+async function removeUploadArtifacts() {
+    await Promise.all([removeMatchingFiles("*.zip"), removeMatchingFiles(".upload-*"), removeMatchingFiles("lobby-*most_recent*.log")]);
 }
 
 export async function purgeLogFiles() {
-    const fileList = await getSortedLogFiles();
+    const logFiles = await getSortedLogFiles();
+    const activeLogIndex = logFiles.indexOf(ACTIVE_LOG_FILE_PATH);
+    const activeLog = activeLogIndex >= 0 ? logFiles[activeLogIndex] : undefined;
+    const inactiveLogs = logFiles.filter((logPath) => logPath !== activeLog);
 
-    // Keep only the 14 most recent log files.
-    const filesToDelete = fileList.slice(14);
+    const retainedInactiveCount = activeLog ? RETAINED_LOG_COUNT - 1 : RETAINED_LOG_COUNT;
+    const filesToDelete = inactiveLogs.slice(retainedInactiveCount);
 
-    // Get the 7 most recent files to upload.
-    const mostRecentFiles = fileList.slice(0, 7);
+    await Promise.all(filesToDelete.map((logFilePath) => rm(logFilePath, { force: true })));
+    await removeUploadArtifacts();
 
-    for await (const logFilePath of filesToDelete) {
-        await rm(logFilePath);
-    }
-
-    // Delete all zip files
-    for await (const entry of glob("*.zip", { cwd: LOGS_PATH })) {
-        const zipPath = path.join(LOGS_PATH, entry);
-        await rm(zipPath);
-    }
-
-    return mostRecentFiles;
+    const uploadedInactiveCount = activeLog ? UPLOADED_LOG_COUNT - 1 : UPLOADED_LOG_COUNT;
+    return activeLog ? [activeLog, ...inactiveLogs.slice(0, uploadedInactiveCount)] : inactiveLogs.slice(0, uploadedInactiveCount);
 }
 
-export async function packLogFiles() {
-    // Send only the 7 most recent log files.
-    const filesToPack = await purgeLogFiles();
-
-    // Copy the current log file into it's own file to upload to avoid lock issue.
-    const currentFile = filesToPack.shift();
-
-    // Throw error if no files to pack yet.
-    if (currentFile == undefined) {
-        throw new Error("No log files to pack.");
-    }
-
-    const newFileName = `${path.basename(currentFile, ".log")}most_recent.log`;
-    const newFilePath = path.join(LOGS_PATH, newFileName);
-    filesToPack.unshift(newFilePath);
-
-    await cp(currentFile, newFilePath);
-
-    // Pack the files into the ZIP file.
+function createArchivePath() {
     const archiveTime = new Date()
         .toISOString()
         .replace(/[^0-9T]/g, "")
         .substring(0, 13);
     const archiveRandom = randomBytes(6).toString("base64url");
-    const archiveFile = `logs-${archiveTime}-${archiveRandom}.zip`;
-    const archivePath = path.join(LOGS_PATH, archiveFile);
-
-    await packSpecificFiles(archivePath, filesToPack);
-
-    // Delete the copied file.
-    await rm(newFilePath);
-    return archivePath;
+    return path.join(LOGS_PATH, `logs-${archiveTime}-${archiveRandom}.zip`);
 }
 
-async function uploadLogFiles() {
-    const archivePath = await packLogFiles().catch(() => {
-        throw new Error("Could not upload log because no logs to pack.");
-    });
+export async function packLogFiles() {
+    const filesToPack = await purgeLogFiles();
+    const currentFile = filesToPack.shift();
 
-    const archiveFile = path.basename(archivePath);
-    const uploadUrl = settingsService.getSettings().logUploadUrl + archiveFile;
-    const dataToUpload = await readFile(archivePath);
+    if (!currentFile) {
+        throw new Error("No log files to pack.");
+    }
 
-    await axios({
-        method: "put",
-        url: uploadUrl,
-        headers: {
-            "content-type": "application/zip",
-        },
-        data: dataToUpload,
-    }).catch(() => {
-        throw new Error("Could not upload log file.");
-    });
+    const temporaryPath = path.join(LOGS_PATH, `.upload-${randomBytes(8).toString("hex")}-most_recent.log`);
+    const archivePath = createArchivePath();
 
-    // Delete the ZIP file after upload
-    rm(archivePath);
+    try {
+        await cp(currentFile, temporaryPath);
+        await packSpecificFiles(archivePath, [temporaryPath, ...filesToPack]);
+        return archivePath;
+    } catch (error) {
+        await rm(archivePath, { force: true });
+        throw error;
+    } finally {
+        await rm(temporaryPath, { force: true });
+    }
+}
 
-    return uploadUrl;
+export async function uploadLogFiles() {
+    if (uploadInProgress) {
+        throw new Error("Log upload is already in progress.");
+    }
+
+    uploadInProgress = true;
+    let archivePath: string | undefined;
+
+    try {
+        archivePath = await packLogFiles();
+        const archiveFile = path.basename(archivePath);
+        const uploadUrl = settingsService.getSettings().logUploadUrl + archiveFile;
+        const dataToUpload = await readFile(archivePath);
+
+        await axios({
+            method: "put",
+            url: uploadUrl,
+            headers: {
+                "content-type": "application/zip",
+            },
+            data: dataToUpload,
+        });
+
+        return uploadUrl;
+    } finally {
+        try {
+            if (archivePath) {
+                await rm(archivePath, { force: true });
+            }
+        } finally {
+            uploadInProgress = false;
+        }
+    }
 }
 
 export type logLevels = "debug" | "info" | "error" | "fatal";
