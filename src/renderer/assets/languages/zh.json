@@ -4528,6 +4528,27 @@
                         "label": null
                     }
                 }
+            },
+            "user": {
+                "reportUser": {
+                    "menuLabel": null,
+                    "title": null,
+                    "blurb": null,
+                    "reason": null,
+                    "reasonPlaceholder": null,
+                    "messagePlaceholder": null,
+                    "submit": null,
+                    "submitted": null,
+                    "reasons": {
+                        "cheating": null,
+                        "abusiveChat": null,
+                        "griefing": null,
+                        "smurfing": null,
+                        "inappropriateName": null,
+                        "spam": null,
+                        "other": null
+                    }
+                }
             }
         }
     }

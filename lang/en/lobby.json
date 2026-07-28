@@ -582,6 +582,27 @@
                         "label": "Downloaded"
                     }
                 }
+            },
+            "user": {
+                "reportUser": {
+                    "menuLabel": "Report User",
+                    "title": "Report {username}",
+                    "blurb": "Reports go to the moderation team. Tell them what happened and where it happened, so they can look into it.",
+                    "reason": "Reason",
+                    "reasonPlaceholder": "Pick a reason",
+                    "messagePlaceholder": "Describe what happened",
+                    "submit": "Send Report",
+                    "submitted": "Report sent to the moderation team.",
+                    "reasons": {
+                        "cheating": "Cheating",
+                        "abusiveChat": "Abusive or offensive chat",
+                        "griefing": "Griefing or teamkilling",
+                        "smurfing": "Smurfing or account sharing",
+                        "inappropriateName": "Inappropriate username",
+                        "spam": "Spamming",
+                        "other": "Other"
+                    }
+                }
             }
         }
     }
