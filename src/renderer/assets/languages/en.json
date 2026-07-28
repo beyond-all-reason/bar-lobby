@@ -2460,7 +2460,6 @@
                     "messagePlaceholder": "Describe what happened",
                     "submit": "Send Report",
                     "submitted": "Report sent to the moderation team.",
-                    "relationshipsBlurb": "Not ready yet, use the website for these:",
                     "relationships": {
                         "ignore": "Ignore",
                         "ignoreTooltip": "Stop seeing their messages. Not available in the lobby yet, do it on the website.",

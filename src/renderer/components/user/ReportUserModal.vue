@@ -41,6 +41,14 @@ SPDX-License-Identifier: MIT
                         </div>
                     </div>
                 </div>
+                <div class="relationship-actions">
+                    <span v-for="action in relationshipActions" :key="action.id" v-tooltip.top="t(action.tooltipKey)">
+                        <Button class="slim" :disabled="true">
+                            <Icon :icon="action.icon" />
+                            <span class="margin-left-sm">{{ t(action.labelKey) }}</span>
+                        </Button>
+                    </span>
+                </div>
             </template>
 
             <template v-else-if="stage === 'match'">
@@ -129,19 +137,6 @@ SPDX-License-Identifier: MIT
                 </Button>
             </template>
         </div>
-        <template #footer>
-            <div class="relationship-actions">
-                <div class="note">{{ t("lobby.components.user.reportUser.relationshipsBlurb") }}</div>
-                <div class="flex-row gap-sm">
-                    <span v-for="action in relationshipActions" :key="action.id" v-tooltip.top="t(action.tooltipKey)">
-                        <Button class="slim" :disabled="true">
-                            <Icon :icon="action.icon" />
-                            <span class="margin-left-sm">{{ t(action.labelKey) }}</span>
-                        </Button>
-                    </span>
-                </div>
-            </div>
-        </template>
     </Modal>
 </template>
 
@@ -338,7 +333,7 @@ async function submit() {
 .container {
     width: 620px;
     height: 460px;
-    gap: 25px;
+    gap: 30px;
     overflow-y: auto;
     padding: 10px;
 }
@@ -452,9 +447,7 @@ async function submit() {
     display: flex;
     flex-direction: row;
     align-items: center;
-    justify-content: space-between;
-    gap: 15px;
-    padding: 10px;
+    justify-content: space-around;
 }
 ul {
     padding-left: 20px;
