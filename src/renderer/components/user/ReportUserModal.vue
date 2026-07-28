@@ -46,27 +46,42 @@ SPDX-License-Identifier: MIT
             <template v-else-if="stage === 'match'">
                 <h4>{{ t("lobby.components.user.reportUser.whichMatch") }}</h4>
                 <div>{{ t("lobby.components.user.reportUser.lobbyActionsHint") }}</div>
-                <div v-if="isLoadingMatches" class="loading">
-                    <Loader :absolutePosition="false" />
-                    <div class="note">{{ t("lobby.components.user.reportUser.fetchingMatches") }}</div>
-                </div>
-                <template v-else>
-                    <div v-if="!matches.length" class="note">{{ t("lobby.components.user.reportUser.noMatchesFound") }}</div>
-                    <div v-else class="matches">
-                        <div v-for="match in matches" :key="match.id" class="match" @click="selectMatch(match)">
-                            <div class="match-title">{{ matchLabel(match) }}</div>
-                            <div class="note">{{ matchWhen(match) }} &middot; {{ getFriendlyDuration(match.durationMs) }}</div>
-                        </div>
+                <div class="match-list">
+                    <div class="match-row match-list-header">
+                        <div>{{ t("lobby.components.user.reportUser.columnMatch") }}</div>
+                        <div>{{ t("lobby.components.user.reportUser.columnMap") }}</div>
+                        <div>{{ t("lobby.components.user.reportUser.columnWhen") }}</div>
+                        <div>{{ t("lobby.components.user.reportUser.columnLength") }}</div>
                     </div>
-                    <Button class="fullwidth" @click="selectMatch(null)">
-                        {{ t("lobby.components.user.reportUser.noMatch") }}
-                    </Button>
-                </template>
+                    <div v-if="isLoadingMatches" class="match-list-message">
+                        <Loader :absolutePosition="false" />
+                        <div class="note">{{ t("lobby.components.user.reportUser.fetchingMatches") }}</div>
+                    </div>
+                    <div v-else-if="!matches.length" class="match-list-message note">
+                        {{ t("lobby.components.user.reportUser.noMatchesFound") }}
+                    </div>
+                    <div v-for="match in matches" v-else :key="match.id" class="match-row match" @click="selectMatch(match)">
+                        <div>{{ matchSize(match) }}</div>
+                        <div>{{ match.mapName }}</div>
+                        <div class="note">{{ matchWhen(match) }}</div>
+                        <div class="note">{{ getFriendlyDuration(match.durationMs) }}</div>
+                    </div>
+                </div>
+                <Button v-if="!isLoadingMatches" class="fullwidth" @click="selectMatch(null)">
+                    {{ t("lobby.components.user.reportUser.noMatch") }}
+                </Button>
             </template>
 
             <template v-else>
                 <div v-if="selectedMatch" class="match-details">
-                    <div class="match-title">{{ matchLabel(selectedMatch) }}</div>
+                    <div class="match-title">
+                        {{
+                            t("lobby.components.user.reportUser.matchOnMap", {
+                                match: matchSize(selectedMatch),
+                                map: selectedMatch.mapName,
+                            })
+                        }}
+                    </div>
                     <div class="note">
                         {{ matchWhen(selectedMatch) }} &middot; {{ getFriendlyDuration(selectedMatch.durationMs) }}
                         <template v-if="matchDetails?.preset"> &middot; {{ matchDetails.preset }}</template>
@@ -288,13 +303,13 @@ function goBack() {
     stage.value = stage.value === "details" ? "match" : "reason";
 }
 
-function matchLabel(match: OnlineReplayOverview) {
+function matchSize(match: OnlineReplayOverview) {
     const sizes = match.allyTeamSizes;
     if (sizes.length === 2) {
-        return t("lobby.components.user.reportUser.matchTeams", { left: sizes[0], right: sizes[1], map: match.mapName });
+        return t("lobby.components.user.reportUser.matchTeams", { left: sizes[0], right: sizes[1] });
     }
 
-    return t("lobby.components.user.reportUser.matchFfa", { teams: sizes.length, map: match.mapName });
+    return t("lobby.components.user.reportUser.matchFfa", { teams: sizes.length });
 }
 
 function matchWhen(match: OnlineReplayOverview) {
@@ -370,21 +385,38 @@ async function submit() {
         background: rgba(255, 255, 255, 0.2);
     }
 }
-.loading {
+.match-list {
     display: flex;
+    flex: 1;
+    flex-direction: column;
+    overflow-y: auto;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+}
+.match-row {
+    display: grid;
+    grid-template-columns: 80px 1fr 110px 70px;
+    gap: 10px;
+    padding: 5px 10px;
+}
+.match-list-header {
+    background: rgba(255, 255, 255, 0.1);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+    font-weight: 600;
+}
+.match-list-message {
+    display: flex;
+    flex: 1;
     flex-direction: column;
     align-items: center;
-}
-.matches {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
+    justify-content: center;
+    gap: 5px;
+    padding: 20px;
+    text-align: center;
 }
 .match {
-    padding: 5px 10px;
-    background: rgba(255, 255, 255, 0.1);
     &:hover {
-        background: rgba(255, 255, 255, 0.2);
+        background: rgba(255, 255, 255, 0.15);
     }
 }
 .match-details {

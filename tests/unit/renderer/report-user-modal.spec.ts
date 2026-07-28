@@ -74,6 +74,7 @@ function mountModal() {
         global: {
             plugins: [PrimeVue],
             stubs: { teleport: true },
+            directives: { tooltip: {} },
         },
     });
 }
@@ -121,7 +122,8 @@ describe("ReportUserModal", () => {
         await clickCard(wrapper, "Cheating");
 
         expect(searchOnlineByPlayer).toHaveBeenCalledWith("Naughty", 10);
-        expect(wrapper.text()).toContain("8 vs 8 on All That Glitters v2.2.3");
+        expect(wrapper.find(".match").text()).toContain("8 vs 8");
+        expect(wrapper.find(".match").text()).toContain("All That Glitters v2.2.3");
 
         await wrapper.find(".match").trigger("click");
         await flushPromises();
