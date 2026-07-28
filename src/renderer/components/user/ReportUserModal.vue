@@ -447,7 +447,9 @@ async function submit() {
     display: flex;
     flex-direction: row;
     align-items: center;
-    justify-content: space-around;
+    justify-content: center;
+    gap: 25px;
+    margin-top: auto;
 }
 ul {
     padding-left: 20px;
