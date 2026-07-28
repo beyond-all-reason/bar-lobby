@@ -4534,20 +4534,33 @@
                     "menuLabel": null,
                     "title": null,
                     "blurb": null,
+                    "guidanceDescription": null,
+                    "guidanceReplay": null,
+                    "guidanceTimestamps": null,
+                    "specCheatingNote": null,
                     "reason": null,
                     "reasonPlaceholder": null,
+                    "sections": {
+                        "chat": null,
+                        "actions": null
+                    },
+                    "reasons": {
+                        "chat": {
+                            "spam": null,
+                            "bullying": null,
+                            "hate": null,
+                            "other": null
+                        },
+                        "actions": {
+                            "noob": null,
+                            "griefing": null,
+                            "cheating": null,
+                            "other": null
+                        }
+                    },
                     "messagePlaceholder": null,
                     "submit": null,
-                    "submitted": null,
-                    "reasons": {
-                        "cheating": null,
-                        "abusiveChat": null,
-                        "griefing": null,
-                        "smurfing": null,
-                        "inappropriateName": null,
-                        "spam": null,
-                        "other": null
-                    }
+                    "submitted": null
                 }
             }
         }

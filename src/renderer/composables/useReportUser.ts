@@ -5,10 +5,6 @@
 import { ref, type Ref } from "vue";
 import type { User } from "@main/model/user";
 
-export const reportUserReasons = ["cheating", "abusiveChat", "griefing", "smurfing", "inappropriateName", "spam", "other"] as const;
-
-export type ReportUserReason = (typeof reportUserReasons)[number];
-
 // Context menus take icons as a class name, so this can't be an icon component.
 export const reportUserIconClass = "pi pi-flag report-user-icon";
 

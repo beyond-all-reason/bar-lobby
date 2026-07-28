@@ -587,21 +587,34 @@
                 "reportUser": {
                     "menuLabel": "Report User",
                     "title": "Report {username}",
-                    "blurb": "Reports go to the moderation team. Tell them what happened and where it happened, so they can look into it.",
+                    "blurb": "Reports are handled by volunteers, so please include:",
+                    "guidanceDescription": "What was done, or the specific words that were said",
+                    "guidanceReplay": "A link to the replay from bar-rts.com/replays",
+                    "guidanceTimestamps": "Timestamps of the in game events, even approximate ones",
+                    "specCheatingNote": "Reports that say only \"spec cheating\" may be ignored. Link the replay and say what looked suspicious, with timestamps.",
                     "reason": "Reason",
                     "reasonPlaceholder": "Pick a reason",
+                    "sections": {
+                        "chat": "Chat / Communication",
+                        "actions": "In game actions"
+                    },
+                    "reasons": {
+                        "chat": {
+                            "spam": "Spam",
+                            "bullying": "Bullying",
+                            "hate": "Hate speech",
+                            "other": "Other"
+                        },
+                        "actions": {
+                            "noob": "Noob",
+                            "griefing": "Griefing",
+                            "cheating": "Cheating",
+                            "other": "Other"
+                        }
+                    },
                     "messagePlaceholder": "Describe what happened",
                     "submit": "Send Report",
-                    "submitted": "Report sent to the moderation team.",
-                    "reasons": {
-                        "cheating": "Cheating",
-                        "abusiveChat": "Abusive or offensive chat",
-                        "griefing": "Griefing or teamkilling",
-                        "smurfing": "Smurfing or account sharing",
-                        "inappropriateName": "Inappropriate username",
-                        "spam": "Spamming",
-                        "other": "Other"
-                    }
+                    "submitted": "Report sent to the moderation team."
                 }
             }
         }

@@ -67,17 +67,38 @@ describe("ReportUserModal", () => {
 
         expect(wrapper.text()).toContain("Report Naughty");
 
-        wrapper.findComponent(Select).vm.$emit("update:modelValue", "cheating");
+        wrapper.findComponent(Select).vm.$emit("update:modelValue", "actions/cheating");
         await wrapper.find("textarea").setValue("  Was flying over my base with full map vision  ");
         await wrapper.find(".p-button").trigger("click");
         await flushPromises();
 
         expect(requestReportUsers).toHaveBeenCalledWith({
             userIds: ["1234"],
-            reason: { type: "cheating" },
+            reason: { type: "actions/cheating" },
             message: "Was flying over my base with full map vision",
         });
         expect(isOpen.value).toBe(false);
+    });
+
+    it("offers the same reasons and message limit as the website report form", async () => {
+        const wrapper = mountModal();
+        openReportUser(reportedUser);
+        await flushPromises();
+
+        const groups = wrapper.findComponent(Select).props("options") as Array<{ label: string; reasons: Array<{ value: string }> }>;
+
+        expect(groups.map((group) => group.label)).toEqual(["Chat / Communication", "In game actions"]);
+        expect(groups.flatMap((group) => group.reasons.map((reason) => reason.value))).toEqual([
+            "chat/spam",
+            "chat/bullying",
+            "chat/hate",
+            "chat/other",
+            "actions/noob",
+            "actions/griefing",
+            "actions/cheating",
+            "actions/other",
+        ]);
+        expect(wrapper.find("textarea").attributes("maxlength")).toBe("255");
     });
 
     it("does not send a report without a reason and a message", async () => {
@@ -99,7 +120,7 @@ describe("ReportUserModal", () => {
         openReportUser(reportedUser);
         await flushPromises();
 
-        wrapper.findComponent(Select).vm.$emit("update:modelValue", "griefing");
+        wrapper.findComponent(Select).vm.$emit("update:modelValue", "actions/griefing");
         await wrapper.find("textarea").setValue("Kept shooting our own factory");
         await wrapper.find(".p-button").trigger("click");
         await flushPromises();
