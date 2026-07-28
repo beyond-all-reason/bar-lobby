@@ -288,11 +288,11 @@ async function submit() {
     padding: 10px;
 }
 .reason-heading {
+    margin-bottom: 15px;
     text-align: center;
 }
 .sections {
     display: flex;
-    flex: 1;
     flex-direction: row;
     gap: 20px;
 }
@@ -313,9 +313,7 @@ async function submit() {
 }
 .cards {
     display: grid;
-    flex: 1;
     grid-template-columns: 1fr 1fr;
-    grid-template-rows: 1fr 1fr;
     gap: 10px;
 }
 .card {
@@ -324,6 +322,7 @@ async function submit() {
     align-items: center;
     justify-content: center;
     gap: 5px;
+    min-height: 100px;
     padding: 15px 10px;
     text-align: center;
     background: rgba(255, 255, 255, 0.1);
