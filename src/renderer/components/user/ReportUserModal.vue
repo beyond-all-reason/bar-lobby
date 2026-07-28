@@ -284,12 +284,11 @@ async function submit() {
 .container {
     width: 620px;
     height: 460px;
-    justify-content: space-between;
+    gap: 20px;
     overflow-y: auto;
     padding: 10px;
 }
 .reason-heading {
-    margin-bottom: 15px;
     text-align: center;
 }
 .sections {
