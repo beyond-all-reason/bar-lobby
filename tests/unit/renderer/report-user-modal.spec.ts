@@ -103,20 +103,14 @@ describe("ReportUserModal", () => {
         isOpen.value = false;
     });
 
-    it("offers the same reasons as the website report form", async () => {
+    it("offers the same reasons as the website report form, all on one step", async () => {
         const wrapper = mountModal();
         openReportUser(reportedUser);
         await flushPromises();
 
         expect(wrapper.text()).toContain("Report Naughty");
-        expect(cardLabels(wrapper)).toEqual(["Chat / Communication", "In game actions"]);
-
-        await clickCard(wrapper, "Chat / Communication");
-        expect(cardLabels(wrapper)).toEqual(["Spam", "Bullying", "Hate speech", "Other"]);
-
-        await wrapper.find(".square button").trigger("click");
-        await clickCard(wrapper, "In game actions");
-        expect(cardLabels(wrapper)).toEqual(["Noob", "Griefing", "Cheating", "Other"]);
+        expect(wrapper.findAll(".section-header").map((header) => header.text())).toEqual(["Chat / Communication", "In-Game Actions"]);
+        expect(cardLabels(wrapper)).toEqual(["Spam", "Bullying", "Hate speech", "Other", "Noob", "Griefing", "Cheating", "Other"]);
     });
 
     it("sends the reason, the message and the chosen match", async () => {
@@ -124,7 +118,6 @@ describe("ReportUserModal", () => {
         openReportUser(reportedUser);
         await flushPromises();
 
-        await clickCard(wrapper, "In game actions");
         await clickCard(wrapper, "Cheating");
 
         expect(searchOnlineByPlayer).toHaveBeenCalledWith("Naughty", 10);
@@ -155,7 +148,6 @@ describe("ReportUserModal", () => {
         openReportUser(reportedUser);
         await flushPromises();
 
-        await clickCard(wrapper, "Chat / Communication");
         await clickCard(wrapper, "Spam");
         await wrapper.find(".fullwidth button").trigger("click");
         await flushPromises();
@@ -178,7 +170,6 @@ describe("ReportUserModal", () => {
         openReportUser(reportedUser);
         await flushPromises();
 
-        await clickCard(wrapper, "Chat / Communication");
         await clickCard(wrapper, "Bullying");
         await wrapper.find(".fullwidth button").trigger("click");
         await flushPromises();
@@ -199,7 +190,6 @@ describe("ReportUserModal", () => {
         openReportUser(reportedUser);
         await flushPromises();
 
-        await clickCard(wrapper, "In game actions");
         await clickCard(wrapper, "Griefing");
         await wrapper.find(".fullwidth button").trigger("click");
         await flushPromises();

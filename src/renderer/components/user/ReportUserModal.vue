@@ -13,29 +13,32 @@ SPDX-License-Identifier: MIT
             </div>
         </template>
         <div class="container flex-col gap-md">
-            <div v-if="stage !== 'section'" class="flex-row flex-center-items gap-sm">
+            <div v-if="stage !== 'reason'" class="flex-row flex-center-items gap-sm">
                 <Button class="slim square" @click="goBack">
                     <Icon :icon="arrowLeft" />
                 </Button>
                 <div class="summary">{{ summary }}</div>
             </div>
 
-            <template v-if="stage === 'section'">
-                <h4>{{ t("lobby.components.user.reportUser.reasonForReport") }}</h4>
-                <div class="cards">
-                    <div v-for="section in reportSections" :key="section.id" class="card" @click="selectSection(section.id)">
-                        <Icon :icon="section.icon" height="36" />
-                        <span>{{ t(section.labelKey) }}</span>
-                    </div>
-                </div>
-            </template>
-
-            <template v-else-if="stage === 'subType'">
-                <h4>{{ t("lobby.components.user.reportUser.typeOfReport") }}</h4>
-                <div class="cards">
-                    <div v-for="subType in selectedSection?.subTypes" :key="subType.id" class="card" @click="selectSubType(subType.id)">
-                        <Icon :icon="subType.icon" height="36" />
-                        <span>{{ t(subType.labelKey) }}</span>
+            <template v-if="stage === 'reason'">
+                <h4 class="reason-heading">{{ t("lobby.components.user.reportUser.reasonForReport") }}</h4>
+                <div class="sections">
+                    <div v-for="section in reportSections" :key="section.id" class="section">
+                        <div class="section-header">
+                            <Icon :icon="section.icon" height="20" />
+                            {{ t(section.labelKey) }}
+                        </div>
+                        <div class="cards">
+                            <div
+                                v-for="subType in section.subTypes"
+                                :key="subType.id"
+                                class="card"
+                                @click="selectReason(section.id, subType.id)"
+                            >
+                                <Icon :icon="subType.icon" height="30" />
+                                <span>{{ t(subType.labelKey) }}</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </template>
@@ -167,12 +170,12 @@ const reportSections = [
 ] as const;
 
 type ReportSection = (typeof reportSections)[number];
-type Stage = "section" | "subType" | "match" | "details";
+type Stage = "reason" | "match" | "details";
 
 const { t } = useTypedI18n();
 const { isOpen, reportedUser, closeReportUser } = useReportUser();
 
-const stage = ref<Stage>("section");
+const stage = ref<Stage>("reason");
 const sectionId = ref<ReportSection["id"] | null>(null);
 const subTypeId = ref<string | null>(null);
 const matches = ref<OnlineReplayOverview[]>([]);
@@ -206,7 +209,7 @@ const maxDescriptionLength = computed(() => maxMessageLength - messageSuffix.val
 const canSubmit = computed(() => Boolean(reportedUser.value && selectedSubType.value && message.value.trim() && !isSubmitting.value));
 
 watch(isOpen, (open) => {
-    stage.value = "section";
+    stage.value = "reason";
     sectionId.value = null;
     subTypeId.value = null;
     matches.value = [];
@@ -220,13 +223,9 @@ watch(isOpen, (open) => {
     }
 });
 
-function selectSection(id: ReportSection["id"]) {
-    sectionId.value = id;
-    stage.value = "subType";
-}
-
-async function selectSubType(id: string) {
-    subTypeId.value = id;
+async function selectReason(section: ReportSection["id"], subType: string) {
+    sectionId.value = section;
+    subTypeId.value = subType;
     stage.value = "match";
 
     if (!reportedUser.value) return;
@@ -247,9 +246,7 @@ async function selectMatch(match: OnlineReplayOverview | null) {
 }
 
 function goBack() {
-    if (stage.value === "details") stage.value = "match";
-    else if (stage.value === "match") stage.value = "subType";
-    else stage.value = "section";
+    stage.value = stage.value === "details" ? "match" : "reason";
 }
 
 function matchLabel(match: OnlineReplayOverview) {
@@ -290,16 +287,42 @@ async function submit() {
     overflow-y: auto;
     padding: 10px;
 }
-.cards {
+.reason-heading {
+    text-align: center;
+}
+.sections {
+    display: flex;
+    flex: 1;
+    flex-direction: row;
+    gap: 20px;
+}
+.section {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 10px;
+}
+.section-header {
     display: flex;
     flex-direction: row;
+    align-items: center;
+    gap: 5px;
+    padding-bottom: 5px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    font-weight: 600;
+}
+.cards {
+    display: grid;
+    flex: 1;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
     gap: 10px;
 }
 .card {
     display: flex;
-    flex: 1;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
     gap: 5px;
     padding: 15px 10px;
     text-align: center;
