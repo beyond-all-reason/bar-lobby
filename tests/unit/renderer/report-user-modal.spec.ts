@@ -115,6 +115,22 @@ describe("ReportUserModal", () => {
         expect(cardLabels(wrapper)).toEqual(["Spam", "Bullying", "Hate speech", "Other", "Noob", "Griefing", "Cheating", "Other"]);
     });
 
+    it("names the step it goes back to, not the reason that was picked", async () => {
+        const wrapper = mountModal();
+        openReportUser(reportedUser);
+        await flushPromises();
+
+        expect(wrapper.find(".back").exists()).toBe(false);
+
+        await clickCard(wrapper, "Cheating");
+        expect(wrapper.find(".back").text()).toBe("Reason for Report");
+
+        await wrapper.find(".match").trigger("click");
+        await flushPromises();
+
+        expect(wrapper.find(".back").text()).toBe("Which Match?");
+    });
+
     it("sends the reason, the message and the chosen match", async () => {
         const wrapper = mountModal();
         openReportUser(reportedUser);
@@ -221,7 +237,7 @@ describe("ReportUserModal", () => {
         await wrapper.find(".match").trigger("click");
         await flushPromises();
 
-        await wrapper.find(".square button").trigger("click");
+        await wrapper.find(".back button").trigger("click");
         await wrapper.find(".match").trigger("click");
         await flushPromises();
 
@@ -315,7 +331,7 @@ describe("ReportUserModal", () => {
         await flushPromises();
 
         await wrapper.find("textarea").setValue("x".repeat(255));
-        await wrapper.find(".square button").trigger("click");
+        await wrapper.find(".back button").trigger("click");
         await wrapper.find(".match").trigger("click");
         await flushPromises();
 

@@ -7,21 +7,20 @@ SPDX-License-Identifier: MIT
 <template>
     <Modal v-model="isOpen" @submit="submit">
         <template #title>
-            <div class="flex-row flex-center-items gap-sm">
+            <div class="title-row">
                 <ReportUserIcon />
-                {{ t("lobby.components.user.reportUser.title", { username: reportedUser?.username }) }}
+                <span>{{ t("lobby.components.user.reportUser.title", { username: reportedUser?.username }) }}</span>
+                <span v-if="summary" class="crumb">{{ summary }}</span>
+                <span class="crumb">{{ t(stepTitleKey) }}</span>
             </div>
         </template>
         <div class="container flex-col gap-md">
-            <div v-if="stage !== 'reason'" class="flex-row flex-center-items gap-sm">
-                <Button class="square" @click="goBack">
-                    <Icon :icon="arrowLeft" />
-                </Button>
-                <div class="summary">{{ summary }}</div>
-            </div>
+            <Button v-if="stage !== 'reason'" class="inline back" @click="goBack">
+                <Icon :icon="arrowLeft" />
+                <span class="margin-left-sm">{{ t(previousStepTitleKey) }}</span>
+            </Button>
 
             <template v-if="stage === 'reason'">
-                <h4 class="reason-heading">{{ t("lobby.components.user.reportUser.reasonForReport") }}</h4>
                 <div class="sections">
                     <div v-for="section in reportSections" :key="section.id" class="section">
                         <div class="section-header">
@@ -52,7 +51,6 @@ SPDX-License-Identifier: MIT
             </template>
 
             <template v-else-if="stage === 'match'">
-                <h4>{{ t("lobby.components.user.reportUser.whichMatch") }}</h4>
                 <div>{{ t("lobby.components.user.reportUser.lobbyActionsHint") }}</div>
                 <div class="match-list">
                     <div class="match-row match-list-header">
@@ -119,7 +117,6 @@ SPDX-License-Identifier: MIT
                     <div v-if="reportedUserSpectated" class="note">{{ t("lobby.components.user.reportUser.wasSpectating") }}</div>
                 </div>
 
-                <h4>{{ t("lobby.components.user.reportUser.extraInfo") }}</h4>
                 <div>
                     {{ t("lobby.components.user.reportUser.blurb") }}
                     <ul>
@@ -255,6 +252,16 @@ const selectedSubType = computed(() => selectedSection.value?.subTypes.find((sub
 
 const summary = computed(() => (selectedSubType.value ? t(selectedSubType.value.labelKey) : ""));
 
+const stepTitleKeys = {
+    reason: "lobby.components.user.reportUser.reasonForReport",
+    match: "lobby.components.user.reportUser.whichMatch",
+    details: "lobby.components.user.reportUser.extraInfo",
+} as const;
+
+const stepTitleKey = computed(() => stepTitleKeys[stage.value]);
+
+const previousStepTitleKey = computed(() => (stage.value === "details" ? stepTitleKeys.match : stepTitleKeys.reason));
+
 const matchTeams = computed(() => Map.groupBy(matchDetails.value?.players ?? [], (player) => player.allyTeamId));
 
 const reportedUserSpectated = computed(() =>
@@ -376,8 +383,23 @@ async function submit() {
     overflow-y: auto;
     padding: 10px;
 }
-.reason-heading {
-    text-align: center;
+// Modal capitalises every word in its header, which mangles the step names.
+.title-row {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+    text-transform: none;
+}
+.crumb {
+    font-weight: 400;
+    color: rgba(255, 255, 255, 0.6);
+    &::before {
+        content: "/ ";
+    }
+}
+.back {
+    align-self: flex-start;
 }
 .sections {
     display: flex;
@@ -478,9 +500,6 @@ async function submit() {
         color: rgb(243, 213, 79);
         font-weight: 600;
     }
-}
-.summary {
-    font-weight: 600;
 }
 .relationship-actions {
     display: flex;
