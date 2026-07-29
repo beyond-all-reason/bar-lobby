@@ -115,20 +115,25 @@ describe("ReportUserModal", () => {
         expect(cardLabels(wrapper)).toEqual(["Spam", "Bullying", "Hate speech", "Other", "Noob", "Griefing", "Cheating", "Other"]);
     });
 
-    it("names the step it goes back to, not the reason that was picked", async () => {
+    it("titles every step and only offers a way back once there is one", async () => {
         const wrapper = mountModal();
         openReportUser(reportedUser);
         await flushPromises();
 
+        expect(wrapper.find(".step-title").text()).toBe("Reason for Report");
         expect(wrapper.find(".back").exists()).toBe(false);
 
         await clickCard(wrapper, "Cheating");
-        expect(wrapper.find(".back").text()).toBe("Reason for Report");
+        expect(wrapper.find(".step-title").text()).toBe("Which Match?");
+        expect(wrapper.find(".back").exists()).toBe(true);
 
         await wrapper.find(".match").trigger("click");
         await flushPromises();
 
-        expect(wrapper.find(".back").text()).toBe("Which Match?");
+        expect(wrapper.find(".step-title").text()).toBe("Extra Info");
+
+        await wrapper.find(".back button").trigger("click");
+        expect(wrapper.find(".step-title").text()).toBe("Which Match?");
     });
 
     it("sends the reason, the message and the chosen match", async () => {

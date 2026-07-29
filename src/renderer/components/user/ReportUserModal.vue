@@ -16,9 +16,8 @@ SPDX-License-Identifier: MIT
             <div class="step-header">
                 <Button v-if="stage !== 'reason'" class="inline back" @click="goBack">
                     <Icon :icon="arrowLeft" />
-                    <span class="margin-left-sm">{{ t(previousStepTitleKey) }}</span>
                 </Button>
-                <h4>{{ t(stepTitleKey) }}</h4>
+                <h4 class="step-title">{{ t(stepTitleKey) }}</h4>
             </div>
 
             <template v-if="stage === 'reason'">
@@ -259,8 +258,6 @@ const stepTitleKeys = {
 
 const stepTitleKey = computed(() => stepTitleKeys[stage.value]);
 
-const previousStepTitleKey = computed(() => (stage.value === "details" ? stepTitleKeys.match : stepTitleKeys.reason));
-
 const matchTeams = computed(() => Map.groupBy(matchDetails.value?.players ?? [], (player) => player.allyTeamId));
 
 const reportedUserSpectated = computed(() =>
@@ -382,18 +379,20 @@ async function submit() {
     overflow-y: auto;
     padding: 10px;
 }
-// Absolute so the step title stays centred whether or not there is a button beside it, and a fixed
-// height so stepping through the wizard does not shift what is below.
+// Matching side tracks keep the title centred whether or not the back button is there, and a fixed
+// height stops the wizard shifting what sits below it.
 .step-header {
-    position: relative;
-    display: flex;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
     align-items: center;
-    justify-content: center;
     min-height: 33px;
 }
 .back {
-    position: absolute;
-    left: 0;
+    grid-column: 1;
+    justify-self: start;
+}
+.step-title {
+    grid-column: 2;
 }
 .sections {
     display: flex;
