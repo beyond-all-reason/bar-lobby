@@ -7,18 +7,19 @@ SPDX-License-Identifier: MIT
 <template>
     <Modal v-model="isOpen" @submit="submit">
         <template #title>
-            <div class="title-row">
+            <div class="flex-row flex-center-items gap-sm">
                 <ReportUserIcon />
-                <span>{{ t("lobby.components.user.reportUser.title", { username: reportedUser?.username }) }}</span>
-                <span v-if="summary" class="crumb">{{ summary }}</span>
-                <span class="crumb">{{ t(stepTitleKey) }}</span>
+                {{ t("lobby.components.user.reportUser.title", { username: reportedUser?.username }) }}
             </div>
         </template>
         <div class="container flex-col gap-md">
-            <Button v-if="stage !== 'reason'" class="inline back" @click="goBack">
-                <Icon :icon="arrowLeft" />
-                <span class="margin-left-sm">{{ t(previousStepTitleKey) }}</span>
-            </Button>
+            <div class="step-header">
+                <Button v-if="stage !== 'reason'" class="inline back" @click="goBack">
+                    <Icon :icon="arrowLeft" />
+                    <span class="margin-left-sm">{{ t(previousStepTitleKey) }}</span>
+                </Button>
+                <h4>{{ t(stepTitleKey) }}</h4>
+            </div>
 
             <template v-if="stage === 'reason'">
                 <div class="sections">
@@ -250,8 +251,6 @@ const selectedSection = computed(() => reportSections.find((section) => section.
 
 const selectedSubType = computed(() => selectedSection.value?.subTypes.find((subType) => subType.id === subTypeId.value));
 
-const summary = computed(() => (selectedSubType.value ? t(selectedSubType.value.labelKey) : ""));
-
 const stepTitleKeys = {
     reason: "lobby.components.user.reportUser.reasonForReport",
     match: "lobby.components.user.reportUser.whichMatch",
@@ -383,23 +382,18 @@ async function submit() {
     overflow-y: auto;
     padding: 10px;
 }
-// Modal capitalises every word in its header, which mangles the step names.
-.title-row {
+// Absolute so the step title stays centred whether or not there is a button beside it, and a fixed
+// height so stepping through the wizard does not shift what is below.
+.step-header {
+    position: relative;
     display: flex;
-    flex-direction: row;
     align-items: center;
-    gap: 10px;
-    text-transform: none;
-}
-.crumb {
-    font-weight: 400;
-    color: rgba(255, 255, 255, 0.6);
-    &::before {
-        content: "/ ";
-    }
+    justify-content: center;
+    min-height: 33px;
 }
 .back {
-    align-self: flex-start;
+    position: absolute;
+    left: 0;
 }
 .sections {
     display: flex;
