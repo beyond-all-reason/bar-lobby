@@ -393,6 +393,7 @@ async function submit() {
 }
 .step-title {
     grid-column: 2;
+    font-size: 20px;
 }
 .sections {
     display: flex;
