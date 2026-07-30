@@ -148,6 +148,8 @@ export async function initTachyonStore() {
     });
 
     subsManager.onNewUsersAttached.add(async (users: UserId[]) => {
+        if (!tachyonStore.isConnected) return;
+
         try {
             const response = await window.tachyon.request("user/subscribeUpdates", { userIds: users });
             console.log("Tachyon: user/subscribeUpdates", response);
@@ -157,6 +159,10 @@ export async function initTachyonStore() {
         }
     });
     subsManager.onOldUsersDetached.add(async (users: UserId[]) => {
+        // Dropping the connection detaches everything, and telling a server we
+        // just lost that we're unsubscribing only produces an error for the user.
+        if (!tachyonStore.isConnected) return;
+
         try {
             const response = await window.tachyon.request("user/unsubscribeUpdates", { userIds: users });
             console.log("Tachyon: user/unsubscribeUpdates", response);
@@ -169,4 +175,6 @@ export async function initTachyonStore() {
     tachyonStore.isInitialized = true;
 }
 
-export const tachyon = { connect };
+// tachyonStore.reconnectInterval doubles as "are we still retrying", so a caller
+// can both show that and call this to give up.
+export const tachyon = { connect, stopReconnecting };
