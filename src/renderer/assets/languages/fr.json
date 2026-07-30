@@ -4100,7 +4100,8 @@
                 "playersOnline": null,
                 "error": null,
                 "reconnecting": null,
-                "offline": null
+                "offline": null,
+                "connectionLost": null
             },
             "messages": {
                 "message": null,
