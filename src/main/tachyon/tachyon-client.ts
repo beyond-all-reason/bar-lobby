@@ -36,8 +36,11 @@ export class TachyonClient {
 
     public async connect(token: string): Promise<void> {
         return new Promise((resolve, reject) => {
-            if (this.socket && this.socket.readyState === this.socket.OPEN) {
-                log.warn(`Already connected`);
+            // Starting a second attempt while one is still handshaking would
+            // replace the socket the first is holding and leave it orphaned. The
+            // retry loop fires on a timer, so it can outrun a slow handshake.
+            if (this.socket && (this.socket.readyState === this.socket.OPEN || this.socket.readyState === this.socket.CONNECTING)) {
+                log.warn(`Already connected or connecting`);
                 reject("already_connected");
                 return;
             }
@@ -62,6 +65,7 @@ export class TachyonClient {
                     authorization: `Bearer ${token}`,
                 },
             });
+            const socket = this.socket;
             this.socket.on("unexpected-response", async (req, res) => {
                 res.on("data", (chunk: Buffer) => {
                     const error = chunk.toString();
@@ -103,6 +107,13 @@ export class TachyonClient {
                         disconnectReason = "Unknown server error";
                     }
                 }
+                log.info(`Disconnected: ${disconnectReason}`);
+                fail(new Error(disconnectReason));
+
+                // A socket we have already replaced can still emit close, and
+                // tearing down on that would take the live connection with it.
+                if (this.socket !== socket) return;
+
                 this.socket = undefined;
                 // Purge response handlers
                 this.responseHandlers.values().forEach((handler) =>
@@ -112,8 +123,6 @@ export class TachyonClient {
                 );
                 this.responseHandlers.clear();
                 this.onSocketClose.dispatch();
-                log.info(`Disconnected: ${disconnectReason}`);
-                fail(new Error(disconnectReason));
             });
             this.socket.addEventListener("error", (err) => {
                 if (err.message.includes("invalid subprotocol")) {
