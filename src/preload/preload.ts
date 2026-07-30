@@ -200,6 +200,14 @@ function request<C extends GetCommandIds<"user", "server", "request">>(
     return ipcRenderer.invoke("tachyon:request", ...args) as Promise<Extract<GetCommands<"server", "user", "response", C>, { status: "success" }>>;
 }
 
+// Protocol failures must not cross the context bridge as thrown Errors, which would strip the
+// failure reason and details. The renderer wrapper in @renderer/api/tachyon rebuilds the error.
+function requestStructured<C extends GetCommandIds<"user", "server", "request">>(
+    ...args: GetCommandData<GetCommands<"user", "server", "request", C>> extends never ? [commandId: C] : [commandId: C, data: GetCommandData<GetCommands<"user", "server", "request", C>>]
+): Promise<GetCommands<"server", "user", "response", C>> {
+    return ipcRenderer.invoke("tachyon:requestStructured", ...args) as Promise<GetCommands<"server", "user", "response", C>>;
+}
+
 function onEvent<C extends GetCommandIds<"server", "user", "event">>(eventID: C, callback: (event: GetCommandData<GetCommands<"server", "user", "event", C>>) => void) {
     ipcRenderer.setMaxListeners(30);
 
@@ -224,6 +232,7 @@ const tachyonApi = {
     // Requests
     // sendEvent: (event: TachyonEvent) => ipcRenderer.invoke("tachyon:sendEvent", event),
     request,
+    requestStructured,
 
     // Events
     onConnected: (callback: () => void) => ipcRenderer.on("tachyon:connected", callback),
