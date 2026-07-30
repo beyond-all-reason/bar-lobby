@@ -42,6 +42,21 @@ export class TachyonClient {
                 return;
             }
             let serverProtocol: string | undefined;
+
+            // A handshake can be aborted before it ever opens or errors, so the
+            // promise has to be settled from the close path too.
+            let settled = false;
+            const succeed = () => {
+                if (settled) return;
+                settled = true;
+                resolve();
+            };
+            const fail = (reason: unknown) => {
+                if (settled) return;
+                settled = true;
+                reject(reason);
+            };
+
             this.socket = new WebSocket(getWSServerURL(), `v0.tachyon`, {
                 headers: {
                     authorization: `Bearer ${token}`,
@@ -53,9 +68,9 @@ export class TachyonClient {
                     log.error(`HTTP Error ${res.statusCode}: ${error}`);
                     try {
                         const errorObject = JSON.parse(error);
-                        reject(new Error(errorObject.error_description || errorObject.error || "Unknown error"));
+                        fail(new Error(errorObject.error_description || errorObject.error || "Unknown error"));
                     } catch {
-                        reject(new Error("Unknown error"));
+                        fail(new Error("Unknown error"));
                     }
                 });
             });
@@ -73,7 +88,7 @@ export class TachyonClient {
             this.socket.addEventListener("open", async () => {
                 log.info(`Connected to ${getWSServerURL()} using Tachyon Version ${tachyonMeta.version}`);
                 this.onSocketOpen.dispatch();
-                resolve();
+                succeed();
             });
             let disconnectReason: string;
             this.socket.addEventListener("close", (event) => {
@@ -98,6 +113,7 @@ export class TachyonClient {
                 this.responseHandlers.clear();
                 this.onSocketClose.dispatch();
                 log.info(`Disconnected: ${disconnectReason}`);
+                fail(new Error(disconnectReason));
             });
             this.socket.addEventListener("error", (err) => {
                 if (err.message.includes("invalid subprotocol")) {
@@ -107,7 +123,7 @@ export class TachyonClient {
                 } else {
                     disconnectReason = err.message;
                 }
-                reject(disconnectReason);
+                fail(disconnectReason);
             });
         });
     }
@@ -228,13 +244,18 @@ export class TachyonClient {
     }
 
     public async disconnect() {
-        try {
-            await this.request("system/disconnect");
-        } catch (e) {
-            log.error(`Error sending disconnect command: ${e}`);
-        } finally {
-            this.socket?.close();
+        // Only an open socket can be told we're going away. Closing one that is
+        // still handshaking aborts the attempt, which is the point when the user
+        // has asked to stop connecting.
+        if (this.isConnected()) {
+            try {
+                await this.request("system/disconnect");
+            } catch (e) {
+                log.error(`Error sending disconnect command: ${e}`);
+            }
         }
+
+        this.socket?.close();
     }
 }
 

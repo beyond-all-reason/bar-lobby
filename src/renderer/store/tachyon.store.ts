@@ -53,6 +53,13 @@ function stopReconnecting() {
     }
 }
 
+// Clearing the timer leaves any handshake already in flight running, which would
+// connect after the user asked it to stop, so this has to reach the socket too.
+async function cancelReconnect() {
+    stopReconnecting();
+    await window.tachyon.disconnect();
+}
+
 function stopFetchingServerStats() {
     if (tachyonStore.fetchServerStatsInterval) {
         clearInterval(tachyonStore.fetchServerStatsInterval);
@@ -176,5 +183,5 @@ export async function initTachyonStore() {
 }
 
 // tachyonStore.reconnectInterval doubles as "are we still retrying", so a caller
-// can both show that and call this to give up.
-export const tachyon = { connect, stopReconnecting };
+// can show that and call cancelReconnect to give up.
+export const tachyon = { connect, cancelReconnect };
