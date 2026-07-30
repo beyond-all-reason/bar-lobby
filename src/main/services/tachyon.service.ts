@@ -11,6 +11,7 @@ import { BarIpcWebContents } from "@main/typed-ipc";
 
 const log = logger("tachyon-service");
 
+// It would be good to have functions referenced here but the overall logic elsewhere to avoid clutter as this grows.
 function registerIpcHandlers(webContents: BarIpcWebContents) {
     const requestHandlers: TachyonClientRequestHandlers = {
         "battle/start": async (data: BattleStartRequestData) => {
@@ -22,10 +23,11 @@ function registerIpcHandlers(webContents: BarIpcWebContents) {
                 status: "success",
             };
         },
+        // Note; requires npm link on tachyon-protocol to work correctly, as the types are not yet published to npm.
         "matchmaking/checkAssets": async (data: MatchmakingCheckAssetsRequestData) => {
             log.info(`Received matchmaking check assets request: ${JSON.stringify(data)}`);
-            // Seding Failed response just for now to get the request/response working correctly at a base level
-            // Note to self; rebuild tachyon with the latest checkAssets request and then relink
+            // Sending Failed response just for now to get the request/response working correctly at a base level
+            // Correct behavior will be to check the assets and return a success or failed response based on that check
             return {
                 status: "failed",
                 reason: "command_unimplemented",
