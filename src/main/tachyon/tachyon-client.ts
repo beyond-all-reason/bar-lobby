@@ -14,6 +14,9 @@ import { MessageEvent, WebSocket } from "ws";
 
 const log = logger("tachyon-client");
 
+// The protocol has the server pinging at least every 10 seconds.
+const SERVER_SILENCE_LIMIT_MS = 30 * 1000;
+
 export type TachyonClientRequestHandlers = {
     [CommandId in GetCommandIds<"server", "user", "request">]: (
         data: GetCommandData<GetCommands<"server", "user", "request", CommandId>>
@@ -66,6 +69,22 @@ export class TachyonClient {
                 },
             });
             const socket = this.socket;
+
+            // The server pings every 10s and ws answers those on its own, but
+            // nothing here notices when they stop arriving. Without this a
+            // dropped network goes unnoticed until the OS gives up on the
+            // socket, by which point the server has long since written the
+            // session off and there is nothing left to reconnect to.
+            let silenceTimer: NodeJS.Timeout | undefined;
+            const expectMoreFromServer = () => {
+                clearTimeout(silenceTimer);
+                silenceTimer = setTimeout(() => {
+                    log.warn(`Nothing from the server in ${SERVER_SILENCE_LIMIT_MS}ms, closing the connection`);
+                    socket.close();
+                }, SERVER_SILENCE_LIMIT_MS);
+            };
+            socket.on("ping", expectMoreFromServer);
+
             this.socket.on("unexpected-response", async (req, res) => {
                 res.on("data", (chunk: Buffer) => {
                     const error = chunk.toString();
@@ -82,6 +101,7 @@ export class TachyonClient {
                 serverProtocol = response.headers["sec-websocket-protocol"];
             });
             this.socket.addEventListener("message", (message) => {
+                expectMoreFromServer();
                 try {
                     this.handleMessage(message);
                 } catch (err) {
@@ -91,6 +111,7 @@ export class TachyonClient {
             });
             this.socket.addEventListener("open", async () => {
                 log.info(`Connected to ${getWSServerURL()} using Tachyon Version ${tachyonMeta.version}`);
+                expectMoreFromServer();
                 this.onSocketOpen.dispatch();
                 succeed();
             });
@@ -107,6 +128,7 @@ export class TachyonClient {
                         disconnectReason = "Unknown server error";
                     }
                 }
+                clearTimeout(silenceTimer);
                 log.info(`Disconnected: ${disconnectReason}`);
                 fail(new Error(disconnectReason));
 

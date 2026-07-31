@@ -19,11 +19,16 @@ const i18n = setupI18n();
 export const tachyonStore = reactive({
     isInitialized: false,
     isConnected: false,
+    wantsConnection: false,
     serverStats: undefined,
     error: undefined,
 } as {
     isInitialized: boolean;
     isConnected: boolean;
+    // Whether the user wants to be online, as opposed to whether they are. A
+    // close while this is false is deliberate, so it isn't worth complaining
+    // about and shouldn't be retried.
+    wantsConnection: boolean;
     serverStats?: SystemServerStatsOkResponseData;
     error?: string;
     fetchServerStatsInterval?: NodeJS.Timeout;
@@ -32,6 +37,8 @@ export const tachyonStore = reactive({
 
 async function connect() {
     if (!me.isAuthenticated) throw new Error("Not authenticated");
+
+    tachyonStore.wantsConnection = true;
     try {
         await window.tachyon.connect();
         tachyonStore.error = undefined;
@@ -55,7 +62,9 @@ function stopReconnecting() {
 
 // Clearing the timer leaves any handshake already in flight running, which would
 // connect after the user asked it to stop, so this has to reach the socket too.
+// Dropping wantsConnection is what stops the close being treated as a fault.
 async function cancelReconnect() {
+    tachyonStore.wantsConnection = false;
     stopReconnecting();
     await window.tachyon.disconnect();
 }
@@ -70,7 +79,9 @@ function stopFetchingServerStats() {
 function startReconnecting() {
     stopReconnecting();
     tachyonStore.reconnectInterval = setInterval(() => {
-        if (!me.isAuthenticated) {
+        // A tick can already be queued when the user cancels, and connect() would
+        // set wantsConnection straight back to true.
+        if (!me.isAuthenticated || !tachyonStore.wantsConnection) {
             stopReconnecting();
             return;
         }
@@ -129,8 +140,9 @@ export async function initTachyonStore() {
         if (!wasConnected) return;
 
         stopFetchingServerStats();
-        // If the user is not in an offline session, try to reconnect
-        if (me.isAuthenticated) {
+        // A close the user asked for is not a fault, so it gets neither a warning
+        // nor a retry. Anything else while they still want to be online does.
+        if (me.isAuthenticated && tachyonStore.wantsConnection) {
             notificationsApi.alert({ text: i18n.global.t("lobby.navbar.serverStatus.connectionLost"), severity: "warning" });
             startReconnecting();
         }
