@@ -14,13 +14,30 @@ SPDX-License-Identifier: MIT
                 :label="t('lobby.components.maps.mapListComponents.sortBy')"
                 optionLabel="label"
             />
+            <Button class="gray select-all-maps" @click="selectAllMapSelections">
+                {{ t("lobby.components.maps.mapListComponents.selectAll") }}
+            </Button>
+            <Button class="gray clear-all-maps" :disabled="selectedDownloadMapNames.length === 0" @click="clearMapSelections">
+                {{ t("lobby.components.maps.mapListComponents.clearSelection") }}
+            </Button>
+            <Button class="green download-selected" :disabled="selectedDownloadMapNames.length === 0" @click="downloadSelectedMaps">
+                {{ t("lobby.components.maps.mapListComponents.downloadSelected", { count: selectedDownloadMapNames.length }) }}
+            </Button>
         </div>
 
         <div class="flex-col flex-grow fullheight">
             <div class="scroll-container" style="overflow-y: scroll" ref="el">
                 <div class="maps">
                     <TransitionGroup name="maps-list">
-                        <MapOverviewCard v-for="map in maps" :key="map.springName" :map="map" @click="mapSelected(map)" />
+                        <div v-for="map in maps" :key="map.springName" class="map-card">
+                            <MapOverviewCard :map="map" @click="mapSelected(map)" />
+                            <div v-if="isMapDownloadEligible(map)" class="map-card__selection" @click.stop>
+                                <Checkbox
+                                    :modelValue="selectedMapNames.has(map.springName)"
+                                    @update:modelValue="toggleMapSelection(map.springName)"
+                                />
+                            </div>
+                        </div>
                     </TransitionGroup>
                     <div v-if="(maps?.length || 0) <= 0">
                         <h4>{{ t("lobby.components.maps.mapListComponents.noMapsFound") }}</h4>
@@ -42,6 +59,9 @@ SPDX-License-Identifier: MIT
  */
 import { Ref, ref } from "vue";
 
+import Button from "@renderer/components/controls/Button.vue";
+import Checkbox from "@renderer/components/controls/Checkbox.vue";
+
 import SearchBox from "@renderer/components/controls/SearchBox.vue";
 import Select from "@renderer/components/controls/Select.vue";
 import MapOverviewCard from "@renderer/components/maps/MapOverviewCard.vue";
@@ -49,6 +69,7 @@ import { type MapData } from "@main/content/maps/map-data";
 import type { GameType, Terrain } from "@main/content/maps/map-metadata";
 import { db } from "@renderer/store/db";
 import { useDexieLiveQueryWithDeps } from "@renderer/composables/useDexieLiveQuery";
+import { useMapDownloadSelection } from "@renderer/composables/useMapDownloadSelection";
 import { mapsStore } from "@renderer/store/maps.store";
 
 import { useInfiniteScroll } from "@vueuse/core";
@@ -102,6 +123,16 @@ const maps = useDexieLiveQueryWithDeps([searchVal, sortMethod, limit, filters], 
         .sortBy(sortMethod.value?.dbKey || "");
 });
 
+const {
+    selectedMapNames,
+    selectedDownloadMapNames,
+    isEligible: isMapDownloadEligible,
+    submit: downloadSelectedMaps,
+    toggle: toggleMapSelection,
+    selectAll: selectAllMapSelections,
+    clearSelection: clearMapSelections,
+} = useMapDownloadSelection(maps);
+
 function mapSelected(map: MapData) {
     emit("map-selected", map);
 }
@@ -113,6 +144,18 @@ function mapSelected(map: MapData) {
     grid-gap: 15px;
     grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
     padding-right: 10px;
+}
+
+.map-card {
+    position: relative;
+    cursor: pointer;
+
+    &__selection {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        z-index: 6;
+    }
 }
 
 // Transition
