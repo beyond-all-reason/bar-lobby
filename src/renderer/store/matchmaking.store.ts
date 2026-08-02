@@ -14,6 +14,9 @@ import {
 import { tachyonStore } from "@renderer/store/tachyon.store";
 import { db } from "@renderer/store/db";
 import { notificationsApi } from "@renderer/api/notifications";
+import { isTachyonErrorForCommand, tachyonRequest } from "@renderer/api/tachyon";
+import { enginesStore } from "@renderer/store/engine.store";
+import { gameStore } from "@renderer/store/game.store";
 
 export enum MatchmakingStatus {
     Idle = "Idle",
@@ -34,10 +37,12 @@ export const matchmakingStore: {
     queueError?: string;
     playersReady?: number;
     playersQueued?: number;
-    // Each playlist will have it's own boolean, as the 'needed' property of an object keyed to the playlist's names
+    // Each playlist is keyed by its id, and any array elements in the value object are required downloads for the corresponding type
     downloadsRequired: {
         [k: string]: {
-            needed: boolean;
+            engines: string[];
+            games: string[];
+            maps: string[];
         };
     };
 } = reactive({
@@ -72,6 +77,9 @@ function onFoundUpdateEvent(data: MatchmakingFoundUpdateEventData) {
 function onCancelledEvent(data: MatchmakingCancelledEventData) {
     console.log("Tachyon event: matchmaking/cancelled:", data);
     matchmakingStore.status = MatchmakingStatus.Idle;
+    if (data.reason === "version_changed") {
+        sendListRequest();
+    }
 }
 
 function onFoundEvent(data: MatchmakingFoundEventData) {
@@ -86,9 +94,13 @@ function onFoundEvent(data: MatchmakingFoundEventData) {
 
 function onQueuesJoinedEvent(data: MatchmakingQueuesJoinedEventData) {
     console.log("Tachyon event: matchmaking/queuesJoined:", data);
+    notificationsApi.alert({ text: "Successfully joined matchmaking queue(s)", severity: "info" });
     matchmakingStore.status = MatchmakingStatus.Searching;
 }
 
+/**
+ * Sends a Tachyon 'matchmaking/list' request to get the latest matchmaking queues
+ */
 async function sendListRequest() {
     matchmakingStore.isLoadingQueues = true;
     matchmakingStore.queueError = undefined;
@@ -102,12 +114,7 @@ async function sendListRequest() {
         if (matchmakingStore.playlists.length > 0 && !hasSelectedQueue) {
             matchmakingStore.selectedQueue = matchmakingStore.playlists[0].id;
         }
-        // Clear the "downloadsRequired" list because we have all-new playlist response
-        matchmakingStore.downloadsRequired = {};
-        // Find out of we have the necessary maps for each queue we've been given.
-        matchmakingStore.playlists.forEach(async (queue) => {
-            matchmakingStore.downloadsRequired[queue.id] = { needed: await checkIfAnyMapsAreNeeded(queue.maps) };
-        });
+        await triggerAssetsRefresh();
     } catch (error) {
         console.error("Tachyon error: matchmaking/list:", error);
         notificationsApi.alert({ text: "Tachyon error: matchmaking/list", severity: "error" });
@@ -117,50 +124,92 @@ async function sendListRequest() {
     }
 }
 
-async function checkIfAnyMapsAreNeeded(maps: { springName: string }[]): Promise<boolean> {
-    if (maps.length == 0) return false;
+/**
+ * Refreshes the downloadsRequired arrays upon demand, if we expect that things have changed.
+ */
+async function triggerAssetsRefresh() {
+    for (const queue of matchmakingStore.playlists) {
+        await setRequiredAssetsArrays(queue.id, queue.engines, queue.games, queue.maps);
+    }
+}
+
+async function setRequiredAssetsArrays(queue: string, engines: { version: string }[], games: { springName: string }[], maps: { springName: string }[]): Promise<void> {
+    matchmakingStore.downloadsRequired[queue] = { engines: [], games: [], maps: [] };
     const queueMaps = maps.map((m) => m.springName);
     const dbMaps = await db.maps.bulkGet(queueMaps);
     for (const map of dbMaps) {
-        if (map == undefined || !map.isInstalled) return true;
+        if (map != undefined && !map.isInstalled) {
+            matchmakingStore.downloadsRequired[queue].maps.push(map.springName);
+        }
     }
-    return false;
+    const queueEngines = new Set(engines.map((e) => e.version));
+    const installedEngines = new Set(enginesStore.availableEngineVersions.filter((e) => e.installed).map((e) => e.id));
+    const diffEngines = queueEngines.difference(installedEngines);
+    matchmakingStore.downloadsRequired[queue].engines.push(...diffEngines);
+    const queueGames = new Set(games.map((g) => g.springName));
+    const installedGames = new Set(gameStore.availableGameVersions.keys());
+    const diffGames = queueGames.difference(installedGames);
+    matchmakingStore.downloadsRequired[queue].games.push(...diffGames);
 }
 
+/**
+ * Get the display name for a specific queue/playlist
+ * @param id The ID for the requested queue/playlist
+ * @returns The display name for the requested queue/playlist
+ */
 export function getPlaylistName(id: string): string {
     const playlist = matchmakingStore.playlists.find((playlist) => playlist.id === id);
     return playlist?.name || id;
 }
 
+/**
+ * Sends a Tachyon 'matchmaking/queue' request, specifically using the matchmakingStore.selectedQueue
+ */
 async function sendQueueRequest() {
     if (matchmakingStore.downloadsRequired[matchmakingStore.selectedQueue] == undefined) {
         notificationsApi.alert({ text: "Bad queue data; refreshing list.", severity: "error" });
         await sendListRequest();
         return;
     }
-    if (matchmakingStore.downloadsRequired[matchmakingStore.selectedQueue].needed) {
+    if (
+        matchmakingStore.downloadsRequired[matchmakingStore.selectedQueue].maps.length > 0 ||
+        matchmakingStore.downloadsRequired[matchmakingStore.selectedQueue].engines.length > 0 ||
+        matchmakingStore.downloadsRequired[matchmakingStore.selectedQueue].games.length > 0
+    ) {
         notificationsApi.alert({ text: "You have downloads required to join this queue.", severity: "info" });
         return;
     }
     matchmakingStore.status = MatchmakingStatus.JoinRequested; // Initial state, likely short-lived.
     try {
         matchmakingStore.errorMessage = null;
-        // TODO: fix matchmaking that broke with the tachyon update: https://github.com/beyond-all-reason/bar-lobby/issues/545
-        const response = await window.tachyon.request("matchmaking/queue", {
-            queues: [
-                /* matchmakingStore.selectedQueue */
-            ],
+        const playlist = matchmakingStore.playlists.find((p) => p.id === matchmakingStore.selectedQueue);
+        if (!playlist) {
+            notificationsApi.alert({ text: "Selected queue not found. Refreshing list.", severity: "error" });
+            await sendListRequest();
+            matchmakingStore.status = MatchmakingStatus.Idle;
+            return;
+        }
+        const response = await tachyonRequest("matchmaking/queue", {
+            queues: [{ id: playlist.id, version: playlist.version }],
         });
         console.log("Tachyon: matchmaking/queue:", response.status);
         matchmakingStore.status = MatchmakingStatus.Searching;
     } catch (error) {
-        console.error("Tachyon error: matchmaking/queue:", error);
-        notificationsApi.alert({ text: "Tachyon error: matchmaking/queue", severity: "error" });
-        matchmakingStore.errorMessage = "Error with matchmaking/queue";
+        if (isTachyonErrorForCommand(error, "matchmaking/queue") && error.reason === "version_mismatch") {
+            notificationsApi.alert({ text: "Queue version changed; refreshing list.", severity: "info" });
+            await sendListRequest();
+        } else {
+            console.error("Tachyon error: matchmaking/queue:", error);
+            notificationsApi.alert({ text: "Tachyon error: matchmaking/queue", severity: "error" });
+            matchmakingStore.errorMessage = "Error with matchmaking/queue";
+        }
         matchmakingStore.status = MatchmakingStatus.Idle;
     }
 }
 
+/**
+ * Sends a Tachyon 'matchmaking/cancel' request.
+ */
 async function sendCancelRequest() {
     matchmakingStore.status = MatchmakingStatus.Idle;
     try {
@@ -173,6 +222,9 @@ async function sendCancelRequest() {
     }
 }
 
+/**
+ * Sends a Tachyon 'matchmaking/ready' request.
+ */
 async function sendReadyRequest() {
     matchmakingStore.status = MatchmakingStatus.MatchAccepted;
     try {
@@ -208,4 +260,4 @@ export async function initializeMatchmakingStore() {
     matchmakingStore.isInitialized = true;
 }
 
-export const matchmaking = { sendCancelRequest, sendQueueRequest, sendReadyRequest, sendListRequest };
+export const matchmaking = { sendCancelRequest, sendQueueRequest, sendReadyRequest, sendListRequest, triggerAssetsRefresh };

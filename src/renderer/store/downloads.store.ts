@@ -11,12 +11,18 @@ export const downloadsStore: {
     engineDownloads: DownloadInfo[];
     gameDownloads: DownloadInfo[];
     updateDownloads: DownloadInfo[];
+    gameRetrying: boolean;
+    mapRetrying: boolean;
+    isPathChanging: boolean;
 } = reactive({
     isInitialized: false,
     mapDownloads: [],
     engineDownloads: [],
     gameDownloads: [],
     updateDownloads: [],
+    gameRetrying: false,
+    mapRetrying: false,
+    isPathChanging: false,
 });
 
 export function initDownloadsStore() {
@@ -33,6 +39,7 @@ export function initDownloadsStore() {
     });
     window.downloads.onDownloadMapProgress((downloadInfo) => {
         console.debug("Download progress", downloadInfo);
+        downloadsStore.mapRetrying = false;
         const index = downloadsStore.mapDownloads.findIndex((download) => download.name === downloadInfo.name);
         if (index !== -1) {
             downloadsStore.mapDownloads[index] = { ...downloadInfo };
@@ -40,8 +47,12 @@ export function initDownloadsStore() {
     });
     window.downloads.onDownloadMapFail((downloadInfo) => {
         console.error("Download map fail:", downloadInfo);
+        downloadsStore.mapRetrying = false;
         const index = downloadsStore.mapDownloads.findIndex((download) => download.name === downloadInfo.name);
         downloadsStore.mapDownloads.splice(index, 1);
+    });
+    window.downloads.onDownloadMapRetry(() => {
+        downloadsStore.mapRetrying = true;
     });
 
     window.downloads.onDownloadEngineStart((downloadInfo) => {
@@ -75,6 +86,7 @@ export function initDownloadsStore() {
     });
     window.downloads.onDownloadGameProgress((downloadInfo) => {
         console.debug("Download progress", downloadInfo);
+        downloadsStore.gameRetrying = false;
         const index = downloadsStore.gameDownloads.findIndex((download) => download.name === downloadInfo.name);
         if (index !== -1) {
             downloadsStore.gameDownloads[index] = downloadInfo;
@@ -82,8 +94,12 @@ export function initDownloadsStore() {
     });
     window.downloads.onDownloadGameFail((downloadInfo) => {
         console.error("Download game failed:", downloadInfo);
+        downloadsStore.gameRetrying = false;
         const index = downloadsStore.gameDownloads.findIndex((download) => download.name === downloadInfo.name);
         downloadsStore.gameDownloads.splice(index, 1);
+    });
+    window.downloads.onDownloadGameRetry(() => {
+        downloadsStore.gameRetrying = true;
     });
 
     window.autoUpdater.onDownloadUpdateProgress((downloadInfo) => {

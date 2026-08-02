@@ -48,7 +48,7 @@ const isOpen = computed({
 function onlogIn() {
     isOpen.value = false;
     const redirect = props.intendedRoute?.fullPath ?? "/play";
-    router.push({ path: "/", query: { redirect } });
+    router.push({ path: "/", query: { login: "true", redirect } });
 }
 function onCancel() {
     isOpen.value = false;

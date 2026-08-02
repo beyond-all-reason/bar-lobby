@@ -21,4 +21,5 @@ export const settingsSchema = Type.Object({
     lobbyServer: Type.String({ default: "wss://server4.beyondallreason.info" }),
     customServerList: Type.Array(Type.String(), { default: [] }),
     endedNormallyFilter: Type.Union([Type.Literal("true"), Type.Literal("false"), Type.Literal("null")], { default: "null" }),
+    assetsPath: Type.String({ default: "" }),
 });

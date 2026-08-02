@@ -4025,6 +4025,23 @@
                 "customLobbies": null,
                 "tournaments": null
             },
+            "party": {
+                "title": null,
+                "partyTab": null,
+                "inviteTab": null,
+                "members": null,
+                "invites": null,
+                "leaveParty": null,
+                "matchmakingQueues": null,
+                "noQueues": null,
+                "requestQueues": null,
+                "receivedInvite": null,
+                "acceptInvite": null,
+                "declineInvite": null,
+                "kickMember": null,
+                "cancelInvite": null,
+                "noInvites": null
+            },
             "watch": {
                 "replays": {
                     "title": null,
@@ -4083,6 +4100,16 @@
                     "matchFound": null,
                     "accepted": null,
                     "cancel": null
+                },
+                "modalTitle": null,
+                "modal": {
+                    "labelName": null,
+                    "labelTeamConfig": null,
+                    "labelRanked": null,
+                    "labelUnranked": null,
+                    "labelEngines": null,
+                    "labelGames": null,
+                    "labelMaps": null
                 }
             },
             "battle": {
@@ -4138,7 +4165,10 @@
                 "sendMessage": null,
                 "joinBattle": null,
                 "inviteToParty": null,
-                "removeFriend": null
+                "partyFull": null,
+                "removeFriend": null,
+                "userInParty": null,
+                "userInvited": null
             },
             "exit": {
                 "title": null,
@@ -4159,6 +4189,10 @@
             },
             "breadcrumbs": {
                 "back": null
+            },
+            "partyPopout": {
+                "party": null,
+                "invited": null
             },
             "downloads": {
                 "noDownloads": null,
@@ -4201,7 +4235,19 @@
                 "labelSm": null,
                 "labelMd": null,
                 "labelLg": null,
-                "labelDisplay": null
+                "labelDisplay": null,
+                "storage": null,
+                "assetsPath": null,
+                "browse": null,
+                "moveToNewLocation": null,
+                "moveToNewLocationDesc": null,
+                "copyToNewLocation": null,
+                "copyToNewLocationDesc": null,
+                "useNewLocationOnly": null,
+                "useNewLocationOnlyDesc": null,
+                "apply": null,
+                "restartRequired": null,
+                "transferringFiles": null
             },
             "friends": {
                 "unknownUser": null,
@@ -4258,7 +4304,8 @@
                     "game": null,
                     "engine": null,
                     "view": null,
-                    "lobbyServerSettings": null
+                    "lobbyServerSettings": null,
+                    "createParty": null
                 },
                 "scenarioTile": {
                     "title": null
@@ -4274,7 +4321,6 @@
                     "loadingFonts": null,
                     "initializingIndexDB": null,
                     "initializingMaps": null,
-                    "fetchingMissingMapImages": null,
                     "initializingReplays": null
                 },
                 "syncDataDirsDialog": {
@@ -4315,7 +4361,16 @@
                     "installingGame": null,
                     "downloadingMaps": null,
                     "downloadingUpdate": null,
-                    "installingUpdate": null
+                    "installingUpdate": null,
+                    "selectAssetsPathDescription": null,
+                    "browse": null,
+                    "continue": null,
+                    "retry": null,
+                    "skip": null,
+                    "playOffline": null,
+                    "stepFailed": null,
+                    "stepRetrying": null,
+                    "contentRequired": null
                 }
             },
             "battle": {

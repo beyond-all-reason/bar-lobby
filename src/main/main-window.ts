@@ -10,6 +10,7 @@ import icon from "@main/resources/icon.png";
 import { purgeLogFiles } from "@main/services/log.service";
 import { typedWebContents, ipcMain } from "@main/typed-ipc";
 import { gameAPI } from "@main/game/game";
+import downloadsService from "@main/services/downloads.service";
 
 const ZOOM_FACTOR_BASELINE_HEIGHT = 1080;
 
@@ -28,7 +29,6 @@ export function createWindow() {
 
     const mainWindow = new BrowserWindow({
         title: "Beyond All Reason",
-        fullscreen: settings.fullscreen,
         icon: nativeImage.createFromDataURL(icon),
         resizable: true,
         center: true,
@@ -38,6 +38,7 @@ export function createWindow() {
         ...getWindowSize(settings.size),
         minWidth: 640,
         minHeight: 360,
+        backgroundColor: "#000000",
         webPreferences: {
             preload: path.join(__dirname, "../build/preload.js"),
             zoomFactor: 1,
@@ -79,8 +80,12 @@ export function createWindow() {
             webContents.openDevTools();
         }
         mainWindow.setMenuBarVisibility(false);
-        updateZoom();
         mainWindow.center();
+        // Note: `fullscreen: true` conflicts with `show: false`, so we apply fullscreen here.
+        if (settings.fullscreen) {
+            mainWindow.setFullScreen(true);
+        }
+        updateZoom();
         mainWindow.show();
         mainWindow.focus();
     });
@@ -128,6 +133,9 @@ export function createWindow() {
     ipcMain.handle("mainWindow:resized", () => {
         updateZoom();
     });
+
+    // Get download progress updates to update the dock/taskbar
+    downloadsService.registerProgressHandler(mainWindow);
 
     /////////////////////////////////////////////
     // Subscribe to game events

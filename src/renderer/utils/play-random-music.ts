@@ -43,7 +43,7 @@ class InfiniteRandomPlaylist {
     }
 }
 
-// Maybe those should be attached somehwere as metadata of music files, but, I don't
+// Maybe those should be attached somewhere as metadata of music files, but, I don't
 // think those music files are going to change very often so hardcoding should be
 // good enough for now. We verify in `playRandomMusic` that all music files are being
 // listed here.

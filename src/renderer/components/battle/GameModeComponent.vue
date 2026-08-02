@@ -50,7 +50,7 @@ import { useTypedI18n } from "@renderer/i18n";
 
 const { t } = useTypedI18n();
 
-//TODO have theses presets come from the game
+//TODO have these presets come from the game
 const gameModeListOptions: GameModeWithOptions[] = [
     { id: GameModeID.CLASSIC, label: t("lobby.components.battle.gameModeComponent.gameModeClassic"), options: {} },
     { id: GameModeID.FFA, label: t("lobby.components.battle.gameModeComponent.gameModeFFA"), options: {} },

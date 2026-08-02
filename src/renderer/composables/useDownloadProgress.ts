@@ -11,6 +11,7 @@ import { useTypedI18n } from "@renderer/i18n";
 const EMA_ALPHA = 0.3;
 const STALL_DECAY = 0.9;
 const MIN_UPDATE_INTERVAL = 0.25;
+export const MIN_DOWNLOAD_BYTES = 5 * 1024; // 5 KB
 
 interface SpeedEntry {
     prevBytes: number;
@@ -34,6 +35,16 @@ export function useDownloadProgress() {
             totalBytes += d.totalBytes;
         }
         return currentBytes / totalBytes || 0;
+    });
+
+    const totalDownloadBytes = computed(() => {
+        let currentBytes = 0;
+        let totalBytes = 0;
+        for (const d of allDownloads.value) {
+            currentBytes += d.currentBytes;
+            totalBytes += d.totalBytes;
+        }
+        return { current: currentBytes, total: totalBytes };
     });
 
     function downloadPercent(download: DownloadInfo): number {
@@ -102,6 +113,7 @@ export function useDownloadProgress() {
     return {
         allDownloads,
         totalDownloadPercent,
+        totalDownloadBytes,
         downloadPercent,
         progressText,
     };

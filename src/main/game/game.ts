@@ -9,11 +9,11 @@ import { Signal } from "$/jaz-ts-utils/signal";
 import * as path from "path";
 
 import { engineContentAPI } from "@main/content/engine/engine-content";
-
+import { applyDefaultSpringsettings } from "@main/game/springsettings";
 import { startScriptConverter } from "@main/utils/start-script-converter";
 import { logger } from "@main/utils/logger";
 import { gameContentAPI } from "@main/content/game/game-content";
-import { WRITE_DATA_PATH, REPLAYS_PATH, ENGINE_PATH, ASSETS_PATH } from "@main/config/app";
+import { WRITE_DATA_PATH, REPLAYS_PATH, getEnginePath, getAssetsPath } from "@main/config/app";
 import { BattleWithMetadata } from "@main/game/battle/battle-types";
 import { Replay } from "@main/content/replays/replay";
 
@@ -89,7 +89,9 @@ export class GameAPI {
 
         log.info(`Launching game with engine: ${engineVersion}, game: ${gameVersion}`);
         await this.fetchMissingContent(engineVersion, gameVersion); // TODO preload anything needed through the UI before launching. Remove this step
-        const enginePath = path.join(ENGINE_PATH, engineVersion).replaceAll("\\", "/");
+
+        applyDefaultSpringsettings();
+        const enginePath = path.join(getEnginePath(), engineVersion).replaceAll("\\", "/");
         const args = ["--write-dir", WRITE_DATA_PATH, "--isolation", launchArg];
         const binaryName = process.platform === "win32" ? "spring.exe" : "./spring";
         log.debug(`Running binary: ${path.join(enginePath, binaryName)}, args: ${args}`);
@@ -102,7 +104,7 @@ export class GameAPI {
                     detached: true,
                     env: {
                         ...process.env,
-                        SPRING_DATADIR: ASSETS_PATH, // Engine will read from both the assets and write dir
+                        SPRING_DATADIR: getAssetsPath(), // Engine will read from both the assets and write dir
                     },
                 });
                 if (!this.gameProcess.stdout || !this.gameProcess.stderr) throw new Error("failed to access game process stream");

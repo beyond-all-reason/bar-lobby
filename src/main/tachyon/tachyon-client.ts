@@ -112,24 +112,22 @@ export class TachyonClient {
         });
     }
 
-    public async request<C extends GetCommandIds<"user", "server", "request">>(
-        ...args: GetCommandData<GetCommands<"user", "server", "request", C>> extends never ? [commandId: C] : [commandId: C, data: GetCommandData<GetCommands<"user", "server", "request", C>>]
-    ): Promise<Extract<GetCommands<"server", "user", "response", C>, { status: "success" }>> {
+    private async sendRequest(commandId: string, data?: unknown): Promise<TachyonResponse> {
         if (!this.socket) {
             throw new Error("Not connected to server");
         }
-        const [commandId, data] = args as [C, GetCommandData<GetCommands<"user", "server", "request", C>> | undefined];
         const messageId = randomUUID();
         const request = {
             type: "request",
             commandId,
             messageId,
-        } as GetCommands<"user", "server", "request", C>;
+        } as TachyonRequest;
         if (data) {
             Object.assign(request, { data });
         }
         validateCommand(request);
         this.socket.send(JSON.stringify(request));
+
         return new Promise((resolve, reject) => {
             this.responseHandlers.set(messageId, (response: TachyonResponse | { status: "socket_closed" }) => {
                 if (response.status === "socket_closed") {
@@ -139,12 +137,31 @@ export class TachyonClient {
                 }
                 if (response.status === "failed") {
                     log.error(`Error response received: ${JSON.stringify(response)}`);
-                    reject(new Error(`${response.reason}` + (response.details ? ` (${response.details})` : "")));
-                    return;
                 }
-                resolve(response as Extract<GetCommands<"server", "user", "response", C>, { status: "success" }>);
+                resolve(response);
             });
         });
+    }
+
+    public async requestStructured<C extends GetCommandIds<"user", "server", "request">>(
+        ...args: GetCommandData<GetCommands<"user", "server", "request", C>> extends never ? [commandId: C] : [commandId: C, data: GetCommandData<GetCommands<"user", "server", "request", C>>]
+    ): Promise<GetCommands<"server", "user", "response", C>> {
+        const [commandId, data] = args as [C, unknown];
+        const response = await this.sendRequest(commandId, data);
+
+        return response as GetCommands<"server", "user", "response", C>;
+    }
+
+    public async request<C extends GetCommandIds<"user", "server", "request">>(
+        ...args: GetCommandData<GetCommands<"user", "server", "request", C>> extends never ? [commandId: C] : [commandId: C, data: GetCommandData<GetCommands<"user", "server", "request", C>>]
+    ): Promise<Extract<GetCommands<"server", "user", "response", C>, { status: "success" }>> {
+        const [commandId, data] = args as [C, unknown];
+        const response = await this.sendRequest(commandId, data);
+        if (response.status === "failed") {
+            throw new Error(`${response.reason}` + (response.details ? ` (${response.details})` : ""));
+        }
+
+        return response as Extract<GetCommands<"server", "user", "response", C>, { status: "success" }>;
     }
 
     public sendEvent(event: TachyonEvent) {

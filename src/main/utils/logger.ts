@@ -4,7 +4,7 @@
 
 import pino from "pino";
 import PinoPretty from "pino-pretty";
-import { LOGS_PATH } from "@main/config/app";
+import { LOGS_PATH, LOG_LEVEL } from "@main/config/app";
 import path from "path";
 import { mkdirSync } from "fs";
 
@@ -38,7 +38,15 @@ const logStream = PinoPretty({
     }),
 });
 
-const parentLogger = pino({}, pino.multistream([stdStream, logStream]));
+const parentLogger = pino(
+    {
+        level: LOG_LEVEL,
+    },
+    pino.multistream([
+        { stream: stdStream, level: LOG_LEVEL },
+        { stream: logStream, level: LOG_LEVEL },
+    ])
+);
 
 interface LoggerOptions {
     separator: string;

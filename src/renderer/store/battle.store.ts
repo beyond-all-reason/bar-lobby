@@ -12,6 +12,7 @@ import { getRandomMap } from "@renderer/store/maps.store";
 import { me } from "@renderer/store/me.store";
 import { deepToRaw } from "@renderer/utils/deep-toraw";
 import { spadsBoxToStartBox } from "@renderer/utils/start-boxes";
+import { notificationsApi } from "@renderer/api/notifications";
 import { StartBox } from "tachyon-protocol/types";
 import { reactive, readonly, watch } from "vue";
 import { startBattle as startGame } from "@renderer/store/game.store";
@@ -401,6 +402,10 @@ function resetToDefaultBattle(engine?: EngineVersion, game?: GameVersion, map?: 
 }
 
 async function startBattle() {
+    if (!battleStore.battleOptions.engineVersion || !battleStore.battleOptions.gameVersion) {
+        notificationsApi.alert({ text: i18n.global.t("lobby.components.misc.initialSetup.contentRequired"), severity: "error" });
+        return;
+    }
     await startGame(deepToRaw(_battleWithMetadataStore));
 }
 
@@ -452,7 +457,7 @@ watch(
     () => enginesStore.selectedEngineVersion,
     () => {
         const engineVersion = enginesStore.selectedEngineVersion;
-        if (!engineVersion) throw new Error("failed to access engine version");
+        if (!engineVersion) return;
 
         battleStore.battleOptions.engineVersion = engineVersion.id;
     }
@@ -461,7 +466,7 @@ watch(
 watch(
     () => gameStore.selectedGameVersion,
     (gameVersion) => {
-        if (!gameVersion) throw new Error("failed to access game version");
+        if (!gameVersion) return;
 
         battleStore.battleOptions.gameVersion = gameVersion.gameVersion;
     }
@@ -475,12 +480,18 @@ function leaveBattle() {
 async function loadGameMode(gameMode: GameModeID) {
     if (!battleStore.battleOptions.engineVersion) {
         const engineVersion = enginesStore.selectedEngineVersion;
-        if (!engineVersion) throw new Error("failed to access engine version");
+        if (!engineVersion) {
+            notificationsApi.alert({ text: i18n.global.t("lobby.components.misc.initialSetup.contentRequired"), severity: "error" });
+            return;
+        }
 
         battleStore.battleOptions.engineVersion = engineVersion.id;
     }
     if (!battleStore.battleOptions.gameVersion) {
-        if (!gameStore.selectedGameVersion) throw new Error("failed to access game version");
+        if (!gameStore.selectedGameVersion) {
+            notificationsApi.alert({ text: i18n.global.t("lobby.components.misc.initialSetup.contentRequired"), severity: "error" });
+            return;
+        }
 
         battleStore.battleOptions.gameVersion = gameStore.selectedGameVersion.gameVersion;
     }
@@ -568,7 +579,7 @@ function removeCoopAIs() {
 }
 
 function addCoopAI(coopAI: "RaptorsAI" | "ScavengersAI") {
-    if (!gameStore.selectedGameVersion) throw new Error("failed to retrieve game version");
+    if (!gameStore.selectedGameVersion) return;
 
     removeCoopAIs();
 

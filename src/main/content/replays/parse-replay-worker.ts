@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: MIT
 
-import { DemoParser } from "$/sdfz-demo-parser";
+import { DemoParser } from "sdfz-demo-parser";
 import { Replay } from "@main/content/replays/replay";
 import path from "path";
 import { isMainThread, parentPort } from "worker_threads";

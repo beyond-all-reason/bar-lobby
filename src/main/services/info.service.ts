@@ -5,7 +5,7 @@
 import { app, screen, BrowserWindow } from "electron";
 import { ipcMain } from "@main/typed-ipc";
 import os from "os";
-import { STATE_PATH, ASSETS_PATH } from "@main/config/app";
+import { STATE_PATH, getAssetsPath } from "@main/config/app";
 
 export type Info = {
     statePath: string;
@@ -32,7 +32,7 @@ function getInfo() {
     const defaultNetworkInterface = networkInterfaces["Ethernet"]?.[0] ?? Object.values(networkInterfaces)[0]?.[0];
     const info: Info = {
         statePath: STATE_PATH,
-        assetsPath: ASSETS_PATH,
+        assetsPath: getAssetsPath(),
         lobby: {
             name: "BAR Lobby",
             version: app.getVersion(),

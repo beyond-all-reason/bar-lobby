@@ -63,9 +63,39 @@ async function init() {
     window.downloads.onDownloadMapComplete((download) => {
         mapsStore.availableMapNames.add(download.name);
     });
-    const [liveMaps, nonLiveMaps] = await window.maps.fetchAllMaps();
+    const liveMaps = await db.maps.toArray();
+    const nonLiveMaps = await db.nonLiveMaps.toArray();
 
-    console.debug("Received maps", [liveMaps, nonLiveMaps]);
+    for (const map of liveMaps) {
+        if (map.isInstalled) mapsStore.availableMapNames.add(map.springName);
+    }
+
+    for (const map of nonLiveMaps) {
+        if (map.isInstalled) mapsStore.availableMapNames.add(map.springName);
+    }
+
+    try {
+        await refreshMapsStore();
+    } catch (error) {
+        console.warn("Failed to reconcile map install state from disk", error);
+    }
+
+    mapsStore.isInitialized = true;
+}
+
+export async function refreshMapsStore() {
+    const installedOnDisk = new Set(await window.maps.getInstalledMapNames());
+    mapsStore.availableMapNames = installedOnDisk;
+    await db.maps.toCollection().modify((map) => {
+        map.isInstalled = installedOnDisk.has(map.springName);
+    });
+    await db.nonLiveMaps.toCollection().modify((map) => {
+        map.isInstalled = installedOnDisk.has(map.springName);
+    });
+}
+
+export async function syncMapsMetadata() {
+    const [liveMaps, nonLiveMaps] = await window.maps.fetchAllMaps();
 
     await Promise.allSettled(
         liveMaps
@@ -98,16 +128,12 @@ async function init() {
             )
     );
 
-    // Refresh the nonLiveMaps
     const nonLiveMapSet = new Set(nonLiveMaps.map((map) => map.springName));
-
     (await db.nonLiveMaps.toArray())
         .filter((map) => !nonLiveMapSet.has(map.springName))
         .forEach((map) => {
             db.nonLiveMaps.update(map.springName, { ...map, isInstalled: false });
         });
-
-    mapsStore.isInitialized = true;
 }
 
 //TODO We need to support updating map images when reference in map metadata changes.

@@ -83,6 +83,7 @@ const maps = useDexieLiveQueryWithDeps([searchVal, sortMethod, limit, filters], 
     const { terrain, gameType } = filters;
     const terrainFilters = new Set([...(<Terrain[]>Object.keys(terrain)).filter((key) => !!terrain[key]).map((k) => k)]);
     const gameTypeFilters = new Set([...(<GameType[]>Object.keys(gameType)).filter((key) => gameType[key]).map((k) => k)]);
+
     return db.maps
         .filter((map) => {
             const favorites = !filters.favoritesOnly || map.isFavorite;
