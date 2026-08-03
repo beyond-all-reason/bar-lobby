@@ -22,8 +22,6 @@ function failed(reason: string, details?: string): IpcResult {
     return { status: "failed", reason, details };
 }
 
-// Anything escaping these handlers reaches the renderer as an unhandled rejection, which Error.vue
-// turns into an unrecoverable modal. Failures have to come back as data instead.
 async function attempt(reason: string, action: () => Promise<void> | void): Promise<IpcResult> {
     try {
         await action();
@@ -34,7 +32,7 @@ async function attempt(reason: string, action: () => Promise<void> | void): Prom
     }
 }
 
-// shell.openPath resolves with an error message instead of rejecting, and an empty string on success.
+// openPath resolves with an error message rather than rejecting, and an empty string on success.
 async function openPath(target: string): Promise<IpcResult> {
     return attempt("open_failed", async () => {
         const error = await shell.openPath(target);
@@ -42,8 +40,7 @@ async function openPath(target: string): Promise<IpcResult> {
     });
 }
 
-// shell.showItemInFolder reports nothing at all, so check what we can before calling it - otherwise
-// a missing file is indistinguishable from success. An absent file manager still isn't detectable.
+// showItemInFolder reports nothing at all, so a missing file is otherwise indistinguishable from success.
 async function showInFolder(target: string): Promise<IpcResult> {
     return attempt("open_failed", async () => {
         await fs.promises.access(target);
