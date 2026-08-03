@@ -11,9 +11,9 @@ const i18n = setupI18n();
 // Failing to open a folder or a link isn't worth interrupting anyone over, but it shouldn't be
 // swallowed either - the OS reason is the only clue a player has about what went wrong.
 //
-// Callers fire this without awaiting, so it has to absorb its own rejections too. Anything escaping
+// Callers fire these without awaiting, so rejections have to be absorbed here too. Anything escaping
 // reaches Error.vue's unhandledrejection listener, which is an unrecoverable modal.
-export async function openAndReport(open: () => Promise<IpcResult>) {
+async function openAndReport(open: () => Promise<IpcResult>) {
     const result = await open().catch((err): IpcResult => {
         console.error("Shell request failed", err);
 
@@ -26,3 +26,13 @@ export async function openAndReport(open: () => Promise<IpcResult>) {
         severity: "error",
     });
 }
+
+export const shellApi = {
+    openStateDir: () => openAndReport(window.shell.openStateDir),
+    openAssetsDir: () => openAndReport(window.shell.openAssetsDir),
+    openSettingsFile: () => openAndReport(window.shell.openSettingsFile),
+    openStartScript: () => openAndReport(window.shell.openStartScript),
+    openReplaysDir: () => openAndReport(window.shell.openReplaysDir),
+    showReplayInFolder: (fileName: string) => openAndReport(() => window.shell.showReplayInFolder(fileName)),
+    openInBrowser: (url: string) => openAndReport(() => window.shell.openInBrowser(url)),
+};
