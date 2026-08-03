@@ -35,7 +35,7 @@ build.on("close", (code: number | null) => {
 
         const customEnv: NodeJS.ProcessEnv = {
             ...process.env,
-            NODE_ENV: "production",
+            NODE_ENV: "development",
             NODE_OPTIONS: "--enable-source-maps",
             BAR_STATE_PATH: statePath,
             BAR_ASSETS_PATH: assetsPath,

@@ -171,8 +171,9 @@ describe("Main Process Lifecycle", () => {
         vi.resetModules();
     });
 
-    it("should exit if single instance lock is not acquired", async () => {
+    it("should exit if single instance lock is not acquired in production", async () => {
         mockApp.requestSingleInstanceLock.mockReturnValue(false);
+        mockProcess.env.NODE_ENV = "production";
 
         await import("@main/main");
 

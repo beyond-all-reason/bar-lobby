@@ -67,6 +67,10 @@ function registerIpcHandlers(webContents: BarIpcWebContents) {
     ipcMain.handle("tachyon:request", async (_event, command, args) => {
         return await tachyonClient.request(command, args);
     });
+
+    ipcMain.handle("tachyon:requestStructured", async (_event, command, args) => {
+        return await tachyonClient.requestStructured(command, args);
+    });
 }
 
 export const tachyonService = {

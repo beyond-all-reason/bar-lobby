@@ -2,16 +2,9 @@
 //
 // SPDX-License-Identifier: MIT
 
-import { app } from "electron";
+import "@main/single-instance";
 
-const gotTheLock = app.requestSingleInstanceLock();
-
-if (!gotTheLock) {
-    app.exit(0);
-}
-
-// Only import after we know we have the lock
-import { net, protocol, session } from "electron";
+import { app, net, protocol, session } from "electron";
 import path from "path";
 import url from "url";
 import netFromNode from "node:net";
