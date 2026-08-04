@@ -65,7 +65,6 @@ export type IPCCommands = {
     "auth:login": (interactive?: boolean) => void;
     "auth:logout": () => void;
     "auth:state": () => AuthState;
-    "auth:wipe": () => void;
     "autoUpdater:checkForUpdates": () => boolean;
     "autoUpdater:downloadUpdate": () => void;
     "autoUpdater:installUpdates": () => void;

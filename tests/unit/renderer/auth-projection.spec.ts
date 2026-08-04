@@ -109,14 +109,19 @@ describe("renderer auth projection", () => {
     });
 
     it("restores without a browser and opens the socket", async () => {
+        // A cold start has no session yet, so signing in has to happen before
+        // the socket, and without a browser.
+        const session = { authenticated: false };
         authApi.hasCredentials.mockResolvedValue(true);
-        authApi.getState.mockResolvedValue({ authenticated: true });
+        authApi.getState.mockImplementation(async () => ({ authenticated: session.authenticated }));
+        authApi.login.mockImplementation(async () => void (session.authenticated = true));
 
-        const { initMeStore } = await loadStore();
+        const { me, initMeStore } = await loadStore();
         await initMeStore();
 
         expect(authApi.login).toHaveBeenCalledWith(false);
         expect(window.tachyon.connect).toHaveBeenCalled();
+        expect(me.isAuthenticated).toBe(true);
     });
 
     it("does not touch the session outside dev mode", async () => {

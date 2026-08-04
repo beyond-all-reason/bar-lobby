@@ -82,7 +82,6 @@ contextBridge.exposeInMainWorld("settings", settingsApi);
 const authApi = {
     login: (interactive?: boolean): Promise<void> => ipcRenderer.invoke("auth:login", interactive),
     logout: (): Promise<void> => ipcRenderer.invoke("auth:logout"),
-    wipe: (): Promise<void> => ipcRenderer.invoke("auth:wipe"),
     hasCredentials: (): Promise<boolean> => ipcRenderer.invoke("auth:hasCredentials"),
     getState: (): Promise<AuthState> => ipcRenderer.invoke("auth:state"),
 

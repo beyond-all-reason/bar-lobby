@@ -43,10 +43,6 @@ const account = vi.hoisted(() => {
                 state.refreshToken = "";
                 state.expiresAt = 0;
             }),
-            forgetToken: vi.fn(async () => {
-                state.token = "";
-                state.expiresAt = 0;
-            }),
         },
     };
 });
@@ -230,7 +226,9 @@ describe("auth session policy", () => {
         await expect(authService.getAccessToken()).resolves.toBe("");
     });
 
-    it("keeps the refresh token on sign out but drops the access token", async () => {
+    // Leaving the refresh token behind is what made a separate "change account"
+    // action necessary, so signing out has to take both.
+    it("drops both tokens on sign out", async () => {
         account.state.refreshToken = "refresh-0";
         oauth2.renewAccessToken.mockResolvedValue(freshTokens("1"));
 
@@ -239,20 +237,19 @@ describe("auth session policy", () => {
         await ipc.handlers.get("auth:logout")!();
 
         expect(account.state.token).toBe("");
-        expect(account.state.refreshToken).toBe("refresh-1");
+        expect(account.state.refreshToken).toBe("");
         expect(webContents.send).toHaveBeenCalledWith("auth:changed", { authenticated: false, reason: "signed-out" });
     });
 
-    it("drops both tokens when the account is forgotten", async () => {
+    it("leaves nothing to sign back in with", async () => {
         account.state.refreshToken = "refresh-0";
         oauth2.renewAccessToken.mockResolvedValue(freshTokens("1"));
 
         await loadService();
         await signIn();
-        await ipc.handlers.get("auth:wipe")!();
+        await ipc.handlers.get("auth:logout")!();
 
-        expect(account.state.token).toBe("");
-        expect(account.state.refreshToken).toBe("");
+        expect(ipc.handlers.get("auth:hasCredentials")!()).toBe(false);
     });
 
     it("stops renewing after sign out", async () => {

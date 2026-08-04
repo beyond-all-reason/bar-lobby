@@ -2060,6 +2060,8 @@
             "exit": {
                 "title": "Exit",
                 "login": "Login",
+                "connect": "Connect",
+                "disconnect": "Disconnect",
                 "logout": "Logout",
                 "quitToDesktop": "Quit to Desktop"
             },
