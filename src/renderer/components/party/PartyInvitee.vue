@@ -40,5 +40,6 @@ function cancelInvite() {
 .party-invitee {
     padding: 10px;
     font-size: 24px;
+    outline: solid 1px #ccc;
 }
 </style>
