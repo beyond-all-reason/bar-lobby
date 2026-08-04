@@ -23,11 +23,8 @@ function registerIpcHandlers(webContents: BarIpcWebContents) {
                 status: "success",
             };
         },
-        // Note; requires npm link on tachyon-protocol to work correctly, as the types are not yet published to npm.
         "matchmaking/checkAssets": async (data: MatchmakingCheckAssetsRequestData) => {
             log.info(`Received matchmaking check assets request: ${JSON.stringify(data)}`);
-            // Sending Failed response just for now to get the request/response working correctly at a base level
-            // Correct behavior will be to check the assets and return a success or failed response based on that check
             return {
                 status: "failed",
                 reason: "command_unimplemented",
