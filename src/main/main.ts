@@ -138,7 +138,7 @@ app.whenReady().then(async () => {
     logService.registerIpcHandlers();
     infoService.registerIpcHandlers();
     settingsService.registerIpcHandlers();
-    authService.registerIpcHandlers();
+    authService.registerIpcHandlers(webContents);
     tachyonService.registerIpcHandlers(webContents);
     replaysService.registerIpcHandlers(webContents);
     engineService.registerIpcHandlers();

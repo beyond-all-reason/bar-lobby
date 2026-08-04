@@ -16,6 +16,7 @@ import { GetCommandData, GetCommandIds, GetCommands } from "tachyon-protocol";
 import type { BattleStartRequestData } from "tachyon-protocol/types";
 import { MultiplayerLaunchSettings } from "@main/game/game";
 import { logLevels } from "@main/services/log.service";
+import { AuthState } from "@main/services/auth.service";
 
 const logApi = {
     purge: (): Promise<string[]> => ipcRenderer.invoke("log:purge"),
@@ -79,10 +80,13 @@ export type SettingsApi = typeof settingsApi;
 contextBridge.exposeInMainWorld("settings", settingsApi);
 
 const authApi = {
-    login: (): Promise<void> => ipcRenderer.invoke("auth:login"),
+    login: (interactive?: boolean): Promise<void> => ipcRenderer.invoke("auth:login", interactive),
     logout: (): Promise<void> => ipcRenderer.invoke("auth:logout"),
     wipe: (): Promise<void> => ipcRenderer.invoke("auth:wipe"),
     hasCredentials: (): Promise<boolean> => ipcRenderer.invoke("auth:hasCredentials"),
+    getState: (): Promise<AuthState> => ipcRenderer.invoke("auth:state"),
+
+    onChanged: (callback: (state: AuthState) => void) => ipcRenderer.on("auth:changed", (_event, state) => callback(state)),
 };
 export type AuthApi = typeof authApi;
 contextBridge.exposeInMainWorld("auth", authApi);

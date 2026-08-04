@@ -155,15 +155,17 @@ describe("Preload API Context Bridge", () => {
     it("should expose auth API", async () => {
         await import("@preload/preload");
 
-        mockWindow.auth.login();
+        mockWindow.auth.login(false);
         mockWindow.auth.logout();
         mockWindow.auth.wipe();
         mockWindow.auth.hasCredentials();
+        mockWindow.auth.getState();
 
-        expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("auth:login");
+        expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("auth:login", false);
         expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("auth:logout");
         expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("auth:wipe");
         expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("auth:hasCredentials");
+        expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("auth:state");
     });
 
     it("should expose engine API", async () => {
