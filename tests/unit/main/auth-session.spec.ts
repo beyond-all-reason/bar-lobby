@@ -64,6 +64,7 @@ vi.mock("@main/typed-ipc", () => ({
 
 const LIFETIME_SECONDS = 1800;
 const RENEWAL_DUE_MS = (LIFETIME_SECONDS * 1000) / 2 + 10;
+const TRANSIENT_RETRY_MS = 60 * 1000;
 
 const freshTokens = (suffix: string) => ({
     token: `access-${suffix}`,
@@ -175,7 +176,10 @@ describe("auth session policy", () => {
 
         const { webContents } = await loadService();
         await signIn();
-        await vi.advanceTimersByTimeAsync(LIFETIME_SECONDS * 1000);
+
+        // Past the lifetime plus a retry interval, so a retry is guaranteed to
+        // fire after expiry whatever the renewal fraction is set to.
+        await vi.advanceTimersByTimeAsync(LIFETIME_SECONDS * 1000 + TRANSIENT_RETRY_MS);
 
         expect(webContents.send).toHaveBeenCalledWith("auth:changed", { authenticated: false, reason: "error" });
         expect(account.service.wipe).not.toHaveBeenCalled();

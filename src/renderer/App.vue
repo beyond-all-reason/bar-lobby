@@ -98,7 +98,6 @@ import { battleStore } from "@renderer/store/battle.store";
 import FullscreenGameModeSelector from "@renderer/components/battle/FullscreenGameModeSelector.vue";
 import { useGlobalKeybindings } from "@renderer/composables/useGlobalKeybindings";
 import { me } from "@renderer/store/me.store";
-import { auth } from "@renderer/store/me.store";
 import { useLogInConfirmation } from "@renderer/composables/useLogInConfirmation";
 import { partyStore, PlayersPartyState } from "@renderer/store/party.store";
 import accountGroup from "@iconify-icons/mdi/account-group";
@@ -197,7 +196,6 @@ function onInitialSetupDone() {
 // We do it here and not in index.vue to avoid flashing login page for user before
 // continuing to overview.
 if (!settingsStore.devMode) {
-    auth.playOffline();
     router.push("/play");
 }
 

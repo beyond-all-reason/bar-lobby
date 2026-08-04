@@ -36,8 +36,7 @@ import { useTypedI18n } from "@renderer/i18n";
 
 import Loader from "@renderer/components/common/Loader.vue";
 import { useRouter } from "vue-router";
-import { auth } from "@renderer/store/me.store";
-import { settingsStore } from "@renderer/store/settings.store";
+import { auth, me } from "@renderer/store/me.store";
 import { tachyon } from "@renderer/store/tachyon.store";
 
 const { t } = useTypedI18n();
@@ -50,6 +49,15 @@ const error = ref<string>();
 const hasCredentials = ref(false);
 onActivated(async () => {
     hasCredentials.value = await window.auth.hasCredentials();
+
+    // The store restores a previous session before the UI mounts, so there is
+    // nothing to log in to here.
+    if (me.isAuthenticated) {
+        const redirect = router.currentRoute.value.query.redirect as string | undefined;
+        await router.replace(redirect || "/play");
+
+        return;
+    }
 
     if (router.currentRoute.value.query.login === "true") {
         const query = { ...router.currentRoute.value.query };
@@ -92,13 +100,8 @@ async function changeAccount() {
 }
 
 async function playOffline() {
-    auth.playOffline();
+    await auth.playOffline();
     router.push("/play");
-}
-
-if (hasCredentials.value && settingsStore.loginAutomatically) {
-    console.log("Logging in automatically");
-    login();
 }
 </script>
 

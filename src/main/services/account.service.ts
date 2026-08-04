@@ -28,16 +28,22 @@ async function init() {
 function readStoredValue(value: string, label: string): string {
     if (!value) return "";
 
-    if (!accountStore.model.encrypted) return value;
+    const { encrypted } = accountStore.model;
+
+    if (encrypted === false) return value;
 
     if (!safeStorage.isEncryptionAvailable()) {
-        log.error(`Cannot read stored ${label}, encryption is no longer available`);
+        log.error(`Cannot read stored ${label}, encryption is not available`);
         return "";
     }
 
     try {
         return safeStorage.decryptString(Buffer.from(value, "base64"));
     } catch (e) {
+        // A file written before the flag existed may hold a plain value, from a
+        // run where encryption wasn't available.
+        if (encrypted === undefined) return value;
+
         log.error(`Failed to decrypt stored ${label}`, e);
         return "";
     }

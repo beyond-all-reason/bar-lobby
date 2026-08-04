@@ -5,8 +5,9 @@
 import { Me } from "@main/model/user";
 import { db } from "@renderer/store/db";
 import { reactive, toRaw } from "vue";
-import { tachyon, tachyonStore } from "@renderer/store/tachyon.store";
+import { tachyon } from "@renderer/store/tachyon.store";
 import { PrivateUser } from "tachyon-protocol/types";
+import { settingsStore } from "@renderer/store/settings.store";
 import { subsManager } from "@renderer/store/users.store";
 import { onWentOffline } from "@renderer/utils/offline-signal";
 
@@ -45,30 +46,36 @@ async function unsubscribeFromUsers(userIds: string[]) {
     subsManager.detach(userIds, friendsSymbol);
 }
 
-async function login() {
+// The main process owns the session. Nothing here assigns isAuthenticated
+// directly, or the UI can end up claiming a session that no longer exists.
+async function syncAuthState() {
+    const { authenticated } = await window.auth.getState();
+    me.isAuthenticated = authenticated;
+}
+
+async function login(interactive = true) {
     try {
-        await window.auth.login();
-        me.isAuthenticated = true;
-    } catch (e) {
-        console.error(e);
-        me.isAuthenticated = false;
-        throw e;
+        await window.auth.login(interactive);
+    } finally {
+        // The change event and this reply are separate channels, so read the
+        // state back rather than racing them.
+        await syncAuthState();
     }
 }
 
-function playOffline() {
-    me.isAuthenticated = false;
+async function playOffline() {
+    await logout();
 }
 
 async function logout() {
     await tachyon.goOffline();
-    window.auth.logout();
-    me.isAuthenticated = false;
+    await window.auth.logout();
+    await syncAuthState();
 }
 
 async function changeAccount() {
     await window.auth.wipe();
-    me.isAuthenticated = false;
+    await syncAuthState();
 }
 
 window.tachyon.onEvent("user/self", async (event) => {
@@ -215,6 +222,10 @@ export const friends = {
 };
 
 export async function initMeStore() {
+    window.auth.onChanged(({ authenticated }) => {
+        me.isAuthenticated = authenticated;
+    });
+
     onWentOffline.add(clearOnlineState);
     window.tachyon.onConnected(() => {
         // Subscriptions don't survive the socket, so rebuild them from the server's friend list
@@ -232,21 +243,42 @@ export async function initMeStore() {
                 Object.assign(me, user);
             }
         });
-    const hasCredentials = await window.auth.hasCredentials();
-    if (hasCredentials) {
-        try {
-            await login();
 
-            if (tachyonStore.isConnected) {
-                await friends.fetchFriendList();
-            }
-        } catch (error) {
-            // Auth renewal runs before the UI mounts, so there's no way to show
-            // a retry dialog here. Log the failure and continue — the user will
-            // see they're not logged in and can retry from the UI.
-            console.warn("Auth failed during startup, continuing offline", error);
-        }
-    }
+    await syncAuthState();
+    await restorePreviousSession();
 
     me.isInitialized = true;
+}
+
+// Multiplayer is behind devMode, so outside it there is no session to restore.
+async function restorePreviousSession() {
+    if (!settingsStore.devMode) return;
+    if (!settingsStore.loginAutomatically) return;
+    if (!(await window.auth.hasCredentials())) return;
+
+    try {
+        // Non-interactive: a rejected refresh token must not open a browser
+        // window while the user is still looking at the loading screen.
+        await login(false);
+
+        // Holding a token is not being online, so the socket has to be opened
+        // here too, or the UI shows a session with nothing behind it.
+        await window.tachyon.connect();
+    } catch (error) {
+        // This runs before the UI mounts, so there is nowhere to show a retry.
+        // Signing out matters when the token was fine and the socket was refused
+        // anyway, say for a ban or a version the server no longer speaks: without
+        // it the UI claims a session and nothing retries, because a connection
+        // that never opened never fires a disconnect.
+        console.warn("Could not restore the previous session, continuing offline", error);
+        await logout();
+
+        return;
+    }
+
+    try {
+        await friends.fetchFriendList();
+    } catch (error) {
+        console.warn("Could not fetch the friend list", error);
+    }
 }
