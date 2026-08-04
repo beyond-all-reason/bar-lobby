@@ -50,7 +50,7 @@ const shellApi = {
     openStartScript: (): Promise<IpcResult> => ipcRenderer.invoke("shell:openStartScript"),
     openReplaysDir: (): Promise<IpcResult> => ipcRenderer.invoke("shell:openReplaysDir"),
     showReplayInFolder: (fileName: string): Promise<IpcResult> => ipcRenderer.invoke("shell:showReplayInFolder", fileName),
-
+    openConfigFile: (): Promise<IpcResult> => ipcRenderer.invoke("shell:openConfigFile"),
     // External
     openInBrowser: (url: string): Promise<IpcResult> => ipcRenderer.invoke("shell:openInBrowser", url),
 };

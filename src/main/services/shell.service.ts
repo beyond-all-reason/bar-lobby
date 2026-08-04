@@ -72,7 +72,7 @@ function registerIpcHandlers() {
     ipcMain.handle("shell:openStartScript", () => openPath(path.join(WRITE_DATA_PATH, "script.txt")));
     ipcMain.handle("shell:openReplaysDir", () => openPath(REPLAYS_PATH));
     ipcMain.handle("shell:showReplayInFolder", (_event, fileName: string) => showInFolder(path.join(REPLAYS_PATH, fileName)));
-
+    ipcMain.handle("shell:openConfigFile", () => openPath(path.join(CONFIG_PATH, "config.json")));
     // External
     ipcMain.handle("shell:openInBrowser", (_event, url) => openInBrowser(url));
 }

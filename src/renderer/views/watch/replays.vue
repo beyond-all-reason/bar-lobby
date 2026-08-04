@@ -265,7 +265,7 @@ function onSort(event: DataTableSortEvent) {
 }
 
 function openBrowserToReplayService() {
-    shellApi.openInBrowser("https://bar-rts.com/replays");
+    shellApi.openInBrowser(configStore.replayServiceUrl);
 }
 
 function openReplaysFolder() {

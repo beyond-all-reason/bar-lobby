@@ -116,6 +116,7 @@ export type IPCCommands = {
     "config:get": () => Config;
     "config:update": (config: Partial<Config>) => Config;
     "config:fetch": () => void;
+    "shell:openConfigFile": () => IpcResult;
     "shell:openStateDir": () => IpcResult;
     "shell:openAssetsDir": () => IpcResult;
     "shell:openInBrowser": (url: string) => IpcResult;
