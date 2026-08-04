@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: MIT
 
-import { accountService } from "@main/services/account.service";
+import { authService } from "@main/services/auth.service";
 import { createTachyonRequestHandlers } from "@main/tachyon/tachyon.handlers";
 import { TachyonClient } from "@main/tachyon/tachyon-client";
 import { logger } from "@main/utils/logger";
@@ -36,7 +36,7 @@ function registerIpcHandlers(webContents: BarIpcWebContents) {
 
     ipcMain.handle("tachyon:connect", async () => {
         if (!tachyonClient.isConnected()) {
-            const token = await accountService.getToken();
+            const token = await authService.getAccessToken();
             if (!token) {
                 throw new Error("Not authenticated");
             }

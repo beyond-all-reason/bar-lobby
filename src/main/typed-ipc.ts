@@ -2,6 +2,7 @@
 //
 // SPDX-License-Identifier: MIT
 
+import type { AuthState } from "@main/services/auth.service";
 import type { BattleWithMetadata } from "@main/game/battle/battle-types";
 import type { BattleStartRequestData } from "tachyon-protocol/types";
 import type { DownloadInfo } from "@main/content/downloads";
@@ -57,12 +58,14 @@ export type IPCEvents = {
     "tachyon:connected": () => void;
     "tachyon:disconnected": () => void;
     "tachyon:event": (event: TachyonEvent) => void;
+    "auth:changed": (state: AuthState) => void;
 };
 
 export type IPCCommands = {
     "auth:hasCredentials": () => boolean;
-    "auth:login": () => void;
+    "auth:login": (interactive?: boolean) => void;
     "auth:logout": () => void;
+    "auth:state": () => AuthState;
     "auth:wipe": () => void;
     "autoUpdater:checkForUpdates": () => boolean;
     "autoUpdater:downloadUpdate": () => void;
