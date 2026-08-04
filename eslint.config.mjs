@@ -54,4 +54,17 @@ export default [
             "@typescript-eslint/no-unsafe-function-type": "warn",
         },
     },
+    {
+        files: ["src/renderer/**/*.{ts,vue}"],
+        ignores: ["src/renderer/api/shell.ts"],
+        rules: {
+            "no-restricted-syntax": [
+                "error",
+                {
+                    selector: "MemberExpression[object.name='window'][property.name='shell']",
+                    message: "Use shellApi from @renderer/api/shell so failures get reported instead of reaching the fatal error modal.",
+                },
+            ],
+        },
+    },
 ];
