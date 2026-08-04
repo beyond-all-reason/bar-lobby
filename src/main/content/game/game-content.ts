@@ -242,9 +242,9 @@ export class GameContentAPI extends PrDownloaderAPI<string, GameVersion> {
             throw new Error("Game Version is not specified");
         }
 
-        // TODO: Uninstall game version through prd when prd supports it
         assert(!version.packageMd5.endsWith(".sdd"), "Cannot uninstall local/custom game versions");
-        await fs.promises.rm(path.join(getPackagePath(), `${version.packageMd5}.sdp`));
+
+        await this.uninstallContent(version.packageMd5);
         this.availableVersions.delete(version.gameVersion);
     }
 

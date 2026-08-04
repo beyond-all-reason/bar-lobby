@@ -4,6 +4,7 @@
 
 import { EngineVersion } from "@main/content/engine/engine-version";
 import { engineContentAPI } from "@main/content/engine/engine-content";
+import { compareEngineVersions } from "@main/content/engine/engine-version-order";
 import { ipcMain } from "@main/typed-ipc";
 
 async function init() {
@@ -19,7 +20,7 @@ function registerIpcHandlers() {
         engineContentAPI.availableVersions
             .values()
             .toArray()
-            .sort((a, b) => a.id.localeCompare(b.id))
+            .sort((a, b) => compareEngineVersions(a.id, b.id))
     );
     ipcMain.handle("engine:downloadEngine", (_, version?: string) => engineContentAPI.downloadEngine(version));
     ipcMain.handle("engine:isVersionInstalled", (_, id: string) => engineContentAPI.isVersionInstalled(id));

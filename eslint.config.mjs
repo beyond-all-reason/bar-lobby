@@ -13,6 +13,8 @@ export default [
             "**/out",
             "**/dist_electron",
             "**/node_modules",
+            // Agent worktrees hold whole copies of this repo, which the unscoped lint would walk into.
+            "**/.claude",
             "**/working-files",
             "**/typed-router.d.ts",
             "**/vendor",

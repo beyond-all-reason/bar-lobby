@@ -2,7 +2,8 @@
 //
 // SPDX-License-Identifier: MIT
 
-import { spawn } from "child_process";
+import { execFile, spawn } from "child_process";
+import fs from "fs";
 import os from "os";
 import path from "path";
 
@@ -10,7 +11,7 @@ import { DownloadInfo } from "./downloads";
 import { AbstractContentAPI } from "./abstract-content";
 import { engineContentAPI } from "./engine/engine-content";
 import { logger } from "@main/utils/logger";
-import { getAssetsPath, getEnginePath, getCaCertPath } from "@main/config/app";
+import { getAssetsPath, getEnginePath, getCaCertPath, getPackagePath } from "@main/config/app";
 
 const log = logger("pr-downloader.ts");
 
@@ -36,19 +37,31 @@ export type RapidVersion = {
  * https://springrts.com/wiki/Rapid
  */
 export abstract class PrDownloaderAPI<ID, T> extends AbstractContentAPI<ID, T> {
+    // pr-downloader ships inside the engine, so any installed engine can drive downloads. Preferring
+    // the default and then newest-first keeps content downloadable after a default version bump, when
+    // the new default is not installed yet, and skips engines whose install did not produce a binary.
+    protected getPrdBinaryPath() {
+        const binaryName = process.platform === "win32" ? "pr-downloader.exe" : "pr-downloader";
+        const defaultEngine = engineContentAPI.getDefaultEngine();
+        const candidates = [...(defaultEngine?.installed ? [defaultEngine] : []), ...engineContentAPI.getInstalledVersionsNewestFirst()];
+
+        for (const engine of candidates) {
+            const binaryPath = path.join(getEnginePath(), engine.id, binaryName);
+            if (fs.existsSync(binaryPath)) {
+                return binaryPath;
+            }
+            log.warn(`Engine ${engine.id} has no ${binaryName}, trying the next one`);
+        }
+
+        throw new Error(`No installed engine ships a ${binaryName}. Tried: ${candidates.map((engine) => engine.id).join(", ") || "none"}`);
+    }
+
     protected downloadContent(type: "game" | "map", name: string) {
         return new Promise<DownloadInfo>((resolve, reject) => {
             try {
                 log.debug(`Downloading ${name}...`);
 
-                const defaultEngine = engineContentAPI.getDefaultEngine();
-
-                // These two errors should in theory never happen...
-                if (!defaultEngine) throw new Error("No default engine version.");
-                if (defaultEngine.installed === false) throw new Error("Default engine is not installed.");
-
-                const binaryName = process.platform === "win32" ? "pr-downloader.exe" : "pr-downloader";
-                const prBinaryPath = path.join(getEnginePath(), defaultEngine.id, binaryName);
+                const prBinaryPath = this.getPrdBinaryPath();
                 const downloadArg = type === "game" ? "--download-game" : "--download-map";
                 const caCertPath = getCaCertPath();
                 const prdProcess = spawn(`${prBinaryPath}`, ["--filesystem-writepath", getAssetsPath(), downloadArg, name], {
@@ -118,6 +131,73 @@ export abstract class PrDownloaderAPI<ID, T> extends AbstractContentAPI<ID, T> {
                         reject(new Error(`pr-downloader exited with code ${code}, signal ${signal}`));
                     } else {
                         resolve(downloadInfo);
+                    }
+                });
+            } catch (err) {
+                log.error(err);
+                reject(err);
+            }
+        });
+    }
+
+    // --uninstall is newer than several engine releases and the binary travels with the engine rather
+    // than with this app, so ask the resolved binary instead of guessing from a version number.
+    private static readonly uninstallSupport = new Map<string, Promise<boolean>>();
+
+    private static supportsUninstall(binaryPath: string) {
+        let probe = PrDownloaderAPI.uninstallSupport.get(binaryPath);
+
+        if (!probe) {
+            probe = new Promise<boolean>((resolve) => {
+                execFile(binaryPath, ["--help"], (err, stdout) => resolve(!err && stdout.includes("--uninstall")));
+            });
+            PrDownloaderAPI.uninstallSupport.set(binaryPath, probe);
+        }
+
+        return probe;
+    }
+
+    // Resolution happens against the local install, so an md5 is the only name that cannot come back
+    // ambiguous or go missing once a rapid tag stops being published.
+    protected async uninstallContent(packageMd5: string) {
+        const binaryPath = this.getPrdBinaryPath();
+
+        if (!(await PrDownloaderAPI.supportsUninstall(binaryPath))) {
+            // Dropping the sdp is all the older binaries allow, so the pool files it referenced stay
+            // on disk. That is what this did before pr-downloader could do the removal properly.
+            log.warn(`${binaryPath} does not support --uninstall, removing the sdp and leaving its pool files behind`);
+            await fs.promises.rm(path.join(getPackagePath(), `${packageMd5}.sdp`));
+
+            return;
+        }
+
+        return new Promise<void>((resolve, reject) => {
+            try {
+                log.debug(`Uninstalling ${packageMd5}...`);
+
+                const prdProcess = spawn(binaryPath, ["--filesystem-writepath", getAssetsPath(), "--uninstall", packageMd5]);
+                const errors: string[] = [];
+
+                prdProcess.stdout?.on("data", (stdout: Buffer) => {
+                    log.debug(stdout.toString().trim());
+                });
+
+                prdProcess.stderr?.on("data", (stderr: Buffer) => {
+                    const output = stderr.toString().trim();
+                    log.error(output);
+                    errors.push(output);
+                });
+
+                prdProcess.on("error", (err) => {
+                    log.error(err);
+                    reject(err);
+                });
+
+                prdProcess.on("exit", (code, signal) => {
+                    if (code !== 0) {
+                        reject(new Error(`pr-downloader exited with code ${code}, signal ${signal}: ${errors.join(" ")}`));
+                    } else {
+                        resolve();
                     }
                 });
             } catch (err) {

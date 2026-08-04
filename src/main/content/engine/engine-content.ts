@@ -17,12 +17,9 @@ import { getEngineReleaseInfo } from "@main/config/content-sources";
 import { AbstractContentAPI } from "@main/content/abstract-content";
 import { getEnginePath } from "@main/config/app";
 import { DEFAULT_ENGINE_VERSION } from "@main/config/default-versions";
+import { compareEngineVersions, isCompatibleEngineVersion } from "@main/content/engine/engine-version-order";
 
 const log = logger("engine-content.ts");
-
-// TODO: add support for old engine version tag naming scheme, careful it is not string sortable (!)
-// Regex matching new engine version tags (e.g. "2025.01.3", "2025.01.3-rc1")
-const compatibleVersionRegex = /^\d{4}\.\d{2}\.\d{1,2}(-rc\d+)?$/;
 
 export class EngineContentAPI extends AbstractContentAPI<string, EngineVersion> {
     protected get engineDirs() {
@@ -36,7 +33,7 @@ export class EngineContentAPI extends AbstractContentAPI<string, EngineVersion> 
             const dirs = files
                 .filter((file) => file.isDirectory() || file.isSymbolicLink())
                 .map((dir) => dir.name)
-                .filter((dir) => compatibleVersionRegex.test(dir) || dir.includes("local"));
+                .filter((dir) => isCompatibleEngineVersion(dir));
             log.info(`Found ${dirs.length} installed engine versions`);
             for (const dir of dirs) {
                 log.info(`-- Engine ${dir}`);
@@ -65,6 +62,18 @@ export class EngineContentAPI extends AbstractContentAPI<string, EngineVersion> 
 
     public getDefaultEngine() {
         return this.availableVersions.get(DEFAULT_ENGINE_VERSION);
+    }
+
+    public getInstalledVersionsNewestFirst() {
+        return this.availableVersions
+            .values()
+            .filter((version) => version.installed)
+            .toArray()
+            .sort((a, b) => compareEngineVersions(b.id, a.id));
+    }
+
+    public getNewestInstalledVersion() {
+        return this.getInstalledVersionsNewestFirst().at(0);
     }
 
     protected checkIfDefaultIsNew() {
