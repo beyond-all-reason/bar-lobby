@@ -95,6 +95,7 @@ export class EngineProvider extends AbstractContentAPI<string, EngineVersion> {
             const engineInfo = await getEngineReleaseInfo(engineVersion);
             const downloadInfo: DownloadInfo = {
                 type: "engine",
+                id: engineVersion,
                 name: engineVersion,
                 currentBytes: 0,
                 totalBytes: 1,

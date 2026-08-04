@@ -84,6 +84,7 @@ export abstract class PrDownloaderAPI<ID, T> extends AbstractContentAPI<ID, T> {
                 });
                 const downloadInfo: DownloadInfo = {
                     type,
+                    id: name,
                     name,
                     currentBytes: 0,
                     totalBytes: 0,

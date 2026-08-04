@@ -2,12 +2,13 @@
 //
 // SPDX-License-Identifier: MIT
 
-// One download at a time wastes a connection and unbounded downloads are worse, so a few at once.
+// One download at a time wastes a connection and unbounded downloads are worse. 2-4 is the range asked
+// for in https://github.com/beyond-all-reason/bar-lobby/issues/423#issuecomment-2988283498.
 //
-// This cannot be delegated to pr-downloader's own limit, which applies per invocation: one process
-// fetching four maps and four processes fetching one each both look like "four parallel" from inside
-// prd while meaning very different things. Only the lobby sees the total.
-export const MAX_CONCURRENT_DOWNLOADS = 3;
+// This counts invocations rather than connections, and cannot be delegated to pr-downloader's own limit,
+// which applies per invocation and so says nothing about how many of them exist. A game is one slot here
+// while fetching many files at once inside prd, which is prd's business to bound.
+export const MAX_CONCURRENT_DOWNLOADS = 4;
 
 // How long content nothing is holding on to is kept before a sweep will remove it. Deliberately not a
 // user setting: nobody can reason about the right number, and getting it wrong deletes their content.

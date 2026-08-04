@@ -16,6 +16,12 @@ export function calcChecksum(engineVersion: string, archiveName: string): Promis
     return checksumQueue;
 }
 
+// The engine holds an archive open while checksumming it, so deleting that archive fails outright on
+// Windows. Anything about to remove content waits for whatever has already been queued.
+export function whenChecksumsIdle(): Promise<void> {
+    return checksumQueue;
+}
+
 function runChecksumProcess(engineVersion: string, archiveName: string): Promise<void> {
     const enginePath = path.join(getEnginePath(), engineVersion).replaceAll("\\", "/");
     const binaryName = process.platform === "win32" ? "spring-headless.exe" : "./spring-headless";

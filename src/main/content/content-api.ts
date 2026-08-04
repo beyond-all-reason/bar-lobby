@@ -23,9 +23,20 @@ import { logger } from "@main/utils/logger";
 
 const log = logger("content-api.ts");
 
+// A provider dispatches progress for everything it is downloading on one signal, so concurrent
+// acquisitions all hear each other and have to ignore what is not theirs. Without this each of them
+// reports every other download's byte counts as its own.
 async function acquireReporting(downloader: Downloader, id: string, report: ContentReporter, acquire: () => Promise<unknown>) {
-    const progress = downloader.onDownloadProgress.add(({ currentBytes, totalBytes, progress, phase }) => report.progress(id, { currentBytes, totalBytes, progress, phase }));
-    const retry = downloader.onDownloadRetry.add(() => report.attempt(id));
+    const progress = downloader.onDownloadProgress.add((info) => {
+        if (info.id !== id) return;
+
+        report.progress(id, { currentBytes: info.currentBytes, totalBytes: info.totalBytes, progress: info.progress, phase: info.phase });
+    });
+    const retry = downloader.onDownloadRetry.add((info) => {
+        if (info.id !== id) return;
+
+        report.attempt(id);
+    });
 
     try {
         await acquire();

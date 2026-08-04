@@ -36,6 +36,7 @@ function setup(options: { present?: Set<string>; run?: (call: Call) => Promise<v
 }
 
 const map = (id: string): ContentRef => ({ type: "map", id });
+const game = (id: string): ContentRef => ({ type: "game", id });
 
 describe("ContentQueue", () => {
     it("acquires a queued ref and resolves once it is on disk", async () => {
@@ -93,6 +94,54 @@ describe("ContentQueue", () => {
         await all;
 
         expect(peak).toBe(MAX_CONCURRENT_DOWNLOADS);
+    });
+
+    // pr-downloader keeps rapid's index files once under the assets path, so two invocations touching
+    // them at the same time can corrupt them. Only games come through rapid.
+    it("runs only one game operation at a time", async () => {
+        let running = 0;
+        let peak = 0;
+        const gate = deferred();
+        const { queue } = setup({
+            present: new Set(["game:byar:old"]),
+            run: async ({ type }) => {
+                if (type === "game") {
+                    running++;
+                    peak = Math.max(peak, running);
+                }
+                await gate.settled;
+                if (type === "game") {
+                    running--;
+                }
+            },
+        });
+
+        const all = Promise.all([queue.enqueue("acquire", game("byar:test")), queue.enqueue("acquire", game("byar:stable")), queue.enqueue("remove", game("byar:old"))]);
+        await Promise.resolve();
+
+        gate.release();
+        await all;
+
+        expect(peak).toBe(1);
+    });
+
+    it("lets maps download while a game is running", async () => {
+        const started: string[] = [];
+        const gate = deferred();
+        const { queue } = setup({
+            run: async ({ type, ids }) => {
+                started.push(`${type}:${ids[0]}`);
+                await gate.settled;
+            },
+        });
+
+        const all = Promise.all([queue.enqueue("acquire", game("byar:test")), queue.enqueue("acquire", map("Quicksilver"))]);
+        await Promise.resolve();
+
+        expect(started).toEqual(["game:byar:test", "map:Quicksilver"]);
+
+        gate.release();
+        await all;
     });
 
     it("picks up remaining work as earlier downloads finish", async () => {

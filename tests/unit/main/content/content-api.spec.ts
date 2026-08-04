@@ -277,13 +277,37 @@ describe("contentAPI change stream", () => {
         const release = hold();
         const acquiring = contentAPI.ensure([{ type: "map", id: "Tabula 1.0" }]);
         await untilAcquiring("Tabula 1.0");
-        progress.map.dispatch({ currentBytes: 5, totalBytes: 10, progress: 0.5 });
+        progress.map.dispatch({ id: "Tabula 1.0", currentBytes: 5, totalBytes: 10, progress: 0.5 });
         release();
         await acquiring;
 
         contentAPI.onChanged.dispose(binding);
 
         expect(seen).toContain("acquiring:0.5");
+    });
+
+    // The bug this exists for: a provider dispatches progress for all of its downloads on one signal,
+    // and every concurrent acquisition used to report whatever it heard as its own. Three maps at once
+    // meant three rows each showing all three downloads' byte counts.
+    it("ignores progress belonging to another ref downloading at the same time", async () => {
+        const release = hold();
+        const acquiring = contentAPI.ensure([
+            { type: "map", id: "Comet Catcher 1.2" },
+            { type: "map", id: "Red Comet 1.0" },
+        ]);
+        await untilAcquiring("Comet Catcher 1.2");
+        await untilAcquiring("Red Comet 1.0");
+
+        progress.map.dispatch({ id: "Comet Catcher 1.2", currentBytes: 90, totalBytes: 100, progress: 0.9 });
+        progress.map.dispatch({ id: "Red Comet 1.0", currentBytes: 1, totalBytes: 1000, progress: 0.001 });
+
+        expect(stateOf("Comet Catcher 1.2")?.progress).toBe(0.9);
+        expect(stateOf("Comet Catcher 1.2")?.totalBytes).toBe(100);
+        expect(stateOf("Red Comet 1.0")?.progress).toBe(0.001);
+        expect(stateOf("Red Comet 1.0")?.totalBytes).toBe(1000);
+
+        release();
+        await acquiring;
     });
 
     it("forgets a ref once it has settled", async () => {
@@ -310,8 +334,8 @@ describe("contentAPI change stream", () => {
         const release = hold();
         const acquiring = contentAPI.ensure([{ type: "map", id: "Archsimkats 1.4" }]);
         await untilAcquiring("Archsimkats 1.4");
-        retry.map.dispatch(undefined);
-        retry.map.dispatch(undefined);
+        retry.map.dispatch({ id: "Archsimkats 1.4" });
+        retry.map.dispatch({ id: "Archsimkats 1.4" });
         release();
         await acquiring;
 

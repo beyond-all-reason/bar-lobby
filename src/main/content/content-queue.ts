@@ -4,9 +4,9 @@
 
 import { Signal } from "$/jaz-ts-utils/signal";
 import { removeFromArray } from "$/jaz-ts-utils/object";
-import { MAX_CONCURRENT_DOWNLOADS } from "@main/config/content-policy";
 import { ContentRef, contentRefKey, ContentType } from "@main/content/content-ref";
 import { ContentReporter } from "@main/content/content-state";
+import { downloadSlots } from "@main/content/download-slots";
 import { logger } from "@main/utils/logger";
 
 const log = logger("content-queue.ts");
@@ -29,9 +29,16 @@ function operationKey(operation: ContentOperation, ref: ContentRef) {
     return `${operation}:${contentRefKey(ref)}`;
 }
 
+// Games are the only content pr-downloader fetches through rapid, and rapid's index files live once
+// under the assets path: two invocations touching them at the same time can corrupt them. Maps come
+// over HTTP and share nothing, so they are safe to run alongside anything.
+function usesRapid(ref: ContentRef) {
+    return ref.type === "game";
+}
+
 /**
- * Owns how much content is acquired at once. The limit has to live here rather than in pr-downloader,
- * whose own limit is per invocation and so cannot describe a total across several of them.
+ * Orders content operations and holds a download slot for each one it runs, so acquisitions share the
+ * client's limit with everything else that downloads rather than having a private one.
  */
 export class ContentQueue {
     public readonly onChanged: Signal<ContentQueueEntry[]> = new Signal();
@@ -39,7 +46,6 @@ export class ContentQueue {
     private readonly queued: PendingOperation[] = [];
     private readonly pending = new Map<string, Promise<void>>();
     private active: PendingOperation[] = [];
-    private workers = 0;
 
     public constructor(
         private readonly run: (operation: ContentOperation, type: ContentType, ids: string[], report: ContentReporter) => Promise<void>,
@@ -73,16 +79,21 @@ export class ContentQueue {
         this.onChanged.dispatch(this.snapshot());
 
         // Deferred so a burst enqueued in the same tick is all visible before workers pick from it,
-        // which keeps the engine-first rule from being decided by whichever ref arrived first.
+        // rather than the order depending on when each enqueue happened to land.
         queueMicrotask(() => this.drain());
 
         return settled;
     }
 
     // FIFO, skipping any ref already being worked on so a removal never overlaps an acquisition of the
-    // same content.
+    // same content, and any rapid-backed ref while another one is running.
     private takeNext() {
-        const index = this.queued.findIndex((entry) => !this.active.some((running) => contentRefKey(running.ref) === contentRefKey(entry.ref)));
+        const rapidBusy = this.active.some((running) => usesRapid(running.ref));
+        const index = this.queued.findIndex((entry) => {
+            const sameRef = this.active.some((running) => contentRefKey(running.ref) === contentRefKey(entry.ref));
+
+            return !sameRef && !(rapidBusy && usesRapid(entry.ref));
+        });
 
         return index === -1 ? undefined : this.queued.splice(index, 1)[0];
     }
@@ -98,13 +109,14 @@ export class ContentQueue {
     }
 
     private drain() {
-        while (this.workers < MAX_CONCURRENT_DOWNLOADS) {
+        while (downloadSlots.tryTake()) {
             const next = this.takeNext();
             if (!next) {
+                downloadSlots.give();
+
                 return;
             }
 
-            this.workers++;
             void this.work(next);
         }
     }
@@ -141,7 +153,7 @@ export class ContentQueue {
                 next = this.takeNext();
             }
         } finally {
-            this.workers--;
+            downloadSlots.give();
             // Finishing may have unblocked work this worker was not allowed to pick up.
             this.drain();
         }

@@ -14,13 +14,10 @@ import chokidar, { FSWatcher } from "chokidar";
 import { UltraSimpleMapParser } from "$/map-parser/ultrasimple-map-parser";
 import { removeFromArray } from "$/jaz-ts-utils/object";
 import { engineProvider } from "@main/content/engine/engine-provider";
-import { calcChecksum } from "@main/utils/checksums";
+import { calcChecksum, whenChecksumsIdle } from "@main/utils/checksums";
 
 const log = logger("map-provider.ts");
 
-/**
- * @todo replace queue method with syncMapCache function once prd returns map file name
- */
 export class MapProvider extends PrDownloaderAPI<string, MapData> {
     public mapNameFileNameLookup: { [springName: string]: string | undefined } = {};
     public fileNameMapNameLookup: { [fileName: string]: string | undefined } = {};
@@ -29,13 +26,11 @@ export class MapProvider extends PrDownloaderAPI<string, MapData> {
     public readonly onMapDeleted: Signal<string> = new Signal();
 
     private watcher?: FSWatcher;
-
-    protected cachingMaps = false;
-    protected readonly mapCacheQueue: Set<string> = new Set();
+    private mapsWork: Promise<void> = Promise.resolve();
 
     public override async init() {
-        this.initLookupMaps();
-        this.startWatchingMapFolder();
+        await this.syncMaps();
+        await this.startWatchingMapFolder();
 
         engineProvider.onDownloadComplete.add((downloadInfo) => {
             for (const [mapName, fileName] of Object.entries(this.mapNameFileNameLookup)) {
@@ -58,31 +53,91 @@ export class MapProvider extends PrDownloaderAPI<string, MapData> {
         await this.init();
     }
 
-    protected async initLookupMaps() {
-        async function* findMaps() {
-            // We apply toReversed to keep the precedence order: higher precedence visited later.
-            for (const mapsDir of getMapsPaths().toReversed()) {
-                try {
-                    yield* (await fs.promises.readdir(mapsDir)).filter((f) => f.endsWith(".sd7")).map((f) => path.join(mapsDir, f));
-                } catch {
-                    // dir may not exist yet (e.g. before first path confirmation)
-                }
-            }
-        }
-        log.debug("Scanning for maps");
-        for await (const filePath of findMaps()) {
-            try {
-                const mapName = await this.getMapNameFromFile(filePath);
-                const fileName = path.basename(filePath);
+    /**
+     * Brings the springName lookups in line with what is actually in the maps directories, and reports
+     * whatever changed. This is the only thing that mutates them.
+     *
+     * Reconciling rather than reacting to individual events, because the two things that change the
+     * directories cannot both be handled the same way: our own downloads and removals need to be visible
+     * the moment they return, while a file the user added or deleted is only ever noticed by the
+     * watcher. Both call this instead of each keeping its own idea of what is installed.
+     */
+    public syncMaps(): Promise<void> {
+        return this.serialise(() => this.reconcileMaps());
+    }
 
-                this.mapNameFileNameLookup[mapName] = fileName;
-                this.fileNameMapNameLookup[fileName] = mapName;
-            } catch (err) {
-                log.error(`File may be corrupted, removing ${filePath}: ${err}`);
-                fs.promises.rm(filePath);
+    /**
+     * Runs work against the maps directories one piece at a time, and never inside a pass that started
+     * earlier. Both halves matter: a reconcile that has already listed the directory cannot report a
+     * change made afterwards, and reading an archive to identify it holds the file open, so a removal
+     * overlapping a reconcile fails outright on Windows.
+     */
+    private serialise<T>(work: () => Promise<T>): Promise<T> {
+        const result = this.mapsWork.then(work);
+        this.mapsWork = result.then(
+            () => undefined,
+            (err) => log.error("Maps directory work failed", err)
+        );
+
+        return result;
+    }
+
+    private async reconcileMaps() {
+        const onDisk = new Map<string, string>();
+
+        // toReversed keeps the precedence order: higher precedence visited later, so it wins.
+        for (const mapsDir of getMapsPaths().toReversed()) {
+            let entries: string[];
+            try {
+                entries = await fs.promises.readdir(mapsDir);
+            } catch {
+                continue; // dir may not exist yet (e.g. before first path confirmation)
+            }
+
+            for (const fileName of entries.filter((entry) => entry.endsWith(".sd7"))) {
+                onDisk.set(fileName, path.join(mapsDir, fileName));
             }
         }
-        log.info(`Found ${Object.keys(this.mapNameFileNameLookup).length} maps`);
+
+        for (const [fileName, springName] of Object.entries(this.fileNameMapNameLookup)) {
+            if (springName === undefined || onDisk.has(fileName)) {
+                continue;
+            }
+
+            delete this.fileNameMapNameLookup[fileName];
+            delete this.mapNameFileNameLookup[springName];
+            log.debug(`Map gone: ${springName}`);
+            this.onMapDeleted.dispatch(springName);
+        }
+
+        for (const [fileName, filePath] of onDisk) {
+            if (this.fileNameMapNameLookup[fileName] !== undefined) {
+                continue;
+            }
+
+            let springName: string;
+            try {
+                springName = await this.getMapNameFromFile(filePath);
+            } catch (err) {
+                // Deliberately left alone rather than removed as corrupt: a sync triggered by one
+                // finished download can reach another that is still being written, and deleting that
+                // would destroy a download in progress. A later pass picks it up once it is complete.
+                log.warn(`Could not identify ${filePath} yet: ${err}`);
+                continue;
+            }
+
+            this.mapNameFileNameLookup[springName] = fileName;
+            this.fileNameMapNameLookup[fileName] = springName;
+            log.debug(`Map found: ${springName}`);
+            this.onMapAdded.dispatch(springName);
+
+            const defaultEngine = engineProvider.getDefaultEngine();
+            if (defaultEngine?.installed) {
+                calcChecksum(defaultEngine.id, springName);
+            }
+        }
+
+        log.info(`${Object.keys(this.mapNameFileNameLookup).length} maps installed`);
     }
 
     ultraSimpleMapParser = new UltraSimpleMapParser();
@@ -92,47 +147,18 @@ export class MapProvider extends PrDownloaderAPI<string, MapData> {
     }
 
     protected async startWatchingMapFolder() {
-        //using chokidar to watch for changes in the maps folder
         await this.watcher?.close();
         this.watcher = chokidar
             .watch(getMapsPaths().slice(), {
                 ignoreInitial: true, //ignore the initial scan
                 awaitWriteFinish: true, //wait for the file to be fully written before emitting the event
             })
-            .on("add", (filepath) => {
+            .on("all", (_event, filepath) => {
                 if (!filepath.endsWith("sd7")) {
                     return;
                 }
-                log.debug(`Chokidar -=- Map added: ${filepath}`);
-                const filename = path.basename(filepath);
-                // Update the lookup maps
-                this.getMapNameFromFile(filepath).then((mapName) => {
-                    this.mapNameFileNameLookup[mapName] = filename;
-                    this.fileNameMapNameLookup[filename] = mapName;
-                    this.onMapAdded.dispatch(mapName);
 
-                    const defaultEngine = engineProvider.getDefaultEngine();
-                    if (defaultEngine?.installed) {
-                        calcChecksum(defaultEngine.id, mapName);
-                    }
-                });
-            })
-            .on("unlink", (filepath) => {
-                if (!filepath.endsWith("sd7")) {
-                    return;
-                }
-                log.debug(`Chokidar -=- Map removed: ${filepath}`);
-
-                const pathBaseName = path.basename(filepath);
-
-                if (pathBaseName) {
-                    const springName = this.fileNameMapNameLookup[pathBaseName];
-                    this.fileNameMapNameLookup[pathBaseName] = undefined;
-                    if (springName) {
-                        this.mapNameFileNameLookup[springName] = undefined;
-                        this.onMapDeleted.dispatch(springName);
-                    }
-                }
+                void this.syncMaps();
             });
     }
 
@@ -146,22 +172,11 @@ export class MapProvider extends PrDownloaderAPI<string, MapData> {
 
     public async downloadMap(springName: string) {
         if (this.isVersionInstalled(springName)) return;
-        if (this.currentDownloads.some((download) => download.name === springName)) {
-            return await new Promise<void>((resolve) => {
-                this.onDownloadComplete.addOnce((mapData) => {
-                    if (mapData.name === springName) {
-                        resolve();
-                    }
-                });
-            });
-        }
+
         const downloadInfo = await this.downloadContent("map", springName);
         removeFromArray(this.currentDownloads, downloadInfo);
+        await this.syncMaps();
         this.onDownloadComplete.dispatch(downloadInfo);
-    }
-
-    public async attemptCacheErrorMaps() {
-        throw new Error("Method not implemented.");
     }
 
     public async uninstallVersion(version: MapData | string) {
@@ -172,10 +187,16 @@ export class MapProvider extends PrDownloaderAPI<string, MapData> {
             throw new Error(`No installed map file for: ${springName}`);
         }
 
-        for (const mapsDir of getMapsPaths()) {
-            await fs.promises.rm(path.join(mapsDir, fileName), { force: true });
-        }
-        log.debug(`Map removed: ${springName}`);
+        await this.serialise(async () => {
+            // A checksum spawned when this map was found keeps the archive open, and nothing new can be
+            // queued meanwhile because reconciling runs on this same queue.
+            await whenChecksumsIdle();
+
+            for (const mapsDir of getMapsPaths()) {
+                await fs.promises.rm(path.join(mapsDir, fileName), { force: true });
+            }
+        });
+        await this.syncMaps();
     }
 }
 
