@@ -2,17 +2,29 @@
 //
 // SPDX-License-Identifier: MIT
 
+import { accountService } from "@main/services/account.service";
 import { authService } from "@main/services/auth.service";
 import { TachyonClient, TachyonClientRequestHandlers } from "@main/tachyon/tachyon-client";
 import { logger } from "@main/utils/logger";
 import { ipcMain } from "electron";
 import { BattleStartRequestData, MatchmakingCheckAssetsRequestData } from "tachyon-protocol/types";
+import { TachyonEvent } from "tachyon-protocol";
 import { BarIpcWebContents } from "@main/typed-ipc";
 import { gameContentAPI } from "@main/content/game/game-content";
 import { mapContentAPI } from "@main/content/maps/map-content";
 import { engineContentAPI } from "@main/content/engine/engine-content";
 
 const log = logger("tachyon-service");
+
+// user/self is the only thing that tells us who we are, and it only ever arrives
+// over the socket. Keeping it beside the credentials means the name is there on
+// the next launch, before anything has connected.
+function rememberIdentity(event: TachyonEvent) {
+    if (event.commandId !== "user/self") return;
+
+    const { userId, username, displayName, countryCode } = event.data.user;
+    accountService.saveIdentity({ userId, username, displayName, countryCode: countryCode ?? "" });
+}
 
 function registerIpcHandlers(webContents: BarIpcWebContents) {
     const requestHandlers: TachyonClientRequestHandlers = {
@@ -60,6 +72,7 @@ function registerIpcHandlers(webContents: BarIpcWebContents) {
 
     tachyonClient.onEvent.add((event) => {
         log.info(`Received event: ${JSON.stringify(event)}`);
+        rememberIdentity(event);
         webContents.send("tachyon:event", event);
     });
 

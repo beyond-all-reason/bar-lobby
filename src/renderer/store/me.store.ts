@@ -79,6 +79,11 @@ async function logout() {
     await syncAuthState();
 }
 
+// Main persists the identity off this same event and that is what gets read back
+// on startup, but db.users is still where anything looking up a user by id goes,
+// the profile view included, so our own record has to be in there too.
+// TODO tidy this up: the row is a snapshot of the whole reactive object, written
+// in two steps that aren't in one transaction, and nothing reads isMe any more.
 window.tachyon.onEvent("user/self", async (event) => {
     console.debug(`Received user/self event: ${JSON.stringify(event)}`);
     if (event && event.user) {
@@ -236,14 +241,12 @@ export async function initMeStore() {
         }
     });
 
-    await db.users
-        .where({ isMe: 1 })
-        .first()
-        .then((user) => {
-            if (user) {
-                Object.assign(me, user);
-            }
-        });
+    // Last known, from whenever we were last connected. Absent on a fresh
+    // install, in which case the defaults stand in until a socket says otherwise.
+    const identity = await window.auth.getIdentity();
+    if (identity) {
+        Object.assign(me, identity);
+    }
 
     await syncAuthState();
     await restorePreviousSession();

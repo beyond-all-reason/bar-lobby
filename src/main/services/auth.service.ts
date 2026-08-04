@@ -184,6 +184,7 @@ function registerIpcHandlers(webContents: BarIpcWebContents) {
     ipcMain.handle("auth:logout", () => signOut());
     ipcMain.handle("auth:hasCredentials", () => !!accountService.getRefreshToken());
     ipcMain.handle("auth:state", () => state());
+    ipcMain.handle("auth:identity", () => accountService.getIdentity());
 }
 
 export const authService = {
