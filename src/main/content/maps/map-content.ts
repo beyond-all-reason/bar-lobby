@@ -6,6 +6,7 @@ import * as fs from "fs";
 import * as path from "path";
 
 import { MapData } from "@main/content/maps/map-data";
+import { MapDownloadQueue, type MapDownloadQueueEntry } from "@main/content/maps/map-download-queue";
 import { logger } from "@main/utils/logger";
 import { Signal } from "$/jaz-ts-utils/signal";
 import { PrDownloaderAPI } from "@main/content/pr-downloader";
@@ -17,6 +18,8 @@ import { engineContentAPI } from "@main/content/engine/engine-content";
 import { calcChecksum } from "@main/utils/checksums";
 
 const log = logger("map-content.ts");
+
+export type { MapDownloadQueueEntry } from "@main/content/maps/map-download-queue";
 
 /**
  * @todo replace queue method with syncMapCache function once prd returns map file name
@@ -32,6 +35,9 @@ export class MapContentAPI extends PrDownloaderAPI<string, MapData> {
 
     protected cachingMaps = false;
     protected readonly mapCacheQueue: Set<string> = new Set();
+    private readonly mapDownloadQueue = new MapDownloadQueue((springName) => this.downloadQueuedMap(springName));
+
+    public readonly onMapDownloadQueueChanged = this.mapDownloadQueue.onChanged;
 
     public override async init() {
         this.initLookupMaps();
@@ -140,21 +146,22 @@ export class MapContentAPI extends PrDownloaderAPI<string, MapData> {
         return this.mapNameFileNameLookup[springName] !== undefined;
     }
 
-    public async downloadMaps(springNames: string[]) {
-        return Promise.all(springNames.map((springName) => this.downloadMap(springName)));
+    public getMapDownloadQueue(): MapDownloadQueueEntry[] {
+        return this.mapDownloadQueue.getSnapshot();
     }
 
-    public async downloadMap(springName: string) {
+    public async downloadMaps(springNames: string[]) {
+        return await Promise.all(springNames.map((springName) => this.downloadMap(springName)));
+    }
+
+    public downloadMap(springName: string): Promise<void> {
+        if (this.isVersionInstalled(springName)) return Promise.resolve();
+
+        return this.mapDownloadQueue.enqueue(springName);
+    }
+
+    private async downloadQueuedMap(springName: string) {
         if (this.isVersionInstalled(springName)) return;
-        if (this.currentDownloads.some((download) => download.name === springName)) {
-            return await new Promise<void>((resolve) => {
-                this.onDownloadComplete.addOnce((mapData) => {
-                    if (mapData.name === springName) {
-                        resolve();
-                    }
-                });
-            });
-        }
         const downloadInfo = await this.downloadContent("map", springName);
         removeFromArray(this.currentDownloads, downloadInfo);
         this.onDownloadComplete.dispatch(downloadInfo);

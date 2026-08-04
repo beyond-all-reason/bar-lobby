@@ -3,10 +3,12 @@
 // SPDX-License-Identifier: MIT
 
 import { DownloadInfo } from "@main/content/downloads";
+import type { MapDownloadQueueEntry } from "@main/content/maps/map-content";
 import { reactive } from "vue";
 
 export const downloadsStore: {
     isInitialized: boolean;
+    mapDownloadQueue: MapDownloadQueueEntry[];
     mapDownloads: DownloadInfo[];
     engineDownloads: DownloadInfo[];
     gameDownloads: DownloadInfo[];
@@ -16,6 +18,7 @@ export const downloadsStore: {
     isPathChanging: boolean;
 } = reactive({
     isInitialized: false,
+    mapDownloadQueue: [],
     mapDownloads: [],
     engineDownloads: [],
     gameDownloads: [],
@@ -25,7 +28,12 @@ export const downloadsStore: {
     isPathChanging: false,
 });
 
-export function initDownloadsStore() {
+export async function initDownloadsStore() {
+    window.maps.onDownloadQueueChanged((queue) => {
+        downloadsStore.mapDownloadQueue = queue;
+    });
+    downloadsStore.mapDownloadQueue = await window.maps.getDownloadQueue();
+
     window.downloads.onDownloadMapStart((downloadInfo) => {
         console.debug("Download started", downloadInfo);
         downloadsStore.mapDownloads.push({ ...downloadInfo });

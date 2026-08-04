@@ -10,6 +10,7 @@ import type { Info } from "@main/services/info.service";
 import type { IpcMain, IpcMainEvent, IpcMainInvokeEvent, IpcRenderer, IpcRendererEvent, WebContents } from "electron";
 import type { logLevels } from "@main/services/log.service";
 import type { MapData, MapDownloadData } from "@main/content/maps/map-data";
+import type { MapDownloadQueueEntry } from "@main/content/maps/map-content";
 import type { MultiplayerLaunchSettings } from "@main/game/game";
 import type { NewsFeedData } from "@main/services/news.service";
 import type { Replay } from "@main/content/replays/replay";
@@ -36,6 +37,7 @@ export type IPCEvents = {
     "downloads:map:start": (downloadInfo: DownloadInfo) => void;
     "game:closed": () => void;
     "game:launched": () => void;
+    "maps:downloadQueueChanged": (queue: MapDownloadQueueEntry[]) => void;
     "maps:mapAdded": (filename: string) => void;
     "maps:mapDeleted": (filename: string) => void;
     "navigation:navigateTo": (target: string) => void;
@@ -88,6 +90,7 @@ export type IPCCommands = {
     "maps:attemptCacheErrorMaps": () => void;
     "maps:downloadMap": (springName: string) => void;
     "maps:downloadMaps": (springNames: string[]) => void[];
+    "maps:getDownloadQueue": () => MapDownloadQueueEntry[];
     "maps:getInstalledMapNames": () => string[];
     "maps:getInstalledVersions": () => Map<string, MapData>;
     "maps:isVersionInstalled": (springName: string) => boolean;

@@ -2080,6 +2080,8 @@
             },
             "downloads": {
                 "noDownloads": "No downloads active",
+                "queued": "Queued",
+                "downloading": "Downloading",
                 "moreDownloads": "and {count} more...",
                 "starting": "Starting...",
                 "extracting": "Extracting...",
@@ -2401,6 +2403,9 @@
                     "sortBy": "Sort By",
                     "labelName": "Name",
                     "labelSize": "Size",
+                    "downloadSelected": "Download selected ({count})",
+                    "selectAll": "Select all available",
+                    "clearSelection": "Clear selection",
                     "noMapsFound": "No maps found!",
                     "pleaseTryDifferent": "Please try different keywords / filters"
                 },

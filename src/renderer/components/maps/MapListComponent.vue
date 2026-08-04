@@ -14,13 +14,30 @@ SPDX-License-Identifier: MIT
                 :label="t('lobby.components.maps.mapListComponents.sortBy')"
                 optionLabel="label"
             />
+            <Button class="gray select-all-maps" @click="selectAllMapSelections">
+                {{ t("lobby.components.maps.mapListComponents.selectAll") }}
+            </Button>
+            <Button class="gray clear-all-maps" :disabled="selectedDownloadMapNames.length === 0" @click="clearMapSelections">
+                {{ t("lobby.components.maps.mapListComponents.clearSelection") }}
+            </Button>
+            <Button class="green download-selected" :disabled="selectedDownloadMapNames.length === 0" @click="downloadSelectedMaps">
+                {{ t("lobby.components.maps.mapListComponents.downloadSelected", { count: selectedDownloadMapNames.length }) }}
+            </Button>
         </div>
 
         <div class="flex-col flex-grow fullheight">
             <div class="scroll-container" style="overflow-y: scroll" ref="el">
                 <div class="maps">
                     <TransitionGroup name="maps-list">
-                        <MapOverviewCard v-for="map in maps" :key="map.springName" :map="map" @click="mapSelected(map)" />
+                        <div v-for="map in maps" :key="map.springName" class="map-card">
+                            <MapOverviewCard :map="map" @click="mapSelected(map)" />
+                            <div v-if="isMapDownloadEligible(map)" class="map-card__selection" @click.stop>
+                                <Checkbox
+                                    :modelValue="selectedMapNames.has(map.springName)"
+                                    @update:modelValue="toggleMapSelection(map.springName)"
+                                />
+                            </div>
+                        </div>
                     </TransitionGroup>
                     <div v-if="(maps?.length || 0) <= 0">
                         <h4>{{ t("lobby.components.maps.mapListComponents.noMapsFound") }}</h4>
@@ -42,6 +59,9 @@ SPDX-License-Identifier: MIT
  */
 import { Ref, ref } from "vue";
 
+import Button from "@renderer/components/controls/Button.vue";
+import Checkbox from "@renderer/components/controls/Checkbox.vue";
+
 import SearchBox from "@renderer/components/controls/SearchBox.vue";
 import Select from "@renderer/components/controls/Select.vue";
 import MapOverviewCard from "@renderer/components/maps/MapOverviewCard.vue";
@@ -49,6 +69,7 @@ import { type MapData } from "@main/content/maps/map-data";
 import type { GameType, Terrain } from "@main/content/maps/map-metadata";
 import { db } from "@renderer/store/db";
 import { useDexieLiveQueryWithDeps } from "@renderer/composables/useDexieLiveQuery";
+import { useMapDownloadSelection } from "@renderer/composables/useMapDownloadSelection";
 import { mapsStore } from "@renderer/store/maps.store";
 
 import { useInfiniteScroll } from "@vueuse/core";
@@ -79,28 +100,39 @@ useInfiniteScroll(
     { distance: 300, interval: 550 }
 );
 
-const maps = useDexieLiveQueryWithDeps([searchVal, sortMethod, limit, filters], () => {
+function getFilteredMaps(mapLimit?: number) {
     const { terrain, gameType } = filters;
     const terrainFilters = new Set([...(<Terrain[]>Object.keys(terrain)).filter((key) => !!terrain[key]).map((k) => k)]);
     const gameTypeFilters = new Set([...(<GameType[]>Object.keys(gameType)).filter((key) => gameType[key]).map((k) => k)]);
+    const filteredMaps = db.maps.filter((map) => {
+        const favorites = !filters.favoritesOnly || map.isFavorite;
+        const downloaded = !filters.downloadedOnly || map.isInstalled;
+        return Boolean(
+            map.displayName.toLocaleLowerCase().includes(searchVal.value.toLocaleLowerCase()) &&
+                filters.minPlayers <= map.playerCountMax &&
+                filters.maxPlayers >= map.playerCountMax &&
+                (terrainFilters.size === 0 || terrainFilters.isSubsetOf(new Set([...map.terrain]))) &&
+                (gameTypeFilters.size === 0 || !gameTypeFilters.isDisjointFrom(new Set([...map.tags]))) &&
+                favorites &&
+                downloaded
+        );
+    });
 
-    return db.maps
-        .filter((map) => {
-            const favorites = !filters.favoritesOnly || map.isFavorite;
-            const downloaded = !filters.downloadedOnly || map.isInstalled;
-            return Boolean(
-                map.displayName.toLocaleLowerCase().includes(searchVal.value.toLocaleLowerCase()) &&
-                    filters.minPlayers <= map.playerCountMax &&
-                    filters.maxPlayers >= map.playerCountMax &&
-                    (terrainFilters.size === 0 || terrainFilters.isSubsetOf(new Set([...map.terrain]))) &&
-                    (gameTypeFilters.size === 0 || !gameTypeFilters.isDisjointFrom(new Set([...map.tags]))) &&
-                    favorites &&
-                    downloaded
-            );
-        })
-        .limit(limit.value)
-        .sortBy(sortMethod.value?.dbKey || "");
-});
+    return (mapLimit === undefined ? filteredMaps : filteredMaps.limit(mapLimit)).sortBy(sortMethod.value?.dbKey || "");
+}
+
+const maps = useDexieLiveQueryWithDeps([searchVal, sortMethod, limit, filters], () => getFilteredMaps(limit.value));
+const allFilteredMaps = useDexieLiveQueryWithDeps([searchVal, sortMethod, filters], () => getFilteredMaps());
+
+const {
+    selectedMapNames,
+    selectedDownloadMapNames,
+    isEligible: isMapDownloadEligible,
+    submit: downloadSelectedMaps,
+    toggle: toggleMapSelection,
+    selectAll: selectAllMapSelections,
+    clearSelection: clearMapSelections,
+} = useMapDownloadSelection(allFilteredMaps);
 
 function mapSelected(map: MapData) {
     emit("map-selected", map);
@@ -113,6 +145,18 @@ function mapSelected(map: MapData) {
     grid-gap: 15px;
     grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
     padding-right: 10px;
+}
+
+.map-card {
+    position: relative;
+    cursor: pointer;
+
+    &__selection {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        z-index: 6;
+    }
 }
 
 // Transition
