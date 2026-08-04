@@ -155,10 +155,12 @@ export async function initTachyonStore() {
         if (!wasConnected) return;
 
         stopFetchingServerStats();
-        // A close the user asked for is not a fault, so it gets no retry. Anything
-        // else while they still want to be online does. The overlay that goes up
-        // with the retries is what tells the user, so there is no alert here.
-        if (me.isAuthenticated && tachyonStore.wantsConnection) {
+        // A close the user asked for is not a fault, so it gets no retry.
+        // wantsConnection is the only thing consulted here: pairing it with a
+        // second flag meant the two could disagree about whether a close was
+        // deliberate. The overlay that goes up with the retries is what tells the
+        // user, so there is no alert either.
+        if (tachyonStore.wantsConnection) {
             startReconnecting();
         }
     });
@@ -172,6 +174,15 @@ export async function initTachyonStore() {
 
         console.debug("Network went away, dropping the connection");
         void window.tachyon.dropConnection();
+    });
+
+    // Losing the session is not something to retry through, whoever ended it, so
+    // the intent goes with it rather than being cleared at each call site.
+    window.auth.onChanged(({ authenticated }) => {
+        if (authenticated) return;
+
+        tachyonStore.wantsConnection = false;
+        stopReconnecting();
     });
 
     window.tachyon.onBattleStart((springString, data) => {
