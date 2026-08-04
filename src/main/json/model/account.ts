@@ -10,5 +10,7 @@ export const accountSchema = Type.Object({
     // Access tokens are opaque to us, so their lifetime has to be recorded here
     // rather than read back out of the token.
     expiresAt: Type.Number({ default: 0 }),
-    encrypted: Type.Boolean({ default: false }),
+    // Deliberately has no default: absent means the file predates this field and
+    // we have to work out for ourselves whether the values are encrypted.
+    encrypted: Type.Optional(Type.Boolean()),
 });

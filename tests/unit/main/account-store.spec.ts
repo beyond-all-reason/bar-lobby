@@ -120,6 +120,41 @@ describe("account store", () => {
         expect(reopened.getRefreshToken()).toBe("refresh-1");
     });
 
+    // Files written before the encrypted flag existed have to keep working, or
+    // everyone gets signed out by the upgrade.
+    it("decrypts a file from before the flag existed", async () => {
+        fs.writeFileSync(
+            accountFile(),
+            JSON.stringify({
+                token: Buffer.from("enc:access-1").toString("base64"),
+                refreshToken: Buffer.from("enc:refresh-1").toString("base64"),
+            })
+        );
+
+        const accountService = await loadService();
+
+        expect(accountService.getToken()).toBe("access-1");
+        expect(accountService.getRefreshToken()).toBe("refresh-1");
+    });
+
+    it("reads a plain value from before the flag existed", async () => {
+        fs.writeFileSync(accountFile(), JSON.stringify({ token: "access-1", refreshToken: "refresh-1" }));
+
+        const accountService = await loadService();
+
+        expect(accountService.getToken()).toBe("access-1");
+        expect(accountService.getRefreshToken()).toBe("refresh-1");
+    });
+
+    it("returns nothing for a file from before the flag when encryption is unavailable", async () => {
+        fs.writeFileSync(accountFile(), JSON.stringify({ token: Buffer.from("enc:access-1").toString("base64") }));
+        electronMock.state.available = false;
+
+        const accountService = await loadService();
+
+        expect(accountService.getToken()).toBe("");
+    });
+
     it("keeps the refresh token when only the access token is forgotten", async () => {
         const accountService = await loadService();
         await accountService.saveTokens(tokens);
