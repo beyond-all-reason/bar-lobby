@@ -19,12 +19,12 @@ import { LuaOptionSection } from "@main/content/game/lua-options";
 import { PrDownloaderAPI } from "@main/content/pr-downloader";
 import { getRapidIndexPath, getPackagePath, getPoolPath, getGamePaths } from "@main/config/app";
 import { fileExists } from "@main/utils/file";
-import { engineContentAPI } from "@main/content/engine/engine-content";
+import { engineProvider } from "@main/content/engine/engine-provider";
 import { calcChecksum } from "@main/utils/checksums";
 
-const log = logger("game-content.ts");
+const log = logger("game-provider.ts");
 
-export class GameContentAPI extends PrDownloaderAPI<string, GameVersion> {
+export class GameProvider extends PrDownloaderAPI<string, GameVersion> {
     public packageGameVersionLookup: { [md5: string]: string | undefined } = {};
     public gameVersionPackageLookup: { [gameVersion: string]: string | undefined } = {};
 
@@ -33,7 +33,7 @@ export class GameContentAPI extends PrDownloaderAPI<string, GameVersion> {
         await this.scanPackagesDir();
         await this.scanLocalGames();
 
-        engineContentAPI.onDownloadComplete.add((downloadInfo) => {
+        engineProvider.onDownloadComplete.add((downloadInfo) => {
             for (const gameVersion of this.availableVersions.keys()) {
                 calcChecksum(downloadInfo.name, gameVersion);
             }
@@ -210,7 +210,7 @@ export class GameContentAPI extends PrDownloaderAPI<string, GameVersion> {
         this.availableVersions.set(gameVersion, { gameVersion, packageMd5, luaOptionSections, ais });
         super.downloadComplete(downloadInfo);
 
-        const defaultEngine = engineContentAPI.getDefaultEngine();
+        const defaultEngine = engineProvider.getDefaultEngine();
         if (defaultEngine?.installed) {
             calcChecksum(defaultEngine.id, gameVersion);
         }
@@ -242,4 +242,4 @@ export class GameContentAPI extends PrDownloaderAPI<string, GameVersion> {
     // }
 }
 
-export const gameContentAPI = new GameContentAPI();
+export const gameProvider = new GameProvider();

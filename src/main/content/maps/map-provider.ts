@@ -13,15 +13,15 @@ import { getMapsPaths } from "@main/config/app";
 import chokidar, { FSWatcher } from "chokidar";
 import { UltraSimpleMapParser } from "$/map-parser/ultrasimple-map-parser";
 import { removeFromArray } from "$/jaz-ts-utils/object";
-import { engineContentAPI } from "@main/content/engine/engine-content";
+import { engineProvider } from "@main/content/engine/engine-provider";
 import { calcChecksum } from "@main/utils/checksums";
 
-const log = logger("map-content.ts");
+const log = logger("map-provider.ts");
 
 /**
  * @todo replace queue method with syncMapCache function once prd returns map file name
  */
-export class MapContentAPI extends PrDownloaderAPI<string, MapData> {
+export class MapProvider extends PrDownloaderAPI<string, MapData> {
     public mapNameFileNameLookup: { [springName: string]: string | undefined } = {};
     public fileNameMapNameLookup: { [fileName: string]: string | undefined } = {};
 
@@ -37,7 +37,7 @@ export class MapContentAPI extends PrDownloaderAPI<string, MapData> {
         this.initLookupMaps();
         this.startWatchingMapFolder();
 
-        engineContentAPI.onDownloadComplete.add((downloadInfo) => {
+        engineProvider.onDownloadComplete.add((downloadInfo) => {
             for (const [mapName, fileName] of Object.entries(this.mapNameFileNameLookup)) {
                 if (fileName) {
                     calcChecksum(downloadInfo.name, mapName);
@@ -111,7 +111,7 @@ export class MapContentAPI extends PrDownloaderAPI<string, MapData> {
                     this.fileNameMapNameLookup[filename] = mapName;
                     this.onMapAdded.dispatch(mapName);
 
-                    const defaultEngine = engineContentAPI.getDefaultEngine();
+                    const defaultEngine = engineProvider.getDefaultEngine();
                     if (defaultEngine?.installed) {
                         calcChecksum(defaultEngine.id, mapName);
                     }
@@ -179,4 +179,4 @@ export class MapContentAPI extends PrDownloaderAPI<string, MapData> {
     }
 }
 
-export const mapContentAPI = new MapContentAPI();
+export const mapProvider = new MapProvider();

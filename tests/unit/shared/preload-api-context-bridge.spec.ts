@@ -205,14 +205,12 @@ describe("Preload API Context Bridge", () => {
 
         mockWindow.maps.downloadMap("map1");
         mockWindow.maps.downloadMaps(["map1", "map2"]);
-        mockWindow.maps.getInstalledVersions();
         mockWindow.maps.isVersionInstalled("map1");
         mockWindow.maps.fetchAllMaps();
         mockWindow.maps.fetchMapImages("imgsrc");
 
         expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("maps:downloadMap", "map1");
         expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("maps:downloadMaps", ["map1", "map2"]);
-        expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("maps:getInstalledVersions");
         expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("maps:isVersionInstalled", "map1");
         expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("maps:online:fetchAllMaps");
         expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("maps:online:fetchMapImages", "imgsrc");

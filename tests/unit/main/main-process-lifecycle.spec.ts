@@ -15,14 +15,15 @@ describe("Main Process Lifecycle", () => {
 
     // Mock all services
     const mockServices = {
-        engineService: { init: vi.fn().mockResolvedValue(undefined), registerIpcHandlers: vi.fn() },
+        engineService: { registerIpcHandlers: vi.fn() },
         settingsService: { init: vi.fn().mockResolvedValue(undefined), registerIpcHandlers: vi.fn(), getSettings: vi.fn().mockReturnValue({ assetsPath: "" }) },
         accountService: { init: vi.fn().mockResolvedValue(undefined) },
         replaysService: { init: vi.fn().mockResolvedValue(undefined), registerIpcHandlers: vi.fn() },
-        gameService: { init: vi.fn().mockResolvedValue(undefined), registerIpcHandlers: vi.fn() },
-        mapsService: { init: vi.fn().mockResolvedValue(undefined), registerIpcHandlers: vi.fn() },
+        gameService: { registerIpcHandlers: vi.fn() },
+        mapsService: { registerIpcHandlers: vi.fn() },
         autoUpdaterService: { init: vi.fn().mockResolvedValue(undefined), registerIpcHandlers: vi.fn() },
         contentService: { registerIpcHandlers: vi.fn() },
+        contentAPI: { init: vi.fn().mockResolvedValue(undefined), reinit: vi.fn().mockResolvedValue(undefined) },
         logService: { registerIpcHandlers: vi.fn() },
         infoService: { registerIpcHandlers: vi.fn() },
         authService: { registerIpcHandlers: vi.fn() },
@@ -120,6 +121,7 @@ describe("Main Process Lifecycle", () => {
         vi.doMock("@main/services/engine.service", () => ({ default: mockServices.engineService }));
         vi.doMock("@main/services/auto-updater.service", () => ({ default: mockServices.autoUpdaterService }));
         vi.doMock("@main/services/content.service", () => ({ default: mockServices.contentService }));
+        vi.doMock("@main/content/content-api", () => ({ contentAPI: mockServices.contentAPI }));
 
         vi.doMock("@main/services/settings.service", () => ({ settingsService: mockServices.settingsService }));
         vi.doMock("@main/services/info.service", () => ({ infoService: mockServices.infoService }));
@@ -208,12 +210,10 @@ describe("Main Process Lifecycle", () => {
     it("should initialize services when app is ready", async () => {
         await import("@main/main");
 
-        expect(mockServices.engineService.init).toHaveBeenCalled();
         expect(mockServices.settingsService.init).toHaveBeenCalled();
+        expect(mockServices.contentAPI.init).toHaveBeenCalled();
         expect(mockServices.accountService.init).toHaveBeenCalled();
         expect(mockServices.replaysService.init).toHaveBeenCalled();
-        expect(mockServices.gameService.init).toHaveBeenCalled();
-        expect(mockServices.mapsService.init).toHaveBeenCalled();
         expect(mockServices.autoUpdaterService.init).toHaveBeenCalled();
     });
 

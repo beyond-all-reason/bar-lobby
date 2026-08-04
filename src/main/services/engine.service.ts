@@ -2,34 +2,19 @@
 //
 // SPDX-License-Identifier: MIT
 
+import { contentAPI } from "@main/content/content-api";
 import { EngineVersion } from "@main/content/engine/engine-version";
-import { engineContentAPI } from "@main/content/engine/engine-content";
-import { compareEngineVersions } from "@main/content/engine/engine-version-order";
+import { DEFAULT_ENGINE_VERSION } from "@main/config/default-versions";
 import { ipcMain } from "@main/typed-ipc";
 
-async function init() {
-    await engineContentAPI.init();
-}
-
-async function reinit() {
-    await engineContentAPI.reinit();
-}
-
 function registerIpcHandlers() {
-    ipcMain.handle("engine:listAvailableVersions", () =>
-        engineContentAPI.availableVersions
-            .values()
-            .toArray()
-            .sort((a, b) => compareEngineVersions(a.id, b.id))
-    );
-    ipcMain.handle("engine:downloadEngine", (_, version?: string) => engineContentAPI.downloadEngine(version));
-    ipcMain.handle("engine:isVersionInstalled", (_, id: string) => engineContentAPI.isVersionInstalled(id));
-    ipcMain.handle("engine:uninstallVersion", (_, version: EngineVersion) => engineContentAPI.uninstallVersion(version));
+    ipcMain.handle("engine:listAvailableVersions", () => contentAPI.engineVersions());
+    ipcMain.handle("engine:downloadEngine", (_, version?: string) => contentAPI.ensure([{ type: "engine", id: version ?? DEFAULT_ENGINE_VERSION }]));
+    ipcMain.handle("engine:isVersionInstalled", (_, id: string) => contentAPI.isPresent({ type: "engine", id }));
+    ipcMain.handle("engine:uninstallVersion", (_, version: EngineVersion) => contentAPI.remove([{ type: "engine", id: version.id }]));
 }
 
 const engineService = {
-    init,
-    reinit,
     registerIpcHandlers,
 };
 

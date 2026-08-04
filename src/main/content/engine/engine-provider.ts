@@ -19,9 +19,9 @@ import { getEnginePath } from "@main/config/app";
 import { DEFAULT_ENGINE_VERSION } from "@main/config/default-versions";
 import { compareEngineVersions, isCompatibleEngineVersion } from "@main/content/engine/engine-version-order";
 
-const log = logger("engine-content.ts");
+const log = logger("engine-provider.ts");
 
-export class EngineContentAPI extends AbstractContentAPI<string, EngineVersion> {
+export class EngineProvider extends AbstractContentAPI<string, EngineVersion> {
     protected get engineDirs() {
         return getEnginePath();
     }
@@ -207,4 +207,4 @@ export class EngineContentAPI extends AbstractContentAPI<string, EngineVersion> 
     // }
 }
 
-export const engineContentAPI = new EngineContentAPI();
+export const engineProvider = new EngineProvider();

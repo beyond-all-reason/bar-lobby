@@ -9,7 +9,7 @@ import path from "path";
 
 import { DownloadInfo } from "./downloads";
 import { AbstractContentAPI } from "./abstract-content";
-import { engineContentAPI } from "./engine/engine-content";
+import { engineProvider } from "./engine/engine-provider";
 import { logger } from "@main/utils/logger";
 import { getAssetsPath, getEnginePath, getCaCertPath, getPackagePath } from "@main/config/app";
 
@@ -31,29 +31,38 @@ export type RapidVersion = {
     version: string;
 };
 
+// pr-downloader ships inside the engine, so any installed engine can drive downloads. Preferring the
+// default and then newest-first keeps content downloadable after a default version bump, when the new
+// default is not installed yet, and skips engines whose install did not produce a binary.
+export function findPrdBinary() {
+    const binaryName = process.platform === "win32" ? "pr-downloader.exe" : "pr-downloader";
+    const defaultEngine = engineProvider.getDefaultEngine();
+    const candidates = [...(defaultEngine?.installed ? [defaultEngine] : []), ...engineProvider.getInstalledVersionsNewestFirst()];
+
+    for (const engine of candidates) {
+        const binaryPath = path.join(getEnginePath(), engine.id, binaryName);
+        if (fs.existsSync(binaryPath)) {
+            return binaryPath;
+        }
+        log.warn(`Engine ${engine.id} has no ${binaryName}, trying the next one`);
+    }
+
+    return undefined;
+}
+
 /**
  * https://github.com/beyond-all-reason/pr-downloader
  * https://springrts.com/wiki/Pr-downloader
  * https://springrts.com/wiki/Rapid
  */
 export abstract class PrDownloaderAPI<ID, T> extends AbstractContentAPI<ID, T> {
-    // pr-downloader ships inside the engine, so any installed engine can drive downloads. Preferring
-    // the default and then newest-first keeps content downloadable after a default version bump, when
-    // the new default is not installed yet, and skips engines whose install did not produce a binary.
     protected getPrdBinaryPath() {
-        const binaryName = process.platform === "win32" ? "pr-downloader.exe" : "pr-downloader";
-        const defaultEngine = engineContentAPI.getDefaultEngine();
-        const candidates = [...(defaultEngine?.installed ? [defaultEngine] : []), ...engineContentAPI.getInstalledVersionsNewestFirst()];
-
-        for (const engine of candidates) {
-            const binaryPath = path.join(getEnginePath(), engine.id, binaryName);
-            if (fs.existsSync(binaryPath)) {
-                return binaryPath;
-            }
-            log.warn(`Engine ${engine.id} has no ${binaryName}, trying the next one`);
+        const binaryPath = findPrdBinary();
+        if (!binaryPath) {
+            throw new Error("No installed engine ships a pr-downloader binary.");
         }
 
-        throw new Error(`No installed engine ships a ${binaryName}. Tried: ${candidates.map((engine) => engine.id).join(", ") || "none"}`);
+        return binaryPath;
     }
 
     protected downloadContent(type: "game" | "map", name: string) {

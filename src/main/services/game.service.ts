@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: MIT
 
-import { gameContentAPI } from "@main/content/game/game-content";
+import { contentAPI } from "@main/content/content-api";
 import { getScenarios } from "@main/content/game/game-scenarios";
 import { gameAPI, MultiplayerLaunchSettings } from "@main/game/game";
 import { ipcMain, BarIpcWebContents } from "@main/typed-ipc";
@@ -10,25 +10,17 @@ import { Replay } from "@main/content/replays/replay";
 import { BattleWithMetadata } from "@main/game/battle/battle-types";
 import { replayContentAPI } from "@main/content/replays/replay-content";
 
-async function init() {
-    await gameContentAPI.init();
-}
-
-async function reinit() {
-    await gameContentAPI.reinit();
-}
-
 function registerIpcHandlers(webContents: BarIpcWebContents) {
     // Content
-    ipcMain.handle("game:downloadGame", (_, version: string) => gameContentAPI.downloadGame(version));
+    ipcMain.handle("game:downloadGame", (_, version: string) => contentAPI.ensure([{ type: "game", id: version }]));
     ipcMain.handle("game:getScenarios", (_, version: string) => {
-        const installed = gameContentAPI.getVersion(version);
+        const installed = contentAPI.gameVersion(version);
 
         return installed ? getScenarios(installed.packageMd5) : [];
     });
-    ipcMain.handle("game:getInstalledVersions", () => gameContentAPI.availableVersions.values().toArray());
-    ipcMain.handle("game:isVersionInstalled", (_, id: string) => gameContentAPI.isVersionInstalled(id));
-    ipcMain.handle("game:uninstallVersion", (_, version: string) => gameContentAPI.uninstallVersionById(version));
+    ipcMain.handle("game:getInstalledVersions", () => contentAPI.gameVersions());
+    ipcMain.handle("game:isVersionInstalled", (_, id: string) => contentAPI.isPresent({ type: "game", id }));
+    ipcMain.handle("game:uninstallVersion", (_, version: string) => contentAPI.remove([{ type: "game", id: version }]));
 
     // Game
     ipcMain.handle("game:launchMultiplayer", (_, settings: MultiplayerLaunchSettings) => gameAPI.launchMultiplayer(settings));
@@ -49,8 +41,6 @@ function registerIpcHandlers(webContents: BarIpcWebContents) {
 }
 
 const gameService = {
-    init,
-    reinit,
     registerIpcHandlers,
 };
 

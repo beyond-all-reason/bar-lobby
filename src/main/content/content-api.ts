@@ -8,9 +8,12 @@ import { ContentProvider } from "@main/content/content-provider";
 import { ContentQueue, ContentQueueEntry } from "@main/content/content-queue";
 import { ContentRef, contentRefKey, ContentType } from "@main/content/content-ref";
 import { ContentReporter, ContentState } from "@main/content/content-state";
-import { engineContentAPI } from "@main/content/engine/engine-content";
-import { gameContentAPI } from "@main/content/game/game-content";
-import { mapContentAPI } from "@main/content/maps/map-content";
+import { engineProvider } from "@main/content/engine/engine-provider";
+import { compareEngineVersions } from "@main/content/engine/engine-version-order";
+import { gameProvider } from "@main/content/game/game-provider";
+import { mapProvider } from "@main/content/maps/map-provider";
+import { findPrdBinary } from "@main/content/pr-downloader";
+import { DEFAULT_ENGINE_VERSION } from "@main/config/default-versions";
 import { logger } from "@main/utils/logger";
 
 const log = logger("content-api.ts");
@@ -31,43 +34,60 @@ class ContentAPI {
     private readonly providers: Record<ContentType, ContentProvider> = {
         engine: {
             type: "engine",
-            isPresent: (id) => engineContentAPI.isVersionInstalled(id),
+            init: () => engineProvider.init().then(() => undefined),
+            reinit: () => engineProvider.reinit(),
+            isPresent: (id) => engineProvider.isVersionInstalled(id),
+            installed: () =>
+                engineProvider.availableVersions
+                    .values()
+                    .filter((version) => version.installed)
+                    .map((version) => version.id)
+                    .toArray(),
             acquire: async (ids, report) => {
                 for (const id of ids) {
-                    await acquireReporting(engineContentAPI, id, report, () => engineContentAPI.downloadEngine(id));
+                    await acquireReporting(engineProvider, id, report, () => engineProvider.downloadEngine(id));
                 }
             },
             remove: async (ids) => {
                 for (const id of ids) {
-                    await engineContentAPI.uninstallVersion(id);
+                    await engineProvider.uninstallVersion(id);
                 }
             },
         },
         game: {
             type: "game",
-            isPresent: (id) => gameContentAPI.isVersionInstalled(id),
+            init: () => gameProvider.init().then(() => undefined),
+            reinit: () => gameProvider.reinit(),
+            isPresent: (id) => gameProvider.isVersionInstalled(id),
+            installed: () => gameProvider.availableVersions.keys().toArray(),
             acquire: async (ids, report) => {
                 for (const id of ids) {
-                    await acquireReporting(gameContentAPI, id, report, () => gameContentAPI.downloadGame(id));
+                    await acquireReporting(gameProvider, id, report, () => gameProvider.downloadGame(id));
                 }
             },
             remove: async (ids) => {
                 for (const id of ids) {
-                    await gameContentAPI.uninstallVersionById(id);
+                    await gameProvider.uninstallVersionById(id);
                 }
             },
         },
         map: {
             type: "map",
-            isPresent: (id) => mapContentAPI.isVersionInstalled(id),
+            init: () => mapProvider.init().then(() => undefined),
+            reinit: () => mapProvider.reinit(),
+            isPresent: (id) => mapProvider.isVersionInstalled(id),
+            installed: () =>
+                Object.entries(mapProvider.mapNameFileNameLookup)
+                    .filter(([, fileName]) => fileName !== undefined)
+                    .map(([springName]) => springName),
             acquire: async (ids, report) => {
                 for (const id of ids) {
-                    await acquireReporting(mapContentAPI, id, report, () => mapContentAPI.downloadMap(id));
+                    await acquireReporting(mapProvider, id, report, () => mapProvider.downloadMap(id));
                 }
             },
             remove: async (ids) => {
                 for (const id of ids) {
-                    await mapContentAPI.uninstallVersion(id);
+                    await mapProvider.uninstallVersion(id);
                 }
             },
         },
@@ -97,15 +117,60 @@ class ContentAPI {
     // needs to hear. onChanged only ever describes work still outstanding.
     public readonly onSettled: Signal<ContentRef[]> = new Signal();
 
+    // Only maps watch their directory today, so this is wired to that provider rather than described
+    // on the interface. Anything else growing a watcher reports through the same signal.
+    public readonly onPresenceChanged: Signal<{ ref: ContentRef; present: boolean }> = new Signal();
+
     public constructor() {
         this.queue.onChanged.add((entries) => this.syncFromQueue(entries));
+        mapProvider.onMapAdded.add((springName) => this.onPresenceChanged.dispatch({ ref: { type: "map", id: springName }, present: true }));
+        mapProvider.onMapDeleted.add((springName) => this.onPresenceChanged.dispatch({ ref: { type: "map", id: springName }, present: false }));
+    }
+
+    // Engine first: the game and map scans read the installed engines to calculate checksums.
+    public async init() {
+        await this.providers.engine.init();
+        await Promise.all([this.providers.game.init(), this.providers.map.init()]);
+    }
+
+    public async reinit() {
+        await this.providers.engine.reinit();
+        await Promise.all([this.providers.game.reinit(), this.providers.map.reinit()]);
+    }
+
+    public installed(type: ContentType): ContentRef[] {
+        return (this.providers[type]?.installed() ?? []).map((id) => ({ type, id }));
+    }
+
+    public engineVersions() {
+        return engineProvider.availableVersions
+            .values()
+            .toArray()
+            .sort((a, b) => compareEngineVersions(a.id, b.id));
+    }
+
+    public gameVersions() {
+        return gameProvider.availableVersions.values().toArray();
+    }
+
+    public gameVersion(gameVersion: string) {
+        return gameProvider.getVersion(gameVersion);
     }
 
     public state() {
         return [...this.states.values()];
     }
 
+    // Everything except an engine is fetched by pr-downloader, which arrives as part of an engine. An
+    // engine is not, so a missing downloader is fetched here rather than failing and leaving the user to
+    // find the startup flow that would have done it. Checked without awaiting first, so the usual case
+    // still enqueues in the same tick as the caller asked.
     public async ensure(refs: ContentRef[]) {
+        if (this.missing(refs).some((ref) => ref.type !== "engine") && !findPrdBinary()) {
+            log.info("No pr-downloader available, acquiring the default engine first");
+            await this.ensure([{ type: "engine", id: DEFAULT_ENGINE_VERSION }]);
+        }
+
         await Promise.all(this.missing(refs).map((ref) => this.track(this.queue.enqueue("acquire", ref), ref)));
     }
 

@@ -6,7 +6,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 // Everything the vi.mock factories touch has to be hoisted with them, otherwise the factories run
 // before these bindings are initialised.
-const { installed, acquired, removed, progress, retry, stubProvider } = vi.hoisted(() => {
+const { installed, acquired, removed, progress, retry, watcher, stubProvider } = vi.hoisted(() => {
     type Listener = (data: unknown) => void;
 
     function fakeSignal() {
@@ -36,6 +36,7 @@ const { installed, acquired, removed, progress, retry, stubProvider } = vi.hoist
     const removed: string[] = [];
     const progress = { engine: fakeSignal(), game: fakeSignal(), map: fakeSignal() };
     const retry = { engine: fakeSignal(), game: fakeSignal(), map: fakeSignal() };
+    const watcher = { added: fakeSignal(), deleted: fakeSignal() };
 
     return {
         installed,
@@ -43,6 +44,7 @@ const { installed, acquired, removed, progress, retry, stubProvider } = vi.hoist
         removed,
         progress,
         retry,
+        watcher,
         stubProvider: (type: keyof typeof progress) => ({
             onDownloadProgress: progress[type],
             onDownloadRetry: retry[type],
@@ -59,21 +61,34 @@ const { installed, acquired, removed, progress, retry, stubProvider } = vi.hoist
     };
 });
 
-vi.mock("@main/content/engine/engine-content", () => {
+vi.mock("@main/content/engine/engine-provider", () => {
     const stub = stubProvider("engine");
 
-    return { engineContentAPI: { ...stub, downloadEngine: stub.acquire, uninstallVersion: stub.remove } };
+    return { engineProvider: { ...stub, downloadEngine: stub.acquire, uninstallVersion: stub.remove } };
 });
-vi.mock("@main/content/game/game-content", () => {
+vi.mock("@main/content/game/game-provider", () => {
     const stub = stubProvider("game");
 
-    return { gameContentAPI: { ...stub, downloadGame: stub.acquire, uninstallVersionById: stub.remove } };
+    return { gameProvider: { ...stub, downloadGame: stub.acquire, uninstallVersionById: stub.remove } };
 });
-vi.mock("@main/content/maps/map-content", () => {
+vi.mock("@main/content/maps/map-provider", () => {
     const stub = stubProvider("map");
 
-    return { mapContentAPI: { ...stub, downloadMap: stub.acquire, uninstallVersion: stub.remove } };
+    return {
+        mapProvider: {
+            ...stub,
+            downloadMap: stub.acquire,
+            uninstallVersion: stub.remove,
+            onMapAdded: watcher.added,
+            onMapDeleted: watcher.deleted,
+            mapNameFileNameLookup: {},
+        },
+    };
 });
+vi.mock("@main/content/pr-downloader", () => ({
+    findPrdBinary: () => (installed.values().some((key) => key.startsWith("engine:")) ? "/engine/pr-downloader" : undefined),
+}));
+vi.mock("@main/config/default-versions", () => ({ DEFAULT_ENGINE_VERSION: "2025.01.3" }));
 vi.mock("@main/utils/logger", () => ({
     logger: () => ({ debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn() }),
 }));
@@ -126,6 +141,23 @@ describe("contentAPI.ensure", () => {
         await contentAPI.ensure([{ type: "engine", id: "2025.01.3" }]);
 
         expect(acquired).toEqual([]);
+    });
+
+    it("acquires the default engine first when nothing can run pr-downloader yet", async () => {
+        installed.clear();
+
+        await contentAPI.ensure([{ type: "map", id: "Coast To Coast 1.3" }]);
+
+        expect(acquired).toEqual(["engine:2025.01.3", "map:Coast To Coast 1.3"]);
+    });
+
+    it("does not fetch an engine when one is already usable", async () => {
+        installed.clear();
+        installed.add("engine:2025.01.3");
+
+        await contentAPI.ensure([{ type: "map", id: "Pale Sun 1.1" }]);
+
+        expect(acquired).toEqual(["map:Pale Sun 1.1"]);
     });
 
     it("acquires every missing ref it is given", async () => {

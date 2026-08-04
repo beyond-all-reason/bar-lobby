@@ -7,7 +7,10 @@ import { ContentReporter } from "@main/content/content-state";
 
 export interface ContentProvider {
     readonly type: ContentType;
+    init(): Promise<void>;
+    reinit(): Promise<void>;
     isPresent(id: string): boolean;
+    installed(): string[];
     // Takes a batch because pr-downloader accepts repeatable --download-* flags in one invocation,
     // though the queue currently passes one id at a time: a batched rapid invocation parallelises
     // inside prd, which would put the download count past what the queue is holding it to.

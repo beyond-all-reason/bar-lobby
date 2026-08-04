@@ -15,6 +15,7 @@ import { infoService } from "./services/info.service";
 import { accountService } from "./services/account.service";
 import { logService } from "@main/services/log.service";
 import contentService from "./services/content.service";
+import { contentAPI } from "@main/content/content-api";
 import engineService from "./services/engine.service";
 import mapsService from "./services/maps.service";
 import gameService from "./services/game.service";
@@ -129,8 +130,8 @@ app.whenReady().then(async () => {
     if (savedAssetsPath && !process.env.BAR_ASSETS_PATH) {
         setAssetsPath(savedAssetsPath);
     }
-    await engineService.init();
-    await Promise.all([accountService.init(), replaysService.init(), gameService.init(), mapsService.init(), autoUpdaterService.init()]);
+    await contentAPI.init();
+    await Promise.all([accountService.init(), replaysService.init(), autoUpdaterService.init()]);
 
     const mainWindow = createWindow();
     const webContents = typedWebContents(mainWindow.webContents);

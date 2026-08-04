@@ -3,12 +3,14 @@ import pluginJs from "@eslint/js";
 import tseslint from "typescript-eslint";
 import pluginVue from "eslint-plugin-vue";
 
+// TypeScript cannot scope an export to a directory, so the content providers stay exported for
+// content-api.ts to import and this is what keeps anything else from reaching them.
 const noContentProviderImports = [
     "error",
     {
         patterns: [
             {
-                group: ["**/content/engine/engine-content", "**/content/game/game-content", "**/content/maps/map-content"],
+                group: ["**/content/engine/engine-provider", "**/content/game/game-provider", "**/content/maps/map-provider"],
                 message: "Import contentAPI from @main/content/content-api instead of reaching a content provider directly.",
             },
         ],
@@ -81,14 +83,6 @@ export default [
         files: ["src/main/content/replays/**/*.ts"],
         rules: {
             "no-restricted-imports": noContentProviderImports,
-        },
-    },
-    {
-        // Direct consumers left over from before contentAPI existed. Each one comes off this list once
-        // contentAPI covers what it needs, and the list is empty when the providers stop being exported.
-        files: ["src/main/services/engine.service.ts", "src/main/services/game.service.ts", "src/main/services/maps.service.ts"],
-        rules: {
-            "no-restricted-imports": "off",
         },
     },
 ];
