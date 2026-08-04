@@ -22,8 +22,14 @@ const log = logger("tachyon-service");
 function rememberIdentity(event: TachyonEvent) {
     if (event.commandId !== "user/self") return;
 
-    const { userId, username, displayName, countryCode } = event.data.user;
-    accountService.saveIdentity({ userId, username, displayName, countryCode: countryCode ?? "" });
+    try {
+        const { userId, username, displayName, countryCode } = event.data.user;
+        accountService.saveIdentity({ userId, username, displayName, countryCode: countryCode ?? "" }).catch((error) => {
+            log.error("Could not store the account identity", error);
+        });
+    } catch (error) {
+        log.error("Could not read the identity out of user/self", error);
+    }
 }
 
 function registerIpcHandlers(webContents: BarIpcWebContents) {
@@ -72,8 +78,10 @@ function registerIpcHandlers(webContents: BarIpcWebContents) {
 
     tachyonClient.onEvent.add((event) => {
         log.info(`Received event: ${JSON.stringify(event)}`);
-        rememberIdentity(event);
+        // Forwarded first, so nothing that goes wrong while storing the identity
+        // can stop the renderer seeing the event.
         webContents.send("tachyon:event", event);
+        rememberIdentity(event);
     });
 
     ipcMain.handle("tachyon:isConnected", () => {
