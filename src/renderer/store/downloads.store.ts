@@ -5,7 +5,7 @@
 import { DownloadInfo } from "@main/content/downloads";
 import { reactive } from "vue";
 
-// App updates only. Content downloads live in contents.store.
+// App updates only.
 export const downloadsStore: {
     isInitialized: boolean;
     updateDownloads: DownloadInfo[];
@@ -16,7 +16,7 @@ export const downloadsStore: {
 
 export function initDownloadsStore() {
     window.autoUpdater.onDownloadUpdateProgress((downloadInfo) => {
-        downloadsStore.updateDownloads = [downloadInfo];
+        downloadsStore.updateDownloads = downloadInfo ? [downloadInfo] : [];
     });
 
     downloadsStore.isInitialized = true;

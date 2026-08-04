@@ -48,7 +48,7 @@ SPDX-License-Identifier: MIT
             :label="t('lobby.components.misc.debugSidebar.engine')"
             :filter="true"
             class="fullwidth"
-            @update:model-value="(engine) => (enginesStore.selectedEngineVersion = engine)"
+            @update:model-value="selectEngineVersion"
         />
         <Button @click="serverSettingsOpen = true">{{ t("lobby.components.misc.debugSidebar.lobbyServerSettings") }}</Button>
         <SyncDataDirsDialog v-model="syncLobbyContentToolOpen" />
@@ -65,7 +65,7 @@ import Button from "@renderer/components/controls/Button.vue";
 import Select from "@renderer/components/controls/Select.vue";
 import SyncDataDirsDialog from "@renderer/components/misc/SyncDataDirsDialog.vue";
 import { gameStore } from "@renderer/store/game.store";
-import { enginesStore, installedEngineVersions } from "@renderer/store/engine.store";
+import { enginesStore, installedEngineVersions, selectEngineVersion } from "@renderer/store/engine.store";
 import { GameVersion } from "@main/content/game/game-version";
 import { inject, Ref } from "vue";
 import { useTypedI18n } from "@renderer/i18n";

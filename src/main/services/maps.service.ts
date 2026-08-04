@@ -51,12 +51,12 @@ function registerIpcHandlers(webContents: BarIpcWebContents) {
     ipcMain.handle("maps:online:fetchMapImages", (_, imageSource: string) => fetchMapImages(imageSource));
 
     // Events
-    contentAPI.onPresenceChanged.add(({ ref, present }) => {
-        if (ref.type !== "map") {
+    contentAPI.onPresenceChanged.add(({ type, id, present }) => {
+        if (type !== "map") {
             return;
         }
 
-        webContents.send(present ? "maps:mapAdded" : "maps:mapDeleted", ref.id);
+        webContents.send(present ? "maps:mapAdded" : "maps:mapDeleted", id);
     });
 }
 

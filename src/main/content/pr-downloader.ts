@@ -12,6 +12,7 @@ import { AbstractContentAPI } from "./abstract-content";
 import { engineProvider } from "./engine/engine-provider";
 import { logger } from "@main/utils/logger";
 import { getAssetsPath, getEnginePath, getCaCertPath, getPackagePath } from "@main/config/app";
+import { holdChecksums } from "@main/utils/checksums";
 
 const log = logger("pr-downloader.ts");
 
@@ -173,14 +174,17 @@ export abstract class PrDownloaderAPI<ID, T> extends AbstractContentAPI<ID, T> {
         const binaryPath = this.getPrdBinaryPath();
 
         if (!(await PrDownloaderAPI.supportsUninstall(binaryPath))) {
-            // Dropping the sdp is all the older binaries allow, so the pool files it referenced stay
-            // on disk. That is what this did before pr-downloader could do the removal properly.
             log.warn(`${binaryPath} does not support --uninstall, removing the sdp and leaving its pool files behind`);
-            await fs.promises.rm(path.join(getPackagePath(), `${packageMd5}.sdp`));
+            await holdChecksums(() => fs.promises.rm(path.join(getPackagePath(), `${packageMd5}.sdp`)));
 
             return;
         }
 
+        // Checksums read the pool files and the sdp this is about to take away.
+        return holdChecksums(() => this.runUninstall(binaryPath, packageMd5));
+    }
+
+    private runUninstall(binaryPath: string, packageMd5: string) {
         return new Promise<void>((resolve, reject) => {
             try {
                 log.debug(`Uninstalling ${packageMd5}...`);

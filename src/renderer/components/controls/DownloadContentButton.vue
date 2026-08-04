@@ -45,6 +45,7 @@ import { ButtonProps } from "primevue/button";
 import DownloadProgress from "@renderer/components/common/DownloadProgress.vue";
 import { useTypedI18n } from "@renderer/i18n";
 import { contentRefs, contentsStore, ensureContent, inFlightFor } from "@renderer/store/contents.store";
+import { isInProgress } from "@main/content/content-state";
 
 const { t } = useTypedI18n();
 
@@ -68,15 +69,23 @@ const missing = ref(refs.value);
 
 watch(
     [refs, () => contentsStore.revision],
-    async () => {
-        missing.value = await window.content.missing(refs.value);
+    async (_current, _previous, onCleanup) => {
+        // Answers can arrive out of the order they were asked in, and a stale one would decide whether the
+        // button offers to play.
+        let superseded = false;
+        onCleanup(() => (superseded = true));
+
+        const answer = await window.content.missing(refs.value);
+        if (!superseded) {
+            missing.value = answer;
+        }
     },
     { immediate: true }
 );
 
 const ready = computed(() => missing.value.length === 0);
 
-const isDownloading = computed(() => inFlightFor(refs.value).some((state) => state.status === "queued" || state.status === "acquiring"));
+const isDownloading = computed(() => inFlightFor(refs.value).some(isInProgress));
 
 async function beginDownload() {
     emit("downloads-started");

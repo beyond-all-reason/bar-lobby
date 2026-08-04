@@ -6,7 +6,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 // Everything the vi.mock factories touch has to be hoisted with them, otherwise the factories run
 // before these bindings are initialised.
-const { installed, acquired, removed, progress, retry, watcher, disk, gate, used, usage, stubProvider } = vi.hoisted(() => {
+const { installed, acquired, removed, progress, retry, watcher, disk, gate, used, usage, defaultEngine, stubProvider } = vi.hoisted(() => {
     type Listener = (data: unknown) => void;
 
     function fakeSignal() {
@@ -42,6 +42,7 @@ const { installed, acquired, removed, progress, retry, watcher, disk, gate, used
     const gate: { held: Promise<void> | null } = { held: null };
 
     const used = new Map<string, Date>();
+    const defaultEngine = "2025.01.3";
     const usage = {
         init: async () => {},
         lastUsed: (ref: { type: string; id: string }) => used.get(`${ref.type}:${ref.id}`),
@@ -60,6 +61,7 @@ const { installed, acquired, removed, progress, retry, watcher, disk, gate, used
         gate,
         used,
         usage,
+        defaultEngine,
         stubProvider: (type: keyof typeof progress) => ({
             onDownloadProgress: progress[type],
             onDownloadRetry: retry[type],
@@ -89,9 +91,17 @@ vi.mock("@main/content/engine/engine-provider", () => {
             uninstallVersion: stub.remove,
             init: async () => {},
             reinit: async () => {},
-            // A live view of the shared set, so a test adding installed content is reflected here.
+            // A live view of the shared set, so a test adding installed content is reflected here. The
+            // default version is always listed, installed or not, the way checkIfDefaultIsNew seeds it.
             get availableVersions() {
-                return new Map([...installed].filter((key) => key.startsWith("engine:")).map((key) => [key.slice("engine:".length), { id: key.slice("engine:".length), installed: true, ais: [] }]));
+                const versions = new Map(
+                    [...installed].filter((key) => key.startsWith("engine:")).map((key) => [key.slice("engine:".length), { id: key.slice("engine:".length), installed: true, ais: [] }])
+                );
+                if (!versions.has(defaultEngine)) {
+                    versions.set(defaultEngine, { id: defaultEngine, installed: false, ais: [] });
+                }
+
+                return versions;
             },
         },
     };
@@ -134,7 +144,7 @@ vi.mock("@main/content/maps/map-provider", () => {
 vi.mock("@main/content/pr-downloader", () => ({
     findPrdBinary: () => (installed.values().some((key) => key.startsWith("engine:")) ? "/engine/pr-downloader" : undefined),
 }));
-vi.mock("@main/config/default-versions", () => ({ DEFAULT_ENGINE_VERSION: "2025.01.3" }));
+vi.mock("@main/config/default-versions", () => ({ DEFAULT_ENGINE_VERSION: defaultEngine }));
 vi.mock("@main/config/content-policy", () => ({ MAX_CONCURRENT_DOWNLOADS: 3, CONTENT_RETENTION_DAYS: 90, MIN_FREE_BYTES_TO_ACQUIRE: 2 * 1024 * 1024 * 1024 }));
 vi.mock("@main/config/app", () => ({ getAssetsPath: () => "/assets" }));
 vi.mock("@main/utils/disk-space", () => ({ freeBytes: () => disk.free(), formatBytes: (bytes: number) => `${bytes}B` }));
@@ -286,9 +296,7 @@ describe("contentAPI change stream", () => {
         expect(seen).toContain("acquiring:0.5");
     });
 
-    // The bug this exists for: a provider dispatches progress for all of its downloads on one signal,
-    // and every concurrent acquisition used to report whatever it heard as its own. Three maps at once
-    // meant three rows each showing all three downloads' byte counts.
+    // One signal carries every download the provider has in flight, so each ref filters for its own.
     it("ignores progress belonging to another ref downloading at the same time", async () => {
         const release = hold();
         const acquiring = contentAPI.ensure([
@@ -308,6 +316,24 @@ describe("contentAPI change stream", () => {
 
         release();
         await acquiring;
+    });
+
+    // Three renderer stores decide what is installed from this, and a removal settles the same way an
+    // acquisition does, so the direction has to come from the payload rather than be assumed.
+    it("reports whether settled content is installed now", async () => {
+        installed.add("engine:2025.01.3");
+        const seen: Array<{ id: string; present: boolean }> = [];
+        const binding = contentAPI.onSettled.add((refs) => seen.push(...refs.map((ref) => ({ id: ref.id, present: ref.present }))));
+
+        await contentAPI.ensure([{ type: "map", id: "Sands Of War 1.0" }]);
+        await contentAPI.remove([{ type: "map", id: "Sands Of War 1.0" }]);
+
+        contentAPI.onSettled.dispose(binding);
+
+        expect(seen).toEqual([
+            { id: "Sands Of War 1.0", present: true },
+            { id: "Sands Of War 1.0", present: false },
+        ]);
     });
 
     it("forgets a ref once it has settled", async () => {
@@ -371,6 +397,7 @@ describe("contentAPI change stream", () => {
 
 describe("contentAPI.remove", () => {
     beforeEach(() => {
+        installed.clear();
         acquired.length = 0;
         removed.length = 0;
     });
@@ -388,9 +415,42 @@ describe("contentAPI.remove", () => {
         await expect(contentAPI.remove([{ type: "map", id: "never had it" }])).resolves.toBeUndefined();
     });
 
+    // pr-downloader ships inside an engine, so the client needs one left to fetch anything else.
+    it("refuses to remove the last installed engine", async () => {
+        installed.add("engine:2025.01.3");
+
+        await expect(contentAPI.remove([{ type: "engine", id: "2025.01.3" }])).rejects.toThrow("last installed engine");
+        expect(removed).toEqual([]);
+        expect(installed.has("engine:2025.01.3")).toBe(true);
+    });
+
+    it("refuses a batch that would take every engine at once", async () => {
+        installed.add("engine:2025.01.2");
+        installed.add("engine:2025.01.3");
+
+        await expect(
+            contentAPI.remove([
+                { type: "engine", id: "2025.01.2" },
+                { type: "engine", id: "2025.01.3" },
+            ])
+        ).rejects.toThrow("last installed engine");
+        expect(removed).toEqual([]);
+    });
+
+    it("removes an engine while another stays installed", async () => {
+        installed.add("engine:2025.01.2");
+        installed.add("engine:2025.01.3");
+
+        await contentAPI.remove([{ type: "engine", id: "2025.01.2" }]);
+
+        expect(removed).toEqual(["engine:2025.01.2"]);
+    });
+
     // Which of the two goes first is not fixed, because ensure checks free space before it enqueues.
     // What matters is that neither is dropped for looking unnecessary at the moment it was asked for.
     it("runs both a removal and an acquisition of the same ref rather than skipping either", async () => {
+        // An engine has to be installed or ensure fetches one first to get hold of pr-downloader.
+        installed.add("engine:2025.01.3");
         const ref = { type: "map", id: "Glacier Pass 1.3" } as const;
 
         await Promise.all([contentAPI.ensure([ref]), contentAPI.remove([ref])]);
@@ -435,6 +495,25 @@ describe("contentAPI.sweep", () => {
         expect(await contentAPI.sweep()).toEqual([]);
     });
 
+    // The engine list carries versions that are not installed too, so its newest can be one that was
+    // never a candidate for removal.
+    it("keeps the last installed engine when the default is not the one installed", async () => {
+        installed.add("engine:2025.01.2");
+        used.set("engine:2025.01.2", ages.ancient);
+
+        expect(await contentAPI.sweep()).toEqual([]);
+        expect(removed).toEqual([]);
+    });
+
+    it("keeps the newest of several engines when all of them have aged out", async () => {
+        installed.add("engine:2025.01.2");
+        installed.add("engine:2025.01.3");
+        used.set("engine:2025.01.2", ages.ancient);
+        used.set("engine:2025.01.3", ages.ancient);
+
+        expect(await contentAPI.sweep()).toEqual([{ type: "engine", id: "2025.01.2" }]);
+    });
+
     it("keeps content a claim source is holding", async () => {
         installed.add("engine:2025.01.3");
         installed.add("map:Claimed 1.0");
@@ -450,14 +529,6 @@ describe("contentAPI.sweep", () => {
         used.set("game:MyGame.sdd", ages.ancient);
 
         expect(await contentAPI.sweep()).toEqual([]);
-    });
-
-    it("refuses to leave no engine installed", async () => {
-        installed.add("engine:2025.01.3");
-        used.set("engine:2025.01.3", ages.ancient);
-
-        expect(await contentAPI.sweep()).toEqual([]);
-        expect(removed).toEqual([]);
     });
 });
 

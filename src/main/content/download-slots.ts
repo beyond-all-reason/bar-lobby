@@ -4,14 +4,8 @@
 
 import { MAX_CONCURRENT_DOWNLOADS } from "@main/config/content-policy";
 
-/**
- * How many downloads the client runs at once, counted across every transport.
- *
- * The limit cannot live in any one downloader: pr-downloader's own limit is per invocation and so says
- * nothing about how many invocations exist, and the pool archive and the app update never go through it
- * at all. What this bounds is invocations, not connections, so a game still fans out inside
- * pr-downloader by as much as it sees fit.
- */
+// Bounds invocations across every transport, not connections: a game is one slot and fans out inside
+// prd. Cannot be prd's own limit, which is per invocation and which the pool archive never goes through.
 class DownloadSlots {
     private taken = 0;
     private readonly waiting: (() => void)[] = [];

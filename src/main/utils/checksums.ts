@@ -9,17 +9,29 @@ import { getEnginePath, WRITE_DATA_PATH, getAssetsPath } from "@main/config/app"
 
 const log = logger("checksums.ts");
 
-let checksumQueue: Promise<void> = Promise.resolve();
+let checksumQueue: Promise<unknown> = Promise.resolve();
 
-export function calcChecksum(engineVersion: string, archiveName: string): Promise<void> {
-    checksumQueue = checksumQueue.then(() => runChecksumProcess(engineVersion, archiveName));
-    return checksumQueue;
+// A rejection must not poison the chain, or one failed removal would stop every later checksum.
+function enqueue<T>(task: () => Promise<T>): Promise<T> {
+    const result = checksumQueue.then(task);
+    checksumQueue = result.catch(() => undefined);
+
+    return result;
 }
 
-// The engine holds an archive open while checksumming it, so deleting that archive fails outright on
-// Windows. Anything about to remove content waits for whatever has already been queued.
-export function whenChecksumsIdle(): Promise<void> {
-    return checksumQueue;
+export function calcChecksum(engineVersion: string, archiveName: string): Promise<void> {
+    return enqueue(() => runChecksumProcess(engineVersion, archiveName));
+}
+
+/**
+ * Runs work with the checksum queue held, so nothing is checksumming while it does.
+ *
+ * The engine holds an archive open while checksumming it, so deleting that archive fails outright on
+ * Windows. Waiting for the queue to drain is not enough: anything may queue a checksum the moment the
+ * wait resolves, so removal takes its turn in the queue instead of watching it.
+ */
+export function holdChecksums<T>(work: () => Promise<T>): Promise<T> {
+    return enqueue(work);
 }
 
 function runChecksumProcess(engineVersion: string, archiveName: string): Promise<void> {

@@ -11,13 +11,9 @@ export interface ContentProvider {
     reinit(): Promise<void>;
     isPresent(id: string): boolean;
     installed(): string[];
-    // Takes a batch because pr-downloader accepts repeatable --download-* flags in one invocation,
-    // though the queue currently passes one id at a time: a batched rapid invocation parallelises
-    // inside prd, which would put the download count past what the queue is holding it to.
-    //
-    // Progress is reported per id by the provider because pr-downloader rewrites the name it reports
-    // partway through a download, so the transport's own idea of what it is fetching cannot be matched
-    // back to what was asked for.
+    // Batched signature because prd takes repeatable --download-* flags. The queue still passes one id
+    // at a time: a batched rapid invocation parallelises inside prd, past the slot count.
+    // Progress is per id from the provider - prd rewrites the name it reports mid-download.
     acquire(ids: string[], report: ContentReporter): Promise<void>;
     remove(ids: string[]): Promise<void>;
 }

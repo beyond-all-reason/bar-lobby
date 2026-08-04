@@ -17,6 +17,7 @@ SPDX-License-Identifier: MIT
 <script lang="ts" setup>
 import { computed, watch } from "vue";
 import { contentRefs, inFlightFor } from "@renderer/store/contents.store";
+import { isInProgress } from "@main/content/content-state";
 import Progress from "@renderer/components/common/Progress.vue";
 
 interface Props {
@@ -32,19 +33,19 @@ const emit = defineEmits<{
     statusChange: [value: boolean];
 }>();
 
-const outstanding = computed(() => inFlightFor(contentRefs({ maps, games, engines })));
+const transfers = computed(() => inFlightFor(contentRefs({ maps, games, engines })).filter(isInProgress));
 
-const isDownloading = computed(() => outstanding.value.some((state) => state.status === "queued" || state.status === "acquiring"));
+const isDownloading = computed(() => transfers.value.length > 0);
 
 watch(isDownloading, (value) => {
     emit("statusChange", value);
 });
 
 const downloadPercent = computed(() => {
-    if (outstanding.value.length === 0) {
+    if (transfers.value.length === 0) {
         return 0;
     }
 
-    return outstanding.value.reduce((total, state) => total + state.progress, 0) / outstanding.value.length;
+    return transfers.value.reduce((total, state) => total + state.progress, 0) / transfers.value.length;
 });
 </script>

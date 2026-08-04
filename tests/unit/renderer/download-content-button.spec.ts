@@ -57,6 +57,30 @@ describe("DownloadContentButton", () => {
         expect(wrapper.find(".quick-play-button").exists()).toBe(true);
     });
 
+    // Several checks can be outstanding at once and nothing orders their answers, so the newest question
+    // has to decide rather than whichever answer lands last.
+    it("ignores a presence check that a newer one has already replaced", async () => {
+        const deferred: Array<(refs: ContentRef[]) => void> = [];
+        missing.mockImplementation(() => new Promise<ContentRef[]>((resolve) => deferred.push(resolve)));
+
+        const wrapper = mountButton();
+        await flushPromises();
+        const stale = deferred.length - 1;
+
+        contentsStore.revision++;
+        await flushPromises();
+
+        expect(deferred.length).toBeGreaterThan(stale + 1);
+
+        // Newest answers first and says the content is there, then a stale one insists it is missing.
+        deferred[deferred.length - 1]([]);
+        await flushPromises();
+        deferred[stale]([{ type: "map", id: "Quicksilver" }]);
+        await flushPromises();
+
+        expect(wrapper.find(".quick-play-button").exists()).toBe(true);
+    });
+
     it("does not offer to play before the presence check has answered", () => {
         missing.mockReturnValue(new Promise(() => {}));
 

@@ -5,7 +5,7 @@
 import { contextBridge } from "electron";
 import { ipcRenderer } from "@main/typed-ipc";
 import { ContentRef } from "@main/content/content-ref";
-import { ContentState } from "@main/content/content-state";
+import { ContentPresence, ContentState } from "@main/content/content-state";
 import { Replay } from "@main/replays/replay";
 import { Settings } from "@main/services/settings.service";
 import { EngineVersion } from "@main/content/engine/engine-version";
@@ -95,7 +95,7 @@ const contentApi = {
     remove: (refs: ContentRef[]): Promise<void> => ipcRenderer.invoke("content:remove", refs),
 
     onChanged: (callback: (state: ContentState[]) => void) => ipcRenderer.on("content:changed", (_event, state) => callback(state)),
-    onSettled: (callback: (refs: ContentRef[]) => void) => ipcRenderer.on("content:settled", (_event, refs) => callback(refs)),
+    onSettled: (callback: (refs: ContentPresence[]) => void) => ipcRenderer.on("content:settled", (_event, refs) => callback(refs)),
 
     preloadPool: (): Promise<void> => ipcRenderer.invoke("content:preloadPool"),
     onPoolPrefetch: (callback: (downloadInfo: DownloadInfo | null) => void) => ipcRenderer.on("content:poolPrefetch", (_event, downloadInfo) => callback(downloadInfo)),
@@ -242,7 +242,8 @@ const autoUpdaterApi = {
     installUpdates: (): Promise<void> => ipcRenderer.invoke("autoUpdater:installUpdates"),
 
     // Events
-    onDownloadUpdateProgress: (callback: (downloadInfo: DownloadInfo) => void) => ipcRenderer.on("downloads:update:progress", (_event, downloadInfo: DownloadInfo) => callback(downloadInfo)),
+    onDownloadUpdateProgress: (callback: (downloadInfo: DownloadInfo | null) => void) =>
+        ipcRenderer.on("downloads:update:progress", (_event, downloadInfo: DownloadInfo | null) => callback(downloadInfo)),
 };
 export type AutoUpdaterApi = typeof autoUpdaterApi;
 contextBridge.exposeInMainWorld("autoUpdater", autoUpdaterApi);

@@ -130,7 +130,13 @@ app.whenReady().then(async () => {
     if (savedAssetsPath && !process.env.BAR_ASSETS_PATH) {
         setAssetsPath(savedAssetsPath);
     }
-    await contentAPI.init();
+    // A saved assets path can point somewhere unavailable, and the screen that lets the user repoint it
+    // cannot appear if this throws on the way to creating the window.
+    try {
+        await contentAPI.init();
+    } catch (err) {
+        log.error("Content initialisation failed, starting anyway so the assets path can be changed", err);
+    }
     await Promise.all([accountService.init(), replaysService.init(), autoUpdaterService.init()]);
 
     const mainWindow = createWindow();

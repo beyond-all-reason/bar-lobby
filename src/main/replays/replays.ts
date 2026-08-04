@@ -72,9 +72,9 @@ export class ReplaysAPI {
             try {
                 await fs.promises.copyFile(filePath, replayPath);
                 const replay = await asyncParseReplay(replayPath);
-                await contentAPI.ensure([{ type: "map", id: replay.mapSpringName }]);
 
                 this.onReplayCached.dispatch(replay);
+                await this.fetchReplayMap(replay);
             } finally {
                 // Always remove from the set, even if there's an error
                 this.filesBeingCopied.delete(fileName);
@@ -82,7 +82,17 @@ export class ReplaysAPI {
         } else {
             // File is already in the replays folder, just parse it
             const replay = await asyncParseReplay(replayPath);
+            await this.fetchReplayMap(replay);
+        }
+    }
+
+    // Having the map makes the replay previewable, but the replay is what the caller asked to add, so a
+    // map that will not download must not keep it out of the list.
+    private async fetchReplayMap(replay: Replay) {
+        try {
             await contentAPI.ensure([{ type: "map", id: replay.mapSpringName }]);
+        } catch (err) {
+            log.error(`Could not fetch map ${replay.mapSpringName} for replay ${replay.fileName}`, err);
         }
     }
 

@@ -5,6 +5,7 @@
 import { computed } from "vue";
 
 import { contentsStore } from "@renderer/store/contents.store";
+import { isInProgress, isOwed } from "@main/content/content-state";
 import { downloadsStore } from "@renderer/store/downloads.store";
 import { useTypedI18n } from "@renderer/i18n";
 
@@ -36,16 +37,14 @@ export function useDownloadProgress() {
     const { t } = useTypedI18n();
 
     const allDownloads = computed<DownloadView[]>(() => [
-        ...contentsStore.inFlight
-            .filter((state) => state.status === "queued" || state.status === "acquiring")
-            .map((state) => ({
-                key: `${state.type}:${state.id}`,
-                name: state.id,
-                type: state.type,
-                currentBytes: state.currentBytes,
-                totalBytes: state.totalBytes,
-                phase: state.phase,
-            })),
+        ...contentsStore.inFlight.filter(isInProgress).map((state) => ({
+            key: `${state.type}:${state.id}`,
+            name: state.id,
+            type: state.type,
+            currentBytes: state.currentBytes,
+            totalBytes: state.totalBytes,
+            phase: state.phase,
+        })),
         ...(contentsStore.poolPrefetch
             ? [
                   {
@@ -68,25 +67,40 @@ export function useDownloadProgress() {
         })),
     ]);
 
-    const totalDownloadPercent = computed(() => {
-        if (allDownloads.value.length === 0) return 0;
-        let currentBytes = 0;
-        let totalBytes = 0;
-        for (const d of allDownloads.value) {
-            currentBytes += d.currentBytes;
-            totalBytes += d.totalBytes;
-        }
-        return currentBytes / totalBytes || 0;
-    });
+    // Anything still owed, whether or not it has reported a size or is currently visible as a download.
+    // A failed download keeps its place here so a retry does not read as fresh work.
+    const outstandingCount = computed(() => contentsStore.inFlight.filter(isOwed).length + (contentsStore.poolPrefetch ? 1 : 0) + downloadsStore.updateDownloads.length);
 
-    const totalDownloadBytes = computed(() => {
-        let currentBytes = 0;
-        let totalBytes = 0;
-        for (const d of allDownloads.value) {
-            currentBytes += d.currentBytes;
-            totalBytes += d.totalBytes;
+    const anythingRunning = computed(
+        () =>
+            contentsStore.inFlight.some(isInProgress) ||
+            contentsStore.poolPrefetch !== null ||
+            downloadsStore.updateDownloads.some((download) => download.totalBytes === 0 || download.currentBytes < download.totalBytes)
+    );
+
+    // Counted in content, not bytes: only content a worker picked up knows its size, so a byte
+    // denominator jumps every time a slot frees.
+    const totalDownloadPercent = computed(() => {
+        // A failure nobody has retried is owed but not running, and it outlives the run it belongs to.
+        // Counting it would hold the figure short of full for as long as the entry survives.
+        if (!anythingRunning.value) {
+            return 0;
         }
-        return { current: currentBytes, total: totalBytes };
+
+        const total = contentsStore.settledCount + outstandingCount.value;
+
+        if (total <= 0) {
+            return 0;
+        }
+
+        let done = contentsStore.settledCount;
+        for (const download of allDownloads.value) {
+            if (download.totalBytes > 0) {
+                done += Math.min(1, download.currentBytes / download.totalBytes);
+            }
+        }
+
+        return Math.min(1, done / total);
     });
 
     function downloadPercent(download: DownloadView): number {
@@ -155,7 +169,6 @@ export function useDownloadProgress() {
     return {
         allDownloads,
         totalDownloadPercent,
-        totalDownloadBytes,
         downloadPercent,
         progressText,
     };

@@ -110,6 +110,7 @@ import { asyncComputed } from "@vueuse/core";
 import { settingsStore } from "@renderer/store/settings.store";
 import { infosStore } from "@renderer/store/infos.store";
 import { contentsStore } from "@renderer/store/contents.store";
+import { isUnsettled } from "@main/content/content-state";
 import { refreshEnginesStore } from "@renderer/store/engine.store";
 import { refreshGameStore } from "@renderer/store/game.store";
 import { refreshMapsStore } from "@renderer/store/maps.store";
@@ -128,7 +129,7 @@ const copyProgressPercent = computed(() => {
     return Math.round((copyProgress.value.copied / copyProgress.value.total) * 100);
 });
 const pathError = ref("");
-const hasActiveDownloads = computed(() => contentsStore.inFlight.length > 0);
+const hasActiveDownloads = computed(() => contentsStore.inFlight.some(isUnsettled));
 const isBusy = computed(() => isTransferring.value || isChanging.value || hasActiveDownloads.value);
 
 let cleanupCopyProgress: (() => void) | undefined;

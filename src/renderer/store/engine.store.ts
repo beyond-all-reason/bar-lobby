@@ -20,17 +20,36 @@ export const enginesStore: {
 
 export const installedEngineVersions = computed(() => enginesStore.availableEngineVersions.filter((e) => e.installed));
 
+// The default is a version picked to work with the default game version rather than the newest one
+// published, so it stays the preferred choice whenever it is installed.
+export const defaultEngineInstalled = computed(() => enginesStore.availableEngineVersions.some((e) => e.id === DEFAULT_ENGINE_VERSION && e.installed));
+
+let requestedEngineVersion: string | undefined;
+
+function reselectEngineVersion() {
+    const installed = (id?: string) => installedEngineVersions.value.find((e) => e.id === id);
+
+    enginesStore.selectedEngineVersion =
+        installed(requestedEngineVersion) ??
+        installed(DEFAULT_ENGINE_VERSION) ??
+        installedEngineVersions.value.at(-1) ??
+        enginesStore.availableEngineVersions.find((e) => e.id === DEFAULT_ENGINE_VERSION);
+}
+
+export function selectEngineVersion(version?: EngineVersion) {
+    requestedEngineVersion = version?.id;
+    reselectEngineVersion();
+}
+
 export async function refreshEnginesStore() {
     enginesStore.availableEngineVersions = await window.engine.listAvailableVersions();
-    enginesStore.selectedEngineVersion = enginesStore.availableEngineVersions.find((e) => e.id === DEFAULT_ENGINE_VERSION);
+    reselectEngineVersion();
 }
 
 export async function downloadEngine(engineString: string) {
     await window.engine
         .downloadEngine(engineString)
-        .then(async () => {
-            enginesStore.availableEngineVersions = await window.engine.listAvailableVersions();
-        })
+        .then(refreshEnginesStore)
         .catch((error) => {
             console.error("Failed to download engine:", engineString, error);
             notificationsApi.alert({ text: "Engine download failed.", severity: "error" });
@@ -40,14 +59,13 @@ export async function downloadEngine(engineString: string) {
 export async function initEnginesStore() {
     onContentSettled(async (refs) => {
         if (refs.some((ref) => ref.type === "engine")) {
-            enginesStore.availableEngineVersions = await window.engine.listAvailableVersions();
+            await refreshEnginesStore();
         }
     });
 
-    enginesStore.availableEngineVersions = await window.engine.listAvailableVersions();
-    enginesStore.selectedEngineVersion = enginesStore.availableEngineVersions.find((e) => e.id === DEFAULT_ENGINE_VERSION);
-    if (!enginesStore.selectedEngineVersion) {
-        console.warn(`Default engine version ${DEFAULT_ENGINE_VERSION} not found in available versions — engine download required.`);
+    await refreshEnginesStore();
+    if (!defaultEngineInstalled.value) {
+        console.warn(`Default engine version ${DEFAULT_ENGINE_VERSION} is not installed — engine download required.`);
     }
 
     enginesStore.isInitialized = true;

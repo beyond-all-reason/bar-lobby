@@ -8,7 +8,7 @@ import { ClaimSource } from "@main/content/content-claims";
 import { ContentProvider } from "@main/content/content-provider";
 import { ContentQueue, ContentQueueEntry } from "@main/content/content-queue";
 import { ContentRef, contentRefKey, ContentType } from "@main/content/content-ref";
-import { ContentReporter, ContentState } from "@main/content/content-state";
+import { ContentPresence, ContentReporter, ContentState, isUnsettled } from "@main/content/content-state";
 import { engineProvider } from "@main/content/engine/engine-provider";
 import { compareEngineVersions } from "@main/content/engine/engine-version-order";
 import { gameProvider } from "@main/content/game/game-provider";
@@ -46,6 +46,14 @@ async function acquireReporting(downloader: Downloader, id: string, report: Cont
     }
 }
 
+/**
+ * Owns acquiring, availability and removal of engines, games and maps: one queue, one concurrency limit,
+ * one change stream, presence read from disk rather than remembered.
+ *
+ * Deliberately not everything that downloads. The pool archive is a bulk seed with no version and nothing
+ * to remove, and it runs alone because setup awaits it before the game download. App updates come from
+ * electron-updater. Neither is a ContentRef, so neither is queued, and both report on their own channel.
+ */
 class ContentAPI {
     private readonly providers: Record<ContentType, ContentProvider> = {
         engine: {
@@ -130,18 +138,18 @@ class ContentAPI {
 
     public readonly onChanged: Signal<ContentState[]> = new Signal();
 
-    // Fires for refs that finished without failing, which is what anything caching "is this installed"
-    // needs to hear. onChanged only ever describes work still outstanding.
-    public readonly onSettled: Signal<ContentRef[]> = new Signal();
+    // Fires when the queue is done with a ref, whichever operation it was, carrying whether the content
+    // is installed now. onChanged only ever describes work still outstanding.
+    public readonly onSettled: Signal<ContentPresence[]> = new Signal();
 
-    // Only maps watch their directory today, so this is wired to that provider rather than described
-    // on the interface. Anything else growing a watcher reports through the same signal.
-    public readonly onPresenceChanged: Signal<{ ref: ContentRef; present: boolean }> = new Signal();
+    // Content appearing or going away without anyone asking, which only the maps directory is watched
+    // for today. Anything else growing a watcher reports through the same signal.
+    public readonly onPresenceChanged: Signal<ContentPresence> = new Signal();
 
     public constructor() {
         this.queue.onChanged.add((entries) => this.syncFromQueue(entries));
-        mapProvider.onMapAdded.add((springName) => this.onPresenceChanged.dispatch({ ref: { type: "map", id: springName }, present: true }));
-        mapProvider.onMapDeleted.add((springName) => this.onPresenceChanged.dispatch({ ref: { type: "map", id: springName }, present: false }));
+        mapProvider.onMapAdded.add((springName) => this.onPresenceChanged.dispatch({ type: "map", id: springName, present: true }));
+        mapProvider.onMapDeleted.add((springName) => this.onPresenceChanged.dispatch({ type: "map", id: springName, present: false }));
     }
 
     // Engine first: the game and map scans read the installed engines to calculate checksums.
@@ -174,12 +182,9 @@ class ContentAPI {
     }
 
     /**
-     * Removes installed content that nothing is holding on to and that has not been wanted for longer
-     * than the retention window. Returns what it removed.
+     * Removes installed content nothing claims and nothing has wanted inside the retention window.
      *
-     * Content with no recorded use is stamped instead of removed, so the clock starts the first time a
-     * sweep sees it. Without that, the first sweep after this shipped would treat a user's entire
-     * library as infinitely old.
+     * Unstamped content is unseen, not old: a sweep stamps it and keeps it.
      */
     public async sweep() {
         const claimed = new Set(this.claimSources.flatMap((source) => source.claims()).map((ref) => contentRefKey(ref)));
@@ -214,10 +219,15 @@ class ContentAPI {
         // getting another. Keep the newest regardless of how long it has sat unused.
         const survivingEngines = installed.filter((ref) => ref.type === "engine" && !stale.some((victim) => contentRefKey(victim) === contentRefKey(ref)));
         if (survivingEngines.length === 0) {
-            const newest = this.engineVersions().at(-1);
-            const spared = stale.findIndex((ref) => ref.type === "engine" && (!newest || ref.id === newest.id));
-            if (spared !== -1) {
-                stale.splice(spared, 1);
+            // Picked from the doomed engines themselves: engineVersions() also lists versions that are
+            // not installed, so its newest can be one no sweep could have been about to remove.
+            const newest = stale
+                .filter((ref) => ref.type === "engine")
+                .sort((a, b) => compareEngineVersions(a.id, b.id))
+                .at(-1);
+
+            if (newest) {
+                stale.splice(stale.indexOf(newest), 1);
             }
         }
 
@@ -296,7 +306,22 @@ class ContentAPI {
     // and skip the queue, which is the one thing keeping the two operations from overlapping. The
     // queue settles a removal on the content being gone, so removing what was never there is fine.
     public async remove(refs: ContentRef[]) {
+        this.assertAnEngineSurvives(refs);
         await Promise.all(refs.map((ref) => this.track(this.queue.enqueue("remove", ref), ref)));
+    }
+
+    // pr-downloader ships inside an engine, so a client with none cannot fetch a game or a map. Enforced
+    // on the operation rather than left to each caller to remember.
+    private assertAnEngineSurvives(refs: ContentRef[]) {
+        const doomed = new Set(refs.filter((ref) => ref.type === "engine").map((ref) => contentRefKey(ref)));
+        if (doomed.size === 0) {
+            return;
+        }
+
+        const surviving = this.installed("engine").filter((ref) => !doomed.has(contentRefKey(ref)));
+        if (surviving.length === 0) {
+            throw new Error("Refusing to remove the last installed engine: pr-downloader comes with it.");
+        }
     }
 
     public isPresent(ref: ContentRef) {
@@ -358,10 +383,11 @@ class ContentAPI {
 
         // A failure is kept until the ref is asked for again, so the reason a download stopped does not
         // vanish the moment the queue moves on.
-        const settled: ContentRef[] = [];
+        const settled: ContentPresence[] = [];
         for (const [key, state] of this.states) {
-            if (!outstanding.has(key) && state.status !== "failed") {
-                settled.push({ type: state.type, id: state.id });
+            if (!outstanding.has(key) && isUnsettled(state)) {
+                const ref = { type: state.type, id: state.id };
+                settled.push({ ...ref, present: this.isPresent(ref) });
                 this.states.delete(key);
             }
         }

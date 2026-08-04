@@ -13,12 +13,32 @@ export type ContentProgress = {
     phase?: "downloading" | "extracting";
 };
 
-// Only content with something happening to it appears here. Anything absent from a snapshot is
-// settled, and whether it is installed comes from isPresent rather than from this.
-//
-// attempts counts tries at the download currently being made, starting at 1 and resetting whenever
-// the content is asked for again, so "retrying" is read off it rather than stored separately.
+// Only content with something happening to it appears here: absent means settled, installed comes from
+// isPresent. attempts counts tries at the current download, reset when the content is asked for again.
 export type ContentState = ContentRef & ContentProgress & { status: ContentStatus; attempts: number };
+
+// Whether content is installed, read from disk at the moment it is reported. Shared by both signals
+// that announce a change so a listener does not have to know which one it heard.
+export type ContentPresence = ContentRef & { present: boolean };
+
+// Three different questions get asked of a snapshot and the answers differ, so each one is named. Reading
+// status directly at a call site is how they get confused for each other.
+
+// The queue still has this in hand, whichever operation. A failure is a result kept for the user to see,
+// not work in progress.
+export function isUnsettled(state: ContentState) {
+    return state.status !== "failed";
+}
+
+// Bytes are moving, or about to.
+export function isInProgress(state: ContentState) {
+    return state.status === "queued" || state.status === "acquiring";
+}
+
+// Download work not finished, counting a failure as still owed because a retry would resume it.
+export function isOwed(state: ContentState) {
+    return state.status !== "removing";
+}
 
 export type ContentReporter = {
     progress(id: string, progress: ContentProgress): void;

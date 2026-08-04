@@ -18,6 +18,7 @@ import { AbstractContentAPI } from "@main/content/abstract-content";
 import { getEnginePath } from "@main/config/app";
 import { DEFAULT_ENGINE_VERSION } from "@main/config/default-versions";
 import { compareEngineVersions, isCompatibleEngineVersion } from "@main/content/engine/engine-version-order";
+import { holdChecksums } from "@main/utils/checksums";
 
 const log = logger("engine-provider.ts");
 
@@ -141,7 +142,8 @@ export class EngineProvider extends AbstractContentAPI<string, EngineVersion> {
             version = version.id;
         }
         const engineDir = path.join(this.engineDirs, version);
-        await fs.promises.rm(engineDir, { force: true, recursive: true });
+        // Checksums run the engine out of this directory, so deleting it underneath one fails on Windows.
+        await holdChecksums(() => fs.promises.rm(engineDir, { force: true, recursive: true }));
         this.availableVersions.delete(version);
     }
 

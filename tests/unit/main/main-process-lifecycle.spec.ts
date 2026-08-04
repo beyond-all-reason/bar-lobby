@@ -217,6 +217,18 @@ describe("Main Process Lifecycle", () => {
         expect(mockServices.autoUpdaterService.init).toHaveBeenCalled();
     });
 
+    // A saved assets path on a drive that is not there makes content init throw, and the screen that lets
+    // the user repoint it cannot appear unless the window is created anyway.
+    it("should still create the window when content initialisation fails", async () => {
+        mockServices.contentAPI.init.mockRejectedValueOnce(new Error("ENOENT: assets path is gone"));
+
+        await import("@main/main");
+
+        expect(mockServices.contentAPI.init).toHaveBeenCalled();
+        expect(mockServices.contentService.registerIpcHandlers).toHaveBeenCalled();
+        expect(mockServices.pathsService.registerIpcHandlers).toHaveBeenCalled();
+    });
+
     it("should register IPC handlers when app is ready", async () => {
         await import("@main/main");
 

@@ -4,7 +4,7 @@
 
 import type { BattleWithMetadata } from "@main/game/battle/battle-types";
 import type { ContentRef } from "@main/content/content-ref";
-import type { ContentState } from "@main/content/content-state";
+import type { ContentPresence, ContentState } from "@main/content/content-state";
 import type { DownloadInfo } from "@main/content/downloads";
 import type { EngineVersion } from "@main/content/engine/engine-version";
 import type { GameVersion } from "@main/content/game/game-version";
@@ -23,8 +23,8 @@ import { ipcRenderer as electronIpcRenderer, ipcMain as electronIpcMain } from "
 export type IPCEvents = {
     "content:changed": (state: ContentState[]) => void;
     "content:poolPrefetch": (downloadInfo: DownloadInfo | null) => void;
-    "content:settled": (refs: ContentRef[]) => void;
-    "downloads:update:progress": (downloadInfo: DownloadInfo) => void;
+    "content:settled": (refs: ContentPresence[]) => void;
+    "downloads:update:progress": (downloadInfo: DownloadInfo | null) => void;
     "game:closed": () => void;
     "game:launched": () => void;
     "maps:mapAdded": (filename: string) => void;

@@ -6,6 +6,7 @@ import { autoUpdaterAPI } from "@main/content/auto-updater";
 import { contentAPI } from "@main/content/content-api";
 import { ContentRef } from "@main/content/content-ref";
 import { DownloadInfo } from "@main/content/downloads";
+import { isUnsettled } from "@main/content/content-state";
 import { poolCdnDownloader } from "@main/content/game/pool-cdn";
 import { BarIpcWebContents, ipcMain } from "@main/typed-ipc";
 
@@ -32,6 +33,13 @@ function registerIpcHandlers(webContents: BarIpcWebContents) {
     for (const signal of [poolCdnDownloader.onDownloadComplete, poolCdnDownloader.onDownloadFail]) {
         signal.add(() => webContents.send("content:poolPrefetch", null));
     }
+
+    // The updater sits outside the content layer and reports on its own channel, which the download list
+    // totals alongside content.
+    autoUpdaterAPI.onDownloadProgress.add((downloadInfo) => webContents.send("downloads:update:progress", downloadInfo));
+    for (const signal of [autoUpdaterAPI.onDownloadComplete, autoUpdaterAPI.onDownloadFail]) {
+        signal.add(() => webContents.send("downloads:update:progress", null));
+    }
 }
 
 // The taskbar shows a single bar for everything downloading, and app updates come from outside the
@@ -47,7 +55,7 @@ function registerProgressHandler(mainWindow: Electron.CrossProcessExports.Browse
     }
 
     contentAPI.onChanged.add((state) => {
-        contentProgress = state.filter((entry) => entry.status !== "failed").map((entry) => entry.progress);
+        contentProgress = state.filter(isUnsettled).map((entry) => entry.progress);
         refresh();
     });
 

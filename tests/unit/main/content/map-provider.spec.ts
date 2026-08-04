@@ -8,7 +8,20 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const { dir, parser, checksums, gate, basename } = vi.hoisted(() => {
     const dir = new Set<string>();
     const parser = { unreadable: new Set<string>(), parsed: [] as string[] };
-    const checksums = { idle: vi.fn().mockResolvedValue(undefined), calc: vi.fn() };
+    // Mirrors the real lock rather than asserting it was consulted: held work runs inside, and the order
+    // it ran in is what the removal test checks.
+    const checksums = {
+        calc: vi.fn(),
+        events: [] as string[],
+        hold: async <T>(work: () => Promise<T>) => {
+            checksums.events.push("held");
+            try {
+                return await work();
+            } finally {
+                checksums.events.push("released");
+            }
+        },
+    };
     // Lets a test hold a parse open so a second sync can be started while the first is mid-pass.
     const gate: { held: Promise<void> | null } = { held: null };
 
@@ -22,7 +35,7 @@ vi.mock("@main/utils/logger", () => ({
 vi.mock("chokidar", () => ({
     default: { watch: () => ({ on: () => ({ on: () => ({}) }), close: vi.fn() }) },
 }));
-vi.mock("@main/utils/checksums", () => ({ calcChecksum: checksums.calc, whenChecksumsIdle: checksums.idle }));
+vi.mock("@main/utils/checksums", () => ({ calcChecksum: checksums.calc, holdChecksums: checksums.hold }));
 vi.mock("@main/content/engine/engine-provider", () => ({ engineProvider: { getDefaultEngine: () => undefined, onDownloadComplete: { add: vi.fn() } } }));
 vi.mock("$/map-parser/ultrasimple-map-parser", () => ({
     UltraSimpleMapParser: class {
@@ -49,7 +62,10 @@ vi.mock("fs", () => ({
 
             return [...dir];
         },
-        rm: async (path: string) => void dir.delete(basename(path)),
+        rm: async (path: string) => {
+            checksums.events.push("deleted");
+            dir.delete(basename(path));
+        },
         mkdir: vi.fn().mockResolvedValue(undefined),
     },
 }));
@@ -85,7 +101,7 @@ describe("MapProvider map index", () => {
         dir.clear();
         parser.unreadable.clear();
         parser.parsed.length = 0;
-        checksums.idle.mockClear();
+        checksums.events.length = 0;
         gate.held = null;
         provider = new MapProvider();
     });
@@ -123,8 +139,8 @@ describe("MapProvider map index", () => {
         expect(parser.parsed).toEqual(["quicksilver.sd7"]);
     });
 
-    // The bug this exists for: handing a caller the sync already in progress. That pass may have listed
-    // the directory before the caller's change, so it can resolve without reflecting it.
+    // Must resolve on a pass that began after the caller asked - an earlier one may have listed the
+    // directory already.
     it("waits for a pass that starts after the caller asked, not one already running", async () => {
         dir.add("first.sd7");
         const release = hold();
@@ -182,14 +198,18 @@ describe("MapProvider map index", () => {
         expect(provider.isVersionInstalled("half-written")).toBe(true);
     });
 
-    // The engine holds an archive open while checksumming it, so unlinking it first fails on Windows.
-    it("waits for outstanding checksums before removing a map", async () => {
+    // The engine holds an archive open while checksumming it, so unlinking it first fails on Windows. The
+    // deletion has to happen while the checksum queue is held, not merely after a wait on it.
+    it("deletes the map file with the checksum queue held", async () => {
         dir.add("quicksilver.sd7");
         await provider.syncMaps();
-
         await provider.uninstallVersion("quicksilver");
 
-        expect(checksums.idle).toHaveBeenCalled();
+        const deletedAt = checksums.events.indexOf("deleted");
+
+        expect(checksums.events[0]).toBe("held");
+        expect(deletedAt).toBeGreaterThan(0);
+        expect(deletedAt).toBeLessThan(checksums.events.indexOf("released"));
         expect(dir.has("quicksilver.sd7")).toBe(false);
         expect(provider.isVersionInstalled("quicksilver")).toBe(false);
     });

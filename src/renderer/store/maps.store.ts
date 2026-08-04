@@ -60,11 +60,18 @@ async function init() {
         db.maps.where("springName").equals(springName).modify({ isInstalled: false });
         db.nonLiveMaps.where("springName").equals(springName).modify({ isInstalled: false });
     });
-    // Chokadir takes 1-2 seconds longer after this to notice the file, so we do both for a faster response after a downloaded map
+    // Chokidar takes 1-2 seconds longer than this to notice the file, so both paths are wired up and
+    // whichever arrives first wins.
     onContentSettled((refs) => {
         for (const ref of refs) {
-            if (ref.type === "map") {
+            if (ref.type !== "map") {
+                continue;
+            }
+
+            if (ref.present) {
                 mapsStore.availableMapNames.add(ref.id);
+            } else {
+                mapsStore.availableMapNames.delete(ref.id);
             }
         }
     });

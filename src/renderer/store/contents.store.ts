@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 import { ContentRef } from "@main/content/content-ref";
-import { ContentProgress, ContentState } from "@main/content/content-state";
+import { ContentPresence, ContentProgress, ContentState, isInProgress, isOwed } from "@main/content/content-state";
 import { notificationsApi } from "@renderer/api/notifications";
 import { reactive } from "vue";
 
@@ -18,12 +18,16 @@ export const contentsStore: {
     isPathChanging: boolean;
     // Warming the pool is not tied to any one piece of content, so it is not part of inFlight.
     poolPrefetch: ContentProgress | null;
+    // Content finished this run, counted on both sides of the fraction so it does not drop as content
+    // leaves inFlight. Resets once nothing is being worked on.
+    settledCount: number;
 } = reactive({
     isInitialized: false,
     inFlight: [],
     revision: 0,
     isPathChanging: false,
     poolPrefetch: null,
+    settledCount: 0,
 });
 
 export function contentRefs(content: { engines?: string[]; games?: string[]; maps?: string[] }): ContentRef[] {
@@ -62,7 +66,21 @@ export async function initContentsStore() {
     }
 
     contentsStore.inFlight = await window.content.state();
+
+    let previous = new Set<string>();
     window.content.onChanged((state) => {
+        const outstanding = new Set(state.filter(isOwed).map((entry) => `${entry.type}:${entry.id}`));
+        for (const ref of previous) {
+            if (!outstanding.has(ref)) {
+                contentsStore.settledCount++;
+            }
+        }
+        previous = outstanding;
+
+        if (!state.some(isInProgress)) {
+            contentsStore.settledCount = 0;
+        }
+
         contentsStore.inFlight = state;
         contentsStore.revision++;
     });
@@ -73,6 +91,6 @@ export async function initContentsStore() {
     contentsStore.isInitialized = true;
 }
 
-export function onContentSettled(callback: (refs: ContentRef[]) => void) {
+export function onContentSettled(callback: (refs: ContentPresence[]) => void) {
     window.content.onSettled(callback);
 }

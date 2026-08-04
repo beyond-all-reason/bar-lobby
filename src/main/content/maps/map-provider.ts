@@ -14,7 +14,7 @@ import chokidar, { FSWatcher } from "chokidar";
 import { UltraSimpleMapParser } from "$/map-parser/ultrasimple-map-parser";
 import { removeFromArray } from "$/jaz-ts-utils/object";
 import { engineProvider } from "@main/content/engine/engine-provider";
-import { calcChecksum, whenChecksumsIdle } from "@main/utils/checksums";
+import { calcChecksum, holdChecksums } from "@main/utils/checksums";
 
 const log = logger("map-provider.ts");
 
@@ -53,25 +53,15 @@ export class MapProvider extends PrDownloaderAPI<string, MapData> {
         await this.init();
     }
 
-    /**
-     * Brings the springName lookups in line with what is actually in the maps directories, and reports
-     * whatever changed. This is the only thing that mutates them.
-     *
-     * Reconciling rather than reacting to individual events, because the two things that change the
-     * directories cannot both be handled the same way: our own downloads and removals need to be visible
-     * the moment they return, while a file the user added or deleted is only ever noticed by the
-     * watcher. Both call this instead of each keeping its own idea of what is installed.
-     */
+    // Only writer of the springName lookups. Our own downloads and removals need it visible the moment
+    // they return; the watcher calls it for files the user added or deleted behind our back.
     public syncMaps(): Promise<void> {
         return this.serialise(() => this.reconcileMaps());
     }
 
-    /**
-     * Runs work against the maps directories one piece at a time, and never inside a pass that started
-     * earlier. Both halves matter: a reconcile that has already listed the directory cannot report a
-     * change made afterwards, and reading an archive to identify it holds the file open, so a removal
-     * overlapping a reconcile fails outright on Windows.
-     */
+    // One piece of work at a time, never inside a pass that started earlier: a reconcile that already
+    // listed the directory cannot report a later change, and identifying an archive holds it open, so a
+    // removal overlapping a reconcile fails on Windows.
     private serialise<T>(work: () => Promise<T>): Promise<T> {
         const result = this.mapsWork.then(work);
         this.mapsWork = result.then(
@@ -119,9 +109,7 @@ export class MapProvider extends PrDownloaderAPI<string, MapData> {
             try {
                 springName = await this.getMapNameFromFile(filePath);
             } catch (err) {
-                // Deliberately left alone rather than removed as corrupt: a sync triggered by one
-                // finished download can reach another that is still being written, and deleting that
-                // would destroy a download in progress. A later pass picks it up once it is complete.
+                // May be a download still being written - leave it for a later pass.
                 log.warn(`Could not identify ${filePath} yet: ${err}`);
                 continue;
             }
@@ -187,15 +175,13 @@ export class MapProvider extends PrDownloaderAPI<string, MapData> {
             throw new Error(`No installed map file for: ${springName}`);
         }
 
-        await this.serialise(async () => {
-            // A checksum spawned when this map was found keeps the archive open, and nothing new can be
-            // queued meanwhile because reconciling runs on this same queue.
-            await whenChecksumsIdle();
-
-            for (const mapsDir of getMapsPaths()) {
-                await fs.promises.rm(path.join(mapsDir, fileName), { force: true });
-            }
-        });
+        await this.serialise(() =>
+            holdChecksums(async () => {
+                for (const mapsDir of getMapsPaths()) {
+                    await fs.promises.rm(path.join(mapsDir, fileName), { force: true });
+                }
+            })
+        );
         await this.syncMaps();
     }
 }
