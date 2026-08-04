@@ -2060,8 +2060,6 @@
             "exit": {
                 "title": "Exit",
                 "login": "Login",
-                "connect": "Connect",
-                "disconnect": "Disconnect",
                 "logout": "Logout",
                 "quitToDesktop": "Quit to Desktop"
             },
@@ -2100,7 +2098,22 @@
                 "playersOnline": "Players Online",
                 "error": "Error",
                 "reconnecting": "Reconnecting...",
-                "offline": "Offline"
+                "offline": "Offline",
+                "changeStatus": "Change Status",
+                "statusOnline": "Online",
+                "statusBusy": "Busy",
+                "statusBusyUnavailable": "The server has no way to show this yet",
+                "goOffline": "Go Offline",
+                "cancel": "Cancel",
+                "connect": "Connect",
+                "connectTitle": "Connect to the server?",
+                "connectBody": "You are signed in but not connected. Connecting brings back parties, lobbies and matchmaking.",
+                "disconnect": "Disconnect",
+                "disconnectTitle": "Disconnect from the server?",
+                "disconnectBody": "You will leave any party, lobby or matchmaking queue you are in. You stay signed in and can connect again whenever you like.",
+                "stopReconnecting": "Stop trying",
+                "stopReconnectingTitle": "Stop reconnecting?",
+                "stopReconnectingBody": "No further attempts will be made until you connect again yourself."
             },
             "messages": {
                 "message": "Message",

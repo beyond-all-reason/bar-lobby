@@ -34,7 +34,6 @@ export const tachyonStore = reactive({
 async function connect() {
     if (!me.isAuthenticated) throw new Error("Not authenticated");
 
-    tachyonStore.wantsConnection = true;
     try {
         await window.tachyon.connect();
         tachyonStore.error = undefined;
@@ -126,6 +125,10 @@ export async function initTachyonStore() {
     window.tachyon.onConnected(() => {
         console.debug("Connected to Tachyon server");
         tachyonStore.isConnected = true;
+        // Recorded here rather than in connect(), so it holds however the
+        // connection was opened. Setting it at one call site meant the others
+        // silently opted out of reconnecting.
+        tachyonStore.wantsConnection = true;
         fetchServerStats();
         stopFetchingServerStats();
         stopReconnecting();

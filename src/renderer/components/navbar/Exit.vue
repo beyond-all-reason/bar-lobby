@@ -10,12 +10,6 @@ SPDX-License-Identifier: MIT
             <Button @click="login" v-if="!me.isAuthenticated && !onLoginPage && settingsStore.devMode">{{
                 t("lobby.navbar.exit.login")
             }}</Button>
-            <Button @click="goOnline" v-if="me.isAuthenticated && !tachyonStore.isConnected && !onLoginPage && settingsStore.devMode">{{
-                t("lobby.navbar.exit.connect")
-            }}</Button>
-            <Button @click="disconnect" v-if="tachyonStore.isConnected && !onLoginPage && settingsStore.devMode">{{
-                t("lobby.navbar.exit.disconnect")
-            }}</Button>
             <Button @click="logout" v-if="me.isAuthenticated && !onLoginPage && settingsStore.devMode">{{
                 t("lobby.navbar.exit.logout")
             }}</Button>
@@ -33,7 +27,6 @@ import Button from "@renderer/components/controls/Button.vue";
 import { auth } from "@renderer/store/me.store";
 import { settingsStore } from "@renderer/store/settings.store";
 import { me } from "@renderer/store/me.store";
-import { tachyon, tachyonStore } from "@renderer/store/tachyon.store";
 import { useTypedI18n } from "@renderer/i18n";
 import { party } from "@renderer/store/party.store";
 const { t } = useTypedI18n();
@@ -49,22 +42,15 @@ async function login() {
     modal.value?.close();
 }
 
-async function goOnline() {
-    await auth.goOnline();
-    modal.value?.close();
-}
-
-async function disconnect() {
-    await tachyon.goOffline();
-    modal.value?.close();
-}
-
+// Closed up front: signing out flips the buttons this menu is showing, so
+// leaving it open means watching Logout turn into Login before it disappears.
 // Signing in on launch is a setting of its own, so signing out leaves it alone.
 async function logout() {
+    modal.value?.close();
+
     party.onLogout();
     await auth.logout();
     await router.push("/");
-    modal.value?.close();
 }
 
 async function quitToDesktop() {
