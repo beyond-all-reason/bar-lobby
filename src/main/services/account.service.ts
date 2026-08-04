@@ -79,13 +79,6 @@ function getExpiresAt(): number {
     return accountStore.model.expiresAt;
 }
 
-async function forgetToken() {
-    await accountStore.update({
-        token: "",
-        expiresAt: 0,
-    });
-}
-
 async function wipe() {
     await accountStore.update({
         token: "",
@@ -102,5 +95,4 @@ export const accountService = {
     getRefreshToken,
     getExpiresAt,
     wipe,
-    forgetToken,
 };

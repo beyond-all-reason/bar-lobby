@@ -4065,6 +4065,8 @@
             "exit": {
                 "title": null,
                 "login": null,
+                "connect": null,
+                "disconnect": null,
                 "logout": null,
                 "quitToDesktop": null
             },

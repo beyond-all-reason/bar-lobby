@@ -155,16 +155,6 @@ describe("account store", () => {
         expect(accountService.getToken()).toBe("");
     });
 
-    it("keeps the refresh token when only the access token is forgotten", async () => {
-        const accountService = await loadService();
-        await accountService.saveTokens(tokens);
-        await accountService.forgetToken();
-
-        expect(accountService.getToken()).toBe("");
-        expect(accountService.getExpiresAt()).toBe(0);
-        expect(accountService.getRefreshToken()).toBe("refresh-1");
-    });
-
     it("clears everything on a wipe", async () => {
         const accountService = await loadService();
         await accountService.saveTokens(tokens);

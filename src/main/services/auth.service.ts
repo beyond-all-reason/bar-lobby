@@ -150,13 +150,10 @@ async function signIn(interactive: boolean) {
     }
 }
 
+// Signing out destroys the stored credentials outright. Keeping the refresh
+// token behind the user's back is what made a separate "change account" action
+// necessary, and whether to sign in on launch is a setting of its own.
 async function signOut() {
-    stopRenewal();
-    await accountService.forgetToken();
-    setAuthenticated(false, "signed-out");
-}
-
-async function forgetAccount() {
     stopRenewal();
     await accountService.wipe();
     setAuthenticated(false, "signed-out");
@@ -185,7 +182,6 @@ function registerIpcHandlers(webContents: BarIpcWebContents) {
 
     ipcMain.handle("auth:login", (_event, interactive) => signIn(interactive ?? true));
     ipcMain.handle("auth:logout", () => signOut());
-    ipcMain.handle("auth:wipe", () => forgetAccount());
     ipcMain.handle("auth:hasCredentials", () => !!accountService.getRefreshToken());
     ipcMain.handle("auth:state", () => state());
 }

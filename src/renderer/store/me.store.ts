@@ -64,8 +64,14 @@ async function login(interactive = true) {
     }
 }
 
-async function playOffline() {
-    await logout();
+// Signing in and opening the socket are separate steps, and starting offline
+// leaves the first one undone, so going online has to cover both.
+async function goOnline() {
+    if (!me.isAuthenticated) {
+        await login(false);
+    }
+
+    await window.tachyon.connect();
 }
 
 async function logout() {
@@ -74,22 +80,13 @@ async function logout() {
     await syncAuthState();
 }
 
-async function changeAccount() {
-    await window.auth.wipe();
-    await syncAuthState();
-}
-
 // The same setting picks the websocket and the authorization server, so the
 // credentials we are holding were issued by the server being left and are worth
 // nothing to the one being joined. Switching ends the session rather than moving
-// the socket over.
+// the socket over, and logout is already that: it gives up wanting a connection
+// before closing one, so the drop is not taken for a fault worth retrying.
 async function serverChanged() {
-    // A socket that drops while we still look authenticated is treated as a
-    // connection worth retrying, so give up the session before closing it.
-    me.isAuthenticated = false;
-    subsManager.clearAllFromList(friendsSymbol);
-    await window.tachyon.disconnect();
-    await window.auth.wipe();
+    await logout();
 }
 
 window.tachyon.onEvent("user/self", async (event) => {
@@ -156,7 +153,7 @@ function clearOnlineState() {
 }
 
 // export const me = readonly(_me);
-export const auth = { login, playOffline, logout, changeAccount, clearOnlineState };
+export const auth = { login, goOnline, logout, clearOnlineState };
 
 // Friend methods
 export const friends = {
@@ -292,13 +289,9 @@ async function restorePreviousSession() {
     if (!(await window.auth.hasCredentials())) return;
 
     try {
-        // Non-interactive: a rejected refresh token must not open a browser
-        // window while the user is still looking at the loading screen.
-        await login(false);
-
-        // Holding a token is not being online, so the socket has to be opened
-        // here too, or the UI shows a session with nothing behind it.
-        await window.tachyon.connect();
+        // Non-interactive, because a rejected refresh token must not open a
+        // browser window while the user is still looking at the loading screen.
+        await goOnline();
     } catch (error) {
         // This runs before the UI mounts, so there is nowhere to show a retry.
         // Signing out matters when the token was fine and the socket was refused
