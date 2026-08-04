@@ -31,7 +31,13 @@ vi.mock("@main/config/app", () => ({
     REPLAYS_PATH: "/state/replays",
     getAssetsPath: () => "/assets",
 }));
-
+vi.mock("@main/services/config.service", () => {
+    return {
+        configService: {
+            getConfig: vi.fn(() => ({ allowedUrlLinks: ["https://bar-rts.com/replays", "https://www.beyondallreason.info/news"] })),
+        },
+    };
+});
 const { shellService } = await import("@main/services/shell.service");
 
 shellService.registerIpcHandlers();
