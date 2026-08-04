@@ -19,6 +19,13 @@ export interface StoredTokens {
     expiresAt: number;
 }
 
+export interface StoredIdentity {
+    userId: string;
+    username: string;
+    displayName: string;
+    countryCode: string;
+}
+
 async function init() {
     await accountStore.init();
 }
@@ -79,11 +86,22 @@ function getExpiresAt(): number {
     return accountStore.model.expiresAt;
 }
 
+async function saveIdentity(identity: StoredIdentity) {
+    await accountStore.update({ identity });
+}
+
+function getIdentity(): StoredIdentity | undefined {
+    return accountStore.model.identity;
+}
+
+// Signing out takes the identity with the credentials, so the next sign in
+// doesn't start by showing whoever used the client last.
 async function wipe() {
     await accountStore.update({
         token: "",
         refreshToken: "",
         expiresAt: 0,
+        identity: undefined,
     });
 }
 
@@ -94,5 +112,7 @@ export const accountService = {
     getToken,
     getRefreshToken,
     getExpiresAt,
+    saveIdentity,
+    getIdentity,
     wipe,
 };

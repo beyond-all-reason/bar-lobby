@@ -159,8 +159,10 @@ describe("Preload API Context Bridge", () => {
         mockWindow.auth.logout();
         mockWindow.auth.hasCredentials();
         mockWindow.auth.getState();
+        mockWindow.auth.getIdentity();
 
         expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("auth:login", false);
+        expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("auth:identity");
         expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("auth:logout");
         expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("auth:hasCredentials");
         expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("auth:state");

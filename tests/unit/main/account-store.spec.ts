@@ -155,6 +155,36 @@ describe("account store", () => {
         expect(accountService.getToken()).toBe("");
     });
 
+    // The name has to be readable before anything has connected, so it is not
+    // encrypted and it lives beside the credentials rather than in the renderer.
+    it("remembers who the credentials belong to across a restart", async () => {
+        const first = await loadService();
+        await first.saveIdentity({ userId: "42", username: "Hectwo", displayName: "Hectwo", countryCode: "GB" });
+
+        const second = await loadService();
+        expect(second.getIdentity()).toEqual({ userId: "42", username: "Hectwo", displayName: "Hectwo", countryCode: "GB" });
+    });
+
+    // Renewals write the token pair every few minutes, long after the identity
+    // was recorded, so they must not carry it away with them.
+    it("keeps the identity through a token renewal", async () => {
+        const accountService = await loadService();
+        await accountService.saveIdentity({ userId: "42", username: "Hectwo", displayName: "Hectwo", countryCode: "GB" });
+        await accountService.saveTokens(tokens);
+
+        expect(accountService.getIdentity()).toBeDefined();
+        expect(onDisk().identity).toBeDefined();
+    });
+
+    it("forgets the identity along with the credentials", async () => {
+        const accountService = await loadService();
+        await accountService.saveTokens(tokens);
+        await accountService.saveIdentity({ userId: "42", username: "Hectwo", displayName: "Hectwo", countryCode: "GB" });
+        await accountService.wipe();
+
+        expect(accountService.getIdentity()).toBeUndefined();
+    });
+
     it("clears everything on a wipe", async () => {
         const accountService = await loadService();
         await accountService.saveTokens(tokens);

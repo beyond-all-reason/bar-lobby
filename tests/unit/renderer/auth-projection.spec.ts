@@ -10,22 +10,6 @@ const settings = vi.hoisted(() => ({ devMode: true, loginAutomatically: true }))
 
 vi.mock("@renderer/store/settings.store", () => ({ settingsStore: settings }));
 
-// The cached user row carries whatever the last run persisted, including a
-// stale session flag, so it must never win over the main process.
-const storedUser = vi.hoisted(() => ({ current: undefined as Record<string, unknown> | undefined }));
-
-vi.mock("@renderer/store/db", () => ({
-    db: {
-        users: {
-            where: () => ({
-                first: async () => storedUser.current,
-                modify: async () => undefined,
-            }),
-            put: async () => undefined,
-        },
-    },
-}));
-
 vi.mock("@renderer/store/users.store", () => ({
     subsManager: {
         attach: vi.fn(),
@@ -39,9 +23,9 @@ let onAuthChanged: ((state: { authenticated: boolean; reason?: string }) => void
 const authApi = {
     login: vi.fn(),
     logout: vi.fn(),
-    wipe: vi.fn(),
     hasCredentials: vi.fn(),
     getState: vi.fn(),
+    getIdentity: vi.fn(),
     onChanged: vi.fn((callback: (state: { authenticated: boolean; reason?: string }) => void) => {
         onAuthChanged = callback;
     }),
@@ -52,13 +36,13 @@ const emptyFriendList = { data: { friends: [], outgoingPendingRequests: [], inco
 beforeEach(() => {
     vi.clearAllMocks();
     onAuthChanged = undefined;
-    storedUser.current = undefined;
     settings.devMode = true;
     settings.loginAutomatically = true;
 
     authApi.getState.mockResolvedValue({ authenticated: false });
     authApi.hasCredentials.mockResolvedValue(false);
     authApi.logout.mockResolvedValue(undefined);
+    authApi.getIdentity.mockResolvedValue(undefined);
 
     Object.defineProperty(window, "auth", { value: authApi, writable: true, configurable: true });
     Object.assign(window.tachyon as any, {
@@ -86,15 +70,25 @@ describe("renderer auth projection", () => {
         expect(me.isAuthenticated).toBe(true);
     });
 
-    it("does not let a stale flag from the cached user win", async () => {
-        storedUser.current = { userId: "42", username: "Cached", isAuthenticated: true };
+    // Identity comes off the durable side, so it is there before any socket is.
+    it("shows who the stored credentials belong to while offline", async () => {
+        authApi.getIdentity.mockResolvedValue({ userId: "42", username: "Cached", displayName: "Cached", countryCode: "" });
         authApi.getState.mockResolvedValue({ authenticated: false });
 
         const { me, initMeStore } = await loadStore();
         await initMeStore();
 
         expect(me.username).toBe("Cached");
+        expect(me.userId).toBe("42");
         expect(me.isAuthenticated).toBe(false);
+    });
+
+    it("falls back to the defaults when nothing is stored yet", async () => {
+        const { me, initMeStore } = await loadStore();
+        await initMeStore();
+
+        expect(me.username).toBe("Player");
+        expect(me.userId).toBe("0");
     });
 
     it("follows a session loss the renderer did not ask for", async () => {

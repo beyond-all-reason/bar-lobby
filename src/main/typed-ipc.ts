@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 import type { AuthState } from "@main/services/auth.service";
+import type { StoredIdentity } from "@main/services/account.service";
 import type { BattleWithMetadata } from "@main/game/battle/battle-types";
 import type { BattleStartRequestData } from "tachyon-protocol/types";
 import type { DownloadInfo } from "@main/content/downloads";
@@ -63,6 +64,7 @@ export type IPCEvents = {
 
 export type IPCCommands = {
     "auth:hasCredentials": () => boolean;
+    "auth:identity": () => StoredIdentity | undefined;
     "auth:login": (interactive?: boolean) => void;
     "auth:logout": () => void;
     "auth:state": () => AuthState;

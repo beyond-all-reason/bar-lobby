@@ -18,6 +18,7 @@ import type { BattleStartRequestData } from "tachyon-protocol/types";
 import { MultiplayerLaunchSettings } from "@main/game/game";
 import { logLevels } from "@main/services/log.service";
 import { AuthState } from "@main/services/auth.service";
+import { StoredIdentity } from "@main/services/account.service";
 
 const logApi = {
     purge: (): Promise<string[]> => ipcRenderer.invoke("log:purge"),
@@ -87,6 +88,7 @@ const authApi = {
     logout: (): Promise<void> => ipcRenderer.invoke("auth:logout"),
     hasCredentials: (): Promise<boolean> => ipcRenderer.invoke("auth:hasCredentials"),
     getState: (): Promise<AuthState> => ipcRenderer.invoke("auth:state"),
+    getIdentity: (): Promise<StoredIdentity | undefined> => ipcRenderer.invoke("auth:identity"),
 
     onChanged: (callback: (state: AuthState) => void) => ipcRenderer.on("auth:changed", (_event, state) => callback(state)),
 };
