@@ -14,7 +14,7 @@ type MockIpcRenderer = {
 
 describe("Preload API Context Bridge", () => {
     // List of all APIs exposed in the preload script
-    const apiNames = ["log", "info", "mainWindow", "shell", "replays", "settings", "auth", "engine", "game", "maps", "downloads", "misc", "barNavigation", "tachyon", "autoUpdater", "notifications"];
+    const apiNames = ["log", "info", "mainWindow", "shell", "replays", "settings", "auth", "content", "engine", "game", "maps", "misc", "barNavigation", "tachyon", "autoUpdater", "notifications"];
 
     let mockWindow: any;
     let mockIpcRenderer: MockIpcRenderer;
@@ -188,7 +188,6 @@ describe("Preload API Context Bridge", () => {
         mockWindow.game.getInstalledVersions();
         mockWindow.game.isVersionInstalled("v1");
         mockWindow.game.uninstallVersion("v1");
-        mockWindow.game.preloadPoolData();
         mockWindow.game.launchMultiplayer({});
         mockWindow.game.launchScript("script", "gameV", "engineV");
 
@@ -197,7 +196,6 @@ describe("Preload API Context Bridge", () => {
         expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("game:getInstalledVersions");
         expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("game:isVersionInstalled", "v1");
         expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("game:uninstallVersion", "v1");
-        expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("game:preloadPoolData");
         expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("game:launchMultiplayer", {});
         expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("game:launchScript", "script", "gameV", "engineV");
     });
@@ -220,22 +218,20 @@ describe("Preload API Context Bridge", () => {
         expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("maps:online:fetchMapImages", "imgsrc");
     });
 
-    it("should expose downloads API event listeners", async () => {
+    it("should expose content API", async () => {
         await import("@preload/preload");
 
-        // Only test that the event listeners are functions
-        expect(typeof mockWindow.downloads.onDownloadEngineStart).toBe("function");
-        expect(typeof mockWindow.downloads.onDownloadEngineComplete).toBe("function");
-        expect(typeof mockWindow.downloads.onDownloadEngineProgress).toBe("function");
-        expect(typeof mockWindow.downloads.onDownloadEngineFail).toBe("function");
-        expect(typeof mockWindow.downloads.onDownloadGameStart).toBe("function");
-        expect(typeof mockWindow.downloads.onDownloadGameComplete).toBe("function");
-        expect(typeof mockWindow.downloads.onDownloadGameProgress).toBe("function");
-        expect(typeof mockWindow.downloads.onDownloadGameFail).toBe("function");
-        expect(typeof mockWindow.downloads.onDownloadMapStart).toBe("function");
-        expect(typeof mockWindow.downloads.onDownloadMapComplete).toBe("function");
-        expect(typeof mockWindow.downloads.onDownloadMapProgress).toBe("function");
-        expect(typeof mockWindow.downloads.onDownloadMapFail).toBe("function");
+        mockWindow.content.missing([{ type: "map", id: "Quicksilver" }]);
+        mockWindow.content.state();
+        mockWindow.content.ensure([{ type: "map", id: "Quicksilver" }]);
+        mockWindow.content.remove([{ type: "map", id: "Quicksilver" }]);
+
+        expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("content:missing", [{ type: "map", id: "Quicksilver" }]);
+        expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("content:state");
+        expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("content:ensure", [{ type: "map", id: "Quicksilver" }]);
+        expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("content:remove", [{ type: "map", id: "Quicksilver" }]);
+        expect(typeof mockWindow.content.onChanged).toBe("function");
+        expect(typeof mockWindow.content.onSettled).toBe("function");
     });
 
     it("should expose misc API", async () => {

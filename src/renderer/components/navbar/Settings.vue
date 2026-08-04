@@ -109,7 +109,7 @@ import OverlayPanel from "primevue/overlaypanel";
 import { asyncComputed } from "@vueuse/core";
 import { settingsStore } from "@renderer/store/settings.store";
 import { infosStore } from "@renderer/store/infos.store";
-import { downloadsStore } from "@renderer/store/downloads.store";
+import { contentsStore } from "@renderer/store/contents.store";
 import { refreshEnginesStore } from "@renderer/store/engine.store";
 import { refreshGameStore } from "@renderer/store/game.store";
 import { refreshMapsStore } from "@renderer/store/maps.store";
@@ -128,9 +128,7 @@ const copyProgressPercent = computed(() => {
     return Math.round((copyProgress.value.copied / copyProgress.value.total) * 100);
 });
 const pathError = ref("");
-const hasActiveDownloads = computed(
-    () => downloadsStore.engineDownloads.length > 0 || downloadsStore.gameDownloads.length > 0 || downloadsStore.mapDownloads.length > 0
-);
+const hasActiveDownloads = computed(() => contentsStore.inFlight.length > 0);
 const isBusy = computed(() => isTransferring.value || isChanging.value || hasActiveDownloads.value);
 
 let cleanupCopyProgress: (() => void) | undefined;
@@ -166,7 +164,7 @@ async function browseForNewAssetsPath() {
 async function applyPathChange() {
     if (!pendingAssetsPath.value) return;
     pathError.value = "";
-    downloadsStore.isPathChanging = true;
+    contentsStore.isPathChanging = true;
     try {
         if (changeMode.value === "change-only") {
             isChanging.value = true;
@@ -188,7 +186,7 @@ async function applyPathChange() {
     } finally {
         isTransferring.value = false;
         isChanging.value = false;
-        downloadsStore.isPathChanging = false;
+        contentsStore.isPathChanging = false;
     }
 }
 

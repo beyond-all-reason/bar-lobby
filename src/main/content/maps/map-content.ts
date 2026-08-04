@@ -164,12 +164,18 @@ export class MapContentAPI extends PrDownloaderAPI<string, MapData> {
         throw new Error("Method not implemented.");
     }
 
-    public async uninstallVersion(version: MapData) {
-        for (const mapsDir of getMapsPaths()) {
-            const mapFile = path.join(mapsDir, version.filename);
-            await fs.promises.rm(mapFile, { force: true });
+    public async uninstallVersion(version: MapData | string) {
+        const springName = typeof version === "string" ? version : version.springName;
+        const fileName = typeof version === "string" ? this.mapNameFileNameLookup[springName] : version.filename;
+
+        if (!fileName) {
+            throw new Error(`No installed map file for: ${springName}`);
         }
-        log.debug(`Map removed: ${version.springName}`);
+
+        for (const mapsDir of getMapsPaths()) {
+            await fs.promises.rm(path.join(mapsDir, fileName), { force: true });
+        }
+        log.debug(`Map removed: ${springName}`);
     }
 }
 

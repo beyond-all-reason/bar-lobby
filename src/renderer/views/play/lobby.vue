@@ -11,7 +11,7 @@ SPDX-License-Identifier: MIT
 <template>
     <Panel>
         <div class="flex flex-row">
-            <Button @click="downloadMap()" class="red flex-right" :disabled="downloadsStore.isPathChanging">Download Map</Button>
+            <Button @click="downloadMap()" class="red flex-right" :disabled="contentsStore.isPathChanging">Download Map</Button>
             <Button @click="leaveLobby()" class="flex-right">Tachyon:Leave Lobby</Button>
         </div>
         <div v-if="lobbyStore.activeLobby">
@@ -44,7 +44,7 @@ SPDX-License-Identifier: MIT
 import Panel from "@renderer/components/common/Panel.vue";
 import Button from "@renderer/components/controls/Button.vue";
 import { lobby, lobbyStore } from "@renderer/store/lobby.store";
-import { downloadsStore } from "@renderer/store/downloads.store";
+import { contentsStore } from "@renderer/store/contents.store";
 import { router } from "@renderer/router";
 
 function getStripeResult(index: number) {

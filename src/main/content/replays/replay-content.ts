@@ -4,7 +4,7 @@
 
 import { Signal } from "$/jaz-ts-utils/signal";
 import { REPLAYS_PATH } from "@main/config/app";
-import { mapContentAPI } from "@main/content/maps/map-content";
+import { contentAPI } from "@main/content/content-api";
 import { asyncParseReplay } from "@main/content/replays/parse-replay";
 import { Replay } from "@main/content/replays/replay";
 import { gameAPI } from "@main/game/game";
@@ -72,7 +72,7 @@ export class ReplayContentAPI {
             try {
                 await fs.promises.copyFile(filePath, replayPath);
                 const replay = await asyncParseReplay(replayPath);
-                await mapContentAPI.downloadMap(replay.mapSpringName);
+                await contentAPI.ensure([{ type: "map", id: replay.mapSpringName }]);
 
                 this.onReplayCached.dispatch(replay);
             } finally {
@@ -82,7 +82,7 @@ export class ReplayContentAPI {
         } else {
             // File is already in the replays folder, just parse it
             const replay = await asyncParseReplay(replayPath);
-            await mapContentAPI.downloadMap(replay.mapSpringName);
+            await contentAPI.ensure([{ type: "map", id: replay.mapSpringName }]);
         }
     }
 

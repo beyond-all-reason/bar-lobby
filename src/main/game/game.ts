@@ -8,11 +8,10 @@ import * as fs from "fs";
 import { Signal } from "$/jaz-ts-utils/signal";
 import * as path from "path";
 
-import { engineContentAPI } from "@main/content/engine/engine-content";
+import { contentAPI } from "@main/content/content-api";
 import { applyDefaultSpringsettings } from "@main/game/springsettings";
 import { startScriptConverter } from "@main/utils/start-script-converter";
 import { logger } from "@main/utils/logger";
-import { gameContentAPI } from "@main/content/game/game-content";
 import { WRITE_DATA_PATH, REPLAYS_PATH, getEnginePath, getAssetsPath } from "@main/config/app";
 import { BattleWithMetadata } from "@main/game/battle/battle-types";
 import { Replay } from "@main/content/replays/replay";
@@ -167,17 +166,10 @@ export class GameAPI {
             throw new Error("Engine Version and Game Version need to be specified");
         }
 
-        const isEngineInstalled = engineContentAPI.isVersionInstalled(engineVersion);
-        const isGameInstalled = gameContentAPI.isVersionInstalled(gameVersion);
-        if (!isEngineInstalled || !isGameInstalled) {
-            //|| !isMapInstalled) {
-            //TODO replace with an event
-            // api.notifications.alert({
-            //     text: "Downloading missing content - the game will auto-launch when downloads complete",
-            // });
-            return Promise.all([engineContentAPI.downloadEngine(engineVersion), gameContentAPI.downloadGame(gameVersion)]);
-        }
-        return;
+        await contentAPI.ensure([
+            { type: "engine", id: engineVersion },
+            { type: "game", id: gameVersion },
+        ]);
     }
 }
 

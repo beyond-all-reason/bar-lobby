@@ -5,6 +5,7 @@
 import { DEFAULT_ENGINE_VERSION } from "@main/config/default-versions";
 import { EngineVersion } from "@main/content/engine/engine-version";
 import { notificationsApi } from "@renderer/api/notifications";
+import { onContentSettled } from "@renderer/store/contents.store";
 import { computed, reactive } from "vue";
 
 export const enginesStore: {
@@ -37,13 +38,10 @@ export async function downloadEngine(engineString: string) {
 }
 
 export async function initEnginesStore() {
-    window.downloads.onDownloadEngineComplete(async (downloadInfo) => {
-        console.debug("Received engine download completed event", downloadInfo);
-        enginesStore.availableEngineVersions = await window.engine.listAvailableVersions();
-    });
-    window.downloads.onDownloadEngineFail(async (downloadInfo) => {
-        console.error("Engine download failed", downloadInfo);
-        enginesStore.availableEngineVersions = await window.engine.listAvailableVersions();
+    onContentSettled(async (refs) => {
+        if (refs.some((ref) => ref.type === "engine")) {
+            enginesStore.availableEngineVersions = await window.engine.listAvailableVersions();
+        }
     });
 
     enginesStore.availableEngineVersions = await window.engine.listAvailableVersions();

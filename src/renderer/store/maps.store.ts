@@ -8,6 +8,7 @@ import type { GameType, Terrain } from "@main/content/maps/map-metadata";
 import { db } from "@renderer/store/db";
 import { EntityTable } from "dexie";
 import { notificationsApi } from "@renderer/api/notifications";
+import { onContentSettled } from "@renderer/store/contents.store";
 
 export const mapsStore: {
     isInitialized: boolean;
@@ -60,8 +61,12 @@ async function init() {
         db.nonLiveMaps.where("springName").equals(springName).modify({ isInstalled: false });
     });
     // Chokadir takes 1-2 seconds longer after this to notice the file, so we do both for a faster response after a downloaded map
-    window.downloads.onDownloadMapComplete((download) => {
-        mapsStore.availableMapNames.add(download.name);
+    onContentSettled((refs) => {
+        for (const ref of refs) {
+            if (ref.type === "map") {
+                mapsStore.availableMapNames.add(ref.id);
+            }
+        }
     });
     const liveMaps = await db.maps.toArray();
     const nonLiveMaps = await db.nonLiveMaps.toArray();

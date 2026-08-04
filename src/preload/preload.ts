@@ -4,6 +4,8 @@
 
 import { contextBridge } from "electron";
 import { ipcRenderer } from "@main/typed-ipc";
+import { ContentRef } from "@main/content/content-ref";
+import { ContentState } from "@main/content/content-state";
 import { Replay } from "@main/content/replays/replay";
 import { Settings } from "@main/services/settings.service";
 import { EngineVersion } from "@main/content/engine/engine-version";
@@ -86,6 +88,21 @@ const authApi = {
 export type AuthApi = typeof authApi;
 contextBridge.exposeInMainWorld("auth", authApi);
 
+const contentApi = {
+    missing: (refs: ContentRef[]): Promise<ContentRef[]> => ipcRenderer.invoke("content:missing", refs),
+    state: (): Promise<ContentState[]> => ipcRenderer.invoke("content:state"),
+    ensure: (refs: ContentRef[]): Promise<void> => ipcRenderer.invoke("content:ensure", refs),
+    remove: (refs: ContentRef[]): Promise<void> => ipcRenderer.invoke("content:remove", refs),
+
+    onChanged: (callback: (state: ContentState[]) => void) => ipcRenderer.on("content:changed", (_event, state) => callback(state)),
+    onSettled: (callback: (refs: ContentRef[]) => void) => ipcRenderer.on("content:settled", (_event, refs) => callback(refs)),
+
+    preloadPool: (): Promise<void> => ipcRenderer.invoke("content:preloadPool"),
+    onPoolPrefetch: (callback: (downloadInfo: DownloadInfo | null) => void) => ipcRenderer.on("content:poolPrefetch", (_event, downloadInfo) => callback(downloadInfo)),
+};
+export type ContentApi = typeof contentApi;
+contextBridge.exposeInMainWorld("content", contentApi);
+
 const engineApi = {
     listAvailableVersions: (): Promise<EngineVersion[]> => ipcRenderer.invoke("engine:listAvailableVersions"),
     downloadEngine: (version?: string): Promise<void | string> => ipcRenderer.invoke("engine:downloadEngine", version),
@@ -102,7 +119,6 @@ const gameApi = {
     getInstalledVersions: (): Promise<GameVersion[]> => ipcRenderer.invoke("game:getInstalledVersions"),
     isVersionInstalled: (version: string): Promise<boolean> => ipcRenderer.invoke("game:isVersionInstalled", version),
     uninstallVersion: (version: string): Promise<void> => ipcRenderer.invoke("game:uninstallVersion", version),
-    preloadPoolData: (): Promise<void> => ipcRenderer.invoke("game:preloadPoolData"),
 
     // Game
     launchMultiplayer: (settings: MultiplayerLaunchSettings): Promise<void> => ipcRenderer.invoke("game:launchMultiplayer", settings),
@@ -135,29 +151,6 @@ const mapsApi = {
 };
 export type MapsApi = typeof mapsApi;
 contextBridge.exposeInMainWorld("maps", mapsApi);
-
-const downloadsApi = {
-    // Events
-    // Engine
-    onDownloadEngineStart: (callback: (downloadInfo: DownloadInfo) => void) => ipcRenderer.on("downloads:engine:start", (_event, downloadInfo) => callback(downloadInfo)),
-    onDownloadEngineComplete: (callback: (downloadInfo: DownloadInfo) => void) => ipcRenderer.on("downloads:engine:complete", (_event, downloadInfo) => callback(downloadInfo)),
-    onDownloadEngineProgress: (callback: (downloadInfo: DownloadInfo) => void) => ipcRenderer.on("downloads:engine:progress", (_event, downloadInfo) => callback(downloadInfo)),
-    onDownloadEngineFail: (callback: (downloadInfo: DownloadInfo) => void) => ipcRenderer.on("downloads:engine:fail", (_event, downloadInfo) => callback(downloadInfo)),
-    // Game
-    onDownloadGameStart: (callback: (downloadInfo: DownloadInfo) => void) => ipcRenderer.on("downloads:game:start", (_event, downloadInfo) => callback(downloadInfo)),
-    onDownloadGameComplete: (callback: (downloadInfo: DownloadInfo) => void) => ipcRenderer.on("downloads:game:complete", (_event, downloadInfo) => callback(downloadInfo)),
-    onDownloadGameProgress: (callback: (downloadInfo: DownloadInfo) => void) => ipcRenderer.on("downloads:game:progress", (_event, downloadInfo) => callback(downloadInfo)),
-    onDownloadGameFail: (callback: (downloadInfo: DownloadInfo) => void) => ipcRenderer.on("downloads:game:fail", (_event, downloadInfo) => callback(downloadInfo)),
-    onDownloadGameRetry: (callback: (downloadInfo: DownloadInfo) => void) => ipcRenderer.on("downloads:game:retry", (_event, downloadInfo) => callback(downloadInfo)),
-    // Maps
-    onDownloadMapStart: (callback: (downloadInfo: DownloadInfo) => void) => ipcRenderer.on("downloads:map:start", (_event, downloadInfo) => callback(downloadInfo)),
-    onDownloadMapComplete: (callback: (downloadInfo: DownloadInfo) => void) => ipcRenderer.on("downloads:map:complete", (_event, downloadInfo) => callback(downloadInfo)),
-    onDownloadMapProgress: (callback: (downloadInfo: DownloadInfo) => void) => ipcRenderer.on("downloads:map:progress", (_event, downloadInfo) => callback(downloadInfo)),
-    onDownloadMapFail: (callback: (downloadInfo: DownloadInfo) => void) => ipcRenderer.on("downloads:map:fail", (_event, downloadInfo) => callback(downloadInfo)),
-    onDownloadMapRetry: (callback: (downloadInfo: DownloadInfo) => void) => ipcRenderer.on("downloads:map:retry", (_event, downloadInfo) => callback(downloadInfo)),
-};
-export type DownloadsApi = typeof downloadsApi;
-contextBridge.exposeInMainWorld("downloads", downloadsApi);
 
 const miscApi = {
     getNewsRssFeed: (numberOfNews) => ipcRenderer.invoke("misc:getNewsRssFeed", numberOfNews),

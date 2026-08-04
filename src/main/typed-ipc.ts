@@ -3,6 +3,8 @@
 // SPDX-License-Identifier: MIT
 
 import type { BattleWithMetadata } from "@main/game/battle/battle-types";
+import type { ContentRef } from "@main/content/content-ref";
+import type { ContentState } from "@main/content/content-state";
 import type { DownloadInfo } from "@main/content/downloads";
 import type { EngineVersion } from "@main/content/engine/engine-version";
 import type { GameVersion } from "@main/content/game/game-version";
@@ -19,21 +21,10 @@ import type { TachyonEvent, TachyonResponse } from "tachyon-protocol";
 import { ipcRenderer as electronIpcRenderer, ipcMain as electronIpcMain } from "electron";
 
 export type IPCEvents = {
+    "content:changed": (state: ContentState[]) => void;
+    "content:poolPrefetch": (downloadInfo: DownloadInfo | null) => void;
+    "content:settled": (refs: ContentRef[]) => void;
     "downloads:update:progress": (downloadInfo: DownloadInfo) => void;
-    "downloads:engine:complete": (downloadInfo: DownloadInfo) => void;
-    "downloads:engine:fail": (downloadInfo: DownloadInfo) => void;
-    "downloads:engine:progress": (downloadInfo: DownloadInfo) => void;
-    "downloads:engine:start": (downloadInfo: DownloadInfo) => void;
-    "downloads:game:complete": (downloadInfo: DownloadInfo) => void;
-    "downloads:game:fail": (downloadInfo: DownloadInfo) => void;
-    "downloads:game:progress": (downloadInfo: DownloadInfo) => void;
-    "downloads:game:retry": (downloadInfo: DownloadInfo) => void;
-    "downloads:game:start": (downloadInfo: DownloadInfo) => void;
-    "downloads:map:complete": (downloadInfo: DownloadInfo) => void;
-    "downloads:map:fail": (downloadInfo: DownloadInfo) => void;
-    "downloads:map:progress": (downloadInfo: DownloadInfo) => void;
-    "downloads:map:retry": (downloadInfo: DownloadInfo) => void;
-    "downloads:map:start": (downloadInfo: DownloadInfo) => void;
     "game:closed": () => void;
     "game:launched": () => void;
     "maps:mapAdded": (filename: string) => void;
@@ -60,6 +51,11 @@ export type IPCCommands = {
     "autoUpdater:downloadUpdate": () => void;
     "autoUpdater:installUpdates": () => void;
     "autoUpdater:quitAndInstall": () => void;
+    "content:ensure": (refs: ContentRef[]) => void;
+    "content:missing": (refs: ContentRef[]) => ContentRef[];
+    "content:preloadPool": () => void;
+    "content:remove": (refs: ContentRef[]) => void;
+    "content:state": () => ContentState[];
     "engine:downloadEngine": (version?: string) => string | void;
     "engine:isVersionInstalled": (id: string) => boolean;
     "engine:listAvailableVersions": () => EngineVersion[];
@@ -72,7 +68,6 @@ export type IPCCommands = {
     "game:launchMultiplayer": (settings: MultiplayerLaunchSettings) => void;
     "game:launchReplay": (replay: Replay) => Promise<void>;
     "game:launchScript": (script: string, gameVersion: string, engineVersion: string) => void;
-    "game:preloadPoolData": () => void;
     "game:uninstallVersion": (version: string) => void;
     "info:get": () => Info;
     "log:log": (fileName: string, level: logLevels, msg: string) => void;

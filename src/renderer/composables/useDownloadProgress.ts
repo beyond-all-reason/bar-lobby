@@ -4,7 +4,7 @@
 
 import { computed } from "vue";
 
-import type { DownloadInfo } from "@main/content/downloads";
+import { contentsStore } from "@renderer/store/contents.store";
 import { downloadsStore } from "@renderer/store/downloads.store";
 import { useTypedI18n } from "@renderer/i18n";
 
@@ -12,6 +12,17 @@ const EMA_ALPHA = 0.3;
 const STALL_DECAY = 0.9;
 const MIN_UPDATE_INTERVAL = 0.25;
 export const MIN_DOWNLOAD_BYTES = 5 * 1024; // 5 KB
+
+// Content and the app updater are unrelated sources that the navbar shows in one list, so both get
+// flattened to this before anything tries to render or measure them.
+export type DownloadView = {
+    key: string;
+    name: string;
+    type: string;
+    currentBytes: number;
+    totalBytes: number;
+    phase?: "downloading" | "extracting";
+};
 
 interface SpeedEntry {
     prevBytes: number;
@@ -24,7 +35,38 @@ const speedTracker = new Map<string, SpeedEntry>();
 export function useDownloadProgress() {
     const { t } = useTypedI18n();
 
-    const allDownloads = computed(() => [...downloadsStore.engineDownloads, ...downloadsStore.gameDownloads, ...downloadsStore.mapDownloads, ...downloadsStore.updateDownloads]);
+    const allDownloads = computed<DownloadView[]>(() => [
+        ...contentsStore.inFlight
+            .filter((state) => state.status === "queued" || state.status === "acquiring")
+            .map((state) => ({
+                key: `${state.type}:${state.id}`,
+                name: state.id,
+                type: state.type,
+                currentBytes: state.currentBytes,
+                totalBytes: state.totalBytes,
+                phase: state.phase,
+            })),
+        ...(contentsStore.poolPrefetch
+            ? [
+                  {
+                      key: "pool:prefetch",
+                      name: "pool-data",
+                      type: "pool",
+                      currentBytes: contentsStore.poolPrefetch.currentBytes,
+                      totalBytes: contentsStore.poolPrefetch.totalBytes,
+                      phase: contentsStore.poolPrefetch.phase,
+                  },
+              ]
+            : []),
+        ...downloadsStore.updateDownloads.map((download) => ({
+            key: `update:${download.name}`,
+            name: download.name,
+            type: download.type,
+            currentBytes: download.currentBytes,
+            totalBytes: download.totalBytes,
+            phase: download.phase,
+        })),
+    ]);
 
     const totalDownloadPercent = computed(() => {
         if (allDownloads.value.length === 0) return 0;
@@ -47,7 +89,7 @@ export function useDownloadProgress() {
         return { current: currentBytes, total: totalBytes };
     });
 
-    function downloadPercent(download: DownloadInfo): number {
+    function downloadPercent(download: DownloadView): number {
         if (download.totalBytes <= 0) return 0;
         return download.currentBytes / download.totalBytes;
     }
@@ -72,11 +114,11 @@ export function useDownloadProgress() {
         return t("lobby.navbar.downloads.etaSeconds", { seconds: Math.floor(seconds) });
     }
 
-    function progressText(download: DownloadInfo): string {
+    function progressText(download: DownloadView): string {
         if (download.currentBytes === 0) return t("lobby.navbar.downloads.starting");
 
         const now = Date.now();
-        const key = download.name;
+        const key = download.key;
         const prev = speedTracker.get(key);
 
         let speed = 0;

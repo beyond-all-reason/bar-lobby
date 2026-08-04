@@ -67,7 +67,7 @@ import { LATEST_GAME_VERSION } from "@main/config/default-versions";
 import { initBattleStore } from "@renderer/store/battle.store";
 import { enginesStore } from "@renderer/store/engine.store";
 import { downloadGame, gameStore } from "@renderer/store/game.store";
-import { downloadsStore } from "@renderer/store/downloads.store";
+import { contentsStore } from "@renderer/store/contents.store";
 import { useDownloadProgress } from "@renderer/composables/useDownloadProgress";
 
 const PRELOAD_WEIGHT = 0.05;
@@ -180,9 +180,9 @@ watch(isExtracting, (nowExtracting) => {
     }
 });
 
-// Surface pr-downloader retry signals (game/map) as "retrying" status text.
+// Surface a download that pr-downloader has restarted as "retrying" status text.
 watch(
-    () => downloadsStore.gameRetrying || downloadsStore.mapRetrying,
+    () => contentsStore.inFlight.some((state) => state.attempts > 1),
     (retrying) => {
         if (stepError.value || !currentStage) return;
         if (retrying) {
@@ -352,7 +352,7 @@ onMounted(async () => {
                 if (gameStore.availableGameVersions.size > 0) {
                     return;
                 }
-                await window.game.preloadPoolData();
+                await window.content.preloadPool();
                 await downloadGame(LATEST_GAME_VERSION);
                 if (gameStore.selectedGameVersion === undefined) {
                     throw new Error("Game download did not complete successfully");

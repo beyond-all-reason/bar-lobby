@@ -22,12 +22,12 @@ describe("Main Process Lifecycle", () => {
         gameService: { init: vi.fn().mockResolvedValue(undefined), registerIpcHandlers: vi.fn() },
         mapsService: { init: vi.fn().mockResolvedValue(undefined), registerIpcHandlers: vi.fn() },
         autoUpdaterService: { init: vi.fn().mockResolvedValue(undefined), registerIpcHandlers: vi.fn() },
+        contentService: { registerIpcHandlers: vi.fn() },
         logService: { registerIpcHandlers: vi.fn() },
         infoService: { registerIpcHandlers: vi.fn() },
         authService: { registerIpcHandlers: vi.fn() },
         tachyonService: { registerIpcHandlers: vi.fn() },
         shellService: { registerIpcHandlers: vi.fn() },
-        downloadsService: { registerIpcHandlers: vi.fn() },
         miscService: { registerIpcHandlers: vi.fn() },
         navigationService: { registerIpcHandlers: vi.fn() },
         pathsService: { registerIpcHandlers: vi.fn() },
@@ -119,7 +119,7 @@ describe("Main Process Lifecycle", () => {
         vi.doMock("@main/services/maps.service", () => ({ default: mockServices.mapsService }));
         vi.doMock("@main/services/engine.service", () => ({ default: mockServices.engineService }));
         vi.doMock("@main/services/auto-updater.service", () => ({ default: mockServices.autoUpdaterService }));
-        vi.doMock("@main/services/downloads.service", () => ({ default: mockServices.downloadsService }));
+        vi.doMock("@main/services/content.service", () => ({ default: mockServices.contentService }));
 
         vi.doMock("@main/services/settings.service", () => ({ settingsService: mockServices.settingsService }));
         vi.doMock("@main/services/info.service", () => ({ infoService: mockServices.infoService }));
@@ -226,11 +226,11 @@ describe("Main Process Lifecycle", () => {
         expect(mockServices.authService.registerIpcHandlers).toHaveBeenCalled();
         expect(mockServices.tachyonService.registerIpcHandlers).toHaveBeenCalled();
         expect(mockServices.replaysService.registerIpcHandlers).toHaveBeenCalled();
+        expect(mockServices.contentService.registerIpcHandlers).toHaveBeenCalled();
         expect(mockServices.engineService.registerIpcHandlers).toHaveBeenCalled();
         expect(mockServices.gameService.registerIpcHandlers).toHaveBeenCalled();
         expect(mockServices.mapsService.registerIpcHandlers).toHaveBeenCalled();
         expect(mockServices.shellService.registerIpcHandlers).toHaveBeenCalled();
-        expect(mockServices.downloadsService.registerIpcHandlers).toHaveBeenCalled();
         expect(mockServices.miscService.registerIpcHandlers).toHaveBeenCalled();
         expect(mockServices.autoUpdaterService.registerIpcHandlers).toHaveBeenCalled();
         expect(mockServices.navigationService.registerIpcHandlers).toHaveBeenCalled();
