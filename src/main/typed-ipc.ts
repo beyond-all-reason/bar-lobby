@@ -19,6 +19,12 @@ import type { TachyonEvent, TachyonResponse } from "tachyon-protocol";
 import { ipcRenderer as electronIpcRenderer, ipcMain as electronIpcMain } from "electron";
 import { Config } from "@main/services/config.service";
 
+// Errors thrown in main arrive in the renderer stripped of everything but a message, so failures a
+// caller needs to act on have to travel as data instead. Mirrors the shape tachyon-protocol uses for
+// its own responses, which can't be reused here because it's keyed on tachyon command ids.
+// `reason` is a stable code to branch on or translate; `details` carries any raw text behind it.
+export type IpcResult<T = void> = { status: "success"; data: T } | { status: "failed"; reason: string; details?: string };
+
 export type IPCEvents = {
     "downloads:update:progress": (downloadInfo: DownloadInfo) => void;
     "downloads:engine:complete": (downloadInfo: DownloadInfo) => void;
@@ -110,14 +116,13 @@ export type IPCCommands = {
     "config:get": () => Config;
     "config:update": (config: Partial<Config>) => Config;
     "config:fetch": () => void;
-    "shell:openStateDir": () => string;
-    "shell:openAssetsDir": () => string;
-    "shell:openInBrowser": (url: string) => void;
-    "shell:openReplaysDir": () => string;
-    "shell:openSettingsFile": () => string;
-    "shell:openConfigFile": () => string;
-    "shell:openStartScript": () => string;
-    "shell:showReplayInFolder": (fileName: string) => void;
+    "shell:openStateDir": () => IpcResult;
+    "shell:openAssetsDir": () => IpcResult;
+    "shell:openInBrowser": (url: string) => IpcResult;
+    "shell:openReplaysDir": () => IpcResult;
+    "shell:openSettingsFile": () => IpcResult;
+    "shell:openStartScript": () => IpcResult;
+    "shell:showReplayInFolder": (fileName: string) => IpcResult;
     "tachyon:connect": () => void;
     "tachyon:disconnect": () => void;
     "tachyon:isConnected": () => boolean;

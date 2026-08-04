@@ -46,21 +46,27 @@ SPDX-License-Identifier: MIT
                                 <div class="mode-select">
                                     <h3>{{ t("lobby.views.party.matchmakingQueues") }}</h3>
                                     <div v-if="matchmakingStore.playlists.length > 0">
-                                        <Button
-                                            v-for="queue in availableQueueIds"
-                                            :key="queue"
-                                            @click="queueSelected(queue)"
-                                            class="mm-queue-button classic"
-                                            :class="{
-                                                selected: matchmakingStore.selectedQueue === queue,
-                                            }"
-                                            :disabled="matchmakingStore.status !== MatchmakingStatus.Idle"
-                                        >
-                                            <span>{{ getPlaylistName(queue) }}</span>
-                                            <div class="info bl" v-if="matchmakingStore.selectedQueue === queue" @click.stop="onInfoClick">
-                                                <Icon :icon="informationIcon"></Icon>
-                                            </div>
-                                        </Button>
+                                        <div class="queues">
+                                            <Button
+                                                v-for="queue in availableQueueIds"
+                                                :key="queue"
+                                                @click="queueSelected(queue)"
+                                                class="mm-queue-button classic"
+                                                :class="{
+                                                    selected: matchmakingStore.selectedQueue === queue,
+                                                }"
+                                                :disabled="matchmakingStore.status !== MatchmakingStatus.Idle"
+                                            >
+                                                <span>{{ getPlaylistName(queue) }}</span>
+                                                <div
+                                                    class="info bl"
+                                                    v-if="matchmakingStore.selectedQueue === queue"
+                                                    @click.stop="onInfoClick"
+                                                >
+                                                    <Icon :icon="informationIcon"></Icon>
+                                                </div>
+                                            </Button>
+                                        </div>
                                     </div>
                                     <div v-else>
                                         <p>{{ t("lobby.views.party.noQueues") }}</p>
@@ -553,5 +559,10 @@ function getActivePartyInvites() {
     display: flex;
     flex-direction: row;
     align-items: center;
+}
+
+.queues {
+    overflow-y: scroll;
+    max-height: 400px;
 }
 </style>

@@ -1,6 +1,9 @@
 {
     "lobby": {
         "api": {
+            "shell": {
+                "openFailed": "Could not open that: {details}"
+            },
             "commands": {
                 "help": "Displays this help text.",
                 "whoami": "Sends back information about who you are.",

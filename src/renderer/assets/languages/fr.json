@@ -3837,6 +3837,9 @@
     },
     "lobby": {
         "api": {
+            "shell": {
+                "openFailed": null
+            },
             "commands": {
                 "help": null,
                 "whoami": null,
