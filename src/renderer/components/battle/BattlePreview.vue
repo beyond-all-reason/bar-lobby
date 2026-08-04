@@ -49,7 +49,7 @@ import { useTypedI18n } from "@renderer/i18n";
 
 import BattlePreviewParticipant from "@renderer/components/battle/BattlePreviewParticipant.vue";
 import MapOverviewCard from "@renderer/components/maps/MapOverviewCard.vue";
-import { OngoingBattle } from "@main/content/replays/replay";
+import { OngoingBattle } from "@main/replays/replay";
 import { useDexieLiveQueryWithDeps } from "@renderer/composables/useDexieLiveQuery";
 import { db } from "@renderer/store/db";
 

@@ -6,7 +6,7 @@ import { contextBridge } from "electron";
 import { ipcRenderer } from "@main/typed-ipc";
 import { ContentRef } from "@main/content/content-ref";
 import { ContentState } from "@main/content/content-state";
-import { Replay } from "@main/content/replays/replay";
+import { Replay } from "@main/replays/replay";
 import { Settings } from "@main/services/settings.service";
 import { EngineVersion } from "@main/content/engine/engine-version";
 import { GameVersion } from "@main/content/game/game-version";

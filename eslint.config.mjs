@@ -77,12 +77,4 @@ export default [
             "no-restricted-imports": noContentProviderImports,
         },
     },
-    {
-        // Replays are never acquired, only written locally by the engine or copied in by the user, so
-        // nothing under here is a content provider and it gets no exemption for being in this tree.
-        files: ["src/main/content/replays/**/*.ts"],
-        rules: {
-            "no-restricted-imports": noContentProviderImports,
-        },
-    },
 ];

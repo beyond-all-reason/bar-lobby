@@ -6,9 +6,9 @@ import { contentAPI } from "@main/content/content-api";
 import { getScenarios } from "@main/content/game/game-scenarios";
 import { gameAPI, MultiplayerLaunchSettings } from "@main/game/game";
 import { ipcMain, BarIpcWebContents } from "@main/typed-ipc";
-import { Replay } from "@main/content/replays/replay";
+import { Replay } from "@main/replays/replay";
 import { BattleWithMetadata } from "@main/game/battle/battle-types";
-import { replayContentAPI } from "@main/content/replays/replay-content";
+import { replaysAPI } from "@main/replays/replays";
 
 function registerIpcHandlers(webContents: BarIpcWebContents) {
     // Content
@@ -36,7 +36,7 @@ function registerIpcHandlers(webContents: BarIpcWebContents) {
     });
     gameAPI.onGameClosed.add(() => {
         webContents.send("game:closed");
-        replayContentAPI.cacheReplaysInQueue();
+        replaysAPI.cacheReplaysInQueue();
     });
 }
 

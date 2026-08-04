@@ -5,8 +5,8 @@
 import { Signal } from "$/jaz-ts-utils/signal";
 import { REPLAYS_PATH } from "@main/config/app";
 import { contentAPI } from "@main/content/content-api";
-import { asyncParseReplay } from "@main/content/replays/parse-replay";
-import { Replay } from "@main/content/replays/replay";
+import { asyncParseReplay } from "@main/replays/parse-replay";
+import { Replay } from "@main/replays/replay";
 import { gameAPI } from "@main/game/game";
 import { logger } from "@main/utils/logger";
 import chokidar from "chokidar";
@@ -16,7 +16,7 @@ import path from "path";
 
 const log = logger("replay-content.ts");
 
-export class ReplayContentAPI {
+export class ReplaysAPI {
     public readonly onReplayCachingStarted: Signal<string> = new Signal();
     public readonly onReplayCached: Signal<Replay> = new Signal();
     public readonly onReplayDeleted: Signal<string> = new Signal();
@@ -147,4 +147,4 @@ export class ReplayContentAPI {
     }
 }
 
-export const replayContentAPI = new ReplayContentAPI();
+export const replaysAPI = new ReplaysAPI();

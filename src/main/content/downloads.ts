@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 export type DownloadInfo = {
-    type: "engine" | "game" | "map" | "replay" | "update";
+    type: "engine" | "game" | "map" | "update";
     name: string;
     currentBytes: number;
     totalBytes: number;

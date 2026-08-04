@@ -14,7 +14,7 @@ import type { logLevels } from "@main/services/log.service";
 import type { MapData, MapDownloadData } from "@main/content/maps/map-data";
 import type { MultiplayerLaunchSettings } from "@main/game/game";
 import type { NewsFeedData } from "@main/services/news.service";
-import type { Replay } from "@main/content/replays/replay";
+import type { Replay } from "@main/replays/replay";
 import type { Scenario } from "@main/content/game/scenario";
 import type { Settings } from "@main/services/settings.service";
 import type { TachyonEvent, TachyonResponse } from "tachyon-protocol";

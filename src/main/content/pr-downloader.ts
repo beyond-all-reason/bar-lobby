@@ -15,7 +15,7 @@ import { getAssetsPath, getEnginePath, getCaCertPath, getPackagePath } from "@ma
 
 const log = logger("pr-downloader.ts");
 
-export type PrdDownloadType = "engine" | "game" | "map";
+export type PrdDownloadType = "game" | "map";
 
 export type PrdProgressMessage = {
     downloadType: PrdDownloadType;

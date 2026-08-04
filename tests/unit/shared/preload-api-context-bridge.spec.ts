@@ -40,7 +40,7 @@ describe("Preload API Context Bridge", () => {
             ipcRenderer: mockIpcRenderer,
         }));
 
-        vi.doMock("@main/content/replays/replay", () => ({ Replay: {} }));
+        vi.doMock("@main/replays/replay", () => ({ Replay: {} }));
         vi.doMock("@main/services/settings.service", () => ({ Settings: {} }));
         vi.doMock("@main/content/engine/engine-version", () => ({ EngineVersion: {} }));
         vi.doMock("@main/content/game/game-version", () => ({ GameVersion: {} }));

@@ -6,7 +6,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 // Everything the vi.mock factories touch has to be hoisted with them, otherwise the factories run
 // before these bindings are initialised.
-const { installed, acquired, removed, progress, retry, watcher, stubProvider } = vi.hoisted(() => {
+const { installed, acquired, removed, progress, retry, watcher, disk, gate, used, usage, stubProvider } = vi.hoisted(() => {
     type Listener = (data: unknown) => void;
 
     function fakeSignal() {
@@ -37,6 +37,17 @@ const { installed, acquired, removed, progress, retry, watcher, stubProvider } =
     const progress = { engine: fakeSignal(), game: fakeSignal(), map: fakeSignal() };
     const retry = { engine: fakeSignal(), game: fakeSignal(), map: fakeSignal() };
     const watcher = { added: fakeSignal(), deleted: fakeSignal() };
+    const disk = { free: () => Promise.resolve(500 * 1024 * 1024 * 1024) as Promise<number> };
+    // Lets a test hold an acquisition open so it can observe the in-flight state without counting ticks.
+    const gate: { held: Promise<void> | null } = { held: null };
+
+    const used = new Map<string, Date>();
+    const usage = {
+        init: async () => {},
+        lastUsed: (ref: { type: string; id: string }) => used.get(`${ref.type}:${ref.id}`),
+        markUsed: async (refs: { type: string; id: string }[], at = new Date()) => refs.forEach((ref) => used.set(`${ref.type}:${ref.id}`, at)),
+        forgetAllExcept: async () => {},
+    };
 
     return {
         installed,
@@ -45,12 +56,19 @@ const { installed, acquired, removed, progress, retry, watcher, stubProvider } =
         progress,
         retry,
         watcher,
+        disk,
+        gate,
+        used,
+        usage,
         stubProvider: (type: keyof typeof progress) => ({
             onDownloadProgress: progress[type],
             onDownloadRetry: retry[type],
             isVersionInstalled: (id: string) => installed.has(`${type}:${id}`),
             acquire: async (id: string) => {
                 acquired.push(`${type}:${id}`);
+                if (gate.held) {
+                    await gate.held;
+                }
                 installed.add(`${type}:${id}`);
             },
             remove: async (id: string) => {
@@ -64,12 +82,36 @@ const { installed, acquired, removed, progress, retry, watcher, stubProvider } =
 vi.mock("@main/content/engine/engine-provider", () => {
     const stub = stubProvider("engine");
 
-    return { engineProvider: { ...stub, downloadEngine: stub.acquire, uninstallVersion: stub.remove } };
+    return {
+        engineProvider: {
+            ...stub,
+            downloadEngine: stub.acquire,
+            uninstallVersion: stub.remove,
+            init: async () => {},
+            reinit: async () => {},
+            // A live view of the shared set, so a test adding installed content is reflected here.
+            get availableVersions() {
+                return new Map([...installed].filter((key) => key.startsWith("engine:")).map((key) => [key.slice("engine:".length), { id: key.slice("engine:".length), installed: true, ais: [] }]));
+            },
+        },
+    };
 });
 vi.mock("@main/content/game/game-provider", () => {
     const stub = stubProvider("game");
 
-    return { gameProvider: { ...stub, downloadGame: stub.acquire, uninstallVersionById: stub.remove } };
+    return {
+        gameProvider: {
+            ...stub,
+            downloadGame: stub.acquire,
+            uninstallVersionById: stub.remove,
+            init: async () => {},
+            reinit: async () => {},
+            getVersion: () => undefined,
+            get availableVersions() {
+                return new Map([...installed].filter((key) => key.startsWith("game:")).map((key) => [key.slice("game:".length), {}]));
+            },
+        },
+    };
 });
 vi.mock("@main/content/maps/map-provider", () => {
     const stub = stubProvider("map");
@@ -79,9 +121,13 @@ vi.mock("@main/content/maps/map-provider", () => {
             ...stub,
             downloadMap: stub.acquire,
             uninstallVersion: stub.remove,
+            init: async () => {},
+            reinit: async () => {},
             onMapAdded: watcher.added,
             onMapDeleted: watcher.deleted,
-            mapNameFileNameLookup: {},
+            get mapNameFileNameLookup() {
+                return Object.fromEntries([...installed].filter((key) => key.startsWith("map:")).map((key) => [key.slice("map:".length), "file.sd7"]));
+            },
         },
     };
 });
@@ -89,12 +135,39 @@ vi.mock("@main/content/pr-downloader", () => ({
     findPrdBinary: () => (installed.values().some((key) => key.startsWith("engine:")) ? "/engine/pr-downloader" : undefined),
 }));
 vi.mock("@main/config/default-versions", () => ({ DEFAULT_ENGINE_VERSION: "2025.01.3" }));
+vi.mock("@main/config/content-policy", () => ({ MAX_CONCURRENT_DOWNLOADS: 3, CONTENT_RETENTION_DAYS: 90, MIN_FREE_BYTES_TO_ACQUIRE: 2 * 1024 * 1024 * 1024 }));
+vi.mock("@main/config/app", () => ({ getAssetsPath: () => "/assets" }));
+vi.mock("@main/utils/disk-space", () => ({ freeBytes: () => disk.free(), formatBytes: (bytes: number) => `${bytes}B` }));
+vi.mock("@main/content/content-usage", () => ({ contentUsage: usage }));
 vi.mock("@main/utils/logger", () => ({
     logger: () => ({ debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn() }),
 }));
 
 import { contentAPI } from "@main/content/content-api";
 import { ContentRef } from "@main/content/content-ref";
+
+function hold() {
+    let release!: () => void;
+    gate.held = new Promise<void>((resolve) => {
+        release = resolve;
+    });
+
+    return () => {
+        gate.held = null;
+        release();
+    };
+}
+
+async function untilAcquiring(id: string) {
+    for (let tick = 0; tick < 100; tick++) {
+        if (contentAPI.state().some((entry) => entry.id === id && entry.status === "acquiring")) {
+            return;
+        }
+        await Promise.resolve();
+    }
+
+    throw new Error(`${id} never started acquiring`);
+}
 
 describe("contentAPI.missing", () => {
     it("returns only the refs that are not installed", () => {
@@ -201,9 +274,11 @@ describe("contentAPI change stream", () => {
             }
         });
 
+        const release = hold();
         const acquiring = contentAPI.ensure([{ type: "map", id: "Tabula 1.0" }]);
-        await Promise.resolve();
+        await untilAcquiring("Tabula 1.0");
         progress.map.dispatch({ currentBytes: 5, totalBytes: 10, progress: 0.5 });
+        release();
         await acquiring;
 
         contentAPI.onChanged.dispose(binding);
@@ -232,10 +307,12 @@ describe("contentAPI change stream", () => {
             }
         });
 
+        const release = hold();
         const acquiring = contentAPI.ensure([{ type: "map", id: "Archsimkats 1.4" }]);
-        await Promise.resolve();
+        await untilAcquiring("Archsimkats 1.4");
         retry.map.dispatch(undefined);
         retry.map.dispatch(undefined);
+        release();
         await acquiring;
 
         contentAPI.onChanged.dispose(binding);
@@ -287,13 +364,106 @@ describe("contentAPI.remove", () => {
         await expect(contentAPI.remove([{ type: "map", id: "never had it" }])).resolves.toBeUndefined();
     });
 
-    it("runs a removal after an in-flight acquisition of the same ref rather than skipping it", async () => {
+    // Which of the two goes first is not fixed, because ensure checks free space before it enqueues.
+    // What matters is that neither is dropped for looking unnecessary at the moment it was asked for.
+    it("runs both a removal and an acquisition of the same ref rather than skipping either", async () => {
         const ref = { type: "map", id: "Glacier Pass 1.3" } as const;
 
         await Promise.all([contentAPI.ensure([ref]), contentAPI.remove([ref])]);
 
         expect(acquired).toEqual(["map:Glacier Pass 1.3"]);
         expect(removed).toEqual(["map:Glacier Pass 1.3"]);
-        expect(contentAPI.isPresent(ref)).toBe(false);
+    });
+});
+
+describe("contentAPI.sweep", () => {
+    const ages = { fresh: new Date(), ancient: new Date(Date.now() - 200 * 24 * 60 * 60 * 1000) };
+
+    beforeEach(() => {
+        installed.clear();
+        used.clear();
+        acquired.length = 0;
+        removed.length = 0;
+    });
+
+    it("stamps content it has never seen instead of removing it", async () => {
+        installed.add("map:Never Seen 1.0");
+        installed.add("engine:2025.01.3");
+
+        expect(await contentAPI.sweep()).toEqual([]);
+        expect(used.get("map:Never Seen 1.0")).toBeDefined();
+    });
+
+    it("removes content nothing wants that has aged out", async () => {
+        installed.add("engine:2025.01.3");
+        installed.add("map:Forgotten 1.0");
+        used.set("map:Forgotten 1.0", ages.ancient);
+
+        expect(await contentAPI.sweep()).toEqual([{ type: "map", id: "Forgotten 1.0" }]);
+        expect(removed).toEqual(["map:Forgotten 1.0"]);
+    });
+
+    it("keeps content that was used recently", async () => {
+        installed.add("engine:2025.01.3");
+        installed.add("map:Recent 1.0");
+        used.set("map:Recent 1.0", ages.fresh);
+
+        expect(await contentAPI.sweep()).toEqual([]);
+    });
+
+    it("keeps content a claim source is holding", async () => {
+        installed.add("engine:2025.01.3");
+        installed.add("map:Claimed 1.0");
+        used.set("map:Claimed 1.0", ages.ancient);
+        contentAPI.registerClaimSource({ name: "test", claims: () => [{ type: "map", id: "Claimed 1.0" }] });
+
+        expect(await contentAPI.sweep()).toEqual([]);
+    });
+
+    it("never removes a local game", async () => {
+        installed.add("engine:2025.01.3");
+        installed.add("game:MyGame.sdd");
+        used.set("game:MyGame.sdd", ages.ancient);
+
+        expect(await contentAPI.sweep()).toEqual([]);
+    });
+
+    it("refuses to leave no engine installed", async () => {
+        installed.add("engine:2025.01.3");
+        used.set("engine:2025.01.3", ages.ancient);
+
+        expect(await contentAPI.sweep()).toEqual([]);
+        expect(removed).toEqual([]);
+    });
+});
+
+describe("contentAPI free space", () => {
+    beforeEach(() => {
+        installed.clear();
+        installed.add("engine:2025.01.3");
+        acquired.length = 0;
+        disk.free = () => Promise.resolve(500 * 1024 * 1024 * 1024);
+    });
+
+    it("refuses to start acquiring when the assets volume is nearly full", async () => {
+        disk.free = () => Promise.resolve(100 * 1024 * 1024);
+
+        await expect(contentAPI.ensure([{ type: "map", id: "Big Map 1.0" }])).rejects.toThrow("Not enough free space");
+        expect(acquired).toEqual([]);
+    });
+
+    it("does not check when everything asked for is already installed", async () => {
+        installed.add("map:Have It 1.0");
+        disk.free = () => Promise.reject(new Error("should not be consulted"));
+
+        await expect(contentAPI.ensure([{ type: "map", id: "Have It 1.0" }])).resolves.toBeUndefined();
+    });
+
+    it("carries on when free space cannot be read", async () => {
+        disk.free = () => Promise.reject(new Error("ENOSYS"));
+
+        await contentAPI.ensure([{ type: "map", id: "Unmeasurable 1.0" }]);
+
+        expect(acquired).toEqual(["map:Unmeasurable 1.0"]);
     });
 });

@@ -4,6 +4,7 @@
 
 import { Signal } from "$/jaz-ts-utils/signal";
 import { Downloader } from "@main/content/abstract-content";
+import { ClaimSource } from "@main/content/content-claims";
 import { ContentProvider } from "@main/content/content-provider";
 import { ContentQueue, ContentQueueEntry } from "@main/content/content-queue";
 import { ContentRef, contentRefKey, ContentType } from "@main/content/content-ref";
@@ -12,8 +13,12 @@ import { engineProvider } from "@main/content/engine/engine-provider";
 import { compareEngineVersions } from "@main/content/engine/engine-version-order";
 import { gameProvider } from "@main/content/game/game-provider";
 import { mapProvider } from "@main/content/maps/map-provider";
+import { contentUsage } from "@main/content/content-usage";
 import { findPrdBinary } from "@main/content/pr-downloader";
+import { CONTENT_RETENTION_DAYS, MIN_FREE_BYTES_TO_ACQUIRE } from "@main/config/content-policy";
 import { DEFAULT_ENGINE_VERSION } from "@main/config/default-versions";
+import { getAssetsPath } from "@main/config/app";
+import { formatBytes, freeBytes } from "@main/utils/disk-space";
 import { logger } from "@main/utils/logger";
 
 const log = logger("content-api.ts");
@@ -94,6 +99,7 @@ class ContentAPI {
     };
 
     private readonly states = new Map<string, ContentState>();
+    private readonly claimSources: ClaimSource[] = [];
 
     private readonly queue = new ContentQueue(
         (operation, type, ids, report) => {
@@ -131,11 +137,87 @@ class ContentAPI {
     public async init() {
         await this.providers.engine.init();
         await Promise.all([this.providers.game.init(), this.providers.map.init()]);
+        await contentUsage.init();
     }
 
     public async reinit() {
         await this.providers.engine.reinit();
         await Promise.all([this.providers.game.reinit(), this.providers.map.reinit()]);
+        await contentUsage.init();
+    }
+
+    public registerClaimSource(source: ClaimSource) {
+        this.claimSources.push(source);
+    }
+
+    public lastUsed(ref: ContentRef) {
+        return contentUsage.lastUsed(ref);
+    }
+
+    public async markUsed(refs: ContentRef[]) {
+        await contentUsage.markUsed(refs);
+    }
+
+    public allInstalled() {
+        return (Object.keys(this.providers) as ContentType[]).flatMap((type) => this.installed(type));
+    }
+
+    /**
+     * Removes installed content that nothing is holding on to and that has not been wanted for longer
+     * than the retention window. Returns what it removed.
+     *
+     * Content with no recorded use is stamped instead of removed, so the clock starts the first time a
+     * sweep sees it. Without that, the first sweep after this shipped would treat a user's entire
+     * library as infinitely old.
+     */
+    public async sweep() {
+        const claimed = new Set(this.claimSources.flatMap((source) => source.claims()).map((ref) => contentRefKey(ref)));
+        const installed = this.allInstalled();
+        await contentUsage.forgetAllExcept(installed);
+
+        const cutoff = Date.now() - CONTENT_RETENTION_DAYS * 24 * 60 * 60 * 1000;
+        const unseen: ContentRef[] = [];
+        const stale: ContentRef[] = [];
+
+        for (const ref of installed) {
+            if (claimed.has(contentRefKey(ref))) {
+                continue;
+            }
+            // Local games are the user's own files sitting in the games directory, not something that
+            // was acquired, so they are never ours to remove.
+            if (ref.type === "game" && ref.id.endsWith(".sdd")) {
+                continue;
+            }
+
+            const used = contentUsage.lastUsed(ref);
+            if (!used) {
+                unseen.push(ref);
+            } else if (used.getTime() <= cutoff) {
+                stale.push(ref);
+            }
+        }
+
+        await contentUsage.markUsed(unseen);
+
+        // pr-downloader comes out of an engine, so removing the last one takes away the means of ever
+        // getting another. Keep the newest regardless of how long it has sat unused.
+        const survivingEngines = installed.filter((ref) => ref.type === "engine" && !stale.some((victim) => contentRefKey(victim) === contentRefKey(ref)));
+        if (survivingEngines.length === 0) {
+            const newest = this.engineVersions().at(-1);
+            const spared = stale.findIndex((ref) => ref.type === "engine" && (!newest || ref.id === newest.id));
+            if (spared !== -1) {
+                stale.splice(spared, 1);
+            }
+        }
+
+        if (stale.length === 0) {
+            return [];
+        }
+
+        log.info(`Sweeping ${stale.length} unused content item(s): ${stale.map((ref) => contentRefKey(ref)).join(", ")}`);
+        await this.remove(stale);
+
+        return stale;
     }
 
     public installed(type: ContentType): ContentRef[] {
@@ -166,12 +248,37 @@ class ContentAPI {
     // find the startup flow that would have done it. Checked without awaiting first, so the usual case
     // still enqueues in the same tick as the caller asked.
     public async ensure(refs: ContentRef[]) {
+        if (this.missing(refs).length > 0) {
+            await this.assertRoomToAcquire();
+        }
+
         if (this.missing(refs).some((ref) => ref.type !== "engine") && !findPrdBinary()) {
             log.info("No pr-downloader available, acquiring the default engine first");
             await this.ensure([{ type: "engine", id: DEFAULT_ENGINE_VERSION }]);
         }
 
         await Promise.all(this.missing(refs).map((ref) => this.track(this.queue.enqueue("acquire", ref), ref)));
+        await contentUsage.markUsed(refs);
+    }
+
+    // Refusing up front beats a transport failing partway with whatever error the filesystem gave it.
+    // A volume we cannot measure is not treated as full: being unable to check is not a reason to stop
+    // someone downloading.
+    private async assertRoomToAcquire() {
+        const assetsPath = getAssetsPath();
+        let free: number;
+
+        try {
+            free = await freeBytes(assetsPath);
+        } catch (err) {
+            log.warn(`Could not read free space for ${assetsPath}, continuing anyway`, err);
+
+            return;
+        }
+
+        if (free < MIN_FREE_BYTES_TO_ACQUIRE) {
+            throw new Error(`Not enough free space in ${assetsPath}: ${formatBytes(free)} available, ${formatBytes(MIN_FREE_BYTES_TO_ACQUIRE)} needed.`);
+        }
     }
 
     // Not filtered by what is currently installed: a ref being acquired right now would look absent
