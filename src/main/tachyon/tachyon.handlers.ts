@@ -62,24 +62,13 @@ function createMatchmakingHandlers() {
             "matchmaking/checkAssets",
             createTypedTachyonRequestHandler<"matchmaking/checkAssets">()(async (data: MatchmakingCheckAssetsRequestData) => {
                 log.info(`Received matchmaking check assets request: ${JSON.stringify(data)}`);
-                let itemsRequired: boolean = false;
-                if (!gameContentAPI.isVersionInstalled(data.game)) {
-                    itemsRequired = true;
-                }
-                for (const map of data.maps) {
-                    if (!mapContentAPI.isVersionInstalled(map)) {
-                        itemsRequired = true;
-                        break;
-                    }
-                }
-                for (const engine of data.engines) {
-                    if (!engineContentAPI.isVersionInstalled(engine)) {
-                        itemsRequired = true;
-                        break;
-                    }
-                }
-                // Technically we can return "downloading" if any assets are missing, but for now we just return "missing" or "complete"
+                const itemsRequired =
+                    !gameContentAPI.isVersionInstalled(data.game) ||
+                    data.maps.some((map) => !mapContentAPI.isVersionInstalled(map)) ||
+                    data.engines.some((engine) => !engineContentAPI.isVersionInstalled(engine));
                 return {
+                    // Reminder, "success" is returned even if some assets are missing, because it is a successful response, not an indication of asset completeness.
+                    // Technically we can return "downloading" also, but for now we just return "missing" or "complete"
                     status: "success",
                     data: {
                         assetStatus: itemsRequired ? "missing" : "complete",
