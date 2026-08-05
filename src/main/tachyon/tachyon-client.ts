@@ -14,11 +14,16 @@ import { MessageEvent, WebSocket } from "ws";
 
 const log = logger("tachyon-client");
 
+type ServerToUserRequestCommandId = GetCommandIds<"server", "user", "request">;
+type ServerToUserRequest<C extends ServerToUserRequestCommandId = ServerToUserRequestCommandId> = GetCommands<"server", "user", "request", C>;
+type UserToServerResponseBody<C extends ServerToUserRequestCommandId = ServerToUserRequestCommandId> = Omit<GetCommands<"user", "server", "response", C>, "type" | "commandId" | "messageId">;
+type AnyUserToServerResponseBody = UserToServerResponseBody<ServerToUserRequestCommandId>;
+
 export type TachyonClientRequestHandlers = {
-    [CommandId in GetCommandIds<"server", "user", "request">]: (
-        data: GetCommandData<GetCommands<"server", "user", "request", CommandId>>
-    ) => Promise<Omit<GetCommands<"user", "server", "response", CommandId>, "type" | "commandId" | "messageId">>;
+    [CommandId in ServerToUserRequestCommandId]: (data: GetCommandData<ServerToUserRequest<CommandId>>) => Promise<UserToServerResponseBody<CommandId>>;
 };
+
+export type PartialTachyonClientRequestHandlers = Partial<TachyonClientRequestHandlers>;
 
 export class TachyonClient {
     public socket?: WebSocket;
@@ -27,10 +32,10 @@ export class TachyonClient {
     public onSocketClose: Signal<void> = new Signal();
     public onEvent: Signal<TachyonEvent> = new Signal();
 
-    private requestHandlers: TachyonClientRequestHandlers;
+    private requestHandlers: PartialTachyonClientRequestHandlers;
     private responseHandlers: Map<string, (response: TachyonResponse | { status: "socket_closed" }) => void> = new Map();
 
-    constructor(requestHandlers: TachyonClientRequestHandlers) {
+    constructor(requestHandlers: PartialTachyonClientRequestHandlers) {
         this.requestHandlers = requestHandlers;
     }
 
@@ -178,7 +183,7 @@ export class TachyonClient {
             throw new Error(`Message does not match expected command structure`);
         }
         if (obj.type === "request") {
-            this.handleRequest(obj);
+            this.handleRequest(obj as ServerToUserRequest);
         } else if (obj.type === "response") {
             this.handleResponse(obj);
         } else if (obj.type === "event") {
@@ -189,16 +194,25 @@ export class TachyonClient {
     }
 
     private async handleRequest(command: TachyonRequest) {
-        const handler = this.requestHandlers[command.commandId as keyof typeof this.requestHandlers] as unknown as (
-            data?: unknown
-        ) => Promise<Omit<TachyonResponse, "type" | "commandId" | "messageId">>;
+        const commandId = command.commandId as ServerToUserRequestCommandId;
+        const handler = this.requestHandlers[commandId] as ((data?: unknown) => Promise<AnyUserToServerResponseBody>) | undefined;
+        const requestData = "data" in command ? command.data : undefined;
+
+        let handlerResponse: AnyUserToServerResponseBody;
         if (!handler) {
-            throw new Error(`No response handler found for: ${command.commandId}`);
+            log.warn(`No response handler found for: ${commandId}`);
+            handlerResponse = {
+                status: "failed",
+                reason: "command_unimplemented",
+                details: `No response handler found for: ${commandId}`,
+            } as AnyUserToServerResponseBody;
+        } else {
+            handlerResponse = await handler(requestData);
         }
-        const handlerResponse = await handler("data" in command ? command.data : undefined);
+
         const response = {
             type: "response",
-            commandId: command.commandId,
+            commandId,
             messageId: command.messageId,
             ...handlerResponse,
         } as TachyonResponse;
