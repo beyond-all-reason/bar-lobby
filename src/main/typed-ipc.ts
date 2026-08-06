@@ -115,18 +115,19 @@ export type IPCCommands = {
     "settings:get": () => Settings;
     "settings:toggleFullscreen": () => void;
     "settings:update": (settings: Partial<Settings>) => Partial<Settings>;
-    "shell:openStateDir": () => string;
-    "shell:openAssetsDir": () => string;
-    "shell:openInBrowser": (url: string) => void;
-    "shell:openReplaysDir": () => string;
-    "shell:openSettingsFile": () => string;
-    "shell:openStartScript": () => string;
-    "shell:showReplayInFolder": (fileName: string) => void;
+    "shell:openStateDir": () => IpcResult;
+    "shell:openAssetsDir": () => IpcResult;
+    "shell:openInBrowser": (url: string) => IpcResult;
+    "shell:openReplaysDir": () => IpcResult;
+    "shell:openSettingsFile": () => IpcResult;
+    "shell:openStartScript": () => IpcResult;
+    "shell:showReplayInFolder": (fileName: string) => IpcResult;
     "tachyon:connect": () => void;
     "tachyon:disconnect": () => void;
     "tachyon:isConnected": () => boolean;
     "tachyon:sendEvent": (event: TachyonEvent) => void;
     "tachyon:request": (...args: unknown[]) => Promise<TachyonResponse>;
+    "tachyon:requestStructured": (...args: unknown[]) => Promise<TachyonResponse>;
 };
 
 type Awaitable<T> = T | Promise<T>;
