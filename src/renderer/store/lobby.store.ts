@@ -32,6 +32,7 @@ import { subsManager } from "@renderer/store/users.store";
 import { db } from "@renderer/store/db";
 import { battleStore, battleActions } from "@renderer/store/battle.store";
 import { router } from "@renderer/router";
+import { onWentOffline } from "@renderer/utils/offline-signal";
 
 const i18n = setupI18n();
 
@@ -54,12 +55,12 @@ export const lobbyStore: {
 });
 
 export async function initLobbyStore() {
+    onWentOffline.add(clearOnlineState);
     window.tachyon.onEvent("lobby/listUpdated", onListUpdatedEvent);
     window.tachyon.onEvent("lobby/listReset", onLobbyListResetEvent);
     window.tachyon.onEvent("lobby/updated", onLobbyUpdatedEvent);
     window.tachyon.onEvent("lobby/left", onLobbyLeftEvent);
     window.tachyon.onEvent("lobby/voteEnded", onLobbyVoteEndedEvent);
-    window.tachyon.onDisconnected(clearOnlineState);
     window.tachyon.onConnected(() => {
         // The server drops the list subscription when the socket dies, and customLobbies.vue only
         // subscribes on activation, so a reconnect while sitting there would leave an empty list.

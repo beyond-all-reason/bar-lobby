@@ -17,6 +17,7 @@ import { notificationsApi } from "@renderer/api/notifications";
 import { isTachyonErrorForCommand, tachyonRequest } from "@renderer/api/tachyon";
 import { enginesStore } from "@renderer/store/engine.store";
 import { gameStore } from "@renderer/store/game.store";
+import { onWentOffline } from "@renderer/utils/offline-signal";
 
 export enum MatchmakingStatus {
     Idle = "Idle",
@@ -241,6 +242,7 @@ async function sendReadyRequest() {
 export async function initializeMatchmakingStore() {
     if (matchmakingStore.isInitialized) return;
 
+    onWentOffline.add(clearOnlineState);
     window.tachyon.onEvent("matchmaking/queueUpdate", onQueueUpdateEvent);
 
     window.tachyon.onEvent("matchmaking/lost", onLostEvent);
@@ -252,8 +254,6 @@ export async function initializeMatchmakingStore() {
     window.tachyon.onEvent("matchmaking/found", onFoundEvent);
 
     window.tachyon.onEvent("matchmaking/queuesJoined", onQueuesJoinedEvent);
-
-    window.tachyon.onDisconnected(clearOnlineState);
 
     if (tachyonStore.isConnected) {
         await sendListRequest();

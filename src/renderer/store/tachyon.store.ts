@@ -12,9 +12,7 @@ import { subsManager } from "@renderer/store/users.store";
 import { UserId } from "tachyon-protocol/types";
 import { notificationsApi } from "@renderer/api/notifications";
 import { chat, chatStore } from "@renderer/store/chat.store";
-import { setupI18n } from "@renderer/i18n";
-
-const i18n = setupI18n();
+import { onWentOffline } from "@renderer/utils/offline-signal";
 
 export const tachyonStore = reactive({
     isInitialized: false,
@@ -60,13 +58,29 @@ function stopReconnecting() {
     }
 }
 
+// The server keeps a session alive across a dropped socket, so a close on its own
+// tells us nothing about whether the user is still in a party, lobby or queue.
+// Choosing to go offline is what ends it, and this is the only path that throws
+// away what the server last told us.
+//
 // Clearing the timer leaves any handshake already in flight running, which would
 // connect after the user asked it to stop, so this has to reach the socket too.
 // Dropping wantsConnection is what stops the close being treated as a fault.
-async function cancelReconnect() {
+async function goOffline() {
     tachyonStore.wantsConnection = false;
     stopReconnecting();
     await window.tachyon.disconnect();
+
+    // Closing the socket only starts the handshake, so the close event lands after
+    // this resolves and the store would still read as connected. Settling it here
+    // keeps the cleanup below from asking a dying socket to unsubscribe, and drops
+    // any error left over from a stats poll so the status reads offline rather
+    // than faulted. The later close event finds nothing to do.
+    tachyonStore.isConnected = false;
+    tachyonStore.error = undefined;
+    stopFetchingServerStats();
+
+    onWentOffline.dispatch();
 }
 
 function stopFetchingServerStats() {
@@ -140,10 +154,10 @@ export async function initTachyonStore() {
         if (!wasConnected) return;
 
         stopFetchingServerStats();
-        // A close the user asked for is not a fault, so it gets neither a warning
-        // nor a retry. Anything else while they still want to be online does.
+        // A close the user asked for is not a fault, so it gets no retry. Anything
+        // else while they still want to be online does. The overlay that goes up
+        // with the retries is what tells the user, so there is no alert here.
         if (me.isAuthenticated && tachyonStore.wantsConnection) {
-            notificationsApi.alert({ text: i18n.global.t("lobby.navbar.serverStatus.connectionLost"), severity: "warning" });
             startReconnecting();
         }
     });
@@ -195,5 +209,5 @@ export async function initTachyonStore() {
 }
 
 // tachyonStore.reconnectInterval doubles as "are we still retrying", so a caller
-// can show that and call cancelReconnect to give up.
-export const tachyon = { connect, cancelReconnect };
+// can show that and call goOffline to give up.
+export const tachyon = { connect, goOffline };

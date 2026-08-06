@@ -20,6 +20,7 @@ import { notificationsApi } from "@renderer/api/notifications";
 import { Party } from "@renderer/model/party";
 import { subsManager } from "@renderer/store/users.store";
 import { chat } from "@renderer/store/chat.store";
+import { onWentOffline } from "@renderer/utils/offline-signal";
 
 const partySymbol = Symbol("party.store");
 
@@ -242,10 +243,10 @@ export function onLogout() {
 export async function initPartyStore() {
     if (partyStore.isInitialized) return;
 
+    onWentOffline.add(clearOnlineState);
     window.tachyon.onEvent("party/invited", onInvitedEvent);
     window.tachyon.onEvent("party/removed", onRemovedEvent);
     window.tachyon.onEvent("party/updated", onUpdatedEvent);
-    window.tachyon.onDisconnected(clearOnlineState);
 
     partyStore.isInitialized = true;
 }

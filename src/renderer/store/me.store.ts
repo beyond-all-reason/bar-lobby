@@ -5,9 +5,10 @@
 import { Me } from "@main/model/user";
 import { db } from "@renderer/store/db";
 import { reactive, toRaw } from "vue";
-import { tachyonStore } from "@renderer/store/tachyon.store";
+import { tachyon, tachyonStore } from "@renderer/store/tachyon.store";
 import { PrivateUser } from "tachyon-protocol/types";
 import { subsManager } from "@renderer/store/users.store";
+import { onWentOffline } from "@renderer/utils/offline-signal";
 
 export const me = reactive<
     Me & {
@@ -60,9 +61,8 @@ function playOffline() {
 }
 
 async function logout() {
-    subsManager.clearAllFromList(friendsSymbol);
+    await tachyon.goOffline();
     window.auth.logout();
-    window.tachyon.disconnect();
     me.isAuthenticated = false;
 }
 
@@ -215,7 +215,7 @@ export const friends = {
 };
 
 export async function initMeStore() {
-    window.tachyon.onDisconnected(clearOnlineState);
+    onWentOffline.add(clearOnlineState);
     window.tachyon.onConnected(() => {
         // Subscriptions don't survive the socket, so rebuild them from the server's friend list
         // rather than trusting what subsManager held before the drop.

@@ -8,6 +8,7 @@ import { MessagingReceivedEventData, MessagingSendRequestData, MessagingSubscrib
 import { notificationsApi } from "@renderer/api/notifications";
 import { Message } from "@renderer/model/message";
 import { me } from "@renderer/store/me.store";
+import { onWentOffline } from "@renderer/utils/offline-signal";
 // import { setupI18n } from "@renderer/i18n";
 
 // const i18n = setupI18n();
@@ -27,8 +28,8 @@ export const chatStore: {
 });
 
 export async function initChatStore() {
+    onWentOffline.add(clearOnlineState);
     window.tachyon.onEvent("messaging/received", onMessagingReceivedEvent);
-    window.tachyon.onDisconnected(clearOnlineState);
     chatStore.isInitialized = true;
 }
 

@@ -2118,8 +2118,7 @@
                 "playersOnline": null,
                 "error": null,
                 "reconnecting": null,
-                "offline": null,
-                "connectionLost": null
+                "offline": null
             },
             "messages": {
                 "message": null,
