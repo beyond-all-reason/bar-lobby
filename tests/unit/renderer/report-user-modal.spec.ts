@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: MIT
 
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
 import PrimeVue from "primevue/config";
 
@@ -70,14 +70,22 @@ const matchDetails = {
     spectators: [],
 } satisfies OnlineReplayDetails;
 
+const mounted: VueWrapper[] = [];
+
+// The modal submits through its form, and jsdom skips form submission for a form that is not in
+// the document, so this has to mount attached the way the real teleport does.
 function mountModal() {
-    return mount(ReportUserModal, {
+    const wrapper = mount(ReportUserModal, {
+        attachTo: document.body,
         global: {
             plugins: [PrimeVue],
             stubs: { teleport: true },
             directives: { tooltip: {} },
         },
     });
+    mounted.push(wrapper);
+
+    return wrapper;
 }
 
 function cardLabels(wrapper: VueWrapper) {
@@ -103,6 +111,10 @@ describe("ReportUserModal", () => {
         getOnline.mockReset();
         getOnline.mockResolvedValue({ status: "success", data: matchDetails });
         isOpen.value = false;
+    });
+
+    afterEach(() => {
+        mounted.splice(0).forEach((wrapper) => wrapper.unmount());
     });
 
     it("offers the same reasons as the website report form, all on one step", async () => {
@@ -364,6 +376,26 @@ describe("ReportUserModal", () => {
         await flushPromises();
 
         expect(alert).not.toHaveBeenCalled();
+        expect(isOpen.value).toBe(true);
+    });
+
+    // Enter reaches the form the modal wraps everything in, so a step the user is only passing
+    // through must not be able to send the report.
+    it("does not send the report on enter while stepping back through the wizard", async () => {
+        const wrapper = mountModal();
+        openReportUser(reportedUser);
+        await flushPromises();
+
+        await clickCard(wrapper, "Cheating");
+        await wrapper.find(".match").trigger("click");
+        await flushPromises();
+
+        await wrapper.find("textarea").setValue("They were map hacking the whole game");
+        await wrapper.find(".back button").trigger("click");
+        await wrapper.find(".back button").trigger("keydown", { key: "Enter" });
+        await flushPromises();
+
+        expect(requestReportUsers).not.toHaveBeenCalled();
         expect(isOpen.value).toBe(true);
     });
 });

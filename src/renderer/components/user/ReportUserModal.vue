@@ -129,10 +129,9 @@ SPDX-License-Identifier: MIT
                     :placeholder="t('lobby.components.user.reportUser.messagePlaceholder')"
                     :rows="4"
                     :maxlength="maxDescriptionLength"
-                    @keydown.enter.stop
                 />
                 <div class="note">{{ t("lobby.components.user.reportUser.specCheatingNote") }}</div>
-                <Button class="fullwidth green" :disabled="!canSubmit" @click="submit">
+                <Button type="submit" class="fullwidth green" :disabled="!canSubmit">
                     {{ t("lobby.components.user.reportUser.submit") }}
                 </Button>
             </template>
