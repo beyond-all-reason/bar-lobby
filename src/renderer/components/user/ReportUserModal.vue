@@ -175,6 +175,7 @@ import type { OnlineReplayDetails, OnlineReplayOverview } from "@main/content/re
 // characters. Tachyon only carries a single reason string, so the two are joined for the wire.
 const maxMessageLength = 255;
 const matchesToList = 10;
+const REPLAY_SERVICE_URL = "https://bar-rts.com/replays";
 
 const reportSections = [
     {
@@ -264,7 +265,7 @@ const reportedUserSpectated = computed(() =>
     matchDetails.value?.spectators.some((spectator) => spectator.userId?.toString() === reportedUser.value?.userId)
 );
 
-const messageSuffix = computed(() => (selectedMatch.value ? `\nReplay: https://bar-rts.com/replays/${selectedMatch.value.id}` : ""));
+const messageSuffix = computed(() => (selectedMatch.value ? `\nReplay: ${REPLAY_SERVICE_URL}/${selectedMatch.value.id}` : ""));
 
 const maxDescriptionLength = computed(() => maxMessageLength - messageSuffix.value.length);
 

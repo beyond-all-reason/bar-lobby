@@ -4,7 +4,7 @@
 
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { getOnlineReplay, searchOnlineReplaysByPlayer } from "@main/content/replays/online-replays";
+import { getOnlineReplay, ONLINE_REPLAYS_API_URL, searchOnlineReplaysByPlayer } from "@main/content/replays/online-replays";
 
 const apiReplay = {
     id: "abcdef",
@@ -53,7 +53,7 @@ describe("searchOnlineReplaysByPlayer", () => {
         const result = await searchOnlineReplaysByPlayer("Naughty", 10);
 
         const [url] = fetchMock.mock.calls[0];
-        expect(url).toContain("https://api.bar-rts.com/replays?");
+        expect(url).toContain(`${ONLINE_REPLAYS_API_URL}?`);
         expect(url).toContain("players=Naughty");
         expect(url).toContain("limit=10");
         expect(result).toEqual({

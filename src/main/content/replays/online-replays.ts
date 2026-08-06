@@ -7,7 +7,7 @@ import { logger } from "@main/utils/logger";
 
 const log = logger("online-replays.ts");
 
-const ONLINE_REPLAYS_API_URL = "https://api.bar-rts.com/replays";
+export const ONLINE_REPLAYS_API_URL = "https://api.bar-rts.com/replays";
 
 export type OnlineReplayOverview = {
     id: string;
