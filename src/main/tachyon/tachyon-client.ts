@@ -274,6 +274,13 @@ export class TachyonClient {
         return this.socket.readyState === this.socket.OPEN;
     }
 
+    // Closing without saying goodbye, for when there is nothing on the other end
+    // to hear it. disconnect() waits on a system/disconnect response that a dead
+    // link will never deliver, which is the wait this exists to skip.
+    public dropConnection() {
+        this.socket?.close();
+    }
+
     public async disconnect() {
         // Only an open socket can be told we're going away. Closing one that is
         // still handshaking aborts the attempt, which is the point when the user

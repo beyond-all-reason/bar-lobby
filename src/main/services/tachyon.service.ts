@@ -58,6 +58,10 @@ function registerIpcHandlers(webContents: BarIpcWebContents) {
         return await tachyonClient.disconnect();
     });
 
+    ipcMain.handle("tachyon:dropConnection", async () => {
+        return tachyonClient.dropConnection();
+    });
+
     ipcMain.handle("tachyon:sendEvent", async (_event, data) => {
         return await tachyonClient.sendEvent(data);
     });

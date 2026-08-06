@@ -14,6 +14,7 @@ Object.assign(window.tachyon, {
     isConnected: vi.fn(async () => false),
     connect: vi.fn(async () => {}),
     disconnect: vi.fn(async () => {}),
+    dropConnection: vi.fn(async () => {}),
     request: vi.fn(async () => ({ data: {} })),
     onBattleStart: vi.fn(),
     onDisconnected: (callback: () => void) => void disconnectHandlers.push(callback),
@@ -59,6 +60,25 @@ describe("going offline", () => {
         populateOnlineState();
         tachyonStore.isConnected = true;
         tachyonStore.wantsConnection = true;
+        vi.mocked(window.tachyon.dropConnection).mockClear();
+    });
+
+    // A vanished network sends no close frame, so the socket looks alive until the
+    // silence timer gives up on it half a minute later.
+    describe("when the network goes away", () => {
+        it("drops the socket instead of waiting for the silence timer", () => {
+            window.dispatchEvent(new Event("offline"));
+
+            expect(window.tachyon.dropConnection).toHaveBeenCalledOnce();
+        });
+
+        it("leaves a connection that is already down alone", () => {
+            tachyonStore.isConnected = false;
+
+            window.dispatchEvent(new Event("offline"));
+
+            expect(window.tachyon.dropConnection).not.toHaveBeenCalled();
+        });
     });
 
     // The server holds the session open across a dropped socket, so a close on its

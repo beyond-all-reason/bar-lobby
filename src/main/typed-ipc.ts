@@ -115,6 +115,7 @@ export type IPCCommands = {
     "shell:showReplayInFolder": (fileName: string) => void;
     "tachyon:connect": () => void;
     "tachyon:disconnect": () => void;
+    "tachyon:dropConnection": () => void;
     "tachyon:isConnected": () => boolean;
     "tachyon:sendEvent": (event: TachyonEvent) => void;
     "tachyon:request": (...args: unknown[]) => Promise<TachyonResponse>;

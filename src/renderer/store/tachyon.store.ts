@@ -162,6 +162,17 @@ export async function initTachyonStore() {
         }
     });
 
+    // A network that goes away produces no close event, so on its own the socket
+    // sits there looking alive until the silence timer gives up half a minute
+    // later. This only covers the interface disappearing, so the timer is still
+    // what catches a server that has stopped answering.
+    window.addEventListener("offline", () => {
+        if (!tachyonStore.isConnected) return;
+
+        console.debug("Network went away, dropping the connection");
+        void window.tachyon.dropConnection();
+    });
+
     window.tachyon.onBattleStart((springString) => {
         console.debug("Received battle start event", springString);
         const engineVersion = enginesStore.selectedEngineVersion;
