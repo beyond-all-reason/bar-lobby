@@ -196,8 +196,12 @@ async function sendQueueRequest() {
         matchmakingStore.status = MatchmakingStatus.Searching;
     } catch (error) {
         if (isTachyonErrorForCommand(error, "matchmaking/queue") && error.reason === "version_mismatch") {
-            notificationsApi.alert({ text: "Queue version changed; refreshing list.", severity: "info" });
-            await sendListRequest();
+            if (error.reason === "version_mismatch") {
+                notificationsApi.alert({ text: "Queue version changed; refreshing list.", severity: "info" });
+                await sendListRequest();
+            } else if (error.reason === "party_assets_missing") {
+                notificationsApi.alert({ text: "Party queue rejected, required assets are missing for the queue.", severity: "error" });
+            }
         } else {
             console.error("Tachyon error: matchmaking/queue:", error);
             notificationsApi.alert({ text: "Tachyon error: matchmaking/queue", severity: "error" });

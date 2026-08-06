@@ -35,7 +35,7 @@ function defineTachyonRequestHandler<C extends ServerToUserRequestId, R extends 
 export function createTachyonRequestHandlers(webContents: BarIpcWebContents): TachyonClientRequestHandlers {
     return {
         ...createBattleHandlers(webContents),
-        ...createMatchmakingHandlers(),
+        ...createMatchmakingHandlers(webContents),
     } satisfies TachyonClientRequestHandlers;
 }
 
@@ -56,7 +56,7 @@ function createBattleHandlers(webContents: BarIpcWebContents) {
     } satisfies Partial<TachyonClientRequestHandlers>;
 }
 
-function createMatchmakingHandlers() {
+function createMatchmakingHandlers(webContents: BarIpcWebContents) {
     return {
         ...defineTachyonRequestHandler(
             "matchmaking/checkAssets",
@@ -66,6 +66,13 @@ function createMatchmakingHandlers() {
                     !gameContentAPI.isVersionInstalled(data.game) ||
                     data.maps.some((map) => !mapContentAPI.isVersionInstalled(map)) ||
                     data.engines.some((engine) => !engineContentAPI.isVersionInstalled(engine));
+                if (itemsRequired) {
+                    // TODO: This should be through i18n for localization
+                    webContents.send("notifications:showAlert", {
+                        text: `Party queue rejected, missing assets required for queue ${data.queueId}.`,
+                        severity: "error",
+                    });
+                }
                 return {
                     // Reminder, "success" is returned even if some assets are missing, because it is a successful response, not an indication of asset completeness.
                     // Technically we can return "downloading" also, but for now we just return "missing" or "complete"
