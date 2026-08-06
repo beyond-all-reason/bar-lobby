@@ -50,6 +50,8 @@ const reportedUser = {
     battleRoomState: {},
 } satisfies User;
 
+const otherUser = { ...reportedUser, userId: "5678", username: "Someone", displayName: "Someone" } satisfies User;
+
 const match = {
     id: "abcdef",
     startTime: "2026-07-27T22:06:02.000Z",
@@ -397,5 +399,39 @@ describe("ReportUserModal", () => {
 
         expect(requestReportUsers).not.toHaveBeenCalled();
         expect(isOpen.value).toBe(true);
+    });
+
+    it("lets a report that was abandoned mid-flight land without disturbing the next one", async () => {
+        let finishFirstSubmit: (sent: boolean) => void = () => undefined;
+        requestReportUsers.mockImplementationOnce(() => new Promise((resolve) => (finishFirstSubmit = resolve)));
+
+        const wrapper = mountModal();
+        openReportUser(reportedUser);
+        await flushPromises();
+
+        await clickCard(wrapper, "Spam");
+        await wrapper.find(".fullwidth button").trigger("click");
+        await flushPromises();
+
+        await wrapper.find("textarea").setValue("Spammed the lobby");
+        await wrapper.find(".green button").trigger("click");
+        await flushPromises();
+
+        isOpen.value = false;
+        await flushPromises();
+
+        openReportUser(otherUser);
+        await flushPromises();
+
+        await clickCard(wrapper, "Griefing");
+        await wrapper.find(".fullwidth button").trigger("click");
+        await flushPromises();
+
+        await wrapper.find("textarea").setValue("Half written report about someone else");
+        finishFirstSubmit(true);
+        await flushPromises();
+
+        expect(isOpen.value).toBe(true);
+        expect(wrapper.find("textarea").element.value).toBe("Half written report about someone else");
     });
 });

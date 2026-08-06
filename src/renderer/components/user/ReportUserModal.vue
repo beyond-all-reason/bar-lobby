@@ -245,6 +245,7 @@ const isSubmitting = ref(false);
 // else, must not overwrite what is on screen now.
 let searchRequestId = 0;
 let detailsRequestId = 0;
+let submitRequestId = 0;
 
 const selectedSection = computed(() => reportSections.find((section) => section.id === sectionId.value));
 
@@ -277,6 +278,7 @@ watch(maxDescriptionLength, (limit) => {
 watch(isOpen, (open) => {
     searchRequestId++;
     detailsRequestId++;
+    submitRequestId++;
     stage.value = "reason";
     sectionId.value = null;
     subTypeId.value = null;
@@ -356,12 +358,16 @@ function matchWhen(match: OnlineReplayOverview) {
 async function submit() {
     if (!canSubmit.value) return;
 
+    const requestId = ++submitRequestId;
     isSubmitting.value = true;
     const reported = await users.requestReportUsers({
         userIds: [reportedUser.value!.userId],
         reason: { type: `${sectionId.value}/${subTypeId.value}` },
         message: `${message.value.trim()}${messageSuffix.value}`,
     });
+
+    if (requestId !== submitRequestId) return;
+
     isSubmitting.value = false;
 
     if (!reported) return;
