@@ -106,9 +106,11 @@ const pendingAction = computed<ServerAction | undefined>(() => {
 
 const menuOpen = ref(false);
 
-// Which of the menu entries describes where we are right now. Busy is never it,
+// Which of the menu entries describes where we are right now. This follows what
+// the user asked for rather than whether the socket happens to be up, so a drop
+// they did not choose keeps them on Online while we retry. Busy is never it,
 // since the server has no way to represent it.
-const currentStatus = computed(() => (tachyonStore.isConnected ? "online" : "offline"));
+const currentStatus = computed(() => (tachyonStore.wantsConnection ? "online" : "offline"));
 
 const buttonTitle = computed(() => tachyonStore.error ?? t("lobby.navbar.serverStatus.changeStatus"));
 
