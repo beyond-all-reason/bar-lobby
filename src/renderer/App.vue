@@ -15,6 +15,7 @@ SPDX-License-Identifier: MIT
         <StickyBattle v-if="state === 'default'" />
         <Background :blur="blurBg" />
         <Notifications v-if="state === 'default'" />
+        <ReconnectingOverlay v-if="state === 'default'" />
         <PromptContainer v-if="state === 'default'" />
         <NavBar :class="{ hidden: empty || state === 'initial-setup' }" />
         <div class="lobby-version">
@@ -86,6 +87,7 @@ import NavBar from "@renderer/components/navbar/NavBar.vue";
 import Settings from "@renderer/components/navbar/Settings.vue";
 import ServerSettings from "@renderer/components/navbar/ServerSettings.vue";
 import Notifications from "@renderer/components/notifications/Notifications.vue";
+import ReconnectingOverlay from "@renderer/components/misc/ReconnectingOverlay.vue";
 import PromptContainer from "@renderer/components/prompts/PromptContainer.vue";
 import LogInConfirmationModal from "@renderer/components/misc/LogInConfirmationModal.vue";
 
