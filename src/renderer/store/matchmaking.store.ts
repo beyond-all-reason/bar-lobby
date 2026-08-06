@@ -12,11 +12,11 @@ import {
     MatchmakingQueueUpdateEventData,
 } from "tachyon-protocol/types";
 import { tachyonStore } from "@renderer/store/tachyon.store";
-import { db } from "@renderer/store/db";
 import { notificationsApi } from "@renderer/api/notifications";
 import { isTachyonErrorForCommand, tachyonRequest } from "@renderer/api/tachyon";
 import { enginesStore } from "@renderer/store/engine.store";
 import { gameStore } from "@renderer/store/game.store";
+import { mapsStore } from "@renderer/store/maps.store";
 
 export enum MatchmakingStatus {
     Idle = "Idle",
@@ -135,13 +135,9 @@ async function triggerAssetsRefresh() {
 
 async function setRequiredAssetsArrays(queue: string, engines: { version: string }[], games: { springName: string }[], maps: { springName: string }[]): Promise<void> {
     matchmakingStore.downloadsRequired[queue] = { engines: [], games: [], maps: [] };
-    const queueMaps = maps.map((m) => m.springName);
-    const dbMaps = await db.maps.bulkGet(queueMaps);
-    for (const map of dbMaps) {
-        if (map != undefined && !map.isInstalled) {
-            matchmakingStore.downloadsRequired[queue].maps.push(map.springName);
-        }
-    }
+    const queueMaps = new Set(maps.map((map) => map.springName));
+    const missingMaps = queueMaps.difference(new Set(mapsStore.availableMapNames));
+    matchmakingStore.downloadsRequired[queue].maps.push(...missingMaps);
     const queueEngines = new Set(engines.map((e) => e.version));
     const installedEngines = new Set(enginesStore.availableEngineVersions.filter((e) => e.installed).map((e) => e.id));
     const diffEngines = queueEngines.difference(installedEngines);
