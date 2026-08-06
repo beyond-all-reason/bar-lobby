@@ -15,21 +15,18 @@ const log = logger("tachyon-handlers");
 
 type ServerToUserRequestId = GetCommandIds<"server", "user", "request">;
 type RequestData<C extends ServerToUserRequestId> = GetCommandData<GetCommands<"server", "user", "request", C>>;
-type ResponseBody<C extends ServerToUserRequestId> = Omit<GetCommands<"user", "server", "response", C>, "type" | "commandId" | "messageId">;
-type Exact<Expected, Actual extends Expected> = Expected & Record<Exclude<keyof Actual, keyof Expected>, never>;
+type StripEnvelope<T> = T extends object ? Omit<T, "type" | "commandId" | "messageId"> : never;
+type ResponseBody<C extends ServerToUserRequestId> = StripEnvelope<GetCommands<"user", "server", "response", C>>;
 
 const createTypedTachyonRequestHandler =
     <C extends ServerToUserRequestId>() =>
-    <R extends ResponseBody<C>>(handler: (data: RequestData<C>) => Promise<Exact<ResponseBody<C>, R>>) =>
+    (handler: (data: RequestData<C>) => Promise<ResponseBody<C>>) =>
         handler;
 
-function defineTachyonRequestHandler<C extends ServerToUserRequestId, R extends ResponseBody<C>>(
-    commandId: C,
-    handler: (data: RequestData<C>) => Promise<Exact<ResponseBody<C>, R>>
-): Pick<TachyonClientRequestHandlers, C> {
+function defineTachyonRequestHandler<C extends ServerToUserRequestId>(commandId: C, handler: (data: RequestData<C>) => Promise<ResponseBody<C>>): Pick<TachyonClientRequestHandlers, C> {
     return {
         [commandId]: handler,
-    } as unknown as Pick<TachyonClientRequestHandlers, C>;
+    } as Pick<TachyonClientRequestHandlers, C>;
 }
 
 export function createTachyonRequestHandlers(webContents: BarIpcWebContents): TachyonClientRequestHandlers {
@@ -50,7 +47,7 @@ function createBattleHandlers(webContents: BarIpcWebContents) {
                 webContents.send("tachyon:battleStart", springString);
                 return {
                     status: "success",
-                };
+                } satisfies ResponseBody<"battle/start">;
             })
         ),
     } satisfies Partial<TachyonClientRequestHandlers>;
@@ -80,7 +77,7 @@ function createMatchmakingHandlers(webContents: BarIpcWebContents) {
                     data: {
                         assetStatus: itemsRequired ? "missing" : "complete",
                     },
-                };
+                } satisfies ResponseBody<"matchmaking/checkAssets">;
             })
         ),
     } satisfies Partial<TachyonClientRequestHandlers>;

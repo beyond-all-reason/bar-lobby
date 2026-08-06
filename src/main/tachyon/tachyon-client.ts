@@ -16,7 +16,8 @@ const log = logger("tachyon-client");
 
 type ServerToUserRequestCommandId = GetCommandIds<"server", "user", "request">;
 type ServerToUserRequest<C extends ServerToUserRequestCommandId = ServerToUserRequestCommandId> = GetCommands<"server", "user", "request", C>;
-type UserToServerResponseBody<C extends ServerToUserRequestCommandId = ServerToUserRequestCommandId> = Omit<GetCommands<"user", "server", "response", C>, "type" | "commandId" | "messageId">;
+type StripEnvelope<T> = T extends object ? Omit<T, "type" | "commandId" | "messageId"> : never;
+type UserToServerResponseBody<C extends ServerToUserRequestCommandId = ServerToUserRequestCommandId> = StripEnvelope<GetCommands<"user", "server", "response", C>>;
 type AnyUserToServerResponseBody = UserToServerResponseBody<ServerToUserRequestCommandId>;
 
 export type TachyonClientRequestHandlers = {
