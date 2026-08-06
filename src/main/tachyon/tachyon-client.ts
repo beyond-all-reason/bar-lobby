@@ -23,8 +23,6 @@ export type TachyonClientRequestHandlers = {
     [CommandId in ServerToUserRequestCommandId]: (data: GetCommandData<ServerToUserRequest<CommandId>>) => Promise<UserToServerResponseBody<CommandId>>;
 };
 
-export type PartialTachyonClientRequestHandlers = Partial<TachyonClientRequestHandlers>;
-
 class InternalError extends Error {
     constructor(message: string) {
         super(message);
@@ -48,10 +46,10 @@ export class TachyonClient {
     public onSocketClose: Signal<void> = new Signal();
     public onEvent: Signal<TachyonEvent> = new Signal();
 
-    private requestHandlers: PartialTachyonClientRequestHandlers;
+    private requestHandlers: TachyonClientRequestHandlers;
     private responseHandlers: Map<string, (response: TachyonResponse | { status: "socket_closed" }) => void> = new Map();
 
-    constructor(requestHandlers: PartialTachyonClientRequestHandlers) {
+    constructor(requestHandlers: TachyonClientRequestHandlers) {
         this.requestHandlers = requestHandlers;
     }
 

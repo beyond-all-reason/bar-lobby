@@ -4,7 +4,7 @@
 
 import { BarIpcWebContents } from "@main/typed-ipc";
 import { logger } from "@main/utils/logger";
-import { PartialTachyonClientRequestHandlers, TachyonClientRequestHandlers } from "./tachyon-client";
+import { TachyonClientRequestHandlers } from "./tachyon-client";
 import { GetCommandData, GetCommandIds, GetCommands } from "tachyon-protocol";
 import { BattleStartRequestData, MatchmakingCheckAssetsRequestData } from "tachyon-protocol/types";
 import { gameContentAPI } from "@main/content/game/game-content";
@@ -32,11 +32,11 @@ function defineTachyonRequestHandler<C extends ServerToUserRequestId, R extends 
     } as unknown as Pick<TachyonClientRequestHandlers, C>;
 }
 
-export function createTachyonRequestHandlers(webContents: BarIpcWebContents): PartialTachyonClientRequestHandlers {
+export function createTachyonRequestHandlers(webContents: BarIpcWebContents): TachyonClientRequestHandlers {
     return {
         ...createBattleHandlers(webContents),
         ...createMatchmakingHandlers(),
-    };
+    } satisfies TachyonClientRequestHandlers;
 }
 
 function createBattleHandlers(webContents: BarIpcWebContents) {
@@ -53,7 +53,7 @@ function createBattleHandlers(webContents: BarIpcWebContents) {
                 };
             })
         ),
-    } satisfies PartialTachyonClientRequestHandlers;
+    } satisfies Partial<TachyonClientRequestHandlers>;
 }
 
 function createMatchmakingHandlers() {
@@ -76,5 +76,5 @@ function createMatchmakingHandlers() {
                 };
             })
         ),
-    } satisfies PartialTachyonClientRequestHandlers;
+    } satisfies Partial<TachyonClientRequestHandlers>;
 }

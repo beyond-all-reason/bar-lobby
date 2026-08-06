@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import type { TachyonClientRequestHandlers } from "@main/tachyon/tachyon-client";
 
 const { send, gameIsInstalled, mapIsInstalled, engineIsInstalled } = vi.hoisted(() => ({
     send: vi.fn(),
@@ -35,6 +36,10 @@ function getHandlers() {
     return createTachyonRequestHandlers({ send } as never);
 }
 
+// Type coverage assertion to ensure all handlers are correctly typed
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const _typeCoverageAssertion: TachyonClientRequestHandlers = getHandlers();
+
 describe("createTachyonRequestHandlers", () => {
     beforeEach(() => {
         send.mockReset();
@@ -50,7 +55,7 @@ describe("createTachyonRequestHandlers", () => {
     it("handles battle/start by sending the spring url and returning success", async () => {
         const handlers = getHandlers();
 
-        const response = await handlers["battle/start"]?.({
+        const response = await handlers["battle/start"]({
             ip: "127.0.0.1",
             port: 8452,
             username: "tester",
@@ -75,7 +80,7 @@ describe("createTachyonRequestHandlers", () => {
             engines: ["engine:105.1.1"],
         };
 
-        const response = await handlers["matchmaking/checkAssets"]?.(request);
+        const response = await handlers["matchmaking/checkAssets"](request);
 
         expect(gameIsInstalled).toHaveBeenCalledWith("byar:test-game");
         expect(mapIsInstalled).toHaveBeenCalledWith("map:comet-catcher");
@@ -93,7 +98,7 @@ describe("createTachyonRequestHandlers", () => {
         const missingMaps = new Set(["map:red-comet"]);
         mapIsInstalled.mockImplementation((map: string) => !missingMaps.has(map));
 
-        const response = await handlers["matchmaking/checkAssets"]?.({
+        const response = await handlers["matchmaking/checkAssets"]({
             queueId: "1v1",
             version: "1",
             game: "byar:test-game",
