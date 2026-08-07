@@ -2280,7 +2280,8 @@
                     "playOffline": null,
                     "stepFailed": null,
                     "stepRetrying": null,
-                    "contentRequired": null
+                    "contentRequired": null,
+                    "pathUnusable": null
                 }
             },
             "battle": {

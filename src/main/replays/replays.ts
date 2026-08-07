@@ -4,9 +4,9 @@
 
 import { Signal } from "$/jaz-ts-utils/signal";
 import { REPLAYS_PATH } from "@main/config/app";
-import { mapContentAPI } from "@main/content/maps/map-content";
-import { asyncParseReplay } from "@main/content/replays/parse-replay";
-import { Replay } from "@main/content/replays/replay";
+import { contentAPI } from "@main/content/content-api";
+import { asyncParseReplay } from "@main/replays/parse-replay";
+import { Replay } from "@main/replays/replay";
 import { gameAPI } from "@main/game/game";
 import { isReplayFile } from "@main/config/replay-extensions";
 import { logger } from "@main/utils/logger";
@@ -17,7 +17,7 @@ import path from "path";
 
 const log = logger("replay-content.ts");
 
-export class ReplayContentAPI {
+export class ReplaysAPI {
     public readonly onReplayCachingStarted: Signal<string> = new Signal();
     public readonly onReplayCached: Signal<Replay> = new Signal();
     public readonly onReplayDeleted: Signal<string> = new Signal();
@@ -73,9 +73,9 @@ export class ReplayContentAPI {
             try {
                 await fs.promises.copyFile(filePath, replayPath);
                 const replay = await asyncParseReplay(replayPath);
-                await mapContentAPI.downloadMap(replay.mapSpringName);
 
                 this.onReplayCached.dispatch(replay);
+                await this.fetchReplayMap(replay);
             } finally {
                 // Always remove from the set, even if there's an error
                 this.filesBeingCopied.delete(fileName);
@@ -83,7 +83,17 @@ export class ReplayContentAPI {
         } else {
             // File is already in the replays folder, just parse it
             const replay = await asyncParseReplay(replayPath);
-            await mapContentAPI.downloadMap(replay.mapSpringName);
+            await this.fetchReplayMap(replay);
+        }
+    }
+
+    // Having the map makes the replay previewable, but the replay is what the caller asked to add, so a
+    // map that will not download must not keep it out of the list.
+    private async fetchReplayMap(replay: Replay) {
+        try {
+            await contentAPI.ensure([{ type: "map", id: replay.mapSpringName }]);
+        } catch (err) {
+            log.error(`Could not fetch map ${replay.mapSpringName} for replay ${replay.fileName}`, err);
         }
     }
 
@@ -148,4 +158,4 @@ export class ReplayContentAPI {
     }
 }
 
-export const replayContentAPI = new ReplayContentAPI();
+export const replaysAPI = new ReplaysAPI();

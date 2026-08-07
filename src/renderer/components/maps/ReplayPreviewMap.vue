@@ -32,7 +32,7 @@ SPDX-License-Identifier: MIT
 </template>
 
 <script setup lang="ts">
-import { Replay } from "@main/content/replays/replay";
+import { Replay } from "@main/replays/replay";
 import { useDexieLiveQueryWithDeps } from "@renderer/composables/useDexieLiveQuery";
 import { useImageBlobUrlCache } from "@renderer/composables/useImageBlobUrlCache";
 import { db } from "@renderer/store/db";

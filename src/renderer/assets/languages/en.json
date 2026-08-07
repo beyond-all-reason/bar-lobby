@@ -2257,7 +2257,8 @@
                     "playOffline": "Play Offline",
                     "stepFailed": "{step} — Failed",
                     "stepRetrying": "{step} — Retrying…",
-                    "contentRequired": "Engine and game must be downloaded before starting a battle."
+                    "contentRequired": "Engine and game must be downloaded before starting a battle.",
+                    "pathUnusable": "That folder cannot be used for game files. Pick a different one."
                 }
             },
             "battle": {

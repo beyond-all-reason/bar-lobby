@@ -6,7 +6,7 @@ import type {
     AuthApi,
     AutoUpdaterApi,
     BarNavigationApi,
-    DownloadsApi,
+    ContentApi,
     EngineApi,
     GameApi,
     InfoApi,
@@ -30,10 +30,10 @@ declare global {
         replays: ReplaysApi;
         auth: AuthApi;
         settings: SettingsApi;
+        content: ContentApi;
         engine: EngineApi;
         game: GameApi;
         maps: MapsApi;
-        downloads: DownloadsApi;
         misc: MiscApi;
         tachyon: TachyonApi;
         log: LogApi;

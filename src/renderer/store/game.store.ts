@@ -4,9 +4,10 @@
 
 import { GameVersion } from "@main/content/game/game-version";
 import { LuaOption } from "@main/content/game/lua-options";
-import { Replay } from "@main/content/replays/replay";
+import { Replay } from "@main/replays/replay";
 import { BattleWithMetadata } from "@main/game/battle/battle-types";
 import { notificationsApi } from "@renderer/api/notifications";
+import { onContentSettled } from "@renderer/store/contents.store";
 import { reactive, watch } from "vue";
 import { matchmakingStore, MatchmakingStatus } from "./matchmaking.store";
 
@@ -97,13 +98,10 @@ export async function watchReplay(replay: Replay) {
 export async function initGameStore() {
     if (gameStore.isInitialized) return;
     await refreshStore();
-    window.downloads.onDownloadGameComplete(async (downloadInfo) => {
-        console.debug("Received game download completed event", downloadInfo);
-        await refreshStore();
-    });
-    window.downloads.onDownloadGameFail(async (downloadInfo) => {
-        console.error("Game download failed", downloadInfo);
-        await refreshStore();
+    onContentSettled(async (refs) => {
+        if (refs.some((ref) => ref.type === "game")) {
+            await refreshStore();
+        }
     });
     window.game.onGameLaunched(() => {
         console.debug("Game loaded");

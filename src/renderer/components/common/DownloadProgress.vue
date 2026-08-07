@@ -16,7 +16,8 @@ SPDX-License-Identifier: MIT
 
 <script lang="ts" setup>
 import { computed, watch } from "vue";
-import { downloadsStore } from "@renderer/store/downloads.store";
+import { contentRefs, inFlightFor } from "@renderer/store/contents.store";
+import { isInProgress } from "@main/content/content-state";
 import Progress from "@renderer/components/common/Progress.vue";
 
 interface Props {
@@ -32,32 +33,19 @@ const emit = defineEmits<{
     statusChange: [value: boolean];
 }>();
 
-const isDownloading = computed(() => {
-    const targetList = new Set([...maps, ...games, ...engines]);
-    if (targetList.size == 0) return false;
-    const downloads = [...downloadsStore.mapDownloads, ...downloadsStore.engineDownloads, ...downloadsStore.gameDownloads];
-    if (downloads.length == 0) return false;
-    const downloadingNames = new Set(downloads.map((d) => d.name));
-    if (downloadingNames.intersection(targetList).size > 0) {
-        return true;
-    }
-    return false;
-});
+const transfers = computed(() => inFlightFor(contentRefs({ maps, games, engines })).filter(isInProgress));
+
+const isDownloading = computed(() => transfers.value.length > 0);
 
 watch(isDownloading, (value) => {
     emit("statusChange", value);
 });
 
 const downloadPercent = computed(() => {
-    const targetList = new Set([...maps, ...games, ...engines]);
-    const downloads = [...downloadsStore.mapDownloads, ...downloadsStore.engineDownloads, ...downloadsStore.gameDownloads];
-    const count = downloads.length;
-    let progress: number = 0;
-    for (const download of downloads) {
-        if (targetList.has(download.name)) {
-            progress += download.progress;
-        }
+    if (transfers.value.length === 0) {
+        return 0;
     }
-    return progress / count;
+
+    return transfers.value.reduce((total, state) => total + state.progress, 0) / transfers.value.length;
 });
 </script>

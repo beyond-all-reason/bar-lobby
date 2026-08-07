@@ -8,9 +8,7 @@ import { logger } from "@main/utils/logger";
 import { ipcMain } from "electron";
 import { BattleStartRequestData, MatchmakingCheckAssetsRequestData } from "tachyon-protocol/types";
 import { BarIpcWebContents } from "@main/typed-ipc";
-import { gameContentAPI } from "@main/content/game/game-content";
-import { mapContentAPI } from "@main/content/maps/map-content";
-import { engineContentAPI } from "@main/content/engine/engine-content";
+import { contentAPI } from "@main/content/content-api";
 
 const log = logger("tachyon-service");
 
@@ -18,9 +16,12 @@ function registerIpcHandlers(webContents: BarIpcWebContents) {
     const requestHandlers: TachyonClientRequestHandlers = {
         "battle/start": async (data: BattleStartRequestData) => {
             log.info(`Received battle start request: ${JSON.stringify(data)}`);
-            const itemsRequired =
-                !gameContentAPI.isVersionInstalled(data.game.springName) || !mapContentAPI.isVersionInstalled(data.map.springName) || !engineContentAPI.isVersionInstalled(data.engine.version);
-            if (itemsRequired) {
+            const missing = contentAPI.missing([
+                { type: "game", id: data.game.springName },
+                { type: "map", id: data.map.springName },
+                { type: "engine", id: data.engine.version },
+            ]);
+            if (missing.length > 0) {
                 webContents.send("notifications:showAlert", {
                     text: `Unable to join match, required assets are missing.`,
                     severity: "error",

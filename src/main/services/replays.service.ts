@@ -2,26 +2,26 @@
 //
 // SPDX-License-Identifier: MIT
 
-import { Replay } from "@main/content/replays/replay";
-import { replayContentAPI } from "@main/content/replays/replay-content";
+import { Replay } from "@main/replays/replay";
+import { replaysAPI } from "@main/replays/replays";
 import { ipcMain, BarIpcWebContents } from "@main/typed-ipc";
 
 async function init() {
-    await replayContentAPI.init();
+    await replaysAPI.init();
 }
 
 function registerIpcHandlers(webContents: BarIpcWebContents) {
-    ipcMain.handle("replays:sync", (_, replays: string[]) => replayContentAPI.sync(replays));
-    ipcMain.handle("replays:delete", (_, fileName: string) => replayContentAPI.deleteReplay(fileName));
+    ipcMain.handle("replays:sync", (_, replays: string[]) => replaysAPI.sync(replays));
+    ipcMain.handle("replays:delete", (_, fileName: string) => replaysAPI.deleteReplay(fileName));
 
     // Events
-    replayContentAPI.onReplayCachingStarted.add((filename: string) => {
+    replaysAPI.onReplayCachingStarted.add((filename: string) => {
         webContents.send("replays:replayCachingStarted", filename);
     });
-    replayContentAPI.onReplayCached.add((replay: Replay) => {
+    replaysAPI.onReplayCached.add((replay: Replay) => {
         webContents.send("replays:replayCached", replay);
     });
-    replayContentAPI.onReplayDeleted.add((filename: string) => {
+    replaysAPI.onReplayDeleted.add((filename: string) => {
         webContents.send("replays:replayDeleted", filename);
     });
 }

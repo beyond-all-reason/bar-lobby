@@ -9,7 +9,7 @@ SPDX-License-Identifier: MIT
         <Transition name="fade" mode="out-in">
             <div v-if="allDownloads.length" class="downloads">
                 <TransitionGroup tag="div" name="downloads-list">
-                    <div v-for="download in limitedList" :key="download.name" class="downloads__download">
+                    <div v-for="download in limitedList" :key="download.key" class="downloads__download">
                         <div class="downloads__info">
                             <div class="downloads__name">{{ download.name }}</div>
                             <div class="downloads__type">{{ download.type }}</div>
@@ -44,22 +44,21 @@ SPDX-License-Identifier: MIT
 <script lang="ts" setup>
 import { computed, inject, Ref } from "vue";
 
-import type { DownloadInfo } from "@main/content/downloads";
 import Loader from "@renderer/components/common/Loader.vue";
 import Progress from "@renderer/components/common/Progress.vue";
 import PopOutPanel from "@renderer/components/navbar/PopOutPanel.vue";
 import { useTypedI18n } from "@renderer/i18n";
-import { MIN_DOWNLOAD_BYTES, useDownloadProgress } from "@renderer/composables/useDownloadProgress";
+import { DownloadView, MIN_DOWNLOAD_BYTES, useDownloadProgress } from "@renderer/composables/useDownloadProgress";
 
 const { t } = useTypedI18n();
 const { allDownloads, downloadPercent, progressText } = useDownloadProgress();
 
-function barText(download: DownloadInfo): string {
+function barText(download: DownloadView): string {
     if (download.currentBytes === 0) return t("lobby.navbar.downloads.starting");
     return `${(downloadPercent(download) * 100).toFixed(1)}%`;
 }
 
-function detailText(download: DownloadInfo): string {
+function detailText(download: DownloadView): string {
     if (download.currentBytes === 0) return "";
     return progressText(download);
 }

@@ -4,7 +4,8 @@
 
 import { computed } from "vue";
 
-import type { DownloadInfo } from "@main/content/downloads";
+import { contentsStore } from "@renderer/store/contents.store";
+import { hasFailed, isInProgress } from "@main/content/content-state";
 import { downloadsStore } from "@renderer/store/downloads.store";
 import { useTypedI18n } from "@renderer/i18n";
 
@@ -12,6 +13,17 @@ const EMA_ALPHA = 0.3;
 const STALL_DECAY = 0.9;
 const MIN_UPDATE_INTERVAL = 0.25;
 export const MIN_DOWNLOAD_BYTES = 5 * 1024; // 5 KB
+
+// Content and the app updater are unrelated sources that the navbar shows in one list, so both get
+// flattened to this before anything tries to render or measure them.
+export type DownloadView = {
+    key: string;
+    name: string;
+    type: string;
+    currentBytes: number;
+    totalBytes: number;
+    phase?: "downloading" | "extracting";
+};
 
 interface SpeedEntry {
     prevBytes: number;
@@ -24,30 +36,86 @@ const speedTracker = new Map<string, SpeedEntry>();
 export function useDownloadProgress() {
     const { t } = useTypedI18n();
 
-    const allDownloads = computed(() => [...downloadsStore.engineDownloads, ...downloadsStore.gameDownloads, ...downloadsStore.mapDownloads, ...downloadsStore.updateDownloads]);
+    const allDownloads = computed<DownloadView[]>(() => [
+        ...contentsStore.inFlight.filter(isInProgress).map((state) => ({
+            key: `${state.type}:${state.id}`,
+            name: state.id,
+            type: state.type,
+            currentBytes: state.currentBytes,
+            totalBytes: state.totalBytes,
+            phase: state.phase,
+        })),
+        ...(contentsStore.poolPrefetch
+            ? [
+                  {
+                      key: "pool:prefetch",
+                      name: "pool-data",
+                      type: "pool",
+                      currentBytes: contentsStore.poolPrefetch.currentBytes,
+                      totalBytes: contentsStore.poolPrefetch.totalBytes,
+                      phase: contentsStore.poolPrefetch.phase,
+                  },
+              ]
+            : []),
+        ...downloadsStore.updateDownloads.map((download) => ({
+            key: `update:${download.name}`,
+            name: download.name,
+            type: download.type,
+            currentBytes: download.currentBytes,
+            totalBytes: download.totalBytes,
+            phase: download.phase,
+        })),
+    ]);
 
+    // The same set the fractions below are summed over. A status counted here but not there, as a
+    // failure used to be, holds the figure short of full for everything downloading beside it.
+    const outstandingCount = computed(() => contentsStore.inFlight.filter(isInProgress).length + (contentsStore.poolPrefetch ? 1 : 0) + downloadsStore.updateDownloads.length);
+
+    const failedCount = computed(() => contentsStore.inFlight.filter(hasFailed).length);
+
+    const anythingRunning = computed(
+        () =>
+            contentsStore.inFlight.some(isInProgress) ||
+            contentsStore.poolPrefetch !== null ||
+            downloadsStore.updateDownloads.some((download) => download.totalBytes === 0 || download.currentBytes < download.totalBytes)
+    );
+
+    // Failures hold their share whether or not anything is still moving, so the navbar keeps saying a
+    // download did not make it after everything else has stopped.
+    const totalCount = computed(() => contentsStore.settledCount + outstandingCount.value + failedCount.value);
+
+    // Counted in content, not bytes: only content a worker picked up knows its size, so a byte
+    // denominator jumps every time a slot frees.
     const totalDownloadPercent = computed(() => {
-        if (allDownloads.value.length === 0) return 0;
-        let currentBytes = 0;
-        let totalBytes = 0;
-        for (const d of allDownloads.value) {
-            currentBytes += d.currentBytes;
-            totalBytes += d.totalBytes;
+        const total = totalCount.value;
+
+        if ((!anythingRunning.value && failedCount.value === 0) || total <= 0) {
+            return 0;
         }
-        return currentBytes / totalBytes || 0;
+
+        let done = contentsStore.settledCount;
+        for (const download of allDownloads.value) {
+            if (download.totalBytes > 0) {
+                done += Math.min(1, download.currentBytes / download.totalBytes);
+            }
+        }
+
+        return Math.min(1, done / total);
     });
 
-    const totalDownloadBytes = computed(() => {
-        let currentBytes = 0;
-        let totalBytes = 0;
-        for (const d of allDownloads.value) {
-            currentBytes += d.currentBytes;
-            totalBytes += d.totalBytes;
+    // Sits above the filled part rather than inside it, so what failed reads as its own share of the
+    // work asked for instead of eating into what did land.
+    const failedDownloadPercent = computed(() => {
+        const total = totalCount.value;
+
+        if (failedCount.value === 0 || total <= 0) {
+            return 0;
         }
-        return { current: currentBytes, total: totalBytes };
+
+        return failedCount.value / total;
     });
 
-    function downloadPercent(download: DownloadInfo): number {
+    function downloadPercent(download: DownloadView): number {
         if (download.totalBytes <= 0) return 0;
         return download.currentBytes / download.totalBytes;
     }
@@ -72,11 +140,11 @@ export function useDownloadProgress() {
         return t("lobby.navbar.downloads.etaSeconds", { seconds: Math.floor(seconds) });
     }
 
-    function progressText(download: DownloadInfo): string {
+    function progressText(download: DownloadView): string {
         if (download.currentBytes === 0) return t("lobby.navbar.downloads.starting");
 
         const now = Date.now();
-        const key = download.name;
+        const key = download.key;
         const prev = speedTracker.get(key);
 
         let speed = 0;
@@ -113,7 +181,7 @@ export function useDownloadProgress() {
     return {
         allDownloads,
         totalDownloadPercent,
-        totalDownloadBytes,
+        failedDownloadPercent,
         downloadPercent,
         progressText,
     };

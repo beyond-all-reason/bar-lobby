@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: MIT
 
-import { Replay } from "@main/content/replays/replay";
+import { Replay } from "@main/replays/replay";
 import { db } from "@renderer/store/db";
 import { reactive, readonly } from "vue";
 
