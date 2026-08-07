@@ -29,9 +29,10 @@ function operationKey(operation: ContentOperation, ref: ContentRef) {
     return `${operation}:${contentRefKey(ref)}`;
 }
 
-// pr-downloader keeps rapid's index files once under the assets path and refreshes them whenever they
-// are missing or stale, maps included, so two invocations of it can land on the same repos.gz at the
-// same time and one loses. Engines come down over plain http and share nothing.
+// pr-downloader rewrites rapid's repo index on every invocation, maps included, so two of it at once
+// land on the same repos.gz and one dies. It takes any number of assets per invocation instead and
+// fetches them in parallel itself, which is where map concurrency comes from now. Engines come down
+// over plain http and share nothing.
 function usesPrd(ref: ContentRef) {
     return ref.type === "game" || ref.type === "map";
 }
@@ -98,6 +99,29 @@ export class ContentQueue {
         return index === -1 ? undefined : this.queued.splice(index, 1)[0];
     }
 
+    // One pr-downloader invocation is the only way several of its assets download at once, so the rest
+    // of the limit is spent here rather than on invocations that would only wait for this one. Each
+    // extra ref costs a slot, which keeps the total downloading the same as it would have been.
+    private takeBatchWith(first: PendingOperation) {
+        const batch = [first];
+        if (!usesPrd(first.ref)) {
+            return batch;
+        }
+
+        while (downloadSlots.tryTake()) {
+            const index = this.queued.findIndex((entry) => entry.operation === first.operation && entry.ref.type === first.ref.type);
+            if (index === -1) {
+                downloadSlots.give();
+
+                return batch;
+            }
+
+            batch.push(...this.queued.splice(index, 1));
+        }
+
+        return batch;
+    }
+
     private succeeded(entry: PendingOperation) {
         try {
             return this.isPresent(entry.ref) === (entry.operation === "acquire");
@@ -123,39 +147,76 @@ export class ContentQueue {
 
     private async work(first: PendingOperation) {
         let next: PendingOperation | undefined = first;
+        let held = 1;
         try {
             while (next) {
                 // Nothing may await before this, or the next worker takeNext picks from a stale active
                 // list and two operations on one ref can start together.
-                this.active.push(next);
+                const batch = this.takeBatchWith(next);
+                held = batch.length;
+                this.active.push(...batch);
                 this.onChanged.dispatch(this.snapshot());
 
-                let failure: unknown;
-                try {
-                    await this.run(next.operation, next.ref.type, [next.ref.id], this.report);
-                } catch (err) {
-                    failure = err;
+                const failure = await this.runBatch(batch);
+
+                for (const entry of batch) {
+                    // What is on disk afterwards decides the outcome rather than the transport's exit
+                    // code, which can report success for content that never landed and the reverse.
+                    removeFromArray(this.active, entry);
+                    this.pending.delete(operationKey(entry.operation, entry.ref));
+
+                    if (this.succeeded(entry)) {
+                        entry.resolve();
+                    } else {
+                        const complaint = entry.operation === "acquire" ? "is still missing after acquiring it" : "is still installed after removing it";
+                        entry.reject(failure ?? new Error(`${entry.ref.type} '${entry.ref.id}' ${complaint}`));
+                    }
                 }
 
-                // What is on disk afterwards decides the outcome rather than the transport's exit code,
-                // which can report success for content that never landed and the reverse.
-                removeFromArray(this.active, next);
-                this.pending.delete(operationKey(next.operation, next.ref));
-
-                if (this.succeeded(next)) {
-                    next.resolve();
-                } else {
-                    const complaint = next.operation === "acquire" ? "is still missing after acquiring it" : "is still installed after removing it";
-                    next.reject(failure ?? new Error(`${next.ref.type} '${next.ref.id}' ${complaint}`));
+                for (; held > 1; held--) {
+                    downloadSlots.give();
                 }
 
                 this.onChanged.dispatch(this.snapshot());
                 next = this.takeNext();
             }
         } finally {
-            downloadSlots.give();
+            for (; held > 0; held--) {
+                downloadSlots.give();
+            }
             // Finishing may have unblocked work this worker was not allowed to pick up.
             this.drain();
         }
+    }
+
+    // pr-downloader abandons the whole invocation when one asset cannot be resolved, taking assets that
+    // would have downloaded fine with it, so a failed batch is retried one at a time to find out which
+    // of them was the problem.
+    private async runBatch(batch: PendingOperation[]) {
+        const { operation, ref } = batch[0];
+        const ids = batch.map((entry) => entry.ref.id);
+
+        try {
+            await this.run(operation, ref.type, ids, this.report);
+
+            return undefined;
+        } catch (err) {
+            if (batch.length === 1) {
+                return err;
+            }
+
+            log.warn(`Batched ${operation} of ${batch.length} ${ref.type}s failed, retrying them separately`, err);
+        }
+
+        let failure: unknown;
+        for (const id of ids) {
+            try {
+                await this.run(operation, ref.type, [id], this.report);
+            } catch (err) {
+                failure = err;
+            }
+        }
+
+        return failure;
     }
 }

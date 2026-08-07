@@ -156,16 +156,21 @@ export class GameProvider extends PrDownloaderAPI<string, GameVersion> {
      * Downloads the actual game files, will update to latest if no specific gameVersion is specified
      * @param gameVersion e.g. "Beyond All Reason test-16289-b154c3d"
      */
-    public async downloadGame(gameVersion = `${contentSources.rapid.game}:test`) {
-        // skip download if already installed
-        if (this.isVersionInstalled(gameVersion)) {
+    public async downloadGames(gameVersions: string[]) {
+        const wanted = gameVersions.filter((gameVersion) => !this.isVersionInstalled(gameVersion));
+        if (wanted.length === 0) {
             return;
         }
-        log.info(`Downloading game version: ${gameVersion}`);
-        const downloadInfo = await this.downloadContent("game", gameVersion);
+
+        log.info(`Downloading game versions: ${wanted.join(", ")}`);
+        const downloadInfo = await this.downloadContent("game", wanted);
         await this.downloadComplete(downloadInfo);
         removeFromArray(this.currentDownloads, downloadInfo);
         log.debug(`Downloaded ${downloadInfo.name}`);
+    }
+
+    public async downloadGame(gameVersion = `${contentSources.rapid.game}:test`) {
+        return this.downloadGames([gameVersion]);
     }
 
     public getVersion(gameVersion: string) {

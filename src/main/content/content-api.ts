@@ -23,19 +23,26 @@ import { logger } from "@main/utils/logger";
 
 const log = logger("content-api.ts");
 
-// A provider dispatches progress for everything it is downloading on one signal, so concurrent
-// acquisitions all hear each other and have to ignore what is not theirs. Without this each of them
-// reports every other download's byte counts as its own.
-async function acquireReporting(downloader: Downloader, id: string, report: ContentReporter, acquire: () => Promise<unknown>) {
-    const progress = downloader.onDownloadProgress.add((info) => {
-        if (info.id !== id) return;
+// A provider dispatches progress for everything it is downloading on one signal, so acquisitions that
+// run alongside each other hear the others and have to ignore what is not theirs. A pr-downloader batch
+// is the only thing running on its provider and reports bytes for the whole set rather than per asset,
+// so every ref in it gets the same figures.
+async function acquireReporting(downloader: Downloader, ids: string[], report: ContentReporter, acquire: () => Promise<unknown>) {
+    const isOurs = (infoId: string) => ids.length > 1 || infoId === ids[0];
 
-        report.progress(id, { currentBytes: info.currentBytes, totalBytes: info.totalBytes, progress: info.progress, phase: info.phase });
+    const progress = downloader.onDownloadProgress.add((info) => {
+        if (!isOurs(info.id)) return;
+
+        for (const id of ids) {
+            report.progress(id, { currentBytes: info.currentBytes, totalBytes: info.totalBytes, progress: info.progress, phase: info.phase });
+        }
     });
     const retry = downloader.onDownloadRetry.add((info) => {
-        if (info.id !== id) return;
+        if (!isOurs(info.id)) return;
 
-        report.attempt(id);
+        for (const id of ids) {
+            report.attempt(id);
+        }
     });
 
     try {
@@ -69,7 +76,7 @@ class ContentAPI {
                     .toArray(),
             acquire: async (ids, report) => {
                 for (const id of ids) {
-                    await acquireReporting(engineProvider, id, report, () => engineProvider.downloadEngine(id));
+                    await acquireReporting(engineProvider, [id], report, () => engineProvider.downloadEngine(id));
                 }
             },
             remove: async (ids) => {
@@ -84,11 +91,7 @@ class ContentAPI {
             reinit: () => gameProvider.reinit(),
             isPresent: (id) => gameProvider.isVersionInstalled(id),
             installed: () => gameProvider.availableVersions.keys().toArray(),
-            acquire: async (ids, report) => {
-                for (const id of ids) {
-                    await acquireReporting(gameProvider, id, report, () => gameProvider.downloadGame(id));
-                }
-            },
+            acquire: (ids, report) => acquireReporting(gameProvider, ids, report, () => gameProvider.downloadGames(ids)),
             remove: async (ids) => {
                 for (const id of ids) {
                     await gameProvider.uninstallVersionById(id);
@@ -104,11 +107,7 @@ class ContentAPI {
                 Object.entries(mapProvider.mapNameFileNameLookup)
                     .filter(([, fileName]) => fileName !== undefined)
                     .map(([springName]) => springName),
-            acquire: async (ids, report) => {
-                for (const id of ids) {
-                    await acquireReporting(mapProvider, id, report, () => mapProvider.downloadMap(id));
-                }
-            },
+            acquire: (ids, report) => acquireReporting(mapProvider, ids, report, () => mapProvider.downloadMaps(ids)),
             remove: async (ids) => {
                 for (const id of ids) {
                     await mapProvider.uninstallVersion(id);

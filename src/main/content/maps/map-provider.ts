@@ -155,16 +155,17 @@ export class MapProvider extends PrDownloaderAPI<string, MapData> {
     }
 
     public async downloadMaps(springNames: string[]) {
-        return Promise.all(springNames.map((springName) => this.downloadMap(springName)));
-    }
+        const wanted = springNames.filter((springName) => !this.isVersionInstalled(springName));
+        if (wanted.length === 0) return;
 
-    public async downloadMap(springName: string) {
-        if (this.isVersionInstalled(springName)) return;
-
-        const downloadInfo = await this.downloadContent("map", springName);
+        const downloadInfo = await this.downloadContent("map", wanted);
         removeFromArray(this.currentDownloads, downloadInfo);
         await this.syncMaps();
         this.onDownloadComplete.dispatch(downloadInfo);
+    }
+
+    public async downloadMap(springName: string) {
+        return this.downloadMaps([springName]);
     }
 
     public async uninstallVersion(version: MapData | string) {

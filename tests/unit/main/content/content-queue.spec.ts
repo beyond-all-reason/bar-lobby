@@ -63,14 +63,70 @@ describe("ContentQueue", () => {
         expect(run).toHaveBeenCalledTimes(1);
     });
 
-    it("hands each ref to the transport on its own", async () => {
+    // One invocation is the only way pr-downloader fetches several assets at once, and the second one
+    // would have had to wait for the first anyway.
+    it("hands pr-downloader everything queued for it in one invocation", async () => {
         const { queue, calls } = setup();
 
         await Promise.all([queue.enqueue("acquire", map("Quicksilver")), queue.enqueue("acquire", map("Supreme Isthmus"))]);
 
+        expect(calls).toEqual([{ operation: "acquire", type: "map", ids: ["Quicksilver", "Supreme Isthmus"] }]);
+    });
+
+    it("keeps engines on separate transfers", async () => {
+        const { queue, calls } = setup();
+
+        await Promise.all([queue.enqueue("acquire", engine("2025.06.21")), queue.enqueue("acquire", engine("2025.01.5"))]);
+
         expect(calls).toEqual([
+            { operation: "acquire", type: "engine", ids: ["2025.06.21"] },
+            { operation: "acquire", type: "engine", ids: ["2025.01.5"] },
+        ]);
+    });
+
+    it("does not mix content types or directions into one invocation", async () => {
+        const { queue, calls } = setup({ present: new Set(["map:Tangerine"]) });
+
+        await Promise.all([queue.enqueue("acquire", map("Quicksilver")), queue.enqueue("acquire", game("byar:test")), queue.enqueue("remove", map("Tangerine"))]);
+
+        expect(calls.every((call) => new Set(call.ids).size === call.ids.length)).toBe(true);
+        expect(calls).toContainEqual({ operation: "acquire", type: "map", ids: ["Quicksilver"] });
+        expect(calls).toContainEqual({ operation: "acquire", type: "game", ids: ["byar:test"] });
+        expect(calls).toContainEqual({ operation: "remove", type: "map", ids: ["Tangerine"] });
+    });
+
+    // A batch spends one slot per ref, so batching cannot smuggle more past the limit than running them
+    // one at a time would have.
+    it("batches no more than the download limit allows", async () => {
+        const { queue, calls } = setup();
+
+        const ids = Array.from({ length: MAX_CONCURRENT_DOWNLOADS + 3 }, (_, index) => `map-${index}`);
+        await Promise.all(ids.map((id) => queue.enqueue("acquire", map(id))));
+
+        expect(Math.max(...calls.map((call) => call.ids.length))).toBe(MAX_CONCURRENT_DOWNLOADS);
+        expect(calls.flatMap((call) => call.ids).sort()).toEqual([...ids].sort());
+    });
+
+    // pr-downloader gives up on the whole invocation when one asset cannot be resolved, so a batch that
+    // fails says nothing about the assets that were merely along for the ride.
+    it("retries a failed batch one at a time so a bad ref does not take the others down", async () => {
+        const { queue, calls } = setup({
+            run: async ({ ids }) => {
+                if (ids.includes("Not A Map")) {
+                    throw new Error("pr-downloader exited with code 1");
+                }
+            },
+        });
+
+        const good = queue.enqueue("acquire", map("Quicksilver"));
+        const bad = queue.enqueue("acquire", map("Not A Map"));
+
+        await expect(good).resolves.toBeUndefined();
+        await expect(bad).rejects.toThrow();
+        expect(calls).toEqual([
+            { operation: "acquire", type: "map", ids: ["Quicksilver", "Not A Map"] },
             { operation: "acquire", type: "map", ids: ["Quicksilver"] },
-            { operation: "acquire", type: "map", ids: ["Supreme Isthmus"] },
+            { operation: "acquire", type: "map", ids: ["Not A Map"] },
         ]);
     });
 
@@ -152,7 +208,7 @@ describe("ContentQueue", () => {
         const ids = Array.from({ length: MAX_CONCURRENT_DOWNLOADS + 4 }, (_, index) => `map-${index}`);
         await Promise.all(ids.map((id) => queue.enqueue("acquire", map(id))));
 
-        expect(calls).toHaveLength(ids.length);
+        expect(calls.flatMap((call) => call.ids).sort()).toEqual([...ids].sort());
     });
 
     // Also guards the ordering inside work(): if it stopped claiming the ref before its first await, a

@@ -73,6 +73,14 @@ const { installed, acquired, removed, progress, retry, watcher, disk, gate, used
                 }
                 installed.add(`${type}:${id}`);
             },
+            // pr-downloader takes the whole set in one invocation, so the providers in front of it do too.
+            acquireMany: async (ids: string[]) => {
+                ids.forEach((id) => acquired.push(`${type}:${id}`));
+                if (gate.held) {
+                    await gate.held;
+                }
+                ids.forEach((id) => installed.add(`${type}:${id}`));
+            },
             remove: async (id: string) => {
                 removed.push(`${type}:${id}`);
                 installed.delete(`${type}:${id}`);
@@ -113,6 +121,7 @@ vi.mock("@main/content/game/game-provider", () => {
         gameProvider: {
             ...stub,
             downloadGame: stub.acquire,
+            downloadGames: stub.acquireMany,
             uninstallVersionById: stub.remove,
             init: async () => {},
             reinit: async () => {},
@@ -130,6 +139,7 @@ vi.mock("@main/content/maps/map-provider", () => {
         mapProvider: {
             ...stub,
             downloadMap: stub.acquire,
+            downloadMaps: stub.acquireMany,
             uninstallVersion: stub.remove,
             init: async () => {},
             reinit: async () => {},

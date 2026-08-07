@@ -66,15 +66,20 @@ export abstract class PrDownloaderAPI<ID, T> extends AbstractContentAPI<ID, T> {
         return binaryPath;
     }
 
-    protected downloadContent(type: "game" | "map", name: string) {
+    // One invocation per set of assets rather than one each: pr-downloader rewrites rapid's repo index
+    // every time it runs, so concurrent invocations fight over it, and it downloads the assets it was
+    // given in parallel anyway. Progress then covers the whole set, not any one asset in it.
+    protected downloadContent(type: "game" | "map", names: string[]) {
         return new Promise<DownloadInfo>((resolve, reject) => {
             try {
+                const name = names.join(", ");
                 log.debug(`Downloading ${name}...`);
 
                 const prBinaryPath = this.getPrdBinaryPath();
                 const downloadArg = type === "game" ? "--download-game" : "--download-map";
                 const caCertPath = getCaCertPath();
-                const prdProcess = spawn(`${prBinaryPath}`, ["--filesystem-writepath", getAssetsPath(), downloadArg, name], {
+                const downloadArgs = names.flatMap((asset) => [downloadArg, asset]);
+                const prdProcess = spawn(`${prBinaryPath}`, ["--filesystem-writepath", getAssetsPath(), ...downloadArgs], {
                     env: {
                         ...process.env,
                         PRD_RAPID_USE_STREAMER: "false",
