@@ -35,8 +35,7 @@ function rememberIdentity(event: TachyonEvent) {
 function registerIpcHandlers(webContents: BarIpcWebContents) {
     const requestHandlers: TachyonClientRequestHandlers = {
         "battle/start": async (data: BattleStartRequestData) => {
-            // data carries the join password, so it is summarised rather than
-            // dumped. It reaching the log file is what #385 was about.
+            // data carries the join password, so it is summarised rather than dumped.
             log.info(`Received battle start request for ${data.ip}:${data.port}`);
             const itemsRequired =
                 !gameContentAPI.isVersionInstalled(data.game.springName) || !mapContentAPI.isVersionInstalled(data.map.springName) || !engineContentAPI.isVersionInstalled(data.engine.version);
