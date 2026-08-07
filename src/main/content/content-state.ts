@@ -35,6 +35,11 @@ export function isInProgress(state: ContentState) {
     return state.status === "queued" || state.status === "acquiring";
 }
 
+// Given up on, and kept that way until the content is asked for again.
+export function hasFailed(state: ContentState) {
+    return state.status === "failed";
+}
+
 export type ContentReporter = {
     progress(id: string, progress: ContentProgress): void;
     attempt(id: string): void;

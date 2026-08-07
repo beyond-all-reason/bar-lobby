@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 import { ContentRef } from "@main/content/content-ref";
-import { ContentPresence, ContentProgress, ContentState, isInProgress } from "@main/content/content-state";
+import { ContentPresence, ContentProgress, ContentState, hasFailed, isInProgress } from "@main/content/content-state";
 import { notificationsApi } from "@renderer/api/notifications";
 import { reactive } from "vue";
 
@@ -18,8 +18,8 @@ export const contentsStore: {
     isPathChanging: boolean;
     // Warming the pool is not tied to any one piece of content, so it is not part of inFlight.
     poolPrefetch: ContentProgress | null;
-    // Content the queue is done with this run, however it went, counted on both sides of the fraction
-    // so it does not drop as content leaves inFlight. Resets once nothing is being worked on.
+    // Content that landed this run, counted on both sides of the fraction so it does not drop as content
+    // leaves inFlight. Held while a failure is unretried so the share it takes up stays put.
     settledCount: number;
 } = reactive({
     isInitialized: false,
@@ -69,15 +69,18 @@ export async function initContentsStore() {
 
     let previous = new Set<string>();
     window.content.onChanged((state) => {
-        const outstanding = new Set(state.filter(isInProgress).map((entry) => `${entry.type}:${entry.id}`));
+        const key = (entry: ContentState) => `${entry.type}:${entry.id}`;
+        const outstanding = new Set(state.filter(isInProgress).map(key));
+        const failed = new Set(state.filter(hasFailed).map(key));
         for (const ref of previous) {
-            if (!outstanding.has(ref)) {
+            // A failure is not content that landed, and it keeps its own place in the figure instead.
+            if (!outstanding.has(ref) && !failed.has(ref)) {
                 contentsStore.settledCount++;
             }
         }
         previous = outstanding;
 
-        if (!state.some(isInProgress)) {
+        if (!state.some(isInProgress) && failed.size === 0) {
             contentsStore.settledCount = 0;
         }
 

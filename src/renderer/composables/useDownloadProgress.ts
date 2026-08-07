@@ -5,7 +5,7 @@
 import { computed } from "vue";
 
 import { contentsStore } from "@renderer/store/contents.store";
-import { isInProgress } from "@main/content/content-state";
+import { hasFailed, isInProgress } from "@main/content/content-state";
 import { downloadsStore } from "@renderer/store/downloads.store";
 import { useTypedI18n } from "@renderer/i18n";
 
@@ -71,6 +71,8 @@ export function useDownloadProgress() {
     // failure used to be, holds the figure short of full for everything downloading beside it.
     const outstandingCount = computed(() => contentsStore.inFlight.filter(isInProgress).length + (contentsStore.poolPrefetch ? 1 : 0) + downloadsStore.updateDownloads.length);
 
+    const failedCount = computed(() => contentsStore.inFlight.filter(hasFailed).length);
+
     const anythingRunning = computed(
         () =>
             contentsStore.inFlight.some(isInProgress) ||
@@ -78,16 +80,16 @@ export function useDownloadProgress() {
             downloadsStore.updateDownloads.some((download) => download.totalBytes === 0 || download.currentBytes < download.totalBytes)
     );
 
+    // Failures hold their share whether or not anything is still moving, so the navbar keeps saying a
+    // download did not make it after everything else has stopped.
+    const totalCount = computed(() => contentsStore.settledCount + outstandingCount.value + failedCount.value);
+
     // Counted in content, not bytes: only content a worker picked up knows its size, so a byte
     // denominator jumps every time a slot frees.
     const totalDownloadPercent = computed(() => {
-        if (!anythingRunning.value) {
-            return 0;
-        }
+        const total = totalCount.value;
 
-        const total = contentsStore.settledCount + outstandingCount.value;
-
-        if (total <= 0) {
+        if ((!anythingRunning.value && failedCount.value === 0) || total <= 0) {
             return 0;
         }
 
@@ -99,6 +101,18 @@ export function useDownloadProgress() {
         }
 
         return Math.min(1, done / total);
+    });
+
+    // Sits above the filled part rather than inside it, so what failed reads as its own share of the
+    // work asked for instead of eating into what did land.
+    const failedDownloadPercent = computed(() => {
+        const total = totalCount.value;
+
+        if (failedCount.value === 0 || total <= 0) {
+            return 0;
+        }
+
+        return failedCount.value / total;
     });
 
     function downloadPercent(download: DownloadView): number {
@@ -167,6 +181,7 @@ export function useDownloadProgress() {
     return {
         allDownloads,
         totalDownloadPercent,
+        failedDownloadPercent,
         downloadPercent,
         progressText,
     };

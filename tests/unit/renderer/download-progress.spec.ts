@@ -25,6 +25,7 @@ const acquiring = (id: string, currentBytes: number, totalBytes: number) => map(
 describe("aggregate download progress", () => {
     let push: (state: ContentState[]) => void;
     let percent: () => number;
+    let failedPercent: () => number;
 
     beforeEach(async () => {
         state.mockResolvedValue([]);
@@ -37,6 +38,7 @@ describe("aggregate download progress", () => {
         await initContentsStore();
         push = onChanged.mock.calls[0][0];
         percent = () => useDownloadProgress().totalDownloadPercent.value;
+        failedPercent = () => useDownloadProgress().failedDownloadPercent.value;
     });
 
     it("counts content rather than bytes", () => {
@@ -84,25 +86,57 @@ describe("aggregate download progress", () => {
         expect(highest).toBeCloseTo(1);
     });
 
-    // Nothing is going to move for it again, so leaving it in the denominator only holds everything
-    // downloading beside it short of full.
-    it("stops counting a download once it has failed", () => {
-        push([acquiring("a", 100, 100), acquiring("b", 50, 100)]);
+    // What failed takes its own share above what landed, so the two together still fill and the part
+    // that did not make it is what the navbar shows instead of a bar that stops short for no stated
+    // reason.
+    it("gives what failed its own share above what landed", () => {
+        const ids = ["a", "b", "c", "d"];
+        push(ids.map((id) => acquiring(id, 50, 100)));
+        expect(percent()).toBeCloseTo(0.5);
+        expect(failedPercent()).toBe(0);
+
+        push([acquiring("a", 100, 100), acquiring("b", 100, 100), acquiring("c", 100, 100), map("d", "failed", 50, 100)]);
+
         expect(percent()).toBeCloseTo(0.75);
-
-        push([acquiring("a", 100, 100), map("b", "failed", 50, 100)]);
-
-        expect(percent()).toBeCloseTo(1);
+        expect(failedPercent()).toBeCloseTo(0.25);
     });
 
-    // contentAPI keeps a failure until its ref is asked for again, so it outlives the run it belongs to.
-    it("clears once the only thing left is a failure nobody retried", () => {
-        push([acquiring("a", 100, 100), acquiring("b", 50, 100)]);
+    // contentAPI keeps a failure until its ref is asked for again, and the content that did land leaves
+    // inFlight well before that, so the share has to survive the run it belongs to.
+    it("holds both shares once everything else has stopped", () => {
+        push([acquiring("a", 100, 100), acquiring("b", 100, 100), acquiring("c", 100, 100), map("d", "failed", 50, 100)]);
 
+        push([map("d", "failed", 50, 100)]);
+
+        expect(percent()).toBeCloseTo(0.75);
+        expect(failedPercent()).toBeCloseTo(0.25);
+    });
+
+    it("clears the failed share when the content is asked for again", () => {
+        push([acquiring("a", 100, 100), map("b", "failed", 50, 100)]);
         push([map("b", "failed", 50, 100)]);
 
+        push([map("b", "queued", 0, 0)]);
+
+        expect(failedPercent()).toBe(0);
+    });
+
+    it("empties once a retry settles and nothing is left", () => {
+        push([acquiring("a", 100, 100), map("b", "failed", 50, 100)]);
+        push([map("b", "queued", 0, 0)]);
+
+        push([]);
+
         expect(percent()).toBe(0);
+        expect(failedPercent()).toBe(0);
         expect(contentsStore.settledCount).toBe(0);
+    });
+
+    // How far it got before giving up says nothing about how much of the run it was.
+    it("does not size a failure by the bytes it managed", () => {
+        push([acquiring("a", 100, 100), map("b", "failed", 1, 100)]);
+
+        expect(failedPercent()).toBeCloseTo(0.5);
     });
 
     it("does not count an old failure against the next run", () => {
