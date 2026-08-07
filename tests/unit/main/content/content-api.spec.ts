@@ -297,22 +297,23 @@ describe("contentAPI change stream", () => {
     });
 
     // One signal carries every download the provider has in flight, so each ref filters for its own.
+    // pr-downloader runs one at a time, so an engine alongside a map is the concurrency that is left.
     it("ignores progress belonging to another ref downloading at the same time", async () => {
         const release = hold();
         const acquiring = contentAPI.ensure([
             { type: "map", id: "Comet Catcher 1.2" },
-            { type: "map", id: "Red Comet 1.0" },
+            { type: "engine", id: "2025.06.21" },
         ]);
         await untilAcquiring("Comet Catcher 1.2");
-        await untilAcquiring("Red Comet 1.0");
+        await untilAcquiring("2025.06.21");
 
         progress.map.dispatch({ id: "Comet Catcher 1.2", currentBytes: 90, totalBytes: 100, progress: 0.9 });
-        progress.map.dispatch({ id: "Red Comet 1.0", currentBytes: 1, totalBytes: 1000, progress: 0.001 });
+        progress.engine.dispatch({ id: "2025.06.21", currentBytes: 1, totalBytes: 1000, progress: 0.001 });
 
         expect(stateOf("Comet Catcher 1.2")?.progress).toBe(0.9);
         expect(stateOf("Comet Catcher 1.2")?.totalBytes).toBe(100);
-        expect(stateOf("Red Comet 1.0")?.progress).toBe(0.001);
-        expect(stateOf("Red Comet 1.0")?.totalBytes).toBe(1000);
+        expect(stateOf("2025.06.21")?.progress).toBe(0.001);
+        expect(stateOf("2025.06.21")?.totalBytes).toBe(1000);
 
         release();
         await acquiring;

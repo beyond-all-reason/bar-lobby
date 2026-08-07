@@ -37,6 +37,7 @@ function setup(options: { present?: Set<string>; run?: (call: Call) => Promise<v
 
 const map = (id: string): ContentRef => ({ type: "map", id });
 const game = (id: string): ContentRef => ({ type: "game", id });
+const engine = (id: string): ContentRef => ({ type: "engine", id });
 
 describe("ContentQueue", () => {
     it("acquires a queued ref and resolves once it is on disk", async () => {
@@ -86,8 +87,8 @@ describe("ContentQueue", () => {
             },
         });
 
-        const ids = Array.from({ length: MAX_CONCURRENT_DOWNLOADS + 4 }, (_, index) => `map-${index}`);
-        const all = Promise.all(ids.map((id) => queue.enqueue("acquire", map(id))));
+        const ids = Array.from({ length: MAX_CONCURRENT_DOWNLOADS + 4 }, (_, index) => `engine-${index}`);
+        const all = Promise.all(ids.map((id) => queue.enqueue("acquire", engine(id))));
         await Promise.resolve();
 
         gate.release();
@@ -96,27 +97,28 @@ describe("ContentQueue", () => {
         expect(peak).toBe(MAX_CONCURRENT_DOWNLOADS);
     });
 
-    // pr-downloader keeps rapid's index files once under the assets path, so two invocations touching
-    // them at the same time can corrupt them. Only games come through rapid.
-    it("runs only one game operation at a time", async () => {
+    // pr-downloader keeps rapid's index files once under the assets path and refreshes them for maps as
+    // well as games, so two of it at once can land on the same repos.gz and one loses.
+    it("runs only one pr-downloader operation at a time", async () => {
         let running = 0;
         let peak = 0;
         const gate = deferred();
         const { queue } = setup({
             present: new Set(["game:byar:old"]),
-            run: async ({ type }) => {
-                if (type === "game") {
-                    running++;
-                    peak = Math.max(peak, running);
-                }
+            run: async () => {
+                running++;
+                peak = Math.max(peak, running);
                 await gate.settled;
-                if (type === "game") {
-                    running--;
-                }
+                running--;
             },
         });
 
-        const all = Promise.all([queue.enqueue("acquire", game("byar:test")), queue.enqueue("acquire", game("byar:stable")), queue.enqueue("remove", game("byar:old"))]);
+        const all = Promise.all([
+            queue.enqueue("acquire", game("byar:test")),
+            queue.enqueue("acquire", map("Quicksilver")),
+            queue.enqueue("acquire", map("Supreme Isthmus")),
+            queue.enqueue("remove", game("byar:old")),
+        ]);
         await Promise.resolve();
 
         gate.release();
@@ -125,7 +127,7 @@ describe("ContentQueue", () => {
         expect(peak).toBe(1);
     });
 
-    it("lets maps download while a game is running", async () => {
+    it("lets an engine download while pr-downloader is running", async () => {
         const started: string[] = [];
         const gate = deferred();
         const { queue } = setup({
@@ -135,10 +137,10 @@ describe("ContentQueue", () => {
             },
         });
 
-        const all = Promise.all([queue.enqueue("acquire", game("byar:test")), queue.enqueue("acquire", map("Quicksilver"))]);
+        const all = Promise.all([queue.enqueue("acquire", game("byar:test")), queue.enqueue("acquire", engine("2025.06.21"))]);
         await Promise.resolve();
 
-        expect(started).toEqual(["game:byar:test", "map:Quicksilver"]);
+        expect(started).toEqual(["game:byar:test", "engine:2025.06.21"]);
 
         gate.release();
         await all;
@@ -219,8 +221,8 @@ describe("ContentQueue", () => {
         const snapshots: string[][] = [];
         queue.onChanged.add((entries) => snapshots.push(entries.map((entry) => `${entry.id}:${entry.operation}:${entry.status}`)));
 
-        const ids = Array.from({ length: MAX_CONCURRENT_DOWNLOADS + 1 }, (_, index) => `map-${index}`);
-        const all = Promise.all(ids.map((id) => queue.enqueue("acquire", map(id))));
+        const ids = Array.from({ length: MAX_CONCURRENT_DOWNLOADS + 1 }, (_, index) => `engine-${index}`);
+        const all = Promise.all(ids.map((id) => queue.enqueue("acquire", engine(id))));
         await Promise.resolve();
 
         const latest = snapshots.at(-1) ?? [];

@@ -29,11 +29,11 @@ function operationKey(operation: ContentOperation, ref: ContentRef) {
     return `${operation}:${contentRefKey(ref)}`;
 }
 
-// Games are the only content pr-downloader fetches through rapid, and rapid's index files live once
-// under the assets path: two invocations touching them at the same time can corrupt them. Maps come
-// over HTTP and share nothing, so they are safe to run alongside anything.
-function usesRapid(ref: ContentRef) {
-    return ref.type === "game";
+// pr-downloader keeps rapid's index files once under the assets path and refreshes them whenever they
+// are missing or stale, maps included, so two invocations of it can land on the same repos.gz at the
+// same time and one loses. Engines come down over plain http and share nothing.
+function usesPrd(ref: ContentRef) {
+    return ref.type === "game" || ref.type === "map";
 }
 
 /**
@@ -86,13 +86,13 @@ export class ContentQueue {
     }
 
     // FIFO, skipping any ref already being worked on so a removal never overlaps an acquisition of the
-    // same content, and any rapid-backed ref while another one is running.
+    // same content, and any pr-downloader ref while another one is running.
     private takeNext() {
-        const rapidBusy = this.active.some((running) => usesRapid(running.ref));
+        const prdBusy = this.active.some((running) => usesPrd(running.ref));
         const index = this.queued.findIndex((entry) => {
             const sameRef = this.active.some((running) => contentRefKey(running.ref) === contentRefKey(entry.ref));
 
-            return !sameRef && !(rapidBusy && usesRapid(entry.ref));
+            return !sameRef && !(prdBusy && usesPrd(entry.ref));
         });
 
         return index === -1 ? undefined : this.queued.splice(index, 1)[0];
