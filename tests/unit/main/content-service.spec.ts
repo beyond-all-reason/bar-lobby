@@ -55,6 +55,21 @@ describe("content service", () => {
         contentService.registerIpcHandlers({ send } as any);
     });
 
+    // A removal never reports bytes, so counting it as something in progress drags the taskbar figure
+    // down for as long as it is outstanding.
+    it("leaves removals out of the taskbar figure", () => {
+        const setProgressBar = vi.fn();
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        contentService.registerProgressHandler({ setProgressBar } as any);
+
+        signals.contentChanged.dispatch([
+            { type: "map", id: "Quicksilver", status: "acquiring", currentBytes: 80, totalBytes: 100, progress: 0.8, attempts: 1 },
+            { type: "map", id: "Tangerine", status: "removing", currentBytes: 0, totalBytes: 0, progress: 0, attempts: 1 },
+        ]);
+
+        expect(setProgressBar).toHaveBeenLastCalledWith(0.8);
+    });
+
     it("forwards content changes", () => {
         signals.contentChanged.dispatch([]);
 

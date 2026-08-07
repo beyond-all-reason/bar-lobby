@@ -331,6 +331,15 @@ class ContentAPI {
             return;
         }
 
+        // Engines already queued for removal are still installed but will not be, so they count as gone
+        // here. Two calls looking only at what is installed would each find the other's engine and both
+        // go ahead.
+        for (const entry of this.queue.snapshot()) {
+            if (entry.type === "engine" && entry.operation === "remove") {
+                doomed.add(contentRefKey(entry));
+            }
+        }
+
         const surviving = this.installed("engine").filter((ref) => !doomed.has(contentRefKey(ref)));
         if (surviving.length === 0) {
             throw new Error("Refusing to remove the last installed engine: pr-downloader comes with it.");

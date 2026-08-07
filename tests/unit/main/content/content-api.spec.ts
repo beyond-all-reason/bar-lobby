@@ -476,6 +476,19 @@ describe("contentAPI.remove", () => {
         expect(installed.has("engine:2025.01.3")).toBe(true);
     });
 
+    // Two removals in flight at once each looked at what was installed and each saw the other's engine,
+    // so both went ahead and nothing was left to run pr-downloader.
+    it("refuses a second removal that would take the engine the first one leaves", async () => {
+        installed.add("engine:2025.01.2");
+        installed.add("engine:2025.01.3");
+
+        const first = contentAPI.remove([{ type: "engine", id: "2025.01.2" }]);
+
+        await expect(contentAPI.remove([{ type: "engine", id: "2025.01.3" }])).rejects.toThrow("last installed engine");
+        await first;
+        expect(installed.has("engine:2025.01.3")).toBe(true);
+    });
+
     it("refuses a batch that would take every engine at once", async () => {
         installed.add("engine:2025.01.2");
         installed.add("engine:2025.01.3");

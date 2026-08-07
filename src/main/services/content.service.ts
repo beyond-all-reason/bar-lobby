@@ -6,7 +6,7 @@ import { autoUpdaterAPI } from "@main/content/auto-updater";
 import { contentAPI } from "@main/content/content-api";
 import { ContentRef } from "@main/content/content-ref";
 import { DownloadInfo } from "@main/content/downloads";
-import { isUnsettled } from "@main/content/content-state";
+import { isInProgress } from "@main/content/content-state";
 import { poolCdnDownloader } from "@main/content/game/pool-cdn";
 import { BarIpcWebContents, ipcMain } from "@main/typed-ipc";
 
@@ -55,7 +55,7 @@ function registerProgressHandler(mainWindow: Electron.CrossProcessExports.Browse
     }
 
     contentAPI.onChanged.add((state) => {
-        contentProgress = state.filter(isUnsettled).map((entry) => entry.progress);
+        contentProgress = state.filter(isInProgress).map((entry) => entry.progress);
         refresh();
     });
 
