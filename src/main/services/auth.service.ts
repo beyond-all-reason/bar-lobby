@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 import { authenticate, renewAccessToken, TokenRequestError, TokenResponse } from "@main/oauth2/oauth2";
+import { Signal } from "$/jaz-ts-utils/signal";
 import type { StoredIdentity } from "@main/model/user";
 import { accountService } from "@main/services/account.service";
 import { logger } from "@main/utils/logger";
@@ -23,7 +24,11 @@ const TRANSIENT_RETRY_MS = 60 * 1000;
 let renewalTimer: NodeJS.Timeout | undefined;
 let renewalInFlight: Promise<void> | undefined;
 let authenticated = false;
-let emit: ((state: AuthState) => void) | undefined;
+
+// Raised whenever the session starts or ends. Kept apart from the IPC wiring so
+// that telling the renderer is one subscriber rather than the only way anything
+// hears about it.
+const onChanged = new Signal<AuthState>();
 
 function describeError(error: unknown): string {
     return error instanceof Error ? error.message : String(error);
@@ -37,7 +42,7 @@ function setAuthenticated(next: boolean, reason?: AuthLossReason) {
     if (authenticated === next) return;
 
     authenticated = next;
-    emit?.({ authenticated, reason });
+    onChanged.dispatch({ authenticated, reason });
 }
 
 function stopRenewal() {
@@ -195,7 +200,7 @@ async function init() {
 }
 
 function registerIpcHandlers(webContents: BarIpcWebContents) {
-    emit = (next: AuthState) => webContents.send("auth:changed", next);
+    onChanged.add((next) => webContents.send("auth:changed", next));
 
     ipcMain.handle("auth:login", (_event, interactive) => signIn(interactive ?? true));
     ipcMain.handle("auth:logout", () => signOut());
@@ -209,4 +214,5 @@ export const authService = {
     registerIpcHandlers,
     getAccessToken,
     setIdentity,
+    onChanged,
 };
