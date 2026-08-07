@@ -42,12 +42,22 @@ function createBattleHandlers(webContents: BarIpcWebContents) {
             "battle/start",
             createTypedTachyonRequestHandler<"battle/start">()(async (data: BattleStartRequestData) => {
                 log.info(`Received battle start request: ${JSON.stringify(data)}`);
-                const { ip, port, username, password } = data;
-                const springString = `spring://${username}:${password}@${ip}:${port}`;
-                webContents.send("tachyon:battleStart", springString);
-                return {
-                    status: "success",
-                } satisfies ResponseBody<"battle/start">;
+                const itemsRequired =
+                    !gameContentAPI.isVersionInstalled(data.game.springName) || !mapContentAPI.isVersionInstalled(data.map.springName) || !engineContentAPI.isVersionInstalled(data.engine.version);
+                if (itemsRequired) {
+                    webContents.send("notifications:showAlert", {
+                        text: `Unable to join match, required assets are missing.`,
+                        severity: "error",
+                    });
+                    return { status: "failed", reason: "internal_error" };
+                } else {
+                    const { ip, port, username, password } = data;
+                    const springString = `spring://${username}:${password}@${ip}:${port}`;
+                    webContents.send("tachyon:battleStart", springString, data);
+                    return {
+                        status: "success",
+                    };
+                }
             })
         ),
     } satisfies Partial<TachyonClientRequestHandlers>;
