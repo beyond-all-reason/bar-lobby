@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 import type { BattleWithMetadata } from "@main/game/battle/battle-types";
+import type { BattleStartRequestData } from "tachyon-protocol/types";
 import type { DownloadInfo } from "@main/content/downloads";
 import type { EngineVersion } from "@main/content/engine/engine-version";
 import type { GameVersion } from "@main/content/game/game-version";
@@ -51,7 +52,7 @@ export type IPCEvents = {
     "replays:replayCachingStarted": (filename: string) => void;
     "replays:replayDeleted": (filename: string) => void;
     "replays:highlightOpened": (fileNames: string[]) => void;
-    "tachyon:battleStart": (springString: string) => void;
+    "tachyon:battleStart": (springString: string, data: BattleStartRequestData) => void;
     "tachyon:connected": () => void;
     "tachyon:disconnected": () => void;
     "tachyon:event": (event: TachyonEvent) => void;
