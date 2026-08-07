@@ -177,15 +177,18 @@ function duplicateBot(bot: Bot, teamId: number) {
     battleStore.teams[teamId].participants.push(newBot);
 }
 
+function findBot(bot: Bot) {
+    return battleStore.teams.flatMap((team) => team.participants).find((participant): participant is Bot => isBot(participant) && participant.id === bot.id);
+}
+
 function updateBotOptions(bot: Bot, options: Record<string, unknown>) {
-    const foundBot = battleStore.teams
-        .flat()
-        .filter((p) => isBot(p))
-        .find((p) => p.id === bot.id);
+    const foundBot = findBot(bot);
     if (!foundBot) {
-        throw Error(`Failed to find bot ${bot.name} (${bot.id})`);
+        return false;
     }
-    bot.aiOptions = options;
+
+    foundBot.aiOptions = options;
+    return true;
 }
 
 function movePlayerToTeam(player: Player, teamId: number) {
