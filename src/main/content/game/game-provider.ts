@@ -143,11 +143,16 @@ export class GameProvider extends PrDownloaderAPI<string, GameVersion> {
         }
     }
 
-    // Resolved through the rapid index first, so a tag answers for the build it points at now rather than
-    // being looked for literally and never found.
-    public override isVersionInstalled(version: string) {
+    // A rapid tag names whichever build it points at now, so it has to go through the index to mean
+    // anything. Anything the index does not know is already a build name, or a local game.
+    private resolveVersion(version: string) {
         const packageMd5 = this.gameVersionPackageLookup[version];
-        const resolved = packageMd5 ? (this.packageGameVersionLookup[packageMd5] ?? version) : version;
+
+        return packageMd5 ? (this.packageGameVersionLookup[packageMd5] ?? version) : version;
+    }
+
+    public override isVersionInstalled(version: string) {
+        const resolved = this.resolveVersion(version);
 
         return this.availableVersions.values().some((installedVersion) => installedVersion.gameVersion === resolved);
     }
@@ -166,7 +171,21 @@ export class GameProvider extends PrDownloaderAPI<string, GameVersion> {
         const downloadInfo = await this.downloadContent("game", wanted);
         await this.downloadComplete(downloadInfo);
         removeFromArray(this.currentDownloads, downloadInfo);
-        log.debug(`Downloaded ${downloadInfo.name}`);
+
+        // One invocation covers every version it was given and can only name one of them, so each is
+        // confirmed against the packages directory instead of against what the download called itself.
+        const defaultEngine = engineProvider.getDefaultEngine();
+        for (const requested of wanted) {
+            const gameVersion = this.resolveVersion(requested);
+            if (!this.availableVersions.has(gameVersion)) {
+                throw new Error(`No package found for game version: ${requested}`);
+            }
+
+            log.debug(`Downloaded ${gameVersion}`);
+            if (defaultEngine?.installed) {
+                calcChecksum(defaultEngine.id, gameVersion);
+            }
+        }
     }
 
     public async downloadGame(gameVersion = `${contentSources.rapid.game}:test`) {
@@ -208,22 +227,11 @@ export class GameProvider extends PrDownloaderAPI<string, GameVersion> {
         this.availableVersions.delete(version.gameVersion);
     }
 
+    // The scan reads every package present, which covers whatever this download added without needing to
+    // be told which versions those were.
     protected override async downloadComplete(downloadInfo: DownloadInfo) {
-        const gameVersion = downloadInfo.name;
         await this.scanPackagesDir();
-        const packageMd5 = this.gameVersionPackageLookup[gameVersion];
-        if (!packageMd5) {
-            throw new Error(`No packageMd5 found for game version: ${gameVersion}`);
-        }
-        const luaOptionSections = await this.getGameOptions(packageMd5);
-        const ais = await this.getAis(packageMd5);
-        this.availableVersions.set(gameVersion, { gameVersion, packageMd5, luaOptionSections, ais });
         super.downloadComplete(downloadInfo);
-
-        const defaultEngine = engineProvider.getDefaultEngine();
-        if (defaultEngine?.installed) {
-            calcChecksum(defaultEngine.id, gameVersion);
-        }
     }
 
     protected async parseAis(aiInfo: Buffer): Promise<GameAI[]> {
