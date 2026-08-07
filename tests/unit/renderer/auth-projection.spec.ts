@@ -155,6 +155,23 @@ describe("renderer auth projection", () => {
         expect(me.isAuthenticated).toBe(false);
     });
 
+    // Going online has to run through the tachyon store rather than reach past it
+    // to the socket, because that store is the only thing that records a failed
+    // attempt, and its record is what the server status shows.
+    it("records a refused connection where the status can show it", async () => {
+        authApi.hasCredentials.mockResolvedValue(false);
+        authApi.getState.mockResolvedValue({ authenticated: true });
+
+        const { auth, initMeStore } = await loadStore();
+        const { tachyonStore } = await import("@renderer/store/tachyon.store");
+        await initMeStore();
+
+        (window.tachyon.connect as ReturnType<typeof vi.fn>).mockRejectedValue(new Error("unauthorized_client"));
+        await expect(auth.goOnline()).rejects.toThrow();
+
+        expect(tachyonStore.error).toBeDefined();
+    });
+
     it("stays offline when the stored credentials are refused", async () => {
         authApi.hasCredentials.mockResolvedValue(true);
         authApi.login.mockRejectedValue(new Error("invalid_grant"));

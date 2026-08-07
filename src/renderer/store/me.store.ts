@@ -70,7 +70,7 @@ async function goOnline() {
         await login(false);
     }
 
-    await window.tachyon.connect();
+    await tachyon.connect();
 }
 
 async function logout() {
