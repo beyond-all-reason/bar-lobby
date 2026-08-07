@@ -19,14 +19,14 @@ const noContentProviderImports = [
     },
 ];
 
-// Three predicates in content-state.ts answer three different questions about a content status, and
-// consumers reading the status themselves is how they ended up disagreeing about what counts as active.
+// The predicates in content-state.ts answer different questions about a content status, and consumers
+// reading the status themselves is how they ended up disagreeing about what counts as active.
 // "failed" is left out of the pattern because tachyon responses and setup stages use that word too.
 const noContentStatusComparisons = [
     "error",
     {
         selector: "BinaryExpression[operator=/^[!=]==$/] > Literal[value=/^(queued|acquiring|removing)$/]",
-        message: "Use isUnsettled, isInProgress or isOwed from @main/content/content-state rather than comparing status.",
+        message: "Use isUnsettled or isInProgress from @main/content/content-state rather than comparing status.",
     },
 ];
 

@@ -5,7 +5,7 @@
 import { computed } from "vue";
 
 import { contentsStore } from "@renderer/store/contents.store";
-import { isInProgress, isOwed } from "@main/content/content-state";
+import { isInProgress } from "@main/content/content-state";
 import { downloadsStore } from "@renderer/store/downloads.store";
 import { useTypedI18n } from "@renderer/i18n";
 
@@ -67,9 +67,9 @@ export function useDownloadProgress() {
         })),
     ]);
 
-    // Anything still owed, whether or not it has reported a size or is currently visible as a download.
-    // A failed download keeps its place here so a retry does not read as fresh work.
-    const outstandingCount = computed(() => contentsStore.inFlight.filter(isOwed).length + (contentsStore.poolPrefetch ? 1 : 0) + downloadsStore.updateDownloads.length);
+    // The same set the fractions below are summed over. A status counted here but not there, as a
+    // failure used to be, holds the figure short of full for everything downloading beside it.
+    const outstandingCount = computed(() => contentsStore.inFlight.filter(isInProgress).length + (contentsStore.poolPrefetch ? 1 : 0) + downloadsStore.updateDownloads.length);
 
     const anythingRunning = computed(
         () =>
@@ -81,8 +81,6 @@ export function useDownloadProgress() {
     // Counted in content, not bytes: only content a worker picked up knows its size, so a byte
     // denominator jumps every time a slot frees.
     const totalDownloadPercent = computed(() => {
-        // A failure nobody has retried is owed but not running, and it outlives the run it belongs to.
-        // Counting it would hold the figure short of full for as long as the entry survives.
         if (!anythingRunning.value) {
             return 0;
         }

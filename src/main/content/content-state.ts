@@ -35,11 +35,6 @@ export function isInProgress(state: ContentState) {
     return state.status === "queued" || state.status === "acquiring";
 }
 
-// Download work not finished, counting a failure as still owed because a retry would resume it.
-export function isOwed(state: ContentState) {
-    return state.status !== "removing";
-}
-
 export type ContentReporter = {
     progress(id: string, progress: ContentProgress): void;
     attempt(id: string): void;

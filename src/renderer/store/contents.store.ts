@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 import { ContentRef } from "@main/content/content-ref";
-import { ContentPresence, ContentProgress, ContentState, isInProgress, isOwed } from "@main/content/content-state";
+import { ContentPresence, ContentProgress, ContentState, isInProgress } from "@main/content/content-state";
 import { notificationsApi } from "@renderer/api/notifications";
 import { reactive } from "vue";
 
@@ -18,8 +18,8 @@ export const contentsStore: {
     isPathChanging: boolean;
     // Warming the pool is not tied to any one piece of content, so it is not part of inFlight.
     poolPrefetch: ContentProgress | null;
-    // Content finished this run, counted on both sides of the fraction so it does not drop as content
-    // leaves inFlight. Resets once nothing is being worked on.
+    // Content the queue is done with this run, however it went, counted on both sides of the fraction
+    // so it does not drop as content leaves inFlight. Resets once nothing is being worked on.
     settledCount: number;
 } = reactive({
     isInitialized: false,
@@ -69,7 +69,7 @@ export async function initContentsStore() {
 
     let previous = new Set<string>();
     window.content.onChanged((state) => {
-        const outstanding = new Set(state.filter(isOwed).map((entry) => `${entry.type}:${entry.id}`));
+        const outstanding = new Set(state.filter(isInProgress).map((entry) => `${entry.type}:${entry.id}`));
         for (const ref of previous) {
             if (!outstanding.has(ref)) {
                 contentsStore.settledCount++;

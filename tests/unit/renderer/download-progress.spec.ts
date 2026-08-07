@@ -84,14 +84,15 @@ describe("aggregate download progress", () => {
         expect(highest).toBeCloseTo(1);
     });
 
-    it("holds a failed download's place so retrying it is not fresh work", () => {
+    // Nothing is going to move for it again, so leaving it in the denominator only holds everything
+    // downloading beside it short of full.
+    it("stops counting a download once it has failed", () => {
         push([acquiring("a", 100, 100), acquiring("b", 50, 100)]);
-        const beforeFailure = percent();
+        expect(percent()).toBeCloseTo(0.75);
 
         push([acquiring("a", 100, 100), map("b", "failed", 50, 100)]);
 
-        expect(percent()).toBeLessThanOrEqual(beforeFailure);
-        expect(contentsStore.settledCount).toBe(0);
+        expect(percent()).toBeCloseTo(1);
     });
 
     // contentAPI keeps a failure until its ref is asked for again, so it outlives the run it belongs to.
@@ -110,8 +111,7 @@ describe("aggregate download progress", () => {
 
         push([map("b", "failed", 50, 100), acquiring("c", 50, 100)]);
 
-        // b is still owed and c is half done, so half of two things.
-        expect(percent()).toBeCloseTo(0.25);
+        expect(percent()).toBeCloseTo(0.5);
     });
 
     it("ignores removals", () => {
