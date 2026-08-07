@@ -8,79 +8,105 @@ import { accountSchema } from "@main/json/model/account";
 import { logger } from "@main/utils/logger";
 import { safeStorage } from "electron";
 import path from "path";
+import type { StoredIdentity } from "@main/model/user";
 
 const log = logger("account-service");
 
 const accountStore = new FileStore<typeof accountSchema>(path.join(CONFIG_PATH, "account.json"), accountSchema);
 
+export interface StoredTokens {
+    token: string;
+    refreshToken: string;
+    expiresAt: number;
+}
+
 async function init() {
     await accountStore.init();
 }
 
-async function saveToken(token: string) {
-    if (safeStorage.isEncryptionAvailable()) {
-        token = safeStorage.encryptString(token).toString("base64");
-    } else {
-        log.warn("Encryption is not available, storing token in plain text");
+// Whether the values on disk are encrypted is recorded alongside them, because
+// safeStorage can stop being available between one run and the next.
+function readStoredValue(value: string, label: string): string {
+    if (!value) return "";
+
+    const { encrypted } = accountStore.model;
+
+    if (encrypted === false) return value;
+
+    if (!safeStorage.isEncryptionAvailable()) {
+        log.error(`Cannot read stored ${label}, encryption is not available`);
+        return "";
     }
-    await accountStore.update({ token });
+
+    try {
+        return safeStorage.decryptString(Buffer.from(value, "base64"));
+    } catch (e) {
+        // A file written before the flag existed may hold a plain value, from a
+        // run where encryption wasn't available.
+        if (encrypted === undefined) return value;
+
+        log.error(`Failed to decrypt stored ${label}`, e);
+        return "";
+    }
 }
 
-async function saveRefreshToken(refreshToken: string) {
-    if (safeStorage.isEncryptionAvailable()) {
-        refreshToken = safeStorage.encryptString(refreshToken).toString("base64");
-    } else {
-        log.warn("Encryption is not available, storing refreshToken in plain text");
+// The server drops the old refresh token as soon as a renewal succeeds, so the
+// pair is written in a single update. Half-applied state locks the user out.
+async function saveTokens({ token, refreshToken, expiresAt }: StoredTokens) {
+    const encrypted = safeStorage.isEncryptionAvailable();
+    if (!encrypted) {
+        log.warn("Encryption is not available, storing tokens in plain text");
     }
-    await accountStore.update({ refreshToken });
-}
 
-async function getToken() {
-    const { token } = await accountStore.model;
-    if (safeStorage.isEncryptionAvailable() && token) {
-        try {
-            return safeStorage.decryptString(Buffer.from(token, "base64"));
-        } catch (e) {
-            log.error("Failed to decrypt token, wiping account data", e);
-            await wipe();
-        }
-    }
-    return token;
-}
+    const encode = (value: string) => (encrypted ? safeStorage.encryptString(value).toString("base64") : value);
 
-async function getRefreshToken() {
-    const { refreshToken } = await accountStore.model;
-    if (safeStorage.isEncryptionAvailable() && refreshToken) {
-        try {
-            return safeStorage.decryptString(Buffer.from(refreshToken, "base64"));
-        } catch (e) {
-            log.error("Failed to decrypt refreshToken, wiping account data", e);
-            await wipe();
-        }
-    }
-    return refreshToken;
-}
-
-async function forgetToken() {
     await accountStore.update({
-        token: "",
+        token: encode(token),
+        refreshToken: encode(refreshToken),
+        expiresAt,
+        encrypted,
     });
 }
 
+function getToken(): string {
+    return readStoredValue(accountStore.model.token, "token");
+}
+
+function getRefreshToken(): string {
+    return readStoredValue(accountStore.model.refreshToken, "refresh token");
+}
+
+function getExpiresAt(): number {
+    return accountStore.model.expiresAt;
+}
+
+async function saveIdentity(identity: StoredIdentity) {
+    await accountStore.update({ identity });
+}
+
+function getIdentity(): StoredIdentity | undefined {
+    return accountStore.model.identity;
+}
+
+// Signing out takes the identity with the credentials, so the next sign in
+// doesn't start by showing whoever used the client last.
 async function wipe() {
     await accountStore.update({
         token: "",
         refreshToken: "",
+        expiresAt: 0,
+        identity: undefined,
     });
 }
 
 export type Account = typeof accountStore.model;
 export const accountService = {
     init,
-    saveToken,
-    saveRefreshToken,
+    saveTokens,
     getToken,
     getRefreshToken,
+    getExpiresAt,
+    saveIdentity,
+    getIdentity,
     wipe,
-    forgetToken,
 };

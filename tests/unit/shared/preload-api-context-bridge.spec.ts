@@ -155,15 +155,17 @@ describe("Preload API Context Bridge", () => {
     it("should expose auth API", async () => {
         await import("@preload/preload");
 
-        mockWindow.auth.login();
+        mockWindow.auth.login(false);
         mockWindow.auth.logout();
-        mockWindow.auth.wipe();
         mockWindow.auth.hasCredentials();
+        mockWindow.auth.getState();
+        mockWindow.auth.getIdentity();
 
-        expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("auth:login");
+        expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("auth:login", false);
+        expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("auth:identity");
         expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("auth:logout");
-        expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("auth:wipe");
         expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("auth:hasCredentials");
+        expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("auth:state");
     });
 
     it("should expose engine API", async () => {
@@ -262,9 +264,11 @@ describe("Preload API Context Bridge", () => {
         mockWindow.tachyon.isConnected();
         mockWindow.tachyon.connect();
         mockWindow.tachyon.disconnect();
+        mockWindow.tachyon.dropConnection();
         expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("tachyon:isConnected");
         expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("tachyon:connect");
         expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("tachyon:disconnect");
+        expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("tachyon:dropConnection");
         expect(typeof mockWindow.tachyon.request).toBe("function");
         expect(typeof mockWindow.tachyon.requestStructured).toBe("function");
         expect(typeof mockWindow.tachyon.onConnected).toBe("function");

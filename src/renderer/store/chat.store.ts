@@ -8,6 +8,7 @@ import { MessagingReceivedEventData, MessagingSendRequestData, MessagingSubscrib
 import { notificationsApi } from "@renderer/api/notifications";
 import { Message } from "@renderer/model/message";
 import { me } from "@renderer/store/me.store";
+import { onWentOffline } from "@renderer/utils/offline-signal";
 // import { setupI18n } from "@renderer/i18n";
 
 // const i18n = setupI18n();
@@ -27,6 +28,7 @@ export const chatStore: {
 });
 
 export async function initChatStore() {
+    onWentOffline.add(clearOnlineState);
     window.tachyon.onEvent("messaging/received", onMessagingReceivedEvent);
     chatStore.isInitialized = true;
 }
@@ -162,6 +164,12 @@ function addNewUserChat(userId: UserId): boolean {
     } else return false;
 }
 
+// userChats survives; DM history isn't tied to a lobby or party the server just dropped us from.
+function clearOnlineState() {
+    clearLobbyChat();
+    clearPartyChat();
+}
+
 export const chat = {
     requestSend,
     requestSubscribeReceived,
@@ -169,4 +177,5 @@ export const chat = {
     clearPartyChat,
     clearUserChat,
     addNewUserChat,
+    clearOnlineState,
 };
