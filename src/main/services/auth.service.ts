@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 import { authenticate, renewAccessToken, TokenRequestError, TokenResponse } from "@main/oauth2/oauth2";
+import type { StoredIdentity } from "@main/model/user";
 import { accountService } from "@main/services/account.service";
 import { logger } from "@main/utils/logger";
 import { ipcMain, type BarIpcWebContents } from "@main/typed-ipc";
@@ -177,6 +178,22 @@ function state(): AuthState {
     return { authenticated };
 }
 
+// Identity arrives over the socket rather than from the token exchange, so it
+// reaches us separately from everything else the session holds. Failing to store
+// it costs the name shown before the next connection and nothing more, so it is
+// not worth handing back to whoever passed it in.
+async function setIdentity(identity: StoredIdentity) {
+    try {
+        await accountService.saveIdentity(identity);
+    } catch (error) {
+        log.error(`Could not store the account identity: ${describeError(error)}`);
+    }
+}
+
+async function init() {
+    await accountService.init();
+}
+
 function registerIpcHandlers(webContents: BarIpcWebContents) {
     emit = (next: AuthState) => webContents.send("auth:changed", next);
 
@@ -188,6 +205,8 @@ function registerIpcHandlers(webContents: BarIpcWebContents) {
 }
 
 export const authService = {
+    init,
     registerIpcHandlers,
     getAccessToken,
+    setIdentity,
 };

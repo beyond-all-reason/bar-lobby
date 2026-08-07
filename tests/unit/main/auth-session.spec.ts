@@ -25,11 +25,14 @@ const oauth2 = vi.hoisted(() => ({
 }));
 
 const account = vi.hoisted(() => {
-    const state = { token: "", refreshToken: "", expiresAt: 0 };
+    const state = { token: "", refreshToken: "", expiresAt: 0, identity: undefined as unknown };
 
     return {
         state,
         service: {
+            init: vi.fn(async () => {}),
+            saveIdentity: vi.fn(async (identity: unknown) => void (state.identity = identity)),
+            getIdentity: () => state.identity,
             saveTokens: vi.fn(async ({ token, refreshToken, expiresAt }: any) => {
                 state.token = token;
                 state.refreshToken = refreshToken;
@@ -264,5 +267,33 @@ describe("auth session policy", () => {
         await vi.advanceTimersByTimeAsync(LIFETIME_SECONDS * 1000);
 
         expect(oauth2.renewAccessToken).not.toHaveBeenCalled();
+    });
+
+    // Identity reaches the session over the socket rather than from the token
+    // exchange, so it comes in through here instead of past the owner to the store.
+    it("stores an identity handed to it", async () => {
+        const { authService } = await loadService();
+
+        await authService.setIdentity({ userId: "42", username: "Hectwo", displayName: "Hectwo", countryCode: "GB" });
+
+        expect(account.service.saveIdentity).toHaveBeenCalledWith({ userId: "42", username: "Hectwo", displayName: "Hectwo", countryCode: "GB" });
+        expect(ipc.handlers.get("auth:identity")!()).toEqual({ userId: "42", username: "Hectwo", displayName: "Hectwo", countryCode: "GB" });
+    });
+
+    // Losing it costs the name shown before the next connection, which is not
+    // worth failing whoever handed it over.
+    it("swallows a failure to store the identity", async () => {
+        const { authService } = await loadService();
+        account.service.saveIdentity.mockRejectedValueOnce(new Error("disk full"));
+
+        await expect(authService.setIdentity({ userId: "42", username: "Hectwo", displayName: "Hectwo", countryCode: "GB" })).resolves.toBeUndefined();
+    });
+
+    it("brings the account store up itself rather than leaving it to the caller", async () => {
+        const { authService } = await loadService();
+
+        await authService.init();
+
+        expect(account.service.init).toHaveBeenCalled();
     });
 });
