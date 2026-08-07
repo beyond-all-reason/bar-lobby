@@ -8,6 +8,9 @@ import { logger } from "@main/utils/logger";
 import { ipcMain } from "electron";
 import { BattleStartRequestData, MatchmakingCheckAssetsRequestData } from "tachyon-protocol/types";
 import { BarIpcWebContents } from "@main/typed-ipc";
+import { gameContentAPI } from "@main/content/game/game-content";
+import { mapContentAPI } from "@main/content/maps/map-content";
+import { engineContentAPI } from "@main/content/engine/engine-content";
 
 const log = logger("tachyon-service");
 
@@ -15,12 +18,22 @@ function registerIpcHandlers(webContents: BarIpcWebContents) {
     const requestHandlers: TachyonClientRequestHandlers = {
         "battle/start": async (data: BattleStartRequestData) => {
             log.info(`Received battle start request: ${JSON.stringify(data)}`);
-            const { ip, port, username, password } = data;
-            const springString = `spring://${username}:${password}@${ip}:${port}`;
-            webContents.send("tachyon:battleStart", springString);
-            return {
-                status: "success",
-            };
+            const itemsRequired =
+                !gameContentAPI.isVersionInstalled(data.game.springName) || !mapContentAPI.isVersionInstalled(data.map.springName) || !engineContentAPI.isVersionInstalled(data.engine.version);
+            if (itemsRequired) {
+                webContents.send("notifications:showAlert", {
+                    text: `Unable to join match, required assets are missing.`,
+                    severity: "error",
+                });
+                return { status: "failed", reason: "internal_error" };
+            } else {
+                const { ip, port, username, password } = data;
+                const springString = `spring://${username}:${password}@${ip}:${port}`;
+                webContents.send("tachyon:battleStart", springString, data);
+                return {
+                    status: "success",
+                };
+            }
         },
         "matchmaking/checkAssets": async (data: MatchmakingCheckAssetsRequestData) => {
             log.info(`Received matchmaking check assets request: ${JSON.stringify(data)}`);

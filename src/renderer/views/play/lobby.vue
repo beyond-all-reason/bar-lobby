@@ -12,6 +12,10 @@ SPDX-License-Identifier: MIT
     <Panel>
         <div class="flex flex-row">
             <Button @click="startGame()" class="green" :disabled="isMapNeeded">Start Game</Button>
+            <Button @click="joinQueue()" class="green">Join Queue</Button>
+            <Button @click="joinSpectate()" class="green">Join Spectate</Button>
+            <Button @click="updateReadiness(true)" class="green">Ready</Button>
+            <Button @click="updateReadiness(false)" class="red">Not Ready</Button>
             <Button @click="fetchMap()" class="red flex-right" :disabled="!isMapNeeded || downloadsStore.isPathChanging"
                 >Download Map</Button
             >
@@ -67,6 +71,16 @@ function leaveLobby() {
 
 function startGame() {
     lobby.requestStartBattle();
+}
+function joinQueue() {
+    lobby.requestJoinQueue();
+}
+function joinSpectate() {
+    lobby.requestSpectate();
+}
+// TODO: Ready status should be automatically watched. This is temp for manually claiming readiness.
+function updateReadiness(isReady: boolean) {
+    lobby.requestUpdateClientStatus({ isReady: isReady });
 }
 const isMapNeeded = computed(() => {
     return lobbyStore.activeLobby ? !mapsStore.availableMapNames.has(lobbyStore.activeLobby.mapName) : false;
