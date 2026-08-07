@@ -19,16 +19,20 @@ const noContentProviderImports = [
     },
 ];
 
+// content-state.ts is where the predicates are written, and content-api.ts is what assigns a status in
+// the first place.
+export const contentStatusScope = {
+    files: ["src/**/*.{ts,vue}"],
+    ignores: ["src/main/content/content-state.ts", "src/main/content/content-api.ts"],
+};
+
 // The predicates in content-state.ts answer different questions about a content status, and consumers
 // reading the status themselves is how they ended up disagreeing about what counts as active.
 // "failed" is left out of the pattern because tachyon responses and setup stages use that word too.
-const noContentStatusComparisons = [
-    "error",
-    {
-        selector: "BinaryExpression[operator=/^[!=]==$/] > Literal[value=/^(queued|acquiring|removing)$/]",
-        message: "Use isUnsettled or isInProgress from @main/content/content-state rather than comparing status.",
-    },
-];
+export const noContentStatusComparisons = {
+    selector: "BinaryExpression[operator=/^[!=]==$/] > Literal[value=/^(queued|acquiring|removing)$/]",
+    message: "Use isUnsettled or isInProgress from @main/content/content-state rather than comparing status.",
+};
 
 export const contentLayerRules = [
     {
@@ -36,15 +40,6 @@ export const contentLayerRules = [
         ignores: ["src/main/content/**"],
         rules: {
             "no-restricted-imports": noContentProviderImports,
-        },
-    },
-    {
-        files: ["src/**/*.{ts,vue}"],
-        // content-state.ts is where the predicates are written, and content-api.ts is what assigns a
-        // status in the first place.
-        ignores: ["src/main/content/content-state.ts", "src/main/content/content-api.ts"],
-        rules: {
-            "no-restricted-syntax": noContentStatusComparisons,
         },
     },
 ];

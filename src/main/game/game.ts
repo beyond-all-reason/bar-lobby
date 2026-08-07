@@ -93,7 +93,7 @@ export class GameAPI {
 
         // Playing something is the clearest sign it is still wanted, and it is the one thing every
         // launch path has in common.
-        await contentAPI.markUsed([{ type: "engine", id: engineVersion }, { type: "game", id: gameVersion }, ...(mapSpringName ? [{ type: "map" as const, id: mapSpringName }] : [])]);
+        void contentAPI.markUsed([{ type: "engine", id: engineVersion }, { type: "game", id: gameVersion }, ...(mapSpringName ? [{ type: "map" as const, id: mapSpringName }] : [])]);
         await this.fetchMissingContent(engineVersion, gameVersion); // TODO preload anything needed through the UI before launching. Remove this step
 
         applyDefaultSpringsettings();

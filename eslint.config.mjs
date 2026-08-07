@@ -4,6 +4,7 @@ import tseslint from "typescript-eslint";
 import pluginVue from "eslint-plugin-vue";
 
 import { contentLayerRules } from "./eslint/content-layer.mjs";
+import { restrictedSyntaxRules } from "./eslint/restricted-syntax.mjs";
 
 export default [
     { files: ["**/*.{js,mjs,cjs,ts,vue}"] },
@@ -58,18 +59,6 @@ export default [
             "@typescript-eslint/no-unsafe-function-type": "warn",
         },
     },
-    {
-        files: ["src/renderer/**/*.{ts,vue}"],
-        ignores: ["src/renderer/api/shell.ts"],
-        rules: {
-            "no-restricted-syntax": [
-                "error",
-                {
-                    selector: "MemberExpression[object.name='window'][property.name='shell']",
-                    message: "Use shellApi from @renderer/api/shell so failures get reported instead of reaching the fatal error modal.",
-                },
-            ],
-        },
-    },
     ...contentLayerRules,
+    ...restrictedSyntaxRules,
 ];

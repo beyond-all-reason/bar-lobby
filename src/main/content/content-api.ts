@@ -172,8 +172,14 @@ class ContentAPI {
         return contentUsage.lastUsed(ref);
     }
 
+    // Nothing is worth failing over a note about when content was last wanted, and the store is
+    // missing entirely when content init failed, which is a state the app deliberately keeps running in.
     public async markUsed(refs: ContentRef[]) {
-        await contentUsage.markUsed(refs);
+        try {
+            await contentUsage.markUsed(refs);
+        } catch (err) {
+            log.warn(`Could not record usage for ${refs.map(contentRefKey).join(", ")}`, err);
+        }
     }
 
     public allInstalled() {
@@ -212,7 +218,7 @@ class ContentAPI {
             }
         }
 
-        await contentUsage.markUsed(unseen);
+        await this.markUsed(unseen);
 
         // pr-downloader comes out of an engine, so removing the last one takes away the means of ever
         // getting another. Keep the newest regardless of how long it has sat unused.
@@ -277,8 +283,16 @@ class ContentAPI {
             await this.ensure([{ type: "engine", id: DEFAULT_ENGINE_VERSION }]);
         }
 
-        await Promise.all(this.missing(refs).map((ref) => this.track(this.queue.enqueue("acquire", ref), ref)));
-        await contentUsage.markUsed(refs);
+        const acquisitions = await Promise.allSettled(this.missing(refs).map((ref) => this.track(this.queue.enqueue("acquire", ref), ref)));
+
+        // Stamped by what is on disk now rather than by what was asked for, so content that landed is
+        // not left unrecorded because something else in the same call did not.
+        await this.markUsed(refs.filter((ref) => this.isPresent(ref)));
+
+        const failed = acquisitions.find((acquisition) => acquisition.status === "rejected");
+        if (failed) {
+            throw failed.reason;
+        }
     }
 
     // Refusing up front beats a transport failing partway with whatever error the filesystem gave it.

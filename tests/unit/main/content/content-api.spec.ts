@@ -6,7 +6,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 // Everything the vi.mock factories touch has to be hoisted with them, otherwise the factories run
 // before these bindings are initialised.
-const { installed, acquired, removed, progress, retry, watcher, disk, gate, used, usage, defaultEngine, stubProvider } = vi.hoisted(() => {
+const { installed, unresolvable, acquired, removed, progress, retry, watcher, disk, gate, used, usage, defaultEngine, stubProvider } = vi.hoisted(() => {
     type Listener = (data: unknown) => void;
 
     function fakeSignal() {
@@ -32,6 +32,9 @@ const { installed, acquired, removed, progress, retry, watcher, disk, gate, used
     }
 
     const installed = new Set(["engine:2025.01.3", "game:Beyond All Reason test-1-abc", "map:Red Comet Remake 1.8"]);
+    // Content the transport cannot resolve: it comes back reporting nothing wrong, having installed
+    // nothing, which is what the queue settles against.
+    const unresolvable = new Set<string>();
     const acquired: string[] = [];
     const removed: string[] = [];
     const progress = { engine: fakeSignal(), game: fakeSignal(), map: fakeSignal() };
@@ -44,14 +47,21 @@ const { installed, acquired, removed, progress, retry, watcher, disk, gate, used
     const used = new Map<string, Date>();
     const defaultEngine = "2025.01.3";
     const usage = {
+        unwritable: false,
         init: async () => {},
         lastUsed: (ref: { type: string; id: string }) => used.get(`${ref.type}:${ref.id}`),
-        markUsed: async (refs: { type: string; id: string }[], at = new Date()) => refs.forEach((ref) => used.set(`${ref.type}:${ref.id}`, at)),
+        markUsed: async (refs: { type: string; id: string }[], at = new Date()) => {
+            if (usage.unwritable) {
+                throw new Error("Content usage store has not been initialised.");
+            }
+            refs.forEach((ref) => used.set(`${ref.type}:${ref.id}`, at));
+        },
         forgetAllExcept: async () => {},
     };
 
     return {
         installed,
+        unresolvable,
         acquired,
         removed,
         progress,
@@ -71,7 +81,9 @@ const { installed, acquired, removed, progress, retry, watcher, disk, gate, used
                 if (gate.held) {
                     await gate.held;
                 }
-                installed.add(`${type}:${id}`);
+                if (!unresolvable.has(`${type}:${id}`)) {
+                    installed.add(`${type}:${id}`);
+                }
             },
             // pr-downloader takes the whole set in one invocation, so the providers in front of it do too.
             acquireMany: async (ids: string[]) => {
@@ -79,7 +91,7 @@ const { installed, acquired, removed, progress, retry, watcher, disk, gate, used
                 if (gate.held) {
                     await gate.held;
                 }
-                ids.forEach((id) => installed.add(`${type}:${id}`));
+                ids.filter((id) => !unresolvable.has(`${type}:${id}`)).forEach((id) => installed.add(`${type}:${id}`));
             },
             remove: async (id: string) => {
                 removed.push(`${type}:${id}`);
@@ -228,6 +240,7 @@ describe("contentAPI.missing", () => {
 describe("contentAPI.ensure", () => {
     beforeEach(() => {
         acquired.length = 0;
+        used.clear();
     });
 
     it("skips refs that are already present", async () => {
@@ -261,6 +274,34 @@ describe("contentAPI.ensure", () => {
         ]);
 
         expect(acquired.sort()).toEqual(["engine:2026.01.1", "game:Beyond All Reason test-2-def", "map:Tangerine 1.2"]);
+    });
+
+    // A sibling failing says nothing about the content that did land, and unstamped content reads as
+    // never seen by the sweep.
+    it("records what landed even when something else in the same call failed", async () => {
+        unresolvable.add("map:Never Resolves 1.0");
+
+        const acquiring = contentAPI.ensure([
+            { type: "map", id: "Stamp Me 1.0" },
+            { type: "map", id: "Never Resolves 1.0" },
+        ]);
+
+        await expect(acquiring).rejects.toThrow();
+        expect(contentAPI.lastUsed({ type: "map", id: "Stamp Me 1.0" })).toBeDefined();
+        expect(contentAPI.lastUsed({ type: "map", id: "Never Resolves 1.0" })).toBeUndefined();
+    });
+
+    // contentAPI.init is allowed to fail and leave the app running, which leaves nothing to write usage
+    // into. Content still downloads, so the caller must not be told it did not.
+    it("still reports success when usage cannot be recorded", async () => {
+        usage.unwritable = true;
+
+        try {
+            await expect(contentAPI.ensure([{ type: "map", id: "Unstampable 1.0" }])).resolves.toBeUndefined();
+            expect(installed.has("map:Unstampable 1.0")).toBe(true);
+        } finally {
+            usage.unwritable = false;
+        }
     });
 
     it("acquires a missing ref once even when asked for concurrently", async () => {
