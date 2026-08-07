@@ -4,6 +4,7 @@
 
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { TachyonClientRequestHandlers } from "@main/tachyon/tachyon-client";
+import { BattleStartRequestData } from "tachyon-protocol/types";
 
 const { send, gameIsInstalled, mapIsInstalled, engineIsInstalled } = vi.hoisted(() => ({
     send: vi.fn(),
@@ -52,10 +53,9 @@ describe("createTachyonRequestHandlers", () => {
         engineIsInstalled.mockReturnValue(true);
     });
 
-    it("handles battle/start by sending the spring url and returning success", async () => {
+    it("handles battle/start by sending the spring url, data, and returning success", async () => {
         const handlers = getHandlers();
-
-        const response = await handlers["battle/start"]({
+        const data: BattleStartRequestData = {
             ip: "127.0.0.1",
             port: 8452,
             username: "tester",
@@ -63,9 +63,10 @@ describe("createTachyonRequestHandlers", () => {
             engine: { version: "105.1.1" },
             game: { springName: "byar:test-game" },
             map: { springName: "map:comet-catcher" },
-        });
+        };
+        const response = await handlers["battle/start"](data);
 
-        expect(send).toHaveBeenCalledWith("tachyon:battleStart", "spring://tester:secret@127.0.0.1:8452");
+        expect(send).toHaveBeenCalledWith("tachyon:battleStart", "spring://tester:secret@127.0.0.1:8452", data);
         expect(response).toEqual({ status: "success" });
     });
 
