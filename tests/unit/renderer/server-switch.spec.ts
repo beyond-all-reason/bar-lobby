@@ -76,6 +76,19 @@ describe("switching the active server", () => {
             expect(disconnect).toHaveBeenCalledOnce();
         });
 
+        // A drop while we still look authenticated gets a reconnect timer, which
+        // then keeps firing against credentials that are already gone.
+        it("has given up the session before the connection closes", async () => {
+            let authenticatedWhenClosing: boolean | undefined;
+            disconnect.mockImplementationOnce(async () => {
+                authenticatedWhenClosing = me.isAuthenticated;
+            });
+
+            await changeServerTo("wss://lobby-server-dev.beyondallreason.dev");
+
+            expect(authenticatedWhenClosing).toBe(false);
+        });
+
         it("does nothing when the same server is picked again", async () => {
             await changeServerTo("wss://server4.beyondallreason.info");
 

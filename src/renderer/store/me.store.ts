@@ -77,9 +77,12 @@ async function changeAccount() {
 // nothing to the one being joined. Switching ends the session rather than moving
 // the socket over.
 async function serverChanged() {
+    // A socket that drops while we still look authenticated is treated as a
+    // connection worth retrying, so give up the session before closing it.
+    me.isAuthenticated = false;
+    subsManager.clearAllFromList(friendsSymbol);
     await window.tachyon.disconnect();
     await window.auth.wipe();
-    me.isAuthenticated = false;
 }
 
 window.tachyon.onEvent("user/self", async (event) => {
