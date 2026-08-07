@@ -231,7 +231,16 @@ export class TachyonClient {
                 details: `No response handler found for: ${commandId}`,
             } as AnyUserToServerResponseBody;
         } else {
-            handlerResponse = await handler(requestData);
+            try {
+                handlerResponse = await handler(requestData);
+            } catch (error) {
+                log.error(`Error handling request for request ${commandId}: ${error}`);
+                handlerResponse = {
+                    status: "failed",
+                    reason: "internal_error",
+                    details: error instanceof Error ? error.message : "Unknown error occurred",
+                } as AnyUserToServerResponseBody;
+            }
         }
 
         const response = {
