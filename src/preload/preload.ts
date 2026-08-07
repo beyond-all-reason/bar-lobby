@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 import { contextBridge } from "electron";
-import { ipcRenderer } from "@main/typed-ipc";
+import { ipcRenderer, IpcResult } from "@main/typed-ipc";
 import { ContentRef } from "@main/content/content-ref";
 import { ContentPresence, ContentState } from "@main/content/content-state";
 import { Replay } from "@main/replays/replay";
@@ -45,15 +45,15 @@ export type MainWindowApi = typeof mainWindowApi;
 contextBridge.exposeInMainWorld("mainWindow", mainWindowApi);
 
 const shellApi = {
-    openStateDir: (): Promise<string> => ipcRenderer.invoke("shell:openStateDir"),
-    openAssetsDir: (): Promise<string> => ipcRenderer.invoke("shell:openAssetsDir"),
-    openSettingsFile: (): Promise<string> => ipcRenderer.invoke("shell:openSettingsFile"),
-    openStartScript: (): Promise<string> => ipcRenderer.invoke("shell:openStartScript"),
-    openReplaysDir: (): Promise<string> => ipcRenderer.invoke("shell:openReplaysDir"),
-    showReplayInFolder: (fileName: string): Promise<void> => ipcRenderer.invoke("shell:showReplayInFolder", fileName),
+    openStateDir: (): Promise<IpcResult> => ipcRenderer.invoke("shell:openStateDir"),
+    openAssetsDir: (): Promise<IpcResult> => ipcRenderer.invoke("shell:openAssetsDir"),
+    openSettingsFile: (): Promise<IpcResult> => ipcRenderer.invoke("shell:openSettingsFile"),
+    openStartScript: (): Promise<IpcResult> => ipcRenderer.invoke("shell:openStartScript"),
+    openReplaysDir: (): Promise<IpcResult> => ipcRenderer.invoke("shell:openReplaysDir"),
+    showReplayInFolder: (fileName: string): Promise<IpcResult> => ipcRenderer.invoke("shell:showReplayInFolder", fileName),
 
     // External
-    openInBrowser: (url: string): Promise<void> => ipcRenderer.invoke("shell:openInBrowser", url),
+    openInBrowser: (url: string): Promise<IpcResult> => ipcRenderer.invoke("shell:openInBrowser", url),
 };
 export type ShellApi = typeof shellApi;
 contextBridge.exposeInMainWorld("shell", shellApi);
