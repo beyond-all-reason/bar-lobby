@@ -2,8 +2,6 @@
 //
 // SPDX-License-Identifier: MIT
 
-import { enginesStore } from "@renderer/store/engine.store";
-import { gameStore } from "@renderer/store/game.store";
 import { me } from "@renderer/store/me.store";
 import { SystemServerStatsOkResponseData } from "tachyon-protocol/types";
 import { reactive } from "vue";
@@ -173,20 +171,12 @@ export async function initTachyonStore() {
         void window.tachyon.dropConnection();
     });
 
-    window.tachyon.onBattleStart((springString) => {
+    window.tachyon.onBattleStart((springString, data) => {
         console.debug("Received battle start event", springString);
-        const engineVersion = enginesStore.selectedEngineVersion;
-        if (engineVersion === undefined) {
-            console.error("No engine version selected");
-            return;
-        }
-        if (!gameStore.selectedGameVersion) {
-            console.error("No game version selected");
-            return;
-        }
+        // tachyon.service.ts checks assets before sending this request here.
         window.game.launchMultiplayer({
-            engineVersion: engineVersion.id,
-            gameVersion: gameStore.selectedGameVersion.gameVersion,
+            engineVersion: data.engine.version,
+            gameVersion: data.game.springName,
             springString,
         });
     });

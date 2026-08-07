@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 import { contextBridge } from "electron";
-import { ipcRenderer } from "@main/typed-ipc";
+import { ipcRenderer, IpcResult } from "@main/typed-ipc";
 import { Replay } from "@main/content/replays/replay";
 import { Settings } from "@main/services/settings.service";
 import { EngineVersion } from "@main/content/engine/engine-version";
@@ -13,6 +13,7 @@ import { DownloadInfo } from "@main/content/downloads";
 import { Info } from "@main/services/info.service";
 import { BattleWithMetadata } from "@main/game/battle/battle-types";
 import { GetCommandData, GetCommandIds, GetCommands } from "tachyon-protocol";
+import type { BattleStartRequestData } from "tachyon-protocol/types";
 import { MultiplayerLaunchSettings } from "@main/game/game";
 import { logLevels } from "@main/services/log.service";
 
@@ -43,15 +44,15 @@ export type MainWindowApi = typeof mainWindowApi;
 contextBridge.exposeInMainWorld("mainWindow", mainWindowApi);
 
 const shellApi = {
-    openStateDir: (): Promise<string> => ipcRenderer.invoke("shell:openStateDir"),
-    openAssetsDir: (): Promise<string> => ipcRenderer.invoke("shell:openAssetsDir"),
-    openSettingsFile: (): Promise<string> => ipcRenderer.invoke("shell:openSettingsFile"),
-    openStartScript: (): Promise<string> => ipcRenderer.invoke("shell:openStartScript"),
-    openReplaysDir: (): Promise<string> => ipcRenderer.invoke("shell:openReplaysDir"),
-    showReplayInFolder: (fileName: string): Promise<void> => ipcRenderer.invoke("shell:showReplayInFolder", fileName),
+    openStateDir: (): Promise<IpcResult> => ipcRenderer.invoke("shell:openStateDir"),
+    openAssetsDir: (): Promise<IpcResult> => ipcRenderer.invoke("shell:openAssetsDir"),
+    openSettingsFile: (): Promise<IpcResult> => ipcRenderer.invoke("shell:openSettingsFile"),
+    openStartScript: (): Promise<IpcResult> => ipcRenderer.invoke("shell:openStartScript"),
+    openReplaysDir: (): Promise<IpcResult> => ipcRenderer.invoke("shell:openReplaysDir"),
+    showReplayInFolder: (fileName: string): Promise<IpcResult> => ipcRenderer.invoke("shell:showReplayInFolder", fileName),
 
     // External
-    openInBrowser: (url: string): Promise<void> => ipcRenderer.invoke("shell:openInBrowser", url),
+    openInBrowser: (url: string): Promise<IpcResult> => ipcRenderer.invoke("shell:openInBrowser", url),
 };
 export type ShellApi = typeof shellApi;
 contextBridge.exposeInMainWorld("shell", shellApi);
@@ -239,7 +240,7 @@ const tachyonApi = {
     onConnected: (callback: () => void) => ipcRenderer.on("tachyon:connected", callback),
     onDisconnected: (callback: () => void) => ipcRenderer.on("tachyon:disconnected", callback),
     onEvent,
-    onBattleStart: (callback: (springString: string) => void) => ipcRenderer.on("tachyon:battleStart", (_event, springString) => callback(springString)),
+    onBattleStart: (callback: (springString: string, data: BattleStartRequestData) => void) => ipcRenderer.on("tachyon:battleStart", (_event, springString, data) => callback(springString, data)),
 };
 export type TachyonApi = typeof tachyonApi;
 contextBridge.exposeInMainWorld("tachyon", tachyonApi);

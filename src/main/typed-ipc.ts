@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 import type { BattleWithMetadata } from "@main/game/battle/battle-types";
+import type { BattleStartRequestData } from "tachyon-protocol/types";
 import type { DownloadInfo } from "@main/content/downloads";
 import type { EngineVersion } from "@main/content/engine/engine-version";
 import type { GameVersion } from "@main/content/game/game-version";
@@ -17,6 +18,12 @@ import type { Scenario } from "@main/content/game/scenario";
 import type { Settings } from "@main/services/settings.service";
 import type { TachyonEvent, TachyonResponse } from "tachyon-protocol";
 import { ipcRenderer as electronIpcRenderer, ipcMain as electronIpcMain } from "electron";
+
+// Errors thrown in main arrive in the renderer stripped of everything but a message, so failures a
+// caller needs to act on have to travel as data instead. Mirrors the shape tachyon-protocol uses for
+// its own responses, which can't be reused here because it's keyed on tachyon command ids.
+// `reason` is a stable code to branch on or translate; `details` carries any raw text behind it.
+export type IpcResult<T = void> = { status: "success"; data: T } | { status: "failed"; reason: string; details?: string };
 
 export type IPCEvents = {
     "downloads:update:progress": (downloadInfo: DownloadInfo) => void;
@@ -45,7 +52,7 @@ export type IPCEvents = {
     "replays:replayCachingStarted": (filename: string) => void;
     "replays:replayDeleted": (filename: string) => void;
     "replays:highlightOpened": (fileNames: string[]) => void;
-    "tachyon:battleStart": (springString: string) => void;
+    "tachyon:battleStart": (springString: string, data: BattleStartRequestData) => void;
     "tachyon:connected": () => void;
     "tachyon:disconnected": () => void;
     "tachyon:event": (event: TachyonEvent) => void;
@@ -106,13 +113,13 @@ export type IPCCommands = {
     "settings:get": () => Settings;
     "settings:toggleFullscreen": () => void;
     "settings:update": (settings: Partial<Settings>) => Partial<Settings>;
-    "shell:openStateDir": () => string;
-    "shell:openAssetsDir": () => string;
-    "shell:openInBrowser": (url: string) => void;
-    "shell:openReplaysDir": () => string;
-    "shell:openSettingsFile": () => string;
-    "shell:openStartScript": () => string;
-    "shell:showReplayInFolder": (fileName: string) => void;
+    "shell:openStateDir": () => IpcResult;
+    "shell:openAssetsDir": () => IpcResult;
+    "shell:openInBrowser": (url: string) => IpcResult;
+    "shell:openReplaysDir": () => IpcResult;
+    "shell:openSettingsFile": () => IpcResult;
+    "shell:openStartScript": () => IpcResult;
+    "shell:showReplayInFolder": (fileName: string) => IpcResult;
     "tachyon:connect": () => void;
     "tachyon:disconnect": () => void;
     "tachyon:dropConnection": () => void;
