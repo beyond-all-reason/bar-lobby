@@ -2,7 +2,6 @@
 //
 // SPDX-License-Identifier: MIT
 
-import { accountService } from "@main/services/account.service";
 import { authService } from "@main/services/auth.service";
 import { createTachyonRequestHandlers } from "@main/tachyon/tachyon.handlers";
 import { TachyonClient } from "@main/tachyon/tachyon-client";
@@ -21,9 +20,7 @@ function rememberIdentity(event: TachyonEvent) {
 
     try {
         const { userId, username, displayName, countryCode } = event.data.user;
-        accountService.saveIdentity({ userId, username, displayName, countryCode: countryCode ?? "" }).catch((error) => {
-            log.error("Could not store the account identity", error);
-        });
+        void authService.setIdentity({ userId, username, displayName, countryCode: countryCode ?? "" });
     } catch (error) {
         log.error("Could not read the identity out of user/self", error);
     }
