@@ -5,6 +5,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import type { AuthState } from "@main/services/auth.service";
 
 const { TokenRequestError } = vi.hoisted(() => {
     class TokenRequestError extends Error {
@@ -295,5 +296,21 @@ describe("auth session policy", () => {
         await authService.init();
 
         expect(account.service.init).toHaveBeenCalled();
+    });
+
+    // Telling the renderer is one subscriber now rather than the thing that
+    // switches notification on, so a change before IPC is wired still gets heard.
+    it("reports a session change to a listener that is not the IPC bridge", async () => {
+        account.state.refreshToken = "refresh-0";
+        oauth2.renewAccessToken.mockResolvedValue(freshTokens("1"));
+
+        vi.resetModules();
+        const { authService } = await import("@main/services/auth.service");
+        const heard: AuthState[] = [];
+        authService.onChanged.add((next) => void heard.push(next));
+
+        await authService.getAccessToken();
+
+        expect(heard).toEqual([{ authenticated: true }]);
     });
 });
