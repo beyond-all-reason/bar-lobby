@@ -62,9 +62,12 @@ export class GameProvider extends PrDownloaderAPI<string, GameVersion> {
             const versionsStr = versions.toString().trim();
             const versionsParts = versionsStr.split("\n");
             for (const versionLine of versionsParts) {
-                const [, packageMd5, , version] = versionLine.split(",");
+                const [tag, packageMd5, , version] = versionLine.split(",");
                 this.packageGameVersionLookup[packageMd5] = version;
                 this.gameVersionPackageLookup[version] = packageMd5;
+                // The tag names whichever build it currently points at, so it has to resolve too or
+                // asking for one can never be answered.
+                this.gameVersionPackageLookup[tag] = packageMd5;
             }
         } catch (err) {
             log.warn(`Couldn't initialize lookup tables (is this the first startup ?): ${err}`);
@@ -140,11 +143,13 @@ export class GameProvider extends PrDownloaderAPI<string, GameVersion> {
         }
     }
 
+    // Resolved through the rapid index first, so a tag answers for the build it points at now rather than
+    // being looked for literally and never found.
     public override isVersionInstalled(version: string) {
-        if (version === "byar:test") {
-            return false;
-        }
-        return this.availableVersions.values().some((installedVersion) => installedVersion.gameVersion === version);
+        const packageMd5 = this.gameVersionPackageLookup[version];
+        const resolved = packageMd5 ? (this.packageGameVersionLookup[packageMd5] ?? version) : version;
+
+        return this.availableVersions.values().some((installedVersion) => installedVersion.gameVersion === resolved);
     }
 
     /**
