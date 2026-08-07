@@ -18,7 +18,7 @@ import type { BattleStartRequestData } from "tachyon-protocol/types";
 import { MultiplayerLaunchSettings } from "@main/game/game";
 import { logLevels } from "@main/services/log.service";
 import { AuthState } from "@main/services/auth.service";
-import { StoredIdentity } from "@main/services/account.service";
+import { StoredIdentity } from "@main/model/user";
 
 const logApi = {
     purge: (): Promise<string[]> => ipcRenderer.invoke("log:purge"),

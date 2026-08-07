@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 import type { AuthState } from "@main/services/auth.service";
-import type { StoredIdentity } from "@main/services/account.service";
+import type { StoredIdentity } from "@main/model/user";
 import type { BattleWithMetadata } from "@main/game/battle/battle-types";
 import type { BattleStartRequestData } from "tachyon-protocol/types";
 import type { DownloadInfo } from "@main/content/downloads";

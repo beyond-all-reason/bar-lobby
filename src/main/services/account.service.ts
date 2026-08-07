@@ -8,6 +8,7 @@ import { accountSchema } from "@main/json/model/account";
 import { logger } from "@main/utils/logger";
 import { safeStorage } from "electron";
 import path from "path";
+import type { StoredIdentity } from "@main/model/user";
 
 const log = logger("account-service");
 
@@ -17,13 +18,6 @@ export interface StoredTokens {
     token: string;
     refreshToken: string;
     expiresAt: number;
-}
-
-export interface StoredIdentity {
-    userId: string;
-    username: string;
-    displayName: string;
-    countryCode: string;
 }
 
 async function init() {
