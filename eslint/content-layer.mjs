@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 The BAR Lobby Authors
+//
+// SPDX-License-Identifier: MIT
+
 // Lint rules that exist because of how the content layer is put together, rather than for style. Each one
 // stands in for a boundary the language cannot express, so the reason it exists lives next to it.
 
