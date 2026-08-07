@@ -4,9 +4,10 @@
 
 import { Me } from "@main/model/user";
 import { db } from "@renderer/store/db";
-import { reactive, toRaw } from "vue";
+import { reactive, toRaw, watch } from "vue";
 import { tachyonStore } from "@renderer/store/tachyon.store";
 import { PrivateUser } from "tachyon-protocol/types";
+import { settingsStore } from "@renderer/store/settings.store";
 import { subsManager } from "@renderer/store/users.store";
 
 export const me = reactive<
@@ -67,6 +68,16 @@ async function logout() {
 }
 
 async function changeAccount() {
+    await window.auth.wipe();
+    me.isAuthenticated = false;
+}
+
+// The same setting picks the websocket and the authorization server, so the
+// credentials we are holding were issued by the server being left and are worth
+// nothing to the one being joined. Switching ends the session rather than moving
+// the socket over.
+async function serverChanged() {
+    await window.tachyon.disconnect();
     await window.auth.wipe();
     me.isAuthenticated = false;
 }
@@ -210,6 +221,18 @@ export const friends = {
 };
 
 export async function initMeStore() {
+    // Settings load in parallel with this, and the stored server arriving over
+    // the default counts as a change. Reacting to that would sign out everyone
+    // who does not use the default server, every launch.
+    watch(
+        () => settingsStore.lobbyServer,
+        () => {
+            if (!settingsStore.isInitialized) return;
+
+            void serverChanged();
+        }
+    );
+
     await db.users
         .where({ isMe: 1 })
         .first()
