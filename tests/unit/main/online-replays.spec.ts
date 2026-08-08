@@ -4,7 +4,9 @@
 
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { getOnlineReplay, ONLINE_REPLAYS_API_URL, searchOnlineReplaysByPlayer } from "@main/content/replays/online-replays";
+import { getOnlineReplay, searchOnlineReplaysByPlayer } from "@main/content/replays/online-replays";
+
+const ONLINE_REPLAYS_API_URL = "https://api.bar-rts.com/replays";
 
 const apiReplay = {
     id: "abcdef",
@@ -29,6 +31,16 @@ const apiReplay = {
     ],
     Spectators: [{ name: "Watcher", userId: 9012 }],
 };
+
+vi.mock("@main/services/config.service", () => {
+    return {
+        configService: {
+            getConfig: vi.fn(() => ({
+                onlineReplaysApiUrl: "https://api.bar-rts.com/replays",
+            })),
+        },
+    };
+});
 
 function mockFetch(response: { ok: boolean; body?: unknown }) {
     const fetchMock = vi.fn().mockResolvedValue({

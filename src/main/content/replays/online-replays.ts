@@ -4,10 +4,11 @@
 
 import { IpcResult } from "@main/typed-ipc";
 import { logger } from "@main/utils/logger";
+import { configService } from "@main/services/config.service";
 
 const log = logger("online-replays.ts");
 
-export const ONLINE_REPLAYS_API_URL = "https://api.bar-rts.com/replays";
+export const ONLINE_REPLAYS_API_URL = configService.getConfig().onlineReplaysApiUrl;
 
 export type OnlineReplayOverview = {
     id: string;

@@ -26,6 +26,7 @@ export const configSchema = Type.Object({
     devlogRssUrl: Type.String({ default: "https://www.beyondallreason.info/microblogs/rss.xml" }),
     allowedUrlLinks: Type.Array(Type.String(), { default: ["https://bar-rts.com/replays", "https://www.beyondallreason.info/news"] }),
     replayServiceUrl: Type.String({ default: "https://bar-rts.com/replays" }),
+    onlineReplaysApiUrl: Type.String({ default: "https://api.bar-rts.com/replays" }),
     defaultServers: Type.Array(Type.String(), {
         default: ["wss://server4.beyondallreason.info", "wss://server5.beyondallreason.info", "wss://lobby-server-dev.beyondallreason.dev", "ws://localhost:4000"],
     }),
