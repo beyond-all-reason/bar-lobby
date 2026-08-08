@@ -12,11 +12,11 @@ import {
     MatchmakingQueueUpdateEventData,
 } from "tachyon-protocol/types";
 import { tachyonStore } from "@renderer/store/tachyon.store";
-import { db } from "@renderer/store/db";
 import { notificationsApi } from "@renderer/api/notifications";
 import { isTachyonErrorForCommand, tachyonRequest } from "@renderer/api/tachyon";
 import { enginesStore } from "@renderer/store/engine.store";
 import { gameStore } from "@renderer/store/game.store";
+import { mapsStore } from "@renderer/store/maps.store";
 
 export enum MatchmakingStatus {
     Idle = "Idle",
@@ -135,13 +135,9 @@ async function triggerAssetsRefresh() {
 
 async function setRequiredAssetsArrays(queue: string, engines: { version: string }[], games: { springName: string }[], maps: { springName: string }[]): Promise<void> {
     matchmakingStore.downloadsRequired[queue] = { engines: [], games: [], maps: [] };
-    const queueMaps = maps.map((m) => m.springName);
-    const dbMaps = await db.maps.bulkGet(queueMaps);
-    for (const map of dbMaps) {
-        if (map != undefined && !map.isInstalled) {
-            matchmakingStore.downloadsRequired[queue].maps.push(map.springName);
-        }
-    }
+    const queueMaps = new Set(maps.map((map) => map.springName));
+    const missingMaps = queueMaps.difference(new Set(mapsStore.availableMapNames));
+    matchmakingStore.downloadsRequired[queue].maps.push(...missingMaps);
     const queueEngines = new Set(engines.map((e) => e.version));
     const installedEngines = new Set(enginesStore.availableEngineVersions.filter((e) => e.installed).map((e) => e.id));
     const diffEngines = queueEngines.difference(installedEngines);
@@ -195,9 +191,16 @@ async function sendQueueRequest() {
         console.log("Tachyon: matchmaking/queue:", response.status);
         matchmakingStore.status = MatchmakingStatus.Searching;
     } catch (error) {
-        if (isTachyonErrorForCommand(error, "matchmaking/queue") && error.reason === "version_mismatch") {
-            notificationsApi.alert({ text: "Queue version changed; refreshing list.", severity: "info" });
-            await sendListRequest();
+        if (isTachyonErrorForCommand(error, "matchmaking/queue")) {
+            if (error.reason === "version_mismatch") {
+                notificationsApi.alert({ text: "Queue version changed; refreshing list.", severity: "info" });
+                await sendListRequest();
+            } else if (error.reason === "party_missing_asset") {
+                notificationsApi.alert({ text: "Party queue rejected, required assets are missing for the queue.", severity: "error" });
+            } else {
+                notificationsApi.alert({ text: `Queue request rejected for reason: ${error.reason}.`, severity: "error" });
+                console.error("Tachyon error: matchmaking/queue:", error);
+            }
         } else {
             console.error("Tachyon error: matchmaking/queue:", error);
             notificationsApi.alert({ text: "Tachyon error: matchmaking/queue", severity: "error" });
