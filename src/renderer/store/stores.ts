@@ -15,9 +15,11 @@ import { initTachyonStore } from "@renderer/store/tachyon.store";
 import { initUsersStore } from "@renderer/store/users.store";
 import { initLobbyStore } from "./lobby.store";
 import { initChatStore } from "@renderer/store/chat.store";
+import { initConfigStore } from "@renderer/store/config.store";
 
 export async function initPreMountStores() {
     await Promise.all([
+        initConfigStore(),
         initSettingsStore(),
         initInfosStore(),
         initGameStore(),

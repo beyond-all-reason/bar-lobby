@@ -8,11 +8,9 @@ import * as fs from "fs";
 import { Signal } from "$/jaz-ts-utils/signal";
 import * as path from "path";
 
-import { engineContentAPI } from "@main/content/engine/engine-content";
 import { applyDefaultSpringsettings } from "@main/game/springsettings";
 import { startScriptConverter } from "@main/utils/start-script-converter";
 import { logger } from "@main/utils/logger";
-import { gameContentAPI } from "@main/content/game/game-content";
 import { WRITE_DATA_PATH, REPLAYS_PATH, getEnginePath, getAssetsPath } from "@main/config/app";
 import { BattleWithMetadata } from "@main/game/battle/battle-types";
 import { Replay } from "@main/content/replays/replay";
@@ -88,8 +86,6 @@ export class GameAPI {
         }
 
         log.info(`Launching game with engine: ${engineVersion}, game: ${gameVersion}`);
-        await this.fetchMissingContent(engineVersion, gameVersion); // TODO preload anything needed through the UI before launching. Remove this step
-
         applyDefaultSpringsettings();
         const enginePath = path.join(getEnginePath(), engineVersion).replaceAll("\\", "/");
         const args = ["--write-dir", WRITE_DATA_PATH, "--isolation", launchArg];
@@ -159,25 +155,6 @@ export class GameAPI {
 
     public isGameRunning() {
         return this.gameProcess !== null;
-    }
-
-    //TODO not handling maps, not sure if needed if we always come from the lobby's UI
-    protected async fetchMissingContent(engineVersion?: string, gameVersion?: string) {
-        if (!engineVersion || !gameVersion) {
-            throw new Error("Engine Version and Game Version need to be specified");
-        }
-
-        const isEngineInstalled = engineContentAPI.isVersionInstalled(engineVersion);
-        const isGameInstalled = gameContentAPI.isVersionInstalled(gameVersion);
-        if (!isEngineInstalled || !isGameInstalled) {
-            //|| !isMapInstalled) {
-            //TODO replace with an event
-            // api.notifications.alert({
-            //     text: "Downloading missing content - the game will auto-launch when downloads complete",
-            // });
-            return Promise.all([engineContentAPI.downloadEngine(engineVersion), gameContentAPI.downloadGame(gameVersion)]);
-        }
-        return;
     }
 }
 

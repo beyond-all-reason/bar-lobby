@@ -19,6 +19,7 @@ import type { Scenario } from "@main/content/game/scenario";
 import type { Settings } from "@main/services/settings.service";
 import type { TachyonEvent, TachyonResponse } from "tachyon-protocol";
 import { ipcRenderer as electronIpcRenderer, ipcMain as electronIpcMain } from "electron";
+import { Config } from "@main/services/config.service";
 
 // Errors thrown in main arrive in the renderer stripped of everything but a message, so failures a
 // caller needs to act on have to travel as data instead. Mirrors the shape tachyon-protocol uses for
@@ -116,6 +117,10 @@ export type IPCCommands = {
     "settings:get": () => Settings;
     "settings:toggleFullscreen": () => void;
     "settings:update": (settings: Partial<Settings>) => Partial<Settings>;
+    "config:get": () => Config;
+    "config:update": (config: Partial<Config>) => Config;
+    "config:fetch": () => void;
+    "shell:openConfigFile": () => IpcResult;
     "shell:openStateDir": () => IpcResult;
     "shell:openAssetsDir": () => IpcResult;
     "shell:openInBrowser": (url: string) => IpcResult;

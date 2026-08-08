@@ -1,8 +1,7 @@
 // SPDX-FileCopyrightText: 2025 The BAR Lobby Authors
 //
 // SPDX-License-Identifier: MIT
-
-import { DEFAULT_ENGINE_VERSION } from "@main/config/default-versions";
+import { configStore } from "@renderer/store/config.store";
 import { EngineVersion } from "@main/content/engine/engine-version";
 import { notificationsApi } from "@renderer/api/notifications";
 import { computed, reactive } from "vue";
@@ -21,7 +20,7 @@ export const installedEngineVersions = computed(() => enginesStore.availableEngi
 
 export async function refreshEnginesStore() {
     enginesStore.availableEngineVersions = await window.engine.listAvailableVersions();
-    enginesStore.selectedEngineVersion = enginesStore.availableEngineVersions.find((e) => e.id === DEFAULT_ENGINE_VERSION);
+    enginesStore.selectedEngineVersion = enginesStore.availableEngineVersions.find((e) => e.id === configStore.defaultEngineVersion);
 }
 
 export async function downloadEngine(engineString: string) {
@@ -47,9 +46,9 @@ export async function initEnginesStore() {
     });
 
     enginesStore.availableEngineVersions = await window.engine.listAvailableVersions();
-    enginesStore.selectedEngineVersion = enginesStore.availableEngineVersions.find((e) => e.id === DEFAULT_ENGINE_VERSION);
+    enginesStore.selectedEngineVersion = enginesStore.availableEngineVersions.find((e) => e.id === configStore.defaultEngineVersion);
     if (!enginesStore.selectedEngineVersion) {
-        console.warn(`Default engine version ${DEFAULT_ENGINE_VERSION} not found in available versions — engine download required.`);
+        console.warn(`Default engine version ${configStore.defaultEngineVersion} not found in available versions — engine download required.`);
     }
 
     enginesStore.isInitialized = true;

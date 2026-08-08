@@ -11,7 +11,8 @@ const { describe, beforeAll, afterAll } = test;
 
 describe("Electron App", async () => {
     let electronApp: ElectronApplication;
-    let firstWindow: Page;
+    let splashWindow: Page;
+    let mainWindow: Page;
 
     beforeAll(async () => {
         const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -24,7 +25,8 @@ describe("Electron App", async () => {
         }
 
         electronApp = await electron.launch({ args });
-        firstWindow = await electronApp.firstWindow();
+        splashWindow = await electronApp.firstWindow();
+        mainWindow = await electronApp.waitForEvent("window", { predicate: (window) => window !== splashWindow });
     });
 
     afterAll(async () => {
@@ -32,26 +34,35 @@ describe("Electron App", async () => {
     });
 
     test("run app", async () => {
-        const title = await firstWindow.title();
+        const title = await mainWindow.title();
         expect(title).toBeTruthy();
     });
 
     test("Main window state", async () => {
-        const windowState: { isVisible: boolean; isDevToolsOpened: boolean; isCrashed: boolean } = await electronApp.evaluate(({ BrowserWindow }) => {
-            const mainWindow = BrowserWindow.getAllWindows()[0];
+        const windowState: { isVisible: boolean; isDevToolsOpened: boolean; isCrashed: boolean } = await electronApp.evaluate(async ({ BrowserWindow }) => {
+            const windows = BrowserWindow.getAllWindows();
+            const targetMainWindow =
+                windows.find((w) => {
+                    const url = w.webContents.getURL();
+                    return url.includes("index.html") && !url.includes("splash");
+                }) || windows[windows.length - 1];
+
+            if (!targetMainWindow) {
+                throw new Error("Could not find the main window process.");
+            }
 
             function getState() {
                 return {
-                    isVisible: mainWindow.isVisible(),
-                    isDevToolsOpened: mainWindow.webContents.isDevToolsOpened(),
-                    isCrashed: mainWindow.webContents.isCrashed(),
+                    isVisible: targetMainWindow.isVisible(),
+                    isDevToolsOpened: targetMainWindow.webContents.isDevToolsOpened(),
+                    isCrashed: targetMainWindow.webContents.isCrashed(),
                 };
             }
 
             return new Promise((resolve) => {
-                if (mainWindow.isVisible()) {
+                if (targetMainWindow.isVisible()) {
                     resolve(getState());
-                } else mainWindow.once("ready-to-show", () => setTimeout(() => resolve(getState()), 0));
+                } else targetMainWindow.once("ready-to-show", () => setTimeout(() => resolve(getState()), 0));
             });
         });
 
@@ -61,8 +72,7 @@ describe("Electron App", async () => {
     });
 
     test("Main window web content", async () => {
-        const page = await electronApp.firstWindow();
-        const element = await page.$("#app", { strict: true });
+        const element = await mainWindow.$("#app", { strict: true });
         expect(element, "Was unable to find the root element").not.toBeNull();
     });
 });

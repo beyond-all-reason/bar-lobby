@@ -11,6 +11,7 @@ import { AbstractContentAPI } from "./abstract-content";
 import { engineContentAPI } from "./engine/engine-content";
 import { logger } from "@main/utils/logger";
 import { getAssetsPath, getEnginePath, getCaCertPath } from "@main/config/app";
+import { configService } from "@main/services/config.service";
 
 const log = logger("pr-downloader.ts");
 
@@ -54,9 +55,9 @@ export abstract class PrDownloaderAPI<ID, T> extends AbstractContentAPI<ID, T> {
                 const prdProcess = spawn(`${prBinaryPath}`, ["--filesystem-writepath", getAssetsPath(), downloadArg, name], {
                     env: {
                         ...process.env,
-                        PRD_RAPID_USE_STREAMER: "false",
-                        PRD_RAPID_REPO_MASTER: "https://repos-cdn.beyondallreason.dev/repos.gz",
-                        PRD_HTTP_SEARCH_URL: "https://files-cdn.beyondallreason.dev/find",
+                        PRD_RAPID_USE_STREAMER: configService.getConfig().prdRapidUseStreamer,
+                        PRD_RAPID_REPO_MASTER: configService.getConfig().prdRapidRepoMaster,
+                        PRD_HTTP_SEARCH_URL: configService.getConfig().prdHttpSearchUrl,
                         ...(caCertPath && !process.env.PRD_SSL_CERT_FILE && { PRD_SSL_CERT_FILE: caCertPath }),
                     },
                 });

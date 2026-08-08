@@ -16,6 +16,7 @@ import type {
     MiscApi,
     ReplaysApi,
     SettingsApi,
+    ConfigApi,
     ShellApi,
     TachyonApi,
     PathsApi,
@@ -30,6 +31,7 @@ declare global {
         replays: ReplaysApi;
         auth: AuthApi;
         settings: SettingsApi;
+        config: ConfigApi;
         engine: EngineApi;
         game: GameApi;
         maps: MapsApi;
