@@ -32,6 +32,7 @@ import { subsManager } from "@renderer/store/users.store";
 import { db } from "@renderer/store/db";
 import { battleStore, battleActions } from "@renderer/store/battle.store";
 import { router } from "@renderer/router";
+import { onWentOffline } from "@renderer/utils/offline-signal";
 
 const i18n = setupI18n();
 
@@ -44,19 +45,29 @@ export const lobbyStore: {
     lobbies: Record<LobbyId, LobbyOverview>;
     selectedLobby?: LobbyOverview;
     activeLobby?: Lobby;
+    wantsListSubscription: boolean;
 } = reactive({
     isInitialized: false,
     lobbies: {},
     selectedLobby: undefined,
     activeLobby: undefined,
+    wantsListSubscription: false,
 });
 
 export async function initLobbyStore() {
+    onWentOffline.add(clearOnlineState);
     window.tachyon.onEvent("lobby/listUpdated", onListUpdatedEvent);
     window.tachyon.onEvent("lobby/listReset", onLobbyListResetEvent);
     window.tachyon.onEvent("lobby/updated", onLobbyUpdatedEvent);
     window.tachyon.onEvent("lobby/left", onLobbyLeftEvent);
     window.tachyon.onEvent("lobby/voteEnded", onLobbyVoteEndedEvent);
+    window.tachyon.onConnected(() => {
+        // The server drops the list subscription when the socket dies, and customLobbies.vue only
+        // subscribes on activation, so a reconnect while sitting there would leave an empty list.
+        if (lobbyStore.wantsListSubscription) {
+            requestSubscribeList();
+        }
+    });
     lobbyStore.isInitialized = true;
 }
 
@@ -81,6 +92,7 @@ function onLobbyVoteEndedEvent(data: LobbyVoteEndedEventData) {
  * Subscribes to the lobby list updates.
  */
 async function requestSubscribeList() {
+    lobbyStore.wantsListSubscription = true;
     try {
         const response = await window.tachyon.request("lobby/subscribeList");
         //Per Tachyon protocol, this subscribes us, but does not return an updated list, that happens in the ListUpdated or ListReset events.
@@ -98,6 +110,7 @@ async function requestSubscribeList() {
  * Unsubscribes from future lobby list updates.
  */
 async function requestUnsubscribeList() {
+    lobbyStore.wantsListSubscription = false;
     try {
         await window.tachyon.request("lobby/unsubscribeList");
     } catch (error) {
@@ -517,7 +530,15 @@ async function requestUnboss(userId?: UserId) {
     }
 }
 
+export function clearOnlineState() {
+    clearUserSubscriptions();
+    lobbyStore.lobbies = {};
+    lobbyStore.selectedLobby = undefined;
+    lobbyStore.activeLobby = undefined;
+}
+
 export const lobby = {
+    clearOnlineState,
     requestSubscribeList,
     requestUnsubscribeList,
     requestCreateLobby,
