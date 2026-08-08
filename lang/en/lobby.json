@@ -586,6 +586,65 @@
                         "label": "Downloaded"
                     }
                 }
+            },
+            "user": {
+                "reportUser": {
+                    "menuLabel": "Report User",
+                    "title": "Report {username}",
+                    "blurb": "Reports are handled by volunteers, so please include:",
+                    "guidanceDescription": "What was done, or the specific words that were said",
+                    "guidanceTimestamps": "Timestamps of the in game events, even approximate ones",
+                    "specCheatingNote": "Reports that say only \"spec cheating\" may be ignored. Say what looked suspicious, with timestamps.",
+                    "reasonForReport": "Reason for Report",
+                    "whichMatch": "Which Match?",
+                    "lobbyActionsHint": "If it happened in the lobby, pick the match it happened before.",
+                    "fetchingMatches": "Fetching Matches",
+                    "noMatch": "I cannot find the match",
+                    "matchesFailed": "Could not load recent matches. You can still send the report without one.",
+                    "noMatchesFound": "No recent matches found for this player. You can still send the report, but without a match we may not be able to find the evidence.",
+                    "matchTeams": "{left} vs {right}",
+                    "matchFfa": "{teams} way FFA",
+                    "matchOnMap": "{match} on {map}",
+                    "columnMatch": "Match",
+                    "columnMap": "Map",
+                    "columnWhen": "When",
+                    "columnLength": "Length",
+                    "matchWhen": "{ago} ago",
+                    "matchWhenUnknown": "Unknown",
+                    "team": "Team {team}",
+                    "winner": "won",
+                    "wasSpectating": "This player was spectating this match.",
+                    "extraInfo": "Extra Info",
+                    "sections": {
+                        "chat": "Chat / Communication",
+                        "actions": "In-Game Actions"
+                    },
+                    "reasons": {
+                        "chat": {
+                            "spam": "Spam",
+                            "bullying": "Bullying",
+                            "hate": "Hate speech",
+                            "other": "Other"
+                        },
+                        "actions": {
+                            "noob": "Noob",
+                            "griefing": "Griefing",
+                            "cheating": "Cheating",
+                            "other": "Other"
+                        }
+                    },
+                    "messagePlaceholder": "Describe what happened",
+                    "submit": "Send Report",
+                    "submitted": "Report sent to the moderation team.",
+                    "relationships": {
+                        "ignore": "Ignore",
+                        "ignoreTooltip": "Stop seeing their messages. Not available in the lobby yet, do it on the website.",
+                        "avoid": "Avoid",
+                        "avoidTooltip": "Ask not to be put in a game with them. Not available in the lobby yet, do it on the website.",
+                        "block": "Block",
+                        "blockTooltip": "Stop seeing them at all. Not available in the lobby yet, do it on the website."
+                    }
+                }
             }
         }
     }

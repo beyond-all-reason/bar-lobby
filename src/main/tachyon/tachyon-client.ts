@@ -14,11 +14,31 @@ import { MessageEvent, WebSocket } from "ws";
 
 const log = logger("tachyon-client");
 
+type ServerToUserRequestCommandId = GetCommandIds<"server", "user", "request">;
+type ServerToUserRequest<C extends ServerToUserRequestCommandId = ServerToUserRequestCommandId> = GetCommands<"server", "user", "request", C>;
+type StripEnvelope<T> = T extends object ? Omit<T, "type" | "commandId" | "messageId"> : never;
+type UserToServerResponseBody<C extends ServerToUserRequestCommandId = ServerToUserRequestCommandId> = StripEnvelope<GetCommands<"user", "server", "response", C>>;
+type AnyUserToServerResponseBody = UserToServerResponseBody<ServerToUserRequestCommandId>;
+
 export type TachyonClientRequestHandlers = {
-    [CommandId in GetCommandIds<"server", "user", "request">]: (
-        data: GetCommandData<GetCommands<"server", "user", "request", CommandId>>
-    ) => Promise<Omit<GetCommands<"user", "server", "response", CommandId>, "type" | "commandId" | "messageId">>;
+    [CommandId in ServerToUserRequestCommandId]: (data: GetCommandData<ServerToUserRequest<CommandId>>) => Promise<UserToServerResponseBody<CommandId>>;
 };
+
+class InternalError extends Error {
+    constructor(message: string) {
+        super(message);
+        this.name = "InternalError";
+        Object.setPrototypeOf(this, InternalError.prototype);
+    }
+}
+
+class UnimplementedError extends Error {
+    constructor(message: string) {
+        super(message);
+        this.name = "UnimplementedError";
+        Object.setPrototypeOf(this, UnimplementedError.prototype);
+    }
+}
 
 export class TachyonClient {
     public socket?: WebSocket;
@@ -125,9 +145,13 @@ export class TachyonClient {
         if (data) {
             Object.assign(request, { data });
         }
-        validateCommand(request);
-        this.socket.send(JSON.stringify(request));
-
+        try {
+            validateMessage(request, "command");
+            this.socket.send(JSON.stringify(request));
+        } catch (error) {
+            log.error(`Failed to send request ${commandId}: ${error}`);
+            throw error;
+        }
         return new Promise((resolve, reject) => {
             this.responseHandlers.set(messageId, (response: TachyonResponse | { status: "socket_closed" }) => {
                 if (response.status === "socket_closed") {
@@ -168,8 +192,13 @@ export class TachyonClient {
         if (!this.socket) {
             throw new Error("Not connected to server");
         }
-        validateCommand(event);
-        this.socket.send(JSON.stringify(event));
+        try {
+            validateMessage(event, "command");
+            this.socket.send(JSON.stringify(event));
+        } catch (error) {
+            log.error(`Failed to send event ${event.commandId}: ${error}`);
+            throw error;
+        }
     }
 
     protected handleMessage(message: MessageEvent) {
@@ -178,7 +207,7 @@ export class TachyonClient {
             throw new Error(`Message does not match expected command structure`);
         }
         if (obj.type === "request") {
-            this.handleRequest(obj);
+            this.handleRequest(obj as ServerToUserRequest);
         } else if (obj.type === "response") {
             this.handleResponse(obj);
         } else if (obj.type === "event") {
@@ -189,21 +218,66 @@ export class TachyonClient {
     }
 
     private async handleRequest(command: TachyonRequest) {
-        const handler = this.requestHandlers[command.commandId as keyof typeof this.requestHandlers] as unknown as (
-            data?: unknown
-        ) => Promise<Omit<TachyonResponse, "type" | "commandId" | "messageId">>;
+        const commandId = command.commandId as ServerToUserRequestCommandId;
+        const handler = this.requestHandlers[commandId] as ((data?: unknown) => Promise<AnyUserToServerResponseBody>) | undefined;
+        const requestData = "data" in command ? command.data : undefined;
+
+        let handlerResponse: AnyUserToServerResponseBody;
         if (!handler) {
-            throw new Error(`No response handler found for: ${command.commandId}`);
+            log.warn(`No response handler found for: ${commandId}`);
+            handlerResponse = {
+                status: "failed",
+                reason: "command_unimplemented",
+                details: `No response handler found for: ${commandId}`,
+            } as AnyUserToServerResponseBody;
+        } else {
+            try {
+                handlerResponse = await handler(requestData);
+            } catch (error) {
+                log.error(`Error handling request for request ${commandId}: ${error}`);
+                handlerResponse = {
+                    status: "failed",
+                    reason: "internal_error",
+                    details: error instanceof Error ? error.message : "Unknown error occurred",
+                } as AnyUserToServerResponseBody;
+            }
         }
-        const handlerResponse = await handler("data" in command ? command.data : undefined);
+
         const response = {
             type: "response",
-            commandId: command.commandId,
+            commandId,
             messageId: command.messageId,
             ...handlerResponse,
         } as TachyonResponse;
-        validateCommand(response);
-        this.socket?.send(JSON.stringify(response));
+
+        try {
+            validateMessage(response, "response");
+            this.socket?.send(JSON.stringify(response));
+        } catch (err) {
+            let reason = "internal_error";
+            let details = err instanceof Error ? err.message : "Unknown error occurred";
+
+            if (err instanceof UnimplementedError) {
+                reason = "command_unimplemented";
+            } else if (err instanceof InternalError) {
+                reason = "internal_error";
+            } else {
+                log.error("Unexpected error during response handling:", err);
+                reason = "internal_error";
+                details = "An unexpected validation lifecycle error occurred.";
+            }
+
+            this.socket?.send(
+                JSON.stringify({
+                    type: "response",
+                    commandId,
+                    messageId: command.messageId,
+                    status: "failed",
+                    reason,
+                    details,
+                } as TachyonResponse)
+            );
+        }
     }
 
     private async handleResponse(response: TachyonResponse) {
@@ -238,17 +312,21 @@ export class TachyonClient {
     }
 }
 
-function validateCommand(command: TachyonCommand) {
-    const commandId = command.commandId;
-    const validatorId = `${commandId}/${command.type}`.replaceAll("/", "_") as Exclude<keyof typeof validators, "validator">;
+function validateMessage(message: TachyonCommand, context: "command" | "response") {
+    const commandId = message.commandId;
+
+    const validatorId = `${commandId}/${message.type}`.replaceAll("/", "_") as Exclude<keyof typeof validators, "validator">;
+
     const validator = validators[validatorId];
+
     if (!validator) {
-        throw new Error(`No validator found with id: ${validatorId}`);
+        throw new UnimplementedError(`No validator found with id: ${validatorId}`);
     }
-    const isValid = validator(command);
+
+    const isValid = validator(message);
     if (!isValid) {
         log.error(validator.errors);
-        throw new Error(`Command validation failed for: ${commandId}`);
+        throw new InternalError(`${context === "command" ? "Command" : "Response"} validation failed for: ${commandId}`);
     }
 }
 

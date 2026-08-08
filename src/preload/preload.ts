@@ -5,6 +5,7 @@
 import { contextBridge } from "electron";
 import { ipcRenderer, IpcResult } from "@main/typed-ipc";
 import { Replay } from "@main/content/replays/replay";
+import { OnlineReplayDetails, OnlineReplayOverview } from "@main/content/replays/online-replays";
 import { Settings } from "@main/services/settings.service";
 import { EngineVersion } from "@main/content/engine/engine-version";
 import { GameVersion } from "@main/content/game/game-version";
@@ -13,6 +14,7 @@ import { DownloadInfo } from "@main/content/downloads";
 import { Info } from "@main/services/info.service";
 import { BattleWithMetadata } from "@main/game/battle/battle-types";
 import { GetCommandData, GetCommandIds, GetCommands } from "tachyon-protocol";
+import type { BattleStartRequestData } from "tachyon-protocol/types";
 import { MultiplayerLaunchSettings } from "@main/game/game";
 import { logLevels } from "@main/services/log.service";
 import { Config } from "@main/services/config.service";
@@ -60,6 +62,8 @@ contextBridge.exposeInMainWorld("shell", shellApi);
 const replaysApi = {
     sync: (replays: string[]): Promise<void> => ipcRenderer.invoke("replays:sync", replays),
     delete: (fileName: string): Promise<void> => ipcRenderer.invoke("replays:delete", fileName),
+    searchOnlineByPlayer: (username: string, limit: number): Promise<IpcResult<OnlineReplayOverview[]>> => ipcRenderer.invoke("replays:searchOnlineByPlayer", username, limit),
+    getOnline: (replayId: string): Promise<IpcResult<OnlineReplayDetails>> => ipcRenderer.invoke("replays:getOnline", replayId),
 
     // Events
     onReplayCachingStarted: (callback: (filename: string) => void) => ipcRenderer.on("replays:replayCachingStarted", (_event, filename) => callback(filename)),
@@ -247,7 +251,7 @@ const tachyonApi = {
     onConnected: (callback: () => void) => ipcRenderer.on("tachyon:connected", callback),
     onDisconnected: (callback: () => void) => ipcRenderer.on("tachyon:disconnected", callback),
     onEvent,
-    onBattleStart: (callback: (springString: string) => void) => ipcRenderer.on("tachyon:battleStart", (_event, springString) => callback(springString)),
+    onBattleStart: (callback: (springString: string, data: BattleStartRequestData) => void) => ipcRenderer.on("tachyon:battleStart", (_event, springString, data) => callback(springString, data)),
 };
 export type TachyonApi = typeof tachyonApi;
 contextBridge.exposeInMainWorld("tachyon", tachyonApi);
