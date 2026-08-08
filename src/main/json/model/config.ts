@@ -15,7 +15,7 @@ export const configSchema = Type.Object({
     engineReleaseUrl: Type.String({ default: "https://files-cdn.beyondallreason.dev/find" }),
     defaultMaps: Type.Array(Type.String(), { default: ["Quicksilver Remake 1.24", "Red Comet Remake 1.8"] }),
     latestGameVersion: Type.String({ default: "byar:test" }),
-    defaultEngineVersion: Type.String({ default: "2025.06.12" }),
+    defaultEngineVersion: Type.String({ default: "2025.07.04" }),
     initialPoolDataUrl: Type.String({ default: "https://pool-init.beyondallreason.dev" }),
     prdRapidUseStreamer: Type.String({ default: "false" }),
     prdRapidRepoMaster: Type.String({ default: "https://repos-cdn.beyondallreason.dev/repos.gz" }),
