@@ -197,6 +197,9 @@ async function sendQueueRequest() {
                 await sendListRequest();
             } else if (error.reason === "party_missing_asset") {
                 notificationsApi.alert({ text: "Party queue rejected, required assets are missing for the queue.", severity: "error" });
+            } else {
+                notificationsApi.alert({ text: `Queue request rejected for reason: ${error.reason}.`, severity: "error" });
+                console.error("Tachyon error: matchmaking/queue:", error);
             }
         } else {
             console.error("Tachyon error: matchmaking/queue:", error);
