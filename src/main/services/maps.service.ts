@@ -54,6 +54,7 @@ async function fetchAllMaps(): Promise<[MapData[], MapDownloadData[]]> {
 function registerIpcHandlers(webContents: BarIpcWebContents) {
     ipcMain.handle("maps:downloadMap", (_, springName: string) => mapContentAPI.downloadMap(springName));
     ipcMain.handle("maps:downloadMaps", (_, springNames: string[]) => mapContentAPI.downloadMaps(springNames));
+    ipcMain.handle("maps:getDownloadQueue", () => mapContentAPI.getMapDownloadQueue());
     ipcMain.handle("maps:getInstalledMapNames", () => Object.keys(mapContentAPI.mapNameFileNameLookup));
     ipcMain.handle("maps:getInstalledVersions", () => mapContentAPI.availableVersions);
     ipcMain.handle("maps:isVersionInstalled", (_, id: string) => mapContentAPI.isVersionInstalled(id));
@@ -63,6 +64,9 @@ function registerIpcHandlers(webContents: BarIpcWebContents) {
     ipcMain.handle("maps:online:fetchMapImages", (_, imageSource: string) => fetchMapImages(imageSource));
 
     // Events
+    mapContentAPI.onMapDownloadQueueChanged.add((queue) => {
+        webContents.send("maps:downloadQueueChanged", queue);
+    });
     mapContentAPI.onMapAdded.add((filename: string) => {
         webContents.send("maps:mapAdded", filename);
     });
