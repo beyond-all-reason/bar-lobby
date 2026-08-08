@@ -27,7 +27,7 @@ SPDX-License-Identifier: MIT
                             v-in-view.once="() => (message.seen = true)"
                             :class="['message', { fromMe: message.source.userId === me.userId }]"
                         >
-                            <Markdown :source="message.message" />
+                            <Markdown :source="message.message" allow-protocol-links />
                         </div>
                     </div>
                 </div>
