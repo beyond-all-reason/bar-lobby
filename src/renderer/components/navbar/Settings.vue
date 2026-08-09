@@ -124,7 +124,7 @@ import { uploadLogs } from "@renderer/utils/log";
 import { useTypedI18n } from "@renderer/i18n";
 import language from "@iconify-icons/mdi/language";
 import { Icon } from "@iconify/vue";
-import type { Locale } from "@renderer/i18n";
+import type { Locale } from "@renderer/locales";
 const { t, locale, availableLocales } = useTypedI18n();
 
 const currentAssetsPath = ref("");
@@ -243,33 +243,41 @@ async function uploadLogsCommand(event) {
 
 // Transform language codes dynamically using the browser Intl API
 const localeOptions = computed(() => {
-    return (availableLocales as Locale[]).map((code) => {
-        // 1. Establish a safe base default label
-        let label: string = code;
-
-        // 2. Handle manual overrides for non-standard testing languages
-        if (code === "dev") {
-            return { label: "Dev (Scrambled)", value: code };
-        }
-
-        try {
-            // 3. Fall back to standard browser translation for real BCP 47 codes
-            const formatter = new Intl.DisplayNames([code], { type: "language" });
-            const nativeName = formatter.of(code);
-
-            if (nativeName) {
-                label = nativeName.charAt(0).toUpperCase() + nativeName.slice(1);
+    return (availableLocales as Locale[])
+        .filter((code) => {
+            if (code === "dev") {
+                return settingsStore.devMode;
             }
-        } catch (e) {
-            // 4. Fallback guard: protects your app if a browser lacks a certain language pack
-            label = code.toUpperCase();
-        }
+            return true;
+        })
+        .map((code) => {
+            // 1. Establish a safe base default label
+            let label: string = code;
 
-        return {
-            label,
-            value: code,
-        };
-    });
+            // 2. Handle manual overrides for non-standard testing languages
+            if (code === "dev") {
+                return { label: "Dev (Scrambled)", value: code };
+            }
+
+            try {
+                // 3. Fall back to standard browser translation for real BCP 47 codes
+                const formatter = new Intl.DisplayNames([code], { type: "language" });
+                const nativeName = formatter.of(code);
+
+                if (nativeName) {
+                    label = nativeName.charAt(0).toUpperCase() + nativeName.slice(1);
+                }
+            } catch (e) {
+                // 4. Fallback guard: protects your app if a browser lacks a certain language pack
+                console.warn(`Failed to get native name for locale code: ${code}`, e);
+                label = code.toUpperCase();
+            }
+
+            return {
+                label,
+                value: code,
+            };
+        });
 });
 </script>
 

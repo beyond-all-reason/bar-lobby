@@ -11,8 +11,10 @@ import deTranslation from "@renderer/assets/languages/de.json";
 import frTranslation from "@renderer/assets/languages/fr.json";
 import ruTranslation from "@renderer/assets/languages/ru.json";
 import zhTranslation from "@renderer/assets/languages/zh.json";
+import devTranslation from "@renderer/assets/languages/dev.json";
+import { settingsStore } from "@renderer/store/settings.store";
+import type { Locale } from "@renderer/locales";
 
-export type Locale = "cs" | "de" | "en" | "fr" | "ru" | "zh" | "dev";
 type MessageSchema = typeof enTranslation;
 
 const messages = {
@@ -22,10 +24,19 @@ const messages = {
     fr: frTranslation as any,
     ru: ruTranslation as any,
     zh: zhTranslation as any,
+    dev: devTranslation as any,
 };
 
+// TODO: this appears to be too early, because settingStore.language is undefined when opening the application.
+// Instead, we need to get to the mounted stage of the application before setting the language.
 export function setupI18n() {
-    const myLocale = Intl.DateTimeFormat().resolvedOptions().locale.split("-")[0]; // TODO: add override from user settings
+    let myLocale = Intl.DateTimeFormat().resolvedOptions().locale.split("-")[0];
+    console.log(`Detected locale: ${myLocale}, using language from settings: ${settingsStore.language}`);
+    if (!settingsStore.language) {
+        settingsStore.language = myLocale as Locale;
+    } else {
+        myLocale = settingsStore.language;
+    }
 
     return createI18n<[MessageSchema], Locale>({
         locale: myLocale,

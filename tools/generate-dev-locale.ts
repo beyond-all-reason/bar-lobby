@@ -4,7 +4,6 @@
 
 // This script generates a "dev" locale JSON file by scrambling the middle characters of words
 // in the source English JSON file, while preserving interpolation placeholders and pluralization syntax.
-
 import * as fs from "fs";
 import * as path from "path";
 
@@ -16,8 +15,8 @@ interface JsonObject {
 type JsonValue = string | JsonObject | Array<string | JsonObject> | null | number | boolean;
 
 // Configuration paths
-const SOURCE_FILE: string = path.join(__dirname, "en.json"); // Path to your source English file
-const OUTPUT_FILE: string = path.join(__dirname, "dev.json"); // Output path for JSON
+const SOURCE_FILE: string = path.join("lang/en/lobby.json"); // Path to your source English file
+const OUTPUT_FILE: string = path.join("lang/dev/lobby.json"); // Output path for JSON
 
 /**
  * Scrambles the middle characters of a single word, leaving first/last intact.
