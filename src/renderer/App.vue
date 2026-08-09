@@ -218,6 +218,10 @@ function getPartyIcon() {
 <style lang="scss" scoped>
 .view-container {
     flex: auto;
+    // Views layer their own hover and selected states with small z-indexes, and
+    // without a stacking context of their own those compete with the navbar and
+    // the reconnecting overlay out here rather than staying inside the view.
+    isolation: isolate;
     transition: transform 0.4s ease-out;
     &.translated-right {
         transform: translateX(10%);
