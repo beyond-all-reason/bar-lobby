@@ -13,6 +13,7 @@ import type { logLevels } from "@main/services/log.service";
 import type { MapData, MapDownloadData } from "@main/content/maps/map-data";
 import type { MultiplayerLaunchSettings } from "@main/game/game";
 import type { NewsFeedData } from "@main/services/news.service";
+import type { OnlineReplayDetails, OnlineReplayOverview } from "@main/content/replays/online-replays";
 import type { Replay } from "@main/content/replays/replay";
 import type { Scenario } from "@main/content/game/scenario";
 import type { Settings } from "@main/services/settings.service";
@@ -109,6 +110,8 @@ export type IPCCommands = {
     "paths:getCurrentAssetsPath": () => string;
     "renderer:ready": () => void;
     "replays:delete": (fileName: string) => void;
+    "replays:getOnline": (replayId: string) => IpcResult<OnlineReplayDetails>;
+    "replays:searchOnlineByPlayer": (username: string, limit: number) => IpcResult<OnlineReplayOverview[]>;
     "replays:sync": (replays: string[]) => void;
     "settings:get": () => Settings;
     "settings:toggleFullscreen": () => void;

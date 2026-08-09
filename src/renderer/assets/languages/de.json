@@ -2438,6 +2438,65 @@
                         "label": null
                     }
                 }
+            },
+            "user": {
+                "reportUser": {
+                    "menuLabel": null,
+                    "title": null,
+                    "blurb": null,
+                    "guidanceDescription": null,
+                    "guidanceTimestamps": null,
+                    "specCheatingNote": null,
+                    "reasonForReport": null,
+                    "whichMatch": null,
+                    "lobbyActionsHint": null,
+                    "fetchingMatches": null,
+                    "noMatch": null,
+                    "matchesFailed": null,
+                    "noMatchesFound": null,
+                    "matchTeams": null,
+                    "matchFfa": null,
+                    "matchOnMap": null,
+                    "columnMatch": null,
+                    "columnMap": null,
+                    "columnWhen": null,
+                    "columnLength": null,
+                    "matchWhen": null,
+                    "matchWhenUnknown": null,
+                    "team": null,
+                    "winner": null,
+                    "wasSpectating": null,
+                    "extraInfo": null,
+                    "sections": {
+                        "chat": null,
+                        "actions": null
+                    },
+                    "reasons": {
+                        "chat": {
+                            "spam": null,
+                            "bullying": null,
+                            "hate": null,
+                            "other": null
+                        },
+                        "actions": {
+                            "noob": null,
+                            "griefing": null,
+                            "cheating": null,
+                            "other": null
+                        }
+                    },
+                    "messagePlaceholder": null,
+                    "submit": null,
+                    "submitted": null,
+                    "relationships": {
+                        "ignore": null,
+                        "ignoreTooltip": null,
+                        "avoid": null,
+                        "avoidTooltip": null,
+                        "block": null,
+                        "blockTooltip": null
+                    }
+                }
             }
         }
     },

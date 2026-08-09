@@ -64,6 +64,7 @@ SPDX-License-Identifier: MIT
         <ServerSettings v-model="serverSettingsOpen" />
         <FullscreenGameModeSelector v-if="state === 'default'" :visible="battleStore.isSelectingGameMode" />
         <LogInConfirmationModal v-model="logInConfirmationIsOpen" :intendedRoute="logInConfirmationIntendedRoute" />
+        <ReportUserModal />
     </div>
     <Error />
 </template>
@@ -90,6 +91,7 @@ import Notifications from "@renderer/components/notifications/Notifications.vue"
 import ReconnectingOverlay from "@renderer/components/misc/ReconnectingOverlay.vue";
 import PromptContainer from "@renderer/components/prompts/PromptContainer.vue";
 import LogInConfirmationModal from "@renderer/components/misc/LogInConfirmationModal.vue";
+import ReportUserModal from "@renderer/components/user/ReportUserModal.vue";
 
 import { playRandomMusic } from "@renderer/utils/play-random-music";
 import { settingsStore } from "./store/settings.store";

@@ -70,6 +70,9 @@ SPDX-License-Identifier: MIT
                 >
                     <Icon :icon="accountMultiple" />
                 </Button>
+                <Button v-tooltip.left="t('lobby.components.user.reportUser.menuLabel')" class="slim square" @click="reportUser">
+                    <ReportUserIcon />
+                </Button>
                 <Button v-tooltip.left="t('lobby.navbar.tooltips.removeFriend')" class="slim red square" @click="removeFriend">
                     <Icon :icon="deleteIcon" />
                 </Button>
@@ -92,6 +95,7 @@ import { inject, Ref, watch, computed } from "vue";
 
 import Button from "@renderer/components/controls/Button.vue";
 import Flag from "@renderer/components/misc/Flag.vue";
+import ReportUserIcon from "@renderer/components/user/ReportUserIcon.vue";
 import { useRouter } from "vue-router";
 import { useTypedI18n } from "@renderer/i18n";
 import { friends } from "@renderer/store/me.store";
@@ -101,8 +105,10 @@ import { useDexieLiveQuery } from "@renderer/composables/useDexieLiveQuery";
 import { chat } from "@renderer/store/chat.store";
 import { partyStore, party, PlayersPartyState } from "@renderer/store/party.store";
 import { PartyInviteRequestData } from "tachyon-protocol/types";
+import { useReportUser } from "@renderer/composables/useReportUser";
 
 const { t } = useTypedI18n();
+const { openReportUser } = useReportUser();
 
 const router = useRouter();
 
@@ -209,6 +215,12 @@ async function inviteToParty() {
     } else {
         party.requestCreateAndInvite(props.userId);
     }
+}
+
+function reportUser() {
+    if (!user.value) return;
+
+    openReportUser(user.value);
 }
 
 async function removeFriend() {
