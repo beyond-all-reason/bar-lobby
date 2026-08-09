@@ -12,7 +12,7 @@ import frTranslation from "@renderer/assets/languages/fr.json";
 import ruTranslation from "@renderer/assets/languages/ru.json";
 import zhTranslation from "@renderer/assets/languages/zh.json";
 
-type Locale = "cs" | "de" | "en" | "fr" | "ru" | "zh";
+export type Locale = "cs" | "de" | "en" | "fr" | "ru" | "zh" | "dev";
 type MessageSchema = typeof enTranslation;
 
 const messages = {
@@ -40,3 +40,5 @@ export function useTypedI18n() {
         useScope: "global",
     });
 }
+
+// Reference for changing scope https://vue-i18n.intlify.dev/guide/essentials/scope.html

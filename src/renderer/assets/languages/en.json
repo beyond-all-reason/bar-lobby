@@ -2123,6 +2123,7 @@
                 "labelMd": "Medium",
                 "labelLg": "Large",
                 "labelDisplay": "Display {id}",
+                "language": "Language",
                 "storage": "Storage",
                 "assetsPath": "Assets Location",
                 "browse": "Browse",

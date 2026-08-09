@@ -7,6 +7,13 @@ SPDX-License-Identifier: MIT
 <template>
     <Modal :title="t('lobby.navbar.settings.title')">
         <div class="gridform">
+            <div>
+                <span>
+                    <Icon :icon="language" />
+                    {{ t("lobby.navbar.settings.language") }}
+                </span>
+            </div>
+            <Select v-model="locale" :options="localeOptions" optionLabel="label" optionValue="value" />
             <div>{{ t("lobby.navbar.settings.fullscreen") }}</div>
             <Checkbox v-model="settingsStore.fullscreen" />
 
@@ -115,7 +122,10 @@ import { refreshGameStore } from "@renderer/store/game.store";
 import { refreshMapsStore } from "@renderer/store/maps.store";
 import { uploadLogs } from "@renderer/utils/log";
 import { useTypedI18n } from "@renderer/i18n";
-const { t } = useTypedI18n();
+import language from "@iconify-icons/mdi/language";
+import { Icon } from "@iconify/vue";
+import type { Locale } from "@renderer/i18n";
+const { t, locale, availableLocales } = useTypedI18n();
 
 const currentAssetsPath = ref("");
 const pendingAssetsPath = ref<string | null>(null);
@@ -230,6 +240,37 @@ async function uploadLogsCommand(event) {
     // Display feedback
     op.value.show(curE, curTarget);
 }
+
+// Transform language codes dynamically using the browser Intl API
+const localeOptions = computed(() => {
+    return (availableLocales as Locale[]).map((code) => {
+        // 1. Establish a safe base default label
+        let label: string = code;
+
+        // 2. Handle manual overrides for non-standard testing languages
+        if (code === "dev") {
+            return { label: "Dev (Scrambled)", value: code };
+        }
+
+        try {
+            // 3. Fall back to standard browser translation for real BCP 47 codes
+            const formatter = new Intl.DisplayNames([code], { type: "language" });
+            const nativeName = formatter.of(code);
+
+            if (nativeName) {
+                label = nativeName.charAt(0).toUpperCase() + nativeName.slice(1);
+            }
+        } catch (e) {
+            // 4. Fallback guard: protects your app if a browser lacks a certain language pack
+            label = code.toUpperCase();
+        }
+
+        return {
+            label,
+            value: code,
+        };
+    });
+});
 </script>
 
 <style lang="scss" scoped>
