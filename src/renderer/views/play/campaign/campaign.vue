@@ -16,7 +16,13 @@ SPDX-License-Identifier: MIT
                 <p>No campaigns available for the selected game version.</p>
             </div>
             <div v-else class="campaign-list">
-                <div v-for="campaign in campaigns" :key="campaign.campaignId" class="campaign-card">
+                <div
+                    v-for="campaign in campaigns"
+                    :key="campaign.campaignId"
+                    class="campaign-card"
+                    :class="{ locked: !campaign.unlocked }"
+                    @click="campaign.unlocked && router.push(`/play/campaign/${campaign.campaignId}`)"
+                >
                     <Panel :no-padding="true">
                         <div
                             class="background_image"
@@ -36,15 +42,6 @@ SPDX-License-Identifier: MIT
                                     </h2>
                                     <p>{{ campaign.description }}</p>
                                 </div>
-                                <div class="flex-end">
-                                    <Button
-                                        :disabled="!campaign.unlocked"
-                                        @click="campaign.unlocked && router.push(`/play/campaign/${campaign.campaignId}`)"
-                                        :class="campaign.unlocked ? 'green' : 'red'"
-                                    >
-                                        <h1>Open Campaign</h1>
-                                    </Button>
-                                </div>
                             </div>
                         </div>
                     </Panel>
@@ -60,8 +57,8 @@ SPDX-License-Identifier: MIT
 <script lang="ts" setup>
 import { watch } from "vue";
 import { useRouter } from "vue-router";
-import Button from "@renderer/components/controls/Button.vue";
 import Panel from "@renderer/components/common/Panel.vue";
+import Button from "@renderer/components/controls/Button.vue";
 import { settingsStore } from "@renderer/store/settings.store";
 import { gameStore } from "@renderer/store/game.store";
 import { useCampaignLoader } from "@renderer/composables/useCampaignLoader";
@@ -88,6 +85,19 @@ watch(
     flex-direction: column;
     gap: 10px;
     overflow-y: auto;
+}
+
+.campaign-card {
+    cursor: pointer;
+
+    &.locked {
+        cursor: not-allowed;
+        opacity: 0.6;
+    }
+
+    &:not(.locked):hover {
+        filter: brightness(1.15);
+    }
 }
 
 .background_image {

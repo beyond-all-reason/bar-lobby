@@ -20,7 +20,13 @@ SPDX-License-Identifier: MIT
         </div>
         <p>{{ campaign?.description }}</p>
         <div class="mission-list">
-            <div v-for="[missionId, mission] in Object.entries(campaign?.missions ?? {})" :key="missionId" class="mission-card">
+            <div
+                v-for="[missionId, mission] in Object.entries(campaign?.missions ?? {})"
+                :key="missionId"
+                class="mission-card"
+                :class="{ locked: !mission.unlocked }"
+                @click="mission.unlocked && router.push(`/play/campaign/${campaignId}/${missionId}`)"
+            >
                 <Panel :no-padding="true">
                     <div
                         class="background_image"
@@ -30,16 +36,7 @@ SPDX-License-Identifier: MIT
                     >
                         <div class="flex-row padding-md">
                             <div class="flex-start flex-grow">
-                                <h2>{{ mission.title }}</h2>
-                            </div>
-                            <div class="flex-end">
-                                <Button
-                                    :disabled="!mission.unlocked"
-                                    @click="mission.unlocked && router.push(`/play/campaign/${campaignId}/${missionId}`)"
-                                    :class="mission.unlocked ? 'green' : 'red'"
-                                >
-                                    <h1>{{ mission.unlocked ? "Play" : "Locked" }}</h1>
-                                </Button>
+                                <h2>{{ mission.title }}<span v-if="!mission.unlocked" class="small-text margin-left-md">Locked</span></h2>
                             </div>
                         </div>
                     </div>
@@ -89,6 +86,23 @@ function goBack() {
     flex-shrink: 1;
     flex-basis: auto;
     height: 0px;
+}
+
+.mission-card {
+    cursor: pointer;
+
+    &.locked {
+        cursor: not-allowed;
+        opacity: 0.6;
+    }
+
+    &:not(.locked):hover {
+        filter: brightness(1.15);
+    }
+}
+
+.small-text {
+    font-size: 60%;
 }
 
 .background_image {

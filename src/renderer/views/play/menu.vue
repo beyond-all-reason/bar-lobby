@@ -19,11 +19,13 @@ SPDX-License-Identifier: MIT
                         </div>
                     </Panel>
 
-                    <Panel :no-padding="true" class="game-mode-card disabled" @click="startCampaign">
+                    <Panel :no-padding="true" class="game-mode-card" :class="{ disabled: !settingsStore.devMode }" @click="startCampaign">
                         <div class="card-content">
                             <h2>
                                 {{ t("lobby.views.play.campaign")
-                                }}<span class="small-text margin-left-md">{{ t("lobby.views.play.comingSoon") }}</span>
+                                }}<span v-if="!settingsStore.devMode" class="small-text margin-left-md">{{
+                                    t("lobby.views.play.comingSoon")
+                                }}</span>
                             </h2>
                         </div>
                     </Panel>
@@ -73,6 +75,7 @@ import Panel from "@renderer/components/common/Panel.vue";
 import { settingsStore } from "@renderer/store/settings.store";
 import { battleStore } from "@renderer/store/battle.store";
 import { useTypedI18n } from "@renderer/i18n";
+
 const { t } = useTypedI18n();
 
 const router = useRouter();
