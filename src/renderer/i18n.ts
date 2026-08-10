@@ -27,16 +27,8 @@ const messages = {
     dev: devTranslation as any,
 };
 
-// TODO: this appears to be too early, because settingStore.language is undefined when opening the application.
-// Instead, we need to get to the mounted stage of the application before setting the language.
 export function setupI18n() {
-    let myLocale = Intl.DateTimeFormat().resolvedOptions().locale.split("-")[0];
-    console.log(`Detected locale: ${myLocale}, using language from settings: ${settingsStore.language}`);
-    if (!settingsStore.language) {
-        settingsStore.language = myLocale as Locale;
-    } else {
-        myLocale = settingsStore.language;
-    }
+    const myLocale = settingsStore.language ?? Intl.DateTimeFormat().resolvedOptions().locale.split("-")[0];
 
     return createI18n<[MessageSchema], Locale>({
         locale: myLocale,
