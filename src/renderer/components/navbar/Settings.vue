@@ -13,7 +13,7 @@ SPDX-License-Identifier: MIT
                     {{ t("lobby.navbar.settings.language") }}
                 </span>
             </div>
-            <Select v-model="locale" :options="localeOptions" optionLabel="label" optionValue="value" />
+            <Select v-model="settingsStore.language" :options="localeOptions" optionLabel="label" optionValue="value" />
             <div>{{ t("lobby.navbar.settings.fullscreen") }}</div>
             <Checkbox v-model="settingsStore.fullscreen" />
 
@@ -124,8 +124,10 @@ import { uploadLogs } from "@renderer/utils/log";
 import { useTypedI18n } from "@renderer/i18n";
 import language from "@iconify-icons/mdi/language";
 import { Icon } from "@iconify/vue";
+import { useLocaleOptions } from "@renderer/composables/useLocaleOptions";
 import type { Locale } from "@renderer/locales";
-const { t, locale, availableLocales } = useTypedI18n();
+const { t, locale } = useTypedI18n();
+const { localeOptions } = useLocaleOptions();
 
 const currentAssetsPath = ref("");
 const pendingAssetsPath = ref<string | null>(null);
@@ -241,44 +243,12 @@ async function uploadLogsCommand(event) {
     op.value.show(curE, curTarget);
 }
 
-// Transform language codes dynamically using the browser Intl API
-const localeOptions = computed(() => {
-    return (availableLocales as Locale[])
-        .filter((code) => {
-            if (code === "dev") {
-                return settingsStore.devMode;
-            }
-            return true;
-        })
-        .map((code) => {
-            // 1. Establish a safe base default label
-            let label: string = code;
-
-            // 2. Handle manual overrides for non-standard testing languages
-            if (code === "dev") {
-                return { label: "Dev (Scrambled)", value: code };
-            }
-
-            try {
-                // 3. Fall back to standard browser translation for real BCP 47 codes
-                const formatter = new Intl.DisplayNames([code], { type: "language" });
-                const nativeName = formatter.of(code);
-
-                if (nativeName) {
-                    label = nativeName.charAt(0).toUpperCase() + nativeName.slice(1);
-                }
-            } catch (e) {
-                // 4. Fallback guard: protects your app if a browser lacks a certain language pack
-                console.warn(`Failed to get native name for locale code: ${code}`, e);
-                label = code.toUpperCase();
-            }
-
-            return {
-                label,
-                value: code,
-            };
-        });
-});
+watch(
+    () => settingsStore.language,
+    () => {
+        locale.value = settingsStore.language as Locale;
+    }
+);
 </script>
 
 <style lang="scss" scoped>

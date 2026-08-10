@@ -22,5 +22,5 @@ export const settingsSchema = Type.Object({
     customServerList: Type.Array(Type.String(), { default: [] }),
     endedNormallyFilter: Type.Union([Type.Literal("true"), Type.Literal("false"), Type.Literal("null")], { default: "null" }),
     assetsPath: Type.String({ default: "" }),
-    language: Type.String(),
+    language: Type.Union([Type.String(), Type.Null()], { default: null }),
 });
