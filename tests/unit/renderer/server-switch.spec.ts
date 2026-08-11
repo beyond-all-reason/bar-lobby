@@ -11,8 +11,9 @@ vi.mock("@renderer/store/db", () => ({
 
 const disconnect = vi.fn(async () => {});
 const wipe = vi.fn(async () => {});
+const onConnected = vi.fn(async () => {});
 
-Object.assign(window.tachyon, { disconnect });
+Object.assign(window.tachyon, { disconnect, onConnected });
 Object.defineProperty(window, "auth", {
     value: { wipe, hasCredentials: vi.fn(async () => false), login: vi.fn(async () => {}), logout: vi.fn(async () => {}) },
     writable: true,
