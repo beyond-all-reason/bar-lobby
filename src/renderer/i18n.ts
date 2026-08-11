@@ -11,8 +11,10 @@ import deTranslation from "@renderer/assets/languages/de.json";
 import frTranslation from "@renderer/assets/languages/fr.json";
 import ruTranslation from "@renderer/assets/languages/ru.json";
 import zhTranslation from "@renderer/assets/languages/zh.json";
+import devTranslation from "@renderer/assets/languages/dev.json";
+import { settingsStore } from "@renderer/store/settings.store";
+import type { Locale } from "@renderer/locales";
 
-type Locale = "cs" | "de" | "en" | "fr" | "ru" | "zh";
 type MessageSchema = typeof enTranslation;
 
 const messages = {
@@ -22,10 +24,11 @@ const messages = {
     fr: frTranslation as any,
     ru: ruTranslation as any,
     zh: zhTranslation as any,
+    dev: devTranslation as any,
 };
 
 export function setupI18n() {
-    const myLocale = Intl.DateTimeFormat().resolvedOptions().locale.split("-")[0]; // TODO: add override from user settings
+    const myLocale = settingsStore.language ?? Intl.DateTimeFormat().resolvedOptions().locale.split("-")[0];
 
     return createI18n<[MessageSchema], Locale>({
         locale: myLocale,
@@ -40,3 +43,5 @@ export function useTypedI18n() {
         useScope: "global",
     });
 }
+
+// Reference for changing scope https://vue-i18n.intlify.dev/guide/essentials/scope.html
