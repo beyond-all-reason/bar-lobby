@@ -139,20 +139,34 @@ describe("renderer auth projection", () => {
         expect(authApi.login).not.toHaveBeenCalled();
     });
 
-    // A valid token plus a refused socket is a ban, or a protocol version the
-    // server no longer speaks. Nothing retries, so the session has to end.
-    it("signs out when the socket refuses the connection", async () => {
-        const session = { authenticated: true };
+    // Only main can tell a rejected refresh token from an unreachable server, and
+    // it already destroys the account in the first case. Signing out from here too
+    // threw away working credentials whenever the network was slower than the app.
+    it("keeps the credentials when the socket refuses the connection", async () => {
         authApi.hasCredentials.mockResolvedValue(true);
-        authApi.getState.mockImplementation(async () => ({ authenticated: session.authenticated }));
-        authApi.logout.mockImplementation(async () => void (session.authenticated = false));
+        authApi.getState.mockResolvedValue({ authenticated: true });
         (window.tachyon.connect as ReturnType<typeof vi.fn>).mockRejectedValue(new Error("unauthorized_client"));
 
         const { me, initMeStore } = await loadStore();
         await initMeStore();
 
-        expect(authApi.logout).toHaveBeenCalled();
-        expect(me.isAuthenticated).toBe(false);
+        expect(authApi.logout).not.toHaveBeenCalled();
+        expect(me.isAuthenticated).toBe(true);
+        expect(me.isInitialized).toBe(true);
+    });
+
+    // A laptop that woke up before its wifi did. Main keeps the session for a
+    // transient failure, so nothing here may throw it away either.
+    it("keeps the credentials when the network is not up yet", async () => {
+        authApi.hasCredentials.mockResolvedValue(true);
+        authApi.getState.mockResolvedValue({ authenticated: true });
+        authApi.login.mockRejectedValue(new Error("network"));
+
+        const { me, initMeStore } = await loadStore();
+        await initMeStore();
+
+        expect(authApi.logout).not.toHaveBeenCalled();
+        expect(me.isInitialized).toBe(true);
     });
 
     // Going online has to run through the tachyon store rather than reach past it

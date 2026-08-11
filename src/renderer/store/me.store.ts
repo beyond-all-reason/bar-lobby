@@ -296,13 +296,13 @@ async function restorePreviousSession() {
         // browser window while the user is still looking at the loading screen.
         await goOnline();
     } catch (error) {
-        // This runs before the UI mounts, so there is nowhere to show a retry.
-        // Signing out matters when the token was fine and the socket was refused
-        // anyway, say for a ban or a version the server no longer speaks: without
-        // it the UI claims a session and nothing retries, because a connection
-        // that never opened never fires a disconnect.
+        // Deliberately keeps the credentials. Whatever went wrong here, only main
+        // can tell a rejected refresh token from a server that was unreachable,
+        // and it already destroys the account in the first case. Signing out from
+        // here as well threw away working credentials over a laptop that woke up
+        // before its wifi did. Signed in and not connected is a state the status
+        // menu can get you out of.
         console.warn("Could not restore the previous session, continuing offline", error);
-        await logout();
 
         return;
     }
