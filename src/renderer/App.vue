@@ -15,15 +15,13 @@ SPDX-License-Identifier: MIT
         <StickyBattle v-if="state === 'default'" />
         <Background :blur="blurBg" />
         <Notifications v-if="state === 'default'" />
+        <ReconnectingOverlay v-if="state === 'default'" />
         <PromptContainer v-if="state === 'default'" />
         <NavBar :class="{ hidden: empty || state === 'initial-setup' }" />
         <div class="lobby-version">
             {{ infosStore.lobby.version }}
         </div>
-        <div
-            v-if="partyStore.state !== PlayersPartyState.None && router.currentRoute.value.name !== '/profile/party'"
-            class="floating-wrapper"
-        >
+        <div v-if="showPartyPopout" class="floating-wrapper">
             <div class="party-notification">
                 <Button class="slim green" @click="openPartyView">
                     <Icon :icon="getPartyIcon()" />
@@ -87,6 +85,7 @@ import NavBar from "@renderer/components/navbar/NavBar.vue";
 import Settings from "@renderer/components/navbar/Settings.vue";
 import ServerSettings from "@renderer/components/navbar/ServerSettings.vue";
 import Notifications from "@renderer/components/notifications/Notifications.vue";
+import ReconnectingOverlay from "@renderer/components/misc/ReconnectingOverlay.vue";
 import PromptContainer from "@renderer/components/prompts/PromptContainer.vue";
 import LogInConfirmationModal from "@renderer/components/misc/LogInConfirmationModal.vue";
 import ReportUserModal from "@renderer/components/user/ReportUserModal.vue";
@@ -106,6 +105,7 @@ import bellAlert from "@iconify-icons/mdi/bell-alert";
 import Button from "@renderer/components/controls/Button.vue";
 import { chatStore } from "@renderer/store/chat.store";
 import { useTypedI18n } from "@renderer/i18n";
+import { tachyonStore } from "@renderer/store/tachyon.store";
 
 const router = useRouter();
 const videoVisible = toRef(!toValue(settingsStore.skipIntro));
@@ -213,11 +213,22 @@ function getPartyIcon() {
     }
     return accountGroup;
 }
+const showPartyPopout = computed(() => {
+    return (
+        partyStore.state !== PlayersPartyState.None &&
+        router.currentRoute.value.name !== "/profile/party" &&
+        !tachyonStore.reconnectInterval
+    );
+});
 </script>
 
 <style lang="scss" scoped>
 .view-container {
     flex: auto;
+    // Views layer their own hover and selected states with small z-indexes, and
+    // without a stacking context of their own those compete with the navbar and
+    // the reconnecting overlay out here rather than staying inside the view.
+    isolation: isolate;
     transition: transform 0.4s ease-out;
     &.translated-right {
         transform: translateX(10%);
@@ -254,6 +265,7 @@ function getPartyIcon() {
 }
 .floating-wrapper {
     position: relative;
+    z-index: 1;
 }
 
 .party-notification {

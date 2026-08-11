@@ -41,11 +41,18 @@ const statusText = computed(() => {
         return `${userCount} ${t("lobby.navbar.serverStatus.playersOnline")}`;
     }
 
+    // Retries in flight are the only thing that makes this reconnecting. Being
+    // signed in without a socket is otherwise just offline, and every failed
+    // attempt sets an error, so that has to be the weaker signal of the two.
+    if (tachyonStore.reconnectInterval) {
+        return t("lobby.navbar.serverStatus.reconnecting");
+    }
+
     if (tachyonStore.error) {
         return t("lobby.navbar.serverStatus.error");
     }
 
-    return t("lobby.navbar.serverStatus.reconnecting");
+    return t("lobby.navbar.serverStatus.offline");
 });
 
 function handleClick() {

@@ -14,6 +14,9 @@ import { MessageEvent, WebSocket } from "ws";
 
 const log = logger("tachyon-client");
 
+// The protocol has the server pinging at least every 10 seconds.
+const SERVER_SILENCE_LIMIT_MS = 30 * 1000;
+
 type ServerToUserRequestCommandId = GetCommandIds<"server", "user", "request">;
 type ServerToUserRequest<C extends ServerToUserRequestCommandId = ServerToUserRequestCommandId> = GetCommands<"server", "user", "request", C>;
 type StripEnvelope<T> = T extends object ? Omit<T, "type" | "commandId" | "messageId"> : never;
@@ -56,26 +59,61 @@ export class TachyonClient {
 
     public async connect(token: string): Promise<void> {
         return new Promise((resolve, reject) => {
-            if (this.socket && this.socket.readyState === this.socket.OPEN) {
-                log.warn(`Already connected`);
+            // Starting a second attempt while one is still handshaking would
+            // replace the socket the first is holding and leave it orphaned. The
+            // retry loop fires on a timer, so it can outrun a slow handshake.
+            if (this.socket && (this.socket.readyState === this.socket.OPEN || this.socket.readyState === this.socket.CONNECTING)) {
+                log.warn(`Already connected or connecting`);
                 reject("already_connected");
                 return;
             }
             let serverProtocol: string | undefined;
+
+            // A handshake can be aborted before it ever opens or errors, so the
+            // promise has to be settled from the close path too.
+            let settled = false;
+            const succeed = () => {
+                if (settled) return;
+                settled = true;
+                resolve();
+            };
+            const fail = (reason: unknown) => {
+                if (settled) return;
+                settled = true;
+                reject(reason);
+            };
+
             this.socket = new WebSocket(getWSServerURL(), `v0.tachyon`, {
                 headers: {
                     authorization: `Bearer ${token}`,
                 },
             });
+            const socket = this.socket;
+
+            // The server pings every 10s and ws answers those on its own, but
+            // nothing here notices when they stop arriving. Without this a
+            // dropped network goes unnoticed until the OS gives up on the
+            // socket, by which point the server has long since written the
+            // session off and there is nothing left to reconnect to.
+            let silenceTimer: NodeJS.Timeout | undefined;
+            const expectMoreFromServer = () => {
+                clearTimeout(silenceTimer);
+                silenceTimer = setTimeout(() => {
+                    log.warn(`Nothing from the server in ${SERVER_SILENCE_LIMIT_MS}ms, closing the connection`);
+                    socket.close();
+                }, SERVER_SILENCE_LIMIT_MS);
+            };
+            socket.on("ping", expectMoreFromServer);
+
             this.socket.on("unexpected-response", async (req, res) => {
                 res.on("data", (chunk: Buffer) => {
                     const error = chunk.toString();
                     log.error(`HTTP Error ${res.statusCode}: ${error}`);
                     try {
                         const errorObject = JSON.parse(error);
-                        reject(new Error(errorObject.error_description || errorObject.error || "Unknown error"));
+                        fail(new Error(errorObject.error_description || errorObject.error || "Unknown error"));
                     } catch {
-                        reject(new Error("Unknown error"));
+                        fail(new Error("Unknown error"));
                     }
                 });
             });
@@ -83,6 +121,7 @@ export class TachyonClient {
                 serverProtocol = response.headers["sec-websocket-protocol"];
             });
             this.socket.addEventListener("message", (message) => {
+                expectMoreFromServer();
                 try {
                     this.handleMessage(message);
                 } catch (err) {
@@ -92,8 +131,9 @@ export class TachyonClient {
             });
             this.socket.addEventListener("open", async () => {
                 log.info(`Connected to ${getWSServerURL()} using Tachyon Version ${tachyonMeta.version}`);
+                expectMoreFromServer();
                 this.onSocketOpen.dispatch();
-                resolve();
+                succeed();
             });
             let disconnectReason: string;
             this.socket.addEventListener("close", (event) => {
@@ -108,6 +148,14 @@ export class TachyonClient {
                         disconnectReason = "Unknown server error";
                     }
                 }
+                clearTimeout(silenceTimer);
+                log.info(`Disconnected: ${disconnectReason}`);
+                fail(new Error(disconnectReason));
+
+                // A socket we have already replaced can still emit close, and
+                // tearing down on that would take the live connection with it.
+                if (this.socket !== socket) return;
+
                 this.socket = undefined;
                 // Purge response handlers
                 this.responseHandlers.values().forEach((handler) =>
@@ -117,7 +165,6 @@ export class TachyonClient {
                 );
                 this.responseHandlers.clear();
                 this.onSocketClose.dispatch();
-                log.info(`Disconnected: ${disconnectReason}`);
             });
             this.socket.addEventListener("error", (err) => {
                 if (err.message.includes("invalid subprotocol")) {
@@ -127,7 +174,7 @@ export class TachyonClient {
                 } else {
                     disconnectReason = err.message;
                 }
-                reject(disconnectReason);
+                fail(disconnectReason);
             });
         });
     }
@@ -301,14 +348,26 @@ export class TachyonClient {
         return this.socket.readyState === this.socket.OPEN;
     }
 
+    // Closing without saying goodbye, for when there is nothing on the other end
+    // to hear it. disconnect() waits on a system/disconnect response that a dead
+    // link will never deliver, which is the wait this exists to skip.
+    public dropConnection() {
+        this.socket?.close();
+    }
+
     public async disconnect() {
-        try {
-            await this.request("system/disconnect");
-        } catch (e) {
-            log.error(`Error sending disconnect command: ${e}`);
-        } finally {
-            this.socket?.close();
+        // Only an open socket can be told we're going away. Closing one that is
+        // still handshaking aborts the attempt, which is the point when the user
+        // has asked to stop connecting.
+        if (this.isConnected()) {
+            try {
+                await this.request("system/disconnect");
+            } catch (e) {
+                log.error(`Error sending disconnect command: ${e}`);
+            }
         }
+
+        this.socket?.close();
     }
 }
 
