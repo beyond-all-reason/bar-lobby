@@ -28,6 +28,11 @@ new ResizeObserver(() => {
 async function setupVue() {
     const app = createApp(App);
 
+    // Init stores before mounting app
+    // Settings store is needed before i18n to provide selected locale
+    await initPreMountStores();
+    await audioApi.init();
+
     // Plugins
     app.use(router);
     app.use(PrimeVue, { ripple: true });
@@ -37,10 +42,6 @@ async function setupVue() {
     app.directive("click-away", clickAwayDirective);
     app.directive("in-view", elementInViewDirective);
     app.directive("tooltip", Tooltip);
-
-    // Init stores before mounting app
-    await initPreMountStores();
-    await audioApi.init();
 
     app.mount("#app");
 }

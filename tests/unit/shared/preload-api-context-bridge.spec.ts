@@ -262,9 +262,11 @@ describe("Preload API Context Bridge", () => {
         mockWindow.tachyon.isConnected();
         mockWindow.tachyon.connect();
         mockWindow.tachyon.disconnect();
+        mockWindow.tachyon.dropConnection();
         expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("tachyon:isConnected");
         expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("tachyon:connect");
         expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("tachyon:disconnect");
+        expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("tachyon:dropConnection");
         expect(typeof mockWindow.tachyon.request).toBe("function");
         expect(typeof mockWindow.tachyon.requestStructured).toBe("function");
         expect(typeof mockWindow.tachyon.onConnected).toBe("function");
