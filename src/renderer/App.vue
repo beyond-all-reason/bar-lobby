@@ -21,10 +21,7 @@ SPDX-License-Identifier: MIT
         <div class="lobby-version">
             {{ infosStore.lobby.version }}
         </div>
-        <div
-            v-if="partyStore.state !== PlayersPartyState.None && router.currentRoute.value.name !== '/profile/party'"
-            class="floating-wrapper"
-        >
+        <div v-if="showPartyPopout" class="floating-wrapper">
             <div class="party-notification">
                 <Button class="slim green" @click="openPartyView">
                     <Icon :icon="getPartyIcon()" />
@@ -108,6 +105,7 @@ import bellAlert from "@iconify-icons/mdi/bell-alert";
 import Button from "@renderer/components/controls/Button.vue";
 import { chatStore } from "@renderer/store/chat.store";
 import { useTypedI18n } from "@renderer/i18n";
+import { tachyonStore } from "@renderer/store/tachyon.store";
 
 const router = useRouter();
 const videoVisible = toRef(!toValue(settingsStore.skipIntro));
@@ -215,6 +213,13 @@ function getPartyIcon() {
     }
     return accountGroup;
 }
+const showPartyPopout = computed(() => {
+    return (
+        partyStore.state !== PlayersPartyState.None &&
+        router.currentRoute.value.name !== "/profile/party" &&
+        !tachyonStore.reconnectInterval
+    );
+});
 </script>
 
 <style lang="scss" scoped>
@@ -260,6 +265,7 @@ function getPartyIcon() {
 }
 .floating-wrapper {
     position: relative;
+    z-index: 1;
 }
 
 .party-notification {
