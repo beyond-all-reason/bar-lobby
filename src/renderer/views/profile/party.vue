@@ -212,6 +212,7 @@ import QueueDownloadsModal from "@renderer/components/misc/QueueDownloadsModal.v
 import informationIcon from "@iconify-icons/mdi/information";
 import { Icon } from "@iconify/vue";
 import { chatStore } from "@renderer/store/chat.store";
+import { usePartySizeMatchmaking } from "@renderer/composables/usePartySizeMatchmaking";
 
 const { t } = useTypedI18n();
 
@@ -352,35 +353,7 @@ function getActivePartyInvites() {
     return partyStore.parties.get(partyStore.activeParty)!.invited;
 }
 
-const partyTooLarge = ref(false);
-
-watch(
-    () => ({
-        activeParty: partyStore.activeParty,
-        queue: matchmakingStore.selectedQueue,
-        // Spreading map entries forces Vue to evaluate the Map's contents
-        partiesSnapshot: [...partyStore.parties.entries()],
-    }),
-    (newData) => {
-        const { activeParty, queue } = newData;
-
-        if (!activeParty || !queue) {
-            partyTooLarge.value = false;
-            return;
-        }
-
-        const party = partyStore.parties.get(activeParty);
-        const playlist = matchmakingStore.playlists.find((p) => p.id === queue);
-
-        if (!party || !playlist) {
-            partyTooLarge.value = false;
-            return;
-        }
-
-        partyTooLarge.value = party.members.length > playlist.teamSize;
-    },
-    { immediate: true, deep: true }
-);
+const { partyTooLarge } = usePartySizeMatchmaking();
 </script>
 
 <style lang="scss" scoped>
