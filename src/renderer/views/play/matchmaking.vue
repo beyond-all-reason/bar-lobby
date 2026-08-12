@@ -53,6 +53,9 @@ SPDX-License-Identifier: MIT
                         >This string should never be visible.</DownloadContentButton
                     >
                 </div>
+                <button v-else-if="partyTooLarge" class="quick-play-button invalid" disabled>
+                    {{ t("lobby.multiplayer.ranked.buttons.partyTooLarge") }}
+                </button>
                 <button
                     v-else-if="matchmakingStore.status === MatchmakingStatus.Idle"
                     class="quick-play-button"
@@ -106,6 +109,7 @@ SPDX-License-Identifier: MIT
 </template>
 
 <script lang="ts" setup>
+import { usePartySizeMatchmaking } from "@renderer/composables/usePartySizeMatchmaking";
 import { matchmaking, MatchmakingStatus, matchmakingStore, getPlaylistName } from "@renderer/store/matchmaking.store";
 import Button from "primevue/button";
 import { useTypedI18n } from "@renderer/i18n";
@@ -160,6 +164,7 @@ onActivated(() => {
 function onInfoClick() {
     if (!downloading.value) isQueueDownloadsModalOpen.value = true;
 }
+const { partyTooLarge } = usePartySizeMatchmaking();
 </script>
 
 <style lang="scss" scoped>
@@ -285,6 +290,10 @@ function onInfoClick() {
     transition:
         transform 0.3s ease,
         box-shadow 0.3s ease;
+}
+
+.quick-play-button.invalid {
+    background: linear-gradient(0deg, #1e2c23, #304135);
 }
 
 .searching {

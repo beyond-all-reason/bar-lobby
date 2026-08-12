@@ -87,7 +87,7 @@ SPDX-License-Identifier: MIT
                                             >
                                         </div>
                                         <button v-else-if="partyTooLarge" class="quick-play-button invalid" disabled>
-                                            {{ t("lobby.multiplayer.ranked.buttons.partyTooLarge") }}
+                                            {{ t("lobby.views.party.partyTooLarge") }}
                                         </button>
                                         <button
                                             v-else-if="matchmakingStore.status === MatchmakingStatus.Idle"
