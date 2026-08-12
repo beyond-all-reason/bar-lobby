@@ -97,7 +97,8 @@
                 "declineInvite": "Decline",
                 "kickMember": "Kick Member",
                 "cancelInvite": "Cancel Invite",
-                "noInvites": "No current invitations."
+                "noInvites": "No current invitations.",
+                "partyTooLarge": "Party Too Large"
             },
             "watch": {
                 "replays": {
@@ -156,7 +157,8 @@
                     "searchingForOpponent": "Searching for opponent",
                     "matchFound": "Matched - Click to Ready",
                     "accepted": "Accepted",
-                    "cancel": "Cancel"
+                    "cancel": "Cancel",
+                    "partyTooLarge": "Party Too Large"
                 },
                 "modalTitle": "Matchmaking Queue Details",
                 "modal": {

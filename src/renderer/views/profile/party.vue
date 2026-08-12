@@ -86,6 +86,9 @@ SPDX-License-Identifier: MIT
                                                 >This string should never be visible.</DownloadContentButton
                                             >
                                         </div>
+                                        <button v-else-if="partyTooLarge" class="quick-play-button invalid" disabled>
+                                            {{ t("lobby.multiplayer.ranked.buttons.partyTooLarge") }}
+                                        </button>
                                         <button
                                             v-else-if="matchmakingStore.status === MatchmakingStatus.Idle"
                                             class="quick-play-button"
@@ -290,8 +293,8 @@ const downloadsAreRequiredForSelected = computed(() => {
 
 const downloading = ref(false);
 
-// Switching the active queue during a download cannot be allowed because it messes with state.
 function queueSelected(queue: string) {
+    // Switching the active queue during a download cannot be allowed because it messes with state.
     if (downloading.value) {
         return;
     } else matchmakingStore.selectedQueue = queue;
@@ -348,6 +351,36 @@ function getActivePartyInvites() {
     if (!partyStore.activeParty || !partyStore.parties.get(partyStore.activeParty)) return [];
     return partyStore.parties.get(partyStore.activeParty)!.invited;
 }
+
+const partyTooLarge = ref(false);
+
+watch(
+    () => ({
+        activeParty: partyStore.activeParty,
+        queue: matchmakingStore.selectedQueue,
+        // Spreading map entries forces Vue to evaluate the Map's contents
+        partiesSnapshot: [...partyStore.parties.entries()],
+    }),
+    (newData) => {
+        const { activeParty, queue } = newData;
+
+        if (!activeParty || !queue) {
+            partyTooLarge.value = false;
+            return;
+        }
+
+        const party = partyStore.parties.get(activeParty);
+        const playlist = matchmakingStore.playlists.find((p) => p.id === queue);
+
+        if (!party || !playlist) {
+            partyTooLarge.value = false;
+            return;
+        }
+
+        partyTooLarge.value = party.members.length > playlist.teamSize;
+    },
+    { immediate: true, deep: true }
+);
 </script>
 
 <style lang="scss" scoped>
@@ -463,6 +496,11 @@ function getActivePartyInvites() {
     transition:
         transform 0.3s ease,
         box-shadow 0.3s ease;
+}
+
+.quick-play-button.invalid {
+    background: linear-gradient(0deg, #1e2c23, #304135);
+    // color: #000000;
 }
 
 .searching {
