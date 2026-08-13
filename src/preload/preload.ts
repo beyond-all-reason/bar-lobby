@@ -241,6 +241,7 @@ const tachyonApi = {
     isConnected: (): Promise<boolean> => ipcRenderer.invoke("tachyon:isConnected"),
     connect: (): Promise<void> => ipcRenderer.invoke("tachyon:connect"),
     disconnect: (): Promise<void> => ipcRenderer.invoke("tachyon:disconnect"),
+    dropConnection: (): Promise<void> => ipcRenderer.invoke("tachyon:dropConnection"),
 
     // Requests
     // sendEvent: (event: TachyonEvent) => ipcRenderer.invoke("tachyon:sendEvent", event),

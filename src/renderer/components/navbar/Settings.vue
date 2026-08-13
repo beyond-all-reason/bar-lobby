@@ -7,6 +7,13 @@ SPDX-License-Identifier: MIT
 <template>
     <Modal :title="t('lobby.navbar.settings.title')">
         <div class="gridform">
+            <div>
+                <span>
+                    <Icon :icon="language" />
+                    {{ t("lobby.navbar.settings.language") }}
+                </span>
+            </div>
+            <Select v-model="settingsStore.language" :options="localeOptions" optionLabel="label" optionValue="value" />
             <div>{{ t("lobby.navbar.settings.fullscreen") }}</div>
             <Checkbox v-model="settingsStore.fullscreen" />
 
@@ -115,7 +122,12 @@ import { refreshGameStore } from "@renderer/store/game.store";
 import { refreshMapsStore } from "@renderer/store/maps.store";
 import { uploadLogs } from "@renderer/utils/log";
 import { useTypedI18n } from "@renderer/i18n";
-const { t } = useTypedI18n();
+import language from "@iconify-icons/mdi/language";
+import { Icon } from "@iconify/vue";
+import { useLocaleOptions } from "@renderer/composables/useLocaleOptions";
+import type { Locale } from "@renderer/locales";
+const { t, locale } = useTypedI18n();
+const { localeOptions } = useLocaleOptions();
 
 const currentAssetsPath = ref("");
 const pendingAssetsPath = ref<string | null>(null);
@@ -230,6 +242,13 @@ async function uploadLogsCommand(event) {
     // Display feedback
     op.value.show(curE, curTarget);
 }
+
+watch(
+    () => settingsStore.language,
+    () => {
+        locale.value = settingsStore.language as Locale;
+    }
+);
 </script>
 
 <style lang="scss" scoped>

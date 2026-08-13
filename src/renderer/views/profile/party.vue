@@ -282,11 +282,10 @@ const downloadsRequired = computed(() => {
 
 const downloadsAreRequiredForSelected = computed(() => {
     // 0 returns falsy, anything else returns truthy, so this works to determine if there are any downloads required.
-    return (
-        matchmakingStore.downloadsRequired[matchmakingStore.selectedQueue].maps.length +
-        matchmakingStore.downloadsRequired[matchmakingStore.selectedQueue].engines.length +
-        matchmakingStore.downloadsRequired[matchmakingStore.selectedQueue].games.length
-    );
+    const required = downloadsRequired.value;
+    if (!required) return false;
+
+    return required.maps.length + required.engines.length + required.games.length;
 });
 
 const downloading = ref(false);

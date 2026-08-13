@@ -4,10 +4,12 @@
 
 import { Me } from "@main/model/user";
 import { db } from "@renderer/store/db";
-import { reactive, toRaw } from "vue";
-import { tachyonStore } from "@renderer/store/tachyon.store";
+import { reactive, toRaw, watch } from "vue";
+import { tachyon, tachyonStore } from "@renderer/store/tachyon.store";
 import { PrivateUser } from "tachyon-protocol/types";
+import { settingsStore } from "@renderer/store/settings.store";
 import { subsManager } from "@renderer/store/users.store";
+import { onWentOffline } from "@renderer/utils/offline-signal";
 
 export const me = reactive<
     Me & {
@@ -60,15 +62,27 @@ function playOffline() {
 }
 
 async function logout() {
-    subsManager.clearAllFromList(friendsSymbol);
+    await tachyon.goOffline();
     window.auth.logout();
-    window.tachyon.disconnect();
     me.isAuthenticated = false;
 }
 
 async function changeAccount() {
     await window.auth.wipe();
     me.isAuthenticated = false;
+}
+
+// The same setting picks the websocket and the authorization server, so the
+// credentials we are holding were issued by the server being left and are worth
+// nothing to the one being joined. Switching ends the session rather than moving
+// the socket over.
+async function serverChanged() {
+    // A socket that drops while we still look authenticated is treated as a
+    // connection worth retrying, so give up the session before closing it.
+    me.isAuthenticated = false;
+    subsManager.clearAllFromList(friendsSymbol);
+    await window.tachyon.disconnect();
+    await window.auth.wipe();
 }
 
 window.tachyon.onEvent("user/self", async (event) => {
@@ -129,8 +143,13 @@ window.tachyon.onEvent("friend/removed", async (event) => {
     await unsubscribeFromUsers([event.from]);
 });
 
+// Identity fields survive; they're persisted in db and used while offline.
+function clearOnlineState() {
+    subsManager.clearAllFromList(friendsSymbol);
+}
+
 // export const me = readonly(_me);
-export const auth = { login, playOffline, logout, changeAccount };
+export const auth = { login, playOffline, logout, changeAccount, clearOnlineState };
 
 // Friend methods
 export const friends = {
@@ -210,6 +229,26 @@ export const friends = {
 };
 
 export async function initMeStore() {
+    // Settings load in parallel with this, and the stored server arriving over
+    // the default counts as a change. Reacting to that would sign out everyone
+    // who does not use the default server, every launch.
+    watch(
+        () => settingsStore.lobbyServer,
+        () => {
+            if (!settingsStore.isInitialized) return;
+
+            void serverChanged();
+        }
+    );
+    onWentOffline.add(clearOnlineState);
+    window.tachyon.onConnected(() => {
+        // Subscriptions don't survive the socket, so rebuild them from the server's friend list
+        // rather than trusting what subsManager held before the drop.
+        if (me.isAuthenticated) {
+            friends.fetchFriendList();
+        }
+    });
+
     await db.users
         .where({ isMe: 1 })
         .first()

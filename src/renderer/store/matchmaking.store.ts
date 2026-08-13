@@ -17,6 +17,7 @@ import { isTachyonErrorForCommand, tachyonRequest } from "@renderer/api/tachyon"
 import { enginesStore } from "@renderer/store/engine.store";
 import { gameStore } from "@renderer/store/game.store";
 import { mapsStore } from "@renderer/store/maps.store";
+import { onWentOffline } from "@renderer/utils/offline-signal";
 
 export enum MatchmakingStatus {
     Idle = "Idle",
@@ -244,6 +245,7 @@ async function sendReadyRequest() {
 export async function initializeMatchmakingStore() {
     if (matchmakingStore.isInitialized) return;
 
+    onWentOffline.add(clearOnlineState);
     window.tachyon.onEvent("matchmaking/queueUpdate", onQueueUpdateEvent);
 
     window.tachyon.onEvent("matchmaking/lost", onLostEvent);
@@ -263,4 +265,16 @@ export async function initializeMatchmakingStore() {
     matchmakingStore.isInitialized = true;
 }
 
-export const matchmaking = { sendCancelRequest, sendQueueRequest, sendReadyRequest, sendListRequest, triggerAssetsRefresh };
+// selectedQueue is the user's pick, not server state, and downloadsRequired is derived from
+// installed content rather than the session - the next list response recomputes it.
+export function clearOnlineState() {
+    matchmakingStore.status = MatchmakingStatus.Idle;
+    matchmakingStore.playlists = [];
+    matchmakingStore.isLoadingQueues = false;
+    matchmakingStore.errorMessage = null;
+    matchmakingStore.queueError = undefined;
+    matchmakingStore.playersQueued = 0;
+    matchmakingStore.playersReady = 0;
+}
+
+export const matchmaking = { sendCancelRequest, sendQueueRequest, sendReadyRequest, sendListRequest, triggerAssetsRefresh, clearOnlineState };
