@@ -6,7 +6,10 @@ SPDX-License-Identifier: MIT
 
 <template>
     <div class="map-container" :style="{ aspectRatio: mapTextureUrl ? 'auto' : 1 }">
-        <div v-if="mapTextureUrl" class="map">
+        <div v-if="noPreview" class="map">
+            <img :src="defaultMiniMap" />
+        </div>
+        <div v-else class="map">
             <img :src="mapTextureUrl" />
             <div class="boxes">
                 <div v-for="team in teams" :key="team.allyTeamId" v-startBox="team.startBox" class="box" />
@@ -40,6 +43,7 @@ import { computed, defineComponent, ref, watch } from "vue";
 import vStartBox from "@renderer/directives/vStartBox";
 import vStartPos from "@renderer/directives/vStartPos";
 import vSetPlayerColor from "@renderer/directives/vSetPlayerColor";
+import defaultMiniMap from "/src/renderer/assets/images/default-minimap.png?url";
 
 const props = defineProps<{
     replay: Replay | null;
@@ -71,9 +75,12 @@ const mapWidthElmos = computed(() => (map.value?.mapWidth ? map.value.mapWidth *
 const mapHeightElmos = computed(() => (map.value?.mapHeight ? map.value.mapHeight * 512 : null));
 const cache = useImageBlobUrlCache();
 const mapTextureUrl = computed(() => {
-    if (!map.value?.imagesBlob?.preview) return null;
+    if (!map.value?.imagesBlob?.preview) {
+        return defaultMiniMap;
+    }
     return cache.get(map.value.springName, map.value.imagesBlob?.preview);
 });
+const noPreview = computed(() => !map.value?.imagesBlob?.preview);
 </script>
 
 <style lang="scss" scoped>
