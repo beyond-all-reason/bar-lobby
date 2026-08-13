@@ -473,7 +473,6 @@ const { partyTooLarge } = usePartySizeMatchmaking();
 
 .quick-play-button.invalid {
     background: linear-gradient(0deg, #1e2c23, #304135);
-    // color: #000000;
 }
 
 .searching {
