@@ -96,7 +96,8 @@
                 "declineInvite": "Denlice",
                 "kickMember": "Kcik Meembr",
                 "cancelInvite": "Ceancl Iivnte",
-                "noInvites": "No crerunt iiinnattvos."
+                "noInvites": "No crerunt iiinnattvos.",
+                "partyTooLarge": "Party Too Lgare"
             },
             "watch": {
                 "replays": {
@@ -155,7 +156,8 @@
                     "searchingForOpponent": "Searnichg for oeonnppt",
                     "matchFound": "Mceathd - Ccilk to Raedy",
                     "accepted": "Acpteecd",
-                    "cancel": "Ceancl"
+                    "cancel": "Ceancl",
+                    "partyTooLarge": "Party Too Lgare"
                 },
                 "modalTitle": "Macanihmtkg Quuee Daleits",
                 "modal": {
