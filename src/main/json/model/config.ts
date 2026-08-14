@@ -121,6 +121,7 @@ export const configSchema = Type.Object({
             LinkIncomingSustainedBandwidth: 1048576,
             LinkIncomingPeakBandwidth: 1048576,
             LinkIncomingMaxPacketRate: 2048,
+            DemoFileExtension: "barreplay",
         },
     }),
 });
