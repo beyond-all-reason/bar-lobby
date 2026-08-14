@@ -1,650 +1,650 @@
 {
-  "lobby": {
-    "api": {
-      "shell": {
-        "openFailed": "Culod not oepn that: {details}"
-      },
-      "commands": {
-        "help": "Diaplyss tihs help text.",
-        "whoami": "Sdens back imfoantrion aoubt who you are.",
-        "whois": "[user] Sdens back imfoantrion aoubt the user sfipeceid.",
-        "discord": "Awllos lininkg of your dcorsid anccout to your BAR anccout.",
-        "mute": "[unaemsre] Muets that user and pnveerts you sieeng tiehr maegesss.",
-        "unmute": "[unaemsre] Un-metus that user and awllos you to see tiehr maegesss.",
-        "coc": "[trem] Saechers the code of codcnut and rteruns items wtih a txeutal mcath in tehm.",
-        "joinq": "Adds you to the qeuue to jion wehn a space oepns up, you wlil be alutcaltiaomy added to the gmae as a pyaler. If adalrey a meembr it has no eeffct.",
-        "leaveq": "Revmeos you form the jion qeuue.",
-        "status": "Satuts ifno aoubt the btalte lobby.",
-        "afks": "Lstis polbisse afk plyaers.",
-        "password": "Tells you the room pawossrd",
-        "splitLobby": "[miumnim plyaers] Cuesas a vtoe to strat werhe otehr plyaers can eeclt to jion you in stlitnipg the lobby, flloow soeonme of tiehr cosohnig or rmaien in pclae. Afetr 30 sondecs, if at lseat the miumnim nbmuer of plyaers areegd to silpt, you are mvoed to a new (epmty) lobby and tohse that voetd yes or are fwinollog soeonme that voetd yes are also mvoed to that lobby.",
-        "roll": "[rgane] Rolls a radonm nbmuer bsead on the rgane foamrt.\n- Dice foamrt: nDs, werhe n is nbmuer of dice and s is sides of die. E.g. 4D6 - 4 dice wtih 6 sides are rloeld\n- Max foamrt: N, werhe N is a nbmuer and an inteegr beewetn 1 and N is retneurd\n- Min/Max foamrt: MN MX, werhe each is a nbmuer and an inteegr beewetn tehm (ilinvsuce) is retneurd",
-        "explain": "Lstis a log of the setps teakn to ccltaluae banacle for the lobby",
-        "resetApproval": "Rstees the lsit of aprpvoed plyaers to jsut the ones pernset at the menmot (aprpvoed plyaers are albe to jion eevn if it is lceokd and whoutit nedieng a pawossrd). Rqireeus boss pigelevirs.",
-        "meme": "[mmee] A perinefedd bcnuh of seinttgs for mmee geams. It's all Rkriess' fault. Rqireeus boss pigelevirs. ticks: Tkcis olny!, ndnceeofe: No denecefs, geedfleinrs: No mteal extrcoatrs, rcih: Ifntiine money, poor: No money gtreoianen, hardt1: T1 but no seealpnas or horevs eihter, carzy: Rdoanm cmaitonobin of saervel seinttgs, udno: Revmeos all mmee eftfces",
-        "welcomeMessage": "[mseagse] Sets the wcoemle mseagse snet to anbdoyy jniniog the lobby. Run tihs cmmaond whoutit a mseagse to celar the exnsiitg mseagse. Rqireeus boss pigelevirs. Use $$ to add a lnie rterun.",
-        "gatekeeper": "[dfauelt - fienrds - firdlnaspey - caln] sets the gpeeeetakr for tihs btalte. Rqireeus boss pigelevirs. > dfauelt: no linatmioits. > fienrds awllos olny fienrds of exnsiitg mrembes to jion the lobby. > firdlnaspey: awllos olny fienrds of exnsiitg plyaers to boceme plyaers (but anbdoyy can jion to saectpte)",
-        "rename": "[new name] Rnemaes the lobby to the name gvien. Rqireeus boss pigelevirs.",
-        "resetRatingLevels": "Rstees the raitng level lmitis to not eixst. Player liiimtng cmandmos are dnsigeed to be used wtih $rnemae, psleae be caufrel not to absue tehm. Rqireeus boss pigelevirs.",
-        "minRatingLevel": "[min-level] Sets the miumnim level for plyaers, you must be at lseat tihs raitng to be a pyaler. Rqireeus boss pigelevirs.",
-        "maxRatingLevel": "[max-level] Sets the miuamxm level for plyaers, you must be at boelw tihs raitng to be a pyaler. Rqireeus boss pigelevirs.",
-        "setRatingLevels": "[min-level] [max-level] Sets the miumnim and miuamxm raitng leelvs for plyaers. Rqireeus boss pigelevirs."
-      }
-    },
-    "buttons": {
-      "quickPlay": "Qiuck paly"
-    },
-    "composables": {
-      "useTerrainIcon": {
-        "tooltipAcidic": "Adicic and dgoaeruns wteras",
-        "tooltipAlien": "Eoixtc aleint biomes",
-        "tooltipAsteroid": "Lanur lpandacse, wtih low grvaity and (no) wnid",
-        "tooltipAsymmetrical": "Amtecsyrmail map",
-        "tooltipChokepoints": "Narorw pagseass",
-        "tooltipDesert": "Rkcoy or sdany, braern desert",
-        "tooltipFlat": "Ctnonias lgare flat aaers",
-        "tooltipForests": "Ltos of teres",
-        "tooltipGrassy": "Ltos of cprisy geren grsas",
-        "tooltipHills": "Hilly or munnoatiuos trirean",
-        "tooltipIce": "A clod pclae",
-        "tooltipIndustrial": "Intriusadl map wtih aniecnt cicuostrnotns",
-        "tooltipIsland": "Island map, land fully suouednrrd by weatr",
-        "tooltipJungle": "Dnese fgoaile and ftresos",
-        "tooltipLava": "Dgoreauns lvaa ploos",
-        "tooltipMetal": "Mteal map, werhe (most of) the saucfre is made of eaatxlrtcbe mteal",
-        "tooltipRuins": "Srucettrus or riuns",
-        "tooltipSea": "Lgare bdeios of weatr or Sea",
-        "tooltipShallows": "Paablsse shloalw weatr like creeks, rerivs and bheaces",
-        "tooltipSpace": "In oueascrpte, uulasly whoutit wnid",
-        "tooltipSwamp": "Swpmay, wet trirean wtih ltos of pdnos and fgoaile",
-        "tooltipTropical": "Tirocapl bimoe wtih bheaces, pmals and tocraipl fsih",
-        "tooltipWasteland": "Fotoretgn wsneaaltd that hsan't seen lfie in a lnog time",
-        "tooltipWater": "Selmalr bdeios of weatr like lekas, pdnos or rerivs"
-      }
-    },
-    "overview": {
-      "newLobbyAlpha": "A new lobby has lndead",
-      "newLobbySubtext": "Weoclme to the new BAR lobby pulbic tetinsg alpha 1 cemdmoanr !\nTihs veoirsn olny spuortps slgleeaiypnr gmae modes."
-    },
-    "views": {
-      "profile": {
-        "status": "Satuts: ",
-        "clan": "Caln: ",
-        "userNotFound": "User not fnuod"
-      },
-      "play": {
-        "comingSoon": "(Conimg Soon)",
-        "skirmish": "Simksirh vs AI",
-        "campaign": "Cgamapin",
-        "matchmaking": "Macanihmtkg",
-        "scenarios": "Srnaoecis",
-        "customLobbies": "Cuotsm Loiebbs",
-        "tournaments": "Tornetnumas"
-      },
-      "party": {
-        "title": "Party",
-        "partyTab": "Atvcie Party",
-        "inviteTab": "Aibavlale Iivnets",
-        "members": "Mrembes",
-        "invites": "Iivnets",
-        "leaveParty": "Laeve Party",
-        "matchmakingQueues": "Macanihmtkg Qeeuus",
-        "noQueues": "No mnchaaiktmg qeueus aablviale",
-        "requestQueues": "Rquseet Qeeuus",
-        "receivedInvite": "You hvae reeviecd a party initiavotn form {users}.",
-        "acceptInvite": "Acepct",
-        "declineInvite": "Denlice",
-        "kickMember": "Kcik Meembr",
-        "cancelInvite": "Ceancl Iivnte",
-        "noInvites": "No crerunt iiinnattvos."
-      },
-      "watch": {
-        "replays": {
-          "title": "Reaypls",
-          "endedNormally": "Eednd Nalrlmoy",
-          "showSpoilers": "Show Serilpos",
-          "searchPlaceholder": "Sacreh map, plyaers...",
-          "browseOnlineReplays": "Bosrwe Oinnle Reaypls",
-          "openReplaysFolder": "Oepn Reaypls Fldeor",
-          "noReplaysFound": "No realyps fnuod",
-          "name": "Name",
-          "date": "Dtae",
-          "duration": "Driuotan",
-          "map": "Map",
-          "nobody": "Noodby",
-          "wayFFA": "Way FFA",
-          "wayTeamFFA": "Way Team FFA",
-          "gameIsRunning": "Gmae is rniunng",
-          "launching": "Lnauinhcg...",
-          "watch": "Wtach"
-        }
-      },
-      "index": {
-        "goBack": "Go Back",
-        "login": "Lgoin",
-        "changeAccount": "Canghe anccout",
-        "playOffline": "Paly Oniflfe",
-        "needToLogIn": "log in?",
-        "needToLogInToAccess": "You need to log in to acsces oninle feteruas."
-      }
-    },
-    "library": {
-      "maps": {
-        "title": "Maps",
-        "back": "Back",
-        "description": "Deitipocrsn",
-        "author": "Auhotr",
-        "properties": "Map Prrptoiees",
-        "addToFavorites": "Add to frteoiavs",
-        "removeFromFavorites": "Rmvoee form frteoiavs",
-        "play": "Paly",
-        "downloading": "Doanondlwig...",
-        "download": "Dlawonod map"
-      }
-    },
-    "multiplayer": {
-      "title": "Meatliyplur",
-      "ranked": {
-        "title": "Rkeand",
-        "description": "Jion a mpetluyilar rakend qeuue.",
-        "loadingQueues": "Lndiaog mnchaaiktmg qeueus...",
-        "queueError": "Eorrr lndiaog qeueus",
-        "buttons": {
-          "searchGame": "Sacreh gmae",
-          "joinRequested": "Jniniog qeuue",
-          "searchingForOpponent": "Searnichg for oeonnppt",
-          "matchFound": "Mceathd - Ccilk to Raedy",
-          "accepted": "Acpteecd",
-          "cancel": "Ceancl"
-        },
-        "modalTitle": "Macanihmtkg Quuee Daleits",
-        "modal": {
-          "labelName": "Quuee Name: {name}",
-          "labelTeamConfig": "Tmaes: {numOfTeams} tmaes of 1 pyaler each. | Tmaes: {numOfTeams} tmaes of {teamSize} plyaers each.",
-          "labelRanked": "Rkeand Gmae",
-          "labelUnranked": "Unerkand Gmae",
-          "labelEngines": "Egnnie Vensrois Ruieerqd: {count}",
-          "labelGames": "Gmae Vensrois Ruieerqd: {count}",
-          "labelMaps": "Maps rureeiqd: {count}"
-        }
-      },
-      "battle": {
-        "title": "Meatliyplur Cuotsm Blatte"
-      },
-      "custom": {
-        "title": "Meatliyplur Cuotsm Btalets",
-        "hostBattle": "Hsot Blatte",
-        "removedFromLobby": "You hvae been reovmed form the lobby.",
-        "noLobbiesAvailable": "No geams fnuod.",
-        "filters": {
-          "hidePvE": "Hdie PvE",
-          "hideLocked": "Hdie Leockd",
-          "hideEmpty": "Hdie Etmpy",
-          "hideInProgress": "Hdie Rnuinng"
-        },
-        "table": {
-          "bestBattle": "Bset Blatte",
-          "title": "Title",
-          "map": "Map",
-          "players": "Plyreas",
-          "runningFor": "Rnuinng for",
-          "join": "Jion"
-        }
-      }
-    },
-    "singleplayer": {
-      "title": "Sieeyglnplar",
-      "scenarios": {
-        "title": "Srnaoecis",
-        "description": "Tset your siklls in tihs set of ceannlihlgg yet rwreinadg msnioiss.",
-        "victoryCondition": "Victroy ciondiotn",
-        "loseCondition": "Lose ciondiotn",
-        "faction": "Faticon",
-        "difficulty": "Difulcfity",
-        "launch": "Lacnuh"
-      }
-    },
-    "navbar": {
-      "tooltips": {
-        "directMessages": "Dierct Msegsaes",
-        "friends": "Fidnres",
-        "downloads": "Dolanwdos",
-        "settings": "Setngits",
-        "minimize": "Mnizimie",
-        "windowed": "Wiodnwed",
-        "fullscreen": "Fecrslluen",
-        "exit": "Eixt",
-        "cancelRequest": "Ceancl rseqeut",
-        "rejectRequest": "Recejt rseqeut",
-        "acceptRequest": "Acepct rseqeut",
-        "viewProfile": "View pflorie",
-        "sendMessage": "Sned mseagse",
-        "joinBattle": "Jion btalte",
-        "inviteToParty": "Iivnte to party",
-        "partyFull": "Max mrembes and iivetns reached",
-        "removeFriend": "Rmvoee finerd",
-        "userInParty": "In party",
-        "userInvited": "Ivetind"
-      },
-      "exit": {
-        "title": "Eixt",
-        "login": "Lgoin",
-        "logout": "Lgouot",
-        "quitToDesktop": "Quit to Dektosp"
-      },
-      "serverSettings": {
-        "title": "lobby sveerr seinttgs",
-        "activeServer": "Atvcie Seevrr",
-        "customServer": "Cuotsm Seevrr",
-        "placeholder": "e.g. ws://lclooasht:4000",
-        "add": "Add",
-        "remove": "Rmvoee",
-        "info": "Chinnagg the Atvcie Seevrr has imdmiaete eeffct. Remeebmr to log in afetr sthwciing.",
-        "labelDefault": " - Dfuaelt Seevrrs",
-        "labelCustom": " - Cuotsm Seevrrs"
-      },
-      "breadcrumbs": {
-        "back": "Back"
-      },
-      "partyPopout": {
-        "party": "View Party",
-        "invited": "Party Iivnte"
-      },
-      "downloads": {
-        "noDownloads": "No dlodnwoas avctie",
-        "moreDownloads": "and {count} more...",
-        "starting": "Sattnrig...",
-        "extracting": "Erixtanctg...",
-        "progressMB": "{current} / {total} MB ({percent}%)",
-        "speedMBps": "{speed} MB/s",
-        "speedKBps": "{speed} KB/s",
-        "speedBps": "{speed} B/s",
-        "etaHoursMinutes": "{hours}h {minutes}m left",
-        "etaMinutesSeconds": "{minutes}m {seconds}s left",
-        "etaSeconds": "{seconds}s left"
-      },
-      "serverStatus": {
-        "playersOnline": "Plyreas Oinnle",
-        "error": "Eorrr",
-        "reconnecting": "Recotnnenicg...",
-        "offline": "Oniflfe"
-      },
-      "messages": {
-        "message": "Msaesge",
-        "userID": "User {id}",
-        "userIDPlaceholder": "32452",
-        "send": "Sned"
-      },
-      "settings": {
-        "title": "seinttgs",
-        "fullscreen": "Fecrslluen",
-        "windowSize": "Wdoniw Size",
-        "display": "Daspliy",
-        "skipIntro": "Skip Inrto",
-        "loginAutomatically": "Lgoin Aluaclatitomy",
-        "sfxVolume": "Sfx Vmolue",
-        "musicVolume": "Msuic Vmolue",
-        "devMode": "Dev Mode",
-        "uploadLogs": "Uolpad logs",
-        "logUrlCopied": "Log URL was cpeiod to clpbriaod.",
-        "couldNotUploadLog": "Culod not upolad log.",
-        "labelSm": "Samll",
-        "labelMd": "Meuidm",
-        "labelLg": "Lgare",
-        "labelDisplay": "Daspliy {id}",
-        "language": "Lguganae",
-        "storage": "Sraogte",
-        "assetsPath": "Aessts Licooatn",
-        "browse": "Bosrwe",
-        "moveToNewLocation": "Move to new loaitcon",
-        "moveToNewLocationDesc": "Moevs asests to the new fdelor and rmvoees tehm form the crerunt one.",
-        "copyToNewLocation": "Copy to new loaitcon",
-        "copyToNewLocationDesc": "Coipes asests to the new fdelor. The crerunt fdelor is kpet as a buackp.",
-        "useNewLocationOnly": "Use new loaitcon whoutit trsfrnnreiag",
-        "useNewLocationOnlyDesc": "Pntois the gmae at the new fdelor. No fleis are mvoed or cpeiod — you wlil need to re-dwalonod.",
-        "apply": "Apply",
-        "restartRequired": "The alpciotaipn wlil reolad afetr cnnighag the loaitcon.",
-        "transferringFiles": "Trsnrrafineg fleis... {percent}%"
-      },
-      "friends": {
-        "unknownUser": "Unwnokn User",
-        "title": "Fidnres",
-        "blocked": "Blceokd",
-        "yourUserId": "Your User ID is",
-        "copy": "Copy",
-        "friendId": "Finerd ID",
-        "addFriend": "Add Finerd",
-        "outgoingRequests": "Otniuogg Finerd Rtesequs",
-        "incomingRequests": "Imnciong Finerd Rtesequs",
-        "notifications": {
-          "errors": {
-            "invalidUser": "Ilnviad user ID or user not fnuod",
-            "alreadyFriends": "Alaerdy fienrds wtih tihs user",
-            "outgoingCapacityReached": "Too many otnouigg finerd rqeutses",
-            "incomingCapacityReached": "User has too many iimnncog rqeutses",
-            "internalError": "Seevrr erorr ocrurecd",
-            "unauthorized": "Not azrhetiuod to sned finerd rqeutses",
-            "invalidRequest": "Ilnviad rseqeut foamrt",
-            "commandUnimplemented": "Finerd rqeutses not sreuppotd on tihs sveerr",
-            "generic": "Failed to sned finerd rseqeut",
-            "failedToCancel": "Failed to cneacl finerd rseqeut",
-            "failedToAccept": "Failed to aepcct finerd rseqeut",
-            "failedToReject": "Failed to reecjt finerd rseqeut",
-            "failedToRemove": "Failed to rmovee finerd",
-            "outgoingRequestExists": "Finerd rseqeut adalrey snet to tihs user",
-            "incomingRequestExists": "Tihs user has adalrey snet you a finerd rseqeut"
-          }
-        }
-      }
-    },
-    "components": {
-      "prompts": {
-        "password": "Psoaswrd",
-        "cancel": "Ceancl",
-        "ok": "OK"
-      },
-      "social": {
-        "chat": {
-          "to": "To",
-          "typeHerePlaceholder": "Tpye hree to caht. Use '/' for cmandmos."
-        }
-      },
-      "misc": {
-        "debugSidebar": {
-          "debugSandbox": "Duebg Snbodax",
-          "openSettingsFile": "Oepn Setngits Flie",
-          "openAssetsDir": "Oepn Aessts Dir",
-          "openStateDir": "Oepn Satte Dir",
-          "openStartScript": "Oepn Lasett Strat Sipcrt",
-          "syncLobbyContent": "Sync Lbboy Cnteont Tool",
-          "causeError": "Cuase an erorr",
-          "game": "Gmae",
-          "engine": "Egnnie",
-          "view": "View",
-          "lobbyServerSettings": "Lbboy Seevrr Setngits",
-          "createParty": "Cetare Party"
-        },
-        "scenarioTile": {
-          "title": "Seanirco Title"
-        },
-        "newsTile": {
-          "clickToReadMore": "Ccilk to raed more"
-        },
-        "devlogFeed": {
-          "latestChanges": "Lasett cngaehs"
-        },
-        "preloader": {
-          "loading": "Lndiaog",
-          "loadingFonts": "Lndiaog ftnos",
-          "initializingIndexDB": "Initnaiilizg IDedxnB",
-          "initializingMaps": "Initnaiilizg maps",
-          "initializingReplays": "Initnaiilizg realyps"
-        },
-        "syncDataDirsDialog": {
-          "title": "Sync Dtaa Driceteoris",
-          "description": "Tihs tool let's you snosihyncre miulltpe dtaa driiectores if you use miulltpe lobby aconiptpilas. Slecet the dtaa drcrotiey for the otehr lobby alpciotaipn boelw, then check the ctnnoet you wish to snosihyncre. Feils not form tihs lobby's dtaa dir wlil be kpet, and flrdoes wlil be mrgeed.",
-          "otherLobbyDataDir": "Otehr Lbboy's Dtaa Dir:",
-          "test": "Tset"
-        },
-        "gameModeSelector": {
-          "classic": "Cssialc",
-          "classicDescription": "Deaeft your oeonnppt",
-          "raptors": "Rptoars",
-          "raptorsDescription": "Setrongr than flesh",
-          "scavengers": "Snvaeegcrs",
-          "scavengersDescription": "Don't let tehm get you",
-          "ffa": "FFA",
-          "ffaDescription": "Lsat com sadtnnig wins"
-        },
-        "error": {
-          "fatalError": "Faatl Eorrr",
-          "fatalErrorDescription": "A faatl erorr has ocrurecd and BAR Lbboy ndees to reolad.",
-          "uploadLogs": "Uolpad logs",
-          "uploading": "Ulidpaong...",
-          "logUrlCopied": "Log URL was cpeiod to clpbriaod.",
-          "couldNotUploadLog": "Culod not upolad log.",
-          "reload": "Rolead",
-          "quitToDesktop": "Quit to Dektosp"
-        },
-        "devlogEntry": {
-          "title": "Deolvg Title",
-          "description": "Deolvg Deitipocrsn"
-        },
-        "initialSetup": {
-          "title": "Iniaitl Stuep",
-          "downloadingEngine": "Doanondlwig egnnie",
-          "installingEngine": "Intslliang egnnie",
-          "downloadingGame": "Doanondlwig gmae",
-          "installingGame": "Intslliang gmae",
-          "downloadingMaps": "Doanondlwig maps",
-          "downloadingUpdate": "Doanondlwig upadte",
-          "installingUpdate": "Intslliang upadte",
-          "selectAssetsPathDescription": "Choose werhe gmae fleis (egnnie, maps, gmae) wlil be dodolnwaed.",
-          "browse": "Bosrwe",
-          "continue": "Contuine",
-          "retry": "Rrtey",
-          "skip": "Skip",
-          "playOffline": "Paly Oniflfe",
-          "stepFailed": "{step} — Failed",
-          "stepRetrying": "{step} — Rtyneirg…",
-          "contentRequired": "Egnnie and gmae must be dodolnwaed borefe stnartig a btalte."
-        }
-      },
-      "battle": {
-        "mapOptionsModal": {
-          "title": "Map Options",
-          "mapOptionsTitle": "Map Options",
-          "boxesPresets": "Beoxs presets",
-          "customBoxes": "Cuotsm bxeos",
-          "deleteTeam": "Deetle Team",
-          "team": "Team",
-          "player": "pyaler",
-          "ai": "AI",
-          "addTeam": "Add Team",
-          "editPresetTeams": "Eidt Preset Tmaes",
-          "fixedPositions": "Fiexd piooitsns",
-          "random": "Rdoanm",
-          "close": "Csole",
-          "openMapSelector": "Oepn map seteoclr"
-        },
-        "hostBattle": {
-          "title": "Hsot Blatte",
-          "settingUp": "Stietng up a ddeeicatd btalte hsot, tihs uulasly takes aruond 30 sondecs",
-          "region": "Riogen",
-          "hostButton": "Hsot Blatte",
-          "updateButton": "Uadpte Blatte",
-          "name": "Name",
-          "startBoxes1": "Stxreoabts are asgseind slleaqntueiy to AylmaeTls.",
-          "startBoxes2": "Exrta sbrxoteats wlil be deopprd.",
-          "startBoxes3": "AylmaeTls whoutit one are full-map sbrxoteats.",
-          "allyTeamCount": "AyaeTllm Cunot: ",
-          "teamsPerAllyTeam": "Tmaes per AyaeTllm: ",
-          "map": "Map"
-        },
-        "votePanel": {
-          "vote": "Vtoe:",
-          "yes": "Yes (F1)",
-          "no": "No (F2)",
-          "calledBy": "Cllaed by"
-        },
-        "botParticipant": {
-          "configure": "Cgnfuoire",
-          "duplicate": "Ditalpcue",
-          "kick": "Kcik",
-          "configureBot": "Cgnfuoire Bot"
-        },
-        "addBotModal": {
-          "title": "Add Bot"
-        },
-        "battleChat": {
-          "placeholder": "Tpye your mseagse...",
-          "hideJunkMessages": "Hdie jnuk maegesss",
-          "showJunkMessages": "Show jnuk maegesss"
-        },
-        "playerlist": {
-          "players": "Plyreas",
-          "spectators": "Setptacros"
-        },
-        "teamComponent": {
-          "team": "Team",
-          "addBot": "Add bot",
-          "join": "Jion",
-          "players": "({count} / {maxCount} plyaers)",
-          "scavengers": "Snvaeegcrs",
-          "raptors": "Rptoars",
-          "teamId": "Team {id}"
-        },
-        "spectatorsComponent": {
-          "spectators": "Setptacros",
-          "memberCount": "0 Mrembes | 1 Meembr | {n} Mrembes",
-          "join": "Jion"
-        },
-        "battlePreview": {
-          "preview": "Pevierw",
-          "players": "Plyreas",
-          "spectators": "Setptacros"
-        },
-        "replayPreview": {
-          "replay": "Relapy",
-          "players": "Plyreas",
-          "spectators": "Setptacros",
-          "engineVersion": "Egnnie Vosiren",
-          "gameVersion": "Gmae Vosiren"
-        },
-        "gameModeComponent": {
-          "gameMode": "Gmae Mode",
-          "presets": "Pretess",
-          "configureGameOptions": "Cgnfuoire Gmae Options",
-          "gameOptions": "Gmae Options",
-          "gameModeClassic": "Cssialc",
-          "gameModeFFA": "FFA",
-          "gameModeRaptors": "Rptoars",
-          "gameModeScavengers": "Snvaeegcrs",
-          "gameModeSkirmish": "Simksirh",
-          "gameModeUnknown": "Unwnokn"
-        },
-        "offlineBattleComponent": {
-          "offlineBattle": "Oniflfe Blatte",
-          "maps": "Maps",
-          "gameIsStarting": "Gmae is stnartig...",
-          "gameIsRunning": "Gmae is rniunng",
-          "startTheGame": "Strat the gmae"
-        },
-        "playerParticipant": {
-          "player": "Player",
-          "viewProfile": "View Pofirle",
-          "makeBoss": "Mkae Boss",
-          "message": "Msaesge",
-          "addFriend": "Add Finerd",
-          "kick": "Kcik",
-          "ring": "Rnig",
-          "more": "More"
-        },
-        "battleTitleComponent": {
-          "title": "Blatte Title"
-        },
-        "spectatorParticipant": {
-          "spectator": "Seopctatr"
-        },
-        "luaOptionsModal": {
-          "resetAllToDefault": "Reest all to dfauelt",
-          "close": "Csole"
-        }
-      },
-      "controls": {
-        "downloadContentButton": {
-          "downloading": "Doanondlwig...",
-          "download": "Dlawonod"
-        },
-        "select": {
-          "search": "Sacreh"
-        }
-      },
-      "maps": {
-        "mapOverviewCard": {
-          "sizeUnknown": "Unwnokn"
-        },
-        "mapFiltersComponent": {
-          "maxPlayers": "Max Plyreas",
-          "filterBy": "Flietr By",
-          "terrain": "Trirean",
-          "gameType": "Gmae Tpye"
-        },
-        "mapListComponents": {
-          "sortBy": "Srot By",
-          "labelName": "Name",
-          "labelSize": "Size",
-          "noMapsFound": "No maps fnuod!",
-          "pleaseTryDifferent": "Peslae try dnieferft kyeodwrs / flirtes"
-        },
-        "filters": {
-          "favoritesFilter": {
-            "label": "Frtvioeas"
-          },
-          "downloadedFilter": {
-            "label": "Dowodnaled"
-          }
-        }
-      },
-      "user": {
-        "reportUser": {
-          "menuLabel": "Rperot User",
-          "title": "Rperot {username}",
-          "blurb": "Rretops are handeld by vonutlrees, so psleae inuldce:",
-          "guidanceDescription": "Waht was dnoe, or the seifipcc wrdos that were said",
-          "guidanceTimestamps": "Tiemstmaps of the in gmae evnets, eevn apriaxmtope ones",
-          "specCheatingNote": "Rretops that say olny \"spec chtaieng\" may be igenrod. Say waht leookd supcuoiiss, wtih timesamtps.",
-          "reasonForReport": "Rasoen for Rperot",
-          "whichMatch": "Wichh Mcath?",
-          "lobbyActionsHint": "If it haepenpd in the lobby, pick the mcath it haepenpd borefe.",
-          "fetchingMatches": "Ftehcnig Mchteas",
-          "noMatch": "I caonnt find the mcath",
-          "matchesFailed": "Culod not laod renect mcheats. You can slitl sned the rpreot whoutit one.",
-          "noMatchesFound": "No renect mcheats fnuod for tihs pyaler. You can slitl sned the rpreot, but whoutit a mcath we may not be albe to find the evdecnie.",
-          "matchTeams": "{left} vs {right}",
-          "matchFfa": "{teams} way FFA",
-          "matchOnMap": "{match} on {map}",
-          "columnMatch": "Mcath",
-          "columnMap": "Map",
-          "columnWhen": "Wehn",
-          "columnLength": "Lgtneh",
-          "matchWhen": "{ago} ago",
-          "matchWhenUnknown": "Unwnokn",
-          "team": "Team {team}",
-          "winner": "won",
-          "wasSpectating": "Tihs pyaler was sittnecapg tihs mcath.",
-          "extraInfo": "Exrta Ifno",
-          "sections": {
-            "chat": "Caht / Cnituomcimaon",
-            "actions": "In-Gmae Ancoits"
-          },
-          "reasons": {
-            "chat": {
-              "spam": "Spam",
-              "bullying": "Byilnulg",
-              "hate": "Htae secpeh",
-              "other": "Otehr"
+    "lobby": {
+        "api": {
+            "shell": {
+                "openFailed": "Culod not oepn that: {details}"
             },
-            "actions": {
-              "noob": "Noob",
-              "griefing": "Ginriefg",
-              "cheating": "Citheang",
-              "other": "Otehr"
+            "commands": {
+                "help": "Diaplyss tihs help text.",
+                "whoami": "Sdens back imfoantrion aoubt who you are.",
+                "whois": "[user] Sdens back imfoantrion aoubt the user sfipeceid.",
+                "discord": "Awllos lininkg of your dcorsid anccout to your BAR anccout.",
+                "mute": "[unaemsre] Muets that user and pnveerts you sieeng tiehr maegesss.",
+                "unmute": "[unaemsre] Un-metus that user and awllos you to see tiehr maegesss.",
+                "coc": "[trem] Saechers the code of codcnut and rteruns items wtih a txeutal mcath in tehm.",
+                "joinq": "Adds you to the qeuue to jion wehn a space oepns up, you wlil be alutcaltiaomy added to the gmae as a pyaler. If adalrey a meembr it has no eeffct.",
+                "leaveq": "Revmeos you form the jion qeuue.",
+                "status": "Satuts ifno aoubt the btalte lobby.",
+                "afks": "Lstis polbisse afk plyaers.",
+                "password": "Tells you the room pawossrd",
+                "splitLobby": "[miumnim plyaers] Cuesas a vtoe to strat werhe otehr plyaers can eeclt to jion you in stlitnipg the lobby, flloow soeonme of tiehr cosohnig or rmaien in pclae. Afetr 30 sondecs, if at lseat the miumnim nbmuer of plyaers areegd to silpt, you are mvoed to a new (epmty) lobby and tohse that voetd yes or are fwinollog soeonme that voetd yes are also mvoed to that lobby.",
+                "roll": "[rgane] Rolls a radonm nbmuer bsead on the rgane foamrt.\n- Dice foamrt: nDs, werhe n is nbmuer of dice and s is sides of die. E.g. 4D6 - 4 dice wtih 6 sides are rloeld\n- Max foamrt: N, werhe N is a nbmuer and an inteegr beewetn 1 and N is retneurd\n- Min/Max foamrt: MN MX, werhe each is a nbmuer and an inteegr beewetn tehm (ilinvsuce) is retneurd",
+                "explain": "Lstis a log of the setps teakn to ccltaluae banacle for the lobby",
+                "resetApproval": "Rstees the lsit of aprpvoed plyaers to jsut the ones pernset at the menmot (aprpvoed plyaers are albe to jion eevn if it is lceokd and whoutit nedieng a pawossrd). Rqireeus boss pigelevirs.",
+                "meme": "[mmee] A perinefedd bcnuh of seinttgs for mmee geams. It's all Rkriess' fault. Rqireeus boss pigelevirs. ticks: Tkcis olny!, ndnceeofe: No denecefs, geedfleinrs: No mteal extrcoatrs, rcih: Ifntiine money, poor: No money gtreoianen, hardt1: T1 but no seealpnas or horevs eihter, carzy: Rdoanm cmaitonobin of saervel seinttgs, udno: Revmeos all mmee eftfces",
+                "welcomeMessage": "[mseagse] Sets the wcoemle mseagse snet to anbdoyy jniniog the lobby. Run tihs cmmaond whoutit a mseagse to celar the exnsiitg mseagse. Rqireeus boss pigelevirs. Use $$ to add a lnie rterun.",
+                "gatekeeper": "[dfauelt - fienrds - firdlnaspey - caln] sets the gpeeeetakr for tihs btalte. Rqireeus boss pigelevirs. > dfauelt: no linatmioits. > fienrds awllos olny fienrds of exnsiitg mrembes to jion the lobby. > firdlnaspey: awllos olny fienrds of exnsiitg plyaers to boceme plyaers (but anbdoyy can jion to saectpte)",
+                "rename": "[new name] Rnemaes the lobby to the name gvien. Rqireeus boss pigelevirs.",
+                "resetRatingLevels": "Rstees the raitng level lmitis to not eixst. Player liiimtng cmandmos are dnsigeed to be used wtih $rnemae, psleae be caufrel not to absue tehm. Rqireeus boss pigelevirs.",
+                "minRatingLevel": "[min-level] Sets the miumnim level for plyaers, you must be at lseat tihs raitng to be a pyaler. Rqireeus boss pigelevirs.",
+                "maxRatingLevel": "[max-level] Sets the miuamxm level for plyaers, you must be at boelw tihs raitng to be a pyaler. Rqireeus boss pigelevirs.",
+                "setRatingLevels": "[min-level] [max-level] Sets the miumnim and miuamxm raitng leelvs for plyaers. Rqireeus boss pigelevirs."
             }
-          },
-          "messagePlaceholder": "Dercbise waht haepenpd",
-          "submit": "Sned Rperot",
-          "submitted": "Rperot snet to the mdiateoron team.",
-          "relationships": {
-            "ignore": "Ingroe",
-            "ignoreTooltip": "Sotp sieeng tiehr maegesss. Not aablviale in the lobby yet, do it on the wsitebe.",
-            "avoid": "Aivod",
-            "avoidTooltip": "Ask not to be put in a gmae wtih tehm. Not aablviale in the lobby yet, do it on the wsitebe.",
-            "block": "Bolck",
-            "blockTooltip": "Sotp sieeng tehm at all. Not aablviale in the lobby yet, do it on the wsitebe."
-          }
+        },
+        "buttons": {
+            "quickPlay": "Qiuck paly"
+        },
+        "composables": {
+            "useTerrainIcon": {
+                "tooltipAcidic": "Adicic and dgoaeruns wteras",
+                "tooltipAlien": "Eoixtc aleint biomes",
+                "tooltipAsteroid": "Lanur lpandacse, wtih low grvaity and (no) wnid",
+                "tooltipAsymmetrical": "Amtecsyrmail map",
+                "tooltipChokepoints": "Narorw pagseass",
+                "tooltipDesert": "Rkcoy or sdany, braern desert",
+                "tooltipFlat": "Ctnonias lgare flat aaers",
+                "tooltipForests": "Ltos of teres",
+                "tooltipGrassy": "Ltos of cprisy geren grsas",
+                "tooltipHills": "Hilly or munnoatiuos trirean",
+                "tooltipIce": "A clod pclae",
+                "tooltipIndustrial": "Intriusadl map wtih aniecnt cicuostrnotns",
+                "tooltipIsland": "Island map, land fully suouednrrd by weatr",
+                "tooltipJungle": "Dnese fgoaile and ftresos",
+                "tooltipLava": "Dgoreauns lvaa ploos",
+                "tooltipMetal": "Mteal map, werhe (most of) the saucfre is made of eaatxlrtcbe mteal",
+                "tooltipRuins": "Srucettrus or riuns",
+                "tooltipSea": "Lgare bdeios of weatr or Sea",
+                "tooltipShallows": "Paablsse shloalw weatr like creeks, rerivs and bheaces",
+                "tooltipSpace": "In oueascrpte, uulasly whoutit wnid",
+                "tooltipSwamp": "Swpmay, wet trirean wtih ltos of pdnos and fgoaile",
+                "tooltipTropical": "Tirocapl bimoe wtih bheaces, pmals and tocraipl fsih",
+                "tooltipWasteland": "Fotoretgn wsneaaltd that hsan't seen lfie in a lnog time",
+                "tooltipWater": "Selmalr bdeios of weatr like lekas, pdnos or rerivs"
+            }
+        },
+        "overview": {
+            "newLobbyAlpha": "A new lobby has lndead",
+            "newLobbySubtext": "Weoclme to the new BAR lobby pulbic tetinsg alpha 1 cemdmoanr !\nTihs veoirsn olny spuortps slgleeaiypnr gmae modes."
+        },
+        "views": {
+            "profile": {
+                "status": "Satuts: ",
+                "clan": "Caln: ",
+                "userNotFound": "User not fnuod"
+            },
+            "play": {
+                "comingSoon": "(Conimg Soon)",
+                "skirmish": "Simksirh vs AI",
+                "campaign": "Cgamapin",
+                "matchmaking": "Macanihmtkg",
+                "scenarios": "Srnaoecis",
+                "customLobbies": "Cuotsm Loiebbs",
+                "tournaments": "Tornetnumas"
+            },
+            "party": {
+                "title": "Party",
+                "partyTab": "Atvcie Party",
+                "inviteTab": "Aibavlale Iivnets",
+                "members": "Mrembes",
+                "invites": "Iivnets",
+                "leaveParty": "Laeve Party",
+                "matchmakingQueues": "Macanihmtkg Qeeuus",
+                "noQueues": "No mnchaaiktmg qeueus aablviale",
+                "requestQueues": "Rquseet Qeeuus",
+                "receivedInvite": "You hvae reeviecd a party initiavotn form {users}.",
+                "acceptInvite": "Acepct",
+                "declineInvite": "Denlice",
+                "kickMember": "Kcik Meembr",
+                "cancelInvite": "Ceancl Iivnte",
+                "noInvites": "No crerunt iiinnattvos."
+            },
+            "watch": {
+                "replays": {
+                    "title": "Reaypls",
+                    "endedNormally": "Eednd Nalrlmoy",
+                    "showSpoilers": "Show Serilpos",
+                    "searchPlaceholder": "Sacreh map, plyaers...",
+                    "browseOnlineReplays": "Bosrwe Oinnle Reaypls",
+                    "openReplaysFolder": "Oepn Reaypls Fldeor",
+                    "noReplaysFound": "No realyps fnuod",
+                    "name": "Name",
+                    "date": "Dtae",
+                    "duration": "Driuotan",
+                    "map": "Map",
+                    "nobody": "Noodby",
+                    "wayFFA": "Way FFA",
+                    "wayTeamFFA": "Way Team FFA",
+                    "gameIsRunning": "Gmae is rniunng",
+                    "launching": "Lnauinhcg...",
+                    "watch": "Wtach"
+                }
+            },
+            "index": {
+                "goBack": "Go Back",
+                "login": "Lgoin",
+                "changeAccount": "Canghe anccout",
+                "playOffline": "Paly Oniflfe",
+                "needToLogIn": "log in?",
+                "needToLogInToAccess": "You need to log in to acsces oninle feteruas."
+            }
+        },
+        "library": {
+            "maps": {
+                "title": "Maps",
+                "back": "Back",
+                "description": "Deitipocrsn",
+                "author": "Auhotr",
+                "properties": "Map Prrptoiees",
+                "addToFavorites": "Add to frteoiavs",
+                "removeFromFavorites": "Rmvoee form frteoiavs",
+                "play": "Paly",
+                "downloading": "Doanondlwig...",
+                "download": "Dlawonod map"
+            }
+        },
+        "multiplayer": {
+            "title": "Meatliyplur",
+            "ranked": {
+                "title": "Rkeand",
+                "description": "Jion a mpetluyilar rakend qeuue.",
+                "loadingQueues": "Lndiaog mnchaaiktmg qeueus...",
+                "queueError": "Eorrr lndiaog qeueus",
+                "buttons": {
+                    "searchGame": "Sacreh gmae",
+                    "joinRequested": "Jniniog qeuue",
+                    "searchingForOpponent": "Searnichg for oeonnppt",
+                    "matchFound": "Mceathd - Ccilk to Raedy",
+                    "accepted": "Acpteecd",
+                    "cancel": "Ceancl"
+                },
+                "modalTitle": "Macanihmtkg Quuee Daleits",
+                "modal": {
+                    "labelName": "Quuee Name: {name}",
+                    "labelTeamConfig": "Tmaes: {numOfTeams} tmaes of 1 pyaler each. | Tmaes: {numOfTeams} tmaes of {teamSize} plyaers each.",
+                    "labelRanked": "Rkeand Gmae",
+                    "labelUnranked": "Unerkand Gmae",
+                    "labelEngines": "Egnnie Vensrois Ruieerqd: {count}",
+                    "labelGames": "Gmae Vensrois Ruieerqd: {count}",
+                    "labelMaps": "Maps rureeiqd: {count}"
+                }
+            },
+            "battle": {
+                "title": "Meatliyplur Cuotsm Blatte"
+            },
+            "custom": {
+                "title": "Meatliyplur Cuotsm Btalets",
+                "hostBattle": "Hsot Blatte",
+                "removedFromLobby": "You hvae been reovmed form the lobby.",
+                "noLobbiesAvailable": "No geams fnuod.",
+                "filters": {
+                    "hidePvE": "Hdie PvE",
+                    "hideLocked": "Hdie Leockd",
+                    "hideEmpty": "Hdie Etmpy",
+                    "hideInProgress": "Hdie Rnuinng"
+                },
+                "table": {
+                    "bestBattle": "Bset Blatte",
+                    "title": "Title",
+                    "map": "Map",
+                    "players": "Plyreas",
+                    "runningFor": "Rnuinng for",
+                    "join": "Jion"
+                }
+            }
+        },
+        "singleplayer": {
+            "title": "Sieeyglnplar",
+            "scenarios": {
+                "title": "Srnaoecis",
+                "description": "Tset your siklls in tihs set of ceannlihlgg yet rwreinadg msnioiss.",
+                "victoryCondition": "Victroy ciondiotn",
+                "loseCondition": "Lose ciondiotn",
+                "faction": "Faticon",
+                "difficulty": "Difulcfity",
+                "launch": "Lacnuh"
+            }
+        },
+        "navbar": {
+            "tooltips": {
+                "directMessages": "Dierct Msegsaes",
+                "friends": "Fidnres",
+                "downloads": "Dolanwdos",
+                "settings": "Setngits",
+                "minimize": "Mnizimie",
+                "windowed": "Wiodnwed",
+                "fullscreen": "Fecrslluen",
+                "exit": "Eixt",
+                "cancelRequest": "Ceancl rseqeut",
+                "rejectRequest": "Recejt rseqeut",
+                "acceptRequest": "Acepct rseqeut",
+                "viewProfile": "View pflorie",
+                "sendMessage": "Sned mseagse",
+                "joinBattle": "Jion btalte",
+                "inviteToParty": "Iivnte to party",
+                "partyFull": "Max mrembes and iivetns reached",
+                "removeFriend": "Rmvoee finerd",
+                "userInParty": "In party",
+                "userInvited": "Ivetind"
+            },
+            "exit": {
+                "title": "Eixt",
+                "login": "Lgoin",
+                "logout": "Lgouot",
+                "quitToDesktop": "Quit to Dektosp"
+            },
+            "serverSettings": {
+                "title": "lobby sveerr seinttgs",
+                "activeServer": "Atvcie Seevrr",
+                "customServer": "Cuotsm Seevrr",
+                "placeholder": "e.g. ws://lclooasht:4000",
+                "add": "Add",
+                "remove": "Rmvoee",
+                "info": "Chinnagg the Atvcie Seevrr has imdmiaete eeffct. Remeebmr to log in afetr sthwciing.",
+                "labelDefault": " - Dfuaelt Seevrrs",
+                "labelCustom": " - Cuotsm Seevrrs"
+            },
+            "breadcrumbs": {
+                "back": "Back"
+            },
+            "partyPopout": {
+                "party": "View Party",
+                "invited": "Party Iivnte"
+            },
+            "downloads": {
+                "noDownloads": "No dlodnwoas avctie",
+                "moreDownloads": "and {count} more...",
+                "starting": "Sattnrig...",
+                "extracting": "Erixtanctg...",
+                "progressMB": "{current} / {total} MB ({percent}%)",
+                "speedMBps": "{speed} MB/s",
+                "speedKBps": "{speed} KB/s",
+                "speedBps": "{speed} B/s",
+                "etaHoursMinutes": "{hours}h {minutes}m left",
+                "etaMinutesSeconds": "{minutes}m {seconds}s left",
+                "etaSeconds": "{seconds}s left"
+            },
+            "serverStatus": {
+                "playersOnline": "Plyreas Oinnle",
+                "error": "Eorrr",
+                "reconnecting": "Recotnnenicg...",
+                "offline": "Oniflfe"
+            },
+            "messages": {
+                "message": "Msaesge",
+                "userID": "User {id}",
+                "userIDPlaceholder": "32452",
+                "send": "Sned"
+            },
+            "settings": {
+                "title": "seinttgs",
+                "fullscreen": "Fecrslluen",
+                "windowSize": "Wdoniw Size",
+                "display": "Daspliy",
+                "skipIntro": "Skip Inrto",
+                "loginAutomatically": "Lgoin Aluaclatitomy",
+                "sfxVolume": "Sfx Vmolue",
+                "musicVolume": "Msuic Vmolue",
+                "devMode": "Dev Mode",
+                "uploadLogs": "Uolpad logs",
+                "logUrlCopied": "Log URL was cpeiod to clpbriaod.",
+                "couldNotUploadLog": "Culod not upolad log.",
+                "labelSm": "Samll",
+                "labelMd": "Meuidm",
+                "labelLg": "Lgare",
+                "labelDisplay": "Daspliy {id}",
+                "language": "Lguganae",
+                "storage": "Sraogte",
+                "assetsPath": "Aessts Licooatn",
+                "browse": "Bosrwe",
+                "moveToNewLocation": "Move to new loaitcon",
+                "moveToNewLocationDesc": "Moevs asests to the new fdelor and rmvoees tehm form the crerunt one.",
+                "copyToNewLocation": "Copy to new loaitcon",
+                "copyToNewLocationDesc": "Coipes asests to the new fdelor. The crerunt fdelor is kpet as a buackp.",
+                "useNewLocationOnly": "Use new loaitcon whoutit trsfrnnreiag",
+                "useNewLocationOnlyDesc": "Pntois the gmae at the new fdelor. No fleis are mvoed or cpeiod — you wlil need to re-dwalonod.",
+                "apply": "Apply",
+                "restartRequired": "The alpciotaipn wlil reolad afetr cnnighag the loaitcon.",
+                "transferringFiles": "Trsnrrafineg fleis... {percent}%"
+            },
+            "friends": {
+                "unknownUser": "Unwnokn User",
+                "title": "Fidnres",
+                "blocked": "Blceokd",
+                "yourUserId": "Your User ID is",
+                "copy": "Copy",
+                "friendId": "Finerd ID",
+                "addFriend": "Add Finerd",
+                "outgoingRequests": "Otniuogg Finerd Rtesequs",
+                "incomingRequests": "Imnciong Finerd Rtesequs",
+                "notifications": {
+                    "errors": {
+                        "invalidUser": "Ilnviad user ID or user not fnuod",
+                        "alreadyFriends": "Alaerdy fienrds wtih tihs user",
+                        "outgoingCapacityReached": "Too many otnouigg finerd rqeutses",
+                        "incomingCapacityReached": "User has too many iimnncog rqeutses",
+                        "internalError": "Seevrr erorr ocrurecd",
+                        "unauthorized": "Not azrhetiuod to sned finerd rqeutses",
+                        "invalidRequest": "Ilnviad rseqeut foamrt",
+                        "commandUnimplemented": "Finerd rqeutses not sreuppotd on tihs sveerr",
+                        "generic": "Failed to sned finerd rseqeut",
+                        "failedToCancel": "Failed to cneacl finerd rseqeut",
+                        "failedToAccept": "Failed to aepcct finerd rseqeut",
+                        "failedToReject": "Failed to reecjt finerd rseqeut",
+                        "failedToRemove": "Failed to rmovee finerd",
+                        "outgoingRequestExists": "Finerd rseqeut adalrey snet to tihs user",
+                        "incomingRequestExists": "Tihs user has adalrey snet you a finerd rseqeut"
+                    }
+                }
+            }
+        },
+        "components": {
+            "prompts": {
+                "password": "Psoaswrd",
+                "cancel": "Ceancl",
+                "ok": "OK"
+            },
+            "social": {
+                "chat": {
+                    "to": "To",
+                    "typeHerePlaceholder": "Tpye hree to caht. Use '/' for cmandmos."
+                }
+            },
+            "misc": {
+                "debugSidebar": {
+                    "debugSandbox": "Duebg Snbodax",
+                    "openSettingsFile": "Oepn Setngits Flie",
+                    "openAssetsDir": "Oepn Aessts Dir",
+                    "openStateDir": "Oepn Satte Dir",
+                    "openStartScript": "Oepn Lasett Strat Sipcrt",
+                    "syncLobbyContent": "Sync Lbboy Cnteont Tool",
+                    "causeError": "Cuase an erorr",
+                    "game": "Gmae",
+                    "engine": "Egnnie",
+                    "view": "View",
+                    "lobbyServerSettings": "Lbboy Seevrr Setngits",
+                    "createParty": "Cetare Party"
+                },
+                "scenarioTile": {
+                    "title": "Seanirco Title"
+                },
+                "newsTile": {
+                    "clickToReadMore": "Ccilk to raed more"
+                },
+                "devlogFeed": {
+                    "latestChanges": "Lasett cngaehs"
+                },
+                "preloader": {
+                    "loading": "Lndiaog",
+                    "loadingFonts": "Lndiaog ftnos",
+                    "initializingIndexDB": "Initnaiilizg IDedxnB",
+                    "initializingMaps": "Initnaiilizg maps",
+                    "initializingReplays": "Initnaiilizg realyps"
+                },
+                "syncDataDirsDialog": {
+                    "title": "Sync Dtaa Driceteoris",
+                    "description": "Tihs tool let's you snosihyncre miulltpe dtaa driiectores if you use miulltpe lobby aconiptpilas. Slecet the dtaa drcrotiey for the otehr lobby alpciotaipn boelw, then check the ctnnoet you wish to snosihyncre. Feils not form tihs lobby's dtaa dir wlil be kpet, and flrdoes wlil be mrgeed.",
+                    "otherLobbyDataDir": "Otehr Lbboy's Dtaa Dir:",
+                    "test": "Tset"
+                },
+                "gameModeSelector": {
+                    "classic": "Cssialc",
+                    "classicDescription": "Deaeft your oeonnppt",
+                    "raptors": "Rptoars",
+                    "raptorsDescription": "Setrongr than flesh",
+                    "scavengers": "Snvaeegcrs",
+                    "scavengersDescription": "Don't let tehm get you",
+                    "ffa": "FFA",
+                    "ffaDescription": "Lsat com sadtnnig wins"
+                },
+                "error": {
+                    "fatalError": "Faatl Eorrr",
+                    "fatalErrorDescription": "A faatl erorr has ocrurecd and BAR Lbboy ndees to reolad.",
+                    "uploadLogs": "Uolpad logs",
+                    "uploading": "Ulidpaong...",
+                    "logUrlCopied": "Log URL was cpeiod to clpbriaod.",
+                    "couldNotUploadLog": "Culod not upolad log.",
+                    "reload": "Rolead",
+                    "quitToDesktop": "Quit to Dektosp"
+                },
+                "devlogEntry": {
+                    "title": "Deolvg Title",
+                    "description": "Deolvg Deitipocrsn"
+                },
+                "initialSetup": {
+                    "title": "Iniaitl Stuep",
+                    "downloadingEngine": "Doanondlwig egnnie",
+                    "installingEngine": "Intslliang egnnie",
+                    "downloadingGame": "Doanondlwig gmae",
+                    "installingGame": "Intslliang gmae",
+                    "downloadingMaps": "Doanondlwig maps",
+                    "downloadingUpdate": "Doanondlwig upadte",
+                    "installingUpdate": "Intslliang upadte",
+                    "selectAssetsPathDescription": "Choose werhe gmae fleis (egnnie, maps, gmae) wlil be dodolnwaed.",
+                    "browse": "Bosrwe",
+                    "continue": "Contuine",
+                    "retry": "Rrtey",
+                    "skip": "Skip",
+                    "playOffline": "Paly Oniflfe",
+                    "stepFailed": "{step} — Failed",
+                    "stepRetrying": "{step} — Rtyneirg…",
+                    "contentRequired": "Egnnie and gmae must be dodolnwaed borefe stnartig a btalte."
+                }
+            },
+            "battle": {
+                "mapOptionsModal": {
+                    "title": "Map Options",
+                    "mapOptionsTitle": "Map Options",
+                    "boxesPresets": "Beoxs presets",
+                    "customBoxes": "Cuotsm bxeos",
+                    "deleteTeam": "Deetle Team",
+                    "team": "Team",
+                    "player": "pyaler",
+                    "ai": "AI",
+                    "addTeam": "Add Team",
+                    "editPresetTeams": "Eidt Preset Tmaes",
+                    "fixedPositions": "Fiexd piooitsns",
+                    "random": "Rdoanm",
+                    "close": "Csole",
+                    "openMapSelector": "Oepn map seteoclr"
+                },
+                "hostBattle": {
+                    "title": "Hsot Blatte",
+                    "settingUp": "Stietng up a ddeeicatd btalte hsot, tihs uulasly takes aruond 30 sondecs",
+                    "region": "Riogen",
+                    "hostButton": "Hsot Blatte",
+                    "updateButton": "Uadpte Blatte",
+                    "name": "Name",
+                    "startBoxes1": "Stxreoabts are asgseind slleaqntueiy to AylmaeTls.",
+                    "startBoxes2": "Exrta sbrxoteats wlil be deopprd.",
+                    "startBoxes3": "AylmaeTls whoutit one are full-map sbrxoteats.",
+                    "allyTeamCount": "AyaeTllm Cunot: ",
+                    "teamsPerAllyTeam": "Tmaes per AyaeTllm: ",
+                    "map": "Map"
+                },
+                "votePanel": {
+                    "vote": "Vtoe:",
+                    "yes": "Yes (F1)",
+                    "no": "No (F2)",
+                    "calledBy": "Cllaed by"
+                },
+                "botParticipant": {
+                    "configure": "Cgnfuoire",
+                    "duplicate": "Ditalpcue",
+                    "kick": "Kcik",
+                    "configureBot": "Cgnfuoire Bot"
+                },
+                "addBotModal": {
+                    "title": "Add Bot"
+                },
+                "battleChat": {
+                    "placeholder": "Tpye your mseagse...",
+                    "hideJunkMessages": "Hdie jnuk maegesss",
+                    "showJunkMessages": "Show jnuk maegesss"
+                },
+                "playerlist": {
+                    "players": "Plyreas",
+                    "spectators": "Setptacros"
+                },
+                "teamComponent": {
+                    "team": "Team",
+                    "addBot": "Add bot",
+                    "join": "Jion",
+                    "players": "({count} / {maxCount} plyaers)",
+                    "scavengers": "Snvaeegcrs",
+                    "raptors": "Rptoars",
+                    "teamId": "Team {id}"
+                },
+                "spectatorsComponent": {
+                    "spectators": "Setptacros",
+                    "memberCount": "0 Mrembes | 1 Meembr | {n} Mrembes",
+                    "join": "Jion"
+                },
+                "battlePreview": {
+                    "preview": "Pevierw",
+                    "players": "Plyreas",
+                    "spectators": "Setptacros"
+                },
+                "replayPreview": {
+                    "replay": "Relapy",
+                    "players": "Plyreas",
+                    "spectators": "Setptacros",
+                    "engineVersion": "Egnnie Vosiren",
+                    "gameVersion": "Gmae Vosiren"
+                },
+                "gameModeComponent": {
+                    "gameMode": "Gmae Mode",
+                    "presets": "Pretess",
+                    "configureGameOptions": "Cgnfuoire Gmae Options",
+                    "gameOptions": "Gmae Options",
+                    "gameModeClassic": "Cssialc",
+                    "gameModeFFA": "FFA",
+                    "gameModeRaptors": "Rptoars",
+                    "gameModeScavengers": "Snvaeegcrs",
+                    "gameModeSkirmish": "Simksirh",
+                    "gameModeUnknown": "Unwnokn"
+                },
+                "offlineBattleComponent": {
+                    "offlineBattle": "Oniflfe Blatte",
+                    "maps": "Maps",
+                    "gameIsStarting": "Gmae is stnartig...",
+                    "gameIsRunning": "Gmae is rniunng",
+                    "startTheGame": "Strat the gmae"
+                },
+                "playerParticipant": {
+                    "player": "Player",
+                    "viewProfile": "View Pofirle",
+                    "makeBoss": "Mkae Boss",
+                    "message": "Msaesge",
+                    "addFriend": "Add Finerd",
+                    "kick": "Kcik",
+                    "ring": "Rnig",
+                    "more": "More"
+                },
+                "battleTitleComponent": {
+                    "title": "Blatte Title"
+                },
+                "spectatorParticipant": {
+                    "spectator": "Seopctatr"
+                },
+                "luaOptionsModal": {
+                    "resetAllToDefault": "Reest all to dfauelt",
+                    "close": "Csole"
+                }
+            },
+            "controls": {
+                "downloadContentButton": {
+                    "downloading": "Doanondlwig...",
+                    "download": "Dlawonod"
+                },
+                "select": {
+                    "search": "Sacreh"
+                }
+            },
+            "maps": {
+                "mapOverviewCard": {
+                    "sizeUnknown": "Unwnokn"
+                },
+                "mapFiltersComponent": {
+                    "maxPlayers": "Max Plyreas",
+                    "filterBy": "Flietr By",
+                    "terrain": "Trirean",
+                    "gameType": "Gmae Tpye"
+                },
+                "mapListComponents": {
+                    "sortBy": "Srot By",
+                    "labelName": "Name",
+                    "labelSize": "Size",
+                    "noMapsFound": "No maps fnuod!",
+                    "pleaseTryDifferent": "Peslae try dnieferft kyeodwrs / flirtes"
+                },
+                "filters": {
+                    "favoritesFilter": {
+                        "label": "Frtvioeas"
+                    },
+                    "downloadedFilter": {
+                        "label": "Dowodnaled"
+                    }
+                }
+            },
+            "user": {
+                "reportUser": {
+                    "menuLabel": "Rperot User",
+                    "title": "Rperot {username}",
+                    "blurb": "Rretops are handeld by vonutlrees, so psleae inuldce:",
+                    "guidanceDescription": "Waht was dnoe, or the seifipcc wrdos that were said",
+                    "guidanceTimestamps": "Tiemstmaps of the in gmae evnets, eevn apriaxmtope ones",
+                    "specCheatingNote": "Rretops that say olny \"spec chtaieng\" may be igenrod. Say waht leookd supcuoiiss, wtih timesamtps.",
+                    "reasonForReport": "Rasoen for Rperot",
+                    "whichMatch": "Wichh Mcath?",
+                    "lobbyActionsHint": "If it haepenpd in the lobby, pick the mcath it haepenpd borefe.",
+                    "fetchingMatches": "Ftehcnig Mchteas",
+                    "noMatch": "I caonnt find the mcath",
+                    "matchesFailed": "Culod not laod renect mcheats. You can slitl sned the rpreot whoutit one.",
+                    "noMatchesFound": "No renect mcheats fnuod for tihs pyaler. You can slitl sned the rpreot, but whoutit a mcath we may not be albe to find the evdecnie.",
+                    "matchTeams": "{left} vs {right}",
+                    "matchFfa": "{teams} way FFA",
+                    "matchOnMap": "{match} on {map}",
+                    "columnMatch": "Mcath",
+                    "columnMap": "Map",
+                    "columnWhen": "Wehn",
+                    "columnLength": "Lgtneh",
+                    "matchWhen": "{ago} ago",
+                    "matchWhenUnknown": "Unwnokn",
+                    "team": "Team {team}",
+                    "winner": "won",
+                    "wasSpectating": "Tihs pyaler was sittnecapg tihs mcath.",
+                    "extraInfo": "Exrta Ifno",
+                    "sections": {
+                        "chat": "Caht / Cnituomcimaon",
+                        "actions": "In-Gmae Ancoits"
+                    },
+                    "reasons": {
+                        "chat": {
+                            "spam": "Spam",
+                            "bullying": "Byilnulg",
+                            "hate": "Htae secpeh",
+                            "other": "Otehr"
+                        },
+                        "actions": {
+                            "noob": "Noob",
+                            "griefing": "Ginriefg",
+                            "cheating": "Citheang",
+                            "other": "Otehr"
+                        }
+                    },
+                    "messagePlaceholder": "Dercbise waht haepenpd",
+                    "submit": "Sned Rperot",
+                    "submitted": "Rperot snet to the mdiateoron team.",
+                    "relationships": {
+                        "ignore": "Ingroe",
+                        "ignoreTooltip": "Sotp sieeng tiehr maegesss. Not aablviale in the lobby yet, do it on the wsitebe.",
+                        "avoid": "Aivod",
+                        "avoidTooltip": "Ask not to be put in a gmae wtih tehm. Not aablviale in the lobby yet, do it on the wsitebe.",
+                        "block": "Bolck",
+                        "blockTooltip": "Sotp sieeng tehm at all. Not aablviale in the lobby yet, do it on the wsitebe."
+                    }
+                }
+            }
         }
-      }
     }
-  }
 }
