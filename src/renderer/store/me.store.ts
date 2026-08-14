@@ -10,6 +10,7 @@ import { PrivateUser } from "tachyon-protocol/types";
 import { settingsStore } from "@renderer/store/settings.store";
 import { subsManager } from "@renderer/store/users.store";
 import { onWentOffline } from "@renderer/utils/offline-signal";
+import { notificationsApi } from "@renderer/api/notifications";
 
 export const me = reactive<
     Me & {
@@ -202,29 +203,38 @@ export const friends = {
     },
 
     async remove(userId: string) {
-        const response = await window.tachyon.request("friend/remove", { userId });
-        me.friendUserIds.delete(userId);
-        await unsubscribeFromUsers([userId]);
-        return response;
+        try {
+            const response = await window.tachyon.request("friend/remove", { userId });
+            me.friendUserIds.delete(userId);
+            await unsubscribeFromUsers([userId]);
+            return response;
+        } catch (error) {
+            console.log(`Failed to remove friend with userId: ${userId}`, error);
+            notificationsApi.alert({ severity: "error", text: "Failed to remove friend." });
+        }
     },
 
     async fetchFriendList() {
-        const response = await window.tachyon.request("friend/list");
-        console.debug(`Received friend/list event: ${JSON.stringify(response)}`);
+        try {
+            const response = await window.tachyon.request("friend/list");
+            console.debug(`Received friend/list event: ${JSON.stringify(response)}`);
 
-        // Clear existing friend data and populate with new data
-        me.friendUserIds = new Set(response.data.friends.map((friend) => friend.userId));
-        me.outgoingFriendRequestUserIds = new Set(response.data.outgoingPendingRequests.map((req) => req.to));
-        me.incomingFriendRequestUserIds = new Set(response.data.incomingPendingRequests.map((req) => req.from));
+            // Clear existing friend data and populate with new data
+            me.friendUserIds = new Set(response.data.friends.map((friend) => friend.userId));
+            me.outgoingFriendRequestUserIds = new Set(response.data.outgoingPendingRequests.map((req) => req.to));
+            me.incomingFriendRequestUserIds = new Set(response.data.incomingPendingRequests.map((req) => req.from));
 
-        // Get all user IDs to subscribe to
-        const allUserIds = Array.from(toRaw(me.friendUserIds).union(me.outgoingFriendRequestUserIds).union(me.incomingFriendRequestUserIds));
+            // Get all user IDs to subscribe to
+            const allUserIds = Array.from(toRaw(me.friendUserIds).union(me.outgoingFriendRequestUserIds).union(me.incomingFriendRequestUserIds));
 
-        if (allUserIds.length > 0) {
-            await subscribeToUsers(allUserIds);
+            if (allUserIds.length > 0) {
+                await subscribeToUsers(allUserIds);
+            }
+            return response;
+        } catch (error) {
+            console.log(`Failed to fetch friend list`, error);
+            notificationsApi.alert({ severity: "error", text: "Failed to fetch friend list." });
         }
-
-        return response;
     },
 };
 
