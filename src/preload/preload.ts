@@ -7,6 +7,7 @@ import { ipcRenderer, IpcResult } from "@main/typed-ipc";
 import { ContentRef } from "@main/content/content-ref";
 import { ContentPresence, ContentState } from "@main/content/content-state";
 import { Replay } from "@main/replays/replay";
+import { OnlineReplayDetails, OnlineReplayOverview } from "@main/replays/online-replays";
 import { Settings } from "@main/services/settings.service";
 import { EngineVersion } from "@main/content/engine/engine-version";
 import { GameVersion } from "@main/content/game/game-version";
@@ -62,6 +63,8 @@ contextBridge.exposeInMainWorld("shell", shellApi);
 const replaysApi = {
     sync: (replays: string[]): Promise<void> => ipcRenderer.invoke("replays:sync", replays),
     delete: (fileName: string): Promise<void> => ipcRenderer.invoke("replays:delete", fileName),
+    searchOnlineByPlayer: (username: string, limit: number): Promise<IpcResult<OnlineReplayOverview[]>> => ipcRenderer.invoke("replays:searchOnlineByPlayer", username, limit),
+    getOnline: (replayId: string): Promise<IpcResult<OnlineReplayDetails>> => ipcRenderer.invoke("replays:getOnline", replayId),
 
     // Events
     onReplayCachingStarted: (callback: (filename: string) => void) => ipcRenderer.on("replays:replayCachingStarted", (_event, filename) => callback(filename)),
@@ -221,6 +224,7 @@ const tachyonApi = {
     isConnected: (): Promise<boolean> => ipcRenderer.invoke("tachyon:isConnected"),
     connect: (): Promise<void> => ipcRenderer.invoke("tachyon:connect"),
     disconnect: (): Promise<void> => ipcRenderer.invoke("tachyon:disconnect"),
+    dropConnection: (): Promise<void> => ipcRenderer.invoke("tachyon:dropConnection"),
 
     // Requests
     // sendEvent: (event: TachyonEvent) => ipcRenderer.invoke("tachyon:sendEvent", event),

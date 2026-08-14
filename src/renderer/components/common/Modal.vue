@@ -6,7 +6,7 @@ SPDX-License-Identifier: MIT
 
 <template>
     <Teleport v-if="isLoaded" to="#wrapper">
-        <form v-if="isOpen" ref="form" class="container" @submit.prevent="onSubmit" @keydown.enter="onSubmit">
+        <form v-if="isOpen" ref="form" class="container" @submit.prevent="onSubmit">
             <Panel id="modal" class="modal-panel" v-bind="$attrs">
                 <template #header>
                     <div class="title">
@@ -100,6 +100,8 @@ onKeyDown(
     { target: document }
 );
 
+// Only fires for a button marked type="submit", or Enter from a single line input. Anything that
+// wants Enter to send the form has to say so.
 async function onSubmit() {
     const data: Record<string, unknown> = {};
 

@@ -14,6 +14,7 @@ import {
 import { tachyonStore } from "@renderer/store/tachyon.store";
 import { notificationsApi } from "@renderer/api/notifications";
 import { isTachyonErrorForCommand, tachyonRequest } from "@renderer/api/tachyon";
+import { onWentOffline } from "@renderer/utils/offline-signal";
 
 export enum MatchmakingStatus {
     Idle = "Idle",
@@ -187,9 +188,16 @@ async function sendQueueRequest() {
         console.log("Tachyon: matchmaking/queue:", response.status);
         matchmakingStore.status = MatchmakingStatus.Searching;
     } catch (error) {
-        if (isTachyonErrorForCommand(error, "matchmaking/queue") && error.reason === "version_mismatch") {
-            notificationsApi.alert({ text: "Queue version changed; refreshing list.", severity: "info" });
-            await sendListRequest();
+        if (isTachyonErrorForCommand(error, "matchmaking/queue")) {
+            if (error.reason === "version_mismatch") {
+                notificationsApi.alert({ text: "Queue version changed; refreshing list.", severity: "info" });
+                await sendListRequest();
+            } else if (error.reason === "party_missing_asset") {
+                notificationsApi.alert({ text: "Party queue rejected, required assets are missing for the queue.", severity: "error" });
+            } else {
+                notificationsApi.alert({ text: `Queue request rejected for reason: ${error.reason}.`, severity: "error" });
+                console.error("Tachyon error: matchmaking/queue:", error);
+            }
         } else {
             console.error("Tachyon error: matchmaking/queue:", error);
             notificationsApi.alert({ text: "Tachyon error: matchmaking/queue", severity: "error" });
@@ -233,6 +241,7 @@ async function sendReadyRequest() {
 export async function initializeMatchmakingStore() {
     if (matchmakingStore.isInitialized) return;
 
+    onWentOffline.add(clearOnlineState);
     window.tachyon.onEvent("matchmaking/queueUpdate", onQueueUpdateEvent);
 
     window.tachyon.onEvent("matchmaking/lost", onLostEvent);
@@ -252,4 +261,16 @@ export async function initializeMatchmakingStore() {
     matchmakingStore.isInitialized = true;
 }
 
-export const matchmaking = { sendCancelRequest, sendQueueRequest, sendReadyRequest, sendListRequest, triggerAssetsRefresh };
+// selectedQueue is the user's pick, not server state, and downloadsRequired is derived from
+// installed content rather than the session - the next list response recomputes it.
+export function clearOnlineState() {
+    matchmakingStore.status = MatchmakingStatus.Idle;
+    matchmakingStore.playlists = [];
+    matchmakingStore.isLoadingQueues = false;
+    matchmakingStore.errorMessage = null;
+    matchmakingStore.queueError = undefined;
+    matchmakingStore.playersQueued = 0;
+    matchmakingStore.playersReady = 0;
+}
+
+export const matchmaking = { sendCancelRequest, sendQueueRequest, sendReadyRequest, sendListRequest, triggerAssetsRefresh, clearOnlineState };

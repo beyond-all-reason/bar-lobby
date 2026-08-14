@@ -1,227 +1,724 @@
 {
+    "lobby": {
+        "api": {
+            "shell": {
+                "openFailed": "Culod not oepn that: {details}"
+            },
+            "commands": {
+                "help": "Diaplyss tihs help text.",
+                "whoami": "Sdens back imfoantrion aoubt who you are.",
+                "whois": "[user] Sdens back imfoantrion aoubt the user sfipeceid.",
+                "discord": "Awllos lininkg of your dcorsid anccout to your BAR anccout.",
+                "mute": "[unaemsre] Muets that user and pnveerts you sieeng tiehr maegesss.",
+                "unmute": "[unaemsre] Un-metus that user and awllos you to see tiehr maegesss.",
+                "coc": "[trem] Saechers the code of codcnut and rteruns items wtih a txeutal mcath in tehm.",
+                "joinq": "Adds you to the qeuue to jion wehn a space oepns up, you wlil be alutcaltiaomy added to the gmae as a pyaler. If adalrey a meembr it has no eeffct.",
+                "leaveq": "Revmeos you form the jion qeuue.",
+                "status": "Satuts ifno aoubt the btalte lobby.",
+                "afks": "Lstis polbisse afk plyaers.",
+                "password": "Tells you the room pawossrd",
+                "splitLobby": "[miumnim plyaers] Cuesas a vtoe to strat werhe otehr plyaers can eeclt to jion you in stlitnipg the lobby, flloow soeonme of tiehr cosohnig or rmaien in pclae. Afetr 30 sondecs, if at lseat the miumnim nbmuer of plyaers areegd to silpt, you are mvoed to a new (epmty) lobby and tohse that voetd yes or are fwinollog soeonme that voetd yes are also mvoed to that lobby.",
+                "roll": "[rgane] Rolls a radonm nbmuer bsead on the rgane foamrt.\n- Dice foamrt: nDs, werhe n is nbmuer of dice and s is sides of die. E.g. 4D6 - 4 dice wtih 6 sides are rloeld\n- Max foamrt: N, werhe N is a nbmuer and an inteegr beewetn 1 and N is retneurd\n- Min/Max foamrt: MN MX, werhe each is a nbmuer and an inteegr beewetn tehm (ilinvsuce) is retneurd",
+                "explain": "Lstis a log of the setps teakn to ccltaluae banacle for the lobby",
+                "resetApproval": "Rstees the lsit of aprpvoed plyaers to jsut the ones pernset at the menmot (aprpvoed plyaers are albe to jion eevn if it is lceokd and whoutit nedieng a pawossrd). Rqireeus boss pigelevirs.",
+                "meme": "[mmee] A perinefedd bcnuh of seinttgs for mmee geams. It's all Rkriess' fault. Rqireeus boss pigelevirs. ticks: Tkcis olny!, ndnceeofe: No denecefs, geedfleinrs: No mteal extrcoatrs, rcih: Ifntiine money, poor: No money gtreoianen, hardt1: T1 but no seealpnas or horevs eihter, carzy: Rdoanm cmaitonobin of saervel seinttgs, udno: Revmeos all mmee eftfces",
+                "welcomeMessage": "[mseagse] Sets the wcoemle mseagse snet to anbdoyy jniniog the lobby. Run tihs cmmaond whoutit a mseagse to celar the exnsiitg mseagse. Rqireeus boss pigelevirs. Use $$ to add a lnie rterun.",
+                "gatekeeper": "[dfauelt - fienrds - firdlnaspey - caln] sets the gpeeeetakr for tihs btalte. Rqireeus boss pigelevirs. > dfauelt: no linatmioits. > fienrds awllos olny fienrds of exnsiitg mrembes to jion the lobby. > firdlnaspey: awllos olny fienrds of exnsiitg plyaers to boceme plyaers (but anbdoyy can jion to saectpte)",
+                "rename": "[new name] Rnemaes the lobby to the name gvien. Rqireeus boss pigelevirs.",
+                "resetRatingLevels": "Rstees the raitng level lmitis to not eixst. Player liiimtng cmandmos are dnsigeed to be used wtih $rnemae, psleae be caufrel not to absue tehm. Rqireeus boss pigelevirs.",
+                "minRatingLevel": "[min-level] Sets the miumnim level for plyaers, you must be at lseat tihs raitng to be a pyaler. Rqireeus boss pigelevirs.",
+                "maxRatingLevel": "[max-level] Sets the miuamxm level for plyaers, you must be at boelw tihs raitng to be a pyaler. Rqireeus boss pigelevirs.",
+                "setRatingLevels": "[min-level] [max-level] Sets the miumnim and miuamxm raitng leelvs for plyaers. Rqireeus boss pigelevirs."
+            }
+        },
+        "buttons": {
+            "quickPlay": "Qiuck paly"
+        },
+        "composables": {
+            "useTerrainIcon": {
+                "tooltipAcidic": "Adicic and dgoaeruns wteras",
+                "tooltipAlien": "Eoixtc aleint biomes",
+                "tooltipAsteroid": "Lanur lpandacse, wtih low grvaity and (no) wnid",
+                "tooltipAsymmetrical": "Amtecsyrmail map",
+                "tooltipChokepoints": "Narorw pagseass",
+                "tooltipDesert": "Rkcoy or sdany, braern desert",
+                "tooltipFlat": "Ctnonias lgare flat aaers",
+                "tooltipForests": "Ltos of teres",
+                "tooltipGrassy": "Ltos of cprisy geren grsas",
+                "tooltipHills": "Hilly or munnoatiuos trirean",
+                "tooltipIce": "A clod pclae",
+                "tooltipIndustrial": "Intriusadl map wtih aniecnt cicuostrnotns",
+                "tooltipIsland": "Island map, land fully suouednrrd by weatr",
+                "tooltipJungle": "Dnese fgoaile and ftresos",
+                "tooltipLava": "Dgoreauns lvaa ploos",
+                "tooltipMetal": "Mteal map, werhe (most of) the saucfre is made of eaatxlrtcbe mteal",
+                "tooltipRuins": "Srucettrus or riuns",
+                "tooltipSea": "Lgare bdeios of weatr or Sea",
+                "tooltipShallows": "Paablsse shloalw weatr like creeks, rerivs and bheaces",
+                "tooltipSpace": "In oueascrpte, uulasly whoutit wnid",
+                "tooltipSwamp": "Swpmay, wet trirean wtih ltos of pdnos and fgoaile",
+                "tooltipTropical": "Tirocapl bimoe wtih bheaces, pmals and tocraipl fsih",
+                "tooltipWasteland": "Fotoretgn wsneaaltd that hsan't seen lfie in a lnog time",
+                "tooltipWater": "Selmalr bdeios of weatr like lekas, pdnos or rerivs"
+            }
+        },
+        "overview": {
+            "newLobbyAlpha": "A new lobby has lndead",
+            "newLobbySubtext": "Weoclme to the new BAR lobby pulbic tetinsg alpha 1 cemdmoanr !\nTihs veoirsn olny spuortps slgleeaiypnr gmae modes."
+        },
+        "views": {
+            "profile": {
+                "status": "Satuts: ",
+                "clan": "Caln: ",
+                "userNotFound": "User not fnuod"
+            },
+            "play": {
+                "comingSoon": "(Conimg Soon)",
+                "skirmish": "Simksirh vs AI",
+                "campaign": "Cgamapin",
+                "matchmaking": "Macanihmtkg",
+                "scenarios": "Srnaoecis",
+                "customLobbies": "Cuotsm Loiebbs",
+                "tournaments": "Tornetnumas"
+            },
+            "party": {
+                "title": "Party",
+                "partyTab": "Atvcie Party",
+                "inviteTab": "Aibavlale Iivnets",
+                "members": "Mrembes",
+                "invites": "Iivnets",
+                "leaveParty": "Laeve Party",
+                "matchmakingQueues": "Macanihmtkg Qeeuus",
+                "noQueues": "No mnchaaiktmg qeueus aablviale",
+                "requestQueues": "Rquseet Qeeuus",
+                "receivedInvite": "You hvae reeviecd a party initiavotn form {users}.",
+                "acceptInvite": "Acepct",
+                "declineInvite": "Denlice",
+                "kickMember": "Kcik Meembr",
+                "cancelInvite": "Ceancl Iivnte",
+                "noInvites": "No crerunt iiinnattvos."
+            },
+            "watch": {
+                "replays": {
+                    "title": "Reaypls",
+                    "endedNormally": "Eednd Nalrlmoy",
+                    "showSpoilers": "Show Serilpos",
+                    "searchPlaceholder": "Sacreh map, plyaers...",
+                    "browseOnlineReplays": "Bosrwe Oinnle Reaypls",
+                    "openReplaysFolder": "Oepn Reaypls Fldeor",
+                    "noReplaysFound": "No realyps fnuod",
+                    "name": "Name",
+                    "date": "Dtae",
+                    "duration": "Driuotan",
+                    "map": "Map",
+                    "nobody": "Noodby",
+                    "wayFFA": "Way FFA",
+                    "wayTeamFFA": "Way Team FFA",
+                    "gameIsRunning": "Gmae is rniunng",
+                    "launching": "Lnauinhcg...",
+                    "watch": "Wtach"
+                }
+            },
+            "index": {
+                "goBack": "Go Back",
+                "login": "Lgoin",
+                "changeAccount": "Canghe anccout",
+                "playOffline": "Paly Oniflfe",
+                "needToLogIn": "log in?",
+                "needToLogInToAccess": "You need to log in to acsces oninle feteruas."
+            }
+        },
+        "library": {
+            "maps": {
+                "title": "Maps",
+                "back": "Back",
+                "description": "Deitipocrsn",
+                "author": "Auhotr",
+                "properties": "Map Prrptoiees",
+                "addToFavorites": "Add to frteoiavs",
+                "removeFromFavorites": "Rmvoee form frteoiavs",
+                "play": "Paly",
+                "downloading": "Doanondlwig...",
+                "download": "Dlawonod map"
+            }
+        },
+        "multiplayer": {
+            "title": "Meatliyplur",
+            "ranked": {
+                "title": "Rkeand",
+                "description": "Jion a mpetluyilar rakend qeuue.",
+                "loadingQueues": "Lndiaog mnchaaiktmg qeueus...",
+                "queueError": "Eorrr lndiaog qeueus",
+                "buttons": {
+                    "searchGame": "Sacreh gmae",
+                    "joinRequested": "Jniniog qeuue",
+                    "searchingForOpponent": "Searnichg for oeonnppt",
+                    "matchFound": "Mceathd - Ccilk to Raedy",
+                    "accepted": "Acpteecd",
+                    "cancel": "Ceancl"
+                },
+                "modalTitle": "Macanihmtkg Quuee Daleits",
+                "modal": {
+                    "labelName": "Quuee Name: {name}",
+                    "labelTeamConfig": "Tmaes: {numOfTeams} tmaes of 1 pyaler each. | Tmaes: {numOfTeams} tmaes of {teamSize} plyaers each.",
+                    "labelRanked": "Rkeand Gmae",
+                    "labelUnranked": "Unerkand Gmae",
+                    "labelEngines": "Egnnie Vensrois Ruieerqd: {count}",
+                    "labelGames": "Gmae Vensrois Ruieerqd: {count}",
+                    "labelMaps": "Maps rureeiqd: {count}"
+                }
+            },
+            "battle": {
+                "title": "Meatliyplur Cuotsm Blatte"
+            },
+            "custom": {
+                "title": "Meatliyplur Cuotsm Btalets",
+                "hostBattle": "Hsot Blatte",
+                "removedFromLobby": "You hvae been reovmed form the lobby.",
+                "noLobbiesAvailable": "No geams fnuod.",
+                "filters": {
+                    "hidePvE": "Hdie PvE",
+                    "hideLocked": "Hdie Leockd",
+                    "hideEmpty": "Hdie Etmpy",
+                    "hideInProgress": "Hdie Rnuinng"
+                },
+                "table": {
+                    "bestBattle": "Bset Blatte",
+                    "title": "Title",
+                    "map": "Map",
+                    "players": "Plyreas",
+                    "runningFor": "Rnuinng for",
+                    "join": "Jion"
+                }
+            }
+        },
+        "singleplayer": {
+            "title": "Sieeyglnplar",
+            "scenarios": {
+                "title": "Srnaoecis",
+                "description": "Tset your siklls in tihs set of ceannlihlgg yet rwreinadg msnioiss.",
+                "victoryCondition": "Victroy ciondiotn",
+                "loseCondition": "Lose ciondiotn",
+                "faction": "Faticon",
+                "difficulty": "Difulcfity",
+                "launch": "Lacnuh"
+            }
+        },
+        "navbar": {
+            "tooltips": {
+                "directMessages": "Dierct Msegsaes",
+                "friends": "Fidnres",
+                "downloads": "Dolanwdos",
+                "settings": "Setngits",
+                "minimize": "Mnizimie",
+                "windowed": "Wiodnwed",
+                "fullscreen": "Fecrslluen",
+                "exit": "Eixt",
+                "cancelRequest": "Ceancl rseqeut",
+                "rejectRequest": "Recejt rseqeut",
+                "acceptRequest": "Acepct rseqeut",
+                "viewProfile": "View pflorie",
+                "sendMessage": "Sned mseagse",
+                "joinBattle": "Jion btalte",
+                "inviteToParty": "Iivnte to party",
+                "partyFull": "Max mrembes and iivetns reached",
+                "removeFriend": "Rmvoee finerd",
+                "userInParty": "In party",
+                "userInvited": "Ivetind"
+            },
+            "exit": {
+                "title": "Eixt",
+                "login": "Lgoin",
+                "logout": "Lgouot",
+                "quitToDesktop": "Quit to Dektosp"
+            },
+            "serverSettings": {
+                "title": "lobby sveerr seinttgs",
+                "activeServer": "Atvcie Seevrr",
+                "customServer": "Cuotsm Seevrr",
+                "placeholder": "e.g. ws://lclooasht:4000",
+                "add": "Add",
+                "remove": "Rmvoee",
+                "info": "Chinnagg the Atvcie Seevrr has imdmiaete eeffct. Remeebmr to log in afetr sthwciing.",
+                "labelDefault": " - Dfuaelt Seevrrs",
+                "labelCustom": " - Cuotsm Seevrrs"
+            },
+            "breadcrumbs": {
+                "back": "Back"
+            },
+            "partyPopout": {
+                "party": "View Party",
+                "invited": "Party Iivnte"
+            },
+            "downloads": {
+                "noDownloads": "No dlodnwoas avctie",
+                "moreDownloads": "and {count} more...",
+                "starting": "Sattnrig...",
+                "extracting": "Erixtanctg...",
+                "progressMB": "{current} / {total} MB ({percent}%)",
+                "speedMBps": "{speed} MB/s",
+                "speedKBps": "{speed} KB/s",
+                "speedBps": "{speed} B/s",
+                "etaHoursMinutes": "{hours}h {minutes}m left",
+                "etaMinutesSeconds": "{minutes}m {seconds}s left",
+                "etaSeconds": "{seconds}s left"
+            },
+            "serverStatus": {
+                "playersOnline": "Plyreas Oinnle",
+                "error": "Eorrr",
+                "reconnecting": "Recotnnenicg...",
+                "offline": "Oniflfe"
+            },
+            "messages": {
+                "message": "Msaesge",
+                "userID": "User {id}",
+                "userIDPlaceholder": "32452",
+                "send": "Sned"
+            },
+            "settings": {
+                "title": "seinttgs",
+                "fullscreen": "Fecrslluen",
+                "windowSize": "Wdoniw Size",
+                "display": "Daspliy",
+                "skipIntro": "Skip Inrto",
+                "loginAutomatically": "Lgoin Aluaclatitomy",
+                "sfxVolume": "Sfx Vmolue",
+                "musicVolume": "Msuic Vmolue",
+                "devMode": "Dev Mode",
+                "uploadLogs": "Uolpad logs",
+                "logUrlCopied": "Log URL was cpeiod to clpbriaod.",
+                "couldNotUploadLog": "Culod not upolad log.",
+                "labelSm": "Samll",
+                "labelMd": "Meuidm",
+                "labelLg": "Lgare",
+                "labelDisplay": "Daspliy {id}",
+                "language": "Lguganae",
+                "storage": "Sraogte",
+                "assetsPath": "Aessts Licooatn",
+                "browse": "Bosrwe",
+                "moveToNewLocation": "Move to new loaitcon",
+                "moveToNewLocationDesc": "Moevs asests to the new fdelor and rmvoees tehm form the crerunt one.",
+                "copyToNewLocation": "Copy to new loaitcon",
+                "copyToNewLocationDesc": "Coipes asests to the new fdelor. The crerunt fdelor is kpet as a buackp.",
+                "useNewLocationOnly": "Use new loaitcon whoutit trsfrnnreiag",
+                "useNewLocationOnlyDesc": "Pntois the gmae at the new fdelor. No fleis are mvoed or cpeiod — you wlil need to re-dwalonod.",
+                "apply": "Apply",
+                "restartRequired": "The alpciotaipn wlil reolad afetr cnnighag the loaitcon.",
+                "transferringFiles": "Trsnrrafineg fleis... {percent}%"
+            },
+            "friends": {
+                "unknownUser": "Unwnokn User",
+                "title": "Fidnres",
+                "blocked": "Blceokd",
+                "yourUserId": "Your User ID is",
+                "copy": "Copy",
+                "friendId": "Finerd ID",
+                "addFriend": "Add Finerd",
+                "outgoingRequests": "Otniuogg Finerd Rtesequs",
+                "incomingRequests": "Imnciong Finerd Rtesequs",
+                "notifications": {
+                    "errors": {
+                        "invalidUser": "Ilnviad user ID or user not fnuod",
+                        "alreadyFriends": "Alaerdy fienrds wtih tihs user",
+                        "outgoingCapacityReached": "Too many otnouigg finerd rqeutses",
+                        "incomingCapacityReached": "User has too many iimnncog rqeutses",
+                        "internalError": "Seevrr erorr ocrurecd",
+                        "unauthorized": "Not azrhetiuod to sned finerd rqeutses",
+                        "invalidRequest": "Ilnviad rseqeut foamrt",
+                        "commandUnimplemented": "Finerd rqeutses not sreuppotd on tihs sveerr",
+                        "generic": "Failed to sned finerd rseqeut",
+                        "failedToCancel": "Failed to cneacl finerd rseqeut",
+                        "failedToAccept": "Failed to aepcct finerd rseqeut",
+                        "failedToReject": "Failed to reecjt finerd rseqeut",
+                        "failedToRemove": "Failed to rmovee finerd",
+                        "outgoingRequestExists": "Finerd rseqeut adalrey snet to tihs user",
+                        "incomingRequestExists": "Tihs user has adalrey snet you a finerd rseqeut"
+                    }
+                }
+            }
+        },
+        "components": {
+            "prompts": {
+                "password": "Psoaswrd",
+                "cancel": "Ceancl",
+                "ok": "OK"
+            },
+            "social": {
+                "chat": {
+                    "to": "To",
+                    "typeHerePlaceholder": "Tpye hree to caht. Use '/' for cmandmos."
+                }
+            },
+            "misc": {
+                "debugSidebar": {
+                    "debugSandbox": "Duebg Snbodax",
+                    "openSettingsFile": "Oepn Setngits Flie",
+                    "openAssetsDir": "Oepn Aessts Dir",
+                    "openStateDir": "Oepn Satte Dir",
+                    "openStartScript": "Oepn Lasett Strat Sipcrt",
+                    "syncLobbyContent": "Sync Lbboy Cnteont Tool",
+                    "causeError": "Cuase an erorr",
+                    "game": "Gmae",
+                    "engine": "Egnnie",
+                    "view": "View",
+                    "lobbyServerSettings": "Lbboy Seevrr Setngits",
+                    "createParty": "Cetare Party"
+                },
+                "scenarioTile": {
+                    "title": "Seanirco Title"
+                },
+                "newsTile": {
+                    "clickToReadMore": "Ccilk to raed more"
+                },
+                "devlogFeed": {
+                    "latestChanges": "Lasett cngaehs"
+                },
+                "preloader": {
+                    "loading": "Lndiaog",
+                    "loadingFonts": "Lndiaog ftnos",
+                    "initializingIndexDB": "Initnaiilizg IDedxnB",
+                    "initializingMaps": "Initnaiilizg maps",
+                    "initializingReplays": "Initnaiilizg realyps"
+                },
+                "syncDataDirsDialog": {
+                    "title": "Sync Dtaa Driceteoris",
+                    "description": "Tihs tool let's you snosihyncre miulltpe dtaa driiectores if you use miulltpe lobby aconiptpilas. Slecet the dtaa drcrotiey for the otehr lobby alpciotaipn boelw, then check the ctnnoet you wish to snosihyncre. Feils not form tihs lobby's dtaa dir wlil be kpet, and flrdoes wlil be mrgeed.",
+                    "otherLobbyDataDir": "Otehr Lbboy's Dtaa Dir:",
+                    "test": "Tset"
+                },
+                "gameModeSelector": {
+                    "classic": "Cssialc",
+                    "classicDescription": "Deaeft your oeonnppt",
+                    "raptors": "Rptoars",
+                    "raptorsDescription": "Setrongr than flesh",
+                    "scavengers": "Snvaeegcrs",
+                    "scavengersDescription": "Don't let tehm get you",
+                    "ffa": "FFA",
+                    "ffaDescription": "Lsat com sadtnnig wins"
+                },
+                "error": {
+                    "fatalError": "Faatl Eorrr",
+                    "fatalErrorDescription": "A faatl erorr has ocrurecd and BAR Lbboy ndees to reolad.",
+                    "uploadLogs": "Uolpad logs",
+                    "uploading": "Ulidpaong...",
+                    "logUrlCopied": "Log URL was cpeiod to clpbriaod.",
+                    "couldNotUploadLog": "Culod not upolad log.",
+                    "reload": "Rolead",
+                    "quitToDesktop": "Quit to Dektosp"
+                },
+                "devlogEntry": {
+                    "title": "Deolvg Title",
+                    "description": "Deolvg Deitipocrsn"
+                },
+                "initialSetup": {
+                    "title": "Iniaitl Stuep",
+                    "downloadingEngine": "Doanondlwig egnnie",
+                    "installingEngine": "Intslliang egnnie",
+                    "downloadingGame": "Doanondlwig gmae",
+                    "installingGame": "Intslliang gmae",
+                    "downloadingMaps": "Doanondlwig maps",
+                    "downloadingUpdate": "Doanondlwig upadte",
+                    "installingUpdate": "Intslliang upadte",
+                    "selectAssetsPathDescription": "Choose werhe gmae fleis (egnnie, maps, gmae) wlil be dodolnwaed.",
+                    "browse": "Bosrwe",
+                    "continue": "Contuine",
+                    "retry": "Rrtey",
+                    "skip": "Skip",
+                    "playOffline": "Paly Oniflfe",
+                    "stepFailed": "{step} — Failed",
+                    "stepRetrying": "{step} — Rtyneirg…",
+                    "contentRequired": "Egnnie and gmae must be dodolnwaed borefe stnartig a btalte.",
+                    "pathUnusable": "That fdelor caonnt be used for gmae fleis. Pick a dnieferft one."
+                }
+            },
+            "battle": {
+                "mapOptionsModal": {
+                    "title": "Map Options",
+                    "mapOptionsTitle": "Map Options",
+                    "boxesPresets": "Beoxs presets",
+                    "customBoxes": "Cuotsm bxeos",
+                    "deleteTeam": "Deetle Team",
+                    "team": "Team",
+                    "player": "pyaler",
+                    "ai": "AI",
+                    "addTeam": "Add Team",
+                    "editPresetTeams": "Eidt Preset Tmaes",
+                    "fixedPositions": "Fiexd piooitsns",
+                    "random": "Rdoanm",
+                    "close": "Csole",
+                    "openMapSelector": "Oepn map seteoclr"
+                },
+                "hostBattle": {
+                    "title": "Hsot Blatte",
+                    "settingUp": "Stietng up a ddeeicatd btalte hsot, tihs uulasly takes aruond 30 sondecs",
+                    "region": "Riogen",
+                    "hostButton": "Hsot Blatte",
+                    "updateButton": "Uadpte Blatte",
+                    "name": "Name",
+                    "startBoxes1": "Stxreoabts are asgseind slleaqntueiy to AylmaeTls.",
+                    "startBoxes2": "Exrta sbrxoteats wlil be deopprd.",
+                    "startBoxes3": "AylmaeTls whoutit one are full-map sbrxoteats.",
+                    "allyTeamCount": "AyaeTllm Cunot: ",
+                    "teamsPerAllyTeam": "Tmaes per AyaeTllm: ",
+                    "map": "Map"
+                },
+                "votePanel": {
+                    "vote": "Vtoe:",
+                    "yes": "Yes (F1)",
+                    "no": "No (F2)",
+                    "calledBy": "Cllaed by"
+                },
+                "botParticipant": {
+                    "configure": "Cgnfuoire",
+                    "duplicate": "Ditalpcue",
+                    "kick": "Kcik",
+                    "configureBot": "Cgnfuoire Bot"
+                },
+                "addBotModal": {
+                    "title": "Add Bot"
+                },
+                "battleChat": {
+                    "placeholder": "Tpye your mseagse...",
+                    "hideJunkMessages": "Hdie jnuk maegesss",
+                    "showJunkMessages": "Show jnuk maegesss"
+                },
+                "playerlist": {
+                    "players": "Plyreas",
+                    "spectators": "Setptacros"
+                },
+                "teamComponent": {
+                    "team": "Team",
+                    "addBot": "Add bot",
+                    "join": "Jion",
+                    "players": "({count} / {maxCount} plyaers)",
+                    "scavengers": "Snvaeegcrs",
+                    "raptors": "Rptoars",
+                    "teamId": "Team {id}"
+                },
+                "spectatorsComponent": {
+                    "spectators": "Setptacros",
+                    "memberCount": "0 Mrembes | 1 Meembr | {n} Mrembes",
+                    "join": "Jion"
+                },
+                "battlePreview": {
+                    "preview": "Pevierw",
+                    "players": "Plyreas",
+                    "spectators": "Setptacros"
+                },
+                "replayPreview": {
+                    "replay": "Relapy",
+                    "players": "Plyreas",
+                    "spectators": "Setptacros",
+                    "engineVersion": "Egnnie Vosiren",
+                    "gameVersion": "Gmae Vosiren"
+                },
+                "gameModeComponent": {
+                    "gameMode": "Gmae Mode",
+                    "presets": "Pretess",
+                    "configureGameOptions": "Cgnfuoire Gmae Options",
+                    "gameOptions": "Gmae Options",
+                    "gameModeClassic": "Cssialc",
+                    "gameModeFFA": "FFA",
+                    "gameModeRaptors": "Rptoars",
+                    "gameModeScavengers": "Snvaeegcrs",
+                    "gameModeSkirmish": "Simksirh",
+                    "gameModeUnknown": "Unwnokn"
+                },
+                "offlineBattleComponent": {
+                    "offlineBattle": "Oniflfe Blatte",
+                    "maps": "Maps",
+                    "gameIsStarting": "Gmae is stnartig...",
+                    "gameIsRunning": "Gmae is rniunng",
+                    "startTheGame": "Strat the gmae"
+                },
+                "playerParticipant": {
+                    "player": "Player",
+                    "viewProfile": "View Pofirle",
+                    "makeBoss": "Mkae Boss",
+                    "message": "Msaesge",
+                    "addFriend": "Add Finerd",
+                    "kick": "Kcik",
+                    "ring": "Rnig",
+                    "more": "More"
+                },
+                "battleTitleComponent": {
+                    "title": "Blatte Title"
+                },
+                "spectatorParticipant": {
+                    "spectator": "Seopctatr"
+                },
+                "luaOptionsModal": {
+                    "resetAllToDefault": "Reest all to dfauelt",
+                    "close": "Csole"
+                }
+            },
+            "controls": {
+                "downloadContentButton": {
+                    "downloading": "Doanondlwig...",
+                    "download": "Dlawonod"
+                },
+                "select": {
+                    "search": "Sacreh"
+                }
+            },
+            "maps": {
+                "mapOverviewCard": {
+                    "sizeUnknown": "Unwnokn"
+                },
+                "mapFiltersComponent": {
+                    "maxPlayers": "Max Plyreas",
+                    "filterBy": "Flietr By",
+                    "terrain": "Trirean",
+                    "gameType": "Gmae Tpye"
+                },
+                "mapListComponents": {
+                    "sortBy": "Srot By",
+                    "labelName": "Name",
+                    "labelSize": "Size",
+                    "noMapsFound": "No maps fnuod!",
+                    "pleaseTryDifferent": "Peslae try dnieferft kyeodwrs / flirtes"
+                },
+                "filters": {
+                    "favoritesFilter": {
+                        "label": "Frtvioeas"
+                    },
+                    "downloadedFilter": {
+                        "label": "Dowodnaled"
+                    }
+                }
+            },
+            "user": {
+                "reportUser": {
+                    "menuLabel": "Rperot User",
+                    "title": "Rperot {username}",
+                    "blurb": "Rretops are handeld by vonutlrees, so psleae inuldce:",
+                    "guidanceDescription": "Waht was dnoe, or the seifipcc wrdos that were said",
+                    "guidanceTimestamps": "Tiemstmaps of the in gmae evnets, eevn apriaxmtope ones",
+                    "specCheatingNote": "Rretops that say olny \"spec chtaieng\" may be igenrod. Say waht leookd supcuoiiss, wtih timesamtps.",
+                    "reasonForReport": "Rasoen for Rperot",
+                    "whichMatch": "Wichh Mcath?",
+                    "lobbyActionsHint": "If it haepenpd in the lobby, pick the mcath it haepenpd borefe.",
+                    "fetchingMatches": "Ftehcnig Mchteas",
+                    "noMatch": "I caonnt find the mcath",
+                    "matchesFailed": "Culod not laod renect mcheats. You can slitl sned the rpreot whoutit one.",
+                    "noMatchesFound": "No renect mcheats fnuod for tihs pyaler. You can slitl sned the rpreot, but whoutit a mcath we may not be albe to find the evdecnie.",
+                    "matchTeams": "{left} vs {right}",
+                    "matchFfa": "{teams} way FFA",
+                    "matchOnMap": "{match} on {map}",
+                    "columnMatch": "Mcath",
+                    "columnMap": "Map",
+                    "columnWhen": "Wehn",
+                    "columnLength": "Lgtneh",
+                    "matchWhen": "{ago} ago",
+                    "matchWhenUnknown": "Unwnokn",
+                    "team": "Team {team}",
+                    "winner": "won",
+                    "wasSpectating": "Tihs pyaler was sittnecapg tihs mcath.",
+                    "extraInfo": "Exrta Ifno",
+                    "sections": {
+                        "chat": "Caht / Cnituomcimaon",
+                        "actions": "In-Gmae Ancoits"
+                    },
+                    "reasons": {
+                        "chat": {
+                            "spam": "Spam",
+                            "bullying": "Byilnulg",
+                            "hate": "Htae secpeh",
+                            "other": "Otehr"
+                        },
+                        "actions": {
+                            "noob": "Noob",
+                            "griefing": "Ginriefg",
+                            "cheating": "Citheang",
+                            "other": "Otehr"
+                        }
+                    },
+                    "messagePlaceholder": "Dercbise waht haepenpd",
+                    "submit": "Sned Rperot",
+                    "submitted": "Rperot snet to the mdiateoron team.",
+                    "relationships": {
+                        "ignore": "Ingroe",
+                        "ignoreTooltip": "Sotp sieeng tiehr maegesss. Not aablviale in the lobby yet, do it on the wsitebe.",
+                        "avoid": "Aivod",
+                        "avoidTooltip": "Ask not to be put in a gmae wtih tehm. Not aablviale in the lobby yet, do it on the wsitebe.",
+                        "block": "Bolck",
+                        "blockTooltip": "Sotp sieeng tehm at all. Not aablviale in the lobby yet, do it on the wsitebe."
+                    }
+                }
+            }
+        }
+    },
     "features": {
         "names": {
-            "armstone": "Hrob Velitele",
-            "corstone": "Hrob Velitele",
-            "ancientRocks": "Formace Starodávných Kamenů",
-            "bush": "Křoví",
-            "bushSmall": "Malé Křoví",
-            "bushMedium": "Středně Velké Křoví",
-            "bushLarge": "Velké Křoví",
-            "bushLarger": "Větší Křoví",
-            "cactusSanPedro": "San Pedro",
-            "candycane": "Cukrová třtina",
-            "raptor_egg": "Vejce",
-            "crystalSapphire": "Safírový Krystal",
-            "crystals": "Krystal",
-            "energySpire": "Energetický Vrcholek",
-            "fern_big": "Velké Kapradí",
-            "fern": "Kapradí",
-            "ferns": "Kapradiny",
-            "fernStone": "Kapradí a Kámen",
-            "fernStones": "Kapradiny a Kameny",
-            "geocrack": "Vizuální Prasklina pro Geotermální Průduch",
-            "geovent": "Geotermální Průduch",
-            "heap": "Sutiny",
-            "metal": "Obsahuje Kov",
-            "mushroomsOrange": "Oranžové Houby",
-            "mushroomsTan": "Hnědé Houby",
-            "mushroomsPurple": "Fialové Houby",
-            "obelisk": "Sethův Obelisk",
-            "peyote": "Peyotl",
-            "pilha_crystal1": "Malý Krystal",
-            "pilha_crystal2": "Středně Velký Krystal",
-            "pilha_crystal3": "Velký Krystal",
-            "pipe1.0": "Trubka 1.0",
-            "pipe2.0": "Trubka 2.0",
-            "pipe3.0": "Trubka 3.0",
-            "pipe4.0": "Trubka 4.0",
-            "pipe5.0": "Trubka 5.0",
-            "pipe6.0": "Trubka 6.0",
-            "pipeline": "Potrubí",
-            "powerhouse": "Mocnost Průmyslová",
-            "industrial_structure_pipes_1": "Trubky na Stavbu",
-            "pressurevalve": "Tlakový Ventil",
-            "radardish_1": "Satelit",
-            "regulatorcomplex": "Komplex Regulátorů",
-            "seismicmonitor": "Seismický Měřič",
-            "thermalregulator": "Regulátor Tepla",
-            "pthornclump": "Velmi suchá a křehká rostlina",
-            "rock": "Kámen",
-            "slrockcl1": "Shluk Kamenů",
-            "statueEasterIsland": "Socha Velikonočního ostrova",
-            "streetlamp_1": "Velká Pouliční Lampa",
-            "tree": "Strom",
-            "smothtree123dead": "Kmen Stromu",
-            "smothdeadtree1": "Mrtvý Strom",
-            "crystaltree1": "Krystalový Strom",
-            "treeAleppoPine": "Borovice Aleppo",
-            "treeBanyan": "Banyán",
-            "treeBaobab": "Baobab",
-            "treeCedar": "Cedr",
-            "treeDeciduous": "Listnatý Strom",
-            "treeFir": "Jedle",
-            "treePalm": "Palma",
-            "treePalms": "Palmy",
-            "treeDeadPalms": "Mrtvé Palmy",
-            "treePalmetto": "Palmetto",
-            "treePine": "Borovice",
-            "xmascomwreck": "Vánoční Troska Velitele",
+            "armstone": null,
+            "corstone": null,
+            "ancientRocks": null,
+            "bush": null,
+            "bushSmall": null,
+            "bushMedium": null,
+            "bushLarge": null,
+            "bushLarger": null,
+            "cactusSanPedro": null,
+            "candycane": null,
+            "raptor_egg": null,
+            "crystalSapphire": null,
+            "crystals": null,
+            "energySpire": null,
+            "fern_big": null,
+            "fern": null,
+            "ferns": null,
+            "fernStone": null,
+            "fernStones": null,
+            "geocrack": null,
+            "geovent": null,
+            "heap": null,
+            "metal": null,
+            "mushroomsOrange": null,
+            "mushroomsTan": null,
+            "mushroomsPurple": null,
+            "obelisk": null,
+            "peyote": null,
             "crystalSmall": null,
             "crystalMedium": null,
             "crystalLarge": null,
+            "pipe1.0": null,
+            "pipe2.0": null,
+            "pipe3.0": null,
+            "pipe4.0": null,
+            "pipe5.0": null,
+            "pipe6.0": null,
+            "pipeline": null,
+            "powerhouse": null,
+            "industrial_structure_pipes_1": null,
+            "pressurevalve": null,
+            "radardish_1": null,
+            "regulatorcomplex": null,
+            "seismicmonitor": null,
+            "thermalregulator": null,
+            "pthornclump": null,
+            "rock": null,
             "rockBarren": null,
             "rockMossy": null,
-            "rockSnowy": null
-        }
-    },
-    "tips": {
-        "loadscreen": {
-            "alwaysExpand": "Rozšiřování území je nezbytné pro získání ekonomické výhody.\nPokus se zajistit co nejvíce kovových ložisek a geotermálních průduchů. ",
-            "armyDiversity": "Mysli dopředu a zařaď protivzdušné a podpůrné jednotky do své armády.",
-            "assistFactories": "Je efektivní podpořit továrnu konstruktéry a zvýšit tak její stavební sílu.\nVyber konstruktéry a klikni pravým tlačítkem na továrnu, abys ji podpořil.",
-            "autogroups": "Použij ALT+(0-9) k přiřazení vybraných typů jednotek k autoskupinám. Nově postavené jednotky stejného typu(ů) budou automaticky přidány do své autoskupiny. ALT+Backquote (`) odstraní jednotky.",
-            "buildingHotkeys": "Zvládnutí klávesových zkratek je klíčem ke úspěchu.\nPoužij Z,X,C,V k rychlému přepínání mezi nejčastěji stavěnými strukturami.",
-            "completelyDisappear": "Zkombinuj zamaskování s Radarovým rušením pro kompletní skrytí svých jednotek.",
-            "destroyFighters": "Postav Protivzdušnou Obranu s dlouhým dosahem na prodloužené přední linii, abys pomalu rozebral nepřátelskou zeď stíhaček.",
-            "dGun": "Velitelé mají manuální D-Zbraň, která rozkládá všechny jednotky jedním výstřelem.\nZmáčkni D k rychlému zahájení zaměřování.",
-            "dGunAssassin": "D-Zbraň tvého Velitele může být využita k instantnímu zničení T3 jednotek.\nNezapomeň použít Zamaskování (K).",
-            "disableAntiNukes": "Nepřátelské proti-jaderné zbraně můžeš deaktivovat pomocí střel EMP, které má Armada k dispozici na T2.",
-            "factoryCannibalism": "T2 továrny jsou drahé. Můžeš zrecyklovat svou továrnu T1 na kov, abys ji mohl financovat.",
-            "factoryRepeat": "Nastav své továrny na Opakování, abys je nechal stavět souvislou frontu jednotek.",
-            "graphicsSettings": "Vylaď výběr grafiky v nastavení. \nKdyž výkon klesne, přepni na nižší předvolbu grafiky.",
-            "groups": "Můžeš přidávat jednotky do skupin stisknutím CTRL+(0-9).\nVyber skupinu stisknutím jejího čísla (0-9).",
-            "howShieldsWork": "Štíty jsou \"štíty odrážející plazmu“. Odrážejí pouze plazmové náboje, vše ostatní projde.",
-            "idleConstructors": "Zajisti ať mají stavitelé pořád co na práci.\nZmáčkni CTRL+B abys procházel své neaktivní stavitele.",
-            "insertFactoryQuickBuild": "Když potřebuješ rychle nějakou jednotku, bez zrušení fronty v továrně, drž ALT a levým tlačítkem klikni na jednotku kterou potřebuješ. Dáš ji tak na začátek fronty.",
-            "joinDiscord": "Pokud narazíš na chybu, máš skvělý nápad nebo chceš jakkoli přispět, připoj se k BARu na Discordu.",
-            "lastCommander": "Vždy kontroluj počítadlo velitelů umístěné vedle pruhu zdrojů.\nPokud máš posledního velitele, raději ho rychle schovej!",
-            "lastNotification": "Stisknutím klávesy F3 přejdeš na místo posledního oznámení nebo značky od spoluhráče.",
-            "longRangeUnits": "Většina dálkových jednotek je velmi zranitelná v blízkém boji. \nPomocí příkazu Boj (F) je vždy udžíš na dobré vzdálenosti od svých nepřátel.",
-            "mapmarks": "Použij Q + dvojité kliknutí levým tlačítkem myši pro umístění štítku s textem na mapu.\n Q + kliknutí prostředním tlačítkem pro prázdný štítek. Q + kliknutím a tažením kreslíte čáry",
-            "mohoGeoExplosion": "Nestav kolem svých geotermálních elektráren T2 příliš hodně, až budou zničeny, všechno udělá bum!",
-            "nanoTurretFight": "Dej svým Konstrukčním Věžičkám příkaz Boj (F), abys je nechal opravit a zrecyklovat vše, co je na dosah.",
-            "overflowingEnergy": "Když přetékáš energií... vybuduj Přeměňovače Energie pro přeměnu energie na kov.",
-            "queues": "Zařaď do fronty více po sobě jdoucích Příkazů držením SHIFT.",
-            "reclaimWrecks": "Mysli předem na recyklování vraků hromadících se vpředu.",
-            "resurrectFight": "Použij příkaz Boj (F) se svými oživujícími roboty, aby zrecyklovali a opravili vše v okolí. \nVolitelně zapni Opakovat, aby to dělali pořád dokola.",
-            "screenBombers": "Když provádíš bombardovací nálet, leť se svými stíhačkami jako první abys zničil nepřátelské stíhačky.\nPoužij rozkaz Bojovat nebo Hlídkovat pro efektivnější zapojení stíhaček.",
-            "selectCommander": "Zmáčkni CTRL+C abys rychle vybral a posunul kameru na svého Velitele.",
-            "selectSameType": "Vyber všechny jednotky stejného typu pomocí CTRL+Z.",
-            "separateBuildings": "Stav budovy dál od sebe abys zabránil řetězovým výbuchům.\nALT+Z a ALT+X mění automatické dělání mezer mezi budovami.",
-            "separateBuildings2": "Nezapomeň oddělit své vysoce výbušné budovy (jako jsou Převaděče energie) od zbytku základny.",
-            "shareResources": "Abys sdílel zdroje se spoluhráči:\nKlikni a táhni posuvníky na sdílení kovu/energie vedle jména hráče.",
-            "shareUnits": "Abys dal jednotky spoluhráčům:\nVyber jednotku(ky) a klikni na ikonku se dvěma šipkami vedle jména hráče.",
-            "showMetalSpots": "Máš potíže s hledáním ložisek kovu a geotermálních průdochů?\nStiskni F4 abys přepnul do režimu pohledu na zdroje.",
-            "takeUnits": "Odpojil se tvůj spoluhráč ze hry? Napiš /take abys převzal všechny jeho jednotky do svojí armády.",
-            "transportBuildings": "Konstrukční Věžičky mohou být naloženy transportéry. Tímto způsobem je můžeš přesunout tam, kde potřebuješ větší stavící výkon.",
-            "useAntiAir": "Vzdušné útoky a spuštění jednotek ze vzduchu může přijít kdykoli. Vždy měj aspoň jednu jednotku proti vzduchu ve své základně.",
-            "useCloak": "Zamaskování tvého Velitele, když stojí na místě, stojí 100 energie za sekundu. Stojí to 1000 energie za sekundu když chodí.",
-            "useDragMove": "Je efektivní pohybovat jednotky v roztažených formacích.\nKlikni a táhni myší když dáváš rozkaz k pohybu abys nastavil řadu více cílových bodů pohybu.",
-            "useFighters": "Nejlepší způsob, jak zabránit vzdušným útokům, je postavit stíhačky a dát jim rozkaz k Hlídkování před tvou základnou.",
-            "useJuno": "Nepřítelovy miny, radary a rušičky radarů mohou být vypnuty použitím Juna - postavitelný oběma fakcemi s T1 staviteli.",
-            "useMines": "Miny jsou velmi levné a rychle se staví. Pamatuj abys je postavil tam kde to nepřítel neuvidí.",
-            "usePause": "Můžeš použít klávesu PAUSE/BREAK abys hru zastavil, nebo napiš /pause",
-            "useRadar": "Radary jsou levné. Postav je brzo ve hře abys ses efektivně varoval před počátečními útoky.",
-            "useRadarJammers": "Použij rušičky radarů abys schoval své jednotky před nepřátelským radarem a zabránil tak dělostřeleckým útokům.",
-            "useReclaim": "Stiskni E a táhni myší abys vytvořil kruh a v něm rychle všechno zrecykloval.",
-            "useRepair": "Stiskni R a táhni myší abys vytvořil kruh a v něm rychle všechno opravil.",
-            "useSelfDestruct": "Pokud si jseš jistý že přijdeš o jednotku v nepřátelském území, Sebeznič ji  (CTRL+D) abys zabránil zanechání hodnotné trosky.",
-            "useSpotters": "Jednotky s dlouhým dosahem potřebují průzkumníky pro přesné zaměřování. Vyráběj stálý proud rychlých a levných jednotek pro lepší viditelnost.",
-            "vehiclesOrBots": "Vozidla jsou dobrá pro plochá a otevřená bojiště. Roboti jsou lepší v náročném terénu.",
-            "windEnergyBuffer": "Pokud je tvá ekonomika založena na větrných elektrárnách, vždy postav Úložiště energie abys měl zásobu když fouká málo větru.",
-            "windSpeed": "Používej větrné elektrárny když je rychlost větru větší než 7. Současná, minimální a maximální rychlost větru je vidět napravo od ukazatele energie.",
-            "reportUsers": "Máme moderátory. Pokud někdo porušuje kodex chování, můžeš jej nahlásit kliknutím pravým tlačítkem na jeho jméno a výběrem: Nahlásit uživatele.",
-            "ignoreUsers": "Nebaví tě někoho poslouchat? Můžeš kliknout pravým tlačítkem na jejich jméno abys je ignoroval, v průběhu bitvy je ignoruješ CTRL+Levým kliknutím.",
-            "donations": null
-        },
-        "notifications": {
-            "enemyCommanderDied": "Nepřátelský velitel zemřel",
-            "friendlyCommanderDied": "Spoluhráčův velitel zemřel",
-            "friendlyCommanderSelfD": "Spoluhráčův Velitel se sebezničil",
-            "comHeavyDamage": "Tvůj velitel je pod útokem",
-            "teamDownLastCommander": "Varování: Zbývá poslední velitel ve tvém týmu.",
-            "youHaveLastCommander": "Varování: Máš posledního velitele v týmu.",
-            "chooseStartLoc": "Vyber startovací místo",
-            "gameStarted": "bitva začala",
-            "battleEnded": "bitva skončila",
-            "gamePaused": "pozastaveno",
-            "playerDisconnected": "Hráč se odpojil.",
-            "playerAdded": "Hráč byl přidán do hry.",
-            "playerResigned": "Hráč se vzdal.",
-            "playerReconnecting": "Hráč se připojuje zpět",
-            "playerTimedout": "Hráči vypršel čas",
-            "unitsReceived": "Dostal jsi nové jednotky",
-            "metalExtractorLost": "Kovový důl ztracen",
-            "radarLost": "Radar ztracen",
-            "advancedRadarLost": "Pokročilý radar ztracen",
-            "youAreOverflowingMetal": "Přetékáš kovem",
-            "wholeTeamWastingMetal": "Celý tým plýtvá kovem",
-            "wholeTeamWastingEnergy": "Celý tým plýtvá energií",
-            "windNotGood": "Na téhle mapě není vítr dobrý pro výrobu energie",
-            "lowPower": "Nedostatek energie",
-            "nukeLaunched": "Bylo detekováno odpálení jaderné střely",
-            "lrpcTargetUnits": "Nepřátelské Dlouhodosahové Plazmové Kanóny (DPK) střílí na tvé jednotky",
-            "tech3UnitReady": "T3 jednotka je připravená",
-            "ragnarokIsReady": "Ragnarok je připraven",
-            "calamityIsReady": "Kalamita je připravena",
-            "t2Detected": "T2 jednotka byla detekována",
-            "t3Detected": "T3 jednotka byla detekována",
-            "aircraftSpotted": "Letadlo spatřeno",
-            "minesDetected": "Varování: byly nalezeny miny",
-            "stealthyUnitsDetected": "Radarem Neviditelné jednotky byly zpozorovány v dosahu Protizneviditelňovacího Systému",
-            "lrpcDetected": "Dlouhodosahový Plazmový Kanón (DPK) byl detekován",
-            "empSiloDetected": "Silo EMP raket detekováno",
-            "tacticalNukeSiloDetected": "Bylo detekováno taktické jaderné silo",
-            "nuclearSiloDetected": "Bylo detekováno jaderné silo",
-            "nuclearBomberDetected": "Detekován Jaderný bombarder",
-            "t3MobileTurretDetected": "Behemot detekován.",
-            "t3AssaultBotDetected": "Kolos detekován",
-            "t3AssaultMechDetected": "Titán detekován",
-            "flagshipDetected": "Vlajková loď detekována",
-            "commandoDetected": "Komando detekováno",
-            "transportDetected": "Transportér nalezen",
-            "airTransportDetected": "Vzdušný transportér spatřen",
-            "seaTransportDetected": "Vodní transportér nalezen",
-            "welcome": "Vítej v BARu, tvým úkolem je vyhrát tuto bitvu se strategickou i taktickou převahou. Nejprve musíš vyrobit kov a energii.",
-            "buildMetal": "Vyber Důl Kovu a postav jej na kovové ložisko označeném rotujícími kruhy na mapě.",
-            "buildEnergy": "Pro efektivní stavbu jednotek budeš muset vyrábět energii. Postavš větrné elektrárny nebo solární panely.",
-            "buildFactory": "Výborně! Teď máš kovový a energický příjem. Je čas na výrobu jednotek. Vyber si a postav továrnu dle vlastního výběru.",
-            "factoryAir": "Nyní můžeš vyrábět letadla. Jsou dobrou podporou pro ostatní jednotky a poskytují velkou rychlost, radar a viditelnost.",
-            "factorySeaplanes": "Nyní můžeš vyrábět Hydroplány. Ty jsou o něco silnější než letadla T1 a jsou schopny přistát pod vodou.",
-            "factoryBots": "Nyní můžeš vyrábět roboty. Roboti jsou rychlí a lehcí a dokážou vylézt do strmějších kopců než vozidla. Jsou levnější než vozidla, ale jsou také slabší.",
-            "factoryHovercraft": "Nyní můžeš vyrábět vznášedla. Jsou dobrá pro přepadení, ale jejich brnění nevydrží v těžké bitvě.",
-            "factoryVehicles": "Můžeš vyrábět vozidla a tanky. Vozidla jsou dobře pancéřovaná a mají těžší zbraně. Jsou pomalejší a dražší a nemohou procházet strmými cestami.",
-            "factoryShips": "Můžeš teď vyrábět lodě. Nejtěžší třída jednotek s nejvíce životy a největším dosahem. Měj na vědomí ponorky a torpédová letadla, která mají na svědomí hřbitovy lodí.",
-            "readyForTech2": "Tvoje ekonomika je teď dost silná abys mohl postavit T2 Továrnu a T2 jednotky. Nebo můžeš zvýšit výrobu T1 jednotek a zkusit vyhrát na poček jednotek.",
-            "duplicateFactory": "Je efektivnější pomáhat existující továrně než stavět více továren stejného druhu.",
-            "paralyzer": "Útočí na tebe paralyzující jednotky. Jednotky, které jsou paralyzovány, nemůžou nic dělat a nebudou moci střílet nebo se pohybovat dokud nebudou obnoveny.",
-            "lavaRising": "Úroveň lávy stoupá!",
-            "lavaDropping": "Úroveň lávy klesá!",
-            "spectatorCommanderDied": null,
-            "spectatorCommanderSelfD": null,
-            "gameUnpaused": null,
-            "raptorsAndScavsMixed": null,
-            "maxUnitsReached": null,
-            "behemothDetected": null,
-            "juggernautDetected": null,
-            "titanDetected": null
-        },
-        "deathMessages": {
-            "team": {
-                "gone": "%{playerList} odešel na lepší místo",
-                "terminate": "%{playerList} byl ukončen",
-                "bitterEnd": "%{playerList} bojoval až do uplného konce",
-                "crater": "%{playerList} za sebou zanechal malý kráter",
-                "bowOut": "%{playerList} byl pokořen",
-                "takenOut": "%{playerList} byl odstraněn",
-                "defeat": "%{playerList} byl poražen",
-                "dismantle": "%{playerList} byl demontován",
-                "toast": "%{playerList} byl ztoustován",
-                "annihilate": "%{playerList} byl naprosto rozdrcen",
-                "rodeOff": "%{playerList} byl spálen",
-                "conquer": "%{playerList} byl dobyt"
-            }
+            "rockSnowy": null,
+            "slrockcl1": null,
+            "statueEasterIsland": null,
+            "streetlamp_1": null,
+            "tree": null,
+            "smothtree123dead": null,
+            "smothdeadtree1": null,
+            "crystaltree1": null,
+            "treeAleppoPine": null,
+            "treeBanyan": null,
+            "treeBaobab": null,
+            "treeCedar": null,
+            "treeDeciduous": null,
+            "treeFir": null,
+            "treePalm": null,
+            "treePalms": null,
+            "treeDeadPalms": null,
+            "treePalmetto": null,
+            "treePine": null,
+            "xmascomwreck": null
         }
     },
     "ui": {
@@ -1982,652 +2479,149 @@
             "shareTo": null
         }
     },
-    "lobby": {
-        "api": {
-            "shell": {
-                "openFailed": null
-            },
-            "commands": {
-                "help": null,
-                "whoami": null,
-                "whois": null,
-                "discord": null,
-                "mute": null,
-                "unmute": null,
-                "coc": null,
-                "joinq": null,
-                "leaveq": null,
-                "status": null,
-                "afks": null,
-                "password": null,
-                "splitLobby": null,
-                "roll": null,
-                "explain": null,
-                "resetApproval": null,
-                "meme": null,
-                "welcomeMessage": null,
-                "gatekeeper": null,
-                "rename": null,
-                "resetRatingLevels": null,
-                "minRatingLevel": null,
-                "maxRatingLevel": null,
-                "setRatingLevels": null
-            }
+    "tips": {
+        "loadscreen": {
+            "donations": null,
+            "alwaysExpand": null,
+            "armyDiversity": null,
+            "assistFactories": null,
+            "autogroups": null,
+            "buildingHotkeys": null,
+            "completelyDisappear": null,
+            "destroyFighters": null,
+            "dGun": null,
+            "dGunAssassin": null,
+            "disableAntiNukes": null,
+            "factoryCannibalism": null,
+            "factoryRepeat": null,
+            "graphicsSettings": null,
+            "groups": null,
+            "howShieldsWork": null,
+            "idleConstructors": null,
+            "insertFactoryQuickBuild": null,
+            "joinDiscord": null,
+            "lastCommander": null,
+            "lastNotification": null,
+            "longRangeUnits": null,
+            "mapmarks": null,
+            "mohoGeoExplosion": null,
+            "nanoTurretFight": null,
+            "overflowingEnergy": null,
+            "queues": null,
+            "reclaimWrecks": null,
+            "resurrectFight": null,
+            "screenBombers": null,
+            "selectCommander": null,
+            "selectSameType": null,
+            "separateBuildings": null,
+            "separateBuildings2": null,
+            "shareResources": null,
+            "shareUnits": null,
+            "showMetalSpots": null,
+            "takeUnits": null,
+            "transportBuildings": null,
+            "useAntiAir": null,
+            "useCloak": null,
+            "useDragMove": null,
+            "useFighters": null,
+            "useJuno": null,
+            "useMines": null,
+            "usePause": null,
+            "useRadar": null,
+            "useRadarJammers": null,
+            "useReclaim": null,
+            "useRepair": null,
+            "useSelfDestruct": null,
+            "useSpotters": null,
+            "vehiclesOrBots": null,
+            "windEnergyBuffer": null,
+            "windSpeed": null,
+            "reportUsers": null,
+            "ignoreUsers": null
         },
-        "buttons": {
-            "quickPlay": null
+        "notifications": {
+            "enemyCommanderDied": null,
+            "friendlyCommanderDied": null,
+            "friendlyCommanderSelfD": null,
+            "spectatorCommanderDied": null,
+            "spectatorCommanderSelfD": null,
+            "comHeavyDamage": null,
+            "teamDownLastCommander": null,
+            "youHaveLastCommander": null,
+            "chooseStartLoc": null,
+            "gameStarted": null,
+            "battleEnded": null,
+            "gamePaused": null,
+            "gameUnpaused": null,
+            "playerDisconnected": null,
+            "playerAdded": null,
+            "playerResigned": null,
+            "playerReconnecting": null,
+            "playerTimedout": null,
+            "raptorsAndScavsMixed": null,
+            "maxUnitsReached": null,
+            "unitsReceived": null,
+            "metalExtractorLost": null,
+            "radarLost": null,
+            "advancedRadarLost": null,
+            "youAreOverflowingMetal": null,
+            "wholeTeamWastingMetal": null,
+            "wholeTeamWastingEnergy": null,
+            "windNotGood": null,
+            "lowPower": null,
+            "nukeLaunched": null,
+            "lrpcTargetUnits": null,
+            "tech3UnitReady": null,
+            "ragnarokIsReady": null,
+            "calamityIsReady": null,
+            "t2Detected": null,
+            "t3Detected": null,
+            "aircraftSpotted": null,
+            "minesDetected": null,
+            "stealthyUnitsDetected": null,
+            "lrpcDetected": null,
+            "empSiloDetected": null,
+            "tacticalNukeSiloDetected": null,
+            "nuclearSiloDetected": null,
+            "nuclearBomberDetected": null,
+            "behemothDetected": null,
+            "juggernautDetected": null,
+            "titanDetected": null,
+            "flagshipDetected": null,
+            "commandoDetected": null,
+            "transportDetected": null,
+            "airTransportDetected": null,
+            "seaTransportDetected": null,
+            "welcome": null,
+            "buildMetal": null,
+            "buildEnergy": null,
+            "buildFactory": null,
+            "factoryAir": null,
+            "factorySeaplanes": null,
+            "factoryBots": null,
+            "factoryHovercraft": null,
+            "factoryVehicles": null,
+            "factoryShips": null,
+            "readyForTech2": null,
+            "duplicateFactory": null,
+            "paralyzer": null,
+            "lavaRising": null,
+            "lavaDropping": null
         },
-        "composables": {
-            "useTerrainIcon": {
-                "tooltipAcidic": null,
-                "tooltipAlien": null,
-                "tooltipAsteroid": null,
-                "tooltipAsymmetrical": null,
-                "tooltipChokepoints": null,
-                "tooltipDesert": null,
-                "tooltipFlat": null,
-                "tooltipForests": null,
-                "tooltipGrassy": null,
-                "tooltipHills": null,
-                "tooltipIce": null,
-                "tooltipIndustrial": null,
-                "tooltipIsland": null,
-                "tooltipJungle": null,
-                "tooltipLava": null,
-                "tooltipMetal": null,
-                "tooltipRuins": null,
-                "tooltipSea": null,
-                "tooltipShallows": null,
-                "tooltipSpace": null,
-                "tooltipSwamp": null,
-                "tooltipTropical": null,
-                "tooltipWasteland": null,
-                "tooltipWater": null
-            }
-        },
-        "overview": {
-            "newLobbyAlpha": null,
-            "newLobbySubtext": null
-        },
-        "views": {
-            "profile": {
-                "status": null,
-                "clan": null,
-                "userNotFound": null
-            },
-            "play": {
-                "comingSoon": null,
-                "skirmish": null,
-                "campaign": null,
-                "matchmaking": null,
-                "scenarios": null,
-                "customLobbies": null,
-                "tournaments": null
-            },
-            "party": {
-                "title": null,
-                "partyTab": null,
-                "inviteTab": null,
-                "members": null,
-                "invites": null,
-                "leaveParty": null,
-                "matchmakingQueues": null,
-                "noQueues": null,
-                "requestQueues": null,
-                "receivedInvite": null,
-                "acceptInvite": null,
-                "declineInvite": null,
-                "kickMember": null,
-                "cancelInvite": null,
-                "noInvites": null
-            },
-            "watch": {
-                "replays": {
-                    "title": null,
-                    "endedNormally": null,
-                    "showSpoilers": null,
-                    "searchPlaceholder": null,
-                    "browseOnlineReplays": null,
-                    "openReplaysFolder": null,
-                    "noReplaysFound": null,
-                    "name": null,
-                    "date": null,
-                    "duration": null,
-                    "map": null,
-                    "nobody": null,
-                    "wayFFA": null,
-                    "wayTeamFFA": null,
-                    "gameIsRunning": null,
-                    "launching": null,
-                    "watch": null
-                }
-            },
-            "index": {
-                "goBack": null,
-                "login": null,
-                "changeAccount": null,
-                "playOffline": null,
-                "needToLogIn": null,
-                "needToLogInToAccess": null
-            }
-        },
-        "library": {
-            "maps": {
-                "title": null,
-                "back": null,
-                "description": null,
-                "author": null,
-                "properties": null,
-                "addToFavorites": null,
-                "removeFromFavorites": null,
-                "play": null,
-                "downloading": null,
-                "download": null
-            }
-        },
-        "multiplayer": {
-            "title": null,
-            "ranked": {
-                "title": null,
-                "description": null,
-                "loadingQueues": null,
-                "queueError": null,
-                "buttons": {
-                    "searchGame": null,
-                    "joinRequested": null,
-                    "searchingForOpponent": null,
-                    "matchFound": null,
-                    "accepted": null,
-                    "cancel": null
-                },
-                "modalTitle": null,
-                "modal": {
-                    "labelName": null,
-                    "labelTeamConfig": null,
-                    "labelRanked": null,
-                    "labelUnranked": null,
-                    "labelEngines": null,
-                    "labelGames": null,
-                    "labelMaps": null
-                }
-            },
-            "battle": {
-                "title": null
-            },
-            "custom": {
-                "title": null,
-                "hostBattle": null,
-                "removedFromLobby": null,
-                "noLobbiesAvailable": null,
-                "filters": {
-                    "hidePvE": null,
-                    "hideLocked": null,
-                    "hideEmpty": null,
-                    "hideInProgress": null
-                },
-                "table": {
-                    "bestBattle": null,
-                    "title": null,
-                    "map": null,
-                    "players": null,
-                    "runningFor": null,
-                    "join": null
-                }
-            }
-        },
-        "singleplayer": {
-            "title": null,
-            "scenarios": {
-                "title": null,
-                "description": null,
-                "victoryCondition": null,
-                "loseCondition": null,
-                "faction": null,
-                "difficulty": null,
-                "launch": null
-            }
-        },
-        "navbar": {
-            "tooltips": {
-                "directMessages": null,
-                "friends": null,
-                "downloads": null,
-                "settings": null,
-                "minimize": null,
-                "windowed": null,
-                "fullscreen": null,
-                "exit": null,
-                "cancelRequest": null,
-                "rejectRequest": null,
-                "acceptRequest": null,
-                "viewProfile": null,
-                "sendMessage": null,
-                "joinBattle": null,
-                "inviteToParty": null,
-                "partyFull": null,
-                "removeFriend": null,
-                "userInParty": null,
-                "userInvited": null
-            },
-            "exit": {
-                "title": null,
-                "login": null,
-                "logout": null,
-                "quitToDesktop": null
-            },
-            "serverSettings": {
-                "title": null,
-                "activeServer": null,
-                "customServer": null,
-                "placeholder": null,
-                "add": null,
-                "remove": null,
-                "info": null,
-                "labelDefault": null,
-                "labelCustom": null
-            },
-            "breadcrumbs": {
-                "back": null
-            },
-            "partyPopout": {
-                "party": null,
-                "invited": null
-            },
-            "downloads": {
-                "noDownloads": null,
-                "moreDownloads": null,
-                "starting": null,
-                "extracting": null,
-                "progressMB": null,
-                "speedMBps": null,
-                "speedKBps": null,
-                "speedBps": null,
-                "etaHoursMinutes": null,
-                "etaMinutesSeconds": null,
-                "etaSeconds": null
-            },
-            "serverStatus": {
-                "playersOnline": null,
-                "error": null,
-                "reconnecting": null,
-                "offline": null
-            },
-            "messages": {
-                "message": null,
-                "userID": null,
-                "userIDPlaceholder": null,
-                "send": null
-            },
-            "settings": {
-                "title": null,
-                "fullscreen": null,
-                "windowSize": null,
-                "display": null,
-                "skipIntro": null,
-                "loginAutomatically": null,
-                "sfxVolume": null,
-                "musicVolume": null,
-                "devMode": null,
-                "uploadLogs": null,
-                "logUrlCopied": null,
-                "couldNotUploadLog": null,
-                "labelSm": null,
-                "labelMd": null,
-                "labelLg": null,
-                "labelDisplay": null,
-                "language": null,
-                "storage": null,
-                "assetsPath": null,
-                "browse": null,
-                "moveToNewLocation": null,
-                "moveToNewLocationDesc": null,
-                "copyToNewLocation": null,
-                "copyToNewLocationDesc": null,
-                "useNewLocationOnly": null,
-                "useNewLocationOnlyDesc": null,
-                "apply": null,
-                "restartRequired": null,
-                "transferringFiles": null
-            },
-            "friends": {
-                "unknownUser": null,
-                "title": null,
-                "blocked": null,
-                "yourUserId": null,
-                "copy": null,
-                "friendId": null,
-                "addFriend": null,
-                "outgoingRequests": null,
-                "incomingRequests": null,
-                "notifications": {
-                    "errors": {
-                        "invalidUser": null,
-                        "alreadyFriends": null,
-                        "outgoingCapacityReached": null,
-                        "incomingCapacityReached": null,
-                        "internalError": null,
-                        "unauthorized": null,
-                        "invalidRequest": null,
-                        "commandUnimplemented": null,
-                        "generic": null,
-                        "failedToCancel": null,
-                        "failedToAccept": null,
-                        "failedToReject": null,
-                        "failedToRemove": null,
-                        "outgoingRequestExists": null,
-                        "incomingRequestExists": null
-                    }
-                }
-            }
-        },
-        "components": {
-            "prompts": {
-                "password": null,
-                "cancel": null,
-                "ok": null
-            },
-            "social": {
-                "chat": {
-                    "to": null,
-                    "typeHerePlaceholder": null
-                }
-            },
-            "misc": {
-                "debugSidebar": {
-                    "debugSandbox": null,
-                    "openSettingsFile": null,
-                    "openAssetsDir": null,
-                    "openStateDir": null,
-                    "openStartScript": null,
-                    "syncLobbyContent": null,
-                    "causeError": null,
-                    "game": null,
-                    "engine": null,
-                    "view": null,
-                    "lobbyServerSettings": null,
-                    "createParty": null
-                },
-                "scenarioTile": {
-                    "title": null
-                },
-                "newsTile": {
-                    "clickToReadMore": null
-                },
-                "devlogFeed": {
-                    "latestChanges": null
-                },
-                "preloader": {
-                    "loading": null,
-                    "loadingFonts": null,
-                    "initializingIndexDB": null,
-                    "initializingMaps": null,
-                    "initializingReplays": null
-                },
-                "syncDataDirsDialog": {
-                    "title": null,
-                    "description": null,
-                    "otherLobbyDataDir": null,
-                    "test": null
-                },
-                "gameModeSelector": {
-                    "classic": null,
-                    "classicDescription": null,
-                    "raptors": null,
-                    "raptorsDescription": null,
-                    "scavengers": null,
-                    "scavengersDescription": null,
-                    "ffa": null,
-                    "ffaDescription": null
-                },
-                "error": {
-                    "fatalError": null,
-                    "fatalErrorDescription": null,
-                    "uploadLogs": null,
-                    "uploading": null,
-                    "logUrlCopied": null,
-                    "couldNotUploadLog": null,
-                    "reload": null,
-                    "quitToDesktop": null
-                },
-                "devlogEntry": {
-                    "title": null,
-                    "description": null
-                },
-                "initialSetup": {
-                    "title": null,
-                    "downloadingEngine": null,
-                    "installingEngine": null,
-                    "downloadingGame": null,
-                    "installingGame": null,
-                    "downloadingMaps": null,
-                    "downloadingUpdate": null,
-                    "installingUpdate": null,
-                    "selectAssetsPathDescription": null,
-                    "browse": null,
-                    "continue": null,
-                    "retry": null,
-                    "skip": null,
-                    "playOffline": null,
-                    "stepFailed": null,
-                    "stepRetrying": null,
-                    "contentRequired": null,
-                    "pathUnusable": null
-                }
-            },
-            "battle": {
-                "mapOptionsModal": {
-                    "title": null,
-                    "mapOptionsTitle": null,
-                    "boxesPresets": null,
-                    "customBoxes": null,
-                    "deleteTeam": null,
-                    "team": null,
-                    "player": null,
-                    "ai": null,
-                    "addTeam": null,
-                    "editPresetTeams": null,
-                    "fixedPositions": null,
-                    "random": null,
-                    "close": null,
-                    "openMapSelector": null
-                },
-                "hostBattle": {
-                    "title": null,
-                    "settingUp": null,
-                    "region": null,
-                    "hostButton": null,
-                    "updateButton": null,
-                    "name": null,
-                    "startBoxes1": null,
-                    "startBoxes2": null,
-                    "startBoxes3": null,
-                    "allyTeamCount": null,
-                    "teamsPerAllyTeam": null,
-                    "map": null
-                },
-                "votePanel": {
-                    "vote": null,
-                    "yes": null,
-                    "no": null,
-                    "calledBy": null
-                },
-                "botParticipant": {
-                    "configure": null,
-                    "duplicate": null,
-                    "kick": null,
-                    "configureBot": null
-                },
-                "addBotModal": {
-                    "title": null
-                },
-                "battleChat": {
-                    "placeholder": null,
-                    "hideJunkMessages": null,
-                    "showJunkMessages": null
-                },
-                "playerlist": {
-                    "players": null,
-                    "spectators": null
-                },
-                "teamComponent": {
-                    "team": null,
-                    "addBot": null,
-                    "join": null,
-                    "players": null,
-                    "scavengers": null,
-                    "raptors": null,
-                    "teamId": null
-                },
-                "spectatorsComponent": {
-                    "spectators": null,
-                    "memberCount": null,
-                    "join": null
-                },
-                "battlePreview": {
-                    "preview": null,
-                    "players": null,
-                    "spectators": null
-                },
-                "replayPreview": {
-                    "replay": null,
-                    "players": null,
-                    "spectators": null,
-                    "engineVersion": null,
-                    "gameVersion": null
-                },
-                "gameModeComponent": {
-                    "gameMode": null,
-                    "presets": null,
-                    "configureGameOptions": null,
-                    "gameOptions": null,
-                    "gameModeClassic": null,
-                    "gameModeFFA": null,
-                    "gameModeRaptors": null,
-                    "gameModeScavengers": null,
-                    "gameModeSkirmish": null,
-                    "gameModeUnknown": null
-                },
-                "offlineBattleComponent": {
-                    "offlineBattle": null,
-                    "maps": null,
-                    "gameIsStarting": null,
-                    "gameIsRunning": null,
-                    "startTheGame": null
-                },
-                "playerParticipant": {
-                    "player": null,
-                    "viewProfile": null,
-                    "makeBoss": null,
-                    "message": null,
-                    "addFriend": null,
-                    "kick": null,
-                    "ring": null,
-                    "more": null
-                },
-                "battleTitleComponent": {
-                    "title": null
-                },
-                "spectatorParticipant": {
-                    "spectator": null
-                },
-                "luaOptionsModal": {
-                    "resetAllToDefault": null,
-                    "close": null
-                }
-            },
-            "controls": {
-                "downloadContentButton": {
-                    "downloading": null,
-                    "download": null
-                },
-                "select": {
-                    "search": null
-                }
-            },
-            "maps": {
-                "mapOverviewCard": {
-                    "sizeUnknown": null
-                },
-                "mapFiltersComponent": {
-                    "maxPlayers": null,
-                    "filterBy": null,
-                    "terrain": null,
-                    "gameType": null
-                },
-                "mapListComponents": {
-                    "sortBy": null,
-                    "labelName": null,
-                    "labelSize": null,
-                    "noMapsFound": null,
-                    "pleaseTryDifferent": null
-                },
-                "filters": {
-                    "favoritesFilter": {
-                        "label": null
-                    },
-                    "downloadedFilter": {
-                        "label": null
-                    }
-                }
-            },
-            "user": {
-                "reportUser": {
-                    "menuLabel": null,
-                    "title": null,
-                    "blurb": null,
-                    "guidanceDescription": null,
-                    "guidanceTimestamps": null,
-                    "specCheatingNote": null,
-                    "reasonForReport": null,
-                    "whichMatch": null,
-                    "lobbyActionsHint": null,
-                    "fetchingMatches": null,
-                    "noMatch": null,
-                    "matchesFailed": null,
-                    "noMatchesFound": null,
-                    "matchTeams": null,
-                    "matchFfa": null,
-                    "matchOnMap": null,
-                    "columnMatch": null,
-                    "columnMap": null,
-                    "columnWhen": null,
-                    "columnLength": null,
-                    "matchWhen": null,
-                    "matchWhenUnknown": null,
-                    "team": null,
-                    "winner": null,
-                    "wasSpectating": null,
-                    "extraInfo": null,
-                    "sections": {
-                        "chat": null,
-                        "actions": null
-                    },
-                    "reasons": {
-                        "chat": {
-                            "spam": null,
-                            "bullying": null,
-                            "hate": null,
-                            "other": null
-                        },
-                        "actions": {
-                            "noob": null,
-                            "griefing": null,
-                            "cheating": null,
-                            "other": null
-                        }
-                    },
-                    "messagePlaceholder": null,
-                    "submit": null,
-                    "submitted": null,
-                    "relationships": {
-                        "ignore": null,
-                        "ignoreTooltip": null,
-                        "avoid": null,
-                        "avoidTooltip": null,
-                        "block": null,
-                        "blockTooltip": null
-                    }
-                }
+        "deathMessages": {
+            "team": {
+                "gone": null,
+                "terminate": null,
+                "bitterEnd": null,
+                "crater": null,
+                "bowOut": null,
+                "takenOut": null,
+                "defeat": null,
+                "dismantle": null,
+                "toast": null,
+                "annihilate": null,
+                "rodeOff": null,
+                "conquer": null
             }
         }
     },

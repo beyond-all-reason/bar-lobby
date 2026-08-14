@@ -6,7 +6,20 @@ SPDX-License-Identifier: MIT
 
 <template>
     <div class="initial-setup fullsize flex-center">
-        <template v-if="state === 'path-selection'">
+        <template v-if="state === 'language-selection'">
+            <h1>{{ t("lobby.components.misc.initialSetup.title") }}</h1>
+            <h4>
+                <span>
+                    <Icon :icon="language" />
+                    {{ t("lobby.navbar.settings.language") }}
+                </span>
+            </h4>
+            <div class="padding-xl">
+                <Select v-model="settingsStore.language" :options="localeOptions" optionLabel="label" optionValue="value" />
+            </div>
+            <Button class="green" @click="confirmLanguageSelection">{{ t("lobby.components.misc.initialSetup.continue") }}</Button>
+        </template>
+        <template v-else-if="state === 'path-selection'">
             <h1>{{ t("lobby.components.misc.initialSetup.title") }}</h1>
             <h4>{{ t("lobby.components.misc.initialSetup.selectAssetsPathDescription") }}</h4>
             <div class="path-selector">
@@ -53,7 +66,6 @@ SPDX-License-Identifier: MIT
 import { delay } from "$/jaz-ts-utils/delay";
 import { randomFromArray } from "$/jaz-ts-utils/object";
 import { computed, onMounted, onUnmounted, ref, watch } from "vue";
-import { useTypedI18n } from "@renderer/i18n";
 import Button from "@renderer/components/controls/Button.vue";
 import Textbox from "@renderer/components/controls/Textbox.vue";
 import Loader from "@renderer/components/common/Loader.vue";
@@ -71,13 +83,30 @@ import { downloadGame, gameStore } from "@renderer/store/game.store";
 import { contentsStore } from "@renderer/store/contents.store";
 import { isInProgress } from "@main/content/content-state";
 import { useDownloadProgress } from "@renderer/composables/useDownloadProgress";
+import { settingsStore } from "@renderer/store/settings.store";
+import Select from "@renderer/components/controls/Select.vue";
+import { Icon } from "@iconify/vue";
+import language from "@iconify-icons/mdi/language";
+
+import { useTypedI18n } from "@renderer/i18n";
+import type { Locale } from "@renderer/locales";
+import { useLocaleOptions } from "@renderer/composables/useLocaleOptions";
+
+const { localeOptions } = useLocaleOptions();
+const { t, locale } = useTypedI18n();
+
+watch(
+    () => settingsStore.language,
+    () => {
+        locale.value = settingsStore.language as Locale;
+    }
+);
+let resolveLanguageSelection: (() => void) | undefined;
 
 const PRELOAD_WEIGHT = 0.05;
 const DOWNLOAD_FILL = 0.8;
 const AUTO_RETRY_ATTEMPTS = 3;
 const AUTO_RETRY_DELAY_MS = 2000;
-
-const { t } = useTypedI18n();
 const { allDownloads, totalDownloadPercent, progressText } = useDownloadProgress();
 
 const emit = defineEmits(["complete"]);
@@ -92,7 +121,7 @@ interface DownloadStage {
 
 const title = ref(t("lobby.components.misc.preloader.loading"));
 const text = ref("");
-const state = ref<"path-selection" | "engine" | "game" | "maps" | "update">("engine");
+const state = ref<"language-selection" | "path-selection" | "engine" | "game" | "maps" | "update">("engine");
 const selectedPath = ref("");
 const pathError = ref("");
 const isDownloadPhase = ref(false);
@@ -326,9 +355,26 @@ async function confirmPath() {
 
     resolvePathConfirm?.();
 }
+function confirmLanguageSelection() {
+    resolveLanguageSelection?.();
+}
 
 onMounted(async () => {
     console.debug("Initial setup");
+    // Phase 0: Language selection
+    if (!settingsStore.language) {
+        state.value = "language-selection";
+        const detectedLanguage = Intl.DateTimeFormat().resolvedOptions().locale.split("-")[0];
+        if (localeOptions.value.some((option) => option.value === detectedLanguage)) {
+            settingsStore.language = detectedLanguage;
+        } else {
+            settingsStore.language = "en";
+        }
+        await new Promise<void>((resolve) => {
+            resolveLanguageSelection = resolve;
+        });
+        state.value = "engine";
+    }
 
     // Phase 1: Preload (local-first; failures degrade gracefully inside each step)
     for (const [label, thing] of preloadSteps) {
