@@ -78,7 +78,7 @@ describe("Electron App", async () => {
 
     test("Survives a Tachyon disconnect and reconnect", async () => {
         const pageErrors: Error[] = [];
-        firstWindow.on("pageerror", (error) => pageErrors.push(error));
+        mainWindow.on("pageerror", (error) => pageErrors.push(error));
 
         // The stores react to these IPC events rather than to the socket itself, so driving them
         // from main exercises the real handlers without needing a reachable Tachyon server.
@@ -88,9 +88,9 @@ describe("Electron App", async () => {
             }, channel);
         }
 
-        await firstWindow.waitForTimeout(500);
+        await mainWindow.waitForTimeout(500);
 
         expect(pageErrors, `Uncaught errors after disconnect: ${pageErrors.map((e) => e.message).join(", ")}`).toHaveLength(0);
-        expect(await firstWindow.$("#app", { strict: true }), "The app was torn down by a disconnect").not.toBeNull();
+        expect(await mainWindow.$("#app", { strict: true }), "The app was torn down by a disconnect").not.toBeNull();
     });
 });
