@@ -19,9 +19,6 @@ jobs:
         env:
             CONFIG_URL: https://lobby-config.beyondallreason.dev/config.json
         steps:
-            - name: Checkout Git repository
-              uses: actions/checkout@v6
-
             - name: Push config
               run: |
                   CURL_OPTS=(-sS --fail-with-body --connect-timeout 10 --max-time 30 --retry 3 --retry-connrefused)
