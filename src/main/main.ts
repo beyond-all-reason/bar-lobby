@@ -12,7 +12,6 @@ import netFromNode from "node:net";
 import { createWindow } from "@main/main-window";
 import { settingsService } from "./services/settings.service";
 import { infoService } from "./services/info.service";
-import { accountService } from "./services/account.service";
 import { logService } from "@main/services/log.service";
 import engineService from "./services/engine.service";
 import mapsService from "./services/maps.service";
@@ -130,7 +129,7 @@ app.whenReady().then(async () => {
         setAssetsPath(savedAssetsPath);
     }
     await engineService.init();
-    await Promise.all([accountService.init(), replaysService.init(), gameService.init(), mapsService.init(), autoUpdaterService.init()]);
+    await Promise.all([authService.init(), replaysService.init(), gameService.init(), mapsService.init(), autoUpdaterService.init()]);
 
     const mainWindow = createWindow();
     const webContents = typedWebContents(mainWindow.webContents);
@@ -138,7 +137,7 @@ app.whenReady().then(async () => {
     logService.registerIpcHandlers();
     infoService.registerIpcHandlers();
     settingsService.registerIpcHandlers();
-    authService.registerIpcHandlers();
+    authService.registerIpcHandlers(webContents);
     tachyonService.registerIpcHandlers(webContents);
     replaysService.registerIpcHandlers(webContents);
     engineService.registerIpcHandlers();
