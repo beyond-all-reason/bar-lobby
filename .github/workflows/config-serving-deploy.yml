@@ -29,4 +29,4 @@ jobs:
                       "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=$CONFIG_URL" | jq -r '.value')"
                   curl "${CURL_OPTS[@]}" -X PUT "$CONFIG_URL" \
                       -H "Authorization: Bearer $IDTOKEN" \
-                      --data @./rawConfig/config.json
+                      --data @./remoteConfig/config.json
