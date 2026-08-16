@@ -25,7 +25,7 @@ describe("Main Process Lifecycle", () => {
         autoUpdaterService: { init: vi.fn().mockResolvedValue(undefined), registerIpcHandlers: vi.fn() },
         logService: { registerIpcHandlers: vi.fn() },
         infoService: { registerIpcHandlers: vi.fn() },
-        authService: { registerIpcHandlers: vi.fn() },
+        authService: { init: vi.fn().mockResolvedValue(undefined), registerIpcHandlers: vi.fn() },
         tachyonService: { registerIpcHandlers: vi.fn() },
         shellService: { registerIpcHandlers: vi.fn() },
         downloadsService: { registerIpcHandlers: vi.fn() },
@@ -154,7 +154,6 @@ describe("Main Process Lifecycle", () => {
         vi.doMock("@main/services/config.service", () => ({ configService: mockServices.configService }));
         vi.doMock("@main/services/settings.service", () => ({ settingsService: mockServices.settingsService }));
         vi.doMock("@main/services/info.service", () => ({ infoService: mockServices.infoService }));
-        vi.doMock("@main/services/account.service", () => ({ accountService: mockServices.accountService }));
         vi.doMock("@main/services/log.service", () => ({ logService: mockServices.logService }));
         vi.doMock("@main/services/auth.service", () => ({ authService: mockServices.authService }));
         vi.doMock("@main/services/tachyon.service", () => ({ tachyonService: mockServices.tachyonService }));
@@ -243,7 +242,7 @@ describe("Main Process Lifecycle", () => {
         expect(mockServices.configService.init).toHaveBeenCalled();
         expect(mockServices.engineService.init).toHaveBeenCalled();
         expect(mockServices.settingsService.init).toHaveBeenCalled();
-        expect(mockServices.accountService.init).toHaveBeenCalled();
+        expect(mockServices.authService.init).toHaveBeenCalled();
         expect(mockServices.replaysService.init).toHaveBeenCalled();
         expect(mockServices.gameService.init).toHaveBeenCalled();
         expect(mockServices.mapsService.init).toHaveBeenCalled();
