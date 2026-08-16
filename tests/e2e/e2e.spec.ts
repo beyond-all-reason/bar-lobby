@@ -11,7 +11,6 @@ const { describe, beforeAll, afterAll } = test;
 
 describe("Electron App", async () => {
     let electronApp: ElectronApplication;
-    let splashWindow: Page;
     let mainWindow: Page;
 
     beforeAll(async () => {
@@ -25,8 +24,7 @@ describe("Electron App", async () => {
         }
 
         electronApp = await electron.launch({ args });
-        splashWindow = await electronApp.firstWindow();
-        mainWindow = await electronApp.waitForEvent("window", { predicate: (window) => window !== splashWindow });
+        mainWindow = await electronApp.firstWindow();
     });
 
     afterAll(async () => {
