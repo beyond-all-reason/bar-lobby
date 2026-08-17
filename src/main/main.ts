@@ -28,6 +28,8 @@ import { tachyonService } from "@main/services/tachyon.service";
 import { typedWebContents } from "@main/typed-ipc";
 import { navigationService } from "@main/services/navigation.service";
 import { pathsService } from "./services/paths.service";
+import { lobbyProtocolService } from "@main/services/lobby-protocol.service";
+import { registerLobbyProtocol } from "@main/lobbyProtocol/lobby-protocol-utils";
 
 // Enable happy eyeballs for IPv6/IPv4 dual stack.
 netFromNode.setDefaultAutoSelectFamily(true);
@@ -91,6 +93,7 @@ app.commandLine.appendSwitch("disable-pinch", "1");
 
 app.whenReady().then(async () => {
     registerBarFileProtocol();
+    registerLobbyProtocol();
     if (process.env.NODE_ENV !== "production") {
         try {
             // await installExtension(VUEJS_DEVTOOLS);
@@ -148,5 +151,6 @@ app.whenReady().then(async () => {
     miscService.registerIpcHandlers();
     autoUpdaterService.registerIpcHandlers();
     navigationService.registerIpcHandlers(webContents);
+    lobbyProtocolService.registerIpcHandlers(webContents);
     pathsService.registerIpcHandlers(webContents);
 });
