@@ -2093,7 +2093,8 @@
                 "etaMinutesSeconds": "{minutes}m {seconds}s left",
                 "etaSeconds": "{seconds}s left",
                 "batchedMaps": "{count} maps",
-                "batchedGames": "{count} game versions"
+                "batchedGames": "{count} game versions",
+                "queued": "Queued"
             },
             "serverStatus": {
                 "playersOnline": "Players Online",

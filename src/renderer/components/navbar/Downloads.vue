@@ -8,7 +8,7 @@ SPDX-License-Identifier: MIT
     <PopOutPanel :open="modelValue">
         <Transition name="fade" mode="out-in">
             <div v-if="downloadRows.length" class="downloads">
-                <TransitionGroup tag="div" name="downloads-list">
+                <TransitionGroup tag="div" class="downloads__list" name="downloads-list">
                     <div v-for="download in downloadRows" :key="download.key" class="downloads__download">
                         <div class="downloads__info">
                             <div class="downloads__name">{{ download.name }}</div>
@@ -17,7 +17,8 @@ SPDX-License-Identifier: MIT
                         <div v-if="download.members.length > 1" class="downloads__members" :title="download.members.join(', ')">
                             {{ download.members.join(", ") }}
                         </div>
-                        <div v-if="download.phase === 'extracting'" class="downloads__extracting">
+                        <div v-if="download.queued" class="downloads__waiting">{{ t("lobby.navbar.downloads.queued") }}</div>
+                        <div v-else-if="download.phase === 'extracting'" class="downloads__extracting">
                             <Loader :absolute-position="false" />
                             <span>{{ t("lobby.navbar.downloads.extracting") }}</span>
                         </div>
@@ -88,15 +89,16 @@ toggleDownloads.value = async (open?: boolean) => {
     position: absolute;
     inset: 0;
     overflow-y: auto;
-    display: flex;
-    flex-direction: column;
+    &__list {
+        display: flex;
+        flex-direction: column;
+    }
     &__info {
         display: flex;
         flex-direction: row;
         justify-content: space-between;
     }
     &__download {
-        min-height: 85px;
         width: 100%;
         display: flex;
         flex-direction: column;
@@ -121,6 +123,10 @@ toggleDownloads.value = async (open?: boolean) => {
     &__detail {
         font-size: 11px;
         color: rgba(255, 255, 255, 0.6);
+    }
+    &__waiting {
+        font-size: 13px;
+        color: rgba(255, 255, 255, 0.45);
     }
     &__extracting {
         display: flex;

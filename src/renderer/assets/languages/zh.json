@@ -4209,7 +4209,8 @@
                 "etaMinutesSeconds": null,
                 "etaSeconds": null,
                 "batchedMaps": null,
-                "batchedGames": null
+                "batchedGames": null,
+                "queued": null
             },
             "serverStatus": {
                 "playersOnline": null,

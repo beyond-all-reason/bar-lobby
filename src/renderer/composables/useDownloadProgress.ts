@@ -5,7 +5,7 @@
 import { computed } from "vue";
 
 import { contentsStore } from "@renderer/store/contents.store";
-import { hasFailed, isInProgress } from "@main/content/content-state";
+import { hasFailed, isInProgress, isQueued } from "@main/content/content-state";
 import { downloadsStore } from "@renderer/store/downloads.store";
 import { useTypedI18n } from "@renderer/i18n";
 
@@ -27,6 +27,9 @@ export type DownloadView = {
     // transfer and its figures describe the set, not any one of them.
     members: string[];
     transfer?: string;
+    // Waiting its turn. It has no figures of its own and nothing is settled about how it will be
+    // fetched, so there is nothing truthful to draw a bar from.
+    queued: boolean;
 };
 
 interface SpeedEntry {
@@ -50,6 +53,7 @@ export function useDownloadProgress() {
             phase: state.phase,
             members: [state.id],
             transfer: state.transfer,
+            queued: isQueued(state),
         })),
         ...(contentsStore.poolPrefetch
             ? [
@@ -61,6 +65,7 @@ export function useDownloadProgress() {
                       totalBytes: contentsStore.poolPrefetch.totalBytes,
                       phase: contentsStore.poolPrefetch.phase,
                       members: ["pool-data"],
+                      queued: false,
                   },
               ]
             : []),
@@ -72,6 +77,7 @@ export function useDownloadProgress() {
             totalBytes: download.totalBytes,
             phase: download.phase,
             members: [download.name],
+            queued: false,
         })),
     ]);
 

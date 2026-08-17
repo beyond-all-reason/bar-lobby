@@ -37,6 +37,12 @@ export function isInProgress(state: ContentState) {
     return state.status === "queued" || state.status === "acquiring";
 }
 
+// Accepted but not started. Nothing is known about how it will be fetched yet, including whether it
+// will come down on its own or as part of a batch.
+export function isQueued(state: ContentState) {
+    return state.status === "queued";
+}
+
 // Given up on, and kept that way until the content is asked for again.
 export function hasFailed(state: ContentState) {
     return state.status === "failed";

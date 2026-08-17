@@ -262,7 +262,8 @@
                 "etaMinutesSeconds": "{minutes}m {seconds}s left",
                 "etaSeconds": "{seconds}s left",
                 "batchedMaps": "{count} maps",
-                "batchedGames": "{count} gmae vesornis"
+                "batchedGames": "{count} gmae vesornis",
+                "queued": "Quueed"
             },
             "serverStatus": {
                 "playersOnline": "Plyreas Oinnle",

@@ -71,6 +71,18 @@ describe("download rows", () => {
         ]);
     });
 
+    // Nothing is settled about a queued ref yet, including whether it will be fetched on its own or
+    // swept into someone else's batch, so it has no figures to draw a bar from.
+    it("marks content still waiting its turn", () => {
+        push([map("waiting", "queued", 0, undefined), map("moving", "acquiring", 500, undefined)]);
+
+        const waiting = rows().find((row) => row.name === "waiting");
+        const moving = rows().find((row) => row.name === "moving");
+
+        expect(waiting?.queued).toBe(true);
+        expect(moving?.queued).toBe(false);
+    });
+
     // The rows are for reading; the figure has to keep weighing every piece of content asked for, or
     // collapsing four refs into one row would quarter what the navbar reports.
     it("does not let grouping change the overall figure", () => {
