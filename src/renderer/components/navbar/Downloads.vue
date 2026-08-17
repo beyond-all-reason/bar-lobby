@@ -7,7 +7,7 @@ SPDX-License-Identifier: MIT
 <template>
     <PopOutPanel :open="modelValue">
         <Transition name="fade" mode="out-in">
-            <div v-if="allDownloads.length" class="downloads">
+            <div v-if="downloadRows.length" class="downloads">
                 <TransitionGroup tag="div" name="downloads-list">
                     <div v-for="download in limitedList" :key="download.key" class="downloads__download">
                         <div class="downloads__info">
@@ -31,8 +31,8 @@ SPDX-License-Identifier: MIT
                     </div>
                 </TransitionGroup>
                 <Transition tag="div" name="fade" mode="out-in">
-                    <div class="flex-row flex-grow flex-center" v-if="allDownloads.length > limitedList.length">
-                        {{ t("lobby.navbar.downloads.moreDownloads", { count: allDownloads.length - limitedList.length }) }}
+                    <div class="flex-row flex-grow flex-center" v-if="downloadRows.length > limitedList.length">
+                        {{ t("lobby.navbar.downloads.moreDownloads", { count: downloadRows.length - limitedList.length }) }}
                     </div>
                 </Transition>
             </div>
@@ -51,7 +51,7 @@ import { useTypedI18n } from "@renderer/i18n";
 import { DownloadView, MIN_DOWNLOAD_BYTES, useDownloadProgress } from "@renderer/composables/useDownloadProgress";
 
 const { t } = useTypedI18n();
-const { allDownloads, downloadPercent, progressText } = useDownloadProgress();
+const { downloadRows, downloadPercent, progressText } = useDownloadProgress();
 
 function barText(download: DownloadView): string {
     if (download.currentBytes === 0) return t("lobby.navbar.downloads.starting");
@@ -76,7 +76,7 @@ const toggleMessages = inject<Ref<(open?: boolean, userId?: number) => void>>("t
 const toggleFriends = inject<Ref<(open?: boolean) => void>>("toggleFriends")!;
 const toggleDownloads = inject<Ref<(open?: boolean) => void>>("toggleDownloads")!;
 
-const limitedList = computed(() => allDownloads.value.slice(0, 5));
+const limitedList = computed(() => downloadRows.value.slice(0, 5));
 
 toggleDownloads.value = async (open?: boolean) => {
     if (open) {

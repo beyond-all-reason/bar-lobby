@@ -4066,7 +4066,9 @@
                 "speedBps": null,
                 "etaHoursMinutes": null,
                 "etaMinutesSeconds": null,
-                "etaSeconds": null
+                "etaSeconds": null,
+                "batchedMaps": null,
+                "batchedGames": null
             },
             "serverStatus": {
                 "playersOnline": null,

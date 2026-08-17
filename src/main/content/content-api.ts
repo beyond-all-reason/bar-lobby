@@ -29,12 +29,15 @@ const log = logger("content-api.ts");
 // so every ref in it gets the same figures.
 async function acquireReporting(downloader: Downloader, ids: string[], report: ContentReporter, acquire: () => Promise<unknown>) {
     const isOurs = (infoId: string) => ids.length > 1 || infoId === ids[0];
+    // One invocation covering several refs is one transfer, and its figures describe the set. Naming it
+    // lets the renderer show it as the single download it is instead of repeating it per ref.
+    const transfer = ids.length > 1 ? ids.join(", ") : undefined;
 
     const progress = downloader.onDownloadProgress.add((info) => {
         if (!isOurs(info.id)) return;
 
         for (const id of ids) {
-            report.progress(id, { currentBytes: info.currentBytes, totalBytes: info.totalBytes, progress: info.progress, phase: info.phase });
+            report.progress(id, { currentBytes: info.currentBytes, totalBytes: info.totalBytes, progress: info.progress, phase: info.phase, transfer });
         }
     });
     const retry = downloader.onDownloadRetry.add((info) => {

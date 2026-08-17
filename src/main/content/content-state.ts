@@ -11,6 +11,9 @@ export type ContentProgress = {
     totalBytes: number;
     progress: number;
     phase?: "downloading" | "extracting";
+    // Set when several refs came down as one pr-downloader invocation, which reports bytes for the whole
+    // set rather than per asset. Everything sharing a key is one transfer and reads as one to the user.
+    transfer?: string;
 };
 
 // Only content with something happening to it appears here: absent means settled, installed comes from

@@ -81,7 +81,6 @@
                 "customLobbies": "Custom Lobbies",
                 "tournaments": "Tournaments"
             },
-
             "party": {
                 "title": "Party",
                 "partyTab": "Active Party",
@@ -262,7 +261,9 @@
                 "speedBps": "{speed} B/s",
                 "etaHoursMinutes": "{hours}h {minutes}m left",
                 "etaMinutesSeconds": "{minutes}m {seconds}s left",
-                "etaSeconds": "{seconds}s left"
+                "etaSeconds": "{seconds}s left",
+                "batchedMaps": "{count} maps",
+                "batchedGames": "{count} game versions"
             },
             "serverStatus": {
                 "playersOnline": "Players Online",
