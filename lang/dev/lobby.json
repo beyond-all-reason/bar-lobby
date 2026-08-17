@@ -252,7 +252,6 @@
             },
             "downloads": {
                 "noDownloads": "No dlodnwoas avctie",
-                "moreDownloads": "and {count} more...",
                 "starting": "Sattnrig...",
                 "extracting": "Erixtanctg...",
                 "progressMB": "{current} / {total} MB ({percent}%)",

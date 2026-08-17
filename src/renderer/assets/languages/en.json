@@ -2083,7 +2083,6 @@
             },
             "downloads": {
                 "noDownloads": "No downloads active",
-                "moreDownloads": "and {count} more...",
                 "starting": "Starting...",
                 "extracting": "Extracting...",
                 "progressMB": "{current} / {total} MB ({percent}%)",

@@ -9,7 +9,7 @@ SPDX-License-Identifier: MIT
         <Transition name="fade" mode="out-in">
             <div v-if="downloadRows.length" class="downloads">
                 <TransitionGroup tag="div" name="downloads-list">
-                    <div v-for="download in limitedList" :key="download.key" class="downloads__download">
+                    <div v-for="download in downloadRows" :key="download.key" class="downloads__download">
                         <div class="downloads__info">
                             <div class="downloads__name">{{ download.name }}</div>
                             <div class="downloads__type">{{ download.type }}</div>
@@ -33,11 +33,6 @@ SPDX-License-Identifier: MIT
                         </template>
                     </div>
                 </TransitionGroup>
-                <Transition tag="div" name="fade" mode="out-in">
-                    <div class="flex-row flex-grow flex-center" v-if="downloadRows.length > limitedList.length">
-                        {{ t("lobby.navbar.downloads.moreDownloads", { count: downloadRows.length - limitedList.length }) }}
-                    </div>
-                </Transition>
             </div>
             <div v-else class="flex-row flex-grow flex-center">{{ t("lobby.navbar.downloads.noDownloads") }}</div>
         </Transition>
@@ -45,7 +40,7 @@ SPDX-License-Identifier: MIT
 </template>
 
 <script lang="ts" setup>
-import { computed, inject, Ref } from "vue";
+import { inject, Ref } from "vue";
 
 import Loader from "@renderer/components/common/Loader.vue";
 import Progress from "@renderer/components/common/Progress.vue";
@@ -79,8 +74,6 @@ const toggleMessages = inject<Ref<(open?: boolean, userId?: number) => void>>("t
 const toggleFriends = inject<Ref<(open?: boolean) => void>>("toggleFriends")!;
 const toggleDownloads = inject<Ref<(open?: boolean) => void>>("toggleDownloads")!;
 
-const limitedList = computed(() => downloadRows.value.slice(0, 5));
-
 toggleDownloads.value = async (open?: boolean) => {
     if (open) {
         toggleMessages.value(false);
@@ -92,6 +85,9 @@ toggleDownloads.value = async (open?: boolean) => {
 
 <style lang="scss" scoped>
 .downloads {
+    position: absolute;
+    inset: 0;
+    overflow-y: auto;
     display: flex;
     flex-direction: column;
     &__info {
