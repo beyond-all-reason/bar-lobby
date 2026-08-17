@@ -9,7 +9,12 @@ SPDX-License-Identifier: MIT
         <Transition name="fade" mode="out-in">
             <div v-if="downloadRows.length" class="downloads">
                 <TransitionGroup tag="div" class="downloads__list" name="downloads-list">
-                    <div v-for="download in downloadRows" :key="download.key" class="downloads__download">
+                    <div
+                        v-for="download in downloadRows"
+                        :key="download.key"
+                        class="downloads__download"
+                        :class="{ 'downloads__download--queued': download.queued }"
+                    >
                         <div class="downloads__info">
                             <div class="downloads__name">{{ download.name }}</div>
                             <div class="downloads__type">{{ download.type }}</div>
@@ -156,5 +161,10 @@ toggleDownloads.value = async (open?: boolean) => {
 }
 .downloads-list-leave-active {
     position: absolute;
+}
+.downloads__download--queued.downloads-list-leave-active {
+    transition: none;
+    transform: none;
+    opacity: 0;
 }
 </style>
