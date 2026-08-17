@@ -5,11 +5,12 @@
 import { Me } from "@main/model/user";
 import { db } from "@renderer/store/db";
 import { reactive, toRaw, watch } from "vue";
-import { tachyon, tachyonStore } from "@renderer/store/tachyon.store";
+import { tachyon } from "@renderer/store/tachyon.store";
 import { PrivateUser } from "tachyon-protocol/types";
 import { settingsStore } from "@renderer/store/settings.store";
 import { subsManager } from "@renderer/store/users.store";
 import { onWentOffline } from "@renderer/utils/offline-signal";
+import { notificationsApi } from "@renderer/api/notifications";
 
 export const me = reactive<
     Me & {
@@ -46,45 +47,53 @@ async function unsubscribeFromUsers(userIds: string[]) {
     subsManager.detach(userIds, friendsSymbol);
 }
 
-async function login() {
+// The main process owns the session. Nothing here assigns isAuthenticated
+// directly, or the UI can end up claiming a session that no longer exists.
+async function syncAuthState() {
+    const { authenticated } = await window.auth.getState();
+    me.isAuthenticated = authenticated;
+}
+
+async function login(interactive = true) {
     try {
-        await window.auth.login();
-        me.isAuthenticated = true;
-    } catch (e) {
-        console.error(e);
-        me.isAuthenticated = false;
-        throw e;
+        await window.auth.login(interactive);
+    } finally {
+        // The change event and this reply are separate channels, so read the
+        // state back rather than racing them.
+        await syncAuthState();
     }
 }
 
-function playOffline() {
-    me.isAuthenticated = false;
+// Signing in and opening the socket are separate steps, and starting offline
+// leaves the first one undone, so going online has to cover both.
+async function goOnline() {
+    if (!me.isAuthenticated) {
+        await login(false);
+    }
+
+    await tachyon.connect();
 }
 
 async function logout() {
     await tachyon.goOffline();
-    window.auth.logout();
-    me.isAuthenticated = false;
-}
-
-async function changeAccount() {
-    await window.auth.wipe();
-    me.isAuthenticated = false;
+    await window.auth.logout();
+    await syncAuthState();
 }
 
 // The same setting picks the websocket and the authorization server, so the
 // credentials we are holding were issued by the server being left and are worth
 // nothing to the one being joined. Switching ends the session rather than moving
-// the socket over.
+// the socket over, and logout is already that: it gives up wanting a connection
+// before closing one, so the drop is not taken for a fault worth retrying.
 async function serverChanged() {
-    // A socket that drops while we still look authenticated is treated as a
-    // connection worth retrying, so give up the session before closing it.
-    me.isAuthenticated = false;
-    subsManager.clearAllFromList(friendsSymbol);
-    await window.tachyon.disconnect();
-    await window.auth.wipe();
+    await logout();
 }
 
+// Main persists the identity off this same event and that is what gets read back
+// on startup, but db.users is still where anything looking up a user by id goes,
+// the profile view included, so our own record has to be in there too.
+// TODO tidy this up: the row is a snapshot of the whole reactive object, written
+// in two steps that aren't in one transaction, and nothing reads isMe any more.
 window.tachyon.onEvent("user/self", async (event) => {
     console.debug(`Received user/self event: ${JSON.stringify(event)}`);
     if (event && event.user) {
@@ -149,7 +158,7 @@ function clearOnlineState() {
 }
 
 // export const me = readonly(_me);
-export const auth = { login, playOffline, logout, changeAccount, clearOnlineState };
+export const auth = { login, goOnline, logout, clearOnlineState };
 
 // Friend methods
 export const friends = {
@@ -202,29 +211,38 @@ export const friends = {
     },
 
     async remove(userId: string) {
-        const response = await window.tachyon.request("friend/remove", { userId });
-        me.friendUserIds.delete(userId);
-        await unsubscribeFromUsers([userId]);
-        return response;
+        try {
+            const response = await window.tachyon.request("friend/remove", { userId });
+            me.friendUserIds.delete(userId);
+            await unsubscribeFromUsers([userId]);
+            return response;
+        } catch (error) {
+            console.log(`Failed to remove friend with userId: ${userId}`, error);
+            notificationsApi.alert({ severity: "error", text: "Failed to remove friend." });
+        }
     },
 
     async fetchFriendList() {
-        const response = await window.tachyon.request("friend/list");
-        console.debug(`Received friend/list event: ${JSON.stringify(response)}`);
+        try {
+            const response = await window.tachyon.request("friend/list");
+            console.debug(`Received friend/list event: ${JSON.stringify(response)}`);
 
-        // Clear existing friend data and populate with new data
-        me.friendUserIds = new Set(response.data.friends.map((friend) => friend.userId));
-        me.outgoingFriendRequestUserIds = new Set(response.data.outgoingPendingRequests.map((req) => req.to));
-        me.incomingFriendRequestUserIds = new Set(response.data.incomingPendingRequests.map((req) => req.from));
+            // Clear existing friend data and populate with new data
+            me.friendUserIds = new Set(response.data.friends.map((friend) => friend.userId));
+            me.outgoingFriendRequestUserIds = new Set(response.data.outgoingPendingRequests.map((req) => req.to));
+            me.incomingFriendRequestUserIds = new Set(response.data.incomingPendingRequests.map((req) => req.from));
 
-        // Get all user IDs to subscribe to
-        const allUserIds = Array.from(toRaw(me.friendUserIds).union(me.outgoingFriendRequestUserIds).union(me.incomingFriendRequestUserIds));
+            // Get all user IDs to subscribe to
+            const allUserIds = Array.from(toRaw(me.friendUserIds).union(me.outgoingFriendRequestUserIds).union(me.incomingFriendRequestUserIds));
 
-        if (allUserIds.length > 0) {
-            await subscribeToUsers(allUserIds);
+            if (allUserIds.length > 0) {
+                await subscribeToUsers(allUserIds);
+            }
+            return response;
+        } catch (error) {
+            console.log(`Failed to fetch friend list`, error);
+            notificationsApi.alert({ severity: "error", text: "Failed to fetch friend list." });
         }
-
-        return response;
     },
 };
 
@@ -240,6 +258,11 @@ export async function initMeStore() {
             void serverChanged();
         }
     );
+
+    window.auth.onChanged(({ authenticated }) => {
+        me.isAuthenticated = authenticated;
+    });
+
     onWentOffline.add(clearOnlineState);
     window.tachyon.onConnected(() => {
         // Subscriptions don't survive the socket, so rebuild them from the server's friend list
@@ -249,29 +272,44 @@ export async function initMeStore() {
         }
     });
 
-    await db.users
-        .where({ isMe: 1 })
-        .first()
-        .then((user) => {
-            if (user) {
-                Object.assign(me, user);
-            }
-        });
-    const hasCredentials = await window.auth.hasCredentials();
-    if (hasCredentials) {
-        try {
-            await login();
-
-            if (tachyonStore.isConnected) {
-                await friends.fetchFriendList();
-            }
-        } catch (error) {
-            // Auth renewal runs before the UI mounts, so there's no way to show
-            // a retry dialog here. Log the failure and continue — the user will
-            // see they're not logged in and can retry from the UI.
-            console.warn("Auth failed during startup, continuing offline", error);
-        }
+    // Last known, from whenever we were last connected. Absent on a fresh
+    // install, in which case the defaults stand in until a socket says otherwise.
+    const identity = await window.auth.getIdentity();
+    if (identity) {
+        Object.assign(me, identity);
     }
 
+    await syncAuthState();
+    await restorePreviousSession();
+
     me.isInitialized = true;
+}
+
+// Multiplayer is behind devMode, so outside it there is no session to restore.
+async function restorePreviousSession() {
+    if (!settingsStore.devMode) return;
+    if (!settingsStore.loginAutomatically) return;
+    if (!(await window.auth.hasCredentials())) return;
+
+    try {
+        // Non-interactive, because a rejected refresh token must not open a
+        // browser window while the user is still looking at the loading screen.
+        await goOnline();
+    } catch (error) {
+        // Deliberately keeps the credentials. Whatever went wrong here, only main
+        // can tell a rejected refresh token from a server that was unreachable,
+        // and it already destroys the account in the first case. Signing out from
+        // here as well threw away working credentials over a laptop that woke up
+        // before its wifi did. Signed in and not connected is a state the status
+        // menu can get you out of.
+        console.warn("Could not restore the previous session, continuing offline", error);
+
+        return;
+    }
+
+    try {
+        await friends.fetchFriendList();
+    } catch (error) {
+        console.warn("Could not fetch the friend list", error);
+    }
 }

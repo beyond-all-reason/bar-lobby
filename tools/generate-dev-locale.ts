@@ -24,10 +24,15 @@ const OUTPUT_FILE: string = path.join("lang/dev/lobby.json"); // Output path for
 function scrambleWord(word: string): string {
     if (word.length <= 3) return word;
     const middle: string[] = word.slice(1, -1).split("");
+    let seed = 2166136261;
 
-    // Fisher-Yates Shuffle
+    for (const character of word) {
+        seed = Math.imul(seed ^ character.charCodeAt(0), 16777619);
+    }
+
     for (let i = middle.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
+        seed = Math.imul(seed ^ 0, 1664525) + 1013904223;
+        const j = (seed >>> 0) % (i + 1);
         const temp = middle[i];
         middle[i] = middle[j];
         middle[j] = temp;

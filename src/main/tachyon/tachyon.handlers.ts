@@ -41,7 +41,8 @@ function createBattleHandlers(webContents: BarIpcWebContents) {
         ...defineTachyonRequestHandler(
             "battle/start",
             createTypedTachyonRequestHandler<"battle/start">()(async (data: BattleStartRequestData) => {
-                log.info(`Received battle start request: ${JSON.stringify(data)}`);
+                // data carries the join password, so it is summarised rather than dumped.
+                log.info(`Received battle start request for ${data.ip}:${data.port}`);
                 const itemsRequired =
                     !gameContentAPI.isVersionInstalled(data.game.springName) || !mapContentAPI.isVersionInstalled(data.map.springName) || !engineContentAPI.isVersionInstalled(data.engine.version);
                 if (itemsRequired) {

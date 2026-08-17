@@ -19,6 +19,8 @@ export class FileStore<T extends TObject> {
     protected readonly ajv: Ajv;
     protected readonly validator: ValidateFunction<Static<T>>;
 
+    private writeQueue: Promise<void> = Promise.resolve();
+
     constructor(filePath: string, schema: T, defaultModel?: Static<T>) {
         this.filePath = filePath;
         this.schema = schema;
@@ -69,7 +71,18 @@ export class FileStore<T extends TObject> {
         }
     }
 
+    // Writes are chained and go through a temp file, so overlapping saves can't
+    // interleave and a crash mid-write can't truncate the existing file.
     protected async write() {
-        await fs.promises.writeFile(this.filePath, JSON.stringify(this.model, null, 4));
+        const write = this.writeQueue.catch(() => {}).then(() => this.writeModel());
+        this.writeQueue = write.catch(() => {});
+
+        return write;
+    }
+
+    private async writeModel() {
+        const tempPath = `${this.filePath}.tmp`;
+        await fs.promises.writeFile(tempPath, JSON.stringify(this.model, null, 4));
+        await fs.promises.rename(tempPath, this.filePath);
     }
 }
