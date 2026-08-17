@@ -148,6 +148,34 @@ describe("aggregate download progress", () => {
         expect(percent()).toBeCloseTo(0.5);
     });
 
+    // The queue hands pr-downloader a window of refs at a time and the ones that land leave inFlight
+    // straight away, so the figure has to survive each handover rather than restart from what is left.
+    it("never drops at a batch handover", () => {
+        const BATCH = 4;
+        const ids = Array.from({ length: 20 }, (_, index) => `map-${index}`);
+        let highest = 0;
+
+        const observe = () => {
+            const current = percent();
+            expect(current).toBeGreaterThanOrEqual(highest);
+            highest = current;
+        };
+
+        push(ids.map(queued));
+        observe();
+
+        for (let landed = 0; landed < ids.length; landed += BATCH) {
+            const outstanding = ids.slice(landed);
+
+            for (const fraction of [0, 0.5, 1]) {
+                push(outstanding.map((id, index) => (index < BATCH ? acquiring(id, 100 * fraction, 100) : queued(id))));
+                observe();
+            }
+        }
+
+        expect(highest).toBeCloseTo(1);
+    });
+
     it("ignores removals", () => {
         push([map("a", "removing", 0, 0)]);
 

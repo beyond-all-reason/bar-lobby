@@ -115,9 +115,12 @@ export function useDownloadProgress() {
         return failedCount.value / total;
     });
 
+    // Clamped because a row drives a bar width and a percentage caption, and pr-downloader reports file
+    // counts and bytes down the same channel, so a reading can come back over its own total.
     function downloadPercent(download: DownloadView): number {
         if (download.totalBytes <= 0) return 0;
-        return download.currentBytes / download.totalBytes;
+
+        return Math.min(1, download.currentBytes / download.totalBytes);
     }
 
     function formatSpeed(bytesPerSec: number): string {

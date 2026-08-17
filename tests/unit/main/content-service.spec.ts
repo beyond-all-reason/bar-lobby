@@ -70,6 +70,31 @@ describe("content service", () => {
         expect(setProgressBar).toHaveBeenLastCalledWith(0.8);
     });
 
+    // Same rule as the navbar figure: content leaves the change stream the moment it lands, so averaging
+    // over what is left restarts from nothing every time the queue moves to its next batch.
+    it("does not drop the taskbar figure at a batch handover", () => {
+        const setProgressBar = vi.fn();
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        contentService.registerProgressHandler({ setProgressBar } as any);
+
+        const BATCH = 4;
+        const ids = Array.from({ length: 12 }, (_, index) => `map-${index}`);
+        const entry = (id: string, status: string, progress: number) => ({ type: "map", id, status, currentBytes: progress * 100, totalBytes: 100, progress, attempts: 1 });
+        const at = (landed: number, fraction: number) => ids.slice(landed).map((id, index) => (index < BATCH ? entry(id, "acquiring", fraction) : entry(id, "queued", 0)));
+
+        let highest = 0;
+        for (let landed = 0; landed < ids.length; landed += BATCH) {
+            for (const fraction of [0, 0.5, 1]) {
+                signals.contentChanged.dispatch(at(landed, fraction));
+                const current = setProgressBar.mock.calls.at(-1)?.[0] as number;
+                expect(current).toBeGreaterThanOrEqual(highest);
+                highest = current;
+            }
+        }
+
+        expect(highest).toBeCloseTo(1);
+    });
+
     it("forwards content changes", () => {
         signals.contentChanged.dispatch([]);
 

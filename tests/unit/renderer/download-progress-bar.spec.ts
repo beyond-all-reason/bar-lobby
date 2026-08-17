@@ -88,6 +88,16 @@ describe("DownloadProgress", () => {
         expect(highest).toBeCloseTo(1);
     });
 
+    it("stays within bounds when a transfer reports more than its own total", async () => {
+        const wrapper = mountBar();
+        // pr-downloader reports file counts and bytes on the same channel, so a reading can exceed 100%.
+        contentsStore.inFlight = names.map((id, index) => (index < BATCH ? state(id, "acquiring", 3) : state(id, "queued", 0)));
+        await wrapper.vm.$nextTick();
+
+        expect(percentOf(wrapper)).toBeLessThanOrEqual(1);
+        expect(percentOf(wrapper)).toBeCloseTo(BATCH / names.length);
+    });
+
     it("counts content that was already installed rather than showing it as outstanding", async () => {
         const wrapper = mountBar();
         contentsStore.inFlight = afterLanded(names.length / 2, 0);

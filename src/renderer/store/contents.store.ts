@@ -3,7 +3,8 @@
 // SPDX-License-Identifier: MIT
 
 import { ContentRef } from "@main/content/content-ref";
-import { ContentPresence, ContentProgress, ContentState, hasFailed, isInProgress } from "@main/content/content-state";
+import { ContentPresence, ContentProgress, ContentState, isInProgress } from "@main/content/content-state";
+import { createSettledCounter } from "@main/content/content-progress";
 import { notificationsApi } from "@renderer/api/notifications";
 import { reactive } from "vue";
 
@@ -67,23 +68,9 @@ export async function initContentsStore() {
 
     contentsStore.inFlight = await window.content.state();
 
-    let previous = new Set<string>();
+    const countSettled = createSettledCounter();
     window.content.onChanged((state) => {
-        const key = (entry: ContentState) => `${entry.type}:${entry.id}`;
-        const outstanding = new Set(state.filter(isInProgress).map(key));
-        const failed = new Set(state.filter(hasFailed).map(key));
-        for (const ref of previous) {
-            // A failure is not content that landed, and it keeps its own place in the figure instead.
-            if (!outstanding.has(ref) && !failed.has(ref)) {
-                contentsStore.settledCount++;
-            }
-        }
-        previous = outstanding;
-
-        if (!state.some(isInProgress) && failed.size === 0) {
-            contentsStore.settledCount = 0;
-        }
-
+        contentsStore.settledCount = countSettled(state);
         contentsStore.inFlight = state;
         contentsStore.revision++;
     });

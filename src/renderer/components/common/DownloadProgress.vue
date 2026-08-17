@@ -54,6 +54,8 @@ const downloadPercent = computed(() => {
 
     const landed = total - transfers.value.length;
 
-    return (landed + transfers.value.reduce((sum, state) => sum + state.progress, 0)) / total;
+    // Clamped per transfer the way the navbar figure is: pr-downloader reports file counts and bytes
+    // down the same channel, so a single reading can come back over its own total.
+    return (landed + transfers.value.reduce((sum, state) => sum + Math.min(1, state.progress), 0)) / total;
 });
 </script>
