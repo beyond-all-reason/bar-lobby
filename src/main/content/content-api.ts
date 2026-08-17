@@ -33,16 +33,12 @@ async function acquireReporting(downloader: Downloader, ids: string[], report: C
     const progress = downloader.onDownloadProgress.add((info) => {
         if (!isOurs(info.id)) return;
 
-        for (const id of ids) {
-            report.progress(id, { currentBytes: info.currentBytes, totalBytes: info.totalBytes, progress: info.progress, phase: info.phase });
-        }
+        report.progress(ids, { currentBytes: info.currentBytes, totalBytes: info.totalBytes, progress: info.progress, phase: info.phase });
     });
     const retry = downloader.onDownloadRetry.add((info) => {
         if (!isOurs(info.id)) return;
 
-        for (const id of ids) {
-            report.attempt(id);
-        }
+        report.attempt(ids);
     });
 
     try {
@@ -130,8 +126,8 @@ class ContentAPI {
         },
         (ref) => this.isPresent(ref),
         {
-            progress: (id, progress) => this.updateAcquiring(id, (state) => ({ ...state, ...progress })),
-            attempt: (id) => this.updateAcquiring(id, (state) => ({ ...state, attempts: state.attempts + 1 })),
+            progress: (ids, progress) => this.updateAcquiring(ids, (state) => ({ ...state, ...progress })),
+            attempt: (ids) => this.updateAcquiring(ids, (state) => ({ ...state, attempts: state.attempts + 1 })),
         }
     );
 
@@ -380,13 +376,17 @@ class ContentAPI {
         }
     }
 
-    private updateAcquiring(id: string, update: (state: ContentState) => ContentState) {
-        const running = [...this.states.values()].find((state) => state.id === id && state.status === "acquiring");
-        if (!running) {
+    // Dispatched once for the whole set: the figures describe one invocation, and sending them a ref at a
+    // time makes listeners redraw for each one and briefly see the set disagreeing with itself.
+    private updateAcquiring(ids: string[], update: (state: ContentState) => ContentState) {
+        const running = [...this.states.values()].filter((state) => ids.includes(state.id) && state.status === "acquiring");
+        if (running.length === 0) {
             return;
         }
 
-        this.states.set(contentRefKey(running), update(running));
+        for (const state of running) {
+            this.states.set(contentRefKey(state), update(state));
+        }
         this.onChanged.dispatch(this.state());
     }
 

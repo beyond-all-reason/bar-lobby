@@ -49,6 +49,6 @@ export function hasFailed(state: ContentState) {
 }
 
 export type ContentReporter = {
-    progress(id: string, progress: ContentProgress): void;
-    attempt(id: string): void;
+    progress(ids: string[], progress: ContentProgress): void;
+    attempt(ids: string[]): void;
 };

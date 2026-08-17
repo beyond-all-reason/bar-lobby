@@ -123,6 +123,9 @@ toggleDownloads.value = async (open?: boolean) => {
     &__detail {
         font-size: 11px;
         color: rgba(255, 255, 255, 0.6);
+        // Empty until the first figures arrive, and a row that grows a line the moment they do drags
+        // every row under it down with it.
+        min-height: 1.2em;
     }
     &__waiting {
         font-size: 13px;
