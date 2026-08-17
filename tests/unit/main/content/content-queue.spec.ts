@@ -73,6 +73,37 @@ describe("ContentQueue", () => {
         expect(calls).toEqual([{ operation: "acquire", type: "map", ids: ["Quicksilver", "Supreme Isthmus"] }]);
     });
 
+    // Anything showing progress needs to know the set is one download before its first byte arrives, or
+    // it briefly lists each ref on its own and then collapses them.
+    it("names the invocation on every ref in it as soon as it starts", async () => {
+        const gate = deferred();
+        const { queue } = setup({ run: () => gate.settled });
+
+        const all = Promise.all([queue.enqueue("acquire", map("Quicksilver")), queue.enqueue("acquire", map("Supreme Isthmus"))]);
+        await Promise.resolve();
+
+        const running = queue.snapshot().filter((entry) => entry.status === "running");
+        expect(running).toHaveLength(2);
+        expect(new Set(running.map((entry) => entry.transfer)).size).toBe(1);
+        expect(running[0].transfer).toBeDefined();
+
+        gate.release();
+        await all;
+    });
+
+    it("leaves a lone ref unnamed so it reads as itself", async () => {
+        const gate = deferred();
+        const { queue } = setup({ run: () => gate.settled });
+
+        const acquiring = queue.enqueue("acquire", engine("2025.06.21"));
+        await Promise.resolve();
+
+        expect(queue.snapshot()[0].transfer).toBeUndefined();
+
+        gate.release();
+        await acquiring;
+    });
+
     it("keeps engines on separate transfers", async () => {
         const { queue, calls } = setup();
 

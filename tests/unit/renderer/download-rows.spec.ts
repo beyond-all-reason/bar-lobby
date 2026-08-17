@@ -49,7 +49,7 @@ describe("download rows", () => {
         push(ids.map((id) => map(id, "acquiring", 34_900_000, BATCH)));
 
         expect(rows()).toHaveLength(1);
-        expect(rows()[0].count).toBe(4);
+        expect(rows()[0].members).toEqual(ids);
         expect(rows()[0].currentBytes).toBe(34_900_000);
     });
 
@@ -58,14 +58,17 @@ describe("download rows", () => {
 
         expect(rows()).toHaveLength(1);
         expect(rows()[0].name).toBe("Quicksilver Remake 1.24");
-        expect(rows()[0].count).toBe(1);
+        expect(rows()[0].members).toEqual(["Quicksilver Remake 1.24"]);
     });
 
     it("keeps separate transfers apart", () => {
         push([map("a", "acquiring", 10, "a, b"), map("b", "acquiring", 10, "a, b"), map("c", "acquiring", 20, "c, d"), map("d", "acquiring", 20, "c, d")]);
 
         expect(rows()).toHaveLength(2);
-        expect(rows().map((row) => row.count)).toEqual([2, 2]);
+        expect(rows().map((row) => row.members)).toEqual([
+            ["a", "b"],
+            ["c", "d"],
+        ]);
     });
 
     // The rows are for reading; the figure has to keep weighing every piece of content asked for, or

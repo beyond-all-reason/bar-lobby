@@ -14,6 +14,9 @@ SPDX-License-Identifier: MIT
                             <div class="downloads__name">{{ download.name }}</div>
                             <div class="downloads__type">{{ download.type }}</div>
                         </div>
+                        <div v-if="download.members.length > 1" class="downloads__members" :title="download.members.join(', ')">
+                            {{ download.members.join(", ") }}
+                        </div>
                         <div v-if="download.phase === 'extracting'" class="downloads__extracting">
                             <Loader :absolute-position="false" />
                             <span>{{ t("lobby.navbar.downloads.extracting") }}</span>
@@ -97,7 +100,7 @@ toggleDownloads.value = async (open?: boolean) => {
         justify-content: space-between;
     }
     &__download {
-        height: 85px;
+        min-height: 85px;
         width: 100%;
         display: flex;
         flex-direction: column;
@@ -111,6 +114,13 @@ toggleDownloads.value = async (open?: boolean) => {
         font-size: 12px;
         font-weight: 700;
         color: rgba(255, 255, 255, 0.7);
+    }
+    &__members {
+        font-size: 11px;
+        color: rgba(255, 255, 255, 0.45);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
     &__detail {
         font-size: 11px;

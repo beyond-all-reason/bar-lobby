@@ -16,6 +16,8 @@ export type ContentOperation = "acquire" | "remove";
 export type ContentQueueEntry = ContentRef & {
     operation: ContentOperation;
     status: "queued" | "running";
+    // Names the invocation this ref is part of, when that invocation covers more than one of them.
+    transfer?: string;
 };
 
 type PendingOperation = {
@@ -23,6 +25,7 @@ type PendingOperation = {
     ref: ContentRef;
     resolve: () => void;
     reject: (error: unknown) => void;
+    transfer?: string;
 };
 
 function operationKey(operation: ContentOperation, ref: ContentRef) {
@@ -56,7 +59,7 @@ export class ContentQueue {
 
     public snapshot(): ContentQueueEntry[] {
         return [
-            ...this.active.map((entry) => ({ ...entry.ref, operation: entry.operation, status: "running" as const })),
+            ...this.active.map((entry) => ({ ...entry.ref, operation: entry.operation, status: "running" as const, transfer: entry.transfer })),
             ...this.queued.map((entry) => ({ ...entry.ref, operation: entry.operation, status: "queued" as const })),
         ];
     }
@@ -154,6 +157,10 @@ export class ContentQueue {
                 // list and two operations on one ref can start together.
                 const batch = this.takeBatchWith(next);
                 held = batch.length;
+                // One invocation is one download as far as anything showing progress is concerned, since
+                // pr-downloader only reports figures for the set as a whole.
+                const transfer = batch.length > 1 ? batch.map((entry) => contentRefKey(entry.ref)).join(" ") : undefined;
+                batch.forEach((entry) => (entry.transfer = transfer));
                 this.active.push(...batch);
                 this.onChanged.dispatch(this.snapshot());
 

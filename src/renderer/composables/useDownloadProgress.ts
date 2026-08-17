@@ -23,9 +23,9 @@ export type DownloadView = {
     currentBytes: number;
     totalBytes: number;
     phase?: "downloading" | "extracting";
-    // How many pieces of content this row stands for. More than one means pr-downloader fetched them as
-    // a single transfer and its figures describe the set, not any one of them.
-    count: number;
+    // What this row stands for. More than one name means pr-downloader fetched them as a single
+    // transfer and its figures describe the set, not any one of them.
+    members: string[];
     transfer?: string;
 };
 
@@ -48,7 +48,7 @@ export function useDownloadProgress() {
             currentBytes: state.currentBytes,
             totalBytes: state.totalBytes,
             phase: state.phase,
-            count: 1,
+            members: [state.id],
             transfer: state.transfer,
         })),
         ...(contentsStore.poolPrefetch
@@ -60,7 +60,7 @@ export function useDownloadProgress() {
                       currentBytes: contentsStore.poolPrefetch.currentBytes,
                       totalBytes: contentsStore.poolPrefetch.totalBytes,
                       phase: contentsStore.poolPrefetch.phase,
-                      count: 1,
+                      members: ["pool-data"],
                   },
               ]
             : []),
@@ -71,7 +71,7 @@ export function useDownloadProgress() {
             currentBytes: download.currentBytes,
             totalBytes: download.totalBytes,
             phase: download.phase,
-            count: 1,
+            members: [download.name],
         })),
     ]);
 
@@ -91,12 +91,15 @@ export function useDownloadProgress() {
 
             const existing = byTransfer.get(download.transfer);
             if (existing) {
-                existing.count++;
-                existing.name = existing.type === "game" ? t("lobby.navbar.downloads.batchedGames", { count: existing.count }) : t("lobby.navbar.downloads.batchedMaps", { count: existing.count });
+                existing.members.push(...download.members);
+                existing.name =
+                    existing.type === "game"
+                        ? t("lobby.navbar.downloads.batchedGames", { count: existing.members.length })
+                        : t("lobby.navbar.downloads.batchedMaps", { count: existing.members.length });
                 continue;
             }
 
-            const row = { ...download, key: `${download.type}:${download.transfer}` };
+            const row = { ...download, key: `${download.type}:${download.transfer}`, members: [...download.members] };
             byTransfer.set(download.transfer, row);
             rows.push(row);
         }
