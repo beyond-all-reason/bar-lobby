@@ -98,6 +98,23 @@ describe("DownloadProgress", () => {
         expect(percentOf(wrapper)).toBeCloseTo(BATCH / names.length);
     });
 
+    // Subtracting what is still moving from what was asked for cannot tell a failure from an arrival, so
+    // a set with a couple of dead maps in it used to march to the top and claim everything landed.
+    it("does not count content that failed as content that arrived", async () => {
+        const wrapper = mountBar();
+        const failedCount = 2;
+        const outstanding = names.slice(failedCount);
+
+        contentsStore.inFlight = [
+            ...names.slice(0, failedCount).map((id) => state(id, "failed", 0)),
+            ...outstanding.map((id, index) => (index < BATCH ? state(id, "acquiring", 1) : state(id, "queued", 0))),
+        ];
+        await wrapper.vm.$nextTick();
+
+        // Four of the eighteen that can still arrive are done; the two dead ones count for nothing.
+        expect(percentOf(wrapper)).toBeCloseTo(BATCH / names.length);
+    });
+
     it("counts content that was already installed rather than showing it as outstanding", async () => {
         const wrapper = mountBar();
         contentsStore.inFlight = afterLanded(names.length / 2, 0);

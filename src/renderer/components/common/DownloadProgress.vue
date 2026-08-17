@@ -17,7 +17,7 @@ SPDX-License-Identifier: MIT
 <script lang="ts" setup>
 import { computed, watch } from "vue";
 import { contentRefs, inFlightFor } from "@renderer/store/contents.store";
-import { isInProgress } from "@main/content/content-state";
+import { hasFailed, isInProgress } from "@main/content/content-state";
 import Progress from "@renderer/components/common/Progress.vue";
 
 interface Props {
@@ -35,7 +35,11 @@ const emit = defineEmits<{
 
 const refs = computed(() => contentRefs({ maps, games, engines }));
 
-const transfers = computed(() => inFlightFor(refs.value).filter(isInProgress));
+const tracked = computed(() => inFlightFor(refs.value));
+
+const transfers = computed(() => tracked.value.filter(isInProgress));
+
+const failed = computed(() => tracked.value.filter(hasFailed));
 
 const isDownloading = computed(() => transfers.value.length > 0);
 
@@ -52,7 +56,9 @@ const downloadPercent = computed(() => {
         return 0;
     }
 
-    const landed = total - transfers.value.length;
+    // Anything gone from the change stream arrived; anything still there having failed did not, and
+    // holds its place so the figure stops short rather than claiming the set is complete.
+    const landed = total - transfers.value.length - failed.value.length;
 
     // Clamped per transfer the way the navbar figure is: pr-downloader reports file counts and bytes
     // down the same channel, so a single reading can come back over its own total.

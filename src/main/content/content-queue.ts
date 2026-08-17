@@ -215,10 +215,16 @@ export class ContentQueue {
             log.warn(`Batched ${operation} of ${batch.length} ${ref.type}s failed, retrying them separately`, err);
         }
 
+        // One invocation each from here, so they are no longer one transfer and anything showing progress
+        // has to stop treating them as one. Without this the figures of whichever ref reported first are
+        // all that is ever shown while the rest go past.
+        batch.forEach((entry) => (entry.transfer = undefined));
+        this.onChanged.dispatch(this.snapshot());
+
         let failure: unknown;
-        for (const id of ids) {
+        for (const entry of batch) {
             try {
-                await this.run(operation, ref.type, [id], this.report);
+                await this.run(operation, ref.type, [entry.ref.id], this.report);
             } catch (err) {
                 failure = err;
             }

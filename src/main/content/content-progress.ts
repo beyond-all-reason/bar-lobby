@@ -13,7 +13,7 @@ import { contentRefKey } from "@main/content/content-ref";
  * next batch, which is why what landed has to be remembered and counted on both sides of the fraction.
  */
 export function createSettledCounter() {
-    let landed = 0;
+    let landed = new Set<string>();
     let previous = new Set<string>();
 
     return (states: ContentState[]) => {
@@ -23,16 +23,16 @@ export function createSettledCounter() {
         for (const key of previous) {
             // A failure is not content that landed, and it keeps its own place in the figure instead.
             if (!outstanding.has(key) && !failed.has(key)) {
-                landed++;
+                landed.add(key);
             }
         }
         previous = outstanding;
 
         // Nothing moving and nothing failed means this run is over, so the next one starts from zero.
         if (outstanding.size === 0 && failed.size === 0) {
-            landed = 0;
+            landed = new Set();
         }
 
-        return landed;
+        return landed.size;
     };
 }

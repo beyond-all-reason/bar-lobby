@@ -67,8 +67,10 @@ function registerProgressHandler(mainWindow: Electron.CrossProcessExports.Browse
         const outstanding = state.filter(isInProgress);
         const landed = countSettled(state);
 
-        contentDone = landed + outstanding.reduce((total, entry) => total + fraction(entry.progress), 0);
-        contentCount = landed + outstanding.length;
+        // A failure outlives the run it belongs to, so the figure has to go by whether anything is still
+        // moving rather than by whether the change stream has emptied.
+        contentDone = outstanding.length === 0 ? 0 : landed + outstanding.reduce((total, entry) => total + fraction(entry.progress), 0);
+        contentCount = outstanding.length === 0 ? 0 : landed + outstanding.length;
         refresh();
     });
 

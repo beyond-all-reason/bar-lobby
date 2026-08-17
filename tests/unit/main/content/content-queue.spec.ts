@@ -91,6 +91,25 @@ describe("ContentQueue", () => {
         await all;
     });
 
+    // Each ref is its own invocation once the batch is abandoned, so anything showing progress has to
+    // stop treating them as one download - otherwise it only ever shows whichever reported first.
+    it("stops naming them one transfer once it retries them separately", async () => {
+        const seen: Array<string | undefined> = [];
+        const { queue } = setup({
+            run: async ({ ids }) => {
+                if (ids.length > 1) {
+                    throw new Error("pr-downloader exited with code 1");
+                }
+                seen.push(queue.snapshot().find((entry) => entry.id === ids[0])?.transfer);
+            },
+        });
+
+        await Promise.all([queue.enqueue("acquire", map("a")), queue.enqueue("acquire", map("b"))]);
+
+        expect(seen).toHaveLength(2);
+        expect(seen.every((transfer) => transfer === undefined)).toBe(true);
+    });
+
     it("leaves a lone ref unnamed so it reads as itself", async () => {
         const gate = deferred();
         const { queue } = setup({ run: () => gate.settled });

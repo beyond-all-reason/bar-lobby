@@ -95,6 +95,20 @@ describe("content service", () => {
         expect(highest).toBeCloseTo(1);
     });
 
+    // contentAPI keeps a failure until its ref is asked for again, so the change stream never empties
+    // after a partly failed run and the figure has to go by whether anything is still moving.
+    it("clears the taskbar once nothing is moving, even with a failure left over", () => {
+        const setProgressBar = vi.fn();
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        contentService.registerProgressHandler({ setProgressBar } as any);
+        const entry = (id: string, status: string, progress: number) => ({ type: "map", id, status, currentBytes: progress * 100, totalBytes: 100, progress, attempts: 1 });
+
+        signals.contentChanged.dispatch([entry("a", "acquiring", 0.5), entry("b", "acquiring", 0.5), entry("bad", "acquiring", 0)]);
+        signals.contentChanged.dispatch([entry("bad", "failed", 0)]);
+
+        expect(setProgressBar).toHaveBeenLastCalledWith(-1);
+    });
+
     it("forwards content changes", () => {
         signals.contentChanged.dispatch([]);
 
