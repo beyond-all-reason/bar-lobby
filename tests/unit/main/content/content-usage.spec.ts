@@ -25,6 +25,12 @@ vi.mock("fs", () => ({
                 return contents;
             },
             writeFile: async (file: string, contents: string) => void files.set(file, contents),
+            // FileStore writes to a temp file and renames over the target, so a crash mid-write cannot
+            // truncate what was already there.
+            rename: async (from: string, to: string) => {
+                files.set(to, files.get(from) as string);
+                files.delete(from);
+            },
         },
     },
 }));

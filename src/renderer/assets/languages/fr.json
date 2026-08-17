@@ -4103,7 +4103,22 @@
                 "playersOnline": null,
                 "error": null,
                 "reconnecting": null,
-                "offline": null
+                "offline": null,
+                "changeStatus": null,
+                "statusOnline": null,
+                "statusBusy": null,
+                "statusBusyUnavailable": null,
+                "goOffline": null,
+                "cancel": null,
+                "connect": null,
+                "connectTitle": null,
+                "connectBody": null,
+                "disconnect": null,
+                "disconnectTitle": null,
+                "disconnectBody": null,
+                "stopReconnecting": null,
+                "stopReconnectingTitle": null,
+                "stopReconnectingBody": null
             },
             "messages": {
                 "message": null,

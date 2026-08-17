@@ -12,7 +12,6 @@ import netFromNode from "node:net";
 import { createWindow } from "@main/main-window";
 import { settingsService } from "./services/settings.service";
 import { infoService } from "./services/info.service";
-import { accountService } from "./services/account.service";
 import { logService } from "@main/services/log.service";
 import contentService from "./services/content.service";
 import { contentAPI } from "@main/content/content-api";
@@ -137,7 +136,7 @@ app.whenReady().then(async () => {
     } catch (err) {
         log.error("Content initialisation failed, starting anyway so the assets path can be changed", err);
     }
-    await Promise.all([accountService.init(), replaysService.init(), autoUpdaterService.init()]);
+    await Promise.all([authService.init(), replaysService.init(), autoUpdaterService.init()]);
 
     const mainWindow = createWindow();
     const webContents = typedWebContents(mainWindow.webContents);
@@ -145,7 +144,7 @@ app.whenReady().then(async () => {
     logService.registerIpcHandlers();
     infoService.registerIpcHandlers();
     settingsService.registerIpcHandlers();
-    authService.registerIpcHandlers();
+    authService.registerIpcHandlers(webContents);
     tachyonService.registerIpcHandlers(webContents);
     replaysService.registerIpcHandlers(webContents);
     contentService.registerIpcHandlers(webContents);

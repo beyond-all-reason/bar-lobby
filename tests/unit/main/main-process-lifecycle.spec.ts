@@ -17,7 +17,6 @@ describe("Main Process Lifecycle", () => {
     const mockServices = {
         engineService: { registerIpcHandlers: vi.fn() },
         settingsService: { init: vi.fn().mockResolvedValue(undefined), registerIpcHandlers: vi.fn(), getSettings: vi.fn().mockReturnValue({ assetsPath: "" }) },
-        accountService: { init: vi.fn().mockResolvedValue(undefined) },
         replaysService: { init: vi.fn().mockResolvedValue(undefined), registerIpcHandlers: vi.fn() },
         gameService: { registerIpcHandlers: vi.fn() },
         mapsService: { registerIpcHandlers: vi.fn() },
@@ -26,7 +25,7 @@ describe("Main Process Lifecycle", () => {
         contentAPI: { init: vi.fn().mockResolvedValue(undefined), reinit: vi.fn().mockResolvedValue(undefined) },
         logService: { registerIpcHandlers: vi.fn() },
         infoService: { registerIpcHandlers: vi.fn() },
-        authService: { registerIpcHandlers: vi.fn() },
+        authService: { init: vi.fn().mockResolvedValue(undefined), registerIpcHandlers: vi.fn() },
         tachyonService: { registerIpcHandlers: vi.fn() },
         shellService: { registerIpcHandlers: vi.fn() },
         miscService: { registerIpcHandlers: vi.fn() },
@@ -125,7 +124,6 @@ describe("Main Process Lifecycle", () => {
 
         vi.doMock("@main/services/settings.service", () => ({ settingsService: mockServices.settingsService }));
         vi.doMock("@main/services/info.service", () => ({ infoService: mockServices.infoService }));
-        vi.doMock("@main/services/account.service", () => ({ accountService: mockServices.accountService }));
         vi.doMock("@main/services/log.service", () => ({ logService: mockServices.logService }));
         vi.doMock("@main/services/auth.service", () => ({ authService: mockServices.authService }));
         vi.doMock("@main/services/tachyon.service", () => ({ tachyonService: mockServices.tachyonService }));
@@ -213,7 +211,7 @@ describe("Main Process Lifecycle", () => {
 
         expect(mockServices.settingsService.init).toHaveBeenCalled();
         expect(mockServices.contentAPI.init).toHaveBeenCalled();
-        expect(mockServices.accountService.init).toHaveBeenCalled();
+        expect(mockServices.authService.init).toHaveBeenCalled();
         expect(mockServices.replaysService.init).toHaveBeenCalled();
         expect(mockServices.autoUpdaterService.init).toHaveBeenCalled();
     });

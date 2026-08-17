@@ -267,7 +267,22 @@
                 "playersOnline": "Plyreas Oinnle",
                 "error": "Eorrr",
                 "reconnecting": "Recotnnenicg...",
-                "offline": "Oniflfe"
+                "offline": "Oniflfe",
+                "changeStatus": "Canghe Satuts",
+                "statusOnline": "Oinnle",
+                "statusBusy": "Busy",
+                "statusBusyUnavailable": "The sveerr has no way to show tihs yet",
+                "goOffline": "Go Oniflfe",
+                "cancel": "Ceancl",
+                "connect": "Cnnocet",
+                "connectTitle": "Cnnocet to the sveerr?",
+                "connectBody": "You are sgneid in but not cntnoeecd. Cniotcneng bnirgs back paiters, leibbos and mnchaaiktmg.",
+                "disconnect": "Dsnncoicet",
+                "disconnectTitle": "Dsnncoicet form the sveerr?",
+                "disconnectBody": "You wlil laeve any party, lobby or mnchaaiktmg qeuue you are in. You stay sgneid in and can ccnneot agian wehenevr you like.",
+                "stopReconnecting": "Sotp trinyg",
+                "stopReconnectingTitle": "Sotp rionentcnecg?",
+                "stopReconnectingBody": "No fuethrr apmtttes wlil be made uitnl you ccnneot agian yreoulsf."
             },
             "messages": {
                 "message": "Msaesge",

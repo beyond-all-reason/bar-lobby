@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 import { ContentRef } from "@main/content/content-ref";
-import { ContentPresence, ContentProgress, ContentState, isInProgress } from "@main/content/content-state";
+import { ContentPresence, ContentProgress, ContentState } from "@main/content/content-state";
 import { createSettledCounter } from "@main/content/content-progress";
 import { notificationsApi } from "@renderer/api/notifications";
 import { reactive } from "vue";
