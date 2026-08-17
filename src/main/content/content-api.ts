@@ -400,7 +400,7 @@ class ContentAPI {
             // Asking for content again is a fresh set of attempts, so a leftover failure does not carry
             // its count into the new request.
             const attempts = !existing || existing.status === "failed" ? 1 : existing.attempts;
-            this.states.set(key, { currentBytes: 0, totalBytes: 0, progress: 0, ...existing, type: entry.type, id: entry.id, status, attempts, transfer: entry.transfer });
+            this.states.set(key, { currentBytes: 0, totalBytes: 0, progress: 0, ...existing, type: entry.type, id: entry.id, status, attempts });
         }
 
         // A failure is kept until the ref is asked for again, so the reason a download stopped does not

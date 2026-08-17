@@ -65,65 +65,50 @@ describe("ContentQueue", () => {
 
     // One invocation is the only way pr-downloader fetches several assets at once, and the second one
     // would have had to wait for the first anyway.
-    it("hands pr-downloader everything queued for it in one invocation", async () => {
+    // Nothing is gained by putting maps in one invocation, and doing so leaves pr-downloader reporting a
+    // single set of figures for the lot.
+    it("gives pr-downloader one map per invocation", async () => {
         const { queue, calls } = setup();
 
         await Promise.all([queue.enqueue("acquire", map("Quicksilver")), queue.enqueue("acquire", map("Supreme Isthmus"))]);
 
-        expect(calls).toEqual([{ operation: "acquire", type: "map", ids: ["Quicksilver", "Supreme Isthmus"] }]);
+        expect(calls).toEqual([
+            { operation: "acquire", type: "map", ids: ["Quicksilver"] },
+            { operation: "acquire", type: "map", ids: ["Supreme Isthmus"] },
+        ]);
     });
 
-    // Anything showing progress needs to know the set is one download before its first byte arrives, or
-    // it briefly lists each ref on its own and then collapses them.
-    it("names the invocation on every ref in it as soon as it starts", async () => {
-        const gate = deferred();
-        const { queue } = setup({ run: () => gate.settled });
+    // Rapid resolves several game versions together in one pass, which is worth doing even while only
+    // one invocation runs at a time.
+    it("puts every queued game version into one invocation", async () => {
+        const { queue, calls } = setup();
 
-        const all = Promise.all([queue.enqueue("acquire", map("Quicksilver")), queue.enqueue("acquire", map("Supreme Isthmus"))]);
-        await Promise.resolve();
+        await Promise.all([queue.enqueue("acquire", game("byar:test")), queue.enqueue("acquire", game("byar:stable"))]);
 
-        const running = queue.snapshot().filter((entry) => entry.status === "running");
-        expect(running).toHaveLength(2);
-        expect(new Set(running.map((entry) => entry.transfer)).size).toBe(1);
-        expect(running[0].transfer).toBeDefined();
-
-        gate.release();
-        await all;
+        expect(calls).toEqual([{ operation: "acquire", type: "game", ids: ["byar:test", "byar:stable"] }]);
     });
 
-    // Each ref is its own invocation once the batch is abandoned, so anything showing progress has to
-    // stop treating them as one download - otherwise it only ever shows whichever reported first.
-    it("stops naming them one transfer once it retries them separately", async () => {
-        const seen: Array<string | undefined> = [];
-        const { queue } = setup({
-            run: async ({ ids }) => {
-                if (ids.length > 1) {
-                    throw new Error("pr-downloader exited with code 1");
-                }
-                seen.push(queue.snapshot().find((entry) => entry.id === ids[0])?.transfer);
-            },
-        });
+    // The shape asked for while pr-downloader cannot be run twice at once: the game versions travel
+    // together because rapid resolves them in one pass, and every map goes on its own.
+    it("gathers the games and leaves the maps alone", async () => {
+        const { queue, calls } = setup();
 
-        await Promise.all([queue.enqueue("acquire", map("a")), queue.enqueue("acquire", map("b"))]);
+        await Promise.all([
+            queue.enqueue("acquire", game("byar:test")),
+            queue.enqueue("acquire", map("Quicksilver")),
+            queue.enqueue("acquire", map("Red Comet")),
+            queue.enqueue("acquire", map("Tangerine")),
+        ]);
 
-        expect(seen).toHaveLength(2);
-        expect(seen.every((transfer) => transfer === undefined)).toBe(true);
+        expect(calls.filter((call) => call.type === "game")).toEqual([{ operation: "acquire", type: "game", ids: ["byar:test"] }]);
+        expect(calls.filter((call) => call.type === "map")).toEqual([
+            { operation: "acquire", type: "map", ids: ["Quicksilver"] },
+            { operation: "acquire", type: "map", ids: ["Red Comet"] },
+            { operation: "acquire", type: "map", ids: ["Tangerine"] },
+        ]);
     });
 
-    it("leaves a lone ref unnamed so it reads as itself", async () => {
-        const gate = deferred();
-        const { queue } = setup({ run: () => gate.settled });
-
-        const acquiring = queue.enqueue("acquire", engine("2025.06.21"));
-        await Promise.resolve();
-
-        expect(queue.snapshot()[0].transfer).toBeUndefined();
-
-        gate.release();
-        await acquiring;
-    });
-
-    it("keeps engines on separate transfers", async () => {
+    it("keeps engines on separate invocations", async () => {
         const { queue, calls } = setup();
 
         await Promise.all([queue.enqueue("acquire", engine("2025.06.21")), queue.enqueue("acquire", engine("2025.01.5"))]);
@@ -145,15 +130,15 @@ describe("ContentQueue", () => {
         expect(calls).toContainEqual({ operation: "remove", type: "map", ids: ["Tangerine"] });
     });
 
-    // A batch spends one slot per ref, so batching cannot smuggle more past the limit than running them
-    // one at a time would have.
-    it("batches no more than the download limit allows", async () => {
+    // One invocation is one download whatever it covers, so gathering the game versions does not let
+    // more run at once than the limit allows.
+    it("covers every queued map without ever putting two in one invocation", async () => {
         const { queue, calls } = setup();
 
-        const ids = Array.from({ length: MAX_CONCURRENT_DOWNLOADS + 3 }, (_, index) => `map-${index}`);
+        const ids = Array.from({ length: 7 }, (_, index) => `map-${index}`);
         await Promise.all(ids.map((id) => queue.enqueue("acquire", map(id))));
 
-        expect(Math.max(...calls.map((call) => call.ids.length))).toBe(MAX_CONCURRENT_DOWNLOADS);
+        expect(Math.max(...calls.map((call) => call.ids.length))).toBe(1);
         expect(calls.flatMap((call) => call.ids).sort()).toEqual([...ids].sort());
     });
 
@@ -162,21 +147,21 @@ describe("ContentQueue", () => {
     it("retries a failed batch one at a time so a bad ref does not take the others down", async () => {
         const { queue, calls } = setup({
             run: async ({ ids }) => {
-                if (ids.includes("Not A Map")) {
+                if (ids.includes("Not A Game")) {
                     throw new Error("pr-downloader exited with code 1");
                 }
             },
         });
 
-        const good = queue.enqueue("acquire", map("Quicksilver"));
-        const bad = queue.enqueue("acquire", map("Not A Map"));
+        const good = queue.enqueue("acquire", game("byar:test"));
+        const bad = queue.enqueue("acquire", game("Not A Game"));
 
         await expect(good).resolves.toBeUndefined();
         await expect(bad).rejects.toThrow();
         expect(calls).toEqual([
-            { operation: "acquire", type: "map", ids: ["Quicksilver", "Not A Map"] },
-            { operation: "acquire", type: "map", ids: ["Quicksilver"] },
-            { operation: "acquire", type: "map", ids: ["Not A Map"] },
+            { operation: "acquire", type: "game", ids: ["byar:test", "Not A Game"] },
+            { operation: "acquire", type: "game", ids: ["byar:test"] },
+            { operation: "acquire", type: "game", ids: ["Not A Game"] },
         ]);
     });
 
@@ -231,25 +216,6 @@ describe("ContentQueue", () => {
         await all;
 
         expect(peak).toBe(1);
-    });
-
-    it("lets an engine download while pr-downloader is running", async () => {
-        const started: string[] = [];
-        const gate = deferred();
-        const { queue } = setup({
-            run: async ({ type, ids }) => {
-                started.push(`${type}:${ids[0]}`);
-                await gate.settled;
-            },
-        });
-
-        const all = Promise.all([queue.enqueue("acquire", game("byar:test")), queue.enqueue("acquire", engine("2025.06.21"))]);
-        await Promise.resolve();
-
-        expect(started).toEqual(["game:byar:test", "engine:2025.06.21"]);
-
-        gate.release();
-        await all;
     });
 
     it("picks up remaining work as earlier downloads finish", async () => {

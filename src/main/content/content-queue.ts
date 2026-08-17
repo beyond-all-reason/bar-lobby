@@ -16,8 +16,6 @@ export type ContentOperation = "acquire" | "remove";
 export type ContentQueueEntry = ContentRef & {
     operation: ContentOperation;
     status: "queued" | "running";
-    // Names the invocation this ref is part of, when that invocation covers more than one of them.
-    transfer?: string;
 };
 
 type PendingOperation = {
@@ -25,7 +23,6 @@ type PendingOperation = {
     ref: ContentRef;
     resolve: () => void;
     reject: (error: unknown) => void;
-    transfer?: string;
 };
 
 function operationKey(operation: ContentOperation, ref: ContentRef) {
@@ -33,11 +30,16 @@ function operationKey(operation: ContentOperation, ref: ContentRef) {
 }
 
 // pr-downloader rewrites rapid's repo index on every invocation, maps included, so two of it at once
-// land on the same repos.gz and one dies. It takes any number of assets per invocation instead and
-// fetches them in parallel itself, which is where map concurrency comes from now. Engines come down
-// over plain http and share nothing.
+// land on the same repos.gz and one dies. Engines come down over plain http and share nothing.
 function usesPrd(ref: ContentRef) {
     return ref.type === "game" || ref.type === "map";
+}
+
+// Rapid takes several game versions per invocation and resolves them together, which is worth doing even
+// when only one invocation runs at a time. Maps are fetched one per invocation: nothing is gained by
+// putting them together, and doing so leaves pr-downloader reporting one set of figures for the lot.
+function batchesTogether(ref: ContentRef) {
+    return ref.type === "game";
 }
 
 /**
@@ -59,7 +61,7 @@ export class ContentQueue {
 
     public snapshot(): ContentQueueEntry[] {
         return [
-            ...this.active.map((entry) => ({ ...entry.ref, operation: entry.operation, status: "running" as const, transfer: entry.transfer })),
+            ...this.active.map((entry) => ({ ...entry.ref, operation: entry.operation, status: "running" as const })),
             ...this.queued.map((entry) => ({ ...entry.ref, operation: entry.operation, status: "queued" as const })),
         ];
     }
@@ -102,27 +104,22 @@ export class ContentQueue {
         return index === -1 ? undefined : this.queued.splice(index, 1)[0];
     }
 
-    // One pr-downloader invocation is the only way several of its assets download at once, so the rest
-    // of the limit is spent here rather than on invocations that would only wait for this one. Each
-    // extra ref costs a slot, which keeps the total downloading the same as it would have been.
+    // One invocation covering every game version waiting on it, which costs one slot however many it
+    // covers, because it is one process either way.
     private takeBatchWith(first: PendingOperation) {
         const batch = [first];
-        if (!usesPrd(first.ref)) {
+        if (!batchesTogether(first.ref)) {
             return batch;
         }
 
-        while (downloadSlots.tryTake()) {
+        for (;;) {
             const index = this.queued.findIndex((entry) => entry.operation === first.operation && entry.ref.type === first.ref.type);
             if (index === -1) {
-                downloadSlots.give();
-
                 return batch;
             }
 
             batch.push(...this.queued.splice(index, 1));
         }
-
-        return batch;
     }
 
     private succeeded(entry: PendingOperation) {
@@ -150,17 +147,11 @@ export class ContentQueue {
 
     private async work(first: PendingOperation) {
         let next: PendingOperation | undefined = first;
-        let held = 1;
         try {
             while (next) {
                 // Nothing may await before this, or the next worker takeNext picks from a stale active
                 // list and two operations on one ref can start together.
                 const batch = this.takeBatchWith(next);
-                held = batch.length;
-                // One invocation is one download as far as anything showing progress is concerned, since
-                // pr-downloader only reports figures for the set as a whole.
-                const transfer = batch.length > 1 ? batch.map((entry) => contentRefKey(entry.ref)).join(" ") : undefined;
-                batch.forEach((entry) => (entry.transfer = transfer));
                 this.active.push(...batch);
                 this.onChanged.dispatch(this.snapshot());
 
@@ -180,17 +171,11 @@ export class ContentQueue {
                     }
                 }
 
-                for (; held > 1; held--) {
-                    downloadSlots.give();
-                }
-
                 this.onChanged.dispatch(this.snapshot());
                 next = this.takeNext();
             }
         } finally {
-            for (; held > 0; held--) {
-                downloadSlots.give();
-            }
+            downloadSlots.give();
             // Finishing may have unblocked work this worker was not allowed to pick up.
             this.drain();
         }
@@ -214,12 +199,6 @@ export class ContentQueue {
 
             log.warn(`Batched ${operation} of ${batch.length} ${ref.type}s failed, retrying them separately`, err);
         }
-
-        // One invocation each from here, so they are no longer one transfer and anything showing progress
-        // has to stop treating them as one. Without this the figures of whichever ref reported first are
-        // all that is ever shown while the rest go past.
-        batch.forEach((entry) => (entry.transfer = undefined));
-        this.onChanged.dispatch(this.snapshot());
 
         let failure: unknown;
         for (const entry of batch) {

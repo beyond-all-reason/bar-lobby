@@ -7,20 +7,12 @@ SPDX-License-Identifier: MIT
 <template>
     <PopOutPanel :open="modelValue">
         <Transition name="fade" mode="out-in">
-            <div v-if="downloadRows.length" class="downloads">
+            <div v-if="allDownloads.length" class="downloads">
                 <TransitionGroup tag="div" class="downloads__list" name="downloads-list">
-                    <div
-                        v-for="download in downloadRows"
-                        :key="download.key"
-                        class="downloads__download"
-                        :class="{ 'downloads__download--queued': download.queued }"
-                    >
+                    <div v-for="download in allDownloads" :key="download.key" class="downloads__download">
                         <div class="downloads__info">
                             <div class="downloads__name">{{ download.name }}</div>
                             <div class="downloads__type">{{ download.type }}</div>
-                        </div>
-                        <div v-if="download.members.length > 1" class="downloads__members" :title="download.members.join(', ')">
-                            {{ download.members.join(", ") }}
                         </div>
                         <div v-if="download.queued" class="downloads__waiting">{{ t("lobby.navbar.downloads.queued") }}</div>
                         <div v-else-if="download.phase === 'extracting'" class="downloads__extracting">
@@ -55,7 +47,7 @@ import { useTypedI18n } from "@renderer/i18n";
 import { DownloadView, MIN_DOWNLOAD_BYTES, useDownloadProgress } from "@renderer/composables/useDownloadProgress";
 
 const { t } = useTypedI18n();
-const { downloadRows, downloadPercent, progressText } = useDownloadProgress();
+const { allDownloads, downloadPercent, progressText } = useDownloadProgress();
 
 function barText(download: DownloadView): string {
     if (download.currentBytes === 0) return t("lobby.navbar.downloads.starting");
@@ -118,13 +110,6 @@ toggleDownloads.value = async (open?: boolean) => {
         font-weight: 700;
         color: rgba(255, 255, 255, 0.7);
     }
-    &__members {
-        font-size: 11px;
-        color: rgba(255, 255, 255, 0.45);
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
     &__detail {
         font-size: 11px;
         color: rgba(255, 255, 255, 0.6);
@@ -161,10 +146,5 @@ toggleDownloads.value = async (open?: boolean) => {
 }
 .downloads-list-leave-active {
     position: absolute;
-}
-.downloads__download--queued.downloads-list-leave-active {
-    transition: none;
-    transform: none;
-    opacity: 0;
 }
 </style>

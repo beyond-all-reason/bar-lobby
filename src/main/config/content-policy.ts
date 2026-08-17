@@ -2,9 +2,10 @@
 //
 // SPDX-License-Identifier: MIT
 
-// 2-4 asked for in https://github.com/beyond-all-reason/bar-lobby/issues/423#issuecomment-2988283498
+// Held at one until an engine ships with the pr-downloader fix for concurrent invocations corrupting
+// rapid's repo index. #423 asks for 2-4, which is what this goes back to once that lands.
 // Counts invocations, not connections: a game is one slot and fans out inside prd.
-export const MAX_CONCURRENT_DOWNLOADS = 4;
+export const MAX_CONCURRENT_DOWNLOADS = 1;
 
 // How long content nothing is holding on to is kept before a sweep will remove it. Deliberately not a
 // user setting: nobody can reason about the right number, and getting it wrong deletes their content.

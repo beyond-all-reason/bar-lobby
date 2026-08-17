@@ -23,12 +23,7 @@ export type DownloadView = {
     currentBytes: number;
     totalBytes: number;
     phase?: "downloading" | "extracting";
-    // What this row stands for. More than one name means pr-downloader fetched them as a single
-    // transfer and its figures describe the set, not any one of them.
-    members: string[];
-    transfer?: string;
-    // Waiting its turn. It has no figures of its own and nothing is settled about how it will be
-    // fetched, so there is nothing truthful to draw a bar from.
+    // Waiting its turn, with no figures of its own yet, so there is nothing truthful to draw a bar from.
     queued: boolean;
 };
 
@@ -51,8 +46,6 @@ export function useDownloadProgress() {
             currentBytes: state.currentBytes,
             totalBytes: state.totalBytes,
             phase: state.phase,
-            members: [state.id],
-            transfer: state.transfer,
             queued: isQueued(state),
         })),
         ...(contentsStore.poolPrefetch
@@ -64,7 +57,6 @@ export function useDownloadProgress() {
                       currentBytes: contentsStore.poolPrefetch.currentBytes,
                       totalBytes: contentsStore.poolPrefetch.totalBytes,
                       phase: contentsStore.poolPrefetch.phase,
-                      members: ["pool-data"],
                       queued: false,
                   },
               ]
@@ -76,42 +68,9 @@ export function useDownloadProgress() {
             currentBytes: download.currentBytes,
             totalBytes: download.totalBytes,
             phase: download.phase,
-            members: [download.name],
             queued: false,
         })),
     ]);
-
-    // One row per transfer rather than per ref. pr-downloader hands back one set of figures for a whole
-    // batch, so listing each ref separately repeats the same bytes, size and speed several times over and
-    // reads as several downloads of the batch's total size. Counted separately from the figure above,
-    // which still has to weigh each piece of content it was asked for.
-    const downloadRows = computed<DownloadView[]>(() => {
-        const rows: DownloadView[] = [];
-        const byTransfer = new Map<string, DownloadView>();
-
-        for (const download of allDownloads.value) {
-            if (!download.transfer) {
-                rows.push(download);
-                continue;
-            }
-
-            const existing = byTransfer.get(download.transfer);
-            if (existing) {
-                existing.members.push(...download.members);
-                existing.name =
-                    existing.type === "game"
-                        ? t("lobby.navbar.downloads.batchedGames", { count: existing.members.length })
-                        : t("lobby.navbar.downloads.batchedMaps", { count: existing.members.length });
-                continue;
-            }
-
-            const row = { ...download, key: `${download.type}:${download.transfer}`, members: [...download.members] };
-            byTransfer.set(download.transfer, row);
-            rows.push(row);
-        }
-
-        return rows;
-    });
 
     // The same set the fractions below are summed over. A status counted here but not there, as a
     // failure used to be, holds the figure short of full for everything downloading beside it.
@@ -229,7 +188,6 @@ export function useDownloadProgress() {
 
     return {
         allDownloads,
-        downloadRows,
         totalDownloadPercent,
         failedDownloadPercent,
         downloadPercent,

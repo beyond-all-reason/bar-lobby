@@ -15,9 +15,7 @@ export type ContentProgress = {
 
 // Only content with something happening to it appears here: absent means settled, installed comes from
 // isPresent. attempts counts tries at the current download, reset when the content is asked for again.
-// transfer is set when several refs are being fetched as one pr-downloader invocation, which reports
-// bytes for the whole set rather than per asset. Everything sharing a key is one download to the user.
-export type ContentState = ContentRef & ContentProgress & { status: ContentStatus; attempts: number; transfer?: string };
+export type ContentState = ContentRef & ContentProgress & { status: ContentStatus; attempts: number };
 
 // Whether content is installed, read from disk at the moment it is reported. Shared by both signals
 // that announce a change so a listener does not have to know which one it heard.
