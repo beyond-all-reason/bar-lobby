@@ -33,7 +33,9 @@ const emit = defineEmits<{
     statusChange: [value: boolean];
 }>();
 
-const transfers = computed(() => inFlightFor(contentRefs({ maps, games, engines })).filter(isInProgress));
+const refs = computed(() => contentRefs({ maps, games, engines }));
+
+const transfers = computed(() => inFlightFor(refs.value).filter(isInProgress));
 
 const isDownloading = computed(() => transfers.value.length > 0);
 
@@ -41,11 +43,17 @@ watch(isDownloading, (value) => {
     emit("statusChange", value);
 });
 
+// Measured against everything asked for, not just what is still moving. Content leaves inFlight the
+// moment it lands, so averaging over what is left starts again from nothing each time a batch finishes.
 const downloadPercent = computed(() => {
-    if (transfers.value.length === 0) {
+    const total = refs.value.length;
+
+    if (total === 0) {
         return 0;
     }
 
-    return transfers.value.reduce((total, state) => total + state.progress, 0) / transfers.value.length;
+    const landed = total - transfers.value.length;
+
+    return (landed + transfers.value.reduce((sum, state) => sum + state.progress, 0)) / total;
 });
 </script>
