@@ -35,7 +35,7 @@ async function checkForConfigOverride() {
             for (const err of Value.Errors(configSchema, data)) {
                 log.error(`Config error: ${err.path} ${err.message} : ${err.value}`);
             }
-            throw Error("Provided config file does not match schema");
+            throw new Error("Provided config file does not match schema");
         }
         await configStore.update(data);
     }
@@ -67,7 +67,7 @@ async function fetchConfig() {
             for (const err of Value.Errors(updateConfigSchema, data)) {
                 log.error(`Config error: ${err.path} ${err.message} : ${err.value}`);
             }
-            throw Error("Fetched config does not match schema");
+            throw new Error("Fetched config does not match schema");
         }
         log.info(`Fetched config successfully from ${getConfig().configUrl}`);
         const mergedConfig = Value.Cast(configSchema, data);
