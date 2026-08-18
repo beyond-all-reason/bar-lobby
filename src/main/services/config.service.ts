@@ -10,6 +10,7 @@ import { Value } from "@sinclair/typebox/value";
 import path from "path";
 import { logger } from "@main/utils/logger";
 import { ipcMain } from "@main/typed-ipc";
+import { parseArgs } from "node:util";
 
 const log = logger("config.service.ts");
 
@@ -22,13 +23,13 @@ async function init() {
 }
 
 async function checkForConfigOverride() {
-    // Load the config file from the argument provided during launch, if there was one provided.
-    const configArg = process.argv.find((arg) => arg.startsWith("--config="));
-    let configPath = "";
-
-    if (configArg) {
-        const rawPath = configArg.slice(configArg.indexOf("=") + 1);
-        configPath = path.resolve(process.cwd(), rawPath);
+    const parsedArgs = parseArgs({
+        args: process.argv.slice(1),
+        options: { config: { type: "string" } },
+        strict: false,
+    });
+    if (parsedArgs.values.config) {
+        const configPath = path.resolve(process.cwd(), parsedArgs.values.config.toString());
         log.info(`Using config file: ${configPath}`);
         const data = JSON.parse(await fs.readFile(configPath, "utf-8"));
         if (!Value.Check(configSchema, data)) {
@@ -40,6 +41,7 @@ async function checkForConfigOverride() {
         await configStore.update(data);
     }
 }
+
 /**
  * Get the current config values. Note that in Vue arrays have to be wrapped in toRaw() or else access will fail.
  * @returns The current configuration values as properties
