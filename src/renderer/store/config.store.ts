@@ -3,27 +3,23 @@
 // SPDX-License-Identifier: MIT
 
 import type { Config } from "@main/services/config.service";
-import { reactive, watch, toRaw } from "vue";
+import { reactive, readonly } from "vue";
 
-export const configStore = reactive({
+const state = reactive({
     isInitialized: false,
 } as {
     isInitialized: boolean;
 } & Config);
 
+// Config is static at runtime; expose a readonly view so the renderer cannot mutate it directly.
+export const configStore = readonly(state);
+
 export async function initConfigStore() {
-    if (configStore.isInitialized) {
+    if (state.isInitialized) {
         console.warn("Config store is already initialized, skipping initialization.");
         return;
     }
     const currentConfig = await window.config.getConfig();
-    Object.assign(configStore, currentConfig);
-    configStore.isInitialized = true;
-    watch(
-        configStore,
-        () => {
-            window.config.updateConfig(toRaw(configStore));
-        },
-        { deep: true }
-    );
+    Object.assign(state, currentConfig);
+    state.isInitialized = true;
 }
