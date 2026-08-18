@@ -35,10 +35,10 @@ const script = ref(`[game] {
         team=0;
         name=player;
     }
-    mapname=Red Comet Remake 1.8;
+    mapname=${configStore.defaultMaps[0]};
     myplayername=player;
     ishost=1;
-    gametype=${configStore.latestGameVersion}};
+    gametype=${configStore.latestGameVersion};
 }`);
 
 async function launch() {
