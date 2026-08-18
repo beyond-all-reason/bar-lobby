@@ -35,7 +35,7 @@ SPDX-License-Identifier: MIT
 </template>
 
 <script lang="ts" setup>
-import { ref, computed, toRaw } from "vue";
+import { ref, computed } from "vue";
 import Modal from "@renderer/components/common/Modal.vue";
 import Select from "@renderer/components/controls/Select.vue";
 import Button from "@renderer/components/controls/Button.vue";

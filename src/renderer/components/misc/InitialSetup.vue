@@ -64,7 +64,7 @@ SPDX-License-Identifier: MIT
 <script lang="ts" setup>
 import { delay } from "$/jaz-ts-utils/delay";
 import { randomFromArray } from "$/jaz-ts-utils/object";
-import { computed, onMounted, onUnmounted, ref, watch, toRaw } from "vue";
+import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import { useTypedI18n } from "@renderer/i18n";
 import Button from "@renderer/components/controls/Button.vue";
 import Textbox from "@renderer/components/controls/Textbox.vue";
