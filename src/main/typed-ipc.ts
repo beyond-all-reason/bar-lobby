@@ -122,7 +122,6 @@ export type IPCCommands = {
     "settings:toggleFullscreen": () => void;
     "settings:update": (settings: Partial<Settings>) => Partial<Settings>;
     "config:get": () => Config;
-    "config:update": (config: Partial<Config>) => Config;
     "config:fetch": () => void;
     "shell:openConfigFile": () => IpcResult;
     "shell:openStateDir": () => IpcResult;

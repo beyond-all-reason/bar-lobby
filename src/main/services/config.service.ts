@@ -83,7 +83,6 @@ async function fetchConfig() {
 
 function registerIpcHandlers() {
     ipcMain.handle("config:get", () => getConfig());
-    ipcMain.handle("config:update", (_, data: Partial<Config>) => updateConfig(data));
     ipcMain.handle("config:fetch", () => fetchConfig());
 }
 

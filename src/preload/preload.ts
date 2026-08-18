@@ -86,7 +86,6 @@ contextBridge.exposeInMainWorld("settings", settingsApi);
 
 const configApi = {
     getConfig: (): Promise<Config> => ipcRenderer.invoke("config:get"),
-    updateConfig: (config: Partial<Config>): Promise<Partial<Config>> => ipcRenderer.invoke("config:update", config),
     fetchConfig: (): Promise<void> => ipcRenderer.invoke("config:fetch"),
 };
 export type ConfigApi = typeof configApi;
