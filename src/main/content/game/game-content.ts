@@ -147,7 +147,7 @@ export class GameContentAPI extends PrDownloaderAPI<string, GameVersion> {
     }
 
     public override isVersionInstalled(version: string) {
-        if (version === "byar:test") {
+        if (version === configService.getConfig().latestGameVersion) {
             return false;
         }
         return this.availableVersions.values().some((installedVersion) => installedVersion.gameVersion === version);

@@ -170,11 +170,12 @@ import { users } from "@renderer/store/users.store";
 import { getFriendlyDuration } from "@renderer/utils/misc";
 import type { OnlineReplayDetails, OnlineReplayOverview } from "@main/content/replays/online-replays";
 
+import { configStore } from "@renderer/store/config.store";
+
 // The website report form stores a type and a sub type per report, and caps its description at 255
 // characters. Tachyon only carries a single reason string, so the two are joined for the wire.
 const maxMessageLength = 255;
 const matchesToList = 10;
-const REPLAY_SERVICE_URL = "https://bar-rts.com/replays";
 
 const reportSections = [
     {
@@ -265,7 +266,7 @@ const reportedUserSpectated = computed(() =>
     matchDetails.value?.spectators.some((spectator) => spectator.userId?.toString() === reportedUser.value?.userId)
 );
 
-const messageSuffix = computed(() => (selectedMatch.value ? `\nReplay: ${REPLAY_SERVICE_URL}/${selectedMatch.value.id}` : ""));
+const messageSuffix = computed(() => (selectedMatch.value ? `\nReplay: ${configStore.replayServiceUrl}/${selectedMatch.value.id}` : ""));
 
 const maxDescriptionLength = computed(() => maxMessageLength - messageSuffix.value.length);
 
