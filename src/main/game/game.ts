@@ -8,14 +8,13 @@ import * as fs from "fs";
 import { Signal } from "$/jaz-ts-utils/signal";
 import * as path from "path";
 
-import { engineContentAPI } from "@main/content/engine/engine-content";
+import { contentAPI } from "@main/content/content-api";
 import { applyDefaultSpringsettings } from "@main/game/springsettings";
 import { startScriptConverter } from "@main/utils/start-script-converter";
 import { logger } from "@main/utils/logger";
-import { gameContentAPI } from "@main/content/game/game-content";
 import { WRITE_DATA_PATH, REPLAYS_PATH, getEnginePath, getAssetsPath } from "@main/config/app";
 import { BattleWithMetadata } from "@main/game/battle/battle-types";
-import { Replay } from "@main/content/replays/replay";
+import { Replay } from "@main/replays/replay";
 
 const log = logger("main/game/game.ts");
 const engineLogger = logger("[RECOIL ENGINE]", { separator: "\n", level: "info" });
@@ -46,6 +45,7 @@ export class GameAPI {
         await this.launch({
             engineVersion: battle.battleOptions.engineVersion,
             gameVersion: battle.battleOptions.gameVersion,
+            mapSpringName: battle.battleOptions.map?.springName,
             launchArg: scriptPath,
         });
     }
@@ -54,6 +54,7 @@ export class GameAPI {
         return this.launch({
             engineVersion: replay.engineVersion,
             gameVersion: replay.gameVersion,
+            mapSpringName: replay.mapSpringName,
             launchArg: replay.filePath ? replay.filePath : path.join(REPLAYS_PATH, replay.fileName),
         });
     }
@@ -70,6 +71,7 @@ export class GameAPI {
         await this.launch({
             engineVersion,
             gameVersion: scriptGameVersion || gameVersion, // using script's game version if available
+            mapSpringName,
             launchArg: scriptPath,
         });
     }
@@ -82,12 +84,16 @@ export class GameAPI {
         });
     }
 
-    public async launch({ engineVersion, gameVersion, launchArg }: { engineVersion?: string; gameVersion?: string; launchArg?: string }): Promise<void> {
+    public async launch({ engineVersion, gameVersion, mapSpringName, launchArg }: { engineVersion?: string; gameVersion?: string; mapSpringName?: string; launchArg?: string }): Promise<void> {
         if (!engineVersion || !gameVersion || !launchArg) {
             throw new Error("Engine Version, Game Version and launch Arguments need to be specified");
         }
 
         log.info(`Launching game with engine: ${engineVersion}, game: ${gameVersion}`);
+
+        // Playing something is the clearest sign it is still wanted, and it is the one thing every
+        // launch path has in common.
+        void contentAPI.markUsed([{ type: "engine", id: engineVersion }, { type: "game", id: gameVersion }, ...(mapSpringName ? [{ type: "map" as const, id: mapSpringName }] : [])]);
         await this.fetchMissingContent(engineVersion, gameVersion); // TODO preload anything needed through the UI before launching. Remove this step
 
         applyDefaultSpringsettings();
@@ -167,17 +173,10 @@ export class GameAPI {
             throw new Error("Engine Version and Game Version need to be specified");
         }
 
-        const isEngineInstalled = engineContentAPI.isVersionInstalled(engineVersion);
-        const isGameInstalled = gameContentAPI.isVersionInstalled(gameVersion);
-        if (!isEngineInstalled || !isGameInstalled) {
-            //|| !isMapInstalled) {
-            //TODO replace with an event
-            // api.notifications.alert({
-            //     text: "Downloading missing content - the game will auto-launch when downloads complete",
-            // });
-            return Promise.all([engineContentAPI.downloadEngine(engineVersion), gameContentAPI.downloadGame(gameVersion)]);
-        }
-        return;
+        await contentAPI.ensure([
+            { type: "engine", id: engineVersion },
+            { type: "game", id: gameVersion },
+        ]);
     }
 }
 

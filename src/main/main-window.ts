@@ -10,7 +10,7 @@ import icon from "@main/resources/icon.png";
 import { purgeLogFiles } from "@main/services/log.service";
 import { typedWebContents, ipcMain } from "@main/typed-ipc";
 import { gameAPI } from "@main/game/game";
-import downloadsService from "@main/services/downloads.service";
+import contentService from "@main/services/content.service";
 
 const ZOOM_FACTOR_BASELINE_HEIGHT = 1080;
 
@@ -135,7 +135,7 @@ export function createWindow() {
     });
 
     // Get download progress updates to update the dock/taskbar
-    downloadsService.registerProgressHandler(mainWindow);
+    contentService.registerProgressHandler(mainWindow);
 
     /////////////////////////////////////////////
     // Subscribe to game events

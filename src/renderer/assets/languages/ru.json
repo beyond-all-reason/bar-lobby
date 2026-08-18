@@ -4057,7 +4057,6 @@
             },
             "downloads": {
                 "noDownloads": null,
-                "moreDownloads": null,
                 "starting": null,
                 "extracting": null,
                 "progressMB": null,
@@ -4066,7 +4065,8 @@
                 "speedBps": null,
                 "etaHoursMinutes": null,
                 "etaMinutesSeconds": null,
-                "etaSeconds": null
+                "etaSeconds": null,
+                "queued": null
             },
             "serverStatus": {
                 "playersOnline": null,
@@ -4247,7 +4247,8 @@
                     "playOffline": null,
                     "stepFailed": null,
                     "stepRetrying": null,
-                    "contentRequired": null
+                    "contentRequired": null,
+                    "pathUnusable": null
                 }
             },
             "battle": {

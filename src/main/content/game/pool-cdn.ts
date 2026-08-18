@@ -10,8 +10,8 @@ import { logger } from "@main/utils/logger";
 
 import type { DownloadInfo } from "@main/content/downloads";
 import { Downloader } from "@main/content/abstract-content";
+import { downloadSlots } from "@main/content/download-slots";
 import { removeFromArray } from "$/jaz-ts-utils/object";
-import { GameContentAPI } from "@main/content/game/game-content";
 import { extract7z } from "@main/utils/extract-7z";
 
 const log = logger("pool-cdn.ts");
@@ -20,33 +20,22 @@ export class PoolCdnDownloader extends Downloader {
     cdnUrl = "https://pool-init.beyondallreason.dev";
     poolDataUrl = `${this.cdnUrl}/data.7z`;
 
-    constructor(gameApi: GameContentAPI) {
-        super();
-        this.onDownloadStart.add((downloadInfo) => {
-            gameApi.onDownloadStart.dispatch(downloadInfo);
-        });
-        this.onDownloadComplete.add((downloadInfo) => {
-            gameApi.onDownloadComplete.dispatch(downloadInfo);
-        });
-        this.onDownloadProgress.add((downloadInfo) => {
-            gameApi.onDownloadProgress.dispatch(downloadInfo);
-        });
-        this.onDownloadFail.add((downloadInfo) => {
-            gameApi.onDownloadFail.dispatch(downloadInfo);
-        });
-    }
-
     /**
      * Download and extract pool data from the pool CDN.
      *
      * Will try to reuse an existing archive download if it exists (DownloadHelper will resume download).
      */
-    public async preloadPoolData() {
+    public preloadPoolData() {
+        return downloadSlots.use(() => this.downloadPoolData());
+    }
+
+    private async downloadPoolData() {
         log.info("Downloading pool data");
         await fs.promises.mkdir(getPoolPath(), { recursive: true });
 
         const downloadInfo: DownloadInfo = {
             type: "game",
+            id: "pool-data",
             name: "pool-data",
             currentBytes: 0,
             totalBytes: 1,
@@ -103,3 +92,5 @@ export class PoolCdnDownloader extends Downloader {
         this.downloadComplete(downloadInfo);
     }
 }
+
+export const poolCdnDownloader = new PoolCdnDownloader();

@@ -9,7 +9,7 @@ import PrimeVue from "primevue/config";
 import ReportUserModal from "@renderer/components/user/ReportUserModal.vue";
 import { useReportUser } from "@renderer/composables/useReportUser";
 import type { User } from "@main/model/user";
-import type { OnlineReplayDetails, OnlineReplayOverview } from "@main/content/replays/online-replays";
+import type { OnlineReplayDetails, OnlineReplayOverview } from "@main/replays/online-replays";
 import type { IpcResult } from "@main/typed-ipc";
 
 const requestReportUsers = vi.hoisted(() => vi.fn());

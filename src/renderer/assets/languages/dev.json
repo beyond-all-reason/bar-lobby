@@ -252,7 +252,6 @@
             },
             "downloads": {
                 "noDownloads": "No dlodnwoas avctie",
-                "moreDownloads": "and {count} more...",
                 "starting": "Sattnrig...",
                 "extracting": "Erixtanctg...",
                 "progressMB": "{current} / {total} MB ({percent}%)",
@@ -261,7 +260,8 @@
                 "speedBps": "{speed} B/s",
                 "etaHoursMinutes": "{hours}h {minutes}m left",
                 "etaMinutesSeconds": "{minutes}m {seconds}s left",
-                "etaSeconds": "{seconds}s left"
+                "etaSeconds": "{seconds}s left",
+                "queued": "Quueed"
             },
             "serverStatus": {
                 "playersOnline": "Plyreas Oinnle",
@@ -442,7 +442,8 @@
                     "playOffline": "Paly Oniflfe",
                     "stepFailed": "{step} — Failed",
                     "stepRetrying": "{step} — Rtyneirg…",
-                    "contentRequired": "Egnnie and gmae must be dodolnwaed borefe stnartig a btalte."
+                    "contentRequired": "Egnnie and gmae must be dodolnwaed borefe stnartig a btalte.",
+                    "pathUnusable": "That fdelor caonnt be used for gmae fleis. Pick a dnieferft one."
                 }
             },
             "battle": {

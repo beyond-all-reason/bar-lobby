@@ -67,7 +67,7 @@ SPDX-License-Identifier: MIT
                 <div v-if="settingsStore.devMode">
                     <Select
                         :modelValue="enginesStore.selectedEngineVersion"
-                        @update:model-value="(engine) => (enginesStore.selectedEngineVersion = engine)"
+                        @update:model-value="selectEngineVersion"
                         :options="installedEngineVersions"
                         data-key="id"
                         optionLabel="id"
@@ -124,7 +124,7 @@ import { settingsStore } from "@renderer/store/settings.store";
 import GameModeComponent from "@renderer/components/battle/GameModeComponent.vue";
 import { GameStatus, gameStore } from "@renderer/store/game.store";
 import DownloadContentButton from "@renderer/components/controls/DownloadContentButton.vue";
-import { enginesStore, installedEngineVersions } from "@renderer/store/engine.store";
+import { enginesStore, installedEngineVersions, selectEngineVersion } from "@renderer/store/engine.store";
 import TerrainIcon from "@renderer/components/maps/filters/TerrainIcon.vue";
 import personIcon from "@iconify-icons/mdi/person-multiple";
 import gridIcon from "@iconify-icons/mdi/grid";

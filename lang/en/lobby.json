@@ -81,7 +81,6 @@
                 "customLobbies": "Custom Lobbies",
                 "tournaments": "Tournaments"
             },
-
             "party": {
                 "title": "Party",
                 "partyTab": "Active Party",
@@ -253,7 +252,6 @@
             },
             "downloads": {
                 "noDownloads": "No downloads active",
-                "moreDownloads": "and {count} more...",
                 "starting": "Starting...",
                 "extracting": "Extracting...",
                 "progressMB": "{current} / {total} MB ({percent}%)",
@@ -262,7 +260,8 @@
                 "speedBps": "{speed} B/s",
                 "etaHoursMinutes": "{hours}h {minutes}m left",
                 "etaMinutesSeconds": "{minutes}m {seconds}s left",
-                "etaSeconds": "{seconds}s left"
+                "etaSeconds": "{seconds}s left",
+                "queued": "Queued"
             },
             "serverStatus": {
                 "playersOnline": "Players Online",
@@ -443,7 +442,8 @@
                     "playOffline": "Play Offline",
                     "stepFailed": "{step} — Failed",
                     "stepRetrying": "{step} — Retrying…",
-                    "contentRequired": "Engine and game must be downloaded before starting a battle."
+                    "contentRequired": "Engine and game must be downloaded before starting a battle.",
+                    "pathUnusable": "That folder cannot be used for game files. Pick a different one."
                 }
             },
             "battle": {
