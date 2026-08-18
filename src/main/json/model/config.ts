@@ -30,7 +30,6 @@ export const configSchema = Type.Object({
     defaultServers: Type.Array(Type.String(), {
         default: ["wss://server4.beyondallreason.info", "wss://server5.beyondallreason.info", "wss://lobby-server-dev.beyondallreason.dev", "ws://localhost:4000"],
     }),
-    replayDownloadUrl: Type.String({ default: "https://bar-rts.com/replays" }),
     // Default engine settings for BAR, sourced from:
     // https://github.com/beyond-all-reason/BYAR-Chobby/blob/master/dist_cfg/config.json
     springSettings: Type.Record(Type.String(), Type.Union([Type.String(), Type.Number()]), {
