@@ -101,7 +101,7 @@ const BAR_SPRINGSETTINGS_DEFAULTS: Record<string, string | number> = {
     LinkIncomingSustainedBandwidth: 1048576,
     LinkIncomingPeakBandwidth: 1048576,
     LinkIncomingMaxPacketRate: 2048,
-    DemoFileExtension: "barreplay",
+    DemoFileExtension: "barreplay,sdfz",
 };
 
 function readSettings(filePath: string): Map<string, string> {
