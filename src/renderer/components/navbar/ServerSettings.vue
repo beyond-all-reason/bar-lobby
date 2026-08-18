@@ -51,7 +51,7 @@ const serverInput = ref("");
 const op = ref();
 const tooltipMessage = ref("");
 
-const defaultServers: string[] = toRaw(configStore.defaultServers);
+const defaultServers: string[] = [...configStore.defaultServers];
 
 const disableRemoveButton = computed(() => {
     return defaultServers.includes(settingsStore.lobbyServer);

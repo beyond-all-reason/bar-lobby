@@ -417,7 +417,7 @@ onMounted(async () => {
                 }
                 const installedMaps = await db.maps.filter((m) => m.isInstalled === true).count();
                 if (installedMaps === 0) {
-                    await window.maps.downloadMaps(toRaw(configStore.defaultMaps));
+                    await window.maps.downloadMaps([...configStore.defaultMaps]);
                 }
                 try {
                     await fetchMissingMapImages();
