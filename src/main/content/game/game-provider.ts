@@ -12,7 +12,7 @@ import { parseLuaTable } from "@main/utils/parse-lua-table";
 import { parseLuaOptions } from "@main/utils/parse-lua-options";
 import { logger } from "@main/utils/logger";
 import assert from "assert";
-import { contentSources } from "@main/config/content-sources";
+import { configService } from "@main/services/config.service";
 import { DownloadInfo } from "@main/content/downloads";
 import { getGameFiles } from "@main/content/game/game-files";
 import { LuaOptionSection } from "@main/content/game/lua-options";
@@ -56,7 +56,7 @@ export class GameProvider extends PrDownloaderAPI<string, GameVersion> {
     // we can easily check if a version is installed from its md5
     protected async initLookupTables() {
         try {
-            const versionsGzPath = path.join(getRapidIndexPath(), contentSources.rapid.host, contentSources.rapid.game, "versions.gz");
+            const versionsGzPath = path.join(getRapidIndexPath(), configService.getConfig().rapidHost, configService.getConfig().rapidGame, "versions.gz");
             const versionsGz = await fs.promises.readFile(versionsGzPath);
             const versions = await promisify(zlib.gunzip)(versionsGz);
             const versionsStr = versions.toString().trim();
@@ -188,7 +188,7 @@ export class GameProvider extends PrDownloaderAPI<string, GameVersion> {
         }
     }
 
-    public async downloadGame(gameVersion = `${contentSources.rapid.game}:test`) {
+    public async downloadGame(gameVersion = `${configService.getConfig().rapidGame}:test`) {
         return this.downloadGames([gameVersion]);
     }
 
