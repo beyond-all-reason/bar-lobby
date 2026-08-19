@@ -1927,7 +1927,7 @@
                 "declineInvite": "Decline",
                 "kickMember": "Kick Member",
                 "cancelInvite": "Cancel Invite",
-                "noInvites": "No current invitations.",
+                "noInvites": "You currently have no pending invitations.",
                 "partyTooLarge": "Party Too Large"
             },
             "watch": {
