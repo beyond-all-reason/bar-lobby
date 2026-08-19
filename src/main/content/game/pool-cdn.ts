@@ -13,13 +13,11 @@ import { Downloader } from "@main/content/abstract-content";
 import { downloadSlots } from "@main/content/download-slots";
 import { removeFromArray } from "$/jaz-ts-utils/object";
 import { extract7z } from "@main/utils/extract-7z";
+import { configService } from "@main/services/config.service";
 
 const log = logger("pool-cdn.ts");
 
 export class PoolCdnDownloader extends Downloader {
-    cdnUrl = "https://pool-init.beyondallreason.dev";
-    poolDataUrl = `${this.cdnUrl}/data.7z`;
-
     /**
      * Download and extract pool data from the pool CDN.
      *
@@ -45,7 +43,7 @@ export class PoolCdnDownloader extends Downloader {
         this.downloadStarted(downloadInfo);
 
         const dlFilePath = path.join(getAssetsPath(), "data.7z");
-        const dl = new DownloaderHelper(this.poolDataUrl, getAssetsPath(), {
+        const dl = new DownloaderHelper(`${configService.getConfig().initialPoolDataUrl}/data.7z`, getAssetsPath(), {
             fileName: "data.7z",
             timeout: 10000,
             retry: { maxRetries: 3, delay: 1000 },

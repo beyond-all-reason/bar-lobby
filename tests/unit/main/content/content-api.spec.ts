@@ -174,6 +174,15 @@ vi.mock("@main/content/content-usage", () => ({ contentUsage: usage }));
 vi.mock("@main/utils/logger", () => ({
     logger: () => ({ debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn() }),
 }));
+vi.mock("@main/services/config.service", () => ({
+    configService: {
+        getConfig: () => ({
+            defaultEngineVersion: "2026.07.04",
+            rapidHost: "repos-cdn.beyondallreason.dev",
+            rapidGame: "byar",
+        }),
+    },
+}));
 
 import { contentAPI } from "@main/content/content-api";
 import { ContentRef } from "@main/content/content-ref";
@@ -254,7 +263,7 @@ describe("contentAPI.ensure", () => {
 
         await contentAPI.ensure([{ type: "map", id: "Coast To Coast 1.3" }]);
 
-        expect(acquired).toEqual(["engine:2025.01.3", "map:Coast To Coast 1.3"]);
+        expect(acquired).toEqual(["engine:2026.07.04", "map:Coast To Coast 1.3"]);
     });
 
     it("does not fetch an engine when one is already usable", async () => {

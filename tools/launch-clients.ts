@@ -11,7 +11,7 @@ import os from "os";
 
 // 1. Read instance count from terminal flags (defaults to 2 if none provided)
 const args: string[] = process.argv.slice(2);
-const passedCount: number = parseInt(args, 10);
+const passedCount: number = parseInt(args[0], 10);
 const CLIENT_COUNT: number = !isNaN(passedCount) && passedCount > 0 ? passedCount : 2;
 
 console.log(`Preparing to compile and launch ${CLIENT_COUNT} instances...`);

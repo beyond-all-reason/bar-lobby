@@ -7,11 +7,12 @@ import { contentAPI } from "@main/content/content-api";
 import { ipcMain, BarIpcWebContents } from "@main/typed-ipc";
 import { MapMetadata } from "@main/content/maps/map-metadata";
 import { fetchMapImages } from "@main/content/maps/map-image";
+import { configService } from "@main/services/config.service";
 
 const FETCH_MAPS_TIMEOUT_MS = 15_000;
 
 async function fetchAllMaps(): Promise<[MapData[], MapDownloadData[]]> {
-    const maps = await fetch("https://maps-metadata.beyondallreason.dev/latest/lobby_maps.validated.json", {
+    const maps = await fetch(configService.getConfig().mapsMetadataUrl, {
         signal: AbortSignal.timeout(FETCH_MAPS_TIMEOUT_MS),
     });
     const mapsAsObject = await maps.json();

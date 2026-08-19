@@ -24,6 +24,7 @@ SPDX-License-Identifier: MIT
         />
         <Button to="/debug"> {{ t("lobby.components.misc.debugSidebar.debugSandbox") }} </Button>
         <Button @click="openSettings"> {{ t("lobby.components.misc.debugSidebar.openSettingsFile") }} </Button>
+        <Button @click="openConfigFile"> {{ t("lobby.components.misc.debugSidebar.openConfigFile") }} </Button>
         <Button @click="openAssetsDir"> {{ t("lobby.components.misc.debugSidebar.openAssetsDir") }} </Button>
         <Button @click="openStateDir"> {{ t("lobby.components.misc.debugSidebar.openStateDir") }} </Button>
         <Button @click="openStartScript"> {{ t("lobby.components.misc.debugSidebar.openStartScript") }} </Button>
@@ -97,6 +98,10 @@ async function onRouteSelect(newRoute: string) {
 
 function openSettings() {
     shellApi.openSettingsFile();
+}
+
+async function openConfigFile() {
+    shellApi.openConfigFile();
 }
 
 function openAssetsDir() {

@@ -30,6 +30,13 @@ vi.mock("@renderer/audio/audio", () => ({
 vi.mock("vue-router", () => ({
     useRouter: () => ({ currentRoute: { value: { path: "/" } }, push: vi.fn() }),
 }));
+vi.mock("@renderer/store/config.store", () => {
+    return {
+        configStore: {
+            replayServiceUrl: "https://bar-rts.com/replays",
+        },
+    };
+});
 
 const searchOnlineByPlayer = vi.fn();
 const getOnline = vi.fn();

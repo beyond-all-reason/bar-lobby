@@ -19,6 +19,7 @@ import { GetCommandData, GetCommandIds, GetCommands } from "tachyon-protocol";
 import type { BattleStartRequestData } from "tachyon-protocol/types";
 import { MultiplayerLaunchSettings } from "@main/game/game";
 import { logLevels } from "@main/services/log.service";
+import { Config } from "@main/services/config.service";
 import { AuthState } from "@main/services/auth.service";
 import { StoredIdentity } from "@main/model/user";
 
@@ -55,7 +56,7 @@ const shellApi = {
     openStartScript: (): Promise<IpcResult> => ipcRenderer.invoke("shell:openStartScript"),
     openReplaysDir: (): Promise<IpcResult> => ipcRenderer.invoke("shell:openReplaysDir"),
     showReplayInFolder: (fileName: string): Promise<IpcResult> => ipcRenderer.invoke("shell:showReplayInFolder", fileName),
-
+    openConfigFile: (): Promise<IpcResult> => ipcRenderer.invoke("shell:openConfigFile"),
     // External
     openInBrowser: (url: string): Promise<IpcResult> => ipcRenderer.invoke("shell:openInBrowser", url),
 };
@@ -84,6 +85,13 @@ const settingsApi = {
 };
 export type SettingsApi = typeof settingsApi;
 contextBridge.exposeInMainWorld("settings", settingsApi);
+
+const configApi = {
+    getConfig: (): Promise<Config> => ipcRenderer.invoke("config:get"),
+    fetchConfig: (): Promise<void> => ipcRenderer.invoke("config:fetch"),
+};
+export type ConfigApi = typeof configApi;
+contextBridge.exposeInMainWorld("config", configApi);
 
 const authApi = {
     login: (interactive?: boolean): Promise<void> => ipcRenderer.invoke("auth:login", interactive),

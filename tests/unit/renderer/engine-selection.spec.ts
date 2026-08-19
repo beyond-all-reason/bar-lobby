@@ -2,7 +2,6 @@
 //
 // SPDX-License-Identifier: MIT
 
-import { DEFAULT_ENGINE_VERSION } from "@main/config/default-versions";
 import { EngineVersion } from "@main/content/engine/engine-version";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -10,12 +9,14 @@ const { listAvailableVersions } = vi.hoisted(() => ({ listAvailableVersions: vi.
 
 vi.mock("@renderer/api/notifications", () => ({ notificationsApi: { alert: vi.fn() } }));
 vi.mock("@renderer/store/contents.store", () => ({ onContentSettled: vi.fn() }));
+vi.mock("@renderer/store/config.store", () => ({ configStore: { defaultEngineVersion: "2026.07.04" } }));
 vi.stubGlobal("window", Object.assign(window, { engine: { listAvailableVersions } }));
 
 import { defaultEngineInstalled, enginesStore, refreshEnginesStore, selectEngineVersion } from "@renderer/store/engine.store";
 
 const OLDER = "2025.01.5";
 const NEWER = "2026.10.1";
+const DEFAULT_ENGINE_VERSION = "2026.07.04";
 
 function engine(id: string, installed: boolean): EngineVersion {
     return { id, ais: [], installed } as EngineVersion;

@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import * as path from "path";
 import zlib from "zlib";
 import { promisify } from "util";
 
@@ -25,6 +26,17 @@ vi.mock("@main/utils/checksums", () => ({ calcChecksum }));
 vi.mock("@main/content/engine/engine-provider", () => ({
     engineProvider: { onDownloadComplete: { add: vi.fn() }, getDefaultEngine: () => defaultEngine.current },
 }));
+vi.mock("@main/services/config.service", () => {
+    return {
+        configService: {
+            getConfig: vi.fn(() => ({
+                latestGameVersion: "byar:test",
+                rapidHost: "repos-cdn.beyondallreason.dev",
+                rapidGame: "byar",
+            })),
+        },
+    };
+});
 
 import { GameProvider } from "@main/content/game/game-provider";
 import { GameVersion } from "@main/content/game/game-version";
@@ -53,6 +65,14 @@ async function provider(installed: string[]) {
 describe("game version lookup", () => {
     beforeEach(() => {
         readFile.mockReset();
+    });
+
+    it("reads the index from the configured Rapid source", async () => {
+        await versionsIndex(`${TAG},${MD5},,${BUILD}`);
+
+        await provider([]);
+
+        expect(readFile).toHaveBeenCalledWith(path.join("/rapid", "repos-cdn.beyondallreason.dev", "byar", "versions.gz"));
     });
 
     // A rolling tag is never a build name, so looking for it literally can only ever say "not installed"
@@ -105,7 +125,7 @@ describe("batched game downloads", () => {
     beforeEach(() => {
         readFile.mockReset();
         calcChecksum.mockReset();
-        defaultEngine.current = { id: "2025.06.21", installed: true };
+        defaultEngine.current = { id: "2026.07.04", installed: true };
     });
 
     it("registers every version the one invocation covered", async () => {

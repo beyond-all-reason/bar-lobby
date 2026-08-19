@@ -1,8 +1,7 @@
 // SPDX-FileCopyrightText: 2025 The BAR Lobby Authors
 //
 // SPDX-License-Identifier: MIT
-
-import { DEFAULT_ENGINE_VERSION } from "@main/config/default-versions";
+import { configStore } from "@renderer/store/config.store";
 import { EngineVersion } from "@main/content/engine/engine-version";
 import { notificationsApi } from "@renderer/api/notifications";
 import { onContentSettled } from "@renderer/store/contents.store";
@@ -22,7 +21,7 @@ export const installedEngineVersions = computed(() => enginesStore.availableEngi
 
 // The default is a version picked to work with the default game version rather than the newest one
 // published, so it stays the preferred choice whenever it is installed.
-export const defaultEngineInstalled = computed(() => enginesStore.availableEngineVersions.some((e) => e.id === DEFAULT_ENGINE_VERSION && e.installed));
+export const defaultEngineInstalled = computed(() => enginesStore.availableEngineVersions.some((e) => e.id === configStore.defaultEngineVersion && e.installed));
 
 let requestedEngineVersion: string | undefined;
 
@@ -31,9 +30,9 @@ function reselectEngineVersion() {
 
     enginesStore.selectedEngineVersion =
         installed(requestedEngineVersion) ??
-        installed(DEFAULT_ENGINE_VERSION) ??
+        installed(configStore.defaultEngineVersion) ??
         installedEngineVersions.value.at(-1) ??
-        enginesStore.availableEngineVersions.find((e) => e.id === DEFAULT_ENGINE_VERSION);
+        enginesStore.availableEngineVersions.find((e) => e.id === configStore.defaultEngineVersion);
 }
 
 export function selectEngineVersion(version?: EngineVersion) {
@@ -65,7 +64,7 @@ export async function initEnginesStore() {
 
     await refreshEnginesStore();
     if (!defaultEngineInstalled.value) {
-        console.warn(`Default engine version ${DEFAULT_ENGINE_VERSION} is not installed — engine download required.`);
+        console.warn(`Default engine version ${configStore.defaultEngineVersion} is not installed — engine download required.`);
     }
 
     enginesStore.isInitialized = true;

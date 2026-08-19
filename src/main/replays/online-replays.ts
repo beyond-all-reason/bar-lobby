@@ -4,10 +4,9 @@
 
 import { IpcResult } from "@main/typed-ipc";
 import { logger } from "@main/utils/logger";
+import { configService } from "@main/services/config.service";
 
 const log = logger("online-replays.ts");
-
-export const ONLINE_REPLAYS_API_URL = "https://api.bar-rts.com/replays";
 
 export type OnlineReplayOverview = {
     id: string;
@@ -98,7 +97,7 @@ async function fetchJson(url: string) {
 }
 
 export async function searchOnlineReplaysByPlayer(username: string, limit: number): Promise<IpcResult<OnlineReplayOverview[]>> {
-    const url = `${ONLINE_REPLAYS_API_URL}?${new URLSearchParams({ players: username, limit: limit.toString(), page: "1" })}`;
+    const url = `${configService.getConfig().onlineReplaysApiUrl}?${new URLSearchParams({ players: username, limit: limit.toString(), page: "1" })}`;
 
     try {
         const body = (await fetchJson(url)) as { data?: ApiReplay[] };
@@ -111,7 +110,7 @@ export async function searchOnlineReplaysByPlayer(username: string, limit: numbe
 
 export async function getOnlineReplay(replayId: string): Promise<IpcResult<OnlineReplayDetails>> {
     try {
-        const body = (await fetchJson(`${ONLINE_REPLAYS_API_URL}/${encodeURIComponent(replayId)}`)) as ApiReplay;
+        const body = (await fetchJson(`${configService.getConfig().onlineReplaysApiUrl}/${encodeURIComponent(replayId)}`)) as ApiReplay;
 
         return { status: "success", data: toDetails(body) };
     } catch (error) {

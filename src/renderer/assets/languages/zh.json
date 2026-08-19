@@ -4315,6 +4315,7 @@
                 "debugSidebar": {
                     "debugSandbox": null,
                     "openSettingsFile": null,
+                    "openConfigFile": null,
                     "openAssetsDir": null,
                     "openStateDir": null,
                     "openStartScript": null,

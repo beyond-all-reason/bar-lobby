@@ -30,6 +30,13 @@ vi.mock("@main/config/app", () => ({
 vi.mock("fs", () => ({ promises: { mkdir: mockMkdir, rm: mockRm } }));
 vi.mock("@main/utils/extract-7z", () => ({ extract7z: mockExtract7z }));
 vi.mock("@main/utils/file", () => ({ fileExists: vi.fn().mockResolvedValue(false) }));
+vi.mock("@main/services/config.service", () => {
+    return {
+        configService: {
+            getConfig: vi.fn(() => ({ initialPoolDataUrl: "https://pool-init.beyondallreason.dev" })),
+        },
+    };
+});
 
 import { PoolCdnDownloader } from "@main/content/game/pool-cdn";
 

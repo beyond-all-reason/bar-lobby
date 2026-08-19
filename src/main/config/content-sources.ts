@@ -3,21 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 import axios from "axios";
-
-export const contentSources = {
-    rapid: {
-        host: "repos-cdn.beyondallreason.dev",
-        game: "byar",
-    },
-    gameGithub: {
-        owner: "beyond-all-reason",
-        repo: "Beyond-All-Reason",
-    },
-    engineGitHub: {
-        owner: "beyond-all-reason",
-        repo: "spring",
-    },
-};
+import { configService } from "@main/services/config.service";
 
 export interface EngineReleaseInfo {
     filename: string;
@@ -34,7 +20,7 @@ export interface EngineReleaseInfo {
 
 const findEngineReleaseUrl = (engineVersion: string) => {
     const archStr = process.platform === "win32" ? "engine_windows64" : "engine_linux64";
-    const url = new URL("https://files-cdn.beyondallreason.dev/find");
+    const url = new URL(configService.getConfig().engineReleaseUrl);
     url.searchParams.set("category", archStr);
     url.searchParams.set("springname", engineVersion);
     return url;

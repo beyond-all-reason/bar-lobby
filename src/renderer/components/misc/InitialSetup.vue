@@ -66,6 +66,7 @@ SPDX-License-Identifier: MIT
 import { delay } from "$/jaz-ts-utils/delay";
 import { randomFromArray } from "$/jaz-ts-utils/object";
 import { computed, onMounted, onUnmounted, ref, watch } from "vue";
+import { useTypedI18n } from "@renderer/i18n";
 import Button from "@renderer/components/controls/Button.vue";
 import Textbox from "@renderer/components/controls/Textbox.vue";
 import Loader from "@renderer/components/common/Loader.vue";
@@ -75,8 +76,7 @@ import { backgroundImages, fontFiles } from "@renderer/assets/assetFiles";
 import { fetchMissingMapImages, initMapsStore, syncMapsMetadata } from "@renderer/store/maps.store";
 import { initReplaysStore } from "@renderer/store/replays.store";
 import { db, initDb } from "@renderer/store/db";
-import { defaultMaps } from "@main/config/default-maps";
-import { LATEST_GAME_VERSION } from "@main/config/default-versions";
+import { configStore } from "@renderer/store/config.store";
 import { initBattleStore } from "@renderer/store/battle.store";
 import { defaultEngineInstalled, installedEngineVersions } from "@renderer/store/engine.store";
 import { downloadGame, gameStore } from "@renderer/store/game.store";
@@ -88,7 +88,6 @@ import Select from "@renderer/components/controls/Select.vue";
 import { Icon } from "@iconify/vue";
 import language from "@iconify-icons/mdi/language";
 
-import { useTypedI18n } from "@renderer/i18n";
 import type { Locale } from "@renderer/locales";
 import { useLocaleOptions } from "@renderer/composables/useLocaleOptions";
 
@@ -428,7 +427,7 @@ onMounted(async () => {
                     return;
                 }
                 await window.content.preloadPool();
-                await downloadGame(LATEST_GAME_VERSION);
+                await downloadGame(configStore.latestGameVersion);
                 if (gameStore.selectedGameVersion === undefined) {
                     throw new Error("Game download did not complete successfully");
                 }
@@ -447,7 +446,7 @@ onMounted(async () => {
                 }
                 const installedMaps = await db.maps.filter((m) => m.isInstalled === true).count();
                 if (installedMaps === 0) {
-                    await window.maps.downloadMaps(defaultMaps);
+                    await window.maps.downloadMaps([...configStore.defaultMaps]);
                 }
                 try {
                     await fetchMissingMapImages();
