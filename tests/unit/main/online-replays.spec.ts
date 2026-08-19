@@ -5,7 +5,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 const ONLINE_REPLAYS_API_URL = "https://api.bar-rts.com/replays";
-import { getOnlineReplay, ONLINE_REPLAYS_API_URL, searchOnlineReplaysByPlayer } from "@main/replays/online-replays";
+import { getOnlineReplay, searchOnlineReplaysByPlayer } from "@main/replays/online-replays";
 
 const apiReplay = {
     id: "abcdef",
@@ -35,7 +35,7 @@ vi.mock("@main/services/config.service", () => {
     return {
         configService: {
             getConfig: vi.fn(() => ({
-                onlineReplaysApiUrl: "https://api.bar-rts.com/replays",
+                onlineReplaysApiUrl: ONLINE_REPLAYS_API_URL,
             })),
         },
     };
