@@ -13,13 +13,14 @@ import { createWindow } from "@main/main-window";
 import { settingsService } from "./services/settings.service";
 import { infoService } from "./services/info.service";
 import { logService } from "@main/services/log.service";
+import contentService from "./services/content.service";
+import { contentAPI } from "@main/content/content-api";
 import engineService from "./services/engine.service";
 import mapsService from "./services/maps.service";
 import gameService from "./services/game.service";
 import { logger } from "./utils/logger";
 import { APP_NAME, SCENARIO_IMAGE_PATH, setAssetsPath } from "./config/app";
 import { shellService } from "@main/services/shell.service";
-import downloadsService from "@main/services/downloads.service";
 import replaysService from "@main/services/replays.service";
 import { miscService } from "@main/services/news.service";
 import autoUpdaterService from "@main/services/auto-updater.service";
@@ -131,8 +132,14 @@ app.whenReady().then(async () => {
     if (savedAssetsPath && !process.env.BAR_ASSETS_PATH) {
         setAssetsPath(savedAssetsPath);
     }
-    await engineService.init();
-    await Promise.all([authService.init(), replaysService.init(), gameService.init(), mapsService.init(), autoUpdaterService.init()]);
+    // A saved assets path can point somewhere unavailable, and the screen that lets the user repoint it
+    // cannot appear if this throws on the way to creating the window.
+    try {
+        await contentAPI.init();
+    } catch (err) {
+        log.error("Content initialisation failed, starting anyway so the assets path can be changed", err);
+    }
+    await Promise.all([authService.init(), replaysService.init(), autoUpdaterService.init()]);
 
     const mainWindow = createWindow();
     const webContents = typedWebContents(mainWindow.webContents);
@@ -144,11 +151,11 @@ app.whenReady().then(async () => {
     authService.registerIpcHandlers(webContents);
     tachyonService.registerIpcHandlers(webContents);
     replaysService.registerIpcHandlers(webContents);
+    contentService.registerIpcHandlers(webContents);
     engineService.registerIpcHandlers();
     gameService.registerIpcHandlers(webContents);
     mapsService.registerIpcHandlers(webContents);
     shellService.registerIpcHandlers();
-    downloadsService.registerIpcHandlers(webContents);
     miscService.registerIpcHandlers();
     autoUpdaterService.registerIpcHandlers();
     navigationService.registerIpcHandlers(webContents);

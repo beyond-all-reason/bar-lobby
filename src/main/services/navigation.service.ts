@@ -4,7 +4,7 @@
 import { app, BrowserWindow } from "electron";
 import { BarIpcWebContents } from "@main/typed-ipc";
 import { logger } from "@main/utils/logger";
-import { replayContentAPI } from "@main/content/replays/replay-content";
+import { replaysAPI } from "@main/replays/replays";
 import { typedWebContents } from "@main/typed-ipc";
 
 import { isReplayFile } from "@main/config/replay-extensions";
@@ -54,7 +54,7 @@ function openReplays(replayFiles: string[], webContents: BarIpcWebContents) {
     for (const filePath of replayFiles) {
         const fileName = path.basename(filePath);
         replayFileNames.push(fileName);
-        replayContentAPI.copyParseReplay(filePath).catch((err) => {
+        replaysAPI.copyParseReplay(filePath).catch((err) => {
             log.error(`Failed to copy and parse replay file ${filePath}:`, err);
             webContents.send("notifications:showAlert", {
                 text: `Failed to open replay file: ${fileName}`,

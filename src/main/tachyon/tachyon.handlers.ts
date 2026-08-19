@@ -7,9 +7,7 @@ import { logger } from "@main/utils/logger";
 import { TachyonClientRequestHandlers } from "./tachyon-client";
 import { GetCommandData, GetCommandIds, GetCommands } from "tachyon-protocol";
 import { BattleStartRequestData, MatchmakingCheckAssetsRequestData } from "tachyon-protocol/types";
-import { gameContentAPI } from "@main/content/game/game-content";
-import { mapContentAPI } from "@main/content/maps/map-content";
-import { engineContentAPI } from "@main/content/engine/engine-content";
+import { contentAPI } from "@main/content/content-api";
 
 const log = logger("tachyon-handlers");
 
@@ -43,9 +41,12 @@ function createBattleHandlers(webContents: BarIpcWebContents) {
             createTypedTachyonRequestHandler<"battle/start">()(async (data: BattleStartRequestData) => {
                 // data carries the join password, so it is summarised rather than dumped.
                 log.info(`Received battle start request for ${data.ip}:${data.port}`);
-                const itemsRequired =
-                    !gameContentAPI.isVersionInstalled(data.game.springName) || !mapContentAPI.isVersionInstalled(data.map.springName) || !engineContentAPI.isVersionInstalled(data.engine.version);
-                if (itemsRequired) {
+                const missing = contentAPI.missing([
+                    { type: "game", id: data.game.springName },
+                    { type: "map", id: data.map.springName },
+                    { type: "engine", id: data.engine.version },
+                ]);
+                if (missing.length > 0) {
                     webContents.send("notifications:showAlert", {
                         text: `Unable to join match, required assets are missing.`,
                         severity: "error",
@@ -70,11 +71,12 @@ function createMatchmakingHandlers(webContents: BarIpcWebContents) {
             "matchmaking/checkAssets",
             createTypedTachyonRequestHandler<"matchmaking/checkAssets">()(async (data: MatchmakingCheckAssetsRequestData) => {
                 log.info(`Received matchmaking check assets request: ${JSON.stringify(data)}`);
-                const itemsRequired =
-                    !gameContentAPI.isVersionInstalled(data.game) ||
-                    data.maps.some((map) => !mapContentAPI.isVersionInstalled(map)) ||
-                    data.engines.some((engine) => !engineContentAPI.isVersionInstalled(engine));
-                if (itemsRequired) {
+                const missing = contentAPI.missing([
+                    { type: "game", id: data.game },
+                    ...data.maps.map((id) => ({ type: "map" as const, id })),
+                    ...data.engines.map((id) => ({ type: "engine" as const, id })),
+                ]);
+                if (missing.length > 0) {
                     // TODO: This should be through i18n for localization
                     webContents.send("notifications:showAlert", {
                         text: `Party queue rejected, missing assets required for queue ${data.queueId}.`,
@@ -86,7 +88,7 @@ function createMatchmakingHandlers(webContents: BarIpcWebContents) {
                     // Technically we can return "downloading" also, but for now we just return "missing" or "complete"
                     status: "success",
                     data: {
-                        assetStatus: itemsRequired ? "missing" : "complete",
+                        assetStatus: missing.length > 0 ? "missing" : "complete",
                     },
                 } satisfies ResponseBody<"matchmaking/checkAssets">;
             })

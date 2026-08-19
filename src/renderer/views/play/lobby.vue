@@ -16,7 +16,7 @@ SPDX-License-Identifier: MIT
             <Button @click="joinSpectate()" class="green">Join Spectate</Button>
             <Button @click="updateReadiness(true)" class="green">Ready</Button>
             <Button @click="updateReadiness(false)" class="red">Not Ready</Button>
-            <Button @click="fetchMap()" class="red flex-right" :disabled="!isMapNeeded || downloadsStore.isPathChanging"
+            <Button @click="fetchMap()" class="red flex-right" :disabled="!isMapNeeded || contentsStore.isPathChanging"
                 >Download Map</Button
             >
             <Button @click="leaveLobby()" class="flex-right">Tachyon:Leave Lobby</Button>
@@ -52,7 +52,7 @@ import { computed } from "vue";
 import Panel from "@renderer/components/common/Panel.vue";
 import Button from "@renderer/components/controls/Button.vue";
 import { lobby, lobbyStore } from "@renderer/store/lobby.store";
-import { downloadsStore } from "@renderer/store/downloads.store";
+import { contentsStore } from "@renderer/store/contents.store";
 import { router } from "@renderer/router";
 import { mapsStore, downloadMap } from "@renderer/store/maps.store";
 

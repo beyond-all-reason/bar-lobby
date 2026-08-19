@@ -2,6 +2,7 @@
 //
 // SPDX-License-Identifier: MIT
 
+import { initContentsStore } from "@renderer/store/contents.store";
 import { initDownloadsStore } from "@renderer/store/downloads.store";
 import { initEnginesStore } from "@renderer/store/engine.store";
 import { initGameStore } from "@renderer/store/game.store";
@@ -23,6 +24,7 @@ export async function initPreMountStores() {
         initSettingsStore(),
         initInfosStore(),
         initGameStore(),
+        initContentsStore(),
         initDownloadsStore(),
         initEnginesStore(),
         initTachyonStore().then(() => Promise.all([initializeMatchmakingStore(), initUsersStore(), initMeStore(), initLobbyStore(), initChatStore(), initPartyStore()])),

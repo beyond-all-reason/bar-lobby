@@ -4,6 +4,7 @@
 import { configStore } from "@renderer/store/config.store";
 import { EngineVersion } from "@main/content/engine/engine-version";
 import { notificationsApi } from "@renderer/api/notifications";
+import { onContentSettled } from "@renderer/store/contents.store";
 import { computed, reactive } from "vue";
 
 export const enginesStore: {
@@ -18,17 +19,36 @@ export const enginesStore: {
 
 export const installedEngineVersions = computed(() => enginesStore.availableEngineVersions.filter((e) => e.installed));
 
+// The default is a version picked to work with the default game version rather than the newest one
+// published, so it stays the preferred choice whenever it is installed.
+export const defaultEngineInstalled = computed(() => enginesStore.availableEngineVersions.some((e) => e.id === configStore.defaultEngineVersion && e.installed));
+
+let requestedEngineVersion: string | undefined;
+
+function reselectEngineVersion() {
+    const installed = (id?: string) => installedEngineVersions.value.find((e) => e.id === id);
+
+    enginesStore.selectedEngineVersion =
+        installed(requestedEngineVersion) ??
+        installed(configStore.defaultEngineVersion) ??
+        installedEngineVersions.value.at(-1) ??
+        enginesStore.availableEngineVersions.find((e) => e.id === configStore.defaultEngineVersion);
+}
+
+export function selectEngineVersion(version?: EngineVersion) {
+    requestedEngineVersion = version?.id;
+    reselectEngineVersion();
+}
+
 export async function refreshEnginesStore() {
     enginesStore.availableEngineVersions = await window.engine.listAvailableVersions();
-    enginesStore.selectedEngineVersion = enginesStore.availableEngineVersions.find((e) => e.id === configStore.defaultEngineVersion);
+    reselectEngineVersion();
 }
 
 export async function downloadEngine(engineString: string) {
     await window.engine
         .downloadEngine(engineString)
-        .then(async () => {
-            enginesStore.availableEngineVersions = await window.engine.listAvailableVersions();
-        })
+        .then(refreshEnginesStore)
         .catch((error) => {
             console.error("Failed to download engine:", engineString, error);
             notificationsApi.alert({ text: "Engine download failed.", severity: "error" });
@@ -36,19 +56,15 @@ export async function downloadEngine(engineString: string) {
 }
 
 export async function initEnginesStore() {
-    window.downloads.onDownloadEngineComplete(async (downloadInfo) => {
-        console.debug("Received engine download completed event", downloadInfo);
-        enginesStore.availableEngineVersions = await window.engine.listAvailableVersions();
-    });
-    window.downloads.onDownloadEngineFail(async (downloadInfo) => {
-        console.error("Engine download failed", downloadInfo);
-        enginesStore.availableEngineVersions = await window.engine.listAvailableVersions();
+    onContentSettled(async (refs) => {
+        if (refs.some((ref) => ref.type === "engine")) {
+            await refreshEnginesStore();
+        }
     });
 
-    enginesStore.availableEngineVersions = await window.engine.listAvailableVersions();
-    enginesStore.selectedEngineVersion = enginesStore.availableEngineVersions.find((e) => e.id === configStore.defaultEngineVersion);
-    if (!enginesStore.selectedEngineVersion) {
-        console.warn(`Default engine version ${configStore.defaultEngineVersion} not found in available versions — engine download required.`);
+    await refreshEnginesStore();
+    if (!defaultEngineInstalled.value) {
+        console.warn(`Default engine version ${configStore.defaultEngineVersion} is not installed — engine download required.`);
     }
 
     enginesStore.isInitialized = true;

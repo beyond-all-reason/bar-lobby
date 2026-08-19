@@ -66,6 +66,7 @@ export class AutoUpdaterAPI extends Downloader {
             autoUpdater.on("download-progress", (progressInfo) => {
                 this.downloadProgress({
                     type: "update",
+                    id: this.updateInfo?.version ?? "unknown",
                     name: this.updateInfo?.version ?? "unknown",
                     currentBytes: progressInfo.transferred,
                     totalBytes: progressInfo.total,
@@ -77,6 +78,7 @@ export class AutoUpdaterAPI extends Downloader {
                 // 'info' does not have download details, so we just falsify the values since it's complete anyway.
                 this.downloadComplete({
                     type: "update",
+                    id: this.updateInfo?.version ?? "unknown",
                     name: this.updateInfo?.version ?? "unknown",
                     currentBytes: 1,
                     totalBytes: 1,
@@ -90,6 +92,7 @@ export class AutoUpdaterAPI extends Downloader {
                 // As above, 'info' does not have download details, so we just falsify the values since it's stopped already
                 this.downloadFailed({
                     type: "update",
+                    id: this.updateInfo?.version ?? "unknown",
                     name: this.updateInfo?.version ?? "unknown",
                     currentBytes: 0,
                     totalBytes: 0,

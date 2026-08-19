@@ -8,6 +8,7 @@ import type { GameType, Terrain } from "@main/content/maps/map-metadata";
 import { db } from "@renderer/store/db";
 import { EntityTable } from "dexie";
 import { notificationsApi } from "@renderer/api/notifications";
+import { onContentSettled } from "@renderer/store/contents.store";
 
 export const mapsStore: {
     isInitialized: boolean;
@@ -59,9 +60,20 @@ async function init() {
         db.maps.where("springName").equals(springName).modify({ isInstalled: false });
         db.nonLiveMaps.where("springName").equals(springName).modify({ isInstalled: false });
     });
-    // Chokadir takes 1-2 seconds longer after this to notice the file, so we do both for a faster response after a downloaded map
-    window.downloads.onDownloadMapComplete((download) => {
-        mapsStore.availableMapNames.add(download.name);
+    // Chokidar takes 1-2 seconds longer than this to notice the file, so both paths are wired up and
+    // whichever arrives first wins.
+    onContentSettled((refs) => {
+        for (const ref of refs) {
+            if (ref.type !== "map") {
+                continue;
+            }
+
+            if (ref.present) {
+                mapsStore.availableMapNames.add(ref.id);
+            } else {
+                mapsStore.availableMapNames.delete(ref.id);
+            }
+        }
     });
     const liveMaps = await db.maps.toArray();
     const nonLiveMaps = await db.nonLiveMaps.toArray();

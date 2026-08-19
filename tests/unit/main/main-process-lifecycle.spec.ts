@@ -15,20 +15,21 @@ describe("Main Process Lifecycle", () => {
 
     // Mock all services
     const mockServices = {
-        engineService: { init: vi.fn().mockResolvedValue(undefined), registerIpcHandlers: vi.fn() },
+        engineService: { registerIpcHandlers: vi.fn() },
         settingsService: { init: vi.fn().mockResolvedValue(undefined), registerIpcHandlers: vi.fn(), getSettings: vi.fn().mockReturnValue({ assetsPath: "" }) },
         configService: { init: vi.fn().mockResolvedValue(undefined), registerIpcHandlers: vi.fn(), getConfig: vi.fn().mockReturnValue({ configUrl: "" }) },
         accountService: { init: vi.fn().mockResolvedValue(undefined) },
         replaysService: { init: vi.fn().mockResolvedValue(undefined), registerIpcHandlers: vi.fn() },
-        gameService: { init: vi.fn().mockResolvedValue(undefined), registerIpcHandlers: vi.fn() },
-        mapsService: { init: vi.fn().mockResolvedValue(undefined), registerIpcHandlers: vi.fn() },
+        gameService: { registerIpcHandlers: vi.fn() },
+        mapsService: { registerIpcHandlers: vi.fn() },
         autoUpdaterService: { init: vi.fn().mockResolvedValue(undefined), registerIpcHandlers: vi.fn() },
+        contentService: { registerIpcHandlers: vi.fn() },
+        contentAPI: { init: vi.fn().mockResolvedValue(undefined), reinit: vi.fn().mockResolvedValue(undefined) },
         logService: { registerIpcHandlers: vi.fn() },
         infoService: { registerIpcHandlers: vi.fn() },
         authService: { init: vi.fn().mockResolvedValue(undefined), registerIpcHandlers: vi.fn() },
         tachyonService: { registerIpcHandlers: vi.fn() },
         shellService: { registerIpcHandlers: vi.fn() },
-        downloadsService: { registerIpcHandlers: vi.fn() },
         miscService: { registerIpcHandlers: vi.fn() },
         navigationService: { registerIpcHandlers: vi.fn() },
         pathsService: { registerIpcHandlers: vi.fn() },
@@ -150,8 +151,9 @@ describe("Main Process Lifecycle", () => {
         vi.doMock("@main/services/maps.service", () => ({ default: mockServices.mapsService }));
         vi.doMock("@main/services/engine.service", () => ({ default: mockServices.engineService }));
         vi.doMock("@main/services/auto-updater.service", () => ({ default: mockServices.autoUpdaterService }));
-        vi.doMock("@main/services/downloads.service", () => ({ default: mockServices.downloadsService }));
         vi.doMock("@main/services/config.service", () => ({ configService: mockServices.configService }));
+        vi.doMock("@main/services/content.service", () => ({ default: mockServices.contentService }));
+        vi.doMock("@main/content/content-api", () => ({ contentAPI: mockServices.contentAPI }));
         vi.doMock("@main/services/settings.service", () => ({ settingsService: mockServices.settingsService }));
         vi.doMock("@main/services/info.service", () => ({ infoService: mockServices.infoService }));
         vi.doMock("@main/services/log.service", () => ({ logService: mockServices.logService }));
@@ -240,13 +242,23 @@ describe("Main Process Lifecycle", () => {
         await import("@main/main");
 
         expect(mockServices.configService.init).toHaveBeenCalled();
-        expect(mockServices.engineService.init).toHaveBeenCalled();
         expect(mockServices.settingsService.init).toHaveBeenCalled();
+        expect(mockServices.contentAPI.init).toHaveBeenCalled();
         expect(mockServices.authService.init).toHaveBeenCalled();
         expect(mockServices.replaysService.init).toHaveBeenCalled();
-        expect(mockServices.gameService.init).toHaveBeenCalled();
-        expect(mockServices.mapsService.init).toHaveBeenCalled();
         expect(mockServices.autoUpdaterService.init).toHaveBeenCalled();
+    });
+
+    // A saved assets path on a drive that is not there makes content init throw, and the screen that lets
+    // the user repoint it cannot appear unless the window is created anyway.
+    it("should still create the window when content initialisation fails", async () => {
+        mockServices.contentAPI.init.mockRejectedValueOnce(new Error("ENOENT: assets path is gone"));
+
+        await import("@main/main");
+
+        expect(mockServices.contentAPI.init).toHaveBeenCalled();
+        expect(mockServices.contentService.registerIpcHandlers).toHaveBeenCalled();
+        expect(mockServices.pathsService.registerIpcHandlers).toHaveBeenCalled();
     });
 
     it("should register IPC handlers when app is ready", async () => {
@@ -259,11 +271,11 @@ describe("Main Process Lifecycle", () => {
         expect(mockServices.authService.registerIpcHandlers).toHaveBeenCalled();
         expect(mockServices.tachyonService.registerIpcHandlers).toHaveBeenCalled();
         expect(mockServices.replaysService.registerIpcHandlers).toHaveBeenCalled();
+        expect(mockServices.contentService.registerIpcHandlers).toHaveBeenCalled();
         expect(mockServices.engineService.registerIpcHandlers).toHaveBeenCalled();
         expect(mockServices.gameService.registerIpcHandlers).toHaveBeenCalled();
         expect(mockServices.mapsService.registerIpcHandlers).toHaveBeenCalled();
         expect(mockServices.shellService.registerIpcHandlers).toHaveBeenCalled();
-        expect(mockServices.downloadsService.registerIpcHandlers).toHaveBeenCalled();
         expect(mockServices.miscService.registerIpcHandlers).toHaveBeenCalled();
         expect(mockServices.autoUpdaterService.registerIpcHandlers).toHaveBeenCalled();
         expect(mockServices.navigationService.registerIpcHandlers).toHaveBeenCalled();

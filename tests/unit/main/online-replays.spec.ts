@@ -4,9 +4,8 @@
 
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { getOnlineReplay, searchOnlineReplaysByPlayer } from "@main/content/replays/online-replays";
-
 const ONLINE_REPLAYS_API_URL = "https://api.bar-rts.com/replays";
+import { getOnlineReplay, ONLINE_REPLAYS_API_URL, searchOnlineReplaysByPlayer } from "@main/replays/online-replays";
 
 const apiReplay = {
     id: "abcdef",

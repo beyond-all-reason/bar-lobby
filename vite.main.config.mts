@@ -15,7 +15,7 @@ export default defineConfig({
         rollupOptions: {
             input: {
                 main: path.resolve(__dirname, "src/main/main.ts"),
-                "parse-replay-worker": path.resolve(__dirname, "src/main/content/replays/parse-replay-worker.ts"),
+                "parse-replay-worker": path.resolve(__dirname, "src/main/replays/parse-replay-worker.ts"),
                 "map-image-worker": path.resolve(__dirname, "src/main/content/maps/map-image-worker.ts"),
             },
             external: ["fs/promises"],

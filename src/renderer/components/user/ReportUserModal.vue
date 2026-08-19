@@ -168,7 +168,7 @@ import { useTypedI18n } from "@renderer/i18n";
 import { useReportUser } from "@renderer/composables/useReportUser";
 import { users } from "@renderer/store/users.store";
 import { getFriendlyDuration } from "@renderer/utils/misc";
-import type { OnlineReplayDetails, OnlineReplayOverview } from "@main/content/replays/online-replays";
+import type { OnlineReplayDetails, OnlineReplayOverview } from "@main/replays/online-replays";
 
 import { configStore } from "@renderer/store/config.store";
 

@@ -8,13 +8,14 @@ SPDX-License-Identifier: MIT
     <PopOutPanel :open="modelValue">
         <Transition name="fade" mode="out-in">
             <div v-if="allDownloads.length" class="downloads">
-                <TransitionGroup tag="div" name="downloads-list">
-                    <div v-for="download in limitedList" :key="download.name" class="downloads__download">
+                <TransitionGroup tag="div" class="downloads__list" name="downloads-list">
+                    <div v-for="download in allDownloads" :key="download.key" class="downloads__download">
                         <div class="downloads__info">
                             <div class="downloads__name">{{ download.name }}</div>
                             <div class="downloads__type">{{ download.type }}</div>
                         </div>
-                        <div v-if="download.phase === 'extracting'" class="downloads__extracting">
+                        <div v-if="download.queued" class="downloads__waiting">{{ t("lobby.navbar.downloads.queued") }}</div>
+                        <div v-else-if="download.phase === 'extracting'" class="downloads__extracting">
                             <Loader :absolute-position="false" />
                             <span>{{ t("lobby.navbar.downloads.extracting") }}</span>
                         </div>
@@ -30,11 +31,6 @@ SPDX-License-Identifier: MIT
                         </template>
                     </div>
                 </TransitionGroup>
-                <Transition tag="div" name="fade" mode="out-in">
-                    <div class="flex-row flex-grow flex-center" v-if="allDownloads.length > limitedList.length">
-                        {{ t("lobby.navbar.downloads.moreDownloads", { count: allDownloads.length - limitedList.length }) }}
-                    </div>
-                </Transition>
             </div>
             <div v-else class="flex-row flex-grow flex-center">{{ t("lobby.navbar.downloads.noDownloads") }}</div>
         </Transition>
@@ -42,24 +38,23 @@ SPDX-License-Identifier: MIT
 </template>
 
 <script lang="ts" setup>
-import { computed, inject, Ref } from "vue";
+import { inject, Ref } from "vue";
 
-import type { DownloadInfo } from "@main/content/downloads";
 import Loader from "@renderer/components/common/Loader.vue";
 import Progress from "@renderer/components/common/Progress.vue";
 import PopOutPanel from "@renderer/components/navbar/PopOutPanel.vue";
 import { useTypedI18n } from "@renderer/i18n";
-import { MIN_DOWNLOAD_BYTES, useDownloadProgress } from "@renderer/composables/useDownloadProgress";
+import { DownloadView, MIN_DOWNLOAD_BYTES, useDownloadProgress } from "@renderer/composables/useDownloadProgress";
 
 const { t } = useTypedI18n();
 const { allDownloads, downloadPercent, progressText } = useDownloadProgress();
 
-function barText(download: DownloadInfo): string {
+function barText(download: DownloadView): string {
     if (download.currentBytes === 0) return t("lobby.navbar.downloads.starting");
     return `${(downloadPercent(download) * 100).toFixed(1)}%`;
 }
 
-function detailText(download: DownloadInfo): string {
+function detailText(download: DownloadView): string {
     if (download.currentBytes === 0) return "";
     return progressText(download);
 }
@@ -77,8 +72,6 @@ const toggleMessages = inject<Ref<(open?: boolean, userId?: number) => void>>("t
 const toggleFriends = inject<Ref<(open?: boolean) => void>>("toggleFriends")!;
 const toggleDownloads = inject<Ref<(open?: boolean) => void>>("toggleDownloads")!;
 
-const limitedList = computed(() => allDownloads.value.slice(0, 5));
-
 toggleDownloads.value = async (open?: boolean) => {
     if (open) {
         toggleMessages.value(false);
@@ -90,15 +83,19 @@ toggleDownloads.value = async (open?: boolean) => {
 
 <style lang="scss" scoped>
 .downloads {
-    display: flex;
-    flex-direction: column;
+    position: absolute;
+    inset: 0;
+    overflow-y: auto;
+    &__list {
+        display: flex;
+        flex-direction: column;
+    }
     &__info {
         display: flex;
         flex-direction: row;
         justify-content: space-between;
     }
     &__download {
-        height: 85px;
         width: 100%;
         display: flex;
         flex-direction: column;
@@ -116,6 +113,13 @@ toggleDownloads.value = async (open?: boolean) => {
     &__detail {
         font-size: 11px;
         color: rgba(255, 255, 255, 0.6);
+        // Empty until the first figures arrive, and a row that grows a line the moment they do drags
+        // every row under it down with it.
+        min-height: 1.2em;
+    }
+    &__waiting {
+        font-size: 13px;
+        color: rgba(255, 255, 255, 0.45);
     }
     &__extracting {
         display: flex;

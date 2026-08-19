@@ -5,9 +5,7 @@
 import { dialog } from "electron";
 import { setAssetsPath, getAssetsPath, STATE_PATH } from "@main/config/app";
 import { settingsService } from "./settings.service";
-import engineService from "./engine.service";
-import mapsService from "./maps.service";
-import gameService from "./game.service";
+import { contentAPI } from "@main/content/content-api";
 import { ipcMain, BarIpcWebContents } from "@main/typed-ipc";
 import fs from "fs";
 import path from "path";
@@ -85,9 +83,7 @@ async function applyNewPath(newAssetsPath: string) {
     }
     await settingsService.updateSettings({ assetsPath: newAssetsPath });
     setAssetsPath(newAssetsPath);
-    await engineService.reinit();
-    await mapsService.reinit();
-    await gameService.reinit();
+    await contentAPI.reinit();
 }
 
 function registerIpcHandlers(webContents: BarIpcWebContents) {

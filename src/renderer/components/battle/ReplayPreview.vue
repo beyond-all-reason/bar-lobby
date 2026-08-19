@@ -88,7 +88,7 @@ import trophyVariant from "@iconify-icons/mdi/trophy-variant";
 import { computed } from "vue";
 import { useTypedI18n } from "@renderer/i18n";
 import BattlePreviewParticipant from "@renderer/components/battle/BattlePreviewParticipant.vue";
-import { Replay } from "@main/content/replays/replay";
+import { Replay } from "@main/replays/replay";
 import ReplayPreviewMap from "@renderer/components/maps/ReplayPreviewMap.vue";
 import type { DemoModel } from "sdfz-demo-parser";
 import TabView from "@renderer/components/common/TabView.vue";

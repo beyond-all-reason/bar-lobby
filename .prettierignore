@@ -1,6 +1,8 @@
 dist_electron
 src/routes.ts
 node_modules
+# Agent worktrees hold whole copies of this repo, which the unscoped check would walk into.
+.claude
 typed-router.d.ts
 vendor
 dist
