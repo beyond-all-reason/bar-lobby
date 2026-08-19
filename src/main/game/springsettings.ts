@@ -13,8 +13,6 @@ const log = logger("main/game/springsettings.ts");
 
 const SPRINGSETTINGS_PATH = path.join(WRITE_DATA_PATH, "springsettings.cfg");
 
-const BAR_SPRINGSETTINGS_DEFAULTS = configService.getConfig().springSettings;
-
 function readSettings(filePath: string): Map<string, string> {
     const settings = new Map<string, string>();
     let fileContent = "";
@@ -46,7 +44,7 @@ export function applyDefaultSpringsettings(): void {
         fs.mkdirSync(path.dirname(SPRINGSETTINGS_PATH), { recursive: true });
         const settings = readSettings(SPRINGSETTINGS_PATH);
         let changed = false;
-        for (const [key, value] of Object.entries(BAR_SPRINGSETTINGS_DEFAULTS)) {
+        for (const [key, value] of Object.entries(configService.getConfig().springSettings)) {
             if (!settings.has(key)) {
                 settings.set(key, String(value));
                 changed = true;
