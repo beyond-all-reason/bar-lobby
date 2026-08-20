@@ -7,6 +7,27 @@ SPDX-License-Identifier: MIT
 <template>
     <Modal :title="t('lobby.navbar.settings.title')">
         <div class="gridform">
+            <div class="section-header">{{ t("lobby.navbar.settings.sectionDisplay") }}</div>
+
+            <div>{{ t("lobby.navbar.settings.resolution") }}</div>
+            <Select v-model="displayMode" :options="resolutionOptions" optionLabel="label" optionValue="value" />
+
+            <div>{{ t("lobby.navbar.settings.display") }}</div>
+            <Select v-model="settingsStore.displayIndex" :options="displayOptions" optionLabel="label" optionValue="value" />
+
+            <div>{{ t("lobby.navbar.settings.uiScale") }}</div>
+            <Select v-model="uiScaleValue" :options="uiScaleOptions" optionLabel="label" optionValue="value" />
+
+            <div class="section-header">{{ t("lobby.navbar.settings.sectionSound") }}</div>
+
+            <div>{{ t("lobby.navbar.settings.sfxVolume") }}</div>
+            <Range v-model="settingsStore.sfxVolume" :min="0" :max="100" :step="1" />
+
+            <div>{{ t("lobby.navbar.settings.musicVolume") }}</div>
+            <Range v-model="settingsStore.musicVolume" :min="0" :max="100" :step="1" />
+
+            <div class="section-header">{{ t("lobby.navbar.settings.sectionGeneral") }}</div>
+
             <div>
                 <span>
                     <Icon :icon="language" />
@@ -14,20 +35,6 @@ SPDX-License-Identifier: MIT
                 </span>
             </div>
             <Select v-model="settingsStore.language" :options="localeOptions" optionLabel="label" optionValue="value" />
-            <div>{{ t("lobby.navbar.settings.fullscreen") }}</div>
-            <Checkbox v-model="settingsStore.fullscreen" />
-
-            <div>{{ t("lobby.navbar.settings.windowSize") }}</div>
-            <Select
-                v-model="settingsStore.size"
-                :options="sizeOptions"
-                optionLabel="label"
-                optionValue="value"
-                :disabled="settingsStore.fullscreen"
-            />
-
-            <div>{{ t("lobby.navbar.settings.display") }}</div>
-            <Select v-model="settingsStore.displayIndex" :options="displayOptions" optionLabel="label" optionValue="value" />
 
             <div>{{ t("lobby.navbar.settings.skipIntro") }}</div>
             <Checkbox v-model="settingsStore.skipIntro" />
@@ -36,12 +43,6 @@ SPDX-License-Identifier: MIT
                 <div>{{ t("lobby.navbar.settings.loginAutomatically") }}</div>
                 <Checkbox v-model="settingsStore.loginAutomatically" />
             </template>
-
-            <div>{{ t("lobby.navbar.settings.sfxVolume") }}</div>
-            <Range v-model="settingsStore.sfxVolume" :min="0" :max="100" :step="1" />
-
-            <div>{{ t("lobby.navbar.settings.musicVolume") }}</div>
-            <Range v-model="settingsStore.musicVolume" :min="0" :max="100" :step="1" />
 
             <div>{{ t("lobby.navbar.settings.devMode") }}</div>
             <Checkbox v-model="settingsStore.devMode" />
@@ -206,11 +207,70 @@ async function applyPathChange() {
 const op = ref();
 const tooltipMessage = ref("");
 
-const sizeOptions = [
-    { label: t("lobby.navbar.settings.labelLg"), value: 900 },
-    { label: t("lobby.navbar.settings.labelMd"), value: 720 },
-    { label: t("lobby.navbar.settings.labelSm"), value: 540 },
-];
+// A ladder of standard heights rather than every mode the display reports, so the list stays
+// short. Widths come from the display's own ratio, since setSize produces a window shaped like
+// the screen it is on. Stored values are logical pixels; labels are the physical size.
+const RESOLUTION_LADDER = [540, 720, 900, 1080, 1440, 2160];
+const MIN_WINDOW_HEIGHT = 360;
+
+const displays = asyncComputed(() => window.mainWindow.getDisplays(), []);
+
+const targetDisplay = computed(() => displays.value.find((d) => d.index === settingsStore.displayIndex) ?? displays.value[0]);
+
+const resolutionOptions = computed(() => {
+    const display = targetDisplay.value;
+    if (!display) return [{ label: t("lobby.navbar.settings.fullscreenOption"), value: "fullscreen" as const }];
+
+    const { scaleFactor, aspectRatio, workArea } = display;
+    const usable = { width: workArea.width * scaleFactor, height: workArea.height * scaleFactor };
+    const logical = (physicalHeight: number) => Math.round(physicalHeight / scaleFactor);
+    // Falling back to the work area keeps a bad ratio from filtering every option away.
+    const ratio = aspectRatio > 0 ? aspectRatio : workArea.width / workArea.height;
+    const widthFor = (physicalHeight: number) => Math.round(physicalHeight * ratio);
+
+    const fitting = RESOLUTION_LADDER.filter(
+        (height) => widthFor(height) <= usable.width && height <= usable.height && logical(height) >= MIN_WINDOW_HEIGHT
+    ).map((height) => ({ label: `${widthFor(height)} x ${height}`, value: logical(height) }));
+
+    // Keep whatever is already stored selectable, so a scaling change never silently resnaps it.
+    if (!settingsStore.fullscreen && !fitting.some((option) => option.value === settingsStore.size)) {
+        const physical = Math.round(settingsStore.size * scaleFactor);
+        fitting.push({ label: `${widthFor(physical)} x ${physical}`, value: settingsStore.size });
+    }
+
+    return [
+        { label: t("lobby.navbar.settings.fullscreenOption"), value: "fullscreen" as const },
+        ...fitting.sort((a, b) => a.value - b.value),
+    ];
+});
+
+const displayMode = computed<number | "fullscreen">({
+    get: () => (settingsStore.fullscreen ? "fullscreen" : settingsStore.size),
+    set: (value) => {
+        if (value === "fullscreen") {
+            settingsStore.fullscreen = true;
+            return;
+        }
+        settingsStore.fullscreen = false;
+        settingsStore.size = value;
+    },
+});
+
+const osScale = asyncComputed(() => window.mainWindow.getOsScale(), 1);
+
+const uiScaleOptions = computed(() =>
+    [...new Set([...[0.75, 1, 1.25, 1.5, 1.75, 2, 2.5], osScale.value])]
+        .sort((a, b) => a - b)
+        .map((value) => ({ label: `${Math.round(value * 100)}%`, value }))
+);
+
+// Stored as null while it follows the OS, so the control shows the OS value until overridden.
+const uiScaleValue = computed<number>({
+    get: () => settingsStore.uiScale ?? osScale.value,
+    set: (value) => {
+        settingsStore.uiScale = value === osScale.value ? null : value;
+    },
+});
 
 const displayOptions = asyncComputed(async () => {
     return Array(infosStore.hardware.numOfDisplays)

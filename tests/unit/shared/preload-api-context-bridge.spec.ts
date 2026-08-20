@@ -100,14 +100,14 @@ describe("Preload API Context Bridge", () => {
         mockWindow.mainWindow.flashFrame(false);
         mockWindow.mainWindow.minimize();
         mockWindow.mainWindow.isFullscreen();
-        mockWindow.mainWindow.resized();
+        mockWindow.mainWindow.setUiScale(1.25);
 
         expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("mainWindow:setFullscreen", true);
         expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("mainWindow:setSize", 42);
         expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("mainWindow:flashFrame", false);
         expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("mainWindow:minimize");
         expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("mainWindow:isFullscreen");
-        expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("mainWindow:resized");
+        expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("mainWindow:setUiScale", 1.25);
     });
 
     it("should expose shell API", async () => {
