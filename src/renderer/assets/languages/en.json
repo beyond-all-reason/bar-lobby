@@ -2132,6 +2132,7 @@
                 "skipIntro": "Skip Intro",
                 "loginAutomatically": "Login Automatically",
                 "uiScale": "Interface scale",
+                "scaleSystem": "system",
                 "sfxVolume": "Sfx Volume",
                 "musicVolume": "Music Volume",
                 "devMode": "Dev Mode",

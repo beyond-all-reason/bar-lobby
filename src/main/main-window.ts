@@ -7,14 +7,11 @@ import path from "path";
 import { settingsService } from "./services/settings.service";
 import { logger } from "./utils/logger";
 import icon from "@main/resources/icon.png";
+import { MAX_VIEWPORT, MIN_VIEWPORT, MIN_WINDOW_SIZE, UI_SCALE_STEP, clampUiScale } from "@main/config/window";
 import { purgeLogFiles } from "@main/services/log.service";
 import { typedWebContents, ipcMain } from "@main/typed-ipc";
 import { gameAPI } from "@main/game/game";
 import contentService from "@main/services/content.service";
-
-const UI_SCALE_MIN = 0.5;
-const UI_SCALE_MAX = 3;
-const UI_SCALE_STEP = 0.1;
 
 const log = logger("main-window");
 
@@ -22,17 +19,25 @@ export function createWindow() {
     const settings = settingsService.getSettings();
     log.info("Creating main window with settings: ", settings);
 
-    function displayAspectRatio(displayIndex: number) {
-        const display = screen.getAllDisplays()[displayIndex] ?? screen.getPrimaryDisplay();
+    // Zoom maps device independent pixels to CSS pixels, so it is what decides whether the
+    // layout sees a viewport it was built for.
+    function zoomRangeForWindow() {
+        const [width, height] = mainWindow.getContentSize();
+        const smallest = Math.max(width / MAX_VIEWPORT.width, height / MAX_VIEWPORT.height);
+        const largest = Math.min(width / MIN_VIEWPORT.width, height / MIN_VIEWPORT.height);
 
-        return display.bounds.width / display.bounds.height;
+        // A window outside the supportable range cannot satisfy both ends; keeping the
+        // viewport under the maximum matters more, since that is what overscales the UI.
+        return { smallest, largest: Math.max(smallest, largest) };
     }
 
-    function getWindowSize(windowedHeight: number, displayIndex = settingsService.getSettings().displayIndex) {
-        return {
-            width: Math.round(windowedHeight * displayAspectRatio(displayIndex)),
-            height: windowedHeight,
-        };
+    // Expressed as interface scale rather than zoom, so it can bound the settings control
+    // directly instead of the applied value being quietly corrected afterwards.
+    function scaleRange() {
+        const os = osScale();
+        const { smallest, largest } = zoomRangeForWindow();
+
+        return { min: clampUiScale(smallest * os), max: clampUiScale(largest * os), os };
     }
 
     const mainWindow = new BrowserWindow({
@@ -43,9 +48,10 @@ export function createWindow() {
         frame: false,
         show: false,
         autoHideMenuBar: true,
-        ...getWindowSize(settings.size),
-        minWidth: 640,
-        minHeight: 360,
+        width: settings.windowWidth,
+        height: settings.windowHeight,
+        minWidth: MIN_WINDOW_SIZE.width,
+        minHeight: MIN_WINDOW_SIZE.height,
         backgroundColor: "#000000",
         webPreferences: {
             preload: path.join(__dirname, "../build/preload.js"),
@@ -74,9 +80,9 @@ export function createWindow() {
     }
 
     function applyScale(uiScale: number | null) {
-        const os = osScale();
-        const target = uiScale ?? os;
-        webContents.setZoomFactor(Math.min(UI_SCALE_MAX, Math.max(UI_SCALE_MIN, target)) / os);
+        const { min, max, os } = scaleRange();
+
+        webContents.setZoomFactor(Math.min(max, Math.max(min, uiScale ?? os)) / os);
     }
 
     function updateZoom() {
@@ -84,11 +90,33 @@ export function createWindow() {
     }
 
     async function nudgeUiScale(delta: number) {
+        const { min, max } = scaleRange();
         const current = settingsService.getSettings().uiScale ?? osScale();
-        const next = delta === 0 ? null : Math.min(UI_SCALE_MAX, Math.max(UI_SCALE_MIN, Math.round((current + delta) * 100) / 100));
-        await settingsService.updateSettings({ uiScale: next });
+        const next = delta === 0 ? null : Math.min(max, Math.max(min, Math.round((current + delta) * 100) / 100));
+
+        try {
+            await settingsService.updateSettings({ uiScale: next });
+        } catch (err) {
+            log.error("Failed to persist the interface scale", err);
+        }
         updateZoom();
     }
+
+    // The permitted zoom is derived from the window size, so every geometry change has to
+    // recompute it. Resize fires continuously while dragging, hence the trailing timer.
+    let zoomUpdate: NodeJS.Timeout | undefined;
+    function scheduleZoomUpdate() {
+        clearTimeout(zoomUpdate);
+        zoomUpdate = setTimeout(() => {
+            updateZoom();
+            webContents.send("mainWindow:scaleRangeChanged", scaleRange());
+        }, 100);
+    }
+
+    mainWindow.on("resize", scheduleZoomUpdate);
+    mainWindow.on("enter-full-screen", scheduleZoomUpdate);
+    mainWindow.on("leave-full-screen", scheduleZoomUpdate);
+    mainWindow.on("closed", () => clearTimeout(zoomUpdate));
 
     process.env.MAIN_WINDOW_ID = mainWindow.id.toString();
 
@@ -135,23 +163,22 @@ export function createWindow() {
     ipcMain.handle("mainWindow:setFullscreen", (_event, flag: boolean) => {
         mainWindow.setFullScreen(flag);
     });
-    ipcMain.handle("mainWindow:setSize", (_event, size: number) => {
-        if (!mainWindow.isFullScreen() && !mainWindow.isMaximized()) {
-            const { width, height } = getWindowSize(size);
-            mainWindow.setSize(width, height);
-        }
+    ipcMain.handle("mainWindow:setSize", (_event, width: number, height: number) => {
+        if (mainWindow.isFullScreen() || mainWindow.isMaximized()) return;
+
+        mainWindow.setSize(Math.max(width, MIN_WINDOW_SIZE.width), Math.max(height, MIN_WINDOW_SIZE.height));
+        mainWindow.center();
+        updateZoom();
     });
     ipcMain.handle("mainWindow:flashFrame", (_event, flag: boolean) => {
         mainWindow.flashFrame(flag);
     });
     ipcMain.handle("mainWindow:setUiScale", (_event, scale: number | null) => applyScale(scale));
-    ipcMain.handle("mainWindow:getOsScale", () => osScale());
+    ipcMain.handle("mainWindow:getScaleRange", () => scaleRange());
     ipcMain.handle("mainWindow:getDisplays", () =>
         screen.getAllDisplays().map((display, index) => ({
             index,
             scaleFactor: display.scaleFactor || 1,
-            aspectRatio: display.bounds.width / display.bounds.height,
-            // Work area excludes the taskbar, so a window sized to it stays reachable.
             workArea: { width: display.workAreaSize.width, height: display.workAreaSize.height },
         }))
     );

@@ -116,6 +116,7 @@ import Textbox from "@renderer/components/controls/Textbox.vue";
 import OverlayPanel from "primevue/overlaypanel";
 import { asyncComputed } from "@vueuse/core";
 import { settingsStore } from "@renderer/store/settings.store";
+import { MIN_WINDOW_SIZE, SUPPORTED_ASPECT_RATIOS, UI_SCALE_CHOICES, WINDOW_HEIGHT_STEPS } from "@main/config/window";
 import { infosStore } from "@renderer/store/infos.store";
 import { contentsStore } from "@renderer/store/contents.store";
 import { isUnsettled } from "@main/content/content-state";
@@ -207,68 +208,89 @@ async function applyPathChange() {
 const op = ref();
 const tooltipMessage = ref("");
 
-// A ladder of standard heights rather than every mode the display reports, so the list stays
-// short. Widths come from the display's own ratio, since setSize produces a window shaped like
-// the screen it is on. Stored values are logical pixels; labels are the physical size.
-const RESOLUTION_LADDER = [540, 720, 900, 1080, 1440, 2160];
-const MIN_WINDOW_HEIGHT = 360;
-
 const displays = asyncComputed(() => window.mainWindow.getDisplays(), []);
 
 const targetDisplay = computed(() => displays.value.find((d) => d.index === settingsStore.displayIndex) ?? displays.value[0]);
 
+const sizeKey = (width: number, height: number) => `${width}x${height}`;
+
+// Sizes are generated from the supported shapes rather than listed, and are device
+// independent pixels, so they mean the same physical size on every display.
 const resolutionOptions = computed(() => {
+    const fullscreen = { label: t("lobby.navbar.settings.fullscreenOption"), value: "fullscreen" as const };
     const display = targetDisplay.value;
-    if (!display) return [{ label: t("lobby.navbar.settings.fullscreenOption"), value: "fullscreen" as const }];
+    if (!display) return [fullscreen];
 
-    const { scaleFactor, aspectRatio, workArea } = display;
-    const usable = { width: workArea.width * scaleFactor, height: workArea.height * scaleFactor };
-    const logical = (physicalHeight: number) => Math.round(physicalHeight / scaleFactor);
-    // Falling back to the work area keeps a bad ratio from filtering every option away.
-    const ratio = aspectRatio > 0 ? aspectRatio : workArea.width / workArea.height;
-    const widthFor = (physicalHeight: number) => Math.round(physicalHeight * ratio);
+    const fits = (width: number, height: number) =>
+        width >= MIN_WINDOW_SIZE.width &&
+        height >= MIN_WINDOW_SIZE.height &&
+        width <= display.workArea.width &&
+        height <= display.workArea.height;
 
-    const fitting = RESOLUTION_LADDER.filter(
-        (height) => widthFor(height) <= usable.width && height <= usable.height && logical(height) >= MIN_WINDOW_HEIGHT
-    ).map((height) => ({ label: `${widthFor(height)} x ${height}`, value: logical(height) }));
+    const windowed = SUPPORTED_ASPECT_RATIOS.flatMap(({ label, ratio }) =>
+        WINDOW_HEIGHT_STEPS.map((height) => ({ label, width: Math.round((height * ratio) / 2) * 2, height }))
+            .filter(({ width, height }) => fits(width, height))
+            .map(({ label: ratioLabel, width, height }) => ({
+                label: `${width} x ${height} (${ratioLabel})`,
+                value: sizeKey(width, height),
+            }))
+    );
 
-    // Keep whatever is already stored selectable, so a scaling change never silently resnaps it.
-    if (!settingsStore.fullscreen && !fitting.some((option) => option.value === settingsStore.size)) {
-        const physical = Math.round(settingsStore.size * scaleFactor);
-        fitting.push({ label: `${widthFor(physical)} x ${physical}`, value: settingsStore.size });
+    // Keep whatever is stored selectable even if it is not one of the generated sizes.
+    const stored = sizeKey(settingsStore.windowWidth, settingsStore.windowHeight);
+    if (!settingsStore.fullscreen && !windowed.some((option) => option.value === stored)) {
+        windowed.push({ label: `${settingsStore.windowWidth} x ${settingsStore.windowHeight}`, value: stored });
     }
 
-    return [
-        { label: t("lobby.navbar.settings.fullscreenOption"), value: "fullscreen" as const },
-        ...fitting.sort((a, b) => a.value - b.value),
-    ];
+    return [fullscreen, ...windowed];
 });
 
-const displayMode = computed<number | "fullscreen">({
-    get: () => (settingsStore.fullscreen ? "fullscreen" : settingsStore.size),
+const displayMode = computed<string>({
+    get: () => (settingsStore.fullscreen ? "fullscreen" : sizeKey(settingsStore.windowWidth, settingsStore.windowHeight)),
     set: (value) => {
         if (value === "fullscreen") {
             settingsStore.fullscreen = true;
             return;
         }
+        const [width, height] = value.split("x").map(Number);
         settingsStore.fullscreen = false;
-        settingsStore.size = value;
+        settingsStore.windowWidth = width;
+        settingsStore.windowHeight = height;
     },
 });
 
-const osScale = asyncComputed(() => window.mainWindow.getOsScale(), 1);
+const scaleRange = ref({ min: 1, max: 1, os: 1 });
 
-const uiScaleOptions = computed(() =>
-    [...new Set([...[0.75, 1, 1.25, 1.5, 1.75, 2, 2.5], osScale.value])]
-        .sort((a, b) => a - b)
-        .map((value) => ({ label: `${Math.round(value * 100)}%`, value }))
-);
+onMounted(async () => {
+    scaleRange.value = await window.mainWindow.getScaleRange();
+    // The achievable range moves with the window, so the control has to follow it.
+    window.mainWindow.onScaleRangeChanged((range) => (scaleRange.value = range));
+});
 
-// Stored as null while it follows the OS, so the control shows the OS value until overridden.
+// Only offer scales the window can actually honour, so the applied value never disagrees
+// with what is shown.
+const uiScaleOptions = computed(() => {
+    const { min, max, os } = scaleRange.value;
+    const candidates = [...new Set([...UI_SCALE_CHOICES, os, min, max])]
+        .filter((value) => value >= min && value <= max)
+        .sort((a, b) => a - b);
+
+    return candidates.map((value) => ({
+        label: `${Math.round(value * 100)}%${value === os ? ` (${t("lobby.navbar.settings.scaleSystem")})` : ""}`,
+        value,
+    }));
+});
+
+// Stored as null while it follows the OS. The window can rule the OS value out entirely, so
+// the control shows the scale actually in effect rather than an option that is not offered.
 const uiScaleValue = computed<number>({
-    get: () => settingsStore.uiScale ?? osScale.value,
+    get: () => {
+        const { min, max, os } = scaleRange.value;
+
+        return Math.min(max, Math.max(min, settingsStore.uiScale ?? os));
+    },
     set: (value) => {
-        settingsStore.uiScale = value === osScale.value ? null : value;
+        settingsStore.uiScale = value === scaleRange.value.os ? null : value;
     },
 });
 

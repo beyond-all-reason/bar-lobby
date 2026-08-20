@@ -2284,6 +2284,7 @@
                 "skipIntro": null,
                 "loginAutomatically": null,
                 "uiScale": null,
+                "scaleSystem": null,
                 "sfxVolume": null,
                 "musicVolume": null,
                 "devMode": null,

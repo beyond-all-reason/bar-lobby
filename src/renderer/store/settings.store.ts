@@ -33,9 +33,9 @@ export async function initSettingsStore() {
         }
     );
     watch(
-        () => settingsStore.size,
+        () => [settingsStore.windowWidth, settingsStore.windowHeight],
         () => {
-            window.mainWindow.setSize(settingsStore.size);
+            window.mainWindow.setSize(settingsStore.windowWidth, settingsStore.windowHeight);
         }
     );
     watch(
