@@ -6,9 +6,9 @@ import { matchmakingStore } from "@renderer/store/matchmaking.store";
 import { partyStore } from "@renderer/store/party.store";
 import { ref, watch } from "vue";
 
-const partyTooLarge = ref(false);
-
 export function usePartySizeMatchmaking() {
+    const partyTooLarge = ref(false);
+
     watch(
         () => ({
             activeParty: partyStore.activeParty,
@@ -18,8 +18,7 @@ export function usePartySizeMatchmaking() {
             invited: [...(partyStore.parties.get(partyStore.activeParty ?? "")?.invited ?? [])],
         }),
         (newData) => {
-            /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
-            const { activeParty, queue, members, invited } = newData;
+            const { activeParty, queue } = newData;
 
             if (!activeParty || !queue) {
                 partyTooLarge.value = false;
@@ -36,7 +35,7 @@ export function usePartySizeMatchmaking() {
 
             partyTooLarge.value = party.members.length > playlist.teamSize;
         },
-        { immediate: true, deep: true }
+        { immediate: true }
     );
 
     return {
