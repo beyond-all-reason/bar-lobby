@@ -26,6 +26,7 @@ SPDX-License-Identifier: MIT
                 <Textbox :model-value="selectedPath" readonly />
                 <Button @click="browseForFolder">{{ t("lobby.components.misc.initialSetup.browse") }}</Button>
             </div>
+            <h4 v-if="pathError" class="status-error">{{ pathError }}</h4>
             <Button class="green" @click="confirmPath">{{ t("lobby.components.misc.initialSetup.continue") }}</Button>
         </template>
         <template v-else>
@@ -53,7 +54,7 @@ SPDX-License-Identifier: MIT
                         </div>
                     </template>
                 </div>
-                <div class="play-offline-action">
+                <div v-if="canPlayOffline" class="play-offline-action">
                     <Button class="blue" @click="skipAllSteps">{{ t("lobby.components.misc.initialSetup.playOffline") }}</Button>
                 </div>
             </template>
@@ -65,6 +66,7 @@ SPDX-License-Identifier: MIT
 import { delay } from "$/jaz-ts-utils/delay";
 import { randomFromArray } from "$/jaz-ts-utils/object";
 import { computed, onMounted, onUnmounted, ref, watch } from "vue";
+import { useTypedI18n } from "@renderer/i18n";
 import Button from "@renderer/components/controls/Button.vue";
 import Textbox from "@renderer/components/controls/Textbox.vue";
 import Loader from "@renderer/components/common/Loader.vue";
@@ -74,19 +76,18 @@ import { backgroundImages, fontFiles } from "@renderer/assets/assetFiles";
 import { fetchMissingMapImages, initMapsStore, syncMapsMetadata } from "@renderer/store/maps.store";
 import { initReplaysStore } from "@renderer/store/replays.store";
 import { db, initDb } from "@renderer/store/db";
-import { defaultMaps } from "@main/config/default-maps";
-import { LATEST_GAME_VERSION } from "@main/config/default-versions";
+import { configStore } from "@renderer/store/config.store";
 import { initBattleStore } from "@renderer/store/battle.store";
-import { enginesStore } from "@renderer/store/engine.store";
+import { defaultEngineInstalled, installedEngineVersions } from "@renderer/store/engine.store";
 import { downloadGame, gameStore } from "@renderer/store/game.store";
-import { downloadsStore } from "@renderer/store/downloads.store";
+import { contentsStore } from "@renderer/store/contents.store";
+import { isInProgress } from "@main/content/content-state";
 import { useDownloadProgress } from "@renderer/composables/useDownloadProgress";
 import { settingsStore } from "@renderer/store/settings.store";
 import Select from "@renderer/components/controls/Select.vue";
 import { Icon } from "@iconify/vue";
 import language from "@iconify-icons/mdi/language";
 
-import { useTypedI18n } from "@renderer/i18n";
 import type { Locale } from "@renderer/locales";
 import { useLocaleOptions } from "@renderer/composables/useLocaleOptions";
 
@@ -121,10 +122,17 @@ const title = ref(t("lobby.components.misc.preloader.loading"));
 const text = ref("");
 const state = ref<"language-selection" | "path-selection" | "engine" | "game" | "maps" | "update">("engine");
 const selectedPath = ref("");
+const pathError = ref("");
 const isDownloadPhase = ref(false);
 const stepError = ref("");
 const stepRetrying = ref(false);
 const canSkipCurrentStep = ref(false);
+
+// Playing offline without an engine and a game is not playing anything: every launch path needs both,
+// and nothing else in the client can fetch them once this screen has been left behind. Any installed
+// engine counts, so a player whose client just bumped its default is not held here by that alone.
+const hasEngineAndGame = () => installedEngineVersions.value.length > 0 && gameStore.availableGameVersions.size > 0;
+const canPlayOffline = computed(hasEngineAndGame);
 
 const overallProgress = ref(0);
 let stageStart = 0;
@@ -179,6 +187,10 @@ function skipCurrentStep() {
 }
 
 function skipAllSteps() {
+    if (!hasEngineAndGame()) {
+        return;
+    }
+
     abortController.abort();
     if (resolveStepError) {
         stepError.value = "";
@@ -209,9 +221,9 @@ watch(isExtracting, (nowExtracting) => {
     }
 });
 
-// Surface pr-downloader retry signals (game/map) as "retrying" status text.
+// Surface a download that pr-downloader has restarted as "retrying" status text.
 watch(
-    () => downloadsStore.gameRetrying || downloadsStore.mapRetrying,
+    () => contentsStore.inFlight.some((state) => isInProgress(state) && state.attempts > 1),
     (retrying) => {
         if (stepError.value || !currentStage) return;
         if (retrying) {
@@ -316,14 +328,30 @@ async function runStage(stage: DownloadStage): Promise<boolean> {
 }
 
 async function browseForFolder() {
-    const chosen = await window.paths.selectFolder();
-    if (chosen) {
-        selectedPath.value = chosen;
+    try {
+        const chosen = await window.paths.selectFolder();
+        if (chosen) {
+            pathError.value = "";
+            selectedPath.value = chosen;
+        }
+    } catch (error) {
+        console.error("Could not open the folder picker", error);
+        pathError.value = t("lobby.components.misc.initialSetup.pathUnusable");
     }
 }
 
 async function confirmPath() {
-    await window.paths.changePath(selectedPath.value);
+    pathError.value = "";
+
+    try {
+        await window.paths.changePath(selectedPath.value);
+    } catch (error) {
+        console.error("Could not change the assets path", error);
+        pathError.value = t("lobby.components.misc.initialSetup.pathUnusable");
+
+        return;
+    }
+
     resolvePathConfirm?.();
 }
 function confirmLanguageSelection() {
@@ -366,10 +394,10 @@ onMounted(async () => {
     isDownloadPhase.value = true;
     title.value = t("lobby.components.misc.initialSetup.title");
 
-    const needsEngine = !enginesStore.selectedEngineVersion || enginesStore.selectedEngineVersion.installed === false;
+    const needsEngine = installedEngineVersions.value.length === 0;
 
     if (needsEngine) {
-        selectedPath.value = await window.paths.getCurrentAssetsPath();
+        selectedPath.value = await window.paths.getCurrentAssetsPath().catch(() => "");
         state.value = "path-selection";
         await new Promise<void>((resolve) => {
             resolvePathConfirm = resolve;
@@ -382,9 +410,9 @@ onMounted(async () => {
             id: "engine",
             label: t("lobby.components.misc.initialSetup.downloadingEngine"),
             weight: 1,
-            canSkip: () => enginesStore.selectedEngineVersion?.installed === true,
+            canSkip: () => installedEngineVersions.value.length > 0,
             async run() {
-                if (!enginesStore.selectedEngineVersion || enginesStore.selectedEngineVersion.installed === false) {
+                if (!defaultEngineInstalled.value) {
                     await window.engine.downloadEngine();
                 }
             },
@@ -398,8 +426,8 @@ onMounted(async () => {
                 if (gameStore.availableGameVersions.size > 0) {
                     return;
                 }
-                await window.game.preloadPoolData();
-                await downloadGame(LATEST_GAME_VERSION);
+                await window.content.preloadPool();
+                await downloadGame(configStore.latestGameVersion);
                 if (gameStore.selectedGameVersion === undefined) {
                     throw new Error("Game download did not complete successfully");
                 }
@@ -418,7 +446,7 @@ onMounted(async () => {
                 }
                 const installedMaps = await db.maps.filter((m) => m.isInstalled === true).count();
                 if (installedMaps === 0) {
-                    await window.maps.downloadMaps(defaultMaps);
+                    await window.maps.downloadMaps([...configStore.defaultMaps]);
                 }
                 try {
                     await fetchMissingMapImages();
@@ -456,7 +484,14 @@ onMounted(async () => {
 
     overallProgress.value = 1;
 
-    await initBattleStore();
+    // Holding the user on a finished progress bar is worse than entering with a battle store that has
+    // to recover on its own, and this screen has no way back once every stage has run.
+    try {
+        await initBattleStore();
+    } catch (error) {
+        console.error("Battle store failed to initialise", error);
+    }
+
     emit("complete");
 });
 

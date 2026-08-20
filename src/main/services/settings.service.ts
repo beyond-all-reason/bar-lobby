@@ -5,6 +5,8 @@
 import { CONFIG_PATH } from "@main/config/app";
 import { FileStore } from "@main/json/file-store";
 import { settingsSchema } from "@main/json/model/settings";
+import { configService } from "@main/services/config.service";
+import { toRaw } from "vue";
 
 import { ipcMain } from "@main/typed-ipc";
 import path from "path";
@@ -13,6 +15,9 @@ const settingsStore = new FileStore<typeof settingsSchema>(path.join(CONFIG_PATH
 
 async function init() {
     await settingsStore.init();
+    if (configService.getConfig().defaultServers && settingsStore.model.lobbyServer === "") {
+        settingsStore.update({ lobbyServer: toRaw(configService.getConfig().defaultServers)![0] });
+    }
 }
 
 function getSettings() {

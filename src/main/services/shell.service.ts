@@ -8,9 +8,7 @@ import { ipcMain, IpcResult } from "@main/typed-ipc";
 import { logger } from "@main/utils/logger";
 import fs from "fs";
 import path from "path";
-
-const REPLAY_SERVICE_URL = "https://bar-rts.com/replays";
-const NEWS_SERVICE_URL = "https://www.beyondallreason.info/news";
+import { configService } from "@main/services/config.service";
 
 const log = logger("shell-service");
 
@@ -58,8 +56,7 @@ function isAllowedUrl(url: string): boolean {
     }
     if (!["https:", "http:"].includes(parsed.protocol)) return false;
 
-    // Additional checks to prevent opening arbitrary URLs
-    return [REPLAY_SERVICE_URL, NEWS_SERVICE_URL].some((serviceUrl) => url.startsWith(serviceUrl));
+    return configService.getConfig().allowedUrlLinks.some((serviceUrl) => url.startsWith(serviceUrl));
 }
 
 async function openInBrowser(url: string): Promise<IpcResult> {
@@ -75,7 +72,7 @@ function registerIpcHandlers() {
     ipcMain.handle("shell:openStartScript", () => openPath(path.join(WRITE_DATA_PATH, "script.txt")));
     ipcMain.handle("shell:openReplaysDir", () => openPath(REPLAYS_PATH));
     ipcMain.handle("shell:showReplayInFolder", (_event, fileName: string) => showInFolder(path.join(REPLAYS_PATH, fileName)));
-
+    ipcMain.handle("shell:openConfigFile", () => openPath(path.join(CONFIG_PATH, "config.json")));
     // External
     ipcMain.handle("shell:openInBrowser", (_event, url) => openInBrowser(url));
 }

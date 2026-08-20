@@ -6,30 +6,9 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { TachyonClientRequestHandlers } from "@main/tachyon/tachyon-client";
 import { BattleStartRequestData } from "tachyon-protocol/types";
 
-const { send, gameIsInstalled, mapIsInstalled, engineIsInstalled } = vi.hoisted(() => ({
-    send: vi.fn(),
-    gameIsInstalled: vi.fn(),
-    mapIsInstalled: vi.fn(),
-    engineIsInstalled: vi.fn(),
-}));
+const { send, missing } = vi.hoisted(() => ({ send: vi.fn(), missing: vi.fn() }));
 
-vi.mock("@main/content/game/game-content", () => ({
-    gameContentAPI: {
-        isVersionInstalled: gameIsInstalled,
-    },
-}));
-
-vi.mock("@main/content/maps/map-content", () => ({
-    mapContentAPI: {
-        isVersionInstalled: mapIsInstalled,
-    },
-}));
-
-vi.mock("@main/content/engine/engine-content", () => ({
-    engineContentAPI: {
-        isVersionInstalled: engineIsInstalled,
-    },
-}));
+vi.mock("@main/content/content-api", () => ({ contentAPI: { missing } }));
 
 const { createTachyonRequestHandlers } = await import("@main/tachyon/tachyon.handlers");
 
@@ -44,13 +23,8 @@ const _typeCoverageAssertion: TachyonClientRequestHandlers = getHandlers();
 describe("createTachyonRequestHandlers", () => {
     beforeEach(() => {
         send.mockReset();
-        gameIsInstalled.mockReset();
-        mapIsInstalled.mockReset();
-        engineIsInstalled.mockReset();
-
-        gameIsInstalled.mockReturnValue(true);
-        mapIsInstalled.mockReturnValue(true);
-        engineIsInstalled.mockReturnValue(true);
+        missing.mockReset();
+        missing.mockReturnValue([]);
     });
 
     it("handles battle/start by sending the spring url, data, and returning success", async () => {
@@ -83,10 +57,12 @@ describe("createTachyonRequestHandlers", () => {
 
         const response = await handlers["matchmaking/checkAssets"](request);
 
-        expect(gameIsInstalled).toHaveBeenCalledWith("byar:test-game");
-        expect(mapIsInstalled).toHaveBeenCalledWith("map:comet-catcher");
-        expect(mapIsInstalled).toHaveBeenCalledWith("map:red-comet");
-        expect(engineIsInstalled).toHaveBeenCalledWith("engine:105.1.1");
+        expect(missing).toHaveBeenCalledWith([
+            { type: "game", id: "byar:test-game" },
+            { type: "map", id: "map:comet-catcher" },
+            { type: "map", id: "map:red-comet" },
+            { type: "engine", id: "engine:105.1.1" },
+        ]);
         expect(response).toEqual({
             status: "success",
             data: { assetStatus: "complete" },
@@ -96,8 +72,7 @@ describe("createTachyonRequestHandlers", () => {
     it("returns missing when any required item is not installed", async () => {
         const handlers = getHandlers();
 
-        const missingMaps = new Set(["map:red-comet"]);
-        mapIsInstalled.mockImplementation((map: string) => !missingMaps.has(map));
+        missing.mockReturnValue([{ type: "map", id: "map:red-comet" }]);
 
         const response = await handlers["matchmaking/checkAssets"]({
             queueId: "1v1",
@@ -107,9 +82,6 @@ describe("createTachyonRequestHandlers", () => {
             engines: ["engine:105.1.1"],
         });
 
-        expect(gameIsInstalled).toHaveBeenCalledWith("byar:test-game");
-        expect(mapIsInstalled).toHaveBeenCalledWith("map:comet-catcher");
-        expect(mapIsInstalled).toHaveBeenCalledWith("map:red-comet");
         expect(response).toEqual({
             status: "success",
             data: { assetStatus: "missing" },

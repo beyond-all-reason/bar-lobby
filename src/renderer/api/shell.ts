@@ -30,4 +30,5 @@ export const shellApi = {
     openReplaysDir: () => openAndReport(window.shell.openReplaysDir),
     showReplayInFolder: (fileName: string) => openAndReport(() => window.shell.showReplayInFolder(fileName)),
     openInBrowser: (url: string) => openAndReport(() => window.shell.openInBrowser(url)),
+    openConfigFile: () => openAndReport(window.shell.openConfigFile),
 };

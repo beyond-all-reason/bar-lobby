@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: MIT
 
-import { Replay } from "@main/content/replays/replay";
+import { Replay } from "@main/replays/replay";
 import path from "path";
 import { Worker } from "worker_threads";
 import { logger } from "@main/utils/logger";

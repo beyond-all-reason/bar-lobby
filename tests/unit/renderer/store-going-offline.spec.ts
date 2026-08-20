@@ -21,6 +21,8 @@ Object.assign(window.tachyon, {
     onConnected: (callback: () => void) => void connectHandlers.push(callback),
 });
 
+Object.defineProperty(window, "auth", { value: { onChanged: vi.fn() }, writable: true });
+
 const { matchmakingStore, MatchmakingStatus, initializeMatchmakingStore } = await import("@renderer/store/matchmaking.store");
 const { partyStore, party, PlayersPartyState, initPartyStore } = await import("@renderer/store/party.store");
 const { lobbyStore, initLobbyStore } = await import("@renderer/store/lobby.store");

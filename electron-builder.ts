@@ -1,4 +1,6 @@
 import { Configuration } from "electron-builder";
+import { chmod, readdir } from "fs/promises";
+import path from "path";
 
 /**
  * @see https://www.electron.build/configuration
@@ -13,7 +15,17 @@ const config: Configuration = {
     disableDefaultIgnoredFiles: true,
     files: ["./.vite/**", "!node_modules", "./node_modules/7zip-bin/**"],
     directories: { buildResources: "buildResources" },
-    asarUnpack: ["resources/**"],
+    asarUnpack: ["resources/**", "node_modules/7zip-bin/**"],
+    // electron-builder unpacks the 7za binary from the asar but doesn't preserve its executable bit on Linux, so restore it here.
+    afterPack: async ({ electronPlatformName, appOutDir }) => {
+        if (electronPlatformName !== "linux") {
+            return;
+        }
+        const binDir = path.join(appOutDir, "resources", "app.asar.unpacked", "node_modules", "7zip-bin", "linux");
+        for (const arch of await readdir(binDir)) {
+            await chmod(path.join(binDir, arch, "7za"), 0o755);
+        }
+    },
 
     publish: { provider: "github" },
     fileAssociations: [

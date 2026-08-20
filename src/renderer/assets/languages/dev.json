@@ -254,7 +254,6 @@
             },
             "downloads": {
                 "noDownloads": "No dlodnwoas avctie",
-                "moreDownloads": "and {count} more...",
                 "starting": "Sattnrig...",
                 "extracting": "Erixtanctg...",
                 "progressMB": "{current} / {total} MB ({percent}%)",
@@ -263,13 +262,29 @@
                 "speedBps": "{speed} B/s",
                 "etaHoursMinutes": "{hours}h {minutes}m left",
                 "etaMinutesSeconds": "{minutes}m {seconds}s left",
-                "etaSeconds": "{seconds}s left"
+                "etaSeconds": "{seconds}s left",
+                "queued": "Quueed"
             },
             "serverStatus": {
                 "playersOnline": "Plyreas Oinnle",
                 "error": "Eorrr",
                 "reconnecting": "Recotnnenicg...",
-                "offline": "Oniflfe"
+                "offline": "Oniflfe",
+                "changeStatus": "Canghe Satuts",
+                "statusOnline": "Oinnle",
+                "statusBusy": "Busy",
+                "statusBusyUnavailable": "The sveerr has no way to show tihs yet",
+                "goOffline": "Go Oniflfe",
+                "cancel": "Ceancl",
+                "connect": "Cnnocet",
+                "connectTitle": "Cnnocet to the sveerr?",
+                "connectBody": "You are sgneid in but not cntnoeecd. Cniotcneng bnirgs back paiters, leibbos and mnchaaiktmg.",
+                "disconnect": "Dsnncoicet",
+                "disconnectTitle": "Dsnncoicet form the sveerr?",
+                "disconnectBody": "You wlil laeve any party, lobby or mnchaaiktmg qeuue you are in. You stay sgneid in and can ccnneot agian wehenevr you like.",
+                "stopReconnecting": "Sotp trinyg",
+                "stopReconnectingTitle": "Sotp rionentcnecg?",
+                "stopReconnectingBody": "No fuethrr apmtttes wlil be made uitnl you ccnneot agian yreoulsf."
             },
             "messages": {
                 "message": "Msaesge",
@@ -355,6 +370,7 @@
                 "debugSidebar": {
                     "debugSandbox": "Duebg Snbodax",
                     "openSettingsFile": "Oepn Setngits Flie",
+                    "openConfigFile": "Oepn Cionfg Flie",
                     "openAssetsDir": "Oepn Aessts Dir",
                     "openStateDir": "Oepn Satte Dir",
                     "openStartScript": "Oepn Lasett Strat Sipcrt",
@@ -429,7 +445,8 @@
                     "playOffline": "Paly Oniflfe",
                     "stepFailed": "{step} — Failed",
                     "stepRetrying": "{step} — Rtyneirg…",
-                    "contentRequired": "Egnnie and gmae must be dodolnwaed borefe stnartig a btalte."
+                    "contentRequired": "Egnnie and gmae must be dodolnwaed borefe stnartig a btalte.",
+                    "pathUnusable": "That fdelor caonnt be used for gmae fleis. Pick a dnieferft one."
                 }
             },
             "battle": {

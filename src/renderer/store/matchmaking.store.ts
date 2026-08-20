@@ -14,9 +14,6 @@ import {
 import { tachyonStore } from "@renderer/store/tachyon.store";
 import { notificationsApi } from "@renderer/api/notifications";
 import { isTachyonErrorForCommand, tachyonRequest } from "@renderer/api/tachyon";
-import { enginesStore } from "@renderer/store/engine.store";
-import { gameStore } from "@renderer/store/game.store";
-import { mapsStore } from "@renderer/store/maps.store";
 import { onWentOffline } from "@renderer/utils/offline-signal";
 
 export enum MatchmakingStatus {
@@ -135,18 +132,17 @@ async function triggerAssetsRefresh() {
 }
 
 async function setRequiredAssetsArrays(queue: string, engines: { version: string }[], games: { springName: string }[], maps: { springName: string }[]): Promise<void> {
-    matchmakingStore.downloadsRequired[queue] = { engines: [], games: [], maps: [] };
-    const queueMaps = new Set(maps.map((map) => map.springName));
-    const missingMaps = queueMaps.difference(new Set(mapsStore.availableMapNames));
-    matchmakingStore.downloadsRequired[queue].maps.push(...missingMaps);
-    const queueEngines = new Set(engines.map((e) => e.version));
-    const installedEngines = new Set(enginesStore.availableEngineVersions.filter((e) => e.installed).map((e) => e.id));
-    const diffEngines = queueEngines.difference(installedEngines);
-    matchmakingStore.downloadsRequired[queue].engines.push(...diffEngines);
-    const queueGames = new Set(games.map((g) => g.springName));
-    const installedGames = new Set(gameStore.availableGameVersions.keys());
-    const diffGames = queueGames.difference(installedGames);
-    matchmakingStore.downloadsRequired[queue].games.push(...diffGames);
+    const missing = await window.content.missing([
+        ...engines.map((engine) => ({ type: "engine" as const, id: engine.version })),
+        ...games.map((game) => ({ type: "game" as const, id: game.springName })),
+        ...maps.map((map) => ({ type: "map" as const, id: map.springName })),
+    ]);
+
+    matchmakingStore.downloadsRequired[queue] = {
+        engines: missing.filter((ref) => ref.type === "engine").map((ref) => ref.id),
+        games: missing.filter((ref) => ref.type === "game").map((ref) => ref.id),
+        maps: missing.filter((ref) => ref.type === "map").map((ref) => ref.id),
+    };
 }
 
 /**

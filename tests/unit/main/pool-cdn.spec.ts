@@ -30,26 +30,28 @@ vi.mock("@main/config/app", () => ({
 vi.mock("fs", () => ({ promises: { mkdir: mockMkdir, rm: mockRm } }));
 vi.mock("@main/utils/extract-7z", () => ({ extract7z: mockExtract7z }));
 vi.mock("@main/utils/file", () => ({ fileExists: vi.fn().mockResolvedValue(false) }));
+vi.mock("@main/services/config.service", () => {
+    return {
+        configService: {
+            getConfig: vi.fn(() => ({ initialPoolDataUrl: "https://pool-init.beyondallreason.dev" })),
+        },
+    };
+});
 
 import { PoolCdnDownloader } from "@main/content/game/pool-cdn";
 
 describe("PoolCdnDownloader", () => {
     it("publishes a pool download before a resumed transfer emits its first progress event", async () => {
+        const downloader = new PoolCdnDownloader();
         const startedDownloads: Array<{ name: string; currentBytes: number; totalBytes: number }> = [];
-        const gameApi = {
-            onDownloadStart: {
-                dispatch: vi.fn((downloadInfo) => startedDownloads.push({ ...downloadInfo })),
-            },
-            onDownloadComplete: { dispatch: vi.fn() },
-            onDownloadProgress: { dispatch: vi.fn() },
-            onDownloadFail: { dispatch: vi.fn() },
-        };
-        const downloader = new PoolCdnDownloader(gameApi as never);
+        const progressed: Array<{ name: string; currentBytes: number; totalBytes: number }> = [];
+        downloader.onDownloadStart.add((downloadInfo) => startedDownloads.push({ ...downloadInfo }));
+        downloader.onDownloadProgress.add((downloadInfo) => progressed.push({ ...downloadInfo }));
 
         await downloader.preloadPoolData();
 
         expect(startedDownloads).toHaveLength(1);
         expect(startedDownloads[0]).toMatchObject({ name: "pool-data", currentBytes: 0, totalBytes: 1 });
-        expect(gameApi.onDownloadProgress.dispatch).toHaveBeenCalledWith(expect.objectContaining({ name: "pool-data", currentBytes: 64, totalBytes: 128 }));
+        expect(progressed).toEqual(expect.arrayContaining([expect.objectContaining({ name: "pool-data", currentBytes: 64, totalBytes: 128 })]));
     });
 });

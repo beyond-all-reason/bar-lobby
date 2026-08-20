@@ -2085,7 +2085,6 @@
             },
             "downloads": {
                 "noDownloads": "No downloads active",
-                "moreDownloads": "and {count} more...",
                 "starting": "Starting...",
                 "extracting": "Extracting...",
                 "progressMB": "{current} / {total} MB ({percent}%)",
@@ -2094,13 +2093,29 @@
                 "speedBps": "{speed} B/s",
                 "etaHoursMinutes": "{hours}h {minutes}m left",
                 "etaMinutesSeconds": "{minutes}m {seconds}s left",
-                "etaSeconds": "{seconds}s left"
+                "etaSeconds": "{seconds}s left",
+                "queued": "Queued"
             },
             "serverStatus": {
                 "playersOnline": "Players Online",
                 "error": "Error",
                 "reconnecting": "Reconnecting...",
-                "offline": "Offline"
+                "offline": "Offline",
+                "changeStatus": "Change Status",
+                "statusOnline": "Online",
+                "statusBusy": "Busy",
+                "statusBusyUnavailable": "The server has no way to show this yet",
+                "goOffline": "Go Offline",
+                "cancel": "Cancel",
+                "connect": "Connect",
+                "connectTitle": "Connect to the server?",
+                "connectBody": "You are signed in but not connected. Connecting brings back parties, lobbies and matchmaking.",
+                "disconnect": "Disconnect",
+                "disconnectTitle": "Disconnect from the server?",
+                "disconnectBody": "You will leave any party, lobby or matchmaking queue you are in. You stay signed in and can connect again whenever you like.",
+                "stopReconnecting": "Stop trying",
+                "stopReconnectingTitle": "Stop reconnecting?",
+                "stopReconnectingBody": "No further attempts will be made until you connect again yourself."
             },
             "messages": {
                 "message": "Message",
@@ -2186,6 +2201,7 @@
                 "debugSidebar": {
                     "debugSandbox": "Debug Sandbox",
                     "openSettingsFile": "Open Settings File",
+                    "openConfigFile": "Open Config File",
                     "openAssetsDir": "Open Assets Dir",
                     "openStateDir": "Open State Dir",
                     "openStartScript": "Open Latest Start Script",
@@ -2260,7 +2276,8 @@
                     "playOffline": "Play Offline",
                     "stepFailed": "{step} — Failed",
                     "stepRetrying": "{step} — Retrying…",
-                    "contentRequired": "Engine and game must be downloaded before starting a battle."
+                    "contentRequired": "Engine and game must be downloaded before starting a battle.",
+                    "pathUnusable": "That folder cannot be used for game files. Pick a different one."
                 }
             },
             "battle": {

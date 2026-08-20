@@ -16,15 +16,13 @@ import { extract7z } from "@main/utils/extract-7z";
 import { getEngineReleaseInfo } from "@main/config/content-sources";
 import { AbstractContentAPI } from "@main/content/abstract-content";
 import { getEnginePath } from "@main/config/app";
-import { DEFAULT_ENGINE_VERSION } from "@main/config/default-versions";
+import { configService } from "@main/services/config.service";
+import { compareEngineVersions, isCompatibleEngineVersion } from "@main/content/engine/engine-version-order";
+import { holdChecksums } from "@main/utils/checksums";
 
-const log = logger("engine-content.ts");
+const log = logger("engine-provider.ts");
 
-// TODO: add support for old engine version tag naming scheme, careful it is not string sortable (!)
-// Regex matching new engine version tags (e.g. "2025.01.3", "2025.01.3-rc1")
-const compatibleVersionRegex = /^\d{4}\.\d{2}\.\d{1,2}(-rc\d+)?$/;
-
-export class EngineContentAPI extends AbstractContentAPI<string, EngineVersion> {
+export class EngineProvider extends AbstractContentAPI<string, EngineVersion> {
     protected get engineDirs() {
         return getEnginePath();
     }
@@ -36,7 +34,7 @@ export class EngineContentAPI extends AbstractContentAPI<string, EngineVersion> 
             const dirs = files
                 .filter((file) => file.isDirectory() || file.isSymbolicLink())
                 .map((dir) => dir.name)
-                .filter((dir) => compatibleVersionRegex.test(dir) || dir.includes("local"));
+                .filter((dir) => isCompatibleEngineVersion(dir));
             log.info(`Found ${dirs.length} installed engine versions`);
             for (const dir of dirs) {
                 log.info(`-- Engine ${dir}`);
@@ -64,13 +62,25 @@ export class EngineContentAPI extends AbstractContentAPI<string, EngineVersion> 
     }
 
     public getDefaultEngine() {
-        return this.availableVersions.get(DEFAULT_ENGINE_VERSION);
+        return this.availableVersions.get(configService.getConfig().defaultEngineVersion);
+    }
+
+    public getInstalledVersionsNewestFirst() {
+        return this.availableVersions
+            .values()
+            .filter((version) => version.installed)
+            .toArray()
+            .sort((a, b) => compareEngineVersions(b.id, a.id));
+    }
+
+    public getNewestInstalledVersion() {
+        return this.getInstalledVersionsNewestFirst().at(0);
     }
 
     protected checkIfDefaultIsNew() {
-        if (!this.availableVersions.has(DEFAULT_ENGINE_VERSION)) {
-            this.availableVersions.set(DEFAULT_ENGINE_VERSION, {
-                id: DEFAULT_ENGINE_VERSION,
+        if (!this.availableVersions.has(configService.getConfig().defaultEngineVersion)) {
+            this.availableVersions.set(configService.getConfig().defaultEngineVersion, {
+                id: configService.getConfig().defaultEngineVersion,
                 ais: [],
                 installed: false,
             });
@@ -78,7 +88,7 @@ export class EngineContentAPI extends AbstractContentAPI<string, EngineVersion> 
     }
 
     public async downloadEngine(version?: string) {
-        const engineVersion = version || DEFAULT_ENGINE_VERSION;
+        const engineVersion = version || configService.getConfig().defaultEngineVersion;
         try {
             if (this.isVersionInstalled(engineVersion)) {
                 return;
@@ -86,6 +96,7 @@ export class EngineContentAPI extends AbstractContentAPI<string, EngineVersion> 
             const engineInfo = await getEngineReleaseInfo(engineVersion);
             const downloadInfo: DownloadInfo = {
                 type: "engine",
+                id: engineVersion,
                 name: engineVersion,
                 currentBytes: 0,
                 totalBytes: 1,
@@ -131,7 +142,8 @@ export class EngineContentAPI extends AbstractContentAPI<string, EngineVersion> 
             version = version.id;
         }
         const engineDir = path.join(this.engineDirs, version);
-        await fs.promises.rm(engineDir, { force: true, recursive: true });
+        // Checksums run the engine out of this directory, so deleting it underneath one fails on Windows.
+        await holdChecksums(() => fs.promises.rm(engineDir, { force: true, recursive: true }));
         this.availableVersions.delete(version);
     }
 
@@ -198,4 +210,4 @@ export class EngineContentAPI extends AbstractContentAPI<string, EngineVersion> 
     // }
 }
 
-export const engineContentAPI = new EngineContentAPI();
+export const engineProvider = new EngineProvider();

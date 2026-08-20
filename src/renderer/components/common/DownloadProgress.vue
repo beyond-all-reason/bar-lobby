@@ -16,7 +16,8 @@ SPDX-License-Identifier: MIT
 
 <script lang="ts" setup>
 import { computed, watch } from "vue";
-import { downloadsStore } from "@renderer/store/downloads.store";
+import { contentRefs, inFlightFor } from "@renderer/store/contents.store";
+import { hasFailed, isInProgress } from "@main/content/content-state";
 import Progress from "@renderer/components/common/Progress.vue";
 
 interface Props {
@@ -32,32 +33,35 @@ const emit = defineEmits<{
     statusChange: [value: boolean];
 }>();
 
-const isDownloading = computed(() => {
-    const targetList = new Set([...maps, ...games, ...engines]);
-    if (targetList.size == 0) return false;
-    const downloads = [...downloadsStore.mapDownloads, ...downloadsStore.engineDownloads, ...downloadsStore.gameDownloads];
-    if (downloads.length == 0) return false;
-    const downloadingNames = new Set(downloads.map((d) => d.name));
-    if (downloadingNames.intersection(targetList).size > 0) {
-        return true;
-    }
-    return false;
-});
+const refs = computed(() => contentRefs({ maps, games, engines }));
+
+const tracked = computed(() => inFlightFor(refs.value));
+
+const transfers = computed(() => tracked.value.filter(isInProgress));
+
+const failed = computed(() => tracked.value.filter(hasFailed));
+
+const isDownloading = computed(() => transfers.value.length > 0);
 
 watch(isDownloading, (value) => {
     emit("statusChange", value);
 });
 
+// Measured against everything asked for, not just what is still moving. Content leaves inFlight the
+// moment it lands, so averaging over what is left starts again from nothing each time a batch finishes.
 const downloadPercent = computed(() => {
-    const targetList = new Set([...maps, ...games, ...engines]);
-    const downloads = [...downloadsStore.mapDownloads, ...downloadsStore.engineDownloads, ...downloadsStore.gameDownloads];
-    const count = downloads.length;
-    let progress: number = 0;
-    for (const download of downloads) {
-        if (targetList.has(download.name)) {
-            progress += download.progress;
-        }
+    const total = refs.value.length;
+
+    if (total === 0) {
+        return 0;
     }
-    return progress / count;
+
+    // Anything gone from the change stream arrived; anything still there having failed did not, and
+    // holds its place so the figure stops short rather than claiming the set is complete.
+    const landed = total - transfers.value.length - failed.value.length;
+
+    // Clamped per transfer the way the navbar figure is: pr-downloader reports file counts and bytes
+    // down the same channel, so a single reading can come back over its own total.
+    return (landed + transfers.value.reduce((sum, state) => sum + Math.min(1, state.progress), 0)) / total;
 });
 </script>
