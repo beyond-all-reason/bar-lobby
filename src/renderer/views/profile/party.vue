@@ -65,6 +65,13 @@ SPDX-License-Identifier: MIT
                                                 >
                                                     <Icon :icon="informationIcon"></Icon>
                                                 </div>
+                                                <div
+                                                    class="info br"
+                                                    v-if="getTeamSize(queue) < getPartySize()"
+                                                    v-tooltip.bottom="{ value: t('lobby.views.party.partyTooLargeTooltip') }"
+                                                >
+                                                    <Icon :icon="stopAlertOutlineIcon"></Icon>
+                                                </div>
                                             </Button>
                                         </div>
                                     </div>
@@ -210,9 +217,10 @@ import { matchmakingStore, matchmaking, MatchmakingStatus, getPlaylistName } fro
 import DownloadContentButton from "@renderer/components/controls/DownloadContentButton.vue";
 import QueueDownloadsModal from "@renderer/components/misc/QueueDownloadsModal.vue";
 import informationIcon from "@iconify-icons/mdi/information";
+import stopAlertOutlineIcon from "@iconify-icons/mdi/stop-alert-outline";
 import { Icon } from "@iconify/vue";
 import { chatStore } from "@renderer/store/chat.store";
-import { usePartySizeMatchmaking } from "@renderer/composables/usePartySizeMatchmaking";
+import { getPartySize, usePartySizeMatchmaking } from "@renderer/composables/usePartySizeMatchmaking";
 
 const { t } = useTypedI18n();
 
@@ -354,6 +362,11 @@ function getActivePartyInvites() {
 }
 
 const { partyTooLarge } = usePartySizeMatchmaking();
+
+function getTeamSize(queue: string) {
+    const playlist = matchmakingStore.playlists.find((p) => p.id === queue);
+    return playlist ? playlist.teamSize : 0;
+}
 </script>
 
 <style lang="scss" scoped>
@@ -434,6 +447,13 @@ const { partyTooLarge } = usePartySizeMatchmaking();
     &.bl {
         bottom: 0px;
         left: 0px;
+    }
+    &.br {
+        bottom: 0px;
+        right: 0px;
+        flex-wrap: wrap-reverse;
+        justify-content: flex-end;
+        max-width: 55%;
     }
 }
 .info:hover {

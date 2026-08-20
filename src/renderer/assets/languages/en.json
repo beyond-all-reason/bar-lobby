@@ -1928,7 +1928,8 @@
                 "kickMember": "Kick Member",
                 "cancelInvite": "Cancel Invite",
                 "noInvites": "You currently have no pending invitations.",
-                "partyTooLarge": "Party Too Large"
+                "partyTooLarge": "Party Too Large",
+                "partyTooLargeTooltip": "Your party is too large to join this queue."
             },
             "watch": {
                 "replays": {
@@ -1988,7 +1989,8 @@
                     "matchFound": "Matched - Click to Ready",
                     "accepted": "Accepted",
                     "cancel": "Cancel",
-                    "partyTooLarge": "Party Too Large"
+                    "partyTooLarge": "Party Too Large",
+                    "partyTooLargeTooltip": "Your party is too large to join this queue."
                 },
                 "modalTitle": "Matchmaking Queue Details",
                 "modal": {

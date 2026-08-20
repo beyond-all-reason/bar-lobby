@@ -97,7 +97,8 @@
                 "kickMember": "Kcik Meembr",
                 "cancelInvite": "Ceancl Iivnte",
                 "noInvites": "You crelnrtuy hvae no piendng iiinnattvos.",
-                "partyTooLarge": "Party Too Lgare"
+                "partyTooLarge": "Party Too Lgare",
+                "partyTooLargeTooltip": "Your party is too lgare to jion tihs qeuue."
             },
             "watch": {
                 "replays": {
@@ -157,7 +158,8 @@
                     "matchFound": "Mceathd - Ccilk to Raedy",
                     "accepted": "Acpteecd",
                     "cancel": "Ceancl",
-                    "partyTooLarge": "Party Too Lgare"
+                    "partyTooLarge": "Party Too Lgare",
+                    "partyTooLargeTooltip": "Your party is too lgare to jion tihs qeuue."
                 },
                 "modalTitle": "Macanihmtkg Quuee Daleits",
                 "modal": {

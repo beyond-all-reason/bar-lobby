@@ -2080,7 +2080,8 @@
                 "kickMember": null,
                 "cancelInvite": null,
                 "noInvites": null,
-                "partyTooLarge": null
+                "partyTooLarge": null,
+                "partyTooLargeTooltip": null
             },
             "watch": {
                 "replays": {
@@ -2140,7 +2141,8 @@
                     "matchFound": null,
                     "accepted": null,
                     "cancel": null,
-                    "partyTooLarge": null
+                    "partyTooLarge": null,
+                    "partyTooLargeTooltip": null
                 },
                 "modalTitle": null,
                 "modal": {

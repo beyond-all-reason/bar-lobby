@@ -39,6 +39,13 @@ SPDX-License-Identifier: MIT
                     <div class="info bl" v-if="matchmakingStore.selectedQueue === queue" @click.stop="onInfoClick">
                         <Icon :icon="informationIcon"></Icon>
                     </div>
+                    <div
+                        class="info br"
+                        v-if="getTeamSize(queue) < getPartySize()"
+                        v-tooltip.bottom="{ value: t('lobby.multiplayer.ranked.buttons.partyTooLargeTooltip') }"
+                    >
+                        <Icon :icon="stopAlertOutlineIcon"></Icon>
+                    </div>
                 </Button>
             </div>
             <div class="button-container">
@@ -109,7 +116,7 @@ SPDX-License-Identifier: MIT
 </template>
 
 <script lang="ts" setup>
-import { usePartySizeMatchmaking } from "@renderer/composables/usePartySizeMatchmaking";
+import { getPartySize, usePartySizeMatchmaking } from "@renderer/composables/usePartySizeMatchmaking";
 import { matchmaking, MatchmakingStatus, matchmakingStore, getPlaylistName } from "@renderer/store/matchmaking.store";
 import Button from "primevue/button";
 import { useTypedI18n } from "@renderer/i18n";
@@ -117,6 +124,7 @@ import { computed, onActivated, ref } from "vue";
 import DownloadContentButton from "@renderer/components/controls/DownloadContentButton.vue";
 import QueueDownloadsModal from "@renderer/components/misc/QueueDownloadsModal.vue";
 import informationIcon from "@iconify-icons/mdi/information";
+import stopAlertOutlineIcon from "@iconify-icons/mdi/stop-alert-outline";
 import { Icon } from "@iconify/vue";
 
 const { t } = useTypedI18n();
@@ -165,6 +173,11 @@ function onInfoClick() {
     if (!downloading.value) isQueueDownloadsModalOpen.value = true;
 }
 const { partyTooLarge } = usePartySizeMatchmaking();
+
+function getTeamSize(queue: string) {
+    const playlist = matchmakingStore.playlists.find((p) => p.id === queue);
+    return playlist ? playlist.teamSize : 0;
+}
 </script>
 
 <style lang="scss" scoped>

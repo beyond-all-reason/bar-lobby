@@ -13,12 +13,13 @@ export function usePartySizeMatchmaking() {
         () => ({
             activeParty: partyStore.activeParty,
             queue: matchmakingStore.selectedQueue,
+            playlists: [...matchmakingStore.playlists],
             // Spreading map entries forces Vue to evaluate the Map's contents
             members: [...(partyStore.parties.get(partyStore.activeParty ?? "")?.members ?? [])],
             invited: [...(partyStore.parties.get(partyStore.activeParty ?? "")?.invited ?? [])],
         }),
         (newData) => {
-            const { activeParty, queue } = newData;
+            const { activeParty, queue, playlists } = newData;
 
             if (!activeParty || !queue) {
                 partyTooLarge.value = false;
@@ -26,7 +27,7 @@ export function usePartySizeMatchmaking() {
             }
 
             const party = partyStore.parties.get(activeParty);
-            const playlist = matchmakingStore.playlists.find((p) => p.id === queue);
+            const playlist = playlists.find((p) => p.id === queue);
 
             if (!party || !playlist) {
                 partyTooLarge.value = false;
@@ -41,4 +42,18 @@ export function usePartySizeMatchmaking() {
     return {
         partyTooLarge,
     };
+}
+
+export function getPartySize() {
+    const activeParty = partyStore.activeParty;
+    if (!activeParty) {
+        return 0;
+    }
+
+    const party = partyStore.parties.get(activeParty);
+    if (!party) {
+        return 0;
+    }
+
+    return party.members.length;
 }
