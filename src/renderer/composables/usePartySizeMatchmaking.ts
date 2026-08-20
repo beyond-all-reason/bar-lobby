@@ -12,22 +12,22 @@ export function usePartySizeMatchmaking() {
     watch(
         () => ({
             activeParty: partyStore.activeParty,
-            queue: matchmakingStore.selectedQueue,
+            queueId: matchmakingStore.selectedQueue,
             playlists: [...matchmakingStore.playlists],
             // Spreading map entries forces Vue to evaluate the Map's contents
             members: [...(partyStore.parties.get(partyStore.activeParty ?? "")?.members ?? [])],
             invited: [...(partyStore.parties.get(partyStore.activeParty ?? "")?.invited ?? [])],
         }),
         (newData) => {
-            const { activeParty, queue, playlists } = newData;
+            const { activeParty, queueId, playlists } = newData;
 
-            if (!activeParty || !queue) {
+            if (!activeParty || !queueId || !playlists.length) {
                 partyTooLarge.value = false;
                 return;
             }
 
             const party = partyStore.parties.get(activeParty);
-            const playlist = playlists.find((p) => p.id === queue);
+            const playlist = playlists.find((p) => p.id === queueId);
 
             if (!party || !playlist) {
                 partyTooLarge.value = false;
