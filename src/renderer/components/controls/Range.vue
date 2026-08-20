@@ -53,9 +53,7 @@ const low = computed(() => (props.modelValue instanceof Array ? props.modelValue
 const high = computed(() => (props.modelValue instanceof Array ? props.modelValue[1] : null));
 
 const min = computed<number>(() => props?.min ?? 0);
-const minInputWidth = computed(() => `${min.value.toString().length + 1}ch`);
 const max = computed<number>(() => props?.max ?? 100);
-const maxInputWidth = computed(() => `${max.value.toString().length + 1}ch`);
 
 const stepValue = computed(() => props.step ?? 1);
 const maxFractionDigits = computed(() => {
@@ -63,6 +61,11 @@ const maxFractionDigits = computed(() => {
     const decimalIndex = step.indexOf(".");
     return decimalIndex === -1 ? 0 : step.length - decimalIndex - 1;
 });
+
+// The decimal point and its digits occupy the box too, so a fractional step needs room for them.
+const inputWidth = (value: number) => `${value.toString().length + (maxFractionDigits.value ? maxFractionDigits.value + 1 : 0) + 1}ch`;
+const minInputWidth = computed(() => inputWidth(min.value));
+const maxInputWidth = computed(() => inputWidth(max.value));
 
 function onSlide(input: number | number[]) {
     emits("update:modelValue", input);

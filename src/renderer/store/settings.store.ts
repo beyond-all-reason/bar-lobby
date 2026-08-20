@@ -37,5 +37,11 @@ export async function initSettingsStore() {
             window.mainWindow.setSize(settingsStore.size);
         }
     );
+    watch(
+        () => settingsStore.uiScale,
+        () => {
+            window.mainWindow.setUiScale(settingsStore.uiScale);
+        }
+    );
     settingsStore.isInitialized = true;
 }

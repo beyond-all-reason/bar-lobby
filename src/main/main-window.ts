@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: MIT
 
-import { app, BrowserWindow, nativeImage } from "electron";
+import { app, BrowserWindow, nativeImage, screen } from "electron";
 import path from "path";
 import { settingsService } from "./services/settings.service";
 import { logger } from "./utils/logger";
@@ -12,7 +12,9 @@ import { typedWebContents, ipcMain } from "@main/typed-ipc";
 import { gameAPI } from "@main/game/game";
 import contentService from "@main/services/content.service";
 
-const ZOOM_FACTOR_BASELINE_HEIGHT = 1080;
+const UI_SCALE_MIN = 0.5;
+const UI_SCALE_MAX = 3;
+const UI_SCALE_STEP = 0.1;
 
 const log = logger("main-window");
 
@@ -20,9 +22,15 @@ export function createWindow() {
     const settings = settingsService.getSettings();
     log.info("Creating main window with settings: ", settings);
 
-    function getWindowSize(windowedHeight: number) {
+    function displayAspectRatio(displayIndex: number) {
+        const display = screen.getAllDisplays()[displayIndex] ?? screen.getPrimaryDisplay();
+
+        return display.bounds.width / display.bounds.height;
+    }
+
+    function getWindowSize(windowedHeight: number, displayIndex = settingsService.getSettings().displayIndex) {
         return {
-            width: (windowedHeight * 16) / 9,
+            width: Math.round(windowedHeight * displayAspectRatio(displayIndex)),
             height: windowedHeight,
         };
     }
@@ -51,26 +59,37 @@ export function createWindow() {
 
     // Disable zoom shortcuts
     webContents.on("before-input-event", (event, input) => {
-        // Block Ctrl/Cmd + '+', '-', '0' (zoom shortcuts)
-        if (((input.control || input.meta) && (input.key === "+" || input.key === "-" || input.key === "=")) || (input.key === "0" && (input.control || input.meta))) {
-            event.preventDefault();
-        }
+        // Chromium's own zoom is bypassed so the scale stays a persisted setting.
+        if (input.type !== "keyDown" || !(input.control || input.meta)) return;
+        const delta = input.key === "+" || input.key === "=" ? UI_SCALE_STEP : input.key === "-" ? -UI_SCALE_STEP : input.key === "0" ? 0 : null;
+        if (delta === null) return;
+
+        event.preventDefault();
+        nudgeUiScale(delta);
     });
 
-    function updateZoom() {
-        if (mainWindow.getContentSize()[1] > 0) {
-            const zoomFactor = mainWindow.getContentSize()[1] / ZOOM_FACTOR_BASELINE_HEIGHT;
-            webContents.setZoomFactor(zoomFactor);
-        }
+    // The setting is an absolute interface scale, matching what the OS calls its
+    // scaling percentage, so Chromium's own OS-derived scaling has to be divided out.
+    function osScale() {
+        return screen.getDisplayMatching(mainWindow.getBounds()).scaleFactor || 1;
     }
 
-    // We handle direct window `resize` event, not only `mainWindow:resized` from renderer as
-    // that offers much lower latency and offers more fluid experience when resizing. We can't
-    // use only `resize` event as looks like under some platforms not all window shape changes
-    // trigger this event.
-    mainWindow.on("resize", () => {
+    function applyScale(uiScale: number | null) {
+        const os = osScale();
+        const target = uiScale ?? os;
+        webContents.setZoomFactor(Math.min(UI_SCALE_MAX, Math.max(UI_SCALE_MIN, target)) / os);
+    }
+
+    function updateZoom() {
+        applyScale(settingsService.getSettings().uiScale);
+    }
+
+    async function nudgeUiScale(delta: number) {
+        const current = settingsService.getSettings().uiScale ?? osScale();
+        const next = delta === 0 ? null : Math.min(UI_SCALE_MAX, Math.max(UI_SCALE_MIN, Math.round((current + delta) * 100) / 100));
+        await settingsService.updateSettings({ uiScale: next });
         updateZoom();
-    });
+    }
 
     process.env.MAIN_WINDOW_ID = mainWindow.id.toString();
 
@@ -116,24 +135,29 @@ export function createWindow() {
     // Register IPC handlers for the main window
     ipcMain.handle("mainWindow:setFullscreen", (_event, flag: boolean) => {
         mainWindow.setFullScreen(flag);
-        updateZoom();
     });
     ipcMain.handle("mainWindow:setSize", (_event, size: number) => {
         if (!mainWindow.isFullScreen() && !mainWindow.isMaximized()) {
             const { width, height } = getWindowSize(size);
             mainWindow.setSize(width, height);
         }
-        updateZoom();
     });
     ipcMain.handle("mainWindow:flashFrame", (_event, flag: boolean) => {
         mainWindow.flashFrame(flag);
     });
+    ipcMain.handle("mainWindow:setUiScale", (_event, scale: number | null) => applyScale(scale));
+    ipcMain.handle("mainWindow:getOsScale", () => osScale());
+    ipcMain.handle("mainWindow:getDisplays", () =>
+        screen.getAllDisplays().map((display, index) => ({
+            index,
+            scaleFactor: display.scaleFactor || 1,
+            aspectRatio: display.bounds.width / display.bounds.height,
+            // Work area excludes the taskbar, so a window sized to it stays reachable.
+            workArea: { width: display.workAreaSize.width, height: display.workAreaSize.height },
+        }))
+    );
     ipcMain.handle("mainWindow:minimize", () => mainWindow.minimize());
     ipcMain.handle("mainWindow:isFullscreen", () => mainWindow.isFullScreen());
-
-    ipcMain.handle("mainWindow:resized", () => {
-        updateZoom();
-    });
 
     // Get download progress updates to update the dock/taskbar
     contentService.registerProgressHandler(mainWindow);
