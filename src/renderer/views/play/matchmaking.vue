@@ -88,10 +88,10 @@ SPDX-License-Identifier: MIT
                     class="quick-play-button"
                     @click="matchmaking.sendReadyRequest"
                 >
-                    {{ t("lobby.multiplayer.ranked.buttons.matchFound") }}
+                    {{ t("lobby.multiplayer.ranked.buttons.matchFound", { seconds: matchmakingStore.readySecondsRemaining }) }}
                 </button>
                 <button v-else-if="matchmakingStore.status === MatchmakingStatus.MatchAccepted" class="quick-play-button" disabled>
-                    {{ t("lobby.multiplayer.ranked.buttons.accepted") }}
+                    {{ t("lobby.multiplayer.ranked.buttons.accepted", { players: matchmakingStore.playersReady ?? 0 }) }}
                 </button>
                 <button
                     class="cancel-button"
@@ -149,8 +149,8 @@ const downloadsAreRequiredForSelected = computed(() => {
 
 const downloading = ref(false);
 
-// Switching the active queue during a download cannot be allowed because it messes with state.
 function queueSelected(queue: string) {
+    // Switching the active queue during a download cannot be allowed because it messes with state.
     if (downloading.value) {
         return;
     } else matchmakingStore.selectedQueue = queue;

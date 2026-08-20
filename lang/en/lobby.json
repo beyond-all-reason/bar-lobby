@@ -155,8 +155,8 @@
                     "searchGame": "Search game",
                     "joinRequested": "Joining queue",
                     "searchingForOpponent": "Searching for opponent",
-                    "matchFound": "Matched - Click to Ready",
-                    "accepted": "Accepted",
+                    "matchFound": "Click to Ready ({seconds})",
+                    "accepted": "Accepted ({players} ready)",
                     "cancel": "Cancel",
                     "partyTooLarge": "Party Too Large",
                     "partyTooLargeTooltip": "Your party is too large to join this queue."
