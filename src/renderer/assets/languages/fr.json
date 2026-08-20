@@ -3932,7 +3932,9 @@
                 "declineInvite": null,
                 "kickMember": null,
                 "cancelInvite": null,
-                "noInvites": null
+                "noInvites": null,
+                "partyTooLarge": null,
+                "partyTooLargeTooltip": null
             },
             "watch": {
                 "replays": {
@@ -3991,7 +3993,9 @@
                     "searchingForOpponent": null,
                     "matchFound": null,
                     "accepted": null,
-                    "cancel": null
+                    "cancel": null,
+                    "partyTooLarge": null,
+                    "partyTooLargeTooltip": null
                 },
                 "modalTitle": null,
                 "modal": {

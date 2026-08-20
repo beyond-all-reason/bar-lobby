@@ -39,6 +39,13 @@ SPDX-License-Identifier: MIT
                     <div class="info bl" v-if="matchmakingStore.selectedQueue === queue" @click.stop="onInfoClick">
                         <Icon :icon="informationIcon"></Icon>
                     </div>
+                    <div
+                        class="info br"
+                        v-if="getTeamSize(queue) < getPartySize()"
+                        v-tooltip.bottom="{ value: t('lobby.multiplayer.ranked.buttons.partyTooLargeTooltip') }"
+                    >
+                        <Icon :icon="stopAlertOutlineIcon"></Icon>
+                    </div>
                 </Button>
             </div>
             <div class="button-container">
@@ -53,6 +60,9 @@ SPDX-License-Identifier: MIT
                         >This string should never be visible.</DownloadContentButton
                     >
                 </div>
+                <button v-else-if="partyTooLarge" class="quick-play-button invalid" disabled>
+                    {{ t("lobby.multiplayer.ranked.buttons.partyTooLarge") }}
+                </button>
                 <button
                     v-else-if="matchmakingStore.status === MatchmakingStatus.Idle"
                     class="quick-play-button"
@@ -78,10 +88,10 @@ SPDX-License-Identifier: MIT
                     class="quick-play-button"
                     @click="matchmaking.sendReadyRequest"
                 >
-                    {{ t("lobby.multiplayer.ranked.buttons.matchFound") }}
+                    {{ t("lobby.multiplayer.ranked.buttons.matchFound", { seconds: matchmakingStore.readySecondsRemaining }) }}
                 </button>
                 <button v-else-if="matchmakingStore.status === MatchmakingStatus.MatchAccepted" class="quick-play-button" disabled>
-                    {{ t("lobby.multiplayer.ranked.buttons.accepted") }}
+                    {{ t("lobby.multiplayer.ranked.buttons.accepted", { players: matchmakingStore.playersReady ?? 0 }) }}
                 </button>
                 <button
                     class="cancel-button"
@@ -106,6 +116,7 @@ SPDX-License-Identifier: MIT
 </template>
 
 <script lang="ts" setup>
+import { getPartySize, usePartySizeMatchmaking } from "@renderer/composables/usePartySizeMatchmaking";
 import { matchmaking, MatchmakingStatus, matchmakingStore, getPlaylistName } from "@renderer/store/matchmaking.store";
 import Button from "primevue/button";
 import { useTypedI18n } from "@renderer/i18n";
@@ -113,6 +124,7 @@ import { computed, onActivated, ref } from "vue";
 import DownloadContentButton from "@renderer/components/controls/DownloadContentButton.vue";
 import QueueDownloadsModal from "@renderer/components/misc/QueueDownloadsModal.vue";
 import informationIcon from "@iconify-icons/mdi/information";
+import stopAlertOutlineIcon from "@iconify-icons/mdi/stop-alert-outline";
 import { Icon } from "@iconify/vue";
 
 const { t } = useTypedI18n();
@@ -137,8 +149,8 @@ const downloadsAreRequiredForSelected = computed(() => {
 
 const downloading = ref(false);
 
-// Switching the active queue during a download cannot be allowed because it messes with state.
 function queueSelected(queue: string) {
+    // Switching the active queue during a download cannot be allowed because it messes with state.
     if (downloading.value) {
         return;
     } else matchmakingStore.selectedQueue = queue;
@@ -159,6 +171,12 @@ onActivated(() => {
 
 function onInfoClick() {
     if (!downloading.value) isQueueDownloadsModalOpen.value = true;
+}
+const { partyTooLarge } = usePartySizeMatchmaking();
+
+function getTeamSize(queue: string) {
+    const playlist = matchmakingStore.playlists.find((p) => p.id === queue);
+    return playlist ? playlist.teamSize : 0;
 }
 </script>
 
@@ -285,6 +303,10 @@ function onInfoClick() {
     transition:
         transform 0.3s ease,
         box-shadow 0.3s ease;
+}
+
+.quick-play-button.invalid {
+    background: linear-gradient(0deg, #1e2c23, #304135);
 }
 
 .searching {

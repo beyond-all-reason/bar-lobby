@@ -65,6 +65,13 @@ SPDX-License-Identifier: MIT
                                                 >
                                                     <Icon :icon="informationIcon"></Icon>
                                                 </div>
+                                                <div
+                                                    class="info br"
+                                                    v-if="getTeamSize(queue) < getPartySize()"
+                                                    v-tooltip.bottom="{ value: t('lobby.views.party.partyTooLargeTooltip') }"
+                                                >
+                                                    <Icon :icon="stopAlertOutlineIcon"></Icon>
+                                                </div>
                                             </Button>
                                         </div>
                                     </div>
@@ -86,6 +93,9 @@ SPDX-License-Identifier: MIT
                                                 >This string should never be visible.</DownloadContentButton
                                             >
                                         </div>
+                                        <button v-else-if="partyTooLarge" class="quick-play-button invalid" disabled>
+                                            {{ t("lobby.views.party.partyTooLarge") }}
+                                        </button>
                                         <button
                                             v-else-if="matchmakingStore.status === MatchmakingStatus.Idle"
                                             class="quick-play-button"
@@ -115,14 +125,22 @@ SPDX-License-Identifier: MIT
                                             class="quick-play-button"
                                             @click="matchmaking.sendReadyRequest"
                                         >
-                                            {{ t("lobby.multiplayer.ranked.buttons.matchFound") }}
+                                            {{
+                                                t("lobby.multiplayer.ranked.buttons.matchFound", {
+                                                    seconds: matchmakingStore.readySecondsRemaining,
+                                                })
+                                            }}
                                         </button>
                                         <button
                                             v-else-if="matchmakingStore.status === MatchmakingStatus.MatchAccepted"
                                             class="quick-play-button"
                                             disabled
                                         >
-                                            {{ t("lobby.multiplayer.ranked.buttons.accepted") }}
+                                            {{
+                                                t("lobby.multiplayer.ranked.buttons.accepted", {
+                                                    players: matchmakingStore.playersReady ?? 0,
+                                                })
+                                            }}
                                         </button>
                                         <button
                                             class="cancel-button"
@@ -207,8 +225,10 @@ import { matchmakingStore, matchmaking, MatchmakingStatus, getPlaylistName } fro
 import DownloadContentButton from "@renderer/components/controls/DownloadContentButton.vue";
 import QueueDownloadsModal from "@renderer/components/misc/QueueDownloadsModal.vue";
 import informationIcon from "@iconify-icons/mdi/information";
+import stopAlertOutlineIcon from "@iconify-icons/mdi/stop-alert-outline";
 import { Icon } from "@iconify/vue";
 import { chatStore } from "@renderer/store/chat.store";
+import { getPartySize, usePartySizeMatchmaking } from "@renderer/composables/usePartySizeMatchmaking";
 
 const { t } = useTypedI18n();
 
@@ -290,8 +310,8 @@ const downloadsAreRequiredForSelected = computed(() => {
 
 const downloading = ref(false);
 
-// Switching the active queue during a download cannot be allowed because it messes with state.
 function queueSelected(queue: string) {
+    // Switching the active queue during a download cannot be allowed because it messes with state.
     if (downloading.value) {
         return;
     } else matchmakingStore.selectedQueue = queue;
@@ -347,6 +367,13 @@ function getActivePartyMembers() {
 function getActivePartyInvites() {
     if (!partyStore.activeParty || !partyStore.parties.get(partyStore.activeParty)) return [];
     return partyStore.parties.get(partyStore.activeParty)!.invited;
+}
+
+const { partyTooLarge } = usePartySizeMatchmaking();
+
+function getTeamSize(queue: string) {
+    const playlist = matchmakingStore.playlists.find((p) => p.id === queue);
+    return playlist ? playlist.teamSize : 0;
 }
 </script>
 
@@ -429,6 +456,13 @@ function getActivePartyInvites() {
         bottom: 0px;
         left: 0px;
     }
+    &.br {
+        bottom: 0px;
+        right: 0px;
+        flex-wrap: wrap-reverse;
+        justify-content: flex-end;
+        max-width: 55%;
+    }
 }
 .info:hover {
     opacity: 1;
@@ -463,6 +497,10 @@ function getActivePartyInvites() {
     transition:
         transform 0.3s ease,
         box-shadow 0.3s ease;
+}
+
+.quick-play-button.invalid {
+    background: linear-gradient(0deg, #1e2c23, #304135);
 }
 
 .searching {

@@ -16,6 +16,11 @@ import { notificationsApi } from "@renderer/api/notifications";
 import { isTachyonErrorForCommand, tachyonRequest } from "@renderer/api/tachyon";
 import { onWentOffline } from "@renderer/utils/offline-signal";
 
+// The server is the authority on the real ready-up deadline and will send its own
+// matchmaking/cancelled event if we miss it; this margin just narrows the window
+// where our local countdown and the server's deadline can disagree.
+const READY_TIMEOUT_SAFETY_MARGIN_MS = 100;
+
 export enum MatchmakingStatus {
     Idle = "Idle",
     JoinRequested = "JoinRequested",
@@ -43,6 +48,9 @@ export const matchmakingStore: {
             maps: string[];
         };
     };
+    queueTimeout?: number;
+    readyCountdownInterval?: number;
+    readySecondsRemaining?: number;
 } = reactive({
     isInitialized: false,
     isDrawerOpen: false,
@@ -55,7 +63,22 @@ export const matchmakingStore: {
     playersReady: 0,
     playersQueued: 0,
     downloadsRequired: {},
+    queueTimeout: undefined,
+    readyCountdownInterval: undefined,
+    readySecondsRemaining: undefined,
 });
+
+function clearReadyTimers() {
+    if (matchmakingStore.queueTimeout !== undefined) {
+        window.clearTimeout(matchmakingStore.queueTimeout);
+        matchmakingStore.queueTimeout = undefined;
+    }
+    if (matchmakingStore.readyCountdownInterval !== undefined) {
+        window.clearInterval(matchmakingStore.readyCountdownInterval);
+        matchmakingStore.readyCountdownInterval = undefined;
+    }
+    matchmakingStore.readySecondsRemaining = undefined;
+}
 
 function onQueueUpdateEvent(data: MatchmakingQueueUpdateEventData) {
     console.log("Tachyon event: matchmaking/queueUpdate:", data);
@@ -64,6 +87,7 @@ function onQueueUpdateEvent(data: MatchmakingQueueUpdateEventData) {
 
 function onLostEvent() {
     console.log("Tachyon event: matchmaking/lost: no data");
+    clearReadyTimers();
     matchmakingStore.status = MatchmakingStatus.Searching;
 }
 
@@ -74,6 +98,7 @@ function onFoundUpdateEvent(data: MatchmakingFoundUpdateEventData) {
 
 function onCancelledEvent(data: MatchmakingCancelledEventData) {
     console.log("Tachyon event: matchmaking/cancelled:", data);
+    clearReadyTimers();
     matchmakingStore.status = MatchmakingStatus.Idle;
     if (data.reason === "version_changed") {
         sendListRequest();
@@ -82,16 +107,24 @@ function onCancelledEvent(data: MatchmakingCancelledEventData) {
 
 function onFoundEvent(data: MatchmakingFoundEventData) {
     console.log("Tachyon event: matchmaking/found:", data);
+    clearReadyTimers();
     matchmakingStore.status = MatchmakingStatus.MatchFound;
-    // Per spec, we have 10 seconds to send the ``matchmaking/ready`` request or we get cancelled from queue.
-    // Probably better to track this timer on the UI side because the user will either need to 'ready' or 'cancel'
-    // and they need to know this. Plus the UI has to "pop up" because they need to respond to it.
-    // But we don't want to be "triggering" the UI from the store. Instead, we should add a watcher,
-    // and when this value updates to MatchFound we can start our timer. Probably want a progress bar "counting down" too.
+    // Deadline is our local prediction of the server's timeout, not the source of truth for it.
+    const deadline = Date.now() + data.timeoutMs - READY_TIMEOUT_SAFETY_MARGIN_MS;
+    matchmakingStore.readySecondsRemaining = Math.max(0, Math.ceil((deadline - Date.now()) / 1000));
+    matchmakingStore.readyCountdownInterval = window.setInterval(() => {
+        matchmakingStore.readySecondsRemaining = Math.max(0, Math.ceil((deadline - Date.now()) / 1000));
+    }, 1000);
+    matchmakingStore.queueTimeout = window.setTimeout(() => {
+        clearReadyTimers();
+        matchmakingStore.status = MatchmakingStatus.Idle;
+    }, deadline - Date.now());
 }
 
 function onQueuesJoinedEvent(data: MatchmakingQueuesJoinedEventData) {
     console.log("Tachyon event: matchmaking/queuesJoined:", data);
+    // Current design is a single queue joined at a time. If the user has a *different* queue selected when their party joins, we switch so they match their party's selection.
+    matchmakingStore.selectedQueue = data.queues[0];
     notificationsApi.alert({ text: "Successfully joined matchmaking queue(s)", severity: "info" });
     matchmakingStore.status = MatchmakingStatus.Searching;
 }
@@ -211,6 +244,7 @@ async function sendQueueRequest() {
  * Sends a Tachyon 'matchmaking/cancel' request.
  */
 async function sendCancelRequest() {
+    clearReadyTimers();
     matchmakingStore.status = MatchmakingStatus.Idle;
     try {
         const response = await window.tachyon.request("matchmaking/cancel");
@@ -226,6 +260,7 @@ async function sendCancelRequest() {
  * Sends a Tachyon 'matchmaking/ready' request.
  */
 async function sendReadyRequest() {
+    clearReadyTimers();
     matchmakingStore.status = MatchmakingStatus.MatchAccepted;
     try {
         const response = await window.tachyon.request("matchmaking/ready");
@@ -264,6 +299,7 @@ export async function initializeMatchmakingStore() {
 // selectedQueue is the user's pick, not server state, and downloadsRequired is derived from
 // installed content rather than the session - the next list response recomputes it.
 export function clearOnlineState() {
+    clearReadyTimers();
     matchmakingStore.status = MatchmakingStatus.Idle;
     matchmakingStore.playlists = [];
     matchmakingStore.isLoadingQueues = false;
