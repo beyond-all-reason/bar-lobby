@@ -13,7 +13,8 @@
     flex-direction: column;
     flex-grow: 1;
     gap: 10px;
-    overflow: hidden;
+    overflow-x: hidden;
+    overflow-y: auto;
 }
 
 .view-title {

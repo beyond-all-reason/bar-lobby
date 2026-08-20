@@ -96,14 +96,14 @@ describe("Preload API Context Bridge", () => {
         await import("@preload/preload");
 
         mockWindow.mainWindow.setFullscreen(true);
-        mockWindow.mainWindow.setSize(42);
+        mockWindow.mainWindow.setSize(1920, 1080);
         mockWindow.mainWindow.flashFrame(false);
         mockWindow.mainWindow.minimize();
         mockWindow.mainWindow.isFullscreen();
         mockWindow.mainWindow.setUiScale(1.25);
 
         expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("mainWindow:setFullscreen", true);
-        expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("mainWindow:setSize", 42);
+        expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("mainWindow:setSize", 1920, 1080);
         expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("mainWindow:flashFrame", false);
         expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("mainWindow:minimize");
         expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("mainWindow:isFullscreen");
