@@ -2015,7 +2015,8 @@
             }
         },
         "buttons": {
-            "quickPlay": null
+            "quickPlay": null,
+            "readMore": null
         },
         "composables": {
             "useTerrainIcon": {
@@ -2376,10 +2377,6 @@
                 "devlogFeed": {
                     "latestChanges": null
                 },
-                "devlogEntry": {
-                    "title": null,
-                    "description": null
-                },
                 "preloader": {
                     "loading": null,
                     "loadingFonts": null,
@@ -2412,6 +2409,10 @@
                     "couldNotUploadLog": null,
                     "reload": null,
                     "quitToDesktop": null
+                },
+                "devlogEntry": {
+                    "title": null,
+                    "description": null
                 },
                 "initialSetup": {
                     "title": null,

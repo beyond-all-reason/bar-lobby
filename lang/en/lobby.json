@@ -32,7 +32,8 @@
             }
         },
         "buttons": {
-            "quickPlay": "Quick play"
+            "quickPlay": "Quick play",
+            "readMore": "Read more..."
         },
         "composables": {
             "useTerrainIcon": {
@@ -392,9 +393,6 @@
                 },
                 "devlogFeed": {
                     "latestChanges": "Latest changes"
-                },
-                "devlogEntry": {
-                    "readMore": "Read more..."
                 },
                 "preloader": {
                     "loading": "Loading",

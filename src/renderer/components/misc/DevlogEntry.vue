@@ -5,83 +5,84 @@ SPDX-License-Identifier: MIT
 -->
 
 <template>
-    <component
-        :is="entry?.link ? 'button' : 'div'"
-        class="dev-entry"
-        :class="{ clickable: !!entry?.link }"
-        :type="entry?.link ? 'button' : undefined"
-        @click="openEntry"
-    >
-        <div class="dev-title">
-            {{ title }}
-        </div>
-        <div v-if="entry?.published" class="dev-date">
+    <button class="dev-entry" type="button" @click="openEntry">
+        <span class="dev-title">{{ title }}</span>
+        <span v-if="entry.published" class="dev-date">
             {{ formatDistanceToNow(entry.published, { addSuffix: true }) }}
-        </div>
-        <div class="dev-desc">{{ description }}</div>
-        <div v-if="entry?.link" class="dev-more">{{ t("lobby.components.misc.devlogEntry.readMore") }}</div>
-    </component>
+        </span>
+        <span ref="descriptionEl" class="dev-desc">{{ description }}</span>
+        <span v-if="isTruncated" class="dev-more">{{ t("lobby.buttons.readMore") }}</span>
+    </button>
 </template>
 <script lang="ts" setup>
-import { NewsFeedData } from "@main/services/news.service";
+import { NewsFeedEntry } from "@main/services/news.service";
 import { formatDistanceToNow } from "date-fns";
-import { computed } from "vue";
+import { computed, onMounted, ref, useTemplateRef } from "vue";
+import { useResizeObserver } from "@vueuse/core";
 import { useTypedI18n } from "@renderer/i18n";
 import { shellApi } from "@renderer/api/shell";
 
 const { t } = useTypedI18n();
 
-const { entry } = defineProps<{ entry: NewsFeedData | undefined }>();
+const { entry } = defineProps<{ entry: NewsFeedEntry }>();
 
-const title = computed(() => entry?.title?.replace(" ⇀ Microblog ★ Beyond All Reason RTS", ""));
-const description = computed(() => entry?.description?.split("|")[1]?.trim());
+const title = computed(() => entry.title?.replace(" ⇀ Microblog ★ Beyond All Reason RTS", ""));
+// The feed prefixes the body with "<author> | ", and bodies contain pipes of their own.
+const description = computed(() => entry.description?.split("|").slice(1).join("|").trim());
+
+// "Read more" is only honest when the preview actually hides something, which depends on how
+// the clamped text lays out rather than on the entry itself.
+const descriptionEl = useTemplateRef<HTMLElement>("descriptionEl");
+const isTruncated = ref(false);
+const measure = () => {
+    const el = descriptionEl.value;
+    isTruncated.value = !!entry.link && !!el && el.scrollHeight > el.clientHeight;
+};
+onMounted(measure);
+useResizeObserver(descriptionEl, measure);
 
 const openEntry = () => {
-    if (entry?.link) shellApi.openInBrowser(entry.link);
+    if (entry.link) shellApi.openInBrowser(entry.link);
 };
 </script>
 <style lang="css" scoped>
 .dev-entry {
     display: block;
-    width: 100%;
-    text-align: left;
-    margin-bottom: 15px;
+    inline-size: 100%;
+    margin-block-end: 15px;
     padding: 10px;
-    border: none;
-    border-left: 2px solid rgba(255, 255, 255, 0.15);
+    border-inline-start: 2px solid rgba(255, 255, 255, 0.15);
     background: rgba(0, 0, 0, 0.35);
-    color: inherit;
-    font: inherit;
-}
-
-.dev-entry.clickable {
-    cursor: pointer;
     transition: 0.1s all;
 }
 
-.dev-entry.clickable:hover,
-.dev-entry.clickable:focus-visible {
+.dev-entry:hover,
+.dev-entry:focus-visible {
     background: rgba(0, 0, 0, 0.6);
-    border-left-color: #ffcc00;
+    border-inline-start-color: var(--accent-color);
+}
+
+.dev-title,
+.dev-date,
+.dev-desc,
+.dev-more {
+    display: block;
+    filter: drop-shadow(3px 3px 5px rgba(0, 0, 0, 0.8));
 }
 
 .dev-title {
     font-size: 1.2em;
     font-weight: semibold;
-    filter: drop-shadow(3px 3px 5px rgba(0, 0, 0, 0.8));
 }
 
 .dev-date {
     font-size: 0.8em;
-    margin-bottom: 5px;
-    filter: drop-shadow(3px 3px 5px rgba(0, 0, 0, 0.8));
+    margin-block-end: 5px;
     color: rgba(255, 255, 255, 0.6);
 }
 
 .dev-desc {
     color: rgba(255, 255, 255, 0.8);
-    filter: drop-shadow(3px 3px 5px rgba(0, 0, 0, 0.8));
-    font-size: 1em;
     overflow: hidden;
     display: -webkit-box;
     -webkit-box-orient: vertical;
@@ -90,9 +91,9 @@ const openEntry = () => {
 }
 
 .dev-more {
-    margin-top: 5px;
+    margin-block-start: 5px;
     font-size: 0.8em;
     font-weight: 600;
-    color: #ffcc00;
+    color: var(--accent-color);
 }
 </style>

@@ -128,7 +128,7 @@ const openNews = () => {
         transition: 0.2s opacity;
         .cta {
             margin-top: 20px;
-            color: #ffcc00;
+            color: var(--accent-color);
             font-weight: 600;
             cursor: pointer;
         }
