@@ -393,6 +393,10 @@
                 "devlogFeed": {
                     "latestChanges": "Lasett cngaehs"
                 },
+                "devlogEntry": {
+                    "title": "Deolvg Title",
+                    "description": "Deolvg Deitipocrsn"
+                },
                 "preloader": {
                     "loading": "Lndiaog",
                     "loadingFonts": "Lndiaog ftnos",
@@ -425,10 +429,6 @@
                     "couldNotUploadLog": "Culod not upolad log.",
                     "reload": "Rolead",
                     "quitToDesktop": "Quit to Dektosp"
-                },
-                "devlogEntry": {
-                    "title": "Deolvg Title",
-                    "description": "Deolvg Deitipocrsn"
                 },
                 "initialSetup": {
                     "title": "Iniaitl Stuep",

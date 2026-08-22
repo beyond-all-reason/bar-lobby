@@ -24,7 +24,9 @@ export const configSchema = Type.Object({
     mapsMetadataUrl: Type.String({ default: "https://maps-metadata.beyondallreason.dev/latest/lobby_maps.validated.json" }),
     newsRssUrl: Type.String({ default: "https://www.beyondallreason.info/news/rss.xml" }),
     devlogRssUrl: Type.String({ default: "https://www.beyondallreason.info/microblogs/rss.xml" }),
-    allowedUrlLinks: Type.Array(Type.String(), { default: ["https://bar-rts.com/replays", "https://www.beyondallreason.info/news"] }),
+    allowedUrlLinks: Type.Array(Type.String(), {
+        default: ["https://bar-rts.com/replays", "https://www.beyondallreason.info/news", "https://www.beyondallreason.info/microblogs"],
+    }),
     replayServiceUrl: Type.String({ default: "https://bar-rts.com/replays" }),
     onlineReplaysApiUrl: Type.String({ default: "https://api.bar-rts.com/replays" }),
     defaultServers: Type.Array(Type.String(), {

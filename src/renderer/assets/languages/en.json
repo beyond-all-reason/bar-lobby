@@ -2224,6 +2224,10 @@
                 "devlogFeed": {
                     "latestChanges": "Latest changes"
                 },
+                "devlogEntry": {
+                    "title": "Devlog Title",
+                    "description": "Devlog Description"
+                },
                 "preloader": {
                     "loading": "Loading",
                     "loadingFonts": "Loading fonts",
@@ -2256,10 +2260,6 @@
                     "couldNotUploadLog": "Could not upload log.",
                     "reload": "Reload",
                     "quitToDesktop": "Quit to Desktop"
-                },
-                "devlogEntry": {
-                    "title": "Devlog Title",
-                    "description": "Devlog Description"
                 },
                 "initialSetup": {
                     "title": "Initial Setup",
