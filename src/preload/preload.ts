@@ -40,11 +40,14 @@ contextBridge.exposeInMainWorld("info", infoApi);
 
 const mainWindowApi = {
     setFullscreen: (flag: boolean): Promise<void> => ipcRenderer.invoke("mainWindow:setFullscreen", flag),
-    setSize: (size: number): Promise<void> => ipcRenderer.invoke("mainWindow:setSize", size),
+    setSize: (width: number, height: number): Promise<void> => ipcRenderer.invoke("mainWindow:setSize", width, height),
+    setUiScale: (scale: number | null): Promise<void> => ipcRenderer.invoke("mainWindow:setUiScale", scale),
+    getScaleRange: (): Promise<{ min: number; max: number; os: number }> => ipcRenderer.invoke("mainWindow:getScaleRange"),
+    onScaleRangeChanged: (callback: (range: { min: number; max: number; os: number }) => void) => ipcRenderer.on("mainWindow:scaleRangeChanged", (_event, range) => callback(range)),
+    getDisplays: (): Promise<Array<{ index: number; scaleFactor: number; workArea: { width: number; height: number } }>> => ipcRenderer.invoke("mainWindow:getDisplays"),
     flashFrame: (flag: boolean): Promise<void> => ipcRenderer.invoke("mainWindow:flashFrame", flag),
     minimize: (): Promise<void> => ipcRenderer.invoke("mainWindow:minimize"),
     isFullscreen: (): Promise<boolean> => ipcRenderer.invoke("mainWindow:isFullscreen"),
-    resized: (): Promise<void> => ipcRenderer.invoke("mainWindow:resized"),
 };
 export type MainWindowApi = typeof mainWindowApi;
 contextBridge.exposeInMainWorld("mainWindow", mainWindowApi);
