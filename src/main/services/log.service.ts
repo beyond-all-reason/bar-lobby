@@ -10,7 +10,10 @@ import { packSpecificFiles } from "@main/utils/pack-7z";
 import { randomBytes } from "crypto";
 import axios from "axios";
 import { logger } from "@main/utils/logger";
+import { LOG_FILE_NAME } from "@main/utils/log-file-name";
 import { configService } from "@main/services/config.service";
+
+const PACK_COPY_GLOB = "*most_recent.log";
 
 async function getSortedLogFiles() {
     type logData = {
@@ -21,6 +24,7 @@ async function getSortedLogFiles() {
     // Get the log files from the log directory.
     const fileList: string[] = [];
     for await (const entry of glob("*.log", { cwd: LOGS_PATH })) {
+        if (!LOG_FILE_NAME.test(entry)) continue;
         const logPath = path.join(LOGS_PATH, entry);
         fileList.push(logPath);
     }
@@ -61,6 +65,11 @@ export async function purgeLogFiles() {
         await rm(zipPath);
     }
 
+    // Delete copies left behind by an interrupted pack.
+    for await (const entry of glob(PACK_COPY_GLOB, { cwd: LOGS_PATH })) {
+        await rm(path.join(LOGS_PATH, entry));
+    }
+
     return mostRecentFiles;
 }
 
@@ -91,10 +100,12 @@ export async function packLogFiles() {
     const archiveFile = `logs-${archiveTime}-${archiveRandom}.zip`;
     const archivePath = path.join(LOGS_PATH, archiveFile);
 
-    await packSpecificFiles(archivePath, filesToPack);
+    try {
+        await packSpecificFiles(archivePath, filesToPack);
+    } finally {
+        await rm(newFilePath, { force: true });
+    }
 
-    // Delete the copied file.
-    await rm(newFilePath);
     return archivePath;
 }
 
@@ -119,7 +130,7 @@ async function uploadLogFiles() {
     });
 
     // Delete the ZIP file after upload
-    rm(archivePath);
+    await rm(archivePath, { force: true });
 
     return uploadUrl;
 }

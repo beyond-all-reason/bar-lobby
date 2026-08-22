@@ -5,6 +5,7 @@
 import pino from "pino";
 import PinoPretty from "pino-pretty";
 import { LOGS_PATH, LOG_LEVEL } from "@main/config/app";
+import { logFileName } from "@main/utils/log-file-name";
 import path from "path";
 import { mkdirSync } from "fs";
 
@@ -22,11 +23,7 @@ const stdStream = PinoPretty({
     destination: 1,
 });
 
-const runId = new Date()
-    .toISOString()
-    .replace(/[^0-9T]/g, "")
-    .substring(0, 15);
-const logFilePath = path.join(LOGS_PATH, `lobby-${runId}.log`);
+const logFilePath = path.join(LOGS_PATH, logFileName(new Date()));
 
 const logStream = PinoPretty({
     ...messageFormatting,
