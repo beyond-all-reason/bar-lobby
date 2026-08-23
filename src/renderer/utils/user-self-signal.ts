@@ -14,3 +14,7 @@ export const onUserSelfLobbySignal = new Signal<string>();
 export const onUserSelfMatchmakingSignal = new Signal<PrivateUser["matchmaking"]>();
 
 export const onUserSelfBattleSignal = new Signal<PrivateBattle>();
+
+// Raised when the self user's status moves away from "playing", regardless of
+// what it changed to.
+export const onUserStoppedPlayingSignal = new Signal<void>();

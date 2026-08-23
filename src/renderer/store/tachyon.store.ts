@@ -11,7 +11,7 @@ import { UserId } from "tachyon-protocol/types";
 import { notificationsApi } from "@renderer/api/notifications";
 import { chat, chatStore } from "@renderer/store/chat.store";
 import { onWentOffline } from "@renderer/utils/offline-signal";
-import { onUserSelfBattleSignal } from "@renderer/utils/user-self-signal";
+import { onUserSelfBattleSignal, onUserStoppedPlayingSignal } from "@renderer/utils/user-self-signal";
 import { createSpringString, SpringConnectionDetails } from "@shared/spring-string";
 
 type MultiplayerBattleConnectionDetails = SpringConnectionDetails & {
@@ -215,6 +215,10 @@ export async function initTachyonStore() {
     onUserSelfBattleSignal.add((battle) => {
         tachyonStore.springConnectionDetails = battle;
         tachyonStore.rejoinModalOpen = true;
+    });
+
+    onUserStoppedPlayingSignal.add(() => {
+        tachyonStore.springConnectionDetails = undefined;
     });
 
     subsManager.onNewUsersAttached.add(async (users: UserId[]) => {

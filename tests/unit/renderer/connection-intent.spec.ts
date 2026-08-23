@@ -26,6 +26,7 @@ Object.assign(window.tachyon, {
     onConnected: (callback: () => void) => void connectHandlers.push(callback),
     onDisconnected: (callback: () => void) => void disconnectHandlers.push(callback),
     onBattleStart: (callback: (battle: BattleStartRequestData) => void) => void battleStartHandlers.push(callback),
+    onUserStoppedPlaying: (callback: () => void) => void onUserStoppedPlayingSignal.add(callback),
 });
 
 Object.defineProperty(window, "auth", {
@@ -37,7 +38,7 @@ Object.defineProperty(window, "game", { value: { launchMultiplayer }, writable: 
 
 const { tachyonStore, tachyon, initTachyonStore } = await import("@renderer/store/tachyon.store");
 const { me } = await import("@renderer/store/me.store");
-const { onUserSelfBattleSignal } = await import("@renderer/utils/user-self-signal");
+const { onUserSelfBattleSignal, onUserStoppedPlayingSignal } = await import("@renderer/utils/user-self-signal");
 
 const simulateConnect = () => connectHandlers.forEach((handler) => handler());
 const simulateClose = () => disconnectHandlers.forEach((handler) => handler());
@@ -159,5 +160,20 @@ describe("connection intent", () => {
             gameVersion: "game-version",
             springString: "spring://player:secret@127.0.0.1:8452",
         });
+    });
+
+    it("clears spring connection details when the self user stops playing", () => {
+        tachyonStore.springConnectionDetails = {
+            ip: "127.0.0.1",
+            port: 8452,
+            username: "player",
+            password: "secret",
+            engine: { version: "engine-version" },
+            game: { springName: "game-version" },
+        };
+
+        onUserStoppedPlayingSignal.dispatch();
+
+        expect(tachyonStore.springConnectionDetails).toBeUndefined();
     });
 });
