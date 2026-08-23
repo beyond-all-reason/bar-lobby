@@ -33,6 +33,7 @@ import { db } from "@renderer/store/db";
 import { battleStore, battleActions } from "@renderer/store/battle.store";
 import { router } from "@renderer/router";
 import { onWentOffline } from "@renderer/utils/offline-signal";
+import { onUserSelfLobbySignal } from "@renderer/utils/user-self-signal";
 
 const i18n = setupI18n();
 
@@ -68,6 +69,13 @@ export async function initLobbyStore() {
             requestSubscribeList();
         }
     });
+
+    onUserSelfLobbySignal.add((lobbyId) => {
+        // FIX: Naive implementation; lobbies may not be populated yet. Need to do some checks, request list update, and then update after success.
+        lobbyStore.selectedLobby = lobbyStore.lobbies[lobbyId];
+        // TODO: Whatever we use for a lobby preview should be dynamically updated, but if for some reason we have to trigger it that should be done here.
+    });
+
     lobbyStore.isInitialized = true;
 }
 

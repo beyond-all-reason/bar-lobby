@@ -10,11 +10,13 @@ import {
     MatchmakingListOkResponseData,
     MatchmakingQueuesJoinedEventData,
     MatchmakingQueueUpdateEventData,
+    PrivateUser,
 } from "tachyon-protocol/types";
 import { tachyonStore } from "@renderer/store/tachyon.store";
 import { notificationsApi } from "@renderer/api/notifications";
 import { isTachyonErrorForCommand, tachyonRequest } from "@renderer/api/tachyon";
 import { onWentOffline } from "@renderer/utils/offline-signal";
+import { onUserSelfMatchmakingSignal } from "@renderer/utils/user-self-signal";
 
 // The server is the authority on the real ready-up deadline and will send its own
 // matchmaking/cancelled event if we miss it; this margin just narrows the window
@@ -119,6 +121,25 @@ function onFoundEvent(data: MatchmakingFoundEventData) {
         clearReadyTimers();
         matchmakingStore.status = MatchmakingStatus.Idle;
     }, deadline - Date.now());
+}
+
+function onSelfUpdateFoundSignal(data: Extract<PrivateUser["matchmaking"], { state: "found" }>) {
+    console.log("User/self update: matchmaking/found state:", data);
+    clearReadyTimers();
+    if (data.queue.hasAlreadyReadied) {
+        matchmakingStore.status = MatchmakingStatus.MatchAccepted;
+    } else {
+        matchmakingStore.status = MatchmakingStatus.MatchFound;
+        const deadline = data.queue.timeoutAt * 1000 - READY_TIMEOUT_SAFETY_MARGIN_MS; // Convert Unix timestamp to milliseconds
+        matchmakingStore.readySecondsRemaining = Math.max(0, Math.ceil((deadline - Date.now()) / 1000));
+        matchmakingStore.readyCountdownInterval = window.setInterval(() => {
+            matchmakingStore.readySecondsRemaining = Math.max(0, Math.ceil((deadline - Date.now()) / 1000));
+        }, 1000);
+        matchmakingStore.queueTimeout = window.setTimeout(() => {
+            clearReadyTimers();
+            matchmakingStore.status = MatchmakingStatus.Idle;
+        }, deadline - Date.now());
+    }
 }
 
 function onQueuesJoinedEvent(data: MatchmakingQueuesJoinedEventData) {
@@ -292,6 +313,22 @@ export async function initializeMatchmakingStore() {
     if (tachyonStore.isConnected) {
         await sendListRequest();
     }
+    onUserSelfMatchmakingSignal.add((data) => {
+        switch (data.state) {
+            case "no_matchmaking":
+                clearReadyTimers();
+                matchmakingStore.status = MatchmakingStatus.Idle;
+                break;
+            case "queuing":
+                matchmakingStore.status = MatchmakingStatus.Searching;
+                // We use the first queue provided because we do not currently support multi-queuing.
+                matchmakingStore.selectedQueue = data.queues[0].id;
+                break;
+            case "found":
+                onSelfUpdateFoundSignal(data);
+                break;
+        }
+    });
 
     matchmakingStore.isInitialized = true;
 }
