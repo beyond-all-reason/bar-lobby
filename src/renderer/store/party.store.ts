@@ -21,6 +21,7 @@ import { Party } from "@renderer/model/party";
 import { subsManager } from "@renderer/store/users.store";
 import { chat } from "@renderer/store/chat.store";
 import { onWentOffline } from "@renderer/utils/offline-signal";
+import { onUserSelfPartyInvitesSignal, onUserSelfPartySignal } from "@renderer/utils/user-self-signal";
 
 const partySymbol = Symbol("party.store");
 
@@ -247,6 +248,12 @@ export async function initPartyStore() {
     window.tachyon.onEvent("party/invited", onInvitedEvent);
     window.tachyon.onEvent("party/removed", onRemovedEvent);
     window.tachyon.onEvent("party/updated", onUpdatedEvent);
+    onUserSelfPartySignal.add((partyStates) => {
+        for (const partyState of partyStates) {
+            partyStore.parties.set(partyState.id, { ...partyState, seen: false });
+        }
+        parseAllPartyData();
+    });
 
     partyStore.isInitialized = true;
 }

@@ -119,8 +119,8 @@ window.tachyon.onEvent("user/self", async (event) => {
         if (event.user.currentBattle) {
             onUserSelfBattleSignal.dispatch(event.user.currentBattle);
         }
-        if (event.user.party) {
-            onUserSelfPartySignal.dispatch(event.user.party);
+        if (event.user.party || event.user.invitedToParties) {
+            onUserSelfPartySignal.dispatch([...(event.user.party ? [event.user.party] : []), ...(event.user.invitedToParties || [])]);
         }
     }
 });

@@ -5,8 +5,12 @@
 import { Signal } from "$/jaz-ts-utils/signal";
 import { PartyState, PrivateUser, PrivateBattle } from "tachyon-protocol/types";
 
-// TODO: have each of the appropriate stores connect to these signals and resync the client state appropriately.
-export const onUserSelfPartySignal = new Signal<PartyState>();
-export const onUserSelfLobbySignal = new Signal<PrivateUser["currentLobby"]>();
+// We do not use PrivateUser["party"] to prevent null values in the dispatch
+export const onUserSelfPartySignal = new Signal<PartyState[]>();
+
+// Value provided in the string is the lobby ID.
+export const onUserSelfLobbySignal = new Signal<string>();
+
 export const onUserSelfMatchmakingSignal = new Signal<PrivateUser["matchmaking"]>();
+
 export const onUserSelfBattleSignal = new Signal<PrivateBattle>();
