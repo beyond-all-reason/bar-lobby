@@ -10,6 +10,7 @@ import { PrivateUser } from "tachyon-protocol/types";
 import { settingsStore } from "@renderer/store/settings.store";
 import { subsManager } from "@renderer/store/users.store";
 import { onWentOffline } from "@renderer/utils/offline-signal";
+import { onUserSelfPartySignal, onUserSelfLobbySignal, onUserSelfMatchmakingSignal, onUserSelfBattleSignal } from "@renderer/utils/user-self-signal";
 import { notificationsApi } from "@renderer/api/notifications";
 
 export const me = reactive<
@@ -105,6 +106,22 @@ window.tachyon.onEvent("user/self", async (event) => {
         });
 
         await processFriendData(event.user);
+        // If the event contains info relevant to other stores, we dispatch and let them decide how to respond
+        // TODO: Being in a battle outweighs being in a lobby. Lobby should navigate to the screen, but battle should offer to auto-rejoin immediately.
+        // Matchmaking is a timed affair, so we want the user to be aware of their current matchmaking state ASAP
+        // TODO: Test to make sure that matchmaking state is cleared if user is in a battle from matchmaking.
+        if (event.user.currentLobby) {
+            onUserSelfLobbySignal.dispatch(event.user.currentLobby);
+        }
+        if (event.user.matchmaking) {
+            onUserSelfMatchmakingSignal.dispatch(event.user.matchmaking);
+        }
+        if (event.user.currentBattle) {
+            onUserSelfBattleSignal.dispatch(event.user.currentBattle);
+        }
+        if (event.user.party) {
+            onUserSelfPartySignal.dispatch(event.user.party);
+        }
     }
 });
 
