@@ -71,8 +71,11 @@ export async function initLobbyStore() {
     });
 
     onUserSelfLobbySignal.add((lobbyId) => {
-        // FIX: Naive implementation; lobbies may not be populated yet. Need to do some checks, request list update, and then update after success.
-        lobbyStore.selectedLobby = lobbyStore.lobbies[lobbyId];
+        // FIX: Lobbies may not be populated yet. Need to do some checks, request list update, and then update after success.
+        if (lobbyStore.lobbies[lobbyId] !== undefined) {
+            // FIX: This is just setting a selected lobby in the list. We actually want to fetch the full activeLobby:LobbyOverview data. Might require a auto-rejoin?
+            lobbyStore.selectedLobby = lobbyStore.lobbies[lobbyId];
+        }
         // TODO: Whatever we use for a lobby preview should be dynamically updated, but if for some reason we have to trigger it that should be done here.
     });
 

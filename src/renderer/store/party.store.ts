@@ -21,7 +21,7 @@ import { Party } from "@renderer/model/party";
 import { subsManager } from "@renderer/store/users.store";
 import { chat } from "@renderer/store/chat.store";
 import { onWentOffline } from "@renderer/utils/offline-signal";
-import { onUserSelfPartyInvitesSignal, onUserSelfPartySignal } from "@renderer/utils/user-self-signal";
+import { onUserSelfPartySignal } from "@renderer/utils/user-self-signal";
 
 const partySymbol = Symbol("party.store");
 
