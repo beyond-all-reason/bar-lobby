@@ -11,6 +11,8 @@ import { UserId } from "tachyon-protocol/types";
 import { notificationsApi } from "@renderer/api/notifications";
 import { chat, chatStore } from "@renderer/store/chat.store";
 import { onWentOffline } from "@renderer/utils/offline-signal";
+import { onUserSelfBattleSignal } from "@renderer/utils/user-self-signal";
+import { createSpringString } from "@shared/spring-string";
 
 export const tachyonStore = reactive({
     isInitialized: false,
@@ -185,13 +187,22 @@ export async function initTachyonStore() {
         stopReconnecting();
     });
 
-    window.tachyon.onBattleStart((springString, data) => {
-        console.debug("Received battle start event", springString);
+    window.tachyon.onBattleStart((data) => {
+        console.debug("Received battle start event", data.ip, data.port);
         // tachyon.service.ts checks assets before sending this request here.
         window.game.launchMultiplayer({
             engineVersion: data.engine.version,
             gameVersion: data.game.springName,
-            springString,
+            springString: createSpringString(data),
+        });
+    });
+
+    // TODO: Make this a pop-up that confirms to rejoin battle.
+    onUserSelfBattleSignal.add((battle) => {
+        window.game.launchMultiplayer({
+            engineVersion: battle.engine.version,
+            gameVersion: battle.game.springName,
+            springString: createSpringString(battle),
         });
     });
 

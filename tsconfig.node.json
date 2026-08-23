@@ -5,6 +5,7 @@
         "electron-builder.config.*",
         "src/main/**/*",
         "src/preload/**/*",
+        "src/shared/**/*",
         "vendor/**/*",
         "tests/**/main/**/*.ts",
         "tests/**/shared/**/*.ts",
@@ -21,6 +22,7 @@
             "@main/*": ["src/main/*"],
             "@preload/*": ["src/preload/*"],
             "@renderer/*": ["src/renderer/*"],
+            "@shared/*": ["src/shared/*"],
             "$/*": ["vendor/*", "tools/*"]
         },
         "strict": true,

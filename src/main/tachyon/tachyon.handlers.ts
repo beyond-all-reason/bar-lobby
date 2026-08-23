@@ -53,9 +53,7 @@ function createBattleHandlers(webContents: BarIpcWebContents) {
                     });
                     return { status: "failed", reason: "internal_error" };
                 } else {
-                    const { ip, port, username, password } = data;
-                    const springString = `spring://${username}:${password}@${ip}:${port}`;
-                    webContents.send("tachyon:battleStart", springString, data);
+                    webContents.send("tachyon:battleStart", data);
                     return {
                         status: "success",
                     };
