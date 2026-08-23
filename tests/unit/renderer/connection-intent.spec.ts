@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+import type { BattleStartRequestData, PrivateBattle } from "tachyon-protocol/types";
 
 vi.mock("@renderer/router", () => ({ router: { currentRoute: { value: { path: "/" } }, push: vi.fn(), replace: vi.fn() } }));
 
@@ -11,9 +12,11 @@ vi.mock("@renderer/api/notifications", () => ({ notificationsApi: { alert: vi.fn
 const connectHandlers: Array<() => void> = [];
 const disconnectHandlers: Array<() => void> = [];
 const authHandlers: Array<(state: { authenticated: boolean }) => void> = [];
+const battleStartHandlers: Array<(battle: BattleStartRequestData) => void> = [];
 
 const connect = vi.fn(async () => {});
 const disconnect = vi.fn(async () => {});
+const launchMultiplayer = vi.fn();
 
 Object.assign(window.tachyon, {
     isConnected: vi.fn(async () => false),
@@ -22,7 +25,7 @@ Object.assign(window.tachyon, {
     request: vi.fn(async () => ({ data: {} })),
     onConnected: (callback: () => void) => void connectHandlers.push(callback),
     onDisconnected: (callback: () => void) => void disconnectHandlers.push(callback),
-    onBattleStart: vi.fn(),
+    onBattleStart: (callback: (battle: BattleStartRequestData) => void) => void battleStartHandlers.push(callback),
 });
 
 Object.defineProperty(window, "auth", {
@@ -30,8 +33,11 @@ Object.defineProperty(window, "auth", {
     writable: true,
 });
 
+Object.defineProperty(window, "game", { value: { launchMultiplayer }, writable: true });
+
 const { tachyonStore, tachyon, initTachyonStore } = await import("@renderer/store/tachyon.store");
 const { me } = await import("@renderer/store/me.store");
+const { onUserSelfBattleSignal } = await import("@renderer/utils/user-self-signal");
 
 const simulateConnect = () => connectHandlers.forEach((handler) => handler());
 const simulateClose = () => disconnectHandlers.forEach((handler) => handler());
@@ -48,6 +54,9 @@ describe("connection intent", () => {
         me.isAuthenticated = true;
         tachyonStore.isConnected = false;
         tachyonStore.wantsConnection = false;
+        tachyonStore.rejoinModalOpen = false;
+        tachyonStore.springConnectionDetails = undefined;
+        launchMultiplayer.mockClear();
     });
 
     afterEach(() => {
@@ -102,5 +111,53 @@ describe("connection intent", () => {
 
         vi.advanceTimersByTime(30000);
         expect(connect).not.toHaveBeenCalled();
+    });
+
+    it("stores and immediately launches a server-started battle", () => {
+        const battle = {
+            ip: "127.0.0.1",
+            port: 8452,
+            username: "player",
+            password: "secret",
+            engine: { version: "engine-version" },
+            game: { springName: "game-version" },
+            map: { springName: "map-version" },
+        } satisfies BattleStartRequestData;
+
+        battleStartHandlers.forEach((handler) => handler(battle));
+
+        expect(tachyonStore.springConnectionDetails).toEqual(battle);
+        expect(tachyonStore.rejoinModalOpen).toBe(false);
+        expect(launchMultiplayer).toHaveBeenCalledWith({
+            engineVersion: "engine-version",
+            gameVersion: "game-version",
+            springString: "spring://player:secret@127.0.0.1:8452",
+        });
+    });
+
+    it("stores a user/self currentBattle signal and opens the rejoin prompt without launching", () => {
+        const battle = {
+            ip: "127.0.0.1",
+            port: 8452,
+            username: "player",
+            password: "secret",
+            engine: { version: "engine-version" },
+            game: { springName: "game-version" },
+            map: { springName: "map-version" },
+        } satisfies PrivateBattle;
+
+        onUserSelfBattleSignal.dispatch(battle);
+
+        expect(tachyonStore.springConnectionDetails).toEqual(battle);
+        expect(tachyonStore.rejoinModalOpen).toBe(true);
+        expect(launchMultiplayer).not.toHaveBeenCalled();
+
+        tachyon.launchMultiplayerBattle(tachyonStore.springConnectionDetails);
+
+        expect(launchMultiplayer).toHaveBeenCalledWith({
+            engineVersion: "engine-version",
+            gameVersion: "game-version",
+            springString: "spring://player:secret@127.0.0.1:8452",
+        });
     });
 });

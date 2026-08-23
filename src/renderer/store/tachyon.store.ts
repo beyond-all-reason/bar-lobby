@@ -12,12 +12,18 @@ import { notificationsApi } from "@renderer/api/notifications";
 import { chat, chatStore } from "@renderer/store/chat.store";
 import { onWentOffline } from "@renderer/utils/offline-signal";
 import { onUserSelfBattleSignal } from "@renderer/utils/user-self-signal";
-import { createSpringString } from "@shared/spring-string";
+import { createSpringString, SpringConnectionDetails } from "@shared/spring-string";
+
+type MultiplayerBattleConnectionDetails = SpringConnectionDetails & {
+    engine: { version: string };
+    game: { springName: string };
+};
 
 export const tachyonStore = reactive({
     isInitialized: false,
     isConnected: false,
     wantsConnection: false,
+    rejoinModalOpen: false,
     serverStats: undefined,
     error: undefined,
 } as {
@@ -27,6 +33,8 @@ export const tachyonStore = reactive({
     // close while this is false is deliberate, so it isn't worth complaining
     // about and shouldn't be retried.
     wantsConnection: boolean;
+    rejoinModalOpen: boolean;
+    springConnectionDetails?: MultiplayerBattleConnectionDetails;
     serverStats?: SystemServerStatsOkResponseData;
     error?: string;
     fetchServerStatsInterval?: NodeJS.Timeout;
@@ -116,6 +124,16 @@ async function fetchServerStats() {
     }
 }
 
+function launchMultiplayerBattle(connectionDetails?: MultiplayerBattleConnectionDetails) {
+    if (!connectionDetails) return;
+
+    window.game.launchMultiplayer({
+        engineVersion: connectionDetails.engine.version,
+        gameVersion: connectionDetails.game.springName,
+        springString: createSpringString(connectionDetails),
+    });
+}
+
 export async function initTachyonStore() {
     tachyonStore.isConnected = await window.tachyon.isConnected();
     if (tachyonStore.isConnected) {
@@ -190,20 +208,13 @@ export async function initTachyonStore() {
     window.tachyon.onBattleStart((data) => {
         console.debug("Received battle start event", data.ip, data.port);
         // tachyon.service.ts checks assets before sending this request here.
-        window.game.launchMultiplayer({
-            engineVersion: data.engine.version,
-            gameVersion: data.game.springName,
-            springString: createSpringString(data),
-        });
+        tachyonStore.springConnectionDetails = data;
+        launchMultiplayerBattle(data);
     });
 
-    // TODO: Make this a pop-up that confirms to rejoin battle.
     onUserSelfBattleSignal.add((battle) => {
-        window.game.launchMultiplayer({
-            engineVersion: battle.engine.version,
-            gameVersion: battle.game.springName,
-            springString: createSpringString(battle),
-        });
+        tachyonStore.springConnectionDetails = battle;
+        tachyonStore.rejoinModalOpen = true;
     });
 
     subsManager.onNewUsersAttached.add(async (users: UserId[]) => {
@@ -236,4 +247,4 @@ export async function initTachyonStore() {
 
 // tachyonStore.reconnectInterval doubles as "are we still retrying", so a caller
 // can show that and call goOffline to give up.
-export const tachyon = { connect, goOffline };
+export const tachyon = { connect, goOffline, launchMultiplayerBattle };

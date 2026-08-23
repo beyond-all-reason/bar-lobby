@@ -62,6 +62,7 @@ SPDX-License-Identifier: MIT
         <FullscreenGameModeSelector v-if="state === 'default'" :visible="battleStore.isSelectingGameMode" />
         <LogInConfirmationModal v-model="logInConfirmationIsOpen" :intendedRoute="logInConfirmationIntendedRoute" />
         <ReportUserModal />
+        <RejoinBattleModal v-model="tachyonStore.rejoinModalOpen" />
     </div>
     <Error />
 </template>
@@ -89,6 +90,7 @@ import ReconnectingOverlay from "@renderer/components/misc/ReconnectingOverlay.v
 import PromptContainer from "@renderer/components/prompts/PromptContainer.vue";
 import LogInConfirmationModal from "@renderer/components/misc/LogInConfirmationModal.vue";
 import ReportUserModal from "@renderer/components/user/ReportUserModal.vue";
+import RejoinBattleModal from "@renderer/components/battle/RejoinBattleModal.vue";
 
 import { playRandomMusic } from "@renderer/utils/play-random-music";
 import { settingsStore } from "./store/settings.store";

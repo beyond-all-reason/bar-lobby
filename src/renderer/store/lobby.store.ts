@@ -70,13 +70,10 @@ export async function initLobbyStore() {
         }
     });
 
+    // If we get a user/self containing a current lobby, we need to send a join request to resync the lobby state.
+    // Since we are already in the lobby and lobby/join is idepotent, this is the simplest approach.
     onUserSelfLobbySignal.add((lobbyId) => {
-        // FIX: Lobbies may not be populated yet. Need to do some checks, request list update, and then update after success.
-        if (lobbyStore.lobbies[lobbyId] !== undefined) {
-            // FIX: This is just setting a selected lobby in the list. We actually want to fetch the full activeLobby:LobbyOverview data. Might require a auto-rejoin?
-            lobbyStore.selectedLobby = lobbyStore.lobbies[lobbyId];
-        }
-        // TODO: Whatever we use for a lobby preview should be dynamically updated, but if for some reason we have to trigger it that should be done here.
+        void requestJoinLobby(lobbyId);
     });
 
     lobbyStore.isInitialized = true;
