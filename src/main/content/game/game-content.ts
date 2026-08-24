@@ -251,17 +251,19 @@ export class GameContentAPI extends PrDownloaderAPI<string, GameVersion> {
             campaignId: campaign.campaignId,
             missionFolder,
             image,
-            unlocked: this.isMissionUnlocked(campaign, missionJson.missionId),
+            unlocked: this.isMissionUnlocked(),
         };
     }
 
     /**
-     * A mission is unlocked when the campaign lists no prerequisites for it.
+     * Whether a mission's prerequisites, as listed in the campaign's `unlocks` map, are satisfied.
      *
-     * TODO: check the listed prerequisites against the player's completed missions once that state exists.
+     * The lobby does not track completed missions yet, so every mission is currently unlocked.
+     * TODO: take the campaign and mission id and check `campaign.unlocks[missionId]` against the
+     * player's completed missions once that state exists.
      */
-    private isMissionUnlocked(campaign: CampaignDefinition, missionId: string): boolean {
-        return (campaign.unlocks?.[missionId]?.length ?? 0) === 0;
+    private isMissionUnlocked(): boolean {
+        return true;
     }
 
     public async getScenarios(gameVersion?: string): Promise<Scenario[]> {
