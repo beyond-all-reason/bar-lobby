@@ -11,9 +11,9 @@ SPDX-License-Identifier: MIT
 <template>
     <div class="view">
         <div class="margin-lg">
-            <h1>{{ route.meta.title }}</h1>
+            <h1>{{ t("lobby.singleplayer.campaigns.title") }}</h1>
             <div v-if="campaigns.length === 0" class="no-campaigns">
-                <p>No campaigns available for the selected game version.</p>
+                <p>{{ t("lobby.singleplayer.campaigns.noCampaigns") }}</p>
             </div>
             <div v-else class="campaign-list">
                 <div
@@ -48,7 +48,7 @@ SPDX-License-Identifier: MIT
                 </div>
             </div>
             <Panel v-if="settingsStore.devMode">
-                <Button disabled>Mission Configurator</Button>
+                <Button disabled>{{ t("lobby.singleplayer.campaigns.missionConfigurator") }}</Button>
             </Panel>
         </div>
     </div>
@@ -63,9 +63,11 @@ import { settingsStore } from "@renderer/store/settings.store";
 import { gameStore } from "@renderer/store/game.store";
 import { useCampaignLoader } from "@renderer/composables/useCampaignLoader";
 import { campaignCache } from "@renderer/store/campaign-cache";
+import { useTypedI18n } from "@renderer/i18n";
+
+const { t } = useTypedI18n();
 
 const router = useRouter();
-const route = router.currentRoute.value;
 
 const { campaigns, ensureLoaded } = useCampaignLoader();
 await ensureLoaded();

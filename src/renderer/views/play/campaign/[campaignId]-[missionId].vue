@@ -16,7 +16,7 @@ SPDX-License-Identifier: MIT
     <div class="view margin-lg">
         <div class="gridform">
             <div class="flex-right">
-                <Button v-tooltip.bottom="'Back'" class="icon close flex-right" @click="goBack">
+                <Button v-tooltip.bottom="t('lobby.singleplayer.campaigns.back')" class="icon close flex-right" @click="goBack">
                     <Icon :icon="arrow_back" :height="40" />
                 </Button>
             </div>
@@ -27,31 +27,35 @@ SPDX-License-Identifier: MIT
                 <i>{{ campaign?.title }}</i>
             </p>
             <p>{{ mission?.description }}</p>
-            <p v-if="authors.length > 0" class="authors">By {{ authors.join(", ") }}</p>
+            <p v-if="authors.length > 0" class="authors">
+                {{ t("lobby.singleplayer.campaigns.authors", { authors: authors.join(", ") }) }}
+            </p>
             <MapSimplePreview class="map-preview" :map="map"></MapSimplePreview>
             <Panel v-if="briefing" class="briefing">
-                <template #header><h3>Briefing</h3></template>
+                <template #header>
+                    <h3>{{ t("lobby.singleplayer.campaigns.briefing") }}</h3>
+                </template>
                 <div class="briefing-content">
                     <section v-if="briefing.objectives?.length">
-                        <h4>Objectives</h4>
+                        <h4>{{ t("lobby.singleplayer.campaigns.objectives") }}</h4>
                         <ul>
                             <li v-for="(objective, i) in briefing.objectives" :key="i">{{ objective }}</li>
                         </ul>
                     </section>
                     <section v-if="briefing.alliesPresent?.length">
-                        <h4>Allies present</h4>
+                        <h4>{{ t("lobby.singleplayer.campaigns.alliesPresent") }}</h4>
                         <ul>
                             <li v-for="(ally, i) in briefing.alliesPresent" :key="i">{{ ally }}</li>
                         </ul>
                     </section>
                     <section v-if="briefing.knownHostiles?.length">
-                        <h4>Known hostiles</h4>
+                        <h4>{{ t("lobby.singleplayer.campaigns.knownHostiles") }}</h4>
                         <ul>
                             <li v-for="(hostile, i) in briefing.knownHostiles" :key="i">{{ hostile }}</li>
                         </ul>
                     </section>
                     <section v-if="briefing.newUnits?.length">
-                        <h4>New units</h4>
+                        <h4>{{ t("lobby.singleplayer.campaigns.newUnits") }}</h4>
                         <ul>
                             <li v-for="unit in briefing.newUnits" :key="unit.unitDefName">
                                 <b>{{ unit.unitDefName }}</b> — {{ unit.description }}
@@ -65,7 +69,7 @@ SPDX-License-Identifier: MIT
             <Select
                 v-if="effectiveSettings.difficulties.length > 0"
                 v-model="selectedDifficulty"
-                label="Difficulty"
+                :label="t('lobby.singleplayer.campaigns.difficulty')"
                 :options="effectiveSettings.difficulties"
                 optionLabel="name"
             />
@@ -78,7 +82,7 @@ SPDX-License-Identifier: MIT
                 :disabled="gameStore.status !== GameStatus.CLOSED"
                 @click="launch"
             >
-                Launch
+                {{ t("lobby.singleplayer.campaigns.launch") }}
             </DownloadContentButton>
         </div>
     </div>
@@ -102,6 +106,9 @@ import { useCampaignLoader } from "@renderer/composables/useCampaignLoader";
 import { MissionDifficulty } from "@main/content/game/mission";
 import { missionEffectiveSettings, missionHumanTeamNames, missionToScriptStr } from "@main/utils/mission-script-converter";
 import { mapsStore } from "@renderer/store/maps.store";
+import { useTypedI18n } from "@renderer/i18n";
+
+const { t } = useTypedI18n();
 
 const router = useRouter();
 

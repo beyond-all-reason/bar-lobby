@@ -12,14 +12,16 @@ SPDX-License-Identifier: MIT
     <div class="view margin-lg">
         <div class="gridform">
             <div class="flex-right">
-                <Button v-tooltip.bottom="'Back'" class="icon close flex-right" @click="goBack">
+                <Button v-tooltip.bottom="t('lobby.singleplayer.campaigns.back')" class="icon close flex-right" @click="goBack">
                     <Icon :icon="arrow_back" :height="40" />
                 </Button>
             </div>
             <h1>{{ campaign?.title }}</h1>
         </div>
         <p>{{ campaign?.description }}</p>
-        <p v-if="campaign?.authors?.length" class="authors">By {{ campaign.authors.join(", ") }}</p>
+        <p v-if="campaign?.authors?.length" class="authors">
+            {{ t("lobby.singleplayer.campaigns.authors", { authors: campaign.authors.join(", ") }) }}
+        </p>
         <div class="mission-list">
             <div
                 v-for="[missionId, mission] in Object.entries(campaign?.missions ?? {})"
@@ -37,7 +39,12 @@ SPDX-License-Identifier: MIT
                     >
                         <div class="flex-row padding-md">
                             <div class="flex-start flex-grow">
-                                <h2>{{ mission.title }}<span v-if="!mission.unlocked" class="small-text margin-left-md">Locked</span></h2>
+                                <h2>
+                                    {{ mission.title
+                                    }}<span v-if="!mission.unlocked" class="small-text margin-left-md">{{
+                                        t("lobby.singleplayer.campaigns.locked")
+                                    }}</span>
+                                </h2>
                             </div>
                         </div>
                     </div>
@@ -55,6 +62,9 @@ import { Icon } from "@iconify/vue";
 import arrow_back from "@iconify-icons/mdi/arrow-back";
 import Panel from "@renderer/components/common/Panel.vue";
 import { useCampaignLoader } from "@renderer/composables/useCampaignLoader";
+import { useTypedI18n } from "@renderer/i18n";
+
+const { t } = useTypedI18n();
 
 const router = useRouter();
 
