@@ -211,11 +211,17 @@ export async function initTachyonStore() {
         launchMultiplayerBattle(data);
     });
 
+    window.tachyon.onBattleEnded((data) => {
+        console.debug("Received battle ended event", data);
+        tachyonStore.springConnectionDetails = undefined;
+    });
+
     onUserSelfBattleSignal.add((battle) => {
         tachyonStore.springConnectionDetails = battle;
         tachyonStore.rejoinModalOpen = true;
     });
 
+    // Supplanted by tachyon battle/ended. This should probably be removed.
     onUserStoppedPlayingSignal.add(() => {
         tachyonStore.springConnectionDetails = undefined;
     });
