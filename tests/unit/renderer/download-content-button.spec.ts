@@ -13,6 +13,7 @@ const { missing, ensure } = vi.hoisted(() => ({ missing: vi.fn(), ensure: vi.fn(
 vi.mock("@renderer/i18n", () => ({
     useTypedI18n: () => ({ t: (key: string) => key }),
 }));
+vi.mock("@renderer/router", () => ({ router: { push: vi.fn() } }));
 
 vi.mock("@renderer/api/notifications", () => ({
     notificationsApi: { alert: vi.fn() },

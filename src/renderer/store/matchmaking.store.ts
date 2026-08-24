@@ -17,6 +17,7 @@ import { notificationsApi } from "@renderer/api/notifications";
 import { isTachyonErrorForCommand, tachyonRequest } from "@renderer/api/tachyon";
 import { onWentOffline } from "@renderer/utils/offline-signal";
 import { onUserSelfMatchmakingSignal } from "@renderer/utils/user-self-signal";
+import { router } from "@renderer/router";
 
 // The server is the authority on the real ready-up deadline and will send its own
 // matchmaking/cancelled event if we miss it; this margin just narrows the window
@@ -140,6 +141,7 @@ function onSelfUpdateFoundSignal(data: Extract<PrivateUser["matchmaking"], { sta
             matchmakingStore.status = MatchmakingStatus.Idle;
         }, deadline - Date.now());
     }
+    router.push("/play/matchmaking");
 }
 
 function onQueuesJoinedEvent(data: MatchmakingQueuesJoinedEventData) {

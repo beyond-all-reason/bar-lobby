@@ -9,6 +9,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 const settings = vi.hoisted(() => ({ devMode: true, loginAutomatically: true }));
 
 vi.mock("@renderer/store/settings.store", () => ({ settingsStore: settings }));
+vi.mock("@renderer/router", () => ({ router: { push: vi.fn() } }));
 
 vi.mock("@renderer/store/users.store", () => ({
     subsManager: {

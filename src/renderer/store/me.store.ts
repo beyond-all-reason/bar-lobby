@@ -107,9 +107,6 @@ window.tachyon.onEvent("user/self", async (event) => {
 
         await processFriendData(event.user);
         // If the event contains info relevant to other stores, we dispatch and let them decide how to respond
-        // TODO: Being in a battle outweighs being in a lobby. Lobby should navigate to the screen, but battle should offer to auto-rejoin immediately.
-        // Matchmaking is a timed affair, so we want the user to be aware of their current matchmaking state ASAP
-        // TODO: Test to make sure that matchmaking state is cleared if user is in a battle from matchmaking.
         if (event.user.currentLobby) {
             onUserSelfLobbySignal.dispatch(event.user.currentLobby);
         }
