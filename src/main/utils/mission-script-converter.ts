@@ -3,8 +3,8 @@
 // SPDX-License-Identifier: MIT
 
 import { AllyTeam, Bot, Game, Player, Team } from "@main/model/start-script";
-import { AllyTeamModel, MissionDifficulty, MissionModel, TeamModel } from "@main/content/game/mission";
-import { CampaignDifficulty, CampaignModel } from "@main/content/game/campaign-model";
+import { AllyTeamModel, DifficultySettings, MissionDifficulty, MissionModel, MissionStartScript, TeamModel } from "@main/content/game/mission";
+import { CampaignModel } from "@main/content/game/campaign-model";
 import { startScriptConverter } from "@main/utils/start-script-converter";
 
 type MissionEffectiveSettings = {
@@ -18,24 +18,32 @@ type MissionEffectiveSettings = {
  * Resolves the effective settings for a mission, falling back to campaign-level
  * defaults where the mission does not override them.
  *
- * Accepts `undefined` for campaign to support standalone missions
- * (e.g. future scenarios migrated to MissionModel) that belong to no campaign.
+ * Accepts `undefined` for campaign to support standalone missions that belong to no campaign.
  */
 export function missionEffectiveSettings(campaign: CampaignModel | undefined, mission: MissionModel): MissionEffectiveSettings {
-    const campaignDifficulties = campaign ? campaignDifficultiesToArray(campaign.difficulties) : [];
     return {
-        difficulties: mission.difficulties ?? campaignDifficulties,
-        defaultDifficulty: mission.defaultDifficulty ?? campaign?.defaultDifficulty ?? "",
-        disableFactionPicker: mission.disableFactionPicker ?? false,
-        disableInitialCommanderSpawn: mission.disableInitialCommanderSpawn ?? false,
+        ...resolveDifficulties(campaign, mission),
+        disableFactionPicker: mission.startScript.disableFactionPicker ?? false,
+        disableInitialCommanderSpawn: mission.startScript.disableInitialCommanderSpawn ?? false,
     };
 }
 
-function campaignDifficultiesToArray(difficulties: Record<string, CampaignDifficulty>): MissionDifficulty[] {
+/**
+ * Picks the difficulty map and the default to select in it.
+ */
+function resolveDifficulties(campaign: CampaignModel | undefined, mission: MissionModel): Pick<MissionEffectiveSettings, "difficulties" | "defaultDifficulty"> {
+    const source = mission.difficulties ? mission : campaign;
+    const difficulties = difficultiesToArray(source?.difficulties ?? {});
+    const preferred = mission.defaultDifficulty ?? source?.defaultDifficulty;
+    const defaultDifficulty = difficulties.find((d) => d.name === preferred) ?? difficulties[0];
+    return { difficulties, defaultDifficulty: defaultDifficulty?.name ?? "" };
+}
+
+function difficultiesToArray(difficulties: Record<string, DifficultySettings>): MissionDifficulty[] {
     return Object.entries(difficulties).map(([name, d]) => ({
         name,
-        playerhandicap: d.playerHandicap ?? 0,
-        enemyhandicap: d.enemyHandicap ?? 0,
+        playerHandicap: d.playerHandicap ?? 0,
+        enemyHandicap: d.enemyHandicap ?? 0,
     }));
 }
 
@@ -56,9 +64,9 @@ type GameBuildContext = {
 };
 
 function humanTeamNamesForAllyTeam(allyTeam: AllyTeamModel): string[] {
-    return Object.entries(allyTeam.teams)
-        .filter(([, teamDef]) => !teamDef.ai)
-        .map(([teamKey, teamDef]) => teamDef.name ?? teamKey);
+    return Object.values(allyTeam.teams)
+        .filter((teamDef) => !teamDef.ai)
+        .map((teamDef) => teamDef.name);
 }
 
 function processTeam(ctx: GameBuildContext, atIdx: number, allyTeamHasHuman: boolean, teamKey: string, teamDef: TeamModel, playerHandicap: number, enemyHandicap: number): void {
@@ -72,15 +80,16 @@ function processTeam(ctx: GameBuildContext, atIdx: number, allyTeamHasHuman: boo
         id: thisTeamIdx,
         allyteam: atIdx,
         teamleader: 0,
-        ...(teamDef.Side && { side: teamDef.Side }),
-        ...(teamDef.StartPosX !== undefined && { startposx: teamDef.StartPosX }),
-        ...(teamDef.StartPosZ !== undefined && { startposz: teamDef.StartPosZ }),
-        ...(teamDef.IncomeMultiplier !== undefined && { incomemultiplier: teamDef.IncomeMultiplier }),
+        ...(teamDef.side && { side: teamDef.side }),
+        ...(teamDef.rgbColor && { rgbcolor: teamDef.rgbColor.join(" ") }),
+        ...(teamDef.startPosX !== undefined && { startposx: teamDef.startPosX }),
+        ...(teamDef.startPosZ !== undefined && { startposz: teamDef.startPosZ }),
+        ...(teamDef.incomeMultiplier !== undefined && { incomemultiplier: teamDef.incomeMultiplier }),
         ...(handicap !== 0 && { handicap }),
     };
     ctx.teams.push(teamEntry);
 
-    const teamName = teamDef.name ?? teamKey;
+    const teamName = teamDef.name;
 
     if (isAi) {
         ctx.aisMap[thisTeamIdx] = teamName;
@@ -105,12 +114,7 @@ function processAllyTeam(ctx: GameBuildContext, allyTeamName: string, allyTeam: 
     const atIdx = ctx.allyTeamIdx++;
     ctx.allyTeamsMap[allyTeamName] = atIdx;
 
-    const entry: AllyTeam = { id: atIdx, numallies: 0 };
-    if (allyTeam.startRectLeft !== undefined) entry.startrectleft = allyTeam.startRectLeft;
-    if (allyTeam.startRectTop !== undefined) entry.startrecttop = allyTeam.startRectTop;
-    if (allyTeam.startRectRight !== undefined) entry.startrectright = allyTeam.startRectRight;
-    if (allyTeam.startRectBottom !== undefined) entry.startrectbottom = allyTeam.startRectBottom;
-    ctx.allyTeams.push(entry);
+    ctx.allyTeams.push({ id: atIdx, numallies: 0 });
 
     const allyTeamHasHuman = Object.values(allyTeam.teams).some((t) => !t.ai);
 
@@ -128,7 +132,7 @@ function processAllyTeam(ctx: GameBuildContext, allyTeamName: string, allyTeam: 
  */
 export function missionHumanTeamNames(mission: MissionModel): string[] {
     const names: string[] = [];
-    for (const allyTeam of Object.values(mission.allyTeams)) {
+    for (const allyTeam of Object.values(mission.startScript.allyTeams)) {
         names.push(...humanTeamNamesForAllyTeam(allyTeam));
     }
     return names;
@@ -170,15 +174,17 @@ function missionToGame(
         botIdx: 0,
     };
 
-    const playerHandicap = difficulty?.playerhandicap ?? 0;
-    const enemyHandicap = difficulty?.enemyhandicap ?? 0;
+    const playerHandicap = difficulty?.playerHandicap ?? 0;
+    const enemyHandicap = difficulty?.enemyHandicap ?? 0;
 
-    for (const [allyTeamName, allyTeam] of Object.entries(mission.allyTeams)) {
+    const startScript = mission.startScript;
+
+    for (const [allyTeamName, allyTeam] of Object.entries(startScript.allyTeams)) {
         processAllyTeam(ctx, allyTeamName, allyTeam, playerHandicap, enemyHandicap);
     }
 
     const missionOptions = {
-        missionScriptPath: mission.missionScriptPath,
+        missionFolder: mission.missionFolder,
         difficulty: difficulty?.name ?? "",
         disableFactionPicker: effectiveSettings.disableFactionPicker,
         disableInitialCommanderSpawn: effectiveSettings.disableInitialCommanderSpawn,
@@ -193,7 +199,7 @@ function missionToGame(
 
     // Restrictions must be serialised as a flat indexed object so that
     // stringifyScriptObj produces the [restrict] { unit0=...; limit0=...; } format.
-    const unitLimitEntries = Object.entries(mission.unitLimits);
+    const unitLimitEntries = Object.entries(startScript.unitLimits ?? {});
     const restrict =
         unitLimitEntries.length > 0
             ? Object.fromEntries([
@@ -205,17 +211,19 @@ function missionToGame(
               ])
             : undefined;
 
+    const mapOptions = startScript.mapOptions ?? {};
+
     return {
         gametype: gameVersion,
-        mapname: mapNameOverride ?? mission.mapName,
-        startpostype: startPosTypeToInt(mission.startPosType),
+        mapname: mapNameOverride ?? startScript.mapName,
+        startpostype: startPosTypeToInt(startScript.startPosType),
         ishost: 1,
         myplayername: localPlayerTeamName,
         modoptions: {
-            ...mission.modOptions,
+            ...startScript.modOptions,
             missionoptions: btoa(JSON.stringify(missionOptions)),
         },
-        ...(Object.keys(mission.mapOptions).length > 0 && { mapoptions: mission.mapOptions }),
+        ...(Object.keys(mapOptions).length > 0 && { mapoptions: mapOptions }),
         ...(restrict && { restrict }),
         allyTeams: ctx.allyTeams,
         teams: ctx.teams,
@@ -238,7 +246,7 @@ export function missionToScriptStr(
     return startScriptConverter.generateScriptString(missionToGame(mission, difficulty, effectiveSettings, localPlayerTeamName, gameVersion, mapNameOverride));
 }
 
-function startPosTypeToInt(type: string): number {
+function startPosTypeToInt(type: MissionStartScript["startPosType"]): number {
     switch (type) {
         case "fixed":
             return 0;

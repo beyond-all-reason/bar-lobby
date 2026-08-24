@@ -2,78 +2,43 @@
 //
 // SPDX-License-Identifier: MIT
 
-export type MissionDifficulty = {
+import type { AllyTeam, MissionDefinition, Team } from "@main/content/game/generated/mission";
+
+/** Ally team as defined in `startScript.allyTeams` of a mission.json. */
+export type AllyTeamModel = AllyTeam;
+
+/** Team as defined in `startScript.allyTeams.<allyTeamName>.teams` of a mission.json. */
+export type TeamModel = Team;
+
+/** Everything needed to build the engine start script, as defined in a mission.json. */
+export type MissionStartScript = MissionDefinition["startScript"];
+
+/**
+ * Handicap settings of a single difficulty, as defined in a campaign.json or mission.json.
+ */
+export type DifficultySettings = NonNullable<MissionDefinition["difficulties"]>[string];
+
+/**
+ * A difficulty resolved for a mission, with its name attached and its handicaps defaulted.
+ *
+ * Missions and campaigns both store difficulties as a name-keyed map of optional handicaps;
+ * this is the flattened form the UI and the start-script converter work with.
+ */
+export type MissionDifficulty = Required<DifficultySettings> & {
     name: string;
-    playerhandicap: number;
-    enemyhandicap: number;
 };
 
-/** Mission-specific mod options, distinct from the multiplayer {@link ModOptions} in start-script.ts. */
-export type MissionModOptions = {
-    deathMode?: string;
-    maxunits?: number;
-    map_waterlevel?: number;
-    startenergy?: number;
-    startmetal?: number;
-    ruins?: string;
-};
-
-export type MapOptions = {
-    roads?: number;
-    waterlevel?: number;
-    waterdamage?: number;
-};
-
-export type TeamModel = {
-    /** In-game display name for this team. */
-    name?: string;
-    Side?: string;
-    StartPosX?: number;
-    StartPosZ?: number;
-    IncomeMultiplier?: number;
-    /** AI short-name, or null/undefined when the slot is a human player. */
-    ai?: string | null;
-};
-
-export type AllyTeamModel = {
-    /** Only needed when startPosType is "chooseInGame". */
-    startRectTop?: number;
-    startRectLeft?: number;
-    startRectBottom?: number;
-    startRectRight?: number;
-    /** Teams keyed by arbitrary custom team name defined in mission.lua. */
-    teams: Record<string, TeamModel>;
-};
-
-// Fields sourced from LobbyData and StartScript tables in mission.lua.
-// Triggers and Actions are intentionally ignored.
-export type MissionModel = {
-    // from context / LobbyData
-    /** Undefined for standalone missions (e.g. future scenarios migrated to MissionModel). */
+/**
+ * Mission as returned to the lobby: extends the schema-validated {@link MissionDefinition}
+ * with local-cache paths for images and runtime-populated fields.
+ */
+export type MissionModel = MissionDefinition & {
+    /** Undefined for standalone missions, which belong to no campaign. */
     campaignId?: string;
-    missionId: string;
-    /** Path to the mission.lua file, relative to the root of the game archive. */
-    missionScriptPath: string;
-    title: string;
-    description: string;
-    image?: string; // cached local path
-    startPos: { x: number; y: number };
+    /** Path to the mission's folder, relative to the root of the game archive. */
+    missionFolder: string;
+    /** Local cache path of the mission image, replacing the filename from the mission file. */
+    image?: string;
+    /** Whether this mission is currently unlocked (derived from the campaign's `unlocks` map, not from the mission file). */
     unlocked: boolean;
-    // from StartScript
-    mapName: string;
-    startPosType: string;
-    players: { min: number; max: number };
-    /** Overrides the campaign-level difficulties when present. */
-    difficulties?: MissionDifficulty[];
-    defaultDifficulty?: string;
-    /** Overrides the campaign-level disableFactionPicker when present. */
-    disableFactionPicker?: boolean;
-    /** Overrides the campaign-level disableInitialCommanderSpawn when present. */
-    disableInitialCommanderSpawn?: boolean;
-    modOptions: MissionModOptions;
-    mapOptions: MapOptions;
-    /** Unit def name → maximum allowed count. */
-    unitLimits: Record<string, number>;
-    /** Ally team name → AllyTeamModel. */
-    allyTeams: Record<string, AllyTeamModel>;
 };

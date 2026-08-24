@@ -19,9 +19,11 @@ import { DownloadInfo } from "@main/content/downloads";
 import { LuaOptionSection } from "@main/content/game/lua-options";
 import Ajv, { JSONSchemaType } from "ajv";
 import type { CampaignDefinition } from "@main/content/game/generated/campaign";
+import type { MissionDefinition } from "@main/content/game/generated/mission";
 import type { CampaignModel } from "@main/content/game/campaign-model";
 import campaignSchema from "@main/content/game/schemas/campaign.schema.json";
-import { AllyTeamModel, MapOptions, MissionDifficulty, MissionModel, MissionModOptions } from "@main/content/game/mission";
+import missionSchema from "@main/content/game/schemas/mission.schema.json";
+import { MissionModel } from "@main/content/game/mission";
 import { Scenario } from "@main/content/game/scenario";
 import { SdpFile, SdpFileMeta } from "@main/content/game/sdp";
 import { PrDownloaderAPI } from "@main/content/pr-downloader";
@@ -32,34 +34,14 @@ import { fileExists } from "@main/utils/file";
 const log = logger("game-content.ts");
 const gunzip = util.promisify(zlib.gunzip);
 
-const ajv = new Ajv();
+// allowUnionTypes: the mission schema types mod/map option values as string | number | boolean.
+const ajv = new Ajv({ allowUnionTypes: true });
 
 const validateCampaignFile = ajv.compile<CampaignDefinition>(campaignSchema as unknown as JSONSchemaType<CampaignDefinition>);
+const validateMissionFile = ajv.compile<MissionDefinition>(missionSchema as unknown as JSONSchemaType<MissionDefinition>);
 
-/** Raw shape of the `lobbyData` table in a mission Lua file. */
-type RawLobbyData = {
-    missionId?: string | number;
-    title?: string;
-    description?: string;
-    image?: string;
-    startPos?: { x: number; y: number };
-    unlocked?: boolean;
-};
-
-/** Raw shape of the `startScript` table in a mission Lua file. */
-type RawStartScript = {
-    mapName?: string;
-    startPosType?: string;
-    players?: { min: number; max: number };
-    difficulties?: MissionDifficulty[];
-    defaultDifficulty?: string;
-    disableFactionPicker?: boolean;
-    disableInitialCommanderSpawn?: boolean;
-    modOptions?: MissionModOptions;
-    mapOptions?: MapOptions;
-    unitLimits?: Record<string, number>;
-    allyTeams?: Record<string, AllyTeamModel>;
-};
+/** Root of the mission API content inside the game archive. */
+const CAMPAIGNS_PATH = "missions/campaigns";
 
 export class GameContentAPI extends PrDownloaderAPI<string, GameVersion> {
     public packageGameVersionLookup: { [md5: string]: string | undefined } = {};
@@ -194,15 +176,21 @@ export class GameContentAPI extends PrDownloaderAPI<string, GameVersion> {
     public async getCampaigns(gameVersion?: string): Promise<CampaignModel[]> {
         try {
             const packageMd5 = this.getPackageMd5ForGameVersion(gameVersion);
-            const campaignJsonFiles = await this.getGameFiles(packageMd5, "missions/campaigns/*.json", true);
+            // Each campaign lives in its own folder; the folder name's NN_ prefix sets the display order.
+            const campaignJsonFiles = this.sortedByPath(await this.getGameFiles(packageMd5, `${CAMPAIGNS_PATH}/*/campaign.json`, true));
             await fs.promises.mkdir(CAMPAIGN_IMAGE_PATH, { recursive: true });
 
             const campaigns: CampaignModel[] = [];
             for (const campaignFile of campaignJsonFiles) {
                 try {
-                    campaigns.push(await this.parseCampaignFile(campaignFile, packageMd5, CAMPAIGN_IMAGE_PATH));
+                    const campaign = await this.parseCampaignFile(campaignFile, packageMd5, CAMPAIGN_IMAGE_PATH);
+                    // Routes and lookups key on campaignId, so a duplicate would be unreachable.
+                    if (campaigns.some((c) => c.campaignId === campaign.campaignId)) {
+                        throw new Error(`Duplicate campaignId '${campaign.campaignId}'`);
+                    }
+                    campaigns.push(campaign);
                 } catch (err) {
-                    log.error(`Error parsing campaign ${campaignFile.fileName}: ${err}`);
+                    log.error(`Error parsing campaign ${this.sdpRelativePath(campaignFile)}: ${err}`);
                 }
             }
             if (campaigns.length > 0) {
@@ -218,65 +206,62 @@ export class GameContentAPI extends PrDownloaderAPI<string, GameVersion> {
     private async parseCampaignFile(campaignFile: SdpFile, md5: string, cacheDir: string): Promise<CampaignModel> {
         const campaignJson = JSON.parse(campaignFile.data.toString("utf8")) as unknown;
         if (!validateCampaignFile(campaignJson)) {
-            throw new Error(`Invalid campaign JSON (${campaignFile.fileName}): ${ajv.errorsText(validateCampaignFile.errors)}`);
+            throw new Error(`Invalid campaign JSON (${this.sdpRelativePath(campaignFile)}): ${ajv.errorsText(validateCampaignFile.errors)}`);
         }
         // raw is narrowed to Campaign by AJV's type guard — no cast needed
-        const campaignDirName = path.parse(this.sdpRelativePath(campaignFile)).name;
+        const campaignDirName = this.containingDirName(campaignFile);
+        const campaignPath = `${CAMPAIGNS_PATH}/${campaignDirName}`;
 
-        const logo = campaignJson.logo ? await this.extractAsset(md5, `missions/campaigns/${campaignDirName}/${campaignJson.logo}`, cacheDir, campaignDirName) : undefined;
-        const backgroundImage = campaignJson.backgroundImage
-            ? await this.extractAsset(md5, `missions/campaigns/${campaignDirName}/${campaignJson.backgroundImage}`, cacheDir, campaignDirName)
-            : undefined;
+        const logo = campaignJson.logo ? await this.extractAsset(md5, `${campaignPath}/${campaignJson.logo}`, cacheDir, campaignDirName) : undefined;
+        const backgroundImage = campaignJson.backgroundImage ? await this.extractAsset(md5, `${campaignPath}/${campaignJson.backgroundImage}`, cacheDir, campaignDirName) : undefined;
 
-        const missionLuaFiles = await this.getGameFiles(md5, `missions/campaigns/${campaignDirName}/*.lua`, true);
+        // Every subfolder holding a mission.json is a mission of this campaign.
+        const missionJsonFiles = this.sortedByPath(await this.getGameFiles(md5, `${campaignPath}/*/mission.json`, true));
         const missions: Record<string, MissionModel> = {};
 
-        for (const missionFile of missionLuaFiles) {
-            const missionFolder = path.parse(this.sdpRelativePath(missionFile)).name;
+        for (const missionFile of missionJsonFiles) {
+            const missionDirName = this.containingDirName(missionFile);
             try {
-                const mission = await this.parseMissionFile(missionFile, md5, campaignJson.campaignId, campaignDirName, cacheDir);
+                const mission = await this.parseMissionFile(missionFile, md5, campaignJson, campaignDirName, cacheDir);
+                // The campaign's 'unlocks' map keys on missionId, so a duplicate would be ambiguous.
+                if (mission.missionId in missions) {
+                    throw new Error(`Duplicate missionId '${mission.missionId}'`);
+                }
                 missions[mission.missionId] = mission;
             } catch (err) {
-                log.error(`Error parsing mission ${missionFolder} in ${campaignDirName}: ${err}`);
+                log.error(`Error parsing mission ${missionDirName} in ${campaignDirName}: ${err}`);
             }
         }
 
         return { ...campaignJson, logo, backgroundImage, missions };
     }
 
-    private async parseMissionFile(missionFile: SdpFile, md5: string, campaignId: string, campaignDirName: string, cacheDir: string): Promise<MissionModel> {
-        const missionFolder = path.parse(this.sdpRelativePath(missionFile)).name;
-        // TODO: update when mission files are json too
-        const lobbyData = parseLuaTable(missionFile.data, { tableVariableName: "lobbyData" }) as RawLobbyData;
-        const startScript = parseLuaTable(missionFile.data, { tableVariableName: "startScript" }) as RawStartScript;
+    private async parseMissionFile(missionFile: SdpFile, md5: string, campaign: CampaignDefinition, campaignDirName: string, cacheDir: string): Promise<MissionModel> {
+        const missionJson = JSON.parse(missionFile.data.toString("utf8")) as unknown;
+        if (!validateMissionFile(missionJson)) {
+            throw new Error(`Invalid mission JSON (${this.sdpRelativePath(missionFile)}): ${ajv.errorsText(validateMissionFile.errors)}`);
+        }
+        const missionDirName = this.containingDirName(missionFile);
+        const missionFolder = `${CAMPAIGNS_PATH}/${campaignDirName}/${missionDirName}`;
 
-        const image = lobbyData.image
-            ? await this.extractAsset(md5, `missions/campaigns/${campaignDirName}/${missionFolder}/${lobbyData.image}`, cacheDir, `${campaignDirName}_${missionFolder}`)
-            : undefined;
+        const image = missionJson.image ? await this.extractAsset(md5, `${missionFolder}/${missionJson.image}`, cacheDir, `${campaignDirName}_${missionDirName}`) : undefined;
 
         return {
-            campaignId,
-            missionId: String(lobbyData.missionId ?? missionFolder),
-            missionScriptPath: `missions/campaigns/${campaignDirName}/${missionFolder}.lua`,
-            title: lobbyData.title ?? "",
-            description: lobbyData.description ?? "",
+            ...missionJson,
+            campaignId: campaign.campaignId,
+            missionFolder,
             image,
-            startPos: lobbyData.startPos ?? { x: 0.25, y: 0.25 },
-            unlocked: lobbyData.unlocked ?? false,
-            mapName: startScript.mapName ?? "",
-            startPosType: startScript.startPosType ?? "chooseBeforeGame",
-            players: startScript.players ?? { min: 1, max: 4 },
-            ...(Array.isArray(startScript.difficulties) && {
-                difficulties: startScript.difficulties,
-                defaultDifficulty: startScript.defaultDifficulty ?? "",
-            }),
-            disableFactionPicker: startScript.disableFactionPicker,
-            disableInitialCommanderSpawn: startScript.disableInitialCommanderSpawn,
-            modOptions: startScript.modOptions ?? {},
-            mapOptions: startScript.mapOptions ?? {},
-            unitLimits: startScript.unitLimits ?? {},
-            allyTeams: startScript.allyTeams ?? {},
+            unlocked: this.isMissionUnlocked(campaign, missionJson.missionId),
         };
+    }
+
+    /**
+     * A mission is unlocked when the campaign lists no prerequisites for it.
+     *
+     * TODO: check the listed prerequisites against the player's completed missions once that state exists.
+     */
+    private isMissionUnlocked(campaign: CampaignDefinition, missionId: string): boolean {
+        return (campaign.unlocks?.[missionId]?.length ?? 0) === 0;
     }
 
     public async getScenarios(gameVersion?: string): Promise<Scenario[]> {
@@ -333,6 +318,16 @@ export class GameContentAPI extends PrDownloaderAPI<string, GameVersion> {
 
     private sdpRelativePath(file: SdpFileMeta): string {
         return file.fileName.includes("/") ? file.fileName : file.archivePath;
+    }
+
+    /** Name of the folder directly containing the file, e.g. `01_armada` for `missions/campaigns/01_armada/campaign.json`. */
+    private containingDirName(file: SdpFileMeta): string {
+        return path.basename(path.dirname(this.sdpRelativePath(file).replaceAll("\\", "/")));
+    }
+
+    /** Sorts files by path so that the NN_ prefixes of campaign and mission folders define the display order. */
+    private sortedByPath<T extends SdpFileMeta>(files: T[]): T[] {
+        return [...files].sort((a, b) => this.sdpRelativePath(a).localeCompare(this.sdpRelativePath(b)));
     }
 
     private async extractAsset(md5: string, filePath: string, cacheDir: string, prefix: string): Promise<string | undefined> {

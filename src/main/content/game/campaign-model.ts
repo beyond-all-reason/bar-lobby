@@ -5,9 +5,6 @@
 import type { CampaignDefinition } from "@main/content/game/generated/campaign";
 import type { MissionModel } from "@main/content/game/mission";
 
-/** Difficulty settings as defined in a campaign file. */
-export type CampaignDifficulty = CampaignDefinition["difficulties"][string];
-
 /**
  * Campaign as returned to the lobby: extends the schema-validated {@link CampaignDefinition}
  * with local-cache paths for images and runtime-populated fields.

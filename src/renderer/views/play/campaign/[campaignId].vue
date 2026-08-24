@@ -19,6 +19,7 @@ SPDX-License-Identifier: MIT
             <h1>{{ campaign?.title }}</h1>
         </div>
         <p>{{ campaign?.description }}</p>
+        <p v-if="campaign?.authors?.length" class="authors">By {{ campaign.authors.join(", ") }}</p>
         <div class="mission-list">
             <div
                 v-for="[missionId, mission] in Object.entries(campaign?.missions ?? {})"
@@ -103,6 +104,11 @@ function goBack() {
 
 .small-text {
     font-size: 60%;
+}
+
+.authors {
+    opacity: 0.7;
+    font-size: 0.9em;
 }
 
 .background_image {
