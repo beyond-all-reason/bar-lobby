@@ -26,6 +26,7 @@ Object.assign(window.tachyon, {
     onConnected: (callback: () => void) => void connectHandlers.push(callback),
     onDisconnected: (callback: () => void) => void disconnectHandlers.push(callback),
     onBattleStart: (callback: (battle: BattleStartRequestData) => void) => void battleStartHandlers.push(callback),
+    onBattleEnded: vi.fn(),
     onUserStoppedPlaying: (callback: () => void) => void onUserStoppedPlayingSignal.add(callback),
 });
 

@@ -17,6 +17,7 @@ Object.assign(window.tachyon, {
     dropConnection: vi.fn(async () => {}),
     request: vi.fn(async () => ({ data: {} })),
     onBattleStart: vi.fn(),
+    onBattleEnded: vi.fn(),
     onDisconnected: (callback: () => void) => void disconnectHandlers.push(callback),
     onConnected: (callback: () => void) => void connectHandlers.push(callback),
 });
