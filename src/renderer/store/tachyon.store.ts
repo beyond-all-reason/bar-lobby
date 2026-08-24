@@ -221,7 +221,7 @@ export async function initTachyonStore() {
         tachyonStore.rejoinModalOpen = true;
     });
 
-    // Supplanted by tachyon battle/ended. This should probably be removed.
+    // FIX: Supplanted by tachyon battle/ended. This should probably be removed.
     onUserStoppedPlayingSignal.add(() => {
         tachyonStore.springConnectionDetails = undefined;
     });

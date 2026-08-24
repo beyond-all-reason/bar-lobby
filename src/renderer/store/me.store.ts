@@ -107,10 +107,9 @@ window.tachyon.onEvent("user/self", async (event) => {
 
         await processFriendData(event.user);
         // If the event contains info relevant to other stores, we dispatch and let them decide how to respond
-        // FIX: dev server is sending this incorrectly as a sibling instead of a child of user. Must fix afterwards. Ignore errors for now.
-        if (event.currentBattle && Object.keys(event.currentBattle).length !== 0) {
-            console.log("User is in a battle, dispatching onUserSelfBattleSignal", event.currentBattle);
-            onUserSelfBattleSignal.dispatch(event.currentBattle);
+        if (event.user.currentBattle && Object.keys(event.user.currentBattle).length !== 0) {
+            console.log("User is in a battle, dispatching onUserSelfBattleSignal", event.user.currentBattle);
+            onUserSelfBattleSignal.dispatch(event.user.currentBattle);
         }
         if (event.user.currentLobby) {
             onUserSelfLobbySignal.dispatch(event.user.currentLobby);

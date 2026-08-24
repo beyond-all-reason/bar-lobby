@@ -17,4 +17,5 @@ export const onUserSelfBattleSignal = new Signal<PrivateBattle>();
 
 // Raised when the self user's status moves away from "playing", regardless of
 // what it changed to.
+// FIX: Remove once we get battleEnded event from the server, which is the correct way to handle this.
 export const onUserStoppedPlayingSignal = new Signal<void>();
