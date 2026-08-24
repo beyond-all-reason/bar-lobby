@@ -12,9 +12,9 @@
     },
     "main": ".vite/build/main.cjs",
     "scripts": {
-        "generate:campaign": "node --import=tsx tools/generate-campaign-types.ts",
+        "generate:schemas": "node --import=tsx tools/generate-schema-types.ts",
         "generate:i18n": "node --import=tsx tools/generate-i18n-asset-files.ts",
-        "generate": "npm run generate:campaign",
+        "generate": "npm run generate:schemas",
         "start": "npm run generate && cross-env NODE_OPTIONS=--enable-source-maps electron-forge start",
         "package": "npm run generate && electron-forge package",
         "preview": "electron-forge package && cross-env NODE_OPTIONS=--enable-source-maps NODE_ENV=production electron .",
