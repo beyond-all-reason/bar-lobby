@@ -19,7 +19,7 @@ SPDX-License-Identifier: MIT
                 <div
                     v-for="campaign in campaigns"
                     :key="campaign.campaignId"
-                    class="campaign-card"
+                    class="campaign-card content-card"
                     :class="{ locked: !campaign.unlocked }"
                     @click="campaign.unlocked && router.push(`/play/campaign/${campaign.campaignId}`)"
                 >
@@ -85,25 +85,6 @@ watch(
     flex-direction: column;
     gap: 10px;
     overflow-y: auto;
-}
-
-.campaign-card {
-    cursor: pointer;
-
-    &.locked {
-        cursor: not-allowed;
-        opacity: 0.6;
-    }
-
-    &:not(.locked):hover {
-        filter: brightness(1.15);
-    }
-}
-
-.background_image {
-    background-size: cover;
-    background-repeat: no-repeat;
-    background-position: center;
 }
 
 .no-campaigns {

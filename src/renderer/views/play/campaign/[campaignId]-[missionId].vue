@@ -196,11 +196,6 @@ function goBack() {
     flex: 0 0 auto;
 }
 
-.authors {
-    opacity: 0.7;
-    font-size: 0.9em;
-}
-
 .briefing {
     .briefing-content {
         display: flex;

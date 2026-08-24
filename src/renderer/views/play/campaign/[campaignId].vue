@@ -24,7 +24,7 @@ SPDX-License-Identifier: MIT
             <div
                 v-for="[missionId, mission] in Object.entries(campaign?.missions ?? {})"
                 :key="missionId"
-                class="mission-card"
+                class="mission-card content-card"
                 :class="{ locked: !mission.unlocked }"
                 @click="mission.unlocked && router.push(`/play/campaign/${campaignId}/${missionId}`)"
             >
@@ -89,31 +89,7 @@ function goBack() {
     height: 0px;
 }
 
-.mission-card {
-    cursor: pointer;
-
-    &.locked {
-        cursor: not-allowed;
-        opacity: 0.6;
-    }
-
-    &:not(.locked):hover {
-        filter: brightness(1.15);
-    }
-}
-
 .small-text {
     font-size: 60%;
-}
-
-.authors {
-    opacity: 0.7;
-    font-size: 0.9em;
-}
-
-.background_image {
-    background-size: cover;
-    background-repeat: no-repeat;
-    background-position: center;
 }
 </style>
