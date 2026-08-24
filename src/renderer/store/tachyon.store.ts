@@ -24,6 +24,7 @@ export const tachyonStore = reactive({
     isConnected: false,
     wantsConnection: false,
     rejoinModalOpen: false,
+    springConnectionDetails: undefined,
     serverStats: undefined,
     error: undefined,
 } as {
