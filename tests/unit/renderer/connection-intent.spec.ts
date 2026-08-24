@@ -152,8 +152,8 @@ describe("connection intent", () => {
         expect(tachyonStore.springConnectionDetails).toEqual(battle);
         expect(tachyonStore.rejoinModalOpen).toBe(true);
         expect(launchMultiplayer).not.toHaveBeenCalled();
-
-        tachyon.launchMultiplayerBattle(tachyonStore.springConnectionDetails);
+        // We claim that springConnectionDetails is not undefined because the test above already checked it, or failed.
+        tachyon.launchMultiplayerBattle(tachyonStore.springConnectionDetails!);
 
         expect(launchMultiplayer).toHaveBeenCalledWith({
             engineVersion: "engine-version",

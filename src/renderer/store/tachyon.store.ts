@@ -125,9 +125,7 @@ async function fetchServerStats() {
     }
 }
 
-function launchMultiplayerBattle(connectionDetails?: MultiplayerBattleConnectionDetails) {
-    if (!connectionDetails) return;
-
+function launchMultiplayerBattle(connectionDetails: MultiplayerBattleConnectionDetails) {
     window.game.launchMultiplayer({
         engineVersion: connectionDetails.engine.version,
         gameVersion: connectionDetails.game.springName,

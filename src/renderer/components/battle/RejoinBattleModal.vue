@@ -38,7 +38,9 @@ const isOpen = computed({
 
 function onConfirm() {
     console.log("Rejoining battle...");
-    tachyon.launchMultiplayerBattle(tachyonStore.springConnectionDetails);
+    if (tachyonStore.springConnectionDetails) {
+        tachyon.launchMultiplayerBattle(tachyonStore.springConnectionDetails);
+    }
     isOpen.value = false;
 }
 function onCancel() {
