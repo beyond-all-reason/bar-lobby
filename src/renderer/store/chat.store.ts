@@ -4,7 +4,7 @@
 
 import { reactive } from "vue";
 import { subsManager } from "@renderer/store/users.store";
-import { MessagingReceivedEventData, MessagingSendRequestData, MessagingSubscribeReceivedRequestData, UserId } from "tachyon-protocol/types";
+import { HistoryMarker, MessagingReceivedEventData, MessagingSendRequestData, MessagingSubscribeReceivedRequestData, UserId } from "tachyon-protocol/types";
 import { notificationsApi } from "@renderer/api/notifications";
 import { Message } from "@renderer/model/message";
 import { me } from "@renderer/store/me.store";
@@ -17,11 +17,13 @@ const chatSymbol = Symbol("chat.store");
 
 export const chatStore: {
     isInitialized: boolean;
+    lastMarker: HistoryMarker | null;
     lobbyChat: Message[];
     partyChat: Message[];
     userChats: Map<UserId, Message[]>;
 } = reactive({
     isInitialized: false,
+    lastMarker: null,
     lobbyChat: [],
     partyChat: [],
     userChats: new Map<UserId, Message[]>(), // Messages.vue will turn each of these Map elements into a TabPanel for the chat history with that user
@@ -63,13 +65,34 @@ async function requestSend(data: MessagingSendRequestData) {
 }
 
 /**
+ * Works out where the server should resume our message history from.
+ * @returns The `since` value to subscribe with
+ */
+function resumePoint(): MessagingSubscribeReceivedRequestData["since"] {
+    if (chatStore.lastMarker) {
+        return { type: "marker", value: chatStore.lastMarker };
+    }
+
+    // Without a marker there is nothing to line our history up against, so asking
+    // for the whole buffer would repeat anything we already hold.
+    return hasStoredMessages() ? { type: "latest" } : { type: "from_start" };
+}
+
+function hasStoredMessages(): boolean {
+    return chatStore.lobbyChat.length > 0 || chatStore.partyChat.length > 0 || [...chatStore.userChats.values()].some((chat) => chat.length > 0);
+}
+
+/**
  * Send a Tachyon request to subscribe to incoming messages (all types and sources).
  * @param data Payload of the data required for this request via Tachyon
  */
 async function requestSubscribeReceived(data?: MessagingSubscribeReceivedRequestData) {
     try {
-        const response = await window.tachyon.request("messaging/subscribeReceived", data ?? {});
+        const response = await window.tachyon.request("messaging/subscribeReceived", data ?? { since: resumePoint() });
         console.log("Tachyon messaging/subscribeReceived:", response);
+        if (response.data.hasMissedMessages) {
+            console.warn("Tachyon messaging/subscribeReceived: the server could not resume from our marker, history may have gaps");
+        }
     } catch (error) {
         console.error("Error with messaging/subscribeReceived", error);
         notificationsApi.alert({ text: "Error with request messaging/subscribeReceived", severity: "error" });
@@ -83,6 +106,9 @@ async function requestSubscribeReceived(data?: MessagingSubscribeReceivedRequest
  */
 function onMessagingReceivedEvent(data: MessagingReceivedEventData) {
     console.log("Tachyon event: messaging/received:", data);
+    // The server holds one buffer for every source and replays it in order, so
+    // the marker on the message we just got is always the latest one we have.
+    chatStore.lastMarker = data.marker;
     subsManager.attach(data.source.userId, chatSymbol);
     insertMessage(data, data.source);
 }
