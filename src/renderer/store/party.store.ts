@@ -218,9 +218,9 @@ function parseAllPartyData() {
     });
     subsManager.setList(users, partySymbol);
 
-    // Messages are not held per party, so a previous party's chat would otherwise
-    // still be sitting in this one. Comparing ids keeps a re-parse of the same
-    // party, which happens on every update, from wiping it.
+    // Leaving clears the transcript, but going offline keeps it and sends no
+    // leave, so entering the next party has to clear that one. Comparing ids keeps
+    // a re-parse of the same party, which happens on every update, from wiping it.
     if (partyStore.activeParty && partyStore.activeParty !== previousParty) {
         chat.clearPartyChat();
     }

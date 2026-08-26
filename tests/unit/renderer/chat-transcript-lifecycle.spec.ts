@@ -54,6 +54,26 @@ describe("chat transcript lifecycle", () => {
             expect(chatStore.lobbyChat).toEqual([]);
         });
 
+        it("clears the chat on leaving", async () => {
+            vi.mocked(window.tachyon.request).mockResolvedValue({ data: lobbyPayload("lobby-2") } as never);
+            await lobby.requestJoinLobby("lobby-2");
+            chatStore.lobbyChat.push({ message: "said in this lobby" } as never);
+
+            await lobby.requestLeaveLobby();
+
+            expect(chatStore.lobbyChat).toEqual([]);
+        });
+
+        it("clears the chat on being dropped from the lobby", async () => {
+            vi.mocked(window.tachyon.request).mockResolvedValue({ data: lobbyPayload("lobby-2") } as never);
+            await lobby.requestJoinLobby("lobby-2");
+            chatStore.lobbyChat.push({ message: "said in this lobby" } as never);
+
+            emit("lobby/left", { id: "lobby-2" });
+
+            expect(chatStore.lobbyChat).toEqual([]);
+        });
+
         // A lobby/updated event arrives on any change to the lobby we are already
         // in, so treating one as an entry would wipe the chat constantly.
         it("leaves the chat alone on an update to the lobby it is already in", async () => {

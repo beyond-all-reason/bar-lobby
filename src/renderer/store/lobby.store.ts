@@ -243,9 +243,9 @@ function parseLobbyResponseData(data: LobbyCreateOkResponseData | LobbyJoinOkRes
     } else {
         //Apply the patch for a join/create response
         lobbyStore.activeLobby = applyPatch({}, data);
-        // Messages are not held per lobby, so the previous lobby's chat would
-        // otherwise still be sitting in this one. Reconnecting does not come
-        // through here, which is what keeps a dropped socket from wiping it.
+        // Leaving clears the transcript, but going offline keeps it and sends no
+        // leave, so entering the next lobby has to clear that one. A reconnect
+        // does not come through here, so a dropped socket cannot wipe it.
         chat.clearLobbyChat();
     }
     if (!lobbyStore.activeLobby) {
@@ -314,6 +314,7 @@ async function requestLeaveLobby() {
     // If we ever use a specific view for a lobby instead of BattleDrawer, we need to push a route here
     clearUserSubscriptions();
     lobbyStore.activeLobby = undefined;
+    chat.clearLobbyChat();
 }
 
 /**
@@ -418,6 +419,7 @@ function onLobbyLeftEvent(data: LobbyLeftEventData) {
     if (!lobbyStore.activeLobby || lobbyStore.activeLobby.id != data.id) return;
     clearUserSubscriptions();
     lobbyStore.activeLobby = undefined;
+    chat.clearLobbyChat();
     console.log("Tachyon event: lobby/left:", data);
     if (router.currentRoute.value.path == "/play/lobby") {
         // We use replace instead of push so the user can't use "back".
