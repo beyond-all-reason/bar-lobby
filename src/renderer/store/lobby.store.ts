@@ -29,6 +29,7 @@ import { notificationsApi } from "@renderer/api/notifications";
 import { Lobby } from "@renderer/model/lobby";
 import { setupI18n } from "@renderer/i18n";
 import { subsManager } from "@renderer/store/users.store";
+import { chat } from "@renderer/store/chat.store";
 import { db } from "@renderer/store/db";
 import { battleStore, battleActions } from "@renderer/store/battle.store";
 import { router } from "@renderer/router";
@@ -242,6 +243,10 @@ function parseLobbyResponseData(data: LobbyCreateOkResponseData | LobbyJoinOkRes
     } else {
         //Apply the patch for a join/create response
         lobbyStore.activeLobby = applyPatch({}, data);
+        // Messages are not held per lobby, so the previous lobby's chat would
+        // otherwise still be sitting in this one. Reconnecting does not come
+        // through here, which is what keeps a dropped socket from wiping it.
+        chat.clearLobbyChat();
     }
     if (!lobbyStore.activeLobby) {
         console.error("Active Lobby is null or undefined after applyPatch. This should never happen!");

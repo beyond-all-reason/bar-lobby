@@ -15,6 +15,12 @@ import { onWentOffline } from "@renderer/utils/offline-signal";
 
 const chatSymbol = Symbol("chat.store");
 
+const SUBSCRIBE_RETRY_DELAY = 5000;
+const SUBSCRIBE_ATTEMPT_LIMIT = 5;
+
+let subscribeRetryTimer: ReturnType<typeof setTimeout> | undefined;
+let subscribeAttempts = 0;
+
 export const chatStore: {
     isInitialized: boolean;
     lastMarker: HistoryMarker | null;
@@ -87,16 +93,51 @@ function hasStoredMessages(): boolean {
  * @param data Payload of the data required for this request via Tachyon
  */
 async function requestSubscribeReceived(data?: MessagingSubscribeReceivedRequestData) {
+    subscribeAttempts = 0;
+
+    return subscribeReceived(data);
+}
+
+async function subscribeReceived(data?: MessagingSubscribeReceivedRequestData) {
+    cancelSubscribeRetry();
+    subscribeAttempts++;
+
+    const request = data ?? { since: resumePoint() };
+
     try {
-        const response = await window.tachyon.request("messaging/subscribeReceived", data ?? { since: resumePoint() });
+        const response = await window.tachyon.request("messaging/subscribeReceived", request);
         console.log("Tachyon messaging/subscribeReceived:", response);
-        if (response.data.hasMissedMessages) {
-            console.warn("Tachyon messaging/subscribeReceived: the server could not resume from our marker, history may have gaps");
+        subscribeAttempts = 0;
+
+        // Only a marker we thought was live says anything here. The server also
+        // reports a gap for from_start, where the flag stays set for the rest of
+        // the session once its buffer has overflowed even once.
+        if (response.data.hasMissedMessages && request.since?.type === "marker") {
+            console.warn("Tachyon messaging/subscribeReceived: could not resume from our marker, chat history has a gap");
         }
     } catch (error) {
         console.error("Error with messaging/subscribeReceived", error);
-        notificationsApi.alert({ text: "Error with request messaging/subscribeReceived", severity: "error" });
+        scheduleSubscribeRetry(data);
     }
+}
+
+// A subscription that fails leaves us connected and receiving nothing, with
+// nothing to try again until the socket happens to drop. The server keeps
+// buffering either way, so a later attempt still picks up what was missed.
+function scheduleSubscribeRetry(data?: MessagingSubscribeReceivedRequestData) {
+    if (subscribeAttempts >= SUBSCRIBE_ATTEMPT_LIMIT) {
+        notificationsApi.alert({ text: "Error with request messaging/subscribeReceived", severity: "error" });
+        return;
+    }
+
+    subscribeRetryTimer = setTimeout(() => void subscribeReceived(data), SUBSCRIBE_RETRY_DELAY);
+}
+
+function cancelSubscribeRetry() {
+    if (subscribeRetryTimer === undefined) return;
+
+    clearTimeout(subscribeRetryTimer);
+    subscribeRetryTimer = undefined;
 }
 
 /**
@@ -190,10 +231,15 @@ function addNewUserChat(userId: UserId): boolean {
     } else return false;
 }
 
-// userChats survives; DM history isn't tied to a lobby or party the server just dropped us from.
+// Chat is a transcript of what was said rather than state the server owns, and
+// going offline ends the session holding the only other copy, so none of it can
+// be fetched again. The lobby and party transcripts are cleared on entering the
+// next one instead.
 function clearOnlineState() {
-    clearLobbyChat();
-    clearPartyChat();
+    cancelSubscribeRetry();
+    // system/disconnect stops the session and takes its message buffer with it,
+    // leaving the marker pointing at nothing.
+    chatStore.lastMarker = null;
 }
 
 export const chat = {

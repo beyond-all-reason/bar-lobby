@@ -131,8 +131,24 @@ describe("going offline", () => {
             expect(lobbyStore.lobbies).toEqual({});
             expect(matchmakingStore.status).toBe(MatchmakingStatus.Idle);
             expect(matchmakingStore.playlists).toEqual([]);
-            expect(chatStore.lobbyChat).toEqual([]);
-            expect(chatStore.partyChat).toEqual([]);
+        });
+
+        // Going offline ends the session that held the server's only copy of these
+        // messages, so clearing them here would destroy history nothing can send
+        // again. Entering the next lobby or party is what clears them.
+        it("keeps the chat transcript the server can no longer send us", async () => {
+            await tachyon.goOffline();
+
+            expect(chatStore.lobbyChat).toHaveLength(1);
+            expect(chatStore.partyChat).toHaveLength(1);
+        });
+
+        it("drops the marker, which the ended session leaves pointing at nothing", async () => {
+            chatStore.lastMarker = "-576460745805023";
+
+            await tachyon.goOffline();
+
+            expect(chatStore.lastMarker).toBeNull();
         });
 
         it("keeps what the user picked rather than what the server said", async () => {
