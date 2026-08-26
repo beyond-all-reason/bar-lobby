@@ -5,13 +5,15 @@ SPDX-License-Identifier: MIT
 -->
 
 <template>
-    <Modal v-model="isOpen" :title="'Rejoin Battle?'">
+    <Modal v-model="isOpen" :title="t('lobby.components.battle.rejoinBattleModal.title')">
         <div class="container">
-            <p>The server indicated that you were in an active battle.</p>
-            <p>Would you like to attempt to rejoin the battle?</p>
+            <p>{{ t("lobby.components.battle.rejoinBattleModal.description1") }}</p>
+            <p>{{ t("lobby.components.battle.rejoinBattleModal.description2") }}</p>
             <div class="flex-row flex-center padding-top-lg gap-xl">
-                <Button class="green fullwidth" @click="onConfirm">Rejoin</Button>
-                <Button class="red fullwidth" @click="onCancel">Ignore</Button>
+                <Button class="green fullwidth" @click="onConfirm">{{
+                    t("lobby.components.battle.rejoinBattleModal.rejoinButton")
+                }}</Button>
+                <Button class="red fullwidth" @click="onCancel">{{ t("lobby.components.battle.rejoinBattleModal.ignoreButton") }}</Button>
             </div>
         </div>
     </Modal>
@@ -22,6 +24,9 @@ import { computed } from "vue";
 import Modal from "@renderer/components/common/Modal.vue";
 import Button from "@renderer/components/controls/Button.vue";
 import { tachyon, tachyonStore } from "@renderer/store/tachyon.store";
+import { useTypedI18n } from "@renderer/i18n";
+
+const { t } = useTypedI18n();
 
 const props = withDefaults(
     defineProps<{
