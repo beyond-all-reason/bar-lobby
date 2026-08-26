@@ -7,11 +7,14 @@ SPDX-License-Identifier: MIT
 <template>
     <PopOutPanel :open="modelValue">
         <TabView v-model:activeIndex="activeTabIndex" class="messages-tabview">
-            <TabPanel v-for="[userId, messages] in directMessages" :key="userId">
+            <TabPanel v-for="[userId, messages] in chatStore.userChats" :key="userId">
                 <template #header>
                     <div class="tab-header">
-                        <div>{{ getUsername(userId) }}</div>
-                        <div class="flex-row close" @click="close(userId)">
+                        <div>
+                            {{ displayNames?.get(userId) }}
+                            <Icon :icon="messageProcessing" :class="hasUnseenMessage(messages) ? 'icon-alert' : ''" />
+                        </div>
+                        <div class="flex-row close" @click="closeUserTab(userId)">
                             <Icon :icon="closeThick" />
                         </div>
                     </div>
@@ -21,10 +24,10 @@ SPDX-License-Identifier: MIT
                         <div
                             v-for="(message, i) in messages"
                             :key="i"
-                            v-in-view.once="() => (message.read = true)"
-                            :class="['message', { fromMe: message.senderUserId === me.userId }]"
+                            v-in-view.once="() => (message.seen = true)"
+                            :class="['message', { fromMe: message.source.userId === me.userId }]"
                         >
-                            <Markdown :source="message.text" />
+                            <Markdown :source="message.message" />
                         </div>
                     </div>
                 </div>
@@ -70,6 +73,7 @@ SPDX-License-Identifier: MIT
 import { Icon } from "@iconify/vue";
 import chatPlus from "@iconify-icons/mdi/chat-plus";
 import closeThick from "@iconify-icons/mdi/close-thick";
+import messageProcessing from "@iconify-icons/mdi/message-processing";
 import TabPanel from "primevue/tabpanel";
 import { inject, Ref, ref } from "vue";
 import TabView from "@renderer/components/common/TabView.vue";
@@ -77,9 +81,14 @@ import Button from "@renderer/components/controls/Button.vue";
 import Textbox from "@renderer/components/controls/Textbox.vue";
 import Markdown from "@renderer/components/misc/Markdown.vue";
 import PopOutPanel from "@renderer/components/navbar/PopOutPanel.vue";
-import { Message } from "@renderer/model/messages";
-import { me } from "@renderer/store/me.store";
 import { useTypedI18n } from "@renderer/i18n";
+import { chatStore, chat } from "@renderer/store/chat.store";
+import { UserId } from "tachyon-protocol/types";
+import { User } from "@main/model/user";
+import { me } from "@renderer/store/me.store";
+import { Message } from "@renderer/model/message";
+import { db } from "@renderer/store/db";
+import { useDexieLiveQueryWithDeps } from "@renderer/composables/useDexieLiveQuery";
 
 const { t } = useTypedI18n();
 
@@ -91,24 +100,39 @@ const emits = defineEmits<{
     (event: "update:modelValue", open: boolean): void;
 }>();
 
+const displayNames = useDexieLiveQueryWithDeps(chatStore.userChats, async () => {
+    const map = new Map<UserId, string>();
+    await db.users
+        .filter((user: User) => displayUsersFilter(user))
+        .each(function (user) {
+            map.set(user.userId, user.username);
+        });
+    return map;
+});
+
+function displayUsersFilter(user: User) {
+    if (!user) return false;
+    if (chatStore.userChats.get(user.userId)) return true;
+    else return false;
+}
+
 const text = ref("");
 const newMessage = ref("");
 const newMessageUserId = ref("");
-const directMessages: Map<number, Message[]> = new Map();
 const activeTabIndex = ref(0);
 
-const toggleMessages = inject<Ref<(open?: boolean, userId?: number) => void>>("toggleMessages")!;
+const toggleMessages = inject<Ref<(open?: boolean, userId?: string) => void>>("toggleMessages")!;
 const toggleFriends = inject<Ref<(open?: boolean) => void>>("toggleFriends")!;
 const toggleDownloads = inject<Ref<(open?: boolean) => void>>("toggleDownloads")!;
 
-toggleMessages.value = async (open?: boolean, userIdToActivate?: number) => {
+toggleMessages.value = (open?: boolean, userIdToActivate?: string) => {
     if (open) {
         toggleFriends.value(false);
         toggleDownloads.value(false);
     }
     emits("update:modelValue", open ?? !props.modelValue);
     if (userIdToActivate) {
-        activeTabIndex.value = userIdToActivate;
+        activeTabIndex.value = [...chatStore.userChats.keys()].indexOf(userIdToActivate);
     }
 };
 
@@ -118,41 +142,25 @@ function focusTextbox(el: HTMLElement) {
     }
 }
 
-function getUsername(userId: number) {
-    console.log("getUsername", userId);
-    // return api.session.getUserById(userId)?.username ?? "??";
-}
-
-async function sendDirectMessage(userIdInput: number | string, messageText: string) {
-    console.log("sendDirectMessage", userIdInput, messageText);
-    // const userId = typeof userIdInput === "string" ? parseInt(userIdInput) : userIdInput;
+function sendDirectMessage(destinationUserId: string, messageText: string) {
+    chat.requestSend({
+        target: {
+            type: "player",
+            userId: destinationUserId,
+        },
+        message: messageText,
+    });
     newMessageUserId.value = "";
     newMessage.value = "";
     text.value = "";
-    // const response = await api.comms.request("c.communication.send_direct_message", {
-    //     recipient_id: userId,
-    //     message: messageText,
-    // });
-
-    // if (response.result === "success") {
-    //     const chatlog = api.session.directMessages.get(userId);
-    //     const message: Message = {
-    //         senderUserId: api.session.onlineUser.userId,
-    //         text: messageText,
-    //         type: "direct-message",
-    //         read: true,
-    //     };
-    //     if (chatlog) {
-    //         chatlog.push(message);
-    //     } else {
-    //         api.session.directMessages.set(userId, [message]);
-    //     }
-    // }
 }
 
-function close(userId: number) {
-    console.log("close", userId);
-    // api.session.directMessages.delete(userId);
+function closeUserTab(userId: string) {
+    chat.clearUserChat(userId);
+}
+
+function hasUnseenMessage(messages: Message[]) {
+    return messages.at(-1)?.seen === false;
 }
 </script>
 
@@ -224,5 +232,9 @@ function close(userId: number) {
 }
 .tab-header {
     min-width: 100px;
+    align-items: center;
+}
+.icon-alert {
+    color: red;
 }
 </style>

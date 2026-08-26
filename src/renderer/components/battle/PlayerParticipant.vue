@@ -41,9 +41,11 @@ import Flag from "@renderer/components/misc/Flag.vue";
 import { useRouter } from "vue-router";
 import { Player } from "@main/game/battle/battle-types";
 import { me } from "@renderer/store/me.store";
+import { reportUserIconClass, useReportUser } from "@renderer/composables/useReportUser";
 
 const { t } = useTypedI18n();
 const router = useRouter();
+const { openReportUser } = useReportUser();
 
 const props = defineProps<{
     player: Player;
@@ -78,7 +80,11 @@ const actions =
                       //   { label: "Add Bonus", command: addBonus },
                   ],
               },
-              //{ label: "Report", command: reportPlayer },
+              {
+                  label: t("lobby.components.user.reportUser.menuLabel"),
+                  icon: reportUserIconClass,
+                  command: () => openReportUser(props.player.user),
+              },
           ];
 
 function onRightClick(event: MouseEvent) {

@@ -12,6 +12,7 @@ import { getRandomMap } from "@renderer/store/maps.store";
 import { me } from "@renderer/store/me.store";
 import { deepToRaw } from "@renderer/utils/deep-toraw";
 import { spadsBoxToStartBox } from "@renderer/utils/start-boxes";
+import { notificationsApi } from "@renderer/api/notifications";
 import { StartBox } from "tachyon-protocol/types";
 import { reactive, readonly, watch } from "vue";
 import { startBattle as startGame } from "@renderer/store/game.store";
@@ -216,7 +217,7 @@ function getNumberOfTeams(): number {
     if (battleStore.battleOptions.mapOptions.startPosType === StartPosType.Boxes) {
         const startBoxIndex = battleStore.battleOptions.mapOptions.startBoxesIndex;
 
-        if (startBoxIndex != undefined && map.startboxesSet[startBoxIndex] != undefined) {
+        if (startBoxIndex != undefined && map.startboxesSet?.[startBoxIndex] != undefined) {
             const startBoxes = map.startboxesSet[startBoxIndex];
             numberOfTeams = startBoxes.startboxes.length;
         } else if (battleStore.battleOptions.mapOptions.customStartBoxes) {
@@ -244,7 +245,7 @@ function getMaxPlayersPerTeam() {
     if (battleStore.battleOptions.mapOptions.startPosType === StartPosType.Boxes) {
         const startBoxIndex = battleStore.battleOptions.mapOptions.startBoxesIndex;
 
-        if (startBoxIndex != undefined && map.startboxesSet[startBoxIndex] != undefined) {
+        if (startBoxIndex != undefined && map.startboxesSet?.[startBoxIndex] != undefined) {
             const startBoxes = map.startboxesSet[startBoxIndex];
             maxPlayersPerTeam = startBoxes.maxPlayersPerStartbox;
         } else if (battleStore.battleOptions.mapOptions.customStartBoxes) {
@@ -289,35 +290,40 @@ function updateTeams() {
     }
 }
 
+function eastVsWestStartBoxes(): Array<StartBox> {
+    return [
+        {
+            top: 0,
+            bottom: 1,
+            left: 0,
+            right: 0.25,
+        },
+        {
+            top: 0,
+            bottom: 1,
+            left: 0.75,
+            right: 1,
+        },
+    ];
+}
+
+// Read-only: this runs inside render-time computeds, so it must never write back
+// to mapOptions. Latching the battle into custom boxes for a map with no presets
+// is the map watcher's job.
 function getCurrentStartBoxes(): Array<StartBox> {
-    const startBoxesIndex = battleStore.battleOptions.mapOptions.startBoxesIndex;
-    if (startBoxesIndex != undefined) {
-        if (battleStore.battleOptions.map?.startboxesSet[startBoxesIndex] != undefined) {
-            return battleStore.battleOptions.map?.startboxesSet.at(startBoxesIndex)?.startboxes.map((box) => spadsBoxToStartBox(box.poly)) || [];
-        } else {
-            // In this case the map has no startboxes at all, which will crash the client unless we set some.
-            const defaultBoxes = [
-                {
-                    top: 0,
-                    bottom: 1,
-                    left: 0,
-                    right: 0.25,
-                },
-                {
-                    top: 0,
-                    bottom: 1,
-                    left: 0.75,
-                    right: 1,
-                },
-            ];
-            // Clearing the index means we set to custom boxes, which is best since we have zero presets anyway.
-            battleStore.battleOptions.mapOptions.customStartBoxes = defaultBoxes;
-            battleStore.battleOptions.mapOptions.startBoxesIndex = undefined;
-            return defaultBoxes;
-        }
-    } else {
-        return battleStore.battleOptions.mapOptions.customStartBoxes as Array<StartBox>;
+    const mapOptions = battleStore.battleOptions.mapOptions;
+    const startBoxesIndex = mapOptions.startBoxesIndex;
+
+    if (startBoxesIndex == undefined) {
+        return mapOptions.customStartBoxes ?? [];
     }
+
+    const preset = battleStore.battleOptions.map?.startboxesSet?.at(startBoxesIndex);
+    if (preset) {
+        return preset.startboxes.map((box) => spadsBoxToStartBox(box.poly));
+    }
+
+    return mapOptions.customStartBoxes ?? eastVsWestStartBoxes();
 }
 
 function addCustomStartBox() {
@@ -401,6 +407,10 @@ function resetToDefaultBattle(engine?: EngineVersion, game?: GameVersion, map?: 
 }
 
 async function startBattle() {
+    if (!battleStore.battleOptions.engineVersion || !battleStore.battleOptions.gameVersion) {
+        notificationsApi.alert({ text: i18n.global.t("lobby.components.misc.initialSetup.contentRequired"), severity: "error" });
+        return;
+    }
     await startGame(deepToRaw(_battleWithMetadataStore));
 }
 
@@ -440,9 +450,19 @@ watch(
 watch(
     () => battleStore.battleOptions.map,
     () => {
-        battleStore.battleOptions.mapOptions.startPosType = StartPosType.Boxes;
-        battleStore.battleOptions.mapOptions.startBoxesIndex = 0;
-        if (battleStore.me) battleStore.me.contentSyncState.map = battleStore.battleOptions.map?.isInstalled ? 1 : 0;
+        const map = battleStore.battleOptions.map;
+        const mapOptions = battleStore.battleOptions.mapOptions;
+
+        mapOptions.startPosType = StartPosType.Boxes;
+
+        if (map && !map.startboxesSet?.length) {
+            mapOptions.customStartBoxes = eastVsWestStartBoxes();
+            mapOptions.startBoxesIndex = undefined;
+        } else {
+            mapOptions.startBoxesIndex = 0;
+        }
+
+        if (battleStore.me) battleStore.me.contentSyncState.map = map?.isInstalled ? 1 : 0;
         updateTeams();
     },
     { deep: true }
@@ -452,7 +472,7 @@ watch(
     () => enginesStore.selectedEngineVersion,
     () => {
         const engineVersion = enginesStore.selectedEngineVersion;
-        if (!engineVersion) throw new Error("failed to access engine version");
+        if (!engineVersion) return;
 
         battleStore.battleOptions.engineVersion = engineVersion.id;
     }
@@ -461,7 +481,7 @@ watch(
 watch(
     () => gameStore.selectedGameVersion,
     (gameVersion) => {
-        if (!gameVersion) throw new Error("failed to access game version");
+        if (!gameVersion) return;
 
         battleStore.battleOptions.gameVersion = gameVersion.gameVersion;
     }
@@ -475,12 +495,18 @@ function leaveBattle() {
 async function loadGameMode(gameMode: GameModeID) {
     if (!battleStore.battleOptions.engineVersion) {
         const engineVersion = enginesStore.selectedEngineVersion;
-        if (!engineVersion) throw new Error("failed to access engine version");
+        if (!engineVersion) {
+            notificationsApi.alert({ text: i18n.global.t("lobby.components.misc.initialSetup.contentRequired"), severity: "error" });
+            return;
+        }
 
         battleStore.battleOptions.engineVersion = engineVersion.id;
     }
     if (!battleStore.battleOptions.gameVersion) {
-        if (!gameStore.selectedGameVersion) throw new Error("failed to access game version");
+        if (!gameStore.selectedGameVersion) {
+            notificationsApi.alert({ text: i18n.global.t("lobby.components.misc.initialSetup.contentRequired"), severity: "error" });
+            return;
+        }
 
         battleStore.battleOptions.gameVersion = gameStore.selectedGameVersion.gameVersion;
     }
@@ -568,7 +594,7 @@ function removeCoopAIs() {
 }
 
 function addCoopAI(coopAI: "RaptorsAI" | "ScavengersAI") {
-    if (!gameStore.selectedGameVersion) throw new Error("failed to retrieve game version");
+    if (!gameStore.selectedGameVersion) return;
 
     removeCoopAIs();
 

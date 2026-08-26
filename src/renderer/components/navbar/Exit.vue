@@ -28,6 +28,7 @@ import { auth } from "@renderer/store/me.store";
 import { settingsStore } from "@renderer/store/settings.store";
 import { me } from "@renderer/store/me.store";
 import { useTypedI18n } from "@renderer/i18n";
+import { party } from "@renderer/store/party.store";
 const { t } = useTypedI18n();
 
 const router = useRouter();
@@ -41,14 +42,19 @@ async function login() {
     modal.value?.close();
 }
 
+// Closed up front: signing out flips the buttons this menu is showing, so
+// leaving it open means watching Logout turn into Login before it disappears.
+// Signing in on launch is a setting of its own, so signing out leaves it alone.
 async function logout() {
-    auth.logout();
-    settingsStore.loginAutomatically = false;
-    await router.push("/");
     modal.value?.close();
+
+    party.onLogout();
+    await auth.logout();
+    await router.push("/");
 }
 
 async function quitToDesktop() {
+    party.onLogout();
     window.close();
 }
 </script>

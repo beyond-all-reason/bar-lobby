@@ -47,9 +47,6 @@ SPDX-License-Identifier: MIT
                     </Panel>
                 </div>
             </div>
-            <Panel v-if="settingsStore.devMode">
-                <Button disabled>{{ t("lobby.singleplayer.campaigns.missionConfigurator") }}</Button>
-            </Panel>
         </div>
     </div>
 </template>
@@ -58,8 +55,6 @@ SPDX-License-Identifier: MIT
 import { watch } from "vue";
 import { useRouter } from "vue-router";
 import Panel from "@renderer/components/common/Panel.vue";
-import Button from "@renderer/components/controls/Button.vue";
-import { settingsStore } from "@renderer/store/settings.store";
 import { gameStore } from "@renderer/store/game.store";
 import { useCampaignLoader } from "@renderer/composables/useCampaignLoader";
 import { campaignCache } from "@renderer/store/campaign-cache";

@@ -8,6 +8,7 @@ import type { GameType, Terrain } from "@main/content/maps/map-metadata";
 import { db } from "@renderer/store/db";
 import { EntityTable } from "dexie";
 import { notificationsApi } from "@renderer/api/notifications";
+import { onContentSettled } from "@renderer/store/contents.store";
 
 export const mapsStore: {
     isInitialized: boolean;
@@ -59,13 +60,54 @@ async function init() {
         db.maps.where("springName").equals(springName).modify({ isInstalled: false });
         db.nonLiveMaps.where("springName").equals(springName).modify({ isInstalled: false });
     });
-    // Chokadir takes 1-2 seconds longer after this to notice the file, so we do both for a faster response after a downloaded map
-    window.downloads.onDownloadMapComplete((download) => {
-        mapsStore.availableMapNames.add(download.name);
-    });
-    const [liveMaps, nonLiveMaps] = await window.maps.fetchAllMaps();
+    // Chokidar takes 1-2 seconds longer than this to notice the file, so both paths are wired up and
+    // whichever arrives first wins.
+    onContentSettled((refs) => {
+        for (const ref of refs) {
+            if (ref.type !== "map") {
+                continue;
+            }
 
-    console.debug("Received maps", [liveMaps, nonLiveMaps]);
+            if (ref.present) {
+                mapsStore.availableMapNames.add(ref.id);
+            } else {
+                mapsStore.availableMapNames.delete(ref.id);
+            }
+        }
+    });
+    const liveMaps = await db.maps.toArray();
+    const nonLiveMaps = await db.nonLiveMaps.toArray();
+
+    for (const map of liveMaps) {
+        if (map.isInstalled) mapsStore.availableMapNames.add(map.springName);
+    }
+
+    for (const map of nonLiveMaps) {
+        if (map.isInstalled) mapsStore.availableMapNames.add(map.springName);
+    }
+
+    try {
+        await refreshMapsStore();
+    } catch (error) {
+        console.warn("Failed to reconcile map install state from disk", error);
+    }
+
+    mapsStore.isInitialized = true;
+}
+
+export async function refreshMapsStore() {
+    const installedOnDisk = new Set(await window.maps.getInstalledMapNames());
+    mapsStore.availableMapNames = installedOnDisk;
+    await db.maps.toCollection().modify((map) => {
+        map.isInstalled = installedOnDisk.has(map.springName);
+    });
+    await db.nonLiveMaps.toCollection().modify((map) => {
+        map.isInstalled = installedOnDisk.has(map.springName);
+    });
+}
+
+export async function syncMapsMetadata() {
+    const [liveMaps, nonLiveMaps] = await window.maps.fetchAllMaps();
 
     await Promise.allSettled(
         liveMaps
@@ -98,16 +140,12 @@ async function init() {
             )
     );
 
-    // Refresh the nonLiveMaps
     const nonLiveMapSet = new Set(nonLiveMaps.map((map) => map.springName));
-
     (await db.nonLiveMaps.toArray())
         .filter((map) => !nonLiveMapSet.has(map.springName))
         .forEach((map) => {
             db.nonLiveMaps.update(map.springName, { ...map, isInstalled: false });
         });
-
-    mapsStore.isInitialized = true;
 }
 
 //TODO We need to support updating map images when reference in map metadata changes.

@@ -1,6 +1,9 @@
 {
     "lobby": {
         "api": {
+            "shell": {
+                "openFailed": "Could not open that: {details}"
+            },
             "commands": {
                 "help": "Displays this help text.",
                 "whoami": "Sends back information about who you are.",
@@ -78,6 +81,25 @@
                 "customLobbies": "Custom Lobbies",
                 "tournaments": "Tournaments"
             },
+            "party": {
+                "title": "Party",
+                "partyTab": "Active Party",
+                "inviteTab": "Available Invites",
+                "members": "Members",
+                "invites": "Invites",
+                "leaveParty": "Leave Party",
+                "matchmakingQueues": "Matchmaking Queues",
+                "noQueues": "No matchmaking queues available",
+                "requestQueues": "Request Queues",
+                "receivedInvite": "You have received a party invitation from {users}.",
+                "acceptInvite": "Accept",
+                "declineInvite": "Decline",
+                "kickMember": "Kick Member",
+                "cancelInvite": "Cancel Invite",
+                "noInvites": "You currently have no pending invitations.",
+                "partyTooLarge": "Party Too Large",
+                "partyTooLargeTooltip": "Your party is too large to join this queue."
+            },
             "watch": {
                 "replays": {
                     "title": "Replays",
@@ -133,9 +155,21 @@
                     "searchGame": "Search game",
                     "joinRequested": "Joining queue",
                     "searchingForOpponent": "Searching for opponent",
-                    "matchFound": "Match found",
-                    "accepted": "Accepted",
-                    "cancel": "Cancel"
+                    "matchFound": "Click to Ready ({seconds})",
+                    "accepted": "Accepted ({players} ready)",
+                    "cancel": "Cancel",
+                    "partyTooLarge": "Party Too Large",
+                    "partyTooLargeTooltip": "Your party is too large to join this queue."
+                },
+                "modalTitle": "Matchmaking Queue Details",
+                "modal": {
+                    "labelName": "Queue Name: {name}",
+                    "labelTeamConfig": "Teams: {numOfTeams} teams of 1 player each. | Teams: {numOfTeams} teams of {teamSize} players each.",
+                    "labelRanked": "Ranked Game",
+                    "labelUnranked": "Unranked Game",
+                    "labelEngines": "Engine Versions Required: {count}",
+                    "labelGames": "Game Versions Required: {count}",
+                    "labelMaps": "Maps required: {count}"
                 }
             },
             "battle": {
@@ -205,8 +239,11 @@
                 "viewProfile": "View profile",
                 "sendMessage": "Send message",
                 "joinBattle": "Join battle",
-                "inviteToParty": "Invite to party (TODO)",
-                "removeFriend": "Remove friend"
+                "inviteToParty": "Invite to party",
+                "partyFull": "Max members and invites reached",
+                "removeFriend": "Remove friend",
+                "userInParty": "In party",
+                "userInvited": "Invited"
             },
             "exit": {
                 "title": "Exit",
@@ -228,20 +265,47 @@
             "breadcrumbs": {
                 "back": "Back"
             },
+            "partyPopout": {
+                "party": "View Party",
+                "invited": "Party Invite"
+            },
             "downloads": {
                 "noDownloads": "No downloads active",
-                "moreDownloads": "and {count} more...",
-                "starting": "Starting..."
+                "starting": "Starting...",
+                "extracting": "Extracting...",
+                "progressMB": "{current} / {total} MB ({percent}%)",
+                "speedMBps": "{speed} MB/s",
+                "speedKBps": "{speed} KB/s",
+                "speedBps": "{speed} B/s",
+                "etaHoursMinutes": "{hours}h {minutes}m left",
+                "etaMinutesSeconds": "{minutes}m {seconds}s left",
+                "etaSeconds": "{seconds}s left",
+                "queued": "Queued"
             },
             "serverStatus": {
                 "playersOnline": "Players Online",
                 "error": "Error",
                 "reconnecting": "Reconnecting...",
-                "offline": "Offline"
+                "offline": "Offline",
+                "changeStatus": "Change Status",
+                "statusOnline": "Online",
+                "statusBusy": "Busy",
+                "statusBusyUnavailable": "The server has no way to show this yet",
+                "goOffline": "Go Offline",
+                "cancel": "Cancel",
+                "connect": "Connect",
+                "connectTitle": "Connect to the server?",
+                "connectBody": "You are signed in but not connected. Connecting brings back parties, lobbies and matchmaking.",
+                "disconnect": "Disconnect",
+                "disconnectTitle": "Disconnect from the server?",
+                "disconnectBody": "You will leave any party, lobby or matchmaking queue you are in. You stay signed in and can connect again whenever you like.",
+                "stopReconnecting": "Stop trying",
+                "stopReconnectingTitle": "Stop reconnecting?",
+                "stopReconnectingBody": "No further attempts will be made until you connect again yourself."
             },
             "messages": {
                 "message": "Message",
-                "userID": "UserID",
+                "userID": "User {id}",
                 "userIDPlaceholder": "32452",
                 "send": "Send"
             },
@@ -261,7 +325,20 @@
                 "labelSm": "Small",
                 "labelMd": "Medium",
                 "labelLg": "Large",
-                "labelDisplay": "Display {id}"
+                "labelDisplay": "Display {id}",
+                "language": "Language",
+                "storage": "Storage",
+                "assetsPath": "Assets Location",
+                "browse": "Browse",
+                "moveToNewLocation": "Move to new location",
+                "moveToNewLocationDesc": "Moves assets to the new folder and removes them from the current one.",
+                "copyToNewLocation": "Copy to new location",
+                "copyToNewLocationDesc": "Copies assets to the new folder. The current folder is kept as a backup.",
+                "useNewLocationOnly": "Use new location without transferring",
+                "useNewLocationOnlyDesc": "Points the game at the new folder. No files are moved or copied — you will need to re-download.",
+                "apply": "Apply",
+                "restartRequired": "The application will reload after changing the location.",
+                "transferringFiles": "Transferring files... {percent}%"
             },
             "friends": {
                 "unknownUser": "Unknown User",
@@ -310,6 +387,7 @@
                 "debugSidebar": {
                     "debugSandbox": "Debug Sandbox",
                     "openSettingsFile": "Open Settings File",
+                    "openConfigFile": "Open Config File",
                     "openAssetsDir": "Open Assets Dir",
                     "openStateDir": "Open State Dir",
                     "openStartScript": "Open Latest Start Script",
@@ -318,7 +396,8 @@
                     "game": "Game",
                     "engine": "Engine",
                     "view": "View",
-                    "lobbyServerSettings": "Lobby Server Settings"
+                    "lobbyServerSettings": "Lobby Server Settings",
+                    "createParty": "Create Party"
                 },
                 "scenarioTile": {
                     "title": "Scenario Title"
@@ -334,7 +413,6 @@
                     "loadingFonts": "Loading fonts",
                     "initializingIndexDB": "Initializing IndexDB",
                     "initializingMaps": "Initializing maps",
-                    "fetchingMissingMapImages": "Fetching missing map images",
                     "initializingReplays": "Initializing replays"
                 },
                 "syncDataDirsDialog": {
@@ -375,7 +453,17 @@
                     "installingGame": "Installing game",
                     "downloadingMaps": "Downloading maps",
                     "downloadingUpdate": "Downloading update",
-                    "installingUpdate": "Installing update"
+                    "installingUpdate": "Installing update",
+                    "selectAssetsPathDescription": "Choose where game files (engine, maps, game) will be downloaded.",
+                    "browse": "Browse",
+                    "continue": "Continue",
+                    "retry": "Retry",
+                    "skip": "Skip",
+                    "playOffline": "Play Offline",
+                    "stepFailed": "{step} — Failed",
+                    "stepRetrying": "{step} — Retrying…",
+                    "contentRequired": "Engine and game must be downloaded before starting a battle.",
+                    "pathUnusable": "That folder cannot be used for game files. Pick a different one."
                 }
             },
             "battle": {
@@ -531,6 +619,65 @@
                     },
                     "downloadedFilter": {
                         "label": "Downloaded"
+                    }
+                }
+            },
+            "user": {
+                "reportUser": {
+                    "menuLabel": "Report User",
+                    "title": "Report {username}",
+                    "blurb": "Reports are handled by volunteers, so please include:",
+                    "guidanceDescription": "What was done, or the specific words that were said",
+                    "guidanceTimestamps": "Timestamps of the in game events, even approximate ones",
+                    "specCheatingNote": "Reports that say only \"spec cheating\" may be ignored. Say what looked suspicious, with timestamps.",
+                    "reasonForReport": "Reason for Report",
+                    "whichMatch": "Which Match?",
+                    "lobbyActionsHint": "If it happened in the lobby, pick the match it happened before.",
+                    "fetchingMatches": "Fetching Matches",
+                    "noMatch": "I cannot find the match",
+                    "matchesFailed": "Could not load recent matches. You can still send the report without one.",
+                    "noMatchesFound": "No recent matches found for this player. You can still send the report, but without a match we may not be able to find the evidence.",
+                    "matchTeams": "{left} vs {right}",
+                    "matchFfa": "{teams} way FFA",
+                    "matchOnMap": "{match} on {map}",
+                    "columnMatch": "Match",
+                    "columnMap": "Map",
+                    "columnWhen": "When",
+                    "columnLength": "Length",
+                    "matchWhen": "{ago} ago",
+                    "matchWhenUnknown": "Unknown",
+                    "team": "Team {team}",
+                    "winner": "won",
+                    "wasSpectating": "This player was spectating this match.",
+                    "extraInfo": "Extra Info",
+                    "sections": {
+                        "chat": "Chat / Communication",
+                        "actions": "In-Game Actions"
+                    },
+                    "reasons": {
+                        "chat": {
+                            "spam": "Spam",
+                            "bullying": "Bullying",
+                            "hate": "Hate speech",
+                            "other": "Other"
+                        },
+                        "actions": {
+                            "noob": "Noob",
+                            "griefing": "Griefing",
+                            "cheating": "Cheating",
+                            "other": "Other"
+                        }
+                    },
+                    "messagePlaceholder": "Describe what happened",
+                    "submit": "Send Report",
+                    "submitted": "Report sent to the moderation team.",
+                    "relationships": {
+                        "ignore": "Ignore",
+                        "ignoreTooltip": "Stop seeing their messages. Not available in the lobby yet, do it on the website.",
+                        "avoid": "Avoid",
+                        "avoidTooltip": "Ask not to be put in a game with them. Not available in the lobby yet, do it on the website.",
+                        "block": "Block",
+                        "blockTooltip": "Stop seeing them at all. Not available in the lobby yet, do it on the website."
                     }
                 }
             }

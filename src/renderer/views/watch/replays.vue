@@ -5,7 +5,7 @@ SPDX-License-Identifier: MIT
 -->
 
 <route lang="json5">
-{ meta: { title: "Replays", order: 0, transition: { name: "slide-left" }, offine: true } }
+{ meta: { title: "Replays", order: 0, transition: { name: "slide-left" }, offline: true } }
 </route>
 
 <template>
@@ -150,7 +150,7 @@ import Button from "@renderer/components/controls/Button.vue";
 import Checkbox from "@renderer/components/controls/Checkbox.vue";
 import TriStateCheckbox from "@renderer/components/controls/TriStateCheckbox.vue";
 import { getFriendlyDuration } from "@renderer/utils/misc";
-import { Replay } from "@main/content/replays/replay";
+import { Replay } from "@main/replays/replay";
 import DataTable, { DataTablePageEvent, DataTableSortEvent } from "primevue/datatable";
 import Panel from "@renderer/components/common/Panel.vue";
 import { db } from "@renderer/store/db";
@@ -164,6 +164,8 @@ import { Icon } from "@iconify/vue";
 import folder from "@iconify-icons/mdi/folder";
 import SearchBox from "@renderer/components/controls/SearchBox.vue";
 import { settingsStore } from "@renderer/store/settings.store";
+import { configStore } from "@renderer/store/config.store";
+import { shellApi } from "@renderer/api/shell";
 
 const { t } = useTypedI18n();
 
@@ -263,15 +265,15 @@ function onSort(event: DataTableSortEvent) {
 }
 
 function openBrowserToReplayService() {
-    window.shell.openInBrowser("https://bar-rts.com/replays");
+    shellApi.openInBrowser(configStore.replayServiceUrl);
 }
 
 function openReplaysFolder() {
-    window.shell.openReplaysDir();
+    shellApi.openReplaysDir();
 }
 
 function showReplayFile(replay: Replay) {
-    if (replay?.fileName) window.shell.showReplayInFolder(replay.fileName);
+    if (replay?.fileName) shellApi.showReplayInFolder(replay.fileName);
 }
 </script>
 

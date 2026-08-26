@@ -7,30 +7,30 @@ SPDX-License-Identifier: MIT
 <template>
     <PopOutPanel :open="modelValue">
         <Transition name="fade" mode="out-in">
-            <div v-if="downloadsStore.mapDownloads.length" class="downloads">
-                <TransitionGroup tag="div" name="downloads-list">
-                    <div v-for="(download, i) in limitedList" :key="i" class="downloads__download">
+            <div v-if="allDownloads.length" class="downloads">
+                <TransitionGroup tag="div" class="downloads__list" name="downloads-list">
+                    <div v-for="download in allDownloads" :key="download.key" class="downloads__download">
                         <div class="downloads__info">
-                            <div class="downloads__name">
-                                {{ download.name }}
-                            </div>
-                            <div class="downloads__type">
-                                {{ download.type }}
-                            </div>
+                            <div class="downloads__name">{{ download.name }}</div>
+                            <div class="downloads__type">{{ download.type }}</div>
                         </div>
-                        <Progress
-                            :percent="download.currentBytes / download.totalBytes"
-                            :text="progressText(download.currentBytes, download.totalBytes)"
-                            themed
-                            pulsating
-                        />
+                        <div v-if="download.queued" class="downloads__waiting">{{ t("lobby.navbar.downloads.queued") }}</div>
+                        <div v-else-if="download.phase === 'extracting'" class="downloads__extracting">
+                            <Loader :absolute-position="false" />
+                            <span>{{ t("lobby.navbar.downloads.extracting") }}</span>
+                        </div>
+                        <template v-else>
+                            <Progress
+                                :percent="download.totalBytes < MIN_DOWNLOAD_BYTES ? 0 : downloadPercent(download)"
+                                :text="barText(download)"
+                                :height="20"
+                                themed
+                                pulsating
+                            />
+                            <div class="downloads__detail">{{ detailText(download) }}</div>
+                        </template>
                     </div>
                 </TransitionGroup>
-                <Transition tag="div" name="fade" mode="out-in">
-                    <div class="flex-row flex-grow flex-center" v-if="downloadsStore.mapDownloads.length > limitedList.length">
-                        {{ t("lobby.navbar.downloads.moreDownloads", { count: downloadsStore.mapDownloads.length - limitedList.length }) }}
-                    </div>
-                </Transition>
             </div>
             <div v-else class="flex-row flex-grow flex-center">{{ t("lobby.navbar.downloads.noDownloads") }}</div>
         </Transition>
@@ -38,13 +38,26 @@ SPDX-License-Identifier: MIT
 </template>
 
 <script lang="ts" setup>
-import { computed, inject, Ref } from "vue";
+import { inject, Ref } from "vue";
 
+import Loader from "@renderer/components/common/Loader.vue";
 import Progress from "@renderer/components/common/Progress.vue";
 import PopOutPanel from "@renderer/components/navbar/PopOutPanel.vue";
-import { downloadsStore } from "@renderer/store/downloads.store";
 import { useTypedI18n } from "@renderer/i18n";
+import { DownloadView, MIN_DOWNLOAD_BYTES, useDownloadProgress } from "@renderer/composables/useDownloadProgress";
+
 const { t } = useTypedI18n();
+const { allDownloads, downloadPercent, progressText } = useDownloadProgress();
+
+function barText(download: DownloadView): string {
+    if (download.currentBytes === 0) return t("lobby.navbar.downloads.starting");
+    return `${(downloadPercent(download) * 100).toFixed(1)}%`;
+}
+
+function detailText(download: DownloadView): string {
+    if (download.currentBytes === 0) return "";
+    return progressText(download);
+}
 
 const props = defineProps<{
     modelValue: boolean;
@@ -59,43 +72,34 @@ const toggleMessages = inject<Ref<(open?: boolean, userId?: number) => void>>("t
 const toggleFriends = inject<Ref<(open?: boolean) => void>>("toggleFriends")!;
 const toggleDownloads = inject<Ref<(open?: boolean) => void>>("toggleDownloads")!;
 
-const limitedList = computed(() => downloadsStore.mapDownloads.slice(0, 5));
-
 toggleDownloads.value = async (open?: boolean) => {
     if (open) {
         toggleMessages.value(false);
         toggleFriends.value(false);
     }
-
     emits("update:modelValue", open ?? !props.modelValue);
 };
-
-function progressText(currentBytes: number, totalBytes: number): string {
-    if (currentBytes === 0) {
-        return t("lobby.navbar.downloads.starting");
-    }
-    const percent = currentBytes / totalBytes;
-    const currentMB = currentBytes / Math.pow(1024, 2);
-    const totalMB = totalBytes / Math.pow(1024, 2);
-    return `${currentMB.toFixed(2)}MB/${totalMB.toFixed(2)}MB (${(percent * 100).toFixed(2)}%)`;
-}
 </script>
 
 <style lang="scss" scoped>
 .downloads {
-    display: flex;
-    flex-direction: column;
+    position: absolute;
+    inset: 0;
+    overflow-y: auto;
+    &__list {
+        display: flex;
+        flex-direction: column;
+    }
     &__info {
         display: flex;
         flex-direction: row;
         justify-content: space-between;
     }
     &__download {
-        height: 75px; // fixed size for the animations to work well
-        width: 100%; // fixed size for the animations to work well
+        width: 100%;
         display: flex;
         flex-direction: column;
-        padding: 15px;
+        padding: 12px 15px;
         border: 1px solid rgba(255, 255, 255, 0.07);
         background: rgba(255, 255, 255, 0.03);
         gap: 5px;
@@ -105,6 +109,25 @@ function progressText(currentBytes: number, totalBytes: number): string {
         font-size: 12px;
         font-weight: 700;
         color: rgba(255, 255, 255, 0.7);
+    }
+    &__detail {
+        font-size: 11px;
+        color: rgba(255, 255, 255, 0.6);
+        // Empty until the first figures arrive, and a row that grows a line the moment they do drags
+        // every row under it down with it.
+        min-height: 1.2em;
+    }
+    &__waiting {
+        font-size: 13px;
+        color: rgba(255, 255, 255, 0.45);
+    }
+    &__extracting {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 13px;
+        color: rgba(255, 255, 255, 0.7);
+        flex: 1;
     }
 }
 

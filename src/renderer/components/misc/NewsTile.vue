@@ -19,6 +19,7 @@ import { NewsFeedEntry } from "@main/services/news.service";
 import { useImageBlobUrlCache } from "@renderer/composables/useImageBlobUrlCache";
 import { ref } from "vue";
 import { useTypedI18n } from "@renderer/i18n";
+import { shellApi } from "@renderer/api/shell";
 
 const { t } = useTypedI18n();
 
@@ -32,7 +33,7 @@ const newsThumbnail = props.news.thumbnailUrl;
 const backgroundImageCss = newsThumbnail ? ref(`url('${base64(newsThumbnail, props.news.thumbnail || "")}')`) : ref();
 
 const openNews = () => {
-    if (props.news.link) window.shell.openInBrowser(props.news.link);
+    if (props.news.link) shellApi.openInBrowser(props.news.link);
 };
 </script>
 

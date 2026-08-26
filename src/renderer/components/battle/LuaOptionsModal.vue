@@ -14,7 +14,7 @@ SPDX-License-Identifier: MIT
                             <div
                                 v-tooltip.bottom="{ value: o.description || '' }"
                                 :class="{
-                                    overriden: options[o.key] !== undefined,
+                                    overridden: options[o.key] !== undefined,
                                 }"
                             >
                                 {{ o.name }}
@@ -29,7 +29,7 @@ SPDX-License-Identifier: MIT
                             @update:model-value="(value: any) => setOptionValue(o, value)"
                             v-tooltip.bottom="{ value: o.description || '' }"
                             :class="{
-                                overriden: options[o.key] !== undefined,
+                                overridden: options[o.key] !== undefined,
                             }"
                         />
                         <Checkbox
@@ -38,7 +38,7 @@ SPDX-License-Identifier: MIT
                             @update:model-value="(value) => setOptionValue(o, value)"
                             v-tooltip.right="{ value: o.description || '' }"
                             :class="{
-                                overriden: options[o.key] !== undefined,
+                                overridden: options[o.key] !== undefined,
                             }"
                         />
                         <Textarea
@@ -48,7 +48,7 @@ SPDX-License-Identifier: MIT
                             @update:model-value="(value) => setOptionValue(o, value)"
                             v-tooltip.bottom="{ value: o.description || '' }"
                             :class="{
-                                overriden: options[o.key] !== undefined,
+                                overridden: options[o.key] !== undefined,
                             }"
                         />
                         <Select
@@ -60,7 +60,7 @@ SPDX-License-Identifier: MIT
                             @update:model-value="(value: any) => setOptionValue(o, value)"
                             v-tooltip.bottom="{ value: o.description || '' }"
                             :class="{
-                                overriden: options[o.key] !== undefined,
+                                overridden: options[o.key] !== undefined,
                             }"
                         />
                     </template>
@@ -150,7 +150,7 @@ function reset() {
     padding-bottom: 25px;
 }
 
-.overriden {
+.overridden {
     color: #ffcc00;
     :deep(.p-slider-handle) {
         background-color: #ffcc00;

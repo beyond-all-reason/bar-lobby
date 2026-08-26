@@ -14,7 +14,7 @@ export type UpdateInfo = electronUpdater.UpdateInfo;
 
 export class AutoUpdaterAPI extends Downloader {
     private updateInfo?: UpdateInfo;
-    private intialized: boolean = false;
+    private initialized: boolean = false;
     public readonly currentVersion: string = autoUpdater.currentVersion;
 
     public async init() {
@@ -27,7 +27,7 @@ export class AutoUpdaterAPI extends Downloader {
         autoUpdater.logger = log;
         autoUpdater.autoInstallOnAppQuit = true;
         autoUpdater.allowPrerelease = false;
-        this.intialized = true;
+        this.initialized = true;
         return this;
     }
 
@@ -36,7 +36,7 @@ export class AutoUpdaterAPI extends Downloader {
     }
 
     public async checkForUpdates(): Promise<boolean> {
-        if (!this.intialized) return false;
+        if (!this.initialized) return false;
         return await new Promise<boolean>((resolve) => {
             autoUpdater.on("update-available", (info) => {
                 this.updateInfo = info;
@@ -58,12 +58,15 @@ export class AutoUpdaterAPI extends Downloader {
     }
 
     public async downloadUpdate(): Promise<void> {
-        if (!this.intialized) return;
+        if (!this.initialized) return;
         if (this.updateInfo == undefined) throw Error("Tried to download unavailable update");
+        // Note, there is no this.downloadStarted but downloadProgress handles it well enough
+        // If we ever need to track that it actually started, we would add that here.
         return await new Promise<void>((resolve) => {
             autoUpdater.on("download-progress", (progressInfo) => {
                 this.downloadProgress({
                     type: "update",
+                    id: this.updateInfo?.version ?? "unknown",
                     name: this.updateInfo?.version ?? "unknown",
                     currentBytes: progressInfo.transferred,
                     totalBytes: progressInfo.total,
@@ -72,11 +75,29 @@ export class AutoUpdaterAPI extends Downloader {
             });
 
             autoUpdater.on("update-downloaded", (info) => {
+                // 'info' does not have download details, so we just falsify the values since it's complete anyway.
+                this.downloadComplete({
+                    type: "update",
+                    id: this.updateInfo?.version ?? "unknown",
+                    name: this.updateInfo?.version ?? "unknown",
+                    currentBytes: 1,
+                    totalBytes: 1,
+                    progress: 1,
+                });
                 this.updateInfo = info;
                 resolve();
             });
 
             autoUpdater.on("error", (error, message) => {
+                // As above, 'info' does not have download details, so we just falsify the values since it's stopped already
+                this.downloadFailed({
+                    type: "update",
+                    id: this.updateInfo?.version ?? "unknown",
+                    name: this.updateInfo?.version ?? "unknown",
+                    currentBytes: 0,
+                    totalBytes: 0,
+                    progress: 0,
+                });
                 log.error(error, `Error downloading update. ${message}`);
                 resolve();
             });

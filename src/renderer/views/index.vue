@@ -22,7 +22,6 @@ SPDX-License-Identifier: MIT
             </div>
             <div v-else class="buttons-container">
                 <button class="login-button" @click="login">{{ t("lobby.views.index.login") }}</button>
-                <div v-if="hasCredentials" class="play-offline" @click="changeAccount">{{ t("lobby.views.index.changeAccount") }}</div>
                 <div v-if="error" class="txt-error">{{ error }}</div>
                 <div class="play-offline" @click="playOffline">{{ t("lobby.views.index.playOffline") }}</div>
             </div>
@@ -36,8 +35,7 @@ import { useTypedI18n } from "@renderer/i18n";
 
 import Loader from "@renderer/components/common/Loader.vue";
 import { useRouter } from "vue-router";
-import { auth } from "@renderer/store/me.store";
-import { settingsStore } from "@renderer/store/settings.store";
+import { auth, me } from "@renderer/store/me.store";
 import { tachyon } from "@renderer/store/tachyon.store";
 
 const { t } = useTypedI18n();
@@ -47,11 +45,22 @@ const router = useRouter();
 const connecting = ref(false);
 const error = ref<string>();
 
-const hasCredentials = ref(false);
-onActivated(() => {
-    window.auth.hasCredentials().then((result) => {
-        hasCredentials.value = result;
-    });
+onActivated(async () => {
+    // The store restores a previous session before the UI mounts, so there is
+    // nothing to log in to here.
+    if (me.isAuthenticated) {
+        const redirect = router.currentRoute.value.query.redirect as string | undefined;
+        await router.replace(redirect || "/play");
+
+        return;
+    }
+
+    if (router.currentRoute.value.query.login === "true") {
+        const query = { ...router.currentRoute.value.query };
+        delete query.login;
+        await router.replace({ path: "/", query });
+        await login();
+    }
 });
 
 async function login() {
@@ -80,20 +89,10 @@ async function abort() {
     router.push("/");
 }
 
-async function changeAccount() {
-    await auth.changeAccount();
-    hasCredentials.value = false;
-    login();
-}
-
-async function playOffline() {
-    auth.playOffline();
+// Deliberately leaves the stored credentials alone; being signed in without a
+// connection is a valid state to sit in.
+function playOffline() {
     router.push("/play");
-}
-
-if (hasCredentials.value && settingsStore.loginAutomatically) {
-    console.log("Logging in automatically");
-    login();
 }
 </script>
 

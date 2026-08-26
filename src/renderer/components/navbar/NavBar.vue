@@ -125,6 +125,7 @@ import { settingsStore } from "@renderer/store/settings.store";
 import { me } from "@renderer/store/me.store";
 import ServerStatus from "@renderer/components/navbar/ServerStatus.vue";
 import { useLogInConfirmation } from "@renderer/composables/useLogInConfirmation";
+import { chatStore } from "@renderer/store/chat.store";
 
 defineProps<{
     hidden?: boolean;
@@ -163,17 +164,7 @@ function handleFriendsClick() {
     friendsOpen.value = !friendsOpen.value;
 }
 
-const messagesUnread = computed(() => {
-    //TODO dmStores
-    // for (const [, messages] of api.session.directMessages) {
-    //     for (const message of messages) {
-    //         if (!message.read) {
-    //             return true;
-    //         }
-    //     }
-    // }
-    return false;
-});
+const messagesUnread = computed(() => [...chatStore.userChats.values()].some((m) => m.at(-1)?.seen === false));
 
 function minimizeWindow() {
     window.mainWindow?.minimize();

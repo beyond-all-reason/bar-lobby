@@ -3,7 +3,7 @@ information for each file in this project.
 
 ### Finding License Information
 
-This software uses https://reuse.software/ to manage its licensing information.
+This software uses <https://reuse.software/> to manage its licensing information.
 
 All content is annotated with SPDX license identifiers. To find the precise
 license for any file, check the following locations:

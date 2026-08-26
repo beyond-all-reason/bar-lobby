@@ -15,26 +15,32 @@ describe("Main Process Lifecycle", () => {
 
     // Mock all services
     const mockServices = {
-        engineService: { init: vi.fn().mockResolvedValue(undefined), registerIpcHandlers: vi.fn() },
-        settingsService: { init: vi.fn().mockResolvedValue(undefined), registerIpcHandlers: vi.fn() },
+        engineService: { registerIpcHandlers: vi.fn() },
+        settingsService: { init: vi.fn().mockResolvedValue(undefined), registerIpcHandlers: vi.fn(), getSettings: vi.fn().mockReturnValue({ assetsPath: "" }) },
+        configService: { init: vi.fn().mockResolvedValue(undefined), registerIpcHandlers: vi.fn(), getConfig: vi.fn().mockReturnValue({ configUrl: "" }) },
         accountService: { init: vi.fn().mockResolvedValue(undefined) },
         replaysService: { init: vi.fn().mockResolvedValue(undefined), registerIpcHandlers: vi.fn() },
-        gameService: { init: vi.fn().mockResolvedValue(undefined), registerIpcHandlers: vi.fn() },
-        mapsService: { init: vi.fn().mockResolvedValue(undefined), registerIpcHandlers: vi.fn() },
+        gameService: { registerIpcHandlers: vi.fn() },
+        mapsService: { registerIpcHandlers: vi.fn() },
         autoUpdaterService: { init: vi.fn().mockResolvedValue(undefined), registerIpcHandlers: vi.fn() },
+        contentService: { registerIpcHandlers: vi.fn() },
+        contentAPI: { init: vi.fn().mockResolvedValue(undefined), reinit: vi.fn().mockResolvedValue(undefined) },
         logService: { registerIpcHandlers: vi.fn() },
         infoService: { registerIpcHandlers: vi.fn() },
-        authService: { registerIpcHandlers: vi.fn() },
+        authService: { init: vi.fn().mockResolvedValue(undefined), registerIpcHandlers: vi.fn() },
         tachyonService: { registerIpcHandlers: vi.fn() },
         shellService: { registerIpcHandlers: vi.fn() },
-        downloadsService: { registerIpcHandlers: vi.fn() },
         miscService: { registerIpcHandlers: vi.fn() },
         navigationService: { registerIpcHandlers: vi.fn() },
+        pathsService: { registerIpcHandlers: vi.fn() },
     };
 
-    beforeEach(() => {
+    beforeEach(async () => {
         vi.clearAllMocks();
         vi.resetModules();
+
+        vi.stubGlobal("SPLASH_WINDOW_VITE_DEV_SERVER_URL", "http://localhost:5173/splash.html");
+        vi.stubGlobal("MAIN_WINDOW_VITE_DEV_SERVER_URL", "http://localhost:5173/index.html");
 
         mockApp = {
             requestSingleInstanceLock: vi.fn().mockReturnValue(true),
@@ -78,6 +84,23 @@ describe("Main Process Lifecycle", () => {
             protocol: mockProtocol,
             session: mockSession,
             net: mockNet,
+
+            BrowserWindow: vi.fn().mockImplementation(() => ({
+                loadURL: vi.fn(),
+                show: vi.fn(),
+                on: vi.fn(),
+                destroy: vi.fn(),
+                webContents: {
+                    on: vi.fn(),
+                    send: vi.fn(),
+                },
+            })),
+            nativeImage: {
+                createEmpty: vi.fn().mockReturnValue({}),
+                createFromPath: vi.fn().mockReturnValue({}),
+                createFromBuffer: vi.fn().mockReturnValue({}),
+                createFromDataURL: vi.fn().mockReturnValue({}),
+            },
         }));
 
         vi.doMock("node:net", () => ({
@@ -86,9 +109,19 @@ describe("Main Process Lifecycle", () => {
             },
         }));
 
+        vi.doMock("@main/splash-window", () => ({
+            createSplashWindow: vi.fn().mockReturnValue({
+                webContents: {},
+                once: vi.fn(),
+                destroy: vi.fn(),
+                close: vi.fn(),
+            }),
+        }));
+
         vi.doMock("@main/main-window", () => ({
             createWindow: vi.fn().mockReturnValue({
                 webContents: {},
+                on: vi.fn(),
             }),
         }));
 
@@ -109,6 +142,7 @@ describe("Main Process Lifecycle", () => {
         vi.doMock("@main/config/app", () => ({
             APP_NAME: "Test App",
             SCENARIO_IMAGE_PATH: "/test/path",
+            setAssetsPath: vi.fn(),
         }));
 
         // Mock all services
@@ -117,17 +151,18 @@ describe("Main Process Lifecycle", () => {
         vi.doMock("@main/services/maps.service", () => ({ default: mockServices.mapsService }));
         vi.doMock("@main/services/engine.service", () => ({ default: mockServices.engineService }));
         vi.doMock("@main/services/auto-updater.service", () => ({ default: mockServices.autoUpdaterService }));
-        vi.doMock("@main/services/downloads.service", () => ({ default: mockServices.downloadsService }));
-
+        vi.doMock("@main/services/config.service", () => ({ configService: mockServices.configService }));
+        vi.doMock("@main/services/content.service", () => ({ default: mockServices.contentService }));
+        vi.doMock("@main/content/content-api", () => ({ contentAPI: mockServices.contentAPI }));
         vi.doMock("@main/services/settings.service", () => ({ settingsService: mockServices.settingsService }));
         vi.doMock("@main/services/info.service", () => ({ infoService: mockServices.infoService }));
-        vi.doMock("@main/services/account.service", () => ({ accountService: mockServices.accountService }));
         vi.doMock("@main/services/log.service", () => ({ logService: mockServices.logService }));
         vi.doMock("@main/services/auth.service", () => ({ authService: mockServices.authService }));
         vi.doMock("@main/services/tachyon.service", () => ({ tachyonService: mockServices.tachyonService }));
         vi.doMock("@main/services/shell.service", () => ({ shellService: mockServices.shellService }));
         vi.doMock("@main/services/news.service", () => ({ miscService: mockServices.miscService }));
         vi.doMock("@main/services/navigation.service", () => ({ navigationService: mockServices.navigationService }));
+        vi.doMock("@main/services/paths.service", () => ({ pathsService: mockServices.pathsService }));
 
         vi.stubGlobal("process", mockProcess);
     });
@@ -137,8 +172,9 @@ describe("Main Process Lifecycle", () => {
         vi.resetModules();
     });
 
-    it("should exit if single instance lock is not acquired", async () => {
+    it("should exit if single instance lock is not acquired in production", async () => {
         mockApp.requestSingleInstanceLock.mockReturnValue(false);
+        mockProcess.env.NODE_ENV = "production";
 
         await import("@main/main");
 
@@ -205,29 +241,41 @@ describe("Main Process Lifecycle", () => {
     it("should initialize services when app is ready", async () => {
         await import("@main/main");
 
-        expect(mockServices.engineService.init).toHaveBeenCalled();
+        expect(mockServices.configService.init).toHaveBeenCalled();
         expect(mockServices.settingsService.init).toHaveBeenCalled();
-        expect(mockServices.accountService.init).toHaveBeenCalled();
+        expect(mockServices.contentAPI.init).toHaveBeenCalled();
+        expect(mockServices.authService.init).toHaveBeenCalled();
         expect(mockServices.replaysService.init).toHaveBeenCalled();
-        expect(mockServices.gameService.init).toHaveBeenCalled();
-        expect(mockServices.mapsService.init).toHaveBeenCalled();
         expect(mockServices.autoUpdaterService.init).toHaveBeenCalled();
+    });
+
+    // A saved assets path on a drive that is not there makes content init throw, and the screen that lets
+    // the user repoint it cannot appear unless the window is created anyway.
+    it("should still create the window when content initialisation fails", async () => {
+        mockServices.contentAPI.init.mockRejectedValueOnce(new Error("ENOENT: assets path is gone"));
+
+        await import("@main/main");
+
+        expect(mockServices.contentAPI.init).toHaveBeenCalled();
+        expect(mockServices.contentService.registerIpcHandlers).toHaveBeenCalled();
+        expect(mockServices.pathsService.registerIpcHandlers).toHaveBeenCalled();
     });
 
     it("should register IPC handlers when app is ready", async () => {
         await import("@main/main");
 
+        expect(mockServices.configService.registerIpcHandlers).toHaveBeenCalled();
         expect(mockServices.logService.registerIpcHandlers).toHaveBeenCalled();
         expect(mockServices.infoService.registerIpcHandlers).toHaveBeenCalled();
         expect(mockServices.settingsService.registerIpcHandlers).toHaveBeenCalled();
         expect(mockServices.authService.registerIpcHandlers).toHaveBeenCalled();
         expect(mockServices.tachyonService.registerIpcHandlers).toHaveBeenCalled();
         expect(mockServices.replaysService.registerIpcHandlers).toHaveBeenCalled();
+        expect(mockServices.contentService.registerIpcHandlers).toHaveBeenCalled();
         expect(mockServices.engineService.registerIpcHandlers).toHaveBeenCalled();
         expect(mockServices.gameService.registerIpcHandlers).toHaveBeenCalled();
         expect(mockServices.mapsService.registerIpcHandlers).toHaveBeenCalled();
         expect(mockServices.shellService.registerIpcHandlers).toHaveBeenCalled();
-        expect(mockServices.downloadsService.registerIpcHandlers).toHaveBeenCalled();
         expect(mockServices.miscService.registerIpcHandlers).toHaveBeenCalled();
         expect(mockServices.autoUpdaterService.registerIpcHandlers).toHaveBeenCalled();
         expect(mockServices.navigationService.registerIpcHandlers).toHaveBeenCalled();

@@ -5,7 +5,7 @@ SPDX-License-Identifier: MIT
 -->
 
 <template>
-    <PrimeVueTabView v-bind="$attrs">
+    <PrimeVueTabView v-bind="$attrs" v-model:active-index="internalActiveIndex">
         <template v-for="(_, name) in $slots" #[name]="slotData">
             <slot :name="name" v-bind="slotData || {}" />
         </template>
@@ -13,14 +13,21 @@ SPDX-License-Identifier: MIT
 </template>
 
 <script lang="ts" setup>
+import { computed } from "vue";
 // https://primefaces.org/primevue/tabview
 import { TabViewProps, TabViewSlots } from "primevue/tabview";
 import PrimeVueTabView from "@renderer/components/primevue/PrimeVueTabView.vue";
-defineProps<TabViewProps>();
+const props = defineProps<TabViewProps & { activeIndex?: number }>();
 defineSlots<TabViewSlots>();
-defineEmits<{
-    (e: "update:modelValue", value: number): void;
+const emit = defineEmits<{
+    //(e: "update:modelValue", value: number): void;
+    (e: "update:activeIndex", value: number): void;
 }>();
+
+const internalActiveIndex = computed({
+    get: () => props.activeIndex ?? 0,
+    set: (value) => emit("update:activeIndex", value),
+});
 </script>
 
 <style lang="scss">

@@ -49,12 +49,29 @@ SPDX-License-Identifier: MIT
                     <Icon :icon="accountArrowRight" />
                 </Button>
                 <Button
-                    v-if="user && user.status !== 'offline'"
+                    v-if="userInParty || userInvited"
+                    class="slim green square"
+                    v-tooltip.left="userInParty ? t('lobby.navbar.tooltips.userInParty') : t('lobby.navbar.tooltips.userInvited')"
+                >
+                    <Icon :icon="accountMultiple" />
+                </Button>
+                <Button
+                    v-else-if="user && user.status !== 'offline' && !maxMembersReached"
                     v-tooltip.left="t('lobby.navbar.tooltips.inviteToParty')"
                     class="slim square"
                     @click="inviteToParty"
                 >
                     <Icon :icon="accountMultiplePlus" />
+                </Button>
+                <Button
+                    v-else-if="user && user.status !== 'offline' && maxMembersReached"
+                    class="slim red square"
+                    v-tooltip.left="t('lobby.navbar.tooltips.partyFull')"
+                >
+                    <Icon :icon="accountMultiple" />
+                </Button>
+                <Button v-tooltip.left="t('lobby.components.user.reportUser.menuLabel')" class="slim square" @click="reportUser">
+                    <ReportUserIcon />
                 </Button>
                 <Button v-tooltip.left="t('lobby.navbar.tooltips.removeFriend')" class="slim red square" @click="removeFriend">
                     <Icon :icon="deleteIcon" />
@@ -69,22 +86,29 @@ import { Icon } from "@iconify/vue";
 import account from "@iconify-icons/mdi/account";
 import accountArrowRight from "@iconify-icons/mdi/account-arrow-right";
 import accountMultiplePlus from "@iconify-icons/mdi/account-multiple-plus";
+import accountMultiple from "@iconify-icons/mdi/account-multiple";
 import checkThick from "@iconify-icons/mdi/check-thick";
 import closeThick from "@iconify-icons/mdi/close-thick";
 import deleteIcon from "@iconify-icons/mdi/delete";
 import messageReplyText from "@iconify-icons/mdi/message-reply-text";
-import { inject, Ref, watch } from "vue";
+import { inject, Ref, watch, computed } from "vue";
 
 import Button from "@renderer/components/controls/Button.vue";
 import Flag from "@renderer/components/misc/Flag.vue";
+import ReportUserIcon from "@renderer/components/user/ReportUserIcon.vue";
 import { useRouter } from "vue-router";
 import { useTypedI18n } from "@renderer/i18n";
 import { friends } from "@renderer/store/me.store";
 import { notificationsApi } from "@renderer/api/notifications";
 import { db } from "@renderer/store/db";
 import { useDexieLiveQuery } from "@renderer/composables/useDexieLiveQuery";
+import { chat } from "@renderer/store/chat.store";
+import { partyStore, party, PlayersPartyState } from "@renderer/store/party.store";
+import { PartyInviteRequestData } from "tachyon-protocol/types";
+import { useReportUser } from "@renderer/composables/useReportUser";
 
 const { t } = useTypedI18n();
+const { openReportUser } = useReportUser();
 
 const router = useRouter();
 
@@ -112,6 +136,25 @@ watch(
     },
     { immediate: true }
 );
+
+const maxMembersReached = computed(() => {
+    if (!partyStore.activeParty || !partyStore.parties.get(partyStore.activeParty)) return false;
+    return (
+        (partyStore.parties.get(partyStore.activeParty)!.members?.length || 0) +
+            (partyStore.parties.get(partyStore.activeParty)!.invited?.length || 0) >=
+        partyStore.parties.get(partyStore.activeParty)!.maxMembers
+    );
+});
+
+const userInParty = computed(() => {
+    if (!partyStore.activeParty || !partyStore.parties.get(partyStore.activeParty)) return false;
+    return partyStore.parties.get(partyStore.activeParty)!.members?.some((member) => member.userId === props.userId) || false;
+});
+
+const userInvited = computed(() => {
+    if (!partyStore.activeParty || !partyStore.parties.get(partyStore.activeParty)) return false;
+    return partyStore.parties.get(partyStore.activeParty)!.invited?.some((invited) => invited.userId === props.userId) || false;
+});
 
 async function cancelRequest() {
     try {
@@ -155,31 +198,29 @@ async function viewProfile() {
 
 const toggleMessages = inject<Ref<((open?: boolean, userId?: string) => void) | undefined>>("toggleMessages")!;
 function sendMessage() {
-    // if (!api.session.directMessages.has(props.user.userId)) {
-    //     api.session.directMessages.set(props.user.userId, []);
-    // }
+    chat.addNewUserChat(props.userId);
     if (toggleMessages.value) {
         toggleMessages.value(true, props.userId);
     }
 }
 
 async function joinBattle() {
-    // const battleIdToJoin = props.user.battleStatus.battleId;
-    // await api.session.updateBattleList();
-    // if (!battleIdToJoin) {
-    //     console.warn("Joining battle but battle is null");
-    //     return;
-    // }
-    // let battle = api.session.battles.get(battleIdToJoin);
-    // if (!battle) {
-    //     console.warn(`Battle with id ${battleIdToJoin} not found, hence can not join.`);
-    //     return;
-    // }
-    // await attemptJoinBattle(battle);
+    // TODO
 }
 
 async function inviteToParty() {
-    // TODO
+    if (partyStore.state === PlayersPartyState.JoinedOnly || partyStore.state === PlayersPartyState.JoinedAndInvited) {
+        const data: PartyInviteRequestData = { userId: props.userId };
+        party.requestInvite(data);
+    } else {
+        party.requestCreateAndInvite(props.userId);
+    }
+}
+
+function reportUser() {
+    if (!user.value) return;
+
+    openReportUser(user.value);
 }
 
 async function removeFriend() {

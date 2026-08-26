@@ -6,7 +6,9 @@ import path from "path";
 import fs from "fs";
 import { env } from "process";
 import { app } from "electron";
-import { homedir } from "node:os";
+import { homedir } from "os";
+import { Type, Static } from "@sinclair/typebox";
+import { Value } from "@sinclair/typebox/value";
 
 // Should be the same as `productName` in electron-builder.ts
 // and in workaround in installer.nsh.
@@ -83,9 +85,17 @@ function getDefaultLocations(): { state: string; assets: string } {
     process.exit(1);
 }
 
+export function setAssetsPath(p: string) {
+    ASSETS_PATH = path.resolve(p);
+}
+
+export function getAssetsPath() {
+    return ASSETS_PATH;
+}
+
 const defaultLocations = getDefaultLocations();
 // Allow overriding the paths using env variables.
-export const ASSETS_PATH = path.resolve(process.env.BAR_ASSETS_PATH || defaultLocations.assets);
+let ASSETS_PATH: string = path.resolve(process.env.BAR_ASSETS_PATH || defaultLocations.assets);
 export const STATE_PATH = path.resolve(process.env.BAR_STATE_PATH || defaultLocations.state);
 
 // We set the `userData` property for Electron to also create files in correct
@@ -96,22 +106,30 @@ console.log(`ASSETS_PATH: ${ASSETS_PATH}`);
 console.log(`STATE_PATH: ${STATE_PATH}`);
 
 export const CONFIG_PATH = path.join(STATE_PATH, "config");
+
+// Logging configuration
 export const LOGS_PATH = path.join(STATE_PATH, "logs");
+const LogLevelSchema = Type.String({ pattern: "^(fatal|error|warn|info|debug|trace|silent)$" });
+const formattedLogLevel: Static<typeof LogLevelSchema> = (process.env.BAR_LOG_LEVEL ?? "info").toLowerCase();
+const isValidLogLevel = Value.Check(LogLevelSchema, formattedLogLevel);
+if (!isValidLogLevel) {
+    console.warn(`Invalid BAR_LOG_LEVEL: ${process.env.BAR_LOG_LEVEL}. Using default log level: info. Valid values are: fatal, error, warn, info, debug, trace, silent.`);
+}
+export const LOG_LEVEL = isValidLogLevel ? formattedLogLevel : "info";
 
 // We will point engine at ASSETS_PATH as a base data directory to only read
 // data from, and at WRITE_DATA_PATH as data directory it can write to.
 export const WRITE_DATA_PATH = path.join(STATE_PATH, "data");
 
-export const ENGINE_PATH = path.join(ASSETS_PATH, "engine");
+export const getEnginePath = () => path.join(ASSETS_PATH, "engine");
+export const getPackagePath = () => path.join(ASSETS_PATH, "packages");
+export const getPoolPath = () => path.join(ASSETS_PATH, "pool");
+export const getRapidIndexPath = () => path.join(ASSETS_PATH, "rapid");
+export const getMapsPaths = (): readonly string[] => [path.join(WRITE_DATA_PATH, "maps"), path.join(ASSETS_PATH, "maps")];
+export const getGamePaths = (): readonly string[] => [path.join(WRITE_DATA_PATH, "games"), path.join(ASSETS_PATH, "games")];
 export const REPLAYS_PATH = path.join(WRITE_DATA_PATH, "demos");
-export const MAPS_PATHS: readonly string[] = [path.join(WRITE_DATA_PATH, "maps"), path.join(ASSETS_PATH, "maps")];
-export const GAME_PATHS: readonly string[] = [path.join(WRITE_DATA_PATH, "games"), path.join(ASSETS_PATH, "games")];
-// Everything rapid lives under assets.
-export const PACKAGE_PATH = path.join(ASSETS_PATH, "packages");
-export const POOL_PATH = path.join(ASSETS_PATH, "pool");
-export const RAPID_INDEX_PATH = path.join(ASSETS_PATH, "rapid");
 
-// Lobby specific cache path for scenario images. Maybe remove from here?
+// Lobby specific cache paths for mission content images.
 export const SCENARIO_IMAGE_PATH = path.join(STATE_PATH, "scenario-images");
 export const CAMPAIGN_IMAGE_PATH = path.join(STATE_PATH, "campaign-images");
 

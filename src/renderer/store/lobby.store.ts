@@ -10,7 +10,6 @@ import {
     LobbyListUpdatedEventData,
     LobbyOverview,
     LobbyCreateRequestData,
-    LobbyJoinRequestData,
     LobbyCreateOkResponseData,
     LobbyJoinOkResponseData,
     LobbyAddBotRequestData,
@@ -22,6 +21,7 @@ import {
     LobbyVoteEndedEventData,
     LobbyVoteSubmitRequestData,
     LobbyUpdateClientStatusRequestData,
+    UserId,
 } from "tachyon-protocol/types";
 import { reactive } from "vue";
 import { apply as applyPatch } from "json8-merge-patch";
@@ -32,6 +32,7 @@ import { subsManager } from "@renderer/store/users.store";
 import { db } from "@renderer/store/db";
 import { battleStore, battleActions } from "@renderer/store/battle.store";
 import { router } from "@renderer/router";
+import { onWentOffline } from "@renderer/utils/offline-signal";
 
 const i18n = setupI18n();
 
@@ -44,19 +45,29 @@ export const lobbyStore: {
     lobbies: Record<LobbyId, LobbyOverview>;
     selectedLobby?: LobbyOverview;
     activeLobby?: Lobby;
+    wantsListSubscription: boolean;
 } = reactive({
     isInitialized: false,
     lobbies: {},
     selectedLobby: undefined,
     activeLobby: undefined,
+    wantsListSubscription: false,
 });
 
 export async function initLobbyStore() {
+    onWentOffline.add(clearOnlineState);
     window.tachyon.onEvent("lobby/listUpdated", onListUpdatedEvent);
     window.tachyon.onEvent("lobby/listReset", onLobbyListResetEvent);
     window.tachyon.onEvent("lobby/updated", onLobbyUpdatedEvent);
     window.tachyon.onEvent("lobby/left", onLobbyLeftEvent);
     window.tachyon.onEvent("lobby/voteEnded", onLobbyVoteEndedEvent);
+    window.tachyon.onConnected(() => {
+        // The server drops the list subscription when the socket dies, and customLobbies.vue only
+        // subscribes on activation, so a reconnect while sitting there would leave an empty list.
+        if (lobbyStore.wantsListSubscription) {
+            requestSubscribeList();
+        }
+    });
     lobbyStore.isInitialized = true;
 }
 
@@ -77,7 +88,11 @@ function onLobbyVoteEndedEvent(data: LobbyVoteEndedEventData) {
     //TODO: If we want to trigger notifications this is the place to do it.
 }
 
+/**
+ * Subscribes to the lobby list updates.
+ */
 async function requestSubscribeList() {
+    lobbyStore.wantsListSubscription = true;
     try {
         const response = await window.tachyon.request("lobby/subscribeList");
         //Per Tachyon protocol, this subscribes us, but does not return an updated list, that happens in the ListUpdated or ListReset events.
@@ -91,7 +106,11 @@ async function requestSubscribeList() {
     }
 }
 
+/**
+ * Unsubscribes from future lobby list updates.
+ */
 async function requestUnsubscribeList() {
+    lobbyStore.wantsListSubscription = false;
     try {
         await window.tachyon.request("lobby/unsubscribeList");
     } catch (error) {
@@ -103,6 +122,10 @@ async function requestUnsubscribeList() {
     }
 }
 
+/**
+ * Sends a request to create a new lobby with the provided data.
+ * @param data Required data for creating a new lobby.
+ */
 async function requestCreateLobby(data: LobbyCreateRequestData) {
     try {
         battleActions.resetToDefaultBattle(undefined, undefined, undefined, true);
@@ -119,10 +142,14 @@ async function requestCreateLobby(data: LobbyCreateRequestData) {
     }
 }
 
-async function requestJoinLobby(id: LobbyJoinRequestData) {
+/**
+ * Sends a request to join an existing lobby with the provided ID.
+ * @param id The ID of the lobby to join.
+ */
+async function requestJoinLobby(id: string) {
     try {
         battleActions.resetToDefaultBattle(undefined, undefined, undefined, true);
-        const response = await window.tachyon.request("lobby/join", id);
+        const response = await window.tachyon.request("lobby/join", { id: id });
         console.log("Tachyon: lobby/join:", response.status, response.data);
         parseLobbyResponseData(response.data, false);
         router.push("/play/lobby");
@@ -135,6 +162,10 @@ async function requestJoinLobby(id: LobbyJoinRequestData) {
     }
 }
 
+/**
+ * Requests to join an ally team in the lobby.
+ * @param allyTeam - The ally team to join.
+ */
 async function requestJoinAllyTeam(allyTeam: string) {
     try {
         const response = await window.tachyon.request("lobby/joinAllyTeam", { allyTeam: allyTeam });
@@ -148,6 +179,9 @@ async function requestJoinAllyTeam(allyTeam: string) {
     }
 }
 
+/**
+ * Request to join the player queue in the lobby.
+ */
 async function requestJoinQueue() {
     try {
         const response = await window.tachyon.request("lobby/joinQueue");
@@ -161,6 +195,9 @@ async function requestJoinQueue() {
     }
 }
 
+/**
+ * Request to join the spectator queue in the lobby.
+ */
 async function requestSpectate() {
     try {
         const response = await window.tachyon.request("lobby/spectate");
@@ -174,12 +211,21 @@ async function requestSpectate() {
     }
 }
 
-// Sorts the playerQueue based on the indices because we cannot assume they will be exclusively positive or consecutive integers
+/**
+ * Sorts the player queue map by the joinQueuePosition and returns a new Map with the sorted entries.
+ * @param map The Map to be sorted.
+ * @returns A new Map with the entries sorted by joinQueuePosition.
+ */
 function toSortedPlayerQueue(map: Map<number, string>): Map<number, string> {
     return new Map(Array.from(map.entries()).toSorted(([a], [b]) => a - b));
 }
 
-// This will normalize different event/response data(s) and apply them to the lobbyStore.activeLobby object.
+/**
+ * Normalizes different event/response data(s) and apply them to the lobbyStore.activeLobby object.
+ * @param data Lobby create, join, or updated event data packets
+ * @param isUpdate Flag to indicate if this is an update only
+ * @returns void
+ */
 function parseLobbyResponseData(data: LobbyCreateOkResponseData | LobbyJoinOkResponseData | LobbyUpdatedEventData, isUpdate: boolean) {
     // Check if we are getting an updated event or a join/create response
     if (isUpdate) {
@@ -246,6 +292,9 @@ function parseLobbyResponseData(data: LobbyCreateOkResponseData | LobbyJoinOkRes
     return;
 }
 
+/**
+ * Sends a request to leave the currently active lobby.
+ */
 async function requestLeaveLobby() {
     try {
         const response = await window.tachyon.request("lobby/leave");
@@ -262,7 +311,11 @@ async function requestLeaveLobby() {
     lobbyStore.activeLobby = undefined;
 }
 
-// This is a *request* for the battle to start, but 'battle/start' event received will actually trigger the client to launch the game.
+/**
+ * Sends a request to start the battle in the currently active lobby.
+ * Note: This does not guarantee the battle will start, as the server may reject the request.
+ * The clients will receive a 'battle/start' event if the battle is successfully started.
+ */
 async function requestStartBattle() {
     try {
         const response = await window.tachyon.request("lobby/startBattle");
@@ -276,6 +329,10 @@ async function requestStartBattle() {
     }
 }
 
+/**
+ * Request to add a bot player to the lobby with the provided data.
+ * @param data Required data to fulfill this request
+ */
 async function requestAddBot(data: LobbyAddBotRequestData) {
     try {
         const response = await window.tachyon.request("lobby/addBot", data);
@@ -289,6 +346,10 @@ async function requestAddBot(data: LobbyAddBotRequestData) {
     }
 }
 
+/**
+ * Request to remove a bot player from the lobby with the provided data.
+ * @param data Required data to fulfill this request
+ */
 async function requestRemoveBot(data: LobbyRemoveBotRequestData) {
     try {
         const response = await window.tachyon.request("lobby/removeBot", data);
@@ -302,6 +363,10 @@ async function requestRemoveBot(data: LobbyRemoveBotRequestData) {
     }
 }
 
+/**
+ * Request to update a bot player in the lobby with the provided data.
+ * @param data Required data to fulfill this request
+ */
 async function requestUpdateBot(data: LobbyUpdateBotRequestData) {
     try {
         const response = await window.tachyon.request("lobby/updateBot", data);
@@ -315,6 +380,10 @@ async function requestUpdateBot(data: LobbyUpdateBotRequestData) {
     }
 }
 
+/**
+ * Request an update to the lobby settings with the provided data.
+ * @param data Required data to fulfill this request
+ */
 async function requestLobbyUpdate(data: LobbyUpdateRequestData) {
     try {
         const response = await window.tachyon.request("lobby/update", data);
@@ -325,6 +394,9 @@ async function requestLobbyUpdate(data: LobbyUpdateRequestData) {
     }
 }
 
+/**
+ * In case a lobby is selected when a list update removes it, this removes it from being selected.
+ */
 function clearSelectedLobbyIfUndefined() {
     if (lobbyStore.selectedLobby && !(lobbyStore.selectedLobby.id in lobbyStore.lobbies)) {
         lobbyStore.selectedLobby = undefined;
@@ -352,6 +424,11 @@ function onLobbyLeftEvent(data: LobbyLeftEventData) {
     });
 }
 
+/**
+ * Calculates the maximum number of players for a given ally team configuration.
+ * @param config The allyTeamConfig to use for this request
+ * @returns The number of max players for the allyTeamConfig provided
+ */
 function getMaxPlayerCountFromAllyTeamConfig(config: Lobby["allyTeamConfig"]): number {
     let maxPlayerCount: number = 0;
     for (const allyTeam of Object.values(config)) {
@@ -362,13 +439,20 @@ function getMaxPlayerCountFromAllyTeamConfig(config: Lobby["allyTeamConfig"]): n
     return maxPlayerCount;
 }
 
+/**
+ * Clears all user subscriptions associated with the lobby store.
+ */
 async function clearUserSubscriptions() {
     subsManager.clearAllFromList(lobbySymbol);
 }
 
-function requestUpdateClientStatus(data: LobbyUpdateClientStatusRequestData) {
+/**
+ * Request to update the client status in the lobby with the provided data.
+ * @param data Required data to fulfill this request
+ */
+async function requestUpdateClientStatus(data: LobbyUpdateClientStatusRequestData) {
     try {
-        const response = window.tachyon.request("lobby/updateClientStatus", data);
+        const response = await window.tachyon.request("lobby/updateClientStatus", data);
         console.log("Tachyon lobby/updateClientStatus:", response);
     } catch (error) {
         console.error("Error with request lobby/updateClientStatus", error);
@@ -376,9 +460,12 @@ function requestUpdateClientStatus(data: LobbyUpdateClientStatusRequestData) {
     }
 }
 
-function requestJoinBattle() {
+/**
+ * Request to join an active battle in the lobby as a spectator.
+ */
+async function requestJoinBattle() {
     try {
-        const response = window.tachyon.request("lobby/joinBattle");
+        const response = await window.tachyon.request("lobby/joinBattle");
         console.log("Tachyon lobby/joinBattle:", response);
     } catch (error) {
         console.error("Error with request lobby/joinBattle", error);
@@ -386,9 +473,13 @@ function requestJoinBattle() {
     }
 }
 
-function requestVoteSubmit(data: LobbyVoteSubmitRequestData) {
+/**
+ * Request to submit a vote in the lobby.
+ * @param data Required data to fulfill this request
+ */
+async function requestVoteSubmit(data: LobbyVoteSubmitRequestData) {
     try {
-        const response = window.tachyon.request("lobby/voteSubmit", data);
+        const response = await window.tachyon.request("lobby/voteSubmit", data);
         console.log("Tachyon lobby/voteSubmit:", response);
     } catch (error) {
         console.error("Error with request lobby/voteSubmit", error);
@@ -396,7 +487,58 @@ function requestVoteSubmit(data: LobbyVoteSubmitRequestData) {
     }
 }
 
+/**
+ * Request to appoint a user as the boss of the lobby.
+ * @param userId The ID of the user to appoint as boss
+ */
+async function requestAppointBoss(userId: string) {
+    try {
+        const response = await window.tachyon.request("lobby/appointBoss", { userId });
+        console.log("Tachyon lobby/appointBoss:", response);
+    } catch (error) {
+        console.error("Error with request lobby/appointBoss", error);
+        notificationsApi.alert({ text: "Error with request lobby/appointBoss", severity: "error" });
+    }
+}
+
+/**
+ * Request to kick or ban a user from the lobby.
+ * @param userId The ID of the user to kick or ban
+ * @param until When the ban expires, in Unix timestamp format (optional)
+ */
+async function requestKickBan(userId: string, until?: number) {
+    try {
+        const response = await window.tachyon.request("lobby/kickban", { userId, banUntil: until });
+        console.log("Tachyon lobby/kickban:", response);
+    } catch (error) {
+        console.error("Error with request lobby/kickban", error);
+        notificationsApi.alert({ text: "Error with request lobby/kickban", severity: "error" });
+    }
+}
+
+/**
+ * Request to remove the boss status from a user in the lobby.
+ * @param userId The ID of the user to remove as boss. If none is provided it will apply to the requesting user.
+ */
+async function requestUnboss(userId?: UserId) {
+    try {
+        const response = await window.tachyon.request("lobby/unboss", { userId });
+        console.log("Tachyon lobby/unboss:", response);
+    } catch (error) {
+        console.error("Error with request lobby/unboss", error);
+        notificationsApi.alert({ text: "Error with request lobby/unboss", severity: "error" });
+    }
+}
+
+export function clearOnlineState() {
+    clearUserSubscriptions();
+    lobbyStore.lobbies = {};
+    lobbyStore.selectedLobby = undefined;
+    lobbyStore.activeLobby = undefined;
+}
+
 export const lobby = {
+    clearOnlineState,
     requestSubscribeList,
     requestUnsubscribeList,
     requestCreateLobby,
@@ -413,4 +555,7 @@ export const lobby = {
     requestUpdateClientStatus,
     requestJoinBattle,
     requestVoteSubmit,
+    requestAppointBoss,
+    requestKickBan,
+    requestUnboss,
 };

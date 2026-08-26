@@ -15,7 +15,7 @@ SPDX-License-Identifier: MIT
                 <div v-if="map" class="gap-md page">
                     <div class="gridform">
                         <div class="flex-right">
-                            <Button v-tooltip.bottom="t('lobby.library.maps.back')" class="icon close flex-right" @click="returnToMaps">
+                            <Button v-tooltip.bottom="t('lobby.library.maps.back')" class="icon close flex-right" @click="routerBack">
                                 <Icon :icon="arrow_back" :height="40" />
                             </Button>
                         </div>
@@ -121,7 +121,6 @@ import gridIcon from "@iconify-icons/mdi/grid";
 import windPower from "@iconify-icons/mdi/wind-power";
 import { useTypedI18n } from "@renderer/i18n";
 import DownloadContentButton from "@renderer/components/controls/DownloadContentButton.vue";
-import { watch } from "vue";
 
 const { t } = useTypedI18n();
 
@@ -142,16 +141,9 @@ function toggleMapFavorite() {
     if (map.value) map.value.isFavorite = !map.value.isFavorite;
 }
 
-function returnToMaps() {
-    router.push("/library/maps/maps");
+function routerBack() {
+    router.back();
 }
-
-watch(
-    () => battleStore.isSelectingGameMode,
-    (newValue) => {
-        battleStore.isLobbyOpened = !newValue;
-    }
-);
 </script>
 
 <style lang="scss" scoped>

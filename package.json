@@ -1,7 +1,7 @@
 {
     "name": "bar-lobby",
     "type": "module",
-    "version": "0.15.3",
+    "version": "0.16.2",
     "private": true,
     "description": "Lobby client for the RTS game Beyond All Reason",
     "author": "The BAR Lobby Authors",
@@ -12,11 +12,8 @@
     },
     "main": ".vite/build/main.cjs",
     "scripts": {
-        "generate:schemas": "node --import=tsx tools/generate-schema-types.ts",
-        "generate:i18n": "node --import=tsx tools/generate-i18n-asset-files.ts",
-        "generate": "npm run generate:schemas",
-        "start": "npm run generate && cross-env NODE_OPTIONS=--enable-source-maps electron-forge start",
-        "package": "npm run generate && electron-forge package",
+        "start": "cross-env NODE_OPTIONS=--enable-source-maps electron-forge start",
+        "package": "electron-forge package",
         "preview": "electron-forge package && cross-env NODE_OPTIONS=--enable-source-maps NODE_ENV=production electron .",
         "build:win": "electron-builder --win",
         "buildall:win": "npm run package && npm run build:win",
@@ -35,11 +32,16 @@
         "format:check": "prettier --experimental-cli --check .",
         "typecheck:node": "tsc --noEmit -p tsconfig.node.json --composite false",
         "typecheck:web": "vue-tsc --noEmit -p tsconfig.web.json --composite false",
-        "typecheck": "npm run generate && concurrently \"npm run typecheck:node\" \"npm run typecheck:web\"",
-        "checks": "concurrently \"npm run typecheck\" \"npm run lint\" \"npm run format:check\""
+        "typecheck": "concurrently \"npm run typecheck:node\" \"npm run typecheck:web\"",
+        "validate-config": "node --import=tsx tools/validate-config.ts",
+        "checks": "concurrently \"npm run typecheck:web\" \"npm run typecheck:node\" \"npm run lint\" \"npm run format:check\" \"npm run validate-config\"",
+        "generate-default-config": "node --import=tsx tools/generate-default-config.ts && prettier ./config.json --write",
+        "generate-i18n-assets": "node --import=tsx tools/generate-dev-locale.ts &&  node --import=tsx tools/generate-i18n-asset-files.ts && npm run format",
+        "generate-i18n-assets:check": "npm run generate-i18n-assets && git diff --exit-code -- src/renderer/assets/languages",
+        "start:multi": "node --import=tsx tools/launch-clients.ts"
     },
     "engines": {
-        "node": "22.18.0"
+        "node": "^22.16.0"
     },
     "dependencies": {
         "@extractus/feed-extractor": "^7.1.6",
@@ -57,11 +59,12 @@
         "dexie": "^4.0.11",
         "dompurify": "^3.2.6",
         "flag-icons": "^7.5.0",
-        "glob-promise": "^6.0.7",
+        "glob": "^13.0.6",
         "howler": "^2.2.4",
         "json8-merge-patch": "^1.0.5",
         "luaparse": "^0.3.1",
         "marked": "^16.1.1",
+        "minimatch": "^10.2.5",
         "node-abi": "^4.12.0",
         "node-downloader-helper": "^2.1.9",
         "pino": "^9.7.0",
@@ -69,14 +72,15 @@
         "playwright": "^1.54.2",
         "primeicons": "^6.0.1",
         "primevue": "3.23.0",
-        "tachyon-protocol": "^1.20.0",
+        "sdfz-demo-parser": "^5.15.0",
+        "tachyon-protocol": "^1.23.0",
         "vue-i18n": "^11.1.11",
         "vue-router": "^4.5.1",
         "ws": "^8.18.3"
     },
     "devDependencies": {
-        "@electron-forge/cli": "^7.8.1",
-        "@electron-forge/plugin-vite": "^7.8.1",
+        "@electron-forge/cli": "^7.11.1",
+        "@electron-forge/plugin-vite": "^7.11.1",
         "@playwright/test": "^1.54.2",
         "@types/howler": "^2.2.12",
         "@types/luaparse": "^0.2.12",
@@ -88,15 +92,14 @@
         "concurrently": "^9.2.0",
         "cross-env": "^7.0.3",
         "electron": "37.3.1",
-        "electron-builder": "^26.0.12",
-        "electron-updater": "^6.6.2",
+        "electron-builder": "^26.8.1",
+        "electron-updater": "^6.8.3",
         "eslint": "^9.31.0",
         "eslint-config-prettier": "^10.1.8",
         "eslint-plugin-unused-imports": "^4.1.4",
         "eslint-plugin-vue": "^10.3.0",
         "globals": "^16.3.0",
         "jsdom": "^26.1.0",
-        "json-schema-to-typescript": "^15.0.4",
         "prettier": "^3.6.2",
         "sass": "^1.89.2",
         "tsx": "^4.20.3",
@@ -109,5 +112,8 @@
         "vitest": "^3.2.4",
         "vue-tsc": "^3.0.3",
         "wait-on": "^8.0.4"
+    },
+    "overrides": {
+        "@electron/rebuild": "^4.2.0"
     }
 }

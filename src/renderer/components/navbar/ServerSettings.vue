@@ -41,6 +41,7 @@ import Select from "@renderer/components/controls/Select.vue";
 import Button from "@renderer/components/controls/Button.vue";
 import OverlayPanel from "primevue/overlaypanel";
 import { settingsStore } from "@renderer/store/settings.store";
+import { configStore } from "@renderer/store/config.store";
 import Textbox from "@renderer/components/controls/Textbox.vue";
 import { useTypedI18n } from "@renderer/i18n";
 const { t } = useTypedI18n();
@@ -50,18 +51,13 @@ const serverInput = ref("");
 const op = ref();
 const tooltipMessage = ref("");
 
-const defaultServers: string[] = [
-    "wss://server4.beyondallreason.info",
-    "wss://server5.beyondallreason.info",
-    "wss://lobby-server-dev.beyondallreason.dev",
-    "ws://localhost:4000",
-];
+const defaultServers: string[] = [...configStore.defaultServers];
 
 const disableRemoveButton = computed(() => {
     return defaultServers.includes(settingsStore.lobbyServer);
 });
 
-const serversList = ref([
+const serversList = computed(() => [
     {
         label: t("lobby.navbar.serverSettings.labelDefault"),
         items: defaultServers,
@@ -82,16 +78,6 @@ function addServerToList() {
         return;
     }
     settingsStore.customServerList.push(serverInput.value);
-    serversList.value = [
-        {
-            label: t("lobby.navbar.serverSettings.labelDefault"),
-            items: defaultServers,
-        },
-        {
-            label: t("lobby.navbar.serverSettings.labelCustom"),
-            items: settingsStore.customServerList,
-        },
-    ];
     serverInput.value = "";
 }
 
