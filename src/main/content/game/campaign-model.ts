@@ -8,8 +8,11 @@ import type { MissionModel } from "@main/content/game/mission";
 /**
  * Campaign as returned to the lobby: extends the schema-validated {@link CampaignDefinition}
  * with local-cache paths for images and runtime-populated fields.
+ *
+ * Campaign JSON may declare `missions` as an ordered list of mission IDs; in the
+ * lobby model this is replaced by a runtime missionId -> mission map.
  */
-export type CampaignModel = CampaignDefinition & {
+export type CampaignModel = Omit<CampaignDefinition, "missions"> & {
     /** Whether this campaign is currently unlocked (from app state, not from the campaign file). */
     unlocked?: boolean;
     /** Runtime-populated map of missionId to MissionModel. */

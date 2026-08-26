@@ -18,7 +18,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const SCHEMA_DIR = path.resolve(__dirname, "../src/main/content/game/schemas");
 const OUTPUT_DIR = path.resolve(__dirname, "../src/main/content/game/generated");
 
-const SCHEMAS = ["campaign", "mission"];
+const SCHEMAS = ["campaign", "manifest", "mission"];
 
 function banner(name: string) {
     return `// THIS FILE IS AUTO-GENERATED from schemas/${name}.schema.json.

@@ -41,16 +41,18 @@ const { GameContentAPI } = await import("@main/content/game/game-content");
 const GAME_VERSION = "Beyond All Reason test-2026-06-03-stable";
 const PACKAGE_MD5 = "abc123";
 
+const MISSIONS_PATH = "missions";
 const CAMPAIGNS_PATH = "missions/campaigns";
+const MANIFEST_PATH = `${MISSIONS_PATH}/manifest.json`;
 
-const CAMPAIGN_DIR_ARMADA = "01_armada";
-const CAMPAIGN_DIR_CORTEX = "02_cortex";
+const CAMPAIGN_DIR_ARMADA = "armada";
+const CAMPAIGN_DIR_CORTEX = "cortex";
 const CAMPAIGN_ID_ARMADA = "armada";
 const CAMPAIGN_ID_CORTEX = "cortex";
 
-const MISSION_DIR_FIRST = "01_first";
-const MISSION_DIR_SECOND = "02_second";
-const MISSION_DIR_THIRD = "03_third";
+const MISSION_DIR_FIRST = "first";
+const MISSION_DIR_SECOND = "second";
+const MISSION_DIR_THIRD = "third";
 const MISSION_ID_FIRST = "first_steps";
 const MISSION_ID_SECOND = "second_wave";
 const MISSION_ID_THIRD = "third_front";
@@ -94,6 +96,7 @@ type Archive = Record<string, unknown>;
 
 function campaignArchive(): Archive {
     return {
+        [MANIFEST_PATH]: { campaigns: [CAMPAIGN_ID_ARMADA, CAMPAIGN_ID_CORTEX], standalone: [] },
         [`${CAMPAIGNS_PATH}/${CAMPAIGN_DIR_ARMADA}/campaign.json`]: campaignJson(CAMPAIGN_ID_ARMADA),
         [`${CAMPAIGNS_PATH}/${CAMPAIGN_DIR_ARMADA}/${MISSION_DIR_FIRST}/mission.json`]: missionJson(MISSION_ID_FIRST),
         [`${CAMPAIGNS_PATH}/${CAMPAIGN_DIR_ARMADA}/${MISSION_DIR_SECOND}/mission.json`]: missionJson(MISSION_ID_SECOND),
@@ -204,12 +207,14 @@ describe("getCampaigns", () => {
         expect(campaigns[1].missions[MISSION_ID_THIRD].campaignId).toBe(CAMPAIGN_ID_CORTEX);
     });
 
-    it("orders campaigns and missions by their NN_ folder prefixes, not by archive order", async () => {
-        // Deliberately reversed: only the folder prefixes may decide display order.
+    it("orders campaigns from manifest and missions from campaign.missions", async () => {
         const archive: Archive = {
+            [MANIFEST_PATH]: { campaigns: [CAMPAIGN_ID_ARMADA, CAMPAIGN_ID_CORTEX] },
             [`${CAMPAIGNS_PATH}/${CAMPAIGN_DIR_CORTEX}/campaign.json`]: campaignJson(CAMPAIGN_ID_CORTEX),
             [`${CAMPAIGNS_PATH}/${CAMPAIGN_DIR_CORTEX}/${MISSION_DIR_THIRD}/mission.json`]: missionJson(MISSION_ID_THIRD),
-            [`${CAMPAIGNS_PATH}/${CAMPAIGN_DIR_ARMADA}/campaign.json`]: campaignJson(CAMPAIGN_ID_ARMADA),
+            [`${CAMPAIGNS_PATH}/${CAMPAIGN_DIR_ARMADA}/campaign.json`]: campaignJson(CAMPAIGN_ID_ARMADA, {
+                missions: [MISSION_ID_SECOND, MISSION_ID_FIRST],
+            }),
             [`${CAMPAIGNS_PATH}/${CAMPAIGN_DIR_ARMADA}/${MISSION_DIR_SECOND}/mission.json`]: missionJson(MISSION_ID_SECOND),
             [`${CAMPAIGNS_PATH}/${CAMPAIGN_DIR_ARMADA}/${MISSION_DIR_FIRST}/mission.json`]: missionJson(MISSION_ID_FIRST),
         };
@@ -217,7 +222,7 @@ describe("getCampaigns", () => {
         const campaigns = await new TestGameContentAPI(archive).getCampaigns(GAME_VERSION);
 
         expect(campaigns.map((c) => c.campaignId)).toEqual([CAMPAIGN_ID_ARMADA, CAMPAIGN_ID_CORTEX]);
-        expect(Object.keys(campaigns[0].missions)).toEqual([MISSION_ID_FIRST, MISSION_ID_SECOND]);
+        expect(Object.keys(campaigns[0].missions)).toEqual([MISSION_ID_SECOND, MISSION_ID_FIRST]);
     });
 
     it("unlocks the first campaign only", async () => {
@@ -395,6 +400,7 @@ describe("getCampaigns archive layouts", () => {
         const api = new TestGameContentAPI(campaignArchive());
         await api.getCampaigns(GAME_VERSION);
 
+        expect(api.requestedPatterns).toContain(MANIFEST_PATH);
         expect(api.requestedPatterns).toContain(`${CAMPAIGNS_PATH}/*/campaign.json`);
         expect(api.requestedPatterns).toContain(`${CAMPAIGNS_PATH}/${CAMPAIGN_DIR_ARMADA}/*/mission.json`);
     });

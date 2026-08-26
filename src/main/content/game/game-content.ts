@@ -19,9 +19,11 @@ import { DownloadInfo } from "@main/content/downloads";
 import { LuaOptionSection } from "@main/content/game/lua-options";
 import Ajv, { JSONSchemaType } from "ajv";
 import type { CampaignDefinition } from "@main/content/game/generated/campaign";
+import type { MissionManifest } from "@main/content/game/generated/manifest";
 import type { MissionDefinition } from "@main/content/game/generated/mission";
 import type { CampaignModel } from "@main/content/game/campaign-model";
 import campaignSchema from "@main/content/game/schemas/campaign.schema.json";
+import manifestSchema from "@main/content/game/schemas/manifest.schema.json";
 import missionSchema from "@main/content/game/schemas/mission.schema.json";
 import { MissionModel } from "@main/content/game/mission";
 import { Scenario } from "@main/content/game/scenario";
@@ -38,10 +40,15 @@ const gunzip = util.promisify(zlib.gunzip);
 const ajv = new Ajv({ allowUnionTypes: true });
 
 const validateCampaignFile = ajv.compile<CampaignDefinition>(campaignSchema as unknown as JSONSchemaType<CampaignDefinition>);
+const validateManifestFile = ajv.compile<MissionManifest>(manifestSchema as unknown as JSONSchemaType<MissionManifest>);
 const validateMissionFile = ajv.compile<MissionDefinition>(missionSchema as unknown as JSONSchemaType<MissionDefinition>);
 
 /** Root of the mission API content inside the game archive. */
-const CAMPAIGNS_PATH = "missions/campaigns";
+const MISSIONS_PATH = "missions";
+/** Mission API manifest file path inside the game archive. */
+const MANIFEST_PATH = `${MISSIONS_PATH}/manifest.json`;
+/** Root of the mission API content inside the game archive. */
+const CAMPAIGNS_PATH = `${MISSIONS_PATH}/campaigns`;
 
 export class GameContentAPI extends PrDownloaderAPI<string, GameVersion> {
     public packageGameVersionLookup: { [md5: string]: string | undefined } = {};
@@ -176,8 +183,8 @@ export class GameContentAPI extends PrDownloaderAPI<string, GameVersion> {
     public async getCampaigns(gameVersion?: string): Promise<CampaignModel[]> {
         try {
             const packageMd5 = this.getPackageMd5ForGameVersion(gameVersion);
-            // Each campaign lives in its own folder; the folder name's NN_ prefix sets the display order.
-            const campaignJsonFiles = this.sortedByPath(await this.getGameFiles(packageMd5, `${CAMPAIGNS_PATH}/*/campaign.json`, true));
+            const manifest = await this.loadMissionManifest(packageMd5);
+            const campaignJsonFiles = await this.getGameFiles(packageMd5, `${CAMPAIGNS_PATH}/*/campaign.json`, true);
             await fs.promises.mkdir(CAMPAIGN_IMAGE_PATH, { recursive: true });
 
             const campaigns: CampaignModel[] = [];
@@ -193,14 +200,27 @@ export class GameContentAPI extends PrDownloaderAPI<string, GameVersion> {
                     log.error(`Error parsing campaign ${this.sdpRelativePath(campaignFile)}: ${err}`);
                 }
             }
-            if (campaigns.length > 0) {
-                campaigns[0].unlocked = true; // TODO: replace with state once it's ready
+            const orderedCampaigns = this.orderByDeclaredIds(campaigns, manifest?.campaigns, (campaign) => campaign.campaignId);
+            if (orderedCampaigns.length > 0) {
+                orderedCampaigns[0].unlocked = true; // TODO: replace with state once it's ready
             }
-            return campaigns;
+            return orderedCampaigns;
         } catch (err) {
             log.error(`Error getting campaigns: ${err}`);
             return [];
         }
+    }
+
+    private async loadMissionManifest(md5: string): Promise<MissionManifest | undefined> {
+        const manifestFiles = await this.getGameFiles(md5, MANIFEST_PATH, true);
+        if (manifestFiles.length === 0) {
+            return undefined;
+        }
+        const manifestJson = JSON.parse(manifestFiles[0].data.toString("utf8")) as unknown;
+        if (!validateManifestFile(manifestJson)) {
+            throw new Error(`Invalid manifest JSON (${this.sdpRelativePath(manifestFiles[0])}): ${ajv.errorsText(validateManifestFile.errors)}`);
+        }
+        return manifestJson;
     }
 
     private async parseCampaignFile(campaignFile: SdpFile, md5: string, cacheDir: string): Promise<CampaignModel> {
@@ -216,24 +236,33 @@ export class GameContentAPI extends PrDownloaderAPI<string, GameVersion> {
         const backgroundImage = campaignJson.backgroundImage ? await this.extractAsset(md5, `${campaignPath}/${campaignJson.backgroundImage}`, cacheDir, campaignDirName) : undefined;
 
         // Every subfolder holding a mission.json is a mission of this campaign.
-        const missionJsonFiles = this.sortedByPath(await this.getGameFiles(md5, `${campaignPath}/*/mission.json`, true));
-        const missions: Record<string, MissionModel> = {};
+        const missionJsonFiles = await this.getGameFiles(md5, `${campaignPath}/*/mission.json`, true);
+        const seenMissionIds = new Set<string>();
+        const missions: MissionModel[] = [];
 
         for (const missionFile of missionJsonFiles) {
             const missionDirName = this.containingDirName(missionFile);
             try {
                 const mission = await this.parseMissionFile(missionFile, md5, campaignJson, campaignDirName, cacheDir);
-                // The campaign's 'unlocks' map keys on missionId, so a duplicate would be ambiguous.
-                if (mission.missionId in missions) {
+                // The campaign's 'unlocks' map and optional ordered 'missions' list key on missionId.
+                if (seenMissionIds.has(mission.missionId)) {
                     throw new Error(`Duplicate missionId '${mission.missionId}'`);
                 }
-                missions[mission.missionId] = mission;
+                seenMissionIds.add(mission.missionId);
+                missions.push(mission);
             } catch (err) {
                 log.error(`Error parsing mission ${missionDirName} in ${campaignDirName}: ${err}`);
             }
         }
 
-        return { ...campaignJson, logo, backgroundImage, missions };
+        const orderedMissions = this.orderByDeclaredIds(missions, campaignJson.missions, (mission) => mission.missionId);
+        const campaignBase: Omit<CampaignDefinition, "missions"> = campaignJson;
+        return {
+            ...campaignBase,
+            logo,
+            backgroundImage,
+            missions: Object.fromEntries(orderedMissions.map((mission) => [mission.missionId, mission])),
+        };
     }
 
     private async parseMissionFile(missionFile: SdpFile, md5: string, campaign: CampaignDefinition, campaignDirName: string, cacheDir: string): Promise<MissionModel> {
@@ -322,14 +351,28 @@ export class GameContentAPI extends PrDownloaderAPI<string, GameVersion> {
         return file.fileName.includes("/") ? file.fileName : file.archivePath;
     }
 
-    /** Name of the folder directly containing the file, e.g. `01_armada` for `missions/campaigns/01_armada/campaign.json`. */
+    /** Name of the folder directly containing the file, e.g. `armada` for `missions/campaigns/armada/campaign.json`. */
     private containingDirName(file: SdpFileMeta): string {
         return path.basename(path.dirname(this.sdpRelativePath(file).replaceAll("\\", "/")));
     }
 
-    /** Sorts files by path so that the NN_ prefixes of campaign and mission folders define the display order. */
-    private sortedByPath<T extends SdpFileMeta>(files: T[]): T[] {
-        return [...files].sort((a, b) => this.sdpRelativePath(a).localeCompare(this.sdpRelativePath(b)));
+    /** Applies declared ID order first, then appends remaining items sorted by ID. */
+    private orderByDeclaredIds<T>(items: T[], orderedIds: string[] | undefined, getId: (item: T) => string): T[] {
+        const byId = new Map(items.map((item) => [getId(item), item]));
+        const ordered: T[] = [];
+
+        if (orderedIds) {
+            for (const id of orderedIds) {
+                const item = byId.get(id);
+                if (item) {
+                    ordered.push(item);
+                    byId.delete(id);
+                }
+            }
+        }
+
+        const remaining = [...byId.values()].sort((a, b) => getId(a).localeCompare(getId(b)));
+        return [...ordered, ...remaining];
     }
 
     private async extractAsset(md5: string, filePath: string, cacheDir: string, prefix: string): Promise<string | undefined> {

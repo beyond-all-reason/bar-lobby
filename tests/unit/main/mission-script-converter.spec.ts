@@ -10,7 +10,7 @@ import type { CampaignModel } from "@main/content/game/campaign-model";
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const BASE_MISSION_ID = "m1";
-const BASE_MISSION_FOLDER = "missions/campaigns/01_test/01_m1";
+const BASE_MISSION_FOLDER = "missions/campaigns/test/m1";
 const BASE_MISSION_TITLE = "Test Mission";
 const BASE_MISSION_DESCRIPTION = "A test";
 const BASE_MAP_NAME = "TestMap_v1";
