@@ -14,18 +14,15 @@ export type TeamModel = Team;
 export type MissionStartScript = MissionDefinition["startScript"];
 
 /**
- * Handicap settings of a single difficulty, as defined in a campaign.json or mission.json.
- */
-export type DifficultySettings = NonNullable<MissionDefinition["difficulties"]>[string];
-
-/**
- * A difficulty resolved for a mission, with its name attached and its handicaps defaulted.
+ * Difficulty selection used when building a mission start script.
  *
- * Missions and campaigns both store difficulties as a name-keyed map of optional handicaps;
- * this is the flattened form the UI and the start-script converter work with.
+ * Mission/campaign JSON no longer define these fields, but the converter and
+ * UI still accept an optional selected difficulty object.
  */
-export type MissionDifficulty = Required<DifficultySettings> & {
+export type MissionDifficulty = {
     name: string;
+    playerHandicap: number;
+    enemyHandicap: number;
 };
 
 /**

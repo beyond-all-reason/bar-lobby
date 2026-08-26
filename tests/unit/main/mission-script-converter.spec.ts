@@ -94,11 +94,6 @@ function baseCampaign(overrides: Partial<CampaignModel> = {}): CampaignModel {
         title: BASE_CAMPAIGN_TITLE,
         description: BASE_CAMPAIGN_DESCRIPTION,
         players: [1],
-        difficulties: {
-            [CAMPAIGN_DIFFICULTY_EASY]: { playerHandicap: CAMPAIGN_HANDICAP_EASY_PLAYER, enemyHandicap: CAMPAIGN_HANDICAP_EASY_ENEMY },
-            [CAMPAIGN_DIFFICULTY_HARD]: { playerHandicap: 0, enemyHandicap: CAMPAIGN_HANDICAP_HARD_ENEMY },
-        },
-        defaultDifficulty: CAMPAIGN_DIFFICULTY_EASY,
         missions: {},
         ...overrides,
     };
@@ -132,92 +127,34 @@ function sectionBody(script: string, section: string): string {
 // ─── missionEffectiveSettings ─────────────────────────────────────────────────
 
 describe("missionEffectiveSettings", () => {
-    it("uses mission-level values when the mission provides them, overriding campaign defaults", () => {
-        const campaign = baseCampaign();
-        const mission = baseMission(
-            {
-                difficulties: { [MISSION_DIFFICULTY]: { playerHandicap: MISSION_HANDICAP, enemyHandicap: MISSION_HANDICAP } },
-                defaultDifficulty: MISSION_DIFFICULTY,
-            },
-            { disableFactionPicker: true, disableInitialCommanderSpawn: true }
-        );
+    it("returns the static game-wide difficulty set", () => {
+        const settingsWithCampaign = missionEffectiveSettings(baseCampaign(), baseMission());
+        const settingsNoCampaign = missionEffectiveSettings(undefined, baseMission());
 
-        const settings = missionEffectiveSettings(campaign, mission);
+        expect(settingsWithCampaign.difficulties).toEqual([
+            { name: "Beginner", playerHandicap: 50, enemyHandicap: 0 },
+            { name: "Normal", playerHandicap: 0, enemyHandicap: 0 },
+            { name: "Hard", playerHandicap: -25, enemyHandicap: 25 },
+        ]);
+        expect(settingsWithCampaign.defaultDifficulty).toBe("Normal");
+        expect(settingsNoCampaign.difficulties).toEqual(settingsWithCampaign.difficulties);
+        expect(settingsNoCampaign.defaultDifficulty).toBe("Normal");
+    });
 
-        expect(settings.difficulties).toEqual([{ name: MISSION_DIFFICULTY, playerHandicap: MISSION_HANDICAP, enemyHandicap: MISSION_HANDICAP }]);
-        expect(settings.defaultDifficulty).toBe(MISSION_DIFFICULTY);
+    it("still forwards mission feature toggles", () => {
+        const mission = baseMission({}, { disableFactionPicker: true, disableInitialCommanderSpawn: true });
+
+        const settings = missionEffectiveSettings(baseCampaign(), mission);
+
         expect(settings.disableFactionPicker).toBe(true);
         expect(settings.disableInitialCommanderSpawn).toBe(true);
     });
 
-    it("falls back to campaign values and safe defaults when the mission does not provide them", () => {
-        // Campaign difficulties with a missing handicap field should default to 0.
-        const campaign = baseCampaign();
+    it("uses safe defaults when feature toggles are omitted", () => {
+        const settings = missionEffectiveSettings(baseCampaign(), baseMission());
 
-        // Mission without any overrides.
-        const settingsWithCampaign = missionEffectiveSettings(campaign, baseMission());
-        expect(settingsWithCampaign.difficulties).toEqual([
-            { name: CAMPAIGN_DIFFICULTY_EASY, playerHandicap: CAMPAIGN_HANDICAP_EASY_PLAYER, enemyHandicap: CAMPAIGN_HANDICAP_EASY_ENEMY },
-            { name: CAMPAIGN_DIFFICULTY_HARD, playerHandicap: 0, enemyHandicap: CAMPAIGN_HANDICAP_HARD_ENEMY },
-        ]);
-        expect(settingsWithCampaign.defaultDifficulty).toBe(CAMPAIGN_DIFFICULTY_EASY);
-        expect(settingsWithCampaign.disableFactionPicker).toBe(false);
-        expect(settingsWithCampaign.disableInitialCommanderSpawn).toBe(false);
-
-        // Standalone mission (no campaign) falls back to empty difficulties and empty string.
-        const settingsNoCampaign = missionEffectiveSettings(undefined, baseMission());
-        expect(settingsNoCampaign.difficulties).toEqual([]);
-        expect(settingsNoCampaign.defaultDifficulty).toBe("");
-        expect(settingsNoCampaign.disableFactionPicker).toBe(false);
-        expect(settingsNoCampaign.disableInitialCommanderSpawn).toBe(false);
-    });
-
-    it("never selects a default that is absent from the resolved difficulties", () => {
-        // A mission that replaces the campaign's difficulty map cannot use the campaign's
-        // default, which names an entry of the map it just replaced.
-        const mission = baseMission({
-            difficulties: { [MISSION_DIFFICULTY]: { playerHandicap: MISSION_HANDICAP } },
-        });
-
-        const settings = missionEffectiveSettings(baseCampaign(), mission);
-
-        expect(settings.difficulties).toEqual([{ name: MISSION_DIFFICULTY, playerHandicap: MISSION_HANDICAP, enemyHandicap: 0 }]);
-        expect(settings.defaultDifficulty).toBe(MISSION_DIFFICULTY);
-    });
-
-    it("lets a mission re-point the default at another entry of the campaign's difficulties", () => {
-        const mission = baseMission({ defaultDifficulty: CAMPAIGN_DIFFICULTY_HARD });
-
-        const settings = missionEffectiveSettings(baseCampaign(), mission);
-
-        expect(settings.difficulties).toHaveLength(2);
-        expect(settings.defaultDifficulty).toBe(CAMPAIGN_DIFFICULTY_HARD);
-    });
-
-    it("falls back to the first difficulty when the named default does not exist", () => {
-        const campaign = baseCampaign({ defaultDifficulty: "NoSuchDifficulty" });
-
-        const settings = missionEffectiveSettings(campaign, baseMission());
-
-        expect(settings.defaultDifficulty).toBe(CAMPAIGN_DIFFICULTY_EASY);
-    });
-
-    it("uses a scenario's own difficulties when it belongs to no campaign", () => {
-        const mission = baseMission({
-            difficulties: {
-                [MISSION_DIFFICULTY]: { playerHandicap: MISSION_PLAYER_HANDICAP, enemyHandicap: MISSION_ENEMY_HANDICAP },
-                [CAMPAIGN_DIFFICULTY_HARD]: { enemyHandicap: CAMPAIGN_HANDICAP_HARD_ENEMY },
-            },
-            defaultDifficulty: CAMPAIGN_DIFFICULTY_HARD,
-        });
-
-        const settings = missionEffectiveSettings(undefined, mission);
-
-        expect(settings.difficulties).toEqual([
-            { name: MISSION_DIFFICULTY, playerHandicap: MISSION_PLAYER_HANDICAP, enemyHandicap: MISSION_ENEMY_HANDICAP },
-            { name: CAMPAIGN_DIFFICULTY_HARD, playerHandicap: 0, enemyHandicap: CAMPAIGN_HANDICAP_HARD_ENEMY },
-        ]);
-        expect(settings.defaultDifficulty).toBe(CAMPAIGN_DIFFICULTY_HARD);
+        expect(settings.disableFactionPicker).toBe(false);
+        expect(settings.disableInitialCommanderSpawn).toBe(false);
     });
 });
 

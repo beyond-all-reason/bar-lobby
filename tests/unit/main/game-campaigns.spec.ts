@@ -4,6 +4,7 @@
 
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { SdpFile } from "@main/content/game/sdp";
+import { getCampaigns } from "@main/content/game/game-campaigns";
 
 const { getGameFilesMock, mkdirMock, writeFileMock, readFileMock } = vi.hoisted(() => ({
     getGameFilesMock: vi.fn(),
@@ -29,8 +30,6 @@ vi.mock("fs", () => ({
         },
     },
 }));
-
-import { getCampaigns } from "@main/content/game/game-campaigns";
 
 function sdpJson(fileName: string, value: unknown): SdpFile {
     return {
@@ -75,8 +74,6 @@ describe("getCampaigns", () => {
             title: "Armada",
             description: "A",
             players: [1],
-            difficulties: { normal: {} },
-            defaultDifficulty: "normal",
             missions: ["m2"],
             unlocks: { m2: ["m1"] },
         };
@@ -85,8 +82,6 @@ describe("getCampaigns", () => {
             title: "Cortex",
             description: "C",
             players: [1],
-            difficulties: { normal: {} },
-            defaultDifficulty: "normal",
             prerequisites: ["armada"],
         };
 

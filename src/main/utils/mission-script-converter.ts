@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 import { AllyTeam, Bot, Game, Player, Team } from "@main/model/start-script";
-import { AllyTeamModel, DifficultySettings, MissionDifficulty, MissionModel, MissionStartScript, TeamModel } from "@main/content/game/mission";
+import { AllyTeamModel, MissionDifficulty, MissionModel, MissionStartScript, TeamModel } from "@main/content/game/mission";
 import { CampaignModel } from "@main/content/game/campaign-model";
 import { startScriptConverter } from "@main/utils/start-script-converter";
 
@@ -14,37 +14,27 @@ type MissionEffectiveSettings = {
     disableInitialCommanderSpawn: boolean;
 };
 
+const STATIC_MISSION_DIFFICULTIES: MissionDifficulty[] = [
+    { name: "Beginner", playerHandicap: 50, enemyHandicap: 0 },
+    { name: "Normal", playerHandicap: 0, enemyHandicap: 0 },
+    { name: "Hard", playerHandicap: -25, enemyHandicap: 25 },
+];
+const DEFAULT_MISSION_DIFFICULTY = "Normal";
+
 /**
- * Resolves the effective settings for a mission, falling back to campaign-level
- * defaults where the mission does not override them.
+ * Resolves the effective settings for a mission.
  *
- * Accepts `undefined` for campaign to support scenarios that belong to no campaign.
+ * Mission and campaign schemas no longer carry difficulty maps, so difficulties
+ * now come from a fixed global set used across all missions.
  */
 export function missionEffectiveSettings(campaign: CampaignModel | undefined, mission: MissionModel): MissionEffectiveSettings {
+    void campaign;
     return {
-        ...resolveDifficulties(campaign, mission),
+        difficulties: STATIC_MISSION_DIFFICULTIES,
+        defaultDifficulty: DEFAULT_MISSION_DIFFICULTY,
         disableFactionPicker: mission.startScript.disableFactionPicker ?? false,
         disableInitialCommanderSpawn: mission.startScript.disableInitialCommanderSpawn ?? false,
     };
-}
-
-/**
- * Picks the difficulty map and the default to select in it.
- */
-function resolveDifficulties(campaign: CampaignModel | undefined, mission: MissionModel): Pick<MissionEffectiveSettings, "difficulties" | "defaultDifficulty"> {
-    const source = mission.difficulties ? mission : campaign;
-    const difficulties = difficultiesToArray(source?.difficulties ?? {});
-    const preferred = mission.defaultDifficulty ?? source?.defaultDifficulty;
-    const defaultDifficulty = difficulties.find((d) => d.name === preferred) ?? difficulties[0];
-    return { difficulties, defaultDifficulty: defaultDifficulty?.name ?? "" };
-}
-
-function difficultiesToArray(difficulties: Record<string, DifficultySettings>): MissionDifficulty[] {
-    return Object.entries(difficulties).map(([name, d]) => ({
-        name,
-        playerHandicap: d.playerHandicap ?? 0,
-        enemyHandicap: d.enemyHandicap ?? 0,
-    }));
 }
 
 /** Mutable accumulator threaded through the ally-team and team loops in {@link missionToGame}. */
