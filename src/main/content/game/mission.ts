@@ -33,7 +33,7 @@ export type MissionDifficulty = Required<DifficultySettings> & {
  * with local-cache paths for images and runtime-populated fields.
  */
 export type MissionModel = MissionDefinition & {
-    /** Undefined for standalone missions, which belong to no campaign. */
+    /** Undefined for scenarios, which belong to no campaign. */
     campaignId?: string;
     /** Path to the mission's folder, relative to the root of the game archive. */
     missionFolder: string;

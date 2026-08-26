@@ -96,7 +96,7 @@ type Archive = Record<string, unknown>;
 
 function campaignArchive(): Archive {
     return {
-        [MANIFEST_PATH]: { campaigns: [CAMPAIGN_ID_ARMADA, CAMPAIGN_ID_CORTEX], standalone: [] },
+        [MANIFEST_PATH]: { campaigns: [CAMPAIGN_ID_ARMADA, CAMPAIGN_ID_CORTEX], scenarios: [] },
         [`${CAMPAIGNS_PATH}/${CAMPAIGN_DIR_ARMADA}/campaign.json`]: campaignJson(CAMPAIGN_ID_ARMADA),
         [`${CAMPAIGNS_PATH}/${CAMPAIGN_DIR_ARMADA}/${MISSION_DIR_FIRST}/mission.json`]: missionJson(MISSION_ID_FIRST),
         [`${CAMPAIGNS_PATH}/${CAMPAIGN_DIR_ARMADA}/${MISSION_DIR_SECOND}/mission.json`]: missionJson(MISSION_ID_SECOND),

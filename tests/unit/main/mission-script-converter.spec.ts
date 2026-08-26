@@ -202,7 +202,7 @@ describe("missionEffectiveSettings", () => {
         expect(settings.defaultDifficulty).toBe(CAMPAIGN_DIFFICULTY_EASY);
     });
 
-    it("uses a standalone mission's own difficulties when it belongs to no campaign", () => {
+    it("uses a scenario's own difficulties when it belongs to no campaign", () => {
         const mission = baseMission({
             difficulties: {
                 [MISSION_DIFFICULTY]: { playerHandicap: MISSION_PLAYER_HANDICAP, enemyHandicap: MISSION_ENEMY_HANDICAP },

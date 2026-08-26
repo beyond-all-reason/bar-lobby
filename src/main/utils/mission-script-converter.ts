@@ -18,7 +18,7 @@ type MissionEffectiveSettings = {
  * Resolves the effective settings for a mission, falling back to campaign-level
  * defaults where the mission does not override them.
  *
- * Accepts `undefined` for campaign to support standalone missions that belong to no campaign.
+ * Accepts `undefined` for campaign to support scenarios that belong to no campaign.
  */
 export function missionEffectiveSettings(campaign: CampaignModel | undefined, mission: MissionModel): MissionEffectiveSettings {
     return {
