@@ -129,6 +129,38 @@ describe("chat history marker", () => {
         expect(subscribedSince()).toEqual({ type: "latest" });
     });
 
+    // The server splits its buffer at the marker and sends what follows it, so the
+    // round trip has to resume from the last message we actually processed.
+    describe("recovering messages missed while disconnected", () => {
+        it("resumes from the last message it processed and takes the replay", async () => {
+            receive({ source: { type: "player", userId: "42" }, marker: "-576460745805023" });
+
+            // A dropped socket clears nothing, so the marker is still there to resume from.
+            await chat.requestSubscribeReceived();
+
+            expect(subscribedSince()).toEqual({ type: "marker", value: "-576460745805023" });
+
+            receive({ source: { type: "player", userId: "42" }, message: "missed one", marker: "-576460745800000" });
+            receive({ source: { type: "lobby", lobbyId: "lobby-1", userId: "7" }, message: "missed two", marker: "-576460745790000" });
+
+            expect(chatStore.userChats.get("42")?.map((m) => m.message)).toEqual(["hi", "missed one"]);
+            expect(chatStore.lobbyChat.map((m) => m.message)).toEqual(["missed two"]);
+            expect(chatStore.lastMarker).toBe("-576460745790000");
+        });
+
+        // Resuming twice from the same point would re-deliver the replay, so the
+        // marker has to advance as the replayed events are processed.
+        it("leaves the marker at the end of the replay, not the start", async () => {
+            receive({ marker: "-576460745805023" });
+            await chat.requestSubscribeReceived();
+            receive({ marker: "-576460745790000" });
+
+            await chat.requestSubscribeReceived();
+
+            expect(subscribedSince()).toEqual({ type: "marker", value: "-576460745790000" });
+        });
+    });
+
     // A failed subscribe leaves us connected and receiving nothing, and until the
     // socket happens to drop there is nothing else to try again.
     describe("when the subscription request fails", () => {
