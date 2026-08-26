@@ -249,6 +249,8 @@ export async function initPartyStore() {
     window.tachyon.onEvent("party/removed", onRemovedEvent);
     window.tachyon.onEvent("party/updated", onUpdatedEvent);
     onUserSelfPartySignal.add((partyStates) => {
+        // We have to purge the stale states first because we could get anything from empty array to multiple items.
+        clearOnlineState();
         for (const partyState of partyStates) {
             partyStore.parties.set(partyState.id, { ...partyState, seen: false });
         }

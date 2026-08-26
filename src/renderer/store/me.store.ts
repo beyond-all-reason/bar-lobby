@@ -117,9 +117,8 @@ window.tachyon.onEvent("user/self", async (event) => {
         if (event.user.matchmaking.state) {
             onUserSelfMatchmakingSignal.dispatch(event.user.matchmaking);
         }
-        if (event.user.party || event.user.invitedToParties.length > 0) {
-            onUserSelfPartySignal.dispatch([...(event.user.party ? [event.user.party] : []), ...(event.user.invitedToParties || [])]);
-        }
+        // We have to dispatch even if the value of party is null because that means the user is not in a party.
+        onUserSelfPartySignal.dispatch([...(event.user.party ? [event.user.party] : []), ...(event.user.invitedToParties || [])]);
     }
 });
 
