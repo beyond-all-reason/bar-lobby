@@ -106,18 +106,10 @@ window.tachyon.onEvent("user/self", async (event) => {
         });
 
         await processFriendData(event.user);
-        // If the event contains info relevant to other stores, we dispatch and let them decide how to respond
-        if (event.user.currentBattle && Object.keys(event.user.currentBattle).length !== 0) {
-            console.log("User is in a battle, dispatching onUserSelfBattleSignal", event.user.currentBattle);
-            onUserSelfBattleSignal.dispatch(event.user.currentBattle);
-        }
-        if (event.user.currentLobby) {
-            onUserSelfLobbySignal.dispatch(event.user.currentLobby);
-        }
-        if (event.user.matchmaking.state) {
-            onUserSelfMatchmakingSignal.dispatch(event.user.matchmaking);
-        }
-        // We have to dispatch even if the value of party is null because that means the user is not in a party.
+        // We have to send all the signals because the some values may have become null/undefined while missing updates and stores need to update accordingly
+        onUserSelfBattleSignal.dispatch(event.user.currentBattle);
+        onUserSelfLobbySignal.dispatch(event.user.currentLobby);
+        onUserSelfMatchmakingSignal.dispatch(event.user.matchmaking);
         onUserSelfPartySignal.dispatch([...(event.user.party ? [event.user.party] : []), ...(event.user.invitedToParties || [])]);
     }
 });

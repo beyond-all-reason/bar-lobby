@@ -55,6 +55,8 @@ export const lobbyStore: {
     wantsListSubscription: false,
 });
 
+// FIX: If the user leaves a lobby while it knows about a currentBattle, it will not receive an update from the server that the battle ended.
+// Also, it should really not be able to rejoin that battle. As a result, we have to purge tachyonStore.springConnectionDetails and tachyonStore.rejoinModalOpen when the user leaves a lobby, or when the lobby is updated and no longer has a currentBattle.
 export async function initLobbyStore() {
     onWentOffline.add(clearOnlineState);
     window.tachyon.onEvent("lobby/listUpdated", onListUpdatedEvent);
@@ -70,8 +72,7 @@ export async function initLobbyStore() {
         }
     });
 
-    // If we get a user/self containing a current lobby, we need to send a join request to resync the lobby state.
-    // Since we are already in the lobby and lobby/join is idepotent, this is the simplest approach.
+    // FIX: User may be in a lobby, or may have been removed from a lobby while disconnected, so we need to handle both cases.
     onUserSelfLobbySignal.add((lobbyId) => {
         void requestJoinLobby(lobbyId);
     });
@@ -255,6 +256,9 @@ function parseLobbyResponseData(data: LobbyCreateOkResponseData | LobbyJoinOkRes
         console.error("Active Lobby is null or undefined after applyPatch. This should never happen!");
         return;
     }
+    // FIX: Tachyon `battle/ended` may fire, but we can also handle a currentBattle being removed here also.
+    // Since the user can only be in a single lobby, we can safely clear tachyonStore.springConnectionDetails and tachyonStore.rejoinModalOpen from here also.
+
     //Updates are not guaranteed to change all things, so we check if each property was part of the update before working with it on the stores.
     if (data.engineVersion) {
         battleStore.battleOptions.engineVersion = lobbyStore.activeLobby.engineVersion;

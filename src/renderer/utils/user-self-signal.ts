@@ -2,20 +2,19 @@
 //
 // SPDX-License-Identifier: MIT
 
-import { Signal } from "$/jaz-ts-utils/signal";
-import { PartyState, PrivateUser, PrivateBattle } from "tachyon-protocol/types";
+/*
+ * This file contains signals that are raised upon receiving the 'user/self' event from the server.
+ * Most need to handle null/undefined values because the user may have been removed from the lobby/etc while disconnected.
+ */
 
-// We do not use PrivateUser["party"] to prevent null values in the dispatch
+import { Signal } from "$/jaz-ts-utils/signal";
+import { PartyState, PrivateUser } from "tachyon-protocol/types";
+
+// This is a combination of PrivateUser["party"] and PrivateUser["invitedToParties"] which is parsed together for overall party state.
 export const onUserSelfPartySignal = new Signal<PartyState[]>();
 
-// Value provided in the string is the lobby ID.
-export const onUserSelfLobbySignal = new Signal<string>();
+export const onUserSelfLobbySignal = new Signal<PrivateUser["currentLobby"]>();
 
 export const onUserSelfMatchmakingSignal = new Signal<PrivateUser["matchmaking"]>();
 
-export const onUserSelfBattleSignal = new Signal<PrivateBattle>();
-
-// Raised when the self user's status moves away from "playing", regardless of
-// what it changed to.
-// FIX: Remove once we get battleEnded event from the server, which is the correct way to handle this.
-export const onUserStoppedPlayingSignal = new Signal<void>();
+export const onUserSelfBattleSignal = new Signal<PrivateUser["currentBattle"]>();
