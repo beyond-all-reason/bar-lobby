@@ -131,7 +131,7 @@ function onSelfUpdateFoundSignal(data: Extract<PrivateUser["matchmaking"], { sta
         matchmakingStore.status = MatchmakingStatus.MatchAccepted;
     } else {
         matchmakingStore.status = MatchmakingStatus.MatchFound;
-        const deadline = data.queue.timeoutAt * 1000 - READY_TIMEOUT_SAFETY_MARGIN_MS; // Convert Unix timestamp to milliseconds
+        const deadline = data.queue.timeoutAt / 1000 - READY_TIMEOUT_SAFETY_MARGIN_MS; // Convert Unix timestamp from microseconds to milliseconds
         matchmakingStore.readySecondsRemaining = Math.max(0, Math.ceil((deadline - Date.now()) / 1000));
         matchmakingStore.readyCountdownInterval = window.setInterval(() => {
             matchmakingStore.readySecondsRemaining = Math.max(0, Math.ceil((deadline - Date.now()) / 1000));
