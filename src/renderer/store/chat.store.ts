@@ -4,7 +4,7 @@
 
 import { reactive } from "vue";
 import { subsManager } from "@renderer/store/users.store";
-import { MessagingReceivedEventData, MessagingSendRequestData, MessagingSubscribeReceivedRequestData, UserId } from "tachyon-protocol/types";
+import { HistoryMarker, MessagingReceivedEventData, MessagingSendRequestData, MessagingSubscribeReceivedRequestData, UserId } from "tachyon-protocol/types";
 import { notificationsApi } from "@renderer/api/notifications";
 import { Message } from "@renderer/model/message";
 import { me } from "@renderer/store/me.store";
@@ -15,13 +15,21 @@ import { onWentOffline } from "@renderer/utils/offline-signal";
 
 const chatSymbol = Symbol("chat.store");
 
+const SUBSCRIBE_RETRY_DELAY = 5000;
+const SUBSCRIBE_ATTEMPT_LIMIT = 5;
+
+let subscribeRetryTimer: ReturnType<typeof setTimeout> | undefined;
+let subscribeAttempts = 0;
+
 export const chatStore: {
     isInitialized: boolean;
+    lastMarker: HistoryMarker | null;
     lobbyChat: Message[];
     partyChat: Message[];
     userChats: Map<UserId, Message[]>;
 } = reactive({
     isInitialized: false,
+    lastMarker: null,
     lobbyChat: [],
     partyChat: [],
     userChats: new Map<UserId, Message[]>(), // Messages.vue will turn each of these Map elements into a TabPanel for the chat history with that user
@@ -68,17 +76,73 @@ async function requestSend(data: MessagingSendRequestData) {
 }
 
 /**
+ * Works out where the server should resume our message history from.
+ * @returns The `since` value to subscribe with
+ */
+function resumePoint(): MessagingSubscribeReceivedRequestData["since"] {
+    if (chatStore.lastMarker) {
+        return { type: "marker", value: chatStore.lastMarker };
+    }
+
+    // Without a marker there is nothing to line our history up against, so asking
+    // for the whole buffer would repeat anything we already hold.
+    return hasStoredMessages() ? { type: "latest" } : { type: "from_start" };
+}
+
+function hasStoredMessages(): boolean {
+    return chatStore.lobbyChat.length > 0 || chatStore.partyChat.length > 0 || [...chatStore.userChats.values()].some((chat) => chat.length > 0);
+}
+
+/**
  * Send a Tachyon request to subscribe to incoming messages (all types and sources).
  * @param data Payload of the data required for this request via Tachyon
  */
 async function requestSubscribeReceived(data?: MessagingSubscribeReceivedRequestData) {
+    subscribeAttempts = 0;
+
+    return subscribeReceived(data);
+}
+
+async function subscribeReceived(data?: MessagingSubscribeReceivedRequestData) {
+    cancelSubscribeRetry();
+    subscribeAttempts++;
+
+    const request = data ?? { since: resumePoint() };
+
     try {
-        const response = await window.tachyon.request("messaging/subscribeReceived", data ?? {});
+        const response = await window.tachyon.request("messaging/subscribeReceived", request);
         console.log("Tachyon messaging/subscribeReceived:", response);
+        subscribeAttempts = 0;
+
+        // Only a marker we thought was live says anything here. The server also
+        // reports a gap for from_start, where the flag stays set for the rest of
+        // the session once its buffer has overflowed even once.
+        if (response.data.hasMissedMessages && request.since?.type === "marker") {
+            console.warn("Tachyon messaging/subscribeReceived: could not resume from our marker, chat history has a gap");
+        }
     } catch (error) {
         console.error("Error with messaging/subscribeReceived", error);
-        notificationsApi.alert({ text: "Error with request messaging/subscribeReceived", severity: "error" });
+        scheduleSubscribeRetry(data);
     }
+}
+
+// A subscription that fails leaves us connected and receiving nothing, with
+// nothing to try again until the socket happens to drop. The server keeps
+// buffering either way, so a later attempt still picks up what was missed.
+function scheduleSubscribeRetry(data?: MessagingSubscribeReceivedRequestData) {
+    if (subscribeAttempts >= SUBSCRIBE_ATTEMPT_LIMIT) {
+        notificationsApi.alert({ text: "Error with request messaging/subscribeReceived", severity: "error" });
+        return;
+    }
+
+    subscribeRetryTimer = setTimeout(() => void subscribeReceived(data), SUBSCRIBE_RETRY_DELAY);
+}
+
+function cancelSubscribeRetry() {
+    if (subscribeRetryTimer === undefined) return;
+
+    clearTimeout(subscribeRetryTimer);
+    subscribeRetryTimer = undefined;
 }
 
 /**
@@ -88,6 +152,9 @@ async function requestSubscribeReceived(data?: MessagingSubscribeReceivedRequest
  */
 function onMessagingReceivedEvent(data: MessagingReceivedEventData) {
     console.log("Tachyon event: messaging/received:", data);
+    // The server holds one buffer for every source and replays it in order, so
+    // the marker on the message we just got is always the latest one we have.
+    chatStore.lastMarker = data.marker;
     subsManager.attach(data.source.userId, chatSymbol);
     insertMessage(data, data.source);
 }
@@ -169,10 +236,15 @@ function addNewUserChat(userId: UserId): boolean {
     } else return false;
 }
 
-// userChats survives; DM history isn't tied to a lobby or party the server just dropped us from.
+// Chat is a transcript of what was said rather than state the server owns, and
+// going offline ends the session holding the only other copy, so none of it can
+// be fetched again. The lobby and party transcripts are cleared on entering the
+// next one instead.
 function clearOnlineState() {
-    clearLobbyChat();
-    clearPartyChat();
+    cancelSubscribeRetry();
+    // system/disconnect stops the session and takes its message buffer with it,
+    // leaving the marker pointing at nothing.
+    chatStore.lastMarker = null;
 }
 
 // Everything here belongs to the account that sent and received it, so none of it

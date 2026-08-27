@@ -26,10 +26,11 @@ SPDX-License-Identifier: MIT
                 v-model="text"
                 v-in-view="focusTextbox"
                 class="reply"
+                :disabled="!tachyonStore.isConnected"
                 :placeholder="t('lobby.navbar.messages.message')"
                 @keyup.enter.stop="sendPartyMessage(text)"
             />
-            <Button @click="sendPartyMessage(text)">{{ t("lobby.navbar.messages.send") }}</Button>
+            <Button :disabled="!tachyonStore.isConnected" @click="sendPartyMessage(text)">{{ t("lobby.navbar.messages.send") }}</Button>
         </div>
     </div>
 </template>
@@ -37,6 +38,7 @@ SPDX-License-Identifier: MIT
 <script lang="ts" setup>
 import { ref } from "vue";
 import { chatStore, chat } from "@renderer/store/chat.store";
+import { tachyonStore } from "@renderer/store/tachyon.store";
 import { useDexieLiveQueryWithDeps } from "@renderer/composables/useDexieLiveQuery";
 import { UserId } from "tachyon-protocol/types";
 import { me } from "@renderer/store/me.store";
@@ -65,6 +67,9 @@ const text = ref("");
 const newMessage = ref("");
 
 function sendPartyMessage(messageText: string) {
+    // Button's disabled prop only styles the control, it does not stop the click.
+    if (!tachyonStore.isConnected) return;
+
     chat.requestSend({
         target: {
             type: "party",
