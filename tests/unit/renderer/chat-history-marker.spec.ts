@@ -7,6 +7,7 @@ import { notificationsApi } from "@renderer/api/notifications";
 import { MessagingReceivedEventData, MessagingSubscribeReceivedRequestData } from "tachyon-protocol/types";
 
 vi.mock("@renderer/api/notifications", () => ({ notificationsApi: { alert: vi.fn() } }));
+vi.mock("@renderer/router", () => ({ router: { currentRoute: { value: { path: "/" } }, push: vi.fn(), replace: vi.fn() } }));
 
 const receivedHandlers: Array<(data: MessagingReceivedEventData) => void> = [];
 
