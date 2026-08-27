@@ -502,6 +502,7 @@ async function requestUpdateClientStatus(data: LobbyUpdateClientStatusRequestDat
 
 /**
  * Request to join an active battle in the lobby as a spectator.
+ * TODO: Implement this on the UI side. It should only be enabled if there is an active battle _and_ the user does not already have the connection details.
  */
 async function requestJoinBattle() {
     try {
