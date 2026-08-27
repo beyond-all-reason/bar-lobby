@@ -48,7 +48,12 @@ export async function getCampaigns(packageMd5: string): Promise<CampaignModel[]>
             }
         }
 
-        return orderByIds(campaigns, manifest?.campaigns, (campaign) => campaign.campaignId, (a, b) => a.campaignId.localeCompare(b.campaignId));
+        return orderByIds(
+            campaigns,
+            manifest?.campaigns,
+            (campaign) => campaign.campaignId,
+            (a, b) => a.campaignId.localeCompare(b.campaignId)
+        );
     } catch (err) {
         log.error(`Error getting campaigns: ${err}`);
         return [];
@@ -79,9 +84,7 @@ async function parseCampaignFile(campaignFile: SdpFile, packageMd5: string, cach
     const campaignDirName = containingDirName(campaignFile);
     const campaignPath = `${CAMPAIGNS_PATH}/${campaignDirName}`;
     const logo = campaignJson.logo ? await extractAsset(packageMd5, `${campaignPath}/${campaignJson.logo}`, cacheDir, campaignDirName) : undefined;
-    const backgroundImage = campaignJson.backgroundImage
-        ? await extractAsset(packageMd5, `${campaignPath}/${campaignJson.backgroundImage}`, cacheDir, campaignDirName)
-        : undefined;
+    const backgroundImage = campaignJson.backgroundImage ? await extractAsset(packageMd5, `${campaignPath}/${campaignJson.backgroundImage}`, cacheDir, campaignDirName) : undefined;
 
     const missionJsonFiles = sortedByPath(await getGameFiles(packageMd5, `${campaignPath}/*/mission.json`, true));
     const parsedMissions: MissionModel[] = [];
@@ -99,7 +102,12 @@ async function parseCampaignFile(campaignFile: SdpFile, packageMd5: string, cach
         }
     }
 
-    const orderedMissions = orderByIds(parsedMissions, campaignJson.missions, (mission) => mission.missionId, (a, b) => a.missionId.localeCompare(b.missionId));
+    const orderedMissions = orderByIds(
+        parsedMissions,
+        campaignJson.missions,
+        (mission) => mission.missionId,
+        (a, b) => a.missionId.localeCompare(b.missionId)
+    );
     const missions = Object.fromEntries(orderedMissions.map((mission) => [mission.missionId, mission]));
 
     return { ...campaignJson, logo, backgroundImage, missions, unlocked: isCampaignUnlocked(campaignJson) };

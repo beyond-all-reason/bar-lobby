@@ -90,16 +90,10 @@ describe("getCampaigns", () => {
                 return [sdpJson("missions/manifest.json", { campaigns: ["cortex"], scenarios: [] })];
             }
             if (pattern === "missions/campaigns/*/campaign.json") {
-                return [
-                    sdpJson("missions/campaigns/armada/campaign.json", armadaCampaign),
-                    sdpJson("missions/campaigns/cortex/campaign.json", cortexCampaign),
-                ];
+                return [sdpJson("missions/campaigns/armada/campaign.json", armadaCampaign), sdpJson("missions/campaigns/cortex/campaign.json", cortexCampaign)];
             }
             if (pattern === "missions/campaigns/armada/*/mission.json") {
-                return [
-                    sdpJson("missions/campaigns/armada/m1/mission.json", mission("m1")),
-                    sdpJson("missions/campaigns/armada/m2/mission.json", mission("m2")),
-                ];
+                return [sdpJson("missions/campaigns/armada/m1/mission.json", mission("m1")), sdpJson("missions/campaigns/armada/m2/mission.json", mission("m2"))];
             }
             if (pattern === "missions/campaigns/cortex/*/mission.json") {
                 return [sdpJson("missions/campaigns/cortex/c1/mission.json", mission("c1"))];
