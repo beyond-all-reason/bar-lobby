@@ -195,6 +195,7 @@ function onUpdatedEvent(data: PartyUpdatedEventData) {
 
 // We might be invited, or member, have to check to know.
 function parseAllPartyData() {
+    const previousParty = partyStore.activeParty;
     // Reset active party in case we are no longer in a party.
     partyStore.activeParty = undefined;
     const bools = {
@@ -216,6 +217,14 @@ function parseAllPartyData() {
         }
     });
     subsManager.setList(users, partySymbol);
+
+    // Leaving clears the transcript, but going offline keeps it and sends no
+    // leave, so entering the next party has to clear that one. Comparing ids keeps
+    // a re-parse of the same party, which happens on every update, from wiping it.
+    if (partyStore.activeParty && partyStore.activeParty !== previousParty) {
+        chat.clearPartyChat();
+    }
+
     if (bools.joined) {
         if (bools.invited) {
             partyStore.state = PlayersPartyState.JoinedAndInvited;

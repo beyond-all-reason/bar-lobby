@@ -29,6 +29,7 @@ import { notificationsApi } from "@renderer/api/notifications";
 import { Lobby } from "@renderer/model/lobby";
 import { setupI18n } from "@renderer/i18n";
 import { subsManager } from "@renderer/store/users.store";
+import { chat } from "@renderer/store/chat.store";
 import { db } from "@renderer/store/db";
 import { battleStore, battleActions } from "@renderer/store/battle.store";
 import { router } from "@renderer/router";
@@ -242,6 +243,10 @@ function parseLobbyResponseData(data: LobbyCreateOkResponseData | LobbyJoinOkRes
     } else {
         //Apply the patch for a join/create response
         lobbyStore.activeLobby = applyPatch({}, data);
+        // Leaving clears the transcript, but going offline keeps it and sends no
+        // leave, so entering the next lobby has to clear that one. A reconnect
+        // does not come through here, so a dropped socket cannot wipe it.
+        chat.clearLobbyChat();
     }
     if (!lobbyStore.activeLobby) {
         console.error("Active Lobby is null or undefined after applyPatch. This should never happen!");
@@ -309,6 +314,7 @@ async function requestLeaveLobby() {
     // If we ever use a specific view for a lobby instead of BattleDrawer, we need to push a route here
     clearUserSubscriptions();
     lobbyStore.activeLobby = undefined;
+    chat.clearLobbyChat();
 }
 
 /**
@@ -413,6 +419,7 @@ function onLobbyLeftEvent(data: LobbyLeftEventData) {
     if (!lobbyStore.activeLobby || lobbyStore.activeLobby.id != data.id) return;
     clearUserSubscriptions();
     lobbyStore.activeLobby = undefined;
+    chat.clearLobbyChat();
     console.log("Tachyon event: lobby/left:", data);
     if (router.currentRoute.value.path == "/play/lobby") {
         // We use replace instead of push so the user can't use "back".

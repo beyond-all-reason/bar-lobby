@@ -36,10 +36,13 @@ SPDX-License-Identifier: MIT
                         v-model="text"
                         v-in-view="focusTextbox"
                         class="reply"
+                        :disabled="!tachyonStore.isConnected"
                         :placeholder="t('lobby.navbar.messages.message')"
                         @keyup.enter.stop="sendDirectMessage(userId, text)"
                     />
-                    <Button @click="sendDirectMessage(userId, text)">{{ t("lobby.navbar.messages.send") }}</Button>
+                    <Button :disabled="!tachyonStore.isConnected" @click="sendDirectMessage(userId, text)">{{
+                        t("lobby.navbar.messages.send")
+                    }}</Button>
                 </div>
             </TabPanel>
             <TabPanel>
@@ -58,10 +61,13 @@ SPDX-License-Identifier: MIT
                         <Textbox
                             v-model="newMessage"
                             class="reply"
+                            :disabled="!tachyonStore.isConnected"
                             :placeholder="t('lobby.navbar.messages.message')"
                             @keyup.enter.stop="sendDirectMessage(newMessageUserId, newMessage)"
                         />
-                        <Button @click="sendDirectMessage(newMessageUserId, newMessage)">{{ t("lobby.navbar.messages.send") }}</Button>
+                        <Button :disabled="!tachyonStore.isConnected" @click="sendDirectMessage(newMessageUserId, newMessage)">{{
+                            t("lobby.navbar.messages.send")
+                        }}</Button>
                     </div>
                 </div>
             </TabPanel>
@@ -83,6 +89,7 @@ import Markdown from "@renderer/components/misc/Markdown.vue";
 import PopOutPanel from "@renderer/components/navbar/PopOutPanel.vue";
 import { useTypedI18n } from "@renderer/i18n";
 import { chatStore, chat } from "@renderer/store/chat.store";
+import { tachyonStore } from "@renderer/store/tachyon.store";
 import { UserId } from "tachyon-protocol/types";
 import { User } from "@main/model/user";
 import { me } from "@renderer/store/me.store";
@@ -143,6 +150,9 @@ function focusTextbox(el: HTMLElement) {
 }
 
 function sendDirectMessage(destinationUserId: string, messageText: string) {
+    // Button's disabled prop only styles the control, it does not stop the click.
+    if (!tachyonStore.isConnected) return;
+
     chat.requestSend({
         target: {
             type: "player",
