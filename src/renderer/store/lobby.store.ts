@@ -72,9 +72,18 @@ export async function initLobbyStore() {
         }
     });
 
-    // FIX: User may be in a lobby, or may have been removed from a lobby while disconnected, so we need to handle both cases.
     onUserSelfLobbySignal.add((lobbyId) => {
-        void requestJoinLobby(lobbyId);
+        if (lobbyId) {
+            // Rejoin is idempotent, so it's the safest and most efficient way to recover the lobby state.
+            requestJoinLobby(lobbyId);
+        } else {
+            // User is not in a lobby. We navigate out of the lobby view if they are currently there, and clear the activeLobby.
+            if (router.currentRoute.value.path == "/play/lobby") {
+                router.replace("/play/customLobbies");
+            }
+            clearUserSubscriptions();
+            lobbyStore.activeLobby = undefined;
+        }
     });
 
     lobbyStore.isInitialized = true;

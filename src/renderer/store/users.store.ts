@@ -7,7 +7,6 @@ import { reactive } from "vue";
 import { SubsManager } from "@renderer/utils/subscriptions-manager";
 import { UserReportRequestData } from "tachyon-protocol/types";
 import { notificationsApi } from "@renderer/api/notifications";
-import { onUserStoppedPlayingSignal } from "@renderer/utils/user-self-signal";
 
 export const usersStore: {
     isInitialized: boolean;
@@ -19,19 +18,6 @@ export const subsManager = new SubsManager();
 
 export function initUsersStore() {
     if (usersStore.isInitialized) return;
-
-    // Fires for both update() and put() (Dexie diffs put() against the existing row),
-    // so this also covers the full-row replace done for the "user/self" event.
-    // FIX: This only works if the client itself didn't crash and end back up in "menu" when logging in.
-    // Because they never go back to "playing" after rejoin. The correct fix is for the server to
-    // implement the battle/ended event (which is hooked up in the client already).
-    // Remove this after server implementation is complete.
-    db.users.hook("updating", (modifications, _primKey, oldObj) => {
-        if (oldObj.isMe !== 1 || oldObj.status !== "playing") return;
-        if (!("status" in modifications) || modifications.status === "playing") return;
-
-        onUserStoppedPlayingSignal.dispatch();
-    });
 
     window.tachyon.onEvent("user/updated", (event) => {
         console.debug(`Received user/updated event: ${JSON.stringify(event)}`);

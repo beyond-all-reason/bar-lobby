@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
-import type { BattleStartRequestData, PrivateBattle } from "tachyon-protocol/types";
+import type { BattleEndedEventData, BattleStartRequestData, PrivateBattle } from "tachyon-protocol/types";
 
 vi.mock("@renderer/router", () => ({ router: { currentRoute: { value: { path: "/" } }, push: vi.fn(), replace: vi.fn() } }));
 
@@ -13,6 +13,7 @@ const connectHandlers: Array<() => void> = [];
 const disconnectHandlers: Array<() => void> = [];
 const authHandlers: Array<(state: { authenticated: boolean }) => void> = [];
 const battleStartHandlers: Array<(battle: BattleStartRequestData) => void> = [];
+const battleEndedHandlers: Array<(data: BattleEndedEventData) => void> = [];
 
 const connect = vi.fn(async () => {});
 const disconnect = vi.fn(async () => {});
@@ -26,8 +27,7 @@ Object.assign(window.tachyon, {
     onConnected: (callback: () => void) => void connectHandlers.push(callback),
     onDisconnected: (callback: () => void) => void disconnectHandlers.push(callback),
     onBattleStart: (callback: (battle: BattleStartRequestData) => void) => void battleStartHandlers.push(callback),
-    onBattleEnded: vi.fn(),
-    onUserStoppedPlaying: (callback: () => void) => void onUserStoppedPlayingSignal.add(callback),
+    onBattleEnded: (callback: (data: BattleEndedEventData) => void) => void battleEndedHandlers.push(callback),
 });
 
 Object.defineProperty(window, "auth", {
@@ -39,11 +39,15 @@ Object.defineProperty(window, "game", { value: { launchMultiplayer }, writable: 
 
 const { tachyonStore, tachyon, initTachyonStore } = await import("@renderer/store/tachyon.store");
 const { me } = await import("@renderer/store/me.store");
-const { onUserSelfBattleSignal, onUserStoppedPlayingSignal } = await import("@renderer/utils/user-self-signal");
+const { onUserSelfBattleSignal } = await import("@renderer/utils/user-self-signal");
 
 const simulateConnect = () => connectHandlers.forEach((handler) => handler());
 const simulateClose = () => disconnectHandlers.forEach((handler) => handler());
 const simulateSessionEnd = () => authHandlers.forEach((handler) => handler({ authenticated: false }));
+const simulateBattleEnded = () =>
+    battleEndedHandlers.forEach((handler) =>
+        handler({ battleId: "battle-1", players: [], spectators: [], winningAllyTeamIds: [] } satisfies BattleEndedEventData)
+    );
 
 describe("connection intent", () => {
     beforeAll(async () => {
@@ -163,7 +167,7 @@ describe("connection intent", () => {
         });
     });
 
-    it("clears spring connection details when the self user stops playing", () => {
+    it("clears spring connection details when a battle/ended event is received", () => {
         tachyonStore.springConnectionDetails = {
             ip: "127.0.0.1",
             port: 8452,
@@ -173,7 +177,7 @@ describe("connection intent", () => {
             game: { springName: "game-version" },
         };
 
-        onUserStoppedPlayingSignal.dispatch();
+        simulateBattleEnded();
 
         expect(tachyonStore.springConnectionDetails).toBeUndefined();
     });

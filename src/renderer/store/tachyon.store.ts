@@ -11,7 +11,7 @@ import { UserId } from "tachyon-protocol/types";
 import { notificationsApi } from "@renderer/api/notifications";
 import { chat, chatStore } from "@renderer/store/chat.store";
 import { onWentOffline } from "@renderer/utils/offline-signal";
-import { onUserSelfBattleSignal, onUserStoppedPlayingSignal } from "@renderer/utils/user-self-signal";
+import { onUserSelfBattleSignal } from "@renderer/utils/user-self-signal";
 import { createSpringString, SpringConnectionDetails } from "@shared/spring-string";
 
 type MultiplayerBattleConnectionDetails = SpringConnectionDetails & {
@@ -217,13 +217,13 @@ export async function initTachyonStore() {
     });
 
     onUserSelfBattleSignal.add((battle) => {
+        if (!battle) {
+            tachyonStore.springConnectionDetails = undefined;
+            tachyonStore.rejoinModalOpen = false;
+            return;
+        }
         tachyonStore.springConnectionDetails = battle;
         tachyonStore.rejoinModalOpen = true;
-    });
-
-    // FIX: Supplanted by tachyon battle/ended. This should probably be removed.
-    onUserStoppedPlayingSignal.add(() => {
-        tachyonStore.springConnectionDetails = undefined;
     });
 
     subsManager.onNewUsersAttached.add(async (users: UserId[]) => {
