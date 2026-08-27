@@ -35,6 +35,7 @@ import { battleStore, battleActions } from "@renderer/store/battle.store";
 import { router } from "@renderer/router";
 import { onWentOffline } from "@renderer/utils/offline-signal";
 import { onUserSelfLobbySignal } from "@renderer/utils/user-self-signal";
+import { tachyonStore } from "@renderer/store/tachyon.store";
 
 const i18n = setupI18n();
 
@@ -270,8 +271,13 @@ function parseLobbyResponseData(data: LobbyCreateOkResponseData | LobbyJoinOkRes
         console.error("Active Lobby is null or undefined after applyPatch. This should never happen!");
         return;
     }
-    // FIX: Tachyon `battle/ended` may fire, but we can also handle a currentBattle being removed here also.
-    // Since the user can only be in a single lobby, we can safely clear tachyonStore.springConnectionDetails and tachyonStore.rejoinModalOpen from here also.
+
+    // Usually `battle/ended` will clear for us, but there's a chance that the client could have the connection details but no longer be a player/spectator and not receive the event.
+    // As a result, we force clear these values if the lobby ends the battle. Since clients cannot be in multiple lobbies/matches, this is safe to do.
+    if (lobbyStore.activeLobby.currentBattle == undefined) {
+        tachyonStore.springConnectionDetails = undefined;
+        tachyonStore.rejoinModalOpen = false;
+    }
 
     //Updates are not guaranteed to change all things, so we check if each property was part of the update before working with it on the stores.
     if (data.engineVersion) {
@@ -336,6 +342,9 @@ async function requestLeaveLobby() {
     clearUserSubscriptions();
     lobbyStore.activeLobby = undefined;
     chat.clearLobbyChat();
+    // Can't rejoin a battle tied to a lobby we're no longer in.
+    tachyonStore.springConnectionDetails = undefined;
+    tachyonStore.rejoinModalOpen = false;
 }
 
 /**
@@ -441,6 +450,9 @@ function onLobbyLeftEvent(data: LobbyLeftEventData) {
     clearUserSubscriptions();
     lobbyStore.activeLobby = undefined;
     chat.clearLobbyChat();
+    // Can't rejoin a battle tied to a lobby we've been removed from (e.g. kick/ban).
+    tachyonStore.springConnectionDetails = undefined;
+    tachyonStore.rejoinModalOpen = false;
     console.log("Tachyon event: lobby/left:", data);
     if (router.currentRoute.value.path == "/play/lobby") {
         // We use replace instead of push so the user can't use "back".

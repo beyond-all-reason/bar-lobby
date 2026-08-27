@@ -87,6 +87,8 @@ async function goOffline() {
     tachyonStore.isConnected = false;
     tachyonStore.error = undefined;
     stopFetchingServerStats();
+    tachyonStore.springConnectionDetails = undefined;
+    tachyonStore.rejoinModalOpen = false;
 
     onWentOffline.dispatch();
 }
@@ -214,6 +216,7 @@ export async function initTachyonStore() {
     window.tachyon.onBattleEnded((data) => {
         console.debug("Received battle ended event", data);
         tachyonStore.springConnectionDetails = undefined;
+        tachyonStore.rejoinModalOpen = false;
     });
 
     onUserSelfBattleSignal.add((battle) => {
