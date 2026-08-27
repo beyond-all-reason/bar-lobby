@@ -44,10 +44,7 @@ const { onUserSelfBattleSignal } = await import("@renderer/utils/user-self-signa
 const simulateConnect = () => connectHandlers.forEach((handler) => handler());
 const simulateClose = () => disconnectHandlers.forEach((handler) => handler());
 const simulateSessionEnd = () => authHandlers.forEach((handler) => handler({ authenticated: false }));
-const simulateBattleEnded = () =>
-    battleEndedHandlers.forEach((handler) =>
-        handler({ battleId: "battle-1", players: [], spectators: [], winningAllyTeamIds: [] } satisfies BattleEndedEventData)
-    );
+const simulateBattleEnded = () => battleEndedHandlers.forEach((handler) => handler({ battleId: "battle-1", players: [], spectators: [], winningAllyTeamIds: [] } satisfies BattleEndedEventData));
 
 describe("connection intent", () => {
     beforeAll(async () => {
