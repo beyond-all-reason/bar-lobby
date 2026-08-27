@@ -29,6 +29,11 @@ export const chatStore: {
 
 export async function initChatStore() {
     onWentOffline.add(clearOnlineState);
+    // Losing the session is the one signal every way of leaving an account reaches:
+    // the exit menu, a server switch, and a refresh token the server rejects.
+    window.auth.onChanged(({ authenticated }) => {
+        if (!authenticated) clearAccountState();
+    });
     window.tachyon.onEvent("messaging/received", onMessagingReceivedEvent);
     chatStore.isInitialized = true;
 }
@@ -170,6 +175,15 @@ function clearOnlineState() {
     clearPartyChat();
 }
 
+// Everything here belongs to the account that sent and received it, so none of it
+// may be left for whoever signs in next.
+function clearAccountState() {
+    subsManager.clearAllFromList(chatSymbol);
+    chatStore.userChats.clear();
+    clearLobbyChat();
+    clearPartyChat();
+}
+
 export const chat = {
     requestSend,
     requestSubscribeReceived,
@@ -178,4 +192,5 @@ export const chat = {
     clearUserChat,
     addNewUserChat,
     clearOnlineState,
+    clearAccountState,
 };
