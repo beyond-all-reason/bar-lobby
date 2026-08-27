@@ -16,6 +16,7 @@ Object.assign(window.tachyon, {
         if (command === "messaging/received") receivedHandlers.push(callback);
     },
 });
+Object.defineProperty(window, "auth", { value: { onChanged: vi.fn() }, writable: true });
 
 const { chatStore, chat, initChatStore } = await import("@renderer/store/chat.store");
 const { me } = await import("@renderer/store/me.store");

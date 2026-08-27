@@ -15,6 +15,7 @@ Object.assign(window.tachyon, {
     onDisconnected: vi.fn(),
     onEvent: (command: string, callback: (data: unknown) => void) => void handlers.set(command, callback),
 });
+Object.defineProperty(window, "auth", { value: { onChanged: vi.fn() }, writable: true });
 
 const { chatStore, initChatStore } = await import("@renderer/store/chat.store");
 const { lobby, lobbyStore, initLobbyStore } = await import("@renderer/store/lobby.store");
