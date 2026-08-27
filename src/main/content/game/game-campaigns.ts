@@ -136,7 +136,10 @@ function isCampaignUnlocked(campaign: CampaignDefinition): boolean {
     return (campaign.prerequisites?.length ?? 0) === 0;
 }
 
-function isMissionUnlocked(_campaign: CampaignDefinition, _missionId: string): boolean {
+function isMissionUnlocked(campaign: CampaignDefinition, missionId: string): boolean {
+    // TODO: gate on campaign.unlocks once mission completion state is tracked.
+    void campaign;
+    void missionId;
     return true;
 }
 
