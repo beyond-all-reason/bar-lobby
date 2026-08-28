@@ -10,8 +10,7 @@
 import { Signal } from "$/jaz-ts-utils/signal";
 import { PartyState, PrivateUser } from "tachyon-protocol/types";
 
-// This is a combination of PrivateUser["party"] and PrivateUser["invitedToParties"] which is parsed together for overall party state.
-export const onUserSelfPartySignal = new Signal<PartyState[]>();
+export const onUserSelfPartySignal = new Signal<[PartyState | null, PartyState[] | null]>();
 
 export const onUserSelfLobbySignal = new Signal<PrivateUser["currentLobby"]>();
 

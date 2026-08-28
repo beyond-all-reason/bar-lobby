@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
-import type { PrivateUser, UserSelfEventData } from "tachyon-protocol/types";
+import type { PrivateUser } from "tachyon-protocol/types";
 
 vi.mock("@renderer/router", () => ({ router: { push: vi.fn() } }));
 vi.mock("@renderer/api/notifications", () => ({ notificationsApi: { alert: vi.fn() } }));
@@ -16,40 +16,18 @@ vi.mock("@renderer/store/db", () => ({
     },
 }));
 
-const handlers = new Map<string, (data: UserSelfEventData) => Promise<void> | void>();
-
 Object.assign(window.tachyon, {
-    onEvent: (command: string, callback: (data: UserSelfEventData) => Promise<void> | void) => void handlers.set(command, callback),
+    onEvent: vi.fn(),
     onConnected: vi.fn(),
     request: vi.fn(async () => ({ data: {} })),
 });
 
 const { MatchmakingStatus, initializeMatchmakingStore, matchmakingStore } = await import("@renderer/store/matchmaking.store");
 const { router } = await import("@renderer/router");
+const { onUserSelfMatchmakingSignal } = await import("@renderer/utils/user-self-signal");
 
-const selfEvent = handlers.get("user/self");
-
-function makeUser(matchmaking: PrivateUser["matchmaking"]): PrivateUser {
-    return {
-        userId: "user-1",
-        username: "player",
-        displayName: "Player",
-        clanBaseData: null,
-        status: "menu",
-        party: null,
-        invitedToParties: [],
-        friendIds: [],
-        outgoingFriendRequest: [],
-        incomingFriendRequest: [],
-        ignoreIds: [],
-        currentLobby: null,
-        clanInvites: [],
-        matchmaking,
-    };
-}
-
-async function emitUserSelf(matchmaking: PrivateUser["matchmaking"]) {
-    await selfEvent?.({ user: makeUser(matchmaking) });
+function emitUserSelf(matchmaking: PrivateUser["matchmaking"]) {
+    onUserSelfMatchmakingSignal.dispatch(matchmaking);
 }
 
 describe("user/self matchmaking state", () => {

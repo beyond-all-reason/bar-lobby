@@ -6,7 +6,15 @@ import { Me } from "@main/model/user";
 import { db } from "@renderer/store/db";
 import { reactive, toRaw, watch } from "vue";
 import { tachyon } from "@renderer/store/tachyon.store";
-import { PrivateUser } from "tachyon-protocol/types";
+import {
+    PrivateUser,
+    UserSelfEventData,
+    FriendRequestReceivedEventData,
+    FriendRequestAcceptedEventData,
+    FriendRequestRejectedEventData,
+    FriendRequestCancelledEventData,
+    FriendRemovedEventData,
+} from "tachyon-protocol/types";
 import { settingsStore } from "@renderer/store/settings.store";
 import { subsManager } from "@renderer/store/users.store";
 import { onWentOffline } from "@renderer/utils/offline-signal";
@@ -95,24 +103,25 @@ async function serverChanged() {
 // the profile view included, so our own record has to be in there too.
 // TODO tidy this up: the row is a snapshot of the whole reactive object, written
 // in two steps that aren't in one transaction, and nothing reads isMe any more.
-window.tachyon.onEvent("user/self", async (event) => {
-    console.log(`Received user/self event: ${JSON.stringify(event)}`);
-    if (event && event.user) {
+async function onUserSelfEvent(data: UserSelfEventData) {
+    // window.tachyon.onEvent("user/self", async (event) => {
+    console.log(`Received user/self event: ${JSON.stringify(data)}`);
+    if (data && data.user) {
         await db.users.where({ isMe: 1 }).modify({ isMe: 0 });
-        Object.assign(me, event.user);
+        Object.assign(me, data.user);
         db.users.put({
             ...toRaw(me),
             isMe: 1,
         });
 
-        await processFriendData(event.user);
+        await processFriendData(data.user);
         // We have to send all the signals because the some values may have become null/undefined while missing updates and stores need to update accordingly
-        onUserSelfBattleSignal.dispatch(event.user.currentBattle);
-        onUserSelfLobbySignal.dispatch(event.user.currentLobby);
-        onUserSelfMatchmakingSignal.dispatch(event.user.matchmaking);
-        onUserSelfPartySignal.dispatch([...(event.user.party ? [event.user.party] : []), ...(event.user.invitedToParties || [])]);
+        onUserSelfBattleSignal.dispatch(data.user.currentBattle);
+        onUserSelfLobbySignal.dispatch(data.user.currentLobby);
+        onUserSelfMatchmakingSignal.dispatch(data.user.matchmaking);
+        onUserSelfPartySignal.dispatch([data.user.party, data.user.invitedToParties]);
     }
-});
+}
 
 // Process friend data and manage subscriptions
 async function processFriendData(userData: PrivateUser) {
@@ -133,30 +142,30 @@ async function processFriendData(userData: PrivateUser) {
     }
 }
 
-window.tachyon.onEvent("friend/requestReceived", async (event) => {
-    me.incomingFriendRequestUserIds.add(event.from);
-    await subscribeToUsers([event.from]);
-});
+async function onFriendRequestReceivedEvent(data: FriendRequestReceivedEventData) {
+    me.incomingFriendRequestUserIds.add(data.from);
+    await subscribeToUsers([data.from]);
+}
 
-window.tachyon.onEvent("friend/requestAccepted", async (event) => {
-    me.outgoingFriendRequestUserIds.delete(event.from);
-    me.friendUserIds.add(event.from);
-});
+async function onFriendRequestAcceptedEvent(data: FriendRequestAcceptedEventData) {
+    me.outgoingFriendRequestUserIds.delete(data.from);
+    me.friendUserIds.add(data.from);
+}
 
-window.tachyon.onEvent("friend/requestRejected", async (event) => {
-    me.outgoingFriendRequestUserIds.delete(event.from);
-    await unsubscribeFromUsers([event.from]);
-});
+async function onFriendRequestRejectedEvent(data: FriendRequestRejectedEventData) {
+    me.outgoingFriendRequestUserIds.delete(data.from);
+    await unsubscribeFromUsers([data.from]);
+}
 
-window.tachyon.onEvent("friend/requestCancelled", async (event) => {
-    me.incomingFriendRequestUserIds.delete(event.from);
-    await unsubscribeFromUsers([event.from]);
-});
+async function onFriendRequestCancelledEvent(data: FriendRequestCancelledEventData) {
+    me.incomingFriendRequestUserIds.delete(data.from);
+    await unsubscribeFromUsers([data.from]);
+}
 
-window.tachyon.onEvent("friend/removed", async (event) => {
-    me.friendUserIds.delete(event.from);
-    await unsubscribeFromUsers([event.from]);
-});
+async function onFriendRemovedEvent(data: FriendRemovedEventData) {
+    me.friendUserIds.delete(data.from);
+    await unsubscribeFromUsers([data.from]);
+}
 
 // Identity fields survive; they're persisted in db and used while offline.
 function clearOnlineState() {
@@ -277,6 +286,13 @@ export async function initMeStore() {
             friends.fetchFriendList();
         }
     });
+    // We need to register these listeners before we try to restore a previous session
+    window.tachyon.onEvent("user/self", onUserSelfEvent);
+    window.tachyon.onEvent("friend/requestReceived", onFriendRequestReceivedEvent);
+    window.tachyon.onEvent("friend/requestAccepted", onFriendRequestAcceptedEvent);
+    window.tachyon.onEvent("friend/requestRejected", onFriendRequestRejectedEvent);
+    window.tachyon.onEvent("friend/requestCancelled", onFriendRequestCancelledEvent);
+    window.tachyon.onEvent("friend/removed", onFriendRemovedEvent);
 
     // Last known, from whenever we were last connected. Absent on a fresh
     // install, in which case the defaults stand in until a socket says otherwise.

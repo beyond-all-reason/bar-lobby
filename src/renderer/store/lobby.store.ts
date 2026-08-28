@@ -77,7 +77,7 @@ export async function initLobbyStore() {
     onUserSelfLobbySignal.add((lobbyId) => {
         if (lobbyId) {
             // Rejoin is idempotent, so it's the safest and most efficient way to recover the lobby state.
-            requestJoinLobby(lobbyId);
+            requestJoinLobby(lobbyId, false);
         } else {
             // User is not in a lobby. We navigate out of the lobby view if they are currently there, and clear the activeLobby.
             if (router.currentRoute.value.path == "/play/lobby") {
@@ -165,14 +165,17 @@ async function requestCreateLobby(data: LobbyCreateRequestData) {
 /**
  * Sends a request to join an existing lobby with the provided ID.
  * @param id The ID of the lobby to join.
+ * @param pushRoute Whether to push the route to the lobby view. Optional; defaults to true.
  */
-async function requestJoinLobby(id: string) {
+async function requestJoinLobby(id: string, pushRoute?: boolean) {
     try {
         battleActions.resetToDefaultBattle(undefined, undefined, undefined, true);
         const response = await window.tachyon.request("lobby/join", { id: id });
         console.log("Tachyon: lobby/join:", response.status, response.data);
         parseLobbyResponseData(response.data, false);
-        router.push("/play/lobby");
+        if (pushRoute ?? true) {
+            router.push("/play/lobby");
+        }
     } catch (error) {
         console.error("Error with request lobby/join", error);
         notificationsApi.alert({
