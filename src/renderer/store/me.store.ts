@@ -105,7 +105,7 @@ async function serverChanged() {
 // in two steps that aren't in one transaction, and nothing reads isMe any more.
 async function onUserSelfEvent(data: UserSelfEventData) {
     // window.tachyon.onEvent("user/self", async (event) => {
-    console.log(`Received user/self event: ${JSON.stringify(data)}`);
+    console.debug(`Received user/self event: ${JSON.stringify(data)}`);
     if (data && data.user) {
         await db.users.where({ isMe: 1 }).modify({ isMe: 0 });
         Object.assign(me, data.user);

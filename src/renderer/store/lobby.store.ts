@@ -57,8 +57,6 @@ export const lobbyStore: {
     wantsListSubscription: false,
 });
 
-// FIX: If the user leaves a lobby while it knows about a currentBattle, it will not receive an update from the server that the battle ended.
-// Also, it should really not be able to rejoin that battle. As a result, we have to purge tachyonStore.springConnectionDetails and tachyonStore.rejoinModalOpen when the user leaves a lobby, or when the lobby is updated and no longer has a currentBattle.
 export async function initLobbyStore() {
     onWentOffline.add(clearOnlineState);
     window.tachyon.onEvent("lobby/listUpdated", onListUpdatedEvent);

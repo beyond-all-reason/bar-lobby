@@ -322,10 +322,17 @@ export async function initializeMatchmakingStore() {
                 matchmakingStore.status = MatchmakingStatus.Idle;
                 break;
             case "queuing":
+                clearReadyTimers();
                 matchmakingStore.status = MatchmakingStatus.Searching;
-                // We use the first queue provided because we do not currently support multi-queuing.
-                matchmakingStore.selectedQueue = data.queues[0].id;
-                break;
+                // We try to match to their selected queue, but if it is not available (or none was selected) we pick the first.
+                if (matchmakingStore.selectedQueue && data.queues.some((q) => q.id === matchmakingStore.selectedQueue)) {
+                    // Keep the selected queue as-is, since it is valid and available.
+                    break;
+                } else {
+                    // They did not have a valid selected queue, so we pick the first for them or fallback to default value?
+                    matchmakingStore.selectedQueue = data.queues[0]?.id ?? "1v1";
+                    break;
+                }
             case "found":
                 onSelfUpdateFoundSignal(data);
                 break;
