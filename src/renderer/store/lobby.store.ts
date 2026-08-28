@@ -49,12 +49,14 @@ export const lobbyStore: {
     selectedLobby?: LobbyOverview;
     activeLobby?: Lobby;
     wantsListSubscription: boolean;
+    preserveChat: boolean;
 } = reactive({
     isInitialized: false,
     lobbies: {},
     selectedLobby: undefined,
     activeLobby: undefined,
     wantsListSubscription: false,
+    preserveChat: false,
 });
 
 export async function initLobbyStore() {
@@ -78,7 +80,12 @@ export async function initLobbyStore() {
 
     onUserSelfLobbySignal.add((lobbyId) => {
         if (lobbyId) {
-            // Rejoin is idempotent, so it's the safest and most efficient way to recover the lobby state.
+            // join is idempotent, so we can call it even if we're already in the lobby.
+            // However, if the lobby matched the previous one, we don't want to clear chat too.
+            if (lobbyStore.activeLobby && lobbyStore.activeLobby.id == lobbyId) {
+                // User was previously in this lobby, so we will preserve chat.
+                lobbyStore.preserveChat = true;
+            }
             requestJoinLobby(lobbyId, false);
         } else {
             // User is not in a lobby. We navigate out of the lobby view if they are currently there, and clear the activeLobby.
@@ -87,6 +94,7 @@ export async function initLobbyStore() {
             }
             clearUserSubscriptions();
             lobbyStore.activeLobby = undefined;
+            lobbyStore.preserveChat = false;
         }
     });
 
@@ -150,6 +158,7 @@ async function requestUnsubscribeList() {
  */
 async function requestCreateLobby(data: LobbyCreateRequestData) {
     try {
+        lobbyStore.preserveChat = false;
         battleActions.resetToDefaultBattle(undefined, undefined, undefined, true);
         const response = await window.tachyon.request("lobby/create", data);
         console.log("Tachyon: lobby/create:", response.status, response.data);
@@ -270,7 +279,9 @@ function parseLobbyResponseData(data: LobbyCreateOkResponseData | LobbyJoinOkRes
         // Leaving clears the transcript, but going offline keeps it and sends no
         // leave, so entering the next lobby has to clear that one. A reconnect
         // does not come through here, so a dropped socket cannot wipe it.
-        chat.clearLobbyChat();
+        if (!lobbyStore.preserveChat) {
+            chat.clearLobbyChat();
+        }
     }
     if (!lobbyStore.activeLobby) {
         console.error("Active Lobby is null or undefined after applyPatch. This should never happen!");
@@ -346,6 +357,7 @@ async function requestLeaveLobby() {
     // If we ever use a specific view for a lobby instead of BattleDrawer, we need to push a route here
     clearUserSubscriptions();
     lobbyStore.activeLobby = undefined;
+    lobbyStore.preserveChat = false;
     chat.clearLobbyChat();
     // Can't rejoin a battle tied to a lobby we're no longer in.
     tachyonStore.springConnectionDetails = undefined;
@@ -454,6 +466,7 @@ function onLobbyLeftEvent(data: LobbyLeftEventData) {
     if (!lobbyStore.activeLobby || lobbyStore.activeLobby.id != data.id) return;
     clearUserSubscriptions();
     lobbyStore.activeLobby = undefined;
+    lobbyStore.preserveChat = false;
     chat.clearLobbyChat();
     // Can't rejoin a battle tied to a lobby we've been removed from (e.g. kick/ban).
     tachyonStore.springConnectionDetails = undefined;
@@ -581,6 +594,7 @@ export function clearOnlineState() {
     lobbyStore.lobbies = {};
     lobbyStore.selectedLobby = undefined;
     lobbyStore.activeLobby = undefined;
+    lobbyStore.preserveChat = false;
 }
 
 export const lobby = {
