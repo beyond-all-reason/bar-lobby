@@ -17,7 +17,10 @@ export const usersStore: {
 export const subsManager = new SubsManager();
 
 export function initUsersStore() {
-    if (usersStore.isInitialized) return;
+    if (usersStore.isInitialized) {
+        console.warn("Users store is already initialized. Skipping initialization.");
+        return;
+    }
 
     window.tachyon.onEvent("user/updated", (event) => {
         console.debug(`Received user/updated event: ${JSON.stringify(event)}`);

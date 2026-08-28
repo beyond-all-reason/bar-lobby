@@ -58,6 +58,10 @@ export const lobbyStore: {
 });
 
 export async function initLobbyStore() {
+    if (lobbyStore.isInitialized) {
+        console.warn("Lobby store is already initialized. Skipping initialization.");
+        return;
+    }
     onWentOffline.add(clearOnlineState);
     window.tachyon.onEvent("lobby/listUpdated", onListUpdatedEvent);
     window.tachyon.onEvent("lobby/listReset", onLobbyListResetEvent);

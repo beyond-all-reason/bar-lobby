@@ -43,11 +43,14 @@ export async function getRandomMap() {
 }
 
 export async function initMapsStore() {
-    if (mapsStore.isInitialized) return;
     return init();
 }
 
 async function init() {
+    if (mapsStore.isInitialized) {
+        console.warn("Maps store is already initialized. Skipping initialization.");
+        return;
+    }
     window.maps.onMapAdded((springName: string) => {
         console.debug("Received map added event", springName);
         mapsStore.availableMapNames.add(springName);

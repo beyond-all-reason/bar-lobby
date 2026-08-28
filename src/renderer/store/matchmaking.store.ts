@@ -297,7 +297,10 @@ async function sendReadyRequest() {
 }
 
 export async function initializeMatchmakingStore() {
-    if (matchmakingStore.isInitialized) return;
+    if (matchmakingStore.isInitialized) {
+        console.warn("Matchmaking store is already initialized. Skipping initialization.");
+        return;
+    }
 
     onWentOffline.add(clearOnlineState);
     window.tachyon.onEvent("matchmaking/queueUpdate", onQueueUpdateEvent);

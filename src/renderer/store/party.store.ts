@@ -251,7 +251,10 @@ export function onLogout() {
 }
 
 export async function initPartyStore() {
-    if (partyStore.isInitialized) return;
+    if (partyStore.isInitialized) {
+        console.warn("Party store is already initialized. Skipping initialization.");
+        return;
+    }
 
     onWentOffline.add(clearOnlineState);
     window.tachyon.onEvent("party/invited", onInvitedEvent);

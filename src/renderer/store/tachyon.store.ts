@@ -136,6 +136,10 @@ function launchMultiplayerBattle(connectionDetails: MultiplayerBattleConnectionD
 }
 
 export async function initTachyonStore() {
+    if (tachyonStore.isInitialized) {
+        console.warn("Tachyon store is already initialized. Skipping initialization.");
+        return;
+    }
     tachyonStore.isConnected = await window.tachyon.isConnected();
     if (tachyonStore.isConnected) {
         fetchServerStats();

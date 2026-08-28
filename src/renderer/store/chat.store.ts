@@ -36,6 +36,10 @@ export const chatStore: {
 });
 
 export async function initChatStore() {
+    if (chatStore.isInitialized) {
+        console.warn("Chat store is already initialized. Skipping initialization.");
+        return;
+    }
     onWentOffline.add(clearOnlineState);
     // Losing the session is the one signal every way of leaving an account reaches:
     // the exit menu, a server switch, and a refresh token the server rejects.
