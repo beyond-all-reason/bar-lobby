@@ -159,7 +159,7 @@ async function sendListRequest() {
     matchmakingStore.isLoadingQueues = true;
     matchmakingStore.queueError = undefined;
     try {
-        const response = await window.tachyon.request("matchmaking/list");
+        const response = await tachyonRequest("matchmaking/list");
         console.log("Tachyon: matchmaking/list:", response.data);
         matchmakingStore.playlists = response.data.playlists;
 
@@ -270,7 +270,7 @@ async function sendCancelRequest() {
     clearReadyTimers();
     matchmakingStore.status = MatchmakingStatus.Idle;
     try {
-        const response = await window.tachyon.request("matchmaking/cancel");
+        const response = await tachyonRequest("matchmaking/cancel");
         console.log("Tachyon: matchmaking/cancel:", response.status);
     } catch (error) {
         console.error("Tachyon: matchmaking/cancel:", error);
@@ -286,7 +286,7 @@ async function sendReadyRequest() {
     clearReadyTimers();
     matchmakingStore.status = MatchmakingStatus.MatchAccepted;
     try {
-        const response = await window.tachyon.request("matchmaking/ready");
+        const response = await tachyonRequest("matchmaking/ready");
         console.log("Tachyon: matchmaking/ready:", response.status);
     } catch (error) {
         matchmakingStore.status = MatchmakingStatus.Idle;

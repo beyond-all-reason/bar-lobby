@@ -10,7 +10,7 @@ vi.mock("@renderer/api/notifications", () => ({ notificationsApi: { alert: vi.fn
 const handlers = new Map<string, (data: unknown) => void>();
 
 Object.assign(window.tachyon, {
-    request: vi.fn(),
+    requestStructured: vi.fn(),
     onConnected: vi.fn(),
     onDisconnected: vi.fn(),
     onEvent: (command: string, callback: (data: unknown) => void) => void handlers.set(command, callback),
@@ -24,7 +24,7 @@ const { me } = await import("@renderer/store/me.store");
 
 const emit = (command: string, data: unknown) => handlers.get(command)?.(data);
 
-const lobbyPayload = (id: string) => ({ id, players: {}, spectators: {}, bots: {} });
+const lobbyPayload = (id: string) => ({ status: "success" as const, data: { id, players: {}, spectators: {}, bots: {} } });
 
 const partyPayload = (id: string) => ({ id, members: [{ userId: me.userId }], invited: [] });
 
@@ -43,12 +43,12 @@ describe("chat transcript lifecycle", () => {
         lobbyStore.activeLobby = undefined;
         partyStore.parties.clear();
         partyStore.activeParty = undefined;
-        vi.mocked(window.tachyon.request).mockReset();
+        vi.mocked(window.tachyon.requestStructured).mockReset();
     });
 
     describe("lobbies", () => {
         it("clears the previous lobby's chat on joining another", async () => {
-            vi.mocked(window.tachyon.request).mockResolvedValue({ data: lobbyPayload("lobby-2") } as never);
+            vi.mocked(window.tachyon.requestStructured).mockResolvedValue(lobbyPayload("lobby-2") as never);
 
             await lobby.requestJoinLobby("lobby-2");
 
@@ -56,7 +56,7 @@ describe("chat transcript lifecycle", () => {
         });
 
         it("clears the chat on leaving", async () => {
-            vi.mocked(window.tachyon.request).mockResolvedValue({ data: lobbyPayload("lobby-2") } as never);
+            vi.mocked(window.tachyon.requestStructured).mockResolvedValue(lobbyPayload("lobby-2") as never);
             await lobby.requestJoinLobby("lobby-2");
             chatStore.lobbyChat.push({ message: "said in this lobby" } as never);
 
@@ -66,7 +66,7 @@ describe("chat transcript lifecycle", () => {
         });
 
         it("clears the chat on being dropped from the lobby", async () => {
-            vi.mocked(window.tachyon.request).mockResolvedValue({ data: lobbyPayload("lobby-2") } as never);
+            vi.mocked(window.tachyon.requestStructured).mockResolvedValue(lobbyPayload("lobby-2") as never);
             await lobby.requestJoinLobby("lobby-2");
             chatStore.lobbyChat.push({ message: "said in this lobby" } as never);
 
@@ -78,11 +78,11 @@ describe("chat transcript lifecycle", () => {
         // A lobby/updated event arrives on any change to the lobby we are already
         // in, so treating one as an entry would wipe the chat constantly.
         it("leaves the chat alone on an update to the lobby it is already in", async () => {
-            vi.mocked(window.tachyon.request).mockResolvedValue({ data: lobbyPayload("lobby-2") } as never);
+            vi.mocked(window.tachyon.requestStructured).mockResolvedValue(lobbyPayload("lobby-2") as never);
             await lobby.requestJoinLobby("lobby-2");
             chatStore.lobbyChat.push({ message: "said in this lobby" } as never);
 
-            emit("lobby/updated", { ...lobbyPayload("lobby-2"), name: "renamed" });
+            emit("lobby/updated", { ...lobbyPayload("lobby-2").data, name: "renamed" });
 
             expect(chatStore.lobbyChat).toHaveLength(1);
         });

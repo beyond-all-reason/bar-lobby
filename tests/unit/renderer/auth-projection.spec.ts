@@ -32,7 +32,7 @@ const authApi = {
     }),
 };
 
-const emptyFriendList = { data: { friends: [], outgoingPendingRequests: [], incomingPendingRequests: [] } };
+const emptyFriendList = { status: "success", data: { friends: [], outgoingPendingRequests: [], incomingPendingRequests: [] } };
 
 beforeEach(() => {
     vi.clearAllMocks();
@@ -49,7 +49,7 @@ beforeEach(() => {
     Object.assign(window.tachyon as any, {
         connect: vi.fn().mockResolvedValue(undefined),
         disconnect: vi.fn().mockResolvedValue(undefined),
-        request: vi.fn().mockResolvedValue(emptyFriendList),
+        requestStructured: vi.fn().mockResolvedValue(emptyFriendList),
         onConnected: vi.fn(),
         onDisconnected: vi.fn(),
     });

@@ -26,6 +26,7 @@ import {
 import { reactive } from "vue";
 import { apply as applyPatch } from "json8-merge-patch";
 import { notificationsApi } from "@renderer/api/notifications";
+import { tachyonRequest } from "@renderer/api/tachyon";
 import { Lobby } from "@renderer/model/lobby";
 import { setupI18n } from "@renderer/i18n";
 import { subsManager } from "@renderer/store/users.store";
@@ -124,7 +125,7 @@ function onLobbyVoteEndedEvent(data: LobbyVoteEndedEventData) {
 async function requestSubscribeList() {
     lobbyStore.wantsListSubscription = true;
     try {
-        const response = await window.tachyon.request("lobby/subscribeList");
+        const response = await tachyonRequest("lobby/subscribeList");
         //Per Tachyon protocol, this subscribes us, but does not return an updated list, that happens in the ListUpdated or ListReset events.
         console.log("subscribeList:", response.status);
     } catch (error) {
@@ -142,7 +143,7 @@ async function requestSubscribeList() {
 async function requestUnsubscribeList() {
     lobbyStore.wantsListSubscription = false;
     try {
-        await window.tachyon.request("lobby/unsubscribeList");
+        await tachyonRequest("lobby/unsubscribeList");
     } catch (error) {
         console.error("Error with request lobby/unsubscribeList:", error);
         notificationsApi.alert({
@@ -160,7 +161,7 @@ async function requestCreateLobby(data: LobbyCreateRequestData) {
     try {
         lobbyStore.preserveChat = false;
         battleActions.resetToDefaultBattle(undefined, undefined, undefined, true);
-        const response = await window.tachyon.request("lobby/create", data);
+        const response = await tachyonRequest("lobby/create", data);
         console.log("Tachyon: lobby/create:", response.status, response.data);
         parseLobbyResponseData(response.data, false);
         router.push("/play/lobby");
@@ -181,7 +182,7 @@ async function requestCreateLobby(data: LobbyCreateRequestData) {
 async function requestJoinLobby(id: string, pushRoute?: boolean) {
     try {
         battleActions.resetToDefaultBattle(undefined, undefined, undefined, true);
-        const response = await window.tachyon.request("lobby/join", { id: id });
+        const response = await tachyonRequest("lobby/join", { id: id });
         console.log("Tachyon: lobby/join:", response.status, response.data);
         parseLobbyResponseData(response.data, false);
         if (pushRoute ?? true) {
@@ -202,7 +203,7 @@ async function requestJoinLobby(id: string, pushRoute?: boolean) {
  */
 async function requestJoinAllyTeam(allyTeam: string) {
     try {
-        const response = await window.tachyon.request("lobby/joinAllyTeam", { allyTeam: allyTeam });
+        const response = await tachyonRequest("lobby/joinAllyTeam", { allyTeam: allyTeam });
         console.log("Tachyon: lobby/joinAllyTeam", response);
     } catch (error) {
         console.error("Tachyon error: lobby/joinAllyTeam:", error);
@@ -218,7 +219,7 @@ async function requestJoinAllyTeam(allyTeam: string) {
  */
 async function requestJoinQueue() {
     try {
-        const response = await window.tachyon.request("lobby/joinQueue");
+        const response = await tachyonRequest("lobby/joinQueue");
         console.log("Tachyon: lobby/joinQueue:", response);
     } catch (error) {
         console.error("Tachyon error: lobby/joinQueue:", error);
@@ -234,7 +235,7 @@ async function requestJoinQueue() {
  */
 async function requestSpectate() {
     try {
-        const response = await window.tachyon.request("lobby/spectate");
+        const response = await tachyonRequest("lobby/spectate");
         console.log("Tachyon: lobby/spectate", response);
     } catch (error) {
         console.error("Tachyon error: lobby/spectate:", error);
@@ -345,7 +346,7 @@ function parseLobbyResponseData(data: LobbyCreateOkResponseData | LobbyJoinOkRes
  */
 async function requestLeaveLobby() {
     try {
-        const response = await window.tachyon.request("lobby/leave");
+        const response = await tachyonRequest("lobby/leave");
         console.log("Tachyon: lobby/leave:", response.status);
     } catch (error) {
         console.error("Error with request lobby/leave", error);
@@ -371,7 +372,7 @@ async function requestLeaveLobby() {
  */
 async function requestStartBattle() {
     try {
-        const response = await window.tachyon.request("lobby/startBattle");
+        const response = await tachyonRequest("lobby/startBattle");
         console.log("Tachyon: lobby/startBattle:", response.status);
     } catch (error) {
         console.error("Error with request lobby/startBattle", error);
@@ -388,7 +389,7 @@ async function requestStartBattle() {
  */
 async function requestAddBot(data: LobbyAddBotRequestData) {
     try {
-        const response = await window.tachyon.request("lobby/addBot", data);
+        const response = await tachyonRequest("lobby/addBot", data);
         console.log("Tachyon lobby/addBot", response);
     } catch (error) {
         console.error("Error with request lobby/addBot", error);
@@ -405,7 +406,7 @@ async function requestAddBot(data: LobbyAddBotRequestData) {
  */
 async function requestRemoveBot(data: LobbyRemoveBotRequestData) {
     try {
-        const response = await window.tachyon.request("lobby/removeBot", data);
+        const response = await tachyonRequest("lobby/removeBot", data);
         console.log("Tachyon lobby/removeBot:", response);
     } catch (error) {
         console.error("Error with request lobby/removeBot", error);
@@ -422,7 +423,7 @@ async function requestRemoveBot(data: LobbyRemoveBotRequestData) {
  */
 async function requestUpdateBot(data: LobbyUpdateBotRequestData) {
     try {
-        const response = await window.tachyon.request("lobby/updateBot", data);
+        const response = await tachyonRequest("lobby/updateBot", data);
         console.log("Tachyon lobby/updateBot:", response);
     } catch (error) {
         console.error("Error with request lobby/updateBot", error);
@@ -439,7 +440,7 @@ async function requestUpdateBot(data: LobbyUpdateBotRequestData) {
  */
 async function requestLobbyUpdate(data: LobbyUpdateRequestData) {
     try {
-        const response = await window.tachyon.request("lobby/update", data);
+        const response = await tachyonRequest("lobby/update", data);
         console.log("Tachyon lobby/update:", response);
     } catch (error) {
         console.error("Error with request lobby/update", error);
@@ -510,7 +511,7 @@ async function clearUserSubscriptions() {
  */
 async function requestUpdateClientStatus(data: LobbyUpdateClientStatusRequestData) {
     try {
-        const response = await window.tachyon.request("lobby/updateClientStatus", data);
+        const response = await tachyonRequest("lobby/updateClientStatus", data);
         console.log("Tachyon lobby/updateClientStatus:", response);
     } catch (error) {
         console.error("Error with request lobby/updateClientStatus", error);
@@ -524,7 +525,7 @@ async function requestUpdateClientStatus(data: LobbyUpdateClientStatusRequestDat
  */
 async function requestJoinBattle() {
     try {
-        const response = await window.tachyon.request("lobby/joinBattle");
+        const response = await tachyonRequest("lobby/joinBattle");
         console.log("Tachyon lobby/joinBattle:", response);
     } catch (error) {
         console.error("Error with request lobby/joinBattle", error);
@@ -538,7 +539,7 @@ async function requestJoinBattle() {
  */
 async function requestVoteSubmit(data: LobbyVoteSubmitRequestData) {
     try {
-        const response = await window.tachyon.request("lobby/voteSubmit", data);
+        const response = await tachyonRequest("lobby/voteSubmit", data);
         console.log("Tachyon lobby/voteSubmit:", response);
     } catch (error) {
         console.error("Error with request lobby/voteSubmit", error);
@@ -552,7 +553,7 @@ async function requestVoteSubmit(data: LobbyVoteSubmitRequestData) {
  */
 async function requestAppointBoss(userId: string) {
     try {
-        const response = await window.tachyon.request("lobby/appointBoss", { userId });
+        const response = await tachyonRequest("lobby/appointBoss", { userId });
         console.log("Tachyon lobby/appointBoss:", response);
     } catch (error) {
         console.error("Error with request lobby/appointBoss", error);
@@ -567,7 +568,7 @@ async function requestAppointBoss(userId: string) {
  */
 async function requestKickBan(userId: string, until?: number) {
     try {
-        const response = await window.tachyon.request("lobby/kickban", { userId, banUntil: until });
+        const response = await tachyonRequest("lobby/kickban", { userId, banUntil: until });
         console.log("Tachyon lobby/kickban:", response);
     } catch (error) {
         console.error("Error with request lobby/kickban", error);
@@ -581,7 +582,7 @@ async function requestKickBan(userId: string, until?: number) {
  */
 async function requestUnboss(userId?: UserId) {
     try {
-        const response = await window.tachyon.request("lobby/unboss", { userId });
+        const response = await tachyonRequest("lobby/unboss", { userId });
         console.log("Tachyon lobby/unboss:", response);
     } catch (error) {
         console.error("Error with request lobby/unboss", error);

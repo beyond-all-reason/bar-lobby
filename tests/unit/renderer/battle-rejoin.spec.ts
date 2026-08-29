@@ -10,7 +10,7 @@ vi.mock("@renderer/api/notifications", () => ({ notificationsApi: { alert: vi.fn
 const handlers = new Map<string, (data: unknown) => void>();
 
 Object.assign(window.tachyon, {
-    request: vi.fn(),
+    requestStructured: vi.fn(),
     onConnected: vi.fn(),
     onDisconnected: vi.fn(),
     onEvent: (command: string, callback: (data: unknown) => void) => void handlers.set(command, callback),
@@ -33,14 +33,15 @@ describe("battle rejoin state", () => {
         lobbyStore.activeLobby = undefined;
         tachyonStore.springConnectionDetails = undefined;
         tachyonStore.rejoinModalOpen = false;
-        vi.mocked(window.tachyon.request).mockReset();
+        vi.mocked(window.tachyon.requestStructured).mockReset();
     });
 
     it("clears stale rejoin state when a lobby update removes the battle", async () => {
         const joinResponse = {
+            status: "success",
             data: { id: "lobby-1", players: {}, spectators: {}, bots: {}, currentBattle: { id: "battle-1" } },
-        } satisfies Awaited<ReturnType<typeof window.tachyon.request>>;
-        vi.mocked(window.tachyon.request).mockResolvedValue(joinResponse);
+        } satisfies Awaited<ReturnType<typeof window.tachyon.requestStructured>>;
+        vi.mocked(window.tachyon.requestStructured).mockResolvedValue(joinResponse);
         await lobby.requestJoinLobby("lobby-1");
         tachyonStore.springConnectionDetails = {
             username: "player",

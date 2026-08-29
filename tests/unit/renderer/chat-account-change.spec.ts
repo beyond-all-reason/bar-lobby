@@ -12,7 +12,7 @@ const authHandlers: Array<(state: { authenticated: boolean }) => void> = [];
 const receivedHandlers: Array<(data: unknown) => void> = [];
 
 Object.assign(window.tachyon, {
-    request: vi.fn(),
+    requestStructured: vi.fn(),
     onEvent: (command: string, callback: (data: unknown) => void) => {
         if (command === "messaging/received") receivedHandlers.push(callback);
     },

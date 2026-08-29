@@ -20,6 +20,7 @@ import { subsManager } from "@renderer/store/users.store";
 import { onWentOffline } from "@renderer/utils/offline-signal";
 import { onUserSelfPartySignal, onUserSelfLobbySignal, onUserSelfMatchmakingSignal, onUserSelfBattleSignal } from "@renderer/utils/user-self-signal";
 import { notificationsApi } from "@renderer/api/notifications";
+import { tachyonRequest } from "@renderer/api/tachyon";
 
 export const me = reactive<
     Me & {
@@ -178,7 +179,7 @@ export const auth = { login, goOnline, logout, clearOnlineState };
 // Friend methods
 export const friends = {
     async sendRequest(to: string) {
-        const response = await window.tachyon.request("friend/sendRequest", { to });
+        const response = await tachyonRequest("friend/sendRequest", { to });
         me.outgoingFriendRequestUserIds.add(to);
         await subscribeToUsers([to]);
         return response;
@@ -186,7 +187,7 @@ export const friends = {
 
     async acceptRequest(from: string) {
         try {
-            const response = await window.tachyon.request("friend/acceptRequest", { from });
+            const response = await tachyonRequest("friend/acceptRequest", { from });
             me.incomingFriendRequestUserIds.delete(from);
             me.friendUserIds.add(from);
             return response;
@@ -199,7 +200,7 @@ export const friends = {
 
     async rejectRequest(from: string) {
         try {
-            const response = await window.tachyon.request("friend/rejectRequest", { from });
+            const response = await tachyonRequest("friend/rejectRequest", { from });
             me.incomingFriendRequestUserIds.delete(from);
             await unsubscribeFromUsers([from]);
             return response;
@@ -213,7 +214,7 @@ export const friends = {
 
     async cancelRequest(to: string) {
         try {
-            const response = await window.tachyon.request("friend/cancelRequest", { to });
+            const response = await tachyonRequest("friend/cancelRequest", { to });
             me.outgoingFriendRequestUserIds.delete(to);
             await unsubscribeFromUsers([to]);
             return response;
@@ -227,7 +228,7 @@ export const friends = {
 
     async remove(userId: string) {
         try {
-            const response = await window.tachyon.request("friend/remove", { userId });
+            const response = await tachyonRequest("friend/remove", { userId });
             me.friendUserIds.delete(userId);
             await unsubscribeFromUsers([userId]);
             return response;
@@ -239,7 +240,7 @@ export const friends = {
 
     async fetchFriendList() {
         try {
-            const response = await window.tachyon.request("friend/list");
+            const response = await tachyonRequest("friend/list");
             console.debug(`Received friend/list event: ${JSON.stringify(response)}`);
 
             // Clear existing friend data and populate with new data

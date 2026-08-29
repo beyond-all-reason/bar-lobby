@@ -9,6 +9,7 @@ import { matchmakingStore, matchmaking } from "@renderer/store/matchmaking.store
 import { subsManager } from "@renderer/store/users.store";
 import { UserId } from "tachyon-protocol/types";
 import { notificationsApi } from "@renderer/api/notifications";
+import { tachyonRequest } from "@renderer/api/tachyon";
 import { chat, chatStore } from "@renderer/store/chat.store";
 import { onWentOffline } from "@renderer/utils/offline-signal";
 import { onUserSelfBattleSignal } from "@renderer/utils/user-self-signal";
@@ -118,7 +119,7 @@ function startReconnecting() {
 async function fetchServerStats() {
     try {
         tachyonStore.error = undefined;
-        const response = await window.tachyon.request("system/serverStats");
+        const response = await tachyonRequest("system/serverStats");
         tachyonStore.serverStats = response.data;
     } catch (error) {
         console.error("Error fetching server stats:", error);
@@ -237,7 +238,7 @@ export async function initTachyonStore() {
         if (!tachyonStore.isConnected) return;
 
         try {
-            const response = await window.tachyon.request("user/subscribeUpdates", { userIds: users });
+            const response = await tachyonRequest("user/subscribeUpdates", { userIds: users });
             console.log("Tachyon: user/subscribeUpdates", response);
         } catch (error) {
             console.error("Tachyon error: 'user/subscribeUpdates'", error);
@@ -250,7 +251,7 @@ export async function initTachyonStore() {
         if (!tachyonStore.isConnected) return;
 
         try {
-            const response = await window.tachyon.request("user/unsubscribeUpdates", { userIds: users });
+            const response = await tachyonRequest("user/unsubscribeUpdates", { userIds: users });
             console.log("Tachyon: user/unsubscribeUpdates", response);
         } catch (error) {
             console.error("Tachyon error: 'user/unsubscribeUpdates'", error);

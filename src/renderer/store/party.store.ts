@@ -17,6 +17,7 @@ import {
 } from "tachyon-protocol/types";
 import { reactive } from "vue";
 import { notificationsApi } from "@renderer/api/notifications";
+import { tachyonRequest } from "@renderer/api/tachyon";
 import { Party } from "@renderer/model/party";
 import { subsManager } from "@renderer/store/users.store";
 import { chat } from "@renderer/store/chat.store";
@@ -55,7 +56,7 @@ async function requestAcceptInvite(data: PartyAcceptInviteRequestData) {
         currentParty = partyStore.activeParty;
     }
     try {
-        const response = await window.tachyon.request("party/acceptInvite", data);
+        const response = await tachyonRequest("party/acceptInvite", data);
         console.log("Tachyon: party/acceptInvite response:", response);
         // Client should receive a party/updated event upon joining, but if we were in a party before, we have to manually handle the removal of that one.
         // We don't do this before success, because we might not actually leave the other party on the serverside if the join fails!
@@ -76,7 +77,7 @@ async function requestAcceptInvite(data: PartyAcceptInviteRequestData) {
  */
 async function requestCancelInvite(data: PartyCancelInviteRequestData) {
     try {
-        const response = await window.tachyon.request("party/cancelInvite", data);
+        const response = await tachyonRequest("party/cancelInvite", data);
         console.log("Tachyon: party/cancelInvite:", response);
     } catch (error) {
         console.error("Tachyon error: party/cancelInvite:", error);
@@ -89,7 +90,7 @@ async function requestCancelInvite(data: PartyCancelInviteRequestData) {
  */
 async function requestCreate() {
     try {
-        const response = await window.tachyon.request("party/create");
+        const response = await tachyonRequest("party/create");
         console.log("Tachyon: party/create:", response);
         partyStore.parties.set(response.data.party.id, { ...response.data.party, seen: false });
         parseAllPartyData();
@@ -118,7 +119,7 @@ async function requestCreateAndInvite(userId: UserId) {
  */
 async function requestDeclineInvite(data: PartyDeclineInviteRequestData) {
     try {
-        const response = await window.tachyon.request("party/declineInvite", data);
+        const response = await tachyonRequest("party/declineInvite", data);
         console.log("Tachyon: party/declineInvite:", response);
         // Note; we do not get a party/updated event for the declined party, so we have to clear it ourselves.
         partyStore.parties.delete(data.partyId);
@@ -135,7 +136,7 @@ async function requestDeclineInvite(data: PartyDeclineInviteRequestData) {
  */
 async function requestInvite(data: PartyInviteRequestData) {
     try {
-        const response = await window.tachyon.request("party/invite", data);
+        const response = await tachyonRequest("party/invite", data);
         console.log("Tachyon: party/invite:", response);
         // Reminder; success is not "user joined party", but is instead "pending invite created".
     } catch (error) {
@@ -150,7 +151,7 @@ async function requestInvite(data: PartyInviteRequestData) {
  */
 async function requestKickMember(data: PartyKickMemberRequestData) {
     try {
-        const response = await window.tachyon.request("party/kickMember", data);
+        const response = await tachyonRequest("party/kickMember", data);
         console.log("Tachyon: party/kickMember:", response);
     } catch (error) {
         console.error("Tachyon error: party/kickMember:", error);
@@ -163,7 +164,7 @@ async function requestKickMember(data: PartyKickMemberRequestData) {
  */
 async function requestLeave() {
     try {
-        const response = await window.tachyon.request("party/leave");
+        const response = await tachyonRequest("party/leave");
         console.log("Tachyon: party/leave:", response);
         partyStore.parties.delete(partyStore.activeParty ?? "");
         parseAllPartyData();

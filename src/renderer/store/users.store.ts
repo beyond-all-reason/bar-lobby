@@ -7,6 +7,7 @@ import { reactive } from "vue";
 import { SubsManager } from "@renderer/utils/subscriptions-manager";
 import { UserReportRequestData } from "tachyon-protocol/types";
 import { notificationsApi } from "@renderer/api/notifications";
+import { tachyonRequest } from "@renderer/api/tachyon";
 
 export const usersStore: {
     isInitialized: boolean;
@@ -57,7 +58,7 @@ export function initUsersStore() {
  */
 async function requestReportUsers(data: UserReportRequestData) {
     try {
-        const response = await window.tachyon.request("user/report", data);
+        const response = await tachyonRequest("user/report", data);
         console.log("Tachyon user/report:", response);
 
         return true;

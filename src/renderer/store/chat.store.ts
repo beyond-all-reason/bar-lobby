@@ -6,6 +6,7 @@ import { reactive } from "vue";
 import { subsManager } from "@renderer/store/users.store";
 import { HistoryMarker, MessagingReceivedEventData, MessagingSendRequestData, MessagingSubscribeReceivedRequestData, UserId } from "tachyon-protocol/types";
 import { notificationsApi } from "@renderer/api/notifications";
+import { tachyonRequest } from "@renderer/api/tachyon";
 import { Message } from "@renderer/model/message";
 import { me } from "@renderer/store/me.store";
 import { onWentOffline } from "@renderer/utils/offline-signal";
@@ -62,7 +63,7 @@ const chatDestinations = {
  */
 async function requestSend(data: MessagingSendRequestData) {
     try {
-        const response = await window.tachyon.request("messaging/send", data);
+        const response = await tachyonRequest("messaging/send", data);
         console.log("Tachyon messaging/send:", response);
         if (data.target.type === "player") {
             if (data.target.userId !== me.userId) {
@@ -114,7 +115,7 @@ async function subscribeReceived(data?: MessagingSubscribeReceivedRequestData) {
     const request = data ?? { since: resumePoint() };
 
     try {
-        const response = await window.tachyon.request("messaging/subscribeReceived", request);
+        const response = await tachyonRequest("messaging/subscribeReceived", request);
         console.log("Tachyon messaging/subscribeReceived:", response);
         subscribeAttempts = 0;
 

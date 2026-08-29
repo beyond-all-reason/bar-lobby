@@ -12,7 +12,7 @@ vi.mock("@renderer/router", () => ({ router: { currentRoute: { value: { path: "/
 const receivedHandlers: Array<(data: MessagingReceivedEventData) => void> = [];
 
 Object.assign(window.tachyon, {
-    request: vi.fn(async () => ({ data: { hasMissedMessages: false } })),
+    requestStructured: vi.fn(async () => ({ status: "success", data: { hasMissedMessages: false } })),
     onEvent: (command: string, callback: (data: MessagingReceivedEventData) => void) => {
         if (command === "messaging/received") receivedHandlers.push(callback);
     },
@@ -34,12 +34,12 @@ const receive = (data: Partial<MessagingReceivedEventData>) =>
     );
 
 const subscribedSince = () => {
-    const [, data] = vi.mocked(window.tachyon.request).mock.calls.at(-1) ?? [];
+    const [, data] = vi.mocked(window.tachyon.requestStructured).mock.calls.at(-1) ?? [];
 
     return (data as MessagingSubscribeReceivedRequestData | undefined)?.since;
 };
 
-const subscribeCount = () => vi.mocked(window.tachyon.request).mock.calls.filter(([command]) => command === "messaging/subscribeReceived").length;
+const subscribeCount = () => vi.mocked(window.tachyon.requestStructured).mock.calls.filter(([command]) => command === "messaging/subscribeReceived").length;
 
 describe("chat history marker", () => {
     beforeAll(async () => {
@@ -52,8 +52,8 @@ describe("chat history marker", () => {
         chatStore.partyChat.length = 0;
         chatStore.userChats.clear();
         vi.mocked(notificationsApi.alert).mockClear();
-        vi.mocked(window.tachyon.request).mockReset();
-        vi.mocked(window.tachyon.request).mockResolvedValue({ data: { hasMissedMessages: false } } as never);
+        vi.mocked(window.tachyon.requestStructured).mockReset();
+        vi.mocked(window.tachyon.requestStructured).mockResolvedValue({ status: "success", data: { hasMissedMessages: false } } as never);
     });
 
     it("keeps the marker off the last message received", async () => {
@@ -175,7 +175,7 @@ describe("chat history marker", () => {
         });
 
         it("tries again", async () => {
-            vi.mocked(window.tachyon.request).mockRejectedValueOnce(new Error("nope"));
+            vi.mocked(window.tachyon.requestStructured).mockRejectedValueOnce(new Error("nope"));
 
             await chat.requestSubscribeReceived();
             await vi.advanceTimersByTimeAsync(5000);
@@ -184,7 +184,7 @@ describe("chat history marker", () => {
         });
 
         it("gives up rather than retrying forever", async () => {
-            vi.mocked(window.tachyon.request).mockRejectedValue(new Error("nope"));
+            vi.mocked(window.tachyon.requestStructured).mockRejectedValue(new Error("nope"));
 
             await chat.requestSubscribeReceived();
             await vi.advanceTimersByTimeAsync(60_000);
@@ -194,7 +194,7 @@ describe("chat history marker", () => {
         });
 
         it("stops retrying once the user goes offline", async () => {
-            vi.mocked(window.tachyon.request).mockRejectedValueOnce(new Error("nope"));
+            vi.mocked(window.tachyon.requestStructured).mockRejectedValueOnce(new Error("nope"));
 
             await chat.requestSubscribeReceived();
             chat.clearOnlineState();
@@ -205,10 +205,10 @@ describe("chat history marker", () => {
 
         // Exhausting the retries must not poison the next connection.
         it("starts counting again on the next connect", async () => {
-            vi.mocked(window.tachyon.request).mockRejectedValue(new Error("nope"));
+            vi.mocked(window.tachyon.requestStructured).mockRejectedValue(new Error("nope"));
             await chat.requestSubscribeReceived();
             await vi.advanceTimersByTimeAsync(60_000);
-            vi.mocked(window.tachyon.request).mockClear();
+            vi.mocked(window.tachyon.requestStructured).mockClear();
 
             await chat.requestSubscribeReceived();
             await vi.advanceTimersByTimeAsync(5000);

@@ -19,7 +19,7 @@ vi.mock("@renderer/store/db", () => ({
 Object.assign(window.tachyon, {
     onEvent: vi.fn(),
     onConnected: vi.fn(),
-    request: vi.fn(async () => ({ data: {} })),
+    requestStructured: vi.fn(async () => ({ status: "success", data: {} })),
 });
 
 const { MatchmakingStatus, initializeMatchmakingStore, matchmakingStore } = await import("@renderer/store/matchmaking.store");
