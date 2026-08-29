@@ -277,9 +277,6 @@ function parseLobbyResponseData(data: LobbyCreateOkResponseData | LobbyJoinOkRes
     } else {
         //Apply the patch for a join/create response
         lobbyStore.activeLobby = applyPatch({}, data);
-        // Leaving clears the transcript, but going offline keeps it and sends no
-        // leave, so entering the next lobby has to clear that one. A reconnect
-        // does not come through here, so a dropped socket cannot wipe it.
         if (!lobbyStore.preserveChat) {
             chat.clearLobbyChat();
         }
