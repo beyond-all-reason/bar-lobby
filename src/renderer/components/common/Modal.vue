@@ -127,6 +127,7 @@ function sound() {
 <style lang="scss" scoped>
 .container {
     @extend .fullsize;
+    @extend .blocks-window-drag;
     left: 0;
     top: 0;
     z-index: 5;

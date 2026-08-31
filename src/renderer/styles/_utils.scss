@@ -13,6 +13,13 @@
     content: "";
 }
 
+// The draggable title bar region is geometric, not hit-tested, so an element painted over
+// it still lets a drag or a double-click through to the window. Anything that covers the
+// window and swallows input has to opt out of it explicitly.
+.blocks-window-drag {
+    -webkit-app-region: no-drag;
+}
+
 .fullwidth {
     width: 100%;
 }
