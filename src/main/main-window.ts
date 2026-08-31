@@ -7,7 +7,7 @@ import path from "path";
 import { settingsService } from "./services/settings.service";
 import { logger } from "./utils/logger";
 import icon from "@main/resources/icon.png";
-import { MIN_VIEWPORT, MIN_WINDOW_SIZE, UI_SCALE_MIN, UI_SCALE_STEP, clampUiScale } from "@main/config/window";
+import { MIN_WINDOW_SIZE, UI_SCALE_MAX, UI_SCALE_MIN, UI_SCALE_STEP } from "@main/config/window";
 import { purgeLogFiles } from "@main/services/log.service";
 import { typedWebContents, ipcMain } from "@main/typed-ipc";
 import { gameAPI } from "@main/game/game";
@@ -19,14 +19,8 @@ export function createWindow() {
     const settings = settingsService.getSettings();
     log.info("Creating main window with settings: ", settings);
 
-    // Capped so the viewport never falls below what the layout can render. There is no
-    // floor: a large viewport only makes the interface small, which is the user's call.
     function scaleRange() {
-        const os = osScale();
-        const [width, height] = mainWindow.getContentSize();
-        const fits = Math.min(width / MIN_VIEWPORT.width, height / MIN_VIEWPORT.height) * os;
-
-        return { min: UI_SCALE_MIN, max: Math.max(UI_SCALE_MIN, clampUiScale(fits)), os };
+        return { min: UI_SCALE_MIN, max: UI_SCALE_MAX, os: osScale() };
     }
 
     const mainWindow = new BrowserWindow({
@@ -89,8 +83,7 @@ export function createWindow() {
         webContents.send("mainWindow:uiScaleNudged", next);
     }
 
-    // The permitted zoom is derived from the window size, so every geometry change has to
-    // recompute it. Resize fires continuously while dragging, hence the trailing timer.
+    // Resize fires continuously while dragging, hence the trailing timer.
     let zoomUpdate: NodeJS.Timeout | undefined;
     function scheduleZoomUpdate() {
         clearTimeout(zoomUpdate);

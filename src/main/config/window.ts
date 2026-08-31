@@ -8,9 +8,6 @@
 // Smallest and largest window the layout is expected to work in.
 export const MIN_WINDOW_SIZE = { width: 1280, height: 720 };
 
-// Smallest CSS viewport the layout can render in. Zoom is capped so it is never smaller.
-export const MIN_VIEWPORT = { width: 1280, height: 720 };
-
 // Windowed sizes are offered across this range of shapes; fullscreen uses the display's own.
 export const SUPPORTED_ASPECT_RATIOS = [
     { label: "4:3", ratio: 4 / 3 },
