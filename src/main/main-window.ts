@@ -7,7 +7,7 @@ import path from "path";
 import { settingsService } from "./services/settings.service";
 import { logger } from "./utils/logger";
 import icon from "@main/resources/icon.png";
-import { MAX_VIEWPORT, MIN_VIEWPORT, MIN_WINDOW_SIZE, UI_SCALE_STEP, clampUiScale } from "@main/config/window";
+import { MIN_VIEWPORT, MIN_WINDOW_SIZE, UI_SCALE_MIN, UI_SCALE_STEP, clampUiScale } from "@main/config/window";
 import { purgeLogFiles } from "@main/services/log.service";
 import { typedWebContents, ipcMain } from "@main/typed-ipc";
 import { gameAPI } from "@main/game/game";
@@ -19,25 +19,14 @@ export function createWindow() {
     const settings = settingsService.getSettings();
     log.info("Creating main window with settings: ", settings);
 
-    // Zoom maps device independent pixels to CSS pixels, so it is what decides whether the
-    // layout sees a viewport it was built for.
-    function zoomRangeForWindow() {
-        const [width, height] = mainWindow.getContentSize();
-        const smallest = Math.max(width / MAX_VIEWPORT.width, height / MAX_VIEWPORT.height);
-        const largest = Math.min(width / MIN_VIEWPORT.width, height / MIN_VIEWPORT.height);
-
-        // A window outside the supportable range cannot satisfy both ends; keeping the
-        // viewport under the maximum matters more, since that is what overscales the UI.
-        return { smallest, largest: Math.max(smallest, largest) };
-    }
-
-    // Expressed as interface scale rather than zoom, so it can bound the settings control
-    // directly instead of the applied value being quietly corrected afterwards.
+    // Capped so the viewport never falls below what the layout can render. There is no
+    // floor: a large viewport only makes the interface small, which is the user's call.
     function scaleRange() {
         const os = osScale();
-        const { smallest, largest } = zoomRangeForWindow();
+        const [width, height] = mainWindow.getContentSize();
+        const fits = Math.min(width / MIN_VIEWPORT.width, height / MIN_VIEWPORT.height) * os;
 
-        return { min: clampUiScale(smallest * os), max: clampUiScale(largest * os), os };
+        return { min: UI_SCALE_MIN, max: Math.max(UI_SCALE_MIN, clampUiScale(fits)), os };
     }
 
     const mainWindow = new BrowserWindow({
@@ -90,17 +79,14 @@ export function createWindow() {
         applyScale(settingsService.getSettings().uiScale);
     }
 
-    async function nudgeUiScale(delta: number) {
+    // Stored by the renderer, which writes the whole settings object and would otherwise
+    // overwrite a value set behind its back.
+    function nudgeUiScale(delta: number) {
         const { min, max } = scaleRange();
         const current = settingsService.getSettings().uiScale ?? osScale();
         const next = delta === 0 ? null : Math.min(max, Math.max(min, Math.round((current + delta) * 100) / 100));
 
-        try {
-            await settingsService.updateSettings({ uiScale: next });
-        } catch (err) {
-            log.error("Failed to persist the interface scale", err);
-        }
-        updateZoom();
+        webContents.send("mainWindow:uiScaleNudged", next);
     }
 
     // The permitted zoom is derived from the window size, so every geometry change has to
@@ -111,10 +97,22 @@ export function createWindow() {
         zoomUpdate = setTimeout(() => {
             updateZoom();
             webContents.send("mainWindow:scaleRangeChanged", scaleRange());
+            reportWindowState();
         }, 100);
     }
 
+    // No size while fullscreen or maximised, since the remembered one is where to return to.
+    function reportWindowState() {
+        const maximized = mainWindow.isMaximized();
+        const [width, height] = mainWindow.getSize();
+        const settled = !maximized && !mainWindow.isFullScreen();
+
+        webContents.send("mainWindow:windowStateChanged", { maximized, size: settled ? { width, height } : null });
+    }
+
     mainWindow.on("resize", scheduleZoomUpdate);
+    mainWindow.on("maximize", scheduleZoomUpdate);
+    mainWindow.on("unmaximize", scheduleZoomUpdate);
     mainWindow.on("enter-full-screen", scheduleZoomUpdate);
     mainWindow.on("leave-full-screen", scheduleZoomUpdate);
     mainWindow.on("closed", () => clearTimeout(zoomUpdate));
@@ -132,6 +130,8 @@ export function createWindow() {
         // Note: `fullscreen: true` conflicts with `show: false`, so we apply fullscreen here.
         if (settings.fullscreen) {
             mainWindow.setFullScreen(true);
+        } else if (settings.maximized) {
+            mainWindow.maximize();
         }
         updateZoom();
         mainWindow.show();
@@ -158,17 +158,63 @@ export function createWindow() {
 
     app.on("browser-window-focus", () => mainWindow.flashFrame(false));
 
-    //TODO add an IPC handler for changing display via the settings
-
     // Register IPC handlers for the main window
     ipcMain.handle("mainWindow:setFullscreen", (_event, flag: boolean) => {
         mainWindow.setFullScreen(flag);
     });
+    ipcMain.handle("mainWindow:setMaximized", (_event, flag: boolean) => {
+        if (flag === mainWindow.isMaximized()) return;
+        if (!flag) {
+            mainWindow.unmaximize();
+            return;
+        }
+
+        if (mainWindow.isFullScreen()) mainWindow.setFullScreen(false);
+        mainWindow.maximize();
+    });
     ipcMain.handle("mainWindow:setSize", (_event, width: number, height: number) => {
+        // Their own settings are written alongside the size and applied first; leaving those
+        // modes here as well undid a revert back to fullscreen.
         if (mainWindow.isFullScreen() || mainWindow.isMaximized()) return;
 
-        mainWindow.setSize(Math.max(width, MIN_WINDOW_SIZE.width), Math.max(height, MIN_WINDOW_SIZE.height));
+        const target = { width: Math.max(width, MIN_WINDOW_SIZE.width), height: Math.max(height, MIN_WINDOW_SIZE.height) };
+        const [currentWidth, currentHeight] = mainWindow.getSize();
+        // Arrives again for a size the window already has, and re-centring would yank a drag.
+        if (target.width === currentWidth && target.height === currentHeight) return;
+
+        mainWindow.setSize(target.width, target.height);
         mainWindow.center();
+        updateZoom();
+    });
+    ipcMain.handle("mainWindow:setDisplay", (_event, index: number) => {
+        const display = screen.getAllDisplays()[index];
+        if (!display) return;
+
+        // Nothing but the display changes. The size comes from the setting rather than the
+        // window, so it survives the trip out of fullscreen or maximised, and it is not
+        // trimmed to the new display: a size that no longer fits is the window's business,
+        // not a reason to rewrite what the user chose.
+        const { windowWidth, windowHeight } = settingsService.getSettings();
+        const width = Math.max(windowWidth, MIN_WINDOW_SIZE.width);
+        const height = Math.max(windowHeight, MIN_WINDOW_SIZE.height);
+        const { workArea } = display;
+
+        // Fullscreen and maximised are tied to the display they were entered on.
+        const wasFullScreen = mainWindow.isFullScreen();
+        const wasMaximized = mainWindow.isMaximized();
+        if (wasFullScreen) mainWindow.setFullScreen(false);
+        if (wasMaximized) mainWindow.unmaximize();
+
+        mainWindow.setBounds({
+            width,
+            height,
+            x: Math.round(workArea.x + (workArea.width - width) / 2),
+            y: Math.round(workArea.y + (workArea.height - height) / 2),
+        });
+
+        if (wasFullScreen) mainWindow.setFullScreen(true);
+        else if (wasMaximized) mainWindow.maximize();
+
         updateZoom();
     });
     ipcMain.handle("mainWindow:flashFrame", (_event, flag: boolean) => {
@@ -181,6 +227,8 @@ export function createWindow() {
             index,
             scaleFactor: display.scaleFactor || 1,
             workArea: { width: display.workAreaSize.width, height: display.workAreaSize.height },
+            // workArea has the taskbar removed, so it is the wrong shape for an aspect ratio.
+            size: { width: display.size.width, height: display.size.height },
         }))
     );
     ipcMain.handle("mainWindow:minimize", () => mainWindow.minimize());

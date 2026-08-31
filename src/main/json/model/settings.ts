@@ -8,6 +8,7 @@ import { UI_SCALE_MAX, UI_SCALE_MIN } from "@main/config/window";
 
 export const settingsSchema = Type.Object({
     fullscreen: Type.Boolean({ default: true }),
+    maximized: Type.Boolean({ default: false }),
     windowWidth: Type.Number({ default: 1280 }),
     windowHeight: Type.Number({ default: 720 }),
     displayIndex: Type.Number({ default: 0 }),

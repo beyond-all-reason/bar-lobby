@@ -40,11 +40,17 @@ contextBridge.exposeInMainWorld("info", infoApi);
 
 const mainWindowApi = {
     setFullscreen: (flag: boolean): Promise<void> => ipcRenderer.invoke("mainWindow:setFullscreen", flag),
+    setMaximized: (flag: boolean): Promise<void> => ipcRenderer.invoke("mainWindow:setMaximized", flag),
     setSize: (width: number, height: number): Promise<void> => ipcRenderer.invoke("mainWindow:setSize", width, height),
     setUiScale: (scale: number | null): Promise<void> => ipcRenderer.invoke("mainWindow:setUiScale", scale),
     getScaleRange: (): Promise<{ min: number; max: number; os: number }> => ipcRenderer.invoke("mainWindow:getScaleRange"),
     onScaleRangeChanged: (callback: (range: { min: number; max: number; os: number }) => void) => ipcRenderer.on("mainWindow:scaleRangeChanged", (_event, range) => callback(range)),
-    getDisplays: (): Promise<Array<{ index: number; scaleFactor: number; workArea: { width: number; height: number } }>> => ipcRenderer.invoke("mainWindow:getDisplays"),
+    getDisplays: (): Promise<Array<{ index: number; scaleFactor: number; workArea: { width: number; height: number }; size: { width: number; height: number } }>> =>
+        ipcRenderer.invoke("mainWindow:getDisplays"),
+    setDisplay: (index: number): Promise<void> => ipcRenderer.invoke("mainWindow:setDisplay", index),
+    onWindowStateChanged: (callback: (state: { maximized: boolean; size: { width: number; height: number } | null }) => void) =>
+        ipcRenderer.on("mainWindow:windowStateChanged", (_event, state) => callback(state)),
+    onUiScaleNudged: (callback: (scale: number | null) => void) => ipcRenderer.on("mainWindow:uiScaleNudged", (_event, scale) => callback(scale)),
     flashFrame: (flag: boolean): Promise<void> => ipcRenderer.invoke("mainWindow:flashFrame", flag),
     minimize: (): Promise<void> => ipcRenderer.invoke("mainWindow:minimize"),
     isFullscreen: (): Promise<boolean> => ipcRenderer.invoke("mainWindow:isFullscreen"),

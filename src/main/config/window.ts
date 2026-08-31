@@ -8,10 +8,8 @@
 // Smallest and largest window the layout is expected to work in.
 export const MIN_WINDOW_SIZE = { width: 1280, height: 720 };
 
-// The CSS viewport the stylesheets have to cope with. Zoom is chosen so the window lands
-// inside this range rather than at a single 1080p target.
+// Smallest CSS viewport the layout can render in. Zoom is capped so it is never smaller.
 export const MIN_VIEWPORT = { width: 1280, height: 720 };
-export const MAX_VIEWPORT = { width: 2560, height: 1440 };
 
 // Windowed sizes are offered across this range of shapes; fullscreen uses the display's own.
 export const SUPPORTED_ASPECT_RATIOS = [
@@ -24,11 +22,8 @@ export const SUPPORTED_ASPECT_RATIOS = [
 export const WINDOW_HEIGHT_STEPS = [720, 900, 1080, 1200, 1440];
 
 // Absolute interface scale, in the same units the OS calls its scaling percentage.
-export const UI_SCALE_MIN = 0.5;
-export const UI_SCALE_MAX = 3;
+export const UI_SCALE_MIN = 0.75;
+export const UI_SCALE_MAX = 2.5;
 export const UI_SCALE_STEP = 0.05;
 
 export const clampUiScale = (scale: number) => Math.min(UI_SCALE_MAX, Math.max(UI_SCALE_MIN, scale));
-
-// Offered in the settings control; the achievable subset depends on the window.
-export const UI_SCALE_CHOICES = [0.75, 1, 1.25, 1.5, 1.75, 2, 2.5, 3];
