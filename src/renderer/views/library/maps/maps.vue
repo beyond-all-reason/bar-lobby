@@ -9,21 +9,19 @@ SPDX-License-Identifier: MIT
 </route>
 
 <template>
-    <div class="view">
-        <div class="maps-container">
-            <div class="view-title">
-                <h1>{{ t("lobby.library.maps.title") }}</h1>
-            </div>
-            <div class="layout">
-                <Panel class="map-filters">
-                    <MapFiltersComponent />
-                </Panel>
-                <Panel class="flex-grow">
-                    <div class="flex-col fullheight">
-                        <MapListComponent @map-selected="onMapSelected" />
-                    </div>
-                </Panel>
-            </div>
+    <div class="maps-container">
+        <div class="view-title">
+            <h1>{{ t("lobby.library.maps.title") }}</h1>
+        </div>
+        <div class="layout">
+            <Panel class="map-filters">
+                <MapFiltersComponent />
+            </Panel>
+            <Panel class="flex-grow">
+                <div class="flex-col fullheight">
+                    <MapListComponent @map-selected="onMapSelected" />
+                </div>
+            </Panel>
         </div>
     </div>
 </template>
@@ -48,10 +46,7 @@ async function onMapSelected(map: MapData) {
 .maps-container {
     display: flex;
     flex-direction: column;
-    align-self: center;
-    width: 1600px;
     height: 100%;
-    padding-left: 40px;
 }
 
 .layout {

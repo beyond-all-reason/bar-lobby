@@ -9,7 +9,7 @@ SPDX-License-Identifier: MIT
 </route>
 
 <template>
-    <div class="view">
+    <div>
         <div class="ranked-container">
             <div class="view-title">
                 <h1>{{ t("lobby.multiplayer.ranked.title") }}</h1>
