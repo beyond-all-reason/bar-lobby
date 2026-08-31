@@ -276,35 +276,25 @@ function showReplayFile(replay: Replay) {
 </script>
 
 <style lang="scss" scoped>
-.replay-view {
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    height: 100%;
-
-    padding: 60px 60px 100px 60px;
-
-    gap: 20px;
-    padding-bottom: 120px;
-    align-self: center;
-}
-
 .replay-container {
     display: flex;
     flex-direction: column;
     height: 100%;
-    align-self: center;
 }
 
 .middle-section {
-    width: 1200px;
+    flex: 1 1 0;
+    min-width: 0;
     height: 700px;
+    max-height: 100%;
 }
 
 .right-section {
     display: flex;
+    flex: 0 1 400px;
+    min-width: 0;
     height: 700px;
-    width: 400px;
+    max-height: 100%;
 }
 
 :deep(.p-datatable-tbody tr.highlighted-replay td) {

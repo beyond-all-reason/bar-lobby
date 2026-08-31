@@ -187,7 +187,8 @@ function getTeamSize(queue: string) {
     align-self: center;
     gap: 20px;
     height: 100%;
-    width: 1000px;
+    width: 100%;
+    max-width: 1000px;
     overflow: visible;
 }
 
