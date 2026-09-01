@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
-import type { BattleEndedEventData, BattleStartRequestData, PrivateBattle } from "tachyon-protocol/types";
+import type { BattleEndedEventData, BattleStartRequestData, PrivateBattle, PrivateUser, UserSelfEventData } from "tachyon-protocol/types";
 
 vi.mock("@renderer/router", () => ({ router: { currentRoute: { value: { path: "/" } }, push: vi.fn(), replace: vi.fn() } }));
 
@@ -14,6 +14,7 @@ const disconnectHandlers: Array<() => void> = [];
 const authHandlers: Array<(state: { authenticated: boolean }) => void> = [];
 const battleStartHandlers: Array<(battle: BattleStartRequestData) => void> = [];
 const battleEndedHandlers: Array<(data: BattleEndedEventData) => void> = [];
+const eventHandlers = new Map<string, (data: unknown) => void>();
 
 const connect = vi.fn(async () => {});
 const disconnect = vi.fn(async () => {});
@@ -28,6 +29,7 @@ Object.assign(window.tachyon, {
     onDisconnected: (callback: () => void) => void disconnectHandlers.push(callback),
     onBattleStart: (callback: (battle: BattleStartRequestData) => void) => void battleStartHandlers.push(callback),
     onBattleEnded: (callback: (data: BattleEndedEventData) => void) => void battleEndedHandlers.push(callback),
+    onEvent: (command: string, callback: (data: unknown) => void) => void eventHandlers.set(command, callback),
 });
 
 Object.defineProperty(window, "auth", {
@@ -39,7 +41,6 @@ Object.defineProperty(window, "game", { value: { launchMultiplayer }, writable: 
 
 const { tachyonStore, tachyon, initTachyonStore } = await import("@renderer/store/tachyon.store");
 const { me } = await import("@renderer/store/me.store");
-const { onUserSelfBattleSignal } = await import("@renderer/utils/user-self-signal");
 
 const simulateConnect = () => connectHandlers.forEach((handler) => handler());
 const simulateClose = () => disconnectHandlers.forEach((handler) => handler());
@@ -149,7 +150,8 @@ describe("connection intent", () => {
             map: { springName: "map-version" },
         } satisfies PrivateBattle;
 
-        onUserSelfBattleSignal.dispatch(battle);
+        const data = { user: { currentBattle: battle } as PrivateUser } satisfies UserSelfEventData;
+        eventHandlers.get("user/self")?.(data);
 
         expect(tachyonStore.springConnectionDetails).toEqual(battle);
         expect(tachyonStore.rejoinModalOpen).toBe(true);

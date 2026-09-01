@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
-import type { PrivateUser } from "tachyon-protocol/types";
+import type { PrivateUser, UserSelfEventData } from "tachyon-protocol/types";
 
 vi.mock("@renderer/router", () => ({ router: { push: vi.fn() } }));
 vi.mock("@renderer/api/notifications", () => ({ notificationsApi: { alert: vi.fn() } }));
@@ -16,18 +16,20 @@ vi.mock("@renderer/store/db", () => ({
     },
 }));
 
+const eventHandlers = new Map<string, (data: unknown) => void>();
+
 Object.assign(window.tachyon, {
-    onEvent: vi.fn(),
+    onEvent: (command: string, callback: (data: unknown) => void) => void eventHandlers.set(command, callback),
     onConnected: vi.fn(),
     requestStructured: vi.fn(async () => ({ status: "success", data: {} })),
 });
 
 const { MatchmakingStatus, initializeMatchmakingStore, matchmakingStore } = await import("@renderer/store/matchmaking.store");
 const { router } = await import("@renderer/router");
-const { onUserSelfMatchmakingSignal } = await import("@renderer/utils/user-self-signal");
 
 function emitUserSelf(matchmaking: PrivateUser["matchmaking"]) {
-    onUserSelfMatchmakingSignal.dispatch(matchmaking);
+    const data = { user: { matchmaking } as PrivateUser } satisfies UserSelfEventData;
+    eventHandlers.get("user/self")?.(data);
 }
 
 describe("user/self matchmaking state", () => {

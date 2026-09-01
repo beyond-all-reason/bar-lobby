@@ -14,6 +14,7 @@ import {
     PartyInviteRequestData,
     PartyKickMemberRequestData,
     UserId,
+    PrivateUser,
 } from "tachyon-protocol/types";
 import { reactive } from "vue";
 import { notificationsApi } from "@renderer/api/notifications";
@@ -22,7 +23,6 @@ import { Party } from "@renderer/model/party";
 import { subsManager } from "@renderer/store/users.store";
 import { chat } from "@renderer/store/chat.store";
 import { onWentOffline } from "@renderer/utils/offline-signal";
-import { onUserSelfPartySignal } from "@renderer/utils/user-self-signal";
 
 const partySymbol = Symbol("party.store");
 
@@ -195,6 +195,23 @@ function onUpdatedEvent(data: PartyUpdatedEventData) {
     parseAllPartyData();
 }
 
+function onUserSelfEventParty({ party, invites }: { party: PrivateUser["party"]; invites: PrivateUser["invitedToParties"] }) {
+    if (party && party.id === partyStore.activeParty) {
+        // This is the only case where we want to preserve the chat history, so we keep activeParty
+        // The rest will be reset by parseAllPartyData().
+        subsManager.clearAllFromList(partySymbol);
+        partyStore.parties.clear();
+        partyStore.state = PlayersPartyState.None;
+    } else {
+        clearOnlineState();
+    }
+    const allParties = [...(party ? [party] : []), ...(invites || [])];
+    for (const partyState of allParties) {
+        partyStore.parties.set(partyState.id, { ...partyState, seen: false });
+    }
+    parseAllPartyData();
+}
+
 // We might be invited, or member, have to check to know.
 function parseAllPartyData() {
     const previousParty = partyStore.activeParty;
@@ -261,22 +278,7 @@ export async function initPartyStore() {
     window.tachyon.onEvent("party/invited", onInvitedEvent);
     window.tachyon.onEvent("party/removed", onRemovedEvent);
     window.tachyon.onEvent("party/updated", onUpdatedEvent);
-    onUserSelfPartySignal.add(([party, invites]) => {
-        if (party && party.id === partyStore.activeParty) {
-            // This is the only case where we want to preserve the chat history, so we keep activeParty
-            // The rest will be reset by parseAllPartyData().
-            subsManager.clearAllFromList(partySymbol);
-            partyStore.parties.clear();
-            partyStore.state = PlayersPartyState.None;
-        } else {
-            clearOnlineState();
-        }
-        const allParties = [...(party ? [party] : []), ...(invites || [])];
-        for (const partyState of allParties) {
-            partyStore.parties.set(partyState.id, { ...partyState, seen: false });
-        }
-        parseAllPartyData();
-    });
+    window.tachyon.onEvent("user/self", (data) => onUserSelfEventParty({ party: data.user.party, invites: data.user.invitedToParties }));
 
     partyStore.isInitialized = true;
 }

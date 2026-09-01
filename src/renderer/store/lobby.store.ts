@@ -22,6 +22,7 @@ import {
     LobbyVoteSubmitRequestData,
     LobbyUpdateClientStatusRequestData,
     UserId,
+    PrivateUser,
 } from "tachyon-protocol/types";
 import { reactive } from "vue";
 import { apply as applyPatch } from "json8-merge-patch";
@@ -35,7 +36,6 @@ import { db } from "@renderer/store/db";
 import { battleStore, battleActions } from "@renderer/store/battle.store";
 import { router } from "@renderer/router";
 import { onWentOffline } from "@renderer/utils/offline-signal";
-import { onUserSelfLobbySignal } from "@renderer/utils/user-self-signal";
 import { tachyonStore } from "@renderer/store/tachyon.store";
 
 const i18n = setupI18n();
@@ -50,7 +50,6 @@ export const lobbyStore: {
     selectedLobby?: LobbyOverview;
     activeLobby?: Lobby;
     wantsListSubscription: boolean;
-    preserveChat: boolean;
 } = reactive({
     isInitialized: false,
     lobbies: {},
@@ -78,28 +77,29 @@ export async function initLobbyStore() {
             requestSubscribeList();
         }
     });
-
-    onUserSelfLobbySignal.add((lobbyId) => {
-        if (lobbyId) {
-            // join is idempotent, so we can call it even if we're already in the lobby.
-            // However, if the lobby matched the previous one, we don't want to clear chat too.
-            if (lobbyStore.activeLobby && lobbyStore.activeLobby.id == lobbyId) {
-                // User was previously in this lobby, so we will preserve chat.
-                lobbyStore.preserveChat = true;
-            }
-            requestJoinLobby(lobbyId, false);
-        } else {
-            // User is not in a lobby. We navigate out of the lobby view if they are currently there, and clear the activeLobby.
-            if (router.currentRoute.value.path == "/play/lobby") {
-                router.replace("/play/customLobbies");
-            }
-            clearUserSubscriptions();
-            lobbyStore.activeLobby = undefined;
-            lobbyStore.preserveChat = false;
-        }
-    });
+    window.tachyon.onEvent("user/self", (data) => onUserSelfEventLobby(data.user.currentLobby));
 
     lobbyStore.isInitialized = true;
+}
+
+function onUserSelfEventLobby(lobbyId: PrivateUser["currentLobby"]) {
+    if (lobbyId) {
+        // join is idempotent, so we can call it even if we're already in the lobby.
+        // However, if the lobby matched the previous one, we don't want to clear chat too.
+        if (lobbyStore.activeLobby && lobbyStore.activeLobby.id == lobbyId) {
+            // User was previously in this lobby, so we will preserve chat.
+            lobbyStore.preserveChat = true;
+        }
+        requestJoinLobby(lobbyId, false);
+    } else {
+        // User is not in a lobby. We navigate out of the lobby view if they are currently there, and clear the activeLobby.
+        if (router.currentRoute.value.path == "/play/lobby") {
+            router.replace("/play/customLobbies");
+        }
+        clearUserSubscriptions();
+        lobbyStore.activeLobby = undefined;
+        lobbyStore.preserveChat = false;
+    }
 }
 
 function onListUpdatedEvent(data: LobbyListUpdatedEventData) {

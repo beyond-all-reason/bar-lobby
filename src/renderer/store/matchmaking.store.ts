@@ -16,7 +16,6 @@ import { tachyonStore } from "@renderer/store/tachyon.store";
 import { notificationsApi } from "@renderer/api/notifications";
 import { isTachyonErrorForCommand, tachyonRequest } from "@renderer/api/tachyon";
 import { onWentOffline } from "@renderer/utils/offline-signal";
-import { onUserSelfMatchmakingSignal } from "@renderer/utils/user-self-signal";
 import { router } from "@renderer/router";
 
 // The server is the authority on the real ready-up deadline and will send its own
@@ -142,6 +141,31 @@ function onSelfUpdateFoundSignal(data: Extract<PrivateUser["matchmaking"], { sta
         }, deadline - Date.now());
     }
     router.push("/play/matchmaking");
+}
+
+function onUserSelfEventMatchmaking(data: PrivateUser["matchmaking"]) {
+    console.log("User/self update: matchmaking:", data);
+    switch (data.state) {
+        case "no_matchmaking":
+            clearReadyTimers();
+            matchmakingStore.status = MatchmakingStatus.Idle;
+            break;
+        case "queuing":
+            clearReadyTimers();
+            matchmakingStore.status = MatchmakingStatus.Searching;
+            // We try to match to their selected queue, but if it is not available (or none was selected) we pick the first.
+            if (matchmakingStore.selectedQueue && data.queues.some((q) => q.id === matchmakingStore.selectedQueue)) {
+                // Keep the selected queue as-is, since it is valid and available.
+                break;
+            } else {
+                // They did not have a valid selected queue, so we pick the first for them or fallback to default value?
+                matchmakingStore.selectedQueue = data.queues[0]?.id ?? "1v1";
+                break;
+            }
+        case "found":
+            onSelfUpdateFoundSignal(data);
+            break;
+    }
 }
 
 function onQueuesJoinedEvent(data: MatchmakingQueuesJoinedEventData) {
@@ -315,32 +339,11 @@ export async function initializeMatchmakingStore() {
 
     window.tachyon.onEvent("matchmaking/queuesJoined", onQueuesJoinedEvent);
 
+    window.tachyon.onEvent("user/self", (data) => onUserSelfEventMatchmaking(data.user.matchmaking));
+
     if (tachyonStore.isConnected) {
         await sendListRequest();
     }
-    onUserSelfMatchmakingSignal.add((data) => {
-        switch (data.state) {
-            case "no_matchmaking":
-                clearReadyTimers();
-                matchmakingStore.status = MatchmakingStatus.Idle;
-                break;
-            case "queuing":
-                clearReadyTimers();
-                matchmakingStore.status = MatchmakingStatus.Searching;
-                // We try to match to their selected queue, but if it is not available (or none was selected) we pick the first.
-                if (matchmakingStore.selectedQueue && data.queues.some((q) => q.id === matchmakingStore.selectedQueue)) {
-                    // Keep the selected queue as-is, since it is valid and available.
-                    break;
-                } else {
-                    // They did not have a valid selected queue, so we pick the first for them or fallback to default value?
-                    matchmakingStore.selectedQueue = data.queues[0]?.id ?? "1v1";
-                    break;
-                }
-            case "found":
-                onSelfUpdateFoundSignal(data);
-                break;
-        }
-    });
 
     matchmakingStore.isInitialized = true;
 }

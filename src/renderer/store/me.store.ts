@@ -18,7 +18,6 @@ import {
 import { settingsStore } from "@renderer/store/settings.store";
 import { subsManager } from "@renderer/store/users.store";
 import { onWentOffline } from "@renderer/utils/offline-signal";
-import { onUserSelfPartySignal, onUserSelfLobbySignal, onUserSelfMatchmakingSignal, onUserSelfBattleSignal } from "@renderer/utils/user-self-signal";
 import { notificationsApi } from "@renderer/api/notifications";
 import { tachyonRequest } from "@renderer/api/tachyon";
 
@@ -116,11 +115,6 @@ async function onUserSelfEvent(data: UserSelfEventData) {
         });
 
         await processFriendData(data.user);
-        // We have to send all the signals because the some values may have become null/undefined while missing updates and stores need to update accordingly
-        onUserSelfBattleSignal.dispatch(data.user.currentBattle);
-        onUserSelfLobbySignal.dispatch(data.user.currentLobby);
-        onUserSelfMatchmakingSignal.dispatch(data.user.matchmaking);
-        onUserSelfPartySignal.dispatch([data.user.party, data.user.invitedToParties]);
     }
 }
 

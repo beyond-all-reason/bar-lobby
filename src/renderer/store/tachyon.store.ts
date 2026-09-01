@@ -7,12 +7,11 @@ import { SystemServerStatsOkResponseData } from "tachyon-protocol/types";
 import { reactive } from "vue";
 import { matchmakingStore, matchmaking } from "@renderer/store/matchmaking.store";
 import { subsManager } from "@renderer/store/users.store";
-import { UserId } from "tachyon-protocol/types";
+import { UserId, PrivateUser } from "tachyon-protocol/types";
 import { notificationsApi } from "@renderer/api/notifications";
 import { tachyonRequest } from "@renderer/api/tachyon";
 import { chat, chatStore } from "@renderer/store/chat.store";
 import { onWentOffline } from "@renderer/utils/offline-signal";
-import { onUserSelfBattleSignal } from "@renderer/utils/user-self-signal";
 import { createSpringString, SpringConnectionDetails } from "@shared/spring-string";
 
 type MultiplayerBattleConnectionDetails = SpringConnectionDetails & {
@@ -136,6 +135,16 @@ function launchMultiplayerBattle(connectionDetails: MultiplayerBattleConnectionD
     });
 }
 
+function onUserSelfEventBattle(battle: PrivateUser["currentBattle"]) {
+    if (!battle) {
+        tachyonStore.springConnectionDetails = undefined;
+        tachyonStore.rejoinModalOpen = false;
+        return;
+    }
+    tachyonStore.springConnectionDetails = battle;
+    tachyonStore.rejoinModalOpen = true;
+}
+
 export async function initTachyonStore() {
     if (tachyonStore.isInitialized) {
         console.warn("Tachyon store is already initialized. Skipping initialization.");
@@ -224,15 +233,7 @@ export async function initTachyonStore() {
         tachyonStore.rejoinModalOpen = false;
     });
 
-    onUserSelfBattleSignal.add((battle) => {
-        if (!battle) {
-            tachyonStore.springConnectionDetails = undefined;
-            tachyonStore.rejoinModalOpen = false;
-            return;
-        }
-        tachyonStore.springConnectionDetails = battle;
-        tachyonStore.rejoinModalOpen = true;
-    });
+    window.tachyon.onEvent("user/self", (data) => onUserSelfEventBattle(data.user.currentBattle));
 
     subsManager.onNewUsersAttached.add(async (users: UserId[]) => {
         if (!tachyonStore.isConnected) return;
