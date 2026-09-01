@@ -386,11 +386,12 @@ function onLogoClick() {
 .battle-video {
     position: absolute;
     top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
+    left: 0;
+    width: 100%;
+    transform: translateY(-50%);
     z-index: 2;
 }
 .dim {
-    filter: brightness(0.2);
+    filter: brightness(0.12);
 }
 </style>

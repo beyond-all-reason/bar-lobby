@@ -5,7 +5,10 @@ SPDX-License-Identifier: MIT
 -->
 
 <template>
-    <video :src="video" autoplay muted loop></video>
+    <div>
+        <span class="rejoin-label">{{ "Rejoin" }}</span>
+        <video :src="video" autoplay muted loop></video>
+    </div>
 </template>
 
 <script lang="ts" setup>
@@ -15,10 +18,21 @@ const video = miscVideos["./videos/misc/active_battle.mkv"];
 </script>
 
 <style lang="scss" scoped>
+:deep(> div) {
+    width: 100%;
+}
+
 video {
-    max-width: 100%;
-    max-height: 200px;
+    display: block;
+    width: 100%;
     height: auto;
-    object-fit: fill;
+}
+
+.rejoin-label {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
 }
 </style>
